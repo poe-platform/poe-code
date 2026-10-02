@@ -49,6 +49,13 @@
       "workerd": "./src/stream.browser.ts",
       "browser": "./src/stream.browser.ts",
       "default": "./src/stream.node.ts"
+    },
+    "#tiny-mcp-spawn": {
+      "types": "./src/spawn.node.ts",
+      "workerd": "./src/spawn.browser.ts",
+      "browser": "./src/spawn.browser.ts",
+      "worker": "./src/spawn.browser.ts",
+      "default": "./src/spawn.node.ts"
     }
   }
 }

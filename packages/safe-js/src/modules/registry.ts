@@ -1,3 +1,4 @@
+import { runResources, type RunResources } from "../interp/resources.js";
 import { attachErrorSpan } from "../error/shape.js";
 import { createModuleNamespace } from "../interp/module-namespace.js";
 import type { Budget, CompileOwner } from "../interp/budget.js";
@@ -43,6 +44,7 @@ export type ModuleEnvironment = {
 };
 
 export type ModuleEnvironmentOptions = {
+  resources?: RunResources;
   budget: Budget;
   realm?: RealmBridge;
   wrappedModules?: Map<string, Record<string, SandboxValue>>;
@@ -54,6 +56,7 @@ export type ModuleEnvironmentOptions = {
 
 const moduleEnvironments = new WeakMap<ModuleEnvironment, {
   registry: NormalizedModuleRegistry;
+  resources?: RunResources;
   options: ModuleEnvironmentOptions;
   prepared: Set<string>;
   capabilities: Map<string, SandboxClosure>;
@@ -66,7 +69,7 @@ export function createModuleEnvironment(modules: ModuleRegistry | undefined, opt
     namespaces: createBindingRecord(Object.fromEntries(options.wrappedModules ?? []))
   };
   revokeImmutableEmptyModuleEnvironment(environment);
-  moduleEnvironments.set(environment, {registry,options,prepared:new Set(),capabilities:new Map()});
+  moduleEnvironments.set(environment, {registry,options,resources:options.resources ?? runResources.getStore(),prepared:new Set(),capabilities:new Map()});
   return environment;
 }
 
@@ -102,7 +105,7 @@ export function resolveModuleNamespace(environment: ModuleEnvironment, moduleNam
   if (exports === undefined) throw new Error(createUnknownModuleMessage(moduleName,[...backend.registry.keys()]));
   let namespace = createModuleNamespace(wrapCancelableBindings(
     wrapCallerInjectedBindings(Object.fromEntries(exports), {
-      realm: options.realm, budget: options.budget, compileOwner: options.compileOwner,
+      resources: backend.resources, realm: options.realm, budget: options.budget, compileOwner: options.compileOwner,
       hostCalls: options.hostCalls, moduleId: moduleName, signal: options.signal,
       moduleCapabilities: backend.capabilities
     }),options.signal

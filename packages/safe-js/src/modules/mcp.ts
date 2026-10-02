@@ -117,13 +117,14 @@ export function makeMcpModule(
       const invoke = async <Result>(
         operation: (client: Awaited<ReturnType<typeof connection>>) => Promise<Result>
       ): Promise<Result> => {
+        const scope = runResources.getStore();
         try {
           const result = await operation(await connection());
-          runResources.getStore()?.signal.throwIfAborted();
+          scope?.signal.throwIfAborted();
           options.signal?.throwIfAborted();
           return result;
         } catch (error) {
-          runResources.getStore()?.signal.throwIfAborted();
+          scope?.signal.throwIfAborted();
           options.signal?.throwIfAborted();
           if (error instanceof McpError) {
             hostErrorData.set(error, {

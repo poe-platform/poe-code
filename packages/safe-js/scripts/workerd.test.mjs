@@ -6,7 +6,8 @@ import { Miniflare } from "miniflare";
 test("portable interpreter executes in workerd without Node compatibility", { timeout: 30000 }, async () => {
   const result = await build({
     stdin: { resolveDir: new URL("../", import.meta.url).pathname, contents: `
-      import { run, makeFsModule, createRootedSourceResolver, dump, restore, parseFsConfig, resolveFsConfig } from "@poe-code/safe-js";
+      import * as sdk from "@poe-code/safe-js";
+      import { run, makeFsModule, createRootedSourceResolver, dump, restore, parseFsConfig, resolveFsConfig, makeMcpModule, inspectSnapshotMigration } from "@poe-code/safe-js";
       import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
       import { StackContext } from "./dist/platform/context.js";
       import { types, createTrackedProxy } from "./dist/platform/types.js";
@@ -59,6 +60,32 @@ test("portable interpreter executes in workerd without Node compatibility", { ti
         }
         if (!types.isProxy(createTrackedProxy({}, {}))) throw new Error("Tracked proxy lost");
         if (!types.isPromise(Promise.resolve(1))) throw new Error("Promise brand lost");
+        if (typeof inspectSnapshotMigration !== "function") throw new Error("Worker SDK export missing");
+        let mcpClosed = 0;
+        let mcpInitialized = 0;
+        const mcp = makeMcpModule({ servers: { docs: { url: "https://example.test/mcp" } },
+          fetch: async (_input, init) => {
+            if (init.method === "GET") return new Response(null, { status: 405 });
+            if (init.method === "DELETE") { mcpClosed++; return new Response(null, { status: 204 }); }
+            const request = JSON.parse(init.body);
+            if (request.method === "server/discover") return Response.json({ jsonrpc: "2.0", id: request.id,
+              error: { code: -32601, message: "Method not found" } });
+            if (request.id === undefined) return new Response(null, { status: 202 });
+            if (request.method === "initialize") mcpInitialized++;
+            const result = request.method === "initialize" ? {
+              protocolVersion: request.params.protocolVersion, capabilities: { tools: {} }, serverInfo: { name: "worker", version: "1" }
+            } : { tools: [{ name: "echo", inputSchema: { type: "object" } }] };
+            return Response.json({ jsonrpc: "2.0", id: request.id, result }, { headers: { "mcp-session-id": "worker-" + mcpInitialized } });
+          }
+        });
+        const mcpResult = await run('import { servers } from "mcp"; return await servers.docs.tools();', { modules: { mcp } });
+        if (mcpResult.returnValue[0].name !== "echo" || mcpClosed !== 1) throw new Error("Worker MCP lifecycle failed: " + JSON.stringify({ result: mcpResult.returnValue, closed: mcpClosed }));
+        await Promise.all([1, 2].map(() => run('import { servers } from "mcp"; return await servers.docs.tools();', { modules: { mcp } })));
+        if (mcpInitialized !== 3 || mcpClosed !== 3) throw new Error("Concurrent MCP runs shared resource ownership");
+        const mcpRealm = sdk.createRealm({ modules: { mcp } });
+        try { await mcpRealm.evaluate('import { servers } from "mcp"; return await servers.docs.tools();'); }
+        finally { await mcpRealm.close(); }
+        if (mcpInitialized !== 4 || mcpClosed !== 4) throw new Error("Realm MCP cleanup failed");
         const configured = await resolveFsConfig(parseFsConfig(JSON.stringify({
           adapter: { type: "memory" }, root: "/configured", readFileMaxBytes: 128
         })));
@@ -99,7 +126,7 @@ test("portable interpreter executes in workerd without Node compatibility", { ti
           sourceType: "module", filename: await resolver.entryId(), sourceResolver: resolver
         });
         if (imported.returnValue.value !== 42) throw new Error("Source import failed");
-        return Response.json({ ok: true });
+        return Response.json({ ok: true, exports: Object.keys(sdk).sort() });
       }};
     ` },
     bundle: true, platform: "neutral", format: "esm", conditions: ["workerd"], write: false, tsconfigRaw: {},
@@ -112,6 +139,6 @@ test("portable interpreter executes in workerd without Node compatibility", { ti
     const response = await worker.dispatchFetch("http://fixture/");
     const body = await response.text();
     assert.equal(response.status, 200, body);
-    assert.deepEqual(JSON.parse(body), { ok: true });
+    assert.deepEqual(JSON.parse(body), { ok: true, exports: Object.keys(await import("../dist/index.js")).sort() });
   } finally { await worker.dispose(); }
 });

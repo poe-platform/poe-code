@@ -3,7 +3,7 @@ import { resolveSandboxValue } from "./promise.js";
 import { readNativeMap, readNativeSet } from "./native-collections.js";
 import { copyCollectionPropertiesOperation, getCollectionProperties } from "./collection-properties.js";
 import { runDataCopy, type DataCopyOperation } from "./data-copy.js";
-import { runResources } from "./resources.js";
+import { runResources, type RunResources } from "./resources.js";
 import { nativeConstructorName } from "./native-constructor-name.js";
 import { types } from "#safe-js-platform";
 import { nativePromiseDataProperties } from "./native-promise-properties.js";
@@ -142,6 +142,7 @@ export type RealmBridge = {
 };
 
 export type HostBridgeOptions = {
+  resources?: RunResources;
   realm?: RealmBridge;
   registerCapabilities?: boolean;
   capabilityPath?: readonly string[];
@@ -206,7 +207,7 @@ export function wrapCallerInjectedBindings(
   options: HostBridgeOptions
 ): Record<string, SandboxValue> {
   const operation = options.budget.acquireCompileOwner(false, options.compileOwner);
-  options = { ...options, registerCapabilities: true, compileOwner: operation.owner };
+  options = { ...options, resources: options.resources ?? runResources.getStore(), registerCapabilities: true, compileOwner: operation.owner };
   try {
     const state = { seen: new WeakMap<object, SandboxValue>() };
     const copied = Object.fromEntries(
@@ -370,12 +371,16 @@ function wrapCallerInjectedFunction(
         const hostArgs = captured?.args ?? copyArguments(args);
 
         const budgetedOperation = budgetedHostOperations.get(callable);
-        const callOperation = () => {
+        const invokeOperation = () => {
           const result = budgetedOperation === undefined
             ? Reflect.apply(callable, undefined, hostArgs)
             : budgetedOperation(hostArgs, options.budget);
           return validateResult === undefined ? result : validateResult(result);
         };
+        const resources = options.resources;
+        const callOperation = resources === undefined
+          ? invokeOperation
+          : () => runResources.run(resources, invokeOperation);
 
         const hostCalls = options.hostCalls;
         const operation = options.operation ?? bindingName;

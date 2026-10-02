@@ -1,10 +1,11 @@
-import { spawn, type ChildProcessWithoutNullStreams, type SpawnOptions } from "node:child_process";
-import path from "node:path";
+import type { ChildProcessWithoutNullStreams, SpawnOptions } from "node:child_process";
+import path from "./paths.js";
 import {
   HttpTransport,
   fetchMcpResponse,
   McpClient,
   StdioTransport,
+  defaultStdioSpawn,
   type McpTransport
 } from "tiny-mcp-client";
 
@@ -177,7 +178,7 @@ export function connectMcpTransport(
           spawn(command, args, spawnOptions) {
             child =
               options.spawn === undefined
-                ? (spawn(command, args, spawnOptions) as ChildProcessWithoutNullStreams)
+                ? defaultStdioSpawn(command, args, spawnOptions)
                 : options.spawn(command, args, spawnOptions);
             return child;
           }

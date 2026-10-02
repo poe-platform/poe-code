@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawn } from "#tiny-mcp-spawn";
 import type { ChildProcessWithoutNullStreams, SpawnOptions } from "node:child_process";
 import type { Readable, Writable } from "node:stream";
 import type { McpTransport, McpTransportClosedEvent } from "./internal.js";
@@ -17,7 +17,7 @@ export interface StdioTransportOptions {
   spawn?: StdioSpawn;
 }
 
-function defaultStdioSpawn(
+export function defaultStdioSpawn(
   command: string,
   args: ReadonlyArray<string>,
   options: SpawnOptions

@@ -112,5 +112,5 @@ export type {
   StoredOAuthSession,
 } from "./internal.js";
 
-export { StdioTransport } from "./stdio-transport.js";
+export { StdioTransport, defaultStdioSpawn } from "./stdio-transport.js";
 export type { StdioSpawn, StdioTransportOptions } from "./stdio-transport.js";

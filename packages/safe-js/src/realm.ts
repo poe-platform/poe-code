@@ -318,6 +318,7 @@ class RealmState {
   }
 
   bridgeOptions = (): HostBridgeOptions => ({
+    resources: this.resources,
     budget: this.budget,
     compileOwner: this.lease.owner,
     signal: this.controller.signal,

@@ -1977,3 +1977,33 @@ Five warmed alternating Node 22 ARM64 rounds retaining 32 results measured
 (10 calls/round, 3.32× slower). No performance gate passed. Theme, reducer,
 remaining renderers, runtime/public namespace and broader swap qualification
 remain open.
+
+### Explorer theme checkpoint
+
+`explorer/theme` exposes `getExplorerTheme`, `getExplorerStyles` and the original
+interfaces. Rust projects palette styles, formats badge/match text and preserves
+palette reads and callback invocation order. The host retains function/style
+identities, live callback receivers, object-literal property creation, spread
+semantics, coercion and arbitrary thrown values. The highlight style is a fresh
+copy; inherited setters cannot intercept result properties.
+
+Three missing-export tests preceded implementation; a fourth reproduced and
+corrected inherited-setter interception before delivery. Maintained checks pass
+341 native host tests, 1,379 selected design cases, 13 prompt wrappers,
+132 dashboard/queue cases, 14 composer cases and 144 explorer cases, including
+the original theme suite. Rust/binding and scoped JS lint, bidirectional types
+and packed runtime/declarations pass. The packed runtime rejects external ESM
+imports and its type consumer uses `types: []`. No dependencies or default
+integration changed.
+
+Inspected dark/light screenshots for three brands. Direct ANSI theme output and
+original-Screen frames match reference output byte-for-byte. Screen retains its
+existing reduction of hexadecimal colors to the basic palette.
+
+Five warmed alternating 5,000-call Node 22 ARM64 rounds retaining 32 results with
+color enabled measured 5.463 µs native / 0.263 µs reference for theme projection
+(20.76× slower), 9.233 µs / 0.233 µs for style projection (39.58× slower), and
+1.492 µs / 3.841 µs for a captured success badge (2.57× faster). These are small
+operation costs, not a full-render performance gate. Native/host batching,
+remaining renderers, reducer, runtime/public namespace and broader swap
+qualification remain open.

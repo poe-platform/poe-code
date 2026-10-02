@@ -483,6 +483,10 @@
     "./explorer/detail-content": {
       "types": "./dist/explorer-detail-content.d.ts",
       "import": "./dist/explorer-detail-content.js"
+    },
+    "./explorer/theme": {
+      "types": "./dist/explorer-theme.d.ts",
+      "import": "./dist/explorer-theme.js"
     }
   },
   "scripts": {

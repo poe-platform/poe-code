@@ -92,3 +92,4 @@ pub mod explorer_filter;
 pub mod explorer_jobs;
 pub mod explorer_layout;
 pub mod explorer_state;
+pub mod explorer_theme;

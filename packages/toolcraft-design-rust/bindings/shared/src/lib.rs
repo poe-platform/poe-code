@@ -535,3 +535,5 @@ mod explorer_jobs;
 pub use explorer_jobs::*;
 mod explorer_detail_content;
 pub use explorer_detail_content::*;
+mod explorer_theme;
+pub use explorer_theme::*;

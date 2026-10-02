@@ -896,3 +896,14 @@ const explorerDetailContentKeys: SameKeys<typeof explorerDetailContent,typeof or
 const preparedContentOriginal: originalExplorerDetailContent.PreparedDetailContent = null as unknown as explorerDetailContent.PreparedDetailContent;
 const preparedContentNative: explorerDetailContent.PreparedDetailContent = null as unknown as originalExplorerDetailContent.PreparedDetailContent;
 void [explorerDetailContentOriginal,explorerDetailContentNative,explorerDetailContentKeys,preparedContentOriginal,preparedContentNative];
+
+import * as explorerTheme from "toolcraft-design-rust/explorer/theme";
+import type * as originalExplorerTheme from "toolcraft-design/explorer/theme";
+const explorerThemeOriginal: typeof originalExplorerTheme = explorerTheme;
+const explorerThemeNative: typeof explorerTheme = null as unknown as typeof originalExplorerTheme;
+const explorerThemeKeys: SameKeys<typeof explorerTheme,typeof originalExplorerTheme> = true;
+const themeOriginal: originalExplorerTheme.ExplorerTheme = null as unknown as explorerTheme.ExplorerTheme;
+const themeNative: explorerTheme.ExplorerTheme = null as unknown as originalExplorerTheme.ExplorerTheme;
+const stylesOriginal: originalExplorerTheme.ExplorerStyles = null as unknown as explorerTheme.ExplorerStyles;
+const stylesNative: explorerTheme.ExplorerStyles = null as unknown as originalExplorerTheme.ExplorerStyles;
+void [explorerThemeOriginal,explorerThemeNative,explorerThemeKeys,themeOriginal,themeNative,stylesOriginal,stylesNative];

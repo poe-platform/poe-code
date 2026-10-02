@@ -623,3 +623,8 @@ events and clears its loading timer.
 rendered text and physical rows of styled grapheme cells for a detail pane.
 Widths are clamped to at least one column, trailing blank rows are removed,
 and revisiting the same content and width reuses the prepared result.
+
+`getExplorerTheme()` and `getExplorerStyles()` from `explorer/theme` provide
+brand-aware border, accent, match-highlight and status-tone styles. Badge and
+match formatters read the current palette when called; shared palette styles
+retain their identity, while the underlined match style is a fresh object.

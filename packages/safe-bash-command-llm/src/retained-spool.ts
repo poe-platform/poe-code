@@ -36,53 +36,69 @@ export async function createLlmSpool(fs: FileSystem, directory: string, signal: 
  }
  let reader: FileReadHandle | undefined;
  let sealed: FileStat | undefined;
+ let sealing: Promise<void> | undefined;
+ let active = false;
+ let writing = false;
  let written = 0;
  let closing: Promise<void> | undefined;
  return {
   async write(bytes: Uint8Array): Promise<void> {
    signal.throwIfAborted();
-   if (sealed || closing) throw new FsError("EBADF", { message: "LLM spool is closed" });
-   for (let offset = 0; offset < bytes.byteLength; offset += 16384) {
-    const chunk = bytes.subarray(offset, offset + 16384);
-    await writer.write(chunk, { signal });
-    written += chunk.byteLength;
-   }
+   if (sealing || closing) throw new FsError("EBADF", { message: "LLM spool is closed" });
+   if (writing) throw new FsError("EBUSY", { message: "LLM spool write is active" });
+   writing = true;
+   try {
+    for (let offset = 0; offset < bytes.byteLength; offset += 16384) {
+     const chunk = bytes.subarray(offset, offset + 16384);
+     await writer.write(chunk, { signal });
+     written += chunk.byteLength;
+    }
+   } finally { writing = false; }
   },
   async *replay(select?: (reader: { size: number; read(position: number, maxBytes: number): Promise<Uint8Array> }) => Promise<{ start: number; end: number } | undefined>): AsyncIterable<Uint8Array> {
    signal.throwIfAborted();
-   if (sealed || closing) throw new FsError("EBADF", { message: "LLM spool is closed" });
-   sealed = await writer.finish({ signal });
-   if (sealed.size !== written) throw new FsError("EIO", { message: "LLM spool size mismatch" });
-   signal.throwIfAborted();
    if (closing) throw new FsError("EBADF", { message: "LLM spool is closed" });
-   const opened = await fs.openReadFile!(owner.file.path, { signal });
-   if (closing || signal.aborted) {
-    await opened.close();
-    signal.throwIfAborted();
-    throw new FsError("EBADF", { message: "LLM spool is closed" });
-   }
-   reader = opened;
-   verifyRetainedFile(await reader.stat({ signal }), sealed);
-   const read = async (position: number, maxBytes: number): Promise<Uint8Array> => {
+   if (active || writing) throw new FsError("EBUSY", { message: "LLM spool is in use" });
+   active = true;
+   try {
+    sealing ??= (async () => {
+     sealed = await writer.finish({ signal });
+     if (sealed.size !== written) throw new FsError("EIO", { message: "LLM spool size mismatch" });
+     signal.throwIfAborted();
+     if (closing) throw new FsError("EBADF", { message: "LLM spool is closed" });
+     const opened = await fs.openReadFile!(owner.file.path, { signal });
+     if (closing || signal.aborted) {
+      await opened.close();
+      signal.throwIfAborted();
+      throw new FsError("EBADF", { message: "LLM spool is closed" });
+     }
+     reader = opened;
+    })();
+    await sealing;
     signal.throwIfAborted();
     if (closing || !reader) throw new FsError("EBADF", { message: "LLM spool is closed" });
-    if (!Number.isSafeInteger(position) || position < 0 || position >= written || !Number.isSafeInteger(maxBytes) || maxBytes <= 0 || maxBytes > 16384) throw new FsError("EINVAL", { message: "Invalid LLM spool range" });
-    const count = Math.min(maxBytes, written - position);
     verifyRetainedFile(await reader.stat({ signal }), sealed!);
-    const bytes = await reader.read(position, count, { signal });
-    if (!bytes.byteLength || bytes.byteLength > count) throw new FsError("EIO", { message: "Invalid LLM spool read" });
-    verifyRetainedFile(await reader.stat({ signal }), sealed!);
-    return bytes;
-   };
-   const range = await select?.({ size: written, read });
-   if (range && (!Number.isSafeInteger(range.start) || !Number.isSafeInteger(range.end) || range.start < 0 || range.end < range.start || range.end > written)) throw new FsError("EINVAL", { message: "Invalid LLM spool selection" });
-   let position = range?.start ?? 0;
-   const end = range?.end ?? written;
-   while (position < end) {
-    const bytes = await read(position, Math.min(16384, end - position));
-    position += bytes.byteLength;
-    yield bytes;
-   }
+    const read = async (position: number, maxBytes: number): Promise<Uint8Array> => {
+     signal.throwIfAborted();
+     if (closing || !reader) throw new FsError("EBADF", { message: "LLM spool is closed" });
+     if (!Number.isSafeInteger(position) || position < 0 || position >= written || !Number.isSafeInteger(maxBytes) || maxBytes <= 0 || maxBytes > 16384) throw new FsError("EINVAL", { message: "Invalid LLM spool range" });
+     const count = Math.min(maxBytes, written - position);
+     verifyRetainedFile(await reader.stat({ signal }), sealed!);
+     const bytes = await reader.read(position, count, { signal });
+     if (!bytes.byteLength || bytes.byteLength > count) throw new FsError("EIO", { message: "Invalid LLM spool read" });
+     verifyRetainedFile(await reader.stat({ signal }), sealed!);
+     return bytes;
+    };
+    const range = await select?.({ size: written, read });
+    if (range && (!Number.isSafeInteger(range.start) || !Number.isSafeInteger(range.end) || range.start < 0 || range.end < range.start || range.end > written)) throw new FsError("EINVAL", { message: "Invalid LLM spool selection" });
+    let position = range?.start ?? 0;
+    const end = range?.end ?? written;
+    while (position < end) {
+     const bytes = await read(position, Math.min(16384, end - position));
+     position += bytes.byteLength;
+     yield bytes;
+    }
+   } finally { active = false; }
   },
   close(): Promise<void> {
    closing ??= (async () => {

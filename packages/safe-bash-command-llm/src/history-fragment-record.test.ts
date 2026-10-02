@@ -5,6 +5,7 @@ import {toByteSource} from 'safe-bash-contracts';
 import {transactSqlite} from './sqlite-transaction.js';
 import {createLlmHistorySchema} from './history-schema.js';
 import {withSqliteStatement} from './sqlite-statement.js';
+import {createLlmSpool} from './retained-spool.js';
 import {prepareLlmFragmentRecord} from './history-fragment-record.js';
 import type {SqliteFinalizer} from './sqlite-finalization.js';
 const signal=new AbortController().signal;
@@ -53,4 +54,27 @@ test('pending fragment cancellation closes the source before canonical publicati
  const content=()=>({[Symbol.asyncIterator](){return {next(){ready();return new Promise<IteratorResult<Uint8Array>>(()=>{});},async return(){closed++;return {done:true as const,value:undefined};}};}});
  const pending=transactSqlite({...options(fs),signal:controller.signal},s=>prepareLlmFragmentRecord(s,{content},controller.signal));
  await started;controller.abort(new Error('cancel fragment'));await assert.rejects(pending);assert.equal(closed,1);assert.deepEqual(await fs.readFile('/logs.db'),before);
+});
+
+test('caller-retained fragments survive naming, hashing and native publication',async()=>{
+ const fs=new MemoryFileSystem();
+ const spool=await createLlmSpool(fs,'/',signal,'input');
+ try{
+  for(let i=0;i<5;i++)await spool.write(new TextEncoder().encode('é'.repeat(8000)));
+  // Consumers may stop early before hashing and finalization replay the same bytes.
+  for await(const chunk of spool.replay()){assert.equal(chunk.length,16384);break;}
+  let finish!:(e:SqliteFinalizer)=>Promise<void>;
+  await transactSqlite({...options(fs),finalize:e=>finish(e)},async s=>{
+   await createLlmHistorySchema(s,signal,'2026-10-02');
+   const result=await prepareLlmFragmentRecord(s,{content:()=>spool.replay()},signal);
+   finish=result.finalize!;
+  });
+  await transactSqlite(options(fs),async s=>{
+   await withSqliteStatement(s.module,{...s,signal,sql:'SELECT typeof(content),length(content) FROM fragments'},async q=>{
+    const rows=[];for await(const row of q.rows([],['text','integer']))rows.push(row);
+    assert.deepEqual(rows,[['text',40000n]]);
+   });
+  });
+ }finally{await spool.close();}
+ assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['logs.db']);
 });

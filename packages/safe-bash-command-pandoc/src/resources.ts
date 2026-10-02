@@ -168,7 +168,12 @@ export class ResourceSession {
         const location = origin.source ? `${origin.source}:${path}` : path;
         const embeddedBytes = embedded.get(url);
         const target = embeddedBytes ? {name: url, suffix: ""} : localTarget(url, ctx);
-        const roots = embeddedBytes ? [] : this.search ?? [resourceDirectory(origin.base ?? ctx.context.resourceCwd ?? "/")];
+        const defaultRoots = [resourceDirectory(origin.base ?? ctx.context.resourceCwd ?? "/")];
+        if (origin.base && ctx.context.resourceCwd) {
+          const cwdRoot = resourceDirectory(ctx.context.resourceCwd);
+          if (!defaultRoots.includes(cwdRoot)) defaultRoots.push(cwdRoot);
+        }
+        const roots = embeddedBytes ? [] : this.search ?? defaultRoots;
         let entry = embeddedEntries.get(url);
         for (const root of entry ? [] : roots) {
           const key = `${root === "/" ? "" : root}/${target.name}`;

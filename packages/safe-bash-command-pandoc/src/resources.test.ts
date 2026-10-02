@@ -177,3 +177,14 @@ it("preserves escaped Markdown punctuation as a single literal VFS filename", as
   expect(host.readStream.mock.calls.map(c => c[0])).toEqual(["/doc/a(b).png"]);
   expect(result).toMatchObject({text: expect.stringContaining('src="/media/a(b).png"')});
 });
+
+it("falls back to resourceCwd when an input file in a subdirectory references a working-directory image", async () => {
+  const host = files({"/cwd/finops-chart.png": "chart-bytes"});
+  await convert(
+    [{source: "scripts/report.md", base: "/cwd/scripts", bytes: encode("![chart](finops-chart.png)\n")}],
+    options,
+    {resourceFiles: host.fs, resourceCwd: "/cwd"}
+  );
+  expect(host.readStream.mock.calls.map(c => c[0])).toEqual(["/cwd/finops-chart.png"]);
+  expect(host.volume.readFileSync("/media/finops-chart.png", "utf8")).toBe("chart-bytes");
+});

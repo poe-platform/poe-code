@@ -19,10 +19,10 @@ const sedAtomicMutationError = "sed: ENOTSUP: Inspect and conditionally rewrite 
 // probes that could silently turn a regression into a passing unsupported case.
 const profiles = {
   memory: { retainedReads: true, patchPublication: true, sedInPlaceError: null },
-  real: { retainedReads: true, patchPublication: false, sedInPlaceError: sedConditionalWriteError },
+  real: { retainedReads: true, patchPublication: true, sedInPlaceError: sedConditionalWriteError },
   s3: { retainedReads: false, patchPublication: false, sedInPlaceError: sedRetainedReadError },
   webdav: { retainedReads: false, patchPublication: false, sedInPlaceError: sedRetainedReadError },
-  mount: { retainedReads: true, patchPublication: false, sedInPlaceError: sedConditionalWriteError },
+  mount: { retainedReads: true, patchPublication: true, sedInPlaceError: sedConditionalWriteError },
   overlay: { retainedReads: true, patchPublication: true, sedInPlaceError: null },
 };
 const patchPublicationError = "patch: filesystem does not support race-safe patch publication\n";

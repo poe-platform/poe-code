@@ -213,7 +213,7 @@ async function publish(item: Prepared, budget: Budget, rejects: Set<string>, pub
     regular(stat, path);
     const capabilities = await host(context, async () =>
       await context.fs.capabilitiesFor?.(path, { signal: context.signal, create: true }) ?? context.fs.capabilities);
-    if (capabilities?.atomicStagingAncestry !== true) throw new ToolError("filesystem does not support race-safe patch publication");
+    if (capabilities?.atomicStagingAncestry !== true && !(publication.trusted && capabilities?.trustedOwnedStaging === true)) throw new ToolError("filesystem does not support race-safe patch publication");
     const publicationMode = capabilities?.permissions === false ? undefined : mode ?? (stat ? stat.mode & 0o7777 : undefined);
     if (append && stat) text = await budget.read(path) + text;
     await publication.write(path, text, stat, publicationMode, mtimeMs);
@@ -221,8 +221,10 @@ async function publish(item: Prepared, budget: Budget, rejects: Set<string>, pub
   if (item.backup !== undefined && item.backupPath !== undefined) await write(item.backupPath, item.backup, false, true, item.backupMode);
   if (item.remove) {
     if (item.original !== undefined) {
-      regular(await inspect(budget, item.path), item.path);
-      await publication.remove(item.path);
+      const expected = await inspect(budget, item.path);
+      regular(expected, item.path);
+      if (!expected) throw new ToolError(`target changed during publication: ${item.path}`, 1);
+      await publication.remove(item.path, expected);
     }
   } else if (!item.skipWrite) {
     await write(item.path, item.result, false, true, undefined, item.mtimeMs);
@@ -241,19 +243,22 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     context = { ...context, cwd };
     budget = new Budget(context, Object.fromEntries(Object.entries(budget.limits).filter(([, value]) => Number.isFinite(value))));
   }
-  const publication = new PatchPublication(context);
+  let publication = new PatchPublication(context);
   if (!options.dryRun) {
     const fs = context.fs;
     const capabilities = await host(context, async () => await fs.capabilitiesFor?.(context.cwd, { signal: context.signal }) ?? fs.capabilities);
     if (capabilities.readOnly === true) throw new FsError("EROFS", { syscall: "patch", path: context.cwd });
-    if (!fs.confineExtraction || capabilities.atomicStagingAncestry !== true
+    const trusted = capabilities.atomicStagingAncestry !== true && capabilities.trustedOwnedStaging === true;
+    if ((trusted ? !fs.prepareDirectory || !fs.removeFileConditional : !fs.confineExtraction || capabilities.atomicStagingAncestry !== true)
       || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) {
       throw new ToolError("filesystem does not support race-safe patch publication");
     }
+    publication = new PatchPublication(context, trusted);
     await publication.capture(`${context.cwd === "/" ? "" : context.cwd}/.patch-admission`);
-    const confined = await host(context, () => fs.confineExtraction!([context.cwd], { signal: context.signal }));
+    const confined = trusted ? fs : await host(context, () => fs.confineExtraction!([context.cwd], { signal: context.signal }));
     context = { ...context, fs: new Proxy(fs, {
       get(target, property) {
+        if (trusted && property === "mkdir") return (path: string) => publication.mkdir(path);
         if (property === "rmdir") return (path: string) => publication.prune(path);
         const selected = ["mkdir", "rm"].includes(String(property)) ? confined : target;
         const value: unknown = Reflect.get(selected, property, selected);

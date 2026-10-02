@@ -332,11 +332,17 @@ lexically unsafe automatic headers are still rejected. Directory targets are nev
 overwritten. Diff reads operands and exclusion files through retained handles,
 checking the inspected file identity and resolved ancestor identities before reading content.
 Backends without retained reads or authoritative file identity fail closed; stdin
-remains supported. Patch mutation requires an adapter with atomic staging ancestry
-verification and retained no-symlink confinement. Each file is staged privately,
-with its permissions and timestamps, then published only if its destination and
-every retained ancestor still match. Deletions and directory mutations use confined
-views. Unsupported adapters refuse mutation; dry-run remains available. The
+remains supported. Patch uses atomic staging ancestry verification and retained
+no-symlink confinement when available. Each file is staged privately with its
+permissions and timestamps; atomic backends validate the destination and retained
+ancestors at publication, and use confined views for deletions and directories.
+RealFileSystem and mounted Real storage instead use best-effort trusted staging.
+The host must exclude concurrent external writers: observed directory identities
+and destination snapshots are checked, but validation and mutation are not atomic
+against other processes. Concurrent writers can cause stale overwrites or ancestry
+escapes. Cleanup refuses changed staging paths and may leave a private stage behind
+when its ancestor moved. Neither the adapter nor patch advertises this as atomic
+ancestry protection. Unsupported adapters refuse mutation; dry-run remains available. The
 selected patch root is preserved during directory pruning. These checks are not a
 replacement for adapter sandboxing. Host-root confinement
 remains the adapter's responsibility; these commands never address host paths
@@ -364,13 +370,14 @@ entry per target. `--atomic -R` also reverses section order, unlike default `-R`
 Ordinary preparation failures leave targets unchanged and produce no reject or
 backup files. Successful staged application can still create mismatch backups.
 Status is buffered until publication completes. This mode is **preflight and
-staging, not a backend transaction**; each file publication is atomic, but the
-whole patch is not.
+staging, not a backend transaction**; the whole patch is not atomic. Each file
+uses the selected adapter publication contract, including the trusted-host
+limitations described above.
 
 Both modes recheck target content and type before publication to detect
 observable changes; atomic mode also rechecks all prepared targets before its
-publication loop. The backend additionally compares destination and ancestor
-identities atomically when publishing each staged file.
+publication loop. Atomic backends additionally compare destination and ancestor
+identities at the publication commit; trusted hosts use separate checks.
 Publication runs sequentially. A publication-stage filesystem or work-budget
 failure stops immediately and reports the completed-entry count and failing
 path; default counts refer to sections, atomic counts to collapsed targets.

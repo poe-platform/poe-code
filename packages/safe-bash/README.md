@@ -815,7 +815,10 @@ replacement mode; `-L` and other `-n` values select the last requested batching 
 Stream chunk sizes and polling intervals control execution
 independently of these quotas. `diff -u /dev/null FILE` and its reverse produce
 creation/deletion patches; top-level readable character and FIFO inputs are
-read to EOF. Regular files retain identity-checked reads.
+read to EOF. Regular files retain identity-checked reads. `patch` supports RealFileSystem
+and mounted Real storage through best-effort trusted staging; the host must exclude
+concurrent external writers. This path does not provide atomic ancestry validation
+against other processes.
 
 The package root exports `createBoundedRegexProvider`, `BoundedRegexProvider`,
 and `BoundedRegexProviderOptions`. `portableSearchCommands()` and `agentCommands()`

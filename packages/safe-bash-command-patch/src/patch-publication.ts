@@ -1,15 +1,16 @@
+import { compareCopyIdentity } from "safe-bash-contracts/filesystem-identity";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { dirname,FsError,isFsError,type CommandContext,type FileStaging,type FileStagingEntry,type FileStat,type FileSystem } from "safe-bash-contracts";
 import { host,ToolError } from "safe-bash-diff-engine/shared";
 import { encodeBytes } from "safe-bash-io-engine/byte-encoding";
 
-/** Keeps admission receipts until the backend atomically publishes each file. */
+/** Retains admission receipts; trusted host staging requires external tree isolation. */
 export class PatchPublication {
   private readonly directories = new Map<string, FileStat>();
   private readonly removals = new Map<string, FileSystem>();
   private readonly pruning = new Map<string, FileSystem>();
 
-  constructor(private readonly context: CommandContext) {}
+  constructor(private readonly context: CommandContext, readonly trusted = false) {}
 
   async capture(path: string, prune: readonly string[] = []): Promise<void> {
     const paths: string[] = [];
@@ -25,6 +26,7 @@ export class PatchPublication {
       if (stat.type !== "directory") throw new ToolError(`unsafe patch parent: ${parent}`);
       this.directories.set(parent, stat);
     }
+    if (this.trusted) return;
     if (this.directories.has(dirname(path)) && !this.removals.has(path)) {
       this.removals.set(path, await host(this.context, () => this.context.fs.confineExtraction!([dirname(path)], { signal: this.context.signal })));
     }
@@ -33,6 +35,30 @@ export class PatchPublication {
       const view = await host(this.context, () => this.context.fs.confineExtraction!([dirname(path), parents.at(-1)!], { signal: this.context.signal }));
       for (const parent of parents) this.pruning.set(parent, view);
     }
+  }
+
+  private async validate(path: string): Promise<void> {
+    const parents: string[] = [];
+    for (let parent = dirname(path);; parent = dirname(parent)) {
+      parents.unshift(parent);
+      if (parent === "/") break;
+    }
+    for (const parent of parents) {
+      const expected = this.directories.get(parent);
+      const current = await host(this.context, () => this.context.fs.lstat(parent, { signal: this.context.signal }));
+      if (current.type !== "directory" || compareCopyIdentity(current, expected) !== "same") {
+        throw new FsError("EAGAIN", { syscall: "patch", path: parent });
+      }
+    }
+  }
+
+  async mkdir(path: string): Promise<void> {
+    await this.capture(path);
+    await this.validate(path);
+    const stat = await host(this.context, () => this.context.fs.prepareDirectory!(path, {
+      parent: this.directories.get(dirname(path))!, expected: null, signal: this.context.signal,
+    }));
+    this.directories.set(path, stat);
   }
 
   async write(path: string, text: string, destination: FileStat | undefined, mode?: number, mtimeMs?: number): Promise<void> {
@@ -60,27 +86,43 @@ export class PatchPublication {
       operation = Promise.resolve().then(async () => {
         context.signal.throwIfAborted();
         if (closed) throw new ToolError("patch publication is closed");
+        if (this.trusted) await this.validate(path);
         staging = await context.fs.createStagedFile!(`${dirname(path) === "/" ? "" : dirname(path)}/.patch-${globalThis.crypto.randomUUID()}`, "file", {
           type: "file", data: encodeBytes(text),
         }, { parent, signal: context.signal, ...(mode === undefined ? {} : { mode }),
           ...(mtimeMs === undefined ? {} : { atimeMs: mtimeMs, mtimeMs }) });
         context.signal.throwIfAborted();
         if (closed) throw new ToolError("patch publication is closed");
+        if (this.trusted) await this.validate(path);
         await context.fs.publishStagedFile!(staging, path, {
-          parent, destination: destination ?? null, ancestors, signal: context.signal,
+          parent, destination: destination ?? null, ...(this.trusted ? {} : { ancestors }), signal: context.signal,
         });
       });
       await host(context, () => operation!);
     } finally { await cleanup(); }
   }
 
-  async remove(path: string): Promise<void> {
+  async remove(path: string, expected: FileStat): Promise<void> {
+    if (this.trusted) {
+      await this.validate(path);
+      await host(this.context, () => this.context.fs.removeFileConditional!(path, {
+        parent: this.directories.get(dirname(path))!, expected, signal: this.context.signal,
+      }));
+      return;
+    }
     const fs = this.removals.get(path);
     if (!fs) throw new ToolError(`patch removal was not admitted: ${path}`);
     await host(this.context, () => fs.rm(path, { signal: this.context.signal }));
   }
 
   async prune(path: string): Promise<void> {
+    if (this.trusted) {
+      await this.validate(`${path}/.patch-prune`);
+      if (!this.context.fs.rmdir) throw new FsError("ENOTSUP", { syscall: "rmdir", path });
+      await host(this.context, () => this.context.fs.rmdir!(path, { signal: this.context.signal }));
+      this.directories.delete(path);
+      return;
+    }
     const fs = this.pruning.get(path);
     if (!fs) throw new ToolError(`patch directory pruning was not admitted: ${path}`);
     if (!fs.rmdir) throw new FsError("ENOTSUP", { syscall: "rmdir", path });

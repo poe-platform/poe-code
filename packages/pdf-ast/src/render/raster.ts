@@ -16,7 +16,7 @@ export interface RgbaBitmap {
 }
 
 export function *encodePngSteps(bitmap: RgbaBitmap): Generator<void, Uint8Array, void> {
-  return (yield* encodeRgbaToPngSteps(bitmap.width, bitmap.height, bitmap.data));
+  return (yield* encodeRgbaToPngSteps(bitmap.width, bitmap.height, bitmap.data, true));
 }
 
 export function *decodePngSteps(pngBytes: Uint8Array): Generator<void, RgbaBitmap, void> {
@@ -782,30 +782,65 @@ function *makePngChunkSteps(type: string, data: Uint8Array): Generator<void, Uin
   return out;
 }
 
-export function *encodeRgbaToPngSteps(width: number, height: number, rgba: Uint8Array): Generator<void, Uint8Array, void> {
+export function *encodeRgbaToPngSteps(width: number, height: number, rgba: Uint8Array, consumeInput = false): Generator<void, Uint8Array, void> {
   let work = 0;
+  let opaque = consumeInput && width >= 1 && height >= 1 && rgba.length >= height * (width * 3 + 1);
+  if (opaque) {
+    for (let i = 3; i < rgba.length; i += 4) {
+      if (rgba[i] !== 255) { opaque = false; break; }
+    }
+  }
   const signature = Uint8Array.from([137, 80, 78, 71, 13, 10, 26, 10]);
   const ihdr = new Uint8Array(13);
   const ihdrView = new DataView(ihdr.buffer);
   ihdrView.setUint32(0, width, false);
   ihdrView.setUint32(4, height, false);
   ihdr[8] = 8; // bit depth 8
-  ihdr[9] = 6; // color type 6 (RGBA)
+  ihdr[9] = opaque ? 2 : 6; // color type 2 (RGB) when opaque, 6 (RGBA) otherwise
   ihdr[10] = 0;
   ihdr[11] = 0;
   ihdr[12] = 0;
 
-  const stride = width * 4;
-  const rawScanlines = new Uint8Array((stride + 1) * height);
-  for (let y = 0; y < height; y++) {
-    if (++work % 16384 === 0) yield;
-    const rowStart = y * (stride + 1);
-    rawScanlines[rowStart] = 0; // Filter type 0 (None)
-    rawScanlines.set(rgba.subarray(y * stride, (y + 1) * stride), rowStart + 1);
+  let rawScanlines: Uint8Array;
+  if (opaque) {
+    const rowBytes = width * 3 + 1;
+    for (let y = 0; y < height; y++) {
+      if (++work % 16384 === 0) yield;
+      const rowStart = y * rowBytes;
+      let src = y * width * 4;
+      const r0 = rgba[src]!, g0 = rgba[src + 1]!, b0 = rgba[src + 2]!;
+      rgba[rowStart] = 0;
+      rgba[rowStart + 1] = r0;
+      rgba[rowStart + 2] = g0;
+      rgba[rowStart + 3] = b0;
+      src += 4;
+      let dst = rowStart + 4;
+      for (let x = 1; x < width; x++) {
+        const r = rgba[src]!, g = rgba[src + 1]!, b = rgba[src + 2]!;
+        rgba[dst] = r;
+        rgba[dst + 1] = g;
+        rgba[dst + 2] = b;
+        src += 4;
+        dst += 3;
+      }
+    }
+    rawScanlines = rgba.subarray(0, height * rowBytes);
+  } else {
+    const stride = width * 4;
+    rawScanlines = new Uint8Array((stride + 1) * height);
+    for (let y = 0; y < height; y++) {
+      if (++work % 16384 === 0) yield;
+      const rowStart = y * (stride + 1);
+      rawScanlines[rowStart] = 0; // Filter type 0 (None)
+      rawScanlines.set(rgba.subarray(y * stride, (y + 1) * stride), rowStart + 1);
+    }
+    if (consumeInput && rgba.byteOffset === 0 && typeof (rgba.buffer as ArrayBuffer & { transfer?: (n: number) => ArrayBuffer }).transfer === "function") {
+      try { (rgba.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+    }
   }
 
   const compressed = encodeFlate(rawScanlines);
-  if (typeof (rawScanlines.buffer as ArrayBuffer & { transfer?: (n: number) => ArrayBuffer }).transfer === "function" && rawScanlines.byteOffset === 0 && rawScanlines.byteLength === rawScanlines.buffer.byteLength) {
+  if (typeof (rawScanlines.buffer as ArrayBuffer & { transfer?: (n: number) => ArrayBuffer }).transfer === "function" && rawScanlines.byteOffset === 0) {
     try { (rawScanlines.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
   }
   const ihdrChunk = (yield* makePngChunkSteps("IHDR", ihdr));

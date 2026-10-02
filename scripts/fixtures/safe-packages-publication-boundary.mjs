@@ -1,3 +1,4 @@
+import { verification as sedVerification } from "./safe-packages-sed.mjs";
 import { verification as privateCommandVerification } from "./safe-packages-private-command.mjs";
 import { verification as xzVerification } from "./safe-packages-xz.mjs";
 import { verification as yqVerification } from "./safe-packages-yq-browser.mjs";
@@ -8,6 +9,7 @@ import { createWkhtmltopdfCommand, wkhtmltopdfCommands } from "@poe-platform/saf
 
 async function verifyPublicationBoundary() {
   await privateCommandVerification;
+  await sedVerification;
   await xzVerification;
   await yqVerification;
   await verifyFfmpeg();

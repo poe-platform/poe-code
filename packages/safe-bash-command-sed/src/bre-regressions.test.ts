@@ -1,6 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { runVirtual } from "./text-programs/helpers.js";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { createCommandArguments, toByteSource } from "safe-bash-contracts";
+import { createSedCommand, type SedCommandsOptions } from "./index.js";
+
+async function runSed(fixture: { args: string[]; stdin: string }, options: SedCommandsOptions = {}) {
+  const values = createCommandArguments(fixture.args);
+  const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
+  const result = await createSedCommand(options).execute({
+    command: "sed", args: values.args, argumentValues: values,
+    cwd: "/", env: { LC_ALL: "C", LANG: "C", TZ: "UTC" }, fs: createMemoryFileSystem(),
+    stdin: toByteSource(fixture.stdin), signal: new AbortController().signal,
+    stdout: { async write(chunk) { stdout.push(chunk.slice()); } },
+    stderr: { async write(chunk) { stderr.push(chunk.slice()); } },
+  });
+  return { ...result, stdout: Buffer.concat(stdout), stderr: Buffer.concat(stderr) };
+}
 
 for (const [program, input, expected] of [
   ["s/[/]/:/", "a/b\n", "a:b\n"],
@@ -44,7 +59,7 @@ for (const [program, input, expected] of [
   ["s/x/y/ # comment", "x\n", "y\n"],
 ] as const) {
   test(`sed regression ${program}`, async () => {
-    const result = await runVirtual("sed", { args: [program], stdin: input });
+    const result = await runSed({ args: [program], stdin: input });
     assert.equal(result.exitCode, 0, result.stderr.toString());
     assert.equal(result.stdout.toString(), expected);
     assert.equal(result.stderr.length, 0);
@@ -53,7 +68,7 @@ for (const [program, input, expected] of [
 
 for (const delimiter of ["|", "+", "?"]) {
   test(`sed ERE escaped delimiter ${delimiter} stays literal`, async () => {
-    const result = await runVirtual("sed", { args: ["-E", `s${delimiter}a\\${delimiter}b${delimiter}X${delimiter}`], stdin: `aab\na${delimiter}b\n` });
+    const result = await runSed({ args: ["-E", `s${delimiter}a\\${delimiter}b${delimiter}X${delimiter}`], stdin: `aab\na${delimiter}b\n` });
     assert.equal(result.exitCode, 0, result.stderr.toString());
     assert.equal(result.stdout.toString(), "aab\nX\n");
   });
@@ -61,7 +76,7 @@ for (const delimiter of ["|", "+", "?"]) {
 
 for (const program of ["s.[[.a.]/].X.", "s=[[=a=]/]=X="]) {
   test(`sed scans special bracket delimiters before regex validation ${program}`, async () => {
-    const result = await runVirtual("sed", { args: [program], stdin: "a/b\n" });
+    const result = await runSed({ args: [program], stdin: "a/b\n" });
     assert.equal(result.exitCode, 2);
     assert.equal(result.stderr.toString(), "sed: collating and equivalence classes are not supported\n");
   });
@@ -69,13 +84,13 @@ for (const program of ["s.[[.a.]/].X.", "s=[[=a=]/]=X="]) {
 
 for (const program of ["0p", "0,1p", "1,0p"]) {
   test(`sed rejects invalid zero address ${program}`, async () => {
-    const result = await runVirtual("sed", { args: [program], stdin: "x\n" });
+    const result = await runSed({ args: [program], stdin: "x\n" });
     assert.equal(result.exitCode, 2);
   });
 }
 
 test("sed admits whole-match replacement size before writing", async () => {
-  const result = await runVirtual("sed", { args: ["s/.*/\\0\\0/"], stdin: "abcd\n" }, { maxBufferBytes: 6 });
+  const result = await runSed({ args: ["s/.*/\\0\\0/"], stdin: "abcd\n" }, { maxBufferBytes: 6 });
   assert.equal(result.exitCode, 2);
   assert.equal(result.stdout.length, 0);
 });

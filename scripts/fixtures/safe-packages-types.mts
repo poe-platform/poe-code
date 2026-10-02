@@ -1,4 +1,5 @@
 import "./safe-packages-awk-types.mjs";
+import "./safe-packages-sed-types.mjs";
 import "./safe-packages-jq-types.mjs";
 import "./safe-packages-shell-types.mjs";
 import "./safe-packages-ssconvert-selected-types.mjs";

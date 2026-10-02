@@ -341,3 +341,9 @@ const markdownNodeOwn: design.MdNode = null as unknown as originalDesign.MdNode;
 const plaintextOptionsOriginal: originalDesign.PlaintextRenderOptions = null as unknown as design.PlaintextRenderOptions;
 const plaintextOptionsOwn: design.PlaintextRenderOptions = null as unknown as originalDesign.PlaintextRenderOptions;
 void [plaintextOriginal,plaintextOwn,markdownNodeOriginal,markdownNodeOwn,plaintextOptionsOriginal,plaintextOptionsOwn];
+
+const htmlOriginal: typeof originalDesign.renderHtml = design.renderHtml;
+const htmlOwn: typeof design.renderHtml = null as unknown as typeof originalDesign.renderHtml;
+const htmlOptionsOriginal: originalDesign.HtmlRenderOptions = null as unknown as design.HtmlRenderOptions;
+const htmlOptionsOwn: design.HtmlRenderOptions = null as unknown as originalDesign.HtmlRenderOptions;
+void [htmlOriginal,htmlOwn,htmlOptionsOriginal,htmlOptionsOwn];

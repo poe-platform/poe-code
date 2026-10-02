@@ -10,6 +10,7 @@ pub mod event_groups;
 pub mod feedback;
 pub mod file_changes;
 pub mod help;
+pub mod html;
 pub mod interaction;
 pub mod layout;
 pub mod logging;

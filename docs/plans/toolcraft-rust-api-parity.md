@@ -730,6 +730,22 @@ UTF-16 units) measured native/reference ratios of 2.92x TS, 9.03x JSON, 7.49x YA
 4.63x CSS and 5.34x HTML. This is slower, not a performance integration gate pass;
 native-to-JS token materialization remains a performance concern.
 
+Root `renderHtml(ast, options)` and standalone `HtmlRenderOptions` are now
+available. Rust controls block/inline dispatch, escaping, URL scheme admission,
+list/table policy, frontmatter circular detection and footnote selection. Node
+retains property/method lookup, array species, JSON replacers, iterator cleanup,
+coercion and arbitrary thrown values. Native highlighting is integrated for
+`syntaxHighlight: true`; supplied tokens retain host array behavior. A failing
+adversarial test caught truthy non-boolean membership results, fixed in the host
+adapter before delivery. All 152 native tests, 237 currently routed reference
+tests, bidirectional declarations, Rust/binding and JS lint, and isolated packed
+runtime/types consumers pass. A Safari screenshot comparison of native and
+reference output matches headings, styles, task lists, aligned tables, highlighted
+code, escaped raw HTML and footnotes. The original HTML suite still depends on
+unported parser/terminal entry points and is not claimed as routed. Full Markdown
+subpaths, highlighter exotic-input qualification, recursion/resource limits and
+interactive surfaces remain open.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

@@ -87,6 +87,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `staticRender`, `renderMenu`, `renderSpinnerFrame`, `renderSpinnerStopped` | Render menus and spinner snapshots in terminal, Markdown or JSON |
 | `escape-terminal-text` | Expose terminal controls and directional marks as visible Unicode escapes |
 | `renderPlaintext` | Turn a Markdown AST into readable text with announcements, table sentences and numbered footnotes |
+| `renderHtml` | Render a Markdown AST with escaped HTML, checked lists, aligned tables, footnotes and optional code highlighting |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -345,3 +346,11 @@ supplied token arrays. It prepares the remaining renderers; it does not add a
 public highlighting API. Non-string source objects and modified built-ins remain
 outside the verified parity scope. End-to-end tokenization is currently slower
 than the JavaScript implementation, so this checkpoint is not a performance swap.
+
+`renderHtml(ast, options)` renders the same `MdNode` contract as HTML. It escapes
+text and attributes, applies the existing URL-scheme policy, and supports task
+lists, aligned tables, alerts and linked footnotes. Set `syntaxHighlight: true`
+for native code tokenization, `showFrontmatter: true` to include metadata, or
+`allowRawHtml: true` to include raw HTML nodes. All three default to false.
+`HtmlRenderOptions` is a standalone root type. Markdown string parsing and
+`renderMarkdownHtml` remain unavailable; this is an AST renderer checkpoint.

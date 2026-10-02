@@ -1,4 +1,6 @@
 export type TemplateEscape = "html" | "none";
+export {renderHtml} from "./html.js";
+export type {HtmlRenderOptions} from "./html.js";
 export {color} from "./color.js";
 export { symbols } from "./symbols.js";
 export { spacing } from "./spacing.js";

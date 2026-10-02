@@ -7189,6 +7189,9 @@ const syncExtraRuntimeMethods = {
     return SYNC_UNIT_ZERO;
   },
   tryFastSinglePipelineUnit( pipeline: Pipeline, state: State, io: IO, ignored: boolean, ): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> | undefined {
+    // Cached argv bypasses word admission. Keep finite budgets on the standard
+    // evaluator, before speculative expansion or redirect acquisition can occur.
+    if (this.budget.limits.maxExpansionBytes !== Infinity || this.budget.limits.maxParseUnits !== Infinity) return undefined;
     if ( this.middleware.length > 0 || io.terminal !== undefined || io.asyncDefaultInput !== undefined || (io.descriptors && (io.descriptors.size > 3 || io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed))) {
       return undefined;
     }

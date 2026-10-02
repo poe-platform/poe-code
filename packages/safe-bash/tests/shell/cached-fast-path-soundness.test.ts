@@ -6,6 +6,7 @@ import { ShellLimitError } from "../../src/shell/types.js";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { standardCommands } from "../../src/commands/index.js";
+import { createTextProgramCommands } from "../../src/commands/text-programs/index.js";
 import { Runtime } from "../../src/shell/runtime.js";
 import { workerRuntimeContexts } from "../../src/worker/runtime-context.js";
 import type { CommandContext } from "../../src/contracts/index.js";
@@ -442,4 +443,82 @@ test("cached integer overflow fallback preserves the finite parse allowance", as
   assert.equal(result.stdout, "3199999968\n");
   assert.equal(result.stderr, "");
   assert.equal(result.exitCode, 0);
+});
+
+for (const [source, maximum] of [
+  ["sort", 2],
+  ["grep hello /input", 4],
+  ["grep hello /input | tr a-z A-Z", 4],
+  ["head -n 1 /input | tr a-z A-Z", 5],
+  ["grep h /input | tr 'ééé' ABC", 5],
+] as const) {
+  for (const warm of [false, true]) test(`pipeline expansion admission: ${source}, warm=${warm}`, async t => {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/input", new TextEncoder().encode("hello\n"));
+    const shell = new Shell({ fs }).use(standardCommands());
+    t.after(() => shell.dispose());
+    if (warm) for (let i = 0; i < 3; i++) await shell.exec(source);
+    await assert.rejects(shell.exec(source, { limits: { maxExpansionBytes: maximum } }),
+      error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes");
+    const admitted = await shell.exec(source, { limits: { maxExpansionBytes: source === "sort" ? 4 : 6 } });
+    assert.equal(admitted.exitCode, 0, admitted.stderr);
+  });
+}
+
+for (const source of ["sort > /missing/out", "grep hello /input | tr a-z A-Z"]) {
+  test(`pipeline parse accounting matches ordinary execution: ${source}`, async t => {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/input", new TextEncoder().encode("hello\n"));
+    const shells = [false, true].map(ordinary => {
+      const shell = new Shell({ fs }).use(standardCommands());
+      if (ordinary) shell.use(async (_context, next) => next());
+      t.after(() => shell.dispose());
+      return shell;
+    });
+    for (const shell of shells) for (let i = 0; i < 3; i++) await shell.exec(source);
+    for (const maximum of [1, 20, 100, 1000]) {
+      const results = await Promise.all(shells.map(async shell => {
+        try {
+          const result = await shell.exec(source, { limits: { maxParseUnits: maximum } });
+          return [result.exitCode, result.stdout, result.stderr];
+        } catch (error) {
+          assert.ok(error instanceof ShellLimitError);
+          return error.limit;
+        }
+      }));
+      assert.deepEqual(results[0], results[1]);
+    }
+  });
+}
+
+test("pipeline stages inherit exported functions with isolated environments", async t => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  t.after(() => shell.dispose());
+  const environments: Record<string, string>[] = [];
+  shell.register({ name: "inspect", async execute(context) {
+    const env = context.env;
+    environments.push(env);
+    assert.ok(env["BASH_FUNC_f%%"]?.includes("echo hi"));
+    assert.equal(env.MUTATED, undefined);
+    env.MUTATED = "yes";
+    return { exitCode: 0 };
+  } });
+  const result = await shell.exec("f() { echo hi; }; export -f f\ninspect | inspect");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(environments.length, 2);
+  assert.notEqual(environments[0], environments[1]);
+});
+
+test("awk pipelines retain exported function definitions", async t => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  for (const command of createTextProgramCommands()) shell.register(command, { replace: true });
+  t.after(() => shell.dispose());
+  const source = `f() { echo hi; }; export -f f
+awk 'BEGIN { print ENVIRON["BASH_FUNC_f%%"] }'`;
+  const single = await shell.exec(source);
+  const pipeline = await shell.exec(`${source} | tr a-z A-Z`);
+  assert.equal(single.exitCode, 0, single.stderr);
+  assert.ok(single.stdout.includes("echo hi"));
+  assert.equal(pipeline.exitCode, 0, pipeline.stderr);
+  assert.equal(pipeline.stdout, single.stdout.toUpperCase());
 });

@@ -120,7 +120,7 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
         if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
             return {
                 exitCode: 0,
-                stdout: "Usage: pdfimages [options] <PDF-file> [<image-root>]\n  -list / -png / -j / -all / -f <int> / -l <int> / -p\n  -min-width <int> / -min-height <int> : ignore smaller images\n",
+                stdout: "Usage: pdfimages [options] <PDF-file> <image-root>\n       pdfimages -list [options] <PDF-file>\n  -list / -png / -j / -all / -f <int> / -l <int> / -p\n  -min-width <int> / -min-height <int> : ignore smaller images\n",
                 stderr: "",
             };
         }
@@ -175,9 +175,11 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
             return { exitCode: 99, stdout: "", stderr: `Unknown option '${arg}'\n` };
         }
     }
-    const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
+    const inputPath = positionals[0];
     if (!inputPath || positionals.length !== (listOnly ? 1 : 2)) {
-        return { exitCode: 99, stdout: "", stderr: "Usage: pdfimages [options] <PDF-file> [<image-root>]\n" };
+        return { exitCode: 99, stdout: "", stderr: listOnly
+            ? "Usage: pdfimages -list [options] <PDF-file>\n"
+            : "Usage: pdfimages [options] <PDF-file> <image-root>\n" };
     }
     const pdfBytes = files.get(inputPath);
     if (!pdfBytes) {
@@ -354,7 +356,7 @@ async function executePdfimages(context: CommandContext): Promise<{ exitCode: nu
     // Parse before acquiring input: help, version and usage errors need no PDF.
     const needsInput = (await runPdfimagesCli(argv, new Map(), { signal: invocation.signal })).exitCode === 1;
     const positionals = needsInput ? extractPdfimagesPositionals(argv) : [];
-    if (needsInput && (positionals.length === 0 || positionals[0] === "-")) {
+    if (positionals[0] === "-") {
       const chunks: Uint8Array[] = [];
       let total = 0;
       for await (const chunk of readBytes(context.stdin, invocation.signal)) {

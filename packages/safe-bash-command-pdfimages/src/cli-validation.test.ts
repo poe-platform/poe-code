@@ -7,6 +7,7 @@ doc.addPage([2, 2]);
 const pdf = doc.save();
 const validArgs = ["in.pdf", "out"];
 const invalidArgs: string[][] = [
+  [],
   ["-unknown-flag", ...validArgs],
   [...validArgs, "extra"],
   ["in.pdf"],
@@ -30,7 +31,17 @@ it.each(invalidArgs)("rejects invalid arguments %j before reading or writing PDF
     expect(result.stderr).not.toBe("");
     expect([...files.keys()]).toEqual(["in.pdf"]);
     expect((await run(args, new Map())).exitCode).toBe(99);
+    expect((await run(args, new Map([["-", pdf]]))).exitCode).toBe(99);
   }
+});
+it("documents the required image root for extraction and its absence for listing", async () => {
+  const help = await runPdfimagesCli(["--help"], new Map());
+  expect(help.stdout).toContain("Usage: pdfimages [options] <PDF-file> <image-root>\n");
+  expect(help.stdout).toContain("pdfimages -list [options] <PDF-file>\n");
+  const extraction = await runPdfimagesCli(["in.pdf"], new Map([["in.pdf", pdf]]));
+  expect(extraction.stderr).toBe("Usage: pdfimages [options] <PDF-file> <image-root>\n");
+  const listing = await runPdfimagesCli(["-list", "in.pdf", "out"], new Map([["in.pdf", pdf]]));
+  expect(listing.stderr).toBe("Usage: pdfimages -list [options] <PDF-file>\n");
 });
 it("identifies an empty PDF stream", async () => {
   const result = await runPdfimagesCli(["-list", "-"], new Map([["-", new Uint8Array()]]));

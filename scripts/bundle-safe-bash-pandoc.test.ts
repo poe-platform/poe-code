@@ -57,15 +57,14 @@ it("loads the Pandoc bundle and converts Markdown in workerd without Node compat
     modules: true, compatibilityDate: "2026-07-01", cf: false,
     script: `
       const fs = (() => { const module = { exports: {} }; ${fsBuild.outputFiles[0]!.text}; return module.exports; })();
-      const pandoc = (() => {
+      const pandoc = ((require) => {
         const module = { exports: {} };
-        const require = name => {
-          if (name !== "poe-code/safe-fs/core") throw new Error("Unexpected external: " + name);
-          return fs;
-        };
         ${result.outputFiles![0]!.text};
         return module.exports;
-      })();
+      })(name => {
+        if (name !== "poe-code/safe-fs/core") throw new Error("Unexpected external: " + name);
+        return fs;
+      });
       export default { async fetch() {
         let stdout = "", stderr = "";
         const command = pandoc.createPandocCommand();

@@ -119,3 +119,14 @@ test("invalid token auth methods and absent secrets reject before fetch, retaini
       assert.equal(calls, 0);
     }
 });
+
+test("refresh preserves the submitted token when omitted and accepts explicit rotation",async()=>{
+ for(const rotated of [undefined," rotated 🦀 "]){
+  const args={clientId:"client",tokenEndpoint:"https://auth.example/token",resource:"https://resource.example/",refreshToken:"original\ud800",now:()=>0,
+   fetch:async()=>{args.refreshToken="changed during request";return Response.json({access_token:"access",token_type:"Bearer",...(rotated===undefined?{}:{refresh_token:rotated})});}};
+  const result=await own.refreshAccessToken(args);
+  assert.equal(result.refreshToken,rotated===undefined?"original\ud800":"rotated 🦀");
+  const exchanged=await own.exchangeAuthorizationCode({...args,code:"code",codeVerifier:"verifier",redirectUri:"http://localhost/callback",fetch:async()=>Response.json({access_token:"access",token_type:"Bearer"})});
+  assert.equal(exchanged.refreshToken,undefined);
+ }
+});

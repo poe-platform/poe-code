@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { MemoryFileSystem } from '@poe-code/safe-fs/core';
 import type { CommandContext } from 'safe-bash-contracts';
-import { createGitCommand } from './index.js';
+import { createGitCommand, evalSyncGit } from './index.js';
 
 test('git commands preserve the caller stdin unless their invocation needs it', async () => {
   const fs = new MemoryFileSystem();
@@ -72,4 +72,12 @@ test('stdin reads respect limits and aliases while preserving binary bytes', asy
   const limited = await run(['hash-object', '--stdin'], (async function* () { yield new Uint8Array(4097); })(), budget);
   assert.equal(limited.exitCode, 128);
   assert.ok(limited.stderr.includes('stdin byte limit exceeded'));
+});
+
+test('synchronous Git distinguishes unavailable stdin from explicit empty input', () => {
+  const inspect = (path: string) => path === '/' ? { type: 'directory' as const, mode: 0o755, children: [] } : undefined;
+  const refuseMutation = () => assert.fail('hash-object without -w must not mutate the filesystem');
+  const run = (input: Uint8Array | undefined) => evalSyncGit(input, ['hash-object', '--stdin'], '/', inspect, () => undefined, undefined, refuseMutation, refuseMutation, refuseMutation);
+  assert.equal(run(undefined), undefined);
+  assert.equal(run(new Uint8Array()), 'e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\n');
 });

@@ -728,7 +728,6 @@ export function evalSyncGit(
     return "git version 0.0.0-development\n";
   }
   if (!inspectNode || !readFile) return undefined;
-  if (stdinBytes === undefined && gitArgsNeedStdin(args)) return undefined;
 
   const entries: Entry[] = [];
   let totalBytes = 0;
@@ -805,7 +804,7 @@ export function evalSyncGit(
   }
 
   entries.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
-  const stdinHex = stdinBytes && stdinBytes.byteLength > 0 ? encode(stdinBytes) : "";
+  const stdinHex = stdinBytes === undefined ? undefined : encode(stdinBytes);
   const inputJson = JSON.stringify({ cwd, args, entries, responses: [], stdin: stdinHex });
   const cached = readOnlyGitResultCache.get(inputJson);
   if (cached !== undefined) return cached;
@@ -832,7 +831,7 @@ export function evalSyncGit(
         handle.release(wasmFailed);
       }
     }
-    if (result.exitCode !== 0 || result.stderr !== "" || result.request) return undefined;
+    if (result.needsStdin || result.exitCode !== 0 || result.stderr !== "" || result.request) return undefined;
     let outStr: string;
     if (typeof result.stdoutBytes === "string") {
       const rawBytes = decode(result.stdoutBytes);

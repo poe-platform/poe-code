@@ -529,3 +529,34 @@ test("bc math library matches native bc at scale 50", async () => {
     ].join("\n"),
   });
 });
+
+for (const [program, stdout] of [
+  ["define f(a[], n) { return a[0]; }; x[0]=1; f(x[], x[0]=2)", "2\n"],
+  ["define f(a[], b[]) { a[0]=7; return b[0]; }; x[0]=4; f(x[], x[]); x[0]", "4\n4\n"],
+  ["define f(a[]) { return a[99999]; }; x[99999]=12; f(x[]); f(y[])", "12\n0\n"],
+  ["define f(a[]) { return a[0]+1; }; x[0]=41; f(x[])", "42\n"],
+  ["define f(a[], n) { a[0]=n; return a[0]; }; x[0]=41; f(x[], 7); x[0]", "7\n41\n"],
+  ["define f(a[], a) { return a[0]+a; }; x[0]=41; f(x[], 1)", "42\n"],
+  ["define f(a[], n) { if(n==0) return a[0]; a[0]+=1; return f(a[], n-1); }; x[0]=4; f(x[], 3); x[0]", "7\n4\n"],
+  ["define f(a[]) { return a[0]; }; define g() { auto x[]; x[0]=8; return f(x[]); }; x[0]=99; g(); x[0]", "8\n99\n"],
+] as const) {
+  test(`bc passes array parameters by value: ${program}`, async () => {
+    assert.deepEqual(await evaluate(program), { exitCode: 0, stdout, stderr: "" });
+  });
+}
+
+for (const program of ["define f(a[]) { return a[0]; }; f(1)", "define f(a) { return a; }; f(x[])", "sqrt(x[])", "x[]+1", "define f(a[]) { return 0; }; f()", "define f(a[]) { return 0; }; f(x[], y[])"]) {
+  test(`bc rejects scalar and array type mismatches: ${program}`, async () => {
+    const result = await evaluate(program);
+    assert.equal(result.exitCode, 1);
+    assert.notEqual(result.stderr, "");
+  });
+}
+
+test("bc charges copied array entries to the work budget", async () => {
+  const program = "define f(a[]) { return 0; }; for(i=0;i<20;i++) x[i]=i; " + "y=f(x[]);".repeat(100);
+  assert.deepEqual(await evaluate(program), { exitCode: 0, stdout: "", stderr: "" });
+  const result = await evaluate(program, { maxSteps: 1000 });
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /maximum step limit/);
+});

@@ -1,6 +1,8 @@
 # safe-bash-command-bc
 
 Evaluate decimal arithmetic with `bc` inside `@poe-platform/safe-bash`.
+Functions support scalar and array parameters (`define f(a[])` / `f(x[])`). Array parameters are local copies; `auto a[]` declares a local array, so neither changes the caller’s array.
+
 Input, output, work, scale, exponent, recursion and output-base limits default to `Infinity`. Configure finite
 `maxInputBytes`, `maxOutputBytes`, `maxSteps`, `maxScale`, `maxExponent`,
 `maxRecursionDepth` or `maxObase` values when needed, either directly in command options or under `limits`;

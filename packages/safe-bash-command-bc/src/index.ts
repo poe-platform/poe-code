@@ -399,6 +399,7 @@ function tokenizeBc(source: string): Token[] {
 type Expr =
   | { kind: "num"; raw: string }
   | { kind: "str"; value: string }
+  | { kind: "array"; name: string }
   | { kind: "var"; name: string; index?: Expr }
   | { kind: "unary"; op: string; arg: Expr; prefix: boolean }
   | { kind: "binary"; op: string; left: Expr; right: Expr }
@@ -417,7 +418,7 @@ type Stmt =
   | { kind: "continue" }
   | { kind: "halt" }
   | { kind: "auto"; names: { name: string; array: boolean }[] }
-  | { kind: "define"; name: string; params: string[]; body: Stmt };
+  | { kind: "define"; name: string; params: { name: string; array: boolean }[]; body: Stmt };
 
 class BcParser {
   private pos = 0;
@@ -475,12 +476,14 @@ class BcParser {
       const nameTok = this.next();
       if (nameTok?.type !== "id") throw new Error("expected function name after define");
       if (!this.matchPunct("(")) throw new Error("expected '(' after function name");
-      const params: string[] = [];
+      const params: { name: string; array: boolean }[] = [];
       if (!this.matchPunct(")")) {
         while (true) {
           const p = this.next();
           if (p?.type !== "id") throw new Error("expected parameter name");
-          params.push(p.name ?? "");
+          const array = this.matchPunct("[");
+          if (array && !this.matchPunct("]")) throw new Error("expected ']' in parameter list");
+          params.push({ name: p.name ?? "", array });
           if (this.matchPunct(")")) break;
           if (!this.matchPunct(",")) throw new Error("expected ',' or ')' in parameter list");
         }
@@ -675,6 +678,7 @@ class BcParser {
         return { kind: "call", name: (t.name ?? ""), args };
       }
       if (this.matchPunct("[")) {
+        if (this.matchPunct("]")) return { kind: "array", name: t.name ?? "" };
         const index = this.parseExpr();
         if (!this.matchPunct("]")) throw new Error("expected ']'");
         return { kind: "var", name: (t.name ?? ""), index };
@@ -780,7 +784,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     let last: DecimalValue = ZERO;
     const globals = new Map<string, DecimalValue>();
     const arrays = new Map<string, Map<string, DecimalValue>>();
-    const funcs = new Map<string, { params: string[]; body: Stmt }>();
+    const funcs = new Map<string, { params: { name: string; array: boolean }[]; body: Stmt }>();
     const callStack: { scalars: Map<string, DecimalValue>; arrays: Map<string, Map<string, DecimalValue>> }[] = [];
     let steps = 0;
     let outBuffer = "";
@@ -902,6 +906,8 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
         case "str":
           appendOutput(expr.value);
           return ZERO;
+        case "array":
+          throw new Error("array argument requires an array parameter");
         case "var":
           return getVar(expr.name, expr.index);
         case "assign": {
@@ -963,25 +969,43 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
           return ZERO;
         }
         case "call": {
-          const args: DecimalValue[] = [];
-          for (const a of expr.args) args.push(await evalExpr(a));
-          const arg0 = args[0] ?? ZERO;
-          if (expr.name === "sqrt") return sqrtDec(arg0, scale);
-          if (expr.name === "scale") return { coeff: BigInt(arg0.scale), scale: 0 };
-          if (expr.name === "length") return lengthDec(arg0);
-          if (expr.name === "abs") return { coeff: arg0.coeff < 0n ? -arg0.coeff : arg0.coeff, scale: arg0.scale };
-          if (mathlib) {
-            const result = await mathValue(expr.name, args, scale, tick);
-            if (result) return result;
+          const args: (DecimalValue | Map<string, DecimalValue>)[] = [];
+          for (const a of expr.args) {
+            args.push(a.kind === "array" ? getArray(a.name) : await evalExpr(a));
+          }
+          if (args.every((arg): arg is DecimalValue => !(arg instanceof Map))) {
+            const arg0 = args[0] ?? ZERO;
+            if (expr.name === "sqrt") return sqrtDec(arg0, scale);
+            if (expr.name === "scale") return { coeff: BigInt(arg0.scale), scale: 0 };
+            if (expr.name === "length") return lengthDec(arg0);
+            if (expr.name === "abs") return { coeff: arg0.coeff < 0n ? -arg0.coeff : arg0.coeff, scale: arg0.scale };
+            if (mathlib) {
+              const result = await mathValue(expr.name, args, scale, tick);
+              if (result) return result;
+            }
           }
           const fn = funcs.get(expr.name);
           if (!fn) throw new Error(`Function ${expr.name} not defined.`);
           if (callStack.length >= limits.maxRecursionDepth) throw new Error(`bc function recursion depth exceeded (${limits.maxRecursionDepth})`);
-          const frame = new Map<string, DecimalValue>();
+          const frame = { scalars: new Map<string, DecimalValue>(), arrays: new Map<string, Map<string, DecimalValue>>() };
+          if (args.length !== fn.params.length) throw new Error(`Function ${expr.name} argument count mismatch.`);
           for (let i = 0; i < fn.params.length; i++) {
-            frame.set(fn.params[i]!, args[i] ?? ZERO);
+            const param = fn.params[i]!;
+            const arg = args[i]!;
+            if (param.array !== (arg instanceof Map)) throw new Error(`Function ${expr.name} argument type mismatch.`);
+            if (arg instanceof Map) {
+              const copy = new Map<string, DecimalValue>();
+              for (const [key, value] of arg) {
+                const pending = tick();
+                if (pending) await pending;
+                copy.set(key, value);
+              }
+              frame.arrays.set(param.name, copy);
+            } else {
+              frame.scalars.set(param.name, arg);
+            }
           }
-          callStack.push({ scalars: frame, arrays: new Map() });
+          callStack.push(frame);
           try {
             await execStmt(fn.body);
             return ZERO;

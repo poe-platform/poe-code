@@ -10,6 +10,7 @@ pub mod logging;
 pub mod palette;
 pub mod preview;
 pub mod resource_browser;
+pub mod symbols;
 pub mod table;
 pub mod template;
 pub mod terminal;

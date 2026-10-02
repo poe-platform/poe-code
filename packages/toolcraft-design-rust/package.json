@@ -43,6 +43,34 @@
     "./components/resource-browser": {
       "types": "./dist/resource-browser.d.ts",
       "import": "./dist/resource-browser.js"
+    },
+    "./components/symbols": {
+      "types": "./dist/symbols.d.ts",
+      "import": "./dist/symbols.js"
+    },
+    "./tokens/index": {
+      "types": "./dist/tokens.d.ts",
+      "import": "./dist/tokens.js"
+    },
+    "./tokens/colors": {
+      "types": "./dist/tokens-colors.d.ts",
+      "import": "./dist/tokens-colors.js"
+    },
+    "./tokens/brand": {
+      "types": "./dist/tokens-brand.d.ts",
+      "import": "./dist/tokens-brand.js"
+    },
+    "./tokens/spacing": {
+      "types": "./dist/spacing.d.ts",
+      "import": "./dist/spacing.js"
+    },
+    "./tokens/widths": {
+      "types": "./dist/widths.d.ts",
+      "import": "./dist/widths.js"
+    },
+    "./tokens/typography": {
+      "types": "./dist/typography.d.ts",
+      "import": "./dist/typography.js"
     }
   },
   "scripts": {

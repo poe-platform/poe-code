@@ -11,6 +11,11 @@ sets your brand and live intro label. Colors follow terminal support and
 Markdown and JSON within an async context. Inline Markdown code and links escape
 delimiters and flatten newlines.
 
+`symbols` provides live terminal, Markdown and JSON status marks, including
+brand-aware resolved symbols. `spacing`, `widths` and the `tokens` namespace
+share the same token objects across root and `tokens/*` imports. Symbol selection
+and numeric defaults live in Rust; Node retains theme getters and mutable objects.
+
 ```ts
 import {color, text, getTheme, configureTheme} from 'toolcraft-design-rust';
 

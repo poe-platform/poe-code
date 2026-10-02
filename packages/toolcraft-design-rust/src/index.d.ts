@@ -1,5 +1,9 @@
 export type TemplateEscape = "html" | "none";
 export {color} from "./color.js";
+export { symbols } from "./symbols.js";
+export { spacing } from "./spacing.js";
+export { widths } from "./widths.js";
+export * as tokens from "./tokens.js";
 export type {Color} from "./color.js";
 export {brands,brand,dark,light,getTheme,resolveThemeName,resetThemeCache} from "./theme.js";
 export type {Brand,ThemeName,ThemePalette,ThemeEnv} from "./theme.js";

@@ -18,6 +18,20 @@ use napi_derive::napi;
 pub use table::*;
 use toolcraft_design_rust::template::{self, Environment, Lookup, Partials, ValueKind};
 #[napi]
+pub fn design_symbol(name: String, format: String) -> Vec<String> {
+    let (operation, value) = toolcraft_design_rust::symbols::symbol(&name, &format);
+    vec![operation.to_owned(), value.to_owned()]
+}
+#[napi]
+pub fn design_tokens(name: String) -> NativeJson {
+    NativeJson(Value::Object(
+        toolcraft_design_rust::symbols::tokens(&name)
+            .iter()
+            .map(|(key, value)| (key.encode_utf16().collect(), Value::Number(*value as f64)))
+            .collect(),
+    ))
+}
+#[napi]
 pub fn design_color_names() -> Vec<String> {
     toolcraft_design_rust::color::style_names()
         .iter()

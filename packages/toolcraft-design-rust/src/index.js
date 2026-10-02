@@ -1,6 +1,10 @@
 import { createRequire } from "node:module";
 import { createTemplateEngine } from "./engine.js";
 export {color} from "./color.js";
+export { symbols } from "./symbols.js";
+export { spacing } from "./spacing.js";
+export { widths } from "./widths.js";
+export * as tokens from "./tokens.js";
 export {brands,brand,dark,light,getTheme,resolveThemeName,resetThemeCache} from "./theme.js";
 export {text,typography} from "./text.js";
 export * as acp from "./acp.js";

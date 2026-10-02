@@ -511,6 +511,19 @@ metadata, previews, empty hints and Markdown output. Detail/inspector cards, the
 interactive controls and terminal Markdown remain open, as do resource and
 cross-package qualification for a complete replacement.
 
+Symbols and the token namespace now expose native policy through the root,
+`components/symbols`, and all six existing `tokens/*` modules. Rust owns symbol
+selection, terminal glyphs and numeric spacing/width defaults. Node retains live
+format scopes, theme/color property access and shared mutable object identity.
+Differential tests cover both theme modes, three brands, color capability,
+asynchronous format nesting, property descriptors and arbitrary theme throws.
+All 67 native and 168 reference tests pass, with bidirectional standalone types
+and Rust lint; the original components suite now uses native symbols too.
+Screenshots verify all status marks, brand-dependent colors and Markdown/JSON
+values. Detail/inspector cards, their width/wrapping dependencies, interactive
+controls, terminal Markdown, CLI/transports and complete replacement qualification
+remain open.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

@@ -1,8 +1,8 @@
 import { validateAttachmentUrl } from "./url-attachment.js";
+import { openAiAttachmentKind } from './openai-attachment.js';
 import { requestAttachments } from "./request-attachments.js";
 import { jsonString } from "./json-string.js";
 import { base64Stream } from "./base64-stream.js";
-import { acceptsMimeType } from "./mime.js";
 import { jsonValue } from "./json-value.js";
 import type { LlmSourceRequest } from "./types.js";
 /** Sources are borrowed; the caller owns their leases and provider admission. */
@@ -19,7 +19,10 @@ export function chatJson(request: OpenAiChatSourceRequest, limit: number): Async
   if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 0)) throw new RangeError("Invalid provider request byte limit");
   for (const field of ["model", "messages", "stream", "stream_options"]) if (Object.hasOwn(request.options, field)) throw new TypeError(`${field} is controlled by the provider`);
   if (request.schema && Object.hasOwn(request.options, "response_format")) throw new TypeError("schema conflicts with response_format");
-  for (const attachment of requestAttachments(request)) if (!acceptsMimeType(["image/*"], attachment.mimeType)) throw new TypeError("Only image attachments are supported");
+  for (const attachment of requestAttachments(request)) {
+    const kind = openAiAttachmentKind(attachment.mimeType);
+    if (attachment.url !== undefined && kind !== 'image') throw new TypeError('Audio URL attachments require an input source');
+  }
   const controls = jsonValue({ ...request.options, ...(request.stream !== false ? { stream_options: { include_usage: true } } : {}), ...(request.schema ? { response_format: { type: "json_schema", json_schema: { name: "response", schema: request.schema } } } : {}), model: request.model }, request.signal);
   const encoder = new TextEncoder();
   async function* body(): AsyncIterable<Uint8Array> {
@@ -43,6 +46,7 @@ export function chatJson(request: OpenAiChatSourceRequest, limit: number): Async
         yield text("}");
         for (const attachment of attachments) {
           request.signal.throwIfAborted();
+          const kind = openAiAttachmentKind(attachment.mimeType);
           if (attachment.url !== undefined) {
             validateAttachmentUrl(attachment.url);
             yield text(',{"type":"image_url","image_url":{"url":');
@@ -50,9 +54,11 @@ export function chatJson(request: OpenAiChatSourceRequest, limit: number): Async
             yield text('}}');
             continue;
           }
-          yield text(',{"type":"image_url","image_url":{"url":' + JSON.stringify(`data:${attachment.mimeType};base64,`).slice(0, -1));
+          yield text(kind === 'image'
+            ? ',{"type":"image_url","image_url":{"url":' + JSON.stringify(`data:${attachment.mimeType};base64,`).slice(0, -1)
+            : ',{"type":"input_audio","input_audio":{"data":"');
           for await (const part of base64Stream(attachment.source.bytes, request.signal)) yield text(part);
-          yield text('"}}');
+          yield text(kind === 'image' ? '"}}' : `","format":"${kind}"}}`);
         }
         yield text("]");
       }

@@ -1,4 +1,5 @@
 import { validateAttachmentUrl } from "./url-attachment.js";
+import { openAiAttachmentKind } from './openai-attachment.js';
 import { embeddingJson } from "./embedding-json.js";
 import { openAiUsage } from "./openai-usage.js";
 import { requestAttachments } from "./request-attachments.js";
@@ -220,10 +221,12 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       if (model.endpoint !== "chat" && (request.messages?.length || request.schema !== undefined)) throw new TypeError("Messages and schemas require a chat model");
       let attachmentBytes = 0;
       for (const attachment of requestAttachments(request)) {
-        if (!acceptsMimeType(["image/*"], attachment.mimeType)) throw new Error(`OpenAI ${model.endpoint} endpoint only supports image attachments`);
+        const kind = openAiAttachmentKind(attachment.mimeType);
+        if (model.endpoint !== 'chat' && kind !== 'image') throw new Error(`OpenAI ${model.endpoint} endpoint only supports image attachments`);
         if (attachment.url !== undefined) {
           validateAttachmentUrl(attachment.url);
           if (model.endpoint !== "chat") throw new Error(`OpenAI ${model.endpoint} endpoint does not support URL attachments`);
+          if (kind !== 'image') throw new TypeError('Audio URL attachments require an input source');
         } else attachmentBytes += attachment.bytes.byteLength;
         if (attachmentBytes > limits.maxRequestBytes) throw new RangeError("Provider request byte limit exceeded");
       }
@@ -246,7 +249,12 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
           const attachments = message.attachments ?? [];
           messages.push({ role: message.role, content: attachments.length === 0 ? message.content : [
             { type: "text", text: message.content },
-            ...attachments.map(attachment => ({ type: "image_url", image_url: { url: attachment.url ?? `data:${attachment.mimeType};base64,${base64(attachment.bytes!)}` } })),
+            ...attachments.map(attachment => {
+              const kind = openAiAttachmentKind(attachment.mimeType);
+              return kind === 'image'
+                ? { type: "image_url", image_url: { url: attachment.url ?? `data:${attachment.mimeType};base64,${base64(attachment.bytes!)}` } }
+                : { type: 'input_audio', input_audio: { data: base64(attachment.bytes!), format: kind } };
+            }),
           ] });
         }
         let details: LlmResponseMetadata | undefined;

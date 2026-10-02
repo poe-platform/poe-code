@@ -59,3 +59,14 @@ it("executes the default private runtime without a host Buffer global", async ()
   expect(chunks.map(chunk => new TextDecoder().decode(chunk)).join("")).toBe("2.1\n");
   expect(errors).toEqual([]);
 });
+
+it("keeps synchronous YAML/TOML implementation in the private command workspace", () => {
+  const facade = readFileSync(new URL("../packages/safe-bash/src/commands/yq/index.ts", import.meta.url), "utf8");
+  expect(facade).not.toContain("function parseSimpleYamlScalar");
+  expect(facade).not.toContain("function parseSimpleYamlOrToml");
+  expect(facade).not.toContain("function formatYamlNodeLinesSync");
+  const implementation = readFileSync(new URL("../packages/safe-bash-command-yq/src/sync.ts", import.meta.url), "utf8");
+  expect(implementation).toContain("export function evalSyncYqPrep");
+  expect(implementation).toContain("export function formatSyncYqYamlLines");
+  expect(implementation).not.toContain("syncCommandEvaluators");
+});

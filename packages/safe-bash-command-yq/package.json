@@ -94,6 +94,12 @@
       "workerd": "./dist/query.js",
       "browser": "./dist/query.js",
       "import": "./dist/query.js"
+    },
+    "./sync": {
+      "types": "./dist/sync.d.ts",
+      "workerd": "./dist/sync.js",
+      "browser": "./dist/sync.js",
+      "import": "./dist/sync.js"
     }
   },
   "files": [

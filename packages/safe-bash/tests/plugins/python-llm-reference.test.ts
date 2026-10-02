@@ -262,7 +262,7 @@ llm.get_embedding_model_aliases = lambda: {"embedding": EmbeddingModel(), "embed
 
 `;
 
-const bundledSetup = `
+const legacySetup = `
 import sys, json, asyncio, types
 bundle = json.load(sys.stdin)
 _safe_llm_source = bundle["source"]
@@ -313,9 +313,17 @@ class Bridge:
 capability = types.ModuleType("_poe_llm_capability")
 capability.bridge = Bridge()
 sys.modules[capability.__name__] = capability
+# These fixtures characterize the legacy shim even when native llm is installed.
+from importlib.machinery import ModuleSpec
+from importlib.util import module_from_spec
+legacy_loader = next(loader for loader in sys.meta_path if type(loader).__name__ == "_SafeLlmLoader")
+legacy_spec = ModuleSpec("llm", legacy_loader, is_package=True)
+legacy_module = module_from_spec(legacy_spec)
+sys.modules["llm"] = legacy_module
+legacy_loader.exec_module(legacy_module)
 `;
 
-test('bundled llm matches reference lazy sync and async response contracts', {skip: pythonDependency}, () => {
+test('legacy llm shim matches reference lazy sync and async response contracts', {skip: pythonDependency}, () => {
   const globals = new Map<string, unknown>();
   let source: unknown;
   let registration = '';
@@ -323,7 +331,7 @@ test('bundled llm matches reference lazy sync and async response contracts', {sk
     source = globals.get('_safe_llm_source');
     registration = value;
   } });
-  const result = spawnSync(testPython, ['-B', '-c', bundledSetup + snippet], {
+  const result = spawnSync(testPython, ['-B', '-c', legacySetup + snippet], {
     input: JSON.stringify({ source, registration }), encoding: 'utf8', timeout: 5000,
   });
   assert.ifError(result.error);
@@ -338,8 +346,8 @@ test('bundled llm matches reference lazy sync and async response contracts', {sk
   }
 });
 
-test('reference response API closes streams after early exit, errors and cancellation', {skip: pythonDependency}, () => {
-  const program = bundledSetup + `
+test('legacy shim response API closes streams after early exit, errors and cancellation', {skip: pythonDependency}, () => {
+  const program = legacySetup + `
 import llm
 closed = []
 class OwnedBridge(Bridge):
@@ -421,7 +429,7 @@ asyncio.run(check())
   assert.equal(result.status, 0, result.stdout + result.stderr);
 });
 
-test('custom model Options use genuine Pydantic validation like the reference', {skip: !process.env.LLM_REFERENCE_PYTHON}, () => {
+test('legacy shim custom model Options use genuine Pydantic validation like the reference', {skip: !process.env.LLM_REFERENCE_PYTHON}, () => {
   const program = `
 import llm
 from pydantic import BaseModel, ValidationError
@@ -473,8 +481,8 @@ assert Model.__module__ == Response.__module__ == "llm.models"
 assert Template.__module__ == "llm.templates"
 assert not llm.__spec__.origin.endswith("poe_llm.py")
 `;
-  for (const setup of [bundledSetup, originalSetup]) {
-    const catalog = setup === bundledSetup ? `
+  for (const setup of [legacySetup, originalSetup]) {
+    const catalog = setup === legacySetup ? `
 import llm
 from pydantic import ValidationError
 model = llm.Model("test-model", metadata={"options": {
@@ -497,7 +505,7 @@ def checked_stream(self, payload):
 Bridge.stream = checked_stream
 assert model.prompt("typed", temperature="0.5", count="2", enabled=True, label=None).text() == "hello"
 ` : '';
-    const python = setup === bundledSetup ? testPython : process.env.LLM_REFERENCE_PYTHON!;
+    const python = setup === legacySetup ? testPython : process.env.LLM_REFERENCE_PYTHON!;
     const result = spawnSync(python, ['-B', '-c', setup + program + catalog], {
       input: JSON.stringify({source, registration}), encoding: 'utf8', timeout: 5000,
     });
@@ -506,7 +514,7 @@ assert model.prompt("typed", temperature="0.5", count="2", enabled=True, label=N
   }
 });
 
-test('reference default helpers preserve named files, fallbacks and removal behavior', {skip: pythonDependency}, () => {
+test('legacy shim default helpers preserve named files, fallbacks and removal behavior', {skip: pythonDependency}, () => {
   const program = `
 import llm
 assert llm.DEFAULT_MODEL == "gpt-4o-mini"
@@ -539,7 +547,7 @@ except TypeError:
   let source: unknown;
   let registration = '';
   installPythonLlmModule({globals,runPython(value) {source=globals.get('_safe_llm_source');registration=value;}});
-  const bundled = spawnSync(testPython, ['-B','-c',bundledSetup + program], {
+  const bundled = spawnSync(testPython, ['-B','-c',legacySetup + program], {
     input:JSON.stringify({source,registration}),encoding:'utf8',timeout:5000,
   });
   assert.ifError(bundled.error);
@@ -571,7 +579,7 @@ llm.user_dir = lambda: MemoryPath()
   }
 });
 
-test('reference alias records support discovery and case-insensitive matching', {skip: pythonDependency}, () => {
+test('legacy shim alias records support discovery and case-insensitive matching', {skip: pythonDependency}, () => {
   const program = `
 import llm
 class Named(llm.Model):
@@ -611,18 +619,18 @@ assert len(embeddings) == 1 and embeddings[0].aliases == ["embed-alias"]
 assert embeddings[0].model.model_id == "embedding"
 `;
   for (const [python, setup, extra] of [
-    [testPython, bundledSetup, discovery],
+    [testPython, legacySetup, discovery],
     ...(process.env.LLM_REFERENCE_PYTHON ? [[process.env.LLM_REFERENCE_PYTHON, '', '']] : []),
   ]) {
     const result = spawnSync(python!, ['-B', '-c', setup + program + extra], {
-      input: setup === bundledSetup ? JSON.stringify({source, registration}) : undefined, encoding: 'utf8', timeout: 5000,
+      input: setup === legacySetup ? JSON.stringify({source, registration}) : undefined, encoding: 'utf8', timeout: 5000,
     });
     assert.ifError(result.error);
     assert.equal(result.status, 0, result.stdout + result.stderr);
   }
 });
 
-test('reference tools preserve schemas, calls, results and execution hooks', {skip: pythonDependency}, () => {
+test('legacy shim tools preserve schemas, calls, results and execution hooks', {skip: pythonDependency}, () => {
   const program = `
 import llm, asyncio, hashlib, json
 from pydantic import BaseModel
@@ -793,18 +801,18 @@ asyncio.run(chain_check())
   let registration = '';
   installPythonLlmModule({globals,runPython(value) {source=globals.get('_safe_llm_source');registration=value;}});
   for (const [python, setup] of [
-    [testPython, bundledSetup],
+    [testPython, legacySetup],
     ...(process.env.LLM_REFERENCE_PYTHON ? [[process.env.LLM_REFERENCE_PYTHON, '']] : []),
   ]) {
     const result = spawnSync(python!, ['-B','-c',setup + program], {
-      input:setup === bundledSetup ? JSON.stringify({source,registration}) : undefined,encoding:'utf8',timeout:5000,
+      input:setup === legacySetup ? JSON.stringify({source,registration}) : undefined,encoding:'utf8',timeout:5000,
     });
     assert.ifError(result.error);
     assert.equal(result.status,0,result.stdout+result.stderr);
   }
 });
 
-test('reference templates, fragments and public submodule imports work without file installation', {skip: pythonDependency}, () => {
+test('legacy shim templates, fragments and public submodule imports work without file installation', {skip: pythonDependency}, () => {
   const program = `
 import llm, hashlib, string
 from llm.models import Model, Tool, ToolCall, Options
@@ -853,11 +861,11 @@ for values in [{"name":"bad","extra":True},{"name":"bad","_functions_is_trusted"
   let registration = '';
   installPythonLlmModule({globals,runPython(value) {source=globals.get('_safe_llm_source');registration=value;}});
   for (const [python, setup] of [
-    [testPython, bundledSetup],
+    [testPython, legacySetup],
     ...(process.env.LLM_REFERENCE_PYTHON ? [[process.env.LLM_REFERENCE_PYTHON, '']] : []),
   ]) {
     const result = spawnSync(python!, ['-B','-c',setup + program], {
-      input:setup === bundledSetup ? JSON.stringify({source,registration}) : undefined,
+      input:setup === legacySetup ? JSON.stringify({source,registration}) : undefined,
       encoding:'utf8',timeout:5000,
     });
     assert.ifError(result.error);

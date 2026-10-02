@@ -339,7 +339,8 @@ export function createDocxInspectionCommandEngine(options: { readonly limits?: P
         if (cancelled) exitCode = 130;
         else if (invocation.operation === "diff") exitCode = 2;
         const failureMessage = acquiring ? "Unable to read the declared document input." : error instanceof PublicationError && error.stdoutMayBePartial ? "Binary stdout may contain partial output." : error instanceof UnsupportedEmbeddedFontMutationError ? error.message : "Document operation failed: " + code;
-        const recoveryMessage = code === "usage" ? `${failureMessage}. See docx help ${invocation.operation.split(".").join(" ")} for accepted arguments and data schemas.`
+        const detail = code === "usage" && error instanceof Error && error.message ? ` (${error.message})` : "";
+        const recoveryMessage = code === "usage" ? `${failureMessage}${detail}. See docx help ${invocation.operation.split(".").join(" ")} for accepted arguments and data schemas.`
           : code === "missing-selection" && invocation.operation === "text.replace" ? `${failureMessage}. Review --find, --scope and selection; see docx help text replace. Use --allow-empty only when a no-match result is intended.`
           : failureMessage;
         const diagnostic = commandDiagnostic(recoveryMessage, code, budget.limits.diagnosticBytes);

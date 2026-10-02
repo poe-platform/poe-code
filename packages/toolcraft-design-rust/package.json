@@ -331,6 +331,10 @@
     "./prompts/interactive/password": {
       "types": "./dist/prompt-password.d.ts",
       "import": "./dist/prompt-password.js"
+    },
+    "./prompts/interactive/pagination": {
+      "types": "./dist/prompt-pagination.d.ts",
+      "import": "./dist/prompt-pagination.js"
     }
   },
   "scripts": {

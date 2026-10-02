@@ -572,6 +572,12 @@ const textPromptOriginal: typeof originalPromptText = promptText;
 const passwordPromptOriginal: typeof originalPromptPassword = promptPassword;
 void [textResult, passwordResult, textPromptOriginal, passwordPromptOriginal];
 
+import * as promptPagination from "toolcraft-design-rust/prompts/interactive/pagination";
+import type * as originalPromptPagination from "toolcraft-design/prompts/interactive/pagination";
+const paginationOriginal: typeof originalPromptPagination = promptPagination;
+const paginationNative: typeof promptPagination = null as unknown as typeof originalPromptPagination;
+void [paginationOriginal, paginationNative];
+
 import {Prompt as NativePrompt,type PromptOptions as NativePromptOptions,type PromptState as NativePromptState} from "toolcraft-design-rust/prompts/interactive/core";
 import type {PromptState as OriginalPromptState} from "toolcraft-design/prompts/interactive/core";
 import * as nativePromptKeys from "toolcraft-design-rust/prompts/interactive/keys";

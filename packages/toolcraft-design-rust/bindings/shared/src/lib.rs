@@ -478,3 +478,5 @@ mod prompt_core;
 pub use prompt_core::*;
 mod prompt_components;
 pub use prompt_components::*;
+mod prompt_pagination;
+pub use prompt_pagination::*;

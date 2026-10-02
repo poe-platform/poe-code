@@ -42,6 +42,9 @@ The `prompts/interactive/glyphs` subpath exposes terminal-aware `GLYPHS`,
 accept validation callbacks and piped input; text supports placeholders and
 default values, while passwords mask each grapheme and retain masking in the
 submitted or cancelled display.
+`limitOptions` from `prompts/interactive/pagination` fits styled option rows to
+terminal width and height, keeps the cursor's window visible, and adds overflow
+markers when space permits.
 
 `symbols` provides live terminal, Markdown and JSON status marks, including
 brand-aware resolved symbols. `spacing`, `widths` and the `tokens` namespace

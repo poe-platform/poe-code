@@ -1243,3 +1243,24 @@ pagination, public wrappers/namespace and the broader remaining ports and
 qualification are still required. Prompt-core release 36984849384 completed its
 queue check, but skipped build execution, validation and publication; it is not
 evidence of a published release. Confirmation release 36985857838 is pending.
+
+`limitOptions` now exposes `prompts/interactive/pagination` with Rust windowing,
+row-budget trimming and overflow-marker decisions. The host retains numeric
+coercion, live array operations/species and styling callback identity; wrapping
+uses the existing native implementation. Differential coverage includes narrow
+and zero row budgets, multiline/Unicode options, fractional and nonfinite
+geometry/cursors, callback failures and observable property access order.
+
+All 251 native host cases, 1,222 selected original design cases and ten spinner
+wrapper cases pass, along with full pagination type equivalence, Rust/binding/JS
+lint and packed standalone runtime/declarations. First/middle/last windows and
+a narrow terminal screenshot match the reference ANSI and were inspected.
+No external dependencies changed. The original select/multiselect subclasses
+exercise native pagination in these suites; those subclasses are still unported.
+
+Five warmed alternating rounds of 500 twelve-option styled window calculations
+measured median 0.87098 ms native versus 0.01954 ms reference (44.58x), including
+native wrapping and excluding TTY I/O. No performance gate passed. The remaining
+selection subclasses, wrappers/namespace, broader ports and compatibility gates
+remain required. Text/password commit 613c5d797c is verified on remote main;
+release 36986392323 is pending, with publication still unverified.

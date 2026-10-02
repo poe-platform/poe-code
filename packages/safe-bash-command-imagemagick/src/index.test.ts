@@ -1000,4 +1000,19 @@ describe("safe-bash-command-imagemagick", () => {
     );
     expect(crop653.stdout.trim()).toBe("6x31");
   });
+  it("supports -list font, format, color, configure, and list in magick, convert, and identify", async () => {
+    const files = new Map<string, Uint8Array>();
+    const fontRes = await runMagickCli(["-list", "font"], files);
+    expect(fontRes.exitCode).toBe(0);
+    expect(fontRes.stderr).toBe("");
+    expect(fontRes.stdout).toContain("Font: DejaVu-Sans");
+
+    const formatRes = await runMagickCli(["convert", "-list", "format"], files);
+    expect(formatRes.exitCode).toBe(0);
+    expect(formatRes.stdout).toContain("PNG* PNG");
+
+    const idListRes = await runMagickCli(["identify", "-list", "color"], files);
+    expect(idListRes.exitCode).toBe(0);
+    expect(idListRes.stdout).toContain("transparent");
+  });
 });

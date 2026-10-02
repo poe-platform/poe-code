@@ -3606,7 +3606,118 @@ function formatIdentifyCustom(
   return out;
 }
 
+
+function tryHandleMagickListOption(argv: readonly string[]): ImageMagickCliResult | undefined {
+    const endIdx = argv.indexOf("--");
+    const limit = endIdx < 0 ? argv.length : endIdx;
+    for (let i = 0; i < limit; i++) {
+        const arg = argv[i]!;
+        if (arg === "-list" || arg === "--list") {
+            const listType = (argv[i + 1] ?? "list").toLowerCase();
+            if (listType === "font" || listType === "type") {
+                return {
+                    exitCode: 0,
+                    stdout: [
+                        "  Font: DejaVu-Sans",
+                        "    family: DejaVu Sans",
+                        "    style: Normal",
+                        "    stretch: Normal",
+                        "    weight: 400",
+                        "  Font: DejaVu-Sans-Bold",
+                        "    family: DejaVu Sans",
+                        "    style: Normal",
+                        "    stretch: Normal",
+                        "    weight: 700",
+                        "  Font: DejaVu-Sans-Mono",
+                        "    family: DejaVu Sans Mono",
+                        "    style: Normal",
+                        "    stretch: Normal",
+                        "    weight: 400",
+                        "  Font: Arial",
+                        "    family: Arial",
+                        "    style: Normal",
+                        "    stretch: Normal",
+                        "    weight: 400",
+                        "  Font: Helvetica",
+                        "    family: Helvetica",
+                        "    style: Normal",
+                        "    stretch: Normal",
+                        "    weight: 400",
+                        "  Font: Liberation-Sans",
+                        "    family: Liberation Sans",
+                        "    style: Normal",
+                        "    stretch: Normal",
+                        "    weight: 400",
+                        ""
+                    ].join("\n"),
+                    stderr: ""
+                };
+            }
+            if (listType === "format") {
+                return {
+                    exitCode: 0,
+                    stdout: [
+                        "   Format  Module    Mode  Description",
+                        "-------------------------------------------------------------------------------",
+                        "      BMP* BMP       rw-   Microsoft Windows bitmap image",
+                        "      GIF* GIF       rw+   CompuServe graphics interchange format",
+                        "     JPEG* JPEG      rw-   Joint Photographic Experts Group JFIF format",
+                        "      JPG* JPEG      rw-   Joint Photographic Experts Group JFIF format",
+                        "      PNG* PNG       rw-   Portable Network Graphics",
+                        "      PPM* PNM       rw+   Portable pixmap format (color)",
+                        "      SVG* SVG       r--   Scalable Vector Graphics",
+                        "     TIFF* TIFF      rw+   Tagged Image File Format",
+                        "     WEBP* WEBP      rw-   WebP Image Format",
+                        ""
+                    ].join("\n"),
+                    stderr: ""
+                };
+            }
+            if (listType === "color") {
+                return {
+                    exitCode: 0,
+                    stdout: [
+                        "Name                  Color                   Compliance",
+                        "-------------------------------------------------------------------------------",
+                        "black                 srgb(0,0,0)             SVG, X11, XPM",
+                        "white                 srgb(255,255,255)       SVG, X11, XPM",
+                        "red                   srgb(255,0,0)           SVG, X11, XPM",
+                        "green                 srgb(0,128,0)           SVG",
+                        "blue                  srgb(0,0,255)           SVG, X11, XPM",
+                        "transparent           srgba(0,0,0,0)          SVG, X11, XPM",
+                        ""
+                    ].join("\n"),
+                    stderr: ""
+                };
+            }
+            if (listType === "configure") {
+                return {
+                    exitCode: 0,
+                    stdout: [
+                        "Name                  Value",
+                        "-------------------------------------------------------------------------------",
+                        "DELEGATES             png jpeg webp tiff gif svg freetype",
+                        "FEATURES              Cipher DPC",
+                        "NAME                  ImageMagick",
+                        "VERSION               7.1.1",
+                        ""
+                    ].join("\n"),
+                    stderr: ""
+                };
+            }
+            return {
+                exitCode: 0,
+                stdout: "color\nconfigure\ndelegate\nfont\nformat\nlocale\nlog\nmagic\nmodule\nresource\nthreshold\ntype\n",
+                stderr: ""
+            };
+        }
+    }
+    return undefined;
+}
+
 function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+    const listRes = tryHandleMagickListOption(argv);
+    if (listRes) return listRes;
     let cooperativeWork = 63;
     let verbose = false;
     let customFormat: string | undefined;
@@ -4829,6 +4940,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
 }
 
 function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+    const listRes = tryHandleMagickListOption(argv);
+    if (listRes) return listRes;
     let cooperativeWork = 63;
     const optionArgs = argv.slice(0, argv.indexOf("--") < 0 ? argv.length : argv.indexOf("--"));
     if (argv.length === 0 || optionArgs.includes("--help") || optionArgs.includes("-help") || optionArgs.includes("-h")) {

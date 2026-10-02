@@ -44,3 +44,21 @@ for (const run of [runSofficeCliSync, runSofficeCli]) {
     assert.equal(restored.stdout, "Name\tValue\nAlice & Bob\t42\n");
   });
 }
+
+for (const run of [runSofficeCliSync, runSofficeCli]) {
+  for (const extension of ["html", "htm", "txt", "md"]) test(`${extension} round-trips through DOCX to plain text (${run.name})`, async () => {
+    const source = extension === "html" || extension === "htm"
+      ? "<html><body><h1>Document title</h1><p>Document paragraph</p></body></html>"
+      : extension === "md" ? "# Document title\n\nDocument paragraph"
+      : "Document title\nDocument paragraph";
+    const files = new Map([[`/page.${extension}`, new TextEncoder().encode(source)]]);
+    const converted = await run(["--headless", "--convert-to", "docx", `/page.${extension}`], files);
+    assert.equal(converted.exitCode, 0, converted.stderr);
+    const entries = readZipArchiveEntries(files.get("/page.docx")!);
+    assert.ok(entries.has("[Content_Types].xml"));
+    assert.ok(entries.has("word/document.xml"));
+    const restored = await run(["--headless", "--convert-to", "txt", "--outdir", "/restored", "/page.docx"], files);
+    assert.equal(restored.exitCode, 0, restored.stderr);
+    assert.equal(new TextDecoder().decode(files.get("/restored/page.txt")), "Document title\n\nDocument paragraph\n");
+  });
+}

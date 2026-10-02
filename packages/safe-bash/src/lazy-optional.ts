@@ -757,7 +757,7 @@ export function optionalCommands(options: OptionalCommandsOptions = {}): Virtual
   return lazyCommandPlugin(
     "optional-commands",
     createOptionalCommands(options),
-    options.replace ?? false
+    options.profile === "full" ? false : (options.replace ?? false)
   );
 }
 

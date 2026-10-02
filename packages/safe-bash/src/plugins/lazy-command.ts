@@ -36,6 +36,7 @@ export function createLazyCommands(
   load: () => Promise<LazyCommandFactory>,
   options?: unknown
 ): readonly CommandDefinition[] {
+  let resolvedDefinitions: readonly CommandDefinition[] | undefined;
   const definitions = Object.freeze(
     metadata.map((item) =>
       Object.freeze({
@@ -43,9 +44,12 @@ export function createLazyCommands(
         runtimeIdentity: commandRuntimeIdentity,
         async execute(context: CommandContext) {
           context.signal.throwIfAborted();
-          const factory = await waitForCode(load(), context.signal);
-          context.signal.throwIfAborted();
-          const definition = factory().find((command) => command.name === item.name);
+          if (!resolvedDefinitions) {
+            const factory = await waitForCode(load(), context.signal);
+            context.signal.throwIfAborted();
+            resolvedDefinitions = factory();
+          }
+          const definition = resolvedDefinitions.find((command) => command.name === item.name);
           if (!definition) throw new Error(`Lazy command loader did not provide ${item.name}`);
           return definition.execute(context);
         }

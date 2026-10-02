@@ -5,6 +5,42 @@ import { Shell } from "../../src/shell/shell.js";
 import { structuredCommands } from "../../src/commands/structured/index.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 import { standardCommands } from "../../src/commands/index.js";
+import { InvocationScope } from "../../src/shell/cleanup.js";
+
+test("concurrent shells retain their own results across asynchronous root cleanup", async context => {
+  let enter!: () => void;
+  let release!: () => void;
+  const entered = new Promise<void>(resolve => { enter = resolve; });
+  const released = new Promise<void>(resolve => { release = resolve; });
+  const close = InvocationScope.prototype.close;
+  let paused = false;
+  context.mock.method(InvocationScope.prototype, "close", function (this: InvocationScope) {
+    if (this.parent !== undefined || paused) return close.call(this);
+    paused = true;
+    enter();
+    return released.then(() => close.call(this));
+  });
+  const first = new Shell({ fs: createMemoryFileSystem() }).use(standardCommands());
+  const second = new Shell({ fs: createMemoryFileSystem() }).use(standardCommands());
+  const pending = first.exec("echo first; echo first-error >&2; exit 7");
+  try {
+    await entered;
+    const other = await second.exec("echo second; echo second-error >&2; exit 9");
+    release();
+    const result = await pending;
+    assert.equal(result.stdout, "first\n");
+    assert.equal(result.stderr, "first-error\n");
+    assert.equal(result.exitCode, 7);
+    assert.equal(other.stdout, "second\n");
+    assert.equal(other.stderr, "second-error\n");
+    assert.equal(other.exitCode, 9);
+  } finally {
+    release();
+    await pending;
+    await first.dispose();
+    await second.dispose();
+  }
+});
 
 for (const source of ["mkdir /d1", "find / -size 0", "rm -rf /d1", "mkdir /d1 | head -n 1", "find / -size 0 | sed s/a/b/", "rm -rf /d1 | head -n 1"]) {
   test(`host filesystem receives native signals: ${source}`, async () => {

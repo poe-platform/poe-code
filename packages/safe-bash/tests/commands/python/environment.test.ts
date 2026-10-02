@@ -7,9 +7,17 @@ import * as python from '../../../src/commands/python/index.js';
 function context() { return { fs: new MemoryFileSystem(), cwd: '/', signal: new AbortController().signal }; }
 const bytes = (value: string) => new TextEncoder().encode(value);
 
-test('package environments retain defaults and reject incomplete explicit executors', () => {
+test('omitted Python options expose default command aliases', () => {
+  assert.deepEqual(python.createPythonCommands().map(command => command.name), ['python', 'python3']);
+  assert.equal(python.pythonCommands().name, 'python-commands');
   assert.equal(python.pythonCommands(undefined).name, 'python-commands');
-  assert.throws(() => python.pythonCommands({} as never), { category: 'executor-unavailable' });
+});
+
+test('package environment ownership does not hide missing explicit executor diagnostics', () => {
+  for (const options of [{}, { createWorker: undefined }, { createExecutor: undefined }, null]) {
+    assert.throws(() => python.pythonCommands(options as never), { category: 'executor-unavailable' });
+    assert.throws(() => python.createPythonCommands(options as never), { category: 'executor-unavailable' });
+  }
 });
 
 test('shared manifest stores reject stale commits across independent environments', async () => {

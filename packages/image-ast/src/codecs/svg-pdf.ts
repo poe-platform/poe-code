@@ -235,7 +235,7 @@ export function decodeSvgImage(
 ): RgbaImage {
   const meta = readSvgMetadata(bytes, options);
   const { width, height, density } = meta;
-  const data = new Uint8Array(width * height * 4);
+  const data = new Uint8Array(new ArrayBuffer(width * height * 4 + height), 0, width * height * 4);
   const text = new TextDecoder().decode(bytes);
   const svgTagMatch = /<svg\b[^>]*>/i.exec(text);
   const svgTag = svgTagMatch?.[0] ?? "";

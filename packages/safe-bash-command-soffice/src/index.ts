@@ -1294,6 +1294,9 @@ export async function soffice(context: CommandContext, options: SofficeCommandOp
     return { exitCode: res.exitCode };
   } finally {
     await invocation.close();
+    if (typeof (globalThis as { gc?: () => void }).gc === "function") {
+      try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {}
+    }
   }
 }
 

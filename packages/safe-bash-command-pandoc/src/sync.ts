@@ -63,5 +63,9 @@ export function evalSyncPandoc(
     return new TextDecoder("utf-8", { fatal: true }).decode(serialized.bytes);
   } catch {
     return undefined;
+  } finally {
+    if (typeof (globalThis as { gc?: () => void }).gc === "function") {
+      try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {}
+    }
   }
 }

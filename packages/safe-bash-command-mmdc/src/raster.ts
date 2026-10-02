@@ -1141,7 +1141,7 @@ export function* rasterizeSceneSteps(
   options?.budget?.chargePixels(totalPixels);
   options?.budget?.chargeMemoryBytes(totalPixels * 4);
 
-  const rgba = new Uint8Array(totalPixels * 4);
+  const rgba = new Uint8Array(new ArrayBuffer(totalPixels * 4 + height), 0, totalPixels * 4);
   const bg = parseCssColor(scene.backgroundColor);
   if (bg.a > 0) {
     for (let i = 0; i < totalPixels * 4; i += 4) {

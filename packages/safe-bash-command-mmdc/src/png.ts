@@ -269,25 +269,37 @@ export function* encodeRgbaToPngSteps(
   const rowStride = width * 4;
   const filteredBytes = (rowStride + 1) * height;
   budget?.chargeMemoryBytes(filteredBytes);
-  const filtered = new Uint8Array(filteredBytes);
+  const canFilterInPlace = rgba.byteOffset === 0 && rgba.buffer.byteLength >= filteredBytes;
+  const filtered = canFilterInPlace ? new Uint8Array(rgba.buffer, 0, filteredBytes) : new Uint8Array(filteredBytes);
+  const rowScratch = canFilterInPlace ? new Uint8Array(rowStride) : undefined;
 
   // Filter 1 (Sub) turns horizontal solid-color scanlines into zeros
-  for (let y = 0; y < height; y++) {
+  for (let step = 0; step < height; step++) {
     if (++work % 16384 === 0) yield;
-
+    const y = canFilterInPlace ? height - 1 - step : step;
     budget?.chargeWork(width);
     const srcRow = y * rowStride;
     const dstRow = y * (rowStride + 1);
+    let srcBuf = rgba;
+    let srcBase = srcRow;
+    if (rowScratch) {
+      rowScratch.set(rgba.subarray(srcRow, srcRow + rowStride));
+      srcBuf = rowScratch;
+      srcBase = 0;
+    }
     filtered[dstRow] = 1; // Filter type 1: Sub
     for (let x = 0; x < rowStride; x++) {
       if (++work % 16384 === 0) yield;
 
-      const left = x >= 4 ? rgba[srcRow + x - 4]! : 0;
-      filtered[dstRow + 1 + x] = (rgba[srcRow + x]! - left) & 0xff;
+      const left = x >= 4 ? srcBuf[srcBase + x - 4]! : 0;
+      filtered[dstRow + 1 + x] = (srcBuf[srcBase + x]! - left) & 0xff;
     }
   }
 
   const compressed = (yield* compressZlibDeflateSteps(filtered));
+  if (typeof (filtered.buffer as unknown as { transfer?: (n: number) => ArrayBuffer }).transfer === "function") {
+    try { (filtered.buffer as unknown as { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+  }
 
   const ihdr = new Uint8Array(13);
   const ihdrView = new DataView(ihdr.buffer);

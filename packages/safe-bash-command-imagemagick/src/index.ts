@@ -12,7 +12,7 @@ import {
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { decodeImage, decodePngToCanvas, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, modulateImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, tintImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
+import { decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, modulateImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, tintImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -3449,6 +3449,8 @@ function blendOverlayInPlace(img: RgbaImage, overlay: RgbaImage, offsetX: number
 
 function* applyMagickAnnotateSteps(img: RgbaImage, offsetStr: string, text: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     yield;
+    const fill = state.fill;
+    if (fill.a <= 0 || text.length === 0) return img;
     const g = parseMagickGeometry(offsetStr);
     const fontSize = Math.max(8, state.pointsize);
     const estW = Math.max(8, Math.ceil(text.length * fontSize * 0.6));
@@ -3456,13 +3458,55 @@ function* applyMagickAnnotateSteps(img: RgbaImage, offsetStr: string, text: stri
     const gravOff = resolveGravityOffset(img.width - estW, img.height - estH, state.gravity);
     const x = Math.max(0, Math.round(gravOff.left + g.x));
     const y = Math.max(fontSize, Math.round(gravOff.top + estH + g.y));
-    const topY = Math.max(0, y - estH);
-    const baselineInBox = y - topY;
-    const boxW = Math.max(1, Math.min(img.width - x, Math.max(16, Math.ceil(text.length * fontSize * 0.78) + 8)));
-    const boxH = Math.max(1, Math.min(img.height - topY, Math.max(12, Math.ceil(fontSize * 1.4))));
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${boxW}" height="${boxH}"><text x="0" y="${baselineInBox}" font-size="${fontSize}" fill="${rgbaToCss(state.fill)}">${escapeXml(text)}</text></svg>`;
-    const overlay = decodeImage(new TextEncoder().encode(svg), { density: state.density });
-    blendOverlayInPlace(img, overlay, x, topY);
+    const scale = (state.density || 72) / 72;
+    const effFontSize = Math.max(6, fontSize * scale);
+    const glyphH = Math.max(7, Math.round(effFontSize * 0.76));
+    const glyphW = Math.max(5, Math.round(glyphH * (5 / 7)));
+    const advanceX = Math.max(glyphW + 1, Math.round(glyphW * 1.2));
+    const baseTopY = Math.round(y * scale - glyphH);
+    const startX = x * scale;
+    const dst = img.data;
+    const width = img.width;
+    const height = img.height;
+    const srcA = fill.a / 255;
+    for (let ci = 0; ci < text.length; ci++) {
+        const ch = text.charCodeAt(ci);
+        if (ch <= 32) continue;
+        const glyphIdx = Math.max(0, Math.min(94, ch - 32));
+        const isDescender = ch === 103 || ch === 106 || ch === 112 || ch === 113 || ch === 121 || ch === 44 || ch === 59;
+        const charTopY = baseTopY + (isDescender ? Math.max(1, Math.round(glyphH / 7)) : 0);
+        const charLeftX = Math.round(startX + ci * advanceX);
+        for (let py = 0; py < glyphH; py++) {
+            const gy = Math.min(6, Math.floor((py * 7) / glyphH));
+            const screenY = charTopY + py;
+            if (screenY < 0 || screenY >= height) continue;
+            for (let px = 0; px < glyphW; px++) {
+                const gx = Math.min(4, Math.floor((px * 5) / glyphW));
+                const colBits = FONT_5X7[glyphIdx * 5 + gx]!;
+                if ((colBits & (1 << gy)) !== 0) {
+                    const screenX = charLeftX + px;
+                    if (screenX >= 0 && screenX < width) {
+                        const dIdx = (screenY * width + screenX) * 4;
+                        if (fill.a === 255) {
+                            dst[dIdx] = fill.r;
+                            dst[dIdx + 1] = fill.g;
+                            dst[dIdx + 2] = fill.b;
+                            dst[dIdx + 3] = 255;
+                        } else {
+                            const dA = dst[dIdx + 3]! / 255;
+                            const outA = srcA + dA * (1 - srcA);
+                            if (outA > 0) {
+                                dst[dIdx] = Math.round((fill.r * srcA + dst[dIdx]! * dA * (1 - srcA)) / outA);
+                                dst[dIdx + 1] = Math.round((fill.g * srcA + dst[dIdx + 1]! * dA * (1 - srcA)) / outA);
+                                dst[dIdx + 2] = Math.round((fill.b * srcA + dst[dIdx + 2]! * dA * (1 - srcA)) / outA);
+                                dst[dIdx + 3] = Math.round(outA * 255);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     return img;
 }
 
@@ -5239,6 +5283,7 @@ function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             };
             encodePageHeight = fh;
         }
+        if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {} }
         const { data: encoded } = encodeImage(toEncode, {
             format,
             quality: state.quality,
@@ -5576,6 +5621,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let imgB: RgbaImage | undefined;
     try {
         imgA = (yield* parseInputOperandSteps(refSpec, files, state, stdinBytes));
+        if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); } catch {} }
         imgB = (yield* parseInputOperandSteps(candSpec, files, state, stdinBytes));
     }
     catch (err) {
@@ -5615,10 +5661,10 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let sumLumAB = 0;
     const hasAlpha = imgA.hasAlpha || imgB.hasAlpha;
     for (let y = 0; y < height; y++) {
-        if (++cooperativeWork % 64 === 0)
+        if (++cooperativeWork % 65536 === 0)
             yield;
         for (let x = 0; x < width; x++) {
-            if (++cooperativeWork % 64 === 0)
+            if (++cooperativeWork % 65536 === 0)
                 yield;
             const pIdx = y * width + x;
             const outOff = pIdx * 4;
@@ -5880,7 +5926,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const slotH = maxThumbH + padY * 2;
         const canvasW = Math.max(1, cols * slotW);
         const canvasH = Math.max(1, rows * slotH);
-        if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {} }
+            if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {} }
         canvas = (yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background));
         for (let idx = 0; idx < inPaths.length; idx++) {
             const col = idx % cols;
@@ -6205,6 +6251,8 @@ async function executeVfsMagickTool(
         await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
       }
     }
+    vfsFiles.clear();
+    existingSnap.clear();
     if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {} }
     return { exitCode: res.exitCode };
   } finally {

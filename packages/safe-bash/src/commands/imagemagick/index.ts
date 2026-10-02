@@ -53,7 +53,7 @@ export function evalSyncIdentify(
     if (opArgs[0] === "-version" || opArgs[0] === "--version") {
       return runIdentifyCliSync(opArgs, new Map()).stdout;
     }
-    if (cmdName === "montage" || (cmdName === "magick" && opArgs[0] === "montage")) {
+    if (cmdName === "montage" || cmdName === "compare" || (cmdName === "magick" && (opArgs[0] === "montage" || opArgs[0] === "compare"))) {
       return undefined;
     }
     if (!writeFileSync && cmdName !== "identify" && !(cmdName === "magick" && opArgs[0] === "identify")) {
@@ -131,5 +131,9 @@ export function evalSyncIdentify(
     return outText;
   } catch {
     return undefined;
+  } finally {
+    if (typeof (globalThis as { gc?: () => void }).gc === "function") {
+      try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {}
+    }
   }
 }

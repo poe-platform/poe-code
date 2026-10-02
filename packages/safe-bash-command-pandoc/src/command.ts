@@ -220,7 +220,12 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
       const code = error instanceof PandocError ? error.code : "E_IO";
       await context.stderr.write(new TextEncoder().encode(`${code}: ${error.message}\n`));
       return {exitCode: statuses[code] ?? 2};
-    } finally {await invocation.close();}
+    } finally {
+      await invocation.close();
+      if (typeof (globalThis as { gc?: () => void }).gc === "function") {
+        try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {}
+      }
+    }
   }};
   syncCommandEvaluators.evalSyncPandoc = evalSyncPandoc;
   if (options.limits === undefined && options.filters === undefined && options.jsonFilterCommand === undefined && options.citeproc === undefined) {

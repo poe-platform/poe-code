@@ -746,6 +746,9 @@ export async function runMmdc(
     throw error;
   } finally {
     await cleanup();
+    if (typeof (globalThis as { gc?: () => void }).gc === "function") {
+      try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {}
+    }
   }
 }
 

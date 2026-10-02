@@ -43,11 +43,21 @@ interface RawGlyphData {
 }
 
 interface ParsedSfnt extends EmbeddedFont {
-  readonly rawGlyphs: readonly RawGlyphData[];
+  readonly decodeGlyph: (gid: number) => RawGlyphData;
 }
 
 const cachedFonts = new Map<FontVariant, ParsedSfnt>();
 const outlineCache = new Map<string, GlyphOutline>();
+let evictionScheduled = false;
+function scheduleMmdcFontCacheEviction(): void {
+  if (evictionScheduled) return;
+  evictionScheduled = true;
+  queueMicrotask(() => {
+    evictionScheduled = false;
+    cachedFonts.clear();
+    outlineCache.clear();
+  });
+}
 
 function decodeBase64(encoded: string): Uint8Array {
   const binary = atob(encoded);
@@ -59,6 +69,7 @@ function decodeBase64(encoded: string): Uint8Array {
 }
 
 function parseSfnt(variant: FontVariant = "ui-regular"): ParsedSfnt {
+  scheduleMmdcFontCacheEviction();
   const existingFont = cachedFonts.get(variant);
   if (existingFont) return existingFont;
 
@@ -297,17 +308,13 @@ function parseSfnt(variant: FontVariant = "ui-regular"): ParsedSfnt {
     }
   }
 
-  for (let gid = 0; gid < numGlyphs; gid++) {
-    decodeGlyph(gid);
-  }
-
   const parsed: ParsedSfnt = {
     unitsPerEm,
     ascender,
     descender,
     numGlyphs,
     cmap,
-    rawGlyphs: resolvedGlyphs as RawGlyphData[]
+    decodeGlyph
   };
   cachedFonts.set(variant, parsed);
   return parsed;
@@ -438,7 +445,7 @@ export function getGlyphOutline(
     return fallback;
   }
 
-  const raw = font.rawGlyphs[gid]!;
+  const raw = font.decodeGlyph(gid);
   // Comfortable letter-spacing tracking so characters have clear breathing room
   const tracking =
     fontFamily === "mono"

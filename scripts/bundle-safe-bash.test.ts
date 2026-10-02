@@ -137,7 +137,7 @@ beforeAll(async () => {
           path: path.resolve(path.dirname(args.importer), args.path), namespace: "built-shell",
         }));
         builder.onLoad({ filter: /.*/, namespace: "built-shell" }, args => ({
-          contents: artifacts.get(args.path), loader: "js",
+          contents: artifacts.get(args.path), loader: "js", resolveDir: path.dirname(args.path),
         }));
       },
     }],

@@ -521,3 +521,10 @@ import {CANCEL,isCancel} from "toolcraft-design-rust/prompts/interactive/cancel-
 const cancellation:unknown=CANCEL;
 if(isCancel(cancellation)){const symbol:typeof CANCEL=cancellation;void symbol;}
 void [promptLogForward,promptLogReverse,introForward,introReverse,plainForward,outroForward,cancelForward];
+
+import * as liveSpinner from "toolcraft-design-rust/spinner";
+import type * as originalLiveSpinner from "toolcraft-design/spinner";
+const liveSpinnerForward:typeof originalLiveSpinner=liveSpinner;
+const liveSpinnerReverse:typeof liveSpinner=null as unknown as typeof originalLiveSpinner;
+const liveSpinnerOptions:design.SpinnerOptions=liveSpinner.spinner();
+void [liveSpinnerForward,liveSpinnerReverse,liveSpinnerOptions];

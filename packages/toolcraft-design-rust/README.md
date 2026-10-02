@@ -19,6 +19,8 @@ Use `intro`, `introPlain`, `outro`, `cancel` and `log` for consistent prompt
 messages in terminal, Markdown and JSON output. `log.message` also controls
 guide symbols, spacing and continuation lines. `isCancel` recognizes the shared
 prompt cancellation symbol across module instances.
+`spinner()` exposes `start`, `message` and `stop` with live terminal frames,
+plain non-TTY output and Markdown/JSON formats. It follows `POE_NO_SPINNER`.
 
 `symbols` provides live terminal, Markdown and JSON status marks, including
 brand-aware resolved symbols. `spacing`, `widths` and the `tokens` namespace

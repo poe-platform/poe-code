@@ -287,6 +287,14 @@
     "./prompts/interactive/cancel-symbol": {
       "types": "./dist/cancel-symbol.d.ts",
       "import": "./dist/cancel-symbol.js"
+    },
+    "./spinner": {
+      "types": "./dist/spinner.d.ts",
+      "import": "./dist/spinner.js"
+    },
+    "./prompts/primitives/spinner": {
+      "types": "./dist/spinner.d.ts",
+      "import": "./dist/spinner.js"
     }
   },
   "scripts": {

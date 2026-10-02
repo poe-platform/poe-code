@@ -1120,3 +1120,31 @@ Five warmed alternating rounds of 1,000 two-line `log.message` calls measured
 median 0.02267 ms native versus 0.01173 ms reference (1.93x). Binding costs remain
 visible; this does not pass a performance gate. Interactive prompts, live
 spinners, dashboards and complete platform/resource qualification remain open.
+
+Prompt output is delivered in 48cbe58cae; the built-shell test resolution fix is
+delivered in f1903a0d0b. The browser release run 36978892330 built successfully
+but skipped validation/publication. Prompt-output release 36979984258 is queued.
+The maintained root type route is running again after the independent type fixes.
+
+The live `spinner()` now exposes root, `spinner` and `prompts/primitives/spinner`
+contracts. Rust owns lifecycle, fallback, frame and exit-code decisions; Node
+retains streams, timers and shared frame identity. Differential tests cover
+captured formats, environment/TTY fallbacks, repeated calls, timer truthiness,
+writer/timer failures and reentrant writer/clear/scheduling callbacks. The checks
+cover 231 native host cases and all 624 selected original tests pass, with
+bidirectional declarations, Rust/binding/JS lint and packed standalone runtime
+and `types: []` consumption. No dependencies changed.
+
+The spinner ANSI transcript equals the reference. Screenshot inspection exposed
+an existing PNG font limitation: its embedded regular TTF has glyph id zero for
+all four original spinner circles, so the active frame is a missing-glyph box;
+the success/error rows render correctly. This renderer defect is recorded for
+follow-up. The original repeated-start timer leak was also concretely reproduced
+with mocked timers and recorded; this additive port preserves it until both
+implementations can change together.
+
+Five warmed alternating rounds of 10,000 active `message` updates with mocked
+timers and a sink writer measured median 0.003817 ms native versus 0.0001481 ms
+reference (25.77x). This isolates binding overhead, not terminal latency; no
+performance gate passed. `withSpinner`, interactive prompts, dashboard/explorer
+surfaces and full runtime/platform/resource qualification remain outstanding.

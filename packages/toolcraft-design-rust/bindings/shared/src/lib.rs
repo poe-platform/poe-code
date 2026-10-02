@@ -1,6 +1,8 @@
 mod browser;
 mod prompt_output;
+mod spinner;
 pub use prompt_output::*;
+pub use spinner::*;
 mod note;
 pub use browser::*;
 pub use note::*;

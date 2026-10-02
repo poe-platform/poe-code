@@ -10,6 +10,7 @@ pub mod markdown_demo;
 pub mod prompt_output;
 pub mod screen;
 pub mod screen_style;
+pub mod spinner;
 pub use toolcraft_template_rust::{data, template};
 pub mod escape_terminal;
 pub mod event_groups;

@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { FsError, isErrnoCode, toFsError } from "../src/contracts/errors.js";
+import { FsError, isErrnoCode, isFsError, toFsError } from "../src/contracts/errors.js";
 
 it("preserves a genuine nonseekable-descriptor error", () => {
   const original = { code: "ESPIPE", syscall: "lseek", path: "/pipe" };
@@ -38,4 +38,16 @@ it("supports >85 character legal paths and enforces 255-byte limits without glob
   } finally {
     globalThis.Buffer = savedBuffer;
   }
+});
+
+it("recognizes FsError instances across separate module realms via symbol brand", () => {
+  const foreign = Object.assign(new Error("ENOENT: no such file or directory"), {
+    name: "FsError",
+    code: "ENOENT",
+    errno: -2,
+    [Symbol.for("@poe-code/safe-fs.FsError")]: true,
+  });
+  expect(foreign instanceof FsError).toBe(true);
+  expect(isFsError(foreign, "ENOENT")).toBe(true);
+  expect(isFsError(foreign, "EACCES")).toBe(false);
 });

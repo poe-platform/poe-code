@@ -44,7 +44,15 @@ export interface FsErrorOptions extends ErrorOptions {
   readonly message?: string;
 }
 
+const FS_ERROR_BRAND = Symbol.for("@poe-code/safe-fs.FsError");
+
 export class FsError extends Error {
+  static [Symbol.hasInstance](value: unknown): boolean {
+    if (typeof value !== "object" || value === null) return false;
+    if (Function.prototype[Symbol.hasInstance].call(FsError, value)) return true;
+    const record = value as Record<PropertyKey, unknown>;
+    return record[FS_ERROR_BRAND] === true && isErrnoCode(record.code);
+  }
   readonly code: ErrnoCode;
   readonly errno: PlatformErrno;
   readonly syscall?: string;
@@ -65,6 +73,7 @@ export class FsError extends Error {
     } finally {
       errorConstructor.stackTraceLimit = prevStackLimit;
     }
+    Object.defineProperty(this, FS_ERROR_BRAND, { value: true, enumerable: false, configurable: false, writable: false });
     this.name = "FsError";
     this.code = code;
     this.errno = errno;

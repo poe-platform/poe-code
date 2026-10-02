@@ -145,3 +145,10 @@ test('hexdump owns direct regressions and declares unit build prerequisites', ()
   const turbo = json('turbo.json');
   assert.ok(turbo.tasks['safe-bash-command-hexdump#test:unit'].dependsOn.includes('^build'));
 });
+
+test('file owns direct classification and budget regressions with built unit prerequisites', () => {
+  const files = readdirSync(new URL('../packages/safe-bash-command-file/src/', import.meta.url));
+  for (const name of ['behavior.test.ts', 'stress.test.ts']) assert.ok(files.includes(name), `Missing file regression owner: ${name}`);
+  const turbo = json('turbo.json');
+  assert.ok(turbo.tasks['safe-bash-command-file#test:unit'].dependsOn.includes('^build'));
+});

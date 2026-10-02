@@ -1,3 +1,4 @@
+import { verification as fileVerification } from "./safe-packages-file.mjs";
 import { verification as treeVerification } from "./safe-packages-tree.mjs";
 import { verification as zstdVerification } from "./safe-packages-zstd.mjs";
 import { verification as gzipVerification } from "./safe-packages-gzip.mjs";
@@ -14,6 +15,7 @@ import { MemoryFileSystem } from "@poe-platform/safe-fs/core";
 import { createWkhtmltopdfCommand, wkhtmltopdfCommands } from "@poe-platform/safe-bash/commands/wkhtmltopdf";
 
 async function verifyPublicationBoundary() {
+  await fileVerification;
   await treeVerification;
   await zstdVerification;
   await gzipVerification;

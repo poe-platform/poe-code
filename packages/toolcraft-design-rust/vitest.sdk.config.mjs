@@ -9,6 +9,8 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if (importer === path("../toolcraft-design/src/screen/style.test.ts") && name === "./style.js")
+          return path("dist/screen-style.js");
         if (["terminal-markdown", "html-renderer", "plaintext-renderer"].some((name) => importer === path(`../toolcraft-design/src/terminal-markdown/${name}.test.ts`))) {
           const modules = {
             "./index.js": "markdown", "./parser.js": "markdown-parser", "./demo-content.js": "markdown-demo",
@@ -91,6 +93,7 @@ export default defineConfig({
   test: {
     env: { FORCE_COLOR: process.env.FORCE_COLOR ?? "1" },
     include: [
+      path("../toolcraft-design/src/screen/style.test.ts"),
       path("../toolcraft-design/src/terminal-markdown/terminal-markdown.test.ts"),
       path("../toolcraft-design/src/terminal-markdown/html-renderer.test.ts"),
       path("../toolcraft-design/src/terminal-markdown/plaintext-renderer.test.ts"),

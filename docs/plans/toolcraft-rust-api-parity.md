@@ -906,6 +906,25 @@ commit 064442fcff failed its build on unresolved Safe FS runtime-core declaratio
 and downstream Safe Bash types; publication is not verified. Broad local checks
 are being rerun after rebuilding those declarations and finishing this checkpoint.
 
+Packed screen styles now have a Rust core and root/subpath exports. It preserves
+8-bit channel masking, intensity reset ordering, underline/inverse changes and
+SGR code deduplication. Numeric transitions stay native; host-backed operands
+retain repeated JavaScript coercion order and arbitrary thrown identity. The
+adapter preserves observable array-push/Set/join operations and environment color
+defaults. The maintained design route passed 201 native host tests and 568 selected
+original tests, plus bidirectional types, Rust/binding/JS lint and packed runtime
+and standalone types. A terminal screenshot was byte-equal to the original and
+inspected. A warmed alternating five-round median over 100,000 numeric
+transitions measured 0.000344 ms native versus 0.000137 ms reference (2.51x).
+Per-call binding overhead remains; no performance gate passed. Screen buffers,
+ANSI-to-cell conversion and terminal driver remain required.
+
+Repository-wide type checking completed successfully after the Markdown work.
+The maintained whole-unit route is running again after the Safe FS guarded-build
+fix and serializing broad build operations. Markdown release run 36972439586
+completed its build successfully, but validation and publication jobs were
+skipped; successful publication remains unverified.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

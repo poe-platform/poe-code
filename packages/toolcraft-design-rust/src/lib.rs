@@ -5,6 +5,7 @@ pub mod code_highlight;
 pub mod color;
 pub mod command_errors;
 pub mod markdown_demo;
+pub mod screen_style;
 pub use toolcraft_template_rust::{data, template};
 pub mod escape_terminal;
 pub mod event_groups;

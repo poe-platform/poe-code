@@ -103,3 +103,5 @@ export {createRenderPerformanceMonitor,formatRenderPerformance} from "./render-p
 export * as staticRender from "./static.js";
 export {SPINNER_FRAMES,renderSpinnerFrame,renderSpinnerStopped,renderMenu} from "./static.js";
 export {renderPlaintext} from "./plaintext.js";
+
+export {packStyle,styleToSgrDelta} from "./screen-style.js";

@@ -381,3 +381,9 @@ import {parse, renderMarkdownHtml} from 'toolcraft-design-rust';
 const {ast, frontmatter} = parse('---\ntitle: Status\n---\n# Ready');
 const html = renderMarkdownHtml('# Ready\n\n- [x] Complete');
 ```
+
+`packStyle({bold, dim, underline, inverse, fg, bg})` creates a packed terminal
+style, and `styleToSgrDelta(previous, next, colors?)` emits the ANSI changes needed
+to move between styles. The default respects `NO_COLOR` and `TERM=dumb`.
+The `screen/style` subpath also exposes the four flag constants and
+`foreground`/`background` channel readers. `PackedStyle` is a standalone type.

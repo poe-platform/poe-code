@@ -433,3 +433,16 @@ const markdownDemoOriginal:typeof originalMarkdownDemo=markdownDemo;
 const markdownDemoOwn:typeof markdownDemo=null as unknown as typeof originalMarkdownDemo;
 const markdownDemoKeys:SameKeys<typeof markdownDemo,typeof originalMarkdownDemo>=true;
 void [markdownDemoOriginal,markdownDemoOwn,markdownDemoKeys];
+
+import * as screenStyle from "toolcraft-design-rust/screen/style";
+import type * as originalScreenStyle from "toolcraft-design/screen/style";
+const screenStyleOriginal:typeof originalScreenStyle=screenStyle;
+const screenStyleOwn:typeof screenStyle=null as unknown as typeof originalScreenStyle;
+const screenStyleKeys:SameKeys<typeof screenStyle,typeof originalScreenStyle>=true;
+type RootScreenStyle=Pick<typeof originalDesign,"packStyle"|"styleToSgrDelta">;
+const rootScreenStyleOriginal:RootScreenStyle=design;
+const rootScreenStyleOwn:Pick<typeof design,keyof RootScreenStyle>=null as unknown as RootScreenStyle;
+void [screenStyleOriginal,screenStyleOwn,screenStyleKeys,rootScreenStyleOriginal,rootScreenStyleOwn];
+const packedStyleOriginal:originalDesign.PackedStyle=null as unknown as design.PackedStyle;
+const packedStyleOwn:design.PackedStyle=null as unknown as originalDesign.PackedStyle;
+void [packedStyleOriginal,packedStyleOwn];

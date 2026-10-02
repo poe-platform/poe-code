@@ -121,3 +121,6 @@ export {renderPlaintext} from "./plaintext.js";
 export type {PlaintextRenderOptions} from "./plaintext.js";
 export type {MdNode,CodeToken,CodeTokenKind} from "./md-ast.js";
 export {parse,renderMarkdown,renderMarkdownHtml,renderMarkdownPlaintext} from "./markdown.js";
+
+export {packStyle,styleToSgrDelta} from "./screen-style.js";
+export type {PackedStyle} from "./screen-style.js";

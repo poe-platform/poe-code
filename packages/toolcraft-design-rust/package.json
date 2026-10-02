@@ -203,6 +203,10 @@
     "./terminal-markdown/demo-content": {
       "types": "./dist/markdown-demo.d.ts",
       "import": "./dist/markdown-demo.js"
+    },
+    "./screen/style": {
+      "types": "./dist/screen-style.d.ts",
+      "import": "./dist/screen-style.js"
     }
   },
   "scripts": {

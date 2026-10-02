@@ -12,7 +12,7 @@ Pixel operations also expose `...Steps` generators, such as `resizeImageSteps`,
 for hosts that schedule bounded work between event-loop turns. The synchronous
 functions return the same pixel results.
 Input pixel limits are disabled by default; set `limitInputPixels` to a positive
-integer to enforce a limit.
+integer to enforce a limit, or `Infinity` to explicitly disable it.
 
 ```ts
 import sharp from "@poe-code/image-ast";

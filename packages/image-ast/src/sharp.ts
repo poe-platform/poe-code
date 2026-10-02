@@ -88,6 +88,7 @@ function validateInputOptions(opts: SharpInputOptions | undefined): void {
   }
   if (
     opts.limitInputPixels !== undefined &&
+    opts.limitInputPixels !== Infinity &&
     typeof opts.limitInputPixels !== "boolean" &&
     (!Number.isInteger(opts.limitInputPixels) || opts.limitInputPixels < 0 || opts.limitInputPixels > Number.MAX_SAFE_INTEGER)
   ) {

@@ -10,6 +10,19 @@ import zstd from '../../../../src/commands/bytes/compression/native/generated/zs
 
 const input = Buffer.from('supplemental zstd options\n'.repeat(20));
 for (const command of ['zstd', 'unzstd', 'zstdcat']) {
+  for (const flag of ['-z', '--compress']) {
+    test(`${command} ${flag} selects compression after -d and round trips binary bytes`, async () => {
+      const bytes = Buffer.from([0, 255, 97, 10]);
+      const encoded = await run(command, ['-d', flag, '-c'], chunks(bytes));
+      assert.equal(encoded.exitCode, 0, encoded.stderr);
+      assert.equal(encoded.stderr, '');
+      assert.deepEqual(encoded.stdout.subarray(0, 4), Buffer.from('28b52ffd', 'hex'));
+      const decoded = await run('zstd', ['-dc'], chunks(encoded.stdout));
+      assert.equal(decoded.exitCode, 0, decoded.stderr);
+      assert.equal(decoded.stderr, '');
+      assert.deepEqual(decoded.stdout, bytes);
+    });
+  }
   for (const flags of [['--no-progress'], ['--single-thread'], ['--threads=0'], ['--threads', '0'], ['-T0'], ['-T', '0'], ['--threads=1'], ['-T1'], ['--check'], ['--no-asyncio'], ['--asyncio'], ['--format=zstd'], ['--no-dictID'], ['--no-sparse'], ['--auto-threads=logical'], ['--ultra'], ['--compress-literals'], ['--no-compress-literals'], ['--row-match-finder'], ['--no-row-match-finder'], ['--size-hint=500'], [`--stream-size=${input.length}`], ['--long=20']]) {
     test(`${command} ${flags.join(' ')} preserves bytes`, async () => {
       const encoded = await run('zstd', ['-c', ...flags], chunks(input));

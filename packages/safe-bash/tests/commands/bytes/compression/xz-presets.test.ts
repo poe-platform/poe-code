@@ -102,8 +102,10 @@ test('XZ-specific controls remain invalid for other formats', async () => {
       assert.equal(result.exitCode, 2);
     }
   }
-  for (const command of ['gzip', 'zstd']) {
-    const result = await run(command, ['--compress']);
+  for (const flag of ['-z', '--compress']) {
+    const result = await run('gzip', [flag]);
     assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout.length, 0);
+    assert.match(result.stderr, /invalid option/);
   }
 });

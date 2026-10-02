@@ -424,11 +424,7 @@ function resolveSyncNameref(state: State, name: string): string {
   return name;
 }
 
-let syncPrototypesInitialized = false;
-queueMicrotask(ensureSyncPrototypes);
-function ensureSyncPrototypes(): void {
-  if (syncPrototypesInitialized) return;
-  syncPrototypesInitialized = true;
+function initializeSyncPrototypes(): void {
   Object.assign(Budget.prototype, {
   resetCountersForWarmReuse(this: any): void {
     this.commands = 0;
@@ -26277,6 +26273,8 @@ const syncExtraRuntimeMethods = {
 
 // The methods above receive Runtime instances, including when they pass their
 // receiver to command contexts; the structural type omits Runtime's private members.
+// Install support methods before exposing synchronous execution to importers.
+initializeSyncPrototypes();
 Object.assign(Runtime.prototype, syncExtraRuntimeMethods);
 
 import { combineManagedSignals, toNativeAbortSignal } from "safe-bash-contracts/runtime-control";

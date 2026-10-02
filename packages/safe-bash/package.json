@@ -1713,6 +1713,14 @@
             "@poe-code/safe-fs": "*"
           },
           "portable": true
+        },
+        "safe-bash-command-caller": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -1727,8 +1735,6 @@
         "src/fs/devices/index.ts",
         "src/optional.ts",
         "src/shell/extensions/arrays/index.ts",
-        "src/shell/extensions/mapfile/index.ts",
-        "src/shell/extensions/read/index.ts",
         "src/shell/extensions/trap/index.ts"
       ]
     }
@@ -2864,7 +2870,8 @@
     "safe-bash-command-alias": "*",
     "safe-bash-command-unalias": "*",
     "safe-bash-command-media": "*",
-    "safe-bash-command-node": "*"
+    "safe-bash-command-node": "*",
+    "safe-bash-command-caller": "*"
   },
   "main": "./dist/index.js",
   "imports": {
@@ -2951,8 +2958,6 @@
     "!dist/fs/devices",
     "!dist/shell/extensions/arrays",
     "!dist/shell/extensions/trap",
-    "!dist/shell/extensions/mapfile",
-    "!dist/shell/extensions/read",
     "!dist/opt-in",
     "!dist/commands/op/op.test.js",
     "!dist/commands/op/op.test.js.map",

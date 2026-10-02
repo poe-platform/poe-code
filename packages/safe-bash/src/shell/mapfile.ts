@@ -9,6 +9,7 @@ export class MapfileUsageError extends Error {
 }
 
 export interface MapfileOptions {
+  descriptor: number;
   name: string;
   strip: boolean;
   delimiter: number;
@@ -21,7 +22,7 @@ export interface MapfileOptions {
 }
 
 export async function mapfileOptions(context: CommandContext, work: StringWork, allocation: ValueAllocation): Promise<MapfileOptions> {
-  const options: MapfileOptions = { name: "MAPFILE", strip: false, delimiter: 10, count: 0, skip: 0, origin: 0, preserve: false, callback: undefined, quantum: 5000 };
+  const options: MapfileOptions = { descriptor: 0, name: "MAPFILE", strip: false, delimiter: 10, count: 0, skip: 0, origin: 0, preserve: false, callback: undefined, quantum: 5000 };
   const args = getCommandArguments(context);
   let cursor = 0;
   const numeric = async (text: string, maximum: number): Promise<number> => {
@@ -75,7 +76,7 @@ export async function mapfileOptions(context: CommandContext, work: StringWork, 
       else {
         const value = await numeric(operand, flag === "O" ? 2147483647 : Number.MAX_SAFE_INTEGER);
         if (flag === "u") {
-          if (value !== 0) throw new MapfileUsageError(`${operand}: invalid file descriptor: Bad file descriptor`, 1);
+          options.descriptor = value;
         } else if (flag === "c") { if (!value) throw new MapfileUsageError("0: invalid callback quantum", 1); options.quantum = value; }
         else if (flag === "n") options.count = value;
         else if (flag === "s") options.skip = value;

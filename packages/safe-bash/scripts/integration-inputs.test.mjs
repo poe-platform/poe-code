@@ -19,6 +19,11 @@ import * as typecheckInputs from "./typecheck-inputs.mjs";
 
 const owner = "fixture producer";
 
+test("shell builtin parity regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/builtin-parity.test.ts"));
+});
+
 test("shell option and alias regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/shopt-runtime.test.ts"));
@@ -659,11 +664,14 @@ test("optional scripting leaves stay outside the default build and package expor
     "src/fs/devices/index.ts",
     "src/optional.ts",
     "src/shell/extensions/trap/index.ts",
-    "src/shell/extensions/mapfile/index.ts",
-    "src/shell/extensions/read/index.ts",
   ]) assert.ok(configuration.exclude.includes(path), `optional source must not ship in the default build: ${path}`);
-  for (const path of ["!dist/optional.js", "!dist/optional.js.map", "!dist/optional.d.ts", "!dist/optional.d.ts.map", "!dist/commands/cmp", "!dist/commands/dd", "!dist/commands/install", "!dist/commands/truncate", "!dist/commands/yes", "!dist/fs/devices", "!dist/shell/extensions/trap", "!dist/shell/extensions/mapfile", "!dist/shell/extensions/read"]) {
+  for (const path of ["!dist/optional.js", "!dist/optional.js.map", "!dist/optional.d.ts", "!dist/optional.d.ts.map", "!dist/commands/cmp", "!dist/commands/dd", "!dist/commands/install", "!dist/commands/truncate", "!dist/commands/yes", "!dist/fs/devices", "!dist/shell/extensions/trap"]) {
     assert.ok(metadata.files.includes(path), `optional artifacts must remain unpublished after explicit compilation: ${path}`);
+  }
+  for (const name of ["read", "mapfile"]) {
+    assert.equal(configuration.exclude.includes(`src/shell/extensions/${name}/index.ts`), false);
+    assert.equal(metadata.poeCode.packageLint.sourceExclude.includes(`src/shell/extensions/${name}/index.ts`), false);
+    assert.equal(metadata.files.includes(`!dist/shell/extensions/${name}`), false);
   }
   assert.equal(configuration.exclude.includes("src/commands/shuf/index.ts"), false, "standard commands require the canonical shuf adapter");
   assert.equal(metadata.files.includes("!dist/commands/shuf"), false, "standard shuf must retain its packaged adapter");

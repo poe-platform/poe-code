@@ -25,8 +25,6 @@
     "src/fs/devices/index.ts",
     "src/optional.ts",
     "src/shell/extensions/arrays/index.ts",
-    "src/shell/extensions/mapfile/index.ts",
-    "src/shell/extensions/read/index.ts",
     "src/shell/extensions/trap/index.ts"
   ]
 }

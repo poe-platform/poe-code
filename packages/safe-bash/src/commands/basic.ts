@@ -11,6 +11,7 @@ import { printfDecimal } from "./printf-decimal.js";
 import { parsePrintfDirective } from "./printf-format.js";
 import { quotePrintf } from "./printf-quote.js";
 import { widePrintf } from "./printf-wide.js";
+import { printfTime } from "./printf-time.js";
 
 const utf8Encoder = new TextEncoder();
 
@@ -168,7 +169,7 @@ export function basicCommands(): CommandDefinition[] {
   });
 }
 
-export async function formatPrintf(context: CommandContext): Promise<CommandResult> {
+export async function formatPrintf(context: CommandContext, shellStartedAt = (context as CommandContext & { shellStartedAt?: number }).shellStartedAt ?? Date.now()): Promise<CommandResult> {
   const incoming = getCommandArguments(context);
   const arguments_ = incoming.args[0] === "--" ? incoming.slice(1) : incoming;
   const args = arguments_.args;
@@ -235,6 +236,23 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
       const supplied = args[suppliedIndex] ?? "";
       let text: string;
       let specialFloat: string | undefined;
+      if (specifier === "T") {
+        const operand = supplied.startsWith("'") || supplied.startsWith('"') ? String(quotedNumber(suppliedIndex)) : supplied;
+        const parsed = printfInteger(suppliedIndex < args.length ? operand : "-1", false);
+        if (parsed.error) {
+          await writeDiagnostic(context.stderr, `printf: '${supplied}': ${parsed.error}\n`, context.signal);
+          exitCode = 1;
+        }
+        const seconds = parsed.value === -1n ? BigInt(Math.floor(Date.now() / 1000))
+          : parsed.value === -2n ? BigInt(Math.floor(shellStartedAt / 1000)) : parsed.value;
+        const formatted = await printfTime(directive.timeFormat || "%X", seconds, context.env.TZ ?? "UTC", context.signal);
+        const bytes = utf8Encoder.encode(formatted).subarray(0, precision);
+        const padding = " ".repeat(Math.max(0, width - bytes.length));
+        if (!flags.includes("-")) await output(context, padding);
+        await output(context, bytes);
+        if (flags.includes("-")) await output(context, padding);
+        continue;
+      }
       if (specifier === "S" || specifier === "C") {
         const suppliedBytes = arguments_.bytes(suppliedIndex) ?? new Uint8Array();
         const wide = unicode.utf8 ? await widePrintf(suppliedBytes, specifier === "C", precision, context.signal)

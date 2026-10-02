@@ -39,6 +39,7 @@ import { collectPureReadOnlySmiNames, compilePureSmiProgram, evaluateArithmetic,
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
 import { createAliasCommand } from "safe-bash-command-alias";
+import { createCallerCommand, type CallerFrame } from "safe-bash-command-caller";
 import { createUnaliasCommand } from "safe-bash-command-unalias";
 import { expandTildes } from "./tilde-expansion.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
@@ -194,7 +195,7 @@ export const defaultLimits: ResolvedShellLimits = {
 };
 
 const shellBuiltinNames = new Set([
-  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "typeset", "mapfile", "readarray", "umask", "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "exec", "getopts", "let", "pushd", "dirs", "popd", "shopt", "hash", "alias", "unalias", ]);
+  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "typeset", "mapfile", "readarray", "umask", "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "exec", "getopts", "let", "pushd", "dirs", "popd", "shopt", "hash", "alias", "unalias", "caller", ]);
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
 const extensionExitFailures = new WeakMap<ShellExtensionState, { reason: unknown }>();
 const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
@@ -1061,9 +1062,16 @@ export interface State extends DynamicVariableState {
   redirectAssignments?: ReadonlyMap<string, ShellValue>;
   lastArgument?: string;
   functionNames?: string[];
+  callerFrames?: (CallerFrame & { readonly routine: string })[];
+  callerTopLevel?: boolean;
+  shellStartedAt?: number;
   hashedCommands?: Map<string, string>;
 }
 const declarationArrays = Symbol("declarationArrays");
+function captureCallerFrame(state: State, io: IO, routine: string, line = io.diagnosticLine ?? 1): CallerFrame & { readonly routine: string } {
+  const name = state.callerFrames?.[0]?.routine ?? (state.callerTopLevel ? "main" : undefined);
+  return { line, name, file: name === undefined ? "NULL" : io.scriptName ?? "shell", routine };
+}
 interface ExecDescriptorFrame {
   version: number;
   descriptors: Map<number, Descriptor>;
@@ -1730,6 +1738,7 @@ function bindCommandIO(context: CommandContext, io?: IO, limits: ShellLimits = {
 }
 class FastShellCommandContext {
   get xpgEcho(): boolean { return !!(this._self ?? this)._state.xpg_echo; }
+  get shellStartedAt(): number { return (this._self ?? this)._state.shellStartedAt ??= Date.now(); }
   declare stdin: ByteSource;
   declare stdinIsDefault?: boolean | undefined;
   declare stdout: ByteSink;
@@ -2043,6 +2052,7 @@ function cloneRawState(raw: State, hasLocals: boolean): State {
   if (raw.variableAttributes) cloned.variableAttributes = new Map(raw.variableAttributes);
   if (raw.getopts) cloned.getopts = cloneGetoptsBinding(raw);
   if (raw.functionNames) cloned.functionNames = [...raw.functionNames];
+  if (raw.callerFrames) cloned.callerFrames = [...raw.callerFrames];
   if (raw.aliases) cloned.aliases = new Map(raw.aliases);
   if (raw.loopDepth > 0 || (raw as { _subshellInLoop?: boolean })._subshellInLoop) {
     (cloned as { _subshellInLoop?: boolean })._subshellInLoop = true;
@@ -11507,6 +11517,7 @@ export class Runtime {
             rawState.functionDepth++;
             rawState.depth++;
             rawState.locals.push(locals);
+            (rawState.callerFrames ??= []).unshift(captureCallerFrame(rawState, io, w0Plain, diagnosticLine));
             (rawState.functionNames ??= []).unshift(w0Plain);
             const callerLoopDepth = rawState.loopDepth;
             let exitStatus = 0;
@@ -11561,6 +11572,7 @@ export class Runtime {
                 rawState.depth--;
                 rawState.locals.pop();
                 rawState.functionNames?.shift();
+                rawState.callerFrames?.shift();
                 for (const [k, previous] of locals) {
                   if (this._syncArithRawWriteOnly && this._syncArithTouched && !syncLocalArrayVariables.has(previous) && !previous.heldValue && !previous.attributes && !previous.exported && !previous.readOnly) {
                     if (previous.value === undefined) delete rawState.variables[k];
@@ -19522,6 +19534,7 @@ export class Runtime {
           state.depth++;
           state.locals.push(locals);
           const rawState = monitor?.raw ?? state;
+          (rawState.callerFrames ??= []).unshift(captureCallerFrame(rawState, io, name));
           (rawState.functionNames ??= []).unshift(name);
           if (rawState !== state) state.functionNames = rawState.functionNames;
         } catch (error) {
@@ -19605,7 +19618,8 @@ export class Runtime {
           state.depth--;
           state.locals.pop();
           const rawState = monitor?.raw ?? state;
-          rawState.functionNames?.shift();};
+          rawState.functionNames?.shift();
+          rawState.callerFrames?.shift();};
         if (!activeExt && !this.signal.aborted && scope.failures.length === 0 && !locals.has("OPTIND")) {
           if (functionRestoration) functionRestoration.apply(restoreControls, false);
           else restoreControls();
@@ -19781,7 +19795,7 @@ export class Runtime {
         if (totalBytes > this.budget.limits.maxInputBytes) this.budget.fail("maxInputBytes");
       }, });
     const context: ShellCommandContext = {
-      ...publicIO, ...{ xpgEcho: !!state.xpg_echo }, command: name, args: argumentValues.args, ...(allStrings ? {} : { argumentValues }), env, cwd: state.cwd, get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> { return getShellPredicates(); }, set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) { cachedPredicates = replacement; }, get fs() { return getContextFs(); }, set fs(replacement: FileSystem) { contextFs = replacement; }, signal: toNativeAbortSignal(this.commandSignal), executionScope: this.budget.executionScope, onInternalError: this.budget.onInternalError, get inputBudget(): NonNullable<CommandContext["inputBudget"]> { return getInputBudget(); }, set inputBudget(replacement: NonNullable<CommandContext["inputBudget"]>) { cachedInputBudget = replacement; }, registerCleanup: (cleanup) => { scope.register(cleanup); }, invoke: (name, args, options) => {
+      ...publicIO, ...{ xpgEcho: !!state.xpg_echo, shellStartedAt: state.shellStartedAt ??= Date.now() }, command: name, args: argumentValues.args, ...(allStrings ? {} : { argumentValues }), env, cwd: state.cwd, get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> { return getShellPredicates(); }, set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) { cachedPredicates = replacement; }, get fs() { return getContextFs(); }, set fs(replacement: FileSystem) { contextFs = replacement; }, signal: toNativeAbortSignal(this.commandSignal), executionScope: this.budget.executionScope, onInternalError: this.budget.onInternalError, get inputBudget(): NonNullable<CommandContext["inputBudget"]> { return getInputBudget(); }, set inputBudget(replacement: NonNullable<CommandContext["inputBudget"]>) { cachedInputBudget = replacement; }, registerCleanup: (cleanup) => { scope.register(cleanup); }, invoke: (name, args, options) => {
         const invRuntime = new Runtime( this.sourceFs, this.commands, this.middleware, this.budget, this.signal, this.fileWrites, this.outputFiles, this.commandSignal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile, );
         const invocation = invRuntime.invoke(name, args, options, context, state, scope);
         void invocation.catch(() => undefined);
@@ -19921,6 +19935,7 @@ export class Runtime {
               state.depth++;
               stack.push(preparedLocals);
               const rawState = stateMonitor(state)?.raw ?? state;
+              (rawState.callerFrames ??= []).unshift(captureCallerFrame(rawState, io, context.command));
               (rawState.functionNames ??= []).unshift(context.command);
               if (rawState !== state) state.functionNames = rawState.functionNames;};
             if (frameOwner) {
@@ -20000,7 +20015,8 @@ export class Runtime {
               state.depth--;
               state.locals.pop();
               const rawState = stateMonitor(state)?.raw ?? state;
-              rawState.functionNames?.shift();};
+              rawState.functionNames?.shift();
+              rawState.callerFrames?.shift();};
             if (!activeExt && !this.signal.aborted && scope.failures.length === 0 && !locals.has("OPTIND")) {
               if (functionRestoration) functionRestoration.apply(restoreControls, false);
               else restoreControls();
@@ -20053,21 +20069,44 @@ export class Runtime {
           }
           if (context.command === "exec") {
             let execIdx = 0;
+            let clearEnvironment = false;
+            let login = false;
+            let argv0: string | undefined;
             while (execIdx < context.args.length) {
-              const f = context.args[execIdx];
+              const f = context.args[execIdx]!;
               if (f === "--") { execIdx += 1; break; }
-              if (f === "-a" && execIdx + 1 < context.args.length) { execIdx += 2; continue; }
-              if (f === "-c" || f === "-l") { execIdx += 1; continue; }
-              break;
+              if (!f.startsWith("-") || f === "-") break;
+              execIdx++;
+              for (let index = 1; index < f.length; index++) {
+                const flag = f[index];
+                if (flag === "c") clearEnvironment = true;
+                else if (flag === "l") login = true;
+                else if (flag === "a") {
+                  argv0 = f.slice(index + 1) || context.args[execIdx++];
+                  if (argv0 === undefined) {
+                    await this.diagnostic(io, "exec: -a: option requires an argument");
+                    return { exitCode: 2 };
+                  }
+                  break;
+                } else {
+                  await this.diagnostic(io, `exec: -${flag}: invalid option`);
+                  return { exitCode: 2 };
+                }
+              }
             }
             const execRest = context.args.slice(execIdx);
             const execCmd = execRest[0];
             if (execCmd === undefined) {
               return { exitCode: 0 };
             }
-            const execArgs = execRest.slice(1);
-            const status = await this.dispatch(execCmd, execArgs, state, { ...io, ...context }, assignments, true, context.argumentValues.values.slice(execIdx + 1));
-            throw completedExit(status, "exit");
+            const execArguments = context.argumentValues.slice(execIdx + 1);
+            const result = await context.invoke(execCmd, execArguments.args, {
+              replaceEnv: true, env: clearEnvironment ? {} : context.env,
+              argv0: login ? `-${argv0 ?? execCmd}` : argv0,
+              argumentValues: execArguments,
+              externalInvocation: true,
+            });
+            throw completedExit(result.exitCode, "exit");
           }
           if (context.command === "read" && context.args.some(arg => arg.startsWith("-") && (arg.includes("u") || arg.includes("t")))) {
             const { executeRead } = await import("./read-builtin.js");
@@ -20702,6 +20741,7 @@ export class Runtime {
     source = scriptSource.source;
     const lineIndex = new SourceLineIndex(source, this.budget.parsing);
     const child = this.processState(context, state, io, target, args);
+    child.callerTopLevel = true;
     child.errexit = errexit;
     child.braceexpand = braceexpand;
     child.noexec = noexec;
@@ -20883,6 +20923,8 @@ export class Runtime {
       }
       const entry = () => {
         if (args.length) this.replacePositionals(state, getCommandArguments(context).values.slice(context.args.length - args.length), () => { state.positional = args; });
+        const raw = stateMonitor(state)?.raw ?? state;
+        (raw.callerFrames ??= []).unshift(captureCallerFrame(raw, io, "source"));
         state.sourceDepth = (state.sourceDepth ?? 0) + 1;
         state.depth++;};
       if (owner) {
@@ -20916,6 +20958,7 @@ export class Runtime {
       const restore = () => {
         state.depth--;
         state.sourceDepth = sourceDepth;
+        (stateMonitor(state)?.raw ?? state).callerFrames?.shift();
         if (savedPositionals && (state.functionDepth > 0 || (state.positionalSetVersion ?? 0) === version)) {
           monitor!.positionals.restore(savedPositionals, () => {
             state.positional = positional;
@@ -21510,7 +21553,7 @@ export class Runtime {
     } };
     try {
       let status: number;
-      try { status = (await formatPrintf({ ...context, args: arguments_.args, argumentValues: arguments_, stdout })).exitCode; }
+      try { status = (await formatPrintf({ ...context, args: arguments_.args, argumentValues: arguments_, stdout }, state.shellStartedAt ??= Date.now())).exitCode; }
       catch (error) {
         this.signal.throwIfAborted();
         if (!(error instanceof UsageError)) throw error;
@@ -21563,6 +21606,9 @@ export class Runtime {
     let releaseHolding: (() => void) | undefined;
     try {
       const options = await mapfileOptions(context, work, allocation);
+      const descriptor = context.descriptors?.get(options.descriptor);
+      const source = descriptor?.closed ? undefined : descriptor?.input ?? (options.descriptor === 0 && !context.descriptors ? context.stdin : undefined);
+      if (!source || source === closedSource) throw new MapfileUsageError(`${options.descriptor}: invalid file descriptor: Bad file descriptor`, 1);
       options.name = this.referenceName(state, options.name);
       if (arrayStore(state)?.get(options.name)?.associative) throw new MapfileUsageError(`${options.name}: not an indexed array`, 1);
       if (state.readonlyVariables?.has(options.name)) throw new MapfileUsageError(`${options.name}: readonly variable`, 1);
@@ -21574,7 +21620,7 @@ export class Runtime {
       const entry = store.bindings.get(options.name)!;
       allocation.reserve(128 + shellValueByteLength(options.name) * 2, 0);
       pinned = entry.binding.retain();
-      const input = context.stdin instanceof ShellInput ? context.stdin : new ShellInput(context.stdin, this.budget, this.signal);
+      const input = source instanceof ShellInput ? source : new ShellInput(source, this.budget, this.signal);
       let pendingFlow: Flow | undefined;
       await collectMapfile(options, input, {
         allocation: () => this.budget.values.scope(), loop: () => this.budget.loop(), tryWriteSync: (index, value) => {
@@ -21742,6 +21788,11 @@ export class Runtime {
       return status;
     }
     if (command === "shopt") return this.shoptBuiltin(context, state);
+    if (command === "caller") {
+      return (await createCallerCommand({ frames: state.callerFrames ?? [], limits: {
+        maxArgumentBytes: this.budget.limits.maxExpansionBytes, maxOutputBytes: this.budget.limits.maxExpansionBytes,
+      } }).execute(context)).exitCode;
+    }
     if (command === "alias" || command === "unalias") {
       const aliases = state.aliases ??= new Map<string, string>();
       const limits = { maxArgumentBytes: this.budget.limits.maxExpansionBytes, maxAliasBytes: this.budget.limits.maxExpansionBytes };
@@ -33925,6 +33976,7 @@ Object.assign(Budget.prototype, {
 Object.assign(Runtime.prototype, {
   outcomeFrame: undefined, _fs: undefined, _contextFsMask: -1, _contextFsSignal: undefined, _contextFs: undefined, _redirectFsMask: -1, _redirectFs: undefined, _fileWrites: undefined, _outputFiles: undefined, _syncArithState: undefined, _canFastMemoryRedirect: undefined, _syncArithRawVars: undefined, _syncArithLine: undefined, _syncArithRawWriteOnly: false, _syncArithTouched: undefined, _syncArithRefs: undefined, });
 export class RootShellState implements State {
+  readonly shellStartedAt = Date.now();
   declare umask: number;
   declare extensions: ShellExtensionState | undefined;
   declare cwd: string;

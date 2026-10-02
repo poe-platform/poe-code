@@ -45,7 +45,13 @@ Each `exec()` starts fresh shell variables, functions, and working-directory sta
 filesystem changes persist in the supplied `fs`. The invocation-local `umask`
 starts at `0022`, accepts octal or symbolic modes, and is inherited by child shells.
 Within a script, `exec` keeps file redirections open or replaces the current shell
-command; `read -u FD -t SECONDS` reads an open descriptor with a timeout.
+command, including `-c` to clear its environment and `-a` to set its argument zero.
+`read -u FD -t SECONDS` reads an open descriptor with a timeout; `mapfile -u FD`
+and `readarray -u FD` collect its remaining records. `readExtension` and
+`mapfileExtension` are also available as public factories.
+Use `caller [depth]` to inspect function/source call sites, and
+`printf '%(%Y-%m-%d)T\n' 1700000000` to format timestamps (`-1` means now,
+`-2` means shell start). Time formatting uses the virtual `TZ`, defaulting to UTC.
 Creation modes use the filesystem's capabilities; advisory modes do not enforce
 physical permissions, and the host process mask remains unchanged.
 Core, shell, and command imports use Web-standard bytes without installing

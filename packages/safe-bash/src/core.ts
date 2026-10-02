@@ -10,6 +10,7 @@ export { validatePath, resolvePath, normalizePath, relativePath, isPathWithin, a
 export * from "./plugins/index.js";
 export { createXanCommand, createXanCommands, xanCommands, type XanCommandsOptions, type XanLimits } from "./commands/xan/index.js";
 export * from "./shell/index.js";
+export * from "./commands/caller/index.js";
 export * from "./commands/index.js";
 export * from "./commands/regex-execution/public.js";
 export * from "./commands/text-programs/index.js";

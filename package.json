@@ -673,7 +673,10 @@
     "safe-bash-command-qrencode": "*",
     "safe-bash-command-python": "*",
     "safe-bash-command-playwright-cli": "*",
-    "safe-bash-mime-engine": "*"
+    "safe-bash-mime-engine": "*",
+    "@poe-code/media-codecs": "*",
+    "safe-bash-command-pdfseparate": "*",
+    "safe-bash-command-pdfunite": "*"
   },
   "version": "0.0.0-dev",
   "repository": {

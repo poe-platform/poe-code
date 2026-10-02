@@ -85,3 +85,5 @@ pub mod dashboard_snapshot;
 pub mod dashboard_runtime;
 
 pub mod explorer_keymap;
+
+pub mod explorer_state;

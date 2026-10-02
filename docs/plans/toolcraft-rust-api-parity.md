@@ -1804,3 +1804,31 @@ Five warmed alternating 1,000-call Node 22 ARM64 rounds with three action
 accelerators measured median 313.06 µs native / 5.04 µs reference (62.09× slower).
 No performance gate passed. Explorer state/runtime, batching and the broader
 swap qualification remain unfinished.
+
+
+### Explorer configuration and state checkpoint
+
+`explorer/state` now exposes `normalizeExplorerConfig`, `createInitialState`,
+`resolveExplorerLayoutMode`, region masks and the original state/config types.
+Rust owns validation, list/companion selection, nullish defaults, aborted detail
+results, initial state shape, responsive modes, action deduplication and pane
+definitions. Node retains async callback receivers and promise sequencing,
+array iteration/species, live property reads and rendering closure identities.
+Legacy configurations retain their exact object identity.
+
+Three missing-export tests preceded implementation. Differential checks cover
+39 size combinations, seeded rows, action maps, validation failures, option
+getter order, legacy identity, companion list/detail/empty cases, callback
+receivers and abort-after-start timing. All 15 selected original explorer
+keymap/state/pane tests pass, including integration with the original reducer
+and action context. Maintained checks also pass 319 native host tests, 1,379
+selected design tests, 13 prompt wrappers, 132 dashboard/queue cases and 14
+composer tests. Rust/binding and scoped JS lint, bidirectional declarations and
+packed runtime/type consumers pass without new dependencies. Original rendering
+fed native and reference initial states produces identical frames; inspected
+120×18 and 70×12 first-paint screenshots.
+
+Five warmed alternating 500-call Node 22 ARM64 rounds, with two panes and 20
+seeded rows at 120×24, measured median 298.02 µs native / 5.54 µs reference
+(53.82× slower). No performance gate passed. Explorer runtime/public namespace,
+remaining dependencies and broader swap/performance qualification remain open.

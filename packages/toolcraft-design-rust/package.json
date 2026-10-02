@@ -459,6 +459,10 @@
     "./explorer/keymap": {
       "types": "./dist/explorer-keymap.d.ts",
       "import": "./dist/explorer-keymap.js"
+    },
+    "./explorer/state": {
+      "types": "./dist/explorer-state.d.ts",
+      "import": "./dist/explorer-state.js"
     }
   },
   "scripts": {

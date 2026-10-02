@@ -125,6 +125,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `createViewport`, `selectViewportTail` | Retain live items, hold scrollback and select wrapped rows without rendering the full history |
 | `explorer/render/text` | Fit, center and pad text by terminal cells while retaining grapheme offsets |
 | `dashboard/terminal-width` | Measure graphemes, expand tabs and truncate terminal text |
+| `explorer/state` | Normalize list/detail panes and seed explorer rows, bindings and responsive state |
 | `explorer/keymap` | Resolve navigation and action accelerators while preserving printable filtering keys |
 | `dashboard/keymap` | Resolve default or custom keyboard commands and canonicalize binding labels |
 | `shouldUseInteractiveDashboard` | Check explicit enablement, terminal output mode and both TTY streams |
@@ -580,3 +581,12 @@ keybind overrides are rejected. `assertNoBareLetterBindings` and
 `assertAcceleratorsFree` validate configurations separately, and `keymapToHelp`
 returns navigation, action and general help sections. Multi-select and reorder
 settings determine which selection or reorder commands are available.
+
+`normalizeExplorerConfig(config)` from `explorer/state` accepts one to three
+panes with at least one list. A companion detail pane renders asynchronously;
+its completed result is discarded if the detail signal was aborted. A companion
+list supplies selectable detail items and shares configured actions. Legacy
+`rows` and `detail` configurations retain their object identity.
+`createInitialState(config, {cols, rows})` seeds initial rows and filtering,
+resolves bindings and action ownership, and selects a responsive layout.
+`resolveExplorerLayoutMode` and the `REGION_*` masks support custom views.

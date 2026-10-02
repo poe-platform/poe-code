@@ -848,3 +848,10 @@ const explorerKeymapOriginal: typeof originalExplorerKeymap = explorerKeymap;
 const explorerKeymapNative: typeof explorerKeymap = null as unknown as typeof originalExplorerKeymap;
 const explorerKeymapKeys: SameKeys<typeof explorerKeymap,typeof originalExplorerKeymap> = true;
 void [explorerKeymapOriginal,explorerKeymapNative,explorerKeymapKeys];
+
+import * as explorerState from "toolcraft-design-rust/explorer/state";
+import type * as originalExplorerState from "toolcraft-design/explorer/state";
+const explorerStateOriginal: typeof originalExplorerState = explorerState;
+const explorerStateNative: typeof explorerState = null as unknown as typeof originalExplorerState;
+const explorerStateKeys: SameKeys<typeof explorerState,typeof originalExplorerState> = true;
+void [explorerStateOriginal,explorerStateNative,explorerStateKeys];

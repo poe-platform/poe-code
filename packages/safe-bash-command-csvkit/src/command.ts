@@ -8,11 +8,11 @@ import { createCompressionCodec } from "@poe-code/office-package/compression";
 import { createDefaultSqliteDatabaseProvider } from "./default-sqlite.js";
 import { portableLocale } from "./portable-locale.js";
 import { commands } from "./commands.js";
-import { execute, defaultLimits } from "./engine.js";
+import { execute, resolveCsvkitLimits, type CsvkitLimitOptions } from "./engine.js";
 import { OwnedArguments } from "./argv.js";
 import { LazyInput, virtualPath } from "./io/index.js";
 import { CsvkitBlocked, CsvkitCleanupError } from "./errors.js";
-import type { CsvkitContext, CsvkitLimits } from "./contracts.js";
+import type { CsvkitContext } from "./contracts.js";
 import { createOutputOperation, getCommandArguments, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { writeFileOutput, openFileOutput } from "safe-bash-contracts/filesystem-output";
 import { FsError, isFsError } from "safe-bash-contracts/errors";
@@ -50,13 +50,13 @@ export interface CsvkitCommandsOptions extends Partial<Pick<CsvkitContext, "code
   readonly sniffing?: CsvkitContext["sniffing"];
   readonly columnWarnings?: CsvkitContext["columnWarnings"];
   readonly probeInputOpen?: CsvkitContext["probeInputOpen"];
-  readonly limits?: Partial<CsvkitLimits>;
+  readonly limits?: CsvkitLimitOptions;
   readonly replace?: boolean;
 }
 
 export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): readonly CommandDefinition[] {
   if (options.replace !== undefined && typeof options.replace !== "boolean") throw new TypeError("csvkit replace must be boolean");
-  const limits = Object.freeze({ ...defaultLimits, ...options.limits });
+  const limits = resolveCsvkitLimits(options.limits);
   const codecs = Object.freeze([...(options.codecs ?? [utf8Codec, ...pythonCodecs])]);
   const compression = Object.freeze([...(options.compression ?? [createGzipCompressionProvider(createCompressionCodec())])]);
   const clock = options.clock ?? { now: Date.now };

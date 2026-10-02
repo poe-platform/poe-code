@@ -12,6 +12,8 @@ import { SettingsAdmission } from './settings-admission.js';
 export type { CsvkitRequest } from './sdk-settings.js';
 
 export type InvocationContext = Omit<CsvkitContext, "argv">;
+export type CsvkitLimitOptions = { readonly [K in keyof CsvkitLimits]?: CsvkitLimits[K] | undefined };
+type SuppliedInvocationContext = Omit<InvocationContext, "limits"> & { readonly limits?: CsvkitLimitOptions | undefined };
 
 export const defaultLimits: CsvkitLimits = Object.freeze({
   maxArguments: Infinity, maxArgumentBytes: Infinity,
@@ -23,17 +25,22 @@ export const defaultLimits: CsvkitLimits = Object.freeze({
   maxDatabaseResultRows: Infinity, maxInterpreterWork: Infinity, maxNestingDepth: Infinity
 });
 
-function admitted(context: InvocationContext): InvocationContext {
-  context.signal.throwIfAborted();
+export function resolveCsvkitLimits(options: CsvkitLimitOptions = {}): CsvkitLimits {
   const limits = { ...defaultLimits };
   for (const name of Object.keys(defaultLimits)) {
     const key = name as keyof CsvkitLimits;
-    const limit = context.limits[key];
+    const limit = options[key] === undefined ? Infinity : options[key];
     if ((limit !== Infinity && !Number.isSafeInteger(limit)) || limit < 0) throw new RangeError(`invalid csvkit limit ${name}`);
     limits[key] = limit;
   }
+  return Object.freeze(limits);
+}
+
+function admitted(context: SuppliedInvocationContext): InvocationContext {
+  context.signal.throwIfAborted();
+  const limits = resolveCsvkitLimits(context.limits);
   return Object.freeze({ ...context,
-    limits: Object.freeze(limits), env: Object.freeze({ ...context.env }),
+    limits, env: Object.freeze({ ...context.env }),
     terminal: Object.freeze({ ...context.terminal }),
     codecs: Object.freeze([...context.codecs]), compression: Object.freeze([...context.compression]),
     databases: Object.freeze([...context.databases]),
@@ -45,7 +52,7 @@ function admitted(context: InvocationContext): InvocationContext {
 }
 
 /** Original executable argv and SDK calls share this engine; no ambient capabilities. */
-export async function execute(command: string, supplied: CsvkitContext): Promise<number> {
+export async function execute(command: string, supplied: SuppliedInvocationContext & Pick<CsvkitContext, "argv">): Promise<number> {
   const context = admitted(supplied);
   const descriptor = commands.find(item => item.name === command);
   if (!descriptor) throw new TypeError(`Unknown csvkit executable: ${command}`);
@@ -67,7 +74,7 @@ export async function execute(command: string, supplied: CsvkitContext): Promise
 }
 
 /** Typed settings reach the operation directly, without reconstructing CLI arguments. */
-export async function run(request: CsvkitRequest, supplied: InvocationContext): Promise<number> {
+export async function run(request: CsvkitRequest, supplied: SuppliedInvocationContext): Promise<number> {
   const context = admitted(supplied);
   const descriptor = commands.find(item => item.name === request.command);
   if (!descriptor) throw new TypeError(`Unknown csvkit executable: ${request.command}`);

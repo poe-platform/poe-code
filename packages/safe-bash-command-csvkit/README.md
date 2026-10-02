@@ -60,7 +60,8 @@ encoding, environment settings and limits. Safe Bash provides an opt-in
 This workspace is private and is distributed through the `poe-code` SDK subpath.
 
 Resource budgets are opt-in: every `defaultLimits` value is `Infinity`. Supply finite
-nonnegative integer limits to enforce budgets; explicit `Infinity` disables a budget.
+nonnegative integer limits to enforce budgets; omitted limits, `undefined` and
+explicit `Infinity` disable a budget in command factories and SDK calls.
 CSV field lengths, decimal inference and sniff samples have no additional implicit
 ceiling. Use `field_size_limit` (CLI `-z`) for a field ceiling; both accept `Infinity`.
 

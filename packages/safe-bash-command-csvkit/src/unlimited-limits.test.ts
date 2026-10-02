@@ -9,9 +9,30 @@ import { utf8Codec } from "./codecs/utf8.js";
 import { compilePythonSearch } from "./python-regex.js";
 import { sqlOptions } from "./sql-options.js";
 import { parseDatabaseUrl } from "./database-url.js";
+import { createCsvkitCommands } from "./command.js";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 
 it("disables every default resource limit", () => {
   expect(Object.values(defaultLimits).every(value => value === Infinity)).toBe(true);
+});
+it.each([undefined, Infinity])("accepts disabled command limits and retains finite opt-ins: %s", async disabled => {
+  const commandLimits = Object.fromEntries(Object.keys(defaultLimits).map(key => [key, disabled]));
+  const invoke = async (maxRows: number | undefined) => {
+    const command = createCsvkitCommands({ limits: { ...commandLimits, maxRows } }).find(command => command.name === "csvcut")!;
+    const values = createCommandArguments(["-c", "1"]);
+    let output = "", error = "";
+    const result = await command.execute({
+      command: "csvcut", args: values.args, argumentValues: values, cwd: "/", env: {},
+      fs: createMemoryFileSystem(), stdin: toByteSource("name\na\nb\n"),
+      stdout: { async write(bytes) { output += new TextDecoder().decode(bytes); } },
+      stderr: { async write(bytes) { error += new TextDecoder().decode(bytes); } },
+      signal: new AbortController().signal,
+    });
+    return { ...result, output, error };
+  };
+  expect(await invoke(disabled)).toMatchObject({ exitCode: 0, output: "name\na\nb\n", error: "" });
+  expect((await invoke(1)).exitCode).not.toBe(0);
 });
 it("admits long regex patterns and retains explicit regex work limits", () => {
   const pattern = "a".repeat(257);
@@ -47,9 +68,10 @@ it.each([["SDK", undefined], ["SDK", Infinity], ["CLI", undefined], ["CLI", Infi
     locale: { profile: "C", timezone: "UTC", formatNumber() { throw new Error("unexpected locale"); } },
     clock: { now: () => 0 }, registerCleanup() {}
   };
+  const invocation = { ...context, limits: Object.fromEntries(Object.keys(defaultLimits).map(key => [key, field_size_limit])) };
   const result = route === "SDK"
-    ? await run({ command: "csvcut", settings: { columns: "1", ...(field_size_limit === undefined ? {} : { field_size_limit }) } }, context)
-    : await execute("csvcut", { ...context, argv: new OwnedArguments(["-c", "1", ...(field_size_limit === undefined ? [] : ["-z", "Infinity"])].map(argument => new TextEncoder().encode(argument)), defaultLimits) });
+    ? await run({ command: "csvcut", settings: { columns: "1", ...(field_size_limit === undefined ? {} : { field_size_limit }) } }, invocation)
+    : await execute("csvcut", { ...invocation, argv: new OwnedArguments(["-c", "1", ...(field_size_limit === undefined ? [] : ["-z", "Infinity"])].map(argument => new TextEncoder().encode(argument)), defaultLimits) });
   expect(result).toBe(0);
   expect(output.join("")).toBe(`name\n${value}\n`);
 });

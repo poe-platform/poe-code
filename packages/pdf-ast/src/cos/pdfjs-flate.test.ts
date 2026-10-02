@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { deflate, deflateRaw, gzip } from "pako";
 import { describe, expect, it, vi } from "vitest";
 import { PdfError } from "../errors.js";
+import { FlateStream, Stream } from "../vendor/pdfjs-fonts.mjs";
 import { decodeFlate, encodeFlate } from "./filters.js";
 
 // PDF.js stream_spec.js predictor case and extracted upstream regression streams.
@@ -12,6 +13,17 @@ describe("PDF.js FlateDecode compatibility", () => {
     const bytes = encodeFlate(new Uint8Array([2, 100, 3, 2, 1, 255, 2, 1, 255]));
     expect(decodeFlate(bytes, { Predictor: 12, Colors: 1, BitsPerComponent: 8, Columns: 2 }))
       .toEqual(new Uint8Array([100, 3, 101, 2, 102, 1]));
+  });
+
+  it("keeps independent PDF.js streams usable after bounded Flate buffer growth", () => {
+    const source = new TextEncoder().encode("Independent PDF streams. ".repeat(100));
+    const compressed = encodeFlate(source);
+    const before = new Uint8Array(compressed);
+    for (let run = 0; run < 2; run++) {
+      expect(decodeFlate(compressed, undefined, source.length)).toEqual(source);
+      expect(new FlateStream(new Stream(compressed)).getBytes()).toEqual(source);
+      expect(compressed).toEqual(before);
+    }
   });
 
   it.each([

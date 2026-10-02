@@ -148,12 +148,19 @@ describe("safe-bash-command-pdftotext", () => {
 
     // Encrypted PDF
     const encPdf = buildThreePageTestPdf(true);
+    const encBefore = new Uint8Array(encPdf);
     const failEnc = extractPdfToTextBytes(encPdf, ["-upw", "wrong"]);
     assert.equal(failEnc.exitCode, 1);
+    assert.equal(failEnc.stderr, "Command Line Error: Incorrect password\n");
+    assert.deepEqual(encPdf, encBefore);
 
     const okEnc = extractPdfToTextBytes(encPdf, ["-upw", "reader-password"]);
-    assert.equal(okEnc.exitCode, 0);
+    assert.equal(okEnc.exitCode, 0, okEnc.stderr);
     assert.match(okEnc.output, /Hello world/);
+    const ownerEnc = extractPdfToTextBytes(encPdf, ["-opw", "owner-password"]);
+    assert.equal(ownerEnc.exitCode, 0, ownerEnc.stderr);
+    assert.equal(ownerEnc.output, okEnc.output);
+    assert.deepEqual(encPdf, encBefore);
 
     // CLI default output file resolution (/report.pdf -> /report.txt)
     const files = new Map<string, Uint8Array>([["/report.pdf", pdf]]);

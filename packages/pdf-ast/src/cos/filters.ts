@@ -52,7 +52,8 @@ class BoundedFlateStream extends FlateStream {
     const prev = this.buffer;
     const buffer = new Uint8Array(Math.min(size, this.maxDecodedBytes));
     buffer.set(prev);
-    if (prev.byteOffset === 0 && typeof (prev.buffer as unknown as { transfer?: (n: number) => ArrayBuffer }).transfer === "function") {
+    // PDF.js shares the initial empty buffer across all decoder instances.
+    if (prev.byteLength > 0 && prev.byteOffset === 0 && typeof (prev.buffer as unknown as { transfer?: (n: number) => ArrayBuffer }).transfer === "function") {
       try { (prev.buffer as unknown as { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch { /* Detachment is best effort for host buffers. */ }
     }
     return (this.buffer = buffer);

@@ -238,7 +238,7 @@ export function createOpensslCommand(options: OpensslCommandsOptions = {}): Comm
       if (args.length === 0 || args[0] === "--help" || args[0] === "-h" || args[0] === "help") {
         await writeText(
           context.stdout,
-          "Usage: openssl <subcommand> [options]\nSubcommands: version, dgst, sha256, sha512, sha1, rand, base64, enc, genpkey, pkey, req, x509, passwd\n",
+          "Usage: openssl <subcommand> [options]\nSubcommands: version, dgst, sha256, sha512, sha1, rand, base64, enc, genpkey, genrsa, pkey, rsa, pkeyutl, req, x509, passwd\n",
         );
         return { exitCode: 0 };
       }
@@ -513,6 +513,112 @@ export function createOpensslCommand(options: OpensslCommandsOptions = {}): Comm
             await emitOutput(context, outFile, new Uint8Array(plainBuf));
             return { exitCode: 0 };
           }
+        }
+
+        if (sub === "pkeyutl") {
+          let doSign = false;
+          let doVerify = false;
+          let inKeyFile: string | undefined;
+          let inFile: string | undefined;
+          let outFile: string | undefined;
+          let sigFile: string | undefined;
+          let hashAlg: "SHA-256" | "SHA-384" | "SHA-512" | "SHA-1" = "SHA-256";
+
+          for (let i = 0; i < rest.length; i++) {
+            const a = rest[i]!;
+            if (a === "-sign") doSign = true;
+            else if (a === "-verify") doVerify = true;
+            else if (a === "-rawin" || a === "-pubin") {
+              // accepted flags
+            } else if (a === "-inkey" && i + 1 < rest.length) inKeyFile = rest[++i];
+            else if (a === "-in" && i + 1 < rest.length) inFile = rest[++i];
+            else if (a === "-out" && i + 1 < rest.length) outFile = rest[++i];
+            else if (a === "-sigfile" && i + 1 < rest.length) sigFile = rest[++i];
+            else if (a === "-digest" && i + 1 < rest.length) {
+              const d = rest[++i]!.toLowerCase();
+              if (d === "sha384") hashAlg = "SHA-384";
+              else if (d === "sha512") hashAlg = "SHA-512";
+              else if (d === "sha1") hashAlg = "SHA-1";
+              else hashAlg = "SHA-256";
+            } else if (a === "-pkeyopt" && i + 1 < rest.length) {
+              i++;
+            }
+          }
+
+          if (!inKeyFile) {
+            throw new PublicDiagnostic("pkeyutl requires -inkey <file>");
+          }
+          const keyPemBytes = await readLimitedFile(context, pathPosix.resolve(context.cwd, inKeyFile), maxBytes);
+          const keyPem = textDecoder.decode(keyPemBytes);
+          const keyDer = base64ToBytes(keyPem.split("\n").filter(l => !l.startsWith("-----")).join(""));
+          const keyBuf = keyDer.buffer.slice(keyDer.byteOffset, keyDer.byteOffset + keyDer.byteLength) as ArrayBuffer;
+          const dataBytes = inFile
+            ? await readLimitedFile(context, pathPosix.resolve(context.cwd, inFile), maxBytes)
+            : await collectSourceBytes(context.stdin, maxBytes, context.signal);
+          const dataBuf = dataBytes.buffer.slice(dataBytes.byteOffset, dataBytes.byteOffset + dataBytes.byteLength) as ArrayBuffer;
+
+          if (doSign) {
+            let sigBuf: ArrayBuffer;
+            try {
+              const edKey = await globalThis.crypto.subtle.importKey("pkcs8", keyBuf, { name: "Ed25519" }, false, ["sign"]);
+              sigBuf = await globalThis.crypto.subtle.sign({ name: "Ed25519" }, edKey, dataBuf);
+            } catch {
+              const rsaKey = await globalThis.crypto.subtle.importKey(
+                "pkcs8",
+                keyBuf,
+                { name: "RSASSA-PKCS1-v1_5", hash: hashAlg },
+                false,
+                ["sign"],
+              );
+              sigBuf = await globalThis.crypto.subtle.sign("RSASSA-PKCS1-v1_5", rsaKey, dataBuf);
+            }
+            await emitOutput(context, outFile, new Uint8Array(sigBuf));
+            return { exitCode: 0 };
+          }
+
+          if (doVerify) {
+            if (!sigFile) {
+              throw new PublicDiagnostic("pkeyutl -verify requires -sigfile <file>");
+            }
+            const sigBytes = await readLimitedFile(context, pathPosix.resolve(context.cwd, sigFile), maxBytes);
+            const sigBuf = sigBytes.buffer.slice(sigBytes.byteOffset, sigBytes.byteOffset + sigBytes.byteLength) as ArrayBuffer;
+            let ok = false;
+            try {
+              const edPub = await globalThis.crypto.subtle.importKey("spki", keyBuf, { name: "Ed25519" }, false, ["verify"]);
+              ok = await globalThis.crypto.subtle.verify({ name: "Ed25519" }, edPub, sigBuf, dataBuf);
+            } catch {
+              try {
+                const rsaPub = await globalThis.crypto.subtle.importKey(
+                  "spki",
+                  keyBuf,
+                  { name: "RSASSA-PKCS1-v1_5", hash: hashAlg },
+                  false,
+                  ["verify"],
+                );
+                ok = await globalThis.crypto.subtle.verify("RSASSA-PKCS1-v1_5", rsaPub, sigBuf, dataBuf);
+              } catch {
+                try {
+                  const privKey = await globalThis.crypto.subtle.importKey("pkcs8", keyBuf, { name: "Ed25519" }, true, ["sign"]);
+                  const jwk = await globalThis.crypto.subtle.exportKey("jwk", privKey);
+                  delete jwk.d;
+                  jwk.key_ops = ["verify"];
+                  const pubKey = await globalThis.crypto.subtle.importKey("jwk", jwk, { name: "Ed25519" }, false, ["verify"]);
+                  ok = await globalThis.crypto.subtle.verify({ name: "Ed25519" }, pubKey, sigBuf, dataBuf);
+                } catch {
+                  ok = false;
+                }
+              }
+            }
+            if (ok) {
+              await emitOutput(context, outFile, textEncoder.encode("Signature Verified Successfully\n"));
+              return { exitCode: 0 };
+            } else {
+              await writeText(context.stderr, "Signature Verification Failure\n");
+              return { exitCode: 1 };
+            }
+          }
+
+          throw new PublicDiagnostic("pkeyutl requires -sign or -verify");
         }
 
         if (sub === "genpkey" || sub === "genrsa") {

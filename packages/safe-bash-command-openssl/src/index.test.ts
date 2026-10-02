@@ -237,3 +237,59 @@ test("openssl supports RSA-2048 genpkey/genrsa, pkey -pubout/-check, and dgst -s
   assert.equal(verifyFail.exitCode, 1);
   assert.match(verifyFail.stdout + verifyFail.stderr, /Verification Failure/);
 });
+
+
+test("openssl supports Ed25519 signing and verification with pkeyutl", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/payload.txt", new TextEncoder().encode("forensics payload\n"));
+  await fs.writeFile("/tampered.txt", new TextEncoder().encode("tampered payload\n"));
+
+  const gen = await runOpenssl(fs, ["genpkey", "-algorithm", "Ed25519", "-out", "/ed-priv.pem"]);
+  assert.equal(gen.exitCode, 0, gen.stderr);
+
+  const pub = await runOpenssl(fs, ["pkey", "-in", "/ed-priv.pem", "-pubout", "-out", "/ed-pub.pem"]);
+  assert.equal(pub.exitCode, 0, pub.stderr);
+
+  const sign = await runOpenssl(fs, [
+    "pkeyutl",
+    "-sign",
+    "-rawin",
+    "-inkey",
+    "/ed-priv.pem",
+    "-in",
+    "/payload.txt",
+    "-out",
+    "/payload.sig",
+  ]);
+  assert.equal(sign.exitCode, 0, sign.stderr);
+
+  const verifyOk = await runOpenssl(fs, [
+    "pkeyutl",
+    "-verify",
+    "-rawin",
+    "-pubin",
+    "-inkey",
+    "/ed-pub.pem",
+    "-in",
+    "/payload.txt",
+    "-sigfile",
+    "/payload.sig",
+  ]);
+  assert.equal(verifyOk.exitCode, 0, verifyOk.stderr);
+  assert.match(verifyOk.stdout, /Signature Verified Successfully/);
+
+  const verifyFail = await runOpenssl(fs, [
+    "pkeyutl",
+    "-verify",
+    "-rawin",
+    "-pubin",
+    "-inkey",
+    "/ed-pub.pem",
+    "-in",
+    "/tampered.txt",
+    "-sigfile",
+    "/payload.sig",
+  ]);
+  assert.equal(verifyFail.exitCode, 1);
+  assert.match(verifyFail.stdout + verifyFail.stderr, /Signature Verification Failure/);
+});

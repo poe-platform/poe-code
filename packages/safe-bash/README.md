@@ -400,8 +400,9 @@ for structured pipelines. `mdq` is in `agentCommands()`; the `/commands/mdq`
 export also provides `mdq(context, options)`, `createMdqCommand`, and
 `mdqCommands({ limits?, replace? })`. The CLI and typed SDK share validation,
 UTF-8 VFS/stream input, formatting and match status. Compatibility targets
-mdq v0.10.0 with finite input/output, allocation, depth and work ceilings;
-see the [query syntax, flags and limits](../safe-bash-command-mdq/README.md).
+mdq v0.10.0. Hosts can configure input/output, allocation, depth and work
+ceilings; these resource limits default to disabled (`Infinity`). See the
+[query syntax, flags and limits](../safe-bash-command-mdq/README.md).
 
 ### Opt-in commands and storage
 

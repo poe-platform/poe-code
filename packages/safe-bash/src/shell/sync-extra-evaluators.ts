@@ -272,8 +272,8 @@ const evalSyncBase32 = (...args: any[]) => syncCommandEvaluators.evalSyncBase32?
 const evalSyncCsvcut = (...args: any[]) => syncCommandEvaluators.evalSyncCsvcut?.(...args);
 const evalSyncCsvgrep = (...args: any[]) => syncCommandEvaluators.evalSyncCsvgrep?.(...args);
 const evalSyncGetopt = (...args: any[]) => syncCommandEvaluators.evalSyncGetopt?.(...args);
-const evalSyncLineEndings = (...args: any[]) => syncCommandEvaluators.evalSyncLineEndings?.(...args);
-const evalSyncIconv = (...args: any[]) => syncCommandEvaluators.evalSyncIconv?.(...args);
+const evalSyncLineEndings = (...args: any[]): Uint8Array | undefined => syncCommandEvaluators.evalSyncLineEndings?.(...args);
+const evalSyncIconv = (...args: any[]): Uint8Array | undefined => syncCommandEvaluators.evalSyncIconv?.(...args);
 const evalSyncHtmlq = (...args: any[]) => syncCommandEvaluators.evalSyncHtmlq?.(...args);
 const evalSyncXmllint = (...args: any[]) => syncCommandEvaluators.evalSyncXmllint?.(...args);
 const evalSyncMdq = (...args: any[]) => syncCommandEvaluators.evalSyncMdq?.(...args);
@@ -287,7 +287,7 @@ const evalSyncDiff3 = (...args: any[]) => syncCommandEvaluators.evalSyncDiff3?.(
 const evalSyncCmp = (...args: any[]) => syncCommandEvaluators.evalSyncCmp?.(...args);
 const evalSyncWhich = (...args: any[]) => syncCommandEvaluators.evalSyncWhich?.(...args);
 const evalSyncFind = (...args: any[]) => syncCommandEvaluators.evalSyncFind?.(...args);
-const evalSyncCompression = (...args: any[]) => syncCommandEvaluators.evalSyncCompression?.(...args);
+const evalSyncCompression = (...args: any[]): Uint8Array | undefined => syncCommandEvaluators.evalSyncCompression?.(...args);
 const evalSyncTar = (...args: any[]) => syncCommandEvaluators.evalSyncTar?.(...args);
 const evalSyncUnzip = (...args: any[]) => syncCommandEvaluators.evalSyncUnzip?.(...args);
 const evalSyncZip = (...args: any[]) => syncCommandEvaluators.evalSyncZip?.(...args);

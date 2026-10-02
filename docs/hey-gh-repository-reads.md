@@ -34,6 +34,52 @@ listener and its health response. On September 24, this comparison reproduced
 the transport error inside the sandbox and the local API 404 outside it.
 Neither response supplied a PR envelope, so neither can advance a saved cursor.
 
+## Recover a missing daemon
+
+A transport error outside the sandbox can also mean no daemon is running.
+Check the address selected by `--server` (the commands below use the default):
+
+```sh
+lsof -nP -iTCP:8787 -sTCP:LISTEN
+curl --connect-timeout 2 --max-time 5 -i http://127.0.0.1:8787/health
+```
+
+No listener together with curl exit 7 (connection refused) identifies an
+unavailable local endpoint. It does not indicate a GitHub credential failure.
+If a listener exists, inspect its owner as above; a health route alone does not
+prove hey-gh API compatibility. Do not start another daemon on an occupied port.
+
+When the default port is free, start the daemon in a persistent terminal:
+
+```sh
+hey-gh serve --listen 127.0.0.1:8787
+```
+
+Wait for `hey-gh API listening on http://127.0.0.1:8787`, then use another
+terminal to verify both the API and the repository envelope:
+
+```sh
+hey-gh watches
+hey-gh pr list -R poe-platform/poe-code
+```
+
+Keep that terminal running for subsequent consumers, or configure a host service
+manager to keep the daemon running with the same address. A temporary diagnostic
+process does not establish automatic startup after logout or reboot. Consumer
+commands using `--server` must match the daemon's `--listen` address.
+
+On October 2, 2026, the default repository read failed outside the sandbox with
+exit 1, `GitHub transport error: error sending request`, and no JSON envelope.
+Neither 8787 nor 18787 had a listener, and curl to 8787 exited 7. Starting the
+daemon on 8787 restored `hey-gh watches` (exit 0) and the default repository
+read's supported JSON envelope. The repository read still exited 1 with
+`complete: false`: account discovery reported an upstream organization IP
+allow-list restriction. Its `coverage.repository` was `poe-platform/poe-code`,
+`returnedRows` was 0, and `returnedRowsComplete` was true, but
+`accountDiscovery.complete` was false. Empty returned-row coverage does not
+establish a complete repository roster. This confirms local transport recovery
+and separately identifies the remaining upstream limitation.
+
 ## Use a separate loopback port
 
 Check that the proposed port is free. If it has a listener, inspect that owner
@@ -92,6 +138,5 @@ It returned `full_name: "poe-platform/poe-code"` and
 separate from both the local port collision and the upstream discovery error;
 do not infer PR readiness from it or enable PRs as part of this recovery.
 
-This runbook resolves issue 7's alternative acceptance criterion: an actionable
-daemon/API diagnosis. Changes to hey-gh's default-port diagnostics or discovery
+Changes to hey-gh's daemon startup, default-port diagnostics, or discovery
 implementation belong in hey-gh, which is not implemented in this checkout.

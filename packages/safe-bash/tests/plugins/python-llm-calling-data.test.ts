@@ -38,7 +38,7 @@ function run(program: string): string {
   return result.stdout;
 }
 
-test('ordinary Python prompts preserve finite structured options', () => run(`
+test('ordinary Python prompts preserve finite structured options', () => { run(`
 model = llm.get_model("fixture")
 assert model.prompt("hello", logit_bias={42:5}, stop=["end"]).text() == "ok"
 assert payloads[-1]["options"] == {"logit_bias":{"42":5},"stop":["end"]}
@@ -50,9 +50,9 @@ for value in [{"nested":float("inf")}, {"nested":9007199254740992}, cycle, {"nes
   raise AssertionError("invalid structured option accepted")
  except (TypeError, ValueError): pass
  assert len(payloads) == before
-`));
+`); });
 
-test('declared dictionary and list options retain Python validation and transport', () => run(`
+test('declared dictionary and list options retain Python validation and transport', () => { run(`
 model = llm.Model("fixture", metadata={"options": {
  "logit_bias": {"type":"object"}, "stop": {"type":"array"}
 }})
@@ -67,9 +67,9 @@ for options in [{"logit_bias":[]}, {"stop":{}}, {"unknown":True}]:
   raise AssertionError("invalid declared option accepted")
  except ValueError: pass
  assert len(payloads) == before
-`));
+`); });
 
-test('ordinary sync and async conversations preserve completed response attachments', () => run(`
+test('ordinary sync and async conversations preserve completed response attachments', () => { run(`
 model = llm.get_model("fixture")
 conversation = model.conversation()
 first = conversation.prompt("before")
@@ -86,7 +86,7 @@ async def check():
  assert await conversation.prompt("async-now").text() == "ok"
  assert payloads[-1]["messages"][0] == {"role":"user","content":"async-before","attachments":[{"path":"/async-history.txt","mimeType":"text/plain"}]}
 asyncio.run(check())
-`));
+`); });
 
 test('valid calling programs match pinned LLM with deterministic model fixtures', {skip: !process.env.LLM_REFERENCE_PYTHON}, () => {
   const referenceSetup = `

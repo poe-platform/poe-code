@@ -25,3 +25,37 @@ Only direct child files are admitted, temporary files are exclusively created
 and removed on close, and file growth and open handles are budgeted. Use this
 adapter for private transaction working files, with the caller responsible for
 retained source acquisition, atomic publication and removal of the directory.
+
+`safe-bash-sqlite-engine/storage` adds `transactSqlite()` for canonical database
+files. It retains the database and WAL/journal/SHM identities, recovers a private
+snapshot, executes a native transaction, and atomically publishes only if the
+original source set still matches. Failed work leaves canonical files unchanged.
+The result includes the callback value, a committed file receipt and separate
+cleanup errors: a committed operation must not be retried because cleanup failed.
+
+```js
+import { transactSqlite, withSqliteStatement } from 'safe-bash-sqlite-engine/storage';
+const receipt = await transactSqlite({
+  fs, path: '/embeddings.db', signal,
+  maxFileBytes: 1024 * 1024 * 1024, maxIndexBytes: 16 * 1024 * 1024, maxOpenFiles: 16,
+}, async session => {
+  await session.execute('CREATE TABLE IF NOT EXISTS collections(name TEXT UNIQUE)');
+  await withSqliteStatement(session.module, {
+    ...session, signal, sql: 'INSERT INTO collections(name) VALUES (?)',
+  }, async statement => {
+    for await (const row of statement.rows(['documents'], [])) void row;
+  });
+});
+```
+
+The supplied filesystem must support retained reads, synchronous binding guards,
+conditional file ownership and atomic source-set publication. All private files
+and staging use that filesystem. The native page cache is bounded; file copying,
+WAL indexing and publication use bounded buffers and caller storage. Native calls
+must be serialized inside the callback, and sessions/cursors must not escape it.
+SQL and aggregate scalar bindings are limited to 64 KiB. Use `writeSqliteBlob()`
+and `readSqliteBlob()` for large values. A transaction's optional `finalize`
+callback can rewrite a known row using streamed `sqliteRecord()` fields, then
+validate it through a native session before publication; the caller must preserve
+the row's indexes and constraints. This is storage infrastructure and defines no
+application schema, migrations or logging behavior.

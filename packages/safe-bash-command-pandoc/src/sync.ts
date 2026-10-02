@@ -34,9 +34,11 @@ export function evalSyncPandoc(
       if (inBytes === undefined || inBytes.byteLength > 262144) return undefined;
       inputs.push({ bytes: inBytes });
     } else {
+      let usedStdin = false;
       for (const op of parsed.operands) {
-        if (op.source === undefined) {
-          if (inBytes === undefined || inBytes.byteLength > 262144) return undefined;
+        if (op.source === undefined || (op.source === "stdin" && op.base === undefined)) {
+          if (usedStdin || inBytes === undefined || inBytes.byteLength > 262144) return undefined;
+          usedStdin = true;
           inputs.push({ bytes: inBytes });
         } else {
           if (parsed.destination && op.source === parsed.destination) return undefined;
@@ -49,7 +51,7 @@ export function evalSyncPandoc(
     const serialized = convertSync(inputs, parsed.options);
     if (!serialized) return undefined;
     if (parsed.destination !== undefined) {
-      if (!writeFileSync) return undefined;
+      if (!writeFileSync || parsed.destination.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(parsed.destination)) return undefined;
       const outBytes = serialized.kind === "binary" ? serialized.bytes : new TextEncoder().encode(serialized.text);
       if (!writeFileSync(parsed.destination, outBytes)) return undefined;
       return "";

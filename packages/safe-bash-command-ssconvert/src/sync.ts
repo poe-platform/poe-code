@@ -45,7 +45,7 @@ export function createSyncSsconvertEvaluator(archive: SynchronousSpreadsheetArch
       }
 
       const [srcUri, dstUri] = parsed.operands as [string, string];
-      if (srcUri === "-" || dstUri === "-" || srcUri.includes("%") || dstUri.includes("%")) return undefined;
+      if (srcUri === "-" || dstUri === "-" || srcUri.includes("%") || dstUri.includes("%") || dstUri.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(dstUri)) return undefined;
       if (srcUri.includes("://") && srcUri !== "fd://0") return undefined;
       if (dstUri.includes("://") && dstUri !== "fd://1") return undefined;
 

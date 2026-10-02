@@ -1315,3 +1315,22 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     const r2 = await bash.exec("out=$(date -u -f /bad_dates.txt +%Y 2>&1); echo $?");
     assert.notEqual(r2.stdout.trim(), "0");
   });
+
+  test("71. sync pandoc stdin operand, multi-stage pipeline NUL stripping, head -c UTF-8 byte slicing, and writeFile missing parent dir rejection", async () => {
+    const { shell: bash } = setup();
+    bash.use(agentCommands());
+    const res = await bash.exec([
+      "printf \"wrong file content\\n\" > /stdin",
+      "cd /",
+      "out1=$(printf \"# Piped Title\\n\" | pandoc -)",
+      "out2=$(printf \"a\\0b\\n\" | cat)",
+      "out3=$(head -c 1 <<< \"é\")",
+      "len3=$(printf \"%s\" \"$out3\" | wc -c)",
+      "printf \"flowchart TD; A-->B\\n\" > /diag.mmd",
+      "mmdc -i /diag.mmd -o /missing_parent_dir/out.svg 2>/dev/null",
+      "s4=$?",
+      "[ -d /missing_parent_dir ] && dir_exists=yes || dir_exists=no",
+      "echo \"$out1|$out2|$len3|$s4|$dir_exists\"",
+    ].join("\n"));
+    assert.equal(res.stdout.trim(), "<h1 id=\"piped-title\">Piped Title</h1>|ab|1|1|no");
+  });

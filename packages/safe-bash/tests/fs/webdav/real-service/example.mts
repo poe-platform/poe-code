@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
-import { RealFileSystem, Shell, standardCommands, createMemoryFileSystem, createMountFileSystem } from "virtual-bash";
+import { Shell, standardCommands, createMemoryFileSystem, createMountFileSystem } from "virtual-bash";
+import { RealFileSystem } from "@poe-code/safe-fs/fs/real";
 import type { FileStat, FileSystem, FsOptions, EntryComparison } from "virtual-bash";
 import { WebDavFileSystem } from "virtual-bash/fs/webdav";
 import type { WebDavFileSystemOptions } from "virtual-bash/fs/webdav";

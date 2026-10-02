@@ -1,4 +1,5 @@
 import { parseHtmlBlocks, type DocBlock } from "./html.js";
+import { parseMarkdownTableRows } from "./text-table.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { resolvePath } from "@poe-code/safe-fs/core";
 import { convertOds, starCalcCsvOptions } from "./spreadsheet.js";
@@ -471,7 +472,10 @@ function buildXlsxFromRows(rows: readonly (readonly string[])[]): Uint8Array {
     .map((row, rIdx) => {
       const cells = row
         .map((val, cIdx) => {
-          const colLetter = String.fromCharCode(65 + (cIdx % 26));
+          let colLetter = "";
+          for (let column = cIdx + 1; column > 0; column = Math.floor((column - 1) / 26)) {
+            colLetter = String.fromCharCode(65 + (column - 1) % 26) + colLetter;
+          }
           return `<c r="${colLetter}${rIdx + 1}" t="inlineStr"><is><t>${esc(val)}</t></is></c>`;
         })
         .join("");
@@ -489,13 +493,16 @@ function buildXlsxFromRows(rows: readonly (readonly string[])[]): Uint8Array {
     "xl/workbook.xml": enc.encode(
       `<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheets><sheet name="Sheet1" sheetId="1" r:id="rId1" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/></sheets></workbook>`
     ),
+    "xl/_rels/workbook.xml.rels": enc.encode(
+      `<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>`
+    ),
     "xl/worksheets/sheet1.xml": enc.encode(
       `<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetRows}</sheetData></worksheet>`
     )
   });
 }
 
-function parseCsvRows(text: string): string[][] {
+function parseDelimitedRows(text: string, separator = ","): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
   let field = "";
@@ -511,7 +518,7 @@ function parseCsvRows(text: string): string[][] {
       } else {
         field += char;
       }
-    } else if (!quoted && char === ",") {
+    } else if (!quoted && char === separator) {
       row.push(field);
       field = "";
     } else if (!quoted && (char === "\r" || char === "\n")) {
@@ -703,7 +710,7 @@ function* runSofficeSteps(
       } else if (lowerIn.endsWith(".xlsx") || lowerIn.endsWith(".csv")) {
         const rows = lowerIn.endsWith(".xlsx")
           ? parseXlsxRows(inputBytes)
-          : parseCsvRows(new TextDecoder().decode(inputBytes));
+          : parseDelimitedRows(new TextDecoder().decode(inputBytes));
         if (targetExt === "csv") {
           outBytes = formatStarCalcCsv(rows, filterOpts);
         } else if (targetExt === "xlsx") {
@@ -784,7 +791,15 @@ function* runSofficeSteps(
         if (targetExt === "pdf") outBytes = yield* renderBlocksToPdf(blocks, stem);
         else if (targetExt === "docx") outBytes = buildDocxFromBlocks(blocks);
         else if (targetExt === "html") outBytes = renderBlocksToHtml(blocks, stem);
-        else outBytes = isHtml || lowerIn.endsWith(".md") ? renderBlocksToText(blocks) : inputBytes;
+        else if (targetExt === "xlsx" || targetExt === "csv") {
+          const tableRows = isHtml
+            ? blocks.filter(block => block.kind === "table").flatMap(block => block.rows ?? [])
+            : lowerIn.endsWith(".md") ? parseMarkdownTableRows(rawText) : [];
+          const rows = tableRows.length > 0 ? tableRows
+            : isHtml ? blocks.map(block => [block.text ?? ""])
+            : parseDelimitedRows(rawText, rawText.includes("\t") ? "\t" : ",");
+          outBytes = targetExt === "xlsx" ? buildXlsxFromRows(rows) : formatStarCalcCsv(rows, filterOpts);
+        } else outBytes = isHtml || lowerIn.endsWith(".md") ? renderBlocksToText(blocks) : inputBytes;
       }
 
       if (targetExt === "pdf" && filterOpts && filterOpts.trim().startsWith("{")) {

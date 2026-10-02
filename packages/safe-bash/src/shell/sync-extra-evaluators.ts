@@ -21338,16 +21338,35 @@ const syncExtraRuntimeMethods = {
     const incrInt = Math.round(Number(incrStr) * scaleFactor);
     const lastInt = Math.round(Number(lastStr) * scaleFactor);
     if (incrInt === 0 || Math.abs((lastInt - firstInt) / incrInt) > 1024) return undefined;
-    const formatScaled = (valInt: number): string => {
+    const formatScaled = (valInt: number, negZero = false): string => {
       const num = valInt / scaleFactor;
-      return outPrec > 0 ? num.toFixed(outPrec) : String(Math.round(num));
+      const s = outPrec > 0 ? Math.abs(num).toFixed(outPrec) : String(Math.round(Math.abs(num)));
+      return (valInt < 0 || (valInt === 0 && negZero)) ? "-" + s : s;
     };
-    const padWidth = equalWidth ? Math.max(formatScaled(firstInt).length, formatScaled(lastInt).length) : 0;
+    const intPartWidth = (s: string): number => {
+      const dot = s.indexOf(".");
+      const intPart = dot < 0 ? s : s.slice(0, dot);
+      return Math.max(1, intPart.startsWith("-") ? intPart.length : intPart.length) + (outPrec > 0 ? outPrec + 1 : 0);
+    };
+    const firstNegZero = firstInt === 0 && firstStr.startsWith("-");
+    const lastNegZero = lastInt === 0 && lastStr.startsWith("-");
+    const discardFactor = 10 ** (scalePow - outPrec);
+    const truncLastInt = Math.trunc(lastInt / discardFactor) * discardFactor;
+    const padWidth = equalWidth
+      ? Math.max(
+          formatScaled(firstInt, firstNegZero).length,
+          formatScaled(truncLastInt, lastNegZero).length,
+          intPartWidth(firstStr),
+          intPartWidth(lastStr),
+        )
+      : 0;
     const seqLines: string[] = [];
     for (let curInt = firstInt; incrInt > 0 ? curInt <= lastInt : curInt >= lastInt; curInt += incrInt) {
+      const isFirstNegZero = seqLines.length === 0 && firstNegZero;
       const cur = curInt / scaleFactor;
       if (fmt !== undefined) {
-        const rawNum = fmtSpec === "f" ? cur.toFixed(fmtPrec ?? 6) : String(cur);
+        const rawAbs = fmtSpec === "f" ? Math.abs(cur).toFixed(fmtPrec ?? 6) : String(Math.abs(cur));
+        const rawNum = (curInt < 0 || isFirstNegZero) ? "-" + rawAbs : rawAbs;
         let body = rawNum;
         if (fmtWidth > rawNum.length) {
           if (fmtLeft) body = rawNum.padEnd(fmtWidth, " ");
@@ -21356,13 +21375,13 @@ const syncExtraRuntimeMethods = {
         }
         seqLines.push(fmtPrefix + body + fmtSuffix);
       } else if (equalWidth) {
-        const raw = formatScaled(curInt);
+        const raw = formatScaled(curInt, isFirstNegZero);
         const body = raw.startsWith("-")
           ? "-" + raw.slice(1).padStart(Math.max(0, padWidth - 1), "0")
           : raw.padStart(padWidth, "0");
         seqLines.push(body);
       } else {
-        seqLines.push(formatScaled(curInt));
+        seqLines.push(formatScaled(curInt, isFirstNegZero));
       }
     }
     return seqLines.length > 0 ? seqLines.join(sep) + "\n" : "";
@@ -21402,7 +21421,7 @@ const syncExtraRuntimeMethods = {
     }
     const rawB64 = this.syncBase64Encode(inBytes).replace(/\n/g, "");
     if (rawB64.length === 0) return "";
-    if (wrapCols === 0) return rawB64 + "\n";
+    if (wrapCols === 0) return rawB64;
     const lines: string[] = [];
     for (let i = 0; i < rawB64.length; i += wrapCols) {
       lines.push(rawB64.slice(i, i + wrapCols));

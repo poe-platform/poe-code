@@ -711,3 +711,27 @@ test("40. sync strings per-file radix offsets (-t d/-t x), strings -s pipeline n
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
 });
+
+test("41. sync seq -w discarded fractional width, leading-zero width, negative zero (-0), and base64 -w 0 newline suppression", async () => {
+  const syncSh = setup().shell.use(agentCommands());
+  const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+  const init = `
+    mkdir -p /dir
+    printf "hello" > /dir/a.txt
+  `;
+  await syncSh.exec(init);
+  await asyncSh.exec(init);
+  const scripts = [
+    "x=\$(seq -w 1 1 9.9); echo \"\$?:\$x\"",
+    "x=\$(seq -w 1 005); echo \"\$?:\$x\"",
+    "x=\$(seq -0 1 2); echo \"\$?:\$x\"",
+    "x=\$(printf \"hello\" | base64 -w 0 | wc -c); echo \"\$?:\$x\"",
+    "x=\$(base64 -w 0 /dir/a.txt | wc -c); echo \"\$?:\$x\"",
+  ];
+  for (const script of scripts) {
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});

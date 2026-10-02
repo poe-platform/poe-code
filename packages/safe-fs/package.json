@@ -65,6 +65,9 @@
     },
     "./contracts": {
       "types": "./dist/contracts/index.d.ts",
+      "workerd": "./dist/contracts/index.js",
+      "browser": "./dist/contracts/index.js",
+      "worker": "./dist/contracts/index.js",
       "import": "./dist/contracts/index.js"
     },
     "./xml": {

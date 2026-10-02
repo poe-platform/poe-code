@@ -2297,3 +2297,11 @@ Public explorer namespace/root exports, host-call batching, remaining concrete
 wildcard subpaths, broader Toolcraft coverage and final API/platform/performance
 qualification remain open. The root export audit also identified the existing
 native `createDashboard` function still needing its direct root re-export.
+
+### Dashboard root export correction
+
+The root now re-exports the existing `createDashboard` function and its
+`Dashboard`/`DashboardOptions` types, matching the original root contract.
+A missing-export test preceded the change. The direct and namespaced factory
+identities match; runtime regression cases, dashboard reference cases, bidirectional
+root types and scoped JS lint cover the correction. No runtime behavior changed.

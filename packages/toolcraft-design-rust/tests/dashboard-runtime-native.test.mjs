@@ -4,7 +4,7 @@ import {PassThrough} from "node:stream";
 import {createDashboard as reference} from "../../toolcraft-design/dist/dashboard/dashboard.js";
 import {withOutputFormat as referenceFormat} from "../../toolcraft-design/dist/internal/output-format.js";
 import {createDashboard} from "toolcraft-design-rust/dashboard/dashboard";
-import {withOutputFormat,dashboard} from "toolcraft-design-rust";
+import {withOutputFormat,dashboard,createDashboard as rootCreateDashboard} from "toolcraft-design-rust";
 import * as namespace from "toolcraft-design-rust/dashboard/index";
 import * as originalNamespace from "../../toolcraft-design/dist/dashboard/index.js";
 
@@ -21,6 +21,7 @@ test("dashboard runtime completes namespace exports with shared function identit
   assert.deepEqual(Object.keys(dashboard),Object.keys(namespace));
   for(const key of Object.keys(namespace))assert.equal(dashboard[key],namespace[key],key);
   assert.equal(dashboard.createDashboard,createDashboard);
+  assert.equal(rootCreateDashboard,createDashboard);
 });
 
 test("dashboard lifecycle preserves frames, raw modes, subscriptions, commands and restart",()=>{

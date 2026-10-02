@@ -132,3 +132,4 @@ export {select, multiselect, text as promptText, confirm, confirmOrCancel, passw
 export type {SelectOptions, MultiselectOptions, TextOptions, ConfirmOptions, PasswordOptions} from "./prompts.js";
 
 export {shouldUseInteractiveDashboard} from "./dashboard-mode.js";
+export {createDashboard,type Dashboard,type DashboardOptions} from "./dashboard-runtime.js";

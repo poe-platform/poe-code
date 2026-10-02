@@ -571,8 +571,8 @@ fallback output without starting terminal input.
 Supply `onSubmit` for editable message and plan drafts. Accepted submissions
 clear the draft; rejected submissions keep it editable and show the error.
 `getPerformance()` returns bounded render statistics, and `onPerformance` observes
-completed frames. The function and its types are also available through
-`dashboard/index` and `dashboard/dashboard`. This additive implementation is not
+completed frames. The function and its types are also available directly from the package root,
+through `dashboard/index` and through `dashboard/dashboard`. This additive implementation is not
 yet a performance replacement: an 80×20 start/four-update/destroy benchmark took
 about 276 ms per native cycle versus 3.47 ms in JavaScript on Node 22 ARM64.
 

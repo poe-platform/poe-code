@@ -972,3 +972,11 @@ const explorerRuntimeOriginal: typeof originalExplorerRuntime = explorerRuntime;
 const explorerRuntimeNative: typeof explorerRuntime = null as unknown as typeof originalExplorerRuntime;
 const explorerRuntimeKeys: SameKeys<typeof explorerRuntime,typeof originalExplorerRuntime> = true;
 void [explorerRuntimeOriginal,explorerRuntimeNative,explorerRuntimeKeys];
+
+const rootDashboardOriginal: typeof originalDesign.createDashboard = design.createDashboard;
+const rootDashboardNative: typeof design.createDashboard = null as unknown as typeof originalDesign.createDashboard;
+const rootDashboardOptionsOriginal: originalDesign.DashboardOptions = null as unknown as design.DashboardOptions;
+const rootDashboardOptionsNative: design.DashboardOptions = null as unknown as originalDesign.DashboardOptions;
+const rootDashboardInstanceOriginal: originalDesign.Dashboard = null as unknown as design.Dashboard;
+const rootDashboardInstanceNative: design.Dashboard = null as unknown as originalDesign.Dashboard;
+void [rootDashboardOriginal,rootDashboardNative,rootDashboardOptionsOriginal,rootDashboardOptionsNative,rootDashboardInstanceOriginal,rootDashboardInstanceNative];

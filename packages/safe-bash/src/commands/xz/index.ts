@@ -2,7 +2,6 @@ import {
   createXzCommand as createBaseXzCommand,
   createXzCommands as createBaseXzCommands,
   type XzCommandsOptions,
-  type CompressionCommandOptions,
 } from "safe-bash-command-xz";
 import { builtInDirectContextExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
@@ -10,7 +9,8 @@ import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/inde
 export * from "safe-bash-command-xz";
 
 function isDefaultXzOptions(options?: XzCommandsOptions): boolean {
-  return options === undefined || options.maxDecodedBytes === undefined;
+  const maxDecodedBytes = options?.limits?.maxDecodedBytes ?? options?.maxDecodedBytes;
+  return maxDecodedBytes === undefined || maxDecodedBytes === Infinity;
 }
 
 export function createXzCommand(options: XzCommandsOptions = {}): CommandDefinition {

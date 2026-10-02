@@ -832,6 +832,17 @@ input at 0.616 ms versus 0.118 ms (5.23x). These are slower; no performance gate
 is claimed. Default byte-offset array materialization and host crossings remain
 optimization candidates.
 
+Block-parser lexical rules are now native: CR/LF line boundaries, BOM/indent
+admission, fences and metadata, ATX/setext headings, thematic breaks, list/task
+markers, quotes/alerts/footnotes, escaped pipe cells/alignment and block HTML.
+Inline/block HTML share one attribute scanner while retaining separate allowed
+tag sets and closing policies. Differential tests cover every admitted block tag,
+tab/BOM behavior, UTF-16 positions, malformed/seeded lines, escaped trailing pipes
+and numeric list starts; 500 additional long decimal starts matched JS conversion.
+All 188 native tests, 237 routed reference tests, declarations and scoped lint
+pass with no dependency changes. These are internal grammar primitives; native
+block construction, mapped indentation and frontmatter integration are next.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

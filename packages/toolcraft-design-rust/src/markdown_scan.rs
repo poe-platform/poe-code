@@ -520,7 +520,19 @@ const HTML_TAGS: &[&str] = &[
     "wbr",
 ];
 
-pub fn inline_html_end(input: &[u16], start: usize) -> Option<usize> {
+#[derive(Clone, Copy, Debug)]
+pub struct HtmlTag {
+    pub name: &'static str,
+    pub end: usize,
+    pub closing: bool,
+    pub self_closing: bool,
+}
+
+pub fn read_html_tag(
+    input: &[u16],
+    start: usize,
+    tags: &'static [&'static str],
+) -> Option<HtmlTag> {
     if input.get(start) != Some(&60) {
         return None;
     }
@@ -543,43 +555,38 @@ pub fn inline_html_end(input: &[u16], start: usize) -> Option<usize> {
         .iter()
         .map(|unit| ascii_lower(*unit))
         .collect();
-    if !HTML_TAGS
+    let name = tags
         .iter()
-        .any(|name| tag.iter().copied().eq(name.bytes().map(u16::from)))
-    {
-        return None;
-    }
+        .copied()
+        .find(|name| tag.iter().copied().eq(name.bytes().map(u16::from)))?;
     if closing {
         index = skip_html_space(input, index);
-        return (input.get(index) == Some(&62)).then_some(index + 1);
+        return (input.get(index) == Some(&62)).then_some(HtmlTag {
+            name,
+            end: index + 1,
+            closing: true,
+            self_closing: false,
+        });
     }
     while index < input.len() {
         index = skip_html_space(input, index);
         match input.get(index).copied()? {
             62 => {
-                let tag_end = index + 1;
-                for candidate in tag_end..input.len() {
-                    if input[candidate] != 60 || input.get(candidate + 1) != Some(&47) {
-                        continue;
-                    }
-                    let name_end = candidate + 2 + tag.len();
-                    if input.get(candidate + 2..name_end).is_some_and(|name| {
-                        name.iter().zip(&tag).all(|(a, b)| {
-                            // JS lowercases each UTF-16 unit: Kelvin sign folds to ASCII k.
-                            (if *a == 0x212a { 107 } else { ascii_lower(*a) }) == *b
-                        })
-                    }) {
-                        let closing_end = skip_html_space(input, name_end);
-                        if input.get(closing_end) == Some(&62) {
-                            return Some(closing_end + 1);
-                        }
-                    }
-                }
-                return Some(tag_end);
+                return Some(HtmlTag {
+                    name,
+                    end: index + 1,
+                    closing: false,
+                    self_closing: false,
+                });
             }
             47 => {
                 let end = skip_html_space(input, index + 1);
-                return (input.get(end) == Some(&62)).then_some(end + 1);
+                return (input.get(end) == Some(&62)).then_some(HtmlTag {
+                    name,
+                    end: end + 1,
+                    closing: false,
+                    self_closing: true,
+                });
             }
             unit if attribute_start(unit) => {}
             _ => return None,
@@ -617,4 +624,29 @@ pub fn inline_html_end(input: &[u16], start: usize) -> Option<usize> {
         }
     }
     None
+}
+
+pub fn inline_html_end(input: &[u16], start: usize) -> Option<usize> {
+    let tag = read_html_tag(input, start, HTML_TAGS)?;
+    if tag.closing || tag.self_closing {
+        return Some(tag.end);
+    }
+    for candidate in tag.end..input.len() {
+        if input[candidate] != 60 || input.get(candidate + 1) != Some(&47) {
+            continue;
+        }
+        let name_end = candidate + 2 + tag.name.len();
+        if input.get(candidate + 2..name_end).is_some_and(|name| {
+            name.iter().zip(tag.name.bytes()).all(|(a, b)| {
+                // JS lowercases each UTF-16 unit: Kelvin sign folds to ASCII k.
+                (if *a == 0x212a { 107 } else { ascii_lower(*a) }) == u16::from(b)
+            })
+        }) {
+            let end = skip_html_space(input, name_end);
+            if input.get(end) == Some(&62) {
+                return Some(end + 1);
+            }
+        }
+    }
+    Some(tag.end)
 }

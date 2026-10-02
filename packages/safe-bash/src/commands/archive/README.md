@@ -321,7 +321,7 @@ Adapters may themselves buffer or perform noncooperative work; tar cannot
 change their memory/cancellation semantics. Source-provided chunks may already
 exist as larger allocations before tar receives them.
 
-Resource quotas are unlimited unless explicitly supplied under `options.limits`. Each supplied quota is independent and must be a positive safe integer; `chunkSize` must be 512–1,048,576 bytes.
+Resource quotas are unlimited unless explicitly supplied under `options.limits`. Each supplied quota is independent and accepts a positive safe integer or `Infinity` to disable it. `chunkSize` remains a finite buffer size of 512–1,048,576 bytes; omitting it or passing `Infinity` uses the 64 KiB default.
 Defaults, configurable under `options.limits`:
 
 | Limit | Default | Accounting |

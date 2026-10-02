@@ -157,6 +157,7 @@ class PipeBorrowIterator implements AsyncIterableIterator<Uint8Array> {
 
   _release(): IteratorResult<Uint8Array> {
     this.done = true;
+    this._syncResult = undefined;
     if (this.pending) {
       for (const request of this.pending) {
         this._pipe._removeRead(request);
@@ -169,7 +170,12 @@ class PipeBorrowIterator implements AsyncIterableIterator<Uint8Array> {
   tryNextSync(): IteratorResult<Uint8Array> | undefined {
     if (this.done) return SYNC_DONE_RESULT;
     const pipe = this._pipe;
-    pipe._checkEndpoint(this.endpoint);
+    try { pipe._checkEndpoint(this.endpoint); }
+    catch (reason) {
+      this.done = true;
+      this._syncResult = undefined;
+      throw reason;
+    }
     if (!pipe.reads || pipe.reads.size === 0) {
       const chunk = pipe._shiftChunk();
       if (chunk) {
@@ -186,6 +192,7 @@ class PipeBorrowIterator implements AsyncIterableIterator<Uint8Array> {
       }
       if (!pipe.writerReferences) {
         this.done = true;
+        this._syncResult = undefined;
         pipe.finished = true;
         pipe._cleanup();
         return SYNC_DONE_RESULT;
@@ -205,6 +212,7 @@ class PipeBorrowIterator implements AsyncIterableIterator<Uint8Array> {
       pipe._checkEndpoint(this.endpoint);
     } catch (reason) {
       this.done = true;
+      this._syncResult = undefined;
       return Promise.reject(reason);
     }
     if (!pipe.reads || pipe.reads.size === 0) {
@@ -216,6 +224,7 @@ class PipeBorrowIterator implements AsyncIterableIterator<Uint8Array> {
       }
       if (!pipe.writerReferences) {
         this.done = true;
+        this._syncResult = undefined;
         pipe.finished = true;
         pipe._cleanup();
         return RESOLVED_DONE_RESULT;
@@ -568,6 +577,7 @@ class BytePipeImpl implements BytePipe {
         for (const request of this.reads) {
           this._removeRead(request);
           request.lease.done = true;
+          request.lease._syncResult = undefined;
           request.resolve({ done: true, value: undefined });
         }
         this._cleanup();
@@ -590,6 +600,7 @@ class BytePipeImpl implements BytePipe {
       for (const request of this.reads) {
         this._removeRead(request);
         request.lease.done = true;
+        request.lease._syncResult = undefined;
         request.reject(reason);
       }
     }
@@ -705,6 +716,7 @@ class BytePipeImpl implements BytePipe {
           if (request.lease.endpoint === endpoint) {
             this._removeRead(request);
             request.lease.done = true;
+            request.lease._syncResult = undefined;
             request.reject(this.failed ? this.failure : new FsError("EBADF", { syscall: "read" }));
           }
         }

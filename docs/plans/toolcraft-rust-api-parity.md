@@ -2305,3 +2305,41 @@ The root now re-exports the existing `createDashboard` function and its
 A missing-export test preceded the change. The direct and namespaced factory
 identities match; runtime regression cases, dashboard reference cases, bidirectional
 root types and scoped JS lint cover the correction. No runtime behavior changed.
+
+### Explorer public API checkpoint
+
+The root exports `explorer`, `runExplorer`, `singleDetail` and
+`normalizeExplorerConfig`, with the original explorer types. `explorer/index`,
+`run-explorer` and `single-detail` expose their original function/type sets and
+share function identities with the root. Rust assembles the single-detail
+configuration and item; JavaScript keeps the asynchronous item function and
+synchronous renderer closure, preserving captured row/context identities,
+function names/lengths, property descriptors and arbitrary thrown values.
+
+Missing-export cases preceded implementation. Three native differential cases
+cover namespace/direct-path identities, getters, deferred callbacks, return and
+promise identities, and failures. The original public explorer tests now use the
+native namespace. The audit also added narrow-layout, global-quit, Unicode-editing,
+detail-scroll and modal suites, and mapped state creation throughout the selected
+explorer fixtures to the native implementation. There are now 315 selected
+explorer cases. The maintained package unit route passed 384 native host tests,
+1,379 selected design cases, 13 prompt wrappers, 132 dashboard/queue cases,
+14 composer cases and the then-selected 211 explorer cases; the expanded explorer
+route and subsequent direct-path checks passed separately. Build, Rust/binding and
+scoped JS lint, bidirectional root/namespace types and packed standalone
+runtime/declarations pass. Packed imports reject external ESM dependencies and
+packed declarations compile with `types: []`. No new dependencies or defaults.
+
+Inspected a 100-column live view using the public root `runExplorer` and
+`singleDetail`; native/reference terminal output is byte-identical. Five warmed
+alternating Node 22 ARM64 rounds of 10,000 create/items/render cycles retaining
+32 results measured 3.909 µs native / 0.086 µs reference (45.58× slower).
+No performance gate passed.
+
+Every original root runtime export name is present, but seven experimental native
+root exports remain additional. This is not exact root-surface qualification.
+Concrete wildcard subpaths, demos, source/packaging checks and ten unselected
+original design suites still require auditing. Those suites are ACP components,
+templates, dashboard demo/output-preview/pipeline-scenario, explorer demo/import
+boundaries, root exports, internal helpers and subpath exports. Host-call batching,
+broader Toolcraft and final API/platform/performance qualification remain open.

@@ -980,3 +980,31 @@ const rootDashboardOptionsNative: design.DashboardOptions = null as unknown as o
 const rootDashboardInstanceOriginal: originalDesign.Dashboard = null as unknown as design.Dashboard;
 const rootDashboardInstanceNative: design.Dashboard = null as unknown as originalDesign.Dashboard;
 void [rootDashboardOriginal,rootDashboardNative,rootDashboardOptionsOriginal,rootDashboardOptionsNative,rootDashboardInstanceOriginal,rootDashboardInstanceNative];
+
+import * as explorerNamespace from "toolcraft-design-rust/explorer/index";
+import type * as originalExplorerNamespace from "toolcraft-design/explorer/index";
+const explorerNamespaceOriginal: typeof originalExplorerNamespace = explorerNamespace;
+const explorerNamespaceNative: typeof explorerNamespace = null as unknown as typeof originalExplorerNamespace;
+const explorerNamespaceKeys: SameKeys<typeof explorerNamespace,typeof originalExplorerNamespace> = true;
+type ExplorerRootExports = "explorer"|"runExplorer"|"singleDetail"|"normalizeExplorerConfig";
+const explorerRootOriginal: Pick<typeof originalDesign,ExplorerRootExports> = design;
+const explorerRootNative: Pick<typeof design,ExplorerRootExports> = null as unknown as typeof originalDesign;
+type OriginalExplorerRootTypes = [originalDesign.Row,originalDesign.DetailItem,originalDesign.Detail<number>,originalDesign.DetailCtx,originalDesign.Action<number>,originalDesign.ActionContext<number>,originalDesign.ConfirmPromptOptions,originalDesign.ExplorerConfig<number>,originalDesign.PaneConfig,originalDesign.ListPaneConfig,originalDesign.DetailPaneConfig,originalDesign.PaneRuntimeState,originalDesign.ReorderContext,originalDesign.Tone];
+type NativeExplorerRootTypes = [design.Row,design.DetailItem,design.Detail<number>,design.DetailCtx,design.Action<number>,design.ActionContext<number>,design.ConfirmPromptOptions,design.ExplorerConfig<number>,design.PaneConfig,design.ListPaneConfig,design.DetailPaneConfig,design.PaneRuntimeState,design.ReorderContext,design.Tone];
+const explorerRootTypesOriginal: OriginalExplorerRootTypes = null as unknown as NativeExplorerRootTypes;
+const explorerRootTypesNative: NativeExplorerRootTypes = null as unknown as OriginalExplorerRootTypes;
+const explorerNamespaceState: originalExplorerNamespace.ExplorerState = null as unknown as explorerNamespace.ExplorerState;
+const explorerNamespaceEvent: explorerNamespace.ExplorerEvent = null as unknown as originalExplorerNamespace.ExplorerEvent;
+void [explorerNamespaceOriginal,explorerNamespaceNative,explorerNamespaceKeys,explorerRootOriginal,explorerRootNative,explorerRootTypesOriginal,explorerRootTypesNative,explorerNamespaceState,explorerNamespaceEvent];
+
+import * as runExplorerDirect from "toolcraft-design-rust/run-explorer";
+import type * as originalRunExplorerDirect from "toolcraft-design/run-explorer";
+import * as singleDetailDirect from "toolcraft-design-rust/single-detail";
+import type * as originalSingleDetailDirect from "toolcraft-design/single-detail";
+const runExplorerDirectOriginal: typeof originalRunExplorerDirect = runExplorerDirect;
+const runExplorerDirectNative: typeof runExplorerDirect = null as unknown as typeof originalRunExplorerDirect;
+const singleDetailDirectOriginal: typeof originalSingleDetailDirect = singleDetailDirect;
+const singleDetailDirectNative: typeof singleDetailDirect = null as unknown as typeof originalSingleDetailDirect;
+const runExplorerConfigOriginal: originalRunExplorerDirect.ExplorerConfig<number> = null as unknown as runExplorerDirect.ExplorerConfig<number>;
+const singleDetailTypesOriginal: [originalSingleDetailDirect.Detail<number>,originalSingleDetailDirect.DetailCtx,originalSingleDetailDirect.DetailItem,originalSingleDetailDirect.Row] = null as unknown as [singleDetailDirect.Detail<number>,singleDetailDirect.DetailCtx,singleDetailDirect.DetailItem,singleDetailDirect.Row];
+void [runExplorerDirectOriginal,runExplorerDirectNative,singleDetailDirectOriginal,singleDetailDirectNative,runExplorerConfigOriginal,singleDetailTypesOriginal];

@@ -133,3 +133,7 @@ export type {SelectOptions, MultiselectOptions, TextOptions, ConfirmOptions, Pas
 
 export {shouldUseInteractiveDashboard} from "./dashboard-mode.js";
 export {createDashboard,type Dashboard,type DashboardOptions} from "./dashboard-runtime.js";
+
+export * as explorer from "./explorer.js";
+export {runExplorer,singleDetail,normalizeExplorerConfig} from "./explorer.js";
+export type {Row,DetailItem,Detail,DetailCtx,Action,ActionContext,ConfirmPromptOptions,ExplorerConfig,PaneConfig,ListPaneConfig,DetailPaneConfig,PaneRuntimeState,ReorderContext,Tone} from "./explorer.js";

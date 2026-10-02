@@ -523,6 +523,18 @@
     "./explorer/runtime": {
       "types": "./dist/explorer-runtime.d.ts",
       "import": "./dist/explorer-runtime.js"
+    },
+    "./explorer/index": {
+      "types": "./dist/explorer.d.ts",
+      "import": "./dist/explorer.js"
+    },
+    "./run-explorer": {
+      "types": "./dist/run-explorer.d.ts",
+      "import": "./dist/explorer-runtime.js"
+    },
+    "./single-detail": {
+      "types": "./dist/single-detail.d.ts",
+      "import": "./dist/single-detail.js"
     }
   },
   "scripts": {

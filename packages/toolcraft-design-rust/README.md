@@ -676,3 +676,20 @@ view, loads rows and previews asynchronously, and resolves when the view exits.
 Actions can refresh data, reload previews, open dialogs, show toasts and suspend
 the terminal for external work. Exit restores terminal modes and waits for pending
 actions and content before running your completion callback. A TTY is required.
+
+The root also exports `runExplorer`, `normalizeExplorerConfig`, `singleDetail`
+and the `explorer` namespace. The same explorer functions and types are available
+from `explorer/index`; direct `run-explorer` and `single-detail` imports are also
+available. Use `singleDetail((row, context) => markdown)` to turn a
+synchronous or asynchronous preview renderer into the `detail` configuration.
+
+```ts
+import {runExplorer, singleDetail} from 'toolcraft-design-rust';
+
+await runExplorer({
+  title: 'Tasks',
+  rows: async () => [{id: 'review', title: 'Review changes'}],
+  detail: singleDetail(row => `# ${row.title}`),
+  actions: []
+});
+```

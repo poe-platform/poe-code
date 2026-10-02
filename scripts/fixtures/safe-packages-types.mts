@@ -1,3 +1,4 @@
+import "./safe-packages-wget-types.mjs";
 import "./safe-packages-zip-types.mjs";
 import "./safe-packages-grep-types.mjs";
 import "./safe-packages-tar-types.mjs";

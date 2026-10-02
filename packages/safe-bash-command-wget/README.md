@@ -19,3 +19,12 @@ const authorized = createWgetCommand({
   limits: { maxDownloadBytes: 1024 * 1024 },
 });
 ```
+
+The supported download profile includes `-O` output documents, `-P` directories,
+`-i` URL lists (including stdin), redirects, retries, timeouts, `--spider`,
+`--continue`, `--no-clobber`, request headers and POST bodies. Downloads write to
+the injected filesystem; `-O -` streams to stdout. Recursive mirroring is
+unsupported. Cancellation waits for response cleanup before settling.
+
+This workspace is internal. Use the public Safe Bash exports shown above;
+consumers do not install the command or its shared network engine separately.

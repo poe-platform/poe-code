@@ -1,0 +1,10 @@
+import { Shell, createMemoryFileSystem, createWgetCommand as rootFactory } from "@poe-platform/safe-bash";
+import { createWgetCommand, createWgetCommands, wgetCommands, type WgetCommandsOptions, type WgetLimits } from "@poe-platform/safe-bash/commands/wget";
+import type { CommandDefinition, VirtualShellPlugin } from "@poe-platform/safe-bash/contracts";
+const limits: Partial<WgetLimits> = { maxDownloadBytes: 1024, maxUrls: 8, maxBufferBytes: 4096 };
+const options: WgetCommandsOptions = { limits, replace: true, authorize: () => false };
+const command: CommandDefinition = createWgetCommand(options);
+const commands: readonly CommandDefinition[] = createWgetCommands(options);
+const plugin: VirtualShellPlugin = wgetCommands(options);
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(plugin);
+void [command, commands, shell, rootFactory];

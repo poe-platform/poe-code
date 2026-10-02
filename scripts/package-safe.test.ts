@@ -672,7 +672,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
 });
 
 {
-  const privatePackages = ["safe-bash-command-sed", "safe-bash-io-engine", "safe-bash-query-engine", "safe-bash-byte-engine", "safe-bash-calendar-engine", "safe-bash-contracts", "safe-bash-command-exiftool", "safe-bash-csv-engine", "safe-bash-command-csvgrep", "safe-bash-command-csvcut", "safe-bash-command-dos2unix", "safe-bash-line-ending-engine", "safe-bash-command-mdq", "safe-bash-markdown-engine", "safe-bash-regex-engine"];
+  const privatePackages = ["safe-bash-command-wget", "safe-bash-network-engine", "safe-bash-command-sed", "safe-bash-io-engine", "safe-bash-query-engine", "safe-bash-byte-engine", "safe-bash-calendar-engine", "safe-bash-contracts", "safe-bash-command-exiftool", "safe-bash-csv-engine", "safe-bash-command-csvgrep", "safe-bash-command-csvcut", "safe-bash-command-dos2unix", "safe-bash-line-ending-engine", "safe-bash-command-mdq", "safe-bash-markdown-engine", "safe-bash-regex-engine"];
 
   // Build the package fixture separately from its consumer type and runtime checks.
     const fixture = optionalLeftovers();
@@ -680,7 +680,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     const repository = fileURLToPath(new URL("../", import.meta.url));
     const manifest = structuredClone(bashManifest);
     manifest.poeCode.integration.privateWorkspaces = {};
-    manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([route]) => [".", "./contracts/*", "./commands/exiftool", "./commands/csvgrep", "./commands/csvcut", "./commands/line-endings", "./commands/mdq", "./commands/sed"].includes(route)));
+    manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([route]) => [".", "./contracts/*", "./commands/exiftool", "./commands/csvgrep", "./commands/csvcut", "./commands/line-endings", "./commands/mdq", "./commands/sed", "./commands/wget"].includes(route)));
     volume.rmSync("/repo/packages/safe-bash/dist", { recursive: true });
     volume.mkdirSync("/repo/packages/safe-bash/dist", { recursive: true });
     for (const filename of ["index.d.ts", "core.d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/${filename}`, "export {};\n");
@@ -767,11 +767,11 @@ it.each([false, true])("admits asset-only contract owners against the full priva
       }
     }
     volume.mkdirSync("/repo/packages/safe-bash/dist/contracts", { recursive: true });
-    for (const name of ["exiftool", "csvgrep", "csvcut", "line-endings", "mdq", "sed"]) volume.mkdirSync(`/repo/packages/safe-bash/dist/commands/${name}`, { recursive: true });
+    for (const name of ["exiftool", "csvgrep", "csvcut", "line-endings", "mdq", "sed", "wget"]) volume.mkdirSync(`/repo/packages/safe-bash/dist/commands/${name}`, { recursive: true });
     for (const subpath of ["command", "value", "errors", "plugin"]) {
       for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/contracts/${subpath}.${suffix}`, `export * from "safe-bash-contracts/${subpath}";`);
     }
-    for (const name of ["exiftool", "csvgrep", "csvcut", "mdq", "sed"]) for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.${suffix}`, `export * from "safe-bash-command-${name}";`);
+    for (const name of ["exiftool", "csvgrep", "csvcut", "mdq", "sed", "wget"]) for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.${suffix}`, `export * from "safe-bash-command-${name}";`);
     for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/line-endings/index.${suffix}`, 'export * from "safe-bash-command-dos2unix";');
     volume.writeFileSync("/repo/packages/safe-bash/dist/commands/line-endings/index.browser.js", 'export * from "./index.js";');
     volume.writeFileSync("/repo/packages/safe-bash/dist/commands/mdq/index.browser.js", 'export * from "./index.js";');
@@ -838,6 +838,12 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     volume.writeFileSync("/output/sed-consumer.mts", readFileSync(new URL("./fixtures/safe-packages-sed-types.mts", import.meta.url)));
     const program = ts.createProgram(["/output/sed-consumer.mts", "/output/csvcut-consumer.mts", "/output/dos2unix-consumer.mts", "/output/mdq-consumer.mts"], compilerOptions, host);
     expect(ts.getPreEmitDiagnostics(program).map(diagnostic => `${diagnostic.file?.fileName ?? "compiler"}:${diagnostic.start ?? 0}: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")}`)).toEqual([]);
+  });
+
+  it("executes wget after removing every private workspace", async () => {
+    const consumer = await build({ stdin: { contents: readFileSync(new URL("./fixtures/safe-packages-wget.mjs", import.meta.url), "utf8"), resolveDir: "/output" },
+      bundle: true, write: false, platform: "browser", format: "esm", target: "es2022", plugins: [plugin] });
+    await import("data:text/javascript;base64," + Buffer.from(consumer.outputFiles[0]!.text).toString("base64"));
   });
 
   it("admits Shell byte argv through an isolated packed private command graph", async () => {

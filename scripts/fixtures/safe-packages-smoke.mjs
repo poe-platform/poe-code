@@ -1,3 +1,4 @@
+import "./safe-packages-wget.mjs";
 import "./safe-packages-rg.mjs";
 import "./safe-packages-zip.mjs";
 import "./safe-packages-grep.mjs";

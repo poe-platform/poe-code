@@ -8,3 +8,8 @@ until response headers (including connection setup, upload, and server delay).
 The timer stops before body streaming; caller cancellation remains active.
 Timeout raises `CurlError` with exit code 28. Omitted or zero deadlines disable
 this timer. An exact `connectTimeoutMs` request requires another transport.
+
+The internal transfer executor is shared by the curl and wget frontends. It owns
+per-hop authorization, redirects, retries, deadlines, response disposal and
+virtual output publication; each frontend supplies its argument and diagnostic
+profile. It is bundled into Safe Bash, not installed separately by consumers.

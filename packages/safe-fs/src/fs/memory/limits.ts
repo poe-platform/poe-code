@@ -22,7 +22,7 @@ export const defaultMemoryFileSystemLimits: Readonly<MemoryFileSystemLimits> = O
 });
 
 export function normalizeMemoryFileSystemLimits(options: unknown): Readonly<MemoryFileSystemLimits> {
-  if (options === undefined || (typeof options === "object" && options !== null && Object.getPrototypeOf(options) === Object.prototype && Object.keys(options).length === 0 && Object.getOwnPropertySymbols(options).length === 0)) {
+  if (options === undefined || (typeof options === "object" && options !== null && Object.getPrototypeOf(options) === Object.prototype && Reflect.ownKeys(options).length === 0)) {
     return defaultMemoryFileSystemLimits;
   }
   const keys = ["maxPathBytes", "maxPathComponents", "maxFileBytes", "maxRetainedBytes", "maxMetadataUnits"] as const;

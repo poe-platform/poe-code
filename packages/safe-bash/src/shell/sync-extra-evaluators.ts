@@ -13200,6 +13200,8 @@ const syncExtraRuntimeMethods = {
     const monitor = stateMonitor(rawState);
     const store = monitor?.store;
     if (arrayTarget !== undefined) {
+      // Inlined function steps save scalar locals only; array promotion needs normal restoration.
+      if (this._syncLoopFnCheckDepth > 0) return undefined;
       if (
         this._syncLoopFnCheckDepth > 0 ||
         argIdx !== cmd.words.length ||

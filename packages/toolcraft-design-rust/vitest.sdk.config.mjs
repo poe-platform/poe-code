@@ -9,6 +9,8 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if (importer === path("../toolcraft-design/src/terminal-markdown/parser/code-highlight.test.ts") && name === "./code-highlight.js")
+          return path("dist/code-highlight.js");
         if (importer === path("../toolcraft-design/src/static/static.test.ts")) {
           if (name === "./menu.js" || name === "./spinner.js") return path("dist/static.js");
         }
@@ -78,6 +80,7 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../toolcraft-design/src/terminal-markdown/parser/code-highlight.test.ts"),
       path("../toolcraft-design/src/escape-terminal-text.test.ts"),
       path("../toolcraft-design/src/static/static.test.ts"),
       path("../toolcraft-design/src/render-performance.test.ts"),

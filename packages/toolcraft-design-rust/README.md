@@ -338,3 +338,10 @@ header-labelled table sentences, link expansion, optional frontmatter and ordere
 footnotes. `PlaintextRenderOptions`, `MdNode` and code-token types are standalone
 root exports. This entry point accepts an AST; Markdown string parsing and
 `renderMarkdownPlaintext` are not yet available in this package.
+
+The internal Markdown code highlighter now tokenizes the supported lexical,
+data, style, line and markup languages in Rust, preserving source code units and
+supplied token arrays. It prepares the remaining renderers; it does not add a
+public highlighting API. Non-string source objects and modified built-ins remain
+outside the verified parity scope. End-to-end tokenization is currently slower
+than the JavaScript implementation, so this checkpoint is not a performance swap.

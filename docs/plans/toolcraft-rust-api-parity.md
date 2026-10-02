@@ -715,6 +715,21 @@ headings, task/ordered lists, table sentences and footnote numbering. The origin
 plaintext suite still awaits native Markdown parsing; full Markdown entry points,
 deep-recursion/resource qualification and other interactive surfaces remain open.
 
+The internal Markdown code highlighter now has a Rust UTF-16 tokenizer for all
+five families and the complete reference language/alias/keyword tables. Adjacent
+tokens coalesce as source ranges before the binding materializes JS objects.
+The adapter preserves supplied-token identity, repeated getters and lazy language
+admission. This is an internal prerequisite, not a new public export or a claim
+that HTML/Markdown parsing is complete. All 142 native tests and 237 routed
+reference tests pass, including the original highlighter suite, every alias and
+vocabulary, malformed strings, surrogate halves and seeded differential cases.
+Package and scoped JS lint pass without dependency changes. Exotic non-string
+source objects and patched string/collection intrinsics still need qualification
+before the swap. A warmed five-round median benchmark (300 calls/round, 1.85–4.1k
+UTF-16 units) measured native/reference ratios of 2.92x TS, 9.03x JSON, 7.49x YAML,
+4.63x CSS and 5.34x HTML. This is slower, not a performance integration gate pass;
+native-to-JS token materialization remains a performance concern.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

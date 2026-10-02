@@ -1,4 +1,6 @@
+mod code_highlight;
 mod plaintext;
+pub use code_highlight::*;
 pub use plaintext::*;
 mod escape_terminal;
 pub use escape_terminal::*;

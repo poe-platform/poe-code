@@ -1,6 +1,7 @@
 pub mod ansi;
 pub mod cards;
 pub mod catalog;
+pub mod code_highlight;
 pub mod color;
 pub mod command_errors;
 pub mod data;

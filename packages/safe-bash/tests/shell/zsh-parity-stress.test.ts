@@ -883,3 +883,23 @@ test("48. sync vs async parity for csvgrep -f pythonRstrip/empty lines, csvstack
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
 });
+
+
+test("49. sync vs async parity for htmlq -r multiple/self removal, shuf -r -n 0 random-source, html-to-markdown links/escaping/multi-file/repeated -, and dos2unix BOM/convmode/flags", async () => {
+  const scripts = [
+    'x=$(htmlq -r span div <<< "<div class=\"a\"><span>1</span><b>ok</b><span>2</span></div>"); y=$(htmlq -r .skip div <<< "<div class=\"skip\">a</div><div>b</div>"); echo "$x|$y"',
+    'x=$(shuf -r -n 0 --random-source=/nonexistent 2>/dev/null); echo "$?:$x"',
+    'x=$(html-to-markdown <<< "<p><a href=\"https://example.com\">click</a> and foo_bar</p>"); y=$(html-to-markdown - - <<< "<p>hello</p>"); echo "$x|$y"',
+    'mkdir -p /dir; printf "<ul><li>a</li>" > /dir/p1.html; printf "<li>b</li></ul>" > /dir/p2.html; x=$(html-to-markdown /dir/p1.html /dir/p2.html); echo "$?:$x"',
+    'x=$(printf "\xef\xbb\xbfhello\r\n" | dos2unix | wc -c); y=$(printf "\xef\xbb\xbfhello\n" | unix2dos | wc -c); z=$(dos2unix -c mac <<< "hi" 2>/dev/null; echo $?); echo "$x:$y:$z"',
+    'mkdir -p /dir; printf "hello\r\n" > /dir/in.txt; x=$(dos2unix -q -O -n /dir/in.txt /dir/out.txt); y=$(cat /dir/out.txt | wc -c); echo "$x|$y"',
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});

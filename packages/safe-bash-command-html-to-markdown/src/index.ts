@@ -91,65 +91,33 @@ let lastHtmlMdInput: string | undefined;
 let lastHtmlMdOutput: string | undefined;
 
 function decodeHtmlEntitiesSync(s: string): string | undefined {
-  if (!s.includes("&")) return s;
-  const decoded = s
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, "\"")
-    .replace(/&#39;|&apos;/g, "'");
-  if (decoded.includes("&") && /&[a-zA-Z0-9#]+;/.test(decoded)) return undefined;
-  return decoded;
+  if (s.includes("&")) return undefined;
+  return s;
 }
 
 function convertSimpleInlineHtmlSync(html: string): string | undefined {
+  if (html.includes("&")) return undefined;
   let out = html.replace(/<br\s*\/?>/gi, "\n");
-  out = out.replace(/<img\s+[^>]*src="([^"\s<>]+)"[^>]*alt="([^"<>]*)"[^>]*\/?>/gi, "![$2]($1)");
-  out = out.replace(/<img\s+[^>]*alt="([^"<>]*)"[^>]*src="([^"\s<>]+)"[^>]*\/?>/gi, "![$1]($2)");
-  out = out.replace(/<(strong|b)>([^<>]+)<\/\1>/g, "**$2**");
-  out = out.replace(/<(em|i)>([^<>]+)<\/\1>/g, "*$2*");
-  out = out.replace(/<(del|s)>([^<>]+)<\/\1>/g, "~~$2~~");
-  out = out.replace(/<code>([^<>\x60]+)<\/code>/g, "`$1`");
-  out = out.replace(/<a\s+href="([^"\s<>]+)">([^<>\][]+)<\/a>/g, "[$2]($1)");
+  out = out.replace(/<img\s+[^>]*src="(https?:\/\/[a-zA-Z0-9._~:\/?#@!$&*+,;=%-]+)"[^>]*alt="([a-zA-Z0-9 ,:;\/?\"]*)?"[^>]*\/?>/gi, "![$2](<$1>)");
+  out = out.replace(/<img\s+[^>]*alt="([a-zA-Z0-9 ,:;\/?\"]*)?"[^>]*src="(https?:\/\/[a-zA-Z0-9._~:\/?#@!$&*+,;=%-]+)"[^>]*\/?>/gi, "![$1](<$2>)");
+  out = out.replace(/<(strong|b)>([a-zA-Z0-9 ,:;\/?\"]+)<\/\1>/g, "**$2**");
+  out = out.replace(/<(em|i)>([a-zA-Z0-9 ,:;\/?\"]+)<\/\1>/g, "*$2*");
+  out = out.replace(/<(del|s)>([a-zA-Z0-9 ,:;\/?\"]+)<\/\1>/g, "~~$2~~");
+  out = out.replace(/<code>([a-zA-Z0-9 ,:;\/?\"]+)<\/code>/g, "`$1`");
+  out = out.replace(/<a\s+href="(https?:\/\/[a-zA-Z0-9._~:\/?#@!$&*+,;=%-]+)">([a-zA-Z0-9 ,:;\/?\"]+)<\/a>/g, "[$2](<$1>)");
   if (out.includes("<") || out.includes(">")) return undefined;
-  const dec = decodeHtmlEntitiesSync(out);
-  if (dec === undefined) return undefined;
-  return dec.split("\n").map(line => line.replace(/[ \t\r]+/g, " ").trim()).join("\n").trim();
+  const plainCheck = out
+    .replace(/!\[[^\]]*\]\(<https?:\/\/[^>]+>\)/g, "x")
+    .replace(/\[[^\]]*\]\(<https?:\/\/[^>]+>\)/g, "x")
+    .replace(/\*\*[^*]+\*\*/g, "x")
+    .replace(/\*[^*]+\*/g, "x")
+    .replace(/~~[^~]+~~/g, "x")
+    .replace(/`[^`]+`/g, "x");
+  if (/[\\`*_{}[\]<>!|#+\-&~=.)\x00-\x1f\x7f-\x9f]/u.test(plainCheck)) return undefined;
+  return out.split("\n").map(line => line.replace(/[ \t\r]+/g, " ").trim()).join("\n").trim();
 }
 
-export function evalSyncHtmlToMarkdown(
-  inBytes: Uint8Array,
-  opArgs: readonly string[],
-  readFileSync?: (filePath: string) => Uint8Array | undefined,
-): string | undefined {
-  if (inBytes.byteLength > 8192 || opArgs.length > 6) return undefined;
-  let ended = false;
-  const files: string[] = [];
-  for (const a of opArgs) {
-    if (!ended && a === "--") { ended = true; continue; }
-    if (!ended && a.startsWith("-") && a !== "-") return undefined;
-    files.push(a);
-  }
-  const chunks: Uint8Array[] = [];
-  if (files.length === 0) {
-    chunks.push(inBytes);
-  } else {
-    for (const f of files) {
-      if (f === "-") chunks.push(inBytes);
-      else {
-        if (!readFileSync) return undefined;
-        const fBytes = readFileSync(f);
-        if (!fBytes || fBytes.byteLength > 8192) return undefined;
-        chunks.push(fBytes);
-      }
-    }
-  }
-  let html = "";
-  try {
-    for (const c of chunks) html += syncHtmlMdDecoder.decode(c);
-  } catch {
-    return undefined;
-  }
+function renderSingleHtmlDocumentSync(html: string): string | undefined {
   if (html === lastHtmlMdInput && lastHtmlMdOutput !== undefined) {
     return lastHtmlMdOutput;
   }
@@ -169,16 +137,17 @@ export function evalSyncHtmlToMarkdown(
       const inner = convertSimpleInlineHtmlSync(m[2]!);
       if (inner === undefined) return undefined;
       if (tag.startsWith("h")) {
+        if (!inner) return undefined;
         const lvl = Number(tag.slice(1));
-        blocks.push("#".repeat(lvl) + (inner ? " " + inner : ""));
+        blocks.push("#".repeat(lvl) + " " + inner);
       } else if (tag === "blockquote") {
         blocks.push(inner.split("\n").map(l => (l ? "> " + l : ">")).join("\n"));
       } else {
         if (inner) blocks.push(inner);
       }
     } else if (m[3] !== undefined) {
-      const codeDec = decodeHtmlEntitiesSync(m[3].replace(/^\n|\n$/g, ""));
-      if (codeDec === undefined) return undefined;
+      if (m[3].includes("&") || m[3].includes("`")) return undefined;
+      const codeDec = m[3].replace(/^\n|\n$/g, "");
       blocks.push("```\n" + codeDec + "\n```");
     } else if (m[4] !== undefined || m[5] !== undefined) {
       const ordered = m[5] !== undefined;
@@ -205,6 +174,51 @@ export function evalSyncHtmlToMarkdown(
   lastHtmlMdInput = html;
   lastHtmlMdOutput = result;
   return result;
+}
+
+export function evalSyncHtmlToMarkdown(
+  inBytes: Uint8Array,
+  opArgs: readonly string[],
+  readFileSync?: (filePath: string) => Uint8Array | undefined,
+): string | undefined {
+  if (inBytes.byteLength > 8192 || opArgs.length > 6) return undefined;
+  let ended = false;
+  const files: string[] = [];
+  for (const a of opArgs) {
+    if (!ended && a === "--") { ended = true; continue; }
+    if (!ended && a.startsWith("-") && a !== "-") return undefined;
+    files.push(a);
+  }
+  const chunks: Uint8Array[] = [];
+  let stdinUsed = false;
+  if (files.length === 0) {
+    chunks.push(inBytes);
+  } else {
+    for (const f of files) {
+      if (f === "-") {
+        chunks.push(stdinUsed ? new Uint8Array(0) : inBytes);
+        stdinUsed = true;
+      } else {
+        if (!readFileSync) return undefined;
+        const fBytes = readFileSync(f);
+        if (!fBytes || fBytes.byteLength > 8192) return undefined;
+        chunks.push(fBytes);
+      }
+    }
+  }
+  const outputs: string[] = [];
+  for (const c of chunks) {
+    let html: string;
+    try {
+      html = syncHtmlMdDecoder.decode(c);
+    } catch {
+      return undefined;
+    }
+    const md = renderSingleHtmlDocumentSync(html);
+    if (md === undefined) return undefined;
+    if (md) outputs.push(md);
+  }
+  return outputs.join("\n");
 }
 
 export { evalSyncShuf } from "safe-bash-command-shuf";

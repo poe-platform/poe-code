@@ -66,13 +66,18 @@ export function evalSyncHtmlq(
         removal = "";
       }
     }
+    const nodes = removal ? [...selected] : selected;
     let out = "";
     let selectedIndex = 0;
-    for (const node of selected) {
+    for (const node of nodes) {
       const isFirstNode = selectedIndex++ === 0;
       if (removal) {
-        const first = selectHtml(node, removal, invocation).next().value;
-        if (first) detachHtmlNode(first, invocation);
+        let ancestor = getInternalHtmlNode(node);
+        while (ancestor?.parent) ancestor = ancestor.parent;
+        if (ancestor !== getInternalHtmlNode(document)) continue;
+        const matches = [...selectHtml(node, removal, invocation)];
+        for (const match of matches) detachHtmlNode(match, invocation);
+        if (matches.includes(node)) continue;
       }
       if (base && node.namespace === "html" && ["a", "area", "link"].includes(node.name)) {
         const href = node.attributes.find(a => a.namespace === "none" && a.name === "href")?.value;

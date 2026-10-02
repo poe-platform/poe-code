@@ -12,7 +12,7 @@ export function evalSyncLineEndings(
   let addEol = false;
   let newline = false;
   let convMode: "ascii" | "mac" = "ascii";
-  let bomMode: "keep" | "remove" | "add" = "keep";
+  let bomMode: "keep" | "remove" | "add" = cmdName === "unix2dos" ? "keep" : "remove";
   let endOfOptions = false;
   const files: string[] = [];
   for (let i = 0; i < opArgs.length; i++) {
@@ -21,8 +21,9 @@ export function evalSyncLineEndings(
     if (!endOfOptions && a.startsWith("--") && a.length > 2) {
       if (a === "--quiet") { quiet = true; continue; }
       if (a === "--force") { force = true; continue; }
-      if (a === "--to-stdout") { toStdout = true; continue; }
-      if (a === "--newfile") { newFileMode = true; continue; }
+      if (a === "--to-stdout") { toStdout = true; newFileMode = false; continue; }
+      if (a === "--newfile") { newFileMode = true; toStdout = false; continue; }
+      if (a === "--oldfile") { newFileMode = false; toStdout = false; continue; }
       if (a === "--add-eol") { addEol = true; continue; }
       if (a === "--no-add-eol") { addEol = false; continue; }
       if (a === "--newline") { newline = true; continue; }
@@ -32,8 +33,7 @@ export function evalSyncLineEndings(
       if (a === "--keep-bom") { bomMode = "keep"; continue; }
       if (a === "--convmode" || a.startsWith("--convmode=")) {
         const v = a.startsWith("--convmode=") ? a.slice(11) : opArgs[++i];
-        if (v === "mac") { convMode = "mac"; continue; }
-        if (v === "ascii") { convMode = "ascii"; continue; }
+        if (v && v.toLowerCase() === "ascii") { convMode = "ascii"; continue; }
         return undefined;
       }
       return undefined;
@@ -43,8 +43,9 @@ export function evalSyncLineEndings(
         const ch = a[j]!;
         if (ch === "q") quiet = true;
         else if (ch === "f") force = true;
-        else if (ch === "O") toStdout = true;
-        else if (ch === "n") newFileMode = true;
+        else if (ch === "O") { toStdout = true; newFileMode = false; }
+        else if (ch === "n") { newFileMode = true; toStdout = false; }
+        else if (ch === "o") { newFileMode = false; toStdout = false; }
         else if (ch === "e") addEol = true;
         else if (ch === "E") addEol = false;
         else if (ch === "l") newline = true;
@@ -54,8 +55,7 @@ export function evalSyncLineEndings(
         else if (ch === "b") bomMode = "keep";
         else if (ch === "c") {
           const v = j + 1 < a.length ? a.slice(j + 1) : opArgs[++i];
-          if (v === "mac") convMode = "mac";
-          else if (v === "ascii") convMode = "ascii";
+          if (v && v.toLowerCase() === "ascii") convMode = "ascii";
           else return undefined;
           break;
         }
@@ -83,7 +83,7 @@ export function evalSyncLineEndings(
         ...(addEol ? ["-e"] : []),
         ...(newline ? ["-l"] : []),
         ...(convMode === "mac" ? ["-c", "mac"] : []),
-        ...(bomMode === "remove" ? ["-r"] : bomMode === "add" ? ["-m"] : []),
+        ...(bomMode === "remove" ? ["-r"] : bomMode === "add" ? ["-m"] : ["-b"]),
       ];
       const converted = evalSyncLineEndings(cmdName, b, subArgs);
       if (!converted || !writeFileSync(outPath, converted)) return undefined;

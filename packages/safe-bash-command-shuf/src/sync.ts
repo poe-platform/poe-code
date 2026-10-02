@@ -78,6 +78,7 @@ export function evalSyncShuf(
   let lines: string[] = [];
   let size = 0;
   if (count === 0) {
+    if (repeat || randomFile !== undefined) return undefined;
     return "";
   }
   if (echo) {

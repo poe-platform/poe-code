@@ -428,6 +428,11 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         return result;
       }
       if (operation.operation === 'embed') {
+        for (const name of Object.keys(payload)) {
+          if (!['inputs','model','options','key','timeout','max_response_bytes','cwd','configuration_env'].includes(name)) {
+            throw new TypeError(`Unsupported embedding field: ${name}`);
+          }
+        }
         const prepared = await prepare(payload,signal);
         const result = await service.embed({model:prepared.model!,inputs:payload.inputs as readonly string[],options:prepared.options,signal:prepared.signal,...(prepared.key === undefined ? {} : {key:prepared.key})});
         prepared.signal.throwIfAborted();

@@ -617,3 +617,34 @@ test('reference defaults use canonical named files without exposing other config
   assert.deepEqual(await capability.call!({operation:'default_model',payload:{...base,action:'set',model:null}},{signal}),{missing:true});
   await assert.rejects(capability.call!({operation:'default_model',payload:{...base,action:'get',filename:'keys.json'}},{signal}),/default filename/);
 });
+
+test('embedding requests reject completion-only fields before acquiring attachment leases or invoking providers', async () => {
+  const {fs,service} = await fixture();
+  let opened = 0, embedded = 0;
+  const trackedFs = new Proxy(fs, {get(target, property) {
+    if (property === 'openReadFile') return async (...args:Parameters<NonNullable<typeof fs.openReadFile>>) => {
+      opened++;
+      return target.openReadFile!(...args);
+    };
+    const value = Reflect.get(target, property, target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const trackedService = {...service, async embed(request:Parameters<typeof service.embed>[0]) {
+    embedded++;
+    return service.embed(request);
+  }};
+  const capability = createPythonLlmCapability({fs:trackedFs,cwd:'/work'}, trackedService);
+  for (const extra of [
+    {attachments:[{path:'note.txt'}]}, {template:'missing'}, {prompt:'ignored'},
+    {system:'ignored'}, {messages:[]}, {schema:{}}, {parameters:{}},
+    {stream:true}, {extract:true}, {extract_last:true}, {conversation:'ignored'},
+  ]) {
+    await assert.rejects(capability.call!({operation:'embed',payload:{inputs:['text'],...extra}},{signal}),
+      /Unsupported embedding field/);
+  }
+  assert.equal(opened,0);
+  assert.equal(embedded,0);
+  assert.deepEqual(await capability.call!({operation:'embed',payload:{inputs:['text'],model:'alias',options:{count:2}}},{signal}),
+    {model:'model',vectors:[[1,2]],usage:{input:1}});
+  assert.equal(embedded,1);
+});

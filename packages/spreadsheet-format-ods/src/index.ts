@@ -1,6 +1,13 @@
 import type { FormatProvider } from "@poe-code/spreadsheet-engine/codecs/types";
-import { readOdf, probeOdf, createOdfWriter } from "./odf.js";
-import { odfEncryptionProfiles } from "./odf-encrypted-write.js";
+
+const odfEncryptionValues = [
+  "odf12-aes128-cbc",
+  "odf12-aes192-cbc",
+  "odf12-aes256-cbc",
+  "odf12-blowfish-cfb8",
+  "odf12-blowfish-cfb64",
+  "libreoffice-aes256-gcm"
+];
 
 export const odsFormat: FormatProvider = {
   "id": "Gnumeric_OpenCalc",
@@ -8,8 +15,8 @@ export const odsFormat: FormatProvider = {
     {
       "id": "openoffice",
       "direction": "read",
-      read: readOdf,
-      probeContent: probeOdf,
+      read: async (bytes, context) => (await import("./odf.js")).readOdf(bytes, context),
+      probeContent: async (...args) => (await import("./odf.js")).probeOdf(...args),
       "description": "Open Document Format (*.sxc, *.ods)",
       "extensions": [
         "ods",
@@ -29,9 +36,9 @@ export const odsFormat: FormatProvider = {
     {
       "id": "openoffice",
       "direction": "write",
-      write: createOdfWriter("strict"),
+      write: async (book, options, context) => (await import("./odf.js")).createOdfWriter("strict")(book, options, context),
       labelRanges: true,
-      exportOptionRules: { encryption: { kind: "enum", values: [...odfEncryptionProfiles.keys()] } },
+      exportOptionRules: { encryption: { kind: "enum", values: odfEncryptionValues } },
       "description": "ODF 1.2 strict conformance (*.ods)",
       "extensions": [
         "ods"
@@ -44,9 +51,9 @@ export const odsFormat: FormatProvider = {
     {
       "id": "odf",
       "direction": "write",
-      write: createOdfWriter("extended"),
+      write: async (book, options, context) => (await import("./odf.js")).createOdfWriter("extended")(book, options, context),
       labelRanges: true,
-      exportOptionRules: { encryption: { kind: "enum", values: [...odfEncryptionProfiles.keys()] } },
+      exportOptionRules: { encryption: { kind: "enum", values: odfEncryptionValues } },
       "description": "ODF 1.2 extended conformance (*.ods)",
       "extensions": [
         "ods"

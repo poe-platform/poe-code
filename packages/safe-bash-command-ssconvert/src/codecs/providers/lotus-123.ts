@@ -1,5 +1,4 @@
 import type { FormatProvider } from "../types.js";
-import { probeLotus, readLotus } from "../lotus.js";
 
 export default {
   "id": "Gnumeric_lotus",
@@ -7,8 +6,8 @@ export default {
     {
       "id": "lotus",
       "direction": "read",
-      probeContent: probeLotus,
-      read: readLotus,
+      probeContent: async (...args) => (await import("../lotus.js")).probeLotus(...args),
+      read: async (bytes, context) => (await import("../lotus.js")).readLotus(bytes, context),
       "description": "Lotus 123 (*.wk1, *.wks, *.123)",
       "extensions": [
         "wk1",

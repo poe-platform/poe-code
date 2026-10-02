@@ -17,7 +17,7 @@ const recipe = {
   conditions: ["browser"],
   target: "es2022",
   format: "esm",
-  external: ["@poe-code/safe-fs", "@poe-code/safe-fs/*", "poe-code/safe-fs", "@poe-code/pdf", "@poe-code/pdf/*", "@poe-code/pdf-ast", "@poe-code/pdf-ast/*", "pdf-lib", "@pdf-lib/fontkit", "@poe-code/image-ast", "@poe-code/image-ast/*", "@poe-code/office-package", "@poe-code/office-package/*", "@poe-code/spreadsheet-engine", "@poe-code/spreadsheet-engine/*", "@poe-code/spreadsheet-ast", "@poe-code/xlsx-ast", "@poe-code/xlsx-ast/*", ...Object.keys(manifest.devDependencies ?? {})],
+  external: ["@poe-code/safe-fs", "@poe-code/safe-fs/*", "poe-code/safe-fs", "@poe-code/pdf", "@poe-code/pdf/*", "safe-bash-pdf-engine", "safe-bash-pdf-engine/*", "@poe-code/spreadsheet-ast/*", "@poe-code/pdf-ast", "@poe-code/pdf-ast/*", "pdf-lib", "@pdf-lib/fontkit", "@poe-code/image-ast", "@poe-code/image-ast/*", "@poe-code/office-package", "@poe-code/office-package/*", "@poe-code/spreadsheet-engine", "@poe-code/spreadsheet-engine/*", "@poe-code/spreadsheet-ast", "@poe-code/xlsx-ast", "@poe-code/xlsx-ast/*", ...Object.keys(manifest.devDependencies ?? {})],
   sourcemap: true
 };
 // A lazy self-import shares the entry namespace with split chunks. Make its

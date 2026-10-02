@@ -1,5 +1,4 @@
 import type { FormatProvider } from "@poe-code/spreadsheet-engine/codecs/types";
-import { createHtmlWriter, probeHtml, readHtml } from "./html.js";
 
 export const htmlFormat: FormatProvider = {
   id: "Gnumeric_html",
@@ -8,8 +7,8 @@ export const htmlFormat: FormatProvider = {
     {
       "id": "html",
       "direction": "read",
-      read: readHtml,
-      probeContent: probeHtml,
+      read: async (bytes, context) => (await import("./html.js")).readHtml(bytes, context),
+      probeContent: async (...args) => (await import("./html.js")).probeHtml(...args),
       "description": "HTML (*.html, *.htm)",
       "extensions": [
         "html",
@@ -20,7 +19,7 @@ export const htmlFormat: FormatProvider = {
     },
     {
       "id": "html32",
-      write: createHtmlWriter({ header: "HTML32", legacy: true, fontColor: true }),
+      write: async (...args) => (await import("./html.js")).createHtmlWriter({ header: "HTML32", legacy: true, fontColor: true })(...args),
       "direction": "write",
       "description": "HTML 3.2 (*.html)",
       "extensions": [
@@ -30,7 +29,7 @@ export const htmlFormat: FormatProvider = {
     },
     {
       "id": "html40",
-      write: createHtmlWriter({ header: "HTML40" }),
+      write: async (...args) => (await import("./html.js")).createHtmlWriter({ header: "HTML40" })(...args),
       "direction": "write",
       "description": "HTML 4.0 (*.html)",
       "extensions": [
@@ -40,7 +39,7 @@ export const htmlFormat: FormatProvider = {
     },
     {
       "id": "html40frag",
-      write: createHtmlWriter({ header: "fragment", fontColor: true, backgroundAttribute: true }),
+      write: async (...args) => (await import("./html.js")).createHtmlWriter({ header: "fragment", fontColor: true, backgroundAttribute: true })(...args),
       "direction": "write",
       "description": "HTML (*.html) fragment",
       "extensions": [
@@ -50,7 +49,7 @@ export const htmlFormat: FormatProvider = {
     },
     {
       "id": "xhtml",
-      write: createHtmlWriter({ header: "XHTML", fontColor: true, backgroundAttribute: true }),
+      write: async (...args) => (await import("./html.js")).createHtmlWriter({ header: "XHTML", fontColor: true, backgroundAttribute: true })(...args),
       "direction": "write",
       "description": "XHTML (*.html)",
       "extensions": [
@@ -60,7 +59,7 @@ export const htmlFormat: FormatProvider = {
     },
     {
       "id": "xhtml_range",
-      write: createHtmlWriter({ header: "XHTML", fontColor: true, backgroundAttribute: true, rangeScope: true }),
+      write: async (...args) => (await import("./html.js")).createHtmlWriter({ header: "XHTML", fontColor: true, backgroundAttribute: true, rangeScope: true })(...args),
       "direction": "write",
       "description": "XHTML range - for export to clipboard",
       "extensions": [

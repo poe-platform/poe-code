@@ -1,16 +1,25 @@
 import type { FormatProvider } from "@poe-code/spreadsheet-engine/codecs/types";
-import { probeBiff, readBiff, createBiffWriter } from "./biff.js";
-import { biffEncryptionProfiles, biffLegacyEncryptionOptions } from "./biff-encrypted-write.js";
+
+const biffEncryptionValues = [
+  "xor",
+  "rc4",
+  ...[false, true].flatMap(encryptedProperties =>
+    [40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128].map(
+      bits => `rc4-cryptoapi-${bits}${encryptedProperties ? "-properties" : ""}`
+    )
+  )
+];
+const biffLegacyEncryptionOptions = ["xor"];
 
 export const xlsFormat: FormatProvider = {
   id: "Gnumeric_Excel",
   source: "plugins/excel/plugin.xml.in",
   services: [
-{
+    {
       "id": "excel",
       "direction": "read",
-      read: readBiff,
-      probeContent: probeBiff,
+      read: async (...args) => (await import("./biff.js")).readBiff(...args),
+      probeContent: async (...args) => (await import("./biff.js")).probeBiff(...args),
       "description": "MS Excel™ (*.xls)",
       "extensions": [
         "xls",
@@ -32,11 +41,11 @@ export const xlsFormat: FormatProvider = {
       "probePriority": 100,
       "contentProbe": true
     },
-{
+    {
       "id": "excel_biff8",
-      write: createBiffWriter(8),
+      write: async (...args) => (await import("./biff.js")).createBiffWriter(8)(...args),
       labelRanges: true,
-      exportOptionRules: { encryption: { kind: "enum", values: [...biffEncryptionProfiles.keys()] } },
+      exportOptionRules: { encryption: { kind: "enum", values: biffEncryptionValues } },
       "direction": "write",
       "description": "MS Excel™ 97/2000/XP",
       "extensions": [
@@ -48,9 +57,9 @@ export const xlsFormat: FormatProvider = {
       "formatLevel": "auto",
       "defaultSaverPriority": 1
     },
-{
+    {
       "id": "excel_biff7",
-      write: createBiffWriter(7),
+      write: async (...args) => (await import("./biff.js")).createBiffWriter(7)(...args),
       labelRanges: true,
       exportOptionRules: { encryption: { kind: "enum", values: biffLegacyEncryptionOptions } },
       "direction": "write",
@@ -63,9 +72,9 @@ export const xlsFormat: FormatProvider = {
       ],
       "formatLevel": "auto"
     },
-{
+    {
       "id": "excel_dsf",
-      write: createBiffWriter("dsf"),
+      write: async (...args) => (await import("./biff.js")).createBiffWriter("dsf")(...args),
       labelRanges: true,
       exportOptionRules: { encryption: { kind: "enum", values: biffLegacyEncryptionOptions } },
       "direction": "write",
@@ -78,10 +87,10 @@ export const xlsFormat: FormatProvider = {
       ],
       "formatLevel": "auto"
     },
-{
+    {
       "id": "excel_enc",
       "direction": "read",
-      read: readBiff,
+      read: async (...args) => (await import("./biff.js")).readBiff(...args),
       "description": "MS Excel™ (*.xls) requiring encoding specification",
       "extensions": [],
       "probePriority": 200,

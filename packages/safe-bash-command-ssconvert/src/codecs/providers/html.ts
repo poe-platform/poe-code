@@ -1,5 +1,3 @@
-import { createLatexWriter } from "../latex.js";
-import { writeRoff } from "../roff.js";
 import type { FormatProvider } from "../types.js";
 import { htmlFormat } from "../../formats/html.js";
 
@@ -9,7 +7,7 @@ export default {
     ...htmlFormat.services,
     {
       "id": "latex",
-      write: createLatexWriter({}),
+      write: async (...args) => (await import("../latex.js")).createLatexWriter({})(...args),
       "direction": "write",
       "description": "LaTeX 2e (*.tex)",
       "extensions": [
@@ -22,7 +20,7 @@ export default {
     },
     {
       "id": "latex_table",
-      write: createLatexWriter({ fragment: true }),
+      write: async (...args) => (await import("../latex.js")).createLatexWriter({ fragment: true })(...args),
       "direction": "write",
       "description": "LaTeX 2e (*.tex) table fragment",
       "extensions": [
@@ -35,7 +33,7 @@ export default {
     },
     {
       "id": "latex_table_visible",
-      write: createLatexWriter({ fragment: true, visibleRows: true }),
+      write: async (...args) => (await import("../latex.js")).createLatexWriter({ fragment: true, visibleRows: true })(...args),
       "direction": "write",
       "description": "LaTeX 2e (*.tex) table fragment of visible rows",
       "extensions": [
@@ -48,7 +46,7 @@ export default {
     },
     {
       "id": "roff",
-      write: writeRoff,
+      write: async (...args) => (await import("../roff.js")).writeRoff(...args),
       "direction": "write",
       "description": "TROFF (*.me)",
       "extensions": [

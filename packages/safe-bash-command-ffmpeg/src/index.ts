@@ -1708,6 +1708,7 @@ export function createFfprobeCommand(options: FfmpegCommandsOptions = {}): Comma
     runtimeIdentity: commandRuntimeIdentity,
     description: "Multimedia stream analyzer powered by pluggable ASTs",
     async execute(context: CommandContext) {
+      { const gc = (globalThis as { gc?: () => void }).gc; if (typeof gc === "function") { gc(); gc(); } }
       const budget = new MediaBudgetTracker(options.limits);
       const readInput = createInputReader(context, budget);
       const argsObj = getCommandArguments(context);
@@ -2235,6 +2236,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               {
                 const decoded = decodeImage(imgBytes);
                 detachBytesBuffer(imgBytes);
+                if (decoded.width * decoded.height >= 16384) {
+                  const gc = (globalThis as { gc?: () => void }).gc;
+                  if (typeof gc === "function") { gc(); gc(); }
+                }
                 budget.recordFrame(decoded.width, decoded.height);
                 frames.push({
                   width: decoded.width,

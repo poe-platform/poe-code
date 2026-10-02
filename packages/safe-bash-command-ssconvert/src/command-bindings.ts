@@ -6,7 +6,7 @@ import { createVfsOutput } from "./io/publication.js";
 import { resolveVfsCwd } from "./io/cwd.js";
 import { runCommand } from "./cli.js";
 import type { Engine, EngineConfig, EngineOptions } from "./contracts.js";
-import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
+import { retainFileSystemCleanup, resolvePath, tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import {
   createOutputOperation,
   getCommandArguments,
@@ -32,7 +32,7 @@ export interface SsconvertCommandBindings {
 
 /** Bind one shell implementation to either explicit formats or the compatibility composition. */
 export function createCommandBindings(
-  createEngine: (options: EngineOptions) => Engine,
+  createEngine: (options: EngineOptions) => Engine | Promise<Engine>,
   compatibilityDefaults = false,
   synchronousEvaluator?: SyncCommandEvaluators["evalSyncSsconvert"]
 ): SsconvertCommandBindings {
@@ -103,10 +103,60 @@ export function createCommandBindings(
             }), () => {});
         }, cleanup => retainFileSystemCleanup(context.fs,
           view => cleanup(path => view.rm(path)), { maxOperations: 1 }));
-        let engine: ReturnType<typeof createEngine> | undefined;
+        let engine: Engine | undefined;
         try {
+          const maximumArguments = binding.limits.argumentBytes ?? Infinity;
+          const values = context.argumentValues?.values ?? context.args;
+          let argumentBytes = 0;
+          let refusal: string | undefined;
+          if (values.length > maximumArguments) refusal = "ssconvert arguments limit exceeded";
+          for (const value of values) {
+            if (refusal) break;
+            if (typeof value === "string" && value.length > maximumArguments - argumentBytes) {
+              refusal = "ssconvert argument bytes limit exceeded";
+              break;
+            }
+            argumentBytes += shellValueByteLength(value);
+            if (argumentBytes > maximumArguments) refusal = "ssconvert argument bytes limit exceeded";
+          }
+          if (refusal) {
+            await standardError.write(new TextEncoder().encode(`${refusal}\n`));
+            owner.signal.throwIfAborted();
+            return { exitCode: 1 };
+          }
           const cwd = await owner.acquire(() => resolveVfsCwd(context.cwd, context.env.PWD, context.fs, owner.signal), () => {});
-          engine = createEngine({
+          if (synchronousEvaluator && builtInDirectContextExecutors.has(command.execute)) {
+            let pendingWrite: { path: string; bytes: Uint8Array } | undefined;
+            const syncOut = synchronousEvaluator(
+              command.execute,
+              context.args,
+              undefined,
+              (filePath) => {
+                const resolved = resolvePath(cwd, filePath);
+                const view = tryReadMemoryFileViewSync(context.fs, resolved, inputBytes === Infinity ? undefined : inputBytes, owner.signal);
+                if (view) context.inputBudget?.check(view.byteLength);
+                return view;
+              },
+              (filePath, bytes) => {
+                pendingWrite = { path: resolvePath(cwd, filePath), bytes };
+                return true;
+              }
+            );
+            if (syncOut !== undefined) {
+              if (pendingWrite) {
+                const { path: dstPath, bytes: dstBytes } = pendingWrite;
+                await owner.acquire(
+                  () => writeFileOutput(context, dstBytes, (data) => context.fs.writeFile(dstPath, data, { signal: owner.signal })),
+                  () => {}
+                );
+              }
+              if (syncOut.length > 0) {
+                await standardOutput.write(new TextEncoder().encode(syncOut));
+              }
+              return { exitCode: 0 };
+            }
+          }
+          engine = await createEngine({
             ...binding,
             environment: {
               ...binding.environment,
@@ -165,25 +215,6 @@ export function createCommandBindings(
               }
             })
           });
-          const maximumArguments = binding.limits.argumentBytes ?? Infinity;
-          const values = context.argumentValues?.values ?? context.args;
-          let argumentBytes = 0;
-          let refusal: string | undefined;
-          if (values.length > maximumArguments) refusal = "ssconvert arguments limit exceeded";
-          for (const value of values) {
-            if (refusal) break;
-            if (typeof value === "string" && value.length > maximumArguments - argumentBytes) {
-              refusal = "ssconvert argument bytes limit exceeded";
-              break;
-            }
-            argumentBytes += shellValueByteLength(value);
-            if (argumentBytes > maximumArguments) refusal = "ssconvert argument bytes limit exceeded";
-          }
-          if (refusal) {
-            await standardError.write(new TextEncoder().encode(`${refusal}\n`));
-            owner.signal.throwIfAborted();
-            return { exitCode: 1 };
-          }
           const carrier = getCommandArguments(context);
           return await runCommand(
             carrier.args.map((_, index) => carrier.bytes(index)!),

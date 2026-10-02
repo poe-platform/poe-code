@@ -44,10 +44,37 @@ function decode(hex: string): Uint8Array {
 
 interface GitCommandMeta { readonly limits: GitLimits; readonly hasHttp: boolean; readonly wasmModule?: object | undefined }
 const gitCommandMeta = new WeakMap<CommandDefinition["execute"], GitCommandMeta>();
+let cachedDefaultGitExports: GitExports | undefined;
+let defaultGitExportsBusy = false;
+const MAX_REUSABLE_GIT_WASM_MEMORY_BYTES = 8 * 1024 * 1024;
+
 function createDefaultGitExports(): GitExports {
   const module = gitModule();
   const wasm = (globalThis as unknown as { WebAssembly: { Instance: new (module: object) => { exports: GitExports } } }).WebAssembly;
   return new wasm.Instance(module).exports;
+}
+
+function acquireDefaultGitExports(): { exports: GitExports; release(failed?: boolean): void } {
+  if (!defaultGitExportsBusy) {
+    defaultGitExportsBusy = true;
+    const exports = cachedDefaultGitExports ?? (cachedDefaultGitExports = createDefaultGitExports());
+    return {
+      exports,
+      release(failed = false) {
+        if (failed || exports.memory.buffer.byteLength > MAX_REUSABLE_GIT_WASM_MEMORY_BYTES) {
+          if (cachedDefaultGitExports === exports) {
+            cachedDefaultGitExports = undefined;
+          }
+        }
+        defaultGitExportsBusy = false;
+      },
+    };
+  }
+  const exports = createDefaultGitExports();
+  return {
+    exports,
+    release() {},
+  };
 }
 
 function isQuietGitInit(args: readonly string[]): boolean {
@@ -359,36 +386,35 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
         return { exitCode: 0 };
       }
       let stdin: string | undefined;
-      if (gitArgsNeedStdin(context.args)) {
-        const chunks: Uint8Array[] = [];
-        let size = 0;
-        for await (const chunk of readBytes(context.stdin, context.signal)) {
-          size += chunk.length;
-          if (size > limits.maxBytes) throw new Error("Git stdin byte limit exceeded");
-          chunks.push(chunk);
-        }
-        const bytes = new Uint8Array(size);
-        let offset = 0;
-        for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
-        stdin = encode(bytes);
-      }
       const env = {...context.env, POE_GIT_TIMESTAMP: String(Math.floor(Date.now()/1000))};
       const before=await snapshot(context.fs,limits,context.signal,context.cwd,context.args,env);
-      const exports = options.wasmModule ? new ((globalThis as unknown as {WebAssembly:{Instance:new(mod:object)=>{exports:GitExports}}}).WebAssembly.Instance)(options.wasmModule).exports : createDefaultGitExports();
+      const customExports = options.wasmModule ? new ((globalThis as unknown as {WebAssembly:{Instance:new(mod:object)=>{exports:GitExports}}}).WebAssembly.Instance)(options.wasmModule).exports : undefined;
       const responses: {status:number;headers:Readonly<Record<string,string>>;body:string}[]=[];
       let httpBytes=0;
       let result:Result;
       for(;;) {
         context.signal.throwIfAborted();
         const input=encoder.encode(JSON.stringify({cwd:context.cwd,args:context.args,env,entries:before,responses,stdin}));
+        const handle = customExports ? { exports: customExports, release() {} } : acquireDefaultGitExports();
+        const { exports } = handle;
         const ptr=exports.git_alloc(input.length);
+        let wasmFailed=false;
         try {
           new Uint8Array(exports.memory.buffer,ptr,input.length).set(input);
           const output=exports.git_execute(ptr,input.length);
           const length=exports.git_output_len();
           if(length>limits.maxBytes*3+limits.maxEntries*1024+limits.maxHttpBytes*2) throw new Error('Git output byte limit exceeded');
           result=JSON.parse(decoder.decode(new Uint8Array(exports.memory.buffer,output,length))) as Result;
-        } finally { exports.git_free(ptr,input.length); }
+        } catch (err) {
+          wasmFailed=true;
+          throw err;
+        } finally {
+          try {
+            if (!wasmFailed) exports.git_free(ptr,input.length);
+          } finally {
+            handle.release(wasmFailed);
+          }
+        }
         if(result.needsStdin) {
           if(stdin!==undefined) throw new Error('Git requested stdin more than once');
           const chunks:Uint8Array[]=[];
@@ -646,17 +672,26 @@ export function evalSyncGit(
   if (cached !== undefined) return cached;
 
   try {
-    const exports = createDefaultGitExports();
+    const handle = acquireDefaultGitExports();
+    const { exports } = handle;
     const input = encoder.encode(inputJson);
     const ptr = exports.git_alloc(input.length);
     let result: Result;
+    let wasmFailed = false;
     try {
       new Uint8Array(exports.memory.buffer, ptr, input.length).set(input);
       const output = exports.git_execute(ptr, input.length);
       const length = exports.git_output_len();
       result = JSON.parse(decoder.decode(new Uint8Array(exports.memory.buffer, output, length))) as Result;
+    } catch (err) {
+      wasmFailed = true;
+      throw err;
     } finally {
-      exports.git_free(ptr, input.length);
+      try {
+        if (!wasmFailed) exports.git_free(ptr, input.length);
+      } finally {
+        handle.release(wasmFailed);
+      }
     }
     if (result.exitCode !== 0 || result.stderr !== "" || result.request) return undefined;
     let outStr: string;

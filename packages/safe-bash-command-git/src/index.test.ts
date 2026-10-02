@@ -442,3 +442,49 @@ test("git init scopes to target directory and git status skips nested git reposi
   );
   assert.deepEqual(await origReadFile("/workspace/run-22/huge.bin"), new Uint8Array([9, 8, 7, 6]));
 });
+
+
+test("consecutive git commands reuse the default WASM instance instead of instantiating per command", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/repo", { recursive: true });
+  await fs.writeFile("/repo/README.md", new TextEncoder().encode("# Demo\n"));
+  const cmd = createGitCommand();
+  const run = async (args: string[]) => {
+    let stdout = "";
+    let stderr = "";
+    const res = await cmd.execute({
+      args,
+      cwd: "/repo",
+      env: {},
+      fs,
+      signal: new AbortController().signal,
+      stdin: (async function* () {})(),
+      stdout: { write(b: Uint8Array) { stdout += new TextDecoder().decode(b); } },
+      stderr: { write(b: Uint8Array) { stderr += new TextDecoder().decode(b); } },
+    } as CommandContext);
+    return { exitCode: res.exitCode, stdout, stderr };
+  };
+
+  // Warm the default WASM instance once
+  assert.equal((await run(["init", "-b", "main"])).exitCode, 0);
+
+  const origInstance = WebAssembly.Instance;
+  let instanceCount = 0;
+  // @ts-expect-error tracking WebAssembly.Instance constructions
+  WebAssembly.Instance = new Proxy(origInstance, {
+    construct(target, argArray, newTarget) {
+      instanceCount++;
+      return Reflect.construct(target, argArray, newTarget);
+    },
+  });
+  try {
+    assert.equal((await run(["config", "user.email", "dev@example.com"])).exitCode, 0);
+    assert.equal((await run(["config", "user.name", "Dev"])).exitCode, 0);
+    assert.equal((await run(["add", "README.md"])).exitCode, 0);
+    assert.equal((await run(["commit", "-m", "initial"])).exitCode, 0);
+    assert.equal((await run(["status", "--short"])).exitCode, 0);
+    assert.equal(instanceCount, 0, "expected subsequent git commands to reuse the cached WASM instance");
+  } finally {
+    WebAssembly.Instance = origInstance;
+  }
+});

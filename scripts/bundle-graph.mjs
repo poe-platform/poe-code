@@ -136,7 +136,8 @@ export function findUnreachableBundleOutputs(metafile, entryPoints, workingDirec
  *
  * - `alias`: maps each workspace package (and its sub-path exports) to its
  *   TypeScript source, or prepared runtime exports for workspaces that declare
- *   poeCode.bundle.prebuilt because their build transforms runtime code.
+ *   poeCode.bundle.prebuilt (or prebuiltConditions for selected runtimes)
+ *   because their build transforms runtime code.
  * - `external`: the packages left for npm to install — root runtime deps,
  *   root optional runtime deps, plus the third-party deps of workspace packages,
  *   workspace packages are inlined unless explicitly listed in poeCode.bundle.external.
@@ -155,7 +156,8 @@ export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { r
 
   for (const { dir, pkg } of packageJsons) {
     workspacePackageNames.add(pkg.name);
-    const prebuilt = pkg.poeCode?.bundle?.prebuilt === true;
+    const prebuilt = pkg.poeCode?.bundle?.prebuilt === true ||
+      (pkg.poeCode?.bundle?.prebuiltConditions ?? []).some(condition => runtimeConditions.has(condition));
     if (prebuilt && !pkg.exports?.["."]) throw new Error(`Prebuilt workspace ${pkg.name} requires a root runtime export`);
     // Resolve workspace packages to source (just-in-time compilation).
     alias[pkg.name] = path.join(packagesDir, dir, "src/index.ts");

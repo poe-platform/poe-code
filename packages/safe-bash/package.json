@@ -1841,6 +1841,12 @@
         "src/shell/extensions/arrays/index.ts",
         "src/shell/extensions/trap/index.ts"
       ]
+    },
+    "bundle": {
+      "prebuiltConditions": [
+        "workerd",
+        "browser"
+      ]
     }
   },
   "engines": {

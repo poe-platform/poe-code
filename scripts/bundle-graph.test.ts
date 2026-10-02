@@ -59,6 +59,14 @@ it("uses prepared workspace entrypoints when source cannot represent the built r
   expect(graph.alias["private-engine/filter"]).toBe("/repo/packages/engine/dist/filter.js");
 });
 
+it.each(["node", "browser", "workerd"])("uses prepared exports only for declared %s runtime profiles", async condition => {
+  const graph = await resolveBundleGraph("/repo", [{ dir: "engine", pkg: {
+    name: "private-engine", exports: { ".": { browser: "./dist/index.browser.js", workerd: "./dist/index.browser.js", import: "./dist/index.js" } },
+    poeCode: { bundle: { prebuiltConditions: ["browser", "workerd"] } },
+  } }], createFileSystem({}), [condition]);
+  expect(graph.alias["private-engine"]).toBe(condition === "node" ? "/repo/packages/engine/src/index.ts" : "/repo/packages/engine/dist/index.browser.js");
+});
+
 it("routes embedded spreadsheet XML imports to the published core entry", () => {
   const consumer = resolveConsumerGraph({
     alias: { "@poe-code/safe-fs/xml": "/repo/packages/safe-fs/src/xml.ts" },

@@ -45,7 +45,7 @@ const child = {
   execFileSync(command, args = [], options) { return childResult(command, args, options); },
 };
 function __setup(config) {
-  globalThis.process = {argv: config.argv, env: config.env, cwd: () => config.cwd, exitCode: 0,
+  globalThis.process = {argv: config.argv, argv0: 'node', execPath: '/virtual/bin/node', execArgv: [], version: 'v22.0.0', versions: {node: '22.0.0'}, platform: 'linux', arch: 'x64', pid: 1, ppid: 0, env: config.env, cwd: () => config.cwd, exitCode: 0,
     stdout: {write: value => {call('output', String(value), false); return true;}},
     stderr: {write: value => {call('output', String(value), true); return true;}},
   };
@@ -68,6 +68,7 @@ function __setup(config) {
     if (builtin === 'fs') return fs;
     if (builtin === 'child_process') return child;
     if (builtin === 'path') return path;
+    if (builtin === 'process') return globalThis.process;
     if (!(name.startsWith('./') || name.startsWith('../') || name.startsWith('/'))) throw new Error('Unsupported module: ' + name);
     const filename = call('resolve', base, name);
     if (cache.has(filename)) return cache.get(filename).exports;

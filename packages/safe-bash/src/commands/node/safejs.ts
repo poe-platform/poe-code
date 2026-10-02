@@ -15,7 +15,7 @@ import { createNodePathModule } from "./path.js";
 import { createSafeJsCommands } from "../safejs/runtime.js";
 import { commandLimits } from "../safejs/options.js";
 import type { Invocation } from "../safejs/options.js";
-import type { SafeJsHostFunction } from "../safejs/types.js";
+import type { SafeJsHostFunction, SafeJsModule } from "../safejs/types.js";
 import type { NodeSafeJsCommandOptions } from "./types.js";
 import { nodeEnvironment } from "./environment.js";
 import { defaultNodeCommand } from "./default-runtime.js";
@@ -167,8 +167,19 @@ ${selected.check ? body : `eval(${JSON.stringify(body)});`}
       const stdio = modules.stdio!;
       const fs = modules.fs!;
       const pending = new Set<Promise<void>>();
+      const nodeVersion = metadata?.version ?? "v22.0.0";
+      const bareNodeVersion = nodeVersion.startsWith("v") ? nodeVersion.slice(1) : nodeVersion;
       const processModule = {
         argv: ["/virtual/bin/node", ...(selected.source === undefined ? [selected.file] : []), ...selected.args],
+        argv0: "node",
+        execPath: "/virtual/bin/node",
+        execArgv: selected.nodeOptions ?? [],
+        version: nodeVersion,
+        versions: { node: bareNodeVersion },
+        platform: "linux",
+        arch: "x64",
+        pid: 1,
+        ppid: 0,
         env,
         cwd: options.runtime.declareHostOperation(() => command.cwd, "read-side-effect"),
         exitCode: 0,
@@ -198,7 +209,7 @@ ${selected.check ? body : `eval(${JSON.stringify(body)});`}
       };
       modules.fs = { ...nodeFs, default: nodeFs };
       const path = createNodePathModule(options.runtime, command.cwd as string);
-      const requiredModules = new Map([["fs", nodeFs], ["node:fs", nodeFs], ["fs/promises", fs], ["node:fs/promises", fs], ["path", path], ["node:path", path]]);
+      const requiredModules = new Map<string, SafeJsModule>([["fs", nodeFs], ["node:fs", nodeFs], ["fs/promises", fs], ["node:fs/promises", fs], ["path", path], ["node:path", path], ["process", processModule], ["node:process", processModule]]);
       for (const [name, module] of requiredModules) modules[name] = { ...module, default: module };
       const prefix = bufferSource + timerSource + (directory === undefined ? "" : "let __dirname = __safeBashDirectory;\n") + nodeRequireSource;
       const printing = selected.print && selected.inputType !== "commonjs";

@@ -673,3 +673,33 @@ test("node strips leading shebang lines in ESM .mjs files", async () => {
     assert.equal(res.stdout, "--operation-kind:create\n");
   } finally { await shell.dispose(); }
 });
+
+test("node process global and node:process expose version, versions, platform, arch, and pid", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands());
+  try {
+    const result = await shell.exec("node -e " + quote(`
+      const proc = require("node:process");
+      console.log(JSON.stringify({
+        same: proc === process,
+        version: process.version,
+        nodeVersion: process.versions.node,
+        platform: process.platform,
+        arch: process.arch,
+        pid: process.pid,
+        execPath: process.execPath,
+      }));
+    `));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout), {
+      same: true,
+      version: "v22.0.0",
+      nodeVersion: "22.0.0",
+      platform: "linux",
+      arch: "x64",
+      pid: 1,
+      execPath: "/virtual/bin/node",
+    });
+  } finally {
+    await shell.dispose();
+  }
+});

@@ -81,7 +81,7 @@ export class BiffMetadataWriter {
       ...counts.map((count, i) => dwords(i + 1, count)));
     output.record(0xeb, escher(0xf000, 0, 15, escher(0xf006, 0, 0, dgg)));
   }
-  view(output: BiffOutput, sheet: Sheet, revision: 7 | 8, active: boolean): void {
+  async view(output: BiffOutput, sheet: Sheet, revision: 7 | 8, active: boolean): Promise<void> {
     writeBiffLabelRanges(sheet, revision, output, amount => this.charge(amount));
     const layouts = this.records.get(sheet)!.filter(r => r.record.kind === "SheetLayout");
     const layout = layouts[0]?.node, freeze = layout?.children.find(n => n.name === "FreezePanes");
@@ -96,7 +96,22 @@ export class BiffMetadataWriter {
     const x = end.column - origin.column, y = end.row - origin.row;
     if (x < 0 || y < 0) throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF reversed frozen layout");
     const frozen = !!(x || y), zoom = Math.round(Number(sheet.view?.zoom ?? 1) * 100);
-    const flags = 0xb6 | (active ? 0x600 : 0) | (frozen ? 0x108 : 0);
+    const attributes = sheet.view?.gnumeric;
+    const flag = (name: string, fallback = false): boolean => {
+      const value = attributes && typeof attributes === "object" && !Array.isArray(attributes)
+        ? (attributes as Readonly<Record<string, unknown>>)[name] : undefined;
+      return value === undefined ? fallback : value === true || value === 1 || value === "1" || value === "true";
+    };
+    const hideColumns = flag("HideColHeader"), hideRows = flag("HideRowHeader");
+    if (hideColumns !== hideRows) {
+      await this.context.diagnostic?.({ code: "biff-loss-warning", severity: "warning",
+        message: "Excel BIFF combines row and column header visibility; both headers are shown" });
+      this.charge();
+    }
+    const flags = 0x20 | (active ? 0x600 : 0) | (frozen ? 0x108 : 0) |
+      (flag("DisplayFormulas") ? 1 : 0) | (flag("HideGrid") ? 0 : 2) |
+      (!hideColumns || !hideRows ? 4 : 0) | (flag("HideZero") ? 0 : 0x10) |
+      (flag("RTL_Layout") ? 0x40 : 0) | (flag("DisplayOutlines", true) ? 0x80 : 0);
     const row = y ? origin.row : scroll.row, column = x ? origin.column : scroll.column;
     output.record(0x23e, revision === 8 ? words(flags, row, column, 64, 0, 0, zoom, zoom, 0) :
       words(flags, row, column, 64, 0));

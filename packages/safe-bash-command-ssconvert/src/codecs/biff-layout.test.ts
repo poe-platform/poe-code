@@ -90,3 +90,49 @@ for (const revision of [7, 8] as const) {
     await expect(writeBiffStream(book(biffNode("SheetLayout", { TopLeft: "IW1" })), revision, false, context)).rejects.toThrow("layout");
   });
 }
+
+for (const revision of [7, 8] as const) for (let combination = 0; combination < 64; combination++) {
+  const flags = [1, 2, 4, 0x10, 0x40, 0x80].reduce((value, bit, index) => value | (combination & 1 << index ? bit : 0), 0);
+  it(`preserves BIFF${revision} WINDOW2 display flags ${flags.toString(16)}`, async () => {
+    const imported = readBiffMetadata([{ opcode: 0x23e, offset: 0,
+      data: new Binary(revision === 8 ? words(flags | 0x620, 2, 1, 64, 0, 0, 125, 125, 0) : words(flags | 0x620, 2, 1, 64, 0))
+    }], revision, 1252, context);
+    const source: Workbook = { sheets: [{ id: "s", name: "S", cells: [], view: imported.view, unsupportedRecords: imported.records }] };
+    const output = await writeBiffStream(source, revision, false, context);
+    const window = readBiffRecords(output, context).find(record => record.opcode === 0x23e)!.data;
+    expect(window.u16(0) & 0xd7).toBe(flags);
+    expect(window.u16(0) & 0x628).toBe(0x620);
+    expect([window.u16(2), window.u16(4)]).toEqual([2, 1]);
+  });
+}
+
+it.each([true, 1, "1", "true"])("writes typed worksheet display switches %s", async enabled => {
+  const source: Workbook = { sheets: [{ id: "s", name: "S", cells: [], view: { gnumeric: {
+    DisplayFormulas: enabled, HideGrid: enabled, HideColHeader: enabled, HideRowHeader: enabled,
+    HideZero: enabled, RTL_Layout: enabled, DisplayOutlines: false
+  } } }] };
+  const window = readBiffRecords(await writeBiffStream(source, 8, false, context), context).find(record => record.opcode === 0x23e)!.data;
+  expect(window.u16(0) & 0xd7).toBe(0x41);
+});
+
+it.each(["HideColHeader", "HideRowHeader"])("reports BIFF's shared header switch for %s", async hidden => {
+  const warnings: string[] = [];
+  const source: Workbook = { sheets: [{ id: "s", name: "S", cells: [], view: { gnumeric: { [hidden]: "1" } } }] };
+  const output = await writeBiffStream(source, 8, false, { ...context, async diagnostic(d) { warnings.push(d.message); } });
+  const window = readBiffRecords(output, context).find(record => record.opcode === 0x23e)!.data;
+  expect(window.u16(0) & 4).toBe(4);
+  expect(warnings).toContain("Excel BIFF combines row and column header visibility; both headers are shown");
+});
+
+it("preserves cancellation while reporting combined BIFF headers", async () => {
+  const controller = new AbortController();
+  const source: Workbook = { sheets: [{ id: "s", name: "S", cells: [], view: { gnumeric: { HideColHeader: true } } }] };
+  await expect(writeBiffStream(source, 8, false, { ...context, signal: controller.signal,
+    async diagnostic() { await Promise.resolve(); controller.abort(false); }
+  })).rejects.toBe(false);
+});
+
+it.each([[0x200, false], [0x400, true], [0x600, true], [0, false]] as const)("uses the WINDOW2 displayed-sheet bit for active state %s", (flags, active) => {
+  const result = readBiffMetadata([{ opcode: 0x23e, offset: 0, data: new Binary(words(flags, 0, 0, 64, 0)) }], 7, 1252, context);
+  expect(result.active).toBe(active);
+});

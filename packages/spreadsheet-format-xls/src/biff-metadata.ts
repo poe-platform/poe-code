@@ -111,12 +111,12 @@ export function readBiffMetadata(records: readonly BiffRecord[], revision: numbe
       const flags = data.u16(0); view.gnumeric = { OutlineSymbolsBelow: flags & 0x40 ? "1" : "0", OutlineSymbolsRight: flags & 0x80 ? "1" : "0" };
       fitToPage = !!(flags & 0x100);
     } else if (opcode === 0x23e) {
-      const flags = data.u16(0); active = !!(flags & 0x200);
+      const flags = data.u16(0); active = !!(flags & 0x400);
       window = { row: data.u16(2), column: data.u16(4), frozen: !!(flags & 8) };
       if (window.column > 255 || window.row >= (revision >= 8 ? 65536 : 16384)) invalidBiff("invalid sheet layout position");
       view.gnumeric = { ...(view.gnumeric as Record<string, ImportedValue> | undefined), DisplayFormulas: flags & 1 ? "1" : "0",
         HideGrid: flags & 2 ? "0" : "1", HideColHeader: flags & 4 ? "0" : "1", HideRowHeader: flags & 4 ? "0" : "1",
-        HideZero: flags & 0x10 ? "0" : "1", DisplayOutlines: flags & 0x80 ? "1" : "0" };
+        HideZero: flags & 0x10 ? "0" : "1", RTL_Layout: flags & 0x40 ? "1" : "0", DisplayOutlines: flags & 0x80 ? "1" : "0" };
       if (revision >= 8 && data.bytes.length >= 14) view.zoom = data.u16(12) ? data.u16(12) / 100 : 1;
     } else if (opcode === 0x41) {
       data.check(0, revision >= 5 ? 10 : 9);

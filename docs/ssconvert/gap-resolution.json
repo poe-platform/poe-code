@@ -4572,6 +4572,26 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "biffWindow2": {
+      "finding": "BIFF import materialized WINDOW2 display switches, but export always wrote default switches. Import also omitted RTL and confused selected (0x200) with displayed (0x400) sheet state. Independent native source and original flag records reproduce all three defects.",
+      "implementation": "Preserve formula display, gridlines, combined headers, zero values, outlines and RTL in BIFF7/8. Read the displayed-sheet bit for active identity. Native typed boolean spellings are accepted. When independent row/column header settings differ, show both as Gnumeric does and emit an explicit loss warning; awaited diagnostics retain original cancellation reasons.",
+      "source": {
+        "ms-excel-read.c": "fba376ae47e276e9209800415a44e1060cc775745d3bdd8b400770d0c0f49216",
+        "ms-excel-write.c": "771526dcbc11e619594b2174603887b0557f849e6154e7905177bd25432d276a",
+        "locations": "Gnumeric 1.12.61 excel_read_WINDOW2 lines 5129-5213 and excel_write_WINDOW2 lines 774-844 in the authenticated retained source."
+      },
+      "validation": "132 initial display/typed/header-loss regressions and two subsequent active-sheet controls fail before repair. All 210 final layout/metadata/writer/live-label tests pass, including cancellation. XLS owner lint/source/test types, changed command-test lint/types and selected workspace build pass. All 256 compiled package SDK/command BIFF7/8 exports preserve the independently decoded display bits and replace stale formula cache 999 with 3. Two further public exports preserve First as displayed when both source sheets are selected.",
+      "native": "Unmodified Gnumeric 1.12.61 reads 64 independent SheetJS 0.18.5 CFB inputs and all 256 current public outputs with empty stderr. Seven native sheet attributes per output match the corresponding independent input projection; all final outputs are byte-identical to these native-qualified inputs. Three native input/SDK/command active-sheet readbacks retain SelectedTab=0. Native import forces DisplayOutlines=1, so outline preservation is proven independently from emitted BIFF bits, not native parity.",
+      "visual": "Two owned Xvfb/Gnumeric screenshots inspected: formula text, grids, headers and zero visible in one; RTL, hidden grids/headers/zeros and calculated 3 in the other. Both applications and the display stopped; GUI stderr empty.",
+      "hashes": {
+        "nativeComparisons": "a061667caec526d4cbe91276a21ee5cd945f7bd97b9063a1e41ffd0e8c5a01f5",
+        "nativeActiveSheet": "28740a533fc37a49e054d48d7f7891c503cf1762c6efd44bd79713fdb4860972",
+        "visibleScreenshot": "b5cd0c62be3c161befc00b641026674bd2c8ebd01a0e229e3e2896c66b90fedb",
+        "rtlScreenshot": "316881cac189291ef3978042d346913ef4019f06d7a65c098c92f1fa01d4d60a"
+      },
+      "liveLabelControls": "32 independently authored ELF fixtures pass 128 compiled public conversions across axis, reference/value class, quoted/relative flags, scalar/SUM and gap edits. Original six ELF bytes survive; SUM result class is explicitly normalized to value class. Caches become 2/5, or 115 after filling the SUM data gap. Existing codename/protection/residual WINDOW2 loss diagnostics remain, rather than being suppressed.",
+      "limits": "No whole-format, live-label native or registry qualification claim. Calc image provisioning failed: primary host connection timeout, official archive candidate returned 404, mirror-list connection timeout. Homebrew still independently publishes the recorded image SHA-256. Saved native Calc evidence remains historical; the new live-label corpus awaits Calc/Excel readback. All 19 families remain open."
+    },
     "publicAcos": {
       "finding": "Public ACOS still used JavaScript Math.acos although Bessel already used the captured AArch64 glibc implementation. A deterministic 2060-value native application cohort reproduced144 one-ULP differences.",
       "implementation": "Route public ACOS through capturedAcos with the existing work/cancellation host; retain numeric argument coercion and domain errors. The captured primitive is unchanged.",

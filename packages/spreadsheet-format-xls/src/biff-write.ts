@@ -236,7 +236,7 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
       if (formulas.has(cell) && cached.kind === "string") stringCache(output, cached.value, revision, context);
     }
     await metadata.links(output, sheet, revision);
-    metadata.view(output, sheet, revision, sheet === active);
+    await metadata.view(output, sheet, revision, sheet === active);
     if (sheet.merges?.length) {
       const ranges = sheet.merges.filter(range => range.startRow < maxRows && range.startColumn < 256);
       const maximum = Math.floor((output.maximumRecord - 2) / 8);

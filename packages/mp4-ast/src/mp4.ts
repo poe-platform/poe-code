@@ -4,6 +4,7 @@ import {
   BinaryWriter,
   bytesEqual,
   concatBytes,
+  detachBytesBuffer,
   decodeFourCC,
   decodeUtf8,
   encodeUtf8,
@@ -1338,6 +1339,7 @@ function materializeTrackSamples(track: MediaTrack): {
       const frame = track.decodedVideoFrames[i]!;
       const duration = Math.max(1, Math.round(frame.durationSeconds * timescale));
       const encoded = encodeH264IdrFrame(frame.data, width, height, i, refBuffer);
+      detachBytesBuffer(frame.data);
       samples.push({
         data: encoded,
         dts,
@@ -1350,6 +1352,9 @@ function materializeTrackSamples(track: MediaTrack): {
       });
       dts += duration;
     }
+    detachBytesBuffer(refBuffer.y);
+    detachBytesBuffer(refBuffer.u);
+    detachBytesBuffer(refBuffer.v);
 
     const codecDescriptions = [
       {

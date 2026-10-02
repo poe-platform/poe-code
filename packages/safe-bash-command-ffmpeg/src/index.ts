@@ -230,6 +230,18 @@ function parseColorRgba(colorStr: string): [number, number, number, number] {
   return [40, 120, 220, 255];
 }
 
+function detachBytesBuffer(bytes: Uint8Array | undefined): void {
+  if (!bytes) return;
+  const buf = bytes.buffer as ArrayBuffer & { transfer?: (newByteLength?: number) => ArrayBuffer };
+  if (typeof buf.transfer === "function" && bytes.byteOffset === 0 && bytes.byteLength === buf.byteLength) {
+    try {
+      buf.transfer(0);
+    } catch {
+      // Buffer may be non-detachable.
+    }
+  }
+}
+
 function makeRgbaImg(width: number, height: number, data: Uint8Array): RgbaImage {
   return {
     width,
@@ -2222,6 +2234,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               {
                 const decoded = decodeImage(imgBytes);
+                detachBytesBuffer(imgBytes);
                 budget.recordFrame(decoded.width, decoded.height);
                 frames.push({
                   width: decoded.width,
@@ -2949,6 +2962,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           limits: options.limits,
           budget
         });
+        for (const trk of workingDoc.tracks) {
+          if (trk.decodedVideoFrames) {
+            for (const f of trk.decodedVideoFrames) detachBytesBuffer(f.data);
+          }
+          if (trk.samples) {
+            for (const s of trk.samples) detachBytesBuffer(s.data);
+          }
+        }
 
         budget.checkOutputBytes(serializedBytes.byteLength);
 

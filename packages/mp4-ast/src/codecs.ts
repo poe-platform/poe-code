@@ -5,6 +5,7 @@ import {
   BitWriter,
   escapeRbsp,
   makeBox,
+  detachBytesBuffer,
   rgbaToYuv420p,
   unescapeRbsp,
   yuv420pToRgba
@@ -833,25 +834,7 @@ export function encodeH264IdrFrame(
   const paddedWidth = mbWidth * 16;
   const paddedHeight = mbHeight * 16;
 
-  // Pad RGBA if width/height not a multiple of 16
-  let paddedRgba = rgba;
-  if (paddedWidth !== width || paddedHeight !== height) {
-    paddedRgba = new Uint8Array(paddedWidth * paddedHeight * 4);
-    for (let y = 0; y < paddedHeight; y++) {
-      const srcY = Math.min(height - 1, y);
-      for (let x = 0; x < paddedWidth; x++) {
-        const srcX = Math.min(width - 1, x);
-        const srcIdx = (srcY * width + srcX) * 4;
-        const dstIdx = (y * paddedWidth + x) * 4;
-        paddedRgba[dstIdx] = rgba[srcIdx] ?? 0;
-        paddedRgba[dstIdx + 1] = rgba[srcIdx + 1] ?? 0;
-        paddedRgba[dstIdx + 2] = rgba[srcIdx + 2] ?? 0;
-        paddedRgba[dstIdx + 3] = rgba[srcIdx + 3] ?? 255;
-      }
-    }
-  }
-
-  const { y: yPlane, u: uPlane, v: vPlane } = rgbaToYuv420p(paddedRgba, paddedWidth, paddedHeight);
+  const { y: yPlane, u: uPlane, v: vPlane } = rgbaToYuv420p(rgba, width, height, paddedWidth, paddedHeight);
   const uvWidth = paddedWidth >>> 1;
 
   const gopPos = frameIndex % 24;
@@ -941,6 +924,9 @@ export function encodeH264IdrFrame(
     new DataView(pAvcc.buffer).setUint32(0, pLen, false);
     pAvcc[4] = 0x61; // nal_ref_idc = 3, nal_unit_type = 1 (non-IDR reference P-slice)
     pAvcc.set(pEscaped, 5);
+    detachBytesBuffer(refY);
+    detachBytesBuffer(refU);
+    detachBytesBuffer(refV);
     refBuffer.y = yPlane;
     refBuffer.u = uPlane;
     refBuffer.v = vPlane;
@@ -948,6 +934,9 @@ export function encodeH264IdrFrame(
   }
 
   if (refBuffer) {
+    detachBytesBuffer(refBuffer.y);
+    detachBytesBuffer(refBuffer.u);
+    detachBytesBuffer(refBuffer.v);
     refBuffer.y = yPlane;
     refBuffer.u = uPlane;
     refBuffer.v = vPlane;
@@ -1002,6 +991,11 @@ export function encodeH264IdrFrame(
     }
   }
 
+  if (!refBuffer) {
+    detachBytesBuffer(yPlane);
+    detachBytesBuffer(uPlane);
+    detachBytesBuffer(vPlane);
+  }
   bits.writeRbspTrailingBits();
   const escapedRbsp = escapeRbsp(bits.toUint8Array());
   const naluLength = 1 + escapedRbsp.byteLength;

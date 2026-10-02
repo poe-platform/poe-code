@@ -634,25 +634,45 @@ export function lcm(a: number, b: number): number {
 /**
  * Convert RGBA buffer (`width * height * 4`) to planar YUV420p (`Y`, `U`, `V`).
  */
+export function detachBytesBuffer(bytes: Uint8Array | undefined): void {
+  if (!bytes) return;
+  const buf = bytes.buffer as ArrayBuffer & { transfer?: (newByteLength?: number) => ArrayBuffer };
+  if (typeof buf.transfer === "function" && bytes.byteOffset === 0 && bytes.byteLength === buf.byteLength) {
+    try {
+      buf.transfer(0);
+    } catch {
+      // Buffer may be non-detachable.
+    }
+  }
+}
+
 export function rgbaToYuv420p(
   rgba: Uint8Array,
   width: number,
-  height: number
+  height: number,
+  paddedWidth = width,
+  paddedHeight = height
 ): { y: Uint8Array; u: Uint8Array; v: Uint8Array } {
-  const yPlane = new Uint8Array(width * height);
-  const uvWidth = (width + 1) >>> 1;
-  const uvHeight = (height + 1) >>> 1;
+  const yPlane = new Uint8Array(paddedWidth * paddedHeight);
+  const uvWidth = (paddedWidth + 1) >>> 1;
+  const uvHeight = (paddedHeight + 1) >>> 1;
   const uPlane = new Uint8Array(uvWidth * uvHeight);
   const vPlane = new Uint8Array(uvWidth * uvHeight);
+  const maxRow = Math.max(0, height - 1);
+  const maxCol = Math.max(0, width - 1);
 
-  for (let row = 0; row < height; row++) {
-    for (let col = 0; col < width; col++) {
-      const idx = (row * width + col) * 4;
+  for (let row = 0; row < paddedHeight; row++) {
+    const srcRow = row < height ? row : maxRow;
+    const srcRowBase = srcRow * width * 4;
+    const dstRowBase = row * paddedWidth;
+    for (let col = 0; col < paddedWidth; col++) {
+      const srcCol = col < width ? col : maxCol;
+      const idx = srcRowBase + (srcCol << 2);
       const r = rgba[idx] ?? 0;
       const g = rgba[idx + 1] ?? 0;
       const b = rgba[idx + 2] ?? 0;
       const yVal = ((66 * r + 129 * g + 25 * b + 128) >> 8) + 16;
-      yPlane[row * width + col] = Math.max(16, Math.min(235, yVal));
+      yPlane[dstRowBase + col] = Math.max(16, Math.min(235, yVal));
     }
   }
 
@@ -664,11 +684,14 @@ export function rgbaToYuv420p(
       let count = 0;
       for (let dy = 0; dy < 2; dy++) {
         const py = uRow * 2 + dy;
-        if (py >= height) continue;
+        if (py >= paddedHeight) continue;
+        const srcRow = py < height ? py : maxRow;
+        const srcRowBase = srcRow * width * 4;
         for (let dx = 0; dx < 2; dx++) {
           const px = uCol * 2 + dx;
-          if (px >= width) continue;
-          const idx = (py * width + px) * 4;
+          if (px >= paddedWidth) continue;
+          const srcCol = px < width ? px : maxCol;
+          const idx = srcRowBase + (srcCol << 2);
           rSum += rgba[idx] ?? 0;
           gSum += rgba[idx + 1] ?? 0;
           bSum += rgba[idx + 2] ?? 0;

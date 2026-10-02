@@ -9,8 +9,9 @@ import { executionCommands, evalSyncEnv, evalSyncXargs } from "../commands/execu
 import { evalSyncLs, evalSyncReadlink, evalSyncRealpath } from "../commands/filesystem.js";
 import { builtInDirectContextExecutors } from "../commands/internal.js";
 import { arrayStore, guestArrays } from "./arrays/state.js";
-import type { Command, WordPart } from "./parser.js";
+import type { Command, Script, WordPart } from "./parser.js";
 import type { CommandDefinition } from "../contracts/index.js";
+import { resolvePath } from "../contracts/index.js";
 import { customRegisteredCommands, customRegisteredRegistries, hasActiveExtensions, hasNonNamerefAttributes, hasShellFunction, fastSubScratchArgs, EMPTY_BYTES, syncPurePipelineSlotState } from "./runtime.js";
 
 syncCommandEvaluators.executionCommands = executionCommands;
@@ -60,7 +61,7 @@ import { compareSyncJqStrings, splitSyncJqExpression } from "./sync-jq-expressio
 import { text as awkValueText, compare as awkCompare, inputValue as awkInputValue, numeric as awkNumeric, number as awkNumber, string as awkString } from "../commands/text-programs/awk-values.js";
 import { shellValueByteLength } from "../contracts/value.js";
 import { stateMonitor } from "./arrays/state.js";
-import type { State } from "./session-state.js";
+import type { Budget, IO, State } from "./runtime.js";
 import { Runtime } from "./runtime.js";
 
 const createFmtEngine = (...args: any[]) => syncCommandEvaluators.createFmtEngine!(...args);
@@ -1159,7 +1160,8 @@ export const syncExtraRuntimeMethods = {
       } else {
         const subj = this.fastValueWord(cmd.subject, rawState, io, false, false, false, false, undefined, part.line);
         if (typeof subj !== "string") return undefined;
-        const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+        const budget: Budget = this.budget;
+        const work = { remaining: budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => budget.fail("maxExpansionBytes") };
         for (const cl of cmd.clauses) {
           let matched = false;
           for (const pw of cl.patterns) {
@@ -1650,7 +1652,7 @@ export const syncExtraRuntimeMethods = {
         const fileArg = hasSingleStdinRedir ? redirTarget! : (hasSingleHereStringRedir ? "" : allArgs[allArgs.length - 1]!);
         const opArgs = (hasSingleStdinRedir || hasSingleHereStringRedir) ? allArgs : allArgs.slice(0, -1);
         if (hasSingleHereStringRedir || (!fileArg.startsWith("-") && fileArg !== "/dev/stdin")) {
-          const view = hasSingleHereStringRedir ? fastSharedTextEncoder.encode(hereStrVal!) : this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fileArg));
+          const view: Uint8Array | undefined = hasSingleHereStringRedir ? fastSharedTextEncoder.encode(hereStrVal!) : this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fileArg));
           // The text shortcut must not decode arbitrary file bytes or strip a BOM.
           // Non-ASCII file inputs use normal execution, which owns their raw ShellValue.
           const isBinaryViewTool = w0Plain === "xxd" || w0Plain === "od" || w0Plain === "hexdump" || w0Plain === "hd";
@@ -2374,7 +2376,7 @@ export const syncExtraRuntimeMethods = {
     if (alternatives.parts.length > 1) {
       const lhs = alternatives.parts[0]!;
       const rhs = alternatives.parts.slice(1).join("//");
-      const lVals = this.evalSyncJqPathOps(item, lhs);
+      const lVals: unknown[] | undefined = this.evalSyncJqPathOps(item, lhs);
       if (lVals === undefined) return undefined;
       // Validate both sides before admitting the fast path, even if lhs wins.
       let rVals = this.evalSyncJqPathOps(item, rhs);
@@ -2660,7 +2662,7 @@ export const syncExtraRuntimeMethods = {
       if (typeof item !== "string") return undefined;
       const cleaned = item.replace(/[ \t\r\n]+/g, "");
       if (cleaned.length % 4 !== 0 || (cleaned.length > 0 && !/^[A-Za-z0-9+/]+={0,2}$/.test(cleaned))) return undefined;
-      const dec = this.syncBase64DecodeBytes(cleaned);
+      const dec: Uint8Array = this.syncBase64DecodeBytes(cleaned);
       if (dec.some(b => b === 0 || b >= 128)) return undefined;
       return [sharedSyncPipeDecoder.decode(dec)];
     }
@@ -2795,7 +2797,7 @@ export const syncExtraRuntimeMethods = {
     }
     const genSelM = /^select\(\s*(.+)\s*\)$/.exec(st);
     if (genSelM) {
-      const condVals = this.evalSyncJqPathOps(item, genSelM[1]!);
+      const condVals: unknown[] | undefined = this.evalSyncJqPathOps(item, genSelM[1]!);
       if (!condVals) return undefined;
       return condVals.filter(v => v !== null && v !== undefined && v !== false).map(() => item);
     }
@@ -3522,7 +3524,7 @@ export const syncExtraRuntimeMethods = {
       const fileStr = sharedSyncPipeDecoder.decode(inBytes);
       const cleaned = ignoreGarbage ? fileStr.replace(/[^A-Za-z0-9+/=]+/g, "") : fileStr.replace(/[ \t\r\n]+/g, "");
       if (cleaned.length % 4 !== 0 || (cleaned.length > 0 && !/^[A-Za-z0-9+/]+={0,2}$/.test(cleaned))) return undefined;
-      const decoded = this.syncBase64DecodeBytes(cleaned);
+      const decoded: Uint8Array = this.syncBase64DecodeBytes(cleaned);
       if (decoded.some(byte => byte === 0 || byte >= 128)) return undefined;
       return sharedSyncPipeDecoder.decode(decoded);
     }
@@ -3632,7 +3634,7 @@ export const syncExtraRuntimeMethods = {
       const isByteMode = norm[0]!.startsWith("-b");
       if (!isByteMode && byteLocaleMode) return undefined;
       if (isByteMode && rawLines.some(l => { for (let i = 0; i < l.length; i++) if (l.charCodeAt(i) >= 128) return true; return false; })) return undefined;
-      const basePicker = this.parseSyncCutSpec(norm[0]!.slice(2));
+      const basePicker: ((len: number) => number[]) | undefined = this.parseSyncCutSpec(norm[0]!.slice(2));
       if (!basePicker) return undefined;
       const picker = isComplement ? (len: number) => { const s = new Set(basePicker(len)); const r: number[] = []; for (let i = 0; i < len; i++) if (!s.has(i)) r.push(i); return r; } : basePicker;
       if (outDelim === undefined) {
@@ -3675,7 +3677,7 @@ export const syncExtraRuntimeMethods = {
       }
     }
     if (!fArg || !fArg.startsWith("-f")) return undefined;
-    const basePicker = this.parseSyncCutSpec(fArg.slice(2));
+    const basePicker: ((len: number) => number[]) | undefined = this.parseSyncCutSpec(fArg.slice(2));
     if (!basePicker) return undefined;
     const picker = isComplement ? (len: number) => { const s = new Set(basePicker(len)); const r: number[] = []; for (let i = 0; i < len; i++) if (!s.has(i)) r.push(i); return r; } : basePicker;
     const joinDelim = outDelim ?? delim;
@@ -4522,7 +4524,7 @@ export const syncExtraRuntimeMethods = {
     const fDelim = nullFileSep ? "\0" : ":";
     if (fileOperands.length === 0) {
       if (stdinLines === undefined) return undefined;
-      const res = this.evalSyncGrep(stdinLines, coreArgs, false);
+      const res: { lines: string[]; status: number } | undefined = this.evalSyncGrep(stdinLines, coreArgs, false);
       if (!res) return undefined;
       if (quiet) return { lines: [], status: res.status };
       if (filesWithMatches) return { lines: res.status === 0 ? ["(standard input)"] : [], status: res.status };
@@ -5688,7 +5690,7 @@ export const syncExtraRuntimeMethods = {
 
 ,
   readSyncMemoryLines(this: any, filePath: string, zeroTerm = false): string[] | undefined {
-    const view = this.tryReadMemoryFileViewSync(filePath);
+    const view: Uint8Array | undefined = this.tryReadMemoryFileViewSync(filePath);
     if (!view || view.byteLength > 16384 || (!zeroTerm && view.includes(0)) || !view.every(b => b < 128)) return undefined;
     const str = sharedSyncPipeDecoder.decode(view);
     const sep = zeroTerm ? "\0" : "\n";
@@ -5842,8 +5844,8 @@ export const syncExtraRuntimeMethods = {
       }
     }
     if (files.length !== 2 || (files[0] === "-" && files[1] === "-")) return undefined;
-    const raw1 = files[0] === "-" ? stdinLines : this.readSyncMemoryLines(resolvePath(cwd, files[0]!));
-    const raw2 = files[1] === "-" ? stdinLines : this.readSyncMemoryLines(resolvePath(cwd, files[1]!));
+    const raw1: readonly string[] | undefined = files[0] === "-" ? stdinLines : this.readSyncMemoryLines(resolvePath(cwd, files[0]!));
+    const raw2: readonly string[] | undefined = files[1] === "-" ? stdinLines : this.readSyncMemoryLines(resolvePath(cwd, files[1]!));
     if (!raw1 || !raw2) return undefined;
     const splitRow = (line: string): string[] => sep !== undefined ? line.split(sep) : (line.trim().length === 0 ? [] : line.trim().split(/[ \t]+/));
     const normKey = (k: string): string => ignoreCase ? k.toLowerCase() : k;

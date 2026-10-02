@@ -56,7 +56,7 @@ import { invocationScope, throwCleanupFailures, InvocationScope } from "./cleanu
 import { bindFileOutputBudget, openFileOutput } from "../contracts/filesystem-output.js";
 import type { CommandFileDescriptor } from "../contracts/filesystem-descriptor.js";
 import { outputFailure } from "../contracts/io.js";
-const executionCommands = (...args: any[]) => syncCommandEvaluators.executionCommands!(...args);
+const executionCommands: typeof import("../commands/execution.js").executionCommands = (...args) => syncCommandEvaluators.executionCommands!(...args);
 import { defaultEchoExecutors, extractFastPrintfSpecifiers, formatPrintf, printfCommand, tryFastEcho, tryFastPrintf } from "../commands/basic.js";
 const gnuInformationSync = (...args: any[]) => syncCommandEvaluators.gnuInformationSync?.(...args);
 const evalSyncEnv = (...args: any[]) => syncCommandEvaluators.evalSyncEnv?.(...args);
@@ -1092,7 +1092,7 @@ async function closeExecDescriptors(state: State): Promise<void> {
   frame.releases.clear();
   throwCleanupFailures(results.filter(result => result.status === "rejected").map(result => result.reason));
 }
-interface IO {
+export interface IO {
   readonly execVersion?: number;
   readonly execFrame?: ExecDescriptorFrame;
   /** Zeroth argument identity; command remains the name used for lookup. */

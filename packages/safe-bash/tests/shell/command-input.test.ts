@@ -31,7 +31,7 @@ test("file operands enforce the shell input limit across standard and table comm
 function fixture(contents = "abcdef\n") {
   const volume = Volume.fromJSON({ "/left": contents });
   const fs = new MemoryFileSystem();
-  Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, open: false } });
+  Object.defineProperty(fs, "capabilities", { configurable: true, value: { ...fs.capabilities, open: false } });
   const metadata = (stat: Stats): FileStat => {
     return { type: stat.isDirectory() ? "directory" : "file", size: Number(stat.size), mode: Number(stat.mode),
       mtimeMs: Number(stat.mtimeMs), atimeMs: Number(stat.atimeMs), ctimeMs: Number(stat.ctimeMs), ino: Number(stat.ino), dev: Number(stat.dev) };

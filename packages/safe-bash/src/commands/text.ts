@@ -2463,6 +2463,11 @@ export function textCommands(): CommandDefinition[] {
         }
         if (canFast && (targetField >= 1 || (fieldMask !== 0 && typeof (context.stdin as { tryReadAllSync?: unknown }).tryReadAllSync === "function"))) {
           const req = assertInputRequirements(context, operand !== undefined ? [operand] : EMPTY_OPERANDS);
+          // Process each single-field chunk before requesting the next one so read
+          // failures cannot discard completed records or bypass iterator cleanup.
+          if (targetField >= 1) {
+            return executeCutFastAsync(context, operand, sepByte, targetField, req, undefined, undefined, undefined);
+          }
           if (!req && operand === undefined) {
             const srcIter = input(context, "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
               tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
@@ -2682,8 +2687,9 @@ async function executeCutFastAsync(
           let outUsed = 0;
           const flush = (): Promise<void> | undefined => {
             if (outUsed === 0) return;
-            const p = outputRange(context, outBuf, outUsed);
+            const length = outUsed;
             outUsed = 0;
+            const p = outputRange(context, outBuf, length);
             context.signal.throwIfAborted();
             return isSyncResolved(p) ? undefined : p;
           };
@@ -2710,8 +2716,10 @@ async function executeCutFastAsync(
             outBuf[outUsed++] = 10;
           };
           let leftover: Uint8Array | undefined;
+          let done = false;
+          let srcIter: (AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined; syncReturn?: () => void }) | undefined;
           try {
-            const srcIter = existingIter ?? (input(context, operand ?? "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+            srcIter = existingIter ?? (input(context, operand ?? "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
               tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
             });
             let stepIndex = 0;
@@ -2728,7 +2736,7 @@ async function executeCutFastAsync(
                 const syncRes = srcIter.tryNextSync?.();
                 res = syncRes !== undefined ? syncRes : await srcIter.next();
               }
-              if (res.done) break;
+              if (res.done) { done = true; break; }
               let chunk = res.value;
               if (chunk.length === 0) continue;
               if (leftover && leftover.length > 0) {
@@ -2800,7 +2808,14 @@ async function executeCutFastAsync(
             if (pending) await pending;
             return { exitCode: 0 };
           } catch (error) {
+            const pending = flush();
+            if (pending) await pending;
             await diagnostic(context, error);
             return { exitCode: 1 };
+          } finally {
+            if (!done && srcIter) {
+              if (typeof srcIter.syncReturn === "function") srcIter.syncReturn();
+              else await srcIter.return?.();
+            }
           }
 }

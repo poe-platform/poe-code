@@ -1,5 +1,5 @@
 import { resolvePath, type FileSystem } from "@poe-code/safe-fs/core";
-import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
+import { escapeTerminalText } from "@poe-code/terminal-text";
 import { measurePackageResourceSerialization } from "./ancillary-resources.js";
 import { archiveSettings, CancellationError, type ArchiveContext } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";

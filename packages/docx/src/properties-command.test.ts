@@ -46,11 +46,11 @@ it("bounds only the chosen human output rather than an un-emitted JSON envelope"
   expect(new TextDecoder().decode(await executePropertiesCommand(invocation, await textFixture("<w:p/>"), undefined, req, textContext))).toBe("Properties: 0\n");
 });
 it("does not format human fields for JSON output", async () => {
-  const terminal = await import("toolcraft-design/escape-terminal-text"), spy = vi.spyOn(terminal, "escapeTerminalText"), { executePropertiesCommand } = await import("./properties-command.js");
+  const terminal = await import("@poe-code/terminal-text"), spy = vi.spyOn(terminal, "escapeTerminalText"), { executePropertiesCommand } = await import("./properties-command.js");
   try { await executePropertiesCommand(validateDocxInvocation({ operation: "properties.list", inputs: ["-"], options: { json: true } }), await opaqueFixture(), undefined, request(), textContext); expect(spy).not.toHaveBeenCalled(); } finally { spy.mockRestore(); }
 });
 it("refuses an undersized human response before formatting full fields", async () => {
-  const terminal = await import("toolcraft-design/escape-terminal-text"), spy = vi.spyOn(terminal, "escapeTerminalText"), { executePropertiesCommand } = await import("./properties-command.js");
+  const terminal = await import("@poe-code/terminal-text"), spy = vi.spyOn(terminal, "escapeTerminalText"), { executePropertiesCommand } = await import("./properties-command.js");
   try { await expect(executePropertiesCommand(validateDocxInvocation({ operation: "properties.list", inputs: ["-"], options: { limit: [{ name: "serializedOutput", value: 1 }] } }), await opaqueFixture(), undefined, request(), textContext)).rejects.toMatchObject({ code: "limit-exceeded" }); expect(spy).not.toHaveBeenCalled(); } finally { spy.mockRestore(); }
 });
 it("admits warning bytes before joining diagnostic output", async () => {

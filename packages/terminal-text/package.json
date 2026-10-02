@@ -1,0 +1,25 @@
+{
+  "name": "@poe-code/terminal-text",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test:unit": "cd ../.. && vitest run packages/terminal-text",
+    "lint": "eslint src && tsc --noEmit"
+  },
+  "dependencies": {}
+}

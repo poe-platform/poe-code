@@ -11,7 +11,7 @@ const styleModelBatchOperations = [...styleOperations, ...structureModelBatchAct
 import { imageBatchActions } from "./image-batch-operations.js";
 import { styleModelOperationResultSchema } from "./style-model-result-schema.js";
 import metadata from "../package.json" with { type: "json" };
-import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
+import { escapeTerminalText } from "@poe-code/terminal-text";
 import { documentValidationProfile } from "./validation.js";
 import { DocumentBudget } from "./budget.js";
 import { docxInvocationBudgets, validateDocxInvocation, type DocxInvocation } from "./command.js";

@@ -1,5 +1,5 @@
 import { resolvePath, type FileSystem } from "@poe-code/safe-fs/core";
-import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
+import { escapeTerminalText } from "@poe-code/terminal-text";
 import { inspectDocumentProperties, editDocumentProperties, type PropertyInspectionData, type PropertyMutationData, type PropertyWarning } from "./document-properties.js";
 import { normalizeDocxPropertyOptions } from "./command-properties.js";
 import { propertyDeclaration } from "./property-values.js";

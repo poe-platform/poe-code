@@ -1,6 +1,6 @@
 import { BoundsError } from "./model-errors.js";
 import { partProviderReceivers } from "./part-provider.js";
-import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
+import { escapeTerminalText } from "@poe-code/terminal-text";
 import { getDocxDiscovery } from "./discovery.js";
 import { DocumentBudget, type DocumentLimits } from "./budget.js";
 import { ResourceLimitError } from "./archive.js";

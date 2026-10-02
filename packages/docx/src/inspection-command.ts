@@ -29,7 +29,7 @@ import { executeStoriesCommand } from "./stories-command.js";
 import { UnsupportedEmbeddedFontMutationError } from "./font-resources.js";
 import { inspectDocumentFonts } from "./font-inventory.js";
 import { resolvePath, type FileSystem } from "@poe-code/safe-fs/core";
-import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
+import { escapeTerminalText } from "@poe-code/terminal-text";
 import { archiveSettings, type ArchiveLimits, ResourceLimitError, CancellationError } from "./archive.js";
 import { DocumentBudget, documentLimitDefaults, type DocumentLimits } from "./budget.js";
 import { createDocxCommandEngine, commandDiagnostic, docxInvocationBudgets, type DocxCommandRequest } from "./command.js";

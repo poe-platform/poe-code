@@ -1,4 +1,4 @@
-import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
+import { escapeTerminalText } from "@poe-code/terminal-text";
 import { inspectDocumentPackageResources, measurePackageResourceSerialization, packageResourceWarnings } from "./ancillary-resources.js";
 import { archiveSettings, CancellationError, type ArchiveContext } from "./archive.js";
 import type { DocxInvocation } from "./command.js";

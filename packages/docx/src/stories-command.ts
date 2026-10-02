@@ -1,4 +1,4 @@
-import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
+import { escapeTerminalText } from "@poe-code/terminal-text";
 import { resolvePath, type FileSystem } from "@poe-code/safe-fs/core";
 import type { ArchiveContext } from "./archive.js";
 import type { DocxInvocation } from "./command.js";

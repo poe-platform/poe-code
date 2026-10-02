@@ -24,5 +24,11 @@
     "@poe-code/config-mutations": "*",
     "@poe-code/user-error": "*",
     "@poe-code/safe-fs": "*"
+  },
+  "imports": {
+    "#skill-templates": {
+      "types": "./src/template-data.d.ts",
+      "default": "./dist/template-data.js"
+    }
   }
 }

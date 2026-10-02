@@ -404,6 +404,7 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
     "rm -rf dist && tsc && cp src/composition.json dist/composition.json",
     "tsc && node ./scripts/copy-corpus.mjs",
     "node ../../scripts/guard-package-dist.mjs && tsc",
+    "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/embed-prompt.mjs",
     "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json",
     "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.build.json",
     "node ../../scripts/guard-package-dist.mjs && rm -rf dist && tsc",

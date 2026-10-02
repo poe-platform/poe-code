@@ -14,6 +14,7 @@ export const PROFILE_LIMITS = { maxBytes: 2 * 1024 * 1024, maxTabs: 8 };
 
 export function createPersistentPlaywright(options: {
   binding?: BrowserWorker; profiles: ReturnType<typeof createBrowserProfileStore>; runtime?: BrowserCodeRuntime;
+  limits?: Parameters<typeof createCloudflarePlaywrightAdapter>[3];
 }) {
   const profiles = options.profiles;
   const adapter = createCloudflarePlaywrightAdapter(options.binding, {
@@ -21,7 +22,7 @@ export function createPersistentPlaywright(options: {
       const bytes = await profiles.load(name, signal);
       return bytes ? parseBrowserProfile(bytes, PROFILE_LIMITS).state : undefined;
     },
-  }, options.runtime);
+  }, options.runtime, options.limits);
   async function resumableProfile(name: string, signal: AbortSignal) {
     const bytes = await profiles.load(name, signal, { resumeOnly: true });
     if (!bytes) return;

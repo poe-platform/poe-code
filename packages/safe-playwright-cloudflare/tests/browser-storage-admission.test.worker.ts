@@ -135,12 +135,13 @@ function profileStore(env: Env, owner: string) {
 	return store;
 }
 
-function fixture(env: Env, owner: string, binding = env.BROWSER) {
+function fixture(env: Env, owner: string, binding = env.BROWSER, limits?: Parameters<typeof createPersistentPlaywright>[0]["limits"]) {
 	const profiles = profileStore(env, owner);
 	const client = createPersistentPlaywright({
 		binding,
 		profiles,
 		runtime: { ownerId: owner, loader: env.BROWSER_RUN_CODE_LOADER },
+		...(limits === undefined ? {} : { limits }),
 	});
 	const fs = createMemoryFileSystem();
 	const host = new Shell({ fs, commands: new CommandRegistry() });
@@ -274,7 +275,10 @@ export default {
 				case "/checkpoint-navigation-timeout":
 				case "/checkpoint-navigation-cancel": {
 					const relay = controlFaultBinding(env.BROWSER);
-					const f = fixture(env, pathname, relay.binding);
+					// The production default is unlimited; this scenario opts into a deadline.
+					const f = fixture(env, pathname, relay.binding, {
+						resourceLimits: { storageTimeoutMs: 5000 },
+					});
 					try {
 						await f.run(["open", input.origin, "--json"]);
 						const before = f.client.inspectSessions()[0]!;

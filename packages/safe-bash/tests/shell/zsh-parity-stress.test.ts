@@ -1117,7 +1117,7 @@ test("52. sync vs async parity for split, csplit, truncate, and dd semantics", a
 });
 
 test("61. sync xargs/timeout dirname/basename empty operand and patch hunk boundary validation", async context => {
-    const { shell: bash, fs } = setup();
+    const { fs, shell: bash } = setup({ cwd: "/" });
     bash.use(agentCommands());
     context.after(() => bash.dispose());
     await fs.writeFile("/f1.txt", new TextEncoder().encode("line1\n"));

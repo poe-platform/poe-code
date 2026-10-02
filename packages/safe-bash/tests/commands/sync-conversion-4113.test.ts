@@ -696,23 +696,35 @@ test("evaluates rg -o/-w/-x/-r replacement/multiple -e and fd -E exclude/-S size
   );
 });
 
-test("evaluates ls --group-directories-first/-X/-B/-I/-m/-R and tree --dirsfirst/-P/-I/-F in sync substitutions (Wave 191)", async () => {
+test("evaluates supported ls and tree flags and rejects unavailable options in substitutions (Wave 191)", async () => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/tmp");
   const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(treeCommands());
   const r = await shell.exec(
     [
       "mkdir -p /tmp/w191/zdir && printf \"a\" > /tmp/w191/file.b && printf \"b\" > /tmp/w191/file.a && printf \"bak\" > /tmp/w191/file.a~ && printf \"skip\" > /tmp/w191/ignore.me",
-      "ls_df=$(ls --group-directories-first -B -I '*.me' -X -m /tmp/w191)",
-      "tr_df=$(tree --dirsfirst --noreport -I '*.me|*'~ -P '*.a' -F /tmp/w191 | tr '\\n' ',')",
+      "ls_df=$(ls -BX /tmp/w191 | tr '\\n' ',')",
+      "tr_df=$(tree --charset=UTF-8 --dirsfirst --noreport -I '*.me|*'~ -P '*.a' /tmp/w191 | tr '\\n' ',')",
       "printf \"%s#%s\\n\" \"$ls_df\" \"$tr_df\"",
     ].join("\n")
   );
   assert.equal(r.exitCode, 0, r.stderr);
   assert.equal(
     r.stdout,
-    "zdir, file.a, file.b#/tmp/w191/,├── zdir/,└── file.a,\n",
+    "zdir,file.a,file.b,ignore.me,#/tmp/w191,├── zdir,└── file.a,\n",
   );
+  assert.equal(r.stderr, "");
+  for (const [command, stderr] of [
+    ["ls --group-directories-first /tmp/w191", "ls: unrecognized option '--group-directories-first'\n"],
+    ["ls -I '*.me' /tmp/w191", "ls: invalid option -- 'I'\n"],
+    ["ls -m /tmp/w191", "ls: invalid option -- 'm'\n"],
+    ["tree -F /tmp/w191", "tree: unsupported option: -F\n"],
+  ]) {
+    const rejected = await shell.exec(`value=$(${command}); code=$?; printf '%s' "$value"; exit "$code"`);
+    assert.equal(rejected.exitCode, 2, command);
+    assert.equal(rejected.stdout, "", command);
+    assert.equal(rejected.stderr, stderr, command);
+  }
 });
 
 test("evaluates du --exclude/--threshold/-t, diff -I/--from-file/--to-file, and cmp -iSKIP/-nLIMIT in sync substitutions (Wave 192)", async () => {
@@ -937,8 +949,10 @@ test("evaluates chmod -v/-c/--reference, touch -d/-t/-r, and truncate -o in sync
   assert.equal(r.exitCode, 0, r.stderr);
   assert.equal(
     r.stdout,
-    "mode of '/tmp/w201_a.txt' changed from 0644 (rw-r--r--) to 0750 (rwxr-x---)|mode of '/tmp/w201_b.txt' changed from 0644 (rw-r--r--) to 0750 (rwxr-x---)#1735787045#8192\n",
+    "mode of '/tmp/w201_a.txt' changed from 0644 (rw-r--r--) to 0750 (rwxr-x---)|mode of '/tmp/w201_b.txt' changed from 0644 (rw-r--r--) to 0750 (rwxr-x---)#1735787045#131072\n",
   );
+  assert.equal((await fs.stat("/tmp/w201_c.txt")).ioBlockSize, 65536);
+  assert.equal(r.stderr, "");
 });
 
 test("evaluates xmllint --format/--c14n, xq --arg/-n, and yq -n/strenv YAML output in sync substitutions (Wave 202)", async () => {
@@ -1006,7 +1020,7 @@ test("evaluates csvsort -ri/date sorting, csvformat -U2/attached flags, and csvj
   );
 });
 
-test("evaluates html-to-markdown blockquote/pre/hr/entities, htmlq -o output file, and which --all in sync substitutions (Wave 205)", async () => {
+test("evaluates html-to-markdown escaping, htmlq -o output file, and which -a in sync substitutions (Wave 205)", async () => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/tmp");
   await fs.mkdir("/bin");
@@ -1017,15 +1031,20 @@ test("evaluates html-to-markdown blockquote/pre/hr/entities, htmlq -o output fil
       "md_res=$(printf \"<blockquote>a &amp; b</blockquote><hr><pre><code>x = 1</code></pre>\" | html-to-markdown | tr \"\\n\" \"|\")",
       "hq_empty=$(printf \"<div><span class=\\\"v\\\">ok</span></div>\" | htmlq -t -o /tmp/w205_hq.txt \".v\")",
       "hq_res=$(cat /tmp/w205_hq.txt)",
-      "wh_res=$(which --all mytool)",
+      "wh_res=$(which -a mytool)",
       "printf \"%s#%s#%s\\n\" \"$md_res\" \"$hq_res\" \"$wh_res\"",
     ].join("\n")
   );
   assert.equal(r.exitCode, 0, r.stderr);
   assert.equal(
     r.stdout,
-    "> a & b||---||```|x = 1|```|#ok#/bin/mytool\n",
+    "> a \\& b||---||```|x = 1|```|#ok#/bin/mytool\n",
   );
+  assert.equal(r.stderr, "");
+  const unsupported = await shell.exec("value=$(which --all mytool)");
+  assert.equal(unsupported.exitCode, 1);
+  assert.equal(unsupported.stdout, "");
+  assert.equal(unsupported.stderr, "which: illegal option -- -\nusage: which [-as] program ...\n");
 });
 
 test("evaluates cal -d/bundled flags, getopt bundled flags, and pathchk/cal/getopt pipeline stages in sync substitutions (Wave 206)", async () => {
@@ -1080,7 +1099,7 @@ test("evaluates readlink -z/-qn, realpath -z/-L, printenv -0, and env -0/-u in s
   );
 });
 
-test("evaluates iconv -o/multi-file/-sc, dos2unix -q/-qn/bundled flags, and xargs -0r/-0n1 in sync substitutions (Wave 208)", async () => {
+test("evaluates iconv -o/multi-file/-sc, dos2unix -q -n, and xargs -0r/-0n1 in sync substitutions (Wave 208)", async () => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/tmp");
   await fs.writeFile("/tmp/ic1.txt", new TextEncoder().encode("café "));
@@ -1095,7 +1114,7 @@ test("evaluates iconv -o/multi-file/-sc, dos2unix -q/-qn/bundled flags, and xarg
       ic1=$(iconv -sc -f UTF-8 -t ASCII /tmp/ic1.txt /tmp/ic2.txt)
       ic_empty=$(iconv -f UTF-8 -t ASCII//IGNORE -o /tmp/ic_out.txt /tmp/ic1.txt /tmp/ic2.txt)
       ic2=$(cat /tmp/ic_out.txt)
-      d_empty=$(dos2unix -qn /tmp/d2u.txt /tmp/d2u_out.txt)
+      d_empty=$(dos2unix -q -n /tmp/d2u.txt /tmp/d2u_out.txt)
       d1=$(cat -E /tmp/d2u_out.txt | tr "\\n" ":")
       x1=$(printf "a\\0b\\0c\\0" | xargs -0rn2 echo | tr "\\n" ":")
     done
@@ -1106,6 +1125,12 @@ test("evaluates iconv -o/multi-file/-sc, dos2unix -q/-qn/bundled flags, and xarg
     res.stdout.trim(),
     "caf nave|caf nave|l1$:l2$:|a b:c:"
   );
+  assert.equal(res.stderr, "");
+  const unsupported = await shell.exec("value=$(dos2unix -qn /tmp/d2u.txt /tmp/rejected.txt)");
+  assert.equal(unsupported.exitCode, 1);
+  assert.equal(unsupported.stdout, "");
+  assert.equal(unsupported.stderr, "dos2unix: unsupported option in virtual profile: -qn\n");
+  await assert.rejects(fs.stat("/tmp/rejected.txt"), { code: "ENOENT" });
 });
 
 test("evaluates xxd default/-i/file stage, od -Ax/-tc/file stage, and hexdump -n/-s/file stage in sync substitutions (Wave 209)", async () => {
@@ -1430,7 +1455,7 @@ test("Wave 219: fd -S/-0/-t e, rg -S/--files-without-match/-l0/-ie, and find -pr
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(
     res.stdout.trim(),
-    `/tmp/w219/a.txt:#/tmp/w219/empty.txt,/tmp/w219/emptydir,#AlphaLine#nomatch#/tmp/w219/b.txt#/tmp/w219/a.txt:#/tmp/w219/a.txt|/tmp/w219/b.txt|/tmp/w219/empty.txt|`
+    `/tmp/w219/a.txt:#/tmp/w219/empty.txt,/tmp/w219/emptydir/,#AlphaLine#nomatch#/tmp/w219/b.txt#/tmp/w219/a.txt:#/tmp/w219/a.txt|/tmp/w219/b.txt|/tmp/w219/empty.txt|`
   );
 });
 
@@ -2033,7 +2058,7 @@ test("Wave 238: ssconvert CSV/TSV/XLSX conversion and op completion in sync subs
   );
 });
 
-test("Wave 239: in2csv xlsx/geojson conversion and dos2unix/unix2dos -c mac and BOM flags in sync substitutions", async () => {
+test("Wave 239: in2csv xlsx/explicit geojson conversion and dos2unix ascii conversion reject unsupported Mac mode", async () => {
   const memFs = new MemoryFileSystem();
   await memFs.mkdir("/tmp", { recursive: true });
   for (const i of [1, 2]) {
@@ -2065,9 +2090,9 @@ test("Wave 239: in2csv xlsx/geojson conversion and dos2unix/unix2dos -c mac and 
     "  _s=$(ssconvert /tmp/w239_$i.csv /tmp/w239_$i.xlsx)",
     "  sheets=$(in2csv -n /tmp/w239_$i.xlsx)",
     "  xlsx_row=$(in2csv /tmp/w239_$i.xlsx | tail -n 1)",
-    "  geo_col=$(in2csv /tmp/w239_$i.geojson | csvcut -c name,type,longitude,latitude | tail -n 1)",
-    "  mac_txt=$(printf \"lineA\\rlineB\" | dos2unix -c mac | tr \"\\n\" \":\")",
-    "  echo \"$i:$sheets:$xlsx_row:$geo_col:$mac_txt\"",
+    "  geo_col=$(in2csv -f geojson /tmp/w239_$i.geojson | csvcut -c name,type,longitude,latitude | tail -n 1)",
+    "  dos_txt=$(printf \"lineA\\r\\nlineB\" | dos2unix -c ascii | tr \"\\n\" \":\")",
+    "  echo \"$i:$sheets:$xlsx_row:$geo_col:$dos_txt\"",
     "done"
   ].join("\n"));
   assert.equal(r.exitCode, 0, r.stderr);
@@ -2075,4 +2100,9 @@ test("Wave 239: in2csv xlsx/geojson conversion and dos2unix/unix2dos -c mac and 
     r.stdout.trim(),
     "1:w239_1.csv:Austin,100:Site-1,Point,-97.7,30.2:lineA:lineB\n2:w239_2.csv:Austin,200:Site-2,Point,-97.7,30.2:lineA:lineB"
   );
+  assert.equal(r.stderr, "");
+  const unsupported = await sh.exec("value=$(printf 'lineA\\rlineB' | dos2unix -c mac)");
+  assert.equal(unsupported.exitCode, 1);
+  assert.equal(unsupported.stdout, "");
+  assert.equal(unsupported.stderr, "dos2unix: invalid mac conversion mode specified\n");
 });

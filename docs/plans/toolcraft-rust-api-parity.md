@@ -3645,5 +3645,37 @@ Field prompting is independently verified on remote main at da2a334da7. Its
 Release workflow 37074373451 completed successfully, including validate/build;
 release-stable was skipped. This verifies a later combined build after the
 earlier command-tree build failure; it does not establish that failure's exact
-cause or any new publication. Variant resolution is locally verified pending
-its atomic commit and remote delivery.
+cause or any new publication. Variant resolution is independently verified on
+remote main at 5347c2bf72. Its Release workflow 37075570583 completed successfully
+with validate/build passing and release-stable skipped; no publication occurred.
+
+### CLI preset-loading checkpoint
+
+Native preset loading now reads JSON files through the Node filesystem capability
+and uses Rust for read-error policy, scalar/array validation, nested-field routing,
+dynamic-schema validation admission, defaults and diagnostic selection. Existing
+native schema, numeric-validation and JSON-location modules supply dependencies.
+Node retains actual file reads, JSON parsing, live array callbacks, Map methods,
+object property access and ordered entry iteration. Exactly one read await is
+preserved. No external dependencies or default implementation changed.
+
+Four missing-module failures preceded implementation. Nine final differential
+tests extract the actual reference declarations, including their own-property
+helper, and use memfs for files. They cover valid nested presets, integer/string/
+array constraints, nullable/JSON/enum values, dynamic defaults and nested issues,
+read and parse failures, getter/method ordering, duplicate paths, special keys,
+arbitrary thrown identity, parser causes, thenables and independent concurrent
+loads. The maintained package route passes 263 native Node tests, Rust tests,
+1,750 reference/parity cases in 49 files and declarations. Rust/binding lint and
+scoped ESLint pass. Packed runtime consumers load actual files, preserve nested
+defaults and report missing files. Packed declarations compile with types: [],
+but contract declarations still resolve from the checkout. The inspected preset
+result/JSON source-snippet screenshot matches the reference output exactly.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 500 complete preset loads,
+retaining 32 results, measured native/reference medians of 140.539/90.426
+microseconds (1.55 times slower). This fixture includes actual warmed file reads,
+JSON parsing, scalar/array/dynamic validation and defaults. It is not comparable
+to earlier no-I/O helper workloads and does not pass the performance gate.
+Full parameter/handler execution, generated help, transports, standalone
+packaging and platform/resource/reentrancy/default-swap gates remain open.

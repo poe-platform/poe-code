@@ -272,3 +272,13 @@ const nestedFieldValue:unknown=cliVariants.getNestedValue({nested:{name:"value"}
 // @ts-expect-error variant branch tracking uses string field IDs
 cliVariants.enforceVariantConstraints({},[],[],[],new Map<string,unknown>(),new Set<number>(),new Set<string>(),false,fieldErrors,{});
 void [constrainedParams,nestedFieldValue];
+
+import * as cliPresets from "../dist/cli-presets.js";
+const presetValues:Promise<{fields:Record<string,unknown>;dynamic:Map<string,unknown>}>=cliPresets.loadPresetValues([],[],"config.json");
+const presetScalar:string|number|boolean|null=cliPresets.validatePresetScalarValue(3,{kind:"number"},"count","config.json");
+const presetField:unknown=cliPresets.validatePresetFieldValue([],null as unknown as import("../dist/cli-fields.js").FieldDefinition,"config.json");
+// @ts-expect-error preset loading requires a file path
+cliPresets.loadPresetValues([],[],17);
+// @ts-expect-error scalar presets do not accept object schemas
+cliPresets.validatePresetScalarValue({},{kind:"object",shape:{}},"value","config.json");
+void [presetValues,presetScalar,presetField];

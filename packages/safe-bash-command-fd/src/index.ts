@@ -22,7 +22,8 @@ export interface SyncFdVfsNode {
   readonly type: "file" | "directory" | "symlink";
   readonly size: number;
   readonly mode?: number;
-  readonly children?: ReadonlyArray<{ readonly name: string; readonly type: "file" | "directory" | "symlink"; readonly size: number; readonly mode?: number }>;
+  readonly ino?: number;
+  readonly children?: ReadonlyArray<{ readonly name: string; readonly type: "file" | "directory" | "symlink"; readonly size: number; readonly mode?: number; readonly ino?: number }>;
 }
 
 function resolveSyncFdPath(cwd: string, target: string): string {
@@ -121,10 +122,14 @@ export function evalSyncFd(
     if (a.ignore && rootNode.children?.some(c => c.name === ".gitignore" || c.name === ".ignore" || c.name === ".fdignore")) {
       return undefined;
     }
-    const walk = (absDir: string, relPrefix: string, depth: number): boolean => {
+    const walk = (absDir: string, relPrefix: string, depth: number, ancestors: ReadonlySet<string>): boolean => {
       if (depth > a.maxDepth) return true;
       const dirNode = inspectNode(absDir);
       if (!dirNode || dirNode.type !== "directory" || !dirNode.children) return false;
+      const dirKey = dirNode.ino !== undefined ? String(dirNode.ino) : absDir;
+      if (ancestors.has(dirKey)) return false;
+      const nextAncestors = new Set(ancestors);
+      nextAncestors.add(dirKey);
       if (a.ignore && dirNode.children.some(c => c.name === ".gitignore" || c.name === ".ignore" || c.name === ".fdignore")) {
         return false;
       }
@@ -134,19 +139,30 @@ export function evalSyncFd(
         const childAbs = absDir === "/" ? `/${entry.name}` : `${absDir}/${entry.name}`;
         const childRel = relPrefix ? `${relPrefix}/${entry.name}` : (rootArg === "." ? entry.name : `${rootArg.replace(/\/+$/u, "")}/${entry.name}`);
         if (excludeFns.length > 0 && excludeFns.some(fn => fn(entry.name) || fn(childRel))) continue;
-        if (entry.type === "directory") {
-          if (!walk(childAbs, childRel, depth + 1)) return false;
+        let entryType = entry.type;
+        let entrySize = entry.size;
+        let entryMode = entry.mode;
+        let derefNode: SyncFdVfsNode | undefined;
+        if (entry.type === "symlink" && a.follow) {
+          derefNode = inspectNode(childAbs);
+          if (derefNode) {
+            const targetKey = derefNode.ino !== undefined ? String(derefNode.ino) : childAbs;
+            if (derefNode.type === "directory" && nextAncestors.has(targetKey)) continue;
+            entryType = derefNode.type;
+            entrySize = derefNode.size;
+            entryMode = derefNode.mode;
+          }
         }
         const depthOk = depth >= a.minDepth && depth <= a.maxDepth;
         let typeOk = a.types.length === 0;
         if (!typeOk) {
-          if (a.types.includes("file") && entry.type === "file") typeOk = true;
-          if (a.types.includes("directory") && entry.type === "directory") typeOk = true;
-          if (a.types.includes("symlink") && entry.type === "symlink") typeOk = true;
-          if (a.types.includes("empty") && ((entry.type === "file" && entry.size === 0) || (entry.type === "directory" && (inspectNode(childAbs)?.children?.length ?? 1) === 0))) typeOk = true;
-          if (a.types.includes("executable") && entry.type === "file" && ((entry.mode ?? 0) & 0o111) !== 0) typeOk = true;
+          if (a.types.includes("file") && entryType === "file") typeOk = true;
+          if (a.types.includes("directory") && entryType === "directory") typeOk = true;
+          if (a.types.includes("symlink") && entryType === "symlink") typeOk = true;
+          if (a.types.includes("empty") && ((entryType === "file" && entrySize === 0) || (entryType === "directory" && ((derefNode ?? inspectNode(childAbs))?.children?.length ?? 1) === 0))) typeOk = true;
+          if (a.types.includes("executable") && entryType === "file" && ((entryMode ?? 0) & 0o111) !== 0) typeOk = true;
         }
-        const sizeOk = sizeChecks.length === 0 || (entry.type === "file" && sizeChecks.every(fn => fn(entry.size)));
+        const sizeOk = sizeChecks.length === 0 || (entryType === "file" && sizeChecks.every(fn => fn(entrySize)));
         let extOk = a.extensions.length === 0;
         if (!extOk) {
           const lower = entry.name.toLowerCase();
@@ -154,17 +170,27 @@ export function evalSyncFd(
         }
         const subject = a.fullPath ? (a.absolute ? childAbs : childRel) : entry.name;
         if (depthOk && typeOk && sizeOk && extOk && matchFns.every(fn => fn(subject))) {
-          let disp = a.absolute ? childAbs : (a.stripCwdPrefix ? childRel.replace(/^\.\//u, "") : childRel);
-          if (a.pathSeparator !== undefined) disp = disp.split("/").join(a.pathSeparator);
-          results.push(a.format ? formatFdPath(a.format, disp) : disp);
+          const prefixCwd = rootArg === ".";
+          const rawOut = a.absolute
+            ? childAbs
+            : !a.stripCwdPrefix && prefixCwd && a.print0 && !childRel.startsWith("/") && !childRel.startsWith("./") && !childRel.startsWith("../")
+              ? `./${childRel}`
+              : (a.stripCwdPrefix ? childRel.replace(/^\.\//u, "") : childRel);
+          const out = a.pathSeparator !== undefined ? rawOut.split("/").join(a.pathSeparator) : rawOut;
+          results.push(a.format !== undefined ? formatFdPath(a.format, out) : out + (entryType === "directory" ? (a.pathSeparator ?? "/") : ""));
+          if (a.quiet || results.length >= a.maxResults) return true;
+          if (a.prune && entryType === "directory") continue;
+        }
+        if (entryType === "directory") {
+          if (!walk(childAbs, childRel, depth + 1, nextAncestors)) return false;
+          if (a.quiet || results.length >= a.maxResults) return true;
         }
       }
       return true;
     };
-    if (!walk(absRoot, "", 1)) return undefined;
+    if (!walk(absRoot, "", 1, new Set<string>())) return undefined;
+    if (a.quiet || results.length >= a.maxResults) break;
   }
-
-  results.sort((x, y) => (x < y ? -1 : x > y ? 1 : 0));
   const capped = Number.isFinite(a.maxResults) ? results.slice(0, a.maxResults) : results;
   if (a.quiet) {
     return capped.length > 0 ? "" : undefined;

@@ -776,4 +776,23 @@ test("43. sync commands respect exported-only environment boundaries (stat QUOTI
     assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
+
+});
+
+test("44. sync vs async parity for find -printf (%h trailing slash, %H root, %m error) and fd (directory slash, --prune, -L follow)", async () => {
+  const scripts = [
+    "mkdir -p /dir/sub /target; printf \"hello\\n\" > /dir/sub/a.txt; printf \"world\\n\" > /target/in-target.txt; ln -s /target /dir/linkdir; x=\$(find /dir/ -maxdepth 0 -printf \"%h|%f|%H\"); y=\$(find /dir/sub/ -maxdepth 0 -printf \"%h|%f|%H\"); echo \"\$x::\$y\"",
+    "mkdir -p /dir; x=\$(find /dir -maxdepth 0 -printf \"%m\\n\" 2>/dev/null); echo \"\$?:\$x\"",
+    "mkdir -p /dir/sub; printf \"hello\\n\" > /dir/sub/a.txt; x=\$(fd -t d . /dir); echo \"\$?:\$x\"",
+    "mkdir -p /dir/sub /target; printf \"hello\\n\" > /dir/sub/a.txt; printf \"world\\n\" > /target/in-target.txt; ln -s /target /dir/linkdir; x=\$(fd --prune . /dir); echo \"\$?:\$x\"",
+    "mkdir -p /dir/sub /target; printf \"hello\\n\" > /dir/sub/a.txt; printf \"world\\n\" > /target/in-target.txt; ln -s /target /dir/linkdir; x=\$(fd -L in-target.txt /dir); echo \"\$?:\$x\"",
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
 });

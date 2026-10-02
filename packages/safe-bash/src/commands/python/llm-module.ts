@@ -491,16 +491,34 @@ export function installPythonLlmModule(runtime: {
     runtime.runPython(`
 import sys as _safe_llm_sys, importlib.machinery as _safe_llm_imports
 class _SafeLlmLoader:
+ _submodules = {
+  'llm.models': ('Options', 'Usage', 'Attachment', 'Prompt', 'Model', 'AsyncModel',
+                 'Response', 'AsyncResponse', 'Conversation', 'AsyncConversation',
+                 'EmbeddingModel', 'ModelWithAliases', 'EmbeddingModelWithAliases',
+                 'Tool', 'Toolbox', 'ToolCall', 'ToolResult', 'ToolOutput', 'CancelToolCall',
+                 'ChainResponse', 'AsyncChainResponse'),
+  'llm.templates': ('Template', 'AttachmentType'),
+  'llm.utils': ('Fragment', 'schema_dsl'),
+  'llm.errors': ('ModelError', 'NeedsKeyException'),
+ }
  def __init__(self, source, spec):
   self._source = source
   self._spec = spec
  def find_spec(self, fullname, path=None, target=None):
   if fullname in ('poe_llm', 'llm'):
-   return self._spec(fullname, self, origin='poe_llm.py')
+   return self._spec(fullname, self, origin=fullname + '.py', is_package=fullname == 'llm')
+  if fullname in self._submodules:
+   return self._spec(fullname, self, origin=fullname + '.py')
  def create_module(self, spec):
   return None
  def exec_module(self, module):
   module.__file__ = module.__name__ + '.py'
+  if module.__name__ in self._submodules:
+   import llm
+   for name in self._submodules[module.__name__]:
+    setattr(module, name, getattr(llm, name))
+   module.__all__ = list(self._submodules[module.__name__])
+   return
   source = self._source if module.__name__ == 'poe_llm' else ${JSON.stringify(pythonLlmReferenceModule)}
   exec(compile(source, module.__file__, 'exec'), module.__dict__)
 _safe_llm_sys.meta_path.insert(0, _SafeLlmLoader(_safe_llm_source, _safe_llm_imports.ModuleSpec))

@@ -787,3 +787,64 @@ asyncio.run(chain_check())
     assert.equal(result.status,0,result.stdout+result.stderr);
   }
 });
+
+test('reference templates, fragments and public submodule imports work without file installation', {skip: pythonDependency}, () => {
+  const program = `
+import llm, hashlib, string
+from llm.models import Model, Tool, ToolCall, Options
+from llm.templates import Template, AttachmentType
+from llm.utils import Fragment, schema_dsl
+from llm.errors import ModelError, NeedsKeyException
+assert Model is llm.Model and Tool is llm.Tool and Options is llm.Options
+assert ToolCall is llm.ToolCall and Template is llm.Template and Fragment is llm.Fragment
+assert issubclass(NeedsKeyException, ModelError) and str(ModelError("test")) == "test"
+fragment = Fragment("source text", source="notes.md")
+assert isinstance(fragment, str) and fragment.source == "notes.md"
+assert fragment.id() == hashlib.sha256(b"source text").hexdigest()
+assert Fragment("text").source == ""
+template = Template(name="review", prompt="Review $topic: $input", system="Role $role",
+ defaults={"topic":"code","role":"reviewer"}, options={"temperature":0.5},
+ attachment_types=[{"type":"text/plain","value":"notes.txt"}])
+assert template.vars() == {"topic","input","role"}
+assert template.evaluate("body") == ("Review code: body","Role reviewer")
+params = {"topic":"tests"}
+assert template.evaluate("body", params) == ("Review tests: body","Role reviewer")
+assert params == {"topic":"tests","input":"body","role":"reviewer"}
+assert template.attachment_types == [AttachmentType(type="text/plain",value="notes.txt")]
+assert template._functions_is_trusted is False
+assert template.model_dump()["name"] == "review"
+assert Template(name="system",system="Role $input").evaluate("user") == ("user","Role user")
+assert Template(name="empty",prompt="").evaluate("user") == ("user",None)
+assert Template.interpolate(None,{}) is None
+assert Template.interpolate("",{}) == ""
+assert Template.interpolate("$$ $value",{"value":3}) == "$ 3"
+assert Template.extract_vars(string.Template("$x $x $" + "{braced} $$")) == ["x","x"]
+try:
+ Template(name="missing",prompt="$value").evaluate("")
+ raise AssertionError("missing template variable accepted")
+except Template.MissingVariables as error:
+ assert str(error) == "Missing variables: value"
+from pydantic import ValidationError
+for values in [{"name":"bad","extra":True},{"name":"bad","_functions_is_trusted":True}]:
+ try:
+  Template(**values)
+  raise AssertionError("template accepted extra fields")
+ except ValidationError:
+  pass
+`;
+  const globals = new Map<string, unknown>();
+  let source: unknown;
+  let registration = '';
+  installPythonLlmModule({globals,runPython(value) {source=globals.get('_safe_llm_source');registration=value;}});
+  for (const [python, setup] of [
+    [testPython, bundledSetup],
+    ...(process.env.LLM_REFERENCE_PYTHON ? [[process.env.LLM_REFERENCE_PYTHON, '']] : []),
+  ]) {
+    const result = spawnSync(python!, ['-B','-c',setup + program], {
+      input:setup === bundledSetup ? JSON.stringify({source,registration}) : undefined,
+      encoding:'utf8',timeout:5000,
+    });
+    assert.ifError(result.error);
+    assert.equal(result.status,0,result.stdout+result.stderr);
+  }
+});

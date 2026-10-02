@@ -297,6 +297,17 @@ except CalledProcessError as error:
 assert call('identity', 'still-live') == 'still-live'
 import llm
 from pydantic import BaseModel, ConfigDict, ValidationError
+from llm.templates import Template
+from llm.models import Tool
+from llm.utils import Fragment
+from llm.errors import ModelError, NeedsKeyException
+assert Template is llm.Template and Tool is llm.Tool
+assert issubclass(NeedsKeyException, ModelError)
+template = Template(name='worker', prompt='Review $topic: $input', defaults={'topic':'code'})
+assert template.evaluate('body') == ('Review code: body', None)
+assert template.vars() == {'topic','input'}
+fragment = Fragment('reference-fragment', source='worker')
+assert fragment.source == 'worker' and len(fragment.id()) == 64
 class ReferenceOptions(llm.Options):
  model_config = ConfigDict(extra='forbid')
  temperature: float | None = None
@@ -397,7 +408,7 @@ assert model.supports_schema and model.attachment_types == {'text/plain'}
 assert model.prompt('reference-inline', attachments=[llm.Attachment(type='text/plain', content=bytes([0,255,128]))]).text() == 'reference-inline'
 assert llm.get_async_model('fake').supports_schema
 assert model.prompt('reference-schema', schema=llm.schema_dsl('name, age int')).text() == 'reference-schema'
-fragment_response = llm.get_model('fake').prompt('body', fragments=['reference-fragment'], system_fragments=['  first  '], system=' second ')
+fragment_response = llm.get_model('fake').prompt('body', fragments=[fragment], system_fragments=['  first  '], system=' second ')
 assert fragment_response.text() == 'reference-fragment' + chr(10) + 'body'
 assert fragment_response.text_or_raise() == str(fragment_response)
 assert fragment_response.duration_ms() >= 0

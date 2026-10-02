@@ -1,3 +1,4 @@
+import { pythonLlmTemplateModule } from "./llm-template-module.js";
 import { pythonLlmToolsModule } from "./llm-tools-module.js";
 
 /** Public Python calling conventions over the invocation-owned internal client. */
@@ -13,6 +14,8 @@ from pydantic import BaseModel, ConfigDict, Field, create_model
 import poe_llm as _core
 
 Error = _core.LlmError
+
+${pythonLlmTemplateModule}
 
 
 class Options(BaseModel):

@@ -72,6 +72,28 @@ host message channel and share attachment input accounting with canonical files;
 large inputs should use canonical paths to avoid buffered copies. URL prompt
 attachments are not yet supported by this adapter.
 
+Use llm.Template for reusable Python prompt templates. Its typed fields match
+the reference library, evaluate(input, params) interpolates prompt and system
+strings with defaults, and vars() reports named variables. Missing named values
+raise Template.MissingVariables; templates reject unknown fields. Inline functions
+remain untrusted data and are never executed by template evaluation.
+
+```python
+template = llm.Template(
+    name="review",
+    prompt="Review $topic: $input",
+    defaults={"topic": "code"},
+)
+prompt, system = template.evaluate("print('hello')")
+response = llm.get_model("your-model").prompt(prompt, system=system)
+```
+
+llm.Fragment("content", source="notes.md") preserves a source label and exposes
+a SHA-256 id while remaining a normal string for prompt and system fragments.
+Implemented public values are also importable from llm.models, llm.templates,
+llm.utils and llm.errors. These modules share the same class identities as the
+top-level llm exports and are bundled without runtime file installation.
+
 Use `llm.schema_dsl("name, age int")` to build a schema with the shared
 parser, or pass `multi=True` for an array under the items property. Pass the
 result as `schema=` to a model prompt.

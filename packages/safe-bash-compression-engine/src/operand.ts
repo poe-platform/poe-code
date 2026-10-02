@@ -5,7 +5,13 @@ import type { CompressionOptions } from "./options.js";
 import { transform, type DecodedBudget } from "./stream.js";
 
 export async function runOperand(context: CommandContext, plan: Operand, options: CompressionOptions, budget: DecodedBudget): Promise<boolean> {
-  if (plan.destination) return writeFileOperand(context, plan, options, budget);
+  if (plan.destination) {
+    try {
+      return await writeFileOperand(context, plan, options, budget);
+    } finally {
+      await new Promise<void>(resolve => setImmediate(resolve));
+    }
+  }
   const operation = new FileOperation(context);
   try {
     await operation.run(() => unchangedSource({ ...context, fs: operation.fs, signal: operation.signal }, plan));
@@ -16,5 +22,9 @@ export async function runOperand(context: CommandContext, plan: Operand, options
         if (!options.test) await writeBytes(context.stdout, chunk, signal);
       }
     }, { ...options, force: options.force && (options.stdout || options.test || plan.source === "-") }, operation.signal, Infinity, budget));
-  } finally { await operation.close(); context.signal.throwIfAborted(); }
+  } finally {
+    await operation.close();
+    await new Promise<void>(resolve => setImmediate(resolve));
+    context.signal.throwIfAborted();
+  }
 }

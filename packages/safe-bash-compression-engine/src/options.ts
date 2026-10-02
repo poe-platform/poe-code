@@ -47,7 +47,7 @@ export interface ZstdOptions {
 export const formats = {
   gzip: { suffix: ".gz", level: 6, minimumLevel: 1, keep: false },
   bzip2: { suffix: ".bz2", level: 9, minimumLevel: 1, keep: false },
-  xz: { suffix: ".xz", level: 3, minimumLevel: 0, keep: false },
+  xz: { suffix: ".xz", level: 1, minimumLevel: 0, keep: false },
   zstd: { suffix: ".zst", level: 3, minimumLevel: 1, keep: true },
 } as const;
 

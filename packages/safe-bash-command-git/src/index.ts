@@ -61,7 +61,7 @@ function scheduleGitExportsIdleEviction(): void {
   }
   defaultGitExportsIdleTimer = setTimeout(() => {
     defaultGitExportsIdleTimer = undefined;
-    if (!defaultGitExportsBusy && cachedDefaultGitExports && cachedDefaultGitExports.memory.buffer.byteLength > 4 * 1024 * 1024) {
+    if (!defaultGitExportsBusy && cachedDefaultGitExports) {
       cachedDefaultGitExports = undefined;
     }
   }, 10);
@@ -83,7 +83,7 @@ function acquireDefaultGitExports(): { exports: GitExports; release(failed?: boo
           if (cachedDefaultGitExports === exports) {
             cachedDefaultGitExports = undefined;
           }
-        } else if (exports.memory.buffer.byteLength > 4 * 1024 * 1024) {
+        } else {
           scheduleGitExportsIdleEviction();
         }
         defaultGitExportsBusy = false;

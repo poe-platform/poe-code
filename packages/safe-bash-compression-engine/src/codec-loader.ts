@@ -88,11 +88,33 @@ export async function createCodec(
   const close = (): void => {
     const closing = module;
     module = undefined;
-    closing?.bridge_destroy();
+    if (closing) {
+      closing.bridge_destroy();
+      const buf = closing.memory.buffer as ArrayBuffer & { transfer?: (newByteLength?: number) => ArrayBuffer };
+      setImmediate(() => {
+        try {
+          buf.transfer?.(0);
+        } catch {
+          // ignore if buffer is already detached
+        }
+      }).unref?.();
+    }
   };
   try {
     module._initialize?.();
     const custom = options.format === "xz" && (options.xzFormat === "raw" || options.xzFilters !== undefined);
+    if (options.format === "xz" && !options.decompress && !custom && !lzma && options.level === 1) {
+      const initialBuf = module.memory.buffer as ArrayBuffer & { transfer?: (newByteLength?: number) => ArrayBuffer };
+      const currentPages = initialBuf.byteLength >>> 16;
+      if (currentPages < 156) {
+        (module.memory as unknown as { grow: (pages: number) => number }).grow(156 - currentPages);
+        try {
+          initialBuf.transfer?.(0);
+        } catch {
+          // ignore if buffer is already detached
+        }
+      }
+    }
     if (custom) new Uint8Array(module.memory.buffer, module.bridge_input(), filterBytes.length).set(filterBytes);
     const initialized = custom
       ? module.bridge_create_filters?.(Number(options.decompress), module.bridge_input(), Number(options.xzFormat === "raw"), Number(options.xzFormat === "lzma"), options.xzCheck ?? 4, memoryLimit >>> 0, Math.floor(memoryLimit / 0x100000000), Number(options.xzNoAdjust === true), Number(options.xzIgnoreCheck === true))

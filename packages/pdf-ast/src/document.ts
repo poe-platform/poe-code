@@ -320,7 +320,7 @@ export class PdfDocument {
         dictSet(
           clonedPageDict,
           "MediaBox",
-          cosArray([cosNumber(0), cosNumber(0), cosNumber(size.width), cosNumber(size.height)])
+          cosArray(srcPage.getMediaBox().map(value => cosNumber(value)))
         );
       }
       if (!dictGet(clonedPageDict, "Resources")) {

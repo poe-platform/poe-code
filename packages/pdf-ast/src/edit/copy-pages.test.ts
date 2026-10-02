@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PdfDocument, cosArray, cosDict, cosName, dictGet, dictSet } from "../index.js";
+import { PdfDocument, cosArray, cosDict, cosName, cosNumber, dictDelete, dictGet, dictSet } from "../index.js";
 
 function sourceDocument() {
   const doc = PdfDocument.create();
@@ -8,6 +8,16 @@ function sourceDocument() {
 }
 
 describe("copying pages", () => {
+  it("retains all inherited MediaBox coordinates when copying pages", () => {
+    const source = PdfDocument.load(sourceDocument().save());
+    const page = source.getPage(0);
+    const parent = source.cos.resolveDict(dictGet(page.pageDict, "Parent"))!;
+    dictSet(parent, "MediaBox", cosArray([10, 20, 210, 220].map(value => cosNumber(value))));
+    dictDelete(page.pageDict, "MediaBox");
+    const target = PdfDocument.create();
+    target.copyPagesFrom(source, [0]);
+    expect(PdfDocument.load(target.save()).getPage(0).getMediaBox()).toEqual([10, 20, 210, 220]);
+  });
   it.each(["raw", "drawing"])("keeps repeated %s edits from retaining obsolete stream objects", mode => {
     const doc = sourceDocument();
     const page = doc.getPage(0);

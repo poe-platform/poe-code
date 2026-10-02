@@ -75,11 +75,7 @@ function numberText(raw: string): string {
 
 export interface SchemaJsonOptions {indent?:number|null;linePrefix?:string;trailingNewline?:boolean;compact?:boolean}
 
-/** Format admitted JSON controls without retaining the expanded ASCII output. */
-export async function* schemaJsonChunks(text:string,signal:AbortSignal,options:SchemaJsonOptions={}):AsyncIterable<string>{
- const indent=options.compact?null:options.indent===undefined?2:options.indent;
- const prefix=options.linePrefix??'',root=parse(text,signal);
- function* string(value:string):Generator<string>{
+export function* pythonJsonStringChunks(value:string,signal:AbortSignal):Generator<string>{
   let output='"';
   for(let index=0;index<value.length;index++){
    const code=value.charCodeAt(index),char=value[index]!;
@@ -89,15 +85,20 @@ export async function* schemaJsonChunks(text:string,signal:AbortSignal,options:S
   }
   yield output+'"';
  }
+
+/** Format admitted JSON controls without retaining the expanded ASCII output. */
+export async function* schemaJsonChunks(text:string,signal:AbortSignal,options:SchemaJsonOptions={}):AsyncIterable<string>{
+ const indent=options.compact?null:options.indent===undefined?2:options.indent;
+ const prefix=options.linePrefix??'',root=parse(text,signal);
  function* render(value:Value,depth:number):Generator<string>{
   signal.throwIfAborted();
-  if(typeof value==='string'){yield* string(value);return;}
+  if(typeof value==='string'){yield* pythonJsonStringChunks(value,signal);return;}
   if(value===null||typeof value==='boolean'){yield String(value);return;}
   if(!(value instanceof Map)&&!Array.isArray(value)){yield numberText(value.number);return;}
   const object=value instanceof Map;yield object?'{':'[';let count=0;
   for(const [key,child]of value.entries()){
    yield indent===null?(count++?(options.compact?',':', '):''):(count++?',\n':'\n')+prefix+' '.repeat(indent*(depth+1));
-   if(object){yield* string(String(key));yield options.compact?':':': ';}
+   if(object){yield* pythonJsonStringChunks(String(key),signal);yield options.compact?':':': ';}
    yield* render(child,depth+1);
   }
   if(count&&indent!==null)yield '\n'+prefix+' '.repeat(indent*depth);

@@ -109,3 +109,18 @@ test('a committed history write returns cleanup errors without hiding its public
  assert.match(String(receipt.cleanupErrors[0]),/retirement failed/);
  assert.deepEqual(await rows(backing,'SELECT id FROM responses',['text']),[['response']]);
 });
+
+test('tool definitions and response links participate in the same atomic history publication',async()=>{
+ const fs=new MemoryFileSystem();
+ const tools=()=>({async *[Symbol.asyncIterator](){yield {name:'lookup',inputSchemaJson:'{"type":"object"}'};}});
+ await persistLlmHistoryResponse(options(fs),{...input(),tools:tools()});
+ const second=input();second.response.id='second';
+ await persistLlmHistoryResponse(options(fs),{...second,tools:tools()});
+ assert.deepEqual(await rows(fs,'SELECT name,input_schema FROM tools',['text','text']),[['lookup','{"type": "object"}']]);
+ assert.deepEqual(await rows(fs,'SELECT tool_id,response_id FROM tool_responses ORDER BY response_id',['integer','text']),[[1n,'response'],[1n,'second']]);
+ const before=await fs.readFile('/logs.db');
+ const third=input();third.response.id='third';
+ const failed={async *[Symbol.asyncIterator](){yield {name:'other',inputSchemaJson:'{}'};throw new Error('tool source failed');}};
+ await assert.rejects(persistLlmHistoryResponse(options(fs),{...third,tools:failed}),/tool source failed/);
+ assert.deepEqual(await fs.readFile('/logs.db'),before);
+});

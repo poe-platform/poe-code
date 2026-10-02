@@ -8,6 +8,7 @@ import {prepareLlmResponseRecord,type LlmResponseRecord} from './history-respons
 import {prepareLlmFragmentRecord} from './history-fragment-record.js';
 import {writeLlmHistoryAttachments,type LlmHistoryAttachment} from './history-attachments.js';
 import {withSqliteStatement} from './sqlite-statement.js';
+import {prepareLlmToolRecord,type LlmHistoryTool} from './history-tool-record.js';
 import {sqliteSourceChunks} from './sqlite-stream.js';
 
 export interface LlmHistoryFragment {
@@ -23,6 +24,7 @@ export interface LlmHistoryPersistenceInput {
  readonly schemaJson?:string;
  readonly fragments?:AsyncIterable<LlmHistoryFragment>;
  readonly attachments?:AsyncIterable<LlmHistoryAttachment>;
+ readonly tools?:AsyncIterable<LlmHistoryTool>;
 }
 
 /** Internal persistence composition, not the provider-facing logger. The caller
@@ -50,6 +52,18 @@ export async function persistLlmHistoryResponse(
      const result=await prepareLlmFragmentRecord(session,fragment,signal);
      await withSqliteStatement(session.module,{...session,signal,sql:`INSERT INTO ${kind}_fragments(response_id,fragment_id,"order") VALUES(?,?,?)`},async link=>{
       for await(const unused of link.rows([response.id,result.id,order[kind]++],[]))void unused;
+     });
+     return result;
+    });
+    if(prepared.finalize)await prepared.finalize(editor);
+   }
+  }
+  if(input.tools){
+   for await(const tool of sqliteSourceChunks(input.tools,signal)){
+    const prepared=await editor.withSession(async session=>{
+     const result=await prepareLlmToolRecord(session,tool,signal);
+     await withSqliteStatement(session.module,{...session,signal,sql:'INSERT INTO tool_responses(tool_id,response_id) VALUES(?,?)'},async link=>{
+      for await(const unused of link.rows([result.id,response.id],[]))void unused;
      });
      return result;
     });

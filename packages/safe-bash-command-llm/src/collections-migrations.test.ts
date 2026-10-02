@@ -41,10 +41,34 @@ for(const version of [1,2,3,4])test(`migrates reference embedding schema ${versi
   await withSqliteStatement(session.module,{...session,signal,sql:"SELECT count(*) FROM pragma_foreign_key_list('embeddings')"},async query=>{
    for await(const [count]of query.rows([],['integer']))assert.equal(count,1n);
   });
+  await withSqliteStatement(session.module,{...session,signal,sql:'PRAGMA integrity_check'},async query=>{
+   for await(const [result]of query.rows([],['text']))assert.equal(result,'ok');
+  });
  });
  const before=await fs.readFile('/embeddings.db');
  await withLlmCollections(options(fs),async()=>{});
  assert.deepEqual(await fs.readFile('/embeddings.db'),before);
+});
+
+test('streamed migration handles empty records and serial-varint padding boundaries',async()=>{
+ const fs=new MemoryFileSystem();const sizes=[0,1,50,57,58,63,64,8120,8191,8192];
+ await transactSqlite(options(fs),async session=>{
+  await seed(session,1);await session.execute('DELETE FROM embeddings');
+  for(const size of sizes)await session.execute(`INSERT INTO embeddings(collection_id,id,embedding,content,metadata) VALUES(7,'${size}',X'',CAST(zeroblob(${size}) AS TEXT),NULL)`);
+  await session.execute("INSERT INTO embeddings(rowid,collection_id,id) VALUES(-9223372036854775808,7,'first'),(9223372036854775807,7,'last')");
+ });
+ let tick=0;
+ await withLlmCollections({...options(fs),now:()=>new Date(1790899200000+tick++)},async()=>{});
+ await transactSqlite(options(fs),async session=>{
+  await withSqliteStatement(session.module,{...session,signal,sql:"SELECT id,hex(content_hash) FROM embeddings WHERE id NOT IN ('first','last')"},async query=>{
+   let rows=0;
+   for await(const [id,hash]of query.rows([],['text','text'])){rows++;assert.equal(hash,createHash('md5').update(new Uint8Array(Number(id))).digest('hex').toUpperCase());}
+   assert.equal(rows,sizes.length);
+  });
+  await withSqliteStatement(session.module,{...session,signal,sql:'PRAGMA integrity_check'},async query=>{
+   for await(const [result]of query.rows([],['text']))assert.equal(result,'ok');
+  });
+ });
 });
 
 test('a failed collection callback rolls back migration and original bytes',async()=>{

@@ -4,4 +4,6 @@ export {withSqliteStatement, type SqliteStatement, type SqliteBinding, type Sqli
 export {readSqliteBlob} from './sqlite-blob-read.js';
 export {writeSqliteBlob} from './sqlite-blob.js';
 export {sqliteRecord, type SqliteRecordValue} from './sqlite-record.js';
+export {readSqliteRecord} from './sqlite-record-read.js';
+export type {SqliteEditSnapshot} from './sqlite-edit-snapshot.js';
 export type {SqliteFinalizer} from './sqlite-finalization.js';

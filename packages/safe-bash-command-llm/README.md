@@ -21,8 +21,9 @@ preserves its model; `catalog.delete(name)` atomically deletes it and its embedd
 New databases use the pinned embedding schema. Reference embedding schemas from
 each earlier migration upgrade atomically, preserving content, vectors, metadata,
 existing timestamps, indexes and triggers. Content hashes use incremental MD5;
-the native SQLite table rebuild still needs bounded-memory qualification for large
-records. Embedding writes, batch imports, similarity and collection CLI commands
+reference-schema rows migrate through caller-backed snapshots and streamed record
+rewrites instead of native whole-record copies. Extra caller indexes remain native
+SQLite operations. Embedding writes, batch imports, similarity and collection CLI commands
 remain incomplete.
 This optional catalog does not store conversation or response history.
 

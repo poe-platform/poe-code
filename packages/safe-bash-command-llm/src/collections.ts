@@ -1,5 +1,5 @@
 import {FsError, type FileSystem} from 'safe-bash-contracts';
-import {transactSqlite,withSqliteStatement,type PrivateSqliteSession} from 'safe-bash-sqlite-engine/storage';
+import {transactSqlite,withSqliteStatement,type PrivateSqliteSession,type SqliteFinalizer} from 'safe-bash-sqlite-engine/storage';
 import {migrateLlmCollections} from './collections-migrations.js';
 
 export interface LlmCollection {readonly id:bigint;readonly name:string;readonly model:string}
@@ -20,7 +20,7 @@ const schema=[
  'CREATE INDEX [idx_embeddings_content_hash] ON [embeddings] ([content_hash])',
 ];
 
-async function initialize(session:PrivateSqliteSession,signal:AbortSignal,now:()=>Date):Promise<void>{
+async function initialize(session:PrivateSqliteSession,signal:AbortSignal,now:()=>Date):Promise<((editor:SqliteFinalizer)=>Promise<void>)|undefined>{
  const tables:string[]=[];
  await withSqliteStatement(session.module,{...session,signal,sql:"SELECT name FROM sqlite_schema WHERE type='table' AND name IN ('collections','embeddings')"},async query=>{
   for await(const [name]of query.rows([],['text']))tables.push(name as string);
@@ -39,8 +39,9 @@ async function initialize(session:PrivateSqliteSession,signal:AbortSignal,now:()
    for await(const [name]of query.rows([],['text']))columns.push(name as string);
   });
   if(tables.length!==2)throw new Error('Incomplete embedding database schema');
-  if(columns.join(',')!=='collection_id,id,embedding,content,content_blob,content_hash,metadata,updated')await migrateLlmCollections(session,signal,now,columns,schema[3]!,migrations);
+  if(columns.join(',')!=='collection_id,id,embedding,content,content_blob,content_hash,metadata,updated')return migrateLlmCollections(session,signal,now,columns,schema[3]!,migrations);
  }
+ return undefined;
 }
 
 /** Callback-scoped collection catalog over the caller's retained SQLite storage.
@@ -52,8 +53,7 @@ export async function withLlmCollections<T>(options:{
  readonly now:()=>Date;
 },operation:(catalog:LlmCollectionCatalog)=>Promise<T>){
  const {signal}=options;
- return transactSqlite(options,async session=>{
-  await initialize(session,signal,options.now);
+ const execute=async(session:PrivateSqliteSession):Promise<T>=>{
   let active=true,pending:Promise<unknown>|undefined,failed=false,failure:unknown;
   const run=<V>(action:()=>Promise<V>):Promise<V>=>{
    if(!active)return Promise.reject(new FsError('EBADF',{message:'Collection catalog is closed'}));
@@ -103,5 +103,19 @@ export async function withLlmCollections<T>(options:{
   if(errors.length===1)throw errors[0];
   if(errors.length)throw new AggregateError(errors,'Collection callback and admitted operation failed');
   return value;
+ };
+ let migration:((editor:SqliteFinalizer)=>Promise<void>)|undefined,value!:T;
+ const receipt=await transactSqlite({...options,async finalize(editor){
+  if(!migration)return;
+  await migration(editor);
+  await editor.withSession(async session=>{
+   await session.execute('BEGIN IMMEDIATE');
+   value=await execute(session);
+   await session.execute('COMMIT');
+  });
+ }},async session=>{
+  migration=await initialize(session,signal,options.now);
+  if(!migration)value=await execute(session);
  });
+ return {...receipt,value};
 }

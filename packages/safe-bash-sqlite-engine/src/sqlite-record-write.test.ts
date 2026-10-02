@@ -10,6 +10,50 @@ import { readSqliteBlob } from './sqlite-blob-read.js';
 const signal=new AbortController().signal;
 const repeat=(size:number,byte:number)=>({async *[Symbol.asyncIterator](){for(let offset=0;offset<size;offset+=16384)yield new Uint8Array(Math.min(16384,size-offset)).fill(byte);}});
 
+test('cancellation interrupts a stalled batch producer and rolls back publication',async()=>{
+ const fs=new MemoryFileSystem(),controller=new AbortController(),reason=new Error('cancelled');
+ let admitted!:()=>void,closed=false;
+ const ready=new Promise<void>(resolve=>{admitted=resolve;});
+ await assert.rejects(transactSqlite({fs,path:'/data.db',signal:controller.signal,maxFileBytes:1048576,maxIndexBytes:1048576,maxOpenFiles:16,async finalize(editor){
+  const writing=editor.rewriteRecords({[Symbol.asyncIterator](){return {
+   next(){admitted();return new Promise<IteratorResult<never>>(()=>{});},
+   async return(){closed=true;return {done:true as const,value:undefined};},
+  };}});
+  await ready;controller.abort(reason);await writing;
+ }},async session=>session.execute('CREATE TABLE sample(value)')),error=>error===reason);
+ assert.equal(closed,true);
+ assert.deepEqual(await fs.readdir('/'),[]);
+});
+
+test('batch rewrites copy the private database once instead of once per row',async()=>{
+ const memory=new MemoryFileSystem();let written=0,root=0;
+ const fs=new Proxy(memory,{get(target,key){
+  if(key==='open')return async(...args:Parameters<NonNullable<FileSystem['open']>>)=>{
+   const file=await target.open(...args);return new Proxy(file,{get(descriptor,member){
+    if(member==='write')return async(bytes:Uint8Array,position:number,controls?:{signal?:AbortSignal})=>{written+=bytes.length;return descriptor.write(bytes,position,controls);};
+    const value=Reflect.get(descriptor,member,descriptor);return typeof value==='function'?value.bind(descriptor):value;
+   }});
+  };
+  const value=Reflect.get(target,key,target);return typeof value==='function'?value.bind(target):value;
+ }}) as FileSystem;
+ await transactSqlite({fs,path:'/data.db',signal,maxFileBytes:2097152,maxIndexBytes:1048576,maxOpenFiles:16,async finalize(editor){
+  written=0;
+  await editor.rewriteRecords({async *[Symbol.asyncIterator](){
+   for(let rowid=1n;rowid<=32n;rowid++)yield {rootPage:root,rowid,record:sqliteRecord([{type:'text',size:20000,bytes:repeat(20000,65)}])};
+  }});
+  assert.ok(written<2000000,`batch wrote ${written} bytes`);
+  await editor.withSession(async session=>withSqliteStatement(session.module,{...session,signal,sql:'SELECT count(*) FROM sample WHERE typeof(value)=\'text\''},async query=>{
+   for await(const [count]of query.rows([],['integer']))assert.equal(count,32n);
+  }));
+ }},async session=>{
+  await session.execute('CREATE TABLE sample(value TEXT)');
+  for(let index=0;index<32;index++)await session.execute('INSERT INTO sample VALUES(zeroblob(20000))');
+  await withSqliteStatement(session.module,{...session,signal,sql:"SELECT rootpage FROM sqlite_schema WHERE name='sample'"},async query=>{
+   for await(const [page]of query.rows([],['integer']))root=Number(page);
+  });
+ });
+});
+
 test('private record rewrites persist native TEXT without allocating complete field values',async()=>{
  const memory=new MemoryFileSystem();await memory.mkdir('/out');let transfers=0;
  const fs=new Proxy(memory,{get(target,key){

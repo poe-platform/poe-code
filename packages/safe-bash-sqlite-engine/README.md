@@ -57,5 +57,13 @@ SQL and aggregate scalar bindings are limited to 64 KiB. Use `writeSqliteBlob()`
 and `readSqliteBlob()` for large values. A transaction's optional `finalize`
 callback can rewrite a known row using streamed `sqliteRecord()` fields, then
 validate it through a native session before publication; the caller must preserve
-the row's indexes and constraints. This is storage infrastructure and defines no
+the row's indexes and constraints. `editor.rewriteRecords(records)` accepts an
+async iterable and copies its destination snapshot once for the complete batch.
+Use `editor.withSnapshot(async (source, target) => ...)` to retain an immutable
+source while the nested target editor creates or rewrites rows. Find records with
+`source.findRecord(rootPage, rowid, "at-or-after")`; `readSqliteRecord(record,
+{ signal, maxColumns })` decodes bounded headers/scalars and leaves TEXT/BLOB
+fields as replayable byte streams. Source records and streams expire with the
+callback. Keep reads and target operations serialized and await every operation.
+This is storage infrastructure and defines no
 application schema, migrations or logging behavior.

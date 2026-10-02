@@ -1,14 +1,20 @@
 import { FsError } from 'safe-bash-contracts';
 import { withPrivateSqliteSession, type PrivateSqliteSession } from './sqlite-session.js';
-import { rewriteSqliteRecord } from './sqlite-record-write.js';
+import { rewriteSqliteRecords,type SqliteRecordRewrite } from './sqlite-record-write.js';
 import type { SqliteFileSystem } from './safe-fs.js';
 import type { sqliteRecord } from './sqlite-record.js';
+import {withSqliteEditSnapshot,type SqliteEditSnapshot} from './sqlite-edit-snapshot.js';
 
 export interface SqliteFinalizer {
  /** Equal-sized private placeholder rewrite; caller owns index/trigger semantics. */
  rewriteRecord(options: {rootPage: number; rowid: bigint; record: ReturnType<typeof sqliteRecord>}): Promise<void>;
+ /** Rewrite a streamed batch using one immutable destination snapshot. */
+ rewriteRecords(records:AsyncIterable<SqliteRecordRewrite>):Promise<void>;
  /** Reopen a native connection only after all earlier rewrites have completed. */
  withSession<T>(operation: (session: PrivateSqliteSession) => Promise<T>): Promise<T>;
+ /** Read an immutable source while a nested editor changes the private target.
+  * Source records/streams expire when this callback closes. */
+ withSnapshot(operation:(source:SqliteEditSnapshot,editor:SqliteFinalizer)=>Promise<void>):Promise<void>;
 }
 
 /** Serialize closed-file edits and native validation. Even a caught or unawaited
@@ -31,8 +37,10 @@ export async function finalizeSqlite(options: {
  };
  try{
   await operation({
-   rewriteRecord(record){const owned={rootPage:record.rootPage,rowid:record.rowid,record:{...record.record}};return run(()=>rewriteSqliteRecord({...options,...owned}));},
+   rewriteRecord(record){const owned={rootPage:record.rootPage,rowid:record.rowid,record:{...record.record}};return run(()=>rewriteSqliteRecords({...options,records:{async *[Symbol.asyncIterator](){yield owned;}}}));},
+   rewriteRecords(records){return run(()=>rewriteSqliteRecords({...options,records}));},
    withSession(callback){return run(()=>withPrivateSqliteSession(options,callback));},
+   withSnapshot(callback){return run(()=>withSqliteEditSnapshot(options,source=>finalizeSqlite(options,editor=>callback(source,editor))));},
   });
  }catch(error){remember(error);}
  accepting=false;

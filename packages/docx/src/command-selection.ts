@@ -20,6 +20,9 @@ export function validateDocxSelection(operation: string, options: Readonly<Recor
   const action = pieces.at(-1)!;
   const target = resourceSelectors[resource];
   const token = has("select");
+  if (operation === "runs.set" && has("paragraph") && !has("run") && !token && options.all === undefined) {
+    (options as Record<string, unknown>).all = true;
+  }
   const all = options.all === true;
   const selected = ordinalSelectors.filter(has);
 

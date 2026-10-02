@@ -75,3 +75,8 @@ it.each([
 ])("rejects inapplicable or incomplete selection chains: %j", (...words) => {
   expect(() => parse(...words)).toThrow(DocxUsageError);
 });
+
+it("defaults runs.set with --paragraph N and no --run to all runs in that paragraph", () => {
+  const parsed = parse("runs", "set", "file", "--paragraph", "1", "--size", "22pt", "--bold", "true", "--dry-run");
+  expect(parsed.options).toMatchObject({ paragraph: 1, all: true, bold: true });
+});

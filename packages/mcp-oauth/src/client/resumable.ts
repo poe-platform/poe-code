@@ -29,6 +29,7 @@ export interface RemoteMcpAuthorizationStore {
 export interface PrepareRemoteMcpAuthorizationOptions {
   readonly resource: string;
   readonly redirectUri: string;
+  /** Consent preparation needs only public client identity; a durable host may load the secret at exchange. */
   readonly client: StoredOAuthClient;
   readonly scope?: string;
   /** Optional routing hint; entropy always comes from a fresh 256-bit nonce. */
@@ -83,7 +84,6 @@ export async function prepareRemoteMcpAuthorization(options: PrepareRemoteMcpAut
     if (typeof client.clientId !== "string" || !client.clientId.trim()) throw new Error();
     const method = normalizeOAuthTokenEndpointAuthMethod(client.tokenEndpointAuthMethod) ?? (client.clientSecret === undefined ? "none" : "client_secret_post");
     if (client.clientSecret !== undefined && (typeof client.clientSecret !== "string" || !client.clientSecret.trim())) throw new Error();
-    if (method !== "none" && client.clientSecret === undefined) throw new Error();
     if (client.registration !== undefined && (client.registration.client_id !== client.clientId ||
       (client.registration.client_secret != null && client.registration.client_secret !== client.clientSecret) ||
       (client.registration.token_endpoint_auth_method != null && client.registration.token_endpoint_auth_method !== method))) throw new Error();
@@ -127,6 +127,8 @@ export async function prepareRemoteMcpAuthorization(options: PrepareRemoteMcpAut
 export async function beginRemoteMcpAuthorization(options: BeginRemoteMcpAuthorizationOptions): Promise<{ authorizationUrl: string; expiresAt: number }> {
   try {
     const { store, signal } = options;
+    const method = normalizeOAuthTokenEndpointAuthMethod(options.client.tokenEndpointAuthMethod);
+    if (method !== undefined && method !== "none" && options.client.clientSecret === undefined) throw new Error();
     const { authorizationUrl, transaction } = await prepareRemoteMcpAuthorization(options);
     signal?.throwIfAborted();
     await store.create(transaction);

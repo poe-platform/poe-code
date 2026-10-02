@@ -58,3 +58,13 @@ it("keeps begin's durable create contract and safe public result", async () => {
   expect(new URL(result.authorizationUrl).searchParams.get("state")).toBe(create.mock.calls[0][0].state);
   expect(Object.keys(result).sort()).toEqual(["authorizationUrl", "expiresAt"]);
 });
+
+
+it.each(["client_secret_basic", "client_secret_post"] as const)("prepares %s consent without reading the exchange secret", async tokenEndpointAuthMethod => {
+  const options = { ...fixture(), client: { clientId: "client", tokenEndpointAuthMethod } };
+  const { authorizationUrl, transaction } = await api.prepareRemoteMcpAuthorization(options);
+  expect(new URL(authorizationUrl).searchParams.get("client_id")).toBe("client");
+  expect(transaction.session.client.tokenEndpointAuthMethod).toBe(tokenEndpointAuthMethod);
+  expect(transaction.session.client.clientSecret).toBeUndefined();
+  expect(options.discover).toHaveBeenCalledOnce();
+});

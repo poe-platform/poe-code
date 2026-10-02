@@ -719,7 +719,7 @@ export class Walker {
     syncOnly = false,
     knownEntries?: ReadonlyMap<string, { readonly type: string }>,
   ): boolean | Promise<boolean> | null {
-    if (depth > this.args.maxDepthSmi! && depth > this.args.maxDepth) return true;
+    if (depth >= this.args.maxDepth) return true;
     if (
       path === "/dev" ||
       path.startsWith("/dev/") ||

@@ -919,7 +919,7 @@ Default input depends on shell configuration.
   -B, --before-context=NUM Print NUM lines before matches
   -C, --context=NUM        Print NUM lines before and after matches
   -m, --max-count=NUM      Limit matching lines per file
-      --max-depth=NUM     Limit directory traversal depth
+  -d, --max-depth=NUM     Limit directory traversal depth
       --column            Print columns
   -b, --byte-offset        Print byte offsets
   -0, --null               NUL-terminate filenames

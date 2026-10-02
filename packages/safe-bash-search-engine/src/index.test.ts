@@ -85,3 +85,49 @@ test("literal-only matchers own their pattern bytes", () => {
   new Matcher(second.patterns, second, {} as RegexSession, true, true);
   assert.equal(new TextDecoder().decode(matcher.literalAsciiBytes), "first");
 });
+
+for (const sorted of [true, false]) {
+  for (const syncOnly of sorted ? [true, false] : [false]) {
+    for (const depth of [0, 1, 2, 3]) {
+      test(`walker max depth ${depth}, sorted=${sorted}, syncOnly=${syncOnly}`, async () => {
+        const fs = createMemoryFileSystem();
+        for (const dir of ['/d', '/d/sub', '/d/sub/deep']) {
+          await fs.mkdir(dir);
+          for (const name of sorted ? ['a', 'b'] : ['b', 'a']) {
+            await fs.writeFile(`${dir}/${name}`, new Uint8Array());
+          }
+        }
+        const context = { fs, cwd: '/', signal: new AbortController().signal, _fastMemoryBackingFs: fs } as unknown as CommandContext;
+        const walker = new Walker(context, parse(['--files', '--max-depth', String(depth), '/d']), new Limits(context, {}), async error => { throw error; }, {} as RegexSession);
+        const visited: string[] = [];
+        const result = walker.walkTargetsSyncOrAsync(['/d'], false, target => { visited.push(target.path); return true; }, syncOnly);
+        assert.notEqual(result, null);
+        await result;
+        assert.deepEqual(visited, ['/d', '/d/sub', '/d/sub/deep'].slice(0, depth).flatMap(dir => [`${dir}/a`, `${dir}/b`]));
+      });
+    }
+  }
+}
+
+test('walker sorts Unicode filenames by UTF-8 bytes without Buffer', async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir('/d');
+  for (const name of ['𐀀', '\ue000', 'é', 'a']) await fs.writeFile(`/d/${name}`, new Uint8Array());
+  const context = { fs, cwd: '/', signal: new AbortController().signal, _fastMemoryBackingFs: fs } as unknown as CommandContext;
+  const walker = new Walker(context, parse(['--files', '/d']), new Limits(context, {}), async error => { throw error; }, {} as RegexSession);
+  const visited: string[] = [];
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'Buffer')!;
+  try {
+    Object.defineProperty(globalThis, 'Buffer', { configurable: true, get() { throw new Error('Buffer is unavailable'); } });
+    await walker.walkTargetsSyncOrAsync(['/d'], false, target => { visited.push(target.path); return true; });
+  } finally {
+    Object.defineProperty(globalThis, 'Buffer', original);
+  }
+  assert.deepEqual(visited, ['/d/a', '/d/é', '/d/\ue000', '/d/𐀀']);
+});
+
+for (const flags of [['-d', '2'], ['-d2'], ['--max-depth=2'], ['--maxdepth', '2']]) {
+  test(`depth option spelling: ${flags.join(' ')}`, () => {
+    assert.equal(parse([...flags, 'match', '/d']).maxDepth, 2);
+  });
+}

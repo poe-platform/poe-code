@@ -18,6 +18,9 @@ Braces separate a capture name from following text; unmatched or unknown groups
 expand to empty text. `-o` prints only replacements, and `-U` supports captures
 spanning lines. Output retains UTF-8 bytes and obeys `maxOutputBytes`.
 
+Use `rg -d 1 pattern /dir` (or `--max-depth 1`) to search only files directly
+inside `/dir`. Depth `0` skips directory contents.
+
 The module also exports `createRgCommand`, its command-list factory, and typed options and limits.
 
 Set `RIPGREP_CONFIG_PATH` to a virtual file containing one argument per line.

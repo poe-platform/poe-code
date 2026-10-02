@@ -843,7 +843,7 @@ export class MemoryFileSystem implements FileSystem {
     };
     this._owner = owner;
     ownedStores.set(this, owner);
-    registerLazyMemoryAtomicView(this, memoryImplementation._getAtomicView!.value);
+    registerLazyMemoryAtomicView(this, memoryImplementation._getAtomicView!.value!);
     if (this.compareEntry === memoryImplementation.compareEntry?.value) {
       registeredAuthorities.add(this);
       registerEntryAuthority(this, compareOwnedMemory);

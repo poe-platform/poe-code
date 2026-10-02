@@ -69,3 +69,19 @@ test('Python source requests charge materialized text only once', async () => {
   await capability.call!({operation: 'complete', payload}, {signal: new AbortController().signal});
   assert.equal(calls, 1);
 });
+
+
+test('Python staging respects the explicit total input limit before retaining bytes', async () => {
+  const fs = new MemoryFileSystem();
+  const service = createLlmService({providers: []});
+  const capability = createPythonLlmCapability({fs, cwd: '/'}, service, {maxInputBytes: 5});
+  const options = {signal: new AbortController().signal};
+  const id = await capability.call!({operation: 'input_open'}, options);
+  try {
+    await capability.call!({operation: 'input_write', payload: {id, bytes: [1, 2, 3, 4, 5]}}, options);
+    await assert.rejects(capability.call!({operation: 'input_write', payload: {id, bytes: [6]}}, options), /input byte limit/);
+  } finally {
+    await capability.close!();
+  }
+  assert.deepEqual(await fs.readdir('/'), []);
+});

@@ -76,3 +76,4 @@ export {
 } from "./logging.js";
 
 export { createDashboardLineBuffer, createStreamingDashboardLineBuffer } from "./line-buffer.js";
+export { formatCommandNotFound, formatCommandNotFoundPanel } from "./command-errors.js";

@@ -1,4 +1,6 @@
 use mcp_protocol_rust::json::Value;
+mod command_errors;
+pub use command_errors::*;
 mod table;
 use mcp_protocol_rust_napi_core::convert::NativeJson;
 use napi::bindgen_prelude::*;

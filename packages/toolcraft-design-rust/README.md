@@ -63,6 +63,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `createLogger`, `logger` | Emit coherent terminal, Markdown or JSON messages |
 | `withOutputFormat` | Scope an output format across asynchronous work |
 | `renderTable`, `loggerTableWidth` | Render width-budgeted tables or detail rows in terminal, Markdown and JSON |
+| `formatCommandNotFound`, `formatCommandNotFoundPanel` | Show unknown commands, suggestions and a help hint with consistent styling |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -186,3 +187,10 @@ display-width rules, truncation and wrapping decisions. Node retains ICU graphem
 segmentation, observable array/string methods, theme callbacks and output templates.
 This binding preserves getters, callback receivers and thrown values; native
 resource limits and pathological reentrancy still need replacement qualification.
+
+`formatCommandNotFound({unknownCommand, helpCommand, suggestions})` returns
+`{label, hint}`. `formatCommandNotFoundPanel` accepts an optional `title` and returns
+`{title, label, footer}` for your error panel. Both are also available from
+`toolcraft-design-rust/components/command-errors`. Diagnostic composition and
+defaults live in Rust; styling uses the same mutable text and typography helpers
+as the original package.

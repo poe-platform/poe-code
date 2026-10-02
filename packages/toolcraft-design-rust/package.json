@@ -19,6 +19,10 @@
     "./components/table": {
       "types": "./dist/table.d.ts",
       "import": "./dist/table.js"
+    },
+    "./components/command-errors": {
+      "types": "./dist/command-errors.d.ts",
+      "import": "./dist/command-errors.js"
     }
   },
   "scripts": {

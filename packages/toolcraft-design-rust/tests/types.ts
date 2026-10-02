@@ -120,3 +120,11 @@ const rootTableOwn: Pick<typeof design, "renderTable"> = null as unknown as type
 const tableOptionsOriginal: originalTable.RenderTableOptions = null as unknown as table.RenderTableOptions;
 const tableOptionsOwn: table.RenderTableOptions = null as unknown as originalTable.RenderTableOptions;
 void [tableOriginal, tableOwn, flatTableOriginal, flatTableOwn, rootTableOriginal, rootTableOwn, tableOptionsOriginal, tableOptionsOwn];
+
+import * as diagnostics from "toolcraft-design-rust/components/command-errors";
+import type * as originalDiagnostics from "toolcraft-design/components/command-errors";
+const diagnosticsOriginal: typeof originalDiagnostics = diagnostics;
+const diagnosticsOwn: typeof diagnostics = null as unknown as typeof originalDiagnostics;
+const rootDiagnosticsOriginal: typeof originalDiagnostics = design;
+const rootDiagnosticsOwn: typeof diagnostics = null as unknown as typeof originalDesign;
+void [diagnosticsOriginal, diagnosticsOwn, rootDiagnosticsOriginal, rootDiagnosticsOwn];

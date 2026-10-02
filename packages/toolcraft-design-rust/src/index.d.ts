@@ -88,3 +88,4 @@ export declare function getThemeConfig(): { brand: string; label: string };
 export declare function resetTheme(): void;
 
 export { createDashboardLineBuffer, createStreamingDashboardLineBuffer } from "./line-buffer.js";
+export { formatCommandNotFound, formatCommandNotFoundPanel } from "./command-errors.js";

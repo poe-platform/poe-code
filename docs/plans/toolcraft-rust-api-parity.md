@@ -451,6 +451,17 @@ table borders, truncation, colors and long detail wrapping. The synchronous
 128-entry callback guard and host rendering work still need resource and
 complete replacement qualification. Full design, CLI and transport ports remain open.
 
+Command-not-found diagnostics now have native composition and admission policies
+at the design root and `./components/command-errors`. Node retains observable
+string/array methods, styling callbacks and template coercion. Getter ordering,
+method receivers, immediate coercion, sparse suggestion arrays, arbitrary thrown
+values and nested formatter calls agree with the reference. The original six
+command-panel tests now run against native diagnostics; all 126 selected reference
+tests and 47 native Node tests pass, with strict bidirectional declarations and
+package lint. Ad hoc screenshots cover terminal, Markdown and JSON-mode diagnostic
+strings. The host callback reentrancy guard still needs resource qualification;
+help layout and the remaining design/CLI/transport surface are not yet ported.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

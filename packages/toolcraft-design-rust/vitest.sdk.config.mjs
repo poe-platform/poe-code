@@ -14,6 +14,7 @@ export default defineConfig({
           name.endsWith("/internal/output-format.js")
         ) return path("dist/logging.js");
         if (importer === path("../toolcraft-design/src/components/components.test.ts")) {
+          if (name === "./command-errors.js") return path("dist/command-errors.js");
           if (name === "./table.js") return path("dist/table.js");
           if (name === "./logger.js") return path("dist/logging.js");
           if (name === "./text.js") return path("dist/text.js");

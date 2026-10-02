@@ -14,9 +14,13 @@ export async function run(): Promise<boolean> {
     return new Response(init.method === "HEAD" ? null : bytes, { headers: { "content-length": "3", etag: '"version"' } });
   };
   const transport = createS3HttpTransport({ endpoint: "https://s3.example", region: "us-east-1",
-    credentials: { accessKeyId: "test", secretAccessKey: "secret" } });
+    credentials: { accessKeyId: "test", secretAccessKey: "secret" },
+    maxPutBytes: Infinity, maxGetBytes: Infinity, maxXmlBytes: Infinity });
   const fs = new S3FileSystem({ bucket: "bucket", transport });
   const actual = await fs.readFile("/file");
   if (actual.length !== 3 || actual[2] !== 255 || requests < 1) throw new Error("binary read failed");
+  await transport.putObject({ Bucket: "bucket", Key: "file", Body: bytes });
+  const listing = await transport.listObjectsV2({ Bucket: "bucket" });
+  if (listing.IsTruncated !== false) throw new Error("XML listing failed");
   return true;
 }

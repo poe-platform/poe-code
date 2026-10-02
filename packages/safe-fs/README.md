@@ -357,8 +357,8 @@ Each batch lists from the beginning because previous keys have been deleted; it 
 | `addressingStyle` | `path`; alternative `virtual-hosted` requires a DNS endpoint |
 | `listUrlEncoding` | `percent`; alternative `form` |
 | `allowInsecureHttp` | `false`; HTTPS required unless explicitly enabled |
-| `maxPutBytes`, `maxGetBytes` | Unlimited unless configured |
-| `maxXmlBytes` | Unlimited unless configured |
+| `maxPutBytes`, `maxGetBytes` | Unlimited when omitted or `Infinity`; positive safe integers set byte caps |
+| `maxXmlBytes` | Unlimited when omitted or `Infinity`; positive safe integers set a byte cap |
 | `requestTimeoutMs` | Unlimited unless configured |
 | `enableCopy` | `true`; disabling uses a buffered GET/PUT fallback |
 | `verifiedConditionalOperations` | Optional `put`, `copy`, `delete` booleans, each defaulting to false; enable only after verifying the server's semantics |

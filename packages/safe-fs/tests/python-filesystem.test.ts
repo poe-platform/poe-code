@@ -10,9 +10,10 @@ it.each([undefined, Infinity])("allows transfers beyond 64 KiB with limit %s", a
   const fs = new MemoryFileSystem();
   const data = new Uint8Array(65537).fill(42);
   await fs.writeFile("/data", data);
-  const service = new PythonFileSystem(fs, { cwd: "/", ...(maxTransferBytes === undefined ? {} : { maxTransferBytes }) });
+  const service = new PythonFileSystem(fs, { cwd: "/", maxOpenFiles: Infinity, maxDirectoryEntries: Infinity, ...(maxTransferBytes === undefined ? {} : { maxTransferBytes }) });
   try {
     const handle = await service.dispatch({ op: "open", args: ["/data", { access: "readwrite" }] });
+    expect(await service.dispatch({ op: "readdir", args: ["/"] })).toHaveLength(1);
     expect(await service.dispatch({ op: "read", args: [handle, data.length, 0] })).toEqual(data);
     expect(await service.dispatch({ op: "write", args: [handle, Array.from(data), 0] })).toBe(data.length);
   } finally { await service.close(); }

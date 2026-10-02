@@ -24,7 +24,7 @@ function utf8ByteLength(value: string): number {
 }
 
 function limit(value: number | undefined, fallback: number, name: string, maximum = Number.MAX_SAFE_INTEGER): number {
-  if (value === undefined) return fallback;
+  if (value === undefined || value === Infinity && fallback === Infinity) return fallback;
   const result = value;
   if (!Number.isSafeInteger(result) || result < 1 || result > maximum) invalid(`invalid ${name}`);
   return result;

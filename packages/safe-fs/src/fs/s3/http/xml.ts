@@ -42,7 +42,7 @@ function decodeEntities(text: string): string {
 
 export function parseXml(bytes: Uint8Array, limits: { maxNodes?: number; maxDepth?: number } = {}): XmlNode {
   for (const limit of [limits.maxNodes, limits.maxDepth]) {
-    if (limit !== undefined && (!Number.isSafeInteger(limit) || limit < 1)) throw new RangeError("XML limits must be positive safe integers");
+    if (limit !== undefined && limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new RangeError("XML limits must be positive safe integers or Infinity");
   }
   let xml: string;
   try { xml = new TextDecoder("utf-8", { fatal: true }).decode(bytes); }

@@ -28,3 +28,14 @@ for (const [xml, limits] of [
   assert.equal(parseXml(Buffer.from(xml)).name, "Root");
   assert.throws(() => parseXml(Buffer.from(xml), limits), { code: "InvalidResponse" });
 });
+
+for (const key of ["maxNodes", "maxDepth"] as const) {
+  test(`XML accepts explicit unlimited ${key} while enforcing finite limits`, () => {
+    const xml = Buffer.from("<Root><Child/></Root>");
+    assert.equal(parseXml(xml, { [key]: Infinity }).name, "Root");
+    assert.throws(() => parseXml(xml, { [key]: 1 }), { code: "InvalidResponse" });
+    for (const value of [NaN, -Infinity, -1, 0, 0.5, Number.MAX_SAFE_INTEGER + 1]) {
+      assert.throws(() => parseXml(xml, { [key]: value }), RangeError);
+    }
+  });
+}

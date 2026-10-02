@@ -25,3 +25,22 @@ it("checks metadata and list argument byte limits before requesting credentials"
   await expect(transport.listObjectsV2({ Bucket: "bucket", Prefix: "😀".repeat(2048) + "a" })).rejects.toMatchObject({ code: "InvalidArgument" });
   expect(credentials).toHaveBeenCalledTimes(2);
 });
+
+const transportOptions = {
+  endpoint: "https://example.invalid", region: "us-east-1",
+  credentials: { accessKeyId: "test", secretAccessKey: "test" },
+};
+
+it.each(["maxPutBytes", "maxGetBytes", "maxXmlBytes"] as const)("accepts explicit Infinity for %s", key => {
+  expect(() => createS3HttpTransport({ ...transportOptions, [key]: Infinity })).not.toThrow();
+});
+
+it.each([NaN, -Infinity, -1, 0, 0.5, Number.MAX_SAFE_INTEGER + 1])("rejects invalid HTTP limits %s", value => {
+  for (const key of ["maxPutBytes", "maxGetBytes", "maxXmlBytes", "requestTimeoutMs"]) {
+    expect(() => createS3HttpTransport({ ...transportOptions, [key]: value })).toThrow();
+  }
+});
+
+it("keeps request timeouts finite", () => {
+  expect(() => createS3HttpTransport({ ...transportOptions, requestTimeoutMs: Infinity })).toThrow();
+});

@@ -211,6 +211,10 @@
     "./screen/screen": {
       "types": "./dist/screen.d.ts",
       "import": "./dist/screen.js"
+    },
+    "./screen/ansi-text": {
+      "types": "./dist/ansi-text.d.ts",
+      "import": "./dist/ansi-text.js"
     }
   },
   "scripts": {

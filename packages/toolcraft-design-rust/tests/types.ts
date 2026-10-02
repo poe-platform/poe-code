@@ -462,3 +462,9 @@ const screenSurface: ScreenSurface = new Screen(screenSize);
 const originalScreenSurface: originalScreen.ScreenSurface = screenSurface;
 screenSurface.put(0,0,"ready",{fg:"red",bold:true});
 void [publicScreen,reverseScreen,screenConstructor,nativeScreenArgs,screenCell,originalScreenSurface];
+
+import * as ansiCells from "toolcraft-design-rust/screen/ansi-text";
+import type * as originalAnsiCells from "toolcraft-design/screen/ansi-text";
+const ansiCellsForward:typeof originalAnsiCells=ansiCells;
+const ansiCellsReverse:typeof ansiCells=null as unknown as typeof originalAnsiCells;
+void [ansiCellsForward,ansiCellsReverse];

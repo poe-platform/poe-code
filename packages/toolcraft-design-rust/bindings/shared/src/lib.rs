@@ -1,3 +1,5 @@
+mod ansi_cells;
+pub use ansi_cells::*;
 mod code_highlight;
 mod screen;
 pub use screen::*;

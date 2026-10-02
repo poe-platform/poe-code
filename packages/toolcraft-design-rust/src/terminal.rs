@@ -139,7 +139,7 @@ fn number(v: &[u16]) -> i64 {
         0
     }
 }
-fn params(raw: &[u16]) -> Vec<i64> {
+pub(crate) fn params(raw: &[u16]) -> Vec<i64> {
     raw.split(|c| *c == 59)
         .flat_map(|part| {
             let mut values = part.split(|c| *c == 58).collect::<Vec<_>>();
@@ -150,96 +150,9 @@ fn params(raw: &[u16]) -> Vec<i64> {
         })
         .collect()
 }
-struct Row {
-    cells: Vec<Option<Text>>,
-    column: usize,
-    concealed: bool,
-}
-impl Row {
-    fn clear(&mut self, pos: usize) {
-        if pos >= self.cells.len() {
-            self.cells.resize(pos + 1, None);
-        }
-        if self.cells[pos].as_ref().is_some_and(Vec::is_empty) && pos > 0 {
-            self.cells[pos - 1] = Some(vec![32]);
-        }
-        if self
-            .cells
-            .get(pos + 1)
-            .and_then(Option::as_ref)
-            .is_some_and(Vec::is_empty)
-        {
-            self.cells[pos + 1] = Some(vec![32]);
-        }
-        self.cells[pos] = None;
-    }
-    fn write(&mut self, text: Text) {
-        let width = grapheme_width(&text);
-        if width == 0 {
-            let previous = if self.column > 0
-                && self
-                    .cells
-                    .get(self.column - 1)
-                    .and_then(Option::as_ref)
-                    .is_some_and(Vec::is_empty)
-            {
-                self.column.checked_sub(2)
-            } else {
-                self.column.checked_sub(1)
-            };
-            if !self.concealed
-                && let Some(cell) = previous
-                    .and_then(|p| self.cells.get_mut(p))
-                    .and_then(Option::as_mut)
-            {
-                cell.extend(text);
-            }
-            return;
-        }
-        self.clear(self.column);
-        if width == 2 {
-            self.clear(self.column + 1);
-        }
-        self.cells[self.column] = Some(if self.concealed { vec![32] } else { text });
-        if width == 2 {
-            self.cells[self.column + 1] = Some(if self.concealed { vec![32] } else { vec![] });
-        }
-        self.column += width;
-    }
-    fn take(&mut self) -> Text {
-        let text = std::mem::take(&mut self.cells)
-            .into_iter()
-            .flat_map(|v| v.unwrap_or_else(|| vec![32]))
-            .collect();
-        self.column = 0;
-        text
-    }
-    fn sgr(&mut self, values: &[i64]) {
-        let mut i = 0;
-        while i < values.len() {
-            match values[i] {
-                0 | 28 => self.concealed = false,
-                8 => self.concealed = true,
-                38 | 48 => match values.get(i + 1) {
-                    Some(5) => {
-                        i += 3;
-                        continue;
-                    }
-                    Some(2) => {
-                        i += 5;
-                        continue;
-                    }
-                    _ => {}
-                },
-                _ => {}
-            }
-            i += 1;
-        }
-    }
-}
 pub fn plain<E>(
     text: &[u16],
-    mut segment: impl FnMut(&[u16]) -> Result<Vec<Text>, E>,
+    segment: impl FnMut(&[u16]) -> Result<Vec<Text>, E>,
 ) -> Result<Text, E> {
     if !text
         .iter()
@@ -247,90 +160,7 @@ pub fn plain<E>(
     {
         return Ok(text.to_vec());
     }
-    let text = crate::preview::TerminalStringFilter::default().push(text);
-    let mut row = Row {
-        cells: vec![],
-        column: 0,
-        concealed: false,
-    };
-    let mut lines = vec![];
-    let mut i = 0;
-    while i < text.len() {
-        let c = text[i];
-        if (c == 27 && text.get(i + 1) == Some(&91)) || c == 155 {
-            let start = i + if c == 27 { 2 } else { 1 };
-            let mut end = start;
-            while end < text.len() && !(64..=126).contains(&text[end]) {
-                end += 1;
-            }
-            if end == text.len() {
-                break;
-            }
-            let values = params(&text[start..end]);
-            if text[end] == 109 {
-                row.sgr(&values);
-            } else if text[end] == 75 {
-                match values.first().copied().unwrap_or(0) {
-                    0 => {
-                        row.clear(row.column);
-                        row.cells.truncate(row.column);
-                    }
-                    1 => {
-                        if !row.cells.is_empty() {
-                            for pos in 0..=row.column.min(row.cells.len() - 1) {
-                                row.clear(pos);
-                            }
-                        }
-                    }
-                    2 => row.cells.clear(),
-                    _ => {}
-                }
-            }
-            i = end + 1;
-            continue;
-        }
-        match c {
-            133 | 10 => lines.push(row.take()),
-            27 => {
-                i += 2;
-                continue;
-            }
-            13 => row.column = 0,
-            8 => row.column = row.column.saturating_sub(1),
-            9 => {
-                let spaces = 8 - row.column % 8;
-                for _ in 0..spaces {
-                    if row.cells.get(row.column).is_none_or(Option::is_none) {
-                        row.write(vec![32]);
-                    } else {
-                        row.column += 1;
-                    }
-                }
-            }
-            0..=31 | 127..=159 => {}
-            _ => {
-                let start = i;
-                i += 1;
-                while i < text.len() && text[i] >= 32 && !(127..=159).contains(&text[i]) {
-                    i += 1;
-                }
-                for value in segment(&text[start..i])? {
-                    row.write(value);
-                }
-                continue;
-            }
-        }
-        i += 1;
-    }
-    lines.push(row.take());
-    let mut result = vec![];
-    for (i, line) in lines.into_iter().enumerate() {
-        if i > 0 {
-            result.push(32);
-        }
-        result.extend(line);
-    }
-    Ok(result)
+    crate::ansi_cells::plain(text, segment)
 }
 fn simple_preview(text: &[u16], width: usize) -> Option<Text> {
     let mut column = 0;

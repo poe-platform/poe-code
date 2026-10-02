@@ -957,3 +957,30 @@ The latest whole-unit attempt stopped during the Safe Bash build: a missing
 prevented execution. The source/export evidence was recorded for the assigned
 runtime work. Repository-wide types had passed previously; that does not make
 the failed whole-unit route a pass.
+
+
+The `screen/ansi-text` subpath now exposes `ansiToCells`. Rust applies SGR colors,
+concealment, line erasure, tabs, carriage returns, backspaces and terminal-string
+filtering before regrouping styled graphemes. Plain terminal rows reuse this
+parser, removing duplicate cursor handling. Cell arrays remain independent and
+preserve UTF-16, widths and packed channels. Batched string/typed-array transfer
+avoids constructing each public object through N-API.
+
+The maintained route passed 209 native host tests and 572 selected original tests,
+including mixed-control differential cases and segmentation thrown identity.
+The final transfer optimization passed focused parity again, standalone packed
+runtime/types, Rust/binding and JS lint. Wide/narrow terminal screenshots matched
+the original input bytes and were inspected. Five warmed alternating rounds of
+500 calls measured 0.1486/0.06357 ms native/reference for repeated plain lines
+(2.34x), and 0.1736/0.1353 ms for styled cursor-edited lines (1.28x). The earlier
+per-cell N-API transfer measured 7.18x and 1.91x respectively. Concurrent builds
+limit these timings; no performance gate passed. Boxed/malformed inputs,
+patched intrinsics, public dashboard parseAnsi/baseStyle, aggregate resource
+qualification and terminal driver APIs remain outstanding.
+
+Release build 36973400474 failed on the Safe JS portable fixture's stale memory
+filesystem import. The missing Safe Bash helper import and that fixture import
+were fixed separately in 28eb2e2392, verified on remote main. The Safe Bash build,
+229 filesystem cases (2 skipped) and all 20 Safe JS built-runtime probes pass.
+The whole-unit route has been restarted; release 36974802405 is running and
+publication remains unverified.

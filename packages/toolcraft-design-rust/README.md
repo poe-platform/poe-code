@@ -90,6 +90,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `renderHtml` | Render a Markdown AST with escaped HTML, checked lists, aligned tables, footnotes and optional code highlighting |
 | `render` | Render a Markdown AST for terminals with styled blocks, width-aware wrapping, tables and code highlighting |
 | `Screen` | Draw styled text into a resizable cell buffer and emit ANSI frame differences |
+| `screen/ansi-text` | Convert styled terminal output and cursor edits into grapheme-aware screen cells |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles

@@ -62,6 +62,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `createTerminalStringFilter` | Filter split OSC/DCS strings while retaining complete CSI controls |
 | `createLogger`, `logger` | Emit coherent terminal, Markdown or JSON messages |
 | `withOutputFormat` | Scope an output format across asynchronous work |
+| `renderTable`, `loggerTableWidth` | Render width-budgeted tables or detail rows in terminal, Markdown and JSON |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -159,3 +160,29 @@ acp.withAcpWriter(line => appendAgentOutput(line), () => {
 
 Tool, reasoning, usage, permission and error events support terminal, Markdown
 and JSON output. Terminal agent-message Markdown rendering is still unavailable.
+
+Render rows with the same table contract as the original design package:
+
+```ts
+import { getTheme, renderTable } from 'toolcraft-design-rust';
+
+console.log(renderTable({
+  theme: getTheme(),
+  columns: [
+    { name: 'agent', title: 'Agent', alignment: 'left', maxLen: 20 },
+    { name: 'status', title: 'Status', alignment: 'left', maxLen: 16 }
+  ],
+  rows: [{ agent: 'codex', status: 'Ready' }],
+  maxWidth: 60
+}));
+```
+
+`variant: 'detail'` uses the first two columns for labels and wrapped values.
+`withOutputFormat` also controls tables. `toolcraft-design-rust/render-table`
+exports the renderer and its types; `toolcraft-design-rust/components/table`
+also exports `loggerTableWidth()` for the logger's three-column gutter.
+Rust owns column admission, alignment, width budgeting, ANSI scanning,
+display-width rules, truncation and wrapping decisions. Node retains ICU grapheme
+segmentation, observable array/string methods, theme callbacks and output templates.
+This binding preserves getters, callback receivers and thrown values; native
+resource limits and pathological reentrancy still need replacement qualification.

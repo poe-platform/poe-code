@@ -1,7 +1,9 @@
 use mcp_protocol_rust::json::Value;
+mod table;
 use mcp_protocol_rust_napi_core::convert::NativeJson;
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
+pub use table::*;
 use toolcraft_design_rust::template::{self, Environment, Lookup, Partials, ValueKind};
 #[napi]
 pub fn design_color_names() -> Vec<String> {

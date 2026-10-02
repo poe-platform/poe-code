@@ -9,6 +9,16 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if (
+          importer.startsWith(path("../toolcraft-design/src/")) &&
+          name.endsWith("/internal/output-format.js")
+        ) return path("dist/logging.js");
+        if (importer === path("../toolcraft-design/src/components/components.test.ts")) {
+          if (name === "./table.js") return path("dist/table.js");
+          if (name === "./logger.js") return path("dist/logging.js");
+          if (name === "./text.js") return path("dist/text.js");
+          if (name === "./color.js") return path("dist/color.js");
+        }
         if (importer === path("../toolcraft-design/src/dashboard/streaming-line-buffer.test.ts")) {
           if (name === "./line-buffer.js") return path("dist/line-buffer.js");
           if (name === "./output-preview.js") return path("dist/index.js");
@@ -47,6 +57,7 @@ export default defineConfig({
       path("../toolcraft-design/src/dashboard/terminal-width.test.ts"),
       path("../toolcraft-design/src/acp/plan.test.ts"),
       path("../toolcraft-design/src/components/color.test.ts"),
+      path("../toolcraft-design/src/components/components.test.ts"),
       path("../toolcraft-design/src/tokens/colors.test.ts"),
       path("../toolcraft-design/src/internal/theme-state.test.ts")
     ],

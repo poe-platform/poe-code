@@ -5,6 +5,8 @@ export {brands,brand,dark,light,getTheme,resolveThemeName,resetThemeCache} from 
 export type {Brand,ThemeName,ThemePalette,ThemeEnv} from "./theme.js";
 export {text,typography} from "./text.js";
 export * as acp from "./acp.js";
+export { renderTable, loggerTableWidth } from "./table.js";
+export type { TableColumn, RenderTableOptions } from "./table.js";
 export interface RenderTemplateOptions {
   escape?: TemplateEscape;
   partials?: Record<string, string>;

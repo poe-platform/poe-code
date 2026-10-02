@@ -106,3 +106,17 @@ const rootLineBuffersOriginal: RootLineBuffers = design;
 const rootLineBuffersOwn: Pick<typeof design, keyof RootLineBuffers> =
   null as unknown as RootLineBuffers;
 void [rootLineBuffersOriginal, rootLineBuffersOwn];
+
+import * as table from "toolcraft-design-rust/components/table";
+import * as flatTable from "toolcraft-design-rust/render-table";
+import type * as originalTable from "toolcraft-design/components/table";
+import type * as originalFlatTable from "toolcraft-design/render-table";
+const tableOriginal: typeof originalTable = table;
+const tableOwn: typeof table = null as unknown as typeof originalTable;
+const flatTableOriginal: typeof originalFlatTable = flatTable;
+const flatTableOwn: typeof flatTable = null as unknown as typeof originalFlatTable;
+const rootTableOriginal: Pick<typeof originalDesign, "renderTable"> = design;
+const rootTableOwn: Pick<typeof design, "renderTable"> = null as unknown as typeof originalDesign;
+const tableOptionsOriginal: originalTable.RenderTableOptions = null as unknown as table.RenderTableOptions;
+const tableOptionsOwn: table.RenderTableOptions = null as unknown as originalTable.RenderTableOptions;
+void [tableOriginal, tableOwn, flatTableOriginal, flatTableOwn, rootTableOriginal, rootTableOwn, tableOptionsOriginal, tableOptionsOwn];

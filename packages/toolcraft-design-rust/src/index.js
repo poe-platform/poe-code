@@ -4,6 +4,7 @@ export {color} from "./color.js";
 export {brands,brand,dark,light,getTheme,resolveThemeName,resetThemeCache} from "./theme.js";
 export {text,typography} from "./text.js";
 export * as acp from "./acp.js";
+export { renderTable, loggerTableWidth } from "./table.js";
 export { TemplateParseError } from "./engine.js";
 const native = createRequire(import.meta.url)("./toolcraft-design-rust.node");
 export const { renderTemplate, getTemplatePartialNames, resolveTemplatePartials } =

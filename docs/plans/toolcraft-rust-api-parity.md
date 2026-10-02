@@ -433,6 +433,24 @@ shared generic limitation needs a coordinated fix, not a native-only signature.
 CLI, transports, complete design dependencies, standalone Toolcraft contracts,
 cross-package error identity and platform/resource qualification remain open.
 
+The design dependency now exposes native table policies at its root,
+`./render-table` and `./components/table`. Rust owns column admission/alignment,
+width budgeting, own-cell selection, ANSI scanning, display-width rules,
+truncation, padding and word-wrapping decisions. Node retains ICU segmentation,
+array/string semantics, output templates, JSON and theme callbacks. Public subpath
+exports and standalone structural table declarations match the reference in both
+assignment directions. All source declarations are emitted and checked with
+`skipLibCheck: false`; previously omitted declarations no longer become implicit any.
+The original 46-test components suite runs native tables, text, color and logger
+adapters; command-error panels and symbols in that suite remain reference code.
+The checkpoint passes 126 reference tests and 44 native Node tests plus Rust,
+declaration and package lint checks. Differential coverage includes Unicode/ANSI,
+detail layouts, fractional budgets, changing getters, array species/sparse slots,
+reentrant themes and arbitrary thrown values. An ad hoc screenshot verifies
+table borders, truncation, colors and long detail wrapping. The synchronous
+128-entry callback guard and host rendering work still need resource and
+complete replacement qualification. Full design, CLI and transport ports remain open.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

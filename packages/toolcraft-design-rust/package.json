@@ -11,6 +11,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./render-table": {
+      "types": "./dist/render-table.d.ts",
+      "import": "./dist/render-table.js"
+    },
+    "./components/table": {
+      "types": "./dist/table.d.ts",
+      "import": "./dist/table.js"
     }
   },
   "scripts": {

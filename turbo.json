@@ -594,6 +594,11 @@
         "^build"
       ],
       "outputs": []
+    },
+    "safe-bash-command-du#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

@@ -116,3 +116,11 @@ test('find owns direct option regressions while Shell retains integration covera
   assert.ok(!shellTests.includes('find-options.test.ts'));
   for (const name of ['find-printf.test.ts', 'find-time-delete.test.ts', 'find-deleted-entry.test.ts']) assert.ok(shellTests.includes(name));
 });
+
+
+test('du owns regression coverage and declares unit build prerequisites', () => {
+  const files = readdirSync(new URL('../packages/safe-bash-command-du/src/', import.meta.url));
+  assert.ok(files.includes('accounting.test.ts'));
+  const turbo = json('turbo.json');
+  assert.ok(turbo.tasks['safe-bash-command-du#test:unit'].dependsOn.includes('^build'));
+});

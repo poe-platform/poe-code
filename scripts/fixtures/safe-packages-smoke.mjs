@@ -1,3 +1,5 @@
+import { verification as duVerification } from "./safe-packages-du.mjs";
+await duVerification;
 import "./safe-packages-timeout.mjs";
 import { verification as findVerification } from "./safe-packages-find.mjs";
 await findVerification;
@@ -321,3 +323,5 @@ await (await import("./safe-packages-csplit.mjs")).verification;
 await (await import("./safe-packages-shuf.mjs")).verification;
 
 await (await import("./safe-packages-diff.mjs")).verification;
+
+assert.throws(() => import.meta.resolve("safe-bash-command-du"), { code: "ERR_MODULE_NOT_FOUND" });

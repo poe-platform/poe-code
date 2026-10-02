@@ -1,3 +1,5 @@
+import { verification as duVerification } from "./safe-packages-du.mjs";
+await duVerification;
 import { verification as timeoutVerification } from "./safe-packages-timeout-portable.mjs";
 await timeoutVerification;
 import { verifyCmp } from "./safe-packages-cmp.mjs";

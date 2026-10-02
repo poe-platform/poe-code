@@ -547,18 +547,21 @@ describe("real safe-bash browser kernel", () => {
     }
   });
 
-  it("keeps command buffers unlimited within the configured browser input budget", async () => {
+  it("keeps command buffers unlimited while enforcing execution output budgets", async () => {
     const { fs, shell } = await fixture();
     const limit = 2 * 1024 * 1024;
     const bytes = new Uint8Array(limit).fill(120);
     bytes[limit - 1] = 10;
     try {
       await fs.writeFile("/home/boundary.txt", bytes);
-      const boundary = await shell.exec("sort -o sorted.txt boundary.txt");
+      await expect(shell.exec("sort -o budgeted.txt boundary.txt"))
+        .rejects.toMatchObject({ limit: "maxOutputBytes" });
+      const limits = { maxOutputBytes: limit + 2 };
+      const boundary = await shell.exec("sort -o sorted.txt boundary.txt", { limits });
       expect(boundary).toMatchObject({ exitCode: 0, stderr: "" });
       expect((await fs.stat("/home/sorted.txt")).size).toBe(limit);
       await fs.writeFile("/home/oversized.txt", new Uint8Array(limit + 1).fill(120));
-      const oversized = await shell.exec("sort -o overflow.txt oversized.txt");
+      const oversized = await shell.exec("sort -o overflow.txt oversized.txt", { limits });
       expect(oversized.exitCode).toBe(0);
       expect(oversized.stderr).toBe("");
       expect((await fs.stat("/home/overflow.txt")).size).toBe(limit + 2);
@@ -573,13 +576,13 @@ describe("real safe-bash browser kernel", () => {
       "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
       "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find", "cmp", "fmt", "shuf", "numfmt",
       "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
-      "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "lzma", "unlzma", "lzcat", "zstd", "unzstd", "zstdcat", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
+      "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "lzma", "unlzma", "lzcat", "zstd", "unzstd", "zstdcat", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "install", "tar", "zip", "unzip",
       "paste", "comm", "join", "tac", "expand", "fold", "strings",
       "seq", "nl", "rev", "unexpand", "split",
       "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq", "xan", "bc", "sponge", "openssl", "ssh", "ssh-keygen", "gpg", "fd", "less", "more", "id", "whoami", "uname", "hostname", "nproc", "yes", "dd", "envsubst", "cal", "ncal", "pathchk", "getconf", "locale", "df", "sqlite3", "yq", "htmlq", "diff3", "exiftool", "unrtf", "mmdc", "op", "ffmpeg", "ffprobe", "soffice", "libreoffice", "pandoc", "ssconvert", "pdfinfo", "pdfunite", "pdfseparate", "pdffonts", "pdfdetach", "pdftotext", "pdftohtml", "pdfimages", "pdftoppm", "pdftocairo", "pdftk", "qpdf", "sips", "magick", "convert", "mogrify", "composite", "montage", "identify", "compare", "wkhtmltopdf", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin", "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "in2csv", "sql2csv", "gh",
     ].sort();
-    expect(expected).toHaveLength(188);
-    expect(new Set(expected).size).toBe(188);
+    expect(expected).toHaveLength(189);
+    expect(new Set(expected).size).toBe(189);
     expect(kernel.supportedCommands).toEqual(expected);
   });
 });

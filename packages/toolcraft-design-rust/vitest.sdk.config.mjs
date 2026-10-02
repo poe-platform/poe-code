@@ -11,7 +11,7 @@ export default defineConfig({
         if (!importer) return;
         if (["terminal-markdown", "html-renderer", "plaintext-renderer"].some((name) => importer === path(`../toolcraft-design/src/terminal-markdown/${name}.test.ts`))) {
           const modules = {
-            "./index.js": "markdown", "./parser.js": "markdown-parser",
+            "./index.js": "markdown", "./parser.js": "markdown-parser", "./demo-content.js": "markdown-demo",
             "./parser/block.js": "markdown-block", "./parser/frontmatter.js": "markdown-frontmatter",
             "./parser/inline.js": "markdown-parse-inline", "./plaintext-renderer.js": "plaintext",
             "../components/symbols.js": "symbols", "../internal/strip-ansi.js": "logging",

@@ -892,9 +892,19 @@ An indicative public-parser benchmark during concurrent builds (five warmed
 rounds, 300 calls/round, alternating order) measured 1,350-unit plain input at
 0.126/0.109 ms native/reference and 1,189-unit mixed/frontmatter input at
 0.515/0.251 ms. Concurrent load limits these timings; no performance gate passed.
-Remaining Markdown qualification includes demo-content/testing wildcard subpaths,
+Remaining Markdown qualification includes testing wildcard subpaths,
 complex YAML diagnostics, embedded error-constructor identity, patched intrinsics,
 exotic inputs and deep-resource behavior. Default JavaScript exports remain active.
+
+The Markdown demo-content subpath now stores its seven examples in Rust and
+preserves the optional-name default and undefined result for unsupported names.
+All 198 native host tests and 567 original design tests pass; the original demo
+tests now route to the native package too. Bidirectional subpath types, packed
+standalone runtime/types, Rust/binding/JS lint and an inspected terminal screenshot
+pass without dependency changes. Release run 36971784710 for public Markdown
+commit 064442fcff failed its build on unresolved Safe FS runtime-core declarations
+and downstream Safe Bash types; publication is not verified. Broad local checks
+are being rerun after rebuilding those declarations and finishing this checkpoint.
 
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging

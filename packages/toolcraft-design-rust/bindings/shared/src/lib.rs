@@ -59,6 +59,11 @@ mod table;
 use mcp_protocol_rust_napi_core::convert::NativeJson;
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
+
+#[napi]
+pub fn design_markdown_demo(name: String) -> Option<&'static str> {
+    toolcraft_design_rust::markdown_demo::get_markdown_demo(&name)
+}
 pub use table::*;
 pub use toolcraft_template_rust_napi_core::*;
 #[napi]

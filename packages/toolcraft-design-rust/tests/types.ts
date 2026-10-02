@@ -426,3 +426,10 @@ type MarkdownRoot = Pick<typeof originalDesign,"parse"|"renderMarkdown"|"renderM
 const markdownRootOriginal: MarkdownRoot = design;
 const markdownRootOwn: Pick<typeof design,keyof MarkdownRoot> = null as unknown as MarkdownRoot;
 void [markdownRootOriginal,markdownRootOwn];
+
+import * as markdownDemo from "toolcraft-design-rust/terminal-markdown/demo-content";
+import type * as originalMarkdownDemo from "toolcraft-design/terminal-markdown/demo-content";
+const markdownDemoOriginal:typeof originalMarkdownDemo=markdownDemo;
+const markdownDemoOwn:typeof markdownDemo=null as unknown as typeof originalMarkdownDemo;
+const markdownDemoKeys:SameKeys<typeof markdownDemo,typeof originalMarkdownDemo>=true;
+void [markdownDemoOriginal,markdownDemoOwn,markdownDemoKeys];

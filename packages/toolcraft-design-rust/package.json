@@ -199,6 +199,10 @@
     "./render-markdown-plaintext": {
       "types": "./dist/render-markdown-plaintext.d.ts",
       "import": "./dist/render-markdown-plaintext.js"
+    },
+    "./terminal-markdown/demo-content": {
+      "types": "./dist/markdown-demo.d.ts",
+      "import": "./dist/markdown-demo.js"
     }
   },
   "scripts": {

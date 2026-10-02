@@ -4,6 +4,13 @@ import * as reference from "../../toolcraft-design/dist/terminal-markdown/index.
 import {extractFrontmatter as referenceFrontmatter} from "../../toolcraft-design/dist/terminal-markdown/parser/frontmatter.js";
 const load=()=>import("../dist/index.js");
 
+test("Markdown demo subpath preserves every named fixture and absent unknown-name result",async()=>{
+  const {getMarkdownDemo}=await import("toolcraft-design-rust/terminal-markdown/demo-content");
+  const {getMarkdownDemo:original}=await import("../../toolcraft-design/dist/terminal-markdown/demo-content.js");
+  for(const name of [undefined,"default","minimal","code-blocks","blockquotes","lists","tables","alerts","unknown",null,42,{},new String("minimal")])assert.equal(getMarkdownDemo(name),original(name));
+  assert.equal(getMarkdownDemo.name,original.name);assert.equal(getMarkdownDemo.length,original.length);
+});
+
 function snapshot(value){
   if(!value||typeof value!=="object"||value instanceof Date)return value;
   if(Array.isArray(value))return value.map(snapshot);

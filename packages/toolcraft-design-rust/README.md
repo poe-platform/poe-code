@@ -372,6 +372,8 @@ metadata identity in the returned document and frontmatter AST node. Missing
 closing delimiters remain ordinary Markdown. Parser and renderer helpers are
 available under the matching `terminal-markdown/*` subpaths, and
 `render-markdown-plaintext` exposes the plaintext functions and options.
+Use `getMarkdownDemo(name)` from `terminal-markdown/demo-content` for the default,
+minimal, code-block, blockquote, list, table and alert examples.
 
 ```ts
 import {parse, renderMarkdownHtml} from 'toolcraft-design-rust';

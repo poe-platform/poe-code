@@ -644,6 +644,16 @@ some CJK/emoji glyphs, whose outputs are covered by string parity tests. Task/ev
 groups, performance monitoring, full interactive rendering and the other remaining
 Toolcraft surfaces are still open. No default integration or speedup is claimed.
 
+Grouped events now expose native retention, expansion, row-selection and rendering
+policy at the root and `event-groups` subpath. Node retains Map identity, spreads,
+method lookup and nested iterator cleanup. Tests cover child/group eviction,
+replacement order, isolated snapshots, fractional/nonfinite windows, getter order,
+reentrant toggles, captured setters, sparse/species arrays and nested early-exit
+cleanup. All 105 native and 193 reference tests, bidirectional types, package/JS
+lint and isolated packed consumers pass with no dependency changes. An inspected
+screenshot confirms collapsed/expanded headers, error rows, clipping and scrolled
+windows. Task trees, render monitoring and full interactive surfaces remain open.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

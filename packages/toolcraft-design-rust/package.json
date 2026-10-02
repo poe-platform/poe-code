@@ -111,6 +111,10 @@
     "./progress-group": {
       "types": "./dist/progress-group.d.ts",
       "import": "./dist/progress-group.js"
+    },
+    "./event-groups": {
+      "types": "./dist/event-groups.d.ts",
+      "import": "./dist/event-groups.js"
     }
   },
   "scripts": {

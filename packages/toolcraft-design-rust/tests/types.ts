@@ -249,3 +249,13 @@ const progressOwn: typeof progress = null as unknown as typeof originalProgress;
 const rootProgressOriginal: typeof originalProgress = design;
 const rootProgressOwn: typeof progress = null as unknown as typeof originalDesign;
 void [progressOriginal, progressOwn, rootProgressOriginal, rootProgressOwn];
+
+import * as eventGroups from "toolcraft-design-rust/event-groups";
+import type * as originalEventGroups from "toolcraft-design/event-groups";
+const eventGroupsOriginal: typeof originalEventGroups = eventGroups;
+const eventGroupsOwn: typeof eventGroups = null as unknown as typeof originalEventGroups;
+const rootEventGroupsOriginal: typeof originalEventGroups = design;
+const rootEventGroupsOwn: typeof eventGroups = null as unknown as typeof originalDesign;
+const eventRowOriginal: originalEventGroups.EventGroupRow = null as unknown as eventGroups.EventGroupRow;
+const eventRowOwn: eventGroups.EventGroupRow = null as unknown as originalEventGroups.EventGroupRow;
+void [eventGroupsOriginal,eventGroupsOwn,rootEventGroupsOriginal,rootEventGroupsOwn,eventRowOriginal,eventRowOwn];

@@ -11,7 +11,7 @@ export default defineConfig({
         if (!importer) return;
         if (importer === path("../toolcraft-design/src/explorer/render/text.test.ts") && name === "./text.js")
           return path("dist/explorer-text.js");
-        for (const module of ["command-registry", "overlay-manager", "viewport", "inline-notice", "metric", "progress-group"]) {
+        for (const module of ["command-registry", "overlay-manager", "viewport", "inline-notice", "metric", "progress-group", "event-groups"]) {
           if (importer === path(`../toolcraft-design/src/${module}.test.ts`) && name === `./${module}.js`)
             return path(`dist/${module}.js`);
         }
@@ -75,6 +75,7 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../toolcraft-design/src/event-groups.test.ts"),
       path("../toolcraft-design/src/inline-notice.test.ts"),
       path("../toolcraft-design/src/metric.test.ts"),
       path("../toolcraft-design/src/progress-group.test.ts"),

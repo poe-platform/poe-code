@@ -107,3 +107,4 @@ export type { FileChange, FileChangeKind, FileChangeDisplayMode, FileChangeOutpu
 export * from "./inline-notice.js";
 export * from "./metric.js";
 export * from "./progress-group.js";
+export * from "./event-groups.js";

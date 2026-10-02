@@ -81,6 +81,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `createNotices`, `renderNotice` | Retain bounded, expiring notices and render status markers |
 | `createMetric` | Retain rolling samples and render compact sparklines |
 | `renderProgressGroup` | Show clipped progress rows with known or indeterminate completion |
+| `createEventGroups`, `renderEventGroupRows` | Retain grouped output, expand errors and render a bounded row window |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -291,3 +292,10 @@ combines labels, status marks and bounded percentages. These APIs are available
 from the root and `inline-notice`, `metric` and `progress-group` subpaths. Rust owns
 validation, selection, eviction and rendering policy; Node retains clocks, host
 collections, observable methods and reentrant callbacks.
+
+`createEventGroups({capacity, children})` bounds both groups and their retained
+events. `append(groupId, event)` updates events by ID and expands groups containing
+errors; `toggle(groupId)` changes visibility. `rows(offset, height)` selects a
+window of headers and expanded children, and `renderEventGroupRows(rows, width)`
+produces clipped terminal rows. Both functions are also exported from
+`toolcraft-design-rust/event-groups`.

@@ -1,3 +1,5 @@
+mod event_groups;
+pub use event_groups::*;
 use mcp_protocol_rust::json::Value;
 mod ansi;
 pub use ansi::*;

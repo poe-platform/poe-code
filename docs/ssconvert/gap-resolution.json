@@ -3971,7 +3971,7 @@
     {
       "id": "numeric-bessel-high-q",
       "status": "open",
-      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Supplemental full macOS Gnumeric qualification compares 205 formulas: 182 exact matches, 23 retained profile differences and 200 matching warnings. Darwin primitive substitution plus the disassembled native FMA order reproduces all 22 small-argument differences; the huge-phase difference is independently explained by cosine rounding. See besselPhaseBoundary.fullNativeApplication. Exact Linux/other-runtime qualification, broader domains and publication remain open. The same compiled 205-formula cohort now matches across Node, Chrome page/module worker and workerd through both public routes, including eight exact-reason cancellation controls with zero publication. Registry-installed qualification remains separate. Linux arm64 now matches a reconstructed 206-formula baseline and 208 independent Debye B2 holdouts through compiled SDK/command; high-order expansion avoids prior work exhaustion. Other domains retain 189 budget failures. See currentQualification20261002.besselHighOrder."
+      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Supplemental full macOS Gnumeric qualification compares 205 formulas: 182 exact matches, 23 retained profile differences and 200 matching warnings. Darwin primitive substitution plus the disassembled native FMA order reproduces all 22 small-argument differences; the huge-phase difference is independently explained by cosine rounding. See besselPhaseBoundary.fullNativeApplication. Exact Linux/other-runtime qualification, broader domains and publication remain open. The same compiled 205-formula cohort now matches across Node, Chrome page/module worker and workerd through both public routes, including eight exact-reason cancellation controls with zero publication. Registry-installed qualification remains separate. Linux arm64 now matches a reconstructed 206-formula baseline and 208 independent Debye B2 holdouts through compiled SDK/command; high-order expansion avoids prior work exhaustion. Algorithm A2 adds 82 exact native holdouts per public route; other domains now retain 117 budget failures. See currentQualification20261002.besselHighOrder."
     },
     {
       "id": "format-record-roundtrip",
@@ -4600,6 +4600,29 @@
         "checks": "Engine lint/types, selected 18-build command dependency closure, compiled SDK and runCommand XLSX with independent ZIP/XML and binary64 comparisons passed. Native near-overflow and negative-order regression controls pass."
       },
       "limitations": "All 19 families remain open. The other Bessel domains retain 189 budget failures in this holdout corpus; their numerical outputs are not qualified. No universal correctly-rounded primitive, installed artifact, cross-runtime or release claim."
+    },
+    "besselTransition": {
+      "profile": "Authenticated unmodified Gnumeric 1.12.61 / GOffice 0.10.61, glibc 2.41, Debian arm64.",
+      "sources": {
+        "sf-bessel.c": "7a6d8aa65ac2dfd095ffa8d0bc3e77fc7801cf9adac82c66d276e67072938981",
+        "s_cbrt.c": "eb1c33750e2dfdd43c43babf708283f0247e7e6661c08ee51465d13d28d30392",
+        "s_expm1.c": "0f9727ee036f4b9acf59e264283ccbe1ef9adf3597bd38f07360a81ab84ddf92",
+        "e_sinh.c": "fdb510307b8314da1db72362c774f38005e8886d892882bac16a09fb901805a8",
+        "e_acosh.c": "4f86cde6e7ad715762bcc5103385385289f554390eb8e5b2783733ee2afffbd6"
+      },
+      "implementation": "Native Algorithm A2 combines finite 45-node Legendre quadratures and shrinking ranges. Native cube-root constants and unfused node construction are necessary for exact values. Private hyperbolic primitives preserve the observed aarch64 arithmetic. Dispatch retains existing series/Debye precedence and the current 1e6 quadrature ceiling; every iterative path charges caller work and preserves interruption identity.",
+      "reproducer": "Six native original-memory regressions exhausted 5000 work before repair and now match exactly. Independent 41-pair A2 holdouts provide 82 native values, including reflected negative-order public inputs.",
+      "qualification": {
+        "hyperbolicNativeMatches": 12288,
+        "newDomainNativeMatchesPerPublicRoute": 82,
+        "combinedRepairedNativeMatchesPerPublicRoute": 290,
+        "baselineNativeMatchesPerPublicRoute": 206,
+        "baselineWarningsPerPublicRoute": 200,
+        "ownerTests": 112,
+        "neighborTests": 87,
+        "checks": "Owner lint/source/test types; maintained selected 18-build closure; rebuilt SDK and runCommand XLSX with independent ZIP/XML binary64 comparisons; exact interruption identity."
+      },
+      "remaining": "The original 912-formula corpus still has 117 work-budget failures (down from 189 before A2). Other domains, broad numeric holdouts, cross-runtime/registry qualification and all 19 families remain open. No release claim."
     }
   },
   "history": {

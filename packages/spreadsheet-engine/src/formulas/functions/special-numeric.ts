@@ -1,3 +1,4 @@
+import { capturedBesselTransition } from "./captured-bessel-transition.js";
 import { numericResult, sum } from "../values.js";
 import { numberArg } from "./common.js";
 import { logGamma } from "./scientific.js";
@@ -208,6 +209,8 @@ function bessel(name: string, x: number, order: number, host: FunctionHost): num
   }
   if ((name === "BESSELJ" || name === "BESSELY") && order > x && x >= 17 && (order - x) / Math.cbrt(x) >= 6.5)
     return capturedHankel(x, order, name === "BESSELY", host);
+  if ((name === "BESSELJ" || name === "BESSELY") && order > x && x <= 1e6 && x * x >= 10 * (order + 10) && (order - x) / Math.cbrt(x) > 1.5)
+    return capturedBesselTransition(x, order, name === "BESSELY", host);
   if (name === "BESSELI") return x > 709 ? Infinity : order === 0 && x * x >= 100 ? capturedBesselI0(x, host) : series(x, order, true, host);
   if (name === "BESSELK" && x > 705.342) return 0;
   if (name === "BESSELK" && x > 1e-10) return capturedBesselK(x, order, host);

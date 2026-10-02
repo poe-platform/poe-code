@@ -38,7 +38,9 @@
     "src/formulas/functions/captured-pow-NOTICE.md",
     "src/formulas/functions/captured-log.ts",
     "src/formulas/functions/captured-log-profile.ts",
-    "src/formulas/functions/captured-log-NOTICE.md"
+    "src/formulas/functions/captured-log-NOTICE.md",
+    "src/formulas/functions/captured-bessel-transition.ts",
+    "src/formulas/functions/captured-bessel-transition-NOTICE.md"
   ],
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
@@ -78,7 +80,9 @@
         "./src/formulas/functions/captured-pow-NOTICE.md",
         "./src/formulas/functions/captured-log.ts",
         "./src/formulas/functions/captured-log-profile.ts",
-        "./src/formulas/functions/captured-log-NOTICE.md"
+        "./src/formulas/functions/captured-log-NOTICE.md",
+        "./src/formulas/functions/captured-bessel-transition.ts",
+        "./src/formulas/functions/captured-bessel-transition-NOTICE.md"
       ]
     }
   }

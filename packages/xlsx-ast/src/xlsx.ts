@@ -2,7 +2,7 @@ import { createZipCodec, CodecError, type ZipLimits, type ZipEntry } from "@poe-
 import { expandIndexSheetAreas } from "@poe-code/spreadsheet-engine/formulas/index-sheet-areas";
 import { parseXmlSteps, XmlLimitError, type XmlElement } from "@poe-code/safe-fs/xml";
 import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
-import { parseA1, formatA1, snapshotWorkbook, type Cell, type CellValue, type Workbook, type Sheet, type Range, type RichTextRun,
+import { parseA1, formatA1, type Cell, type CellValue, type Workbook, type Sheet, type Range, type RichTextRun,
   type ImportedValue, type AxisMetadata, type FormulaGroup, type NamedExpression, type UnsupportedRecord } from "@poe-code/spreadsheet-ast";
 import { parseExpression } from "@poe-code/spreadsheet-engine/formulas/parser";
 import { excelGrammar, gnumericGrammar } from "@poe-code/spreadsheet-engine/formulas/conventions";
@@ -15,6 +15,7 @@ import { xlsxColumnWidthPoints } from "./xlsx-sheet-settings.js";
 import { readXlsxStyles, readXlsxString } from "./xlsx-styles.js";
 import { decodeXlsxString, encodeXlsxString } from "@poe-code/spreadsheet-engine/codecs/xlsx-strings";
 import { createXlsxXml, escapeXlsx, writeRichString, metadataNode } from "@poe-code/spreadsheet-engine/codecs/xlsx-write-support";
+import { snapshotXlsxWorkbook } from "./xlsx-write-input.js";
 import { createXlsxStyles, styleRecord } from "./xlsx-write-styles.js";
 import { writeXlsxSheetMetadata, writeXlsxProperties } from "./xlsx-write-metadata.js";
 import { gnumericNumber } from "@poe-code/spreadsheet-engine/codecs/gnumeric-number";
@@ -502,32 +503,7 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
   return async (book, _options, context) => {
     context.signal.throwIfAborted();
     const { element: xml, charge } = createXlsxXml(context);
-    // Preserve the codec's established coordinate diagnostic before the shared
-    // snapshot rejects nonfinite numbers. Inspect data descriptors only: this
-    // admission must never execute workbook accessors or traverse unbounded arrays.
-    const suppliedSheets = Object.getOwnPropertyDescriptor(book, "sheets")?.value as unknown;
-    if (Array.isArray(suppliedSheets) && suppliedSheets.length <= context.limits.sheets) {
-      let cells = 0;
-      for (let sheetIndex = 0; sheetIndex < suppliedSheets.length; sheetIndex++) {
-        charge();
-        const sheet = Object.getOwnPropertyDescriptor(suppliedSheets, String(sheetIndex))?.value as unknown;
-        if (sheet === null || typeof sheet !== "object") continue;
-        const suppliedCells = Object.getOwnPropertyDescriptor(sheet, "cells")?.value as unknown;
-        if (!Array.isArray(suppliedCells)) continue;
-        cells += suppliedCells.length;
-        if (cells > context.limits.cells) break;
-        for (let index = 0; index < suppliedCells.length; index++) {
-          charge();
-          const cell = Object.getOwnPropertyDescriptor(suppliedCells, String(index))?.value as unknown;
-          if (cell === null || typeof cell !== "object") continue;
-          const row = Object.getOwnPropertyDescriptor(cell, "row"), column = Object.getOwnPropertyDescriptor(cell, "column");
-          if (row && column && Object.hasOwn(row, "value") && Object.hasOwn(column, "value") &&
-            (![row.value, column.value].every(Number.isSafeInteger) || row.value < 0 || column.value < 0 || row.value >= 1048576 || column.value >= 16384))
-            throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: XLSX cell outside writer sheet limits");
-        }
-      }
-    }
-    book = snapshotWorkbook(book, context.limits);
+    book = snapshotXlsxWorkbook(book, context, charge);
     if (book.sheets.length > context.limits.sheets) limit("sheets");
     let admittedCells = 0;
     for (const sheet of book.sheets) { charge(); admittedCells += sheet.cells.length; if (admittedCells > context.limits.cells) limit("cells"); }

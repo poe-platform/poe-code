@@ -1,0 +1,10 @@
+import { createPrCommand, createPrCommands, prCommands, createAgentCommands, type PrCommandsOptions, type PrLimits, type CommandDefinition } from "@poe-platform/safe-bash";
+import { createPrCommand as subpathCommand, createPrCommands as subpathCommands, prCommands as subpathPlugin, type PrCommandsOptions as SubpathOptions, type PrLimits as SubpathLimits } from "@poe-platform/safe-bash/commands/pr";
+const limits: Partial<PrLimits & SubpathLimits> = { maxArgumentBytes: 1024, maxWork: 100000, maxOutputBytes: 4096 };
+const options: PrCommandsOptions & SubpathOptions = { limits, replace: true };
+const command: CommandDefinition = createPrCommand(options);
+const commands: readonly CommandDefinition[] = createPrCommands(options);
+const factory: typeof createPrCommand = subpathCommand;
+const factories: typeof createPrCommands = subpathCommands;
+const plugin: typeof prCommands = subpathPlugin;
+void [command, commands, factory, factories, plugin(options), createAgentCommands({ pr: { limits } })];

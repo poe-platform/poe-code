@@ -67,3 +67,18 @@ test("curl owns its parser while curl and wget share a lower-level transfer engi
   assert.ok(curl.exports["./input"]);
   assert.ok(engine.exports["./transfer"]);
 });
+
+test("pr owns its recorded byte fixtures and extraction plan", () => {
+  const folder = "packages/safe-bash-command-pr/src/";
+  assert.ok(readFileSync(new URL(folder + "fixtures.ts", root), "utf8").includes("nativeCases"));
+  assert.ok(readFileSync(new URL("docs/plans/safe-bash-command-pr.md", root), "utf8").includes("private"));
+});
+
+test("pr unit graph builds its canonical contracts and engines", async () => {
+  const { createWorkspaceTestPlan } = await import("../../../scripts/build-workspaces.mjs");
+  const { fileURLToPath } = await import("node:url");
+  const plan = createWorkspaceTestPlan(fileURLToPath(root), { workspaces: ["safe-bash-command-pr"] });
+  for (const name of ["safe-bash-contracts", "safe-bash-calendar-engine", "safe-bash-io-engine", "@poe-code/safe-fs"]) {
+    assert.ok(plan.buildStages.some(stage => stage.name === name), `${name} must build before pr unit tests`);
+  }
+});

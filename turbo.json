@@ -522,6 +522,12 @@
         "^build"
       ],
       "outputs": []
+    },
+    "safe-bash-command-pr#test:unit": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
     }
   }
 }

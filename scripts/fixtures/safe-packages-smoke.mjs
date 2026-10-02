@@ -286,3 +286,5 @@ import "./safe-packages-curl.mjs";
 await (await import("./safe-packages-expr.mjs")).verification;
 import { verification as playwrightVerification } from "./safe-packages-playwright.mjs";
 await playwrightVerification;
+
+await (await import("./safe-packages-pr.mjs")).verification;

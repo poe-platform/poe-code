@@ -3085,7 +3085,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/tsort-independent/native.test.ts"));
   assert.ok(files.includes("tests/commands/tsort-independent/limits.test.ts"));
   assert.ok(files.includes("tests/commands/tsort-independent/lifecycle.test.ts"));
-  assert.ok(files.includes("tests/commands/pr/native.test.ts"));
+  assert.ok(!files.includes("tests/commands/pr/native.test.ts")); // Owned by safe-bash-command-pr.
   assert.ok(files.includes("tests/commands/pr/devices.test.ts"));
   assert.ok(files.includes("tests/commands/pr/extra.test.ts"));
   assert.ok(files.includes("tests/commands/pr/safety.test.ts"));

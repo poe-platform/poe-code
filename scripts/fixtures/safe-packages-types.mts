@@ -255,3 +255,5 @@ void [mediaDefinition, mcpDefinition, mediaDefinitions, mcpDefinitions, mediaLim
 
 import "./safe-packages-expr-types.mjs";
 import "./safe-packages-playwright-types.mjs";
+
+import "./safe-packages-pr-types.mjs";

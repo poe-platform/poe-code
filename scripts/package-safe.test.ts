@@ -2082,7 +2082,7 @@ it("prepares scoped browser and private command runtimes without root sandbox bu
 for (const [specifier, target, failure] of [
   ["private-runtime", "./dist/index.js", "Private or CLI dependency leaked"],
   ["@poe-code/office-package/missing", "./dist/index.js", "Missing private workspace runtime entrypoint"],
-  ["@poe-code/office-package", "../../outside.js", "must target ./dist/*.js"],
+  ["@poe-code/office-package", "../../outside.js", "Not a built package file: /repo/outside.js"],
 ]) it(`keeps scoped private runtime admission bounded: ${specifier} ${target}`, async () => {
   const { volume, options } = optionalLeftovers();
   const name = specifier.startsWith("@poe-code/office-package") ? "@poe-code/office-package" : specifier;

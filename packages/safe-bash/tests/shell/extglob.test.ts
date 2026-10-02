@@ -3,6 +3,45 @@ import test from "node:test";
 import { setup } from "./helpers.js";
 import { standardCommands } from "../../src/index.js";
 
+for (const operator of ["@", "?", "*", "+", "!"]) {
+  for (const word of [`${operator}$pat`, "$op$pat"]) {
+    test(`extglob operator spans word parts: ${operator}, ${word}`, async () => {
+      const { shell, fs } = setup({ cwd: "/work" });
+      await fs.mkdir("/work");
+      await fs.writeFile("/work/foo.txt", new Uint8Array());
+      await fs.writeFile("/work/other.txt", new Uint8Array());
+      try {
+        const result = await shell.exec(`shopt -s extglob; op='${operator}'; pat='(foo.txt|bar.txt)'; args ${word}`);
+        assert.equal(result.stdout, JSON.stringify([operator === "!" ? "other.txt" : "foo.txt"]));
+        assert.equal(result.stderr, "");
+        assert.equal(result.exitCode, 0);
+      } finally {
+        await shell.dispose();
+      }
+    });
+  }
+}
+
+for (const [options, word, expected] of [
+  ["shopt -s extglob", '@"$pat"', "@(foo.txt|bar.txt)"],
+  ["shopt -s extglob", '"@"$pat', "@(foo.txt|bar.txt)"],
+  ["shopt -u extglob", "@$pat", "@(foo.txt|bar.txt)"],
+  ["shopt -s extglob; set -f", "@$pat", "@(foo.txt|bar.txt)"],
+] as const) {
+  test(`split extglob respects quoting and options: ${options}, ${word}`, async () => {
+    const { shell, fs } = setup();
+    await fs.writeFile("/foo.txt", new Uint8Array());
+    try {
+      const result = await shell.exec(`${options}; pat='(foo.txt|bar.txt)'; args ${word}`);
+      assert.equal(result.stdout, JSON.stringify([expected]));
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    } finally {
+      await shell.dispose();
+    }
+  });
+}
+
 test("shopt -s extglob pathname expansion: @(a|b), ?(pat), *(pat), +(pat), !(pat)", async () => {
   const { shell, fs } = setup();
   shell.use(standardCommands());

@@ -2839,7 +2839,10 @@ function hasGlobOrEscape(text: string, extglob = false): boolean {
   for (let i = 0; i < text.length; i++) {
     const code = text.charCodeAt(i);
     if (code === 42 || code === 63 || code === 91 || code === 92) return true;
-    if (extglob && code === 40 && i > 0) {
+    if (extglob && code === 40) {
+      // A word fragment can complete an extglob operator from the previous part.
+      // Let normal expansion preserve quoting when that boundary is ambiguous.
+      if (i === 0) return true;
       const prev = text.charCodeAt(i - 1);
       if (prev === 63 || prev === 42 || prev === 43 || prev === 64 || prev === 33) return true;
     }

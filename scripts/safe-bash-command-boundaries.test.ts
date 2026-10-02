@@ -131,3 +131,10 @@ test('split owns its behavioral regressions and extraction plan', () => {
   assert.ok(readFileSync(new URL('../docs/plans/safe-bash-command-split.md', import.meta.url), 'utf8').includes('private'));
   assert.ok(json('turbo.json').tasks['safe-bash-command-split#test:unit'].dependsOn.includes('^build'));
 });
+
+test('tree owns its report-count regressions and builds unit prerequisites', () => {
+  const files = readdirSync(new URL('../packages/safe-bash-command-tree/src/', import.meta.url));
+  assert.ok(files.includes('report-counts.test.ts'), 'Missing owned report-count suite');
+  const turbo = json('turbo.json');
+  assert.ok(turbo.tasks['safe-bash-command-tree#test:unit'].dependsOn.includes('^build'));
+});

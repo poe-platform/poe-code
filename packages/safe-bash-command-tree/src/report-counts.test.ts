@@ -1,7 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { run } from "./helpers.js";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { createTreeCommand, type TreeCommandsOptions } from "./index.js";
+import type { CommandContext } from "safe-bash-contracts";
+
+async function run(args: readonly string[], options: TreeCommandsOptions = {}, overrides: Partial<CommandContext> = {}) {
+  const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
+  const context: CommandContext = { command: "tree", args, cwd: "/", env: {}, fs: createMemoryFileSystem(),
+    signal: new AbortController().signal, stdin: (async function* () {})(),
+    stdout: { async write(bytes) { stdout.push(bytes.slice()); } }, stderr: { async write(bytes) { stderr.push(bytes.slice()); } }, ...overrides };
+  const result = await createTreeCommand(options).execute(context);
+  return { ...result, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString() };
+}
 
 async function fixture() {
   const fs = createMemoryFileSystem();

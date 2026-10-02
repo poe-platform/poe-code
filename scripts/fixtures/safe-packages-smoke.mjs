@@ -1,3 +1,5 @@
+import { verification as treeVerification } from "./safe-packages-tree.mjs";
+await treeVerification;
 import { verification as duVerification } from "./safe-packages-du.mjs";
 await duVerification;
 import "./safe-packages-timeout.mjs";

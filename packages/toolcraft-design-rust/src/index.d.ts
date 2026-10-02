@@ -70,6 +70,8 @@ export declare function retainOutputTail(text: string, maxChars: number): string
 export declare function createOutputPreviewBuffer(): { push(text: string): void; text(): string };
 
 export declare namespace dashboard {
+  const renderDashboardSnapshot: typeof import("./dashboard-snapshot.js").renderDashboardSnapshot;
+  type SnapshotOptions = import("./dashboard-snapshot.js").SnapshotOptions;
   const shouldUseInteractiveDashboard: typeof import("./dashboard-mode.js").shouldUseInteractiveDashboard;
   const createDashboardLineBuffer: typeof import("./line-buffer.js").createDashboardLineBuffer;
   const createStreamingDashboardLineBuffer: typeof import("./line-buffer.js").createStreamingDashboardLineBuffer;

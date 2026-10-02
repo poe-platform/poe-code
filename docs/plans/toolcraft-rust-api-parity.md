@@ -1713,3 +1713,30 @@ surface with conversation, composer and 30 tasks measured 2,909.12 µs native /
 291.19 µs reference (9.99× slower). No performance gate passed. Dashboard lifecycle
 and snapshots, explorer, batching, private-class nominal identity and broader
 API/resource/reentrancy/platform qualification remain open.
+
+### Dashboard snapshot checkpoint
+
+`dashboard.renderDashboardSnapshot` and `dashboard/snapshot` now expose the
+snapshot renderer and `SnapshotOptions`. Rust owns nullish defaults, sample
+events, rendering order and row serialization, composed from the existing Rust
+dashboard components. The host retains live option reads, one default clock
+read, coercions and thrown-value identity. Preview helpers and layout now live
+in dedicated modules so the root namespace does not introduce a cycle through
+the ANSI parser; the shared dashboard suite reproduced that cycle before repair.
+
+Three missing-export tests failed before implementation. Differential coverage
+includes eight sizes (empty, narrow, wide and fractional), ANSI/Unicode output,
+default/nullish/custom options, getter order, thrown identity, reentrant getters
+and namespace identity. Maintained checks pass 308 native host tests, 1,379
+selected original design tests (including three compact-layout tests), 13 prompt
+wrapper tests, 78 selected shared dashboard tests and 14 composer tests.
+Rust/binding and scoped JS lint, bidirectional declarations, a packed runtime
+rejecting external imports and standalone declarations with `types: []` pass.
+Inspected screenshots cover 80×20 and 40×12 default snapshots. No dependencies or
+default integration changes.
+
+Five warmed alternating 10-call Node 22 ARM64 rounds for an 80×20 default ANSI
+snapshot measured 45,919.65 µs native / 2,926.19 µs reference (15.69× slower).
+No performance gate passed. Dashboard lifecycle, explorer, batching, private-class
+nominal identity and broader API/resource/reentrancy/platform qualification
+remain open.

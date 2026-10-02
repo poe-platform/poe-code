@@ -514,3 +514,5 @@ pub use dashboard_stats::*;
 
 mod dashboard_run_view;
 pub use dashboard_run_view::*;
+mod dashboard_snapshot;
+pub use dashboard_snapshot::*;

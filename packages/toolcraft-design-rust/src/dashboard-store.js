@@ -1,6 +1,6 @@
 import {createRequire} from "node:module";
 import {createComponentPolicy} from "./component-host.js";
-import {limitOutputPreview} from "./index.js";
+import {limitOutputPreview} from "./output-preview.js";
 
 const native = createRequire(import.meta.url)("./toolcraft-design-rust.node");
 

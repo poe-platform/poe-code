@@ -9,6 +9,12 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if (importer === path("../toolcraft-design/src/dashboard/compact-layout.test.ts")) {
+          if (name === "./snapshot.js") return path("dist/dashboard-snapshot.js");
+          if (name === "./layout.js") return path("dist/dashboard-layout.js");
+          if (name === "./buffer.js") return path("dist/dashboard-buffer.js");
+          if (name === "./components/stats-pane.js") return path("dist/dashboard-stats.js");
+        }
         if (importer === path("../toolcraft-design/src/dashboard/components/run-view.test.ts")) {
           if (name === "./run-view.js") return path("dist/dashboard-run-view.js");
           if (name === "../buffer.js") return path("dist/dashboard-buffer.js");
@@ -160,6 +166,7 @@ export default defineConfig({
   test: {
     env: { FORCE_COLOR: process.env.FORCE_COLOR ?? "1" },
     include: [
+      path("../toolcraft-design/src/dashboard/compact-layout.test.ts"),
       path("../toolcraft-design/src/dashboard/components/footer.test.ts"),
       path("../toolcraft-design/src/dashboard/terminal.test.ts"),
       path("../toolcraft-design/src/dashboard/ansi.test.ts"),

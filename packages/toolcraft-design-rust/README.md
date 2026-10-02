@@ -136,6 +136,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `dashboard/components/context-pane` | Reserve plan and queue context while leaving room for live output |
 | `dashboard/components/stats-pane` | Format metrics and keep task progress visible in compact or sidebar layouts |
 | `dashboard/components/run-view` | Arrange conversation, plans, tasks, composer and controls for the available terminal |
+| `dashboard.renderDashboardSnapshot` | Render an ANSI dashboard at a fixed size without starting an interactive terminal |
 | `createNotices`, `renderNotice` | Retain bounded, expiring notices and render status markers |
 | `createMetric` | Retain rolling samples and render compact sparklines |
 | `renderProgressGroup` | Show clipped progress rows with known or indeterminate completion |
@@ -547,3 +548,9 @@ complete run screen. Pass statistics, output and an optional composer; enable
 The result reports the visible output rectangle, clamped output/work offsets,
 and editor cursor when focused. Wide screens show a work sidebar; shorter screens
 retain activity, progress, editing and complete navigation shortcuts.
+
+`dashboard.renderDashboardSnapshot({width, height, title, statsTitle, items, stats})`
+returns a complete ANSI screen without a trailing newline. The default 80×20
+screen includes sample output and statistics; narrow screens use a compact
+summary. The same function and `SnapshotOptions` type are available from
+`toolcraft-design-rust/dashboard/snapshot`.

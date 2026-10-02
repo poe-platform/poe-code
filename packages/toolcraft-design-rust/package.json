@@ -443,6 +443,10 @@
     "./dashboard/components/run-view": {
       "types": "./dist/dashboard-run-view.d.ts",
       "import": "./dist/dashboard-run-view.js"
+    },
+    "./dashboard/snapshot": {
+      "types": "./dist/dashboard-snapshot.d.ts",
+      "import": "./dist/dashboard-snapshot.js"
     }
   },
   "scripts": {

@@ -1,5 +1,5 @@
 import {createRequire} from "node:module";
-import {createTerminalStringFilter} from "./index.js";
+import {createTerminalStringFilter} from "./output-preview.js";
 import {graphemes} from "./graphemes.js";
 export {plainTerminalText} from "./terminal.js";
 

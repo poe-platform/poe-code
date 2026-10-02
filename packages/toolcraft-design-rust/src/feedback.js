@@ -2,7 +2,7 @@ import {createRequire} from "node:module";
 import {createComponentPolicy} from "./component-host.js";
 import {plainTerminalText} from "./terminal.js";
 import {fitToWidth} from "./explorer-text.js";
-import {limitOutputPreview} from "./index.js";
+import {limitOutputPreview} from "./output-preview.js";
 const native=createRequire(import.meta.url)("./toolcraft-design-rust.node");
 export const invokeFeedback=createComponentPolicy(native.designFeedbackPolicy,{
   integer:value=>!!Number.isInteger(value),lt:(a,b)=>a<b,gt:(a,b)=>a>b,le:(a,b)=>a<=b,same:(a,b)=>a===b,

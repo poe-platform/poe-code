@@ -818,3 +818,12 @@ const runViewPublicNative: NativeRunViewPublic = null as unknown as OriginalRunV
 // @ts-expect-error The buffer parameter retains the separate private-class identity gate.
 const runViewNominalOriginal: typeof originalDashboardRunView.renderRunView = dashboardRunView.renderRunView;
 void [runViewKeys,runViewOptionsOriginal,runViewOptionsNative,runViewPublicOriginal,runViewPublicNative,runViewNominalOriginal];
+
+import * as dashboardSnapshot from "toolcraft-design-rust/dashboard/snapshot";
+import type * as originalDashboardSnapshot from "toolcraft-design/dashboard/snapshot";
+const snapshotOriginal: typeof originalDashboardSnapshot = dashboardSnapshot;
+const snapshotNative: typeof dashboardSnapshot = null as unknown as typeof originalDashboardSnapshot;
+const snapshotKeys: SameKeys<typeof dashboardSnapshot,typeof originalDashboardSnapshot> = true;
+const snapshotOptionsOriginal: originalDashboardSnapshot.SnapshotOptions = null as unknown as import("toolcraft-design-rust").dashboard.SnapshotOptions;
+const snapshotOptionsNative: import("toolcraft-design-rust").dashboard.SnapshotOptions = null as unknown as originalDashboardSnapshot.SnapshotOptions;
+void [snapshotOriginal,snapshotNative,snapshotKeys,snapshotOptionsOriginal,snapshotOptionsNative];

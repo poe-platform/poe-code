@@ -4,6 +4,7 @@ export { compileToolArguments } from "./arguments.js";
 export type { ToolArgumentParser, ToolArgumentParseOptions, ToolParameter } from "./arguments.js";
 export { createRemoteMcpCommands, remoteMcpCommands } from "./commands.js";
 export type { RemoteMcpCommandOptions } from "./commands.js";
+export type { RemoteMcpToolInvocation, RemoteMcpToolProgress, RemoteMcpToolLifecycleOptions } from "./command-lifecycle.js";
 export { initRemoteMcpConfiguration, parseRemoteMcpConfiguration } from "./configuration.js";
 export type { EnvironmentReference, PublicEnvironmentReference, OAuthCredentialReferences, RemoteMcpAuthenticationConfiguration,
   RemoteMcpServerConfiguration, RemoteMcpConfiguration, InitRemoteMcpServer, ConfigurationOptions, RemoteMcpInitialization } from "./configuration.js";

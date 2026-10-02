@@ -68,6 +68,26 @@ binding, store construction or network requests.
 Supply `instructions` on a registry entry to keep known server guidance without
 discovery. Explicit instructions take precedence over discovered guidance.
 
+Generated commands accept `onToolStart(invocation)` and
+`onToolProgress(progress, invocation)`. Start runs after argument validation and
+connection setup, immediately before the tool call; it is not proof that the
+provider received the request. Help, schema inspection and invalid arguments
+never report a tool start. Each invocation has an independent `invocationId`,
+`serverName`, `toolName` and lifetime `signal`, without arguments, headers or
+credentials. Progress carries the provider's numeric `progress`, optional
+`total` and optional `message`; treat the message as untrusted provider text.
+Progress tokens are created and correlated by the bundled client.
+
+Callbacks may return promises; notifications apply backpressure while a callback
+is pending. Supply `maxProgressEvents` and `maxProgressMessageBytes` for finite
+host limits (both default to `Infinity`), alongside request and response limits.
+Exceeding a limit or rejecting a callback cancels the invocation and returns an
+error. A rejected start callback prevents dispatch; failure during progress may
+leave a remote write's outcome unknown. No callback failure retries the call.
+Cancellation interrupts pending callbacks, and the invocation signal expires
+on completion. These hooks are also available through artifact plugin
+`commands` options in Node, browsers and Workers.
+
 | SDK function | Purpose |
 | --- | --- |
 | `fetchRemoteMcpSchema(server, options)` | Resolve one server's tool schemas |

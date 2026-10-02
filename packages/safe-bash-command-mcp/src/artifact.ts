@@ -179,6 +179,8 @@ export async function parseRemoteMcpArtifact(value: unknown, options: ArtifactOp
 /** Prepare an artifact's commands without rediscovery, using explicit runtime credentials. */
 export async function remoteMcpArtifactPlugin(value: unknown, options: ArtifactPluginOptions): Promise<Awaited<ReturnType<typeof remoteMcpCommands>>> {
   const commands = { ...snapshotRemoteMcpSchemaOptions(options.commands ?? {}),
+    onToolStart: options.commands?.onToolStart, onToolProgress: options.commands?.onToolProgress,
+    maxProgressEvents: options.commands?.maxProgressEvents, maxProgressMessageBytes: options.commands?.maxProgressMessageBytes,
     yes: options.commands?.yes, maxInputBytes: options.commands?.maxInputBytes, maxOutputBytes: options.commands?.maxOutputBytes,
     schemaValidation: { ...options.commands?.schemaValidation,
       registry: options.commands?.schemaValidation?.registry,

@@ -1,4 +1,4 @@
-import { HttpTransport, HttpTransportError, McpClient } from "tiny-mcp-client";
+import { HttpTransport, HttpTransportError, McpClient, type McpClientOptions } from "tiny-mcp-client";
 import type { RemoteMcpServer, SchemaFetchOptions } from "./schema.js";
 
 function positiveLimit(value: number, name: string): number {
@@ -20,7 +20,7 @@ export function remoteLimits(options: SchemaFetchOptions) {
 /** Own connection negotiation and cleanup for a single schema or tool operation. */
 export async function withRemoteMcpClient<T>(
   server: RemoteMcpServer,
-  options: SchemaFetchOptions,
+  options: SchemaFetchOptions & Pick<McpClientOptions, "onProgress">,
   operation: (client: McpClient, limits: ReturnType<typeof remoteLimits>) => Promise<T>,
   mode: "streamable-http" | "sse" = server.transport === "sse" ? "sse" : "streamable-http"
 ): Promise<T> {
@@ -31,6 +31,7 @@ export async function withRemoteMcpClient<T>(
     clientInfo: { name: "safe-bash-mcp", version: "0.0.1" },
     protocolVersion: server.protocolVersion,
     requestTimeoutMs: limits.requestTimeoutMs,
+    onProgress: options.onProgress,
     capabilities: { elicitation: { form: {}, url: {} } },
     onElicitationRequest: (params, context) => {
       if (options.onElicitationRequest !== undefined)

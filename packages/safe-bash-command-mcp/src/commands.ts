@@ -7,10 +7,10 @@ import { OAuthAuthorizationError, OAuthError } from "mcp-oauth";
 import { HttpTransportError, McpError, OAuthMetadataError, type Tool, type CallToolResult } from "tiny-mcp-client";
 import { compileJsonSchema, formatIssues, type CompiledJsonSchema, type CompileJsonSchemaOptions } from "toolcraft-schema";
 import { compileToolArguments, type ToolArgumentParseOptions, type ToolArgumentParser } from "./arguments.js";
-import { withRemoteMcpClient } from "./remote.js";
+import { callCommandTool, type RemoteMcpToolLifecycleOptions } from "./command-lifecycle.js";
 import { resolveRemoteMcpSchemas, snapshotRemoteMcpServer, type RemoteMcpServer, type SchemaFetchOptions } from "./schema.js";
 
-export interface RemoteMcpCommandOptions extends SchemaFetchOptions, ToolArgumentParseOptions {
+export interface RemoteMcpCommandOptions extends SchemaFetchOptions, ToolArgumentParseOptions, RemoteMcpToolLifecycleOptions {
   readonly maxOutputBytes?: number;
   readonly schemaValidation?: CompileJsonSchemaOptions;
 }
@@ -219,6 +219,10 @@ export async function createRemoteMcpCommands(
   for (const server of servers) validateCommandName(server.name);
   const settings = {
     ...snapshotRemoteMcpSchemaOptions(options),
+    onToolStart: options.onToolStart,
+    onToolProgress: options.onToolProgress,
+    maxProgressEvents: commandLimit(options.maxProgressEvents ?? Infinity, "maxProgressEvents"),
+    maxProgressMessageBytes: commandLimit(options.maxProgressMessageBytes ?? Infinity, "maxProgressMessageBytes"),
     yes: options.yes,
     schemaValidation: {
       ...options.schemaValidation,
@@ -293,11 +297,10 @@ export async function createRemoteMcpCommands(
           const selected = entry!;
           let result: CallToolResult;
           try {
-            result = await withRemoteMcpClient(server, { ...settings,
+            result = await callCommandTool(server, { name: selected.tool.name, arguments: argumentsValue }, { ...settings,
               requestTimeoutMs: callerLimit(policy.requestTimeoutMs, settings.requestTimeoutMs, "requestTimeoutMs"),
               maxResponseBytes: callerLimit(policy.maxResponseBytes, settings.maxResponseBytes, "maxResponseBytes"),
-              signal: operation.signal },
-              client => client.callTool({ name: selected.tool.name, arguments: argumentsValue }, { signal: operation.signal }));
+              signal: operation.signal });
           } catch (error) {
             operation.signal.throwIfAborted();
             await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, outputLimit);

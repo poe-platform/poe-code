@@ -2949,6 +2949,156 @@ export function isFastDirectCommand(name: string, words: readonly Word[]): boole
 const fastShellCommandAccessors = ["xpgEcho", "signal", "env", "fs", "commandDiscovery", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues", "stdinInput", "stdoutFile"].map( key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const, );
 
 const syncExtraRuntimeMethods = {
+  tryResetWarmInvocation(this: any, state: State, expectedCwd: string): boolean {
+    const monitor = stateMonitor(state);
+    const rawRoot = (monitor?.raw ?? state) as RootShellState & State;
+    if (
+      !this._isMemoryBackingFs ||
+      (this._fileWrites !== undefined && this._fileWrites.size !== 0) ||
+      (this._outputFiles !== undefined && this._outputFiles.size !== 0) ||
+      this._syncStdoutBatch.length !== 0 ||
+      this._syncPendingReturnStatus !== undefined ||
+      this._syncLoopAction !== undefined ||
+      this._syncReturnDepth !== 0 ||
+      this.cancellationDepth !== 0 ||
+      rawRoot.cwd !== expectedCwd ||
+      Boolean(rawRoot.aliases?.size) ||
+      Boolean(rawRoot._locals?.length) ||
+      Boolean(rawRoot.readonlyVariables?.size) ||
+      Boolean(rawRoot.readonlyFunctions?.size) ||
+      Boolean(rawRoot._positional?.length) ||
+      Boolean(rawRoot.directoryStack?.entries?.length) ||
+      rawRoot.errexit || rawRoot.nounset || rawRoot.pipefail || rawRoot.noglob || rawRoot.noclobber || rawRoot.allexport || rawRoot.noexec || rawRoot.extglob || rawRoot.nullglob || rawRoot.failglob || rawRoot.dotglob || rawRoot.nocaseglob || rawRoot.nocasematch || rawRoot.globstar || rawRoot.braceexpand === false || rawRoot.expand_aliases || (rawRoot.umask ?? 0o022) !== 0o022 ||
+      Boolean(rawRoot.extensions && (!rawRoot.extensions.isIdleTrapState || Boolean(rawRoot.extensions.eventDepth)))
+    ) {
+      return false;
+    }
+    const curVars = rawRoot.variables;
+    if (monitor) {
+      if ((monitor as unknown as { _overlays?: unknown })._overlays) return false;
+      const store = monitor.store;
+      if (store) {
+        if (store.watches.size !== 0 || store.owner.ledger.bytes !== Infinity || store.owner.ledger.fields !== Infinity) return false;
+        if (store.bindings.size === 1) {
+          const psEntry = store.bindings.get("PIPESTATUS");
+          if (psEntry) {
+            if (psEntry.binding.associative || psEntry.binding.references !== 1) return false;
+            this.setSyncPipeStatusCell(psEntry.binding, "0");
+          } else {
+            for (const [bName, entry] of [...store.bindings.entries()]) {
+              if (entry.binding.references !== 1 || entry.binding.values.size > 4096) return false;
+              const tickets = store.owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+              store.stashRecycled(bName, tickets);
+            }
+          }
+        } else if (store.bindings.size > 1) {
+          for (const [bName, entry] of [...store.bindings.entries()]) {
+            if (bName === "PIPESTATUS") {
+              if (entry.binding.associative || entry.binding.references !== 1) return false;
+              this.setSyncPipeStatusCell(entry.binding, "0");
+            } else {
+              if (entry.binding.references !== 1 || entry.binding.values.size > 4096) return false;
+              const tickets = store.owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+              store.stashRecycled(bName, tickets);
+            }
+          }
+        }
+      }
+      (monitor as unknown as { _values?: { invalidate(): void } })._values?.invalidate();
+      (monitor as unknown as { _positionals?: { invalidate(): void } })._positionals?.invalidate();
+      monitor.lazyPipeStatus = singleStatusZero;
+    }
+    if (rawRoot._functions?.size) rawRoot._functions.clear();
+    if (rawRoot.variableAttributes?.size) rawRoot.variableAttributes.clear();
+    if (rawRoot._exported && (rawRoot._exported.size > 1 || (rawRoot._exported.size === 1 && !rawRoot._exported.has("PWD")))) {
+      rawRoot._exported.clear();
+      rawRoot._exported.add("PWD");
+    }
+    this._syncTouchedPositionals = false;
+    if (curVars && !(monitor as unknown as { _wrapped?: unknown })?._wrapped) {
+      for (const k in curVars) {
+        if (k !== "PWD" && k !== "OPTIND" && k !== "OPTERR" && k !== "IFS") delete curVars[k];
+      }
+      curVars.PWD = expectedCwd;
+      curVars.OPTIND = "1";
+      curVars.OPTERR = "1";
+      curVars.IFS = " \t\n";
+    } else {
+      rawRoot.variables = { PWD: expectedCwd, OPTIND: "1", OPTERR: "1", IFS: " \t\n" };
+      if (monitor) {
+        (monitor as unknown as { _variablesProxy?: unknown; _wrapped?: unknown })._variablesProxy = undefined;
+        (monitor as unknown as { _variablesProxy?: unknown; _wrapped?: unknown })._wrapped = undefined;
+      }
+    }
+    rawRoot.status = 0;
+    rawRoot.substitutionStatus = 0;
+    rawRoot.lastArgument = "";
+    rawRoot.getopts = undefined;
+    rawRoot.loopDepth = 0;
+    rawRoot.functionDepth = 0;
+    rawRoot.sourceDepth = 0;
+    if (rawRoot.extensions) {
+      rawRoot.extensions.resetToIdle?.();
+      rawRoot.extensions.started = true;
+      rawRoot.extensions.exiting = false;
+      delete rawRoot.extensions.exitStatus;
+    }
+    this._lastSyncArrayWriteName = undefined;
+    this._lastSyncArrayWriteSubSrc = undefined;
+    this._lastSyncArrayWriteKey = undefined;
+    this._lastSyncArrayWriteVal = undefined;
+    this._fastSubPositional = undefined;
+    this.budget.resetCountersForWarmReuse();
+    return true;
+  },
+  tryFastParameterPatternSync(this: any, part: Extract<WordPart, { kind: "variable" }>, value: ShellValue, state: State, io: IO): string | undefined {
+    if ( typeof value !== "string" || state.nocasematch || this.budget.limits.maxExpansionBytes !== Infinity || state.depth + (io.parameterDepth ?? 0) >= 60 || ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt || globalThis.Float64Array !== defaultFloat64Array) {
+      return undefined;
+    }
+    const op = part.operator;
+    if (!op) return undefined;
+    if ((op === "^" || op === "^^" || op === "," || op === ",,") && (!part.alternate || part.alternate.parts.length === 0)) {
+      for (let i = 0; i < value.length; i++) if (value.charCodeAt(i) >= 128) return undefined;
+      if (value.length === 0) return "";
+      if (op === "^^") return value.toUpperCase();
+      if (op === ",,") return value.toLowerCase();
+      if (op === "^") return value[0]!.toUpperCase() + value.slice(1);
+      return value[0]!.toLowerCase() + value.slice(1);
+    }
+    if (part.alternate?.parts.length !== 1) return undefined;
+    const patPart = part.alternate.parts[0]!;
+    if (patPart.kind !== "text" || patPart.byteValue) return undefined;
+    const pat = patPart.value;
+    if (pat.length === 0 || (!patPart.quoted && (pat.startsWith("~") || hasGlobOrEscape(pat, !!state.extglob)))) return undefined;
+    for (let i = 0; i < value.length; i++) if (value.charCodeAt(i) >= 128) return undefined;
+    for (let i = 0; i < pat.length; i++) if (pat.charCodeAt(i) >= 128) return undefined;
+    if (op === "/" || op === "//" || op === "/#" || op === "/%") {
+      let rep = "";
+      if (part.replacement && part.replacement.parts.length > 0) {
+        if (part.replacement.parts.length !== 1) return undefined;
+        const repPart = part.replacement.parts[0]!;
+        if (repPart.kind !== "text" || repPart.byteValue) return undefined;
+        rep = repPart.value;
+        if (!repPart.quoted && (rep.startsWith("~") || rep.includes("&") || rep.includes("\\"))) return undefined;
+        for (let i = 0; i < rep.length; i++) if (rep.charCodeAt(i) >= 128) return undefined;
+      }
+      const replaced = op === "//"
+        ? (value.includes(pat) ? value.split(pat).join(rep) : value)
+        : op === "/"
+          ? (() => { const idx = value.indexOf(pat); return idx === -1 ? value : value.slice(0, idx) + rep + value.slice(idx + pat.length); })()
+          : op === "/#"
+            ? (value.startsWith(pat) ? rep + value.slice(pat.length) : value)
+            : (value.endsWith(pat) ? value.slice(0, value.length - pat.length) + rep : value);
+      if (replaced.length > this.budget.limits.maxExpansionBytes) return undefined;
+      return replaced;
+    }
+    if (op === "#" || op === "##" || op === "%" || op === "%%") {
+      return (op === "#" || op === "##")
+        ? (value.startsWith(pat) ? value.slice(pat.length) : value)
+        : (value.endsWith(pat) ? value.slice(0, value.length - pat.length) : value);
+    }
+    return undefined;
+  },
   collectSyncPrefixNames(prefix: string, rawState: State): string[] | undefined {
     if (this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity) return undefined;
     const store = stateMonitor(rawState)?.store ?? arrayStore(rawState);

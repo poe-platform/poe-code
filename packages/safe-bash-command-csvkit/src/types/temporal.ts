@@ -203,7 +203,6 @@ export function temporalDate(type: "Date" | "DateTime", text: string, options: T
           p = { ...base(Number(m[1]), Number(m[2]), Number(m[3])), hour: Number(m[4]), minute: Number(m[5]), second: Number(m[6] ?? 0), microsecond: Number((m[7] ?? "").slice(0, 6).padEnd(6, "0")), ...(m[8] ? { offset: offset(m[8]) } : {}) };
         }
       }
-      if (!p && !/^\d{4}-\d{2}-\d{2}[T ]/.test(text) && /(?:\b(?:next|last|ago|week|month|year|day|hour|minute|second|noon|midnight|tonight)\b|\d.*[a-z])/i.test(text)) throw new CsvkitBlocked("parsedatetime expression " + repr(text));
     }
     if (!p || !valid(p)) failure();
     return { kind: type === "Date" ? "date" : "datetime", value: type === "Date" ? dateText(p!) : datetimeText(p!) };

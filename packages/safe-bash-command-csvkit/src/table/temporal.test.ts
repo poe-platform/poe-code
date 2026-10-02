@@ -99,3 +99,13 @@ test("partial DateTime dates require the injected source clock", () => {
 test("zero timezone offsets normalize negative zero like Python timezone", () => {
   expect(castValue("DateTime", "2024-01-02T03:04:05-00:00", {})).toEqual({ kind: "datetime", value: "2024-01-02 03:04:05+00:00" });
 });
+
+test("alphanumeric identifiers and prose containing temporal words infer as Text instead of blocking", () => {
+  const rows = [
+    ["gpu-h200-west", "us-east-1a", "v1.2.3-rc1", "sha256:deadbeef", "year over year"],
+    ["gpu-b200-east", "eu-central-1b", "v2.0.0-beta2", "sha256:cafebabe", "next generation"]
+  ];
+  const table = inferTable(["fleet_id", "az", "version", "digest", "notes"], rows, { now: 0, timezone: "UTC" });
+  expect(table.columns.map(column => column.type)).toEqual(["Text", "Text", "Text", "Text", "Text"]);
+  expect(table.rows).toEqual(rows);
+});

@@ -44,3 +44,15 @@ for (const name of ["csvkit", "pandoc"]) test(name + " is registered for portabl
   assert.equal(shell.devDependencies[packageName], "*");
   assert.equal(shell.poeCode.integration.privateWorkspaces[packageName].portable, true);
 });
+
+test("unzip owns argument and overwrite policy while ZIP selection stays shared", () => {
+  const source = path => readFileSync(new URL(path, root), "utf8");
+  const argumentsSource = source("packages/safe-bash-command-unzip/src/unzip/arguments.ts");
+  assert.ok(argumentsSource.includes("export function parseArguments("));
+  assert.ok(argumentsSource.includes("export class Answers"));
+  const shared = source("packages/safe-bash-zip-engine/src/unzip/arguments.ts");
+  assert.ok(shared.includes("export class Selection"));
+  assert.ok(!shared.includes("export function parseArguments("));
+  assert.ok(!shared.includes("export class Answers"));
+  assert.equal(manifest("packages/safe-bash-command-unzip/package.json").private, true);
+});

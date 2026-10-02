@@ -1,3 +1,8 @@
+import { createUnzipCommand, unzipCommands } from "@poe-platform/safe-bash/commands/unzip";
+import { createCommandArguments, getCommandArguments, commandRuntimeIdentity } from "@poe-platform/safe-bash/contracts/command";
+import { FsError } from "@poe-platform/safe-bash/contracts/errors";
+import { FsError as FileSystemError } from "@poe-platform/safe-fs/core";
+
 import * as defaultEntry from "@poe-platform/safe-bash";
 import { createCsplitCommand as createSubpathCsplitCommand } from "@poe-platform/safe-bash/commands/csplit";
 import { createPrCommand as createSubpathPrCommand, createPrCommands as createSubpathPrCommands, prCommands as subpathPrCommands } from "@poe-platform/safe-bash/commands/pr";
@@ -179,6 +184,7 @@ export async function verifyNumfmtCommands(entry = defaultEntry) {
 }
 
 export async function verifyZipCommands(entry = defaultEntry) {
+  await verifyUnzipBoundary(entry);
   const filesystem = new entry.MemoryFileSystem();
   await filesystem.mkdir("/zip-work");
   const binary = new Uint8Array([0, 255, 128, 10, 13, 65]);
@@ -674,5 +680,49 @@ export async function verifyMdqCommands(entry = defaultEntry) {
       const actual = await fs.readFile("/mdq-work/" + filename);
       if (actual.length !== bytes.length || actual.some((value, index) => value !== bytes[index])) throw new Error(`Public mdq ${filename} bytes differ`);
     }
+  } finally { await shell.dispose(); }
+}
+
+export async function verifyUnzipBoundary(entry) {
+  if (FsError !== FileSystemError || entry.FsError !== FsError || entry.commandRuntimeIdentity !== commandRuntimeIdentity) {
+    throw new Error("Unzip public runtime identity differs across entrypoints");
+  }
+  const fs = new entry.MemoryFileSystem();
+  const fixture = "UEsDBBQAAAAAAAAAIVAgMDo2BgAAAAYAAAAJAAAAaGVsbG8udHh0aGVsbG8KUEsBAhQDFAAAAAAAAAAhUCAwOjYGAAAABgAAAAkAAAAAAAAAAAAAAIABAAAAAGhlbGxvLnR4dFBLBQYAAAAAAQABADcAAAAtAAAAAAA=";
+  await fs.writeFile("/archive.zip", Uint8Array.from(atob(fixture), character => character.charCodeAt(0)));
+  await fs.writeFile("/workflow.sh", new TextEncoder().encode("unzip -p archive hello.txt | cat\n"));
+  const shell = new entry.Shell({ fs }).use(entry.baseAgentCommands());
+  try {
+    await shell.exec("true");
+    const host = { commands: shell.commands };
+    let collision = false;
+    try { unzipCommands().setup(host); } catch (error) { collision = error.message === "Command already registered: unzip"; }
+    if (!collision) throw new Error("Unzip duplicate registration was accepted");
+    unzipCommands({ replace: true }).setup(host);
+    let seen = false;
+    shell.use(async (context, next) => {
+      if (context.command === "unzip") {
+        const values = getCommandArguments(context);
+        if (values.args !== context.args) throw new Error("Unzip argument carrier identity changed");
+        seen = true;
+      }
+      return next();
+    });
+    const result = await shell.exec("sh /workflow.sh");
+    if (result.exitCode !== 0 || result.stdout !== "hello\n" || result.stderr || !seen) throw new Error("Unzip saved pipeline failed");
+    for (const byte of ["ff", "fe"]) {
+      const rejected = await shell.exec("unzip -p archive.zip $'\\x" + byte + "'");
+      if (rejected.exitCode === 0 || !rejected.stderr.includes("UTF-8")) throw new Error("Unzip lost byte-valued argv");
+    }
+    const values = createCommandArguments(["-p", "/archive.zip", "hello.txt"]);
+    const reason = new Error("packed unzip cancellation");
+    const context = { command: "unzip", args: values.args, argumentValues: values, cwd: "/", env: {}, fs,
+      stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} }, stderr: { async write() {} },
+      signal: AbortSignal.abort(reason) };
+    let cancelled = false;
+    try { await createUnzipCommand().execute(context); } catch (error) { cancelled = error === reason; }
+    if (!cancelled) throw new Error("Unzip cancellation identity changed");
+    unzipCommands({ replace: true, limits: { maxArchiveBytes: 1 } }).setup(host);
+    if ((await shell.exec("unzip -p archive.zip hello.txt")).exitCode === 0) throw new Error("Unzip archive limit ignored");
   } finally { await shell.dispose(); }
 }

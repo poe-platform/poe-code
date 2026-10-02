@@ -1,0 +1,680 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { deflateRawSync } from "node:zlib";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import type { CommandContext, FileSystem } from "safe-bash-contracts";
+import { bindFileOutputBudget } from "safe-bash-contracts/filesystem-output";
+import type { ArchiveCommandsOptions } from "safe-bash-io-engine/commands/archive/internal";
+import { createUnzipCommand } from "./unzip.js";
+
+
+interface Member { name: string; body?: string | Uint8Array; mode?: number; method?: number; extra?: Uint8Array; crc?: number; flags?: number }
+
+function crc32(bytes: Uint8Array): number {
+  let crc = 0xffffffff;
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function zip(members: readonly Member[], comment = ""): Uint8Array {
+  const locals: Buffer[] = [];
+  const centrals: Buffer[] = [];
+  let offset = 0;
+  for (const member of members) {
+    const name = Buffer.from(member.name);
+    const body = typeof member.body === "string" ? Buffer.from(member.body) : Buffer.from(member.body ?? []);
+    const method = member.method ?? 0;
+    const data = method === 8 ? deflateRawSync(body) : body;
+    const extra = Buffer.from(member.extra ?? []);
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50); local.writeUInt16LE(20, 4); local.writeUInt16LE(method, 8);
+    local.writeUInt16LE(member.flags ?? 0, 6);
+    local.writeUInt16LE((3 << 11) | (4 << 5) | 3, 10); local.writeUInt16LE((44 << 9) | (1 << 5) | 2, 12);
+    local.writeUInt32LE(member.crc ?? crc32(body), 14); local.writeUInt32LE(data.length, 18); local.writeUInt32LE(body.length, 22);
+    local.writeUInt16LE(name.length, 26); local.writeUInt16LE(extra.length, 28);
+    const central = Buffer.alloc(46);
+    central.writeUInt32LE(0x02014b50); central.writeUInt16LE(0x0314, 4); local.copy(central, 6, 4, 30);
+    central.writeUInt32LE(((member.mode ?? (member.name.endsWith("/") ? 0o40755 : 0o100644)) << 16) >>> 0, 38);
+    central.writeUInt32LE(offset, 42);
+    locals.push(local, name, extra, data); centrals.push(central, name, extra);
+    offset += local.length + name.length + extra.length + data.length;
+  }
+  const directory = Buffer.concat(centrals);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50); end.writeUInt16LE(members.length, 8); end.writeUInt16LE(members.length, 10);
+  end.writeUInt32LE(directory.length, 12); end.writeUInt32LE(offset, 16); end.writeUInt16LE(Buffer.byteLength(comment), 20);
+  return Buffer.concat([...locals, directory, end, Buffer.from(comment)]);
+}
+
+async function fixture(members: readonly Member[] = [{ name: "folder/" }, { name: "hello.txt", body: "hello\n" }, { name: "folder/data.txt", body: "data\n" }]) {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work"); await fs.writeFile("/work/sample.zip", zip(members));
+  return fs;
+}
+
+async function run(fs: FileSystem, args: readonly string[], input = "", options: ArchiveCommandsOptions = {}, overrides: Partial<CommandContext> = {}) {
+  const stdout: Uint8Array[] = []; const stderr: Uint8Array[] = [];
+  const context: CommandContext = {
+    command: "unzip", args, fs, cwd: "/work", env: {}, signal: new AbortController().signal,
+    stdin: { async *[Symbol.asyncIterator]() { yield Buffer.from(input); } },
+    stdout: { async write(bytes) { stdout.push(Uint8Array.from(bytes)); } },
+    stderr: { async write(bytes) { stderr.push(Uint8Array.from(bytes)); } }, ...overrides,
+  };
+  const result = await createUnzipCommand(options).execute(context);
+  return { exitCode: result.exitCode, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString() };
+}
+
+const heading = "Archive:  sample.zip\n";
+const listing = "  Length      Date    Time    Name\n---------  ---------- -----   ----\n";
+const footer = "---------                     -------\n";
+const prompt = (name: string) => `replace ${name}? [y]es, [n]o, [A]ll, [N]one, [r]ename: `;
+
+function wrapped(fs: FileSystem, overrides: Partial<FileSystem>): FileSystem {
+  return new Proxy(fs, { get(target, property) {
+    if (Object.hasOwn(overrides, property)) return Reflect.get(overrides, property);
+    const value: unknown = Reflect.get(target, property);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+}
+
+for (const mode of ["-o", "-t", "-l", "-Z1", "-p", "-c"]) test(`unzip stops at the first matching inclusion in ${mode}`, async () => {
+  const fs = await fixture([{ name: "a.txt", body: "hello" }]);
+  const result = await run(fs, [mode, "sample.zip", "*.txt", "a.txt"]);
+  assert.equal(result.exitCode, 11);
+  assert.equal(result.stderr, "caution: filename not matched:  a.txt\n");
+});
+
+for (const quiet of ["", "-q", "-qq"]) test(`unzip -c streams binary payloads with headers at quiet level ${quiet}`, async () => {
+  const fs = await fixture([{ name: "a.txt", body: "hello" }, { name: "b.txt", body: "secret" }]);
+  const result = await run(fs, ["-c", ...(quiet ? [quiet] : []), "sample.zip", "-x", "b.txt"]);
+  assert.deepEqual(result, { exitCode: 0, stderr: "", stdout: quiet ? "hello" : heading + " extracting: a.txt                   \nhello\n" });
+  await assert.rejects(fs.stat("/work/a.txt"));
+  await assert.rejects(fs.stat("/work/b.txt"));
+});
+
+for (const mode of ["-cqp", "-pc", "-cp"]) test(`unzip ${mode} preserves raw stdout bytes without headers`, async () => {
+  const body = Uint8Array.of(0, 255, 10);
+  const fs = await fixture([{ name: "binary", body, method: 8 }]);
+  const chunks: Uint8Array[] = [];
+  const result = await run(fs, [mode, "sample.zip"], "", {}, { stdout: { async write(bytes) { chunks.push(Uint8Array.from(bytes)); } } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(Buffer.concat(chunks), Buffer.from(body));
+  await assert.rejects(fs.stat("/work/binary"));
+});
+
+test("unzip -c includes deflate headers and the archive comment", async () => {
+  const fs = await fixture([]);
+  await fs.writeFile("/work/sample.zip", zip([{ name: "binary", body: "hello", method: 8 }], "comment"));
+  const result = await run(fs, ["-c", "sample.zip"]);
+  assert.deepEqual(result, { exitCode: 0, stderr: "", stdout: heading + "comment\n  inflating: binary                  \nhello\n" });
+});
+
+for (const patterns of [["a.txt", "missing.txt"], ["missing.txt"]]) test(`unzip -t reports an error summary for unmatched patterns ${patterns}`, async () => {
+  const fs = await fixture([{ name: "a.txt", body: "hello" }]);
+  const result = await run(fs, ["-t", "sample.zip", ...patterns]);
+  assert.equal(result.exitCode, 11);
+  assert.ok(result.stdout.endsWith("At least one error was detected in sample.zip.\n"));
+  const quiet = await run(fs, ["-tqq", "sample.zip", ...patterns]);
+  assert.equal(quiet.exitCode, 11);
+  assert.equal(quiet.stdout, "");
+});
+
+for (const mode of ["-l", "-v", "-t", "-p", "-Z1", "-oq"]) test(`unzip exclusions and case-insensitive matching in ${mode}`, async () => {
+  const fs = await fixture([{ name: "src/a.txt", body: "hello" }, { name: "src/private/b.txt", body: "secret" }]);
+  const result = await run(fs, [mode, "-C", "sample.zip", "SRC/*", "-x", "SRC/PRIVATE/*", "-d", "out"].filter(arg => mode === "-oq" || arg !== "-d" && arg !== "out"));
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(!result.stdout.includes("secret") && !result.stdout.includes("src/private/b.txt"));
+  if (mode === "-oq") {
+    assert.equal(Buffer.from(await fs.readFile("/work/out/src/a.txt")).toString(), "hello");
+    await assert.rejects(fs.stat("/work/out/src/private"));
+  }
+});
+
+for (const patterns of [["hello.txt", "missing.txt"], ["missing.txt"]]) test(`unzip listing diagnoses unmatched patterns ${patterns}`, async () => {
+  const result = await run(await fixture(), ["-l", "sample.zip", ...patterns]);
+  assert.equal(result.exitCode, 11);
+  assert.equal(result.stderr, "caution: filename not matched:  missing.txt\n");
+  assert.ok(result.stdout.includes(footer));
+});
+
+test("unzip verbose listing reports method, compressed size and CRC without extracting", async () => {
+  const fs = await fixture([{ name: "a.txt", body: "hello" }]);
+  const result = await run(fs, ["-v", "sample.zip"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(result.stdout.includes("CRC-32") && result.stdout.includes("Stored") && result.stdout.includes("3610a686"));
+  await assert.rejects(fs.stat("/work/a.txt"));
+});
+
+for (const mode of ["-u", "-f"]) test(`unzip ${mode} extracts only newer existing files and handles missing members`, async () => {
+  const fs = await fixture([{ name: "old", body: "archive" }, { name: "new", body: "archive" }, { name: "equal", body: "archive" }, { name: "missing", body: "archive" }]);
+  for (const name of ["old", "new", "equal"]) await fs.writeFile(`/work/${name}`, Buffer.from("keep"));
+  const archived = new Date(2024, 0, 2, 3, 4, 6).getTime();
+  await fs.utimes!("/work/old", archived - 4000, archived - 4000);
+  await fs.utimes!("/work/new", archived + 4000, archived + 4000);
+  await fs.utimes!("/work/equal", archived, archived);
+  const result = await run(fs, [mode, "-oq", "sample.zip"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(Buffer.from(await fs.readFile("/work/old")).toString(), "archive");
+  for (const name of ["new", "equal"]) assert.equal(Buffer.from(await fs.readFile(`/work/${name}`)).toString(), "keep");
+  if (mode === "-u") assert.equal(Buffer.from(await fs.readFile("/work/missing")).toString(), "archive");
+  else await assert.rejects(fs.stat("/work/missing"));
+});
+
+for (const archiveComment of ["", "hello\r\nworld\u001b!", "hello\0hidden"]) test(`unzip -z displays only archive comment ${JSON.stringify(archiveComment)}`, async () => {
+  const fs = await fixture();
+  await fs.writeFile("/work/sample.zip", zip([{ name: "hello.txt", body: "hello", crc: 0 }], archiveComment));
+  const expected = archiveComment ? archiveComment.startsWith("hello\0") ? "hello\n" : "hello\nworld^[!\n" : "";
+  assert.deepEqual(await run(fs, ["-z", "sample.zip"]), { exitCode: 0, stdout: heading + expected, stderr: "" });
+  assert.deepEqual(await run(fs, ["-qz", "sample.zip"]), { exitCode: 0, stdout: expected, stderr: "" });
+  await assert.rejects(fs.stat("/work/hello.txt"));
+});
+
+test("unzip inspection modes enforce limits and report unmatched names", async () => {
+  const fs = await fixture();
+  const unmatched = await run(fs, ["-Z1", "sample.zip", "absent"]);
+  assert.deepEqual(unmatched, { exitCode: 11, stdout: "", stderr: "caution: filename not matched:  absent\n" });
+  const limited = await run(fs, ["-Z1", "sample.zip"], "", { limits: { maxTextBytes: 3 } });
+  assert.equal(limited.exitCode, 2);
+  assert.match(limited.stderr, /text output limit exceeded/);
+  for (const args of [["-1"], ["-Z"], ["-Z1p"], ["-zt"]]) {
+    assert.equal((await run(fs, [...args, "sample.zip"])).exitCode, 2);
+  }
+  assert.equal((await run(fs, ["-z", "missing.zip"])).exitCode, 9);
+});
+
+test("unzip -j skips directory entries and selects original member names", async () => {
+  const fs = await fixture([{ name: "dir/" }, { name: "dir/file", body: "data" }, { name: "other/file", body: "other" }]);
+  const result = await run(fs, ["-j", "sample.zip", "dir/*", "-d", "target"]);
+  assert.deepEqual(result, { exitCode: 0, stderr: "", stdout: heading + " extracting: target/file             \n" });
+  assert.equal(Buffer.from(await fs.readFile("/work/target/file")).toString(), "data");
+  assert.deepEqual((await fs.readdir("/work/target")).map(entry => entry.name), ["file"]);
+});
+
+for (const flags of ["-n", "-no", "-on"]) test(`unzip ${flags} never consumes overwrite input`, async () => {
+  const fs = await fixture([{ name: "file", body: "replace" }]);
+  await fs.writeFile("/work/file", Buffer.from("keep"));
+  let reads = 0;
+  const stdin = { async *[Symbol.asyncIterator]() { reads++; yield Buffer.from("y\n"); } };
+  assert.deepEqual(await run(fs, [flags, "sample.zip"], "", {}, { stdin }), { exitCode: 0, stdout: heading, stderr: "" });
+  assert.equal(reads, 0, "overwrite input consumed");
+  assert.equal(Buffer.from(await fs.readFile("/work/file")).toString(), "keep");
+});
+
+test("unzip -j validates symlink targets relative to the flattened destination", async () => {
+  const fs = await fixture([{ name: "dir/link", body: "../file", mode: 0o120777 }]);
+  assert.equal((await run(fs, ["-j", "sample.zip"])).exitCode, 2);
+  await assert.rejects(fs.lstat("/work/link"));
+});
+
+for (const policy of ["-jn", "-jo"]) test(`unzip ${policy} applies overwrite policy to flattened collisions`, async () => {
+  const fs = await fixture([{ name: "a/file", body: "first" }, { name: "b/file", body: "second" }]);
+  const result = await run(fs, [policy, "sample.zip"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(Buffer.from(await fs.readFile("/work/file")).toString(), policy === "-jn" ? "first" : "second");
+});
+
+for (const name of ["../escape", "/escape", "folder/../../escape"]) test(`unzip -j retains member safety for ${name}`, async () => {
+  const fs = await fixture([{ name, body: "bad" }]);
+  const result = await run(fs, ["-j", "sample.zip"]);
+  assert.equal(result.exitCode, 2);
+  assert.equal(result.stderr, "unzip: ZIP unsafe traversal or absolute path\n");
+  assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["sample.zip"]);
+});
+
+test("unzip -jn retains flattened destination and input archive safety", async () => {
+  const fs = await fixture([{ name: "dir/sample.zip", body: "bad" }]);
+  const before = await fs.readFile("/work/sample.zip");
+  assert.ok((await run(fs, ["-jn", "sample.zip"])).stderr.includes("overwrite input archive"));
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+  await fs.writeFile("/work/sample.zip", zip([{ name: "dir/link", body: "bad" }]));
+  await fs.writeFile("/outside", Buffer.from("keep")); await fs.symlink!("/outside", "/work/link");
+  assert.ok((await run(fs, ["-jn", "sample.zip"])).stderr.includes("unsafe non-regular destination"));
+  assert.equal(Buffer.from(await fs.readFile("/outside")).toString(), "keep");
+});
+
+test("unzip native Linux listing includes exact padding and totals", async () => {
+  assert.deepEqual(await run(await fixture(), ["-l", "sample.zip"]), { exitCode: 0, stderr: "", stdout: heading + listing
+    + "        0  2024-01-02 03:04   folder/\n        6  2024-01-02 03:04   hello.txt\n        5  2024-01-02 03:04   folder/data.txt\n"
+    + footer + "       11                     3 files\n" });
+});
+
+test("unzip native extraction and extension fallback", async () => {
+  const fs = await fixture();
+  assert.deepEqual(await run(fs, ["sample"]), { exitCode: 0, stderr: "", stdout: heading + "   creating: folder/\n extracting: hello.txt               \n extracting: folder/data.txt         \n" });
+  assert.equal(Buffer.from(await fs.readFile("/work/hello.txt")).toString(), "hello\n");
+});
+
+for (const quiet of ["-q", "-qq"]) test(`unzip ${quiet} suppresses extraction progress and archive comments`, async () => {
+  const fs = await fixture();
+  await fs.writeFile("/work/sample.zip", zip([
+    { name: "folder/" },
+    { name: "folder/stored", body: "stored" },
+    { name: "folder/deflated", body: "deflated", method: 8 },
+    { name: "folder/link", body: "stored", mode: 0o120777 },
+  ], "archive comment"));
+  assert.deepEqual(await run(fs, [quiet, "-o", "sample.zip", "-d", "dest"]), { exitCode: 0, stdout: "", stderr: "" });
+  assert.equal(Buffer.from(await fs.readFile("/work/dest/folder/stored")).toString(), "stored");
+  assert.equal(Buffer.from(await fs.readFile("/work/dest/folder/deflated")).toString(), "deflated");
+  assert.equal(await fs.readlink!("/work/dest/folder/link"), "stored");
+});
+
+test("unzip quiet extraction retains overwrite prompts and diagnostics", async () => {
+  const fs = await fixture([{ name: "hello.txt", body: "hello\n" }]);
+  await fs.writeFile("/work/hello.txt", Buffer.from("keep"));
+  assert.deepEqual(await run(fs, ["-q", "sample.zip"], "n\n"), { exitCode: 0, stdout: "", stderr: prompt("hello.txt") });
+  assert.equal(Buffer.from(await fs.readFile("/work/hello.txt")).toString(), "keep");
+  assert.deepEqual(await run(fs, ["-qq", "sample.zip", "absent"]), { exitCode: 11, stdout: "", stderr: "caution: filename not matched:  absent\n" });
+  assert.deepEqual(await run(fs, ["-q", "missing"]), { exitCode: 9, stdout: "", stderr: "unzip:  cannot find or open missing, missing.zip or missing.ZIP.\n" });
+});
+
+test("unzip -d destination and -o are honored on either side of archive", async () => {
+  const fs = await fixture();
+  const result = await run(fs, ["sample.zip", "-od", "dest"]);
+  assert.deepEqual(result, { exitCode: 0, stderr: "", stdout: heading + "   creating: dest/folder/\n extracting: dest/hello.txt          \n extracting: dest/folder/data.txt    \n" });
+  assert.equal((await run(fs, ["-o", "sample.zip", "-d", "dest"])).stderr, "");
+});
+
+test("unzip pattern selection and unmatched statuses follow native", async () => {
+  const fs = await fixture();
+  assert.deepEqual(await run(fs, ["-l", "sample.zip", "absent"]), { exitCode: 11, stderr: "caution: filename not matched:  absent\n", stdout: heading + listing + footer + "        0                     0 files\n" });
+  assert.deepEqual(await run(fs, ["sample.zip", "absent"]), { exitCode: 11, stderr: "caution: filename not matched:  absent\n", stdout: heading });
+  assert.deepEqual(await run(fs, ["-l", "sample.zip", "*.txt"]), { exitCode: 0, stderr: "", stdout: heading + listing + "        6  2024-01-02 03:04   hello.txt\n        5  2024-01-02 03:04   folder/data.txt\n" + footer + "       11                     2 files\n" });
+});
+
+test("unzip overwrite EOF is a warning and skips subsequent existing files", async () => {
+  const fs = await fixture(); await run(fs, ["sample.zip"]);
+  assert.deepEqual(await run(fs, ["sample.zip"]), { exitCode: 1, stdout: heading, stderr: prompt("hello.txt") + ' NULL\n(EOF or read error, treating as "[N]one" ...)\n' });
+});
+
+test("unzip overwrite invalid response, yes and None match native", async () => {
+  const fs = await fixture(); await run(fs, ["sample.zip"]);
+  assert.deepEqual(await run(fs, ["sample.zip"], "bad\ny\nN\n"), { exitCode: 0, stdout: heading + " extracting: hello.txt               \n", stderr: prompt("hello.txt") + "error:  invalid response [bad]\n" + prompt("hello.txt") + prompt("folder/data.txt") });
+});
+
+test("unzip missing archive reports all three exact native alternatives", async () => {
+  assert.deepEqual(await run(await fixture(), ["missing"]), { exitCode: 9, stdout: "", stderr: "unzip:  cannot find or open missing, missing.zip or missing.ZIP.\n" });
+});
+
+for (const name of ["../escape", "/escape", "folder/../../escape"]) test(`unzip rejects unsafe member ${name}`, async () => {
+  const fs = await fixture([{ name, body: "bad" }]);
+  assert.equal((await run(fs, ["sample.zip"])).exitCode, 2);
+  await assert.rejects(fs.stat("/escape"));
+});
+
+test("unzip rejects destination symlinks before resolving dot-dot", async () => {
+  const fs = await fixture(); await fs.mkdir("/outside"); await fs.symlink!("/outside", "/work/link");
+  for (const destination of ["link", "link/../dest"]) assert.equal((await run(fs, ["sample.zip", "-d", destination])).exitCode, 2);
+  assert.deepEqual(await fs.readdir("/outside"), []);
+});
+
+test("unzip does not follow an existing member symlink or create special entries", async () => {
+  const fs = await fixture([{ name: "hello.txt", body: "bad" }]);
+  await fs.writeFile("/outside", Buffer.from("keep")); await fs.symlink!("/outside", "/work/hello.txt");
+  assert.equal((await run(fs, ["-o", "sample.zip"])).exitCode, 2);
+  assert.equal(Buffer.from(await fs.readFile("/outside")).toString(), "keep");
+  assert.equal((await run(await fixture([{ name: "device", mode: 0o20644 }]), ["sample.zip"])).exitCode, 2);
+});
+
+test("unzip extracts pipe-mode payloads as regular files", async () => {
+  const fs = await fixture([{ name: "fifo", body: "payload", mode: 0o10644 }]);
+  const result = await run(fs, ["sample.zip"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((await fs.stat("/work/fifo")).type, "file");
+  assert.equal(Buffer.from(await fs.readFile("/work/fifo")).toString(), "payload");
+});
+
+test("unzip charges actual decoded bytes exactly once before publication", async () => {
+  const fs = await fixture([{ name: "file", body: "x".repeat(8192), method: 8 }]);
+  let charged = 0;
+  const registerCleanup: NonNullable<CommandContext["registerCleanup"]> = () => {};
+  bindFileOutputBudget({ registerCleanup }, sink => ({ async write(bytes) { charged += bytes.length; await sink.write(bytes); } }));
+  const errors: unknown[] = [];
+  const result = await run(fs, ["sample.zip"], "", {}, { registerCleanup, onInternalError(error) { errors.push(error); } });
+  assert.deepEqual(errors, []);
+  assert.equal(result.exitCode, 0, JSON.stringify(result));
+  assert.equal(charged, 8192);
+});
+
+test("unzip charge rejection and bad CRC preserve preexisting file", async () => {
+  const fs = await fixture([{ name: "file", body: "x".repeat(8192), method: 8 }]); await fs.writeFile("/work/file", Buffer.from("keep"));
+  const registerCleanup: NonNullable<CommandContext["registerCleanup"]> = () => {};
+  bindFileOutputBudget({ registerCleanup }, () => ({ async write() { throw undefined; } }));
+  assert.equal((await run(fs, ["-o", "sample.zip"], "", {}, { registerCleanup })).exitCode, 2);
+  assert.equal(Buffer.from(await fs.readFile("/work/file")).toString(), "keep");
+  await fs.writeFile("/work/sample.zip", zip([{ name: "file", body: "bad", crc: 0 }]));
+  assert.notEqual((await run(fs, ["-o", "sample.zip"])).exitCode, 0);
+  assert.equal(Buffer.from(await fs.readFile("/work/file")).toString(), "keep");
+});
+
+test("unzip bounds arguments, patterns, members, payload and stdout", async () => {
+  for (const limits of [{ maxArgumentBytes: 3 }, { maxPatternSteps: 1 }, { maxMembers: 1 }, { maxEntryBytes: 1 }, { maxTotalBytes: 1 }, { maxTextBytes: 1 }]) {
+    const result = await run(await fixture(), ["sample.zip", "*.txt"], "", { limits });
+    assert.equal(result.exitCode, 2, JSON.stringify({ limits, result }));
+  }
+});
+
+test("unzip empty archive warning precedes any listing", async () => {
+  for (const args of [["sample.zip"], ["-l", "sample.zip"]]) {
+    assert.deepEqual(await run(await fixture([]), args), { exitCode: 1, stdout: heading, stderr: "warning [sample.zip]:  zipfile is empty\n" });
+  }
+});
+
+test("unzip partial unmatched extraction and listing exit 11", async () => {
+  const fs = await fixture([{ name: "file", body: "a" }]);
+  assert.deepEqual(await run(fs, ["sample.zip", "file", "absent"]), { exitCode: 11, stdout: heading + " extracting: file                    \n", stderr: "caution: filename not matched:  absent\n" });
+  assert.equal((await run(fs, ["-l", "sample.zip", "file", "absent"])).exitCode, 11);
+});
+
+test("unzip nine-byte prompt reads and ENTER display match native", async () => {
+  const fs = await fixture([{ name: "file", body: "a" }]); await run(fs, ["sample.zip"]);
+  assert.deepEqual(await run(fs, ["sample.zip"], "123456789y\n"), { exitCode: 0, stdout: heading + " extracting: file                    \n", stderr: prompt("file") + "error:  invalid response [123456789]\n" + prompt("file") });
+  assert.deepEqual(await run(fs, ["sample.zip"], "\nn\n"), { exitCode: 0, stdout: heading, stderr: prompt("file") + "error:  invalid response [{ENTER}]\n" + prompt("file") });
+});
+
+test("unzip rename prompt keeps -d display and destination", async () => {
+  const fs = await fixture([{ name: "file", body: "a" }]); await run(fs, ["sample.zip", "-d", "dest"]);
+  assert.deepEqual(await run(fs, ["sample.zip", "-d", "dest"], "r\nnew\n"), { exitCode: 0, stdout: heading + " extracting: dest/new                \n", stderr: prompt("dest/file") + "new name: " });
+  assert.equal(Buffer.from(await fs.readFile("/work/dest/new")).toString(), "a");
+});
+
+test("unzip archive comment, deflate and deferred symlink stdout match native", async () => {
+  const fs = await fixture([{ name: "file", body: "hello" }, { name: "link", body: "file", mode: 0o120777 }]);
+  assert.deepEqual(await run(fs, ["sample.zip"]), { exitCode: 0, stderr: "", stdout: heading + " extracting: file                    \n    linking: link                    -> file \nfinishing deferred symbolic links:\n  link                   -> file\n" });
+  assert.equal(await fs.readlink!("/work/link"), "file");
+  await fs.writeFile("/work/sample.zip", zip([{ name: "compressed", body: "hello".repeat(100), method: 8 }], "hello\r\nworld"));
+  assert.deepEqual(await run(fs, ["sample.zip"]), { exitCode: 0, stderr: "", stdout: heading + "hello\nworld\n  inflating: compressed              \n" });
+});
+
+test("unzip symlink -o replaces a regular file without following targets", async () => {
+  const fs = await fixture([{ name: "link", body: "file", mode: 0o120777 }]);
+  await fs.writeFile("/work/link", Buffer.from("old"));
+  assert.equal((await run(fs, ["-o", "sample.zip"])).exitCode, 0);
+  assert.equal(await fs.readlink!("/work/link"), "file");
+});
+
+for (const target of ["/outside", "../outside", "child/../../outside"]) test(`unzip confines symlink target ${target}`, async () => {
+  const fs = await fixture([{ name: "link", body: target, mode: 0o120777 }]);
+  assert.equal((await run(fs, ["sample.zip"])).exitCode, 2);
+  await assert.rejects(fs.lstat("/work/link"));
+});
+
+test("unzip rejects effective Unicode traversal and preserves the raw fixture", async () => {
+  const name = "safe";
+  const unicode = Buffer.from("../escape"); const extra = Buffer.alloc(9 + unicode.length);
+  extra.writeUInt16LE(0x7075); extra.writeUInt16LE(5 + unicode.length, 2); extra[4] = 1;
+  extra.writeUInt32LE(crc32(Buffer.from(name)), 5); extra.set(unicode, 9);
+  const fs = await fixture([{ name, extra, body: "bad" }]);
+  const before = await fs.readFile("/work/sample.zip");
+  assert.equal((await run(fs, ["sample.zip"])).exitCode, 2);
+  await assert.rejects(fs.stat("/escape")); await assert.rejects(fs.stat("/work/safe"));
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+});
+
+for (const reason of [undefined, null, false, 0, ""]) test(`unzip cleans staging after falsey publication failure ${String(reason)}`, async () => {
+  const fs = await fixture([{ name: "file", body: "hello" }]); await fs.writeFile("/work/file", Buffer.from("keep"));
+  const faulty = wrapped(fs, { async publishStagedFile() { throw reason; } });
+  assert.equal((await run(faulty, ["-o", "sample.zip"])).exitCode, 2);
+  assert.equal(Buffer.from(await fs.readFile("/work/file")).toString(), "keep");
+  assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name).sort(), ["file", "sample.zip"]);
+});
+
+test("unzip waits for staging cleanup after abort during exclusive acquisition", async () => {
+  const fs = await fixture([{ name: "file", body: "hello" }]);
+  const controller = new AbortController();
+  const faulty = wrapped(fs, { async createStagedFile(path, name, content, options) {
+    const receipt = await fs.createStagedFile!(path, name, content, options);
+    controller.abort(false);
+    return receipt;
+  } });
+  await assert.rejects(run(faulty, ["sample.zip"], "", {}, { signal: controller.signal }), reason => reason === false);
+  assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["sample.zip"]);
+});
+
+test("unzip refuses extraction over the archive through hardlink alias", async () => {
+  const fs = await fixture([{ name: "alias", body: "bad" }]);
+  await fs.link!("/work/sample.zip", "/work/alias");
+  assert.equal((await run(fs, ["-o", "sample.zip"])).exitCode, 2);
+  assert.deepEqual(await fs.readFile("/work/alias"), await fs.readFile("/work/sample.zip"));
+});
+
+test("unzip directory payload CRC is validated even for empty payload", async () => {
+  const fs = await fixture([{ name: "dir/", crc: 123 }]);
+  assert.equal((await run(fs, ["sample.zip"])).exitCode, 2);
+  await assert.rejects(fs.stat("/work/dir"));
+});
+
+test("unzip comments ending in LF do not gain a second newline", async () => {
+  const fs = await fixture([{ name: "file", body: "a" }]);
+  await fs.writeFile("/work/sample.zip", zip([{ name: "file", body: "a" }], "hello\n"));
+  assert.equal((await run(fs, ["sample.zip"])).stdout, heading + "hello\n extracting: file                    \n");
+});
+
+test("unzip can extract an explicit root directory entry safely", async () => {
+  const fs = await fixture([{ name: "empty/" }]);
+  const result = await run(fs, ["sample.zip", "-d", "/"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((await fs.stat("/empty")).type, "directory");
+});
+
+test("unzip resolves an existing symlink target chain without escaping", async () => {
+  const fs = await fixture([{ name: "link", body: "chain/outside", mode: 0o120777 }]);
+  await fs.mkdir("/outside"); await fs.symlink!("/outside", "/work/chain");
+  assert.equal((await run(fs, ["sample.zip"])).exitCode, 2);
+  await assert.rejects(fs.lstat("/work/link"));
+});
+
+test("unzip checks full member parent chain and default cwd symlinks", async () => {
+  const fs = await fixture([{ name: "dir/file", body: "bad" }]);
+  await fs.mkdir("/outside"); await fs.symlink!("/outside", "/work/dir");
+  assert.equal((await run(fs, ["sample.zip"])).exitCode, 2);
+  await assert.rejects(fs.stat("/outside/file"));
+  await fs.symlink!("/work", "/alias");
+  assert.equal((await run(fs, ["sample.zip"], "", {}, { cwd: "/alias" })).exitCode, 2);
+});
+
+test("unzip rejects archive size and path, extra, destination depth bounds", async () => {
+  for (const limits of [{ maxArchiveBytes: 50 }, { maxPathBytes: 8 }, { maxDepth: 1 }, { maxPaxBytes: 1 }]) {
+    const extra = Buffer.from([0xfe, 0xca, 0, 0]);
+    const fs = await fixture([{ name: "dir/file", body: "a", extra }]);
+    assert.equal((await run(fs, ["sample.zip"], "", { limits })).exitCode, 2);
+  }
+});
+
+test("unzip bounds buffered input fallback instead of unbounded readFile", async () => {
+  const fs = await fixture();
+  const fallback = wrapped(fs, { capabilities: { ...fs.capabilities, streamingRead: false } });
+  assert.equal((await run(fallback, ["sample.zip"], "", { limits: { maxBufferedFileBytes: 1 } })).exitCode, 2);
+});
+
+test("unzip overwrite stdin reads are bounded even for empty producer chunks", async () => {
+  const fs = await fixture([{ name: "file", body: "a" }]); await run(fs, ["sample.zip"]);
+  let pulls = 0;
+  const stdin = { async *[Symbol.asyncIterator]() { while (pulls++ < 1000) yield new Uint8Array(); } };
+  const result = await run(fs, ["sample.zip"], "", { limits: { maxPatternSteps: 50 } }, { stdin });
+  assert.equal(result.exitCode, 2);
+  assert.ok(pulls <= 51, String(pulls));
+});
+
+test("unzip registered cleanup waits for admitted publication and removes staging", async () => {
+  const fs = await fixture([{ name: "file", body: "hello" }]);
+  let unblock!: () => void;
+  let entered!: () => void;
+  const enteredPromise = new Promise<void>(resolve => { entered = resolve; });
+  const blocked = new Promise<void>(resolve => { unblock = resolve; });
+  let cleanup: (() => void | Promise<void>) | undefined;
+  const delayed = wrapped(fs, { async createStagedFile(path, name, content, options) {
+    const receipt = await fs.createStagedFile!(path, name, content, options);
+    entered(); await blocked;
+    return receipt;
+  } });
+  const result = run(delayed, ["sample.zip"], "", {}, { registerCleanup(handler) { cleanup = handler; } });
+  await enteredPromise;
+  let settled = false;
+  const closing = Promise.resolve(cleanup!()).then(() => { settled = true; });
+  await Promise.resolve(); assert.equal(settled, false);
+  unblock(); await closing; await result;
+  assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["sample.zip"]);
+});
+
+test("unzip never removes a replacement at its failed staging name", async () => {
+  const fs = await fixture([{ name: "file", body: "hello" }]);
+  const faulty = wrapped(fs, { async publishStagedFile(staging) {
+    const path = staging.file.path;
+    await fs.rm(path); await fs.writeFile(path, Buffer.from("not ours")); throw false;
+  } });
+  assert.equal((await run(faulty, ["sample.zip"])).exitCode, 2);
+  assert.equal(Buffer.from(await fs.readFile("/work/.unzip-1/entry")).toString(), "not ours");
+});
+
+for (const streaming of [false, true]) test(`unzip cleanup waits for admitted ${streaming ? "stream" : "buffered"} archive reads`, async () => {
+  const fs = await fixture();
+  const bytes = await fs.readFile("/work/sample.zip");
+  let release!: () => void; let entered!: () => void;
+  const blocked = new Promise<void>(resolve => { release = resolve; });
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  const controller = new AbortController();
+  let settled = false;
+  let closed = false;
+  const delayed = wrapped(fs, {
+    capabilities: { ...fs.capabilities, streamingRead: streaming },
+    async readFile() { entered(); await blocked; return bytes; },
+    readStream() { return { async *[Symbol.asyncIterator]() { try { entered(); await blocked; yield bytes; } finally { closed = true; } } }; },
+  });
+  const pending = run(delayed, ["sample.zip"], "", {}, { signal: controller.signal }).then(
+    () => { settled = true; return "unexpected success"; }, reason => { settled = true; return reason; },
+  );
+  await started; controller.abort(false);
+  await new Promise<void>(resolve => setImmediate(resolve));
+  const early = settled;
+  release(); assert.equal(await pending, false);
+  assert.equal(early, false, "invocation settled before admitted read completed");
+  if (streaming) assert.equal(closed, true);
+});
+
+test("unzip bounds archive-stream pulls, not only nonempty bytes", async () => {
+  const fs = await fixture();
+  let pulls = 0;
+  const faulty = wrapped(fs, { readStream() { return { async *[Symbol.asyncIterator]() { while (pulls++ < 1000) yield new Uint8Array(); } }; } });
+  assert.equal((await run(faulty, ["sample.zip"], "", { limits: { maxPatternSteps: 50 } })).exitCode, 2);
+  assert.ok(pulls <= 51, String(pulls));
+});
+
+for (const after of ["creation", "publication"]) test(`unzip rejects staging symlink replacement at ${after}`, async () => {
+  const fs = await fixture([{ name: "file", body: "hello", mode: 0o100640 }]);
+  await fs.writeFile("/outside", Buffer.from("keep"), { mode: 0o604 });
+  await fs.utimes!("/outside", 946684800000, 946684800000);
+  const before = await fs.stat("/outside");
+  const replace = async (path: string) => {
+    await fs.rename(path, "/work/held-stage");
+    await fs.symlink!("/outside", path);
+  };
+  const faulty = wrapped(fs, {
+    async createStagedFile(path, name, content, options) {
+      const receipt = await fs.createStagedFile!(path, name, content, options);
+      if (after === "creation") await replace(receipt.file.path);
+      return receipt;
+    },
+    async publishStagedFile(staging, destination, options) {
+      if (after === "publication") await replace(staging.file.path);
+      return fs.publishStagedFile!(staging, destination, options);
+    },
+  });
+  assert.equal((await run(faulty, ["sample.zip"])).exitCode, 2);
+  const outside = await fs.stat("/outside");
+  assert.equal(outside.mode, before.mode);
+  assert.equal(outside.mtimeMs, before.mtimeMs);
+  assert.equal(Buffer.from(await fs.readFile("/outside")).toString(), "keep");
+  assert.equal(await fs.readlink!("/work/.unzip-1/entry"), "/outside");
+});
+
+test("unzip checks staging parents before later mutation and cleanup", async () => {
+  const fs = await fixture([{ name: "dir/file", body: "hello" }]);
+  await fs.mkdir("/outside");
+  await fs.writeFile("/outside/.unzip-1", Buffer.from("keep"), { mode: 0o604 });
+  const before = await fs.stat("/outside/.unzip-1");
+  const faulty = wrapped(fs, { async createStagedFile(path, name, content, options) {
+    const receipt = await fs.createStagedFile!(path, name, content, options);
+    await fs.rename("/work/dir", "/work/held-dir");
+    await fs.symlink!("/outside", "/work/dir");
+    return receipt;
+  } });
+  assert.equal((await run(faulty, ["sample.zip"])).exitCode, 2);
+  const outside = await fs.stat("/outside/.unzip-1");
+  assert.equal(outside.mode, before.mode);
+  assert.equal(outside.mtimeMs, before.mtimeMs);
+  assert.equal(Buffer.from(await fs.readFile("/outside/.unzip-1")).toString(), "keep");
+});
+
+test("unzip checks directory identity atomically before metadata restoration", async () => {
+  const fs = await fixture([{ name: "dir/", mode: 0o40750 }]);
+  await fs.mkdir("/outside"); await fs.utimes!("/outside", 946684800000, 946684800000);
+  const before = await fs.stat("/outside");
+  const faulty = wrapped(fs, { async prepareDirectory(path, options) {
+    if (path === "/work/dir" && options.expected) { await fs.rename(path, "/work/held-dir"); await fs.symlink!("/outside", path); }
+    return fs.prepareDirectory!(path, options);
+  } });
+  assert.equal((await run(faulty, ["sample.zip"])).exitCode, 2);
+  assert.equal((await fs.stat("/outside")).mtimeMs, before.mtimeMs);
+});
+
+test("unzip preserves both publication and falsey retained-cleanup failures", async () => {
+  const fs = await fixture([{ name: "file", body: "hello" }]);
+  const original = new Error("publication failed");
+  const observed: unknown[] = [];
+  const faulty = wrapped(fs, {
+    async publishStagedFile() { throw original; },
+    async removeStagedFile() { throw false; },
+  });
+  const result = await run(faulty, ["sample.zip"], "", {}, { onInternalError(error) { observed.push(error); } });
+  assert.equal(result.exitCode, 2);
+  assert.equal(observed.length, 1);
+  assert.ok(observed[0] instanceof AggregateError);
+  assert.deepEqual(observed[0].errors, [original, false]);
+});
+
+test("unzip handled missing staging file does not replace the publication failure", async () => {
+  const fs = await fixture([{ name: "file", body: "hello" }]);
+  const original = new Error("publication failed after removal");
+  const observed: unknown[] = [];
+  const faulty = wrapped(fs, { async publishStagedFile(staging) { await fs.rm(staging.file.path); throw original; } });
+  assert.equal((await run(faulty, ["sample.zip"], "", {}, { onInternalError(error) { observed.push(error); } })).exitCode, 2);
+  assert.deepEqual(observed, [original]);
+  assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["sample.zip"]);
+});
+
+for (const replacement of ["symlink", "directory"] as const) test(`unzip rejects ancestor ${replacement} swap at atomic publication`, async () => {
+  const fs = await fixture([{ name: "sub/input", body: "attacker payload" }]);
+  await fs.mkdir("/work/out/sub", { recursive: true });
+  await fs.mkdir("/work/private");
+  const faulty = wrapped(fs, { async publishStagedFile(staging, destination, options) {
+    await fs.rename("/work/out", "/work/private/out");
+    if (replacement === "symlink") await fs.symlink!("private/out", "/work/out");
+    else {
+      await fs.mkdir("/work/out");
+      await fs.rename("/work/private/out/sub", "/work/out/sub");
+    }
+    return fs.publishStagedFile!(staging, destination, options);
+  } });
+  const result = await run(faulty, ["-o", "sample.zip", "-d", "out"]);
+  assert.notEqual(result.exitCode, 0);
+  await assert.rejects(fs.lstat("/work/private/out/sub/input"));
+  await assert.rejects(fs.lstat("/work/out/sub/input"));
+});
+
+test("unzip rejects a backend without atomic ancestry verification before staging", async () => {
+  const fs = await fixture([{ name: "input", body: "payload" }]);
+  let staged = false;
+  const unsupported = wrapped(fs, {
+    capabilities: { ...fs.capabilities, atomicStagingAncestry: false },
+    async createStagedFile(...args) { staged = true; return fs.createStagedFile!(...args); },
+  });
+  const result = await run(unsupported, ["sample.zip"]);
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr, /atomic staging ancestry verification/u);
+  assert.equal(staged, false);
+  await assert.rejects(fs.lstat("/work/input"));
+});

@@ -2510,3 +2510,42 @@ it("uses portable dependency aliases when packaging private portable commands", 
   expect(portable!.alias).not.toHaveProperty(name);
   expect(portable!.external).toContain(name);
 });
+
+it("packs the private unzip argument owner behind the established public export", async () => {
+  const { volume, options } = optionalLeftovers();
+  const name = "safe-bash-command-unzip";
+  const pkg = JSON.parse(readFileSync(new URL(`../packages/${name}/package.json`, import.meta.url), "utf8"));
+  expect(pkg.private).toBe(true);
+  expect(bashManifest.poeCode.integration.privateWorkspaces[name]).toEqual({
+    version: pkg.version, dependencies: {}, devDependencies: pkg.devDependencies, portable: true,
+  });
+  volume.mkdirSync(`/repo/packages/${name}/dist/unzip`, { recursive: true });
+  volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify(pkg));
+  volume.writeFileSync(`/repo/packages/${name}/LICENSE`, "MIT\n");
+  for (const entry of Object.values(pkg.exports) as { types: string; import: string }[]) {
+    for (const target of [entry.types, entry.import]) {
+      const filename = `/repo/packages/${name}/${target.slice(2)}`;
+      volume.mkdirSync(path.dirname(filename), { recursive: true });
+      volume.writeFileSync(filename, "export {};\n");
+    }
+  }
+  for (const suffix of ["js", "d.ts"]) {
+    volume.writeFileSync(`/repo/packages/${name}/dist/index.${suffix}`, 'export { parseArguments } from "./unzip/arguments.js";');
+    volume.writeFileSync(`/repo/packages/${name}/dist/unzip/arguments.${suffix}`, suffix === "js"
+      ? "export function parseArguments() { return []; }" : "export declare function parseArguments(): string[];");
+    volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/unzip/index.${suffix}`, `export * from "${name}";`);
+  }
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const packed = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
+  expect(packed.dependencies?.[name]).toBeUndefined();
+  expect(packed.exports["./commands/unzip"]).toEqual({
+    types: "./dist/safe-bash/commands/unzip/index.d.ts",
+    workerd: "./dist/safe-bash/commands/unzip/index.js",
+    browser: "./dist/safe-bash/commands/unzip/index.js",
+    import: "./dist/safe-bash/commands/unzip/index.js",
+  });
+  for (const suffix of ["js", "d.ts"]) {
+    expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash/commands/unzip/index.${suffix}`, "utf8")).toContain('../../../safe-bash-command-unzip/index.js');
+    expect(volume.existsSync(`/output/safe-bash/dist/${name}/unzip/arguments.${suffix}`)).toBe(true);
+  }
+});

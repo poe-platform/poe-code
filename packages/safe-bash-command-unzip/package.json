@@ -36,6 +36,12 @@
       "workerd": "./dist/unzip.js",
       "browser": "./dist/unzip.js",
       "import": "./dist/unzip.js"
+    },
+    "./unzip/arguments": {
+      "types": "./dist/unzip/arguments.d.ts",
+      "workerd": "./dist/unzip/arguments.js",
+      "browser": "./dist/unzip/arguments.js",
+      "import": "./dist/unzip/arguments.js"
     }
   },
   "files": [

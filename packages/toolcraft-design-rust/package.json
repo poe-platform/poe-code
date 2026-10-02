@@ -491,6 +491,10 @@
     "./explorer/render/pane": {
       "types": "./dist/explorer-pane.d.ts",
       "import": "./dist/explorer-pane.js"
+    },
+    "./explorer/render/header": {
+      "types": "./dist/explorer-header.d.ts",
+      "import": "./dist/explorer-header.js"
     }
   },
   "scripts": {

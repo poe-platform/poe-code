@@ -633,3 +633,8 @@ retain their identity, while the underlined match style is a fresh object.
 draws a clipped title, optional indicator and focused or unfocused borders on
 your screen surface. Narrow panes retain their one-column or one-row form.
 The module also re-exports `paneBodyRect` for positioning pane content.
+
+`renderHeader(state, screen, layout)` from `explorer/render/header` draws the
+title, active filter, row counts, selection count and loading indicator. A
+focused companion list uses its own filter and item counts; narrow layouts
+display the terminal-size hint.

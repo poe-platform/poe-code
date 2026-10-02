@@ -914,3 +914,10 @@ const explorerPaneOriginal: typeof originalExplorerPane = explorerPane;
 const explorerPaneNative: typeof explorerPane = null as unknown as typeof originalExplorerPane;
 const explorerPaneKeys: SameKeys<typeof explorerPane,typeof originalExplorerPane> = true;
 void [explorerPaneOriginal,explorerPaneNative,explorerPaneKeys];
+
+import * as explorerHeader from "toolcraft-design-rust/explorer/render/header";
+import type * as originalExplorerHeader from "toolcraft-design/explorer/render/header";
+const explorerHeaderOriginal: typeof originalExplorerHeader = explorerHeader;
+const explorerHeaderNative: typeof explorerHeader = null as unknown as typeof originalExplorerHeader;
+const explorerHeaderKeys: SameKeys<typeof explorerHeader,typeof originalExplorerHeader> = true;
+void [explorerHeaderOriginal,explorerHeaderNative,explorerHeaderKeys];

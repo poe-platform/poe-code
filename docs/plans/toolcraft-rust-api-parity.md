@@ -2038,3 +2038,34 @@ color enabled measured 5.463 µs native / 0.263 µs reference for theme projecti
 operation costs, not a full-render performance gate. Native/host batching,
 remaining renderers, reducer, runtime/public namespace and broader swap
 qualification remain open.
+
+### Explorer header checkpoint
+
+`explorer/render/header` exposes `renderHeader` with the original declaration.
+Rust controls top/divider borders, active-filter selection, optional companion
+list counts, selection/loading indicators, clipping and screen-call order.
+The adapter uses the existing Rust theme and text-cell implementations. Host
+operations preserve locale lowercasing, receiver binding, clearing side effects,
+getter/coercion ordering, nullish fallbacks and arbitrary thrown values.
+
+Three missing-export tests preceded implementation. A fourth reproduced and
+corrected the diagnostic for a modified string-repeat method. Differential
+coverage includes 280 layout/state combinations, custom counts/title methods,
+live getters, malformed fields and reentrant clearing. Maintained checks pass
+349 native host tests, 1,379 selected design tests, 13 prompt wrappers,
+132 dashboard/queue cases, 14 composer cases and 151 explorer cases, including
+the original header and rendering integration snapshots. Rust/binding and
+scoped JS lint, bidirectional types and packed runtime/declarations pass;
+packed runtime imports reject external ESM dependencies and declarations
+compile with `types: []`. No dependencies or default integration changed.
+
+Inspected 72-column and 36-column header screenshots for typed/empty filters,
+companion-list counts, selection/loading state and narrow-terminal hints.
+Native/reference original-ScreenBuffer output matches byte-for-byte.
+
+Five warmed alternating 500-render Node 22 ARM64 rounds retaining 32 call arrays
+measured 698.832 µs native / 158.450 µs reference for a 72-column primary-list
+header (4.41× slower), and 684.508 µs / 133.758 µs for a companion-list header
+(5.12× slower). No full-render performance gate passed. Other explorer renderers,
+reducer, runtime/public namespace, batching and broader swap qualification
+remain open.

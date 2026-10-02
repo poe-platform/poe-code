@@ -539,3 +539,5 @@ mod explorer_theme;
 pub use explorer_theme::*;
 mod explorer_pane;
 pub use explorer_pane::*;
+mod explorer_header;
+pub use explorer_header::*;

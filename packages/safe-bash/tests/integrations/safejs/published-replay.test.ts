@@ -41,7 +41,7 @@ for (const [operation, expectedOperation] of [["appendFile", "appendFile"], ["wr
         const result = await recipient(source, {
           modules: { fs: module },
           snapshot: sdk.restore(snapshot, { source }),
-          hostCallResumeProvider(request) {
+          hostCallResumeProvider(request: sdk.HostCallResumeRequest): sdk.HostCallResumeProof {
             reconciliations++;
             assert.equal(request.moduleId, "fs");
             assert.equal(request.operation, expectedOperation);

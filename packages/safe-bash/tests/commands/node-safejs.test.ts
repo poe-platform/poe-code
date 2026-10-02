@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
-import { Budget, declareHostOperation, makeFsModule, run } from "@poe-code/safe-js";
+import { Budget, declareHostOperation, makeFsModule, run, type Snapshot } from "@poe-code/safe-js";
 import { createNodeCommand, createNodeCommands, nodeCommands, NODE_PROFILE } from "../../src/commands/node/index.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { createSafeJsCommands, safeJsCommands, type SafeJsRuntime } from "../../src/commands/safejs/index.js";
@@ -38,7 +38,7 @@ test("builtin require followed by a guest error does not fail snapshot serializa
     run(source, options) {
       return run(source, { ...options, snapshotBackend: {
         async read() { return undefined; },
-        async write(snapshot) { replayErrors.push(Reflect.get(snapshot, "replayError")); },
+        async write(snapshot: Snapshot) { replayErrors.push(Reflect.get(snapshot, "replayError")); },
         async remove() {},
       } });
     },

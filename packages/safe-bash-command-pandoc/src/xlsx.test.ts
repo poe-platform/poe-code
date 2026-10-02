@@ -17,7 +17,7 @@ function spreadsheet(rows: (string | number)[][], name = "Quarterly report", for
   return new Uint8Array(write(workbook, { type: "array", bookType: "xlsx" }));
 }
 
-it.each(["gfm", "html", "rst"])("uses the first XLSX row as the %s table header", async to => {
+it.each(["gfm", "markdown", "html", "rst"])("uses the first XLSX row as the %s table header", async to => {
   const bytes = spreadsheet([["Item name", "Total"], ["Green apples", 7]]);
   const result = await convert([{ bytes }], { from: "xlsx", to }, context);
   expect(result.kind).toBe("text");

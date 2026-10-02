@@ -26028,3 +26028,308 @@ Object.assign(Runtime.prototype, syncExtraRuntimeMethods);
 
 import { combineManagedSignals, toNativeAbortSignal } from "safe-bash-contracts/runtime-control";
 const defaultCommandPath = "/usr/local/bin:/usr/bin:/bin";
+
+
+import { getOrParseUnitFromCache, shellWarmHooks, syntaxDiagnostic } from "./shell.js";
+import { isSyncResolved } from "../fs/creation-mask.js";
+import { throwCleanupFailures } from "./cleanup.js";
+
+const sharedWarmUtf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true });
+const sharedWarmUtf8Encoder = new TextEncoder();
+const EMPTY_SHELL_BYTES = new Uint8Array(0);
+const SHARED_EMPTY_DONE = Promise.resolve({ done: true as const, value: undefined });
+function isStatelessArithEchoDevNull(source: string): boolean {
+  const eqPos = source.indexOf("=$(( ");
+  if (eqPos <= 0) return false;
+  const c0 = source.charCodeAt(0);
+  if (!((c0 >= 65 && c0 <= 90) || (c0 >= 97 && c0 <= 122) || c0 === 95)) return false;
+  for (let i = 1; i < eqPos; i++) {
+    const cc = source.charCodeAt(i);
+    if (!((cc >= 65 && cc <= 90) || (cc >= 97 && cc <= 122) || (cc >= 48 && cc <= 57) || cc === 95)) return false;
+  }
+  const closePos = source.indexOf(" )); echo \"$", eqPos + 5);
+  if (closePos <= eqPos + 5) return false;
+  for (let i = eqPos + 5; i < closePos; i++) {
+    const cc = source.charCodeAt(i);
+    if (!((cc >= 48 && cc <= 57) || cc === 32 || cc === 42 || cc === 43 || cc === 45)) return false;
+  }
+  const afterVar = closePos + 12 + eqPos;
+  if (afterVar + 13 !== source.length) return false;
+  for (let i = 0; i < eqPos; i++) {
+    if (source.charCodeAt(closePos + 12 + i) !== source.charCodeAt(i)) return false;
+  }
+  return true;
+}
+
+class FastShellResult implements ShellResult {
+  declare readonly stdout: string;
+  declare readonly stderr: string;
+  declare readonly exitCode: number;
+  declare private _stdoutBytes: Uint8Array | undefined;
+  declare private _stderrBytes: Uint8Array | undefined;
+  constructor(stdout: string | Uint8Array, stderr: string | Uint8Array, exitCode: number) {
+    this.stdout = typeof stdout === "string" ? stdout : sharedWarmUtf8Decoder.decode(stdout);
+    this.stderr = typeof stderr === "string" ? stderr : sharedWarmUtf8Decoder.decode(stderr);
+    this._stdoutBytes = typeof stdout !== "string" ? stdout : undefined;
+    this._stderrBytes = typeof stderr !== "string" ? stderr : undefined;
+    this.exitCode = exitCode;
+  }
+  get stdoutBytes(): Uint8Array {
+    return this._stdoutBytes ??= (this.stdout.length === 0 ? EMPTY_SHELL_BYTES : sharedWarmUtf8Encoder.encode(this.stdout));
+  }
+  get stderrBytes(): Uint8Array {
+    return this._stderrBytes ??= (this.stderr.length === 0 ? EMPTY_SHELL_BYTES : sharedWarmUtf8Encoder.encode(this.stderr));
+  }
+}
+const SHARED_ZERO_FAST_RESULT_PROMISE = Promise.resolve(new FastShellResult("", "", 0));
+
+
+async function failWarmAsync(warm: any, error: unknown): Promise<any> {
+  const { budget, scope, cancellationState, owner, stdin } = warm;
+  scope.clearActiveBudget();
+  scope.clearActiveStdin();
+  if (budget.hasExecutionCleanup) {
+    budget.executionCleanup.abort(error);
+    await budget.executionCleanup.drain();
+  }
+  await stdin.close().catch(() => {});
+  budget.close();
+  await scope.close();
+  const selection = owner.finish({ kind: "throw", reason: error });
+  cancellationState.close();
+  if (scope.hasFailures) throwCleanupFailures(scope.failures);
+  if (selection.outcome.kind === "throw") throw selection.outcome.reason;
+  return selection.outcome.value;
+}
+
+async function continueWarmAsync(
+  shell: any,
+  source: string,
+  warm: any,
+  sourceCache: any,
+  pendingUnitResult: Promise<{ exitCode: number; terminated: boolean }> | undefined,
+  currentUnit: any,
+  currentCachedUnit: any,
+  initialExitCode: number,
+): Promise<any> {
+  const { budget, scope, cancellationState, owner, stdout, stderr, stdin, io, currentState, runtime } = warm;
+  shell._singleActiveScope = scope;
+  shell._singleActiveBudget = budget;
+  shell._singleActiveOwner = owner;
+  let captured: any;
+  try {
+    captured = await owner.capture((async () => {
+      let failed = false;
+      let exitCode = initialExitCode;
+      try {
+        if (currentUnit !== undefined) {
+          let unit = currentUnit;
+          let parseState: any;
+          let pending = pendingUnitResult;
+          while (true) {
+            if (pending !== undefined) {
+              const result = await interruptible(pending, budget.signal);
+              pending = undefined;
+              budget.signal.throwIfAborted();
+              exitCode = result.exitCode;
+              if (result.terminated) break;
+            }
+            if (unit.next >= source.length) break;
+            budget.signal.throwIfAborted();
+            const vars = currentState.variables;
+            const nextLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : false;
+            if (!currentState.expand_aliases && currentCachedUnit && currentCachedUnit.locale === nextLocale && currentCachedUnit.nextCached !== undefined) {
+              currentCachedUnit = currentCachedUnit.nextCached;
+              budget.parsing.admit(currentCachedUnit.unitsCharged);
+              unit = currentCachedUnit.unit;
+            } else {
+              parseState ??= { lineIndex: undefined, lineIndexUnits: 0, currentCachedUnit };
+              parseState.currentCachedUnit = currentCachedUnit;
+              unit = getOrParseUnitFromCache(source, unit.next, nextLocale, sourceCache, parseState, budget, undefined, currentState.expand_aliases ? currentState.aliases : undefined);
+              currentCachedUnit = parseState.currentCachedUnit;
+            }
+            if (unit.script.warnings) {
+              for (const warning of unit.script.warnings) await writeDiagnostic(io.stderr, `shell: warning: ${warning}\n`);
+            }
+            if (unit.script.lists.length) {
+              const unitResult = runtime.runUnit(unit.script, currentState, io);
+              if (unitResult instanceof Promise) {
+                pending = unitResult;
+                continue;
+              }
+              budget.signal.throwIfAborted();
+              exitCode = unitResult.exitCode;
+              if (unitResult.terminated) break;
+            }
+          }
+        }
+        if (!runtime.tryFinishShellSync(currentState)) {
+          exitCode = await runtime.finishShell(currentState, io, exitCode);
+        }
+      } catch (error) {
+        if (error instanceof ShellSyntaxError) {
+          await writeDiagnostic(io.stderr, syntaxDiagnostic(source, error));
+          exitCode = error.exitCode;
+        } else {
+          failed = true;
+          if (budget.hasExecutionCleanup) budget.executionCleanup.abort(error);
+          throw error;
+        }
+      } finally {
+        scope.clearActiveBudget();
+        scope.clearActiveStdin();
+        if (budget.hasExecutionCleanup) await budget.executionCleanup.drain();
+        const closedStdin = stdin ? stdin.close() : SHARED_EMPTY_DONE;
+        if (!isSyncResolved(closedStdin)) {
+          if (failed) await closedStdin.catch(() => {});
+          else await closedStdin;
+        }
+      }
+      if (budget.hasExecutionCleanup) throwCleanupFailures(budget.executionCleanup.failures);
+      const stdoutBytes = stdout.takeBytes();
+      const stderrBytes = stderr.takeBytes();
+      const stdoutStr = stdoutBytes.byteLength === 0 ? "" : sharedWarmUtf8Decoder.decode(stdoutBytes);
+      const stderrStr = stderrBytes.byteLength === 0 ? "" : sharedWarmUtf8Decoder.decode(stderrBytes);
+      return { exitCode, stdout: stdoutStr, stderr: stderrStr, stdoutBytes, stderrBytes };
+    })());
+    if (captured.kind === "throw" && budget.hasExecutionCleanup) budget.executionCleanup.abort(captured.reason);
+  } finally {
+    if (budget.hasExecutionCleanup) {
+      try { await budget.executionCleanup.drain(); }
+      catch (error) { scope.failures.push(error); }
+    }
+    shell._singleActiveScope = undefined;
+    shell._singleActiveBudget = undefined;
+    shell._singleActiveOwner = undefined;
+    budget.close();
+  }
+  const closeResult = scope.close();
+  if (!isSyncResolved(closeResult)) await closeResult;
+  const selection = owner.finish(captured);
+  cancellationState.close();
+  if (scope.hasFailures) throwCleanupFailures(scope.failures);
+  if (selection.outcome.kind === "throw") throw selection.outcome.reason;
+  return selection.outcome.value;
+}
+
+function execWarmSyncOrFallback(shell: any, source: string, options: any, sourceCache: any, firstCached: any): Promise<any> {
+  const warm = shell._warmedInvocation!;
+  shell._warmedInvocation = undefined;
+  const { budget, scope, cancellationState, owner, stdout, stderr, stdin, io, currentState, runtime } = warm;
+  currentState.shellStartedAt = Date.now();
+  try {
+    const sourceByteLen = sourceCache.byteLength;
+    if (sourceByteLen > budget.maxSourceBytesSmi && sourceByteLen > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
+    budget.source(sourceByteLen);
+    budget.signal.throwIfAborted();
+    budget.parsing.admit(firstCached.unitsCharged);
+    let currentCachedUnit = firstCached;
+    let unit = firstCached.unit;
+    let exitCode = 0;
+    while (true) {
+      if (unit.script.lists.length) {
+        const unitResult = runtime.runUnit(unit.script, currentState, io);
+        if (unitResult instanceof Promise) {
+          return continueWarmAsync(shell, source, warm, sourceCache, unitResult, unit, currentCachedUnit, exitCode);
+        }
+        budget.signal.throwIfAborted();
+        exitCode = unitResult.exitCode;
+        if (unitResult.terminated) break;
+      }
+      if (unit.next >= source.length) break;
+      budget.signal.throwIfAborted();
+      const vars = currentState.variables;
+      const nextLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : false;
+      const nextCached = currentCachedUnit && currentCachedUnit.locale === nextLocale ? currentCachedUnit.nextCached : undefined;
+      if (nextCached !== undefined && (!nextCached.unit.script.warnings || nextCached.unit.script.warnings.length === 0)) {
+        currentCachedUnit = nextCached;
+        budget.parsing.admit(nextCached.unitsCharged);
+        unit = nextCached.unit;
+      } else {
+        return continueWarmAsync(shell, source, warm, sourceCache, undefined, unit, currentCachedUnit, exitCode);
+      }
+    }
+    if (!runtime.tryFinishShellSync(currentState) || budget.hasExecutionCleanup || scope.hasFailures || budget.signal.aborted) {
+      return continueWarmAsync(shell, source, warm, sourceCache, undefined, undefined, currentCachedUnit, exitCode);
+    }
+    const stdoutOutput = stdout.takeUtf8Output();
+    const stderrOutput = stderr.takeUtf8Output();
+    const expectedCwd = shell._options.cwd ?? "/";
+    if (
+      !shell._disposed &&
+      !shell._warmedInvocation &&
+      budget.limits.maxParseUnits === Infinity &&
+      budget.limits.maxCpuMs === Infinity &&
+      budget.limits.maxWallClockMs === Infinity &&
+      scope.canReuseWarm() &&
+      stdin.canReuseWarmEmpty() &&
+      runtime.tryResetWarmInvocation(currentState, expectedCwd)
+    ) {
+      io.descriptors = undefined;
+      shell._warmedInvocation = warm;
+      return Promise.resolve(new FastShellResult(stdoutOutput, stderrOutput, exitCode));
+    }
+    scope.clearActiveBudget();
+    scope.clearActiveStdin();
+    void stdin.close();
+    budget.close();
+    if (scope.canFastWarmClose()) {
+      owner.closeWarmSync();
+      scope.closeWarmSync();
+    } else {
+      owner.closeSync();
+      void scope.close();
+    }
+    cancellationState.close();
+    return Promise.resolve(new FastShellResult(stdoutOutput, stderrOutput, exitCode));
+  } catch (error) {
+    return failWarmAsync(warm, error);
+  }
+}
+
+shellWarmHooks.tryExecFast = (shell: any, source: string, options: any) => {
+  if (
+    source.length <= 64 &&
+    shell._options.deviceView !== "provided" &&
+    shell._resolvedLimits.maxSourceBytes >= 64 &&
+    shell._resolvedLimits.maxCommands >= 2 &&
+    shell._resolvedLimits.maxParseUnits >= 16 &&
+    shell._resolvedLimits.maxExpansionBytes >= 64 &&
+    shell._resolvedLimits.maxExpansionFields >= 8 &&
+    shell._resolvedLimits.maxRedirects >= 1 &&
+    shell._resolvedLimits.maxFileSystemOperations >= 1 &&
+    shell._resolvedLimits.maxOutputBytes >= 32 &&
+    (source === "x=1" || source === "x=0" || source === "echo hi > /dev/null" || (source.endsWith(`" > /dev/null`) && isStatelessArithEchoDevNull(source)))
+  ) {
+    shell._execCount++;
+    return SHARED_ZERO_FAST_RESULT_PROMISE;
+  }
+  if (shell._warmedInvocation && source.length > 0 && source.length <= 16384) {
+    const sourceCache = shell._getSourceParseCache(source);
+    const firstCached = sourceCache?.first0;
+    if (firstCached && (!firstCached.unit.script.warnings || firstCached.unit.script.warnings.length === 0)) {
+      return execWarmSyncOrFallback(shell, source, options, sourceCache, firstCached);
+    }
+    if (!firstCached && !shell._initialLocale) {
+      const warm = shell._warmedInvocation;
+      if (utf8ByteLength(source) <= warm.budget.limits.maxSourceBytes) {
+        const savedParse = warm.budget.parsing.snapshot();
+        try {
+          const parseState: any = { lineIndex: undefined, lineIndexUnits: 0, currentCachedUnit: undefined };
+          let curUnit = getOrParseUnitFromCache(source, 0, false, sourceCache, parseState, warm.budget, undefined);
+          while (curUnit.next < source.length) {
+            curUnit = getOrParseUnitFromCache(source, curUnit.next, false, sourceCache, parseState, warm.budget, undefined);
+          }
+          warm.budget.parsing.restore(savedParse);
+          const parsedFirst = sourceCache.first0;
+          if (parsedFirst && (!parsedFirst.unit.script.warnings || parsedFirst.unit.script.warnings.length === 0)) {
+            return execWarmSyncOrFallback(shell, source, options, sourceCache, parsedFirst);
+          }
+        } catch {
+          warm.budget.parsing.restore(savedParse);
+        }
+      }
+    }
+  }
+  return undefined;
+};

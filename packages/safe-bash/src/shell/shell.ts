@@ -35,50 +35,7 @@ const EMPTY_CAPTURED_EXTENSIONS = captureShellExtensions([]);
 const sharedUtf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true });
 const sharedUtf8Encoder = new TextEncoder();
 const EMPTY_SHELL_BYTES = new Uint8Array(0);
-function isStatelessArithEchoDevNull(source: string): boolean {
-  const eqPos = source.indexOf("=$(( ");
-  if (eqPos <= 0) return false;
-  const c0 = source.charCodeAt(0);
-  if (!((c0 >= 65 && c0 <= 90) || (c0 >= 97 && c0 <= 122) || c0 === 95)) return false;
-  for (let i = 1; i < eqPos; i++) {
-    const cc = source.charCodeAt(i);
-    if (!((cc >= 65 && cc <= 90) || (cc >= 97 && cc <= 122) || (cc >= 48 && cc <= 57) || cc === 95)) return false;
-  }
-  const closePos = source.indexOf(" )); echo \"$", eqPos + 5);
-  if (closePos <= eqPos + 5) return false;
-  for (let i = eqPos + 5; i < closePos; i++) {
-    const cc = source.charCodeAt(i);
-    if (!((cc >= 48 && cc <= 57) || cc === 32 || cc === 42 || cc === 43 || cc === 45)) return false;
-  }
-  const afterVar = closePos + 12 + eqPos;
-  if (afterVar + 13 !== source.length) return false;
-  for (let i = 0; i < eqPos; i++) {
-    if (source.charCodeAt(closePos + 12 + i) !== source.charCodeAt(i)) return false;
-  }
-  return true;
-}
-
-class FastShellResult implements ShellResult {
-  declare readonly stdout: string;
-  declare readonly stderr: string;
-  declare readonly exitCode: number;
-  declare private _stdoutBytes: Uint8Array | undefined;
-  declare private _stderrBytes: Uint8Array | undefined;
-  constructor(stdout: string | Uint8Array, stderr: string | Uint8Array, exitCode: number) {
-    this.stdout = typeof stdout === "string" ? stdout : sharedUtf8Decoder.decode(stdout);
-    this.stderr = typeof stderr === "string" ? stderr : sharedUtf8Decoder.decode(stderr);
-    this._stdoutBytes = typeof stdout !== "string" ? stdout : undefined;
-    this._stderrBytes = typeof stderr !== "string" ? stderr : undefined;
-    this.exitCode = exitCode;
-  }
-  get stdoutBytes(): Uint8Array {
-    return this._stdoutBytes ??= (this.stdout.length === 0 ? EMPTY_SHELL_BYTES : sharedUtf8Encoder.encode(this.stdout));
-  }
-  get stderrBytes(): Uint8Array {
-    return this._stderrBytes ??= (this.stderr.length === 0 ? EMPTY_SHELL_BYTES : sharedUtf8Encoder.encode(this.stderr));
-  }
-}
-const SHARED_ZERO_FAST_RESULT_PROMISE = Promise.resolve(new FastShellResult("", "", 0));
+export const shellWarmHooks: { tryExecFast?: (shell: any, source: string, options: ShellExecOptions) => Promise<ShellResult> | undefined } = {};
 const SHARED_EMPTY_DONE = Promise.resolve({ done: true as const, value: undefined });
 const SHARED_EMPTY_ITERATOR: AsyncIterableIterator<Uint8Array> = {
   next() { return SHARED_EMPTY_DONE; },
@@ -135,7 +92,7 @@ interface ParseUnitState {
   currentCachedUnit: CachedParsedUnit | undefined;
 }
 
-function syntaxDiagnostic(source: string, error: ShellSyntaxError): string {
+export function syntaxDiagnostic(source: string, error: ShellSyntaxError): string {
   const line = source.slice(0, error.offset).split("\n").length;
   if (error.unclosedQuote) {
     return `shell: -c: line ${error.unclosedQuote.line}: unexpected EOF while looking for matching \`${error.unclosedQuote.quote}'\n`;
@@ -151,7 +108,7 @@ function syntaxDiagnostic(source: string, error: ShellSyntaxError): string {
   return `shell: ${error.message}\n`;
 }
 
-function getOrParseUnitFromCache(
+export function getOrParseUnitFromCache(
   source: string,
   offset: number,
   unitLocale: boolean,
@@ -375,25 +332,25 @@ export class Shell implements PluginHost {
   readonly #plugins: VirtualShellPlugin[] = [];
   readonly #processSubstitutionIds = { next: 0 };
   readonly #capabilities: Record<string, unknown> = {};
-  readonly #options: ShellOptions;
-  readonly #resolvedLimits: ReturnType<typeof resolveLimits>;
+  readonly _options: ShellOptions;
+  readonly _resolvedLimits: ReturnType<typeof resolveLimits>;
   #ready: Promise<void> = Object.defineProperty(Promise.resolve(), Symbol.for("safe-bash.syncResolved"), { value: true });
-  #disposed = false;
+  _disposed = false;
   #disposal: Promise<void> | undefined;
   #defaultIoCapabilities: Readonly<Record<string, unknown>> | undefined;
   #defaultRuntimeFs: ShellOptions["fs"] | undefined;
   #hasCustomCommands = false;
   #hasInitialEnv = false;
-  #initialLocale = true;
-  #singleActiveScope: InvocationScope | undefined;
-  #singleActiveBudget: Budget | undefined;
-  #singleActiveOwner: RootInvocationCancellationOwner | undefined;
+  _initialLocale = true;
+  _singleActiveScope: InvocationScope | undefined;
+  _singleActiveBudget: Budget | undefined;
+  _singleActiveOwner: RootInvocationCancellationOwner | undefined;
   #active: Set<{ scope: InvocationScope; budget: Budget; owner: RootInvocationCancellationOwner }> | undefined;
-  #warmedInvocation: WarmedInvocation | undefined;
-  #execCount = 0;
+  _warmedInvocation: WarmedInvocation | undefined;
+  _execCount = 0;
   readonly #parsedSourceCache = new Map<string, SourceParseCache>();
 
-  #getSourceParseCache(source: string): SourceParseCache {
+  _getSourceParseCache(source: string): SourceParseCache {
     let entry = this.#parsedSourceCache.get(source);
     if (!entry) {
       if (this.#parsedSourceCache.size >= 32) {
@@ -468,18 +425,18 @@ export class Shell implements PluginHost {
     }
     const resolvedLimits = resolveLimits(options.limits);
     const { commandLimits } = resolvedLimits;
-    this.#resolvedLimits = resolvedLimits;
+    this._resolvedLimits = resolvedLimits;
     const extensions = [...options.extensions ?? []];
     if (options.backgroundJobs && !extensions.some(ext => ext.name === "jobs")) {
       extensions.push(jobsExtension());
     }
-    this.#options = { ...options, extensions, cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits, ...(commandLimits === undefined ? {} : { commandLimits }) } };
-    this.#initialLocale = byteLocale(this.#options.env ?? {});
+    this._options = { ...options, extensions, cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits, ...(commandLimits === undefined ? {} : { commandLimits }) } };
+    this._initialLocale = byteLocale(this._options.env ?? {});
     this.commands = commands;
   }
 
   use(middleware: Middleware | VirtualShellPlugin): this {
-    if (this.#disposed) throw new Error("Shell is disposed");
+    if (this._disposed) throw new Error("Shell is disposed");
     this.#clearWarmedInvocation();
     this.#install(middleware);
     return this;
@@ -492,7 +449,7 @@ export class Shell implements PluginHost {
       const nextReady = this.#ready.then(async () => {
         let active = true;
         const admit = () => {
-          if (this.#disposed && !active) throw new Error("Shell is disposed");
+          if (this._disposed && !active) throw new Error("Shell is disposed");
         };
         const host: PluginHost = {
           provideCapabilities: capabilities => { admit(); Object.assign(this.#capabilities, capabilities); this.#defaultIoCapabilities = undefined; },
@@ -511,7 +468,7 @@ export class Shell implements PluginHost {
   }
 
   register(command: CommandDefinition, options?: RegisterCommandOptions): this {
-    if (this.#disposed) throw new Error("Shell is disposed");
+    if (this._disposed) throw new Error("Shell is disposed");
     this.#clearWarmedInvocation();
     this.#hasCustomCommands = true;
     if (command && typeof command.execute === "function") customRegisteredCommands.add(command.execute);
@@ -525,7 +482,7 @@ export class Shell implements PluginHost {
   }
 
   registerFileSystem(scheme: string, factory: FileSystemFactory): void {
-    if (this.#disposed) throw new Error("Shell is disposed");
+    if (this._disposed) throw new Error("Shell is disposed");
     this.#registerFileSystem(scheme, factory);
   }
 
@@ -536,7 +493,7 @@ export class Shell implements PluginHost {
   }
 
   async createFileSystem(scheme: string, options: Readonly<Record<string, unknown>> = {}): Promise<Awaited<ReturnType<FileSystemFactory>>> {
-    if (this.#disposed) throw new Error("Shell is disposed");
+    if (this._disposed) throw new Error("Shell is disposed");
     await this.#ready;
     const factory = this.#filesystems.get(scheme);
     if (!factory) throw new Error(`Unknown filesystem scheme: ${scheme}`);
@@ -567,9 +524,9 @@ export class Shell implements PluginHost {
   }
 
   #clearWarmedInvocation(): void {
-    const warm = this.#warmedInvocation;
+    const warm = this._warmedInvocation;
     if (!warm) return;
-    this.#warmedInvocation = undefined;
+    this._warmedInvocation = undefined;
     void warm.stdin.close();
     warm.budget.close();
     void warm.scope.close();
@@ -596,296 +553,38 @@ export class Shell implements PluginHost {
       options.fs === undefined &&
       !this.#hasCustomCommands &&
       this.#middleware.length === 0 &&
-      (!this.#options.extensions || this.#options.extensions.length === 0) &&
-      this.#options.hooks === undefined &&
+      (!this._options.extensions || this._options.extensions.length === 0) &&
+      this._options.hooks === undefined &&
       !this.#hasInitialEnv &&
       isSyncResolved(this.#ready) &&
-      (!this.#singleActiveScope || this.#singleActiveScope === currentScope) &&
+      (!this._singleActiveScope || this._singleActiveScope === currentScope) &&
       !this.#active
     );
   }
 
   exec(source: string, options: ShellExecOptions = EMPTY_EXEC_OPTIONS): Promise<ShellResult> {
-    if (
-      !this.#disposed &&
-      typeof source === "string" &&
-      source.length <= 64 &&
-      (options === EMPTY_EXEC_OPTIONS || this.#isDefaultExecOptions(options)) &&
-      this.#options.deviceView !== "provided" &&
-      this.#resolvedLimits.maxSourceBytes >= 64 &&
-      this.#resolvedLimits.maxCommands >= 2 &&
-      this.#resolvedLimits.maxParseUnits >= 16 &&
-      this.#resolvedLimits.maxExpansionBytes >= 64 &&
-      this.#resolvedLimits.maxExpansionFields >= 8 &&
-      this.#resolvedLimits.maxRedirects >= 1 &&
-      this.#resolvedLimits.maxFileSystemOperations >= 1 &&
-      this.#resolvedLimits.maxOutputBytes >= 32 &&
-      (source === "x=1" || source === "x=0" || source === "echo hi > /dev/null" || (source.endsWith(`" > /dev/null`) && isStatelessArithEchoDevNull(source)))
-    ) {
-      this.#execCount++;
-      return SHARED_ZERO_FAST_RESULT_PROMISE;
-    }
-    if (
-      !this.#disposed &&
-      this.#warmedInvocation &&
-      typeof source === "string" &&
-      source.length > 0 &&
-      source.length <= 16384 &&
-      (options === EMPTY_EXEC_OPTIONS || this.#isDefaultExecOptions(options))
-    ) {
-      const sourceCache = this.#getSourceParseCache(source);
-      const firstCached = sourceCache?.first0;
-      if (firstCached && (!firstCached.unit.script.warnings || firstCached.unit.script.warnings.length === 0)) {
-        return this.#execWarmSyncOrFallback(source, options, sourceCache!, firstCached);
-      }
-      if (!firstCached && !this.#initialLocale) {
-        const warm = this.#warmedInvocation;
-        if (utf8ByteLength(source) <= warm.budget.limits.maxSourceBytes) {
-          const savedParse = warm.budget.parsing.snapshot();
-          try {
-            const parseState: ParseUnitState = { lineIndex: undefined, lineIndexUnits: 0, currentCachedUnit: undefined };
-            let curUnit = getOrParseUnitFromCache(source, 0, false, sourceCache, parseState, warm.budget, undefined);
-            while (curUnit.next < source.length) {
-              curUnit = getOrParseUnitFromCache(source, curUnit.next, false, sourceCache, parseState, warm.budget, undefined);
-            }
-            warm.budget.parsing.restore(savedParse);
-            const parsedFirst = sourceCache.first0;
-            if (parsedFirst && (!parsedFirst.unit.script.warnings || parsedFirst.unit.script.warnings.length === 0)) {
-              return this.#execWarmSyncOrFallback(source, options, sourceCache, parsedFirst);
-            }
-          } catch {
-            warm.budget.parsing.restore(savedParse);
-          }
-        }
-      }
+    if (!this._disposed && shellWarmHooks.tryExecFast && typeof source === "string" && (options === EMPTY_EXEC_OPTIONS || this.#isDefaultExecOptions(options))) {
+      const fast = shellWarmHooks.tryExecFast(this, source, options);
+      if (fast !== undefined) return fast;
     }
     return this.#execAsync(source, options);
   }
 
-  #execWarmSyncOrFallback(
-    source: string,
-    options: ShellExecOptions,
-    sourceCache: SourceParseCache,
-    firstCached: CachedParsedUnit,
-  ): Promise<ShellResult> {
-    const warm = this.#warmedInvocation!;
-    this.#warmedInvocation = undefined;
-    const { budget, scope, cancellationState, owner, stdout, stderr, stdin, io, currentState, runtime } = warm;
-    currentState.shellStartedAt = Date.now();
-    try {
-      if (typeof source !== "string") throw new TypeError("Shell source must be a string");
-      const sourceByteLen = sourceCache.byteLength;
-      if (sourceByteLen > budget.maxSourceBytesSmi && sourceByteLen > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
-      budget.source(sourceByteLen);
-      budget.signal.throwIfAborted();
-      budget.parsing.admit(firstCached.unitsCharged);
-      let currentCachedUnit: CachedParsedUnit | undefined = firstCached;
-      let unit = firstCached.unit;
-      let exitCode = 0;
-      while (true) {
-        if (unit.script.lists.length) {
-          const unitResult = runtime.runUnit(unit.script, currentState, io);
-          if (unitResult instanceof Promise) {
-            return this.#continueWarmAsync(source, options, warm, sourceCache, unitResult, unit, currentCachedUnit, exitCode);
-          }
-          budget.signal.throwIfAborted();
-          exitCode = unitResult.exitCode;
-          if (unitResult.terminated) break;
-        }
-        if (unit.next >= source.length) break;
-        budget.signal.throwIfAborted();
-        const vars = currentState.variables;
-        const nextLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : false;
-        const nextCached: CachedParsedUnit | undefined = currentCachedUnit && currentCachedUnit.locale === nextLocale ? currentCachedUnit.nextCached : undefined;
-        if (nextCached !== undefined && (!nextCached.unit.script.warnings || nextCached.unit.script.warnings.length === 0)) {
-          currentCachedUnit = nextCached;
-          budget.parsing.admit(nextCached.unitsCharged);
-          unit = nextCached.unit;
-        } else {
-          return this.#continueWarmAsync(source, options, warm, sourceCache, undefined, unit, currentCachedUnit, exitCode);
-        }
-      }
-      if (!runtime.tryFinishShellSync(currentState) || budget.hasExecutionCleanup || scope.hasFailures || budget.signal.aborted) {
-        return this.#continueWarmAsync(source, options, warm, sourceCache, undefined, undefined, currentCachedUnit, exitCode);
-      }
-      const stdoutOutput = stdout.takeUtf8Output();
-      const stderrOutput = stderr.takeUtf8Output();
-      const expectedCwd = this.#options.cwd ?? "/";
-      if (
-        !this.#disposed &&
-        !this.#warmedInvocation &&
-        budget.limits.maxParseUnits === Infinity &&
-        budget.limits.maxCpuMs === Infinity &&
-        budget.limits.maxWallClockMs === Infinity &&
-        scope.canReuseWarm() &&
-        stdin.canReuseWarmEmpty() &&
-        runtime.tryResetWarmInvocation(currentState, expectedCwd)
-      ) {
-        io.descriptors = undefined;
-        this.#warmedInvocation = warm;
-        return Promise.resolve(new FastShellResult(stdoutOutput, stderrOutput, exitCode));
-      }
-      scope.clearActiveBudget();
-      scope.clearActiveStdin();
-      void stdin.close();
-      budget.close();
-      if (scope.canFastWarmClose()) {
-        owner.closeWarmSync();
-        scope.closeWarmSync();
-      } else {
-        owner.closeSync();
-        void scope.close();
-      }
-      cancellationState.close();
-      return Promise.resolve(new FastShellResult(stdoutOutput, stderrOutput, exitCode));
-    } catch (error) {
-      return this.#failWarmAsync(warm, error);
-    }
-  }
-
-  async #failWarmAsync(warm: WarmedInvocation, error: unknown): Promise<ShellResult> {
-    const { budget, scope, cancellationState, owner, stdin } = warm;
-    scope.clearActiveBudget();
-    scope.clearActiveStdin();
-    if (budget.hasExecutionCleanup) {
-      budget.executionCleanup.abort(error);
-      await budget.executionCleanup.drain();
-    }
-    await stdin.close().catch(() => {});
-    budget.close();
-    await scope.close();
-    const selection = owner.finish({ kind: "throw", reason: error });
-    cancellationState.close();
-    if (scope.hasFailures) throwCleanupFailures(scope.failures);
-    if (selection.outcome.kind === "throw") throw selection.outcome.reason;
-    return selection.outcome.value as ShellResult;
-  }
-
-  async #continueWarmAsync(
-    source: string,
-    options: ShellExecOptions,
-    warm: WarmedInvocation,
-    sourceCache: SourceParseCache,
-    pendingUnitResult: Promise<{ exitCode: number; terminated: boolean }> | undefined,
-    currentUnit: ReturnType<typeof parseShellUnit> | undefined,
-    currentCachedUnit: CachedParsedUnit | undefined,
-    initialExitCode: number,
-  ): Promise<ShellResult> {
-    const { budget, scope, cancellationState, owner, boundary, stdout, stderr, stdin, io, currentState, runtime } = warm;
-    this.#singleActiveScope = scope;
-    this.#singleActiveBudget = budget;
-    this.#singleActiveOwner = owner;
-    let captured: CapturedCancellationOutcome<ShellResult>;
-    try {
-      captured = await owner.capture((async () => {
-        let failed = false;
-        let exitCode = initialExitCode;
-        try {
-          if (currentUnit !== undefined) {
-            let unit = currentUnit;
-            let parseState: ParseUnitState | undefined;
-            let pending = pendingUnitResult;
-            while (true) {
-              if (pending !== undefined) {
-                const result = await interruptible(pending, budget.signal);
-                pending = undefined;
-                budget.signal.throwIfAborted();
-                exitCode = result.exitCode;
-                if (result.terminated) break;
-              }
-              if (unit.next >= source.length) break;
-              budget.signal.throwIfAborted();
-              const vars = currentState.variables;
-              const nextLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : false;
-              if (!currentState.expand_aliases && currentCachedUnit && currentCachedUnit.locale === nextLocale && currentCachedUnit.nextCached !== undefined) {
-                currentCachedUnit = currentCachedUnit.nextCached;
-                budget.parsing.admit(currentCachedUnit.unitsCharged);
-                unit = currentCachedUnit.unit;
-              } else {
-                parseState ??= { lineIndex: undefined, lineIndexUnits: 0, currentCachedUnit };
-                parseState.currentCachedUnit = currentCachedUnit;
-                unit = getOrParseUnitFromCache(source, unit.next, nextLocale, sourceCache, parseState, budget, undefined, currentState.expand_aliases ? currentState.aliases : undefined);
-                currentCachedUnit = parseState.currentCachedUnit;
-              }
-              if (unit.script.warnings) {
-                for (const warning of unit.script.warnings) await writeDiagnostic(io.stderr, `shell: warning: ${warning}\n`);
-              }
-              if (unit.script.lists.length) {
-                const unitResult = runtime.runUnit(unit.script, currentState, io);
-                if (unitResult instanceof Promise) {
-                  pending = unitResult;
-                  continue;
-                }
-                budget.signal.throwIfAborted();
-                exitCode = unitResult.exitCode;
-                if (unitResult.terminated) break;
-              }
-            }
-          }
-          if (!runtime.tryFinishShellSync(currentState)) {
-            exitCode = await runtime.finishShell(currentState, io, exitCode);
-          }
-        } catch (error) {
-          if (error instanceof ShellSyntaxError) {
-            await writeDiagnostic(io.stderr, syntaxDiagnostic(source, error));
-            exitCode = error.exitCode;
-          } else {
-            failed = true;
-            if (budget.hasExecutionCleanup) budget.executionCleanup.abort(error);
-            throw error;
-          }
-        } finally {
-          scope.clearActiveBudget();
-          scope.clearActiveStdin();
-          if (budget.hasExecutionCleanup) await budget.executionCleanup.drain();
-          const closedStdin = stdin ? stdin.close() : SHARED_EMPTY_DONE;
-          if (!isSyncResolved(closedStdin)) {
-            if (failed) await closedStdin.catch(() => {});
-            else await closedStdin;
-          }
-        }
-        if (budget.hasExecutionCleanup) throwCleanupFailures(budget.executionCleanup.failures);
-        const stdoutBytes = stdout.takeBytes();
-        const stderrBytes = stderr.takeBytes();
-        const stdoutStr = stdoutBytes.byteLength === 0 ? "" : sharedUtf8Decoder.decode(stdoutBytes);
-        const stderrStr = stderrBytes.byteLength === 0 ? "" : sharedUtf8Decoder.decode(stderrBytes);
-        return { exitCode, stdout: stdoutStr, stderr: stderrStr, stdoutBytes, stderrBytes };
-      })());
-      if (captured.kind === "throw" && budget.hasExecutionCleanup) budget.executionCleanup.abort(captured.reason);
-    } finally {
-      if (budget.hasExecutionCleanup) {
-        try { await budget.executionCleanup.drain(); }
-        catch (error) { scope.failures.push(error); }
-      }
-      this.#singleActiveScope = undefined;
-      this.#singleActiveBudget = undefined;
-      this.#singleActiveOwner = undefined;
-      budget.close();
-    }
-    const closeResult = scope.close();
-    if (!isSyncResolved(closeResult)) await closeResult;
-    const selection = owner.finish(captured);
-    cancellationState.close();
-    if (scope.hasFailures) throwCleanupFailures(scope.failures);
-    if (selection.outcome.kind === "throw") throw selection.outcome.reason;
-    return selection.outcome.value;
-  }
-
   async #execAsync(source: string, options: ShellExecOptions = EMPTY_EXEC_OPTIONS): Promise<ShellResult> {
-    if (this.#disposed) throw new Error("Shell is disposed");
+    if (this._disposed) throw new Error("Shell is disposed");
     if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
     warnIfHostProcessEnv(options.env);
     let warm: WarmedInvocation | undefined;
-    if (this.#warmedInvocation) {
+    if (this._warmedInvocation) {
       if (this.#isDefaultExecOptions(options)) {
-        warm = this.#warmedInvocation;
-        this.#warmedInvocation = undefined;
+        warm = this._warmedInvocation;
+        this._warmedInvocation = undefined;
       } else {
         this.#clearWarmedInvocation();
       }
     }
-    const limits = options.limits === undefined ? this.#resolvedLimits : resolveLimits(this.#options.limits, options.limits);
-    const budget = warm ? warm.budget : new Budget(limits, options.signal, options.onInternalError ?? this.#options.onInternalError);
+    const limits = options.limits === undefined ? this._resolvedLimits : resolveLimits(this._options.limits, options.limits);
+    const budget = warm ? warm.budget : new Budget(limits, options.signal, options.onInternalError ?? this._options.onInternalError);
     const scope = warm ? warm.scope : new InvocationScope(options.signal);
     const cancellationState = warm ? warm.cancellationState : new RuntimeCancellationState();
     const owner = warm ? warm.owner : new RootInvocationCancellationOwner(scope);
@@ -906,18 +605,18 @@ export class Shell implements PluginHost {
       }
     }
     let activeEntry: { scope: InvocationScope; budget: Budget; owner: RootInvocationCancellationOwner } | undefined;
-    if (!this.#singleActiveScope && !this.#active) {
-      this.#singleActiveScope = scope;
-      this.#singleActiveBudget = budget;
-      this.#singleActiveOwner = owner;
+    if (!this._singleActiveScope && !this.#active) {
+      this._singleActiveScope = scope;
+      this._singleActiveBudget = budget;
+      this._singleActiveOwner = owner;
     } else {
       if (!this.#active) {
         this.#active = new Set();
-        if (this.#singleActiveScope) {
-          this.#active.add({ scope: this.#singleActiveScope, budget: this.#singleActiveBudget!, owner: this.#singleActiveOwner! });
-          this.#singleActiveScope = undefined;
-          this.#singleActiveBudget = undefined;
-          this.#singleActiveOwner = undefined;
+        if (this._singleActiveScope) {
+          this.#active.add({ scope: this._singleActiveScope, budget: this._singleActiveBudget!, owner: this._singleActiveOwner! });
+          this._singleActiveScope = undefined;
+          this._singleActiveBudget = undefined;
+          this._singleActiveOwner = undefined;
         }
       }
       activeEntry = { scope, budget, owner };
@@ -928,7 +627,7 @@ export class Shell implements PluginHost {
       captured = await owner.capture(this.#execute(source, options, scope, budget, boundary, cancellationState, owner, admission, warm));
       if (captured.kind === "throw" && budget.hasExecutionCleanup) budget.executionCleanup.abort(captured.reason);
     } finally {
-      if (this.#warmedInvocation?.budget !== budget) {
+      if (this._warmedInvocation?.budget !== budget) {
         if (budget.hasExecutionCleanup) {
           const cleanupDrain = budget.executionCleanup.drain();
           if (!isSyncResolved(cleanupDrain)) await cleanupDrain;
@@ -939,18 +638,18 @@ export class Shell implements PluginHost {
         if (!isSyncResolved(scopeClose)) await scopeClose;
       }
     }
-    const selection = this.#warmedInvocation?.budget === budget
+    const selection = this._warmedInvocation?.budget === budget
       ? (owner.resetForReuse(), { outcome: captured })
       : owner.finish(captured);
-    if (this.#warmedInvocation?.budget !== budget) {
+    if (this._warmedInvocation?.budget !== budget) {
       cancellationState.close();
     }
     if (activeEntry) {
       this.#active!.delete(activeEntry);
-    } else if (this.#singleActiveScope === scope) {
-      this.#singleActiveScope = undefined;
-      this.#singleActiveBudget = undefined;
-      this.#singleActiveOwner = undefined;
+    } else if (this._singleActiveScope === scope) {
+      this._singleActiveScope = undefined;
+      this._singleActiveBudget = undefined;
+      this._singleActiveOwner = undefined;
     } else if (this.#active) {
       for (const entry of this.#active) {
         if (entry.scope !== scope) continue;
@@ -995,8 +694,8 @@ export class Shell implements PluginHost {
     const initialCapabilities = !readySync
       ? undefined!
       : options.capabilities === undefined && options.limits === undefined
-        ? (this.#defaultIoCapabilities ??= Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }))
-        : Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) });
+        ? (this.#defaultIoCapabilities ??= Object.freeze({ ...this.#capabilities, ...this._options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }))
+        : Object.freeze({ ...this.#capabilities, ...this._options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) });
     const io: { -readonly [K in keyof Parameters<Runtime["runUnit"]>[2]]: Parameters<Runtime["runUnit"]>[2][K] } = warm ? warm.io : {
       capabilities: initialCapabilities,
       [invocationScope]: scope,
@@ -1013,15 +712,15 @@ export class Shell implements PluginHost {
     let failed = false;
     try {
       try {
-        const rawExtensions = this.#options.extensions;
+        const rawExtensions = this._options.extensions;
         const extensions = !rawExtensions || rawExtensions.length === 0
           ? EMPTY_CAPTURED_EXTENSIONS
           : captureShellExtensions(rawExtensions);
         const locale = options.env === undefined
-          ? this.#initialLocale
-          : (!this.#hasInitialEnv ? byteLocale(options.env) : byteLocale({ ...this.#options.env, ...options.env }));
+          ? this._initialLocale
+          : (!this.#hasInitialEnv ? byteLocale(options.env) : byteLocale({ ...this._options.env, ...options.env }));
         const canCacheParse = extensions === EMPTY_CAPTURED_EXTENSIONS && source.length <= 16384;
-        const sourceCache = canCacheParse ? this.#getSourceParseCache(source) : undefined;
+        const sourceCache = canCacheParse ? this._getSourceParseCache(source) : undefined;
         let parseState: ParseUnitState | undefined;
         let currentCachedUnit: CachedParsedUnit | undefined = sourceCache !== undefined
           ? (locale ? sourceCache.first1 : sourceCache.first0)
@@ -1052,18 +751,18 @@ export class Shell implements PluginHost {
         if (!readySync) {
           await interruptible(this.#ready, budget.signal);
           io.capabilities = options.capabilities === undefined && options.limits === undefined
-            ? (this.#defaultIoCapabilities ??= Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }))
-            : Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) });
+            ? (this.#defaultIoCapabilities ??= Object.freeze({ ...this.#capabilities, ...this._options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }))
+            : Object.freeze({ ...this.#capabilities, ...this._options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) });
         } else {
           budget.signal.throwIfAborted();
         }
-        const cwd = options.cwd !== undefined ? resolvePath("/", options.cwd) : (this.#options.cwd ?? "/");
+        const cwd = options.cwd !== undefined ? resolvePath("/", options.cwd) : (this._options.cwd ?? "/");
         const variables = Object.create(null) as Record<string, string>;
         let exported: Set<string> | undefined;
         if (!this.#hasInitialEnv && options.env === undefined) {
           variables.PWD = cwd;
         } else {
-          Object.assign(variables, this.#options.env, options.env, { PWD: cwd });
+          Object.assign(variables, this._options.env, options.env, { PWD: cwd });
           if (options.env !== undefined) {
             for (const [name, value] of Object.entries(options.env)) {
               if (name.includes("\0") || name.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid environment entry");
@@ -1082,7 +781,7 @@ export class Shell implements PluginHost {
         );
         currentState.processSubstitutionIds = this.#processSubstitutionIds;
         state = currentState;
-        const beforeExecHook = options.hooks?.beforeExec ?? this.#options.hooks?.beforeExec;
+        const beforeExecHook = options.hooks?.beforeExec ?? this._options.hooks?.beforeExec;
         const restoredSnapshot = options.state ?? (beforeExecHook ? await beforeExecHook({ source, options }) : undefined);
         if (restoredSnapshot) {
           currentState = await restoreShellSessionState(
@@ -1095,16 +794,16 @@ export class Shell implements PluginHost {
           );
           state = currentState;
         }
-        const filesystem = options.fs ?? this.#options.fs;
+        const filesystem = options.fs ?? this._options.fs;
         let runtimeFs: typeof filesystem;
         if (options.fs === undefined) {
           if (!this.#defaultRuntimeFs) {
-            this.#defaultRuntimeFs = this.#options.deviceView === "provided" ? filesystem : createDeviceFileSystem(filesystem);
+            this.#defaultRuntimeFs = this._options.deviceView === "provided" ? filesystem : createDeviceFileSystem(filesystem);
             registerRuntimeBackingFileSystem(this.#defaultRuntimeFs, filesystem);
           }
           runtimeFs = this.#defaultRuntimeFs;
         } else {
-          runtimeFs = this.#options.deviceView === "provided" ? filesystem : createDeviceFileSystem(filesystem);
+          runtimeFs = this._options.deviceView === "provided" ? filesystem : createDeviceFileSystem(filesystem);
           registerRuntimeBackingFileSystem(runtimeFs, filesystem);
         }
         runtime = new Runtime(
@@ -1189,7 +888,7 @@ export class Shell implements PluginHost {
       throw error;
     }
     finally {
-      const expectedCwd = this.#options.cwd ?? "/";
+      const expectedCwd = this._options.cwd ?? "/";
       if (
         !failed &&
         // A retained invocation keeps its parse admissions and clock origins.
@@ -1197,7 +896,7 @@ export class Shell implements PluginHost {
         budget.limits.maxParseUnits === Infinity &&
         budget.limits.maxCpuMs === Infinity &&
         budget.limits.maxWallClockMs === Infinity &&
-        !this.#warmedInvocation &&
+        !this._warmedInvocation &&
         !budget.hasExecutionCleanup &&
         !scope.hasFailures &&
         !budget.signal.aborted &&
@@ -1210,7 +909,7 @@ export class Shell implements PluginHost {
         runtime._isMemoryBackingFs &&
         state &&
         this.#isDefaultExecOptions(options, scope) &&
-        ((source === "" || source === "x=0" || ++this.#execCount >= 2) && runtime.tryResetWarmInvocation(state, expectedCwd))
+        ((source === "" || source === "x=0" || ++this._execCount >= 2) && runtime.tryResetWarmInvocation(state, expectedCwd))
       ) {
         io.descriptors = undefined;
         if (state.extensions) {
@@ -1225,7 +924,7 @@ export class Shell implements PluginHost {
         stdout.enableScratchBuffer();
         stderr.enableScratchBuffer();
         void runtime.canFastMemoryRedirect;
-        this.#warmedInvocation = {
+        this._warmedInvocation = {
           budget,
           scope,
           cancellationState,
@@ -1261,9 +960,9 @@ export class Shell implements PluginHost {
     if (budget.hasExecutionCleanup) throwCleanupFailures(budget.executionCleanup.failures);
     const stdoutBytes = stdout.takeBytes();
     const stderrBytes = stderr.takeBytes();
-    const afterExecHook = options.hooks?.afterExec ?? this.#options.hooks?.afterExec;
+    const afterExecHook = options.hooks?.afterExec ?? this._options.hooks?.afterExec;
     const shouldCaptureState = Boolean(
-      state && (options.state !== undefined || options.onState !== undefined || options.hooks !== undefined || this.#options.hooks !== undefined),
+      state && (options.state !== undefined || options.onState !== undefined || options.hooks !== undefined || this._options.hooks !== undefined),
     );
     const capturedState = shouldCaptureState && state ? captureShellSessionState(state, exitCode) : undefined;
     const stdoutStr = stdoutBytes.byteLength === 0 ? "" : sharedUtf8Decoder.decode(stdoutBytes);
@@ -1293,7 +992,7 @@ export class Shell implements PluginHost {
 
   dispose(): Promise<void> {
     if (this.#disposal) return this.#disposal;
-    this.#disposed = true;
+    this._disposed = true;
     this.#parsedSourceCache.clear();
     Runtime.clearStaticPools();
     clearAwkReaderPool();
@@ -1301,7 +1000,7 @@ export class Shell implements PluginHost {
     this.#clearWarmedInvocation();
     const active = this.#active
       ? [...this.#active]
-      : (this.#singleActiveScope ? [{ scope: this.#singleActiveScope, budget: this.#singleActiveBudget!, owner: this.#singleActiveOwner! }] : []);
+      : (this._singleActiveScope ? [{ scope: this._singleActiveScope, budget: this._singleActiveBudget!, owner: this._singleActiveOwner! }] : []);
     const drains: Promise<void>[] = [];
     this.#disposal = Promise.resolve().then(() => this.#dispose(active, drains));
     for (const { scope, budget } of active) {

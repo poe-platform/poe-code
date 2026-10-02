@@ -905,7 +905,7 @@ test('invocation cleanup prevents queued close-all effects and drains its work',
 });
 
 test('screenshots reject oversized producer geometry before capture or artifact writes', async () => {
-  const current = fixture(2, 16 * 1024 * 1024);
+  const current = fixture(2, 16 * 1024 * 1024, 4 * 1024 * 1024);
   await current.run(['open']);
   const page = await current.leases[0]!.lease.context.newPage();
   let captures = 0;

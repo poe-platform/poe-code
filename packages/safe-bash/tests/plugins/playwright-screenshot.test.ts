@@ -4,7 +4,7 @@ import { createContext, runInContext } from 'node:vm';
 import { capturePlaywrightScreenshot } from '../../src/playwright/screenshot.js';
 import type { PlaywrightScreenshotCaptureOptions, PlaywrightScreenshotOptions, PlaywrightScreenshotPage } from '../../src/playwright/screenshot.js';
 
-const defaults: PlaywrightScreenshotOptions = { type: 'png', fullPage: false, timeout: 5000, maxArtifactBytes: 16 * 1024 * 1024 };
+const defaults: PlaywrightScreenshotOptions = { type: 'png', fullPage: false, timeout: 5000, maxArtifactBytes: 16 * 1024 * 1024, maxPixels: 4 * 1024 * 1024 };
 
 for (const duringMeasurement of [false, true]) test(`cancellation ${duringMeasurement ? 'during' : 'before'} measurement prevents native capture`, async () => {
   const current = fixture();
@@ -81,9 +81,9 @@ for (const type of ['png', 'jpeg'] as const) {
     });
   }
 
-  test(`${type} refuses a raster over the artifact-derived budget before native capture`, async () => {
+  test(`${type} refuses a raster over an explicit pixel budget before native capture`, async () => {
     const current = fixture(17, 16);
-    await assert.rejects(capturePlaywrightScreenshot(current.page, { ...defaults, type, maxArtifactBytes: 1024 }), { message: 'Screenshot pixel limit exceeded' });
+    await assert.rejects(capturePlaywrightScreenshot(current.page, { ...defaults, type, maxArtifactBytes: 1024, maxPixels: 256 }), { message: 'Screenshot pixel limit exceeded' });
     assert.equal(current.captures.length, 0);
   });
 }
@@ -153,7 +153,7 @@ for (const { type, width, height, allowed } of [
   { type: 'jpeg', width: 1, height: 125001, allowed: true },
 ] as const) test(`${type} large explicit artifact budget ${width}x${height}: ${allowed}`, async () => {
   const current = fixture(width, height);
-  const capture = capturePlaywrightScreenshot(current.page, { ...defaults, type, fullPage: true, maxArtifactBytes: Number.MAX_SAFE_INTEGER });
+  const capture = capturePlaywrightScreenshot(current.page, { ...defaults, type, fullPage: true, maxArtifactBytes: Number.MAX_SAFE_INTEGER, maxPixels: Infinity });
   if (allowed) {
     await capture;
     assert.equal(current.captures.length, 1);
@@ -168,7 +168,7 @@ test('fractional dimensions are rounded up before raster admission and fixed cli
   await capturePlaywrightScreenshot(current.page, { ...defaults, maxArtifactBytes: 256 });
   assert.deepEqual(current.captures[0]!.clip, { x: 0, y: 0, width: 8, height: 8 });
   const oversized = fixture(16.1, 16);
-  await assert.rejects(capturePlaywrightScreenshot(oversized.page, { ...defaults, maxArtifactBytes: 1024 }), { message: 'Screenshot pixel limit exceeded' });
+  await assert.rejects(capturePlaywrightScreenshot(oversized.page, { ...defaults, maxArtifactBytes: 1024, maxPixels: 256 }), { message: 'Screenshot pixel limit exceeded' });
   assert.equal(oversized.captures.length, 0);
 });
 
@@ -284,7 +284,7 @@ for (const { type, width, height, budget, allowed } of [
   { type: 'jpeg', width: 1, height: Number.MAX_SAFE_INTEGER, budget: Number.MAX_SAFE_INTEGER, allowed: false },
 ] as const) test(`exact raster admission ${type}/${width}x${height}/${budget}: ${allowed}`, async () => {
   const current = fixture(width, height);
-  const pending = capturePlaywrightScreenshot(current.page, { ...defaults, type, maxArtifactBytes: budget });
+  const pending = capturePlaywrightScreenshot(current.page, { ...defaults, type, maxArtifactBytes: Infinity, maxPixels: Math.floor(budget / 4) });
   if (allowed) {
     assert.equal(await pending, current.bytes);
     assert.deepEqual(current.captures[0]!.clip, { x: 0, y: 0, width: Math.ceil(width), height: Math.ceil(height) });
@@ -356,6 +356,13 @@ test('native capture cannot widen the artifact budget by mutating caller options
 
 for (const type of ['png', 'jpeg'] as const) test(`${type} unlimited artifacts admit rasters beyond former transport caps`, async () => {
  const current = fixture(4096, 4096);
- assert.equal(await capturePlaywrightScreenshot(current.page, { ...defaults, type, maxArtifactBytes: Infinity }), current.bytes);
+ assert.equal(await capturePlaywrightScreenshot(current.page, { ...defaults, type, maxArtifactBytes: Infinity, maxPixels: Infinity }), current.bytes);
  assert.equal(current.captures.length, 1);
+});
+
+for (const type of ['png', 'jpeg'] as const) test(`${type} artifact bytes do not impose an omitted pixel budget`, async () => {
+  const current = fixture(4096, 4096, new Uint8Array(1024));
+  assert.equal(await capturePlaywrightScreenshot(current.page, { ...defaults, type, maxArtifactBytes: 1024, maxPixels: undefined }), current.bytes);
+  await assert.rejects(capturePlaywrightScreenshot(current.page, { ...defaults, type, maxArtifactBytes: 1023, maxPixels: undefined }), /Artifact byte limit/);
+  assert.equal(current.captures.length, 2);
 });

@@ -9,7 +9,9 @@ function check(value: unknown, message: string): asserts value {
 }
 
 export default { async fetch(request: Request, env: { BROWSER: BrowserWorker; LOADER: WorkerLoader }) {
-  const controller = createPlaywrightController({ adapter: createCloudflarePlaywrightAdapter(env.BROWSER, undefined,
+  const controller = createPlaywrightController({
+    ...(new URL(request.url).pathname === "/screenshot" ? { limits: { maxArtifactBytes: 65536 } } : {}),
+    adapter: createCloudflarePlaywrightAdapter(env.BROWSER, undefined,
     { ownerId: "portable-lifecycle", loader: env.LOADER }, { traceCapture: "archive", traceLimits: {} }) });
   const artifacts = new Map<string, Uint8Array>();
   const signal = AbortSignal.timeout(20000);
@@ -35,6 +37,7 @@ export default { async fetch(request: Request, env: { BROWSER: BrowserWorker; LO
       await run("screenshot", "--filename=/portable.png");
       const png = artifacts.get("/portable.png");
       check(png && [137, 80, 78, 71, 13, 10, 26, 10].every((byte, index) => png[index] === byte), "Screenshot PNG bytes missing");
+      check(png.byteLength <= 65536, "Screenshot artifact byte limit exceeded");
     } else {
       await run("tracing-start");
       await page.locator("h1").textContent();

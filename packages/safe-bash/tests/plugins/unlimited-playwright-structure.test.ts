@@ -34,11 +34,11 @@ test('browser protocol and storage graphs default to unlimited depth', () => {
 
 import { capturePlaywrightTargetScreenshot } from '../../src/playwright/target-screenshot.js';
 import type { PlaywrightElementHandle } from '../../src/playwright/adapter.js';
-test('element screenshots admit more than four megapixels with unlimited host budgets', async () => {
+for (const maxArtifactBytes of [Infinity, 1]) test(`element screenshots omit pixel budgets with artifact limit ${maxArtifactBytes}`, async () => {
   let captures = 0;
   const target = { async boundingBox() { return { x: 0, y: 0, width: 2001, height: 2000 }; },
     async screenshot() { captures++; return Uint8Array.of(1); } } as PlaywrightElementHandle;
-  const options = { type: 'png' as const, scale: 'css' as const, timeout: 5000, maxArtifactBytes: Infinity, signal: new AbortController().signal };
+  const options = { type: 'png' as const, scale: 'css' as const, timeout: 5000, maxArtifactBytes, signal: new AbortController().signal };
   assert.deepEqual(await capturePlaywrightTargetScreenshot(target, options), Uint8Array.of(1));
   await assert.rejects(capturePlaywrightTargetScreenshot(target, { ...options, maxPixels: 4_000_000 }), /pixel limit/);
   assert.equal(captures, 1);

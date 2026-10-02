@@ -208,14 +208,13 @@ later native action traffic, page-side allocations or arbitrary provider message
 
 Built-in screenshots require public page `evaluate` for bounded numeric geometry.
 They capture at CSS-pixel scale with an explicit clip fixed to the observed viewport
-or full-page extent. Raster admission allows at most `floor(maxArtifactBytes / 4)`
-pixels, capped at 4,000,000 for PNG and 1,000,000 for JPEG (dimensions rounded to
-8-pixel blocks for JPEG). Oversized extents are refused, not silently cropped to
-fit the budget. Page growth after measurement cannot enlarge the admitted clip.
-These conservative raster limits reduce native encoder/transport exposure; the
-exact encoded-byte limit is still checked before writing an artifact, because
-encoding overhead can exceed a small budget. Arbitrary custom screenshot providers
-must honor the capture options; this is not a universal codec or host-memory bound.
+or full-page extent. Raster admission applies only when `maxScreenshotPixels` is
+configured (dimensions round to 8-pixel blocks for JPEG). Oversized extents are
+refused, not silently cropped. Page growth after measurement cannot enlarge the
+admitted clip. The independent `maxArtifactBytes` limit checks encoded output
+before writing an artifact; it does not impose a pixel limit. Omitted budgets
+remain unlimited. Arbitrary custom screenshot providers must honor the capture
+options; these limits are not universal codec or host-memory bounds.
 
 The only environment variable read by the CLI is exported
 `PLAYWRIGHT_CLI_SESSION`. Selection precedence is explicit `-s`/`--session`, then

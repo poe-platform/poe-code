@@ -1842,7 +1842,7 @@ export function parseShellInputUnit(source: string, byteLocale = false, budgetOr
   const warnings: string[] = [];
   try {
     budget.admit();
-    if (lineIndex.source !== source || lineIndex.budget !== budget) throw new TypeError("Source line index belongs to a different source or parse budget");
+    if (lineIndex && (lineIndex.source !== source || lineIndex.budget !== budget)) throw new TypeError("Source line index belongs to a different source or parse budget");
     const parser = new Parser(budget, source, 0, warnings, 0, 0, byteLocale, true, lineIndex, 0, false, undefined, false, captured, aliases);
     const script = parser.script(new Set(), true);
     budget.admit(2);

@@ -695,3 +695,9 @@ import type * as originalDashboardElapsed from "toolcraft-design/dashboard/elaps
 const elapsedOriginal: typeof originalDashboardElapsed = dashboardElapsed;
 const elapsedNative: typeof dashboardElapsed = null as unknown as typeof originalDashboardElapsed;
 void [elapsedOriginal,elapsedNative];
+
+import * as dashboardAnsi from "toolcraft-design-rust/dashboard/ansi";
+import type * as originalDashboardAnsi from "toolcraft-design/dashboard/ansi";
+const ansiOriginal: typeof originalDashboardAnsi = dashboardAnsi;
+const ansiNative: typeof dashboardAnsi = null as unknown as typeof originalDashboardAnsi;
+void [ansiOriginal,ansiNative];

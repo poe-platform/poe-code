@@ -1447,3 +1447,29 @@ screenshot checks zero/subsecond, multi-hour, over-24-hour, negative and NaN out
 Five warmed alternating 10,000-call rounds measured 4.513 µs native / 0.1446 µs
 reference (31.21× slower); no performance gate passed. Legacy dashboard rendering,
 composer editing, explorer and broader replacement qualification remain open.
+
+### Legacy dashboard ANSI checkpoint
+
+`dashboard/ansi` now exports `parseAnsi`, `plainTerminalText` and `hasAnsi` with
+standalone styled-line declarations. The existing Rust terminal parser now
+retains ordered style properties, explicit false/undefined fields, base resets,
+and arbitrary host base-value identity. Opaque values remain host slots during
+the call; Rust does not retain host handles. Shared UTF-16 style strings avoid
+copying a large base-color value per cell. Existing packed-screen consumers use
+the same parser and retain their behavior.
+
+Three missing-subpath tests failed before implementation. All 277 native host
+tests, 1,282 selected design tests (including all 54 original ANSI cases), 13
+prompt-wrapper tests, 12 shared dashboard tests and four composer-layout
+integration tests pass. Scoped Rust/binding/JS lint, bidirectional declarations
+and packed runtime/standalone declarations pass. An inspected screenshot checks
+foreground/base resets, bold toggling, RGB backgrounds and progress-line overwrite.
+No dependencies were added. Boxed/custom string-like inputs, modified parsing
+intrinsics and complete resource/platform qualification remain outside this
+checkpoint's verified string-input scope.
+
+Five warmed alternating 300-call rounds measured 800-unit plain parsing at
+81.53 µs native / 60.18 µs reference (1.35× slower), and repeated styled/control
+text at 82.13 µs / 68.88 µs (1.19× slower). No performance gate passed. Legacy
+ScreenBuffer/terminal, composer editing, dashboard rendering/lifecycle, explorer
+and broader Toolcraft replacement gates remain open.

@@ -399,6 +399,10 @@
     "./dashboard/elapsed": {
       "types": "./dist/dashboard-elapsed.d.ts",
       "import": "./dist/dashboard-elapsed.js"
+    },
+    "./dashboard/ansi": {
+      "types": "./dist/dashboard-ansi.d.ts",
+      "import": "./dist/dashboard-ansi.js"
     }
   },
   "scripts": {

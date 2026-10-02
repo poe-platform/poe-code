@@ -9,6 +9,7 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if (importer === path("../toolcraft-design/src/dashboard/ansi.test.ts") && name === "./ansi.js") return path("dist/dashboard-ansi.js");
         if (["store-retention", "store-streaming"].some(name => importer === path(`../toolcraft-design/src/dashboard/${name}.test.ts`)) && name === "./store.js") return path("dist/dashboard-store.js");
         if (importer.startsWith(path("../toolcraft-design/src/prompts/interactive/"))) {
           if (name === "./multiselect.js") return path("dist/prompt-multiselect.js");
@@ -130,6 +131,7 @@ export default defineConfig({
   test: {
     env: { FORCE_COLOR: process.env.FORCE_COLOR ?? "1" },
     include: [
+      path("../toolcraft-design/src/dashboard/ansi.test.ts"),
       path("../toolcraft-design/src/dashboard/store-retention.test.ts"),
       path("../toolcraft-design/src/dashboard/store-streaming.test.ts"),
       path("../toolcraft-design/src/prompts/interactive/*.test.ts"),

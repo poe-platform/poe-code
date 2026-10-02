@@ -130,6 +130,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `dashboard/store` | Retain bounded live output, merge statistics and subscribe to state changes |
 | `dashboard/composer-layout` | Wrap input rows and locate the caret at terminal-cell coordinates |
 | `dashboard/elapsed` | Format elapsed milliseconds as padded hours, minutes and seconds |
+| `dashboard/ansi` | Parse styled terminal lines and restore caller-supplied base styles |
 | `createNotices`, `renderNotice` | Retain bounded, expiring notices and render status markers |
 | `createMetric` | Retain rolling samples and render compact sparklines |
 | `renderProgressGroup` | Show clipped progress rows with known or indeterminate completion |
@@ -473,3 +474,9 @@ The composer editor and dashboard renderer remain separate from this helper.
 `formatElapsed(ms)` from `dashboard/elapsed` formats durations as `HH:MM:SS`,
 retaining hours beyond 24. Negative and nonfinite inputs display `00:00:00`;
 fractional seconds round down.
+
+`parseAnsi(text, baseStyle?)` from `dashboard/ansi` returns logical lines of
+styled text segments. It handles color/reset codes, carriage-return updates,
+backspace, erase-line controls, tabs, concealment and hidden terminal strings.
+Base colors return after default-color codes or full resets. The same subpath
+exposes `plainTerminalText` for visible text and `hasAnsi` for ESC detection.

@@ -1,13 +1,34 @@
 //! Styled terminal rows and packed screen cells over UTF-16 input.
 use crate::terminal::{Text, grapheme_width, params};
+use std::sync::Arc;
 
-#[derive(Clone, Debug, Default, PartialEq)]
-struct Style {
-    fg: Option<String>,
-    bg: Option<String>,
-    bold: bool,
-    dim: bool,
-    inverse: bool,
+pub const STYLE_FIELDS: [&str; 5] = ["fg", "bg", "bold", "dim", "inverse"];
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum StyleValue {
+    Undefined,
+    Text(Arc<[u16]>),
+    Boolean(bool),
+    Number(f64),
+    Opaque(u32),
+}
+#[derive(Clone, Debug)]
+pub struct StyleProperty {
+    pub name: &'static str,
+    pub value: StyleValue,
+    /// Original host slot, preserving arbitrary base values without owning them.
+    pub base_index: Option<u32>,
+}
+#[derive(Clone, Debug, Default)]
+pub struct Style {
+    pub properties: Vec<StyleProperty>,
+}
+impl PartialEq for Style {
+    fn eq(&self, other: &Self) -> bool {
+        STYLE_FIELDS
+            .iter()
+            .all(|name| self.value(name) == other.value(name))
+    }
 }
 const BASIC: [&str; 8] = [
     "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white",
@@ -51,35 +72,85 @@ fn palette(value: i64) -> String {
     }
 }
 impl Style {
+    fn value(&self, name: &str) -> &StyleValue {
+        self.properties
+            .iter()
+            .find(|property| property.name == name)
+            .map(|property| &property.value)
+            .unwrap_or(&StyleValue::Undefined)
+    }
+    fn set(&mut self, property: StyleProperty) {
+        if let Some(existing) = self
+            .properties
+            .iter_mut()
+            .find(|entry| entry.name == property.name)
+        {
+            *existing = property;
+        } else {
+            self.properties.push(property);
+        }
+    }
+    fn color(&mut self, name: &'static str, color: &str) {
+        self.set(StyleProperty {
+            name,
+            value: StyleValue::Text(color.encode_utf16().collect::<Vec<_>>().into()),
+            base_index: None,
+        });
+    }
+    fn flag(&mut self, name: &'static str) {
+        self.set(StyleProperty {
+            name,
+            value: StyleValue::Boolean(true),
+            base_index: None,
+        });
+    }
+    fn remove(&mut self, name: &str) {
+        self.properties.retain(|property| property.name != name);
+    }
+    fn restore(&mut self, name: &str, base: &Self) {
+        if let Some(property) = base
+            .properties
+            .iter()
+            .find(|property| property.name == name && property.value != StyleValue::Undefined)
+        {
+            self.set(property.clone());
+        } else {
+            self.remove(name);
+        }
+    }
     fn packed(&self) -> u32 {
-        let color = |value: &Option<String>| match value.as_deref() {
-            Some("black" | "red") => 1,
-            Some("green") => 2,
-            Some("yellow") => 3,
-            Some("blue") => 4,
-            Some("magenta") => 5,
-            Some("cyan") => 6,
-            Some("white") => 7,
-            Some("gray") => 8,
+        let color = |name| match self.value(name) {
+            StyleValue::Text(text) => match String::from_utf16_lossy(text).as_str() {
+                "black" | "red" => 1,
+                "green" => 2,
+                "yellow" => 3,
+                "blue" => 4,
+                "magenta" => 5,
+                "cyan" => 6,
+                "white" => 7,
+                "gray" => 8,
+                _ => 0,
+            },
             _ => 0,
         };
-        u32::from(self.bold)
-            | (u32::from(self.dim) << 1)
-            | (u32::from(self.inverse) << 3)
-            | (color(&self.fg) << 8)
-            | (color(&self.bg) << 16)
+        u32::from(self.value("bold") == &StyleValue::Boolean(true))
+            | (u32::from(self.value("dim") == &StyleValue::Boolean(true)) << 1)
+            | (u32::from(self.value("inverse") == &StyleValue::Boolean(true)) << 3)
+            | (color("fg") << 8)
+            | (color("bg") << 16)
     }
 }
 #[derive(Clone)]
-struct StyledCell {
-    ch: Text,
-    style: Style,
+pub struct StyledCell {
+    pub ch: Text,
+    pub style: Style,
 }
 struct Row {
     cells: Vec<Option<StyledCell>>,
     column: usize,
     style: Style,
     concealed: bool,
+    base: Style,
 }
 impl Row {
     fn cell(&self, ch: Text) -> StyledCell {
@@ -167,25 +238,25 @@ impl Row {
             let code = values[index];
             match code {
                 0 => {
-                    self.style = Style::default();
+                    self.style = self.base.clone();
                     self.concealed = false;
                 }
-                1 => self.style.bold = true,
-                2 => self.style.dim = true,
-                7 => self.style.inverse = true,
+                1 => self.style.flag("bold"),
+                2 => self.style.flag("dim"),
+                7 => self.style.flag("inverse"),
                 22 => {
-                    self.style.bold = false;
-                    self.style.dim = false;
+                    self.style.remove("bold");
+                    self.style.remove("dim");
                 }
-                27 => self.style.inverse = false,
+                27 => self.style.remove("inverse"),
                 8 => self.concealed = true,
                 28 => self.concealed = false,
-                30..=37 => self.style.fg = Some(BASIC[(code - 30) as usize].into()),
-                40..=47 => self.style.bg = Some(BASIC[(code - 40) as usize].into()),
-                90..=97 => self.style.fg = Some(BRIGHT[(code - 90) as usize].into()),
-                100..=107 => self.style.bg = Some(BRIGHT[(code - 100) as usize].into()),
-                39 => self.style.fg = None,
-                49 => self.style.bg = None,
+                30..=37 => self.style.color("fg", BASIC[(code - 30) as usize]),
+                40..=47 => self.style.color("bg", BASIC[(code - 40) as usize]),
+                90..=97 => self.style.color("fg", BRIGHT[(code - 90) as usize]),
+                100..=107 => self.style.color("bg", BRIGHT[(code - 100) as usize]),
+                39 => self.style.restore("fg", &self.base),
+                49 => self.style.restore("bg", &self.base),
                 38 | 48 => {
                     let value = |offset| values.get(index + offset).copied().unwrap_or(0);
                     let (color, skip) = match value(1) {
@@ -195,9 +266,9 @@ impl Row {
                     };
                     if let Some(color) = color {
                         if code == 38 {
-                            self.style.fg = Some(color);
+                            self.style.color("fg", &color);
                         } else {
-                            self.style.bg = Some(color);
+                            self.style.color("bg", &color);
                         }
                     }
                     index += skip;
@@ -209,15 +280,16 @@ impl Row {
         }
     }
 }
-fn lines<E>(
+pub fn styled_lines<E>(
     text: &[u16],
+    base: Style,
     segment: &mut impl FnMut(&[u16]) -> Result<Vec<Text>, E>,
 ) -> Result<Vec<Vec<StyledCell>>, E> {
-    let text = crate::preview::TerminalStringFilter::default().push(text);
     let mut row = Row {
         cells: vec![],
         column: 0,
-        style: Style::default(),
+        style: base.clone(),
+        base,
         concealed: false,
     };
     let mut lines = vec![];
@@ -297,8 +369,12 @@ pub fn plain<E>(
     text: &[u16],
     mut segment: impl FnMut(&[u16]) -> Result<Vec<Text>, E>,
 ) -> Result<Text, E> {
+    let text = crate::preview::TerminalStringFilter::default().push(text);
     let mut output = vec![];
-    for (index, line) in lines(text, &mut segment)?.into_iter().enumerate() {
+    for (index, line) in styled_lines(&text, Style::default(), &mut segment)?
+        .into_iter()
+        .enumerate()
+    {
         if index > 0 {
             output.push(32);
         }
@@ -318,8 +394,12 @@ pub fn cells<E>(
     text: &[u16],
     mut segment: impl FnMut(&[u16]) -> Result<Vec<Text>, E>,
 ) -> Result<Vec<Cell>, E> {
+    let text = crate::preview::TerminalStringFilter::default().push(text);
     let mut output = vec![];
-    for (index, line) in lines(text, &mut segment)?.into_iter().enumerate() {
+    for (index, line) in styled_lines(&text, Style::default(), &mut segment)?
+        .into_iter()
+        .enumerate()
+    {
         if index > 0 {
             output.push(Cell {
                 ch: vec![10],

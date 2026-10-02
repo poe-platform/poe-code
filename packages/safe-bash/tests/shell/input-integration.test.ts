@@ -147,3 +147,33 @@ test("canonical descriptors without positioned reads do not advertise seek", asy
   try { assert.equal(prepared.options.seek, undefined); }
   finally { await prepared.close(); budget.close(); budget.values.close(); }
 });
+
+test("available delimited reads retain owned remainder and advance only consumed bytes", async () => {
+  const budget = new Budget(defaultLimits);
+  const storage = Uint8Array.of(255, 0, 65, 10);
+  const input = new ShellInput(toByteSource(storage), budget, budget.signal);
+  try {
+    assert.deepEqual((await input.readAvailable(0, budget.signal, 0)).value, new Uint8Array());
+    assert.equal(input.position, 0);
+    assert.deepEqual((await input.readAvailable(64, budget.signal, 0)).value, Uint8Array.of(255, 0));
+    assert.equal(input.position, 2);
+    storage.fill(9);
+    assert.deepEqual((await input.readAvailable(1, budget.signal, 10)).value, Uint8Array.of(65));
+    assert.equal(input.position, 3);
+    assert.deepEqual((await input.readAvailable(64, budget.signal, 10)).value, Uint8Array.of(10));
+    assert.equal(input.position, 4);
+    assert.equal((await input.readAvailable(64, budget.signal, 10)).done, true);
+  } finally { await input.close(); budget.close(); budget.values.close(); }
+});
+
+test("available reads reject invalid delimiters without consuming input", async () => {
+  const budget = new Budget(defaultLimits);
+  const input = new ShellInput(toByteSource("abc"), budget, budget.signal);
+  try {
+    for (const delimiter of [-1, 256, 1.5, NaN]) {
+      await assert.rejects(input.readAvailable(64, budget.signal, delimiter), RangeError);
+      assert.equal(input.position, 0);
+    }
+    assert.deepEqual((await input.readAvailable(64, budget.signal)).value, new TextEncoder().encode("abc"));
+  } finally { await input.close(); budget.close(); budget.values.close(); }
+});

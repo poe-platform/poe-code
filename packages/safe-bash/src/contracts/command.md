@@ -89,9 +89,15 @@ export interface CommandInput {
   readonly stat?: FileStat;
   readonly position: number;
   read(maxBytes: number, signal: AbortSignal): Promise<IteratorResult<Uint8Array>>;
+  readAvailable?(maxBytes: number, signal: AbortSignal, delimiter?: number): Promise<IteratorResult<Uint8Array>>;
   seek?(absolutePosition: number, signal: AbortSignal): Promise<void>;
 }
 ```
+
+`readAvailable`, when provided, returns one available fragment without waiting to
+fill the request. An optional delimiter (an integer byte from 0 to 255) stops the
+fragment immediately after that byte. Unconsumed bytes remain on the shared
+cursor, so a prefix reader such as `head` preserves input for the next command.
 
 `read` fills up to the requested number of bytes, stopping early only at EOF.
 A nonempty final read has `done: false`; a subsequent positive-sized read at EOF

@@ -224,6 +224,8 @@ export interface CommandInput {
   readonly stat?: FileStat;
   readonly position: number;
   read(maxBytes: number, signal: AbortSignal): Promise<IteratorResult<Uint8Array>>;
+  /** Read one available fragment, optionally stopping after a delimiter byte. */
+  readAvailable?(maxBytes: number, signal: AbortSignal, delimiter?: number): Promise<IteratorResult<Uint8Array>>;
   seek?(absolutePosition: number, signal: AbortSignal): Promise<void>;
 }
 

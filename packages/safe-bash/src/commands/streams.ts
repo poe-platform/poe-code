@@ -113,9 +113,22 @@ async function* combinedInput(context: CommandContext, names: readonly string[],
   }
 }
 
-async function prefix(context: CommandContext, source: ByteSource, count: number, bytes: boolean, skip: boolean, delimiter: number): Promise<void> {
+async function prefix(context: CommandContext, source: ByteSource, count: number, bytes: boolean, skip: boolean, delimiter: number, sharedInput = false): Promise<void> {
   let remaining = count;
   if (!remaining && !skip) return;
+  // Bounded cursor reads leave the unused suffix available to the next command.
+  const cursor = sharedInput && !skip ? context.stdinInput : undefined;
+  if (cursor?.readAvailable) {
+    while (remaining > 0) {
+      const step = await cursor.readAvailable(bytes ? Math.min(remaining, 64 * 1024) : 64 * 1024, context.signal, bytes ? undefined : delimiter);
+      if (step.done) break;
+      const chunk = step.value;
+      if (bytes) remaining -= chunk.length;
+      else if (chunk.at(-1) === delimiter) remaining--;
+      if (chunk.length) await output(context, chunk);
+    }
+    return;
+  }
   const iter = source[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
     tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
     syncReturn?: () => void;
@@ -424,7 +437,7 @@ async function executeHeadTailSlow(
           await output(context, `${headerWritten ? "\n" : ""}==> ${file === "-" ? "standard input" : file} <==\n`);
           headerWritten = true;
         }
-        if (name === "head" && !negative) await prefix(context, input(context, file), count, bytes, false, delimiter);
+        if (name === "head" && !negative) await prefix(context, input(context, file), count, bytes, false, delimiter, file === "-");
         else if (name === "tail" && positive) await prefix(context, input(context, file), Math.max(0, count - 1), bytes, true, delimiter);
         else await suffix(context, input(context, file), count, bytes, name === "head", delimiter);
       } catch (error) { await diagnostic(context, error); exitCode = 1; }

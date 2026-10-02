@@ -1104,3 +1104,26 @@ test("tr SET2 class alignment, trailing backslash, and wc --total modes", async 
   assert.equal((await run("wc", ["-l", "--total=only"], { stdin: "a\nb\n" })).stdout, "2\n");
   assert.equal((await run("wc", ["--total=only"], { stdin: "a\nb\n" })).stdout, "2 2 4\n");
 });
+
+for (const [args, text, prefix] of [
+  ["-n 1", "line1\nline2\n", "line1\n"],
+  ["-c 3", "abcdef", "abc"],
+  ["-z -n 1", "one\0two\0", "one\0"],
+  ["-n 0", "unchanged\n", ""],
+  ["-n 2", "one\ntwo\nthree\n", "one\ntwo\n"],
+  ["-n 1", "unterminated", "unterminated"],
+  ["-n 1", "x".repeat(70000) + "\ntail\n", "x".repeat(70000) + "\n"],
+] as const) {
+  for (const redirected of [false, true]) {
+    test(`head ${args} preserves shared stdin (${redirected ? "file" : "stream"})`, async () => {
+      const fs = await fixture({ input: text });
+      const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands());
+      try {
+        const result = await shell.exec(`{ head ${args}; printf '|'; cat; }${redirected ? " < input" : ""}`,
+          redirected ? {} : { stdin: chunks(text, text.length > 1000 ? 16384 : 4) });
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, prefix + "|" + text.slice(prefix.length));
+      } finally { await shell.dispose(); }
+    });
+  }
+}

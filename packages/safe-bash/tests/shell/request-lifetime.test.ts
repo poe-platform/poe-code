@@ -73,7 +73,12 @@ for (const source of ["mkdir /d1", "find / -size 0", "rm -rf /d1", "mkdir /d1 | 
 
 async function completedRequest(source: string, captureState: boolean, memory: boolean): Promise<WeakRef<object>[]> {
   const backing = createMemoryFileSystem();
-  const fs = memory ? backing : new Proxy(backing, {});
+  const fs = memory ? backing : new Proxy(backing, {
+    get(target, property) {
+      const member = Reflect.get(target, property, target);
+      return typeof member === "function" ? member.bind(target) : member;
+    },
+  });
   const controller = new AbortController();
   const shell = new Shell({ fs, env: { TENANT_SECRET: "synthetic-tenant-secret" } }).use(standardCommands()).use(structuredCommands()).use(textProgramCommands());
   let result = await shell.exec(source, { signal: controller.signal, ...(captureState ? { onState() {} } : {}) });

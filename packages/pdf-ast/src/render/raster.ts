@@ -1474,6 +1474,9 @@ function *renderDisplayListLayerSteps(
       getStandardFontOutlines(op.value.fontName);
     }
   }
+  if (typeof (globalThis as { gc?: () => void }).gc === "function") {
+    try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {}
+  }
   const rgba = backdrop ? backdrop.slice() : new Uint8Array(new ArrayBuffer(width * height * 4 + height), 0, width * height * 4);
   // PDFBox GroupGraphics keeps the group's alpha separate from its backdrop.
   const groupAlpha = backdrop ? new Float32Array(width * height) : undefined;
@@ -1504,7 +1507,11 @@ function *renderDisplayListLayerSteps(
   let cachedSoftMask: PdfSoftMask | undefined;
   let cachedSoftMaskPixels: Uint8Array | undefined;
   const imageClipMasks = new Map<readonly PdfEvaluatedImage[], Uint8Array>();
+  let opIdx = 0;
   for (const original of paintOperations(displayList)) {
+    if (++opIdx % 96 === 0 && typeof (globalThis as { gc?: () => void }).gc === "function") {
+      try { (globalThis as { gc?: () => void }).gc?.(); } catch {}
+    }
     if (++work % 16384 === 0) yield;
     if (original.kind === "glyph" && (original.value.renderMode === 3 || (!original.value.outline && !original.value.unicode.trim()))) continue;
     let operation = original.kind === "glyph" ? { kind: "path" as const, value: glyphPaint(original.value) } : original;

@@ -5880,6 +5880,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const slotH = maxThumbH + padY * 2;
         const canvasW = Math.max(1, cols * slotW);
         const canvasH = Math.max(1, rows * slotH);
+        if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {} }
         canvas = (yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background));
         for (let idx = 0; idx < inPaths.length; idx++) {
             const col = idx % cols;
@@ -6049,6 +6050,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         (canvas as { hasAlpha?: boolean; channels?: number }).channels = 3;
     }
     const { format, path: outPath } = inferOutputFormat(outSpec, "png");
+    if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {} }
     const { data: encoded } = encodeImage(canvas, { format, quality: state.quality, consumeInput: true } as any);
     detachRgbaBuffer(canvas.data);
     if (outPath === "-" || outSpec.endsWith(":-")) {
@@ -6203,6 +6205,7 @@ async function executeVfsMagickTool(
         await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
       }
     }
+    if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {} }
     return { exitCode: res.exitCode };
   } finally {
     await invocation.close();

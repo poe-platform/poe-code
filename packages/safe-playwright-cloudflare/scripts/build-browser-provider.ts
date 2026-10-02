@@ -62,6 +62,7 @@ export async function buildBrowserProvider(): Promise<void> {
           return { path: join(directory, 'portable-provider/transport.ts') };
       });
       builder.onResolve({ filter: /^(node:)?async_hooks$/ }, () => ({ path: join(directory, 'portable-provider/zones.ts') }));
+      builder.onResolve({ filter: /^(node:)?https?$/ }, () => ({ path: join(directory, 'portable-provider/http.ts') }));
       builder.onResolve({ filter: /^(node:)?fs$/ }, () => ({ path: require.resolve('memfs') }));
       builder.onResolve({ filter: /^(node:)?fs\/promises$/ }, () => ({ path: 'filesystem', namespace: 'portable-provider' }));
       builder.onResolve({ filter: /^(node:)?util$/ }, () => ({ path: 'util', namespace: 'portable-provider' }));

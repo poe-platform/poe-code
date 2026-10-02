@@ -202,6 +202,11 @@ export function createCommandBindings(
             await engine?.dispose();
           } finally {
             await owner.close();
+            const gc = (globalThis as { gc?: () => void }).gc;
+            if (typeof gc === "function") {
+              gc();
+              gc();
+            }
           }
         }
       }

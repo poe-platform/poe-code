@@ -167,7 +167,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
   try {
   const pdf = await PDFDocument.create({ updateMetadata: false });
   pdf.setProducer("ssconvert JavaScript PDF writer");
-  const fonts = new Map<boolean, {font: PDFFont; metrics: Font; supported: ReadonlySet<number>; ascentRatio: number; descentRatio: number}>();
+  const fonts = new Map<boolean, {font: PDFFont; metrics: Font; bytes: Uint8Array; shaped: boolean; supported: ReadonlySet<number>; ascentRatio: number; descentRatio: number}>();
   let fontBytes = 0;
   const text = async (page: PDFPage, value: string, x: number, y: number, size = 10, alignment: "left" | "center" | "right" = "left", cellBox?: { width: number; height: number; style: CellPrintStyle }) => {
     tick(value.length);
@@ -192,10 +192,9 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       try {
         const parsed = fontkit.create(bytes);
         if (!Number.isFinite(parsed.unitsPerEm) || parsed.unitsPerEm <= 0 || !Number.isFinite(parsed.ascent) || parsed.ascent <= 0 || !Number.isFinite(parsed.descent) || parsed.descent > 0) unsupported("supplied font metrics");
-        await shaper.addFont(bytes, parsed);
         pdf.registerFontkit({ create: () => parsed });
         const embeddedFont = await pdf.embedFont(bytes, { subset: true });
-        selected = {font: embeddedFont, metrics: parsed, supported: new Set(embeddedFont.getCharacterSet()),
+        selected = {font: embeddedFont, metrics: parsed, bytes, shaped: false, supported: new Set(embeddedFont.getCharacterSet()),
           ascentRatio: parsed.ascent / parsed.unitsPerEm, descentRatio: -parsed.descent / parsed.unitsPerEm};
         fonts.set(bold, selected);
       }
@@ -213,6 +212,16 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     let baseline = page.getHeight() - y - size;
     let width = cellBox ? 0 : font.widthOfTextAtSize(value, size);
     if (cellBox) {
+      if (!selected.shaped) {
+        try {
+          await shaper.addFont(selected.bytes, metrics);
+          selected.shaped = true;
+        } catch (error) {
+          context.signal.throwIfAborted();
+          if (error instanceof SsconvertError) throw error;
+          unsupported("supplied font parsing");
+        }
+      }
       const ascent = ascentRatio * size, height = ascent + descentRatio * size;
       const glyphs: {x: number; y: number}[] = [];
       // Pango's unhinted print profile rounds advances and offsets in display pixels.

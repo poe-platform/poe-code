@@ -297,7 +297,7 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
         if (unchanged) await output(String(unchanged).padStart(5) + " image files unchanged\n");
         return { exitCode: errors ? 1 : 0 };
       } catch (error) { failed = true; failure = error; throw error; }
-      finally { await cleanup(); }
+      finally { await cleanup(); const gc = (globalThis as { gc?: () => void }).gc; if (typeof gc === "function") { gc(); gc(); } }
     }),
   } satisfies CommandDefinition);
 }
@@ -484,5 +484,8 @@ export function evalSyncExiftool(
     return out.includes("\0") ? undefined : out;
   } catch {
     return undefined;
+  } finally {
+    const gc = (globalThis as { gc?: () => void }).gc;
+    if (typeof gc === "function") { gc(); gc(); }
   }
 }

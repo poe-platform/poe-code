@@ -2954,6 +2954,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           );
         }
 
+        { const gc = (globalThis as { gc?: () => void }).gc; if (typeof gc === "function") { gc(); gc(); } }
         const outExt = outputTarget.split(".").pop()?.toLowerCase();
         const serializedBytes = outPlugin.serialize(workingDoc, {
           format: outputFormat ?? outExt,
@@ -2988,6 +2989,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const msg = err instanceof Error ? err.message : String(err);
         await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
         return { exitCode: 1 };
+      } finally {
+        const gc = (globalThis as { gc?: () => void }).gc;
+        if (typeof gc === "function") { gc(); gc(); }
       }
     }
   };

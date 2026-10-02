@@ -1,5 +1,6 @@
 mod code_highlight;
 mod html;
+mod markdown_block;
 mod markdown_block_scan;
 mod markdown_delimiter;
 mod markdown_inline;
@@ -10,6 +11,7 @@ mod markdown_text;
 mod plaintext;
 pub use code_highlight::*;
 pub use html::*;
+pub use markdown_block::*;
 pub use markdown_block_scan::*;
 pub use markdown_delimiter::*;
 pub use markdown_inline::*;

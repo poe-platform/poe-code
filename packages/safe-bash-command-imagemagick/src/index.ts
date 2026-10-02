@@ -936,55 +936,176 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
     return { ...img, data: out };
 }
 
-function formatMagickPropertyString(fmt: string, img: RgbaImage, sceneIdx = 0, sceneCount = 1): string {
-  let sum = 0;
-  let minV = 255;
-  let maxV = 0;
-  const count = Math.max(1, img.width * img.height * 3);
+// Image transforms spread this private metadata along with the pixel image.
+const magickInput = Symbol("magickInput");
+interface MagickFormatContext {
+  filePath?: string;
+  byteLen?: number;
+  originalWidth?: number;
+  originalHeight?: number;
+  sceneIdx?: number;
+  sceneCount?: number;
+  quality?: number;
+}
+type MagickImage = RgbaImage & { [magickInput]?: MagickFormatContext };
+
+function* magickPixelPropertiesSteps(img: RgbaImage): Generator<void, Record<string, string>, void> {
+  const sums = [0, 0, 0];
+  const squares = [0, 0, 0];
+  let min = 255;
+  let max = 0;
+  let opaque = true;
+  let gray = true;
+  let bilevel = true;
+  let bitDepth = 1;
+  const colors = new Set<number>();
+  const samples = img.data16 ?? img.data;
+  const range = img.data16 ? 65535 : 255;
+  const count = Math.max(1, img.width * img.height);
   for (let i = 0; i < img.data.length; i += 4) {
-    for (let c = 0; c < 3; c++) {
-      const v = img.data[i + c]!;
-      sum += v;
-      if (v < minV) minV = v;
-      if (v > maxV) maxV = v;
+    if (i % 65536 === 0) yield;
+    const r = samples[i]!;
+    const g = samples[i + 1]!;
+    const b = samples[i + 2]!;
+    const a = img.hasAlpha ? samples[i + 3]! : range;
+    opaque &&= a === range;
+    gray &&= r === g && g === b;
+    bilevel &&= (r === 0 || r === range) && (g === 0 || g === range) && (b === 0 || b === range);
+    // Only palette classification needs distinct colors; stop growing at 257.
+    if (colors.size <= 256) {
+      colors.add(((img.data[i]! * 256 + img.data[i + 1]!) * 256 + img.data[i + 2]!) * 256 + (img.hasAlpha ? img.data[i + 3]! : 255));
+    }
+    for (let c = 0; c < (img.hasAlpha ? 4 : 3); c++) {
+      const value = samples[i + c]!;
+      while (bitDepth < (img.data16 ? 16 : 8)) {
+        const levels = 2 ** bitDepth - 1;
+        if (Math.round(Math.round(value * levels / range) * range / levels) === value) break;
+        bitDepth++;
+      }
+      if (c < 3) {
+        const v = img.data[i + c]!;
+        sums[c]! += v;
+        squares[c]! += v * v;
+        min = Math.min(min, v);
+        max = Math.max(max, v);
+      }
     }
   }
-  const meanV = sum / count;
-  const vars = new Map<string, number>();
+  const suffix = img.hasAlpha ? "Alpha" : "";
+  const type = img.space === "cmyk" ? `ColorSeparation${suffix}`
+    : gray ? (bilevel ? "Bilevel" : `Grayscale${suffix}`)
+    : `${colors.size <= 256 ? "Palette" : "TrueColor"}${suffix}`;
+  const deviation = sums.reduce((sum, value, c) => sum + Math.sqrt(Math.max(0,
+    (squares[c]! - value * value / count) / Math.max(1, count - 1))), 0) / 3;
+  return {
+    mean: formatMetricNum(sums.reduce((sum, value) => sum + value, 0) / (count * 3)),
+    min: String(min),
+    max: String(max),
+    "standard-deviation": formatMetricNum(deviation),
+    opaque: String(opaque),
+    type,
+    "bit-depth": String(bitDepth)
+  };
+}
 
-  return fmt
-    .replace(/\\n/g, "\n")
-    .replace(/\\t/g, "\t")
-    .replace(/%w/g, String(img.width))
-    .replace(/%h/g, String(img.height))
-    .replace(/%s/g, String(sceneIdx))
-    .replace(/%n/g, String(sceneCount))
-    .replace(/%z/g, "8")
-    .replace(/%m/g, img.format.toUpperCase())
-    .replace(/%\[mean\]/gi, formatMetricNum(meanV))
-    .replace(/%\[min\]/gi, String(minV))
-    .replace(/%\[max\]/gi, String(maxV))
-    .replace(/%\[fx:([^\]]+)\]/gi, (_m, expr: string) => {
-      const fn = compileFxExpression(expr);
-      vars.clear();
-      const val = fn({
-        stack: [img],
-        x: 0,
-        y: 0,
-        w: img.width,
-        h: img.height,
-        ch: 0,
-        vars
-      });
-      return formatMetricNum(val);
-    })
-    .replace(/%\[pixel:([^\]]+)\]/gi, (_m, expr: string) => {
-      const coordMatch = /p\{\s*(-?\d+)\s*,\s*(-?\d+)\s*\}/i.exec(expr);
-      const px = coordMatch ? Math.max(0, Math.min(img.width - 1, Number(coordMatch[1]))) : 0;
-      const py = coordMatch ? Math.max(0, Math.min(img.height - 1, Number(coordMatch[2]))) : 0;
-      const idx = (py * img.width + px) * 4;
-      return `srgb(${img.data[idx]!},${img.data[idx + 1]!},${img.data[idx + 2]!})`;
-    });
+function* formatMagickPropertyStringSteps(
+  fmt: string,
+  meta: ImageMetadata,
+  getImage: () => RgbaImage,
+  context: MagickFormatContext = {}
+): Generator<void, string, void> {
+  const filePath = context.filePath ?? "";
+  const baseName = filePath.slice(filePath.lastIndexOf("/") + 1);
+  const dot = baseName.lastIndexOf(".");
+  const bitDepth = String(meta.bitsPerSample ?? (meta.depth === "ushort" ? 16 : meta.depth === "bit" ? 1 : 8));
+  const space = meta.space === "b-w" || meta.space === "grey16" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
+  const compression = ({ png: "Zip", jpeg: "JPEG", gif: "LZW", heic: "HEVC", heif: "HEVC", avif: "AV1" } as Partial<Record<ImageFormat, string>>)[meta.format] ?? "None";
+  const short: Record<string, string> = {
+    w: String(meta.width), h: String(meta.height), m: meta.format.toUpperCase(),
+    z: bitDepth, q: bitDepth, r: `DirectClass ${space}`,
+    f: baseName, t: dot < 0 ? baseName : baseName.slice(0, dot), e: dot < 0 ? "" : baseName.slice(dot + 1), i: filePath,
+    b: `${context.byteLen ?? 0}B`, B: String(context.byteLen ?? 0),
+    x: String(meta.density ?? 72), y: String(meta.density ?? 72),
+    s: String(context.sceneIdx ?? 0), n: String(context.sceneCount ?? meta.pages ?? 1),
+    g: `${meta.width}x${meta.height}+0+0`, P: `${meta.width}x${meta.height}`,
+    C: compression, Q: String(context.quality ?? 92)
+  };
+  const properties: Record<string, string> = {
+    colorspace: space, channels: `${space.toLowerCase()}${meta.hasAlpha ? "a" : ""}`,
+    width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
+    depth: bitDepth, size: short.b!, compression, quality: short.Q!
+  };
+  let img: RgbaImage | undefined;
+  let pixels: Record<string, string> | undefined;
+  const parts: string[] = [];
+  // Only tokenize the original template. Expanded filenames and literal percent
+  // escapes must never become new input, including for computed properties.
+  const tokens = /\\[ntr\\%]|%%|%\[|%[a-z]/gi;
+  let previous = 0;
+  let match: RegExpExecArray | null;
+  while ((match = tokens.exec(fmt)) !== null) {
+    parts.push(fmt.slice(previous, match.index));
+    let token = match[0];
+    if (token === "%[") {
+      let depth = 1;
+      let end = tokens.lastIndex;
+      for (; end < fmt.length && depth > 0; end++) {
+        if (end % 16384 === 0) yield;
+        if (fmt[end] === "[") depth++;
+        else if (fmt[end] === "]") depth--;
+      }
+      if (depth !== 0) {
+        parts.push(fmt.slice(match.index));
+        previous = fmt.length;
+        break;
+      }
+      token = fmt.slice(match.index, end);
+      tokens.lastIndex = end;
+    }
+    previous = tokens.lastIndex;
+    if (token[0] === "\\") {
+      parts.push(({ n: "\n", t: "\t", r: "\r" } as Record<string, string>)[token[1]!] ?? token[1]!);
+    } else if (token === "%%") {
+      parts.push("%");
+    } else if (token[1] !== "[") {
+      parts.push(short[token[1]!] ?? token);
+    } else {
+      const property = token.slice(2, -1);
+      const key = property.toLowerCase();
+      if (Object.hasOwn(properties, key)) {
+        parts.push(properties[key]!);
+      } else if (["mean", "min", "max", "standard-deviation", "opaque", "type", "bit-depth"].includes(key)) {
+        img ??= getImage();
+        pixels ??= yield* magickPixelPropertiesSteps(img);
+        parts.push(pixels[key]!);
+      } else if (key.startsWith("fx:") || key.startsWith("pixel:") || key.startsWith("hex:")) {
+        img ??= getImage();
+        const fn = compileFxExpression(property.slice(property.indexOf(":") + 1));
+        const ctx: FxEvalContext = { stack: [img], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
+        if (key.startsWith("fx:")) {
+          parts.push(formatMetricNum(fn(ctx)));
+        } else {
+          const channels: number[] = [];
+          for (let ch = 0; ch < (img.hasAlpha ? 4 : 3); ch++) {
+            ctx.vars.clear();
+            channels.push(clampByteVal(fn({ ...ctx, ch }) * 255));
+          }
+          if (key.startsWith("hex:")) {
+            parts.push(channels.map(value => value.toString(16).toUpperCase().padStart(2, "0")).join(""));
+          } else {
+            // Preserve the existing RGB pixel spelling for opaque samples.
+            parts.push(channels[3] !== undefined && channels[3] !== 255
+              ? `srgba(${channels.slice(0, 3).join(",")},${formatMetricNum(channels[3] / 255)})`
+              : `srgb(${channels.slice(0, 3).join(",")})`);
+          }
+        }
+      } else {
+        parts.push(token);
+      }
+    }
+  }
+  parts.push(fmt.slice(previous));
+  return parts.join("");
 }
 
 function* formatTxtEnumerationSteps(img: RgbaImage): Generator<void, string, void> {
@@ -3725,10 +3846,11 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     if (!rawBytes)
         return undefined;
     let totalPages = 1;
+    let inputMeta: ImageMetadata | undefined;
     try {
-        const meta = readImageMetadata(rawBytes);
-        if (meta.pages && meta.pages > 1)
-            totalPages = meta.pages;
+        inputMeta = readImageMetadata(rawBytes, { density: state.density });
+        if (inputMeta.pages && inputMeta.pages > 1)
+            totalPages = inputMeta.pages;
     }
     catch {
         totalPages = 1;
@@ -3779,6 +3901,11 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             ...(effectiveMaxDecodeDim !== undefined ? { maxDecodeDimension: effectiveMaxDecodeDim } : {}),
             ...(totalPages > 1 || pageSpec !== undefined ? { page: pageIdx } : {})
         });
+        const source: MagickFormatContext = {
+            filePath: cleanToken, byteLen: rawBytes.byteLength,
+            originalWidth: inputMeta?.width ?? img.width, originalHeight: inputMeta?.height ?? img.height, sceneIdx: pageIdx
+        };
+        img = Object.assign(img, { [magickInput]: source });
         if (inlineGeom) {
             img = (yield* applyInlineReadModifierSteps(img, inlineGeom, state.kernel));
         }
@@ -3786,44 +3913,6 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     return results;
 }
-
-function formatIdentifyCustom(
-  fmt: string,
-  filePath: string,
-  meta: ImageMetadata,
-  byteLen: number,
-  rawBytes?: Uint8Array
-): string {
-  const baseName = filePath.split("/").pop() ?? filePath;
-  const rootName = baseName.replace(/\.[^.]+$/, "");
-  const ext = baseName.includes(".") ? baseName.split(".").pop()! : "";
-  const bitDepth = meta.depth === "ushort" ? "16" : meta.depth === "bit" ? "1" : "8";
-  const space = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
-  let out = fmt
-    .replace(/\\n/g, "\n")
-    .replace(/\\t/g, "\t")
-    .replace(/%w/g, String(meta.width))
-    .replace(/%h/g, String(meta.height))
-    .replace(/%m/g, meta.format.toUpperCase())
-    .replace(/%z/g, bitDepth)
-    .replace(/%q/g, bitDepth)
-    .replace(/%r/g, `DirectClass ${space}`)
-    .replace(/%f/g, baseName)
-    .replace(/%t/g, rootName)
-    .replace(/%e/g, ext)
-    .replace(/%i/g, filePath)
-    .replace(/%b/g, `${byteLen}B`)
-    .replace(/%B/g, String(byteLen))
-    .replace(/%x/g, String(meta.density ?? 72))
-    .replace(/%y/g, String(meta.density ?? 72))
-    .replace(/%n/g, String(meta.pages ?? 1))
-    .replace(/%\[colorspace\]/gi, space);
-  if (rawBytes && /%\[(fx:|pixel:|mean\]|min\]|max\])/i.test(out)) {
-    out = formatMagickPropertyString(out, decodeImage(rawBytes));
-  }
-  return out;
-}
-
 
 function tryHandleMagickListOption(argv: readonly string[]): ImageMagickCliResult | undefined {
     const endIdx = argv.indexOf("--");
@@ -4002,7 +4091,9 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             const bitDepth = meta.depth === "ushort" ? "16" : meta.depth === "bit" ? "1" : "8";
             const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
             if (customFormat !== undefined) {
-                outParts.push(formatIdentifyCustom(customFormat, baseInPath, meta, bytes.byteLength, bytes));
+                outParts.push(yield* formatMagickPropertyStringSteps(customFormat, meta, () => decodeImage(bytes, inputOptions), {
+                    filePath: baseInPath, byteLen: bytes.byteLength, sceneIdx: pageIdx ?? 0
+                }));
             }
             else if (verbose) {
                 const stats = (yield* computeImageStatsSteps(decodeImage(bytes, inputOptions)));
@@ -5234,9 +5325,15 @@ function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const finalImg = stack[stack.length - 1]!;
         const outLower = outSpec.toLowerCase();
         if (outLower === "info:" || outLower === "info:-") {
-            const outText = state.formatStr
-                ? stack.map((im, idx) => formatMagickPropertyString(state.formatStr!, im, idx, stack.length)).join("")
-                : stack.map((im) => `${im.width}x${im.height} sRGB 8-bit`).join("\n");
+            const formatted: string[] = [];
+            for (const [idx, im] of stack.entries()) {
+                formatted.push(state.formatStr
+                    ? yield* formatMagickPropertyStringSteps(state.formatStr, im, () => im, {
+                        ...(im as MagickImage)[magickInput], sceneIdx: idx, sceneCount: stack.length, quality: state.quality
+                    })
+                    : `${im.width}x${im.height} sRGB 8-bit`);
+            }
+            const outText = formatted.join(state.formatStr ? "" : "\n");
             return {
                 exitCode: 0,
                 stdout: outText.endsWith("\n") ? outText : `${outText}\n`,
@@ -5291,7 +5388,7 @@ function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             };
             encodePageHeight = fh;
         }
-        if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {} }
+        if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Collection is best-effort. */ } }
         const { data: encoded } = encodeImage(toEncode, {
             format,
             quality: state.quality,
@@ -5629,7 +5726,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let imgB: RgbaImage | undefined;
     try {
         imgA = (yield* parseInputOperandSteps(refSpec, files, state, stdinBytes));
-        if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); } catch {} }
+        if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); } catch { /* Collection is best-effort. */ } }
         imgB = (yield* parseInputOperandSteps(candSpec, files, state, stdinBytes));
     }
     catch (err) {

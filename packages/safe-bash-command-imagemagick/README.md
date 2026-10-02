@@ -18,6 +18,15 @@ console.log(info.stdout); // PNG 60x40
 
 Output parent directories must already exist, including directories selected with `mogrify -path`.
 
+`identify -format` and `magick ... -format FORMAT info:` support literal `%%`,
+geometry (`%g`, `%P`), compression (`%C`, `%Q`), and named properties including
+`%[channels]`, `%[width]`, `%[height]`, `%[depth]`, `%[bit-depth]`, `%[opaque]`,
+`%[type]`, `%[size]`, and `%[standard-deviation]`. Use `%[hex:p{0,0}]` for an
+uppercase RGB or RGBA hex value, or `%[fx:EXPRESSION]` and `%[pixel:EXPRESSION]`
+for calculated values. Named properties are case insensitive. Filenames and
+escaped percent signs are inserted literally; pixel statistics are calculated
+only when requested. Statistics use the command's 0–255 RGB sample scale.
+
 ## Available Commands
 
 | Command | Highlights |

@@ -4,7 +4,7 @@ import { runConvertCli } from "./index.js";
 
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
-for (const args of [["in.png", "-colorspace", "Gray", "out.png"], ["in.png", "-alpha", "transparent", "out.png"], ["-size", "256x256", "xc:blue", "out.png"], ["in.png", "-resize", "64x64", "-blur", "0x0.5", "out.png"], ["in.png", "-crop", "192x192+0+0", "-flip", "-rotate", "90", "out.png"]]) {
+for (const args of [["in.png", "-colorspace", "Gray", "out.png"], ["in.png", "-alpha", "transparent", "out.png"], ["-size", "256x256", "xc:blue", "out.png"], ["in.png", "-resize", "64x64", "-blur", "0x0.5", "out.png"], ["in.png", "-crop", "192x192+0+0", "-flip", "-rotate", "90", "out.png"], ["in.png", "-format", "%[opaque]|%[type]|%[standard-deviation]", "info:"]]) {
   for (const cancel of [false, true]) {
     test(`pixel processing yields with a frozen clock: ${args.join(" ")} (cancel=${cancel})`, async () => {
       const bytes = encodeImage({ width: 256, height: 256, data: new Uint8Array(256 * 256 * 4).fill(255), format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;

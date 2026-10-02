@@ -2965,7 +2965,7 @@
       "receipt": "out/ssconvert-release-investigation/glossary-timestamp-repro.json"
     },
     "perlPatternGrammar": {
-      "status": "Five repairs delivered; activated Perl 5.40.1 qualification exposes version-dependent mismatches; broader grammar remains open",
+      "status": "Five repairs delivered; activated Perl 5.40.1 qualification exposes version and reference-state differences; broader grammar remains open",
       "commits": {
         "conditionals": "577d74b0483c9ef8fc81c833a0443bded1fac8fa",
         "branchReset": "3e7fdf16159c6e8a658873c0947c8fe557911265",
@@ -3207,7 +3207,7 @@
             "perl-sed-variable-behind-fixtures.ts:variable-behind-527"
           ]
         },
-        "standaloneControl": "All 4150 vectors in one Perl 5.40.1 process, passed as hex-decoded byte scalars through one repeated substitution function, exactly match activated Gnumeric values. Isolated per-case processes hide 10 of the 88 broader-corpus differences. All 10 grammar-cohort differences also reproduce in isolated standalone Perl. This is runtime-version/repeated-pattern behavior, not a workbook transport mismatch.",
+        "standaloneControl": "All 4150 vectors in one Perl 5.40.1 process exactly match activated Gnumeric values. Isolated per-case processes hide ten differences. Current source diagnosis confirms an uninitialized atomic-group lookbehind boundary: prior warning-triggering patterns alter identical later results. This is not a workbook transport mismatch or a simple version-selection rule. See currentQualification20261002.perlReferenceStateDefect.",
         "publicConsumers": {
           "entrypoint": "safe-bash-command-ssconvert/dist/index.js",
           "build": "Maintained selected workspace closure passed (18 builds, shared cache).",
@@ -3224,7 +3224,7 @@
           "lines": "3585-3589;4236-4240",
           "finding": "Branch-reset compilation resets logical capture numbering; native 5.40.1 output differs from the existing 5.34.1 profile. No product semantic change inferred solely from this source excerpt."
         },
-        "remaining": "Resolve the 98 measured version-dependent differences across the broader corpus and grammar cohorts, plus warning/lifecycle contracts and broader input grammar. The formerly XML-excluded 350 inputs now have direct-cell native and public evidence; file-format transport and NUL input qualification remain separate. No complete optional-profile or gap-family qualification, root/installed artifact qualification, or release claim.",
+        "remaining": "Resolve the measured profile differences across the broader corpus and grammar cohorts, distinguishing the confirmed reference-state defect from version semantics; preserve original captures. Warning/lifecycle contracts, broader grammar, root/installed artifacts and full optional-profile qualification remain open. No family closure or release claim.",
         "directCellApi": {
           "cases": 4500,
           "nativeMatches": 4412,
@@ -4793,6 +4793,36 @@
         "libgda-ui-6.0.so.6": "11742ad535bf00cfe4fd5094e21a8752a2509d17a6d7fdc39ee8237bc8b6d55b"
       },
       "remaining": "Wider providers/types/authentication, transactions, in-flight real-query cancellation, CLI native failure, cross-runtime and installed artifact qualification remain unresolved. All 19 families remain open; no release claim."
+    },
+    "perlReferenceStateDefect": {
+      "profile": "Unmodified installed Gnumeric 1.12.61 with exact 48-plugin Perl sample profile and Perl 5.40.1. Activation has zero errors and stderr. Direct native cell inputs exclude workbook quoting/encoding confounds.",
+      "reproducer": "PERL_SED(\"ab\",\"(?<=(?>a))b\",\"X\") returns aX in isolation but ab after PERL_SED(\"ab\",\"(?<=(a{1,3}))b\",\"X\") emits its experimental warning. A preceding simple lookbehind does not alter the target. The same warning-sensitive effect occurs in standalone Perl; debug mode can mask it.",
+      "source": "Perl 5.40.1 regexec.c:9743-9748 SUSPEND enters do_ifmatch without setting ST.prev_match_end; ifmatch_done:9836-9839 restores that field unconditionally. The installed reference is not changed.",
+      "diagnosticControl": {
+        "sourceArchive": "https://www.cpan.org/authors/id/S/SH/SHAY/perl-5.40.1.tar.gz",
+        "sourceArchiveSha256": "02f8c45bb379ed0c3de7514fad48c714fd46be8f0b536bfd5320050165a1ee26",
+        "authentication": "Archive matches the independently retrieved MetaCPAN release checksum for author SHAY, perl-5.40.1.",
+        "build": "Separate unmodified source configured with threads and GCC; make miniperl. Original binary retained before the diagnostic-only source edit. No installation or replacement of the native reference.",
+        "edit": "Initialize ST.prev_match_end = match_end on entry to SUSPEND.",
+        "minimalBefore": [
+          "aX",
+          "ab"
+        ],
+        "minimalAfter": [
+          "aX",
+          "aX"
+        ],
+        "cases": 4150,
+        "unmodifiedMismatches": 88,
+        "diagnosticMismatches": 86,
+        "fixedAtomicCases": 10,
+        "additionalVariableAtomicDifferences": 8,
+        "unmodifiedBinarySha256": "5157166528b0d70180c0ec899336c7235f6ad26010ae21d9d125e95cd05d8248",
+        "diagnosticBinarySha256": "a6c25c8d03d98538025046e5514413afca7d2abf3a7e3530daedcdce80c3399c",
+        "unmodifiedRegexecSha256": "46c02b63b5ecf25a02cbb6bb105ea4ec7cf2ad60b5ee2ffe99b059a600e3ea04",
+        "diagnosticRegexecSha256": "47c9cddba6f3f841f4ea57168c3b0971e99f4d67a181994dcbc981845358c61a"
+      },
+      "limits": "Patched interpreter results diagnose the reference defect and are not replacement goldens or native qualification. The remaining differences still need semantic resolution. Production defaults and all original expectations remain unchanged; no family closure or release claim."
     }
   },
   "history": {

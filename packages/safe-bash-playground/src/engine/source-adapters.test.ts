@@ -148,7 +148,7 @@ describe("pinned browser source adapters", () => {
     ]) expect(() => instrumentRootState(`class Shell { async #execute(options) { ${body} } }`)).toThrow("structure changed");
   });
 
-  it.each([false, true])("observes reused and newly constructed roots through shared execution: fail=%s", async (fail) => {
+  it.each([[false, false], [true, false], [false, true], [true, true]])("observes reused and newly constructed roots through shared execution: fail=%s, refresh=%s", async (fail, refresh) => {
     const code = instrumentRootState(`
       class RootShellState {
         constructor(cwd, variables, exported, extensions) {
@@ -167,6 +167,7 @@ describe("pinned browser source adapters", () => {
             let currentState;
             if (warm) {
               currentState = warm.currentState;
+              ${refresh ? "currentState.shellStartedAt = Date.now();" : ""}
               runtime = warm.runtime;
             } else {
               const cwd = "/", variables = { retained: "value" }, exported = new Set();

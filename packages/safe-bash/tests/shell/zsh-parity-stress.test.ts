@@ -605,6 +605,22 @@ test("36. sync expand/unexpand multi -t tablists, column -e vs -L and JSON colum
   }
 });
 
+test("53. sync vs async parity for unzip, tar, and du semantics", async () => {
+  const scripts = [
+    "mkdir -p /uz53; cd /uz53; printf \"orig\\n\" > hello.txt; zip -q a.zip hello.txt; printf \"changed\\n\" > hello.txt; a=\$(unzip -q a.zip 2>/dev/null; echo \$?); b=\$(cat hello.txt); c=\$(unzip -Z1 -o a.zip 2>/dev/null; echo \$?); d=\$(unzip -p a.zip -d sub 2>/dev/null; echo \$?); echo \"\$a|\$b|\$c|\$d\"",
+    "mkdir -p /tar53; cd /tar53; printf \"hello\\n\" > f.txt; tar -cf a.tar f.txt; h=\$(tar --help | head -n 2); v=\$(tar -xvOf a.tar 2>&1); echo \"\$h|\$v\"",
+    "mkdir -p /du53; cd /du53; printf \"hello\" > f.txt; ln -s f.txt l.txt; a=\$(du --apparent-size -H l.txt); b=\$(du -b -t human-readable f.txt 2>/dev/null; echo \$?); c=\$(DU_BLOCK_SIZE=invalid du --apparent-size f.txt); echo \"\$a|\$b|\$c\"",
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});
+
 test("37. sync tr indefinite/octal repeat counts, awk BEGIN NR=0, and jq -j pipeline newline suppression", async () => {
   const syncSh = setup().shell.use(agentCommands());
   const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());

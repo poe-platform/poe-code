@@ -6,6 +6,7 @@ export { DEFAULT_ARCHIVE_LIMITS } from "safe-bash-io-engine/commands/archive/int
 export type { ArchiveCommandsOptions,ArchiveLimits,ZipEncryptionProfile,ZipHost } from "safe-bash-io-engine/commands/archive/internal";
 
 const syncTextDecoder = new TextDecoder();
+const fatalSyncTextDecoder = new TextDecoder("utf-8", { fatal: true });
 
 function filteredZipName(name: string): string {
   let output = "";
@@ -58,6 +59,7 @@ export function evalSyncUnzip(
     if (!ended && a === "--") { ended = true; continue; }
     if (!ended && archive !== undefined && a === "-x") { inExclude = true; continue; }
     if (!ended && (a === "-d" || a.startsWith("-d"))) {
+      if (destDir !== undefined) return undefined;
       const d = a === "-d" ? args[++i] : a.slice(2);
       if (!d) return undefined;
       destDir = d;
@@ -83,11 +85,13 @@ export function evalSyncUnzip(
       patterns.push(a);
     }
   }
-  void overwrite;
   if (!archive) return undefined;
+  if (inExclude && excludePatterns.length === 0) return undefined;
+  if (zipinfoNames && overwrite) return undefined;
   const modeCount = (zipinfoNames ? 1 : 0) + (pipe ? 1 : 0) + (list ? 1 : 0) + (testMode ? 1 : 0);
   if (modeCount > 1) return undefined;
   const extractMode = modeCount === 0;
+  if (destDir !== undefined && !extractMode) return undefined;
   if (extractMode && (!writeFile || !mkdir)) return undefined;
 
   let chosenArchive = archive;
@@ -255,6 +259,11 @@ export function evalSyncUnzip(
         return out;
       }
       for (const item of staged) {
+        if (!item.isDir && !overwrite && readFile(item.path) !== undefined) {
+          return undefined;
+        }
+      }
+      for (const item of staged) {
         if (item.isDir) {
           if (!mkdir!(item.path, 0o755)) return undefined;
           if (quiet === 0) out += `   creating: ${filteredZipName(item.shown)}\n`;
@@ -291,7 +300,8 @@ export function evalSyncUnzip(
           return undefined;
         }
         if (decoded.byteLength !== m.uncompSize || crc32(decoded) !== m.crc) return undefined;
-        out += syncTextDecoder.decode(decoded);
+        if (decoded.includes(0)) return undefined;
+        out += fatalSyncTextDecoder.decode(decoded);
       }
       return out;
     }

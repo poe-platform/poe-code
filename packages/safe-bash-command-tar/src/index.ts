@@ -29,7 +29,47 @@ export function createTarCommand(options: ArchiveCommandsOptions = {}): CommandD
     try {
       const parsed = await parseOptions(context, limits);
       if (parsed === "help") {
-        await writeBytes(context.stdout, encodeBytes(`Usage: tar [OPTION]... [FILE]...
+        await writeBytes(context.stdout, encodeBytes(TAR_HELP_TEXT), signal);
+        return { exitCode: 0 };
+      }
+      const budget = new Budget(context, limits);
+      if (parsed.mode === "d") return { exitCode: await compareArchive(context, parsed, budget) };
+      if (parsed.mode === "r" || parsed.mode === "u" || parsed.mode === "delete" || parsed.mode === "A") {
+        await mutateArchive(context, parsed, budget);
+        return { exitCode: 0 };
+      }
+      if (parsed.mode === "c") {
+        const prepared = await manifest(context, parsed, budget);
+        let source: ByteSource = bounded(recorded(createArchive(context, prepared.entries, parsed, budget), parsed, budget), limits.maxArchiveBytes, signal, limits.chunkSize);
+        if (parsed.compression) source = compressed(source, false, signal, limits, parsed.compression);
+        if (prepared.output) {
+          const existing = await maybeStat(context, prepared.output);
+          if (existing && existing.type !== "file") fail("output archive changed to a non-file");
+          if (existing && (!prepared.outputStat || !sameIdentity(existing, prepared.outputStat))) fail("output archive backing entry changed during preparation");
+          if (existing) await operation(context, () => context.fs.rm(prepared.output!, { signal }));
+          await publish(context, prepared.output, source);
+        } else {
+          for await (const chunk of readBytes(source, signal)) await writeBytes(context.stdout, chunk, signal);
+        }
+      } else {
+        let source = bounded(parsed.archive === "-" ? context.stdin : extractionInput(context, vfsPath(context.cwd, parsed.archive), limits), limits.maxArchiveBytes, signal, limits.chunkSize);
+        source = parsed.compression ? compressed(source, true, signal, limits, parsed.compression) : autodetected(source, signal, limits);
+        await readArchive(context, source, parsed, budget);
+      }
+      return { exitCode: 0 };
+    } catch (error) {
+      controller.abort(error);
+      original.signal.throwIfAborted();
+      const message = escapeText(display((publicDiagnosticMessage(error, original.onInternalError)).slice(0, 1024)), "diagnostic");
+      await writeBytes(original.stderr, encodeBytes(`tar: ${message}\n`).subarray(0, limits.maxDiagnosticBytes), original.signal);
+      return { exitCode: 2 };
+    } finally { controller.abort(new Error("tar command finished")); }
+  }) };
+  if (options.limits === undefined && options.zipHost === undefined) builtInDirectContextExecutors.add(def.execute);
+  return def;
+}
+
+const TAR_HELP_TEXT = `Usage: tar [OPTION]... [FILE]...
 Create, read or modify USTAR/PAX archives in the virtual filesystem.
 
   -c, --create             Create an archive
@@ -97,103 +137,10 @@ Create, read or modify USTAR/PAX archives in the virtual filesystem.
 Exactly one of -c, -t, -x, -r, -u, -d, --delete or -A is required.
 When reading, gzip, bzip2 and xz compression is detected from archive bytes.
 Examples: tar cf archive.tar file; tar tf archive.tar; tar xf archive.tar -C directory
-`), signal);
-        return { exitCode: 0 };
-      }
-      const budget = new Budget(context, limits);
-      if (parsed.mode === "d") return { exitCode: await compareArchive(context, parsed, budget) };
-      if (parsed.mode === "r" || parsed.mode === "u" || parsed.mode === "delete" || parsed.mode === "A") {
-        await mutateArchive(context, parsed, budget);
-        return { exitCode: 0 };
-      }
-      if (parsed.mode === "c") {
-        const prepared = await manifest(context, parsed, budget);
-        let source: ByteSource = bounded(recorded(createArchive(context, prepared.entries, parsed, budget), parsed, budget), limits.maxArchiveBytes, signal, limits.chunkSize);
-        if (parsed.compression) source = compressed(source, false, signal, limits, parsed.compression);
-        if (prepared.output) {
-          const existing = await maybeStat(context, prepared.output);
-          if (existing && existing.type !== "file") fail("output archive changed to a non-file");
-          if (existing && (!prepared.outputStat || !sameIdentity(existing, prepared.outputStat))) fail("output archive backing entry changed during preparation");
-          if (existing) await operation(context, () => context.fs.rm(prepared.output!, { signal }));
-          await publish(context, prepared.output, source);
-        } else {
-          for await (const chunk of readBytes(source, signal)) await writeBytes(context.stdout, chunk, signal);
-        }
-      } else {
-        let source = bounded(parsed.archive === "-" ? context.stdin : extractionInput(context, vfsPath(context.cwd, parsed.archive), limits), limits.maxArchiveBytes, signal, limits.chunkSize);
-        source = parsed.compression ? compressed(source, true, signal, limits, parsed.compression) : autodetected(source, signal, limits);
-        await readArchive(context, source, parsed, budget);
-      }
-      return { exitCode: 0 };
-    } catch (error) {
-      controller.abort(error);
-      original.signal.throwIfAborted();
-      const message = escapeText(display((publicDiagnosticMessage(error, original.onInternalError)).slice(0, 1024)), "diagnostic");
-      await writeBytes(original.stderr, encodeBytes(`tar: ${message}\n`).subarray(0, limits.maxDiagnosticBytes), original.signal);
-      return { exitCode: 2 };
-    } finally { controller.abort(new Error("tar command finished")); }
-  }) };
-  if (options.limits === undefined && options.zipHost === undefined) builtInDirectContextExecutors.add(def.execute);
-  return def;
-}
-
-const TAR_HELP_TEXT = `Usage: tar [OPTION...] [FILE...]
-Create, list, compare, mutate or extract tar archives inside the virtual filesystem.
-
-  -c, --create             Create a new archive
-  -t, --list               List the contents of an archive
-  -x, --extract, --get     Extract files from an archive
-  -r, --append             Append files to the end of an archive
-  -u, --update             Only append files newer than copy in archive
-  -d, --diff, --compare    Find differences between archive and file system
-      --delete             Delete from the archive
-  -A, --catenate, --concatenate Append tar files to an archive
-  -f, --file=ARCHIVE       Use archive file or - for stdio (default -)
-  -C, --directory=DIR      Change to DIR before subsequent operations
-  -v, --verbose            Verbosely list files processed
-  -z, --gzip, --gunzip     Filter the archive through gzip
-  -j, --bzip2              Filter the archive through bzip2
-  -J, --xz                 Filter the archive through xz
-  -O, --to-stdout          Extract files to standard output
-      --exclude=PATTERN    Exclude files matching PATTERN
-  -T, --files-from=FILE    Get names to extract or create from FILE
-  -X, --exclude-from=FILE  Exclude patterns listed in FILE
-      --null               -T reads NUL-terminated verbatim names
-      --no-null            Undo a previous --null option
-      --recursion          Recurse into directories (default)
-      --no-recursion       Avoid descending automatically in directories
-      --wildcards          Select archive members with anchored glob patterns
-      --no-wildcards       Select literal member names (default)
-      --occurrence[=NUM]   Select only occurrence NUM of each operand (default 1)
-      --strip-components=NUM Remove leading components when reading archives
-      --transform=EXPR     Substitute member names when listing (s/old/new/[gix])
-      --show-transformed-names Display transformed names in archive listings
-      --format=FORMAT      Create pax (default), posix or ustar archives
-      --mtime=DATE         Override creation mtime (@seconds or ISO/RFC date)
-      --owner=ID           Override numeric creation owner
-      --group=ID           Override numeric creation group
-      --mode=OCTAL         Override creation permission bits
-      --numeric-owner      Use numeric ownership IDs
-      --full-time          Show full UTC timestamps in verbose listings
-  -m, --touch              Retain current extraction timestamps
-  -p, --same-permissions   Restore ordinary archive permission bits
-      --no-same-permissions Apply virtual 022 mask to ordinary permissions
-      --no-same-owner      Retain filesystem-assigned ownership
-      --atime-preserve[=replace] Restore source access times after creation
-      --delay-directory-restore Restore directory metadata at archive end
-      --no-delay-directory-restore Restore after leaving each directory subtree
-  -k, --keep-old-files     Keep existing files and report conflicts as errors
-      --skip-old-files     Skip existing files without reporting errors
-      --overwrite          Replace existing entries using safe extraction checks
-      --help               Display this help and exit
-      --                   End options; remaining arguments are filenames
-
-Exactly one of -c, -t, -x, -r, -u, -d, --delete or -A is required.
-When reading, gzip, bzip2 and xz compression is detected from archive bytes.
-Examples: tar cf archive.tar file; tar tf archive.tar; tar xf archive.tar -C directory
 `;
 
 const syncTextDecoder = new TextDecoder();
+const fatalSyncTextDecoder = new TextDecoder("utf-8", { fatal: true });
 
 export function evalSyncTar(
   stdinBytes: Uint8Array | undefined,
@@ -439,8 +386,10 @@ export function evalSyncTar(
       if (mode === "t") {
         out += `${quoteName(displayEntryName, "escape")}\n`;
       } else if (mode === "x" && toStdout) {
+        if (verbose) return undefined;
         if (entry.type === "0") {
-          out += syncTextDecoder.decode(payload);
+          if (payload.includes(0)) return undefined;
+          out += fatalSyncTextDecoder.decode(payload);
         }
       } else if (mode === "x") {
         const relClean = displayEntryName.replace(/\/+$/u, "");
@@ -461,6 +410,14 @@ export function evalSyncTar(
       return undefined;
     }
     if (mode === "x" && !toStdout) {
+      const normArchive = archive === "-" ? undefined : archive.replace(/^\.\/+/u, "").replace(/\/+$/u, "");
+      if (normArchive) {
+        for (const act of extractActions) {
+          if (act.path.replace(/^\.\/+/u, "").replace(/\/+$/u, "") === normArchive) {
+            return undefined;
+          }
+        }
+      }
       for (const act of extractActions) {
         if (act.isDir) {
           if (!mkdir!(act.path, act.mode)) return undefined;

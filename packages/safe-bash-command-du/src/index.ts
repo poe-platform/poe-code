@@ -71,17 +71,25 @@ export function evalSyncDu(
     rx += "$";
     try { return new RegExp(rx); } catch { return undefined; }
   };
-  let fmt: Format;
-  try {
-    const envBlock = env.DU_BLOCK_SIZE ?? env.BLOCK_SIZE ?? env.BLOCKSIZE;
-    fmt = envBlock ? blockSize(envBlock) : (env.POSIXLY_CORRECT !== undefined ? { unit: 512n, suffix: "" } : { unit: 1024n, suffix: "" });
-  } catch {
-    return undefined;
-  }
+  let fmt: Format | undefined;
   const operands: string[] = [];
   let endOpts = false;
+  const parseThresholdArg = (val: string): bigint | undefined => {
+    const neg = val.startsWith("-");
+    const pos = val.startsWith("+");
+    const raw = neg || pos ? val.slice(1) : val;
+    if (!raw || raw.startsWith("+") || raw.startsWith("-")) return undefined;
+    try {
+      const parsed = blockSize(raw, true);
+      if (parsed.human || (neg && parsed.unit === 0n)) return undefined;
+      return neg ? -parsed.unit : parsed.unit;
+    } catch {
+      return undefined;
+    }
+  };
   for (let i = 0; i < args.length; i++) {
     const a = args[i]!;
+    if (a.includes("\0")) return undefined;
     if (!endOpts && a === "--") { endOpts = true; continue; }
     if (!endOpts && a.startsWith("--") && a.length > 2) {
       if (a === "--apparent-size") apparent = true;
@@ -95,6 +103,7 @@ export function evalSyncDu(
       else if (a === "--null") nullTerminated = true;
       else if (a === "--human-readable") fmt = { unit: 1n, suffix: "", human: 1024 };
       else if (a === "--si") fmt = { unit: 1n, suffix: "", human: 1000 };
+      else if (a === "--no-dereference") { /* default */ }
       else if (a === "--max-depth" || a.startsWith("--max-depth=")) {
         const val = a === "--max-depth" ? args[++i] : a.slice("--max-depth=".length);
         if (!val || !/^\d+$/u.test(val)) return undefined;
@@ -112,12 +121,9 @@ export function evalSyncDu(
       } else if (a === "--threshold" || a.startsWith("--threshold=")) {
         const val = a === "--threshold" ? args[++i] : a.slice("--threshold=".length);
         if (!val) return undefined;
-        const neg = val.startsWith("-");
-        const raw = (neg || val.startsWith("+")) ? val.slice(1) : val;
-        try {
-          const b = blockSize(raw).unit;
-          threshold = neg ? -b : b;
-        } catch { return undefined; }
+        const parsed = parseThresholdArg(val);
+        if (parsed === undefined) return undefined;
+        threshold = parsed;
       } else return undefined;
       continue;
     }
@@ -132,7 +138,7 @@ export function evalSyncDu(
         else if (ch === "s") summarize = true;
         else if (ch === "0") nullTerminated = true;
         else if (ch === "h") fmt = { unit: 1n, suffix: "", human: 1024 };
-        else if (ch === "H") fmt = { unit: 1n, suffix: "", human: 1000 };
+        else if (ch === "P") { /* default */ }
         else if (ch === "k") fmt = { unit: 1024n, suffix: "" };
         else if (ch === "m") fmt = { unit: 1048576n, suffix: "" };
         else if (ch === "d") {
@@ -148,12 +154,9 @@ export function evalSyncDu(
         } else if (ch === "t") {
           const val = a.slice(j + 1) || args[++i];
           if (!val) return undefined;
-          const neg = val.startsWith("-");
-          const raw = (neg || val.startsWith("+")) ? val.slice(1) : val;
-          try {
-            const b = blockSize(raw).unit;
-            threshold = neg ? -b : b;
-          } catch { return undefined; }
+          const parsed = parseThresholdArg(val);
+          if (parsed === undefined) return undefined;
+          threshold = parsed;
           j = a.length;
         } else return undefined;
       }
@@ -161,6 +164,26 @@ export function evalSyncDu(
     }
     operands.push(a);
   }
+  if (!fmt) {
+    const defaultFmt: Format = Object.hasOwn(env, "POSIXLY_CORRECT") ? { unit: 512n, suffix: "" } : { unit: 1024n, suffix: "" };
+    let selectedEnv: string | undefined;
+    for (const name of ["DU_BLOCK_SIZE", "BLOCK_SIZE", "BLOCKSIZE"]) {
+      if (Object.hasOwn(env, name)) {
+        selectedEnv = env[name];
+        break;
+      }
+    }
+    if (selectedEnv !== undefined) {
+      try {
+        fmt = blockSize(selectedEnv);
+      } catch {
+        fmt = defaultFmt;
+      }
+    } else {
+      fmt = defaultFmt;
+    }
+  }
+  const activeFmt = fmt;
   if (summarize && maxDepth !== Infinity && maxDepth !== 0) return undefined;
   if (nullTerminated && !allowNullBytes) return undefined;
   if (summarize && all) return undefined;
@@ -206,7 +229,7 @@ export function evalSyncDu(
       const bigVal = BigInt(val);
       const passThreshold = threshold === undefined || (threshold >= 0n ? bigVal >= threshold : bigVal <= -threshold);
       if (passThreshold) {
-        const formatted = inodes ? String(val) : formatSize(val, fmt);
+        const formatted = inodes ? String(val) : formatSize(val, activeFmt);
         outLines.push(`${formatted}\t${display}`);
       }
     }
@@ -221,7 +244,7 @@ export function evalSyncDu(
     if (total) grandTotal += res.bytes;
   }
   if (total) {
-    const formatted = inodes ? String(grandTotal) : formatSize(grandTotal, fmt);
+    const formatted = inodes ? String(grandTotal) : formatSize(grandTotal, activeFmt);
     outLines.push(`${formatted}\ttotal`);
   }
   const sep = nullTerminated ? "\0" : "\n";

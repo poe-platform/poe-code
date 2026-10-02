@@ -62,9 +62,9 @@ test("batch writes preserve live entries after LIFO churn", async () => {
   const fs = new MemoryFileSystem();
   const payload = Uint8Array.of(9);
   await fs.mkdir("/dir");
-  // Release enough pool nodes to exercise the optimized batch path when it is eligible.
-  for (let i = 0; i < 64; i++) await fs.writeFile(`/pool-${i}`, payload);
-  for (let i = 0; i < 64; i++) await fs.rm(`/pool-${i}`);
+  // Grow the target table and release enough pool nodes for the optimized batch path.
+  for (let i = 0; i < 64; i++) await fs.writeFile(`/dir/pool-${i}`, payload);
+  for (let i = 0; i < 64; i++) await fs.rm(`/dir/pool-${i}`);
   assert.equal(tryWriteMemoryFileSync(fs, "/dir/anchor", payload, false, 0o666), true);
   const names = bucketNames();
   for (let i = 0; i < 96; i++) {

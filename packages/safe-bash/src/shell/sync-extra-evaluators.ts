@@ -1515,7 +1515,7 @@ function resolveCanonicalSync(
   inspectStat: (absPath: string, follow: boolean) => SyncFsStatNode | undefined,
 ): string | undefined {
   if (mode === "s") return normalizePath(inputPath, cwd);
-  const trailingSlash = inputPath.length > 1 && inputPath.endsWith("/");
+  let trailingSlash = inputPath.length > 1 && inputPath.endsWith("/");
   if (mode === "link") {
     if (trailingSlash) return undefined;
     const abs = normalizePath(inputPath, cwd);
@@ -1532,8 +1532,10 @@ function resolveCanonicalSync(
     const comp = parts[idx]!;
     if (comp === ".") { idx++; continue; }
     if (comp === "..") {
-      const curSt = inspectStat(cur, false);
-      if (curSt && curSt.type !== "directory") return undefined;
+      if (mode !== "m") {
+        const curSt = inspectStat(cur, false);
+        if (curSt && curSt.type !== "directory") return undefined;
+      }
       cur = dirname(cur);
       idx++;
       continue;
@@ -1549,14 +1551,15 @@ function resolveCanonicalSync(
         return nextPath;
       }
       // mode === "m": continue step-by-step so subsequent ".." can resume symlink traversal
-      const curSt = inspectStat(cur, false);
-      if (curSt && curSt.type !== "directory") return undefined;
       cur = nextPath;
       idx++;
       continue;
     }
     if (st.type === "symlink") {
       if (st.target === undefined || ++hops > 40) return undefined;
+      if (idx === parts.length - 1 && st.target.length > 1 && st.target.endsWith("/")) {
+        trailingSlash = true;
+      }
       const targetAbs = st.target.startsWith("/") ? st.target : (cur === "/" ? `/${st.target}` : `${cur}/${st.target}`);
       const targetParts = targetAbs.split("/").filter(Boolean);
       const remaining = parts.slice(idx + 1);
@@ -1565,7 +1568,7 @@ function resolveCanonicalSync(
       idx = 0;
       continue;
     }
-    if ((idx < parts.length - 1 || (trailingSlash && mode !== "m")) && st.type !== "directory") return undefined;
+    if (mode !== "m" && (idx < parts.length - 1 || trailingSlash) && st.type !== "directory") return undefined;
     cur = nextPath;
     idx++;
   }
@@ -1681,10 +1684,33 @@ export function evalSyncRealpath(
     operands.push(a);
   }
   if (operands.length === 0) return undefined;
-  const effectiveMode = strip ? "s" : mode;
   const resolveOp = (p: string): string | undefined => {
-    const target = logical ? normalizePath(resolvePath(cwd, p)) : p;
-    return resolveCanonicalSync(cwd, target, effectiveMode, inspectStat);
+    let path = resolvePath(cwd, p);
+    if (strip || logical) {
+      const lexical = normalizePath(path);
+      if (mode !== "m") {
+        let prefix = "/";
+        const components = path.split("/");
+        for (let index = 1; index < components.length; index++) {
+          const component = components[index]!;
+          if (!component || (component === "." && index < components.length - 1)) continue;
+          if (component === ".." || component === ".") {
+            const parent = inspectStat(prefix, true);
+            if (!parent || parent.type !== "directory") return undefined;
+          }
+          prefix = normalizePath(component, prefix);
+          if (mode === "e" || index < components.length - 1) {
+            const stat = inspectStat(prefix, true);
+            if (mode === "e" && !stat) return undefined;
+            if (index < components.length - 1 && stat !== undefined && stat.type !== "directory") return undefined;
+          }
+        }
+        if (mode === "e" && !inspectStat(lexical, true)) return undefined;
+      }
+      if (strip) return lexical;
+      path = lexical;
+    }
+    return resolveCanonicalSync(cwd, path, mode, inspectStat);
   };
   const baseCanon = relBase !== undefined ? resolveOp(relBase) : undefined;
   if (relBase !== undefined && baseCanon === undefined) return undefined;
@@ -1715,59 +1741,22 @@ export function evalSyncLs(
   let dirItself = false;
   let reverse = false;
   let recursive = false;
-  let commaStream = false;
-  let dirsFirst = false;
   let ignoreBackups = false;
-  const ignorePatterns: RegExp[] = [];
   let followSymlinks = false;
   let sortMode: "name" | "size" | "extension" | "version" | "none" = "name";
   let indicator: "none" | "slash" | "file-type" | "classify" = "none";
   const operands: string[] = [];
   let endOpts = false;
 
-  const globToRegExp = (pat: string): RegExp | undefined => {
-    let rx = "^";
-    for (let k = 0; k < pat.length; k++) {
-      const ch = pat[k]!;
-      if (ch === "*") rx += ".*";
-      else if (ch === "?") rx += ".";
-      else if (".^$+()[]{}|\\".includes(ch)) rx += "\\" + ch;
-      else rx += ch;
-    }
-    rx += "$";
-    try { return new RegExp(rx); } catch { return undefined; }
-  };
-
   for (let i = 0; i < args.length; i++) {
     const a = args[i]!;
     if (!endOpts && a === "--") { endOpts = true; continue; }
-    if (!endOpts && (a === "-I" || a === "--ignore" || a === "--hide")) {
-      if (i + 1 >= args.length) return undefined;
-      const re = globToRegExp(args[++i]!);
-      if (!re) return undefined;
-      ignorePatterns.push(re);
-      continue;
-    }
-    if (!endOpts && (a.startsWith("--ignore=") || a.startsWith("--hide="))) {
-      const val = a.slice(a.indexOf("=") + 1);
-      const re = globToRegExp(val);
-      if (!re) return undefined;
-      ignorePatterns.push(re);
-      continue;
-    }
-    if (!endOpts && a.startsWith("-I") && a.length > 2) {
-      const re = globToRegExp(a.slice(2));
-      if (!re) return undefined;
-      ignorePatterns.push(re);
-      continue;
-    }
     if (!endOpts && a.startsWith("--") && a.length > 2) {
       if (a === "--all") hidden = "all";
       else if (a === "--almost-all") hidden = "almost-all";
       else if (a === "--directory") dirItself = true;
       else if (a === "--reverse") reverse = true;
       else if (a === "--recursive") recursive = true;
-      else if (a === "--group-directories-first") dirsFirst = true;
       else if (a === "--ignore-backups") ignoreBackups = true;
       else if (a === "--classify") indicator = "classify";
       else if (a === "--file-type" || a === "--indicator-style=file-type") indicator = "file-type";
@@ -1775,7 +1764,6 @@ export function evalSyncLs(
       else if (a === "--indicator-style=classify") indicator = "classify";
       else if (a === "--indicator-style=none") indicator = "none";
       else if (a === "--dereference") followSymlinks = true;
-      else if (a === "--hide-control-chars") { /* default */ }
       else if (a === "--sort=size") sortMode = "size";
       else if (a === "--sort=extension") sortMode = "extension";
       else if (a === "--sort=version") sortMode = "version";
@@ -1787,12 +1775,11 @@ export function evalSyncLs(
     if (!endOpts && a.startsWith("-") && a.length > 1) {
       for (let j = 1; j < a.length; j++) {
         const ch = a[j]!;
-        if (ch === "1") { /* One entry per line is default in non-tty sync mode unless -m. */ }
+        if (ch === "1") { /* One entry per line is default in non-tty sync mode. */ }
         else if (ch === "a") hidden = "all";
         else if (ch === "A") hidden = "almost-all";
         else if (ch === "B") ignoreBackups = true;
         else if (ch === "d") dirItself = true;
-        else if (ch === "m") commaStream = true;
         else if (ch === "r") reverse = true;
         else if (ch === "R") recursive = true;
         else if (ch === "S") sortMode = "size";
@@ -1803,7 +1790,6 @@ export function evalSyncLs(
         else if (ch === "p") indicator = "slash";
         else if (ch === "F") indicator = "classify";
         else if (ch === "L") followSymlinks = true;
-        else if (ch === "q") { /* default */ }
         else return undefined;
       }
       continue;
@@ -1811,7 +1797,7 @@ export function evalSyncLs(
     operands.push(a);
   }
   if (operands.length === 0) operands.push(".");
-  if (operands.some(o => !o)) return undefined;
+  if (operands.some(o => !o || /[\x00-\x1f\x7f-\x9f]/u.test(o))) return undefined;
   if (operands.length > 1 && recursive) return undefined;
   const inspectOperandStat = (opAbs: string): SyncFsStatNode | undefined => {
     let nodeSt = inspectStat(opAbs, followSymlinks);
@@ -1845,13 +1831,8 @@ export function evalSyncLs(
   };
 
   const sortItems = <T extends { name: string; type: "file" | "directory" | "symlink"; size: number; mode: number }>(items: T[]): T[] => {
-    if (sortMode === "none" && !dirsFirst) return items;
+    if (sortMode === "none") return items;
     return [...items].sort((x, y) => {
-      if (dirsFirst && x.type !== y.type) {
-        if (x.type === "directory") return -1;
-        if (y.type === "directory") return 1;
-      }
-      if (sortMode === "none") return 0;
       let cmp = 0;
       if (sortMode === "size") cmp = y.size - x.size;
       else if (sortMode === "extension") {
@@ -1868,31 +1849,39 @@ export function evalSyncLs(
 
   const listDirItems = (dirAbs: string, dirStat: SyncFsStatNode) => {
     if (!dirStat.children) return undefined;
-    const items: Array<{ name: string; type: "file" | "directory" | "symlink"; size: number; mode: number }> = [];
-    if (hidden === "all") {
-      items.push({ name: ".", type: "directory", size: 0, mode: dirStat.mode });
-      items.push({ name: "..", type: "directory", size: 0, mode: dirStat.mode });
-    }
-    for (const c of dirStat.children) {
+    const sortedChildren = [...dirStat.children].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+    const filtered: Array<{ name: string; type: "file" | "directory" | "symlink"; size: number; mode: number }> = [];
+    for (const c of sortedChildren) {
+      if (/[\x00-\x1f\x7f-\x9f]/u.test(c.name)) return undefined;
       if (hidden === "none" && c.name.startsWith(".")) continue;
       if (ignoreBackups && c.name.endsWith("~")) continue;
-      if (ignorePatterns.length > 0 && ignorePatterns.some(re => re.test(c.name))) continue;
       if (followSymlinks && c.type === "symlink") {
         const cAbs = dirAbs === "/" ? `/${c.name}` : `${dirAbs}/${c.name}`;
         const deref = inspectStat(cAbs, true);
         if (!deref) return undefined;
-        items.push({ name: c.name, type: deref.type, size: deref.size, mode: deref.mode });
+        filtered.push({ name: c.name, type: deref.type, size: deref.size, mode: deref.mode });
       } else {
-        items.push(c);
+        filtered.push(c);
       }
     }
-    return sortItems(items);
+    if (hidden === "all") {
+      const parentAbs = dirname(dirAbs);
+      const parentSt = inspectStat(parentAbs, true) ?? dirStat;
+      for (const dotEntry of [
+        { name: ".", type: "directory" as const, size: dirStat.size, mode: dirStat.mode },
+        { name: "..", type: "directory" as const, size: parentSt.size, mode: parentSt.mode },
+      ]) {
+        const idx = filtered.findIndex(it => it.name > dotEntry.name);
+        filtered.splice(idx < 0 ? filtered.length : idx, 0, dotEntry);
+      }
+    }
+    return sortItems(filtered);
   };
 
   const formatItems = (items: Array<{ name: string; type: "file" | "directory" | "symlink"; size: number; mode: number }>): string => {
     if (items.length === 0) return "";
     const rendered = items.map(it => `${it.name}${suffixFor(it.type, it.mode)}`);
-    return commaStream ? rendered.join(", ") + "\n" : rendered.join("\n") + "\n";
+    return rendered.join("\n") + "\n";
   };
 
   if (!recursive) {

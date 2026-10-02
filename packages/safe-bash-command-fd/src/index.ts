@@ -81,7 +81,7 @@ export function evalSyncFd(
   }
   if (
     a.help || a.version || a.exec.length > 0 || a.batch || a.details || (a.print0 && !allowNullBytes) ||
-    a.within !== undefined || a.before !== undefined
+    a.within !== undefined || a.before !== undefined || a.ignoreFiles.length > 0
   ) {
     return undefined;
   }
@@ -99,16 +99,13 @@ export function evalSyncFd(
   }
   const sizeChecks: Array<(sz: number) => boolean> = [];
   for (const szSpec of a.sizes) {
-    const m = /^([+-]?)(\d+)(b|k|m|g|t|ki|mi|gi|ti)?$/iu.exec(szSpec.trim());
+    const m = /^([+-]?)(\d+)(b|[kmgt]i?b?)?$/iu.exec(szSpec);
     if (!m) return undefined;
     const op = m[1]!;
     const num = Number(m[2]!);
     const u = (m[3] ?? "b").toLowerCase();
-    const mult =
-      u === "b" ? 1 :
-      u === "k" ? 1e3 : u === "m" ? 1e6 : u === "g" ? 1e9 : u === "t" ? 1e12 :
-      u === "ki" ? 1024 : u === "mi" ? 1048576 : u === "gi" ? 1073741824 : 1099511627776;
-    const target = num * mult;
+    const power = "bkmgt".indexOf(u[0]!);
+    const target = num * (u.includes("i") ? 1024 : 1000) ** power;
     sizeChecks.push((sz: number) => op === "+" ? sz >= target : op === "-" ? sz <= target : sz === target);
   }
   const effectiveCwd = a.baseDirectory === undefined ? cwd : resolveSyncFdPath(cwd, a.baseDirectory);
@@ -119,8 +116,18 @@ export function evalSyncFd(
     const absRoot = resolveSyncFdPath(effectiveCwd, rootArg);
     const rootNode = inspectNode(absRoot);
     if (!rootNode || rootNode.type !== "directory") return undefined;
-    if (a.ignore && rootNode.children?.some(c => c.name === ".gitignore" || c.name === ".ignore" || c.name === ".fdignore")) {
+    if (a.ignore && rootNode.children?.some(c => (c.name === ".gitignore" && a.ignoreVcs) || c.name === ".ignore" || c.name === ".fdignore")) {
       return undefined;
+    }
+    if (a.ignore && a.ignoreParent) {
+      let parentDir = absRoot;
+      while (parentDir !== "/") {
+        parentDir = resolveSyncFdPath(parentDir, "..");
+        const pNode = inspectNode(parentDir);
+        if (pNode?.children?.some(c => (c.name === ".gitignore" && a.ignoreVcs) || c.name === ".ignore" || c.name === ".fdignore")) {
+          return undefined;
+        }
+      }
     }
     const walk = (absDir: string, relPrefix: string, depth: number, ancestors: ReadonlySet<string>): boolean => {
       if (depth > a.maxDepth) return true;
@@ -154,13 +161,17 @@ export function evalSyncFd(
           }
         }
         const depthOk = depth >= a.minDepth && depth <= a.maxDepth;
-        let typeOk = a.types.length === 0;
-        if (!typeOk) {
-          if (a.types.includes("file") && entryType === "file") typeOk = true;
-          if (a.types.includes("directory") && entryType === "directory") typeOk = true;
-          if (a.types.includes("symlink") && entryType === "symlink") typeOk = true;
-          if (a.types.includes("empty") && ((entryType === "file" && entrySize === 0) || (entryType === "directory" && ((derefNode ?? inspectNode(childAbs))?.children?.length ?? 1) === 0))) typeOk = true;
-          if (a.types.includes("executable") && entryType === "file" && ((entryMode ?? 0) & 0o111) !== 0) typeOk = true;
+        const ordinaryTypes = a.types.filter(t => t !== "empty" && t !== "executable");
+        let typeOk = true;
+        if (ordinaryTypes.length > 0 || a.types.includes("executable")) {
+          typeOk =
+            ordinaryTypes.includes(entryType) ||
+            (a.types.includes("executable") && entryType === "file" && ((entryMode ?? 0) & 0o111) !== 0);
+        }
+        if (typeOk && a.types.includes("empty")) {
+          typeOk =
+            (entryType === "file" && entrySize === 0) ||
+            (entryType === "directory" && ((derefNode ?? inspectNode(childAbs))?.children?.length ?? 1) === 0);
         }
         const sizeOk = sizeChecks.length === 0 || (entryType === "file" && sizeChecks.every(fn => fn(entrySize)));
         let extOk = a.extensions.length === 0;

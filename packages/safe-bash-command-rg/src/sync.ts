@@ -1,4 +1,4 @@
-const syncRgDecoder = new TextDecoder("utf-8", { fatal: false });
+const syncRgDecoder = new TextDecoder("utf-8", { fatal: true });
 
 export function evalSyncRg(
   stdinBytes: Uint8Array | undefined,
@@ -166,11 +166,13 @@ export function evalSyncRg(
   let anyMatched = false;
   let stdinUsed = false;
 
+  if (maxCount === 0) return undefined;
   for (const t of targets) {
     const b = t === "-" ? (stdinUsed ? new Uint8Array(0) : ((stdinUsed = true), stdinBytes)) : (readFile ? readFile(t) : undefined);
-    if (!b || b.byteLength > 65536 || b.includes(0)) return undefined;
+    if (!b || b.byteLength > 65536 || b.includes(0) || b.includes(13)) return undefined;
     const label = t === "-" ? "<stdin>" : t;
-    const text = syncRgDecoder.decode(b);
+    let text: string;
+    try { text = syncRgDecoder.decode(b); } catch { return undefined; }
     const rawLines = text.length === 0 ? [] : (text.endsWith("\n") ? text.slice(0, -1).split("\n") : text.split("\n"));
     let count = 0;
     for (let idx = 0; idx < rawLines.length; idx++) {
@@ -192,10 +194,16 @@ export function evalSyncRg(
           if (showLine) prefix += `${idx + 1}:`;
           if (onlyMatching) {
             reGlobal.lastIndex = 0;
+            let prevEnd = -1;
             let m: RegExpExecArray | null;
-            while ((m = reGlobal.exec(line)) !== null) {
+            while (reGlobal.lastIndex <= line.length && (m = reGlobal.exec(line)) !== null) {
+              if (m[0]!.length === 0 && m.index === prevEnd) {
+                reGlobal.lastIndex = m.index + 1;
+                continue;
+              }
               outLines.push(prefix + m[0]!);
-              if (m[0]!.length === 0) reGlobal.lastIndex++;
+              prevEnd = m.index + m[0]!.length;
+              if (m[0]!.length === 0) reGlobal.lastIndex = m.index + 1;
             }
           } else {
             outLines.push(prefix + line);

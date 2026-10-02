@@ -922,3 +922,21 @@ test("50. sync vs async parity for du child sorting/symlinks/exclude paths, tree
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
 });
+
+
+test("51. sync vs async parity for ls, realpath, readlink, rg, and fd semantics", async () => {
+  const scripts = [
+    "mkdir -p /ls51; printf z > /ls51/z; printf a > /ls51/!bang; x=\$(ls /ls51 -f); y=\$(ls -m /ls51 2>/dev/null; echo \$?); echo \"\$x|\$y\"",
+    "mkdir -p /rp51; printf z > /rp51/z; a=\$(realpath -s -e /rp51/missing 2>/dev/null; echo \$?); b=\$(realpath -L /rp51/missing/.. 2>/dev/null; echo \$?); c=\$(realpath -m /rp51/z/child); d=\$(readlink -m /rp51/z/..); echo \"\$a|\$b|\$c|\$d\"",
+    "mkdir -p /rg51; printf \"alpha\\nbeta\\n\" > /rg51/rg.txt; a=\$(rg -m 0 alpha /rg51/rg.txt; echo \$?); b=\$(rg -o \"a*\" <<< \"a\"); echo \"\$a|\$b\"",
+    "mkdir -p /fd51/sub /fd51/emptydir; : > /fd51/sub/empty.txt; printf notempty > /fd51/sub/full.txt; printf \"*.log\\n\" > /fd51/.gitignore; printf ignored > /fd51/sub/skip.log; a=\$(fd -t f -t e . /fd51); b=\$(fd . /fd51/sub); echo \"\$a|\$b\"",
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});

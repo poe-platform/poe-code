@@ -1271,6 +1271,24 @@ quota, permission, and unsupported-metadata failures must precede publication of
 any staging entry. Implementations retain their existing file and aggregate
 limits; this contract adds no larger byte allowance.
 
+`publishStagedFileSet(staging, destination, options)` is an optional stronger
+publication operation. Its presence advertises support; ordinary single-file
+staging does not imply it. In addition to the regular-file replacement it checks
+`companions`, each containing a canonical sibling `path`, an `expected` version
+(or `null` for absence), and a `remove` boolean. All bindings and permissions are
+validated before an indivisible commit replaces the destination and removes the
+selected companions. Check-only companions remain unchanged. Duplicate paths,
+non-siblings, and aliases of the staged inode are rejected. Source conflicts,
+cancellation, guard failures, and resource admission failures leave every entry
+unchanged. Existing retained readers keep their original objects. The caller
+still owns cleanup of the now-empty staging directory. The returned `FileStat`
+is the committed replacement receipt, captured inside the atomic operation.
+
+MemoryFileSystem implements this operation without copying file payloads. Other
+hosts and forwarding views must omit it until they can preserve the entire
+source-set transaction, including path translation and resource accounting;
+separate check/rename/unlink calls are not an implementation of this contract.
+
 `retainedStagingCleanup: true` permits `createStagedFile(..., { retainCleanup:
 true })`. Creation acquires and accounts for the cleanup ownership before
 returning a receipt with `cleanup: FileStagingCleanup`. Unsupported backends

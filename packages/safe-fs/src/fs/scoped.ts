@@ -214,6 +214,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       return Reflect.set(original, property, value, original);
     },
     get(_target, property) {
+      if (property === "publishStagedFileSet") return undefined;
       if (property === retainedCleanupSymbol) return cleanupBinding;
       if (property === "capabilities") {
         const rawCaps = original.capabilities;

@@ -316,6 +316,18 @@ export interface PublishStagedFileOptions extends FsOptions {
   readonly destination: FileStat | null;
 }
 
+/** Publish one staged regular file and validate/retire sibling source entries in
+ * the same indivisible commit. Every expected version (including absence) must
+ * match before any mutation. Hosts must not emulate this with sequential calls.
+ * Unavailable hosts omit publishStagedFileSet. Sources remain caller-owned. */
+export interface PublishStagedFileSetOptions extends PublishStagedFileOptions {
+  readonly companions: readonly {
+    readonly path: string;
+    readonly expected: FileStat | null;
+    readonly remove: boolean;
+  }[];
+}
+
 export interface PrepareDirectoryOptions extends FsOptions {
   readonly expected: FileStat | null;
   readonly parent: FileStat;
@@ -353,6 +365,7 @@ export interface FileSystem {
   prepareDirectory?(path: string, options: PrepareDirectoryOptions): Promise<FileStat>;
   createStagedFile?(directoryPath: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging>;
   publishStagedFile?(staging: FileStaging, destination: string, options: PublishStagedFileOptions): Promise<void>;
+  publishStagedFileSet?(staging: FileStaging, destination: string, options: PublishStagedFileSetOptions): Promise<FileStat>;
   /** Admit a complete canonical root-to-directory prefix and prepare a guard.
    * The returned guard checks current identities/search access synchronously;
    * preparation is not validation, and the guard's result is not an async lease. */

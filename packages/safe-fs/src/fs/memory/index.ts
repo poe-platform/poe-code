@@ -4,7 +4,7 @@ import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileReadHandle, FileResizeHandle, FileStat, FileSystem, FileSystemCapabilities,
   FsOptions, ChmodOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions,
   FileDescriptor, OpenFileOptions, OpenReadFileOptions, OpenResizeFileOptions, WriteFileOptions,
-  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingCleanup, FileStagingEntry, FileResolutionStep, FileStagingResolution, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingCleanup, FileStagingEntry, FileResolutionStep, FileStagingResolution, PublishStagedFileOptions, PublishStagedFileSetOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { normalizePath, validatePath, pathByteLength } from "../../contracts/virtual-path.js";
@@ -2236,6 +2236,78 @@ export class MemoryFileSystem implements FileSystem {
     if (target.parent === directory.node || target.node === directory.node || target.node === file.node) this.fail("EINVAL", "publishStagedFile", destination);
     if (target.node && target.node.type !== "file") this.fail("EAGAIN", "publishStagedFile", destination);
     return MemoryFileSystem.prototype.rename.call(this, staging.file.path, destination, { ...controls, noReplace: expected === null });
+  }
+
+  async publishStagedFileSet(receipt: FileStaging, destination: string, options: PublishStagedFileSetOptions): Promise<FileStat> {
+    const signal = options.signal;
+    const guard = options.commitGuard;
+    const ancestors = options.ancestors === undefined ? undefined : snapshotDirectoryAncestry(options.ancestors);
+    const snapshot = (entry: FileStagingEntry): FileStagingEntry => ({ path: entry.path, stat: { ...entry.stat } });
+    const staging = { parent: snapshot(receipt.parent), directory: snapshot(receipt.directory), file: snapshot(receipt.file) };
+    const parent = { ...options.parent };
+    const expected = options.destination === null ? null : { ...options.destination };
+    const companions = options.companions.map(entry => ({ path: entry.path, expected: entry.expected === null ? null : { ...entry.expected }, remove: entry.remove }));
+    const syscall = "publishStagedFileSet";
+    const parentPath = destination.slice(0, destination.lastIndexOf("/")) || "/";
+    const paths = new Set([destination]);
+    const canonical = (path: string): boolean => path.startsWith("/") && path.slice(1).split("/").every(part => part !== "" && part !== "." && part !== "..");
+    if (!canonical(destination) || ancestors && ancestors.at(-1)?.path !== parentPath) this.fail("EINVAL", syscall, destination);
+    for (const entry of companions) {
+      if (!canonical(entry.path) || paths.has(entry.path) || (entry.path.slice(0, entry.path.lastIndexOf("/")) || "/") !== parentPath) this.fail("EINVAL", syscall, entry.path);
+      paths.add(entry.path);
+    }
+    signal?.throwIfAborted();
+    if (guard !== undefined) runStagingGuard(guard);
+    signal?.throwIfAborted();
+    if (ancestors) this.verifyDirectoryAncestry(ancestors, signal === undefined ? {} : { signal });
+    const { directory, file } = this.stagingLocations(staging);
+    this.expectEntry(file.node, staging.file.stat, staging.file.path);
+    const target = this.entry(destination, syscall, true);
+    this.expectEntry(target.parent, parent, destination, false);
+    this.expectEntry(target.node, expected, destination);
+    const node = file.node!;
+    if (node.type !== "file" || target.parent === directory.node || target.node === node) this.fail("EINVAL", syscall, destination);
+    if (target.node && target.node.type !== "file") this.fail("EAGAIN", syscall, destination);
+    this.permission(file.parent, 3, syscall, staging.file.path);
+    this.permission(target.parent, 3, syscall, destination);
+    const retired: Location[] = [];
+    for (const companion of companions) {
+      const location = this.entry(companion.path, syscall, true);
+      if (location.parent !== target.parent || location.node === node) this.fail("EINVAL", syscall, companion.path);
+      this.expectEntry(location.node, companion.expected, companion.path);
+      if (location.node && location.node.type !== "file") this.fail("EAGAIN", syscall, companion.path);
+      if (companion.remove && location.node) retired.push(location);
+    }
+    const now = Date.now();
+    const published = { ...this.snapshot(node), ctimeMs: now, revision: Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1) };
+    // Admission and all source-set checks precede the single synchronous commit.
+    // No calls to overridable async mutations can interleave a partial result.
+    const nameGrowth = target.node ? 0 : (target.name.length - file.name.length) * 2;
+    this.ledger.reserve(Math.max(0, nameGrowth), 0, syscall, destination);
+    try { target.parent.entries.set(target.name, node); }
+    catch (error) { this.ledger.release(Math.max(0, nameGrowth), 0); throw error; }
+    memoryCaches.get(this.ledger)!.clearWrites();
+    file.parent.entries.delete(file.name);
+    const unlink = (entry: Location): void => {
+      entry.node!.nlink--;
+      entry.node!.ctimeMs = now;
+      entry.node!.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, entry.node!.revision + 1);
+      this.releaseNode(entry.node!);
+    };
+    if (target.node) {
+      this.ledger.release(file.name.length * 2, 1);
+      unlink(target);
+    } else if (nameGrowth < 0) this.ledger.release(-nameGrowth, 0);
+    for (const entry of retired) {
+      entry.parent.entries.delete(entry.name);
+      this.ledger.release(entry.name.length * 2, 1);
+      unlink(entry);
+    }
+    this.changed(file.parent, now);
+    this.changed(target.parent, now);
+    node.ctimeMs = now;
+    node.revision = published.revision;
+    return published;
   }
 
   async removeStagedFile(staging: FileStaging, options: FsOptions = {}): Promise<void> {

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import "../../src/shell/sync-extra-evaluators.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { basicCommands } from "../../src/commands/basic.js";

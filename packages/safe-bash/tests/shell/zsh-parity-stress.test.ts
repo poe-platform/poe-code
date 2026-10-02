@@ -427,19 +427,19 @@ test("29. synchronous memory glob expansion matches filenames in (pattern, name)
   const res = await shell.exec(`
     mkdir -p /tmp/sb_glob_test
     touch /tmp/sb_glob_test/F_1.TXT /tmp/sb_glob_test/f_2.txt /tmp/sb_glob_test/.dot.txt /tmp/sb_glob_test/skip.txt
-    out1=""; for f in /tmp/sb_glob_test/f_*.txt; do out1+="\$f,"; done
+    out1=""; for f in /tmp/sb_glob_test/f_*.txt; do out1+="$f,"; done
     shopt -s nocaseglob
-    out2=""; for f in /tmp/sb_glob_test/f_*.txt; do out2+="\$f,"; done
+    out2=""; for f in /tmp/sb_glob_test/f_*.txt; do out2+="$f,"; done
     shopt -u nocaseglob
     shopt -s dotglob
-    out3=""; for f in /tmp/sb_glob_test/*.txt; do out3+="\$f,"; done
+    out3=""; for f in /tmp/sb_glob_test/*.txt; do out3+="$f,"; done
     shopt -u dotglob
     GLOBIGNORE="*/skip.txt"
-    out4=""; for f in /tmp/sb_glob_test/*.txt; do out4+="\$f,"; done
-    echo "1:\$out1"
-    echo "2:\$out2"
-    echo "3:\$out3"
-    echo "4:\$out4"
+    out4=""; for f in /tmp/sb_glob_test/*.txt; do out4+="$f,"; done
+    echo "1:$out1"
+    echo "2:$out2"
+    echo "3:$out3"
+    echo "4:$out4"
   `);
   assert.equal(res.exitCode, 0);
   assert.equal(

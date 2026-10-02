@@ -6915,7 +6915,7 @@ const syncExtraRuntimeMethods = {
       if (valByteLenUpdated > this.budget.limits.maxExpansionBytes) return false;
       if (existingKey !== undefined) {
         const existingSlot = current.values.get(existingKey.index);
-        if (existingSlot !== undefined && existingSlot.text.references === 1 && (existingSlot.text.bytes === valByteLenUpdated || current.owner.ledger.bytes === Infinity)) {
+        if (existingSlot !== undefined && existingSlot.text.references === 1 && existingSlot.text.bytes === valByteLenUpdated) {
           let tickets: ReturnType<typeof store.owner.charge>;
           try {
             current.owner.chargeWork(valByteLenUpdated + 9);

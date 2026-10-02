@@ -26,7 +26,29 @@ pub fn create_authorization_state(
 }
 pub fn parse_authorization_state(text: Option<&[u16]>) -> Option<AuthorizationState> {
     let text = text.filter(|text| !text.is_empty())?;
-    let bytes = decode_lenient(text);
+    // Web base64 decoding rejects junk and non-ASCII instead of discarding it.
+    let mut encoded: Vec<u16> = text
+        .iter()
+        .copied()
+        .filter(|unit| !matches!(unit, 9 | 10 | 12 | 13 | 32))
+        .collect();
+    if encoded.len().is_multiple_of(4) {
+        for _ in 0..2 {
+            if encoded.last() == Some(&61) {
+                encoded.pop();
+            } else {
+                break;
+            }
+        }
+    }
+    if encoded.len() % 4 == 1
+        || encoded
+            .iter()
+            .any(|unit| !matches!(unit, 65..=90 | 97..=122 | 48..=57 | 43 | 47 | 45 | 95))
+    {
+        return None;
+    }
+    let bytes = decode_lenient(&encoded);
     let decoded = String::from_utf8_lossy(&bytes)
         .encode_utf16()
         .collect::<Vec<_>>();

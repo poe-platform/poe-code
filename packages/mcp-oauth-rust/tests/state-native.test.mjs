@@ -19,7 +19,7 @@ test("authorization-state creation preserves issuer and flags with fresh operati
   }
   assert.equal(states.size, 8);
 });
-test("authorization-state parsing matches field validation and Node's lenient base64url decoder", () => {
+test("authorization-state parsing matches field validation and Web base64url decoding", () => {
   for (const value of [null, "", "not json", ...[{}, [], null, { v:1,n:"n",i:"issuer",r:true }, { v:2,n:"n",i:"issuer",r:true }, { v:1,n:"",i:"issuer",r:true }, { v:1,n:"n",i:"",r:true }, { v:1,n:"n",i:"issuer",r:1 }, { v:1,n:"n",i:"issuer",r:false, extra: "ignored" }, { v:1,n:"n",i:"issuer\ud800",r:true }].map(encode)]) assert.deepEqual(native.parseAuthorizationState(value), reference.parseAuthorizationState(value));
   const valid = encode({ v:1,n:"n",i:"issuer",r:true });
   for (const decorated of [valid + "===junk", valid.replaceAll("-", "+").replaceAll("_", "/"), " \n" + valid + "\n", valid.split("").join("!"), valid.split("").join("☀"), valid.split("").map(char => String.fromCharCode(char.charCodeAt(0) + 256)).join("")]) assert.deepEqual(native.parseAuthorizationState(decorated), reference.parseAuthorizationState(decorated));

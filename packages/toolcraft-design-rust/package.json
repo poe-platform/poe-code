@@ -207,6 +207,10 @@
     "./screen/style": {
       "types": "./dist/screen-style.d.ts",
       "import": "./dist/screen-style.js"
+    },
+    "./screen/screen": {
+      "types": "./dist/screen.d.ts",
+      "import": "./dist/screen.js"
     }
   },
   "scripts": {

@@ -446,3 +446,19 @@ void [screenStyleOriginal,screenStyleOwn,screenStyleKeys,rootScreenStyleOriginal
 const packedStyleOriginal:originalDesign.PackedStyle=null as unknown as design.PackedStyle;
 const packedStyleOwn:design.PackedStyle=null as unknown as originalDesign.PackedStyle;
 void [packedStyleOriginal,packedStyleOwn];
+
+import {Screen, type ScreenCell, type ScreenSize, type ScreenSurface} from "toolcraft-design-rust";
+import * as screenSubpath from "toolcraft-design-rust/screen/screen";
+import type * as originalScreen from "toolcraft-design/screen/screen";
+type ScreenPublic<T> = Pick<T, keyof T>;
+const publicScreen: ScreenPublic<originalScreen.Screen> = new Screen();
+const reverseScreen: ScreenPublic<Screen> = null as unknown as originalScreen.Screen;
+const screenConstructor: typeof Screen = screenSubpath.Screen;
+const screenArgs: ConstructorParameters<typeof originalScreen.Screen> = [{cols:10,rows:2},{colors:false}];
+const nativeScreenArgs: ConstructorParameters<typeof Screen> = screenArgs;
+const screenSize: ScreenSize = {cols:10,rows:2};
+const screenCell: ScreenCell = {ch:"x",width:1,style:0,fg:0,bg:0};
+const screenSurface: ScreenSurface = new Screen(screenSize);
+const originalScreenSurface: originalScreen.ScreenSurface = screenSurface;
+screenSurface.put(0,0,"ready",{fg:"red",bold:true});
+void [publicScreen,reverseScreen,screenConstructor,nativeScreenArgs,screenCell,originalScreenSurface];

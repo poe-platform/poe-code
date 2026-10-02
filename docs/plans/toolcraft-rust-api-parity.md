@@ -932,3 +932,28 @@ stream factories also needs shared contract identity: independent recursive
 declarations make TypeScript infer the stream context as services during that
 assignment, although matching generic instantiations and inferred SDK consumers
 pass. Do not treat those narrower checks as proof of full factory interchangeability.
+
+
+The additive `Screen` class now exposes root and `screen/screen` APIs. Rust owns
+bounds, drawing, legacy style packing, clipping, wide-cell invalidation and frame
+diff traversal. The host retains visible fields/arrays, grapheme iteration,
+property/coercion ordering, dynamic subclass calls and arbitrary thrown values.
+The package route passes 206 native host tests and 571 selected original tests;
+public shape/constructor types, standalone packed runtime/types, Rust/binding
+lint and scoped JS lint pass. Independent private class declarations still block
+direct nominal assignment between packages; shared constructor/type identity is
+required before a swap. Wide/narrow screenshots were inspected and their input
+bytes match the reference; the bundled screenshot font lacks the CJK glyph.
+
+A warmed alternating five-round benchmark of 100 frames (40 columns, 8 rows)
+measured 1.0570 ms native versus 0.01887 ms reference per frame (56.03x slower).
+Host callbacks dominate this compatibility path; no performance gate passed and
+this is not ready for default integration. Further optimization must retain the
+observable mutable screen state. ANSI-to-cell conversion and terminal driver
+remain required.
+
+The latest whole-unit attempt stopped during the Safe Bash build: a missing
+`tryGetMemoryDirectoryEntryNamesSync` import and stale built runtime-core exports
+prevented execution. The source/export evidence was recorded for the assigned
+runtime work. Repository-wide types had passed previously; that does not make
+the failed whole-unit route a pass.

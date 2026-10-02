@@ -105,3 +105,5 @@ export {SPINNER_FRAMES,renderSpinnerFrame,renderSpinnerStopped,renderMenu} from 
 export {renderPlaintext} from "./plaintext.js";
 
 export {packStyle,styleToSgrDelta} from "./screen-style.js";
+
+export {Screen} from "./screen.js";

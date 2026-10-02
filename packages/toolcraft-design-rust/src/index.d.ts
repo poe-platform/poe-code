@@ -124,3 +124,5 @@ export {parse,renderMarkdown,renderMarkdownHtml,renderMarkdownPlaintext} from ".
 
 export {packStyle,styleToSgrDelta} from "./screen-style.js";
 export type {PackedStyle} from "./screen-style.js";
+
+export {Screen, type Cell as ScreenCell, type ScreenSize, type ScreenSurface} from "./screen.js";

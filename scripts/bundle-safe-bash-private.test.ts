@@ -5,6 +5,43 @@ import { build } from "esbuild";
 import { runInNewContext } from "node:vm";
 import path from "node:path";
 import { readFileSync } from "node:fs";
+import { webcrypto } from "node:crypto";
+import { scanPortableRuntime } from "../packages/package-lint/src/portable-runtime.js";
+import { memLintFs, pkgJson } from "../packages/package-lint/src/fixtures.js";
+
+it.each([false, true])("keeps certificate encoding independent of ambient Buffer (minify=%s)", async minify => {
+  const root = process.cwd();
+  const name = "safe-bash-command-openssl";
+  const pkg = JSON.parse(readFileSync(path.join(root, "packages", name, "package.json"), "utf8"));
+  const profile = { version: pkg.version, dependencies: pkg.dependencies, devDependencies: pkg.devDependencies, portable: true };
+  const options = resolvePrivateCommandBuild(root, { [name]: profile }, [{ dir: name, pkg }], { alias: {}, external: [], portable: true });
+  const result = await build({ ...options, entryPoints: undefined, outdir: undefined, outfile: "/memory/certificates.js",
+    splitting: false, sourcemap: false, format: "iife", minify,
+    stdin: { resolveDir: root, contents: `
+      import "reflect-metadata/lite";
+      import { X509Certificate, X509CertificateGenerator } from "@peculiar/x509";
+      globalThis.pending = (async () => {
+        const keys = await crypto.subtle.generateKey({name: "ECDSA", namedCurve: "P-256"}, true, ["sign", "verify"]);
+        const cert = await X509CertificateGenerator.createSelfSigned({name: "CN=portable.test", keys,
+          signingAlgorithm: {name: "ECDSA", hash: "SHA-256"}}, crypto);
+        const parsed = new X509Certificate(cert.toString("pem"));
+        return parsed.subject === "CN=portable.test" && await parsed.verify({publicKey: keys.publicKey}, crypto);
+      })();` },
+  });
+  const code = result.outputFiles[0]!.text;
+  const files = memLintFs({
+    "/repo/package.json": pkgJson({name: "root", private: true}),
+    "/repo/packages/safe-bash-command-openssl/package.json": pkgJson({name, exports: {".": "./dist/index.js"}}),
+    "/repo/packages/safe-bash-command-openssl/dist/index.js": code,
+  });
+  expect(await scanPortableRuntime(files, "/repo")).toEqual([]);
+  const realm = { crypto: webcrypto, TextEncoder, TextDecoder, atob, btoa, Uint8Array, ArrayBuffer, DataView,
+    pending: undefined as Promise<boolean> | undefined };
+  Object.defineProperty(realm, "Buffer", { get() { throw new Error("Ambient Buffer must not be read"); } });
+  runInNewContext(code, realm);
+  expect(await realm.pending).toBe(true);
+  expect(Object.hasOwn(realm, "process")).toBe(false);
+});
 
 it("admits every private workspace into the portable build", () => {
   const root = process.cwd();

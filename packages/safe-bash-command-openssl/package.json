@@ -19,7 +19,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=browser --conditions=workerd --format=esm --target=es2022 --define:Buffer=undefined --external:safe-bash-contracts --external:safe-bash-contracts/* --external:@poe-code/safe-fs --external:@poe-code/safe-fs/* --outfile=dist/index.js",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=browser --conditions=workerd --format=esm --target=es2022 --define:Buffer=undefined --define:globalThis.Buffer=undefined --external:safe-bash-contracts --external:safe-bash-contracts/* --external:@poe-code/safe-fs --external:@poe-code/safe-fs/* --outfile=dist/index.js",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "lint": "eslint src && npm run typecheck",
     "test": "node --import tsx --test src/*.test.ts",

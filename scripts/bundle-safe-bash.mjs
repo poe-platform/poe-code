@@ -10,7 +10,7 @@ import { rewriteModuleSpecifiers } from "./package-safe.mjs";
 import { portableLuaLibraries } from "../packages/safe-bash-command-pandoc/scripts/portable-lua.mjs";
 
 // Portable consumers cannot select ambient Node filesystem/process capabilities.
-const portableEnvironment = { Buffer: "undefined", process: "undefined", "process.env.FENGARICONF": "undefined" };
+const portableEnvironment = { Buffer: "undefined", "globalThis.Buffer": "undefined", process: "undefined", "process.env.FENGARICONF": "undefined" };
 
 export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alias, external, portable = false }) {
   const entryPoints = {};

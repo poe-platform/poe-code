@@ -1,4 +1,4 @@
-import { Budget, ExprError, nextCharacter, requireByteCollation, utf8Profile } from "./internal.js";
+import { Budget, ExprError, nextCharacter, stringCollator, utf8Profile } from "./internal.js";
 
 export interface IntegerValue { readonly number: bigint; readonly text: string }
 export type Value = Uint8Array | IntegerValue;
@@ -69,13 +69,18 @@ function arithmetic(operator: string, left: Value, right: Value, budget: Budget)
   return { number: result, text: resultText };
 }
 
-function compare(left: Value, right: Value, budget: Budget): number {
+function compare(left: Value, right: Value, budget: Budget, equality: boolean): number {
   if (numericShape(left, budget) && numericShape(right, budget)) {
     const first = integer(left, budget), second = integer(right, budget);
     return first < second ? -1 : first > second ? 1 : 0;
   }
-  requireByteCollation(budget.context);
   const firstBytes = bytes(left, budget), secondBytes = bytes(right, budget);
+  const collator = equality ? undefined : stringCollator(budget.context);
+  if (collator) {
+    budget.allocation(firstBytes.length + secondBytes.length);
+    const decoder = new TextDecoder();
+    return collator.compare(decoder.decode(firstBytes), decoder.decode(secondBytes));
+  }
   budget.charge(Math.min(firstBytes.length, secondBytes.length));
   for (let offset = 0; offset < Math.min(firstBytes.length, secondBytes.length); offset++) {
     if (firstBytes[offset] !== secondBytes[offset]) return firstBytes[offset]! - secondBytes[offset]!;
@@ -132,7 +137,7 @@ export async function evaluateCall(operator: string, values: readonly Value[], b
 
 export async function evaluateBinary(operator: string, left: Value, right: Value, budget: Budget, match: Matcher): Promise<Value> {
   if (["<", "<=", "=", "==", "!=", ">=", ">"].includes(operator)) {
-    const order = compare(left, right, budget);
+    const order = compare(left, right, budget, operator === "=" || operator === "==" || operator === "!=");
     return smallInteger(Number(operator === "<" ? order < 0 : operator === "<=" ? order <= 0
       : operator === ">" ? order > 0 : operator === ">=" ? order >= 0 : operator === "!=" ? order !== 0 : order === 0), budget);
   }

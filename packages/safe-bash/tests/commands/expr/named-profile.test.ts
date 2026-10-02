@@ -13,9 +13,9 @@ import { Shell } from "../../../src/shell/shell.js";
 import { run } from "./helpers.js";
 
 const named = { LC_ALL: "en_US.UTF-8" };
-const encodingError = "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n";
-const collationError = "expr: string comparison requires C/POSIX or C.UTF-8/C.utf8 byte collation\n";
-const bracketError = "expr: unsupported BRE: bracket expressions require C/POSIX or C.UTF-8/C.utf8 LC_CTYPE and LC_COLLATE\n";
+const encodingError = "expr: character operations require C/POSIX or a UTF-8 locale\n";
+const collationError = "expr: string comparison requires C/POSIX or a supported UTF-8 collation locale\n";
+const bracketError = "expr: unsupported BRE: bracket expressions require C/POSIX or UTF-8 LC_CTYPE and LC_COLLATE\n";
 const byteError = "expr: regex input bytes limit exceeded\n";
 type Expected = readonly [number, string, string];
 
@@ -91,14 +91,14 @@ const categories: readonly [string, Readonly<Record<string, string>>, string | u
   ["default", {}, "2", true, true],
   ["empty fallthrough default", { LC_ALL: "", LC_CTYPE: "", LC_COLLATE: "", LANG: "" }, "2", true, true],
   ["all overrides categories", { LC_ALL: "C", LC_CTYPE: "en_US.UTF-8", LC_COLLATE: "unknown", LANG: "unknown" }, "2", true, true],
-  ["all named overrides C", { LC_ALL: "en_US.UTF-8", LC_CTYPE: "C", LC_COLLATE: "C", LANG: "C" }, "1", false, false],
-  ["independent named ctype", { LC_CTYPE: "en_US.UTF-8", LC_COLLATE: "C" }, "1", true, false],
-  ["independent named collate", { LC_CTYPE: "C", LC_COLLATE: "en_US.UTF-8" }, "2", false, false],
+  ["all named overrides C", { LC_ALL: "en_US.UTF-8", LC_CTYPE: "C", LC_COLLATE: "C", LANG: "C" }, "1", true, true],
+  ["independent named ctype", { LC_CTYPE: "en_US.UTF-8", LC_COLLATE: "C" }, "1", true, true],
+  ["independent named collate", { LC_CTYPE: "C", LC_COLLATE: "en_US.UTF-8" }, "2", true, true],
   ["unknown ctype irrelevant to comparison", { LC_CTYPE: "unknown", LC_COLLATE: "C" }, undefined, true, false],
   ["unknown collate irrelevant to length", { LC_CTYPE: "C.UTF-8", LC_COLLATE: "unknown" }, "1", false, false],
-  ["LANG named", { LANG: "en_US.UTF-8" }, "1", false, false],
-  ["empty all named ctype", { LC_ALL: "", LC_CTYPE: "en_US.UTF-8", LC_COLLATE: "POSIX", LANG: "unknown" }, "1", true, false],
-  ["empty categories named LANG", { LC_ALL: "", LC_CTYPE: "", LC_COLLATE: "", LANG: "en_US.UTF-8" }, "1", false, false],
+  ["LANG named", { LANG: "en_US.UTF-8" }, "1", true, true],
+  ["empty all named ctype", { LC_ALL: "", LC_CTYPE: "en_US.UTF-8", LC_COLLATE: "POSIX", LANG: "unknown" }, "1", true, true],
+  ["empty categories named LANG", { LC_ALL: "", LC_CTYPE: "", LC_COLLATE: "", LANG: "en_US.UTF-8" }, "1", true, true],
   ["C categories override LANG", { LC_CTYPE: "C.utf8", LC_COLLATE: "POSIX", LANG: "en_US.UTF-8" }, "1", true, true],
   ["whitespace ALL is nonempty", { LC_ALL: " ", LC_CTYPE: "en_US.UTF-8", LC_COLLATE: "C" }, undefined, false, false],
   ["whitespace ctype is nonempty", { LC_CTYPE: " ", LC_COLLATE: "C", LANG: "en_US.UTF-8" }, undefined, true, false],
@@ -118,7 +118,7 @@ for (const [label, env, length, comparison, brackets] of categories) {
   });
 }
 
-for (const locale of ["en_US.utf8", "en_US.UTF8", "en-US.UTF-8", "EN_US.UTF-8", "en_us.UTF-8", "en_US.UTF-8@x", "fr_FR.UTF-8", "UTF-8", "/en_US.UTF-8", "en_US.UTF-8 "]) {
+for (const locale of ["en_US.UTF-8@x", "/en_US.UTF-8", "en_US.UTF-8 ", "en_US.ISO-8859-1", "C.invalid.UTF-8"]) {
   test(`exact name refuses alias ${locale}`, async context => {
     const jobs = observe(context);
     const env = { LC_ALL: locale };
@@ -132,23 +132,55 @@ for (const locale of ["en_US.utf8", "en_US.UTF8", "en-US.UTF-8", "EN_US.UTF-8", 
 }
 
 for (const operator of ["<", "<=", "=", "==", "!=", ">=", ">"])
-  test(`named nonnumeric comparison still refuses ${operator}`, async () => {
-    await both(["a", operator, "a"], named, [2, "", collationError]);
+  test(`named nonnumeric comparison supports ${operator}`, async () => {
+    const truth = ["<=", "=", "==", ">="].includes(operator);
+    await both(["a", operator, "a"], named, [truth ? 0 : 1, truth ? "1\n" : "0\n", ""]);
   });
 
-for (const pattern of ["[", "[a]", "[^a]", "[é]", "[a-z]", "[[:alpha:]]", "[[=a=]]", "[[.a.]]", "[]]", "[[]", "\\([a]\\)", "a\\|[b]", "é[", "\\[[a]"])
-  test(`conservative bracket refusal before worker: ${JSON.stringify(pattern)}`, async context => {
+for (const locale of ["en_US.utf8", "en_US.UTF8", "en-US.UTF-8", "EN_US.UTF-8", "en_us.UTF-8", "fr_FR.UTF-8", "UTF-8"]) {
+  test(`UTF-8 locale direct/Shell: ${locale}`, async () => {
+    const env = { LANG: locale };
+    await both(["length", "héllo"], env, [0, "5\n", ""]);
+    await both(["foo", "=", "foo"], env, [0, "1\n", ""]);
+    await both(["foo", "!=", "bar"], env, [0, "1\n", ""]);
+    await both(["123", ":", "[0-9]*"], env, [0, "3\n", ""]);
+    await both(["é😀", ":", "[é😀]*"], env, [0, "2\n", ""]);
+  });
+}
+
+test("named ordering uses locale collation while equality preserves exact strings", async () => {
+  await both(["é", "<", "z"], named, [0, "1\n", ""]);
+  await both(["é", "<", "z"], { LC_ALL: "C.UTF-8" }, [1, "0\n", ""]);
+  await both(["ä", "<", "z"], { LC_ALL: "sv_SE.UTF-8" }, [1, "0\n", ""]);
+  await both(["ä", "<", "z"], { LC_ALL: "de_DE.UTF-8" }, [0, "1\n", ""]);
+  await both(["é", "=", "é"], named, [1, "0\n", ""]);
+  for (const env of [named, { LC_ALL: "unknown" }]) {
+    await both(["foo", "=", "foo"], env, [0, "1\n", ""]);
+    await both(["foo", "!=", "bar"], env, [0, "1\n", ""]);
+    await both(["001", "=", "1"], env, [0, "1\n", ""]);
+  }
+});
+
+for (const pattern of ["[", "[^a]", "[é]", "[[=a=]]", "[[.a.]]", "[]]", "[[]", "\\([a]\\)", "a\\|[b]", "é[", "\\[[a]"]) {
+  test(`named brackets preserve bounded matcher semantics: ${JSON.stringify(pattern)}`, async () => {
+    const baseline = await run(["a", ":", pattern], {}, { env: { LC_ALL: "C.UTF-8" } });
+    await both(["a", ":", pattern], named, [baseline.exitCode, baseline.stdout, baseline.stderr]);
+  });
+}
+
+for (const pattern of ["[a]", "[a-z]", "[[:alpha:]]"])
+  test(`named bracket match: ${JSON.stringify(pattern)}`, async context => {
     const jobs = observe(context);
-    await both(["a", ":", pattern], named, [2, "", bracketError]);
-    assert.equal(jobs.length, 0);
+    await both(["a", ":", pattern], named, [0, "1\n", ""]);
+    assert.equal(jobs.length, 2);
   });
 
 for (let count = 0; count <= 8; count++) test(`escape-aware bracket parity ${count}`, async context => {
   const jobs = observe(context);
   const subject = "\\".repeat(Math.floor(count / 2)) + "[";
   const pattern = "\\".repeat(count) + "[";
-  await both([subject, ":", pattern], named, count % 2 === 0 ? [2, "", bracketError] : [0, `${subject.length}\n`, ""]);
-  assert.equal(jobs.length, count % 2 === 0 ? 0 : 2);
+  await both([subject, ":", pattern], named, count % 2 === 0 ? [2, "", "expr: Invalid regular expression\n"] : [0, `${subject.length}\n`, ""]);
+  assert.equal(jobs.length, 2);
   for (const job of jobs) assert.equal(Buffer.from(job.pattern).toString(), pattern);
 });
 
@@ -161,12 +193,12 @@ test("admitted trailing escape keeps worker syntax diagnostic", async context =>
 test("bracket byte caps precede screen and create no jobs", async context => {
   const jobs = observe(context);
   await both(["é", ":", "[é]"], named, [3, "", byteError], { limits: { maxRegexPatternBytes: 3 } });
-  await both(["é", ":", "[é]"], named, [2, "", bracketError], { limits: { maxRegexPatternBytes: 4 } });
+  await both(["é", ":", "[é]"], named, [0, "1\n", ""], { limits: { maxRegexPatternBytes: 4 } });
   const subject = "a".repeat(1_048_577);
   await both([subject, ":", "["], named, [3, "", "expr: string allocation limit exceeded\n"], {
     limits: { maxArgumentBytes: 2_000_000, maxStringBytes: 1_048_576, maxSteps: 50_000_000 },
   });
-  assert.equal(jobs.length, 0);
+  assert.equal(jobs.length, 2);
 });
 
 test("screen precharges every pattern byte before first indexed read", async () => {

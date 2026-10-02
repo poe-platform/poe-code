@@ -102,17 +102,33 @@ function baselineLocale(locale: string): boolean {
   return locale === "C" || locale === "POSIX" || locale === "C.UTF-8" || locale === "C.utf8";
 }
 
+function utf8LocaleName(locale: string): string | undefined {
+  const separator = locale.lastIndexOf(".");
+  const encoding = locale.slice(separator + 1).toLowerCase();
+  if (encoding !== "utf-8" && encoding !== "utf8") return undefined;
+  const name = locale.slice(0, separator);
+  if (separator === -1 || name === "C") return "";
+  try {
+    return Intl.getCanonicalLocales(name.replaceAll("_", "-"))[0];
+  } catch { return undefined; }
+}
+
 export function utf8Profile(context: CommandContext): boolean {
   const locale = effectiveLocale(context, "LC_CTYPE");
   if (locale === "C" || locale === "POSIX") return false;
-  if (locale === "C.UTF-8" || locale === "C.utf8" || locale === "en_US.UTF-8") return true;
-  throw new ExprError("character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding");
+  if (utf8LocaleName(locale) !== undefined) return true;
+  throw new ExprError("character operations require C/POSIX or a UTF-8 locale");
 }
 
-export function requireByteCollation(context: CommandContext): void {
-  if (!baselineLocale(effectiveLocale(context, "LC_COLLATE"))) {
-    throw new ExprError("string comparison requires C/POSIX or C.UTF-8/C.utf8 byte collation");
+export function stringCollator(context: CommandContext): Intl.Collator | undefined {
+  const locale = effectiveLocale(context, "LC_COLLATE");
+  if (baselineLocale(locale)) return undefined;
+  const name = utf8LocaleName(locale);
+  if (name === "") return undefined;
+  if (name !== undefined && Intl.Collator.supportedLocalesOf([name]).length) {
+    return new Intl.Collator(name, { usage: "sort", sensitivity: "variant", caseFirst: "lower" });
   }
+  throw new ExprError("string comparison requires C/POSIX or a supported UTF-8 collation locale");
 }
 
 export function screenMatch(subject: Uint8Array, pattern: Uint8Array, budget: Budget): void {
@@ -127,7 +143,13 @@ export function screenMatch(subject: Uint8Array, pattern: Uint8Array, budget: Bu
   for (let offset = 0; offset < pattern.length; offset++) {
     if (pattern[offset] === 92) offset++;
     else if (pattern[offset] === 91) {
-      throw new ExprError("unsupported BRE: bracket expressions require C/POSIX or C.UTF-8/C.utf8 LC_CTYPE and LC_COLLATE");
+      for (const category of ["LC_CTYPE", "LC_COLLATE"] as const) {
+        const locale = effectiveLocale(budget.context, category);
+        if (!baselineLocale(locale) && utf8LocaleName(locale) === undefined) {
+          throw new ExprError("unsupported BRE: bracket expressions require C/POSIX or UTF-8 LC_CTYPE and LC_COLLATE");
+        }
+      }
+      return;
     }
   }
 }

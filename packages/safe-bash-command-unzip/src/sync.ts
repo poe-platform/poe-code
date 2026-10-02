@@ -91,7 +91,7 @@ export function evalSyncUnzip(
   const modeCount = (zipinfoNames ? 1 : 0) + (pipe ? 1 : 0) + (list ? 1 : 0) + (testMode ? 1 : 0);
   if (modeCount > 1) return undefined;
   const extractMode = modeCount === 0;
-  if (destDir !== undefined && (!extractMode || destDir.split("/").includes(".."))) return undefined;
+  if (destDir !== undefined && (!extractMode || destDir.endsWith("/.") || destDir.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(destDir))) return undefined;
   if (extractMode && (!writeFile || !mkdir)) return undefined;
 
   let chosenArchive = archive;
@@ -249,7 +249,7 @@ export function evalSyncUnzip(
         } else {
           const isDir = m.name.endsWith("/");
           const clean = m.name.replace(/\/+$/u, "");
-          if (!clean || clean.startsWith("/") || clean.split("/").includes("..")) return undefined;
+          if (!clean || clean.startsWith("/") || clean.split("/").some(seg => !seg || seg === "." || seg === "..")) return undefined;
           const targetPath = destDir ? `${destDir.replace(/\/+$/u, "")}/${clean}` : clean;
           const shown = destDir === undefined ? m.name : `${destDir.endsWith("/") ? destDir : `${destDir}/`}${m.name}`;
           staged.push({ isDir, path: targetPath, shown, method: m.method, bytes: decoded });

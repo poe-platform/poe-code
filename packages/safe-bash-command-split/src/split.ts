@@ -196,7 +196,8 @@ export function evalSyncSplit(
   try {
     const limits = settings({});
     const args = parseArguments(opArgs, limits);
-    const src = args.input === "-" ? (inBytes ?? new Uint8Array(0)) : readFileSync?.(args.input);
+    if (args.input === "-" && inBytes === undefined) return undefined;
+    const src = args.input === "-" ? inBytes! : readFileSync?.(args.input);
     if (!src) return undefined;
     const fatalDecoder = new TextDecoder("utf-8", { fatal: true });
     const decodeSyncSlice = (bytes: Uint8Array): string | undefined => {
@@ -332,6 +333,7 @@ export function evalSyncSplit(
     for (const chunk of chunks) {
       if (chunk.length === 0 && args.elideEmpty) continue;
       const fileName = names.next();
+      if (!fileName || fileName.endsWith("/") || fileName.endsWith("/.") || fileName.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(fileName)) return undefined;
       const normOut = fileName.replace(/^\.\/+/, "");
       if (normInput !== undefined && (normOut === normInput || readFileSync?.(fileName) !== undefined)) return undefined;
       planned.push({ fileName, chunk });

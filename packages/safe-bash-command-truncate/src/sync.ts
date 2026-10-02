@@ -10,7 +10,7 @@ export function evalSyncTruncate(
     if (args.display || args.ioBlocks || !writeFileSync || args.files.length === 0) return undefined;
     let refSize: bigint | undefined;
     if (args.reference !== undefined) {
-      if (args.reference.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(args.reference)) return undefined;
+      if (args.reference.endsWith("/") || args.reference.endsWith("/.") || args.reference.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/.test(args.reference)) return undefined;
       const refBytes = readFileSync?.(args.reference);
       if (!refBytes) return undefined;
       refSize = BigInt(refBytes.length);

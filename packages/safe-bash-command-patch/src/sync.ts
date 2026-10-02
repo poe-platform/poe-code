@@ -74,7 +74,7 @@ export function evalSyncPatch(
   }
   if (operands.length > 2) return undefined;
   const targetArg = operands[0];
-  const patchFileArg = inputPath ?? operands[1];
+  const patchFileArg = operands[1] ?? inputPath;
   const patchBytes = patchFileArg && patchFileArg !== "-" ? readFileSync(patchFileArg) : inBytes;
   if (!patchBytes || patchBytes.includes(0)) return undefined;
   let patchText: string;
@@ -190,6 +190,7 @@ export function evalSyncPatch(
     return resultText;
   }
   const destPath = outputPath ?? resolvedTarget;
+  if (!destPath || destPath.endsWith("/") || destPath.endsWith("/.") || destPath.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(destPath)) return undefined;
   if (!dryRun && outputPath !== "/dev/null") {
     if (!writeFileSync(destPath, encoder.encode(resultText), false)) return undefined;
   }

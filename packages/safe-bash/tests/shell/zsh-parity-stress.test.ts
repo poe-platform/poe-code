@@ -1407,3 +1407,24 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     ].join("\n"));
     assert.equal(res.stdout.trim(), "1|no|1|1|1|2|61 62 63 0a 61 62 63 0a");
   });
+
+  test("76. sync tee -a / truncate +N / mv / cp multi-file atomic pre-validation and command-substitution tar -C check", async () => {
+    const { shell: bash } = setup();
+    bash.use(agentCommands());
+    const res = await bash.exec([
+      "printf \"a\\n\" > /tee1.txt",
+      "printf \"b\\n\" | tee -a /tee1.txt /tee2.txt/ >/dev/null 2>&1; s1=$?",
+      "tee_lines=$(wc -l < /tee1.txt)",
+      "printf \"abcd\" > /tr1.txt",
+      "truncate -s +5 /tr1.txt /tr1.txt/. 2>/dev/null; s2=$?",
+      "tr_bytes=$(wc -c < /tr1.txt)",
+      "mkdir -p /mv_dst",
+      "printf \"x\\n\" > /mv1.txt",
+      "mv_out=$(mv -v /mv1.txt /mv_missing.txt /mv_dst 2>/dev/null); s3=$?",
+      "tar -cf /t76.tar -C / tr1.txt 2>/dev/null",
+      "x=$(tar -xf - -C /missing_t76 < /t76.tar 2>/dev/null); s4=$?",
+      "[ -d /missing_t76 ] && td=yes || td=no",
+      "echo \"$s1|$tee_lines|$s2|$tr_bytes|$s3|$mv_out|$s4|$td\"",
+    ].join("\n"));
+    assert.equal(res.stdout.trim(), "1|2|1|9|1|renamed '/mv1.txt' -> '/mv_dst/mv1.txt'|2|no");
+  });

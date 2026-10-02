@@ -760,6 +760,16 @@ differential cases. The public terminal renderer is still unported. Text
 tokenization currently accepts primitive strings; exotic source objects and
 modified split/collection intrinsics remain an explicit qualification gap.
 
+The internal terminal Markdown inline collector now uses native policy for
+nested formatting, inline code, autolink detection, link suffixes, image
+placeholders, HTML text and footnote admission/numbering. Host adapters preserve
+getter order, formatter receivers and nested iterator cleanup. Tests share a
+reference-loader utility that changes imports/exports only. All 161 native tests,
+237 routed reference tests, types and lint pass; a terminal screenshot verifies
+bold/italic/struck text, accented code/links, image placeholders and footnotes.
+These helpers are internal; complete terminal block/table rendering and the
+public `render`/Markdown-string entry points still require implementation.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

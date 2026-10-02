@@ -358,3 +358,5 @@ for native code tokenization, `showFrontmatter: true` to include metadata, or
 Internal Markdown text helpers also prepare terminal rendering with grapheme-safe
 word splitting, formatter-preserving wrapping, whitespace/break tokens and HTML
 tag stripping. The complete terminal Markdown renderer is not yet exposed.
+Its internal inline collector handles nested styles, links, code, image
+placeholders and footnote numbering using the same wrapping helpers.

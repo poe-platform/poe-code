@@ -1,9 +1,11 @@
 mod code_highlight;
 mod html;
+mod markdown_inline;
 mod markdown_text;
 mod plaintext;
 pub use code_highlight::*;
 pub use html::*;
+pub use markdown_inline::*;
 pub use markdown_text::*;
 pub use plaintext::*;
 mod escape_terminal;

@@ -1,18 +1,6 @@
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
 import {test} from "node:test";
-import ts from "typescript";
-
-// Expose the original renderer's private helpers without copying their algorithms.
-const url=new URL("../../toolcraft-design/dist/terminal-markdown/renderer.js",import.meta.url);
-let source=readFileSync(url,"utf8");
-const syntax=ts.createSourceFile(url.pathname,source,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS);
-for(const declaration of syntax.statements.filter(ts.isImportDeclaration).reverse()){
-  const specifier=declaration.moduleSpecifier;
-  source=source.slice(0,specifier.getStart(syntax))+JSON.stringify(new URL(specifier.text,url).href)+source.slice(specifier.end);
-}
-const names=["stripHtmlTags","tokenizeText","trimTrailingSpaces","wrapTokens","splitWord","wrapText"];
-const reference=await import(`data:text/javascript;base64,${Buffer.from(`${source}\nexport {${names.join(",")}};`).toString("base64")}`);
+import {referenceMarkdown as reference} from "./reference-markdown.mjs";
 const load=()=>import("../dist/markdown-text.js");
 const values=[""," ","\t leading\twords  trailing \t","a\nb\n\n","\r\n CRLF\r\n", "界面 😀 e\u0301 👩‍💻 🇯🇵", "\ud800a\udfff", "a\u00a0b\u2003c\u2028d", "\x1b[31mred\x1b[0m plain", "<b>bold</b> outside > <<unfinished"];
 

@@ -1088,15 +1088,16 @@ test("52. sync vs async parity for split, csplit, truncate, and dd semantics", a
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
 
-  test("61. sync xargs/timeout dirname/basename empty operand, git/pandoc NUL checks, and patch hunk boundary validation", async () => {
-    const bash = new Bash({
-      files: {
-        "/f1.txt": "line1\n",
-        "/f2.txt": "line2\n",
-      },
-    });
+});
+
+test("61. sync xargs/timeout dirname/basename empty operand and patch hunk boundary validation", async context => {
+    const { shell: bash, fs } = setup();
+    bash.use(agentCommands());
+    context.after(() => bash.dispose());
+    await fs.writeFile("/f1.txt", new TextEncoder().encode("line1\n"));
+    await fs.writeFile("/f2.txt", new TextEncoder().encode("line2\n"));
     // 1. dirname "" and basename "" via xargs and timeout inside command substitution
-    const r1 = await bash.exec("echo \$(timeout 5 dirname \"\" /a/b) | tr \"\\n\" \" \"");
+    const r1 = await bash.exec("echo $(timeout 5 dirname \"\" /a/b) | tr \"\\n\" \" \"");
     assert.equal(r1.exitCode, 0);
     assert.equal(r1.stdout.trim(), ". /a");
 
@@ -1104,7 +1105,7 @@ test("52. sync vs async parity for split, csplit, truncate, and dd semantics", a
     assert.equal(r2.exitCode, 0);
     assert.equal(r2.stdout.trim(), "xy");
 
-    const r3 = await bash.exec("echo \$(printf \"\\0/foo/bar\\0\" | xargs -0 dirname) | tr \"\\n\" \" \"");
+    const r3 = await bash.exec("echo $(printf \"\\0/foo/bar\\0\" | xargs -0 dirname) | tr \"\\n\" \" \"");
     assert.equal(r3.exitCode, 0);
     assert.equal(r3.stdout.trim(), ". /foo");
 
@@ -1126,108 +1127,108 @@ test("52. sync vs async parity for split, csplit, truncate, and dd semantics", a
       "+patched2",
       "",
     ].join("\n");
-    await bash.writeFile("/multi.patch", multiDiff);
-    const r5 = await bash.exec("out=\$(patch -p1 < /multi.patch); cat /f1.txt /f2.txt");
+    await fs.writeFile("/multi.patch", new TextEncoder().encode(multiDiff));
+    const r5 = await bash.exec("out=$(patch -p1 < /multi.patch); cat /f1.txt /f2.txt");
     assert.equal(r5.exitCode, 0);
     assert.equal(r5.stdout, "patched1\npatched2\n");
   });
 
   test("62. sync unrtf cache key byte identity, htmlq/csvkit/ssconvert NUL checks, and apply_patch UTF-8 safety", async () => {
-    const bash = new Bash();
+    const { shell: bash, fs } = setup();
+    bash.use(agentCommands());
     // 1. unrtf cache key should distinguish raw byte sequences that would both decode to U+FFFD in non-fatal UTF-8
     const rtf1 = new Uint8Array([...Buffer.from("{\\rtf1\\ansi "), 0x80, ...Buffer.from("}")]);
     const rtf2 = new Uint8Array([...Buffer.from("{\\rtf1\\ansi "), 0x81, ...Buffer.from("}")]);
-    await bash.writeFile("/r1.rtf", rtf1);
-    await bash.writeFile("/r2.rtf", rtf2);
-    const u1 = await bash.exec("echo \$(unrtf --text /r1.rtf)");
-    const u2 = await bash.exec("echo \$(unrtf --text /r2.rtf)");
+    await fs.writeFile("/r1.rtf", rtf1);
+    await fs.writeFile("/r2.rtf", rtf2);
+    const u1 = await bash.exec("echo $(unrtf --text /r1.rtf)");
+    const u2 = await bash.exec("echo $(unrtf --text /r2.rtf)");
     assert.equal(u1.exitCode, 0);
     assert.equal(u2.exitCode, 0);
     assert.notEqual(u1.stdout, u2.stdout);
 
     // 2. htmlq in command substitution with NUL byte in input should delegate to async htmlq and strip NUL
-    await bash.writeFile("/nul.html", new Uint8Array([...Buffer.from("<p>hel"), 0, ...Buffer.from("lo</p>")]));
-    const h1 = await bash.exec("echo \$(htmlq -t p -f /nul.html)");
+    await fs.writeFile("/nul.html", new Uint8Array([...Buffer.from("<p>hel"), 0, ...Buffer.from("lo</p>")]));
+    const h1 = await bash.exec("echo $(htmlq -t p -f /nul.html)");
     assert.equal(h1.exitCode, 0);
     assert.ok(!h1.stdout.includes("\0"));
   });
 
   test("63. sync tar/unzip/csvgrep/gpg edge cases and NUL/flag validation", async () => {
-    const bash = new Bash();
+    const { shell: bash, fs } = setup();
+    bash.use(agentCommands());
     // 1. csvgrep in command substitution with NUL byte should delegate to async csvgrep
-    await bash.writeFile("/data.csv", new Uint8Array([...Buffer.from("a,b\nfoo,"), 0, ...Buffer.from("bar\n")]));
-    const r1 = await bash.exec("echo \$(csvgrep -c a -m foo /data.csv)");
+    await fs.writeFile("/data.csv", new Uint8Array([...Buffer.from("a,b\nfoo,"), 0, ...Buffer.from("bar\n")]));
+    const r1 = await bash.exec("echo $(csvgrep -c a -m foo /data.csv)");
     assert.ok(!r1.stdout.includes("\0"));
 
     // 2. gpg in command substitution with unknown flag should delegate to async gpg and fail instead of ignoring flag
-    const r2 = await bash.exec("out=\$(gpg --unknown-nonexistent-flag 2>&1); echo \$?");
+    const r2 = await bash.exec("out=$(gpg --unknown-nonexistent-flag 2>&1); echo $?");
     assert.notEqual(r2.stdout.trim(), "0");
   });
 
   test("64. sync touch/cp/mv/rm/ln/chmod/install/stat/mktemp trailing slash and file/.. ENOTDIR validation", async () => {
-    const bash = new Bash({
-      files: {
-        "/regular.txt": "hello\n",
-        "/other.txt": "world\n",
-      },
-    });
+    const { shell: bash, fs } = setup();
+    bash.use(agentCommands());
+    await fs.writeFile("/regular.txt", new TextEncoder().encode("hello\n"));
+    await fs.writeFile("/other.txt", new TextEncoder().encode("world\n"));
     // 1. rm -f /regular.txt/ must fail with ENOTDIR and NOT delete /regular.txt
-    const r1 = await bash.exec("out=\$(rm -f /regular.txt/ 2>&1); echo \$?");
+    const r1 = await bash.exec("out=$(rm -f /regular.txt/ 2>&1); echo $?");
     assert.notEqual(r1.stdout.trim(), "0");
     const check1 = await bash.exec("cat /regular.txt");
     assert.equal(check1.stdout, "hello\n");
 
     // 2. touch /newfile/ must fail and NOT create regular file /newfile
-    const r2 = await bash.exec("out=\$(touch /newfile/ 2>&1); echo \$?");
+    const r2 = await bash.exec("out=$(touch /newfile/ 2>&1); echo $?");
     assert.notEqual(r2.stdout.trim(), "0");
 
     // 3. stat /regular.txt/.. must fail with ENOTDIR instead of collapsing to /
-    const r3 = await bash.exec("out=\$(stat -c %F /regular.txt/.. 2>&1); echo \$?");
+    const r3 = await bash.exec("out=$(stat -c %F /regular.txt/.. 2>&1); echo $?");
     assert.notEqual(r3.stdout.trim(), "0");
 
     // 4. chmod 600 /regular.txt/ must fail with ENOTDIR
-    const r4 = await bash.exec("out=\$(chmod 600 /regular.txt/ 2>&1); echo \$?");
+    const r4 = await bash.exec("out=$(chmod 600 /regular.txt/ 2>&1); echo $?");
     assert.notEqual(r4.stdout.trim(), "0");
 
     // 5. cp /regular.txt /newdest/ must fail when /newdest does not exist
-    const r5 = await bash.exec("out=\$(cp /regular.txt /newdest/ 2>&1); echo \$?");
+    const r5 = await bash.exec("out=$(cp /regular.txt /newdest/ 2>&1); echo $?");
     assert.notEqual(r5.stdout.trim(), "0");
   });
 
   test("65. sync realpath/readlink/ls/find/du/fd/tree trailing slash and symlink/.. physical resolution", async () => {
-    const bash = new Bash({
-      files: {
-        "/regular.txt": "hello\n",
-        "/a/b/c/file.txt": "inside\n",
-      },
-    });
+    const { shell: bash, fs } = setup();
+    bash.use(agentCommands());
+    await fs.writeFile("/regular.txt", new TextEncoder().encode("hello\n"));
+    await fs.mkdir("/a/b/c", { recursive: true });
+    await fs.writeFile("/a/b/c/file.txt", new TextEncoder().encode("inside\n"));
     await bash.exec("ln -s /a/b/c /link_to_c");
 
     // 1. realpath /regular.txt/ and realpath /regular.txt/.. must fail with ENOTDIR
-    const r1 = await bash.exec("out=\$(realpath /regular.txt/ 2>&1); echo \$?");
+    const r1 = await bash.exec("out=$(realpath /regular.txt/ 2>&1); echo $?");
     assert.notEqual(r1.stdout.trim(), "0");
 
-    const r2 = await bash.exec("out=\$(realpath /regular.txt/.. 2>&1); echo \$?");
+    const r2 = await bash.exec("out=$(realpath /regular.txt/.. 2>&1); echo $?");
     assert.notEqual(r2.stdout.trim(), "0");
 
     // 2. Physical realpath /link_to_c/.. must resolve symlink first (/a/b/c -> /a/b), NOT collapse lexically to /
-    const r3 = await bash.exec("echo \$(realpath /link_to_c/..)");
+    const r3 = await bash.exec("echo $(realpath /link_to_c/..)");
     assert.equal(r3.exitCode, 0);
     assert.equal(r3.stdout.trim(), "/a/b");
 
     // 3. ls /regular.txt/ and find /regular.txt/ must fail with ENOTDIR
-    const r4 = await bash.exec("out=\$(ls /regular.txt/ 2>&1); echo \$?");
+    const r4 = await bash.exec("out=$(ls /regular.txt/ 2>&1); echo $?");
     assert.notEqual(r4.stdout.trim(), "0");
 
-    const r5 = await bash.exec("out=\$(find /regular.txt/ 2>&1); echo \$?");
+    const r5 = await bash.exec("out=$(find /regular.txt/ 2>&1); echo $?");
     assert.notEqual(r5.stdout.trim(), "0");
   });
 
   test("66. sync command substitution trailing-newline stripping in expr and NUL filtering in jq/awk/printf", async () => {
-    const bash = new Bash();
+    const { shell: bash } = setup();
+    bash.use(agentCommands());
 
     // 1. expr command substitution must strip trailing newlines
-    const r1 = await bash.exec("x=$(expr hello\\n\\n' : '\\(.*\\)'); printf '<%s>' \"$x\"");
+    const r1 = await bash.exec("x=$(expr $'hello\\n\\n' : '\\(.*\\)'); printf '<%s>' \"$x\"");
     assert.equal(r1.exitCode, 0);
     assert.equal(r1.stdout, "<hello>");
 
@@ -1241,4 +1242,3 @@ test("52. sync vs async parity for split, csplit, truncate, and dd semantics", a
     assert.equal(r3.exitCode, 0);
     assert.equal(r3.stdout, "xy:2");
   });
-});

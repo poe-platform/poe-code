@@ -5,8 +5,9 @@
 Use the opt-in HTML-to-PDF invocation parser and byte adapter through
 `@poe-platform/safe-bash/commands/wkhtmltopdf`. The built-in PDF AST renderer converts static HTML by default.
 Supply `renderer` to override it with a trusted first-party static renderer.
-This workspace is private, has no external runtime dependencies, and is bundled
-with its declarations into the Safe Bash artifact. Do not install it separately.
+HTML5 parsing excludes comments and preserves nested containers, list markers,
+and table cell content. The parser is bundled into the private command workspace
+along with its declarations in the Safe Bash artifact. Do not install it separately.
 
 | API | Use |
 | --- | --- |

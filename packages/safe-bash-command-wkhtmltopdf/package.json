@@ -25,7 +25,9 @@
     "test": "node --import tsx --test src/*.test.ts",
     "test:unit": "node --import tsx --test src/*.test.ts"
   },
-  "dependencies": {},
+  "dependencies": {
+    "parse5": "7.3.0"
+  },
   "devDependencies": {
     "@poe-code/pdf-ast": "*",
     "safe-bash-contracts": "*"

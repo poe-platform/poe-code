@@ -1,3 +1,4 @@
+import { Parser, type DefaultTreeAdapterMap } from "parse5";
 import { drainCooperativeSteps } from "safe-bash-contracts/yield";
 import { PdfDocument, decodePng, type PdfRgbColor } from "@poe-code/pdf-ast";
 import {
@@ -127,6 +128,9 @@ interface HtmlBlock {
   text?: string;
   items?: string[];
   ordered?: boolean;
+  start?: number;
+  depth?: number;
+  continuation?: boolean;
   rows?: { cells: { text: string; colspan: number }[]; header: boolean }[];
   links?: { text: string; href: string }[];
   pngBytes?: Uint8Array;
@@ -135,274 +139,180 @@ interface HtmlBlock {
   svgPrimitives?: SvgPrimitive[];
 }
 
-function decodeHtmlEntities(input: string): string {
-  return input.replace(/&(nbsp|amp|lt|gt|quot|apos|#39|#x([0-9a-f]+)|#([0-9]+));/gi, (full, entity: string, hex?: string, dec?: string) => {
-    if (hex !== undefined) {
-      const cp = parseInt(hex, 16);
-      return Number.isFinite(cp) && cp >= 0 && cp <= 0x10ffff ? String.fromCodePoint(cp) : "\uFFFD";
-    }
-    if (dec !== undefined) {
-      const cp = parseInt(dec, 10);
-      return Number.isFinite(cp) && cp >= 0 && cp <= 0x10ffff ? String.fromCodePoint(cp) : "\uFFFD";
-    }
-    switch (entity.toLowerCase()) {
-      case "nbsp": return " ";
-      case "amp": return "&";
-      case "lt": return "<";
-      case "gt": return ">";
-      case "quot": return "\"";
-      case "apos":
-      case "#39": return "'";
-      default: return full;
-    }
-  });
+type HtmlNode = DefaultTreeAdapterMap["node"];
+type HtmlElement = DefaultTreeAdapterMap["element"];
+
+function children(node: HtmlNode): HtmlNode[] {
+  return "childNodes" in node ? node.childNodes : [];
 }
 
-function stripTags(html: string): string {
-  return decodeHtmlEntities(
-    html
-      .replace(/<br\s*\/?>/gi, "\n")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/[ \t]+/g, " ")
-  ).trim();
+function attribute(node: HtmlElement, name: string): string {
+  return node.attrs.find(attr => attr.name === name)?.value ?? "";
 }
 
-function extractLinks(html: string): { text: string; href: string }[] {
+const hiddenTags = new Set(["head", "script", "style", "template"]);
+const blockTags = new Set(["h1", "h2", "h3", "h4", "h5", "h6", "p", "pre", "ul", "ol", "dl", "table", "svg", "hr", "img", "blockquote", "div", "section", "article", "li", "dt", "dd", "tr"]);
+
+function nodeText(node: HtmlNode): string {
+  if (node.nodeName === "#text") return (node as DefaultTreeAdapterMap["textNode"]).value;
+  if (hiddenTags.has(node.nodeName)) return "";
+  if (node.nodeName === "br") return "\n";
+  const text = children(node).map(nodeText).join("");
+  if (node.nodeName === "td" || node.nodeName === "th") return text + "\t";
+  return blockTags.has(node.nodeName) ? "\n" + text + "\n" : text;
+}
+
+function extractLinks(nodes: HtmlNode[]): { text: string; href: string }[] {
   const links: { text: string; href: string }[] = [];
-  const linkRegex = /<a\b[^>]*href=(?:"([^"]*)"|'([^']*)'|([^\s>]+))[^>]*>([\s\S]*?)<\/a>/gi;
-  let match: RegExpExecArray | null;
-  while ((match = linkRegex.exec(html)) !== null) {
-    const href = decodeHtmlEntities(match[1] ?? match[2] ?? match[3] ?? "").trim();
-    const text = stripTags(match[4] ?? "");
-    if (href && text) {
-      links.push({ text, href });
+  const pending = [...nodes].reverse();
+  while (pending.length) {
+    const node = pending.pop()!;
+    if (hiddenTags.has(node.nodeName)) continue;
+    if ("tagName" in node && node.tagName === "a") {
+      const href = attribute(node, "href").trim();
+      const text = nodeText(node).trim();
+      if (href && text) links.push({ text, href });
     }
+    pending.push(...children(node).slice().reverse());
   }
   return links;
 }
 
-function* parseHtmlDocumentSteps(rawHtml: string, replacements: readonly [
-    string,
-    string
-][], signal: AbortSignal): Generator<void, {
-    title: string;
-    blocks: HtmlBlock[];
-}, void> {
-    let cooperativeWork = 0;
-    let html = rawHtml;
-    for (const [key, value] of replacements) {
-        if (++cooperativeWork % 64 === 0)
-            yield;
-        if (key)
-            html = html.split(key).join(value);
+function* parseHtmlDocumentSteps(rawHtml: string, replacements: readonly [string, string][], signal: AbortSignal): Generator<void, { title: string; blocks: HtmlBlock[] }, void> {
+  let html = rawHtml;
+  for (const [key, value] of replacements) {
+    if (key) html = html.split(key).join(value);
+  }
+  // Feed the HTML5 parser incrementally so large documents remain cancellable.
+  const parser = new Parser<DefaultTreeAdapterMap>();
+  for (let offset = 0; offset < html.length; offset += 16384) {
+    signal.throwIfAborted();
+    parser.tokenizer.write(html.slice(offset, offset + 16384), false);
+    yield;
+  }
+  parser.tokenizer.write("", true);
+  let title = "";
+  const pending: HtmlNode[] = [parser.document];
+  while (pending.length) {
+    const node = pending.pop()!;
+    if (node.nodeName === "title") { title = nodeText(node).trim(); break; }
+    pending.push(...children(node).slice().reverse());
+  }
+  const blocks: HtmlBlock[] = [];
+
+  function* visit(nodes: HtmlNode[], depth = 0): Generator<void> {
+    let inline: HtmlNode[] = [];
+    const flush = () => {
+      const text = inline.map(nodeText).join("").trim();
+      if (text) blocks.push({ kind: "paragraph", text, links: extractLinks(inline) });
+      inline = [];
+    };
+    for (const node of nodes) {
+      signal.throwIfAborted();
+      yield;
+      if (hiddenTags.has(node.nodeName) || node.nodeName === "#comment") continue;
+      if (!("tagName" in node)) { inline.push(node); continue; }
+      const tag = node.tagName;
+      if (!blockTags.has(tag)) {
+        // Walk wrappers too: an unknown/custom element can contain block content.
+        if (children(node).some(child => blockTags.has(child.nodeName))) {
+          flush();
+          yield* visit(children(node), depth);
+        } else inline.push(node);
+        continue;
+      }
+      flush();
+      const style = new Map(attribute(node, "style").toLowerCase().split(";").map(declaration => {
+        const colon = declaration.indexOf(":");
+        return [declaration.slice(0, colon).trim(), declaration.slice(colon + 1).trim()];
+      }));
+      if (style.get("page-break-before") === "always" || attribute(node, "class").split(/\s+/).includes("page-break")) blocks.push({ kind: "pagebreak" });
+      if (tag === "hr") blocks.push({ kind: "hr" });
+      else if (tag === "img") {
+        const src = attribute(node, "src");
+        if (src.startsWith("data:image/png;base64,")) {
+          try {
+            const pngBytes = decodeBase64(src.slice("data:image/png;base64,".length));
+            const bitmap = decodePng(pngBytes);
+            blocks.push({ kind: "image", pngBytes,
+              displayWidth: Number(attribute(node, "width")) || Math.min(240, bitmap.width),
+              displayHeight: Number(attribute(node, "height")) || Math.min(180, bitmap.height) });
+          } catch { /* Ignore malformed data URL images. */ }
+        }
+      } else if (["h1", "h2", "h3", "h4", "h5", "h6"].includes(tag)) {
+        const text = nodeText(node).trim();
+        if (text) blocks.push({ kind: "heading", level: Number(tag[1]), text, links: extractLinks(children(node)) });
+      } else if (tag === "pre" || tag === "blockquote") {
+        const text = nodeText(node).trim();
+        if (text) blocks.push({ kind: tag === "pre" ? "code" : "blockquote", text, links: extractLinks(children(node)) });
+      } else if (tag === "ul" || tag === "ol") {
+        let ordinal = 0;
+        for (const item of children(node)) {
+          if (item.nodeName !== "li") continue;
+          ordinal++;
+          let marked = false;
+          let fragment: HtmlNode[] = [];
+          const flushItem = () => {
+            const itemText = fragment.map(nodeText).join("").trim();
+            if (itemText || !marked) {
+              blocks.push({ kind: "list", items: [itemText], ordered: tag === "ol", start: ordinal, depth, continuation: marked });
+              marked = true;
+            }
+            fragment = [];
+          };
+          for (const child of children(item)) {
+            if (child.nodeName === "ul" || child.nodeName === "ol" || child.nodeName === "table") {
+              flushItem();
+              yield* visit([child], depth + 1);
+            } else fragment.push(child);
+          }
+          if (fragment.length || !marked) flushItem();
+        }
+      } else if (tag === "dl") {
+        const items: string[] = [];
+        let term = "";
+        for (const child of children(node)) {
+          if (child.nodeName === "dt") term = nodeText(child).trim();
+          else if (child.nodeName === "dd") {
+            items.push((term ? term + ": " : "") + nodeText(child).trim());
+            term = "";
+          }
+        }
+        if (items.length) blocks.push({ kind: "list", items, depth });
+      } else if (tag === "table") {
+        const rows: NonNullable<HtmlBlock["rows"]> = [];
+        const queue = [...children(node)].reverse();
+        while (queue.length) {
+          yield;
+          const row = queue.pop()!;
+          if (row.nodeName === "tr") {
+            const cells = children(row).filter((cell): cell is HtmlElement => "tagName" in cell && (cell.tagName === "td" || cell.tagName === "th"));
+            rows.push({ header: cells.some(cell => cell.tagName === "th"), cells: cells.map(cell => ({
+              text: nodeText(cell).split("\n").map(line => line.trim()).filter(Boolean).join("\n"), colspan: Math.max(1, Number(attribute(cell, "colspan")) || 1),
+            })) });
+          } else if (row.nodeName !== "table") queue.push(...children(row).slice().reverse());
+        }
+        if (rows.length) blocks.push({ kind: "table", rows });
+      } else if (tag === "svg") {
+        const svgPrimitives: SvgPrimitive[] = [];
+        const queue = [...children(node)].reverse();
+        while (queue.length) {
+          const child = queue.pop()!;
+          if (!("tagName" in child)) continue;
+          if (child.tagName === "rect") svgPrimitives.push({ kind: "rect", x: Number(attribute(child, "x")), y: Number(attribute(child, "y")), w: Number(attribute(child, "width")) || 40, h: Number(attribute(child, "height")) || 20 });
+          else if (child.tagName === "text") svgPrimitives.push({ kind: "text", x: Number(attribute(child, "x")) || 8, y: Number(attribute(child, "y")) || 16, text: nodeText(child).trim() });
+          queue.push(...children(child).slice().reverse());
+        }
+        blocks.push({ kind: "svg", displayWidth: Number(attribute(node, "width")) || 200, displayHeight: Number(attribute(node, "height")) || 100, svgPrimitives });
+      } else yield* visit(children(node), depth);
+      if (style.get("page-break-after") === "always") blocks.push({ kind: "pagebreak" });
     }
-    const titleMatch = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html);
-    const title = titleMatch ? stripTags(titleMatch[1] ?? "") : "";
-    const bodyHtml = html
-        .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "")
-        .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, "")
-        .replace(/<head\b[^>]*>[\s\S]*?<\/head>/gi, "");
-    const blocks: HtmlBlock[] = [];
-    const tokenRegex = /<(h[1-6]|p|pre|ul|ol|dl|table|svg|hr|img|blockquote|div|section|article)\b([^>]*)>([\s\S]*?)<\/\1>|<(hr|img)\b([^>]*?)\/?>/gi;
-    let lastIndex = 0;
-    let match: RegExpExecArray | null;
-    let work = 0;
-    while ((match = tokenRegex.exec(bodyHtml)) !== null) {
-        if (++cooperativeWork % 64 === 0)
-            yield;
-        signal.throwIfAborted();
-        if (++work % 64 === 0)
-            signal.throwIfAborted();
-        const leadingText = stripTags(bodyHtml.slice(lastIndex, match.index));
-        if (leadingText) {
-            blocks.push({ kind: "paragraph", text: leadingText, links: extractLinks(bodyHtml.slice(lastIndex, match.index)) });
-        }
-        lastIndex = tokenRegex.lastIndex;
-        const tag = (match[1] ?? match[4] ?? "").toLowerCase();
-        const attrs = match[2] ?? match[5] ?? "";
-        const inner = match[3] ?? "";
-        if (/page-break-before\s*:\s*always/i.test(attrs) || /class=["'][^"']*page-break/i.test(attrs)) {
-            blocks.push({ kind: "pagebreak" });
-        }
-        if (tag === "hr") {
-            blocks.push({ kind: "hr" });
-        }
-        else if (tag === "img") {
-            const srcMatch = /src=(?:"([^"]*)"|'([^']*)')/i.exec(attrs);
-            const src = srcMatch ? (srcMatch[1] ?? srcMatch[2] ?? "") : "";
-            if (src.startsWith("data:image/png;base64,")) {
-                try {
-                    const b64 = src.slice("data:image/png;base64,".length).trim();
-                    const pngBytes = decodeBase64(b64);
-                    const bitmap = decodePng(pngBytes);
-                    const widthAttr = /width=["']?(\d+)/i.exec(attrs);
-                    const heightAttr = /height=["']?(\d+)/i.exec(attrs);
-                    blocks.push({
-                        kind: "image",
-                        pngBytes,
-                        displayWidth: widthAttr ? Number(widthAttr[1]) : Math.min(240, bitmap.width),
-                        displayHeight: heightAttr ? Number(heightAttr[1]) : Math.min(180, bitmap.height),
-                    });
-                }
-                catch {
-                    // Ignore malformed data URL image
-                }
-            }
-        }
-        else if (/^h[1-6]$/.test(tag)) {
-            const level = Number(tag[1]);
-            const text = stripTags(inner);
-            if (text) {
-                blocks.push({ kind: "heading", level, text, links: extractLinks(inner) });
-            }
-        }
-        else if (tag === "pre") {
-            const codeText = decodeHtmlEntities(inner.replace(/<[^>]+>/g, "")).replace(/\r\n/g, "\n").trim();
-            if (codeText) {
-                blocks.push({ kind: "code", text: codeText });
-            }
-        }
-        else if (tag === "ul" || tag === "ol") {
-            const items: string[] = [];
-            const liRegex = /<li\b[^>]*>([\s\S]*?)<\/li>/gi;
-            let liMatch: RegExpExecArray | null;
-            while ((liMatch = liRegex.exec(inner)) !== null) {
-                if (++cooperativeWork % 64 === 0)
-                    yield;
-                const itemText = stripTags(liMatch[1] ?? "");
-                if (itemText)
-                    items.push(itemText);
-            }
-            if (items.length > 0) {
-                blocks.push({ kind: "list", ordered: tag === "ol", items });
-            }
-        }
-        else if (tag === "dl") {
-            const items: string[] = [];
-            const dtDdRegex = /<(dt|dd)\b[^>]*>([\s\S]*?)<\/\1>/gi;
-            let m: RegExpExecArray | null;
-            let currentTerm = "";
-            while ((m = dtDdRegex.exec(inner)) !== null) {
-                if (++cooperativeWork % 64 === 0)
-                    yield;
-                const t = m[1]!.toLowerCase();
-                const txt = stripTags(m[2] ?? "");
-                if (t === "dt") {
-                    currentTerm = txt;
-                }
-                else if (t === "dd") {
-                    items.push(currentTerm ? `${currentTerm}: ${txt}` : txt);
-                    currentTerm = "";
-                }
-            }
-            if (items.length > 0) {
-                blocks.push({ kind: "list", ordered: false, items });
-            }
-        }
-        else if (tag === "svg") {
-            const wMatch = /width=["']?(\d+)/i.exec(attrs);
-            const hMatch = /height=["']?(\d+)/i.exec(attrs);
-            const displayWidth = wMatch ? Number(wMatch[1]) : 200;
-            const displayHeight = hMatch ? Number(hMatch[1]) : 100;
-            const svgPrimitives: SvgPrimitive[] = [];
-            const rectRe = /<rect\b([^>]*)\/?>/gi;
-            let rm: RegExpExecArray | null;
-            while ((rm = rectRe.exec(inner)) !== null) {
-                if (++cooperativeWork % 64 === 0)
-                    yield;
-                const ra = rm[1] ?? "";
-                const rx = Number(/\bx=["']?([\d.]+)/i.exec(ra)?.[1] ?? 0);
-                const ry = Number(/\by=["']?([\d.]+)/i.exec(ra)?.[1] ?? 0);
-                const rw = Number(/\bwidth=["']?([\d.]+)/i.exec(ra)?.[1] ?? 40);
-                const rh = Number(/\bheight=["']?([\d.]+)/i.exec(ra)?.[1] ?? 20);
-                svgPrimitives.push({ kind: "rect", x: rx, y: ry, w: rw, h: rh });
-            }
-            const textRe = /<text\b([^>]*)>([\s\S]*?)<\/text>/gi;
-            let tm: RegExpExecArray | null;
-            while ((tm = textRe.exec(inner)) !== null) {
-                if (++cooperativeWork % 64 === 0)
-                    yield;
-                const ta = tm[1] ?? "";
-                const tx = Number(/\bx=["']?([\d.]+)/i.exec(ta)?.[1] ?? 8);
-                const ty = Number(/\by=["']?([\d.]+)/i.exec(ta)?.[1] ?? 16);
-                const txt = stripTags(tm[2] ?? "");
-                if (txt)
-                    svgPrimitives.push({ kind: "text", x: tx, y: ty, text: txt });
-            }
-            blocks.push({ kind: "svg", displayWidth, displayHeight, svgPrimitives });
-        }
-        else if (tag === "blockquote") {
-            const text = stripTags(inner);
-            if (text) {
-                blocks.push({ kind: "blockquote", text, links: extractLinks(inner) });
-            }
-        }
-        else if (tag === "table") {
-            const rows: {
-                cells: {
-                    text: string;
-                    colspan: number;
-                }[];
-                header: boolean;
-            }[] = [];
-            const trRegex = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
-            let trMatch: RegExpExecArray | null;
-            while ((trMatch = trRegex.exec(inner)) !== null) {
-                if (++cooperativeWork % 64 === 0)
-                    yield;
-                const rowHtml = trMatch[1] ?? "";
-                const cells: {
-                    text: string;
-                    colspan: number;
-                }[] = [];
-                let header = false;
-                const cellRegex = /<(th|td)\b([^>]*)>([\s\S]*?)<\/\1>/gi;
-                let cellMatch: RegExpExecArray | null;
-                while ((cellMatch = cellRegex.exec(rowHtml)) !== null) {
-                    if (++cooperativeWork % 64 === 0)
-                        yield;
-                    if (cellMatch[1]?.toLowerCase() === "th")
-                        header = true;
-                    const cellAttrs = cellMatch[2] ?? "";
-                    const colspanMatch = /colspan=["']?(\d+)/i.exec(cellAttrs);
-                    const colspan = Math.max(1, colspanMatch ? Number(colspanMatch[1]) : 1);
-                    cells.push({ text: stripTags(cellMatch[3] ?? ""), colspan });
-                }
-                if (cells.length > 0) {
-                    rows.push({ cells, header });
-                }
-            }
-            if (rows.length > 0) {
-                blocks.push({ kind: "table", rows });
-            }
-        }
-        else {
-            if (/<(h[1-6]|p|pre|ul|ol|dl|table|svg|hr|img|blockquote|div|section|article)\b/i.test(inner)) {
-                const nested = (yield* parseHtmlDocumentSteps(inner, [], signal));
-                blocks.push(...nested.blocks);
-            }
-            else {
-                const text = stripTags(inner);
-                if (text) {
-                    blocks.push({ kind: "paragraph", text, links: extractLinks(inner) });
-                }
-            }
-        }
-        if (/page-break-after\s*:\s*always/i.test(attrs)) {
-            blocks.push({ kind: "pagebreak" });
-        }
-    }
-    const trailingText = stripTags(bodyHtml.slice(lastIndex));
-    if (trailingText) {
-        blocks.push({ kind: "paragraph", text: trailingText, links: extractLinks(bodyHtml.slice(lastIndex)) });
-    }
-    if (blocks.length === 0) {
-        const fallback = stripTags(bodyHtml);
-        if (fallback) {
-            blocks.push({ kind: "paragraph", text: fallback });
-        }
-    }
-    return { title, blocks };
+    flush();
+  }
+  const htmlNode = children(parser.document).find(node => node.nodeName === "html");
+  const body = htmlNode && children(htmlNode).find(node => node.nodeName === "body");
+  if (body) yield* visit(children(body));
+  return { title, blocks };
 }
 
 function wrapTextLines(text: string, maxCharsPerLine: number): string[] {
@@ -595,14 +505,15 @@ function* layoutObjectPagesSteps(blocks: readonly HtmlBlock[], box: ReturnType<t
             for (let idx = 0; idx < items.length; idx++) {
                 if (++cooperativeWork % 64 === 0)
                     yield;
-                const prefix = block.ordered ? `${idx + 1}. ` : "• ";
-                const lines = wrapTextLines(prefix + items[idx]!, Math.max(20, Math.floor((contentWidth - 14) / 5.8)));
+                const prefix = block.continuation ? "" : block.ordered ? `${idx + (block.start ?? 1)}. ` : "• ";
+                const indent = (block.depth ?? 0) * 18;
+                const lines = wrapTextLines(prefix + items[idx]!, Math.max(20, Math.floor((contentWidth - 14 - indent) / 5.8)));
                 ensureHeight(lines.length * lineHeight + 2);
                 for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
                     if (++cooperativeWork % 64 === 0)
                         yield;
                     const drawY = cursorY - fontSize;
-                    const x = box.marginLeft + (lineIdx === 0 ? 10 : 22);
+                    const x = box.marginLeft + indent + (lineIdx === 0 ? 10 : 22);
                     const lineText = lines[lineIdx]!;
                     currentActions.push((page, _doc, grayscale) => {
                         page.drawText(lineText, {
@@ -695,11 +606,11 @@ function* layoutObjectPagesSteps(blocks: readonly HtmlBlock[], box: ReturnType<t
             const rows = block.rows ?? [];
             const colCount = Math.max(1, ...rows.map((r) => r.cells.reduce((sum, c) => sum + c.colspan, 0)));
             const colWidth = contentWidth / colCount;
-            const rowHeight = 20;
-            ensureHeight(rows.length * rowHeight + 8);
+
             for (const row of rows) {
                 if (++cooperativeWork % 64 === 0)
                     yield;
+                const rowHeight = Math.max(20, ...row.cells.map(cell => cell.text.split("\n").length * 13 + 7));
                 ensureHeight(rowHeight);
                 const rowBottom = cursorY - rowHeight;
                 let colCursor = 0;
@@ -723,13 +634,15 @@ function* layoutObjectPagesSteps(blocks: readonly HtmlBlock[], box: ReturnType<t
                             stroke: rgbColor(0.7, 0.73, 0.78, grayscale),
                             strokeWidth: 0.6,
                         });
-                        page.drawText(cellText, {
+                        for (const [lineIndex, line] of cellText.split("\n").entries()) {
+                          page.drawText(line.replaceAll("\t", "   "), {
                             x: cellX + 5,
-                            y: rowBottom + 6,
+                            y: rowBottom + rowHeight - 14 - lineIndex * 13,
                             size: 9.5,
                             font: isHeader ? "Helvetica-Bold" : "Helvetica",
                             color: rgbColor(0.1, 0.1, 0.12, grayscale),
-                        });
+                          });
+                        }
                     });
                     colCursor += span;
                 }

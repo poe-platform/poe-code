@@ -1281,7 +1281,9 @@
         },
         "safe-bash-command-wkhtmltopdf": {
           "version": "0.0.1",
-          "dependencies": {},
+          "dependencies": {
+            "parse5": "7.3.0"
+          },
           "devDependencies": {
             "@poe-code/pdf-ast": "*",
             "safe-bash-contracts": "*"

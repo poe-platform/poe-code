@@ -209,3 +209,63 @@ test("the built-in renderer honors optional page limits for CLI and SDK", async 
     }
   }
 });
+
+async function renderHtml(html: string): Promise<PdfDocument> {
+  const fs = new MemoryFileSystem();
+  const result = await runWkhtmltopdf({
+    args: ["-", "/output.pdf"], fs, cwd: "/",
+    signal: new AbortController().signal, stdin: toByteSource(html),
+    stdout: { async write() {} }, stderr: { async write() {} },
+  });
+  assert.equal(result.exitCode, 0);
+  return PdfDocument.load(await fs.readFile("/output.pdf"));
+}
+
+test("HTML comments and hidden document elements never become PDF content", async () => {
+  const doc = await renderHtml(`<!-- <h1>SECRET</h1> -->
+    <head><title>Public title</title><style>SECRET</style></head>
+    <p>Visible<!-- SECRET --> text<script>SECRET</script></p>`);
+  assert.equal(doc.getMetadata().title, "Public title");
+  assert.equal(doc.getPage(0).extractText().trim(), "Visible text");
+});
+
+for (const rule of ["after", "before"]) {
+  test(`nested divs retain page-break-${rule}`, async () => {
+    const doc = await renderHtml(`<div><div ${rule === "after" ? 'style="page-break-after: always"' : ''}>First</div><div ${rule === "before" ? 'style="page-break-before: always"' : ''}>Second</div></div>`);
+    assert.equal(doc.pageCount, 2);
+    assert.equal(doc.getPage(0).extractText().trim(), "First");
+    assert.equal(doc.getPage(1).extractText().trim(), "Second");
+  });
+}
+
+for (const tag of ["ul", "ol"]) {
+  test(`nested ${tag} preserves every item's marker and order`, async () => {
+    const doc = await renderHtml(`<${tag}><li>Outer 1<${tag}><li>Inner 1a</li><li>Inner 1b</li></${tag}></li><li>Outer 2</li></${tag}>`);
+    const markers = tag === "ol" ? ["1.", "1.", "2.", "2."] : ["•", "•", "•", "•"];
+    assert.deepEqual(doc.getPage(0).extractText().trim().split("\n").map(line => line.trim()).filter(Boolean),
+      ["Outer 1", "Inner 1a", "Inner 1b", "Outer 2"].map((text, i) => `${markers[i]} ${text}`));
+  });
+}
+
+test("nested tables preserve inner rows and all following outer cells", async t => {
+  const output = PdfDocument.create();
+  const page = output.addPage();
+  t.mock.method(PdfDocument, "create", () => output);
+  t.mock.method(output, "addPage", () => page);
+  const drawText = t.mock.method(page, "drawText");
+  const doc = await renderHtml(`<table><tr><td>Before<table><tr><td>Inner A</td><td>Inner B</td></tr><tr><td>Inner C</td></tr></table>After</td><td>Sibling</td></tr><tr><td>Last row</td></tr></table>`);
+  const calls = drawText.mock.calls.map(call => ({ text: call.arguments[0], ...call.arguments[1] }));
+  const before = calls.find(call => call.text === "Before")!;
+  const inner = calls.find(call => call.text === "Inner C")!;
+  const after = calls.find(call => call.text === "After")!;
+  const sibling = calls.find(call => call.text === "Sibling")!;
+  const last = calls.find(call => call.text === "Last row")!;
+  assert.ok(before && inner && after && sibling && last, "nested rows must remain separate lines inside their parent cell");
+  assert.equal(before.y, sibling.y);
+  assert.ok(sibling.x! > before.x!);
+  assert.ok(before.y! > inner.y! && inner.y! > after.y! && after.y! > last.y!);
+  const text = doc.getPage(0).extractText();
+  for (const value of ["Before", "Inner A", "Inner B", "Inner C", "After", "Sibling", "Last row"]) {
+    assert.equal(text.split(value).length - 1, 1, text);
+  }
+});

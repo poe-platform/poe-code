@@ -218,7 +218,8 @@ export function evalSyncGpg(
       } else if (a === "--status-fd" && i + 1 < opArgs.length) statusFd = opArgs[++i];
       else if (a.startsWith("--status-fd=")) statusFd = a.slice("--status-fd=".length);
       else if ((a === "-o" || a === "--output") && i + 1 < opArgs.length) outFile = opArgs[++i];
-      else if (a.startsWith("-")) continue;
+      else if (a === "-a" || a === "--armor" || a === "--batch" || a === "--yes" || a === "--no-tty" || a === "-q" || a === "--quiet" || a === "-s" || a === "--sign") continue;
+      else if (a.startsWith("-")) return undefined;
       else positionals.push(a);
     }
 

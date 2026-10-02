@@ -1533,6 +1533,7 @@ export function evalSyncFfmpeg(
     };
     workingDoc = { ...workingDoc, faststart, metadata: metaTags };
     if (isNullMux) return "";
+    if (!writeFileSync) return undefined;
     if (/%0?\d*d/.test(outputTarget)) {
       const outExt = outputTarget.split(".").pop()?.toLowerCase() ?? "png";
       const vTrack = workingDoc.tracks.find((t) => t.type === "video");
@@ -1666,7 +1667,7 @@ export function evalSyncFfprobe(
       showPackets,
       showFrames,
     });
-    return formatFfprobeResult(probeResult, {
+    const probeOut = formatFfprobeResult(probeResult, {
       printFormat,
       showFormat,
       showStreams,
@@ -1679,6 +1680,7 @@ export function evalSyncFfprobe(
       countFrames,
       countPackets,
     });
+    return probeOut.includes("\0") ? undefined : probeOut;
   } catch {
     return undefined;
   }

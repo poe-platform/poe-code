@@ -93,7 +93,8 @@ export function evalSyncCsvgrep(
       if (!fileBytes || fileBytes.byteLength > 16384) return undefined;
       sourceBytes = fileBytes;
     }
-    if (sourceBytes === undefined) return undefined;
+    if (sourceBytes === undefined || sourceBytes.includes(0)) return undefined;
+    new TextDecoder("utf-8", { fatal: true }).decode(sourceBytes);
     const parser = new CsvParser(options.dialect ?? {}, budget);
     const pushed = parser.push(sourceBytes);
     const rows = options.names && pushed.length > 0 ? pushed : [...pushed, ...parser.end()];
@@ -130,7 +131,7 @@ export function evalSyncCsvgrep(
       if (options.names) return undefined;
       out += serializeRow([], budget);
     }
-    return out;
+    return out.includes("\0") ? undefined : out;
   } catch {
     return undefined;
   } finally {

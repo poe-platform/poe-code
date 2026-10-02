@@ -91,7 +91,7 @@ export function evalSyncUnzip(
   const modeCount = (zipinfoNames ? 1 : 0) + (pipe ? 1 : 0) + (list ? 1 : 0) + (testMode ? 1 : 0);
   if (modeCount > 1) return undefined;
   const extractMode = modeCount === 0;
-  if (destDir !== undefined && !extractMode) return undefined;
+  if (destDir !== undefined && (!extractMode || destDir.split("/").includes(".."))) return undefined;
   if (extractMode && (!writeFile || !mkdir)) return undefined;
 
   let chosenArchive = archive;
@@ -160,7 +160,8 @@ export function evalSyncUnzip(
       if (entryCommentLen !== 0 || compSize === 0xffffffff || uncompSize === 0xffffffff || localOffset === 0xffffffff) return undefined;
       if (ptr + 46 + nameLen + extraLen > eocdOffset) return undefined;
       const nameBytes = bytes.subarray(ptr + 46, ptr + 46 + nameLen);
-      const name = syncTextDecoder.decode(nameBytes);
+      if (nameBytes.includes(0) || ((flags & 0x800) === 0 && nameBytes.some(b => b >= 0x80))) return undefined;
+      const name = fatalSyncTextDecoder.decode(nameBytes);
       members.push({ name, method, flags, crc, compSize, uncompSize, dosTime, dosDate, localOffset, extraLen });
       ptr += 46 + nameLen + extraLen + entryCommentLen;
     }

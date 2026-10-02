@@ -1151,4 +1151,16 @@ test("52. sync vs async parity for split, csplit, truncate, and dd semantics", a
     assert.equal(h1.exitCode, 0);
     assert.ok(!h1.stdout.includes("\0"));
   });
+
+  test("63. sync tar/unzip/csvgrep/gpg edge cases and NUL/flag validation", async () => {
+    const bash = new Bash();
+    // 1. csvgrep in command substitution with NUL byte should delegate to async csvgrep
+    await bash.writeFile("/data.csv", new Uint8Array([...Buffer.from("a,b\nfoo,"), 0, ...Buffer.from("bar\n")]));
+    const r1 = await bash.exec("echo \$(csvgrep -c a -m foo /data.csv)");
+    assert.ok(!r1.stdout.includes("\0"));
+
+    // 2. gpg in command substitution with unknown flag should delegate to async gpg and fail instead of ignoring flag
+    const r2 = await bash.exec("out=\$(gpg --unknown-nonexistent-flag 2>&1); echo \$?");
+    assert.notEqual(r2.stdout.trim(), "0");
+  });
 });

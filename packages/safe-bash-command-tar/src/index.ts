@@ -271,6 +271,7 @@ export function evalSyncTar(
   }
   void bundledHandled;
   if (!mode) return undefined;
+  if (targetDir && targetDir.split("/").includes("..")) return undefined;
   if (mode === "t" && verbose) return undefined;
   if (mode === "x" && !toStdout && (!writeFile || !mkdir)) return undefined;
 
@@ -303,6 +304,7 @@ export function evalSyncTar(
     const extractActions: { isDir: boolean; path: string; bytes: Uint8Array; mode: number }[] = [];
     let out = "";
     let offset = 0;
+    let sawZeroBlock = false;
 
     while (offset + 512 <= tarBytes.byteLength) {
       const headerSlice = tarBytes.subarray(offset, offset + 512);
@@ -311,7 +313,7 @@ export function evalSyncTar(
       for (let k = 0; k < 512; k++) {
         if (headerSlice[k] !== 0) { allZero = false; break; }
       }
-      if (allZero) break;
+      if (allZero) { sawZeroBlock = true; break; }
 
       const header = parseHeader(headerSlice);
       const tempEntry = applyPax(header, new Map(), new Map());
@@ -330,12 +332,12 @@ export function evalSyncTar(
       }
       if (header.type === "L") {
         const nul = payload.indexOf(0);
-        longName = syncTextDecoder.decode(nul === -1 ? payload : payload.subarray(0, nul));
+        longName = fatalSyncTextDecoder.decode(nul === -1 ? payload : payload.subarray(0, nul));
         continue;
       }
       if (header.type === "K") {
         const nul = payload.indexOf(0);
-        longLink = syncTextDecoder.decode(nul === -1 ? payload : payload.subarray(0, nul));
+        longLink = fatalSyncTextDecoder.decode(nul === -1 ? payload : payload.subarray(0, nul));
         continue;
       }
 
@@ -390,6 +392,8 @@ export function evalSyncTar(
         if (entry.type === "0") {
           if (payload.includes(0)) return undefined;
           out += fatalSyncTextDecoder.decode(payload);
+        } else if (entry.type !== "5") {
+          return undefined;
         }
       } else if (mode === "x") {
         const relClean = displayEntryName.replace(/\/+$/u, "");
@@ -406,6 +410,8 @@ export function evalSyncTar(
       }
     }
 
+    if (!sawZeroBlock && offset < tarBytes.byteLength) return undefined;
+    if (out.includes("\0")) return undefined;
     if (operands.length > 0 && matchedOperands.size !== operands.length) {
       return undefined;
     }

@@ -1,4 +1,3 @@
-import { decodeJpegImage } from "@poe-code/image-ast";
 import { PandocError } from "./errors.js";
 import type { AdapterContext } from "./types.js";
 
@@ -79,7 +78,7 @@ async function png(bytes: Uint8Array, context: AdapterContext): Promise<Picture>
   return {width, height, encoding: "png"};
 }
 
-function jpeg(bytes: Uint8Array, context: AdapterContext): Picture {
+async function jpeg(bytes: Uint8Array, context: AdapterContext): Promise<Picture> {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   let offset = 2, width = 0, height = 0, components = 0, scanned = false;
   while(offset < bytes.length) {
@@ -122,6 +121,7 @@ function jpeg(bytes: Uint8Array, context: AdapterContext): Picture {
   context.charge("retainedBytes", memory); context.charge("expandedBytes", memory);
   context.checkpoint(width * height);
   try {
+    const { decodeJpegImage } = await import("@poe-code/image-ast");
     const decoded = decodeJpegImage(bytes);
     if(decoded.width !== width || decoded.height !== height || decoded.data.length !== width * height * 4) invalid(context, "JPEG decoded dimensions mismatch");
   } catch(error) {

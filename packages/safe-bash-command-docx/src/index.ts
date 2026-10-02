@@ -1,4 +1,3 @@
-import { createDocxInspectionCommandEngine } from "docx";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import {
   FsError,
@@ -50,7 +49,7 @@ export function createDocxCommand(options: DocxCommandOptions = {}): CommandDefi
   if (maxArgumentBytes !== Infinity && (!Number.isSafeInteger(maxArgumentBytes) || maxArgumentBytes < 0)) {
     throw new RangeError("maxArgumentBytes must be a nonnegative safe integer or Infinity");
   }
-  const engine = options.engine ?? createDocxInspectionCommandEngine();
+  let engine = options.engine;
   return {
     name: "docx",
     async execute(context) {
@@ -62,6 +61,7 @@ export function createDocxCommand(options: DocxCommandOptions = {}): CommandDefi
         if (bytes > maxArgumentBytes - argumentBytes) throw new FsError("EFBIG", { message: "document argument limit exceeded" });
         argumentBytes += bytes;
       }
+      engine ??= (await import("docx")).createDocxInspectionCommandEngine();
       const result = await engine.execute({
         args: Object.freeze(arguments_.args.map((_, index) => arguments_.bytes(index)!)),
         cwd: context.cwd,

@@ -1,4 +1,4 @@
-import { PdfDocument, encodePng } from "@poe-code/pdf-ast";
+import type { PdfDocument as PdfDocumentType } from "@poe-code/pdf-ast";
 import type {
   Alignment,
   Attr,
@@ -94,10 +94,11 @@ function buildPandocTable(
 export const pdfReader: ReaderCapability = Object.freeze({
   format: "pdf",
   async read(input: Input, context: AdapterContext): Promise<Document> {
+    const { PdfDocument, encodePng } = await import("@poe-code/pdf-ast");
     context.checkpoint(1);
     context.charge("binaryBytes", input.bytes.byteLength);
 
-    let doc: PdfDocument;
+    let doc: PdfDocumentType;
     try {
       doc = PdfDocument.load(input.bytes);
     } catch (err) {

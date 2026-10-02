@@ -1,4 +1,3 @@
-import { createPptxCommandEngine } from "pptx";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { collectBytes, FsError, getCommandArguments, writeBytes, type CommandDefinition, type FileStat, type VirtualShellPlugin } from "safe-bash-contracts";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
@@ -45,7 +44,7 @@ export function createPptxCommand(options: PptxCommandsOptions = {}): CommandDef
   if (maxArgumentBytes !== Infinity && (!Number.isSafeInteger(maxArgumentBytes) || maxArgumentBytes < 0)) {
     throw new RangeError("maxArgumentBytes must be a nonnegative safe integer or Infinity");
   }
-  const engine = options.engine ?? createPptxCommandEngine();
+  let engine = options.engine;
   return { name: "pptx", filesystemRequirements: inputRequirements, async execute(context) {
     const arguments_ = getCommandArguments(context);
       let argumentBytes = 0;
@@ -55,6 +54,7 @@ export function createPptxCommand(options: PptxCommandsOptions = {}): CommandDef
         argumentBytes += bytes;
       }
     const snapshots = new Map<string, FileStat>();
+    engine ??= (await import("pptx")).createPptxCommandEngine();
     const result = await engine.execute({
       args: arguments_.args.map((_, index) => arguments_.bytes(index)!),
       signal: context.signal,

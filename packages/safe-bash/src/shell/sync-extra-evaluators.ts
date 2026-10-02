@@ -1,5 +1,4 @@
 import { bytesToHex } from "../byte-encoding.js";
-import { shellWarmHooks } from "./shell.js";
 import type { ConditionalExpression } from "./conditional.js";
 import { publicDiagnosticMessage } from "../diagnostics.js";
 import { writeDiagnostic } from "../escaping.js";
@@ -26580,7 +26579,5 @@ export function tryExecFast(shell: any, source: string, options: ShellExecOption
   }
   return undefined;
 }
-
-shellWarmHooks.tryExecFast = tryExecFast;
 
 

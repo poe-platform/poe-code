@@ -18,7 +18,7 @@ export const expectedAgentCommandNames = Object.freeze([
   "sql2csv", "sqlite3", "ssconvert", "ssh", "ssh-keygen", "uname", "unrtf", "whoami", "wkhtmltopdf", "xan", "yes", "yq",
   "lzma", "unlzma", "lzcat",
   "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
-  "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
+  "cp", "install", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
   "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find",
   "sed", "awk", "jq", "rg", "gh", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
   "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "cmp", "fmt", "shuf", "numfmt", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",

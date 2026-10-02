@@ -404,6 +404,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "commands/op/index.browser": path.join(root, "packages/safe-bash/src/commands/op/index.ts"),
     "commands/llm/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/index.ts"),
     "commands/llm/providers/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/providers/index.ts"),
+    "commands/caller/index.browser": path.join(root, "packages/safe-bash/src/commands/caller/index.ts"),
     "core.browser": path.join(root, "packages/safe-bash/src/core.browser.ts"),
     "trap.browser": path.join(root, "packages/safe-bash/src/trap.browser.ts"),
     "portable-buffer": path.join(root, "packages/safe-bash/src/portable-buffer.ts"),
@@ -629,7 +630,7 @@ beforeAll(async () => {
           }
           return { contents: output.exports.map(name => `export const ${name} = globalThis.browser.${name};`).join("\n"), loader: "js" };
         });
-        builder.onResolve({ filter: /^(?:@poe-code\/safe-fs\/(?:core|xml|contracts\/(?:errors|object))|poe-code\/safe-fs\/core|@poe-platform\/(?:safe-fs\/core|safe-js\/fs\/core))$/ }, () => ({ path: "core", namespace: "evaluated-fs" }));
+        builder.onResolve({ filter: /^(?:@poe-code\/safe-fs\/(?:core|runtime-core|xml|contracts\/(?:errors|object))|poe-code\/safe-fs\/core|@poe-platform\/(?:safe-fs\/core|safe-js\/fs\/core))$/ }, () => ({ path: "core", namespace: "evaluated-fs" }));
         builder.onLoad({ filter: /.*/, namespace: "evaluated-fs" }, () => ({
           contents: Object.keys(filesystem).map(name => `export const ${name} = globalThis.canonical.${name};`).join("\n"), loader: "js",
         }));

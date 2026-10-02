@@ -11901,7 +11901,32 @@ export class Runtime {
         // Substrings and pattern/case operators can decline as loop values
         // change to Unicode or lengths become invalid. Loop steps cannot resume
         // after that decline without corrupting assignments or replaying effects.
-        if (part.substring) return false;
+        const isLoopInvariantScalar =
+          this._activeSyncLoopAssignedVars !== undefined &&
+          this._activeSyncLoopIO !== undefined &&
+          !this._activeSyncLoopAssignedVars.has(part.name) &&
+          part.name !== this._activePrintfInductionName &&
+          !stateMonitor(rawState)?.store?.get(part.name) &&
+          !stateMonitor(rawState)?.hasOverlay(part.name) &&
+          !hasUnpreparedLocal(rawState, part.name) &&
+          !rawState.variableAttributes?.has(part.name);
+        if (part.substring) {
+          if (
+            !isLoopInvariantScalar ||
+            part.length ||
+            part.operator !== undefined ||
+            this.budget.limits.maxExpansionBytes !== Infinity ||
+            rawState.depth >= 32 ||
+            rawState.nounset ||
+            byteLocale(rawState.variables) !== false ||
+            !part.substring.offset.parts.every(p => p.kind === "text") ||
+            (part.substring.length !== undefined && !part.substring.length.parts.every(p => p.kind === "text")) ||
+            typeof this.fastValueWord({ offset: 0, parts: [part] }, rawState, this._activeSyncLoopIO!, false, false, false, false) !== "string"
+          ) {
+            return false;
+          }
+          continue;
+        }
         if (part.length || part.operator !== undefined) {
           if ( this.budget.limits.maxExpansionBytes !== Infinity || rawState.depth >= 32 || rawState.nounset || rawState.nocasematch || byteLocale(rawState.variables) !== false) {
             return false;
@@ -11911,6 +11936,14 @@ export class Runtime {
           } else if (part.operator === "-" || part.operator === ":-" || part.operator === "+" || part.operator === ":+") {
             if (!part.alternate || !part.alternate.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring && p.prefixNames !== "@"))) return false;
             if (!this.isPureSyncValueWord(part.alternate, rawState, allowAt)) return false;
+          } else if (
+            isLoopInvariantScalar &&
+            (part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%" || part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%" || part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",,") &&
+            (!part.alternate || part.alternate.parts.every(p => p.kind === "text")) &&
+            (!(part as { replacement?: Word }).replacement || (part as { replacement: Word }).replacement.parts.every(p => p.kind === "text")) &&
+            typeof this.fastValueWord({ offset: 0, parts: [part] }, rawState, this._activeSyncLoopIO!, false, false, false, false) === "string"
+          ) {
+            // Verified loop-invariant scalar pattern/case operator
           } else return false;
         }
         continue;
@@ -11987,7 +12020,7 @@ export class Runtime {
       const part = parts[0]!;
       if (part.kind !== "variable" || part.indirect || part.prefixNames || part.substring || part.transform || part.operator !== undefined || getArraySelector(part) !== undefined) return false;
       const current = rawState.variables[part.name];
-      if (current === undefined || !isDecimal(current)) return false;
+      if (part.name !== this._activePrintfInductionName && (current === undefined || !isDecimal(current))) return false;
       const preservesInteger = (node: unknown): boolean => {
         if (!node || typeof node !== "object") return true;
         if (Array.isArray(node)) return node.every(preservesInteger);
@@ -12017,26 +12050,42 @@ export class Runtime {
       (!checkIntVars || this.isPureSyncValueWord(w, rawState)) &&
       (w.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true))) ||
         (numeric && ((!checkIntVars && w.parts.length === 1 && w.parts[0]!.kind === "variable") || (checkIntVars && (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && isGuaranteedIntWord(w)))));
-    if (args.length === 2) {
-      const op = args[0]!.plain;
-      if ((op === "-n" || op === "-z") && safeArgWord(args[1]!)) {
-        return { kind: "unary", operator: op, operand: args[1]! };
+    const parseAtom = (slice: readonly Word[]): ConditionalExpression | undefined => {
+      if (slice.length === 2) {
+        const op = slice[0]!.plain;
+        if ((op === "-n" || op === "-z") && safeArgWord(slice[1]!)) {
+          return { kind: "unary", operator: op, operand: slice[1]! };
+        }
+        return undefined;
+      }
+      if (slice.length === 3) {
+        const op = slice[1]!.plain;
+        const isNumOp = op === "-eq" || op === "-ne" || op === "-lt" || op === "-le" || op === "-gt" || op === "-ge";
+        const isStrOp = op === "=" || op === "==" || op === "!=";
+        if ((isNumOp || isStrOp) && safeArgWord(slice[0]!, isNumOp) && safeArgWord(slice[2]!, isNumOp)) {
+          if (isStrOp && checkIntVars && (rawState.nocasematch || byteLocale(rawState.variables))) return undefined;
+          if (isNumOp && checkIntVars) {
+            if (!isGuaranteedIntWord(slice[0]!) || !isGuaranteedIntWord(slice[2]!)) return undefined;
+          }
+          const rightW: Word = isStrOp
+            ? { ...slice[2]!, parts: slice[2]!.parts.map(p => ({ ...p, quoted: true })) }
+            : slice[2]!;
+          return { kind: "binary", operator: op === "=" ? "==" : op, left: slice[0]!, right: rightW };
+        }
       }
       return undefined;
-    }
-    if (args.length === 3) {
-      const op = args[1]!.plain;
-      const isNumOp = op === "-eq" || op === "-ne" || op === "-lt" || op === "-le" || op === "-gt" || op === "-ge";
-      const isStrOp = op === "=" || op === "==" || op === "!=";
-      if ((isNumOp || isStrOp) && safeArgWord(args[0]!, isNumOp) && safeArgWord(args[2]!, isNumOp)) {
-        if (isStrOp && checkIntVars && (rawState.nocasematch || byteLocale(rawState.variables))) return undefined;
-        if (isNumOp && checkIntVars) {
-          if (!isGuaranteedIntWord(args[0]!) || !isGuaranteedIntWord(args[2]!)) return undefined;
+    };
+    if (args.length === 2 || args.length === 3) return parseAtom(args);
+    if (args.length >= 5 && args.length <= 7) {
+      for (let splitIdx = 2; splitIdx <= 3; splitIdx++) {
+        const conj = args[splitIdx]?.plain;
+        if (conj === "-a" || conj === "-o") {
+          const leftExpr = parseAtom(args.slice(0, splitIdx));
+          const rightExpr = parseAtom(args.slice(splitIdx + 1));
+          if (leftExpr && rightExpr) {
+            return { kind: conj === "-a" ? "and" : "or", left: leftExpr, right: rightExpr };
+          }
         }
-        const rightW: Word = isStrOp
-          ? { ...args[2]!, parts: args[2]!.parts.map(p => ({ ...p, quoted: true })) }
-          : args[2]!;
-        return { kind: "binary", operator: op === "=" ? "==" : op, left: args[0]!, right: rightW };
       }
     }
     return undefined;
@@ -13288,7 +13337,24 @@ export class Runtime {
       }
       if (step.readHereString?.varNames.some(name => reads.has(name)) || (step.readHereString?.arrayTarget && reads.has(step.readHereString.arrayTarget))) return false;
       if (step.localDecl?.items.some(item => reads.has(item.name))) return false;
-      if (step.fnCall && (step.fnCall.locals.some(item => reads.has(item.name)) || !safeWrites(step.fnCall.steps))) return false;
+      if (step.fnCall) {
+        const isSafeFnArgInt = (w: Word | undefined, argWords?: readonly Word[]): boolean => {
+          if (!w) return true;
+          if (w.plain !== undefined && /^-?[0-9]+$/.test(w.plain)) return true;
+          if (w.parts.length !== 1) return false;
+          const p = w.parts[0]!;
+          if (p.kind === "arithmetic") return true;
+          if (p.kind === "variable" && !p.indirect && !p.prefixNames && !p.length && !p.substring && p.operator === undefined && getArraySelector(p) === undefined) {
+            if (p.name === this._activePrintfInductionName) return true;
+            if (argWords && /^[1-9]$/.test(p.name)) {
+              const argW = argWords[Number(p.name) - 1];
+              return argW !== undefined && isSafeFnArgInt(argW, undefined);
+            }
+          }
+          return false;
+        };
+        if (step.fnCall.locals.some(item => reads.has(item.name) && !isSafeFnArgInt(item.valueWord, step.fnCall!.argWords)) || !safeWrites(step.fnCall.steps)) return false;
+      }
       if (step.ifBranches?.some(branch => !safeWrites(branch.steps)) || (step.elseSteps && !safeWrites(step.elseSteps)) || step.caseClauses?.some(clause => !safeWrites(clause.steps))) return false;
       if (step.nestedLoop) {
         const loop = step.nestedLoop.loopCmd;
@@ -13697,29 +13763,63 @@ export class Runtime {
       // Complex expansions can read or write names inside selectors, defaults,
       // patterns and substring expressions. Keep every assignment in iteration
       // order unless the shallow dependency checks below can see all reads.
-      const hasNestedParamDependencies = bodyAssignments.some(step =>
-        [step.value, step.targetWord].some(word => word?.parts.some(part =>
-          part.kind === "variable" && (part.indirect || part.prefixNames !== undefined || part.name === "?" || part.substring !== undefined || part.operator !== undefined || getArraySelector(part) !== undefined)
-        ))
-      );
+      const collectSafeDeferrableReads = (w: Word | undefined, outReads: Set<string>): boolean => {
+        if (!w) return true;
+        for (let pi = 0; pi < w.parts.length; pi++) {
+          const p = w.parts[pi]!;
+          if (p.kind === "text") continue;
+          if (p.kind !== "variable") return false;
+          if (p.indirect || p.prefixNames !== undefined || p.specialParameter || p.transform !== undefined || getArraySelector(p) !== undefined || !isShellIdentifier(p.name) || p.name === "LINENO" || p.name === "RANDOM" || p.name === "SRANDOM" || p.name === "SECONDS" || p.name === "EPOCHSECONDS" || p.name === "EPOCHREALTIME" || p.name === "_") {
+            return false;
+          }
+          outReads.add(p.name);
+          if (p.substring !== undefined) {
+            if (p.substring.offset.plain === undefined || !/^\s*-?[0-9]+\s*$/.test(p.substring.offset.plain) || (p.substring.length !== undefined && (p.substring.length.plain === undefined || !/^\s*-?[0-9]+\s*$/.test(p.substring.length.plain)))) return false;
+          }
+          if (p.operator !== undefined) {
+            const op = p.operator;
+            if (op !== "#" && op !== "##" && op !== "%" && op !== "%%" && op !== "/" && op !== "//" && op !== "/#" && op !== "/%" && op !== "^" && op !== "^^" && op !== "," && op !== ",," && op !== ":-" && op !== "-" && op !== ":+" && op !== "+") {
+              return false;
+            }
+            if (p.alternate !== undefined && !collectSafeDeferrableReads(p.alternate, outReads)) return false;
+            const repl = (p as { replacement?: Word }).replacement;
+            if (repl !== undefined && !collectSafeDeferrableReads(repl, outReads)) return false;
+          }
+        }
+        return true;
+      };
+      const stepReadSets: (Set<string> | undefined)[] = new Array(bodyAssignments.length);
+      const allBodyReads = new Set<string>(paramReadNames);
+      const allBodyWrites = new Set<string>();
+      let allStepsDeferSafe = !hasAnyArrayAssign && this.budget.maxExpansionBytesSmi >= 65536 && this.budget.maxExpansionFieldsSmi >= 1024;
+      if (allStepsDeferSafe) {
+        for (let b = 0; b < bodyAssignments.length; b++) {
+          const st = bodyAssignments[b]!;
+          if (st.name !== undefined) allBodyWrites.add(st.name);
+          const sReads = new Set<string>();
+          if (!collectSafeDeferrableReads(st.value, sReads) || !collectSafeDeferrableReads(st.targetWord, sReads)) {
+            stepReadSets[b] = undefined;
+            allStepsDeferSafe = false;
+            break;
+          }
+          stepReadSets[b] = sReads;
+          for (const rn of sReads) allBodyReads.add(rn);
+        }
+      }
       let hasDeferredSteps = false;
       let deferredMask = 0;
-      if (!hasAnyArrayAssign && !hasNestedParamDependencies) for (let b = 0; b < bodyAssignments.length; b++) {
+      if (allStepsDeferSafe) for (let b = 0; b < bodyAssignments.length; b++) {
         const step = bodyAssignments[b]!;
-        if ( !step.append && step.targetWord === undefined && step.name !== undefined && step.value !== undefined && step.name !== inductionName && !arithNames.has(step.name) && !paramReadNames.has(step.name) && step.value.parts.every(p => p.kind === "text" || (p.kind === "variable" && !p.indirect && !p.prefixNames && !p.length && !p.substring && p.operator === undefined && getArraySelector(p) === undefined))) {
-          let readAnywhere = false;
-          for (let b2 = 0; b2 < bodyAssignments.length; b2++) {
-            const other = bodyAssignments[b2]!;
-            if (other.value?.parts.some(p => p.kind === "variable" && p.name === step.name) || other.targetWord?.parts.some(p => p.kind === "variable" && p.name === step.name)) {
-              readAnywhere = true;
-              break;
-            }
+        const sReads = stepReadSets[b];
+        if (!step.append && step.targetWord === undefined && step.name !== undefined && step.value !== undefined && sReads !== undefined && step.name !== inductionName && !arithNames.has(step.name) && !allBodyReads.has(step.name)) {
+          let readsMutatedVar = false;
+          for (const rn of sReads) {
+            if (rn !== inductionName && allBodyWrites.has(rn)) { readsMutatedVar = true; break; }
           }
-          if (readAnywhere) continue;
+          if (readsMutatedVar) continue;
           let overwrittenLater = false;
           for (let b2 = b + 1; b2 < bodyAssignments.length; b2++) {
-            const nextName = bodyAssignments[b2]!.name;
-            if (nextName === step.name || (nextName !== undefined && step.value.parts.some(p => p.kind === "variable" && p.name === nextName))) {
+            if (bodyAssignments[b2]!.name === step.name) {
               overwrittenLater = true;
               break;
             }
@@ -14775,13 +14875,26 @@ export class Runtime {
     return pos <= 128 ? fastRedirectScratchViews[pos]! : fastRedirectScratchBytes.subarray(0, pos);
   }
   private _activePrintfInductionName: string | undefined = undefined;
+  private _inPrintfIndFnCheck = false;
   private canSyncPrintfInductionBody(script: Script, rawState: State, inductionName?: string): boolean {
     for (const list of script.lists) for (const pipeline of list.pipelines) for (const command of pipeline.commands) {
       if (command.kind === "arithmetic") {
         if (command.redirects.length === 0 && !command.expression.error && !command.expression.hasSubscript && isSafeSmiProgram(command.expression) && command.expression.tree?.kind === "unary" && (command.expression.tree.operator === "++" || (command.expression.tree.operator === "--" && command.expression.tree.operand.kind === "name" && command.expression.tree.operand.name !== inductionName)) && command.expression.tree.operand.kind === "name") continue;
         return false;
       }
-      if (command.kind !== "simple" || hasShellFunction(rawState, command.words[0]?.plain ?? "") || command.words.some(word => getArrayAssignment(word) !== undefined)) return false;
+      if (command.kind !== "simple" || command.words.some(word => getArrayAssignment(word) !== undefined)) return false;
+      const firstPlain = command.words[0]?.plain ?? "";
+      if (hasShellFunction(rawState, firstPlain)) {
+        if (this._inPrintfIndFnCheck) return false;
+        const fnBody = rawState.functions.get(firstPlain);
+        if (!fnBody || fnBody.kind !== "group" || fnBody.redirects.length !== 0) return false;
+        this._inPrintfIndFnCheck = true;
+        try {
+          if (!this.canSyncPrintfInductionBody(fnBody.body, rawState, inductionName)) return false;
+        } finally {
+          this._inPrintfIndFnCheck = false;
+        }
+      }
       let commandIndex = 0;
       while (commandIndex < command.words.length && this.assignment(command.words[commandIndex]!)) commandIndex++;
       const commandWord = command.words[commandIndex];
@@ -14800,7 +14913,11 @@ export class Runtime {
             if (option.parts.map(part => part.kind === "text" ? part.value : "").join("") === "-v") return false;
           }
         }
-        if (w0 === "let" || w0 === "declare" || w0 === "typeset" || w0 === "local" || w0 === "export" || w0 === "unset" || w0 === "mapfile" || w0 === "readarray") return false;
+        if (w0 === "local" && this._inPrintfIndFnCheck) {
+          if (inductionName !== undefined && command.words.slice(commandIndex + 1).some(w => w.plain === inductionName || (w.parts[0]?.kind === "text" && w.parts[0].value.startsWith(inductionName + "=")))) return false;
+        } else if (w0 === "let" || w0 === "declare" || w0 === "typeset" || w0 === "local" || w0 === "export" || w0 === "unset" || w0 === "mapfile" || w0 === "readarray") {
+          return false;
+        }
       }
       if (inductionName !== undefined) {
         if (command.words.some(w => {
@@ -14813,14 +14930,14 @@ export class Runtime {
         if (
           part.kind === "variable" &&
           !part.indirect &&
-          !part.substring &&
+          (!part.substring || (part.substring.offset.parts.every(p => p.kind === "text") && (!part.substring.length || part.substring.length.parts.every(p => p.kind === "text")))) &&
           !part.prefixNames &&
           getArraySelector(part) === undefined &&
           (
             part.operator === undefined ||
-            ((part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%") &&
-              part.alternate !== undefined &&
-              part.alternate.parts.every(p => p.kind === "text"))
+            ((part.operator === "#" || part.operator === "##" || part.operator === "%" || part.operator === "%%" || part.operator === "/" || part.operator === "//" || part.operator === "/#" || part.operator === "/%" || part.operator === "^" || part.operator === "^^" || part.operator === "," || part.operator === ",," || part.operator === ":-" || part.operator === "-" || part.operator === ":+" || part.operator === "+") &&
+              (!part.alternate || part.alternate.parts.every(p => p.kind === "text")) &&
+              (!(part as { replacement?: Word }).replacement || (part as { replacement: Word }).replacement.parts.every(p => p.kind === "text")))
           )
         ) continue;
         if (part.kind === "arithmetic" && !part.expression.error && !part.expression.hasMutation && !part.expression.hasSubscript && isSafeSmiProgram(part.expression) && /^[a-zA-Z0-9_ +*-]+$/.test(part.expression.source)) continue;
@@ -15417,9 +15534,10 @@ export class Runtime {
     const savedPos = rawState.positional;
     this._syncLoopFnCheckDepth++;
     try {
+      const stdIfs = rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n";
       for (let i = 1; i < cmd.words.length; i++) {
         const w = cmd.words[i]!;
-        if (!this.isPureSyncValueWord(w, rawState) || !w.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))) {
+        if (!this.isPureSyncValueWord(w, rawState) || !w.parts.every(p => p.quoted || (stdIfs && p.kind === "arithmetic") || (stdIfs && p.kind === "variable" && ((p.name === this._activePrintfInductionName && !p.indirect && !p.prefixNames && !p.substring && p.operator === undefined && getArraySelector(p) === undefined) || p.length)) || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))) {
           return undefined;
         }
       }

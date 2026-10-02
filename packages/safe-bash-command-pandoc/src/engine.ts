@@ -79,7 +79,7 @@ class Session extends ExecutionContext {
     const allowed =
       this.operation === "read" ? ["from"] : this.operation === "write" ? ["to", "wrap", "lossy", "standalone", "metadata", "rawContent"] : ["from", "to", "wrap", "lossy", "standalone", "metadata", "rawContent"];
     if (this.operation === "convert") allowed.push("filters");
-    if (this.operation !== "read") allowed.push("columns", "numberSections", "toc", "ascii", "stripComments", "shiftHeadingLevelBy", "eol", "yes", "failIfWarnings", "metadataJson", "metadataFiles", "resourcePath", "extractMedia", "pdfPage", "pdfFonts", "pdf", "epub", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "fileScope", "sandbox");
+    if (this.operation !== "read") allowed.push("columns", "numberSections", "toc", "ascii", "stripComments", "shiftHeadingLevelBy", "eol", "yes", "failIfWarnings", "metadataJson", "metadataFiles", "resourcePath", "extractMedia", "pdfPage", "pdfFonts", "pdf", "epub", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "fileScope", "sandbox", "embedResources");
     if (Object.keys(options).some((key) => !allowed.includes(key)))
       this.fail("E_OPTION", "Unknown or inapplicable option");
     if ("wrap" in options && !["none", "auto", "preserve"].includes(options.wrap!)) this.fail("E_OPTION", "Invalid wrap policy");

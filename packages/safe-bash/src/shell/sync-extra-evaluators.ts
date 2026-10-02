@@ -2,7 +2,12 @@
 import { wcDisplayWidth } from "../commands/wc-width.js";
 
 import { byteLength as utf8ByteLength } from "../byte-encoding.js";
-import { PublicDiagnostic } from "../diagnostics.js";
+import { PublicDiagnostic, publicDiagnosticMessage } from "../diagnostics.js";
+import { writeDiagnostic } from "../escaping.js";
+import { validateExitCode } from "../contracts/index.js";
+import { cloneGetoptsState } from "./getopts.js";
+import { nextCodePointOffset } from "./string-operations.js";
+import { interruptible, tryCompileTrimGlobToRegex, tryCompileFixedGlobToRegex } from "./runtime.js";
 import { invocationScope, type InvocationScope } from "./cleanup.js";
 import { ACCESS_MODES, basename, dirname, normalizePath, resolvePath } from "../contracts/index.js";
 import type { ByteSink, ByteSource, CommandContext, CommandRegistry, CommandResult, FileSystem } from "../contracts/index.js";
@@ -118,6 +123,7 @@ import { stateMonitor } from "./arrays/state.js";
 import type { Budget, State } from "./runtime.js";
 import { Runtime } from "./runtime.js";
 
+const resolvedVoid = Promise.resolve();
 const createFmtEngine = (...args: any[]) => syncCommandEvaluators.createFmtEngine!(...args);
 const parseFmtArguments = (...args: any[]) => syncCommandEvaluators.parseFmtArguments!(...args);
 const evalSyncCal = (...args: any[]) => syncCommandEvaluators.evalSyncCal?.(...args);

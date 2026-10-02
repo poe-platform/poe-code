@@ -176,6 +176,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
       "commands/media/index.browser": path.join(directory, "src/commands/media/index.ts"),
       "commands/docx/index.browser": path.join(directory, "src/commands/docx/index.ts"),
       "commands/bc/index.browser": path.join(directory, "src/commands/bc/index.ts"),
+      "commands/pptx/index.browser": path.join(directory, "src/commands/pptx/index.ts"),
       "commands/python/index.browser": path.join(directory, "src/commands/python/index.ts"),
       "commands/python/executor.browser": path.join(directory, "src/commands/python/executor.ts"),
       "commands/python/worker.browser": path.join(directory, "src/commands/python/worker.ts"),

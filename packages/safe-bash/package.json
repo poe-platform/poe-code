@@ -2081,6 +2081,8 @@
     },
     "./commands/pptx": {
       "types": "./dist/commands/pptx/index.d.ts",
+      "workerd": "./dist/commands/pptx/index.browser.js",
+      "browser": "./dist/commands/pptx/index.browser.js",
       "import": "./dist/commands/pptx/index.js"
     },
     "./commands/python": {

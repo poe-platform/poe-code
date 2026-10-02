@@ -400,6 +400,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "commands/media/index.browser": path.join(root, "packages/safe-bash/src/commands/media/index.ts"),
     "commands/docx/index.browser": path.join(root, "packages/safe-bash/src/commands/docx/index.ts"),
     "commands/bc/index.browser": path.join(root, "packages/safe-bash/src/commands/bc/index.ts"),
+    "commands/pptx/index.browser": path.join(root, "packages/safe-bash/src/commands/pptx/index.ts"),
     "commands/python/index.browser": path.join(root, "packages/safe-bash/src/commands/python/index.ts"),
     "commands/python/executor.browser": path.join(root, "packages/safe-bash/src/commands/python/executor.ts"),
     "commands/python/worker.browser": path.join(root, "packages/safe-bash/src/commands/python/worker.ts"),

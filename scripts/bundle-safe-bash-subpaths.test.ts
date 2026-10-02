@@ -23,6 +23,7 @@ const families = {
   "time-env": "TimeEnv", tree: "Tree", file: "File", column: "Column",
   "html-to-markdown": "HtmlToMarkdown", du: "Du", expr: "Expr", "apply-patch": "ApplyPatch",
   chmod: "Chmod", stat: "Stat", mktemp: "Mktemp",
+  docx: "Docx", pptx: "Pptx",
 };
 
 test("each command subpath resolves and executes in workerd without Node compatibility", async () => {
@@ -38,23 +39,32 @@ test("each command subpath resolves and executes in workerd without Node compati
   }
   const core = path.join(root, "packages/safe-fs/src/core.ts");
   entryPoints.filesystem = core;
+  entryPoints.presentation = path.join(root, "packages/pptx/src/index.ts");
   const result = await build({ ...recipe, entryPoints, sourcemap: false, external: [], alias: {
     ...recipe.alias, "@poe-code/safe-fs/runtime-core": core, "@poe-code/safe-fs/core": core, "@poe-code/safe-fs": core,
+    "@poe-code/safe-fs/xml": core,
     "poe-code/safe-fs/core": core, "poe-code/safe-fs": core,
     "@poe-code/xml-ast": path.join(root, "packages/xml-ast/src/index.ts"),
   } });
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports).filter(item => item.external)).toEqual([]);
+  expect(Object.keys(result.metafile!.inputs).filter(input => input.includes("/toolcraft-design/"))).toEqual([]);
   const imports = Object.keys(families).map((name, index) => `import * as family${index} from "./commands/${name}/index.browser.js";`).join("\n");
   const factories = Object.values(families).map((name, index) => `family${index}.create${name}Commands`).join(",");
   const script = `${imports}
     import { createMemoryFileSystem } from "./filesystem.js";
+    import { Presentation } from "./presentation.js";
     export default { async fetch() {
+      const deckFs = createMemoryFileSystem();
+      await deckFs.writeFile("/deck.pptx", await (await Presentation()).save());
+      const deck = await Presentation({ path: "/deck.pptx", fs: deckFs });
+      if (deck.slide_width.inches !== 10) throw new Error("Portable presentation round trip failed");
       const results = [];
       for (const factory of [${factories}]) {
         const command = factory()[0];
         const fs = createMemoryFileSystem();
         await fs.writeFile("/input", new TextEncoder().encode("portable\\n"));
         const argumentsByCommand = {
+          docx: ["--help"], pptx: ["--help"],
           chmod: ["600", "/input"], stat: ["/input"], mktemp: ["/probe.XXXXXX"],
           tar: ["-cf", "-", "input"], paste: ["/input"], tac: ["/input"],
           seq: ["1", "3"], split: ["/input", "/part"], date: ["+%Y"],

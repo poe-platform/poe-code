@@ -6,9 +6,9 @@ import { expect, it } from 'vitest';
 // together with compatibility evidence. These source pins do not admit an image
 // or qualify installed provider enforcement. Executable and SDK pins are separate.
 it.each([
-  ['Dockerfile', '2c8ccffeaa2d4674f59475bd419230d219209e94318259c6b177f9479d9f7b01'],
+  ['Dockerfile', '1ba66d2b2c407f3248c958fb19e9badfcaea6de7da2293d62af82b31e61fa5f8'],
   ['container-lock.json', 'e8afb6612b0544a7ebed537c46af8040f0a96f6bb297a78d82b32afa07571044'],
-  ['container.mjs', '96b660ba3e07b5caa54c1f7ef4035a33831b66c45102840f26093615e29d56af'],
+  ['container.mjs', '82cad7d23dedd6a8af6e4e7ebe0288e23b31ae7ee6723254df77c8068d940396'],
   ['inventory.mjs', '86b6b95e7bfb3cfa0f8fc1e2fe43e8d3f8fe3db8c734bc0675c4921669765b14'],
   ['start.mjs', '5cb9f1c2d7673694aa63cc72e4d82d0d24d552d49f14c1a4a1211d2eacc841d8'],
 ])('requires reviewed deployment identity for %s', async (name, digest) => {

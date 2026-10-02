@@ -44,7 +44,7 @@ const modern = JSON.parse(readFileSync(new URL("./shuf-modern.snapshot.json", im
   cases: Record<string, { status: number; stdout: string; stderr: string; files?: Record<string, string> }>;
 };
 
-// Issue 942 targets modern GNU semantics rather than the historical 8.30 oracle.
+// Count validation and random-source admission target modern GNU semantics.
 for (const args of [["-n", "1abc"], ["--head-count=0foo"], ["-n", "1 "], ["-n", "18446744073709551616x"]]) test(`shuf rejects trailing count garbage: ${args.join(" ")}`, async () => {
   const result = await shuffle([...args, "-e", "a", "b"]);
   assert.equal(result.exitCode, 1);

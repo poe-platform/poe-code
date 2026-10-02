@@ -1,6 +1,6 @@
 {
   "oracle": "shuf (GNU coreutils) 9.12",
-  "reason": "Issue 942: strict counts and random-source admission supersede GNU 8.30 expectations.",
+  "reason": "Strict counts and random-source admission supersede GNU 8.30 expectations.",
   "cases": {
     "native:27": {
       "status": 1,

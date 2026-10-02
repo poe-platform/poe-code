@@ -4,7 +4,7 @@ Generate random permutations of input lines, argument lists, or integer ranges.
 
 Resource limits default to `Infinity`; configure finite quotas through `limits: { maxInputBytes, maxSampleSize }` when needed. Legacy top-level options remain supported; nested limits take precedence.
 
-Shuffle lines from files, standard input, `-e` arguments, or `-i LO-HI` numeric ranges with optional `-n COUNT`, `-r` replacement, and `--random-source` determinism.
+Shuffle lines from files, standard input, `-e` arguments, or `-i LO-HI` numeric ranges with optional `-n COUNT`, `-r` replacement, and `--random-source` determinism. Count validation and random-source opening follow GNU coreutils 9.12: trailing count garbage is rejected, non-repeat `-n0` skips the random source, and single-record selections still open it. Explicit counts at or above UINT64_MAX are accepted; repeating empty input reports `no lines to repeat`.
 
 ## Features
 

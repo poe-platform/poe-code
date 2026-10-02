@@ -3679,3 +3679,45 @@ JSON parsing, scalar/array/dynamic validation and defaults. It is not comparable
 to earlier no-I/O helper workloads and does not pass the performance gate.
 Full parameter/handler execution, generated help, transports, standalone
 packaging and platform/resource/reentrancy/default-swap gates remain open.
+
+Preset loading is independently verified on remote main at ed612f5713. Its
+Release workflow 37076564082 is pending validate/build with no runner steps at
+the latest check. No publication is inferred from remote delivery.
+
+### CLI parameter-resolution checkpoint
+
+The native parameter resolver now composes dynamic argv parsing, scalar options,
+positionals, presets, whole-root defaults, missing-value callbacks, actual field
+prompts and variant constraints. Rust controls precedence, admission, continuation
+transitions, default/prompt selection and scalar/dynamic validation. Host loops
+retain iterator closing and reference await boundaries. Node preserves live
+collection callbacks, property access, callback receivers and shallow context
+snapshots. Existing native SDK validation-error policy is reused. No external
+dependencies, public CLI entry point or default implementation changed.
+
+Five missing-module failures preceded implementation. Twelve final differential
+tests compare the extracted reference with native dependencies, including
+positional/option/preset precedence, cloned root defaults, explicit dynamic
+overrides, combined/truncated diagnostics, missing-value callbacks and choices,
+synthetic variant roots, getters/receivers, cancellation, arbitrary rejections,
+iterator closing and concurrent continuations. A composed test constructs a
+command tree, prepares aliases/dynamic arguments, dispatches through Commander
+and resolves the complete parameter object. Actual in-memory terminal input
+separately verifies selector and required-branch prompts, output and raw-mode
+transitions; its screenshot was inspected. This does not qualify full handler
+execution, rich generated help or the complete public CLI suites.
+
+The maintained package route passes 263 native Node tests, Rust tests, 1,762
+reference/parity cases in 50 files and declarations. Rust/binding and scoped JS
+lint pass. Packed runtime consumers resolve parameters, clone defaults and run
+actual branch prompts. Packed declarations compile with types: [], while contract
+declarations still resolve from the checkout; standalone packaging remains open.
+
+After local checks finished, five alternating warmed Node 22.23.2 ARM64 rounds
+of 500 parameter resolutions, retaining 32 results, measured native/reference
+medians of 596.109/24.975 microseconds (23.87 times slower). The fixture includes
+scalar options, a dynamic record override, cloned JSON/default fields and active
+variant validation, with no file read or interactive wait. An earlier measurement
+overlapped local checks and was superseded. No performance/default-swap gate
+passed. Full execution/fixture runtime, generated help, transports and complete
+platform/resource/reentrancy/standalone-packaging qualification remain open.

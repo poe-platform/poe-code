@@ -20,6 +20,7 @@ pub mod cli_fields;
 pub mod cli_help_fields;
 pub mod cli_json_errors;
 pub mod cli_options;
+pub mod cli_params;
 pub mod cli_policy;
 pub mod cli_prepare;
 pub mod cli_presets;

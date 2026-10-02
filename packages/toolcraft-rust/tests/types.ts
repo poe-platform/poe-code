@@ -282,3 +282,10 @@ cliPresets.loadPresetValues([],[],17);
 // @ts-expect-error scalar presets do not accept object schemas
 cliPresets.validatePresetScalarValue({},{kind:"object",shape:{}},"value","config.json");
 void [presetValues,presetScalar,presetField];
+
+import * as cliParams from "../dist/cli-params.js";
+const resolvedParams:Promise<Record<string,unknown>>=cliParams.resolveParams([],[],[],[],{},[],"kebab",undefined,false,undefined,{});
+const checkedErrors:void=cliParams.throwValidationErrors([{path:"name",message:"Required"}]);
+// @ts-expect-error the missing-parameter context requires output and TTY metadata
+cliParams.resolveParams([],[],[],[],{},[],"kebab",undefined,false,{commandPath:"run",params:{}},{});
+void [resolvedParams,checkedErrors];

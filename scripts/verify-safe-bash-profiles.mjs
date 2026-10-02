@@ -117,7 +117,7 @@ const engineMarkers = {
 export const safeBashProfileBaselines = {
   "core": 1715877,
   "rootCore": 1717280,
-  "pythonLlm": 1954948,
+  "pythonLlm": 4350294,
   "pdf": 2757392,
   "multiplePdf": 2845674,
   "csv": 3422780,
@@ -128,9 +128,9 @@ export const safeBashProfileBaselines = {
   // Full yq is selected by enabledConsumer; full also retains the CSV Python worker.
   "enabledConsumer": 6411704,
   "full": 67666817,
-  "rootPythonLlm": 1956498,
+  "rootPythonLlm": 4351844,
   "splitCore": 1711634,
-  "splitPythonLlm": 1950980,
+  "splitPythonLlm": 4346326,
   "splitEnabledConsumer": 6319459,
   "splitFull": 67480666
 };

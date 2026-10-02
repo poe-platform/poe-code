@@ -12,10 +12,10 @@ import { setArraySelector } from "./arrays/syntax.js";
 import { ValueScope } from "./value-state.js";
 import { wcDisplayWidth } from "../commands/wc-width.js";
 
-import { byteLength as utf8ByteLength } from "../byte-encoding.js";
+import { byteLength, byteLength as utf8ByteLength } from "../byte-encoding.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { invocationScope, type InvocationScope } from "./cleanup.js";
-import { ACCESS_MODES, basename, dirname, normalizePath, resolvePath, writeText } from "../contracts/index.js";
+import { ACCESS_MODES, basename, dirname, isPathWithin, normalizePath, relativePath, resolvePath, writeText } from "../contracts/index.js";
 import type { ByteSink, ByteSource, CommandContext, CommandRegistry, CommandResult, FileSystem } from "../contracts/index.js";
 import { shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue } from "../contracts/value.js";
@@ -34,7 +34,7 @@ import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
 import type { StringWork } from "./string-operations.js";
 import { defaultMkdirExecutors, defaultRmExecutors } from "../commands/filesystem.js";
 import { defaultPredicateExecutors, tryFastPredicate } from "../commands/predicates.js";
-import { pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "../commands/internal.js";
+import { escapeBytes, pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "../commands/internal.js";
 import { scanGetoptsSync } from "./getopts.js";
 import { variablePresence } from "../commands/variable-presence.js";
 import { getArrayAssignment, getArraySelector, literalIndex, numericIndex, stringIndex } from "./arrays/syntax.js";
@@ -19046,7 +19046,8 @@ const syncExtraRuntimeMethods = {
               if (awkRes !== undefined) fileRes = renderLines(awkRes);
             } else if (w0Plain === "grep" || w0Plain === "egrep" || w0Plain === "fgrep") {
               const grepArgs = w0Plain === "grep" ? opArgs : [w0Plain === "egrep" ? "-E" : "-F", ...opArgs];
-              const grepRes = this.evalSyncGrep(rawLines, grepArgs, Boolean(rawState.errexit)) ?? this.evalSyncGrepWithFiles(allArgs, w0Plain === "egrep", w0Plain === "fgrep", Boolean(rawState.errexit), rawState.cwd, hasSingleHereStringRedir || hasSingleStdinRedir ? rawLines : undefined);
+              const grepFileLabel = !hasSingleHereStringRedir && !hasSingleStdinRedir ? fileArg : "(standard input)";
+              const grepRes = this.evalSyncGrep(rawLines, grepArgs, Boolean(rawState.errexit), grepFileLabel) ?? this.evalSyncGrepWithFiles(allArgs, w0Plain === "egrep", w0Plain === "fgrep", Boolean(rawState.errexit), rawState.cwd, hasSingleHereStringRedir || hasSingleStdinRedir ? rawLines : undefined);
               if (grepRes !== undefined) {
                 exitStatus = grepRes.status;
                 fileRes = renderLines(grepRes.lines);
@@ -21278,7 +21279,7 @@ const syncExtraRuntimeMethods = {
         const printOnMatch = flags.includes("p");
         const anchorStart = pat.startsWith("^");
         const core1 = anchorStart ? pat.slice(1) : pat;
-        const anchorEnd = core1.endsWith("$");
+        const anchorEnd = /(?:^|[^\\])(?:\\\\)*\$/.test(core1);
         const core = anchorEnd ? core1.slice(0, -1) : core1;
         if (core.length === 0 && !anchorStart && !anchorEnd) return undefined;
         // POSIX-only brackets and leftmost-longest alternatives belong to sed's matcher.
@@ -21295,7 +21296,7 @@ const syncExtraRuntimeMethods = {
           core === "[a-zA-Z]+" || core === "[a-zA-Z0-9_]+"
         ) {
           reSrc = core.replace("[[:space:]]", "[ \\t\\r\\n\\v\\f]");
-        } else if (isExtended && /^[a-zA-Z0-9_ :;,=.+*?|()^\-[\]]+$/.test(core) && !/\([^)]*[+*][^)]*\)[+*?]/.test(core)) {
+        } else if (isExtended && /^(?:[a-zA-Z0-9_ :;,=.+*?|()^\-[\]]|\\[.$^*+?()|[\]\\])+$/.test(core) && !/\([^)]*[+*][^)]*\)[+*?]/.test(core)) {
           try {
             const expanded = core.replace(/\[:space:\]/g, " \\t\\r\\n\\v\\f");
             void new RegExp(expanded);
@@ -21434,6 +21435,10 @@ const syncExtraRuntimeMethods = {
         }
       }
       if (quitNow) {
+        if (appendedAfter.length > 0) {
+          out.push(...appendedAfter);
+          lastInputIndex = -1;
+        }
         break;
       }
       if (!deleted && !quiet) {
@@ -21448,7 +21453,7 @@ const syncExtraRuntimeMethods = {
     return { lines: out, lastInputIndex };
   }
 ,
-  evalSyncGrep(this: any, rawLines: readonly string[], opArgs: readonly string[], errexit: boolean): { lines: string[]; status: number } | undefined {
+  evalSyncGrep(this: any, rawLines: readonly string[], opArgs: readonly string[], errexit: boolean, fileLabel = "(standard input)"): { lines: string[]; status: number } | undefined {
     if (errexit || opArgs.length < 1 || opArgs.length > 24) return undefined;
     let mode = "";
     let maxCount = Infinity;
@@ -21614,7 +21619,7 @@ const syncExtraRuntimeMethods = {
           if (isQuiet) return { lines: [], status: 0 };
           for (let mi = 0; mi < matches.length; mi++) {
             if (matches[mi]!.length === 0) continue;
-            const pfx = (isWithFilename ? "(standard input):" : "") + (isLineNumber ? `${li + 1}:` : "");
+            const pfx = (isWithFilename ? `${fileLabel}:` : "") + (isLineNumber ? `${li + 1}:` : "");
             out.push(pfx + matches[mi]!);
           }
           if (matchedLines >= maxCount) break;
@@ -21693,7 +21698,7 @@ const syncExtraRuntimeMethods = {
       if (isInvert ? !hit : hit) {
         if (isQuiet) return { lines: [], status: 0 };
         matchedIndices.push(li);
-        const pfx = (isWithFilename ? "(standard input):" : "") + (isLineNumber ? `${li + 1}:` : "");
+        const pfx = (isWithFilename ? `${fileLabel}:` : "") + (isLineNumber ? `${li + 1}:` : "");
         matched.push(pfx + l);
         if (matched.length >= maxCount) break;
       }
@@ -21711,10 +21716,13 @@ const syncExtraRuntimeMethods = {
         const from = prevEnd !== -1 ? Math.max(start, prevEnd + 1) : start;
         for (let k = from; k <= end; k++) {
           const lineText = rawLines[k]!;
+          const isMatch = matchedSet.has(k);
+          const sep = isMatch ? ":" : "-";
+          const fPrefix = isWithFilename ? `${fileLabel}${sep}` : "";
           if (isLineNumber) {
-            outCtx.push(`${k + 1}${matchedSet.has(k) ? ":" : "-"}${lineText}`);
+            outCtx.push(`${fPrefix}${k + 1}${sep}${lineText}`);
           } else {
-            outCtx.push(lineText);
+            outCtx.push(`${fPrefix}${lineText}`);
           }
         }
         prevEnd = Math.max(prevEnd, end);
@@ -21722,7 +21730,7 @@ const syncExtraRuntimeMethods = {
       return { lines: outCtx, status: 0 };
     }
     return {
-      lines: isCount ? [String(matched.length)] : matched,
+      lines: isCount ? [(isWithFilename ? `${fileLabel}:` : "") + String(matched.length)] : matched,
       status: matched.length > 0 ? 0 : 1,
     };
   }

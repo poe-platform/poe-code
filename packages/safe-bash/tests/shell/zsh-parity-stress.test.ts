@@ -1,3 +1,4 @@
+import { agentCommands } from "../../src/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
@@ -465,4 +466,36 @@ test("30. synchronous loop conditional [[ str == \"quoted*meta?chars[1]\" ]] esc
   `);
   assert.equal(res.exitCode, 0);
   assert.equal(res.stdout, "10\n");
+});
+
+test("31. sync command substitution sed append-before-quit, escaped dollar, grep -H prefixes, echo -e, non-ASCII printf width, and realpath --relative-to", async () => {
+  const { shell } = setup();
+  shell.use(agentCommands());
+  const res = await shell.exec(String.raw`
+    mkdir -p /tmp/sb_sync_31/a/b/c
+    printf "alpha 10 foo\nbeta 2 bar\ngamma 100 baz\nbeta 2 bar\n" > /tmp/sb_sync_31/data.txt
+    printf "a\nb\nc\n" > /tmp/sb_sync_31/abc.txt
+    printf "foo\$bar\nfoo\$\n" > /tmp/sb_sync_31/dollar.txt
+    s1=$(sed -e "1a AFTER" -e "1q" /tmp/sb_sync_31/data.txt)
+    s2=$(sed -n -e "1a AFTER" -e "1q" /tmp/sb_sync_31/data.txt)
+    s3=$(sed "s/foo\\\$/REPL/" /tmp/sb_sync_31/dollar.txt)
+    s4=$(sed -E "s/foo\\\$/REPL/" /tmp/sb_sync_31/dollar.txt)
+    g1=$(grep -H -n "beta" /tmp/sb_sync_31/data.txt)
+    g2=$(grep -H -c "beta" /tmp/sb_sync_31/data.txt)
+    g3=$(grep -H -n -C 1 "b" /tmp/sb_sync_31/abc.txt)
+    e1=$(echo -e "line1\nline2\ttab\cignored")
+    p1=$(printf "%6s\n" "é")
+    r1=$(realpath --relative-to=/tmp/sb_sync_31/a /tmp/sb_sync_31/a/b/c)
+    r2=$(realpath --relative-base=/tmp/sb_sync_31/a /tmp/sb_sync_31/a/b/c)
+    printf "<%s><%s><%s><%s><%s><%s><%s><%s><%s><%s><%s>\n" "$s1" "$s2" "$s3" "$s4" "$g1" "$g2" "$g3" "$e1" "$p1" "$r1" "$r2"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(
+    res.stdout,
+    "<alpha 10 foo\nAFTER><AFTER><REPLbar\nREPL><REPLbar\nREPL>" +
+    "</tmp/sb_sync_31/data.txt:2:beta 2 bar\n/tmp/sb_sync_31/data.txt:4:beta 2 bar>" +
+    "</tmp/sb_sync_31/data.txt:2>" +
+    "</tmp/sb_sync_31/abc.txt-1-a\n/tmp/sb_sync_31/abc.txt:2:b\n/tmp/sb_sync_31/abc.txt-3-c>" +
+    "<line1\nline2\ttab><    é><b/c><b/c>\n"
+  );
 });

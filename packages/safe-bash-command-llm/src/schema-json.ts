@@ -74,7 +74,9 @@ function numberText(raw: string): string {
 
 /** Render admitted stored JSON with Python json.dumps(indent=2) semantics.
  * Output is chunked; the selected schema remains a budgeted control value. */
-export async function renderSchemaJson(text: string, emit: (text: string) => Promise<void>, signal: AbortSignal): Promise<void> {
+export async function renderSchemaJson(text: string, emit: (text: string) => Promise<void>, signal: AbortSignal, options: {indent?: number | null; linePrefix?: string; trailingNewline?: boolean} = {}): Promise<void> {
+  const indent = options.indent === undefined ? 2 : options.indent;
+  const prefix = options.linePrefix ?? '';
   const root = parse(text, signal);
   let output = '';
   const append = async (text: string): Promise<void> => {
@@ -102,13 +104,37 @@ export async function renderSchemaJson(text: string, emit: (text: string) => Pro
     await append(object ? '{' : '[');
     let count = 0;
     for (const [key, child] of value.entries()) {
-      await append((count++ ? ',\n' : '\n') + '  '.repeat(depth + 1));
+      await append(indent === null ? (count++ ? ', ' : '') : (count++ ? ',\n' : '\n') + prefix + ' '.repeat(indent * (depth + 1)));
       if (object) { await string(String(key)); await append(': '); }
       await render(child, depth + 1);
     }
-    if (count) await append('\n' + '  '.repeat(depth));
+    if (count && indent !== null) await append('\n' + prefix + ' '.repeat(indent * depth));
     await append(object ? '}' : ']');
   };
-  await render(root, 0); await append('\n');
+  await append(prefix); await render(root, 0);
+  if (options.trailingNewline !== false) await append('\n');
   if (output) await emit(output);
+}
+
+
+/** Pinned concise schema summary, retaining source property order. */
+export function summarizeSchemaJson(text: string, signal: AbortSignal): string {
+  const summarize = (value: Value | undefined): string => {
+    signal.throwIfAborted();
+    if (!(value instanceof Map)) return '';
+    if (value.get('type') === 'array') return summarize(value.get('items'));
+    if (value.get('type') !== 'object') return '';
+    const properties = value.get('properties');
+    if (properties === undefined) return '{}';
+    if (!(properties instanceof Map)) throw new TypeError('Invalid schema properties');
+    const parts: string[] = [];
+    for (const [name, property] of properties) {
+      if (!(property instanceof Map)) throw new TypeError('Invalid schema property');
+      const type = property.get('type');
+      parts.push(type === 'array' ? name + ': [' + summarize(property.get('items')) + ']' :
+        type === 'object' ? name + ': ' + summarize(property) : name);
+    }
+    return '{' + parts.join(', ') + '}';
+  };
+  return summarize(parse(text, signal));
 }

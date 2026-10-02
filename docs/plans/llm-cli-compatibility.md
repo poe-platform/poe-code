@@ -55,7 +55,7 @@ Reference: Simon Willison `llm==0.27.1`, inspected through its Click command tre
 | `llm prompt` | prompt; -s/--system; -m/--model; -d/--database; -q/--query (repeatable); -a/--attachment (repeatable); --at/--attachment-type ×2 (repeatable); -T/--tool (repeatable); --functions (repeatable); --td/--tools-debug; --ta/--tools-approve; --cl/--chain-limit; -o/--option ×2 (repeatable); --schema; --schema-multi; -f/--fragment (repeatable); --sf/--system-fragment (repeatable); -t/--template; -p/--param ×2 (repeatable); --no-stream; -n/--no-log; --log; -c/--continue; --cid/--conversation; --key; --save; --async; -u/--usage; -x/--extract; --xl/--extract-last | incomplete |
 | `llm schemas` |  | incomplete |
 | `llm schemas dsl` | input; --multi | incomplete |
-| `llm schemas list` | -p/--path; -d/--database; -q/--query (repeatable); --full; --json; --nl | incomplete |
+| `llm schemas list` | -p/--path; -d/--database; -q/--query (repeatable); --full; --json; --nl | native usage listing, default group, summary/JSON outputs and public visitor delivered; 27 pinned CLI fixtures and bounded field reads qualified; external host remains incomplete |
 | `llm schemas show` | schema_id; -p/--path; -d/--database | native display, migration/WAL recovery and pinned output/error fixtures delivered; scalar JSON, large integers, float formatting and ordered keys qualified against pinned CLI; external-host qualification incomplete |
 | `llm similar` | collection; id; -i/--input; -c/--content; --binary; -n/--number; -p/--plain; -d/--database; --prefix | incomplete |
 | `llm templates` |  | incomplete |

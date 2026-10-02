@@ -20,3 +20,5 @@ export { getLlmModelAliases, selectLlmModelByQuery } from "./model-selection.js"
 
 export { createLlmSpool } from "./retained-spool.js";
 export { openAiChatOptions } from "./openai-chat-options.js";
+
+export { visitLlmStoredSchemas, type LlmStoredSchemaUsage } from './history-schema-list.js';

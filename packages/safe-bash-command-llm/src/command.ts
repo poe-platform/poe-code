@@ -13,6 +13,7 @@ import { createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, vali
 import { createLlmSpool } from "./retained-spool.js";
 import { findExtractedRange } from "./extract-range.js";
 import { fileSource } from "./file-source.js";
+import { listSchemaCommand, schemasHelp } from "./schema-list-command.js";
 import { showSchemaCommand } from "./schema-show-command.js";
 import { parseLlmSchemaDsl } from "./schemas.js";
 import { resolveLlmSchemaInput } from "./schema-input.js";
@@ -181,6 +182,16 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       argumentText(1);
       await emitText(modelsGroupHelp);
       return { exitCode: 0 };
+    }
+    if (argumentsValue.args[0] === "schemas" && !["show", "dsl"].includes(argumentsValue.args[1] ?? "")) {
+      const grouped = argumentsValue.args[1] !== "list";
+      const start = grouped ? 1 : 2;
+      const tokens = Array.from({length: argumentsValue.args.length - start}, (_, index) => argumentText(index + start));
+      if (grouped && tokens.length === 1 && ["--help", "-h"].includes(tokens[0]!)) {
+        await emitText(schemasHelp); return {exitCode: 0};
+      }
+      const maxBytes = Math.min(limits?.maxConfigurationBytes ?? Infinity,input.remaining(true));
+      return {exitCode: await listSchemaCommand({...context,signal},tokens,emitText,text => writeDiagnostic(context.stderr,text,signal),{maxBytes,admitBytes:admitBuffered})};
     }
     if (argumentsValue.args[0] === "schemas" && argumentsValue.args[1] === "show") {
       const tokens = Array.from({ length: argumentsValue.args.length - 2 }, (_, index) => argumentText(index + 2));

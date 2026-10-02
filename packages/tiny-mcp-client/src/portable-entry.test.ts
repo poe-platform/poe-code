@@ -13,6 +13,6 @@ it.each(["workerd", "browser"])("bundles HTTP directly under %s without Node shi
       "tiny-stdio-mcp-server/headers": "./packages/tiny-stdio-mcp-server/src/headers.ts"
     }
   });
-  expect(Object.keys(result.metafile!.inputs).some(path => path.endsWith("stdio-transport.ts"))).toBe(false);
+  expect(Object.keys(result.metafile!.inputs).some(path => path.endsWith("spawn.node.ts") || path.endsWith("stream.node.ts"))).toBe(false);
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
 });

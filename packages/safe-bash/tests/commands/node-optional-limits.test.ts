@@ -3,6 +3,36 @@ import { test } from 'node:test';
 import { Shell } from '../../src/core.js';
 import { MemoryFileSystem } from '../../src/fs/memory/index.js';
 import { NODE_PROFILE, nodeCommands } from '../../src/commands/node/index.js';
+import { FsError } from '../../src/contracts/errors.js';
+import { fsDescriptor } from '../../src/commands/node/host.js';
+
+test('Node transports branded filesystem errors without inspecting accessors or extra symbols', () => {
+  const error = new FsError('ENOENT', { path: '/missing', syscall: 'readFile' });
+  let reads = 0;
+  const unexpectedRead = () => { reads++; throw new Error('unexpected accessor'); };
+  Object.defineProperty(error, 'stack', { get: unexpectedRead });
+  Object.defineProperty(error, 'cause', { get: unexpectedRead });
+  assert.deepEqual(fsDescriptor(error), {
+    name: 'FsError', message: error.message, code: 'ENOENT', errno: error.errno,
+    path: '/missing', syscall: 'readFile', dest: null,
+  });
+  Object.defineProperty(error, Symbol('extra'), { value: true });
+  assert.equal(fsDescriptor(error), undefined);
+  const accessor = new FsError('ENOENT');
+  Object.defineProperty(accessor, 'path', { get: unexpectedRead });
+  assert.equal(fsDescriptor(accessor), undefined);
+  const branded = { name: 'FsError', message: 'missing', code: 'ENOENT', errno: -2 };
+  Object.defineProperty(branded, Symbol.for('@poe-code/safe-fs.FsError'), { get: unexpectedRead });
+  assert.equal(fsDescriptor(branded), undefined);
+  const foreign = { name: 'FsError', message: 'missing', code: 'ENOENT', errno: -2 };
+  assert.equal(fsDescriptor(foreign), undefined);
+  Object.defineProperty(foreign, Symbol.for('@poe-code/safe-fs.FsError'), { value: true });
+  assert.deepEqual(fsDescriptor(foreign), { ...foreign, path: null, syscall: null, dest: null });
+  const mutable = { ...foreign, [Symbol.for('@poe-code/safe-fs.FsError')]: true };
+  assert.equal(fsDescriptor(mutable), undefined);
+  assert.equal(fsDescriptor(new Proxy(error, { get: unexpectedRead, getPrototypeOf: unexpectedRead })), undefined);
+  assert.equal(reads, 0);
+});
 
 for (const limits of [undefined, { outputBytes: 200 }]) test(`provider Node has independent optional budgets: ${JSON.stringify(limits)}`, async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ ...limits === undefined ? {} : { limits }, grants: { stdoutWrite: true }, provider: {

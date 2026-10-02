@@ -4,7 +4,7 @@ import { yieldTurn } from "../../contracts/yield.js";
 import { escapeText } from "../../escaping.js";
 import { types } from "node:util";
 import type { CommandContext } from "../../contracts/command.js";
-import { isErrnoCode, isFsError } from "../../contracts/errors.js";
+import { FsError, isErrnoCode } from "../../contracts/errors.js";
 import type { ByteSink } from "../../contracts/io.js";
 import { NodeProfileError, nodeLimits, type NodeLimits, type NodeGrants, type NodeGuestError, type NodeHostRequest, type NodeHostResponse, type NodeReason } from "./types.js";
 import { integer, NodeLedger, record, strings, text } from "./values.js";
@@ -18,20 +18,21 @@ export function fsDescriptor(error: unknown, limits: NodeLimits = nodeLimits): N
       if (types.isProxy(prototype) || ++depth > 16) return undefined;
       prototype = Object.getPrototypeOf(prototype) as object | null;
     }
-    if (!isFsError(error)) return undefined;
+    let branded = false;
     const fields: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
     for (const key of Reflect.ownKeys(error)) {
       if (key === "stack" || key === "cause") continue;
+      const descriptor = Object.getOwnPropertyDescriptor(error, key);
+      if (!descriptor || !Object.hasOwn(descriptor, "value")) return undefined;
       if (key === Symbol.for("@poe-code/safe-fs.FsError")) {
-        const brand = Object.getOwnPropertyDescriptor(error, key);
-        if (!brand || !Object.hasOwn(brand, "value") || brand.value !== true) return undefined;
+        if (descriptor.value !== true || descriptor.writable || descriptor.configurable || descriptor.enumerable) return undefined;
+        branded = true;
         continue;
       }
       if (typeof key !== "string" || !["name", "message", "code", "errno", "path", "syscall", "dest"].includes(key)) return undefined;
-      const descriptor = Object.getOwnPropertyDescriptor(error, key);
-      if (!descriptor || !Object.hasOwn(descriptor, "value")) return undefined;
       fields[key] = descriptor.value;
     }
+    if (!branded && !Function.prototype[Symbol.hasInstance].call(FsError, error)) return undefined;
     const value = record(fields, ["name", "message", "code", "errno"], ["path", "syscall", "dest"]);
     if (value.name !== "FsError" || !isErrnoCode(value.code) || typeof value.errno !== "number" || !Number.isSafeInteger(value.errno) || value.errno >= 0) return undefined;
     const optional = (name: string): string | null => value[name] === undefined ? null : text(value[name], limits.errorBytes, "FS error field");

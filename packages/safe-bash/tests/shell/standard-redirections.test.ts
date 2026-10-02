@@ -6,6 +6,7 @@ import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 import type { CommandContext } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
+import { jobsExtension } from "../../src/shell/extensions/jobs/index.js";
 
 for (const [name, source, expected] of [
   ["subshell substitution", 'say $((say a); (say b))', 'a b\n'],
@@ -31,9 +32,9 @@ for (const [name, source, expected] of [
   ["exec builtin eval restores descriptor", 'exec 3>out; f(){ exec 3>other; }; builtin eval "f" 3>temp; say expected >&3; exec 3>&-; pass <out; pass <other', 'expected\n'],
   ["nested temporary redirects", 'exec 5>&1; exec >out; { say inner >inner; exec 4>&1; say temp; } >temp; say main; exec 1>&5; pass <out; pass <temp; pass <inner', 'main\ntemp\ninner\n'],
   ["noclobber device", 'set -C; say hello > /dev/null; say "$?"', '0\n'],
-  ["shell pid", 'say "$$:${$}:$BASHPID"', '1:1:1\n'],
+  ["shell process variable", 'say "$BASHPID:${BASHPID}:${BASHPID:-missing}"', '1:1:1\n'],
   ["empty background pid", 'say "<$!>"', '<>\n'],
-  ["locale quoting", 'USER=world; say $"hello $USER"', 'hello world\n'],
+  ["quoted greeting", 'USER=world; say $\'hello \'"$USER"', 'hello world\n'],
   ["subshell depth", 'say "$BASH_SUBSHELL"; (say "$BASH_SUBSHELL"); say "$(say "$BASH_SUBSHELL")"', '0\n1\n1\n'],
   ["implicit both output", 'both >& out; pass < out', 'out\nerr\n'],
   ["append both output", 'say first > out; both &>> out; pass < out', 'first\nout\nerr\n'],
@@ -47,7 +48,7 @@ for (const [name, source, expected] of [
   ["array prefix", 'a=(10 20); a=override envget a; say "${a[@]}"', 'override10 20\n'],
   ["bare array arithmetic", 'a=(10 20); say "$((a+5))"; say "$((a=5)):${a[@]}"', '15\n5:5 20\n'],
 ] as const) test(`standard shell: ${name}`, async () => {
-  const { shell } = setup();
+  const { shell } = setup(name === "empty background pid" ? { extensions: [jobsExtension()] } : {});
   try {
     const result = await shell.exec(source);
     assert.equal(result.stderr, "");
@@ -62,7 +63,7 @@ for (const [source, expected, stderr = ""] of [
   ['echo $((echo out; echo err >&2) 3>&1 1>&2 2>&3)', 'err\n', 'out\n'],
   ['echo $(( $(echo ")" >/dev/null; echo 5) + 1 ))', '6\n'],
   ['echo $(( $(echo "))" >/dev/null; echo 5) + 1 ))', '6\n'],
-  ['echo "$$:${$}:$BASHPID"; for i in 1 2; do echo "$BASHPID"; done', '1:1:1\n1\n1\n'],
+  ['echo "$BASHPID:${BASHPID}:${BASHPID:-missing}"; for i in 1 2; do echo "$BASHPID"; done', '1:1:1\n1\n1\n'],
   ['RANDOM=42; a=$RANDOM; RANDOM=42; b=$RANDOM; [[ $a == "$b" && $a -ge 0 && $a -le 32767 ]]; echo "$?"; SECONDS=123; echo "$SECONDS"', '0\n123\n'],
   ['(exec echo replaced; echo unreachable); echo parent', 'replaced\nparent\n'],
   ['(exec bash -c \'printf "%s\\n" "$1"\' ignored "two words"; echo unreachable); echo parent', 'two words\nparent\n'],

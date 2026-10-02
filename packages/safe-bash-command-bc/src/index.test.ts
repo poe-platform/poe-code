@@ -477,3 +477,36 @@ for (const program of ["2; missing(0)", 'print "prefix"; 1/0', 'define f() { pri
     assert.notEqual(result.stderr, "");
   });
 }
+
+
+test("bc scale exceeds the former default ceiling unless explicitly limited", async () => {
+  const program = "scale=3000; 1/3";
+  assert.deepEqual(await evaluate(program, {}, [], { env: { BC_LINE_LENGTH: "0" } }), {
+    exitCode: 0, stdout: `.${"3".repeat(3000)}\n`, stderr: "",
+  });
+  for (const options of [{ maxScale: 2000 }, { limits: { maxScale: 2000 } }]) {
+    const result = await evaluate(program, options);
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /scale \(3000\) out of bounds/);
+  }
+});
+
+test("bc work exceeds the former default ceiling unless explicitly limited", async () => {
+  const program = "for (i=0; i<40000; i++) { x+=1; }; x";
+  assert.deepEqual(await evaluate(program), { exitCode: 0, stdout: "40000\n", stderr: "" });
+  for (const options of [{ maxSteps: 250000 }, { limits: { maxSteps: 250000 } }]) {
+    const result = await evaluate(program, options);
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /maximum step limit \(250000\)/);
+  }
+});
+
+test("bc input exceeds the former default ceiling unless explicitly limited", async () => {
+  const program = `/*${" ".repeat(8 * 1024 * 1024)}*/1+2`;
+  assert.deepEqual(await evaluate(program), { exitCode: 0, stdout: "3\n", stderr: "" });
+  for (const options of [{ maxInputBytes: 8 * 1024 * 1024 }, { limits: { maxInputBytes: 8 * 1024 * 1024 } }]) {
+    const result = await evaluate(program, options);
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stderr, "bc: input exceeds maximum size (8388608 bytes)\n");
+  }
+});

@@ -508,3 +508,6 @@ pub use dashboard_output::*;
 
 mod dashboard_context;
 pub use dashboard_context::*;
+
+mod dashboard_stats;
+pub use dashboard_stats::*;

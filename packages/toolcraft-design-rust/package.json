@@ -435,6 +435,10 @@
     "./dashboard/components/context-pane": {
       "types": "./dist/dashboard-context.d.ts",
       "import": "./dist/dashboard-context.js"
+    },
+    "./dashboard/components/stats-pane": {
+      "types": "./dist/dashboard-stats.d.ts",
+      "import": "./dist/dashboard-stats.js"
     }
   },
   "scripts": {

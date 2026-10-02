@@ -1658,3 +1658,31 @@ a 40×12 rectangle with no-op drawing measured 792.26 µs native / 14.10 µs ref
 (56.20× slower). No performance gate passed. Stats/run-view rendering, dashboard
 lifecycle and snapshots, explorer, batching, private-class nominal identity and
 broader API/resource/reentrancy/platform qualification remain open.
+
+### Dashboard stats checkpoint
+
+`dashboard/components/stats-pane` now exports `statsToLines`, `renderStatsPane`,
+`renderCompactStatsPane`, `formatNumber` and the existing native `formatElapsed`.
+Rust owns status styles, grapheme clipping, column alignment, action wrapping,
+short-pane priorities and compact summary composition. The host retains observable
+objects, array operations, live numeric/string coercion and Intl number formatting.
+The output, elapsed, theme and terminal-width dependencies use existing native
+implementations.
+
+Three missing-export tests failed before implementation. Differential checks cover
+all status tones, number edge cases, Unicode/ANSI actions, narrow/short rectangles,
+progress totals, getter order, drawing receivers, reentrancy and thrown identity.
+Maintained checks pass 302 native host tests, 1,335 selected original design tests
+(including all nine stats-context tests), 13 prompt-wrapper tests, 78 selected
+shared dashboard tests and 14 composer tests. Rust/binding and scoped JS lint,
+bidirectional structural types, packed runtime rejecting external imports and
+standalone declarations with `types: []` pass. Inspected screenshots verify full,
+three-row and one-row sidebars plus compact one/two-row summaries. No dependencies
+or default integration changes.
+
+Five warmed alternating 100-call Node 22 ARM64 rounds with a current action and
+32-column stats measured native/reference medians of 1,299.09/90.68 µs for line
+formatting (14.33× slower), 1,797.54/103.90 µs for a 13-row no-op sidebar (17.30×)
+and 505.95/76.19 µs for a two-row no-op compact pane (6.64×). No performance gate
+passed. Run-view rendering, dashboard lifecycle and snapshots, explorer, batching,
+private-class nominal identity and broader replacement qualification remain open.

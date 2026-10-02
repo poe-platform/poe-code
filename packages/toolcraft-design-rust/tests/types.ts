@@ -786,3 +786,22 @@ const contextPublicNative: NativeContextPublic = null as unknown as OriginalCont
 // @ts-expect-error The buffer parameter retains the separate private-class identity gate.
 const contextNominalOriginal: typeof originalDashboardContext.renderContextPane = dashboardContext.renderContextPane;
 void [contextKeys,contextPublicOriginal,contextPublicNative,contextNominalOriginal];
+
+import * as dashboardStats from "toolcraft-design-rust/dashboard/components/stats-pane";
+import type * as originalDashboardStats from "toolcraft-design/dashboard/components/stats-pane";
+const statsKeys: SameKeys<typeof dashboardStats,typeof originalDashboardStats> = true;
+const statsLinesOriginal: typeof originalDashboardStats.statsToLines = dashboardStats.statsToLines;
+const statsLinesNative: typeof dashboardStats.statsToLines = null as unknown as typeof originalDashboardStats.statsToLines;
+const statsNumberOriginal: typeof originalDashboardStats.formatNumber = dashboardStats.formatNumber;
+const statsNumberNative: typeof dashboardStats.formatNumber = null as unknown as typeof originalDashboardStats.formatNumber;
+type NativeStatsPublic = (buffer: BufferPublic<dashboardBuffer.ScreenBuffer>,rect: Parameters<typeof dashboardStats.renderStatsPane>[1],stats: Parameters<typeof dashboardStats.renderStatsPane>[2]) => void;
+type OriginalStatsPublic = (buffer: BufferPublic<originalDashboardBuffer.ScreenBuffer>,rect: Parameters<typeof originalDashboardStats.renderStatsPane>[1],stats: Parameters<typeof originalDashboardStats.renderStatsPane>[2]) => void;
+const statsPublicOriginal: OriginalStatsPublic = null as unknown as NativeStatsPublic;
+const statsPublicNative: NativeStatsPublic = null as unknown as OriginalStatsPublic;
+type NativeCompactStatsPublic = (buffer: BufferPublic<dashboardBuffer.ScreenBuffer>,rect: Parameters<typeof dashboardStats.renderCompactStatsPane>[1],stats: Parameters<typeof dashboardStats.renderCompactStatsPane>[2]) => ReturnType<typeof dashboardStats.renderCompactStatsPane>;
+type OriginalCompactStatsPublic = (buffer: BufferPublic<originalDashboardBuffer.ScreenBuffer>,rect: Parameters<typeof originalDashboardStats.renderCompactStatsPane>[1],stats: Parameters<typeof originalDashboardStats.renderCompactStatsPane>[2]) => ReturnType<typeof originalDashboardStats.renderCompactStatsPane>;
+const statsCompactOriginal: OriginalCompactStatsPublic = null as unknown as NativeCompactStatsPublic;
+const statsCompactNative: NativeCompactStatsPublic = null as unknown as OriginalCompactStatsPublic;
+// @ts-expect-error The buffer parameter retains the separate private-class identity gate.
+const statsNominalOriginal: typeof originalDashboardStats.renderStatsPane = dashboardStats.renderStatsPane;
+void [statsKeys,statsLinesOriginal,statsLinesNative,statsNumberOriginal,statsNumberNative,statsPublicOriginal,statsPublicNative,statsCompactOriginal,statsCompactNative,statsNominalOriginal];

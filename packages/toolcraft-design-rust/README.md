@@ -134,6 +134,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `dashboard/ansi` | Parse styled terminal lines and restore caller-supplied base styles |
 | `dashboard/components/output-pane` | Wrap styled output, scroll visible rows and render concise conversations |
 | `dashboard/components/context-pane` | Reserve plan and queue context while leaving room for live output |
+| `dashboard/components/stats-pane` | Format metrics and keep task progress visible in compact or sidebar layouts |
 | `createNotices`, `renderNotice` | Retain bounded, expiring notices and render status markers |
 | `createMetric` | Retain rolling samples and render compact sparklines |
 | `renderProgressGroup` | Show clipped progress rows with known or indeterminate completion |
@@ -532,3 +533,9 @@ a performance-driven replacement.
 wraps the active plan and queued labels into at most half the available rows.
 It signals clipped text or hidden queued plans and returns the remaining output
 rectangle. Empty context and collapsed panes return the original rectangle.
+
+`statsToLines(stats, width)` from `dashboard/components/stats-pane` produces
+aligned status, progress, elapsed-time and token rows. `renderStatsPane` draws
+these in a sidebar, prioritizing task progress and current action when space is
+short; `renderCompactStatsPane` presents a one- or two-row summary. The subpath
+also exposes `formatNumber` and the shared `formatElapsed` function.

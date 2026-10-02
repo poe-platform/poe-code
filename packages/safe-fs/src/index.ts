@@ -1,4 +1,5 @@
 export * from "./contracts/index.js";
+export * from "./bridge/index.js";
 export { ObjectAuthority } from "./fs/object-authority.js";
 export * from "./python/index.js";
 export { openFileDescriptor } from "./fs/descriptor.js";

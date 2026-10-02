@@ -131,3 +131,28 @@ for (const flags of [['-d', '2'], ['-d2'], ['--max-depth=2'], ['--maxdepth', '2'
     assert.equal(parse([...flags, 'match', '/d']).maxDepth, 2);
   });
 }
+
+for (const entrypoint of ['sync', 'staged', 'async'] as const) {
+  for (const removedEntry of [false, true]) {
+    test(`walker uses UTF-8 ordering for UTF-16-sorted entries (${entrypoint}, removed=${removedEntry})`, async () => {
+      const fs = createMemoryFileSystem();
+      await fs.mkdir('/d');
+      if (removedEntry) await fs.writeFile('/d/removed', new Uint8Array());
+      for (const name of ['🚀.txt', 'ﬀ.txt']) await fs.writeFile(`/d/${name}`, new Uint8Array());
+      if (removedEntry) await fs.rm('/d/removed');
+      const context = { fs, cwd: '/', signal: new AbortController().signal, _fastMemoryBackingFs: fs } as unknown as CommandContext;
+      const makeWalker = () => new Walker(context, parse(['--files', '/d']), new Limits(context, {}), async error => { throw error; }, {} as RegexSession);
+      const visited: string[] = [];
+      const visit = (target: { path: string }) => { visited.push(target.path); return true; };
+      if (entrypoint === 'async') await makeWalker().walkTargets(['/d'], false, visit);
+      else {
+        const result = makeWalker().walkTargetsSyncOrAsync(['/d'], false, visit, entrypoint === 'sync');
+        if (result === null) {
+          assert.deepEqual(visited, [], 'unsorted speculative traversal must defer before emitting files');
+          await makeWalker().walkTargets(['/d'], false, visit);
+        } else await result;
+      }
+      assert.deepEqual(visited, ['/d/ﬀ.txt', '/d/🚀.txt']);
+    });
+  }
+}

@@ -66,7 +66,7 @@ let sortCheckSorted = true;
 let sortCheckHasSymlink = false;
 function sortCheckVisitor(v: { readonly type: string }, k: string): void {
   if (v.type === "symlink") sortCheckHasSymlink = true;
-  if (sortCheckPrevKey > k) sortCheckSorted = false;
+  if (compareEntryNames(sortCheckPrevKey, k) > 0) sortCheckSorted = false;
   sortCheckPrevKey = k;
 }
 function checkMemDirEntries(map: ReadonlyMap<string, { readonly type: string }>, checkSymlink: boolean): boolean {
@@ -103,12 +103,12 @@ function isFastEntriesMapSorted(map: { readonly size?: number; readonly _next?: 
   const keys = map._keys;
   if (len === undefined || keys === undefined || map.size !== len) return false;
   for (let i = 1; i < len; i++) {
-    if (keys[i - 1]! > keys[i]!) return false;
+    if (compareEntryNames(keys[i - 1]!, keys[i]!) > 0) return false;
   }
   return true;
 }
 function stageMemDirVisitor(v: { readonly type: string }, k: string): void {
-  if (sortCheckPrevKey > k) sortCheckSorted = false;
+  if (compareEntryNames(sortCheckPrevKey, k) > 0) sortCheckSorted = false;
   sortCheckPrevKey = k;
   syncWalkBuffer[syncWalkBufferTop++] = k;
   syncWalkBuffer[syncWalkBufferTop++] = v;
@@ -540,7 +540,7 @@ export class Walker {
       let isSorted = true;
       let prevKey = "";
       for (const k of memDirEntries.keys()) {
-        if (prevKey > k) { isSorted = false; break; }
+        if (compareEntryNames(prevKey, k) > 0) { isSorted = false; break; }
         prevKey = k;
       }
       if (isSorted) {

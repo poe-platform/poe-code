@@ -1507,3 +1507,19 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     ].join("\n"));
     assert.equal(res.stdout.trim(), "2,10|2|HELLO| 1:hi|hello,world|1.0K");
   });
+
+  test("82. sync numfmt --to iec, nl -w, xxd -p -c, and fold -w do not misinterpret option arguments as existing files", async () => {
+    const { shell: bash } = setup();
+    bash.use(agentCommands());
+    const res = await bash.exec([
+      "echo \"999999\" > /iec",
+      "echo \"wrong\" > /2",
+      "nf_arg=$(numfmt --to iec 2048)",
+      "nf_in=$({ numfmt --to iec; } <<< \"1024\")",
+      "nl_in=$({ nl -w 2 -s \":\"; } <<< \"ok\")",
+      "xx_in=$({ xxd -p -c 2; } <<< \"ab\")",
+      "fd_in=$({ fold -w 2; } <<< \"abcd\")",
+      "echo \"$nf_arg|$nf_in|$nl_in|$xx_in|$fd_in\"",
+    ].join("\n"));
+    assert.equal(res.stdout.trim(), "2.0K|1.0K| 1:ok|6162\n0a|ab\ncd");
+  });

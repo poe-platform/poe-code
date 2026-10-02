@@ -19451,15 +19451,7 @@ const syncExtraRuntimeMethods = {
           if (esOut !== undefined) cjLines = esOut.endsWith("\n") ? esOut.slice(0, -1).split("\n") : (esOut ? [esOut] : []);
         }
         else if (w0Plain === "numfmt") {
-          const optArgs: string[] = [];
-          const posArgs: string[] = [];
-          let lit = false;
-          for (const a of allArgs) {
-            if (lit || !a.startsWith("-") || /^-[0-9.]/.test(a)) posArgs.push(a);
-            else if (a === "--") lit = true;
-            else optArgs.push(a);
-          }
-          if (posArgs.length > 0) cjLines = this.evalSyncNumfmt(posArgs, optArgs);
+          cjLines = this.evalSyncNumfmt(undefined, allArgs);
         }
         if (cjLines !== undefined) {
           let fileRes = cjLines.length === 0 ? "" : cjLines.join("\n") + "\n";
@@ -19609,29 +19601,29 @@ const syncExtraRuntimeMethods = {
             } else if (w0Plain === "base64") {
               fileRes = this.evalSyncBase64(view, opArgs);
             } else if (w0Plain === "nl") {
-              const nlRes = (!hasSingleHereStringRedir && !hasSingleStdinRedir && opArgs.some(a => !a.startsWith("-"))) ? this.evalSyncNl([], allArgs, rawState.cwd) : this.evalSyncNl(rawLines, opArgs, rawState.cwd);
+              const nlRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncNl(rawLines, opArgs, rawState.cwd) : this.evalSyncNl(undefined, allArgs, rawState.cwd);
               if (nlRes !== undefined) fileRes = renderLines(nlRes);
             } else if (w0Plain === "paste") {
               const pasteRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncPaste(rawLines, opArgs, rawState.cwd) : this.evalSyncPaste(undefined, allArgs, rawState.cwd);
               if (pasteRes !== undefined) fileRes = renderLines(pasteRes);
             } else if (w0Plain === "comm") {
-              const commRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncComm(rawLines, opArgs, rawState.cwd) : this.evalSyncComm([], allArgs, rawState.cwd);
+              const commRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncComm(rawLines, opArgs, rawState.cwd) : this.evalSyncComm(undefined, allArgs, rawState.cwd);
               if (commRes !== undefined) fileRes = renderLines(commRes);
             } else if (w0Plain === "join") {
-              const joinRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncJoin(rawLines, opArgs, rawState.cwd) : this.evalSyncJoin([], allArgs, rawState.cwd);
+              const joinRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncJoin(rawLines, opArgs, rawState.cwd) : this.evalSyncJoin(undefined, allArgs, rawState.cwd);
               if (joinRes !== undefined) fileRes = renderLines(joinRes);
             } else if (w0Plain === "numfmt") {
-              const nmRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncNumfmt(rawLines, opArgs) : this.evalSyncNumfmt([], allArgs);
+              const nmRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncNumfmt(rawLines, opArgs) : this.evalSyncNumfmt(undefined, allArgs);
               if (nmRes !== undefined) fileRes = renderLines(nmRes);
             } else if (w0Plain === "bc") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const bcRes = (hasSingleHereStringRedir || hasSingleStdinRedir)
                 ? this.evalSyncBc(fileStr.trim(), opArgs, readFile)
-                : this.evalSyncBc("", allArgs, readFile);
+                : this.evalSyncBc(undefined, allArgs, readFile);
               if (bcRes !== undefined) fileRes = renderLines(bcRes);
             } else if (w0Plain === "xxd") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = this.evalSyncXxd(view, opArgs, readFile, !hasSingleHereStringRedir && !hasSingleStdinRedir ? fileArg : undefined);
+              fileRes = this.evalSyncXxd((hasSingleStdinRedir || hasSingleHereStringRedir) ? view : undefined, (hasSingleStdinRedir || hasSingleHereStringRedir) ? opArgs : allArgs, readFile, !hasSingleHereStringRedir && !hasSingleStdinRedir ? fileArg : undefined);
             } else if (w0Plain === "od") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = this.evalSyncOd((hasSingleStdinRedir || hasSingleHereStringRedir) ? view : undefined, (hasSingleStdinRedir || hasSingleHereStringRedir) ? opArgs : allArgs, readFile);
@@ -19904,25 +19896,25 @@ const syncExtraRuntimeMethods = {
             } else if (w0Plain === "envsubst" && (hasSingleHereStringRedir || hasSingleStdinRedir)) {
               fileRes = this.evalSyncEnvsubst(fileStr, opArgs, rawState);
             } else if (w0Plain === "column") {
-              const colRes = this.evalSyncColumn(rawLines, opArgs) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("column", allArgs, rawState.cwd, false) : undefined);
+              const colRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncColumn(rawLines, opArgs) : this.evalSyncMultiFileText("column", allArgs, rawState.cwd, false);
               if (colRes !== undefined) fileRes = renderLines(colRes);
             } else if (w0Plain === "fold") {
-              const foldRes = this.evalSyncFold(rawLines, opArgs) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("fold", allArgs, rawState.cwd, false) : undefined);
+              const foldRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncFold(rawLines, opArgs) : this.evalSyncMultiFileText("fold", allArgs, rawState.cwd, false);
               if (foldRes !== undefined) fileRes = renderLines(foldRes);
             } else if (w0Plain === "expand") {
-              const expRes = this.evalSyncExpand(rawLines, opArgs) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("expand", allArgs, rawState.cwd, false) : undefined);
+              const expRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncExpand(rawLines, opArgs) : this.evalSyncMultiFileText("expand", allArgs, rawState.cwd, false);
               if (expRes !== undefined) fileRes = renderLines(expRes);
             } else if (w0Plain === "unexpand") {
-              const unexpRes = this.evalSyncUnexpand(rawLines, opArgs) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("unexpand", allArgs, rawState.cwd, false) : undefined);
+              const unexpRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncUnexpand(rawLines, opArgs) : this.evalSyncMultiFileText("unexpand", allArgs, rawState.cwd, false);
               if (unexpRes !== undefined) fileRes = renderLines(unexpRes);
             } else if (w0Plain === "factor") {
-              const facRes = this.evalSyncFactor(rawLines, opArgs);
+              const facRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncFactor(rawLines, opArgs) : this.evalSyncFactor(undefined, allArgs);
               if (facRes !== undefined) fileRes = renderLines(facRes);
             } else if (w0Plain === "tsort") {
-              const tsRes = this.evalSyncTsort(rawLines, opArgs, rawState.cwd);
+              const tsRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncTsort(rawLines, opArgs, rawState.cwd) : this.evalSyncTsort(undefined, allArgs, rawState.cwd);
               if (tsRes !== undefined) fileRes = renderLines(tsRes);
             } else if (w0Plain === "strings") {
-              const strRes = this.evalSyncStrings(rawLines, opArgs) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("strings", allArgs, rawState.cwd, false) : undefined);
+              const strRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncStrings(rawLines, opArgs) : this.evalSyncMultiFileText("strings", allArgs, rawState.cwd, false);
               if (strRes !== undefined) fileRes = renderLines(strRes);
             }
             if (fileRes !== undefined && !fileRes.includes("\0")) {
@@ -25625,7 +25617,10 @@ const syncExtraRuntimeMethods = {
         const v = a === "--to-unit" ? opArgs[++i]! : a.slice(10);
         if (!/^[1-9][0-9]{0,8}$/.test(v)) return undefined;
         toUnit = Number(v);
-      } else if (!a.startsWith("-") && (!rawLines || rawLines.length === 0)) {
+      } else if (a === "--" && (!rawLines || rawLines.length === 0)) {
+        if (i + 1 < opArgs.length) rawLines = opArgs.slice(i + 1);
+        break;
+      } else if ((!a.startsWith("-") || /^-[0-9.]/.test(a)) && (!rawLines || rawLines.length === 0)) {
         rawLines = opArgs.slice(i);
         break;
       } else {

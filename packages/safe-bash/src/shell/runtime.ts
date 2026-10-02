@@ -1082,7 +1082,7 @@ export interface IO {
   } | undefined;
   descriptors?: ReadonlyMap<number, Descriptor> | undefined;
 }
-interface Descriptor {
+export interface Descriptor {
   closed?: boolean;
   readonly input?: ByteSource;
   readonly stdinIsDefault?: boolean;
@@ -2597,7 +2597,7 @@ export function getOrParseSingleEvalUnit(source: string, unitLocale: boolean, pa
 }
 export class Runtime {
   [key: string]: any;
-  private persistentIO(state: State, io: IO): IO {
+  persistentIO(state: State, io: IO): IO {
     const frame = execDescriptorFrames.get(stateMonitor(state)?.raw ?? state);
     if (!frame || io.execFrame === frame && io.execVersion === frame.version) return io;
     const changed = new Map([...frame.descriptors].filter(([number]) => io.execFrame !== frame || (frame.revisions.get(number) ?? 0) > (io.execVersion ?? 0)));
@@ -2620,9 +2620,9 @@ export class Runtime {
   declare readonly cancellationDepth: number;
   declare readonly cancellationMaxDepth: number;
   declare readonly outcomeFrame: RuntimeOutcomeFrame | undefined;
-  declare private readonly inputProfile: Pick<FileSystem, "readStream" | "capabilities">;
-  declare private readonly sourceFs: FileSystem;
-  declare private readonly backingFs: FileSystem;
+  declare readonly inputProfile: Pick<FileSystem, "readStream" | "capabilities">;
+  declare readonly sourceFs: FileSystem;
+  declare readonly backingFs: FileSystem;
   declare private readonly _rawFs: FileSystem;
   declare private _fs: FileSystem | undefined;
   declare private _contextFsMask: number;
@@ -2631,26 +2631,26 @@ export class Runtime {
   declare private _redirectFsMask: number;
   declare private _redirectFs: FileSystem | undefined;
   declare readonly _isMemoryBackingFs: boolean;
-  declare private _fileWrites: Map<string, Promise<void>> | undefined;
-  declare private _outputFiles: Map<string, OutputFile> | undefined;
+  declare _fileWrites: Map<string, Promise<void>> | undefined;
+  declare _outputFiles: Map<string, OutputFile> | undefined;
   declare private _syncArithState: State | undefined;
   declare private _canFastMemoryRedirect: boolean | undefined;
   declare private _syncArithRawVars: Record<string, string | undefined> | undefined;
   declare private _syncArithLine: number | undefined;
-  declare private _syncArithRawWriteOnly: boolean;
-  declare private _syncArithTouched: Set<string> | undefined;
-  declare private _fastSubPositional: readonly string[] | undefined;
-  declare private _syncReturnDepth: number;
-  declare private _syncPendingReturnStatus: number | undefined;
+  declare _syncArithRawWriteOnly: boolean;
+  declare _syncArithTouched: Set<string> | undefined;
+  declare _fastSubPositional: readonly string[] | undefined;
+  declare _syncReturnDepth: number;
+  declare _syncPendingReturnStatus: number | undefined;
   declare private _syncArithRefs: ArithmeticReferences | undefined;
   declare private _syncReadOnlyArithRefs: ArithmeticReferences | undefined;
-  declare private _activeSyncLoopAssignedVars: Set<string> | undefined;
-  declare private _activeSyncArrayLoopWords: WeakSet<Word> | undefined;
-  declare private _activeSyncLoopHasFileMutations: boolean;
-  declare private _inSyncLoopPreflight: boolean;
-  declare private _activeSyncLoopIO: IO | undefined;
-  declare private _syncLoopInvariantSubMap: WeakMap<Extract<WordPart, { kind: "substitution" }>, { text: string; outBytes: number; exitStatus: number; dynamic?: boolean }> | undefined;
-  declare private _syncLoopHasStaticInvSub: boolean;
+  declare _activeSyncLoopAssignedVars: Set<string> | undefined;
+  declare _activeSyncArrayLoopWords: WeakSet<Word> | undefined;
+  declare _activeSyncLoopHasFileMutations: boolean;
+  declare _inSyncLoopPreflight: boolean;
+  declare _activeSyncLoopIO: IO | undefined;
+  declare _syncLoopInvariantSubMap: WeakMap<Extract<WordPart, { kind: "substitution" }>, { text: string; outBytes: number; exitStatus: number; dynamic?: boolean }> | undefined;
+  declare _syncLoopHasStaticInvSub: boolean;
   constructor( fs: FileSystem, commands: CommandRegistry, middleware: readonly Middleware[], budget: Budget, signal: AbortSignal = budget.signal, fileWrites: Map<string, Promise<void>> | undefined = undefined, outputFiles: Map<string, OutputFile> | undefined = undefined, commandSignal: AbortSignal = signal, cancellation: CancellationBoundary, cancellationState: RuntimeCancellationState, cancellationOwner: CancellationAdmissionOwner | undefined, cancellationDepth: number, cancellationMaxDepth: number, outcomeFrame: RuntimeOutcomeFrame | undefined = undefined, inputProfile: Pick<FileSystem, "readStream" | "capabilities"> = fs, private readonly reuseDefaultContextFs = false, ) {
     this.commands = commands;
     this.middleware = middleware;
@@ -2718,7 +2718,7 @@ export class Runtime {
     }
     return this._fs;
   }
-  private getContextFsFor(umask: number, sig: AbortSignal): FileSystem {
+  getContextFsFor(umask: number, sig: AbortSignal): FileSystem {
     if (this._contextFs && this._contextFsMask === umask && this._contextFsSignal === sig) {
       return this._contextFs;
     }
@@ -2761,8 +2761,8 @@ export class Runtime {
       throw new NounsetDiagnosticFailure(reason);
     }
   }
-  private extractSimpleErePattern(_pattern: Word, _state?: State): { text: string; literal: boolean; isVar?: string } | undefined { return undefined; }
-  private trySyncEre(_subject: string, _pattern: Word, _state: State, _ignoreYield = false): number | undefined { return undefined; }
+  extractSimpleErePattern(_pattern: Word, _state?: State): { text: string; literal: boolean; isVar?: string } | undefined { return undefined; }
+  trySyncEre(_subject: string, _pattern: Word, _state: State, _ignoreYield = false): number | undefined { return undefined; }
   private tryFastExecuteCommandSync(_command: Command, _state: State, _originalIO: IO, _fileShortcut: boolean, _terminal: any, _diagnosticLine: number): number | Promise<number> | undefined { return undefined; }
   private async ere(subject: string, pattern: Word, state: State, io: IO): Promise<number> {
     const scope = io[invocationScope];
@@ -2918,7 +2918,7 @@ export class Runtime {
     return {
       depth, maxDepth: this.cancellationMaxDepth, resourceLimit: Runtime.cancellationResourceLimit(this.budget, depth, this.cancellationMaxDepth, controls), };
   }
-  private observeRuntimeReturn<Value>( rawReturn: Value | PromiseLike<Value>, frame: RuntimeOutcomeFrame, downstream: () => Promise<CommandResult> | undefined = () => undefined, ): Promise<Value> {
+  observeRuntimeReturn<Value>( rawReturn: Value | PromiseLike<Value>, frame: RuntimeOutcomeFrame, downstream: () => Promise<CommandResult> | undefined = () => undefined, ): Promise<Value> {
     const raw = rawReturn as unknown;
     return Promise.resolve(rawReturn).then( value => {
         if (raw !== downstream()) frame.report = undefined;
@@ -2988,7 +2988,7 @@ export class Runtime {
       return selection.outcome.value;});
     return publicPromise;
   }
-  private clearOutcomeReport(): void {
+  clearOutcomeReport(): void {
     if (this.outcomeFrame) this.outcomeFrame.report = undefined;
   }
   async diagnostic(io: IO, text: ShellValue): Promise<void> {
@@ -3058,7 +3058,7 @@ export class Runtime {
     if (shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
     return value;
   }
-  private syncGetopts(state: State): void {
+  syncGetopts(state: State): void {
     state.getopts ??= cloneGetoptsBinding(state);
     const value = state.variables.OPTIND;
     if (value === undefined) {
@@ -3096,11 +3096,11 @@ export class Runtime {
   }
   private createSyncArithRefs(_readOnly = false): ArithmeticReferences { throw new Error("unavailable"); }
   private syncShellArithmetic(_program: ArithmeticProgram, _state: State, _line: number | undefined): bigint { return 0n; }
-  private syncShellArithmeticNonZero(_program: ArithmeticProgram, _state: State, _line: number | undefined): boolean | undefined { return undefined; }
+  syncShellArithmeticNonZero(_program: ArithmeticProgram, _state: State, _line: number | undefined): boolean | undefined { return undefined; }
   private canSyncArithmeticOperands(_tree: ArithmeticProgram["tree"], _state: State, _line?: number, _depth = 0): boolean { return false; }
-  private canSyncArithmeticWithoutFault(_tree: ArithmeticProgram["tree"], _state: State, _line?: number, _depth = 0): boolean { return false; }
-  private canSyncPatternWordParts(_word: Word, _rawState: State): boolean { return false; }
-  private tryBuildSyncPatternWord(_word: Word, _rawState: State, _io: IO, _diagnosticLine?: number): string | undefined { return undefined; }
+  canSyncArithmeticWithoutFault(_tree: ArithmeticProgram["tree"], _state: State, _line?: number, _depth = 0): boolean { return false; }
+  canSyncPatternWordParts(_word: Word, _rawState: State): boolean { return false; }
+  tryBuildSyncPatternWord(_word: Word, _rawState: State, _io: IO, _diagnosticLine?: number): string | undefined { return undefined; }
   private async shellArithmetic(program: ArithmeticProgram, state: State, io: IO, variables?: Record<string, string>): Promise<bigint> {
     if (variables === undefined && this.canSyncArithmeticOperands(program.tree, state, io.diagnosticLine)) {
       const snap = this.budget.parsing.snapshot();
@@ -3270,7 +3270,7 @@ export class Runtime {
     if (name === "_" && state.variables._ === undefined) return state.lastArgument ?? "";
     return state.variables[name];
   }
-  private async variablePresent(state: State, name: string, io: IO): Promise<boolean> {
+  async variablePresent(state: State, name: string, io: IO): Promise<boolean> {
     const simple = this.tryVariablePresentSync(state, name);
     if (simple !== undefined) return simple;
     const suppliedSubscript = name.includes("[");
@@ -3296,12 +3296,12 @@ export class Runtime {
       throw error;
     }
   }
-  private presenceArrayEntries(state: State, name: string): readonly string[] | undefined {
+  presenceArrayEntries(state: State, name: string): readonly string[] | undefined {
     if (name === "DIRSTACK") return [state.cwd, ...state.directoryStack?.entries ?? []];
     if (name === "FUNCNAME" && state.variables.FUNCNAME === undefined && !arrayStore(state)?.get(name)) return state.functionNames ?? [];
     return undefined;
   }
-  private tryVariablePresentSync(_state: State, _name: string): boolean | undefined { return undefined; }
+  tryVariablePresentSync(_state: State, _name: string): boolean | undefined { return undefined; }
   private requireParameter(value: string | undefined, name: string, state: State, io: IO, line?: number): void {
     if (value === undefined && state.nounset) throw new NounsetFailure(`${name}: unbound variable`, io.diagnosticLine ?? line);
   }
@@ -4498,7 +4498,7 @@ export class Runtime {
     }
   }
   trySyncPipeline(..._args: any[]): number | undefined { return undefined; }
-  private setSyncPipeStatusCell(existing: NonNullable<ReturnType<NonNullable<ReturnType<typeof guestArrays>>["get"]>>, status: string): void {
+  setSyncPipeStatusCell(existing: NonNullable<ReturnType<NonNullable<ReturnType<typeof guestArrays>>["get"]>>, status: string): void {
     if (existing.values.size > 1 || existing.maximum !== 0) {
       for (const key of existing.values.keys()) {
         if (key > 0) existing.remove(key);
@@ -6800,7 +6800,7 @@ export class Runtime {
     if (state.profile === "sh" && (specialBuiltinNames.has(name) || state.extensions?.builtins.get(name)?.special)) matches.sort((left, right) => Number(right.kind === "builtin") - Number(left.kind === "builtin"));
     return matches;
   }
-  private hasBuiltinOverride(name: string | undefined): boolean {
+  hasBuiltinOverride(name: string | undefined): boolean {
     if (name !== "true" && name !== "false" && name !== "pwd") return false;
     const definition = this.commands.get(name);
     return definition !== undefined && customRegisteredCommands.has(definition.execute);
@@ -10042,9 +10042,9 @@ export class Runtime {
   async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean, value: ShellValue) => void): Promise<string[]> {
     return (await this.valueWord(word, state, io, split, pattern, hereString, conditionalPattern, regexAppend)).map(shellValueText);
   }
-  private fastValueWord(_word: Word, _state: State, _io: IO, _split: boolean, _pattern: boolean, _hereDocument: boolean, _braces: boolean, _assignmentStart?: number, _overrideDiagnosticLine?: number): ShellValue | undefined { return undefined; }
-  private isPureArgWord(_word: Word, _rawState: State): boolean { return false; }
-  private tryFastPureSubstitution(_part: Extract<WordPart, { kind: "substitution" }>, _state: State, _rawState: State, _io: IO): string | undefined { return undefined; }
+  fastValueWord(_word: Word, _state: State, _io: IO, _split: boolean, _pattern: boolean, _hereDocument: boolean, _braces: boolean, _assignmentStart?: number, _overrideDiagnosticLine?: number): ShellValue | undefined { return undefined; }
+  isPureArgWord(_word: Word, _rawState: State): boolean { return false; }
+  tryFastPureSubstitution(_part: Extract<WordPart, { kind: "substitution" }>, _state: State, _rawState: State, _io: IO): string | undefined { return undefined; }
   private async valueWord(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean, value: ShellValue) => void, hereDocument = false, braces = split && !pattern && !hereString && !hereDocument, assignmentStart?: number, skipFast = false): Promise<ShellValue[]> {
     if (!conditionalPattern && !regexAppend && !skipFast) {
       const fast = this.fastValueWord(word, state, io, split, pattern, hereDocument, braces, assignmentStart);
@@ -10428,12 +10428,12 @@ export class Runtime {
     }
     if (start < bytes.length) yield { value: start === 0 ? value : shellValueFromBytes(bytes.subarray(start), io[valueScope]), separator: false, whitespace: false };
   }
-  private positionalValues(state: State): ShellValue[] {
+  positionalValues(state: State): ShellValue[] {
     const store = stateMonitor(state)?.positionals;
     if (!store || !store.hasObjectValues()) return state.positional.slice();
     return state.positional.map((text, index) => store.get(String(index), text));
   }
-  private replacePositionals(state: State, values: readonly ShellValue[], action?: () => void, initialArg0?: ShellValue): void {
+  replacePositionals(state: State, values: readonly ShellValue[], action?: () => void, initialArg0?: ShellValue): void {
     const publish = action ?? (() => { state.positional = values.map(shellValueText); });
     const store = stateMonitor(state)?.positionals;
     if (store) {

@@ -311,8 +311,8 @@ import { syncCommandEvaluators } from "../commands/internal.js";
 import { compareSyncJqStrings, splitSyncJqExpression } from "./sync-jq-expression.js";
 import { text as awkValueText, compare as awkCompare, inputValue as awkInputValue, numeric as awkNumeric, number as awkNumber, string as awkString } from "../commands/text-programs/awk-values.js";
 import { shellValueByteLength } from "../contracts/value.js";
-import { stateMonitor } from "./arrays/state.js";
-import type { Budget, RootShellState, State } from "./runtime.js";
+import { stateMonitor, type Restoration } from "./arrays/state.js";
+import type { Budget, Descriptor, RootShellState, RuntimeOutcomeFrame, State } from "./runtime.js";
 import { Runtime } from "./runtime.js";
 
 const createFmtEngine = (...args: any[]) => syncCommandEvaluators.createFmtEngine!(...args);
@@ -3640,7 +3640,7 @@ const syncExtraRuntimeMethods = {
         if (c === 0 || c >= 128) { asciiSubj = false; break; }
       }
       if (asciiSubj) {
-        const m = fastAnchoredRe.exec(subject);
+        const m: RegExpExecArray | null = fastAnchoredRe.exec(subject);
         fastMatchValues = m ? Array.from(m, g => g ?? "") : null;
       }
     }
@@ -9199,7 +9199,7 @@ const syncExtraRuntimeMethods = {
         }
         const dynProg = prepareArithmetic(fastSrc, this.budget.parsing);
         if (!dynProg.error && isSafeSmiProgram(dynProg) && this.canSyncArithmeticWithoutFault(dynProg.tree, rawState, diagnosticLine)) {
-          let nonZero: boolean;
+          let nonZero: boolean | undefined;
           try {
             nonZero = this.syncShellArithmeticNonZero(dynProg, rawState, diagnosticLine);
           } catch (err) {
@@ -9216,7 +9216,7 @@ const syncExtraRuntimeMethods = {
         }
       }
       if (!expr.error && isSafeSmiProgram(expr) && this.canSyncArithmeticWithoutFault(expr.tree, rawState, diagnosticLine)) {
-        let nonZero: boolean;
+        let nonZero: boolean | undefined;
         try {
           nonZero = this.syncShellArithmeticNonZero(expr, rawState, diagnosticLine);
         } catch (err) {
@@ -10170,7 +10170,7 @@ const syncExtraRuntimeMethods = {
             rawState.substitutionStatus = 0;
             if (rawState.variables._ !== undefined) delete rawState.variables._;
             rawState.lastArgument = argStrs[argStrs.length - 1]!;
-            let lastNonZero = false;
+            let lastNonZero: boolean | undefined = false;
             for (let pi = 0; pi < progs.length; pi++) {
               lastNonZero = this.syncShellArithmeticNonZero(progs[pi]!, rawState, diagnosticLine);
             }
@@ -26031,7 +26031,7 @@ const syncExtraRuntimeMethods = {
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     return bytes;
   },
-} satisfies ThisType<{ [name: string]: any; budget: Budget; signal: AbortSignal; _fastSubPositional: readonly string[] | undefined }>;
+} satisfies ThisType<Runtime>;
 
 // The methods above receive Runtime instances, including when they pass their
 // receiver to command contexts; the structural type omits Runtime's private members.

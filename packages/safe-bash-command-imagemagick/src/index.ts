@@ -2908,6 +2908,12 @@ function escapeXml(s: string): string {
     .replace(/'/g, "&apos;");
 }
 
+function detachRgbaBuffer(u8: Uint8Array): void {
+  if (u8.byteOffset === 0 && u8.byteLength === u8.buffer.byteLength && typeof (u8.buffer as any).transfer === "function") {
+    try { (u8.buffer as any).transfer(0); } catch {}
+  }
+}
+
 function* blitOverRgbaInPlaceSteps(
   dst: RgbaImage,
   src: RgbaImage,
@@ -5718,75 +5724,164 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     }
     const outSpec = operands[operands.length - 1]!;
     const inPaths = operands.slice(0, -1);
-    const images: RgbaImage[] = [];
-    for (const p of inPaths) {
-        yield;
-        let loadedList: RgbaImage[] | undefined;
-        try {
-            loadedList = (yield* parseInputOperandsSteps(p, files, state, stdinBytes));
+    const fastMetaDims: { width: number; height: number }[] = [];
+    let canStreamTiles = cellW === undefined && cellH === undefined && borderW === 0;
+    if (canStreamTiles) {
+        for (const p of inPaths) {
+            const rawBytes = files.get(p);
+            if (!rawBytes || p.includes("[") || p.includes(":") || rawBytes[0] === 0x47) {
+                canStreamTiles = false;
+                break;
+            }
+            try {
+                const meta = readImageMetadata(rawBytes);
+                if (!meta.width || !meta.height) {
+                    canStreamTiles = false;
+                    break;
+                }
+                fastMetaDims.push({ width: meta.width, height: meta.height });
+            } catch {
+                canStreamTiles = false;
+                break;
+            }
         }
-        catch (err) {
-            return {
-                exitCode: 1,
-                stdout: "",
-                stderr: `montage: improper image header '${p}': ${(err as Error).message}\n`
-            };
+    }
+
+    let canvas: RgbaImage;
+    let anyTransparent = state.background.a < 255 || (borderW > 0 && state.borderColor.a < 255);
+
+    if (canStreamTiles && fastMetaDims.length === inPaths.length) {
+        const n = fastMetaDims.length;
+        const cols = tileCols ?? (tileRows ? Math.ceil(n / tileRows) : Math.ceil(Math.sqrt(n)));
+        const rows = tileRows ?? Math.ceil(n / cols);
+        const maxThumbW = Math.max(0, ...fastMetaDims.map((d) => d.width));
+        const maxThumbH = Math.max(0, ...fastMetaDims.map((d) => d.height));
+        const slotW = maxThumbW + padX * 2;
+        const slotH = maxThumbH + padY * 2;
+        const canvasW = Math.max(1, cols * slotW);
+        const canvasH = Math.max(1, rows * slotH);
+        canvas = (yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background));
+        for (let idx = 0; idx < inPaths.length; idx++) {
+            const col = idx % cols;
+            const row = Math.floor(idx / cols);
+            if (row >= rows) break;
+            const p = inPaths[idx]!;
+            let loadedList: RgbaImage[] | undefined;
+            try {
+                loadedList = (yield* parseInputOperandsSteps(p, files, state, stdinBytes));
+            } catch (err) {
+                detachRgbaBuffer(canvas.data);
+                return {
+                    exitCode: 1,
+                    stdout: "",
+                    stderr: `montage: improper image header '${p}': ${(err as Error).message}\n`
+                };
+            }
+            const im = loadedList?.[0];
+            if (!im) {
+                detachRgbaBuffer(canvas.data);
+                return {
+                    exitCode: 1,
+                    stdout: "",
+                    stderr: `montage: unable to open image '${p}': No such file or directory\n`
+                };
+            }
+            if (!anyTransparent) {
+                for (let k = 3; k < im.data.length; k += 4) {
+                    if (im.data[k]! < 255) { anyTransparent = true; break; }
+                }
+            }
+            const cellX = col * slotW + padX;
+            const cellY = row * slotH + padY;
+            const off = resolveGravityOffset(maxThumbW - im.width, maxThumbH - im.height, state.gravity);
+            yield* blitOverRgbaInPlaceSteps(canvas, im, cellX + off.left, cellY + off.top);
+            detachRgbaBuffer(im.data);
         }
-        if (!loadedList || loadedList.length === 0) {
-            return {
-                exitCode: 1,
-                stdout: "",
-                stderr: `montage: unable to open image '${p}': No such file or directory\n`
-            };
+    } else {
+        const images: RgbaImage[] = [];
+        for (const p of inPaths) {
+            yield;
+            let loadedList: RgbaImage[] | undefined;
+            try {
+                loadedList = (yield* parseInputOperandsSteps(p, files, state, stdinBytes));
+            }
+            catch (err) {
+                return {
+                    exitCode: 1,
+                    stdout: "",
+                    stderr: `montage: improper image header '${p}': ${(err as Error).message}\n`
+                };
+            }
+            if (!loadedList || loadedList.length === 0) {
+                return {
+                    exitCode: 1,
+                    stdout: "",
+                    stderr: `montage: unable to open image '${p}': No such file or directory\n`
+                };
+            }
+            for (const loaded of loadedList) {
+                if (++cooperativeWork % 64 === 0)
+                    yield;
+                let thumb = loaded;
+                if (cellW !== undefined || cellH !== undefined) {
+                    const geomSpec = `${cellW ?? ""}${cellH !== undefined ? "x" + cellH : ""}`;
+                    thumb = (yield* applyMagickResizeSteps(thumb, geomSpec, state.kernel));
+                    if (thumb !== loaded) detachRgbaBuffer(loaded.data);
+                }
+                if (borderW > 0) {
+                    const prev = thumb;
+                    thumb = (yield* extendImageSteps(thumb, {
+                        top: borderW,
+                        bottom: borderW,
+                        left: borderW,
+                        right: borderW,
+                        background: state.borderColor,
+                        extendWith: "background"
+                    }));
+                    if (thumb !== prev) detachRgbaBuffer(prev.data);
+                }
+                images.push(thumb);
+            }
         }
-        for (const loaded of loadedList) {
+        const n = images.length;
+        const cols = tileCols ?? (tileRows ? Math.ceil(n / tileRows) : Math.ceil(Math.sqrt(n)));
+        const rows = tileRows ?? Math.ceil(n / cols);
+        const maxThumbW = Math.max(cellW ?? 0, ...images.map((im) => im.width));
+        const maxThumbH = Math.max(cellH ?? 0, ...images.map((im) => im.height));
+        const slotW = maxThumbW + padX * 2;
+        const slotH = maxThumbH + padY * 2;
+        const canvasW = Math.max(1, cols * slotW);
+        const canvasH = Math.max(1, rows * slotH);
+        canvas = (yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background));
+        for (let idx = 0; idx < images.length; idx++) {
             if (++cooperativeWork % 64 === 0)
                 yield;
-            let thumb = loaded;
-            if (cellW !== undefined || cellH !== undefined) {
-                const geomSpec = `${cellW ?? ""}${cellH !== undefined ? "x" + cellH : ""}`;
-                thumb = (yield* applyMagickResizeSteps(thumb, geomSpec, state.kernel));
+            const col = idx % cols;
+            const row = Math.floor(idx / cols);
+            if (row >= rows)
+                break;
+            const im = images[idx]!;
+            images[idx] = undefined as unknown as RgbaImage;
+            if (!anyTransparent) {
+                for (let k = 3; k < im.data.length; k += 4) {
+                    if (im.data[k]! < 255) { anyTransparent = true; break; }
+                }
             }
-            if (borderW > 0) {
-                thumb = (yield* extendImageSteps(thumb, {
-                    top: borderW,
-                    bottom: borderW,
-                    left: borderW,
-                    right: borderW,
-                    background: state.borderColor,
-                    extendWith: "background"
-                }));
-            }
-            images.push(thumb);
+            const cellX = col * slotW + padX;
+            const cellY = row * slotH + padY;
+            const off = resolveGravityOffset(maxThumbW - im.width, maxThumbH - im.height, state.gravity);
+            yield* blitOverRgbaInPlaceSteps(canvas, im, cellX + off.left, cellY + off.top);
+            detachRgbaBuffer(im.data);
         }
+        images.length = 0;
     }
-    const n = images.length;
-    const cols = tileCols ?? (tileRows ? Math.ceil(n / tileRows) : Math.ceil(Math.sqrt(n)));
-    const rows = tileRows ?? Math.ceil(n / cols);
-    const maxThumbW = Math.max(cellW ?? 0, ...images.map((im) => im.width));
-    const maxThumbH = Math.max(cellH ?? 0, ...images.map((im) => im.height));
-    const slotW = maxThumbW + padX * 2;
-    const slotH = maxThumbH + padY * 2;
-    const canvasW = Math.max(1, cols * slotW);
-    const canvasH = Math.max(1, rows * slotH);
-    const canvas = (yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background));
-    for (let idx = 0; idx < images.length; idx++) {
-        if (++cooperativeWork % 64 === 0)
-            yield;
-        const col = idx % cols;
-        const row = Math.floor(idx / cols);
-        if (row >= rows)
-            break;
-        const im = images[idx]!;
-        images[idx] = undefined as unknown as RgbaImage;
-        const cellX = col * slotW + padX;
-        const cellY = row * slotH + padY;
-        const off = resolveGravityOffset(maxThumbW - im.width, maxThumbH - im.height, state.gravity);
-        yield* blitOverRgbaInPlaceSteps(canvas, im, cellX + off.left, cellY + off.top);
+    if (!anyTransparent) {
+        (canvas as { hasAlpha?: boolean; channels?: number }).hasAlpha = false;
+        (canvas as { hasAlpha?: boolean; channels?: number }).channels = 3;
     }
-    images.length = 0;
     const { format, path: outPath } = inferOutputFormat(outSpec, "png");
     const { data: encoded } = encodeImage(canvas, { format, quality: state.quality });
+    detachRgbaBuffer(canvas.data);
     if (outPath === "-" || outSpec.endsWith(":-")) {
         return { exitCode: 0, stdout: "", stderr: "", stdoutBytes: encoded };
     }

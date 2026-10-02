@@ -1,4 +1,4 @@
-import { posixPath as posix } from "../../contracts/path.js";
+import { posixPath as posix } from "safe-bash-contracts/path";
 import { NodeUsageError, nodeLimits, type NodeLimits, type NodeSelector } from "./types.js";
 import { strings, text } from "./values.js";
 

@@ -1715,8 +1715,11 @@
           },
           "devDependencies": {
             "@poe-code/safe-js": "*",
+            "@poe-code/safe-fs": "*",
             "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
+            "safe-bash-io-engine": "*",
+            "safe-bash-query-engine": "*",
+            "@noble/hashes": "2.4.0"
           },
           "portable": true
         },

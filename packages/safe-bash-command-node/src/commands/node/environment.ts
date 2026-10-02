@@ -1,5 +1,5 @@
-import { byteLength } from "../../byte-encoding.js";
-import { resolvePath } from "../../contracts/path.js";
+import { byteLength } from "safe-bash-io-engine/byte-encoding";
+import { resolvePath } from "safe-bash-contracts/path";
 import { SafeJsCommandLimitError } from "../safejs/types.js";
 
 /** Parse dotenv assignments without shell expansion or reading host state. */

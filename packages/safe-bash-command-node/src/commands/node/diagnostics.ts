@@ -1,4 +1,4 @@
-import { byteLength } from "../../byte-encoding.js";
+import { byteLength } from "safe-bash-io-engine/byte-encoding";
 import { types } from "node:util";
 import { nodeLimits, type NodeLimits, type NodeObservation, type NodeReason } from "./types.js";
 

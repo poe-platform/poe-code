@@ -193,6 +193,11 @@ export async function verifyNetworkAndSafeJs() {
   check(typeof globalThis.Buffer === "undefined", "Worker must not supply a global Buffer");
   for (const plugin of [rootNetwork, coreNetwork, networkCommands]) await verifyNetwork(plugin);
   for (const plugin of [rootNode, safeJsCommands, nodeCommands]) await verifyNode(plugin);
+  const defaultShell = new Shell({ fs: createMemoryFileSystem() }).use(nodeCommands());
+  try {
+    const result = await defaultShell.exec("node -e 'console.log(42)'");
+    check(result.exitCode === 0 && result.stdout === "42\n", "default Node portable runtime: " + result.stderr);
+  } finally { await defaultShell.dispose(); }
   await verifyLimits({ run, Budget });
   return { networkEntries: 3, nodeEntries: 3, safeJsEntries: 1 };
 }

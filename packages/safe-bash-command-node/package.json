@@ -16,6 +16,124 @@
     "./safejs-runtime": {
       "types": "./dist/safejs-runtime.d.ts",
       "import": "./dist/safejs-runtime.js"
+    },
+    "./commands/node/default-runtime": {
+      "types": "./dist/commands/node/default-runtime.d.ts",
+      "import": "./dist/commands/node/default-runtime.js"
+    },
+    "./commands/node/path": {
+      "types": "./dist/commands/node/path.d.ts",
+      "import": "./dist/commands/node/path.js"
+    },
+    "./commands/node/timers": {
+      "types": "./dist/commands/node/timers.d.ts",
+      "import": "./dist/commands/node/timers.js"
+    },
+    "./commands/node/buffer": {
+      "types": "./dist/commands/node/buffer.d.ts",
+      "import": "./dist/commands/node/buffer.js"
+    },
+    "./commands/node/lifecycle": {
+      "types": "./dist/commands/node/lifecycle.d.ts",
+      "workerd": null,
+      "browser": null,
+      "import": "./dist/commands/node/lifecycle.js"
+    },
+    "./commands/node/browser": {
+      "types": "./dist/commands/node/browser.d.ts",
+      "import": "./dist/commands/node/browser.js"
+    },
+    "./commands/node/worker-types": {
+      "types": "./dist/commands/node/worker-types.d.ts",
+      "import": "./dist/commands/node/worker-types.js"
+    },
+    "./commands/node/types": {
+      "types": "./dist/commands/node/types.d.ts",
+      "import": "./dist/commands/node/types.js"
+    },
+    "./commands/node/source-maps": {
+      "types": "./dist/commands/node/source-maps.d.ts",
+      "import": "./dist/commands/node/source-maps.js"
+    },
+    "./commands/node/worker-provider": {
+      "types": "./dist/commands/node/worker-provider.d.ts",
+      "workerd": null,
+      "browser": null,
+      "import": "./dist/commands/node/worker-provider.js"
+    },
+    "./commands/node/channel": {
+      "types": "./dist/commands/node/channel.d.ts",
+      "workerd": null,
+      "browser": null,
+      "import": "./dist/commands/node/channel.js"
+    },
+    "./commands/node/filesystem": {
+      "types": "./dist/commands/node/filesystem.d.ts",
+      "import": "./dist/commands/node/filesystem.js"
+    },
+    "./commands/node/safejs": {
+      "types": "./dist/commands/node/safejs.d.ts",
+      "import": "./dist/commands/node/safejs.js"
+    },
+    "./commands/node/quickjs": {
+      "types": "./dist/commands/node/quickjs.d.ts",
+      "import": "./dist/commands/node/quickjs.js"
+    },
+    "./commands/node/worker-main": {
+      "types": "./dist/commands/node/worker-main.d.ts",
+      "workerd": null,
+      "browser": null,
+      "import": "./dist/commands/node/worker-main.js"
+    },
+    "./commands/node/host": {
+      "types": "./dist/commands/node/host.d.ts",
+      "workerd": null,
+      "browser": null,
+      "import": "./dist/commands/node/host.js"
+    },
+    "./commands/node/index": {
+      "types": "./dist/commands/node/index.d.ts",
+      "workerd": null,
+      "browser": null,
+      "import": "./dist/commands/node/index.js"
+    },
+    "./commands/node/values": {
+      "types": "./dist/commands/node/values.d.ts",
+      "workerd": null,
+      "browser": null,
+      "import": "./dist/commands/node/values.js"
+    },
+    "./commands/safejs/runtime": {
+      "types": "./dist/commands/safejs/runtime.d.ts",
+      "import": "./dist/commands/safejs/runtime.js"
+    },
+    "./commands/safejs/types": {
+      "types": "./dist/commands/safejs/types.d.ts",
+      "import": "./dist/commands/safejs/types.js"
+    },
+    "./commands/safejs/io": {
+      "types": "./dist/commands/safejs/io.d.ts",
+      "import": "./dist/commands/safejs/io.js"
+    },
+    "./commands/safejs/render": {
+      "types": "./dist/commands/safejs/render.d.ts",
+      "import": "./dist/commands/safejs/render.js"
+    },
+    "./commands/safejs/options": {
+      "types": "./dist/commands/safejs/options.d.ts",
+      "import": "./dist/commands/safejs/options.js"
+    },
+    "./integrations/safejs/shell": {
+      "types": "./dist/integrations/safejs/shell.d.ts",
+      "import": "./dist/integrations/safejs/shell.js"
+    },
+    "./integrations/safejs/filesystem": {
+      "types": "./dist/integrations/safejs/filesystem.d.ts",
+      "import": "./dist/integrations/safejs/filesystem.js"
+    },
+    "./integrations/safejs/values": {
+      "types": "./dist/integrations/safejs/values.d.ts",
+      "import": "./dist/integrations/safejs/values.js"
     }
   },
   "files": [
@@ -37,7 +155,10 @@
   "devDependencies": {
     "@poe-code/safe-js": "*",
     "@poe-code/safe-fs": "*",
-    "safe-bash-contracts": "*"
+    "safe-bash-contracts": "*",
+    "safe-bash-io-engine": "*",
+    "safe-bash-query-engine": "*",
+    "@noble/hashes": "2.4.0"
   },
   "poeCode": {
     "packageLint": {

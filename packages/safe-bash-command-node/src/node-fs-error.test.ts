@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { FsError } from "../../src/contracts/errors.js";
-import { fsDescriptor } from "../../src/commands/node/host.js";
+import { FsError } from "safe-bash-contracts/errors";
+import { fsDescriptor } from "./commands/node/host.js";
 
 test("Node serializes branded filesystem errors without exposing the brand", () => {
   const error = new FsError("ENOENT", { path: "/missing.json", syscall: "lstat" });

@@ -1,4 +1,4 @@
-import { byteLength } from "../../byte-encoding.js";
+import { byteLength } from "safe-bash-io-engine/byte-encoding";
 import { NodeProfileError, NodeUsageError, nodeLimits, type NodeLimits, type NodeSelector } from "./types.js";
 import { tokenizeNodeSource, type NodeToken } from "./admission.js";
 

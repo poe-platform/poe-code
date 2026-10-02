@@ -80,7 +80,7 @@ test("node command entry and root omit the host-only Worker provider", () => {
 
 test("node command module graph excludes worker_threads without replacing supported native modules", async () => {
   const result = await build({
-    entryPoints: [fileURLToPath(new URL("../../src/commands/node/index.ts", import.meta.url))],
+    entryPoints: [fileURLToPath(new URL("../../../safe-bash-command-node/src/commands/node/index.ts", import.meta.url))],
     bundle: true, write: false, metafile: true, platform: "neutral", format: "esm", target: "es2022",
     conditions: ["workerd", "worker", "browser"], external: ["node:*"], logLevel: "silent",
   });

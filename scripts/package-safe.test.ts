@@ -2556,3 +2556,29 @@ it("packs the private unzip argument owner behind the established public export"
     expect(volume.existsSync(`/output/safe-bash/dist/${name}/unzip/arguments.${suffix}`)).toBe(true);
   }
 });
+
+it("retains private Node worker URL assets beside their provider", async () => {
+  const { volume, options } = optionalLeftovers();
+  const name = "safe-bash-command-node";
+  const manifest = structuredClone(bashManifest);
+  manifest.poeCode.integration.privateWorkspaces = {
+    [name]: { version: "0.0.1", dependencies: {}, devDependencies: {} },
+  };
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+  volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
+  volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify({
+    name, version: "0.0.1", private: true, type: "module",
+    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+  }));
+  volume.writeFileSync(`/repo/packages/${name}/dist/index.js`, 'export const worker = new URL("./worker-main.js", import.meta.url);');
+  volume.writeFileSync(`/repo/packages/${name}/dist/index.d.ts`, 'export declare const worker: URL;');
+  volume.writeFileSync(`/repo/packages/${name}/dist/worker-main.js`, 'export const identity = "node-worker";');
+  for (const suffix of ["js", "d.ts"]) {
+    volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/node/index.${suffix}`, `export * from "${name}";`);
+  }
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  expect(volume.readFileSync(`/output/safe-bash/dist/${name}/worker-main.js`, "utf8")).toContain('"node-worker"');
+  expect(volume.readFileSync(`/output/safe-bash/dist/${name}/index.js`, "utf8")).toContain('./worker-main.js');
+  const shipped = JSON.parse(volume.readFileSync('/output/safe-bash/package.json', 'utf8').toString());
+  expect(shipped.dependencies?.[name]).toBeUndefined();
+});

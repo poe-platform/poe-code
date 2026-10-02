@@ -7,7 +7,9 @@
     "declaration": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
-    "types": [],
+    "types": [
+      "node"
+    ],
     "lib": [
       "ES2022",
       "DOM"

@@ -3755,24 +3755,10 @@ const syncExtraRuntimeMethods = {
           }
         }
       }
-      let pipeOutsideParens = false;
-      if (pat.text.includes("|")) {
-        if (!bothAnchored) {
-          pipeOutsideParens = true;
-        } else {
-          let pDepth = 0;
-          for (let i = 0; i < pat.text.length; i++) {
-            const c = pat.text.charCodeAt(i);
-            if (c === 40) pDepth++;
-            else if (c === 41) { if (pDepth > 0) pDepth--; else { pipeOutsideParens = true; break; } }
-            else if (c === 124 && pDepth === 0) { pipeOutsideParens = true; break; }
-          }
-          if (pDepth !== 0) pipeOutsideParens = true;
-        }
-      }
       if (
         caretOk &&
-        !pipeOutsideParens &&
+        // JavaScript chooses the first successful branch, not the longest POSIX capture.
+        !pat.text.includes("|") &&
         !/[*+?][*+?]/.test(pat.text) &&
         /^[\^a-zA-Z0-9_.\-/:@()\[\]+?*,;=| $]+$/.test(pat.text) &&
         !pat.text.includes("[:") &&

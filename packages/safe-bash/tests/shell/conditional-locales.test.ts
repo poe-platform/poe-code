@@ -13,12 +13,18 @@ for (const locale of ["C", "C.UTF-8"]) {
       ["a", "^(a?)$"],
       ["a]", "^[]a]+$"],
       ["b\n", "^[^]a]+$"],
+      ["a", "^[]a]$"],
+      ["]", "^[]a]$"],
+      ["ba]", "^[^]a]$"],
+      ["b", "^[^]a]$"],
       ["foo", "^(?:foo)$"],
       ["foo", "^(?=foo)foo$"],
       ["foo", "^(?!bar)foo$"],
       // Repeated quantifiers are undefined by POSIX; this engine rejects them.
       ["aaa", "^(a+?)$", "2:<>:<>:<>\n"],
       ["aa", "^(a??)$", "2:<>:<>:<>\n"],
+      ["aaa", "^(a+?)a+$", "2:<>:<>:<>\n"],
+      ["a", "^(a??)a?$", "2:<>:<>:<>\n"],
     ]) {
       test(`ERE native semantics ${locale}, loop=${loop}: ${pattern}`, async context => {
         const { shell } = setup({ extensions: [arraysExtension()] });

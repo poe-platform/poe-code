@@ -165,7 +165,7 @@ async function qualifyStandardLlm(backend, createExecutor, cancel = false, polic
   const calls = [];
   const controller = new AbortController();
   const provider = {name:'fixture',models:[
-    {id:'fixture',capabilities:['messages','schema'],attachmentTypes:['text/plain'],options:{temperature:{type:'number',minimum:0,maximum:2}}},
+    {id:'fixture',capabilities:['messages','schema'],attachmentTypes:['text/plain'],options:{temperature:{type:'number',minimum:0,maximum:2},bias:{type:'object'},stop:{type:'array'}}},
     {id:'fixture-embed',capabilities:['embed']},
   ], async *complete(request) {
     calls.push({prompt:request.prompt,stream:request.stream,messages:request.messages,options:request.options,schema:request.schema,attachments:request.attachments.map(a=>({mimeType:a.mimeType,text:a.receipt ?? new TextDecoder().decode(a.bytes)}))});
@@ -201,7 +201,7 @@ async function qualifyStandardLlm(backend, createExecutor, cancel = false, polic
     };
     return yield* this.complete({...request,prompt:await read(request.prompt),
       ...(request.system ? {system:await read(request.system)} : {}),
-      ...(request.messages ? {messages:await Promise.all(request.messages.map(async m=>({role:m.role,content:await read(m.content)})))} : {}),
+      ...(request.messages ? {messages:await Promise.all(request.messages.map(async m=>({role:m.role,content:await read(m.content),...(m.attachments?.length ? {attachments:await Promise.all(m.attachments.map(async a=>({mimeType:a.mimeType,text:await read(a.source)})))} : {})})))} : {}),
       attachments:await Promise.all(request.attachments.map(async a=>({mimeType:a.mimeType,receipt:await read(a.source)})))});
   }, async embed(request) { return {model:request.model,vectors:request.inputs.map(text=>[text.length,1])}; }};
   const service = createLlmService({providers:[provider],defaultModel:'fixture'});

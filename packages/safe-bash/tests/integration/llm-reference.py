@@ -40,7 +40,10 @@ def record(prompt, stream, response, conversation):
     for previous in conversation.responses if conversation else ():
         if previous.prompt.system:
             messages.append({"role": "system", "content": previous.prompt.system})
-        messages.extend([{"role": "user", "content": text_receipt(previous.prompt.prompt)},
+        message = {"role": "user", "content": text_receipt(previous.prompt.prompt)}
+        if previous.prompt.attachments:
+            message["attachments"] = [{"mimeType": attachment.resolve_type(), "text": text_receipt(attachment.content_bytes().decode())} for attachment in previous.prompt.attachments]
+        messages.extend([message,
                          {"role": "assistant", "content": previous.text_or_raise()}])
     calls.append({"prompt": text_receipt(prompt.prompt), "stream": stream, "messages": messages,
                   "options": prompt.options.model_dump(exclude_none=True),
@@ -56,6 +59,8 @@ class ReferenceModel(llm.Model):
     supports_schema = True
     attachment_types = {"text/plain"}
     class Options(llm.Options):
+        bias: Optional[dict] = None
+        stop: Optional[list] = None
         temperature: Optional[float] = Field(default=None, ge=0, le=2)
     def execute(self, prompt, stream, response, conversation):
         record(prompt, stream, response, conversation)

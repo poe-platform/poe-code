@@ -14,7 +14,7 @@ assert model.model_id == "fixture"
 assert {entry.model_id for entry in llm.get_models()} == {"fixture"}
 model = llm.get_model("fixture")
 assert isinstance(model, llm.Model)
-response = model.prompt("hello", temperature=0.5)
+response = model.prompt("hello", temperature=0.5, bias={"42": 5}, stop=["end"])
 assert isinstance(response, llm.Response)
 assert "not yet done" in repr(response)
 done = []
@@ -50,7 +50,7 @@ assert model.prompt("empty-url-content", attachments=[llm.Attachment(url=url_att
 assert model.prompt("large-url", attachments=[llm.Attachment(url="https://files.example/large.txt")]).text() == "large-url"
 conversation = model.conversation()
 assert isinstance(conversation, llm.Conversation)
-assert conversation.prompt("first", system="Be helpful").text() == "first"
+assert conversation.prompt("first", system="Be helpful", attachments=[llm.Attachment(content=b"history", type="text/plain")]).text() == "first"
 assert conversation.prompt("second").text() == "second"
 assert len(conversation.responses) == 2
 assert conversation.responses[1].conversation is conversation
@@ -103,7 +103,7 @@ async def main():
     assert await response.duration_ms() >= 0
     assert (await response.to_sync_response()).text() == "async"
     conversation = model.conversation()
-    assert await conversation.prompt("first").text() == "first"
+    assert await conversation.prompt("first", attachments=[llm.Attachment(content=b"async history", type="text/plain")], stop=["end"]).text() == "first"
     assert await conversation.prompt("second").text() == "second"
     assert len(conversation.responses) == 2
 

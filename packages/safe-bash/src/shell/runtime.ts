@@ -13161,7 +13161,7 @@ export class Runtime {
           const sRes = this.evalSyncSed(lines, sArgs);
           if (!sRes) return undefined;
           lines = sRes.lines;
-          statuses[s] = sRes.status ?? 0;
+          statuses[s] = 0;
         } else if (sName === "cut") {
           const cRes = this.evalSyncCut(lines, sArgs, false);
           if (!cRes) return undefined;

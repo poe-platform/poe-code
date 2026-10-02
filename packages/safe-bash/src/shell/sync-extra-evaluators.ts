@@ -16649,7 +16649,7 @@ const syncExtraRuntimeMethods = {
     if (step.targetDirPrefix !== undefined && step.targetNamePrefix !== undefined) {
       const fileName = this.evalSyncRedirectSuffix(step.targetWord!, step.targetDirPrefix, step.targetNamePrefix, rawState, io);
       if (!fileName.includes("/") && fileName !== "." && fileName !== ".." && tryWriteMemoryFileInDirSync(this.backingFs, step.targetDirPrefix, fileName, encoded, append, mode, this.commandSignal)) return;
-      tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, step.targetDirPrefix + fileName), encoded, append, mode, this.commandSignal);
+      tryWriteMemoryFileSync(this.backingFs, normalizePath(step.targetDirPrefix + fileName, rawState.cwd), encoded, append, mode, this.commandSignal);
       return;
     }
     const targetVal = this.evalSyncRedirectWord(step.targetWord!, rawState, io);

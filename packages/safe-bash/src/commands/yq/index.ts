@@ -221,11 +221,11 @@ let lastYqInputFormat: "yaml" | "toml" | undefined;
 let lastYqJsonStr: string | undefined;
 
 export function evalSyncYqPrep(
-  inBytes: Uint8Array,
+  inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
 ): { jsonStr: string; jqArgs: string[]; format: "yaml" | "json" } | undefined {
-  if (inBytes.byteLength > 8192 || opArgs.length > 14) return undefined;
+  if ((inBytes && inBytes.byteLength > 8192) || opArgs.length > 14) return undefined;
   let nullInput = false;
   const extraJqArgs: string[] = [];
   let idx = opArgs[0] === "eval" || opArgs[0] === "e" ? 1 : 0;

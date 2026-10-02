@@ -2911,6 +2911,7 @@ type SyncLoopProgress = {
 };
 type SyncLoopStep = {
   readonly cmd: Extract<Command, { kind: "simple" }>;
+  readonly pureTextPipeline?: Pipeline | undefined;
   readonly name: string | undefined;
   readonly arrayAssign?: ArrayAssignment | undefined;
   readonly isStdoutEcho?: boolean | undefined;
@@ -3845,7 +3846,25 @@ export class Runtime {
     if (![collation, characters].every(locale => cCollation(locale) || utf8Locale(locale))) return undefined;
     let fastMatchValues: string[] | null | undefined;
     const fastAnchoredRe = this.getFastAnchoredEreRegex(pattern, state);
+    const patEreCache = pattern as {
+      _lastEreSubj?: string;
+      _lastEreStatus?: number;
+      _lastEreRematchBinding?: IndexedBinding;
+      _lastEreRematchVersion?: number;
+    };
     if (fastAnchoredRe) {
+      if (
+        patEreCache._lastEreSubj === subject &&
+        patEreCache._lastEreRematchBinding === existingRematch &&
+        patEreCache._lastEreRematchVersion === existingRematch.version &&
+        patEreCache._lastEreStatus !== undefined
+      ) {
+        delete state.variables.BASH_REMATCH;
+        const tickets = existingStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+        monitor.epoch = tickets.epoch;
+        existingStore.changed(tickets, "BASH_REMATCH");
+        return patEreCache._lastEreStatus;
+      }
       let asciiSubj = true;
       for (let i = 0; i < subject.length; i++) {
         const c = subject.charCodeAt(i);
@@ -3903,6 +3922,12 @@ export class Runtime {
     const tickets = existingStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
     monitor.epoch = tickets.epoch;
     existingStore.changed(tickets, "BASH_REMATCH");
+    if (fastMatchValues !== undefined) {
+      patEreCache._lastEreSubj = subject;
+      patEreCache._lastEreStatus = status;
+      patEreCache._lastEreRematchBinding = existingRematch;
+      patEreCache._lastEreRematchVersion = existingRematch.version;
+    }
     return status;
   }
   private async ere(subject: string, pattern: Word, state: State, io: IO): Promise<number> {
@@ -8406,8 +8431,127 @@ export class Runtime {
       return undefined;
     }
   }
+  private collectPureCondScalarVars(expr: ConditionalExpression, out: string[], rawState: State, store: ReturnType<typeof arrayStore>): boolean {
+    const checkWord = (w: Word): boolean => {
+      for (let i = 0; i < w.parts.length; i++) {
+        const p = w.parts[i]!;
+        if (p.kind === "text") {
+          if (p.byteValue || (!p.quoted && p.value.startsWith("~"))) return false;
+          continue;
+        }
+        if (p.kind === "variable") {
+          if (this._syncArithTouched?.has(p.name) || p.indirect || p.prefixNames !== undefined || p.specialParameter || p.length || p.substring !== undefined || p.transform !== undefined || p.operator !== undefined || getArraySelector(p) !== undefined || !isShellIdentifier(p.name) || controlNames.has(p.name) || p.name === "LINENO" || p.name === "RANDOM" || p.name === "SRANDOM" || p.name === "SECONDS" || p.name === "_" || store?.get(p.name) || rawState.variableAttributes?.get(p.name)) {
+            return false;
+          }
+          if (!out.includes(p.name)) out.push(p.name);
+          continue;
+        }
+        return false;
+      }
+      return true;
+    };
+    if (expr.kind === "nonempty") return checkWord(expr.operand);
+    if (expr.kind === "unary") return (expr.operator === "-n" || expr.operator === "-z") && checkWord(expr.operand);
+    if (expr.kind === "binary") return expr.operator !== "=~" && checkWord(expr.left) && checkWord(expr.right);
+    if (expr.kind === "not") return this.collectPureCondScalarVars(expr.operand, out, rawState, store);
+    if (expr.kind === "and" || expr.kind === "or") return this.collectPureCondScalarVars(expr.left, out, rawState, store) && this.collectPureCondScalarVars(expr.right, out, rawState, store);
+    return false;
+  }
+  private evalSyncLoopCondStep(expr: ConditionalExpression, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof arrayStore>, io: IO, diagnosticLine: number): number {
+    type FlatCondPlan = {
+      invVars: string[];
+      invVals: (string | undefined)[];
+      invUnits: number;
+      invFailed: boolean;
+      tailExpr: ConditionalExpression | null;
+    };
+    const canMemo = !rawState.nocasematch && !rawState.extglob && !byteLocale(rawState.variables);
+    let plan = canMemo ? (expr as { _flatCondPlan?: FlatCondPlan | null })._flatCondPlan : null;
+    if (plan) {
+      let same = true;
+      for (let i = 0; i < plan.invVars.length; i++) {
+        if (rawState.variables[plan.invVars[i]!] !== plan.invVals[i]) { same = false; break; }
+      }
+      if (same) {
+        if (plan.invUnits > 0) this.budget.parsing.admit(plan.invUnits);
+        if (plan.invFailed) return 1;
+        if (plan.tailExpr === null) return 0;
+        return this.tryEvalConditionalSyncInner(plan.tailExpr, rawState, monitor, store, io, diagnosticLine, 0) ?? 1;
+      }
+    }
+    if (canMemo && plan === undefined) {
+      const conjuncts: ConditionalExpression[] = [];
+      const flattenAnd = (n: ConditionalExpression): void => {
+        if (n.kind === "and") { flattenAnd(n.left); flattenAnd(n.right); }
+        else conjuncts.push(n);
+      };
+      flattenAnd(expr);
+      const invConjuncts: ConditionalExpression[] = [];
+      const invVars: string[] = [];
+      let idx = 0;
+      while (idx < conjuncts.length) {
+        const c = conjuncts[idx]!;
+        const cVars: string[] = [];
+        if (!this.collectPureCondScalarVars(c, cVars, rawState, store)) break;
+        for (const v of cVars) if (!invVars.includes(v)) invVars.push(v);
+        invConjuncts.push(c);
+        idx++;
+      }
+      if (invConjuncts.length > 0 && invVars.length <= 4 && (idx === conjuncts.length || idx === conjuncts.length - 1)) {
+        const beforeU = this.budget.parsing.admittedUnits;
+        let invFailed = false;
+        for (let k = 0; k < invConjuncts.length; k++) {
+          const r = this.tryEvalConditionalSyncInner(invConjuncts[k]!, rawState, monitor, store, io, diagnosticLine, 0) ?? 1;
+          if (r !== 0) { invFailed = true; break; }
+        }
+        const invUnits = this.budget.parsing.admittedUnits - beforeU;
+        const tailExpr = idx < conjuncts.length ? conjuncts[idx]! : null;
+        plan = { invVars, invVals: invVars.map(v => rawState.variables[v]), invUnits, invFailed, tailExpr };
+        (expr as { _flatCondPlan?: FlatCondPlan | null })._flatCondPlan = plan;
+        if (invFailed) return 1;
+        if (tailExpr === null) return 0;
+        return this.tryEvalConditionalSyncInner(tailExpr, rawState, monitor, store, io, diagnosticLine, 0) ?? 1;
+      } else {
+        (expr as { _flatCondPlan?: FlatCondPlan | null })._flatCondPlan = null;
+      }
+    }
+    return this.tryEvalConditionalSyncInner(expr, rawState, monitor, store, io, diagnosticLine, 0) ?? 1;
+  }
   private tryEvalConditionalSync( expr: ConditionalExpression, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof arrayStore>, io: IO, diagnosticLine: number, depth = 0, ): number | undefined {
     if (depth > 8) return undefined;
+    type PureCondCache = { vars: string[] | null; vals: (string | undefined)[]; res: number; units: number };
+    const canMemo = this._syncArithRawWriteOnly && !rawState.nocasematch && !rawState.extglob && !byteLocale(rawState.variables);
+    let condCache = canMemo ? (expr as { _cachedPureCond?: PureCondCache })._cachedPureCond : undefined;
+    if (condCache !== undefined && condCache.vars !== null) {
+      let allSame = true;
+      for (let i = 0; i < condCache.vars.length; i++) {
+        if (rawState.variables[condCache.vars[i]!] !== condCache.vals[i]) { allSame = false; break; }
+      }
+      if (allSame) {
+        if (condCache.units > 0) this.budget.parsing.admit(condCache.units);
+        return condCache.res;
+      }
+    }
+    const beforeUnits = canMemo ? this.budget.parsing.admittedUnits : 0;
+    const res = this.tryEvalConditionalSyncInner(expr, rawState, monitor, store, io, diagnosticLine, depth);
+    if (canMemo && res !== undefined) {
+      if (condCache === undefined) {
+        const vars: string[] = [];
+        if (this.collectPureCondScalarVars(expr, vars, rawState, store) && vars.length <= 4) {
+          condCache = { vars, vals: vars.map(v => rawState.variables[v]), res, units: this.budget.parsing.admittedUnits - beforeUnits };
+        } else {
+          condCache = { vars: null, vals: [], res: 0, units: 0 };
+        }
+        (expr as { _cachedPureCond?: PureCondCache })._cachedPureCond = condCache;
+      } else if (condCache.vars !== null) {
+        for (let i = 0; i < condCache.vars.length; i++) condCache.vals[i] = rawState.variables[condCache.vars[i]!];
+        condCache.res = res;
+        condCache.units = this.budget.parsing.admittedUnits - beforeUnits;
+      }
+    }
+    return res;
+  }
+  private tryEvalConditionalSyncInner( expr: ConditionalExpression, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof arrayStore>, io: IO, diagnosticLine: number, depth = 0, ): number | undefined {
     if (io.nameExpansionContext !== "conditional") io = { ...io, nameExpansionContext: "conditional" };
     if (expr.kind === "nonempty") {
       let val: ShellValue | undefined;
@@ -8487,6 +8631,17 @@ export class Runtime {
         return undefined;
       }
       if ( expr.operator === "-eq" || expr.operator === "-ne" || expr.operator === "-lt" || expr.operator === "-le" || expr.operator === "-gt" || expr.operator === "-ge") {
+        if (this._syncArithRawWriteOnly && expr.left.parts.length === 1 && expr.left.parts[0]!.kind === "variable" && expr.right.plain !== undefined) {
+          const lp = expr.left.parts[0]!;
+          if (this._syncArithTouched?.has(lp.name) && !lp.indirect && !lp.prefixNames && !lp.specialParameter && !lp.length && !lp.substring && !lp.transform && lp.operator === undefined && getArraySelector(lp) === undefined) {
+            const lFast = fastSafeInt(rawState.variables[lp.name], this.budget.parsing);
+            const rFast = fastSafeInt(expr.right.plain, this.budget.parsing);
+            if (lFast !== undefined && rFast !== undefined) {
+              const ok = expr.operator === "-lt" ? lFast < rFast : expr.operator === "-le" ? lFast <= rFast : expr.operator === "-gt" ? lFast > rFast : expr.operator === "-ge" ? lFast >= rFast : expr.operator === "-eq" ? lFast === rFast : lFast !== rFast;
+              return ok ? 0 : 1;
+            }
+          }
+        }
         let left: ShellValue | undefined;
         let right: ShellValue | undefined;
         try {
@@ -8574,6 +8729,12 @@ export class Runtime {
     return undefined;
   }
   private setSyncPipeStatusCell(existing: NonNullable<ReturnType<NonNullable<ReturnType<typeof guestArrays>>["get"]>>, status: string): void {
+    if (existing.values.size > 1 || existing.maximum !== 0) {
+      for (const key of existing.values.keys()) {
+        if (key > 0) existing.remove(key);
+      }
+      existing.maximum = 0;
+    }
     const cell = existing.values.get(0);
     if (cell && cell.text.references === 1 && cell.text.bytes === status.length) {
       cell.text.shellValue = status;
@@ -8660,7 +8821,7 @@ export class Runtime {
     const psTarget = existing ? "indexed" : pipelineStatusTarget(rawState);
     if (psTarget !== "indexed" && psTarget !== "absent") return undefined;
     if (store?.watches.has("PIPESTATUS") || monitor.hasOverlay("PIPESTATUS")) return undefined;
-    if ( existing && (existing.associative || existing.values.size !== 1 || existing.maximum !== 0)) {
+    if ( existing && (existing.associative || existing.values.size === 0 || (existing.references !== 1 && (existing.values.size !== 1 || existing.maximum !== 0)))) {
       return undefined;
     }
     const elem0 = existing?.values.get(0);
@@ -12697,6 +12858,215 @@ export class Runtime {
     }
     return true;
   }
+  private canEvalPureTextPipelineSync(pipeline: Pipeline, rawState: State): boolean {
+    const n = pipeline.commands.length;
+    if (
+      pipeline.negate ||
+      n < 1 || n > 8 ||
+      !this._isMemoryBackingFs ||
+      !this.backingFs ||
+      this.backingFs.capabilitiesFor !== undefined ||
+      this.middleware.length > 0 ||
+      customRegisteredRegistries.has(this.commands) ||
+      hasActiveExtensions(rawState) ||
+      rawState.externalInvocation ||
+      byteLocale(rawState.variables)
+    ) {
+      return false;
+    }
+    if (n === 1) {
+      const cmd = pipeline.commands[0]!;
+      if (cmd.kind !== "simple" || cmd.words.length < 3 || cmd.words.length > 8) return false;
+      const name = cmd.words[0]!.plain;
+      if ((name !== "awk" && name !== "jq") || hasShellFunction(rawState, name) || rawState.extensions?.builtins.has(name)) return false;
+      const extDef = this.commands.get(name);
+      if (!extDef || customRegisteredCommands.has(extDef.execute)) return false;
+      for (let w = 0; w < cmd.words.length; w++) {
+        const word = cmd.words[w]!;
+        if (word.plain !== undefined) {
+          if (word.plain.includes("{") || word.plain.startsWith("~") || hasGlobOrEscape(word.plain, true)) return false;
+        } else if (!(word.parts.length === 1 && word.parts[0]!.kind === "text" && word.parts[0]!.quoted === true && !word.parts[0]!.byteValue)) {
+          return false;
+        }
+      }
+      const lastW = cmd.words[cmd.words.length - 1]!;
+      const fileArg = lastW.plain ?? (lastW.parts[0] as { value: string }).value;
+      if (!fileArg || fileArg === "-" || fileArg.startsWith("-") || fileArg.startsWith("/dev")) return false;
+      if (cmd.redirects.length > 0) {
+        if (cmd.redirects.length !== 1) return false;
+        const r0 = cmd.redirects[0]!;
+        if (r0.move || r0.document || (r0.descriptor !== undefined && r0.descriptor !== 1) || (r0.operator !== ">" && r0.operator !== ">>" && r0.operator !== ">|") || r0.target.plain !== "/dev/null") return false;
+      }
+      return this.tryEvalPureTextPipelineSync(pipeline, rawState, undefined, true) !== undefined;
+    }
+    for (let i = 0; i < n; i++) {
+      const cmd = pipeline.commands[i]!;
+      if (cmd.kind !== "simple" || cmd.words.length === 0 || cmd.words.length > 8) return false;
+      const name = cmd.words[0]!.plain;
+      if (!name || hasShellFunction(rawState, name) || rawState.extensions?.builtins.has(name)) return false;
+      const extDef = this.commands.get(name);
+      if (!extDef || customRegisteredCommands.has(extDef.execute)) return false;
+      for (let w = 0; w < cmd.words.length; w++) {
+        const word = cmd.words[w]!;
+        if (word.plain !== undefined) {
+          if (word.plain.includes("{") || word.plain.startsWith("~") || hasGlobOrEscape(word.plain, true)) return false;
+        } else if (!(word.parts.length === 1 && word.parts[0]!.kind === "text" && word.parts[0]!.quoted === true && !word.parts[0]!.byteValue)) {
+          return false;
+        }
+      }
+      if (i === 0) {
+        if (cmd.redirects.length !== 0 || name !== "cat" || cmd.words.length !== 2) return false;
+        const fileArg = cmd.words[1]!.plain ?? (cmd.words[1]!.parts[0] as { value: string }).value;
+        if (!fileArg || fileArg === "-" || fileArg.startsWith("-") || fileArg.startsWith("/dev")) return false;
+      } else {
+        if (name !== "grep" && name !== "sed" && name !== "cut" && name !== "sort" && name !== "uniq") return false;
+        if (i < n - 1) {
+          if (cmd.redirects.length !== 0) return false;
+        } else if (cmd.redirects.length > 0) {
+          if (cmd.redirects.length !== 1) return false;
+          const r0 = cmd.redirects[0]!;
+          if (r0.move || r0.document || (r0.descriptor !== undefined && r0.descriptor !== 1) || (r0.operator !== ">" && r0.operator !== ">>" && r0.operator !== ">|") || r0.target.plain !== "/dev/null") return false;
+        }
+      }
+    }
+    return this.tryEvalPureTextPipelineSync(pipeline, rawState, undefined, true) !== undefined;
+  }
+  private tryEvalPureTextPipelineSync(pipeline: Pipeline, rawState: State, io?: IO, preflight = false): { output: string; outputByteLen: number; statuses: number[]; finalStatus: number; lastArg: string; discardToDevNull: boolean } | undefined {
+    const n = pipeline.commands.length;
+    const cmd0 = pipeline.commands[0]! as Extract<Command, { kind: "simple" }>;
+    const fileW = n === 1 ? cmd0.words[cmd0.words.length - 1]! : cmd0.words[1]!;
+    const fileArg = fileW.plain ?? (fileW.parts[0] as { value: string }).value;
+    const fullPath = resolvePath(rawState.cwd, fileArg);
+    const view = this.tryReadMemoryFileViewSync(fullPath, !preflight, true);
+    if (!view || view.byteLength > 65536 || view.includes(0)) return undefined;
+    const lastStage = pipeline.commands[n - 1]! as Extract<Command, { kind: "simple" }>;
+    const discardToDevNull = lastStage.redirects.length === 1;
+    type PurePipeCache = {
+      dataRef: Uint8Array;
+      cwd: string;
+      pipefail: boolean;
+      output: string;
+      outputByteLen: number;
+      statuses: number[];
+      finalStatus: number;
+      lastArg: string;
+      discardToDevNull: boolean;
+    };
+    const cached = (pipeline as { _cachedPureTextPipe?: PurePipeCache })._cachedPureTextPipe;
+    if (cached && cached.dataRef === view && cached.cwd === rawState.cwd && cached.pipefail === Boolean(rawState.pipefail)) {
+      if (!preflight) {
+        if (n > 1) {
+          this.budget.enterPipelineStages(n);
+          this.budget.leavePipelineStages(n);
+        }
+        this.budget.commands += n;
+        if (discardToDevNull) this.budget.fileSystemOperation();
+        this.budget.bytes += cached.outputByteLen;
+        if (!discardToDevNull && cached.output.length > 0 && io) this.writeSyncStdoutText(cached.output, io);
+      }
+      return cached;
+    }
+    const fStr = sharedSyncPipeDecoder.decode(view);
+    let lines: string[];
+    const statuses = new Array<number>(n).fill(0);
+    let lastArg = "";
+    if (n === 1) {
+      const sName = cmd0.words[0]!.plain!;
+      let sArgs = (cmd0 as { _cachedPlainArgs?: string[] })._cachedPlainArgs;
+      if (!sArgs) {
+        sArgs = new Array<string>(cmd0.words.length - 1);
+        for (let w = 1; w < cmd0.words.length; w++) {
+          const word = cmd0.words[w]!;
+          sArgs[w - 1] = word.plain ?? (word.parts[0] as { value: string }).value;
+        }
+        (cmd0 as { _cachedPlainArgs?: string[] })._cachedPlainArgs = sArgs;
+      }
+      lastArg = sArgs[sArgs.length - 1]!;
+      const opArgs = sArgs.slice(0, -1);
+      if (sName === "awk") {
+        const inLines = fStr.endsWith("\n") ? fStr.slice(0, -1).split("\n") : (fStr.length === 0 ? [] : fStr.split("\n"));
+        const awkRes = this.evalSyncAwk(inLines, opArgs);
+        if (!awkRes) return undefined;
+        lines = awkRes;
+      } else if (sName === "jq") {
+        const jqRes = this.evalSyncJq(fStr.trim(), opArgs, rawState.cwd, fStr);
+        if (!jqRes) return undefined;
+        lines = jqRes;
+      } else {
+        return undefined;
+      }
+    } else {
+      lines = fStr.endsWith("\n") ? fStr.slice(0, -1).split("\n") : (fStr.length === 0 ? [] : fStr.split("\n"));
+      for (let s = 1; s < n; s++) {
+        const sCmd = pipeline.commands[s]! as Extract<Command, { kind: "simple" }>;
+        const sName = sCmd.words[0]!.plain!;
+        let sArgs = (sCmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs;
+        if (!sArgs) {
+          sArgs = new Array<string>(sCmd.words.length - 1);
+          for (let w = 1; w < sCmd.words.length; w++) {
+            const word = sCmd.words[w]!;
+            sArgs[w - 1] = word.plain ?? (word.parts[0] as { value: string }).value;
+          }
+          (sCmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs = sArgs;
+        }
+        if (s === n - 1) lastArg = sArgs.length > 0 ? sArgs[sArgs.length - 1]! : sName;
+        if (sName === "grep") {
+          const gRes = this.evalSyncGrep(lines, sArgs, false);
+          if (!gRes) return undefined;
+          lines = gRes.lines;
+          statuses[s] = gRes.status;
+        } else if (sName === "sed") {
+          const sRes = this.evalSyncSed(lines, sArgs);
+          if (!sRes) return undefined;
+          lines = sRes.lines;
+          statuses[s] = sRes.status ?? 0;
+        } else if (sName === "cut") {
+          const cRes = this.evalSyncCut(lines, sArgs, false);
+          if (!cRes) return undefined;
+          lines = cRes;
+          statuses[s] = 0;
+        } else if (sName === "sort") {
+          const soRes = this.evalSyncSort(lines, sArgs, false);
+          if (!soRes) return undefined;
+          lines = soRes;
+          statuses[s] = 0;
+        } else if (sName === "uniq") {
+          const uRes = this.evalSyncUniq(lines, sArgs, false);
+          if (!uRes) return undefined;
+          lines = uRes;
+          statuses[s] = 0;
+        } else {
+          return undefined;
+        }
+      }
+    }
+    const output = lines.length > 0 ? lines.join("\n") + "\n" : "";
+    const outputByteLen = shellValueByteLength(output);
+    const finalStatus = rawState.pipefail ? (statuses.findLast(st => st !== 0) ?? 0) : statuses[n - 1]!;
+    const entry: PurePipeCache = {
+      dataRef: view,
+      cwd: rawState.cwd,
+      pipefail: Boolean(rawState.pipefail),
+      output,
+      outputByteLen,
+      statuses,
+      finalStatus,
+      lastArg,
+      discardToDevNull,
+    };
+    (pipeline as { _cachedPureTextPipe?: PurePipeCache })._cachedPureTextPipe = entry;
+    if (!preflight) {
+      if (n > 1) {
+        this.budget.enterPipelineStages(n);
+        this.budget.leavePipelineStages(n);
+      }
+      this.budget.commands += n;
+      if (discardToDevNull) this.budget.fileSystemOperation();
+      this.budget.bytes += outputByteLen;
+      if (!discardToDevNull && output.length > 0 && io) this.writeSyncStdoutText(output, io);
+    }
+    return entry;
+  }
   private canSyncLoopBody(script: Script, rawState: State, io?: IO, nested = false, printfInductionName?: string, integerWrites: unknown = script): boolean {
     if (script.lists.length === 0) return false;
     const store = stateMonitor(rawState)?.store;
@@ -12705,7 +13075,15 @@ export class Runtime {
       if (list.terminator) return false;
       for (let p = 0; p < list.pipelines.length; p++) {
         const pipeline = list.pipelines[p]!;
-        if (pipeline.negate || pipeline.commands.length !== 1) return false;
+        if (pipeline.negate) return false;
+        if (pipeline.commands.length !== 1) {
+          if (this.canEvalPureTextPipelineSync(pipeline, rawState)) continue;
+          return false;
+        }
+        const cmd0 = pipeline.commands[0]!;
+        if (cmd0.kind === "simple" && (cmd0.words[0]?.plain === "awk" || cmd0.words[0]?.plain === "jq") && this.canEvalPureTextPipelineSync(pipeline, rawState)) {
+          continue;
+        }
         const cmd = pipeline.commands[0]!;
         const canSyncLoopCondCmd = (c: Extract<Command, { kind: "conditional" }>): boolean => {
           if (c.redirects.length !== 0 || rawState.nocasematch || byteLocale(rawState.variables) || !this.canSyncConditional(c.expression, 0, rawState, true)) return false;
@@ -13167,7 +13545,24 @@ export class Runtime {
         const list = script.lists[l]!;
         for (let p = 0; p < list.pipelines.length; p++) {
           const listOperator = p > 0 ? list.operators[p - 1] : undefined;
-          const rawCmd = list.pipelines[p]!.commands[0]!;
+          const pl = list.pipelines[p]!;
+          if (pl.commands.length >= 2 || (pl.commands.length === 1 && (pl as { _cachedPureTextPipe?: unknown })._cachedPureTextPipe !== undefined)) {
+            const lastStage = pl.commands[pl.commands.length - 1]! as Extract<Command, { kind: "simple" }>;
+            const line = io.diagnosticCommandLines?.get(lastStage) ?? (lastStage.line ?? 1) + (io.diagnosticOffset ?? 0);
+            redirectCount += 1 + lastStage.redirects.length;
+            bodyAssignments.push({
+              cmd: lastStage,
+              listOperator,
+              name: undefined,
+              value: undefined,
+              pureTextPipeline: pl,
+              targetWord: undefined,
+              append: false,
+              line,
+            });
+            continue;
+          }
+          const rawCmd = pl.commands[0]!;
           const line = io.diagnosticCommandLines?.get(rawCmd) ?? (rawCmd.line ?? 1) + (io.diagnosticOffset ?? 0);
           if (rawCmd.kind === "arithmetic") {
             bodyAssignments.push({
@@ -13894,7 +14289,7 @@ export class Runtime {
       }
       const arithNamesList = [...arithNames];
       const stepHasLoopAction = (st: SyncLoopStep): boolean => st.loopAction !== undefined || Boolean(st.ifBranches?.some(br => br.steps.some(stepHasLoopAction))) || Boolean(st.elseSteps?.some(stepHasLoopAction)) || Boolean(st.caseClauses?.some(cl => cl.steps.some(stepHasLoopAction)));
-      const hasAnyArrayAssign = !isSimpleLiteralAsc || bodyAssignments.some(s => s.listOperator !== undefined || s.arrayAssign !== undefined || s.isStdoutEcho === true || s.printfVArgs !== undefined || s.readHereString !== undefined || s.unsetVars !== undefined || s.localDecl !== undefined || s.shiftCount !== undefined || s.isDiscardDevNull === true || s.arithStmt !== undefined || s.condStmt !== undefined || s.ifBranches !== undefined || s.caseClauses !== undefined || s.fnCall !== undefined || s.nestedLoop !== undefined || stepHasLoopAction(s) || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
+      const hasAnyArrayAssign = !isSimpleLiteralAsc || bodyAssignments.some(s => s.listOperator !== undefined || s.pureTextPipeline !== undefined || s.arrayAssign !== undefined || s.isStdoutEcho === true || s.printfVArgs !== undefined || s.readHereString !== undefined || s.unsetVars !== undefined || s.localDecl !== undefined || s.shiftCount !== undefined || s.isDiscardDevNull === true || s.arithStmt !== undefined || s.condStmt !== undefined || s.ifBranches !== undefined || s.caseClauses !== undefined || s.fnCall !== undefined || s.nestedLoop !== undefined || stepHasLoopAction(s) || s.value?.parts.some(p => p.kind === "substitution" || (p.kind === "variable" && p.indirect)));
       // Complex expansions can read or write names inside selectors, defaults,
       // patterns and substring expressions. Keep every assignment in iteration
       // order unless the shallow dependency checks below can see all reads.
@@ -14205,7 +14600,9 @@ export class Runtime {
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
       }
       if (lastPipelineStatus !== undefined) {
-        if (!existing) {
+        if (monitor.lazyPipeStatus && monitor.lazyPipeStatus.length > 1) {
+          void publishPipelineStatus(rawState, monitor.lazyPipeStatus, this.signal, io[invocationScope]);
+        } else if (!existing) {
           monitor.lazyPipeStatus = lastPipelineStatus === 0 ? singleStatusZero : [lastPipelineStatus];
           monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
         } else {
@@ -14544,7 +14941,69 @@ export class Runtime {
             }
           }
         } else {
-          while (true) {
+          const wTree = command.kind === "while" && whileArithProg && !whileArithProg.error ? whileArithProg.tree : undefined;
+          const bStep = bodyAssignments.length === 1 && bodyAssignments[0]!.listOperator === undefined ? bodyAssignments[0]! : undefined;
+          const bTree = bStep?.arithStmt && !bStep.arithStmt.error ? bStep.arithStmt.tree : undefined;
+          let handledFastWhile = false;
+          if (
+            wTree?.kind === "binary" &&
+            (wTree.operator === "<" || wTree.operator === "<=") &&
+            wTree.left.kind === "name" &&
+            wTree.left.subscript === undefined &&
+            wTree.right.kind === "literal" &&
+            bTree?.kind === "binary" &&
+            bTree.operator === "," &&
+            bTree.left.kind === "binary" &&
+            (bTree.left.operator === "+=" || bTree.left.operator === "-=" || bTree.left.operator === "=") &&
+            bTree.left.left.kind === "name" &&
+            bTree.left.left.subscript === undefined &&
+            bTree.left.right.kind === "name" &&
+            bTree.left.right.subscript === undefined &&
+            bTree.left.right.name === wTree.left.name &&
+            bTree.right.kind === "unary" &&
+            bTree.right.operator === "++" &&
+            bTree.right.operand.kind === "name" &&
+            bTree.right.operand.subscript === undefined &&
+            bTree.right.operand.name === wTree.left.name &&
+            bTree.left.left.name !== wTree.left.name
+          ) {
+            const indName = wTree.left.name;
+            const accName = bTree.left.left.name;
+            const accOp = bTree.left.operator;
+            const limit = Number(wTree.right.value);
+            const isLe = wTree.operator === "<=";
+            let curI = fastSafeInt(rawState.variables[indName], this.budget.parsing);
+            let curAcc = fastSafeInt(rawState.variables[accName], this.budget.parsing);
+            if (curI !== undefined && curAcc !== undefined && Number.isSafeInteger(limit) && limit <= 1000000) {
+              handledFastWhile = true;
+              while (true) {
+                this.budget.tick();
+                this.budget.parsing.admit(4);
+                const condOk = isLe ? curI <= limit : curI < limit;
+                progress.lastCmd = condCmd;
+                rawState.status = condOk ? 0 : 1;
+                progress.pipelineStatus = rawState.status;
+                if (!condOk) break;
+                ++iterCount;
+                this.budget.loop();
+                if ((iterCount & 127) === 0) runYieldCheckpoint(this.signal);
+                this.budget.tick();
+                this.budget.parsing.admit(6);
+                curAcc = accOp === "=" ? curI : accOp === "+=" ? curAcc + curI : curAcc - curI;
+                const postI = curI;
+                curI++;
+                progress.lastCmd = bStep!.cmd;
+                rawState.status = postI !== 0 ? 0 : 1;
+                progress.pipelineStatus = rawState.status;
+                loopStatus = rawState.status;
+              }
+              rawState.variables[indName] = intToStr(curI);
+              rawState.variables[accName] = intToStr(curAcc);
+              touched.add(indName);
+              touched.add(accName);
+            }
+          }
+          while (!handledFastWhile) {
             this.budget.tick();
             const condNonZero = whileCondExpr !== undefined
               ? (this.tryEvalConditionalSync(whileCondExpr, rawState, monitor, store, io, condLine) ?? 1) === 0
@@ -16100,10 +16559,17 @@ export class Runtime {
         status = rawState.status;
       } else if (deferredMask & (1 << b)) {
         progress.lastArg = "";
+      } else if (step.pureTextPipeline !== undefined) {
+        const pipeRes = this.tryEvalPureTextPipelineSync(step.pureTextPipeline, rawState, io);
+        if (!pipeRes) throw new Error("Synchronous loop pure text pipeline was not executable");
+        monitor.lazyPipeStatus = pipeRes.statuses;
+        status = pipeRes.finalStatus;
+        progress.lastArg = pipeRes.lastArg;
       } else if (step.condStmt !== undefined) {
-        status = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
+        status = this.evalSyncLoopCondStep(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line);
         if (step.cmd.kind === "simple") {
-          progress.lastArg = this.fastValueWord(step.cmd.words[step.cmd.words.length - 1]!, rawState, io, false, false, false, true) as string;
+          const lastW = step.cmd.words[step.cmd.words.length - 1]!;
+          progress.lastArg = lastW.plain ?? (this.fastValueWord(lastW, rawState, io, false, false, false, true) as string);
         }
       } else if (step.arithStmt !== undefined) {
         status = this.evalSyncLoopArithStmt(step.arithStmt, rawState, io, touched, step.line) ? 0 : 1;

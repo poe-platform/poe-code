@@ -16,6 +16,7 @@ import { captureShellExtensions, extensionState } from "./extensions.js";
 import { ShellInput } from "./input.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { byteLocale } from "./locale.js";
+const verifiedBuiltInRegistries = new WeakSet<CommandRegistry>();
 import { Budget, Capture, customRegisteredCommands, customRegisteredRegistries, interruptible, registerRuntimeBackingFileSystem, resolveLimits, RootShellState, Runtime, RuntimeCancellationState, warmDefaultRuntimeContextFs } from "./runtime.js";
 import { ensureStateMonitor } from "./arrays/state.js";
 import { combineManagedSignals, isSyncResolved } from "../fs/creation-mask.js";
@@ -401,15 +402,38 @@ export class Shell implements PluginHost {
     }();
     if (!(commands instanceof CommandRegistry)) throw new TypeError("CommandRegistry requires its matching shell runtime; do not mix source and compiled runtime modules");
     if (options.commands) {
-      this.#hasCustomCommands = true;
-      for (const def of commands.list()) onRegister(def);
-      const origRegister = commands.register.bind(commands);
-      commands.register = ((command: CommandDefinition, regOptions?: RegisterCommandOptions) => {
-        origRegister(command, regOptions);
-        onRegister(command);
-        return commands;
-      }) as typeof commands.register;
-      customRegisteredRegistries.add(commands);
+      if (customRegisteredRegistries.has(commands)) {
+        this.#hasCustomCommands = true;
+      } else if (!verifiedBuiltInRegistries.has(commands)) {
+        if (
+          Object.getPrototypeOf(commands) !== CommandRegistry.prototype ||
+          commands.get !== CommandRegistry.prototype.get ||
+          commands.has !== CommandRegistry.prototype.has
+        ) {
+          this.#hasCustomCommands = true;
+          customRegisteredRegistries.add(commands);
+        } else {
+          for (const def of commands.list()) {
+            onRegister(def);
+            if (!builtInDirectContextExecutors.has(def.execute)) {
+              customRegisteredRegistries.add(commands);
+            }
+          }
+          if (!customRegisteredRegistries.has(commands)) {
+            verifiedBuiltInRegistries.add(commands);
+          }
+          const origRegister = commands.register.bind(commands);
+          commands.register = ((command: CommandDefinition, regOptions?: RegisterCommandOptions) => {
+            origRegister(command, regOptions);
+            onRegister(command);
+            if (!builtInDirectContextExecutors.has(command.execute)) {
+              verifiedBuiltInRegistries.delete(commands);
+              customRegisteredRegistries.add(commands);
+            }
+            return commands;
+          }) as typeof commands.register;
+        }
+      }
     }
     if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
     warnIfHostProcessEnv(options.env);

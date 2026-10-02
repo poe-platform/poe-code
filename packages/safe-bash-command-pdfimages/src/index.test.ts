@@ -197,13 +197,14 @@ describe("safe-bash-command-pdfimages", () => {
   it("preserves RGBA alpha channel transparency via /SMask when extracting embedded PNGs with -png", async () => {
     const doc = PdfDocument.create();
     const page = doc.addPage([100, 100]);
-    const rgbaData = Uint8Array.from([
+    const expectedRgba = [
       255, 10, 20, 128, // semi-transparent red
       10, 250, 30, 64,  // quarter-opaque green
       20, 30, 240, 255, // opaque blue
       255, 255, 0, 0,   // fully transparent yellow
-    ]);
-    const pngBytes = encodePng({ width: 2, height: 2, data: rgbaData });
+    ];
+    // PNG encoding consumes its bitmap storage; keep the pixel oracle separate.
+    const pngBytes = encodePng({ width: 2, height: 2, data: Uint8Array.from(expectedRgba) });
     const emb = doc.embedPng(pngBytes);
     page.drawImage(emb, { x: 10, y: 10, width: 50, height: 50 });
 
@@ -213,7 +214,7 @@ describe("safe-bash-command-pdfimages", () => {
     const extractedPng = decodePng(files.get("rgba-out-000.png")!);
     expect(extractedPng.width).toBe(2);
     expect(extractedPng.height).toBe(2);
-    expect(Array.from(extractedPng.data)).toEqual(Array.from(rgbaData));
+    expect(Array.from(extractedPng.data)).toEqual(expectedRgba);
   });
 
   it("supports -all mixed JPEG + PNG extraction, stdin (-) input, and -upw encrypted PDFs", async () => {

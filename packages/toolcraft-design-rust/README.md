@@ -128,6 +128,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `dashboard/keymap` | Resolve default or custom keyboard commands and canonicalize binding labels |
 | `shouldUseInteractiveDashboard` | Check explicit enablement, terminal output mode and both TTY streams |
 | `dashboard/store` | Retain bounded live output, merge statistics and subscribe to state changes |
+| `dashboard/composer-layout` | Wrap input rows and locate the caret at terminal-cell coordinates |
 | `createNotices`, `renderNotice` | Retain bounded, expiring notices and render status markers |
 | `createMetric` | Retain rolling samples and render compact sparklines |
 | `renderProgressGroup` | Show clipped progress rows with known or indeterminate completion |
@@ -461,3 +462,9 @@ place. `getState()` returns the current snapshot, `updateStats(partial)` merges
 statistics, and `onChange(handler)` returns an unsubscribe function. Previously
 returned output arrays remain stable across updates. Dashboard state, output,
 statistics and queue types are available from `dashboard/types`.
+
+`layoutComposer(state, width)` from `dashboard/composer-layout` returns wrapped
+`lines`, UTF-16 row `starts`, and a terminal-cell `cursor`. Tabs occupy two cells;
+newlines and wide graphemes keep navigation aligned with display rows. Repeated
+calls reuse the layout while the state object, text, cursor and width match.
+The composer editor and dashboard renderer remain separate from this helper.

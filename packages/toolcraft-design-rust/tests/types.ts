@@ -683,3 +683,9 @@ const storeNative: typeof dashboardStore = null as unknown as typeof originalDas
 const stateOriginal: originalDashboardTypes.DashboardState = dashboardStore.createStore().getState();
 const stateNative: dashboardTypes.DashboardState = stateOriginal;
 void [storeOriginal,storeNative,stateNative];
+
+import * as composerLayout from "toolcraft-design-rust/dashboard/composer-layout";
+import type * as originalComposerLayout from "toolcraft-design/dashboard/composer-layout";
+const layoutOriginal: typeof originalComposerLayout = composerLayout;
+const layoutNative: typeof composerLayout = null as unknown as typeof originalComposerLayout;
+void [layoutOriginal,layoutNative];

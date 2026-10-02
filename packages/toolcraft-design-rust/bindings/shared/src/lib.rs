@@ -488,3 +488,5 @@ mod dashboard_mode;
 pub use dashboard_mode::*;
 mod dashboard_store;
 pub use dashboard_store::*;
+mod composer_layout;
+pub use composer_layout::*;

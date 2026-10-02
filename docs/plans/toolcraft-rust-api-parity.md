@@ -1404,3 +1404,29 @@ measured append medians of 3.935 µs native / 0.873 µs reference (4.51× slower
 and keyed-update medians of 95.59 µs / 2.573 µs (37.15× slower). No performance
 gate passed. Remaining dashboard rendering/lifecycle, explorer and broader
 Toolcraft replacement gates remain open.
+
+### Composer layout checkpoint
+
+`dashboard/composer-layout` now exposes `layoutComposer` with standalone
+structural state and layout declarations. Rust owns cache admission, wrapping,
+tab/newline rules, UTF-16 row starts and caret placement. Node retains the weak
+cache and mutable returned layout identity, ICU segmentation and observable
+property/array/numeric operations. Width coercion and getter order match the
+reference, including normalized narrow widths and non-cacheable NaN.
+
+Three missing-subpath tests failed before implementation. All 272 native host
+tests, 1,228 selected design tests, 13 prompt-wrapper tests and 11 shared dashboard
+keymap/store tests pass. Four original composer navigation tests also pass with
+only layout redirected to native; ten other editor tests are excluded and the
+editor itself is not yet ported. Scoped Rust/binding/JS lint, bidirectional types,
+and packed runtime/declarations with external imports rejected and `types: []`
+pass. The inspected ASCII screenshot checks wrapped rows and carets at widths
+4/6/10; Unicode cell and UTF-16 behavior are covered by differential tests.
+The bundled screenshot font lacks CJK/emoji glyphs, so it is not Unicode visual
+qualification. No dependencies were added.
+
+Five warmed alternating rounds measured cache hits at 2.040 µs native / 0.0186 µs
+reference (109.90× slower, 10,000 calls/round), and relayout at 49.44 µs / 3.709 µs
+(13.33× slower, 300 calls/round) for a short multiline Unicode draft. No performance
+gate passed. The composer editor, legacy ANSI/style/buffer/terminal surfaces,
+full dashboard lifecycle, explorer and broader replacement gates remain open.

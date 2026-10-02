@@ -1397,7 +1397,7 @@ export function evalSyncFfmpeg(
     let outputFps: number | undefined;
     let outputSize: string | undefined;
     let rotation: number | undefined;
-    let noOverwrite = false;
+    let noOverwrite = true;
     const vfFilters: string[] = [];
     const afFilters: string[] = [];
     const metadata: Record<string, string> = {};
@@ -1486,7 +1486,7 @@ export function evalSyncFfmpeg(
     if (inputs.length === 0 || !outputTarget) return undefined;
     const isNullMux = outputFormat === "null" || outputTarget === "/dev/null";
     if (!isNullMux && !writeFileSync) return undefined;
-    if (noOverwrite && !isNullMux && readFileSync?.(outputTarget)) return undefined;
+    if (noOverwrite && !isNullMux && (!readFileSync || readFileSync(outputTarget))) return undefined;
 
     const loadedDocs: MediaDocument[] = [];
     for (const inp of inputs) {
@@ -1959,8 +1959,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let outputFps: number | undefined;
       let outputSize: string | undefined;
       let rotation: number | undefined;
-      let overwrite = true;
-      let noOverwrite = false;
+      let overwrite = false;
       const maps: string[] = [];
       const vfFilters: string[] = [];
       const afFilters: string[] = [];
@@ -1972,9 +1971,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const arg = args[i]!;
         if (arg === "-y") {
           overwrite = true;
-          noOverwrite = false;
         } else if (arg === "-n") {
-          noOverwrite = true;
           overwrite = false;
         } else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode") {
           i++;
@@ -2113,7 +2110,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         }
       }
 
-      void overwrite;
 
       if (inputs.length === 0) {
         await writeBytes(
@@ -2134,9 +2130,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       }
 
       try {
-        // Check `-n` (do not overwrite)
+        // Virtual streams are non-interactive: replacing a file requires -y.
         if (
-          noOverwrite &&
+          !overwrite &&
           !isStdout(outputTarget) &&
           outputFormat !== "null"
         ) {

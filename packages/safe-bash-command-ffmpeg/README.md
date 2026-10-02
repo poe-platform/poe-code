@@ -31,4 +31,4 @@ implement the listed AST capabilities, not every native FFmpeg codec or option.
 
 HLS stream-copy segments cut at keyframes, so a long GOP can exceed `-hls_time`; the playlist reports actual segment durations. Negative `-map` selections remove previously selected streams by input, type, or stream index, and later positive maps can select them again.
 
-Explicit `-hls_segment_filename` paths resolve from the working directory; default segments are written beside the playlist. Missing HLS parent directories are created. `-n` preserves an existing output and exits with status 1.
+Explicit `-hls_segment_filename` paths resolve from the working directory; default segments are written beside the playlist. Missing HLS parent directories are created. Existing outputs are preserved with exit status 1 unless `-y` is specified; `-n` explicitly requests preservation.

@@ -491,6 +491,26 @@ describe("native ffmpeg parity", () => {
       assert.equal(probe.stdout, expected);
     });
   }
+  for (const flags of [[], ["-nostdin"], ["-n"]]) {
+    it(`preserves existing output with ${flags.join(" ") || "no overwrite flag"}`, async () => {
+      const original = new Uint8Array([1, 2, 3]);
+      const vfs = createTestVfs({ "/out.mp4": original });
+      const result = await runCmd(createFfmpegCommand(), [
+        ...flags, "-f", "lavfi", "-i", "color=c=red:s=16x16:d=0.1", "/out.mp4"
+      ], vfs);
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /already exists/);
+      assert.deepEqual(vfs.store.get("/out.mp4"), original);
+    });
+  }
+  it("replaces existing output with -y", async () => {
+    const vfs = createTestVfs({ "/out.mp4": new Uint8Array([1, 2, 3]) });
+    const result = await runCmd(createFfmpegCommand(), [
+      "-y", "-f", "lavfi", "-i", "color=c=red:s=16x16:d=0.1", "/out.mp4"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.ok(vfs.store.get("/out.mp4")!.length > 3);
+  });
 });
 
 for (const [format, expected] of [

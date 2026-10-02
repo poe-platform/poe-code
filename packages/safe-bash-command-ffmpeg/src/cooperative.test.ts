@@ -27,7 +27,7 @@ it("yields audio sample work and observes cancellation with frozen clocks", asyn
       args: ["-f", "lavfi", "-i", "sine=duration=1", "-ar", "48000", "out.wav"],
       cwd: "/", env: {}, signal: controller.signal,
       stdin: (async function* () {})(),
-      fs: { async writeFile() { published = true; }, async stat() { throw new Error("ENOENT"); }, async mkdir() {} },
+      fs: { async writeFile() { published = true; }, async stat() { throw Object.assign(new Error("ENOENT"), { code: "ENOENT" }); }, async mkdir() {} },
       stdout: { async write() {} }, stderr: { async write() {} }
     } as unknown as CommandContext;
     try {
@@ -57,7 +57,7 @@ for (const mode of ["audio resampling", "video frames"] as const) {
         args: mode === "audio resampling" ? ["-i", "in.mp4", "-vn", "-ar", "48000", "out.wav"] : ["-i", "in.mp4", "out%02d.png"],
         cwd: "/", env: {}, signal: controller.signal,
         stdin: (async function* () {})(),
-        fs: { async readFile() { return input; }, async writeFile() { published = true; }, async stat() { throw new Error("ENOENT"); }, async mkdir() {} },
+        fs: { async readFile() { return input; }, async writeFile() { published = true; }, async stat() { throw Object.assign(new Error("ENOENT"), { code: "ENOENT" }); }, async mkdir() {} },
         stdout: { async write() {} }, stderr: { async write() {} }
       } as unknown as CommandContext;
       let result;
@@ -93,4 +93,15 @@ it("MP4 muxing yields tracks under frozen clocks and preserves output", async ()
     assert.ok(timerFired);
     assert.deepEqual(step.value, muxMp4(sources));
   } finally { mock.restoreAll(); }
+});
+
+it("declines synchronous overwrites unless -y is explicit", () => {
+  const input = createSyntheticMp4({ width: 16, height: 16, frameCount: 1, includeAudio: false });
+  let published = false;
+  const read = () => input;
+  const write = () => { published = true; return true; };
+  assert.equal(evalSyncFfmpeg(["-i", "in.mp4", "-c", "copy", "out.mp4"], undefined, read, write), undefined);
+  assert.equal(published, false);
+  assert.equal(evalSyncFfmpeg(["-y", "-i", "in.mp4", "-c", "copy", "out.mp4"], undefined, read, write), "");
+  assert.equal(published, true);
 });

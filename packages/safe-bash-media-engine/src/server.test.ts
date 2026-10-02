@@ -92,10 +92,20 @@ it('retains admission ceilings and the selected isolation owner while assets are
   expect(inspect).toHaveBeenCalledOnce();expect(replacement).not.toHaveBeenCalled();
  }finally{await service.close();}
 });
-it.each([0,-1,Infinity,1.5])('refuses an invalid executable size bound %s before reading assets',async maxExecutableBytes=>{
+it.each([0,-1,-Infinity,NaN,1.5])('refuses an invalid executable size bound %s before reading assets',async maxExecutableBytes=>{
  const f=deployment();f.options.maxExecutableBytes=maxExecutableBytes;
  await expect(Promise.resolve().then(()=>createMediaDeployment(f.options,{open:f.open,type:f.type}))).rejects.toThrow('Invalid executable byte bound');
  expect(f.open).not.toHaveBeenCalled();
+});
+it.each([undefined,Infinity])('creates a verified service with unlimited asset and receipt bounds %s',async bound=>{
+ const f=deployment();
+ const options={...f.options,maxExecutableBytes:bound,maxAssetBytes:bound,
+  inventory:{...f.options.inventory,maxFiles:bound,maxRecordBytes:bound}};
+ const service=await createMediaDeployment(options,{open:f.open,type:f.type});
+ try{
+  expect(f.open).toHaveBeenCalledTimes(2);
+  expect((await service.fetch(new Request('https://media.test/v1/capabilities'))).status).toBe(401);
+ }finally{await service.close();}
 });
 it('refuses a missing installed executable instead of admitting its declared digest',async()=>{
  const f=deployment();f.volume.unlinkSync('/assets/ffmpeg');

@@ -101,6 +101,17 @@ it('bounds records and rejects ambiguous duplicate asset paths before allocating
   expect(()=>createMediaBuildReceipt({...input(),maxRecordBytes:1})).toThrow('bound');
   const value=input();expect(()=>createMediaBuildReceipt({...value,files:[...value.files,value.files[0]]})).toThrow('Duplicate');
 });
+it.each([undefined,Infinity])('creates the same pinned receipt with unlimited bounds %s',bound=>{
+ const value=input();
+ expect(createMediaBuildReceipt({...value,maxFiles:bound,maxRecordBytes:bound})).toEqual(createMediaBuildReceipt(value));
+ expect(()=>createMediaBuildReceipt({...value,maxFiles:1,maxRecordBytes:bound})).toThrow('file count bound');
+ expect(()=>createMediaBuildReceipt({...value,maxFiles:bound,maxRecordBytes:2})).toThrow('byte bound');
+});
+it.each(['maxFiles','maxRecordBytes'] as const)('rejects invalid inventory %s',key=>{
+ for(const bound of [0,-1,-Infinity,NaN,1.5,Number.MAX_SAFE_INTEGER+1,null]){
+  expect(()=>createMediaBuildReceipt({...input(),[key]:bound})).toThrow('Invalid inventory bound');
+ }
+});
 it('rejects ambiguous asset types, lossy Unicode and noncanonical inventory paths',()=>{
  const invalid=[
   {path:'/assets/unknown',type:'directory'},

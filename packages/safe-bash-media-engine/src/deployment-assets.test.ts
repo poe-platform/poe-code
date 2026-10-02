@@ -27,6 +27,17 @@ it('verifies regular asset streams and symlink identities without following syml
  expect(f.assets.readlink).toHaveBeenCalledWith('/assets/library');
  expect(f.assets.open.mock.calls.map(([path])=>path)).not.toContain('/assets/library');
 });
+it.each([undefined,Infinity])('verifies deployment assets with an unlimited byte bound %s',async maxAssetBytes=>{
+ const f=fixture();
+ await expect(verifyMediaDeploymentAssets({...f,maxAssetBytes})).resolves.toBeUndefined();
+ f.volume.writeFileSync('/assets/font.ttf','changed');
+ await expect(verifyMediaDeploymentAssets({...f,maxAssetBytes})).rejects.toThrow('Asset digest mismatch');
+});
+it.each([0,-1,-Infinity,NaN,1.5,Number.MAX_SAFE_INTEGER+1,null])('rejects invalid asset byte bound %s before storage access',async maxAssetBytes=>{
+ const f=fixture();
+ await expect(verifyMediaDeploymentAssets({...f,maxAssetBytes:maxAssetBytes as number})).rejects.toThrow('Invalid asset byte bound');
+ expect(f.assets.type).not.toHaveBeenCalled();expect(f.assets.open).not.toHaveBeenCalled();
+});
 it('rejects changed link targets and file types',async()=>{
  for(const target of ['/assets/lib.so','/assets/font.ttf']) {
   const f=fixture();f.volume.unlinkSync('/assets/library');f.volume.symlinkSync(target,'/assets/library');

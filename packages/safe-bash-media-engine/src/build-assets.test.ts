@@ -16,6 +16,18 @@ it('verifies every configured executable from independently pinned digests using
  const input=fixture();await verifyMediaExecutableAssets(input);
  expect(input.open.mock.calls.map(([path])=>path)).toEqual(['/assets/ffmpeg','/assets/magick']);
 });
+it.each([undefined,Infinity])('verifies executables with an unlimited byte bound %s',async maxExecutableBytes=>{
+ const input=fixture();
+ await expect(verifyMediaExecutableAssets({...input,maxExecutableBytes})).resolves.toBeUndefined();
+ expect(input.open).toHaveBeenCalledTimes(2);
+ input.volume.writeFileSync('/assets/ffmpeg','changed bytes');
+ await expect(verifyMediaExecutableAssets({...input,maxExecutableBytes})).rejects.toThrow('Executable digest mismatch');
+});
+it.each([0,-1,-Infinity,NaN,1.5,Number.MAX_SAFE_INTEGER+1,null])('rejects invalid executable byte bound %s before opening storage',async maxExecutableBytes=>{
+ const input=fixture();
+ await expect(verifyMediaExecutableAssets({...input,maxExecutableBytes:maxExecutableBytes as number})).rejects.toThrow('Invalid executable byte bound');
+ expect(input.open).not.toHaveBeenCalled();
+});
 it('refuses drifted ImageMagick bytes instead of pinning whatever was extracted',async()=>{
  const input=fixture();input.volume.writeFileSync('/assets/magick','changed bytes');
  await expect(verifyMediaExecutableAssets(input)).rejects.toThrow('Executable digest mismatch: magick');

@@ -174,7 +174,7 @@ export interface BoundJobRun {
   /** Authenticated actual native socket stage; never called by discovery. */
   openEndpoint(credential: object, request: NativeEndpointRequest): Promise<EndpointLease>;
 }
-export interface JobBindingOptions {
+export interface JobBindingOptions extends NativeProcessLimits {
   sessionId: string; epoch: string; buildId: string; sourceAuthorityId: string; bindingId: string;
   fs: Pick<FileSystem, 'objects'> & Partial<Pick<FileSystem, 'capabilities' | 'capabilitiesFor' | 'access' | 'realpath' | 'readlink' | 'symlink' | 'mkdir' | 'rmdir' | 'stat' | 'lstat'>>;
   credential: object;
@@ -218,8 +218,8 @@ export function captureJobSource(fs: JobBindingOptions['fs']) {
 export type JobSourceAdmission = ReturnType<typeof captureJobSource>;
 
 const fields = ['sessionId', 'epoch', 'buildId', 'sourceAuthorityId', 'bindingId', 'materializationId', 'manifestId', 'manifestRevision', 'directoryRevision'] as const;
-function octets(value: number[], empty = false) {
-  if (!Array.isArray(value) || (!empty && !value.length) || value.length > 1048576) throw new TypeError('Invalid native octets');
+function octets(value: number[], empty = false, maxBytes = 1048576) {
+  if (!Array.isArray(value) || (!empty && !value.length) || value.length > maxBytes) throw new TypeError('Invalid native octets');
   for (let index = 0; index < value.length; index++) {
     if (!Object.hasOwn(value, index)) throw new TypeError('Invalid native octets');
     const n = value[index];
@@ -227,26 +227,45 @@ function octets(value: number[], empty = false) {
   }
 }
 
-/** Includes one native NUL terminator per argument, including empty arguments. */
-export const nativeArgvByteLimit = 1048576;
+/** Default aggregate bound, including one NUL terminator per argument. */
+export const nativeArgvByteLimit = Infinity;
+
+/** Local process admission bounds, independent of negotiated transport ceilings.
+ * Each omitted bound defaults to Infinity. */
+export interface NativeProcessLimits {
+  /** Aggregate argument bytes, including one NUL terminator per argument. */
+  maxArgvBytes?: number;
+  /** Bytes in one argument, excluding its NUL terminator. */
+  maxArgumentBytes?: number;
+  /** UTF-8 bytes in the logical working directory. */
+  maxPathBytes?: number;
+}
+export function resolveNativeProcessLimits(limits: NativeProcessLimits = {}): Required<NativeProcessLimits> {
+  const { maxArgvBytes = nativeArgvByteLimit, maxArgumentBytes = Infinity, maxPathBytes = Infinity } = limits;
+  for (const bound of [maxArgvBytes, maxArgumentBytes, maxPathBytes]) {
+    if (bound !== Infinity && (!Number.isSafeInteger(bound) || bound < 1)) throw new TypeError('Invalid native process bound');
+  }
+  return { maxArgvBytes, maxArgumentBytes, maxPathBytes };
+}
 
 /** Validate the literal job description before handing it to a host adapter. */
-export function assertJobInvocation(input: NativeInvocation): void {
+export function assertJobInvocation(input: NativeInvocation, limits: NativeProcessLimits = {}): void {
   for (const field of fields) if (typeof input[field] !== 'string' || !input[field].length || input[field].length > 256) throw new TypeError('Incomplete job binding');
-  assertNativeProcessView(input.cwd, input.originalArgv);
+  assertNativeProcessView(input.cwd, input.originalArgv, limits);
 }
 
 /** Admit literal process names independently of resource acquisition and session
  * binding. Dependency discovery must not run for an inadmissible process view. */
-export function assertNativeProcessView(cwd: number[], originalArgv: number[][]): void {
-  octets(cwd); assertLogicalCwd(cwd);
+export function assertNativeProcessView(cwd: number[], originalArgv: number[][], limits: NativeProcessLimits = {}): void {
+  const { maxArgvBytes, maxArgumentBytes, maxPathBytes } = resolveNativeProcessLimits(limits);
+  octets(cwd, false, maxPathBytes); assertLogicalCwd(cwd);
   if (!Array.isArray(originalArgv)) throw new TypeError('Original argv required');
-  if (originalArgv.length > nativeArgvByteLimit) throw new TypeError('Native argv limit');
-  let remaining = nativeArgvByteLimit;
+  if (originalArgv.length > maxArgvBytes) throw new TypeError('Native argv limit');
+  let remaining = maxArgvBytes;
   for (let index = 0; index < originalArgv.length; index++) {
     if (!Object.hasOwn(originalArgv, index)) throw new TypeError('Invalid native octets');
     const arg = originalArgv[index];
-    octets(arg, true);
+    octets(arg, true, maxArgumentBytes);
     if (arg.length >= remaining) throw new TypeError('Native argv limit');
     remaining -= arg.length + 1;
   }
@@ -254,8 +273,8 @@ export function assertNativeProcessView(cwd: number[], originalArgv: number[][])
 
 /** Own the native indexed names, never advisory properties on their carriers.
  * Validate before allocation and again after observing caller-owned slots. */
-function ownNativeProcessView(cwd: number[], originalArgv: number[][]) {
-  assertNativeProcessView(cwd, originalArgv);
+function ownNativeProcessView(cwd: number[], originalArgv: number[][], limits: NativeProcessLimits) {
+  assertNativeProcessView(cwd, originalArgv, limits);
   const argumentCount = originalArgv.length;
   const indexed = (bytes: number[]) => {
     const length = bytes.length;
@@ -276,7 +295,7 @@ function ownNativeProcessView(cwd: number[], originalArgv: number[][]) {
   // Indexed accessors can append a late operand during copying. A prefix is
   // neither the original argv nor a complete process binding.
   if (originalArgv.length !== argumentCount) throw new TypeError('Invalid native octets');
-  assertNativeProcessView(owned.cwd, owned.originalArgv);
+  assertNativeProcessView(owned.cwd, owned.originalArgv, limits);
   return owned;
 }
 
@@ -285,6 +304,7 @@ function ownNativeProcessView(cwd: number[], originalArgv: number[][]) {
  * recovery, never retransmission against a new binding instance. */
 export function createJobBinding(options: JobBindingOptions) {
   options = Object.freeze({ ...options });
+  const processLimits = resolveNativeProcessLimits(options);
   if (!options.credential || (typeof options.credential !== 'object' && typeof options.credential !== 'function'))
     throw new TypeError('Callback credential capability required');
   const endpointBuild = options.endpoints?.buildDigest;
@@ -345,12 +365,12 @@ export function createJobBinding(options: JobBindingOptions) {
       // speculative failure before the process reaches its native access stage.
       const description = Object.fromEntries([...fields, 'cwd', 'originalArgv']
         .map(field => [field, Reflect.get(input, field)])) as unknown as NativeInvocation;
-      assertJobInvocation(description);
-      const invocation = { ...description, ...ownNativeProcessView(description.cwd, description.originalArgv) };
+      assertJobInvocation(description, processLimits);
+      const invocation = { ...description, ...ownNativeProcessView(description.cwd, description.originalArgv, processLimits) };
       // Validate exactly the owned description passed to preparation and launch.
       // Local structural callers can expose getters; checking the caller and
       // copying it later would authorize a different session or source binding.
-      assertJobInvocation(invocation);
+      assertJobInvocation(invocation, processLimits);
       for (const field of ['sessionId', 'epoch', 'buildId', 'sourceAuthorityId', 'bindingId'] as const) if (invocation[field] !== options[field]) throw new Error('Job authority mismatch');
       signal.throwIfAborted();
       const jobId = crypto.randomUUID();
@@ -1048,7 +1068,7 @@ export function createJobBinding(options: JobBindingOptions) {
             .map(([key, descriptor]) => [key, descriptor.value]));
           const captured = { ...extensions, ...observed, ...structuredClone({
             ...Object.fromEntries(fields.map(field => [field, observed[field]])),
-            ...ownNativeProcessView(observed.cwd, observed.originalArgv),
+            ...ownNativeProcessView(observed.cwd, observed.originalArgv, processLimits),
             state: observed.state,
             // Records may also contain lazy acquisition/failure capabilities.
             // Read only the metadata used to admit the starting tree, both now

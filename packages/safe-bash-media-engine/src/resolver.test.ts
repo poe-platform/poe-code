@@ -172,12 +172,59 @@ it('honors explicit literal paths even when their spelling is a protocol or desc
   expect(visited).toContain('/work/pipe:0');
 });
 
-it('rejects omitted budgets rather than silently disabling a discovery bound', () => {
+it('defaults each omitted discovery budget independently', async () => {
   for (const key of ['nodes', 'bytes', 'depth', 'symlinks'] as const) {
     const budgets = { ...options.budgets };
     delete (budgets as Partial<typeof budgets>)[key];
-    expect(() => new DependencyResolver({ ...options, budgets })).toThrow('Discovery budgets');
+    const resolver = new DependencyResolver({ ...options, budgets });
+    await expect(resolver.add(ref('input'))).resolves.toMatchObject({ id: 0 });
   }
+});
+
+it.each([undefined, {}, { nodes: Infinity, bytes: Infinity, depth: Infinity, symlinks: Infinity }])(
+  'discovers manifests with optional unlimited budgets %j', async budgets => {
+    const resolver = new DependencyResolver({ cwd: b('/work'), budgets });
+    const root = await resolver.add({ ...ref('list'), grammar: 'concat' });
+    await resolver.content(root.id, { content: b("file 'input'\n") });
+    expect(resolver.graph().nodes.map(node => t(node.original))).toEqual(['list', 'input']);
+    expect(resolver.graph().issues.some(issue => issue.reason === 'budget')).toBe(false);
+  },
+);
+
+it.each(['nodes', 'bytes', 'depth', 'symlinks'] as const)('rejects invalid %s budgets', key => {
+  for (const value of [0, -1, -Infinity, NaN, 1.5, Number.MAX_SAFE_INTEGER + 1, null]) {
+    expect(() => new DependencyResolver({ ...options, budgets: { ...options.budgets, [key]: value } }))
+      .toThrow('Discovery budgets');
+  }
+});
+
+it('preserves explicit finite limits when the other discovery budgets are omitted', async () => {
+  const resolver = new DependencyResolver({ cwd: b('/work'), budgets: { nodes: 1 } });
+  await resolver.add(ref('first'));
+  await expect(resolver.add(ref('second'))).rejects.toThrow('budget exhausted');
+  expect(resolver.graph().nodes).toHaveLength(1);
+});
+
+it('retains finite byte, depth and symlink limits independently of unlimited defaults', async () => {
+  const byteLimited = new DependencyResolver({ cwd: b('/work'), budgets: { bytes: 1 } });
+  await expect(byteLimited.add(ref('input'))).rejects.toThrow('budget exhausted');
+  const depthLimited = new DependencyResolver({ cwd: b('/work'), budgets: { depth: 1 } });
+  const root = await depthLimited.add(ref('root'));
+  const child = await depthLimited.add(ref('child'), root.id);
+  await expect(depthLimited.add(ref('grandchild'), child.id)).rejects.toThrow('budget exhausted');
+  const link = async (path: Uint8Array) => t(path) === '/first' ? b('/second') : t(path) === '/second' ? b('/third') : undefined;
+  const linkLimited = new DependencyResolver({ cwd: b('/'), budgets: { symlinks: 1 }, link });
+  await linkLimited.add(ref('/first'));
+  expect(linkLimited.graph().issues).toContainEqual(expect.objectContaining({ reason: 'budget' }));
+  const unlimited = new DependencyResolver({ cwd: b('/'), link });
+  expect(t((await unlimited.add(ref('/first'))).location)).toBe('/third');
+  expect(unlimited.graph().issues.some(issue => issue.reason === 'budget')).toBe(false);
+});
+
+it('detects symlink cycles without a finite traversal budget', async () => {
+  const resolver = new DependencyResolver({ cwd: b('/'), link: async () => b('/loop') });
+  await resolver.add(ref('/loop'));
+  expect(resolver.graph().issues).toContainEqual(expect.objectContaining({ reason: 'cycle' }));
 });
 
 it('keeps AVIO descriptor semantics for slash-loaded filter options', async () => {

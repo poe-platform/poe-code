@@ -1,5 +1,5 @@
-import type { NativeInvocation, JobBindingOptions, JobSourceAdmission, ProcessContext, EffectStore, createJobBinding } from '@poe-code/remote-execution';
-import { captureJobSource, nativeArgvByteLimit, assertJobInvocation, assertNativeProcessView } from '@poe-code/remote-execution';
+import type { NativeInvocation, NativeProcessLimits, JobBindingOptions, JobSourceAdmission, ProcessContext, EffectStore, createJobBinding } from '@poe-code/remote-execution';
+import { captureJobSource, resolveNativeProcessLimits, assertJobInvocation, assertNativeProcessView } from '@poe-code/remote-execution';
 import type { Discovery } from './types.js';
 import type { ImageMagickDiscovery } from './imagemagick.js';
 
@@ -17,13 +17,14 @@ export interface MediaEngineRequest extends ProcessContext {
 }
 /** The host binds the supplied scoped filesystem and borrowed IO to its
  * authenticated session. Nothing is recovered from an earlier invocation. */
-export function createMediaEngine<Request extends MediaEngineRequest>(options: {
+export function createMediaEngine<Request extends MediaEngineRequest>(options: NativeProcessLimits & {
   bind(request: Request): Promise<{
     invocation: Omit<NativeInvocation, 'cwd' | 'originalArgv'>;
     job: Pick<ReturnType<typeof createJobBinding>, 'execute'> & { effects?: Pick<EffectStore, 'inspect'> };
   }>;
 }) {
   options = Object.freeze({ ...options });
+  const limits = resolveNativeProcessLimits(options);
   return {
     execute(request: Request): Promise<{ exitCode: number }> {
       // Defer acquisition until the synchronous cleanup registration has finished.
@@ -34,9 +35,9 @@ export function createMediaEngine<Request extends MediaEngineRequest>(options: {
       let env: Readonly<Record<string, string>>;
       try {
         if (!Array.isArray(argv)) throw new TypeError('Incomplete native argv');
-        if (argv.length > nativeArgvByteLimit) throw new TypeError('Native argv limit');
+        if (argv.length > limits.maxArgvBytes) throw new TypeError('Native argv limit');
         const argumentCount = argv.length;
-        let remaining = nativeArgvByteLimit;
+        let remaining = limits.maxArgvBytes;
         args = Array.from({ length: argumentCount }, (_, index) => {
           if (!Object.hasOwn(argv, index)) throw new TypeError('Incomplete native argv');
           const arg = argv[index];
@@ -45,7 +46,7 @@ export function createMediaEngine<Request extends MediaEngineRequest>(options: {
           // Budget its intrinsic span before copying or observing another slot;
           // inspect only the owned octets, without speculative caller methods.
           const span = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), 'byteLength')!.get!.call(arg) as number;
-          if (span > 1048576) throw new TypeError('Invalid native octets');
+          if (span > limits.maxArgumentBytes) throw new TypeError('Invalid native octets');
           if (span >= remaining) throw new TypeError('Native argv limit');
           remaining -= span + 1;
           const owned = new Uint8Array(arg);
@@ -102,7 +103,7 @@ export function createMediaEngine<Request extends MediaEngineRequest>(options: {
           }
           const cwd = Array.from(new TextEncoder().encode(owned.cwd));
           const originalArgv = owned.args.map(arg => Array.from(arg));
-          assertNativeProcessView(cwd, originalArgv);
+          assertNativeProcessView(cwd, originalArgv, limits);
           const process = { command: owned.command, cwd: owned.cwd, args: owned.args,
             env: owned.env, exported: { ...owned.env } };
           const bound = await options.bind(owned);
@@ -122,7 +123,7 @@ export function createMediaEngine<Request extends MediaEngineRequest>(options: {
             manifestRevision: binding.manifestRevision, directoryRevision: binding.directoryRevision,
             cwd, originalArgv,
           };
-          assertJobInvocation(invocation);
+          assertJobInvocation(invocation, limits);
           // The host also retains this request while constructing its native
           // adapter. Require its process view and source to agree with our
           // private admission copies. Binding metadata accessors can change

@@ -20,12 +20,12 @@ export interface MediaDeploymentOptions {
  /** Explicit paths inside the qualified remote build. Only known frontend tools
   * with pinned executable entries can be registered; clients cannot supply paths. */
  executables:Readonly<Record<string,string>>;
- /** Streaming verification bound for each installed executable, before service startup. */
- maxExecutableBytes:number;
+ /** Streaming verification bound for each installed executable; defaults to Infinity. */
+ maxExecutableBytes?:number;
  /** Complete pinned library, inventory, font/profile and policy/config receipt. */
  inventory:MediaBuildReceiptInput;
- /** Independent streaming bound for each declared regular asset. */
- maxAssetBytes:number;
+ /** Independent streaming bound for each declared regular asset; defaults to Infinity. */
+ maxAssetBytes?:number;
  server:Omit<MediaServerOptions,'builds'|'tools'>;
 }
 export function createMediaDeployment(options:MediaDeploymentOptions,assets:Pick<MediaExecutableAssets,'open'|'fs'> & Partial<MediaDeploymentAssetStorage>={}){
@@ -40,15 +40,15 @@ export function createMediaDeployment(options:MediaDeploymentOptions,assets:Pick
   limits:{...driver.limits},features:structuredClone(driver.features),
   inspectBuild:driver.inspectBuild.bind(driver),admitSession:driver.admitSession.bind(driver),
  }};
- const maxExecutableBytes=options.maxExecutableBytes;
+ const {maxExecutableBytes=Infinity}=options;
  const suppliedInventory=options.inventory;
  if(!suppliedInventory)throw new TypeError('Pinned deployment inventory required');
  // Admit receipt size before cloning operator metadata or yielding to storage.
  if(!equalInventory(createMediaBuildReceipt(suppliedInventory).build,build))throw new TypeError('Build inventory mismatch');
  const inventory=structuredClone(suppliedInventory);
  if(Object.entries(executables).some(([name,path])=>!Object.hasOwn(inventory.executablePaths,name)||inventory.executablePaths[name]!==path))throw new TypeError('Executable paths do not match deployment inventory');
- const maxAssetBytes=options.maxAssetBytes;
- if(!Number.isSafeInteger(maxAssetBytes)||maxAssetBytes<1)throw new TypeError('Invalid asset byte bound');
+ const {maxAssetBytes=Infinity}=options;
+ if(maxAssetBytes!==Infinity&&(!Number.isSafeInteger(maxAssetBytes)||maxAssetBytes<1))throw new TypeError('Invalid asset byte bound');
  // Storage adapters may keep authority in their receiver or prototype. Retain
  // selected methods before yielding without discarding either ownership facet.
  const fs=assets.fs??new RealFileSystem('/');

@@ -39,8 +39,10 @@ export interface ResolutionOptions {
    * deeper. Applies equally to grammar expansion and explicit runtime parents.
    * Bytes charge operand/base buffers, captures, advisory traversal and retained
    * source/reader/policy strings (UTF-8), separately for each occurrence.
-   * Exhaustion preserves the admitted prefix and marks the graph incomplete. */
-  readonly budgets: { readonly nodes: number; readonly bytes: number; readonly depth: number; readonly symlinks: number };
+   * Exhaustion preserves the admitted prefix and marks the graph incomplete.
+   * Each omitted budget defaults to Infinity; finite bounds must be positive
+   * safe integers. */
+  readonly budgets?: { readonly nodes?: number; readonly bytes?: number; readonly depth?: number; readonly symlinks?: number };
   /** Advisory metadata only; no opens, descriptor reads or native/delegate execution.
    * Undefined means not a known symlink. Failures stay advisory. No stat cache. */
   readonly link?: (absolutePath: Uint8Array) => Promise<Uint8Array | undefined>;

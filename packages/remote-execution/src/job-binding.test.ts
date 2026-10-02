@@ -2327,11 +2327,13 @@ it('rejects original argv that becomes incomplete while retaining its owned snap
 
 
 it.each([
-  { originalArgv: [new Array(524288).fill(97), new Array(524288).fill(98)] },
-  { originalArgv: new Array(1048577).fill([]) },
+  { originalArgv: [new Array(4).fill(97), new Array(4).fill(98)] },
+  { originalArgv: new Array(9).fill([]) },
 ])('rejects aggregate argv overflow before preparing the starting tree', async ({ originalArgv }) => {
   const f = fixture();
-  await expect(f.runtime.execute({ ...binding, originalArgv }, new AbortController().signal))
+  const runtime = createJobBinding({ ...binding, fs: f.source as never, credential: f.credential,
+    prepare: f.prepare, run: f.run, maxCallbacks: 2, maxHandles: 1, maxArgvBytes: 8 });
+  await expect(runtime.execute({ ...binding, originalArgv }, new AbortController().signal))
     .rejects.toThrow('Native argv limit');
   expect(f.prepare).not.toHaveBeenCalled();
   expect(f.run).not.toHaveBeenCalled();
@@ -2339,9 +2341,9 @@ it.each([
 
 
 it('admits argv at the aggregate boundary with empty argument terminators accounted', () => {
-  const originalArgv = [new Array(524287).fill(97), new Array(524286).fill(98), []];
-  expect(() => assertNativeProcessView(binding.cwd, originalArgv)).not.toThrow();
-  expect(() => assertNativeProcessView(binding.cwd, [...originalArgv, []])).toThrow('Native argv limit');
+  const originalArgv = [[97, 97], [98], []];
+  expect(() => assertNativeProcessView(binding.cwd, originalArgv, { maxArgvBytes: 6 })).not.toThrow();
+  expect(() => assertNativeProcessView(binding.cwd, [...originalArgv, []], { maxArgvBytes: 6 })).toThrow('Native argv limit');
 });
 
 

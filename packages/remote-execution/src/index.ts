@@ -13,8 +13,8 @@ export type { UploadRequest, Upload, BlobHandle } from './upload-protocol.js';
 
 export { createExecutionClient } from './materializations.js';
 export type { StoredManifest, MaterializationStatus, NativeInvocation, NativeResult, NativeJob } from './materializations.js';
-export { captureJobSource, nativeArgvByteLimit, assertJobInvocation, assertNativeProcessView, createJobBinding, JobCallbackRecoveryError, JobEffectsError } from './job-binding.js';
-export type { JobSourceAdmission, ReadinessWork, ReadyJobWorkspace, JobFileRequest, BoundJobRun, JobBindingOptions } from './job-binding.js';
+export { captureJobSource, nativeArgvByteLimit, resolveNativeProcessLimits, assertJobInvocation, assertNativeProcessView, createJobBinding, JobCallbackRecoveryError, JobEffectsError } from './job-binding.js';
+export type { NativeProcessLimits, JobSourceAdmission, ReadinessWork, ReadyJobWorkspace, JobFileRequest, BoundJobRun, JobBindingOptions } from './job-binding.js';
 export type { MaterializedDescriptorHandles, MaterializedDescriptorLease, MaterializedDescriptorRight } from './descriptors.js';
 
 export { createClient, RemoteExecutionError, RemoteServiceError, UnrecoverableTransportError } from './client.js';

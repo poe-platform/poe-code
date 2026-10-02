@@ -134,7 +134,7 @@ export async function traceLocal(location: Uint8Array, options: ResolutionOption
       const key = byteText(path);
       if (active.has(key)) return { bytes, location, trace, issue: 'cycle' };
       active.add(key);
-      if (++links > options.budgets.symlinks) return { bytes, location, trace, issue: 'budget' };
+      if (++links > (options.budgets?.symlinks ?? Infinity)) return { bytes, location, trace, issue: 'budget' };
       const name = byteText(target);
       if (name.startsWith('/')) resolved.length = 0;
       pending.unshift(...name.split('/'), { endLink: key });

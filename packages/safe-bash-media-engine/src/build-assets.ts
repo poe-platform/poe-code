@@ -5,15 +5,16 @@ import type {FileSystem} from '@poe-code/safe-fs/core';
 export interface MediaExecutableAssets {
  executablePaths:Readonly<Record<string,string>>;
  expectedExecutableDigests:Readonly<Record<string,string>>;
- maxExecutableBytes:number;
+ /** Per-executable byte bound; defaults to Infinity. */
+ maxExecutableBytes?:number;
  /** Explicit filesystem authority; streaming reads are required. */
  fs?:FileSystem;
  /** Injectable streaming storage for in-memory tests; never collects a file. */
  open?:(path:string)=>AsyncIterable<Uint8Array>;
 }
 export async function verifyMediaExecutableAssets(input:MediaExecutableAssets):Promise<void>{
- const maxBytes=input.maxExecutableBytes;
- if(!Number.isSafeInteger(maxBytes)||maxBytes<1)throw new TypeError('Invalid executable byte bound');
+ const {maxExecutableBytes:maxBytes=Infinity}=input;
+ if(maxBytes!==Infinity&&(!Number.isSafeInteger(maxBytes)||maxBytes<1))throw new TypeError('Invalid executable byte bound');
  const paths=Object.entries(input.executablePaths);
  if(!paths.length||paths.length!==Object.keys(input.expectedExecutableDigests).length)throw new TypeError('Executable pins must match configured paths');
  // Validate the complete configuration before opening any native asset.

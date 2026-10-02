@@ -15,10 +15,14 @@ it('verifies receipts, streamed files and symlinks in workerd without Node compa
    const executablePaths={tool:'/assets/tool'},expectedExecutableDigests={tool:hash};
    const query={query:{executable:'/assets/tool',args:[]},outcome:{kind:'exited',exitCode:0},stdout:'unicode: é 😀',stderr:''};
    const inventory={identity:{imageDigest:'sha256:'+hash,os:'linux',architecture:'x86_64',grammarRevision:'g',sourceRevision:'s',launcherRevision:'l',bridgeRevision:'b',runtimeRequirements:[],runtimeEnvironment:{},policyDifferences:[]},frontendContract:{grammarRevision:'g',sourceRevision:'s'},executablePaths,expectedExecutableDigests,
-    files:[{path:'/assets/tool',type:'file',sha256:hash},{path:'/assets/link',type:'symlink',target:'tool'}],records:{codecs:query,coders:query,delegates:query,fonts:query,policy:query,configure:query},maxFiles:2,maxRecordBytes:4096};
+    files:[{path:'/assets/tool',type:'file',sha256:hash},{path:'/assets/link',type:'symlink',target:'tool'}],records:{codecs:query,coders:query,delegates:query,fonts:query,policy:query,configure:query}};
    const receipt=createMediaBuildReceipt(inventory);
-   await verifyMediaExecutableAssets({fs,executablePaths,expectedExecutableDigests,maxExecutableBytes:3});
-   await verifyMediaDeploymentAssets({fs,build:receipt.build,inventory,maxAssetBytes:3});
+   const unlimited=createMediaBuildReceipt({...inventory,maxFiles:Infinity,maxRecordBytes:Infinity});
+   if(unlimited.build.digest!==receipt.build.digest)throw new Error('Limit-dependent receipt');
+   for(const bound of [undefined,Infinity,3]){
+    await verifyMediaExecutableAssets({fs,executablePaths,expectedExecutableDigests,maxExecutableBytes:bound});
+    await verifyMediaDeploymentAssets({fs,build:receipt.build,inventory,maxAssetBytes:bound});
+   }
    await fs.writeFile('/assets/tool',new TextEncoder().encode('abd'));
    let drift=false;try{await verifyMediaDeploymentAssets({fs,build:receipt.build,inventory,maxAssetBytes:3});}catch(error){drift=error.message.includes('digest mismatch');}
    return Response.json({drift,digest:receipt.build.digest});

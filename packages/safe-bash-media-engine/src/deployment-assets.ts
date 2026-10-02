@@ -12,12 +12,12 @@ export interface MediaDeploymentAssetStorage {
 /** Verifies the declared installed assets of an authenticated immutable deployment.
  * This does not qualify native mediation or authenticate the container runtime. */
 export async function verifyMediaDeploymentAssets(input:{
- build:Build; inventory:MediaBuildReceiptInput; maxAssetBytes:number;
+ build:Build; inventory:MediaBuildReceiptInput; maxAssetBytes?:number;
  fs?:FileSystem;
  assets?:Partial<MediaDeploymentAssetStorage>;
 }):Promise<void> {
- const maxAssetBytes=input.maxAssetBytes;
- if(!Number.isSafeInteger(maxAssetBytes)||maxAssetBytes<1)throw new TypeError('Invalid asset byte bound');
+ const {maxAssetBytes=Infinity}=input;
+ if(maxAssetBytes!==Infinity&&(!Number.isSafeInteger(maxAssetBytes)||maxAssetBytes<1))throw new TypeError('Invalid asset byte bound');
  if(!input.inventory)throw new TypeError('Pinned deployment inventory required');
  // Receipt construction admits the complete metadata budget before retaining a
  // snapshot. Compare every build field, including raw inventories and policy.

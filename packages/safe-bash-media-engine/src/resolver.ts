@@ -41,14 +41,16 @@ export class DependencyResolver {
   private readonly lineage = new Map<number, readonly { location?: Uint8Array; grammar?: DependencyGrammar; canonical?: string; reader?: string }[]>();
   private lastObserved?: AccessNode;
   private pending: Promise<unknown> = Promise.resolve();
-  constructor(private readonly options: ResolutionOptions, initialIssues: AccessGraph['issues'] = []) {
-    for (const key of ['nodes', 'bytes', 'depth', 'symlinks'] as const) {
-      const value = options.budgets[key];
-      if (!Number.isSafeInteger(value) || value < 1) throw new Error('Discovery budgets must be explicit positive safe integers');
+  private readonly options: ResolutionOptions & { budgets: Required<NonNullable<ResolutionOptions['budgets']>> };
+  constructor(options: ResolutionOptions, initialIssues: AccessGraph['issues'] = []) {
+    const { nodes = Infinity, bytes = Infinity, depth = Infinity, symlinks = Infinity } = options.budgets ?? {};
+    const budgets = { nodes, bytes, depth, symlinks };
+    for (const value of Object.values(budgets)) {
+      if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new Error('Discovery budgets must be positive safe integers or Infinity');
     }
     const cwd = new Uint8Array(options.cwd);
     if (!byteText(cwd).startsWith('/')) throw new Error('Resolver cwd must be absolute');
-    this.options = { ...options, cwd, budgets: { ...options.budgets },
+    this.options = { ...options, cwd, budgets,
       policy: options.policy && structuredClone(options.policy) };
     this.issues.push(...structuredClone(initialIssues));
     this.incomplete = initialIssues.some(issue => issue.reason !== 'live');

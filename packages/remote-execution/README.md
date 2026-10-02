@@ -55,7 +55,14 @@ callback JSON does not carry media payloads.
 `createJobBinding` requires `sessionId`, `epoch`, `buildId`, `sourceAuthorityId`,
 `bindingId`, canonical `fs`, local `credential`, `maxCallbacks`, `maxHandles`,
 `prepare` and `run`. Optional settings are `handles`, `effects`, `retainOutput`,
-`endpoints`, `maxIoBytes`, `maxDirectoryEntries`, `validate` and `release`.
+`endpoints`, `maxIoBytes`, `maxDirectoryEntries`, `maxArgvBytes`, `maxArgumentBytes`,
+`maxPathBytes`, `validate` and `release`.
+Local process byte limits (`maxArgvBytes`, `maxArgumentBytes`, `maxPathBytes`)
+default independently to `Infinity`; explicit bounds must be positive safe
+integers or `Infinity`. Aggregate argv accounting includes one NUL terminator
+per argument, including empty arguments. The same options are accepted by
+`assertNativeProcessView` and `assertJobInvocation`. Negotiated transport limits
+remain independent of these local admission options.
 The native adapter must authenticate callbacks and mediate actual file/socket
 accesses. Discovery predictions do not grant authority or establish snapshots.
 

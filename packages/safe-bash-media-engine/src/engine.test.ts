@@ -337,8 +337,8 @@ it('refuses launch and releases the pinned workspace when readiness observation 
 });
 it('admits the actual argument span before copying or observing later operands', async () => {
   const bind = vi.fn();
-  const engine = createMediaEngine({ bind });
-  const oversized = new Uint8Array(1048577).fill(120);
+  const engine = createMediaEngine({ bind, maxArgumentBytes: 4 });
+  const oversized = new Uint8Array(5).fill(120);
   Object.defineProperty(oversized, 'length', { value: 0 });
   const later = vi.fn(() => { throw new Error('speculative operand acquisition'); });
   const args = [oversized, new Uint8Array()];
@@ -653,10 +653,10 @@ it('rejects an incomplete argv slot before observing subsequent dependencies', a
 });
 it.each(['cwd', 'argv'] as const)('rejects oversized logical %s before acquiring a materialization', async field => {
   const bind = vi.fn(async () => { throw new Error('materialization acquired'); });
-  const engine = createMediaEngine({ bind });
+  const engine = createMediaEngine({ bind, maxArgumentBytes: 8, maxPathBytes: 8 });
   await expect(engine.execute({ ...io(), command: 'ffmpeg',
-    args: field === 'argv' ? [new Uint8Array(1048577).fill(97)] : [],
-    cwd: field === 'cwd' ? `/${'a'.repeat(1048576)}` : '/work',
+    args: field === 'argv' ? [new Uint8Array(9).fill(97)] : [],
+    cwd: field === 'cwd' ? '/long/path' : '/work',
     env: {}, fs: {}, signal: new AbortController().signal,
   })).rejects.toThrow('native octets');
   expect(bind).not.toHaveBeenCalled();
@@ -1129,9 +1129,9 @@ it('pins the acquired executor before observing the public invocation binding', 
 it('rejects aggregate argv overflow before observing later dependencies or binding', async () => {
   const bind = vi.fn();
   const later = vi.fn(() => { throw new Error('later dependency observed'); });
-  const args = [new Uint8Array(524288).fill(97), new Uint8Array(524288).fill(98), new Uint8Array()];
+  const args = [new Uint8Array(4).fill(97), new Uint8Array(4).fill(98), new Uint8Array()];
   Object.defineProperty(args, '2', { get: later });
-  await expect(createMediaEngine({ bind }).execute({ ...io(), command: 'ffmpeg', args,
+  await expect(createMediaEngine({ bind, maxArgvBytes: 8 }).execute({ ...io(), command: 'ffmpeg', args,
     cwd: '/work', env: {}, fs: {}, signal: new AbortController().signal }))
     .rejects.toThrow('Native argv limit');
   expect(later).not.toHaveBeenCalled();

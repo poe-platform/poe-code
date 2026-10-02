@@ -19,9 +19,10 @@ export interface MediaBuildReceiptInput {
   expectedExecutableDigests:Readonly<Record<string,string>>;
   files:readonly MediaAssetDigest[];
   records:Readonly<Record<'codecs'|'coders'|'delegates'|'fonts'|'policy'|'configure',MediaInventoryRecord>>;
-  maxFiles:number;
-  /** Combined UTF-8 budget for asset records and native query records. */
-  maxRecordBytes:number;
+  /** Asset count bound; defaults to Infinity. */
+  maxFiles?:number;
+  /** Combined UTF-8 budget for asset records and native query records; defaults to Infinity. */
+  maxRecordBytes?:number;
 }
 function canonical(value:unknown):string {
   if(Array.isArray(value))return '['+value.map(canonical).join(',')+']';
@@ -45,11 +46,12 @@ function losslessText(value:unknown):value is string {
   return true;
 }
 export function createMediaBuildReceipt(input:MediaBuildReceiptInput) {
-  for(const bound of [input.maxFiles,input.maxRecordBytes])if(!Number.isSafeInteger(bound)||bound<1)throw new TypeError('Invalid inventory bound');
+  const {maxFiles=Infinity,maxRecordBytes=Infinity}=input;
+  for(const bound of [maxFiles,maxRecordBytes])if(bound!==Infinity&&(!Number.isSafeInteger(bound)||bound<1))throw new TypeError('Invalid inventory bound');
   const suppliedFiles=input.files;
   if(!Array.isArray(suppliedFiles))throw new TypeError('Invalid inventory asset slots');
   const fileCount=suppliedFiles.length;
-  if(fileCount>input.maxFiles)throw new TypeError('Inventory file count bound');
+  if(fileCount>maxFiles)throw new TypeError('Inventory file count bound');
   // Admit all own slots before inspecting records. Neither inherited entries nor
   // a custom iterator can substitute a different set of assets for validation.
   for(let index=0;index<fileCount;index++)if(!Object.hasOwn(suppliedFiles,index))throw new TypeError('Invalid inventory asset slots');
@@ -61,7 +63,7 @@ export function createMediaBuildReceipt(input:MediaBuildReceiptInput) {
     const record={...suppliedRecords[name]};
     const query={...record.query};
     const suppliedArgs=query.args;
-    if(!Array.isArray(suppliedArgs)||suppliedArgs.length>input.maxRecordBytes)throw new TypeError('Inventory query argv bound');
+    if(!Array.isArray(suppliedArgs)||suppliedArgs.length>maxRecordBytes)throw new TypeError('Inventory query argv bound');
     const count=suppliedArgs.length;
     for(let index=0;index<count;index++)if(!Object.hasOwn(suppliedArgs,index))throw new TypeError('Invalid inventory query argv');
     query.args=Array.from({length:count},(_,index)=>suppliedArgs[index]);
@@ -71,23 +73,23 @@ export function createMediaBuildReceipt(input:MediaBuildReceiptInput) {
   const paths=new Set<string>();let recordBytes=0;
   for(const file of admittedFiles){
     // Bound primitive text before splitting paths, serializing or cloning records.
-    if(typeof file.path!=='string'||file.path.length+(file.target?.length??0)+(file.sha256?.length??0)>input.maxRecordBytes-recordBytes)throw new TypeError('Inventory asset record byte bound');
+    if(typeof file.path!=='string'||file.path.length+(file.target?.length??0)+(file.sha256?.length??0)>maxRecordBytes-recordBytes)throw new TypeError('Inventory asset record byte bound');
     if(!losslessText(file.path)||!file.path.startsWith('/')||file.path.includes('\0')||file.path.slice(1).split('/').some(part=>!part||part==='.'||part==='..')||
       (file.type==='file' ? !validDigest(file.sha256)||Object.hasOwn(file,'target') : file.type==='symlink' ? !losslessText(file.target)||!file.target||file.target.includes('\0')||Object.hasOwn(file,'sha256') : true)||
       Object.keys(file).some(key=>!['path','type','sha256','target'].includes(key)))throw new TypeError('Invalid asset identity');
-    recordBytes+=new TextEncoder().encode(canonical(file)).byteLength;if(recordBytes>input.maxRecordBytes)throw new TypeError('Inventory asset record byte bound');
+    recordBytes+=new TextEncoder().encode(canonical(file)).byteLength;if(recordBytes>maxRecordBytes)throw new TypeError('Inventory asset record byte bound');
     if(paths.has(file.path))throw new TypeError('Duplicate asset path');paths.add(file.path);
   }
   // Check text lengths before encoding or cloning the inventory. UTF-8 can only
   // increase these lower bounds, and the exact encoded count is then checked.
   for(const record of Object.values(admittedRecords)){
-    if(!Array.isArray(record.query.args)||record.query.args.length>input.maxRecordBytes)throw new TypeError('Inventory query argv bound');
-    if(record.stdout.length+record.stderr.length>input.maxRecordBytes-recordBytes)throw new TypeError('Inventory record byte bound');
+    if(!Array.isArray(record.query.args)||record.query.args.length>maxRecordBytes)throw new TypeError('Inventory query argv bound');
+    if(record.stdout.length+record.stderr.length>maxRecordBytes-recordBytes)throw new TypeError('Inventory record byte bound');
     if(!losslessText(record.stdout)||!losslessText(record.stderr)||!losslessText(record.query.executable)||!record.query.executable.startsWith('/')||record.query.executable.includes('\0')||!Array.isArray(record.query.args))throw new TypeError('Invalid inventory query record');
     let textBytes=record.stdout.length+record.stderr.length+record.query.executable.length;
-    for(const arg of record.query.args){if(!losslessText(arg)||arg.includes('\0'))throw new TypeError('Invalid inventory query argv');textBytes+=arg.length;if(textBytes>input.maxRecordBytes-recordBytes)throw new TypeError('Inventory record byte bound');}
+    for(const arg of record.query.args){if(!losslessText(arg)||arg.includes('\0'))throw new TypeError('Invalid inventory query argv');textBytes+=arg.length;if(textBytes>maxRecordBytes-recordBytes)throw new TypeError('Inventory record byte bound');}
     validateWire('Outcome',record.outcome);
-    recordBytes+=new TextEncoder().encode(canonical(record)).byteLength;if(recordBytes>input.maxRecordBytes)throw new TypeError('Inventory record byte bound');
+    recordBytes+=new TextEncoder().encode(canonical(record)).byteLength;if(recordBytes>maxRecordBytes)throw new TypeError('Inventory record byte bound');
   }
   const files=admittedFiles.sort((a,b)=>comparePaths(a.path,b.path));
   const executables:Record<string,string>={};

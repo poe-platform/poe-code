@@ -74,14 +74,21 @@ exported environment, streams, descriptors, signal and cleanup registrar.
 Those declarations require a qualified host implementation; they do not prove it.
 
 `createMediaEngine` requires `bind(request)`, which returns invocation binding
-metadata and an executor. `createCanonicalMediaFilesystem` accepts the generic
+metadata and an executor. Optional `maxArgvBytes` (including one NUL terminator
+per argument), `maxArgumentBytes` and `maxPathBytes` default to `Infinity`.
+`createCanonicalMediaFilesystem` accepts the generic
 remote-execution `JobBindingOptions` and requires `retainOutput(object)`.
 The host must supply canonical retained objects, authenticated access and complete
 native mediation; copied workspaces do not provide live canonical effects.
 
-Resolver options are `cwd`, explicit `budgets` (`nodes`, `bytes`, `depth`, `symlinks`),
+Resolver options are `cwd`, optional `budgets` (`nodes`, `bytes`, `depth`, `symlinks`),
 optional `link`, `accessible`, `exists`, `directory` and `policy`. Metadata callbacks supply
 advisory observations. Protocol policy is explicit and cannot authorize native I/O.
+Each discovery budget defaults independently to `Infinity`. Explicit limits must
+be positive safe integers or `Infinity`; finite limits retain the admitted graph
+prefix and report exhaustion. Engine limits use the same accepted values and
+reject over-budget invocations before binding. Native hosts and negotiated remote
+services still enforce their own limits.
 Public TypeScript declarations and the versioned remote-execution schemas describe
 the nested resource, descriptor, grant, process and filesystem fields.
 
@@ -92,8 +99,9 @@ the explicit `--media-*` options; place native argv after `--`.
 
 ## Server
 
-`createMediaDeployment` takes `build`, `executables`, `maxExecutableBytes`,
-`inventory`, `maxAssetBytes` and `server`. The server options are documented in
+`createMediaDeployment` requires `build`, `executables`, `inventory` and `server`.
+Optional `maxExecutableBytes` and `maxAssetBytes` default to `Infinity` and accept
+positive safe integers. The server options are documented in
 [remote-execution](../remote-execution/README.md). The build receipt pins executable,
 library, inventory, resource and policy/config identities before service startup.
 Optional injected asset storage provides `open`, `type` and `readlink`.
@@ -157,3 +165,7 @@ await verifyMediaExecutableAssets({
 symlink targets. Existing streaming `open`/`assets` adapters remain supported;
 verification never implicitly reads the host filesystem. The Node-only service
 entry point supplies its host filesystem and remains separate from Worker code.
+Executable and deployment verification byte limits, and `createMediaBuildReceipt`
+options `maxFiles` and `maxRecordBytes`, each default to `Infinity`. Explicit
+positive safe integers enable finite bounds. Digests, file types, symlink targets
+and inventory identities are verified with either finite or unlimited bounds.

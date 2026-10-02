@@ -17,9 +17,9 @@ export const safeBashProfiles = {
   core: { imports: shell, setup: "", smoke: "", forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
   rootCore: { imports: shell.replace('"@poe-platform/safe-bash/shell"', '"@poe-platform/safe-bash"'), setup: "", smoke: "", forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
   pythonLlm: { imports: shell + `
-import { pythonCommands } from "@poe-platform/safe-bash/commands/python";
+import { pythonExecutorCommands } from "@poe-platform/safe-bash/commands/python/executor";
 import { llmCommands } from "@poe-platform/safe-bash/commands/llm";`,
-    setup: `shell.use(pythonCommands({ createExecutor: () => ({ async run(start) { start.onReady(); return 0; }, terminate() {} }) }));
+    setup: `shell.use(pythonExecutorCommands({ createExecutor: () => ({ async run(start) { start.onReady(); return 0; }, terminate() {} }) }));
 shell.use(llmCommands({ defaultModel: "fixture", providers: [{ name: "fixture", models: [{ id: "fixture" }], async *complete() { yield "hello"; } }] }));`,
     smoke: `check((await shell.exec("python -c pass")).exitCode === 0, "python executor");
 check((await shell.exec("llm prompt")).stdout === "hello\\n", "LLM streaming");`, forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
@@ -88,7 +88,7 @@ check((await shell.exec("gh repo clone octocat/Hello-World")).exitCode === 0, "s
 safeBashProfiles.rootPythonLlm = { ...safeBashProfiles.pythonLlm,
   imports: safeBashProfiles.pythonLlm.imports
     .replaceAll('"@poe-platform/safe-bash/shell"', '"@poe-platform/safe-bash"')
-    .replaceAll('"@poe-platform/safe-bash/commands/python"', '"@poe-platform/safe-bash"')
+    .replaceAll('"@poe-platform/safe-bash/commands/python/executor"', '"@poe-platform/safe-bash"')
     .replaceAll('"@poe-platform/safe-bash/commands/llm"', '"@poe-platform/safe-bash"'),
 };
 

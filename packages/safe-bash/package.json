@@ -2645,6 +2645,12 @@
       "workerd": "./dist/commands/caller/index.browser.js",
       "browser": "./dist/commands/caller/index.browser.js",
       "import": "./dist/commands/caller/index.js"
+    },
+    "./commands/python/executor": {
+      "types": "./dist/commands/python/executor.d.ts",
+      "workerd": "./dist/commands/python/executor.browser.js",
+      "browser": "./dist/commands/python/executor.browser.js",
+      "import": "./dist/commands/python/executor.js"
     }
   },
   "sideEffects": [

@@ -168,19 +168,19 @@ async function executeDefaultPython(context: CommandContext): Promise<CommandRes
   return { exitCode: 1 };
 }
 
-export const defaultPythonCommand: CommandDefinition = Object.freeze<CommandDefinition>({
+export const defaultPythonCommand: CommandDefinition = /* @__PURE__ */ Object.freeze<CommandDefinition>({
   name: "python",
   description: "Default sandboxed Python shim for version probes and artifact rendering scripts",
   execute: executeDefaultPython,
 });
 
-export const defaultPython3Command: CommandDefinition = Object.freeze<CommandDefinition>({
+export const defaultPython3Command: CommandDefinition = /* @__PURE__ */ Object.freeze<CommandDefinition>({
   name: "python3",
   description: "Default sandboxed Python 3 shim for version probes and artifact rendering scripts",
   execute: executeDefaultPython,
 });
 
-export const defaultPythonCommands: readonly CommandDefinition[] = Object.freeze([
+export const defaultPythonCommands: readonly CommandDefinition[] = /* @__PURE__ */ Object.freeze([
   defaultPythonCommand,
   defaultPython3Command,
 ]);

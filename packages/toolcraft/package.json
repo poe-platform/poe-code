@@ -105,6 +105,10 @@
     "./user-error": {
       "types": "./dist/user-error.d.ts",
       "import": "./dist/user-error.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime.d.ts",
+      "import": "./dist/runtime.js"
     }
   },
   "scripts": {
@@ -193,5 +197,14 @@
   "devDependencies": {
     "tiny-stdio-mcp-test-server": "*",
     "@poe-platform/safe-bash": "*"
+  },
+  "imports": {
+    "#toolcraft-runtime-platform": {
+      "types": "./src/runtime-platform.ts",
+      "workerd": "./dist/runtime-platform.workerd.js",
+      "browser": "./dist/runtime-platform.workerd.js",
+      "worker": "./dist/runtime-platform.workerd.js",
+      "default": "./dist/runtime-platform.js"
+    }
   }
 }

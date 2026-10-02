@@ -685,3 +685,29 @@ test("39. sync grep -q -c/-L suppression, -h/-H and -l/-L option precedence, and
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
 });
+
+test("40. sync strings per-file radix offsets (-t d/-t x), strings -s pipeline newline suppression, and multi-file tac without trailing newline", async () => {
+  const syncSh = setup().shell.use(agentCommands());
+  const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+  const init = `
+    mkdir -p /dir
+    printf "alpha\nbeta\n" > /dir/a.txt
+    printf "gamma\ndelta\n" > /dir/b.txt
+    printf "only_one" > /dir/no_nl.txt
+    printf "first\nsecond\n" > /dir/c.txt
+  `;
+  await syncSh.exec(init);
+  await asyncSh.exec(init);
+  const scripts = [
+    "x=$(strings -t d /dir/a.txt /dir/b.txt); echo \"$?:$x\"",
+    "x=$(strings -t x /dir/a.txt /dir/b.txt); echo \"$?:$x\"",
+    "x=$(printf \"hello\\nworld\\n\" | strings -s \":\" | wc -c); echo \"$?:$x\"",
+    "x=$(tac /dir/no_nl.txt /dir/c.txt); echo \"$?:$x\"",
+  ];
+  for (const script of scripts) {
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});

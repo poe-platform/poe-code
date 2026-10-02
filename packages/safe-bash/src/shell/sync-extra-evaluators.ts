@@ -18964,7 +18964,8 @@ const syncExtraRuntimeMethods = {
             // These filters preserve the terminator of the final selected input line.
             const preservesTerminator = firstName === "head" || firstName === "tail" || firstName === "rev" || firstName === "sed";
             const outJoinSep = isGrepZeroOut ? "\0" : stageLineSep;
-            const terminated = isInlineTac ? (sedTerminated || inStr.includes("\n")) : sedTerminated || !preservesTerminator || inStr.endsWith(stageLineSep) || firstName === "head" && outLines.length < rawLines.length;
+            const isStringsCustomSep = isInlineStrings && stageArgs.some(a => a === "-s" || (a.startsWith("-s") && a.length > 2) || a.startsWith("--output-separator"));
+            const terminated = isStringsCustomSep ? false : isInlineTac ? (sedTerminated || inStr.includes("\n")) : sedTerminated || !preservesTerminator || inStr.endsWith(stageLineSep) || firstName === "head" && outLines.length < rawLines.length;
             const outStr = outLines.length > 0 ? outLines.join(outJoinSep) + (terminated ? outJoinSep : "") : "";
             const outByteLen = shellValueByteLength(outStr);
             const nextTotalBytes = this.budget.bytes + outByteLen;
@@ -22550,6 +22551,7 @@ const syncExtraRuntimeMethods = {
         if (cmd === "rev") {
           for (const l of fLines) out.push(Array.from(l).reverse().join(""));
         } else {
+          if (!fStr.endsWith("\n") && fLines.length === 1 && fPath !== fileOperands[fileOperands.length - 1]) return undefined;
           const rev = [...fLines].reverse();
           if (!fStr.endsWith("\n") && rev.length > 1) rev.splice(0, 2, rev[0]! + rev[1]!);
           out.push(...rev);
@@ -22594,7 +22596,20 @@ const syncExtraRuntimeMethods = {
     if (cmd === "fold") return this.evalSyncFold(combinedLines, optArgs);
     if (cmd === "expand") return this.evalSyncExpand(combinedLines, optArgs);
     if (cmd === "unexpand") return this.evalSyncUnexpand(combinedLines, optArgs);
-    if (cmd === "strings") return this.evalSyncStrings(combinedLines, optArgs);
+    if (cmd === "strings") {
+      if (optArgs.some(a => a === "-s" || a.startsWith("-s") || a.startsWith("--output-separator"))) return undefined;
+      const out: string[] = [];
+      for (const fPath of fileOperands) {
+        const fView = this.tryReadMemoryFileViewSync(resolvePath(cwd, fPath), true, true);
+        if (!fView || fView.includes(0)) return undefined;
+        const fStr = sharedSyncPipeDecoder.decode(fView);
+        const fLines = fStr.endsWith(lineSep) ? fStr.slice(0, -1).split(lineSep) : (fStr.length === 0 ? [] : fStr.split(lineSep));
+        const res = this.evalSyncStrings(fLines, optArgs);
+        if (!res) return undefined;
+        out.push(...res);
+      }
+      return out;
+    }
     if (cmd === "numfmt") return this.evalSyncNumfmt(combinedLines, optArgs);
     return undefined;
   }

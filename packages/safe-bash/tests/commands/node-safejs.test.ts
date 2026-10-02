@@ -644,6 +644,8 @@ test("default node command resolves @poe-code/safe-js/core, reports version, and
     const version = await shell.exec("node --version");
     assert.equal(version.exitCode, 0, version.stderr);
     assert.equal(version.stdout, "v22.0.0\n");
+    const validHook = await shell.exec("node container_tools/mark_artifact_operation_started.mjs --operation-kind create --expected-output-count 5 --output-format xlsx");
+    assert.equal(validHook.exitCode, 0, validHook.stderr);
     const missing = await shell.exec("node container_tools/mark_artifact_operation_started.mjs");
     assert.equal(missing.exitCode, 1);
     assert.match(missing.stderr, /ENOENT|no such file or directory/i);

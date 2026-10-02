@@ -65,7 +65,8 @@ function ambientBuffer(text: string, filename: string): boolean {
     if (ts.isIdentifier(node) && node.text === "Buffer") {
       const parent = node.parent;
       const property = ts.isPropertyAccessExpression(parent) && parent.name === node;
-      const key = (ts.isPropertyAssignment(parent) || ts.isMethodDeclaration(parent)) && parent.name === node;
+      const key = ((ts.isPropertyAssignment(parent) || ts.isMethodDeclaration(parent)) && parent.name === node)
+        || (ts.isBindingElement(parent) && parent.propertyName === node);
       if (property) {
         if (ts.isIdentifier(parent.expression) && ["globalThis", "global"].includes(parent.expression.text) && !checker.getSymbolAtLocation(parent.expression)?.declarations?.length) found = true;
       } else if (!key && !checker.getSymbolAtLocation(node)) found = true;

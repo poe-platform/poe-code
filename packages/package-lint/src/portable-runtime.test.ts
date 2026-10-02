@@ -26,6 +26,10 @@ describe("portable runtime dependency policy", () => {
     const source = 'const text = "Buffer.from node:fs"; const object = { Buffer: 1 }; function encode(Buffer) { return Buffer.from(text); }';
     expect(await scanPortableRuntime(fixture(source), "/repo")).toEqual([]);
   });
+  it("accepts renamed destructured Buffer properties without admitting ambient defaults", async () => {
+    expect(await scanPortableRuntime(fixture('const { Buffer: localBuffer } = implementation; localBuffer.from("x");'), "/repo")).toEqual([]);
+    expect(await scanPortableRuntime(fixture('const { bytes = Buffer.from("x") } = implementation;'), "/repo")).toContainEqual(expect.objectContaining({ reason: "ambient-buffer" }));
+  });
   it("finds ambient Buffer inside deeply nested minified expressions", async () => {
     const source = 'export const value = ' + '0+'.repeat(15000) + 'Buffer.from("x");';
     expect(await scanPortableRuntime(fixture(source), "/repo")).toEqual([

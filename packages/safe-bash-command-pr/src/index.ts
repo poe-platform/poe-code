@@ -38,7 +38,7 @@ const getSyncPrDummyContext = (): CommandContext => ({
   signal: getSyncPrSignal(),
 } as unknown as CommandContext);
 
-const prSyncDecoder = new TextDecoder("utf-8", { fatal: false });
+const prSyncDecoder = new TextDecoder("utf-8", { fatal: true });
 const prSyncCache = new Map<string, string>();
 
 export function evalSyncPr(
@@ -46,17 +46,16 @@ export function evalSyncPr(
   opArgs: readonly string[],
   readFileSync?: (path: string) => Uint8Array | undefined,
 ): string | undefined {
-  let cacheKey: string | undefined;
-  if (inBytes !== undefined && opArgs.every(a => a.startsWith("-"))) {
-    cacheKey = `${opArgs.join("\x00")}|\x00${prSyncDecoder.decode(inBytes)}`;
-    const cached = prSyncCache.get(cacheKey);
-    if (cached !== undefined) return cached;
-  }
   try {
     const budget = new Budget(getSyncPrDummyContext(), syncPrLimits, getSyncPrSignal());
     const parsed = parseOptions([...opArgs], budget);
     if (parsed.information !== undefined) return undefined;
-    if (parsed.extremities) cacheKey = undefined;
+    let cacheKey: string | undefined;
+    if (inBytes !== undefined && !inBytes.includes(0) && parsed.files.length === 0 && !parsed.extremities) {
+      cacheKey = `${opArgs.join("\x00")}|\x00${prSyncDecoder.decode(inBytes)}`;
+      const cached = prSyncCache.get(cacheKey);
+      if (cached !== undefined) return cached;
+    }
     const names = parsed.files.length ? parsed.files : ["-"];
     if (!parsed.files.length) parsed.merge = false;
     const groups = parsed.merge ? [names] : names.map(name => [name]);
@@ -89,7 +88,7 @@ export function evalSyncPr(
           srcBytes = stdinUsed ? new Uint8Array(0) : inBytes;
           stdinUsed = true;
         } else {
-          if (parsed.extremities && parsed.dateFormat === undefined) return undefined;
+          if (parsed.extremities && (parsed.dateFormat === undefined || parsed.dateFormat.includes("%"))) return undefined;
           if (!readFileSync) return undefined;
           srcBytes = readFileSync(name);
         }

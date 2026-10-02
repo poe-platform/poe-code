@@ -137,6 +137,9 @@ export function evalSyncChmod(
     }
     const mode = modeOptions.length ? modeOptions.join(",") : reference === undefined ? parsed.operands.shift()! : undefined;
     const change = mode === undefined ? undefined : modeChange(mode, umask);
+    for (const op of parsed.operands) {
+      if (!chmodNodeSync(op, stat => stat.mode)) return undefined;
+    }
     let out = "";
     for (const op of parsed.operands) {
       let line = "";

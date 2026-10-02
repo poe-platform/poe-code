@@ -605,6 +605,23 @@ test("36. sync expand/unexpand multi -t tablists, column -e vs -L and JSON colum
   }
 });
 
+test("54. sync vs async parity for pr, iconv, dos2unix, and chmod semantics", async () => {
+  const scripts = [
+    "mkdir -p /pr54; cd /pr54; printf \"from_file\\n\" > -- -f.txt; touch -d 2020-01-02T03:04:05Z -- -f.txt; a=\$(pr -t <<< \"from_stdin\"); b=\$(pr -t -- -f.txt <<< \"from_stdin\"); c=\$(pr -D \"%Y-%m-%d\" -- -f.txt | head -n 4); echo \"\$a|\$b|\$c\"",
+    "mkdir -p /ic54; cd /ic54; a=\$(iconv -f UTF-8 -t ASCII -o - <<< \"hello\"); b=\$(test -e - && echo exists || echo none); echo \"\$a|\$b\"",
+    "mkdir -p /d2u54; cd /d2u54; a=\$(dos2unix - <<< $'hi\\r\\n'); b=\$(dos2unix -qe <<< $'hi\\r\\n' 2>/dev/null; echo \$?); echo \"\$a|\$b\"",
+    "mkdir -p /ch54; cd /ch54; printf \"hi\" > a.txt; chmod 644 a.txt; x=\$(chmod -c 600 a.txt missing.txt 2>/dev/null; echo \$?); echo \"\$x\"",
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});
+
 test("53. sync vs async parity for unzip, tar, and du semantics", async () => {
   const scripts = [
     "mkdir -p /uz53; cd /uz53; printf \"orig\\n\" > hello.txt; zip -q a.zip hello.txt; printf \"changed\\n\" > hello.txt; a=\$(unzip -q a.zip 2>/dev/null; echo \$?); b=\$(cat hello.txt); c=\$(unzip -Z1 -o a.zip 2>/dev/null; echo \$?); d=\$(unzip -p a.zip -d sub 2>/dev/null; echo \$?); echo \"\$a|\$b|\$c|\$d\"",

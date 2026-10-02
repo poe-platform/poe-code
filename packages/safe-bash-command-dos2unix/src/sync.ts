@@ -17,53 +17,40 @@ export function evalSyncLineEndings(
   for (let i = 0; i < opArgs.length; i++) {
     const a = opArgs[i]!;
     if (!endOfOptions && a === "--") { endOfOptions = true; continue; }
-    if (!endOfOptions && a.startsWith("--") && a.length > 2) {
-      if (a === "--quiet") { quiet = true; continue; }
-      if (a === "--force") { force = true; continue; }
-      if (a === "--to-stdout") { toStdout = true; newFileMode = false; continue; }
-      if (a === "--newfile") { newFileMode = true; toStdout = false; continue; }
-      if (a === "--oldfile") { newFileMode = false; toStdout = false; continue; }
-      if (a === "--add-eol") { addEol = true; continue; }
+    if (!endOfOptions && a.startsWith("-") && a !== "-") {
+      if (a === "-q" || a === "--quiet") { quiet = true; continue; }
+      if (a === "-f" || a === "--force") { force = true; continue; }
+      if (a === "-s" || a === "--safe") { force = false; continue; }
+      if (a === "-O" || a === "--to-stdout") {
+        if (files.length > 0) return undefined;
+        toStdout = true; newFileMode = false; continue;
+      }
+      if (a === "-n" || a === "--newfile") {
+        if (files.length > 0) return undefined;
+        newFileMode = true; toStdout = false; continue;
+      }
+      if (a === "-o" || a === "--oldfile") {
+        if (files.length > 0) return undefined;
+        newFileMode = false; toStdout = false; continue;
+      }
+      if (a === "-e" || a === "--add-eol") { addEol = true; continue; }
       if (a === "--no-add-eol") { addEol = false; continue; }
-      if (a === "--newline") { newline = true; continue; }
-      if (a === "--no-newline") { newline = false; continue; }
-      if (a === "--remove-bom") { bomMode = "remove"; continue; }
-      if (a === "--add-bom") { bomMode = "add"; continue; }
-      if (a === "--keep-bom") { bomMode = "keep"; continue; }
-      if (a === "--convmode" || a.startsWith("--convmode=")) {
-        const v = a.startsWith("--convmode=") ? a.slice(11) : opArgs[++i];
+      if (a === "-l" || a === "--newline") { newline = true; continue; }
+      if (a === "-r" || a === "--remove-bom") { bomMode = "remove"; continue; }
+      if (a === "-m" || a === "--add-bom") { bomMode = "add"; continue; }
+      if (a === "-b" || a === "--keep-bom") { bomMode = "keep"; continue; }
+      if (a === "-k" || a === "--keepdate" || a === "-S" || a === "--skip-symlink" || a === "--allow-chown" || a === "--no-allow-chown") continue;
+      if (a === "-ascii") continue;
+      if (a === "-c" || a === "--convmode") {
+        const v = opArgs[++i];
         if (v && v.toLowerCase() === "ascii") continue;
         return undefined;
       }
       return undefined;
     }
-    if (!endOfOptions && a.startsWith("-") && a.length > 1) {
-      for (let j = 1; j < a.length; j++) {
-        const ch = a[j]!;
-        if (ch === "q") quiet = true;
-        else if (ch === "f") force = true;
-        else if (ch === "O") { toStdout = true; newFileMode = false; }
-        else if (ch === "n") { newFileMode = true; toStdout = false; }
-        else if (ch === "o") { newFileMode = false; toStdout = false; }
-        else if (ch === "e") addEol = true;
-        else if (ch === "E") addEol = false;
-        else if (ch === "l") newline = true;
-        else if (ch === "N") newline = false;
-        else if (ch === "r") bomMode = "remove";
-        else if (ch === "m") bomMode = "add";
-        else if (ch === "b") bomMode = "keep";
-        else if (ch === "c") {
-          const v = j + 1 < a.length ? a.slice(j + 1) : opArgs[++i];
-          if (!v || v.toLowerCase() !== "ascii") return undefined;
-          break;
-        }
-        else return undefined;
-      }
-      continue;
-    }
     files.push(a);
   }
-  if (files.length > 0 && !toStdout) {
+  if (files.length > 0 && !toStdout && !(files.length === 1 && files[0] === "-")) {
     if (!quiet || !readFileSync || !writeFileSync) return undefined;
     if (newFileMode && files.length % 2 !== 0) return undefined;
     const pairs: Array<[string, string]> = [];
@@ -77,7 +64,8 @@ export function evalSyncLineEndings(
       const b = readFileSync(inPath);
       if (!b || b.byteLength > 16384) return undefined;
       const subArgs = [
-        force ? "-fO" : "-O",
+        "-O",
+        ...(force ? ["-f"] : []),
         ...(addEol ? ["-e"] : []),
         ...(newline ? ["-l"] : []),
         ...(bomMode === "remove" ? ["-r"] : bomMode === "add" ? ["-m"] : ["-b"]),
@@ -88,13 +76,21 @@ export function evalSyncLineEndings(
     return new Uint8Array(0);
   }
   const chunks: Uint8Array[] = [];
-  if (files.length === 0) {
+  if (files.length === 0 || (files.length === 1 && files[0] === "-")) {
     if (!inBytes || inBytes.byteLength > 16384) return undefined;
     chunks.push(inBytes);
   } else {
     if (!readFileSync) return undefined;
+    let stdinUsed = false;
     for (const f of files) {
-      const b = readFileSync(f);
+      let b: Uint8Array | undefined;
+      if (f === "-") {
+        if (stdinUsed) return undefined;
+        stdinUsed = true;
+        b = inBytes;
+      } else {
+        b = readFileSync(f);
+      }
       if (!b || b.byteLength > 16384) return undefined;
       chunks.push(b);
     }

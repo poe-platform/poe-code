@@ -60,6 +60,15 @@ export function evalSyncIconv(
     return undefined;
   }
   if (!fromRaw || !toRaw) return undefined;
+  if (outputFile === "-") outputFile = undefined;
+  if (outputFile !== undefined) {
+    const normOut = outputFile.replace(/^\.\/+/u, "").replace(/\/+$/u, "");
+    for (const f of files) {
+      if (f !== "-" && f.replace(/^\.\/+/u, "").replace(/\/+$/u, "") === normOut) {
+        return undefined;
+      }
+    }
+  }
   if (fromRaw.includes("//")) return undefined;
   const toParts = toRaw.split("//");
   for (let i = 1; i < toParts.length; i++) {

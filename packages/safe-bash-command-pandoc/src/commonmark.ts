@@ -43,7 +43,9 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
           text = rawText.slice(fmMatch[0].length);
         }
       }
-    } catch {}
+    } catch {
+      // Keep unparseable frontmatter in the document body.
+    }
   }
   const pending = await parseCommonMarkBlocks(text, context, input.base, extensions);
   async function assemble(blocks: readonly PendingBlock[], depth: number, tight = false): Promise<Block[]> {

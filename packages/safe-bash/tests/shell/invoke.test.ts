@@ -17,6 +17,7 @@ for (const pipeline of [false, true]) {
     const { shell, commands, fs } = setup({ onInternalError: error => { errors.push(error); } });
     t.after(() => shell.dispose());
     await fs.writeFile("/part.pdf", new TextEncoder().encode("pdf"));
+    const reads = t.mock.method(fs, "readFile");
     let completions = 0;
     let catalogs = 0;
     commands.register({ name: "emit", async execute(context) {
@@ -36,7 +37,7 @@ for (const pipeline of [false, true]) {
         }
       } finally { reader.releaseLock(); }
       catalogs++;
-      const [command] = createLlmCommands({ defaultModel: "fixture", limits: { maxInputBytes: 10 }, providers: [{
+      const [command] = createLlmCommands({ defaultModel: "fixture", limits: { maxInputBytes: 40 }, providers: [{
         name: "fixture", models: JSON.parse(json), async *complete(request) {
           AbortSignal.prototype.throwIfAborted.call(request.signal);
           completions++;
@@ -51,10 +52,12 @@ for (const pipeline of [false, true]) {
     const completion = await run("llm prompt -s instruction");
     assert.equal(completion.exitCode, 0, completion.stderr);
     assert.equal(completion.stdout, "completion\n");
+    // CLI controls and prompt separators also consume the combined input budget.
     const limited = await run("llm describe -a /part.pdf -a /part.pdf");
     assert.equal(limited.exitCode, 1);
     assert.match(limited.stderr, /input byte limit exceeded/);
     assert.equal(limited.stdout, "");
+    assert.equal(reads.mock.calls.filter(call => call.arguments[0] === "/part.pdf").length, 1, "the second attachment crosses the combined budget");
     assert.equal(completions, 1);
     assert.equal(catalogs, 2);
     assert.deepEqual(errors, []);

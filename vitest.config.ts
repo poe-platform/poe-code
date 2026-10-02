@@ -123,7 +123,7 @@ function getPackageAliases(): Record<string, string> {
 
   // Longer subpaths must precede their parent aliases (including nested exports).
   return Object.fromEntries(Object.entries({
-    "#git-wasm": fs.existsSync(path.resolve(packagesDir, "safe-bash-command-git/src/wasm.generated.ts")) ? path.resolve(packagesDir, "safe-bash-command-git/src/runtime.ts") : path.resolve(packagesDir, "safe-bash-command-git/dist/runtime.js"),
+    "#git-wasm": path.resolve(packagesDir, "safe-bash-command-git/dist/runtime.js"),
     "#safe-bash-zip-aes-crypto": path.resolve(packagesDir, "safe-bash/src/commands/archive/zip/aes-primitives.ts"),
     "#safe-bash-network-platform": path.resolve(packagesDir, "safe-bash/src/commands/network/platform.ts"),
     "poe-code/safe-fs/node/filesystem": path.resolve(packagesDir, "safe-fs/src/node/filesystem.ts"),

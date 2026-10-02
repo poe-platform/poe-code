@@ -240,10 +240,10 @@ function verbose(entry: ReadEntry, options: TarOptions): string {
     if (entry.mode & special) permissions = permissions.slice(0, offset) + (entry.mode & execute ? lower : upper) + permissions.slice(offset + 1);
   }
   const suffix = entry.type === "2" ? ` -> ${quoteName(entry.linkname, options.quotingStyle)}` : entry.type === "1" ? ` link to ${quoteName(entry.linkname, options.quotingStyle)}` : "";
-  let timestamp: string | number = entry.mtime ?? "-";
-  if ((options.utc || options.metadata.fullTime) && entry.mtime !== undefined) {
+  let timestamp = "-";
+  if (entry.mtime !== undefined) {
     const iso = new Date((options.utc ? Math.floor(entry.mtime) : entry.mtime) * 1000).toISOString().split("T").join(" ");
-    timestamp = options.utc ? iso.slice(0, options.metadata.fullTime ? 19 : 16) : iso.slice(0, -1);
+    timestamp = !options.metadata.fullTime ? iso.slice(0, 16) : options.utc ? iso.slice(0, 19) : iso.slice(0, -1);
     if (options.utc && options.metadata.fullTime) {
       let fraction = entry.mtime.toLocaleString("en-US", { useGrouping: false, maximumFractionDigits: 9 }).split(".")[1] ?? "";
       if (entry.mtime < 0 && fraction) fraction = String(10n ** BigInt(fraction.length) - BigInt(fraction)).padStart(fraction.length, "0");

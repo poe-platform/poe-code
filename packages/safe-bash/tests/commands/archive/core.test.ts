@@ -119,7 +119,7 @@ test("verbose archive stdout stays binary; list and extract use stdout", async (
     const extracted = await shell.exec("tar xvf - -C /out", { stdin: result.stdoutBytes });
     assert.equal(extracted.stdout, "file\n");
     const verbose = await shell.exec("tar tvf -", { stdin: result.stdoutBytes });
-    assert.match(verbose.stdout, /^-[rwx-]{9} \d+\/\d+ 2051 [0-9.]+ file\n$/u);
+    assert.match(verbose.stdout, /^-[rwx-]{9} \d+\/\d+ 2051 \d{4}-\d{2}-\d{2} \d{2}:\d{2} file\n$/u);
   } finally { await shell.dispose(); }
 });
 

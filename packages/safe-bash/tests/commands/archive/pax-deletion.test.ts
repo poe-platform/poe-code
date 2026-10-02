@@ -79,7 +79,7 @@ test("D02 global tombstones persist per keyword until explicit reintroduction", 
     const bytes = archive(extended("g", ["mtime", ""], ["uid", ""], ["gid", ""]), member("first", data), extended("g", ["comment", "unrelated"]), member("second", data), extended("g", ["mtime", String(globalTime)]), member("third", data));
     const listing = await shell.exec("tar tvf -", { stdin: bytes });
     assert.equal(listing.exitCode, 0, listing.stderr);
-    assert.equal(listing.stdout, "-rw-r--r-- -/- 517 - first\n-rw-r--r-- -/- 517 - second\n-rw-r--r-- -/- 517 1700000100.25 third\n");
+    assert.equal(listing.stdout, "-rw-r--r-- -/- 517 - first\n-rw-r--r-- -/- 517 - second\n-rw-r--r-- -/- 517 2023-11-14 22:15 third\n");
     const result = await shell.exec("tar xf - -C /out", { stdin: bytes });
     assert.equal(result.exitCode, 0, result.stderr);
     for (const name of ["first", "second"]) assert.equal((await fs.stat(`/out/${name}`)).mtimeMs, createdMtime);
@@ -96,7 +96,7 @@ test("D03 duplicate deletion and reintroduction use the last per-key record", as
     assert.equal((await fs.stat("/out/local")).mtimeMs, localTime * 1000);
     assert.equal((await fs.stat("/out/deleted")).mtimeMs, createdMtime);
     assert.equal((await fs.stat("/out/global")).mtimeMs, globalTime * 1000);
-    assert.match((await shell.exec("tar tvf -", { stdin: bytes })).stdout, /23\/45 517 1700000200.5 local/u);
+    assert.match((await shell.exec("tar tvf -", { stdin: bytes })).stdout, /23\/45 517 2023-11-14 22:16 local/u);
   } finally { await shell.dispose(); }
 });
 
@@ -241,7 +241,7 @@ test("D11 selected numeric PAX values bypass malformed raw numbers but retain ef
     const bytes = archive(extended("x", ["uid", "12"], ["gid", "34"], ["size", "517"], ["mtime", String(localTime)]), mutated("file", invalid));
     const listing = await shell.exec("tar tvf -", { stdin: bytes });
     assert.equal(listing.exitCode, 0, listing.stderr);
-    assert.equal(listing.stdout, "-rw-r--r-- 12/34 517 1700000200.5 file\n");
+    assert.equal(listing.stdout, "-rw-r--r-- 12/34 517 2023-11-14 22:16 file\n");
     const result = await shell.exec("tar xf - -C /out", { stdin: bytes });
     assert.equal(result.exitCode, 0, result.stderr);
     assert.deepEqual(await fs.readFile("/out/file"), data);

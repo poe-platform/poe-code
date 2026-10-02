@@ -223,6 +223,15 @@ for (const mode of ["c", "r", "u"]) test(`tar ${mode} applies exclusions positio
   assert.equal((await run(createTarCommand(), ["-tf", "/out.tar"], "", fs)).stdout, "pkg1/\npkg1/a.tmp\npkg1/b.txt\npkg2/\npkg2/b.txt\n");
 });
 
+test("tar verbose listing formats default timestamps to minute precision", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/a", new Uint8Array([1]));
+  assert.equal((await run(createTarCommand(), ["-cf", "/out.tar", "--mtime=@1700000000", "a"], "", fs)).exitCode, 0);
+  const result = await run(createTarCommand(), ["-tvf", "/out.tar"], "", fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(result.stdout.endsWith(" 2023-11-14 22:13 a\n"), result.stdout);
+});
+
 test("tar recursion controls apply to subsequent source operands", async () => {
   const fs = createMemoryFileSystem();
   for (const dir of ["one", "two"]) {

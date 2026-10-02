@@ -311,8 +311,8 @@ import { syncCommandEvaluators } from "../commands/internal.js";
 import { compareSyncJqStrings, splitSyncJqExpression } from "./sync-jq-expression.js";
 import { text as awkValueText, compare as awkCompare, inputValue as awkInputValue, numeric as awkNumeric, number as awkNumber, string as awkString } from "../commands/text-programs/awk-values.js";
 import { shellValueByteLength } from "../contracts/value.js";
-import { stateMonitor, type Restoration } from "./arrays/state.js";
-import type { Budget, Descriptor, RootShellState, RuntimeOutcomeFrame, State } from "./runtime.js";
+import { stateMonitor } from "./arrays/state.js";
+import type { Budget, RootShellState, State } from "./runtime.js";
 import { Runtime } from "./runtime.js";
 
 const createFmtEngine = (...args: any[]) => syncCommandEvaluators.createFmtEngine!(...args);

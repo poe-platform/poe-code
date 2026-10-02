@@ -227,6 +227,7 @@ function createMockChildProcess(options: MockChildProcessOptions = {}): {
   child: ChildProcessWithoutNullStreams;
   stdin: PassThrough;
   getStdin(): string;
+  start(): ChildProcessWithoutNullStreams;
 } {
   const stdout = new PassThrough();
   const stderr = new PassThrough();
@@ -260,28 +261,32 @@ function createMockChildProcess(options: MockChildProcessOptions = {}): {
   const errorOutput = options.stderr ?? "";
   const error = options.error;
 
-  if (options.autoClose !== false) {
-    setImmediate(() => {
-      for (const line of lines) {
-        stdout.write(`${line}\n`, "utf8");
-      }
-      stdout.end();
+  function start(): ChildProcessWithoutNullStreams {
+    if (options.autoClose !== false) {
+      setImmediate(() => {
+        for (const line of lines) {
+          stdout.write(`${line}\n`, "utf8");
+        }
+        stdout.end();
 
-      if (errorOutput) {
-        stderr.write(errorOutput, "utf8");
-      }
-      stderr.end();
+        if (errorOutput) {
+          stderr.write(errorOutput, "utf8");
+        }
+        stderr.end();
 
-      if (error) {
-        child.emit("error", error);
-        return;
-      }
+        if (error) {
+          child.emit("error", error);
+          return;
+        }
 
-      child.emit("close", exitCode, null);
-    });
+        child.emit("close", exitCode, null);
+      });
+    }
+
+    return child;
   }
 
-  return { child, stdin, getStdin: () => stdinBuffer };
+  return { child, stdin, getStdin: () => stdinBuffer, start };
 }
 
 // ============================================================
@@ -1231,7 +1236,7 @@ describe("acp/spawnStreaming", () => {
       stdoutLines: [JSON.stringify({ type: "system", subtype: "init", session_id: "s1" })],
       exitCode: 0
     });
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = vi.mocked(spawnChildProcess).mockImplementation(mock.start);
     let observedMode: unknown;
     const inspectMode: AcpMiddleware = async (ctx, next) => {
       observedMode = ctx.mode;
@@ -1287,7 +1292,7 @@ describe("acp/spawnStreaming", () => {
     let teeStdout = "";
     let teeStderr = "";
 
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
     const { events, done } = spawnStreaming({
       agentId: "opencode",
@@ -1343,7 +1348,7 @@ describe("acp/spawnStreaming", () => {
         JSON.stringify({ type: "text", sessionID: "burst", part: { text: String(index) } })
       )
     });
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    vi.mocked(spawnChildProcess).mockImplementation(mock.start);
     const { events, done } = spawnStreaming({ agentId: "opencode", prompt: "burst", mode: "yolo" });
     let received = 0;
     for await (const event of events) {
@@ -1363,7 +1368,7 @@ describe("acp/spawnStreaming", () => {
     });
     try {
       const mock = createMockChildProcess({ stdoutLines: ["fake burst"] });
-      vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+      vi.mocked(spawnChildProcess).mockImplementation(mock.start);
       const { events, done } = spawnStreaming({ agentId: "opencode", prompt: "burst", mode: "yolo" });
       await done;
       let received = 0;
@@ -1381,7 +1386,7 @@ describe("acp/spawnStreaming", () => {
       JSON.stringify({ type: "text", sessionID: "closed", part: { text: "first" } }),
       JSON.stringify({ type: "text", sessionID: "closed", part: { text: "second" } })
     ] });
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    vi.mocked(spawnChildProcess).mockImplementation(mock.start);
     let closed = false;
     const middleware: AcpMiddleware = async (ctx, next) => {
       const source = ctx.eventStream!;
@@ -1405,7 +1410,7 @@ describe("acp/spawnStreaming", () => {
       JSON.stringify({ type: "text", sessionID: "closed", part: { text: "first" } }),
       JSON.stringify({ type: "text", sessionID: "closed", part: { text: "buffered" } })
     ] });
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    vi.mocked(spawnChildProcess).mockImplementation(mock.start);
     const { events, done } = spawnStreaming({ agentId: "opencode", prompt: "close", mode: "yolo" });
     await done;
     const iterator = events[Symbol.asyncIterator]();
@@ -1418,7 +1423,7 @@ describe("acp/spawnStreaming", () => {
     const mock = createMockChildProcess({ stdoutLines: [
       JSON.stringify({ type: "text", sessionID: "closed", part: { text: "event after close" } })
     ] });
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    vi.mocked(spawnChildProcess).mockImplementation(mock.start);
     const { events, done } = spawnStreaming({ agentId: "opencode", prompt: "close", mode: "yolo" });
     const iterator = events[Symbol.asyncIterator]();
     const pending = iterator.next();
@@ -1433,7 +1438,7 @@ describe("acp/spawnStreaming", () => {
       JSON.stringify({ type: "text", sessionID: "closed", part: { text: "event after close" } }),
       JSON.stringify({ type: "step_finish", sessionID: "closed", part: { tokens: { input: 120, output: 45, cache: { read: 10, write: 0 } } } })
     ] });
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    vi.mocked(spawnChildProcess).mockImplementation(mock.start);
     let captured: SpawnContext | undefined;
     const middleware: AcpMiddleware = async (ctx, next) => {
       captured = ctx;
@@ -1462,7 +1467,7 @@ describe("acp/spawnStreaming", () => {
       stdoutLines,
       exitCode: 0
     });
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = vi.mocked(spawnChildProcess).mockImplementation(mock.start);
     const cwd = process.cwd();
 
     await withObjectPrototypeProperties(
@@ -1523,7 +1528,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
     const steps: string[] = [];
     const firstMiddleware: AcpMiddleware = async (_ctx, next) => {
@@ -1613,7 +1618,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
     const observed: Array<{ events: unknown[]; usage: unknown; sessionId: string }> = [];
     const middleware: AcpMiddleware = async (ctx, next) => {
@@ -1667,7 +1672,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
     const redactMessages: AcpMiddleware = async (ctx, next) => {
       await next();
@@ -1706,7 +1711,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
     let observedUsage: unknown;
     const inspectUsage: AcpMiddleware = async (ctx, next) => {
@@ -1733,7 +1738,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
     const { events, done } = spawnStreaming({
       agentId: "codex",
@@ -1887,7 +1892,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
     const { events, done } = spawnStreaming({
       agentId: "opencode",
@@ -1914,7 +1919,7 @@ describe("acp/spawnStreaming", () => {
 
   it("ignores non-ACP adapter outputs and yields only raw ACP events", async () => {
     const mock = createMockChildProcess({ exitCode: 0 });
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = vi.mocked(spawnChildProcess).mockImplementation(mock.start);
     const getAdapterMock = vi
       .spyOn(adapterModule, "getAdapter")
       .mockReturnValue(async function* () {
@@ -1948,7 +1953,7 @@ describe("acp/spawnStreaming", () => {
 
   it("returns exit code 1 when the runtime reports a process launch error", async () => {
     const mock = createMockChildProcess({ error: new Error("spawn failed") });
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
     const { events, done } = spawnStreaming({
       agentId: "opencode",
@@ -1980,7 +1985,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
     const { events, done } = spawnStreaming({
       agentId: "codex",
@@ -2025,7 +2030,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
     const { events, done } = spawnStreaming({
       agentId: "codex",
@@ -2054,7 +2059,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
     const { events, done } = spawnStreaming({
       agentId: "claude-code",
@@ -2083,7 +2088,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
     const { events, done } = spawnStreaming({
       agentId: "opencode",
@@ -2112,7 +2117,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
     const { events, done } = spawnStreaming({
       agentId: "opencode",
@@ -2135,7 +2140,7 @@ describe("acp/spawnStreaming", () => {
       exitCode: 0
     });
 
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const spawnMock = vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
     const { events, done } = spawnStreaming({
       agentId: "codex",
@@ -2231,7 +2236,7 @@ describe("acp/spawnStreaming", () => {
     const controller = new AbortController();
     const mock = createMockChildProcess({ autoClose: false });
     const killSpy = vi.spyOn(mock.child, "kill");
-    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
     const { done } = spawnStreaming({
       agentId: "codex",
@@ -2259,7 +2264,7 @@ describe("acp/spawnStreaming", () => {
     it("kills process and rejects done with ActivityTimeoutError after inactivity", async () => {
       const mock = createMockChildProcess({ autoClose: false });
       const killSpy = vi.spyOn(mock.child, "kill");
-      vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+      vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
       const { events, done } = spawnStreaming({
         agentId: "codex",
@@ -2274,6 +2279,8 @@ describe("acp/spawnStreaming", () => {
         name: "ActivityTimeoutError"
       });
 
+      await vi.waitFor(() => expect(spawnChildProcess).toHaveBeenCalledTimes(1));
+
       await vi.advanceTimersByTimeAsync(5000);
 
       await doneRejection;
@@ -2285,7 +2292,7 @@ describe("acp/spawnStreaming", () => {
     it("resets timeout when stdout data is received", async () => {
       const mock = createMockChildProcess({ autoClose: false });
       const killSpy = vi.spyOn(mock.child, "kill");
-      vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+      vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
       const { events, done } = spawnStreaming({
         agentId: "codex",
@@ -2298,6 +2305,8 @@ describe("acp/spawnStreaming", () => {
       const doneRejection = expect(done).rejects.toMatchObject({
         name: "ActivityTimeoutError"
       });
+
+      await vi.waitFor(() => expect(spawnChildProcess).toHaveBeenCalledTimes(1));
 
       // Advance 4s, send data, advance another 4s — should not timeout
       await vi.advanceTimersByTimeAsync(4000);
@@ -2315,7 +2324,7 @@ describe("acp/spawnStreaming", () => {
     it("does not reset timeout when only stderr data is received", async () => {
       const mock = createMockChildProcess({ autoClose: false });
       const killSpy = vi.spyOn(mock.child, "kill");
-      vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+      vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
       const { events, done } = spawnStreaming({
         agentId: "codex",
@@ -2328,6 +2337,8 @@ describe("acp/spawnStreaming", () => {
         name: "ActivityTimeoutError"
       });
 
+      await vi.waitFor(() => expect(spawnChildProcess).toHaveBeenCalledTimes(1));
+
       await vi.advanceTimersByTimeAsync(4000);
       mock.child.stderr.write("diagnostic noise\n");
       await vi.advanceTimersByTimeAsync(1000);
@@ -2339,7 +2350,7 @@ describe("acp/spawnStreaming", () => {
 
     it("clears timeout when process exits normally", async () => {
       const mock = createMockChildProcess({ autoClose: false });
-      vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+      vi.mocked(spawnChildProcess).mockImplementation(mock.start);
 
       const { events, done } = spawnStreaming({
         agentId: "codex",

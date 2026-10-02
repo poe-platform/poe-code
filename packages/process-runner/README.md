@@ -4,7 +4,6 @@ Low-level process execution abstraction. Single interface for launching processe
 
 ## Overview
 
-- No external dependencies
 - Consumed by `@poe-code/agent-spawn`
 - Consumed by `process-launcher`
 
@@ -39,5 +38,7 @@ This package exposes no environment variables.
 ## Configuration
 
 This package currently exposes no package-level configuration options.
+
+Import `uploadWorkspace` and `downloadWorkspace` from `@poe-code/process-runner/workspace-transfer` for portable transfers. Pass SafeFS `FileSystem` instances as `fs` and `remoteFs` in Workers; the host filesystem remains the default in Node.
 
 Workspace transfer validates a positive finite upload limit and applies gitignore traversal rules: an ignored parent must be unignored before its children can be included. Docker template hashing honors `.dockerignore`. Docker port mappings, wait output, and detached completion markers are validated before use.

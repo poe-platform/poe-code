@@ -1,15 +1,28 @@
-import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { createFsFromVolume, Volume } from "memfs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { deepMergeDocuments } from "./merge.js";
-import { parseRunner, parseRuntime, resolveRuntime, runtimeConfigScope } from "./runtime.js";
+import { parseRunner, parseRuntime, resolveRuntime as resolveRuntimeWithFs, runtimeConfigScope } from "./runtime.js";
 import { resolveScope } from "./resolve.js";
 
-function withObjectPrototypeProperties<T>(
+const memory = createFsFromVolume(new Volume());
+const { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } = memory;
+memory.mkdirSync("/tmp");
+const resolveRuntime = (options: Parameters<typeof resolveRuntimeWithFs>[0]) => resolveRuntimeWithFs({
+  ...options,
+  fs: {
+    async stat(path) {
+      const value = await memory.promises.stat(path);
+      return { type: value.isDirectory() ? "directory" : "file", size: Number(value.size), mode: Number(value.mode), mtimeMs: Number(value.mtimeMs) };
+    },
+    async realpath(path) { return String(await memory.promises.realpath(path)); }
+  }
+});
+
+async function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,
-  callback: () => T
-): T {
+  callback: () => T | Promise<T>
+): Promise<T> {
   const originals = new Map<string, PropertyDescriptor | undefined>();
   for (const [key, value] of Object.entries(properties)) {
     originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
@@ -21,7 +34,7 @@ function withObjectPrototypeProperties<T>(
   }
 
   try {
-    return callback();
+    return await callback();
   } finally {
     for (const [key, descriptor] of originals) {
       if (descriptor === undefined) {
@@ -120,8 +133,8 @@ describe("runtime config", () => {
     });
   });
 
-  it("ignores inherited runner fields", () => {
-    withObjectPrototypeProperties(
+  it("ignores inherited runner fields", async () => {
+    await withObjectPrototypeProperties(
       {
         detach: true,
         upload_max_file_mb: 1,
@@ -227,8 +240,8 @@ describe("runtime config", () => {
     });
   });
 
-  it("ignores inherited runtime fields", () => {
-    withObjectPrototypeProperties(
+  it("ignores inherited runtime fields", async () => {
+    await withObjectPrototypeProperties(
       {
         type: "docker",
         image: "polluted:latest",
@@ -272,8 +285,8 @@ describe("runtime config", () => {
     }
   });
 
-  it("ignores inherited mount fields", () => {
-    withObjectPrototypeProperties(
+  it("ignores inherited mount fields", async () => {
+    await withObjectPrototypeProperties(
       {
         source: ".",
         target: "/workspace",
@@ -308,13 +321,13 @@ describe("runtime config", () => {
     );
   });
 
-  it("resolves dockerfile and build context defaults when a docker runtime builds from a Dockerfile", () => {
-    withTempProject(({ cwd }) => {
+  it("resolves dockerfile and build context defaults when a docker runtime builds from a Dockerfile", async () => {
+    await withTempProject(async ({ cwd }) => {
       const dockerfilePath = path.join(cwd, ".poe-code", "Dockerfile");
       mkdirSync(path.dirname(dockerfilePath), { recursive: true });
       writeFileSync(dockerfilePath, "FROM scratch\n");
 
-      expect(resolveRuntime({ cwd, config: { runtime: parseRuntime({ type: "docker" }) } })).toEqual({
+      expect(await resolveRuntime({ cwd, config: { runtime: parseRuntime({ type: "docker" }) } })).toEqual({
         runtime: {
           type: "docker",
           build_args: {},
@@ -327,19 +340,19 @@ describe("runtime config", () => {
     });
   });
 
-  it("ignores inherited prebuilt runtime artifact fields while resolving", () => {
-    withTempProject(({ cwd }) => {
+  it("ignores inherited prebuilt runtime artifact fields while resolving", async () => {
+    await withTempProject(async ({ cwd }) => {
       const dockerfilePath = path.join(cwd, ".poe-code", "Dockerfile");
       mkdirSync(path.dirname(dockerfilePath), { recursive: true });
       writeFileSync(dockerfilePath, "FROM scratch\n");
 
-      withObjectPrototypeProperties(
+      await withObjectPrototypeProperties(
         {
           image: "polluted:latest",
           template_id: "tmpl_polluted"
         },
-        () => {
-          expect(resolveRuntime({ cwd, config: { runtime: parseRuntime({ type: "docker" }) } })).toEqual({
+        async () => {
+          expect(await resolveRuntime({ cwd, config: { runtime: parseRuntime({ type: "docker" }) } })).toEqual({
             runtime: {
               type: "docker",
               build_args: {},
@@ -354,14 +367,14 @@ describe("runtime config", () => {
     });
   });
 
-  it("resolves custom dockerfile and build context paths inside the runtime cwd", () => {
-    withTempProject(({ cwd }) => {
+  it("resolves custom dockerfile and build context paths inside the runtime cwd", async () => {
+    await withTempProject(async ({ cwd }) => {
       const dockerfilePath = path.join(cwd, "containers", "Dockerfile");
       mkdirSync(path.dirname(dockerfilePath), { recursive: true });
       writeFileSync(dockerfilePath, "FROM scratch\n");
 
       expect(
-        resolveRuntime({
+        await resolveRuntime({
           cwd,
           config: {
             runtime: parseRuntime({
@@ -379,15 +392,15 @@ describe("runtime config", () => {
     });
   });
 
-  it("rejects docker build paths that escape the runtime cwd", () => {
-    withTempProject(({ root, cwd }) => {
+  it("rejects docker build paths that escape the runtime cwd", async () => {
+    await withTempProject(async ({ root, cwd }) => {
       const dockerfilePath = path.join(cwd, "Dockerfile");
       const outsideDockerfilePath = path.join(root, "outside", "Dockerfile");
       mkdirSync(path.dirname(outsideDockerfilePath), { recursive: true });
       writeFileSync(dockerfilePath, "FROM scratch\n");
       writeFileSync(outsideDockerfilePath, "FROM scratch\n");
 
-      expect(() =>
+      await expect(
         resolveRuntime({
           cwd,
           config: {
@@ -398,9 +411,9 @@ describe("runtime config", () => {
             })
           }
         })
-      ).toThrow(`runtime.build_context must remain inside runtime cwd ${cwd}.`);
+      ).rejects.toThrow(`runtime.build_context must remain inside runtime cwd ${cwd}.`);
 
-      expect(() =>
+      await expect(
         resolveRuntime({
           cwd,
           config: {
@@ -411,17 +424,17 @@ describe("runtime config", () => {
             })
           }
         })
-      ).toThrow(`runtime.dockerfile must remain inside runtime cwd ${cwd}.`);
+      ).rejects.toThrow(`runtime.dockerfile must remain inside runtime cwd ${cwd}.`);
     });
   });
 
-  it("reports missing build contexts with a config-specific error", () => {
-    withTempProject(({ cwd }) => {
+  it("reports missing build contexts with a config-specific error", async () => {
+    await withTempProject(async ({ cwd }) => {
       const dockerfilePath = path.join(cwd, "Dockerfile");
       const buildContext = path.join(cwd, "missing-context");
       writeFileSync(dockerfilePath, "FROM scratch\n");
 
-      expect(() =>
+      await expect(
         resolveRuntime({
           cwd,
           config: {
@@ -432,13 +445,13 @@ describe("runtime config", () => {
             })
           }
         })
-      ).toThrow(`runtime.build_context does not exist: ${buildContext}.`);
+      ).rejects.toThrow(`runtime.build_context does not exist: ${buildContext}.`);
     });
   });
 
-  it("uses a prebuilt docker artifact without requiring a Dockerfile", () => {
+  it("uses a prebuilt docker artifact without requiring a Dockerfile", async () => {
     expect(
-      resolveRuntime({
+      await resolveRuntime({
         cwd: "/repo",
         config: { runtime: parseRuntime({ type: "docker", image: "node:22" }) }
       })
@@ -449,11 +462,11 @@ describe("runtime config", () => {
     });
   });
 
-  it("hard-errors when docker has neither a prebuilt artifact nor Dockerfile", () => {
-    withTempProject(({ cwd }) => {
-      expect(() =>
+  it("hard-errors when docker has neither a prebuilt artifact nor Dockerfile", async () => {
+    await withTempProject(async ({ cwd }) => {
+      await expect(
         resolveRuntime({ cwd, config: { runtime: parseRuntime({ type: "docker" }) } })
-      ).toThrow(
+      ).rejects.toThrow(
         `Docker runtime requires image or a Dockerfile at ${path.join(cwd, ".poe-code", "Dockerfile")}.`
       );
     });
@@ -585,13 +598,13 @@ describe("runtime config", () => {
   });
 });
 
-function withTempProject(fn: (project: { root: string; cwd: string }) => void): void {
-  const root = mkdtempSync(path.join(realpathSync(tmpdir()), "poe-runtime-config-"));
+async function withTempProject(fn: (project: { root: string; cwd: string }) => Promise<void>): Promise<void> {
+  const root = mkdtempSync(path.join(realpathSync("/tmp"), "poe-runtime-config-"));
   const cwd = path.join(root, "project");
   mkdirSync(cwd, { recursive: true });
 
   try {
-    fn({ root, cwd });
+    await fn({ root, cwd });
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

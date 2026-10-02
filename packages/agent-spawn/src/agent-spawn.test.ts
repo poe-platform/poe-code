@@ -921,7 +921,7 @@ describe("spawn", () => {
   it("spawns CLI using promptFlag + prompt + defaultArgs + options.args", async () => {
     const spawnMock = vi
       .mocked(spawnChildProcess)
-      .mockReturnValue(createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
+      .mockImplementation(() => createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
 
     const result = await spawn("claude-code", {
       prompt: "test",
@@ -946,7 +946,7 @@ describe("spawn", () => {
   it("includes model flag when model is provided", async () => {
     const spawnMock = vi
       .mocked(spawnChildProcess)
-      .mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+      .mockImplementation(() => createMockChildProcess({ exitCode: 0 }));
 
     await spawn("codex", { prompt: "hello", model: "o3", mode: "yolo" });
 
@@ -966,7 +966,7 @@ describe("spawn", () => {
   it("passes resumeThreadId through provider resume args", async () => {
     const spawnMock = vi
       .mocked(spawnChildProcess)
-      .mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+      .mockImplementation(() => createMockChildProcess({ exitCode: 0 }));
 
     await spawn("claude-code", {
       prompt: "continue",
@@ -989,7 +989,7 @@ describe("spawn", () => {
   it("serializes codex MCP servers to -c TOML args", async () => {
     const spawnMock = vi
       .mocked(spawnChildProcess)
-      .mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+      .mockImplementation(() => createMockChildProcess({ exitCode: 0 }));
 
     await spawn("codex", {
       prompt: "hello",
@@ -1024,7 +1024,7 @@ describe("spawn", () => {
   it("serializes opencode MCP servers into the spawned environment", async () => {
     const spawnMock = vi
       .mocked(spawnChildProcess)
-      .mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+      .mockImplementation(() => createMockChildProcess({ exitCode: 0 }));
 
     await spawn("opencode", {
       prompt: "hello",
@@ -1052,7 +1052,7 @@ describe("spawn", () => {
   it("strips provider namespace and transforms model before passing to CLI", async () => {
     const spawnMock = vi
       .mocked(spawnChildProcess)
-      .mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+      .mockImplementation(() => createMockChildProcess({ exitCode: 0 }));
 
     await spawn("claude-code", { prompt: "test", model: "anthropic/claude-opus-4.6" });
 
@@ -1065,7 +1065,7 @@ describe("spawn", () => {
   it("passes cwd option to the spawned process", async () => {
     const spawnMock = vi
       .mocked(spawnChildProcess)
-      .mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+      .mockImplementation(() => createMockChildProcess({ exitCode: 0 }));
 
     await spawn("codex", { prompt: "hello", cwd: "/tmp/poe-agent-spawn" });
 
@@ -1078,7 +1078,7 @@ describe("spawn", () => {
     const cwd = "/repo";
     const spawnMock = vi
       .mocked(spawnChildProcess)
-      .mockReturnValue(createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
+      .mockImplementation(() => createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
 
     const result = await spawn("codex", { prompt: "hello", cwd, useStdin: true, mode: "yolo" });
 
@@ -1104,8 +1104,7 @@ describe("spawn", () => {
 
   it("automatically writes large prompts to stdin when supported", async () => {
     const prompt = "x".repeat(64 * 1024 + 1);
-    const child = createMockChildProcess({ stdout: "ok\n", exitCode: 0 });
-    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(child);
+    const spawnMock = vi.mocked(spawnChildProcess).mockImplementation(() => createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
 
     await spawn("codex", { prompt, mode: "yolo" });
 
@@ -1118,13 +1117,13 @@ describe("spawn", () => {
       ...codexSpawnConfig.modes.yolo
     ]);
     expect(spawnOptions).toMatchObject({ stdio: ["pipe", "pipe", "pipe"] });
-    expect((child as any).__capturedStdin()).toBe(prompt);
+    expect((spawnMock.mock.results[0]!.value as any).__capturedStdin()).toBe(prompt);
   });
 
   it("writes prompt to stdin for claude-code when supported", async () => {
     const spawnMock = vi
       .mocked(spawnChildProcess)
-      .mockReturnValue(createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
+      .mockImplementation(() => createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
 
     await spawn("claude-code", { prompt: "hi", useStdin: true, mode: "yolo" });
 
@@ -1180,9 +1179,7 @@ describe("spawn", () => {
   it("removes inherited environment variables for one spawn", async () => {
     const inheritedValue = process.env.POE_CODE_UNSET_ENV_TEST;
     process.env.POE_CODE_UNSET_ENV_TEST = "parent";
-    vi.mocked(spawnChildProcess).mockReturnValue(
-      createMockChildProcess({ stdout: "ok\n", exitCode: 0 })
-    );
+    vi.mocked(spawnChildProcess).mockImplementation(() => createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
 
     try {
       await spawn("codex", {
@@ -1201,9 +1198,7 @@ describe("spawn", () => {
   });
 
   it("forwards output to tee streams when provided", async () => {
-    vi.mocked(spawnChildProcess).mockReturnValue(
-      createMockChildProcess({ stdout: "agent output", stderr: "agent progress", exitCode: 0 })
-    );
+    vi.mocked(spawnChildProcess).mockImplementation(() => createMockChildProcess({ stdout: "agent output", stderr: "agent progress", exitCode: 0 }));
 
     let teeStdout = "";
     let teeStderr = "";
@@ -1251,7 +1246,7 @@ describe("spawn", () => {
   it("appends edit mode args when mode is 'edit'", async () => {
     const spawnMock = vi
       .mocked(spawnChildProcess)
-      .mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+      .mockImplementation(() => createMockChildProcess({ exitCode: 0 }));
 
     await spawn("claude-code", { prompt: "test", mode: "edit" });
 
@@ -1267,7 +1262,7 @@ describe("spawn", () => {
   it("appends read mode args when mode is 'read'", async () => {
     const spawnMock = vi
       .mocked(spawnChildProcess)
-      .mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+      .mockImplementation(() => createMockChildProcess({ exitCode: 0 }));
 
     await spawn("claude-code", { prompt: "test", mode: "read" });
 
@@ -1374,7 +1369,7 @@ describe("spawn", () => {
         }
       ]
     });
-    vi.mocked(spawnChildProcess).mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+    vi.mocked(spawnChildProcess).mockImplementation(() => createMockChildProcess({ exitCode: 0 }));
 
     await spawn("codex", { prompt: "hello", cwd: "/repo", skills: ["foo"] });
 
@@ -1391,7 +1386,7 @@ describe("spawn", () => {
       warnings: []
     };
     skillBridgeMock.bridgeActiveSkills.mockReturnValue(manifest);
-    vi.mocked(spawnChildProcess).mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+    vi.mocked(spawnChildProcess).mockImplementation(() => createMockChildProcess({ exitCode: 0 }));
 
     await spawn("codex", { prompt: "hello", cwd: "/repo", skills: ["foo"] });
 
@@ -1430,7 +1425,7 @@ describe("spawn", () => {
     };
     skillBridgeMock.bridgeActiveSkills.mockReturnValue(manifest);
     const controller = new AbortController();
-    vi.mocked(spawnChildProcess).mockReturnValue(createMockChildProcess({ autoClose: false }));
+    vi.mocked(spawnChildProcess).mockImplementation(() => createMockChildProcess({ autoClose: false }));
 
     const resultPromise = spawn("codex", {
       prompt: "hello",
@@ -1446,7 +1441,7 @@ describe("spawn", () => {
   });
 
   it("does not bridge hooks when hooks are omitted", async () => {
-    vi.mocked(spawnChildProcess).mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+    vi.mocked(spawnChildProcess).mockImplementation(() => createMockChildProcess({ exitCode: 0 }));
 
     await spawn("codex", { prompt: "hello" });
 
@@ -1521,7 +1516,7 @@ describe("spawn", () => {
         }
       ]
     });
-    vi.mocked(spawnChildProcess).mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+    vi.mocked(spawnChildProcess).mockImplementation(() => createMockChildProcess({ exitCode: 0 }));
 
     await spawn("codex", { prompt: "hello", cwd: "/repo", hooks: { from: "claude-code" } });
 
@@ -1540,7 +1535,7 @@ describe("spawn", () => {
       drops: []
     };
     hookBridgeMock.bridgeHooks.mockReturnValue(manifest);
-    vi.mocked(spawnChildProcess).mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+    vi.mocked(spawnChildProcess).mockImplementation(() => createMockChildProcess({ exitCode: 0 }));
 
     await spawn("codex", { prompt: "hello", cwd: "/repo", hooks: { from: "claude-code" } });
 
@@ -1581,7 +1576,7 @@ describe("spawn", () => {
     };
     hookBridgeMock.bridgeHooks.mockReturnValue(manifest);
     const controller = new AbortController();
-    vi.mocked(spawnChildProcess).mockReturnValue(createMockChildProcess({ autoClose: false }));
+    vi.mocked(spawnChildProcess).mockImplementation(() => createMockChildProcess({ autoClose: false }));
 
     const resultPromise = spawn("codex", {
       prompt: "hello",
@@ -1599,9 +1594,7 @@ describe("spawn", () => {
   it("records the expected otel span lifecycle for a CLI spawn", async () => {
     const events: string[] = [];
     const sink = createRecordingOtelSink(events);
-    vi.mocked(spawnChildProcess).mockReturnValue(
-      createMockChildProcess({ stdout: "finished\n", exitCode: 0 })
-    );
+    vi.mocked(spawnChildProcess).mockImplementation(() => createMockChildProcess({ stdout: "finished\n", exitCode: 0 }));
 
     await spawn("codex", {
       prompt: "Inspect.",
@@ -1759,7 +1752,7 @@ describe("spawn", () => {
   it("falls back to prompt args when stdin is unsupported", async () => {
     const spawnMock = vi
       .mocked(spawnChildProcess)
-      .mockReturnValue(createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
+      .mockImplementation(() => createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
 
     await spawn("opencode", { prompt: "hello", useStdin: true, mode: "yolo" });
 
@@ -1798,7 +1791,7 @@ describe("spawn", () => {
       setStdinIsTTY(undefined);
       const spawnMock = vi
         .mocked(spawnChildProcess)
-        .mockReturnValue(createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
+        .mockImplementation(() => createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
 
       await spawn("codex", { prompt: "say only: ok", mode: "read" });
 
@@ -1810,7 +1803,7 @@ describe("spawn", () => {
       setStdinIsTTY(true);
       const spawnMock = vi
         .mocked(spawnChildProcess)
-        .mockReturnValue(createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
+        .mockImplementation(() => createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
 
       await spawn("codex", { prompt: "say only: ok", mode: "read" });
 
@@ -1822,7 +1815,7 @@ describe("spawn", () => {
       setStdinIsTTY(true);
       const spawnMock = vi
         .mocked(spawnChildProcess)
-        .mockReturnValue(createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
+        .mockImplementation(() => createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
 
       await spawn("claude", { prompt: "hello", useStdin: true });
 
@@ -1854,6 +1847,8 @@ describe("spawn", () => {
         name: "ActivityTimeoutError"
       });
 
+      await vi.waitFor(() => expect(spawnChildProcess).toHaveBeenCalledTimes(1));
+
       await vi.advanceTimersByTimeAsync(5000);
 
       await rejection;
@@ -1874,6 +1869,8 @@ describe("spawn", () => {
       const rejection = expect(resultPromise).rejects.toMatchObject({
         name: "ActivityTimeoutError"
       });
+
+      await vi.waitFor(() => expect(spawnChildProcess).toHaveBeenCalledTimes(1));
 
       // Advance 4s, send data, advance another 4s — should not timeout
       await vi.advanceTimersByTimeAsync(4000);
@@ -1900,6 +1897,8 @@ describe("spawn", () => {
       const rejection = expect(resultPromise).rejects.toMatchObject({
         name: "ActivityTimeoutError"
       });
+
+      await vi.waitFor(() => expect(spawnChildProcess).toHaveBeenCalledTimes(1));
 
       await vi.advanceTimersByTimeAsync(4000);
       streams.stderr.write("progress info");

@@ -30,6 +30,8 @@ execution.
 - `open(spec)`: creates a fresh `OpenedEnv`.
 - `attach(envId, context)`: reconnects to an existing runtime environment.
 
+`resolvePoeCommandExecution` is asynchronous: await its result before opening the execution environment. Workers supply `context.fs`, `context.homeDir`, and `context.state`; Node provides host filesystem and state defaults.
+
 `resolvePoeCommandExecution` rejects requested runner capabilities the resolved backend does not offer,
 rather than downgrading them silently: it throws `UnsupportedRuntimeCapabilityError` when detach is
 requested but `supportsDetach` is not true, and when `runnerSync` is overridden but
@@ -146,3 +148,5 @@ Pass `shouldPause` to request a graceful stop between items. The current item fi
 Messages run in insertion order immediately after their target plan, before the next plan. `enqueueMessage(text, planId?)` defaults to the active plan, including while its messages run. Before execution it defaults to the first plan. A plan that the queue has already passed cannot receive new messages. `afterEachPlan` applies to initial and subsequently appended plans.
 
 Snapshots and their entries are immutable. `onChange` returns an unsubscribe function. A queue can run once; create another queue for a later run. Duplicate paths are compared relative to `cwd`, which defaults to the current directory. For asynchronous validation, call `await queue.enqueueValidatedPlan(path, validate)`, where `validate` returns the resolved plan path. A submission started while running keeps the sequence open until validation settles; cancellation still stops promptly and rejects late additions. Concurrent validated submissions retain their submission order, even when later validation finishes first. The caller supplies the same agent configuration to its plan and message executors.
+
+For Worker runtimes, pass `dashboardFactory` to `createHarnessDashboard` to supply your renderer. Host applications use the standard terminal dashboard by default.

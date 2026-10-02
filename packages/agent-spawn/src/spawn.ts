@@ -284,7 +284,7 @@ async function runSpawn(
         : undefined;
     const argv = [binaryName, ...spawnArgs];
     const displayArgv = [binaryName, ...displaySpawnArgs];
-    const execution = resolveSpawnExecution({
+    const execution = await resolveSpawnExecution({
       cwd,
       runtimeConfigCwd: options.runtimeConfigCwd,
       env: (processEnv ?? process.env) as Record<string, string>,

@@ -68,6 +68,8 @@ Use `loadStateManager(homeDir)` for node-backed state or `createStateManager(hom
 
 ## Runtime Scope
 
+`resolveRuntime` is asynchronous. Use `await resolveRuntime({ cwd, config, fs })` with an injected `@poe-code/safe-fs` filesystem in Workers; Node supplies its host filesystem by default. The `@poe-code/poe-code-config/runtime`, `/merge`, and `/resolve` subpaths expose configuration logic without loading CLI or schema-compilation dependencies.
+
 The `runtime` scope describes where commands execute. `parseRuntime(...)` accepts:
 
 - `type`: `host` or `docker`. Defaults to `host`.

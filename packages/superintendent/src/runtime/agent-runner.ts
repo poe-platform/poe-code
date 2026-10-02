@@ -83,7 +83,7 @@ export async function runAutonomousAgent(input: AutonomousInput): Promise<Autono
   const processEnv = spawnArgs.env ? { ...process.env, ...spawnArgs.env } : undefined;
   const argv = [spawnArgs.binaryName, ...spawnArgs.args];
   const logFd = input.logPath ? openSpawnLog(input.logPath) : undefined;
-  const execution = resolvePoeCommandExecution({
+  const execution = await resolvePoeCommandExecution({
     cwd: input.cwd ?? process.cwd(),
     env: (processEnv ?? process.env) as Record<string, string>,
     argv,

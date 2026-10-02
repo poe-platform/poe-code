@@ -18,6 +18,10 @@
     "./testing": {
       "types": "./dist/testing/index.d.ts",
       "import": "./dist/testing/index.js"
+    },
+    "./workspace-transfer": {
+      "types": "./dist/workspace-transfer.d.ts",
+      "import": "./dist/workspace-transfer.js"
     }
   },
   "scripts": {
@@ -36,6 +40,17 @@
     "directory": "packages/process-runner"
   },
   "dependencies": {
-    "ignore": "^5.3.2"
+    "ignore": "^5.3.2",
+    "@poe-code/safe-fs": "*",
+    "@noble/hashes": "2.4.0"
+  },
+  "imports": {
+    "#transfer-filesystem": {
+      "types": "./src/transfer-filesystem.ts",
+      "workerd": "./dist/transfer-filesystem.workerd.js",
+      "browser": "./dist/transfer-filesystem.workerd.js",
+      "worker": "./dist/transfer-filesystem.workerd.js",
+      "default": "./dist/transfer-filesystem.js"
+    }
   }
 }

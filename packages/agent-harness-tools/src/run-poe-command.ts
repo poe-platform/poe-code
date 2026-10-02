@@ -1,7 +1,6 @@
-import { randomBytes } from "node:crypto";
 import type { StateManager } from "@poe-code/poe-code-config/core";
 import type { RunHandle } from "@poe-code/process-runner";
-import type { Readable } from "node:stream";
+type Readable = NonNullable<RunHandle["stdout"]>;
 import { hasOwnErrorCode } from "./error-codes.js";
 import type { DownloadResult, ExecutionEnvFactory, OpenedEnv, OpenSpec } from "./execution-env.js";
 import { waitForExit, wrapForLogTee, type LogStreamEnv } from "./log-stream.js";
@@ -299,7 +298,7 @@ async function runSync(opts: {
   closeAfterDownload?: boolean;
 }): Promise<{ exitCode: number; download: DownloadResult; stdout?: string; stderr?: string }> {
   const execution = opts.openSpec.execution;
-  const capture = execution?.captureOutput === true;
+  const capture = execution?.captureOutput === true || !globalThis.process?.stdout || !globalThis.process?.stderr;
   const abort = createAbortSync(opts.signal, opts.handle, execution?.activityTimeoutMs, {
     forceKillAfterMs: WRAPPED_COMMAND_FORCE_KILL_GRACE_MS
   });
@@ -415,11 +414,11 @@ function captureRunStreams(
     stream.setEncoding("utf8");
     let settled = false;
     let settleDrain = () => {};
-    const listener = (chunk: string | Buffer) => {
+    const listener = (chunk: string | Uint8Array) => {
       if (countsAsActivity) {
         onActivity();
       }
-      onChunk(chunk.toString());
+      onChunk(typeof chunk === "string" ? chunk : new TextDecoder("utf-8", { ignoreBOM: true }).decode(chunk));
     };
     const drainPromise = new Promise<void>((resolve) => {
       settleDrain = () => {
@@ -603,7 +602,7 @@ function setDetachedJobContext(
   candidate.setDetachedJobContext?.(context);
 }
 
-async function writeExecutionInput(handle: RunHandle, input: string | Buffer): Promise<void> {
+async function writeExecutionInput(handle: RunHandle, input: string | Uint8Array): Promise<void> {
   const stdin = handle.stdin;
   if (stdin === null) {
     return;
@@ -640,7 +639,7 @@ function createActivityTimeoutError(timeoutMs: number): Error {
 
 function createUlid(): string {
   const time = BigInt(Date.now());
-  const random = randomBytes(10);
+  const random = crypto.getRandomValues(new Uint8Array(10));
   let randomValue = 0n;
 
   for (const byte of random) {

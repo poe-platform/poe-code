@@ -1,4 +1,5 @@
-import { createDashboard, type dashboard } from "toolcraft-design";
+import type { dashboard, Dashboard, DashboardOptions } from "toolcraft-design";
+import { createDashboard } from "#harness-tools-dashboard";
 import type { RunQueue, RunQueueSnapshot } from "./run-queue.js";
 
 /** One view for an entire harness sequence, including work added while it runs. */
@@ -9,6 +10,7 @@ export function createHarnessDashboard(options: {
   cwd: string;
   queue: RunQueue;
   validatePlan?: (path: string) => Promise<string>;
+  dashboardFactory?: (options: DashboardOptions) => Dashboard;
 }) {
   let disposed = false;
   let timer: ReturnType<typeof setInterval> | undefined;
@@ -21,7 +23,7 @@ export function createHarnessDashboard(options: {
     agent: options.agent, model: options.model, cwd: options.cwd,
     phase: "Preparing plan", tasks: []
   };
-  const view = createDashboard({
+  const view = (options.dashboardFactory ?? createDashboard)({
     title: options.title,
     appearance: "conversation",
     async onSubmit(input) {

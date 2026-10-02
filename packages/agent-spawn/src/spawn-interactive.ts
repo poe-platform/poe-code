@@ -101,7 +101,7 @@ export async function spawnInteractive(
       : undefined;
   const executionEnv = processEnv as Record<string, string> | undefined;
   const argv = [resolved.binaryName, ...args];
-  const execution = resolveSpawnExecution({
+  const execution = await resolveSpawnExecution({
     cwd,
     runtimeConfigCwd: options.runtimeConfigCwd,
     env: (processEnv ?? process.env) as Record<string, string>,

@@ -1,5 +1,5 @@
-import { existsSync, realpathSync } from "node:fs";
-import path from "node:path";
+import { posixPath as path, type FileSystem } from "@poe-code/safe-fs/contracts";
+import { createDefaultFileSystem } from "#config-filesystem";
 import type { ResolvedConfig, SchemaField, ScopeDefinition } from "./types.js";
 
 export interface RuntimeMount {
@@ -57,7 +57,8 @@ export interface RuntimeResolveResult {
   buildContext: string | null;
 }
 
-type RuntimeResolver = (input: { cwd: string; runtime: RuntimeConfig }) => RuntimeResolveResult;
+type RuntimeFileSystem = Pick<FileSystem, "stat" | "realpath">;
+type RuntimeResolver = (input: { cwd: string; runtime: RuntimeConfig; fs?: RuntimeFileSystem }) => Promise<RuntimeResolveResult>;
 
 export const runtimeConfigScope = deepFreeze({
   scope: "runtime",
@@ -183,23 +184,25 @@ export function parseRuntime(raw: unknown): RuntimeConfig {
   };
 }
 
-export function resolveRuntime({
+export async function resolveRuntime({
   cwd,
-  config
+  config,
+  fs
 }: {
   cwd: string;
   config: Pick<ResolvedConfig, "runtime">;
-}): RuntimeResolveResult {
+  fs?: RuntimeFileSystem;
+}): Promise<RuntimeResolveResult> {
   const runtime = getOwnEntry(config as unknown as Record<string, unknown>, "runtime");
   if (!isRuntimeConfig(runtime)) {
     throw new Error("runtime config is required.");
   }
   const type = getRuntimeType(runtime);
-  return runtimeResolvers[type]({ cwd, runtime });
+  return runtimeResolvers[type]({ cwd, runtime, fs });
 }
 
 const runtimeResolvers: Record<RuntimeConfig["type"], RuntimeResolver> = {
-  host({ runtime }) {
+  async host({ runtime }) {
     return {
       runtime,
       runner: "host",
@@ -207,7 +210,7 @@ const runtimeResolvers: Record<RuntimeConfig["type"], RuntimeResolver> = {
       buildContext: null
     };
   },
-  docker({ cwd, runtime }) {
+  async docker({ cwd, runtime, fs }) {
     const dockerRuntime = runtime as DockerRuntime;
     if (getOptionalRuntimeString(dockerRuntime, "image") !== undefined) {
       return {
@@ -218,15 +221,16 @@ const runtimeResolvers: Record<RuntimeConfig["type"], RuntimeResolver> = {
       };
     }
 
+    const filesystem = fs ?? createDefaultFileSystem();
     const { dockerfilePath, buildContext } = resolveRuntimeBuildPaths(cwd, dockerRuntime);
-    if (!existsSync(dockerfilePath)) {
+    if (!await runtimePathExists(filesystem, dockerfilePath)) {
       throw new Error(`Docker runtime requires image or a Dockerfile at ${dockerfilePath}.`);
     }
-    if (!existsSync(buildContext)) {
+    if (!await runtimePathExists(filesystem, buildContext)) {
       throw new Error(`runtime.build_context does not exist: ${buildContext}.`);
     }
-    assertRuntimePathInsideCwd(cwd, dockerfilePath, "runtime.dockerfile");
-    assertRuntimePathInsideCwd(cwd, buildContext, "runtime.build_context");
+    await assertRuntimePathInsideCwd(filesystem, cwd, dockerfilePath, "runtime.dockerfile");
+    await assertRuntimePathInsideCwd(filesystem, cwd, buildContext, "runtime.build_context");
     return {
       runtime: dockerRuntime,
       runner: "docker",
@@ -249,9 +253,9 @@ function resolveRuntimeBuildPaths(
   };
 }
 
-function assertRuntimePathInsideCwd(cwd: string, targetPath: string, fieldName: string): void {
-  const canonicalCwd = realpathSync(cwd);
-  const canonicalTarget = realpathSync(targetPath);
+async function assertRuntimePathInsideCwd(fs: RuntimeFileSystem, cwd: string, targetPath: string, fieldName: string): Promise<void> {
+  const canonicalCwd = await fs.realpath(cwd);
+  const canonicalTarget = await fs.realpath(targetPath);
   if (!isPathInsideOrEqual(canonicalCwd, canonicalTarget)) {
     throw new Error(`${fieldName} must remain inside runtime cwd ${canonicalCwd}.`);
   }
@@ -376,7 +380,7 @@ function parseMounts(value: unknown): RuntimeMount[] {
     if (
       target.trim().length === 0 ||
       target !== target.trim() ||
-      !path.posix.isAbsolute(target)
+      !path.isAbsolute(target)
     ) {
       throw new Error(`mounts[${index}].target: expected a non-empty absolute sandbox path.`);
     }
@@ -526,4 +530,12 @@ function getOptionalRuntimeString(
 
 function omitUndefined<T extends Record<string, unknown>>(value: T): T {
   return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined)) as T;
+}
+
+async function runtimePathExists(fs: RuntimeFileSystem, path: string): Promise<boolean> {
+  try { await fs.stat(path); return true; }
+  catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && (error.code === "ENOENT" || error.code === "ENOTDIR")) return false;
+    throw error;
+  }
 }

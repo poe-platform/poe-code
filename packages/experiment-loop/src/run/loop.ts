@@ -78,7 +78,7 @@ function createDefaultExec(homeDir: string): ExecFn {
     const cwd = options?.cwd ?? process.cwd();
     const shell = process.env.SHELL ?? "sh";
     const argv = [shell, "-lc", command];
-    const execution = resolvePoeCommandExecution({
+    const execution = await resolvePoeCommandExecution({
       cwd,
       env: process.env as Record<string, string>,
       argv,

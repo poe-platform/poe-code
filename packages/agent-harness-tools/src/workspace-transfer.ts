@@ -1,4 +1,4 @@
-export { downloadWorkspace, uploadWorkspace } from "@poe-code/process-runner";
+export { downloadWorkspace, uploadWorkspace } from "@poe-code/process-runner/workspace-transfer";
 export type {
   WorkspaceDownloadOptions,
   WorkspaceTransferDirent,
@@ -7,5 +7,5 @@ export type {
   WorkspaceTransferOptions,
   WorkspaceTransferRunnerOptions,
   WorkspaceTransferStats
-} from "@poe-code/process-runner";
+} from "@poe-code/process-runner/workspace-transfer";
 export type { DownloadResult, UploadResult } from "./execution-env.js";

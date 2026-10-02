@@ -1,21 +1,12 @@
-import { existsSync, readFileSync } from "node:fs";
-import os from "node:os";
-import {
-  createStateManager,
-  deepMergeDocuments,
-  parseRuntime,
-  resolveConfigPath,
-  resolveProjectConfigPath,
-  resolveRuntime,
-  resolveScope,
-  runtimeConfigScope,
-  type RunnerScope,
-  type ConfigDocument,
-  type JobEntry,
-  type JobListFilter,
-  type ResolvedConfig,
-  type StateManager
-} from "@poe-code/poe-code-config/core";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import { createDefaultFileSystem } from "#harness-tools-filesystem";
+import { createStateManager } from "#harness-tools-state";
+import { deepMergeDocuments } from "@poe-code/poe-code-config/merge";
+import { parseRuntime, resolveRuntime, runtimeConfigScope } from "@poe-code/poe-code-config/runtime";
+import { resolveScope } from "@poe-code/poe-code-config/resolve";
+import type { RunnerScope, ConfigDocument, JobEntry, JobListFilter, ResolvedConfig, StateManager } from "@poe-code/poe-code-config/core";
+import { path } from "./portable-path.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { selectExecutionEnv, type OpenSpec } from "./execution-env.js";
 
 export type RuntimeOverrideOptions = {
@@ -26,7 +17,7 @@ export type RuntimeOverrideOptions = {
   runnerSync?: RunnerScope["sync"];
 };
 
-export function resolvePoeCommandExecution(input: {
+export async function resolvePoeCommandExecution(input: {
   cwd: string;
   runtimeConfigCwd?: string;
   env: Record<string, string>;
@@ -37,19 +28,23 @@ export function resolvePoeCommandExecution(input: {
   context?: {
     homeDir?: string;
     state?: StateManager;
+    fs?: Pick<FileSystem, "readFile" | "stat" | "realpath">;
   };
   openSpec?: Partial<Pick<OpenSpec, "execution" | "shellSpec">>;
-}): {
+}): Promise<{
   factory: ReturnType<typeof selectExecutionEnv>;
   openSpec: OpenSpec;
   detach: boolean;
   state: StateManager;
-} {
-  const homeDir = input.context?.homeDir ?? os.homedir();
+}> {
+  const env = { ...globalThis.process?.env, ...input.env };
+  const homeDir = input.context?.homeDir ?? env.HOME ?? env.USERPROFILE;
+  if (!homeDir) throw new Error("Command execution requires an explicit home directory.");
+  const fs = input.context?.fs ?? createDefaultFileSystem();
   const runtimeConfigCwd = input.runtimeConfigCwd ?? input.cwd;
-  const loaded = loadRuntimeConfig(runtimeConfigCwd, homeDir);
+  const loaded = await loadRuntimeConfig(runtimeConfigCwd, homeDir, fs, env);
   const config = applyRuntimeOverrides(loaded, input.runtime, runtimeConfigCwd);
-  const resolved = resolveRuntime({ cwd: runtimeConfigCwd, config });
+  const resolved = await resolveRuntime({ cwd: runtimeConfigCwd, config, fs });
   const factory = selectExecutionEnv(resolved.runtime);
 
   if (config.runner.detach && factory.supportsDetach !== true) {
@@ -105,7 +100,7 @@ export interface LoadedRuntimeConfig extends ResolvedConfig {
 export function applyRuntimeOverrides(
   config: ResolvedConfig | LoadedRuntimeConfig,
   overrides: RuntimeOverrideOptions | undefined,
-  cwd = process.cwd()
+  cwd = globalThis.process?.cwd?.() ?? "/"
 ): ResolvedConfig {
   if (!overrides) {
     return { runtime: config.runtime, runner: config.runner };
@@ -146,13 +141,18 @@ function createPoeCodeMount(cwd: string): { source: string; target: string; read
   };
 }
 
-function loadRuntimeConfig(cwd: string, homeDir: string): LoadedRuntimeConfig {
-  const document = deepMergeDocuments(
-    readConfigDocument(resolveConfigPath(homeDir)),
-    readConfigDocument(resolveProjectConfigPath(cwd))
-  );
-  const runtimeScope = resolveScope(runtimeConfigScope.schema, document.runtime, process.env);
-
+async function loadRuntimeConfig(cwd: string, homeDir: string, fs: Pick<FileSystem, "readFile">, env: Record<string, string | undefined>): Promise<LoadedRuntimeConfig> {
+  const documents = await Promise.all([homeDir, cwd].map(async root => {
+    try {
+      const bytes = await fs.readFile(path.join(root, ".poe-code", "config.json"));
+      return JSON.parse(new TextDecoder().decode(bytes)) as ConfigDocument;
+    } catch (error) {
+      if (hasOwnErrorCode(error, "ENOENT")) return {};
+      throw error;
+    }
+  }));
+  const document = deepMergeDocuments(documents[0]!, documents[1]!);
+  const runtimeScope = resolveScope(runtimeConfigScope.schema, document.runtime, env);
   return {
     rawScope: { ...(runtimeScope as unknown as Record<string, unknown>) },
     runtime: parseRuntime(runtimeScope),
@@ -160,15 +160,8 @@ function loadRuntimeConfig(cwd: string, homeDir: string): LoadedRuntimeConfig {
   };
 }
 
-function readConfigDocument(filePath: string): ConfigDocument {
-  if (!existsSync(filePath)) {
-    return {};
-  }
-  return JSON.parse(readFileSync(filePath, "utf8")) as ConfigDocument;
-}
-
 function loadState(homeDir: string): StateManager {
-  if (process.env.VITEST === "true") {
+  if (globalThis.process?.env?.VITEST === "true") {
     return createMemoryStateManager();
   }
   return createStateManager(homeDir);

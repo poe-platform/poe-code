@@ -1,7 +1,11 @@
-import { createHash, randomUUID } from "node:crypto";
-import { promises as nodeFs } from "node:fs";
-import path from "node:path";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
+import { posixPath } from "@poe-code/safe-fs/contracts";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import { createDefaultFileSystem } from "#transfer-filesystem";
 import type { DownloadResult, UploadResult } from "./types.js";
+
+const path = { ...posixPath, resolve: (...parts: string[]) => posixPath.resolve(globalThis.process?.cwd?.() ?? "/", ...parts) };
 
 export type { DownloadResult, UploadResult } from "./types.js";
 
@@ -22,11 +26,11 @@ export interface WorkspaceTransferStats {
 export interface WorkspaceTransferFileSystem {
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   readdir(path: string, options: { withFileTypes: true }): Promise<WorkspaceTransferDirent[]>;
-  readFile(path: string): Promise<Buffer>;
-  readFile(path: string, encoding: BufferEncoding): Promise<string>;
+  readFile(path: string): Promise<Uint8Array>;
+  readFile(path: string, encoding: "utf8"): Promise<string>;
   writeFile(
     path: string,
-    data: string | Buffer,
+    data: string | Uint8Array,
     options?: { flag?: string; mode?: number }
   ): Promise<void>;
   stat(path: string): Promise<WorkspaceTransferStats>;
@@ -41,8 +45,8 @@ export interface WorkspaceTransferEnv {
   cwd: string;
   uploadDir: string;
   workspaceDir?: string;
-  fs?: WorkspaceTransferFileSystem;
-  remoteFs?: WorkspaceTransferFileSystem;
+  fs?: WorkspaceTransferFileSystem | FileSystem;
+  remoteFs?: WorkspaceTransferFileSystem | FileSystem;
 }
 
 export interface WorkspaceTransferOptions {
@@ -70,7 +74,7 @@ interface FileEntry {
   path: string;
   absolutePath: string;
   bytes: number;
-  content: Buffer;
+  content: Uint8Array;
 }
 
 interface IgnoreRule {
@@ -87,8 +91,8 @@ export async function uploadWorkspace(
   env: WorkspaceTransferEnv,
   opts: WorkspaceTransferOptions
 ): Promise<UploadResult> {
-  const localFs = env.fs ?? (nodeFs as unknown as WorkspaceTransferFileSystem);
-  const remoteFs = env.remoteFs ?? localFs;
+  const localFs = transferFileSystem(env.fs);
+  const remoteFs = env.remoteFs ? transferFileSystem(env.remoteFs) : localFs;
   const workspaceDir = env.workspaceDir ?? "/workspace";
   const maxBytes = resolveUploadMaxBytes(opts);
   const warn = opts.warn ?? console.warn;
@@ -115,7 +119,7 @@ export async function uploadWorkspace(
     const content = await localFs.readFile(file.absolutePath);
     const bytes = content.byteLength;
     state.set(file.path, {
-      hash: hashBuffer(content),
+      hash: hashUint8Array(content),
       uploaded: false
     });
 
@@ -127,7 +131,7 @@ export async function uploadWorkspace(
 
     entries.push({ ...file, bytes, content });
     state.set(file.path, {
-      hash: hashBuffer(content),
+      hash: hashUint8Array(content),
       uploaded: true
     });
   }
@@ -179,8 +183,8 @@ export async function downloadWorkspace(
   env: WorkspaceTransferEnv,
   opts: WorkspaceDownloadOptions
 ): Promise<DownloadResult> {
-  const localFs = env.fs ?? (nodeFs as unknown as WorkspaceTransferFileSystem);
-  const remoteFs = env.remoteFs ?? localFs;
+  const localFs = transferFileSystem(env.fs);
+  const remoteFs = env.remoteFs ? transferFileSystem(env.remoteFs) : localFs;
   const workspaceDir = env.workspaceDir ?? "/workspace";
   const state = uploadState.get(env) ?? new Map<string, UploadedFileState>();
   const remoteFiles = await listFilesIfExists(remoteFs, workspaceDir, { rejectSymlinks: true });
@@ -208,7 +212,7 @@ export async function downloadWorkspace(
 
     await writeFileAtomically(localFs, env.cwd, localPath, remoteContent, ".download-tmp");
     state.set(remoteFile.path, {
-      hash: hashBuffer(remoteContent),
+      hash: hashUint8Array(remoteContent),
       uploaded: true
     });
     files += 1;
@@ -227,7 +231,7 @@ export async function downloadWorkspace(
       continue;
     }
 
-    if (opts.conflictPolicy === "refuse" && hashBuffer(localContent) !== fileState.hash) {
+    if (opts.conflictPolicy === "refuse" && hashUint8Array(localContent) !== fileState.hash) {
       conflicts.push({ path: relativePath, reason: "local_modified" });
       continue;
     }
@@ -306,7 +310,7 @@ async function readIgnoreFile(
   if (content === null) {
     return [];
   }
-  return parseIgnoreLines(content.toString("utf8").split("\n"), allowNegation, "");
+  return parseIgnoreLines(new TextDecoder("utf-8", { ignoreBOM: true }).decode(content).split("\n"), allowNegation, "");
 }
 
 async function readGitignoreRules(
@@ -540,7 +544,7 @@ async function isDownloadConflict(
   fs: WorkspaceTransferFileSystem,
   localPath: string,
   relativePath: string,
-  remoteContent: Buffer,
+  remoteContent: Uint8Array,
   state: Map<string, UploadedFileState>
 ): Promise<boolean> {
   const localContent = await readFileIfExists(fs, localPath);
@@ -548,8 +552,8 @@ async function isDownloadConflict(
     return false;
   }
 
-  const localHash = hashBuffer(localContent);
-  const remoteHash = hashBuffer(remoteContent);
+  const localHash = hashUint8Array(localContent);
+  const remoteHash = hashUint8Array(remoteContent);
   const uploadedHash = state.get(relativePath)?.hash;
   const localChanged = uploadedHash === undefined || localHash !== uploadedHash;
   return localChanged && localHash !== remoteHash;
@@ -558,7 +562,7 @@ async function isDownloadConflict(
 async function readFileIfExists(
   fs: WorkspaceTransferFileSystem,
   filePath: string
-): Promise<Buffer | null> {
+): Promise<Uint8Array | null> {
   try {
     return await fs.readFile(filePath);
   } catch (error) {
@@ -619,10 +623,10 @@ async function writeFileAtomically(
   fs: WorkspaceTransferFileSystem,
   workspacePath: string,
   destinationPath: string,
-  data: Buffer,
+  data: Uint8Array,
   temporarySuffix: string
 ): Promise<void> {
-  const temporaryPath = `${destinationPath}.${randomUUID()}${temporarySuffix}`;
+  const temporaryPath = `${destinationPath}.${crypto.randomUUID()}${temporarySuffix}`;
   let temporaryCreated = false;
   await fs.mkdir(path.dirname(destinationPath), { recursive: true });
   try {
@@ -703,19 +707,22 @@ async function assertSafeLocalDownloadPath(
   }
 }
 
-function createTar(entries: FileEntry[]): Buffer {
-  const chunks: Buffer[] = [];
+function createTar(entries: FileEntry[]): Uint8Array {
+  const chunks: Uint8Array[] = [];
   for (const entry of entries) {
     chunks.push(createTarHeader(entry.path, entry.bytes));
     chunks.push(entry.content);
-    chunks.push(Buffer.alloc(paddingFor(entry.bytes)));
+    chunks.push(new Uint8Array(paddingFor(entry.bytes)));
   }
-  chunks.push(Buffer.alloc(1024));
-  return Buffer.concat(chunks);
+  chunks.push(new Uint8Array(1024));
+  const result = new Uint8Array(chunks.reduce((sum, chunk) => sum + chunk.length, 0));
+  let offset = 0;
+  for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.length; }
+  return result;
 }
 
-function createTarHeader(name: string, size: number): Buffer {
-  const header = Buffer.alloc(512);
+function createTarHeader(name: string, size: number): Uint8Array {
+  const header = new Uint8Array(512);
   const { entryName, prefix } = splitTarPath(name);
   writeString(header, entryName, 0, 100);
   writeOctal(header, 0o644, 100, 8);
@@ -724,16 +731,16 @@ function createTarHeader(name: string, size: number): Buffer {
   writeOctal(header, size, 124, 12);
   writeOctal(header, 0, 136, 12);
   header.fill(32, 148, 156);
-  header.write("0", 156, 1, "ascii");
-  header.write("ustar", 257, 5, "ascii");
-  header.write("00", 263, 2, "ascii");
+  writeString(header, "0", 156, 1);
+  writeString(header, "ustar", 257, 5);
+  writeString(header, "00", 263, 2);
   writeString(header, prefix, 345, 155);
   writeOctal(header, checksum(header), 148, 8);
   return header;
 }
 
 function splitTarPath(name: string): { entryName: string; prefix: string } {
-  if (Buffer.byteLength(name) <= 100) {
+  if (new TextEncoder().encode(name).length <= 100) {
     return { entryName: name, prefix: "" };
   }
 
@@ -741,7 +748,7 @@ function splitTarPath(name: string): { entryName: string; prefix: string } {
   while (separatorIndex !== -1) {
     const prefix = name.slice(0, separatorIndex);
     const entryName = name.slice(separatorIndex + 1);
-    if (Buffer.byteLength(entryName) <= 100 && Buffer.byteLength(prefix) <= 155) {
+    if (new TextEncoder().encode(entryName).length <= 100 && new TextEncoder().encode(prefix).length <= 155) {
       return { entryName, prefix };
     }
 
@@ -751,18 +758,18 @@ function splitTarPath(name: string): { entryName: string; prefix: string } {
   throw new Error(`Workspace tar path is too long to represent: ${name}`);
 }
 
-function writeString(buffer: Buffer, value: string, offset: number, length: number): void {
-  const text = Buffer.from(value);
-  text.copy(buffer, offset, 0, Math.min(text.length, length));
+function writeString(buffer: Uint8Array, value: string, offset: number, length: number): void {
+  const text = new TextEncoder().encode(value);
+  buffer.set(text.subarray(0, length), offset);
 }
 
-function writeOctal(buffer: Buffer, value: number, offset: number, length: number): void {
+function writeOctal(buffer: Uint8Array, value: number, offset: number, length: number): void {
   const text = value.toString(8).padStart(length - 1, "0");
-  buffer.write(text.slice(0, length - 1), offset, length - 1, "ascii");
+  writeString(buffer, text, offset, length - 1);
   buffer[offset + length - 1] = 0;
 }
 
-function checksum(buffer: Buffer): number {
+function checksum(buffer: Uint8Array): number {
   return buffer.reduce((sum, value) => sum + value, 0);
 }
 
@@ -771,8 +778,8 @@ function paddingFor(size: number): number {
   return remainder === 0 ? 0 : 512 - remainder;
 }
 
-function hashBuffer(buffer: Buffer): string {
-  return createHash("sha256").update(buffer).digest("hex");
+function hashUint8Array(buffer: Uint8Array): string {
+  return bytesToHex(sha256(buffer));
 }
 
 function toRelativePath(root: string, absolutePath: string): string {
@@ -810,4 +817,33 @@ function hasOwnErrorCode(error: unknown, code: string): boolean {
     Object.prototype.hasOwnProperty.call(error, "code") &&
     (error as { code?: unknown }).code === code
   );
+}
+
+function transferFileSystem(fs: WorkspaceTransferFileSystem | FileSystem = createDefaultFileSystem()): WorkspaceTransferFileSystem {
+  if (!("capabilities" in fs)) return fs;
+  const predicates = (entry: { type: string }) => ({
+    isFile: () => entry.type === "file", isDirectory: () => entry.type === "directory",
+    isSymbolicLink: () => entry.type === "symlink"
+  });
+  async function readFile(path: string): Promise<Uint8Array>;
+  async function readFile(path: string, encoding: "utf8"): Promise<string>;
+  async function readFile(path: string, encoding?: "utf8"): Promise<string | Uint8Array> {
+    const bytes = await fs.readFile(path);
+    return encoding ? new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes) : bytes;
+  }
+  return {
+    mkdir: async (path, options) => { await fs.mkdir(path, options); },
+    readdir: async path => (await fs.readdir(path)).map(entry => ({ name: entry.name, ...predicates(entry) })),
+    readFile,
+    async writeFile(path, data, options) {
+      const flag = options?.flag;
+      if (flag !== undefined && flag !== "w" && flag !== "wx" && flag !== "a" && flag !== "ax") throw new Error("Unsupported workspace write flag.");
+      await fs.writeFile(path, typeof data === "string" ? new TextEncoder().encode(data) : data, { ...options, flag });
+    },
+    stat: async path => { const stat = await fs.stat(path); return { size: stat.size, ...predicates(stat) }; },
+    lstat: async path => { const stat = await fs.lstat(path); return { size: stat.size, ...predicates(stat) }; },
+    rename: (from, to) => fs.rename(from, to),
+    async unlink(path) { if (!fs.unlink) throw new Error("Workspace transfer requires unlink support."); await fs.unlink(path); },
+    async rmdir(path) { if (!fs.rmdir) throw new Error("Workspace transfer requires rmdir support."); await fs.rmdir(path); }
+  };
 }

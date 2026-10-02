@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { MemoryFileSystem } from "@poe-code/safe-fs";
 import { registerExecutionEnvFactory, type ExecutionEnvFactory } from "./execution-env.js";
 import { applyRuntimeOverrides, resolvePoeCommandExecution } from "./poe-command-execution.js";
 
@@ -23,7 +24,7 @@ function resolveStubExecution(runtime: Parameters<typeof resolvePoeCommandExecut
     argv: ["--print", "hi"],
     tool: "claude",
     runtime,
-    context: { homeDir: "/nonexistent-poe-home" }
+    context: { homeDir: "/nonexistent-poe-home", fs: new MemoryFileSystem() }
   });
 }
 
@@ -54,7 +55,7 @@ async function withObjectPrototypeProperties<T>(
   }
 }
 
-describe("runtime capability validation", () => {
+describe("runtime capability validation", async () => {
   registerStubExecutionEnv({ type: "host", supportsDetach: false });
   registerStubExecutionEnv({
     type: "docker",
@@ -62,27 +63,26 @@ describe("runtime capability validation", () => {
     supportsWorkspaceTransfer: true
   });
 
-  it("fails when detach is requested but the resolved runtime cannot detach", () => {
-    expect(() => resolveStubExecution({ detach: true })).toThrow(
+  it("fails when detach is requested but the resolved runtime cannot detach", async () => {
+    await expect(resolveStubExecution({ detach: true })).rejects.toThrow(
       /--detach.*"host".*--runtime docker/s
     );
   });
 
-  it("detaches when the resolved runtime supports detach", () => {
+  it("detaches when the resolved runtime supports detach", async () => {
     expect(
-      resolveStubExecution({ runtime: "docker", runtimeImage: "poe-code:test", detach: true })
-        .detach
+      (await resolveStubExecution({ runtime: "docker", runtimeImage: "poe-code:test", detach: true })).detach
     ).toBe(true);
   });
 
-  it("fails when runner sync is requested but the resolved runtime has no transferable workspace", () => {
-    expect(() => resolveStubExecution({ runnerSync: "none" })).toThrow(
+  it("fails when runner sync is requested but the resolved runtime has no transferable workspace", async () => {
+    await expect(resolveStubExecution({ runnerSync: "none" })).rejects.toThrow(
       /--runner-sync.*"host".*--runtime docker/s
     );
   });
 
-  it("keeps runner sync usable on a workspace runtime without detach", () => {
-    const resolved = resolveStubExecution({
+  it("keeps runner sync usable on a workspace runtime without detach", async () => {
+    const resolved = await resolveStubExecution({
       runtime: "docker",
       runtimeImage: "poe-code:test",
       runnerSync: "none"

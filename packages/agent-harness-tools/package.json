@@ -35,6 +35,20 @@
       "browser": "./dist/default-filesystem.workerd.js",
       "worker": "./dist/default-filesystem.workerd.js",
       "default": "./dist/default-filesystem.js"
+    },
+    "#harness-tools-state": {
+      "types": "./src/default-state.ts",
+      "workerd": "./dist/default-state.workerd.js",
+      "browser": "./dist/default-state.workerd.js",
+      "worker": "./dist/default-state.workerd.js",
+      "default": "./dist/default-state.js"
+    },
+    "#harness-tools-dashboard": {
+      "types": "./src/default-dashboard.ts",
+      "workerd": "./dist/default-dashboard.workerd.js",
+      "browser": "./dist/default-dashboard.workerd.js",
+      "worker": "./dist/default-dashboard.workerd.js",
+      "default": "./dist/default-dashboard.js"
     }
   }
 }

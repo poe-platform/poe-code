@@ -474,7 +474,7 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
               Object.keys(envOverrides).length > 0
                 ? mergeSpawnEnvironment(process.env, envOverrides)
                 : undefined;
-            const execution = resolveSpawnExecution({
+            const execution = await resolveSpawnExecution({
               cwd,
               runtimeConfigCwd: options.runtimeConfigCwd,
               env: (processEnv ?? process.env) as Record<string, string>,

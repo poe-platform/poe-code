@@ -53,9 +53,7 @@ describe("spawn() with logDir + logFileName", () => {
   });
 
   it("appends stdout and stderr to logPath and returns logFile", async () => {
-    vi.mocked(spawnChildProcess).mockReturnValue(
-      createMockChildProcess({ stdout: "hello\n", stderr: "warn\n", exitCode: 0 })
-    );
+    vi.mocked(spawnChildProcess).mockImplementation(() => createMockChildProcess({ stdout: "hello\n", stderr: "warn\n", exitCode: 0 }));
 
     const result = await spawn("claude-code", {
       prompt: "test",
@@ -75,9 +73,7 @@ describe("spawn() with logDir + logFileName", () => {
   });
 
   it("appends stdout and stderr to <logDir>/<logFileName> and returns logFile", async () => {
-    vi.mocked(spawnChildProcess).mockReturnValue(
-      createMockChildProcess({ stdout: "hello\n", stderr: "warn\n", exitCode: 0 })
-    );
+    vi.mocked(spawnChildProcess).mockImplementation(() => createMockChildProcess({ stdout: "hello\n", stderr: "warn\n", exitCode: 0 }));
 
     const result = await spawn("claude-code", {
       prompt: "test",
@@ -96,9 +92,7 @@ describe("spawn() with logDir + logFileName", () => {
   });
 
   it("does not allow logFileName to escape logDir", async () => {
-    vi.mocked(spawnChildProcess).mockReturnValue(
-      createMockChildProcess({ stdout: "hello\n", exitCode: 0 })
-    );
+    vi.mocked(spawnChildProcess).mockImplementation(() => createMockChildProcess({ stdout: "hello\n", exitCode: 0 }));
 
     const result = await spawn("claude-code", {
       prompt: "test",
@@ -111,9 +105,7 @@ describe("spawn() with logDir + logFileName", () => {
   });
 
   it("omits logFile when only logDir is provided", async () => {
-    vi.mocked(spawnChildProcess).mockReturnValue(
-      createMockChildProcess({ stdout: "ok\n", exitCode: 0 })
-    );
+    vi.mocked(spawnChildProcess).mockImplementation(() => createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
 
     const result = await spawn("claude-code", {
       prompt: "test",
@@ -124,9 +116,7 @@ describe("spawn() with logDir + logFileName", () => {
   });
 
   it("omits logFile when neither option is provided", async () => {
-    vi.mocked(spawnChildProcess).mockReturnValue(
-      createMockChildProcess({ stdout: "ok\n", exitCode: 0 })
-    );
+    vi.mocked(spawnChildProcess).mockImplementation(() => createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
 
     const result = await spawn("claude-code", { prompt: "test" });
 

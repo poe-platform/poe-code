@@ -14,7 +14,7 @@ export interface WorkflowFileStat {
 }
 
 export interface WorkflowFileSystem {
-  readFile(path: string, encoding: BufferEncoding): Promise<string>;
+  readFile(path: string, encoding: "utf8"): Promise<string>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   rmdir(path: string): Promise<void>;
   stat(path: string): Promise<WorkflowFileStat>;

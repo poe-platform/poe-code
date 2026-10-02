@@ -13,6 +13,18 @@
     "./core": {
       "types": "./dist/core.d.ts",
       "import": "./dist/core.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime.d.ts",
+      "import": "./dist/runtime.js"
+    },
+    "./merge": {
+      "types": "./dist/merge.d.ts",
+      "import": "./dist/merge.js"
+    },
+    "./resolve": {
+      "types": "./dist/resolve.d.ts",
+      "import": "./dist/resolve.js"
     }
   },
   "scripts": {
@@ -28,6 +40,16 @@
     "@poe-code/config-mutations": "*",
     "@poe-code/providers": "*",
     "toolcraft-schema": "*",
-    "ts-morph": "^27.0.2"
+    "ts-morph": "^27.0.2",
+    "@poe-code/safe-fs": "*"
+  },
+  "imports": {
+    "#config-filesystem": {
+      "types": "./src/default-filesystem.ts",
+      "workerd": "./dist/default-filesystem.workerd.js",
+      "browser": "./dist/default-filesystem.workerd.js",
+      "worker": "./dist/default-filesystem.workerd.js",
+      "default": "./dist/default-filesystem.js"
+    }
   }
 }

@@ -8,7 +8,7 @@ it.each(["workerd", "browser"])("bundles the %s MCP entry without desktop depend
     entryPoints: ["packages/safe-bash-command-mcp/src/index.browser.ts"], bundle: true,
     platform: "neutral", mainFields: ["module", "main"], format: "esm", conditions: [condition], write: false, metafile: true,
     external: ["node:*", "safe-bash-contracts"],
-    alias: { "tiny-mcp-client": "./packages/tiny-mcp-client/src/index.browser.ts", "mcp-oauth": "./packages/mcp-oauth/src/index.browser.ts", "node:stream": "./packages/tiny-mcp-client/src/stream.browser.ts", "node:child_process": "./packages/tiny-mcp-client/src/spawn.browser.ts", "tiny-stdio-mcp-server/protocol": "./packages/tiny-stdio-mcp-server/src/protocol.ts", "tiny-stdio-mcp-server/headers": "./packages/tiny-stdio-mcp-server/src/headers.ts", "toolcraft-schema": "./packages/toolcraft-schema/src/index.ts" }
+    alias: { "tiny-mcp-client": "./packages/tiny-mcp-client/src/index.browser.ts", "mcp-oauth": "./packages/mcp-oauth/src/index.browser.ts", "tiny-stdio-mcp-server/protocol": "./packages/tiny-stdio-mcp-server/src/protocol.ts", "tiny-stdio-mcp-server/headers": "./packages/tiny-stdio-mcp-server/src/headers.ts", "toolcraft-schema": "./packages/toolcraft-schema/src/index.ts" }
   });
   const source = ts.createSourceFile("bundle.js", result.outputFiles[0].text, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
   const globals: string[] = [];

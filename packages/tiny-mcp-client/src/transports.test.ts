@@ -1,3 +1,4 @@
+import { StdioTransport, type StdioSpawn } from "./stdio-transport.js";
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { EventEmitter } from "node:events";
 import { PassThrough, Readable } from "node:stream";
@@ -11,7 +12,6 @@ import {
   McpClient,
   McpError,
   SseParser,
-  StdioTransport,
   parseJsonRpcMessage,
   readLines,
   type CreateMessageParams,
@@ -22,7 +22,6 @@ import {
   type McpTransportClosedEvent,
   type ProgressParams,
   type ServerCapabilities,
-  type StdioSpawn,
 } from "./internal.js";
 
 // --- helpers from jsonrpc-message-layer.test.ts ---

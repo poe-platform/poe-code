@@ -53,6 +53,8 @@ timer; a timeout releases request capacity so later operations can proceed.
 
 ## Transports
 
+The `workerd` and `browser` exports provide HTTP transport without Node built-ins or polyfills. Supply authenticated `fetch` or a host-owned OAuth provider; process-based stdio remains available on Node.
+
 | Transport                       | Description                                                                                                 |
 | ------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `StdioTransport`                | Spawns an MCP server process and communicates over stdio.                                                   |

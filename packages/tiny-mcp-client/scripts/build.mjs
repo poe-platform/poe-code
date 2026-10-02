@@ -60,8 +60,7 @@ try {
     entryPoints: [path.join(packageDir, "src", "index.browser.ts")],
     outfile: path.join(distDir, "index.browser.js"),
     bundle: true, format: "esm", platform: "neutral", target: "es2022",
-    mainFields: ["module", "main"], conditions: ["workerd", "browser"], external: [],
-    alias: { "node:stream": path.join(packageDir, "src", "stream.browser.ts"), "node:child_process": path.join(packageDir, "src", "spawn.browser.ts") }
+    mainFields: ["module", "main"], conditions: ["workerd", "browser"], external: []
   });
   for (const entry of ["index", "index.browser"])
     await cp(path.join(temporaryDir, entry + ".d.ts"), path.join(distDir, entry + ".d.ts"));

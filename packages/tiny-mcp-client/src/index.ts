@@ -18,7 +18,6 @@ export {
   OAuthMetadataDiscovery,
   OAuthMetadataError,
   snapshotHttpTransportHeaders,
-  StdioTransport,
 } from "./internal.js";
 
 export type {
@@ -103,8 +102,6 @@ export type {
   ToolResultContent,
   SdkTestPair,
   ServerCapabilities,
-  StdioSpawn,
-  StdioTransportOptions,
   TextContent,
   TextResourceContents,
   Tool,
@@ -114,3 +111,6 @@ export type {
   ContentAnnotations,
   StoredOAuthSession,
 } from "./internal.js";
+
+export { StdioTransport } from "./stdio-transport.js";
+export type { StdioSpawn, StdioTransportOptions } from "./stdio-transport.js";

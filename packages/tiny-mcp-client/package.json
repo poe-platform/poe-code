@@ -42,5 +42,13 @@
       "browser": "./dist/index.browser.js",
       "import": "./dist/index.js"
     }
+  },
+  "imports": {
+    "#tiny-mcp-stream": {
+      "types": "./src/stream.node.ts",
+      "workerd": "./src/stream.browser.ts",
+      "browser": "./src/stream.browser.ts",
+      "default": "./src/stream.node.ts"
+    }
   }
 }

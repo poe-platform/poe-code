@@ -1,3 +1,4 @@
+import "./safe-packages-jq-types.mjs";
 import "./safe-packages-shell-types.mjs";
 import "./safe-packages-ssconvert-selected-types.mjs";
 import "./safe-packages-pandoc-types.mjs";

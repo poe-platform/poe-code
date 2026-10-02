@@ -1234,7 +1234,10 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/predicate-unary.test.ts"));
   assert.ok(files.includes("tests/commands/predicate-unicode-order.test.ts"));
   assert.ok(files.includes("tests/commands/move-no-replace.test.ts"));
-  assert.ok(files.includes("tests/commands/structured/whole-value-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/jq-workspace.test.ts"));
+  for (const name of ["byte-ownership", "standard-functions", "whole-value-admission"]) {
+    assert.ok(fs.existsSync(new URL(`../../safe-bash-command-jq/src/${name}.test.ts`, import.meta.url)), `jq workspace suite missing: ${name}`);
+  }
   assert.ok(files.includes("tests/plugins/portable-agent.test.ts"));
   assert.ok(files.includes("tests/plugins/portable-default-agent.test.ts"));
   assert.ok(files.includes("tests/plugins/portable-buffer.test.ts"));

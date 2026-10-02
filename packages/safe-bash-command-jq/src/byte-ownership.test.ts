@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { type ByteSource } from "../../../src/contracts/index.js";
-import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { run } from "./helpers.js";
+import { type ByteSource } from "safe-bash-contracts";
+import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+import { run } from "./test-helpers.js";
 
 function programFile(source: ByteSource, signal?: AbortSignal): MemoryFileSystem {
   const fs = new MemoryFileSystem();

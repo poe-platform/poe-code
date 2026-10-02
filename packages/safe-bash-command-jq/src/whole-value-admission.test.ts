@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { run } from "./helpers.js";
+import { run } from "./test-helpers.js";
 
 for (const filter of ["to_entries | empty", "try (to_entries | empty) catch 99", "(to_entries)? | empty"]) {
   test(`whole-value command admission survives ${filter}`, async () => {

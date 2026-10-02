@@ -1,7 +1,7 @@
 # Structured commands: bounded jq subset
 
-This subtree implements a dependency-free `jq` command with a tokenizer, parsed
-AST, and lazy asynchronous interpreter. Runtime code never uses `eval`, the
+This subtree preserves compatibility imports for the private jq command workspace.
+The shared query engine owns its tokenizer, parsed AST and lazy interpreter. Runtime code never uses `eval`, the
 `Function` constructor, a host process, or a native jq executable. Files are read
 only through the command's supplied virtual filesystem. This is a useful jq
 subset, not complete jq, and is not evidence of superiority to jq or just-bash.

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { test } from "node:test";
-import { row, run } from "./helpers.js";
+import { row, run } from "./test-helpers.js";
 
 const cases = [
   row('[0,1,2,3]', 'del(.[1:3][0])', [[0,2,3]]),

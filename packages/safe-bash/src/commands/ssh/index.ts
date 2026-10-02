@@ -281,10 +281,15 @@ export function evalSyncSsh(opArgs: readonly string[]): string | undefined {
   let user = "git";
   let identityFile = "/home/user/.ssh/id_ed25519";
   let destination = "localhost";
+  let sawDest = false;
   const remoteCmd: string[] = [];
 
   for (let i = 0; i < opArgs.length; i++) {
     const a = opArgs[i]!;
+    if (sawDest && !dumpConfig) {
+      remoteCmd.push(a);
+      continue;
+    }
     if (a === "-G") dumpConfig = true;
     else if (a === "-p" && i + 1 < opArgs.length) port = Number.parseInt(opArgs[++i]!, 10) || 22;
     else if (a === "-l" && i + 1 < opArgs.length) user = opArgs[++i]!;
@@ -292,7 +297,8 @@ export function evalSyncSsh(opArgs: readonly string[]): string | undefined {
     else if (a === "-o" && i + 1 < opArgs.length) i++;
     else if (a === "-T" || a === "-v") continue;
     else if (!a.startsWith("-")) {
-      if (destination === "localhost") {
+      if (!sawDest) {
+        sawDest = true;
         if (a.includes("@")) {
           const [u, h] = a.split("@");
           user = u || user;
@@ -303,6 +309,8 @@ export function evalSyncSsh(opArgs: readonly string[]): string | undefined {
       } else {
         remoteCmd.push(a);
       }
+    } else {
+      return undefined;
     }
   }
 
@@ -348,6 +356,7 @@ export function evalSyncSshKeygen(
       else if (a === "-s" && i + 1 < opArgs.length) signatureFile = opArgs[++i];
       else if (a === "-q") continue;
       else if (!a.startsWith("-")) positionalFiles.push(a);
+      else return undefined;
     }
 
     if (removeHost !== undefined) {

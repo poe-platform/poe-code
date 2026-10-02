@@ -464,6 +464,7 @@ export function evalSyncOpenssl(
         }
       }
       const dgstOut = `${textLines.join("\n")}\n`;
+      if (dgstOut.includes("\0")) return undefined;
       if (outFile !== undefined) {
         if (!writeFileSync) return undefined;
         if (binary) {
@@ -604,8 +605,9 @@ export function evalSyncOpenssl(
           return undefined;
         }
       }
+      if (salt.includes("\0") || pw.includes("\0")) return undefined;
       const digest = sha512(syncOpensslEncoder.encode(`${salt}:${pw}`));
-      return `$6$${salt}$${bytesToBase64(digest)}\n`;
+      return `$6${salt}${bytesToBase64(digest)}\n`;
     }
 
     return undefined;

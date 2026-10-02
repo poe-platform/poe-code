@@ -1566,6 +1566,7 @@ export function sqlite3Commands(options: Sqlite3CommandsOptions = {}): VirtualSh
   };
 }
 
+const fatalSyncSqliteDecoder = new TextDecoder("utf-8", { fatal: true });
 export function evalSyncSqlite3(
   inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
@@ -1695,6 +1696,7 @@ export function evalSyncSqlite3(
     }
 
     let out = "";
+    const pendingSaves: Array<{ file: string; bytes: Uint8Array }> = [];
     const emitOutput = (text: string) => {
       if (state.onceFile || (state.outputFile && state.outputFile !== "stdout")) {
         throw new Error("file output unsupported in sync sqlite3");
@@ -1856,15 +1858,17 @@ export function evalSyncSqlite3(
       }
       if (cmd === ".save" || cmd === ".backup") {
         const targetFile = parts[parts.length - 1];
-        if (!targetFile || !writeFileSync) return false;
-        return writeFileSync(targetFile, db.serializeToBytes());
+        if (!targetFile || targetFile === "-" || !writeFileSync) return false;
+        pendingSaves.push({ file: targetFile, bytes: db.serializeToBytes() });
+        return true;
       }
       if (cmd === ".read") {
         const srcFile = parts[1];
         if (!srcFile || !readFileSync) return false;
         const srcBytes = readFileSync(srcFile);
         if (!srcBytes) return false;
-        return processScriptSync(textDecoder.decode(srcBytes));
+        if (srcBytes.includes(0)) return false;
+        return processScriptSync(fatalSyncSqliteDecoder.decode(srcBytes));
       }
       if (cmd === ".import") {
         if ((state.dbPath !== ":memory:" && !writeFileSync) || state.readonly || !readFileSync) return false;
@@ -1887,7 +1891,8 @@ export function evalSyncSqlite3(
         const tableArg = parts[pIdx + 1] ?? "";
         const fileBytes = readFileSync(fileArg);
         if (!fileBytes || fileBytes.byteLength > 16 * 1024 * 1024) return false;
-        const content = textDecoder.decode(fileBytes);
+        if (fileBytes.includes(0)) return false;
+        const content = fatalSyncSqliteDecoder.decode(fileBytes);
         const sep = csvOverride ? "," : state.colSeparator;
         const parsedRows = parseCsvContent(content, sep).slice(skipRows);
         if (parsedRows.length === 0) return true;
@@ -1971,7 +1976,7 @@ export function evalSyncSqlite3(
       if (!readFileSync) return undefined;
       const initBytes = readFileSync(initFile);
       if (!initBytes) return undefined;
-      if (!processScriptSync(textDecoder.decode(initBytes))) return undefined;
+      if (initBytes.includes(0) || !processScriptSync(fatalSyncSqliteDecoder.decode(initBytes))) return undefined;
     }
 
     for (const cmdStr of preCommands) {
@@ -1986,11 +1991,14 @@ export function evalSyncSqlite3(
           if (state.exitRequested) break;
         }
       } else if (inBytes !== undefined && inBytes.byteLength > 0) {
-        if (!processScriptSync(textDecoder.decode(inBytes))) return undefined;
+        if (inBytes.includes(0) || !processScriptSync(fatalSyncSqliteDecoder.decode(inBytes))) return undefined;
       }
     }
 
-    if (state.exitCode !== 0) return undefined;
+    if (state.exitCode !== 0 || out.includes("\0")) return undefined;
+    for (const save of pendingSaves) {
+      if (!writeFileSync || !writeFileSync(save.file, save.bytes)) return undefined;
+    }
     if (state.dirty && state.dbPath !== ":memory:") {
       if (!writeFileSync || !writeFileSync(state.dbPath, db.serializeToBytes())) return undefined;
     }

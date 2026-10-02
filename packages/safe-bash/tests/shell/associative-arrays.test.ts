@@ -134,6 +134,10 @@ for (const [label, source, expected] of [
   ["compound expanded bracket key", 'declare -A m; k="a]b"; m=([$k]=yes); args "${m[$k]}"', '["yes"]'],
   ["compound raw key identity", "declare -A m; x=$'\\377'; y=$'\\376'; m=([$x]=first [$y]=second); args \"${m[$x]}\" \"${m[$y]}\"", '["first","second"]'],
   ["compound negative index", 'a=([2]=two [-1]+=more); args "${a[2]}"', '["twomore"]'],
+  ["indexed read after unset", 'a[0]=old; unset "a[0]"; args "${a[0]}"', '[""]'],
+  ["indexed read after compound append", 'a[0]=old; a+=([0]+=new); args "${a[0]}"', '["oldnew"]'],
+  ["loop arithmetic resolves current index", 'a=(3 7); sum=0; for ((i=0; i<2; i++)); do k=0; a[k]=5; k=1; ((sum+=a[k])); done; args "$sum"', '["14"]'],
+  ["loop arithmetic resolves current associative key", 'declare -A a=([x]=3 [y]=7); sum=0; for ((i=0; i<2; i++)); do k=x; a[$k]=5; k=y; ((sum+=a[$k])); done; args "$sum"', '["14"]'],
 ] as const) test(`associative arrays: ${label}`, async () => {
   const { shell } = setup();
   try {

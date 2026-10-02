@@ -3423,10 +3423,6 @@ const syncExtraRuntimeMethods = {
       rawRoot.extensions.exiting = false;
       delete rawRoot.extensions.exitStatus;
     }
-    this._lastSyncArrayWriteName = undefined;
-    this._lastSyncArrayWriteSubSrc = undefined;
-    this._lastSyncArrayWriteKey = undefined;
-    this._lastSyncArrayWriteVal = undefined;
     this._fastSubPositional = undefined;
     this.budget.resetCountersForWarmReuse();
     return true;
@@ -5016,12 +5012,8 @@ const syncExtraRuntimeMethods = {
             let elemVal: ShellValue | undefined;
             if (arrayBinding.associative) {
               if (subVal.length === 0 || subVal.length > 4096) return undefined;
-              if (part.name === this._lastSyncArrayWriteName && subVal === this._lastSyncArrayWriteKey && this._lastSyncArrayWriteVal !== undefined) {
-                elemVal = this._lastSyncArrayWriteVal;
-              } else {
-                const existingKey = arrayBinding.keys.get(fastStringHexIdentity(subVal));
-                elemVal = existingKey !== undefined ? arrayBinding.getValue(existingKey.index) : undefined;
-              }
+              const existingKey = arrayBinding.keys.get(fastStringHexIdentity(subVal));
+              elemVal = existingKey !== undefined ? arrayBinding.getValue(existingKey.index) : undefined;
             } else {
               let subIdx: number | undefined;
               const directVarVal = (!monitor || (this._syncArithRawWriteOnly && this._syncArithTouched?.has(subVal))) ? rawVars[subVal] : undefined;
@@ -5041,9 +5033,7 @@ const syncExtraRuntimeMethods = {
                 }
               }
               if (subIdx === undefined || subIdx > 2147483647) return undefined;
-              elemVal = (part.name === this._lastSyncArrayWriteName && String(subIdx) === this._lastSyncArrayWriteKey && this._lastSyncArrayWriteVal !== undefined)
-                ? this._lastSyncArrayWriteVal
-                : arrayBinding.getValue(subIdx);
+              elemVal = arrayBinding.getValue(subIdx);
             }
             if (elemVal !== undefined && typeof elemVal !== "string") return undefined;
             if (part.substring) {
@@ -5510,9 +5500,6 @@ const syncExtraRuntimeMethods = {
     return true;
   },
   tryFastArraySubscriptWriteSync(state: State, name: string, sub: string, val: string): boolean {
-    this._lastSyncArrayWriteName = name;
-    this._lastSyncArrayWriteKey = sub;
-    this._lastSyncArrayWriteVal = val;
     if (hasUnpreparedLocal(state, name)) return false;
     this._syncArithTouched?.delete(name);
     const monitor = stateMonitor(state);
@@ -6831,10 +6818,6 @@ const syncExtraRuntimeMethods = {
           return false;
         }
         if (typeof val !== "string") return false;
-        this._lastSyncArrayWriteName = name;
-        this._lastSyncArrayWriteSubSrc = rawSubSrc;
-        this._lastSyncArrayWriteKey = intToStr(idxNum);
-        this._lastSyncArrayWriteVal = val;
         if (current && !assignment.append && current.owner.ledger.bytes === Infinity) {
           const valByteLen = shellValueByteLength(val);
           const existingSlot = current.values.get(idxNum);
@@ -6933,10 +6916,6 @@ const syncExtraRuntimeMethods = {
       }
       const valByteLenUpdated = assignment.append ? shellValueByteLength(val) : valByteLen;
       if (valByteLenUpdated > this.budget.limits.maxExpansionBytes) return false;
-      this._lastSyncArrayWriteName = name;
-      this._lastSyncArrayWriteSubSrc = assignment.index.source ?? assignment.index.decimal;
-      this._lastSyncArrayWriteKey = keyVal;
-      this._lastSyncArrayWriteVal = val;
       if (existingKey !== undefined) {
         const existingSlot = current.values.get(existingKey.index);
         if (existingSlot !== undefined && existingSlot.text.references === 1 && (existingSlot.text.bytes === valByteLenUpdated || current.owner.ledger.bytes === Infinity)) {
@@ -16844,9 +16823,6 @@ const syncExtraRuntimeMethods = {
                   rawState.variables[st1.name] = lastValStr;
                   touched.add(st1.name);
                   if (hasDeferredSteps) lastInductionVal = intToStr(limit - 1);
-                  this._lastSyncArrayWriteName = arrName;
-                  this._lastSyncArrayWriteKey = intToStr(limit - 1);
-                  this._lastSyncArrayWriteVal = lastValStr;
                   this.budget.iterations += rem;
                   this.budget.commands += rem * 2;
                   this.budget.parsing.admit(rem * 12);
@@ -17240,10 +17216,6 @@ const syncExtraRuntimeMethods = {
     return { ...progress, lastInductionVal };
   },
   _syncLoopFnCheckDepth: 0,
-  _lastSyncArrayWriteName: undefined as any,
-  _lastSyncArrayWriteSubSrc: undefined as any,
-  _lastSyncArrayWriteKey: undefined as any,
-  _lastSyncArrayWriteVal: undefined as any,
   canSyncReadOnlyArraySubscripts(tree: ArithmeticProgram["tree"], rawState: State): boolean {
     if (!tree || this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity) return false;
     const monitor = stateMonitor(rawState);
@@ -17321,59 +17293,6 @@ const syncExtraRuntimeMethods = {
   evalSyncLoopArithStmt(expr: ArithmeticProgram, rawState: State, io: IO, touched: Set<string>, line: number): boolean | undefined {
     try {
       if (!expr.error && !expr.hasSubscript) return this.syncShellArithmeticNonZero(expr, rawState, line);
-      if (
-        !expr.error &&
-        expr.tree?.kind === "binary" &&
-        (expr.tree.operator === "+=" || expr.tree.operator === "-=" || expr.tree.operator === "*=" || expr.tree.operator === "=") &&
-        expr.tree.left.kind === "name" &&
-        expr.tree.left.subscript === undefined &&
-        expr.tree.right.kind === "name" &&
-        expr.tree.right.subscript !== undefined &&
-        expr.tree.right.name === this._lastSyncArrayWriteName &&
-        expr.tree.right.subscript === this._lastSyncArrayWriteSubSrc &&
-        this._lastSyncArrayWriteVal !== undefined
-      ) {
-        const varName = resolveSyncNameref(rawState, expr.tree.left.name);
-        const elemNum = fastSafeInt(this._lastSyncArrayWriteVal, this.budget.parsing);
-        const curNum = fastSafeInt(rawState.variables[varName], this.budget.parsing);
-        if (elemNum !== undefined && curNum !== undefined) {
-          const binOp = expr.tree.operator;
-          const nextNum = binOp === "=" ? elemNum : binOp === "+=" ? curNum + elemNum : binOp === "-=" ? curNum - elemNum : curNum * elemNum;
-          if (Number.isSafeInteger(nextNum)) {
-            this.budget.parsing.admit(4);
-            rawState.variables[varName] = intToStr(nextNum);
-            touched.add(varName);
-            return nextNum !== 0;
-          }
-        }
-      }
-      const cachedSubPlan = expr as { _cachedSubMutPlan?: { lhsName: string; binOp: string; arrName: string; subSrc: string } | null };
-      let subPlan = cachedSubPlan._cachedSubMutPlan;
-      if (subPlan === undefined) {
-        const m = /^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*(\+=|-=|\*=|=)\s*([a-zA-Z_][a-zA-Z0-9_]*)\[([^\[\]]+)\]\s*$/.exec(expr.source);
-        subPlan = m ? { lhsName: m[1]!, binOp: m[2]!, arrName: m[3]!, subSrc: m[4]! } : null;
-        cachedSubPlan._cachedSubMutPlan = subPlan;
-      }
-      if (
-        subPlan !== null &&
-        subPlan.arrName === this._lastSyncArrayWriteName &&
-        subPlan.subSrc === this._lastSyncArrayWriteSubSrc &&
-        this._lastSyncArrayWriteVal !== undefined
-      ) {
-        const varName = resolveSyncNameref(rawState, subPlan.lhsName);
-        const elemNum = fastSafeInt(this._lastSyncArrayWriteVal, this.budget.parsing);
-        const curNum = fastSafeInt(rawState.variables[varName], this.budget.parsing);
-        if (elemNum !== undefined && curNum !== undefined) {
-          const binOp = subPlan.binOp;
-          const nextNum = binOp === "=" ? elemNum : binOp === "+=" ? curNum + elemNum : binOp === "-=" ? curNum - elemNum : curNum * elemNum;
-          if (Number.isSafeInteger(nextNum)) {
-            this.budget.parsing.admit(6);
-            rawState.variables[varName] = intToStr(nextNum);
-            touched.add(varName);
-            return nextNum !== 0;
-          }
-        }
-      }
       const cachedExpr = expr as { _cachedArithWord?: Word | null };
       const expWord = cachedExpr._cachedArithWord ?? parseArithmeticExpansion(expr.source, this.budget.parsing, false, 0, undefined, rawState.extensions?.syntax);
       cachedExpr._cachedArithWord = expWord;
@@ -17408,9 +17327,7 @@ const syncExtraRuntimeMethods = {
           const arrB = arrayStore(rawState)?.get(arrName);
           if (arrB && keyStr.length > 0) {
             let elemStr: ShellValue | undefined;
-            if (arrName === this._lastSyncArrayWriteName && keyStr === this._lastSyncArrayWriteKey && this._lastSyncArrayWriteVal !== undefined) {
-              elemStr = this._lastSyncArrayWriteVal;
-            } else if (arrB.associative) {
+            if (arrB.associative) {
               const ek = arrB.keys.get(fastStringHexIdentity(keyStr));
               elemStr = ek !== undefined ? (arrB.getValue(ek.index) ?? "0") : "0";
             } else if (/^(?:0|[1-9][0-9]{0,8})$/.test(keyStr)) {
@@ -26598,5 +26515,4 @@ export function tryExecFast(shell: any, source: string, options: ShellExecOption
   }
   return undefined;
 }
-
 

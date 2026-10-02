@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { FsError, type FileSystem } from "../../../src/contracts/index.js";
-import { contents, filesystem, replacement, run } from "./helpers.js";
+import { FsError, type FileSystem } from "safe-bash-contracts";
+import { contents, filesystem, replacement, run } from "./helpers.test.js";
 
 for (const method of ["stat", "lstat", "readFile"] as const) {
   test(`followup ${method} failure between publications reports the committed prefix`, async () => {

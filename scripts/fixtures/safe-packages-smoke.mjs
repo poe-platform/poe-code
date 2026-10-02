@@ -1,3 +1,4 @@
+import "./safe-packages-patch.mjs";
 import "./safe-packages-apply-patch.mjs";
 import { verification as xqVerification } from "./safe-packages-xq.mjs";
 await xqVerification;

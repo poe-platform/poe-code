@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { contents, filesystem, replacement, run } from "./helpers.js";
+import { contents, filesystem, replacement, run } from "./helpers.test.js";
 
 const fixtures = [
   { format: "unified", flag: "-u", input: replacement },

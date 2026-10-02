@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { contents, replacement, run } from "./helpers.js";
+import { contents, replacement, run } from "./helpers.test.js";
 
 test("--atomic normalized sections stage dry-run and inverse-order reverse", async () => {
   const input = replacement.replace("+new", "+middle") + replacement.replaceAll("target", "./target").replace("-old", "-middle");

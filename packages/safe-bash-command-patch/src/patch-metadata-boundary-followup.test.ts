@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { contents, replacement, run } from "./helpers.js";
+import { contents, replacement, run } from "./helpers.test.js";
 
 const input = replacement.replaceAll("target", "first") + replacement + "-old\n";
 const files = { first: "old\n", target: "old\n" };

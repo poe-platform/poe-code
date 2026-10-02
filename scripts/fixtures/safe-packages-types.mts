@@ -1,3 +1,4 @@
+import "./safe-packages-patch-types.mjs";
 import "./safe-packages-apply-patch-types.mjs";
 import "./safe-packages-xq-types.mjs";
 import "./safe-packages-diff-types.mjs";

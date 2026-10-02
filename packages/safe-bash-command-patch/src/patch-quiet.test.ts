@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
-import { FsError, type ByteSource, type FileSystem } from "../../../src/contracts/index.js";
-import { contents, filesystem, replacement, run, type Files } from "./helpers.js";
+import { FsError, type ByteSource, type FileSystem } from "safe-bash-contracts";
+import { contents, filesystem, replacement, run, type Files } from "./helpers.test.js";
 const twoHunks = replacement + "@@ -3 +3 @@\n-tail\n+TAIL\n";
 
 async function namespace(fs: FileSystem) {

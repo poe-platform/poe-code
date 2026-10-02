@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { contents, filesystem, replacement, run } from "./helpers.js";
+import { contents, filesystem, replacement, run } from "./helpers.test.js";
 
 const create = (name: string) => `--- /dev/null\n+++ ${name}\n@@ -0,0 +1 @@\n+old\n`;
 const remove = (name: string) => `--- ${name}\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n`;

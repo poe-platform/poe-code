@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { contents, filesystem, run } from "./helpers.js";
+import { contents, filesystem, run } from "./helpers.test.js";
 
 const contextHeader = "*** target\n--- target\n***************\n";
 const normal = "1c1\n< old\n---\n> new\n";

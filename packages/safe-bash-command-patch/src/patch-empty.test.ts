@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { contents, filesystem, run } from "./helpers.js";
+import { contents, filesystem, run } from "./helpers.test.js";
 
 const deletion = {
   normal: "1d0\n< old\n",

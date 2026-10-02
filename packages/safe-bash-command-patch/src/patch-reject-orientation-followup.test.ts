@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { FileSystem } from "../../../src/contracts/index.js";
-import { contents, replacement, run, type Files } from "./helpers.js";
+import type { FileSystem } from "safe-bash-contracts";
+import { contents, replacement, run, type Files } from "./helpers.test.js";
 
 const formats = {
   unified: {

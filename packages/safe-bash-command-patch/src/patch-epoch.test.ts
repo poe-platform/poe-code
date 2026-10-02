@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { contents, filesystem, run } from "./helpers.js";
+import { contents, filesystem, run } from "./helpers.test.js";
 
 const currentDate = "2026-08-26 00:00:00 +0000";
 const epochDates = [

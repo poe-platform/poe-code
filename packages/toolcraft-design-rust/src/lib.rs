@@ -16,6 +16,7 @@ pub mod layout;
 pub mod logging;
 pub mod markdown_delimiter;
 pub mod markdown_inline;
+pub mod markdown_parse_inline;
 pub mod markdown_render;
 pub mod markdown_scan;
 mod markdown_table;

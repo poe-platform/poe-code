@@ -809,6 +809,29 @@ routed reference tests, declarations and scoped lint pass without dependency
 changes. AST assembly and the actual inline/block parser adapters remain open;
 these internal native functions do not make `parseInline` publicly available.
 
+The internal `parseInline` adapter now assembles and normalizes the Markdown AST
+with the native scanners and matcher, including nested link labels, images,
+footnotes and hard breaks. Rust owns grammar, tree construction and normalization;
+the JS host retains its runtime's Unicode whitespace/punctuation classification,
+offset-map getters/slicing, range merging and footnote callback receivers/errors.
+Ranges preserve their non-enumerable, writable, configurable descriptors. A failing
+adversarial case caught nullish custom slice results; nested labels now rebuild
+default offsets as the reference does. All 183 native tests, 237 currently routed
+reference tests, declarations, Rust/binding/JS lint and isolated packed runtime
+checks pass without dependency changes. Wide/narrow forced-color screenshots were
+inspected and their terminal output is byte-equal to the reference. Seeded syntax,
+surrogate halves, sparse/nonmonotonic/NaN maps and thrown-value identity are covered.
+Native and reentrant host traversal have a 128-frame guard and recover after
+RangeError. That limit differs from the engine-dependent reference stack limit;
+deep-resource qualification, exotic source/base-offset values and patched
+intrinsics/descriptor timing still block an exact default swap. Public Markdown
+parsing/string wrappers/subpaths still require the block/frontmatter parser.
+A warmed five-round median benchmark (300 calls/round) measured 1,365-unit plain
+input at 0.136 ms native versus 0.0219 ms reference (6.20x), and 1,420-unit rich
+input at 0.616 ms versus 0.118 ms (5.23x). These are slower; no performance gate
+is claimed. Default byte-offset array materialization and host crossings remain
+optimization candidates.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

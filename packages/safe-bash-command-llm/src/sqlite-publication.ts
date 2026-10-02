@@ -1,4 +1,4 @@
-import { FsError, type ByteSource, type FileReadHandle, type FileStat, type FileSystem } from 'safe-bash-contracts';
+import { FsError, type ByteSource, type FileReadHandle, type FileStaging, type FileStat, type FileSystem } from 'safe-bash-contracts';
 import { yieldTurn } from 'safe-bash-contracts/yield';
 import { verifySqliteSnapshot } from './sqlite-snapshot.js';
 import { sqliteSourceChunks } from './sqlite-stream.js';
@@ -12,12 +12,29 @@ export async function publishSqliteSnapshot(options: {
   parent: FileStat;
   expected: FileStat | null;
   signal: AbortSignal;
+  /** Caller-owned empty retained staging and the canonical sidecar versions
+   * acquired with the database snapshot. Cleanup remains the caller's duty. */
+  sourceSet?: {
+    staging: FileStaging;
+    wal: FileStat | null;
+    journal: FileStat | null;
+    shm: FileStat | null;
+  };
   patches: readonly { offset: number; length: number; bytes: ByteSource }[];
 }): Promise<FileStat> {
-  const { fs, snapshot, path, parent, expected, signal } = options;
+  const { fs, snapshot, path, signal } = options;
+  const parent = { ...options.parent };
+  const expected = options.expected === null ? null : { ...options.expected };
+  const sourceSet = options.sourceSet;
+  const staging = sourceSet?.staging;
+  const companions = sourceSet === undefined ? undefined : (['wal', 'journal', 'shm'] as const).map(suffix => ({
+    path: `${path}-${suffix}`, expected: sourceSet[suffix] === null ? null : { ...sourceSet[suffix] }, remove: true,
+  }));
   signal.throwIfAborted();
   const capabilities = await fs.capabilitiesFor?.(path, { signal, create: expected === null }) ?? fs.capabilities;
-  if (capabilities.atomicFilePublication !== true || !fs.publishFileConditional) {
+  if (sourceSet !== undefined
+    ? !fs.publishStagedFileSet || capabilities.retainedStagingWrite !== true || !staging?.writer
+    : capabilities.atomicFilePublication !== true || !fs.publishFileConditional) {
     throw new FsError('ENOTSUP', { path, message: 'SQLite snapshots require atomic conditional publication' });
   }
   const original = await snapshot.stat({ signal });
@@ -74,5 +91,19 @@ export async function publishSqliteSnapshot(options: {
     yield* copy(position, original.size);
     await check();
   }
-  return fs.publishFileConditional(path, bytes(), { parent, expected, signal, mode: 0o600, maxBytes: original.size });
+  if (staging && companions) {
+    if (staging.file.stat.size !== 0 || staging.file.stat.type !== 'file') {
+      throw new FsError('EINVAL', { path: staging.file.path, message: 'SQLite publication requires empty regular-file staging' });
+    }
+    for await (const chunk of bytes()) await staging.writer!.write(chunk, { signal });
+    const stat = await staging.writer!.finish({ signal });
+    if (stat.type !== 'file' || stat.size !== original.size) {
+      throw new FsError('EIO', { path: staging.file.path, message: 'SQLite staged snapshot size mismatch' });
+    }
+    await check();
+    return fs.publishStagedFileSet!({ ...staging, file: { ...staging.file, stat } }, path, {
+      parent, destination: expected, companions, signal,
+    });
+  }
+  return fs.publishFileConditional!(path, bytes(), { parent, expected, signal, mode: 0o600, maxBytes: original.size });
 }

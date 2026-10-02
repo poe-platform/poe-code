@@ -128,3 +128,72 @@ test('invalid patch ranges are rejected before consuming sources', async () => {
     assert.equal(reads, 0);
   } finally { await input.snapshot.close(); }
 });
+
+test('SQLite source-set publication streams into caller staging and retires sidecars atomically', async () => {
+  const fs = new MemoryFileSystem();
+  const original = new Uint8Array(Buffer.from(fixture.database, 'base64'));
+  await fs.writeFile('/base.db', original);
+  await fs.writeFile('/logs.db', original);
+  await fs.writeFile('/logs.db-wal', new Uint8Array([1, 2]));
+  const parent = await fs.lstat('/');
+  const staged = await fs.createStagedFile('/.stage', 'database', { type: 'file', data: new Uint8Array() }, { parent, retainCleanup: true });
+  const snapshot = await fs.openReadFile('/base.db');
+  try {
+    const result = await publishSqliteSnapshot({
+      fs, snapshot, parent, expected: await fs.lstat('/logs.db'), signal: new AbortController().signal, path: '/logs.db',
+      patches: [{ offset: 60, length: 4, bytes: toByteSource(new Uint8Array([0, 0, 0, 7])) }],
+      sourceSet: { staging: staged, wal: await fs.lstat('/logs.db-wal'), journal: null, shm: null },
+    });
+    assert.deepEqual(await fs.lstat('/logs.db'), result);
+    const expected = original.slice(); new DataView(expected.buffer).setUint32(60, 7);
+    assert.deepEqual(await fs.readFile('/logs.db'), expected);
+    await assert.rejects(fs.lstat('/logs.db-wal'), { code: 'ENOENT' });
+  } finally {
+    await snapshot.close();
+    await staged.cleanup!.remove();
+  }
+  assert.deepEqual((await fs.readdir('/')).map(entry => entry.name), ['base.db', 'logs.db']);
+});
+
+for (const conflict of ['wal', 'journal', 'shm'] as const) test(`SQLite ${conflict} changes during staging preserve the canonical database`, async () => {
+  const fs = new MemoryFileSystem();
+  const original = new Uint8Array(Buffer.from(fixture.database, 'base64'));
+  await fs.writeFile('/base.db', original);
+  await fs.writeFile('/logs.db', original);
+  const parent = await fs.lstat('/');
+  const staged = await fs.createStagedFile('/.stage', 'database', { type: 'file', data: new Uint8Array() }, { parent, retainCleanup: true });
+  const snapshot = await fs.openReadFile('/base.db');
+  try {
+    await assert.rejects(publishSqliteSnapshot({
+      fs, snapshot, parent, expected: await fs.lstat('/logs.db'), signal: new AbortController().signal, path: '/logs.db',
+      patches: [{ offset: 60, length: 4, bytes: { async *[Symbol.asyncIterator]() {
+        await fs.writeFile(`/logs.db-${conflict}`, new Uint8Array([9]));
+        yield new Uint8Array([0, 0, 0, 7]);
+      } } }],
+      sourceSet: { staging: staged, wal: null, journal: null, shm: null },
+    }), { code: 'EAGAIN' });
+    assert.deepEqual(await fs.readFile('/logs.db'), original);
+    assert.deepEqual(await fs.readFile(`/logs.db-${conflict}`), new Uint8Array([9]));
+  } finally {
+    await snapshot.close();
+    await staged.cleanup!.remove();
+  }
+});
+
+test('SQLite publication refuses previously written retained staging', async () => {
+  const fs = new MemoryFileSystem();
+  const original = new Uint8Array(Buffer.from(fixture.database, 'base64'));
+  await fs.writeFile('/base.db', original);
+  await fs.writeFile('/logs.db', original);
+  const parent = await fs.lstat('/');
+  const staging = await fs.createStagedFile('/.stage', 'database', { type: 'file', data: new Uint8Array() }, { parent, retainCleanup: true });
+  await staging.writer!.write(new Uint8Array([9]));
+  const snapshot = await fs.openReadFile('/base.db');
+  try {
+    await assert.rejects(publishSqliteSnapshot({ fs, snapshot, path: '/logs.db', parent,
+      expected: await fs.lstat('/logs.db'), signal: new AbortController().signal, patches: [],
+      sourceSet: { staging, wal: null, journal: null, shm: null },
+    }), { code: 'EIO' });
+    assert.deepEqual(await fs.readFile('/logs.db'), original);
+  } finally { await snapshot.close(); await staging.cleanup!.remove(); }
+});

@@ -722,11 +722,11 @@ test("41. sync seq -w discarded fractional width, leading-zero width, negative z
   await syncSh.exec(init);
   await asyncSh.exec(init);
   const scripts = [
-    "x=\$(seq -w 1 1 9.9); echo \"\$?:\$x\"",
-    "x=\$(seq -w 1 005); echo \"\$?:\$x\"",
-    "x=\$(seq -0 1 2); echo \"\$?:\$x\"",
-    "x=\$(printf \"hello\" | base64 -w 0 | wc -c); echo \"\$?:\$x\"",
-    "x=\$(base64 -w 0 /dir/a.txt | wc -c); echo \"\$?:\$x\"",
+    "x=$(seq -w 1 1 9.9); echo \"$?:$x\"",
+    "x=$(seq -w 1 005); echo \"$?:$x\"",
+    "x=$(seq -0 1 2); echo \"$?:$x\"",
+    "x=$(printf \"hello\" | base64 -w 0 | wc -c); echo \"$?:$x\"",
+    "x=$(base64 -w 0 /dir/a.txt | wc -c); echo \"$?:$x\"",
   ];
   for (const script of scripts) {
     const rSync = await syncSh.exec(script);
@@ -738,16 +738,16 @@ test("41. sync seq -w discarded fractional width, leading-zero width, negative z
 
 test("42. sync cat/head/tail/wc repeated - stdin consumption, mv -n -f precedence, and cp/mv/ln non-normalized same-file protection", async () => {
   const scripts = [
-    "x=\$(cat - - <<< \"hello\"); echo \"\$?:\$x\"",
-    "x=\$(head -n 1 - - <<< \"hello\"); echo \"\$?:\$x\"",
-    "x=\$(tail -n 1 - - <<< \"hello\"); echo \"\$?:\$x\"",
-    "x=\$(wc -c - - <<< \"hello\"); echo \"\$?:\$x\"",
-    "mkdir -p /dir; printf \"new\" > /dir/a.txt; printf \"old\" > /dir/b.txt; x=\$(mv -n -f /dir/a.txt /dir/b.txt); echo \"\$?:\$(cat /dir/b.txt)\"",
-    "mkdir -p /dir; printf \"hello\" > /dir/a.txt; x=\$(cp /dir/./a.txt /dir/a.txt); echo \"\$?:\$(cat /dir/a.txt)\"",
-    "mkdir -p /dir; printf \"hello\" > /dir/a.txt; x=\$(mv /dir/./a.txt /dir/a.txt); echo \"\$?:\$(cat /dir/a.txt 2>/dev/null)\"",
-    "mkdir -p /dir; printf \"hello\" > /dir/a.txt; x=\$(ln -f /dir/./a.txt /dir/a.txt); echo \"\$?:\$(cat /dir/a.txt 2>/dev/null)\"",
-    "mkdir -p /dir; printf \"1\" > /dir/a.txt; printf \"2\" > /dir/b.txt; printf \"3\" > /dir/c.txt; x=\$(cp /dir/a.txt /dir/b.txt /dir/c.txt); echo \"\$?:\$(cat /dir/b.txt)\"",
-    "mkdir -p /dir; printf \"1\" > /dir/a.txt; printf \"2\" > /dir/b.txt; printf \"3\" > /dir/c.txt; x=\$(mv /dir/a.txt /dir/b.txt /dir/c.txt); echo \"\$?:\$(cat /dir/b.txt)\"",
+    "x=$(cat - - <<< \"hello\"); echo \"$?:$x\"",
+    "x=$(head -n 1 - - <<< \"hello\"); echo \"$?:$x\"",
+    "x=$(tail -n 1 - - <<< \"hello\"); echo \"$?:$x\"",
+    "x=$(wc -c - - <<< \"hello\"); echo \"$?:$x\"",
+    "mkdir -p /dir; printf \"new\" > /dir/a.txt; printf \"old\" > /dir/b.txt; x=$(mv -n -f /dir/a.txt /dir/b.txt); echo \"$?:$(cat /dir/b.txt)\"",
+    "mkdir -p /dir; printf \"hello\" > /dir/a.txt; x=$(cp /dir/./a.txt /dir/a.txt); echo \"$?:$(cat /dir/a.txt)\"",
+    "mkdir -p /dir; printf \"hello\" > /dir/a.txt; x=$(mv /dir/./a.txt /dir/a.txt); echo \"$?:$(cat /dir/a.txt 2>/dev/null)\"",
+    "mkdir -p /dir; printf \"hello\" > /dir/a.txt; x=$(ln -f /dir/./a.txt /dir/a.txt); echo \"$?:$(cat /dir/a.txt 2>/dev/null)\"",
+    "mkdir -p /dir; printf \"1\" > /dir/a.txt; printf \"2\" > /dir/b.txt; printf \"3\" > /dir/c.txt; x=$(cp /dir/a.txt /dir/b.txt /dir/c.txt); echo \"$?:$(cat /dir/b.txt)\"",
+    "mkdir -p /dir; printf \"1\" > /dir/a.txt; printf \"2\" > /dir/b.txt; printf \"3\" > /dir/c.txt; x=$(mv /dir/a.txt /dir/b.txt /dir/c.txt); echo \"$?:$(cat /dir/b.txt)\"",
   ];
   for (const script of scripts) {
     const syncSh = setup().shell.use(agentCommands());

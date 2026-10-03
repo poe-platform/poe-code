@@ -624,7 +624,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     request?.kind === "json" && typeof context.filters?.applyJsonStream === "function");
   const backedJson = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
     && reader.descriptor.name === "json" && ["json", "plain"].includes(writer.descriptor.name) && streamedFilters
-    && Object.keys(options).every(key => ["from", "to", "filters", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "fileScope", "sandbox", "failIfWarnings"].includes(key))
+    && Object.keys(options).every(key => ["from", "to", "filters", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
     && Object.entries(context.limits ?? {}).every(([key, value]) => ["inputBytes", "outputBytes"].includes(key) || value === Infinity);
   if (backedJson) {
     const session = new Session("convert", context);

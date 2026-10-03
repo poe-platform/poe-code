@@ -1,5 +1,6 @@
+import {transformRetainedJson} from "./retained-transforms.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
-import {writeRetainedPlain} from "./retained-plain.js";
+import {assertRetainedPlainMath, writeRetainedPlain} from "./retained-plain.js";
 import {readRetainedJson} from "./retained-json.js";
 import {PandocError} from "./errors.js";
 import type {BackedJson} from "./backed-json.js";
@@ -72,7 +73,13 @@ export async function streamJson(input: InputSource, context: ExecutionContext, 
       finally {release();}
       if (filterFailure) throw filterFailure.reason;
     }
-    if (target === "plain") await writeRetainedPlain(document.tree, document.order, context, working, options);
+    if (target === "plain") await assertRetainedPlainMath(document.tree, document.order, context);
+    if (options.shiftHeadingLevelBy || options.stripComments) {
+      const next = await transformRetainedJson(document.tree, context, working, options);
+      await document.close();
+      document = next;
+    }
+    if (target === "plain") await writeRetainedPlain(document.tree, context, working, options);
     else {
       await preflight(document.chunks(options.eol));
       for await (const bytes of document.chunks(options.eol)) await context.emit(bytes);

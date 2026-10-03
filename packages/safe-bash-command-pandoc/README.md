@@ -177,6 +177,11 @@ indentation use caller storage, including long words and nested lists. It preser
 the existing plain writer's constructors, raw-content policy and diagnostics.
 Rendering uses three page caches (the document pair and writer); filter validation
 still uses up to five. Plain text accepts `wrap` and `columns` on these paths.
+JSON → JSON/plain also supports `shiftHeadingLevelBy` and `stripComments` through
+caller-backed rewrite jobs and scalar slices. Rewrites run after filters, retain
+both generations only until the old one is retired, and use at most four page
+caches plus fixed small index caches. Metadata remains unchanged by these block
+transformations, matching the convenience converter.
 Multiple JSON inputs, legacy filters, other transformations and other finite
 document budgets continue through the compatibility converter.
 

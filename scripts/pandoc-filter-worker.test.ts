@@ -3,7 +3,9 @@ import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {expect, it} from "vitest";
 
-it.each(["json", "plain"])("streams JSON filter generations through external pages in workerd (%s)", async target => {
+it.each(["json", "plain", "transformed-json", "transformed-plain"])("streams JSON filter generations through external pages in workerd (%s)", async scenario => {
+  const transformed = scenario.startsWith("transformed-");
+  const target = scenario.endsWith("plain") ? "plain" : "json";
   const root = fileURLToPath(new URL("../", import.meta.url));
   const bundled = await build({
     stdin: {resolveDir: root, contents: `
@@ -39,8 +41,8 @@ it.each(["json", "plain"])("streams JSON filter generations through external pag
             yield encoder.encode('{"pandoc-api-version":[1,23,1,2],"meta":{},"blocks":[{"t":"CodeBlock","c":[["",[],[]],"');
             const reused = new Uint8Array(8192);
             for (let i = 0; i < 8; i++) {reused.fill(120); yield reused;}
-            yield encoder.encode('"]}]}');
-          })()}], {from: "json", to: ${JSON.stringify(target)}, filters: ["one", "two", "three"].map(path => ({kind: "json", path}))}, {
+            yield encoder.encode(${JSON.stringify(transformed ? '"]},{"t":"RawBlock","c":["html","<!--removed-->"]},{"t":"Header","c":[1,["",[],[]],[{"t":"Str","c":"tail"}]]}]}' : '"]}]}')});
+          })()}], {from: "json", to: ${JSON.stringify(target)}, ${transformed ? "stripComments: true, shiftHeadingLevelBy: -1," : ""} filters: ["one", "two", "three"].map(path => ({kind: "json", path}))}, {
             filters, signal: controller.signal, workingFiles: {fs, directory: "/spill", cacheBytes: 16384},
             output: {async write(bytes) {
               if (mode === "output-failure") throw new Error("Destination failed");
@@ -56,7 +58,7 @@ it.each(["json", "plain"])("streams JSON filter generations through external pag
     `,
   });
   try {
-    const expected = new TextEncoder().encode(target === "plain" ? "    " + "y".repeat(65536) + "\n" : JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "y".repeat(65536)]}]}) + "\n");
+    const expected = new TextEncoder().encode(target === "plain" ? "    " + "y".repeat(65536) + (transformed ? "\n\ntail\n" : "\n") : JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "y".repeat(65536)]}, ...(transformed ? [{t: "Para", c: [{t: "Str", c: "tail"}]}] : [])]}) + "\n");
     let hash = 2166136261;
     for (const byte of expected) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
     for (const mode of ["success", "filter-failure", "filter-cancel", "output-failure"]) {

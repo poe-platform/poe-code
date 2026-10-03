@@ -20,7 +20,7 @@ type Job = {
 class PlainTape {
   readonly text: BackedText;
   private top = 0;
-  constructor(private readonly tree: BackedJson, private readonly order: Awaited<ReturnType<typeof backedJsonOrder>>, private readonly storage: PagedStorage,
+  constructor(private readonly tree: BackedJson, private readonly storage: PagedStorage,
     private readonly context: ExecutionContext, private readonly options: ConversionOptions) {
     this.text = new BackedText(storage, units => context.cooperate(units));
   }
@@ -53,49 +53,8 @@ class PlainTape {
   private async tag(node: number): Promise<string> {return (await this.tree.smallText((await this.tree.property(node, "t"))!, 32))!;}
   private list(node: number, path: number, mode: string, sep = "", skip = false, byCount = false): Job {return {op: "list", node, path, mode, sep, skip, byCount};}
   private post(node: number, path: number, mode: string): Job {return {op: "post", node, path, mode};}
-  private async checkMath(root: number, prefix: string): Promise<void> {
-    let position = root, closing = false;
-    while (position) {
-      await this.context.cooperate();
-      const header = await this.tree.describe(position);
-      if (!closing) {
-        if (header.kind === "object") {
-          const tag = await this.tree.property(position, "t");
-          if (tag !== undefined && await this.tree.smallText(tag, 4) === "Math") {
-            let path = "";
-            for (let child = position; child !== root;) {
-              const parent = (await this.tree.describe(child)).parent, container = await this.tree.describe(parent);
-              let index = 0;
-              for await (const sibling of this.tree.children(parent)) {
-                const item = await this.tree.describe(sibling);
-                if (container.kind === "object" && item.kind === "key" && item.end === child) {
-                  let key = ""; for await (const part of this.tree.scalarChunks(sibling)) key += part;
-                  path = `.${key}${path}`; break;
-                }
-                if (container.kind === "array" && sibling === child) {path = `.${index}${path}`; break;}
-                index++;
-              }
-              child = parent; await this.context.cooperate();
-            }
-            throw new PandocError("E_CAPABILITY", "convert", "Writer must explicitly preserve typed math source", undefined, prefix + path);
-          }
-        }
-        if ((header.kind === "object" || header.kind === "array") && header.children) {
-          position = header.kind === "object" ? await this.order.first(position) : position + 32;
-          continue;
-        }
-      }
-      if (position === root) break;
-      const parent = await this.tree.describe(header.parent);
-      const next = parent.kind === "object" && header.kind !== "key" ? await this.order.next(position, header.parent) : header.end < parent.end ? header.end : 0;
-      if (next) {position = next; closing = false;}
-      else {position = header.parent; closing = true;}
-    }
-  }
   async render(): Promise<TextRange> {
     const blocks = (await this.tree.property(this.tree.rootPosition, "blocks"))!;
-    await this.checkMath(blocks, "$.blocks");
-    await this.checkMath((await this.tree.property(this.tree.rootPosition, "meta"))!, "$.metadata");
     await this.push(this.list(blocks, await this.path(0, "$.blocks"), "block", "", true));
     let result = emptyText(), count = 0;
     while (this.top) {
@@ -265,12 +224,55 @@ class PlainTape {
   }
 }
 
-export async function writeRetainedPlain(tree: BackedJson, order: Awaited<ReturnType<typeof backedJsonOrder>>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions): Promise<void> {
+export async function assertRetainedPlainMath(tree: BackedJson, order: Awaited<ReturnType<typeof backedJsonOrder>>, context: ExecutionContext): Promise<void> {
+  for (const [key, prefix] of [["blocks", "$.blocks"], ["meta", "$.metadata"]] as const) {
+    const root = (await tree.property(tree.rootPosition, key))!;
+    let position = root, closing = false;
+    while (position) {
+      await context.cooperate();
+      const header = await tree.describe(position);
+      if (!closing) {
+        if (header.kind === "object") {
+          const tag = await tree.property(position, "t");
+          if (tag !== undefined && await tree.smallText(tag, 4) === "Math") {
+            let path = "";
+            for (let child = position; child !== root;) {
+              const parent = (await tree.describe(child)).parent, container = await tree.describe(parent);
+              let index = 0;
+              for await (const sibling of tree.children(parent)) {
+                const item = await tree.describe(sibling);
+                if (container.kind === "object" && item.kind === "key" && item.end === child) {
+                  let key = ""; for await (const part of tree.scalarChunks(sibling)) key += part;
+                  path = `.${key}${path}`; break;
+                }
+                if (container.kind === "array" && sibling === child) {path = `.${index}${path}`; break;}
+                index++;
+              }
+              child = parent; await context.cooperate();
+            }
+            throw new PandocError("E_CAPABILITY", "convert", "Writer must explicitly preserve typed math source", undefined, prefix + path);
+          }
+        }
+        if ((header.kind === "object" || header.kind === "array") && header.children) {
+          position = header.kind === "object" ? await order.first(position) : position + 32;
+          continue;
+        }
+      }
+      if (position === root) break;
+      const parent = await tree.describe(header.parent);
+      const next = parent.kind === "object" && header.kind !== "key" ? await order.next(position, header.parent) : header.end < parent.end ? header.end : 0;
+      if (next) {position = next; closing = false;}
+      else {position = header.parent; closing = true;}
+    }
+  }
+}
+
+export async function writeRetainedPlain(tree: BackedJson, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions): Promise<void> {
   const storage = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, (working.cacheBytes ?? 1048576) / 16384);
   const release = context.onClose(() => storage.close());
   let failure: {reason: unknown} | undefined;
   try {
-    const writer = new PlainTape(tree, order, storage, context, options), result = await writer.render();
+    const writer = new PlainTape(tree, storage, context, options), result = await writer.render();
     const diagnostics = context.snapshotDiagnostics();
     if (options.failIfWarnings && diagnostics.length) {
       const first = diagnostics[0]!;

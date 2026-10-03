@@ -20,8 +20,12 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   cover JSON filters to plain output with failure/cancellation cleanup. Rendering
   uses three page caches; filter validation uses up to five. These tests establish
   behavior and backing I/O, not a memory plateau or Cloudflare qualification.
-  Other conversions still
-  require replacing whole-document input acquisition, joined text, document arrays
+  Heading shifts and HTML comment removal on JSON input also use retained rewrite
+  jobs, scalar slices and two document generations (four page caches). Tests cover
+  split comment delimiters, generated long comments, deep nesting, filter ordering,
+  unchanged metadata, original math-error paths and backing/sink/cancellation
+  failures. Exercise these options in the measurement cohorts below.
+  Other conversions still require replacing whole-document input acquisition, joined text, document arrays
   and serialized results with retained sources and a paged document representation.
   Preserve diagnostics, source locations, resource identities and byte results.
 - Exercise JSON filter protocol streams and genuine Lua callbacks, including

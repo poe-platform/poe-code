@@ -1,6 +1,5 @@
 import {BackedJson} from "./backed-json.js";
 import {writeRetainedPlain} from "./retained-plain.js";
-import {backedJsonOrder} from "./backed-json-order.js";
 import {appendDelimitedJson} from "./backed-delimited-json.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {DelimitedParser} from "./delimited-parser.js";
@@ -114,8 +113,7 @@ export async function streamDelimited(
       }
       await tree.end(); await tree.end();
       if (target === "plain") {
-        const order = await backedJsonOrder(tree, storage, units => context.cooperate(units));
-        await writeRetainedPlain(tree, order, context, working, {from: format, to: "plain", ...options});
+        await writeRetainedPlain(tree, context, working, {from: format, to: "plain", ...options});
       } else {
         const ending = new TextEncoder().encode(options.eol === "crlf" ? "\r\n" : "\n");
         if (Number.isFinite(context.limits.outputBytes)) {

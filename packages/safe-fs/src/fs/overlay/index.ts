@@ -753,6 +753,57 @@ export class OverlayFileSystem implements FileSystem {
     return this.run(options, async () => this.listing(await this.required(path, options), options, limit), false);
   }
 
+  async *iterateDirectory(path: string, options: FsOptions = {}): AsyncIterable<DirectoryEntry> {
+    const directory = await this.run(options, async () => {
+      const entry = await this.required(path, options);
+      if (entry.stat.type !== "directory") fail("ENOTDIR", path);
+      this.permission(entry, 4);
+      return entry.path;
+    }, false);
+    const admit = async (): Promise<void> => {
+      const current = await this.required(path, options);
+      if (current.path !== directory || current.stat.type !== "directory") fail("EBUSY", path);
+      this.permission(current, 4);
+    };
+    for (const backend of [this.#upper, this.#lower]) {
+      const iterator = await this.run(options, async () => {
+        await admit();
+        if (backend === this.#lower && (!await this.lowerVisible(directory, options) || this.opaque.has(directory))) return undefined;
+        if ((await this.maybeStat(backend, directory, options))?.type !== "directory") return undefined;
+        if (!backend.iterateDirectory) fail("ENOTSUP", directory);
+        return backend.iterateDirectory(directory, options)[Symbol.asyncIterator]();
+      }, false);
+      if (!iterator) continue;
+      let complete = false, failed = false;
+      try {
+        while (true) {
+          const result = await this.run(options, async () => {
+            await admit();
+            if (backend === this.#lower && (!await this.lowerVisible(directory, options) || this.opaque.has(directory))) fail("EBUSY", path);
+            const next = await iterator.next();
+            options.signal?.throwIfAborted();
+            if (next.done) return { done: true as const };
+            const name = next.value.name;
+            if (!name || name === "." || name === ".." || name.includes("/") || name.includes("\0")) fail("EIO", directory, "invalid backend directory entry");
+            const child = await this.lookup(directory === "/" ? `/${name}` : `${directory}/${name}`, options);
+            options.signal?.throwIfAborted();
+            // A lower name shadowed by upper storage is skipped by lookup,
+            // without retaining a directory-sized set of previously seen names.
+            return { done: false as const, entry: child?.backend === backend ? { name, type: child.stat.type } : undefined };
+          }, false);
+          if (result.done) { complete = true; break; }
+          if (result.entry) yield result.entry;
+        }
+      } catch (error) {
+        failed = true;
+        throw error;
+      } finally {
+        if (!complete) await finishCleanup(() => iterator.return?.(), failed);
+      }
+    }
+    options.signal?.throwIfAborted();
+  }
+
   async realpath(path: string, options: FsOptions = {}): Promise<string> {
     return this.run(options, async () => (await this.required(path, options)).path, false);
   }

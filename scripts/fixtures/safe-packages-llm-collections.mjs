@@ -1,4 +1,4 @@
-import { MemoryFileSystem, createMountFileSystem } from "@poe-platform/safe-fs/core";
+import { MemoryFileSystem, createMountFileSystem, createOverlayFileSystem } from "@poe-platform/safe-fs/core";
 import { withLlmCollections, createLlmCollectionCommands, withCsvEmbeddingEntries, withJsonEmbeddingEntries, withJsonLinesEmbeddingEntries, withFileEmbeddingEntries, withEmbeddingFileGlob } from "@poe-platform/safe-bash/commands/llm/collections";
 import { createLlmService, llmCommands } from "@poe-platform/safe-bash/commands/llm";
 import { legacyCollectionDatabases, jsonImportEncodingInputs, jsonImportRejectedInputs, singleByteFileInputs } from "./safe-packages-llm-collections-reference.mjs";
@@ -39,6 +39,20 @@ export async function verifyLlmCollections() {
   mountRows.sort((a,b)=>a[0].localeCompare(b[0]));
   if(JSON.stringify(mountRows)!==JSON.stringify([['synthetic/deep/leaf.txt','mounted'],['visible.txt','root']]))throw new Error('Installed mounted file traversal changed');
   for await(const entry of mountRoot.iterateDirectory('/scratch'))throw new Error('Mounted traversal leaked scratch storage: '+entry.name);
+  const overlayUpper=new MemoryFileSystem(),overlayLower=new MemoryFileSystem(),overlayRoot=new MemoryFileSystem();
+  for(const [backing,path,text]of [[overlayUpper,'/shared.txt','upper'],[overlayLower,'/shared.txt','hidden'],[overlayLower,'/lower.txt','lower'],[overlayLower,'/removed.txt','removed']])await backing.writeFile(path,new TextEncoder().encode(text));
+  const overlay=createOverlayFileSystem({upper:overlayUpper,lower:overlayLower});
+  await overlay.rm('/removed.txt');await overlayRoot.mkdir('/scratch');
+  overlayUpper.readdir=overlayLower.readdir=async()=>{throw new Error('Overlay glob used eager listing');};
+  const overlayFs=createMountFileSystem({root:overlayRoot,mounts:{'/union':overlay}});
+  const overlayOptions={fs:overlayFs,directory:'/scratch',signal:new AbortController().signal,maxFileBytes:1048576,maxOpenFiles:8};
+  const overlayRows=[];
+  await withEmbeddingFileGlob(overlayOptions,{directory:'/union',pattern:'*.txt'},files=>withFileEmbeddingEntries({...overlayOptions,encodings:['utf8']},files,async entries=>{
+    for await(const entry of entries){let text='';for await(const chunk of entry.input.bytes)text+=new TextDecoder().decode(chunk);overlayRows.push([entry.id,text]);}
+  }));
+  overlayRows.sort((a,b)=>a[0].localeCompare(b[0]));
+  if(JSON.stringify(overlayRows)!==JSON.stringify([['lower.txt','lower'],['shared.txt','upper']]))throw new Error('Installed overlay file traversal changed');
+  for await(const entry of overlayRoot.iterateDirectory('/scratch'))throw new Error('Overlay traversal leaked scratch storage: '+entry.name);
   const globFs=new MemoryFileSystem();
   await globFs.writeFile('/signature',Uint8Array.of(0xef,0xbb));
   let signatureRows=0;
@@ -280,6 +294,16 @@ export async function verifyLlmCollections() {
     if(rows.exitCode!==0||JSON.parse(rows.stdout).content!=='mounted')throw new Error('Mounted CLI readback changed');
   }finally{await mountShell.dispose();}
   await mounted.unlink('/mounted.db');
+  const overlayShell=new Shell({fs:overlayFs}).use(llmCommands({service,collections:createLlmCollectionCommands({maxFileBytes:1048576,maxIndexBytes:1048576,maxOpenFiles:8})}));
+  try{
+    const imported=await overlayShell.exec('llm embed-multi union --files /union "*.txt" --encoding utf8 --store -m embed -d /union.db');
+    if(imported.exitCode!==0)throw new Error('Overlay CLI import failed: '+imported.stderr);
+    const rows=await overlayShell.exec('llm similar union -c query -d /union.db');
+    const contents=rows.stdout.trim().split('\n').map(line=>JSON.parse(line).content).sort();
+    if(rows.exitCode!==0||JSON.stringify(contents)!==JSON.stringify(['lower','upper']))throw new Error('Overlay CLI readback changed');
+  }finally{await overlayShell.dispose();}
+  await overlayFs.unlink('/union.db');
+
 
   for (const {version, zlibBase64} of legacyCollectionDatabases) {
     const bytes = Uint8Array.from(atob(zlibBase64), character => character.charCodeAt(0));

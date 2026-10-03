@@ -117,15 +117,15 @@
     },
     "./csvkit": {
       "types": "./dist/types/safe-bash-command-csvkit/index.d.ts",
-      "import": "./packages/safe-bash-command-csvkit/dist/index.js"
+      "import": "./dist/csvkit/index.js"
     },
     "./csvkit/codecs/utf8": {
       "types": "./dist/types/safe-bash-command-csvkit/codecs/utf8.d.ts",
-      "import": "./packages/safe-bash-command-csvkit/dist/codecs/utf8.js"
+      "import": "./dist/csvkit/codecs/utf8.js"
     },
     "./csvkit/codecs/python": {
       "types": "./dist/types/safe-bash-command-csvkit/codecs/python.d.ts",
-      "import": "./packages/safe-bash-command-csvkit/dist/codecs/python.js"
+      "import": "./dist/csvkit/codecs/python.js"
     },
     "./ssconvert": {
       "types": "./dist/types/safe-bash-command-ssconvert/index.d.ts",

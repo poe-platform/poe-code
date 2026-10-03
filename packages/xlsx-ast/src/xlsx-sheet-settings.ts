@@ -55,8 +55,11 @@ export async function writeXlsxSheetSettings(sheet: Sheet,
   for (const { record, node } of records) {
     charge();
     if (node && node.name === record.kind && ["sheetPr", "sheetFormatPr", "sheetProtection", "printOptions", "pageMargins", "pageSetup", "headerFooter", "rowBreaks", "colBreaks"].includes(record.kind) &&
-      xlsxNamespaces.XL_NS_SS!.includes(node.namespace) && !raw.has(record.kind)) {
-      raw.set(record.kind, node); handled.add(record);
+      xlsxNamespaces.XL_NS_SS!.includes(node.namespace) && (!raw.has(record.kind) || record.kind === "sheetFormatPr")) {
+      const previous = raw.get(record.kind);
+      raw.set(record.kind, previous ? { ...node, attributes: { ...previous.attributes, ...node.attributes },
+        children: [...previous.children, ...node.children] } : node);
+      handled.add(record);
     }
   }
   const node = (name: string, attributes: Attributes = {}, content: readonly MetadataNode[] = [], text = ""): MetadataNode => {

@@ -139,3 +139,46 @@ it("keeps generated row summaries within the worksheet boundary", async () => {
   const book = await readXlsx(bytes, context);
   expect(book.sheets[0]!.rows).toEqual([{ index: 1048575, hidden: true, outlineLevel: 0, collapsed: false }]);
 });
+
+for (const [content, expectedHeight, hard] of [
+  ['<sheetFormatPr defaultRowHeight="25"/><sheetData><row r="1" hidden="1"/></sheetData>', 25, 0],
+  ['<sheetData><row r="1" hidden="1"/></sheetData>', 12.75, 0],
+  ['<sheetFormatPr defaultRowHeight="25"/><sheetData><row r="1"><c r="A1"><v>42</v></c></row></sheetData>', 25, 0],
+  ['<sheetFormatPr defaultRowHeight="25"/><sheetData><row r="1"/></sheetData>', 50, 0],
+  ['<sheetFormatPr defaultRowHeight="25"/><sheetData><row r="1"><c r="A1"/></row></sheetData>', 50, 0],
+  ['<sheetFormatPr defaultRowHeight="25"/><sheetData><row r="1" outlineLevel="0"/></sheetData>', 25, 0],
+  ['<sheetFormatPr defaultRowHeight="25"/><sheetData><row r="1"><c r="A1"><f>1+1</f></c></row></sheetData>', 25, 0],
+  ['<sheetFormatPr defaultRowHeight="25"/><sheetData><row r="1" ht="0"/></sheetData>', 50, 0],
+  ['<sheetFormatPr defaultRowHeight="25"/><sheetData><row r="1" ht="20" customHeight="1"/></sheetData>', 20, 1]
+] as const) {
+  it(`retains allocation-time height before late defaults: ${content}`, async () => {
+    const original = await readXlsx(await input(content + '<sheetFormatPr defaultRowHeight="50"/>'), context);
+    expect(original.sheets[0]!.view?.defaultRowHeight).toBe(50);
+    const diagnostics: string[] = [];
+    const exported = await createXlsxWriter("2008")(original, [], { ...context, diagnostic: async d => { diagnostics.push(d.message); } });
+    expect(diagnostics).toEqual([]);
+    for (const book of [original, await readXlsx(exported, context)]) {
+      const sheet = book.sheets[0]!;
+      expect(sheet.view?.defaultRowHeight).toBe(50);
+      const axis = descendants(parseXml(new TextDecoder().decode(await writeGnumeric(book, [], context))))
+        .find(node => node.localName === "RowInfo" && node.attributes.some(a => a.localName === "No" && a.value === "0"));
+      const attrs = Object.fromEntries(axis?.attributes.map(a => [a.localName, a.value]) ?? []);
+      expect(Number(attrs.Unit ?? 50)).toBe(expectedHeight);
+      expect(Number(attrs.HardSize ?? 0)).toBe(hard);
+    }
+  });
+}
+
+it("charges rows allocated by cells outside their containing row", async () => {
+  const bytes = await input('<sheetData><row r="1"><c r="A2"><v>1</v></c></row></sheetData><sheetFormatPr defaultRowHeight="50"/>');
+  await expect(readXlsx(bytes, { ...context, limits: { ...context.limits, workbookNodes: 1 } }))
+    .rejects.toMatchObject({ code: "resource-limit" });
+});
+
+it("retains allocation-time heights for every row in an array formula", async () => {
+  const bytes = await input('<sheetFormatPr defaultRowHeight="25"/><sheetData><row r="1"><c r="A1"><f t="array" ref="A1:A3">1</f><v>1</v></c></row></sheetData><sheetFormatPr defaultRowHeight="50"/>');
+  const book = await readXlsx(bytes, context);
+  expect(book.sheets[0]!.rows?.map(row => [row.index, row.sizePoints])).toEqual([[0, 25], [1, 25], [2, 25]]);
+  await expect(readXlsx(bytes, { ...context, limits: { ...context.limits, workbookNodes: 2 } }))
+    .rejects.toMatchObject({ code: "resource-limit" });
+});

@@ -14,6 +14,9 @@ Repeated column records preserve earlier accepted widths and outlines; hidden
 groups retain their adjacent collapsed summary markers. Repeated row records
 preserve accepted heights and hidden state, while explicit outline resets apply
 in native order. Row summary markers survive XLSX re-export at outline level zero.
+Late worksheet defaults preserve heights already allocated by values, formulas,
+visibility or outlines; empty rows use the final default. Repeated default-format
+records are combined on export.
 
 ```ts
 import { createEngine } from "@poe-code/spreadsheet-engine";

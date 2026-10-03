@@ -87,6 +87,8 @@ clipboard and both XLSX editions. Repeated XLSX column records preserve earlier
 accepted dimensions and outlines, including adjacent collapsed summary markers
 for hidden groups. Repeated rows preserve accepted heights and hidden state;
 explicit outline resets and zero-level summary rows survive re-export.
+Late XLSX defaults preserve allocated row heights and automatic sizing; empty
+rows use the final default. Repeated default-format records combine on export.
 Rejected XLSX dimensions retain prior/default sizes;
 direct SDK exports still refuse unrepresentable dimensions.
 

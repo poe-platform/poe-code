@@ -341,96 +341,132 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       const columnStyles = children(child(source, "cols"), "col").filter(node => attr(node, "style") !== undefined)
         .map(node => ({ min: integer(attr(node, "min")) - 1, max: integer(attr(node, "max")) - 1, style: cellStyles[integer(attr(node, "style"))] }));
       const rowState = new Map<number, AxisMetadata>();
+      const allocatedRowHeights = new Map<number, number>();
+      const dimensions: Record<string, ImportedValue> = {};
+      let defaultRowHeight = 12.75;
       let expandedRows = 0, nextRow = 0;
-      for (const row of children(child(source, "sheetData"), "row")) {
-        const rowIndex = attr(row, "r") === undefined ? nextRow : integer(attr(row, "r")) - 1;
-        if (rowIndex < 0 || rowIndex >= 1048576) invalid("invalid row"); nextRow = rowIndex + 1;
-        const height = attr(row, "ht") === undefined ? undefined : number(attr(row, "ht"));
-        if (++expandedRows > (context.limits.workbookNodes ?? Infinity)) limit("row metadata");
+      function allocateRow(index: number) {
         opc.charge(1);
-        let metadata: AxisMetadata = rowState.get(rowIndex) ?? { index: rowIndex, hidden: false, outlineLevel: 0, collapsed: false };
-        if (height !== undefined && height > 0) metadata = { ...metadata, sizePoints: height,
-          style: { gnumeric: gnode("RowInfo", { HardSize: boolean(attr(row, "customHeight")) ? 1 : 0 }) } };
-        // Unlike columns, native rows change visibility before their outline.
-        if (boolean(attr(row, "hidden")) && !metadata.hidden) {
-          if ((metadata.outlineLevel ?? 0) > 0 && rowIndex < 1048575) {
-            const adjacent = rowState.get(rowIndex + 1);
-            if (!adjacent) {
-              if (++expandedRows > (context.limits.workbookNodes ?? Infinity)) limit("row metadata");
-              opc.charge(1);
-            }
-            if ((metadata.outlineLevel ?? 0) > (adjacent?.outlineLevel ?? 0)) {
-              rowState.set(rowIndex + 1, { ...(adjacent ?? { index: rowIndex + 1 }), collapsed: true });
-            }
-          }
-          metadata = { ...metadata, hidden: true };
+        if (allocatedRowHeights.has(index)) return;
+        if (!rowState.has(index)) {
+          if (++expandedRows > (context.limits.workbookNodes ?? Infinity)) limit("row metadata");
+          rowState.set(index, { index });
         }
-        const outline = attr(row, "outlineLevel");
-        if (outline !== undefined && integer(outline) >= 0) metadata = { ...metadata,
-          outlineLevel: integer(outline), collapsed: boolean(attr(row, "collapsed")) };
-        rowState.set(rowIndex, metadata);
-        let nextColumn = 0;
-        for (const node of children(row, "c")) {
-          if (++cellCount > context.limits.cells) limit("cells"); context.signal.throwIfAborted();
-          const position = attr(node, "r") ? parseA1(attr(node, "r")!) : { row: rowIndex, column: nextColumn };
-          if (!position || position.row >= 1048576 || position.column >= 16384) invalid("invalid cell address"); nextColumn = position.column + 1;
-          const raw = child(node, "v")?.text, type = attr(node, "t");
-          let value: CellValue = { kind: "blank" }, richText: readonly RichTextRun[] | undefined;
-          if (type === "inlineStr") { const string = readXlsxString(child(node, "is"), context); value = { kind: "string", value: string.value }; richText = string.richText; }
-          else if (type === "str" && raw !== undefined) value = { kind: "string", value: decodeXlsxString(raw) };
-          else if (raw !== undefined && raw !== "") {
-            if (type === "s") {
-              const index = sharedStringIndex(raw), string = index === undefined ? undefined : strings[index];
-              if (string) { value = { kind: "string", value: string.value }; richText = string.richText; }
-              else {
-                const message = `${name}!${formatA1(position.row, position.column)} : Invalid sst ref '${raw}'`;
-                await context.diagnostic?.({ code: "xlsx-shared-string", severity: "warning", message,
-                  bytes: warningBytes(message + "\n", context) });
+        allocatedRowHeights.set(index, defaultRowHeight);
+      }
+      for (const section of source.children) {
+        if (!spreadsheetNamespaces.has(section.namespace)) continue;
+        if (section.localName === "sheetFormatPr") {
+          const width = attr(section, "defaultColWidth"), base = attr(section, "baseColWidth"), height = attr(section, "defaultRowHeight");
+          for (const value of [width, base, height]) if (value !== undefined && number(value) < 0) invalid("negative default dimension");
+          if (width !== undefined && number(width) > 0) dimensions.defaultColumnWidth = number(width) * xlsxColumnWidthPoints;
+          else if (base !== undefined && number(base) > 0) dimensions.defaultColumnWidth = number(base) * xlsxColumnWidthPoints + 3.75;
+          if (height !== undefined && number(height) > 0) dimensions.defaultRowHeight = defaultRowHeight = number(height);
+          continue;
+        }
+        if (section.localName !== "sheetData") continue;
+        for (const row of children(section, "row")) {
+          const rowIndex = attr(row, "r") === undefined ? nextRow : integer(attr(row, "r")) - 1;
+          if (rowIndex < 0 || rowIndex >= 1048576) invalid("invalid row"); nextRow = rowIndex + 1;
+          const height = attr(row, "ht") === undefined ? undefined : number(attr(row, "ht"));
+          if (++expandedRows > (context.limits.workbookNodes ?? Infinity)) limit("row metadata");
+          opc.charge(1);
+          let metadata: AxisMetadata = rowState.get(rowIndex) ?? { index: rowIndex, hidden: false, outlineLevel: 0, collapsed: false };
+          if (height !== undefined && height > 0) metadata = { ...metadata, sizePoints: height,
+            style: { gnumeric: gnode("RowInfo", { HardSize: boolean(attr(row, "customHeight")) ? 1 : 0 }) } };
+          if (!allocatedRowHeights.has(rowIndex) && (height !== undefined && height > 0 || boolean(attr(row, "hidden")) ||
+            attr(row, "outlineLevel") !== undefined && integer(attr(row, "outlineLevel")) >= 0)) allocatedRowHeights.set(rowIndex, defaultRowHeight);
+          // Unlike columns, native rows change visibility before their outline.
+          if (boolean(attr(row, "hidden")) && !metadata.hidden) {
+            if ((metadata.outlineLevel ?? 0) > 0 && rowIndex < 1048575) {
+              const adjacent = rowState.get(rowIndex + 1);
+              if (!adjacent) {
+                if (++expandedRows > (context.limits.workbookNodes ?? Infinity)) limit("row metadata");
+                opc.charge(1);
+              }
+              if ((metadata.outlineLevel ?? 0) > (adjacent?.outlineLevel ?? 0)) {
+                rowState.set(rowIndex + 1, { ...(adjacent ?? { index: rowIndex + 1 }), collapsed: true });
+                if (!allocatedRowHeights.has(rowIndex + 1)) allocatedRowHeights.set(rowIndex + 1, defaultRowHeight);
               }
             }
-            else if (type === "b") value = { kind: "boolean", value: raw[0] !== "0" };
-            else if (type === "e") value = { kind: "error", value: raw };
-            else {
-              if (type && type !== "n") await context.diagnostic?.({ code: "xlsx-cell-type", severity: "warning",
-                message: `${name}!${formatA1(position.row, position.column)} : Unknown enum value '${type}' for attribute t` });
-              const parsed = Number.parseFloat(raw);
-              value = { kind: "number", value: Number.isNaN(parsed) ? 0 : parsed };
-            }
+            metadata = { ...metadata, hidden: true };
           }
-          opc.charge(columnStyles.length);
-          let inheritedStyle;
-          for (const column of columnStyles) if (position.column >= column.min && position.column <= column.max) inheritedStyle = column.style;
-          if (boolean(attr(row, "customFormat")) && attr(row, "s") !== undefined) inheritedStyle = cellStyles[integer(attr(row, "s"))];
-          const styleId = attr(node, "s"), style = styleId === undefined ? inheritedStyle : cellStyles[integer(styleId)];
-          const f = child(node, "f"); let expression: string | undefined, groupId: string | undefined;
-          let semantics = readFormulaSemantics(f);
-          if (f) {
-            const kind = attr(f, "t");
-            if (kind === "shared") {
-              const si = attr(f, "si") ?? "0"; const existing = shared.get(si);
-              if (f.text) {
-                expression = readOpenFormula(f)?.source ?? formula(decodeXlsxString(f.text), id, position.row, position.column, context, semantics.arrayStringLiterals); groupId = `shared-${si}`;
-                shared.set(si, { expression, ...position, id: groupId, ...semantics });
-                if (attr(f, "ref")) groups.push({ id: groupId, kind: "shared", expression, range: range(attr(f, "ref")), ...semantics });
-              } else if (existing) {
-                semantics = existing.arrayStringLiterals ? { arrayStringLiterals: true } : {};
-                const parsed = parseExpression(existing.expression, { maximumDepth: context.limits.formulaDepth, position: { sheet: id, row: existing.row, column: existing.column }, ...semantics, signal: context.signal });
-                if (!parsed.ok) invalid("invalid shared formula");
-                expression = rewriteReferences(parsed.document, { position: { sheet: id, ...position }, translation: "copy", signal: context.signal }); groupId = existing.id;
-              } else invalid("shared formula has no preceding definition");
-            } else {
-              expression = readOpenFormula(f)?.source ?? formula(decodeXlsxString(f.text), id, position.row, position.column, context, semantics.arrayStringLiterals);
-              if (kind === "array") { groupId = `array-${position.row}-${position.column}`; groups.push({ id: groupId, kind: "array", expression, range: range(attr(f, "ref")), ...semantics }); }
+          const outline = attr(row, "outlineLevel");
+          if (outline !== undefined && integer(outline) >= 0) metadata = { ...metadata,
+            outlineLevel: integer(outline), collapsed: boolean(attr(row, "collapsed")) };
+          rowState.set(rowIndex, metadata);
+          let nextColumn = 0;
+          for (const node of children(row, "c")) {
+            if (++cellCount > context.limits.cells) limit("cells"); context.signal.throwIfAborted();
+            const position = attr(node, "r") ? parseA1(attr(node, "r")!) : { row: rowIndex, column: nextColumn };
+            if (!position || position.row >= 1048576 || position.column >= 16384) invalid("invalid cell address"); nextColumn = position.column + 1;
+            const raw = child(node, "v")?.text, type = attr(node, "t");
+            let value: CellValue = { kind: "blank" }, richText: readonly RichTextRun[] | undefined;
+            if (type === "inlineStr") { const string = readXlsxString(child(node, "is"), context); value = { kind: "string", value: string.value }; richText = string.richText; }
+            else if (type === "str" && raw !== undefined) value = { kind: "string", value: decodeXlsxString(raw) };
+            else if (raw !== undefined && raw !== "") {
+              if (type === "s") {
+                const index = sharedStringIndex(raw), string = index === undefined ? undefined : strings[index];
+                if (string) { value = { kind: "string", value: string.value }; richText = string.richText; }
+                else {
+                  const message = `${name}!${formatA1(position.row, position.column)} : Invalid sst ref '${raw}'`;
+                  await context.diagnostic?.({ code: "xlsx-shared-string", severity: "warning", message,
+                    bytes: warningBytes(message + "\n", context) });
+                }
+              }
+              else if (type === "b") value = { kind: "boolean", value: raw[0] !== "0" };
+              else if (type === "e") value = { kind: "error", value: raw };
+              else {
+                if (type && type !== "n") await context.diagnostic?.({ code: "xlsx-cell-type", severity: "warning",
+                  message: `${name}!${formatA1(position.row, position.column)} : Unknown enum value '${type}' for attribute t` });
+                const parsed = Number.parseFloat(raw);
+                value = { kind: "number", value: Number.isNaN(parsed) ? 0 : parsed };
+              }
             }
+            opc.charge(columnStyles.length);
+            let inheritedStyle;
+            for (const column of columnStyles) if (position.column >= column.min && position.column <= column.max) inheritedStyle = column.style;
+            if (boolean(attr(row, "customFormat")) && attr(row, "s") !== undefined) inheritedStyle = cellStyles[integer(attr(row, "s"))];
+            const styleId = attr(node, "s"), style = styleId === undefined ? inheritedStyle : cellStyles[integer(styleId)];
+            const f = child(node, "f"); let expression: string | undefined, groupId: string | undefined, arrayRange: Range | undefined;
+            let semantics = readFormulaSemantics(f);
+            if (f) {
+              const kind = attr(f, "t");
+              if (kind === "shared") {
+                const si = attr(f, "si") ?? "0"; const existing = shared.get(si);
+                if (f.text) {
+                  expression = readOpenFormula(f)?.source ?? formula(decodeXlsxString(f.text), id, position.row, position.column, context, semantics.arrayStringLiterals); groupId = `shared-${si}`;
+                  shared.set(si, { expression, ...position, id: groupId, ...semantics });
+                  if (attr(f, "ref")) groups.push({ id: groupId, kind: "shared", expression, range: range(attr(f, "ref")), ...semantics });
+                } else if (existing) {
+                  semantics = existing.arrayStringLiterals ? { arrayStringLiterals: true } : {};
+                  const parsed = parseExpression(existing.expression, { maximumDepth: context.limits.formulaDepth, position: { sheet: id, row: existing.row, column: existing.column }, ...semantics, signal: context.signal });
+                  if (!parsed.ok) invalid("invalid shared formula");
+                  expression = rewriteReferences(parsed.document, { position: { sheet: id, ...position }, translation: "copy", signal: context.signal }); groupId = existing.id;
+                } else invalid("shared formula has no preceding definition");
+              } else {
+                expression = readOpenFormula(f)?.source ?? formula(decodeXlsxString(f.text), id, position.row, position.column, context, semantics.arrayStringLiterals);
+                if (kind === "array") {
+                  groupId = `array-${position.row}-${position.column}`; arrayRange = range(attr(f, "ref"));
+                  groups.push({ id: groupId, kind: "array", expression, range: arrayRange, ...semantics });
+                }
+              }
+            }
+            if (value.kind !== "blank" || expression !== undefined) allocateRow(position.row);
+            if (arrayRange) for (let index = arrayRange.startRow; index <= arrayRange.endRow; index++) allocateRow(index);
+            const hasCache = type === "inlineStr" ? child(node, "is") !== undefined
+              : raw !== undefined && (raw !== "" || type === "str");
+            cells.push({ ...position, value, ...(expression === undefined ? {} : { formula: expression, ...semantics, formulaDirty: !hasCache,
+              ...(hasCache ? { cachedResult: value } : {}) }), ...(groupId ? { formulaGroup: groupId } : {}),
+              ...(style ?? {}), ...(richText ? { richText } : {}) });
           }
-          const hasCache = type === "inlineStr" ? child(node, "is") !== undefined
-            : raw !== undefined && (raw !== "" || type === "str");
-          cells.push({ ...position, value, ...(expression === undefined ? {} : { formula: expression, ...semantics, formulaDirty: !hasCache,
-            ...(hasCache ? { cachedResult: value } : {}) }), ...(groupId ? { formulaGroup: groupId } : {}),
-            ...(style ?? {}), ...(richText ? { richText } : {}) });
         }
       }
-      for (const metadata of rowState.values()) rows.push(metadata);
+      for (const metadata of rowState.values()) {
+        const allocatedHeight = allocatedRowHeights.get(metadata.index);
+        rows.push(metadata.sizePoints === undefined && allocatedHeight !== undefined && allocatedHeight !== defaultRowHeight
+          ? { ...metadata, sizePoints: allocatedHeight, style: { gnumeric: gnode("RowInfo", { HardSize: 0 }) } } : metadata);
+      }
       const columnState = new Map<number, AxisMetadata>();
       let expandedColumns = 0;
       for (const node of children(child(source, "cols"), "col")) {
@@ -525,13 +561,6 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
           || referencedDrawing && ["drawing", "vmlDrawing"].some(type => part.type === relationships + "/" + type))
           records.push(record(await opc.document(part.target), part.target));
       }
-      const defaultFormat = child(source, "sheetFormatPr");
-      const defaultWidth = attr(defaultFormat, "defaultColWidth"), baseWidth = attr(defaultFormat, "baseColWidth"), defaultHeight = attr(defaultFormat, "defaultRowHeight");
-      const dimensions: Record<string, ImportedValue> = {};
-      for (const value of [defaultWidth, baseWidth, defaultHeight]) if (value !== undefined && number(value) < 0) invalid("negative default dimension");
-      if (defaultWidth !== undefined && number(defaultWidth) > 0) dimensions.defaultColumnWidth = number(defaultWidth) * xlsxColumnWidthPoints;
-      else if (baseWidth !== undefined && number(baseWidth) > 0) dimensions.defaultColumnWidth = number(baseWidth) * xlsxColumnWidthPoints + 3.75;
-      if (defaultHeight !== undefined && number(defaultHeight) > 0) dimensions.defaultRowHeight = number(defaultHeight);
       const visibility = attr(sheetNode, "state");
       const sheetView = child(child(source, "sheetViews"), "sheetView");
       const viewAttributes: Record<string, ImportedValue> = {};

@@ -1,4 +1,5 @@
 import { parseXmlSteps, XmlLimitError, type XmlElement } from "@poe-code/safe-fs/xml";
+import { orderedCells } from "@poe-code/spreadsheet-engine/workbook/ordered-cells";
 import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-stream";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import { cellValueFormat } from "../workbook/value-format.js";
@@ -613,9 +614,9 @@ class XmlWriter {
     this.account(opening + ending);
     return nested ? opening + ">\n" + nested + `${indent}</${name}>\n` : opening + ending;
   }
-  *container(name: string, attrs: Readonly<Record<string, string | number>>, parts: Iterable<string>, depth = 0, omitEmpty = false): Generator<string> {
+  async *container(name: string, attrs: Readonly<Record<string, string | number>>, parts: Iterable<string> | AsyncIterable<string>, depth = 0, omitEmpty = false): AsyncGenerator<string> {
     let started = false;
-    for (const part of parts) {
+    for await (const part of parts) {
       if (!part) continue;
       if (!started) {
         this.admit(depth);
@@ -741,7 +742,7 @@ function* retainedParts(records: readonly UnsupportedRecord[] | undefined, kind:
 function emitRetained(records: readonly UnsupportedRecord[] | undefined, kind: string, depth: number, writer: XmlWriter): string {
   return records?.filter(r => r.source === "Gnumeric_XmlIO:sax" && r.kind === kind && r.disposition === "retained").map(r => emitRecord(r.data, depth, writer)).join("") ?? "";
 }
-function* emitNames(book: Workbook, sheet: Sheet | undefined, depth: number, writer: XmlWriter, context: CapabilityContext): Generator<string> {
+async function* emitNames(book: Workbook, sheet: Sheet | undefined, depth: number, writer: XmlWriter, context: CapabilityContext): AsyncGenerator<string> {
   function* entries(): Generator<string> {
     for (const n of book.names ?? []) {
       if (n.sheet !== sheet?.id) continue;
@@ -755,7 +756,7 @@ function* emitNames(book: Workbook, sheet: Sheet | undefined, depth: number, wri
   }
   yield* writer.container("gnm:Names", {}, entries(), depth, true);
 }
-function* emitMetadata(book: Workbook, writer: XmlWriter): Generator<string> {
+async function* emitMetadata(book: Workbook, writer: XmlWriter): AsyncGenerator<string> {
   const properties = book.properties;
   if (properties === undefined) { yield* retainedParts(book.unsupportedRecords, "document-meta", 1, writer); return; }
   function* entries(properties: NonNullable<Workbook["properties"]>): Generator<string> {
@@ -884,7 +885,7 @@ async function* gnumericChunks(book: Workbook, context: CapabilityContext): Asyn
   const maximum = context.limits.outputBytes;
   const writer = new XmlWriter(maximum, context);
   context.signal.throwIfAborted(); yield '<?xml version="1.0" encoding="UTF-8"?>\n';
-  function* body(): Generator<string> {
+  async function* body(): AsyncGenerator<string> {
     yield writer.element("gnm:Version", { Epoch: 1, Major: 12, Minor: 61, Full: "1.12.61" }, "", "", 1);
     yield* retainedParts(book.unsupportedRecords, "Attributes", 1, writer);
     yield* emitMetadata(book, writer);
@@ -901,7 +902,7 @@ async function* gnumericChunks(book: Workbook, context: CapabilityContext): Asyn
     yield* writer.container("gnm:SheetNameIndex", {}, sheetNames(), 1);
     yield* emitNames(book, undefined, 1, writer, context);
     yield* retainedParts(book.unsupportedRecords, "Geometry", 1, writer);
-    function* sheets(): Generator<string> {
+    async function* sheets(): AsyncGenerator<string> {
       for (const sheet of book.sheets) {
         context.signal.throwIfAborted();
         const view = object(sheet.view?.gnumeric); const attrs: Record<string, string | number> = {
@@ -910,7 +911,7 @@ async function* gnumericChunks(book: Workbook, context: CapabilityContext): Asyn
         if (view) for (const [key, val] of Object.entries(view)) if (typeof val === "string" && gnumericAttributes.Sheet?.includes(key)) attrs[key] = val;
         attrs.Visibility = sheet.visibility === "very-hidden" ? "GNM_SHEET_VISIBILITY_VERY_HIDDEN" : sheet.visibility === "hidden" ? "GNM_SHEET_VISIBILITY_HIDDEN" : "GNM_SHEET_VISIBILITY_VISIBLE";
         const extent = sheet.cells.reduce((max, cell) => ({ row: Math.max(max.row, cell.row), column: Math.max(max.column, cell.column) }), { row: 0, column: 0 });
-        function* content(): Generator<string> {
+        async function* content(): AsyncGenerator<string> {
           yield writer.element("gnm:Name", {}, sheet.name, "", 3) +
             writer.element("gnm:MaxCol", {}, String(extent.column), "", 3) +
             writer.element("gnm:MaxRow", {}, String(extent.row), "", 3) +
@@ -992,10 +993,8 @@ async function* gnumericChunks(book: Workbook, context: CapabilityContext): Asyn
           }
           yield* writer.container("gnm:Objects", {}, comments(), 3, true);
           if (typeof sheet.view?.initialTopLeft === "string") yield writer.element("gnm:SheetLayout", { TopLeft: sheet.view.initialTopLeft }, "", "", 3);
-          function* cellXml(): Generator<string> {
-            const ordered = sheet.cells.every((cell, index) => !index || sheet.cells[index - 1]!.row < cell.row ||
-              sheet.cells[index - 1]!.row === cell.row && sheet.cells[index - 1]!.column <= cell.column);
-            for (const cell of ordered ? sheet.cells : [...sheet.cells].sort((a, b) => a.row - b.row || a.column - b.column)) {
+          async function* cellXml(): AsyncGenerator<string> {
+            for await (const cell of orderedCells(sheet.cells, context)) {
               context.signal.throwIfAborted();
               if (!cell.formula && cell.value.kind === "blank") continue;
               const group = sheet.formulaGroups?.find(g => g.kind === "array" && cell.row >= g.range.startRow && cell.row <= g.range.endRow && cell.column >= g.range.startColumn && cell.column <= g.range.endColumn);

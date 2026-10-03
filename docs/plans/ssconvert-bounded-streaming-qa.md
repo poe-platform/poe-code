@@ -3,7 +3,8 @@
 This is a manual execution plan, not a completed Worker qualification. Incremental
 CSV/text range input and incremental output, plus caller-backed input staging,
 are available. Gnumeric XML and gzip exporters also stream encoded output; cells,
-individual fields, retained subtrees, and unordered-cell sorting remain resident.
+individual fields and retained subtrees remain resident. Gnumeric cell ordering
+uses bounded caller-backed merge runs when working storage is configured.
 XLSX and ODF also read compressed archives through retained ranges;
 their directories use caller-backed indexes when working storage is configured.
 ODF decrypted members and wrapped inner packages are still buffered.

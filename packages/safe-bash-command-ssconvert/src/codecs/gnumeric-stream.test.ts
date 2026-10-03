@@ -1,4 +1,5 @@
 import { expect, it, vi } from "vitest";
+import { createMemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createHash } from "node:crypto";
 import { gunzipSync } from "node:zlib";
 import { createEngine, defaultSsconvertLimits } from "@poe-code/spreadsheet-engine";
@@ -98,4 +99,35 @@ it("preserves a serialization failure while gzip is consuming XML", async () => 
   const book = workbook(), reason = new Error("serialization failed");
   Object.defineProperty(book.sheets[0]!.cells.at(-1), "value", { get() { throw reason; } });
   await expect(async () => { for await (const chunk of writeCompressedGnumericStream(book, [], context())) void chunk; }).rejects.toBe(reason);
+});
+
+
+it("sorts Gnumeric cells through injected storage with bounded in-memory runs", async () => {
+  const fs = createMemoryFileSystem(), open = fs.open.bind(fs);
+  let persisted = 0;
+  vi.spyOn(fs, "readFile").mockRejectedValue(new Error("whole-file read"));
+  vi.spyOn(fs, "writeFile").mockRejectedValue(new Error("whole-file write"));
+  vi.spyOn(fs, "open").mockImplementation(async (...args) => {
+    const handle = await open(...args), write = handle.write.bind(handle);
+    vi.spyOn(handle, "write").mockImplementation(async (bytes, ...args) => { persisted += bytes.length; return write(bytes, ...args); });
+    return handle;
+  });
+  const original = workbook();
+  const raw = { ...original, sheets: [{ ...original.sheets[0]!, cells: [...original.sheets[0]!.cells].reverse() }] };
+  const expected = await writeGnumeric(raw, [], context());
+  const engine = createEngine({ workingFiles: { fs, directory: "/", cacheBytes: 16384 }, formats: [provider] });
+  const operation = { signal: new AbortController().signal };
+  try {
+    const book = await engine.adoptWorkbook(raw, operation), chunks: Uint8Array[] = [];
+    const nativeSort = Array.prototype.sort;
+    const sorting = vi.spyOn(Array.prototype, "sort").mockImplementation(function(this: unknown[], compare) {
+      expect(this.length).toBeLessThanOrEqual(1024); return nativeSort.call(this, compare);
+    });
+    try {
+      await engine.writeWorkbook(book, { kind: "stream", sink: { async write(bytes) { await Promise.resolve(); chunks.push(bytes.slice()); } } },
+        { exportType: "Gnumeric_XmlIO:sax:0" }, operation);
+    } finally { sorting.mockRestore(); }
+    expect(Buffer.concat(chunks)).toEqual(Buffer.from(expected));
+    expect(persisted).toBeGreaterThan(0); expect(await fs.readdir("/")).toEqual([]);
+  } finally { await engine.dispose(); }
 });

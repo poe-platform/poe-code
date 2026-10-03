@@ -667,6 +667,13 @@
         "../safe-bash-command-fgrep/src/*.ts",
         "../safe-bash-command-fgrep/src/*"
       ],
+      "safe-bash-command-rgrep": [
+        "../safe-bash-command-rgrep/src/index.ts"
+      ],
+      "safe-bash-command-rgrep/*": [
+        "../safe-bash-command-rgrep/src/*.ts",
+        "../safe-bash-command-rgrep/src/*"
+      ],
       "safe-bash-command-ffmpeg": [
         "../safe-bash-command-ffmpeg/src/index.ts"
       ],

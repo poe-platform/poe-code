@@ -197,6 +197,7 @@ export { readlinkCommands, createReadlinkCommand, createReadlinkCommands, type R
 export { realpathCommands, createRealpathCommand, createRealpathCommands, type RealpathCommandsOptions } from "./commands/realpath/index.js";
 export { revCommands, createRevCommand, createRevCommands, type RevCommandsOptions } from "./commands/rev/index.js";
 export { rgCommands, createRgCommand, createRgCommands, type RgCommandsOptions } from "./commands/rg/index.js";
+export { rgrepCommands, createRgrepCommand, createRgrepCommands, type RgrepCommandsOptions, type RgrepLimits } from "./commands/rgrep/index.js";
 export { seqCommands, createSeqCommand, createSeqCommands, type SeqCommandsOptions } from "./commands/seq/index.js";
 export { sha1sumCommands, createSha1sumCommand, createSha1sumCommands, type Sha1sumCommandsOptions } from "./commands/sha1sum/index.js";
 export { sha256sumCommands, createSha256sumCommand, createSha256sumCommands, type Sha256sumCommandsOptions } from "./commands/sha256sum/index.js";

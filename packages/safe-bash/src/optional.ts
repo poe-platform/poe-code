@@ -62,6 +62,8 @@ export { createEgrepCommand, createEgrepCommands, egrepCommands } from "./comman
 export type { EgrepCommandsOptions, EgrepLimits } from "./commands/egrep/index.js";
 export { createFgrepCommand, createFgrepCommands, fgrepCommands } from "./commands/fgrep/index.js";
 export type { FgrepCommandsOptions, FgrepLimits } from "./commands/fgrep/index.js";
+export { createRgrepCommand, createRgrepCommands, rgrepCommands } from "./commands/rgrep/index.js";
+export type { RgrepCommandsOptions, RgrepLimits } from "./commands/rgrep/index.js";
 export { createRgCommand, createRgCommands, rgCommands } from "./commands/rg/index.js";
 export type { RgCommandsOptions, RgLimits } from "./commands/rg/index.js";
 export { createBase64Command, createBase64Commands, base64Commands } from "./commands/base64/index.js";

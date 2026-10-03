@@ -4,7 +4,7 @@ import { pythonCodecs } from "./codecs/python.js";
 import { databases as databaseDialects } from "./databases.js";
 import { defaultSniffStreamProfile } from "./csv/sniffer-profile.js";
 import { createGzipCompressionProvider } from "./io/compression.js";
-import { createCompressionCodec } from "@poe-code/office-package/compression";
+import { createCompressionCodec } from "@poe-code/compression";
 import { createDefaultSqliteDatabaseProvider } from "./default-sqlite.js";
 import { portableLocale } from "./portable-locale.js";
 import { commands } from "./commands.js";

@@ -549,7 +549,8 @@
           },
           "devDependencies": {
             "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
+            "@poe-code/safe-fs": "*",
+            "@poe-code/compression": "*"
           },
           "portable": true
         },
@@ -719,7 +720,8 @@
             "@antonz/python-wasi": "3.12.0",
             "@bjorn3/browser_wasi_shim": "0.4.2",
             "binaryen": "123.0.0",
-            "fflate": "0.8.2"
+            "fflate": "0.8.2",
+            "@poe-code/compression": "*"
           },
           "portable": true
         },
@@ -1237,7 +1239,7 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",
-            "@poe-code/office-package": "*"
+            "@poe-code/compression": "*"
           },
           "assets": [
             "./dist/native/sources.json",
@@ -1522,10 +1524,11 @@
         },
         "@poe-code/pdf-ast": {
           "version": "0.0.1",
-          "dependencies": {
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/compression": "*",
             "pako": "3.0.1"
           },
-          "devDependencies": {},
           "portable": true
         },
         "safe-bash-command-awk": {
@@ -1800,10 +1803,11 @@
           "version": "0.0.1",
           "dependencies": {
             "pdf-lib": "1.17.1",
-            "@pdf-lib/fontkit": "1.1.1",
-            "pako": "3.0.1"
+            "@pdf-lib/fontkit": "1.1.1"
           },
-          "devDependencies": {},
+          "devDependencies": {
+            "@poe-code/compression": "*"
+          },
           "portable": true
         },
         "safe-bash-pptx-engine": {

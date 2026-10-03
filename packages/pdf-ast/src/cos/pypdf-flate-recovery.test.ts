@@ -40,3 +40,20 @@ it.each([65535, 65536, 65537, 200000])("retains all recovered gzip chunks with a
   expect(() => decodeFlate(compressed, undefined, length - 1))
     .toThrow(expect.objectContaining({ code: "E_LIMIT" }));
 });
+
+it("retains concatenated gzip fallback members", async () => {
+  const { gzipSync } = await import("node:zlib");
+  const first = gzipSync(new TextEncoder().encode("first"));
+  const second = gzipSync(new TextEncoder().encode("second"));
+  const joined = new Uint8Array(first.length + second.length);
+  joined.set(first); joined.set(second, first.length);
+  expect(new TextDecoder().decode(decodeFlate(joined))).toBe("firstsecond");
+});
+
+it("retains a zlib member following a gzip fallback member within the decoded budget", async () => {
+  const { gzipSync, deflateSync } = await import("node:zlib");
+  const joined = Buffer.concat([gzipSync("first"), deflateSync("second")]);
+  expect(new TextDecoder().decode(decodeFlate(joined, undefined, 11))).toBe("firstsecond");
+  expect(() => decodeFlate(joined, undefined, 10))
+    .toThrow(expect.objectContaining({ code: "E_LIMIT" }));
+});

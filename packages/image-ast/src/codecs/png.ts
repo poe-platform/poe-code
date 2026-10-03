@@ -1,61 +1,25 @@
-import { Deflate, Inflate } from "pako";
-
-function detachZStreamState(state: Record<string, { buffer?: { transfer?: (n: number) => ArrayBuffer } }> | undefined | null): void {
-  if (!state) return;
-  for (const key of ["window", "prev", "head", "pending_buf", "dyn_ltree", "dyn_dtree", "bl_tree", "bl_count", "heap", "depth"]) {
-    const buf = state[key]?.buffer;
-    if (buf && typeof buf.transfer === "function") {
-      try { buf.transfer(0); } catch { /* Detachment is best effort for host buffers. */ }
-    }
-  }
-}
+import { createByteCodec, transformBytes, ByteCodecError } from "@poe-code/compression";
 
 function inflatePngIdat(compressed: Uint8Array, target: Uint8Array): Uint8Array {
-  const inf = new Inflate();
-  const state = (inf as unknown as { strm?: { state?: Record<string, { buffer?: { transfer?: (n: number) => ArrayBuffer } }> } }).strm?.state;
+  const codec = createByteCodec({ direction: "decode", format: "zlib-or-gzip" });
   let written = 0;
-  let overflow = null as Uint8Array[] | null;
-  (inf as unknown as { onStart: (strm: { output: Uint8Array; next_out: number; avail_out: number }) => void }).onStart = (strm) => {
-    strm.output = target;
-    strm.next_out = 0;
-    strm.avail_out = target.length;
-  };
-  inf.onData = (chunk: Uint8Array) => {
-    if (!overflow && chunk.buffer === target.buffer) {
+  const overflow: Uint8Array[] = [];
+  try {
+    for (const chunk of codec.push(compressed, true)) {
+      const take = Math.min(chunk.length, Math.max(0, target.length - written));
+      target.set(chunk.subarray(0, take), Math.min(written, target.length));
+      if (take < chunk.length) overflow.push(chunk.subarray(take));
       written += chunk.length;
-      if (written < target.length) {
-        (inf as unknown as { strm: { output: Uint8Array; next_out: number; avail_out: number } }).strm.output = target.subarray(written);
-        (inf as unknown as { strm: { output: Uint8Array; next_out: number; avail_out: number } }).strm.next_out = 0;
-        (inf as unknown as { strm: { output: Uint8Array; next_out: number; avail_out: number } }).strm.avail_out = target.length - written;
-      }
-    } else {
-      if (!overflow) overflow = [target.subarray(0, written)];
-      overflow.push(chunk);
     }
-  };
-  inf.onEnd = () => {};
-  inf.push(compressed, true);
-  detachZStreamState(state);
-  if (inf.err) throw new Error(inf.msg || "PNG inflate failed");
-  if (!overflow) return target.subarray(0, written);
-  const total = overflow.reduce((s, c) => s + c.length, 0);
-  const out = new Uint8Array(total);
-  let off = 0;
-  for (const c of overflow) {
-    out.set(c, off);
-    off += c.length;
-  }
-  return out;
+  } finally { codec.close(); }
+  if (!overflow.length) return target.subarray(0, written);
+  const output = new Uint8Array(written);
+  output.set(target);
+  let offset = target.length;
+  for (const chunk of overflow) { output.set(chunk, offset); offset += chunk.length; }
+  return output;
 }
 
-function deflatePngScanlines(raw: Uint8Array, level: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9): Uint8Array {
-  const def = new Deflate({ level });
-  const state = (def as unknown as { strm?: { state?: Record<string, { buffer?: { transfer?: (n: number) => ArrayBuffer } }> } }).strm?.state;
-  def.push(raw, true);
-  detachZStreamState(state);
-  if (def.err) throw new Error(def.msg || "PNG deflate failed");
-  return def.result;
-}
 import type { ImageMetadata, RgbaImage } from "../ast.js";
 import { buildExifApp1Segment, parseExifBuffer } from "./exif.js";
 
@@ -609,7 +573,7 @@ export function encodePngImage(
     | 7
     | 8
     | 9;
-  const compressed = deflatePngScanlines(raw, level);
+  const compressed = transformBytes(raw, { direction: "encode", format: "zlib", level });
   if (typeof (raw.buffer as any).transfer === "function" && (options?.consumeInput || (raw.byteOffset === 0 && raw.byteLength === raw.buffer.byteLength))) {
     try { (raw.buffer as any).transfer(0); } catch { /* Buffer detachment is best-effort; ordinary garbage collection remains available. */ }
   }
@@ -705,9 +669,8 @@ export function decodePngToCanvas(
   let rowFill = 0;
   let anyTransparent = false;
 
-  const inf = new Inflate({ chunkSize: 65536 });
-  const state = (inf as unknown as { strm?: { state?: Record<string, { buffer?: { transfer?: (n: number) => ArrayBuffer } }> } }).strm?.state;
-  inf.onData = (chunk: Uint8Array) => {
+  const inf = createByteCodec({ direction: "decode", format: "zlib-or-gzip" });
+  const onData = (chunk: Uint8Array) => {
     let cOff = 0;
     while (cOff < chunk.length && y < height) {
       const need = rowStride - rowFill;
@@ -770,12 +733,14 @@ export function decodePngToCanvas(
       try { (chunk.buffer as unknown as { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch { /* Detachment is best effort for host buffers. */ }
     }
   };
-  inf.onEnd = () => {};
-  for (let i = 0; i < idatChunks.length; i++) {
-    inf.push(idatChunks[i]!, i === idatChunks.length - 1);
-    if (inf.err) break;
-  }
-  detachZStreamState(state);
-  if (inf.err || y < height) return undefined;
+  try {
+    for (let i = 0; i < idatChunks.length; i++) {
+      for (const chunk of inf.push(idatChunks[i]!, i === idatChunks.length - 1)) onData(chunk);
+    }
+  } catch (error) {
+    if (error instanceof ByteCodecError) return undefined;
+    throw error;
+  } finally { inf.close(); }
+  if (y < height) return undefined;
   return { width, height, anyTransparent };
 }

@@ -99,7 +99,7 @@ for (const defect of ["none", "public", "closure", "source", "link", "mixed-nati
 for (const defect of ["none", "pin", "name", "version", "export", "lua-export", "lua-dependency", "pdf-export", "closure", "missing-docx", "missing-ssconvert", "fengari-version", "link", "source-import", "runtime-import", "unapproved-import", "fengari-import"]) test(`build explicit Pandoc SDK declaration admission: ${defect}`, async () => {
   const exports = {".": {types: "./dist/index.d.ts", import: "./dist/index.js"}};
   const pandoc = {name: "safe-bash-command-pandoc", version: "0.0.1", private: true, type: "module", exports: { ...exports, "./command": { types: "./dist/command.d.ts", import: "./dist/command.js" }, "./lua-filters": { types: "./dist/lua-filters.d.ts", import: "./dist/lua-filters.js" }, "./citeproc-filters": { types: "./dist/citeproc-filters.d.ts", import: "./dist/citeproc-filters.js" } }, dependencies: {"@poe-code/office-package": "*", citeproc: "2.4.63", entities: "^6.0.1", fengari: "^0.1.5", "@poe-code/image-ast": "*", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", yaml: "2.9.0", "safe-bash-pdf-engine": "0.0.1", "@poe-code/pdf-ast": "*", "safe-bash-presentation-engine": "*", "safe-bash-docx-engine": "*", "safe-bash-command-ssconvert": "*", "safe-bash-markdown-engine": "*"}};
-  const pdf = {name: "safe-bash-pdf-engine", version: "0.0.1", private: true, type: "module", exports, dependencies: {"pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1", pako: "3.0.1"}};
+  const pdf = {name: "safe-bash-pdf-engine", version: "0.0.1", private: true, type: "module", exports, dependencies: {"pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1"}};
   const profile = {version: "0.0.1", dependencies: structuredClone(pandoc.dependencies), devDependencies: {}};
   const owned = fixture({
     "package.json": JSON.stringify({name: "virtual-bash", private: true, type: "module", devDependencies: {"safe-bash-command-pandoc": defect === "pin" ? "unapproved" : "*", "safe-bash-pdf-engine": "*"}, poeCode: {integration: {privateWorkspaces: {"safe-bash-command-pandoc": profile}}}}),
@@ -109,7 +109,7 @@ for (const defect of ["none", "pin", "name", "version", "export", "lua-export", 
     "../safe-bash-command-pandoc/dist/lua-filters.d.ts": "export declare function filter(): void;",
     "../safe-bash-command-pandoc/dist/citeproc-filters.d.ts": "export declare function citeprocFilter(): void;",
     "../safe-bash-command-pandoc/dist/index.d.ts": 'export type { Page } from "safe-bash-pdf-engine"; export type { PdfNode } from "@poe-code/pdf-ast";',
-    "../pdf-ast/package.json": JSON.stringify({name: "@poe-code/pdf-ast", version: "0.0.1", private: true, type: "module", exports, dependencies: {pako: "3.0.1"}}),
+    "../pdf-ast/package.json": JSON.stringify({name: "@poe-code/pdf-ast", version: "0.0.1", private: true, type: "module", exports, dependencies: {}}),
     "../pdf-ast/dist/index.d.ts": 'export interface PdfNode { text: string; }',
     "../safe-bash-pdf-engine/package.json": JSON.stringify(pdf),
     "../safe-bash-pdf-engine/dist/index.d.ts": 'export type { Page } from "./model.js";',
@@ -223,11 +223,11 @@ for (const dependency of ["@noble/hashes", "@noble/ciphers", "pako", "@poe-code/
   noHeldReads(owned);
 });
 
-for (const profile of ["dependencies", "devDependencies"]) for (const defect of ["none", "version", "dependency", "export", "link", "source-import"]) test(`build shared archive declaration admission: ${defect}${profile === "devDependencies" ? " development profile" : ""}`, async () => {
+for (const profile of ["dependencies", "devDependencies"]) for (const defect of ["none", "version", "dependency", "export", "link", "source-import", "codec-version", "codec-dependency", "codec-export", "codec-source-import", "codec-link"]) test(`build shared archive declaration admission: ${defect}${profile === "devDependencies" ? " development profile" : ""}`, async () => {
   const shared = "node_modules/@poe-code/office-package";
   const metadata = {
     name: "@poe-code/office-package", version: "0.0.1", type: "module",
-    dependencies: { pako: "3.0.1" },
+    dependencies: { "@poe-code/compression": "*", pako: "3.0.1" },
     exports: {
       ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
       "./zip": { types: "./dist/zip.d.ts", import: "./dist/zip.js" },
@@ -235,6 +235,8 @@ for (const profile of ["dependencies", "devDependencies"]) for (const defect of 
       "./zip-sync": { types: "./dist/zip-sync.d.ts", import: "./dist/zip-sync.js" },
     },
   };
+  const codec = "node_modules/@poe-code/compression";
+  const codecMetadata = { name: "@poe-code/compression", version: "0.0.1", private: true, type: "module", dependencies: { pako: "3.0.1" }, exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } } };
   const owned = fixture({
     "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", [profile]: { "@noble/hashes": "2.4.0", "@noble/ciphers": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*" } }),
     "src/index.ts": 'export { archive } from "@poe-code/office-package/zip";',
@@ -244,11 +246,31 @@ for (const profile of ["dependencies", "devDependencies"]) for (const defect of 
     "node_modules/pako/package.json": JSON.stringify({ name: "pako", version: "3.0.1" }),
     [shared + "/package.json"]: JSON.stringify(metadata),
     [shared + "/dist/index.d.ts"]: 'export { archive } from "./zip.js";',
-    [shared + "/dist/zip.d.ts"]: "export declare const archive: number;",
+    [shared + "/dist/zip.d.ts"]: 'export { archive } from "@poe-code/compression";',
+    [codec + "/package.json"]: JSON.stringify(codecMetadata),
+    [codec + "/dist/index.d.ts"]: "export declare const archive: number;",
+    [codec + "/src/private.d.ts"]: "export declare const hidden: number;",
     [shared + "/dist/compression.d.ts"]: "export declare const compression: number;",
     [shared + "/dist/zip-sync.d.ts"]: "export declare const storedArchive: number;",
     [shared + "/src/private.d.ts"]: "export declare const hidden: number;",
   });
+  if (defect.startsWith("codec-")) {
+    if (defect === "codec-version") codecMetadata.version = "0.0.2";
+    if (defect === "codec-dependency") codecMetadata.dependencies.extra = "1.0.0";
+    if (defect === "codec-export") codecMetadata.exports["."].types = "./src/private.d.ts";
+    owned.memory.writeFileSync(root + "/" + codec + "/package.json", JSON.stringify(codecMetadata));
+    if (defect === "codec-source-import") {
+      owned.memory.writeFileSync(root + "/" + codec + "/dist/index.d.ts", 'export { hidden } from "../src/private.js";');
+      assert.notEqual((await owned.run()).status, 0);
+      assert.equal(owned.reads.some(path => path.endsWith("/src/private.d.ts")), false);
+    } else if (defect === "codec-link") {
+      owned.memory.unlinkSync(root + "/" + codec + "/dist/index.d.ts");
+      owned.memory.symlinkSync(root + "/" + codec + "/src/private.d.ts", root + "/" + codec + "/dist/index.d.ts");
+      await assert.rejects(owned.run(), /symlink/);
+    } else await assert.rejects(owned.run(), /shared compression/);
+    assert.equal(owned.descriptors.size, 0);
+    return;
+  }
   if (defect === "version") metadata.version = "0.0.2";
   if (defect === "dependency") metadata.dependencies.extra = "1.0.0";
   if (defect === "export") metadata.exports["./zip"].types = "./src/private.d.ts";

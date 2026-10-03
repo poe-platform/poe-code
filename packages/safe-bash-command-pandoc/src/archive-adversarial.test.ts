@@ -1,6 +1,6 @@
 import { beforeAll, expect, it, vi } from "vitest";
 import { createZipCodec, type ZipLimits } from "@poe-code/office-package/zip";
-import { createCompressionCodec } from "@poe-code/office-package/compression";
+import { createCompressionCodec } from "@poe-code/compression";
 import { suppliedDefaultFont } from "safe-bash-pdf-engine";
 import { convert, createFormatRegistry, writeDocument } from "./index.js";
 import { createExecutionContext } from "./execution.js";

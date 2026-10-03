@@ -1,6 +1,6 @@
 import { parseFragment, defaultTreeAdapter as tree, type DefaultTreeAdapterTypes as H } from "parse5";
 import { createZipCodec, type ZipEntry, type ZipLimits } from "@poe-code/office-package/zip";
-import { createCompressionCodec } from "@poe-code/office-package/compression";
+import { createCompressionCodec } from "@poe-code/compression";
 import { writeHtml5 } from "./html-writer.js";
 import { PandocError } from "./errors.js";
 import type { AdapterContext, WriterCapability } from "./types.js";

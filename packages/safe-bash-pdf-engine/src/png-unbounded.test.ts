@@ -1,6 +1,6 @@
 import {expect, it, vi} from "vitest";
 const reachedInflater = new Error("admitted scanline allocation");
-vi.mock("pako", () => ({Inflate: class {constructor() {throw reachedInflater;}}}));
+vi.mock("@poe-code/compression", () => ({createByteCodec() {throw reachedInflater;}}));
 import {decodePng} from "./png.js";
 function chunk(name: string, data: Uint8Array) {
   const bytes = new Uint8Array(data.length + 12), view = new DataView(bytes.buffer);

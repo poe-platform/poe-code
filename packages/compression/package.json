@@ -1,5 +1,5 @@
 {
-  "name": "@poe-code/office-package",
+  "name": "@poe-code/compression",
   "version": "0.0.1",
   "private": true,
   "license": "MIT",
@@ -10,18 +10,6 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./zip": {
-      "types": "./dist/zip.d.ts",
-      "import": "./dist/zip.js"
-    },
-    "./compression": {
-      "types": "./dist/compression.d.ts",
-      "import": "./dist/compression.js"
-    },
-    "./zip-sync": {
-      "types": "./dist/zip-sync.d.ts",
-      "import": "./dist/zip-sync.js"
     }
   },
   "files": [
@@ -30,17 +18,16 @@
   ],
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
-    "test": "cd ../.. && vitest run packages/office-package",
-    "test:unit": "cd ../.. && vitest run packages/office-package",
+    "test": "cd ../.. && vitest run packages/compression",
+    "test:unit": "cd ../.. && vitest run packages/compression",
     "lint": "eslint src && tsc --noEmit && tsc -p tsconfig.test.json"
   },
   "dependencies": {
-    "pako": "3.0.1",
-    "@poe-code/compression": "*"
+    "pako": "3.0.1"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
-    "directory": "packages/office-package"
+    "directory": "packages/compression"
   }
 }

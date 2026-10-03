@@ -1,4 +1,4 @@
-import {Inflate} from "pako";
+import {createByteCodec} from "@poe-code/compression";
 import {PdfError} from "./errors.js";
 const invalid = (message: string): never => {throw new PdfError("E_CAPABILITY", message);};
 function crc(bytes: Uint8Array): number {
@@ -47,16 +47,20 @@ export function decodePng(bytes: Uint8Array, work: (amount: number) => void): {w
   if (!Number.isSafeInteger(expected)) throw new PdfError("E_LIMIT", "PNG scanline limit exceeded");
   work(expected);
   const raw = new Uint8Array(expected); let used = 0;
-  const inflater = new Inflate({chunkSize: Math.min(16384, expected + 1), windowBits: 15});
-  inflater.onData = chunk => {
-    if (chunk.length > expected - used) throw new PdfError("E_LIMIT", "PNG inflation exceeds declared scanlines");
-    raw.set(chunk, used); used += chunk.length;
-  };
-  for (let i = 0; i < data.length; i++) {
-    if (inflater.ended && data[i]!.length) invalid("Trailing PNG compressed data");
-    if (!inflater.push(data[i]!, i + 1 === data.length)) invalid("Invalid PNG compression");
-  }
-  if (!inflater.ended || inflater.err || used !== expected) invalid("Truncated PNG scanlines");
+  const inflater = createByteCodec({direction: "decode", format: "zlib", chunkSize: Math.min(16384, expected + 1)});
+  try {
+    for (let i = 0; i < data.length; i++) {
+      if (inflater.complete && data[i]!.length) invalid("Trailing PNG compressed data");
+      for (const chunk of inflater.push(data[i]!, i + 1 === data.length)) {
+        if (chunk.length > expected - used) throw new PdfError("E_LIMIT", "PNG inflation exceeds declared scanlines");
+        raw.set(chunk, used); used += chunk.length;
+      }
+    }
+    if (!inflater.complete || used !== expected) invalid("Truncated PNG scanlines");
+  } catch (error) {
+    if (error instanceof PdfError) throw error;
+    invalid("Invalid PNG compression");
+  } finally { inflater.close(); }
   for (let row = 0; row < height; row++) {
     const at = row * (stride + 1); const filter = raw[at]!; if (filter > 4) invalid("Invalid PNG row filter");
     for (let i = 0; i < stride; i++) {

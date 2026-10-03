@@ -1,5 +1,5 @@
 import { test, expect } from "vitest";
-import { createCompressionCodec } from "@poe-code/office-package/compression";
+import { createCompressionCodec } from "@poe-code/compression";
 import { createGzipCompressionProvider } from "./compression.js";
 
 const signal = new AbortController().signal;

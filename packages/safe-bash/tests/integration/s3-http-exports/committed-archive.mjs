@@ -20,6 +20,11 @@ const sharedExports = Object.freeze({
   "./compression": { types: "./dist/compression.d.ts", import: "./dist/compression.js" },
   "./zip-sync": { types: "./dist/zip-sync.d.ts", import: "./dist/zip-sync.js" },
 });
+const sharedWorkspaces = [
+  { name: "@poe-code/compression", prefix: "packages/compression", paths: ["tsconfig.json", ...["package.json", "tsconfig.json", "LICENSE", "src/index.ts", "src/runtime.ts", "src/bytes.ts"].map(path => "packages/compression/" + path)], exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } }, dependencies: { pako: "3.0.1" } },
+  { name: sharedName, prefix: sharedPrefix, paths: sharedPaths, exports: sharedExports, dependencies: { "@poe-code/compression": "*", pako: "3.0.1" } },
+];
+const capturedPaths = [...new Set(sharedWorkspaces.flatMap(workspace => workspace.paths))];
 const sharedArtifactBindings = new WeakSet();
 const workspacePrerequisiteBindings = new WeakSet();
 export const digest = bytes => createHash("sha256").update(bytes).digest("hex");
@@ -255,13 +260,15 @@ export function assertArchiveDependencyLock(manifest, lock) {
   if (!Object.keys(manifest.dependencies ?? {}).length)
     assert.deepEqual(lock.packages?.[packagePrefix]?.devDependencies, manifest.devDependencies, "development dependency workspace lock drift");
   if (Object.hasOwn(dependencies, sharedName)) {
-    assert.deepEqual(lock.packages["node_modules/" + sharedName], { resolved: sharedPrefix, link: true }, "shared archive workspace lock link");
-    const shared = lock.packages[sharedPrefix];
-    assert.equal(shared?.name, sharedName, "shared archive workspace lock identity");
-    assert.equal(shared.version, "0.0.1", "shared archive workspace lock version");
-    assert.deepEqual(shared.dependencies, { pako: "3.0.1" }, "shared archive workspace dependency closure");
-    for (const field of ["optionalDependencies", "peerDependencies", "bundledDependencies", "bundleDependencies"]) assert.equal(Object.keys(shared[field] ?? {}).length, 0, "shared archive workspace dependency closure");
-    for (const prefix of [packagePrefix, "packages", sharedPrefix]) assert.equal(lock.packages[prefix + "/node_modules/" + sharedName], undefined, "shared archive shadowed workspace");
+    for (const workspace of sharedWorkspaces) {
+      assert.deepEqual(lock.packages["node_modules/" + workspace.name], { resolved: workspace.prefix, link: true }, "shared archive workspace lock link");
+      const shared = lock.packages[workspace.prefix];
+      assert.equal(shared?.name, workspace.name, "shared archive workspace lock identity");
+      assert.equal(shared.version, "0.0.1", "shared archive workspace lock version");
+      assert.deepEqual(shared.dependencies, workspace.dependencies, "shared archive workspace dependency closure");
+      for (const field of ["optionalDependencies", "peerDependencies", "bundledDependencies", "bundleDependencies"]) assert.equal(Object.keys(shared[field] ?? {}).length, 0, "shared archive workspace dependency closure");
+      for (const prefix of [packagePrefix, "packages", ...sharedWorkspaces.map(workspace => workspace.prefix)]) assert.equal(lock.packages[prefix + "/node_modules/" + workspace.name], undefined, "shared archive shadowed workspace");
+    }
   }
   for (const [name, approved] of Object.entries(approvedDependencies)) {
     const entry = lock.packages[`node_modules/${name}`];
@@ -269,17 +276,18 @@ export function assertArchiveDependencyLock(manifest, lock) {
     for (const field of ["version", "resolved", "integrity"]) assert.equal(entry[field], approved[field], `dependency lock ${field}: ${name}`);
     for (const field of ["dependencies", "optionalDependencies", "peerDependencies", "bundledDependencies", "bundleDependencies"]) assert.equal(Object.keys(entry[field] ?? {}).length, 0, `transitive dependency ${field}: ${name}`);
     assert.ok(entry.link === undefined && entry.hasInstallScript !== true, `dependency link or install script: ${name}`);
-    for (const prefix of [packagePrefix, "packages", ...(Object.hasOwn(dependencies, sharedName) ? [sharedPrefix] : [])]) assert.equal(lock.packages[`${prefix}/node_modules/${name}`], undefined, `shadowed dependency lock: ${name}`);
+    for (const prefix of [packagePrefix, "packages", ...(Object.hasOwn(dependencies, sharedName) ? sharedWorkspaces.map(workspace => workspace.prefix) : [])]) assert.equal(lock.packages[`${prefix}/node_modules/${name}`], undefined, `shadowed dependency lock: ${name}`);
   }
   return dependencies;
 }
 
 export function captureSharedArchiveSources(repository, fileSystem) {
   assertCanonicalRoot(repository, fileSystem);
-  return new Map(sharedPaths.map(path => [path, Buffer.from(readRegularInput(repository, path, 300000, fileSystem))]));
+  return new Map(capturedPaths.map(path => [path, Buffer.from(readRegularInput(repository, path, 300000, fileSystem))]));
 }
 
-function sharedSourceInputs(candidate) {
+function sharedSourceInputs(candidate, workspace) {
+  const { name: sharedName, prefix: sharedPrefix, paths: sharedPaths, exports: sharedExports } = workspace;
   assert.ok(candidate.files instanceof Map, "shared archive captured sources are required");
   const files = new Map();
   for (const path of sharedPaths) {
@@ -292,7 +300,7 @@ function sharedSourceInputs(candidate) {
   assert.equal(metadata.version, "0.0.1", "shared archive package version");
   assert.equal(metadata.type, "module", "shared archive module type");
   assert.equal(metadata.private, true, "shared archive private package");
-  assert.deepEqual(metadata.dependencies, { pako: "3.0.1" }, "shared archive dependency closure");
+  assert.deepEqual(metadata.dependencies, workspace.dependencies, "shared archive dependency closure");
   assert.deepEqual(metadata.exports, sharedExports, "shared archive exported files");
   assert.deepEqual(metadata.files, ["dist", "LICENSE"], "shared archive packed files");
   for (const field of ["optionalDependencies", "peerDependencies", "bundledDependencies", "bundleDependencies"]) assert.equal(Object.keys(metadata[field] ?? {}).length, 0, "shared archive dependency closure");
@@ -308,10 +316,11 @@ function sharedSourceInputs(candidate) {
     assert.equal(value.references, undefined, "shared archive references are unsupported");
     assert.equal(value.compilerOptions?.plugins, undefined, "shared archive compiler plugins are unsupported");
   }
-  return { files, metadata };
+  return { files, metadata, workspace };
 }
 
 function buildSharedArchive(candidate, tools, dependencies, captured) {
+  const { prefix: sharedPrefix, paths: sharedPaths, exports: sharedExports } = captured.workspace;
   const compilerRoot = tools.packages.typescript;
   const metadataBytes = readRegularInput(compilerRoot, "package.json", 100000);
   const compilerMetadata = JSON.parse(metadataBytes);
@@ -370,6 +379,26 @@ function buildSharedArchive(candidate, tools, dependencies, captured) {
 export function assertRootShellExports(manifest, rootManifest) {
   const checkout = manifest.poeCode?.integration?.peerProfile === "checkout-root";
   const facadeExports = {
+    "./safe-bash/audio-ast": {
+      "types": "./dist/types/safe-bash/audio-ast.d.ts",
+      "import": "./packages/safe-bash/dist/audio-ast.browser.js"
+    },
+    "./safe-bash/commands/audio": {
+      "types": "./dist/types/safe-bash/commands/audio/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/audio/index.browser.js"
+    },
+    "./safe-bash/commands/ffprobe": {
+      "types": "./dist/types/safe-bash/commands/ffprobe/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/ffprobe/index.browser.js"
+    },
+    "./safe-bash/commands/sox": {
+      "types": "./dist/types/safe-bash/commands/sox/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/sox/index.browser.js"
+    },
+    "./safe-bash/commands/soxi": {
+      "types": "./dist/types/safe-bash/commands/soxi/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/soxi/index.browser.js"
+    },
     "./safe-bash": {
       "types": {
         "workerd": "./dist/types/safe-bash/core.d.ts",
@@ -472,7 +501,7 @@ export function mirrorArchiveExportTargets(target) {
 
 export async function prepareArchiveDependencies(candidate, tools, directory, { artifacts = {}, fileSystem = { lstatSync, readdirSync, readFileSync, mkdirSync, writeFileSync } } = {}) {
   const names = Object.keys(assertArchiveDependencyLock(candidate.manifest, candidate.lock));
-  const shared = names.includes(sharedName) ? sharedSourceInputs(candidate) : undefined;
+  const sharedSources = names.includes(sharedName) ? sharedWorkspaces.map(workspace => sharedSourceInputs(candidate, workspace)) : [];
   assert.ok(Object.keys(artifacts).every(name => names.includes(name)), "unapproved dependency artifact");
   if (!names.length) return Object.freeze([]);
   assertCanonicalRoot(directory, fileSystem);
@@ -521,7 +550,8 @@ export async function prepareArchiveDependencies(candidate, tools, directory, { 
     const files = [...contents].map(([path, payload]) => Object.freeze({ path: path.slice("package/".length), bytes: payload, sha256: digest(payload) }));
     bindings.push(Object.freeze({ name, ...approved, tarball, tarballSha256, entries: Object.freeze(entries), files: Object.freeze(files) }));
   }
-  if (shared) {
+  for (const shared of sharedSources) {
+    const { name: sharedName, prefix: sharedPrefix, exports: sharedExports } = shared.workspace;
     assert.equal(artifacts[sharedName], undefined, "shared archive cannot use an external artifact");
     const output = buildSharedArchive(candidate, tools, bindings, shared);
     const chunks = [];
@@ -533,7 +563,7 @@ export async function prepareArchiveDependencies(candidate, tools, directory, { 
     chunks.push(Buffer.alloc(1024));
     const bytes = Buffer.concat(chunks);
     assert.ok(bytes.length <= 8 * 1024 * 1024, "shared archive artifact budget");
-    const tarball = join(ownedRoot, "office-package.tgz");
+    const tarball = join(ownedRoot, sharedName.split("/").at(-1) + ".tgz");
     fileSystem.writeFileSync(tarball, bytes, { flag: "wx" });
     const tarballSha256 = digest(bytes);
     const contents = await readArchive(tools.tar, tarball, tarballSha256, path => assert.ok(output.has(path.slice("package/".length)), "shared archive unexpected packed path"), fileSystem);
@@ -557,7 +587,9 @@ export async function prepareArchiveDependencies(candidate, tools, directory, { 
 
 export function assertArchiveDependencyArtifacts(bindings, fileSystem) {
   for (const binding of bindings) {
-    if (binding.name === sharedName) {
+    const workspace = sharedWorkspaces.find(workspace => workspace.name === binding.name);
+    if (workspace) {
+      const { name: sharedName, prefix: sharedPrefix, paths: sharedPaths, exports: sharedExports } = workspace;
       assert.ok(sharedArtifactBindings.has(binding), "shared archive binding must originate from captured compilation");
       assert.equal(binding.kind, "captured-workspace", "shared archive binding kind");
       assert.equal(binding.version, "0.0.1", "shared archive binding version");
@@ -722,7 +754,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   const admit = (path, maximum = 16 * 1024 * 1024) => {
     assertLiteralInputPath(path);
     if (path.startsWith(`${packagePrefix}/`)) assertAdmittedInputPath(path.slice(packagePrefix.length + 1), boundaries);
-    else assert.ok(workspaceMetadataPaths.has(path) || ["package.json", "package-lock.json", "scripts/guard-package-dist.mjs", ...sharedPaths, "packages/safe-bash-command-op/package.json", "packages/safe-bash-command-op/tsconfig.json", "packages/safe-bash-command-pandoc/package.json", "packages/safe-bash-pdf-engine/package.json"].includes(path) || path.startsWith("packages/safe-bash-command-op/src/"), `unadmitted root archive path: ${path}`);
+    else assert.ok(workspaceMetadataPaths.has(path) || ["package.json", "package-lock.json", "scripts/guard-package-dist.mjs", ...capturedPaths, "packages/safe-bash-command-op/package.json", "packages/safe-bash-command-op/tsconfig.json", "packages/safe-bash-command-pandoc/package.json", "packages/safe-bash-pdf-engine/package.json"].includes(path) || path.startsWith("packages/safe-bash-command-op/src/"), `unadmitted root archive path: ${path}`);
     const entry = tree.get(path);
     assert.ok(entry, `missing committed input: ${path}`);
     assert.ok(entry.type === "blob" && ["100644", "100755"].includes(entry.mode), `not a regular committed input: ${path}`);
@@ -739,7 +771,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   admit("package-lock.json");
   admit(`${packagePrefix}/README.md`);
   for (const name of ["safe-bash-command-pandoc", "safe-bash-pdf-engine"]) if (tree.has(`packages/${name}/package.json`)) admit(`packages/${name}/package.json`, 64 * 1024);
-  if (tree.has(sharedPrefix + "/package.json")) {
+  for (const { prefix: sharedPrefix, paths: sharedPaths } of sharedWorkspaces) if (tree.has(sharedPrefix + "/package.json")) {
     for (const path of sharedPaths) admit(path, 300000);
     for (const path of tree.keys()) if (path.startsWith(sharedPrefix + "/src/") && !path.endsWith(".test.ts")) {
       assert.ok(sharedPaths.includes(path), "unreviewed shared archive source: " + path);
@@ -841,7 +873,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
           assert.deepEqual(lock.packages[`node_modules/${name}`], { resolved: path, link: true }, `${name} workspace link drift`);
         }
       }
-      if (Object.hasOwn(dependencies, sharedName)) sharedSourceInputs({ files: bootstrap, lock });
+      if (Object.hasOwn(dependencies, sharedName)) for (const workspace of sharedWorkspaces) sharedSourceInputs({ files: bootstrap, lock }, workspace);
       if (manifest.devDependencies?.["safe-bash-command-op"] !== undefined) {
         assert.equal(manifest.devDependencies["safe-bash-command-op"], "*");
         assert.ok(hasOp, "missing committed op build prerequisite");

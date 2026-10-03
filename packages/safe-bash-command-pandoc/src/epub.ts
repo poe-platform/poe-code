@@ -1,5 +1,5 @@
 import { createZipCodec, type ZipLimits } from "@poe-code/office-package/zip";
-import { createCompressionCodec } from "@poe-code/office-package/compression";
+import { createCompressionCodec } from "@poe-code/compression";
 import { attribute as a, children, epubFailure, namespaces as ns, parseEpubXml, xhtmlTree, xmlText, type XmlElement } from "./epub-xml.js";
 import { htmlTreeDocument } from "./html.js";
 import type { Attr, Block, Inline, MetaValue } from "./ast-types.js";

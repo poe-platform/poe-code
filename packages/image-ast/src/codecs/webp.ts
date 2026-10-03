@@ -1,4 +1,4 @@
-import { inflate } from "pako";
+import { transformBytes } from "@poe-code/compression";
 import type { ImageMetadata, RgbaImage } from "../ast.js";
 import { buildExifApp1Segment, parseExifBuffer } from "./exif.js";
 
@@ -731,7 +731,7 @@ export function decodeWebpImage(bytes: Uint8Array): RgbaImage {
     if (fourcc === "VP8L" && payload.length >= 5 && payload[0] === 0x2f) {
       if (payload.length > 7 && payload[5] === 0x00 && payload[6] === 0x78) {
         try {
-          const inflated = inflate(payload.subarray(6));
+          const inflated = transformBytes(payload.subarray(6), { direction: "decode", format: "zlib" });
           if (inflated.length === width * height * 4) {
             return {
               width,

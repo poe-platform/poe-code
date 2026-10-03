@@ -1,4 +1,4 @@
-import { inflate } from "pako";
+import { transformBytes } from "@poe-code/compression";
 import type { ImageFormat, ImageMetadata, RgbaImage } from "../ast.js";
 import { decodeJpegImage } from "./jpeg.js";
 
@@ -638,7 +638,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     }
     if (compression === 8 || compression === 32946) {
       try {
-        return inflate(rawSlice);
+        return transformBytes(rawSlice, { direction: "decode", format: "zlib-or-gzip" });
       } catch {
         return rawSlice;
       }

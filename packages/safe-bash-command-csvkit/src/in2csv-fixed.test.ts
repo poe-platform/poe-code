@@ -2,7 +2,7 @@ import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { Volume } from 'memfs';
 import { execute, run, defaultLimits } from './engine.js';
-import { createCompressionCodec } from '@poe-code/office-package/compression';
+import { createCompressionCodec } from '@poe-code/compression';
 import { createGzipCompressionProvider } from './io/compression.js';
 import { OwnedArguments } from './argv.js';
 import { utf8Codec } from './codecs/utf8.js';

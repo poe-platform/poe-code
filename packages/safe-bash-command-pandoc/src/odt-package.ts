@@ -1,6 +1,6 @@
 import {SaxesParser} from "saxes";
 import {createZipCodec, type ZipLimits, type ZipEntry} from "@poe-code/office-package/zip";
-import {createCompressionCodec} from "@poe-code/office-package/compression";
+import {createCompressionCodec} from "@poe-code/compression";
 import {PandocError} from "./errors.js";
 import type {AdapterContext} from "./types.js";
 

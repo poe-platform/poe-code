@@ -95,6 +95,6 @@
   "devDependencies": {
     "safe-bash-contracts": "*",
     "@poe-code/safe-fs": "*",
-    "@poe-code/office-package": "*"
+    "@poe-code/compression": "*"
   }
 }

@@ -377,9 +377,9 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
       }
     }
     const sharedDeclarations = new Map<string, Buffer>();
-    for (const dependency of dependencies) if (dependency.name === "@poe-code/office-package") {
+    for (const dependency of dependencies) if (["@poe-code/office-package", "@poe-code/compression"].includes(dependency.name)) {
       for (const { path, bytes } of dependency.files) if (path.startsWith("dist/") && path.endsWith(".d.ts")) {
-        const destination = `packages/office-package/${path}`;
+        const destination = `packages/${dependency.name.split("/").at(-1)}/${path}`;
         sharedDeclarations.set(destination, bytes);
         if (peerBinding.files.some((file: { path: string }) => file.path === destination)) assert.deepEqual(await readFile(join(outer, destination)), bytes, "Peer declaration differs from captured shared source");
         else {

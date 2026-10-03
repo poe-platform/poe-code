@@ -1,10 +1,10 @@
-import { createCompressionCodec } from "@poe-code/office-package/compression";
+import { createCompressionCodec } from "@poe-code/compression";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { readBytes } from "safe-bash-contracts";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { compressionDiagnostic } from "./errors.js";
 
-export type { CodecInput } from "@poe-code/office-package/compression";
+export type { CodecInput } from "@poe-code/compression";
 const compression = createCompressionCodec({
   yieldTurn,
   readBytes,

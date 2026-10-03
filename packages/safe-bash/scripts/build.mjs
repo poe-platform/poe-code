@@ -463,7 +463,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           const dependency = JSON.parse(read(metadataPath, 64 * 1024));
           assert.equal(dependency.name, "@poe-code/office-package", "shared archive dependency identity");
           assert.equal(dependency.version, "0.0.1", "shared archive dependency version");
-          assert.deepEqual(dependency.dependencies, { pako: "3.0.1" }, "shared archive dependency closure");
+          assert.deepEqual(dependency.dependencies, { "@poe-code/compression": "*", pako: "3.0.1" }, "shared archive dependency closure");
           const exports = {
             ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
             "./zip": { types: "./dist/zip.d.ts", import: "./dist/zip.js" },
@@ -471,6 +471,17 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
             "./zip-sync": { types: "./dist/zip-sync.d.ts", import: "./dist/zip-sync.js" },
           };
           assert.deepEqual(dependency.exports, exports, "shared archive declaration exports");
+          const codecRoot = checkout ? join(dependencyBase, "packages/compression") : join(root, "node_modules/@poe-code/compression");
+          const codecMetadataPath = join(codecRoot, "package.json");
+          peerMetadata.add(codecMetadataPath);
+          const codec = JSON.parse(read(codecMetadataPath, 64 * 1024));
+          assert.equal(codec.name, "@poe-code/compression", "shared compression dependency identity");
+          assert.equal(codec.version, "0.0.1", "shared compression dependency version");
+          assert.equal(codec.private, true, "shared compression dependency must stay private");
+          assert.deepEqual(codec.dependencies, { pako: "3.0.1" }, "shared compression dependency closure");
+          assert.deepEqual(codec.exports, { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } }, "shared compression declaration exports");
+          toolRoots.push(join(codecRoot, "dist"));
+          peerPaths["@poe-code/compression"] = [join(codecRoot, "dist/index.d.ts")];
           toolRoots.push(join(dependencyRoot, "dist"));
           for (const [name, entry] of Object.entries(exports)) {
             peerPaths["@poe-code/office-package" + (name === "." ? "" : name.slice(1))] = [resolve(dependencyRoot, entry.types)];
@@ -486,8 +497,8 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           "@poe-code/pdf-ast": exports,
         };
         const packages = {
-          "safe-bash-pdf-engine": { "pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1", pako: "3.0.1" },
-          "@poe-code/pdf-ast": { pako: "3.0.1" },
+          "safe-bash-pdf-engine": { "pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1" },
+          "@poe-code/pdf-ast": {},
         };
         peerPaths ??= {};
         for (const [name, dependencies] of Object.entries(packages)) {
@@ -498,7 +509,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           assert.equal(dependency.name, name, "PDF SDK dependency identity");
           assert.equal(dependency.version, "0.0.1", "PDF SDK dependency version");
           assert.equal(dependency.private, true, "PDF SDK implementation must remain private");
-          assert.deepEqual(dependency.dependencies, dependencies, "PDF SDK dependency closure");
+          assert.deepEqual(dependency.dependencies ?? {}, dependencies, "PDF SDK dependency closure");
           assert.deepEqual(dependency.exports, packageExports[name], "PDF SDK declaration exports");
           toolRoots.push(join(dependencyRoot, "dist"));
           for (const [subpath, entry] of Object.entries(packageExports[name])) {

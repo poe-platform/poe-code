@@ -1,14 +1,4 @@
-import { Deflate, Inflate, Z_BUF_ERROR } from "pako";
-
-function detachPakoState(state: Record<string, { buffer?: { transfer?: (n: number) => ArrayBuffer } }> | undefined | null): void {
-  if (!state) return;
-  for (const key of ["window", "prev", "head", "pending_buf", "dyn_ltree", "dyn_dtree", "bl_tree", "bl_count", "heap", "depth"]) {
-    const buf = state[key]?.buffer;
-    if (buf && typeof buf.transfer === "function") {
-      try { buf.transfer(0); } catch { /* Detachment is best effort for host buffers. */ }
-    }
-  }
-}
+import { createByteCodec, transformBytes, ByteCodecError } from "@poe-code/compression";
 import { FlateStream, Stream } from "../vendor/pdfjs-fonts.mjs";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosStream } from "../ast.js";
 import { PdfError } from "../errors.js";
@@ -28,12 +18,7 @@ export interface PdfFilterDecodeParms {
 const DEFAULT_MAX_DECODED_BYTES = Infinity;
 
 export function encodeFlate(bytes: Uint8Array): Uint8Array {
-  const def = new Deflate();
-  const state = (def as unknown as { strm?: { state?: Record<string, { buffer?: { transfer?: (n: number) => ArrayBuffer } }> } }).strm?.state;
-  def.push(bytes, true);
-  detachPakoState(state);
-  if (def.err) throw new Error(def.msg || "Flate encode failed");
-  return def.result;
+  return transformBytes(bytes, { direction: "encode", format: "zlib" });
 }
 
 // Keep PDF.js recovery while checking the budget before any output-buffer growth.
@@ -75,24 +60,27 @@ export function decodeFlate(
     const wrapped = (bytes[0] === 0x1f && bytes[1] === 0x8b) ||
       (bytes.length >= 2 && (bytes[0]! & 15) === 8 && (bytes[0]! >>> 4) <= 7 &&
         ((bytes[0]! << 8) | bytes[1]!) % 31 === 0);
-    const decoder = new Inflate({
-      raw: !wrapped,
+    const decoder = createByteCodec({
+      direction: "decode",
+      format: wrapped ? "zlib-or-gzip" : "raw",
       chunkSize: Math.max(1, Math.min(64 * 1024, maxDecodedBytes + 1)),
     });
     const chunks: Uint8Array[] = [];
     let length = 0;
-    decoder.onData = chunk => {
-      length += chunk.length;
-      if (length > maxDecodedBytes) {
-        throw new PdfError("E_LIMIT", "FlateDecode output exceeds maximum decoded byte budget");
+    try {
+      for (const chunk of decoder.push(bytes, true)) {
+        length += chunk.length;
+        if (length > maxDecodedBytes) {
+          throw new PdfError("E_LIMIT", "FlateDecode output exceeds maximum decoded byte budget");
+        }
+        chunks.push(chunk);
       }
-      chunks.push(chunk);
-    };
-    const complete = decoder.push(bytes, true);
-    const truncated = wrapped && decoder.err === Z_BUF_ERROR && length > 0;
-    if ((!complete || decoder.err || !decoder.ended) && !truncated) {
-      throw new PdfError("E_CAPABILITY", "Invalid FlateDecode compressed stream");
-    }
+    } catch (error) {
+      if (error instanceof PdfError) throw error;
+      if (!(wrapped && error instanceof ByteCodecError && error.code === "truncated" && length > 0)) {
+        throw new PdfError("E_CAPABILITY", "Invalid FlateDecode compressed stream");
+      }
+    } finally { decoder.close(); }
     inflated = new Uint8Array(length);
     let offset = 0;
     for (const chunk of chunks) {

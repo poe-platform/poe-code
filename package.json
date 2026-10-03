@@ -728,7 +728,8 @@
     "safe-bash-command-audio": "*",
     "safe-bash-command-rgrep": "*",
     "safe-bash-command-ast-grep": "*",
-    "@poe-code/ts-ast": "*"
+    "@poe-code/ts-ast": "*",
+    "@poe-code/compression": "*"
   },
   "version": "0.0.0-dev",
   "repository": {

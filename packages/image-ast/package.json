@@ -39,7 +39,8 @@
   "devDependencies": {
     "@poe-code/pdf-ast": "*",
     "pako": "3.0.1",
-    "@poe-code/safe-fs": "*"
+    "@poe-code/safe-fs": "*",
+    "@poe-code/compression": "*"
   },
   "poeCode": {
     "safeLibraryExports": {

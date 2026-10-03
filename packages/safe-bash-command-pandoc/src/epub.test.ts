@@ -5,7 +5,7 @@ import { readDocument, convert } from "./engine.js";
 import { createStandalonePandocCommand } from "./safe-bash.js";
 import { Volume } from "memfs";
 import type { ResourceFileSystem } from "./types.js";
-import { createCompressionCodec } from "@poe-code/office-package/compression";
+import { createCompressionCodec } from "@poe-code/compression";
 
 const encode = (s: string) => new TextEncoder().encode(s);
 const zipLimits: ZipLimits = {maxArchiveBytes: 1e6, maxEntryBytes: 1e6, maxTotalBytes: 1e6,

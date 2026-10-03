@@ -532,7 +532,7 @@ test("development codec pins stage authenticated build inputs without runtime de
   fixture.lock.packages[packagePrefix].dependencies = {};
   fixture.lock.packages[packagePrefix].devDependencies = structuredClone(fixture.manifest.devDependencies);
   const bindings = await distChecks.prepareArchiveDependencies(fixture, fixture.tools, "/owned", fixture);
-  assert.deepEqual(bindings.map(binding => binding.name), ["@noble/ciphers", "@noble/hashes", "pako", "@poe-code/office-package"]);
+  assert.deepEqual(bindings.map(binding => binding.name), ["@noble/ciphers", "@noble/hashes", "pako", "@poe-code/compression", "@poe-code/office-package"]);
   fixture.fileSystem.mkdirSync("/snapshot");
   distChecks.stageArchiveDependencies(bindings, "/snapshot", fixture.fileSystem);
   distChecks.assertArchiveDependencies(bindings, "/snapshot", fixture.fileSystem);
@@ -561,6 +561,20 @@ test("shared archive dependencies require exact captured sources and never subst
   assert.equal(fixture.fileSystem.existsSync("/owned/dependency-artifacts/office-package.tgz"), false);
 });
 
+for (const defect of ["missing-source", "dependency", "source-import"]) test(`shared compression archive rejects ${defect}`, async () => {
+  const fixture = dependencyFixture();
+  if (defect === "missing-source") fixture.files.delete("packages/compression/src/bytes.ts");
+  if (defect === "dependency") {
+    const path = "packages/compression/package.json";
+    const metadata = JSON.parse(fixture.files.get(path));
+    metadata.dependencies.unapproved = "1.0.0";
+    fixture.files.set(path, Buffer.from(JSON.stringify(metadata)));
+  }
+  if (defect === "source-import") fixture.files.set("packages/compression/src/index.ts", Buffer.from('export { hidden } from "/outside/private.js";'));
+  await assert.rejects(distChecks.prepareArchiveDependencies(fixture, fixture.tools, "/owned", fixture), /shared archive/);
+  assert.equal(fixture.fileSystem.existsSync("/owned/dependency-artifacts/compression.tgz"), false);
+});
+
 test("shared archive source capture retains owned bytes and refuses source links", () => {
   const source = "/repo";
   const files = Object.fromEntries([...distChecks.captureSharedArchiveSources(resolve(authority, "../.."))].map(([path, bytes]) => [source + "/" + path, bytes]));
@@ -582,8 +596,8 @@ test("shared archive compilation uses supplied source bytes and binds only exact
   const committed = new Map([["package.json", Buffer.from("{}")]]);
   const memory = fixture.fileSystem;
   memory.mkdirSync("/snapshot"); memory.writeFileSync("/snapshot/package.json", "{}");
-  for (const file of shared.files.filter(file => file.path.endsWith(".d.ts"))) {
-    const destination = "/snapshot/packages/office-package/" + file.path;
+  for (const dependency of bindings.filter(binding => binding.kind === "captured-workspace")) for (const file of dependency.files.filter(file => file.path.endsWith(".d.ts"))) {
+    const destination = "/snapshot/packages/" + dependency.name.split("/").at(-1) + "/" + file.path;
     memory.mkdirSync(dirname(destination), { recursive: true }); memory.writeFileSync(destination, file.bytes);
   }
   const check = () => assertSnapshotInputs("/snapshot", committed, { dependencies: bindings, fileSystem: memory });
@@ -636,7 +650,7 @@ test("private archive dependency contract binds only the approved exact versions
   assert.throws(() => distChecks.assertArchiveDependencyLock(manifest, shadowed), /dependency/);
 });
 
-for (const path of ["packages/office-package/node_modules/pako", "packages/office-package/node_modules/@noble/hashes", "packages/node_modules/@poe-code/office-package"]) test(`shared archive rejects shadowed dependency lock entry ${path}`, () => {
+for (const path of ["packages/office-package/node_modules/pako", "packages/office-package/node_modules/@noble/hashes", "packages/node_modules/@poe-code/office-package", "packages/compression/node_modules/pako", "packages/office-package/node_modules/@poe-code/compression"]) test(`shared archive rejects shadowed dependency lock entry ${path}`, () => {
   const fixture = dependencyFixture();
   const lock = structuredClone(fixture.lock);
   lock.packages[path] = { version: "9.0.0", resolved: "file:unapproved" };
@@ -666,12 +680,12 @@ test("committed export mirroring preserves single filename patterns without admi
 test("private archive dependency artifacts stage exact authenticated bytes and reject installed drift", async () => {
   const fixture = dependencyFixture();
   const bindings = await distChecks.prepareArchiveDependencies(fixture, fixture.tools, "/owned", fixture);
-  assert.deepEqual(bindings.map(binding => binding.name), ["@noble/ciphers", "@noble/hashes", "pako", "@poe-code/office-package"]);
+  assert.deepEqual(bindings.map(binding => binding.name), ["@noble/ciphers", "@noble/hashes", "pako", "@poe-code/compression", "@poe-code/office-package"]);
   fixture.fileSystem.mkdirSync("/snapshot");
   distChecks.stageArchiveDependencies(bindings, "/snapshot", fixture.fileSystem);
   distChecks.assertArchiveDependencies(bindings, "/snapshot", fixture.fileSystem);
   const shared = bindings.find(binding => binding.name === "@poe-code/office-package");
-  assert.deepEqual(shared.sources.map(source => source.path), [...fixture.files.keys()]);
+  assert.deepEqual([...new Set(bindings.filter(binding => binding.kind === "captured-workspace").flatMap(binding => binding.sources.map(source => source.path)))], [...fixture.files.keys()]);
   assert.throws(() => distChecks.assertArchiveDependencyArtifacts(bindings.map(binding => binding === shared ? { ...shared } : binding), fixture.fileSystem), /captured compilation/);
   const files = {
     "node_modules/@poe-platform/safe-bash/package.json": '{"type":"module"}',
@@ -692,7 +706,8 @@ test("private archive dependency artifacts stage exact authenticated bytes and r
   assert.equal(closure.entries["@noble/hashes/sha2.js"], "node_modules/@noble/hashes/sha2.js");
   assert.equal(closure.entries.pako, "node_modules/pako/dist/pako.mjs");
   assert.equal(closure.entries["@poe-code/office-package/zip"], "node_modules/@poe-code/office-package/dist/zip.js");
-  assert.equal(closure.edges["node_modules/@poe-code/office-package/dist/compression.js"].pako, "node_modules/pako/dist/pako.mjs");
+  assert.equal(closure.edges["node_modules/@poe-code/office-package/dist/compression.js"]["@poe-code/compression"], "node_modules/@poe-code/compression/dist/index.js");
+  for (const name of ["index", "bytes"]) assert.equal(closure.edges[`node_modules/@poe-code/compression/dist/${name}.js`].pako, "node_modules/pako/dist/pako.mjs");
   assert.equal(closure.entries["@noble/hashes/argon2.js"], undefined);
   fixture.fileSystem.writeFileSync("/snapshot/node_modules/@poe-platform/safe-bash/dist/index.js", 'import "pako/dist/pako.mjs";');
   assert.throws(bind, /Unbound runtime dependency/);

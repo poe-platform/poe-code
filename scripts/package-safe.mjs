@@ -701,9 +701,12 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
             const workspace = workspaces.find(({ pkg }) => pkg.name === qualifiedName);
             assertPrivateProfile(workspace, qualifiedName);
           }
+          const runtimeOwner = workspaces.find(workspace => workspace.pkg.private && filename.startsWith(path.join(rootDir, "packages", workspace.dir) + path.sep));
           const declaredWorkspace = workspaces.find(({ pkg }) => pkg.private &&
             (publicName === pkg.name || publicName.startsWith(pkg.name + "/")) &&
-            Object.hasOwn(source.devDependencies ?? {}, pkg.name));
+            (Object.hasOwn(source.devDependencies ?? {}, pkg.name) ||
+              Object.hasOwn(runtimeOwner?.pkg.dependencies ?? {}, pkg.name) ||
+              Object.hasOwn(runtimeOwner?.pkg.devDependencies ?? {}, pkg.name)));
           if (declaration || qualifiedName || name === "safe-bash" && declaredWorkspace ||
               name === "safe-fs" && publicName === canonicalXml.workspace) {
             const workspace = workspaces.find(({ pkg }) => pkg.private && (publicName === pkg.name || publicName.startsWith(pkg.name + "/")));

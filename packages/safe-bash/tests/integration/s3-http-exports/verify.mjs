@@ -31,9 +31,9 @@ export function assertSnapshotInputs(snapshotRoot, committedFiles, { peer, gener
     }
   }
   assertArchiveDependencyArtifacts(dependencies, fileSystem);
-  for (const dependency of dependencies) if (dependency.name === "@poe-code/office-package") {
+  for (const dependency of dependencies) if (["@poe-code/office-package", "@poe-code/compression"].includes(dependency.name)) {
     for (const { path, sha256 } of dependency.files) if (path.startsWith("dist/") && path.endsWith(".d.ts")) {
-      const destination = "packages/office-package/" + path;
+      const destination = "packages/" + dependency.name.split("/").at(-1) + "/" + path;
       assert.ok(!expected.has(destination), "shared archive declaration conflicts with committed input");
       expected.set(destination, sha256);
     }
@@ -271,7 +271,7 @@ export function bindPackedConsumer(consumer, packedFiles, peer, declarations, ts
       for (const dependency of dependencies) {
         const prefix = `node_modules/${dependency.name}/`;
         if (local.startsWith(prefix)) {
-          const sharedCompression = dependency.name === "@poe-code/office-package" && local === prefix + "dist/compression.js" && specifier === "pako" && target === dependencyEntries.pako;
+          const sharedCompression = (dependency.name === "@poe-code/compression" && ["dist/index.js", "dist/bytes.js"].includes(local.slice(prefix.length)) && specifier === "pako" || dependency.name === "@poe-code/office-package" && ["dist/compression.js", "dist/runtime.js"].includes(local.slice(prefix.length)) && specifier === "@poe-code/compression") && target === dependencyEntries[specifier];
           assert.ok(target.startsWith(prefix) || sharedCompression, "Runtime dependency escaped its authenticated package");
         }
       }
@@ -363,9 +363,9 @@ export async function verifyCommittedExports({ repository = actualRepository, re
     }
     stageArchiveDependencies(dependencies, snapshotRoot);
     stageWorkspacePrerequisites(prerequisites, snapshotRoot);
-    for (const dependency of dependencies) if (dependency.name === "@poe-code/office-package") {
+    for (const dependency of dependencies) if (["@poe-code/office-package", "@poe-code/compression"].includes(dependency.name)) {
       for (const { path, bytes } of dependency.files) if (path.startsWith("dist/") && path.endsWith(".d.ts")) {
-        const destination = join(snapshotRoot, "packages/office-package", path);
+        const destination = join(snapshotRoot, "packages", dependency.name.split("/").at(-1), path);
         mkdirSync(dirname(destination), { recursive: true });
         writeFileSync(destination, bytes, { flag: "wx" });
       }

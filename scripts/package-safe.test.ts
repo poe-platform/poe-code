@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { createContext, runInContext } from "node:vm";
 import path from "node:path";
@@ -736,12 +736,14 @@ it.each([false, true])("admits asset-only contract owners against the full priva
   expect(volume.existsSync(`/output/safe-bash/dist/${name}/profile.bin`)).toBe(false);
 });
 
-{
+describe("isolated private command consumers", () => {
   const privatePackages = ["safe-bash-command-find", "safe-bash-command-xq", "safe-bash-command-jq", "safe-bash-xml-engine", "safe-bash-command-html-to-markdown", "safe-bash-command-shuf", "safe-bash-command-expr", "safe-bash-command-wget", "safe-bash-network-engine", "safe-bash-command-sed", "safe-bash-io-engine", "safe-bash-query-engine", "safe-bash-byte-engine", "safe-bash-calendar-engine", "safe-bash-contracts", "safe-bash-command-exiftool", "safe-bash-csv-engine", "safe-bash-command-csvgrep", "safe-bash-command-csvcut", "safe-bash-command-dos2unix", "safe-bash-command-unix2dos", "safe-bash-line-ending-engine", "safe-bash-command-mdq", "safe-bash-markdown-engine", "safe-bash-regex-engine"];
 
   // Build the package fixture separately from its consumer type and runtime checks.
     const fixture = optionalLeftovers();
     const { volume, options } = fixture;
+    let plugin: Plugin;
+    beforeAll(async () => {
     const repository = fileURLToPath(new URL("../", import.meta.url));
     const manifest = structuredClone(bashManifest);
     manifest.poeCode.integration.privateWorkspaces = {};
@@ -846,7 +848,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     volume.writeFileSync("/repo/packages/safe-bash/dist/commands/expr/index.browser.js", 'export * from "./index.js";');
     volume.writeFileSync("/repo/packages/safe-bash/dist/commands/mdq/index.browser.js", 'export * from "./index.js";');
     volume.writeFileSync("/repo/packages/safe-bash/dist/commands/html-to-markdown/index.browser.js", 'export * from "./index.js";');
-    const plugin: Plugin = { name: "isolated-packed-files", setup(builder: import("esbuild").PluginBuild) {
+    plugin = { name: "isolated-packed-files", setup(builder: import("esbuild").PluginBuild) {
       builder.onResolve({ filter: /.*/ }, args => {
         const alias = Object.entries(builder.initialOptions.alias ?? {})
           .filter(([name]) => args.path === name || args.path.startsWith(name + "/"))
@@ -890,6 +892,8 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     volume.writeFileSync("/output/safe-packages-html-to-markdown.mjs", readFileSync(new URL("./fixtures/safe-packages-html-to-markdown.mjs", import.meta.url)));
     volume.writeFileSync("/output/html-to-markdown-consumer.mts", readFileSync(new URL("./fixtures/safe-packages-html-to-markdown-types.mts", import.meta.url)));
     volume.writeFileSync("/output/csvcut-consumer.mts", readFileSync(new URL("./fixtures/safe-packages-csvcut-types.mts", import.meta.url)));
+
+    });
 
   it("typechecks private command consumers through the isolated public package graph", () => {
     // Check the packaged declarations without rechecking TypeScript's own library.
@@ -963,7 +967,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
       { exitCode: 0, stdout: '{"items":[{"section":{"depth":2,"title":"Token expiry","body":[{"paragraph":"One hour."}]}}]}', stderr: "" },
     ]);
   });
-}
+});
 
 it("retains admitted private declarations even when public signatures erase the implementation types", async () => {
   const { volume, options } = optionalLeftovers();
@@ -2141,25 +2145,27 @@ it('packages SafeJS from its own exports when the root no longer exposes sandbox
 });
 
 
-it("prepares scoped browser and private command runtimes without root sandbox bundles", async () => {
+it.each(["dependencies", "devDependencies", "undeclared"])("prepares scoped browser and private command runtimes without root sandbox bundles: %s", async dependencyProfile => {
   const { volume, options } = optionalLeftovers();
   volume.writeFileSync("/repo/package.json", JSON.stringify({ license: "MIT", exports: {} }));
   const browserTargets = Object.keys(volume.toJSON()).filter(filename => filename.endsWith(".browser.js"));
   for (const filename of browserTargets) volume.unlinkSync(filename);
   const manifest = structuredClone(bashManifest);
-  for (const name of ["safe-bash-command-op", "safe-bash-command-pandoc", "safe-bash-command-pptx", "office-package"]) {
+  for (const name of ["safe-bash-command-op", "safe-bash-command-pandoc", "safe-bash-command-pptx", "office-package", "compression"]) {
     volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
     volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify({
-      name: name === "office-package" ? "@poe-code/office-package" : name, private: true, type: "module", version: "0.0.1",
+      name: ["office-package", "compression"].includes(name) ? "@poe-code/" + name : name, private: true, type: "module", version: "0.0.1",
+      ...(name === "office-package" && dependencyProfile !== "undeclared" ? { [dependencyProfile]: { "@poe-code/compression": "*" } } : {}),
       exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
     }));
     volume.writeFileSync(`/repo/packages/${name}/dist/index.d.ts`, "export {};\n");
-    if (name !== "office-package") manifest.poeCode.integration.privateWorkspaces[name] = {
+    if (!["office-package", "compression"].includes(name)) manifest.poeCode.integration.privateWorkspaces[name] = {
       version: "0.0.1", dependencies: {}, devDependencies: {}, portable: true,
     };
   }
   volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
-  volume.writeFileSync("/repo/packages/office-package/dist/index.js", "export const codec = 1;\n");
+  volume.writeFileSync("/repo/packages/compression/dist/index.js", "export const codec = 1;\n");
+  volume.writeFileSync("/repo/packages/office-package/dist/index.js", 'export { codec } from "@poe-code/compression";');
   for (const name of ["op", "pandoc", "pptx"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.js`,
     `export * from "safe-bash-command-${name}";`);
   volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { codec } from "@poe-code/office-package";');
@@ -2167,6 +2173,10 @@ it("prepares scoped browser and private command runtimes without root sandbox bu
     const targets = settings.outfile ? [settings.outfile] : Object.keys(settings.entryPoints).map(name => `${settings.outdir}/${name}.js`);
     return { outputFiles: targets.map(filename => ({ path: filename, contents: Buffer.from('export const prepared = true;\n') })) };
   });
+  if (dependencyProfile === "undeclared") {
+    await expect(packageSafeLibraries({ ...options, bundle, outDir: "/output" })).rejects.toThrow("Private or CLI dependency leaked: @poe-code/compression");
+    return;
+  }
   await packageSafeLibraries({ ...options, bundle, outDir: "/output" });
   for (const filename of browserTargets) {
     expect(volume.readFileSync(filename.replace("/repo/packages/safe-bash/dist/", "/output/safe-bash/dist/safe-bash/"), "utf8"))
@@ -2181,12 +2191,26 @@ it("prepares scoped browser and private command runtimes without root sandbox bu
     expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash-command-${name}/index.js`, "utf8"))
       .toBe('export const prepared = true;\n');
   }
-  expect(volume.readFileSync("/output/safe-bash/dist/office-package/index.js", "utf8")).toBe("export const codec = 1;\n");
+  expect(volume.readFileSync("/output/safe-bash/dist/compression/index.js", "utf8")).toBe("export const codec = 1;\n");
+  expect(volume.readFileSync("/output/safe-bash/dist/office-package/index.js", "utf8")).toBe('export { codec } from "../compression/index.js";');
   expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/index.js", "utf8"))
     .toBe('export { codec } from "../office-package/index.js";');
   const packedManifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
   expect(packedManifest.dependencies).toEqual({});
-  expect(volume.existsSync("/repo/dist")).toBe(false);
+  volume.rmSync("/repo", { recursive: true });
+  const consumer = await build({ entryPoints: ["/output/safe-bash/dist/safe-bash/index.js"], bundle: true, write: false, platform: "browser", format: "esm", plugins: [{
+    name: "isolated-shared-codec",
+    setup(builder) {
+      builder.onResolve({ filter: /.*/ }, args => {
+        const filename = path.resolve(args.resolveDir || "/", args.path);
+        if (!filename.startsWith("/output/")) throw new Error("Packed codec escaped its consumer: " + args.path);
+        return { path: filename, namespace: "packed-codec" };
+      });
+      builder.onLoad({ filter: /.*/, namespace: "packed-codec" }, args => ({ contents: volume.readFileSync(args.path, "utf8").toString(), resolveDir: path.dirname(args.path) }));
+    },
+  }] });
+  const loaded = await import("data:text/javascript;base64," + Buffer.from(consumer.outputFiles[0]!.text).toString("base64"));
+  expect(loaded.codec).toBe(1);
 });
 
 for (const [specifier, target, failure] of [

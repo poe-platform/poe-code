@@ -1,3 +1,5 @@
+import {createIdentifyReader,inspectIdentifyBytes,type IdentifyReader,type IdentifyFileInput} from "./identify-reader.js";
+export type {IdentifyFileInput} from "./identify-reader.js";
 import { resolvePath } from "safe-bash-contracts/path";
 import { readProperties, writeProperties } from "./properties.js";
 import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
@@ -13,7 +15,7 @@ import {
 import { writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { decodeImage, encodeImage, parseColor, readImageMetadata, type ImageFormat, type ImageMetadata, type RgbaImage, computeImageStatsSteps, extendImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, resizeImageSteps, rotateImageSteps } from "@poe-code/image-ast/portable";
+import { decodeImage, encodeImage, parseColor, readImageMetadata, type ImageFormat, type ImageMetadata, type RgbaImage, extendImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, resizeImageSteps, rotateImageSteps } from "@poe-code/image-ast/portable";
 
 export interface SipsLimits {
   readonly maxInputBytes: number;
@@ -1059,14 +1061,15 @@ function formatIdentifyCustom(fmt: string, filePath: string, meta: ImageMetadata
   return out;
 }
 
-function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, SipsCliResult, void> {
+async function runIdentifyCliWithReader(argv: readonly string[], read:IdentifyReader, signal?: AbortSignal): Promise<SipsCliResult> {
+    signal?.throwIfAborted();
     let cooperativeWork = 63;
     let customFormat: string | undefined;
     let verbose = false;
     const inputPaths: string[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
-            yield;
+            await yieldTurn(signal);
         const arg = argv[i]!;
         if (arg === "-h" || arg === "-help" || arg === "--help") {
             return {
@@ -1105,26 +1108,26 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     const errParts: string[] = [];
     let exitCode = 0;
     for (const inPath of inputPaths) {
-        yield;
+        await yieldTurn(signal);
         const bracketMatch = /^(.*)\[(\d+)\]$/.exec(inPath);
         const baseInPath = bracketMatch ? bracketMatch[1]! : inPath;
         const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
-        const bytes = files.get(inPath) ?? files.get(baseInPath);
-        if (!bytes) {
+        const inspected=await read(inPath,baseInPath,pageIdx,verbose&&customFormat===undefined);
+        if (!inspected) {
             errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
             exitCode = 1;
             continue;
         }
         try {
-            const inputOptions = pageIdx !== undefined ? { page: pageIdx } : undefined;
-            const meta = readImageMetadata(bytes, inputOptions);
+            if("error" in inspected)throw inspected.error;
+            const meta=inspected.metadata;
             const bitDepth = meta.depth === "ushort" ? "16" : meta.depth === "bit" ? "1" : "8";
             const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
             if (customFormat !== undefined) {
-                outParts.push(formatIdentifyCustom(customFormat, baseInPath, meta, bytes.byteLength));
+                outParts.push(formatIdentifyCustom(customFormat, baseInPath, meta, inspected.size));
             }
             else if (verbose) {
-                const stats = (yield* computeImageStatsSteps(decodeImage(bytes, inputOptions)));
+                const stats=inspected.stats!;
                 outParts.push(`Image: ${inPath}\n` +
                     `  Format: ${meta.format.toUpperCase()}\n` +
                     `  Geometry: ${meta.width}x${meta.height}+0+0\n` +
@@ -1133,11 +1136,11 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                     `  Depth: ${bitDepth}-bit\n` +
                     `  Channels: ${meta.channels}\n` +
                     `  Alpha: ${meta.hasAlpha ? "True" : "False"}\n` +
-                    `  Filesize: ${bytes.byteLength}B\n` +
+                    `  Filesize: ${inspected.size}B\n` +
                     `  Entropy: ${stats.entropy.toFixed(4)}\n`);
             }
             else {
-                outParts.push(`${inPath} ${meta.format.toUpperCase()} ${meta.width}x${meta.height} ${meta.width}x${meta.height}+0+0 ${bitDepth}-bit ${spaceLabel} ${bytes.byteLength}B 0.000u 0:00.000\n`);
+                outParts.push(`${inPath} ${meta.format.toUpperCase()} ${meta.width}x${meta.height} ${meta.width}x${meta.height}+0+0 ${bitDepth}-bit ${spaceLabel} ${inspected.size}B 0.000u 0:00.000\n`);
             }
         }
         catch (err) {
@@ -1151,8 +1154,24 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         stderr: errParts.join("")
     };
 }
-export async function runIdentifyCli(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Promise<SipsCliResult> {
-    return drainSteps(runIdentifyCliSteps(argv, files, signal), signal);
+export async function runIdentifyCli(argv: readonly string[], files: Map<string, Uint8Array>|IdentifyFileInput, signal?: AbortSignal): Promise<SipsCliResult> {
+    const read:IdentifyReader="filesystem" in files?createIdentifyReader(files,signal??new AbortController().signal):async(path,base,page,verbose)=>{
+      const bytes=files.get(path)??files.get(base);return bytes?inspectIdentifyBytes(bytes,page===undefined?undefined:{page},verbose,signal):undefined;
+    };
+    return runIdentifyCliWithReader(argv,read,signal);
+}
+
+async function writeImageToolResult(context:CommandContext,invocation:ReturnType<typeof createOutputOperation>,result:SipsCliResult):Promise<void>{
+ if(result.stderr)await writeBytes(context.stderr,new TextEncoder().encode(result.stderr),invocation.signal);
+ if(result.stdout){const stdout=invocation.child(context.stdout);await writeBytes(stdout.output,new TextEncoder().encode(result.stdout),invocation.signal);}
+}
+
+async function executeVfsIdentify(context:CommandContext):Promise<{exitCode:number}>{
+ const invocation=createOutputOperation(context,{write:async()=>{}});
+ try{
+  const result=await runIdentifyCli([...getCommandArguments(context).args],{filesystem:context.fs,cwd:context.cwd,...(context.inputBudget?{inputBudget:context.inputBudget}:{})},invocation.signal);
+  await writeImageToolResult(context,invocation,result);return {exitCode:result.exitCode};
+ }finally{await invocation.close();}
 }
 
 async function executeVfsImageTool(
@@ -1215,13 +1234,7 @@ async function executeVfsImageTool(
         await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
       }
     }
-    if (res.stderr) {
-      await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
-    }
-    if (res.stdout) {
-      const stdout = invocation.child(context.stdout);
-      await writeBytes(stdout.output, new TextEncoder().encode(res.stdout), invocation.signal);
-    }
+    await writeImageToolResult(context,invocation,res);
 
     return { exitCode: res.exitCode };
   } catch (error) {
@@ -1258,7 +1271,7 @@ export function createIdentifyCommand(options: SipsCommandOptions = {}): Command
     description: "Inspect image format, dimensions, and metadata via @poe-code/image-ast",
     execute(context: CommandContext) {
       return new InputByteBudget(maxInputBytes).run(context, async context => {
-        return executeVfsImageTool(context, runIdentifyCli);
+        return executeVfsIdentify(context);
       });
     }
   });

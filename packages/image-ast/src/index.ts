@@ -1,3 +1,5 @@
+export {decodeImageToStorage} from "./codecs/source-decode.js";
+export {UnsupportedStoredResource} from "./codecs/unsupported-storage.js";
 export {joinStoredImages} from "./ops/join-storage.js";
 export {readGifMetadataFromSource} from "./codecs/gif-metadata-storage.js";
 export {encodeRawFromStorage} from "./codecs/raw-storage.js";

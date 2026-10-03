@@ -20,6 +20,9 @@ pixel operations; `compositeImage` accepts an explicit `readFile` capability.
 Pixel operations also expose `...Steps` generators, such as `resizeImageSteps`,
 for hosts that schedule bounded work between event-loop turns. The synchronous
 functions return the same pixel results.
+`decodeImageToStorage(source, storage, signal, options)` selects a retained raster
+decoder and supports raw or generated inputs. It shares the source and backing
+contracts of the format-specific codecs.
 `decodePngToStorage(source, storage, signal)` decodes PNGs through reads and writes
 of at most 4 KiB, including wide scanlines and Adam7 interlacing. Supply a
 retained byte-range source and backing storage with `allocate`, `read`, and

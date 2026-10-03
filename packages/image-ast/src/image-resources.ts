@@ -1,11 +1,11 @@
 import {joinStoredImages} from "./ops/join-storage.js";
 import {withImageSource,type RetainedImageInput} from "./image-source.js";
 import {renderTextToStorage} from "./codecs/text-storage.js";
-import {storedImageDecoder} from "./codecs/stored-decoder.js";
-import {decodeRawResource,createStoredResource} from "./codecs/resource-storage.js";
+import {decodeImageToStorage} from "./codecs/source-decode.js";
+import {createStoredResource} from "./codecs/resource-storage.js";
 import type {FileSystem} from "@poe-code/safe-fs/contracts";
 import type {SharpInputOptions} from "./ast.js";
-import type {ImageByteStorage,ImageByteSource,StoredRgbaImage} from "./codecs/png-storage.js";
+import type {ImageByteStorage,StoredRgbaImage} from "./codecs/png-storage.js";
 import {UnsupportedStoredResource} from "./codecs/unsupported-storage.js";
 export {UnsupportedStoredResource} from "./codecs/unsupported-storage.js";
 export interface JoinedImageInput {readonly inputs:readonly (Uint8Array|ArrayBuffer|string|SharpInputOptions)[];}
@@ -30,11 +30,5 @@ export async function readImageResource(input:ImageResourceInput,options:SharpIn
  if(options?.text) return renderTextToStorage({...options,text:options.text},storage,signal);
  if(options?.create) return createStoredResource(storage,{...options,create:options.create},signal);
  if(input===undefined) throw new UnsupportedStoredResource();
- const decode=(source:ImageByteSource,prefix:Uint8Array)=>{
-  if(options?.raw) return decodeRawResource(source,storage,{...options,raw:options.raw},signal);
-  const decoder=storedImageDecoder(prefix);
-  if(!decoder) throw new UnsupportedStoredResource();
-  return decoder(source,storage,signal,options);
- };
- return withImageSource(input,fs,signal,async source=>decode(source,options?.raw?new Uint8Array():await source.read(0,Math.min(54,source.size),{signal})));
+ return withImageSource(input,fs,signal,source=>decodeImageToStorage(source,storage,signal,options));
 }

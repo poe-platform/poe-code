@@ -5374,3 +5374,41 @@ These are not verified builds or native releases. JavaScript remains the default
 arbitrary malformed/accessor behavior, host-reply JSON resource limits, portable
 artifacts, remaining Toolcraft facade/type/dependency coverage and performance
 qualification remain open. No new third-party dependency was added.
+
+### Public configuration-mutation subpath checkpoint
+
+The missing toolcraft-rust/config-mutations export now exposes the own Rust
+configuration-mutation package through the same Toolcraft entry point. Runtime
+exports and public types are direct reexports, preserving dependency identities
+without adding a wrapper, package dependency or lockfile change. The reference
+namespace has ten runtime exports; both runtime identity and bidirectional
+declaration consumers cover the facade.
+
+The public import test failed on the missing export before implementation. The
+maintained Toolcraft route now passes 266 native checks and 6,205 reference-route
+cases across 127 files, including three new facade checks. Rust tests, public
+declarations, the original CLI compile-check consumer, strict dependency types
+and root posttest pass. Maintained Rust lint and scoped JavaScript/TypeScript lint
+pass. The new facade cases compare JSON/TOML/YAML merge, prune and transform,
+dry runs, no-op updates, observer traces, filesystem helpers, template writes and
+foreign transform-error identity using memfs.
+
+Two fresh packed own artifacts verify all ten exports, successful edits in all
+three formats, exact file contents, observer traces and repeated/dry-run outcomes.
+An import guard forbids runtime fallback outside those artifacts and Node
+builtins. The strict packed subpath declaration consumer reads 194 source files
+with skipLibCheck disabled and workspace reads forbidden. This qualifies this
+subpath, not independent installation of every Toolcraft public entry point.
+
+Seven alternating warmed rounds of 100 64-field in-memory JSON merge/prune/
+transform cycles on Node 22.23.2 ARM64 measured reference/native medians of
+345.875/404.670 microseconds (1.17 times slower), including fixture construction.
+Outputs match before timing and after each round; 28 results are retained. The
+facade adds no per-call transformation and this sample establishes no speedup.
+The underlying YAML diagnostic/resource-limit gaps and JavaScript property
+operation policies remain recorded in the dependency README.
+
+Async skill bridge delivery is verified on remote main at abf4df0a21. Release
+37112297042 remains pending; no native publication is claimed. Temporary bridge
+checkpoint artifacts were purged. JavaScript remains the default, with remaining
+public facades, dependency fidelity, portable artifacts and swap gates open.

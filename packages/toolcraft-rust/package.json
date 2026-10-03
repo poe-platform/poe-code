@@ -367,6 +367,10 @@
     "./agent-mcp-config": {
       "types": "./dist/agent-mcp-config.d.ts",
       "import": "./dist/agent-mcp-config.js"
+    },
+    "./config-mutations": {
+      "types": "./dist/config-mutations.d.ts",
+      "import": "./dist/config-mutations.js"
     }
   },
   "scripts": {

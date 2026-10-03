@@ -33,6 +33,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | MCP client       | `toolcraft-rust/tiny-mcp-client`: native clients, HTTP/stdio transports, OAuth discovery and in-memory test pairs with own public types |
 | Agent catalog    | `toolcraft-rust/agent-defs`: native agent metadata, aliases, capabilities, model specifiers and telemetry configuration |
 | MCP configuration | `toolcraft-rust/agent-mcp-config`: configure and remove agent servers through injected filesystems, with JSON, TOML and YAML formats |
+| Configuration mutations | `toolcraft-rust/config-mutations`: merge, prune and transform JSON/TOML/YAML, render templates and manage files through injected filesystems |
 | Credential stores | `toolcraft-rust/auth-store`: Node encrypted-file and Keychain stores, backend selection and legacy migration |
 | MCP handlers     | Native invocation routing, request services, cancellation, approvals, result projection and error reporting |
 | Stack diagnostics | Native framework-frame summaries, nested cause sections and raw stack preservation |

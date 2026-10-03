@@ -8,9 +8,9 @@ vi.mock('node:child_process', () => ({ execFileSync: vi.fn() }));
 vi.mock('./browser-process-inventory.mjs', () => ({ browserProcessInventory: vi.fn() }));
 vi.mock('node:timers/promises', () => ({ setTimeout: vi.fn(async () => {}) }));
 
-afterEach(() => { vi.restoreAllMocks(); vi.resetAllMocks(); });
+afterEach(() => { vi.restoreAllMocks(); vi.resetAllMocks(); vi.resetModules(); });
 
-test('guardian keeps ownership after inspection fails and verifies helpers before retiring', async () => {
+for (const helper of ['chrome_crashpad_handler', 'chrome_crashpad']) test(`guardian keeps ownership after inspection fails and verifies ${helper} before retiring`, async () => {
   type Listener = (message?: { operation: string; pid: number; directory: string }) => void | Promise<void>;
   const listeners = new Map<string, Listener>();
   vi.spyOn(process, 'on').mockImplementation(((event: string, listener: Listener) => {
@@ -24,7 +24,7 @@ test('guardian keeps ownership after inspection fails and verifies helpers befor
     expect(rmSync).not.toHaveBeenCalled();
     expect(exit).not.toHaveBeenCalled();
     expect(report).toHaveBeenCalled();
-    return '23456 chrome_crashpad_handler\n34567 chrome_crashpad_handler\n';
+    return `23456 ${helper}\n34567 ${helper}\n`;
   }).mockResolvedValueOnce('');
   vi.mocked(execFileSync).mockReturnValue('p23456\nn/owned\np34567\nn/unrelated\n');
   await import('./browser-process-lifetime.guardian.mjs');

@@ -1,8 +1,9 @@
-import { execFileSync, fork, spawnSync } from 'node:child_process';
+import { fork, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { setTimeout as delay } from 'node:timers/promises';
 import { expect, test } from 'vitest';
 import { existsSync } from 'node:fs';
+import { browserProcessInventory } from './browser-process-inventory.mjs';
 
 for (const termination of ['dispose', 'setup-failure', 'SIGTERM', 'SIGKILL', 'startup-SIGKILL'] as const) {
   test(`owned Chromium group retires after ${termination}`, async () => {
@@ -17,9 +18,9 @@ for (const termination of ['dispose', 'setup-failure', 'SIGTERM', 'SIGKILL', 'st
       const [message] = await once(host, 'message', { signal: AbortSignal.timeout(15000) });
       pid = message.pid;
       expect(typeof message.directory).toBe('string');
-      const candidates = execFileSync('ps', ['-axo', 'pid=,pgid=,args='], { encoding: 'utf8' })
+      const candidates = (await browserProcessInventory())
         .split('\n').map(line => line.trim().split(' ').filter(Boolean))
-        .filter(fields => Number(fields[1]) === pid || fields.join(' ').includes('chrome_crashpad_handler'))
+        .filter(fields => Number(fields[1]) === pid || fields.join(' ').includes('chrome_crashpad'))
         .map(fields => fields[0]);
       const census = spawnSync('lsof', ['-n', '-P', '-a', '-p', candidates.join(','), '-d', 'cwd', '-F', 'pn'], { encoding: 'utf8', timeout: 2000 });
       expect(census.error).toBeUndefined();

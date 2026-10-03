@@ -36,7 +36,8 @@ async function cleanup(pid) {
   // cwd remains an ownership witness after reparenting; other Chrome is excluded.
   for (let attempt = 0; attempt < 50; attempt++) {
     const candidates = (await browserProcessInventory(50))
-      .split('\n').filter(line => line.includes('chrome_crashpad_handler'))
+      // Linux comm can truncate the executable name to chrome_crashpad.
+      .split('\n').filter(line => line.includes('chrome_crashpad'))
       .map(line => line.trim().split(' ')[0]);
     if (!candidates.length) break;
     let output;

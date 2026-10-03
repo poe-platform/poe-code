@@ -9,6 +9,9 @@ resources and reports cleanup failures. With a capable injected filesystem,
 unfinished input streams retain encoded chunks in bounded caller-backed storage;
 file output, metadata and statistics reuse that snapshot. Clones share its lifetime:
 dispose each instance after its last operation, including after writable completion.
+Readable output uses the same retained encoders as file output and follows reader
+demand. When an `info` listener needs the exact size before the first chunk, encoded
+output is retained in caller backing until consumed. Cancellation awaits cleanup.
 Explicit buffer methods still materialize their results. File paths require an explicit
 `filesystem` with asynchronous `readFile` and `writeFile` methods (such as safe-fs)
 and an asynchronous output method; byte inputs also

@@ -1,3 +1,5 @@
+import {isStoredOutputFormat} from "./image-encode.js";
+import {tryImageStream,type RetainedImageOutput} from "./image-stream.js";
 import {RetainedStreamInput} from "./streams/input.js";
 import type {FileSystem} from "@poe-code/safe-fs/contracts";
 import {JoinLayout} from "./ops/join-layout.js";
@@ -8,7 +10,7 @@ import {prepareClaheImage} from "./ops/clahe.js";
 import {orderImageNodes,splitPostScaleNodes,imageAlphaStages} from "./ops/order.js";
 import {tryImageFile} from "./image-file.js";
 import { EventEmitter, Duplex, outputBytes } from "./streams/web.js";
-import { extname, normalizePath } from "@poe-code/safe-fs/contracts";
+import { dirname, extname, normalizePath } from "@poe-code/safe-fs/contracts";
 import {
   parseColor,
   type ColorInput,
@@ -316,6 +318,12 @@ export class SharpInstance extends Duplex {
   private readonly fileLoads = new Map<string, Promise<void>>();
   private readonly clonedStreams: SharpInstance[] = [];
   private streamOutStarted = false;
+  private readonly outputAbort=new AbortController();
+  private outputTask:Promise<RetainedImageOutput|undefined>|undefined;
+  private retainedOutput:RetainedImageOutput|undefined;
+  private outputSpool:RetainedStreamInput|undefined;
+  private outputPosition=0;
+  private outputInfo:OutputInfo|undefined;
 
   constructor(
     input?: Uint8Array | ArrayBuffer | string | SharpInputOptions | readonly (Uint8Array | ArrayBuffer | string | SharpInputOptions)[],
@@ -491,7 +499,10 @@ export class SharpInstance extends Duplex {
 
   override async _destroy():Promise<void>{
     this.inputOptions?.signal?.removeEventListener("abort",this.abortStream);
-    const outcomes=await Promise.allSettled([this.streamBacking?.release(),...(!this.streamInFinished?this.clonedStreams.map(child=>child.dispose()):[])]);
+    this.outputAbort.abort(new Error("Stream cancelled"));
+    await this.outputTask?.catch(()=>{});
+    const streamResult=await Promise.allSettled([this.retainedOutput?.stream.return(undefined)]);
+    const outcomes=[...streamResult,...await Promise.allSettled([this.retainedOutput?.close(),this.outputSpool?.release(),this.streamBacking?.release(),...(!this.streamInFinished?this.clonedStreams.map(child=>child.dispose()):[])])];
     const failure=outcomes.find(result=>result.status==="rejected");
     if(failure?.status==="rejected")throw failure.reason;
   }
@@ -513,19 +524,42 @@ export class SharpInstance extends Duplex {
     }
   }
 
-  override _read(): void {
-    if (!this.streamOutStarted) {
-      this.streamOutStarted = true;
-      this.waitForStreamInput()
-        .then(() => {
-          const res = this.toBufferWithObjectSync();
-          this.emit("info", res.info);
-          this.push(res.data);
-          this.push(null);
-        })
-        .catch(err => {
-          this.destroy(err);
-        });
+  private async prepareStreamOutput():Promise<RetainedImageOutput|undefined>{
+    await this.waitForStreamInput(false);
+    const signal=AbortSignal.any([this.outputAbort.signal,...(this.inputOptions?.signal?[this.inputOptions.signal]:[])]);
+    signal.throwIfAborted();
+    const input=this.streamBacking?{source:this.streamBacking}:this.joinInputs?{inputs:this.joinInputs}:this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
+    return tryImageStream(input,{...this.inputOptions,signal},this.outputOptions,this.nodes,this.fileInputs);
+  }
+
+  override async _read():Promise<void>{
+    if(!this.streamOutStarted){
+      this.streamOutStarted=true;
+      this.outputTask=this.prepareStreamOutput();
+      this.retainedOutput=await this.outputTask;
+      this.outputAbort.signal.throwIfAborted();
+      if(!this.retainedOutput){
+        await this.waitForStreamInput();const result=this.toBufferWithObjectSync();
+        this.emit("info",result.info);this.push(result.data);this.push(null);return;
+      }
+      // Exact pre-data info requires knowing the encoded size. Retain that
+      // output only for info subscribers; ordinary streams pull the encoder.
+      if(this.listenerCount("info")){
+        const signal=AbortSignal.any([this.outputAbort.signal,...(this.inputOptions?.signal?[this.inputOptions.signal]:[])]);
+        this.outputSpool=new RetainedStreamInput(this.inputOptions!.filesystem as FileSystem,this.inputOptions?.workingDirectory??(this.inputFilePath?dirname(this.inputFilePath):"."),signal);
+        while(true){const next=await this.retainedOutput.stream.next();if(next.done){this.outputInfo=next.value;break;}await this.outputSpool.append(next.value);}
+        await this.retainedOutput.close();this.emit("info",this.outputInfo);
+      }
+    }
+    this.outputAbort.signal.throwIfAborted();
+    if(this.outputSpool){
+      if(this.outputPosition<this.outputSpool.size){const bytes=await this.outputSpool.read(this.outputPosition,Math.min(16384,this.outputSpool.size-this.outputPosition));this.outputPosition+=bytes.length;this.push(bytes);return;}
+      const spool=this.outputSpool;this.outputSpool=undefined;await spool.release();this.push(null);return;
+    }
+    if(this.retainedOutput){
+      const next=await this.retainedOutput.stream.next();this.outputAbort.signal.throwIfAborted();
+      if(!next.done){this.push(next.value);return;}
+      await this.retainedOutput.close();this.push(null);
     }
   }
 
@@ -2417,7 +2451,7 @@ export class SharpInstance extends Duplex {
       }
       try {
         await this.waitForStreamInput(false);
-        if (["raw","png","ppm","pgm","pbm","bmp","tiff","gif","jpeg","webp"].includes(this.outputOptions.format??"png")) {
+        if (isStoredOutputFormat(this.outputOptions.format??"png")) {
           if(this.streamFailure) throw this.streamFailure;
           const input=this.streamBacking?{source:this.streamBacking}:this.joinInputs?{inputs:this.joinInputs}:this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
           const streamed = await tryImageFile(input, fileOut, this.inputOptions!, this.outputOptions, this.nodes,this.fileInputs);

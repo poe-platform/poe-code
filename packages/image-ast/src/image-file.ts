@@ -1,17 +1,12 @@
-import {encodeRawFromStorage,prepareRawOutput} from "./codecs/raw-storage.js";
+import {encodeStoredImage,isStoredOutputFormat} from "./image-encode.js";
+import {prepareRawOutput} from "./codecs/raw-storage.js";
+import type {ImageByteSource} from "./codecs/png-storage.js";
 import {decodeRawResource} from "./codecs/resource-storage.js";
 import {transformStoredPipeline} from "./ops/storage-pipeline.js";
-import {encodeWebpFromStorage} from "./codecs/webp-storage.js";
-import {encodeJpegFromStorage} from "./codecs/jpeg-storage.js";
-import {encodeGifFromStorage} from "./codecs/gif-storage.js";
-import {encodeTiffFromStorage} from "./codecs/tiff-storage.js";
-import {encodeNetpbmFromStorage} from "./codecs/netpbm-storage.js";
 import {storedImageDecoder} from "./codecs/stored-decoder.js";
-import {encodeBmpFromStorage} from "./codecs/bmp-storage.js";
 import {readImageResource,UnsupportedStoredResource,type ImageResourceInput} from "./image-resources.js";
 import {compareIdentity, compareFileVersion, dirname, FsError, isFsError, type FileSystem, type FileStat, type FileStaging} from "@poe-code/safe-fs/contracts";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
-import {encodePngFromStorage, type ImageByteSource} from "./codecs/png-storage.js";
 import {isStoredImageOperation} from "./ops/storage.js";
 import type {SharpInputOptions, OutputEncodeOptions, OutputInfo, ImageAstNode} from "./ast.js";
 
@@ -87,7 +82,7 @@ export async function tryImageFile(input: ImageResourceInput, output: string, op
     storage=new PagedStorage({fs,cwd:options.workingDirectory??directory,env:{},signal});
     let image=source&&decoder?await decoder(source,storage,signal,options):await readImageResource(input,options,fs,storage,signal,loadedFiles);
     const format=encoding.format??image.format;
-    if(format!=="raw"&&format!=="png"&&format!=="ppm"&&format!=="pgm"&&format!=="pbm"&&format!=="bmp"&&format!=="tiff"&&format!=="gif"&&format!=="jpeg"&&format!=="webp") {failed=false;return undefined;}
+    if(!isStoredOutputFormat(format)) {failed=false;return undefined;}
     if(handle && initial && inputFile!==undefined){
     const final=await handle.stat(io);
     signal.throwIfAborted();
@@ -98,9 +93,11 @@ export async function tryImageFile(input: ImageResourceInput, output: string, op
     image=await transformStoredPipeline(image,storage,operations,signal,resources);
     if(format==="raw")image=prepareRawOutput(image,operations);
     const backing=storage;
-    let complete=false, size=0;
+    let complete=false,info:OutputInfo|undefined;
     stream=(async function* () {
-      for await (const bytes of format==="raw"?encodeRawFromStorage(image,backing,signal,encoding):format==="png"?encodePngFromStorage(image,backing,signal,encoding):format==="webp"?encodeWebpFromStorage(image,backing,signal,encoding):format==="jpeg"?encodeJpegFromStorage(image,backing,signal,encoding):format==="gif"?encodeGifFromStorage(image,backing,signal,encoding):format==="tiff"?encodeTiffFromStorage(image,backing,signal,encoding):format==="bmp"?encodeBmpFromStorage(image,backing,signal):encodeNetpbmFromStorage(image,backing,signal,format)) {size+=bytes.length; yield bytes;}
+      const encoded=encodeStoredImage(image,backing,signal,{...encoding,format});
+      try {while(true){const next=await encoded.next();if(next.done){info=next.value;break;}yield next.value;}}
+      finally {await encoded.return(undefined);}
       await backing.close();
       complete=true;
     })();
@@ -116,7 +113,6 @@ export async function tryImageFile(input: ImageResourceInput, output: string, op
     }
     if (!complete) throw new FsError("EIO",{path:output,message:"Image publisher returned before consuming output"});
     failed=false;
-    const gray=image.space==="b-w" || image.channels===1 || image.channels===2;
-    return {...(image.textAutofitDpi===undefined?{}:{textAutofitDpi:image.textAutofitDpi}),format,width:image.width,height:image.height,...(format==="raw"?{depth:encoding.rawDepth??image.depth}:{}),channels:format==="raw"?image.channels:format==="webp"?(image.hasAlpha?4:3):format==="tiff"||format==="gif"?4:format==="ppm"||format==="bmp"||format==="jpeg"?3:format==="pgm"||format==="pbm"?1:gray ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3,premultiplied:Boolean(image.wasPremultiplied),...(image.pageHeight===undefined?{}:{pageHeight:image.pageHeight}),...(image.pageHeight!==undefined&&(image.sourcePages??image.pages)!==undefined?{pages:image.sourcePages??image.pages}:{}),...(image.trimOffsetLeft===undefined?{}:{trimOffsetLeft:image.trimOffsetLeft}),...(image.trimOffsetTop===undefined?{}:{trimOffsetTop:image.trimOffsetTop}),size};
+    return info!;
   } catch(error) {if(error instanceof UnsupportedStoredResource) {failed=false;return undefined;} throw error;} finally {await cleanup();}
 }

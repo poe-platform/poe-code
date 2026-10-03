@@ -18,6 +18,7 @@ export class EventEmitter {
     this.listeners.get(event)?.delete(listener as Listener);
     return this;
   }
+  listenerCount(event:string):number{return this.listeners.get(event)?.size??0;}
   emit(event: string, ...args: unknown[]): boolean {
     const listeners = [...this.listeners.get(event) ?? []];
     for (const listener of listeners) listener(...args);
@@ -87,12 +88,21 @@ export class Duplex extends EventEmitter {
   }
   async *[Symbol.asyncIterator](): AsyncGenerator<Uint8Array> {
     const reader = this.readable.getReader();
+    let failed=false;
     try {
       while (true) {
         const result = await reader.read();
         if (result.done) return;
         yield result.value;
       }
-    } finally { await reader.cancel(); reader.releaseLock(); }
+    } catch(error){failed=true;throw error;}
+    finally {await this.finishIteration(reader,failed);}
+  }
+  private async finishIteration(reader:ReadableStreamDefaultReader<Uint8Array>,failed:boolean):Promise<void>{
+    let cleanup:{error:unknown}|undefined;
+    try{await reader.cancel();}catch(error){cleanup={error};}
+    try{await this.destruction;}catch(error){cleanup??={error};}
+    reader.releaseLock();
+    if(!failed&&cleanup)throw cleanup.error;
   }
 }

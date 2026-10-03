@@ -53,3 +53,12 @@ describe("Web duplex resource lifetime",()=>{
  });
 
 });
+
+it("awaits destruction before rejecting iteration and releases its reader lock",async()=>{
+ const pending=gate(),entered=gate(),failure=new Error("read failed");
+ class Source extends Duplex {override async _read(){throw failure;} override async _destroy(){entered.resolve();await pending.promise;}}
+ const source=new Source();let finished=false;
+ const consuming=(async()=>{for await(const ignoredChunk of source){/* drain */}})();void consuming.catch(()=>{finished=true;});
+ await entered.promise;for(let i=0;i<10;i++)await Promise.resolve();expect(finished).toBe(false);
+ pending.resolve();await expect(consuming).rejects.toBe(failure);expect(source.readable.locked).toBe(false);
+});

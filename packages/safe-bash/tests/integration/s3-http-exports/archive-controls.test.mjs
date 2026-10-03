@@ -589,7 +589,7 @@ test("shared archive source capture retains owned bytes and refuses source links
 
 test("shared archive compilation uses supplied source bytes and binds only exact emitted declarations", async () => {
   const fixture = dependencyFixture();
-  for (const name of ["index", "runtime", "compression", "zip"]) fixture.files.set("packages/office-package/src/" + name + ".ts", Buffer.from("export const capturedValue: number = 73;\n"));
+  for (const name of ["index", "runtime", "compression", "zip", "zip-sync", "zip-source", "zip-index", "zip-entry-storage"]) fixture.files.set("packages/office-package/src/" + name + ".ts", Buffer.from("export const capturedValue: number = 73;\n"));
   const bindings = await distChecks.prepareArchiveDependencies(fixture, fixture.tools, "/owned", fixture);
   const shared = bindings.find(binding => binding.name === "@poe-code/office-package");
   assert.match(shared.files.find(file => file.path === "dist/zip.js").bytes.toString(), /capturedValue = 73/);

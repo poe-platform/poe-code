@@ -31,3 +31,11 @@ export interface RtfState {
 }
 
 export const initialRtfState = (): RtfState => ({codepage: 1252, defaultFont: undefined, uc: 1, font: undefined, color: 0, size: undefined, tags: new Set(), list: undefined, level: 0, alignment: undefined, left: undefined, right: undefined, indent: undefined, heading: undefined});
+
+export const characters: Readonly<Record<string, string>> = {
+  emdash: "—", endash: "–", bullet: "•", lquote: "‘", rquote: "’", ldblquote: "“", rdblquote: "”",
+  emspace: "\u2003", enspace: "\u2002", qmspace: "\u2005"
+};
+export const metadataDestinations = new Set(["info", "generator", "fonttbl", "colortbl", "stylesheet", "listtable", "listoverridetable"]);
+export const forbiddenDestinations = new Set(["object", "objdata", "objclass", "objname", "objalias", "datafield", "filetbl"]);
+export const unsupportedDestinations = new Set(["header", "headerl", "headerr", "headerf", "footer", "footerl", "footerr", "footerf", "annotation", "shp", "shptxt", "nonshppict", "upr", "ud", "xmlopen", "xmlattrname", "xmlattrvalue"]);

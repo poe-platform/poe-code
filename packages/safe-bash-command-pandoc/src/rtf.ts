@@ -1,5 +1,5 @@
 import {decodeRtfText} from "./rtf-text.js";
-import {runControls, layoutControls, initialRtfState as initial, type RtfState as State, type RunTag} from "./rtf-profile.js";
+import {characters, metadataDestinations, forbiddenDestinations, unsupportedDestinations, runControls, layoutControls, initialRtfState as initial, type RtfState as State, type RunTag} from "./rtf-profile.js";
 import type { Attr, Block, Cell, Inline, Row } from "./ast-types.js";
 import type { AdapterContext, Document, ReaderCapability, Resource } from "./types.js";
 import { destination, hexDigit, parseRtf, rtfError } from "./rtf-syntax.js";
@@ -11,15 +11,6 @@ type ListStyle = Extract<Block, {t: "OrderedList"}>["c"][0][1];
 type ListDelim = Extract<Block, {t: "OrderedList"}>["c"][0][2];
 interface ListLevel {start: number; style: ListStyle | "bullet"; delimiter: ListDelim}
 interface ListFrame {id: number; level: number; items: Block[][]}
-const characters: Readonly<Record<string, string>> = {
-  emdash: "—", endash: "–", bullet: "•", lquote: "‘", rquote: "’", ldblquote: "“", rdblquote: "”",
-  emspace: "\u2003", enspace: "\u2002", qmspace: "\u2005"
-};
-const metadataDestinations = new Set(["info", "generator", "fonttbl", "colortbl", "stylesheet", "listtable", "listoverridetable"]);
-const forbiddenDestinations = new Set(["object", "objdata", "objclass", "objname", "objalias", "datafield", "filetbl"]);
-const unsupportedDestinations = new Set(["header", "headerl", "headerr", "headerf", "footer", "footerl", "footerr", "footerf", "annotation", "shp", "shptxt", "nonshppict", "upr", "ud", "xmlopen", "xmlattrname", "xmlattrvalue"]);
-
-
 class RtfReader {
   readonly blocks: Block[] = [];
   readonly fonts = new Map<number, Font>();

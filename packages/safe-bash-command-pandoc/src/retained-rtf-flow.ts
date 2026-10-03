@@ -137,6 +137,7 @@ export class RetainedRtfFlow {
     if (this.inlineOnly || this.boundaries !== undefined || await this.ast.count(this.inlines)) rtfError(this.context, "Invalid RTF table row boundary");
     this.boundaries = {count: 0, last: 0}; this.cells = await this.ast.array(); this.cellBlocks = await this.ast.array();
   }
+  get inTable(): boolean {return this.boundaries !== undefined;}
   boundary(value: number): void {
     if (!this.boundaries) rtfError(this.context, "RTF cell boundary outside row");
     if (this.boundaries.count && value <= this.boundaries.last) rtfError(this.context, "Non-increasing RTF cell boundaries");

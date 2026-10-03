@@ -25,12 +25,13 @@ test("review: buffered install cancellation drains its admitted filesystem write
   const host = wrapped(fs, {
     capabilities: { ...fs.capabilities, streamingWrite: false },
     writeStream: undefined,
-    async writeFile(path, bytes, options) {
+    async open(path, options) {
+      if (options?.access !== "write") return fs.open!(path, options);
       assert.equal(path, "/target");
-      assert.equal(options?.flag, "wx");
+      assert.equal(options?.creation, "exclusive");
       active = true;
       entered();
-      try { await gate; await fs.writeFile(path, bytes, options); }
+      try { await gate; return await fs.open!(path, options); }
       finally { active = false; finished(); }
     },
   });

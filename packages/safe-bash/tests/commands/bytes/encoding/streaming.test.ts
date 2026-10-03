@@ -22,9 +22,15 @@ for (const name of commands) {
   });
 
   test(`${name}: filesystem capabilities and VFS errors stay explicit`, async () => {
-    const fs = new MemoryFileSystem();
-    await fs.writeFile("/file", allBytes);
-    Object.defineProperty(fs, "readStream", { value: undefined });
+    const base = new MemoryFileSystem();
+    await base.writeFile("/file", allBytes);
+    const fs = new Proxy(base, {
+      get(target, property) {
+        if (property === "readStream") return undefined;
+        const value = Reflect.get(target, property, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
     const withoutStreaming = await run(name, ["file"], "", { fs });
     if (name === "xxd" || name === "od") {
       assert.equal(withoutStreaming.exitCode, 0, withoutStreaming.stderr);

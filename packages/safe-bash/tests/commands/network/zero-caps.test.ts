@@ -216,7 +216,7 @@ for (const mode of ["direct", "shell"] as const) {
       assert.equal(setup.state.stdinOpens, upload === "stdin" ? 1 : 0);
       assert.equal(setup.state.stdinCloses, upload === "stdin" ? 1 : 0);
       assert.equal(setup.state.fileOpens, upload === "file" ? 1 : 0);
-      assert.equal(setup.state.fileReads, upload === "file" ? 1 : 0);
+      assert.equal(setup.state.fileReads, upload === "file" ? 2 : 0);
       assert.equal(setup.state.fileBytes, upload === "file" ? payload.length : 0);
       assert.equal(setup.state.responseReads, redirect ? 0 : 1);
       assert.equal(Buffer.from(await setup.fs.readFile("/work/out")).toString(), redirect ? "existing" : "reply");

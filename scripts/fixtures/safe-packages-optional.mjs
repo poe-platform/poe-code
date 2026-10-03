@@ -538,10 +538,11 @@ for (const wait of ['wait "$child"', 'wait -n -p chosen "$child"']) {
     const fs = new Proxy(memory, { get(target, property) {
       if (property === "capabilities") return { ...target.capabilities, streamingWrite: false };
       if (property === "writeStream") return undefined;
-      if (property === "writeFile") return async (...args) => {
+      if (property === "open") return async (path, options) => {
+        if (options?.access !== "write") return target.open(path, options);
         active++;
         entered.resolve();
-        try { await released.promise; await target.writeFile(...args); }
+        try { await released.promise; return await target.open(path, options); }
         finally { active--; }
       };
       const value = Reflect.get(target, property, target);

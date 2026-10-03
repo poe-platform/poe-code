@@ -94,6 +94,7 @@ export async function copyCheckedSource(context: CommandContext, source: string,
           return reader.read(position, 64 * 1024, { signal: context.signal });
         });
         const chunk = await reading;
+        context.signal.throwIfAborted();
         if (!(chunk instanceof Uint8Array) || chunk.byteLength > 65536) throw new FsError("EIO", { path: source, message: "invalid retained read size" });
         if (!chunk.length) {
           if (destination && position !== retained.size) throw new FsError("EBUSY", { path: source, message: "copy source size changed" });
@@ -102,6 +103,9 @@ export async function copyCheckedSource(context: CommandContext, source: string,
         if (destination && chunk.length > retained.size - position) throw new FsError("EBUSY", { path: source, message: "copy source size changed" });
         position += chunk.length;
         context.inputBudget?.check(position);
+        if (position > (context.inputBudget?.maxBytes ?? Infinity)) throw new FsError("EFBIG", {
+          path: source, message: "copy source exceeds input budget",
+        });
         yield chunk;
       }
     };
@@ -110,6 +114,14 @@ export async function copyCheckedSource(context: CommandContext, source: string,
       ...(capabilities.permissions === true ? { mode: expected.mode & 0o7777 } : {}),
     };
     if (selectCopyDestination(context, target, capabilities, exclusive) === "descriptor") {
+      const size = retained.size;
+      if (!Number.isSafeInteger(size) || size < 0) {
+        throw new FsError("EFBIG", { path: source, message: "copy source exceeds bounded collection capacity" });
+      }
+      context.inputBudget?.check(size);
+      if (size > (context.inputBudget?.maxBytes ?? Infinity)) throw new FsError("EFBIG", {
+        path: source, message: "copy source exceeds input budget",
+      });
       work = (async () => {
         destination = await context.fs.open!(target, { access: "write", creation: "exclusive", signal: context.signal,
           ...(options.mode === undefined ? {} : { mode: options.mode }),
@@ -131,7 +143,7 @@ export async function copyCheckedSource(context: CommandContext, source: string,
     if (!consumed) throw new FsError("EIO", { path: target, message: "copy writer did not consume source" });
   } catch (error) {
     failed = true;
-    primaryError = error;
+    primaryError = context.signal.aborted ? context.signal.reason : error;
   }
   acquired();
   try {

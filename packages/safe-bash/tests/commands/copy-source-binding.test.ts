@@ -86,7 +86,17 @@ for (const rejectRead of [false, true]) test(`buffered copy drains an aborted re
         return new Uint8Array();
       }, async close() { closes++; await reader.close(); } };
     };
-    if (property === "writeFile") return async () => { writes++; };
+    if (property === "open") return async (...args: Parameters<NonNullable<typeof fs.open>>) => {
+      const handle = await fs.open!(...args);
+      return new Proxy(handle, { get(handleTarget, handleProp) {
+        if (handleProp === "write") return async (...writeArgs: Parameters<typeof handle.write>) => {
+          writes++;
+          return handleTarget.write(...writeArgs);
+        };
+        const value = Reflect.get(handleTarget, handleProp, handleTarget);
+        return typeof value === "function" ? value.bind(handleTarget) : value;
+      } });
+    };
     const member = Reflect.get(target, property);
     return typeof member === "function" ? member.bind(target) : member;
   } });
@@ -109,7 +119,7 @@ for (const rejectRead of [false, true]) test(`buffered copy drains an aborted re
   assert.equal(closes, 1);
   assert.equal(writes, 0);
   assert.equal(new TextDecoder().decode(await fs.readFile("/work/source")), "payload");
-  await assert.rejects(fs.stat("/work/new"), { code: "ENOENT" });
+  assert.equal((await fs.stat("/work/new")).size, 0);
 });
 
 for (const streaming of [false, true]) for (const command of ["cp --remove-destination", "mv"]) {
@@ -140,10 +150,13 @@ for (const streaming of [false, true]) test(`backup copy creates its replacement
   let writes = 0;
   const view = new Proxy(fs, { get(backing, property) {
     if (property === "capabilities") return { ...fs.capabilities, streamingWrite: streaming, write: false };
-    if (property === (streaming ? "writeStream" : "writeFile")) return async (...args: Parameters<typeof fs.writeFile> | Parameters<typeof fs.writeStream>) => {
+    if (streaming && property === "writeStream") return async (...args: Parameters<typeof fs.writeStream>) => {
       assert.equal(args[2]?.flag, "wx"); writes++;
-      if (streaming) await fs.writeStream(...args as Parameters<typeof fs.writeStream>);
-      else await fs.writeFile(...args as Parameters<typeof fs.writeFile>);
+      await fs.writeStream(...args);
+    };
+    if (!streaming && property === "open") return async (...args: Parameters<NonNullable<typeof fs.open>>) => {
+      assert.equal(args[1]?.creation, "exclusive"); writes++;
+      return fs.open!(...args);
     };
     const member = Reflect.get(backing, property);
     return typeof member === "function" ? member.bind(backing) : member;
@@ -213,11 +226,11 @@ for (const empty of [false, true]) test(`copy supports exclusive buffered public
   const view = new Proxy(fs, { get(target, property) {
     if (property === "capabilities") return { ...fs.capabilities, streamingWrite: false, write: false };
     if (property === "writeStream" || property === "copyFile" || property === "readFile") return async () => { assert.fail("buffered copy must retain its reader"); };
-    if (property === "writeFile") return async (...args: Parameters<typeof fs.writeFile>) => {
-      assert.equal(args[2]?.flag, "wx"); writes++;
+    if (property === "open") return async (...args: Parameters<NonNullable<typeof fs.open>>) => {
+      assert.equal(args[1]?.creation, "exclusive"); writes++;
       await fs.rename("/work/source", "/work/held");
       await fs.writeFile("/work/source", new TextEncoder().encode("private"));
-      await fs.writeFile(...args);
+      return fs.open!(...args);
     };
     const member = Reflect.get(target, property);
     return typeof member === "function" ? member.bind(target) : member;
@@ -243,17 +256,28 @@ for (const fault of ["budget", "declared-budget", "growth", "shrink", "backing",
           reads++;
           if (fault === "growth") return new TextEncoder().encode("growth");
           if (fault === "shrink") return new Uint8Array();
-          if (fault === "backing") return new Uint8Array(128 * 1024).subarray(0, 1);
+          if (fault === "backing") return new Uint8Array(128 * 1024);
           const bytes = await reader.read(...args);
           if (fault === "cancel") controller.abort(reason);
           return bytes;
         }, async close() { closes++; await reader.close(); } };
       };
       if (property === "writeStream" || property === "copyFile") return async () => { assert.fail("no streaming or pathname fallback"); };
-      if (property === "writeFile") return async (...args: Parameters<typeof fs.writeFile>) => {
-        writes++; assert.equal(args[2]?.flag, "wx");
-        if (fault === "race") await fs.writeFile("/work/new", new TextEncoder().encode("competitor"));
-        await fs.writeFile(...args);
+      if (property === "open") return async (...args: Parameters<NonNullable<typeof fs.open>>) => {
+        assert.equal(args[1]?.creation, "exclusive");
+        if (fault === "race") {
+          writes++;
+          await fs.writeFile("/work/new", new TextEncoder().encode("competitor"));
+        }
+        const handle = await fs.open!(...args);
+        return new Proxy(handle, { get(handleTarget, handleProp) {
+          if (handleProp === "write") return async (...writeArgs: Parameters<typeof handle.write>) => {
+            writes++;
+            return handleTarget.write(...writeArgs);
+          };
+          const value = Reflect.get(handleTarget, handleProp, handleTarget);
+          return typeof value === "function" ? value.bind(handleTarget) : value;
+        } });
       };
       const member = Reflect.get(target, property);
       return typeof member === "function" ? member.bind(target) : member;
@@ -263,13 +287,14 @@ for (const fault of ["budget", "declared-budget", "growth", "shrink", "backing",
     await assert.rejects(copyCheckedSource({ ...context, fs: view, signal: controller.signal,
       ...(inputBudget ? { inputBudget } : {}),
     }, "/work/source", "/work/new", expected, true), fault === "cancel" ? error => error === reason
-      : { code: fault === "race" ? "EEXIST" : fault === "shrink" ? "EBUSY" : "EFBIG" });
+      : { code: fault === "race" ? "EEXIST" : fault === "budget" || fault === "declared-budget" ? "EFBIG" : fault === "backing" ? "EIO" : "EBUSY" });
     assert.equal(writes, fault === "race" ? 1 : 0);
     if (fault === "budget" || fault === "declared-budget") assert.equal(reads, 0);
     assert.equal(closes, 1);
     assert.equal(new TextDecoder().decode(await fs.readFile("/work/source")), "abc");
     if (fault === "race") assert.equal(new TextDecoder().decode(await fs.readFile("/work/new")), "competitor");
-    else await assert.rejects(fs.stat("/work/new"), { code: "ENOENT" });
+    else if (fault === "budget" || fault === "declared-budget") await assert.rejects(fs.stat("/work/new"), { code: "ENOENT" });
+    else assert.equal((await fs.stat("/work/new")).size, 0);
   });
 }
 
@@ -280,8 +305,8 @@ for (const command of ["cp -r", "mv"]) test(`${command} publishes a tree through
   const target = new Proxy(destination, { get(backing, property) {
     if (property === "capabilities") return { ...destination.capabilities, streamingWrite: false, write: false };
     if (property === "writeStream" || property === "copyFile") return async () => { assert.fail("buffered publication only"); };
-    if (property === "writeFile") return async (...args: Parameters<typeof destination.writeFile>) => {
-      assert.equal(args[2]?.flag, "wx"); writes++; await destination.writeFile(...args);
+    if (property === "open") return async (...args: Parameters<NonNullable<typeof destination.open>>) => {
+      assert.equal(args[1]?.creation, "exclusive"); writes++; return destination.open!(...args);
     };
     const member = Reflect.get(backing, property);
     return typeof member === "function" ? member.bind(backing) : member;

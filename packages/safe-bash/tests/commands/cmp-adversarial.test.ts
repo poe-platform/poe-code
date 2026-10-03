@@ -192,18 +192,28 @@ for (const mode of ["disabled", "missing", "denied"] as const) {
   test(`cmp ${mode} path streaming honors admission and omits an unlimited read bound`, async () => {
     let streamCalls = 0;
     const reads: (number | undefined)[] = [];
-    const { shell } = await fixture({
+    const { shell, memory } = await fixture({
       async capabilitiesFor(path: string) {
         assert.ok(path === "/left" || path === "/right");
-        return { read: mode !== "denied", streamingRead: mode === "missing" };
+        return { read: mode !== "denied", retainedRead: mode !== "denied", streamingRead: mode === "missing" };
       },
       readStream: mode === "missing" ? undefined : () => { streamCalls++; assert.fail("disabled path stream called"); },
-      async readFile(_path: string, options: { maxBytes?: number; signal?: AbortSignal }) {
+      async openReadFile(path: string, options: { signal?: AbortSignal }) {
         assert.notEqual(mode, "denied", "disabled read capability called");
         assert.ok(options.signal);
-        assert.equal(options.maxBytes, undefined);
-        reads.push(options.maxBytes);
-        return Uint8Array.of(0x80, 0, 0xff);
+        const handle = await memory.openReadFile(path, options);
+        return {
+          stat: (statOptions?: { signal?: AbortSignal }) => handle.stat(statOptions),
+          async read(position: number, maxBytes: number, readOptions?: { signal?: AbortSignal }) {
+            assert.ok(readOptions?.signal);
+            if (position === 0) reads.push(maxBytes);
+            return handle.read(position, maxBytes, readOptions);
+          },
+          close: () => handle.close(),
+        };
+      },
+      async readFile() {
+        assert.fail("whole-file readFile fallback must not be called");
       },
     });
     try {

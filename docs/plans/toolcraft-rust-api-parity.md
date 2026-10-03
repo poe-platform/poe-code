@@ -4874,3 +4874,43 @@ The cancellation repair and Node facade are verified on remote main at 4684028a6
 and 122ef299fd. Their queued release runs were superseded. Descendant Release
 37103492044 completed successfully with its build passing and stable publication
 skipped; no native package publication is claimed.
+
+### Credential lock ticket policy checkpoint
+
+Rust now selects the next bakery ticket, rejects unsafe ticket overflow, admits
+choosing predecessors and orders numeric tickets with UTF-16 claim-name ties.
+Bindings retain ECMAScript numeric coercion and use an injected relational primitive
+for nonnumeric host values. The adapter no longer owns the maximum-ticket reduction
+or predecessor search. JSON claim-document admission, stale-owner cleanup and
+asynchronous lock lifecycle remain in the adapter and still require an ownership
+audit/port; portable credential storage remains unimplemented.
+
+The new Rust tests first failed on missing next-ticket and predecessor policy.
+Native differential tests cover numeric coercion, BigInt/Symbol rejection or
+comparison as appropriate, null/undefined, safe-integer overflow, UTF-16 ties and
+short-circuiting. A failing opaque-exception case showed that napi's Function call
+converted a thrown object to a generic Error. A per-invocation adapter capture now
+preserves the original thrown value, including undefined, null, symbols and objects
+whose stringification itself throws, without leaking exception state across
+reentrant calls.
+
+The maintained four-package route passes again: 772 OAuth reference cases and
+114 native checks; 445 client reference cases and 83 native checks; 6,200 Toolcraft
+cases across 125 files and 266 native checks, strict types, the original CLI type
+consumer and root posttest. After the final opaque-exception fixture was added,
+the maintained credential route was rerun and passes 34 native checks, Rust tests,
+types and posttest. Maintained Rust/binding lint and scoped JS lint pass. A fresh
+packed credential package verifies mutual exclusion, waiting timeouts, cleanup,
+callback results and encrypted storage using only injected memfs capabilities.
+
+The same local warmed seven-round benchmark (300 uncontended memfs acquisitions
+per round, alternating implementations, Node 22.23.2 ARM64) measured 85.019/74.292
+microseconds native/reference for an empty directory (1.14 times slower), and
+117.225/81.370 microseconds with 32 ignored staging names (1.44 times slower).
+These shared-host measurements do not support cross-run speedup claims. No
+performance/default-swap gate passed and no dependency was added.
+
+The admission policy checkpoint is verified on remote main at 99ea07cb4e.
+Release 37103665561 is pending behind the active workspace/CLI build in
+37103531071. Publication remains unverified. The completed facade/admission
+checkpoint's temporary output was purged.

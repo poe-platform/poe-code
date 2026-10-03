@@ -3,10 +3,59 @@ import { createRequire } from "node:module";
 import { test } from "node:test";
 import { createFsFromVolume, Volume } from "memfs";
 import { withSecretStoreFileLock as own } from "./lock-entry.mjs";
+import { hasLockPredecessor } from "../dist/credential-transaction-lock.js";
 process.env.TSX_DISABLE_CACHE = "1";
 const { tsImport } = await import("tsx/esm/api");
 const { withSecretStoreFileLock: reference } = await tsImport("../../auth-store/src/transaction-lock.ts", import.meta.url);
 const native = createRequire(import.meta.url)("../dist/auth-store-rust.node");
+
+test("native ticket selection preserves numeric coercion, overflow and original thrown values", () => {
+  const failure = { original: "coercion" };
+  const capture = action => {
+    try { return action(); }
+    catch (error) { return { thrown: error === failure, name: error.name, message: error.message, code: error.code }; }
+  };
+  const candidates = [null, undefined, 0, -0, 1, 3, -1, 0.25, Number.MAX_SAFE_INTEGER - 1, Number.MAX_SAFE_INTEGER, Infinity, NaN, "2", true, { valueOf: () => 4 }, 1n, Symbol("ticket"), { valueOf: () => { throw failure; } }];
+  for (const value of candidates) {
+    const claims = [{ ticket: value }, { ticket: 1 }];
+    const expected = capture(() => {
+      const ticket = claims.reduce((max, claim) => Math.max(max, claim.ticket ?? 0), 0) + 1;
+      return Number.isSafeInteger(ticket) ? { value: ticket } : { error: "Secret-store transaction lock ticket overflow" };
+    });
+    assert.deepEqual(capture(() => native.lockNextTicket(claims)), expected);
+  }
+});
+
+test("native waiter ordering preserves UTF-16 ties, short circuiting and relational host coercion", () => {
+  const failure = { original: "relation" }, lessThan = (a, b) => a < b;
+  const capture = action => {
+    try { return { value: action() }; }
+    catch (error) { return { thrown: error === failure, name: error.name, message: error.message, code: error.code }; }
+  };
+  const tickets = [null, undefined, 0, 1, 2, 3, NaN, Infinity, "1", "2", 1n, 2n, Symbol("ticket"), { valueOf: () => 1 }, { valueOf: () => { throw failure; } }];
+  for (const value of tickets) for (const name of ["a", "z", "\ud800", "\ue000"]) {
+    const peers = [{ ticket: value, name }];
+    const expected = capture(() => peers.some(peer => peer.ticket === null || peer.ticket < 2 || (peer.ticket === 2 && peer.name < "z")));
+    assert.deepEqual(capture(() => hasLockPredecessor(native, peers, 2, "z")), expected);
+  }
+  const forbidden = { get ticket() { throw new Error("must short circuit"); } };
+  assert.equal(native.lockHasPredecessor([{ ticket: null }, forbidden], 2, "z", lessThan), true);
+  assert.equal(native.lockHasPredecessor([{ ticket: 1, get name() { throw new Error("no tie"); } }], 2, "z", lessThan), true);
+});
+
+test("lock comparisons preserve opaque exceptions through reentrant native calls", () => {
+  for (const failure of [undefined, null, Symbol("opaque"), { toString() { throw new Error("must not stringify original"); } }]) {
+    let observed;
+    const value = { valueOf() {
+      assert.equal(hasLockPredecessor(native, [{ ticket: null }], 1, "inner"), true);
+      throw failure;
+    } };
+    try { hasLockPredecessor(native, [{ ticket: value, name: "peer" }], 2, "outer"); }
+    catch (error) { observed = { error }; }
+    assert.ok(observed);
+    assert.equal(observed.error, failure);
+  }
+});
 
 test("native claim admission preserves canonical JavaScript PID validation and ignored names", () => {
   const ownName = "123-own.claim";

@@ -168,6 +168,54 @@ pub fn lock_protected_paths(
     )
 }
 
+#[napi]
+pub fn lock_next_ticket(claims: Vec<Object<'_>>) -> Result<convert::NativeJson> {
+    let mut tickets = Vec::with_capacity(claims.len());
+    for claim in claims {
+        let ticket: Unknown = claim.get_named_property("ticket")?;
+        tickets.push(match ticket.get_type()? {
+            napi::ValueType::Null | napi::ValueType::Undefined => 0.0,
+            napi::ValueType::Number => unsafe { ticket.cast::<f64>()? },
+            _ => ticket.coerce_to_number()?.get_double()?,
+        });
+    }
+    Ok(envelope(
+        auth_store_rust::lock::next_ticket(&tickets)
+            .map(Value::Number)
+            .map_err(|message| message.encode_utf16().collect()),
+    ))
+}
+
+#[napi]
+pub fn lock_has_predecessor<'env>(
+    peers: Vec<Object<'env>>,
+    ticket: f64,
+    name: Utf16String,
+    less_than: Function<'env, FnArgs<(Unknown, f64)>, bool>,
+) -> Result<bool> {
+    for peer in peers {
+        let value: Unknown = peer.get_named_property("ticket")?;
+        let blocks = match value.get_type()? {
+            napi::ValueType::Null => true,
+            napi::ValueType::Number => {
+                let value = unsafe { value.cast::<f64>()? };
+                let peer_name: Utf16String = if value == ticket {
+                    peer.get_named_property("name")?
+                } else {
+                    Vec::<u16>::new().into()
+                };
+                auth_store_rust::lock::precedes(Some(value), ticket, &peer_name, &name)
+            }
+            // Keep ECMAScript relational coercion and thrown host values intact.
+            _ => less_than.call((value, ticket).into())?,
+        };
+        if blocks {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
 use std::cell::RefCell;
 #[napi]
 #[derive(Default)]

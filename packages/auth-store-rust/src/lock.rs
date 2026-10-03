@@ -1,4 +1,4 @@
-//! Filesystem lock admission, independent of host I/O and process liveness.
+//! Filesystem lock policy, independent of host I/O and process liveness.
 pub fn validate_timeout(timeout: f64) -> Result<(), &'static str> {
     if timeout == f64::INFINITY
         || (timeout.is_finite() && (0.0..=2_147_483_647.0).contains(&timeout))
@@ -37,4 +37,24 @@ pub fn protected_paths(resolved: &[u16], root_len: usize, separator: u16) -> Vec
         return vec![];
     }
     crate::protected_paths(resolved, root_len, separator, None, true)
+}
+
+pub fn next_ticket(tickets: &[f64]) -> Result<f64, &'static str> {
+    let maximum = tickets.iter().fold(0.0_f64, |maximum, ticket| {
+        if maximum.is_nan() || ticket.is_nan() {
+            f64::NAN
+        } else {
+            maximum.max(*ticket)
+        }
+    });
+    let ticket = maximum + 1.0;
+    if ticket.is_finite() && ticket.fract() == 0.0 && ticket <= 9_007_199_254_740_991.0 {
+        Ok(ticket)
+    } else {
+        Err("Secret-store transaction lock ticket overflow")
+    }
+}
+
+pub fn precedes(peer: Option<f64>, ticket: f64, peer_name: &[u16], name: &[u16]) -> bool {
+    peer.is_none_or(|peer| peer < ticket || (peer == ticket && peer_name < name))
 }

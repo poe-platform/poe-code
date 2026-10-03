@@ -1,6 +1,21 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 function hasOwnErrorCode(error, code) { return error instanceof Error && Object.hasOwn(error, "code") && error.code === code; }
+export function hasLockPredecessor(native, peers, ticket, name) {
+    let captured;
+    try {
+        return native.lockHasPredecessor(peers, ticket, name, (left, right) => {
+            try { return left < right; }
+            catch (error) {
+                captured = { error };
+                throw new Error("Credential lock comparison failed");
+            }
+        });
+    } catch (error) {
+        if (captured) throw captured.error;
+        throw error;
+    }
+}
 function unwrap(result) {
     if (Object.hasOwn(result, "error")) throw new Error(result.error);
     return result.value;
@@ -33,9 +48,7 @@ export function createCredentialLockBindings(native) {
             throw error;
         }
         const existing = await readClaims(fs, directory, name, native);
-        const ticket = existing.reduce((max, claim) => Math.max(max, claim.ticket ?? 0), 0) + 1;
-        if (!Number.isSafeInteger(ticket))
-            throw new Error("Secret-store transaction lock ticket overflow");
+        const ticket = unwrap(native.lockNextTicket(existing));
         temporaryCreated = true;
         try {
             await fs.writeFile(temporaryPath, JSON.stringify({ ticket }), { encoding: "utf8", flag: "wx", mode: 0o600 });
@@ -50,7 +63,7 @@ export function createCredentialLockBindings(native) {
         for (;;) {
             options.signal?.throwIfAborted();
             const peers = await readClaims(fs, directory, name, native);
-            if (!peers.some(peer => peer.ticket === null || peer.ticket < ticket || (peer.ticket === ticket && peer.name < name)))
+            if (!hasLockPredecessor(native, peers, ticket, name))
                 break;
             const remaining = deadline - performance.now();
             if (remaining <= 0)

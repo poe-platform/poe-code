@@ -9,6 +9,24 @@ import { webcrypto } from "node:crypto";
 import { scanPortableRuntime } from "../packages/package-lint/src/portable-runtime.js";
 import { memLintFs, pkgJson } from "../packages/package-lint/src/fixtures.js";
 
+it("keeps OpenSSL certificate dependencies inside its published portable bundle", async () => {
+  const root = process.cwd();
+  const name = "safe-bash-command-openssl";
+  const pkg = JSON.parse(readFileSync(path.join(root, "packages", name, "package.json"), "utf8"));
+  const manifest = JSON.parse(readFileSync(path.join(root, "packages/safe-bash/package.json"), "utf8"));
+  const recipe = resolvePrivateCommandBuild(root,
+    { [name]: manifest.poeCode.integration.privateWorkspaces[name] }, [{ dir: name, pkg }],
+    { alias: {}, external: ["safe-bash-contracts", "@poe-code/safe-fs", ...Object.keys(pkg.dependencies)], portable: true });
+  const result = await build({ ...recipe, metafile: true, sourcemap: false });
+  const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports)
+    .filter(entry => entry.external).map(entry => entry.path);
+  expect(imports).not.toContain("@peculiar/x509");
+  expect(imports).not.toContain("reflect-metadata/lite");
+  expect(imports).toContain("safe-bash-contracts");
+  expect(imports.every(specifier => specifier === "safe-bash-contracts" ||
+    specifier.startsWith("safe-bash-contracts/") || specifier.startsWith("@poe-code/safe-fs/"))).toBe(true);
+});
+
 it.each([false, true])("keeps certificate encoding independent of ambient Buffer (minify=%s)", async minify => {
   const root = process.cwd();
   const name = "safe-bash-command-openssl";

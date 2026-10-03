@@ -1,4 +1,3 @@
-import { renderSvgDocument } from "safe-bash-svg-engine";
 import { commandRuntimeIdentity, getCommandArguments, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { InputByteBudget, collectBytes, writeBytes } from "safe-bash-contracts/io";
 import { resolvePath } from "safe-bash-contracts/path";
@@ -33,7 +32,7 @@ export function createRsvgConvertCommand(options: RsvgConvertCommandsOptions = {
         if (format !== "pdf" && format !== "png") return diagnostic(`unsupported format ${format}`);
         const bytes = !input || input === "-" ? await collectBytes(context.stdin, { signal: operation.signal }) : await context.fs.readFile(resolvePath(context.cwd, input), { signal: operation.signal });
         let rendered: Uint8Array;
-        try { rendered = await renderSvgDocument(new TextDecoder().decode(bytes), format, { signal: operation.signal, maxNodes, maxPixels }); }
+        try { rendered = await (await import("safe-bash-svg-engine")).renderSvgDocument(new TextDecoder().decode(bytes), format, { signal: operation.signal, maxNodes, maxPixels }); }
         catch (error) { operation.signal.throwIfAborted(); return diagnostic(error instanceof Error ? error.message : "invalid SVG"); }
         if (output && output !== "-") await writeFileOutput(context, rendered, data => context.fs.writeFile(resolvePath(context.cwd, output!), data, { signal: operation.signal }));
         else await writeBytes(operation.child(context.stdout).output, rendered, operation.signal);

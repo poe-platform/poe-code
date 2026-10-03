@@ -1,5 +1,4 @@
 import { parseDot, layoutGraph, renderSvg } from "@poe-code/graphviz-ast";
-import { renderSvgDocument } from "safe-bash-svg-engine";
 import { commandRuntimeIdentity, getCommandArguments, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { InputByteBudget, collectBytes, writeBytes } from "safe-bash-contracts/io";
 import { resolvePath } from "safe-bash-contracts/path";
@@ -70,7 +69,7 @@ export function createDotCommand(options: DotCommandsOptions = {}): CommandDefin
           svg = renderSvg(layoutGraph(graph));
         } catch (error) { operation.signal.throwIfAborted(); return diagnostic(error instanceof Error ? error.message : "invalid graph"); }
         await yieldTurn(operation.signal);
-        const rendered = format === "svg" ? new TextEncoder().encode(svg) : await renderSvgDocument(svg, format, { signal: operation.signal, maxNodes, maxPixels });
+        const rendered = format === "svg" ? new TextEncoder().encode(svg) : await (await import("safe-bash-svg-engine")).renderSvgDocument(svg, format, { signal: operation.signal, maxNodes, maxPixels });
         if (output && output !== "-") await writeFileOutput(context, rendered, data => context.fs.writeFile(resolvePath(context.cwd, output!), data, { signal: operation.signal }));
         else await writeBytes(operation.child(context.stdout).output, rendered, operation.signal);
         return { exitCode: 0 };

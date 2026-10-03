@@ -1,4 +1,4 @@
-import { PdfDocument, PdfError } from "@poe-code/pdf-ast";
+import type { PdfDocument } from "@poe-code/pdf-ast";
 import { commandRuntimeIdentity, getCommandArguments, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { InputByteBudget, writeBytes } from "safe-bash-contracts/io";
 import { resolvePath } from "safe-bash-contracts/path";
@@ -33,6 +33,7 @@ export function createDiffpdfCommand(options: DiffpdfCommandsOptions = {}): Comm
           await writeBytes(context.stderr, new TextEncoder().encode("diffpdf: expected two PDF files\n"), context.signal);
           return { exitCode: 2 };
         }
+        const { PdfDocument, PdfError } = await import("@poe-code/pdf-ast");
         const documents: PdfDocument[] = [];
         for (const file of files) {
           const bytes = await context.fs.readFile(resolvePath(context.cwd, file), { signal: context.signal });

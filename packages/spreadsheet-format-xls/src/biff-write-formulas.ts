@@ -322,6 +322,14 @@ export class BiffFormulaWriter {
         if (qualified) {
           if (node.first.workbook) {
             if (node.first.sheet === undefined) throw new SsconvertError("unsupported-feature", "Excel BIFF external reference requires a sheet");
+            const lastName = node.last?.sheet ?? node.first.sheet;
+            if (this.revision === 8 && foldSheetName(node.first.sheet) !== foldSheetName(lastName)) {
+              const sheets = this.retainedNames.get(node.first.workbook)?.values().next().value?.sheets ??
+                this.portableNames.get(node.first.workbook)?.sheets;
+              const endpoints = [foldSheetName(node.first.sheet), foldSheetName(lastName)];
+              if (!sheets || endpoints.some(endpoint => !sheets.some(sheet => foldSheetName(sheet) === endpoint)))
+                throw new SsconvertError("unsupported-feature", "Excel BIFF external span requires retained sheet order");
+            }
             const book = this.externalBook(node.first.workbook);
             firstSheet = this.externalScope(book, node.first.sheet);
             lastSheet = node.last?.sheet === undefined ? firstSheet : this.externalScope(book, node.last.sheet);

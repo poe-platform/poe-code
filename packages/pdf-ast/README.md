@@ -444,7 +444,10 @@ to `glyph.outline`, keeping letters separate from page drawing paths. The `glyph
 `images` arrays remain available for inspection and extraction.
 `evaluateContentStreamSteps(options)` accepts an iterable of content nodes and
 yields one evaluated operation at a time, including capture/mask membership.
-Returning from its iterator closes the input. It avoids a page-wide output list;
+Returning from its iterator closes the input.
+`evaluateContentSteps(options)` exposes the underlying suspension protocol:
+answer `{ kind: "node" }` with `.next(node)` (or `undefined` at EOF), and consume
+`{ kind: "paint", ... }` before resuming. A driver can await input between steps. It avoids a page-wide output list;
 fonts, resource decoding and composite captures still use the buffered evaluator
 and require separate admission/backing in retained execution.
 

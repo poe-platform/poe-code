@@ -799,6 +799,7 @@ export interface PdfContentEvaluationOptions {
   readonly annotations?: readonly PdfLinkAnnotation[] | undefined;
 }
 export interface PdfEvaluationOperation {
+  readonly kind: "paint";
   readonly operation: PdfPaintOperation;
   /** The operation belongs to a captured group rather than the page paint list. */
   readonly captured: boolean;
@@ -806,19 +807,29 @@ export interface PdfEvaluationOperation {
   readonly insideSoftMask: boolean;
 }
 
+export type PdfEvaluationRequest = PdfEvaluationOperation | { readonly kind: "node" };
+
+function closeEvaluationIterators(iterators: ReadonlyArray<Pick<Iterator<unknown>, "return"> | undefined>, failed: boolean): void {
+  let cleanupFailure: { error: unknown } | undefined;
+  for (const iterator of iterators) {
+    try { iterator?.return?.(); } catch (error) { cleanupFailure ??= { error }; }
+  }
+  if (!failed && cleanupFailure) throw cleanupFailure.error;
+}
+
 /** Pull individual evaluated operations. Composite captures, fonts and decoded
  * resources still belong to this evaluator; this is not a retained I/O driver. */
-export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions): Generator<PdfEvaluationOperation, void, void> {
+export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, "nodes">): Generator<PdfEvaluationRequest, void, PdfContentNode | undefined> {
   const fonts = resolvePageFonts(params.cosDoc, params.resourcesDict);
   let capturedOperations: PdfPaintOperation[] | undefined;
   let insideSoftMask = false;
-  function* emit(operation: PdfPaintOperation): Generator<PdfEvaluationOperation, void, void> {
+  function* emit(operation: PdfPaintOperation): Generator<PdfEvaluationRequest, void, PdfContentNode | undefined> {
     const { clipPaths, clipImages, softMask } = curState();
     if (clipPaths || clipImages || softMask) operation = { ...operation, value: { ...operation.value,
       ...(clipPaths ? { clipPaths } : {}), ...(clipImages ? { clipImages } : {}), ...(softMask ? { softMask } : {}),
     } } as PdfPaintOperation;
     capturedOperations?.push(operation);
-    yield { operation, captured: capturedOperations !== undefined, insideSoftMask };
+    yield { kind: "paint", operation, captured: capturedOperations !== undefined, insideSoftMask };
   };
 
   const initialState: GraphicsState = {
@@ -919,7 +930,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
     activeResources: PdfCosDict | undefined,
     activeFonts: Map<string, ResolvedPageFont>,
     depth: number
-  ): Generator<PdfEvaluationOperation, void, void> {
+  ): Generator<PdfEvaluationRequest, void, PdfContentNode | undefined> {
     const num = (i: number, fb = 0) => (ops[i]?.kind === "number" ? ops[i]!.value : fb);
     if (operator === "cm") {
       const m: Matrix6 = [num(0, 1), num(1, 0), num(2, 0), num(3, 1), num(4, 0), num(5, 0)];
@@ -1132,7 +1143,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
     resources: PdfCosDict | undefined,
     activeFonts: Map<string, ResolvedPageFont>,
     depth: number
-  ): Generator<PdfEvaluationOperation, void, void> {
+  ): Generator<PdfEvaluationRequest, void, PdfContentNode | undefined> {
     if (!patternMask) {
       yield* emit({ kind: "image", value: image });
       return;
@@ -1155,7 +1166,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
     depth: number,
     mcid?: number,
     actualText?: string
-  ): Generator<PdfEvaluationOperation, boolean, void> {
+  ): Generator<PdfEvaluationRequest, boolean, PdfContentNode | undefined> {
     const st = curState(), doc = params.cosDoc;
     if (!st.fillPatternName || !doc || !resources) return false;
     if (depth >= 8) throw new PdfError("E_LIMIT", "Pattern nesting exceeds the form depth limit");
@@ -1248,7 +1259,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
     mcid?: number,
     actualText?: string,
     maskGroup = false
-  ): Generator<PdfEvaluationOperation, void, void> {
+  ): Generator<PdfEvaluationRequest, void, PdfContentNode | undefined> {
     const st = curState();
     const group = params.cosDoc!.resolveDict(dictGet(form.dict, "Group"));
     const groupType = group ? params.cosDoc!.resolve(dictGet(group, "S")) : undefined;
@@ -1335,14 +1346,21 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
   };
 
   function* walkNodes(
-    nodes: Iterable<PdfContentNode>,
+    nodes: Iterable<PdfContentNode> | undefined,
     mcid?: number,
     actualText?: string,
     activeResources: PdfCosDict | undefined = params.resourcesDict,
     activeFonts: Map<string, ResolvedPageFont> = fonts,
     depth = 0
-  ): Generator<PdfEvaluationOperation, void, void> {
-    for (const node of nodes) {
+  ): Generator<PdfEvaluationRequest, void, PdfContentNode | undefined> {
+    const iterator = nodes?.[Symbol.iterator]();
+    let failed = false, exhausted = false;
+    try {
+    while (true) {
+      const next = iterator?.next();
+      if (next?.done) exhausted = true;
+      const node: PdfContentNode | undefined = next ? (next.done ? undefined : next.value) : yield { kind: "node" };
+      if (!node) break;
       switch (node.kind) {
         case "graphics-group":
           stateStack.push({ ...curState(), ctm: [...curState().ctm] as Matrix6 });
@@ -1604,7 +1622,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           let tm: Matrix6 = activeTm;
           let tlm: Matrix6 = activeTlm;
 
-          function* emitTokenBytes(bytes: Uint8Array): Generator<PdfEvaluationOperation, void, void> {
+          function* emitTokenBytes(bytes: Uint8Array): Generator<PdfEvaluationRequest, void, PdfContentNode | undefined> {
             const font = activeFonts.get(st.fontName) ?? fonts.get(st.fontName);
             const decoded = decodeTokenGlyphs(bytes, font);
             const scaleH = st.horizScale / 100;
@@ -1814,10 +1832,32 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
         }
       }
     }
+    } catch (error) { failed = true; throw error; }
+    finally { if (!exhausted) closeEvaluationIterators([iterator], failed); }
   };
 
-  yield* walkNodes(params.nodes);
+  yield* walkNodes(undefined);
+}
 
+/** Synchronous input driver for the same resumable evaluator. */
+export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions): Generator<PdfEvaluationOperation, void, void> {
+  const input = params.nodes[Symbol.iterator]();
+  const work = evaluateContentSteps(params);
+  let failed = false, exhausted = false;
+  try {
+    let step = work.next();
+    while (!step.done) {
+      if (step.value.kind === "node") {
+        const next = input.next();
+        if (next.done) exhausted = true;
+        step = work.next(next.done ? undefined : next.value);
+      } else {
+        yield step.value;
+        step = work.next();
+      }
+    }
+  } catch (error) { failed = true; throw error; }
+  finally { closeEvaluationIterators([work, exhausted ? undefined : input], failed); }
 }
 
 export function evaluateContentStreamToDisplayList(params: PdfContentEvaluationOptions): PdfDisplayList {

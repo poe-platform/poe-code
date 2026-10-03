@@ -62,3 +62,68 @@ pub fn is_safe_integer(value: f64) -> bool {
 pub fn precedes(peer: Option<f64>, ticket: f64, peer_name: &[u16], name: &[u16]) -> bool {
     peer.is_none_or(|peer| peer < ticket || (peer == ticket && peer_name < name))
 }
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum CleanupTarget {
+    Temporary,
+    Claim,
+}
+
+pub struct LockLifecycle {
+    deadline: f64,
+    claim_owned: bool,
+    temporary_owned: bool,
+}
+
+impl LockLifecycle {
+    pub fn new(deadline: f64) -> Self {
+        Self {
+            deadline,
+            claim_owned: true,
+            temporary_owned: false,
+        }
+    }
+
+    pub fn claim_failed(&mut self, collision: bool) {
+        if collision {
+            self.claim_owned = false;
+        }
+    }
+
+    pub fn begin_publication(&mut self) {
+        self.temporary_owned = true;
+    }
+
+    pub fn publication_failed(&mut self, collision: bool) {
+        if collision {
+            self.temporary_owned = false;
+        }
+    }
+
+    pub fn published(&mut self) {
+        self.temporary_owned = false;
+    }
+
+    pub fn cleanup_targets(&self) -> Vec<CleanupTarget> {
+        let mut targets = Vec::with_capacity(2);
+        if self.temporary_owned {
+            targets.push(CleanupTarget::Temporary);
+        }
+        if self.claim_owned {
+            targets.push(CleanupTarget::Claim);
+        }
+        targets
+    }
+
+    pub fn wait_delay(&self, now: f64) -> Result<f64, &'static str> {
+        let remaining = self.deadline - now;
+        if remaining <= 0.0 {
+            return Err("Timed out waiting for secret-store transaction lock");
+        }
+        Ok(if remaining.is_nan() {
+            f64::NAN
+        } else {
+            remaining.min(10.0)
+        })
+    }
+}

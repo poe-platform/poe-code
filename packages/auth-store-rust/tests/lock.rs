@@ -1,4 +1,6 @@
-use auth_store_rust::lock::{next_ticket, owner, precedes, protected_paths, validate_timeout};
+use auth_store_rust::lock::{
+    CleanupTarget, LockLifecycle, next_ticket, owner, precedes, protected_paths, validate_timeout,
+};
 
 fn text(value: &str) -> Vec<u16> {
     value.encode_utf16().collect()
@@ -102,4 +104,54 @@ fn predecessors_include_choosing_claims_and_use_utf16_names_to_break_ties() {
     assert!(!precedes(Some(2.0), 2.0, &text("a"), &text("a")));
     assert!(precedes(Some(2.0), 2.0, &[0xd800], &[0xe000]));
     assert!(!precedes(Some(f64::NAN), 2.0, &text("a"), &text("z")));
+}
+
+#[test]
+fn cleanup_ownership_distinguishes_partial_writes_from_exclusive_create_collisions() {
+    let mut state = LockLifecycle::new(100.0);
+    assert_eq!(state.cleanup_targets(), [CleanupTarget::Claim]);
+    state.claim_failed(false);
+    assert_eq!(state.cleanup_targets(), [CleanupTarget::Claim]);
+    state.claim_failed(true);
+    assert!(state.cleanup_targets().is_empty());
+
+    let mut state = LockLifecycle::new(100.0);
+    state.begin_publication();
+    assert_eq!(
+        state.cleanup_targets(),
+        [CleanupTarget::Temporary, CleanupTarget::Claim]
+    );
+    state.publication_failed(false);
+    assert_eq!(
+        state.cleanup_targets(),
+        [CleanupTarget::Temporary, CleanupTarget::Claim]
+    );
+    state.publication_failed(true);
+    assert_eq!(state.cleanup_targets(), [CleanupTarget::Claim]);
+
+    let mut state = LockLifecycle::new(100.0);
+    state.begin_publication();
+    state.published();
+    assert_eq!(state.cleanup_targets(), [CleanupTarget::Claim]);
+}
+
+#[test]
+fn waiter_delays_preserve_deadlines_fractional_timers_and_javascript_nan_behavior() {
+    let state = LockLifecycle::new(100.0);
+    assert_eq!(state.wait_delay(0.0), Ok(10.0));
+    assert_eq!(state.wait_delay(99.75), Ok(0.25));
+    for now in [100.0, 101.0, f64::INFINITY] {
+        assert_eq!(
+            state.wait_delay(now),
+            Err("Timed out waiting for secret-store transaction lock")
+        );
+    }
+    assert!(state.wait_delay(f64::NAN).unwrap().is_nan());
+    assert_eq!(LockLifecycle::new(f64::INFINITY).wait_delay(1.0), Ok(10.0));
+    assert!(
+        LockLifecycle::new(f64::INFINITY)
+            .wait_delay(f64::INFINITY)
+            .unwrap()
+            .is_nan()
+    );
 }

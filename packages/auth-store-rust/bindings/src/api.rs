@@ -253,6 +253,63 @@ pub fn lock_has_predecessor<'env>(
 
 use std::cell::RefCell;
 #[napi]
+pub struct NativeLockLifecycle {
+    state: auth_store_rust::lock::LockLifecycle,
+}
+
+#[napi]
+impl NativeLockLifecycle {
+    #[napi(constructor)]
+    pub fn new(deadline: f64) -> Self {
+        Self {
+            state: auth_store_rust::lock::LockLifecycle::new(deadline),
+        }
+    }
+
+    #[napi]
+    pub fn claim_failed(&mut self, collision: bool) {
+        self.state.claim_failed(collision);
+    }
+
+    #[napi]
+    pub fn begin_publication(&mut self) {
+        self.state.begin_publication();
+    }
+
+    #[napi]
+    pub fn publication_failed(&mut self, collision: bool) {
+        self.state.publication_failed(collision);
+    }
+
+    #[napi]
+    pub fn published(&mut self) {
+        self.state.published();
+    }
+
+    #[napi]
+    pub fn cleanup_targets(&self) -> Vec<String> {
+        self.state
+            .cleanup_targets()
+            .into_iter()
+            .map(|target| match target {
+                auth_store_rust::lock::CleanupTarget::Temporary => "temporary".to_owned(),
+                auth_store_rust::lock::CleanupTarget::Claim => "claim".to_owned(),
+            })
+            .collect()
+    }
+
+    #[napi]
+    pub fn wait_delay(&self, now: f64) -> convert::NativeJson {
+        envelope(
+            self.state
+                .wait_delay(now)
+                .map(Value::Number)
+                .map_err(|message| message.encode_utf16().collect()),
+        )
+    }
+}
+
+#[napi]
 #[derive(Default)]
 pub struct NativeDerivedKeyCache {
     state: RefCell<auth_store_rust::cache::DerivedKeyCache>,

@@ -39,42 +39,37 @@ export function createCredentialLockBindings(native) {
     const name = `${process.pid}-${randomUUID()}.claim`;
     const claimPath = path.join(directory, name);
     const temporaryPath = `${claimPath}.tmp`;
-    let claimed = true;
-    let temporaryCreated = false;
+    const lifecycle = new native.NativeLockLifecycle(deadline);
     let outcome;
     try {
         try {
             await fs.writeFile(claimPath, JSON.stringify({ ticket: null }), { encoding: "utf8", flag: "wx", mode: 0o600 });
         }
         catch (error) {
-            if (hasOwnErrorCode(error, "EEXIST"))
-                claimed = false;
+            lifecycle.claimFailed(hasOwnErrorCode(error, "EEXIST"));
             throw error;
         }
         const existing = await readClaims(fs, directory, name, native);
         const ticket = unwrap(native.lockNextTicket(existing));
-        temporaryCreated = true;
+        lifecycle.beginPublication();
         try {
             await fs.writeFile(temporaryPath, JSON.stringify({ ticket }), { encoding: "utf8", flag: "wx", mode: 0o600 });
         }
         catch (error) {
-            if (hasOwnErrorCode(error, "EEXIST"))
-                temporaryCreated = false;
+            lifecycle.publicationFailed(hasOwnErrorCode(error, "EEXIST"));
             throw error;
         }
         await fs.rename(temporaryPath, claimPath);
-        temporaryCreated = false;
+        lifecycle.published();
         for (;;) {
             options.signal?.throwIfAborted();
             const peers = await readClaims(fs, directory, name, native);
             if (!hasLockPredecessor(native, peers, ticket, name))
                 break;
-            const remaining = deadline - performance.now();
-            if (remaining <= 0)
-                throw new Error("Timed out waiting for secret-store transaction lock");
+            const delay = unwrap(lifecycle.waitDelay(performance.now()));
             await new Promise((resolve, reject) => {
                 const abort = () => { clearTimeout(timer); options.signal?.removeEventListener("abort", abort); reject(options.signal?.reason); };
-                const timer = setTimeout(() => { options.signal?.removeEventListener("abort", abort); resolve(); }, Math.min(10, remaining));
+                const timer = setTimeout(() => { options.signal?.removeEventListener("abort", abort); resolve(); }, delay);
                 options.signal?.addEventListener("abort", abort, { once: true });
                 if (options.signal?.aborted)
                     abort();
@@ -87,7 +82,8 @@ export function createCredentialLockBindings(native) {
         outcome = { error };
     }
     const cleanup = [];
-    for (const target of [...(temporaryCreated ? [temporaryPath] : []), ...(claimed ? [claimPath] : [])]) {
+    for (const artifact of lifecycle.cleanupTargets()) {
+        const target = artifact === "temporary" ? temporaryPath : claimPath;
         try {
             await fs.unlink(target);
         }

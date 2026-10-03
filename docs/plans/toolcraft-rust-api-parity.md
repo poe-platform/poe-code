@@ -4992,3 +4992,33 @@ The preceding ticket, HTTP mapping and test scheduling commits are verified on
 remote main at 29e3372169, 5ef26dd451 and 923c4eb18d. Release 37104688079 completed
 successfully with its workspace/CLI build passing and stable publication skipped.
 No native package publication is claimed.
+
+### Credential lock lifecycle checkpoint
+
+Rust now owns claim/temporary-file cleanup ownership, cleanup target order and
+deadline-based wait delays. Exclusive-create collisions preserve another owner's
+file; partial writes retain cleanup responsibility. Node performs filesystem,
+timer and AbortSignal effects and preserves original thrown values and aggregate
+error ordering. No external dependency or public API changed.
+
+Two Rust cases and a missing-native-constructor case failed before implementation.
+The new native suite compares deadline edge values and nine public acquisition
+scenarios against the original lock using memfs, including write collisions,
+partial writes, rename failures/partial moves, operation failures and cleanup
+failures. The maintained five-package route passes: 40 credential native checks;
+772 OAuth reference cases plus 114 native checks; 445 client cases plus 83 native
+checks; 443 HTTP cases plus 50 native checks; and 6,200 Toolcraft cases across 125
+files plus 266 native checks. Rust tests, strict declarations, the original CLI
+type consumer and root posttest pass. Maintained lint for all five packages and
+scoped JavaScript lint pass. A packed credential artifact verifies partial-write
+cleanup, preserving an unowned staging file, waiter timeouts and holder cleanup.
+
+Seven alternating warmed rounds of 300 memfs acquisitions on Node 22.23.2 ARM64
+measured native/reference medians of 66.562/71.098 microseconds without a peer,
+and 84.953/78.793 microseconds with one retiring peer (1.078 times slower).
+Shared-host timing does not establish a cross-run improvement or replacement
+readiness. Portable credential storage, remaining dependency facades, standalone
+Toolcraft types and performance/platform/default-swap qualification remain open.
+
+Claim validation is verified on remote main at 4326346862. Its Release workflow
+37105342163 remains pending; no native publication is claimed.

@@ -44,8 +44,8 @@ test("legacy text virtual imports use the SDK engine and treat SC directives as 
     const volume = Volume.fromJSON({ "/input": text!, "/keep": "original" });
     const fs = new Proxy(new MemoryFileSystem(), { get(target, key) {
       // This memfs/mock host supplies buffered I/O, not the backing MemoryFileSystem streams.
-      if (key === "readStream" || key === "writeStream") return undefined;
-      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false };
+      if (key === "readStream" || key === "writeStream" || key === "open" || key === "openReadFile") return undefined;
+      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false, open: false, retainedRead: false };
       if (key === "readFile") return async (path: string, options?: { signal?: AbortSignal }) => {
         options?.signal?.throwIfAborted();
         return new Uint8Array(volume.readFileSync(path) as Uint8Array);
@@ -74,8 +74,8 @@ test("virtual text export admits final encoded bytes and rejects expansion witho
   const volume = Volume.fromJSON({ "/input.csv": "é\n" });
   const fs = new Proxy(new MemoryFileSystem(), { get(target, key) {
       // This memfs/mock host supplies buffered I/O, not the backing MemoryFileSystem streams.
-      if (key === "readStream" || key === "writeStream") return undefined;
-      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false };
+      if (key === "readStream" || key === "writeStream" || key === "open" || key === "openReadFile") return undefined;
+      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false, open: false, retainedRead: false };
     if (key === "readFile") return async (path: string, options?: { signal?: AbortSignal }) => {
       options?.signal?.throwIfAborted();
       return new Uint8Array(volume.readFileSync(path) as Uint8Array);
@@ -103,8 +103,8 @@ test("native text importer shares SDK/virtual command bytes, inference and names
   const volume = Volume.fromJSON({ "/input.csv": 'date,value\n31/12/2020,1.20\n1/2/2020,2.30\n', "/keep": "original" });
   const fs = new Proxy(new MemoryFileSystem(), { get(target, key) {
       // This memfs/mock host supplies buffered I/O, not the backing MemoryFileSystem streams.
-      if (key === "readStream" || key === "writeStream") return undefined;
-      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false };
+      if (key === "readStream" || key === "writeStream" || key === "open" || key === "openReadFile") return undefined;
+      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false, open: false, retainedRead: false };
     if (key === "readFile") return async (path: string, options?: { signal?: AbortSignal }) => {
       options?.signal?.throwIfAborted();
       try { return new Uint8Array(volume.readFileSync(path) as Uint8Array); }
@@ -145,8 +145,8 @@ test("configurable text and plain CSV export use the SDK engine and injected byt
   const volume = Volume.fromJSON({ "/input.csv": 'name,value\n"a,b",1.20\n', "/keep": "original" });
   const fs = new Proxy(new MemoryFileSystem(), { get(target, key) {
       // This memfs/mock host supplies buffered I/O, not the backing MemoryFileSystem streams.
-      if (key === "readStream" || key === "writeStream") return undefined;
-      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false };
+      if (key === "readStream" || key === "writeStream" || key === "open" || key === "openReadFile") return undefined;
+      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false, open: false, retainedRead: false };
     if (key === "lstat" || key === "stat") return async (path: string, options?: { signal?: AbortSignal }) => {
       options?.signal?.throwIfAborted();
       try {
@@ -165,6 +165,9 @@ test("configurable text and plain CSV export use the SDK engine and injected byt
     };
     if (key === "writeFile") return async (path: string, bytes: Uint8Array, options?: { signal?: AbortSignal; flag?: "w" | "wx"; mode?: number }) => {
       options?.signal?.throwIfAborted(); volume.writeFileSync(path, bytes, options);
+    };
+    if (key === "appendFile") return async (path: string, bytes: Uint8Array, options?: { signal?: AbortSignal; mode?: number }) => {
+      options?.signal?.throwIfAborted(); volume.appendFileSync(path, bytes, options);
     };
     if (key === "rename") return async (source: string, destination: string) => { volume.renameSync(source, destination); };
     if (key === "realpath") return async (path: string) => String(volume.realpathSync(path));

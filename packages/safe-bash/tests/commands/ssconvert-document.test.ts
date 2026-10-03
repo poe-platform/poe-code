@@ -12,8 +12,8 @@ function filesystem(volume: Volume) {
   const base = new MemoryFileSystem();
   return new Proxy(base, { get(target, key) {
       // This memfs/mock host supplies buffered I/O, not the backing MemoryFileSystem streams.
-      if (key === "readStream" || key === "writeStream") return undefined;
-      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false };
+      if (key === "readStream" || key === "writeStream" || key === "open" || key === "openReadFile") return undefined;
+      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false, open: false, retainedRead: false };
     if (key === "stat" || key === "lstat") return async (path: string) => {
       try {
         const stat = key === "lstat" ? volume.lstatSync(path) : volume.statSync(path);

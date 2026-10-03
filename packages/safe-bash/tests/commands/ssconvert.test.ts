@@ -208,8 +208,8 @@ test("ssconvert HTML import shares SDK bytes, inert resources and replay namespa
   const reads: string[] = [], fs = filesystem(volume);
   const tracked = new Proxy(fs, { get(target, key) {
       // This memfs/mock host supplies buffered I/O, not the backing MemoryFileSystem streams.
-      if (key === "readStream" || key === "writeStream") return undefined;
-      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false }; return key === "readFile" ? async (path: string, supplied?: Parameters<typeof fs.readFile>[1]) => { reads.push(path); return await fs.readFile(path, supplied); } : Reflect.get(target, key); } });
+      if (key === "readStream" || key === "writeStream" || key === "open" || key === "openReadFile") return undefined;
+      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false, open: false, retainedRead: false }; return key === "readFile" ? async (path: string, supplied?: Parameters<typeof fs.readFile>[1]) => { reads.push(path); return await fs.readFile(path, supplied); } : Reflect.get(target, key); } });
   const shell = new Shell({ fs: tracked }).use(ssconvertCommands(binding)), engine = createEngine(binding);
   try {
     const command = await shell.exec("ssconvert -T Gnumeric_XmlIO:sax:0 /book.html /round.xml");
@@ -281,8 +281,8 @@ test("ssconvert HTML cell admission rejects before acquiring destination authori
   const before = volume.toJSON(), reads: string[] = [], fs = filesystem(volume);
   const tracked = new Proxy(fs, { get(target, key) {
       // This memfs/mock host supplies buffered I/O, not the backing MemoryFileSystem streams.
-      if (key === "readStream" || key === "writeStream") return undefined;
-      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false };
+      if (key === "readStream" || key === "writeStream" || key === "open" || key === "openReadFile") return undefined;
+      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false, open: false, retainedRead: false };
     if (key === "readFile") return async (path: string, supplied?: Parameters<typeof fs.readFile>[1]) => {
       reads.push(path); return await fs.readFile(path, supplied);
     };
@@ -374,8 +374,8 @@ test("ssconvert SpreadsheetML rejects entity authority and preserves an existing
   const fs = filesystem(volume);
   const tracked = new Proxy(fs, { get(target, key) {
       // This memfs/mock host supplies buffered I/O, not the backing MemoryFileSystem streams.
-      if (key === "readStream" || key === "writeStream") return undefined;
-      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false };
+      if (key === "readStream" || key === "writeStream" || key === "open" || key === "openReadFile") return undefined;
+      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false, open: false, retainedRead: false };
     if (key === "readFile") return async (path: string, supplied?: Parameters<typeof fs.readFile>[1]) => { reads.push(path); return await fs.readFile(path, supplied); };
     return Reflect.get(target, key, target);
   } });
@@ -1302,8 +1302,8 @@ function filesystem(volume: Volume) {
   return new Proxy(base, {
     get(target, key) {
       // This memfs/mock host supplies buffered I/O, not the backing MemoryFileSystem streams.
-      if (key === "readStream" || key === "writeStream") return undefined;
-      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false };
+      if (key === "readStream" || key === "writeStream" || key === "open" || key === "openReadFile") return undefined;
+      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false, open: false, retainedRead: false };
       if (key === "lstat" || key === "stat")
         return async (path: string) => {
           try {
@@ -1325,6 +1325,11 @@ function filesystem(volume: Volume) {
         return async (path: string, bytes: Uint8Array, supplied?: { signal?: AbortSignal; flag?: "w" | "wx"; mode?: number }) => {
           supplied?.signal?.throwIfAborted();
           volume.writeFileSync(path, bytes, supplied);
+        };
+      if (key === "appendFile")
+        return async (path: string, bytes: Uint8Array, supplied?: { signal?: AbortSignal; mode?: number }) => {
+          supplied?.signal?.throwIfAborted();
+          volume.appendFileSync(path, bytes, supplied);
         };
       if (key === "rename") return async (source: string, destination: string) => { volume.renameSync(source, destination); };
       if (key === "unlink") return async (path: string) => { volume.unlinkSync(path); };
@@ -1384,8 +1389,8 @@ test("ssconvert admits eager VFS reads against the shell input budget", async ()
   const fs = new Proxy(base, {
     get(target, key) {
       // This memfs/mock host supplies buffered I/O, not the backing MemoryFileSystem streams.
-      if (key === "readStream" || key === "writeStream") return undefined;
-      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false };
+      if (key === "readStream" || key === "writeStream" || key === "open" || key === "openReadFile") return undefined;
+      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false, open: false, retainedRead: false };
       if (key === "readFile")
         return async (_path: string, supplied: { maxBytes: number }) => {
           admitted = supplied.maxBytes;

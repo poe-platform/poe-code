@@ -35,8 +35,8 @@ for (const [locale, charset, mode, fixture, expected] of [
     const volume = Volume.fromJSON({ "/input.csv": fixture });
     const fs = new Proxy(new MemoryFileSystem(), { get(target, key) {
       // This memfs/mock host supplies buffered I/O, not the backing MemoryFileSystem streams.
-      if (key === "readStream" || key === "writeStream") return undefined;
-      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false };
+      if (key === "readStream" || key === "writeStream" || key === "open" || key === "openReadFile") return undefined;
+      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false, open: false, retainedRead: false };
       if (key === "readFile") return async (path: string, options?: { signal?: AbortSignal }) => {
         options?.signal?.throwIfAborted();
         return new Uint8Array(volume.readFileSync(path) as Uint8Array);
@@ -78,8 +78,8 @@ test("virtual text export bounds final bytes when native transliteration discard
   const volume = Volume.fromJSON({ "/input.csv": "\u0301\u0301\n" });
   const fs = new Proxy(new MemoryFileSystem(), { get(target, key) {
       // This memfs/mock host supplies buffered I/O, not the backing MemoryFileSystem streams.
-      if (key === "readStream" || key === "writeStream") return undefined;
-      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false };
+      if (key === "readStream" || key === "writeStream" || key === "open" || key === "openReadFile") return undefined;
+      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false, open: false, retainedRead: false };
     if (key === "readFile") return async (path: string) => new Uint8Array(volume.readFileSync(path) as Uint8Array);
     const value: unknown = Reflect.get(target, key, target);
     return typeof value === "function" ? value.bind(target) : value;

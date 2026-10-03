@@ -23,7 +23,13 @@ export function createVfsInput(fs: Pick<FileSystem, "capabilities" | "capabiliti
     };
     context.own(close);
     acquisition.pending = Promise.resolve().then(() => { check(); return fs.openReadFile!(filename, { signal }); });
-    const handle = await acquisition.pending;
+    let handle: FileReadHandle;
+    try { handle = await acquisition.pending; }
+    catch (error) {
+      check();
+      if (error && typeof error === "object" && "code" in error && error.code === "ENOTSUP") return undefined;
+      throw error;
+    }
     check();
     const stat = await handle.stat({ signal });
     check();

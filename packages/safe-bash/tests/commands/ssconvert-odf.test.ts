@@ -52,8 +52,8 @@ async function fixture(body: string, mime = "application/vnd.oasis.opendocument.
 function filesystem(volume: Volume) {
   return new Proxy(new MemoryFileSystem(), { get(target, key) {
       // This memfs/mock host supplies buffered I/O, not the backing MemoryFileSystem streams.
-      if (key === "readStream" || key === "writeStream") return undefined;
-      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false };
+      if (key === "readStream" || key === "writeStream" || key === "open" || key === "openReadFile") return undefined;
+      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false, open: false, retainedRead: false };
     if (key === "stat" || key === "lstat") return async (path: string) => {
       try { const stat = key === "lstat" ? volume.lstatSync(path) : volume.statSync(path);
         return { type: stat.isSymbolicLink() ? "symlink" : stat.isDirectory() ? "directory" : "file", size: Number(stat.size),
@@ -149,8 +149,8 @@ test("OpenCalc passive drawing links confer no virtual filesystem or network aut
   const base = filesystem(volume), reads: string[] = [];
   const tracked = new Proxy(base, { get(target, key) {
       // This memfs/mock host supplies buffered I/O, not the backing MemoryFileSystem streams.
-      if (key === "readStream" || key === "writeStream") return undefined;
-      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false };
+      if (key === "readStream" || key === "writeStream" || key === "open" || key === "openReadFile") return undefined;
+      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false, open: false, retainedRead: false };
     if (key === "readFile") return async (path: string, options?: Parameters<typeof base.readFile>[1]) => {
       reads.push(path); return await base.readFile(path, options);
     };

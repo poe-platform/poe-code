@@ -439,8 +439,8 @@ test("ssconvert registers cleanup synchronously before VFS acquisition and drain
   const events: string[] = [], cleanups: (() => void | Promise<void>)[] = [];
   const fs = new Proxy(new MemoryFileSystem(), { get(target, key) {
       // This memfs/mock host supplies buffered I/O, not the backing MemoryFileSystem streams.
-      if (key === "readStream" || key === "writeStream") return undefined;
-      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false };
+      if (key === "readStream" || key === "writeStream" || key === "open" || key === "openReadFile") return undefined;
+      if (key === "capabilities") return { ...target.capabilities, streamingRead: false, streamingWrite: false, open: false, retainedRead: false };
     if (key === "readFile") return async (path: string, supplied?: { signal?: AbortSignal }) => {
       assert.ok(cleanups.length > 0); events.push("read"); supplied?.signal?.throwIfAborted();
       return new Uint8Array(volume.readFileSync(path) as Uint8Array);

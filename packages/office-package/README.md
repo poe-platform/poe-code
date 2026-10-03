@@ -33,6 +33,12 @@ accepts harmless compression-level hints on stored entries from producers such a
 Pandoc; the default profile remains strict. ZIP operations require `ZipLimits`:
 `maxArchiveBytes`, `maxEntryBytes`, `maxTotalBytes`, `maxMembers`, `maxPathBytes`,
 `maxDepth`, `maxPaxBytes`, `maxTextBytes`, and `chunkSize`.
+`decodeZipEntry` also accepts a `ZipStreamEntry`: supply `data` as an async byte
+stream and `compressedSize` alongside the usual member metadata. The stream may
+read a retained range from the caller's injected filesystem; the codec itself
+opens no files. Decoding checks the compressed length, decoded length and CRC,
+returns owned bounded chunks, and closes the input on cancellation or early return.
+
 See [ZIP contracts](src/zip.ts) and [compression contracts](src/compression.ts)
 for operation signatures and validation. ZIP decoding alone does not validate
 Office relationships or document semantics.

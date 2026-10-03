@@ -57,6 +57,14 @@ export interface ZipEntry {
   dosDate?: number;
 }
 
+/** A compressed member supplied by a caller-owned stream (for example a retained VFS range).
+ * Metadata and compressedSize describe that exact range. No filesystem is acquired here.
+ */
+export interface ZipStreamEntry extends Omit<ZipEntry, "data"> {
+  readonly data: ByteSource;
+  readonly compressedSize: number;
+}
+
 export interface ZipArchive {
   entries: readonly ZipEntry[];
   comment: Uint8Array;
@@ -312,7 +320,7 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
   }
 
   function entryBounds(
-    entry: ZipEntry,
+    entry: ZipEntry | ZipStreamEntry,
     limits: ZipLimits,
     dataLimit = limits.maxArchiveBytes,
     writing = false
@@ -320,7 +328,7 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
     pathBytes(entry.name, limits);
     const maximum = writing || !profile.zip64 ? 0xfffffffe : Number.MAX_SAFE_INTEGER;
     number(entry.size, Math.min(limits.maxEntryBytes, limits.maxTotalBytes, maximum), "entry byte");
-    number(entry.data.length, Math.min(dataLimit, maximum), "compressed byte");
+    number("compressedSize" in entry ? entry.compressedSize : entry.data.length, Math.min(dataLimit, maximum), "compressed byte");
     number(entry.crc32, 0xffffffff, "CRC32");
     number(entry.mode, 0xffff, "mode");
     format(
@@ -659,15 +667,29 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
   }
 
   async function* decodeZipEntry(
-    entry: ZipEntry,
+    entry: ZipEntry | ZipStreamEntry,
     limits: ZipLimits,
     signal: AbortSignal
   ): ByteSource {
     const chunkSize = admit(limits, signal);
     entryBounds(entry, limits);
+    const data = entry.data;
+    const compressedSize = "compressedSize" in entry ? entry.compressedSize : entry.data.length;
+    let compressedLength = 0;
     const reader = new CodecReader(
       (async function* () {
-        yield entry.data;
+        const input = data instanceof Uint8Array ? (async function* () {yield data;})() : data;
+        for await (const bytes of input) {
+          signal.throwIfAborted();
+          if (!(bytes instanceof Uint8Array)) throw new TypeError("Expected byte chunks");
+          compressedLength += bytes.length;
+          if (compressedLength > compressedSize) fail("ZIP compressed size mismatch");
+          if (!bytes.length) yield bytes;
+          for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+            yield bytes.subarray(offset, offset + chunkSize);
+          }
+        }
+        if (compressedLength !== compressedSize) fail("ZIP compressed size mismatch");
       })(),
       signal
     );
@@ -677,8 +699,10 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
       entry.method === 8
         ? codec(reader, { mode: "inflate-raw", chunkSize }, signal)
         : (async function* () {
-            for (let offset = 0; offset < entry.data.length; offset += chunkSize) {
-              yield new Uint8Array(entry.data.subarray(offset, offset + chunkSize));
+            for (;;) {
+              const bytes = await reader.chunk();
+              if (bytes === undefined) return;
+              yield new Uint8Array(bytes);
               await yieldTurn(signal);
             }
           })();

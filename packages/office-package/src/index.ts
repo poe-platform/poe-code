@@ -3,6 +3,7 @@ export {
   crc32,
   type ZipArchive,
   type ZipEntry,
+  type ZipStreamEntry,
   type ZipLimits,
   type ZipProfile,
   type ZipRuntime

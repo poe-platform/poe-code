@@ -3,6 +3,7 @@ import { parseA1, type Sheet, type Workbook, type UnsupportedRecord } from "@poe
 import { metadataNode, type MetadataNode } from "@poe-code/spreadsheet-engine/codecs/xlsx-write-support";
 import { BiffOutput, words } from "./biff-write-binary.js";
 import { biffString } from "./biff-write.js";
+import { biffFontWidth } from "./biff-font-widths.js";
 import { writeBiffLabelRanges } from "./biff-label-ranges.js";
 
 function concat(...parts: Uint8Array[]): Uint8Array {
@@ -31,7 +32,8 @@ export class BiffMetadataWriter {
   private readonly records = new Map<Sheet, { record: Sheet["unsupportedRecords"] extends readonly (infer T)[] | undefined ? T : never; node?: MetadataNode }[]>();
   private readonly comments = new Map<Sheet, MetadataNode[]>();
   private readonly exported = new Set<UnsupportedRecord>();
-  constructor(readonly book: Workbook, readonly context: CapabilityContext, readonly maxRows: number) {
+  constructor(readonly book: Workbook, readonly context: CapabilityContext, readonly maxRows: number,
+    readonly defaultFont = { name: "Sans", points: 10 }) {
     for (const sheet of book.sheets) {
       const records = (sheet.unsupportedRecords ?? []).map(record => ({ record, ...(record.data === undefined ? {} : { node: metadataNode(record.data, amount => this.charge(amount))! }) }));
       this.records.set(sheet, records);
@@ -123,6 +125,12 @@ export class BiffMetadataWriter {
         Object.keys(node.attributes).every(key => key === "FrozenTopLeft" || key === "UnfrozenTopLeft"))) this.exported.add(layouts[0]!.record);
   }
   async sheet(output: BiffOutput, sheet: Sheet, revision: 7 | 8): Promise<void> {
+    const [unit, baseline, step] = biffFontWidth(this.defaultFont.name), fontScale = this.defaultFont.points / 10;
+    const defaultWidth = Number(sheet.view?.defaultColumnWidth ?? 48);
+    const defaultCharacters = Math.round(defaultWidth * (96 / 72) / (fontScale * unit));
+    if (!Number.isFinite(defaultWidth) || defaultWidth < 0 || defaultCharacters > 65535)
+      throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF default column width");
+    output.record(0x55, words(defaultCharacters));
     const depth = (records: Sheet["rows"], maximum: number): number => {
       let level = 0;
       for (const record of records ?? []) {
@@ -134,6 +142,7 @@ export class BiffMetadataWriter {
     const rowDepth = depth(sheet.rows, this.maxRows), columnDepth = depth(sheet.columns, 256);
     output.record(0x80, words(rowDepth ? 5 + 12 * rowDepth : 0, columnDepth ? 5 + 12 * columnDepth : 0, rowDepth, columnDepth));
     const records = this.records.get(sheet)!, print = records.find(r => r.record.kind === "PrintInformation")?.node;
+    for (const { record } of records) if (record.source === "biff" && record.kind === "DEFCOLWIDTH") this.exported.add(record);
     const child = (name: string) => print?.children.find(n => n.name === name);
     const flag = (name: string) => Number(child(name)?.attributes.value ?? 0);
     output.record(0x81, words(1 | (viewFlag(sheet, "OutlineSymbolsBelow", true) ? 0x40 : 0) |
@@ -186,7 +195,7 @@ export class BiffMetadataWriter {
       words(row.index, 0, 256, Math.round((row.sizePoints ?? 12.75) * 20), 0, 0,
         0x140 | (row.hidden ? 32 : 0) | (row.collapsed ? 16 : 0) | Math.min(row.outlineLevel ?? 0, 7), 15));
     for (const column of sheet.columns ?? []) if (column.index < 256) output.record(0x7d,
-      words(column.index, column.index, Math.round(((column.sizePoints ?? 48) / 0.75 - 64) * 36.5 + 0x0924), 15,
+      words(column.index, column.index, Math.round(((column.sizePoints ?? defaultWidth) / (fontScale * 72 / 96) - 8 * unit) * step + baseline), 15,
         (column.hidden ? 1 : 0) | (column.collapsed ? 0x1000 : 0) | Math.min(column.outlineLevel ?? 0, 7) << 8, 0));
     if (revision === 7) this.legacyComments(output, sheet);
     else this.drawComments(output, sheet);

@@ -18,6 +18,10 @@ try {
 ```
 
 Compose additional format modules explicitly to convert between file types.
+BIFF editing preserves the workbook Normal style and font-aware column widths,
+including sheet defaults. Change `sheet.view.defaultColumnWidth` in points and
+adopt the edited workbook before export; BIFF stores defaults in whole font
+characters and explicit widths in its finer integer units.
 The formula reader rejects malformed shared formulas containing BIFF live-label
 tokens; ordinary cell and array formulas retain their supported live labels.
 For tabular imports, the `./cached` entrypoint reads BIFF2–8 cached values,

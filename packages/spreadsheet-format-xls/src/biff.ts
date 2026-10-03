@@ -91,7 +91,7 @@ interface PendingSheet {
   id: string; name: string; offset: number; visibility: "visible" | "hidden" | "very-hidden";
   cells: PendingCell[]; merges: Range[]; rows: AxisMetadata[]; columns: AxisMetadata[]; labelRanges: LabelRange[];
   unsupportedRecords: UnsupportedRecord[]; view: Record<string, ImportedValue>;
-  defaultColumnWidth: number; records: BiffRecord[]; revision: number; codepage: number;
+  records: BiffRecord[]; revision: number; codepage: number;
   legacyExternalSheets: (string | null | undefined)[];
   legacyExternalLinks: Map<number, LegacyExternalLink>;
   groups: { id: string; kind: "shared" | "array" | "table"; range: Range; tokens: Uint8Array; arrays: readonly Binary[];
@@ -220,7 +220,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
         const name = accountText(bound?.name ?? (sheets.length ? `Worksheet${sheets.length + 1}` : "Worksheet"));
         if (sheets.some(sheet => sheet.name === name)) invalidBiff("duplicate worksheet name");
         sheet = { id: name, name, offset: record.offset, visibility: bound?.visibility ?? "visible", cells: [],
-          merges: [], rows: [], columns: [], labelRanges: [], unsupportedRecords: [], view: {}, defaultColumnWidth: 48, records: [], revision: ver, codepage, groups: [], legacyExternalSheets: [], legacyExternalLinks: new Map() }; sheets.push(sheet);
+          merges: [], rows: [], columns: [], labelRanges: [], unsupportedRecords: [], view: {}, records: [], revision: ver, codepage, groups: [], legacyExternalSheets: [], legacyExternalLinks: new Map() }; sheets.push(sheet);
       }
       scopes.push({ type, ...(sheet ? { sheet } : {}), revision: ver }); lastFormula = undefined;
       if (![5, 0x10, 0x40, 0x100].includes(type)) await retain(record, sheet?.unsupportedRecords ?? unsupported);
@@ -493,7 +493,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     }
     if (opcode === 0x55) {
       const { unit, scale } = columnMetrics();
-      sheet.defaultColumnWidth = data.u16(0) * unit * scale * 72 / 96;
+      sheet.view.defaultColumnWidth = data.u16(0) * unit * scale * 72 / 96;
       await retain(record, sheet.unsupportedRecords, false); continue;
     }
     if (opcode === 0x7d) {
@@ -502,7 +502,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       const { unit, baseline, step, scale } = columnMetrics();
       const width = (8 * unit + (data.u16(4) - baseline) / step) * (scale * 72 / 96);
       for (let column = first; column <= Math.min(last, 255); column++) sheet.columns.push({ index: column,
-        sizePoints: width <= 0 ? sheet.defaultColumnWidth : Math.max(4, width), hidden: width <= 0 || !!(flags & 1), outlineLevel: flags >> 8 & 7, collapsed: !!(flags & 0x1000) }); continue;
+        sizePoints: width <= 0 ? Number(sheet.view.defaultColumnWidth ?? 48) : Math.max(4, width), hidden: width <= 0 || !!(flags & 1), outlineLevel: flags >> 8 & 7, collapsed: !!(flags & 0x1000) }); continue;
     }
     if (opcode === 0x12 || opcode === 0x63 || opcode === 0xdd) { sheet.view.protected = !!data.u16(0); await retain(record, sheet.unsupportedRecords, false); continue; }
     if (opcode === 0x13) { data.check(0, 2); await retain(record, sheet.unsupportedRecords, false); continue; }
@@ -775,7 +775,9 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `BIFF encrypted ancillary stream ${name} retained without interpretation` });
   }
   const properties = propertyStreams ? await readBiffProperties(propertyStreams, context, accountText, accountFormulaWork, unsupported) : {};
+  const defaultStyle = style(0).style?.gnumeric;
   return { sheets: resultSheets, dateSystem, calculationMode, automaticLabelLookup, iteration: { enabled: iterationEnabled, maximum, tolerance },
+    ...(defaultStyle === undefined ? {} : { view: { defaultStyle } }),
     ...(Object.keys(properties).length ? { properties } : {}),
     ...(activeSheet === undefined ? {} : { activeSheet }),
     ...(materializedNames.length ? { names: materializedNames } : {}), ...(unsupported.length ? { unsupportedRecords: unsupported } : {}) };

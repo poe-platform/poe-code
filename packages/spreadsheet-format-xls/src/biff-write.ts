@@ -81,10 +81,11 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
   const output = new BiffOutput(context, revision === 8 ? 8224 : 2080);
   const active = book.sheets.find(sheet => sheet.id === book.activeSheet || sheet.name === book.activeSheet) ?? book.sheets[0];
   const maxRows = revision === 7 || dual ? 16384 : 65536;
-  const metadata = new BiffMetadataWriter(book, context, maxRows);
+  const styles = new BiffStyles(context, book.view?.defaultStyle);
+  const metadata = new BiffMetadataWriter(book, context, maxRows, styles.defaultFont);
   await metadata.prepare();
   const strings: string[] = [], stringIds = new Map<string, number>();
-  const styles = new BiffStyles(context), xfIds = new Map<Cell, number>();
+  const xfIds = new Map<Cell, number>();
   const formulaWriter = new BiffFormulaWriter(book, revision, context), formulas = new Map<Cell, CompiledBiffFormula>();
   const arrayFormulas = new Map<FormulaGroup, CompiledBiffFormula>();
   const dataTables = new Map<FormulaGroup, Uint8Array>();

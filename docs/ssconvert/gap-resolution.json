@@ -4572,6 +4572,19 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "biffDefaultColumnWidths": {
+      "finding": "BIFF default width was used only for hidden-column fallback and omitted from the shared view model. Export emitted no DEFCOLWIDTH and replaced the Normal style with Sans10, losing the font scale required to preserve default character widths.",
+      "implementation": "Preserve the Normal style as workbook.view.defaultStyle, expose sheet.view.defaultColumnWidth, and export defaults and explicit column widths using the actual emitted Normal font. Normal font size is quantized to BIFF twentieth-points before width calculations. Refuse nonrepresentable defaults/fonts instead of integer wrap. Intentional default-width edits no longer produce an unsupported-DEFCOLWIDTH warning. Existing shared width fields are reused; no axis materialization workaround.",
+      "validation": "Ten original roundtrip/edit failures, eight boundary failures and two edited-metadata warning failures reproduced before their repairs. Final72-file BIFF cohort passes2105 tests; maintained XLS lint/source/test types, changed-test lint/types and selected18-workspace build pass.",
+      "public": "280 independent font/size fixtures produce1680 compiled SDK/command outputs across Gnumeric XML and BIFF7/8. All7280 XML width/default/hidden-state pairs match native in-memory input values. Six further owned SDK workbook edits exercise Arial, Calibri and Wingdings defaults in both BIFF versions with no misleading DEFCOLWIDTH warning.",
+      "native": "Unmodified initialized Gnumeric API reads1400 corpus files.14560 comparisons verify sheet defaults, unspecified column11, explicit widths and hidden state; defaults match exactly and explicit widths match the preserved Normal font integer quantization. Six edited exports add12 exact default/unspecified-column comparisons with empty stderr. The unknown-font control retains the native warning separately.",
+      "visual": "Native input/output screenshots are byte-identical, including Normal-font display, hidden/narrow columns, explicit widths and unspecified column layout. Both owned GUI processes and Xvfb stopped; GUI stderr empty.",
+      "hashes": {
+        "nativeApi": "61cba72660f542028b68b095d295b801658a222ae171256b134d5d841c3eac81",
+        "inputAndOutputScreenshot": "80f48e79fa1e4ef5ad0e7d7e094c6928750de1f7e76c3c453f9bf615427532e7"
+      },
+      "limits": "BIFF defaults are whole Normal-font character counts; arbitrary edited point widths remain subject to this native format quantization. Root/registry consumers, cross-format default-style transport, default row heights, legacy worksheet-local style tables, unknown-font diagnostic parity and broader format/rendering requirements remain open. All19 families remain open."
+    },
     "biffColumnWidths": {
       "finding": "Independent grouped-sheet COLINFO width 2048 with Arial 12 Normal font loads as 50.4 points natively but previously converted to 42 points. The editing reader ignored Normal-XF font name/size, font-specific width slopes and baselines, and nonpositive/narrow-width behavior.",
       "implementation": "Use the captured Gnumeric font measurements selected by Normal XF0, preserving ASCII-only case folding and unknown-font fallback. Match source arithmetic grouping exactly. DEFCOLWIDTH supplies hidden-column fallback; nonpositive widths become hidden and positive widths below four points are raised to four. Existing explicit visibility, outline and collapse flags remain intact.",

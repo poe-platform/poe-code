@@ -1,5 +1,5 @@
 import { SsconvertError, type CapabilityContext, type Diagnostic } from "@poe-code/spreadsheet-engine/contracts";
-import type { Cell } from "@poe-code/spreadsheet-ast";
+import type { Cell, ImportedValue } from "@poe-code/spreadsheet-ast";
 import { cellValueFormat } from "@poe-code/spreadsheet-engine/workbook/value-format";
 import { metadataNode, type MetadataNode } from "@poe-code/spreadsheet-engine/codecs/xlsx-write-support";
 import { BiffOutput, words } from "./biff-write-binary.js";
@@ -9,7 +9,15 @@ export class BiffStyles {
   readonly diagnostics: Diagnostic[] = [];
   private readonly styles: { format: string; node?: MetadataNode }[] = [{ format: "General" }];
   private readonly ids = new Map<string, number>();
-  constructor(readonly context: CapabilityContext) {}
+  readonly defaultFont: { name: string; points: number };
+  constructor(readonly context: CapabilityContext, defaultStyle?: ImportedValue) {
+    const node = metadataNode(defaultStyle, amount => this.charge(amount));
+    if (node) this.styles[0] = { format: node.attributes.Format ?? "General", node };
+    const font = node?.children.find(child => child.name === "Font");
+    this.defaultFont = { name: font?.text || "Sans", points: Math.round(Number(font?.attributes.Unit ?? 10) * 20) / 20 };
+    if (!Number.isFinite(this.defaultFont.points) || this.defaultFont.points <= 0 || this.defaultFont.points > 65535 / 20)
+      throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF Normal font size");
+  }
   register(cell: Pick<Cell, "format" | "style"> & Partial<Pick<Cell, "value" | "cachedResult">>): number {
     const node = metadataNode(cell.style?.gnumeric, amount => this.charge(amount));
     const styleFormat = cell.format ?? node?.attributes.Format ?? node?.children.find(n => n.name === "Format")?.text ?? "General";

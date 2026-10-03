@@ -12,3 +12,22 @@ export const layoutControls = new Set([
   "widctlpar", "nowidctlpar", "tx", "tql", "tqr", "tqc", "tqdec", "tlhyph", "tldot", "tlul",
   "trgaph", "trleft", "trrh", "trql", "trqr", "trqc", "trkeep", "trhdr", "clvertalt", "clvertalc", "clvertalb"
 ]);
+
+export interface RtfState {
+  codepage: number;
+  defaultFont: number | undefined;
+  uc: number;
+  font: number | undefined;
+  color: number;
+  size: number | undefined;
+  tags: Set<RunTag>;
+  list: number | undefined;
+  level: number;
+  alignment: string | undefined;
+  left: number | undefined;
+  right: number | undefined;
+  indent: number | undefined;
+  heading: number | undefined;
+}
+
+export const initialRtfState = (): RtfState => ({codepage: 1252, defaultFont: undefined, uc: 1, font: undefined, color: 0, size: undefined, tags: new Set(), list: undefined, level: 0, alignment: undefined, left: undefined, right: undefined, indent: undefined, heading: undefined});

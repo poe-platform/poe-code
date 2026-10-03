@@ -1,27 +1,11 @@
 import {decodeRtfText} from "./rtf-text.js";
-import {runControls, layoutControls, type RunTag} from "./rtf-profile.js";
+import {runControls, layoutControls, initialRtfState as initial, type RtfState as State, type RunTag} from "./rtf-profile.js";
 import type { Attr, Block, Cell, Inline, Row } from "./ast-types.js";
 import type { AdapterContext, Document, ReaderCapability, Resource } from "./types.js";
 import { destination, hexDigit, parseRtf, rtfError } from "./rtf-syntax.js";
 import type { RtfGroup, RtfToken } from "./rtf-syntax.js";
 
 const empty: Attr = ["", [], []];
-interface State {
-  codepage: number;
-  defaultFont: number | undefined;
-  uc: number;
-  font: number | undefined;
-  color: number;
-  size: number | undefined;
-  tags: Set<RunTag>;
-  list: number | undefined;
-  level: number;
-  alignment: string | undefined;
-  left: number | undefined;
-  right: number | undefined;
-  indent: number | undefined;
-  heading: number | undefined;
-}
 interface Font {name: string; codepage: number | undefined}
 type ListStyle = Extract<Block, {t: "OrderedList"}>["c"][0][1];
 type ListDelim = Extract<Block, {t: "OrderedList"}>["c"][0][2];
@@ -34,7 +18,7 @@ const characters: Readonly<Record<string, string>> = {
 const metadataDestinations = new Set(["info", "generator", "fonttbl", "colortbl", "stylesheet", "listtable", "listoverridetable"]);
 const forbiddenDestinations = new Set(["object", "objdata", "objclass", "objname", "objalias", "datafield", "filetbl"]);
 const unsupportedDestinations = new Set(["header", "headerl", "headerr", "headerf", "footer", "footerl", "footerr", "footerf", "annotation", "shp", "shptxt", "nonshppict", "upr", "ud", "xmlopen", "xmlattrname", "xmlattrvalue"]);
-const initial = (): State => ({codepage: 1252, defaultFont: undefined, uc: 1, font: undefined, color: 0, size: undefined, tags: new Set(), list: undefined, level: 0, alignment: undefined, left: undefined, right: undefined, indent: undefined, heading: undefined});
+
 
 class RtfReader {
   readonly blocks: Block[] = [];

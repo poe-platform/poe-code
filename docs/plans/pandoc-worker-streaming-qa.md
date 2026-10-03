@@ -152,9 +152,12 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   malformed definitions and cleanup failures against the existing reader.
   The public reader shares bounded byte-run decoding with these definitions,
   preserving fatal UTF-8 boundaries and reused producer buffers. It still uses
-  the resident token tree and AST; integrating backed definitions and migrating
-  table, inline and resource state remain required before exposing a
-  retained RTF input route. This foundation is not public streaming completion.
+  the resident token tree and AST. Private document construction now retains
+  mutable inline/block arrays, text, list items, table cells/rows and traversal
+  continuations. Differential checks preserve formatting, paragraphs, table
+  geometry errors, Unicode and table budgets. Group/field/note execution and
+  picture resources still need integration before exposing a retained RTF input
+  route. This foundation is not public streaming completion.
   ODT output now retains XML continuations, dynamic list styles, image indexes,
   ZIP member payloads and central records. Differential tests compare complete
   archive bytes, including image density and PNG/JPEG/GIF/BMP/TIFF profiles.

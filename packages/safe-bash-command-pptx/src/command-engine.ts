@@ -214,6 +214,7 @@ export interface AdmittedCommandEngineOptions {
 import type { PptxPublicationRequest } from "safe-bash-presentation-engine/publication";
 export type { PptxPublicationRequest } from "safe-bash-presentation-engine/publication";
 export interface PptxCommandRequest {
+  readonly streaming?: import("./streaming-inputs.js").PptxStreamingIO;
   readonly publishOutput?: (publication: PptxPublicationRequest) => Promise<void>;
   readonly preflightOutput?: (publication: PptxPublicationRequest) => Promise<void>;
   /** Trusted adapter transaction: either every requested file is published or none is. */

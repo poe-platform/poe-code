@@ -25,6 +25,15 @@ edited/unchanged text; Python ZIP CRC verification passed. The retained module
 bundled for the browser/workerd target with no external imports. These results
 cover the archive layer, not every presentation operation or runtime memory.
 
+The public adapter now supplies `streaming.openInput`, caller working storage,
+and stdout/stderr sinks to custom engines. Retained input admission copies at
+most 16 KiB per operation into a shared 1 MiB caller-backed page cache, replays
+stdin, checks numeric or opaque identity/version metadata, closes handles, and
+retires snapshots at invocation completion. Tests observe spill writes and cover
+limits, cancellation, changed input and cleanup failure. Exact original comparison
+also accepts retained snapshots without a whole-file fallback. The built-in engine
+has not yet adopted these APIs, and publication still requires output arrays.
+
 This is not an end-to-end bounded-memory implementation or Worker qualification.
 The command still collects input, returns complete stdout/stderr, and publishes
 complete output arrays. `safe-bash-presentation-engine` still collects the archive,

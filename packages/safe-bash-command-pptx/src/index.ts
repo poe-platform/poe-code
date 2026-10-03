@@ -1,3 +1,5 @@
+import { createPptxInputSession, type PptxStreamingIO } from "./streaming-inputs.js";
+export type { PptxStreamingIO, PptxRetainedInput } from "./streaming-inputs.js";
 import { verifyOriginalInput } from "./original-input.js";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { collectBytes, FsError, getCommandArguments, writeBytes, type CommandDefinition, type FileStat, type VirtualShellPlugin } from "safe-bash-contracts";
@@ -10,6 +12,7 @@ export interface PptxCommandEngine {
   execute(request: {
     readonly args: readonly Uint8Array[];
     readonly signal: AbortSignal;
+    readonly streaming: PptxStreamingIO;
     readonly readInput: (path: string, maxBytes: number) => Promise<Uint8Array>;
     readonly publishOutput?: (publication: {
       readonly inputPath?: string;
@@ -23,8 +26,8 @@ export interface PptxCommandEngine {
     }) => Promise<void>;
   }): Promise<{
     readonly exitCode: number;
-    readonly stdout: Uint8Array;
-    readonly stderr: Uint8Array;
+    readonly stdout?: Uint8Array;
+    readonly stderr?: Uint8Array;
   }>;
 }
 
@@ -56,129 +59,137 @@ export function createPptxCommand(options: PptxCommandsOptions = {}): CommandDef
       }
     const snapshots = new Map<string, FileStat>();
     engine ??= (await import("./engine.js")).createPptxCommandEngine();
-    const result = await engine.execute({
-      args: arguments_.args.map((_, index) => arguments_.bytes(index)!),
-      signal: context.signal,
-      async readInput(path, maxBytes) {
-        try {
-          context.signal.throwIfAborted();
-          if (path === "-") return await collectBytes(context.stdin, { maxBytes, signal: context.signal });
-          const resolved = pathOf(context, path);
-          if (!snapshots.has(resolved)) {
-            try { snapshots.set(resolved, await context.fs.lstat(resolved, { signal: context.signal })); }
-            catch { context.signal.throwIfAborted(); }
-          }
-          const capabilities = await context.fs.capabilitiesFor?.(resolved, { signal: context.signal }) ?? context.fs.capabilities;
-          context.signal.throwIfAborted();
-          if (context.fs.readStream && capabilities.streamingRead !== false) {
-            let emitted = false;
-            try {
-              const stream = context.fs.readStream(resolved, { signal: context.signal });
-              return await collectBytes((async function* () {
-                for await (const chunk of stream) {
-                  if (chunk.byteLength) emitted = true;
-                  yield chunk;
-                }
-              })(), { maxBytes, signal: context.signal });
-            } catch (error) {
-              context.signal.throwIfAborted();
-              if (emitted || !(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
-            }
-          }
-          if (capabilities.read === false) throw new FsError("ENOTSUP");
-          const bytes = await context.fs.readFile(resolved, { maxBytes, signal: context.signal });
-          context.signal.throwIfAborted();
-          if (bytes.byteLength > maxBytes) throw new FsError("EFBIG");
-          return bytes;
-        } catch (error) {
-          context.signal.throwIfAborted();
-          throw Object.assign(new Error("Input could not be read."), { code: error instanceof FsError && error.code === "EFBIG" ? "resource-limit" : "io-failure" });
-        }
-      },
-      async publishOutput(publication) {
-        try {
-          const { fs, signal } = context;
-          signal.throwIfAborted();
-          const input = publication.inputPath === undefined || publication.inputPath === "-" ? undefined : pathOf(context, publication.inputPath);
-          const output = pathOf(context, publication.outputPath);
-          if (publication.inPlace ? !input || input !== output : input === output) throw new FsError("EINVAL");
-          const capabilities = await fs.capabilitiesFor?.(output, { signal }) ?? fs.capabilities;
-          signal.throwIfAborted();
-          if (capabilities.readOnly === true || capabilities.write === false || (!capabilities.atomicFileMutation && !capabilities.trustedOwnedStaging) || !fs.writeFileConditional) throw new FsError("ENOTSUP");
-          let destination: FileStat | null;
-          try { destination = await fs.lstat(output, { signal }); }
-          catch (error) {
-            signal.throwIfAborted();
-            if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
-            destination = null;
-          }
-          if (destination && destination.type !== "file") throw new FsError("EINVAL");
-          if (destination) {
-            const protectedInputs = new Set((publication.protectedInputPaths ?? []).filter(path => path !== "-").map(path => pathOf(context, path)));
-            for (const [source, observed] of snapshots) {
-              if (source === input && !protectedInputs.has(source)) continue;
-              const identity = observed.type === "symlink" ? await fs.stat(source, { signal }) : observed;
-              if (source === output || await compareObservedEntries(fs, source, identity, fs, output, destination, { signal }) !== "distinct") throw new FsError("EINVAL");
-            }
-          }
-          if (destination && !publication.inPlace) {
-            if (!publication.force) throw new FsError("EEXIST");
-            if (input && await compareObservedEntries(fs, input, await fs.stat(input, { signal }), fs, output, destination, { signal }) !== "distinct") throw new FsError("EINVAL");
-          }
-          const parentPath = output.slice(0, output.lastIndexOf("/")) || "/";
-          let parent: FileStat;
+    const inputs = createPptxInputSession(context, snapshots);
+    let result: Awaited<ReturnType<PptxCommandEngine["execute"]>> | undefined;
+    let failure: { error: unknown } | undefined;
+    try {
+      result = await engine.execute({
+        streaming: inputs.io,
+        args: arguments_.args.map((_, index) => arguments_.bytes(index)!),
+        signal: context.signal,
+        async readInput(path, maxBytes) {
           try {
-            parent = await fs.stat(parentPath, { signal });
-          } catch (error) {
-            signal.throwIfAborted();
-            if (!(error instanceof FsError) || error.code !== "ENOENT" || !arguments_.args.includes("--output-dir")) throw error;
-            let ancestorPath = parentPath;
-            let ancestor: FileStat | undefined;
-            while (ancestorPath && ancestorPath !== "/") {
-              ancestorPath = ancestorPath.slice(0, ancestorPath.lastIndexOf("/")) || "/";
+            context.signal.throwIfAborted();
+            if (path === "-") return await collectBytes(context.stdin, { maxBytes, signal: context.signal });
+            const resolved = pathOf(context, path);
+            if (!snapshots.has(resolved)) {
+              try { snapshots.set(resolved, await context.fs.lstat(resolved, { signal: context.signal })); }
+              catch { context.signal.throwIfAborted(); }
+            }
+            const capabilities = await context.fs.capabilitiesFor?.(resolved, { signal: context.signal }) ?? context.fs.capabilities;
+            context.signal.throwIfAborted();
+            if (context.fs.readStream && capabilities.streamingRead !== false) {
+              let emitted = false;
               try {
-                ancestor = await fs.stat(ancestorPath, { signal });
-                break;
-              } catch (ancestorError) {
-                signal.throwIfAborted();
-                if (!(ancestorError instanceof FsError) || ancestorError.code !== "ENOENT") throw ancestorError;
+                const stream = context.fs.readStream(resolved, { signal: context.signal });
+                return await collectBytes((async function* () {
+                  for await (const chunk of stream) {
+                    if (chunk.byteLength) emitted = true;
+                    yield chunk;
+                  }
+                })(), { maxBytes, signal: context.signal });
+              } catch (error) {
+                context.signal.throwIfAborted();
+                if (emitted || !(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
               }
             }
-            if (!ancestor) throw error;
-            if (ancestor.type !== "directory") throw new FsError("ENOTDIR");
-            if (!publication.dryRun) {
-              await fs.mkdir(parentPath, { recursive: true, signal });
-              parent = await fs.stat(parentPath, { signal });
-            } else {
-              parent = ancestor;
+            if (capabilities.read === false) throw new FsError("ENOTSUP");
+            const bytes = await context.fs.readFile(resolved, { maxBytes, signal: context.signal });
+            context.signal.throwIfAborted();
+            if (bytes.byteLength > maxBytes) throw new FsError("EFBIG");
+            return bytes;
+          } catch (error) {
+            context.signal.throwIfAborted();
+            throw Object.assign(new Error("Input could not be read."), { code: error instanceof FsError && error.code === "EFBIG" ? "resource-limit" : "io-failure" });
+          }
+        },
+        async publishOutput(publication) {
+          try {
+            const { fs, signal } = context;
+            signal.throwIfAborted();
+            const input = publication.inputPath === undefined || publication.inputPath === "-" ? undefined : pathOf(context, publication.inputPath);
+            const output = pathOf(context, publication.outputPath);
+            if (publication.inPlace ? !input || input !== output : input === output) throw new FsError("EINVAL");
+            const capabilities = await fs.capabilitiesFor?.(output, { signal }) ?? fs.capabilities;
+            signal.throwIfAborted();
+            if (capabilities.readOnly === true || capabilities.write === false || (!capabilities.atomicFileMutation && !capabilities.trustedOwnedStaging) || !fs.writeFileConditional) throw new FsError("ENOTSUP");
+            let destination: FileStat | null;
+            try { destination = await fs.lstat(output, { signal }); }
+            catch (error) {
+              signal.throwIfAborted();
+              if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
+              destination = null;
             }
+            if (destination && destination.type !== "file") throw new FsError("EINVAL");
+            if (destination) {
+              const protectedInputs = new Set((publication.protectedInputPaths ?? []).filter(path => path !== "-").map(path => pathOf(context, path)));
+              for (const [source, observed] of snapshots) {
+                if (source === input && !protectedInputs.has(source)) continue;
+                const identity = inputs.identities.get(source) ?? (observed.type === "symlink" ? await fs.stat(source, { signal }) : observed);
+                if (source === output || await compareObservedEntries(fs, source, identity, fs, output, destination, { signal }) !== "distinct") throw new FsError("EINVAL");
+              }
+            }
+            if (destination && !publication.inPlace) {
+              if (!publication.force) throw new FsError("EEXIST");
+              if (input && await compareObservedEntries(fs, input, await fs.stat(input, { signal }), fs, output, destination, { signal }) !== "distinct") throw new FsError("EINVAL");
+            }
+            const parentPath = output.slice(0, output.lastIndexOf("/")) || "/";
+            let parent: FileStat;
+            try {
+              parent = await fs.stat(parentPath, { signal });
+            } catch (error) {
+              signal.throwIfAborted();
+              if (!(error instanceof FsError) || error.code !== "ENOENT" || !arguments_.args.includes("--output-dir")) throw error;
+              let ancestorPath = parentPath;
+              let ancestor: FileStat | undefined;
+              while (ancestorPath && ancestorPath !== "/") {
+                ancestorPath = ancestorPath.slice(0, ancestorPath.lastIndexOf("/")) || "/";
+                try {
+                  ancestor = await fs.stat(ancestorPath, { signal });
+                  break;
+                } catch (ancestorError) {
+                  signal.throwIfAborted();
+                  if (!(ancestorError instanceof FsError) || ancestorError.code !== "ENOENT") throw ancestorError;
+                }
+              }
+              if (!ancestor) throw error;
+              if (ancestor.type !== "directory") throw new FsError("ENOTDIR");
+              if (!publication.dryRun) {
+                await fs.mkdir(parentPath, { recursive: true, signal });
+                parent = await fs.stat(parentPath, { signal });
+              } else {
+                parent = ancestor;
+              }
+            }
+            if (parent.type !== "directory") throw new FsError("ENOTDIR");
+            if (publication.inPlace) {
+              const original = snapshots.get(input!);
+              if (!original || original.type !== "file" || !destination || original.revision === undefined
+                || original.revision !== destination.revision || original.size !== destination.size
+                || original.mode !== destination.mode || original.nlink !== destination.nlink
+                || original.mtimeMs !== destination.mtimeMs || original.ctimeMs !== destination.ctimeMs
+                || await compareObservedEntries(fs, input!, original, fs, output, destination, { signal }) !== "same") throw new FsError("EAGAIN");
+              await verifyOriginalInput(fs, input!, publication.originalBytes, signal);
+              destination = original;
+            }
+            signal.throwIfAborted();
+            if (!publication.dryRun) await writeFileOutput(context, publication.bytes, async bytes => {
+              await fs.writeFileConditional!(output, bytes, { parent, expected: destination, signal });
+            });
+          } catch (error) {
+            context.signal.throwIfAborted();
+            const code = error instanceof FsError && error.code === "EAGAIN" ? "stale-input"
+              : error instanceof FsError && error.code === "ENOTSUP" ? "publication-unsupported" : "io-failure";
+            throw Object.assign(new Error("Output could not be published."), { code });
           }
-          if (parent.type !== "directory") throw new FsError("ENOTDIR");
-          if (publication.inPlace) {
-            const original = snapshots.get(input!);
-            if (!original || original.type !== "file" || !destination || original.revision === undefined
-              || original.revision !== destination.revision || original.size !== destination.size
-              || original.mode !== destination.mode || original.nlink !== destination.nlink
-              || original.mtimeMs !== destination.mtimeMs || original.ctimeMs !== destination.ctimeMs
-              || await compareObservedEntries(fs, input!, original, fs, output, destination, { signal }) !== "same") throw new FsError("EAGAIN");
-            await verifyOriginalInput(fs, input!, publication.originalBytes, signal);
-            destination = original;
-          }
-          signal.throwIfAborted();
-          if (!publication.dryRun) await writeFileOutput(context, publication.bytes, async bytes => {
-            await fs.writeFileConditional!(output, bytes, { parent, expected: destination, signal });
-          });
-        } catch (error) {
-          context.signal.throwIfAborted();
-          const code = error instanceof FsError && error.code === "EAGAIN" ? "stale-input"
-            : error instanceof FsError && error.code === "ENOTSUP" ? "publication-unsupported" : "io-failure";
-          throw Object.assign(new Error("Output could not be published."), { code });
         }
-      }
-    });
-    if (result.stdout.length) await writeBytes(context.stdout, result.stdout, context.signal);
-    if (result.stderr.length) await writeBytes(context.stderr, result.stderr, context.signal);
-    return { exitCode: result.exitCode };
+      });
+      if (result.stdout?.length) await writeBytes(context.stdout, result.stdout, context.signal);
+      if (result.stderr?.length) await writeBytes(context.stderr, result.stderr, context.signal);
+    } catch (error) { failure = { error }; }
+    try { await inputs.close(); } catch (error) { failure ??= { error }; }
+    if (failure) { context.signal.throwIfAborted(); throw failure.error; }
+    return { exitCode: result!.exitCode };
   } };
 }
 

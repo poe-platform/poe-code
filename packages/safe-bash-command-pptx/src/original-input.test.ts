@@ -131,3 +131,37 @@ for (const mode of ["same", "changed", "error", "cancel", "oversized"] as const)
     expect(closed).toBe(1);
   });
 }
+
+for (const changed of [false, true]) test(`compares retained originals without collecting either source: ${changed}`, async () => {
+  const controller = new AbortController();
+  const shared = new Uint8Array(16384);
+  let reads = 0, closed = false;
+  const fs = {
+    capabilities: { retainedRead: true },
+    async openReadFile() { return {
+      async read(position: number, maximum: number) {
+        shared.fill(42);
+        return shared.subarray(0, Math.min(maximum, Math.max(0, size - position)));
+      }, async close() { closed = true; }
+    }; },
+    async readFile() { throw new Error("whole-file read forbidden"); }
+  } as unknown as FileSystem;
+  const retained = { size, async read(position: number, maximum: number) {
+    expect(maximum).toBeLessThanOrEqual(16384);
+    reads++;
+    shared.fill(99); // Original and current backends may reuse the same scratch memory.
+    return new Uint8Array(Math.min(maximum, size - position)).fill(changed && position > 0 ? 43 : 42);
+  } };
+  const result = verifyOriginalInput(fs, "/deck", retained, controller.signal);
+  if (changed) await expect(result).rejects.toMatchObject({ code: "EAGAIN" });
+  else await result;
+  expect(reads).toBeGreaterThan(1);
+  expect(closed).toBe(true);
+});
+
+test("retained original comparisons reject buffered-only backends", async () => {
+  const fs = { capabilities: { retainedRead: false, streamingRead: false },
+    async readFile() { throw new Error("whole-file read forbidden"); } } as unknown as FileSystem;
+  await expect(verifyOriginalInput(fs, "/deck", { size: 0, async read() { return new Uint8Array(); } },
+    new AbortController().signal)).rejects.toMatchObject({ code: "ENOTSUP" });
+});

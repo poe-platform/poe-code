@@ -12,7 +12,18 @@ The engine receives invocation arguments and cancellation signals. File access a
 
 Set `limits.maxArgumentBytes` to bound the bytes admitted before the engine runs. The engine controls document input and output budgets. Both single-command and command-list factories are available for custom registration.
 
-Pass `engine` to use a custom document engine.
+Pass `engine` to use a custom document engine. Custom engines receive
+`request.streaming.openInput(path, maxBytes)` for immutable retained snapshots,
+`stdout` and `stderr` sinks, and `workingStorage` for retained archive operations.
+Snapshots use the caller's filesystem, spill through a bounded cache into
+`TMPDIR` (or the current directory), and expire when execution finishes. File
+inputs require retained-read support and verifiable identity/version metadata;
+`-` snapshots stdin for replay. Memory-backed filesystems keep spilled data in
+memory, so large inputs need an external storage backend.
+
+The built-in engine still uses buffered document operations during its streaming
+migration. The custom streaming interface alone does not make those operations
+bounded-memory.
 
 The command owns PowerPoint argument parsing, schemas, discovery and execution.
 Shared presentation and byte operations remain internal engine APIs bundled with

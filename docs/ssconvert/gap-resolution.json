@@ -3,6 +3,15 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "xlsxBiffPrintFlags": {
+      "status": "False warnings for four canonical BIFF print flags repaired; format family remains open",
+      "source": "Gnumeric 1.12.61 ms-excel-read.c:6589-6617; PRINTHEADERS, PRINTGRIDLINES, HCENTER, VCENTER are enabled only by word1. XLSX printOptions maps headings/gridLines/horizontalCentered/verticalCentered.",
+      "implementation": "Exact record kind/opcode, word0/1 and an explicit canonical print setting are required to recognize preservation. Canonical edits win; malformed/unknown values and missing settings retain warnings.",
+      "verification": "Eight original memory failures repaired.154 XLSX tests, owner lint/types and full build pass. Four root/package SDK/command outputs assert all25 remaining diagnostics.32 exported print values match native BIFF-to-XML;32 LibreOffice25.2.3.2 readback values match. Screenshot inspected.",
+      "nativeLimits": "Gnumeric xlsx-write.c:2623-2624 emits empty printOptions; xlsx-read.c:3646 has no handler. Four Gnumeric readbacks lose16 true flags, retained as mismatches, not passes. Calc emits the exact javaldx startup warning on every launch; no claim of diagnostic-free runs.",
+      "inputSha256": "2a024b812a7facb325bdcde6dd6f9972f0d2e8ef8c7e2eacc5f27ed852c4ab35",
+      "remaining": "Source review suggests noncanonical BIFF words2+ are imported incorrectly as true; requires native reproduction and separate repair. Broader metadata and all19 families remain open."
+    },
     "xlsxBiffDefaultRowHeight": {
       "status": "Narrow false loss diagnostic repaired; format family remains open",
       "source": "Gnumeric 1.12.61 plugins/excel/ms-excel-read.c:4624-4649 reads BIFF default heights in twips; legacy high bit and newer flags are not fully portable.",

@@ -27,6 +27,9 @@ const children: Readonly<Record<string, readonly string[]>> = {
   headerFooter: ["oddHeader", "oddFooter", "evenHeader", "evenFooter", "firstHeader", "firstFooter"],
   rowBreaks: ["brk"], colBreaks: ["brk"]
 };
+const biffPrintFlags: Readonly<Record<string, readonly [number, string]>> = {
+  PRINTHEADERS: [0x2a, "titles"], PRINTGRIDLINES: [0x2b, "grid"], HCENTER: [0x83, "hcenter"], VCENTER: [0x84, "vcenter"]
+};
 const child = (node: MetadataNode | undefined, name: string) => node?.children.find(node => node.name === name);
 
 function header(node: MetadataNode | undefined, fallback: string, charge: (amount?: number) => void): string {
@@ -102,14 +105,20 @@ export async function writeXlsxSheetSettings(sheet: Sheet,
   current.push(node("sheetFormatPr", { defaultColWidth: typeof sheet.view?.defaultColumnWidth === "number" || originalWidth !== undefined || !format ? defaultColumnWidth / xlsxColumnWidthPoints : undefined,
     defaultRowHeight, outlineLevelRow: sheet.rows?.reduce((maximum, row) => { charge(); return Math.max(maximum, row.outlineLevel ?? 0); }, 0) || undefined,
     outlineLevelCol: sheet.columns?.reduce((maximum, column) => { charge(); return Math.max(maximum, column.outlineLevel ?? 0); }, 0) || undefined }));
-  // BIFF heights with no flags are fully represented by the editable portable
-  // default. Other flags, zero heights and malformed payloads still need warnings.
+  // Recognize BIFF records fully represented by editable portable settings.
+  // Unknown flag values, zero heights and malformed payloads still need warnings.
   for (const { record } of records) {
     charge();
-    if (record.source !== "biff" || typeof sheet.view?.defaultRowHeight !== "number" ||
-      !Number.isFinite(defaultRowHeight) || defaultRowHeight <= 0 ||
-      !record.data || typeof record.data !== "object" || Array.isArray(record.data)) continue;
+    if (record.source !== "biff" || !record.data || typeof record.data !== "object" || Array.isArray(record.data)) continue;
     const data = record.data as Readonly<Record<string, ImportedValue>>;
+    if (Object.hasOwn(biffPrintFlags, record.kind)) {
+      const [opcode, field] = biffPrintFlags[record.kind]!;
+      const value = child(currentPrint, field)?.attributes.value;
+      if (data.opcode === opcode && (data.bytes === "0000" || data.bytes === "0100") &&
+        (value === "0" || value === "1")) handled.add(record);
+      continue;
+    }
+    if (typeof sheet.view?.defaultRowHeight !== "number" || !Number.isFinite(defaultRowHeight) || defaultRowHeight <= 0) continue;
     const legacy = record.kind === "DEFAULTROWHEIGHT_v0" && data.opcode === 0x25;
     if (!legacy && !(record.kind === "DEFAULTROWHEIGHT_v2" && data.opcode === 0x225)) continue;
     const bytes = data.bytes;

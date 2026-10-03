@@ -24,7 +24,7 @@ test.each([
   expect(await run(source)).toMatchObject({ exitCode: 1, stdout: "", stderr: "dot: graph layout cost limit exceeded\n" });
 });
 
-test.each([["-T"], ["-Tjpeg"], ["-o"], ["--unknown"], ["a", "b"]])("rejects invalid options %j", async (...args) => {
+test.each([["-T"], ["-Tunsupported"], ["-o"], ["--unknown"], ["a", "b"]])("rejects invalid options %j", async (...args) => {
   expect(await run("digraph { a -> b }", args)).toMatchObject({ exitCode: 1, stdout: "" });
 });
 

@@ -1976,11 +1976,12 @@
           "version": "0.0.1",
           "dependencies": {},
           "devDependencies": {
+            "safe-bash-graphviz-engine": "*",
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",
-            "@poe-code/graphviz-ast": "*",
-            "safe-bash-svg-engine": "*",
-            "@poe-code/pdf-ast": "*"
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-command-neato": "*",
+            "safe-bash-command-svgo": "*"
           },
           "portable": true
         },
@@ -2004,6 +2005,36 @@
             "@poe-code/pdf-ast": "*",
             "@poe-code/xml-ast": "*",
             "@poe-code/image-ast": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-graphviz-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/graphviz-ast": "*",
+            "@poe-code/image-ast": "*",
+            "safe-bash-contracts": "*",
+            "safe-bash-svg-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-neato": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-graphviz-engine": "*",
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-svgo": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-graphviz-engine": "*",
+            "safe-bash-contracts": "*",
+            "@poe-code/graphviz-ast": "*"
           },
           "portable": true
         }
@@ -3239,6 +3270,30 @@
       "workerd": "./dist/commands/rsvg-convert/index.js",
       "browser": "./dist/commands/rsvg-convert/index.js",
       "import": "./dist/commands/rsvg-convert/index.js"
+    },
+    "./commands/neato": {
+      "types": "./dist/commands/neato/index.d.ts",
+      "workerd": "./dist/commands/neato/index.js",
+      "browser": "./dist/commands/neato/index.js",
+      "import": "./dist/commands/neato/index.js"
+    },
+    "./commands/svgo": {
+      "types": "./dist/commands/svgo/index.d.ts",
+      "workerd": "./dist/commands/svgo/index.js",
+      "browser": "./dist/commands/svgo/index.js",
+      "import": "./dist/commands/svgo/index.js"
+    },
+    "./commands/graphviz": {
+      "types": "./dist/commands/graphviz/index.d.ts",
+      "workerd": "./dist/commands/graphviz/index.js",
+      "browser": "./dist/commands/graphviz/index.js",
+      "import": "./dist/commands/graphviz/index.js"
+    },
+    "./graphviz": {
+      "types": "./dist/commands/graphviz/index.d.ts",
+      "workerd": "./dist/commands/graphviz/index.js",
+      "browser": "./dist/commands/graphviz/index.js",
+      "import": "./dist/commands/graphviz/index.js"
     }
   },
   "sideEffects": [
@@ -3493,7 +3548,10 @@
     "safe-bash-command-diffpdf": "*",
     "safe-bash-command-dot": "*",
     "safe-bash-command-rsvg-convert": "*",
-    "safe-bash-svg-engine": "*"
+    "safe-bash-svg-engine": "*",
+    "safe-bash-graphviz-engine": "*",
+    "safe-bash-command-neato": "*",
+    "safe-bash-command-svgo": "*"
   },
   "main": "./dist/index.js",
   "imports": {

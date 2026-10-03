@@ -5,6 +5,8 @@ interface Element {
 }
 export interface OptimizeSvgOptions {
   precision?: number;
+  pretty?: boolean;
+  indent?: number;
 }
 const space = (c: string) => c === " " || c === "\n" || c === "\t" || c === "\r";
 const digit = (c: string) => c >= "0" && c <= "9";
@@ -248,6 +250,9 @@ export function optimizeSvg(source: string, options: OptimizeSvgOptions = {}): s
   const precision = options.precision ?? 3;
   if (!Number.isInteger(precision) || precision < 0 || precision > 15)
     throw new RangeError("precision must be an integer from 0 to 15");
+  const indent = options.indent ?? 2;
+  if (!Number.isInteger(indent) || indent < 0 || indent > 16)
+    throw new RangeError("indent must be an integer from 0 to 16");
   const format = (n: number) => String(Number(n.toFixed(precision)));
   const root = parseXml(source);
   const visit = (element: Element): (Element | string)[] => {
@@ -297,10 +302,20 @@ export function optimizeSvg(source: string, options: OptimizeSvgOptions = {}): s
     if (values.length === 4 && values.every((v) => Number.isFinite(Number(v))))
       root.attributes.viewBox = values.map((v) => format(Number(v))).join(" ");
   }
-  const serialize = (element: Element): string => {
+  const serialize = (element: Element, depth = 0): string => {
     const attributes = Object.entries(element.attributes)
       .map(([key, value]) => ` ${key}="${value}"`)
       .join("");
+    // Never introduce whitespace into text or mixed content (including nested tspans).
+    if (
+      options.pretty &&
+      element.children.length &&
+      element.children.every((child) => typeof child !== "string") &&
+      element.name !== "text" &&
+      element.name !== "tspan"
+    ) {
+      return `<${element.name}${attributes}>\n${element.children.map((child) => " ".repeat((depth + 1) * indent) + serialize(child as Element, depth + 1)).join("\n")}\n${" ".repeat(depth * indent)}</${element.name}>`;
+    }
     return element.children.length
       ? `<${element.name}${attributes}>${element.children.map((child) => (typeof child === "string" ? child : serialize(child))).join("")}</${element.name}>`
       : `<${element.name}${attributes}/>`;

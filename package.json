@@ -391,6 +391,26 @@
       "workerd": "./packages/safe-js/dist/workerd.js",
       "browser": null,
       "import": "./packages/safe-js/dist/workerd.js"
+    },
+    "./safe-bash/commands/dot": {
+      "types": "./packages/safe-bash/dist/commands/dot/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/dot/index.js"
+    },
+    "./safe-bash/commands/neato": {
+      "types": "./packages/safe-bash/dist/commands/neato/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/neato/index.js"
+    },
+    "./safe-bash/commands/svgo": {
+      "types": "./packages/safe-bash/dist/commands/svgo/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/svgo/index.js"
+    },
+    "./safe-bash/commands/graphviz": {
+      "types": "./packages/safe-bash/dist/commands/graphviz/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/graphviz/index.js"
+    },
+    "./safe-bash/graphviz": {
+      "types": "./packages/safe-bash/dist/commands/graphviz/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/graphviz/index.js"
     }
   },
   "engines": {
@@ -686,7 +706,10 @@
     "safe-bash-command-diffpdf": "*",
     "safe-bash-command-dot": "*",
     "safe-bash-command-rsvg-convert": "*",
-    "safe-bash-svg-engine": "*"
+    "safe-bash-svg-engine": "*",
+    "safe-bash-graphviz-engine": "*",
+    "safe-bash-command-neato": "*",
+    "safe-bash-command-svgo": "*"
   },
   "version": "0.0.0-dev",
   "repository": {
@@ -901,7 +924,13 @@
     "packages/safe-bash-command-rsvg-convert/dist",
     "packages/safe-bash-command-rsvg-convert/LICENSE",
     "packages/safe-bash-svg-engine/dist",
-    "packages/safe-bash-svg-engine/LICENSE"
+    "packages/safe-bash-svg-engine/LICENSE",
+    "packages/safe-bash-graphviz-engine/dist",
+    "packages/safe-bash-graphviz-engine/LICENSE",
+    "packages/safe-bash-command-neato/dist",
+    "packages/safe-bash-command-neato/LICENSE",
+    "packages/safe-bash-command-svgo/dist",
+    "packages/safe-bash-command-svgo/LICENSE"
   ],
   "license": "MIT",
   "imports": {

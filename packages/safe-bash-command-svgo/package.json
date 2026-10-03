@@ -1,5 +1,5 @@
 {
-  "name": "safe-bash-command-dot",
+  "name": "safe-bash-command-svgo",
   "version": "0.0.1",
   "private": true,
   "description": "Virtual Graphviz commands and bounded rendering",
@@ -24,16 +24,13 @@
     "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=browser --conditions=workerd --format=esm --target=es2022 --outfile=dist/index.js --metafile=dist/metafile.json --external:safe-bash-contracts --external:safe-bash-contracts/*",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "lint": "eslint src && npm run typecheck",
-    "test": "cd ../.. && vitest run packages/safe-bash-command-dot",
-    "test:unit": "cd ../.. && vitest run packages/safe-bash-command-dot"
+    "test": "cd ../.. && vitest run packages/safe-bash-command-svgo",
+    "test:unit": "cd ../.. && vitest run packages/safe-bash-command-svgo"
   },
   "dependencies": {},
   "devDependencies": {
     "safe-bash-graphviz-engine": "*",
     "safe-bash-contracts": "*",
-    "@poe-code/safe-fs": "*",
-    "@poe-code/pdf-ast": "*",
-    "safe-bash-command-neato": "*",
-    "safe-bash-command-svgo": "*"
+    "@poe-code/graphviz-ast": "*"
   }
 }

@@ -187,9 +187,12 @@ export class LuaMachine {
         case 27: await set(a, !truth(await get(b))); break;
         case 28: {
           const value = await get(b);
-          const method = await this.metatables.method(value, "__len");
-          if (method !== undefined) frame = await this.call(frame, {callee: method, args: [value, value]}, a, 1);
-          else await set(a, integer(typeof value === "object" && value.kind === "string" ? await this.heap.byteLength(value) : await this.heap.length(await this.table(value))));
+          if (typeof value === "object" && value.kind === "string") await set(a, integer(await this.heap.byteLength(value)));
+          else {
+            const method = await this.metatables.method(value, "__len");
+            if (method !== undefined) frame = await this.call(frame, {callee: method, args: [value, value]}, a, 1);
+            else await set(a, integer(await this.heap.length(await this.table(value))));
+          }
           break;
         }
         case 29: {

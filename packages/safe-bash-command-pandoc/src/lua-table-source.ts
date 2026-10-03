@@ -26,13 +26,10 @@ SOFTWARE.
 /** Fixed library code runs on the retained VM, including all metamethod calls.
  * Native helpers only convert scalars or stream values already in backed tables. */
 export const luaTableSource = `
-local pack, int, str, finish, unpackValues, random = ...
+local pack, int, str, finish, unpackValues, random, check = ...
 local type, select, error = type, select, error
-local function check(t)
-  if type(t) ~= 'table' then error('Expected Lua table') end
-end
-local function size(t)
-  check(t)
+local function size(t, access)
+  check(t, access | 4)
   return int(#t)
 end
 local function optional(value, fallback)
@@ -41,7 +38,7 @@ local function optional(value, fallback)
 end
 local library = {pack=pack}
 function library.insert(t, ...)
-  local e = int(size(t) + 1.0)
+  local e = int(size(t,3) + 1.0)
   local n = select('#', ...)
   local pos, value
   if n == 1 then pos=e; value=...
@@ -55,7 +52,7 @@ function library.insert(t, ...)
   t[pos]=value
 end
 function library.remove(t, pos)
-  local n=size(t)
+  local n=size(t,3)
   pos=optional(pos,n)
   if pos ~= n and (pos < 1 or pos > n+1.0) then error('Position out of bounds') end
   local value=t[pos]
@@ -66,7 +63,7 @@ end
 function library.move(t, first, last, target, dest)
   first=int(first); last=int(last); target=int(target)
   if dest == nil then dest=t end
-  check(t); check(dest)
+  check(t,1); check(dest,2)
   if last >= first then
     if first <= 0 and last >= 2147483647.0+first then error('Too many elements to move') end
     local n=int(last-first+1.0)
@@ -80,7 +77,7 @@ function library.move(t, first, last, target, dest)
   return dest
 end
 function library.concat(t, sep, first, last)
-  local n=size(t)
+  local n=size(t,1)
   if sep == nil then sep='' else sep=str(sep) end
   first=optional(first,1); last=optional(last,n)
   local values, count={},0
@@ -159,7 +156,7 @@ local function sort(t,lo,up,rnd,compare)
   end
 end
 function library.sort(t,compare)
-  local n=size(t)
+  local n=size(t,3)
   if n > 1 then
     if n >= 2147483647 then error('Array too big') end
     if compare ~= nil and type(compare) ~= 'function' then error('Expected comparison function') end

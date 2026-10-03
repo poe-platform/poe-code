@@ -7,6 +7,7 @@ import {LuaStorage} from "./lua-storage.js";
 import {LuaProgram} from "./lua-program.js";
 import {LuaFrames} from "./lua-frames.js";
 import {LuaMachine,type LuaNative,type LuaArguments,type LuaNativeContext} from "./lua-machine.js";
+import {LuaStringLibrary} from "./lua-string-library.js";
 import {LuaTable} from "./lua-table.js";
 import {LuaUtf8} from "./lua-utf8.js";
 import {LuaMath} from "./lua-math.js";
@@ -16,7 +17,7 @@ import {LuaSyntax} from "./lua-syntax.js";
 import {LuaParser} from "./lua-parser.js";
 import {LuaCompiler} from "./lua-compiler.js";
 
-async function execute(source: string,options: {pages?:number;table?:boolean;signal?: AbortSignal; beforeRun?():void;
+async function execute(source: string,options: {string?:boolean;pages?:number;table?:boolean;signal?: AbortSignal; beforeRun?():void;
   native?(heap: LuaStorage,prototype: number,args: LuaArguments,context: LuaNativeContext):ReturnType<LuaNative>}={}):Promise<unknown[]> {
   const fs=new MemoryFileSystem(), execution=new ExecutionContext("convert",options.signal?{signal:options.signal}:{});
   const storage=new PagedStorage({fs,cwd:"/",env:{},signal:options.signal ?? new AbortController().signal},options.pages ?? (options.table?64:1));
@@ -29,8 +30,9 @@ async function execute(source: string,options: {pages?:number;table?:boolean;sig
     const utf8=new LuaUtf8(heap); await utf8.install(environment);
     if(options.native) await heap.set(environment,await heap.string([new TextEncoder().encode("host")]),await heap.closure(-1000,[]));
     const table=new LuaTable(heap);
+    const strings=new LuaStringLibrary(heap); if(options.string) await strings.install(environment);
     const machine=new LuaMachine(program,new LuaFrames(storage,heap,cooperate),heap,cooperate,(prototype,args,context)=>
-      prototype===-1000 && options.native?options.native(heap,prototype,args,context):prototype<=-200 && prototype>-300?math.invoke(prototype,args,context):prototype<=-300 && prototype>-400?utf8.invoke(prototype,args):prototype<=-400 && prototype>-500?table.invoke(prototype,args):base.invoke(prototype,args,context));
+      prototype===-1000 && options.native?options.native(heap,prototype,args,context):prototype<=-200 && prototype>-300?math.invoke(prototype,args,context):prototype<=-300 && prototype>-400?utf8.invoke(prototype,args):prototype<=-400 && prototype>-500?table.invoke(prototype,args):prototype<=-500 && prototype>-600?strings.invoke(prototype,args):base.invoke(prototype,args,context));
     if(options.table) await table.install(environment,program,machine);
     const closure=await heap.closure(prototype,[await heap.cell(environment)]);
     options.beforeRun?.();
@@ -53,6 +55,7 @@ function native(source:string):unknown[] {
     compiler.lauxlib.luaL_requiref(state,new TextEncoder().encode("math"),compiler.lualib.luaopen_math,true); compiler.lua.lua_pop(state,1);
     compiler.lauxlib.luaL_requiref(state,new TextEncoder().encode("utf8"),compiler.lualib.luaopen_utf8,true); compiler.lua.lua_pop(state,1);
     compiler.lauxlib.luaL_requiref(state,new TextEncoder().encode("table"),compiler.lualib.luaopen_table,true); compiler.lua.lua_pop(state,1);
+    compiler.lauxlib.luaL_requiref(state,new TextEncoder().encode("string"),compiler.lualib.luaopen_string,true); compiler.lua.lua_pop(state,1);
     expect(compiler.lauxlib.luaL_loadbuffer(state,bytes,bytes.length,new TextEncoder().encode("fixture"))).toBe(compiler.lua.LUA_OK);
     expect(compiler.lua.lua_pcall(state,0,-1,0)).toBe(compiler.lua.LUA_OK);
     const internal=state as unknown as {top:number; stack:{type:number; value:unknown}[]};
@@ -284,4 +287,67 @@ it("rejects an inconsistent table comparator",async()=>{
 it("streams table unpack results beyond fixed registers while retaining nil slots",async()=>{
   const source="local t={}; for i=1,260 do if i~=19 then t[i]=i end end; local p=table.pack(table.unpack(t,1,260)); return p.n,p[19],p[260]";
   expect(await execute(source,{table:true})).toEqual(native(source));
+});
+
+
+it.each([
+  "return string.len('a€'),string.len(123),string.char(),string.byte('abc',1,-1)",
+  "return string.byte(string.char(0,127,128,255),1,-1)",
+  "return string.sub('abcdef',2,4),string.sub('abcdef',-3),string.sub('abc',-99,99),string.sub('abc',3,1)",
+  "return string.sub('abc',0,0),string.sub('abc',99),string.sub('abc',1,-99)",
+  "return string.byte('abc'),string.byte('abc',-1),string.byte('abc',0),string.byte('abc',-99),select('#',string.byte('abc',2,1))",
+  "return string.upper('aZä'),string.lower('AZÄ'),string.reverse('abcdef')",
+  "return string.byte(string.reverse(string.char(0,128,255)),1,-1)",
+  "return string.rep('ab',3,':'),string.rep('x',0),string.rep('x',-1),string.rep('',3,':'),string.rep('',3)",
+  "return string.sub(12345,2,4),string.rep(12,3,7),string.reverse(123),string.upper(123)",
+  "return ('abc'):sub(2):upper(),('abc'):byte(2),rawequal(getmetatable('').__index,string),rawequal(getmetatable('a'),getmetatable('b'))",
+  "getmetatable('').__index=function(s,k) return s..k end; return ('x').hello",
+  "getmetatable('').__call=function(s,x) return s..x end; local s='a'; return s('b')",
+  "local saved; getmetatable('').__newindex=function(s,k,v) saved=s..k..v end; local s='a'; s.b='c'; return saved",
+  "getmetatable('').__tostring=function(s) return s..'!' end; return tostring('hi')",
+  "getmetatable('').__metatable='locked'; return getmetatable('x')"
+])("preserves retained byte-string operations: %s",async source=>{expect(await execute(source,{string:true})).toEqual(native(source));});
+it.each(["string.char(-1)","string.char(256)","string.char(1.5)","string.sub('x')","string.len(false)","string.rep('x',1.5)","string.rep('x',0,true)","string.rep('x',2147483647,':')"])("reports byte-string argument errors: %s",async source=>{await expect(execute(source,{string:true})).rejects.toMatchObject({code:"E_AST"});});
+
+it.each([
+  "local mt=getmetatable(''); mt.__len=function() return 99 end; mt.__index=function(_,i) return i*2 end; return table.concat('abc',':'),table.unpack('abc')",
+  "local values={3,1,2}; local mt=getmetatable(''); mt.__len=true; mt.__index=function(_,i) return values[i] end; mt.__newindex=function(_,i,v) values[i]=v end; table.sort('abc'); return table.concat(values,':')",
+  "local values={1,2}; local mt=getmetatable(''); mt.__index=function(_,i) return values[i] end; mt.__newindex=function(_,i,v) values[i]=v end; table.move('ab',1,2,2); return table.concat(values,':')"
+])("uses string metatable capabilities in table operations: %s",async source=>{expect(await execute(source,{string:true,table:true})).toEqual(native(source));});
+
+it("reads byte-string results across chunk boundaries without changing input bytes",async()=>{
+  const source="local s=host(); local r=string.reverse(s); return #r,string.byte(r,1),string.byte(r,8192),string.byte(r,8193),string.byte(r,-1),string.byte(s,1)";
+  const length=17003;
+  const result=await execute(source,{string:true,native:async heap=>{
+    const value=await heap.string((async function*(){const chunk=new Uint8Array(137);for(let start=0;start<length;start+=chunk.length){const count=Math.min(chunk.length,length-start);for(let i=0;i<count;i++)chunk[i]=(start+i)%251;yield chunk.subarray(0,count);}})());
+    const read=heap.readBytes.bind(heap);
+    vi.spyOn(heap,"readBytes").mockImplementation(async(value,start,count)=>{expect(count).toBeLessThanOrEqual(8192);return read(value,start,count);});
+    return [value];
+  }});
+  expect(result).toEqual([length,(length-1)%251,(length-8192)%251,(length-8193)%251,0,0].map(value=>({kind:"integer",value})));
+});
+it("queries byte-string length and bytes without copying the retained input",async()=>{
+  const result=await execute("local s=host(); return string.len(s),string.byte(s,2)",{string:true,native:async heap=>{
+    const value=await heap.string([Uint8Array.of(65,66,67)]);
+    vi.spyOn(heap,"string").mockRejectedValue(new Error("Unexpected input copy"));
+    return [value];
+  }});
+  expect(result).toEqual([3,66].map(value=>({kind:"integer",value})));
+});
+it.each([
+  "local s=string.rep('ab',5000,':'); return #s,string.sub(s,8188,8200),string.sub(s,-7)",
+  "local s=string.rep('a',8192)..'Bz'; return #s,string.sub(string.upper(s),8189),string.sub(string.lower(s),8189),string.sub(s,8189)",
+  "local s=string.rep('ab',5000); local r=string.rep(s,3,':'); return #r,string.sub(r,9998,10005),string.sub(r,-4)"
+])("streams string transformations across retained chunks: %s",async source=>{expect(await execute(source,{string:true})).toEqual(native(source));});
+it("returns an empty repetition without iterating over an empty pattern",async()=>{
+  expect(await execute("return string.rep('',2147483647)",{string:true})).toEqual([""]);
+});
+it("cancels while producing repeated string bytes and cleans up storage",async()=>{
+  const controller=new AbortController();
+  await expect(execute("return string.rep(host(),40000)",{string:true,signal:controller.signal,native:async heap=>{
+    const value=await heap.string([Uint8Array.of(65)]),read=heap.readBytes.bind(heap);
+    let scheduled=false;
+    vi.spyOn(heap,"readBytes").mockImplementation(async(...args)=>{const result=await read(...args);if(!scheduled){scheduled=true;setTimeout(()=>controller.abort(),0);}return result;});
+    return [value];
+  }})).rejects.toMatchObject({code:"E_CANCELLED"});
 });

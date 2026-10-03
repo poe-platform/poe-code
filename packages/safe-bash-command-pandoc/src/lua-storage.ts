@@ -37,6 +37,7 @@ function hash(bytes: Uint8Array, initial = 2166136261): number {
  * layer for a retained runtime, not an adapter that makes Fengari's objects spill. */
 export class LuaStorage {
   private readonly buckets: IntegerTable;
+  private stringMetatable: LuaReference | undefined;
   constructor(private readonly storage: PagedStorage, private readonly cooperate: (units?: number) => Promise<void>) {
     this.buckets = new IntegerTable(storage, 64);
   }
@@ -135,7 +136,12 @@ export class LuaStorage {
     await this.put(id, 0, 0, 0);
     return {kind: "table", id};
   }
+  setStringMetatable(value: LuaReference): void {
+    if (value.kind !== "table") throw new TypeError("Expected Lua metatable");
+    this.stringMetatable = value;
+  }
   async metatable(table: LuaReference): Promise<LuaReference | undefined> {
+    if (table.kind === "string") return this.stringMetatable;
     if (table.kind !== "table") throw new TypeError("Expected Lua table");
     const id = (await this.fields(table.id + 16, 1))[0]!;
     return id ? {kind: "table", id} : undefined;

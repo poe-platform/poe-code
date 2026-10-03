@@ -1,6 +1,7 @@
 import {PandocError} from "./errors.js";
 import {integral,integer} from "./lua-arithmetic.js";
 import {LuaNumbers} from "./lua-numbers.js";
+import {LuaMetatables} from "./lua-metatables.js";
 import {LuaStrings} from "./lua-strings.js";
 import {loadLuaLibrary} from "./lua-library.js";
 import {tableLibrary} from "./lua-table.generated.js";
@@ -12,15 +13,16 @@ import type {LuaReference,LuaStorage,StoredLuaValue} from "./lua-storage.js";
 export class LuaTable {
   private readonly numbers:LuaNumbers;
   private readonly strings:LuaStrings;
+  private readonly metatables:LuaMetatables;
   private countKey:LuaReference | undefined;
   constructor(private readonly heap:LuaStorage) {
-    this.numbers=new LuaNumbers(heap); this.strings=new LuaStrings(heap);
+    this.numbers=new LuaNumbers(heap); this.strings=new LuaStrings(heap); this.metatables=new LuaMetatables(heap);
   }
   async install(environment:LuaReference,program:LuaProgram,machine:LuaMachine):Promise<void> {
     const heap=this.heap,source=await heap.string([new TextEncoder().encode("@table")]);
     const prototype=await loadLuaLibrary(tableLibrary,heap,program,source);
     const closure=await heap.closure(prototype,[await heap.cell(environment)]);
-    const result=await machine.run(closure,(async function*(){for(let i=0;i<6;i++) yield await heap.closure(-400-i,[]);})());
+    const result=await machine.run(closure,(async function*(){for(let i=0;i<7;i++) yield await heap.closure(-400-i,[]);})());
     await heap.set(environment,await heap.string([new TextEncoder().encode("table")]),await heap.get(result.values,0));
   }
   async invoke(prototype:number,args:LuaArguments):Promise<LuaNativeOutput> {
@@ -46,6 +48,13 @@ export class LuaTable {
         return (async function*():AsyncGenerator<StoredLuaValue>{for(let i=1;i<=length;i++) yield await heap.get(value as LuaReference,i);})();
       }
       case -405: return [Math.floor(Math.random()*0x100000000)];
+      case -406: {
+        if(typeof value==="object" && value.kind==="table") return [];
+        const mask=integral(await args.get(1));
+        for(const [bit,name] of [[1,"__index"],[2,"__newindex"],[4,"__len"]] as const)
+          if(mask&bit && await this.metatables.method(value,name)===undefined) throw new PandocError("E_AST","convert","Expected Lua table");
+        return [];
+      }
       default: throw new PandocError("E_UNSUPPORTED_FEATURE","convert","Unknown Lua table helper");
     }
   }

@@ -150,7 +150,7 @@ export class LuaBase {
         yield target; break;
       }
       case "getmetatable": {
-        const metatable = typeof value === "object" && value.kind === "table" ? await this.heap.metatable(value) : undefined;
+        const metatable = typeof value === "object" && (value.kind === "table" || value.kind === "string") ? await this.heap.metatable(value) : undefined;
         if (!metatable) yield undefined;
         else {
           const protectedValue = await this.heap.get(metatable, await (this.protectedKey ??= this.heap.string([new TextEncoder().encode("__metatable")])));

@@ -14,7 +14,7 @@ export class LuaMetatables {
   private readonly keys = new Map<Method, Promise<LuaReference>>();
   constructor(private readonly heap: LuaStorage) {}
   async method(value: StoredLuaValue, name: Method): Promise<StoredLuaValue> {
-    if (!isTable(value)) return undefined;
+    if (typeof value !== "object" || value.kind !== "table" && value.kind !== "string") return undefined;
     const metatable = await this.heap.metatable(value);
     if (!metatable) return undefined;
     let key = this.keys.get(name);

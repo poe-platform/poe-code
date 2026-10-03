@@ -26,11 +26,19 @@ it.each(["2006", "2008"] as const)("publishes XLSX %s using caller-backed ZIP re
     formats: [{ ...xlsxFormat, services: xlsxFormat.services.map(codec => codec.direction === "write" ? { ...codec, write: array } : codec) }] });
   const signal = new AbortController().signal;
   const raw = { sheets: [{ id: "s", name: "Data", cells: Array.from({ length: 800 }, (_, row) => ({ row, column: 0,
-    value: { kind: "string" as const, value: row % 3 === 0 ? "shared é🦀" : `row${row}:${Math.imul(row + 1, 2654435761) >>> 0}` } })) }] };
+    value: { kind: "string" as const, value: `shared é🦀${row % 400}` } })) }] };
+  // Shared values can exceed ZIP pathname limits; no workbook limit is lowered.
+  raw.sheets[0]!.cells[0]!.value.value = raw.sheets[0]!.cells[400]!.value.value = "é🦀".repeat(22000);
   const expected = await createXlsxWriter(edition)(raw, [], { signal, limits: defaultSsconvertLimits,
     environment: { env: {}, locale: "C", timezone: "UTC" }, own() {} });
   try {
     const book = await engine.adoptWorkbook(raw, { signal }), chunks: Uint8Array[] = [];
+    const keys = new Set(raw.sheets[0]!.cells.map(cell => JSON.stringify([cell.value.value, []])));
+    const set = Map.prototype.set;
+    const stringMaps = vi.spyOn(Map.prototype, "set").mockImplementation(function(this: Map<unknown, unknown>, key, value) {
+      if (typeof key === "string" && keys.has(key)) throw new Error("resident shared-string index");
+      return set.call(this, key, value);
+    });
     const createXml = xmlSupport.createXlsxXml;
     const containers = vi.spyOn(xmlSupport, "createXlsxXml").mockImplementation(context => {
       const writer = createXml(context);
@@ -48,10 +56,10 @@ it.each(["2006", "2008"] as const)("publishes XLSX %s using caller-backed ZIP re
       await engine.writeWorkbook(book, { kind: "stream", sink: { async write(bytes) {
         expect(bytes.length).toBeLessThanOrEqual(16384); await Promise.resolve(); chunks.push(bytes.slice());
       } } }, { exportType: edition === "2006" ? "Gnumeric_Excel:xlsx" : "Gnumeric_Excel:xlsx2" }, { signal });
-    } finally { encoding.mockRestore(); containers.mockRestore(); }
+    } finally { encoding.mockRestore(); containers.mockRestore(); stringMaps.mockRestore(); }
     expect(Buffer.concat(chunks)).toEqual(Buffer.from(expected)); expect(chunks.length).toBeGreaterThan(1);
     expect(array).not.toHaveBeenCalled(); expect(written).toBeGreaterThan(0);
-    expect(written).toBeLessThan(800 * 384); expect(pendingBytes).toBe(0); expect(largestWrite).toBeLessThanOrEqual(16384);
+    expect(written).toBeLessThan(800 * 16384); expect(pendingBytes).toBe(0); expect(largestWrite).toBeLessThanOrEqual(16384);
     expect(closed).toBe(1); expect(await fs.readdir("/")).toEqual([]);
   } finally { await engine.dispose(); }
 });

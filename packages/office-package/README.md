@@ -72,7 +72,11 @@ Await `writer.add(entry)` for each buffered or streamed compressed member, or
 raw fallback in caller storage and preserves it when deflate overhead exceeds
 the archive budget. Consume `writer.finish(comment?)` with backpressure. Transfers are capped at
 16 KiB and by `chunkSize`; directory names use an external index when duplicate
-rejection is enabled. Payload validation replays the staged bytes before output.
+rejection is enabled. The index retains at most 128 headers and compares stored
+keys in bounded UTF-16 windows. `ZipDirectoryIndex` accepts optional
+`maximumKeyLength` (default 65536) and `signal` options for other office-package
+string tables; increasing the key limit does not retain complete stored keys.
+Payload validation replays the staged bytes before output.
 The caller must close storage on every outcome, including abandoned output.
 A failed writer cannot publish or accept further members. Sources are borrowed
 until `add` settles; yielded archive chunks are owned. The existing

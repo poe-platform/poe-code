@@ -55,8 +55,10 @@ central records in the caller’s safe-fs. XML encoding and member compression
 consume bounded chunks, followed by bounded archive output. The
 format provider registers this path for both editions. Worksheet rows are staged
 in caller storage before metadata serialization; row, worksheet and shared-string
-XML containers stream without complete strings. Individual cells, shared-string
-indexes, styles and other metadata still use in-memory representations. Hosts without
+XML containers stream without complete strings. Shared-string counts and IDs
+use a caller-backed index with a fixed header cache; shared-string XML is staged
+as IDs are assigned. Individual cells/strings, styles, coordinate indexes and
+other metadata still use in-memory representations. Hosts without
 working storage and explicit `createXlsxWriter` calls retain buffered output.
 
 For table import, `readCachedXlsx` accepts an admitted ZIP archive, its codec and

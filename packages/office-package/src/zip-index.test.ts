@@ -72,3 +72,31 @@ it("matches an independent map across deterministic mixed Unicode keys and repea
   for (const [key, value] of expected) expect(await index.get(key)).toBe(value);
   for (const key of expected.keys()) expect(await index.get(key + "absent")).toBeUndefined();
 });
+
+it("supports workbook-sized keys without rebuilding stored strings", async () => {
+  const bytes = new Uint8Array(2 * 1024 * 1024), response = new Uint8Array(4096);
+  let end = 8;
+  const index = new ZipDirectoryIndex({
+    allocate(length) { const position = end; end += length; return position; },
+    async read(position, length) { expect(length).toBeLessThanOrEqual(4096); response.set(bytes.subarray(position, position + length)); return response.subarray(0, length); },
+    async write(position, chunk) { expect(chunk.length).toBeLessThanOrEqual(4096); bytes.set(chunk, position); }
+  }, { maximumKeyLength: Infinity });
+  const prefix = "🦀x".repeat(25000), keys = [prefix, prefix + "\0", prefix + "a", prefix.slice(0, -1), prefix + "😀"];
+  for (const [i, key] of keys.entries()) await index.set(key, i);
+  for (const [i, key] of keys.entries()) expect(await index.get(key)).toBe(i);
+  await index.set(prefix, 123); expect(await index.get(prefix)).toBe(123);
+  expect(await index.get(prefix + "z")).toBeUndefined();
+});
+
+it("cancels long index comparisons before pulling more storage", async () => {
+  const bytes = new Uint8Array(200000), controller = new AbortController();
+  let end = 8, reads = 0, cancel = false;
+  const index = new ZipDirectoryIndex({
+    allocate(length) { const position = end; end += length; return position; },
+    async read(position, length) { reads++; if (cancel) controller.abort(new Error("stop")); return bytes.slice(position, position + length); },
+    async write(position, chunk) { bytes.set(chunk, position); }
+  }, { signal: controller.signal });
+  await index.set("x".repeat(50000), 1); cancel = true;
+  await expect(index.get("x".repeat(50000))).rejects.toThrow("stop");
+  expect(reads).toBe(1);
+});

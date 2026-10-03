@@ -2,7 +2,7 @@ import { foldSheetName } from "@poe-code/spreadsheet-ast/case-fold";
 import { XlsxExternalLinkWriter } from "./external-link-export.js";
 import { resolveExternalLinks } from "./external-links.js";
 import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-stream";
-import { createStoredZipEntries, ZipStorageFailure, ZipWriteChain } from "@poe-code/office-package";
+import { createStoredZipEntries, ZipStorageFailure, ZipWriteChain, ZipDirectoryIndex } from "@poe-code/office-package";
 import { ownedRangeSource } from "@poe-code/spreadsheet-engine/range-input";
 import { createZipCodec, CodecError, type ZipLimits, type ZipEntry, type ZipStreamEntry, type ZipSource } from "@poe-code/office-package";
 import { expandIndexSheetAreas } from "@poe-code/spreadsheet-engine/formulas/index-sheet-areas";
@@ -868,13 +868,21 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
         Id: r.id, Type: r.type, Target: r.target, ...(r.external ? { TargetMode: "External" } : {}) })).join(""));
     const workbookRelations: { id: string; type: string; target: string }[] = [];
     const externalLinks = new XlsxExternalLinkWriter(book, charge);
-    const shared: Cell[] = [], sharedIds = new Map<string, number>(), stringCounts = new Map<string, number>();
-    let sharedReferences = 0;
+    // States 1/2 mean seen once/repeated; state >= 3 stores assigned ID + 3.
+    // The same external key table serves both counting and stable ID lookup.
+    const stringIndex = storage ? new ZipDirectoryIndex(storage, { maximumKeyLength: Infinity, signal: context.signal }) : new Map<string, number>();
+    const shared: Cell[] = [];
+    const sharedTape = storage ? new ZipWriteChain(storage, 16384, context.signal, async signal => { signal.throwIfAborted(); }) : undefined;
+    const sharedBuffer = new Uint8Array(16384); let sharedBytes = 0, sharedTotal = 0;
+    let sharedReferences = 0, sharedCount = 0;
     let totalCells = 0;
     for (const sheet of book.sheets) for (const cell of sheet.cells) {
       charge(); if (++totalCells > context.limits.cells) limit("cells");
       const value = cell.formula ? cell.cachedResult ?? cell.value : cell.value;
-      if (!cell.formula && value.kind === "string") { const key = JSON.stringify([value.value, cell.richText ?? []]); stringCounts.set(key, (stringCounts.get(key) ?? 0) + 1); }
+      if (!cell.formula && value.kind === "string") {
+        const key = JSON.stringify([value.value, cell.richText ?? []]), count = await stringIndex.get(key) ?? 0;
+        if (count < 2) await stringIndex.set(key, count + 1);
+      }
     }
     if (book.sheets.length > context.limits.sheets) limit("sheets");
     const active = Math.max(0, book.sheets.findIndex(sheet => sheet.id === book.activeSheet));
@@ -948,12 +956,29 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
                 body += xml("f", { ...(array ? { t: "array", ref: rangeText(array.range) } : {}),
                   ...formulaSemanticsAttributes(array?.arrayStringLiterals ?? cell.arrayStringLiterals, true, cell.formula) },
                   escapeXlsx(encodeXlsxString(exportXlsxFormula(book, cell.formula, sheet, cell.row, cell.column, context, array?.arrayStringLiterals ?? cell.arrayStringLiterals, externalLinks))));
+              const stringState = !cell.formula && value.kind === "string" ? await stringIndex.get(stringKey) ?? 0 : 0;
               if (value.kind === "string") {
                 if (cell.formula) { type = "str"; body += xml("v", {}, escapeXlsx(encodeXlsxString(value.value))); }
-                else if ((stringCounts.get(stringKey) ?? 0) > 1) {
+                else if (stringState >= 2) {
                   sharedReferences++;
-                  type = "s"; let id = sharedIds.get(stringKey);
-                  if (id === undefined) { id = shared.length; sharedIds.set(stringKey, id); shared.push({ ...cell, value }); }
+                  type = "s"; const id = stringState >= 3 ? stringState - 3 : sharedCount++;
+                  if (stringState === 2) {
+                    await stringIndex.set(stringKey, id + 3);
+                    if (sharedTape) {
+                      const text = xml("si", {}, writeRichString(value.value, cell.richText, xml, charge));
+                      async function* content() { yield text; }
+                      for await (const bytes of encodeTextStream(content(), "UTF-8", false, context)) {
+                        if (bytes.length > context.limits.outputBytes - sharedTotal) limit("output bytes");
+                        sharedTotal += bytes.length;
+                        for (let offset = 0; offset < bytes.length;) {
+                          const take = Math.min(sharedBuffer.length - sharedBytes, bytes.length - offset);
+                          sharedBuffer.set(bytes.subarray(offset, offset + take), sharedBytes);
+                          sharedBytes += take; offset += take;
+                          if (sharedBytes === sharedBuffer.length) { await sharedTape.append([sharedBuffer], sharedBytes); sharedBytes = 0; }
+                        }
+                      }
+                    } else shared.push({ ...cell, value });
+                  }
                   body += xml("v", {}, String(id));
                 } else { type = "inlineStr"; body += xml("is", {}, writeRichString(value.value, cell.richText, xml, charge)); }
               } else if (value.kind !== "blank") {
@@ -1047,11 +1072,13 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
       // Upstream writes no visibility attribute, even for hidden sheets.
       sheetNodes.push(xml("sheet", { name: sheet.name, sheetId: index + 1, "r:id": id }));
     }
-    if (shared.length) {
+    if (sharedCount) {
+      if (sharedTape && sharedBytes) await sharedTape.append([sharedBuffer.subarray(0, sharedBytes)], sharedBytes);
       async function* strings() {
+        if (sharedTape) { yield* sharedTape.read(); return; }
         for (const cell of shared) yield xml("si", {}, writeRichString(cell.value.kind === "string" ? cell.value.value : "", cell.richText, xml, charge));
       }
-      await add("xl/sharedStrings.xml", xmlStream("sst", { xmlns: namespace, uniqueCount: shared.length, count: sharedReferences }, strings()), "application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml");
+      await add("xl/sharedStrings.xml", xmlStream("sst", { xmlns: namespace, uniqueCount: sharedCount, count: sharedReferences }, strings()), "application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml");
       workbookRelations.push({ id: `rId${workbookRelations.length + 1}`, type: relationships + "/sharedStrings", target: "sharedStrings.xml" });
     }
     await add("xl/styles.xml", styles.serialize(), "application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml");

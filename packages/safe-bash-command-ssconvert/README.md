@@ -224,7 +224,8 @@ safe-fs backend is needed for staging without retaining its contents in RAM.
 XLSX exporters use working storage to stage ZIP member payloads and central
 records. XML encoding, member compression and archive output use bounded chunks;
 worksheet rows use caller-backed staging, and row, worksheet and shared-string
-XML containers stream. Individual strings, workbook cells, indexes and other
+XML containers stream. Shared-string counts, IDs and XML use caller-backed
+storage. Individual strings, workbook cells, style/coordinate indexes and other
 metadata still reside in memory.
 Gnumeric XML and gzip exports stream encoded output with backpressure. CSV/text
 conversions without global evaluation replay cells from retained input, including

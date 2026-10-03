@@ -168,6 +168,29 @@ class Session extends ExecutionContext {
     }
   }
   readonly registry = createFormatRegistry(undefined, this.context, this.operation);
+  async admitFilters(requests: ConversionOptions["filters"]): Promise<FilterRequest[]> {
+    const filters: FilterRequest[] = [];
+    if (requests !== undefined) {
+      if (!Array.isArray(requests)) this.fail("E_OPTION", "filters must be an array");
+      this.charge("references", requests.length);
+      for (const request of requests) {
+        this.checkpoint();
+        if (!request || !["json", "lua", "citeproc"].includes(request.kind) ||
+            (request.kind !== "citeproc" && (typeof request.path !== "string" || !request.path)))
+          this.fail("E_OPTION", "Invalid filter request");
+        if (request.kind !== "citeproc") this.charge("text", request.path.length);
+        filters.push(Object.freeze(request.kind === "citeproc" ? {kind: request.kind} : {kind: request.kind, path: request.path}));
+      }
+      if (filters.length && (!this.context.filters || typeof this.context.filters.apply !== "function" ||
+          (this.context.filters.supports !== undefined && typeof this.context.filters.supports !== "function")))
+        this.fail("E_CAPABILITY", "Filters and citeproc require an explicitly supplied filter capability");
+      if (this.context.filters?.supports) for (const request of filters) {
+        if (await this.call(async () => this.context.filters!.supports!(request)) !== true)
+          this.fail("E_CAPABILITY", `Filter capability does not support ${request.kind} processing`);
+      }
+    }
+    return filters;
+  }
   async preflightOptions(): Promise<void> {
     if (this.variables) await mergeJsonMetadata({}, this.variables, this);
     await this.localTemplate?.acquire();
@@ -496,26 +519,7 @@ export async function convert(
     session.options(options);
     const reader = session.registry.resolve(options.from, "read");
     const writer = session.registry.resolve(options.to, "write");
-    const filters: FilterRequest[] = [];
-    if (options.filters !== undefined) {
-      if (!Array.isArray(options.filters)) session.fail("E_OPTION", "filters must be an array");
-      session.charge("references", options.filters.length);
-      for (const request of options.filters) {
-        session.checkpoint();
-        if (!request || !["json", "lua", "citeproc"].includes(request.kind) ||
-            (request.kind !== "citeproc" && (typeof request.path !== "string" || !request.path)))
-          session.fail("E_OPTION", "Invalid filter request");
-        if (request.kind !== "citeproc") session.charge("text", request.path.length);
-        filters.push(Object.freeze(request.kind === "citeproc" ? {kind: request.kind} : {kind: request.kind, path: request.path}));
-      }
-      if (filters.length && (!context.filters || typeof context.filters.apply !== "function" ||
-          (context.filters.supports !== undefined && typeof context.filters.supports !== "function")))
-        session.fail("E_CAPABILITY", "Filters and citeproc require an explicitly supplied filter capability");
-      if (context.filters?.supports) for (const request of filters) {
-        if (await session.call(async () => context.filters!.supports!(request)) !== true)
-          session.fail("E_CAPABILITY", `Filter capability does not support ${request.kind} processing`);
-      }
-    }
+    const filters = await session.admitFilters(options.filters);
     if (inputs.length > 1 && !reader.descriptor.operands) session.fail("E_OPTION", "This reader accepts only one input");
     await session.preflightOptions();
     // Account for every operand before invoking readers or writers.
@@ -616,15 +620,18 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     throw new PandocError("E_CAPABILITY", "convert", "An output sink with write, close and abort is required");
   const registry = createFormatRegistry(undefined, context);
   const reader = registry.resolve(options.from, "read"), writer = registry.resolve(options.to, "write");
+  const streamedFilters = options.filters === undefined || Array.isArray(options.filters) && options.filters.every(request =>
+    request?.kind === "json" && typeof context.filters?.applyJsonStream === "function");
   const backedJson = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
-    && reader.descriptor.name === "json" && writer.descriptor.name === "json"
-    && Object.keys(options).every(key => ["from", "to", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "fileScope", "sandbox", "failIfWarnings"].includes(key))
+    && reader.descriptor.name === "json" && writer.descriptor.name === "json" && streamedFilters
+    && Object.keys(options).every(key => ["from", "to", "filters", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "fileScope", "sandbox", "failIfWarnings"].includes(key))
     && Object.entries(context.limits ?? {}).every(([key, value]) => ["inputBytes", "outputBytes"].includes(key) || value === Infinity);
   if (backedJson) {
     const session = new Session("convert", context);
     try {
       session.options(options);
-      await session.call(() => streamJson(inputs[0]!, session, context.workingFiles!, options.eol));
+      const filters = await session.admitFilters(options.filters);
+      await session.call(() => streamJson(inputs[0]!, session, context.workingFiles!, {...options, filters}));
       return {kind: "output", diagnostics: session.snapshotDiagnostics()};
     } finally {await session.close();}
   }

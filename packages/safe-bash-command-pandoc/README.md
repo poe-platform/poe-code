@@ -166,8 +166,13 @@ semantics, validates the complete document before publication, and preflights
 finite output budgets. This path supports finite `inputBytes` and `outputBytes`,
 line endings, and the same non-transforming options as the table path. It uses
 two page caches of at most `cacheBytes` each, plus fixed small index caches.
-Multiple inputs, filters, other transformations and other finite document budgets
-continue through the compatibility converter while their retained paths are built.
+JSON filters with `applyJsonStream` also use retained generations: each validated
+response replaces the prior document before the next filter starts. At most five
+page caches coexist (two document pairs and one response spool), independently
+of filter count. Filter image-origin admission currently materializes each URI;
+the trusted runtime's own document state is separate and must be measured.
+Multiple inputs, legacy filters, other transformations and other finite document
+budgets continue through the compatibility converter.
 
 For media extraction, supply `workingFiles` and `resourceFiles.writeStream` to
 spool external resources in caller storage and publish them in 16 KiB chunks.
@@ -222,11 +227,18 @@ host execution, filesystem access, or citation support.
 runtime to this capability. Its `run({path, args, stdin, stdout, signal})` method
 receives Pandoc JSON API `[1,23,1,2]` bytes and the base target writer name as its
 sole argument (extension suffixes are removed; aliases are preserved). Await `stdout.write(bytes)` for each output chunk and return the numeric
-exit status after runtime cleanup.
+exit status after runtime cleanup. Alternatively, supply
+`runStream({path, args, stdin, stdout, signal})`, whose `stdin` is an async byte
+iterable. This enables retained JSON conversion in `convertToOutput`; the CLI
+also streams interpreter input and output. The adapter slices input and output
+into owned chunks of at most 16 KiB, allows one outstanding output write, and
+closes unread input on completion. Runtimes must await writes and honor aborts.
+Providing both methods preserves legacy document calls while using `runStream`
+for retained conversions.
 The runtime always receives a scoped cancellation signal: caller cancellation and
 output-write failures abort it, and it closes when the runtime returns or throws.
-Output is copied and charged against the shared
-input/retained-byte budgets, then decoded and validated before the next filter or
+Output is copied and charged against shared input budgets (and retained-byte
+budgets on the compatibility path), then decoded and validated before the next filter or
 writer runs. Invalid JSON, nonzero status, cancellation, and limit failures prevent
 publication. Document-level resources, language, and direction stay outside the
 JSON protocol and are preserved across filters. Source documents with relative

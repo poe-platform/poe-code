@@ -166,11 +166,20 @@ export interface ConversionOptions extends ReadOptions, WriteOptions {
 export type FilterRequest =
   | {readonly kind: "json" | "lua"; readonly path: string}
   | {readonly kind: "citeproc"};
+/** Validated Pandoc wire input and a backpressured wire-output destination.
+ * The conversion owner validates the complete response before publication. */
+export interface JsonFilterStreams {
+  readonly stdin: AsyncIterable<Uint8Array>;
+  readonly stdout: {write(bytes: Uint8Array): Promise<void>};
+  readonly signal: AbortSignal;
+}
 /** Trusted host integration; no engine or host execution is enabled implicitly. */
 export interface FilterCapability {
   /** Optional admission check for every request, before input acquisition or processing. */
   supports?(request: FilterRequest): boolean | Promise<boolean>;
   apply(document: Document, request: FilterRequest, context: AdapterContext & {readonly to: string}): Promise<Document>;
+  /** Optional retained-document boundary; never requires a whole protocol payload. */
+  applyJsonStream?(streams: JsonFilterStreams, request: FilterRequest, context: AdapterContext & {readonly to: string}): Promise<void>;
 }
 export interface MetadataObject { readonly [key: string]: MetadataValue }
 export type MetadataValue = string | number | boolean | null | readonly MetadataValue[] | MetadataObject;

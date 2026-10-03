@@ -11,7 +11,7 @@ here yet.
   Markdown reference resolution, HTML/XML trees, DOCX/EPUB archives, PDF layout,
   presentation and spreadsheet conversion. Record the tested commit and hashes
   of the owning source files with each run.
-- Single-input, unfiltered JSON to JSON now uses retained syntax, schema tasks,
+- Single-input JSON to JSON now uses retained syntax, schema tasks,
   table occupancy, numeric key ordering and output. Test its fixed cache sizes
   independently of input bytes and document nesting. Other conversions still
   require replacing whole-document input acquisition, joined text, document arrays
@@ -19,7 +19,11 @@ here yet.
   Preserve diagnostics, source locations, resource identities and byte results.
 - Exercise JSON filter protocol streams and genuine Lua callbacks, including
   document callbacks, arbitrary reordering, long strings, tables and metadata.
-  Whole-value runtimes currently retain documents. A paged runtime boundary and
+  JSON streaming runtimes use retained protocol responses and document generations,
+  with at most five page caches live during validation. Test long image URIs
+  separately: origin admission still materializes one URI. Runtime-owned state
+  is not bounded by protocol streaming. Whole-value runtimes currently retain
+  documents. A paged runtime boundary and
   measurements of unavoidable live runtime state are still required.
 - Exercise citeproc with bibliography and citation counts that grow independently
   of document bytes. Measure its retained processor state separately.

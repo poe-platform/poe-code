@@ -4,7 +4,7 @@ import {validatePandocOptions} from "./options.js";
 import {createFileOutput} from "./file-output.js";
 import {convert, convertToOutput} from "./engine.js";
 import {createCiteprocFilterCapability, type CiteprocFilterOptions} from "./citeproc-filters.js";
-import {createJsonFilterCapability} from "./json-filters.js";
+import {createJsonFilterCapability, type JsonFilterRuntime, type JsonStreamFilterRuntime} from "./json-filters.js";
 import {createLuaFilterCapability} from "./lua-filters.js";
 import {resolveConversionArgs} from "./defaults.js";
 import {inspectCommand} from "./inspection.js";
@@ -72,15 +72,19 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
     // Enroll the root scope before any invocation-owned I/O. stdout gets its own
     // child scope, so consumer closure cannot cancel a file destination.
     const invocation = createOutputOperation(context, {write: async () => {}});
-    const makeJsonCapability = (commandName: string): FilterCapability => createJsonFilterCapability({async run(filter) {
-      if (!context.invoke) throw new PandocError("E_CAPABILITY", "convert", "The command host cannot invoke a filter interpreter");
-      // Dispatch arguments directly; filter paths never become shell source or interpreter options.
-      const result = await context.invoke(commandName, ["--", pathOf(context, filter.path), ...filter.args], {
-        stdin: (async function* () {yield filter.stdin;})(), stdinIsDefault: false, stdout: filter.stdout,
-        stderr: context.stderr, signal: filter.signal ?? invocation.signal
-      });
-      return result.exitCode;
-    }});
+    const makeJsonCapability = (commandName: string): FilterCapability => {
+      const run = async (filter: Parameters<JsonFilterRuntime["run"]>[0] | Parameters<JsonStreamFilterRuntime["runStream"]>[0]): Promise<number> => {
+        if (!context.invoke) throw new PandocError("E_CAPABILITY", "convert", "The command host cannot invoke a filter interpreter");
+        // Dispatch directly; filter paths never become shell source or options.
+        const input = filter.stdin;
+        const result = await context.invoke(commandName, ["--", pathOf(context, filter.path), ...filter.args], {
+          stdin: input instanceof Uint8Array ? (async function* () {yield input;})() : input,
+          stdinIsDefault: false, stdout: filter.stdout, stderr: context.stderr, signal: filter.signal ?? invocation.signal
+        });
+        return result.exitCode;
+      };
+      return createJsonFilterCapability({run, runStream: run});
+    };
     let stdout: ReturnType<typeof createOutputOperation> | undefined;
     let fileOutput: ReturnType<typeof createFileOutput> | undefined;
     let outputFailure: {reason: unknown} | undefined;
@@ -170,6 +174,12 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
         async supports(request) {
           if (request.kind === "lua" || request.kind === "citeproc") return true;
           return (await resolveJsonInterpreter(request.path)) !== undefined;
+        },
+        async applyJsonStream(streams, request, filterContext) {
+          if (request.kind !== "json") throw new PandocError("E_CAPABILITY", "convert", "This runtime supports JSON streams only");
+          const resolved = await resolveJsonInterpreter(request.path);
+          if (!resolved) throw new PandocError("E_CAPABILITY", "convert", "Filter capability does not support json processing");
+          await makeJsonCapability(resolved).applyJsonStream!(streams, request, filterContext);
         },
         async apply(document, request, filterContext) {
           if (request.kind === "lua") return luaCapability.apply(document, request, filterContext);

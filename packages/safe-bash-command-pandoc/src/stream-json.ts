@@ -1,97 +1,80 @@
 import {PagedStorage} from "safe-bash-io-engine/storage";
-import {BackedJson} from "./backed-json.js";
-import {parseBackedJson} from "./backed-json-parser.js";
-import {validateBackedPandoc} from "./backed-pandoc.js";
-import {backedJsonOrder} from "./backed-json-order.js";
-import {readJsonNumber, JsonNumberError} from "./json-number.js";
+import {readRetainedJson} from "./retained-json.js";
 import {PandocError} from "./errors.js";
+import type {BackedJson} from "./backed-json.js";
 import type {ExecutionContext} from "./execution.js";
-import type {InputSource, WorkingStorageOptions} from "./types.js";
+import type {ConversionOptions, InputSource, WorkingStorageOptions} from "./types.js";
 
-/** Retain syntax, schema work and output order in caller storage. No document
- * object or complete serialized result is required on this execution path. */
-export async function streamJson(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions, eol?: "lf" | "crlf" | "native"): Promise<void> {
-  const cacheBytes = working.cacheBytes ?? 1024 * 1024;
-  if (!Number.isSafeInteger(cacheBytes) || cacheBytes < 16384 || cacheBytes % 16384)
-    context.fail("E_OPTION", "Working storage cacheBytes must be a positive multiple of 16384");
-  if (typeof working.directory !== "string" || !working.directory.startsWith("/"))
-    context.fail("E_OPTION", "Working storage requires an absolute caller filesystem directory");
-  const owner = {fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal};
-  const storage = new PagedStorage(owner, cacheBytes / 16384), scratch = new PagedStorage(owner, cacheBytes / 16384);
-  const cleanup = context.onClose(async () => {try {await storage.close();} finally {await scratch.close();}});
-  const tree = new BackedJson(storage, units => context.cooperate(units));
-  const chunks = "bytes" in input ? [input.bytes] : input.chunks;
-  const source = Symbol.asyncIterator in chunks ? chunks[Symbol.asyncIterator]() : chunks[Symbol.iterator]();
-  let sourceDone = false;
-  const closeSource = async () => {if (!sourceDone) {sourceDone = true; await source.return?.();}};
-  const releaseSource = context.onClose(closeSource);
-  const text = (async function* () {
-    const decoder = new TextDecoder("utf-8", {fatal: true});
-    let cr = false;
-    const normalize = (decoded: string, final = false): string => {
-      let text = "";
-      for (const char of decoded) {
-        if (cr) {text += "\n"; cr = false; if (char === "\n") continue;}
-        if (char === "\r") cr = true;
-        else text += char;
-      }
-      if (final && cr) {text += "\n"; cr = false;}
-      return text;
-    };
-    while (true) {
-      const part = await context.call(async () => source.next());
-      if (part.done) {sourceDone = true; break;}
-      if (!(part.value instanceof Uint8Array)) context.fail("E_IO", "Producer must yield bytes");
-      context.charge("inputBytes", part.value.byteLength);
-      for (let offset = 0; offset < part.value.byteLength; offset += 16384) {
-        let decoded: string;
-        try {decoded = decoder.decode(part.value.subarray(offset, offset + 16384), {stream: true});}
-        catch {throw new PandocError("E_ENCODING", "convert", "Invalid UTF-8 input");}
-        const normalized = normalize(decoded);
-        if (normalized) yield normalized;
-        await context.cooperate();
+/** Preserve the existing JSON filter origin policy. Native URL admission still
+ * needs an individual URI value; this is an explicit remaining whole-value
+ * boundary, separate from the retained document and protocol payloads. */
+async function checkImageOrigins(tree: BackedJson, context: ExecutionContext): Promise<void> {
+  const end = (await tree.describe(tree.rootPosition)).end;
+  for (let position = tree.rootPosition; position < end;) {
+    await context.cooperate();
+    const header = await tree.describe(position);
+    if (header.kind === "object") {
+      const tag = await tree.property(position, "t");
+      if (tag !== undefined && await tree.smallText(tag, 5) === "Image") {
+        const content = (await tree.property(position, "c"))!;
+        let index = 0;
+        for await (const child of tree.children(content)) {
+          if (index++ !== 2) continue;
+          const target = child + 32;
+          let url = "";
+          for await (const part of tree.scalarChunks(target)) {context.charge("retainedBytes", part.length * 2); url += part;}
+          if (!url.startsWith("/") && !URL.canParse(url))
+            throw new PandocError("E_UNSUPPORTED_FEATURE", "convert", "JSON filters cannot preserve relative image source directories");
+        }
       }
     }
-    try {const tail = normalize(decoder.decode(), true); if (tail) yield tail;}
-    catch {throw new PandocError("E_ENCODING", "convert", "Invalid UTF-8 input");}
-  })();
-  let failure: {reason: unknown} | undefined;
-  try {
-    await parseBackedJson(text, tree, scratch, units => context.cooperate(units), (offset, message) => {
-      throw new PandocError("E_AST", "read", message, "json", `$@${offset}`);
-    }, async (node, offset) => {
-      try {await readJsonNumber(tree.scalarChunks(node), units => context.cooperate(units));}
-      catch (error) {
-        if (!(error instanceof JsonNumberError)) throw error;
-        throw new PandocError("E_AST", "read", error.message, "json", `$@${offset}`);
-      }
-    });
-    await validateBackedPandoc(tree, scratch, context);
-    const order = await backedJsonOrder(tree, scratch, units => context.cooperate(units));
-    const meta = (await tree.property(tree.rootPosition, "meta"))!, blocks = (await tree.property(tree.rootPosition, "blocks"))!;
-    const encoder = new TextEncoder();
-    const output = async function* () {
-      yield encoder.encode('{"pandoc-api-version":[1,23,1,2],"meta":');
-      yield* tree.chunks(meta, order);
-      yield encoder.encode(',"blocks":');
-      yield* tree.chunks(blocks, order);
-      yield encoder.encode(eol === "crlf" ? "}\r\n" : "}\n");
-    };
-    if (Number.isFinite(context.limits.outputBytes)) {
-      let bytes = 0;
-      for await (const chunk of output()) {bytes += chunk.length; context.bound("outputBytes", bytes);}
-    }
-    for await (const chunk of output()) await context.emit(chunk);
-    await context.completeOutput();
-  } catch (reason) {
-    failure = {reason: reason instanceof PandocError && reason.code === "E_AST" && input.source
-      ? new PandocError(reason.code, reason.operation, reason.message, reason.format, `${input.source}:${reason.location ?? "1:1"}`)
-      : reason};
+    position = header.kind === "object" || header.kind === "array" ? position + 32 : header.end;
   }
-  try {await closeSource();} catch (reason) {failure ??= {reason};}
-  finally {releaseSource();}
-  try {await storage.close();} catch (reason) {failure ??= {reason};}
-  try {await scratch.close();} catch (reason) {failure ??= {reason};}
-  finally {cleanup();}
+}
+
+/** Retain each document generation and filter response in caller storage. The
+ * previous generation is retired before another filter starts. */
+export async function streamJson(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions, options: Pick<ConversionOptions, "to" | "eol" | "filters">): Promise<void> {
+  let document: Awaited<ReturnType<typeof readRetainedJson>> | undefined;
+  let failure: {reason: unknown} | undefined;
+  const preflight = async (chunks: AsyncIterable<Uint8Array>) => {
+    if (!Number.isFinite(context.limits.outputBytes)) return;
+    let length = 0;
+    for await (const bytes of chunks) {length += bytes.length; context.bound("outputBytes", length);}
+  };
+  try {
+    document = await readRetainedJson(input, context, working);
+    for (const request of options.filters ?? []) {
+      await checkImageOrigins(document.tree, context);
+      await preflight(document.chunks());
+      const signal = context.signal ?? new AbortController().signal;
+      const response = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal}, (working.cacheBytes ?? 1024 * 1024) / 16384);
+      const release = context.onClose(() => response.close());
+      const start = response.allocate(0);
+      let length = 0, filterFailure: {reason: unknown} | undefined;
+      try {
+        await context.call(() => context.context.filters!.applyJsonStream!({
+          stdin: document!.chunks(), signal,
+          stdout: {async write(bytes) {
+            context.charge("inputBytes", bytes.length);
+            await response.append(bytes);
+            length += bytes.length;
+          }}
+        }, {...request}, Object.assign(context, {to: options.to})));
+        const next = await readRetainedJson({chunks: (async function* () {
+          for (let offset = 0; offset < length; offset += 16384) yield await response.read(start + offset, Math.min(16384, length - offset));
+        })()}, context, working, false);
+        await document.close();
+        document = next;
+      } catch (reason) {filterFailure = {reason};}
+      try {await response.close();} catch (reason) {filterFailure ??= {reason};}
+      finally {release();}
+      if (filterFailure) throw filterFailure.reason;
+    }
+    await preflight(document.chunks(options.eol));
+    for await (const bytes of document.chunks(options.eol)) await context.emit(bytes);
+    await context.completeOutput();
+  } catch (reason) {failure = {reason};}
+  try {await document?.close();} catch (reason) {failure ??= {reason};}
   if (failure) throw failure.reason;
 }

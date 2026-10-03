@@ -1,3 +1,4 @@
+import {readBytes} from "safe-bash-contracts";
 import {PandocError} from "./errors.js";
 import {jsonReader, jsonWriter} from "./json.js";
 import type {FilterCapability} from "./types.js";
@@ -6,21 +7,79 @@ import type {Inline} from "./ast-types.js";
 /** Explicit trusted runtime. Await every stdout write and honor cancellation.
  * Return the filter's exit status only after its output and cleanup finish.
  * Runtime execution and its filesystem authority remain the caller's responsibility. */
+interface JsonFilterInvocation<Input> {
+  readonly path: string;
+  readonly args: readonly [string];
+  readonly stdin: Input;
+  readonly stdout: {write(bytes: Uint8Array): Promise<void>};
+  readonly signal: AbortSignal;
+}
 export interface JsonFilterRuntime {
-  run(invocation: {
-    readonly path: string;
-    readonly args: readonly [string];
-    readonly stdin: Uint8Array;
-    readonly stdout: {write(bytes: Uint8Array): Promise<void>};
-    readonly signal: AbortSignal;
-  }): Promise<number>;
+  run(invocation: JsonFilterInvocation<Uint8Array>): Promise<number>;
+  runStream?: JsonStreamFilterRuntime["runStream"];
+}
+export interface JsonStreamFilterRuntime {
+  runStream(invocation: JsonFilterInvocation<AsyncIterable<Uint8Array>>): Promise<number>;
 }
 
 /** Pandoc JSON protocol for an explicitly supplied runtime; never loads or runs host tools. */
-export function createJsonFilterCapability(runtime: JsonFilterRuntime): FilterCapability {
-  if (!runtime || typeof runtime.run !== "function") throw new TypeError("A JSON filter runtime is required");
+export function createJsonFilterCapability(runtime: JsonFilterRuntime | JsonStreamFilterRuntime): FilterCapability {
+  if (!runtime || !("run" in runtime && typeof runtime.run === "function") && !("runStream" in runtime && typeof runtime.runStream === "function")) throw new TypeError("A JSON filter runtime is required");
+  const streaming = typeof runtime.runStream === "function" ? runtime.runStream.bind(runtime) : undefined;
   return {
     supports: request => request.kind === "json",
+    ...(streaming ? {
+      async applyJsonStream(streams, request, context) {
+        if (request.kind !== "json") throw new PandocError("E_CAPABILITY", "convert", "This runtime supports JSON filters only");
+        const controller = new AbortController();
+        const signal = AbortSignal.any([streams.signal, controller.signal, ...(context.signal ? [context.signal] : [])]);
+        const reader = readBytes(streams.stdin, signal);
+        const stdin = (async function* () {
+          try {
+            for await (const bytes of reader) {
+              if (!(bytes instanceof Uint8Array)) throw new PandocError("E_IO", "convert", "Filter input must be bytes");
+              for (let offset = 0; offset < bytes.length; offset += 16384) {
+                context.checkpoint(); signal.throwIfAborted();
+                yield bytes.slice(offset, offset + 16384);
+              }
+            }
+          } finally {await reader.return(undefined);}
+        })();
+        let open = true, active: Promise<void> | undefined;
+        let failure: {reason: unknown} | undefined;
+        const fail = (reason: unknown) => {failure ??= {reason}; controller.abort(failure.reason); return failure.reason;};
+        const stdout = {write(bytes: Uint8Array): Promise<void> {
+          try {
+            context.checkpoint(); signal.throwIfAborted();
+            if (failure) throw failure.reason;
+            if (!open || active) throw new PandocError("E_IO", "convert", "Filter output is closed or a write is pending");
+            if (!(bytes instanceof Uint8Array)) throw new PandocError("E_IO", "convert", "Filter output must be bytes");
+          } catch (reason) {return Promise.reject(fail(reason));}
+          const operation = (async () => {
+            try {
+              for (let offset = 0; offset < bytes.length; offset += 16384) {
+                context.checkpoint(); signal.throwIfAborted();
+                await streams.stdout.write(bytes.slice(offset, offset + 16384));
+              }
+            } catch (reason) {throw fail(reason);}
+          })();
+          active = operation;
+          void operation.finally(() => {if (active === operation) active = undefined;}).catch(() => {});
+          return operation;
+        }};
+        try {
+          const status = await streaming({path: request.path, args: [context.to.split("+")[0]!.split("-")[0]!], stdin, stdout, signal});
+          context.checkpoint(); signal.throwIfAborted();
+          if (active) throw new PandocError("E_IO", "convert", "Filter returned with an output write pending");
+          if (status !== 0) throw new PandocError("E_IO", "convert", Number.isInteger(status) ? `JSON filter ${request.path} exited with status ${status}` : "JSON filter returned an invalid exit status");
+        } catch (reason) {fail(reason);}
+        open = false;
+        controller.abort();
+        try {await active;} catch (reason) {failure ??= {reason};}
+        try {await stdin.return(undefined);} catch (reason) {failure ??= {reason};}
+        if (failure) throw failure.reason;
+      }
+    } satisfies Pick<FilterCapability, "applyJsonStream"> : {}),
     async apply(document, request, context) {
       if (request.kind !== "json") throw new PandocError("E_CAPABILITY", "convert", "This runtime supports JSON filters only");
       // Resources and document sidecars stay SDK-owned; Pandoc's wire AST
@@ -79,7 +138,10 @@ export function createJsonFilterCapability(runtime: JsonFilterRuntime): FilterCa
       context.signal?.addEventListener("abort", cancel, {once: true});
       if (context.signal?.aborted) cancel();
       try {
-        exitCode = await runtime.run({path: request.path, args: [context.to.split("+")[0]!.split("-")[0]!], stdin, stdout, signal: controller.signal});
+        const invocation = {path: request.path, args: [context.to.split("+")[0]!.split("-")[0]!] as const, stdout, signal: controller.signal};
+        exitCode = "run" in runtime && typeof runtime.run === "function"
+          ? await runtime.run({...invocation, stdin})
+          : await streaming!({...invocation, stdin: (async function* () {for (let offset = 0; offset < stdin.length; offset += 16384) yield stdin.slice(offset, offset + 16384);})()});
       } catch (error) {
         if (failed) throw outputFailure;
         throw error;

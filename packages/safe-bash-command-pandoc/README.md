@@ -166,6 +166,12 @@ semantics, validates the complete document before publication, and preflights
 finite output budgets. This path supports finite `inputBytes`, `outputBytes`, `work`, and `diagnostics`,
 line endings, and the same non-transforming options as the table path. It uses
 two page caches of at most `cacheBytes` each, plus fixed small index caches.
+JSON `metadataFiles` merge into retained generations before filters. File contents,
+merge keys, duplicate-key indexes and recursive map/list work stay in caller
+storage; null deletion, last-key-wins JSON parsing and native number conversion
+are preserved. One file is retired before the next is acquired. Merging uses at
+most seven page caches, each bounded by `cacheBytes`, plus fixed index caches.
+Direct `metadata` and `metadataJson` option maps still select the compatibility path.
 JSON filters with `applyJsonStream` also use retained generations: each validated
 response replaces the prior document before the next filter starts. At most five
 page caches coexist (two document pairs and one response spool), independently

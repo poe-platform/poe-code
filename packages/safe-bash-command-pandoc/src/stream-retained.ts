@@ -1,3 +1,4 @@
+import {mergeRetainedMetadataFile} from "./retained-metadata.js";
 import {writeRetainedOdt} from "./retained-odt.js";
 import {inspectRetainedRtfPicture} from "./retained-rtf-pictures.js";
 import {prepareRetainedImageResources} from "./retained-image-resources.js";
@@ -56,6 +57,11 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
   };
   try {
     document = await load();
+    for (const file of options.metadataFiles ?? []) {
+      const next = await mergeRetainedMetadataFile(document, file, context, working);
+      await document.close();
+      document = next;
+    }
     for (const request of options.filters ?? []) {
       await checkImageOrigins(document.tree, context);
       await preflight(document.chunks());

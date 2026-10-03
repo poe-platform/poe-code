@@ -7,6 +7,14 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
 
 ## Coverage to complete
 
+- JSON metadata files now retain raw input, parsing state, duplicate-key indexes,
+  merge jobs and resulting generations in caller storage (at most seven page
+  caches during a merge). Exercise long keys/values, duplicate maps, null
+  deletion, native JSON numbers and metadata-before-filter ordering. The
+  workerd/R2 metadata scenarios cover JSON, standalone HTML and ODT output,
+  producer failures, cancellation and destination failures. Direct metadata
+  option maps and full memory/CPU qualification remain outstanding.
+
 - Retained JSON and CSV/TSV routes admit finite `work` and `diagnostics` budgets
   through the shared execution context. Exercise both budgets in filtered and
   unfiltered cohorts, including exhaustion before publication. Other finite

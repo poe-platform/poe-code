@@ -7,9 +7,10 @@ const significantPrecision = 1100;
 
 /** Apply Pandoc's existing exact-integer policy to an already syntax-validated
  * JSON number. Additional decimal state and BigInts stay bounded independently
- * of incoming fragment size. */
+ * of incoming fragment size. Metadata may request native binary64 conversion
+ * instead; its caller separately rejects nonfinite metadata values. */
 export async function readJsonNumber(
-  fragments: Iterable<string> | AsyncIterable<string>, cooperate: (units: number) => Promise<void>
+  fragments: Iterable<string> | AsyncIterable<string>, cooperate: (units: number) => Promise<void>, exactInteger = true
 ): Promise<number> {
   let negative = false, fraction = false, inExponent = false, exponentNegative = false;
   let digits = 0, fractionDigits = 0, significantDigits = 0, exponent = 0;
@@ -46,6 +47,7 @@ export async function readJsonNumber(
   const scale = exponent - fractionDigits;
   const significand = prefix + (sticky ? "1" : "");
   const value = prefix ? Number(`${negative ? "-" : ""}${significand}e${scale + significantDigits - significand.length}`) : negative ? -0 : 0;
+  if (!exactInteger) return value;
   let exact = Number.isFinite(value) && digits > 0;
   if (exact && Number.isInteger(value)) {
     exact = Number.isSafeInteger(value) && digits + Number(negative) <= 1024 && Math.abs(scale) <= 1024;

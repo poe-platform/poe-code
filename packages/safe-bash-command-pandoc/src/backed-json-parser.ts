@@ -48,12 +48,12 @@ type NumberState = "start" | "minus" | "zero" | "int" | "dot" | "frac" | "exp" |
  * separate. Both nesting state and the key index live in caller storage. */
 export async function parseBackedJson(
   chunks: AsyncIterable<string>, tree: BackedJson, index: PagedStorage,
-  cooperate: (units?: number) => Promise<void>, error: (offset: number, message: string) => never,
-  validateNumber?: (node: number, offset: number) => Promise<void>
+  cooperate: (units?: number) => Promise<void>, error: (offset: number, message: string, tokenOffset?: number) => never,
+  validateNumber?: (node: number, offset: number) => Promise<void>, allowDuplicateKeys = false
 ): Promise<void> {
   const keys = new Keys(index, tree, cooperate);
   let mode: Mode = "value", token: "string" | "number" | "keyword" | undefined;
-  let position = 0, offset = 0, work = 0, buffer = "";
+  let position = 0, offset = 0, work = 0, buffer = "", tokenOffset = 0;
   let isKey = false, keyParent = 0, keyPosition = 0, keyOffset = 0, hash = 0;
   let escape = false, hex = 0, code = 0, keyword = "", keywordIndex = 0;
   let number: NumberState = "start", numberOffset = 0;
@@ -71,7 +71,7 @@ export async function parseBackedJson(
     return position ? "separator" : "done";
   };
   const endNumber = async (): Promise<Mode> => {
-    if (!["zero", "int", "frac", "expDigits"].includes(number)) error(offset, "Incomplete JSON number");
+    if (!["zero", "int", "frac", "expDigits"].includes(number)) error(offset, "Incomplete JSON number", tokenOffset);
     const node = position;
     const mode = await end();
     await validateNumber?.(node, numberOffset);
@@ -114,7 +114,7 @@ export async function parseBackedJson(
         if (token === "string") {
           if (hex) {
             const value = "0123456789abcdef".indexOf(char.toLowerCase());
-            if (value < 0) error(offset, "Invalid JSON Unicode escape");
+            if (value < 0) error(offset, "Invalid JSON Unicode escape", tokenOffset);
             code = code * 16 + value;
             if (!--hex && add(String.fromCharCode(code))) await flush();
           } else if (escape) {
@@ -122,19 +122,19 @@ export async function parseBackedJson(
             if (char === "u") {hex = 4; code = 0;}
             else {
               const escapes: Readonly<Record<string, string>> = {'"': '"', "\\": "\\", "/": "/", b: "\b", f: "\f", n: "\n", r: "\r", t: "\t"};
-              if (!Object.hasOwn(escapes, char)) error(offset, "Invalid JSON escape");
+              if (!Object.hasOwn(escapes, char)) error(offset, "Invalid JSON escape", tokenOffset);
               if (add(escapes[char]!)) await flush();
             }
           } else if (char === '"') {
             mode = await end();
             if (isKey) {
-              if (!await keys.add(hash, keyParent, keyPosition)) error(keyOffset, "Duplicate object key");
+              if (!allowDuplicateKeys && !await keys.add(hash, keyParent, keyPosition)) error(keyOffset, "Duplicate object key");
               mode = "colon";
               isKey = false;
             }
           } else if (char === "\\") escape = true;
           else {
-            if (char.charCodeAt(0) < 32) error(offset, "Invalid JSON string control");
+            if (char.charCodeAt(0) < 32) error(offset, "Invalid JSON string control", tokenOffset);
             if (add(char)) await flush();
           }
           continue;
@@ -145,7 +145,7 @@ export async function parseBackedJson(
           continue;
         }
         if (token === "keyword") {
-          if (char !== keyword[keywordIndex++]) error(offset, "Invalid JSON literal");
+          if (char !== keyword[keywordIndex++]) error(offset, "Invalid JSON literal", tokenOffset);
           add(char);
           if (keywordIndex === keyword.length) mode = await end();
           continue;
@@ -177,17 +177,17 @@ export async function parseBackedJson(
           for (const char of String(keyParent)) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619) >>> 0;
           position = keyPosition = await tree.begin("key");
           isKey = true;
-          token = "string";
+          token = "string"; tokenOffset = offset;
           continue;
         }
         if (char === "{" || char === "[") {
           position = await tree.begin(char === "{" ? "object" : "array");
           mode = char === "{" ? "keyFirst" : "arrayFirst";
-        } else if (char === '"') {position = await tree.begin("string"); token = "string";}
+        } else if (char === '"') {position = await tree.begin("string"); token = "string"; tokenOffset = offset;}
         else if (char === "-" || digit(char)) {
-          position = await tree.begin("literal"); token = "number"; number = "start"; numberOffset = offset; consumed = false;
+          position = await tree.begin("literal"); token = "number"; number = "start"; numberOffset = tokenOffset = offset; consumed = false;
         } else if (char === "t" || char === "f" || char === "n") {
-          position = await tree.begin("literal"); token = "keyword"; keywordIndex = 0;
+          position = await tree.begin("literal"); token = "keyword"; tokenOffset = offset; keywordIndex = 0;
           keyword = char === "t" ? "true" : char === "f" ? "false" : "null";
           consumed = false;
         } else error(offset, "Expected JSON value");
@@ -195,6 +195,6 @@ export async function parseBackedJson(
     }
   }
   if (token === "number") mode = await endNumber();
-  if (token || mode !== "done") error(offset, "Incomplete JSON value");
+  if (token || mode !== "done") error(offset, "Incomplete JSON value", token ? tokenOffset : undefined);
   if (work) await cooperate(work);
 }

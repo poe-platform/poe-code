@@ -338,6 +338,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       const sheetRelations = await opc.relations(relation.target);
       const cells: Cell[] = [], rows: AxisMetadata[] = [], columns: AxisMetadata[] = [], groups: FormulaGroup[] = [];
       const cellIndexes = new Map<number, number>();
+      const arrayGroups = new Map<string, FormulaGroup>();
       const shared = new Map<string, { expression: string; row: number; column: number; id: string; arrayStringLiterals?: boolean }>();
       const columnStyles = children(child(source, "cols"), "col").filter(node => attr(node, "style") !== undefined)
         .map(node => ({ min: integer(attr(node, "min")) - 1, max: integer(attr(node, "max")) - 1, style: cellStyles[integer(attr(node, "style"))] }));
@@ -451,13 +452,53 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
                 expression = readOpenFormula(f)?.source ?? formula(decodeXlsxString(f.text), id, position.row, position.column, context, semantics.arrayStringLiterals);
                 if (kind === "array") {
                   groupId = `array-${position.row}-${position.column}`; arrayRange = range(attr(f, "ref"));
-                  groups.push({ id: groupId, kind: "array", expression, range: arrayRange, ...semantics });
                 }
               }
             }
             if (value.kind !== "blank" || expression !== undefined) allocateRow(position.row);
+            if (expression !== undefined) {
+              opc.charge(arrayGroups.size * 4);
+              const arrays = [...arrayGroups.values()];
+              if (arrayRange) {
+                const target = arrayRange;
+                const overlaps = arrays.filter(group => group.range.startRow <= target.endRow && group.range.endRow >= target.startRow &&
+                  group.range.startColumn <= target.endColumn && group.range.endColumn >= target.startColumn);
+                const splits = overlaps.some(group => group.range.startRow < target.startRow || group.range.endRow > target.endRow ||
+                  group.range.startColumn < target.startColumn || group.range.endColumn > target.endColumn);
+                if (splits) {
+                  // Native array assignment refuses partitioning, then still assigns a supplied cache.
+                  expression = undefined; groupId = undefined; arrayRange = undefined;
+                } else {
+                  for (const group of overlaps) arrayGroups.delete(group.id);
+                  opc.charge(cells.length);
+                  for (let index = 0; index < cells.length; index++) {
+                    const cell = cells[index]!;
+                    if (cell.row < target.startRow || cell.row > target.endRow || cell.column < target.startColumn || cell.column > target.endColumn) continue;
+                    const { formula: ignoredFormula, cachedResult: ignoredCache, formulaDirty: ignoredDirty,
+                      formulaGroup: ignoredGroup, arrayStringLiterals: ignoredSemantics, ...retained } = cell;
+                    cells[index] = { ...retained, formulaGroup: groupId! };
+                  }
+                  arrayGroups.set(groupId!, { id: groupId!, kind: "array", expression, range: target, ...semantics });
+                }
+              } else {
+                const array = arrays.find(group => group.range.startRow <= position.row && group.range.endRow >= position.row &&
+                  group.range.startColumn <= position.column && group.range.endColumn >= position.column);
+                if (array) {
+                  if (array.range.startRow !== array.range.endRow || array.range.startColumn !== array.range.endColumn) {
+                    // A scalar expression cannot replace one member of a multi-cell array.
+                    if (style) {
+                      const key = position.row * 16384 + position.column, index = cellIndexes.get(key);
+                      if (index === undefined) { cellIndexes.set(key, cells.length); cells.push({ ...position, value: { kind: "blank" }, formulaGroup: array.id, ...style }); }
+                      else cells[index] = { ...cells[index]!, ...style };
+                    }
+                    continue;
+                  }
+                  arrayGroups.delete(array.id);
+                }
+              }
+            }
             if (arrayRange) for (let index = arrayRange.startRow; index <= arrayRange.endRow; index++) allocateRow(index);
-            if (type === "inlineStr" && !inline && expression === undefined && style === undefined) continue;
+            if (type === "inlineStr" && !inline && !f && expression === undefined && style === undefined) continue;
             const hasCache = type === "inlineStr" ? inline !== undefined
               : raw !== undefined && (raw !== "" || type === "str");
             const key = position.row * 16384 + position.column, index = cellIndexes.get(key);
@@ -477,7 +518,8 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
             const cell: Cell = { ...retained, ...position,
               value: value.kind === "blank" && (expression === undefined || !hasCache) && previous ? previous.value : value,
               ...(expression === undefined ? previous?.formula && value.kind !== "blank" ? { cachedResult: value } : {}
-                : { formula: expression, ...semantics, formulaDirty: !hasCache, ...(cache === undefined ? {} : { cachedResult: cache }) }),
+                : { formula: expression, ...semantics, formulaDirty: arrayRange !== undefined || !hasCache, ...(cache === undefined ? {} : { cachedResult: cache }) }),
+              ...(f && expression === undefined && !hasCache && previous?.formula ? { formulaDirty: true } : {}),
               ...(groupId ? { formulaGroup: groupId } : {}), ...(style ?? {}), ...(richText ? { richText } : {}) };
             if (index === undefined) { cellIndexes.set(key, cells.length); cells.push(cell); }
             else cells[index] = cell;
@@ -594,7 +636,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       if (child(source, "sheetProtection")) viewAttributes.Protected = boolean(attr(child(source, "sheetProtection"), "sheet")) ? "1" : "0";
       sheets.push({ id, name, cells, size: { rows: 1048576, columns: 16384 },
         visibility: visibility === "hidden" ? "hidden" : visibility === "veryHidden" ? "very-hidden" : "visible", rows, columns,
-        merges: children(child(source, "mergeCells"), "mergeCell").map(node => range(attr(node, "ref"))), formulaGroups: groups,
+        merges: children(child(source, "mergeCells"), "mergeCell").map(node => range(attr(node, "ref"))), formulaGroups: [...groups, ...arrayGroups.values()],
         view: { ...dimensions, ...(child(source, "sheetViews") ? { xlsx: data(child(source, "sheetViews")!) } : {}),
           gnumeric: viewAttributes, ...(attr(sheetView, "zoomScale") === undefined ? {} : { zoom: number(attr(sheetView, "zoomScale")) / 100 }) },
         ...(records.length ? { unsupportedRecords: records } : {}) });

@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 import { createZipCodec, type ZipLimits } from "@poe-code/office-package";
 import type { CapabilityContext } from "../contracts.js";
 import { readXlsx } from "./xlsx.js";
+import { createEngine } from "../engine.js";
 const context: CapabilityContext = { signal: new AbortController().signal, own() {}, environment: { env: {}, locale: "C", timezone: "UTC" },
   limits: { inputBytes: 1000000, outputBytes: 1000000, cells: 100, sheets: 4, operations: 1000 } };
 const limits: ZipLimits = { maxArchiveBytes: 1000000, maxEntryBytes: 1000000, maxTotalBytes: 1000000,
@@ -64,3 +65,49 @@ it("retains rich cached text when a replacement formula has no cache", async () 
   expect(book.sheets[0]!.cells[0]).toMatchObject({ value: { kind: "string", value: "rich" }, cachedResult: { kind: "string", value: "rich" },
     richText: reference.sheets[0]!.cells[0]!.richText, formulaDirty: true });
 });
+
+const arrayRecord = (rows: number) => `<c r="A1"><f t="array" ref="A1:A${rows}">ROW(A1:A${rows})</f><v>1</v></c>`;
+for (const [first, last, rows, expression, cached] of [
+  [arrayRecord(2), '<c r="A1"><v>42</v></c>', 2, '=ROW(A1:A2)', 42],
+  [arrayRecord(2), '<c r="A1"><f>3+4</f><v>7</v></c>', 2, '=ROW(A1:A2)', 1],
+  ['<c r="A1"><f>1+1</f><v>2</v></c>', arrayRecord(2), 2, '=ROW(A1:A2)', 1],
+  [arrayRecord(2), arrayRecord(3), 3, '=ROW(A1:A3)', 1],
+  [arrayRecord(3), arrayRecord(2), 3, '=ROW(A1:A3)', 1],
+  [arrayRecord(1), '<c r="A1"><f>3+4</f><v>7</v></c>', 0, '=3+4', 7]
+] as const) {
+  it(`applies native array replacement for ${first} then ${last}`, async () => {
+    const book = await readXlsx(await input(`<sheetData><row r="1">${first}${last}</row></sheetData>`), context);
+    expect(book.sheets[0]!.cells).toHaveLength(1);
+    expect(book.sheets[0]!.cells[0]).toMatchObject({ formula: expression, value: { kind: 'number', value: cached }, cachedResult: { kind: 'number', value: cached } });
+    expect(book.sheets[0]!.formulaGroups).toEqual(rows ? [{ id: 'array-0-0', kind: 'array', expression,
+      range: { startRow: 0, startColumn: 0, endRow: rows - 1, endColumn: 0 } }] : []);
+  });
+}
+
+for (const arrayFirst of [false, true]) {
+  it(`keeps array members protected during shared-group recalculation, array first=${arrayFirst}`, async () => {
+    const array = arrayRecord(2), shared = '<c r="A1"><f t="shared" si="0" ref="A1:A3">9</f><v>9</v></c>';
+    const bytes = await input(`<sheetData><row r="1">${arrayFirst ? array + shared : shared + array}</row><row r="3"><c r="A3"><f t="shared" si="0"/><v>9</v></c></row></sheetData>`);
+    const engine = createEngine({ limits: context.limits });
+    try {
+      let output = '';
+      const result = await engine.convert({ input: { kind: 'stream', filename: 'input.xlsx', source: [bytes] }, recalc: true,
+        exportType: 'Gnumeric_stf:stf_csv', destination: { kind: 'stream', sink: { async write(chunk) { output += new TextDecoder().decode(chunk); } } } },
+      { signal: context.signal });
+      expect(result.exitCode).toBe(0);
+      expect(output).toBe('1\n2\n9\n');
+    } finally { await engine.dispose(); }
+  });
+}
+
+for (const cached of [false, true]) {
+  it(`preserves a scalar when an overlapping array is refused, supplied cache=${cached}`, async () => {
+    const book = await readXlsx(await input(`<sheetData><row r="1"><c r="A1"><f>3+4</f><v>2</v></c></row>
+      <row r="2"><c r="A2"><f t="array" ref="A2:A3">ROW(A2:A3)</f><v>2</v></c></row>
+      <row r="1"><c r="A1"><f t="array" ref="A1:A2">ROW(A1:A2)</f>${cached ? '<v>42</v>' : ''}</c></row></sheetData>`), context);
+    expect(book.sheets[0]!.cells[0]).toMatchObject({ formula: '=3+4', value: { kind: 'number', value: cached ? 42 : 2 },
+      cachedResult: { kind: 'number', value: cached ? 42 : 2 }, formulaDirty: !cached });
+    expect(book.sheets[0]!.formulaGroups).toHaveLength(1);
+    expect(book.sheets[0]!.formulaGroups![0]!.range).toEqual({ startRow: 1, startColumn: 0, endRow: 2, endColumn: 0 });
+  });
+}

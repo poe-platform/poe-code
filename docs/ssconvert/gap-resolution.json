@@ -4572,6 +4572,14 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "xlsxRepeatedArrays": {
+      "status": "partial; format records and all nineteen families remain open",
+      "reference": "Unmodified Gnumeric 1.12.61: xlsx_cell_end, gnm_cell_set_array, sheet_range_splits_array and scalar setters. Ten independent source-order fixtures include overlapping shared groups and rejected arrays with/without caches.",
+      "repair": "Repeated arrays replace fully covered groups, refuse partial cuts and protect multi-cell members from scalar assignment. Singleton arrays can become scalar formulas. Cache-only updates retain arrays; rejected uncached assignment queues the retained scalar for recalculation. Shared-group materialization precedes arrays to preserve protected cells.",
+      "verification": "Four initial array failures and one uncached-rejection failure repaired. 619 focused tests across23 files, owner lint/types, changed-test lint/types and selected workspace build pass. After rebasing the upstream XML streaming writer,35 integration tests and selected build pass.60 compiled SDK/command exports match30 route pairs;20 CSV comparisons and40 native recalculated XLSX/XML readbacks match all10 native inputs. Full root build passes; all60 root exports match package bytes. Root cache controls preserve2 on save and produce7 on explicit recalculation, both byte-identical to native-qualified package outputs.",
+      "visual": "Native input and recalculated XLSX export inspected in Gnumeric: two-row array formula remains live and A3 remains9. Original native input leaves uncached A2 visually blank until recalculation; exported recalculated workbook shows2. Screenshots are not pixel-identical. Initial display startup race was corrected before capture; owned viewers/display stopped.",
+      "remaining": "Sparse shared ranges, malformed anchor/ref profiles, wider record preservation, registry qualification and broader family acceptance remain open."
+    },
     "xlsxReplacementFormulaCache": {
       "finding": "A later uncached formula discarded the previous cell value/rich text. An earlier regression incorrectly expected that blank result; corrected native-backed expectations failed before this repair.",
       "native": "Unmodified Gnumeric1.12.61 cell_set_expr_internal preserves cell->value; xlsx_cell_end queues uncached formulas. A compiled direct-setter probe retains2 and sets needs_recalc=1. Whole workbook loading recalculates to7, so that observation alone cannot prove the pre-recalculation cache.",

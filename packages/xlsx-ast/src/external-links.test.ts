@@ -144,18 +144,16 @@ for (const edition of ["2006", "2008"] as const)
 it.each(["_x005F_x0041_", "_x005F_x005F_x005F_x0041_", "表"])(`preserves external sheet XStrings and scopes in ${edition}: %s`, async wire => {
   const imported = await readXlsx(await fixture(`'[1]${wire}'!Rate`, "External", false, "linked.xls", 0,
     [wire], `'[1]${wire}'!$A$1`), context);
-  const roundtripContext = { ...context, limits: { ...context.limits, inputBytes: 4_000_000, outputBytes: 4_000_000 } };
-  const roundtripLimits = { ...limits, maxEntryBytes: 4_000_000, maxTotalBytes: 4_000_000 };
   const zip = createZipCodec();
   let book = imported;
   for (let repeat = 0; repeat < 2; repeat++) {
     const warnings: string[] = [];
-    const bytes = await createXlsxWriter(edition)(book, [], { ...roundtripContext, diagnostic: async d => { warnings.push(d.message); } });
-    const archive = await zip.readZipArchive(bytes, roundtripLimits, context.signal);
+    const bytes = await createXlsxWriter(edition)(book, [], { ...context, diagnostic: async d => { warnings.push(d.message); } });
+    const archive = await zip.readZipArchive(bytes, limits, context.signal);
     const entry = archive.entries.find(entry => entry.name === "xl/externalLinks/externalLink1.xml")!;
-    let xml = ""; for await (const chunk of zip.decodeZipEntry(entry, roundtripLimits, context.signal)) xml += new TextDecoder().decode(chunk);
+    let xml = ""; for await (const chunk of zip.decodeZipEntry(entry, limits, context.signal)) xml += new TextDecoder().decode(chunk);
     expect(xml).toContain(`<sheetName val="${wire}"/>`);
     expect(warnings.some(warning => warning.includes("definition for external name"))).toBe(false);
-    book = await readXlsx(bytes, roundtripContext);
+    book = await readXlsx(bytes, context);
   }
 });

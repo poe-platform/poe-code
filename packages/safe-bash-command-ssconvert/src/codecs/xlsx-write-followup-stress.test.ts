@@ -90,8 +90,7 @@ it.each(["2006", "2008"] as const)("%s distinguishes soft imported sizes from ex
   expect(sheet).toContain('<row r="2" spans="1:3" customHeight="1" ht="16"/>');
   expect(sheet).toContain('<row r="3" spans="1:3" customHeight="1" ht="17"/>');
   expect(sheet).toContain('<col min="1" max="1" style="0" width="9.142307692307693"/>');
-  expect(sheet).toContain('<col min="2" max="2" style="0" width="9.142307692307693" customWidth="1"/>');
-  expect(sheet).toContain('<col min="3" max="3" style="0" width="9.142307692307693" customWidth="1"/>');
+  expect(sheet).toContain('<col min="2" max="3" style="0" width="9.142307692307693" customWidth="1"/>');
 });
 
 it.each(["2006", "2008"] as const)("%s retains loss warnings for unknown or unconverted axis records", async edition => {

@@ -20,7 +20,7 @@ import { readXlsxMetadata, readXlsxComments, gnode } from "./xlsx-metadata.js";
 import { xlsxColumnWidthPoints } from "./xlsx-sheet-settings.js";
 import { readXlsxStyles, readXlsxString } from "./xlsx-styles.js";
 import { decodeXlsxString, encodeXlsxString } from "@poe-code/spreadsheet-engine/codecs/xlsx-strings";
-import { createXlsxXml, escapeXlsx, writeRichString, metadataNode } from "@poe-code/spreadsheet-engine/codecs/xlsx-write-support";
+import { createXlsxXml, escapeXlsx, writeRichString, metadataNode, type Attributes } from "@poe-code/spreadsheet-engine/codecs/xlsx-write-support";
 import { snapshotXlsxWorkbook } from "./xlsx-write-input.js";
 import { createXlsxStyles, styleRecord } from "./xlsx-write-styles.js";
 import { writeXlsxSheetMetadata, writeXlsxProperties } from "./xlsx-write-metadata.js";
@@ -1022,16 +1022,29 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
         if (view[gnm] !== undefined) viewAttrs[xlsx] = (invert ? !Number(view[gnm]) : !!Number(view[gnm])) ? 1 : 0;
       const metadata = await writeXlsxSheetMetadata(sheet, index + 1, xml, context, namespace, exportXlsxFormula.bind(null, book), styles, charge);
       let cols = "", nextColumn = 0;
+      let columnRun: { first: number; last: number; attributes: Attributes } | undefined;
+      const appendColumn = (first: number, last: number, attributes: Attributes) => {
+        charge(1 + Object.keys(attributes).length + (columnRun ? Object.keys(columnRun.attributes).length : 0));
+        if (columnRun && columnRun.last + 1 === first &&
+          Object.entries(attributes).every(([key, value]) => columnRun!.attributes[key] === value) &&
+          Object.entries(columnRun.attributes).every(([key, value]) => attributes[key] === value)) {
+          columnRun.last = last;
+        } else {
+          if (columnRun) cols += xml("col", { min: columnRun.first, max: columnRun.last, ...columnRun.attributes });
+          columnRun = { first, last, attributes };
+        }
+      };
       for (const c of [...sheet.columns ?? []].sort((a, b) => a.index - b.index)) {
         const importedColumn = metadataNode(c.style?.gnumeric, charge);
-        if (c.index > nextColumn) cols += xml("col", { min: nextColumn + 1, max: c.index, style: columnDefaultStyle, width: metadata.defaultColumnWidth / xlsxColumnWidthPoints });
-        cols += xml("col", { min: c.index + 1, max: c.index + 1,
+        if (c.index > nextColumn) appendColumn(nextColumn + 1, c.index, { style: columnDefaultStyle, width: metadata.defaultColumnWidth / xlsxColumnWidthPoints });
+        appendColumn(c.index + 1, c.index + 1, {
           style: styleRecord(c.style) ? styles.register(c.style ? { style: c.style } : {}) : columnDefaultStyle,
           width: typeof c.style?.xlsxWidth === "number" ? c.style.xlsxWidth : (c.sizePoints ?? metadata.defaultColumnWidth) / xlsxColumnWidthPoints,
           customWidth: c.sizePoints === undefined || importedColumn?.name === "ColInfo" && !Number(importedColumn.attributes.HardSize) ? undefined : 1, hidden: c.hidden ? 1 : undefined, outlineLevel: c.outlineLevel || undefined, collapsed: c.collapsed ? 1 : undefined });
         nextColumn = c.index + 1;
       }
-      if (nextColumn < columns) cols += xml("col", { min: nextColumn + 1, max: columns, style: columnDefaultStyle, width: metadata.defaultColumnWidth / xlsxColumnWidthPoints });
+      if (nextColumn < columns) appendColumn(nextColumn + 1, columns, { style: columnDefaultStyle, width: metadata.defaultColumnWidth / xlsxColumnWidthPoints });
+      if (columnRun) cols += xml("col", { min: columnRun.first, max: columnRun.last, ...columnRun.attributes });
       const rels: { id: string; type: string; target: string; external?: boolean }[] = [];
       let legacyDrawing: string | undefined;
       for (const part of metadata.parts) {

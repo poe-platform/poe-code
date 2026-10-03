@@ -51,6 +51,7 @@ test("cksum rejects malformed base64 and tag/digest length disagreement", async 
   const generated = await run(["-a", "sha256", "--base64", filename]);
   const manifest = generated.stdout;
   for (const invalid of [manifest.replace("=\n", "\n"), manifest.replace("=\n", "!\n"), manifest.replace("SHA256", "SHA512"),
+    "SHA256  (/missing) = " + "a".repeat(64) + "\n",
     "SHA3-256 (/missing) = " + "a".repeat(56) + "\n",
     "BLAKE2b-128 (/missing) = " + "a".repeat(64) + "\n"]) {
     const result = await run(["-cw"], invalid);

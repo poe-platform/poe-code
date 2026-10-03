@@ -257,7 +257,7 @@ function parseEntry(bytes: Uint8Array, algorithm: Algorithm, allowBase64: boolea
   try { line = utf8.decode(bytes); } catch { return undefined; }
   if (line.endsWith("\r")) line = line.slice(0, -1);
   if (line === "" || line.startsWith("#")) return "skip";
-  line = line.trimStart();
+  while (line.startsWith(" ") || line.startsWith("\t")) line = line.slice(1);
   const escapedName = line.startsWith("\\");
   if (escapedName) line = line.slice(1);
   const hashBits = { sha512: 512, sha384: 384, sha256: 256, sha224: 224, sha1: 160, md5: 128, sm3: 256 };
@@ -266,7 +266,8 @@ function parseEntry(bytes: Uint8Array, algorithm: Algorithm, allowBase64: boolea
   let filename: string;
   const opening = line.indexOf("(");
   const closing = line.lastIndexOf(")");
-  const label = opening < 0 ? "" : line.slice(0, opening).trimEnd();
+  const rawLabel = opening < 0 ? "" : line.slice(0, opening);
+  const label = rawLabel.endsWith(" ") ? rawLabel.slice(0, -1) : rawLabel;
   let taggedAlgorithm: HashAlgorithm | undefined;
   if (label === "BLAKE2b" || label.startsWith("BLAKE2b-")) {
     taggedAlgorithm = "blake2b";
@@ -287,9 +288,11 @@ function parseEntry(bytes: Uint8Array, algorithm: Algorithm, allowBase64: boolea
     if (algorithm !== "crc" && algorithm !== taggedAlgorithm) return undefined;
     algorithm = taggedAlgorithm;
     if (closing <= opening) return undefined;
-    const suffix = line.slice(closing + 1).trimStart();
+    let suffix = line.slice(closing + 1);
+    while (suffix.startsWith(" ") || suffix.startsWith("\t")) suffix = suffix.slice(1);
     if (!suffix.startsWith("=")) return undefined;
-    encoded = suffix.slice(1).trimStart();
+    encoded = suffix.slice(1);
+    while (encoded.startsWith(" ") || encoded.startsWith("\t")) encoded = encoded.slice(1);
     filename = line.slice(opening + 1, closing);
   } else {
     if (algorithm === "crc" || numericAlgorithms.has(algorithm)) return undefined;

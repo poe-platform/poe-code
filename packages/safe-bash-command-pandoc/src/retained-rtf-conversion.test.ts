@@ -192,12 +192,12 @@ it.each(["identity", "delete", "replace"])("preserves embedded RTF resources thr
   else {expect(actual).not.toBeInstanceOf(Error); expect(expected).toMatchObject({text});}
   expect(await fs.readdir("/")).toEqual([]);
 });
-it("preserves JSON-filter rejection of embedded RTF resources before invocation", async () => {
+it("preserves JSON-filter rejection of relative RTF image targets before invocation", async () => {
   const input = {bytes: encoder.encode(String.raw`{\rtf1{\pict\pngblip 89504e470d0a1a0a}}`)};
   const filters = {apply: vi.fn(async (document: import("./types.js").Document) => document), applyJsonStream: vi.fn(async () => {})};
   const options = {from: "rtf", to: "plain", filters: [{kind: "json" as const, path: "/filter"}]};
   const fs = new MemoryFileSystem();
-  await expect(convertToOutput([input], options, {filters, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write() {}, async close() {}, async abort() {}}})).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE", message: "Pandoc JSON cannot represent resources, language or direction document fields"});
+  await expect(convertToOutput([input], options, {filters, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write() {}, async close() {}, async abort() {}}})).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE", message: "JSON filters cannot preserve relative image source directories"});
   expect(filters.applyJsonStream).not.toHaveBeenCalled(); expect(filters.apply).not.toHaveBeenCalled();
   expect(await fs.readdir("/")).toEqual([]);
 });

@@ -17,7 +17,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
   const release = context.onClose(() => storage.close()), text = new BackedText(storage, units => context.cooperate(units));
   const identities = new BackedTextSet(storage, text);
   const targets = new BackedTextSet(storage, text), paths = new BackedTextSet(storage, text), targetSpans = new IntegerTable(storage, 64), pathSpans = new IntegerTable(storage, 64);
-  const inputSpans = new IntegerTable(storage, 64), inputIdentities = new IntegerTable(storage, 64);
+  const inputSpans = new IntegerTable(storage, 64), inputIdentities = new IntegerTable(storage, 64), resourceSpans = new IntegerTable(storage, 64);
   const originAt=(node:number)=>typeof origin==="function"?origin(node):Promise.resolve(origin);
   const targetKey=async(node:number):Promise<bigint>=>{
     let embedded=false;
@@ -128,15 +128,18 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
   };
   try {
     if (embedded) for await (const image of images()) {
-      let name = "";
-      // Reader picture IDs are bounded; arbitrary external targets must not be
-      // materialized merely to check the embedded picture catalog.
-      for await (const chunk of tree.scalarChunks(image.target)) {if (name.length + chunk.length > 40) {name = ""; break;} name += chunk;}
+      const name = await tree.smallText(image.target, embedded.maxIdLength);
+      if (name === undefined) continue;
       const supplied = await embedded.get(name);
       if (supplied) {
         const key = await targetKey(image.target);
-        if (!await inputSpans.get(key)) await inputSpans.set(key, BigInt(await save(await acquire(supplied.chunks()))));
-        await inputIdentities.set(key, BigInt(supplied.identity));
+        const identity = BigInt(supplied.identity);
+        let record = await resourceSpans.get(identity);
+        if (!record) {
+          record = BigInt(await save(await acquire(supplied.chunks())));
+          await resourceSpans.set(identity, record);
+        }
+        await inputSpans.set(key, record); await inputIdentities.set(key, identity);
       }
     }
     if (fs && !context.resources) {
@@ -188,14 +191,13 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
   return {
     async assertReferenced() {
       if (embedded?.count) {
-        const used = new IntegerTable(storage, 64), mentioned = new IntegerTable(storage, 64); let count = 0, referenced = 0;
+        const used = new IntegerTable(storage, 64); let count = 0;
         for await (const image of images()) {
           const identity = await inputIdentities.get(await targetKey(image.target));
           if (identity === undefined) continue;
-          if (!await mentioned.get(identity)) {await mentioned.set(identity, 1n); referenced++;}
           if (!image.metadata && !await used.get(identity)) {await used.set(identity, 1n); count++;}
         }
-        if (count !== (fs && !context.resources ? referenced : embedded.count)) throw new PandocError("E_RESOURCE", "convert", "Unreferenced RTF resource; embedded fonts/objects unsupported", "rtf");
+        if (count !== embedded.count) throw new PandocError("E_RESOURCE", "convert", "Unreferenced RTF resource; embedded fonts/objects unsupported", "rtf");
       }
       if (!fs || context.resources) return;
       const used = new IntegerTable(storage, 64);

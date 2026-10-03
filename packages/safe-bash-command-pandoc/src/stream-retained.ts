@@ -90,7 +90,6 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       await document.close(); document = next;
     }
     for (const request of options.filters ?? []) {
-      if (request.kind === "json" && resourceCount) throw new PandocError("E_UNSUPPORTED_FEATURE", "write", "Pandoc JSON cannot represent resources, language or direction document fields", "json", "$");
       if (request.kind === "json") await checkImageOrigins(document.tree, context);
       await preflight(document.chunks());
       const signal = context.signal ?? new AbortController().signal;

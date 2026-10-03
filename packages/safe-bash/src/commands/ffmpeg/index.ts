@@ -1,4 +1,4 @@
-import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
+import { registerDefaultExecutor, registerDefaultExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
   createFfmpegCommand as createRawFfmpegCommand,
@@ -17,24 +17,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
   syncCommandEvaluators.evalSyncFfmpeg = evalSyncFfmpeg;
   syncCommandEvaluators.evalSyncFfprobe = evalSyncFfprobe;
   const def = createRawFfmpegCommand(options);
-  builtInDirectContextExecutors.add(def.execute);
-  return def;
+  return registerDefaultExecutor(def, options);
 }
 
 export function createFfprobeCommand(options: FfmpegCommandsOptions = {}): CommandDefinition {
   syncCommandEvaluators.evalSyncFfmpeg = evalSyncFfmpeg;
   syncCommandEvaluators.evalSyncFfprobe = evalSyncFfprobe;
   const def = createRawFfprobeCommand(options);
-  builtInDirectContextExecutors.add(def.execute);
-  return def;
+  return registerDefaultExecutor(def, options);
 }
 
 export function createFfmpegCommands(options: FfmpegCommandsOptions = {}): FfmpegCommandPair {
   syncCommandEvaluators.evalSyncFfmpeg = evalSyncFfmpeg;
   syncCommandEvaluators.evalSyncFfprobe = evalSyncFfprobe;
   const pair = createRawFfmpegCommands(options);
-  for (let i = 0; i < pair.length; i++) builtInDirectContextExecutors.add(pair[i]!.execute);
-  return pair;
+  return registerDefaultExecutors(pair, options);
 }
 
 export function ffmpegCommands(options: FfmpegCommandsOptions = {}): VirtualShellPlugin {

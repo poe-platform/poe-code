@@ -345,3 +345,43 @@ test("muscleMemory false preserves explicit opt-out and standard commands", () =
   for (const name of ["bc", "fd", "sponge", "less", "more"]) assert.ok(!names.includes(name), name);
   for (const name of ["shuf", "numfmt", "yq", "pdfinfo"]) assert.ok(names.includes(name), name);
 });
+
+
+for (const factory of ["pair", "probe"] as const) {
+  test(`configured ${factory} ffprobe retains limits and AST selection in command substitutions`, async t => {
+    const { encodeWav } = await import("@poe-code/audio-ast");
+    const { ffmpegCommands, createFfprobeCommand } = await import("../../src/commands/ffmpeg/index.js");
+    for (const options of [{ limits: { maxInputBytes: 10 } }, { limits: { maxOutputBytes: 10 } }, { asts: [] }]) {
+      const fs = createMemoryFileSystem();
+      await fs.writeFile("/tone.wav", encodeWav({ sampleRate: 8000, channels: [new Float64Array(800)] }));
+      const shell = new Shell({ fs }).use(agentCommands());
+      t.after(() => shell.dispose());
+      if (factory === "pair") shell.use(ffmpegCommands({ ...options, replace: true }));
+      else shell.use({ name: "configured-probe", setup(host) {
+        host.commands.register(createFfprobeCommand(options), { replace: true });
+      } });
+      const result = await shell.exec('for i in 1 2; do value=$(ffprobe -show_streams -of json /tone.wav); echo "$?:$value"; done');
+      assert.equal(result.stdout, "1:\n1:\n", JSON.stringify(options));
+      assert.notEqual(result.stderr, "");
+    }
+  });
+
+  test(`configured ${factory} ffprobe invokes metrics in command substitutions`, async t => {
+    const { encodeWav } = await import("@poe-code/audio-ast");
+    const { ffmpegCommands, createFfprobeCommand } = await import("../../src/commands/ffmpeg/index.js");
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/tone.wav", encodeWav({ sampleRate: 8000, channels: [new Float64Array(800)] }));
+    let calls = 0;
+    const options = { onMetrics: () => { calls++; } };
+    const shell = new Shell({ fs }).use(agentCommands());
+    t.after(() => shell.dispose());
+    if (factory === "pair") shell.use(ffmpegCommands({ ...options, replace: true }));
+    else shell.use({ name: "configured-probe", setup(host) {
+      host.commands.register(createFfprobeCommand(options), { replace: true });
+    } });
+    const result = await shell.exec('for i in 1 2; do value=$(ffprobe -show_entries stream=codec_type -of csv=p=0 /tone.wav); echo "$value"; done');
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "audio\naudio\n");
+    assert.equal(calls, 2);
+  });
+}

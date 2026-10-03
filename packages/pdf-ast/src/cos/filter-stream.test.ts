@@ -83,3 +83,8 @@ describe("streaming PDF filter pipelines", () => {
   });
 
 });
+it("streams raw recovery bytes with ownership and admission before unsupported filters", async () => {
+  const raw = new Uint8Array(41).fill(17); const dict = cosDict({ Filter: cosName("Unsupported") });
+  expect(await collect(decodePdfStreamChunks(dict, pieces(raw), { raw: true, chunkBytes: 7 }))).toEqual(raw);
+  await expect(collect(decodePdfStreamChunks(dict, pieces(raw), { raw: true, chunkBytes: 7, maxDecodedBytes: 40 }))).rejects.toMatchObject({ code: "E_LIMIT" });
+});

@@ -10,6 +10,8 @@ import { decodePredictorChunks, type PdfPredictorOptions } from "./predictor-str
 export interface PdfStreamDecodeOptions extends PdfInflateOptions, PdfPredictorOptions {
   /** Decode transport wrappers but preserve the first native image codec payload. */
   stopBeforeImageCodec?: boolean;
+  /** Preserve encoded bytes after required decryption, for buffered recovery parity. */
+  raw?: boolean;
 }
 
 export function pdfImageCodec(filter: string): "jpeg" | "ccitt" | "jbig2" | "jpx" | undefined {
@@ -38,7 +40,7 @@ export async function* decodePdfStreamChunks(dict: PdfCosDict, input: PdfStreamI
   const parameters = dictGet(dict, "DecodeParms") ?? dictGet(dict, "DP");
   let current: () => AsyncIterable<Uint8Array> = typeof input === "function" ? input : () => input;
   let filterIndex = 0;
-  const filters = filter?.kind === "array" ? filter.items : filter ? [filter] : [];
+  const filters = options.raw ? [] : filter?.kind === "array" ? filter.items : filter ? [filter] : [];
   for (const node of filters) {
     if (node.kind !== "name") continue;
     if (options.stopBeforeImageCodec && pdfImageCodec(node.decoded)) break;

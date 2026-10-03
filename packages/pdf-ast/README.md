@@ -51,6 +51,12 @@ Duplicate names and name-tree cycles use caller-backed indexes; filename equalit
 is exact, including Unicode code units. Returning early or closing the document
 releases traversal staging. Keep the document open while reading contents.
 
+Image occurrences also accept `contents({ raw: true })` for malformed-filter
+recovery. Raw reads preserve ownership and byte limits and still decrypt:
+default stream encryption is removed, while explicit chains decode through the
+last `Crypt` filter. Remaining image/transport filters stay encoded. The same
+option is available on `PdfObjectReader.decodeStream()`.
+
 `encodeRetainedTiff(width, height, rgbaChunks, storage, options)` writes TIFF
 with uncompressed, PackBits, DEFLATE, LZW, or JPEG strips. It stages compressed
 bytes in the caller's filesystem to determine the strip length, then emits a

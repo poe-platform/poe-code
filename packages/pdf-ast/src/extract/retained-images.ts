@@ -22,7 +22,7 @@ export interface PdfRetainedImage {
   readonly reference?: PdfCosRef;
   readonly inline: boolean;
   readonly byteLength: number;
-  contents(options?: { native?: boolean }): AsyncGenerator<Uint8Array, void, void>;
+  contents(options?: { native?: boolean; raw?: boolean }): AsyncGenerator<Uint8Array, void, void>;
 }
 
 export async function* walkRetainedImages(document: PdfRetainedDocument, storage: PdfIndexStorage, options: PdfImageSelection & {
@@ -49,7 +49,7 @@ export async function* walkRetainedImages(document: PdfRetainedDocument, storage
     const seen = new PdfNameIndex(storage, () => maximum - stagedBytes, options.signal);
     let failed = false;
     async function* occurrence(dict: PdfCosDict, activeResources: PdfCosDict, matrix: Matrix, length: number,
-      read: (native: boolean) => AsyncIterable<Uint8Array>, reference?: PdfCosRef, inline = false): AsyncGenerator<PdfRetainedImage, void, void> {
+      read: (native: boolean, raw: boolean) => AsyncIterable<Uint8Array>, reference?: PdfCosRef, inline = false): AsyncGenerator<PdfRetainedImage, void, void> {
       for (const key of ["SMask", "Mask"]) {
         const mask = dictGet(dict, key);
         if (mask?.kind === "ref") await seen.intern(`${mask.objectNumber}:${mask.generationNumber}`);
@@ -61,7 +61,7 @@ export async function* walkRetainedImages(document: PdfRetainedDocument, storage
           ...(reference ? { reference } : {}),
           async *contents(selection = {}) {
             check();
-            for await (const chunk of read(selection.native ?? false)) { check(); yield chunk; }
+            for await (const chunk of read(selection.native ?? false, selection.raw ?? false)) { check(); yield chunk; }
           },
         };
       } finally { alive = false; }
@@ -70,7 +70,7 @@ export async function* walkRetainedImages(document: PdfRetainedDocument, storage
       if (value.value.kind !== "dict" || !value.stream || !value.reference) return;
       const ref = value.reference;
       yield* occurrence(value.value, activeResources, matrix, value.stream.end - value.stream.start,
-        native => document.objects.decodeStream(ref.objectNumber, ref.generationNumber, { stopBeforeImageCodec: native }), ref);
+        (native, raw) => document.objects.decodeStream(ref.objectNumber, ref.generationNumber, { stopBeforeImageCodec: native, raw }), ref);
     }
     async function* content(input: AsyncIterable<Uint8Array>, activeResources: PdfCosDict, initial: Matrix,
       active: Set<number>, depth: number): AsyncGenerator<PdfRetainedImage, void, void> {
@@ -95,7 +95,7 @@ export async function* walkRetainedImages(document: PdfRetainedDocument, storage
           } else if (op.inlineImage) {
             const { dict, start, end } = op.inlineImage;
             yield* occurrence(dict, activeResources, matrix, end - start,
-              native => decodePdfStreamChunks(dict, () => source.stream(start, end - start, options.signal), { ...decodeOptions, stopBeforeImageCodec: native }), undefined, true);
+              (native, raw) => decodePdfStreamChunks(dict, () => source.stream(start, end - start, options.signal), { ...decodeOptions, stopBeforeImageCodec: native, raw }), undefined, true);
           } else if (op.operator === "Do") {
             const name = op.operands[0]; if (name?.kind !== "name") continue;
             const objects = await dictionary(dictGet(activeResources, "XObject"));

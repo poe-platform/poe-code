@@ -330,9 +330,13 @@ export async function* decodePdfEncryptedStreamChunks(
   const filter = dictGet(dict, "Filter") ?? dictGet(dict, "F");
   const filters = filter?.kind === "array" ? filter.items : filter ? [filter] : [];
   const parameters = dictGet(dict, "DecodeParms") ?? dictGet(dict, "DP");
-  const explicit = filters.some(node => node.kind === "name" && node.decoded === "Crypt");
+  let lastCrypt = -1;
+  for (let i = 0; i < filters.length; i++) {
+    const node = filters[i];
+    if (node?.kind === "name" && node.decoded === "Crypt") lastCrypt = i;
+  }
   const decryptOptions = { ...options, ...(typeName ? { type: typeName } : {}) };
-  if (!explicit) {
+  if (lastCrypt < 0) {
     // Preserve whether input is replayable: a one-shot input must still be
     // rejected by CCITT rather than silently replayed as an exhausted iterator.
     const decoded: PdfStreamInput = typeof input === "function"
@@ -342,10 +346,10 @@ export async function* decodePdfEncryptedStreamChunks(
     return;
   }
   let current: PdfStreamInput = input;
-  for (let index = 0; index < filters.length; index++) {
+  for (let index = 0; index < (options.raw ? lastCrypt + 1 : filters.length); index++) {
     const filter = filters[index]!;
     if (filter.kind !== "name") throw new PdfError("E_PARSE", "Invalid encrypted stream filter");
-    if (options.stopBeforeImageCodec && pdfImageCodec(filter.decoded)) break;
+    if (!options.raw && options.stopBeforeImageCodec && pdfImageCodec(filter.decoded)) break;
     const parameter = parameters?.kind === "array" ? parameters.items[index] : parameters;
     const upstream = current;
     let apply: (chunks: AsyncIterable<Uint8Array>) => AsyncIterable<Uint8Array>;
@@ -356,7 +360,8 @@ export async function* decodePdfEncryptedStreamChunks(
       current = typeof upstream === "function" ? () => apply(upstream()) : apply(upstream);
     } else {
       const single = cosDict({ Filter: filter, DecodeParms: parameter });
-      current = typeof upstream === "function" ? () => decodePdfStreamChunks(single, upstream, options) : decodePdfStreamChunks(single, upstream, options);
+      const filterOptions = { ...options, raw: false, stopBeforeImageCodec: !options.raw && (options.stopBeforeImageCodec ?? false) };
+      current = typeof upstream === "function" ? () => decodePdfStreamChunks(single, upstream, filterOptions) : decodePdfStreamChunks(single, upstream, filterOptions);
     }
   }
   yield* decodePdfStreamChunks(cosDict({}), current, options);

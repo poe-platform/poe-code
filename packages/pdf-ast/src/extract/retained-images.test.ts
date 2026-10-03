@@ -171,3 +171,12 @@ it("admits content staging before writes and removes it when cancelled", async (
   await expect(walkRetainedImages(f.document, { fs: f.fs, directory: "/scratch" }, { maxDepth: 10, signal: abort.signal }).next()).rejects.toThrow("cancel content");
   expect(returned).toBe(true); expect(await f.fs.readdir("/scratch")).toEqual(before); await f.close();
 });
+it("exposes retained raw bytes for inline and XObject decoder recovery", async () => {
+  const f = await fixture("/I Do BI /W 1 /H 1 /F /Unsupported ID abc EI");
+  const result: string[] = [];
+  for await (const image of f.document.images()) {
+    const raw: number[] = []; for await (const chunk of image.contents({ raw: true })) raw.push(...chunk);
+    result.push(new TextDecoder().decode(new Uint8Array(raw)));
+  }
+  expect(result).toEqual(["FFD81117FFD9>", "abc"]); await f.close();
+});

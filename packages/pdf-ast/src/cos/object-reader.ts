@@ -79,7 +79,7 @@ export class PdfObjectReader {
 
   /** Decode one retained stream under consumer backpressure. The caller owns
    * the source and must keep it open until iteration finishes. */
-  async *decodeStream(objectNumber: number, generationNumber = 0, options: Pick<PdfStreamDecodeOptions, "stopBeforeImageCodec"> = {}): AsyncGenerator<Uint8Array, void, void> {
+  async *decodeStream(objectNumber: number, generationNumber = 0, options: Pick<PdfStreamDecodeOptions, "stopBeforeImageCodec" | "raw"> = {}): AsyncGenerator<Uint8Array, void, void> {
     integer(objectNumber, "objectNumber"); integer(generationNumber, "generationNumber");
     const { object, dict } = await this.enqueue(async () => {
       const object = await this.load(objectNumber, generationNumber, new Set());
@@ -89,7 +89,7 @@ export class PdfObjectReader {
     const span = object.stream!;
     const input = () => this.source.stream(span.start, span.end - span.start, this.options.signal);
     const security = this.options.encryption;
-    const decodeOptions = { ...this.options, stopBeforeImageCodec: options.stopBeforeImageCodec ?? false };
+    const decodeOptions = { ...this.options, stopBeforeImageCodec: options.stopBeforeImageCodec ?? false, raw: options.raw ?? false };
     yield* security ? decodePdfEncryptedStreamChunks(security, objectNumber, generationNumber, dict, input, decodeOptions)
       : decodePdfStreamChunks(dict, input, decodeOptions);
   }

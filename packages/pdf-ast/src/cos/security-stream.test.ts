@@ -125,3 +125,20 @@ describe("bounded PDF stream security", () => {
   });
 
 });
+it.each([false, true])("raw stream recovery still decrypts through the last explicit Crypt (%s)", async explicit => {
+  const security = state("AESV3"); const plain = encodeFlate(new Uint8Array(40).fill(17));
+  const cipher = encrypted(plain, security.fileKey); const raw = explicit ? encodeAsciiHex(cipher) : cipher;
+  const dict = cosDict({ Filter: cosArray([...(explicit ? [cosName("ASCIIHexDecode"), cosName("Crypt")] : []), cosName("FlateDecode"), cosName("Unsupported")]),
+    DecodeParms: cosArray(explicit ? [cosDict({}), cosDict({ Name: cosName("StdCF") })] : []) });
+  expect(await collect(decodePdfEncryptedStreamChunks(security, 2, 0, dict, () => chunks(raw), { raw: true, chunkBytes: 31 }))).toEqual(plain);
+});
+it("raw recovery reaches the final Crypt while preserving admission and plaintext metadata", async () => {
+  const security = state("AESV3"); const plain = new Uint8Array(40).fill(17);
+  const raw = encodeAsciiHex(encrypted(encodeAsciiHex(encrypted(plain, security.fileKey)), security.fileKey));
+  const dict = cosDict({ Filter: cosArray([cosName("ASCIIHexDecode"), cosName("Crypt"), cosName("ASCIIHexDecode"), cosName("Crypt"), cosName("Unsupported")]),
+    DecodeParms: cosArray([cosDict({}), cosDict({ Name: cosName("StdCF") }), cosDict({}), cosDict({ Name: cosName("StdCF") })]) });
+  expect(await collect(decodePdfEncryptedStreamChunks(security, 2, 0, dict, () => chunks(raw), { raw: true, chunkBytes: 31 }))).toEqual(plain);
+  await expect(collect(decodePdfEncryptedStreamChunks(security, 2, 0, dict, () => chunks(raw), { raw: true, chunkBytes: 31, maxDecodedBytes: 39 }))).rejects.toMatchObject({ code: "E_LIMIT" });
+  const metadata = state("AESV3", { EncryptMetadata: { kind: "boolean", value: false } });
+  expect(await collect(decodePdfEncryptedStreamChunks(metadata, 2, 0, cosDict({ Type: cosName("Metadata"), Filter: cosName("Unsupported") }), () => chunks(plain), { raw: true, chunkBytes: 31 }))).toEqual(plain);
+});

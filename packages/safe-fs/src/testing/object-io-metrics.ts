@@ -57,6 +57,7 @@ export function measureObjectIoStore(store: ObjectFilePublicationStore, metrics:
   const publish = store.publish;
   const createStaging = store.createStaging;
   return {
+    ...(store.noFollow === undefined ? {} : { noFollow: store.noFollow }),
     async acquire(...args) {
       const head = await metrics.measure("store", "acquire", () => store.acquire(...args));
       return head && version(head);

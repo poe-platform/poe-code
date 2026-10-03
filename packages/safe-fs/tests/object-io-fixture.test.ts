@@ -3,7 +3,7 @@ import { createObjectFilePublicationConformanceCases } from "../src/testing/obje
 import { ObjectIoMetrics, measureObjectIoStore } from "../src/testing/object-io-metrics.js";
 import { PythonStatTranslator } from "../src/python/stat.js";
 import { toByteSource } from "../src/contracts/io.js";
-import type { ObjectFilePublicationStore } from "../src/fs/object-publication/index.js";
+import { withObjectFileDescriptors, type ObjectFilePublicationStore } from "../src/fs/object-publication/index.js";
 import { createR2StagingFixture } from "./integration/object-staging-workerd.fixture.mjs";
 
 afterEach(() => vi.unstubAllGlobals());
@@ -124,4 +124,22 @@ it("separates descriptor page I/O, publication and retained version reads by pha
     expect(phases.guestReadback!.operations["version.read"]!.count).toBe(1);
     expect(phases.guestReadback!.operations["store.acquire"]!.count).toBe(1);
   } finally { await stage.close(); await backend.dispose(); }
+});
+
+it("instrumentation preserves no-follow descriptor admission", async () => {
+  const backend = fixture();
+  await backend.fs.writeFile('/plain', new Uint8Array([42]));
+  const acquire = vi.spyOn(backend.store, 'acquire');
+  const store = measureObjectIoStore({ ...backend.store, noFollow: true }, new ObjectIoMetrics());
+  const filesystem = withObjectFileDescriptors(backend.fs, store);
+  try {
+    const descriptor = await filesystem.open!('/plain', { access: 'read', noFollow: true });
+    try {
+      expect(descriptor.capabilities.noFollow).toBe(true);
+      expect(acquire).toHaveBeenCalledWith('/plain', expect.objectContaining({ noFollow: true }));
+      const bytes = new Uint8Array(1);
+      expect(await descriptor.read(bytes, 0)).toBe(1);
+      expect(bytes[0]).toBe(42);
+    } finally { await descriptor.close(); }
+  } finally { await backend.dispose(); }
 });

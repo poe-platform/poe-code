@@ -4161,10 +4161,58 @@ diagnostics, and retains symlink containment and arbitrary filesystem failures.
 A fourth comparison exposed process-cwd resolution of relative roots; paths now
 resolve from the portable filesystem root. Host fallback uses Node async I/O.
 
-The maintained configuration-companion unit route passes 85 native Node checks,
+Before rebasing, the maintained configuration-companion unit route passed 85 native Node checks,
 Rust tests, 193 reference/parity cases in nine files and bidirectional public API
 type checks. Scoped ESLint passes. No dependency declarations or default
-implementation changed. The filesystem type references the already-declared
-reference package's contract; standalone declaration qualification remains open.
-This is an existing host-adapter compatibility repair, not a new Rust performance
-claim or qualification of browser-native execution.
+implementation changed in this work. Concurrent upstream commit 22c613302a also
+repaired the async contract and retained a synchronous internal runner API. The
+rebase preserves that implementation and its existing filesystem contract import;
+our remaining code fix resolves relative async runtime paths from the portable
+root, with the new in-memory parity suite. This is a host-adapter repair, not a
+new Rust performance claim or qualification of browser-native execution. Final
+post-rebase verification again passes all 85 native Node checks, Rust tests, 193
+reference/parity cases, bidirectional types and scoped ESLint.
+
+### Cancellation fixture receiver repair
+
+All four Bash jobs in Release 37088582464 failed the same four falsy-cancellation
+cases. The unchanged focused test reproduces the failure: its filesystem Proxy
+passes the proxy receiver to MemoryFileSystem.capabilities, whose private field
+requires the actual filesystem receiver. The fixture now forwards getters and
+methods to their owning filesystem/descriptor in a local repair, passing all 156
+checks in the containing suite. Concurrent upstream commit 22c613302a instead
+restored proxy-aware capabilities in MemoryFileSystem itself. Our unpushed fixture
+repair was dropped to retain the original proxy interception coverage. No shell
+cancellation implementation change is claimed.
+The unchanged upstream fixture also passes all 156 checks after the rebase.
+
+### MCP handler execution checkpoint
+
+Ordinary MCP tool invocation now composes native secrets, requirements, argument
+validation, approvals, result validation and protocol errors. Rust controls the
+execution stages and result/error branches. Node retains the three exact await
+boundaries, callback receivers, context spreads, explicit result identity and
+error-report persistence. Abort reasons take precedence over invocation failures;
+declined approvals retain their dedicated content. No dependencies/defaults changed.
+
+Seven missing-module tests preceded implementation. Eight final differential cases
+extract the actual ordinary-tool handler expression from the reference MCP source
+using TypeScript, with no production reference import. They cover service/context
+identity, progress, secrets and requirements ordering, invalid parameters/results,
+pending/declined approvals, explicit MCP content, custom projection errors,
+cancellation boundaries, awaited report failures, getter order, arbitrary thrown
+values, thenable timing and independently completing concurrent invocations.
+Fixtures stay in memory. The selected maintained workspace build passes, followed
+by 266 native Node tests, Rust tests, 5,157 parity cases across 89 files,
+declaration consumers and the original CLI compile-check. Rust/binding lint and
+scoped ESLint pass. Packed consumers verify defaults, result casing, native error
+identity and cancellation using packed own native dependencies and the existing
+Commander dependency. There is no visual CLI change in this checkpoint.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 300 handler invocations,
+retaining 32 results, measured 258.627 microseconds native versus 8.702 microseconds
+JavaScript (29.72 times slower). The fixture includes request-service resolution,
+input validation, handler execution and object/array result projection. This does
+not pass a performance/default-swap gate. Public MCP server/stream integration,
+HTTP/OAuth, remaining exports, Commander replacement and full standalone types,
+platform/resource/packaging qualification remain open.

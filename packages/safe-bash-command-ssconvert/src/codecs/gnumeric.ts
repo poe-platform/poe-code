@@ -1,4 +1,5 @@
 import { parseXmlSteps, XmlLimitError, type XmlElement } from "@poe-code/safe-fs/xml";
+import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-stream";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import { cellValueFormat } from "../workbook/value-format.js";
 import { DEFAULT_SHEET_SIZE, formatA1, parseA1, validSheetSize, type AxisMetadata, type Cell, type CellValue,
@@ -34,7 +35,7 @@ const metadataFields = new Set(["meta:generator", "dc:title", "dc:description", 
 function limit(message: string): never { throw new SsconvertError("resource-limit", `ssconvert ${message} limit exceeded`); }
 function invalid(message: string): never { throw new SsconvertError("io", `E Invalid Gnumeric XML: ${message}`); }
 
-async function transform(bytes: Uint8Array, compressed: boolean, maximum: number, context: CapabilityContext): Promise<Uint8Array> {
+async function inflateGnumeric(bytes: Uint8Array, maximum: number, context: CapabilityContext): Promise<Uint8Array> {
   context.signal.throwIfAborted();
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
   let writer: ReturnType<CompressionStream["writable"]["getWriter"]> | undefined;
@@ -53,7 +54,7 @@ async function transform(bytes: Uint8Array, compressed: boolean, maximum: number
   try {
     context.signal.throwIfAborted();
     if (closed) invalid("gzip operation is closed");
-    const stream = compressed ? new CompressionStream("gzip") : new DecompressionStream("gzip");
+    const stream = new DecompressionStream("gzip");
     reader = stream.readable.getReader(); writer = stream.writable.getWriter();
     const producer = writer;
     // Observe producer failures even when a byte bound terminates consumption.
@@ -63,7 +64,7 @@ async function transform(bytes: Uint8Array, compressed: boolean, maximum: number
     while (true) {
       const next = await reader.read(); context.signal.throwIfAborted();
       if (next.done) break;
-      if (next.value.byteLength > maximum - length) limit(compressed ? "output bytes" : "decompressed bytes");
+      if (next.value.byteLength > maximum - length) limit("decompressed bytes");
       length += next.value.byteLength; chunks.push(new Uint8Array(next.value));
     }
     await production; context.signal.throwIfAborted();
@@ -73,7 +74,7 @@ async function transform(bytes: Uint8Array, compressed: boolean, maximum: number
   } catch (error) {
     context.signal.throwIfAborted();
     if (error instanceof SsconvertError) throw error;
-    return invalid(compressed ? "gzip output failed" : "invalid gzip stream");
+    return invalid("invalid gzip stream");
   } finally { context.signal.removeEventListener("abort", abort); await cleanup(); }
 }
 
@@ -88,7 +89,7 @@ async function document(bytes: Uint8Array, context: CapabilityContext): Promise<
   // incremental admission still bounds forged or multi-member streams.
   if (gzip && bytes.length >= 18 && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(bytes.length - 4, true) > maximum)
     limit("decompressed bytes");
-  const plain = gzip ? await transform(bytes, false, maximum, context) : bytes;
+  const plain = gzip ? await inflateGnumeric(bytes, maximum, context) : bytes;
   if (plain.length > maximum) limit("decompressed bytes");
   let encoding: "UTF-8" | "UTF-16LE" | "UTF-16BE" = "UTF-8";
   if (plain[0] === 255 && plain[1] === 254 || plain[0] === 60 && plain[1] === 0) encoding = "UTF-16LE";
@@ -590,21 +591,42 @@ class XmlWriter {
     if (depth > (this.context.limits.xmlDepth ?? Infinity)) limit("XML depth");
     if (++this.work > (this.context.limits.workbookWork ?? this.context.limits.inputBytes + this.context.limits.cells * 32)) limit("XML serialization work");
   }
-  element(name: string, attrs: Readonly<Record<string, string | number>> = {}, text = "", nested = "", depth = 0, explicitContent = false, admitted = false): string {
-    if (admitted) this.context.signal.throwIfAborted();
-    else this.admit(depth);
-    if (text.length > this.maximum - this.length) limit("output bytes");
-    const indent = "  ".repeat(depth); let attributes = "";
+  private opening(name: string, attrs: Readonly<Record<string, string | number>>, depth: number): string {
+    let attributes = "";
     for (const [key, val] of Object.entries(attrs)) {
       const raw = String(val); if (raw.length + key.length > this.maximum - this.length - attributes.length) limit("output bytes");
       attributes += ` ${key}="${escape(raw).split("\n").join("&#10;").split("\t").join("&#9;")}"`;
     }
-    const opening = `${indent}<${name}${attributes}`;
-    const ending = nested ? `>\n${indent}</${name}>\n` : text || explicitContent ? `>${escape(text)}</${name}>\n` : "/>\n";
-    const size = utf8Length(opening) + utf8Length(ending);
+    return `${"  ".repeat(depth)}<${name}${attributes}`;
+  }
+  private account(text: string): void {
+    const size = utf8Length(text);
     if (size > this.maximum - this.length) limit("output bytes");
     this.length += size;
+  }
+  element(name: string, attrs: Readonly<Record<string, string | number>> = {}, text = "", nested = "", depth = 0, explicitContent = false, admitted = false): string {
+    if (admitted) this.context.signal.throwIfAborted();
+    else this.admit(depth);
+    if (text.length > this.maximum - this.length) limit("output bytes");
+    const indent = "  ".repeat(depth), opening = this.opening(name, attrs, depth);
+    const ending = nested ? `>\n${indent}</${name}>\n` : text || explicitContent ? `>${escape(text)}</${name}>\n` : "/>\n";
+    this.account(opening + ending);
     return nested ? opening + ">\n" + nested + `${indent}</${name}>\n` : opening + ending;
+  }
+  *container(name: string, attrs: Readonly<Record<string, string | number>>, parts: Iterable<string>, depth = 0, omitEmpty = false): Generator<string> {
+    let started = false;
+    for (const part of parts) {
+      if (!part) continue;
+      if (!started) {
+        this.admit(depth);
+        const opening = this.opening(name, attrs, depth) + ">\n";
+        this.account(opening + `${"  ".repeat(depth)}</${name}>\n`);
+        yield opening; started = true;
+      }
+      yield part;
+    }
+    if (started) yield `${"  ".repeat(depth)}</${name}>\n`;
+    else if (!omitEmpty) yield this.element(name, attrs, "", "", depth);
   }
 }
 
@@ -712,37 +734,47 @@ function emitRecord(value: ImportedValue | undefined, depth: number, writer: Xml
   }
   return result;
 }
+function* retainedParts(records: readonly UnsupportedRecord[] | undefined, kind: string, depth: number, writer: XmlWriter): Generator<string> {
+  for (const record of records ?? []) if (record.source === "Gnumeric_XmlIO:sax" && record.kind === kind && record.disposition === "retained")
+    yield emitRecord(record.data, depth, writer);
+}
 function emitRetained(records: readonly UnsupportedRecord[] | undefined, kind: string, depth: number, writer: XmlWriter): string {
   return records?.filter(r => r.source === "Gnumeric_XmlIO:sax" && r.kind === kind && r.disposition === "retained").map(r => emitRecord(r.data, depth, writer)).join("") ?? "";
 }
-function emitNames(book: Workbook, sheet: Sheet | undefined, depth: number, writer: XmlWriter, context: CapabilityContext): string {
-  const entries = book.names?.filter(n => n.sheet === sheet?.id).map(n => {
-    const position = n.position ?? { sheet: n.sheet ?? book.sheets[0]?.id ?? "", row: 0, column: 0 };
-    const origin = { ...position, sheet: book.sheets.find(s => s.id === position.sheet)?.name ?? position.sheet };
-    const expression = nativeOpenFormula(n.expression, position, context, n.arrayStringLiterals);
-    return writer.element("gnm:Name", formulaSemanticsAttributes(n.arrayStringLiterals, false, n.expression, origin), "",
-      writer.element("gnm:name", {}, n.name, "", depth + 2) + writer.element("gnm:value", {}, expression.startsWith("=") ? expression.slice(1) : expression, "", depth + 2) +
-      writer.element("gnm:position", {}, formatA1(position.row, position.column), "", depth + 2), depth + 1);
-  }).join("") ?? "";
-  return entries ? writer.element("gnm:Names", {}, "", entries, depth) : "";
-}
-function emitMetadata(book: Workbook, writer: XmlWriter): string {
-  if (book.properties === undefined) return emitRetained(book.unsupportedRecords, "document-meta", 1, writer);
-  let entries = "";
-  for (const [key, val] of Object.entries(book.properties).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) {
-    if (key === "dc:keywords" && Array.isArray(val)) {
-      for (const keyword of val) if (typeof keyword === "string") entries += writer.element("meta:keyword", {}, keyword, "", 3);
-    } else if (metadataFields.has(key)) {
-      if (typeof val !== "string" && typeof val !== "number") invalid("invalid workbook metadata type");
-      entries += writer.element(key, {}, String(val), "", 3);
-    } else if (val !== null) {
-      if (typeof val !== "string" && typeof val !== "number" && typeof val !== "boolean") throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: XML metadata value type");
-      entries += writer.element("meta:user-defined", { "meta:name": key, "meta:value-type": typeof val === "number" ? "float" : typeof val === "boolean" ? "boolean" : "string" }, String(val), "", 3);
+function* emitNames(book: Workbook, sheet: Sheet | undefined, depth: number, writer: XmlWriter, context: CapabilityContext): Generator<string> {
+  function* entries(): Generator<string> {
+    for (const n of book.names ?? []) {
+      if (n.sheet !== sheet?.id) continue;
+      const position = n.position ?? { sheet: n.sheet ?? book.sheets[0]?.id ?? "", row: 0, column: 0 };
+      const origin = { ...position, sheet: book.sheets.find(s => s.id === position.sheet)?.name ?? position.sheet };
+      const expression = nativeOpenFormula(n.expression, position, context, n.arrayStringLiterals);
+      yield writer.element("gnm:Name", formulaSemanticsAttributes(n.arrayStringLiterals, false, n.expression, origin), "",
+        writer.element("gnm:name", {}, n.name, "", depth + 2) + writer.element("gnm:value", {}, expression.startsWith("=") ? expression.slice(1) : expression, "", depth + 2) +
+        writer.element("gnm:position", {}, formatA1(position.row, position.column), "", depth + 2), depth + 1);
     }
   }
-  if (!entries) return "";
-  return writer.element("office:document-meta", { "xmlns:office": officeNamespace, "xmlns:xlink": "http://www.w3.org/1999/xlink", "xmlns:dc": dcNamespace,
-    "xmlns:meta": metaNamespace, "xmlns:ooo": "http://openoffice.org/2004/office", "office:version": "1.2" }, "", writer.element("office:meta", {}, "", entries, 2), 1);
+  yield* writer.container("gnm:Names", {}, entries(), depth, true);
+}
+function* emitMetadata(book: Workbook, writer: XmlWriter): Generator<string> {
+  const properties = book.properties;
+  if (properties === undefined) { yield* retainedParts(book.unsupportedRecords, "document-meta", 1, writer); return; }
+  function* entries(properties: NonNullable<Workbook["properties"]>): Generator<string> {
+    for (const [key, val] of Object.entries(properties).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) {
+      if (key === "dc:keywords" && Array.isArray(val)) {
+        for (const keyword of val) if (typeof keyword === "string") yield writer.element("meta:keyword", {}, keyword, "", 3);
+      } else if (metadataFields.has(key)) {
+        if (typeof val !== "string" && typeof val !== "number") invalid("invalid workbook metadata type");
+        yield writer.element(key, {}, String(val), "", 3);
+      } else if (val !== null) {
+        if (typeof val !== "string" && typeof val !== "number" && typeof val !== "boolean") throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: XML metadata value type");
+        yield writer.element("meta:user-defined", { "meta:name": key, "meta:value-type": typeof val === "number" ? "float" : typeof val === "boolean" ? "boolean" : "string" }, String(val), "", 3);
+      }
+    }
+  }
+  yield* writer.container("office:document-meta", {
+    "xmlns:office": officeNamespace, "xmlns:xlink": "http://www.w3.org/1999/xlink", "xmlns:dc": dcNamespace,
+    "xmlns:meta": metaNamespace, "xmlns:ooo": "http://openoffice.org/2004/office", "office:version": "1.2"
+  }, writer.container("office:meta", {}, entries(properties), 2, true), 1, true);
 }
 const types = { blank: 10, boolean: 20, number: 40, error: 50, string: 60, "byte-string": 60 } as const;
 function valueText(value: CellValue, context: CapabilityContext): string {
@@ -848,128 +880,245 @@ export function writeClipboardGnumeric(book: Workbook, sheet: Sheet, range: impo
   return new TextEncoder().encode(xml);
 }
 
-export async function writeGnumeric(book: Workbook, _options: readonly string[], context: CapabilityContext): Promise<Uint8Array> {
+async function* gnumericChunks(book: Workbook, context: CapabilityContext): AsyncGenerator<string> {
   const maximum = context.limits.outputBytes;
   const writer = new XmlWriter(maximum, context);
-  context.signal.throwIfAborted(); let output = '<?xml version="1.0" encoding="UTF-8"?>\n';
-  let body = writer.element("gnm:Version", { Epoch: 1, Major: 12, Minor: 61, Full: "1.12.61" }, "", "", 1);
-  body += emitRetained(book.unsupportedRecords, "Attributes", 1, writer) + emitMetadata(book, writer);
-  if (book.dateSystem === "1904") body += writer.element("gnm:DateConvention", {}, "1904", "", 1);
-  body += writer.element("gnm:Calculation", { ManualRecalc: book.calculationMode === "manual" ? 1 : 0,
-    EnableIteration: book.iteration?.enabled === false ? 0 : 1, MaxIterations: book.iteration?.maximum ?? 100,
-    IterationTolerance: book.iteration?.tolerance ?? 0.001, ...(book.dateSystem === "1904" ? { "gnm:DateConvention": "Apple:1904" } : {}), FloatRadix: 2, FloatDigits: 53 }, "", "", 1);
-  body += writer.element("gnm:SheetNameIndex", {}, "", book.sheets.map(sheet => writer.element("gnm:SheetName",
-    { "gnm:Cols": sheet.size?.columns ?? 256, "gnm:Rows": sheet.size?.rows ?? 65536 }, sheet.name, "", 2)).join(""), 1);
-  body += emitNames(book, undefined, 1, writer, context) + emitRetained(book.unsupportedRecords, "Geometry", 1, writer);
-  let sheetXml = "";
-  for (const sheet of book.sheets) {
-    context.signal.throwIfAborted();
-    const view = object(sheet.view?.gnumeric); const attrs: Record<string, string | number> = {
-      DisplayFormulas: 0, HideZero: 0, HideGrid: 0, HideColHeader: 0, HideRowHeader: 0, DisplayOutlines: 1, OutlineSymbolsBelow: 1, OutlineSymbolsRight: 1 };
-    if (view) for (const [key, val] of Object.entries(view)) if (typeof val === "string" && gnumericAttributes.Sheet?.includes(key)) attrs[key] = val;
-    attrs.Visibility = sheet.visibility === "very-hidden" ? "GNM_SHEET_VISIBILITY_VERY_HIDDEN" : sheet.visibility === "hidden" ? "GNM_SHEET_VISIBILITY_HIDDEN" : "GNM_SHEET_VISIBILITY_VISIBLE";
-    const extent = sheet.cells.reduce((max, cell) => ({ row: Math.max(max.row, cell.row), column: Math.max(max.column, cell.column) }), { row: 0, column: 0 });
-    let content = writer.element("gnm:Name", {}, sheet.name, "", 3) +
-      writer.element("gnm:MaxCol", {}, String(extent.column), "", 3) +
-      writer.element("gnm:MaxRow", {}, String(extent.row), "", 3) +
-      writer.element("gnm:Zoom", {}, gnumericNumber(Number(sheet.view?.zoom ?? 1), false, 4), "", 3) + emitNames(book, sheet, 3, writer, context);
-    content += emitRetained(sheet.unsupportedRecords, "PrintInformation", 3, writer);
-    const sourceStyles = sheet.unsupportedRecords?.find(r => r.kind === "Styles" && r.source === "Gnumeric_XmlIO:sax");
-    const savedStyle = object(sourceStyles?.data);
-    let regions = Array.isArray(savedStyle?.children) ? savedStyle.children.map(r => emitRecord(r, 4, writer)).join("") : "";
-    for (const record of sheet.unsupportedRecords ?? []) {
-      if (record.disposition !== "retained" || record.kind !== "FormatRange" && record.kind !== "StyleRange") continue;
-      const range = object(record.data); if (!range) continue;
-      const bounds = [range.startColumn, range.startRow, range.endColumn, range.endRow];
-      if (!bounds.every(v => typeof v === "number" && Number.isInteger(v) && v >= 0) || Number(bounds[0]) > Number(bounds[2]) || Number(bounds[1]) > Number(bounds[3])) invalid("invalid style range");
-      regions += writer.element("gnm:StyleRegion", { startCol: Number(bounds[0]), startRow: Number(bounds[1]), endCol: Number(bounds[2]), endRow: Number(bounds[3]) }, "",
-        importedStyle(object(range.style), typeof range.format === "string" ? range.format : undefined, writer, range.reset === true), 4);
+  context.signal.throwIfAborted(); yield '<?xml version="1.0" encoding="UTF-8"?>\n';
+  function* body(): Generator<string> {
+    yield writer.element("gnm:Version", { Epoch: 1, Major: 12, Minor: 61, Full: "1.12.61" }, "", "", 1);
+    yield* retainedParts(book.unsupportedRecords, "Attributes", 1, writer);
+    yield* emitMetadata(book, writer);
+    if (book.dateSystem === "1904") yield writer.element("gnm:DateConvention", {}, "1904", "", 1);
+    yield writer.element("gnm:Calculation", {
+      ManualRecalc: book.calculationMode === "manual" ? 1 : 0,
+      EnableIteration: book.iteration?.enabled === false ? 0 : 1, MaxIterations: book.iteration?.maximum ?? 100,
+      IterationTolerance: book.iteration?.tolerance ?? 0.001, ...(book.dateSystem === "1904" ? { "gnm:DateConvention": "Apple:1904" } : {}), FloatRadix: 2, FloatDigits: 53
+    }, "", "", 1);
+    function* sheetNames(): Generator<string> {
+      for (const sheet of book.sheets) yield writer.element("gnm:SheetName",
+        { "gnm:Cols": sheet.size?.columns ?? 256, "gnm:Rows": sheet.size?.rows ?? 65536 }, sheet.name, "", 2);
     }
-    regions += sheet.cells.filter(c => c.style || c.format).flatMap(c => {
-        const saved = object(c.style?.gnumeric);
-        const format = c.format?.startsWith("@[") ? undefined : c.format;
-        let original: ImportedValue | undefined;
-        if (Array.isArray(savedStyle?.children)) for (const region of savedStyle.children) {
-          const r = object(region); if (!Array.isArray(r?.attributes) || !Array.isArray(r.children)) continue;
-          const bounds = Object.fromEntries(r.attributes.flatMap(a => { const attr = object(a); return attr && typeof attr.name === "string" ? [[attr.name, Number(attr.value)]] : []; }));
-          if (c.row >= bounds.startRow! && c.row <= bounds.endRow! && c.column >= bounds.startCol! && c.column <= bounds.endCol!) original = r.children.find(s => object(s)?.name === "Style");
+    yield* writer.container("gnm:SheetNameIndex", {}, sheetNames(), 1);
+    yield* emitNames(book, undefined, 1, writer, context);
+    yield* retainedParts(book.unsupportedRecords, "Geometry", 1, writer);
+    function* sheets(): Generator<string> {
+      for (const sheet of book.sheets) {
+        context.signal.throwIfAborted();
+        const view = object(sheet.view?.gnumeric); const attrs: Record<string, string | number> = {
+          DisplayFormulas: 0, HideZero: 0, HideGrid: 0, HideColHeader: 0, HideRowHeader: 0, DisplayOutlines: 1, OutlineSymbolsBelow: 1, OutlineSymbolsRight: 1
+        };
+        if (view) for (const [key, val] of Object.entries(view)) if (typeof val === "string" && gnumericAttributes.Sheet?.includes(key)) attrs[key] = val;
+        attrs.Visibility = sheet.visibility === "very-hidden" ? "GNM_SHEET_VISIBILITY_VERY_HIDDEN" : sheet.visibility === "hidden" ? "GNM_SHEET_VISIBILITY_HIDDEN" : "GNM_SHEET_VISIBILITY_VISIBLE";
+        const extent = sheet.cells.reduce((max, cell) => ({ row: Math.max(max.row, cell.row), column: Math.max(max.column, cell.column) }), { row: 0, column: 0 });
+        function* content(): Generator<string> {
+          yield writer.element("gnm:Name", {}, sheet.name, "", 3) +
+            writer.element("gnm:MaxCol", {}, String(extent.column), "", 3) +
+            writer.element("gnm:MaxRow", {}, String(extent.row), "", 3) +
+            writer.element("gnm:Zoom", {}, gnumericNumber(Number(sheet.view?.zoom ?? 1), false, 4), "", 3);
+          yield* emitNames(book, sheet, 3, writer, context);
+          yield* retainedParts(sheet.unsupportedRecords, "PrintInformation", 3, writer);
+          const sourceStyles = sheet.unsupportedRecords?.find(r => r.kind === "Styles" && r.source === "Gnumeric_XmlIO:sax");
+          const savedStyle = object(sourceStyles?.data);
+          function* regions(): Generator<string> {
+            if (Array.isArray(savedStyle?.children)) for (const region of savedStyle.children) yield emitRecord(region, 4, writer);
+            for (const record of sheet.unsupportedRecords ?? []) {
+              if (record.disposition !== "retained" || record.kind !== "FormatRange" && record.kind !== "StyleRange") continue;
+              const range = object(record.data); if (!range) continue;
+              const bounds = [range.startColumn, range.startRow, range.endColumn, range.endRow];
+              if (!bounds.every(v => typeof v === "number" && Number.isInteger(v) && v >= 0) || Number(bounds[0]) > Number(bounds[2]) || Number(bounds[1]) > Number(bounds[3])) invalid("invalid style range");
+              yield writer.element("gnm:StyleRegion", { startCol: Number(bounds[0]), startRow: Number(bounds[1]), endCol: Number(bounds[2]), endRow: Number(bounds[3]) }, "",
+                importedStyle(object(range.style), typeof range.format === "string" ? range.format : undefined, writer, range.reset === true), 4);
+            }
+            for (const c of sheet.cells) {
+              if (!c.style && !c.format) continue;
+              const saved = object(c.style?.gnumeric);
+              const format = c.format?.startsWith("@[") ? undefined : c.format;
+              let original: ImportedValue | undefined;
+              if (Array.isArray(savedStyle?.children)) for (const region of savedStyle.children) {
+                const r = object(region); if (!Array.isArray(r?.attributes) || !Array.isArray(r.children)) continue;
+                const bounds = Object.fromEntries(r.attributes.flatMap(a => { const attr = object(a); return attr && typeof attr.name === "string" ? [[attr.name, Number(attr.value)]] : []; }));
+                if (c.row >= bounds.startRow! && c.row <= bounds.endRow! && c.column >= bounds.startCol! && c.column <= bounds.endCol!) original = r.children.find(s => object(s)?.name === "Style");
+              }
+              const originalStyle = object(original);
+              const originalFormat = Array.isArray(originalStyle?.attributes) ? originalStyle.attributes.find(a => object(a)?.name === "Format") : undefined;
+              if (original && JSON.stringify(original) === JSON.stringify(saved) && (!format || format === object(originalFormat)?.value)) continue;
+              const modified = saved ? {
+                ...saved, attributes: [
+                  ...(Array.isArray(saved.attributes) ? saved.attributes.filter(a => object(a)?.name !== "Format") : []),
+                  ...(format ? [{ name: "Format", namespace: "", value: format }] : [])]
+              } : undefined;
+              const style = modified ? emitRecord(modified, 5, writer) : importedStyle(c.style, format, writer);
+              yield writer.element("gnm:StyleRegion", { startCol: c.column, startRow: c.row, endCol: c.column, endRow: c.row }, "", style, 4);
+            }
+          }
+          yield* writer.container("gnm:Styles", {}, regions(), 3, true);
+          for (const [kind, info, entries] of [["Cols", "ColInfo", sheet.columns], ["Rows", "RowInfo", sheet.rows]] as const) {
+            const source = object(sheet.unsupportedRecords?.find(r => r.kind === kind && r.source === "Gnumeric_XmlIO:sax")?.data);
+            const axisAttrs = Object.fromEntries((Array.isArray(source?.attributes) ? source.attributes : []).flatMap(a => {
+              const attr = object(a);
+              if (!attr || typeof attr.name !== "string" || typeof attr.value !== "string") return [];
+              validateRecordName(attr.name);
+              return gnumericAttributes[kind]?.includes(attr.name) ? [[attr.name, attr.value]] : [];
+            }));
+            const defaultSize = sheet.view?.[kind === "Cols" ? "defaultColumnWidth" : "defaultRowHeight"];
+            if (defaultSize !== undefined) axisAttrs.DefaultSizePts = axisSizeXml(defaultSize);
+            else if (axisAttrs.DefaultSizePts !== undefined) axisAttrs.DefaultSizePts = axisSizeXml(Number(axisAttrs.DefaultSizePts));
+            function* axes(): Generator<string> {
+              for (const axis of entries ?? []) {
+                if (axis.sizePoints === undefined && !axis.hidden && !axis.collapsed && !axis.outlineLevel) continue;
+                const original = object(axis.style?.gnumeric);
+                const attrs = Object.fromEntries((Array.isArray(original?.attributes) ? original.attributes : []).flatMap(a => {
+                  const attr = object(a); return attr && typeof attr.name === "string" && typeof attr.value === "string" && attr.name === "HardSize" ? [[attr.name, attr.value]] : [];
+                }));
+                yield writer.element(`gnm:${info}`, {
+                  ...attrs, No: axis.index, Unit: axis.sizePoints === undefined ? axisAttrs.DefaultSizePts ?? (kind === "Cols" ? 48 : 12.75) : axisSizeXml(axis.sizePoints),
+                  ...(axis.hidden ? { Hidden: 1 } : {}), ...(axis.collapsed ? { Collapsed: 1 } : {}), ...(axis.outlineLevel ? { OutlineLevel: axis.outlineLevel } : {})
+                }, "", "", 4);
+              }
+            }
+            yield* writer.container(`gnm:${kind}`, axisAttrs, axes(), 3);
+          }
+          for (const kind of ["Selections", "Objects"]) yield* retainedParts(sheet.unsupportedRecords, kind, 3, writer);
+          const selection = typeof sheet.view?.selection === "string" ? parseA1(sheet.view.selection) : undefined;
+          if (selection) yield writer.element("gnm:Selections", { CursorCol: selection.column, CursorRow: selection.row }, "",
+            writer.element("gnm:Selection", { startCol: selection.column, startRow: selection.row, endCol: selection.column, endRow: selection.row }, "", "", 4), 3);
+          function* comments(): Generator<string> {
+            for (const r of sheet.unsupportedRecords ?? []) {
+              if (r.disposition !== "retained" || r.kind !== "CellComment") continue;
+              const data = object(r.data);
+              if (typeof data?.ObjectBound === "string" && typeof data.Text === "string") yield writer.element("gnm:CellComment",
+                { ObjectBound: data.ObjectBound, ObjectOffset: "1 0 1 0", Direction: 17, Print: 1, Text: data.Text }, "", "", 4);
+            }
+          }
+          yield* writer.container("gnm:Objects", {}, comments(), 3, true);
+          if (typeof sheet.view?.initialTopLeft === "string") yield writer.element("gnm:SheetLayout", { TopLeft: sheet.view.initialTopLeft }, "", "", 3);
+          function* cellXml(): Generator<string> {
+            const ordered = sheet.cells.every((cell, index) => !index || sheet.cells[index - 1]!.row < cell.row ||
+              sheet.cells[index - 1]!.row === cell.row && sheet.cells[index - 1]!.column <= cell.column);
+            for (const cell of ordered ? sheet.cells : [...sheet.cells].sort((a, b) => a.row - b.row || a.column - b.column)) {
+              context.signal.throwIfAborted();
+              if (!cell.formula && cell.value.kind === "blank") continue;
+              const group = sheet.formulaGroups?.find(g => g.kind === "array" && cell.row >= g.range.startRow && cell.row <= g.range.endRow && cell.column >= g.range.startColumn && cell.column <= g.range.endColumn);
+              if (group && (cell.row !== group.range.startRow || cell.column !== group.range.startColumn)) continue;
+              const cellAttrs: Record<string, string | number> = {
+                Row: cell.row, Col: cell.column,
+                ...formulaSemanticsAttributes(group?.arrayStringLiterals ?? cell.arrayStringLiterals, false, cell.formula)
+              };
+              if (group) { cellAttrs.Rows = group.range.endRow - group.range.startRow + 1; cellAttrs.Cols = group.range.endColumn - group.range.startColumn + 1; }
+              // Released normal writer deliberately omits formula caches.
+              if (!cell.formula) {
+                cellAttrs.ValueType = types[cell.value.kind];
+                const format = cell.richText ? writeGnumericRichText(cell.richText) : cellValueFormat(cell);
+                if (format) cellAttrs.ValueFormat = format;
+              }
+              yield writer.element("gnm:Cell", cellAttrs, cell.formula ? nativeOpenFormula(cell.formula, { sheet: sheet.id, row: cell.row, column: cell.column }, context, cell.arrayStringLiterals) : valueText(cell.value, context), "", 4);
+            }
+          }
+          yield* writer.container("gnm:Cells", {}, cellXml(), 3);
+          function* merges(): Generator<string> {
+            for (const r of sheet.merges ?? []) yield writer.element("gnm:Merge", {},
+              `${formatA1(r.startRow, r.startColumn)}:${formatA1(r.endRow, r.endColumn)}`, "", 4);
+          }
+          yield* writer.container("gnm:MergedRegions", {}, merges(), 3, true);
+          for (const kind of ["SheetLayout", "Filters", "Solver", "Scenarios"]) yield* retainedParts(sheet.unsupportedRecords, kind, 3, writer);
         }
-        const originalStyle = object(original);
-        const originalFormat = Array.isArray(originalStyle?.attributes) ? originalStyle.attributes.find(a => object(a)?.name === "Format") : undefined;
-        if (original && JSON.stringify(original) === JSON.stringify(saved) && (!format || format === object(originalFormat)?.value)) return [];
-        const modified = saved ? { ...saved, attributes: [
-          ...(Array.isArray(saved.attributes) ? saved.attributes.filter(a => object(a)?.name !== "Format") : []),
-          ...(format ? [{ name: "Format", namespace: "", value: format }] : [])] } : undefined;
-        const style = modified ? emitRecord(modified, 5, writer) : importedStyle(c.style, format, writer);
-        return [writer.element("gnm:StyleRegion", { startCol: c.column, startRow: c.row, endCol: c.column, endRow: c.row }, "", style, 4)];
-      }).join("");
-    content += regions ? writer.element("gnm:Styles", {}, "", regions, 3) : "";
-    for (const [kind, info, entries] of [["Cols", "ColInfo", sheet.columns], ["Rows", "RowInfo", sheet.rows]] as const) {
-      const source = object(sheet.unsupportedRecords?.find(r => r.kind === kind && r.source === "Gnumeric_XmlIO:sax")?.data);
-      const axisAttrs = Object.fromEntries((Array.isArray(source?.attributes) ? source.attributes : []).flatMap(a => {
-        const attr = object(a);
-        if (!attr || typeof attr.name !== "string" || typeof attr.value !== "string") return [];
-        validateRecordName(attr.name);
-        return gnumericAttributes[kind]?.includes(attr.name) ? [[attr.name, attr.value]] : [];
-      }));
-      const defaultSize = sheet.view?.[kind === "Cols" ? "defaultColumnWidth" : "defaultRowHeight"];
-      if (defaultSize !== undefined) axisAttrs.DefaultSizePts = axisSizeXml(defaultSize);
-      else if (axisAttrs.DefaultSizePts !== undefined) axisAttrs.DefaultSizePts = axisSizeXml(Number(axisAttrs.DefaultSizePts));
-      content += writer.element(`gnm:${kind}`, axisAttrs, "", entries?.filter(axis => axis.sizePoints !== undefined || axis.hidden || axis.collapsed || axis.outlineLevel).map(axis => {
-        const original = object(axis.style?.gnumeric);
-        const attrs = Object.fromEntries((Array.isArray(original?.attributes) ? original.attributes : []).flatMap(a => {
-          const attr = object(a); return attr && typeof attr.name === "string" && typeof attr.value === "string" && attr.name === "HardSize" ? [[attr.name, attr.value]] : [];
-        }));
-        return writer.element(`gnm:${info}`, { ...attrs, No: axis.index, Unit: axis.sizePoints === undefined ? axisAttrs.DefaultSizePts ?? (kind === "Cols" ? 48 : 12.75) : axisSizeXml(axis.sizePoints),
-        ...(axis.hidden ? { Hidden: 1 } : {}), ...(axis.collapsed ? { Collapsed: 1 } : {}), ...(axis.outlineLevel ? { OutlineLevel: axis.outlineLevel } : {}) }, "", "", 4);
-      }).join("") ?? "", 3);
-    }
-    for (const kind of ["Selections", "Objects"]) content += emitRetained(sheet.unsupportedRecords, kind, 3, writer);
-    const selection = typeof sheet.view?.selection === "string" ? parseA1(sheet.view.selection) : undefined;
-    if (selection) content += writer.element("gnm:Selections", { CursorCol: selection.column, CursorRow: selection.row }, "",
-      writer.element("gnm:Selection", { startCol: selection.column, startRow: selection.row, endCol: selection.column, endRow: selection.row }, "", "", 4), 3);
-    const comments = sheet.unsupportedRecords?.filter(r => r.disposition === "retained" && r.kind === "CellComment").flatMap(r => {
-      const data = object(r.data);
-      return typeof data?.ObjectBound === "string" && typeof data.Text === "string" ? [writer.element("gnm:CellComment",
-        { ObjectBound: data.ObjectBound, ObjectOffset: "1 0 1 0", Direction: 17, Print: 1, Text: data.Text }, "", "", 4)] : [];
-    }).join("");
-    if (comments) content += writer.element("gnm:Objects", {}, "", comments, 3);
-    if (typeof sheet.view?.initialTopLeft === "string") content += writer.element("gnm:SheetLayout", { TopLeft: sheet.view.initialTopLeft }, "", "", 3);
-    let cellXml = "";
-    for (const cell of [...sheet.cells].sort((a, b) => a.row - b.row || a.column - b.column)) {
-      context.signal.throwIfAborted();
-      if (!cell.formula && cell.value.kind === "blank") continue;
-      const group = sheet.formulaGroups?.find(g => g.kind === "array" && cell.row >= g.range.startRow && cell.row <= g.range.endRow && cell.column >= g.range.startColumn && cell.column <= g.range.endColumn);
-      if (group && (cell.row !== group.range.startRow || cell.column !== group.range.startColumn)) continue;
-      const cellAttrs: Record<string, string | number> = { Row: cell.row, Col: cell.column,
-        ...formulaSemanticsAttributes(group?.arrayStringLiterals ?? cell.arrayStringLiterals, false, cell.formula) };
-      if (group) { cellAttrs.Rows = group.range.endRow - group.range.startRow + 1; cellAttrs.Cols = group.range.endColumn - group.range.startColumn + 1; }
-      // Released normal writer deliberately omits formula caches.
-      if (!cell.formula) { cellAttrs.ValueType = types[cell.value.kind];
-        const format = cell.richText ? writeGnumericRichText(cell.richText) : cellValueFormat(cell);
-        if (format) cellAttrs.ValueFormat = format;
+        yield* writer.container("gnm:Sheet", attrs, content(), 2);
       }
-      cellXml += writer.element("gnm:Cell", cellAttrs, cell.formula ? nativeOpenFormula(cell.formula, { sheet: sheet.id, row: cell.row, column: cell.column }, context, cell.arrayStringLiterals) : valueText(cell.value, context), "", 4);
     }
-    content += writer.element("gnm:Cells", {}, "", cellXml, 3);
-    if (sheet.merges?.length) content += writer.element("gnm:MergedRegions", {}, "", sheet.merges.map(r => writer.element("gnm:Merge", {},
-      `${formatA1(r.startRow, r.startColumn)}:${formatA1(r.endRow, r.endColumn)}`, "", 4)).join(""), 3);
-    for (const kind of ["SheetLayout", "Filters", "Solver", "Scenarios"]) content += emitRetained(sheet.unsupportedRecords, kind, 3, writer);
-    sheetXml += writer.element("gnm:Sheet", attrs, "", content, 2);
+    yield* writer.container("gnm:Sheets", {}, sheets(), 1);
+    yield writer.element("gnm:UIData", { SelectedTab: Math.max(0, book.sheets.findIndex(s => s.id === book.activeSheet)) }, "", "", 1);
+    yield* retainedParts(book.unsupportedRecords, "GODoc", 1, writer);
   }
-  body += writer.element("gnm:Sheets", {}, "", sheetXml, 1) + writer.element("gnm:UIData", { SelectedTab: Math.max(0, book.sheets.findIndex(s => s.id === book.activeSheet)) }, "", "", 1) + emitRetained(book.unsupportedRecords, "GODoc", 1, writer);
-  output += writer.element("gnm:Workbook", { "xmlns:gnm": namespace, "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", "xsi:schemaLocation": "http://www.gnumeric.org/v9.xsd" }, "", body);
-  if (utf8Length(output) > maximum) limit("output bytes");
-  const bytes = new TextEncoder().encode(output);
+  yield* writer.container("gnm:Workbook", { "xmlns:gnm": namespace, "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance", "xsi:schemaLocation": "http://www.gnumeric.org/v9.xsd" }, body());
+
+}
+
+
+export async function* writeGnumericStream(book: Workbook, _options: readonly string[], context: CapabilityContext): AsyncGenerator<Uint8Array> {
+  yield* encodeTextStream(gnumericChunks(book, context), "UTF-8", false, context);
+}
+
+async function collectGnumeric(source: AsyncIterable<Uint8Array>): Promise<Uint8Array> {
+  const chunks: Uint8Array[] = []; let length = 0;
+  for await (const chunk of source) { chunks.push(chunk.slice()); length += chunk.length; }
+  const bytes = new Uint8Array(length); let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
   return bytes;
 }
 
-export async function writeCompressedGnumeric(book: Workbook, options: readonly string[], context: CapabilityContext): Promise<Uint8Array> {
+export async function writeGnumeric(book: Workbook, options: readonly string[], context: CapabilityContext): Promise<Uint8Array> {
+  return collectGnumeric(writeGnumericStream(book, options, context));
+}
+
+/** Compression consumes at most one encoded chunk ahead of its writable queue. */
+export async function* writeCompressedGnumericStream(book: Workbook, options: readonly string[], context: CapabilityContext): AsyncGenerator<Uint8Array> {
   const maximum = (context.limits.workbookTextBytes ?? context.limits.inputBytes) * 8 + (context.limits.workbookNodes ?? Infinity) * 256;
   if (maximum !== Infinity && !Number.isSafeInteger(maximum)) limit("XML serialization bytes");
-  const bytes = await writeGnumeric(book, options, { ...context, limits: { ...context.limits, outputBytes: maximum } });
-  const compressed = await transform(bytes, true, context.limits.outputBytes, context);
-  // libgsf gzip_output_header emits UNIX regardless of the JavaScript host.
-  compressed[9] = 3;
-  return compressed;
+  context.signal.throwIfAborted();
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  let writer: ReturnType<CompressionStream["writable"]["getWriter"]> | undefined;
+  let closed = false;
+  let closing: Promise<void> | undefined, production: Promise<void> | undefined;
+  let productionFailure: { error: unknown } | undefined;
+  const cleanup = () => {
+    closed = true;
+    return closing ??= (async () => {
+      await Promise.allSettled([reader?.cancel(), writer?.abort()]);
+      await production?.catch(() => {});
+    })();
+  };
+  context.own(cleanup);
+  const abort = () => { void cleanup(); };
+  context.signal.addEventListener("abort", abort, { once: true });
+  try {
+    context.signal.throwIfAborted();
+    if (closed) invalid("gzip operation is closed");
+    const stream = new CompressionStream("gzip");
+    reader = stream.readable.getReader(); writer = stream.writable.getWriter();
+    const producer = writer;
+    async function* input() {
+      try { yield* writeGnumericStream(book, options, { ...context, limits: { ...context.limits, outputBytes: maximum } }); }
+      catch (error) { productionFailure = { error }; throw error; }
+    }
+    production = (async () => {
+      try {
+        for await (const chunk of input()) {
+          context.signal.throwIfAborted();
+          await producer.write(new Uint8Array(chunk));
+        }
+        await producer.close();
+      } catch (error) {
+        await producer.abort(error).catch(() => {});
+        throw error;
+      }
+    })();
+    void production.catch(() => {});
+    let length = 0;
+    while (true) {
+      context.signal.throwIfAborted();
+      const next = await reader.read();
+      context.signal.throwIfAborted();
+      if (next.done) break;
+      if (next.value.length > context.limits.outputBytes - length) limit("output bytes");
+      const bytes = next.value;
+      // libgsf writes the UNIX OS byte, independent of the JavaScript host.
+      if (length <= 9 && bytes.length > 9 - length) bytes[9 - length] = 3;
+      length += bytes.length;
+      for (let offset = 0; offset < bytes.length; offset += 16384) {
+        context.signal.throwIfAborted();
+        yield bytes.subarray(offset, offset + 16384);
+      }
+    }
+    await production;
+    context.signal.throwIfAborted();
+  } catch (error) {
+    context.signal.throwIfAborted();
+    if (productionFailure) throw productionFailure.error;
+    if (error instanceof SsconvertError) throw error;
+    invalid("gzip output failed");
+  } finally { context.signal.removeEventListener("abort", abort); await cleanup(); }
+}
+
+export async function writeCompressedGnumeric(book: Workbook, options: readonly string[], context: CapabilityContext): Promise<Uint8Array> {
+  return collectGnumeric(writeCompressedGnumericStream(book, options, context));
 }

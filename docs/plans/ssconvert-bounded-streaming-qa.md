@@ -2,7 +2,9 @@
 
 This is a manual execution plan, not a completed Worker qualification. Incremental
 CSV/text range input and incremental output, plus caller-backed input staging,
-are available. XLSX and ODF also read compressed archives through retained ranges;
+are available. Gnumeric XML and gzip exporters also stream encoded output; cells,
+individual fields, retained subtrees, and unordered-cell sorting remain resident.
+XLSX and ODF also read compressed archives through retained ranges;
 their directories use caller-backed indexes when working storage is configured.
 ODF decrypted members and wrapped inner packages are still buffered.
 Plain text conversions without global evaluation now replay cells from retained input through the exporter; they do not retain a full cell array. Formula-bearing and clock-dependent inputs, transformations, and explicit workbook SDK reads still use the array model. Decoded XML documents and non-text workbooks remain resident. Other built-in input collection, the owned array-based workbook,
@@ -41,9 +43,12 @@ planning documents and remove temporary logs after recording verified results.
    concurrency, rather than file/workbook size. Backing storage may grow with
    payload size. Inspect backend counters to rule out a RAM spool or a hidden
    payload-wide read, concatenation, decompression, or archive member cache.
-4. For sequential text export, observe first output before all cells are formatted
-   and verify formatting stops while the consumer is blocked. For conversions
-   needing global state, record the staging/indexing phase separately from output.
+4. For sequential text and Gnumeric XML export, observe first output before all
+   cells are formatted and verify formatting stops while the consumer is blocked.
+   For gzip, separately bound pending compression input and output bytes, verify
+   the UNIX header byte, and compare decompressed XML with uncompressed export.
+   For conversions needing global state, record the staging/indexing phase
+   separately from output.
 5. Repeat through the public SDK and the Safe Bash CLI. Keep input/output limits
    unchanged. Verify byte ownership by reusing source buffers after each awaited
    transfer and mutating returned range buffers on subsequent reads.

@@ -3,12 +3,18 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "xlsxExternalSpanOrderAdmission": {
+      "scope": "Both XLSX editions validate direct and named external spans against original retained sheet order before registering references. Newly encountered single-sheet references cannot supply missing order evidence.",
+      "verification": "12 original failures repaired;114 XLSX owner and586 integration tests pass. Maintained selectedbuild and ownerlint/types pass.24 compiled SDK/command checks cover refused unknown endpoints, known/case-alias spans and permitted new single-sheet references. Refusals emit zero SDK chunks and preserve command destinations. Actual CLI diagnostic screenshot inspected.",
+      "evidence": "out/ssconvert-continuation-1748/xlsx-span-current and xlsx-span-{before,after,integration,build,lint-final}.log",
+      "remaining": "Direct BIFF8 spans still require analogous original-order admission. Native numeric external3D limitations and all19families remain open."
+    },
     "externalSpanOrderAdmission": {
       "scope": "BIFF8 compilation of portable external name definitions. A multi-sheet span requires both endpoints in the retained sheet table; appending an unknown endpoint would fabricate span membership. Single-sheet references may still add a new sheet.",
       "reproduction": "Three independent XLSX endpoint-missing fixtures exported invented spans before the repair; all three now refuse. Known endpoints and case aliases preserve original indexes.",
       "verification": "69 focused BIFF tests; selected ssconvert build; XLS owner lint/types; changed integration test lint/types. Compiled SDK and command: three refusals per route with zero SDK chunks and unchanged command destination; three positive controls per route. Inputs for the command route use independently constructed ZIP/XML.",
       "evidence": "out/ssconvert-continuation-1748/external-span-order-current; external-span-order-{before,after,build,lint}.log",
-      "remaining": "XLSX export itself appends unknown endpoint names to its retained sheet list; repeated transport can therefore manufacture a complete-looking order. That path still requires repair. Native external3D evaluation limitations and broader19-family scope remain open."
+      "remaining": "XLSX order admission is repaired by xlsxExternalSpanOrderAdmission. Direct BIFF8 span admission, native external3D evaluation limitations and broader19-family scope remain open."
     },
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",

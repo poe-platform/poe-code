@@ -1,3 +1,4 @@
+import { SsconvertError } from "@poe-code/spreadsheet-engine/contracts";
 import { foldSheetName } from "@poe-code/spreadsheet-ast/case-fold";
 import type { Workbook } from "@poe-code/spreadsheet-ast";
 import { retainedExternalNameDefinitions, externalNameKey, type ExternalBookDefinitions, type ExternalNameDefinition } from "@poe-code/spreadsheet-engine/codecs/external-name-definitions";
@@ -28,6 +29,14 @@ export class XlsxExternalLinkWriter {
     return book;
   }
   reference(node: Extract<FormulaNode, { kind: "reference" }>, position: ParsePosition): string {
+    if (node.first.sheet && node.last?.sheet && foldSheetName(node.first.sheet) !== foldSheetName(node.last.sheet)) {
+      const sheets = this.definitions.get(node.first.workbook!)?.sheets;
+      const endpoints = [foldSheetName(node.first.sheet), foldSheetName(node.last.sheet)];
+      if (!sheets || endpoints.some(endpoint => !sheets.some(sheet => {
+        this.charge(sheet.length + 1);
+        return foldSheetName(sheet) === endpoint;
+      }))) throw new SsconvertError("unsupported-feature", "XLSX external span requires retained sheet order");
+    }
     const { index } = this.register(node.first.workbook!, [node.first.sheet, node.last?.sheet]);
     const sheet = node.first.sheet ?? position.sheet;
     const span = node.last?.sheet && node.last.sheet !== sheet ? sheet + ":" + node.last.sheet : sheet;

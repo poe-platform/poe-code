@@ -157,3 +157,16 @@ it.each(["_x005F_x0041_", "_x005F_x005F_x005F_x0041_", "表"])(`preserves extern
     book = await readXlsx(bytes, context);
   }
 });
+
+for (const edition of ["2006", "2008"] as const)
+for (const named of [false, true])
+it.each(["Other:Missing", "Missing:Other", "Missing:Absent"])(`refuses unknown external span order in ${edition}, named ${named}: %s`, async span => {
+  const imported = await readXlsx(await fixture(named ? "SUM([1]!Rate)" : `SUM([1]${span}!$A$1)`, "External", false, "linked.xls", undefined,
+    ["Other", "Middle", "Last"], named ? `[1]${span}!$A$1` : ""), context);
+  // Earlier single-sheet references must not fabricate knowledge of sheet order.
+  const book = { ...imported, sheets: [{ ...imported.sheets[0]!, cells: [
+    { row: 0, column: 0, formula: "=['linked.xls']Missing!A1", value: { kind: "number" as const, value: 999 } },
+    { ...imported.sheets[0]!.cells[0]!, column: 1 }
+  ] }] };
+  await expect(createXlsxWriter(edition)(book, [], context)).rejects.toThrow("XLSX external span requires retained sheet order");
+});

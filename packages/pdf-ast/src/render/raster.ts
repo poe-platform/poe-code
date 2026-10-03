@@ -1,3 +1,4 @@
+import { prepareRetainedImageSampler } from "./retained-image-sampling.js";
 import { createTiffHeader, encodePackBitsRowSteps } from "./tiff-stream.js";
 import { jpegEncodingProgram } from "./jpeg-stream.js";
 import { updatePngCrc } from "./png-stream.js";
@@ -977,11 +978,11 @@ function paintOperations(displayList: PdfDisplayList): readonly PdfPaintOperatio
 
 // PDF.js _prepareSMaskCanvas/_bakeSMaskCanvas: composite the group's backdrop
 // before converting luminosity, then apply the 256-entry transfer function.
-function *renderSoftMaskSteps(mask: PdfSoftMask, displayList: PdfDisplayList, scale: number, window?: PdfCropRect): Generator<void, RgbaBitmap, void> {
+function *renderSoftMaskSteps(mask: PdfSoftMask, displayList: PdfDisplayList, scale: number, window?: PdfCropRect, images?: RasterImageInput): Generator<void, RgbaBitmap, void> {
   let work = 0;
   const bitmap = (yield* renderDisplayListLayerSteps({
     ...displayList, rotation: 0, glyphs: [], paths: [], images: [], operations: mask.operations,
-  }, { scale, transparent: true }, scale, undefined, window));
+  }, { scale, transparent: true }, scale, undefined, window, undefined, images));
   const { data } = bitmap;
   for (let i = 0; i < data.length; i += 4) {
     if (++work % 16384 === 0) yield;
@@ -1030,6 +1031,11 @@ function containsBackdropGroup(operations: readonly PdfPaintOperation[]): boolea
     (needsGroupBackdrop(operation.value) || containsBackdropGroup(operation.value.operations)));
 }
 
+type RetainedImageSampler = Awaited<ReturnType<typeof prepareRetainedImageSampler>>;
+interface RasterImageInput {
+  request?: {kind:"prepare";image:PdfEvaluatedImage;widthScale:number;heightScale:number} | {kind:"sample";sampler:RetainedImageSampler;u:number;v:number;smooth:boolean;out:Float64Array} | undefined;
+  sampler?: RetainedImageSampler | undefined;
+}
 interface RasterOperationInput {
   requested: boolean;
   next: IteratorResult<PdfPaintOperation> | undefined;
@@ -1042,7 +1048,8 @@ function *renderDisplayListLayerSteps(
   scale: number,
   backdrop?: Uint8Array,
   window?: PdfCropRect,
-  input?: RasterOperationInput
+  input?: RasterOperationInput,
+  images?: RasterImageInput
 ): Generator<void, RgbaBitmap, void> {
   let work = 0;
   const [originX, originY] = displayList.origin ?? [0, 0];
@@ -1116,7 +1123,7 @@ function *renderDisplayListLayerSteps(
       const group = operation.value;
       const bitmap = (yield* renderDisplayListLayerSteps(
         { ...displayList, operations: group.operations },
-        { ...options, transparent: true }, scale, needsGroupBackdrop(group) ? rgba : undefined, window
+        { ...options, transparent: true }, scale, needsGroupBackdrop(group) ? rgba : undefined, window, undefined, images
       ));
       for (let i = 3; i < bitmap.data.length; i += 4) { if (++work % 16384 === 0) yield; bitmap.data[i] = Math.round(bitmap.data[i]! * group.alpha); }
       operation = { kind: "image", value: {
@@ -1141,7 +1148,7 @@ function *renderDisplayListLayerSteps(
     const softMask = original.value.softMask;
     if (softMask) {
       if (softMask !== cachedSoftMask) {
-        cachedSoftMaskPixels = (yield* renderSoftMaskSteps(softMask, displayList, scale, window)).data;
+        cachedSoftMaskPixels = (yield* renderSoftMaskSteps(softMask, displayList, scale, window, images)).data;
         cachedSoftMask = softMask;
       }
       if (clipMask) {
@@ -1160,7 +1167,7 @@ function *renderDisplayListLayerSteps(
           if (++work % 16384 === 0) yield;
           const layer = (yield* renderDisplayListLayerSteps({
             ...displayList, rotation: 0, paths: [], glyphs: [], images: [image], operations: [{ kind: "image", value: image }],
-          }, { scale, transparent: true }, scale, undefined, window)).data;
+          }, { scale, transparent: true }, scale, undefined, window, undefined, images)).data;
           for (let px = 0; px < width * height; px++) { if (++work % 16384 === 0) yield; imageMask[px] = Math.round(imageMask[px]! * layer[px * 4 + 3]! / 255); }
         }
         if (imageClipMasks.size === 4) imageClipMasks.delete(imageClipMasks.keys().next().value!);
@@ -1197,7 +1204,8 @@ function *renderDisplayListLayerSteps(
       }
     } else if (operation.kind === "image") {
       const img = operation.value;
-      if (!img.decodedRgba) continue;
+      if (!img.decodedRgba && !img.storedRgba) continue;
+      if (img.storedRgba && !images) throw new Error("Stored PDF pixels require the asynchronous raster driver");
       const [a, b, c, d, e, f] = img.matrix;
       const det = a * d - b * c;
       if (Math.abs(det) <= 1e-8) continue;
@@ -1217,9 +1225,13 @@ function *renderDisplayListLayerSteps(
 
       // Measure source-pixel footprints through the inverse transform so that
       // rotations/reflections reduce the appropriate source axis.
-      const source = downscaleImage({ width: img.width, height: img.height, data: img.decodedRgba },
-        Math.hypot(d, c) * img.width / Math.abs(det * scale),
-        Math.hypot(b, a) * img.height / Math.abs(det * scale));
+      const widthScale = Math.hypot(d, c) * img.width / Math.abs(det * scale), heightScale = Math.hypot(b, a) * img.height / Math.abs(det * scale);
+      let sampler: RetainedImageSampler | undefined;
+      if (img.storedRgba) {
+        images!.request = {kind:"prepare",image:img,widthScale,heightScale}; yield;
+        sampler = images!.sampler; images!.sampler = undefined;
+      }
+      const source = sampler ? undefined : downscaleImage({width:img.width,height:img.height,data:img.decodedRgba!},widthScale,heightScale);
       // As in PDF.js getImageSmoothingEnabled, smooth downscaling even when
       // Interpolate is absent. The largest singular value detects enlargement
       // under skew as well as ordinary axis-aligned scaling.
@@ -1242,13 +1254,15 @@ function *renderDisplayListLayerSteps(
           const u = (d * dxPdf - c * dyPdf) / det;
           const v = (-b * dxPdf + a * dyPdf) / det;
           if (u < 0 || u > 1 || v < 0 || v > 1) continue;
-          if (smooth) {
-            sampleImageLinear(source, u * source.width - 0.5, (1 - v) * source.height - 0.5, sample);
+          if (sampler) {
+            images!.request = {kind:"sample",sampler,u,v,smooth,out:sample}; yield;
+          } else if (smooth) {
+            sampleImageLinear(source!, u * source!.width - 0.5, (1 - v) * source!.height - 0.5, sample);
           } else {
-            const sx = Math.min(source.width - 1, Math.max(0, Math.floor(u * source.width)));
-            const sy = Math.min(source.height - 1, Math.max(0, Math.floor((1 - v) * source.height)));
-            const sIdx = (sy * source.width + sx) * 4;
-            for (let c = 0; c < 4; c++) { if (++work % 16384 === 0) yield; sample[c] = source.data[sIdx + c]!; }
+            const sx = Math.min(source!.width - 1, Math.max(0, Math.floor(u * source!.width)));
+            const sy = Math.min(source!.height - 1, Math.max(0, Math.floor((1 - v) * source!.height)));
+            const sIdx = (sy * source!.width + sx) * 4;
+            for (let c = 0; c < 4; c++) { if (++work % 16384 === 0) yield; sample[c] = source!.data[sIdx + c]!; }
           }
           blendPixel(
             rgba,
@@ -1355,14 +1369,21 @@ export async function renderOperationStreamWindow(page: Pick<PdfDisplayList, "wi
     if (hasCompositingEffects([operation])) { input.compositing = true; break; }
   }
   const list: PdfDisplayList = { ...page, pageIndex: 0, rotation: 0, glyphs: [], paths: [], images: [], annotations: [], operations: [] };
-  const source = cursor(), work = renderDisplayListLayerSteps(list, options, scale, undefined, window, input);
-  let failed = false, ticks = 0;
+  const images: RasterImageInput = {};
+  const source = cursor(), work = renderDisplayListLayerSteps(list, options, scale, undefined, window, input, images);
+  let failed = false, ticks = 0, samples = 0;
   try {
     let step = work.next();
     while (!step.done) {
       signal?.throwIfAborted();
       if (input.requested) { input.requested = false; input.next = await source.next(); }
-      if (++ticks % 32 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); }
+      let sampled = false;
+      if (images.request) {
+        const request = images.request; images.request = undefined;
+        if (request.kind === "prepare") images.sampler = await prepareRetainedImageSampler(request.image,request.widthScale,request.heightScale,signal);
+        else { sampled = true; await request.sampler.sample(request.u,request.v,request.smooth,request.out); }
+      }
+      if (sampled ? ++samples % 1024 === 0 : ++ticks % 32 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); }
       signal?.throwIfAborted(); step = work.next();
     }
     return step.value;

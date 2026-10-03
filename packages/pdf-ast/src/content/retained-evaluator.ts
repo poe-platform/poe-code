@@ -19,6 +19,8 @@ export interface PdfRetainedEvaluationOptions extends ParseContentRangeOptions {
   /** Conservative cumulative resource admission for this traversal. Path and
    * composite capture arrays and object-reader caches have separate ownership. */
   readonly maxResourceBytes?: number;
+  /** Optional caller-owned pixel backing; remains live while operations are used. */
+  readonly imageStorage?: import("../ast.js").PdfPixelStorage;
   readonly onAllocation?: (bytes: number) => void;
   readonly maxImageBytes?: number;
   readonly maxCachedFonts?: number;
@@ -66,13 +68,30 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
     return parseContentStreamEvents(chunks, shared, { ...options, chunkBytes });
   }
   async function decodeImage(image: Pick<PdfRetainedImage, "dict" | "resources" | "contents">,
-    fillColor: { r: number; g: number; b: number; alpha: number } | undefined): Promise<DecodedDisplayImage> {
+    fillColor: { r: number; g: number; b: number; alpha: number } | undefined): Promise<DecodedDisplayImage | (Omit<DecodedDisplayImage, "rgba"> & {readonly storedRgba: import("../ast.js").PdfStoredPixels})> {
     const owner = await PdfRetainedDecodedImage.open(document, image, shared, {
       chunkBytes, maxOutputBytes: options.maxImageBytes ?? Infinity, maxStagingBytes: options.maxStagingBytes ?? Infinity,
       onAllocation: charge, fillColor, ...(signal ? { signal } : {}),
     });
     let failed = false;
     try {
+      if (options.imageStorage) {
+        const storage = options.imageStorage, length = owner.width * owner.height * 4;
+        const position = storage.allocate(length);
+        if (!Number.isSafeInteger(position) || position < 0 || !Number.isSafeInteger(position + length)) throw new RangeError("Invalid PDF pixel allocation");
+        let written = 0;
+        for await (const row of owner.rows()) {
+          if (row.length > length - written) throw new PdfError("E_PARSE", "Excess retained image rows");
+          for (let offset = 0; offset < row.length; offset += chunkBytes) {
+            signal?.throwIfAborted();
+            await storage.write(position + written + offset, row.subarray(offset, offset + chunkBytes), signal ? {signal} : undefined);
+          }
+          written += row.length;
+        }
+        signal?.throwIfAborted();
+        if (written !== length) throw new PdfError("E_PARSE", "Incomplete retained image rows");
+        return {width:owner.width,height:owner.height,bitsPerComponent:owner.bitsPerComponent,colorSpace:owner.color.colorSpace,storedRgba:{storage,position}};
+      }
       charge(owner.width * owner.height * 4);
       const rgba = new Uint8Array(owner.width * owner.height * 4); let offset = 0;
       for await (const row of owner.rows()) { signal?.throwIfAborted(); rgba.set(row, offset); offset += row.length; }

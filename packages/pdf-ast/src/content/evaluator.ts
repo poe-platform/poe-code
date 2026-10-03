@@ -937,7 +937,7 @@ export type PdfEvaluationResult = PdfContentEvent | ResolvedPageFont
   | { readonly kind: "color"; readonly value: readonly [number, number, number] }
   | { readonly kind: "resolved"; readonly node: PdfCosNode | undefined }
   | { readonly kind: "mask-parameters"; readonly value: Pick<PdfSoftMask, "backdrop" | "transferMap"> }
-  | { readonly kind: "decoded-image"; readonly image: ReturnType<typeof decodeXObjectImageToRgba> } | undefined;
+  | { readonly kind: "decoded-image"; readonly image: ReturnType<typeof decodeXObjectImageToRgba> | (Omit<ReturnType<typeof decodeXObjectImageToRgba>, "rgba"> & {readonly storedRgba: import("../ast.js").PdfStoredPixels}) } | undefined;
 type EvaluationWork<T = void> = Generator<PdfEvaluationRequest, T, PdfEvaluationResult>;
 type FontScope = ReadonlyArray<PdfCosDict | undefined>;
 
@@ -1713,7 +1713,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                   height: decoded.height,
                   colorSpace: decoded.colorSpace,
                   bitsPerComponent: decoded.bitsPerComponent,
-                  decodedRgba: decoded.rgba,
+                  ...("rgba" in decoded ? {decodedRgba: decoded.rgba} : {storedRgba: decoded.storedRgba}),
                   ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
                   ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
                 }, patternMask, activeResources, activeFonts, depth);
@@ -1741,7 +1741,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             height: decoded.height,
             colorSpace: decoded.colorSpace,
             bitsPerComponent: decoded.bitsPerComponent,
-            decodedRgba: decoded.rgba,
+            ...("rgba" in decoded ? {decodedRgba: decoded.rgba} : {storedRgba: decoded.storedRgba}),
             ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
             ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
           }, patternMask, activeResources, activeFonts, depth);

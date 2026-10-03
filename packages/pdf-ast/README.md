@@ -22,6 +22,13 @@ cancellation. This avoids collecting a page display list; individual evaluated
 paths, decoded resources and nested captures still retain their existing memory
 ownership.
 
+Pass `imageStorage` to retained page evaluation to keep decoded image pixels in
+caller-owned random-access backing. `renderOperationStreamWindow` reads these
+pixels with a fixed range cache and stages downsampling levels in that same
+backing, preserving the buffered sampling math. Keep the backing alive until
+painting finishes, then close it. Codec/color state, paths, shading and nested
+captures retain their own memory requirements.
+
 `PdfFileSource.open(fs, path, options)` provides retained random-access input
 using the caller's safe-fs. `read(position, maxBytes)` returns owned bytes up to
 `chunkBytes`, and `stream(position, length)` yields ranges under consumer

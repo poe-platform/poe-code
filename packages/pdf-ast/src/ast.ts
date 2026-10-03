@@ -246,6 +246,14 @@ export interface PdfEvaluatedPath {
   readonly clipRect?: readonly [number, number, number, number] | undefined;
 }
 
+/** Caller-owned random-access pixel backing. Range results may be borrowed. */
+export interface PdfPixelStorage {
+  allocate(length: number): number;
+  read(position: number, length: number, options?: {readonly signal?: AbortSignal}): Promise<Uint8Array>;
+  write(position: number, bytes: Uint8Array, options?: {readonly signal?: AbortSignal}): Promise<void>;
+}
+export interface PdfStoredPixels { readonly storage: PdfPixelStorage; readonly position: number }
+
 export interface PdfEvaluatedImage {
   readonly name: string;
   readonly matrix: readonly [number, number, number, number, number, number];
@@ -254,6 +262,7 @@ export interface PdfEvaluatedImage {
   readonly colorSpace: string;
   readonly bitsPerComponent: number;
   readonly decodedRgba?: Uint8Array | undefined;
+  readonly storedRgba?: PdfStoredPixels | undefined;
   readonly blendMode?: string | undefined;
   readonly clipPaths?: readonly PdfClipPath[] | undefined;
   readonly clipImages?: readonly PdfEvaluatedImage[] | undefined;

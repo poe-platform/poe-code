@@ -164,7 +164,8 @@ import { createWkhtmltopdfCommand } from "@poe-platform/safe-bash/commands/wkhtm
 assert.equal(typeof safeFs.createMemoryFileSystem, "function");
 assert.equal(typeof safeJs.run, "function");
 assert.equal(typeof safeBash.Shell, "function");
-assert.equal(safeBash.Shell, nodeBash.Shell);
+// The Node entry adds its worker-backed timeout policy to the portable shell.
+assert.ok(nodeBash.Shell.prototype instanceof safeBash.Shell);
 assert.equal(safeFs.FsError, safeBash.FsError);
 assert.ok(createMetadataCommands().length > 0);
 assert.equal(safeBash.commandRuntimeIdentity, contracts.commandRuntimeIdentity);

@@ -1,3 +1,4 @@
+import {PagedStorage} from "safe-bash-io-engine/storage";
 import { PandocError } from "./errors.js";
 import type { Document, ResourceFileSystem, WriteOptions } from "./types.js";
 import type { ExecutionContext } from "./execution.js";
@@ -62,18 +63,22 @@ async function inspect(fs: ResourceFileSystem, path: string, context: ExecutionC
   return type;
 }
 
+type ResourceData = {bytes: Uint8Array} | {position: number; length: number};
+type ResourceEntry = {path: string} & ResourceData;
+
 /** Invocation-local media bag. URI spellings map to VFS keys; extracted names
  * are allocated separately and percent encoded only when written back as URLs. */
 export class ResourceSession {
   readonly origins = targetOrigins;
-  private readonly bag = new Map<string, {path: string; bytes: Uint8Array}>();
+  private readonly bag = new Map<string, ResourceEntry>();
   private readonly names = new Set<string>();
-  private readonly plans: {path: string; bytes: Uint8Array}[] = [];
+  private readonly plans: ResourceEntry[] = [];
+  private storage: PagedStorage | undefined;
   private destination: string | undefined;
   private search: readonly string[] | undefined;
   constructor(private readonly context: ExecutionContext) {}
 
-  private allocate(basename: string, bytes: Uint8Array): {path: string; bytes: Uint8Array} {
+  private allocate(basename: string, data: ResourceData): ResourceEntry {
     if (!basename || basename === "." || basename === "..") this.context.fail("E_CAPABILITY", "Invalid extraction basename");
     let name = basename;
     const dot = basename.lastIndexOf(".");
@@ -82,7 +87,7 @@ export class ResourceSession {
       name = dot > 0 ? `${basename.slice(0, dot)}-${n}${basename.slice(dot)}` : `${basename}-${n}`;
     }
     this.names.add(name);
-    const entry = {path: this.destination === undefined ? name : `${this.destination === "/" ? "" : this.destination}/${name}`, bytes};
+    const entry = {path: this.destination === undefined ? name : `${this.destination === "/" ? "" : this.destination}/${name}`, ...data};
     this.context.charge("references", 1);
     this.context.charge("retainedBytes", entry.path.length * 2 + 64);
     this.plans.push(entry);
@@ -108,7 +113,7 @@ export class ResourceSession {
     const ctx = this.context;
     const embedded = new Map<string, Uint8Array>();
     const imageResources = new Map<string, Uint8Array>();
-    const embeddedEntries = new Map<string, {path: string; bytes: Uint8Array}>();
+    const embeddedEntries = new Map<string, ResourceEntry>();
     for (const resource of document.resources) {
       if (this.destination !== undefined) mediaKeyBasename(resource.id, ctx);
       const previous = embedded.get(resource.id);
@@ -149,7 +154,7 @@ export class ResourceSession {
       if (destinationType !== undefined && destinationType !== "directory") ctx.fail("E_IO", "Extraction destination is not a directory");
     }
     for (const [key, bytes] of embedded) {
-      const entry = this.allocate(this.destination === undefined ? "resource" : mediaKeyBasename(key, ctx), bytes);
+      const entry = this.allocate(this.destination === undefined ? "resource" : mediaKeyBasename(key, ctx), {bytes});
       embeddedEntries.set(key, entry);
       if (embedImages) {
         const id = entry.path.split("/").map(encodeURIComponent).join("/");
@@ -183,6 +188,18 @@ export class ResourceSession {
           if (type === undefined) continue;
           if (type !== "file") ctx.fail("E_CAPABILITY", "Image resource is not a regular file");
           ctx.charge("resources", 1);
+          const working = ctx.context.workingFiles;
+          const backed = !embedImages && working && fs.writeStream;
+          if (backed && !this.storage) {
+            const cacheBytes = working.cacheBytes ?? 1024 * 1024;
+            if (!Number.isSafeInteger(cacheBytes) || cacheBytes < 16384 || cacheBytes % 16384)
+              ctx.fail("E_OPTION", "Working storage cacheBytes must be a positive multiple of 16384");
+            if (!working.directory.startsWith("/")) ctx.fail("E_OPTION", "Working storage requires an absolute caller filesystem directory");
+            const storage = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: ctx.signal ?? new AbortController().signal}, cacheBytes / 16384);
+            ctx.onClose(() => storage.close());
+            this.storage = storage;
+          }
+          const position = backed ? this.storage!.allocate(0) : 0;
           const chunks: Uint8Array[] = [];
           let length = 0;
           const readOptions = ctx.signal ? {signal: ctx.signal} : {};
@@ -197,12 +214,21 @@ export class ResourceSession {
             }
             yield bytes;
           })();
-          await ctx.consume(producer, async bytes => {ctx.charge("references", 1); chunks.push(bytes); length += bytes.length;}, ["resourceBytes"]);
-          ctx.charge("retainedBytes", length);
-          const bytes = new Uint8Array(length);
-          let offset = 0;
-          for (const chunk of chunks) {bytes.set(chunk, offset); offset += chunk.length; await ctx.cooperate();}
-          entry = this.allocate(target.name.split("/").at(-1)!, bytes);
+          await ctx.consume(producer, async bytes => {
+            if (backed) await this.storage!.append(bytes);
+            else {ctx.charge("references", 1); chunks.push(bytes);}
+            length += bytes.length;
+          }, ["resourceBytes"]);
+          let data: ResourceData;
+          if (backed) data = {position, length};
+          else {
+            ctx.charge("retainedBytes", length);
+            const bytes = new Uint8Array(length);
+            let offset = 0;
+            for (const chunk of chunks) {bytes.set(chunk, offset); offset += chunk.length; await ctx.cooperate();}
+            data = {bytes};
+          }
+          entry = this.allocate(target.name.split("/").at(-1)!, data);
           this.bag.set(key, entry);
           break;
         }
@@ -215,7 +241,8 @@ export class ResourceSession {
         if (embedImages && !imageResources.has(outputUrl)) {
           ctx.charge("references", 1);
           ctx.charge("retainedBytes", outputUrl.length * 2 + 64);
-          imageResources.set(outputUrl, entry.bytes);
+          if ("bytes" in entry) imageResources.set(outputUrl, entry.bytes);
+          else ctx.fail("E_INTERNAL", "Embedded resource requires bytes");
         }
         return {...image, c: [image.c[0], await visit(image.c[1], `${path}.c[1]`), [outputUrl, title]]};
       }
@@ -239,7 +266,23 @@ export class ResourceSession {
       // Recheck after preflight and request exclusive creation. Ancestor authority
       // remains with the provider; this is not a filesystem transaction.
       if (await inspect(fs, entry.path, ctx) !== undefined) ctx.fail("E_IO", "Extraction destination changed after preflight");
-      await ctx.call(() => fs.writeFile(entry.path, entry.bytes, {...options, flag: "wx"}));
+      if ("bytes" in entry) await ctx.call(() => fs.writeFile(entry.path, entry.bytes, {...options, flag: "wx"}));
+      else {
+        const storage = this.storage!;
+        let consumed = false;
+        const chunks = (async function* () {
+          for (let offset = 0; offset < entry.length; offset += 16384) {
+            ctx.checkpoint();
+            yield await storage.read(entry.position + offset, Math.min(16384, entry.length - offset));
+            await ctx.cooperate();
+          }
+          consumed = true;
+        })();
+        try {
+          await ctx.call(() => fs.writeStream!(entry.path, chunks, {...options, flag: "wx"}));
+          if (!consumed) ctx.fail("E_IO", "Resource publisher returned before consuming output");
+        } finally {await chunks.return(undefined);}
+      }
     }
   }
 }

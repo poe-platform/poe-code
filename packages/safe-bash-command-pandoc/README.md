@@ -158,6 +158,15 @@ Pandoc JSON stores tree nodes, parent links, subtree boundaries and string conte
 in that backing store. Construction and serialization keep no resident document
 index or traversal stack; long fields retain their original inline semantics.
 
+For media extraction, supply `workingFiles` and `resourceFiles.writeStream` to
+spool external resources in caller storage and publish them in 16 KiB chunks.
+The publisher must consume through EOF, await writes, and honor exclusive
+creation (`flag: "wx"`). The command uses atomic streaming publication when the
+injected provider advertises it. Resource resolution, preflight collision checks,
+and cleanup remain in effect. Embedded image conversion and providers exposing
+only `writeFile` still use byte buffers; the document AST and resource name index
+remain resident. Resource byte budgets remain cumulative across streamed reads.
+
 EPUB reads also accept `workingFiles` through `readDocument` and `convert`.
 Streamed archives and expanded ZIP members use the bounded page cache and caller
 backing storage, including ZIP names, span validation and member locations;

@@ -220,6 +220,16 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
       })()} : input);
       const owner = stdout ?? invocation;
       const resourceFiles = {
+        ...(context.fs.publishFileConditional && context.fs.capabilities.atomicFilePublication ? {
+          writeStream: async (path: string, chunks: AsyncIterable<Uint8Array>) => owner.acquire(async () => {
+            const parent = await context.fs.stat(dirname(path), {signal});
+            const output = createFileOutput(context.fs, path, {expected: null, parent, signal, maxBytes: parsed.limits?.resourceBytes ?? Infinity});
+            try {
+              for await (const bytes of chunks) await writeFileOutput(context, bytes, data => output.write(data, signal));
+              await output.close(signal);
+            } finally {await output.abort(new PandocError("E_CANCELLED", "convert", "Resource publication closed"));}
+          }, () => {})
+        } : {}),
         ...(files.readStream ? {readStream: (path: string) => files.readStream!(path, signal)} : {}),
         lstat: (path: string) => owner.acquire(() => context.fs.lstat(path, {signal}), () => {}),
         readFile: (path: string, supplied?: {maxBytes?: number}) => owner.acquire(async () => {

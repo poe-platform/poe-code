@@ -288,4 +288,6 @@ export interface ResourceFileSystem {
   readFile?(path: string, options?: {signal?: AbortSignal; maxBytes?: number}): Promise<Uint8Array>;
   mkdir(path: string, options?: {recursive?: boolean; signal?: AbortSignal}): Promise<void>;
   writeFile(path: string, bytes: Uint8Array, options?: {signal?: AbortSignal; flag?: "wx"}): Promise<void>;
+  /** Consume through EOF before returning; preserve exclusive creation and await each chunk. */
+  writeStream?(path: string, chunks: AsyncIterable<Uint8Array>, options?: {signal?: AbortSignal; flag?: "wx"}): Promise<void>;
 }

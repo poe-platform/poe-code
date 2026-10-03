@@ -10,7 +10,7 @@ import {
   type CommandContext,
   type CommandDefinition
 } from "safe-bash-contracts/command";
-import { readBytes, writeBytes } from "safe-bash-contracts/io";
+import { createBytePipe, readBytes, writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, type PdfOutputEntry, type PdfIndexStorage, type PdfRetainedFont, PdfDocument, dictGet, decodePdfString, parseContentStream, type PdfPage, type PdfCosNode, type PdfCosDict, type ParsedCosDocument } from "@poe-code/pdf-ast";
@@ -1250,7 +1250,10 @@ export async function pdfinfo(context: CommandContext, options: PdfinfoCommandOp
     const form = await resolve(rootEntry("AcroForm"));
     await field("Form", form?.kind === "dict" ? dictGet(form, "XFA") !== undefined ? "XFA" : "AcroForm" : "none");
     let javascript = false;
-    for await (const ignored of doc.javaScripts()) { javascript = true; break; }
+    for await (const action of doc.javaScripts()) {
+      for await (const ignored of action.contents()) signal.throwIfAborted();
+      javascript = true;
+    }
     await field("JavaScript", javascript ? "yes" : "no");
     await field("Pages", String(pageCount));
     const encryption = doc.encryption;
@@ -1915,7 +1918,33 @@ async function executeRetainedPdf<Plan extends { inputPath: string; password: st
       if (style === "info") return await error(`Syntax Error: ${message}\n`, 1);
       return await error(`PDF Error: ${message}\n`, 1);
     }
-    return await inspect(document, plan, { storage, signal, emit, error, fileSize: source.size });
+    if (style !== "info") return await inspect(document, plan, { storage, signal, emit, error, fileSize: source.size });
+    // Preserve the buffered command's all-or-nothing inspection errors while
+    // keeping the output payload in caller-backed storage, not a resident string.
+    const pipe = createBytePipe({ highWaterMark: 1, signal });
+    let stagedOutput: PdfFileSource | undefined, inspectionFailed = false;
+    let stagingFailure: { reason: unknown } | undefined;
+    const staging = PdfFileSource.fromStream(storage.fs, storage.directory, pipe.readable, { signal }).catch(async failure => {
+      stagingFailure = { reason: failure };
+      await pipe.abort(failure); throw failure;
+    });
+    void staging.catch(() => {});
+    try {
+      const result = await inspect(document, plan, { storage, signal, error, fileSize: source.size,
+        emit: text => writeBytes(pipe.writable, new TextEncoder().encode(text), signal),
+      });
+      await pipe.close(); stagedOutput = await staging;
+      if (result.exitCode === 0) for await (const bytes of stagedOutput.stream(0, stagedOutput.size, signal)) await writeBytes(output, bytes, signal);
+      return result;
+    } catch (failure) {
+      inspectionFailed = true;
+      await pipe.abort(failure).catch(() => {});
+      stagedOutput ??= await staging.catch(() => undefined);
+      if (stagingFailure && failure instanceof Error && "code" in failure && failure.code === "EPIPE") throw stagingFailure.reason;
+      throw failure;
+    } finally {
+      await stagedOutput?.close().catch(failure => { if (!inspectionFailed) throw failure; });
+    }
   } catch (failure) { failed = true; throw failure; } finally {
     // Close all acquired resources even if one backend cleanup fails.
     const results = await Promise.allSettled([document?.close(), source?.close(), invocation.close()]);

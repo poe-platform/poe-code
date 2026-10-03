@@ -48,7 +48,8 @@ Embedded attachment filenames are reduced to their final path component when ext
 
 `pdfinfo` / `pdfinfo(context, options)` and
 `pdffonts` / `executePdffonts(context, options)` inspect retained file ranges and
-stream inspection results. Custom metadata ordering uses caller-backed sort runs;
+stream inspection results. `pdfinfo` stages its output in injected storage before
+publishing, so inspection failures leave stdout empty. Custom metadata ordering uses caller-backed sort runs;
 individual metadata values remain subject to parser admission. `pdfdetach` / `executePdfdetach(context, options)` stream attachments into caller-backed staging before atomic publication. Provide
 an injected filesystem with retained reads, retained staging writes/cleanup and
 atomic ancestry-checked publication. The commands create `TMPDIR` (default `/tmp`)

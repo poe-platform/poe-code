@@ -1,3 +1,4 @@
+import {AffineSampler,normalizedRotation,type AffineSpec} from "./affine.js";
 import {buildVipsGaussmat,vipsSrgbToLabForSharpenInto,vipsLabToSrgbForSharpenInto,sharpenLuminance} from "./sharpen.js";
 import {blurKernel,blurFloatPixel} from "./blur.js";
 import {ConvolutionPixel} from "./convolve.js";
@@ -160,7 +161,7 @@ export function *rotateImageSteps(
   angle: number,
   background: RgbaColor = { r: 0, g: 0, b: 0, a: 255 }
 ): Generator<void, RgbaImage, void> {
-  const norm = ((angle % 360) + 360) % 360;
+  const norm = normalizedRotation(angle);
   if (Math.abs(norm) < 1e-6) return img;
   if (img.pages && img.pages > 1 && img.pageHeight && img.height === img.pages * img.pageHeight && Math.abs(norm - 180) >= 1e-6) {
     throw new Error("Rotate is not supported for multi-page images");
@@ -2056,151 +2057,22 @@ export function *claheImageSteps(
   return { ...img, data: out };
 }
 
-export function *affineImageSteps(
-  img: RgbaImage,
-  spec: {
-    readonly matrix: readonly [number, number, number, number];
-    readonly background: RgbaColor;
-    readonly idx?: number;
-    readonly idy?: number;
-    readonly odx?: number;
-    readonly ody?: number;
-    readonly interpolator?: string;
+export function *affineImageSteps(img:RgbaImage,spec:AffineSpec):Generator<void,RgbaImage,void> {
+ const sampler=new AffineSampler(img.width,img.height,spec);if(sampler.identity) return img;
+ const out=new Uint8Array(sampler.width*sampler.height*4);let work=0;
+ for(let y=0;y<sampler.height;y++) for(let x=0;x<sampler.width;x++) {
+  if(++work%16384===0) yield;
+  const count=sampler.prepare(x,y);
+  for(let i=0;i<count;i++) {
+   if(++work%16384===0) yield;
+   const position=sampler.positions[i]!*4;
+   sampler.add(position<0?0:img.data[position]!|img.data[position+1]!<<8|img.data[position+2]!<<16|img.data[position+3]!<<24,i);
   }
-): Generator<void, RgbaImage, void> {
-  let work = 0;
-  const [a, b, c, d] = spec.matrix;
-  const idx = spec.idx ?? 0;
-  const idy = spec.idy ?? 0;
-  const odx = spec.odx ?? 0;
-  const ody = spec.ody ?? 0;
-  const det = a * d - b * c;
-  if (Math.abs(det) < 1e-8) return img;
-  const corners: Array<[number, number]> = [
-    [0, 0],
-    [img.width, 0],
-    [0, img.height],
-    [img.width, img.height]
-  ];
-  let minX = Infinity;
-  let maxX = -Infinity;
-  let minY = Infinity;
-  let maxY = -Infinity;
-  for (const [cx, cy] of corners) {
-    if (++work % 16384 === 0) yield;
-    const x = a * cx + b * cy;
-    const y = c * cx + d * cy;
-    if (x < minX) minX = x;
-    if (x > maxX) maxX = x;
-    if (y < minY) minY = y;
-    if (y > maxY) maxY = y;
-  }
-  const dstW = Math.max(1, Math.round(maxX - minX));
-  const dstH = Math.max(1, Math.round(maxY - minY));
-  const iMinX = Math.round(minX);
-  const iMinY = Math.round(minY);
-  const out = new Uint8Array(new ArrayBuffer(dstW * dstH * 4 + dstH), 0, dstW * dstH * 4);
-  const samplePremul = (ix: number, iy: number): [number, number, number, number] => {
-    if (ix < 0 || ix >= img.width || iy < 0 || iy >= img.height) {
-      const ba = spec.background.a;
-      return [(spec.background.r * ba) / 255, (spec.background.g * ba) / 255, (spec.background.b * ba) / 255, ba];
-    }
-    const sIdx = (iy * img.width + ix) * 4;
-    const sa = img.data[sIdx + 3]!;
-    return [(img.data[sIdx]! * sa) / 255, (img.data[sIdx + 1]! * sa) / 255, (img.data[sIdx + 2]! * sa) / 255, sa];
-  };
-
-  for (let y = 0; y < dstH; y++) {
-    if (++work % 16384 === 0) yield;
-    for (let x = 0; x < dstW; x++) {
-    if (++work % 16384 === 0) yield;
-      const ox = x + iMinX - odx;
-      const oy = y + iMinY - ody;
-      const sx = (d * ox - b * oy) / det - idx;
-      const sy = (-c * ox + a * oy) / det - idy;
-      const dIdx = (y * dstW + x) * 4;
-      if (sx <= -1 || sx >= img.width || sy <= -1 || sy >= img.height) {
-        const ba = spec.background.a;
-        if (ba > 0) {
-          const factor = Math.fround(255.0 / ba);
-          out[dIdx] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * spec.background.r))));
-          out[dIdx + 1] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * spec.background.g))));
-          out[dIdx + 2] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * spec.background.b))));
-          out[dIdx + 3] = ba;
-        }
-      } else if (spec.interpolator === "nearest") {
-        const p = samplePremul(Math.floor(sx), Math.floor(sy));
-        const pa = p[3];
-        const outA = Math.max(0, Math.min(255, Math.round(pa)));
-        out[dIdx] = pa > 0 ? Math.max(0, Math.min(255, Math.round((p[0] * 255) / pa))) : 0;
-        out[dIdx + 1] = pa > 0 ? Math.max(0, Math.min(255, Math.round((p[1] * 255) / pa))) : 0;
-        out[dIdx + 2] = pa > 0 ? Math.max(0, Math.min(255, Math.round((p[2] * 255) / pa))) : 0;
-        out[dIdx + 3] = outA;
-      } else if (spec.interpolator === "bicubic") {
-        const catmull = (v: number): number => {
-          const av = Math.abs(v);
-          if (av < 1) return 1.5 * av * av * av - 2.5 * av * av + 1;
-          if (av < 2) return -0.5 * av * av * av + 2.5 * av * av - 4 * av + 2;
-          return 0;
-        };
-        const x0 = Math.floor(sx);
-        const y0 = Math.floor(sy);
-        let pr = 0;
-        let pg = 0;
-        let pb = 0;
-        let pa = 0;
-        for (let ky = -1; ky <= 2; ky++) {
-    if (++work % 16384 === 0) yield;
-          const wy = catmull(sy - (y0 + ky));
-          for (let kx = -1; kx <= 2; kx++) {
-    if (++work % 16384 === 0) yield;
-            const w = wy * catmull(sx - (x0 + kx));
-            const p = samplePremul(x0 + kx, y0 + ky);
-            pr += p[0] * w;
-            pg += p[1] * w;
-            pb += p[2] * w;
-            pa += p[3] * w;
-          }
-        }
-        const outA = Math.max(0, Math.min(255, Math.round(pa)));
-        out[dIdx] = pa > 0 ? Math.max(0, Math.min(255, Math.round((pr * 255) / pa))) : 0;
-        out[dIdx + 1] = pa > 0 ? Math.max(0, Math.min(255, Math.round((pg * 255) / pa))) : 0;
-        out[dIdx + 2] = pa > 0 ? Math.max(0, Math.min(255, Math.round((pb * 255) / pa))) : 0;
-        out[dIdx + 3] = outA;
-      } else {
-        const x0 = Math.floor(sx);
-        const y0 = Math.floor(sy);
-        const fx = sx - x0;
-        const fy = sy - y0;
-        const w00 = (1 - fx) * (1 - fy);
-        const w10 = fx * (1 - fy);
-        const w01 = (1 - fx) * fy;
-        const w11 = fx * fy;
-        const p00 = samplePremul(x0, y0);
-        const p10 = samplePremul(x0 + 1, y0);
-        const p01 = samplePremul(x0, y0 + 1);
-        const p11 = samplePremul(x0 + 1, y0 + 1);
-        const pa = p00[3] * w00 + p10[3] * w10 + p01[3] * w01 + p11[3] * w11;
-        const pr = p00[0] * w00 + p10[0] * w10 + p01[0] * w01 + p11[0] * w11;
-        const pg = p00[1] * w00 + p10[1] * w10 + p01[1] * w01 + p11[1] * w11;
-        const pb = p00[2] * w00 + p10[2] * w10 + p01[2] * w01 + p11[2] * w11;
-        const outA = Math.max(0, Math.min(255, Math.round(pa)));
-        out[dIdx] = pa > 0 ? Math.max(0, Math.min(255, Math.round((pr * 255) / pa))) : 0;
-        out[dIdx + 1] = pa > 0 ? Math.max(0, Math.min(255, Math.round((pg * 255) / pa))) : 0;
-        out[dIdx + 2] = pa > 0 ? Math.max(0, Math.min(255, Math.round((pb * 255) / pa))) : 0;
-        out[dIdx + 3] = outA;
-      }
-    }
-  }
-  const hasAlpha = img.hasAlpha || spec.background.a < 255;
-  return {
-    ...img,
-    width: dstW,
-    height: dstH,
-    data: out,
-    hasAlpha,
-    channels: hasAlpha ? (img.channels < 3 ? 2 : 4) : img.channels
-  };
+  const pixel=sampler.pixel(),offset=(y*sampler.width+x)*4;
+  out[offset]=pixel&255;out[offset+1]=pixel>>>8&255;out[offset+2]=pixel>>>16&255;out[offset+3]=pixel>>>24;
+ }
+ const hasAlpha=img.hasAlpha || spec.background.a<255;
+ return {...img,width:sampler.width,height:sampler.height,data:out,hasAlpha,channels:hasAlpha?(img.channels<3?2:4):img.channels};
 }
 
 export function *computeImageStatsSteps(img: RgbaImage): Generator<void, ImageStats, void> {

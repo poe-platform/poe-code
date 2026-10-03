@@ -20,8 +20,9 @@ under downstream backpressure. The caller owns source and storage cleanup.
 `transformStoredImage(image, storage, operation, signal)` applies flips, crops,
 right-angle rotations and EXIF orientation in small tiles, plus bounded color,
 alpha, gamma, threshold, normalization and metadata operations. Canvas extension,
-median filtering, trimming, convolution, Gaussian blur, sharpening, dilation and erosion also keep raster data
-in caller storage.
+affine transforms, arbitrary rotation, median filtering, trimming, convolution,
+Gaussian blur, sharpening, dilation and erosion also keep raster data in caller
+storage.
 Combined resize/blur/sharpen/convolution stages share premultiplied alpha and gamma handling.
 `resizeStoredImage(image, storage, options, signal)` supports all resize fits,
 gravity, entropy/attention crops, background canvases and image pages.

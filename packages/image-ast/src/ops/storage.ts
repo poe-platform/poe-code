@@ -1,3 +1,5 @@
+import {affineStoredImage} from "./storage-affine.js";
+import {normalizedRotation} from "./affine.js";
 import {sharpenStoredImage} from "./storage-sharpen.js";
 import {blurStoredImage} from "./storage-blur.js";
 import {morphStoredImage} from "./storage-morphology.js";
@@ -11,16 +13,17 @@ import type {ImageByteStorage, StoredRgbaImage} from "../codecs/png-storage.js";
 import {defaultRuntime} from "@poe-code/compression";
 import {flipImage, flopImage, rotateImage, applyExifOrientation} from "./transform.js";
 
-export type StoredImageOperation = Extract<ImageAstNode,{kind:"flip"|"flop"|"rotate"|"extract"|"autoOrient"|"normalize"|"resize"|"extend"|"median"|"trim"|"convolve"|"dilate"|"erode"|"blur"|"sharpen"}> | StoredPixelOperation;
+export type StoredImageOperation = Extract<ImageAstNode,{kind:"flip"|"flop"|"rotate"|"extract"|"autoOrient"|"normalize"|"resize"|"extend"|"median"|"trim"|"convolve"|"dilate"|"erode"|"blur"|"sharpen"|"affine"}> | StoredPixelOperation;
 
 export function isStoredImageOperation(node:ImageAstNode):node is StoredImageOperation {
-  return node.kind==="sharpen" || node.kind==="blur" || node.kind==="dilate" || node.kind==="erode" || node.kind==="convolve" || node.kind==="extend" || node.kind==="median" || node.kind==="trim" || node.kind==="resize" || node.kind==="normalize" || isStoredPixelOperation(node) || node.kind==="flip" || node.kind==="flop" || node.kind==="extract" || node.kind==="autoOrient" || node.kind==="rotate" && Number.isFinite(node.angle) && node.angle%90===0;
+  return node.kind==="affine" || node.kind==="sharpen" || node.kind==="blur" || node.kind==="dilate" || node.kind==="erode" || node.kind==="convolve" || node.kind==="extend" || node.kind==="median" || node.kind==="trim" || node.kind==="resize" || node.kind==="normalize" || isStoredPixelOperation(node) || node.kind==="flip" || node.kind==="flop" || node.kind==="extract" || node.kind==="autoOrient" || node.kind==="rotate" && Number.isFinite(node.angle);
 }
 
 /** Transforms use bounded chunks or spatial tiles; raster state stays in caller-owned storage. */
 export async function transformStoredImage(image:StoredRgbaImage, storage:ImageByteStorage, operation:StoredImageOperation, signal:AbortSignal):Promise<StoredRgbaImage> {
   signal.throwIfAborted();
   if (!Number.isSafeInteger(image.width) || image.width<=0 || !Number.isSafeInteger(image.height) || image.height<=0 || !Number.isSafeInteger(image.width*image.height*4) || !Number.isSafeInteger(image.position) || image.position<0) throw new RangeError("Invalid stored image dimensions");
+  if(operation.kind==="affine") return affineStoredImage(image,storage,operation,signal);
   if(operation.kind==="sharpen") return sharpenStoredImage(image,storage,operation,signal);
   if(operation.kind==="blur") return blurStoredImage(image,storage,operation,signal);
   if(operation.kind==="dilate" || operation.kind==="erode") return morphStoredImage(image,storage,operation,signal);
@@ -29,9 +32,13 @@ export async function transformStoredImage(image:StoredRgbaImage, storage:ImageB
   if(operation.kind==="resize") return resizeStoredImage(image,storage,operation,signal);
   if(operation.kind==="normalize") return normalizeStoredImage(image,storage,operation,signal);
   if(isStoredPixelOperation(operation)) return transformStoredPixels(image,storage,operation,signal);
-  const angle=operation.kind==="rotate"?((operation.angle%360)+360)%360:0;
-  if (operation.kind==="rotate" && (!Number.isFinite(angle) || angle%90!==0)) throw new RangeError("Stored rotation requires a right angle");
+  const angle=operation.kind==="rotate"?normalizedRotation(operation.angle):0;
+  if (operation.kind==="rotate" && !Number.isFinite(angle)) throw new RangeError("Invalid rotation angle");
   if (operation.kind==="rotate" && angle!==0 && angle!==180 && image.pages && image.pages>1 && image.pageHeight && image.height===image.pages*image.pageHeight) throw new Error("Rotate is not supported for multi-page images");
+  if(operation.kind==="rotate" && angle%90!==0) {
+    const rad=angle*Math.PI/180,cos=Math.cos(rad),sin=Math.sin(rad);
+    return affineStoredImage(image,storage,{matrix:[cos,-sin,sin,cos],background:operation.background,interpolator:"bilinear"},signal);
+  }
   const orientation=operation.kind==="autoOrient"?image.orientation:undefined;
   let transform=operation.kind==="flip"?4:operation.kind==="flop"?2:operation.kind==="rotate"?angle===90?6:angle===180?3:angle===270?8:1:orientation??1;
   if (!Number.isInteger(transform) || transform<1 || transform>8) transform=1;

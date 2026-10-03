@@ -101,6 +101,7 @@ it("preserves the portable export surface when canonical owners remain external"
       .flatMap(name => {
         // Python exposes both python/python3 through its plural factory.
         if (name === "safe-bash-command-python") return ["pythonCommands", "createPythonCommands", "pythonExecutorCommands", "createPythonExecutorCommands"];
+        if (name === "safe-bash-command-safejs") return ["safeJsCommands", "createSafeJsCommands"];
         const title = name.slice("safe-bash-command-".length).split("-")
           .map(word => word[0]!.toUpperCase() + word.slice(1)).join("");
         return [title[0]!.toLowerCase() + title.slice(1) + "Commands", `create${title}Command`, `create${title}Commands`];

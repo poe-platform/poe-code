@@ -213,3 +213,7 @@ export { createQrencodeCommand, createQrencodeCommands, qrencodeCommands } from 
 export type { QrencodeLimits, QrencodeCommandOptions, QrencodeCommandsOptions } from "./commands/qrencode/index.js";
 
 export { createCpCommand, createCpCommands, cpCommands, type CpCommandsOptions, type CpLimits } from "./commands/cp/index.js";
+export { createWdiffCommand, createWdiffCommands, wdiffCommands, type WdiffCommandsOptions, type WdiffLimits } from "./commands/wdiff/index.js";
+export { createDiffpdfCommand, createDiffpdfCommands, diffpdfCommands, type DiffpdfCommandsOptions, type DiffpdfLimits } from "./commands/diffpdf/index.js";
+export { createDotCommand, createDotCommands, dotCommands, type DotCommandsOptions, type DotLimits } from "./commands/dot/index.js";
+export { createRsvgConvertCommand, createRsvgConvertCommands, rsvgConvertCommands, type RsvgConvertCommandsOptions, type RsvgConvertLimits } from "./commands/rsvg-convert/index.js";

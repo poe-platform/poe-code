@@ -108,7 +108,7 @@ let publicEntries: Record<string, unknown> | undefined;
 let browserRuntime: Script;
 
 function createConsumerContext(globals: Record<string, unknown>) {
-  const sandbox = createContext({ structuredClone, URL, ...globals, canonical: filesystem });
+  const sandbox = createContext({ structuredClone, URL, atob, btoa, ...globals, canonical: filesystem });
   const { publicEntries: entries } = browserRuntime.runInContext(sandbox) as { publicEntries: Record<string, unknown> };
   sandbox.require = (name: string) => {
     if (name === "@poe-platform/safe-fs/core") return filesystem;

@@ -1,5 +1,6 @@
 import {expect, it, vi} from "vitest";
 import {convert} from "./engine.js";
+import {ExecutionContext} from "./execution.js";
 import {createLuaFilterCapability} from "./lua-filters.js";
 
 const encoder = new TextEncoder();
@@ -167,4 +168,34 @@ it("does not return an iterator that already completed normally", async () => {
   };}});
   await expect(convert(input, options, {filters: createLuaFilterCapability({readStream})})).resolves.toMatchObject({text: "<p>Hello <em>world</em></p>\n"});
   expect(close).not.toHaveBeenCalled();
+});
+
+
+it("bounds owned source copies even when the supplied Lua reader yields a large chunk", async () => {
+  const source = encoder.encode("--" + " ".repeat(200000) + '\nfunction Str(el) el.text = string.upper(el.text); return el end');
+  const charges = vi.spyOn(ExecutionContext.prototype, "charge");
+  const closed = vi.fn();
+  try {
+    await expect(convert(input, options, {filters: createLuaFilterCapability({readStream: async function* () {
+      try {yield source;} finally {closed();}
+    }})})).resolves.toMatchObject({text: "<p>HELLO <em>WORLD</em></p>\n"});
+    const retained = charges.mock.calls.filter(([key]) => key === "retainedBytes").map(([, bytes]) => bytes);
+    expect(Math.max(...retained)).toBeLessThanOrEqual(65536);
+    expect(closed).toHaveBeenCalledOnce();
+  } finally {charges.mockRestore();}
+});
+
+
+it("yields during a large Lua source chunk so cancellation closes the reader before another pull", async () => {
+  const controller = new AbortController(), closed = vi.fn(), tail = vi.fn();
+  const source = encoder.encode("--" + " ".repeat(200000) + "\nreturn {}");
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await expect(convert(input, options, {signal: controller.signal, filters: createLuaFilterCapability({readStream: async function* () {
+      timer = setTimeout(() => controller.abort(), 0);
+      try {yield source; tail();} finally {closed();}
+    }})})).rejects.toMatchObject({code: "E_CANCELLED"});
+    expect(tail).not.toHaveBeenCalled();
+    expect(closed).toHaveBeenCalledOnce();
+  } finally {clearTimeout(timer);}
 });

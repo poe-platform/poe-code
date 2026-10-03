@@ -275,6 +275,8 @@ await convert([{bytes: new TextEncoder().encode("Hello")}], {
 The VM exposes basic Lua, string, table, math and UTF-8 libraries and `FORMAT`.
 Its bundled VM works without Node globals or built-in modules, including in Workers.
 The stream reader compiles source incrementally, without collecting the script first.
+Compiler-owned source copies are capped at 64 KiB even when a reader supplies larger
+chunks; source bytes count toward cooperative work and cancellation checkpoints.
 The shell uses the injected filesystem’s stream reader when available; an explicitly
 buffered reader remains supported for compatibility. Compilation still retains Lua
 bytecode, constants and the document AST: streaming source does not isolate or bound

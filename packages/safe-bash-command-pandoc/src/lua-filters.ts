@@ -152,23 +152,32 @@ export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptio
               ? chunks[Symbol.asyncIterator]()
               : chunks[Symbol.iterator]();
             let exhausted = false;
+            let chunk: Uint8Array = new Uint8Array(0);
+            let offset = 0;
             let failure: {reason: unknown} | undefined;
             try {checked(await runtime.loadStream(state, async () => {
               context.checkpoint(0);
-              const next = await iterator.next();
-              exhausted = next.done === true;
-              context.checkpoint(0);
-              if (next.done) return null;
-              const chunk = next.value;
-              if (!(chunk instanceof Uint8Array)) throw new PandocError("E_IO", "convert", "Lua filter source must be bytes");
-              if (chunk.byteLength) {
-                if (first && chunk[0] === 27) fail("E_UNSUPPORTED_FEATURE", "Lua bytecode filters are unsupported");
-                first = false;
+              if (offset === chunk.byteLength) {
+                const next = await iterator.next();
+                exhausted = next.done === true;
+                context.checkpoint(0);
+                if (next.done) return null;
+                if (!(next.value instanceof Uint8Array)) throw new PandocError("E_IO", "convert", "Lua filter source must be bytes");
+                chunk = next.value;
+                offset = 0;
+                if (chunk.byteLength) {
+                  if (first && chunk[0] === 27) fail("E_UNSUPPORTED_FEATURE", "Lua bytecode filters are unsupported");
+                  first = false;
+                }
+                context.charge("inputBytes", chunk.byteLength);
               }
-              context.charge("inputBytes", chunk.byteLength);
-              context.charge("retainedBytes", chunk.byteLength);
-              const owned = new Uint8Array(chunk);
-              await context.cooperate(Math.max(1, Math.ceil(chunk.byteLength / 4096)));
+              // Borrow only until the next producer pull; the compiler owns a
+              // bounded slice even if the source supplies an entire file.
+              const end = Math.min(offset + 65536, chunk.byteLength);
+              context.charge("retainedBytes", end - offset);
+              const owned = new Uint8Array(chunk.subarray(offset, end));
+              offset = end;
+              await context.cooperate(Math.max(1, owned.byteLength));
               return owned;
             }, to_luastring(request.path)), true);
             } catch (reason) {failure = {reason};}

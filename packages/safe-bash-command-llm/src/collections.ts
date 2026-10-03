@@ -3,6 +3,18 @@ import {transactSqlite,withSqliteStatement,type PrivateSqliteSession,type Sqlite
 import {migrateLlmCollections} from './collections-migrations.js';
 import {embedCollection, type LlmCollectionEmbedOptions} from './collections-embed.js';
 export type {LlmCollectionEmbedOptions} from './collections-embed.js';
+import {similarCollection,type LlmCollectionSimilarOptions,type LlmCollectionSimilarity} from './collections-similarity.js';
+export type {LlmCollectionSimilarOptions,LlmCollectionSimilarity,LlmCollectionField} from './collections-similarity.js';
+import {LlmCollectionDoesNotExist} from './collections-errors.js';
+export {LlmCollectionDoesNotExist} from './collections-errors.js';
+import {sourceBytes} from './request-source.js';
+
+export interface LlmCollectionSearchOptions extends LlmCollectionSimilarOptions {
+ readonly service:LlmCollectionEmbedOptions['service'];
+ readonly input:LlmCollectionEmbedOptions['input'];
+ readonly maxInputBytes:number;
+ readonly binary?:boolean;
+}
 
 export interface LlmCollection {readonly id:bigint;readonly name:string;readonly model:string}
 export interface LlmCollectionCatalog {
@@ -10,9 +22,9 @@ export interface LlmCollectionCatalog {
  list(visit:(collection:LlmCollection & {readonly count:bigint})=>void|Promise<void>):Promise<void>;
  delete(name:string):Promise<void>;
  embed(name:string,id:string,options:LlmCollectionEmbedOptions):Promise<void>;
-}
-export class LlmCollectionDoesNotExist extends Error {
- constructor(name:string){super(`Collection '${name}' does not exist`);this.name='LlmCollectionDoesNotExist';}
+ similarByVector(name:string,vector:readonly number[],options:LlmCollectionSimilarOptions,visit:(entry:LlmCollectionSimilarity)=>void|Promise<void>):Promise<void>;
+ similarById(name:string,id:string,options:LlmCollectionSimilarOptions,visit:(entry:LlmCollectionSimilarity)=>void|Promise<void>):Promise<void>;
+ similar(name:string,options:LlmCollectionSearchOptions,visit:(entry:LlmCollectionSimilarity)=>void|Promise<void>):Promise<void>;
 }
 const migrations=['m001_create_tables','m002_foreign_key','m003_add_updated','m004_store_content_hash','m005_add_content_blob'];
 const schema=[
@@ -108,6 +120,46 @@ export async function withLlmCollections<T>(options:{
     transferred=true;
     await embedCollection(editor,{...options,...settings,collection,id});
    }).catch(async error=>{if(!transferred)await settings.input.dispose().catch(()=>undefined);throw error;});},
+   similarByVector(name,vector,settings,visit){return run(async()=>{
+    const collection=await editor.withSession(session=>lookup(session,name));
+    if(!collection)throw new LlmCollectionDoesNotExist(name);
+    await similarCollection(editor,{collectionId:collection.id,signal,query:{vector},settings,visit});
+   });},
+   similarById(name,id,settings,visit){return run(async()=>{
+    const collection=await editor.withSession(session=>lookup(session,name));
+    if(!collection)throw new LlmCollectionDoesNotExist(name);
+    await similarCollection(editor,{collectionId:collection.id,signal,query:{id},settings,visit});
+   });},
+   similar(name,settings,visit){
+    let closing:Promise<void>|undefined,failed=false,entered=false;
+    const dispose=()=>closing??=Promise.resolve().then(()=>settings.input.dispose());
+    return run(async()=>{
+     entered=true;
+     try{
+     const collection=await editor.withSession(session=>lookup(session,name));
+     if(!collection)throw new LlmCollectionDoesNotExist(name);
+     if(!settings.service.embedSources)throw new Error('LLM service does not support streamed embeddings');
+     if(!Number.isSafeInteger(settings.maxInputBytes)||settings.maxInputBytes<0)throw new RangeError('Invalid embedding input byte limit');
+     let borrowed=true;
+     const input={dispose,bytes:{async *[Symbol.asyncIterator](){
+      if(!borrowed||closing)throw new FsError('EBADF',{message:'Similarity source lease is closed'});
+      const decoder=settings.binary?undefined:new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});let size=0;
+      for await(const chunk of sourceBytes(settings.input.bytes,signal)){
+       if(chunk.length>settings.maxInputBytes-size)throw new RangeError('Embedding input byte limit exceeded');size+=chunk.length;
+       for(let offset=0;offset<chunk.length;offset+=16384){
+        if(!borrowed||closing)throw new FsError('EBADF',{message:'Similarity source lease is closed'});
+        const bytes=chunk.subarray(offset,offset+16384);decoder?.decode(bytes,{stream:true});yield bytes;
+       }
+      }
+      decoder?.decode();
+     }}};
+     const response=await settings.service.embedSources({model:collection.model,inputs:[input],options:{},signal,...(settings.binary===undefined?{}:{binary:settings.binary})}).finally(()=>{borrowed=false;});
+     if(response.vectors.length!==1||!response.vectors[0])throw new TypeError('Invalid embedding response');
+     await similarCollection(editor,{collectionId:collection.id,signal,query:{vector:response.vectors[0]},settings,visit});
+     }catch(error){failed=true;throw error;}
+     finally{await dispose().catch(error=>{if(!failed)throw error;});}
+    }).catch(async error=>{if(!entered)await dispose().catch(()=>undefined);throw error;});
+   },
   };
   let value!:T;
   const errors:unknown[]=[];

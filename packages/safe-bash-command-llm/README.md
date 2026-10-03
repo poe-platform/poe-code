@@ -33,8 +33,17 @@ calling the shared service, and replaces an existing ID when content changes.
 Content is retained only with `store: true`; metadata is optional. Input and encoded
 metadata share `maxInputBytes`. Retained staging and database writes use bounded
 chunks. Writes currently reject caller-added embedding indexes and triggers to
-avoid stale indexes or incorrect trigger observations. Batch imports, similarity
-and collection CLI commands remain incomplete.
+avoid stale indexes or incorrect trigger observations. Search with
+`catalog.similarByVector(name, vector, { number: 10, prefix }, visit)` or
+`catalog.similarById(name, id, { number: 10 }, visit)`; ID searches exclude that ID.
+`catalog.similar(name, { service, input, maxInputBytes, number: 10 }, visit)` embeds
+a query through the same service and disposes its input lease. Prefixes use SQL
+`LIKE` semantics, including `%` and `_` wildcards. Negative numbers return all
+matches. Scores use cosine similarity; zero-magnitude vectors fail explicitly.
+Each result provides `id`, `score`, and nullable `content`/`metadata` UTF-8 fields
+with `{ size, bytes }`. Consume these streams inside the visitor; they expire when
+it returns. Ranking uses caller-backed SQLite temporary storage and bounded vector
+blocks. Batch imports and collection CLI commands remain incomplete.
 This optional catalog does not store conversation or response history.
 
 Query injected language and media models through the shared LLM service. Register `llmCommands({ providers, defaultModel })` with your shell. Providers own credentials and HTTP transport. `llm --version` reports the pinned CLI reference target, also available to SDK callers as `llmReferenceVersion`. Use `limits.maxInputBytes` and `limits.maxOutputBytes` to bound per-command byte accounting.

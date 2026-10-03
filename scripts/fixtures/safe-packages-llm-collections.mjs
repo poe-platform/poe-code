@@ -40,6 +40,17 @@ export async function verifyLlmCollections() {
     await catalog.list(row=>{if(row.count!==1n)throw new Error('Embedding dedup failed');});
   });
   if(calls!==1)throw new Error('Duplicate invoked provider');
+  await withLlmCollections(options,async catalog=>{
+    let count=0;
+    await catalog.similarByVector('documents',[1,0.5,-2],{number:1},async row=>{
+      count++;if(row.id!=='one'||Math.abs(row.score-1)>1e-15)throw new Error('Similarity score mismatch');
+      let text='';for await(const bytes of row.content.bytes)text+=new TextDecoder().decode(bytes);
+      if(text!=='stored content')throw new Error('Similarity content mismatch');
+    });
+    if(count!==1)throw new Error('Similarity result missing');
+    await catalog.similarById('documents','one',{},()=>{throw new Error('Similarity included own ID');});
+    await catalog.similar('documents',{service,input:input(),maxInputBytes:1048576},row=>{if(row.id!=='one')throw new Error('Query embedding mismatch');});
+  });
   const embeddingShell=new Shell({fs}).use(sqlite3Commands());
   try{
     const result=await embeddingShell.exec('sqlite3 -readonly /embeddings.db "SELECT id,hex(embedding),content,metadata FROM embeddings;"');

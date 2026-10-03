@@ -196,6 +196,8 @@ export interface AdapterContext {
   readonly signal: AbortSignal | undefined;
   readonly limits: Limits;
   readonly resources: ResourceCapability | undefined;
+  /** Enroll capability cleanup in conversion completion, including cancellation. */
+  onClose?(cleanup: () => Promise<unknown>): () => void;
   checkpoint(units?: number): void;
   /** Reserve aggregate capacity before allocating or extending parser/writer data. */
   charge(key: keyof Limits, units: number): void;

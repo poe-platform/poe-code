@@ -25,3 +25,15 @@ declare const csl: CiteprocFilterOptions;
 const citations = createCiteprocFilterCapability(csl);
 void convert([], {...options, filters: [{kind: "citeproc"}]}, {filters: citations});
 void pandocCommands({filters: citations});
+
+import type {LuaFilterOptions, LuaStreamFilterOptions} from "safe-bash-command-pandoc";
+declare const bufferedLuaOptions: LuaFilterOptions;
+const compatibleLoader: LuaScriptLoader = bufferedLuaOptions.readFile;
+void compatibleLoader;
+const streamedLuaOptions: LuaStreamFilterOptions = {readStream: async function* (_path, signal) {
+  signal?.throwIfAborted();
+  yield new Uint8Array();
+}};
+const streamedLuaFilters = createLuaFilterCapability(streamedLuaOptions);
+void convert([], {...options, filters: [{kind: "lua", path: "filter.lua"}]}, {filters: streamedLuaFilters});
+void pandocCommands({filters: streamedLuaFilters});

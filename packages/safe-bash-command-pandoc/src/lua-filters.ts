@@ -8,25 +8,33 @@ import type {FilterCapability, Document} from "./types.js";
 
 /** Only trusted scripts: Lua VM allocations are not isolated or metered. */
 export interface LuaFilterOptions {
-  readFile(path: string, signal: AbortSignal | undefined): Promise<Uint8Array>;
+  readFile: LuaScriptLoader;
+  /** Sequential source capability; preferred when both readers are supplied. */
+  readStream?(path: string, signal: AbortSignal | undefined): AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
 }
-export type LuaScriptLoader = LuaFilterOptions["readFile"];
+export interface LuaStreamFilterOptions extends Partial<LuaFilterOptions> {
+  readStream: NonNullable<LuaFilterOptions["readStream"]>;
+}
+export type LuaScriptLoader = (path: string, signal: AbortSignal | undefined) => Promise<Uint8Array>;
 
 /** Each conversion owns a fresh VM without host file, process or module APIs. */
-export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptions): FilterCapability {
+export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptions | LuaStreamFilterOptions): FilterCapability {
   const readFile = typeof load === "function" ? load : load?.readFile;
-  if (typeof readFile !== "function") throw new TypeError("A local Lua filter reader is required");
+  const readStream = typeof load === "function" ? undefined : load?.readStream;
+  if (typeof readFile !== "function" && typeof readStream !== "function") throw new TypeError("A local Lua filter reader is required");
   const reader = typeof load !== "function";
   return {
     supports: request => request.kind === "lua",
     async apply(document, request, context) {
       if (request.kind !== "lua") throw new PandocError("E_CAPABILITY", "convert", "This capability supports Lua filters only");
       context.checkpoint(0);
-      const source = await readFile(request.path, context.signal);
+      const source = readStream ? undefined : await readFile!(request.path, context.signal);
       context.checkpoint();
-      if (!(source instanceof Uint8Array)) throw new PandocError("E_IO", "convert", "Lua filter source must be bytes");
-      context.charge("inputBytes", source.byteLength);
-      context.charge("retainedBytes", source.byteLength);
+      if (!readStream) {
+        if (!(source instanceof Uint8Array)) throw new PandocError("E_IO", "convert", "Lua filter source must be bytes");
+        context.charge("inputBytes", source.byteLength);
+        context.charge("retainedBytes", source.byteLength);
+      }
       const runtime = (await import("./fengari.generated.js")).default as typeof import("fengari");
       context.checkpoint(0);
       const {lua, lauxlib, lualib, to_luastring, to_jsstring} = runtime;
@@ -135,8 +143,39 @@ export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptio
         // Root the runner so scripts cannot replace it through global mutation.
         lua.lua_getglobal(state, to_luastring("__pandoc_run"));
         const runner = lauxlib.luaL_ref(state, lua.LUA_REGISTRYINDEX);
-        if (source[0] === 27) fail("E_UNSUPPORTED_FEATURE", "Lua bytecode filters are unsupported");
-        checked(lauxlib.luaL_loadbuffer(state, source, source.length, to_luastring(request.path)), true);
+        if (readStream) {
+          const chunks = readStream(request.path, context.signal);
+          const iterator = (async function* () {yield* chunks;})();
+          let first = true;
+          const release = context.onClose?.(async () => {await compilation.catch(() => {});});
+          const compilation = (async () => {
+            let failure: {reason: unknown} | undefined;
+            try {checked(await runtime.loadStream(state, async () => {
+              context.checkpoint(0);
+              const next = await iterator.next();
+              context.checkpoint(0);
+              if (next.done) return null;
+              const chunk = next.value;
+              if (!(chunk instanceof Uint8Array)) throw new PandocError("E_IO", "convert", "Lua filter source must be bytes");
+              if (chunk.byteLength) {
+                if (first && chunk[0] === 27) fail("E_UNSUPPORTED_FEATURE", "Lua bytecode filters are unsupported");
+                first = false;
+              }
+              context.charge("inputBytes", chunk.byteLength);
+              context.charge("retainedBytes", chunk.byteLength);
+              const owned = new Uint8Array(chunk);
+              await context.cooperate(Math.max(1, Math.ceil(chunk.byteLength / 4096)));
+              return owned;
+            }, to_luastring(request.path)), true);
+            } catch (reason) {failure = {reason};}
+            try {await iterator.return(undefined);} catch (reason) {failure ??= {reason};}
+            if (failure) throw failure.reason;
+          })();
+          try {await compilation;} finally {release?.();}
+        } else {
+          if (source![0] === 27) fail("E_UNSUPPORTED_FEATURE", "Lua bytecode filters are unsupported");
+          checked(lauxlib.luaL_loadbuffer(state, source!, source!.length, to_luastring(request.path)), true);
+        }
         checked(lua.lua_pcall(state, 0, 1, 0), true);
         const filters: number[] = [];
         const capture = (global = false) => {

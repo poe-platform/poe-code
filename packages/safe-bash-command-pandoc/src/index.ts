@@ -37,7 +37,7 @@ export type {
 export {createJsonFilterCapability} from "./json-filters.js";
 export type {JsonFilterRuntime} from "./json-filters.js";
 export {createLuaFilterCapability} from "./lua-filters.js";
-export type {LuaScriptLoader, LuaFilterOptions} from "./lua-filters.js";
+export type {LuaScriptLoader, LuaFilterOptions, LuaStreamFilterOptions} from "./lua-filters.js";
 export {createCiteprocFilterCapability} from "./citeproc-filters.js";
 export type {CiteprocFilterOptions} from "./citeproc-filters.js";
 

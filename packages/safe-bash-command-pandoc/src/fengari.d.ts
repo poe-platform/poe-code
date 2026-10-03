@@ -1,5 +1,6 @@
 declare module "fengari" {
   interface State { readonly __luaState: unique symbol }
+  export function loadStream(state: State, read: () => Promise<Uint8Array | null>, name: Uint8Array): Promise<number>;
   export function to_jsstring(value: Uint8Array): string;
   export function to_luastring(text: string): Uint8Array;
   export const lua: {

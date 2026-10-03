@@ -197,13 +197,13 @@ The runtime owns filter loading and execution. Registration does not grant it
 filesystem or process authority, install an interpreter, or enable ambient lookup.
 
 Local Lua AST filters can run in the supplied JavaScript Lua VM. Configure a
-reader for trusted scripts, then pass the capability to the SDK or shell plugin:
+stream reader for trusted scripts, then pass the capability to the SDK or shell plugin:
 
 ```ts
 import {createLuaFilterCapability} from "@poe-platform/safe-bash/commands/pandoc";
-const filters = createLuaFilterCapability({readFile: async (path, signal) => {
-  return configuredFileSystem.readFile(path, signal);
-}});
+const filters = createLuaFilterCapability({
+  readStream: (path, signal) => configuredFileSystem.readStream(path, {signal, chunkSize: 65536})
+});
 await convert([{bytes: new TextEncoder().encode("Hello")}], {
   from: "commonmark", to: "html", filters: [{kind: "lua", path: "uppercase.lua"}]
 }, {filters});
@@ -212,9 +212,15 @@ await convert([{bytes: new TextEncoder().encode("Hello")}], {
 
 The VM exposes basic Lua, string, table, math and UTF-8 libraries and `FORMAT`.
 Its bundled VM works without Node globals or built-in modules, including in Workers.
+The stream reader compiles source incrementally, without collecting the script first.
+The shell uses the injected filesystem’s stream reader when available; an explicitly
+buffered reader remains supported for compatibility. Compilation still retains Lua
+bytecode, constants and the document AST: streaming source does not isolate or bound
+those VM allocations. Streams close after compilation, syntax errors or cancellation.
 It does not expose host filesystem/process libraries. Conversion work limits
 interrupt Lua instructions. Use trusted scripts: VM allocations and library
-calls are not isolated or individually metered. Both `createLuaFilterCapability({readFile})`
+calls are not isolated or individually metered. `readStream` takes precedence when
+both readers are supplied. Both `createLuaFilterCapability({readFile})`
 and `createLuaFilterCapability(loadScript)` accept the same filters. Define global
 callbacks, return one callback table, or return a list of tables to run in order.
 Within each table, inline callbacks run before `Inlines`, block callbacks, `Blocks`,

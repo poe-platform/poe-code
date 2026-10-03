@@ -533,6 +533,12 @@ export class ExecutionContext implements AdapterContext {
     return this.completingOutput;
   }
 
+  onClose(cleanup: () => Promise<unknown>): () => void {
+    this.checkpoint(0);
+    this.cleanups.add(cleanup);
+    return () => {this.cleanups.delete(cleanup);};
+  }
+
   close(): Promise<void> {
     if (this.closing) return this.closing;
     // Install closing before invoking host cleanup, including reentrant cleanup.

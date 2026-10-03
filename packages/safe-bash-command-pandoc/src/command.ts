@@ -110,7 +110,17 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
         // Parsing checks authority without acquiring or opening the destination.
         writeFile: async () => {}
       };
-      const luaCapability = createLuaFilterCapability({readFile: (path, signal) => files.readFile(path, signal ?? readSignal)});
+      const luaCapability = createLuaFilterCapability({
+        readFile: (path, signal) => files.readFile(path, signal ?? readSignal),
+        ...(context.fs.readStream ? {readStream: async function* (path: string) {
+          const source = context.fs.readStream!(pathOf(context, path), {signal: readSignal, chunkSize: 65536});
+          for await (const chunk of readBytes(source, readSignal)) {
+            total += chunk.byteLength;
+            context.inputBudget?.check(total);
+            yield chunk;
+          }
+        }} : {})
+      });
       const dynamicCiteprocCapability = createCiteprocFilterCapability({...options.citeproc, readFile: (path, signal) => files.readFile(path, signal ?? readSignal)});
       const resolveJsonInterpreter = async (filterPath: string): Promise<string | undefined> => {
         if (!context.invoke || !hasCommand) return undefined;

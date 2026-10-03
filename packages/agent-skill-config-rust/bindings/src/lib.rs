@@ -13,9 +13,11 @@ use std::sync::OnceLock;
 mod apply;
 mod bridge;
 mod discovery;
+mod exclude_async;
 mod resolve_async;
 mod templates;
 pub use config_mutations_rust_napi_core::*;
+pub use exclude_async::skill_exclude_line_error;
 pub use resolve_async::skill_resolve_plan;
 fn u(text: &str) -> Vec<u16> {
     text.encode_utf16().collect()

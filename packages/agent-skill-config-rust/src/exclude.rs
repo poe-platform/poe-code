@@ -6,7 +6,7 @@ fn u(text: &str) -> Vec<u16> {
 fn concat(parts: &[&[u16]]) -> Vec<u16> {
     parts.concat()
 }
-fn single(value: &[u16], label: &str) -> Result<(), Vec<u16>> {
+pub fn single(value: &[u16], label: &str) -> Result<(), Vec<u16>> {
     if value.contains(&10) || value.contains(&13) {
         Err(concat(&[&u(label), &u(" must be a single line")]))
     } else {
@@ -39,6 +39,16 @@ pub fn append(
     prefix: &[u16],
 ) -> Result<Appended, Vec<u16>> {
     validate(run, entries, prefix)?;
+    append_block(content, run, entries, prefix)
+}
+/// Text transformation after the caller's validation boundary. Async callers
+/// deliberately observe entries again when their queued mutation runs.
+pub fn append_block(
+    content: Option<&[u16]>,
+    run: &[u16],
+    entries: &[Vec<u16>],
+    prefix: &[u16],
+) -> Result<Appended, Vec<u16>> {
     let content = content.unwrap_or(&[]);
     let mut id = run.to_vec();
     let mut suffix = 1usize;
@@ -67,6 +77,9 @@ pub fn append(
 }
 pub fn remove(content: &[u16], run: &[u16], prefix: &[u16]) -> Result<Vec<u16>, Vec<u16>> {
     validate(run, &[], prefix)?;
+    Ok(remove_block(content, run, prefix))
+}
+pub fn remove_block(content: &[u16], run: &[u16], prefix: &[u16]) -> Vec<u16> {
     let begin = marker(run, prefix, " begin");
     let end = marker(run, prefix, " end");
     let lines = content.split(|unit| *unit == 10).collect::<Vec<_>>();
@@ -82,7 +95,7 @@ pub fn remove(content: &[u16], run: &[u16], prefix: &[u16]) -> Result<Vec<u16>, 
         result.push(lines[index]);
         index += 1;
     }
-    Ok(result.join(&[10][..]))
+    result.join(&[10][..])
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum FsError<E> {

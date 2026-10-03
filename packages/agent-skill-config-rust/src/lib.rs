@@ -3,6 +3,7 @@ pub mod apply;
 pub mod bridge;
 pub mod discovery;
 pub mod exclude;
+pub mod exclude_async;
 pub mod paths;
 pub mod resolve;
 pub mod templates;

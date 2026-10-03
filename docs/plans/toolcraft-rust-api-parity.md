@@ -5264,3 +5264,42 @@ Discovery is verified on remote main at 5e820498b3, including ancestry after
 remote main advanced. Its Release 37109364927 and package workflow 37109364787,
 plus the preceding JSONC/TOML releases, are still pending at this checkpoint.
 JavaScript remains the default, and native publication is not claimed.
+
+### Async Git exclude lifecycle ownership
+
+The native package now owns appendExcludeBlockAsync and removeExcludeBlockAsync.
+The own Rust state machine searches parent directories, recognizes worktree
+gitdir files, checks metadata ancestors, transforms run-owned blocks and controls
+write/rename/cleanup requests. This preserves the async reference's distinct
+behavior instead of substituting the synchronous Git subprocess and cleanup
+policies. The JavaScript host retains filesystem capabilities, per-provider
+promise queues, arbitrary foreign errors and final cleanup-error precedence.
+Only async bridge and cleanup still delegate to the canonical skill package.
+
+Ownership and missing-core regressions failed before implementation. Six native
+tests compare exact provider traces and final in-memory files for missing/existing
+excludes, incomplete markers, repeated/concurrent run IDs, parent lookup, worktree
+files, symlinks, validation order, cancellation, queue recovery, partial writes,
+rename failures and cleanup-error precedence. Entries are read again after the
+queue delay: late newline entries remain admitted. An additional failing case
+exposed Symbol coercion divergence after validation; the host now preserves
+Array.join conversion behavior for late nullish/object/Symbol values. Two Rust
+tests cover traversal and publication state independently.
+
+The maintained package route passes 23 native checks, 137 original cases, Rust
+tests, bidirectional public declarations and root posttest. Maintained Rust lint,
+scoped JavaScript lint and diff checks pass. Fresh packed code runs worktree
+lookup, queued append/removal and cleanup with imports confined to packed own
+artifacts, the existing noble package and Node. Strict packed declarations pass
+with 254 source files and workspace reads forbidden. This qualifies the exclude
+module, not the two remaining delegated root aliases. No dependency was added.
+
+Seven alternating warmed rounds of 100 append/remove cycles on Node 22.23.2 ARM64
+measured reference/native medians of 94.934/184.550 microseconds (1.94 times
+slower), with the initial file restored after each sample and 28 retained results.
+No performance improvement or default-swap readiness is claimed.
+
+Async lookup is verified on remote main at 6bfb99f86f. Release 37109849456 remains
+pending. Discovery package workflow 37109364787 succeeded with standalone-bundle
+and publication skipped; it does not verify a native publication. The preceding
+root releases and remaining dependency/type/platform/performance gates stay open.

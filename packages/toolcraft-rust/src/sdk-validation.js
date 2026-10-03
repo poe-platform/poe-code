@@ -60,6 +60,7 @@ const operations = {
   empty: value => value.length === 0,
   fieldLabel: (label, key) => `${label}.${key}`,
   hasOwn: (value, key) => Object.prototype.hasOwnProperty.call(value, key),
+  aliasOwn: (value, key) => Object.hasOwn(value, key),
   property: (value, key) => value[key],
   mapGet: (map, key) => map.get(key),
   mapHas: (map, key) => map.has(key),

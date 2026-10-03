@@ -40,6 +40,68 @@ pub fn run<H: Host>(
     args: &[H::Value],
 ) -> Result<H::Value, H::Error> {
     match (operation, args) {
+        ("mcpArguments", [schema, value]) => {
+            let errors = host.call("array", vec![])?;
+            let input = if host.is_nullish(*value)? {
+                host.call("object", vec![])?
+            } else {
+                *value
+            };
+            let label = host.call("emptyString", vec![])?;
+            let result = object(host, *schema, input, label, errors)?;
+            crate::sdk::run(host, "validationErrors", &[errors])?;
+            Ok(result)
+        }
+        ("mcpNative", [schema, value, label, errors]) => {
+            let validation = host.call("validate", vec![*schema, *value])?;
+            let ok = host.get(validation, "ok")?;
+            if !host.is_true(ok)? {
+                let issues = host.get(validation, "issues")?;
+                host.call("nativeIssues", vec![*errors, *label, issues])?;
+            }
+            Ok(*value)
+        }
+        ("mcpReceived", [value]) => {
+            if yes(host, "isNull", vec![*value])? {
+                host.call("receivedNull", vec![])
+            } else if host.is_undefined(*value)? {
+                host.call("receivedMissing", vec![])
+            } else if yes(host, "isArray", vec![*value])? {
+                host.call("receivedArray", vec![*value])
+            } else if yes(host, "isObject", vec![*value])? {
+                let plain = yes(host, "isPlain", vec![*value])?;
+                host.call(
+                    if plain {
+                        "receivedObject"
+                    } else {
+                        "receivedNonPlain"
+                    },
+                    vec![],
+                )
+            } else if yes(host, "isString", vec![*value])? {
+                let text = if yes(host, "longReceived", vec![*value])? {
+                    host.call("truncateReceived", vec![*value])?
+                } else {
+                    *value
+                };
+                host.call("quotedReceived", vec![text])
+            } else {
+                host.call("json", vec![*value])
+            }
+        }
+        ("mcpEnumError", [value, schema, label]) => {
+            let suggestion = if yes(host, "isString", vec![*value])? {
+                let suggestions = host.call("suggestions", vec![*value, *schema])?;
+                if yes(host, "positiveLength", vec![suggestions])? {
+                    host.call("suggestionLine", vec![suggestions])?
+                } else {
+                    host.call("space", vec![])?
+                }
+            } else {
+                host.call("space", vec![])?
+            };
+            host.call("enumMessage", vec![*value, *schema, *label, suggestion])
+        }
         ("unwrap", [schema]) => unwrap(host, *schema),
         ("object", [schema, value, label, errors]) => {
             object(host, *schema, *value, *label, *errors)
@@ -74,7 +136,7 @@ pub fn run<H: Host>(
                     host.call("define", vec![*output, *output_key, default])?;
                 } else if kind(host, *raw, "optional")? {
                     if !host.same(*input_key, *output_key)?
-                        && yes(host, "hasOwn", vec![*output, *output_key])?
+                        && yes(host, "aliasOwn", vec![*output, *output_key])?
                     {
                         let alias = field_label(host, *label, *output_key)?;
                         host.call("alias", vec![*errors, alias, field])?;

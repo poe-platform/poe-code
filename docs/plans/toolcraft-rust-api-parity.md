@@ -3921,7 +3921,7 @@ subpaths, standalone types and complete platform/resource/reentrancy qualificati
 remain open, as does replacing/qualifying Commander.
 
 Public CLI delivery is independently verified on remote main at 790a90a872.
-Release 37084694820 remains pending. The crash-fix Release 37083989733 finished
+Release 37084694820 completed successfully with release-stable skipped. The crash-fix Release 37083989733 finished
 with failures: all four Bash jobs rejected eager PDF imports, and fresh unit
 validation rejected obsolete browser fixtures and build-cache admission. The
 cached unit job, build, audit and checks passed; no publication is claimed.
@@ -3931,7 +3931,7 @@ diffpdf now loads the PDF parser when invoked; dot and rsvg-convert load the SVG
 renderer only when needed. Focused esbuild graph failures preceded the repair.
 All 37 command tests, scoped lint/types, the 221-stage selected Safe Bash build
 closure and all 170 maintained runner checks pass, including the original root
-lazy-import guard. Release 37085699359 remains pending.
+lazy-import guard. Release 37085699359 completed successfully with release-stable skipped.
 
 The cache-admission repair fd137a8e75 is independently verified on remote main.
 The original failing repository-admission test exposed the shortened spreadsheet
@@ -3939,7 +3939,9 @@ build, extracted ssconvert build, and new externalized diagram builds. All three
 exact commands now join the allowlist. HarfBuzz verification uses repository
 inputs covered by the fingerprint; provider generation and bundling also use
 tracked scripts, source and declared dependency inputs. All 43 cache tests and
-scoped ESLint pass. Release 37085920172 remains pending. The browser-fixture
+scoped ESLint pass. Release 37085920172 completed successfully with release-stable
+skipped; this and the two preceding successful workflows verify builds, not a
+fresh complete CI matrix or npm publication. The browser-fixture
 repair is already present in abdc4745b9; its fresh Release rerun is still active.
 
 ### MCP metadata checkpoint
@@ -3971,3 +3973,43 @@ Native/host crossings require optimization; no performance/default-swap gate
 passed. MCP schema conversion, input/result validation, enumeration, server and
 stream lifecycle, HTTP/OAuth and complete platform/resource/packaging qualification
 remain open.
+
+MCP metadata is independently verified on remote main at 614d10938d. Release
+37086389418 is building, and fresh rerun 37086536500 is pending.
+
+### MCP input-validation checkpoint
+
+MCP input traversal now uses the existing Rust SDK structural validation policy
+with invocation-local wire casing and host capabilities. It covers objects,
+records, sparse/method-overridden arrays, discriminated and exclusive unions,
+scalar constraints, nullable values, cloned defaults, alias errors and bounded
+parameter diagnostics. MCP native JSON schemas validate and retain the original
+input value; SDK-only normalization is not applied. Rust also owns MCP received-
+value classification, enum suggestion admission and top-level argument handling.
+Node retains live methods, own-property definitions, regular expressions, JSON
+serialization, callbacks and error identity. No dependencies/defaults changed.
+
+Eight initial missing-module tests preceded the implementation. A ninth failing
+regression exposed the shared alias check calling the prototype helper instead
+of live Object.hasOwn; SDK and MCP now use the reference operation. Ten final
+differential tests extract original MCP declarations and cover scalar/Unicode
+constraints, sparse mapping, casing/defaults/aliases, descriptors and special
+keys, accessor ordering, arbitrary thrown values, native JSON-schema identity,
+records/JSON/unions, missing arguments, diagnostic truncation and reentrant
+getters with different casing. A test-fixture mistake initially passed a compiled
+validator instead of a schema; it was corrected to use each implementation's
+withJsonSchema rather than weakening the value-identity assertion.
+
+Maintained verification passes 266 native Node tests, Rust tests, 5,116 parity
+cases across 84 files, declarations and the original CLI compile-check.
+Rust/binding lint and scoped ESLint pass. A packed consumer verifies wire casing,
+defaults, user errors and native-schema input identity using packed native
+dependencies. No public MCP server/transport integration is claimed yet.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 300 calls, retaining 32
+results, measured 197.624 microseconds native versus 3.541 microseconds JavaScript
+(55.81 times slower). The valid-input fixture includes nested object wire casing,
+an array, a string constraint and a defaulted numeric field. It is not a
+performance/default-swap gate pass. MCP output serialization/schema conversion,
+tool enumeration, server/stream lifecycle, HTTP/OAuth and full platform/resource/
+standalone-packaging qualification remain open.

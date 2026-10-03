@@ -96,6 +96,7 @@ export default defineConfig({
       path("tests/package-metadata-parity.test.ts"),
       path("tests/mcp-result-parity.test.ts"),
       path("tests/mcp-metadata-parity.test.ts"),
+      path("tests/mcp-validation-parity.test.ts"),
       path("tests/source-snippet-parity.test.ts"),
       path("tests/runtime-io-parity.test.ts"),
       path("tests/error-report-parity.test.ts"),

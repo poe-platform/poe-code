@@ -356,11 +356,10 @@ export function* parseContentSteps(options: { readonly splitText?: boolean } = {
   }
 }
 
-export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
-  const rootNodes: PdfContentNode[] = [];
-  const stack: PdfContentNode[][] = [rootNodes];
+/** Pull parser events without collecting graphics groups or whole text objects. */
+export function* parseContentEvents(bytes: Uint8Array, options: { splitText?: boolean } = {}): Generator<PdfContentEvent, void, void> {
   const operators = parseContentOperators(bytes);
-  const work = parseContentSteps({ splitText: false });
+  const work = parseContentSteps(options);
   let step = work.next();
   try {
     while (!step.done) {
@@ -368,18 +367,22 @@ export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
       switch (step.value.kind) {
         case "operator": { const next = operators.next(); result = next.done ? undefined : next.value; break; }
         case "inline-image": result = bytes.subarray(step.value.start, step.value.end); break;
-        case "event": {
-          const event = step.value.event;
-          if (event.kind === "end-group") { if (stack.length > 1) stack.pop(); }
-          else if (event.kind === "begin-group") {
-            stack[stack.length - 1]!.push(event.group);
-            stack.push(event.group.kind === "graphics-group" ? event.group.ops : event.group.children);
-          } else stack[stack.length - 1]!.push(event);
-          break;
-        }
+        case "event": yield step.value.event; break;
       }
       step = work.next(result);
     }
-    return rootNodes;
   } finally { work.return(); operators.return(undefined); }
+}
+
+export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
+  const rootNodes: PdfContentNode[] = [];
+  const stack: PdfContentNode[][] = [rootNodes];
+  for (const event of parseContentEvents(bytes, { splitText: false })) {
+    if (event.kind === "end-group") { if (stack.length > 1) stack.pop(); }
+    else if (event.kind === "begin-group") {
+      stack[stack.length - 1]!.push(event.group);
+      stack.push(event.group.kind === "graphics-group" ? event.group.ops : event.group.children);
+    } else stack[stack.length - 1]!.push(event);
+  }
+  return rootNodes;
 }

@@ -23,7 +23,7 @@ import type { ParsedCosDocument } from "../cos/parser.js";
 import { PdfError } from "../errors.js";
 import { bytesToString } from "../bytes.js";
 import { iterateCMapCharacters } from "../fonts/cmap.js";
-import { parseContentStream, type PdfContentEvent } from "./parser.js";
+import { parseContentStream, parseContentEvents, type PdfContentEvent } from "./parser.js";
 import { createCalibratedColorSpace } from "./calibrated-color.js";
 import {
   decodeWinAnsiByte,
@@ -837,7 +837,10 @@ export interface PdfEvaluationOperation {
   readonly insideSoftMask: boolean;
 }
 
-export type PdfEvaluationRequest = PdfEvaluationOperation | { readonly kind: "node" }
+/** Identity of one nested content traversal. Drivers own and close its cursor. */
+export interface PdfEvaluationContentSource { readonly stream: PdfCosStream }
+
+export type PdfEvaluationRequest = PdfEvaluationOperation | { readonly kind: "node"; readonly source?: PdfEvaluationContentSource }
   | { readonly kind: "font"; readonly name: string; readonly resources: PdfCosDict | undefined }
   | { readonly kind: "resolve"; readonly node: PdfCosNode }
   | { readonly kind: "catalog" };
@@ -1272,7 +1275,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       const iy0 = Math.floor((Math.min(...corners.map(p => p[1])) - box[3]!) / yStep) + 1;
       const iy1 = Math.ceil((Math.max(...corners.map(p => p[1])) - box[1]!) / yStep) - 1;
       if ((ix1 - ix0 + 1) * (iy1 - iy0 + 1) > 20000) throw new PdfError("E_LIMIT", "Pattern tile count exceeds 20000");
-      const nodes = parseContentStream(doc.decodeStream(pattern));
+      const nodes = { stream: pattern };
       const patternResources = doc.resolveDict(dictGet(dict, "Resources")) ?? resources;
       const patternFonts: FontScope = [patternResources, ...activeFonts];
       for (let iy = iy0; iy <= iy1; iy++) {
@@ -1312,8 +1315,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     // apply once to the finished Form, after resetting its inner paint state.
     const compositeGroup = !maskGroup && groupType?.kind === "name" && groupType.decoded === "Transparency" &&
       (isolated || st.fillAlpha !== 1 || !!st.softMask || (!!st.blendMode && st.blendMode !== "Normal" && st.blendMode !== "Compatible"));
-    const formStreamBytes = params.cosDoc!.decodeStream(form);
-    const formNodes = parseContentStream(formStreamBytes);
+    const formNodes = { stream: form };
     const formResDict = params.cosDoc!.resolveDict(dictGet(form.dict, "Resources")) ?? activeResources;
     const formFonts: FontScope = [formResDict, ...activeFonts];
     let nextCtm: Matrix6 = [...st.ctm] as Matrix6;
@@ -1417,7 +1419,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
   }
 
   function* walkNodes(
-    nodes: Iterable<PdfContentEvent> | undefined,
+    nodes: Iterable<PdfContentEvent> | PdfEvaluationContentSource | undefined,
     mcid?: number,
     actualText?: string,
     activeResources: PdfCosDict | undefined = params.resourcesDict,
@@ -1426,13 +1428,14 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
   ): EvaluationWork {
     const groups: Array<{ pushed: boolean; hidden: boolean; mcid: number | undefined; actualText: string | undefined }> = [];
     let hidden = false;
-    const iterator = nodes?.[Symbol.iterator]();
+    const source = nodes && "stream" in nodes ? { stream: nodes.stream } : undefined;
+    const iterator = nodes && !("stream" in nodes) ? nodes[Symbol.iterator]() : undefined;
     let failed = false, exhausted = false;
     try {
     while (true) {
       const next = iterator?.next();
       if (next?.done) exhausted = true;
-      const node = next ? (next.done ? undefined : next.value) : yield { kind: "node" };
+      const node = next ? (next.done ? undefined : next.value) : yield { kind: "node", ...(source ? { source } : {}) };
       if (!node) break;
       if (!("kind" in node)) throw new TypeError("Expected a PDF content event");
       if (node.kind === "end-group") {
@@ -1911,13 +1914,24 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
   const work = evaluateContentSteps(params);
   const fontCaches = new WeakMap<PdfCosDict, Map<string, ResolvedPageFont | undefined>>();
   const defaultFonts = new Map<string, ResolvedPageFont | undefined>();
+  const nestedInputs = new Map<PdfEvaluationContentSource, Iterator<PdfContentEvent>>();
   let failed = false, exhausted = false;
   try {
     let step = work.next();
     while (!step.done) {
       if (step.value.kind === "node") {
-        const next = input.next();
-        if (next.done) exhausted = true;
+        const source = step.value.source;
+        let cursor = source ? nestedInputs.get(source) : input;
+        if (!cursor) {
+          if (!params.cosDoc || !source) throw new PdfError("E_CAPABILITY", "Nested PDF content requires a source driver");
+          cursor = parseContentEvents(params.cosDoc.decodeStream(source.stream));
+          nestedInputs.set(source, cursor);
+        }
+        const next = cursor.next();
+        if (next.done) {
+          if (source) nestedInputs.delete(source);
+          else exhausted = true;
+        }
         step = work.next(next.done ? undefined : next.value);
       } else if (step.value.kind === "resolve" || step.value.kind === "catalog") {
         step = work.next({ kind: "resolved", node: params.cosDoc?.resolve(step.value.kind === "catalog" ? params.cosDoc.rootRef : step.value.node) });
@@ -1933,7 +1947,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
       }
     }
   } catch (error) { failed = true; throw error; }
-  finally { closeEvaluationIterators([work, exhausted ? undefined : input], failed); }
+  finally { closeEvaluationIterators([work, ...nestedInputs.values(), exhausted ? undefined : input], failed); }
 }
 
 export function evaluateContentStreamToDisplayList(params: PdfContentEvaluationOptions): PdfDisplayList {

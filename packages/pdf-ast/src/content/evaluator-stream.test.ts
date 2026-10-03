@@ -163,3 +163,55 @@ it("suspends named marked-content properties for retained lookup", async () => {
   expect(reads).toBeGreaterThan(0);
   expect(dictGet(resources, "Properties")).toBe(properties);
 });
+
+it("suspends nested Form content with a distinct cursor per invocation", async () => {
+  const { evaluateContentSteps } = await import("./evaluator.js");
+  const { PdfDocument } = await import("../document.js");
+  const { cosDict, cosName, cosStream } = await import("../ast.js");
+  const doc = PdfDocument.create();
+  const form = cosStream(cosDict({ Subtype: cosName("Form") }), new TextEncoder().encode("0 0 10 10 re f"));
+  const resources = cosDict({ XObject: cosDict({ F: form }) });
+  doc.cos.decodeStream = () => { throw new Error("evaluator must request nested input from the driver"); };
+  const work = evaluateContentSteps({ pageIndex: 0, width: 100, height: 100, cosDoc: doc.cos, resourcesDict: resources });
+  expect(work.next().value).toEqual({ kind: "node" });
+  const first = work.next({ kind: "xobject", name: "F" });
+  expect(first.value).toMatchObject({ kind: "node", source: { stream: form } });
+  const path = parseContentStream(new TextEncoder().encode("0 0 10 10 re f"))[0]!;
+  expect(work.next(path).value).toMatchObject({ kind: "paint", operation: { kind: "path" } });
+  expect(work.next().value).toEqual(first.value);
+  expect(work.next(undefined).value).toEqual({ kind: "node" });
+  const second = work.next({ kind: "xobject", name: "F" });
+  expect(second.value).toMatchObject({ kind: "node", source: { stream: form } });
+  if (first.value?.kind !== "node" || second.value?.kind !== "node") throw new Error("expected content cursors");
+  expect(second.value.source).not.toBe(first.value.source);
+  work.return();
+});
+
+it.each([false, true])("closes all nested cursors and preserves primary failure: %s", async fail => {
+  const { vi } = await import("vitest");
+  const parser = await import("./parser.js");
+  const { PdfDocument } = await import("../document.js");
+  const { cosDict, cosName, cosStream, dictSet } = await import("../ast.js");
+  const doc = PdfDocument.create();
+  const form = cosStream(cosDict({ Subtype: cosName("Form") }), new Uint8Array());
+  const resources = cosDict({ XObject: cosDict({ F: form }) });
+  dictSet(form.dict, "Resources", resources);
+  const failure = new Error("nested read failed");
+  let opened = 0, closed = 0, rootClosed = false;
+  function failCleanup(): never { throw new Error("nested cleanup failed"); }
+  const spy = vi.spyOn(parser, "parseContentEvents").mockImplementation(function* () {
+    const level = ++opened;
+    try {
+      if (level === 1) yield { kind: "xobject", name: "F" };
+      else if (fail) throw failure;
+      else yield { kind: "path-op", paint: "f", segments: [{ kind: "rect", x: 0, y: 0, width: 10, height: 10 }] };
+    } finally { closed++; if (fail && level === 1) failCleanup(); }
+  });
+  function* nodes() { try { yield { kind: "xobject" as const, name: "F" }; } finally { rootClosed = true; } }
+  const work = evaluateContentStreamSteps({ pageIndex: 0, width: 100, height: 100, cosDoc: doc.cos, resourcesDict: resources, nodes: nodes() });
+  try {
+    if (fail) expect(() => work.next()).toThrow(failure);
+    else { expect(work.next().value).toMatchObject({ operation: { kind: "path" } }); work.return(); }
+    expect(opened).toBe(2); expect(closed).toBe(2); expect(rootClosed).toBe(true);
+  } finally { spy.mockRestore(); }
+});

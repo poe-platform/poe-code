@@ -4,7 +4,7 @@ import { Miniflare } from "miniflare";
 import { fileURLToPath } from "node:url";
 import sharp from "@poe-code/image-ast";
 import { runIdentifyCli } from "./index.js";
-it("inspects raster statistics in Workerd with external input and scratch backing", async () => {
+it.each([false, true])("inspects raster statistics in Workerd with external backing, streamed input=%s", async (streamed) => {
     const pixels = new Uint8Array(601 * 601 * 4);
     let state = 1234567;
     for (let i = 0; i < pixels.length; i++) {
@@ -19,9 +19,9 @@ it("inspects raster statistics in Workerd with external input and scratch backin
     const expectedFormat = await runIdentifyCli(["-format", "%m %wx%h %b %% %[channels] %[mean] %[opaque] %[bit-depth] %[type] %[standard-deviation] %[fx:p{600,600}.r] %[pixel:p{23,7}] %[hex:p{p{0,0}.r*600,500}]", "/input"], new Map([["/input", bytes]]));
     const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../../../", import.meta.url)), sourcefile: "pdf-metadata-worker.ts", contents: `
  import {runIdentifyCli} from './packages/safe-bash-command-imagemagick/src/index.ts';
- export default {async fetch(request,env){const {size}=await request.json();let id=0,opened=0,closed=0,removed=0,maxAllocation=0,reads=0;const scope={},files=new Map([['/input',{id:'input',size}]]);
+ export default {async fetch(request,env){const {size,streamed}=await request.json();let id=0,opened=0,closed=0,removed=0,maxAllocation=0,reads=0;const scope={},files=new Map([['/input',{id:'input',size}]]);
  const stat=(file,type='file')=>({type,size:file.size,mode:420,mtimeMs:1,ctimeMs:1,atimeMs:1,identityScope:scope,opaqueIdentity:file.id,opaqueVersion:'1'}),parent=stat({id:'root',size:0},'directory');
- const fs={capabilities:{retainedRead:true,retainedStagingWrite:true,retainedStagingCleanup:true},async stat(){return parent;},async capabilitiesFor(){return this.capabilities;},
+ const fs={capabilities:{retainedRead:true,retainedStagingWrite:true,retainedStagingCleanup:true},async stat(){return parent;},async capabilitiesFor(path){return {...this.capabilities,retainedRead:path==='/input'?!streamed:true};},async *readStream(path){const file=files.get(path);opened++;try{for(let position=0;position<file.size;position+=16384){reads++;const response=await env.BACKING.fetch('https://backing/'+file.id+'?position='+position+'&length='+Math.min(16384,file.size-position));yield new Uint8Array(await response.arrayBuffer());}}finally{closed++;}},
  async removeFileConditional(path){files.delete(path);removed++;},
  async open(path){const file={id:String(++id),size:0};files.set(path,file);opened++;return {capabilities:{positionedRead:true,positionedWrite:true},async stat(){return stat(file);},async write(bytes,position){if(bytes.length>16384)throw new Error('large scratch write');await env.BACKING.fetch('https://backing/'+file.id+'?position='+position,{method:'PUT',body:bytes});file.size=Math.max(file.size,position+bytes.length);return bytes.length;},async read(bytes,position){reads++;const response=await env.BACKING.fetch('https://backing/'+file.id+'?position='+position+'&length='+bytes.length);bytes.set(new Uint8Array(await response.arrayBuffer()));return bytes.length;},async close(){closed++;await env.BACKING.fetch('https://backing/'+file.id,{method:'DELETE'});}};},
  async openReadFile(path){const file=files.get(path);if(!file)throw new Error('missing retained source');opened++;return {async stat(){return stat(file);},async read(position,length){if(length>65536)throw new Error('large request');reads++;const response=await env.BACKING.fetch('https://backing/'+file.id+'?position='+position+'&length='+length);return new Uint8Array(await response.arrayBuffer());},async close(){closed++;}};},
@@ -48,7 +48,7 @@ it("inspects raster statistics in Workerd with external input and scratch backin
                 return new Response(backing.get(key)!.slice(position, position + Number(url.searchParams.get("length"))));
             } } });
     try {
-        const response = await runtime.dispatchFetch("https://image/", { method: "POST", body: JSON.stringify({ size: bytes.length }) });
+        const response = await runtime.dispatchFetch("https://image/", { method: "POST", body: JSON.stringify({ size: bytes.length, streamed }) });
         if (response.status !== 200)
             throw new Error(await response.text());
         const result = await response.json() as {

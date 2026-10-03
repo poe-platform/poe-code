@@ -107,6 +107,7 @@ for (const command of createImagemagickCommands()) {
     const { context } = await imageContext(command, ["in.png", "out.png"]);
     const failure = Object.assign(new Error("caller input ceiling exceeded"), { name: "BudgetExceededError" });
     context.fs.readFile = async () => { throw failure; };
+    context.fs.readStream = () => { throw failure; };
     await expect(command.execute(context)).rejects.toBe(failure);
   });
 }

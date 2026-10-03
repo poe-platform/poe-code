@@ -21,6 +21,25 @@ export async function withImageInputs<T>(input: ImageFileInput, stdinBytes: Uint
     const { filesystem: fs, cwd, stdin, inputBudget } = input, io = { signal };
     let total = 0, failed = true, stdinSource: ImageByteSource | undefined, stdinStorage: PagedStorage | undefined;
     const charge = (size: number) => { total += size; inputBudget?.check(total); };
+    const snapshot = async (stream: AsyncIterable<Uint8Array>, backing: PagedStorage): Promise<ImageByteSource> => {
+        const base = backing.allocate(0);
+        let size = 0;
+        for await (const chunk of readBytes(stream, signal)) {
+            charge(chunk.length);
+            const position = backing.allocate(chunk.length);
+            for (let offset = 0; offset < chunk.length; offset += 16384)
+                await backing.write(position + offset, chunk.subarray(offset, offset + 16384));
+            size += chunk.length;
+        }
+        return { size, async read(position, length) {
+                if (!Number.isSafeInteger(position) || !Number.isSafeInteger(length) || position < 0 || length < 0 || position + length > size)
+                    throw new RangeError("Invalid image input range");
+                const bytes = new Uint8Array(length);
+                for (let offset = 0; offset < length; offset += 16384)
+                    bytes.set(await backing.read(base + position + offset, Math.min(16384, length - offset)), offset);
+                return bytes;
+            } };
+    };
     let retired = false, closing: Promise<void> | undefined;
     const close = () => closing ??= (async () => { retired = true; await stdinStorage?.close(); })();
     const read: ImageInputReader = Object.assign(async <Result>(path: string, inspect: (source: ImageByteSource) => Promise<Result>) => {
@@ -35,23 +54,7 @@ export async function withImageInputs<T>(input: ImageFileInput, stdinBytes: Uint
                 }
                 else if (stdin) {
                     stdinStorage = new PagedStorage({ fs, cwd: cwd, env: {}, signal });
-                    const backing = stdinStorage, base = backing.allocate(0);
-                    let size = 0;
-                    for await (const chunk of readBytes(stdin, signal)) {
-                        charge(chunk.length);
-                        const position = backing.allocate(chunk.length);
-                        for (let offset = 0; offset < chunk.length; offset += 16384)
-                            await backing.write(position + offset, chunk.subarray(offset, offset + 16384));
-                        size += chunk.length;
-                    }
-                    stdinSource = { size, async read(position, length) {
-                            if (!Number.isSafeInteger(position) || !Number.isSafeInteger(length) || position < 0 || length < 0 || position + length > size)
-                                throw new RangeError("Invalid image input range");
-                            const bytes = new Uint8Array(length);
-                            for (let offset = 0; offset < length; offset += 16384)
-                                bytes.set(await backing.read(base + position + offset, Math.min(16384, length - offset)), offset);
-                            return bytes;
-                        } };
+                    stdinSource = await snapshot(stdin, stdinStorage);
                 }
             }
             if (stdinSource)
@@ -61,7 +64,49 @@ export async function withImageInputs<T>(input: ImageFileInput, stdinBytes: Uint
             const absolute = resolvePath(cwd, path);
             try {
                 const capabilities = await fs.capabilitiesFor?.(absolute, io) ?? fs.capabilities;
-                const buffered = async () => { const bytes = await fs.readFile(absolute, io); charge(bytes.length); return withImageSource(bytes, fs, signal, inspect); };
+                const fallback = async () => {
+                    const buffered = async () => {
+                        const bytes = await fs.readFile(absolute, io);
+                        charge(bytes.length);
+                        return withImageSource(bytes, fs, signal, inspect);
+                    };
+                    if (!fs.readStream || capabilities.streamingRead === false || fs.capabilities.streamingRead === false)
+                        return buffered();
+                    const backing = new PagedStorage({ fs, cwd, env: {}, signal });
+                    let failed = true;
+                    try {
+                        let started = false;
+                        const stream = (async function* () {
+                            for await (const chunk of readBytes(fs.readStream!(absolute, { ...io, chunkSize: 16384 }), signal)) {
+                                started = true;
+                                yield chunk;
+                            }
+                        })();
+                        let source: ImageByteSource;
+                        try {
+                            source = await snapshot(stream, backing);
+                        }
+                        catch (error) {
+                            signal.throwIfAborted();
+                            if (started || !(error instanceof FsError) || error.code !== "ENOTSUP")
+                                throw error;
+                            await backing.close();
+                            return buffered();
+                        }
+                        const result = await inspect(source);
+                        failed = false;
+                        return result;
+                    }
+                    finally {
+                        try {
+                            await backing.close();
+                        }
+                        catch (error) {
+                            if (!failed)
+                                await Promise.reject(error);
+                        }
+                    }
+                };
                 if (capabilities.retainedRead && fs.openReadFile) {
                     let entered = false;
                     try {
@@ -70,11 +115,11 @@ export async function withImageInputs<T>(input: ImageFileInput, stdinBytes: Uint
                     catch (error) {
                         if (entered || !(error instanceof FsError) || error.code !== "ENOTSUP")
                             throw error;
-                        result = await buffered();
+                        result = await fallback();
                     }
                 }
                 else
-                    result = await buffered();
+                    result = await fallback();
             }
             catch (error) {
                 if (!missing(error))

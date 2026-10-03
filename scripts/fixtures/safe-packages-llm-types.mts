@@ -44,3 +44,8 @@ const elevenLabsOptions: ElevenLabsProviderOptions = { transport, apiKey: "injec
 const providers: readonly LlmProvider[] = [openAiFactory(openAiOptions), elevenLabsFactory(elevenLabsOptions)];
 const shell = new Shell({ fs: new MemoryFileSystem() }).use(plugin(options));
 void [shell, commands(options), providers];
+
+import type { S3FileSystem } from "@poe-platform/safe-fs/fs/s3";
+declare const remoteFiles: S3FileSystem;
+const remoteDirectory: AsyncIterable<{readonly name:string;readonly type:string}> = remoteFiles.iterateDirectory("/", {signal:new AbortController().signal});
+void remoteDirectory;

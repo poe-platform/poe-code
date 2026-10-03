@@ -355,23 +355,27 @@ export class S3FileSystem implements FileSystem {
     if (key.endsWith("/") && object.Size !== 0) fail("ENOTSUP", "listObjectsV2", path, "nonempty slash-suffixed objects cannot be treated as directories");
   }
 
-  private async *pages(prefix: string, path: string, options: FsOptions, delimiter?: string, maxKeys = this.pageSize): AsyncGenerator<S3ListOutput> {
-    const tokens = new Set<string>();
-    let token: string | undefined;
-    let entries = 0;
+  private async *pages(prefix: string, path: string, options: FsOptions, delimiter?: string, maxKeys = this.pageSize, rememberTokens = true): AsyncGenerator<S3ListOutput> {
+    // Buffered callers preserve exact repeated-token rejection. Lazy traversal
+    // detects continuation cycles without retaining the whole token history.
+    const tokens = rememberTokens ? new Set<string>() : undefined;
+    let token: string | undefined, checkpoint: string | undefined;
+    let entries = 0, pageCount = 0, span = 0, power = 1;
     do {
       const page = await this.page(prefix, path, options, delimiter, token, maxKeys);
       entries += (page.Contents?.length ?? 0) + (page.CommonPrefixes?.length ?? 0);
-      if (entries > this.maxListEntries || tokens.size >= this.maxListEntries) fail("EFBIG", "listObjectsV2", path, "listing exceeds maxListEntries");
+      if (entries > this.maxListEntries || ++pageCount > this.maxListEntries) fail("EFBIG", "listObjectsV2", path, "listing exceeds maxListEntries");
+      const truncated = page.IsTruncated, next = page.NextContinuationToken;
       yield page;
-      if (!page.IsTruncated) return;
-      token = page.NextContinuationToken;
-      if (typeof token !== "string" || !token || tokens.has(token)) fail("EIO", "listObjectsV2", path, "missing or repeated continuation token");
-      tokens.add(token);
+      if (!truncated) return;
+      if (typeof next !== "string" || !next || next === token || next === checkpoint || tokens?.has(next)) fail("EIO", "listObjectsV2", path, "missing or repeated continuation token");
+      if (++span === power) { checkpoint = next; span = 0; power = Math.min(Number.MAX_SAFE_INTEGER, power * 2); }
+      tokens?.add(next);
+      token = next;
     } while (true);
   }
 
-  private async inspect(path: string, options: FsOptions): Promise<NodeInfo | undefined> {
+  private async inspect(path: string, options: FsOptions, rememberTokens = true): Promise<NodeInfo | undefined> {
     if (path === "/") {
       const listing = await this.page(this.prefix, path, options, undefined, undefined, 1);
       const marker = this.prefix && listing.Contents?.some(object => object.Key === this.prefix)
@@ -386,7 +390,7 @@ export class S3FileSystem implements FileSystem {
     const directoryKey = this.directoryKey(path);
     let directory = false;
     let hasMarker = false;
-    for await (const children of this.pages(directoryKey, path, options, undefined, 1)) {
+    for await (const children of this.pages(directoryKey, path, options, undefined, 1, rememberTokens)) {
       if ((children.Contents?.length ?? 0) > 0) {
         directory = true;
         hasMarker = children.Contents!.some(object => object.Key === directoryKey);
@@ -401,7 +405,7 @@ export class S3FileSystem implements FileSystem {
     return undefined;
   }
 
-  private async lookup(path: string, options: FsOptions): Promise<NodeInfo | undefined> {
+  private async lookup(path: string, options: FsOptions, rememberTokens = true): Promise<NodeInfo | undefined> {
     const ancestors: string[] = [];
     for (let parent = posix.dirname(path); path !== "/"; parent = posix.dirname(parent)) {
       ancestors.unshift(parent);
@@ -409,11 +413,11 @@ export class S3FileSystem implements FileSystem {
     }
     for (const parent of ancestors) {
       if (parent === "/" && this.prefix === "") continue;
-      const ancestor = await this.inspect(parent, options);
+      const ancestor = await this.inspect(parent, options, rememberTokens);
       if (!ancestor) fail("ENOENT", "stat", parent);
       if (ancestor.stat.type !== "directory") fail("ENOTDIR", "stat", parent);
     }
-    return this.inspect(path, options);
+    return this.inspect(path, options, rememberTokens);
   }
 
   private requireDirectorySuffix(input: string, info: NodeInfo | undefined): void {
@@ -577,6 +581,30 @@ export class S3FileSystem implements FileSystem {
       for (const item of page.CommonPrefixes ?? []) add(item.Prefix!.slice(prefix.length, -1), "directory");
     }
     return [...entries.values()].sort((left, right) => compareKeys(left.name, right.name));
+  }
+
+  async *iterateDirectory(input: string, options: FsOptions = {}): AsyncIterable<DirectoryEntry> {
+    const path = this.path(input);
+    const directory = await this.lookup(path, options, false);
+    if (!directory) fail("ENOENT", "iterateDirectory", path);
+    if (directory.stat.type !== "directory") fail("ENOTDIR", "iterateDirectory", path);
+    const prefix = this.directoryKey(path);
+    for await (const page of this.pages(prefix, path, options, "/", this.pageSize, false)) {
+      // Snapshot one bounded service page before yielding to caller code.
+      if ((page.Contents?.length ?? 0) + (page.CommonPrefixes?.length ?? 0) > this.pageSize) fail("EIO", "iterateDirectory", path, "transport exceeded requested page size");
+      const entries: DirectoryEntry[] = [];
+      for (const item of page.Contents ?? []) if (item.Key !== prefix) entries.push({ name: item.Key!.slice(prefix.length), type: "file" });
+      for (const item of page.CommonPrefixes ?? []) entries.push({ name: item.Prefix!.slice(prefix.length, -1), type: "directory" });
+      for (const entry of entries) {
+        this.checkAbort(options, "iterateDirectory", path);
+        if (!entry.name || entry.name.includes("/")) fail("EIO", "iterateDirectory", path, "invalid direct child in delimited listing");
+        // Revalidation preserves file/prefix collision detection across pages
+        // and follows the backend's live namespace without retaining all names.
+        const child = await this.lookup(path === "/" ? `/${entry.name}` : `${path}/${entry.name}`, options, false);
+        this.checkAbort(options, "iterateDirectory", path);
+        if (child) yield { name: entry.name, type: child.stat.type };
+      }
+    }
   }
 
   private async tree(path: string, options: FsOptions): Promise<S3ObjectSummary[]> {

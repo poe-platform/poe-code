@@ -1,3 +1,4 @@
+import { S3FileSystem, MockS3Client } from "@poe-platform/safe-fs/fs/s3";
 import { MemoryFileSystem, createMountFileSystem, createOverlayFileSystem } from "@poe-platform/safe-fs/core";
 import { withLlmCollections, createLlmCollectionCommands, withCsvEmbeddingEntries, withJsonEmbeddingEntries, withJsonLinesEmbeddingEntries, withFileEmbeddingEntries, withEmbeddingFileGlob } from "@poe-platform/safe-bash/commands/llm/collections";
 import { createLlmService, llmCommands } from "@poe-platform/safe-bash/commands/llm";
@@ -53,6 +54,15 @@ export async function verifyLlmCollections() {
   overlayRows.sort((a,b)=>a[0].localeCompare(b[0]));
   if(JSON.stringify(overlayRows)!==JSON.stringify([['lower.txt','lower'],['shared.txt','upper']]))throw new Error('Installed overlay file traversal changed');
   for await(const entry of overlayRoot.iterateDirectory('/scratch'))throw new Error('Overlay traversal leaked scratch storage: '+entry.name);
+  const s3Root=new MemoryFileSystem(),s3Transport=new MockS3Client({buckets:['files'],pageSize:1});
+  await s3Root.mkdir('/scratch');
+  for(const key of ['first.txt','nested/second.txt'])await s3Transport.putObject({Bucket:'files',Key:key,Body:new TextEncoder().encode(key)});
+  const s3Source=new S3FileSystem({transport:s3Transport,bucket:'files',pageSize:1});
+  s3Source.readdir=async()=>{throw new Error('S3 glob used eager listing');};
+  const s3Mount=createMountFileSystem({root:s3Root,mounts:{'/remote':s3Source}}),s3Names=[];
+  await withEmbeddingFileGlob({fs:s3Mount,directory:'/scratch',signal:new AbortController().signal,maxFileBytes:1048576,maxOpenFiles:8},{directory:'/remote',pattern:'**/*.txt'},async files=>{for await(const file of files)s3Names.push(file.id);});
+  s3Names.sort();if(JSON.stringify(s3Names)!==JSON.stringify(['first.txt','nested/second.txt']))throw new Error('Installed S3 glob enumeration failed');
+  for await(const entry of s3Root.iterateDirectory('/scratch'))throw new Error('S3 glob leaked caller scratch: '+entry.name);
   const globFs=new MemoryFileSystem();
   await globFs.writeFile('/signature',Uint8Array.of(0xef,0xbb));
   let signatureRows=0;

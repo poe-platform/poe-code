@@ -83,7 +83,7 @@ export function parseId3(bytes: Uint8Array): Id3Result {
   if (version >= 3 && flags & 64) {
     const extended = version === 4 ? synchsafe(r, 0) : r.u32(0) + 4;
     r.check(0, extended);
-    if (extended < 4) throw new Error("Invalid ID3 extended header");
+    if (extended < (version === 3 ? 10 : 6)) throw new Error("Invalid ID3 extended header");
     pos = extended;
   }
   while (pos < r.bytes.length && r.u8(pos) !== 0) {

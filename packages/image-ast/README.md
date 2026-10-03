@@ -65,6 +65,9 @@ bounded input pages and caller-backed coefficients and component planes.
 `resampleStoredImage(image, storage, {width, height, kernel}, signal)` resamples
 backed RGBA pixels with bounded caches, including alpha and all resize kernels.
 Optional explicit scales must round to the requested output dimensions.
+`computeStoredImageStats(image, storage, signal)` scans caller-backed pixels for
+channel extrema, entropy, sharpness and dominant color using fixed histograms and
+a bounded pixel cache, without allocating a grayscale canvas.
 Use an external backing provider
 for large images; memory-backed storage still retains the pixels in RAM.
 

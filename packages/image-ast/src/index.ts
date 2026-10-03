@@ -1,3 +1,4 @@
+export {computeStoredImageStats} from "./ops/stats-storage.js";
 export {renderTextToStorage} from "./codecs/text-storage.js";
 export {decodeWebpToStorage} from "./codecs/webp-input-storage.js";
 export {encodeWebpFromStorage} from "./codecs/webp-storage.js";

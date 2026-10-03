@@ -1,0 +1,1441 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`preserves statistics 1x1/1/false 1`] = `
+{
+  "channels": [
+    {
+      "max": 0,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 0,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 0,
+      "stdev": 0,
+      "sum": 0,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 0,
+  "isOpaque": false,
+  "sharpness": 0,
+}
+`;
+
+exports[`preserves statistics 1x1/1/true 1`] = `
+{
+  "channels": [
+    {
+      "max": 0,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 0,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 0,
+      "stdev": 0,
+      "sum": 0,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 0,
+  "isOpaque": false,
+  "sharpness": 0,
+}
+`;
+
+exports[`preserves statistics 1x1/2/false 1`] = `
+{
+  "channels": [
+    {
+      "max": 0,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 0,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 0,
+      "stdev": 0,
+      "sum": 0,
+    },
+    {
+      "max": 111,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 111,
+      "min": 111,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 12321,
+      "stdev": 0,
+      "sum": 111,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 0,
+  "isOpaque": false,
+  "sharpness": 0,
+}
+`;
+
+exports[`preserves statistics 1x1/2/true 1`] = `
+{
+  "channels": [
+    {
+      "max": 0,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 0,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 0,
+      "stdev": 0,
+      "sum": 0,
+    },
+    {
+      "max": 111,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 111,
+      "min": 111,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 12321,
+      "stdev": 0,
+      "sum": 111,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 0,
+  "isOpaque": false,
+  "sharpness": 0,
+}
+`;
+
+exports[`preserves statistics 1x1/3/false 1`] = `
+{
+  "channels": [
+    {
+      "max": 0,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 0,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 0,
+      "stdev": 0,
+      "sum": 0,
+    },
+    {
+      "max": 37,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 37,
+      "min": 37,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 1369,
+      "stdev": 0,
+      "sum": 37,
+    },
+    {
+      "max": 74,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 74,
+      "min": 74,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 5476,
+      "stdev": 0,
+      "sum": 74,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 0,
+  "isOpaque": false,
+  "sharpness": 0,
+}
+`;
+
+exports[`preserves statistics 1x1/3/true 1`] = `
+{
+  "channels": [
+    {
+      "max": 0,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 0,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 0,
+      "stdev": 0,
+      "sum": 0,
+    },
+    {
+      "max": 37,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 37,
+      "min": 37,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 1369,
+      "stdev": 0,
+      "sum": 37,
+    },
+    {
+      "max": 74,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 74,
+      "min": 74,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 5476,
+      "stdev": 0,
+      "sum": 74,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 0,
+  "isOpaque": false,
+  "sharpness": 0,
+}
+`;
+
+exports[`preserves statistics 1x1/4/false 1`] = `
+{
+  "channels": [
+    {
+      "max": 0,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 0,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 0,
+      "stdev": 0,
+      "sum": 0,
+    },
+    {
+      "max": 37,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 37,
+      "min": 37,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 1369,
+      "stdev": 0,
+      "sum": 37,
+    },
+    {
+      "max": 74,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 74,
+      "min": 74,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 5476,
+      "stdev": 0,
+      "sum": 74,
+    },
+    {
+      "max": 111,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 111,
+      "min": 111,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 12321,
+      "stdev": 0,
+      "sum": 111,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 0,
+  "isOpaque": false,
+  "sharpness": 0,
+}
+`;
+
+exports[`preserves statistics 1x1/4/true 1`] = `
+{
+  "channels": [
+    {
+      "max": 0,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 0,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 0,
+      "stdev": 0,
+      "sum": 0,
+    },
+    {
+      "max": 37,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 37,
+      "min": 37,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 1369,
+      "stdev": 0,
+      "sum": 37,
+    },
+    {
+      "max": 74,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 74,
+      "min": 74,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 5476,
+      "stdev": 0,
+      "sum": 74,
+    },
+    {
+      "max": 111,
+      "maxX": 0,
+      "maxY": 0,
+      "mean": 111,
+      "min": 111,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 12321,
+      "stdev": 0,
+      "sum": 111,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 0,
+  "isOpaque": false,
+  "sharpness": 0,
+}
+`;
+
+exports[`preserves statistics 1x17/1/false 1`] = `
+{
+  "channels": [
+    {
+      "max": 246,
+      "maxX": 0,
+      "maxY": 13,
+      "mean": 126.11764705882354,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 370744,
+      "stdev": 79.19428826700602,
+      "sum": 2144,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 4.08746284125034,
+  "isOpaque": false,
+  "sharpness": 25.187322894025503,
+}
+`;
+
+exports[`preserves statistics 1x17/1/true 1`] = `
+{
+  "channels": [
+    {
+      "max": 246,
+      "maxX": 0,
+      "maxY": 13,
+      "mean": 126.11764705882354,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 370744,
+      "stdev": 79.19428826700602,
+      "sum": 2144,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 4.08746284125034,
+  "isOpaque": false,
+  "sharpness": 25.187322894025503,
+}
+`;
+
+exports[`preserves statistics 1x17/2/false 1`] = `
+{
+  "channels": [
+    {
+      "max": 246,
+      "maxX": 0,
+      "maxY": 13,
+      "mean": 126.11764705882354,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 370744,
+      "stdev": 79.19428826700602,
+      "sum": 2144,
+    },
+    {
+      "max": 239,
+      "maxX": 0,
+      "maxY": 9,
+      "mean": 116.6470588235294,
+      "min": 3,
+      "minX": 0,
+      "minY": 1,
+      "squaresSum": 319913,
+      "stdev": 74.41517081253542,
+      "sum": 1983,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 4.08746284125034,
+  "isOpaque": false,
+  "sharpness": 25.187322894025503,
+}
+`;
+
+exports[`preserves statistics 1x17/2/true 1`] = `
+{
+  "channels": [
+    {
+      "max": 246,
+      "maxX": 0,
+      "maxY": 13,
+      "mean": 126.11764705882354,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 370744,
+      "stdev": 79.19428826700602,
+      "sum": 2144,
+    },
+    {
+      "max": 239,
+      "maxX": 0,
+      "maxY": 9,
+      "mean": 116.6470588235294,
+      "min": 3,
+      "minX": 0,
+      "minY": 1,
+      "squaresSum": 319913,
+      "stdev": 74.41517081253542,
+      "sum": 1983,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 4.08746284125034,
+  "isOpaque": false,
+  "sharpness": 25.187322894025503,
+}
+`;
+
+exports[`preserves statistics 1x17/3/false 1`] = `
+{
+  "channels": [
+    {
+      "max": 246,
+      "maxX": 0,
+      "maxY": 13,
+      "mean": 126.11764705882354,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 370744,
+      "stdev": 79.19428826700602,
+      "sum": 2144,
+    },
+    {
+      "max": 253,
+      "maxX": 0,
+      "maxY": 16,
+      "mean": 133,
+      "min": 17,
+      "minX": 0,
+      "minY": 8,
+      "squaresSum": 399073,
+      "stdev": 78.40599466877516,
+      "sum": 2261,
+    },
+    {
+      "max": 251,
+      "maxX": 0,
+      "maxY": 6,
+      "mean": 124.82352941176471,
+      "min": 5,
+      "minX": 0,
+      "minY": 11,
+      "squaresSum": 360284,
+      "stdev": 77.22065404906064,
+      "sum": 2122,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 4.08746284125034,
+  "isOpaque": false,
+  "sharpness": 21.05379646712232,
+}
+`;
+
+exports[`preserves statistics 1x17/3/true 1`] = `
+{
+  "channels": [
+    {
+      "max": 246,
+      "maxX": 0,
+      "maxY": 13,
+      "mean": 126.11764705882354,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 370744,
+      "stdev": 79.19428826700602,
+      "sum": 2144,
+    },
+    {
+      "max": 253,
+      "maxX": 0,
+      "maxY": 16,
+      "mean": 133,
+      "min": 17,
+      "minX": 0,
+      "minY": 8,
+      "squaresSum": 399073,
+      "stdev": 78.40599466877516,
+      "sum": 2261,
+    },
+    {
+      "max": 251,
+      "maxX": 0,
+      "maxY": 6,
+      "mean": 124.82352941176471,
+      "min": 5,
+      "minX": 0,
+      "minY": 11,
+      "squaresSum": 360284,
+      "stdev": 77.22065404906064,
+      "sum": 2122,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 4.08746284125034,
+  "isOpaque": false,
+  "sharpness": 25.187322894025503,
+}
+`;
+
+exports[`preserves statistics 1x17/4/false 1`] = `
+{
+  "channels": [
+    {
+      "max": 246,
+      "maxX": 0,
+      "maxY": 13,
+      "mean": 126.11764705882354,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 370744,
+      "stdev": 79.19428826700602,
+      "sum": 2144,
+    },
+    {
+      "max": 253,
+      "maxX": 0,
+      "maxY": 16,
+      "mean": 133,
+      "min": 17,
+      "minX": 0,
+      "minY": 8,
+      "squaresSum": 399073,
+      "stdev": 78.40599466877516,
+      "sum": 2261,
+    },
+    {
+      "max": 251,
+      "maxX": 0,
+      "maxY": 6,
+      "mean": 124.82352941176471,
+      "min": 5,
+      "minX": 0,
+      "minY": 11,
+      "squaresSum": 360284,
+      "stdev": 77.22065404906064,
+      "sum": 2122,
+    },
+    {
+      "max": 239,
+      "maxX": 0,
+      "maxY": 9,
+      "mean": 116.6470588235294,
+      "min": 3,
+      "minX": 0,
+      "minY": 1,
+      "squaresSum": 319913,
+      "stdev": 74.41517081253542,
+      "sum": 1983,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 4.08746284125034,
+  "isOpaque": false,
+  "sharpness": 21.05379646712232,
+}
+`;
+
+exports[`preserves statistics 1x17/4/true 1`] = `
+{
+  "channels": [
+    {
+      "max": 246,
+      "maxX": 0,
+      "maxY": 13,
+      "mean": 126.11764705882354,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 370744,
+      "stdev": 79.19428826700602,
+      "sum": 2144,
+    },
+    {
+      "max": 253,
+      "maxX": 0,
+      "maxY": 16,
+      "mean": 133,
+      "min": 17,
+      "minX": 0,
+      "minY": 8,
+      "squaresSum": 399073,
+      "stdev": 78.40599466877516,
+      "sum": 2261,
+    },
+    {
+      "max": 251,
+      "maxX": 0,
+      "maxY": 6,
+      "mean": 124.82352941176471,
+      "min": 5,
+      "minX": 0,
+      "minY": 11,
+      "squaresSum": 360284,
+      "stdev": 77.22065404906064,
+      "sum": 2122,
+    },
+    {
+      "max": 239,
+      "maxX": 0,
+      "maxY": 9,
+      "mean": 116.6470588235294,
+      "min": 3,
+      "minX": 0,
+      "minY": 1,
+      "squaresSum": 319913,
+      "stdev": 74.41517081253542,
+      "sum": 1983,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 4.08746284125034,
+  "isOpaque": false,
+  "sharpness": 25.187322894025503,
+}
+`;
+
+exports[`preserves statistics 17x23/1/false 1`] = `
+{
+  "channels": [
+    {
+      "max": 255,
+      "maxX": 9,
+      "maxY": 1,
+      "mean": 127.87468030690538,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 8538739,
+      "stdev": 74.16428159809571,
+      "sum": 49999,
+    },
+  ],
+  "dominant": {
+    "b": 136,
+    "g": 104,
+    "r": 72,
+  },
+  "entropy": 7.9204877129084,
+  "isOpaque": false,
+  "sharpness": 48.86222725475201,
+}
+`;
+
+exports[`preserves statistics 17x23/1/true 1`] = `
+{
+  "channels": [
+    {
+      "max": 255,
+      "maxX": 9,
+      "maxY": 1,
+      "mean": 127.87468030690538,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 8538739,
+      "stdev": 74.16428159809571,
+      "sum": 49999,
+    },
+  ],
+  "dominant": {
+    "b": 136,
+    "g": 104,
+    "r": 72,
+  },
+  "entropy": 7.9204877129084,
+  "isOpaque": false,
+  "sharpness": 48.86222725475201,
+}
+`;
+
+exports[`preserves statistics 17x23/2/false 1`] = `
+{
+  "channels": [
+    {
+      "max": 255,
+      "maxX": 9,
+      "maxY": 1,
+      "mean": 127.87468030690538,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 8538739,
+      "stdev": 74.16428159809571,
+      "sum": 49999,
+    },
+    {
+      "max": 255,
+      "maxX": 3,
+      "maxY": 6,
+      "mean": 126.9156010230179,
+      "min": 0,
+      "minX": 11,
+      "minY": 4,
+      "squaresSum": 8429916,
+      "stdev": 73.93441679457024,
+      "sum": 49624,
+    },
+  ],
+  "dominant": {
+    "b": 136,
+    "g": 104,
+    "r": 72,
+  },
+  "entropy": 7.9204877129084,
+  "isOpaque": false,
+  "sharpness": 48.86222725475201,
+}
+`;
+
+exports[`preserves statistics 17x23/2/true 1`] = `
+{
+  "channels": [
+    {
+      "max": 255,
+      "maxX": 9,
+      "maxY": 1,
+      "mean": 127.87468030690538,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 8538739,
+      "stdev": 74.16428159809571,
+      "sum": 49999,
+    },
+    {
+      "max": 255,
+      "maxX": 3,
+      "maxY": 6,
+      "mean": 126.9156010230179,
+      "min": 0,
+      "minX": 11,
+      "minY": 4,
+      "squaresSum": 8429916,
+      "stdev": 73.93441679457024,
+      "sum": 49624,
+    },
+  ],
+  "dominant": {
+    "b": 136,
+    "g": 104,
+    "r": 72,
+  },
+  "entropy": 7.9204877129084,
+  "isOpaque": false,
+  "sharpness": 48.86222725475201,
+}
+`;
+
+exports[`preserves statistics 17x23/3/false 1`] = `
+{
+  "channels": [
+    {
+      "max": 255,
+      "maxX": 9,
+      "maxY": 1,
+      "mean": 127.87468030690538,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 8538739,
+      "stdev": 74.16428159809571,
+      "sum": 49999,
+    },
+    {
+      "max": 255,
+      "maxX": 8,
+      "maxY": 13,
+      "mean": 127.55498721227622,
+      "min": 0,
+      "minX": 16,
+      "minY": 11,
+      "squaresSum": 8500280,
+      "stdev": 74.05130875027153,
+      "sum": 49874,
+    },
+    {
+      "max": 255,
+      "maxX": 14,
+      "maxY": 9,
+      "mean": 126.58056265984655,
+      "min": 0,
+      "minX": 5,
+      "minY": 8,
+      "squaresSum": 8399835,
+      "stdev": 73.98862026631778,
+      "sum": 49493,
+    },
+  ],
+  "dominant": {
+    "b": 136,
+    "g": 104,
+    "r": 72,
+  },
+  "entropy": 7.40630334731928,
+  "isOpaque": false,
+  "sharpness": 40.01557151800572,
+}
+`;
+
+exports[`preserves statistics 17x23/3/true 1`] = `
+{
+  "channels": [
+    {
+      "max": 255,
+      "maxX": 9,
+      "maxY": 1,
+      "mean": 127.87468030690538,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 8538739,
+      "stdev": 74.16428159809571,
+      "sum": 49999,
+    },
+    {
+      "max": 255,
+      "maxX": 8,
+      "maxY": 13,
+      "mean": 127.55498721227622,
+      "min": 0,
+      "minX": 16,
+      "minY": 11,
+      "squaresSum": 8500280,
+      "stdev": 74.05130875027153,
+      "sum": 49874,
+    },
+    {
+      "max": 255,
+      "maxX": 14,
+      "maxY": 9,
+      "mean": 126.58056265984655,
+      "min": 0,
+      "minX": 5,
+      "minY": 8,
+      "squaresSum": 8399835,
+      "stdev": 73.98862026631778,
+      "sum": 49493,
+    },
+  ],
+  "dominant": {
+    "b": 136,
+    "g": 104,
+    "r": 72,
+  },
+  "entropy": 7.9204877129084,
+  "isOpaque": false,
+  "sharpness": 48.86222725475201,
+}
+`;
+
+exports[`preserves statistics 17x23/4/false 1`] = `
+{
+  "channels": [
+    {
+      "max": 255,
+      "maxX": 9,
+      "maxY": 1,
+      "mean": 127.87468030690538,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 8538739,
+      "stdev": 74.16428159809571,
+      "sum": 49999,
+    },
+    {
+      "max": 255,
+      "maxX": 8,
+      "maxY": 13,
+      "mean": 127.55498721227622,
+      "min": 0,
+      "minX": 16,
+      "minY": 11,
+      "squaresSum": 8500280,
+      "stdev": 74.05130875027153,
+      "sum": 49874,
+    },
+    {
+      "max": 255,
+      "maxX": 14,
+      "maxY": 9,
+      "mean": 126.58056265984655,
+      "min": 0,
+      "minX": 5,
+      "minY": 8,
+      "squaresSum": 8399835,
+      "stdev": 73.98862026631778,
+      "sum": 49493,
+    },
+    {
+      "max": 255,
+      "maxX": 3,
+      "maxY": 6,
+      "mean": 126.9156010230179,
+      "min": 0,
+      "minX": 11,
+      "minY": 4,
+      "squaresSum": 8429916,
+      "stdev": 73.93441679457024,
+      "sum": 49624,
+    },
+  ],
+  "dominant": {
+    "b": 136,
+    "g": 104,
+    "r": 72,
+  },
+  "entropy": 7.40630334731928,
+  "isOpaque": false,
+  "sharpness": 40.01557151800572,
+}
+`;
+
+exports[`preserves statistics 17x23/4/true 1`] = `
+{
+  "channels": [
+    {
+      "max": 255,
+      "maxX": 9,
+      "maxY": 1,
+      "mean": 127.87468030690538,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 8538739,
+      "stdev": 74.16428159809571,
+      "sum": 49999,
+    },
+    {
+      "max": 255,
+      "maxX": 8,
+      "maxY": 13,
+      "mean": 127.55498721227622,
+      "min": 0,
+      "minX": 16,
+      "minY": 11,
+      "squaresSum": 8500280,
+      "stdev": 74.05130875027153,
+      "sum": 49874,
+    },
+    {
+      "max": 255,
+      "maxX": 14,
+      "maxY": 9,
+      "mean": 126.58056265984655,
+      "min": 0,
+      "minX": 5,
+      "minY": 8,
+      "squaresSum": 8399835,
+      "stdev": 73.98862026631778,
+      "sum": 49493,
+    },
+    {
+      "max": 255,
+      "maxX": 3,
+      "maxY": 6,
+      "mean": 126.9156010230179,
+      "min": 0,
+      "minX": 11,
+      "minY": 4,
+      "squaresSum": 8429916,
+      "stdev": 73.93441679457024,
+      "sum": 49624,
+    },
+  ],
+  "dominant": {
+    "b": 136,
+    "g": 104,
+    "r": 72,
+  },
+  "entropy": 7.9204877129084,
+  "isOpaque": false,
+  "sharpness": 48.86222725475201,
+}
+`;
+
+exports[`preserves statistics 19x1/1/false 1`] = `
+{
+  "channels": [
+    {
+      "max": 246,
+      "maxX": 13,
+      "maxY": 0,
+      "mean": 119.52631578947368,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 382769,
+      "stdev": 78.64291196502823,
+      "sum": 2271,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 4.247927513443583,
+  "isOpaque": false,
+  "sharpness": 24.542480178933285,
+}
+`;
+
+exports[`preserves statistics 19x1/1/true 1`] = `
+{
+  "channels": [
+    {
+      "max": 246,
+      "maxX": 13,
+      "maxY": 0,
+      "mean": 119.52631578947368,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 382769,
+      "stdev": 78.64291196502823,
+      "sum": 2271,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 4.247927513443583,
+  "isOpaque": false,
+  "sharpness": 24.542480178933285,
+}
+`;
+
+exports[`preserves statistics 19x1/2/false 1`] = `
+{
+  "channels": [
+    {
+      "max": 246,
+      "maxX": 13,
+      "maxY": 0,
+      "mean": 119.52631578947368,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 382769,
+      "stdev": 78.64291196502823,
+      "sum": 2271,
+    },
+    {
+      "max": 239,
+      "maxX": 9,
+      "maxY": 0,
+      "mean": 122.73684210526316,
+      "min": 3,
+      "minX": 1,
+      "minY": 0,
+      "squaresSum": 384774,
+      "stdev": 73.99387520093444,
+      "sum": 2332,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 4.247927513443583,
+  "isOpaque": false,
+  "sharpness": 24.542480178933285,
+}
+`;
+
+exports[`preserves statistics 19x1/2/true 1`] = `
+{
+  "channels": [
+    {
+      "max": 246,
+      "maxX": 13,
+      "maxY": 0,
+      "mean": 119.52631578947368,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 382769,
+      "stdev": 78.64291196502823,
+      "sum": 2271,
+    },
+    {
+      "max": 239,
+      "maxX": 9,
+      "maxY": 0,
+      "mean": 122.73684210526316,
+      "min": 3,
+      "minX": 1,
+      "minY": 0,
+      "squaresSum": 384774,
+      "stdev": 73.99387520093444,
+      "sum": 2332,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 4.247927513443583,
+  "isOpaque": false,
+  "sharpness": 24.542480178933285,
+}
+`;
+
+exports[`preserves statistics 19x1/3/false 1`] = `
+{
+  "channels": [
+    {
+      "max": 246,
+      "maxX": 13,
+      "maxY": 0,
+      "mean": 119.52631578947368,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 382769,
+      "stdev": 78.64291196502823,
+      "sum": 2271,
+    },
+    {
+      "max": 253,
+      "maxX": 16,
+      "maxY": 0,
+      "mean": 129.57894736842104,
+      "min": 17,
+      "minX": 8,
+      "minY": 0,
+      "squaresSum": 423234,
+      "stdev": 76.08862945383983,
+      "sum": 2462,
+    },
+    {
+      "max": 251,
+      "maxX": 6,
+      "maxY": 0,
+      "mean": 126.15789473684211,
+      "min": 5,
+      "minX": 11,
+      "minY": 0,
+      "squaresSum": 402057,
+      "stdev": 74.40748406047962,
+      "sum": 2397,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 4.247927513443583,
+  "isOpaque": false,
+  "sharpness": 20.64245894052138,
+}
+`;
+
+exports[`preserves statistics 19x1/3/true 1`] = `
+{
+  "channels": [
+    {
+      "max": 246,
+      "maxX": 13,
+      "maxY": 0,
+      "mean": 119.52631578947368,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 382769,
+      "stdev": 78.64291196502823,
+      "sum": 2271,
+    },
+    {
+      "max": 253,
+      "maxX": 16,
+      "maxY": 0,
+      "mean": 129.57894736842104,
+      "min": 17,
+      "minX": 8,
+      "minY": 0,
+      "squaresSum": 423234,
+      "stdev": 76.08862945383983,
+      "sum": 2462,
+    },
+    {
+      "max": 251,
+      "maxX": 6,
+      "maxY": 0,
+      "mean": 126.15789473684211,
+      "min": 5,
+      "minX": 11,
+      "minY": 0,
+      "squaresSum": 402057,
+      "stdev": 74.40748406047962,
+      "sum": 2397,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 4.247927513443583,
+  "isOpaque": false,
+  "sharpness": 24.542480178933285,
+}
+`;
+
+exports[`preserves statistics 19x1/4/false 1`] = `
+{
+  "channels": [
+    {
+      "max": 246,
+      "maxX": 13,
+      "maxY": 0,
+      "mean": 119.52631578947368,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 382769,
+      "stdev": 78.64291196502823,
+      "sum": 2271,
+    },
+    {
+      "max": 253,
+      "maxX": 16,
+      "maxY": 0,
+      "mean": 129.57894736842104,
+      "min": 17,
+      "minX": 8,
+      "minY": 0,
+      "squaresSum": 423234,
+      "stdev": 76.08862945383983,
+      "sum": 2462,
+    },
+    {
+      "max": 251,
+      "maxX": 6,
+      "maxY": 0,
+      "mean": 126.15789473684211,
+      "min": 5,
+      "minX": 11,
+      "minY": 0,
+      "squaresSum": 402057,
+      "stdev": 74.40748406047962,
+      "sum": 2397,
+    },
+    {
+      "max": 239,
+      "maxX": 9,
+      "maxY": 0,
+      "mean": 122.73684210526316,
+      "min": 3,
+      "minX": 1,
+      "minY": 0,
+      "squaresSum": 384774,
+      "stdev": 73.99387520093444,
+      "sum": 2332,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 4.247927513443583,
+  "isOpaque": false,
+  "sharpness": 20.64245894052138,
+}
+`;
+
+exports[`preserves statistics 19x1/4/true 1`] = `
+{
+  "channels": [
+    {
+      "max": 246,
+      "maxX": 13,
+      "maxY": 0,
+      "mean": 119.52631578947368,
+      "min": 0,
+      "minX": 0,
+      "minY": 0,
+      "squaresSum": 382769,
+      "stdev": 78.64291196502823,
+      "sum": 2271,
+    },
+    {
+      "max": 253,
+      "maxX": 16,
+      "maxY": 0,
+      "mean": 129.57894736842104,
+      "min": 17,
+      "minX": 8,
+      "minY": 0,
+      "squaresSum": 423234,
+      "stdev": 76.08862945383983,
+      "sum": 2462,
+    },
+    {
+      "max": 251,
+      "maxX": 6,
+      "maxY": 0,
+      "mean": 126.15789473684211,
+      "min": 5,
+      "minX": 11,
+      "minY": 0,
+      "squaresSum": 402057,
+      "stdev": 74.40748406047962,
+      "sum": 2397,
+    },
+    {
+      "max": 239,
+      "maxX": 9,
+      "maxY": 0,
+      "mean": 122.73684210526316,
+      "min": 3,
+      "minX": 1,
+      "minY": 0,
+      "squaresSum": 384774,
+      "stdev": 73.99387520093444,
+      "sum": 2332,
+    },
+  ],
+  "dominant": {
+    "b": 72,
+    "g": 40,
+    "r": 8,
+  },
+  "entropy": 4.247927513443583,
+  "isOpaque": false,
+  "sharpness": 24.542480178933285,
+}
+`;

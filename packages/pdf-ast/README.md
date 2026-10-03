@@ -59,6 +59,14 @@ Decode mappings, calibrated/tint colors and optional retained alpha samples.
 `maxOutputBytes` admits total RGBA output. Caller-owned source caches and resolved
 color-space state are additional memory. Sources remain open and caller-owned.
 
+`applyRetainedImageMask(rows, width, height, mask, options)` applies a retained
+RGBA mask to exact RGBA input rows. Set `mode` to `soft` or `explicit`; soft masks
+also accept an RGB byte-valued `matte`. Nearest-neighbor resampling keeps one mask
+row resident and skips unused rows. Output rows own their bytes, and early return
+or cancellation closes the row producer while leaving the mask source open.
+`maxWorkingBytes` admits input/output rows, mask row and range scratch;
+`maxOutputBytes` admits total output. The source cache is additional memory.
+
 `parseContentRangeOperators(source, storage, options)` yields normalized content
 operators without collecting a page AST. Its recovery rules are shared with
 `parseContentStream` and `parseContentOperators`. Inline images carry a dictionary

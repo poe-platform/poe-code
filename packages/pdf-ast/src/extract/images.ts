@@ -1,3 +1,4 @@
+import { applyImageMaskPixel } from "./mask-pixel.js";
 import { pdfImageCodec } from "../cos/filter-stream.js";
 import { assertDecodedByteBudget } from "../cos/limits.js";
 import { Jbig2Image, JpegImage, JpxImage } from "../vendor/pdfjs-image-decoders.mjs";
@@ -786,17 +787,7 @@ function *applySmaskStreamToRgbaSteps(
       const sx = Math.min(sw - 1, Math.floor((x * sw) / width));
       const aByte = smaskDecoded.rgba[(sy * sw + sx) * 4]!;
       const dstIdx = (y * width + x) * 4;
-      if (matteRgb && aByte > 0 && aByte < 255) {
-        const aNorm = aByte / 255;
-        for (let ch = 0; ch < 3; ch++) {
-    if (++work % 16384 === 0) yield;
-          const mVal = matteRgb[ch]!;
-          const cPrime = rgba[dstIdx + ch]!;
-          const unmatted = Math.round(mVal + (cPrime - mVal) / aNorm);
-          rgba[dstIdx + ch] = Math.max(0, Math.min(255, unmatted));
-        }
-      }
-      rgba[dstIdx + 3] = aByte;
+      applyImageMaskPixel(rgba, dstIdx, aByte, "soft", matteRgb);
     }
   }
 }
@@ -820,9 +811,7 @@ function *applyExplicitMaskStreamToRgbaSteps(
     if (++work % 16384 === 0) yield;
       const mx = Math.min(mw - 1, Math.floor((x * mw) / width));
       const maskLuma = maskDecoded.rgba[(my * mw + mx) * 4]!;
-      if (maskLuma > 127) {
-        rgba[(y * width + x) * 4 + 3] = 0;
-      }
+      applyImageMaskPixel(rgba, (y * width + x) * 4, maskLuma, "explicit");
     }
   }
 }

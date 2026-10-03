@@ -358,16 +358,16 @@ function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () =>
   return { formulas: bound, placeholders, rejections };
 }
 function axes(node: XmlElement | undefined, axis: "RowInfo" | "ColInfo", maximum: number, admit: (count: number) => void): AxisMetadata[] {
-  const result: AxisMetadata[] = [];
+  const result = new Map<number, AxisMetadata>();
   for (const item of children(node, axis)) {
     const start = number(item, "No", -1), count = number(item, "Count", 1);
     if (!Number.isSafeInteger(start) || !Number.isSafeInteger(count) || start < 0 || count < 1 || count > maximum - start) invalid("invalid axis interval");
     admit(count);
-    for (let i = 0; i < count; i++) result.push({ index: start + i, sizePoints: number(item, "Unit", 0),
+    for (let i = 0; i < count; i++) result.set(start + i, { index: start + i, sizePoints: number(item, "Unit", 0),
       hidden: number(item, "Hidden", 0) !== 0, collapsed: number(item, "Collapsed", 0) !== 0, outlineLevel: number(item, "OutlineLevel", 0),
       style: { gnumeric: record(item) } });
   }
-  return result;
+  return [...result.values()].sort((a, b) => a.index - b.index);
 }
 
 export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext): Promise<Workbook> {

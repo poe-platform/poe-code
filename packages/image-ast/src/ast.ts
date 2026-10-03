@@ -246,6 +246,8 @@ export interface SharpInputOptions {
   /** Explicit virtual filesystem for path inputs and outputs. */
   readonly filesystem?: Pick<FileSystem, "readFile" | "writeFile"> & Partial<FileSystem>;
   readonly signal?: AbortSignal;
+  /** Scratch directory in the supplied filesystem. Defaults to output directory for toFile, input directory for file stats, or "." for byte/generated stats. */
+  readonly workingDirectory?: string;
   readonly density?: number;
   readonly page?: number;
   readonly pages?: number;

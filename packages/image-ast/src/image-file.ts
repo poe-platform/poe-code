@@ -1,3 +1,4 @@
+import {transformStoredPipeline} from "./ops/storage-pipeline.js";
 import {encodeWebpFromStorage} from "./codecs/webp-storage.js";
 import {encodeJpegFromStorage} from "./codecs/jpeg-storage.js";
 import {encodeGifFromStorage} from "./codecs/gif-storage.js";
@@ -6,14 +7,10 @@ import {encodeNetpbmFromStorage} from "./codecs/netpbm-storage.js";
 import {storedImageDecoder} from "./codecs/stored-decoder.js";
 import {encodeBmpFromStorage} from "./codecs/bmp-storage.js";
 import {readImageResource,UnsupportedStoredResource} from "./image-resources.js";
-import {prepareClaheImage} from "./ops/clahe.js";
-import {transformStoredPixels} from "./ops/storage-pixels.js";
-import {resizeStoredImage} from "./ops/storage-resize.js";
 import {compareIdentity, compareFileVersion, dirname, FsError, isFsError, type FileSystem, type FileStat, type FileStaging} from "@poe-code/safe-fs/contracts";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {encodePngFromStorage, type ImageByteSource} from "./codecs/png-storage.js";
-import {orderImageNodes,splitPostScaleNodes,imageAlphaStages} from "./ops/order.js";
-import {transformStoredImage, isStoredImageOperation} from "./ops/storage.js";
+import {isStoredImageOperation} from "./ops/storage.js";
 import type {SharpInputOptions, OutputEncodeOptions, OutputInfo, ImageAstNode} from "./ast.js";
 
 /** Select retained codecs only when the injected filesystem supports safe publication. */
@@ -83,7 +80,7 @@ export async function tryImageFile(input: string | undefined, output: string, op
     }
     const directory=dirname(output), parent={...await fs.stat(directory,io)};
     signal.throwIfAborted();
-    storage=new PagedStorage({fs,cwd:directory,env:{},signal});
+    storage=new PagedStorage({fs,cwd:options.workingDirectory??directory,env:{},signal});
     let image=source&&decoder?await decoder(source,storage,signal,options):await readImageResource(undefined,options,fs,storage,signal);
     const format=encoding.format??image.format;
     if(format!=="png"&&format!=="ppm"&&format!=="pgm"&&format!=="pbm"&&format!=="bmp"&&format!=="tiff"&&format!=="gif"&&format!=="jpeg"&&format!=="webp") {failed=false;return undefined;}
@@ -94,30 +91,7 @@ export async function tryImageFile(input: string | undefined, output: string, op
     handleClosed=true; await handle.close();
     }
     const resources={readImage:(input:Uint8Array|string|undefined,resourceOptions:SharpInputOptions|undefined,resourceSignal:AbortSignal)=>readImageResource(input,resourceOptions,fs,storage!,resourceSignal)};
-    const gamma=operations.find(node=>node.kind==="gamma");
-    const splitGamma=gamma && operations.some(node=>node.kind==="resize" || node.kind==="blur" || node.kind==="sharpen" || node.kind==="convolve" || node.kind==="modulate" || node.kind==="recomb");
-    let gammaInApplied=false;
-    const {nodes,postScale}=splitPostScaleNodes(operations);
-    const ordered=orderImageNodes(nodes),stages=imageAlphaStages(ordered);
-    for (let index=0;index<ordered.length;index++) {
-      const operation=ordered[index]!;
-      if(operation.kind==="clahe") image=prepareClaheImage(image,operations);
-      if (splitGamma && !gammaInApplied && (index===stages.first || operation.kind==="modulate" || operation.kind==="recomb")) {
-        image=await transformStoredImage(image,storage,{...gamma,gammaOut:1},signal);
-        gammaInApplied=true;
-      }
-      if(index===stages.first && image.hasAlpha) {
-        image=stages.count>1?await transformStoredPixels(image,storage,{kind:"premultiply"},signal):{...image,wasPremultiplied:true};
-      }
-      if(operation.kind==="resize") {
-        image=await resizeStoredImage(image,storage,operation,signal,postScale.length?async scaled=>{
-          for(const node of postScale) scaled=await transformStoredImage(scaled,storage!,node,signal);
-          return scaled;
-        }:undefined);
-        if(image.hasAlpha && !image.isPremultiplied) image=index<stages.last?await transformStoredPixels(image,storage,{kind:"premultiply"},signal):{...image,wasPremultiplied:true};
-      } else image=await transformStoredImage(image,storage,splitGamma && operation.kind==="gamma"?{...operation,gamma:1}:operation,signal,resources);
-      if(index===stages.last && image.isPremultiplied) image=await transformStoredPixels(image,storage,{kind:"unpremultiply"},signal);
-    }
+    image=await transformStoredPipeline(image,storage,operations,signal,resources);
     const backing=storage;
     let complete=false, size=0;
     stream=(async function* () {

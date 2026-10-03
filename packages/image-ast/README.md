@@ -67,7 +67,14 @@ backed RGBA pixels with bounded caches, including alpha and all resize kernels.
 Optional explicit scales must round to the requested output dimensions.
 `computeStoredImageStats(image, storage, signal)` scans caller-backed pixels for
 channel extrema, entropy, sharpness and dominant color using fixed histograms and
-a bounded pixel cache, without allocating a grayscale canvas.
+a bounded pixel cache, without allocating a grayscale canvas. Async `.stats()`
+uses the same retained decoding and transform pipeline when a capable filesystem
+is supplied, including file resources, raw data and generated images. Set
+`workingDirectory` to select scratch storage in that filesystem; it defaults to
+the output directory for `.toFile()`, the input directory for file `.stats()`, or
+`.` for byte/generated `.stats()`. Scratch handles close on success, failure and
+cancellation. Async file statistics do not implicitly cache whole input files;
+synchronous statistics require an explicit buffered input.
 Use an external backing provider
 for large images; memory-backed storage still retains the pixels in RAM.
 

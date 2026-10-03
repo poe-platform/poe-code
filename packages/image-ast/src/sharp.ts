@@ -1,3 +1,4 @@
+import {tryImageStats} from "./image-stats.js";
 import {prepareClaheImage} from "./ops/clahe.js";
 import {orderImageNodes,splitPostScaleNodes,imageAlphaStages} from "./ops/order.js";
 import {tryImageFile} from "./image-file.js";
@@ -75,6 +76,7 @@ function inferTypedArrayDepth(input: unknown): "uchar" | "char" | "ushort" | "sh
 function validateInputOptions(opts: SharpInputOptions | undefined): void {
   if (!opts || typeof opts !== "object") return;
   const anyOpts = opts as Record<string, unknown>;
+  if(opts.workingDirectory!==undefined && (typeof opts.workingDirectory!=="string" || !opts.workingDirectory)) throw new Error("Expected non-empty string for workingDirectory");
   if (anyOpts.failOnError !== undefined && typeof anyOpts.failOnError !== "boolean") {
     throw new Error(`Expected boolean for failOnError but received ${anyOpts.failOnError} of type ${typeof anyOpts.failOnError}`);
   }
@@ -886,6 +888,11 @@ export class SharpInstance extends Duplex {
 
   async stats(callback?: (err: Error | null, stats?: ImageStats) => void): Promise<ImageStats> {
     try {
+      if(!this.joinInputs && (!this.streamIn || this.streamInFinished) && this.inputOptions?.filesystem) {
+        if(this.streamFailure) throw this.streamFailure;
+        const result=await tryImageStats(this.inputFilePath??this.inputBytes,this.inputOptions,this.nodes,this.fileInputs);
+        if(result) {if(callback) callback(null,result);return result;}
+      }
       await this.waitForStreamInput();
       const res = this.statsSync();
       if (callback) callback(null, res);

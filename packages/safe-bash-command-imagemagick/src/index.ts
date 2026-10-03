@@ -4248,10 +4248,73 @@ function parseMagickIndexSpec(spec: string, length: number): number[] {
   return out;
 }
 
+type MagickPixelOperation = { end: number; apply(image: RgbaImage): Generator<void, RgbaImage, void> };
+function parseMagickPixelOperation(tokens: readonly string[], settings: MagickState, start: number, signal?: AbortSignal): MagickPixelOperation | undefined {
+    const state = { ...settings }, token = tokens[start];
+    let i = start, apply: MagickPixelOperation["apply"];
+    if (token === "-opaque" || token === "+opaque") {
+        const target = parseColor(tokens[++i] ?? "#000000");
+        apply = image => applyMagickOpaqueSteps(image, target, state.fill, state.fuzz, token === "+opaque", signal);
+    } else if (token === "-transparent" || token === "+transparent") {
+        const target = parseColor(tokens[++i] ?? "#ffffff");
+        apply = image => applyMagickTransparentSteps(image, target, state.fuzz, token === "+transparent", signal);
+    } else if (token === "-evaluate") {
+        const operation = tokens[++i] ?? "Add", value = tokens[++i] ?? "0";
+        apply = image => applyMagickEvaluateSteps(image, operation, value, state.channels, signal);
+    } else if (token === "-function") {
+        const operation = tokens[++i] ?? "Polynomial", value = tokens[++i] ?? "1,0";
+        apply = image => applyMagickFunctionSteps(image, operation, value, state.channels, signal);
+    } else if (token === "-sepia-tone" || token === "-solarize") {
+        const value = tokens[++i] ?? (token === "-sepia-tone" ? "80%" : "50%");
+        apply = image => token === "-sepia-tone" ? applyMagickSepiaToneSteps(image, value, signal) : applyMagickSolarizeSteps(image, value, signal);
+    } else if (token === "-posterize" || token === "-colors") {
+        const levels = Number(tokens[++i] ?? 8);
+        apply = image => applyMagickPosterizeSteps(image, levels, signal);
+    } else if (token === "-monochrome") {
+        apply = function* (image) { return yield* thresholdImageSteps(yield* grayscaleImageSteps(image), 128, true); };
+    } else if (token === "-modulate") {
+        const parts = (tokens[++i] ?? "100,100,100").split(",").map(Number);
+        const options = { brightness: (parts[0] ?? 100) / 100, saturation: (parts[1] ?? 100) / 100, hue: ((parts[2] ?? 100) - 100) * 1.8, lightness: 0 };
+        apply = image => modulateImageSteps(image, options);
+    } else if (token === "-brightness-contrast") {
+        const geometry = parseMagickGeometry(tokens[++i] ?? "0x0"), slope = 1 + (geometry.height ?? 0) / 100, offset = (geometry.width ?? 0) / 100 * 255;
+        apply = image => linearImageSteps(image, [slope], [offset]);
+    } else if (token === "-threshold") {
+        const raw = tokens[++i] ?? "50%", value = Math.round(raw.endsWith("%") ? parseFloat(raw) / 100 * 255 : parseFloat(raw));
+        apply = image => thresholdImageSteps(image, value, true);
+    } else if (token === "-tint" || token === "-colorize") {
+        i++;
+        apply = image => tintImageSteps(image, state.fill);
+    } else return;
+    return { end: i, apply };
+}
+
+async function transformStoredMagickPixels(image: StoredRgbaImage, backend: CompareFileSession, operation: MagickPixelOperation, signal: AbortSignal): Promise<StoredRgbaImage> {
+    const size = image.width * image.height * 4, position = backend.storage.allocate(size);
+    let result = image;
+    for (let offset = 0; offset < size; offset += 16384) {
+        if (offset % 1048576 === 0) await yieldTurn(signal);
+        const data = await backend.storage.read(image.position + offset, Math.min(16384, size - offset));
+        const transformed = await drainSteps(operation.apply({ ...image, width: data.length / 4, height: 1, data }), signal);
+        const { data: pixels, data16: ignored, ...metadata } = transformed;
+        await backend.storage.write(position + offset, pixels);
+        result = { ...metadata, width: image.width, height: image.height, position };
+    }
+    return result;
+}
+
 function applyMagickReadSetting(tokens: readonly string[], state: MagickState, start: number): number | undefined {
     let i = start;
     const t = tokens[i];
-if (t === "-size") {
+if (t === "-channel") {
+            state.channels = parseChannelMask(tokens[++i] ?? "rgb");
+            state.channelExplicit = true;
+        }
+        else if (t === "+channel") {
+            state.channels = { r: true, g: true, b: true, a: false };
+            state.channelExplicit = false;
+        }
+        else if (t === "-size") {
             const g = parseMagickGeometry(tokens[++i] ?? "1x1");
             state.sizeWidth = Math.max(1, Math.round(g.width ?? 1));
             state.sizeHeight = Math.max(1, Math.round(g.height ?? state.sizeWidth));
@@ -4356,7 +4419,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         const setting = applyMagickReadSetting(tokens, state, i);
+        const pixelOperation = setting === undefined ? parseMagickPixelOperation(tokens, state, i, signal) : undefined;
         if (setting !== undefined) { i = setting; }
+        else if (pixelOperation) { i = pixelOperation.end; stack = yield* mapSteps(stack, pixelOperation.apply); }
         else if (t === "-write" || t === "+write") {
             const writePath = tokens[++i] ?? "";
             if (stack.length > 0 && writePath && writePath.toLowerCase() !== "null:") {
@@ -4472,42 +4537,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 });
             }
         }
-        else if (t === "-channel") {
-            state.channels = parseChannelMask(tokens[++i] ?? "rgb");
-            state.channelExplicit = true;
-        }
-        else if (t === "+channel") {
-            state.channels = { r: true, g: true, b: true, a: false };
-            state.channelExplicit = false;
-        }
-        else if (t === "-opaque" || t === "+opaque") {
-            const targetColor = parseColor(tokens[++i] ?? "#000000");
-            const invert = t === "+opaque";
-            stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickOpaqueSteps(im, targetColor, state.fill, state.fuzz, invert, signal));
-            });
-        }
-        else if (t === "-transparent" || t === "+transparent") {
-            const targetColor = parseColor(tokens[++i] ?? "#ffffff");
-            const invert = t === "+transparent";
-            stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickTransparentSteps(im, targetColor, state.fuzz, invert, signal));
-            });
-        }
-        else if (t === "-evaluate") {
-            const op = tokens[++i] ?? "Add";
-            const val = tokens[++i] ?? "0";
-            stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickEvaluateSteps(im, op, val, state.channels, signal));
-            });
-        }
-        else if (t === "-function") {
-            const fn = tokens[++i] ?? "Polynomial";
-            const params = tokens[++i] ?? "1,0";
-            stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickFunctionSteps(im, fn, params, state.channels, signal));
-            });
-        }
         else if (t === "-clut" || t === "-hald-clut") {
             if (stack.length >= 2) {
                 const lut = stack[stack.length - 1]!;
@@ -4564,24 +4593,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geom = tokens[++i] ?? "0x2";
             stack = yield* mapSteps(stack, function* (im) {
                 return (yield* applyMagickVignetteSteps(im, geom, state.background, signal));
-            });
-        }
-        else if (t === "-sepia-tone") {
-            const thresh = tokens[++i] ?? "80%";
-            stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickSepiaToneSteps(im, thresh, signal));
-            });
-        }
-        else if (t === "-solarize") {
-            const thresh = tokens[++i] ?? "50%";
-            stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickSolarizeSteps(im, thresh, signal));
-            });
-        }
-        else if (t === "-posterize" || t === "-colors") {
-            const lv = Number(tokens[++i] ?? 8);
-            stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickPosterizeSteps(im, lv, signal));
             });
         }
         else if (t === "-dither" || t === "+dither") {
@@ -4737,30 +4748,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     return (yield* grayscaleImageSteps(im));
                 }));
             }
-        }
-        else if (t === "-monochrome") {
-            stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* thresholdImageSteps((yield* grayscaleImageSteps(im)), 128, true));
-            }));
-        }
-        else if (t === "-modulate") {
-            const parts = (tokens[++i] ?? "100,100,100").split(",").map((p) => Number(p));
-            const brightness = (parts[0] ?? 100) / 100;
-            const saturation = (parts[1] ?? 100) / 100;
-            const hue = ((parts[2] ?? 100) - 100) * 1.8;
-            stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* modulateImageSteps(im, { brightness, saturation, hue, lightness: 0 }));
-            }));
-        }
-        else if (t === "-brightness-contrast") {
-            const g = parseMagickGeometry(tokens[++i] ?? "0x0");
-            const b = g.width ?? 0;
-            const c = g.height ?? 0;
-            const slope = 1 + c / 100;
-            const offset = (b / 100) * 255;
-            stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* linearImageSteps(im, [slope], [offset]));
-            }));
         }
         else if (t === "-gamma") {
             const gammaVal = Math.max(0.1, Number(tokens[++i] ?? 1.0));
@@ -5019,15 +5006,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return { ...im, data: out };
             }));
         }
-        else if (t === "-threshold") {
-            const raw = tokens[++i] ?? "50%";
-            const val = raw.endsWith("%")
-                ? Math.round((parseFloat(raw) / 100) * 255)
-                : Math.round(parseFloat(raw));
-            stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* thresholdImageSteps(im, val, true));
-            }));
-        }
         else if (t === "-black-threshold" || t === "-white-threshold") {
             const raw = tokens[++i] ?? "50%";
             const thresh = raw.endsWith("%") ? (parseFloat(raw) / 100) * 255 : parseFloat(raw);
@@ -5051,12 +5029,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     }
                 }
                 return { ...im, data: out };
-            }));
-        }
-        else if (t === "-tint" || t === "-colorize") {
-            i++;
-            stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* tintImageSteps(im, state.fill));
             }));
         }
         else if (t === "-blur" || t === "-gaussian-blur") {
@@ -5525,12 +5497,19 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
     const transform = (operation: (image: StoredRgbaImage) => Operation | undefined) => {
         steps.push(async (image, backend) => { if (!image) return; const node = operation(image); return node ? transformStoredImage(image, backend.storage, node, signal) : image; });
     };
+    try {
     for (let i = 0; i < tokens.length; i++) {
         if (i && i % 64 === 0) await yieldTurn(signal);
         const token = tokens[i]!;
         if (!operandsOnly && token === "--") { operandsOnly = true; continue; }
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
         if (setting !== undefined) { i = setting; continue; }
+        const pixelOperation = operandsOnly ? undefined : parseMagickPixelOperation(tokens, state, i, signal);
+        if (pixelOperation) {
+            i = pixelOperation.end;
+            steps.push(async (image, backend) => image ? transformStoredMagickPixels(image, backend, pixelOperation, signal) : undefined);
+            continue;
+        }
         if (!operandsOnly && token === "+gravity") { state.gravity = "northwest"; continue; }
         if (!operandsOnly && token === "-strip") { state.strip = true; continue; }
         if (!operandsOnly && token === "+repage") continue;
@@ -5563,6 +5542,10 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
             const captured = { ...state }, maxDecodeDimension = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
             steps.push(async (_image, backend) => parseStoredCompareInput(token, captured, backend, signal, { lastPage: true, ...(maxDecodeDimension === undefined ? {} : { maxDecodeDimension }) }));
         }
+    }
+    } catch (error) {
+        signal.throwIfAborted();
+        return { exitCode: 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` };
     }
     if (!inputs) return;
     return withCompareFiles(input, stdinBytes, signal, async backend => {

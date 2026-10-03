@@ -4,7 +4,7 @@ import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createConvertCommand, createMagickCommand, runMagickCli, runConvertCli } from "./index.js";
-for (const operators of [[], ["-resize", "9x7!"], ["-flip"], ["-flop"], ["-rotate", "90"], ["-gamma", "1.4"], ["-colorspace", "gray"], ["-blur", "0x1"], ["-border", "2x3"]]) {
+for (const operators of [[], ["-resize", "9x7!"], ["-flip"], ["-flop"], ["-rotate", "90"], ["-gamma", "1.4"], ["-colorspace", "gray"], ["-blur", "0x1"], ["-border", "2x3"], ["-sepia-tone", "80%"], ["-solarize", "30%"], ["-posterize", "4"], ["-colors", "6"], ["-fill", "blue", "-fuzz", "20%", "-opaque", "red"], ["+opaque", "red"], ["-transparent", "red"], ["+transparent", "red"], ["-channel", "RGBA", "-evaluate", "Add", "20%", "+channel", "-evaluate", "Multiply", "1.4"], ["-channel", "B", "-function", "Polynomial", "0.5,0.2"], ["-evaluate", "Multiply", "1.4"], ["-function", "Polynomial", "0.5,0.2"], ["-modulate", "110,90,70"], ["-brightness-contrast", "10x20"], ["-monochrome"], ["-threshold", "30%"], ["-fill", "blue", "-tint", "60%"], ["-fill", "green", "-colorize", "50%"]]) {
     it(`converts retained files with ${operators.join(" ")}`, async () => {
         const pixels = Uint8Array.from({ length: 13 * 17 * 4 }, (_, index) => index * 37 % 256);
         const bytes = await sharp(pixels, { raw: { width: 13, height: 17, channels: 4 } }).png().toBuffer();
@@ -109,3 +109,9 @@ for (const size of ["1x1", "3x19", "19x3"])
         expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
         expect((await fs.readdir("/")).map(entry => entry.name)).toEqual(["out.png"]);
     });
+
+it.each(["-fill", "-opaque", "-transparent"])("preserves malformed %s diagnostics before file acquisition", async option => {
+    const fs = new MemoryFileSystem(), args = [option, "invalid-color", "missing", "out.png"];
+    expect(await runConvertCli(args, { filesystem: fs, cwd: "/" })).toEqual(await runConvertCli(args, new Map()));
+    expect(await fs.readdir("/")).toEqual([]);
+});

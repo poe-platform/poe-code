@@ -84,8 +84,8 @@ export async function streamJson(input: InputSource, context: ExecutionContext, 
       await preflight(document.chunks(options.eol));
       for await (const bytes of document.chunks(options.eol)) await context.emit(bytes);
     }
-    await context.completeOutput();
   } catch (reason) {failure = {reason};}
   try {await document?.close();} catch (reason) {failure ??= {reason};}
   if (failure) throw failure.reason;
+  await context.completeOutput();
 }

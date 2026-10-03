@@ -196,9 +196,9 @@ export async function streamDelimited(
         await flush();
       }
     }
-    await context.completeOutput();
   } catch (reason) {failure = {reason};}
   try {await storage.close();} catch (reason) {failure ??= {reason};}
   finally {release();}
   if (failure) throw failure.reason;
+  await context.completeOutput();
 }

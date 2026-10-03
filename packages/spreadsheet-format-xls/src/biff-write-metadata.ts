@@ -201,9 +201,13 @@ export class BiffMetadataWriter {
       const breaks = (child(name)?.children.filter(n => n.name === "break" && n.attributes.type !== "auto") ?? []).slice(0, maximum);
       if (breaks.length) output.record(opcode, words(breaks.length, ...breaks.flatMap(n => revision === 8 ? [Number(n.attributes.pos), 0, name === "hPageBreaks" ? 256 : 65536] : [Number(n.attributes.pos)])));
     }
-    for (const row of sheet.rows ?? []) if (row.index < this.maxRows) output.record(0x208,
-      words(row.index, 0, 256, Math.round((row.sizePoints ?? defaultHeight) * 20), 0, 0,
+    for (const row of sheet.rows ?? []) if (row.index < this.maxRows) {
+      const height = row.sizePoints ?? defaultHeight, twips = Math.floor(height * 20 + 1e-6);
+      if (!Number.isFinite(height) || twips < 1 || twips > 32767 && twips !== heightTwips)
+        throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF row height");
+      output.record(0x208, words(row.index, 0, 256, twips > 32767 ? 0x8000 : twips, 0, 0,
         0x140 | (row.hidden ? 32 : 0) | (row.collapsed ? 16 : 0) | Math.min(row.outlineLevel ?? 0, 7), 15));
+    }
     for (const column of sheet.columns ?? []) if (column.index < 256) output.record(0x7d,
       words(column.index, column.index, Math.round(((column.sizePoints ?? defaultWidth) / (fontScale * 72 / 96) - 8 * unit) * step + baseline), 15,
         (column.hidden ? 1 : 0) | (column.collapsed ? 0x1000 : 0) | Math.min(column.outlineLevel ?? 0, 7) << 8, 0));

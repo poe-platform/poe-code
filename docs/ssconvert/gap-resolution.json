@@ -4572,18 +4572,29 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
-      "biffRowState": {
-        "finding": "Late DEFAULTROWHEIGHT changed already instantiated product rows; standard ROW flag was ignored, zero sizes applied, repeated records duplicated, and export fallback remained12.75pt.",
-        "implementation": "Track row state in a map. Nonblank cells and formulas instantiate the current default; blank formatting does not. Positive custom sizes update rows; standard/zero sizes preserve prior state. Hidden/outline changes follow native conditions. Emit only deviations from final default or visibility/outline metadata; use sheet default when exporting an unspecified row height.",
-        "validation": "Eight original failures repaired, including empty formula cache.2151BIFF tests/73files before the final formula case; final63focused tests,owner lint/types,test lint/types and selected18workspace build pass.",
-        "public": "72independent SheetJS containers across late/standard/zero/explicit row scenarios,old/new defaults and9heights yield432compiled SDK/command XML/BIFF7/8 exports.",
-        "native": "360input/export BIFF files through initialized unmodified Gnumeric1.12.61 API.3744exact default/row-height/visibility comparisons pass, including blank-format and empty-cache formula controls. Native stderr empty.",
-        "visual": "Native input/output GUI inspected; row layout/content preserved. Existing column-default quantization and window size differences remain distinct; no whole-image equality claim. GUI/Xvfb1755 stopped; stderr empty.",
-        "hashes": {
-          "nativeTsv": "6059d5bfd6baa88ce2f97075e9b9711eef3cd9a37c3868a351a54389f076f69e"
-        },
-        "limits": "Supersedes late-default/standard-height/explicit-fallback gap in biffDefaultRowHeights. Explicit oversized row exports, row style/hard-size metadata, nonzero default flags, root/registry transports and all19families remain open."
+    "biffRowExport": {
+      "finding": "ROW exports rounded differently from native and allowed integer overflow into the standard-height flag.",
+      "implementation": "Use native floor(points*20+1e-6) quantization. Reject nonfinite,subtwip and custom heights above32767twips. Rows matching larger valid sheet defaults use the standard-height flag without truncating the inherited value.",
+      "validation": "26original memory failures repaired.2180tests/73BIFF files,owner lint/types,test lint/types and18workspace build pass. Lint was rerun after dependency build completed.",
+      "publicNative": "Seven independently authored Gnumeric XML inputs become28compiled SDK/command BIFF7/8 exports;35native readbacks and364exact quantized size/visibility comparisons pass. Includes0.05,12.79,24.629,100.049,1638.399,3000,3276.75points; native stderr empty.12SDK/command invalid-height exports refuse before publishing any bytes.",
+      "hashes": {
+        "nativeTsv": "f1dfb72ddffea4fbeee601b2a99b49f5d9449282aa6305dc9a0320c9ac806152"
       },
+      "remaining": "Explicit row hard-size/style metadata,nonzero default flags,missing column-default quantization,root/registry qualification and all19families remain open. Official Calc endpoint retry still connection-times-out; no new image acquired."
+    },
+    "biffRowState": {
+      "finding": "Late DEFAULTROWHEIGHT changed already instantiated product rows; standard ROW flag was ignored, zero sizes applied, repeated records duplicated, and export fallback remained12.75pt.",
+      "implementation": "Track row state in a map. Nonblank cells and formulas instantiate the current default; blank formatting does not. Positive custom sizes update rows; standard/zero sizes preserve prior state. Hidden/outline changes follow native conditions. Emit only deviations from final default or visibility/outline metadata; use sheet default when exporting an unspecified row height.",
+      "validation": "Eight original failures repaired, including empty formula cache.2151BIFF tests/73files before the final formula case; final63focused tests,owner lint/types,test lint/types and selected18workspace build pass.",
+      "public": "72independent SheetJS containers across late/standard/zero/explicit row scenarios,old/new defaults and9heights yield432compiled SDK/command XML/BIFF7/8 exports.",
+      "native": "Corrected corpus:360input/export BIFF files,3744exact comparisons pass including blank-format and empty-cache formula controls. Assertions verify native populated-row,blank-row and formula-row input heights before output comparison.36native zero-row assertions are expected; products retain no zero-size ROW records.",
+      "visual": "Corrected input59/output59 screenshots inspected: row heights and hidden rows preserved. Export synthesizes outline gutters from ROW metadata absent from input GUTS, and existing column/default/window geometry differs. No whole-image equality claim. Owned GUI/Xvfb1756 stopped;stderr empty.",
+      "hashes": {
+        "nativeTsv": "a92fc49c1140d60ee61a361a87c3cfcd09688cd4f7d4ba76c00bd4f56a2c3440"
+      },
+      "limits": "Supersedes late-default/standard-height/explicit-fallback gap in biffDefaultRowHeights. Explicit oversized row exports, row style/hard-size metadata, nonzero default flags, root/registry transports and all19families remain open.",
+      "qualificationCorrection": "The first fixture-edit script failed to replace its target and produced ordinary defaults under scenario labels; previous native/visual scenario claims and hash6059d5bf are invalid. The generator now asserts its replacement, includes real ROW and FORMULA records, and checks independently loaded input geometry. Current corrected evidence replaces those claims."
+    },
       "biffDefaultRowHeights": {
         "finding": "Reader retained DEFAULTROWHEIGHT without applying it; writer always emitted255twips.",
         "implementation": "Reuse sheet.view.defaultRowHeight for old/new records. Mask old high bit, ignore zero like native, preserve full precision using0.05*height; export native floor(points*20+1e-6). Reject nonfinite/zero/overflow outputs. Preserve diagnostics for unimplemented nonzero modern flags.",

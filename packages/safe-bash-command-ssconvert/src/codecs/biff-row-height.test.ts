@@ -84,3 +84,21 @@ it("instantiates a formula row even when its cached value is blank", async () =>
   input.record(0x225, words(0, 600)); input.record(10);
   expect((await readBiff(input.finish(), context)).sheets[0]!.rows).toEqual([{ index: 0, sizePoints: 12.75 }]);
 });
+
+for (const revision of [7, 8] as const) {
+  it.each([0, 0.001, -1, Number.NaN, Number.POSITIVE_INFINITY, 1638.4, 3276.8])(`refuses BIFF${revision} unrepresentable custom row height %s`, async height => {
+    const book = { sheets: [{ id: "s", name: "S", cells: [], rows: [{ index: 1, sizePoints: height }] }] };
+    await expect(writeBiffStream(book, revision, false, context)).rejects.toThrow("row height");
+  });
+  it.each([[0.05, 1], [12.79, 255], [24.629, 492], [100.049, 2000], [1638.399, 32767]])(`quantizes BIFF${revision} custom row height %s like native`, async (height, twips) => {
+    const book = { sheets: [{ id: "s", name: "S", cells: [], rows: [{ index: 1, sizePoints: height }] }] };
+    const records = readBiffRecords(await writeBiffStream(book, revision, false, context), context);
+    expect(records.find(record => record.opcode === 0x208)?.data.u16(6)).toBe(twips);
+  });
+  it.each([undefined, 3000])(`preserves BIFF${revision} a large inherited row height %s`, async sizePoints => {
+    const book = { sheets: [{ id: "s", name: "S", cells: [], view: { defaultRowHeight: 3000 }, rows: [{ index: 1, hidden: true, ...(sizePoints === undefined ? {} : { sizePoints }) }] }] };
+    const output = await writeBiffStream(book, revision, false, context);
+    expect(readBiffRecords(output, context).find(record => record.opcode === 0x208)?.data.u16(6)).toBe(0x8000);
+    expect((await readBiff(output, context)).sheets[0]!.rows?.[0]).toMatchObject({ sizePoints: 3000, hidden: true });
+  });
+}

@@ -1,3 +1,4 @@
+import {ClaheWindow,type ClaheOptions} from "./clahe.js";
 import {AffineSampler,normalizedRotation,type AffineSpec} from "./affine.js";
 import {buildVipsGaussmat,vipsSrgbToLabForSharpenInto,vipsLabToSrgbForSharpenInto,sharpenLuminance} from "./sharpen.js";
 import {blurKernel,blurFloatPixel} from "./blur.js";
@@ -1956,105 +1957,28 @@ export function *joinChannelImageSteps(img: RgbaImage, extraImages: readonly Rgb
   };
 }
 
-export function *claheImageSteps(
-  img: RgbaImage,
-  options: { readonly width: number; readonly height: number; readonly maxSlope: number }
-): Generator<void, RgbaImage, void> {
-  let work = 0;
-  const { width, height, data } = img;
-  const out = new Uint8Array(data);
-  const winW = Math.max(1, options.width || 8);
-  const winH = Math.max(1, options.height || 8);
-  const maxSlope = options.maxSlope !== undefined ? Math.max(0, options.maxSlope) : 3;
-  const halfW = Math.floor(winW / 2);
-  const halfH = Math.floor(winH / 2);
-  const nPixels = winW * winH;
-  const threshold = maxSlope;
-  const activeChannels =
-    img.channels === 1
-      ? [0]
-      : img.channels === 2 || (img.space === "b-w" && img.channels > 1)
-        ? [0, 3]
-        : img.channels === 4
-          ? [0, 1, 2, 3]
-          : [0, 1, 2];
-
-  const mirrorCoord = (c: number, max: number): number => {
-    if (max <= 1) return 0;
-    const period = max * 2;
-    const m = ((c % period) + period) % period;
-    return m < max ? m : period - 1 - m;
-  };
-
-  const syTable = new Int32Array(winH);
-  const sxTable = new Int32Array(width + winW);
-  for (let i = 0; i < width + winW; i++) {
-    if (++work % 16384 === 0) yield;
-    sxTable[i] = mirrorCoord(i - halfW, width);
+export function *claheImageSteps(img:RgbaImage,options:ClaheOptions):Generator<void,RgbaImage,void> {
+ const window=new ClaheWindow(img,options),out=new Uint8Array(img.data.length);let work=0;
+ const pixel=(index:number):number=>{const offset=index*4;return img.data[offset]!|img.data[offset+1]!<<8|img.data[offset+2]!<<16|img.data[offset+3]!<<24;};
+ for(let y=0;y<img.height;y++) {
+  window.clear();
+  for(let dy=0;dy<window.height;dy++) for(let dx=0;dx<window.width;dx++) {
+   work+=window.channels.length;if(work>=16384) {work%=16384;yield;}
+   window.add(pixel(window.position(dx-window.halfWidth,y+dy-window.halfHeight)),1);
   }
-
-  const hist = new Int32Array(256);
-  for (const ch of activeChannels) {
-    if (++work % 16384 === 0) yield;
-    for (let y = 0; y < height; y++) {
-    if (++work % 16384 === 0) yield;
-      for (let dy = 0; dy < winH; dy++) {
-    if (++work % 16384 === 0) yield;
-        syTable[dy] = mirrorCoord(y + dy - halfH, height) * width * 4 + ch;
-      }
-      hist.fill(0);
-      for (let dy = 0; dy < winH; dy++) {
-    if (++work % 16384 === 0) yield;
-        const rowBase = syTable[dy]!;
-        for (let dx = 0; dx < winW; dx++) {
-    if (++work % 16384 === 0) yield;
-          hist[data[rowBase + sxTable[dx]! * 4]!]!++;
-        }
-      }
-      for (let x = 0; x < width; x++) {
-    if (++work % 16384 === 0) yield;
-        const pIdx = (y * width + x) * 4;
-        const target = data[pIdx + ch]!;
-        let sum = 0;
-        if (maxSlope > 0) {
-          let clipLe = 0;
-          let totalClipped = 0;
-          for (let i = 0; i < 256; i++) {
-    if (++work % 16384 === 0) yield;
-            const h = hist[i]!;
-            if (h > threshold) {
-              totalClipped += h - threshold;
-              if (i <= target) clipLe += threshold;
-            } else if (i <= target) {
-              clipLe += h;
-            }
-          }
-          sum = clipLe + Math.floor((totalClipped * (target + 1)) / 256);
-        } else {
-          for (let i = 0; i <= target; i++) { if (++work % 16384 === 0) yield; sum += hist[i]!; }
-        }
-        const outVal = Math.max(0, Math.min(255, Math.floor((255 * sum) / nPixels)));
-        if (ch === 0 && (img.channels <= 2 || img.space === "b-w")) {
-          out[pIdx] = outVal;
-          out[pIdx + 1] = outVal;
-          out[pIdx + 2] = outVal;
-        } else {
-          out[pIdx + ch] = outVal;
-        }
-        if (x + 1 < width) {
-          const sxOut = sxTable[x]! * 4;
-          const sxIn = sxTable[x + winW]! * 4;
-          for (let dy = 0; dy < winH; dy++) {
-    if (++work % 16384 === 0) yield;
-            const rowBase = syTable[dy]!;
-            hist[data[rowBase + sxOut]!]!--;
-            hist[data[rowBase + sxIn]!]!++;
-          }
-        }
-      }
-    }
+  for(let x=0;x<img.width;x++) {
+   work+=window.channels.length*256;if(work>=16384) {work%=16384;yield;}
+   const value=window.pixel(pixel(y*img.width+x)),offset=(y*img.width+x)*4;
+   out[offset]=value&255;out[offset+1]=value>>>8&255;out[offset+2]=value>>>16&255;out[offset+3]=value>>>24;
+   if(x+1<img.width) for(let dy=0;dy<window.height;dy++) {
+    work+=window.channels.length*2;if(work>=16384) {work%=16384;yield;}
+    const sy=y+dy-window.halfHeight;
+    window.add(pixel(window.position(x-window.halfWidth,sy)),-1);
+    window.add(pixel(window.position(x+window.width-window.halfWidth,sy)),1);
+   }
   }
-  return { ...img, data: out };
+ }
+ return {...img,data:out};
 }
 
 export function *affineImageSteps(img:RgbaImage,spec:AffineSpec):Generator<void,RgbaImage,void> {

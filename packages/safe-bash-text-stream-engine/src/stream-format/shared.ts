@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { bytesFrom } from "safe-bash-byte-engine";
 import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { createBufferedOutput, FsError, getCommandArguments, readBytes, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
@@ -130,10 +131,7 @@ export class Session {
           signal.throwIfAborted();
           if (stat.type === "directory") throw new FsError("EISDIR", { path });
           { const s = this.step(); if (s) await s; }
-          const capabilities = await this.context.fs.capabilitiesFor?.(path, { signal }) ?? this.context.fs.capabilities;
-          signal.throwIfAborted();
-          if (this.context.fs.readStream && capabilities.streamingRead !== false) yield* this.context.fs.readStream(path, { signal });
-          else yield await this.context.fs.readFile(path, { signal, ...(Number.isFinite(Math.min(this.limits.maxChunkBytes, this.limits.maxInputBytes - this.inputBytes)) ? { maxBytes: Math.min(this.limits.maxChunkBytes, this.limits.maxInputBytes - this.inputBytes) } : {}) });
+          yield* readFileStream(this.context.fs, path, { signal, chunkSize: Math.min(65536, this.limits.maxChunkBytes) });
         }
       }).call(this);
       reader = readBytes(source, signal);

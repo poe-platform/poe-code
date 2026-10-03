@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { filledBytes, bytesFrom, concatBytes } from "safe-bash-byte-engine";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
@@ -466,8 +467,7 @@ export class Limits {
 
 export async function* fileInput(context: CommandContext, path: string, limits: Limits): ByteSource {
   await assertPathRequirements(context, searchRequirements, ["file"], [path]);
-  if (context.fs.readStream) yield* readBytes(context.fs.readStream(path, { signal: context.signal }), limits.signal);
-  else yield await context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(limits.maxFileBytes) ? { maxBytes: limits.maxFileBytes } : {}) });
+  yield* readBytes(readFileStream(context.fs, path, { signal: context.signal }), limits.signal);
 }
 
 export async function diagnostic(context: CommandContext, error: unknown): Promise<void> {

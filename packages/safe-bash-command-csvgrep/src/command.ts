@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import {
   commandRuntimeIdentity,
   getCommandArguments,
@@ -291,18 +292,7 @@ export async function csvgrep(
       if (path.includes("\0")) throw new CsvError("ARGUMENT", "NUL is unavailable in VFS paths");
       if (path === "-") return context.stdin;
       const resolved = path.startsWith("/") ? path : `${context.cwd}/${path}`;
-      if (context.fs.readStream) return context.fs.readStream(resolved, { signal });
-      return (async function* () {
-        const maxBytes = Math.min(
-          b.limits.inputBytes - b.accounting.inputBytes,
-          b.limits.retainedBytes - b.accounting.retainedBytes
-        );
-        const bytes = await context.fs.readFile(resolved, { signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
-        signal.throwIfAborted();
-        if (bytes.length > maxBytes) throw new CsvError("LIMIT", "VFS read limit exceeded");
-        b.charge("retainedBytes", bytes.length);
-        yield bytes;
-      })();
+      return readFileStream(context.fs, resolved, { signal, chunkSize: Math.max(1, Math.min(65536, b.limits.inputBytes - b.accounting.inputBytes, b.limits.retainedBytes - b.accounting.retainedBytes)) });
     };
     // Own the underlying iterator's idempotent return; readBytes cancellation also requests it.
     const consume = async (

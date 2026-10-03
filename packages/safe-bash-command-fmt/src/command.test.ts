@@ -114,12 +114,10 @@ test('finite retention reserves the output batch before admitting a source chunk
 test('VFS allocation admission shares the batch allowance and small limits keep streaming', async () => {
   const run = fixture(['file'], '');
   let maximum = Infinity;
-  const context = { ...run.context, fs: { capabilities: { read: true },
-    async readFile(_path: string, options: { maxBytes: number }) {
+  const context = { ...run.context, fs: retainedFixture(async (_path, options) => {
       maximum = options.maxBytes;
       return encoder.encode('one two');
-    },
-  } } as unknown as CommandContext;
+  }) } as unknown as CommandContext;
   assert.equal((await fmt(context, { limits: { retainedBytes: 32768 } })).exitCode, 0);
   assert.ok(maximum + 10120 + 16384 <= 32768, 'source, engine and batch must fit together');
   const small = fixture([], 'x'.repeat(4096));
@@ -195,12 +193,10 @@ test('SDK captures literal argument bytes before asynchronous acquisition', asyn
 test('VFS fallback admits remaining input bytes before asking for an allocation', async () => {
   const run = fixture(['file'], '');
   let maximum: number | undefined;
-  const context = { ...run.context, fs: { capabilities: { read: true },
-    async readFile(_path: string, options: { maxBytes: number }) {
+  const context = { ...run.context, fs: retainedFixture(async (_path, options) => {
       maximum = options.maxBytes;
       throw new FsError('EFBIG');
-    },
-  } } as unknown as CommandContext;
+  }) } as unknown as CommandContext;
   assert.equal((await fmt(context, { limits: { inputBytes: 1 } })).exitCode, 1);
   assert.equal(maximum, 1);
 });
@@ -281,14 +277,12 @@ test('file boundaries reset tab state and keep stdin separate, with identical CL
       ['/second', encoder.encode('        three\n        four')],
     ]);
     const reads: string[] = [];
-    const context = { ...run.context, fs: { capabilities: { read: true },
-      async readFile(path: string, options: { signal: AbortSignal; maxBytes: number }) {
+    const context = { ...run.context, fs: retainedFixture(async (path, options) => {
         options.signal.throwIfAborted(); reads.push(path);
         const bytes = files.get(path)!;
-        assert.equal(options.maxBytes, undefined);
+        assert.equal(options.maxBytes, 4096);
         return bytes.slice();
-      },
-    } } as unknown as CommandContext;
+    }) } as unknown as CommandContext;
     const result = sdk ? await fmt(context, { arguments: args.map(arg => encoder.encode(arg)) })
       : await fmtCommand().execute(context);
     assert.equal(result.exitCode, 0);
@@ -313,12 +307,10 @@ test('typed SDK options match grouped CLI options and own a literal byte prefix'
 test('typed SDK operands are literal VFS paths, including flag-looking names', async () => {
   const run = fixture([], '');
   const reads: string[] = [];
-  const context = { ...run.context, fs: { capabilities: { read: true },
-    async readFile(path: string, options: { signal: AbortSignal }) {
+  const context = { ...run.context, fs: retainedFixture(async (path, options) => {
       assert.ok(run.cleanups.length); assert.equal(options.signal.aborted, false);
       reads.push(path); return encoder.encode('aa bb cc dd ee');
-    },
-  } } as unknown as CommandContext;
+  }) } as unknown as CommandContext;
   assert.equal((await fmt(context, { width: 8, files: ['--unknown'] })).exitCode, 0);
   assert.deepEqual(reads, ['/--unknown']);
   assert.deepEqual(run.stdout, [...encoder.encode('aa bb cc\ndd ee\n')]);
@@ -362,3 +354,17 @@ test('typed SDK shares zero widths, goal-only defaults and mode precedence with 
     assert.deepEqual(sdk.stderr, cli.stderr);
   }
 });
+
+function retainedFixture(load: (path: string, options: { signal: AbortSignal; maxBytes: number }) => Promise<Uint8Array>): CommandContext['fs'] {
+  return { capabilities: { read: true, retainedRead: true },
+    async openReadFile(path: string, options: { signal: AbortSignal }) {
+      let data: Uint8Array | undefined;
+      return { async read(position: number, maximum: number) {
+        data ??= await load(path, { signal: options.signal, maxBytes: maximum });
+        if (position >= data.length) return new Uint8Array();
+        return position === 0 && data.length <= maximum ? data : data.subarray(position, position + maximum);
+      }, async close() { data = undefined; } };
+    },
+    async readFile() { throw new Error('whole-file fallback must not run'); },
+  } as unknown as CommandContext['fs'];
+}

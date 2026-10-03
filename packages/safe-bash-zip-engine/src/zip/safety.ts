@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { collectBytes,readBytes,type ByteSource,type CommandContext,type FileReadHandle,type FileStaging,type FileStat } from "safe-bash-contracts";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
@@ -179,16 +180,8 @@ export class ZipScope {
     const signal = AbortSignal.any([this.context.signal, controller.signal]);
     const capabilities = await this.operation(() => fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities);
     if (fifo && (!fs.readStream || capabilities.streamingRead !== true)) fail("filesystem lacks explicit FIFO byte stream capability");
-    if (fs.readStream && capabilities.streamingRead !== false) {
-      const source = await this.operation(() => this.source(fs.readStream!(path, { signal, chunkSize: this.limits.chunkSize }), controller));
-      yield* readBytes(source, signal);
-    } else {
-      const stat = await this.operation(() => fs.stat(path, { signal }));
-      if (stat.size > this.limits.maxBufferedFileBytes) fail("filesystem lacks streaming reads: buffered file limit exceeded");
-      const bytes = await this.operation(() => fs.readFile(path, { signal, ...(Number.isFinite(this.limits.maxBufferedFileBytes) ? { maxBytes: this.limits.maxBufferedFileBytes } : {})}));
-      if (bytes.length > this.limits.maxBufferedFileBytes) fail("buffered file limit exceeded");
-      yield bytes;
-    }
+    const source = await this.operation(() => this.source(readFileStream(fs, path, { signal, chunkSize: this.limits.chunkSize }), controller));
+    yield* readBytes(source, signal);
   }
 }
 

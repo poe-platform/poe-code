@@ -3,3 +3,5 @@ export type { FileResolutionStep, FileStagingResolution } from "@poe-code/safe-f
 export type { ChmodOptions } from "@poe-code/safe-fs/runtime-core";
 export type { ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions } from "@poe-code/safe-fs/runtime-core";
 export type { ConditionalWriteFileOptions, ConditionalRemoveFileOptions, FileStaging, FileStagingEntry, StagedFileContent, CreateStagedFileOptions, PublishStagedFileOptions, PublishStagedFileSetOptions, PrepareDirectoryOptions, FileType, EntryComparison, FileStat, DirectoryEntry, FileSystemCapabilities, FsOptions, CapabilityQueryOptions, RenameOptions, FileReadHandle, OpenReadFileOptions, FileResizeHandle, FileResizeOperation, FileResizeOptions, OpenResizeFileOptions, ReadFileOptions, ReadDirectoryOptions, WriteFileOptions, AppendFileOptions, MkdirOptions, RemoveOptions, CopyFileOptions, ReadStreamOptions, FileSystem, FileSystemFactory } from "@poe-code/safe-fs/runtime-core";
+
+export { readFileStream } from "@poe-code/safe-fs/runtime-core";

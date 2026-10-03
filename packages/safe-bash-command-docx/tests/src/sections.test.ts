@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as docx from "../../src/sdk.js";
@@ -180,7 +181,7 @@ it("escapes document-supplied direction controls in human section inventory", as
   let stdout = "";
   const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["sections", "list", "/input.docx"].map(v => new TextEncoder().encode(v)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    filesystem: { readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} }
   });
   expect(result.exitCode).toBe(0);
@@ -193,7 +194,7 @@ it("requires only read authority for section listing", async () => {
   let stdout = "";
   const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["sections", "list", "/input.docx", "--json"].map(v => new TextEncoder().encode(v)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile() { return input; }, async lstat() { throw new Error("Publication identity is unavailable"); } },
+    filesystem: { async *readStream() { for (let offset = 0; offset < input.length; offset += 65536) yield input.subarray(offset, offset + 65536); }, async readFile() { return input; }, async lstat() { throw new Error("Publication identity is unavailable"); } },
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} }
   });
   expect(result.exitCode).toBe(0);

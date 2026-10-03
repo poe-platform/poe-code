@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { textContext, textFixture, run } from "../../../safe-bash-docx-engine/tests/fixtures/text.js";
@@ -42,14 +43,14 @@ it.each(["repeatingSection", "repeatingSectionItem"])("inventories native %s as 
 it("lists typed controls through the actual command engine", async () => {
   const input = await textFixture(`<w:p>${control("<w:text/>")}</w:p>`);
   const fs = Volume.fromJSON({ "/input": Buffer.from(input), "/out": "" });
-  const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["controls", "list", "/input", "--json"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(fs.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { fs.appendFileSync("/out", bytes); } }, stderr: { async write() {} } });
+  const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["controls", "list", "/input", "--json"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: { readStream(path: string) {  return streamVolume(fs, path); }, async readFile(path) { return new Uint8Array(fs.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { fs.appendFileSync("/out", bytes); } }, stderr: { async write() {} } });
   expect(result.exitCode).toBe(0);
   expect(JSON.parse(String(fs.readFileSync("/out"))).data.items[0]).toMatchObject({ kind: "plain-text", id: "7", tag: "bay", alias: "Name", value: "Old", lock: "unlocked", placeholder: false });
 });
 it("escapes human control tags while retaining exact JSON stored values", async () => {
   const input = await textFixture('<w:p><w:sdt><w:sdtPr><w:text/><w:tag w:val="Bay&#13;&#10;&#9;Injected"/></w:sdtPr><w:sdtContent><w:r><w:t>Old</w:t></w:r></w:sdtContent></w:sdt></w:p>');
   const fs = Volume.fromJSON({ "/input": Buffer.from(input), "/out": "" });
-  const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["controls", "list", "/input"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(fs.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { fs.appendFileSync("/out", bytes); } }, stderr: { async write() {} } });
+  const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["controls", "list", "/input"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: { readStream(path: string) {  return streamVolume(fs, path); }, async readFile(path) { return new Uint8Array(fs.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { fs.appendFileSync("/out", bytes); } }, stderr: { async write() {} } });
   expect(result.exitCode).toBe(0); expect(String(fs.readFileSync("/out"))).not.toContain("\r\n\t");
   const module = await import("../../../safe-bash-docx-engine/src/controls.js"); expect((await module.inspectDocumentControls(input, {}, textContext)).items[0]!.tag).toBe("Bay\r\n\tInjected");
 });

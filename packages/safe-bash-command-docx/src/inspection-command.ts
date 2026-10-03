@@ -1,3 +1,4 @@
+import { readFileStream } from "@poe-code/safe-fs/core";
 import { contextData, type DocumentModelContext } from "safe-bash-docx-engine/model-context";
 import { inspectDocxCapabilities } from "./discovery.js";
 import { executePackCommand } from "./pack-command.js";
@@ -92,8 +93,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits?: P
       try {
         return await io.readBytes({ open(signal) {
           const path = resolvePath(request.cwd, source.path);
-          return request.filesystem.readStream ? request.filesystem.readStream(path, { signal }) :
-            { async *[Symbol.asyncIterator]() { yield await request.filesystem.readFile(path, { signal }); } };
+          return readFileStream(request.filesystem as FileSystem, path, { signal });
         } });
       } finally { await io.cleanup(); }
     },
@@ -155,7 +155,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits?: P
             inputs.push(await io.readBytes({ open(signal) {
               if (input === "-") return request.stdin;
               const path = resolvePath(request.cwd, input);
-              return request.filesystem.readStream ? request.filesystem.readStream(path, { signal }) : { async *[Symbol.asyncIterator]() { yield await request.filesystem.readFile(path, { signal }); } };
+              return readFileStream(request.filesystem as FileSystem, path, { signal });
             } }));
           }
           acquiring = false;
@@ -190,8 +190,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits?: P
         const bytes = await io.readBytes({ open(signal) {
           if (input === "-") return request.stdin;
           const path = resolvePath(request.cwd, input);
-          if (request.filesystem.readStream) return request.filesystem.readStream(path, { signal });
-          return { async *[Symbol.asyncIterator]() { yield await request.filesystem.readFile(path, { signal }); } };
+          return readFileStream(request.filesystem as FileSystem, path, { signal });
         } });
         acquiring = false;
         if (invocation.operation === "extract") {

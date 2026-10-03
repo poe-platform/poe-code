@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { FsError, dirname, resolvePath, type ByteSource, type FileStat } from "safe-bash-contracts";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
@@ -88,18 +89,10 @@ export class Lines {
     if (existing && this.identity && !sameIdentity(this.identity, this.identity)) throw new CsplitError("cannot overwrite an existing output with unknown input identity");
   }
   private async source(): Promise<ByteSource> {
-    const { context, limits } = this.lifecycle.budget;
+    const { context } = this.lifecycle.budget;
     if (this.path === undefined) return context.stdin;
     const { fs, signal } = context;
-    const capabilities = await this.lifecycle.operation(async () => await fs.capabilitiesFor?.(this.path!, { signal }) ?? fs.capabilities);
-    if (fs.readStream && capabilities.streamingRead !== false) return fs.readStream(this.path, { signal, chunkSize: 65_536 });
-    if (this.identity!.size > Math.min(limits.maxInputBytes, limits.maxBufferedBytes / 2)) throw new CsplitError("buffered input bytes limit exceeded");
-    const admittedBytes = this.identity!.size;
-    this.lifecycle.budget.reserveBuffered(this.fallbackAllocation, admittedBytes);
-    this.lifecycle.budget.reserveBuffered(this, admittedBytes * 2);
-    const value = await this.lifecycle.operation(() => fs.readFile(this.path!, { signal, maxBytes: admittedBytes }));
-    this.lifecycle.budget.check(value.length, admittedBytes, "input bytes");
-    return { async *[Symbol.asyncIterator]() { yield value; } };
+    return readFileStream(fs, this.path, { signal, chunkSize: 65536 });
   }
   private appendLine(): void {
     const { budget } = this.lifecycle;

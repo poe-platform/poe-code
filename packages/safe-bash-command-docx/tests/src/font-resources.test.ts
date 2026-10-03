@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as docx from "../../src/sdk.js";
@@ -157,7 +158,7 @@ it("reports an unsupported embedding change clearly through the CLI", async () =
   let output = "";
   const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["xml", "set", "-", "--part", "/word/fontTable.xml", "--file", "replacement.xml", "--dry-run", "--json"].map(encode), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() { yield input; } },
+    filesystem: { readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() { yield input; } },
     stdout: { async write(b) { output += new TextDecoder().decode(b); } }, stderr: { async write() {} }
   });
   expect(result.exitCode).toBe(1);

@@ -1,3 +1,4 @@
+import { readFileStream } from "@poe-code/safe-fs/core";
 import { resolvePath, type FileSystem } from "@poe-code/safe-fs/core";
 import { SourceError, type DocxInvocation } from "./command.js";
 import { archiveSettings, ResourceLimitError, CancellationError, type ArchiveContext } from "safe-bash-docx-engine/archive";
@@ -24,9 +25,7 @@ export async function executeXmlCommand(invocation: DocxInvocation, bytes: Uint8
   let replacement: Uint8Array;
   try {
     replacement = await io.readBytes({ open(signal) {
-      const source = file === "-" ? request.stdin : request.filesystem.readStream
-        ? request.filesystem.readStream(resolvePath(request.cwd, file), { signal })
-        : { async *[Symbol.asyncIterator]() { yield await request.filesystem.readFile(resolvePath(request.cwd, file), { signal }); } };
+      const source = file === "-" ? request.stdin : readFileStream(request.filesystem as FileSystem, resolvePath(request.cwd, file), { signal });
       return { async *[Symbol.asyncIterator]() {
         let size = 0;
         for await (const chunk of source) {

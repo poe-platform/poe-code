@@ -9,9 +9,13 @@ for (const factory of [createOdCommand]) {
   for (const mode of ["stdin", "stream", "file"] as const) {
     for (const maximum of [0, bytes.length - 1, bytes.length, Infinity]) {
       test(`${factory.name} checks ${mode} input against ${maximum} bytes`, async () => {
-        const fs = createMemoryFileSystem();
-        await fs.writeFile("/input", bytes);
-        if (mode === "file") Object.defineProperty(fs, "readStream", { value: undefined });
+        const memory = createMemoryFileSystem();
+        await memory.writeFile("/input", bytes);
+        const fs = new Proxy(memory, { get(target, key) {
+          if (mode === "file" && key === "readStream") return undefined;
+          const value = Reflect.get(target, key, target);
+          return typeof value === "function" ? value.bind(target) : value;
+        } });
         const failure = Object.assign(new Error("input budget exceeded"), { name: "BudgetExceededError" });
         const totals: number[] = [];
         const context: CommandContext = {
@@ -33,7 +37,7 @@ for (const factory of [createOdCommand]) {
         const failure = Object.assign(new Error(name), { name });
         const fs = createMemoryFileSystem();
         Object.defineProperty(fs, "readStream", { value: mode === "file" ? undefined : () => ({ async *[Symbol.asyncIterator]() { yield await Promise.reject<Uint8Array>(failure); } }) });
-        Object.defineProperty(fs, "readFile", { value: async () => { throw failure; } });
+        Object.defineProperty(fs, "openReadFile", { value: async () => { throw failure; } });
         const context: CommandContext = {
           command: "od", args: createCommandArguments([...[], ...(mode === "stdin" ? [] : ["/input"])]).args,
           cwd: "/", env: {}, fs, signal: new AbortController().signal,

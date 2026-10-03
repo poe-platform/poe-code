@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { readBytes, type ByteSource, type CommandContext } from "safe-bash-contracts";
 import { pathOf } from "safe-bash-io-engine/internal";
 import type { Budget } from "./budget.js";
@@ -51,18 +52,8 @@ export class Inputs {
     let source: ByteSource;
     if (name === "-") source = this.context.stdin;
     else {
-      const context = this.context, budget = this.budget, path = pathOf(context, name);
-      source = (async function* (): ByteSource {
-        const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
-        context.signal.throwIfAborted();
-        if (context.fs.readStream && capabilities.streamingRead !== false) {
-          yield* readBytes(context.fs.readStream(path, { signal: context.signal, chunkSize: 16_384 }), context.signal);
-        } else {
-          const value = await context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(budget.limits.maxInputBytes - budget.input) ? { maxBytes: budget.limits.maxInputBytes - budget.input } : {}) });
-          context.signal.throwIfAborted();
-          yield value;
-        }
-      })();
+      const context = this.context, path = pathOf(context, name);
+      source = readFileStream(context.fs, path, { signal: context.signal, chunkSize: 16384 });
     }
     const cursor = new Cursor(source, this.context.signal);
     this.cursors.push(cursor);

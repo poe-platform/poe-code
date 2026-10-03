@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
@@ -55,7 +56,7 @@ for (const strict of [false, true]) for (const route of ["model", "batch", "inve
       const args = route === "batch" ? ["batch", "/input.docx", "--ops-json", JSON.stringify(batch), "--json"] : ["tables", "list", "/input.docx", "--json"];
       const cli = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
         args: args.map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-        filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+        filesystem: { readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
         stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
       });
       expect(cli.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
@@ -275,7 +276,7 @@ for (const strict of [false, true]) for (const route of ["model", "sdk", "cli"] 
   } else {
     const cli = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
       args: ["batch", "/input.docx", "--ops-json", JSON.stringify(batch), "--output", "-"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-      filesystem: { async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} },
+      filesystem: { async *readStream() { for (let offset = 0; offset < input.length; offset += 65536) yield input.subarray(offset, offset + 65536); }, async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
     });
     expect(cli.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
@@ -300,7 +301,7 @@ for (const strict of [false, true]) for (const route of ["sdk", "cli"] as const)
   else {
     const cli = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
       args: ["batch", "/input.docx", "--ops-json", JSON.stringify(batch), "--output", "-"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-      filesystem: { async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} },
+      filesystem: { async *readStream() { for (let offset = 0; offset < input.length; offset += 65536) yield input.subarray(offset, offset + 65536); }, async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
     });
     expect(cli.exitCode).toBe(0);

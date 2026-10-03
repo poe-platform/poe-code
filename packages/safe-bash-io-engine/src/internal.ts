@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { builtInDirectContextExecutors } from "safe-bash-contracts/runtime-control";
 import { pathOf } from "safe-bash-query-engine/path";
 import { UsageError, publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
@@ -410,15 +411,7 @@ async function* fileInputSource(context: CommandContext, name: string, stream?: 
         if (!reading || emitted || !(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
       }
     }
-    if (capabilities.read === false) throw new FsError("ENOTSUP", { syscall: "readFile", path });
-    yield* readBytes({
-      async *[Symbol.asyncIterator]() {
-        const bytes = await context.fs.readFile(path, { signal: context.signal });
-        context.signal.throwIfAborted();
-        if (bytes.byteLength > bufferLimit) throw new FsError("EFBIG", { syscall: "readFile", path });
-        yield bytes;
-      },
-    }, context.signal);
+    yield* readBytes(readFileStream(context.fs, path, { signal: context.signal, skipStream: true }), context.signal);
 }
 
 const FILE_REQUIREMENT_MODES = ["file"] as const;

@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import fs from "node:fs";
 import http from "node:http";
 import https from "node:https";
@@ -195,7 +196,7 @@ it("keeps external relationships and executable-looking field instructions inert
   const sdk = await validateDocument(bytes, context);
   const result = await createDocxInspectionCommandEngine({ limits: context.limits }).execute({
     args: ["validate", "/input.docx", "--json"].map(encode), cwd: "/", signal: context.signal,
-    filesystem: { async readFile(path) { reads.push(path); return new Uint8Array(volume.readFileSync(path) as Uint8Array); } },
+    filesystem: { readStream(path: string) { reads.push(path); return streamVolume(volume, path); }, async readFile(path) { reads.push(path); return new Uint8Array(volume.readFileSync(path) as Uint8Array); } },
     stdin: { [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("Implicit stdin"); } }; } },
     stdout: { async write(chunk) { chunks.push(chunk); } }, stderr: { async write() {} }
   });

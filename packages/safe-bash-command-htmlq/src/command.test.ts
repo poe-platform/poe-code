@@ -106,23 +106,18 @@ test("htmlq permits depth beyond its former default and accepts explicit Infinit
   }
 });
 
-test("htmlq buffered file reads omit unlimited bounds and preserve finite input admission", async () => {
+test("htmlq retained ranges preserve finite input admission", async () => {
   for (const inputBytes of [undefined, Infinity, 2]) {
     const sample = fixture(["-t", "p", "-f", "in"]);
-    const bounds: (number | undefined)[] = [];
-    const fs = { ...sample.context.fs,
-      async readFile(path: string, options?: { maxBytes?: number }) {
-        bounds.push(options?.maxBytes);
-        assert.ok(options?.maxBytes === undefined || Number.isSafeInteger(options.maxBytes));
-        const bytes = sample.files.get(path)!;
-        if (options?.maxBytes !== undefined && bytes.length > options.maxBytes) throw new FsError("EFBIG");
-        return bytes.slice();
-      },
-    };
+    const bounds: number[] = [];
+    const fs = { ...sample.context.fs, ...retainedFixture(async (path, options) => {
+      bounds.push(options.maxBytes);
+      return sample.files.get(path)!.slice();
+    }) };
     delete fs.readStream;
     const result = await htmlq({ ...sample.context, fs }, { limits: inputBytes === undefined ? {} : { inputBytes } });
     assert.equal(result.exitCode, inputBytes === 2 ? 1 : 0);
-    assert.deepEqual(bounds, [inputBytes === 2 ? 2 : undefined]);
+    assert.deepEqual(bounds, [inputBytes === 2 ? 2 : 65536]);
     assert.equal(sample.text(), inputBytes === 2 ? "" : "X\n");
   }
 });
@@ -611,13 +606,11 @@ test("unqualified output capabilities never fall back to unconditional mutation"
   }
 });
 
-test("closed stdout does not cancel independent file input/output on byte-only VFS", async () => {
+test("closed stdout does not cancel independent file input/output with retained reads", async () => {
   const f = fixture(["p", "-t", "-f", "in", "-o", "out"]);
   const consumer = new AbortController();
   consumer.abort(new Error("stdout consumer closed"));
-  const fs = { ...f.context.fs, async readFile(path: string) {
-    return f.files.get(path)!.slice();
-  } };
+  const fs = { ...f.context.fs, ...retainedFixture(async (path) => f.files.get(path)!.slice()), capabilities: { ...f.context.fs.capabilities, retainedRead: true } };
   Reflect.deleteProperty(fs, "readStream");
   const result = await htmlq({ ...f.context, fs, stdout: {
     async write() { throw new Error("unexpected stdout write"); },
@@ -628,15 +621,15 @@ test("closed stdout does not cancel independent file input/output on byte-only V
   assert.equal(f.output.length, 0);
 });
 
-test("byte-only VFS read cancellation drains admitted read work before cleanup settles", async () => {
+test("retained VFS read cancellation drains admitted read work before cleanup settles", async () => {
   const f = fixture(["p", "-t", "-f", "in", "-o", "out"]), controller = new AbortController();
   let complete!: (data: Uint8Array) => void, reading!: () => void, cleaned = false;
   const started = new Promise<void>(resolve => { reading = resolve; });
-  const fs = { ...f.context.fs, async readFile(_path: string, options?: { signal?: AbortSignal }) {
+  const fs = { ...f.context.fs, ...retainedFixture(async (_path, options) => {
     assert.equal(options?.signal?.aborted, false);
     reading();
     return new Promise<Uint8Array>(resolve => { complete = resolve; });
-  } };
+  }), capabilities: { ...f.context.fs.capabilities, retainedRead: true } };
   Reflect.deleteProperty(fs, "readStream");
   const running = htmlq({ ...f.context, fs, signal: controller.signal });
   const ended = running.then(() => { cleaned = true; }, () => { cleaned = true; });
@@ -717,3 +710,17 @@ test("native aliases and selector operands agree across CLI and SDK argv", async
     await Promise.all([...cli.cleanups, ...sdk.cleanups].map(fn => fn()));
   }
 });
+
+function retainedFixture(load: (path: string, options: { signal: AbortSignal; maxBytes: number }) => Promise<Uint8Array>): CommandContext['fs'] {
+  return { capabilities: { read: true, retainedRead: true },
+    async openReadFile(path: string, options: { signal: AbortSignal }) {
+      let data: Uint8Array | undefined;
+      return { async read(position: number, maximum: number) {
+        data ??= await load(path, { signal: options.signal, maxBytes: maximum });
+        if (position >= data.length) return new Uint8Array();
+        return position === 0 && data.length <= maximum ? data : data.subarray(position, position + maximum);
+      }, async close() { data = undefined; } };
+    },
+    async readFile() { throw new Error('whole-file fallback must not run'); },
+  } as unknown as CommandContext['fs'];
+}

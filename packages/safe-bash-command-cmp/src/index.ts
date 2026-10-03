@@ -289,19 +289,7 @@ class Cursor {
           ...(start ? { start } : {}),
           ...(limit === Infinity || this.skip ? {} : { endExclusive: Math.min(Number.MAX_SAFE_INTEGER, start + limit) }) });
       } else {
-        if (capabilities.read === false) throw new FsError("ENOTSUP", { syscall: "readFile", path });
-        const context = this.context;
-        const signal = this.signal;
-        const maximum = this.limits.maxFallbackBytes;
-        if (!this.legacy && (!stat || !Number.isSafeInteger(stat.size) || stat.size < 0 || stat.size > maximum)) {
-          throw new InputError(this.name + ": bounded comparison requires readStream or a file within maxFallbackBytes", false);
-        }
-        const chunkBytes = this.limits.maxChunkBytes;
-        this.source = () => ({ async *[Symbol.asyncIterator]() {
-          const bytes = await context.fs.readFile(path, { signal, ...(maximum === Infinity ? {} : { maxBytes: maximum }) });
-          if (bytes.byteLength > maximum) throw new FsError("EFBIG", { message: "cmp fallback byte limit exceeded" });
-          for (let offset = 0; offset < bytes.length; offset += chunkBytes) yield bytes.subarray(offset, offset + chunkBytes);
-        } });
+        throw new FsError("ENOTSUP", { syscall: "readStream", path, message: "comparison requires streaming or retained range reads" });
       }
     }
   }

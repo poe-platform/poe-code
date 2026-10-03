@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Document, DocumentXmlEditor, NumberingPart, CorePropertiesPartView, ImagePartView, InputTypeError, InvalidValueError, OwnershipError, UnsupportedEditError, readArchive, writeArchive, applyStyleModelBatch, createDocxInspectionCommandEngine, type DocxBatchOperation } from "../../src/sdk.js";
@@ -85,7 +86,7 @@ for (const strict of [false, true]) for (const uppercase of [false, true]) for (
       const volume = Volume.fromJSON({ "/input": Buffer.from(input), "/out": "", "/err": "" });
       const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
         args: ["batch", "/input", "--ops-json", JSON.stringify({ version: 1, operations: operations(role) }), "--dry-run", "--json"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-        filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+        filesystem: { readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
         stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
       });
       expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
@@ -178,7 +179,7 @@ for (const strict of [false, true]) for (const route of ["model", "sdk", "cli"] 
     } else {
       const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
         args: ["batch", "/input", "--ops-json", JSON.stringify({ version: 1, operations: batch }), "--output", "-"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-        filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+        filesystem: { readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
         stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
       });
       expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);

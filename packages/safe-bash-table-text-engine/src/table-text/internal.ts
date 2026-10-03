@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { utf8ByteLength, concatBytes } from "safe-bash-byte-engine";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -267,14 +268,7 @@ export class Inputs {
       const path = pathOf(this.context, name);
       const stat = await this.context.fs.stat(path, { signal: this.signal });
       if (stat.type === "directory") throw new FsError("EISDIR", { path });
-      const capabilities = await this.context.fs.capabilitiesFor?.(path, { signal: this.signal }) ?? this.context.fs.capabilities;
-      if (this.context.fs.readStream && capabilities.streamingRead !== false) source = this.context.fs.readStream(path, { signal: this.signal });
-      else {
-        const { context, signal, budget } = this;
-        source = (async function* () {
-          yield await context.fs.readFile(path, { signal, ...(Number.isFinite(budget.limits.maxChunkBytes) ? { maxBytes: budget.limits.maxChunkBytes } : {}) });
-        })();
-      }
+      source = readFileStream(this.context.fs, path, { signal: this.signal, chunkSize: Math.min(65536, this.budget.limits.maxChunkBytes) });
     }
     const reader = new RecordReader(source, this.separator, this.budget, this.signal);
     this.readers.push(reader);

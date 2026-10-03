@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { resolvePath } from '@poe-code/safe-fs/core';
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from 'safe-bash-contracts/command';
 import { FsError } from 'safe-bash-contracts/errors';
@@ -96,15 +97,9 @@ async function executeUnrtf(context:CommandContext, configuration:UnrtfCommandOp
       for (const candidate of [path,path + '.rtf']) {
         let yielded = false;
         try {
-          if (context.fs.readStream) {
-            for await (const bytes of readBytes(context.fs.readStream(candidate,{signal}),signal)) { admitInput(bytes); yielded = true; yield bytes; }
-          } else {
-            const maxBytes = Math.min(limits.inputBytes, limits.retainedBytes);
-            const bytes = await context.fs.readFile(candidate,{signal,...(Number.isFinite(maxBytes) ? { maxBytes } : {})});
-            admitInput(bytes);
-            budget.charge('retainedBytes',bytes.length,0);
-            try { yield bytes; } finally { budget.release('retainedBytes',bytes.length); }
-          }
+          for await (const bytes of readBytes(readFileStream(context.fs, candidate, { signal,
+            chunkSize: Math.max(1, Math.min(65536, limits.inputBytes, limits.retainedBytes)),
+          }), signal)) { admitInput(bytes); yielded = true; yield bytes; }
           return;
         } catch (error) {
           if (yielded || candidate !== path || !(error instanceof FsError) || error.code !== 'ENOENT') throw error;

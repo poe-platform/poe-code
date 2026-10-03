@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import {
@@ -690,7 +691,7 @@ it.each(workflows)(
         cwd: "/",
         signal: new AbortController().signal,
         filesystem: {
-          async readFile(path) {
+          readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) {
             return new Uint8Array(volume.readFileSync(path) as Buffer);
           }
         },

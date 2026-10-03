@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as docx from "../../src/sdk.js";
@@ -150,7 +151,7 @@ it("executes paragraph flags through the common command engine and advertises ed
   let stdout = "";
   const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["paragraphs", "set", "/input.docx", "--paragraph", "1", "--alignment", "CENTER", "--line-spacing", "1.5", "--tab-stops-json", '[{"position":{"value":1,"unit":"in"}}]', "--dry-run", "--json"].map(v => new TextEncoder().encode(v)),
-    cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    cwd: "/", signal: textContext.signal, filesystem: { readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} }
   });
   expect(result.exitCode).toBe(0);

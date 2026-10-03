@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import type { AwkInspection } from "./awk-inspection.js";
 import { Reader } from "./awk-reader.js";
@@ -1138,10 +1139,7 @@ export class AwkRuntime {
         else {
           budget.step();
           await budget.checkpointSync();
-          const capabilities = await context.fs.capabilitiesFor?.(name, { signal: context.signal }) ?? context.fs.capabilities;
-          context.signal.throwIfAborted();
-          if (context.fs.readStream && capabilities.streamingRead !== false) yield* context.fs.readStream(name, { signal: context.signal });
-          else yield await context.fs.readFile(name, { signal: context.signal, ...(Number.isFinite(budget.maxBufferBytes) ? { maxBytes: budget.maxBufferBytes } : {}) });
+          yield* readFileStream(context.fs, name, { signal: context.signal });
         }
       })();
       try {

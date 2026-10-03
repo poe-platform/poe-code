@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { FsError, readBytes, toByteSource } from "@poe-code/safe-fs/core";
 import type { ByteSource, FsOptions } from "@poe-code/safe-fs/core";
 import type { CommandContext } from "safe-bash-contracts/command";
@@ -214,15 +215,12 @@ export async function openDdFile(context: CommandContext, request: DdFileRequest
     let pulls = 0;
     let closed = false;
     const capabilities = path === undefined ? undefined : await context.fs.capabilitiesFor?.(path, { signal }) ?? context.fs.capabilities;
-    const streaming = path !== undefined && context.fs.readStream && capabilities?.streamingRead !== false;
+    const streaming = path !== undefined && (context.fs.readStream && capabilities?.streamingRead !== false
+      || context.fs.openReadFile && capabilities?.retainedRead === true);
     const source = (): ByteSource => {
       if (path === undefined) return context.stdin;
       if (stat?.type === "directory") return { async *[Symbol.asyncIterator]() { yield* []; throw new FsError("EISDIR", { path }); } };
-      if (streaming) return context.fs.readStream!(path, { signal, start: Number(position), chunkSize: request.blockSize });
-      return { async *[Symbol.asyncIterator]() {
-        const value = await context.fs.readFile(path, { signal, ...(Number.isFinite(request.maxBufferBytes) ? { maxBytes: request.maxBufferBytes } : {}) });
-        yield* toByteSource(value);
-      } };
+      return readFileStream(context.fs, path, { signal, start: Number(position), chunkSize: request.blockSize });
     };
     const closeIterator = async (): Promise<void> => {
       const current = iterator;

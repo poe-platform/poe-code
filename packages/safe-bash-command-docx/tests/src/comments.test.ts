@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as docx from "../../src/sdk.js";
@@ -9,7 +10,7 @@ async function edit(bytes: Uint8Array, action: "add" | "set" | "remove", options
   const volume = Volume.fromJSON({ "/input.docx": Buffer.from(bytes), "/out": "", "/err": "" });
   const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["comments", action, "/input.docx", "--output", "-", ...Object.entries(options).flatMap(([k, v]) => ["--" + k, String(v)])].map(s => new TextEncoder().encode(s)),
-    cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    cwd: "/", signal: textContext.signal, filesystem: { readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(b) { volume.appendFileSync("/out", b); } }, stderr: { async write(b) { volume.appendFileSync("/err", b); } }
   });
   expect(result.exitCode, volume.readFileSync("/err", "utf8").toString()).toBe(0);
@@ -200,7 +201,7 @@ it("reads comment JSON through the CLI with matching SDK data and stable failure
     const options = action === "get" ? { comment: 1 } : {};
     const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
       args: ["comments", action, "/input", "--json", ...(action === "get" ? ["--comment", "1"] : [])].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal,
-      filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+      filesystem: { readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: { async write(b) { volume.appendFileSync("/out", b); } }, stderr: { async write() {} }
     });
     expect(result.exitCode).toBe(0);

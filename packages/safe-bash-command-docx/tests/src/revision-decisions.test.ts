@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { DocumentBudget, createDocxInspectionCommandEngine, extractDocumentText, getDocumentXml, inspectDocumentRevisions, openDocumentLocations, replaceDocumentText } from "../../src/sdk.js";
@@ -17,7 +18,7 @@ it.each(["accept", "reject"])("executes supported text revision %s through the r
   const volume = Volume.fromJSON({ "/input": Buffer.from(input), "/out": "" });
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["revisions", action, "/input", "--all", "--output", "-"].map(value => new TextEncoder().encode(value)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+    filesystem: { readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write() {} }
   });
   expect(result.exitCode).toBe(0);

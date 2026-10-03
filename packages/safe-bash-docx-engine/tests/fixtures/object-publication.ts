@@ -1,3 +1,4 @@
+import { streamVolume } from "./stream-volume.js";
 import { Volume } from "memfs";
 import type { FileStat, FileSystem } from "@poe-code/safe-fs/core";
 export function publication(bytes: Uint8Array, fail = false) {
@@ -25,7 +26,7 @@ export function publication(bytes: Uint8Array, fail = false) {
     capabilities: { atomicFileStaging: true, write: true },
     lstat: stat,
     stat,
-    async readFile(path: string) {
+    readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path: string) {
       return new Uint8Array(volume.readFileSync(path) as Uint8Array);
     },
     async realpath(path: string) {

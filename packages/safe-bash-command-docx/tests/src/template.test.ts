@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { textContext, textFixture, run, paragraph } from "../../../safe-bash-docx-engine/tests/fixtures/text.js";
@@ -68,7 +69,7 @@ it("refuses inserted-node and item cardinality overruns", async () => {
 it("implements shared CLI data-file and dry-run output without publication", async () => {
   const input = await textFixture(`<w:p>${field("name")}</w:p>`), fs = Volume.fromJSON({ '/data.json': JSON.stringify(record('name', 'Привет')), '/out': '' });
   const before = fs.toJSON();
-  const result = await createDocxInspectionCommandEngine(textContext).execute({ args: ['template', 'apply', '-', '--data-file', '/data.json', '--dry-run', '--json'].map(s => new TextEncoder().encode(s)), cwd: '/', filesystem: { async readFile(path) { return new Uint8Array(fs.readFileSync(path) as Uint8Array); } }, stdin: { async *[Symbol.asyncIterator]() { yield input; } }, stdout: { async write(bytes) { fs.appendFileSync('/out', bytes); } }, stderr: { async write() {} }, signal: textContext.signal });
+  const result = await createDocxInspectionCommandEngine(textContext).execute({ args: ['template', 'apply', '-', '--data-file', '/data.json', '--dry-run', '--json'].map(s => new TextEncoder().encode(s)), cwd: '/', filesystem: { readStream(path: string) {  return streamVolume(fs, path); }, async readFile(path) { return new Uint8Array(fs.readFileSync(path) as Uint8Array); } }, stdin: { async *[Symbol.asyncIterator]() { yield input; } }, stdout: { async write(bytes) { fs.appendFileSync('/out', bytes); } }, stderr: { async write() {} }, signal: textContext.signal });
   expect(result.exitCode).toBe(0);
   expect(JSON.parse(String(fs.readFileSync('/out')))).toMatchObject({ operation: 'template.apply', ok: true, affected: 1, data: { dryRun: true, output: null } });
   expect(fs.readFileSync('/data.json').toString()).toBe(before['/data.json']);

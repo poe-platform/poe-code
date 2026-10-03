@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { isAbsolutePath, validatePath } from "@poe-code/safe-fs/core";
 import {
   CommandArgumentIdentityError,
@@ -213,12 +214,7 @@ async function* sources(context: CommandContext, operands: readonly string[], ma
         source = context.stdin;
       } else {
         const path = pathOf(context, operand);
-        if (context.fs.readStream && context.fs.capabilities?.streamingRead !== false) {
-          source = context.fs.readStream(path, { signal: context.signal, chunkSize: blockSize });
-        } else {
-          const bytes = await context.fs.readFile(path, { signal: context.signal });
-          source = (async function* () { yield bytes; })();
-        }
+        source = readFileStream(context.fs, path, { signal: context.signal, chunkSize: blockSize });
       }
       let slicesSinceYield = 0;
       for await (const chunk of budget.read(source, context.signal)) {

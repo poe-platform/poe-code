@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from 'safe-bash-contracts/command';
 import { FsError } from 'safe-bash-contracts/errors';
@@ -195,22 +196,12 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
       signal.throwIfAborted();
       signal.throwIfAborted();
       let source: ByteSource;
-      let ownedInput = 0;
+      const ownedInput = 0;
       try {
         if (file === '-') source = context.stdin;
         else {
           const path = file.startsWith('/') ? file : `${context.cwd}/${file}`;
-          if (context.fs.readStream) source = context.fs.readStream(path, { signal });
-          else {
-            const maxBytes = Math.min(limits.inputBytes - engine.accounting().inputBytes, limits.retainedBytes - 8196 - argumentRetention);
-            const bytes = await context.fs.readFile(path, { signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
-            signal.throwIfAborted();
-            if (byteKind.call(bytes) !== 'Uint8Array') throw new FoldError('INPUT', 'Input must be byte storage');
-            const length = byteExtent.call(bytes) as number;
-            if (length > maxBytes) throw new FoldError('LIMIT', 'VFS input retention limit exceeded');
-            ownedInput = length; retain(ownedInput);
-            source = (async function* () { yield bytes; })();
-          }
+          source = readFileStream(context.fs, path, { signal, chunkSize: Math.max(1, Math.min(65536, limits.inputBytes - engine.accounting().inputBytes, limits.retainedBytes - 8196 - argumentRetention)) });
         }
       } catch (error) { await fileError(file, error); continue; }
       let producer: AsyncIterator<Uint8Array>;

@@ -173,7 +173,7 @@ for (const strict of [false, true]) for (const uppercase of [false, true]) for (
       const volume = Volume.fromJSON({ "/out": "", "/err": "" }), stdout = { async write(bytes: Uint8Array) { volume.appendFileSync("/out", bytes); } };
       if (route === "sdk") await expect(sanitizeDocument(input, { remove: ["objects"], output: "-" }, { ...publication, stdout })).rejects.toMatchObject({ code: "invalid-package" });
       else {
-        const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["sanitize", "/input", "--remove", "objects", "--output", "-"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal, filesystem: { async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
+        const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["sanitize", "/input", "--remove", "objects", "--output", "-"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal, filesystem: { async *readStream() { for (let offset = 0; offset < input.length; offset += 65536) yield input.subarray(offset, offset + 65536); }, async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
         expect(result.exitCode).not.toBe(0); expect(volume.readFileSync("/err", "utf8")).toContain("invalid-package");
       }
       expect(volume.readFileSync("/out").length).toBe(0); expect(readPackage(input)).toEqual(before);
@@ -211,7 +211,7 @@ for (const strict of [false, true]) for (const uppercase of [false, true]) for (
     else {
       const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
         args: ["controls", "repeat", "/input", "--control", "1", "--data-json", '[{"values":[]}]', "--output", "-"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-        filesystem: { async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout,
+        filesystem: { async *readStream() { for (let offset = 0; offset < input.length; offset += 65536) yield input.subarray(offset, offset + 65536); }, async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout,
         stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
       });
       expect(result.exitCode).not.toBe(0); expect(volume.readFileSync("/err", "utf8")).toContain("unsupported-edit");

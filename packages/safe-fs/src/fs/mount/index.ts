@@ -266,7 +266,7 @@ export class MountFileSystem implements FileSystem {
           && await this.supportsDirectoryValidation(location.path.slice(0, location.path.lastIndexOf("/")) || "/", options, true)
         : this.capabilities.conditionalChmod;
       const { synchronousDirectoryValidation: ignoredValidation, synchronousStagingResolution: ignoredResolution, ...ordinary } = resize;
-      const withOpen = { ...ordinary, retainedStagingWrite: false, ...(conditionalChmod === undefined ? {} : { conditionalChmod }), ...(resolution === undefined ? {} : { synchronousStagingResolution: resolution }), ...(validation === undefined ? {} : { synchronousDirectoryValidation: validation }), atomicStagingAncestry: ancestry, ...(typeof location.mount.backend.open === "function" ? {} : { open: false }) };
+      const withOpen = { ...ordinary, ...(conditionalChmod === undefined ? {} : { conditionalChmod }), ...(resolution === undefined ? {} : { synchronousStagingResolution: resolution }), ...(validation === undefined ? {} : { synchronousDirectoryValidation: validation }), atomicStagingAncestry: ancestry, ...(typeof location.mount.backend.open === "function" ? {} : { open: false }) };
       const capabilities = location.synthetic ? { ...withOpen, open: false, retainedRead: false }
         : retainedResizeCapabilities(location.mount.backend, retainedReadCapabilities(location.mount.backend, withOpen));
       if (location.synthetic) return readOnlyCapabilities(capabilities);
@@ -954,7 +954,13 @@ export class MountFileSystem implements FileSystem {
           controls => this.operation("removeStagedFile", staging.directory.path, controls,
             () => backendCleanup.remove(controls), undefined, true),
           () => backendCleanup.close());
-        return Object.freeze({ ...staging, cleanup });
+        const writer = receipt.writer;
+        return Object.freeze({ ...staging, cleanup, ...(writer ? { writer: Object.freeze({
+          write: (bytes: Uint8Array, controls: FsOptions = {}) => this.operation("stagedWrite", staging.file.path, controls,
+            () => writer.write(bytes, controls), undefined, true),
+          finish: (controls: FsOptions = {}) => this.operation("stagedFinish", staging.file.path, controls,
+            async () => snapshotStat(await writer.finish(controls)), undefined, true),
+        }) } : {}) });
       } catch (error) {
         await finishCleanup(() => receipt.cleanup?.close(), true);
         throw error;

@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from 'safe-bash-contracts/command';
 import { shellValueByteLength } from 'safe-bash-contracts/value';
 import { FsError } from 'safe-bash-contracts/errors';
@@ -174,15 +175,7 @@ export async function csvcut(context: CommandContext, invocation?: CsvcutInvocat
         if (path === '-') input = context.stdin;
         else {
           const resolved = path.startsWith('/') ? path : `${context.cwd}/${path}`;
-          if (context.fs.readStream) input = context.fs.readStream(resolved, { signal: readSignal });
-          else input = (async function* () {
-            const maxBytes = Math.min(budget.limits.inputBytes - budget.accounting.inputBytes, budget.limits.retainedBytes - budget.accounting.retainedBytes);
-            const bytes = await context.fs.readFile(resolved, { signal: readSignal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
-            readSignal.throwIfAborted();
-            if (extent.call(bytes) > maxBytes) throw new CsvError('LIMIT', 'VFS read limit exceeded');
-            budget.charge("retainedBytes", extent.call(bytes) as number);
-            yield bytes;
-          })();
+          input = readFileStream(context.fs, resolved, { signal: readSignal, chunkSize: Math.max(1, Math.min(65536, budget.limits.inputBytes - budget.accounting.inputBytes, budget.limits.retainedBytes - budget.accounting.retainedBytes)) });
         }
         return (async function* () {
           const producer = input[Symbol.asyncIterator]();

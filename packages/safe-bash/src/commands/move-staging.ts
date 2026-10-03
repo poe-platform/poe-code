@@ -1,4 +1,4 @@
-import { collectBytes, dirname, FsError, joinPath, type CommandContext, type CreateStagedFileOptions, type FileReadHandle, type FileStaging, type FileStagingEntry, type FileStat } from "../contracts/index.js";
+import { dirname, FsError, joinPath, type CommandContext, type CreateStagedFileOptions, type FileReadHandle, type FileStaging, type FileStagingEntry, type FileStat } from "../contracts/index.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { compareCopyIdentity } from "./copy-identity.js";
 import { filesystemCommandRequirements } from "./filesystem-requirements.js";
@@ -52,7 +52,7 @@ export async function prepareMoveStaging(context: CommandContext, source: string
   context.signal.throwIfAborted();
   if (context.fs.capabilities.readOnly === true || capabilities.readOnly === true) throw new FsError("EROFS", { path: target });
   if (!context.fs.createStagedFile || !context.fs.publishStagedFile
-    || capabilities.atomicFileStaging !== true || capabilities.retainedStagingCleanup !== true
+    || capabilities.atomicFileStaging !== true || capabilities.retainedStagingCleanup !== true || capabilities.retainedStagingWrite !== true
     || capabilities.atomicStagingAncestry !== true || capabilities.guardedStagingPublication !== true) {
     throw new FsError("ENOTSUP", { path: target, message: "cross-device overwrite requires atomic destination and ancestry binding" });
   }
@@ -115,8 +115,7 @@ export async function stageMoveReplacement(context: CommandContext, source: stri
     accepting = false;
     return closing ??= (async () => {
       await active?.catch(() => {});
-      // collectBytes can stop observing its iterator immediately on abort.
-      // Retain the admitted read independently until the provider settles it.
+      // Retain admitted range reads until the provider settles them.
       await reading?.catch(() => {});
       const results = await Promise.allSettled([
         Promise.resolve().then(() => staging?.cleanup?.remove()),
@@ -134,36 +133,17 @@ export async function stageMoveReplacement(context: CommandContext, source: stri
     plan.resolutionGuard?.();
     await operation(async () => { reader = await context.fs.openReadFile!(source, { signal: context.signal }); });
     checkSource(expected, await operation(() => reader!.stat({ signal: context.signal })), source);
-    const size = expected.size, maxMemoryBytes = size * 3 + 64 * 1024;
-    if (!Number.isSafeInteger(size) || size < 0 || !Number.isSafeInteger(maxMemoryBytes)) {
-      throw new FsError("EFBIG", { path: source, message: "move source exceeds bounded collection capacity" });
-    }
+    const size = expected.size;
+    if (!Number.isSafeInteger(size) || size < 0) throw new FsError("EFBIG", { path: source });
     context.inputBudget?.check(size);
     if (size > (context.inputBudget?.maxBytes ?? Infinity)) throw new FsError("EFBIG", { path: source, message: "move source exceeds input budget" });
-    const data = await operation(() => collectBytes((async function* () {
-      let position = 0;
-      while (true) {
-        assertOpen();
-        await budget.step();
-        reading = Promise.resolve().then(() => {
-          assertOpen();
-          return reader!.read(position, 64 * 1024, { signal: context.signal });
-        });
-        const chunk = await reading;
-        if (!chunk.length) return;
-        position += chunk.length;
-        yield chunk;
-      }
-    })(), { maxBytes: size, maxMemoryBytes, signal: context.signal }));
-    if (data.length !== size) throw new FsError("EBUSY", { path: source, message: "move source size changed" });
-    checkSource(expected, await operation(() => reader!.stat({ signal: context.signal })), source);
     for (let attempt = 0; attempt < 128; attempt++) {
       await budget.step();
       const candidate = joinPath(dirname(publicationTarget), `.mv-${attempt + 1}`);
       if (candidate === publicationTarget) continue;
       try {
         await operation(async () => {
-          staging = await context.fs.createStagedFile!(candidate, "entry", { type: "file", data }, {
+          staging = await context.fs.createStagedFile!(candidate, "entry", { type: "file", data: new Uint8Array() }, {
             parent: plan.parent, retainCleanup: true, ...plan.metadata, signal: context.signal,
           });
         });
@@ -172,6 +152,22 @@ export async function stageMoveReplacement(context: CommandContext, source: stri
     }
     if (!staging) throw new FsError("EEXIST", { path: target, message: "move staging attempt limit exceeded" });
     if (!staging.cleanup) throw new FsError("ENOTSUP", { path: target, message: "move staging omitted retained cleanup" });
+    const writer = staging.writer;
+    if (!writer) throw new FsError("ENOTSUP", { path: target, message: "move staging omitted retained writer" });
+    let position = 0;
+    while (true) {
+      await budget.step();
+      const chunk = await operation(() => reading = reader!.read(position, 65536, { signal: context.signal }));
+      if (!(chunk instanceof Uint8Array) || chunk.byteLength > 65536) throw new FsError("EIO", { path: source });
+      if (!chunk.byteLength) break;
+      if (chunk.byteLength > size - position) throw new FsError("EBUSY", { path: source, message: "move source size changed" });
+      position += chunk.byteLength;
+      await operation(() => writer.write(chunk, { signal: context.signal }));
+    }
+    if (position !== size) throw new FsError("EBUSY", { path: source, message: "move source size changed" });
+    const sealed = await operation(() => writer.finish({ signal: context.signal }));
+    if (sealed.type !== "file" || sealed.size !== size) throw new FsError("EIO", { path: target, message: "move staging size mismatch" });
+    staging = { ...staging, file: { ...staging.file, stat: sealed } };
     // Reject changes observed during staging. These reads are not a lease:
     // conditional removal still protects the source after publication.
     checkSource(expected, await operation(() => reader!.stat({ signal: context.signal })), source);

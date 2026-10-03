@@ -684,24 +684,34 @@ test("retaining sinks preserve every batch and matched rows before an input fail
   }
 });
 
-test("file fallback omits unlimited read caps and preserves finite caps", async () => {
+test("retained fallback uses a finite window even with unlimited transfer limits", async () => {
   for (const limits of [{}, { inputBytes: Infinity, retainedBytes: Infinity }, { inputBytes: 1000 }, { retainedBytes: 1000 }]) {
     const run = fixture(['-c1', '-mx', 'data.csv'], '');
     let reads = 0;
-    const context = { ...run.context, fs: {
-      async readFile(_path: string, options?: { signal?: AbortSignal; maxBytes?: number }) {
-        reads++;
-        assert.ok(options?.signal instanceof AbortSignal);
-        if (limits.inputBytes === 1000 || limits.retainedBytes === 1000) {
-          assert.ok(Number.isSafeInteger(options?.maxBytes));
-          assert.ok(options!.maxBytes! > 0 && options!.maxBytes! <= 1000);
-        } else assert.equal(Object.hasOwn(options!, "maxBytes"), false);
-        return encoder.encode('a\nx\n');
-      }
-    } as CommandContext['fs'] };
+    const context = { ...run.context, fs: retainedFixture(async (_path, options) => {
+      reads++;
+      assert.ok(options.signal instanceof AbortSignal);
+      assert.ok(options.maxBytes > 0 && options.maxBytes <= 65536);
+      if (limits.inputBytes === 1000 || limits.retainedBytes === 1000) assert.ok(options.maxBytes <= 1000);
+      return encoder.encode('a\nx\n');
+    }) };
     assert.equal((await csvgrep(context, undefined, { limits })).exitCode, 0);
     assert.equal(reads, 1);
     assert.equal(run.text(), 'a\nx\n');
     await Promise.all(run.cleanups.map(cleanup => cleanup()));
   }
 });
+
+function retainedFixture(load: (path: string, options: { signal: AbortSignal; maxBytes: number }) => Promise<Uint8Array>): CommandContext['fs'] {
+  return { capabilities: { read: true, retainedRead: true },
+    async openReadFile(path: string, options: { signal: AbortSignal }) {
+      let data: Uint8Array | undefined;
+      return { async read(position: number, maximum: number) {
+        data ??= await load(path, { signal: options.signal, maxBytes: maximum });
+        if (position >= data.length) return new Uint8Array();
+        return position === 0 && data.length <= maximum ? data : data.subarray(position, position + maximum);
+      }, async close() { data = undefined; } };
+    },
+    async readFile() { throw new Error('whole-file fallback must not run'); },
+  } as unknown as CommandContext['fs'];
+}

@@ -24,3 +24,5 @@ export * from "./fs/s3/http/index.js";
 export { createFileSystem, readConfigRecord, validateFileSystemConfig } from "./config.js";
 export type { FileSystemConfig, FileSystemAdapterDescriptor, FileSystemAdapterRegistry } from "./config.js";
 export { createPortableFileSystemAdapterRegistry } from "./config.portable.js";
+
+export { readFileStream } from "./fs/read-file-stream.js";

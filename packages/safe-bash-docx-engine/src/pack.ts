@@ -1,7 +1,7 @@
 import { admitPackingFiles } from "./packing-vfs-admission.js";
 import { asPermissionError } from "./io-errors.js";
 import { validateArchiveNamespace } from "./archive-namespace.js";
-import { dirname, type FileSystem } from "@poe-code/safe-fs/core";
+import { dirname, readFileStream, type FileSystem } from "@poe-code/safe-fs/core";
 import { archiveSettings, CancellationError, InvalidContainerError, ResourceLimitError, type ArchiveContext, type ArchiveMember } from "./archive.js";
 import { admitDocumentArchive } from "./admission.js";
 import { InvalidPackageError } from "./package-xml.js";
@@ -81,7 +81,7 @@ export async function packDocumentArchive(input: unknown, options: DocxOperation
       if (entry.bytes > limits.maxEntryBytes || entry.bytes > limits.maxTotalBytes - total) throw new ResourceLimitError("Packing payload limit exceeded.");
       total += entry.bytes; budget.charge("retainedBytes", entry.bytes * 2 + 128);
       const bytes = new Uint8Array(entry.bytes); let offset = 0;
-      const source = fs.readStream ? fs.readStream(path, { signal }) : { async *[Symbol.asyncIterator]() { yield await fs.readFile(path, { signal }); } };
+      const source = readFileStream(fs, path, { signal });
       for await (const chunk of source) {
         if (!(chunk instanceof Uint8Array) || chunk.length > bytes.length - offset) throw new InvalidContainerError("Inventory payload byte length mismatch.");
         await budget.checkpoint(chunk.length + 1);

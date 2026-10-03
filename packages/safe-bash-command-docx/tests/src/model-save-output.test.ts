@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it, vi } from "vitest";
 import * as api from "../../src/sdk.js";
 import { saveFixture } from "../../../safe-bash-docx-engine/tests/fixtures/save-output.js";
@@ -287,7 +288,7 @@ it.each(["success", "collision", "alias", "dry-run", "binary", "failure"] as con
   const result = await api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["batch", "/work/input", "--ops-json", JSON.stringify(batch), "--output", scenario === "binary" ? "-" : output, ...flags].map(value => new TextEncoder().encode(value)),
     cwd: "/work", signal: textContext.signal,
-    filesystem: { ...cli.fs, async readFile(path) { return cli.bytes(path); }, async realpath(path) { return String(cli.volume.realpathSync(path)); } },
+    filesystem: { ...cli.fs, readStream: (path) => streamVolume(cli.volume, path), async readFile(path) { return cli.bytes(path); }, async realpath(path) { return String(cli.volume.realpathSync(path)); } },
     stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { cli.volume.appendFileSync("/stdout", bytes); } },
     stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }

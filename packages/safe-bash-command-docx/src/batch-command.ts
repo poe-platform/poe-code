@@ -1,3 +1,4 @@
+import { readFileStream } from "@poe-code/safe-fs/core";
 import { resolvePath, type FileSystem } from "@poe-code/safe-fs/core";
 import type { ArchiveContext } from "safe-bash-docx-engine/archive";
 import { executeDocumentBatch, type DocumentBatchOptions } from "safe-bash-docx-engine/batch";
@@ -20,7 +21,7 @@ export async function executeBatchCommand(invocation: DocxInvocation, bytes: Uin
     { ...context, encoding: { order: "input", compression: "store" }, filesystem: request.filesystem as FileSystem, stdout: request.stdout,
       binaryResolver: { capability: "command", filesystem: request.filesystem as FileSystem, open(path, { signal }) {
         const absolute = resolvePath(request.cwd, path);
-        return request.filesystem.readStream ? request.filesystem.readStream(absolute, { signal }) : { async *[Symbol.asyncIterator]() { yield await request.filesystem.readFile(absolute, { signal }); } };
+        return readFileStream(request.filesystem as FileSystem, absolute, { signal });
       } }
     });
   if (output === "-" && data.publication && !options.dryRun) return new Uint8Array();

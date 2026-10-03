@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { createHash } from "node:crypto";
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
@@ -41,7 +42,7 @@ async function fixture(strict: boolean, kind: "docx" | "dotx", compression: "sto
 }
 async function cli(input: Uint8Array, args: string[], context: ArchiveContext) {
   const volume = Volume.fromJSON({ "/misleading.bin": Buffer.from(input), "/out": "", "/err": "" }); let reads = 0;
-  const result = await createDocxInspectionCommandEngine({ limits: context.limits }).execute({ args: args.map(encode), cwd: "/", signal: context.signal, filesystem: { async readFile(path) { expect(path).toBe("/misleading.bin"); reads++; return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { [Symbol.asyncIterator]() { throw new Error("Unexpected stdin acquisition"); } }, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
+  const result = await createDocxInspectionCommandEngine({ limits: context.limits }).execute({ args: args.map(encode), cwd: "/", signal: context.signal, filesystem: { readStream(path: string) { expect(path).toBe("/misleading.bin"); reads++; return streamVolume(volume, path); }, async readFile(path) { expect(path).toBe("/misleading.bin"); reads++; return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { [Symbol.asyncIterator]() { throw new Error("Unexpected stdin acquisition"); } }, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
   expect(reads).toBe(1); expect(volume.readFileSync("/misleading.bin")).toEqual(Buffer.from(input));
   return { exit: result.exitCode, output: volume.readFileSync("/out", "utf8") as string, bytes: new Uint8Array(volume.readFileSync("/out") as Buffer), error: volume.readFileSync("/err", "utf8") as string };
 }

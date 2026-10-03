@@ -28,3 +28,5 @@ export type {
 export { createNodeFileSystemAdapterRegistry } from "./config.node.js";
 
 export { createPortableFileSystemAdapterRegistry } from "./config.portable.js";
+
+export { readFileStream } from "./fs/read-file-stream.js";

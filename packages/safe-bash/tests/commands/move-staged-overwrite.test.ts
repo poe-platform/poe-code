@@ -187,7 +187,7 @@ for (const race of ["destination", "ancestor"] as const) {
   });
 }
 
-test("cross-device mv rejects same-size source mutation during retained reads before staging", async () => {
+test("cross-device mv rejects same-size source mutation during retained reads before publication", async () => {
   const { source, destination } = await fixture();
   let reads = 0, closes = 0, creations = 0;
   const view = new Proxy(source, { get(target, key) {
@@ -215,7 +215,8 @@ test("cross-device mv rejects same-size source mutation during retained reads be
     assert.equal(result.exitCode, 1, result.stderr);
     assert.ok(reads > 0);
     assert.equal(closes, 1);
-    assert.equal(creations, 0);
+    assert.equal(creations, 1);
+    assert.deepEqual((await destination.readdir("/output")).map(entry => entry.name), ["a"]);
     assert.equal(new TextDecoder().decode(await source.readFile("/input/a")), "change");
     assert.equal(new TextDecoder().decode(await destination.readFile("/output/a")), "previous");
   } finally { await shell.dispose(); }
@@ -259,7 +260,7 @@ for (const point of ["acquire", "read", "create", "publish", "committed"] as con
     try {
       await assert.rejects(shell.exec(script, { signal: caller.signal }), error => error === reason);
       assert.equal(closes, 1);
-      assert.equal(creations, point === "acquire" || point === "read" ? 0 : 1);
+      assert.equal(creations, point === "acquire" ? 0 : 1);
       assert.equal(publications, point === "publish" || point === "committed" ? 1 : 0);
       assert.equal(new TextDecoder().decode(await source.readFile("/input/a")), "source");
       assert.equal(new TextDecoder().decode(await destination.readFile("/output/a")), point === "committed" ? "source" : "previous");
@@ -384,7 +385,7 @@ test("cross-device mv closes its reader even when retained staging cleanup throw
       staging = await destination.createStagedFile(...args);
       return { ...staging, cleanup: { ...staging.cleanup!, remove() { throw new FsError("EIO", { message: "cleanup failed" }); } } };
     };
-    if (key === "publishStagedFile") return async () => { throw new FsError("EACCES", { message: "publication denied" }); };
+    if (key === "publishStagedFile") return async (receipt: NonNullable<typeof staging>) => { staging = receipt; throw new FsError("EACCES", { message: "publication denied" }); };
     const member = Reflect.get(target, key);
     return typeof member === "function" ? member.bind(target) : member;
   } });

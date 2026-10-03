@@ -62,3 +62,5 @@ export function tryRmRfMemorySync(fs: FileSystem, path: string, signal?: AbortSi
 export function tryWriteMemoryFileInDirSync(fs: FileSystem, dirPrefix: string, name: string, data: Uint8Array, append: boolean, mode: number, signal?: AbortSignal): boolean {
   return Boolean((fs && _getMemHooks()?.byProto?.get(Object.getPrototypeOf(fs))?.tryWriteMemoryFileInDirSync)?.(fs, dirPrefix, name, data, append, mode, signal));
 }
+
+export { readFileStream } from "./fs/read-file-stream.js";

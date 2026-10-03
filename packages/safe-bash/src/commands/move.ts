@@ -198,7 +198,7 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
       if (entry.targetStat) await admitFilesystemModes(context, "mv", ["cross-replace"], [entry.target]);
     } else if (!entry.staging) {
       const publication = await admitCopyDestination(context, entry.target, !entry.targetStat || entry.targetStat.type === "symlink");
-      await admitFilesystemModes(context, "mv", [publication === "buffer" ? "cross-buffer" : "cross-file",
+      await admitFilesystemModes(context, "mv", [publication === "descriptor" ? "cross-buffer" : "cross-file",
         ...!entry.targetStat || entry.targetStat.type === "symlink" ? ["cross-exclusive"] : [],
         ...entry.targetStat?.type === "symlink" ? ["cross-replace"] : [],
       ], [entry.target], false, !entry.targetStat || entry.targetStat.type === "symlink" ? "exclusive" : undefined);

@@ -484,10 +484,10 @@ test("unzip rejects archive size and path, extra, destination depth bounds", asy
   }
 });
 
-test("unzip bounds buffered input fallback instead of unbounded readFile", async () => {
+test("unzip uses retained ranges without the old fallback file-size ceiling", async () => {
   const fs = await fixture();
   const fallback = wrapped(fs, { capabilities: { ...fs.capabilities, streamingRead: false } });
-  assert.equal((await run(fallback, ["sample.zip"], "", { limits: { maxBufferedFileBytes: 1 } })).exitCode, 2);
+  assert.equal((await run(fallback, ["sample.zip"], "", { limits: { maxBufferedFileBytes: 1 } })).exitCode, 0);
 });
 
 test("unzip overwrite stdin reads are bounded even for empty producer chunks", async () => {
@@ -530,7 +530,7 @@ test("unzip never removes a replacement at its failed staging name", async () =>
   assert.equal(Buffer.from(await fs.readFile("/work/.unzip-1/entry")).toString(), "not ours");
 });
 
-for (const streaming of [false, true]) test(`unzip cleanup waits for admitted ${streaming ? "stream" : "buffered"} archive reads`, async () => {
+for (const streaming of [false, true]) test(`unzip cleanup waits for admitted ${streaming ? "stream" : "retained"} archive reads`, async () => {
   const fs = await fixture();
   const bytes = await fs.readFile("/work/sample.zip");
   let release!: () => void; let entered!: () => void;
@@ -541,7 +541,11 @@ for (const streaming of [false, true]) test(`unzip cleanup waits for admitted ${
   let closed = false;
   const delayed = wrapped(fs, {
     capabilities: { ...fs.capabilities, streamingRead: streaming },
-    async readFile() { entered(); await blocked; return bytes; },
+    async openReadFile() { return {
+      async stat() { return fs.stat("/work/sample.zip"); },
+      async read(position, maximum) { entered(); await blocked; return bytes.subarray(position, position + maximum); },
+      async close() { closed = true; },
+    }; },
     readStream() { return { async *[Symbol.asyncIterator]() { try { entered(); await blocked; yield bytes; } finally { closed = true; } } }; },
   });
   const pending = run(delayed, ["sample.zip"], "", {}, { signal: controller.signal }).then(
@@ -552,7 +556,7 @@ for (const streaming of [false, true]) test(`unzip cleanup waits for admitted ${
   const early = settled;
   release(); assert.equal(await pending, false);
   assert.equal(early, false, "invocation settled before admitted read completed");
-  if (streaming) assert.equal(closed, true);
+  assert.equal(closed, true);
 });
 
 test("unzip bounds archive-stream pulls, not only nonempty bytes", async () => {

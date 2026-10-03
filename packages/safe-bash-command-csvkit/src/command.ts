@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import {createCsvpyInterpreter} from "./csvpy-interpreter.js";
 import { utf8Codec } from "./codecs/utf8.js";
 import { pythonCodecs } from "./codecs/python.js";
@@ -121,11 +122,11 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): reado
               const maxBytes = Math.min(settings.maxBytes ?? limits.maxInputBytes, limits.maxInputBytes);
               return account(await context.fs.readFile(path, Number.isFinite(maxBytes) ? { ...settings, maxBytes } : { signal: settings.signal }));
             },
-            ...(context.fs.readStream === undefined ? {} : {
+            ...{
               readStream(path: string, settings: { readonly signal: AbortSignal }) {
                 return { [Symbol.asyncIterator]() {
                   settings.signal.throwIfAborted();
-                  const iterator = context.fs.readStream!(path, settings)[Symbol.asyncIterator]();
+                  const iterator = (context.fs.readStream ? context.fs.readStream(path, settings) : readFileStream(context.fs, path, settings))[Symbol.asyncIterator]();
                   let closing: Promise<void> | undefined;
                   // Runtime enrolls this iterator in its registered cleanup. A
                   // direct return can release a pending cooperative next(); an
@@ -149,7 +150,7 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): reado
                   };
                 } };
               }
-            }),
+            },
             writeFile: async (path, bytes, settings) => writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, settings)),
             ...(context.fs.open === undefined ? {} : { async openWriteFile(path: string, settings: { readonly signal: AbortSignal }) {
               settings.signal.throwIfAborted();
@@ -189,9 +190,7 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): reado
             const resolved = virtualPath(settings.cwd, path);
             await context.fs.stat(resolved, { signal: settings.signal });
             settings.signal.throwIfAborted();
-            const source = context.fs.readStream
-              ? context.fs.readStream(resolved, { signal: settings.signal })
-              : (async function* () { yield await context.fs.readFile(resolved, { signal: settings.signal, ...(Number.isFinite(limits.maxInputBytes) ? { maxBytes: limits.maxInputBytes } : {}) }); })();
+            const source = readFileStream(context.fs, resolved, { signal: settings.signal });
             let retained = 0, work = 0, codepoints = 0;
             const file = new LazyInput(path, () => (async function* () {
               for await (const bytes of source) {

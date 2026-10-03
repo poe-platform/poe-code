@@ -1,6 +1,7 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { utf8ByteLength, filledBytes, concatBytes, bytesFrom } from "safe-bash-byte-engine";
 import type { FileSystem } from "@poe-code/safe-fs";
-import { FsError, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
+import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
 import { tryReadMemoryFileViewSync, tryResolveMemoryDevicePath } from "@poe-code/safe-fs/core";
 import { getRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
 import { pathOf, RESOLVED_EXIT_ZERO } from "safe-bash-io-engine/internal";
@@ -566,7 +567,7 @@ async function* inputSources(context: CommandContext, options: Pick<Options, "fi
         : context.fs.capabilities;
       context.signal.throwIfAborted();
       if (context.fs.readStream && capabilities.streamingRead !== false) source = context.fs.readStream(absolute, { signal: context.signal });
-      else source = toByteSource(await interruptible(() => context.fs.readFile(absolute, { signal: context.signal, ...(Number.isFinite(remaining) ? { maxBytes: remaining } : {}) }), context.signal));
+      else source = readFileStream(context.fs, absolute, { signal: context.signal, chunkSize: Math.max(1, Math.min(65536, remaining)) });
     }
     budget.inputLocation = { name: file === "-" ? "<stdin>" : file, line: 0, complete: false };
     yield convert ? await convert(source) : source;

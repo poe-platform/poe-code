@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import {
   builtInDirectContextExecutors,
   commandRuntimeIdentity,
@@ -190,20 +191,7 @@ export async function htmlq(
         const path = args.filename.startsWith("/")
           ? args.filename
           : `${context.cwd}/${args.filename}`;
-        if (context.fs.readStream) source = context.fs.readStream(path, { signal: options.signal });
-        else {
-          // Input belongs to the invocation, independently of stdout's consumer.
-          // Await cooperative VFS work here so task/cleanup settlement covers it.
-          const maxBytes = Math.min(options.limits.inputBytes, options.limits.retainedBytes);
-          const resource = await context.fs.readFile(path, {
-            signal: options.signal,
-            ...(maxBytes === Infinity ? {} : { maxBytes })
-          });
-          budget.charge("retainedBytes", resource.length);
-          source = (async function* () {
-            yield resource;
-          })();
-        }
+        source = readFileStream(context.fs, path, { signal: options.signal, chunkSize: Math.max(1, Math.min(65536, options.limits.inputBytes, options.limits.retainedBytes)) });
       }
       let inputBytes = 0;
       // The parser owns cancellation and awaited iterator cleanup. Do not wrap

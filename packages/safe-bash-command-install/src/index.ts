@@ -1,7 +1,8 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { FsError, basename, dirname, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type FileStat, type FileSystemCapabilities, type VirtualShellPlugin } from "safe-bash-contracts";
 import { commandRuntimeIdentity } from "safe-bash-contracts/command";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
-import { assertCountedFileOutput, openFileOutput, writeFileOutputCounted } from "safe-bash-contracts/filesystem-output";
+import { openFileOutput } from "safe-bash-contracts/filesystem-output";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { builtInDirectContextExecutors, isDefaultCommandOptions, codeOf, output, pathOf, syncCommandEvaluators } from "safe-bash-io-engine/internal";
 import { compareCopyIdentity, compareObservedEntries } from "safe-bash-contracts/filesystem-identity";
@@ -223,11 +224,37 @@ async function sameContent(operation: Operation, source: string, sourceStat: Fil
     if (!await settings.securityContext.matches(source, destination, context)) return false;
   }
   try {
-    const readOptions = { signal: context.signal, ...(maxFileBytes === Infinity ? {} : { maxBytes: maxFileBytes }) };
-    const left = await context.fs.readFile(source, readOptions);
-    const right = await context.fs.readFile(destination, readOptions);
-    context.signal.throwIfAborted();
-    return left.length === right.length && left.every((value, index) => value === right[index]);
+    const left = readFileStream(context.fs, source, { signal: context.signal });
+    const right = readFileStream(context.fs, destination, { signal: context.signal });
+    let failed = false;
+    try {
+      let a = new Uint8Array(), b = new Uint8Array(), ai = 0, bi = 0, total = 0;
+      let aDone = false, bDone = false;
+      while (true) {
+        if (ai === a.length && !aDone) {
+          const next = await left.next(); aDone = next.done === true;
+          a = next.done ? new Uint8Array() : new Uint8Array(next.value); ai = 0;
+        }
+        if (bi === b.length && !bDone) {
+          const next = await right.next(); bDone = next.done === true;
+          b = next.done ? new Uint8Array() : new Uint8Array(next.value); bi = 0;
+        }
+        if (aDone && bDone) return true;
+        if (aDone && bi < b.length || bDone && ai < a.length) return false;
+        if (ai === a.length || bi === b.length) continue;
+        const count = Math.min(a.length - ai, b.length - bi);
+        total += count;
+        if (total > maxFileBytes) throw new FsError("EFBIG");
+        for (let i = 0; i < count; i++) if (a[ai + i] !== b[bi + i]) return false;
+        ai += count; bi += count;
+      }
+    } catch (error) { failed = true; throw error; }
+    finally {
+      await (async () => {
+        const closed = await Promise.allSettled([left.return(undefined), right.return(undefined)]);
+        if (!failed) for (const result of closed) if (result.status === "rejected") throw result.reason;
+      })();
+    }
   } catch (error) { context.signal.throwIfAborted(); if (codeOf(error) === "EFBIG") throw error; return false; }
 }
 
@@ -260,7 +287,9 @@ async function installFile(operation: Operation, sourceDisplay: string, destinat
     throw failure(`cannot create regular file ${quote(destinationDisplay)}`, error);
   }
   const streamingOutput = !!context.fs.writeStream && destinationCapabilities.streamingWrite !== false;
-  if (!streamingOutput) assertCountedFileOutput(context);
+  if (!streamingOutput && (!context.fs.open || destinationCapabilities.open !== true || destinationCapabilities.randomAccessWrite !== true)) {
+    throw new FsError("ENOTSUP", { path: destination, message: "install requires streaming or retained descriptor writes" });
+  }
   const removeAfterStripFailure = args.strip ? retainFileSystemCleanup(context.fs, cleanup => cleanup.rm(destination), { maxOperations: 1 }) : undefined;
   if (sourceStat.type === "file" && sourceStat.size > maxFileBytes) throw failure(`cannot copy ${quote(sourceDisplay)}`, new FsError("EFBIG"));
   let backupDisplay: string | undefined;
@@ -274,7 +303,6 @@ async function installFile(operation: Operation, sourceDisplay: string, destinat
   }
   if (args.verbose) await output(context, `${quote(sourceDisplay)} -> ${quote(destinationDisplay)}${backupDisplay === undefined ? "" : ` (backup: ${quote(backupDisplay)})`}\n`);
   let closed = false, completion: Promise<void> | undefined, cleanupFailure: { reason: unknown } | undefined;
-  let bufferedWrite: Promise<number> | undefined;
   let opening: Promise<SourceDescriptor> | undefined, descriptorClose: Promise<void> | undefined, timestampStat = sourceStat;
   let iterator: AsyncIterator<Uint8Array> | undefined, returned: Promise<IteratorResult<Uint8Array>> | undefined;
   const closeDescriptor = (): Promise<void> => descriptorClose ??= (async () => {
@@ -312,8 +340,7 @@ async function installFile(operation: Operation, sourceDisplay: string, destinat
           yield buffer.subarray(0, count);
         }
       })();
-    } else chunks = context.fs.readStream && capabilities.streamingRead !== false ? context.fs.readStream(source, fsOptions)
-      : (async function* () { yield await context.fs.readFile(source, { ...fsOptions, ...(maxFileBytes === Infinity ? {} : { maxBytes: maxFileBytes }) }); })();
+    } else chunks = readFileStream(context.fs, source, fsOptions);
     iterator = chunks[Symbol.asyncIterator]();
     let size = 0, untilYield = 65536;
     const guarded: ByteSource = { [Symbol.asyncIterator]: () => ({ next: () => iterator!.next(), return: returnSource }) };
@@ -335,7 +362,6 @@ async function installFile(operation: Operation, sourceDisplay: string, destinat
       try { await closeDescriptor(); } catch (reason) { failure = { reason }; }
       try { if (iterator) await returnSource(); } catch (reason) { failure ??= { reason }; }
       try { await sourceBytes.return(undefined); } catch (reason) { failure ??= { reason }; }
-      try { await bufferedWrite; } catch (reason) { failure ??= { reason }; }
       if (failure) throw failure.reason;
     })();
   };
@@ -350,26 +376,13 @@ async function installFile(operation: Operation, sourceDisplay: string, destinat
       if (!first.done) yield first.value;
       yield* sourceBytes;
     })();
-    if (streamingOutput) {
-      const targetOutput = await openFileOutput(context, destination, { flag: "wx", mode: 0o600 });
-      try {
-        for await (const bytes of contentStream) await targetOutput.sink.write(bytes);
-        await targetOutput.finish();
-      } catch (error) {
-        try { await targetOutput.abort(error); } catch { /* Preserve the primary failure. */ }
-        throw error;
-      }
-    } else {
-      const chunks: Uint8Array[] = []; let size = 0;
-      for await (const bytes of contentStream) { chunks.push(bytes); size += bytes.byteLength; }
-      const content = new Uint8Array(size); let offset = 0;
-      for (const bytes of chunks) { content.set(bytes, offset); offset += bytes.byteLength; }
-      bufferedWrite = writeFileOutputCounted(context, content, async () => {
-        if (closed) throw new FsError("EBADF");
-        await context.fs.writeFile(destination, content, { ...fsOptions, flag: "wx", mode: 0o600 });
-        return content.byteLength;
-      });
-      await bufferedWrite;
+    const targetOutput = await openFileOutput(context, destination, { flag: "wx", mode: 0o600, descriptor: !streamingOutput });
+    try {
+      for await (const bytes of contentStream) await targetOutput.sink.write(bytes);
+      await targetOutput.finish();
+    } catch (error) {
+      try { await targetOutput.abort(error); } catch { /* Preserve the primary failure. */ }
+      throw error;
     }
     context.signal.throwIfAborted();
   } catch (error) {

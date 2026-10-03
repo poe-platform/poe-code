@@ -223,8 +223,8 @@ async function copy(
     const exclusive = removeDestination || backup !== undefined;
     const publication = await admitCopyDestination(context, target, exclusive || !targetStat);
     const replace = removeDestination || flags.has("f") && targetStat !== undefined && targetStat.type !== "character";
-    await admitFilesystemModes(context, "cp", [publication === "buffer" ? "file-create" : "file", ...replace ? ["replace", "exclusive"] : exclusive ? ["exclusive"] : []], [target], false,
-      exclusive || publication === "buffer" ? "exclusive" : undefined);
+    await admitFilesystemModes(context, "cp", [publication === "descriptor" ? "file-create" : "file", ...replace ? ["replace", "exclusive"] : exclusive ? ["exclusive"] : []], [target], false,
+      exclusive || publication === "descriptor" ? "exclusive" : undefined);
     if (targetStat?.type === "directory") throw new FsError("EISDIR", { path: target });
     if (removeDestination && targetStat) {
       const identity = targetStat.type === "symlink" ? compareCopyIdentity(sourceStat, targetStat)
@@ -242,7 +242,7 @@ async function copy(
     }
     try {
       if (removeDestination && targetStat && !backup) await context.fs.rm(target, { recursive: false, signal: context.signal });
-      await copyCheckedSource(context, physicalSource, target, sourceStat, exclusive || publication === "buffer");
+      await copyCheckedSource(context, physicalSource, target, sourceStat, exclusive || publication === "descriptor");
     }
     catch (error) {
       context.signal.throwIfAborted();

@@ -1,7 +1,6 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import {
-  FsError,
   readBytes,
-  toByteSource,
   type ByteSource,
   type CommandContext
 } from "safe-bash-contracts";
@@ -34,36 +33,9 @@ export async function readXmlInput(
   let source: ByteSource = context.stdin;
   if (file !== undefined && file !== "-") {
     const path = runtime.pathOf(context, file);
-    const capabilities = context.fs.capabilitiesFor
-      ? await runtime.interruptible(
-          () => context.fs.capabilitiesFor!(path, { signal: context.signal }),
-          context.signal
-        )
-      : context.fs.capabilities;
-    context.signal.throwIfAborted();
-    if (context.fs.readStream && capabilities.streamingRead !== false)
-      source = context.fs.readStream(path, { signal: context.signal });
-    else {
-      try {
-        source = toByteSource(
-          await runtime.interruptible(
-            () =>
-              context.fs.readFile(path, {
-                signal: context.signal,
-                ...(Number.isFinite(remainingBytes)
-                  ? { maxBytes: remainingBytes }
-                  : {})
-              }),
-            context.signal
-          )
-        );
-      } catch (error) {
-        context.signal.throwIfAborted();
-        if (error instanceof FsError && error.code === "EFBIG")
-          throw new XmlQueryLimitError("maxInputBytes");
-        throw error;
-      }
-    }
+    source = readFileStream(context.fs, path, { signal: context.signal,
+      chunkSize: Math.max(1, Math.min(65536, remainingBytes)),
+    });
   }
   const parts: string[] = [];
   const decoder = new TextDecoder("utf-8", { fatal: true });

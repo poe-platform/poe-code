@@ -1,3 +1,4 @@
+import { readFileStream } from "@poe-code/safe-fs/core";
 import { resolvePath, type FileSystem } from "@poe-code/safe-fs/core";
 import { escapeTerminalText } from "@poe-code/terminal-text";
 import type { ArchiveContext } from "safe-bash-docx-engine/archive";
@@ -19,7 +20,7 @@ export async function executeControlsCommand(invocation: DocxInvocation, bytes: 
     const data = await editDocumentControls(bytes, { ...options, ...(output === undefined ? {} : { output }), ...(input ? { input } : {}) },
       { ...context, encoding: { order: "input", compression: "store" }, filesystem: request.filesystem as FileSystem, stdout: request.stdout,
         binaryResolver: { capability: "command", async *open(path, { signal, maxBytes }) {
-          const source = { open: (inner: AbortSignal) => path === "-" ? request.stdin : request.filesystem.readStream ? request.filesystem.readStream(resolvePath(request.cwd, path), { signal: inner }) : { async *[Symbol.asyncIterator]() { yield await request.filesystem.readFile(resolvePath(request.cwd, path), { signal: inner }); } } };
+          const source = { open: (inner: AbortSignal) => path === "-" ? request.stdin : readFileStream(request.filesystem as FileSystem, resolvePath(request.cwd, path), { signal: inner }) };
           const bounded = new DocumentIo({ ...context, signal, limits: { ...context.limits, maxArchiveBytes: maxBytes }, ...(request.registerCleanup ? { registerCleanup: request.registerCleanup } : {}) });
           try { signal.throwIfAborted(); yield await bounded.readBytes(source); } finally { await bounded.cleanup(); }
         } } });

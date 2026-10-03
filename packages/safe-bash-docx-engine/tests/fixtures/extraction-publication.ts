@@ -1,3 +1,4 @@
+import { streamVolume } from "./stream-volume.js";
 import { Volume } from "memfs";
 import type { FileStat, FileSystem } from "@poe-code/safe-fs/core";
 
@@ -12,7 +13,7 @@ export function extractionPublication(input: Uint8Array) {
     lstat: stat, stat, async realpath(path: string) {return String(volume.realpathSync(path));}, async access(path: string, mode: number) {volume.accessSync(path, mode);},
     async prepareDirectory(path: string, options: {parent: FileStat}) {const parent = await stat(path.slice(0, path.lastIndexOf("/")) || "/"); if (parent.ino !== options.parent.ino) throw new Error("Original parent identity changed"); volume.mkdirSync(path); return stat(path);},
     async writeFileConditional(path: string, data: Uint8Array, options: {parent: FileStat}) {const parent = await stat(path.slice(0, path.lastIndexOf("/")) || "/"); if (parent.ino !== options.parent.ino) throw new Error("Original parent identity changed"); volume.writeFileSync(path, data, {flag: "wx"}); return stat(path);},
-    async readFile(path: string) {return new Uint8Array(volume.readFileSync(path) as Buffer);}
+    readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path: string) {return new Uint8Array(volume.readFileSync(path) as Buffer);}
   } as unknown as FileSystem;
   return {volume, fs};
 }

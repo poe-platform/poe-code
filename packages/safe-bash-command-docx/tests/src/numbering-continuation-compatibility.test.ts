@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
 import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
@@ -78,7 +79,7 @@ for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const
     const engine = createDocxInspectionCommandEngine({ limits: textContext.limits });
     let result: { exitCode: number };
     if (route === "cli") result = await engine.execute({ args: args.map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-      filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
+      filesystem: { readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
     else {
       const fs = new MemoryFileSystem(); await fs.writeFile("/input", input);
       const shell = new Shell({ fs }).use(docxCommands({ engine }));

@@ -22,7 +22,8 @@ for (const missing of ["handle", "identity", "capability", "stream"]) {
     if (missing === "identity") delete (expected as { identityScope?: unknown }).identityScope;
     const scope = new ZipScope(context(view), settings({}));
     try {
-      assert.deepEqual(await collectBytes(scope.input("/a", false, expected), {}), new Uint8Array([1, 2, 3]));
+      if (missing === "stream") await assert.rejects(collectBytes(scope.input("/a", false, expected), {}), { code: "ENOTSUP" });
+      else assert.deepEqual(await collectBytes(scope.input("/a", false, expected), {}), new Uint8Array([1, 2, 3]));
       assert.equal(retained, 0);
     } finally { await scope.close(); }
   });
@@ -50,7 +51,7 @@ for (const mutation of ["growth", "shrink", "mtime", "canonical"]) {
   });
 }
 
-test("ZIP fallback enforces buffered-file limits", async () => {
+test("ZIP rejects whole-file-only input without collecting a fallback", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/a", new Uint8Array(4));
   const view = new Proxy(fs, { get(target, property) {
@@ -59,7 +60,7 @@ test("ZIP fallback enforces buffered-file limits", async () => {
     return typeof value === "function" ? value.bind(target) : value;
   } });
   const scope = new ZipScope(context(view), settings({ limits: { maxBufferedFileBytes: 3 } }));
-  try { await assert.rejects(collectBytes(scope.input("/a", false, await fs.stat("/a")), {}), /buffered file limit/); }
+  try { await assert.rejects(collectBytes(scope.input("/a", false, await fs.stat("/a")), {}), { code: "ENOTSUP" }); }
   finally { await scope.close(); }
 });
 

@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { describe, expect, it } from "vitest";
 import { Volume } from "memfs";
 import { type FileSystem, type FileStat } from "@poe-code/safe-fs/core";
@@ -32,7 +33,7 @@ function memoryVfs(): FileSystem {
     prepareDirectory: async (p: string) => { volume.mkdirSync(p); return stat(p); },
     writeFileConditional: async (p: string, bytes: Uint8Array) => { volume.writeFileSync(p, bytes, { flag: "wx" }); return stat(p); },
     writeFile: async (p: string, bytes: Uint8Array) => { volume.writeFileSync(p, bytes); },
-    readFile: async (p: string) => new Uint8Array(volume.readFileSync(p) as Uint8Array),
+    readStream(path: string) {  return streamVolume(volume, path); }, readFile: async (p: string) => new Uint8Array(volume.readFileSync(p) as Uint8Array),
     rename: async (a: string, b: string) => { volume.renameSync(a, b); },
     rm: async (p: string) => { volume.unlinkSync(p); },
     link: async (a: string, b: string) => { volume.linkSync(a, b); },

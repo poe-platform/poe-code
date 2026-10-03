@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import type { FileSystem } from "@poe-code/safe-fs";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
@@ -12,7 +13,7 @@ export const grepRequirements: readonly CommandFileSystemRequirement[] = [
   ...inputRequirements,
   { id: "metadata", description: "Inspect recursive grep operands", capabilities: ["stat"] },
   { id: "directory", description: "Walk grep directories", capabilities: ["readdir", "realpath"] },
-  { id: "pattern-file", description: "Read grep pattern files (-f)", capabilities: [], anyOf: [["streamingRead"], ["read"]] },
+  { id: "pattern-file", description: "Read grep pattern files (-f)", capabilities: [], anyOf: [["streamingRead"], ["retainedRead"], ["read"]] },
 ];
 
 export const searchRequirements: readonly CommandFileSystemRequirement[] = [
@@ -27,7 +28,7 @@ export const searchRequirements: readonly CommandFileSystemRequirement[] = [
 export const sedRequirements: readonly CommandFileSystemRequirement[] = [
   ...inputRequirements,
   { id: "script-file", description: "Read sed program files (-f)", capabilities: ["read"] },
-  { id: "script-read", description: "Read files referenced by sed r instructions", capabilities: [], anyOf: [["streamingRead"], ["read"]] },
+  { id: "script-read", description: "Read files referenced by sed r instructions", capabilities: [], anyOf: [["streamingRead"], ["retainedRead"], ["read"]] },
   { id: "script-output", description: "Truncate and append files referenced by sed w instructions", capabilities: ["write", "append"], mutates: true },
   { id: "in-place", description: "Inspect and conditionally rewrite retained files (-i)", capabilities: ["stat", "write", "retainedRead", "atomicFileMutation"], mutates: true },
   { id: "backup", description: "Conditionally write retained original bytes to backups (-iSUFFIX)", capabilities: ["write", "atomicFileMutation"], mutates: true },
@@ -174,11 +175,11 @@ async function* requiredFileInputSlow(
       if (!reading || emitted || !(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
     }
   }
-  if (capabilities.read !== false && context.fs.capabilities.read !== false) {
-    const bytes = await context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
-    context.inputBudget?.check(bytes.byteLength);
-    yield bytes;
-    return;
+  let bytes = 0;
+  for await (const chunk of readFileStream(context.fs, path, { signal: context.signal, skipStream: true })) {
+    context.inputBudget?.check(bytes + chunk.byteLength);
+    if (chunk.byteLength > maxBytes - bytes) throw new FsError("EFBIG", { syscall: "read", path, message: "input file byte limit exceeded" });
+    bytes += chunk.byteLength;
+    yield chunk;
   }
-  throw new FsError("ENOTSUP", { syscall: "readFile", path });
 }

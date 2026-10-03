@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { subscribeAbort } from "safe-bash-contracts";
 import { bytesFrom, utf8ByteLength } from "safe-bash-byte-engine";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
@@ -207,17 +208,7 @@ export async function* bounded(source: ByteSource, maximum: number, signal: Abor
 
 export async function* fileSource(context: CommandContext, path: string, limits: ArchiveLimits): ByteSource {
   context.signal.throwIfAborted();
-  const capabilities = await operation(context, () => context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities);
-  context.signal.throwIfAborted();
-  if (context.fs.readStream && capabilities.streamingRead !== false) {
-    yield* readBytes(context.fs.readStream(path, { signal: context.signal, chunkSize: limits.chunkSize }), context.signal);
-  } else {
-    const stat = await operation(context, () => context.fs.stat(path, { signal: context.signal }));
-    if (stat.size > limits.maxBufferedFileBytes) fail("filesystem lacks streaming reads: buffered file limit exceeded");
-    const bytes = await operation(context, () => context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(limits.maxBufferedFileBytes) ? { maxBytes: limits.maxBufferedFileBytes } : {})}));
-    if (bytes.length > limits.maxBufferedFileBytes) fail("buffered file limit exceeded");
-    yield bytes;
-  }
+  yield* readBytes(readFileStream(context.fs, path, { signal: context.signal, chunkSize: limits.chunkSize }), context.signal);
 }
 
 export async function publish(context: CommandContext, path: string, source: ByteSource, mode = 0o600): Promise<void> {

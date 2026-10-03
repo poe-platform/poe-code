@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { createDocumentFixture } from "../../../safe-bash-docx-engine/tests/fixtures/documents.js";
@@ -47,7 +48,7 @@ function publication(bytes: Uint8Array, fail = false) {
   const stat = async (path: string): Promise<FileStat> => { const value = volume.lstatSync(path); return { type: value.isDirectory() ? "directory" : "file", size: value.size, mode: value.mode, mtimeMs: value.mtimeMs, ctimeMs: value.ctimeMs, atimeMs: value.atimeMs, ino: value.ino, dev: value.dev, nlink: value.nlink, identityScope: scope, revision: value.mtimeMs }; };
   let publications = 0;
   const fs = { capabilities: { atomicFileStaging: true, write: true }, lstat: stat, stat,
-    async readFile(path: string) { return new Uint8Array(volume.readFileSync(path) as Uint8Array); },
+    readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path: string) { return new Uint8Array(volume.readFileSync(path) as Uint8Array); },
     async realpath(path: string) { return String(volume.realpathSync(path)); },
     async access(path: string, mode: number) { volume.accessSync(path, mode); },
     createStagedFile: (async (directory, name, content) => { if (content.type !== "file") throw new Error("Unsupported original fixture staging"); volume.mkdirSync(directory); volume.writeFileSync(`${directory}/${name}`, content.data); return { parent: { path: "/out", stat: await stat("/out") }, directory: { path: directory, stat: await stat(directory) }, file: { path: `${directory}/${name}`, stat: await stat(`${directory}/${name}`) } }; }) as NonNullable<FileSystem["createStagedFile"]>,
@@ -125,7 +126,7 @@ it("runs public image list and get through explicit memfs command input", async 
   const before = volume.toJSON();
   for (const args of [["images", "list", "/input.docx", "--unique", "--json"], ["images", "get", "/input.docx", "--image", "2", "--json"]]) {
     let stdout = "", stderr = "";
-    const result = await createDocxInspectionCommandEngine({ limits }).execute({ args: args.map(arg => new TextEncoder().encode(arg)), cwd: "/", filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Uint8Array); } }, signal: new AbortController().signal, stdin: { [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("implicit input"); } }; } }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
+    const result = await createDocxInspectionCommandEngine({ limits }).execute({ args: args.map(arg => new TextEncoder().encode(arg)), cwd: "/", filesystem: { readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Uint8Array); } }, signal: new AbortController().signal, stdin: { [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("implicit input"); } }; } }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
     expect(result.exitCode).toBe(0); expect(JSON.parse(stdout)).toMatchObject({ ok: true, affected: 0, errors: [] });
     if (args[1] === "list") expect(JSON.parse(stdout).data.items).toHaveLength(1);
     else expect(JSON.parse(stdout).data.item.kind).toBe("images");

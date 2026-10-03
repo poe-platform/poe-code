@@ -39,8 +39,8 @@ for (const streamingRead of [undefined, false]) {
     {
       const overlay = fs;
       fs = new Proxy({} as FileSystem, { get(_target, property) {
-        if (property === "capabilities" && streamingRead === false) return { streamingRead: false };
-        if (property === "readStream") return streamingRead === false ? () => { throw new Error("must use readFile"); } : undefined;
+        if (property === "capabilities" && streamingRead === false) return { ...overlay.capabilities, streamingRead: false };
+        if (property === "readStream") return streamingRead === false ? () => { throw new Error("must use retained ranges"); } : undefined;
         const value = Reflect.get(overlay, property);
         return typeof value === "function" ? value.bind(overlay) : value;
       } });

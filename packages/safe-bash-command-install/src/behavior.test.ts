@@ -234,3 +234,45 @@ test("install replaces looping destination symlinks and diagnoses non-directory 
   assert.equal(nonDirRes.exitCode, 1);
   assert.match(nonDirRes.stderr, /cannot create regular file '\/file\/dest': Not a directory/u);
 });
+test("comparison tolerates unequal stream boundaries and empty chunks without whole reads", async () => {
+  const fs = await seed();
+  await run(["source", "target"], fs);
+  const before = await fs.stat("/target");
+  const bytes = await fs.readFile("/source");
+  const host = wrapped(fs, {
+    readFile() { throw new Error("whole-file comparison"); },
+    readStream(path) { return (async function* () {
+      if (path === "/source") yield bytes;
+      else for (const byte of bytes) yield Uint8Array.of(byte);
+      if (path === "/target") yield new Uint8Array();
+    })(); },
+  });
+  const result = await run(["-Cv", "source", "target"], host);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "");
+  assert.equal((await fs.stat("/target")).ino, before.ino);
+});
+
+test("install streams into retained exclusive descriptors when pathname streams are unavailable", async () => {
+  const fs = await seed();
+  const payload = new Uint8Array(65536 * 4 + 1).fill(42);
+  await fs.writeFile("/source", payload);
+  let writes = 0;
+  const host = wrapped(fs, {
+    writeStream: undefined,
+    writeFile() { throw new Error("whole-payload publication"); },
+    async open(path, options) {
+      const descriptor = await fs.open!(path, options);
+      if (options.access === "read") return descriptor;
+      return { ...descriptor, close: () => descriptor.close(), async write(bytes, position, controls) {
+        assert.ok(bytes.byteLength <= 65536); writes++;
+        await Promise.resolve();
+        return descriptor.write(bytes, position, controls);
+      } };
+    },
+  });
+  const result = await run(["source", "target"], host);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(writes >= 5);
+  assert.deepEqual(await fs.readFile("/target"), payload);
+});

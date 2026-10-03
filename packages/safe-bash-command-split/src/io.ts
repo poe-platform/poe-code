@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { subscribeAbort } from "safe-bash-contracts";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { FsError, readBytes, type ByteSource, type CommandContext } from "safe-bash-contracts";
@@ -58,15 +59,7 @@ export class Cursor {
       if (input === "-") yield* readBytes(context.stdin, signal);
       else {
         const path = pathOf(context, input);
-        const capabilities = await interruptible(() => Promise.resolve(context.fs.capabilitiesFor?.(path, { signal }) ?? context.fs.capabilities), signal);
-        if (context.fs.readStream && capabilities.streamingRead !== false) {
-          yield* readBytes(context.fs.readStream(path, { signal, chunkSize: limits.maxChunkBytes === Infinity ? 64 * 1024 : limits.maxChunkBytes }), signal);
-        } else {
-          const maxBytes = Math.min(limits.maxInputBytes, limits.maxBufferBytes);
-          const bytes = await interruptible(() => context.fs.readFile(path, { signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) }), signal);
-          budget.check(bytes.byteLength, maxBytes, "read buffer");
-          yield bytes;
-        }
+        yield* readFileStream(context.fs, path, { signal, chunkSize: Math.min(65536, limits.maxChunkBytes) });
       }
     })();
     this.iterator = readBytes(source, signal);

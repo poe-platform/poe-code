@@ -1,3 +1,4 @@
+import { readFileStream } from "@poe-code/safe-fs/core";
 import { dirname, resolvePath, type FileSystem } from "@poe-code/safe-fs/core";
 import { SourceError, type DocxInvocation } from "./command.js";
 import { parseDocxJson } from "safe-bash-docx-engine/argument-json";
@@ -24,7 +25,7 @@ export async function executePackCommand(invocation: DocxInvocation, request: Do
     }
     bytes = await io.readBytes({ open(signal) {
       if (path === undefined) return request.stdin;
-      return request.filesystem.readStream ? request.filesystem.readStream(path, { signal }) : { async *[Symbol.asyncIterator]() { yield await request.filesystem.readFile(path, { signal }); } };
+      return readFileStream(request.filesystem as FileSystem, path, { signal });
     } });
   } catch (error) {
     request.signal.throwIfAborted();

@@ -61,13 +61,7 @@ export class FileInput {
       } else if (fs.readStream && capabilities.streamingRead !== false) {
         input = fs.readStream(path, { signal, chunkSize: Math.min(65536, this.maxBytes) });
       } else {
-        if (capabilities.read === false) throw new FsError("ENOTSUP");
-        const maxBytes = this.maxBytes;
-        input = { async *[Symbol.asyncIterator]() {
-          const bytes = await fs.readFile(path, { signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
-          if (bytes.byteLength > maxBytes) throw new Diagnostic("shuf: maxInputBytes limit exceeded\n");
-          yield bytes;
-        } };
+        throw new FsError("ENOTSUP", { path, message: "input requires streaming or retained range reads" });
       }
       this.source = ownedBytes(input, signal);
       signal.throwIfAborted();

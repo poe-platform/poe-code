@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { commandRuntimeIdentity, CommandArgumentIdentityError, FsError, getCommandArguments, isFsError, readBytes, writeBytes, shellValueByteLength, type ByteSource, type CommandContext, type CommandDefinition, type FileSystemCapabilities } from 'safe-bash-contracts';
 import { isAbsolutePath, validatePath } from '@poe-code/safe-fs/core';
 import { assertCommandRequirements } from 'safe-bash-contracts/command-requirements';
@@ -17,7 +18,7 @@ export interface FmtResult { readonly exitCode: number }
 export interface FmtPluginOptions extends FmtCommandOptions { readonly replace?: boolean }
 const inputRequirements = [
   { id: 'stdin', description: 'Read standard input', capabilities: [] },
-  { id: 'file', description: 'Read file operands', capabilities: [], anyOf: [['streamingRead'], ['read']] },
+  { id: 'file', description: 'Read file operands', capabilities: [], anyOf: [['streamingRead'], ['retainedRead'], ['read']] },
 ] as const;
 async function output(context: CommandContext, bytes: string | Uint8Array): Promise<void> {
   await writeBytes(context.stdout, typeof bytes === 'string' ? new TextEncoder().encode(bytes) : bytes, context.signal);
@@ -92,12 +93,7 @@ class InputScope {
       if (file) {
         const { path, capabilities } = file;
         assertCommandRequirements(context, inputRequirements, ["file"], capabilities);
-        if (context.fs.readStream && capabilities.streamingRead !== false) source = context.fs.readStream(path, { signal: context.signal, chunkSize: 4096 });
-        else {
-          if (capabilities.read === false) throw new FsError("ENOTSUP", { path, syscall: "readFile" });
-          const maximum = this.budget.maxReadBytes;
-          source = { async *[Symbol.asyncIterator]() { yield await context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(maximum) ? { maxBytes: maximum } : {}) }); } };
-        }
+        source = readFileStream(context.fs, path, { signal: context.signal, chunkSize: Math.max(1, Math.min(4096, this.budget.maxReadBytes)) });
       }
       context.signal.throwIfAborted();
       this.iterator = source[Symbol.asyncIterator]();

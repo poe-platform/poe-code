@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import { executeDocumentBatch } from "../../../safe-bash-docx-engine/src/batch.js";
@@ -79,10 +80,10 @@ it("charges inserted nodes cumulatively rather than resetting per operation", as
 });
 it("runs the same ordered batch from CLI JSON with one document acquisition", async () => {
   const input = await fieldInput(), volume = Volume.fromJSON({ "/stdout": "", "/stderr": "" });
-  const readFile = vi.fn(async () => input);
+  const readStream = vi.fn(async function* () { yield input; });
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["batch", "input.docx", "--ops-json", JSON.stringify({ version: 1, operations: pipeline }), "--dry-run", "--json"].map(value => new TextEncoder().encode(value)),
-    cwd: "/", filesystem: { readFile }, signal: textContext.signal,
+    cwd: "/", filesystem: { readStream, async readFile() { throw new Error("Whole-file input forbidden"); } }, signal: textContext.signal,
     stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { volume.appendFileSync("/stdout", bytes); } },
     stderr: { async write(bytes) { volume.appendFileSync("/stderr", bytes); } },
@@ -90,16 +91,16 @@ it("runs the same ordered batch from CLI JSON with one document acquisition", as
   expect(result.exitCode, volume.readFileSync("/stderr", "utf8") as string).toBe(0);
   const data = JSON.parse(volume.readFileSync("/stdout", "utf8") as string);
   expect(data).toMatchObject({ operation: "batch", ok: true, affected: 4, data: { results: pipeline.map(item => ({ id: item.id, operation: item.operation, ok: true })), publication: { dryRun: true, output: null } } });
-  expect(readFile).toHaveBeenCalledTimes(1);
+  expect(readStream).toHaveBeenCalledTimes(1);
 });
 it("keeps preexisting input and forced output bytes when the CLI last step fails", async () => {
   const input = await fieldInput(), volume = Volume.fromJSON({ "/input.docx": Buffer.from(input), "/result.docx": "Existing report", "/stdout": "", "/stderr": "" });
-  const readFile = vi.fn(async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer));
+  const readStream = vi.fn((path: string) => streamVolume(volume, path));
   const writeFile = vi.fn(async () => { throw new Error("Failed batches cannot write files"); });
   const operations = [...pipeline, { id: "missing", operation: "tables.set", arguments: { table: 999, cell: "A1", text: "Invalid" } }];
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["batch", "input.docx", "--ops-json", JSON.stringify({ version: 1, operations }), "--output", "result.docx", "--force", "--json"].map(value => new TextEncoder().encode(value)),
-    cwd: "/", filesystem: { readFile, writeFile, async lstat() { return { type: "file", size: input.length, mode: 420, mtimeMs: 0, ctimeMs: 0, atimeMs: 0 }; } }, signal: textContext.signal,
+    cwd: "/", filesystem: { readStream, async readFile() { throw new Error("Whole-file input forbidden"); }, writeFile, async lstat() { return { type: "file", size: input.length, mode: 420, mtimeMs: 0, ctimeMs: 0, atimeMs: 0 }; } }, signal: textContext.signal,
     stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { volume.appendFileSync("/stdout", bytes); } },
     stderr: { async write(bytes) { volume.appendFileSync("/stderr", bytes); } },
@@ -158,7 +159,7 @@ it("does not require file identity for read-only CLI batches", async () => {
   const lstat = vi.fn(async () => { throw Object.assign(new Error("Identity unavailable"), { code: "ENOTSUP" }); });
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["batch", "input.docx", "--ops-json", JSON.stringify({ version: 1, operations: [{ operation: "text.get", arguments: {} }] }), "--json"].map(value => new TextEncoder().encode(value)),
-    cwd: "/", filesystem: { async readFile() { return input; }, lstat }, signal: textContext.signal,
+    cwd: "/", filesystem: { async *readStream() { for (let offset = 0; offset < input.length; offset += 65536) yield input.subarray(offset, offset + 65536); }, async readFile() { return input; }, lstat }, signal: textContext.signal,
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { volume.appendFileSync("/stdout", bytes); } }, stderr: { async write() {} },
   });
   expect(result.exitCode).toBe(0);
@@ -191,7 +192,7 @@ it("reads literal dash image paths through VFS instead of consuming stdin", asyn
   const paths: string[] = [];
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["batch", "input.docx", "--ops-json", JSON.stringify({ version: 1, operations: [{ operation: "images.add", arguments: { paragraph: 1, file: { kind: "vfs", path: "-", capability: "command" } } }] }), "--dry-run"].map(value => new TextEncoder().encode(value)),
-    cwd: "/", filesystem: { async readFile(path) { paths.push(path); return new Uint8Array(volume.readFileSync(path) as Buffer); } }, signal: textContext.signal,
+    cwd: "/", filesystem: { readStream(path: string) { paths.push(path); return streamVolume(volume, path); }, async readFile(path) { paths.push(path); return new Uint8Array(volume.readFileSync(path) as Buffer); } }, signal: textContext.signal,
     stdin: { [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("Literal paths cannot read stdin"); } }; } },
     stdout: { async write(bytes) { volume.appendFileSync("/stdout", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/stderr", bytes); } },
   });

@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { afterEach, expect, expectTypeOf, it, vi } from "vitest";
 import { Ajv } from "ajv";
 import { Volume } from "memfs";
@@ -64,9 +65,7 @@ async function cli(input: Uint8Array, args: string[], signal = textContext.signa
     "/stdout": "",
     "/stderr": ""
   });
-  const readFile = vi.fn(
-    async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer)
-  );
+  const readStream = vi.fn((path: string) => streamVolume(volume, path));
   const stdin = vi.fn(() => {
     throw new Error("Undeclared stdin access");
   });
@@ -74,7 +73,7 @@ async function cli(input: Uint8Array, args: string[], signal = textContext.signa
     args: args.map((arg) => new TextEncoder().encode(arg)),
     cwd: "/",
     signal,
-    filesystem: { readFile },
+    filesystem: { readStream, async readFile() { throw new Error("Whole-file input forbidden"); } },
     stdin: { [Symbol.asyncIterator]: stdin },
     stdout: {
       async write(bytes) {
@@ -89,7 +88,7 @@ async function cli(input: Uint8Array, args: string[], signal = textContext.signa
   });
   expect(volume.readFileSync("/source.docx")).toEqual(Buffer.from(input));
   expect(stdin).not.toHaveBeenCalled();
-  return { result, volume, readFile };
+  return { result, volume, readStream };
 }
 
 it("retains the public synchronous paragraph element and reads without creating parts or changing bytes", async () => {
@@ -359,12 +358,12 @@ it("executes actual CLI batch reads and operation help/schema with no undeclared
   expect(envelope.data.results).toEqual(
     (await applyStyleModelBatch(input, { version: 1, operations: read }, textContext)).operationResults
   );
-  expect(run.readFile.mock.calls.map(([path]) => path)).toEqual(["/source.docx"]);
+  expect(run.readStream.mock.calls.map(([path]) => path)).toEqual(["/source.docx"]);
   expect(run.volume.readFileSync("/stderr").length).toBe(0);
   for (const command of ["help", "schema"]) {
     const discovery = await cli(input, [command, "batch", "--operation", getter, "--json"]);
     expect(discovery.result.exitCode).toBe(0);
-    expect(discovery.readFile).not.toHaveBeenCalled();
+    expect(discovery.readStream).not.toHaveBeenCalled();
     expect(discovery.volume.readFileSync("/stdout", "utf8")).toContain(getter);
   }
 });
@@ -379,7 +378,7 @@ it("requires explicit CLI publication and reloads the authorized edit while dry-
     ];
   const denied = await cli(input, [...args, "--json"]);
   expect(denied.result.exitCode).toBe(2);
-  expect(denied.readFile).not.toHaveBeenCalled();
+  expect(denied.readStream).not.toHaveBeenCalled();
   const dry = await cli(input, [...args, "--dry-run", "--json"]);
   expect(dry.result.exitCode).toBe(0);
   expect(JSON.parse(dry.volume.readFileSync("/stdout", "utf8") as string)).toMatchObject({
@@ -438,7 +437,7 @@ it("rejects evaluation, dynamic property access and ambient paths before input a
       "--json"
     ]);
     expect(run.result.exitCode).toBe(2);
-    expect(run.readFile).not.toHaveBeenCalled();
+    expect(run.readStream).not.toHaveBeenCalled();
     expect(JSON.parse(run.volume.readFileSync("/stdout", "utf8") as string)).toMatchObject({
       ok: false,
       affected: 0,
@@ -677,7 +676,7 @@ it.each([
     "--json"
   ]);
   expect(run.result.exitCode).toBe(2);
-  expect(run.readFile).not.toHaveBeenCalled();
+  expect(run.readStream).not.toHaveBeenCalled();
   expect(JSON.parse(run.volume.readFileSync("/stdout", "utf8") as string)).toMatchObject({
     ok: false,
     data: null,
@@ -703,7 +702,7 @@ it.each([0, 2])(
       "--json"
     ]);
     expect.soft(run.result.exitCode).toBe(1);
-    expect(run.readFile.mock.calls.map(([path]) => path)).toEqual(["/source.docx"]);
+    expect(run.readStream.mock.calls.map(([path]) => path)).toEqual(["/source.docx"]);
     expect.soft(JSON.parse(run.volume.readFileSync("/stdout", "utf8") as string)).toMatchObject({
       ok: false,
       data: null,
@@ -730,7 +729,7 @@ it.each(["document", "paragraphs", "", "bad-name", "__proto__"])(
       "--json"
     ]);
     expect(run.result.exitCode).toBe(2);
-    expect(run.readFile).not.toHaveBeenCalled();
+    expect(run.readStream).not.toHaveBeenCalled();
   }
 );
 
@@ -839,7 +838,7 @@ it("honors cancellation of an acquired paragraph view and of CLI admission", asy
     controller.signal
   );
   expect(run.result.exitCode).toBe(130);
-  expect(run.readFile).not.toHaveBeenCalled();
+  expect(run.readStream).not.toHaveBeenCalled();
 });
 
 it("shares the document work budget with an acquired getter and bounds XML serialization", async () => {

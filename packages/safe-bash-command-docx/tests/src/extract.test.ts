@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { describe, expect, it } from "vitest";
 import { Volume } from "memfs";
 import { MemoryFileSystem, MountFileSystem, ReadOnlyFileSystem, type FileSystem, type FileStat } from "@poe-code/safe-fs/core";
@@ -30,7 +31,7 @@ function destination(fail = false) {
       if (parent.ino !== options.parent.ino) throw new Error("Parent changed");
       if (fail && writes++ === 1) throw new Error("Destination write failed");
       volume.writeFileSync(p, data, { flag: "wx" }); return stat(p);
-    }, readFile: async (p: string) => new Uint8Array(volume.readFileSync(p) as Uint8Array)
+    }, readStream(path: string) {  return streamVolume(volume, path); }, readFile: async (p: string) => new Uint8Array(volume.readFileSync(p) as Uint8Array)
   } as unknown as FileSystem;
   return { volume, fs };
 }

@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import "../../../safe-bash-docx-engine/tests/fixtures/semantic-scheduler.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
@@ -152,7 +153,7 @@ it("executes lists through the command engine with SDK parity and explicit schem
   let stderr = "";
   const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["lists", "add", "/input", "--kind", "decimal", "--text", "First", "--output", "-"].map(v => new TextEncoder().encode(v)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    filesystem: { readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { volume.appendFileSync("/output", bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
   });
   expect({ code: result.exitCode, stderr }).toEqual({ code: 0, stderr: "" });

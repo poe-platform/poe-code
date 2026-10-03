@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as docx from "../../src/sdk.js";
@@ -44,7 +45,7 @@ async function command(bytes: Uint8Array, args: string[]) {
   const volume = Volume.fromJSON({ "/input.docx": Buffer.from(bytes), "/out": "", "/err": "" });
   const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: args.map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    filesystem: { readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(b) { volume.appendFileSync("/out", b); } }, stderr: { async write(b) { volume.appendFileSync("/err", b); } }
   });
   expect(volume.readFileSync("/input.docx")).toEqual(Buffer.from(bytes));

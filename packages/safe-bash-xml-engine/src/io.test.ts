@@ -20,12 +20,13 @@ for (const input of ["stdin", "stream", "file"] as const) {
         signal: new AbortController().signal,
         stdin: toByteSource("<root/>"),
         fs: {
-          capabilities: { streamingRead: input === "stream" },
+          capabilities: { streamingRead: input === "stream", retainedRead: true },
           readStream: () => toByteSource("<root/>"),
-          readFile: async (_path: string, options: { maxBytes?: number }) => {
-            assert.equal(options.maxBytes, maximum);
-            return new TextEncoder().encode("<root/>");
-          }
+          readFile: async () => { throw new Error("whole-file read"); },
+          openReadFile: async () => ({
+            read: async (position: number, maximum: number) => new TextEncoder().encode("<root/>").subarray(position, position + maximum),
+            close: async () => {}
+          })
         },
         inputBudget: {
           maxBytes: maximum,
@@ -39,7 +40,7 @@ for (const input of ["stdin", "stream", "file"] as const) {
       const result = readXmlInput(context, input === "stdin" ? undefined : "/input.xml", budget, runtime);
       if (maximum === 6) await assert.rejects(result, error => error === failure);
       else assert.equal(await result, "<root/>");
-      assert.deepEqual(totals, [7]);
+      assert.deepEqual(totals, input === "file" && maximum === 6 ? [6, 7] : [7]);
     });
   }
 }
@@ -71,15 +72,19 @@ test("XML charges cumulative UTF-8 chunks before requesting more input", async (
 for (const [commandMaximum, hostMaximum, used, expected] of [
   [10, 20, 3, 7], [20, 10, 3, 7], [10, 3, 3, 0]
 ] as const) {
-  test(`buffered XML read caps remaining bytes at ${expected} (${commandMaximum}, ${hostMaximum}, ${used})`, async () => {
+  test(`retained XML read caps remaining window at ${expected} (${commandMaximum}, ${hostMaximum}, ${used})`, async () => {
     const context = {
       signal: new AbortController().signal,
       fs: {
-        capabilities: { streamingRead: false },
-        readFile: async (_path: string, options: { maxBytes?: number }) => {
-          assert.equal(options.maxBytes, expected);
-          return new Uint8Array();
-        }
+        capabilities: { streamingRead: false, retainedRead: true },
+        readFile: async () => { throw new Error("whole-file read"); },
+        openReadFile: async () => ({
+          read: async (_position: number, maximum: number) => {
+            assert.equal(maximum, Math.max(1, expected));
+            return new Uint8Array();
+          },
+          close: async () => {}
+        })
       },
       inputBudget: { maxBytes: hostMaximum, check() {} }
     } as unknown as CommandContext;

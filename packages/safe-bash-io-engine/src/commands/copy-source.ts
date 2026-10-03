@@ -1,4 +1,4 @@
-import { collectBytes, dirname, FsError, type CommandContext, type FileReadHandle, type FileStat, type FileSystemCapabilities } from "safe-bash-contracts";
+import { dirname, FsError, type CommandContext, type FileReadHandle, type FileStat, type FileSystemCapabilities } from "safe-bash-contracts";
 import { compareCopyIdentity } from "safe-bash-contracts/filesystem-identity";
 import { codeOf } from "../internal.js";
 
@@ -10,14 +10,14 @@ export async function admitCopySource(context: CommandContext, source: string): 
   }
 }
 
-function selectCopyDestination(context: CommandContext, target: string, capabilities: FileSystemCapabilities, exclusive: boolean): "stream" | "buffer" {
+function selectCopyDestination(context: CommandContext, target: string, capabilities: FileSystemCapabilities, exclusive: boolean): "stream" | "descriptor" {
   if (capabilities.readOnly === true) throw new FsError("EROFS", { path: target });
   if (context.fs.writeStream && capabilities.streamingWrite !== false) return "stream";
-  if (exclusive && capabilities.exclusiveCreate === true) return "buffer";
-  throw new FsError("ENOTSUP", { path: target, message: "copy requires streaming writes or exclusive creation" });
+  if (exclusive && capabilities.exclusiveCreate === true && capabilities.open === true && capabilities.randomAccessWrite === true && context.fs.open) return "descriptor";
+  throw new FsError("ENOTSUP", { path: target, message: "copy requires streaming writes or exclusive retained descriptor writes" });
 }
 
-export async function admitCopyDestination(context: CommandContext, target: string, exclusive: boolean): Promise<"stream" | "buffer"> {
+export async function admitCopyDestination(context: CommandContext, target: string, exclusive: boolean): Promise<"stream" | "descriptor"> {
   let candidate = target;
   while (true) {
     try {
@@ -37,6 +37,7 @@ export async function admitCopyDestination(context: CommandContext, target: stri
 export async function copyCheckedSource(context: CommandContext, source: string, target: string,
   expected: FileStat, exclusive: boolean): Promise<void> {
   let acquisition: Promise<FileReadHandle> | undefined;
+  let destination: Awaited<ReturnType<NonNullable<CommandContext["fs"]["open"]>>> | undefined;
   let closing: Promise<void> | undefined;
   let work: Promise<void> | undefined;
   let reading: Promise<Uint8Array> | undefined;
@@ -49,9 +50,10 @@ export async function copyCheckedSource(context: CommandContext, source: string,
       await acquisitionSettled;
       const reader = await acquisition?.catch(() => undefined);
       await work?.catch(() => undefined);
-      // Buffered collection can settle on abort before its admitted read settles.
+      // Drain the admitted read before releasing the retained source.
       await reading?.catch(() => undefined);
-      await reader?.close();
+      try { await destination?.close(); }
+      finally { await reader?.close(); }
     })();
   };
   let failed = false;
@@ -92,7 +94,12 @@ export async function copyCheckedSource(context: CommandContext, source: string,
           return reader.read(position, 64 * 1024, { signal: context.signal });
         });
         const chunk = await reading;
-        if (!chunk.length) { consumed = true; return; }
+        if (!(chunk instanceof Uint8Array) || chunk.byteLength > 65536) throw new FsError("EIO", { path: source, message: "invalid retained read size" });
+        if (!chunk.length) {
+          if (destination && position !== retained.size) throw new FsError("EBUSY", { path: source, message: "copy source size changed" });
+          consumed = true; return;
+        }
+        if (destination && chunk.length > retained.size - position) throw new FsError("EBUSY", { path: source, message: "copy source size changed" });
         position += chunk.length;
         context.inputBudget?.check(position);
         yield chunk;
@@ -102,22 +109,21 @@ export async function copyCheckedSource(context: CommandContext, source: string,
       flag: exclusive ? "wx" as const : "w" as const, signal: context.signal,
       ...(capabilities.permissions === true ? { mode: expected.mode & 0o7777 } : {}),
     };
-    if (selectCopyDestination(context, target, capabilities, exclusive) === "buffer") {
-      const size = retained.size;
-      const maxMemoryBytes = size * 3 + 64 * 1024;
-      if (!Number.isSafeInteger(size) || size < 0 || !Number.isSafeInteger(maxMemoryBytes)) {
-        throw new FsError("EFBIG", { path: source, message: "copy source exceeds bounded collection capacity" });
-      }
-      context.inputBudget?.check(size);
-      if (size > (context.inputBudget?.maxBytes ?? Infinity)) throw new FsError("EFBIG", {
-        path: source, message: "copy source exceeds input budget",
-      });
+    if (selectCopyDestination(context, target, capabilities, exclusive) === "descriptor") {
       work = (async () => {
-        const data = await collectBytes(bytes(), { maxBytes: size, maxMemoryBytes, signal: context.signal });
-        context.signal.throwIfAborted();
-        if (!accepting) throw new FsError("EBADF", { path: source });
-        if (data.byteLength !== size) throw new FsError("EBUSY", { path: source, message: "copy source size changed" });
-        await context.fs.writeFile(target, data, { ...options, flag: "wx" });
+        destination = await context.fs.open!(target, { access: "write", creation: "exclusive", signal: context.signal,
+          ...(options.mode === undefined ? {} : { mode: options.mode }),
+        });
+        for await (const chunk of bytes()) {
+          let offset = 0;
+          while (offset < chunk.length) {
+            context.signal.throwIfAborted();
+            if (!accepting) throw new FsError("EBADF", { path: source });
+            const count = await destination.write(chunk.subarray(offset), null, { signal: context.signal });
+            if (!Number.isSafeInteger(count) || count <= 0 || count > chunk.length - offset) throw new FsError("EIO", { path: target });
+            offset += count;
+          }
+        }
       })();
     } else work = context.fs.writeStream!(target, bytes(), options);
     await work;

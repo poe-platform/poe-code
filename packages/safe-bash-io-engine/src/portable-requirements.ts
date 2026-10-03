@@ -2,7 +2,7 @@ import type { CommandFileSystemRequirement } from "safe-bash-contracts/command-r
 
 export const inputRequirements: readonly CommandFileSystemRequirement[] = [
   { id: "stdin", description: "Read standard input", capabilities: [] },
-  { id: "file", description: "Read file operands", capabilities: [], anyOf: [["streamingRead"], ["read"]] },
+  { id: "file", description: "Read file operands", capabilities: [], anyOf: [["streamingRead"], ["retainedRead"], ["read"]] },
 ];
 
 export const textOutputRequirements: readonly CommandFileSystemRequirement[] = [

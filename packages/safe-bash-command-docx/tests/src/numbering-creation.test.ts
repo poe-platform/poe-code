@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Ajv } from "ajv";
@@ -517,7 +518,7 @@ async function command(
     cwd: "/",
     signal: textContext.signal,
     filesystem: {
-      async readFile(path) {
+      readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) {
         return new Uint8Array(volume.readFileSync(path) as Buffer);
       }
     },

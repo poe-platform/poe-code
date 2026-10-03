@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Document, DocumentBudget, applyStyleModelBatch, createDocxInspectionCommandEngine, extractDocumentText, readArchive } from "../../src/sdk.js";
@@ -16,7 +17,7 @@ async function verifyContainerBatch(input: Uint8Array, operations: readonly unkn
   const cli = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["batch", "/input.docx", "--ops-json", JSON.stringify(batch), "--dry-run", "--json"].map(word => new TextEncoder().encode(word)),
     cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    filesystem: { readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
     stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { volume.appendFileSync("/stdout", bytes); } },
     stderr: { async write(bytes) { volume.appendFileSync("/stderr", bytes); } }
@@ -175,7 +176,7 @@ for (const strict of [false, true]) it.each(cases)(
     const cli = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
       args: ["batch", "/input.docx", "--ops-json", JSON.stringify(batch), "--json"].map(word => new TextEncoder().encode(word)),
       cwd: "/", signal: textContext.signal,
-      filesystem: { async readFile(path) { return new Uint8Array(files.readFileSync(path) as Buffer); } },
+      filesystem: { readStream(path: string) {  return streamVolume(files, path); }, async readFile(path) { return new Uint8Array(files.readFileSync(path) as Buffer); } },
       stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: { async write(chunk) { files.appendFileSync("/stdout", chunk); } },
       stderr: { async write(chunk) { files.appendFileSync("/stderr", chunk); } }

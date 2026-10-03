@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as sdk from "../../src/sdk.js";
@@ -77,7 +78,7 @@ it("returns equality, difference and trouble through explicit memfs inputs witho
   const before = volume.toJSON();
   for (const [right, status, ok] of [["equal", 0, true], ["different", 1, true], ["broken", 2, false], ["missing", 2, false]] as const) {
     let stdout = "";
-    const result = await createDocxInspectionCommandEngine({ limits }).execute({ args: ["diff", "/left.docx", `/${right}.docx`, "--mode", "parts", "--scope", "package", "--json"].map(v => encoder.encode(v)), cwd: "/", filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("Undeclared stdin"); } }; } }, stdout: { async write(data) { stdout += decoder.decode(data); } }, stderr: { async write() {} }, signal: context.signal });
+    const result = await createDocxInspectionCommandEngine({ limits }).execute({ args: ["diff", "/left.docx", `/${right}.docx`, "--mode", "parts", "--scope", "package", "--json"].map(v => encoder.encode(v)), cwd: "/", filesystem: { readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("Undeclared stdin"); } }; } }, stdout: { async write(data) { stdout += decoder.decode(data); } }, stderr: { async write() {} }, signal: context.signal });
     expect(result.exitCode).toBe(status);
     expect(JSON.parse(stdout)).toMatchObject({ operation: "diff", ok, affected: 0, ...(ok ? { data: { equal: status === 0 } } : { data: null }) });
   }
@@ -140,7 +141,7 @@ it("rejects incompatible comparison scope before reading inputs and permits one 
   expect(JSON.parse(output).errors[0].code).toBe("usage");
   const { bytes } = await createDocumentFixture("garden");
   output = "";
-  const stdin = await engine.execute({ ...request, args: ["diff", "-", "right", "--scope", "package", "--json"].map(v => encoder.encode(v)), filesystem: { async readFile() { return bytes; } }, stdin: { async *[Symbol.asyncIterator]() { yield bytes; } } });
+  const stdin = await engine.execute({ ...request, args: ["diff", "-", "right", "--scope", "package", "--json"].map(v => encoder.encode(v)), filesystem: { async *readStream() { yield bytes; }, async readFile() { throw new Error("Whole-file input forbidden"); } }, stdin: { async *[Symbol.asyncIterator]() { yield bytes; } } });
   expect(stdin.exitCode).toBe(0);
   expect(JSON.parse(output).data.equal).toBe(true);
 });

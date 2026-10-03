@@ -121,19 +121,16 @@ test("regular files seek positional skips and huge skips do not read input", asy
   assert.equal((await run(["-i1Y", "left", "right"], undefined, undefined, { fs })).exitCode, 0);
 });
 
-test("fallback passes maxBytes and signal, refuses unknown or excessive sizes", async () => {
-  const fs = createMemoryFileSystem();
-  await fs.writeFile("/left", Buffer.from("abc"));
-  const readFile = fs.readFile.bind(fs);
-  const reads: unknown[] = [];
-  Object.defineProperty(fs, "readStream", { value: undefined });
-  fs.readFile = (path, options) => { reads.push(options); return readFile(path, options); };
-  assert.equal((await run(["left", "-"], undefined, Buffer.from("abc"), { fs }, { limits: { maxFallbackBytes: 3 } })).exitCode, 0);
-  assert.equal((reads[0] as { maxBytes: number }).maxBytes, 3);
-  assert.ok((reads[0] as { signal: AbortSignal }).signal instanceof AbortSignal);
-  reads.length = 0;
-  assert.equal((await run(["left", "-"], undefined, undefined, { fs }, { limits: { maxFallbackBytes: 2 } })).exitCode, 2);
-  assert.equal(reads.length, 0);
+test("retained fallback avoids whole-file reads and legacy buffer ceilings", async () => {
+  const memory = createMemoryFileSystem();
+  await memory.writeFile("/left", Buffer.from("abc"));
+  const fs = new Proxy(memory, { get(target, key) {
+    if (key === "readStream") return undefined;
+    if (key === "readFile") return () => { throw new Error("whole-file read"); };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  assert.equal((await run(["left", "-"], undefined, Buffer.from("abc"), { fs }, { limits: { maxFallbackBytes: 2 } })).exitCode, 0);
 });
 
 test("alias identity shortcuts occur after open checks", async () => {

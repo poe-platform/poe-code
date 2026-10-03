@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Document, ParagraphStyle, DocumentBudget, Twips, WD_ALIGN_PARAGRAPH, applyStyleModelBatch, createDocxInspectionCommandEngine, editDocumentStyles, inspectDocumentStyles, readArchive } from "../../src/sdk.js";
@@ -53,7 +54,7 @@ for (const strict of [false, true]) for (const route of ["model", "batch", "sdk"
       const volume = Volume.fromJSON({ "/out": "", "/err": "" });
       const cli = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
         args: ["batch", "/input.docx", "--ops-json", JSON.stringify(batch), "--dry-run", "--json"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-        filesystem: { async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} },
+        filesystem: { async *readStream() { for (let offset = 0; offset < input.length; offset += 65536) yield input.subarray(offset, offset + 65536); }, async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} },
         stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
       });
       expect(cli.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
@@ -69,7 +70,7 @@ for (const strict of [false, true]) for (const route of ["model", "batch", "sdk"
       const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
         args: ["styles", "get", "/input.docx", "--name", "Original", "--json"].map(word => new TextEncoder().encode(word)),
         cwd: "/", signal: textContext.signal,
-        filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+        filesystem: { readStream(path: string) {  return streamVolume(volume, path); }, async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
         stdin: { async *[Symbol.asyncIterator]() {} },
         stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } },
         stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
@@ -92,7 +93,7 @@ for (const strict of [false, true]) for (const route of ["sdk", "cli"] as const)
   else {
     const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
       args: ["styles", "latent", "defaults", "set", "/input.docx", "--default-to-locked", "false", "--output", "-"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-      filesystem: { async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} },
+      filesystem: { async *readStream() { for (let offset = 0; offset < input.length; offset += 65536) yield input.subarray(offset, offset + 65536); }, async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
     });
     expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
@@ -152,7 +153,7 @@ for (const strict of [false, true]) for (const kind of ["metadata", "latent cont
         const volume = Volume.fromJSON({ "/out": "", "/err": "" });
         const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
           args: ["styles", "list", "/input.docx", "--json"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-          filesystem: { async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} },
+          filesystem: { async *readStream() { for (let offset = 0; offset < input.length; offset += 65536) yield input.subarray(offset, offset + 65536); }, async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} },
           stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
         });
         expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);

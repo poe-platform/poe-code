@@ -99,7 +99,7 @@ test('CLI and SDK admit cross-realm byte storage on every memory input route', a
       const context = { ...f.context,
         ...(route === 'stdin' ? { stdin: source } : { fs: route === 'stream'
           ? { readStream(_path: string, options: { signal: AbortSignal }) { assert.ok(options.signal); return source; } }
-          : { async readFile(_path: string, options: { signal: AbortSignal }) { assert.ok(options.signal); return bytes; } } }),
+          : retainedFixture(async (_path, options) => { assert.ok(options.signal); return bytes; }) }),
       } as CommandContext;
       const result = sdk ? await fold(context, { width: 3, files: route === 'stdin' ? [] : ['input'] })
         : await createFoldCommand().execute(context);
@@ -317,14 +317,14 @@ test('SDK operands are owned for the invocation lifetime', async () => {
   assert.equal((await fold(context, { width: 2, files })).exitCode, 0);
   assert.equal(f.text(), 'ab\ncdok');
 });
-test('bounded readFile fallback forwards cancellation and refuses oversized storage', async () => {
+test('retained fallback forwards cancellation and enforces input quotas', async () => {
   const f = fixture(['file']); let maximum = -1;
-  const context = { ...f.context, fs: { async readFile(_path: string, options: { signal: AbortSignal; maxBytes: number }) {
+  const context = { ...f.context, fs: retainedFixture(async (_path, options) => {
     assert.ok(f.cleanups.length); assert.ok(options.signal); maximum = options.maxBytes;
-    const bytes = encoder.encode('abcdef'); Object.defineProperty(bytes, 'byteLength', { value: 0 }); return bytes;
-  } } as unknown as CommandContext['fs'] };
-  await assert.rejects(createFoldCommand({ limits: { inputBytes: 3 } }).execute(context) as Promise<unknown>, /VFS input retention/);
-  assert.equal(maximum, 3); assert.equal(f.text(), '');
+    return encoder.encode('abcdef');
+  }) };
+  await assert.rejects(createFoldCommand({ limits: { inputBytes: 3 } }).execute(context) as Promise<unknown>, /input byte/i);
+  assert.equal(maximum, 3);
 });
 test('output errors escape without being mislabeled as input file failures', async () => {
   const f = fixture(['file'], '', { '/vfs/file': 'abcdef' }); const failure = new FsError('EPIPE');
@@ -444,10 +444,10 @@ test('fallback read admission deducts live operand storage before acquiring VFS 
   const file = 'x'.repeat(3000);
   const f = fixture([file]);
   let maximum = -1;
-  const context = { ...f.context, fs: { async readFile(_path: string, options: { maxBytes: number }) {
+  const context = { ...f.context, fs: retainedFixture(async (_path, options) => {
     maximum = options.maxBytes;
     return encoder.encode('ok');
-  } } as unknown as CommandContext['fs'] };
+  }) };
   const result = await createFoldCommand({ limits: { retainedBytes: 20000 } }).execute(context);
   assert.equal(result.exitCode, 0);
   assert.equal(maximum, 20000 - 8196 - 3001 * 3);
@@ -515,27 +515,14 @@ for (const option of ['--help', '--version']) {
   });
 }
 
-test('coalesced output admission includes the live fallback file buffer', async () => {
-  // 4096 input bytes produce 4095 two-byte lines plus one retained byte.
-  // SDK operands retain 24 bytes for "--" and "file".
-  const peak = 8196 + 24 + 4096 + 1 + 8190 * 2;
-  for (const retainedBytes of [peak - 1, peak]) {
-    const f = fixture();
-    const context = { ...f.context, fs: {
-      async readFile() { return encoder.encode('a'.repeat(4096)); },
-    } as unknown as CommandContext['fs'] };
-    const running = fold(context, { width: 1, files: ['file'], limits: { retainedBytes } });
-    if (retainedBytes < peak) {
-      await assert.rejects(running, /Invocation retention limit exceeded/);
-      assert.equal(f.stdout.length, 0);
-    } else {
-      const result = await running;
-      assert.equal(result.exitCode, 0);
-      assert.equal(result.accounting.peakRetainedBytes, peak);
-      assert.equal(f.text(), 'a\n'.repeat(4095) + 'a');
-    }
-    await Promise.all(f.cleanups.map(cleanup => cleanup()));
-  }
+test('retained range input avoids the former whole-file retention surcharge', async () => {
+  const f = fixture();
+  const context = { ...f.context, fs: retainedFixture(async () => encoder.encode('a'.repeat(4096))) };
+  const result = await fold(context, { width: 1, files: ['file'], limits: { retainedBytes: 32768 } });
+  assert.equal(result.exitCode, 0);
+  assert.ok(result.accounting.peakRetainedBytes <= 32768);
+  assert.equal(f.text(), 'a\n'.repeat(4095) + 'a');
+  await Promise.all(f.cleanups.map(cleanup => cleanup()));
 });
 
 test('coalescing charges copy work before delivering output', async () => {
@@ -565,3 +552,17 @@ test('agent family defaults to UTF-8 and respects explicit C locale', async () =
     await Promise.all(f.cleanups.map(cleanup => cleanup()));
   }
 });
+
+function retainedFixture(load: (path: string, options: { signal: AbortSignal; maxBytes: number }) => Promise<Uint8Array>): CommandContext['fs'] {
+  return { capabilities: { read: true, retainedRead: true },
+    async openReadFile(path: string, options: { signal: AbortSignal }) {
+      let data: Uint8Array | undefined;
+      return { async read(position: number, maximum: number) {
+        data ??= await load(path, { signal: options.signal, maxBytes: maximum });
+        if (position >= data.length) return new Uint8Array();
+        return position === 0 && data.length <= maximum ? data : data.subarray(position, position + maximum);
+      }, async close() { data = undefined; } };
+    },
+    async readFile() { throw new Error('whole-file fallback must not run'); },
+  } as unknown as CommandContext['fs'];
+}

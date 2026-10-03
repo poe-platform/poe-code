@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { dirname,isPathWithin,readBytes,resolvePath,type ByteSource,type CommandContext,type FileStaging,type FileStagingEntry,type FileStat } from "safe-bash-contracts";
 import { concatBytes } from "safe-bash-io-engine/byte-encoding";
@@ -50,17 +51,7 @@ export class Extraction {
   }
   async *input(path: string): ByteSource {
     const { fs, signal } = this.context;
-    const capabilities = await this.operation(async () => await fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities);
-    if (fs.readStream && capabilities.streamingRead !== false) {
-      const source = await this.operation(async () => fs.readStream!(path, { signal, chunkSize: this.limits.chunkSize }));
-      yield* readBytes(this.source(source), signal);
-    } else {
-      const stat = await this.operation(() => fs.stat(path, { signal }));
-      if (stat.size > this.limits.maxBufferedFileBytes) fail("filesystem lacks streaming reads: buffered file limit exceeded");
-      const bytes = await this.operation(() => fs.readFile(path, { signal, ...(Number.isFinite(this.limits.maxBufferedFileBytes) ? { maxBytes: this.limits.maxBufferedFileBytes } : {})}));
-      if (bytes.length > this.limits.maxBufferedFileBytes) fail("buffered file limit exceeded");
-      yield bytes;
-    }
+    yield* readBytes(this.source(readFileStream(fs, path, { signal, chunkSize: this.limits.chunkSize })), signal);
   }
   async stat(path: string): Promise<FileStat | undefined> {
     try { return await this.operation(() => this.context.fs.lstat(path, { signal: this.context.signal })); }

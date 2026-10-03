@@ -1,3 +1,4 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
 import { readBytes,type ByteSource,type CommandContext } from "safe-bash-contracts";
 import { posixPath as posix } from "safe-bash-contracts/path";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -275,10 +276,8 @@ export function createBody(context: CommandContext, args: CurlArguments, limits:
     }
     try {
       const path = pathOf(context, part.file!);
-      const capabilities = await context.fs.capabilitiesFor?.(path, { signal }) ?? context.fs.capabilities;
       signal.throwIfAborted();
-      if (context.fs.readStream && capabilities.streamingRead !== false) yield* readBytes(context.fs.readStream(path, { signal }), signal);
-      else yield await context.fs.readFile(path, { signal, ...(Number.isFinite(Math.min(limits.maxBufferBytes, limits.maxUploadBytes)) ? { maxBytes: Math.min(limits.maxBufferBytes, limits.maxUploadBytes) } : {}) });
+      yield* readBytes(readFileStream(context.fs, path, { signal, chunkSize: Math.max(1, Math.min(65536, limits.maxBufferBytes, limits.maxUploadBytes)) }), signal);
     } catch (error) {
       signal.throwIfAborted();
       if (error instanceof CurlError) throw error;

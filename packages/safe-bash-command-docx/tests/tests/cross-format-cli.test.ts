@@ -188,7 +188,7 @@ describe.each(["docx", "pptx"] as const)("%s common public adapter", format => {
         const args = [...command.split(" "), ...(format === "docx" && command.startsWith("diff") ? ["--scope", "package"] : []), "--json"].map(value => encoder.encode(value));
         const readInput = async (path: string) => { controller.abort(); return new Uint8Array(f.volume.readFileSync(path) as Buffer); };
         const result = format === "docx"
-          ? { ...await createDocxInspectionCommandEngine({ limits }).execute({ args, signal: controller.signal, cwd: "/", filesystem: { readFile: readInput }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout.push(bytes); } }, stderr: { async write() {} } }), stdout: new Uint8Array(Buffer.concat(stdout)) }
+          ? { ...await createDocxInspectionCommandEngine({ limits }).execute({ args, signal: controller.signal, cwd: "/", filesystem: { readFile: readInput, async *readStream(path) { yield await readInput(path); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout.push(bytes); } }, stderr: { async write() {} } }), stdout: new Uint8Array(Buffer.concat(stdout)) }
           : await createPptxCommandEngine({ context, maxArgumentBytes: 65536, maxOutputBytes: 65536 }).execute({ args, signal: controller.signal, readInput });
         expect(result.exitCode).toBe(130);
         if (result.stdout.length) envelope(new TextDecoder().decode(result.stdout), command.startsWith("diff") ? "diff" : "inspect", false);

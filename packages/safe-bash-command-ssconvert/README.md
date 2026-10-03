@@ -65,6 +65,11 @@ import { csvFormat } from "poe-code/ssconvert/formats/csv";
 const plugin = ssconvertCommands({ formats: [csvFormat] });
 ```
 
+Gnumeric XML and gzip imports read retained file ranges and decode in bounded
+chunks, including UTF-8, UTF-16 and supported legacy single-byte encodings.
+XML trees and workbook values remain resident; this is not yet a fully bounded
+large-workbook conversion path.
+
 These commands register only the selected formats. Their VFS, cancellation,
 resource limits and output publication use the same shell adapter as the
 compatibility commands. Omitting `formats` from a composable command installs no formats. The same API is

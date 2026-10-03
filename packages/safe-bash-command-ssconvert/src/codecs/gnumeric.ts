@@ -1,8 +1,9 @@
-import { parseXmlSteps, XmlLimitError, type XmlElement } from "@poe-code/safe-fs/xml";
+import { parseXmlSteps, type XmlElement } from "@poe-code/safe-fs/xml";
+import { readGnumericDocument, GnumericSourceFailure } from "./gnumeric-input.js";
 import type { WorkbookSource } from "./types.js";
 import { orderedCells } from "@poe-code/spreadsheet-engine/workbook/ordered-cells";
 import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-stream";
-import { SsconvertError, type CapabilityContext } from "../contracts.js";
+import { SsconvertError, type CapabilityContext, type RangeSource } from "../contracts.js";
 import { cellValueFormat } from "../workbook/value-format.js";
 import { DEFAULT_SHEET_SIZE, formatA1, parseA1, validSheetSize, type AxisMetadata, type Cell, type CellValue,
   type ImportedValue, type NamedExpression, type Range, type Sheet, type UnsupportedRecord, type Workbook } from "../workbook.js";
@@ -11,8 +12,6 @@ import { parseExpression } from "../formulas/parser.js";
 import { gnumericGrammar } from "../formulas/conventions.js";
 import { quoteFormulaString } from "../formulas/serialization.js";
 import { rewriteReferences, visitFormula } from "../formulas/rewriting.js";
-import { encodingName } from "../encoding/names.js";
-import { singleByteTables } from "../encoding/tables.js";
 import { gnumericNumber } from "./gnumeric-number.js";
 import { readGnumericRichText, writeGnumericRichText } from "./gnumeric-rich-text.js";
 import { objectKinds } from "../objects/registry.js";
@@ -37,109 +36,9 @@ const metadataFields = new Set(["meta:generator", "dc:title", "dc:description", 
 function limit(message: string): never { throw new SsconvertError("resource-limit", `ssconvert ${message} limit exceeded`); }
 function invalid(message: string): never { throw new SsconvertError("io", `E Invalid Gnumeric XML: ${message}`); }
 
-async function inflateGnumeric(bytes: Uint8Array, maximum: number, context: CapabilityContext): Promise<Uint8Array> {
-  context.signal.throwIfAborted();
-  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
-  let writer: ReturnType<CompressionStream["writable"]["getWriter"]> | undefined;
-  let closed = false;
-  let cleanupPromise: Promise<void> | undefined;
-  const cleanup = () => {
-    if (!cleanupPromise) {
-      closed = true;
-      cleanupPromise = Promise.allSettled([reader?.cancel(), writer?.abort()]).then(() => undefined);
-    }
-    return cleanupPromise;
-  };
-  context.own(cleanup);
-  const abort = () => { void cleanup(); };
-  context.signal.addEventListener("abort", abort, { once: true });
-  try {
-    context.signal.throwIfAborted();
-    if (closed) invalid("gzip operation is closed");
-    const stream = new DecompressionStream("gzip");
-    reader = stream.readable.getReader(); writer = stream.writable.getWriter();
-    const producer = writer;
-    // Observe producer failures even when a byte bound terminates consumption.
-    const production = (async () => { await producer.write(new Uint8Array(bytes)); await producer.close(); })();
-    void production.catch(() => {});
-    const chunks: Uint8Array[] = []; let length = 0;
-    while (true) {
-      const next = await reader.read(); context.signal.throwIfAborted();
-      if (next.done) break;
-      if (next.value.byteLength > maximum - length) limit("decompressed bytes");
-      length += next.value.byteLength; chunks.push(new Uint8Array(next.value));
-    }
-    await production; context.signal.throwIfAborted();
-    const output = new Uint8Array(length); let offset = 0;
-    for (const chunk of chunks) { output.set(chunk, offset); offset += chunk.byteLength; }
-    return output;
-  } catch (error) {
-    context.signal.throwIfAborted();
-    if (error instanceof SsconvertError) throw error;
-    return invalid("invalid gzip stream");
-  } finally { context.signal.removeEventListener("abort", abort); await cleanup(); }
-}
-
-async function document(bytes: Uint8Array, context: CapabilityContext): Promise<XmlElement> {
-  context.signal.throwIfAborted();
-  if (bytes.byteLength > context.limits.inputBytes) limit("input bytes");
-  const gzip = bytes[0] === 31 && bytes[1] === 139;
-  if (gzip && bytes.length > (context.limits.compressedBytes ?? context.limits.inputBytes)) limit("compressed bytes");
-  const maximum = Math.min(context.limits.inputBytes, context.limits.inflatedBytes ?? context.limits.inputBytes);
-  // ISIZE is a modulo-2^32 trailer declaration, not a trusted total for
-  // concatenated members. Refuse an oversized declaration before acquisition;
-  // incremental admission still bounds forged or multi-member streams.
-  if (gzip && bytes.length >= 18 && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(bytes.length - 4, true) > maximum)
-    limit("decompressed bytes");
-  const plain = gzip ? await inflateGnumeric(bytes, maximum, context) : bytes;
-  if (plain.length > maximum) limit("decompressed bytes");
-  let encoding: "UTF-8" | "UTF-16LE" | "UTF-16BE" = "UTF-8";
-  if (plain[0] === 255 && plain[1] === 254 || plain[0] === 60 && plain[1] === 0) encoding = "UTF-16LE";
-  if (plain[0] === 254 && plain[1] === 255 || plain[0] === 0 && plain[1] === 60) encoding = "UTF-16BE";
-  try {
-    let text: string;
-    const header = new TextDecoder("ascii").decode(plain.subarray(0, Math.min(plain.length, 1024)));
-    const encodingAt = header.startsWith("<?xml") && " \t\r\n".includes(header[5] ?? "\0") ? header.indexOf("encoding") : -1;
-    let declared: string | undefined;
-    if (encodingAt >= 0) {
-      let at = encodingAt + 8; while (" \t\r\n".includes(header[at] ?? "\0")) at++;
-      if (header[at++] !== "=") invalid("malformed encoding declaration");
-      while (" \t\r\n".includes(header[at] ?? "\0")) at++;
-      const quote = header[at++]; if (quote !== "'" && quote !== '"') invalid("malformed encoding declaration");
-      const end = header.indexOf(quote, at); if (end < 0) invalid("malformed encoding declaration"); declared = header.slice(at, end);
-    }
-    if (encoding === "UTF-8" && declared && !["utf-8", "utf8"].includes(declared.toLowerCase())) {
-      const table = singleByteTables[encodingName(declared)];
-      if (!table) throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: XML encoding ${declared}`);
-      const characters: string[] = [];
-      for (const byte of plain) { const character = table[byte]!; if (character === "\uffff") invalid("invalid encoded XML byte"); characters.push(character); }
-      text = characters.join("");
-      // The declaration is validated by the XML parser after decoding its bytes.
-      const at = text.indexOf(declared, encodingAt + 8); text = text.slice(0, at) + "UTF-8" + text.slice(at + declared.length);
-    } else text = new TextDecoder(encoding, { fatal: true }).decode(plain);
-    const parser = parseXmlSteps(text, { expectedEncoding: encoding, maxDepth: context.limits.xmlDepth ?? Infinity,
-      maxNodes: context.limits.workbookNodes ?? Infinity, maxAttributes: context.limits.workbookNodes ?? Infinity,
-      maxTextLength: context.limits.workbookTextBytes ?? context.limits.inputBytes });
-    let step = parser.next(); let work = 0;
-    while (!step.done) {
-      context.signal.throwIfAborted();
-      if ((work += step.value) >= 16384) { work = 0; await new Promise<void>(resolve => setTimeout(resolve, 0)); }
-      step = parser.next();
-    }
-    return step.value;
-  } catch (error) {
-    context.signal.throwIfAborted();
-    if (error instanceof SyntaxError && error.message === "Invalid XML: DTD and entity declarations are forbidden")
-      throw new SsconvertError("capability-denied", "ssconvert host denies XML DTD and entity declarations");
-    if (error instanceof XmlLimitError) limit("XML nodes/text");
-    if (error instanceof SsconvertError) throw error;
-    return invalid(error instanceof Error ? error.message : "malformed document");
-  }
-}
-
-export async function probeGnumeric(bytes: Uint8Array, context: CapabilityContext): Promise<boolean> {
-  try { const root = await document(bytes, context); return root.localName === "Workbook" && namespaces.has(root.namespace); }
-  catch (error) { if (error instanceof SsconvertError && error.code === "io") return false; throw error; }
+export async function probeGnumeric(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<boolean> {
+  try { const root = await readGnumericDocument(bytes, context); return root.localName === "Workbook" && namespaces.has(root.namespace); }
+  catch (error) { if (error instanceof GnumericSourceFailure) throw error.cause; if (error instanceof SsconvertError && error.code === "io") return false; throw error; }
 }
 
 function children(node: XmlElement | undefined, name: string): XmlElement[] {
@@ -414,8 +313,8 @@ async function axes(sheet: XmlElement, axis: "RowInfo" | "ColInfo", maximum: num
   return { entries: [...result.values()].sort((a, b) => a.index - b.index), ...(defaultSize === undefined ? {} : { defaultSize }) };
 }
 
-export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext): Promise<Workbook> {
-  const root = await document(bytes, context);
+export async function readGnumeric(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<Workbook> {
+  const root = await readGnumericDocument(bytes, context).catch(error => { if (error instanceof GnumericSourceFailure) throw error.cause; throw error; });
   if (root.localName !== "Workbook" || !namespaces.has(root.namespace)) invalid("unsupported workbook namespace");
   await warnUnknown(root, context);
   const index = children(child(root, "SheetNameIndex"), "SheetName");

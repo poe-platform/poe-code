@@ -62,4 +62,3 @@ export const verification = (async () => {
   try { await cancelled.execute({ ...context, signal: abort.signal }); } catch (error) { failure = error; }
   check(failure === reason, 'DOCX cancellation identity');
 })();
-await verification;

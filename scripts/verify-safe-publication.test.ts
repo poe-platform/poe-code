@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { build } from "esbuild";
 import { execFile } from "node:child_process";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -489,4 +490,12 @@ describe("bounded child execution", () => {
       error.mockRestore();
     }
   });
+});
+
+it("bundles the publication-boundary verifier for a CommonJS sandbox", async () => {
+  const result = await build({
+    entryPoints: [fileURLToPath(new URL("./fixtures/safe-packages-publication-boundary.mjs", import.meta.url))],
+    bundle: true, write: false, packages: "external", platform: "browser", format: "cjs", target: "es2022",
+  });
+  expect(result.outputFiles).toHaveLength(1);
 });

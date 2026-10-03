@@ -25,7 +25,8 @@
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "lint": "eslint src && npm run typecheck",
     "test": "cd ../.. && vitest run packages/safe-bash-command-dot",
-    "test:unit": "cd ../.. && vitest run packages/safe-bash-command-dot"
+    "test:unit": "cd ../.. && vitest run packages/safe-bash-command-dot",
+    "test:native": "cd ../.. && GRAPHVIZ_NATIVE=1 vitest run packages/safe-bash-command-dot/src/qualification.test.ts"
   },
   "dependencies": {},
   "devDependencies": {
@@ -34,7 +35,10 @@
     "@poe-code/safe-fs": "*",
     "@poe-code/pdf-ast": "*",
     "safe-bash-command-neato": "*",
-    "safe-bash-command-svgo": "*"
+    "safe-bash-command-svgo": "*",
+    "@poe-code/graphviz-ast": "*",
+    "@poe-code/image-ast": "*",
+    "@poe-code/xml-ast": "*"
   },
   "sideEffects": false
 }

@@ -96,12 +96,29 @@ function spring(graph: GraphLayout): void {
       positions[i]!.y += (f.y / length) * Math.min(length, temperature);
     }
   }
-  const minX = Math.min(...nodes.map((v, i) => positions[i]!.x - v.width / 2)) - 18,
-    minY = Math.min(...nodes.map((v, i) => positions[i]!.y - v.height / 2)) - 18;
+  // Uniformly expand the spring positions enough to separate every node box.
+  // This preserves the force layout and has a bounded quadratic cost.
+  let expansion = 1;
+  for (let i = 0; i < n; i++)
+    for (let j = i + 1; j < n; j++) {
+      const dx = Math.abs(positions[i]!.x - positions[j]!.x);
+      const dy = Math.abs(positions[i]!.y - positions[j]!.y);
+      expansion = Math.max(
+        expansion,
+        Math.min(
+          dx ? ((nodes[i]!.width + nodes[j]!.width) / 2 + 8) / dx : Infinity,
+          dy ? ((nodes[i]!.height + nodes[j]!.height) / 2 + 8) / dy : Infinity
+        )
+      );
+    }
+  for (const position of positions) {
+    position.x *= expansion;
+    position.y *= expansion;
+  }
   for (let i = 0; i < n; i++) {
     const node = nodes[i]!,
-      x = positions[i]!.x - minX,
-      y = positions[i]!.y - minY;
+      x = positions[i]!.x,
+      y = positions[i]!.y;
     for (const port of Object.values(node.ports)) {
       port.x += x - node.x;
       port.y += y - node.y;
@@ -109,8 +126,6 @@ function spring(graph: GraphLayout): void {
     node.x = x;
     node.y = y;
   }
-  graph.width = Math.max(...nodes.map((v) => v.x + v.width / 2)) + 18;
-  graph.height = Math.max(...nodes.map((v) => v.y + v.height / 2)) + 18;
   for (const edge of graph.edges) {
     const a = nodes[indices.get(edge.tail.id)!]!,
       b = nodes[indices.get(edge.head.id)!]!;
@@ -121,10 +136,6 @@ function spring(graph: GraphLayout): void {
         { x: a.x + a.width, y: a.y },
         { x: a.x + a.width / 2, y: a.y }
       ];
-      edge.path = `M${edge.points[0]!.x},${edge.points[0]!.y}C${edge.points
-        .slice(1)
-        .map((p) => `${p.x},${p.y}`)
-        .join(" ")}`;
     } else {
       const dx = b.x - a.x,
         dy = b.y - a.y;
@@ -133,7 +144,6 @@ function spring(graph: GraphLayout): void {
         return { x: v.x + sign * dx * scale, y: v.y + sign * dy * scale };
       };
       edge.points = [attachment(a, 1), attachment(b, -1)];
-      edge.path = edge.points.map((p, i) => `${i ? "L" : "M"}${p.x},${p.y}`).join("");
     }
     edge.label = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
   }
@@ -144,6 +154,59 @@ function spring(graph: GraphLayout): void {
     cluster.y = Math.min(...members.map((v) => v.y - v.height / 2)) - 20;
     cluster.width = Math.max(...members.map((v) => v.x + v.width / 2)) + 10 - cluster.x;
     cluster.height = Math.max(...members.map((v) => v.y + v.height / 2)) + 10 - cluster.y;
+  }
+  // Clusters are postordered; propagate child frames before computing the canvas.
+  for (const child of graph.clusters) {
+    const parent = graph.clusters.find((c) => c.id === child.parent);
+    if (!parent) continue;
+    const right = Math.max(parent.x + parent.width, child.x + child.width + 8);
+    const bottom = Math.max(parent.y + parent.height, child.y + child.height + 8);
+    parent.x = Math.min(parent.x, child.x - 8);
+    parent.y = Math.min(parent.y, child.y - 8);
+    parent.width = right - parent.x;
+    parent.height = bottom - parent.y;
+  }
+  const extents = [
+    ...nodes.flatMap((v) => [
+      { x: v.x - v.width / 2, y: v.y - v.height / 2 },
+      { x: v.x + v.width / 2, y: v.y + v.height / 2 }
+    ]),
+    ...graph.clusters.flatMap((c) => [
+      { x: c.x, y: c.y },
+      { x: c.x + c.width, y: c.y + c.height }
+    ]),
+    ...graph.edges.flatMap((e) => e.points)
+  ];
+  const left = Math.min(...extents.map((p) => p.x)) - 18;
+  const top = Math.min(...extents.map((p) => p.y)) - 18;
+  graph.width = Math.max(...extents.map((p) => p.x)) - left + 18;
+  graph.height = Math.max(...extents.map((p) => p.y)) - top + 18;
+  for (const node of nodes) {
+    node.x -= left;
+    node.y -= top;
+    for (const port of Object.values(node.ports)) {
+      port.x -= left;
+      port.y -= top;
+    }
+  }
+  for (const cluster of graph.clusters) {
+    cluster.x -= left;
+    cluster.y -= top;
+  }
+  for (const edge of graph.edges) {
+    for (const point of edge.points) {
+      point.x -= left;
+      point.y -= top;
+    }
+    edge.label.x -= left;
+    edge.label.y -= top;
+    edge.path =
+      edge.points.length === 4
+        ? `M${edge.points[0]!.x},${edge.points[0]!.y}C${edge.points
+            .slice(1)
+            .map((p) => `${p.x},${p.y}`)
+            .join(" ")}`
+        : edge.points.map((p, i) => `${i ? "L" : "M"}${p.x},${p.y}`).join("");
   }
 }
 function plain(g: GraphLayout): string {
@@ -206,11 +269,15 @@ export async function renderGraph(
   const svg = new TextEncoder().encode(renderSvg(graph));
   if (format === "svg") return svg;
   if (format === "pdf")
-    return (await import("safe-bash-svg-engine")).renderSvgDocument(new TextDecoder().decode(svg), "pdf", {
-      ...(signal ? { signal } : {}),
-      maxNodes: limits.maxNodes * 20,
-      maxPixels: limits.maxPixels
-    });
+    return (await import("safe-bash-svg-engine")).renderSvgDocument(
+      new TextDecoder().decode(svg),
+      "pdf",
+      {
+        ...(signal ? { signal } : {}),
+        maxNodes: limits.maxNodes * 20,
+        maxPixels: limits.maxPixels
+      }
+    );
   if (
     !Number.isFinite(graph.width * graph.height) ||
     Math.ceil(graph.width) * Math.ceil(graph.height) > limits.maxPixels
@@ -218,7 +285,8 @@ export async function renderGraph(
     throw new UsageError("raster pixel limit exceeded");
   if (!["png", "jpg", "jpeg", "webp"].includes(format))
     throw new UsageError(`unknown format: ${format}`);
-  return (await import("@poe-code/image-ast")).default(svg)
+  return (await import("@poe-code/image-ast"))
+    .default(svg)
     .toFormat({ id: format === "jpg" ? "jpeg" : format })
     .toBuffer();
 }

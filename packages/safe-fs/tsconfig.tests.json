@@ -17,7 +17,6 @@
       "poe-code/safe-js/core": ["../safe-js/dist/core.d.ts"],
       "safe-bash-contracts": ["../safe-bash-contracts/src/index.ts"],
       "safe-bash-contracts/*": ["../safe-bash-contracts/src/*.ts", "../safe-bash-contracts/src/*"],
-      "safe-bash-command-*": ["../safe-bash-command-*/src/index.ts"],
       "safe-bash-regex-engine": ["../safe-bash-regex-engine/src/index.ts"],
       "safe-bash-regex-engine/*": ["../safe-bash-regex-engine/src/*.ts", "../safe-bash-regex-engine/src/*"]
     }

@@ -1,4 +1,4 @@
-import {encodeWebpImage} from "./codecs/webp.js";
+import {decodeWebpImage,encodeWebpImage} from "./codecs/webp.js";
 import { decodeTiffImage } from "./codecs/netpbm.js";
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
@@ -4146,8 +4146,9 @@ it("decodes JPEG and JPEG-in-TIFF and encodes WebP in actual Workerd using only 
   });
   tiff.set(jpeg, start);
   cases.push({ name: "tiff", input: tiff });
+  cases.push({name:"webp",input:encodeWebpImage(decodeJpegImage(jpeg))});
   const expected = cases.map(({ input, name }) => {
-    const { data, ...metadata } = name === "tiff" ? decodeTiffImage(input) : decodeJpegImage(input);
+    const { data, ...metadata } = name === "webp"?decodeWebpImage(input):name === "tiff" ? decodeTiffImage(input) : decodeJpegImage(input);
     const encoded=encodeWebpImage({...metadata,data});
     return { metadata, length: data.length, hash: workerHash(data), encodedLength:encoded.length,encodedHash:workerHash(encoded) };
   });
@@ -4167,15 +4168,16 @@ it("decodes JPEG and JPEG-in-TIFF and encodes WebP in actual Workerd using only 
  import {decodeJpegToStorage} from './packages/image-ast/src/codecs/jpeg-input-storage.ts';
  import {decodeTiffToStorage} from './packages/image-ast/src/codecs/tiff-input-storage.ts';
  import {encodeWebpFromStorage} from './packages/image-ast/src/codecs/webp-storage.ts';
+ import {decodeWebpToStorage} from './packages/image-ast/src/codecs/webp-input-storage.ts';
  export default {async fetch(request,env){
-  const {id,size,tiff}=await request.json(), signal=new AbortController().signal;let next=17,largestAllocation=0,largestTransfer=0,mapPeak=0,allocationCount=0;
+  const {id,size,tiff,webp}=await request.json(), signal=new AbortController().signal;let next=17,largestAllocation=0,largestTransfer=0,mapPeak=0,allocationCount=0;
   const transfer=async(kind,position,length,bytes)=>{if(length>4096)throw new Error('unbounded transfer');largestTransfer=Math.max(largestTransfer,length);const response=await env.BACKING.fetch('https://backing/'+id+'/'+kind+'?position='+position+'&length='+length,{method:bytes?'POST':'GET',body:bytes});if(!response.ok)throw new Error('backing status '+response.status);return bytes?undefined:new Uint8Array(await response.arrayBuffer());};
   const source={size,read(position,length){return transfer('source',position,length);}};
   const storage={allocate(length){const position=next;next+=length+19;allocationCount++;return position;},read(position,length){return transfer('read',position,length);},write(position,bytes){return transfer('write',position,bytes.length,bytes);}};
   const NativeArray=Uint8Array,NativeMap=Map;
   globalThis.Uint8Array=new Proxy(NativeArray,{construct(target,args){const argument=args[0],length=typeof argument==='number'?argument:argument?.byteLength??argument?.length??0;largestAllocation=Math.max(largestAllocation,length);return Reflect.construct(target,args);}});
   globalThis.Map=class extends NativeMap{set(k,v){const result=super.set(k,v);mapPeak=Math.max(mapPeak,this.size);return result;}};
-  let image,encodedLength=0,encodedHash=2166136261;try{image=await (tiff?decodeTiffToStorage:decodeJpegToStorage)(source,storage,signal);for await(const bytes of encodeWebpFromStorage(image,storage,signal)){if(bytes.length>4096)throw new Error("unbounded output");encodedLength+=bytes.length;for(const byte of bytes)encodedHash=Math.imul(encodedHash^byte,16777619)>>>0;}}finally{globalThis.Uint8Array=NativeArray;globalThis.Map=NativeMap;}
+  let image,encodedLength=0,encodedHash=2166136261;try{image=await (webp?decodeWebpToStorage:tiff?decodeTiffToStorage:decodeJpegToStorage)(source,storage,signal);for await(const bytes of encodeWebpFromStorage(image,storage,signal)){if(bytes.length>4096)throw new Error("unbounded output");encodedLength+=bytes.length;for(const byte of bytes)encodedHash=Math.imul(encodedHash^byte,16777619)>>>0;}}finally{globalThis.Uint8Array=NativeArray;globalThis.Map=NativeMap;}
   const {position,...metadata}=image,length=image.width*image.height*4;let hash=2166136261;
   for(let offset=0;offset<length;offset+=4096){const bytes=await storage.read(position+offset,Math.min(4096,length-offset));for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;}
   return Response.json({metadata,length,hash,encodedLength,encodedHash,largestAllocation,largestTransfer,mapPeak,allocated:next,allocationCount,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});
@@ -4260,7 +4262,7 @@ it("decodes JPEG and JPEG-in-TIFF and encodes WebP in actual Workerd using only 
     for (const [index, sample] of cases.entries()) {
       const response = await runtime.dispatchFetch("https://jpeg.test/", {
         method: "POST",
-        body: JSON.stringify({ id: index, size: sample.input.length, tiff: sample.name === "tiff" })
+        body: JSON.stringify({ id: index, size: sample.input.length, tiff: sample.name === "tiff",webp:sample.name==="webp" })
       });
       expect(response.status).toBe(200);
       const result = (await response.json()) as Record<string, unknown>;

@@ -374,6 +374,7 @@ export class OverlayMemoryPublication {
   }
 
   async publish(staging: FileStaging, path: string, options: PublishStagedFileOptions): Promise<void> {
+    if (options.preserveIdentity) throw new FsError("ENOTSUP", { path });
     options.signal?.throwIfAborted();
     this.path(path);
     const owned = this.stages.get(staging.directory);

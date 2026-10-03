@@ -711,7 +711,7 @@ const SHARED_STOCK_MEMORY_CAPABILITIES: FileSystemCapabilities = Object.freeze({
   permissions: true,
   timestamps: true,
   atomicRename: true,
-  atomicFileStaging: true, retainedStagingCleanup: true, retainedStagingWrite: true, atomicStagingAncestry: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicEntryRemovalReceipt: true, atomicTreeRemoval: true,
+  atomicStagedFileMutation: true, atomicFileStaging: true, retainedStagingCleanup: true, retainedStagingWrite: true, atomicStagingAncestry: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicEntryRemovalReceipt: true, atomicTreeRemoval: true,
   synchronousDirectoryValidation: true, synchronousStagingResolution: true, guardedStagingPublication: true,
   atomicDirectoryMetadata: true,
   streamingRead: true,
@@ -2234,6 +2234,7 @@ export class MemoryFileSystem implements FileSystem {
 
   async publishStagedFile(receipt: FileStaging, destination: string, options: PublishStagedFileOptions): Promise<void> {
     const signal = options.signal;
+    const preserveIdentity = options.preserveIdentity === true;
     const guard = options.commitGuard;
     const ancestors = options.ancestors === undefined ? undefined : snapshotDirectoryAncestry(options.ancestors);
     const snapshot = (entry: FileStagingEntry): FileStagingEntry => ({ path: entry.path, stat: { ...entry.stat } });
@@ -2256,10 +2257,42 @@ export class MemoryFileSystem implements FileSystem {
     this.expectEntry(target.node, expected, destination);
     if (target.parent === directory.node || target.node === directory.node || target.node === file.node) this.fail("EINVAL", "publishStagedFile", destination);
     if (target.node && target.node.type !== "file") this.fail("EAGAIN", "publishStagedFile", destination);
+    if (preserveIdentity) {
+      if (this.capabilities.atomicStagedFileMutation !== true) this.fail("ENOTSUP", "publishStagedFile", destination);
+      if (file.node?.type !== "file" || target.node?.type !== "file" || expected === null) this.fail("EINVAL", "publishStagedFile", destination);
+      this.permission(file.parent, 3, "publishStagedFile", staging.file.path);
+      this.permission(target.parent, 3, "publishStagedFile", destination);
+      this.permission(target.node, 2, "publishStagedFile", destination);
+      // Provider-owned storage is copied directly, without assembling an archive
+      // in caller memory. Preserve retained staging readers and independent writes.
+      this.admitSize(target.node, file.node.byteLength, "publishStagedFile", destination);
+      const allocation = this.allocate(file.node.byteLength, "publishStagedFile", destination);
+      try {
+        for (let offset = 0; offset < file.node.byteLength; offset += 65536) {
+          allocation.data.set(file.node.data.subarray(offset, offset + 65536), offset);
+        }
+      } catch (error) { allocation.release(); throw error; }
+      // No awaits or overridable operations occur between admission and commit.
+      const now = Date.now();
+      this.replaceData(target.node, allocation);
+      this.changed(target.node, now);
+      target.node.atimeMs = file.node.atimeMs;
+      target.node.mtimeMs = file.node.mtimeMs;
+      file.parent.entries.delete(file.name);
+      this.ledger.release(file.name.length * 2, 1);
+      file.node.nlink--;
+      file.node.ctimeMs = now;
+      file.node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, file.node.revision + 1);
+      this.releaseNode(file.node);
+      this.changed(file.parent, now);
+      memoryCaches.get(this.ledger)!.clearWrites();
+      return;
+    }
     return MemoryFileSystem.prototype.rename.call(this, staging.file.path, destination, { ...controls, noReplace: expected === null });
   }
 
   async publishStagedFileSet(receipt: FileStaging, destination: string, options: PublishStagedFileSetOptions): Promise<FileStat> {
+    if (options.preserveIdentity) this.fail("ENOTSUP", "publishStagedFileSet", destination);
     const signal = options.signal;
     const guard = options.commitGuard;
     const ancestors = options.ancestors === undefined ? undefined : snapshotDirectoryAncestry(options.ancestors);

@@ -1271,6 +1271,17 @@ quota, permission, and unsupported-metadata failures must precede publication of
 any staging entry. Implementations retain their existing file and aggregate
 limits; this contract adds no larger byte allowance.
 
+`atomicStagedFileMutation: true` additionally qualifies
+`publishStagedFile(staging, destination, { preserveIdentity: true, parent, destination: expected })`.
+It requires an existing regular destination, atomically replaces its contents and
+atime/mtime from the staged file, preserves its identity, mode and hardlink aliases,
+and consumes the staged pathname. All source/destination versions, parent identity,
+permissions, cancellation and optional commit guards are checked before effects.
+The provider copies or transfers its own storage without a caller-owned whole-file
+buffer; provider storage and admission limits still apply. Retained staging readers
+remain valid independently of later target writes. Unsupported adapters reject the
+option before effects. This option does not apply to `publishStagedFileSet`.
+
 `publishStagedFileSet(staging, destination, options)` is an optional stronger
 publication operation. Its presence advertises support; ordinary single-file
 staging does not imply it. In addition to the regular-file replacement it checks

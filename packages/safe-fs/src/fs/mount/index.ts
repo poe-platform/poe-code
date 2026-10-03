@@ -157,6 +157,7 @@ export class MountFileSystem implements FileSystem {
         retainedStagingCleanup: ["createStagedFile", "publishStagedFile", "removeStagedFile"],
         synchronousDirectoryValidation: ["prepareDirectoryAncestry"], guardedStagingPublication: ["createStagedFile", "publishStagedFile", "removeStagedFile"],
         trustedOwnedStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile", "writeFileConditional", "removeFileConditional", "prepareDirectory"],
+        atomicStagedFileMutation: ["createStagedFile", "publishStagedFile", "removeStagedFile"],
         atomicFilePublication: ["publishFileConditional"], atomicEntryRemoval: ["removeEntryConditional"], atomicEntryRemovalReceipt: ["removeEntryConditional"], atomicTreeRemoval: ["removeTreeConditional"], atomicFileMutation: ["writeFileConditional", "removeFileConditional"], atomicFileStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile"], atomicDirectoryMetadata: ["prepareDirectory"],
         symlinks: ["symlink", "readlink"], hardlinks: ["link"], permissions: ["chmod"], timestamps: ["utimes"], readlink: ["readlink"],
         descriptorWriteStream: ["writeStream"], retainedResize: ["openResizeFile"], atomicResize: ["resizeFile"],
@@ -173,7 +174,7 @@ export class MountFileSystem implements FileSystem {
       return values.every(value => value === true) ? true : values.every(value => value === false) ? false : undefined;
     };
     const semantics = Object.fromEntries([
-      "guardedStagingPublication", "retainedStagingCleanup", "atomicEntryRemovalReceipt",
+      "guardedStagingPublication", "retainedStagingCleanup", "atomicEntryRemovalReceipt", "atomicStagedFileMutation",
       "trustedOwnedStaging", "atomicFilePublication", "atomicEntryRemoval", "atomicTreeRemoval", "atomicFileMutation", "atomicFileStaging", "atomicDirectoryMetadata", "read", "stat", "readdir", "realpath", "access", "open", "versionedDescriptors",
       "write", "append", "exclusiveCreate", "explicitDirectories", "implicitDirectories", "mkdir", "recursiveMkdir",
       "remove", "removeDirectory", "recursiveRemove", "rename", "atomicRenameNoReplace", "copy", "exclusiveCopy", "readlink", "truncate",
@@ -1058,6 +1059,7 @@ export class MountFileSystem implements FileSystem {
       await requireOwnedMutation(local.mount.backend, local.staging.directory.path, "atomicFileStaging", options);
       await requireOwnedMutation(local.mount.backend, target.local, "atomicFileStaging", options, options.destination === null);
       if (!local.mount.backend.publishStagedFile) fail("ENOTSUP");
+      if (options.preserveIdentity) await requireOwnedMutation(local.mount.backend, target.local, "atomicStagedFileMutation", options);
       if (ancestors || callerGuard !== undefined) await requireOwnedMutation(local.mount.backend, target.local, "guardedStagingPublication", options, options.destination === null);
       if (!ancestors) {
         await local.mount.backend.publishStagedFile(local.staging, target.local, options);

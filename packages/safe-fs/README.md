@@ -137,7 +137,11 @@ For temporary staging that must be cleaned up after its parent moves, adapters
 advertising `retainedStagingCleanup` accept `createStagedFile(..., { parent,
 retainCleanup: true })`. Use the returned `staging.cleanup.remove()` and always
 call `staging.cleanup.close()` in `finally`. Memory and its supported wrappers
-retain only the owned staging entries; replacement entries remain protected.
+retain only the owned staging entries; replacement entries remain protected. When
+`atomicStagedFileMutation` is available, `publishStagedFile(..., { preserveIdentity: true,
+parent, destination })` updates an existing file without breaking hardlink aliases.
+Memory and its supported wrappers adopt staged bytes and timestamps while keeping
+the destination identity and mode; unsupported adapters reject this option.
 Overlays backed by stock Memory filesystems support conditional file mutations,
 directory preparation, and confined staging. Publication may omit `ancestors`
 when the destination shares the staging parent; the overlay checks the ancestry

@@ -29,7 +29,7 @@ const deviceCapabilities: FileSystemCapabilities = Object.freeze({
   remove: false, removeDirectory: false, recursiveRemove: false, rename: false,
   mkdir: false, recursiveMkdir: false, symlinks: false, hardlinks: false, readlink: false,
   permissions: false, timestamps: false, truncate: false, randomAccessWrite: false,
-  open: true, retainedStagingCleanup: false, atomicFilePublication: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicEntryRemovalReceipt: false, atomicTreeRemoval: false, atomicFileStaging: false, atomicDirectoryMetadata: false, trustedOwnedStaging: false,
+  open: true, retainedStagingCleanup: false, atomicFilePublication: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicEntryRemovalReceipt: false, atomicTreeRemoval: false, atomicStagedFileMutation: false, atomicFileStaging: false, atomicDirectoryMetadata: false, trustedOwnedStaging: false,
   atomicRename: false, atomicRenameNoReplace: false, descriptorWriteStream: true, retainedResize: true, atomicResize: false,
 });
 
@@ -41,6 +41,7 @@ function globalCapabilities(filesystem: FileSystem): FileSystemCapabilities {
     synchronousDirectoryValidation: ["prepareDirectoryAncestry"], guardedStagingPublication: ["createStagedFile", "publishStagedFile", "removeStagedFile"],
     synchronousStagingResolution: ["prepareStagingResolution"],
     trustedOwnedStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile", "writeFileConditional", "removeFileConditional", "prepareDirectory"],
+    atomicStagedFileMutation: ["createStagedFile", "publishStagedFile", "removeStagedFile"],
     atomicFilePublication: ["publishFileConditional"], atomicEntryRemoval: ["removeEntryConditional"], atomicEntryRemovalReceipt: ["removeEntryConditional"], atomicTreeRemoval: ["removeTreeConditional"], atomicFileMutation: ["writeFileConditional", "removeFileConditional"], atomicFileStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile"], atomicDirectoryMetadata: ["prepareDirectory"],
     streamingRead: ["readStream"], streamingWrite: ["writeStream"], retainedRead: ["openReadFile"],
     streamingAppend: ["writeStream"], descriptorWriteStream: ["writeStream"], retainedResize: ["openResizeFile"], atomicResize: ["resizeFile"],
@@ -626,6 +627,7 @@ export class DeviceFileSystem implements FileSystem {
     for (const path of [staging.directory.path, staging.file.path, destination]) await this.#mutable(path, options, false);
     await requireOwnedMutation(this.#filesystem, staging.directory.path, "atomicFileStaging", options);
     await requireOwnedMutation(this.#filesystem, destination, "atomicFileStaging", options, options.destination === null);
+    if (options.preserveIdentity) await requireOwnedMutation(this.#filesystem, destination, "atomicStagedFileMutation", options);
     if (!this.#filesystem.publishStagedFile) throw new FsError("ENOTSUP", { path: destination });
     if (options.commitGuard !== undefined) await requireOwnedMutation(this.#filesystem, destination, "guardedStagingPublication", options, options.destination === null);
     await this.#filesystem.publishStagedFile(staging, destination, options);

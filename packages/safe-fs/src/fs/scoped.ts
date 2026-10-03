@@ -310,6 +310,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
             if (property === "publishStagedFile") {
               const publishOptions = (options ?? {}) as PublishStagedFileOptions;
               await requireOwnedMutation(original, args[1] as string, "atomicFileStaging", publishOptions, publishOptions.destination === null);
+              if (publishOptions.preserveIdentity) await requireOwnedMutation(original, args[1] as string, "atomicStagedFileMutation", publishOptions);
               const query = (options as PublishStagedFileOptions).destination === null ? { ...options, create: true } : options;
               const declared = ownedMutationCapabilities(original, await original.capabilitiesFor?.(args[1] as string, query) ?? original.capabilities);
               assertReady();

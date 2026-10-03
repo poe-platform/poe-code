@@ -81,6 +81,8 @@ export interface FileSystemCapabilities {
   /** Owned staging serialized within a trusted host; requires external tree isolation. */
   readonly trustedOwnedStaging?: boolean;
   readonly atomicFileStaging?: boolean;
+  /** Staged payload publication can atomically preserve an existing inode. */
+  readonly atomicStagedFileMutation?: boolean;
   /** Creates a cleanup handle bound to owned staging entries, independent of ancestor paths. */
   readonly retainedStagingCleanup?: boolean;
   readonly retainedStagingWrite?: boolean;
@@ -308,6 +310,11 @@ export interface CreateStagedFileOptions extends FsOptions {
 }
 
 export interface PublishStagedFileOptions extends FsOptions {
+  /** Requires atomicStagedFileMutation and an existing regular destination.
+   * Atomically adopts staged bytes and timestamps while preserving destination
+   * identity, links and mode. Consumes the staged pathname as ordinary publication.
+   * Unsupported hosts must reject before effects, never silently rename. */
+  readonly preserveIdentity?: boolean;
   readonly ancestors?: readonly FileStagingEntry[];
   /** Trusted, mutation-free validation. Must return literal true synchronously;
    * a promise is not acceptance. Requires guardedStagingPublication. */

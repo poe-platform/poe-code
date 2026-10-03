@@ -14,6 +14,7 @@ import {
   type PdfPathSegment,
   type PdfTextCommand,
 } from "../ast.js";
+import type { PdfFileSource } from "../source.js";
 import { parseContentOperators, type PdfContentOperator } from "./operator-parser.js";
 
 const PATH_PAINT_OPS = new Set(["S", "s", "f", "F", "f*", "B", "B*", "b", "b*", "n"]);
@@ -22,16 +23,25 @@ function numVal(node: PdfCosNode | undefined, fallback = 0): number {
   return node?.kind === "number" ? node.value : fallback;
 }
 
-export type PdfContentEvent = PdfContentNode
+/** Borrowed inline-image bytes. The caller keeps source open through decoding. */
+export interface PdfContentRange {
+  readonly kind: "range";
+  readonly source: PdfFileSource;
+  readonly start: number;
+  readonly end: number;
+}
+export type PdfBufferedContentEvent = PdfContentNode
   | { readonly kind: "begin-group"; readonly group: Extract<PdfContentNode, { kind: "graphics-group" | "marked-content" }> }
   | { readonly kind: "end-group" };
+export type PdfContentEvent = PdfBufferedContentEvent
+  | { readonly kind: "inline-image"; readonly dict: PdfCosDict; readonly data: PdfContentRange };
 export type PdfContentParseRequest = { readonly kind: "operator" }
   | { readonly kind: "inline-image"; readonly start: number; readonly end: number }
   | { readonly kind: "event"; readonly event: PdfContentEvent };
-export type PdfContentParseResult = PdfContentOperator | Uint8Array | undefined;
+export type PdfContentParseResult = PdfContentOperator | Uint8Array | PdfContentRange | undefined;
 type ParseWork = Generator<PdfContentParseRequest, void, PdfContentParseResult>;
 
-/** Shared grammar with caller-supplied operators and inline-image bytes. Group
+/** Shared grammar with caller-supplied operators and inline-image bytes or ranges. Group
  * boundaries are events; text is emitted incrementally unless a buffered caller
  * explicitly requests the original text-object grouping. */
 export function* parseContentSteps(options: { readonly splitText?: boolean } = {}): ParseWork {
@@ -65,13 +75,14 @@ export function* parseContentSteps(options: { readonly splitText?: boolean } = {
   while (true) {
     const input = yield { kind: "operator" };
     if (input === undefined) break;
-    if (input instanceof Uint8Array) throw new TypeError("Expected a PDF content operator");
+    if (input instanceof Uint8Array || "kind" in input) throw new TypeError("Expected a PDF content operator");
     const { operator: op, operands: args, inlineImage } = input;
     if (inlineImage) {
       yield* flushInTextCommands();
       const data = yield { kind: "inline-image", start: inlineImage.start, end: inlineImage.end };
-      if (!(data instanceof Uint8Array)) throw new TypeError("Expected PDF inline-image bytes");
-      yield* emit({ kind: "inline-image", dict: inlineImage.dict, data });
+      if (data instanceof Uint8Array) yield* emit({ kind: "inline-image", dict: inlineImage.dict, data });
+      else if (data && "kind" in data && data.kind === "range") yield* emit({ kind: "inline-image", dict: inlineImage.dict, data });
+      else throw new TypeError("Expected PDF inline-image bytes or retained range");
       continue;
     }
 
@@ -357,7 +368,7 @@ export function* parseContentSteps(options: { readonly splitText?: boolean } = {
 }
 
 /** Pull parser events without collecting graphics groups or whole text objects. */
-export function* parseContentEvents(bytes: Uint8Array, options: { splitText?: boolean } = {}): Generator<PdfContentEvent, void, void> {
+export function* parseContentEvents(bytes: Uint8Array, options: { splitText?: boolean } = {}): Generator<PdfBufferedContentEvent, void, void> {
   const operators = parseContentOperators(bytes);
   const work = parseContentSteps(options);
   let step = work.next();
@@ -367,7 +378,14 @@ export function* parseContentEvents(bytes: Uint8Array, options: { splitText?: bo
       switch (step.value.kind) {
         case "operator": { const next = operators.next(); result = next.done ? undefined : next.value; break; }
         case "inline-image": result = bytes.subarray(step.value.start, step.value.end); break;
-        case "event": yield step.value.event; break;
+        case "event": {
+          const event = step.value.event;
+          if (event.kind === "inline-image") {
+            if (!(event.data instanceof Uint8Array)) throw new TypeError("Buffered parser received a retained inline image");
+            yield { kind: "inline-image", dict: event.dict, data: event.data };
+          } else yield event;
+          break;
+        }
       }
       step = work.next(result);
     }

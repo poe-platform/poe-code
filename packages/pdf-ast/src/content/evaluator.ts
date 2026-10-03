@@ -23,7 +23,7 @@ import type { ParsedCosDocument } from "../cos/parser.js";
 import { PdfError } from "../errors.js";
 import { bytesToString } from "../bytes.js";
 import { iterateCMapCharacters } from "../fonts/cmap.js";
-import { parseContentEvents, type PdfContentEvent } from "./parser.js";
+import { parseContentEvents, type PdfContentEvent, type PdfContentRange } from "./parser.js";
 import { createCalibratedColorSpace } from "./calibrated-color.js";
 import {
   decodeWinAnsiByte,
@@ -875,7 +875,7 @@ export type PdfEvaluationRequest = PdfEvaluationShadingRequest | PdfEvaluationOp
   | { readonly kind: "close-content"; readonly source: PdfEvaluationContentSource }
   | { readonly kind: "mask-parameters"; readonly mask: PdfCosDict; readonly form: PdfCosStream; readonly resources: PdfCosDict | undefined }
   | { readonly kind: "color"; readonly name: string; readonly components: readonly number[]; readonly resources: PdfCosDict | undefined }
-  | { readonly kind: "inline-image"; readonly dict: PdfCosDict; readonly data: Uint8Array; readonly resources: PdfCosDict | undefined; readonly fillColor: Parameters<typeof decodeInlineImageNodeToRgba>[4] }
+  | { readonly kind: "inline-image"; readonly dict: PdfCosDict; readonly data: Uint8Array | PdfContentRange; readonly resources: PdfCosDict | undefined; readonly fillColor: Parameters<typeof decodeInlineImageNodeToRgba>[4] }
   | { readonly kind: "image"; readonly stream: PdfCosStream; readonly resources: PdfCosDict | undefined; readonly fillColor: Parameters<typeof decodeXObjectImageToRgba>[3] };
 export type PdfEvaluationResult = PdfContentEvent | ResolvedPageFont
   | { readonly kind: "shading"; readonly image: PdfEvaluatedImage | undefined }
@@ -1961,6 +1961,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
       } else if (step.value.kind === "color") {
         step = work.next({ kind: "color", value: convertColorSpaceComponentsToRgb(params.cosDoc, undefined, step.value.name, step.value.components, step.value.resources) });
       } else if (step.value.kind === "inline-image") {
+        if (!(step.value.data instanceof Uint8Array)) throw new PdfError("E_CAPABILITY", "Retained inline images require an asynchronous source driver");
         step = work.next({ kind: "decoded-image", image: decodeInlineImageNodeToRgba(params.cosDoc, step.value.dict, step.value.data, step.value.resources, step.value.fillColor) });
       } else if (step.value.kind === "mask-parameters") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF soft-mask parameters require a source driver");

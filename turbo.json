@@ -19,11 +19,18 @@
       "inputs": [
         "src/**",
         "tests/**",
+        "scripts/**",
         "packages/**/*.test.ts",
         "package.json",
         "tsconfig.json",
         "vitest.config.ts",
+        "vitest.root.config.ts",
         "!packages/safe-bash/**"
+      ],
+      "dependsOn": [
+        "@poe-code/superintendent#build",
+        "@poe-code/poe-agent#build",
+        "@poe-code/agent-skill-config#build"
       ]
     },
     "lint": {
@@ -654,6 +661,21 @@
     "safe-bash-command-pptx#test:unit": {
       "dependsOn": [
         "^build"
+      ]
+    },
+    "@poe-code/superintendent#test:unit": {
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "@poe-code/poe-agent#test:unit": {
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "@poe-code/agent-skill-config#test:unit": {
+      "dependsOn": [
+        "build"
       ]
     }
   }

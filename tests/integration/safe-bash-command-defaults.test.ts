@@ -136,7 +136,7 @@ describe("new default command entrypoints", () => {
     await fs.writeFile("/output.csv", sentinel);
     await expect(
       run(createSsconvertCommand({ limits: { inputBytes: 2 } }), args, "", fs)
-    ).rejects.toMatchObject({ code: "EFBIG" });
+    ).resolves.toMatchObject({ exitCode: 1, stdout: "", stderr: "ssconvert input bytes limit exceeded\n" });
     expect(await fs.readFile("/output.csv")).toEqual(sentinel);
     expect((await fs.readdir("/")).map((entry) => entry.name).sort()).toEqual([
       "input.csv", "output.csv"

@@ -71,7 +71,7 @@ describe("built portable entrypoints", () => {
     const result = await build({
       absWorkingDir: root.pathname,
       stdin: { contents: `export * from ${JSON.stringify(specifier)};`, resolveDir: root.pathname },
-      alias: { "@poe-platform/safe-fs": "@poe-code/safe-fs" },
+      alias: { "@poe-platform/safe-fs": "@poe-code/safe-fs", "poe-code/safe-fs/core": "@poe-code/safe-fs/core" },
       tsconfigRaw: {},
       bundle: true, platform: "browser", conditions: ["workerd"], format: "esm", write: false,
       // Match the production workerd bundler: Wasm imports retain module assets.

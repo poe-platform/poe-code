@@ -584,7 +584,7 @@ beforeAll(async () => {
 
 beforeAll(() => {
   const sandbox = createContext({
-    TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream, DecompressionStream,
+    TextEncoder, TextDecoder, Error, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream, DecompressionStream,
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
     URL, FormData, Blob, Response, btoa, atob, structuredClone,
   });
@@ -608,7 +608,7 @@ beforeAll(async () => {
 beforeAll(async () => {
   const consumer = await bundlePublicConsumer(await readFile(path.join(root, "scripts/fixtures/safe-packages-mixed-entry-runtime.mjs"), "utf8"));
   const sandbox = createConsumerContext({
-    TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
+    TextEncoder, TextDecoder, Error, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
   });
   mixedConsumer = runInContext(`(function(){ const module = { exports: {} }; ${consumer}; return module.exports; })()`, sandbox);

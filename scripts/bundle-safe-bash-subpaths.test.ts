@@ -44,6 +44,7 @@ test("each command subpath resolves and executes in workerd without Node compati
     ...recipe.alias, "@poe-code/safe-fs/runtime-core": core, "@poe-code/safe-fs/core": core, "@poe-code/safe-fs": core,
     "@poe-code/safe-fs/xml": core,
     "@poe-code/safe-fs/contracts": core,
+    "@poe-code/safe-fs/storage": core,
     "poe-code/safe-fs/core": core, "poe-code/safe-fs": core,
     "@poe-code/xml-ast": path.join(root, "packages/xml-ast/src/index.ts"),
   } });

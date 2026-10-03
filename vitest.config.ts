@@ -21,6 +21,46 @@ function rawTextPlugin(): Plugin {
   };
 }
 
+// Source aliases cross package boundaries; resolve private imports in their owner.
+function workspaceImportsPlugin(): Plugin {
+  const packagesDir = path.resolve(__dirname, "packages");
+  const runtimeTarget = (target: unknown): string | undefined => {
+    if (typeof target === "string") return target;
+    if (target && typeof target === "object" && !Array.isArray(target)) {
+      for (const [condition, value] of Object.entries(target)) {
+        if (["node", "import", "default"].includes(condition)) {
+          const resolved = runtimeTarget(value);
+          if (resolved !== undefined) return resolved;
+        }
+      }
+    }
+    return undefined;
+  };
+  return {
+    name: "workspace-private-imports",
+    enforce: "pre",
+    resolveId(specifier, importer) {
+      if (!specifier.startsWith("#") || !importer) return;
+      let directory = path.dirname(importer.split("?")[0]!);
+      while (directory.startsWith(packagesDir + path.sep)) {
+        const manifestPath = path.join(directory, "package.json");
+        if (fs.existsSync(manifestPath)) {
+          const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+          const target = runtimeTarget(manifest.imports?.[specifier]);
+          if (!target?.startsWith("./")) return;
+          if (target.startsWith("./dist/")) {
+            const source = path.join(directory, "src", target.slice("./dist/".length));
+            const typescript = source.endsWith(".js") ? source.slice(0, -3) + ".ts" : source;
+            if (fs.existsSync(typescript)) return this.resolve(typescript, importer, { skipSelf: true });
+          }
+          return this.resolve(path.resolve(directory, target), importer, { skipSelf: true });
+        }
+        directory = path.dirname(directory);
+      }
+    }
+  };
+}
+
 function getPackageAliases(): Record<string, string> {
   const packagesDir = path.resolve(__dirname, "packages");
   const packages = fs
@@ -139,7 +179,7 @@ function getPackageAliases(): Record<string, string> {
 }
 
 export default defineConfig({
-  plugins: [rawTextPlugin()],
+  plugins: [rawTextPlugin(), workspaceImportsPlugin()],
   resolve: {
     // Resolve workspace packages to source for tests (no build required)
     alias: getPackageAliases()

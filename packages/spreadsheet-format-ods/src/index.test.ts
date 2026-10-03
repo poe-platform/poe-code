@@ -24,9 +24,9 @@ it.each([
   const output: Uint8Array[] = [];
   try {
     const book = await engine.readWorkbook({ kind: "stream", source: [] }, { importType: "fixture" }, operation);
-    await engine.writeWorkbook(book, { kind: "stream", sink: { async write(bytes) { output.push(bytes); } } },
+    await engine.writeWorkbook(book, { kind: "stream", sink: { async write(bytes) { output.push(bytes.slice()); } } },
       { exportType: "Gnumeric_OpenCalc:odf", ...(encryption ? { exportOptions: [`encryption=${encryption}`] } : {}) }, operation);
-    const bytes = output[0]!;
+    const bytes = Buffer.concat(output);
     const roundtrip = await engine.readWorkbook(mode === "buffered" ? { kind: "stream", filename: "book.ods", source: output } : {
       kind: "range", filename: "book.ods", source: { size: bytes.length, async read(position, maximum) {
         return bytes.subarray(position, position + Math.min(maximum, 31));

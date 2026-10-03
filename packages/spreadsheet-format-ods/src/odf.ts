@@ -796,8 +796,32 @@ function durationComponent(value: number): string {
   return digits.slice(0, point) + "." + digits.slice(point);
 }
 
+async function collectOdfArchive(source: AsyncIterable<Uint8Array>): Promise<Uint8Array> {
+  const chunks: Uint8Array[] = []; let length = 0;
+  try {
+    for await (const bytes of source) { chunks.push(bytes.slice()); length += bytes.length; }
+    const result = new Uint8Array(length); let offset = 0;
+    for (const bytes of chunks) { result.set(bytes, offset); offset += bytes.length; }
+    return result;
+  } finally { for (const bytes of chunks) bytes.fill(0); }
+}
+
 export function createOdfWriter(profile: "strict" | "extended") {
-  return async (book: Workbook, options: readonly string[], context: CapabilityContext): Promise<Uint8Array> => {
+  const stream = createOdfStreamWriter(profile);
+  return (book: Workbook, options: readonly string[], context: CapabilityContext): Promise<Uint8Array> =>
+    collectOdfArchive(stream(book, options, context));
+}
+
+export function createOdfStreamWriter(profile: "strict" | "extended") {
+  return async function* (book: Workbook, options: readonly string[], context: CapabilityContext): AsyncGenerator<Uint8Array> {
+    let storage: import("@poe-code/spreadsheet-engine/contracts").WorkingStorage | undefined;
+    let closed = false, closing: Promise<void> | undefined, failure: { error: unknown } | undefined;
+    const close = () => {
+      closed = true;
+      return closing ??= Promise.resolve().then(async () => { await storage?.close(); });
+    };
+    context.own(close);
+    try {
     context.signal.throwIfAborted();
     let encryptionProfile: OdfEncryptionProfile | undefined;
     for (const text of options) for (const [key, value] of exportOptionPairs(text)) if (key === "encryption") {
@@ -811,6 +835,9 @@ export function createOdfWriter(profile: "strict" | "extended") {
     const cellStyles = createOdfStyles(xml, extended, book, context);
     const zip = createZipCodec(), zipLimits = { ...bounds(context), maxArchiveBytes: context.limits.outputBytes,
       maxEntryBytes: context.limits.outputBytes, maxTotalBytes: context.limits.outputBytes };
+    if (closed) throw new SsconvertError("invalid-request", "ODF writer is closed");
+    storage = context.createWorkingStorage?.();
+    if (closed) throw new SsconvertError("invalid-request", "ODF writer is closed");
     let count = 0;
     if (!book.sheets.length || book.sheets.length > context.limits.sheets) limit("sheets");
     const sheetNames = book.sheets.map(sheet => { xml.charge(sheet.name.length); return sheet.name; });
@@ -1188,24 +1215,34 @@ export function createOdfWriter(profile: "strict" | "extended") {
       [...parts.keys()].filter(n => n !== "mimetype").map(n => e("manifest:file-entry", { "manifest:full-path": n, "manifest:media-type": n.endsWith(".xml") ? "text/xml" : n.endsWith(".png") ? "image/png" : n.endsWith(".jpg") || n.endsWith(".jpeg") ? "image/jpeg" : "",
         "manifest:size": protectedParts?.get(n)?.size }, protectedParts?.get(n)?.declaration ?? "")).join("")));
     let memberCount = 0;
-    async function packageParts(values: ReadonlyMap<string, Uint8Array>, encrypted = protectedParts) {
+    async function* packageParts(values: ReadonlyMap<string, Uint8Array>, encrypted = protectedParts): AsyncGenerator<Uint8Array> {
       if (values.size > zipLimits.maxMembers - memberCount) limit("ZIP members");
       memberCount += values.size;
-      const entries = []; let bytes = 0;
+      const entries: ZipEntry[] = []; let bytes = 0;
+      const staged = storage ? zip.createStagedWriter(storage, zipLimits, context.signal) : undefined;
       try {
         for (const [name, value] of values) {
           const payload = encrypted?.get(name)?.bytes ?? value;
           xml.charge(payload.length); bytes += payload.length; if (bytes > context.limits.outputBytes) limit("output bytes");
-          entries.push(await zip.makeZipEntry(name, payload, { modified: new Date("2000-01-01Z"), mode: 0o644,
-            directory: false, symlink: false, compression: name === "mimetype" || encrypted?.has(name) ? "store" : "deflate" }, zipLimits, context.signal));
+          const attributes = { modified: new Date("2000-01-01Z"), mode: 0o644,
+            directory: false, symlink: false, compression: name === "mimetype" || encrypted?.has(name) ? "store" as const : "deflate" as const };
+          if (staged) {
+            async function* chunks() {
+              for (let offset = 0; offset < payload.length; offset += 16384) {
+                context.signal.throwIfAborted(); yield payload.subarray(offset, offset + 16384);
+              }
+            }
+            await staged.addSource(name, chunks(), attributes);
+          } else entries.push(await zip.makeZipEntry(name, payload, attributes, zipLimits, context.signal));
         }
-        return await zip.writeZipArchive({ entries, comment: new Uint8Array() }, zipLimits, context.signal);
+        if (staged) yield* staged.finish();
+        else yield await zip.writeZipArchive({ entries, comment: new Uint8Array() }, zipLimits, context.signal);
       } catch (error) { context.signal.throwIfAborted(); if (error instanceof CodecError && error.code === "resource-limit") limit("output package"); throw error; }
       finally { if (wrapped) for (const entry of entries) entry.data.fill(0); }
     }
-    if (!wrapped) return packageParts(parts);
+    if (!wrapped) { yield* packageParts(parts); return; }
     if (parts.size + 3 > zipLimits.maxMembers) limit("ZIP members");
-    const inner = await packageParts(parts);
+    const inner = await collectOdfArchive(packageParts(parts));
     try {
       const encrypted = await encryptOdfParts(new Map([["encrypted-package", inner]]), context, xml, encryptionProfile!);
       const member = encrypted.get("encrypted-package")!, mime = parts.get("mimetype")!;
@@ -1213,11 +1250,18 @@ export function createOdfWriter(profile: "strict" | "extended") {
         "xmlns:manifest": odfNamespaces.manifest, "xmlns:loext": odfEncryptionNamespace, "manifest:version": "1.4" },
         e("manifest:file-entry", { "manifest:full-path": "encrypted-package", "manifest:media-type": new TextDecoder().decode(mime),
           "manifest:size": member.size }, member.declaration));
-      return await packageParts(new Map([["mimetype", mime], ["META-INF/manifest.xml", encoder.encode(manifest)],
+      yield* packageParts(new Map([["mimetype", mime], ["META-INF/manifest.xml", encoder.encode(manifest)],
         ["encrypted-package", member.bytes]]), encrypted);
     } finally {
       inner.fill(0);
       for (const bytes of parts.values()) bytes.fill(0);
+    }
+    } catch (error) { failure = { error }; throw error; }
+    finally {
+      await close().catch(error => {
+        if (failure) throw new AggregateError([failure.error, error], "ODF export and storage cleanup failed");
+        throw error;
+      });
     }
   };
 }

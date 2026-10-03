@@ -1,0 +1,165 @@
+[
+  {
+    "entries": [
+      [
+        "new",
+        "same",
+        null
+      ]
+    ],
+    "calls": [
+      [
+        "same"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "new",
+        "content": "same"
+      },
+      {
+        "id": "old",
+        "content": "same"
+      }
+    ]
+  },
+  {
+    "entries": [
+      [
+        "old",
+        "other",
+        null
+      ],
+      [
+        "new",
+        "same",
+        null
+      ]
+    ],
+    "calls": [
+      [
+        "same"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "new",
+        "content": "same"
+      },
+      {
+        "id": "old",
+        "content": "same"
+      }
+    ]
+  },
+  {
+    "entries": [
+      [
+        "a",
+        "same",
+        null
+      ],
+      [
+        "b",
+        "same",
+        null
+      ]
+    ],
+    "calls": [
+      [
+        "same",
+        "same"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "a",
+        "content": "same"
+      },
+      {
+        "id": "b",
+        "content": "same"
+      },
+      {
+        "id": "old",
+        "content": "same"
+      }
+    ]
+  },
+  {
+    "entries": [
+      [
+        "x",
+        "first",
+        null
+      ],
+      [
+        "x",
+        "second",
+        null
+      ]
+    ],
+    "calls": [
+      [
+        "first",
+        "second"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "old",
+        "content": "same"
+      },
+      {
+        "id": "x",
+        "content": "second"
+      }
+    ]
+  },
+  {
+    "entries": [
+      [
+        "a",
+        "1",
+        null
+      ],
+      [
+        "b",
+        "2",
+        null
+      ],
+      [
+        "c",
+        "3",
+        null
+      ]
+    ],
+    "calls": [
+      [
+        "1",
+        "2"
+      ],
+      [
+        "3"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "a",
+        "content": "1"
+      },
+      {
+        "id": "b",
+        "content": "2"
+      },
+      {
+        "id": "c",
+        "content": "3"
+      },
+      {
+        "id": "old",
+        "content": "same"
+      }
+    ]
+  }
+]

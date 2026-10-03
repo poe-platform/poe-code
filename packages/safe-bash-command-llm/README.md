@@ -45,7 +45,16 @@ with `{ size, bytes }`. Consume these streams inside the visitor; they expire wh
 it returns. Ranking uses caller-backed SQLite temporary storage and bounded vector
 blocks. `catalog.exists(name)` checks a collection without creating it. Pass
 `create: false` to `withLlmCollections` to require an existing embedding schema.
-Batch imports remain incomplete.
+Use `catalog.embedMany(name, { service, entries, directory, maxInputBytes,
+batchSize: 100, store: true })` for an async iterable of `{ id, input, metadata? }`
+entries. Each yielded input lease is consumed and disposed; the iterator is
+retired on failure. The model's optional `embeddingBatchSize` further limits each
+provider call. `maxInputBytes` bounds aggregate input and metadata per batch.
+Batch deduplication follows the reference: skip existing IDs whose stored hash
+matches any input in that batch, while allowing the same content under new IDs.
+All batches participate in the surrounding catalog transaction; an error rolls
+it back. Native placeholders share one streamed record rewrite per batch.
+CLI batch imports remain incomplete.
 This optional catalog does not store conversation or response history.
 
 To enable collection commands, import `createLlmCollectionCommands` from the same

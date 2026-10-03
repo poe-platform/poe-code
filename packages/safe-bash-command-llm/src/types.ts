@@ -24,6 +24,8 @@ export interface LlmModelOption {
   readonly nullable?: boolean;
 }
 export interface LlmModel {
+  /** Maximum inputs accepted in one embedding request for this model. */
+  readonly embeddingBatchSize?: number;
   /** Source input support for this model; otherwise inferred from the provider hook. */
   readonly inputSources?: boolean;
   /** Provider accepts HTTP(S) attachment references without materializing their payloads. */

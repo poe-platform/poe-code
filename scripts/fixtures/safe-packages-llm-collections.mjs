@@ -29,8 +29,8 @@ export async function verifyLlmCollections() {
   if ((await fs.readdir("/")).length !== 1) throw new Error("Collection scratch files leaked");
   let calls=0;
   const service=createLlmService({providers:[{name:'fixture',models:[{id:'embed',capabilities:['embed']}],async *complete(){},async embedSources(request){
-    calls++;for await(const chunk of request.inputs[0].bytes)if(chunk.length>16384)throw new Error('Unbounded embedding chunk');
-    return {model:'embed',vectors:[[1,0.5,-2]]};
+    calls++;for(const input of request.inputs)for await(const chunk of input.bytes)if(chunk.length>16384)throw new Error('Unbounded embedding chunk');
+    return {model:'embed',vectors:request.inputs.map(()=>[1,0.5,-2])};
   }}]});
   const input=()=>({bytes:{async *[Symbol.asyncIterator](){yield new TextEncoder().encode('stored content');}},async dispose(){}});
   await withLlmCollections(options,async catalog=>{
@@ -40,6 +40,13 @@ export async function verifyLlmCollections() {
     await catalog.list(row=>{if(row.count!==1n)throw new Error('Embedding dedup failed');});
   });
   if(calls!==1)throw new Error('Duplicate invoked provider');
+  await withLlmCollections(options,async catalog=>{
+    await catalog.collection('batch',{model:'embed'});
+    await catalog.embedMany('batch',{service,directory:'/',maxInputBytes:1048576,batchSize:2,store:true,entries:{async *[Symbol.asyncIterator](){yield {id:'a',input:input()};yield {id:'b',input:input()};}}});
+    let count=0;await catalog.similarByVector('batch',[1,0.5,-2],{},()=>{count++;});
+    if(count!==2)throw new Error('Batch duplicate content lost');
+    await catalog.delete('batch');
+  });
   await withLlmCollections(options,async catalog=>{
     let count=0;
     await catalog.similarByVector('documents',[1,0.5,-2],{number:1},async row=>{

@@ -2,6 +2,8 @@ import {FsError, type FileSystem} from 'safe-bash-contracts';
 import {transactSqlite,withSqliteStatement,type PrivateSqliteSession,type SqliteFinalizer} from 'safe-bash-sqlite-engine/storage';
 import {migrateLlmCollections} from './collections-migrations.js';
 import {embedCollection, type LlmCollectionEmbedOptions} from './collections-embed.js';
+import {embedCollectionBatch,type LlmCollectionBatchOptions} from './collections-batch.js';
+export type {LlmCollectionBatchEntry,LlmCollectionBatchOptions} from './collections-batch.js';
 export type {LlmCollectionEmbedOptions} from './collections-embed.js';
 import {similarCollection,type LlmCollectionSimilarOptions,type LlmCollectionSimilarity} from './collections-similarity.js';
 export type {LlmCollectionSimilarOptions,LlmCollectionSimilarity,LlmCollectionField} from './collections-similarity.js';
@@ -25,6 +27,7 @@ export interface LlmCollectionCatalog {
  list(visit:(collection:LlmCollection & {readonly count:bigint})=>void|Promise<void>):Promise<void>;
  delete(name:string):Promise<void>;
  embed(name:string,id:string,options:LlmCollectionEmbedOptions):Promise<void>;
+ embedMany(name:string,options:LlmCollectionBatchOptions):Promise<void>;
  similarByVector(name:string,vector:readonly number[],options:LlmCollectionSimilarOptions,visit:(entry:LlmCollectionSimilarity)=>void|Promise<void>):Promise<void>;
  similarById(name:string,id:string,options:LlmCollectionSimilarOptions,visit:(entry:LlmCollectionSimilarity)=>void|Promise<void>):Promise<void>;
  similar(name:string,options:LlmCollectionSearchOptions,visit:(entry:LlmCollectionSimilarity)=>void|Promise<void>):Promise<void>;
@@ -126,6 +129,11 @@ export async function withLlmCollections<T>(options:{
     transferred=true;
     await embedCollection(editor,{...options,...settings,collection,id});
    }).catch(async error=>{if(!transferred)await settings.input.dispose().catch(()=>undefined);throw error;});},
+   embedMany(name,settings){return run(async()=>{
+    const collection=await editor.withSession(session=>lookup(session,name));
+    if(!collection)throw new LlmCollectionDoesNotExist(name);
+    await embedCollectionBatch(editor,{...options,...settings,collection});
+   });},
    similarByVector(name,vector,settings,visit){return run(async()=>{
     const collection=await editor.withSession(session=>lookup(session,name));
     if(!collection)throw new LlmCollectionDoesNotExist(name);

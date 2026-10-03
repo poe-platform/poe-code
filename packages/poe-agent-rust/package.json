@@ -50,5 +50,13 @@
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
     "directory": "packages/poe-agent-rust"
+  },
+  "imports": {
+    "#tiny-mcp-spawn": {
+      "workerd": "./dist/client/spawn.browser.js",
+      "browser": "./dist/client/spawn.browser.js",
+      "worker": "./dist/client/spawn.browser.js",
+      "default": "./dist/client/spawn.node.js"
+    }
   }
 }

@@ -34,6 +34,7 @@ it.each([["json", "json"], ["csv", "html"], ["json", "odt"]])("retains %s metada
       try {
         await api.convertToOutput([{bytes: encoder.encode(${JSON.stringify(source)})}], {
           from: ${JSON.stringify(from)}, to: ${JSON.stringify(to)}, standalone: ${to !== "json"},
+          metadataJson: [{title: "x".repeat(65536), nested: {added: "option", keep: false}, gone: "x"}, {gone: null, tag: "last"}],
           metadataFiles: [{chunks: chunks(), source: "/metadata.json"}], filters: [{kind: "json", path: "filter"}]
         }, {
           workingFiles: {fs, directory: "/spill", cacheBytes: 16384}, signal: controller.signal,
@@ -55,6 +56,7 @@ it.each([["json", "json"], ["csv", "html"], ["json", "odt"]])("retains %s metada
   try {
     const {convert} = await import("../packages/safe-bash-command-pandoc/dist/index.js");
     const expected = await convert([{bytes: new TextEncoder().encode(source)}], {from: from!, to: to!, standalone: to !== "json",
+      metadataJson: [{title: "y".repeat(65536), nested: {added: "option", keep: false}, gone: "y"}, {gone: null, tag: "last"}],
       metadataFiles: [{bytes: new TextEncoder().encode(JSON.stringify({title: "y".repeat(65536), nested: {remove: null, added: true}}))}]}, {});
     const bytes = expected.kind === "binary" ? expected.bytes : new TextEncoder().encode(expected.text);
     let hash = 2166136261; for (const byte of bytes) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
@@ -64,7 +66,7 @@ it.each([["json", "json"], ["csv", "html"], ["json", "odt"]])("retains %s metada
       const result = await response.json() as {error?: {code: string}; largest: number; events: {opened: number; closed: number; writes: number; reads: number; peakHandles: number; largestTransfer: number}};
       expect(result).toMatchObject({remaining: 0, namespace: [], finalized: 1});
       expect(result.events.opened).toBeGreaterThan(0); expect(result.events.closed).toBe(result.events.opened);
-      expect(result.events.peakHandles).toBeLessThanOrEqual(7); expect(result.events.largestTransfer).toBeLessThanOrEqual(16384);
+      expect(result.events.peakHandles).toBeLessThanOrEqual(9); expect(result.events.largestTransfer).toBeLessThanOrEqual(16384);
       if (mode === "success" || mode === "sink-error") expect(result.events.reads).toBeGreaterThan(0);
       expect(result.events.writes).toBeGreaterThan(0); expect(result.largest).toBeLessThanOrEqual(16384);
       if (mode === "success") {

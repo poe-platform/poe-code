@@ -1,4 +1,4 @@
-import type {RetainedIncludes} from "./retained-includes.js";
+import type {RetainedOptions} from "./retained-options.js";
 import {IntegerTable, PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
 import {BackedTextSet} from "./backed-text-set.js";
@@ -457,7 +457,7 @@ class HtmlTape {
   }
 }
 
-export async function writeRetainedHtml(tree: BackedJson, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, includes?: RetainedIncludes): Promise<void> {
+export async function writeRetainedHtml(tree: BackedJson, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, includes?: RetainedOptions): Promise<void> {
   const storage = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, (working.cacheBytes ?? 1048576) / 16384);
   const release = context.onClose(() => storage.close());
   let failure: {reason: unknown} | undefined;

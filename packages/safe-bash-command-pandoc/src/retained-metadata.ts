@@ -14,71 +14,75 @@ type RetainedDocument = Awaited<ReturnType<typeof readRetainedJson>>;
 /** JSON metadata retains its native last-key-wins/Number semantics. Merge jobs,
  * key identities and each document generation use caller storage, including
  * arbitrarily long keys, strings, lists and nested maps. */
-export async function mergeRetainedMetadataFile(document: RetainedDocument, input: InputSource, context: ExecutionContext, working: WorkingStorageOptions): Promise<RetainedDocument> {
+export async function mergeRetainedMetadata(document: RetainedDocument, input: {source: InputSource} | {tree: BackedJson; root: number}, context: ExecutionContext, working: WorkingStorageOptions): Promise<RetainedDocument> {
   const owner = {fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal};
   const pages = (working.cacheBytes ?? 1048576) / 16384;
-  const raw = new PagedStorage(owner, pages), scratch = new PagedStorage(owner, pages), output = new PagedStorage(owner, pages);
+  const raw = "tree" in input ? undefined : new PagedStorage(owner, pages), scratch = new PagedStorage(owner, pages), output = new PagedStorage(owner, pages);
   const close = async () => {
     let failure: {reason: unknown} | undefined;
-    for (const storage of [raw, scratch, output]) try {await storage.close();} catch (reason) {failure ??= {reason};}
+    for (const storage of [raw, scratch, output]) try {await storage?.close();} catch (reason) {failure ??= {reason};}
     if (failure) throw failure.reason;
   };
   const release = context.onClose(close);
   const cooperate = (units?: number) => context.cooperate(units);
-  const source = document.tree, overlay = new BackedJson(raw, cooperate), merged = new BackedJson(output, cooperate);
+  const source = document.tree, overlay = "tree" in input ? input.tree : new BackedJson(raw!, cooperate), merged = new BackedJson(output, cooperate);
   let next: RetainedDocument | undefined, failure: {reason: unknown} | undefined;
   const option = (message: string): never => {throw new PandocError("E_OPTION", "convert", message);};
   try {
-    const start = raw.allocate(0); let length = 0;
-    await context.consume("bytes" in input ? [input.bytes] : input.chunks, async bytes => {
-      await raw.append(bytes); length += bytes.length;
-    }, ["inputBytes"]);
-    const decoded = async function* () {
-      const decoder = new TextDecoder("utf-8", {fatal: true}); let cr = false;
-      for (let offset = 0; offset <= length; offset += 16384) {
-        let chunk: string;
-        try {chunk = offset < length ? decoder.decode(await raw.read(start + offset, Math.min(16384, length - offset)), {stream: true}) : decoder.decode();}
-        catch {throw new PandocError("E_ENCODING", "convert", "Invalid UTF-8 input");}
-        let text = "";
-        for (const char of chunk) {
-          if (cr) {text += "\n"; cr = false; if (char === "\n") continue;}
-          if (char === "\r") cr = true; else text += char;
-        }
-        if (text) yield text;
-        await cooperate();
-        // Always flush the decoder, including a final non-page-sized fragment.
-        if (offset < length && offset + 16384 > length) {
-          try {const tail = decoder.decode(); if (tail) yield tail;}
+    if (!("tree" in input)) {
+      const file = input.source;
+      const start = raw!.allocate(0); let length = 0;
+      await context.consume("bytes" in file ? [file.bytes] : file.chunks, async bytes => {
+        await raw!.append(bytes); length += bytes.length;
+      }, ["inputBytes"]);
+      const decoded = async function* () {
+        const decoder = new TextDecoder("utf-8", {fatal: true}); let cr = false;
+        for (let offset = 0; offset <= length; offset += 16384) {
+          let chunk: string;
+          try {chunk = offset < length ? decoder.decode(await raw!.read(start + offset, Math.min(16384, length - offset)), {stream: true}) : decoder.decode();}
           catch {throw new PandocError("E_ENCODING", "convert", "Invalid UTF-8 input");}
+          let text = "";
+          for (const char of chunk) {
+            if (cr) {text += "\n"; cr = false; if (char === "\n") continue;}
+            if (char === "\r") cr = true; else text += char;
+          }
+          if (text) yield text;
+          await cooperate();
+          // Always flush the decoder, including a final non-page-sized fragment.
+          if (offset < length && offset + 16384 > length) {
+            try {const tail = decoder.decode(); if (tail) yield tail;}
+            catch {throw new PandocError("E_ENCODING", "convert", "Invalid UTF-8 input");}
+          }
         }
-      }
-      if (cr) yield "\n";
-    };
-    let parseError: {offset: number} | undefined;
-    try {await parseBackedJson(decoded(), overlay, scratch, cooperate, (offset, _message, tokenOffset) => {
-      parseError = {offset: tokenOffset ?? offset}; throw new PandocError("E_PARSE", "convert", "Invalid JSON metadata", "json");
-    }, undefined, true);} catch (error) {
-      if (!parseError) throw error;
-      let line = 1, column = 1, offset = 0;
-      for await (const text of decoded()) {
-        for (const char of text) {
+        if (cr) yield "\n";
+      };
+      let parseError: {offset: number} | undefined;
+      try {await parseBackedJson(decoded(), overlay, scratch, cooperate, (offset, _message, tokenOffset) => {
+        parseError = {offset: tokenOffset ?? offset}; throw new PandocError("E_PARSE", "convert", "Invalid JSON metadata", "json");
+      }, undefined, true);} catch (error) {
+        if (!parseError) throw error;
+        let line = 1, column = 1, offset = 0;
+        for await (const text of decoded()) {
+          for (const char of text) {
+            if (offset >= parseError.offset) break;
+            offset += char.length;
+            if (char === "\n") {line++; column = 1;} else column += char.length;
+          }
           if (offset >= parseError.offset) break;
-          offset += char.length;
-          if (char === "\n") {line++; column = 1;} else column += char.length;
         }
-        if (offset >= parseError.offset) break;
+        const name = file.source ?? file.base;
+        throw new PandocError("E_PARSE", "convert", "Invalid JSON metadata", "json", `${name ? name + ":" : ""}${line}:${column}`);
       }
-      const name = input.source ?? input.base;
-      throw new PandocError("E_PARSE", "convert", "Invalid JSON metadata", "json", `${name ? name + ":" : ""}${line}:${column}`);
     }
-    if ((await overlay.describe(overlay.rootPosition)).kind !== "object") option("JSON metadata must be an object");
+    const overlayRoot = "tree" in input ? input.root : overlay.rootPosition;
+    if ((await overlay.describe(overlayRoot)).kind !== "object") option("JSON metadata must be an object");
     const text = new BackedText(scratch, cooperate), keys = new BackedTextSet(scratch, text);
     const values = new IntegerTable(scratch, 64), first = new IntegerTable(scratch, 64), identities = new IntegerTable(scratch, 64), used = new IntegerTable(scratch, 64);
     const identity = async (tree: BackedJson, key: number, parent: number) => keys.add(await text.from((async function* () {
       yield `${parent}:`; yield* tree.scalarChunks(key);
     })()));
-    const end = (await overlay.describe(overlay.rootPosition)).end;
-    for (let node = overlay.rootPosition; node < end;) {
+    const end = (await overlay.describe(overlayRoot)).end;
+    for (let node = overlayRoot; node < end;) {
       const header = await overlay.describe(node);
       if (header.kind === "key") {
         const id = await identity(overlay, node, header.parent);
@@ -100,7 +104,7 @@ export async function mergeRetainedMetadataFile(document: RetainedDocument, inpu
       [top, op, a, b, c].forEach((value, index) => view.setFloat64(index * 8, value, true));
       top = await scratch.append(bytes);
     };
-    await push(3, (await source.property(source.rootPosition, "meta"))!, overlay.rootPosition);
+    await push(3, (await source.property(source.rootPosition, "meta"))!, overlayRoot);
     while (top) {
       await cooperate();
       const bytes = await scratch.read(top, 40), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);

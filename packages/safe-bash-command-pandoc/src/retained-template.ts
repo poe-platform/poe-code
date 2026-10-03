@@ -1,4 +1,4 @@
-import type {RetainedVariables} from "./retained-variables.js";
+import type {RetainedJsonOptions} from "./retained-json-options.js";
 import type {PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
 import type {ExecutionContext} from "./execution.js";
@@ -62,7 +62,7 @@ export class RetainedTemplate {
     }
     return (await expected.next()).done === true;
   }
-  async render(text: BackedText, values: Readonly<Record<string, TextRange>>, variables?: RetainedVariables): Promise<TextRange> {
+  async render(text: BackedText, values: Readonly<Record<string, TextRange>>, variables?: RetainedJsonOptions): Promise<TextRange> {
     const context = this.context;
     return text.from((async function* (this: RetainedTemplate) {
       let cursor = 0, end = this.length, depth = 0, stack = 0;

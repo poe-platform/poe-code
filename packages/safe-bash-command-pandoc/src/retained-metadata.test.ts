@@ -176,3 +176,84 @@ it("uses retained metadata files from the CLI without whole-file reads", async (
   } finally {acquire.mockRestore(); read.mockRestore();}
   expect((await fs.readdir("/")).map(entry => entry.name)).toEqual(["document.json", "metadata.json"]);
 });
+it.each([{}, {from: "csv"}, {to: "html", standalone: true}, {to: "plain"}])("retains ordered metadata option layers after files: %j", async extra => {
+  await compare(['{"nested":{"added":"file","remove":"file"},"title":"file"}'], {...extra, metadataJson: [
+    {nested: {added: "option", remove: null, list: ["text", true, 1.25, {x: "map"}]}, title: "first", gone: "x"},
+    {nested: {keep: false}, title: "last 😀", gone: null, "2": "two", "1": "one"}
+  ]});
+});
+it("retains explicit empty metadata layers without fallback", async () => {
+  await compare([], {metadataJson: []});
+  await compare([], {metadataJson: [{}, {}]});
+});
+it("retains large option keys, native numbers and strings", async () => {
+  const key = "k".repeat(32768), text = "😀".repeat(18000);
+  await compare([], {metadataJson: [{[key]: {keep: text, remove: true}, number: 1e308, zero: -0}, {[key]: {remove: null, added: text}, title: text}]});
+});
+it.each([null, [], "text", {list: [null]}, {constructor: "unsafe"}, {value: Infinity}].map(invalid => ({invalid})))("validates every option layer before acquiring document input: %#", async ({invalid}) => {
+  const options = {from: "json", to: "json", metadataJson: [{valid: true}, invalid] as unknown as NonNullable<ConversionOptions["metadataJson"]>};
+  const expected = await convert([input], options, {}).catch(error => error);
+  const fs = new MemoryFileSystem(), next = vi.fn(async () => ({done: true as const, value: undefined})), write = vi.fn(async () => {});
+  await expect(convertToOutput([{chunks: {[Symbol.asyncIterator]() {return {next};}}}], options, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {write, async close() {}, async abort() {}}})).rejects.toMatchObject({code: expected.code, message: expected.message});
+  expect(next).not.toHaveBeenCalled(); expect(write).not.toHaveBeenCalled(); expect(await fs.readdir("/")).toEqual([]);
+});
+it("does not charge resident metadata option values as input bytes", async () => {
+  const fs = new MemoryFileSystem(); let output = "";
+  await convertToOutput([input], {from: "json", to: "json", metadataJson: [{title: "x".repeat(65536)}]}, {limits: {inputBytes: input.bytes.length}, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write(bytes) {output += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}}});
+  expect(JSON.parse(output).meta.title.c).toHaveLength(65536); expect(await fs.readdir("/")).toEqual([]);
+});
+it.each([8, 32])("keeps option-layer owners bounded for %i layers", async count => {
+  const fs = new MemoryFileSystem(), open = fs.open.bind(fs); let live = 0, peak = 0, largest = 0, writes = 0;
+  vi.spyOn(fs, "open").mockImplementation(async (...args) => {
+    const handle = await open(...args), close = handle.close.bind(handle), write = handle.write.bind(handle); live++; peak = Math.max(peak, live);
+    vi.spyOn(handle, "close").mockImplementation(async (...args) => {try {return await close(...args);} finally {live--;}});
+    vi.spyOn(handle, "write").mockImplementation(async (...args) => {writes++; largest = Math.max(largest, args[0].length); return write(...args);}); return handle;
+  });
+  let result = "";
+  await convertToOutput([input], {from: "json", to: "json", metadataJson: Array.from({length: count}, (_, index) => ({title: "x".repeat(2048), last: index}))}, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write(bytes) {result += new TextDecoder().decode(bytes); await Promise.resolve();}, async close() {}, async abort() {}}});
+  expect(JSON.parse(result).meta.last.c).toBe(String(count - 1)); expect(peak).toBeGreaterThan(0); expect(peak).toBeLessThanOrEqual(8);
+  expect(writes).toBeGreaterThan(0); expect(largest).toBeLessThanOrEqual(16384); expect(live).toBe(0); expect(await fs.readdir("/")).toEqual([]);
+});
+it.each(["storage-error", "cancel", "sink-error", "retire-error", "success"])("cleans option-layer state on %s", async mode => {
+  const fs = new MemoryFileSystem(), controller = new AbortController(), open = fs.open.bind(fs); let live = 0, emitted = false, failed = false;
+  vi.spyOn(fs, "open").mockImplementation(async (...args) => {
+    const handle = await open(...args), close = handle.close.bind(handle), write = handle.write.bind(handle); live++;
+    vi.spyOn(handle, "write").mockImplementation(async (...args) => {
+      if (!failed && mode === "storage-error") {failed = true; throw new Error("Option storage failed");}
+      const result = await write(...args); if (mode === "cancel") controller.abort(); return result;
+    });
+    vi.spyOn(handle, "close").mockImplementation(async (...args) => {
+      try {await close(...args);} finally {live--;}
+      if (mode === "retire-error" && emitted && !failed) {failed = true; throw new Error("Option retirement failed");}
+    }); return handle;
+  });
+  const next = vi.fn(async () => ({done: true as const, value: undefined})), close = vi.fn(async () => {}), abort = vi.fn(async () => {});
+  const document = mode === "storage-error" || mode === "cancel" ? {chunks: {[Symbol.asyncIterator]() {return {next};}}} : input;
+  const run = convertToOutput([document], {from: "json", to: "json", metadataJson: [{title: "x".repeat(65536)}, {nested: {remove: null, added: true}}]}, {signal: controller.signal, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
+    async write(bytes) {expect(bytes.length).toBeLessThanOrEqual(16384); emitted = true; if (mode === "sink-error") throw new Error("Destination failed"); await Promise.resolve();}, close, abort
+  }});
+  if (mode === "success") {await run; expect(close).toHaveBeenCalledOnce();}
+  else {await expect(run).rejects.toMatchObject({code: mode === "cancel" ? "E_CANCELLED" : "E_IO"}); expect(close).not.toHaveBeenCalled();}
+  expect(next).not.toHaveBeenCalled(); expect(live).toBe(0); expect(await fs.readdir("/")).toEqual([]);
+  expect(abort).toHaveBeenCalledTimes(mode === "sink-error" || mode === "retire-error" ? 1 : 0);
+});
+it("retains CLI metadata assignments after file layers", async () => {
+  const {createPandocCommand} = await import("./command.js");
+  const fs = new MemoryFileSystem(); await fs.writeFile("/document.json", input.bytes);
+  await fs.writeFile("/metadata.json", encoder.encode('{"title":"file","nested":{"remove":null,"added":true}}'));
+  const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));
+  const read = vi.spyOn(fs, "readFile").mockRejectedValue(new Error("Whole file forbidden"));
+  let output = "", error = "";
+  try {
+    expect(await createPandocCommand().execute({command: "pandoc", args: ["-f", "json", "-t", "json", "--metadata-file=/metadata.json", "-Mtitle=first", '-Mnested={"keep":false}', "--metadata=title=Final", "/document.json"], cwd: "/", env: {}, fs,
+      signal: new AbortController().signal, stdin: (async function* () {})(), stdout: {async write(bytes) {output += new TextDecoder().decode(bytes);}}, stderr: {async write(bytes) {error += new TextDecoder().decode(bytes);}}
+    })).toEqual({exitCode: 0});
+    expect(error).toBe(""); expect(JSON.parse(output).meta).toEqual({title: {t: "MetaString", c: "Final"}, nested: {t: "MetaMap", c: {keep: {t: "MetaBool", c: false}, added: {t: "MetaBool", c: true}}}});
+    expect(acquire).not.toHaveBeenCalled(); expect(read).not.toHaveBeenCalled();
+  } finally {acquire.mockRestore(); read.mockRestore();}
+  expect((await fs.readdir("/")).map(entry => entry.name)).toEqual(["document.json", "metadata.json"]);
+});
+it("does not interpret extra caller source properties as trusted option storage", async () => {
+  const file = {bytes: encoder.encode('{"title":"file"}'), tree: null, root: 0};
+  await compare([], {metadataFiles: [file]});
+});

@@ -112,7 +112,7 @@ it("streams CLI -H, -B and -A includes without whole-file reads", async () => {
   expect((await fs.readdir("/")).map(entry => entry.name)).toEqual(["after.html", "before.html", "document.json", "header.html"]);
 });
 it.each([16, 64])("does not rescan a %i-chunk body for each suffix replacement token", async count => {
-  const {RetainedIncludes} = await import("./retained-includes.js");
+  const {RetainedOptions} = await import("./retained-options.js");
   const fs = new MemoryFileSystem(), open = fs.open.bind(fs); let reads = 0;
   vi.spyOn(fs, "open").mockImplementation(async (...args) => {
     const handle = await open(...args), read = handle.read.bind(handle);
@@ -120,7 +120,7 @@ it.each([16, 64])("does not rescan a %i-chunk body for each suffix replacement t
     return handle;
   });
   const context = new ExecutionContext("convert", {});
-  const includes = (await RetainedIncludes.acquire(context, {fs, directory: "/", cacheBytes: 16384}, {from: "json", to: "html", includeAfterBody: [input("$'".repeat(128))]}))!;
+  const includes = (await RetainedOptions.acquire(context, {fs, directory: "/", cacheBytes: 16384}, {from: "json", to: "html", includeAfterBody: [input("$'".repeat(128))]}))!;
   try {
     const replay = await includes.render((async function* () {
       yield "<body>\n"; const chunk = "x".repeat(8192); for (let i = 0; i < count; i++) yield chunk; yield "</body>\n</html>\n";

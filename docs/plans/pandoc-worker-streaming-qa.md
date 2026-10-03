@@ -33,8 +33,15 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   caches during a merge). Exercise long keys/values, duplicate maps, null
   deletion, native JSON numbers and metadata-before-filter ordering. The
   workerd/R2 metadata scenarios cover JSON, standalone HTML and ODT output,
-  producer failures, cancellation and destination failures. Direct metadata
-  option maps and full memory/CPU qualification remain outstanding.
+  producer failures, cancellation and destination failures. `metadataJson`
+  option layers now share one retained snapshot and use the same merger directly,
+  without encoding/reparsing or extra input-byte charges. Validate all layers
+  before input acquisition, preserve file-then-option order and filter timing,
+  and compare growing layer counts with fixed page caches (two additional caches
+  regardless of layer count; nine total during file merges with option layers).
+  Workerd/R2 scenarios include large option values and overlapping file metadata.
+  Measure the resident SDK input map and immediate key enumeration separately.
+  Direct typed `metadata` maps and full memory/CPU qualification remain outstanding.
 
 - Retained JSON and CSV/TSV routes admit finite `work` and `diagnostics` budgets
   through the shared execution context. Exercise both budgets in filtered and

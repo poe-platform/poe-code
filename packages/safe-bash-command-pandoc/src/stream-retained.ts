@@ -1,5 +1,5 @@
-import type {RetainedIncludes} from "./retained-includes.js";
-import {mergeRetainedMetadataFile} from "./retained-metadata.js";
+import type {RetainedOptions} from "./retained-options.js";
+import {mergeRetainedMetadata} from "./retained-metadata.js";
 import {writeRetainedOdt} from "./retained-odt.js";
 import {inspectRetainedRtfPicture} from "./retained-rtf-pictures.js";
 import {prepareRetainedImageResources} from "./retained-image-resources.js";
@@ -49,7 +49,7 @@ async function checkImageOrigins(tree: BackedJson, context: ExecutionContext): P
 
 /** Retain each document generation and filter response in caller storage. The
  * previous generation is retired before another filter starts. */
-export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>>>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt" = "json", origin?: ResourceOrigin, includes?: RetainedIncludes): Promise<void> {
+export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>>>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt" = "json", origin?: ResourceOrigin, includes?: RetainedOptions): Promise<void> {
   let originStorage:PagedStorage | undefined, origins:RetainedOrigins | undefined;
   let releaseOrigins:(()=>void) | undefined;
   let document: Awaited<ReturnType<typeof readRetainedJson>> | undefined;
@@ -67,9 +67,16 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     }
     document = await load();
     for (const file of options.metadataFiles ?? []) {
-      const next = await mergeRetainedMetadataFile(document, file, context, working);
+      const next = await mergeRetainedMetadata(document, {source: file}, context, working);
       await document.close();
       document = next;
+    }
+    if (includes?.metadata) {
+      const tree = includes.metadata.tree;
+      for await (const root of tree.children(tree.rootPosition)) {
+        const next = await mergeRetainedMetadata(document, {tree, root}, context, working);
+        await document.close(); document = next;
+      }
     }
     for (const request of options.filters ?? []) {
       if (request.kind === "json") await checkImageOrigins(document.tree, context);

@@ -8,7 +8,7 @@ import type {MetadataObject, MetadataValue, WorkingStorageOptions} from "./types
  * Reflection needs one immediate Object.keys list and property access needs one
  * complete key. These API-input costs are separate from the backed value tape,
  * key lists and traversal continuations used after admission. */
-export class RetainedVariables {
+export class RetainedJsonOptions {
   readonly tree: BackedJson;
   private closing: Promise<void> | undefined;
   private readonly release: () => void;
@@ -16,16 +16,16 @@ export class RetainedVariables {
     this.tree = new BackedJson(storage, units => context.cooperate(units));
     this.release = context.onClose(() => this.close());
   }
-  static async acquire(value: MetadataObject, context: ExecutionContext, working: WorkingStorageOptions, scratch: PagedStorage): Promise<RetainedVariables> {
-    const result = new RetainedVariables(new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, (working.cacheBytes ?? 1048576) / 16384), context);
-    try {await result.snapshot(value, scratch); return result;}
+  static async acquire(value: MetadataObject | readonly MetadataObject[], context: ExecutionContext, working: WorkingStorageOptions, scratch: PagedStorage, layers = false): Promise<RetainedJsonOptions> {
+    const result = new RetainedJsonOptions(new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, (working.cacheBytes ?? 1048576) / 16384), context);
+    try {await result.snapshot(value, scratch, layers); return result;}
     catch (error) {try {await result.close();} catch { /* Preserve admission failure. */ } throw error;}
   }
   close(): Promise<void> {
     this.closing ??= this.storage.close().finally(this.release);
     return this.closing;
   }
-  private async snapshot(root: MetadataObject, scratch: PagedStorage): Promise<void> {
+  private async snapshot(root: MetadataObject | readonly MetadataObject[], scratch: PagedStorage, layers: boolean): Promise<void> {
     const context = this.context, tree = this.tree, text = new BackedText(scratch, units => context.cooperate(units));
     const put = async (position: number, fields: readonly number[]) => {
       const bytes = new Uint8Array(fields.length * 8), view = new DataView(bytes.buffer);
@@ -76,7 +76,8 @@ export class RetainedVariables {
       }
       return value;
     };
-    let frame = await enter(root, 0, 0, 0), current: MetadataObject | readonly MetadataValue[] = root;
+    const rootFrame = await enter(root, 0, 0, 0);
+    let frame = rootFrame, current: MetadataObject | readonly MetadataValue[] = root;
     while (frame) {
       await context.cooperate();
       const fields = await get(frame, 8), [parent, , keys, count, index, level, array] = fields;
@@ -92,6 +93,12 @@ export class RetainedVariables {
         context.charge("references", 1);
         if (key === "__proto__" || key === "constructor" || key === "prototype") context.fail("E_OPTION", "Unsafe metadata key");
         await tree.key(key as string);
+      }
+      if (layers && frame === rootFrame) {
+        if (value === null || typeof value !== "object" || Array.isArray(value)) context.fail("E_OPTION", "JSON metadata must be an object");
+        await resolve(frame, value as MetadataObject);
+        frame = await enter(value as MetadataObject, frame, index!, 0); current = value as MetadataObject;
+        continue;
       }
       if (value === null) {
         if (array) context.fail("E_OPTION", "Null metadata list elements are unsupported");

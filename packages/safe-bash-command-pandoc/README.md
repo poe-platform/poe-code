@@ -171,7 +171,11 @@ merge keys, duplicate-key indexes and recursive map/list work stay in caller
 storage; null deletion, last-key-wins JSON parsing and native number conversion
 are preserved. One file is retired before the next is acquired. Merging uses at
 most seven page caches, each bounded by `cacheBytes`, plus fixed index caches.
-Direct `metadata` and `metadataJson` option maps still select the compatibility path.
+`metadataJson` option layers share one retained snapshot and merge directly from
+it after metadata files, before filters. They add two page caches independently
+of layer count and do not count resident option values as input bytes. The SDK
+map and one immediate key enumeration remain resident at admission, as with
+template variables. Direct typed `metadata` maps still select the compatibility path.
 HTML `includeInHeader`, `includeBeforeBody`, and `includeAfterBody` inputs also
 stream into caller storage before document acquisition. Include replacement
 generations use one additional page cache, preserve raw text and replacement

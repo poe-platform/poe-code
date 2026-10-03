@@ -1,4 +1,4 @@
-import type {RetainedIncludes} from "./retained-includes.js";
+import type {RetainedOptions} from "./retained-options.js";
 import {BackedJson} from "./backed-json.js";
 import {streamRetainedDocument} from "./stream-retained.js";
 import {backedJsonOrder} from "./backed-json-order.js";
@@ -37,7 +37,7 @@ class DocumentDecoder {
  * no input, field, row, document tree or output grows a resident collection. */
 export async function streamDelimited(
   inputs: readonly InputSource[], format: "csv" | "tsv", target: "html5" | "json" | "plain" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", context: ExecutionContext,
-  working: WorkingStorageOptions, options: ConversionOptions, includes?: RetainedIncludes
+  working: WorkingStorageOptions, options: ConversionOptions, includes?: RetainedOptions
 ): Promise<void> {
   const cacheBytes = working.cacheBytes ?? 1024 * 1024;
   if (!Number.isSafeInteger(cacheBytes) || cacheBytes < 16384 || cacheBytes % 16384 !== 0)

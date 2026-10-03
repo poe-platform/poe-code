@@ -348,3 +348,47 @@ it("requests XObject image decoding and preserves placement with no buffered doc
   }
   expect(decoded).toBe(1); expect(painted).toBe(1);
 });
+
+it.each([false, true])("resolves ExtGState asynchronously, including font, styles and soft mask: %s", async maskEnabled => {
+  const { evaluateContentSteps } = await import("./evaluator.js");
+  const { PdfDocument } = await import("../document.js");
+  const { cosArray, cosDict, cosName, cosNumber, cosStream } = await import("../ast.js");
+  const { resolvePageFonts } = await import("../fonts/resolve.js");
+  const { parseContentEvents } = await import("./parser.js");
+  const doc = PdfDocument.create();
+  const number = (value: number) => doc.cos.allocateObject(cosNumber(value));
+  const maskForm = cosStream(cosDict({ Subtype: cosName("Form"), Group: cosDict({ CS: cosName("DeviceRGB") }) }), new TextEncoder().encode("0 0 5 5 re f"));
+  const mask = cosDict({ S: cosName("Alpha"), G: doc.cos.allocateObject(maskForm), BC: cosArray([number(.2), number(.3), number(.4)]) });
+  const state = doc.cos.allocateObject(cosDict({ ca: number(.4), CA: number(.7), LW: number(3), LC: number(1), LJ: number(2), ML: number(5),
+    BM: cosArray([doc.cos.allocateObject(cosName("Multiply"))]), D: cosArray([cosArray([number(2), number(3)]), number(1)]),
+    Font: cosArray([cosDict({ Subtype: cosName("Type1"), BaseFont: cosName("Courier") }), number(13)]),
+    ...(maskEnabled ? { SMask: doc.cos.allocateObject(mask) } : {}),
+  }));
+  const resources = cosDict({ ExtGState: cosDict({ GS: state, Clear: cosDict({ SMask: cosName("None") }) }) });
+  const nodes = parseContentStream(new TextEncoder().encode("/GS gs 0 0 10 10 re B BT (A) Tj ET /Clear gs 20 20 5 5 re f"));
+  const expected = [...evaluateContentStreamSteps({ pageIndex: 0, width: 100, height: 100, cosDoc: doc.cos, resourcesDict: resources, nodes })];
+  const work = evaluateContentSteps({ pageIndex: 0, width: 100, height: 100, resourcesDict: resources });
+  const cursors = new Map<object, Iterator<import("./parser.js").PdfContentEvent>>();
+  const input = nodes[Symbol.iterator](), actual = [];
+  let masks = 0, step = work.next();
+  try {
+    while (!step.done) {
+      const request = step.value; await Promise.resolve();
+      if (request.kind === "resolve" || request.kind === "catalog") step = work.next({ kind: "resolved", node: doc.cos.resolve(request.kind === "catalog" ? doc.cos.rootRef : request.node) });
+      else if (request.kind === "font") step = work.next(resolvePageFonts(doc.cos, request.resources, request.name).get(request.name));
+      else if (request.kind === "node") {
+        let cursor = request.source ? cursors.get(request.source) : input;
+        if (!cursor && request.source) { cursor = parseContentEvents(doc.cos.decodeStream(request.source.stream)); cursors.set(request.source, cursor); }
+        const next = cursor!.next(); if (next.done && request.source) cursors.delete(request.source);
+        step = work.next(next.done ? undefined : next.value);
+      } else if (request.kind === "mask-parameters") {
+        masks++; expect(request.mask).toBe(mask);
+        step = work.next({ kind: "mask-parameters", value: { backdrop: { r: .2, g: .3, b: .4 }, transferMap: undefined } });
+      } else if (request.kind === "paint") { actual.push(request); step = work.next(); }
+      else throw new Error(`Unexpected request: ${request.kind}`);
+    }
+    expect(actual).toEqual(expected); expect(masks).toBe(maskEnabled ? 1 : 0);
+    expect(actual.find(event => event.operation.kind === "glyph")?.operation).toMatchObject({ value: { fontName: "Courier", fontSize: 13 } });
+    expect(actual.at(-1)?.operation.value.softMask).toBeUndefined();
+  } finally { work.return(); for (const cursor of cursors.values()) cursor.return?.(); }
+});

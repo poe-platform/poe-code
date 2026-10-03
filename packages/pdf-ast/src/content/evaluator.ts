@@ -817,6 +817,22 @@ export function* optionalContentVisibilitySteps(ocNode: PdfCosNode | undefined):
   return yield* isSingleOcgOn(ocNode);
 }
 
+function resolveMaskParameters(doc: ParsedCosDocument, mask: PdfCosDict, form: PdfCosStream, activeResources: PdfCosDict | undefined): Pick<PdfSoftMask, "backdrop" | "transferMap"> {
+  const group = doc.resolveDict(dictGet(form.dict, "Group"));
+  const colorSpace = group ? dictGet(group, "CS") : undefined;
+  const bc = doc.resolveArray(dictGet(mask, "BC"));
+  const components = bc?.items.map(item => {
+    const value = doc.resolve(item);
+    return value?.kind === "number" ? value.value : 0;
+  });
+  const [r, g, b] = components ? convertColorSpaceComponentsToRgb(doc, colorSpace, "DeviceRGB", components, activeResources) : [0, 0, 0];
+  const transfer = doc.resolve(dictGet(mask, "TR"));
+  const transferMap = transfer?.kind === "dict" || transfer?.kind === "stream"
+    ? Uint8Array.from({ length: 256 }, (_, i) => Math.floor(kClamp(Math.fround(evalShadingFunctionToComponents(doc, transfer, Math.fround(i / 255))[0] ?? 0)) * 255))
+    : undefined;
+  return { backdrop: { r, g, b }, transferMap };
+}
+
 export interface PdfContentEvaluationOptions {
   readonly pageIndex: number;
   readonly width: number;
@@ -845,9 +861,11 @@ export type PdfEvaluationRequest = PdfEvaluationOperation | { readonly kind: "no
   | { readonly kind: "resolve"; readonly node: PdfCosNode }
   | { readonly kind: "catalog" }
   | { readonly kind: "close-content"; readonly source: PdfEvaluationContentSource }
+  | { readonly kind: "mask-parameters"; readonly mask: PdfCosDict; readonly form: PdfCosStream; readonly resources: PdfCosDict | undefined }
   | { readonly kind: "image"; readonly stream: PdfCosStream; readonly resources: PdfCosDict | undefined; readonly fillColor: Parameters<typeof decodeXObjectImageToRgba>[3] };
 export type PdfEvaluationResult = PdfContentEvent | ResolvedPageFont
   | { readonly kind: "resolved"; readonly node: PdfCosNode | undefined }
+  | { readonly kind: "mask-parameters"; readonly value: Pick<PdfSoftMask, "backdrop" | "transferMap"> }
   | { readonly kind: "decoded-image"; readonly image: ReturnType<typeof decodeXObjectImageToRgba> } | undefined;
 type EvaluationWork<T = void> = Generator<PdfEvaluationRequest, T, PdfEvaluationResult>;
 type FontScope = ReadonlyArray<PdfCosDict | undefined>;
@@ -1060,16 +1078,16 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       st.fillPatternName = undefined;
     } else if (operator === "K") {
       st.strokeColor = resolveScColorOperands("DeviceCMYK", ops, activeResources);
-    } else if (operator === "gs" && params.cosDoc && activeResources && ops[0]?.kind === "name") {
-      const extDict = params.cosDoc.resolveDict(dictGet(activeResources, "ExtGState"));
-      const gsDict = extDict ? params.cosDoc.resolveDict(dictGet(extDict, ops[0].decoded)) : undefined;
+    } else if (operator === "gs" && activeResources && ops[0]?.kind === "name") {
+      const extDict = yield* resolveEvaluationDict(dictGet(activeResources, "ExtGState"));
+      const gsDict = extDict ? yield* resolveEvaluationDict(dictGet(extDict, ops[0].decoded)) : undefined;
       if (gsDict) {
-        const mask = params.cosDoc.resolve(dictGet(gsDict, "SMask"));
+        const mask = yield* resolveEvaluationNode(dictGet(gsDict, "SMask"));
         if (mask?.kind === "name" && mask.decoded === "None") {
           st.softMask = undefined;
         } else if (mask?.kind === "dict") {
-          const subtype = params.cosDoc.resolve(dictGet(mask, "S"));
-          const form = params.cosDoc.resolve(dictGet(mask, "G"));
+          const subtype = yield* resolveEvaluationNode(dictGet(mask, "S"));
+          const form = yield* resolveEvaluationNode(dictGet(mask, "G"));
           if (form?.kind === "stream" && subtype?.kind === "name" && (subtype.decoded === "Alpha" || subtype.decoded === "Luminosity")) {
             if (depth >= 8) throw new PdfError("E_LIMIT", "Soft-mask nesting exceeds the form depth limit");
             const parentOperations = capturedOperations;
@@ -1094,66 +1112,56 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
               insideSoftMask = parentInsideSoftMask;
               ({ pendingTextClip, hasTextClip, activeTm, activeTlm } = savedTextState);
             }
-            const group = params.cosDoc.resolveDict(dictGet(form.dict, "Group"));
-            const colorSpace = group ? dictGet(group, "CS") : undefined;
-            const bc = params.cosDoc.resolveArray(dictGet(mask, "BC"));
-            const components = bc?.items.map(item => {
-              const value = params.cosDoc!.resolve(item);
-              return value?.kind === "number" ? value.value : 0;
-            });
-            const [r, g, b] = components ? convertColorSpaceComponentsToRgb(params.cosDoc, colorSpace, "DeviceRGB", components, activeResources) : [0, 0, 0];
-            const transfer = params.cosDoc.resolve(dictGet(mask, "TR"));
-            const transferMap = transfer?.kind === "dict" || transfer?.kind === "stream"
-              ? Uint8Array.from({ length: 256 }, (_, i) => Math.floor(kClamp(Math.fround(evalShadingFunctionToComponents(params.cosDoc!, transfer, Math.fround(i / 255))[0] ?? 0)) * 255))
-              : undefined;
-            st.softMask = { subtype: subtype.decoded, operations: captured, backdrop: { r, g, b }, transferMap };
+            const parameters = yield { kind: "mask-parameters", mask, form, resources: activeResources };
+            if (!parameters || !("kind" in parameters) || parameters.kind !== "mask-parameters") throw new TypeError("Expected PDF soft-mask parameters");
+            st.softMask = { subtype: subtype.decoded, operations: captured, ...parameters.value };
           }
         }
-        const bmNode = params.cosDoc.resolve(dictGet(gsDict, "BM"));
+        const bmNode = yield* resolveEvaluationNode(dictGet(gsDict, "BM"));
         if (bmNode?.kind === "name") {
           st.blendMode = bmNode.decoded === "Compatible" ? "Normal" : bmNode.decoded;
         } else if (bmNode?.kind === "array" && bmNode.items.length > 0) {
-          const firstBm = params.cosDoc.resolve(bmNode.items[0]);
+          const firstBm = yield* resolveEvaluationNode(bmNode.items[0]);
           if (firstBm?.kind === "name") {
             st.blendMode = firstBm.decoded === "Compatible" ? "Normal" : firstBm.decoded;
           }
         }
-        const caNode = params.cosDoc.resolve(dictGet(gsDict, "ca"));
+        const caNode = yield* resolveEvaluationNode(dictGet(gsDict, "ca"));
         if (caNode?.kind === "number") st.fillAlpha = Math.max(0, Math.min(1, caNode.value));
-        const CANode = params.cosDoc.resolve(dictGet(gsDict, "CA"));
+        const CANode = yield* resolveEvaluationNode(dictGet(gsDict, "CA"));
         if (CANode?.kind === "number") st.strokeAlpha = Math.max(0, Math.min(1, CANode.value));
-        const lwNode = params.cosDoc.resolve(dictGet(gsDict, "LW"));
+        const lwNode = yield* resolveEvaluationNode(dictGet(gsDict, "LW"));
         if (lwNode?.kind === "number") st.strokeWidth = Math.max(0, lwNode.value);
-        const lcNode = params.cosDoc.resolve(dictGet(gsDict, "LC"));
+        const lcNode = yield* resolveEvaluationNode(dictGet(gsDict, "LC"));
         if (lcNode?.kind === "number" && (lcNode.value === 0 || lcNode.value === 1 || lcNode.value === 2)) {
           st.lineCap = lcNode.value;
         }
-        const ljNode = params.cosDoc.resolve(dictGet(gsDict, "LJ"));
+        const ljNode = yield* resolveEvaluationNode(dictGet(gsDict, "LJ"));
         if (ljNode?.kind === "number" && (ljNode.value === 0 || ljNode.value === 1 || ljNode.value === 2)) {
           st.lineJoin = ljNode.value;
         }
-        const mlNode = params.cosDoc.resolve(dictGet(gsDict, "ML"));
+        const mlNode = yield* resolveEvaluationNode(dictGet(gsDict, "ML"));
         if (mlNode?.kind === "number" && mlNode.value > 0) {
           st.miterLimit = mlNode.value;
         }
-        const dArr = params.cosDoc.resolveArray(dictGet(gsDict, "D"));
+        const dArr = yield* resolveEvaluationArray(dictGet(gsDict, "D"));
         if (dArr && dArr.items.length >= 2) {
-          const patArr = params.cosDoc.resolveArray(dArr.items[0]);
-          const phaseNode = params.cosDoc.resolve(dArr.items[1]);
+          const patArr = yield* resolveEvaluationArray(dArr.items[0]);
+          const phaseNode = yield* resolveEvaluationNode(dArr.items[1]);
           if (patArr) {
-            const dashArray = patArr.items
-              .map(it => {
-                const r = params.cosDoc!.resolve(it);
-                return r?.kind === "number" ? r.value : 0;
-              })
-              .filter(n => n >= 0);
+            const dashArray: number[] = [];
+            for (const item of patArr.items) {
+              const resolved = yield* resolveEvaluationNode(item);
+              const value = resolved?.kind === "number" ? resolved.value : 0;
+              if (value >= 0) dashArray.push(value);
+            }
             st.dashArray = dashArray.some(value => value > 0) ? dashArray : undefined;
             st.dashPhase = phaseNode?.kind === "number" ? phaseNode.value : 0;
           }
         }
-        const fontArr = params.cosDoc.resolveArray(dictGet(gsDict, "Font"));
+        const fontArr = yield* resolveEvaluationArray(dictGet(gsDict, "Font"));
         if (fontArr && fontArr.items.length >= 2) {
-          const fSizeNode = params.cosDoc.resolve(fontArr.items[1]);
+          const fSizeNode = yield* resolveEvaluationNode(fontArr.items[1]);
           if (fSizeNode?.kind === "number") st.fontSize = fSizeNode.value;
           const gsFontKey = `__ExtGS_Font_${ops[0].decoded}`;
           const resolvedGsFont = yield* selectedFont([{
@@ -1707,7 +1715,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                   const fm: Matrix6 = font.fontMatrix ?? [0.001, 0, 0, 0.001, 0, 0];
                   const source = { stream: procNode };
                   const firstOp = yield { kind: "node", source };
-                  if (firstOp && (!("kind" in firstOp) || (firstOp.kind === "resolved" || firstOp.kind === "decoded-image"))) throw new TypeError("Expected Type3 content event");
+                  if (firstOp && (!("kind" in firstOp) || (firstOp.kind === "resolved" || firstOp.kind === "decoded-image" || firstOp.kind === "mask-parameters"))) throw new TypeError("Expected Type3 content event");
                   if (!font.widths.has(item.charCode)) {
                     if (
                       firstOp?.kind === "state-op" &&
@@ -1937,6 +1945,9 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
+      } else if (step.value.kind === "mask-parameters") {
+        if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF soft-mask parameters require a source driver");
+        step = work.next({ kind: "mask-parameters", value: resolveMaskParameters(params.cosDoc, step.value.mask, step.value.form, step.value.resources) });
       } else if (step.value.kind === "image") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF image decoding requires a source driver");
         step = work.next({ kind: "decoded-image", image: decodeXObjectImageToRgba(params.cosDoc, step.value.stream, step.value.resources, step.value.fillColor) });

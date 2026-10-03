@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { encodeWav, decodePcm } from "@poe-code/audio-ast";
 import type { CommandContext } from "safe-bash-contracts";
-import { createAudioCommands, audioCommands } from "./index.js";
+import { createAudioCommand, createAudioCommands, audioCommands } from "./index.js";
 const wav = encodeWav(
   {
     sampleRate: 8000,
@@ -168,4 +168,10 @@ it("preflights ffprobe collisions before registering any commands", () => {
     }
   } as never);
   expect(registered).toEqual(["ffprobe", "sox", "soxi"]);
+});
+
+it("creates individual audio commands by name", () => {
+  expect(createAudioCommand().name).toBe("sox");
+  expect(createAudioCommand({}, "ffprobe").name).toBe("ffprobe");
+  expect(createAudioCommand({}, "soxi").name).toBe("soxi");
 });

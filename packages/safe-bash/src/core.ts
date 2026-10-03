@@ -220,3 +220,7 @@ export { createRsvgConvertCommand, createRsvgConvertCommands, rsvgConvertCommand
 export { createNeatoCommand, createNeatoCommands, neatoCommands, type NeatoCommandsOptions, type NeatoLimits } from "./commands/neato/index.js";
 export { createSvgoCommand, createSvgoCommands, svgoCommands, type SvgoCommandsOptions, type SvgoLimits } from "./commands/svgo/index.js";
 export { createGraphvizCommands, graphvizCommands, type GraphvizCommandsOptions } from "./commands/graphviz/index.js";
+export { createFfprobeCommands, ffprobeCommands, type FfprobeCommandsOptions, type FfprobeLimits } from "./commands/ffprobe/index.js";
+export { createSoxCommand, createSoxCommands, soxCommands, type SoxCommandsOptions, type SoxLimits } from "./commands/sox/index.js";
+export { createSoxiCommand, createSoxiCommands, soxiCommands, type SoxiCommandsOptions, type SoxiLimits } from "./commands/soxi/index.js";
+export { createAudioCommand, createAudioCommands, audioCommands, type AudioCommandsOptions } from "./commands/audio/index.js";

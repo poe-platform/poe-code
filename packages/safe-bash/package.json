@@ -3343,22 +3343,32 @@
     },
     "./commands/ffprobe": {
       "types": "./dist/commands/ffprobe/index.d.ts",
+      "workerd": "./dist/commands/ffprobe/index.js",
+      "browser": "./dist/commands/ffprobe/index.js",
       "import": "./dist/commands/ffprobe/index.js"
     },
     "./commands/sox": {
       "types": "./dist/commands/sox/index.d.ts",
+      "workerd": "./dist/commands/sox/index.js",
+      "browser": "./dist/commands/sox/index.js",
       "import": "./dist/commands/sox/index.js"
     },
     "./commands/soxi": {
       "types": "./dist/commands/soxi/index.d.ts",
+      "workerd": "./dist/commands/soxi/index.js",
+      "browser": "./dist/commands/soxi/index.js",
       "import": "./dist/commands/soxi/index.js"
     },
     "./commands/audio": {
       "types": "./dist/commands/audio/index.d.ts",
+      "workerd": "./dist/commands/audio/index.js",
+      "browser": "./dist/commands/audio/index.js",
       "import": "./dist/commands/audio/index.js"
     },
     "./audio-ast": {
       "types": "./dist/audio-ast.d.ts",
+      "workerd": "./dist/audio-ast.js",
+      "browser": "./dist/audio-ast.js",
       "import": "./dist/audio-ast.js"
     }
   },

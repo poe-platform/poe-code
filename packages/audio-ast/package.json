@@ -24,5 +24,6 @@
     "test": "cd ../.. && vitest run packages/audio-ast",
     "test:unit": "cd ../.. && vitest run packages/audio-ast"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "sideEffects": false
 }

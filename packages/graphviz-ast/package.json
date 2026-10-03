@@ -24,5 +24,6 @@
     "test": "cd ../.. && vitest run packages/graphviz-ast",
     "test:unit": "cd ../.. && vitest run packages/graphviz-ast"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "sideEffects": false
 }

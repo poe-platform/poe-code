@@ -16,6 +16,14 @@ export interface AudioCommandsOptions {
   readonly ffprobe?: FfprobeCommandsOptions;
   readonly sox?: SoxCommandsOptions;
 }
+export function createAudioCommand(
+  options: AudioCommandsOptions = {},
+  name: "ffprobe" | "sox" | "soxi" = "sox"
+): CommandDefinition {
+  const command = createAudioCommands(options).find((entry) => entry.name === name);
+  if (!command) throw new TypeError(`Audio command not configured: ${name}`);
+  return command;
+}
 export function createAudioCommands(
   options: AudioCommandsOptions = {}
 ): readonly CommandDefinition[] {

@@ -1,3 +1,4 @@
+import {scaleSvgNumber} from "./svg-number.js";
 import {FONT_5X7} from "./font-5x7.js";
 export {FONT_5X7} from "./font-5x7.js";
 import { PdfDocument, renderPdfPageToPng } from "@poe-code/pdf-ast";
@@ -117,22 +118,7 @@ function parseSvgCoord(val: string | undefined, fallback: number, refSize = 0): 
   const num = parseFloat(match[1]!);
   if (!Number.isFinite(num)) return fallback;
   const unit = (match[2] ?? "px").toLowerCase();
-  switch (unit) {
-    case "in":
-      return num * 72;
-    case "cm":
-      return (num * 72) / 2.54;
-    case "mm":
-      return (num * 72) / 25.4;
-    case "pc":
-      return num * 12;
-    case "%":
-      return (num / 100) * refSize;
-    case "pt":
-    case "px":
-    default:
-      return num;
-  }
+  return scaleSvgNumber(num, unit, refSize);
 }
 
 function getAttr(tagText: string, attrName: string): string | undefined {

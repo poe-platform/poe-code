@@ -46,6 +46,11 @@ export const verification = (async () => {
     const svgInfo = await sharp(svg, {filesystem}).toFile("/svg.png");
     assert.equal(svgInfo.format, "png");
     assert.equal((await sharp(await fs.readFile("/svg.png")).metadata()).width, 9);
+    await fs.writeFile("/vector.svg", svg);
+    const svgQuery = await shell.exec("sips -g pixelWidth /vector.svg");
+    assert.equal(svgQuery.exitCode, 0, svgQuery.stderr);
+    assert.ok(svgQuery.stdout.includes("pixelWidth: 9"));
+    assert.equal((await sharp("/vector.svg", {filesystem}).metadata()).height, 5);
     const composed = await shell.exec("pandoc -f markdown -t plain /input.md | shuf --random-source=/random");
     assert.equal(composed.exitCode, 0, composed.stderr);
     assert.deepEqual(composed.stdout.split("\n").filter(Boolean).sort(), ["alpha", "beta"]);

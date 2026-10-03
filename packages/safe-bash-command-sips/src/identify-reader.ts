@@ -53,8 +53,8 @@ export function createIdentifyReader(input:IdentifyFileInput,signal:AbortSignal,
     let pdfMetadata:ImageMetadata|undefined;
     if(isPdfBytes(prefix)&&!verbose){try{pdfMetadata=await tryPdfMetadata(source,fs,input.cwd,signal,options??{});}catch(error){if(!(error instanceof UnsupportedStoredResource))throw error;}}
     if(pdfMetadata)result={metadata:pdfMetadata,size:source.size,...(properties?{properties:await readPropertiesFromSource(source,"pdf",signal)}:{})};
-    else if(isPdfBytes(prefix)||isSvgBytes(prefix)){
-     // These convenience codecs are still migrated by their format owners.
+    else if(isPdfBytes(prefix)||(isSvgBytes(prefix)&&verbose)){
+     // Vector raster statistics still use the convenience codecs.
      const bytes=new Uint8Array(source.size);for(let offset=0;offset<bytes.length;offset+=16384)bytes.set(await source.read(offset,Math.min(16384,bytes.length-offset),{signal}),offset);
      result=await inspectIdentifyBytes(bytes,options,verbose,signal,properties);
     }else{

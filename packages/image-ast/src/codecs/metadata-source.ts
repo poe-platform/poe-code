@@ -1,3 +1,5 @@
+import {isSvgBytes} from "./svg-pdf.js";
+import {readSvgMetadataFromSource} from "./svg-metadata-source.js";
 import {detectHeifFormatFromSource} from "./heif-format.js";
 import {readHeifMetadataFromSource} from "./heif-storage.js";
 import {isGifBytes} from "./gif-metadata.js";
@@ -45,6 +47,11 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
   while(!next.done)next=steps.next(await reader.at(next.value));
   const {format,width,height,maxval}=next.value;
   metadata={format,width,height,space:format==="ppm"?"srgb":"b-w",channels:format==="ppm"?3:1,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",density:72,hasAlpha:false,size:source.size};
- } else throw new UnsupportedStoredResource();
+ } else {
+  const length=Math.min(512,source.size),head=await source.read(0,length,{signal});signal.throwIfAborted();
+  if(!(head instanceof Uint8Array)||head.length!==length)throw new Error("Truncated image metadata source");
+  if(!isSvgBytes(head))throw new UnsupportedStoredResource();
+  metadata=await readSvgMetadataFromSource(source,signal,options);
+ }
  signal.throwIfAborted();checkLimitInputPixels(metadata.width,metadata.height,options);return metadata;
 }

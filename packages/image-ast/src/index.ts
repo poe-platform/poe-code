@@ -1,3 +1,4 @@
+export {readSvgMetadataFromSource} from "./codecs/svg-metadata-source.js";
 export {decodeSvgToStorage} from "./codecs/svg-storage.js";
 export {tryPdfMetadata} from "./image-pdf.js";
 export {decodeHeifToStorage,encodeHeifFromStorage,readHeifMetadataFromSource} from "./codecs/heif-storage.js";

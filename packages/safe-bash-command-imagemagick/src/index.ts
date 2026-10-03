@@ -1,3 +1,4 @@
+import {compareImageSteps,formatMetricNum} from "./compare-kernel.js";
 import {withIdentifyFiles,type IdentifyFileInput,type IdentifyFileReader,type IdentifyInspection,type IdentifyRaster} from "./identify-file.js";
 export type {IdentifyFileInput} from "./identify-file.js";
 import { FsError } from "safe-bash-contracts/errors";
@@ -5720,12 +5721,6 @@ export function runCompositeCliSync(argv: readonly string[], files: Map<string, 
     return next.value;
 }
 
-function formatMetricNum(n: number): string {
-  if (!Number.isFinite(n)) return "inf";
-  if (Math.abs(n) < 1e-9) return "0";
-  const fixed = n.toFixed(6).replace(/\.?0+$/, "");
-  return fixed === "-0" ? "0" : fixed;
-}
 
 function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     let cooperativeWork = 63;
@@ -5825,146 +5820,17 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             stderr: `compare: unable to open image '${candSpec}': No such file or directory\n`
         };
     }
-    const width = Math.max(imgA.width, imgB.width);
-    const height = Math.max(imgA.height, imgB.height);
-    const totalPixels = Math.max(1, width * height);
-    const needDiffImg = outSpec.toLowerCase() !== "null:";
-    const diffData = needDiffImg ? new Uint8Array(new ArrayBuffer(width * height * 4 + height), 0, width * height * 4) : undefined;
-    let aeCount = 0;
-    let sumAbs = 0;
-    let sumSq = 0;
-    let maxAbs = 0;
-    let sumLumA = 0;
-    let sumLumB = 0;
-    let sumLumSqA = 0;
-    let sumLumSqB = 0;
-    let sumLumAB = 0;
-    const hasAlpha = imgA.hasAlpha || imgB.hasAlpha;
-    for (let y = 0; y < height; y++) {
-        if ((y & 511) === 511)
-            yield;
-        for (let x = 0; x < width; x++) {
-            const pIdx = y * width + x;
-            const outOff = pIdx * 4;
-            const inBoundsA = x < imgA.width && y < imgA.height;
-            const inBoundsB = x < imgB.width && y < imgB.height;
-            const offA = inBoundsA ? (y * imgA.width + x) * 4 : -1;
-            const offB = inBoundsB ? (y * imgB.width + x) * 4 : -1;
-            const rA = offA >= 0 ? imgA.data[offA]! : 0;
-            const gA = offA >= 0 ? imgA.data[offA + 1]! : 0;
-            const bA = offA >= 0 ? imgA.data[offA + 2]! : 0;
-            const aA = offA >= 0 ? imgA.data[offA + 3]! : 0;
-            const rB = offB >= 0 ? imgB.data[offB]! : 0;
-            const gB = offB >= 0 ? imgB.data[offB + 1]! : 0;
-            const bB = offB >= 0 ? imgB.data[offB + 2]! : 0;
-            const aB = offB >= 0 ? imgB.data[offB + 3]! : 0;
-            const dr = Math.abs(rA - rB);
-            const dg = Math.abs(gA - gB);
-            const db = Math.abs(bA - bB);
-            const da = Math.abs(aA - aB);
-            const alphaA = aA / 255;
-            const alphaB = aB / 255;
-            const pdr = Math.abs(rA * alphaA - rB * alphaB);
-            const pdg = Math.abs(gA * alphaA - gB * alphaB);
-            const pdb = Math.abs(bA * alphaA - bB * alphaB);
-            const maxDelta = hasAlpha ? Math.max(pdr, pdg, pdb, da) : Math.max(dr, dg, db);
-            if (!inBoundsA || !inBoundsB || maxDelta > state.fuzz) {
-                aeCount++;
-                if (diffData) {
-                    diffData[outOff] = highlightColor.r;
-                    diffData[outOff + 1] = highlightColor.g;
-                    diffData[outOff + 2] = highlightColor.b;
-                    diffData[outOff + 3] = highlightColor.a;
-                }
-            }
-            else if (diffData) {
-                if (composeSrc) {
-                    diffData[outOff] = 0;
-                    diffData[outOff + 1] = 0;
-                    diffData[outOff + 2] = 0;
-                    diffData[outOff + 3] = 0;
-                }
-                else if (lowlightColor) {
-                    diffData[outOff] = lowlightColor.r;
-                    diffData[outOff + 1] = lowlightColor.g;
-                    diffData[outOff + 2] = lowlightColor.b;
-                    diffData[outOff + 3] = lowlightColor.a;
-                }
-                else {
-                    diffData[outOff] = Math.round(rA * 0.3 + 255 * 0.7);
-                    diffData[outOff + 1] = Math.round(gA * 0.3 + 255 * 0.7);
-                    diffData[outOff + 2] = Math.round(bA * 0.3 + 255 * 0.7);
-                    diffData[outOff + 3] = 255;
-                }
-            }
-            if (hasAlpha) {
-                sumAbs += pdr + pdg + pdb + da;
-                sumSq += pdr * pdr + pdg * pdg + pdb * pdb + da * da;
-            }
-            else {
-                sumAbs += dr + dg + db;
-                sumSq += dr * dr + dg * dg + db * db;
-            }
-            if (maxDelta > maxAbs)
-                maxAbs = maxDelta;
-            const lA = (0.299 * rA + 0.587 * gA + 0.114 * bA) / 255;
-            const lB = (0.299 * rB + 0.587 * gB + 0.114 * bB) / 255;
-            sumLumA += lA;
-            sumLumB += lB;
-            sumLumSqA += lA * lA;
-            sumLumSqB += lB * lB;
-            sumLumAB += lA * lB;
-        }
-    }
-    detachRgbaBuffer(imgA.data);
-    detachRgbaBuffer(imgB.data);
-    const numCh = hasAlpha ? 4 : 3;
-    const maeNorm = sumAbs / (totalPixels * numCh * 255);
-    const mseNorm = sumSq / (totalPixels * numCh * 255 * 255);
-    const rmseNorm = Math.sqrt(mseNorm);
-    const paeNorm = maxAbs / 255;
-    const muA = sumLumA / totalPixels;
-    const muB = sumLumB / totalPixels;
-    const varA = Math.max(0, sumLumSqA / totalPixels - muA * muA);
-    const varB = Math.max(0, sumLumSqB / totalPixels - muB * muB);
-    const covAB = sumLumAB / totalPixels - muA * muB;
-    const c1 = 0.0001;
-    const c2 = 0.0009;
-    const ssim = ((2 * muA * muB + c1) * (2 * covAB + c2)) /
-        ((muA * muA + muB * muB + c1) * (varA + varB + c2));
-    const ncc = varA === 0 && varB === 0 ? 1 : covAB / (Math.sqrt(varA * varB) || 1);
-    let metricStr: string;
-    switch (metric) {
-        case "ae":
-            metricStr = String(aeCount);
-            break;
-        case "mae":
-            metricStr = `${formatMetricNum(maeNorm * 65535)} (${formatMetricNum(maeNorm)})`;
-            break;
-        case "mse":
-            metricStr = `${formatMetricNum(mseNorm * 65535)} (${formatMetricNum(mseNorm)})`;
-            break;
-        case "pae":
-            metricStr = `${formatMetricNum(paeNorm * 65535)} (${formatMetricNum(paeNorm)})`;
-            break;
-        case "psnr":
-            metricStr = mseNorm === 0 ? "inf" : formatMetricNum(10 * Math.log10(1 / mseNorm));
-            break;
-        case "ssim":
-            metricStr = formatMetricNum(ssim);
-            break;
-        case "dssim":
-            metricStr = formatMetricNum((1 - ssim) / 2);
-            break;
-        case "ncc":
-            metricStr = formatMetricNum(ncc);
-            break;
-        case "rmse":
-        default:
-            metricStr = `${formatMetricNum(rmseNorm * 65535)} (${formatMetricNum(rmseNorm)})`;
-            break;
-    }
-    const exitCode = dissimilarityThreshold !== undefined ? (rmseNorm > dissimilarityThreshold ? 1 : 0) : (aeCount > 0 ? 1 : 0);
+    const width=Math.max(imgA.width,imgB.width),height=Math.max(imgA.height,imgB.height);
+    const diffData=outSpec.toLowerCase()!=="null:"?new Uint8Array(width*height*4):undefined;
+    const comparison=compareImageSteps(imgA,imgB,{metric,fuzz:state.fuzz,highlightColor,composeSrc,diff:!!diffData,...(lowlightColor?{lowlightColor}:{}),...(dissimilarityThreshold===undefined?{}:{dissimilarityThreshold})});
+    let compared=comparison.next();
+    try{while(!compared.done){const request=compared.value;
+      if(!request){yield;compared=comparison.next();}
+      else if(request.kind==="read"){const data=request.image===0?imgA.data:imgB.data;compared=comparison.next(data.subarray(request.position,request.position+request.length));}
+      else{diffData!.set(request.data,request.position);compared=comparison.next();}
+    }}finally{comparison.return(undefined as never);}
+    const {metric:metricStr,exitCode}=compared.value;
+    detachRgbaBuffer(imgA.data);detachRgbaBuffer(imgB.data);
     if (diffData) {
         const diffImg: RgbaImage = {
             width,

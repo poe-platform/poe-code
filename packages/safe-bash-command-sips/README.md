@@ -20,7 +20,8 @@ properties are scanned in bounded ranges without reading unrelated pixel payload
 PNG, JPEG, WebP, TIFF, GIF, BMP, Netpbm and HEIC/HEIF/AVIF mutations keep pixel and encoded
 intermediates in bounded caller-backed storage, including fractional crop/pad
 sampling and intermediate lossy encodings. Capable filesystems publish output
-conditionally after processing and scratch cleanup. SVG/PDF codecs and legacy
+conditionally after processing and scratch cleanup. PDF output also streams compressed
+pixels and transparency from caller backing. SVG/PDF input codecs and legacy
 filesystem capabilities retain their byte-oriented compatibility paths. The byte-map
 and synchronous convenience APIs remain available.
 

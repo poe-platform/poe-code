@@ -29,6 +29,9 @@ export const verification = (async () => {
     assert.equal(result.exitCode, 0, result.stderr);
     assert.ok(result.stdout.endsWith("JPEG 7x13"));
     assert.equal((await sharp(await fs.readFile("/out.jpg")).metadata()).width, 7);
+    const pdf = await shell.exec("sips -s format pdf /out.jpg --out /out.pdf");
+    assert.equal(pdf.exitCode, 0, pdf.stderr);
+    assert.equal((await sharp(await fs.readFile("/out.pdf")).metadata()).width, 7);
     const composed = await shell.exec("pandoc -f markdown -t plain /input.md | shuf --random-source=/random");
     assert.equal(composed.exitCode, 0, composed.stderr);
     assert.deepEqual(composed.stdout.split("\n").filter(Boolean).sort(), ["alpha", "beta"]);

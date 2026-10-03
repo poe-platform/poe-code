@@ -68,7 +68,7 @@ overlays currently use the buffered fallback.
 Combined resize/blur/sharpen/convolution stages share premultiplied alpha and gamma handling.
 `resizeStoredImage(image, storage, options, signal)` supports all resize fits,
 gravity, entropy/attention crops, background canvases and image pages.
-PNG/PPM/PGM/PBM/BMP/TIFF/GIF/JPEG/WebP `.toFile()`
+PNG/PPM/PGM/PBM/BMP/TIFF/GIF/JPEG/WebP/PDF `.toFile()`
 conversions with these operations and `.resize()` use the backed codecs automatically when the
 supplied filesystem supports retained reads, working storage, and atomic
 streaming or retained staged publication. Explicit byte inputs, raw files/bytes and
@@ -77,7 +77,7 @@ snapshots remain valid. Joined file, byte and generated inputs use caller backin
 file output, statistics and metadata, preserving alignment, spacing and animation layout. Generated text and color/noise images
 use the same retained output path, and text metadata avoids rendering a pixel canvas.
 These input formats also support
-streaming TIFF, GIF, JPEG, WebP and raw output. `encodeRawFromStorage` preserves
+streaming TIFF, GIF, JPEG, WebP, PDF and raw output. PDF output streams compressed RGB and transparency from caller-backed pixels. `encodeRawFromStorage` preserves
 raw channel/depth conversion and original high-depth samples in caller storage. `encodeGifFromStorage` uses a fixed palette, bounded
 pixel caches and pull-driven owned data subblocks, including animated frames.
 `decodeGifToStorage` retains LZW input, animation canvases and frame delays in caller

@@ -3,7 +3,7 @@ import { build } from "esbuild";
 import { Miniflare } from "miniflare";
 import { fileURLToPath } from "node:url";
 import sharp from "@poe-code/image-ast";
-it.each(["png", "heif"] as const)("mutates and inspects %s above the cache size using external Worker storage and bounded allocations", async (format) => {
+it.each([["png", "png"], ["heif", "png"], ["png", "pdf"]] as const)("mutates and inspects %s to %s above the cache size using external Worker storage and bounded allocations", async (format, outputFormat) => {
     const input = await sharp({ create: { width: 531, height: 513, channels: 4, background: "red" } }).toFormat(format).toBuffer();
     const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../../../", import.meta.url)), sourcefile: "sips-worker.ts", contents: `
  import {runSipsCli,runIdentifyCli} from 'safe-bash-command-sips';
@@ -18,7 +18,7 @@ it.each(["png", "heif"] as const)("mutates and inspects %s above the cache size 
     async read(bytes,position){if(bytes.length>16384)throw new Error('large scratch read');const result=await env.IO.fetch('https://io/scratch/'+id+'?position='+position+'&length='+bytes.length);bytes.set(new Uint8Array(await result.arrayBuffer()));return bytes.length;},async close(){closed++;}};},
    readFile(){throw new Error('whole input');},writeFile(){throw new Error('whole output');}};
   const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;maxAllocation=Math.max(maxAllocation,length);if(length>65536)throw new Error('large allocation');return Reflect.construct(target,args);}});
-  try{const inspection=await runIdentifyCli(['-verbose','in'],{filesystem:fs,cwd:'/'});if(inspection.exitCode!==0)throw new Error(inspection.stderr);const result=await runSipsCli(['-r','90','-s','format','png','in','-o','out'],{filesystem:fs,cwd:'/'});return Response.json({result,handles,closed,sourceClosed,writes,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}
+  try{const inspection=await runIdentifyCli(['-verbose','in'],{filesystem:fs,cwd:'/'});if(inspection.exitCode!==0)throw new Error(inspection.stderr);const result=await runSipsCli(['-r','90','-s','format','${outputFormat}','in','-o','out'],{filesystem:fs,cwd:'/'});return Response.json({result,handles,closed,sourceClosed,writes,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}
   finally{globalThis.Uint8Array=Native;}
  }};` }, bundle: true, write: false, platform: "browser", conditions: ["workerd"], format: "esm", metafile: true, logLevel: "silent" });
     expect(Object.values(bundle.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);

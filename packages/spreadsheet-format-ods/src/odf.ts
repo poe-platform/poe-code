@@ -7,7 +7,7 @@ import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-s
 import { ownedRangeSource } from "@poe-code/spreadsheet-engine/range-input";
 import { decryptOdfEntries } from "./odf-encryption.js";
 import { createZipCodec, ZipWriteChain, CodecError, createStoredZipEntries, ZipStorageFailure, type ZipLimits, type ZipEntry, type ZipStreamEntry, type ZipSource } from "@poe-code/office-package";
-import { parseXmlSteps, XmlLimitError, type XmlElement, type XmlContent } from "@poe-code/safe-fs/xml";
+import { parseXmlStream, XmlLimitError, type XmlElement, type XmlContent } from "@poe-code/safe-fs/xml";
 import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 import { MAX_SHEET_SIZE, DEFAULT_SHEET_SIZE, formatA1, type Workbook, type Sheet, type Cell,
   type CellValue, type ImportedValue, type UnsupportedRecord, type AxisMetadata, type Range,
@@ -162,14 +162,37 @@ async function openPackage(bytes: Uint8Array | RangeSource, context: CapabilityC
       if (amount > (context.limits.workbookWork ?? Infinity) - work) limit("work"); work += amount;
     }
     const buffers = new Map<string, Uint8Array>();
+    const admitted = new Set<string>();
+    async function* decodedChunks(name: string): AsyncGenerator<Uint8Array> {
+      const cached = buffers.get(name);
+      if (cached) {
+        for (let offset = 0; offset < cached.length; offset += limits.chunkSize) {
+          context.signal.throwIfAborted();
+          yield cached.subarray(offset, offset + limits.chunkSize);
+        }
+        return;
+      }
+      const entry = await entries.get(name); if (!entry) invalid(`missing part '${name}'`);
+      const first = !admitted.has(name);
+      for await (const chunk of zip.decodeZipEntry(entry, limits, context.signal)) {
+        try {
+          if (first) {
+            if (chunk.length > limits.maxTotalBytes - decoded) limit("decoded bytes");
+            decoded += chunk.length;
+            charge(chunk.length);
+          }
+          yield chunk;
+        } finally { if (protectedBuffers) chunk.fill(0); }
+      }
+      admitted.add(name);
+    }
     async function read(name: string) {
       const cached = buffers.get(name); if (cached) return cached;
-      const entry = await entries.get(name); if (!entry) invalid(`missing part '${name}'`);
       const chunks: Uint8Array[] = []; let length = 0;
-      for await (const chunk of zip.decodeZipEntry(entry, limits, context.signal)) {
-        protectedBuffers?.add(chunk);
-        if (chunk.length > limits.maxTotalBytes - decoded) limit("decoded bytes");
-        decoded += chunk.length; length += chunk.length; charge(chunk.length); chunks.push(chunk);
+      for await (const chunk of decodedChunks(name)) {
+        const owned = new Uint8Array(chunk);
+        protectedBuffers?.add(owned);
+        length += owned.length; chunks.push(owned);
       }
       const result = new Uint8Array(length); let offset = 0;
       protectedBuffers?.add(result);
@@ -177,30 +200,47 @@ async function openPackage(bytes: Uint8Array | RangeSource, context: CapabilityC
       buffers.set(name, result); return result;
     }
     async function document(name: string) {
-      const bytes = await read(name);
-      let encoding: "UTF-8" | "UTF-16LE" | "UTF-16BE" = "UTF-8";
-      if (bytes[0] === 255 && bytes[1] === 254 || bytes[0] === 60 && bytes[1] === 0) encoding = "UTF-16LE";
-      if (bytes[0] === 254 && bytes[1] === 255 || bytes[0] === 0 && bytes[1] === 60) encoding = "UTF-16BE";
-      if (bytes.length > (context.limits.workbookTextBytes ?? limits.maxTotalBytes) - textBytes) limit("XML text");
-      textBytes += bytes.length;
-      const parser = parseXmlSteps(new TextDecoder(encoding, { fatal: true }).decode(bytes), { expectedEncoding: encoding,
+      const xmlLimits = { expectedEncoding: "UTF-8" as "UTF-8" | "UTF-16LE" | "UTF-16BE",
         retainContent: true, maxDepth: context.limits.xmlDepth ?? Infinity, maxNodes: (context.limits.workbookNodes ?? Infinity) - nodes,
         maxAttributes: context.limits.workbookNodes ?? Infinity, maxTextLength: limits.maxTextBytes,
-        onElement() { nodes++; charge(); } });
-      let step = parser.next(), ticks = 0;
-      while (!step.done) {
-        charge(step.value);
-        if (++ticks % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
-        step = parser.next();
+        onElement() { nodes++; charge(); } };
+      async function* text() {
+        const prefix = new Uint8Array(2); let length = 0, decoder: TextDecoder | undefined;
+        for await (const chunk of decodedChunks(name)) {
+          if (chunk.length > (context.limits.workbookTextBytes ?? limits.maxTotalBytes) - textBytes) limit("XML text");
+          textBytes += chunk.length;
+          let offset = 0;
+          if (!decoder) {
+            while (length < 2 && offset < chunk.length) prefix[length++] = chunk[offset++]!;
+            if (length < 2) continue;
+            if (prefix[0] === 255 && prefix[1] === 254 || prefix[0] === 60 && prefix[1] === 0) xmlLimits.expectedEncoding = "UTF-16LE";
+            if (prefix[0] === 254 && prefix[1] === 255 || prefix[0] === 0 && prefix[1] === 60) xmlLimits.expectedEncoding = "UTF-16BE";
+            decoder = new TextDecoder(xmlLimits.expectedEncoding, { fatal: true });
+            yield decoder.decode(prefix, { stream: true });
+          }
+          yield decoder.decode(chunk.subarray(offset), { stream: true });
+        }
+        yield decoder ? decoder.decode() : new TextDecoder("UTF-8", { fatal: true }).decode(prefix.subarray(0, length));
       }
-      return step.value;
+      let ticks = 0;
+      return parseXmlStream(text(), xmlLimits, async units => {
+        charge(units);
+        if (units && ++ticks % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+      });
+    }
+    async function prefix(name: string, maximum: number) {
+      const bytes = new Uint8Array(maximum); let length = 0;
+      // Drain the member even after the prefix is complete: CRC and declared
+      // size validation apply to probes as well as full document readers.
+      for await (const chunk of decodedChunks(name)) {
+        const count = Math.min(chunk.length, maximum - length);
+        bytes.set(chunk.subarray(0, count), length); length += count;
+      }
+      return bytes.subarray(0, length);
     }
     async function version(fallback: boolean | undefined): Promise<boolean | undefined> {
-      if (await entries.has("mimetype")) {
-        const bytes = await read("mimetype");
-        return mimeVersions.get(new TextDecoder().decode(bytes.subarray(0, 2048)));
-      }
-      if (await entries.has("content.xml") && new TextDecoder().decode((await read("content.xml")).subarray(0, 512)).includes(office[0]!)) return false;
+      if (await entries.has("mimetype")) return mimeVersions.get(new TextDecoder().decode(await prefix("mimetype", 2048)));
+      if (await entries.has("content.xml") && new TextDecoder().decode(await prefix("content.xml", 512)).includes(office[0]!)) return false;
       return fallback;
     }
     function retainText(amount: number) {
@@ -234,7 +274,7 @@ async function openPackage(bytes: Uint8Array | RangeSource, context: CapabilityC
         protectedBuffers!.add(unpacked.comment);
         const innerEntries = packageEntries(unpacked.entries, context);
         if (innerEntries.has("encrypted-package")) invalid("nested encrypted package");
-        current = innerEntries; buffers.clear();
+        current = innerEntries; buffers.clear(); admitted.clear();
         if (!await entries.has("mimetype")) invalid("missing inner package media type");
         const innerMime = await read("mimetype");
         if (innerMime.length !== outerMime!.length || !innerMime.every((byte, index) => byte === outerMime![index]))

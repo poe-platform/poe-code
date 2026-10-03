@@ -522,3 +522,5 @@ export function parseXml(input: string, limits: XmlLimits = {}): XmlElement {
   while (!result.done) result = parser.next();
   return result.value;
 }
+
+export { parseXmlStream } from "./stream.js";

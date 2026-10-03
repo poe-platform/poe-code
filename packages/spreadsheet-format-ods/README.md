@@ -48,3 +48,5 @@ Compose additional format modules explicitly to convert between file types.
 Existing ssconvert service IDs, supported profiles and documented fidelity limits
 remain unchanged. This private workspace is shipped through the containing
 products, not as a separate npm publication.
+
+ODF XML input decodes directly from ZIP member chunks (at most 16 KiB), including UTF-8 and UTF-16. Probes retain only a short prefix and drain the member to validate its size and CRC. Input XML trees and individual tokens remain resident; encrypted members still use buffered decryption.

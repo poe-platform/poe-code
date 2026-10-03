@@ -23,5 +23,8 @@
     "lint": "eslint src && npm run typecheck",
     "test": "cd ../.. && vitest run packages/xml-ast",
     "test:unit": "cd ../.. && vitest run packages/xml-ast"
+  },
+  "dependencies": {
+    "saxes": "6.0.0"
   }
 }

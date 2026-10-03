@@ -361,11 +361,11 @@ Compiler-owned source copies are capped at 64 KiB even when a reader supplies la
 chunks; source bytes count toward cooperative work and cancellation checkpoints.
 The shell uses the injected filesystem’s stream reader when available; an explicitly
 buffered reader remains supported for compatibility. For the retained JSON/CSV
-conversion routes targeting JSON, plain text, HTML, Markdown, RST or LaTeX,
+conversion routes targeting JSON, plain text, HTML, Markdown, RST, LaTeX, RTF or ODT,
 `convertToOutput` with `workingFiles` runs Lua through caller-backed
 compiler, VM, tables, strings and document storage with fixed page caches. Use an
-external safe-fs backend for large files. Lua filters targeting RTF/ODT still use the compatibility path to preserve image-origin
-sidecars. Other conversion routes and the buffered
+external safe-fs backend for large files. RTF/ODT preserve image-origin sidecars in caller storage, including unchanged
+targets across filter generations and post-filter transformations. Other conversion routes and the buffered
 `apply` convenience API still use the resident VM; streaming source alone does not
 bound their allocations. Streams close after compilation, syntax errors or cancellation.
 

@@ -164,10 +164,13 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   register pressure at the existing local limit. The shipped constructor/traversal
   bootstrap compiles with a fixed page cache. Base, math, UTF-8, table and string
   libraries and Pandoc constructors/traversal now run through the retained runtime.
-  Public JSON/CSV conversions to JSON, plain, HTML, Markdown, RST and LaTeX use it
-  when workingFiles and the streaming Lua capability are supplied. RTF/ODT Lua
-  paths still require retained image-origin sidecars; other readers, finite-budget
-  fallbacks and buffered apply still use the resident runtime. Preserve their
+  Public JSON/CSV conversions to JSON, plain, HTML, Markdown, RST, LaTeX, RTF and ODT use it
+  when workingFiles and the streaming Lua capability are supplied. Lua image-origin
+  maps, key indexes and comparison frames use one extra page cache in caller storage.
+  Verify unchanged versus replaced/reordered targets, same-URL different-directory
+  caching, long/colliding metadata keys, chained generations and comment/heading
+  rewrites. Other readers, finite-budget fallbacks and buffered apply still use the
+  resident runtime. Preserve their
   behavior while replacing those paths. `onError` delivers retained error bytes
   before scratch closes; the command consumes them with backpressure. Without
   that callback, SDK errors explicitly collect Error.message for compatibility.

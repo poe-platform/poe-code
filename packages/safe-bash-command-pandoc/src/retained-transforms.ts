@@ -27,7 +27,7 @@ async function* withoutComments(source: AsyncIterable<string>): AsyncGenerator<s
 /** Copy a validated document generation through bounded, caller-backed rewrite
  * jobs. Metadata is deliberately untouched, matching Session.writable. */
 export async function transformRetainedJson(source: BackedJson, context: ExecutionContext, working: WorkingStorageOptions,
-  options: Pick<ConversionOptions, "stripComments" | "shiftHeadingLevelBy">): Promise<Awaited<ReturnType<typeof readRetainedJson>>> {
+  options: Pick<ConversionOptions, "stripComments" | "shiftHeadingLevelBy">, copied?: (before:number,after:number)=>Promise<void>): Promise<Awaited<ReturnType<typeof readRetainedJson>>> {
   const owner = {fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal};
   const pages = (working.cacheBytes ?? 1048576) / 16384;
   const storage = new PagedStorage(owner, pages), scratch = new PagedStorage(owner, pages);
@@ -85,7 +85,8 @@ export async function transformRetainedJson(source: BackedJson, context: Executi
           await replacements.set(BigInt(text), 2n);
         }
       }
-      await tree.begin(header.kind);
+      const target=await tree.begin(header.kind);
+      await copied?.(node,target);
       if (header.kind === "array" || header.kind === "object") {
         await push(2, 0);
         await push(1, node + 32, header.end);

@@ -11,6 +11,7 @@ import {writeRetainedMarkdown} from "./retained-markdown.js";
 import {createFormatRegistry} from "./formats.js";
 import {writeRetainedHtml} from "./retained-html.js";
 import {transformRetainedJson} from "./retained-transforms.js";
+import {RetainedOrigins} from "./retained-origins.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {assertRetainedPlainMath, writeRetainedPlain} from "./retained-plain.js";
 import {readRetainedJson} from "./retained-json.js";
@@ -49,6 +50,8 @@ async function checkImageOrigins(tree: BackedJson, context: ExecutionContext): P
 /** Retain each document generation and filter response in caller storage. The
  * previous generation is retired before another filter starts. */
 export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>>>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt" = "json", origin?: ResourceOrigin, includes?: RetainedIncludes): Promise<void> {
+  let originStorage:PagedStorage | undefined, origins:RetainedOrigins | undefined;
+  let releaseOrigins:(()=>void) | undefined;
   let document: Awaited<ReturnType<typeof readRetainedJson>> | undefined;
   let failure: {reason: unknown} | undefined;
   const preflight = async (chunks: AsyncIterable<Uint8Array>) => {
@@ -57,6 +60,11 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     for await (const bytes of chunks) {length += bytes.length; context.bound("outputBytes", length);}
   };
   try {
+    if((target==="rtf" || target==="odt") && options.filters?.some(request=>request.kind==="lua")) {
+      originStorage=new PagedStorage({fs:working.fs,cwd:working.directory,env:{},signal:context.signal??new AbortController().signal},(working.cacheBytes??1048576)/16384);
+      const owned=originStorage;releaseOrigins=context.onClose(()=>owned.close());
+      origins=new RetainedOrigins(originStorage,units=>context.cooperate(units));
+    }
     document = await load();
     for (const file of options.metadataFiles ?? []) {
       const next = await mergeRetainedMetadataFile(document, file, context, working);
@@ -83,6 +91,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
         const next = await readRetainedJson({chunks: (async function* () {
           for (let offset = 0; offset < length; offset += 16384) yield await response.read(start + offset, Math.min(16384, length - offset));
         })()}, context, working, false);
+        if(origins){if(request.kind==="lua")await origins.transfer(document.tree,next.tree);else origins.clear();}
         await document.close();
         document = next;
       } catch (reason) {filterFailure = {reason};}
@@ -92,12 +101,12 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     }
     if (["plain", "commonmark", "gfm", "rtf", "odt"].includes(target)) await assertRetainedPlainMath(document.tree, document.order, context);
     if (options.shiftHeadingLevelBy || options.stripComments) {
-      const next = await transformRetainedJson(document.tree, context, working, options);
+      const next = await transformRetainedJson(document.tree, context, working, options, origins?.copy());
       await document.close();
       document = next;
     }
     if (target === "rtf" || target === "odt") {
-      const resources = await prepareRetainedImageResources(document.tree, document.order, context, working, options, options.filters?.length ? undefined : origin);
+      const resources = await prepareRetainedImageResources(document.tree, document.order, context, working, options, origins ? async node=>await origins!.inherited(node)?origin??{}:{} : options.filters?.length ? undefined : origin);
       let writerFailure: {reason: unknown} | undefined;
       try {if (target === "odt") await writeRetainedOdt(document.tree, context, working, options, resources);
       else await writeRetainedRtf(document.tree, context, working, options, document.order, async node => {
@@ -119,6 +128,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     }
   } catch (reason) {failure = {reason};}
   try {await document?.close();} catch (reason) {failure ??= {reason};}
+  try {await originStorage?.close();} catch (reason) {failure ??= {reason};} finally{releaseOrigins?.();}
   try {await includes?.close();} catch (reason) {failure ??= {reason};}
   if (failure) throw failure.reason;
   await context.completeOutput();

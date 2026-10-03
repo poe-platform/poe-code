@@ -11,11 +11,21 @@ type Span = {position: number; length: number};
 
 /** Retain image identity and admitted bytes independently of format validation. */
 export async function prepareRetainedImageResources(tree: BackedJson, order: Awaited<ReturnType<typeof backedJsonOrder>>, context: ExecutionContext,
-  working: WorkingStorageOptions, options: ConversionOptions, origin: ResourceOrigin = {}) {
+  working: WorkingStorageOptions, options: ConversionOptions, origin: ResourceOrigin | ((node:number)=>Promise<ResourceOrigin>) = {}) {
   const storage = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, (working.cacheBytes ?? 1048576) / 16384);
   const release = context.onClose(() => storage.close()), text = new BackedText(storage, units => context.cooperate(units));
   const identities = new BackedTextSet(storage, text);
   const targets = new BackedTextSet(storage, text), paths = new BackedTextSet(storage, text), targetSpans = new IntegerTable(storage, 64), pathSpans = new IntegerTable(storage, 64);
+  const originAt=(node:number)=>typeof origin==="function"?origin(node):Promise.resolve(origin);
+  const targetKey=async(node:number):Promise<bigint>=>{
+    let embedded=false;
+    for await(const chunk of tree.scalarChunks(node)){embedded=dataPrefix(chunk.slice(0,32))!==0;break;}
+    const base=context.resources || embedded?undefined:(await originAt(node)).base;
+    return BigInt(await targets.add(await text.from((async function*(){
+      yield base===undefined?"-:":String(base.length)+":"+base;
+      yield* tree.scalarChunks(node);
+    })())));
+  };
   const fs = context.context.resourceFiles, readOptions = context.signal ? {signal: context.signal} : {};
   let search: string[] | undefined;
   if (options.resourcePath !== undefined) {
@@ -36,7 +46,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
     const bytes = await storage.read(position, 16), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
     return {position: view.getFloat64(0, true), length: view.getFloat64(8, true)};
   };
-  const location = async (node: number): Promise<string> => {
+  const location = async (node: number, origin:ResourceOrigin): Promise<string> => {
     let path = "";
     while (node !== tree.rootPosition) {
       const header = await tree.describe(node), parent = header.parent, ph = await tree.describe(parent);
@@ -113,20 +123,20 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
     if (fs && !context.resources) {
       // Validate all target spellings before opening any file, matching embedding admission.
       for await (const image of images()) {
-        const key = BigInt(await targets.add(await text.from(tree.scalarChunks(image.target))));
+        const key = await targetKey(image.target);
         let prefix = ""; for await (const chunk of tree.scalarChunks(image.target)) {prefix = chunk.slice(0, 32); break;}
         const start = dataPrefix(prefix);
         if (start) {
           if (!await targetSpans.get(key)) await targetSpans.set(key, BigInt(await save(await data(image.target, start))));
         } else {
           localResourceTarget(await scalar(image.target), context);
-          if (!search) resourceDirectory(origin.base ?? context.context.resourceCwd ?? "/");
+          if (!search) resourceDirectory((await originAt(image.target)).base ?? context.context.resourceCwd ?? "/");
         }
       }
       for await (const image of images()) {
-        const id = BigInt(await targets.add(await text.from(tree.scalarChunks(image.target))));
+        const id = await targetKey(image.target);
         if (await targetSpans.get(id)) continue;
-        const url = await scalar(image.target), target = localResourceTarget(url, context);
+        const url = await scalar(image.target), target = localResourceTarget(url, context), origin=await originAt(image.target);
         const roots = [resourceDirectory(origin.base ?? context.context.resourceCwd ?? "/")];
         if (origin.base && context.context.resourceCwd) {const cwd = resourceDirectory(context.context.resourceCwd); if (!roots.includes(cwd)) roots.push(cwd);}
         let record = 0;
@@ -145,7 +155,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
           record = await save(await acquire(producer)); await pathSpans.set(key, BigInt(record)); break;
         }
         if (!record) {
-          const at = await location(image.node);
+          const at = await location(image.node,origin);
           if (!options.lossy) throw new PandocError("E_RESOURCE", "convert", "Missing image resource: " + url, undefined, at);
           context.report({code: "W_RESOURCE_MISSING", operation: "convert", message: "Missing image resource: " + url, location: at});
         } else await targetSpans.set(id, BigInt(record));
@@ -158,7 +168,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
   return {
     async image(node: number) {
       let span: Span;
-      const key = BigInt(await targets.add(await text.from(tree.scalarChunks(node))));
+      const key = await targetKey(node);
       const cached = options.to === "odt" ? Number(await targetSpans.get(key) ?? 0n) : 0;
       if (context.resources && cached) span = await load(cached);
       else if (context.resources) {

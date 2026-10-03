@@ -4064,6 +4064,27 @@
         "scope": "Retained authenticated source install target, original saver and Python loader; exact declared repository profile environment and plugin set. No compatibility shim or patched reference module. Activation succeeds but actual native saving does not."
       },
       "remaining": "Native saver parity remains unproven: activation alone was insufficient and the actual saver fails its legacy gsf import. No shim or modified reference was substituted. Source stdout effects, wider glossary semantics and installed artifacts remain open. No family is closed."
+    },
+    "besselFractionalHoldouts20261003": {
+      "auditedAt": "2026-10-03",
+      "revision": "046512ff960b41dc66ec920f64a13899c343cf6a",
+      "profile": "Gnumeric 1.12.61 Linux arm64, exact retained gnumeric-1.12.61-optional-python-glossary environment; built-in BESSELJ/BESSELY functions",
+      "nativeBinarySha256": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
+      "corpus": "Two independent deterministic holdouts: 240 positive fractional orders and 240 negative fractional orders, with BESSELJ and BESSELY for each. Positive orders are drawn from 10^U(-3,4)+U(0,1); negative magnitudes from 10^U(-3,3)+U(0,1); x/absolute-order ratios from 10^U(-1,1). Seeds 174803 and 174804. No cases excluded.",
+      "verification": "All 960 current engine observations and 3840 compiled root/package SDK/command observations exactly match native cached binary64/error values. Eight public XLSX conversions and both native runs complete with no diagnostics. Normal root build passes. No implementation changes were needed.",
+      "receipts": {
+        "bessel-next": {
+          "nativeSha256": "5205903645ebb2b4297542a35dfd8f3f70534fdbc87cbb6bd6405775900f72e0",
+          "inputSha256": "73dbac116452916f2c8d33ea9420d26d981b32a3729cd52926d3f8986fd919c7"
+        },
+        "bessel-negative-next": {
+          "nativeSha256": "ea2f62aae06610878ce4310a2d64902c789ada1243102961566b06d6519bac60",
+          "inputSha256": "d47d7f84e9565f7a23ba6d93f82319fff9af8f169c43d01c80f9a54bcee8fade"
+        },
+        "checks": 3840,
+        "mismatches": 0
+      },
+      "remaining": "This qualifies these Linux holdouts only. Wider domains, runtime/platform profiles and installed registry artifacts remain open; no family is closed."
     }
   },
   "cases": [

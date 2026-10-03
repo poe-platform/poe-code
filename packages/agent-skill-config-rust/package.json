@@ -2,7 +2,7 @@
   "name": "@poe-code/agent-skill-config-rust",
   "version": "0.1.0",
   "private": true,
-  "description": "Portable Rust skill configuration and Git exclude blocks with zero npm runtime dependencies",
+  "description": "Own Rust skill configuration, Git exclude blocks and capability-based discovery",
   "type": "module",
   "license": "MIT",
   "main": "dist/index.js",
@@ -44,5 +44,8 @@
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
     "directory": "packages/agent-skill-config-rust"
+  },
+  "dependencies": {
+    "@poe-code/safe-fs": "*"
   }
 }

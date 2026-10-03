@@ -10,6 +10,7 @@ export type {BridgeEntry,BridgeManifest,BridgeWarning,BridgeWarningKind}from'./b
 export {bridgeActiveSkills,cleanupBridgedSkills}from'./bridge-active-skills.js';
 
 export { resolveSkillReferenceAsync, appendExcludeBlockAsync, removeExcludeBlockAsync,
-  bridgeActiveSkillsAsync, cleanupBridgedSkillsAsync, discoverSkillsAsync
+  bridgeActiveSkillsAsync, cleanupBridgedSkillsAsync
 } from "@poe-code/agent-skill-config/node";
-export type { SkillRuntimeOptions, DiscoveredSkill } from "@poe-code/agent-skill-config/node";
+export {discoverSkillsAsync} from './discover-skills-async.js';
+export type {SkillRuntimeOptions, DiscoveredSkill} from './discover-skills-async.js';

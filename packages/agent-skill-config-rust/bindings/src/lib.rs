@@ -12,6 +12,7 @@ use napi_derive::napi;
 use std::sync::OnceLock;
 mod apply;
 mod bridge;
+mod discovery;
 mod templates;
 pub use config_mutations_rust_napi_core::*;
 fn u(text: &str) -> Vec<u16> {

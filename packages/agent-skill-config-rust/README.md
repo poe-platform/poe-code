@@ -3,14 +3,15 @@
 Find and install coding-agent skills, protect user files, and keep temporary Git
 ignore rules scoped to one run.
 The portable Rust core derives skill directories from the declarative agent
-catalog and uses only the standard library and own path crates. Its independent
-Node addon has no npm runtime, peer or optional dependencies.
+catalog and uses only the standard library and own path crates. Async discovery
+uses the existing own `@poe-code/safe-fs` capability and path contracts.
 
 | Capability | Node API |
 | --- | --- |
 | Supported agents, aliases and independent configs | `supportedAgents`, `resolveAgentSupport`, `getAgentConfig` |
 | Global and project skill directories | `resolveSkillDir` |
 | Project-first skill reference lookup | `resolveSkillReference` |
+| Discover ordered, unique skills through a supplied filesystem | `discoverSkillsAsync` |
 | Independent run-owned Git exclude blocks | `appendExcludeBlock`, `removeExcludeBlock` |
 | Install bundled skills without overwriting user files | `configure`, `unconfigure` |
 | Install named skills with explicit overwrite control | `installSkill` |
@@ -61,8 +62,17 @@ copies; exclude cleanup must succeed before targets are removed. Original
 manifests have idempotent cleanup, and serialized manifests retain duplicate-run
 exclude IDs.
 
-This additive experimental workspace provides the current root SDK API. Full
-malformed/accessor fidelity, Python bindings and cross-platform artifacts
-remain in progress. Small native Node lookups and configuration cycles are slower
-than the existing SDK.
+Async discovery loads direct child `SKILL.md` files, preserves directory order,
+sorts child names by UTF-16 units and deduplicates successfully loaded paths.
+Rust owns traversal and file admission; the host retains filesystem operations,
+decoding, cancellation and original exception identities. Symbolic-link roots
+and nonregular skill files are rejected. Pass `fs`, `cwd` and `homeDir`, with an
+optional `signal`; `nativePaths` retains the original direct-filesystem mode.
+
+This additive experimental workspace exposes the current Node SDK API. Five
+async helpers (reference resolution, exclude append/removal and bridge/cleanup)
+still delegate to the original package and are not independent Rust replacements.
+Full malformed/accessor fidelity, Python bindings and cross-platform artifacts
+remain in progress. Small native Node lookups, discovery and configuration cycles
+are slower than the existing SDK in measured samples.
 Existing applications continue to use the original TypeScript package.

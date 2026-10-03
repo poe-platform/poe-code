@@ -5,5 +5,6 @@ export {configure,unconfigure,installSkill,UnsupportedAgentError}from'./apply.js
 export {bridgeActiveSkills,cleanupBridgedSkills}from'./bridge-active-skills.js';
 
 export { resolveSkillReferenceAsync, appendExcludeBlockAsync, removeExcludeBlockAsync,
-  bridgeActiveSkillsAsync, cleanupBridgedSkillsAsync, discoverSkillsAsync
+  bridgeActiveSkillsAsync, cleanupBridgedSkillsAsync
 } from "@poe-code/agent-skill-config/node";
+export {discoverSkillsAsync} from './discover-skills-async.js';

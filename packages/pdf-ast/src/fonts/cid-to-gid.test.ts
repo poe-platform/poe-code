@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { PdfDocument, renderDisplayListToBitmap, renderDisplayListToSvg, parseTrueTypeFont, embedTrueTypeFontInCos, cosArray, cosName, cosNumber, cosStream, cosDict, dictGet, dictSet, type PdfCosNode } from "../index.js";
 
 // Existing in-memory triangle font from document.test.ts.
-function triangleFont(notdef = false, withCmap = true) {
+function triangleFont(notdef = false, withCmap = true, options: Parameters<typeof parseTrueTypeFont>[1] = {}) {
   const buf = new ArrayBuffer(512);
   const dv = new DataView(buf);
   const u8 = new Uint8Array(buf);
@@ -67,7 +67,7 @@ function triangleFont(notdef = false, withCmap = true) {
   dv.setUint16(f4 + 30, 0);
 
   if (notdef) dv.setUint16(250, 12); // Put the triangle in glyph zero, leaving glyph one empty.
-  return parseTrueTypeFont(u8);
+  return parseTrueTypeFont(u8, options);
 }
 
 function evaluate(cid: number, mapping: PdfCosNode | undefined, options: { unicode?: string; notdef?: boolean; encoding?: string; mappedCid?: number; byteLength?: number; withCmap?: boolean } = {}) {
@@ -218,4 +218,26 @@ it.each([1, 2, 3, 4])("uses an embedded %i-byte Encoding CMap for CID and width 
   expect(display.glyphs[0]!.unicode).toBe("Z");
   expect(display.glyphs[0]!.advanceWidth).toBeCloseTo(90);
   expect(display.paths).toHaveLength(1);
+});
+
+
+it("admits TrueType metadata before allocating parser state", () => {
+  const failure = new Error("font metadata owner rejected allocation");
+  expect(() => triangleFont(false, true, { onAllocation() { throw failure; } })).toThrow(failure);
+});
+
+it("admits TrueType point and segment state before decoding an outline", () => {
+  let rendering = false;
+  const failure = new Error("font outline owner rejected allocation");
+  const font = triangleFont(false, true, { onAllocation() { if (rendering) throw failure; } });
+  rendering = true;
+  expect(() => font.getGlyphOutlineByGid(1)).toThrow(failure);
+});
+
+it("rejects compact declarations of giant TrueType point arrays before decoding", () => {
+  const bytes = triangleFont().bytes;
+  new DataView(bytes.buffer).setUint16(266, 65535);
+  const failure = new Error("point array exceeds containing budget");
+  const font = parseTrueTypeFont(bytes, { onAllocation(size) { if (size > 100000) throw failure; } });
+  expect(() => font.getGlyphOutlineByGid(1)).toThrow(failure);
 });

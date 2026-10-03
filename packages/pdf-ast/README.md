@@ -465,7 +465,10 @@ including PFB/hex containers, Differences, and composed accents. Embedded
 TrueType CID fonts select outlines through `/CIDToGIDMap`, independently of
 the Unicode labels used for extraction. TrueType subsets may omit `cmap`;
 simple fonts recover glyph selection from PDF encodings and `post` names.
-TrueType character maps use direct range lookups over the font bytes without
+`parseTrueTypeFont(bytes, { onAllocation })` reports metadata, name/width tables,
+TrueType point/contour scratch and compound outline allocations before creating
+them. Input remains caller-owned; embedded CFF program parsing still needs its
+own accounting. TrueType character maps use direct range lookups over the font bytes without
 expanding ranges into per-character Maps. Ordered ranges use binary search;
 overlapping ranges retain their existing last-match behavior.
 Embedded Type0 Encoding CMaps resolve

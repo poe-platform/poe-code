@@ -1,4 +1,4 @@
-import type { PdfFontAllocationOptions } from "./memory.js";
+import { PdfFontAllocation, type PdfFontAllocationOptions } from "./memory.js";
 import { CFFParser, MacStandardGlyphOrdering, Stream } from "../vendor/pdfjs-fonts.mjs";
 import { createCffGlyphRenderer } from "./cff.js";
 import {
@@ -116,12 +116,15 @@ export function parseTrueTypeFont(bytes: Uint8Array, options: Pick<PdfFontAlloca
   if (bytes.byteLength < 12) {
     throw new PdfError("E_PARSE", "TrueType font is too short");
   }
+  const allocation = new PdfFontAllocation(options);
+  allocation.admit(1024);
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const sfntVersion = readU32(view, 0);
   if (sfntVersion !== 0x00010000 && sfntVersion !== 0x4f54544f && sfntVersion !== 0x74727565) {
     throw new PdfError("E_PARSE", `Unsupported sfnt header signature: 0x${sfntVersion.toString(16)}`);
   }
   const numTables = readU16(view, 4);
+  allocation.admit(Math.min(numTables, Math.floor((bytes.length - 12) / 16)) * 128);
   const tables = new Map<string, { offset: number; length: number }>();
   for (let i = 0; i < numTables; i++) {
     const recOffset = 12 + i * 16;
@@ -158,6 +161,7 @@ export function parseTrueTypeFont(bytes: Uint8Array, options: Pick<PdfFontAlloca
   const numOfLongHorMetrics = Math.max(1, readU16(view, hhea.offset + 34));
   const numGlyphs = Math.max(1, readU16(view, maxp.offset + 4));
   const post = tables.get("post");
+  if (post && post.offset + post.length <= bytes.length) allocation.admit(numGlyphs * 32 + post.length * 16);
   const glyphNames = post && post.offset + post.length <= bytes.length
     ? readPostGlyphNames(bytes.subarray(post.offset, post.offset + post.length), numGlyphs) : [];
 
@@ -171,6 +175,7 @@ export function parseTrueTypeFont(bytes: Uint8Array, options: Pick<PdfFontAlloca
     }
   }
 
+  allocation.admit(numGlyphs * 2);
   const advanceWidths = new Uint16Array(numGlyphs);
   let lastWidth = 500;
   for (let gid = 0; gid < numGlyphs; gid++) {
@@ -265,6 +270,7 @@ export function parseTrueTypeFont(bytes: Uint8Array, options: Pick<PdfFontAlloca
       const len = readU16(view, rec + 8);
       const off = strOffset + readU16(view, rec + 10);
       if (nameID === 6 && off + len <= bytes.byteLength) {
+        allocation.admit(len * 64);
         let decoded = "";
         if (platformID === 3 || platformID === 0) {
           for (let j = 0; j + 1 < len; j += 2) {
@@ -299,6 +305,7 @@ export function parseTrueTypeFont(bytes: Uint8Array, options: Pick<PdfFontAlloca
     }
     // PDF.js FontRendererFactory selects the CFF table when glyf is absent.
     // Copy it because PDF.js can repair charstrings in place.
+    allocation.admit(cffTable.length);
     const cff = new CFFParser(new Stream(bytes.slice(cffTable.offset, cffTable.offset + cffTable.length)), {}, false).parse();
     renderCffGlyph = createCffGlyphRenderer(cff, options);
   }
@@ -307,6 +314,7 @@ export function parseTrueTypeFont(bytes: Uint8Array, options: Pick<PdfFontAlloca
     if (gid < 0 || gid >= numGlyphs || depth > 6) return [];
     if (renderCffGlyph) return renderCffGlyph(gid);
     if (!loca || !glyf) return [];
+    allocation.admit(256);
     let gOff = 0;
     let gNext = 0;
     if (indexToLocFormat === 0) {
@@ -360,6 +368,7 @@ export function parseTrueTypeFont(bytes: Uint8Array, options: Pick<PdfFontAlloca
         const tx = dx / unitsPerEm;
         const ty = dy / unitsPerEm;
         for (const seg of getGlyphOutlineByGid(subGid, depth + 1)) {
+          allocation.admit(128);
           if (seg.kind === "move" || seg.kind === "line") {
             compSegments.push({
               kind: seg.kind,
@@ -385,12 +394,15 @@ export function parseTrueTypeFont(bytes: Uint8Array, options: Pick<PdfFontAlloca
     }
     if (numberOfContours <= 0) return [];
 
+    allocation.admit(numberOfContours * 16);
     const endPts: number[] = [];
     for (let i = 0; i < numberOfContours; i++) {
       endPts.push(readU16(view, glyphStart + 10 + i * 2));
     }
     const numPoints = (endPts[endPts.length - 1] ?? -1) + 1;
     if (numPoints <= 0) return [];
+    // Coordinate arrays, contour objects, and emitted path segments.
+    allocation.admit(numPoints * 512 + numberOfContours * 128);
     const instrLen = readU16(view, glyphStart + 10 + numberOfContours * 2);
     let pos = glyphStart + 12 + numberOfContours * 2 + instrLen;
 
@@ -533,6 +545,7 @@ export function parseTrueTypeFont(bytes: Uint8Array, options: Pick<PdfFontAlloca
       return (sum * fontSize) / 1000;
     },
     encodeTextToCidHex(text: string): { hexBytes: Uint8Array; usedGlyphs: Map<number, string> } {
+      allocation.admit(128 + text.length * 128);
       const out: number[] = [];
       const usedGlyphs = new Map<number, string>();
       for (const ch of text) {

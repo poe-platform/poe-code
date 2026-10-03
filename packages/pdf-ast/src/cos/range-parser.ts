@@ -6,6 +6,8 @@ import { CosRangeLexer, isPdfDelimiter, isPdfWhitespace } from "./lexer.js";
 import { parseValueSteps } from "./value-parser.js";
 
 export interface ParseCosRangeOptions {
+  /** Exclusive direct-value boundary, used for object-stream members. */
+  readonly end?: number;
   readonly recovery?: "strict" | "repair";
   readonly maxRecursionDepth?: number;
   readonly maxTokenBytes?: number;
@@ -113,7 +115,7 @@ export async function parseCosRangeValue(source: PdfFileSource, offset: number, 
   const depth = limit(options.maxRecursionDepth, "maxRecursionDepth");
   const nodes = limit(options.maxNodes, "maxNodes");
   const maxTokenBytes = limit(options.maxTokenBytes, "maxTokenBytes");
-  const lexer = new CosRangeLexer(source, { start: offset, maxTokenBytes, ...(options.signal ? { signal: options.signal } : {}) });
+  const lexer = new CosRangeLexer(source, { start: offset, ...(options.end === undefined ? {} : { end: options.end }), maxTokenBytes, ...(options.signal ? { signal: options.signal } : {}) });
   return { value: await readValue(lexer, depth, nodes, options), offset: lexer.offset };
 }
 

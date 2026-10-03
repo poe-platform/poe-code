@@ -85,7 +85,20 @@ builder can coexist). Trailer/value limits and the streaming decoder callback
 are the same as `readCosXrefRevision`. This API requires valid xrefs; repair scanning,
 object loading, decryption and the buffered document API remain separate.
 
-For stdin or intermediate data, `PdfFileSource.fromStream(fs, directory, chunks,
+For stdin or intermediate data, `new PdfObjectReader(source, index, storage, options)` resolves indexed COS
+objects with `await reader.get(objectNumber, generationNumber)`. Stream payloads
+remain retained source ranges. Compressed members are parsed individually from
+caller-backed decoded streams and fixed-width header tapes; the default cache
+holds two streams. `objectStreamCacheEntries`, `cacheBytes`, `chunkBytes`,
+`maxStagingBytes`, and `maxObjectStreamMembers` control that storage. Header and
+decoded bytes share the staging budget, admitted before writes. Parsing defaults
+to 65,536 nodes, 1 MiB per token and depth 100; adjust those intrinsic-value limits
+with `maxNodes`, `maxTokenBytes` and `maxRecursionDepth`. Returned ASTs belong to
+the caller and are not cached. `close()` removes owned staging after accepted
+reads finish, leaving the source and index open. This raw COS reader resolves
+indirect lengths and filter parameters but does not authenticate or decrypt PDFs.
+
+`PdfFileSource.fromStream(fs, directory, chunks,
 options)` writes bounded chunks into retained staging in the supplied directory.
 It seals the file before reading, verifies its identity and content revision,
 and removes its staging directory when the source closes. Writes apply

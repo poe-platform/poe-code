@@ -20,3 +20,4 @@ export * from "./edit/forms.js";
 export * from "./render/raster.js";
 export * from "./canvas.js";
 export * from "./document.js";
+export * from "./source.js";

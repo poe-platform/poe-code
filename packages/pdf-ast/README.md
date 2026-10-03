@@ -8,6 +8,18 @@ Unified first-party PDF AST, parser, lossless editor, extractor, and 2D PNG rast
 `extractDocumentImagesSteps` expose bounded work generators for responsive
 page and pixel processing. Synchronous APIs remain available.
 
+`PdfFileSource.open(fs, path, options)` provides retained random-access input
+using the caller's safe-fs. `read(position, maxBytes)` returns owned bytes up to
+`chunkBytes`, and `stream(position, length)` yields ranges under consumer
+backpressure. Always close the source in `finally`. The default range cache is
+256 KiB with 64 KiB chunks; `maxInputBytes` rejects oversized inputs before any
+payload read. Sources require retained-read support and never reopen a pathname
+or fall back to whole-file reads. The caller chooses and owns the backend;
+memory-backed safe-fs still stores its files in RAM.
+
+This source is an I/O primitive. `PdfDocument.load`, editing, and rendering still
+use the buffered document engine; they do not yet accept `PdfFileSource`.
+
 ## Feature Index
 
 | Capability | Entry Point | Description |

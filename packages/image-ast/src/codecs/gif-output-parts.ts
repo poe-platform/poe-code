@@ -129,14 +129,15 @@ export function gifFrameHeader(
   options: GifOptions,
   layout: ReturnType<typeof gifLayout>,
   frame: number,
-  transparent: boolean
+  transparent: boolean,
+  frameDelay = image.delay?.[frame]
 ) {
   const { width, frameHeight, frames } = layout,
     delay = Array.isArray(options.delay)
       ? (options.delay[frame] ?? options.delay[options.delay.length - 1] ?? 100)
       : typeof options.delay === "number"
         ? options.delay
-        : (image.delay?.[frame] ?? (frames > 1 ? 100 : 0)),
+        : (frameDelay ?? (frames > 1 ? 100 : 0)),
     centiseconds = Math.max(0, Math.round(delay / 10));
   const gce = frames > 1 || transparent || options.delay !== undefined,
     out = new Uint8Array(gce ? 19 : 11);

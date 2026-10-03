@@ -33,7 +33,7 @@ affine transforms, arbitrary rotation, median filtering, trimming, convolution,
 Gaussian blur, sharpening, local contrast enhancement (CLAHE), dilation and erosion
 also keep raster data in caller storage. For compositing, Boolean operations and channel joins, supply
 a `StoredImageResources` resolver as the fifth `transformStoredImage`
-argument; it returns decoded images in the same caller-owned storage. PNG, Netpbm, BMP and supported TIFF file
+argument; it returns decoded images in the same caller-owned storage. PNG, Netpbm, BMP, GIF and supported TIFF file
 operands and composite overlays use the parent filesystem with retained reads and version checks.
 Raw operands support every sample depth in bounded chunks, and created overlays
 (including deterministic Gaussian noise) generate directly into caller storage.
@@ -42,13 +42,16 @@ encoded overlay formats currently use the buffered fallback.
 Combined resize/blur/sharpen/convolution stages share premultiplied alpha and gamma handling.
 `resizeStoredImage(image, storage, options, signal)` supports all resize fits,
 gravity, entropy/attention crops, background canvases and image pages.
-PNG/PPM/PGM/PBM/BMP/TIFF `.toFile()`
+PNG/PPM/PGM/PBM/BMP/TIFF/GIF `.toFile()`
 conversions with these operations and `.resize()` use the backed codecs automatically when the
 supplied filesystem supports retained reads, working storage, and atomic
 streaming or retained staged publication. These input formats also support
 streaming TIFF and GIF output. `encodeGifFromStorage` uses a fixed palette, bounded
 pixel caches and pull-driven owned data subblocks, including animated frames.
-GIF input and JPEG-compressed TIFF input still use the buffered path.
+`decodeGifToStorage` retains LZW input, animation canvases and frame delays in caller
+storage, including page selection, interlacing and disposal. Async GIF output reads
+those retained delays without a frame-count-sized array. JPEG-compressed TIFF input
+still uses the buffered path.
 `resampleStoredImage(image, storage, {width, height, kernel}, signal)` resamples
 backed RGBA pixels with bounded caches, including alpha and all resize kernels.
 Optional explicit scales must round to the requested output dimensions.

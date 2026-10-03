@@ -141,6 +141,11 @@ it("packs the caller-backed image filesystem API with canonical public storage a
   expect([...await sharp(await fs.readFile("/bitmap.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [0, 0, 0, 255]).flat());
   expect(await sharp("/input.png", {filesystem: guarded}).gif().toFile("/output.gif")).toMatchObject({format: "gif", width: 7, height: 3, channels: 4});
   expect([...await sharp(await fs.readFile("/output.gif")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [255, 0, 0, 255]).flat());
+  expect(await sharp("/output.gif", {filesystem: guarded}).composite([{input: "/output.gif", blend: "difference"}]).png().toFile("/gif.png")).toMatchObject({format: "png", width: 7, height: 3});
+  expect([...await sharp(await fs.readFile("/gif.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [0, 0, 0, 255]).flat());
+  await sharp("/input.png", {filesystem: guarded}).gif({pageHeight: 1, delay: [10, 20, 30], loop: 2}).toFile("/animated.gif");
+  expect(await sharp("/animated.gif", {filesystem: guarded, animated: true}).gif().toFile("/replayed.gif")).toMatchObject({format: "gif", pages: 3, pageHeight: 1});
+  expect([...await fs.readFile("/replayed.gif")]).toEqual([...await sharp(await fs.readFile("/animated.gif"), {animated: true}).gif().toBuffer()]);
   expect(await sharp("/input.png", {filesystem: guarded}).tiff().toFile("/output.tiff")).toMatchObject({format: "tiff", width: 7, height: 3, channels: 4});
   expect([...await sharp(await fs.readFile("/output.tiff")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [255, 0, 0, 255]).flat());
   expect(await sharp("/output.tiff", {filesystem: guarded}).composite([{input: "/output.tiff", blend: "difference"}]).png().toFile("/tiff.png")).toMatchObject({format: "png", width: 7, height: 3});

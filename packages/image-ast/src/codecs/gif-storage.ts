@@ -42,7 +42,11 @@ export async function* encodeGifFromStorage(
         break;
       }
     signal.throwIfAborted();
-    yield gifFrameHeader(image, options, layout, frame, transparent);
+    const frameDelay = options.delay === undefined
+      ? await image.storedDelay?.at(frame, {signal})
+      : undefined;
+    signal.throwIfAborted();
+    yield gifFrameHeader(image, options, layout, frame, transparent, frameDelay);
     const codes = new GifCodes();
     codes.code(256);
     for (let i = 0; i < layout.framePixels; i++) {

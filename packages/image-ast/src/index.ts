@@ -1,3 +1,4 @@
+export {decodeGifToStorage} from "./codecs/gif-input-storage.js";
 export * from "./codecs/gif-storage.js";
 export * from "./codecs/tiff-storage.js";
 export * from "./codecs/bmp-storage.js";

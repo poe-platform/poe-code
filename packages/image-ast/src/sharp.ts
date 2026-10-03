@@ -1,3 +1,5 @@
+import {RetainedStreamInput} from "./streams/input.js";
+import type {FileSystem} from "@poe-code/safe-fs/contracts";
 import {JoinLayout} from "./ops/join-layout.js";
 import {prepareRawOutput} from "./codecs/raw-storage.js";
 import {tryInspectImageMetadata,transformedImageMetadata} from "./image-metadata.js";
@@ -308,6 +310,8 @@ export class SharpInstance extends Duplex {
   private streamInFinished = false;
   private streamFailure?: Error;
   private readonly streamChunks: Uint8Array[] = [];
+  private streamBacking:RetainedStreamInput|undefined;
+  private readonly abortStream=()=>{const reason=this.inputOptions?.signal?.reason;this.destroy(reason instanceof Error?reason:new Error(String(reason)));};
   private readonly fileInputs = new Map<string, Uint8Array>();
   private readonly fileLoads = new Map<string, Promise<void>>();
   private readonly clonedStreams: SharpInstance[] = [];
@@ -372,9 +376,10 @@ export class SharpInstance extends Duplex {
     validateInputOptions(this.inputOptions);
     this.on("error", (error: Error) => {
       this.streamFailure = error;
-      for (const child of this.clonedStreams) { child.streamFailure = error; child.destroy(error); }
+      for (const child of this.streamInFinished?[]:this.clonedStreams) { child.streamFailure = error; child.destroy(error); }
     });
     if (this.streamIn) {
+      this.inputOptions?.signal?.addEventListener("abort",this.abortStream,{once:true});
       this.on("finish", () => {
         this.flattenStreamInput();
       });
@@ -386,14 +391,16 @@ export class SharpInstance extends Duplex {
 
   private flattenStreamInput(): void {
     if (this.streamIn && !this.streamInFinished) {
+      if(this.streamBacking){this.receiveStreamInput(undefined);return;}
       const merged = new Uint8Array(this.streamChunks.reduce((total, bytes) => total + bytes.length, 0));
       let offset = 0;
       for (const bytes of this.streamChunks) { merged.set(bytes, offset); offset += bytes.length; }
+      this.streamChunks.length=0;
       this.receiveStreamInput(merged);
     }
   }
 
-  private receiveStreamInput(merged: Uint8Array): void {
+  private receiveStreamInput(merged: Uint8Array|undefined): void {
     this.inputBytes = merged;
     this.streamInFinished = true;
     for (const child of this.clonedStreams) {
@@ -402,16 +409,18 @@ export class SharpInstance extends Duplex {
     this.emit("streamReady");
   }
 
-  private async waitForStreamInput(): Promise<void> {
+  private async waitForStreamInput(buffer=true): Promise<void> {
     if (this.streamFailure) throw this.streamFailure;
-    await this.loadFileInputs();
+    this.inputOptions?.signal?.throwIfAborted();
+    if(buffer)await this.loadFileInputs();
     if (this.streamFailure) throw this.streamFailure;
     if (!this.streamIn || this.streamInFinished) {
+      if(buffer&&this.streamBacking&&!this.inputBytes)this.inputBytes=await this.streamBacking.bytes();
       return;
     }
     if (this.writableFinished) {
       this.flattenStreamInput();
-      if (this.streamInFinished) return;
+      if (this.streamInFinished) {if(buffer&&this.streamBacking&&!this.inputBytes)this.inputBytes=await this.streamBacking.bytes();return;}
     }
     await new Promise<void>((resolve, reject) => {
       const onReady = () => {
@@ -430,6 +439,7 @@ export class SharpInstance extends Duplex {
       this.once("streamReady", onReady);
       this.once("error", onError);
     });
+    if(buffer&&this.streamBacking&&!this.inputBytes)this.inputBytes=await this.streamBacking.bytes();
   }
 
   private operationInput(input: Uint8Array | ArrayBuffer | ArrayBufferView | string): Uint8Array | string | undefined {
@@ -472,11 +482,29 @@ export class SharpInstance extends Duplex {
     if (this.inputFilePath) this.inputBytes = this.loadedFile(this.inputFilePath);
   }
 
+  private retainedStream():RetainedStreamInput|undefined {
+    const fs=this.inputOptions?.filesystem;
+    if(!this.streamBacking&&fs?.capabilities&&fs.open&&fs.removeFileConditional&&fs.stat)
+      this.streamBacking=new RetainedStreamInput(fs as FileSystem,this.inputOptions?.workingDirectory??".",this.inputOptions?.signal??new AbortController().signal);
+    return this.streamBacking;
+  }
+
+  override async _destroy():Promise<void>{
+    this.inputOptions?.signal?.removeEventListener("abort",this.abortStream);
+    const outcomes=await Promise.allSettled([this.streamBacking?.release(),...(!this.streamInFinished?this.clonedStreams.map(child=>child.dispose()):[])]);
+    const failure=outcomes.find(result=>result.status==="rejected");
+    if(failure?.status==="rejected")throw failure.reason;
+  }
+
   override _write(chunk: unknown, _encoding: string, callback: (error?: Error | null) => void): void {
+    if(this.streamFailure){callback(this.streamFailure);return;}
     if (this.streamIn && !this.streamInFinished) {
       if (chunk instanceof Uint8Array) {
-        this.streamChunks.push(new Uint8Array(chunk));
-        callback();
+        try {
+          const backing=this.retainedStream();
+          if(backing){void backing.append(chunk).then(()=>callback(),error=>callback(error instanceof Error?error:new Error(String(error))));return;}
+          this.streamChunks.push(new Uint8Array(chunk));callback();
+        }catch(error){callback(error instanceof Error?error:new Error(String(error)));}
       } else {
         callback(new Error("Expected Uint8Array data on Writable Stream"));
       }
@@ -502,12 +530,14 @@ export class SharpInstance extends Duplex {
   }
 
   clone(): SharpInstance {
-    if (this.streamIn && !this.streamInFinished) {
+    if (this.streamIn && (!this.streamInFinished || this.streamBacking)) {
       const copy = new SharpInstance(undefined, this.inputOptions);
       copy.nodes.length = 0;
       copy.nodes.push(...this.nodes);
       copy.outputOptions = { ...this.outputOptions };
-      this.clonedStreams.push(copy);
+      copy.streamBacking=this.retainedStream()?.retain();
+      if(this.streamInFinished)copy.receiveStreamInput(this.inputBytes);
+      else this.clonedStreams.push(copy);
       if (this.streamFailure) { copy.streamFailure = this.streamFailure; copy.destroy(this.streamFailure); }
       return copy;
     }
@@ -813,9 +843,10 @@ export class SharpInstance extends Duplex {
       const value=await read({...metadata,autoOrient:{width:rotated?metadata.height:metadata.width,height:rotated?metadata.width:metadata.height}});
       this.inputOptions?.signal?.throwIfAborted();return value;
     };
-    if((!this.streamIn || this.streamInFinished) && this.inputOptions?.filesystem){
+    await this.waitForStreamInput(false);
+    if(this.inputOptions?.filesystem){
       if(this.streamFailure)throw this.streamFailure;
-      const input=this.joinInputs?{inputs:this.joinInputs}:this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
+      const input=this.streamBacking?{source:this.streamBacking}:this.joinInputs?{inputs:this.joinInputs}:this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
       const result=await tryInspectImageMetadata(input,this.inputOptions,this.nodes,this.outputOptions,this.fileInputs,consume);
       if(result)return result.value;
     }
@@ -841,9 +872,10 @@ export class SharpInstance extends Duplex {
 
   async stats(callback?: (err: Error | null, stats?: ImageStats) => void): Promise<ImageStats> {
     try {
-      if((!this.streamIn || this.streamInFinished) && this.inputOptions?.filesystem) {
+      await this.waitForStreamInput(false);
+      if(this.inputOptions?.filesystem) {
         if(this.streamFailure) throw this.streamFailure;
-        const result=await tryImageStats(this.joinInputs?{inputs:this.joinInputs}:this.inputFilePath??this.inputBytes,this.inputOptions,this.nodes,this.fileInputs);
+        const result=await tryImageStats(this.streamBacking?{source:this.streamBacking}:this.joinInputs?{inputs:this.joinInputs}:this.inputFilePath??this.inputBytes,this.inputOptions,this.nodes,this.fileInputs);
         if(result) {if(callback) callback(null,result);return result;}
       }
       await this.waitForStreamInput();
@@ -2384,9 +2416,10 @@ export class SharpInstance extends Duplex {
         this.outputOptions = { ...this.outputOptions, format: inferred };
       }
       try {
-        if ((!this.streamIn || this.streamInFinished) && ["raw","png","ppm","pgm","pbm","bmp","tiff","gif","jpeg","webp"].includes(this.outputOptions.format??"png")) {
+        await this.waitForStreamInput(false);
+        if (["raw","png","ppm","pgm","pbm","bmp","tiff","gif","jpeg","webp"].includes(this.outputOptions.format??"png")) {
           if(this.streamFailure) throw this.streamFailure;
-          const input=this.joinInputs?{inputs:this.joinInputs}:this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
+          const input=this.streamBacking?{source:this.streamBacking}:this.joinInputs?{inputs:this.joinInputs}:this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
           const streamed = await tryImageFile(input, fileOut, this.inputOptions!, this.outputOptions, this.nodes,this.fileInputs);
           if (streamed) {if (callback) callback(null, streamed); return streamed;}
         }

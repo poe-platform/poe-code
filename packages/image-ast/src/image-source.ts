@@ -2,9 +2,12 @@ import {compareIdentity,compareFileVersion,FsError,type FileSystem} from "@poe-c
 import type {ImageByteSource} from "./codecs/png-storage.js";
 import {UnsupportedStoredResource} from "./codecs/unsupported-storage.js";
 
+export interface RetainedImageInput {readonly source:ImageByteSource;}
+
 /** Scope retained identity, version verification and handle cleanup to one source operation. */
-export async function withImageSource<T>(input:Uint8Array|string,fs:FileSystem,signal:AbortSignal,read:(source:ImageByteSource)=>Promise<T>):Promise<T> {
+export async function withImageSource<T>(input:Uint8Array|string|RetainedImageInput,fs:FileSystem,signal:AbortSignal,read:(source:ImageByteSource)=>Promise<T>):Promise<T> {
  signal.throwIfAborted();
+ if(typeof input==="object" && !(input instanceof Uint8Array)) return read(input.source);
  if(typeof input!=="string") return read({size:input.length,async read(position,length){signal.throwIfAborted();return new Uint8Array(input.subarray(position,position+length));}});
  const capabilities=await fs.capabilitiesFor?.(input,{signal})??fs.capabilities;
  signal.throwIfAborted();if(!capabilities.retainedRead || !fs.openReadFile) throw new UnsupportedStoredResource();

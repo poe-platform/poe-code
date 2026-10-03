@@ -7,14 +7,14 @@ import {transformStoredPipeline} from "./ops/storage-pipeline.js";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {dirname,type FileSystem} from "@poe-code/safe-fs/contracts";
 import type {ImageMetadata,RetainedImageMetadata,SharpInputOptions,ImageAstNode,OutputEncodeOptions,RgbaImage} from "./ast.js";
-import {withImageSource} from "./image-source.js";
+import {withImageSource,type RetainedImageInput} from "./image-source.js";
 import {UnsupportedStoredResource} from "./codecs/unsupported-storage.js";
 import {readImageMetadata} from "./codecs/index.js";
 import {readImageMetadataFromSource} from "./codecs/metadata-source.js";
 
 export async function tryInspectImageMetadata<T>(input:ImageResourceInput,options:SharpInputOptions,operations:readonly ImageAstNode[],encoding:OutputEncodeOptions,loadedFiles:ReadonlyMap<string,Uint8Array>|undefined,consume:(metadata:RetainedImageMetadata)=>Promise<T>):Promise<{value:T}|undefined> {
  if(!operations.every(isStoredImageOperation) || (input===undefined&&!options.text&&!options.create))return undefined;
- const joined=input && typeof input==="object" && !(input instanceof Uint8Array)?input:undefined;
+ const joined=input && typeof input==="object" && "inputs" in input?input:undefined;
  const signal=options.signal??new AbortController().signal;signal.throwIfAborted();
  const supplied=options.filesystem;if(!supplied?.capabilities || (typeof input==="string"&&!supplied.openReadFile))return undefined;
  if(!joined&&(options.text || options.create)&&!operations.length)return {value:await consume(readImageMetadata(undefined,options))};
@@ -43,7 +43,7 @@ export async function tryInspectImageMetadata<T>(input:ImageResourceInput,option
    const evaluated=await transformStoredPipeline(initial,storage,operations,signal,resources);
    return transformedImageMetadata(metadata,evaluated,encoding);
   };
-  const metadata=joined||options.text||options.create?await inspect():await withImageSource(input as string|Uint8Array,supplied as FileSystem,signal,inspect);
+  const metadata=joined||options.text||options.create?await inspect():await withImageSource(input as string|Uint8Array|RetainedImageInput,supplied as FileSystem,signal,inspect);
   signal.throwIfAborted();consumed=true;result={value:await consume(metadata)};
  } catch(error){failure={error};}
  try {await storage?.close();}catch(error){if(!failure || (!consumed&&failure.error instanceof UnsupportedStoredResource))throw error;}

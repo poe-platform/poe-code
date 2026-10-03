@@ -1,5 +1,5 @@
 import {joinStoredImages} from "./ops/join-storage.js";
-import {withImageSource} from "./image-source.js";
+import {withImageSource,type RetainedImageInput} from "./image-source.js";
 import {renderTextToStorage} from "./codecs/text-storage.js";
 import {storedImageDecoder} from "./codecs/stored-decoder.js";
 import {decodeRawResource,createStoredResource} from "./codecs/resource-storage.js";
@@ -9,12 +9,12 @@ import type {ImageByteStorage,ImageByteSource,StoredRgbaImage} from "./codecs/pn
 import {UnsupportedStoredResource} from "./codecs/unsupported-storage.js";
 export {UnsupportedStoredResource} from "./codecs/unsupported-storage.js";
 export interface JoinedImageInput {readonly inputs:readonly (Uint8Array|ArrayBuffer|string|SharpInputOptions)[];}
-export type ImageResourceInput=Uint8Array|string|JoinedImageInput|undefined;
+export type ImageResourceInput=Uint8Array|string|JoinedImageInput|RetainedImageInput|undefined;
 /** File resources use the parent's authority and retained version checks. */
 export async function readImageResource(input:ImageResourceInput,options:SharpInputOptions|undefined,fs:FileSystem,storage:ImageByteStorage,signal:AbortSignal,loadedFiles?:ReadonlyMap<string,Uint8Array>):Promise<StoredRgbaImage> {
  signal.throwIfAborted();
  if(typeof input==="string")input=loadedFiles?.get(input)??input;
- if(input && typeof input==="object" && !(input instanceof Uint8Array)){
+ if(input && typeof input==="object" && "inputs" in input){
   const images:StoredRgbaImage[]=[],paths=new Map<string,StoredRgbaImage>();
   for(const item of input.inputs){
    if(typeof item==="string"&&paths.has(item)){images.push(paths.get(item)!);continue;}

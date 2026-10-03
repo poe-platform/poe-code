@@ -5,7 +5,11 @@ Zero-dependency image processing AST and pixel pipeline with a `sharp`-compatibl
 The main export uses Web Streams and Uint8Array in every runtime, including
 Node, browsers and Workers, without Node builtins. Stream cancellation and writable
 abort await asynchronous cleanup; `await image.dispose()` explicitly releases stream
-resources and reports cleanup failures. File paths require an explicit
+resources and reports cleanup failures. With a capable injected filesystem,
+unfinished input streams retain encoded chunks in bounded caller-backed storage;
+file output, metadata and statistics reuse that snapshot. Clones share its lifetime:
+dispose each instance after its last operation, including after writable completion.
+Explicit buffer methods still materialize their results. File paths require an explicit
 `filesystem` with asynchronous `readFile` and `writeFile` methods (such as safe-fs)
 and an asynchronous output method; byte inputs also
 support synchronous output. `@poe-code/image-ast/portable` exposes the same `sharp` API alongside codecs and

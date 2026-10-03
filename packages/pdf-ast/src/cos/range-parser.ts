@@ -90,6 +90,33 @@ async function resolveStreamLength(entry: PdfCosNode | undefined, options: Parse
   finally { dispose(); }
 }
 
+async function readValue(lexer: CosRangeLexer, depth: number, nodes: number, options: ParseCosRangeOptions): Promise<PdfCosNode | undefined> {
+  const { signal } = options;
+  const work = parseValueSteps(lexer, depth, options.recovery === "repair", nodes);
+  let value: PdfCosNode | undefined;
+  let turns = 0;
+  try {
+    let step = work.next();
+    while (!step.done) {
+      signal?.throwIfAborted();
+      step = step.value === undefined ? work.next() : work.next(step.value === "token" ? await lexer.nextToken() : step.value);
+      if (++turns % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+    }
+    value = step.value;
+  } finally { work.return(undefined); }
+  signal?.throwIfAborted();
+  return value;
+}
+
+/** Read a direct COS value (for example a trailer or object-stream member). */
+export async function parseCosRangeValue(source: PdfFileSource, offset: number, options: ParseCosRangeOptions = {}): Promise<{ value: PdfCosNode | undefined; offset: number }> {
+  const depth = limit(options.maxRecursionDepth, "maxRecursionDepth");
+  const nodes = limit(options.maxNodes, "maxNodes");
+  const maxTokenBytes = limit(options.maxTokenBytes, "maxTokenBytes");
+  const lexer = new CosRangeLexer(source, { start: offset, maxTokenBytes, ...(options.signal ? { signal: options.signal } : {}) });
+  return { value: await readValue(lexer, depth, nodes, options), offset: lexer.offset };
+}
+
 /** Parse one indexed indirect object without retaining the file or its stream
  * payload. Structural nodes are bounded by maxNodes, maxTokenBytes and depth;
  * input windows use the caller's retained source cache. The caller owns source. */
@@ -107,18 +134,7 @@ export async function parseCosRangeObject(source: PdfFileSource, offset: number,
       !Number.isSafeInteger(object.value) || object.value < 0 || !Number.isSafeInteger(generation.value) || generation.value < 0) {
     throw new PdfError("E_PARSE", `Malformed indirect object header at byte offset ${offset}`);
   }
-  const work = parseValueSteps(lexer, depth, options.recovery === "repair", nodes);
-  let value: PdfCosNode | undefined;
-  let turns = 0;
-  try {
-    let step = work.next();
-    while (!step.done) {
-      signal?.throwIfAborted();
-      step = step.value === undefined ? work.next() : work.next(step.value === "token" ? await lexer.nextToken() : step.value);
-      if (++turns % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
-    }
-    value = step.value;
-  } finally { work.return(undefined); }
+  const value = await readValue(lexer, depth, nodes, options);
   signal?.throwIfAborted();
   if (!value) throw new PdfError("E_PARSE", `Empty indirect object ${object.value} at offset ${offset}`);
   let end = lexer.offset;

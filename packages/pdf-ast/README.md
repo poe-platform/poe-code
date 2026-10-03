@@ -35,6 +35,16 @@ range scanning. `maxNodes`, `maxTokenBytes`, and `maxRecursionDepth` bound the
 active structural value; the source remains caller-owned. This low-level API
 returns encoded object data, before document-level decryption or stream decoding.
 
+`readCosXrefRevision(source, offset, options)` yields classic or binary xref
+rows on demand and returns the trailer as the generator's final value. It keeps
+one decoded chunk and the bounded trailer structure, with `maxEntries` and
+`maxDecodedBytes` budgets. Filtered streams require a caller-supplied streaming
+`decodeStream` callback; the callback must bound its codec chunks and state.
+Early return closes the decoder but leaves the source open. Rows retain file
+order, including duplicates; callers must resolve within-revision precedence
+before combining revisions. This primitive does not follow `/Prev` or hybrid
+xref links or replace the buffered document loader.
+
 `PdfObjectIndex.build(entries, { fs, directory }, options)` sorts streamed
 cross-reference entries into caller-backed retained storage. Supply revisions
 newest first: the first entry for an object wins, including free entries. Use

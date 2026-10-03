@@ -120,3 +120,32 @@ it("retained ranges preserve short reads, offsets, and exclusive end bounds", as
   expect(requests).toEqual([[3, 4], [5, 3], [7, 1]]);
   expect(output).toEqual([3, 3, 5, 5, 7]);
 });
+
+it("forwards return() to a pending native iterator before next() settles", async () => {
+  let entered!: () => void;
+  const ready = new Promise<void>(resolve => { entered = resolve; });
+  let release!: (value: IteratorResult<Uint8Array>) => void;
+  const pending = new Promise<IteratorResult<Uint8Array>>(resolve => { release = resolve; });
+  let returns = 0;
+  const fs = {
+    capabilities: { streamingRead: true },
+    readStream() {
+      return {
+        [Symbol.asyncIterator]: () => ({
+          next() { entered(); return pending; },
+          async return() {
+            returns++;
+            release({ done: true, value: undefined });
+            return { done: true, value: undefined };
+          },
+        }),
+      };
+    },
+  } as unknown as FileSystem;
+  const iterator = readFileStream(fs, "/input");
+  const nextPromise = iterator.next();
+  await ready;
+  await iterator.return(undefined);
+  expect(returns).toBe(1);
+  await expect(nextPromise).resolves.toEqual({ done: true, value: undefined });
+});

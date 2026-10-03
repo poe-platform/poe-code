@@ -116,6 +116,27 @@ applies a resolved stream dictionary's filter chain. Both honor cancellation and
 decoded-byte limits; retained-input factories support decoder replay. Cipher
 block scheduling preserves the buffered decoder's truncated AES recovery.
 
+`PdfRetainedDocument.open(source, storage, options)` opens a read-oriented
+retained document with authenticated `objects`, `crossReference`, and
+`encryption` state. Iterate `doc.pages()` to visit pages under consumer
+backpressure, including inline page dictionaries. Each page provides its
+`index`, optional `reference`, `dict`, async `attributes()` (inherited boxes,
+rotation and resources), and `streamContents()` (decoded content chunks with
+the same array separators as `PdfPage.getRawContentStream`). `doc.lookup(node)`
+resolves reference chains while retaining stream identity; `doc.info()` decodes
+string/name metadata.
+
+Page walks keep only their active path and use caller-backed indexes for global
+cycle/duplicate tracking, with a 64-reference resident tail. `maxPages` is an
+optional admission limit; `maxPageTreeDepth` defaults to 100 and
+`maxTraversalStagingBytes` bounds aggregate live traversal staging per iterator.
+The existing object/parser limits bound each active structural value. A walk
+removes its indexes on completion, error or early return. `doc.close()` cancels
+active work, closes suspended walks and releases its reader/xref; the caller
+still owns the input source and any page values it retains. This read-oriented
+API does not yet replace the editing, extraction or rendering engine used by
+the commands.
+
 `PdfFileSource.fromStream(fs, directory, chunks,
 options)` writes bounded chunks into retained staging in the supplied directory.
 It seals the file before reading, verifies its identity and content revision,

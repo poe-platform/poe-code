@@ -1,3 +1,4 @@
+import { renderOperationStreamWindow, renderDisplayListToBitmap } from "../render/raster.js";
 import { expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { cosArray, cosDict, cosName, cosNumber, cosStream, cosString, dictSet } from "../ast.js";
@@ -85,4 +86,15 @@ it("streams raw page text through retained evaluation and caller staging", async
   const decoder = new TextDecoder(); let actual = "";
   for await (const chunk of f.retained.streamRawText(f.storage, { chunkBytes: 32 })) actual += decoder.decode(chunk, { stream: true });
   actual += decoder.decode(); expect(actual).toBe(expected); expect(f.readFile).not.toHaveBeenCalled(); await f.close();
+});
+
+it("paints retained page operations directly with annotation parity and caller-owned scratch", async () => {
+ const f = await fixture();
+ const page = {...f.expected, rotation:0 as const};
+ const expected = renderDisplayListToBitmap(page, {scale:0.25});
+ const operations = async function* () {
+  for await (const event of f.retained.evaluateSteps(f.storage, {chunkBytes:32})) if (!event.captured) yield event.operation;
+ };
+ const actual = await renderOperationStreamWindow(page, operations, {x:0,y:0,width:expected.width,height:expected.height}, {scale:0.25});
+ expect(actual).toEqual(expected); expect(f.readFile).not.toHaveBeenCalled(); await f.close();
 });

@@ -14,6 +14,14 @@ full renderer's pixel calculations. Evaluated paths/images and nested layer
 state remain caller-owned or resident; this API alone is not a complete bounded
 file renderer. Its driver handles cropping, rotation and anisotropic resampling.
 
+`renderOperationStreamWindow(page, operations, window, options)` accepts a
+replayable async operation source and paints each operation before advancing.
+Opaque output first scans for compositing effects to preserve background colors;
+transparent output needs one pass. Sources close on success, failure and
+cancellation. This avoids collecting a page display list; individual evaluated
+paths, decoded resources and nested captures still retain their existing memory
+ownership.
+
 `PdfFileSource.open(fs, path, options)` provides retained random-access input
 using the caller's safe-fs. `read(position, maxBytes)` returns owned bytes up to
 `chunkBytes`, and `stream(position, length)` yields ranges under consumer

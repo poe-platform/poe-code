@@ -28,3 +28,68 @@ test('a small window does not allocate a full page or full mask surface',()=>{
  vi.stubGlobal('Uint8Array',bounded(native,1));vi.stubGlobal('ArrayBuffer',bounded(nativeBuffer,1));vi.stubGlobal('Float32Array',bounded(nativeFloat,4));
  try{const tile=drain(raster.renderDisplayListWindowSteps(large,{x:1,y:999970,width:8,height:8},{scale:1}));expect(tile.data.length).toBe(256);}finally{vi.unstubAllGlobals();}
 });
+
+for (const transparent of [false, true]) test(`streamed raster operations preserve composition, transparent=${transparent}`, async () => {
+ const list = scene(), window = {x: 5, y: 3, width: 11, height: 13}, options = {scale: 1.25, transparent};
+ const expected = drain(raster.renderDisplayListWindowSteps(list, window, options));
+ let opened = 0, closed = 0;
+ const operations = async function* () {
+  opened++;
+  try { for (const original of list.operations!) {
+   const operation = structuredClone(original);
+   yield operation;
+   // The source can recycle borrowed resources when the consumer advances.
+   if (operation.kind === "image") operation.value.decodedRgba?.fill(0);
+  } } finally { closed++; }
+ };
+ expect(await raster.renderOperationStreamWindow(list, operations, window, options)).toEqual(expected);
+ expect(opened).toBe(transparent ? 1 : 2);
+ expect(closed).toBe(opened);
+});
+
+test("streamed raster preserves backend failure despite close failure", async () => {
+ const failure = new Error("backend"), cleanup = new Error("cleanup");
+ const source = () => ({[Symbol.asyncIterator]() {return {
+  async next(): Promise<IteratorResult<PdfPaintOperation>> {throw failure;},
+  async return(): Promise<IteratorResult<PdfPaintOperation>> {throw cleanup;}
+ };}});
+ await expect(raster.renderOperationStreamWindow(scene(), source, {x:0,y:0,width:2,height:2}, {transparent:true})).rejects.toBe(failure);
+});
+
+test("streamed raster cancels and closes the current operation source", async () => {
+ const controller = new AbortController(), failure = new Error("cancelled"); let closed = 0;
+ const source = async function* () {try {
+  controller.abort(failure); yield scene().operations![0]!;
+ } finally {closed++;}};
+ await expect(raster.renderOperationStreamWindow(scene(), source, {x:0,y:0,width:2,height:2}, {signal:controller.signal})).rejects.toBe(failure);
+ expect(closed).toBe(1);
+});
+
+test("streamed raster does not reuse masks across recycled operation resources", async () => {
+ const list = scene(), original = structuredClone(list.operations!.find(op => op.kind === "path" && op.value.clipPaths)!);
+ if (original.kind !== "path") throw Error("missing clipped path");
+ const second = structuredClone(original);
+ const clip = second.value.clipPaths![0]!;
+ const segments = "segments" in clip ? clip.segments : clip;
+ for (const segment of segments) if ("x" in segment) Object.assign(segment, {x:segment.x + 20});
+ const expected = drain(raster.renderDisplayListWindowSteps({...list,operations:[original,second]}, {x:0,y:0,width:53,height:41}, {scale:1}));
+ const source = async function* () {
+  const borrowed = structuredClone(original); yield borrowed;
+  const clip = borrowed.value.clipPaths![0]!;
+  const segments = "segments" in clip ? clip.segments : clip;
+  for (const segment of segments) if ("x" in segment) Object.assign(segment, {x:segment.x + 20});
+  yield borrowed;
+ };
+ expect(await raster.renderOperationStreamWindow(list, source, {x:0,y:0,width:53,height:41}, {scale:1})).toEqual(expected);
+});
+
+test.each([false, true])("streamed raster observes asynchronous cancellation (transparent=%s)", async transparent => {
+ const controller = new AbortController(), failure = new Error("cancelled later"); let closed = 0;
+ const operation = scene().operations![0]!;
+ const source = async function* () {try {while (true) yield operation;} finally {closed++;}};
+ const timer = setTimeout(() => controller.abort(failure), 0);
+ try {
+  await expect(raster.renderOperationStreamWindow(scene(), source, {x:0,y:0,width:2,height:2}, {transparent,signal:controller.signal})).rejects.toBe(failure);
+  expect(closed).toBe(1);
+ } finally {clearTimeout(timer);}
+});

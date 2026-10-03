@@ -1030,12 +1030,19 @@ function containsBackdropGroup(operations: readonly PdfPaintOperation[]): boolea
     (needsGroupBackdrop(operation.value) || containsBackdropGroup(operation.value.operations)));
 }
 
+interface RasterOperationInput {
+  requested: boolean;
+  next: IteratorResult<PdfPaintOperation> | undefined;
+  compositing: boolean;
+}
+
 function *renderDisplayListLayerSteps(
   displayList: PdfDisplayList,
   options: RenderToPngOptions,
   scale: number,
   backdrop?: Uint8Array,
-  window?: PdfCropRect
+  window?: PdfCropRect,
+  input?: RasterOperationInput
 ): Generator<void, RgbaBitmap, void> {
   let work = 0;
   const [originX, originY] = displayList.origin ?? [0, 0];
@@ -1058,7 +1065,7 @@ function *renderDisplayListLayerSteps(
 
   // PDF.js beginDrawing: blend modes see the page's transparent backdrop,
   // never the viewer's white/custom background. Composite that background last.
-  const deferBackground = !options.transparent && hasCompositingEffects(paintOperations(displayList));
+  const deferBackground = !options.transparent && (input ? input.compositing : hasCompositingEffects(paintOperations(displayList)));
   const transparent = options.transparent || deferBackground;
   const bg = options.background ?? { r: 1, g: 1, b: 1 };
   const bgR = transparent ? 0 : Math.round(bg.r * 255);
@@ -1083,7 +1090,22 @@ function *renderDisplayListLayerSteps(
   let cachedSoftMaskPixels: Uint8Array | undefined;
   const imageClipMasks = new Map<readonly PdfEvaluatedImage[], Uint8Array>();
   let opIdx = 0;
-  for (const original of paintOperations(displayList)) {
+  const operations = input ? undefined : paintOperations(displayList);
+  let operationIndex = 0;
+  while (true) {
+    let original: PdfPaintOperation;
+    if (input) {
+      // Advancing may recycle every borrowed resource, including object identities.
+      cachedClips = undefined; cachedSoftMask = undefined; imageClipMasks.clear();
+      input.requested = true;
+      yield;
+      const next = input.next!; input.next = undefined;
+      if (next.done) break;
+      original = next.value;
+    } else {
+      if (operationIndex === operations!.length) break;
+      original = operations![operationIndex++]!;
+    }
     if (++opIdx % 96 === 0 && typeof (globalThis as { gc?: () => void }).gc === "function") {
       try { (globalThis as { gc?: () => void }).gc?.(); } catch { /* Optional host GC hints must not interrupt rendering. */ }
     }
@@ -1294,11 +1316,58 @@ export type PdfRasterWindowOptions = Pick<RenderToPngOptions, "scale" | "dpi" | 
  * by the caller. Crop, rotation and anisotropic resampling belong to the driver. */
 export function *renderDisplayListWindowSteps(displayList: PdfDisplayList, window: PdfCropRect,
   options: PdfRasterWindowOptions = {}): Generator<void, RgbaBitmap, void> {
+  const scale = rasterWindowScale(displayList, window, options);
+  return yield* renderDisplayListLayerSteps(displayList, options, scale, undefined, window);
+}
+
+function rasterWindowScale(page: Pick<PdfDisplayList, "width" | "height">, window: PdfCropRect, options: PdfRasterWindowOptions): number {
   const scale = options.scale ?? (options.dpi ? options.dpi / 72 : 1.5);
-  const width = Math.max(1, Math.round(displayList.width * scale)), height = Math.max(1, Math.round(displayList.height * scale));
+  const width = Math.max(1, Math.round(page.width * scale)), height = Math.max(1, Math.round(page.height * scale));
   if (!Number.isFinite(scale) || scale <= 0 || ![width, height, window.x, window.y, window.width, window.height, window.x + window.width, window.y + window.height, window.width * window.height * 4].every(Number.isSafeInteger)
     || window.x < 0 || window.y < 0 || window.width <= 0 || window.height <= 0 || window.x + window.width > width || window.y + window.height > height) throw new RangeError("Invalid PDF raster window");
-  return yield* renderDisplayListLayerSteps(displayList, options, scale, undefined, window);
+  return scale;
+}
+
+/** Consume a replayable operation source without collecting a page display list.
+ * Opaque output makes a compositing prepass to preserve background quantization.
+ * Each operation is painted before advancing its source. Individual paths,
+ * resources and nested captures still have the evaluator's memory ownership. */
+export async function renderOperationStreamWindow(page: Pick<PdfDisplayList, "width" | "height" | "origin">,
+  operations: () => AsyncIterable<PdfPaintOperation>, window: PdfCropRect,
+  options: PdfRasterWindowOptions & { readonly signal?: AbortSignal } = {}): Promise<RgbaBitmap> {
+  const scale = rasterWindowScale(page, window, options);
+  const { signal } = options; signal?.throwIfAborted();
+  async function* cursor(): AsyncGenerator<PdfPaintOperation, void, void> {
+    const source = operations()[Symbol.asyncIterator](); let failed = false, pulls = 0;
+    try {
+      while (true) {
+        signal?.throwIfAborted();
+        const next = await source.next(); signal?.throwIfAborted();
+        if (next.done) return;
+        yield next.value;
+        if (++pulls % 256 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+      }
+    } catch (error) { failed = true; throw error; }
+    finally { try { await source.return?.(); } catch (error) { if (!failed) await Promise.reject(error); } }
+  }
+  const input: RasterOperationInput = { requested: false, next: undefined, compositing: false };
+  if (!options.transparent) for await (const operation of cursor()) {
+    if (hasCompositingEffects([operation])) { input.compositing = true; break; }
+  }
+  const list: PdfDisplayList = { ...page, pageIndex: 0, rotation: 0, glyphs: [], paths: [], images: [], annotations: [], operations: [] };
+  const source = cursor(), work = renderDisplayListLayerSteps(list, options, scale, undefined, window, input);
+  let failed = false, ticks = 0;
+  try {
+    let step = work.next();
+    while (!step.done) {
+      signal?.throwIfAborted();
+      if (input.requested) { input.requested = false; input.next = await source.next(); }
+      if (++ticks % 32 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); }
+      signal?.throwIfAborted(); step = work.next();
+    }
+    return step.value;
+  } catch (error) { failed = true; throw error; }
+  finally { work.return(undefined as never); await source.return().catch(error => { if (!failed) throw error; }); }
 }
 
 export function *renderDisplayListToBitmapSteps(

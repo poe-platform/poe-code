@@ -1,3 +1,4 @@
+export * from "./codecs/bmp-storage.js";
 export * from "./codecs/netpbm-storage.js";
 export * from "./ast.js";
 export * from "./codecs/exif.js";

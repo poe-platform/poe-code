@@ -52,3 +52,44 @@ it("delivers the first encoded chunk before formatting the complete workbook", a
   expect(writes).toBeGreaterThan(1);
   await engine.dispose();
 });
+
+it("uses the caller-backed index for unordered CSV cells and closes it after export", async () => {
+  const { createMemoryFileSystem } = await import("@poe-code/safe-fs/core");
+  const fs = createMemoryFileSystem();
+  const engine = createEngine({ formats: [csvFormat], workingFiles: { fs, directory: "/", cacheBytes: 16384 } });
+  const operation = { signal: new AbortController().signal };
+  const cells = Array.from({ length: 3000 }, (_, index) => ({ row: 2999 - index, column: 0,
+    value: { kind: "string" as const, value: String(2999 - index) } }));
+  const book = await engine.adoptWorkbook({ sheets: [{ id: "s", name: "Data", cells }] }, operation);
+  const original = fs.open.bind(fs);
+  let opens = 0, closes = 0;
+  fs.open = async (...args) => {
+    opens++;
+    const descriptor = await original(...args), close = descriptor.close.bind(descriptor);
+    descriptor.close = async options => { closes++; return close(options); };
+    return descriptor;
+  };
+  let text = "";
+  await engine.writeWorkbook(book, { kind: "stream", sink: { async write(bytes) { text += new TextDecoder().decode(bytes); } } },
+    { exportType: "Gnumeric_stf:stf_csv" }, operation);
+  expect(text).toBe(Array.from({ length: 3000 }, (_, row) => `${row}\n`).join(""));
+  expect(opens).toBe(1); expect(closes).toBe(1);
+  expect(await fs.readdir("/")).toEqual([]);
+  await engine.dispose();
+});
+
+it("exports ordered cells without scratch writes even with a read-only backing capability", async () => {
+  const { createMemoryFileSystem, FsError } = await import("@poe-code/safe-fs/core");
+  const fs = createMemoryFileSystem();
+  fs.open = async () => { throw new FsError("EROFS"); };
+  const engine = createEngine({ formats: [csvFormat], workingFiles: { fs, directory: "/", cacheBytes: 16384 } });
+  const operation = { signal: new AbortController().signal };
+  const book = await engine.adoptWorkbook({ sheets: [{ id: "s", name: "Data", cells: Array.from({ length: 3000 }, (_, row) =>
+    ({ row, column: 0, value: { kind: "string" as const, value: String(row) } })) }] }, operation);
+  let count = 0;
+  try {
+    await engine.writeWorkbook(book, { kind: "stream", sink: { async write(bytes) { count += bytes.length; } } },
+      { exportType: "Gnumeric_stf:stf_csv" }, operation);
+    expect(count).toBe(Array.from({ length: 3000 }, (_, row) => `${row}\n`).join("").length);
+  } finally { await engine.dispose(); }
+});

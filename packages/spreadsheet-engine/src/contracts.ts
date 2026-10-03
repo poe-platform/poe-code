@@ -1,6 +1,6 @@
 import type { WorkbookLimits } from "@poe-code/spreadsheet-ast";
 import type { Codec, FormatProvider } from "./codecs.js";
-import type { Workbook, CellUpdate, CellRange, SheetSelection } from "@poe-code/spreadsheet-ast";
+import type { Cell, Workbook, CellUpdate, CellRange, SheetSelection } from "@poe-code/spreadsheet-ast";
 import type { FormulaCapability, GoalSeekRequest, ExternalReferencesCapability } from "./formulas.js";
 import type { FormattingCapability } from "./formatting.js";
 import type { RenderingCapability, ClipboardCapability, GraphRequest } from "./rendering.js";
@@ -125,7 +125,13 @@ export interface FontCapability {
     signal: AbortSignal;
   }>): Promise<Uint8Array | undefined>;
 }
+export interface CellIndex {
+  get(row: number, column: number): Promise<Cell | undefined>;
+  close(): Promise<void>;
+}
 export interface CapabilityContext {
+  /** Bounded caller-backed coordinate index over borrowed immutable cells. */
+  readonly createCellIndex?: (cells: readonly Cell[]) => Promise<CellIndex>;
   readonly entropy?: CryptographicEntropyCapability;
   readonly fonts?: FontCapability;
   readonly datasource?: import("./datasource.js").DatasourceSession;

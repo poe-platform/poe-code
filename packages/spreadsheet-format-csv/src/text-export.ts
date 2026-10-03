@@ -129,33 +129,50 @@ async function* textChunks(args: Parameters<NonNullable<Codec["write"]>>, option
     if (!sheet) throw new SsconvertError("invalid-request", `ssconvert: Unknown sheet "${id}"`);
     const range = selection?.range && exportRangeForSheet(selection.range, book, id);
     if (selection?.range && !range) continue;
-    let endRow = 0, endColumn = 0;
-    const cells = new Map<string, (typeof sheet.cells)[number]>();
+    let endRow = 0, endColumn = 0, ordered = true;
+    let previous: (typeof sheet.cells)[number] | undefined;
     for (const cell of sheet.cells) {
       tick();
-      cells.set(`${cell.row}:${cell.column}`, cell);
+      if (previous && (previous.row > cell.row || previous.row === cell.row && previous.column > cell.column)) ordered = false;
+      previous = cell;
       if ((cell.cachedResult ?? cell.value).kind !== "blank") {
         endRow = Math.max(endRow, cell.row); endColumn = Math.max(endColumn, cell.column);
       }
     }
-    endRow = range?.endRow ?? endRow; endColumn = range?.endColumn ?? endColumn;
-    for (let row = range?.startRow ?? 0; row <= endRow; row++) {
-      for (let column = range?.startColumn ?? 0; column <= endColumn; column++) {
-        tick();
-        if (column !== (range?.startColumn ?? 0)) yield* append(options.separator);
-        const cell = cells.get(`${row}:${column}`);
-        const value = cell?.cachedResult ?? cell?.value;
-        if (value?.kind === "byte-string") {
-          const bytes = byteField(decodeByteString(value.value, tick, context.limits.outputBytes), options,
-            renderingContext.limits.outputBytes - length, tick);
-          length += bytes.length; yield bytes;
-        } else {
-          for (const chunk of textField(cell ? await renderCellText(cell, book, renderingContext, options.format) : "", options))
-            yield* append(chunk);
-        }
+    const index = ordered ? undefined : await context.createCellIndex?.(sheet.cells);
+    const cells = ordered || index ? undefined : new Map<string, (typeof sheet.cells)[number]>();
+    if (cells) for (const cell of sheet.cells) cells.set(`${cell.row}:${cell.column}`, cell);
+    let cursor = 0;
+    const orderedCell = (row: number, column: number) => {
+      let found: (typeof sheet.cells)[number] | undefined;
+      while (cursor < sheet.cells.length) {
+        const cell = sheet.cells[cursor]!;
+        if (cell.row > row || cell.row === row && cell.column > column) break;
+        cursor++;
+        if (cell.row === row && cell.column === column) found = cell;
       }
-      yield* append(options.eol);
-    }
+      return found;
+    };
+    try {
+      endRow = range?.endRow ?? endRow; endColumn = range?.endColumn ?? endColumn;
+      for (let row = range?.startRow ?? 0; row <= endRow; row++) {
+        for (let column = range?.startColumn ?? 0; column <= endColumn; column++) {
+          tick();
+          if (column !== (range?.startColumn ?? 0)) yield* append(options.separator);
+          const cell = ordered ? orderedCell(row, column) : index ? await index.get(row, column) : cells!.get(`${row}:${column}`);
+          const value = cell?.cachedResult ?? cell?.value;
+          if (value?.kind === "byte-string") {
+            const bytes = byteField(decodeByteString(value.value, tick, context.limits.outputBytes), options,
+              renderingContext.limits.outputBytes - length, tick);
+            length += bytes.length; yield bytes;
+          } else {
+            for (const chunk of textField(cell ? await renderCellText(cell, book, renderingContext, options.format) : "", options))
+              yield* append(chunk);
+          }
+        }
+        yield* append(options.eol);
+      }
+    } finally { await index?.close(); }
   }
   context.signal.throwIfAborted();
 }

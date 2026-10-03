@@ -1,5 +1,5 @@
 import { MemoryFileSystem } from "@poe-platform/safe-fs/core";
-import { withLlmCollections, createLlmCollectionCommands, withCsvEmbeddingEntries } from "@poe-platform/safe-bash/commands/llm/collections";
+import { withLlmCollections, createLlmCollectionCommands, withCsvEmbeddingEntries, withJsonEmbeddingEntries, withJsonLinesEmbeddingEntries } from "@poe-platform/safe-bash/commands/llm/collections";
 import { createLlmService, llmCommands } from "@poe-platform/safe-bash/commands/llm";
 import { legacyCollectionDatabases } from "./safe-packages-llm-collections-reference.mjs";
 import { Shell } from "@poe-platform/safe-bash/shell";
@@ -24,6 +24,20 @@ export async function verifyLlmCollections() {
     }
   });
   if(importedBytes!==4194304)throw new Error('Large CSV field was truncated');
+  let jsonBytes=0;
+  await withJsonEmbeddingEntries({...options,directory:'/'},{async *[Symbol.asyncIterator](){
+    yield new TextEncoder().encode('[{"id":1e0,"body":"');
+    const chunk=new Uint8Array(4096).fill(120);for(let index=0;index<1024;index++)yield chunk;
+    yield new TextEncoder().encode('"}]');
+  }},async entries=>{for await(const entry of entries){
+    if(entry.id!=='1.0')throw new Error('JSON numeric ID lost its type');
+    for await(const bytes of entry.input.bytes){if(bytes.length>24576)throw new Error('Unbounded JSON field chunk');jsonBytes+=bytes.length;}
+    await entry.input.dispose();
+  }});
+  if(jsonBytes!==4194304)throw new Error('Large JSON field was truncated');
+  let jsonLineCount=0;
+  await withJsonLinesEmbeddingEntries({...options,directory:'/'},{async *[Symbol.asyncIterator](){yield new TextEncoder().encode('{"id":1,"body":"first"}\n\n{"id":2,"body":"second"}\n');}},async entries=>{for await(const entry of entries){jsonLineCount++;for await(const bytes of entry.input.bytes)if(!bytes.length)throw new Error('Empty JSONL payload chunk');await entry.input.dispose();}});
+  if(jsonLineCount!==2)throw new Error('JSONL row count changed');
   if (!created.committed || created.cleanupErrors.length || created.value.model !== "embed") throw new Error("Collection creation failed");
   await withLlmCollections(options, async catalog => {
     const existing = await catalog.collection("documents", { create: false });
@@ -97,6 +111,13 @@ export async function verifyLlmCollections() {
     const automaticRows=await cliShell.exec('llm similar automatic -c query -d /cli.db');
     if(automaticRows.exitCode!==0||JSON.parse(automaticRows.stdout).content!=='value')throw new Error('Detected TSV content changed');
     await fs.unlink('/auto.tsv');
+    await fs.writeFile('/auto.json',new TextEncoder().encode('[{"id":[1,true],"body":"json content"}]'));
+    const jsonImport=await cliShell.exec('llm embed-multi json /auto.json -m embed --store -d /cli.db');
+    if(jsonImport.exitCode!==0||jsonImport.stdout!=='Embedding\n')throw new Error(`JSON import failed: ${jsonImport.stderr}`);
+    const jsonRows=await cliShell.exec('llm similar json -c query -d /cli.db');
+    const jsonRow=JSON.parse(jsonRows.stdout);
+    if(jsonRows.exitCode!==0||jsonRow.id!=='[1, True]'||jsonRow.content!=='json content')throw new Error('JSON import readback changed');
+    await fs.unlink('/auto.json');
     const deleted=await cliShell.exec('llm collections delete cli -d /cli.db');
     if(deleted.exitCode!==0)throw new Error('Collection CLI delete failed');
   }finally{await cliShell.dispose();}

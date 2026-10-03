@@ -1516,7 +1516,8 @@
             "safe-bash-mime-engine": "*",
             "safe-bash-checksum-engine": "*",
             "safe-bash-sqlite-engine": "*",
-            "safe-bash-csv-engine": "*"
+            "safe-bash-csv-engine": "*",
+            "safe-bash-query-engine": "*"
           },
           "portable": true,
           "peerDependencies": {

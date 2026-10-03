@@ -4,7 +4,7 @@ import {createPrivateSqliteStorage,withPrivateSqliteSession,withSqliteStatement}
 import {createLlmSpool} from './retained-spool.js';
 import {embeddingText} from './embed-input.js';
 import type {LlmCollectionBatchEntry} from './collections-batch.js';
-import {sniffCsvInput} from './import-csv-sniff.js';
+import {sniffEmbeddingInput} from './import-csv-sniff.js';
 
 /** Header order and field ranges live in caller-backed SQLite. Payloads never
  * enter SQLite scalar bindings or accumulate in complete JavaScript rows. */
@@ -14,9 +14,10 @@ export async function withCsvEmbeddingEntries<T>(options:{
  readonly tabs?:boolean;readonly autoDetect?:boolean;readonly prefix?:string;readonly prepend?:string;
 },input:AsyncIterable<Uint8Array>,operation:(entries:AsyncIterable<LlmCollectionBatchEntry>)=>Promise<T>):Promise<T>{
  const {fs,directory,signal}=options;
- const detected=options.autoDetect?await sniffCsvInput(input,signal):undefined;
+ const detected=options.autoDetect?await sniffEmbeddingInput(input,signal):undefined;
  let storage:Awaited<ReturnType<typeof createPrivateSqliteStorage>>|undefined;
  try{
+  if(detected?.format==='json')throw new Error('Expected CSV or TSV input');
   storage=await createPrivateSqliteStorage({...options,maxFiles:options.maxOpenFiles});
   return await withPrivateSqliteSession({...options,fs:storage.fs,directory:storage.directory,path:storage.directory+'/fields'},async session=>{
   await session.execute('CREATE TABLE headers(name TEXT PRIMARY KEY,first INTEGER UNIQUE,last INTEGER); CREATE TABLE fields(position INTEGER PRIMARY KEY,start INTEGER,end INTEGER)');

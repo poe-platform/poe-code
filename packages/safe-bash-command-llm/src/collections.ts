@@ -195,3 +195,6 @@ export async function withLlmCollections<T>(options:{
  });
  return {...receipt,value};
 }
+
+export {withJsonEmbeddingEntries} from "./import-json.js";
+export {withJsonLinesEmbeddingEntries} from "./import-json-lines.js";

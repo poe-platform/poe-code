@@ -1,0 +1,332 @@
+[
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "[{\"id\":\"one\",\"title\":\"Hello\",\"body\":\"world\"}]",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "Hello world"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "one",
+        "content": "Hello world"
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "{\"id\":1,\"body\":\"hello\"}",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "1",
+        "content": "hello"
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "[{\"body\":\"first\",\"id\":\"second\"}]",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "second"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "first",
+        "content": "second"
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "[{\"id\":\"old\",\"body\":\"hello\",\"id\":\"new\"}]",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "new",
+        "content": "hello"
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "[{\"id\":null,\"body\":false,\"more\":0,\"tail\":\"end\"}]",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "  end"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "None",
+        "content": "  end"
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "[]",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [],
+    "rows": []
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "[{\"id\":1,\"body\":[]}]",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        ""
+      ]
+    ],
+    "rows": [
+      {
+        "id": "1",
+        "content": ""
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "[{\"id\":true,\"body\":\"yes\"}]",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "yes"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "True",
+        "content": "yes"
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "nl",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "{\"id\":1,\"body\":\"a\"}\n\n{\"id\":2,\"body\":\"b\"}\n",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "a",
+        "b"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "1",
+        "content": "a"
+      },
+      {
+        "id": "2",
+        "content": "b"
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "[{\"id\":1,\"body\":\"automatic\"}]",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "automatic"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "1",
+        "content": "automatic"
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "[{\"id\":[1,true,null,\"quoted\"],\"body\":\"array ID\"}]",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "array ID"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "[1, True, None, 'quoted']",
+        "content": "array ID"
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "[{\"id\":{\"first\":\"\u00e9\\u00a0\",\"second\":\"\\ud800\"},\"body\":\"object ID\"}]",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "object ID"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "{'first': '\u00e9\\xa0', 'second': '\\ud800'}",
+        "content": "object ID"
+      }
+    ]
+  }
+]

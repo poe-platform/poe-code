@@ -38,6 +38,14 @@ The workspace entrypoint exports `pdftotextCommands()` for plugin registration,
 
 Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `PdftotextLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops yield to timers and cancellation, including Workers with frozen clocks.
 
+Plain `pdftotext -raw` uses retained reads and caller-backed staging for input,
+line formatting and output. It supports page ranges, passwords, encodings,
+line endings, `-clip` and `-nodiag`; file publication is atomic. Scratch lives in
+`TMPDIR` (or `/tmp`) on the supplied filesystem. Use an external backend for
+large spills. Cropped raw output, URL appendices, structured formats and other
+text modes still use the buffered path; page evaluation also retains admitted
+rendering resources.
+
 The `pdftotext -enc Latin1` option writes ISO-8859-1 bytes; `-enc UCS-2` writes big-endian 16-bit code units with a BOM. File output and stdout use the same encoding.
 
 `pdftohtml` writes image files beside the output HTML or XML file, with relative image references. Stdout output (`-stdout` or `-`) creates no image files; use `-dataurls` to embed the images.

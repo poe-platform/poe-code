@@ -4047,3 +4047,33 @@ JavaScript (57.96 times slower). The fixture includes nested casing, a default,
 an array and an admitted extra field. No performance/default-swap gate passed.
 Schema projection/enumeration, the public MCP server, HTTP/OAuth and full platform,
 resource and standalone packaging qualification remain open.
+
+MCP result validation is independently verified on remote main at ae6a793708.
+Release 37087484789 is pending; Toolcraft package workflow 37087484577 is running
+standalone-bundle jobs for Node 18.18, 20, 22 and 24. No publication is claimed.
+
+### MCP schema-projection checkpoint
+
+Rust now projects input/output JSON schemas, including nested object/array/record
+members, discriminated/exclusive branches, cloned defaults, input-only default
+requiredness and optional-alias constraints. Native JSON-schema documents retain
+identity when explicitly supplied. Node performs live array/object operations,
+metadata spreads, property access and actual schema serialization. The port reuses
+native result validation for default projection; no dependency or default changed.
+
+Twelve missing-module failures preceded implementation. Differential tests extract
+the original MCP functions and compare six schema placements, scalar/object/array
+defaults, snake/camel keys, both directions, optional aliases, discriminator and
+nullable branch metadata, native documents, unmatched branch identity, invalid
+JSON defaults, getter order, arbitrary thrown values and reentrant projection.
+Maintained checks pass 266 native Node tests, Rust tests, 5,137 parity cases across
+86 files, declarations and the original CLI compile-check. Rust/binding lint and
+scoped ESLint pass. Packed native consumers verify requiredness and compile the
+projected alias constraints to check accepted/rejected wire arguments.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 300 projections, retaining
+32 results, measured native/reference medians of 598.124/11.835 microseconds
+(50.54 times slower). The fixture includes nested defaults, optional aliases,
+an array and a discriminated branch. No performance/default-swap gate passed.
+Tool enumeration and public MCP lifecycle/transport integration, HTTP/OAuth and
+complete platform/resource/standalone packaging qualification remain open.

@@ -114,11 +114,11 @@ it("retains growing identifiers and strings while discarding large comments", as
   });
 });
 
-it("checks cancellation between empty source chunks and closes the producer", async () => {
+it.each(["", "name"])("checks cancellation after a source returns %s and closes the producer", async chunk => {
   const controller = new AbortController(); let closed = false;
   const source = (async function* () {
     try {
-      yield new Uint8Array(); controller.abort(); yield new Uint8Array();
+      yield new Uint8Array(); controller.abort(); yield encoder.encode(chunk);
       throw new Error("Read beyond cancellation");
     } finally {closed = true;}
   })();

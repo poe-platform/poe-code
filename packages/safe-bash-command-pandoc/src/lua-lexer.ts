@@ -42,6 +42,7 @@ export class LuaLexer {
       if (this.closed) return -1;
       await this.cooperate();
       const next = await this.source.next();
+      await this.cooperate(0);
       if (next.done) {this.closed = true; this.chunk = new Uint8Array(); return -1;}
       this.chunk = next.value; this.offset = 0;
     }

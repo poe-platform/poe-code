@@ -84,7 +84,11 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   line tracking and existing binary interning collisions. Empty source chunks
   still checkpoint, final partial work quanta are charged, and early/error exits
   close the source. This lexer is not yet connected to public compilation:
-  compiler control state and code generation, complete standard libraries and
+  the syntax reader now stores complete statement/expression trees and lists in
+  caller storage, retaining the existing syntax nesting bound. Grammar tests
+  include the shipped Pandoc constructor/traversal bootstrap, assignment targets,
+  call forms, associativity and cancellation after a source read. Scope legality,
+  register allocation and code generation, complete standard libraries and
   Pandoc constructor translation still require integration and runtime
   qualification. Measurements of unavoidable live runtime state remain required.
 - Exercise citeproc with bibliography and citation counts that grow independently

@@ -4,6 +4,7 @@
     "skipLibCheck": false
   },
   "include": [
-    "tests/client-subpath-types.ts"
+    "tests/client-subpath-types.ts",
+    "tests/agent-defs-subpath-types.ts"
   ]
 }

@@ -4748,3 +4748,31 @@ disabled. Their type export inventories have no missing names, but agent MCP con
 frontmatter and process runner have extra native types that their facades must omit.
 That is workspace compiler evidence only; their facade and packed-runtime
 qualification remain ahead, as do broader performance/platform/swap requirements.
+
+### Public agent catalog subpath checkpoint
+
+The agent-defs public path forwards the own Rust catalog, preserving its catalog
+objects, function identities, aliases, capability policy, model specifiers and
+telemetry hooks. The existing own agent-defs-rust workspace becomes an installed
+dependency. No third-party dependency or new execution policy is introduced.
+The client-only strict compiler route is renamed to dependency-types and now
+includes both public dependency facades.
+
+The focused test reproduced the missing public package specifier before the
+export was added. Two differential cases verify exact namespaces, own identities,
+complete catalog values, frozen arrays, mixed-case aliases/model specifiers,
+all capability lists and telemetry arguments. The selected maintained build and
+combined catalog/Toolcraft npm test route pass: 63 reference cases across four
+catalog files and six native catalog checks; 6,107 cases across 120 Toolcraft files
+and 266 native checks; Rust tests, both strict dependency declaration consumers,
+the original CLI compiler fixture and root posttest. Maintained and scoped lint pass.
+
+Twelve packed own packages independently verify the public catalog namespace,
+identities, aliases, capabilities and telemetry. Strict packed declarations compile
+with no workspace or external type fallback. The reexport adds no per-call algorithm
+or claimed speedup; complete standalone Toolcraft declarations and performance,
+platform, packaging and default-swap gates remain open.
+
+The preceding client facade and helper type repair are verified on remote main
+at 7c3138e5b8 and 278463fa91. Release 37101346847 is in progress. The completed
+client checkpoint's temporary packed artifacts and logs were purged.

@@ -355,11 +355,15 @@
     "./tiny-mcp-client": {
       "types": "./dist/tiny-mcp-client.d.ts",
       "import": "./dist/tiny-mcp-client.js"
+    },
+    "./agent-defs": {
+      "types": "./dist/agent-defs.d.ts",
+      "import": "./dist/agent-defs.js"
     }
   },
   "scripts": {
     "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build && cp src/*.d.ts dist/",
-    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && cp src/*.d.ts dist/ && vitest run --config vitest.reference.config.mjs && tsc --project tsconfig.types.json && node tests/reference-cli-types.mjs && tsc --project tsconfig.client-types.json",
+    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && cp src/*.d.ts dist/ && vitest run --config vitest.reference.config.mjs && tsc --project tsconfig.types.json && node tests/reference-cli-types.mjs && tsc --project tsconfig.dependency-types.json",
     "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
   },
   "devDependencies": {
@@ -399,6 +403,7 @@
     "@poe-code/config-mutations-rust": "*",
     "tiny-stdio-mcp-server-rust": "*",
     "mcp-oauth-server-rust": "*",
-    "tiny-http-mcp-server-rust": "*"
+    "tiny-http-mcp-server-rust": "*",
+    "@poe-code/agent-defs-rust": "*"
   }
 }

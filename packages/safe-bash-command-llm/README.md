@@ -10,6 +10,10 @@ const receipt = await withLlmCollections({
   maxOpenFiles: 8, now: () => new Date(),
 }, async catalog => {
   await catalog.collection("documents", { model: "canonical-embedding-model" });
+  await catalog.embed("documents", "document-1", {
+    service, input, directory: "/staging", maxInputBytes: 8 * 1024 * 1024,
+    store: true, metadata: { title: "Document" },
+  });
   await catalog.list(row => console.log(row.name, row.count));
 });
 ```
@@ -23,8 +27,14 @@ each earlier migration upgrade atomically, preserving content, vectors, metadata
 existing timestamps, indexes and triggers. Content hashes use incremental MD5;
 reference-schema rows migrate through caller-backed snapshots and streamed record
 rewrites instead of native whole-record copies. Extra caller indexes remain native
-SQLite operations. Embedding writes, batch imports, similarity and collection CLI commands
-remain incomplete.
+SQLite operations. `catalog.embed` consumes and disposes a UTF-8 input lease (or
+binary bytes with `binary: true`), deduplicates content within the collection before
+calling the shared service, and replaces an existing ID when content changes.
+Content is retained only with `store: true`; metadata is optional. Input and encoded
+metadata share `maxInputBytes`. Retained staging and database writes use bounded
+chunks. Writes currently reject caller-added embedding indexes and triggers to
+avoid stale indexes or incorrect trigger observations. Batch imports, similarity
+and collection CLI commands remain incomplete.
 This optional catalog does not store conversation or response history.
 
 Query injected language and media models through the shared LLM service. Register `llmCommands({ providers, defaultModel })` with your shell. Providers own credentials and HTTP transport. `llm --version` reports the pinned CLI reference target, also available to SDK callers as `llmReferenceVersion`. Use `limits.maxInputBytes` and `limits.maxOutputBytes` to bound per-command byte accounting.

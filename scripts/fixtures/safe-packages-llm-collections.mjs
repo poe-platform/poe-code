@@ -1,5 +1,6 @@
 import { MemoryFileSystem } from "@poe-platform/safe-fs/core";
 import { withLlmCollections } from "@poe-platform/safe-bash/commands/llm/collections";
+import { createLlmService } from "@poe-platform/safe-bash/commands/llm";
 import { legacyCollectionDatabases } from "./safe-packages-llm-collections-reference.mjs";
 import { Shell } from "@poe-platform/safe-bash/shell";
 import { sqlite3Commands } from "@poe-platform/safe-bash/commands/sqlite3";
@@ -26,6 +27,24 @@ export async function verifyLlmCollections() {
     await catalog.list(() => { throw new Error("Deleted collection survived"); });
   });
   if ((await fs.readdir("/")).length !== 1) throw new Error("Collection scratch files leaked");
+  let calls=0;
+  const service=createLlmService({providers:[{name:'fixture',models:[{id:'embed',capabilities:['embed']}],async *complete(){},async embedSources(request){
+    calls++;for await(const chunk of request.inputs[0].bytes)if(chunk.length>16384)throw new Error('Unbounded embedding chunk');
+    return {model:'embed',vectors:[[1,0.5,-2]]};
+  }}]});
+  const input=()=>({bytes:{async *[Symbol.asyncIterator](){yield new TextEncoder().encode('stored content');}},async dispose(){}});
+  await withLlmCollections(options,async catalog=>{
+    await catalog.collection('documents',{model:'embed'});
+    await catalog.embed('documents','one',{service,input:input(),directory:'/',maxInputBytes:1048576,store:true,metadata:{name:'fixture'}});
+    await catalog.embed('documents','duplicate',{service,input:input(),directory:'/',maxInputBytes:1048576});
+    await catalog.list(row=>{if(row.count!==1n)throw new Error('Embedding dedup failed');});
+  });
+  if(calls!==1)throw new Error('Duplicate invoked provider');
+  const embeddingShell=new Shell({fs}).use(sqlite3Commands());
+  try{
+    const result=await embeddingShell.exec('sqlite3 -readonly /embeddings.db "SELECT id,hex(embedding),content,metadata FROM embeddings;"');
+    if(result.exitCode!==0||result.stdout!=='one|0000803F0000003F000000C0|stored content|{"name":"fixture"}\n')throw new Error(`Embedding readback failed: ${result.stderr||result.stdout}`);
+  }finally{await embeddingShell.dispose();}
   for (const {version, zlibBase64} of legacyCollectionDatabases) {
     const bytes = Uint8Array.from(atob(zlibBase64), character => character.charCodeAt(0));
     const database = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate"))).arrayBuffer());

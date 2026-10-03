@@ -1,12 +1,15 @@
 import {FsError, type FileSystem} from 'safe-bash-contracts';
 import {transactSqlite,withSqliteStatement,type PrivateSqliteSession,type SqliteFinalizer} from 'safe-bash-sqlite-engine/storage';
 import {migrateLlmCollections} from './collections-migrations.js';
+import {embedCollection, type LlmCollectionEmbedOptions} from './collections-embed.js';
+export type {LlmCollectionEmbedOptions} from './collections-embed.js';
 
 export interface LlmCollection {readonly id:bigint;readonly name:string;readonly model:string}
 export interface LlmCollectionCatalog {
  collection(name:string,options?:{readonly model?:string;readonly create?:boolean}):Promise<LlmCollection>;
  list(visit:(collection:LlmCollection & {readonly count:bigint})=>void|Promise<void>):Promise<void>;
  delete(name:string):Promise<void>;
+ embed(name:string,id:string,options:LlmCollectionEmbedOptions):Promise<void>;
 }
 export class LlmCollectionDoesNotExist extends Error {
  constructor(name:string){super(`Collection '${name}' does not exist`);this.name='LlmCollectionDoesNotExist';}
@@ -53,7 +56,7 @@ export async function withLlmCollections<T>(options:{
  readonly now:()=>Date;
 },operation:(catalog:LlmCollectionCatalog)=>Promise<T>){
  const {signal}=options;
- const execute=async(session:PrivateSqliteSession):Promise<T>=>{
+ const execute=async(editor:SqliteFinalizer):Promise<T>=>{
   let active=true,pending:Promise<unknown>|undefined,failed=false,failure:unknown;
   const run=<V>(action:()=>Promise<V>):Promise<V>=>{
    if(!active)return Promise.reject(new FsError('EBADF',{message:'Collection catalog is closed'}));
@@ -64,7 +67,13 @@ export async function withLlmCollections<T>(options:{
    void task.then(()=>{pending=undefined;},error=>{pending=undefined;failed=true;failure=error;});
    return task;
   };
-  const lookup=async(name:string):Promise<LlmCollection|undefined>=>{
+  const native=<V>(action:(session:PrivateSqliteSession)=>Promise<V>)=>run(async()=>{
+   const result=await editor.withSession(async session=>{
+    try{return {ok:true as const,value:await action(session)};}catch(error){return {ok:false as const,error};}
+   });
+   if(!result.ok)throw result.error;return result.value;
+  });
+  const lookup=async(session:PrivateSqliteSession,name:string):Promise<LlmCollection|undefined>=>{
    if(typeof name!=='string')throw new TypeError('Collection name must be a string');
    return withSqliteStatement(session.module,{...session,signal,sql:'SELECT id,name,model FROM collections WHERE name=?'},async query=>{
     for await(const [id,storedName,model]of query.rows([name],['integer','text','text']))return {id:id as bigint,name:storedName as string,model:model as string};
@@ -72,8 +81,8 @@ export async function withLlmCollections<T>(options:{
    });
   };
   const catalog:LlmCollectionCatalog={
-   collection(name,settings={}){return run(async()=>{
-    const existing=await lookup(name);if(existing)return existing;
+   collection(name,settings={}){return native(async session=>{
+    const existing=await lookup(session,name);if(existing)return existing;
     if(settings.create===false)throw new LlmCollectionDoesNotExist(name);
     if(settings.model===undefined)throw new Error('Either model= or model_id= must be provided when creating a new collection');
     if(typeof settings.model!=='string')throw new TypeError('Collection model must be a string');
@@ -82,17 +91,23 @@ export async function withLlmCollections<T>(options:{
      throw new Error('Collection insertion returned no ID');
     });
    });},
-   list(visit){return run(async()=>{
+   list(visit){return native(async session=>{
     await withSqliteStatement(session.module,{...session,signal,sql:'SELECT id,name,model,(SELECT count(*) FROM embeddings WHERE collection_id=collections.id) FROM collections ORDER BY id'},async query=>{
      for await(const [id,name,model,count]of query.rows([],['integer','text','text','integer']))await visit({id:id as bigint,name:name as string,model:model as string,count:count as bigint});
     });
    });},
-   delete(name){return run(async()=>{
-    const existing=await lookup(name);if(!existing)throw new LlmCollectionDoesNotExist(name);
+   delete(name){return native(async session=>{
+    const existing=await lookup(session,name);if(!existing)throw new LlmCollectionDoesNotExist(name);
     for(const sql of ['DELETE FROM embeddings WHERE collection_id=?','DELETE FROM collections WHERE id=?'])await withSqliteStatement(session.module,{...session,signal,sql},async query=>{
      for await(const row of query.rows([existing.id],[]))void row;
     });
    });},
+   embed(name,id,settings){let transferred=false;return run(async()=>{
+    const collection=await editor.withSession(session=>lookup(session,name));
+    if(!collection)throw new LlmCollectionDoesNotExist(name);
+    transferred=true;
+    await embedCollection(editor,{...options,...settings,collection,id});
+   }).catch(async error=>{if(!transferred)await settings.input.dispose().catch(()=>undefined);throw error;});},
   };
   let value!:T;
   const errors:unknown[]=[];
@@ -106,16 +121,10 @@ export async function withLlmCollections<T>(options:{
  };
  let migration:((editor:SqliteFinalizer)=>Promise<void>)|undefined,value!:T;
  const receipt=await transactSqlite({...options,async finalize(editor){
-  if(!migration)return;
-  await migration(editor);
-  await editor.withSession(async session=>{
-   await session.execute('BEGIN IMMEDIATE');
-   value=await execute(session);
-   await session.execute('COMMIT');
-  });
+  if(migration)await migration(editor);
+  value=await execute(editor);
  }},async session=>{
   migration=await initialize(session,signal,options.now);
-  if(!migration)value=await execute(session);
  });
  return {...receipt,value};
 }

@@ -357,3 +357,4 @@ for (const name of ["safe-bash-command-pptx", "safe-bash-pptx-engine", "safe-bas
   assert.throws(() => import.meta.resolve(name), { code: "ERR_MODULE_NOT_FOUND" });
 }
 await (await import("./safe-packages-pptx.mjs")).verification;
+await (await import("./safe-packages-sips.mjs")).verification;

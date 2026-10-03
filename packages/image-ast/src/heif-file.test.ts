@@ -98,3 +98,12 @@ it.each(["cancel", "write"])(
     expect((await fs.readdir("/")).map((e) => e.name).sort()).toEqual(["in", "out"]);
   }
 );
+
+it("owns the HEIF header when a range capability reuses subclass buffers", async () => {
+  const {readHeifMetadataFromSource} = await import("./index.js");
+  const bytes = sharp({create: {width: 3, height: 2, channels: 4, background: "blue"}}).heif().toBufferSync();
+  class BorrowedBytes extends Uint8Array {override slice(start?: number, end?: number) {return this.subarray(start, end);}}
+  const loan = new BorrowedBytes(4096);
+  const source = {size: bytes.length, async read(position: number, length: number) {loan.fill(0);loan.set(bytes.subarray(position, position + length));return loan.subarray(0, length);}};
+  expect(await readHeifMetadataFromSource(source, new AbortController().signal)).toMatchObject({format: "heif", width: 3, height: 2});
+});

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { Shell, createMemoryFileSystem } from "../../src/index.js";
-import { sipsCommands } from "../../src/commands/sips/index.js";
+import { sipsCommands, createIdentifyCommand } from "../../src/commands/sips/index.js";
 import { pdftoppmCommands } from "../../src/commands/pdftoppm/index.js";
 import { imagemagickCommands } from "../../src/commands/imagemagick/index.js";
 import { sharp } from "@poe-code/image-ast";
@@ -56,5 +56,23 @@ it("converts HEIF through the caller filesystem", async () => {
     assert.equal(metadata.format, "avif");
     assert.equal(metadata.width, 20);
     assert.equal(metadata.height, 16);
+  } finally {await shell.dispose();}
+});
+
+it("streams Sips mutation through the Shell filesystem without whole-file I/O", async () => {
+  const fs = createMemoryFileSystem();
+  const bytes = await sharp({create: {width: 37, height: 29, channels: 4, background: "blue"}}).png().toBuffer();
+  await fs.writeFile("/in.png", bytes);
+  const supplied = new Proxy(fs, {get(target, key) {
+    if (key === "readFile" || key === "writeFile") return () => {throw new Error("whole-file I/O forbidden");};
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  }});
+  const shell = new Shell({fs: supplied}).use(sipsCommands()).use({name: "retained-identify", setup(host) {host.commands.register(createIdentifyCommand());}});
+  try {
+    const result = await shell.exec("sips -r 90 -s format jpeg /in.png --out /out.jpg && identify -format '%m %wx%h' /out.jpg");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.ok(result.stdout.endsWith("JPEG 29x37"));
+    assert.equal((await sharp(await fs.readFile("/out.jpg")).metadata()).format, "jpeg");
   } finally {await shell.dispose();}
 });

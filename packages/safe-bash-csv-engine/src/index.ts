@@ -170,6 +170,13 @@ export interface CsvRow {
   readonly cells: readonly string[];
   readonly line: number;
 }
+/** Synchronous field events for callers that spool payloads instead of retaining
+ * complete rows. Text fragments contain at most 2049 UTF-16 code units. */
+export interface CsvFieldEvents {
+  text(value: string): void;
+  field(): void;
+  row(line: number): void;
+}
 const typedArrayByteLength = Object.getOwnPropertyDescriptor(
   Object.getPrototypeOf(Uint8Array.prototype), "byteLength"
 )!.get!;
@@ -177,6 +184,8 @@ export class CsvParser {
   private readonly decoder: TextDecoder;
   private readonly encoding: string;
   private fieldCharacters = 0;
+  private fieldUnits = 0;
+  private notifying = false;
   private quotedField = false;
   private readonly delimiter: string;
   private field = "";
@@ -191,8 +200,11 @@ export class CsvParser {
   private skipped = 0;
   constructor(
     private readonly dialect: CsvDialect,
-    private readonly budget: CsvBudget
+    private readonly budget: CsvBudget,
+    private readonly events?: CsvFieldEvents
   ) {
+    if (events && (dialect.quoting === 2 || dialect.quoting === 4))
+      throw new CsvError("ARGUMENT", "Streaming field events do not perform numeric field conversion");
     this.dialect = Object.freeze({ ...dialect });
     this.encoding = (dialect.encoding ?? "utf-8-sig").toLowerCase().replaceAll("_", "-");
     if (!["utf-8-sig", "utf8-sig", "utf-8", "utf8", "ascii", "us-ascii", "latin1", "latin-1", "iso-8859-1"].includes(this.encoding))
@@ -235,6 +247,7 @@ export class CsvParser {
   }
 
   push(bytes: Uint8Array): CsvRow[] {
+    if (this.notifying) throw new CsvError("INPUT", "CSV event callback cannot reenter the parser");
     if (this.ended) throw new CsvError("INPUT", "CSV parser is closed");
     this.budget.charge("work", 0);
     let byteLength: number;
@@ -264,6 +277,7 @@ export class CsvParser {
     return this.consume(text);
   }
   end(): CsvRow[] {
+    if (this.notifying) throw new CsvError("INPUT", "CSV event callback cannot reenter the parser");
     if (this.ended) throw new CsvError("INPUT", "CSV parser is closed");
     this.budget.charge("work", 0);
     this.ended = true;
@@ -280,12 +294,14 @@ export class CsvParser {
     if (this.escaped) this.append("\n"); // permissive reader escape at EOF profile, qualification open
     if (this.active || this.row.length || this.field.length) {
       this.finishField();
-      rows.push(this.finishRow(this.lastLine));
+      const row = this.finishRow(this.lastLine);
+      if (!this.events) rows.push(row);
     }
     return rows;
   }
   /** Releases parser-owned fields; returned rows remain owned by the caller. */
   dispose(): void {
+    if (this.notifying) throw new CsvError("INPUT", "CSV event callback cannot reenter the parser");
     this.ended = true;
     this.field = "";
     this.row = [];
@@ -294,8 +310,21 @@ export class CsvParser {
   }
   private append(char: string): void {
     if (++this.fieldCharacters > (this.dialect.fieldCharacters ?? Infinity)) throw new CsvError("INPUT", "Field character limit exceeded");
-    this.budget.chargeAppend(this.field.length + char.length, char.length);
+    this.budget.chargeAppend(this.fieldUnits + char.length, char.length);
+    this.fieldUnits += char.length;
     this.field += char;
+    if (this.events && this.field.length >= 2048) this.flushFieldText();
+  }
+  private notify(callback: () => void): void {
+    this.budget.signal.throwIfAborted();
+    this.notifying = true;
+    try { callback(); } finally { this.notifying = false; }
+  }
+  private flushFieldText(): void {
+    if (!this.field) return;
+    const value = this.field;
+    this.field = "";
+    this.notify(() => this.events!.text(value));
   }
   private finishField(): void {
     this.budget.charge("cells", 1);
@@ -325,8 +354,12 @@ export class CsvParser {
       }
       this.budget.charge("retainedBytes", value.length * 2);
     }
-    this.row.push(value);
+    if (this.events) {
+      this.flushFieldText();
+      this.notify(() => this.events!.field());
+    } else this.row.push(value);
     this.fieldCharacters = 0;
+    this.fieldUnits = 0;
     this.quotedField = false;
     this.field = "";
     this.state = "start";
@@ -336,6 +369,7 @@ export class CsvParser {
     const row = { cells: this.row, line };
     this.row = [];
     this.active = false;
+    if (this.events) this.notify(() => this.events!.row(line));
     return row;
   }
   private consume(text: string): CsvRow[] {
@@ -392,7 +426,8 @@ export class CsvParser {
         throw new CsvError("INPUT", "Unexpected character after closing quote");
       if (newline) {
         if (this.active || this.row.length || this.field.length) this.finishField();
-        rows.push(this.finishRow(physicalLine));
+        const row = this.finishRow(physicalLine);
+        if (!this.events) rows.push(row);
         continue;
       }
       this.active = true;

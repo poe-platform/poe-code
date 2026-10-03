@@ -4,6 +4,16 @@ Read selected CSV cells and serialize rows without native tools or external runt
 
 `CsvParser.push(bytes)` and `end()` return decoded rows with physical parser line numbers. `selectColumns()` retains selector order and repeated positions. `serializeRow()` writes comma/LF and converts each embedded CR to LF. `generatedHeaders()` uses a..z, aa, bb, cc.
 
+Pass synchronous `{ text(fragment), field(), row(line) }` callbacks as the third
+`CsvParser` argument to consume field events. This mode returns no row arrays and
+emits text in fragments of at most 2049 UTF-16 code units, so callers can spool
+arbitrarily large text fields. Empty fields still emit `field()`; blank rows emit
+only `row(line)`. Supply bounded input chunks and drain any queued callback work
+before the next `push()` to maintain backpressure. Field and character limits
+still count the entire field. Event mode supports
+text quoting modes 0, 1, 3 and 5; numeric conversion modes 2 and 4 use the row API.
+Callbacks must not reenter or dispose the parser.
+
 Profile `utf8-sig-permissive-v1` uses fatal UTF-8-sig decoding, comma/quote defaults, optional tab override, single Unicode-scalar dialect characters, escape, doublequote, initial-space handling and quoting modes 0–5. CR, LF and CRLF count physical lines; quoted cells retain their newline code points. Skipped physical lines precede parser numbering. Blank records are empty arrays, unclosed quoted EOF is accepted, characters after a closing quote become unquoted content, and trailing escape at EOF inserts LF. These are explicit candidate rules, not a certification of every Python 3.9 CSV edge case. NUL is retained in either input transport: csvkit file iteration's NUL stripping is an open deviation. Compression and Sniffer inference are unqualified. This reader does not claim RFC4180 strictness.
 
 Closed inclusive ranges and decimal ASCII numeric selectors (with ASCII numeric whitespace) are supported; exact nonnumeric names precede ranges, first duplicate name wins, and names are not trimmed. Open/reversed ranges and non-ASCII numeric syntax are unqualified. Resource limits default to `Infinity`; configure finite limits in the invocation allocation/work ledger as needed. Explicit `Infinity` disables a quota.

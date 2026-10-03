@@ -30,9 +30,10 @@ async function execute(source: string,options: {string?:boolean;pages?:number;ta
     const utf8=new LuaUtf8(heap); await utf8.install(environment);
     if(options.native) await heap.set(environment,await heap.string([new TextEncoder().encode("host")]),await heap.closure(-1000,[]));
     const table=new LuaTable(heap);
-    const strings=new LuaStringLibrary(heap,cooperate); if(options.string) await strings.install(environment);
+    const strings=new LuaStringLibrary(heap,cooperate);
     const machine=new LuaMachine(program,new LuaFrames(storage,heap,cooperate),heap,cooperate,(prototype,args,context)=>
       prototype===-1000 && options.native?options.native(heap,prototype,args,context):prototype<=-200 && prototype>-300?math.invoke(prototype,args,context):prototype<=-300 && prototype>-400?utf8.invoke(prototype,args):prototype<=-400 && prototype>-500?table.invoke(prototype,args):prototype<=-500 && prototype>-600?strings.invoke(prototype,args):base.invoke(prototype,args,context));
+    if(options.string) await strings.install(environment,program,machine);
     if(options.table) await table.install(environment,program,machine);
     const closure=await heap.closure(prototype,[await heap.cell(environment)]);
     options.beforeRun?.();
@@ -402,4 +403,55 @@ it("cancels backtracking within resident pattern caches and cleans storage",asyn
     vi.spyOn(heap,"readBytes").mockImplementation(async(...args)=>{const result=await read(...args);if(!scheduled){scheduled=true;setTimeout(()=>controller.abort(),0);}return result;});
     return [value];
   }})).rejects.toMatchObject({code:"E_CANCELLED"});
+});
+
+it.each([
+  "local out=''; for w in string.gmatch('one two 3','%w+') do out=out..w..':' end; return out",
+  "local out=''; for p,w in string.gmatch('ab cd','()(%a+)') do out=out..p..w end; return out",
+  "local out=''; for p in string.gmatch('abc','()') do out=out..p end; return out",
+  "local out=''; for w in string.gmatch('aab','a*') do out=out..'['..w..']' end; return out",
+  "local f=string.gmatch('^a^','^'); return f(),f(),f(),f()",
+  "local a=string.gmatch('12','.' ); local b=string.gmatch('xy','.'); return a(),b(),a(),b(),a()",
+  "local f=string.gmatch(123,2); return f(),f()",
+  "local f=string.gmatch('a','('); return type(f)"
+])("retains independent Lua pattern iterator state: %s",async source=>{expect(await execute(source,{string:true})).toEqual(native(source));});
+it.each(["string.gmatch(false,'.')","string.gmatch('x',false)"])("validates pattern iterator arguments eagerly: %s",async source=>{await expect(execute(source,{string:true})).rejects.toMatchObject({code:"E_AST"});});
+
+it.each([
+  "return string.gsub('hello world','%w+','[%0]')",
+  "return string.gsub('abc123 def456','(%a+)(%d+)','%2:%1:%%')",
+  "return string.gsub('abc','()','%1')",
+  "return string.gsub('aab','a*','X')",
+  "return string.gsub('abc','^','X'),string.gsub('abc','$','X')",
+  "return string.gsub('aaa','a','b',2),string.gsub('aaa','a','b',0),string.gsub('aaa','a','b',-1)",
+  "return string.gsub('a b c','%a',{a='A',b=false,c=7})",
+  "return string.gsub('a1 b2','(%a)(%d)',function(a,b) return b..a end)",
+  "return string.gsub('abc','.',function(a) if a=='b' then return false end end)",
+  "return string.gsub('aa','a',17)",
+  "return string.gsub('ab','.',setmetatable({}, {__index=function(_,k) return k..k end}))",
+  "return string.gsub('abc','b','%1')"
+])("retains Lua pattern replacement semantics: %s",async source=>{expect(await execute(source,{string:true})).toEqual(native(source));});
+it.each(["string.gsub('x','.',true)","string.gsub('x','.','%q')","string.gsub('x','.','%2')","string.gsub('x','.',function() return {} end)"])("reports pattern replacement errors: %s",async source=>{await expect(execute(source,{string:true})).rejects.toMatchObject({code:"E_AST"});});
+
+it.each([
+  "return string.gsub('ab','.',function(c) return string.gsub(c..c,c,'X') end)",
+  "getmetatable('').__tostring=function(s) return '['..s..']' end; return string.gsub('ab','(.)','%1/%0')",
+  "local r,n=string.gsub('abc','',':'); return r,n",
+  "return string.gsub('abc','x','%q')",
+  "return string.gsub('abc','^b','X')",
+  "return string.gsub('abc','a',{},-1)"
+])("preserves replacement callback and empty-match edges: %s",async source=>{expect(await execute(source,{string:true})).toEqual(native(source));});
+it("streams replacement literals and captures across storage chunks",async()=>{
+  const source="local s,r=host(); local out,n=string.gsub(s,'(a+)z',r); return #out,string.sub(out,8190,8196),string.sub(out,-4),n";
+  const result=await execute(source,{string:true,native:async heap=>{
+    const input=await heap.string([new TextEncoder().encode('a'.repeat(8193)+'z')]),replacement=await heap.string([new TextEncoder().encode('b'.repeat(8191)+'%1!')]);
+    const read=heap.readBytes.bind(heap);
+    vi.spyOn(heap,"readBytes").mockImplementation(async(value,start,count)=>{expect(count).toBeLessThanOrEqual(8192);return read(value,start,count);});
+    return [input,replacement];
+  }});
+  expect(result).toEqual([{kind:"integer",value:16385},"bbaaaaa","aaa!",{kind:"integer",value:1}]);
+});
+it("cancels inside a replacement callback and cleans retained iterator state",async()=>{
+  const controller=new AbortController();
+  await expect(execute("return string.gsub('x','.',function() host(); while true do end end)",{string:true,signal:controller.signal,native:()=>{setTimeout(()=>controller.abort(),0);return [];}})).rejects.toMatchObject({code:"E_CANCELLED"});
 });

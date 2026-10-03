@@ -6,3 +6,9 @@ import {tableLibrary} from "../src/lua-table.generated.js";
 it("ships table bytecode matching the maintained library source",()=>{
   expect(tableLibrary).toEqual(compileLuaLibrary(luaTableSource));
 });
+
+import {luaStringSource} from "../src/lua-string-source.js";
+import {stringLibrary} from "../src/lua-string.generated.js";
+it("ships string bytecode matching the maintained library source",()=>{
+  expect(stringLibrary).toEqual(compileLuaLibrary(luaStringSource));
+});

@@ -1,6 +1,10 @@
 import {PandocError} from "./errors.js";
 import {integer,integral} from "./lua-arithmetic.js";
 import {LuaNumbers} from "./lua-numbers.js";
+import {loadLuaLibrary} from "./lua-library.js";
+import {stringLibrary} from "./lua-string.generated.js";
+import type {LuaProgram} from "./lua-program.js";
+import type {LuaMachine} from "./lua-machine.js";
 import {LuaPattern} from "./lua-pattern.js";
 import {LuaStrings} from "./lua-strings.js";
 import type {LuaArguments,LuaNativeOutput} from "./lua-machine.js";
@@ -16,13 +20,16 @@ export class LuaStringLibrary {
   private readonly numbers:LuaNumbers;
   private readonly strings:LuaStrings;
   constructor(private readonly heap:LuaStorage,private readonly cooperate:(units?:number)=>Promise<void>) {this.numbers=new LuaNumbers(heap);this.strings=new LuaStrings(heap);}
-  async install(environment:LuaReference):Promise<void> {
+  async install(environment:LuaReference,program:LuaProgram,machine:LuaMachine):Promise<void> {
     const library=await this.heap.table(),key=(name:string)=>this.heap.string([new TextEncoder().encode(name)]);
     for(let i=0;i<names.length;i++) await this.heap.set(library,await key(names[i]!),await this.heap.closure(-500-i,[]));
     const metatable=await this.heap.table();
     await this.heap.set(metatable,await key("__index"),library);
     this.heap.setStringMetatable(metatable);
     await this.heap.set(environment,await key("string"),library);
+    const prototype=await loadLuaLibrary(stringLibrary,this.heap,program,await key("@string"));
+    const closure=await this.heap.closure(prototype,[await this.heap.cell(environment)]);
+    await machine.run(closure,[library,await this.heap.closure(-511,[]),await this.heap.closure(-510,[]),await this.heap.closure(-512,[]),await this.heap.closure(-513,[]),await this.heap.closure(-514,[])]);
   }
   private async string(value:StoredLuaValue):Promise<LuaReference> {
     return typeof value==="object" && value.kind==="string"?value:this.strings.concat((async function*(){yield value;})());
@@ -32,6 +39,33 @@ export class LuaStringLibrary {
     return value===undefined && fallback!==undefined?fallback:integral(await this.numbers.coerce(value));
   }
   async invoke(prototype:number,args:LuaArguments):Promise<LuaNativeOutput> {
+    if(prototype===-512) return [integer(await this.argument(args,0))];
+    if(prototype===-513) {
+      const heap=this.heap,table=await args.get(0) as LuaReference,count=await this.numbers.coerce(await args.get(1));
+      return [await this.strings.concat((async function*(){for(let i=1;i<=count;i++) yield await heap.get(table,i);})())];
+    }
+    if(prototype===-514) {
+      const value=await this.string(await args.get(0)),start=await this.argument(args,1),length=await this.heap.byteLength(value);
+      let end=start;
+      while(end<length) {
+        const bytes=await this.heap.readBytes(value,end,Math.min(8192,length-end)),found=bytes.indexOf(37);
+        await this.cooperate(bytes.length);
+        if(found>=0) {end+=found;break;}
+        end+=bytes.length;
+      }
+      if(end>start) return [integer(end),await this.heap.string(this.range(value,start,end-start)),false];
+      if(start+1>=length) return fail("Invalid '%' in replacement string");
+      const byte=(await this.heap.readBytes(value,start+1,1))[0]!;
+      if(byte>=48 && byte<=57) return [integer(start+2),integer(byte-48),true];
+      if(byte!==37) return fail("Invalid '%' in replacement string");
+      return [integer(start+2),await this.heap.string([Uint8Array.of(37)]),false];
+    }
+    if(prototype===-511) return [await this.string(await args.get(0))];
+    if(prototype===-510) {
+      const value=await this.string(await args.get(0)),pattern=await this.string(await args.get(1));
+      const matcher=await LuaPattern.open(this.heap,value,pattern,this.cooperate);
+      return matcher.search(await this.argument(args,2),true,false,{last:await this.argument(args,3),anchor:await args.get(4)===true});
+    }
     const name=names[-500-prototype];
     if(!name) throw new PandocError("E_UNSUPPORTED_FEATURE","convert","Unknown Lua string function");
     if(name==="char") return [await this.heap.string(this.characters(args))];

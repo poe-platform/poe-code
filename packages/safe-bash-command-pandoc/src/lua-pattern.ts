@@ -240,21 +240,21 @@ export class LuaPattern {
     if(start===0 && length===this.source.length) return value;
     return heap.string((async function*(){for(let offset=0;offset<length;offset+=8192)yield await heap.readBytes(value,start+offset,Math.min(8192,length-offset));})());
   }
-  private async *results(start:number,end:number,find:boolean):AsyncGenerator<StoredLuaValue> {
+  private async *results(start:number,end:number,find:boolean,whole=false):AsyncGenerator<StoredLuaValue> {
     if(find) {yield integer(start+1);yield integer(end);}
-    if(!this.level && !find) {yield await this.slice(start,end-start);return;}
+    if(!this.level && (!find || whole)) {yield await this.slice(start,end-start);return;}
     for(let i=0;i<this.level;i++) {
       const capture=this.captures[i]!;
       if(capture.length===-1) return fail("Unfinished capture");
       yield capture.length===-2?integer(capture.start+1):await this.slice(capture.start,capture.length);
     }
   }
-  async search(start:number,find:boolean,plain:boolean):Promise<AsyncIterable<StoredLuaValue> | StoredLuaValue[]> {
-    if(find && !plain) {
+  async search(start:number,find:boolean,plain:boolean,iterator?:{last:number;anchor?:boolean}):Promise<AsyncIterable<StoredLuaValue> | StoredLuaValue[]> {
+    if(find && !plain && !iterator) {
       plain=true;
       for(let i=0;i<this.pattern.length;i++) if([94,36,42,43,63,46,40,91,37,45].includes((await this.pattern.byte(i))!)) {plain=false;break;}
     }
-    if(find && plain) {
+    if(find && plain && !iterator) {
       if(!this.pattern.length) return [integer(start+1),integer(start)];
       const first=(await this.pattern.byte(0))!,end=this.source.length-this.pattern.length+1;
       for(let position=start;position<end;position++) {
@@ -264,11 +264,11 @@ export class LuaPattern {
       }
       return [undefined];
     }
-    const anchor=await this.pattern.byte(0)===94;
+    const anchor=(!iterator || iterator.anchor) && await this.pattern.byte(0)===94;
     for(let position=start;position<=this.source.length;position++) {
       this.level=0;
       const end=await this.match(position,anchor?1:0);
-      if(end!==undefined) return this.results(position,end,find);
+      if(end!==undefined && end!==iterator?.last) return this.results(position,end,find,!!iterator);
       if(anchor) break;
     }
     return [undefined];

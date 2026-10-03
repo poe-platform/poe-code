@@ -31,7 +31,8 @@ export function wavInfo(tags: AudioTags): Uint8Array {
 export function parseWav(bytes: Uint8Array): AudioAst {
   const r = new Reader(bytes);
   if (r.text(0, 4) !== "RIFF" || r.text(8, 4) !== "WAVE") throw new Error("Expected RIFF WAVE");
-  const end = r.u32(4, true) + 8;
+  const riffSize = r.u32(4, true);
+  const end = riffSize === 0xffffffff ? bytes.length : riffSize + 8;
   r.check(0, end);
   const nodes: AudioNode[] = [],
     tags: AudioTags = {};
@@ -44,8 +45,9 @@ export function parseWav(bytes: Uint8Array): AudioAst {
     dataSize = 0;
   for (let offset = 12; offset < end; ) {
     const type = r.text(offset, 4),
-      size = r.u32(offset + 4, true),
-      start = offset + 8;
+      declaredSize = r.u32(offset + 4, true),
+      start = offset + 8,
+      size = type === "data" && declaredSize === 0xffffffff ? end - start : declaredSize;
     if (size > end - start) throw new Error("WAV chunk exceeds RIFF bounds");
     const node: AudioNode = { type, offset, size: size + 8, data: r.slice(start, size) };
     nodes.push(node);

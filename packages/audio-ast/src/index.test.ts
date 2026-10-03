@@ -80,3 +80,13 @@ describe("PCM audio", () => {
     ).toThrow();
   });
 });
+
+it("accepts streamed RIFF/data sizes while retaining bounds for other chunks", () => {
+  const bytes = encodeWav({ sampleRate: 8000, channels: [Float64Array.from([0, 0.5, -0.5])] });
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  view.setUint32(4, 0xffffffff, true);
+  view.setUint32(40, 0xffffffff, true);
+  expect(decodePcm(bytes).channels[0]).toHaveLength(3);
+  view.setUint32(16, 0xffffffff, true);
+  expect(() => parseAudio(bytes)).toThrow();
+});

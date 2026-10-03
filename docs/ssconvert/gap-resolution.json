@@ -10,7 +10,27 @@
       "publicArtifacts": "Root and command-package SDK and runCommand each process all 4150 cases in both profiles. All eight outputs match raw calculated bytes exactly, without diagnostics. Default profile matches all 4150 old native expectations; modern profile resolves 78 differences and matches 4113 fresh native results. The remaining 37 are retained mismatches, not counted as passes. Quoting-mode=never isolates matcher bytes; native-compatible quoted CSV intentionally transforms invalid UTF-8.",
       "nativeLimits": "37 fresh-native discrepancies are atomic-lookbehind patterns affected by the previously authenticated SUSPEND/prev_match_end defect. A direct native atomic control returns aX while the same packed-argument isolated harness returns ab. The portable matcher does not emulate uninitialized native state. Patched interpreter output is not used as a replacement golden.",
       "evidence": "out/ssconvert-continuation-1748/perl-profile-current, plus perl-profile-{before-valid,final-tests,runtime-tests,root-build,final-lint,package-lint}.log",
-      "remaining": "Activated Gnumeric 5.40 loader/profile qualification, wider grammar/diagnostics, containing registry artifacts and the other 19-family obligations remain open. Standalone native and local built artifacts do not establish those profiles."
+      "remaining": "Activated-loader corpus now measured, with 18 retained native-state mismatches and unresolved experimental warnings. Wider grammar/Unicode/diagnostics, NUL transports, containing registry artifacts and other 19-family obligations remain open. No full profile or family closure.",
+      "activatedLoader": {
+        "profile": "gnumeric-1.12.61-optional-perl-samples; exact register environment and all 48 enabledPluginIds independently compared; zero activation errors and empty activation stderr. Extra sample_datasource preserved outside discovery at /out/perl-profile-disabled-current.",
+        "identities": {
+          "perlLoaderSha256": "075083fc92eefd13f83e5da28aaac4f7bc0aca6116f6328ce65aa8289fc7a794",
+          "perlFunctionSha256": "73bfafc72fe65a516eed8708395738a0fbfc11f607321a08bddd456ca572fe71",
+          "nativeCellProbeSha256": "6386ae1ec6799e28337dc946ad6589ac7549a7c72cf273113ffc9002e9f3300d",
+          "nativeCellProbeSourceSha256": "c91cf46cfd8951f77ffbc5e538826e1ec2900404e5f0531991bb1638b75eb52b"
+        },
+        "procedure": "4150 retained inputs through unchanged Gnumeric sheet_cell_set_value, PERL_SED formulas and workbook_recalc_all; hex-encode each native string cell. No embedded-NUL claim. Native unquoted CSV independently equals concatenated cell bytes plus LF, including embedded newlines and invalid UTF-8; do not split raw CSV into lines to identify cells.",
+        "comparison": "Rebuilt command-package SDK and runCommand at 31651cd0a0 preserve all 4150 legacy outputs and the existing modern outputs. Modern profile matches 4132/4150 activated-loader cells. Remaining 18 are 10 (?<=(?>a))b, 4 (?<=(?>a|ab))b and 4 (?<=a{1,3}+)b cases, retained explicitly as mismatches. The standalone fresh-interpreter 37-mismatch result remains separate; context-dependent native defects are not passes.",
+        "diagnostics": "Activation stderr is empty. Cell evaluation emits seven experimental variable-length-capturing-lookbehind warnings (eight lines including trailing blank); product emits none. Native regcomp_study.c:3202-3215 gates the warning on variable width and an enclosed CLOSE operation. Diagnostic parity remains unresolved.",
+        "checks": "Maintained selected ssconvert workspace build succeeds. Both rebuilt package SDK/command profiles produce exact raw byte output with zero product diagnostics: four exports, 16600 case outputs. This is local built-package qualification, not a new root build or installed registry qualification.",
+        "evidence": {
+          "exact-activation.stdout": "97f9e1969a44a0a8ec1f5ae6866a4590b016283d6d716a879a81cb6055b10335",
+          "exact-activation.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "exact-cells.hex": "a11452272c807fa0f1ebfcd9d3092be7cd48832c4e96ab3b2eb9f5654898f9da",
+          "exact-cells.stderr": "2fa113816a193391b8d1d552f29f6401116a3f8ce34cd2ef15a732eef6cc737d",
+          "loader-comparison.json": "d4e779ce4eaa6af3e70abc0c79d3be96aaf811d2051a333ee38ee70519e88b99"
+        }
+      }
     },
     "biffDirectSpanOrderAdmission": {
       "scope": "BIFF8 direct external cell/area spans require both endpoints in the original retained external sheet table. Earlier single-sheet references cannot fabricate span membership. Known forward/reverse/case-alias spans keep intermediate sheets; new single-sheet references remain supported.",

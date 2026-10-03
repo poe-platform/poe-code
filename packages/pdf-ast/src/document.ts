@@ -1,7 +1,7 @@
-import { drainWork } from "./work.js";
+import { drainWork, drainWorkAsync } from "./work.js";
 import { parseCosDocumentSteps } from "./cos/parser.js";
-import { serializeCosDocumentSteps } from "./cos/writer.js";
-import { encryptCosDocumentSteps } from "./cos/security.js";
+import { serializeCosDocumentSteps, serializeCosDocumentChunks, appendIncrementalRevisionChunks, type PdfOutputStorage } from "./cos/writer.js";
+import { encryptCosDocumentSteps, prepareEncryptedCosDocumentSteps } from "./cos/security.js";
 import {
   cosArray,
   cosDict,
@@ -51,6 +51,12 @@ export interface SavePdfOptions {
   readonly objectStreams?: "preserve" | "disable" | "generate" | undefined;
   readonly incremental?: boolean | undefined;
   readonly encrypt?: EncryptPdfOptions | undefined;
+}
+
+export interface SavePdfStreamOptions extends SavePdfOptions {
+  readonly chunkBytes?: number | undefined;
+  readonly maxOutputBytes?: number | undefined;
+  readonly signal?: AbortSignal | undefined;
 }
 
 export interface PdfMetadataInfo {
@@ -684,15 +690,59 @@ export class PdfDocument {
     return buildSemanticAstFromPages(extractedPages, tablesByPage, displayLists);
   }
 
-  *saveSteps(options: SavePdfOptions = {}): Generator<void, Uint8Array, void> {
-    yield;
-
-
+  private prepareSave(): void {
     this.syncPageTree();
     if (this.cos.requiresFullRewrite) {
       pruneUnusedXObjects(this.cos, this.pages);
       discardUnreachableObjects(this.cos);
     }
+  }
+
+  /** Write owned chunks under sink backpressure without collecting the PDF output. */
+  async *saveStream(options: SavePdfStreamOptions = {}, storage?: PdfOutputStorage): AsyncGenerator<Uint8Array, void, void> {
+    const { signal } = options;
+    signal?.throwIfAborted();
+    this.prepareSave();
+    if (options.encrypt) {
+      const prepared = await drainWorkAsync(prepareEncryptedCosDocumentSteps(this.cos, options.encrypt), signal);
+      yield* serializeCosDocumentChunks({ ...prepared, chunkBytes: options.chunkBytes, maxOutputBytes: options.maxOutputBytes, signal }, storage);
+      return;
+    }
+    const objects = [...this.cos.objects.values()].sort((a, b) => a.objectNumber - b.objectNumber);
+    if (options.incremental && !this.cos.requiresFullRewrite && this.cos.bytes.length > 0) {
+      let turns = 0;
+      for (const chunk of appendIncrementalRevisionChunks(this.cos.bytes, this.cos, objects, {
+        ...(options.chunkBytes === undefined ? {} : { chunkBytes: options.chunkBytes }),
+        ...(options.maxOutputBytes === undefined ? {} : { maxOutputBytes: options.maxOutputBytes }),
+        ...(signal === undefined ? {} : { signal }),
+      })) {
+        signal?.throwIfAborted();
+        yield chunk;
+        signal?.throwIfAborted();
+        if (++turns % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+      }
+      return;
+    }
+    yield* serializeCosDocumentChunks({
+      objects, rootRef: this.cos.rootRef, infoRef: this.cos.infoRef, idArray: this.cos.idArray, version: this.cos.version,
+      normalizeContent: options.normalizeContent, objectStreams: options.objectStreams, linearize: options.linearize,
+      chunkBytes: options.chunkBytes, maxOutputBytes: options.maxOutputBytes, signal,
+    }, storage);
+  }
+
+  async saveTo(output: { write(bytes: Uint8Array): Promise<void> }, options: SavePdfStreamOptions = {}, storage?: PdfOutputStorage): Promise<void> {
+    for await (const chunk of this.saveStream(options, storage)) {
+      options.signal?.throwIfAborted();
+      await output.write(chunk);
+      options.signal?.throwIfAborted();
+    }
+  }
+
+  *saveSteps(options: SavePdfOptions = {}): Generator<void, Uint8Array, void> {
+    yield;
+
+
+    this.prepareSave();
     if (options.encrypt) {
       return (yield* encryptCosDocumentSteps(this.cos, options.encrypt));
     }

@@ -32,6 +32,19 @@ limit the operation. `serializeCosNodeBytes` remains the buffering convenience
 API over the same serializer. Input nodes and their existing raw stream bytes
 remain caller-owned; this API does not make the document object graph lazy.
 
+`doc.saveStream(options, storage)` yields owned PDF output chunks;
+`doc.saveTo(sink, options, storage)` awaits each sink write. Both retain the
+existing save options, including encryption, incremental revisions, object
+streams, normalization, and linearization. Standard saves stream directly.
+Linearization needs `{ fs, directory }` storage to replay the final length and
+hint offsets; its retained staging is removed when iteration ends or fails.
+`chunkBytes`, `maxOutputBytes`, and `signal` control output delivery. File
+publication remains the caller's responsibility.
+
+These APIs remove the complete serialized-output buffer. The document graph,
+encrypted object copies, and object-stream compression inputs still reside in
+memory; they are not yet a bounded-memory document engine.
+
 This source is an I/O primitive. `PdfDocument.load`, editing, and rendering still
 use the buffered document engine; they do not yet accept `PdfFileSource`.
 

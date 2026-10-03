@@ -1,3 +1,5 @@
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import { PdfFileSource } from "../source.js";
 import { drainWork } from "../work.js";
 import {
   cosArray,
@@ -202,12 +204,48 @@ export function concatByteArrays(chunks: readonly Uint8Array[]): Uint8Array {
   return out;
 }
 
-export function* serializeCosDocumentSteps(options: SerializeCosOptions): Generator<void, Uint8Array, void> {
+export interface PdfOutputStorage {
+  readonly fs: FileSystem;
+  readonly directory: string;
+  readonly cacheBytes?: number;
+}
+
+export interface SerializeCosStreamOptions extends SerializeCosOptions {
+  readonly chunkBytes?: number | undefined;
+  readonly signal?: AbortSignal | undefined;
+}
+
+interface PdfSerializationPatch {
+  readonly offset: number;
+  readonly bytes: Uint8Array;
+}
+
+function* serializeCosDocumentOutput(options: SerializeCosStreamOptions): Generator<Uint8Array | void, PdfSerializationPatch | undefined, void> {
   yield;
 
   let work = 0;
 
   const maxOutputBytes = options.maxOutputBytes ?? Infinity;
+  const chunkBytes = options.chunkBytes ?? 64 * 1024;
+  if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1) throw new RangeError("chunkBytes must be a positive safe integer");
+  if (maxOutputBytes !== Infinity && (!Number.isSafeInteger(maxOutputBytes) || maxOutputBytes < 0)) throw new RangeError("maxOutputBytes must be a nonnegative safe integer or Infinity");
+  let offset = 0;
+  function* emit(bytes: Uint8Array): Generator<Uint8Array, void, void> {
+    if (bytes.length > maxOutputBytes - offset) throw new PdfError("E_LIMIT", "PDF output byte limit exceeded");
+    for (let position = 0; position < bytes.length; position += chunkBytes) {
+      const chunk = new Uint8Array(bytes.subarray(position, Math.min(bytes.length, position + chunkBytes)));
+      offset += chunk.length;
+      yield chunk;
+    }
+  }
+  function* emitNode(node: PdfCosNode): Generator<Uint8Array, void, void> {
+    for (const chunk of serializeCosNodeChunks(node, { chunkBytes, maxOutputBytes: maxOutputBytes - offset,
+      ...(options.maxRecursionDepth === undefined ? {} : { maxRecursionDepth: options.maxRecursionDepth }),
+      ...(options.signal === undefined ? {} : { signal: options.signal }) })) {
+      offset += chunk.length;
+      yield chunk;
+    }
+  }
   const maxObjects = options.maxObjects ?? Infinity;
   const sorted = [...options.objects].sort((a, b) => a.objectNumber - b.objectNumber);
 
@@ -226,8 +264,7 @@ export function* serializeCosDocumentSteps(options: SerializeCosOptions): Genera
       ? "1.5"
       : rawVersion;
   const header = textEncoder.encode(`%PDF-${version}\n%\x81\x81\x81\x81\n\n`);
-  const chunks: Uint8Array[] = [header];
-  let offset = header.length;
+  yield* emit(header);
 
   if (options.objectStreams === "generate" && !options.encryptRef && !options.normalizeContent) {
     const packable: PdfIndirectObject[] = [];
@@ -282,14 +319,9 @@ export function* serializeCosDocumentSteps(options: SerializeCosOptions): Genera
         if (++work % 16 === 0) yield;
 
         directOffsets.set(dObj.objectNumber, { offset, generation: dObj.generationNumber });
-        const prefix = textEncoder.encode(`${dObj.objectNumber} ${dObj.generationNumber} obj\n`);
-        const body = serializeCosNodeBytes(dObj.value, 0, options.maxRecursionDepth);
-        const suffix = textEncoder.encode("\nendobj\n\n");
-        offset += prefix.length + body.length + suffix.length;
-        if (offset > maxOutputBytes) {
-          throw new PdfError("E_LIMIT", "PDF output byte limit exceeded");
-        }
-        chunks.push(prefix, body, suffix);
+        yield* emit(textEncoder.encode(`${dObj.objectNumber} ${dObj.generationNumber} obj\n`));
+        yield* emitNode(dObj.value);
+        yield* emit(textEncoder.encode("\nendobj\n\n"));
       }
       const compressedMap = new Map<number, number>();
       for (let idx = 0; idx < packable.length; idx++) {
@@ -339,14 +371,10 @@ export function* serializeCosDocumentSteps(options: SerializeCosOptions): Genera
         }),
         compress: false,
       });
-      const xrefPrefix = textEncoder.encode(`${xrefStmNum} 0 obj\n`);
-      const xrefBody = serializeCosNodeBytes(xrefStreamNode, 0, options.maxRecursionDepth);
-      const xrefSuffix = textEncoder.encode(`\nendobj\n\nstartxref\n${xrefOffset}\n%%EOF`);
-      if (offset + xrefPrefix.length + xrefBody.length + xrefSuffix.length > maxOutputBytes) {
-        throw new PdfError("E_LIMIT", "PDF output byte limit exceeded");
-      }
-      chunks.push(xrefPrefix, xrefBody, xrefSuffix);
-      return concatByteArrays(chunks);
+      yield* emit(textEncoder.encode(`${xrefStmNum} 0 obj\n`));
+      yield* emitNode(xrefStreamNode);
+      yield* emit(textEncoder.encode(`\nendobj\n\nstartxref\n${xrefOffset}\n%%EOF`));
+      return;
     }
   }
 
@@ -470,27 +498,22 @@ export function* serializeCosDocumentSteps(options: SerializeCosOptions): Genera
         decodedBytes: value.decodedBytes,
       };
     }
-    const prefix = textEncoder.encode(`${obj.objectNumber} ${obj.generationNumber} obj\n`);
-    const body = serializeCosNodeBytes(value, 0, options.maxRecursionDepth);
-    const suffix = textEncoder.encode("\nendobj\n\n");
-    offset += prefix.length + body.length + suffix.length;
-    if (offset > maxOutputBytes) {
-      throw new PdfError("E_LIMIT", "PDF output byte limit exceeded");
-    }
-    chunks.push(prefix, body, suffix);
+    yield* emit(textEncoder.encode(`${obj.objectNumber} ${obj.generationNumber} obj\n`));
+    yield* emitNode(value);
+    yield* emit(textEncoder.encode("\nendobj\n\n"));
   }
 
   const xrefOffset = offset;
   const size = maxObjectNumber + 1;
-  let xrefText = `xref\n0 ${size}\n0000000000 65535 f \n`;
+  yield* emit(textEncoder.encode(`xref\n0 ${size}\n0000000000 65535 f \n`));
   for (let i = 1; i < size; i++) {
     if (++work % 16 === 0) yield;
 
     const entry = objectOffsets.get(i);
     if (entry) {
-      xrefText += `${String(entry.offset).padStart(10, "0")} ${String(entry.generation).padStart(5, "0")} n \n`;
+      yield* emit(textEncoder.encode(`${String(entry.offset).padStart(10, "0")} ${String(entry.generation).padStart(5, "0")} n \n`));
     } else {
-      xrefText += `0000000000 65535 f \n`;
+      yield* emit(textEncoder.encode("0000000000 65535 f \n"));
     }
   }
 
@@ -501,18 +524,9 @@ export function* serializeCosDocumentSteps(options: SerializeCosOptions): Genera
     Encrypt: options.encryptRef,
     ID: options.idArray,
   });
-  const trailerBytes = concatByteArrays([
-    textEncoder.encode(xrefText),
-    textEncoder.encode("trailer\n"),
-    serializeCosNodeBytes(trailerDict, 0, options.maxRecursionDepth),
-    textEncoder.encode(`\n\nstartxref\n${xrefOffset}\n%%EOF`),
-  ]);
-
-  if (offset + trailerBytes.length > maxOutputBytes) {
-    throw new PdfError("E_LIMIT", "PDF output byte limit exceeded");
-  }
-  chunks.push(trailerBytes);
-  const fullBytes = concatByteArrays(chunks);
+  yield* emit(textEncoder.encode("trailer\n"));
+  yield* emitNode(trailerDict);
+  yield* emit(textEncoder.encode(`\n\nstartxref\n${xrefOffset}\n%%EOF`));
   const linObjAfter = sorted.find(
     o => o.value.kind === "dict" && dictGet(o.value, "Linearized") !== undefined
   );
@@ -550,7 +564,7 @@ export function* serializeCosDocumentSteps(options: SerializeCosOptions): Genera
     });
     const updatedLinDict = cosDict({
       Linearized: cosNumber(1),
-      L: fixedNum(fullBytes.length),
+      L: fixedNum(offset),
       H: cosArray([fixedNum(hintEntry?.offset ?? 0), fixedNum(hintLength)]),
       O: cosNumber(firstPageNum),
       E: fixedNum(endFirstPage),
@@ -560,57 +574,158 @@ export function* serializeCosDocumentSteps(options: SerializeCosOptions): Genera
     const prefix = textEncoder.encode(`${linObjAfter.objectNumber} ${linObjAfter.generationNumber} obj\n`);
     const updatedBody = serializeCosNodeBytes(updatedLinDict, 0, options.maxRecursionDepth);
     if (linEntry) {
-      fullBytes.set(updatedBody, linEntry.offset + prefix.length);
+      return { bytes: updatedBody, offset: linEntry.offset + prefix.length };
     }
   }
-  return fullBytes;
+  return;
+}
+
+/** Buffered compatibility path over the same chunk-producing serializer. */
+export function* serializeCosDocumentSteps(options: SerializeCosOptions): Generator<void, Uint8Array, void> {
+  const chunks: Uint8Array[] = [];
+  const work = serializeCosDocumentOutput(options);
+  let step = work.next();
+  while (!step.done) {
+    if (step.value) chunks.push(step.value.byteLength === step.value.buffer.byteLength ? step.value : new Uint8Array(step.value));
+    yield;
+    step = work.next();
+  }
+  const bytes = concatByteArrays(chunks);
+  if (step.value) bytes.set(step.value.bytes, step.value.offset);
+  return bytes;
+}
+
+/** Stream ordinary output directly; linearization uses caller-owned staging. */
+export async function* serializeCosDocumentChunks(options: SerializeCosStreamOptions, storage?: PdfOutputStorage): AsyncGenerator<Uint8Array, void, void> {
+  const { signal } = options;
+  signal?.throwIfAborted();
+  const generatesObjectStream = options.objectStreams === "generate" && !options.encryptRef && !options.normalizeContent &&
+    options.objects.some(object => object.value.kind !== "stream" && object.generationNumber === 0 &&
+      !(object.value.kind === "dict" && dictGet(object.value, "Linearized") !== undefined));
+  const linearized = !generatesObjectStream && (options.linearize || options.objects.some(object => object.value.kind === "dict" && dictGet(object.value, "Linearized") !== undefined));
+  if (linearized && !storage) throw new PdfError("E_CAPABILITY", "Linearized PDF output requires caller staging storage");
+  let patch: PdfSerializationPatch | undefined;
+  async function* chunks(): AsyncGenerator<Uint8Array, void, void> {
+    const work = serializeCosDocumentOutput(options);
+    let turns = 0;
+    try {
+      while (true) {
+        signal?.throwIfAborted();
+        const step = work.next();
+        if (step.done) { patch = step.value; return; }
+        if (step.value) yield step.value;
+        // Cooperative work must also yield to cancellation on memory backends.
+        if (++turns % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+      }
+    } finally { work.return(undefined); }
+  }
+  if (!linearized) {
+    for await (const chunk of chunks()) {
+      signal?.throwIfAborted();
+      yield chunk;
+      signal?.throwIfAborted();
+    }
+    return;
+  }
+  const staged = await PdfFileSource.fromStream(storage!.fs, storage!.directory, chunks(), {
+    ...(options.chunkBytes === undefined ? {} : { chunkBytes: options.chunkBytes }),
+    ...(storage!.cacheBytes === undefined ? {} : { cacheBytes: storage!.cacheBytes }),
+    ...(signal === undefined ? {} : { signal }),
+    maxInputBytes: options.maxOutputBytes ?? Infinity,
+  });
+  let failed = false;
+  try {
+    if (patch && (patch.offset < 0 || patch.offset + patch.bytes.length > staged.size)) throw new PdfError("E_PARSE", "Invalid PDF linearization patch");
+    let offset = 0;
+    for await (const chunk of staged.stream()) {
+      if (patch) {
+        const start = Math.max(offset, patch.offset);
+        const end = Math.min(offset + chunk.length, patch.offset + patch.bytes.length);
+        if (end > start) chunk.set(patch.bytes.subarray(start - patch.offset, end - patch.offset), start - offset);
+      }
+      signal?.throwIfAborted();
+      yield chunk;
+      signal?.throwIfAborted();
+      offset += chunk.length;
+    }
+  } catch (error) {
+    failed = true;
+    throw error;
+  } finally {
+    await staged.close().catch(error => { if (!failed) throw error; });
+  }
+}
+
+export async function serializeCosDocumentTo(options: SerializeCosStreamOptions,
+  output: { write(bytes: Uint8Array): Promise<void> }, storage?: PdfOutputStorage): Promise<void> {
+  for await (const chunk of serializeCosDocumentChunks(options, storage)) {
+    options.signal?.throwIfAborted();
+    await output.write(chunk);
+    options.signal?.throwIfAborted();
+  }
 }
 
 export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
   return drainWork(serializeCosDocumentSteps(options));
 }
 
-export function appendIncrementalRevision(
+export function* appendIncrementalRevisionChunks(
   originalBytes: Uint8Array,
   doc: ParsedCosDocument,
-  updatedObjects: readonly PdfIndirectObject[]
-): Uint8Array {
-  const chunks: Uint8Array[] = [originalBytes, textEncoder.encode("\n")];
-  let offset = originalBytes.length + 1;
+  updatedObjects: readonly PdfIndirectObject[],
+  options: SerializeCosNodeOptions = {},
+): Generator<Uint8Array, void, void> {
+  const chunkBytes = options.chunkBytes ?? 64 * 1024;
+  const maximum = options.maxOutputBytes ?? Infinity;
+  if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1) throw new RangeError("chunkBytes must be a positive safe integer");
+  if (maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("maxOutputBytes must be a nonnegative safe integer or Infinity");
+  let offset = 0;
+  function* emit(bytes: Uint8Array): Generator<Uint8Array, void, void> {
+    if (bytes.length > maximum - offset) throw new PdfError("E_LIMIT", "PDF output byte limit exceeded");
+    for (let position = 0; position < bytes.length; position += chunkBytes) {
+      options.signal?.throwIfAborted();
+      const chunk = new Uint8Array(bytes.subarray(position, Math.min(bytes.length, position + chunkBytes)));
+      offset += chunk.length;
+      yield chunk;
+    }
+  }
+  function* node(value: PdfCosNode): Generator<Uint8Array, void, void> {
+    for (const chunk of serializeCosNodeChunks(value, { ...options, chunkBytes, maxOutputBytes: maximum - offset })) {
+      offset += chunk.length;
+      yield chunk;
+    }
+  }
+  yield* emit(originalBytes);
+  yield* emit(textEncoder.encode("\n"));
   const offsets = new Map<number, { offset: number; generation: number }>();
-
   let maxObjNum = doc.maxObjectNumber;
   for (const obj of updatedObjects) {
     if (obj.objectNumber > maxObjNum) maxObjNum = obj.objectNumber;
     offsets.set(obj.objectNumber, { offset, generation: obj.generationNumber });
-    const prefix = textEncoder.encode(`${obj.objectNumber} ${obj.generationNumber} obj\n`);
-    const body = serializeCosNodeBytes(obj.value);
-    const suffix = textEncoder.encode("\nendobj\n\n");
-    offset += prefix.length + body.length + suffix.length;
-    chunks.push(prefix, body, suffix);
+    yield* emit(textEncoder.encode(`${obj.objectNumber} ${obj.generationNumber} obj\n`));
+    yield* node(obj.value);
+    yield* emit(textEncoder.encode("\nendobj\n\n"));
   }
-
   const xrefOffset = offset;
-  let xrefText = "xref\n0 1\n0000000000 65535 f \n";
+  yield* emit(textEncoder.encode("xref\n0 1\n0000000000 65535 f \n"));
   const sortedNums = [...offsets.keys()].sort((a, b) => a - b);
   for (const num of sortedNums) {
     const entry = offsets.get(num)!;
-    xrefText += `${num} 1\n${String(entry.offset).padStart(10, "0")} ${String(entry.generation).padStart(5, "0")} n \n`;
+    yield* emit(textEncoder.encode(`${num} 1\n${String(entry.offset).padStart(10, "0")} ${String(entry.generation).padStart(5, "0")} n \n`));
   }
-
-  const prevXrefOffset = doc.revisions[0]?.xrefOffset ?? 0;
   const trailerDict = cosDict({
-    Size: cosNumber(maxObjNum + 1),
-    Root: doc.rootRef,
-    Info: doc.infoRef,
-    Prev: cosNumber(prevXrefOffset),
+    Size: cosNumber(maxObjNum + 1), Root: doc.rootRef, Info: doc.infoRef,
+    Prev: cosNumber(doc.revisions[0]?.xrefOffset ?? 0),
   });
+  yield* emit(textEncoder.encode("trailer\n"));
+  yield* node(trailerDict);
+  yield* emit(textEncoder.encode(`\n\nstartxref\n${xrefOffset}\n%%EOF`));
+}
 
-  chunks.push(
-    textEncoder.encode(xrefText),
-    textEncoder.encode("trailer\n"),
-    serializeCosNodeBytes(trailerDict),
-    textEncoder.encode(`\n\nstartxref\n${xrefOffset}\n%%EOF`)
-  );
+export function appendIncrementalRevision(originalBytes: Uint8Array, doc: ParsedCosDocument, updatedObjects: readonly PdfIndirectObject[]): Uint8Array {
+  const chunks: Uint8Array[] = [];
+  for (const chunk of appendIncrementalRevisionChunks(originalBytes, doc, updatedObjects)) {
+    chunks.push(chunk.byteLength === chunk.buffer.byteLength ? chunk : new Uint8Array(chunk));
+  }
   return concatByteArrays(chunks);
 }

@@ -28,7 +28,7 @@ import { PdfError } from "../errors.js";
 import type { ParsedCosDocument } from "./parser.js";
 import { decodeStreamObject } from "./filters.js";
 import { assertDecodedByteBudget } from "./limits.js";
-import { serializeCosDocumentSteps } from "./writer.js";
+import { serializeCosDocumentSteps, type SerializeCosOptions } from "./writer.js";
 
 const PADDING_32 = Uint8Array.from([
   0x28, 0xbf, 0x4e, 0x5e, 0x4e, 0x75, 0x8a, 0x41,
@@ -368,7 +368,7 @@ function createR6Encryption(userPassword: string, ownerPassword: string, pMask: 
   }) };
 }
 
-export function* encryptCosDocumentSteps(doc: ParsedCosDocument, options: EncryptPdfOptions = {}): Generator<void, Uint8Array, void> {
+export function* prepareEncryptedCosDocumentSteps(doc: ParsedCosDocument, options: EncryptPdfOptions = {}): Generator<void, SerializeCosOptions, void> {
   yield;
 
   const userPassword = options.userPassword ?? "";
@@ -398,13 +398,18 @@ export function* encryptCosDocumentSteps(doc: ParsedCosDocument, options: Encryp
     encryptedObjects.push({ objectNumber: obj.objectNumber, generationNumber: obj.generationNumber, value: transformed });
   }
   encryptedObjects.push({ objectNumber: encryptObjNum, generationNumber: 0, value: encryptDict });
-  return (yield* serializeCosDocumentSteps({
+  return {
     objects: encryptedObjects, rootRef: doc.rootRef, infoRef: doc.infoRef,
     encryptRef: cosRef(encryptObjNum),
     idArray: cosArray([cosHexString(idBytes), cosHexString(idBytes)]),
     version: revision === 6 ? "2.0" : Number.parseFloat(doc.version) < 1.4 ? "1.4" : doc.version,
-  }));
+  };
 }
+export function* encryptCosDocumentSteps(doc: ParsedCosDocument, options: EncryptPdfOptions = {}): Generator<void, Uint8Array, void> {
+  const prepared = yield* prepareEncryptedCosDocumentSteps(doc, options);
+  return yield* serializeCosDocumentSteps(prepared);
+}
+
 export function encryptCosDocument(doc: ParsedCosDocument, options: EncryptPdfOptions = {}): Uint8Array { return drainWork(encryptCosDocumentSteps(doc, options)); }
 
 

@@ -19,6 +19,13 @@ function dwords(...values: number[]): Uint8Array {
   values.forEach((value, i) => view.setUint32(i * 4, value, true)); return bytes;
 }
 
+function viewFlag(sheet: Sheet, name: string, fallback = false): boolean {
+  const attributes = sheet.view?.gnumeric;
+  const value = attributes && typeof attributes === "object" && !Array.isArray(attributes)
+    ? (attributes as Readonly<Record<string, unknown>>)[name] : undefined;
+  return value === undefined ? fallback : value === true || value === 1 || value === "1" || value === "true";
+}
+
 export class BiffMetadataWriter {
   private work = 0;
   private readonly records = new Map<Sheet, { record: Sheet["unsupportedRecords"] extends readonly (infer T)[] | undefined ? T : never; node?: MetadataNode }[]>();
@@ -96,22 +103,16 @@ export class BiffMetadataWriter {
     const x = end.column - origin.column, y = end.row - origin.row;
     if (x < 0 || y < 0) throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF reversed frozen layout");
     const frozen = !!(x || y), zoom = Math.round(Number(sheet.view?.zoom ?? 1) * 100);
-    const attributes = sheet.view?.gnumeric;
-    const flag = (name: string, fallback = false): boolean => {
-      const value = attributes && typeof attributes === "object" && !Array.isArray(attributes)
-        ? (attributes as Readonly<Record<string, unknown>>)[name] : undefined;
-      return value === undefined ? fallback : value === true || value === 1 || value === "1" || value === "true";
-    };
-    const hideColumns = flag("HideColHeader"), hideRows = flag("HideRowHeader");
+    const hideColumns = viewFlag(sheet, "HideColHeader"), hideRows = viewFlag(sheet, "HideRowHeader");
     if (hideColumns !== hideRows) {
       await this.context.diagnostic?.({ code: "biff-loss-warning", severity: "warning",
         message: "Excel BIFF combines row and column header visibility; both headers are shown" });
       this.charge();
     }
     const flags = 0x20 | (active ? 0x600 : 0) | (frozen ? 0x108 : 0) |
-      (flag("DisplayFormulas") ? 1 : 0) | (flag("HideGrid") ? 0 : 2) |
-      (!hideColumns || !hideRows ? 4 : 0) | (flag("HideZero") ? 0 : 0x10) |
-      (flag("RTL_Layout") ? 0x40 : 0) | (flag("DisplayOutlines", true) ? 0x80 : 0);
+      (viewFlag(sheet, "DisplayFormulas") ? 1 : 0) | (viewFlag(sheet, "HideGrid") ? 0 : 2) |
+      (!hideColumns || !hideRows ? 4 : 0) | (viewFlag(sheet, "HideZero") ? 0 : 0x10) |
+      (viewFlag(sheet, "RTL_Layout") ? 0x40 : 0) | (viewFlag(sheet, "DisplayOutlines", true) ? 0x80 : 0);
     const row = y ? origin.row : scroll.row, column = x ? origin.column : scroll.column;
     output.record(0x23e, revision === 8 ? words(flags, row, column, 64, 0, 0, zoom, zoom, 0) :
       words(flags, row, column, 64, 0));
@@ -125,7 +126,9 @@ export class BiffMetadataWriter {
     const records = this.records.get(sheet)!, print = records.find(r => r.record.kind === "PrintInformation")?.node;
     const child = (name: string) => print?.children.find(n => n.name === name);
     const flag = (name: string) => Number(child(name)?.attributes.value ?? 0);
-    output.record(0x81, words(0x4c1 | (["fit", "size_fit"].includes(child("Scale")?.attributes.type ?? "") ? 0x100 : 0)));
+    output.record(0x81, words(1 | (viewFlag(sheet, "OutlineSymbolsBelow", true) ? 0x40 : 0) |
+      (viewFlag(sheet, "OutlineSymbolsRight", true) ? 0x80 : 0) | (viewFlag(sheet, "DisplayOutlines", true) ? 0x400 : 0) |
+      (["fit", "size_fit"].includes(child("Scale")?.attributes.type ?? "") ? 0x100 : 0)));
     output.record(0x2a, words(flag("titles"))); output.record(0x2b, words(flag("grid")));
     output.record(0x83, words(flag("hcenter"))); output.record(0x84, words(flag("vcenter")));
     for (const [name, opcode, fallback] of [["left", 0x26, 72], ["right", 0x27, 72], ["top", 0x28, 120], ["bottom", 0x29, 120]] as const) {

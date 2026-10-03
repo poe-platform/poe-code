@@ -108,7 +108,7 @@ export function readBiffMetadata(records: readonly BiffRecord[], revision: numbe
         if (!Number.isFinite(margins.header) || !Number.isFinite(margins.footer)) invalidBiff("invalid print margin"); }
       hasPrint = true;
     } else if (opcode === 0x81) {
-      const flags = data.u16(0); view.gnumeric = { OutlineSymbolsBelow: flags & 0x40 ? "1" : "0", OutlineSymbolsRight: flags & 0x80 ? "1" : "0" };
+      const flags = data.u16(0); view.gnumeric = { ...(view.gnumeric as Record<string, ImportedValue> | undefined), OutlineSymbolsBelow: flags & 0x40 ? "1" : "0", OutlineSymbolsRight: flags & 0x80 ? "1" : "0" };
       fitToPage = !!(flags & 0x100);
     } else if (opcode === 0x23e) {
       const flags = data.u16(0); active = !!(flags & 0x400);

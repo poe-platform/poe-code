@@ -136,3 +136,28 @@ it.each([[0x200, false], [0x400, true], [0x600, true], [0, false]] as const)("us
   const result = readBiffMetadata([{ opcode: 0x23e, offset: 0, data: new Binary(words(flags, 0, 0, 64, 0)) }], 7, 1252, context);
   expect(result.active).toBe(active);
 });
+
+for (const revision of [7, 8] as const) for (let combination = 0; combination < 8; combination++) {
+  it(`preserves BIFF${revision} outline direction and visibility ${combination}`, async () => {
+    const source: Workbook = { sheets: [{ id: "s", name: "S", cells: [], view: { gnumeric: {
+      OutlineSymbolsBelow: combination & 1 ? "1" : "0",
+      OutlineSymbolsRight: combination & 2 ? "1" : "0",
+      DisplayOutlines: combination & 4 ? "1" : "0"
+    } } }] };
+    const bytes = await writeBiffStream(source, revision, false, context);
+    const flags = readBiffRecords(bytes, context).find(record => record.opcode === 0x81)!.data.u16(0);
+    expect(flags & 0xcc0).toBe((combination & 1 ? 0x40 : 0) | (combination & 2 ? 0x80 : 0) | (combination & 4 ? 0x400 : 0));
+    expect((await readBiff(bytes, context)).sheets[0]!.view?.gnumeric).toMatchObject({
+      OutlineSymbolsBelow: combination & 1 ? "1" : "0", OutlineSymbolsRight: combination & 2 ? "1" : "0",
+      DisplayOutlines: combination & 4 ? "1" : "0"
+    });
+  });
+}
+it("keeps worksheet display settings when WSBOOL follows WINDOW2", () => {
+  const parsed = readBiffMetadata([
+    { opcode: 0x23e, offset: 0, data: new Binary(words(0x661, 0, 0, 64, 0, 0, 100, 100, 0)) },
+    { opcode: 0x81, offset: 22, data: new Binary(words(0x40)) }
+  ], 8, 1252, context);
+  expect(parsed.view?.gnumeric).toMatchObject({ DisplayFormulas: "1", RTL_Layout: "1", HideGrid: "1",
+    OutlineSymbolsBelow: "1", OutlineSymbolsRight: "0" });
+});

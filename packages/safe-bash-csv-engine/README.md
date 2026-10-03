@@ -33,3 +33,5 @@ Closed inclusive ranges and decimal ASCII numeric selectors (with ASCII numeric 
 
 `budget.accounting` returns an immutable snapshot of quota usage. Disposal clears current retention while earlier snapshots preserve their values; observed counters cannot reset the internal ledger.
 Input admission counts the actual byte-view length without reading a producer-defined `byteLength` property.
+
+The `safe-bash-csv-engine/text-decoder` subpath exposes the same incremental UTF-8, UTF-8-sig, ASCII and Latin-1 codecs for file consumers. `PythonTextDecoder` preserves Latin-1 control bytes and distinguishes invalid input (`PythonTextDecodeError`) from unknown encodings. Feed bounded chunks and keep filesystem/storage ownership in the caller.

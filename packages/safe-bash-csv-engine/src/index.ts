@@ -1,3 +1,4 @@
+import { PythonTextDecoder } from "./text-decoder.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 /** Original bounded CSV reader; UTF-8-sig, Python-style permissive quote closure profile. */
 export class CsvError extends Error {
@@ -181,7 +182,7 @@ const typedArrayByteLength = Object.getOwnPropertyDescriptor(
   Object.getPrototypeOf(Uint8Array.prototype), "byteLength"
 )!.get!;
 export class CsvParser {
-  private readonly decoder: TextDecoder;
+  private readonly decoder: PythonTextDecoder;
   private readonly encoding: string;
   private fieldCharacters = 0;
   private fieldUnits = 0;
@@ -209,7 +210,7 @@ export class CsvParser {
     this.encoding = (dialect.encoding ?? "utf-8-sig").toLowerCase().replaceAll("_", "-");
     if (!["utf-8-sig", "utf8-sig", "utf-8", "utf8", "ascii", "us-ascii", "latin1", "latin-1", "iso-8859-1"].includes(this.encoding))
       throw new CsvError("UNSUPPORTED", "Unsupported CSV encoding");
-    this.decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: !["utf-8-sig", "utf8-sig"].includes(this.encoding) });
+    this.decoder = new PythonTextDecoder(this.encoding);
     if (dialect.fieldCharacters !== undefined && (!Number.isSafeInteger(dialect.fieldCharacters) || dialect.fieldCharacters < 0))
       throw new CsvError("ARGUMENT", "Field size must be a nonnegative safe integer");
     this.delimiter = dialect.tabs ? "\t" : (dialect.delimiter ?? ",");
@@ -262,16 +263,9 @@ export class CsvParser {
     this.budget.charge("retainedBytes", byteLength * 2 + 8);
     let text: string;
     try {
-      if (["ascii", "us-ascii", "latin1", "latin-1", "iso-8859-1"].includes(this.encoding)) {
-        text = "";
-        for (const byte of bytes) {
-          if ((this.encoding === "ascii" || this.encoding === "us-ascii") && byte > 127) throw new CsvError("INPUT", "Invalid ASCII input");
-          text += String.fromCharCode(byte);
-        }
-      } else text = this.decoder.decode(bytes, { stream: true });
+      text = this.decoder.decode(bytes, { stream: true });
     } catch (error) {
-      if (error instanceof CsvError) throw error;
-      throw new CsvError("INPUT", "Invalid UTF-8 input");
+      throw new CsvError("INPUT", error instanceof Error ? error.message : "Invalid UTF-8 input");
     }
     this.budget.charge("decodedBytes", text.length * 2);
     return this.consume(text);

@@ -22,6 +22,10 @@
     "./sniffer-unicode": {
       "types": "./dist/sniffer-unicode.d.ts",
       "import": "./dist/sniffer-unicode.js"
+    },
+    "./text-decoder": {
+      "types": "./dist/text-decoder.d.ts",
+      "import": "./dist/text-decoder.js"
     }
   },
   "files": [

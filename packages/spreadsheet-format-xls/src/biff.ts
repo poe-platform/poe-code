@@ -1,5 +1,6 @@
+import { readBiffRange } from "./biff-range.js";
 import { biffExternalNameExpression } from "./biff-external-definitions.js";
-import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
+import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 import type { Cell, CellValue, Workbook, Range, AxisMetadata, NamedExpression, ImportedValue, UnsupportedRecord, RichTextRun, FormulaGroup, LabelRange } from "@poe-code/spreadsheet-ast";
 import { Binary, isCfb, readCfb, readBiffRecords, invalidBiff, type BiffRecord } from "./biff-binary.js";
 import { decryptBiffRecords } from "./biff-encryption.js";
@@ -114,19 +115,24 @@ function workbookBytes(bytes: Uint8Array, context: CapabilityContext): Uint8Arra
   for (const name of workbookStreams) { const stream = streams.get(name); if (stream) return stream; }
   return undefined;
 }
-export async function probeBiff(bytes: Uint8Array, context: CapabilityContext): Promise<boolean> {
+export async function probeBiff(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<boolean> {
   context.signal.throwIfAborted();
+  if (!(bytes instanceof Uint8Array)) return (await readBiffRange(bytes, context, true)).found;
   if (!isCfb(bytes)) return bytes[0] === 9 && (bytes[1]! & 0xf1) === 0;
   try { return workbookBytes(bytes, context) !== undefined; }
   catch (error) { context.signal.throwIfAborted(); if (error instanceof SsconvertError && error.code === "io") return false; throw error; }
 }
-export async function readBiff(borrowed: Uint8Array, context: CapabilityContext, encoding?: string): Promise<Workbook> {
+export async function readBiff(borrowed: Uint8Array | RangeSource, context: CapabilityContext, encoding?: string): Promise<Workbook> {
   context.signal.throwIfAborted();
-  if (borrowed.length > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert input bytes limit exceeded");
-  const bytes = new Uint8Array(borrowed), streams = isCfb(bytes) ? readCfb(bytes, context) : undefined;
-  const stream = streams ? workbookStreams.map(name => streams.get(name)).find(value => value !== undefined) : bytes;
-  if (!stream) throw new SsconvertError("io", "E No Workbook or Book streams found.");
-  const records = readBiffRecords(stream, context);
+  let streamSize: number, records: BiffRecord[], streams: ReadonlyMap<string, Uint8Array> | undefined;
+  if (borrowed instanceof Uint8Array) {
+    if (borrowed.length > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert input bytes limit exceeded");
+    const bytes = new Uint8Array(borrowed);
+    streams = isCfb(bytes) ? readCfb(bytes, context) : undefined;
+    const stream = streams ? workbookStreams.map(name => streams!.get(name)).find(value => value !== undefined) : bytes;
+    if (!stream) throw new SsconvertError("io", "E No Workbook or Book streams found.");
+    records = readBiffRecords(stream, context); streamSize = stream.length;
+  } else ({ records, streams, streamSize } = await readBiffRange(borrowed, context));
   if (!records[0] || !bofOpcodes.has(records[0].opcode)) invalidBiff("missing BOF");
   const override = biffOverrideCodepage(encoding);
   let codepage = override ?? 1252, ver = revision(records[0]), dateSystem: "1900" | "1904" = "1900";
@@ -256,7 +262,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     }
     if (opcode === 0x85) {
       const start = data.u32(0), visibility = data.u8(4), type = data.u8(5), length = data.u8(6);
-      if (visibility > 2 || start >= stream.length) invalidBiff("invalid BOUNDSHEET");
+      if (visibility > 2 || start >= streamSize) invalidBiff("invalid BOUNDSHEET");
       const cursor = new BiffStrings([new Binary(data.slice(7, data.bytes.length - 7))], context, codepage);
       const name = accountText(ver >= 8 ? cursor.unicode(length).text : cursor.legacy(length));
       boundSheets.push({ offset: start, name, type, visibility: visibility === 0 ? "visible" : visibility === 1 ? "hidden" : "very-hidden" });

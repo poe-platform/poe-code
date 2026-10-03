@@ -18,6 +18,13 @@ try {
 ```
 
 Compose additional format modules explicitly to convert between file types.
+With the engine's `workingFiles` capability, retained XLS imports keep CFB FAT,
+sector-chain and directory traversal indexes in caller storage. Compound stream
+payloads are read in bounded ranges with one FAT and one data sector cached;
+ignored streams are validated structurally without copying their payloads.
+The explicit byte-array API remains available. BIFF records, the workbook model,
+stream names and interpreted property/encryption payloads still remain resident;
+this does not yet provide bounded memory for the complete conversion.
 BIFF editing preserves the workbook Normal style and font-aware column widths,
 including sheet defaults. Change `sheet.view.defaultColumnWidth` in points and
 adopt the edited workbook before export; BIFF stores defaults in whole font

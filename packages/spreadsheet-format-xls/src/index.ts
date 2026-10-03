@@ -18,6 +18,8 @@ export const xlsFormat: FormatProvider = {
     {
       "id": "excel",
       "direction": "read",
+      readSource: async (...args) => (await import("./biff.js")).readBiff(...args),
+      probeSource: async (...args) => (await import("./biff.js")).probeBiff(...args),
       read: async (...args) => (await import("./biff.js")).readBiff(...args),
       probeContent: async (...args) => (await import("./biff.js")).probeBiff(...args),
       "description": "MS Excel™ (*.xls)",

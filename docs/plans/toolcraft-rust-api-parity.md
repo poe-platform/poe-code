@@ -4112,7 +4112,8 @@ stream and transport lifecycle integration, HTTP/OAuth and full platform/resourc
 standalone packaging qualification remain open.
 
 MCP tool enumeration is independently verified on remote main at b5dc169902.
-Release 37088180709 is building.
+Release 37088180709 completed successfully with release-stable skipped; this
+verifies the build, not publication or a full fresh matrix.
 
 ### MCP approvals and error-mapping checkpoint
 
@@ -4140,3 +4141,30 @@ slower). Each call recognizes/renders a pending approval and maps a synthetic HT
 429 error with redaction/report metadata. No performance/default-swap gate passed.
 Public MCP handler/server/stream integration, HTTP/OAuth and full platform,
 resource and standalone packaging qualification remain open.
+
+MCP approvals/error policies are independently verified on remote main at
+03362ba040. Release 37088582464 built successfully; fresh unit checks exposed a
+configuration-companion API mismatch, and Bash jobs exposed a cancellation test
+fixture using a Proxy receiver for a private-field getter. Publication is not
+claimed. The output checkpoint's Toolcraft package workflow 37087484577 passed
+standalone bundles on Node 18.18, 20, 22 and 24 and is publishing.
+
+### Configuration runtime async compatibility repair
+
+The fresh unit failure was reproduced by the unchanged bidirectional namespace
+type check: the reference resolveRuntime returns a Promise and accepts an injected
+filesystem, while the native companion still returned synchronously. Three new
+in-memory behavior checks also failed on the companion and passed on the reference.
+Runtime resolution now preserves async return/rejection, uses injected stat and
+realpath methods in reference order, maps only ENOENT/ENOTDIR to missing-path
+diagnostics, and retains symlink containment and arbitrary filesystem failures.
+A fourth comparison exposed process-cwd resolution of relative roots; paths now
+resolve from the portable filesystem root. Host fallback uses Node async I/O.
+
+The maintained configuration-companion unit route passes 85 native Node checks,
+Rust tests, 193 reference/parity cases in nine files and bidirectional public API
+type checks. Scoped ESLint passes. No dependency declarations or default
+implementation changed. The filesystem type references the already-declared
+reference package's contract; standalone declaration qualification remains open.
+This is an existing host-adapter compatibility repair, not a new Rust performance
+claim or qualification of browser-native execution.

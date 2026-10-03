@@ -51,8 +51,8 @@ export default defineConfig({
   ],
   test: {
     globals: true,
-    include: ["compile/schema-compiler.test.ts", "configured-services.test.ts", "state/state.test.ts", "poe-code-config.test.ts", "runtime.test.ts", "memory.test.ts", "merge-callbacks.test.ts", "provider-config.test.ts"
-    ].map((name) => path(new URL(name, root))),
+    include: [path(new URL("tests/runtime-parity.test.ts",import.meta.url)), ...["compile/schema-compiler.test.ts", "configured-services.test.ts", "state/state.test.ts", "poe-code-config.test.ts", "runtime.test.ts", "memory.test.ts", "merge-callbacks.test.ts", "provider-config.test.ts"
+    ].map((name) => path(new URL(name, root)))],
     environment: "node",
     fileParallelism: false,
     maxWorkers: 1,

@@ -244,7 +244,7 @@ const runtimeResolvers: Record<RuntimeConfig["type"], RuntimeResolver> = {
     }
 
     const filesystem = fs ?? defaultRuntimeFileSystem;
-    const { dockerfilePath, buildContext } = resolveRuntimeBuildPaths(cwd, dockerRuntime);
+    const { dockerfilePath, buildContext } = resolveRuntimeBuildPaths(path.posix.resolve("/", cwd), dockerRuntime, path.posix);
     if (!await runtimePathExists(filesystem, dockerfilePath)) {
       throw new Error(`Docker runtime requires image or a Dockerfile at ${dockerfilePath}.`);
     }
@@ -302,14 +302,15 @@ const syncRuntimeResolvers: Record<RuntimeConfig["type"], SyncRuntimeResolver> =
 
 function resolveRuntimeBuildPaths(
   cwd: string,
-  runtime: DockerRuntime
+  runtime: DockerRuntime,
+  paths = path
 ): { dockerfilePath: string; buildContext: string } {
   return {
-    dockerfilePath: path.resolve(
+    dockerfilePath: paths.resolve(
       cwd,
-      getOptionalRuntimeString(runtime, "dockerfile") ?? path.join(".poe-code", "Dockerfile")
+      getOptionalRuntimeString(runtime, "dockerfile") ?? paths.join(".poe-code", "Dockerfile")
     ),
-    buildContext: path.resolve(cwd, getOptionalRuntimeString(runtime, "build_context") ?? ".")
+    buildContext: paths.resolve(cwd, getOptionalRuntimeString(runtime, "build_context") ?? ".")
   };
 }
 

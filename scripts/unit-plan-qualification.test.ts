@@ -11,3 +11,8 @@ it.each(["@poe-code/memory","@poe-code/agent-hook-config","@poe-code/pipeline","
  const plan=createWorkspaceTestPlan(fileURLToPath(new URL("../",import.meta.url)),{workspaces:[owner]});
  expect(plan.buildStages.some(stage=>stage.name===owner)).toBe(true);
 });
+it("builds the image distribution for isolated image unit checks",()=>{
+ const plan=createWorkspaceTestPlan(fileURLToPath(new URL("../",import.meta.url)),{workspaces:["@poe-code/image-ast"]});
+ const builds=new Set(plan.buildStages.map(stage=>stage.name));
+ expect(builds.has("@poe-code/image-ast")).toBe(true);
+});

@@ -272,7 +272,7 @@
     },
     "@poe-code/image-ast#test:unit": {
       "dependsOn": [
-        "^build"
+        "build"
       ],
       "outputs": []
     },

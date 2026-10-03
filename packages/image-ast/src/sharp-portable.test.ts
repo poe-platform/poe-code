@@ -30,6 +30,7 @@ it.each(["image-ast", "sips", "imagemagick", "yq", "jq", "exiftool"])("imports %
       "@poe-code/pdf-ast": new URL("../../pdf-ast/src/index.ts", import.meta.url).pathname,
       "@poe-code/safe-fs": new URL("../../safe-fs/src/", import.meta.url).pathname,
       "safe-bash-byte-engine": new URL("../../safe-bash-byte-engine/src/", import.meta.url).pathname,
+      "safe-bash-calendar-engine": new URL("../../safe-bash-calendar-engine/src/", import.meta.url).pathname,
       "safe-bash-io-engine": new URL("../../safe-bash-io-engine/src/", import.meta.url).pathname,
       "safe-bash-query-engine": new URL("../../safe-bash-query-engine/src/", import.meta.url).pathname,
       "safe-bash-regex-engine": new URL("../../safe-bash-regex-engine/src/", import.meta.url).pathname,

@@ -53,7 +53,7 @@ export async function tryImageFile(input: ImageResourceInput, output: string, op
   try {
     signal.throwIfAborted();
     let initial:FileStat|undefined;
-    let source:ImageByteSource|undefined,decoder:ReturnType<typeof storedImageDecoder>;
+    let source:ImageByteSource|undefined,decoder:Awaited<ReturnType<typeof storedImageDecoder>>;
     if(handle && inputFile!==undefined){
     initial = {...await handle.stat(io)};
     signal.throwIfAborted();
@@ -74,7 +74,7 @@ export async function tryImageFile(input: ImageResourceInput, output: string, op
       }
     };
     const raw=options.raw;
-    decoder=raw?(source,storage,signal)=>decodeRawResource(source,storage,{...options,raw},signal):storedImageDecoder(await source.read(0,Math.min(54,initial.size),io));
+    decoder=raw?(source,storage,signal)=>decodeRawResource(source,storage,{...options,raw},signal):await storedImageDecoder(source,signal);
     if (!decoder) {failed=false; return undefined;}
     }
     const directory=dirname(output), parent={...await fs.stat(directory,io)};

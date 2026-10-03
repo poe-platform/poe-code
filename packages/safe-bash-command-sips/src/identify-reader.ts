@@ -3,7 +3,7 @@ import {compareIdentity,compareFileVersion,FsError,type FileSystem} from "@poe-c
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {resolvePath} from "safe-bash-contracts/path";
 import {drainCooperativeSteps} from "safe-bash-contracts/yield";
-import {readImageMetadata,decodeImage,computeImageStatsSteps,readImageMetadataFromSource,decodeImageToStorage,computeStoredImageStats,UnsupportedStoredResource,isPdfBytes,isSvgBytes,isHeifBytes,type ImageMetadata,type ImageStats,type SharpInputOptions,type ImageByteSource} from "@poe-code/image-ast/portable";
+import {readImageMetadata,decodeImage,computeImageStatsSteps,readImageMetadataFromSource,decodeImageToStorage,computeStoredImageStats,UnsupportedStoredResource,isPdfBytes,isSvgBytes,type ImageMetadata,type ImageStats,type SharpInputOptions,type ImageByteSource} from "@poe-code/image-ast/portable";
 
 export interface IdentifyFileInput {
  readonly filesystem:FileSystem;
@@ -23,23 +23,6 @@ const missing=(error:unknown):boolean=>error instanceof FsError&&["ENOENT","ENOT
 export async function inspectIdentifyBytes(bytes:Uint8Array,options:SharpInputOptions|undefined,verbose:boolean,signal?:AbortSignal,properties=false):Promise<IdentifyInspection>{
  try {const metadata=readImageMetadata(bytes,options);return {metadata,size:bytes.length,...(properties?{properties:readProperties(bytes,metadata.format)}:{}),...(verbose?{stats:await drainCooperativeSteps(computeImageStatsSteps(decodeImage(bytes,options)),signal)}:{})};}
  catch(error){signal?.throwIfAborted();return {error};}
-}
-
-// Admission alone needs only one recognized brand; the legacy codec determines
-// the exact format after the explicitly buffered compatibility read.
-async function isRetainedHeif(source:ImageByteSource,prefix:Uint8Array,signal:AbortSignal):Promise<boolean>{
- if(isHeifBytes(prefix))return true;
- if(prefix.length<16||prefix[4]!==102||prefix[5]!==116||prefix[6]!==121||prefix[7]!==112)return false;
- let end=new DataView(prefix.buffer,prefix.byteOffset,prefix.byteLength).getUint32(0,false);
- if(end===0||end>source.size)end=Math.min(source.size,64);
- if(end<16)return false;
- const candidate=new Uint8Array(20);candidate.set(prefix.subarray(0,16));new DataView(candidate.buffer).setUint32(0,20,false);
- for(let position=16;position+4<=end;){
-  signal.throwIfAborted();const length=Math.min(16384,Math.floor((end-position)/4)*4),brands=await source.read(position,length,{signal});
-  for(let offset=0;offset<brands.length;offset+=4){candidate.set(brands.subarray(offset,offset+4),16);if(isHeifBytes(candidate))return true;}
-  position+=length;
- }
- return false;
 }
 
 /** One retained source identity covers metadata and optional statistics. */
@@ -67,7 +50,7 @@ export function createIdentifyReader(input:IdentifyFileInput,signal:AbortSignal,
    storage=new PagedStorage({fs,cwd:input.cwd,env:{},signal});
    try{
     const prefix=await source.read(0,Math.min(1029,source.size),{signal});
-    if(isPdfBytes(prefix)||isSvgBytes(prefix)||await isRetainedHeif(source,prefix,signal)){
+    if(isPdfBytes(prefix)||isSvgBytes(prefix)){
      // These convenience codecs are still migrated by their format owners.
      const bytes=new Uint8Array(source.size);for(let offset=0;offset<bytes.length;offset+=16384)bytes.set(await source.read(offset,Math.min(16384,bytes.length-offset),{signal}),offset);
      result=await inspectIdentifyBytes(bytes,options,verbose,signal,properties);

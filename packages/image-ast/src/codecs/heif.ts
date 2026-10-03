@@ -4,19 +4,8 @@ import { buildExifApp1Segment, parseExifBuffer } from "./exif.js";
 import { decodeJpegImage, isJpegBytes } from "./jpeg.js";
 import { decodePngImage, isPngBytes } from "./png.js";
 
-const HEIC_BRANDS = new Set([
-  "heic",
-  "heix",
-  "hevc",
-  "hevx",
-  "heim",
-  "heis",
-  "hevm",
-  "hevs"
-]);
-
-const AVIF_BRANDS = new Set(["avif", "avis", "avio"]);
-const HEIF_GENERIC_BRANDS = new Set(["mif1", "msf1", "heif"]);
+import {detectHeifFormat} from "./heif-format.js";
+export {detectHeifFormat} from "./heif-format.js";
 
 const POE_PIXEL_MAGIC = new Uint8Array([
   0x50, 0x4f, 0x45, 0x48, 0x45, 0x49, 0x46, 0x31 // "POEHEIF1"
@@ -35,40 +24,6 @@ function writeAscii(target: Uint8Array, offset: number, str: string): void {
   for (let i = 0; i < str.length; i++) {
     target[offset + i] = str.charCodeAt(i) & 0xff;
   }
-}
-
-export function detectHeifFormat(bytes: Uint8Array): "heic" | "heif" | "avif" | undefined {
-  if (bytes.length < 16) return undefined;
-  if (readAscii(bytes, 4, 4) !== "ftyp") return undefined;
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  let boxSize = view.getUint32(0, false);
-  if (boxSize === 0 || boxSize > bytes.length) boxSize = Math.min(bytes.length, 64);
-  if (boxSize < 16) return undefined;
-
-  const majorBrand = readAscii(bytes, 8, 4);
-  if (AVIF_BRANDS.has(majorBrand)) return "avif";
-  if (HEIC_BRANDS.has(majorBrand)) return "heic";
-  if (majorBrand === "heif") return "heif";
-
-  const compatBrands: string[] = [];
-  for (let off = 16; off + 4 <= boxSize; off += 4) {
-    compatBrands.push(readAscii(bytes, off, 4));
-  }
-
-  if (HEIF_GENERIC_BRANDS.has(majorBrand)) {
-    // Distinguish mif1 + avif vs mif1 + heic vs plain heif (mif1)
-    if (compatBrands.some(b => AVIF_BRANDS.has(b)) && !compatBrands.some(b => HEIC_BRANDS.has(b))) {
-      return "avif";
-    }
-    if (compatBrands.includes("heif")) return "heif";
-    if (compatBrands.some(b => HEIC_BRANDS.has(b))) return "heic";
-    return "heif";
-  }
-
-  if (compatBrands.some(b => AVIF_BRANDS.has(b))) return "avif";
-  if (compatBrands.some(b => HEIC_BRANDS.has(b))) return "heic";
-  if (compatBrands.some(b => HEIF_GENERIC_BRANDS.has(b))) return "heif";
-  return undefined;
 }
 
 export function isHeifBytes(bytes: Uint8Array): boolean {

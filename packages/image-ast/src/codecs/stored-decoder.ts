@@ -1,4 +1,5 @@
-import {isHeifBytes} from "./heif.js";
+import {detectHeifFormatFromSource} from "./heif-format.js";
+import type {ImageByteSource} from "./png-storage.js";
 import {decodeHeifToStorage} from "./heif-storage.js";
 import {isWebpBytes} from "./webp.js";
 import {decodeWebpToStorage} from "./webp-input-storage.js";
@@ -13,6 +14,8 @@ import {decodeNetpbmToStorage} from "./netpbm-storage.js";
 import {decodeBmpToStorage} from "./bmp-storage.js";
 import {decodeTiffToStorage} from "./tiff-input-storage.js";
 /** Shared format admission for primary files and secondary resources. */
-export function storedImageDecoder(prefix:Uint8Array):typeof decodePngToStorage|undefined {
- return isHeifBytes(prefix)?decodeHeifToStorage:isWebpBytes(prefix)?decodeWebpToStorage:isJpegBytes(prefix)?decodeJpegToStorage:isPngBytes(prefix)?decodePngToStorage:isNetpbmBytes(prefix)?decodeNetpbmToStorage:isBmpBytes(prefix)?decodeBmpToStorage:isTiffBytes(prefix)?decodeTiffToStorage:isGifBytes(prefix)?decodeGifToStorage:undefined;
+export async function storedImageDecoder(source:ImageByteSource,signal:AbortSignal):Promise<typeof decodePngToStorage|undefined> {
+ signal.throwIfAborted();const length=Math.min(54,source.size),prefix=await source.read(0,length,{signal});signal.throwIfAborted();
+ if(!(prefix instanceof Uint8Array)||prefix.length!==length)throw new Error("Truncated image source");
+ return await detectHeifFormatFromSource(source,signal)?decodeHeifToStorage:isWebpBytes(prefix)?decodeWebpToStorage:isJpegBytes(prefix)?decodeJpegToStorage:isPngBytes(prefix)?decodePngToStorage:isNetpbmBytes(prefix)?decodeNetpbmToStorage:isBmpBytes(prefix)?decodeBmpToStorage:isTiffBytes(prefix)?decodeTiffToStorage:isGifBytes(prefix)?decodeGifToStorage:undefined;
 }

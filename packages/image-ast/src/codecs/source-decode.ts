@@ -12,8 +12,6 @@ export async function decodeImageToStorage(source:ImageByteSource,storage:ImageB
  if(options?.create)return createStoredResource(storage,{...options,create:options.create},signal);
  if(!Number.isSafeInteger(source.size)||source.size<0)throw new RangeError("Invalid image source size");
  if(options?.raw)return decodeRawResource(source,storage,{...options,raw:options.raw},signal);
- const length=Math.min(54,source.size),prefix=await source.read(0,length,{signal});signal.throwIfAborted();
- if(!(prefix instanceof Uint8Array)||prefix.length!==length)throw new Error("Truncated image source");
- const decoder=storedImageDecoder(prefix);if(!decoder)throw new UnsupportedStoredResource();
+ const decoder=await storedImageDecoder(source,signal);if(!decoder)throw new UnsupportedStoredResource();
  return decoder(source,storage,signal,options);
 }

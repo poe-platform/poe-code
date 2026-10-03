@@ -18,7 +18,7 @@ const actions=[
  ["-r","90","--resampleWidth","8","-f","horizontal","-p","11","13"],
  ["-s","formatOptions","best"],["-s","dpiWidth","144"],["-d","description"]
 ];
-for(const format of ["png","jpeg","webp","tiff","gif","bmp","ppm","pgm","pbm"] as const)
+for(const format of ["png","jpeg","webp","tiff","gif","bmp","ppm","pgm","pbm","heic","heif","avif"] as const)
 for(const args of actions)it(`retains ${format} mutation ${args.join(" ")} in caller storage`,async()=>{
  const pixels=Uint8Array.from({length:15*11*4},(_,index)=>(index*31+Math.floor(index/7))%256);
  const bytes=await sharp(pixels,{raw:{width:15,height:11,channels:4}}).toFormat(format).toBuffer(),fs=new MemoryFileSystem();await fs.writeFile("/in",bytes);

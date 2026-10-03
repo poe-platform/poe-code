@@ -43,7 +43,8 @@ state, preserving density and orientation.
 `decodeHeifToStorage`, `encodeHeifFromStorage`, and `readHeifMetadataFromSource`
 use 4 KiB pages and the shared zlib codec for the existing HEIC/HEIF/AVIF
 container contract. File inputs, composite sources, metadata and outputs use the
-caller's injected safe-fs. Encoding makes a sizing pass over caller-backed pixels
+caller's injected safe-fs. Format admission scans compatible brands in bounded
+ranges, including brands beyond the initial header. Encoding makes a sizing pass over caller-backed pixels
 before emitting the container, so neither compressed output nor box tables need
 whole-file buffering. The synchronous byte APIs remain available for in-memory
 callers; this does not add native HEVC or AV1 decoding.

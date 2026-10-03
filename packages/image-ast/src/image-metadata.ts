@@ -35,7 +35,7 @@ export async function tryInspectImageMetadata<T>(input:ImageResourceInput,option
    if(generated)initial=await resources.readImage(undefined,options,signal);
    else if(options.raw)initial=await decodeRawResource(source!,storage,{...options,raw:options.raw},signal);
    else {
-    const decoder=storedImageDecoder(await source!.read(0,Math.min(54,source!.size),{signal}));
+    const decoder=await storedImageDecoder(source!,signal);
     if(!decoder)throw new UnsupportedStoredResource();
     initial=await decoder(source!,storage,signal,options);
    }

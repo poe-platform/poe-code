@@ -4,7 +4,7 @@ import {MemoryFileSystem} from "@poe-code/safe-fs/core";
 import {createCommandArguments,type CommandContext} from "safe-bash-contracts/command";
 import {createIdentifyCommand,runIdentifyCli,runSipsCli} from "./index.js";
 
-for(const format of ["png","jpeg","webp","tiff","gif","bmp","ppm","pgm","pbm"] as const)
+for(const format of ["png","jpeg","webp","tiff","gif","bmp","ppm","pgm","pbm","heic","heif","avif"] as const)
 for(const args of [[],["-format","%f %wx%h %[size] %[channels]"],["-verbose"]])
 it(`identifies retained ${format} ${args.join(" ")} without whole-file reads`,async()=>{
  const bytes=await sharp({create:{width:17,height:13,channels:4,background:"green"}}).toFormat(format).toBuffer(),fs=new MemoryFileSystem();await fs.writeFile("/in",bytes);
@@ -60,8 +60,9 @@ it("closes an admitted source without reading when the caller rejects its size",
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {fileURLToPath} from "node:url";
-it("runs image queries with external source and backing in Workerd above the cache window",async()=>{
- const bytes=await sharp({create:{width:1024,height:513,channels:3,background:"blue"}}).bmp().toBuffer();
+it.each(["bmp","heif"] as const)("runs %s queries with external source and backing in Workerd above the cache window",async format=>{
+ let bytes=await sharp({create:{width:1024,height:513,channels:3,background:"blue"}}).toFormat(format).toBuffer();
+ if(format==="heif"){const oldSize=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength).getUint32(0),size=1024*1024+20,expanded=new Uint8Array(size+bytes.length-oldSize);expanded.set(bytes.subarray(oldSize),size);new DataView(expanded.buffer).setUint32(0,size);expanded.set(new TextEncoder().encode("ftypzzzz"),4);expanded.set(new TextEncoder().encode("heif"),size-4);bytes=expanded;}
  const cases=[{command:"identify",args:["-format","%wx%h %[size]","/in"],scratch:0},{command:"identify",args:["-verbose","/in"],scratch:1},{command:"sips",args:["-g","allxml","/in"],scratch:0}];
  const expected=await Promise.all(cases.map(({command,args})=>(command==="sips"?runSipsCli:runIdentifyCli)(args,new Map([["/in",bytes]]))));
  const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../../../",import.meta.url)),sourcefile:"identify-worker.ts",contents:`

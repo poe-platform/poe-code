@@ -1,7 +1,7 @@
 import { createByteCodec, defaultRuntime, ByteCodecError } from "@poe-code/compression";
 import type { ImageMetadata, OutputEncodeOptions, SharpInputOptions } from "../ast.js";
 import { checkLimitInputPixels } from "../limits.js";
-import { createHeifContainer, detectHeifFormat } from "./heif.js";
+import { createHeifContainer } from "./heif.js";
 import { SourceBytes } from "./storage-source.js";
 import { exifMetadataSteps } from "./exif-metadata.js";
 import { decodeJpegToStorage } from "./jpeg-input-storage.js";
@@ -11,6 +11,8 @@ import {
   type ImageByteStorage,
   type StoredRgbaImage
 } from "./png-storage.js";
+
+import {detectHeifFormatFromSource} from "./heif-format.js";
 
 const windowSize = 4096;
 interface Box {
@@ -123,7 +125,7 @@ export async function readHeifMetadataFromSource(
   signal: AbortSignal
 ): Promise<ImageMetadata> {
   const reader = new HeifSource(source, signal),
-    format = detectHeifFormat(await reader.range(0, Math.min(source.size, 64)));
+    format = await detectHeifFormatFromSource(source,signal);
   if (!format) throw new Error("Invalid HEIF/HEIC/AVIF header");
   let primary: number | undefined,
     compression: "hevc" | "av1" = format === "avif" ? "av1" : "hevc";

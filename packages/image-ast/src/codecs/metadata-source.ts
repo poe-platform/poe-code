@@ -1,4 +1,4 @@
-import {isHeifBytes} from "./heif.js";
+import {detectHeifFormatFromSource} from "./heif-format.js";
 import {readHeifMetadataFromSource} from "./heif-storage.js";
 import {isGifBytes} from "./gif-metadata.js";
 import {readGifMetadataFromSource} from "./gif-metadata-storage.js";
@@ -27,7 +27,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  const length=Math.min(54,source.size),borrowed=await source.read(0,length,{signal});signal.throwIfAborted();
  if(!(borrowed instanceof Uint8Array)||borrowed.length!==length)throw new Error("Truncated image metadata source");
  const prefix=new Uint8Array(borrowed);let metadata:RetainedImageMetadata;
- if(isHeifBytes(prefix))metadata=await readHeifMetadataFromSource(source,signal);
+ if(await detectHeifFormatFromSource(source,signal))metadata=await readHeifMetadataFromSource(source,signal);
  else if(isPngBytes(prefix))metadata=await readPngMetadataFromSource(source,signal);
  else if(isJpegBytes(prefix))metadata=await readJpegMetadataFromSource(source,signal);
  else if(isWebpBytes(prefix))metadata=await readWebpMetadataFromSource(source,signal);

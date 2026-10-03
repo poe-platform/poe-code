@@ -2,7 +2,7 @@
 
 Search virtual files and pipelines with basic, extended, or fixed patterns,
 recursive include/exclude selection, context lines, and explicit resource limits.
-The existing `egrep` and `fgrep` commands select extended and fixed matching.
+`egrep` and `fgrep` select extended and fixed matching; `rgrep` enables recursive search (`grep -r`).
 
 ```ts
 import { Shell, agentCommands, createMemoryFileSystem } from "@poe-platform/safe-bash";

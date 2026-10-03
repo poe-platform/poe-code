@@ -28,11 +28,11 @@ test("root family exports preserve four inspection definitions in the 115-comman
   const aggregate: AgentCommandsOptions = { streamInspection: options };
   assert.deepEqual(createStreamInspectionCommands(options).map(command => command.name), names);
   const definitions = createAgentCommands(aggregate).map(command => command.name);
-  assert.equal(definitions.length, 189);
-  assert.equal(new Set(definitions).size, 189);
+  assert.equal(definitions.length, 190);
+  assert.equal(new Set(definitions).size, 190);
   for (const name of ["lzma", "unlzma", "lzcat"]) assert.ok(definitions.includes(name));
   assert.deepEqual(definitions.slice(81, 85), names);
-  assert.deepEqual(definitions.slice(85), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq", "xan", "bc", "sponge", "openssl", "ssh", "ssh-keygen", "gpg", "fd", "less", "more", "id", "whoami", "uname", "hostname", "nproc", "yes", "envsubst", "cal", "ncal", "pathchk", "getconf", "locale", "df", "sqlite3", "yq", "htmlq", "diff3", "exiftool", "unrtf", "mmdc", "op", "ffmpeg", "ffprobe", "soffice", "libreoffice", "pandoc", "ssconvert", "pdfinfo", "pdfunite", "pdfseparate", "pdffonts", "pdfdetach", "pdftotext", "pdftohtml", "pdfimages", "pdftoppm", "pdftocairo", "pdftk", "qpdf", "sips", "magick", "convert", "mogrify", "composite", "montage", "identify", "compare", "wkhtmltopdf", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin", "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "in2csv", "sql2csv"]);
+  assert.deepEqual(definitions.slice(85), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "rgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq", "xan", "bc", "sponge", "openssl", "ssh", "ssh-keygen", "gpg", "fd", "less", "more", "id", "whoami", "uname", "hostname", "nproc", "yes", "envsubst", "cal", "ncal", "pathchk", "getconf", "locale", "df", "sqlite3", "yq", "htmlq", "diff3", "exiftool", "unrtf", "mmdc", "op", "ffmpeg", "ffprobe", "soffice", "libreoffice", "pandoc", "ssconvert", "pdfinfo", "pdfunite", "pdfseparate", "pdffonts", "pdfdetach", "pdftotext", "pdftohtml", "pdfimages", "pdftoppm", "pdftocairo", "pdftk", "qpdf", "sips", "magick", "convert", "mogrify", "composite", "montage", "identify", "compare", "wkhtmltopdf", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin", "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "in2csv", "sql2csv"]);
   const target = host();
   await agentCommands(aggregate).setup(target);
   assert.deepEqual(target.commands.list().map(command => command.name), definitions);
@@ -77,14 +77,14 @@ test("standalone and aggregate share one explicit replacement boundary", async (
   assert.throws(() => agentCommands().setup(target), /already registered: tac/u);
   assert.deepEqual(target.commands.list(), original);
   await agentCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 190);
+  assert.equal(target.commands.list().length, 191);
   assert.equal(target.commands.get("custom"), original.find(command => command.name === "custom"));
   for (const name of names) assert.notEqual(target.commands.get(name), original.find(command => command.name === name));
   const aggregate = target.commands.list();
   assert.throws(() => streamInspectionCommands().setup(target), /already registered: tac/u);
   assert.deepEqual(target.commands.list(), aggregate);
   await streamInspectionCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 190);
+  assert.equal(target.commands.list().length, 191);
   assert.equal(target.commands.get("printf"), aggregate.find(command => command.name === "printf"));
 });
 

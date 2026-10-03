@@ -1,7 +1,7 @@
 import type { CommandDefinition } from "safe-bash-contracts";
 import { builtInDirectContextExecutors } from "safe-bash-contracts/runtime-control";
 
-export function alias(name: "egrep" | "fgrep", grep: CommandDefinition): CommandDefinition {
+export function alias(name: "egrep" | "fgrep" | "rgrep", grep: CommandDefinition): CommandDefinition {
   const def: CommandDefinition = {
     name,
     execute: context => {
@@ -11,7 +11,7 @@ export function alias(name: "egrep" | "fgrep", grep: CommandDefinition): Command
       return grep.execute({
         ...context,
         command: name,
-        args: [name === "egrep" ? "-E" : "-F", ...context.args],
+        args: [{ egrep: "-E", fgrep: "-F", rgrep: "-r" }[name], ...context.args],
         stdin: context.stdin,
         stdout: context.stdout,
         stderr: context.stderr,
@@ -31,5 +31,5 @@ export function alias(name: "egrep" | "fgrep", grep: CommandDefinition): Command
 
 
 export function createGrepAliases(grep: CommandDefinition): readonly CommandDefinition[] {
-  return [alias("egrep", grep), alias("fgrep", grep)];
+  return [alias("egrep", grep), alias("fgrep", grep), alias("rgrep", grep)];
 }

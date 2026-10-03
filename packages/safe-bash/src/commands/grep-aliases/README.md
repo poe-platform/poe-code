@@ -1,16 +1,16 @@
 # Bounded grep aliases
 
-This source module adds **two spellings, not new matching capabilities**:
+This source module adds three alternative spellings:
 `egrep` directly calls the existing bounded grep handler with `-E` prepended;
-`fgrep` does the same with `-F`. Neither dispatches a command named `grep`,
+`fgrep` does the same with `-F`, and `rgrep` with `-r`. None dispatches a command named `grep`,
 parses a shell command string, spawns a native process, nor adds a dependency.
 All product file and pattern-file access uses the supplied VFS.
 
 ## Module API
 
-- `createGrepAliasCommands(options?: GrepAliasOptions)` returns both definitions.
+- `createGrepAliasCommands(options?: GrepAliasOptions)` returns all three definitions.
 - `grepAliasCommands(options?: GrepAliasOptions)` returns a plugin registering
-  both names with collision preflight before either registration.
+  all three names with collision preflight before registration.
 - `egrepCommand(options?: GrepAliasOptions)` and
   `fgrepCommand(options?: GrepAliasOptions)` return standalone definitions.
 - `GrepAliasOptions` has optional `regex: RegexExecutionOptions` and
@@ -19,7 +19,7 @@ All product file and pattern-file access uses the supplied VFS.
   existing executor policy.
 
 One family call creates one underlying grep definition and one executor shared
-by both aliases. Its worker count, queued request count/bytes, active-request and
+by all three aliases. Its worker count, queued request count/bytes, active-request and
 startup timeouts, idle timeout and worker memory/stack settings retain the
 existing `RegexExecutionOptions` semantics. Separate family/standalone factory
 calls create separate executors; they do not create a shared global shell budget.

@@ -2083,6 +2083,15 @@
           "dependencies": {},
           "devDependencies": {},
           "portable": true
+        },
+        "safe-bash-command-rgrep": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-command-grep": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -3370,6 +3379,12 @@
       "workerd": "./dist/audio-ast.js",
       "browser": "./dist/audio-ast.js",
       "import": "./dist/audio-ast.js"
+    },
+    "./commands/rgrep": {
+      "types": "./dist/commands/rgrep/index.d.ts",
+      "workerd": "./dist/commands/rgrep/index.js",
+      "browser": "./dist/commands/rgrep/index.js",
+      "import": "./dist/commands/rgrep/index.js"
     }
   },
   "sideEffects": [
@@ -3632,7 +3647,8 @@
     "safe-bash-command-sox": "*",
     "safe-bash-command-soxi": "*",
     "safe-bash-command-audio": "*",
-    "@poe-code/audio-ast": "*"
+    "@poe-code/audio-ast": "*",
+    "safe-bash-command-rgrep": "*"
   },
   "main": "./dist/index.js",
   "imports": {

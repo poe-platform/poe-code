@@ -713,7 +713,8 @@
     "safe-bash-command-ffprobe": "*",
     "safe-bash-command-sox": "*",
     "safe-bash-command-soxi": "*",
-    "safe-bash-command-audio": "*"
+    "safe-bash-command-audio": "*",
+    "safe-bash-command-rgrep": "*"
   },
   "version": "0.0.0-dev",
   "repository": {

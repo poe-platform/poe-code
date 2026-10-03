@@ -8,7 +8,7 @@ import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";
 import { run } from "./helpers.js";
 
-test("standalone plugin pipes both aliases without registered grep", async () => {
+test("standalone plugin pipes grep aliases without registered grep", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(grepAliasCommands());
   try {
     const result = await shell.exec("egrep 'cat|dog' | fgrep 'cat'", { stdin: "cat\ndog\nno\n" });
@@ -16,7 +16,25 @@ test("standalone plugin pipes both aliases without registered grep", async () =>
     assert.equal(result.stdout, "cat\n");
     assert.equal(result.stderr, "");
     assert.equal(shell.commands.has("grep"), false);
-    assert.deepEqual(shell.commands.list().map(command => command.name), ["egrep", "fgrep"]);
+    assert.deepEqual(shell.commands.list().map(command => command.name), ["egrep", "fgrep", "rgrep"]);
+  } finally { await shell.dispose(); }
+});
+
+test("rgrep searches cwd by default and preserves explicit stdin through shell pipelines", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/src/nested", { recursive: true });
+  await fs.writeFile("/src/nested/a.ts", Buffer.from("Needle\nneedle\n"));
+  const shell = new Shell({ fs, cwd: "/src" }).use(grepAliasCommands());
+  try {
+    const recursive = await shell.exec("rgrep -n -i --include='*.ts' needle", { stdin: "unrelated\n" });
+    assert.equal(recursive.exitCode, 0, recursive.stderr);
+    assert.equal(recursive.stdout, "./nested/a.ts:1:Needle\n./nested/a.ts:2:needle\n");
+    const pipeline = await shell.exec("fgrep needle | rgrep -n needle -", { stdin: "needle\nother\n" });
+    assert.equal(pipeline.exitCode, 0, pipeline.stderr);
+    assert.equal(pipeline.stdout, "1:needle\n");
+    const empty = await shell.exec("rgrep needle -", { stdin: "" });
+    assert.equal(empty.exitCode, 1, empty.stderr);
+    assert.equal(empty.stdout, "");
   } finally { await shell.dispose(); }
 });
 
@@ -98,15 +116,15 @@ function host(commands: CommandRegistry): PluginHost {
   return { commands, use() { assert.fail("unexpected middleware"); }, registerFileSystem() { assert.fail("unexpected filesystem"); } };
 }
 
-test("plugin preflights both collisions without partial registration", async () => {
-  for (const name of ["egrep", "fgrep"]) {
+test("plugin preflights all alias collisions without partial registration", async () => {
+  for (const name of ["egrep", "fgrep", "rgrep"]) {
     const prior: CommandDefinition = { name, execute: () => ({ exitCode: 42 }) };
     const commands = new CommandRegistry([prior]);
     assert.throws(() => grepAliasCommands().setup(host(commands)), /Command already registered/);
     assert.deepEqual(commands.list().map(command => command.name), [name]);
     assert.equal(commands.get(name)!.execute, prior.execute);
     await grepAliasCommands({ replace: true }).setup(host(commands));
-    assert.equal(commands.list().length, 2);
+    assert.equal(commands.list().length, 3);
     assert.notEqual(commands.get(name)!.execute, prior.execute);
   }
 });

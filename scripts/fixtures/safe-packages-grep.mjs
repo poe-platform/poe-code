@@ -2,13 +2,15 @@ import assert from "node:assert/strict";
 import { Shell, agentCommands, createMemoryFileSystem, createGrepCommand as rootFactory } from "@poe-platform/safe-bash";
 import { createGrepCommand, createGrepCommands, grepCommands } from "@poe-platform/safe-bash/commands/grep";
 import { createGrepAliasCommands } from "@poe-platform/safe-bash/commands/grep-aliases";
+import { createRgrepCommand } from "@poe-platform/safe-bash/commands/rgrep";
 import { FsError, getCommandArguments, commandRuntimeIdentity } from "@poe-platform/safe-bash/contracts";
 import { FsError as directError } from "@poe-platform/safe-bash/contracts/errors";
 import { shellValueBytes } from "@poe-platform/safe-bash/contracts/value";
 assert.equal(FsError, directError);
 assert.equal(rootFactory, createGrepCommand);
 assert.deepEqual(createGrepCommands().map(command => command.name), ["grep"]);
-assert.deepEqual(createGrepAliasCommands().map(command => command.name), ["egrep", "fgrep"]);
+assert.deepEqual(createGrepAliasCommands().map(command => command.name), ["egrep", "fgrep", "rgrep"]);
+assert.equal(createRgrepCommand().name, "rgrep");
 const fs = createMemoryFileSystem();
 const encode = value => new TextEncoder().encode(value);
 await fs.writeFile("/data", encode("before\nalpha\nafter\nbeta\n"));
@@ -33,6 +35,9 @@ shell.use({ name: "grep-contract-witness", setup(host) {
   } });
 } });
 try {
+  const recursive = await shell.exec("rgrep -n alpha /data");
+  assert.equal(recursive.exitCode, 0, recursive.stderr);
+  assert.equal(recursive.stdout, "2:alpha\n");
   const result = await shell.exec("sh /script.sh");
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "after\n");

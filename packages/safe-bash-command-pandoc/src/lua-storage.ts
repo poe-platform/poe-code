@@ -1,8 +1,8 @@
 import {IntegerTable, type PagedStorage} from "safe-bash-io-engine/storage";
 
-export type LuaReference = {readonly kind: "string" | "table"; readonly id: number};
+export type LuaReference = {readonly kind: "string" | "table" | "function"; readonly id: number};
 export type StoredLuaValue = undefined | boolean | number | LuaReference;
-const tags = ["nil", "boolean", "number", "string", "table"] as const;
+const tags = ["nil", "boolean", "number", "string", "table", "function"] as const;
 
 function encode(value: StoredLuaValue): Uint8Array {
   const bytes = new Uint8Array(16), view = new DataView(bytes.buffer);
@@ -17,7 +17,7 @@ function decode(bytes: Uint8Array): StoredLuaValue {
   if (!tag) return undefined;
   if (tag === 1) return Boolean(value);
   if (tag === 2) return value;
-  return {kind: tag === 3 ? "string" : "table", id: value};
+  return {kind: tag === 3 ? "string" : tag === 4 ? "table" : "function", id: value};
 }
 function hash(bytes: Uint8Array, initial = 2166136261): number {
   let value = initial;
@@ -98,15 +98,54 @@ export class LuaStorage {
     }
   }
   async table(): Promise<LuaReference> {
-    const id = this.storage.allocate(16);
-    await this.put(id, 0, 0);
+    const id = this.storage.allocate(24);
+    await this.put(id, 0, 0, 0);
     return {kind: "table", id};
+  }
+  async metatable(table: LuaReference): Promise<LuaReference | undefined> {
+    if (table.kind !== "table") throw new TypeError("Expected Lua table");
+    const id = (await this.fields(table.id + 16, 1))[0]!;
+    return id ? {kind: "table", id} : undefined;
+  }
+  async setMetatable(table: LuaReference, value: LuaReference | undefined): Promise<void> {
+    if (table.kind !== "table" || value && value.kind !== "table") throw new TypeError("Expected Lua table");
+    await this.put(table.id + 16, value?.id ?? 0);
+  }
+  /** Cells have stable identity. Closing a scope detaches its registers from
+   * captured cells; closures keep the old cells and continue sharing mutations. */
+  async cell(value?: StoredLuaValue): Promise<number> {
+    return this.storage.append(encode(value));
+  }
+  async value(cell: number): Promise<StoredLuaValue> {
+    return decode(await this.storage.read(cell, 16));
+  }
+  async assign(cell: number, value: StoredLuaValue): Promise<void> {
+    await this.storage.write(cell, encode(value));
+  }
+  async closure(prototype: number, captures: Iterable<number> | AsyncIterable<number>): Promise<LuaReference> {
+    const upvalues = await this.table();
+    let count = 0;
+    for await (const cell of captures) {
+      await this.set(upvalues, count++, cell);
+    }
+    const id = this.storage.allocate(16);
+    await this.put(id, prototype, upvalues.id);
+    return {kind: "function", id};
+  }
+  async prototype(closure: LuaReference): Promise<number> {
+    if (closure.kind !== "function") throw new TypeError("Expected Lua function");
+    return (await this.fields(closure.id, 1))[0]!;
+  }
+  async capture(closure: LuaReference, index: number): Promise<number | undefined> {
+    if (closure.kind !== "function") throw new TypeError("Expected Lua function");
+    const id = (await this.fields(closure.id + 8, 1))[0]!;
+    return await this.get({kind: "table", id}, index) as number | undefined;
   }
   private async equal(a: StoredLuaValue, b: StoredLuaValue): Promise<boolean> {
     if (typeof a !== "object" || typeof b !== "object") return a === b;
     if (a.kind !== b.kind) return false;
     if (a.id === b.id) return true;
-    if (a.kind === "table") return false;
+    if (a.kind !== "string") return false;
     if (await this.byteLength(a) !== await this.byteLength(b)) return false;
     const right = this.bytes(b);
     let bytes: Uint8Array = new Uint8Array(0);

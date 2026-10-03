@@ -159,3 +159,36 @@ it("closes a failed source and preserves its primary error when cleanup also fai
     expect(closed).toHaveBeenCalledOnce();
   });
 });
+
+it("retains closure identity and shared mutable captures after their creating scope exits", async () => {
+  await usingHeap(async heap => {
+    const capture = await heap.cell(1), table = await heap.table();
+    const first = await heap.closure(123, [capture]);
+    const second = await heap.closure(123, [capture]);
+    await heap.set(table, first, second);
+    expect(await heap.get(table, first)).toEqual(second);
+    expect(await heap.get(table, second)).toBeUndefined();
+    expect(await heap.prototype(first)).toBe(123);
+    expect(await heap.capture(first, 0)).toBe(capture);
+    await heap.assign((await heap.capture(second, 0))!, 9);
+    expect(await heap.value((await heap.capture(first, 0))!)).toBe(9);
+    expect(await heap.capture(first, 1)).toBeUndefined();
+    await heap.assign(capture, first);
+    expect(await heap.value(capture)).toEqual(first);
+  });
+});
+
+it("retains metatable identity independently of table entries and iteration", async () => {
+  await usingHeap(async heap => {
+    const table = await heap.table(), metatable = await heap.table();
+    expect(await heap.metatable(table)).toBeUndefined();
+    await heap.setMetatable(table, metatable);
+    await heap.set(table, 1, 42);
+    expect(await heap.metatable(table)).toEqual(metatable);
+    expect(await heap.next(table)).toEqual({key: 1, value: 42});
+    expect(await heap.next(table, 1)).toBeUndefined();
+    await heap.setMetatable(table, undefined);
+    expect(await heap.metatable(table)).toBeUndefined();
+    expect(await heap.get(table, 1)).toBe(42);
+  });
+});

@@ -31,11 +31,14 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   separately: origin admission still materializes one URI. Runtime-owned state
   is not bounded by protocol streaming. Whole-value runtimes currently retain
   documents. The internal Lua storage layer retains binary strings, table
-  keys/values, collision indexes and iteration cursors in caller storage. A retained
+  keys/values, collision indexes, iteration cursors, metatables, closure identities
+  and shared captured-variable cells in caller storage. Linked activation records
+  retain registers, argument counts and return continuations; scope-close and
+  tail-call tests cover captured-cell identity after register reuse. A retained
   JSON value bridge now transfers strings and containers through fixed-size backed
   traversal frames, including cycle checks and empty-container identities. It is
-  not yet connected to the compiler/interpreter: bytecode, constants, closures,
-  call frames, standard libraries and Pandoc constructor translation still require
+  not yet connected to the compiler/interpreter: bytecode, constants, frame
+  execution, standard libraries and Pandoc constructor translation still require
   integration and runtime qualification. Measurements of unavoidable live runtime
   state are still required.
 - Exercise citeproc with bibliography and citation counts that grow independently

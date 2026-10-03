@@ -131,6 +131,7 @@ export class LuaJsonBridge {
         await output.begin("string"); await this.text(value, output); await output.end();
         return;
       }
+      if (value.kind === "function") fail("Invalid Lua replacement value");
       const nullMarker = await this.heap.get(value, marker);
       if (nullMarker !== undefined && nullMarker !== false) {
         await output.begin("literal"); await output.text("null"); await output.end();

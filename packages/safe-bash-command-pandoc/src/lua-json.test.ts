@@ -54,9 +54,11 @@ it("orders numeric Lua keys while allowing a shared noncyclic child", async () =
     expect(await json(output)).toBe("[[true,false],[true,false]]");
   });
 });
-it.each(["cycle", "sparse", "mixed", "boolean-key", "nonfinite", "invalid-utf8"])("rejects invalid Lua replacements: %s", async scenario => {
+it.each(["cycle", "sparse", "mixed", "boolean-key", "nonfinite", "invalid-utf8", "function-value", "function-key"])("rejects invalid Lua replacements: %s", async scenario => {
   await usingBridge(async (bridge, heap, _input, output) => {
     const value = await heap.table();
+    if (scenario === "function-value") await heap.set(value, 1, await heap.closure(1, []));
+    if (scenario === "function-key") await heap.set(value, await heap.closure(1, []), true);
     if (scenario === "cycle") await heap.set(value, 1, value);
     if (scenario === "sparse") await heap.set(value, 2, true);
     if (scenario === "mixed") {

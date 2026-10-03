@@ -111,6 +111,19 @@ it.each(["tables", "json-tables"])("runs composed Sips, Shuf and streamed Pandoc
           }, {filters: pandoc.createLuaFilterCapability({readStream: (path, signal) => vfs.readStream(path, {signal, chunkSize: 3})})});
           return Response.json({exitCode: 0, stdout: result.text, stderr: ""});
         }
+        if (scenario === "json-numbers") {
+          const attr = ["", [], []];
+          const document = {"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [{t: "Table", c: [
+            attr, [null, []], [[{t: "AlignDefault"}, {t: "ColWidth", c: 0.1}]], [attr, []], [], [attr, []]
+          ]}]};
+          const serialized = JSON.stringify(document);
+          const convert = numeric => pandoc.convert([{bytes: encoder.encode(serialized.replace('"c":0.1', '"c":' + numeric))}], {from: "json", to: "json"}, {});
+          const result = await convert("0.1" + "0".repeat(1500));
+          let rejected;
+          try {await convert("0." + "9".repeat(1500));}
+          catch (error) {rejected = {code: error.code, message: error.message};}
+          return Response.json({width: JSON.parse(result.text).blocks[0].c[2][0][1].c, rejected});
+        }
         if (scenario === "composed") {
           const outputs = [];
           const execute = async (command, args) => {
@@ -216,6 +229,9 @@ it.each(["tables", "json-tables"])("runs composed Sips, Shuf and streamed Pandoc
       const response = await runtime.dispatchFetch("https://pandoc.test");
       expect(response.status).toBe(200);
       expect(await response.json()).toEqual({ exitCode: 0, stdout: "<p><strong>portable</strong></p>\n", stderr: "" });
+      const numbers = await runtime.dispatchFetch("https://pandoc.test/json-numbers");
+      expect(numbers.status).toBe(200);
+      expect(await numbers.json()).toEqual({width: 0.1, rejected: {code: "E_AST", message: "Number exceeds exact integer range or is rounded"}});
       for (const scenario of ["lua", "sdk", "ranges"]) {
         const filtered = await runtime.dispatchFetch("https://pandoc.test/" + scenario);
         expect(await filtered.json()).toEqual({exitCode: 0, stdout: "<p><strong>PORTABLE</strong></p>\n", stderr: ""});

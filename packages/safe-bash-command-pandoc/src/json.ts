@@ -1,4 +1,5 @@
 import { parseStrictJson } from "./strict-json.js";
+import { readJsonNumber, JsonNumberError } from "./json-number.js";
 import { PandocError } from "./errors.js";
 import type { AdapterContext, Document, ReaderCapability, WriterCapability } from "./types.js";
 
@@ -30,29 +31,17 @@ function list(value: unknown, operation: "read" | "write", path: string): unknow
   return value;
 }
 
-/** Reject integer-valued tokens rounded by binary64 before constructor validation. */
-function exactInteger(token: string, value: number): boolean {
-  const lower = token.toLowerCase();
-  const [mantissa = "", exponent = "0"] = lower.split("e");
-  const [whole = "", fraction = ""] = mantissa.split(".");
-  const digits = whole + fraction;
-  const scale = Number(exponent) - fraction.length;
-  // Bound BigInt allocation; the input string has already passed the input budget.
-  if (digits.length > 1024 || Math.abs(scale) > 1024) return false;
-  const coefficient = BigInt(digits);
-  const divisor = 10n ** BigInt(Math.abs(scale));
-  return scale >= 0
-    ? coefficient * divisor === BigInt(value)
-    : coefficient % divisor === 0n && coefficient / divisor === BigInt(value);
-}
-
 async function parse(text: string, context: AdapterContext): Promise<unknown> {
   return parseStrictJson(text, context,
     (offset, message) => fail("read", `$@${offset}`, message),
-    (token, value, offset) => {
-      if (!Number.isFinite(value) || Number.isInteger(value) &&
-        (!Number.isSafeInteger(value) || !exactInteger(token, value)))
+    async (token, value, offset) => {
+      try {
+        const bounded = await readJsonNumber([token], units => context.cooperate(units));
+        if (!Object.is(bounded, value)) throw new JsonNumberError("Number conversion differs");
+      } catch (error) {
+        if (!(error instanceof JsonNumberError)) throw error;
         fail("read", `$@${offset}`, "Number exceeds exact integer range or is rounded");
+      }
     });
 }
 

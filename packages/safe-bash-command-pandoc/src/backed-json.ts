@@ -117,6 +117,13 @@ export class BackedJson {
     await this.end();
   }
 
+  /** Read a completed scalar without materializing its contents. */
+  async *scalarChunks(position: number): AsyncGenerator<string> {
+    const header = await this.describe(position);
+    if (!header.end || header.kind === "array" || header.kind === "object") throw new Error("Expected a completed scalar");
+    yield* this.textChunks(position + headerBytes, header.end);
+  }
+
   private async *textChunks(position: number, end: number): AsyncGenerator<string> {
     for (let offset = position; offset < end; offset += 8192) {
       const bytes = await this.storage.read(offset, Math.min(8192, end - offset));

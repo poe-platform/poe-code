@@ -6,7 +6,7 @@ export async function parseStrictJson(
   text: string,
   context: AdapterContext,
   error: (offset: number, message: string) => never,
-  number: (token: string, value: number, offset: number) => void = () => {}
+  number: (token: string, value: number, offset: number) => Promise<void> | void = () => {}
 ): Promise<unknown> {
   let cursor = 0, nodes = 0;
   const step = async (): Promise<string> => {
@@ -126,7 +126,7 @@ export async function parseStrictJson(
       }
       context.charge("retainedBytes", (cursor - start) * 2);
       const token = text.slice(start, cursor), numeric = Number(token);
-      number(token, numeric, start);
+      await number(token, numeric, start);
       return numeric;
     }
     return error(cursor, "Expected JSON value");

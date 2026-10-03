@@ -4,8 +4,9 @@ import {PagedStorage} from "safe-bash-io-engine/storage";
 import {ExecutionContext} from "./execution.js";
 import {BackedJson} from "./backed-json.js";
 import {parseBackedJson} from "./backed-json-parser.js";
+import {readJsonNumber} from "./json-number.js";
 
-async function parse(input: string, chunkSize = 7, signal = new AbortController().signal): Promise<string> {
+async function parse(input: string, chunkSize = 7, signal = new AbortController().signal, numbers = false): Promise<string> {
   const fs = new MemoryFileSystem();
   const context = new ExecutionContext("convert", {signal});
   const storage = new PagedStorage({fs, cwd: "/", env: {}, signal}, 1);
@@ -14,7 +15,13 @@ async function parse(input: string, chunkSize = 7, signal = new AbortController(
   try {
     await parseBackedJson((async function* () {
       for (let offset = 0; offset < input.length; offset += chunkSize) yield input.slice(offset, offset + chunkSize);
-    })(), tree, index, units => context.cooperate(units), (offset, message) => {throw new Error(`${offset}: ${message}`);});
+    })(), tree, index, units => context.cooperate(units), (offset, message) => {throw new Error(`${offset}: ${message}`);}, numbers ? async (node, offset) => {
+      try {await readJsonNumber(tree.scalarChunks(node), units => context.cooperate(units));}
+      catch (error) {
+        if (!(error instanceof RangeError)) throw error;
+        throw new Error(`${offset}: ${error.message}`);
+      }
+    } : undefined);
     let result = "";
     for await (const bytes of tree.chunks()) {
       expect(bytes.length).toBeLessThanOrEqual(16384);
@@ -74,4 +81,12 @@ it("reports the source offset of the duplicate property", async () => {
 it("cleans a spilled duplicate-key index after rejecting late duplicates", async () => {
   const input = JSON.stringify(Object.fromEntries(Array.from({length: 1000}, (_, index) => [`key${index}`, index])));
   await expect(parse(input.slice(0, -1) + ',"key0":null}', 4096)).rejects.toThrow("Duplicate object key");
+});
+
+it.each(["9007199254740992", "9007199254740990.5", "1e9999", "1e-9999"])("applies streamed numeric policy at the original offset: %s", async number => {
+  await expect(parse('[0,' + number + ']', 1, undefined, true)).rejects.toThrow("3: Number exceeds exact integer range or is rounded");
+});
+it("validates a long fractional spelling directly from backed storage", async () => {
+  const token = "0.1" + "0".repeat(30000);
+  expect(await parse('[' + token + ']', 113, undefined, true)).toBe('[' + token + ']');
 });

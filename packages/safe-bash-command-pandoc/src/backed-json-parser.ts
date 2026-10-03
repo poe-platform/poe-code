@@ -48,14 +48,15 @@ type NumberState = "start" | "minus" | "zero" | "int" | "dot" | "frac" | "exp" |
  * separate. Both nesting state and the key index live in caller storage. */
 export async function parseBackedJson(
   chunks: AsyncIterable<string>, tree: BackedJson, index: PagedStorage,
-  cooperate: (units?: number) => Promise<void>, error: (offset: number, message: string) => never
+  cooperate: (units?: number) => Promise<void>, error: (offset: number, message: string) => never,
+  validateNumber?: (node: number, offset: number) => Promise<void>
 ): Promise<void> {
   const keys = new Keys(index, tree, cooperate);
   let mode: Mode = "value", token: "string" | "number" | "keyword" | undefined;
   let position = 0, offset = 0, work = 0, buffer = "";
   let isKey = false, keyParent = 0, keyPosition = 0, keyOffset = 0, hash = 0;
   let escape = false, hex = 0, code = 0, keyword = "", keywordIndex = 0;
-  let number: NumberState = "start";
+  let number: NumberState = "start", numberOffset = 0;
   const digit = (char: string) => char >= "0" && char <= "9";
   const flush = async () => {if (buffer) {await tree.text(buffer); buffer = "";}};
   const add = (char: string) => {
@@ -71,7 +72,10 @@ export async function parseBackedJson(
   };
   const endNumber = async (): Promise<Mode> => {
     if (!["zero", "int", "frac", "expDigits"].includes(number)) error(offset, "Incomplete JSON number");
-    return end();
+    const node = position;
+    const mode = await end();
+    await validateNumber?.(node, numberOffset);
+    return mode;
   };
   const numeric = (char: string): boolean => {
     switch (number) {
@@ -181,7 +185,7 @@ export async function parseBackedJson(
           mode = char === "{" ? "keyFirst" : "arrayFirst";
         } else if (char === '"') {position = await tree.begin("string"); token = "string";}
         else if (char === "-" || digit(char)) {
-          position = await tree.begin("literal"); token = "number"; number = "start"; consumed = false;
+          position = await tree.begin("literal"); token = "number"; number = "start"; numberOffset = offset; consumed = false;
         } else if (char === "t" || char === "f" || char === "n") {
           position = await tree.begin("literal"); token = "keyword"; keywordIndex = 0;
           keyword = char === "t" ? "true" : char === "f" ? "false" : "null";

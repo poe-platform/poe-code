@@ -1,3 +1,4 @@
+import { PdfFontAllocation, type PdfFontAllocationOptions } from "./memory.js";
 import { getEncoding, type CMap } from "../vendor/pdfjs-fonts.mjs";
 import { parseEmbeddedType1Font } from "./type1.js";
 import { parseEmbeddedCffFont, type EmbeddedCffFont } from "./cff.js";
@@ -48,7 +49,9 @@ export interface ResolvedPageFont {
   readonly standardOutlines?: StandardFontOutlines | undefined;
 }
 
-export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resourcesDict: PdfCosDict | undefined, selectedName?: string): Generator<FontResolutionRequest, Map<string, ResolvedPageFont>, FontResolutionResult> {
+export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resourcesDict: PdfCosDict | undefined, selectedName?: string, options: Pick<PdfFontAllocationOptions, "onAllocation"> = {}): Generator<FontResolutionRequest, Map<string, ResolvedPageFont>, FontResolutionResult> {
+    const allocation = new PdfFontAllocation(options);
+    const cmapOptions = { onAllocation: (bytes: number) => allocation.admit(bytes) };
     const fonts = new Map<string, ResolvedPageFont>();
     const catalog = (yield* resolveDict(rootRef));
     const acroForm = catalog ? (yield* resolveDict(dictGet(catalog, "AcroForm"))) : undefined;
@@ -65,6 +68,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
         const fObj = (yield* resolveDict(entry.value));
         if (!fObj)
             continue;
+        allocation.admit(1024);
         const subtypeNode = (yield* resolve(dictGet(fObj, "Subtype")));
         const subtype = subtypeNode?.kind === "name" ? subtypeNode.decoded : "Type1";
         const baseFontNode = (yield* resolve(dictGet(fObj, "BaseFont")));
@@ -73,9 +77,10 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
         const toUniNode = (yield* resolve(dictGet(fObj, "ToUnicode")));
         if (toUniNode?.kind === "stream") {
             try {
-                cmap = parseToUnicodeCMap((yield* decodeStream(toUniNode)));
+                cmap = parseToUnicodeCMap((yield* decodeStream(toUniNode)), cmapOptions);
             }
             catch (error) {
+                allocation.rethrowAllocationFailure(error);
                 if (error instanceof PdfError && error.code === "E_LIMIT")
                     throw error;
                 // PDF.js readToUnicode ignores a damaged optional mapping: the font's
@@ -92,6 +97,8 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                 }
             }
         }
+        const differenceArray = encNode?.kind === "dict" ? dictGet(encNode, "Differences") : undefined;
+        allocation.admit(32768 + (differenceArray?.kind === "array" ? differenceArray.items.length * 128 : 0));
         const differences = buildFontEncodingDifferencesMap(encNode);
         const glyphNames = buildFontEncodingGlyphNamesMap(encNode);
         const widths = new Map<number, number>();
@@ -136,6 +143,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                             for (let k = 0; k < second.items.length; k++) {
                                 const wItem = (yield* resolve(second.items[k]));
                                 if (wItem?.kind === "number") {
+                                    allocation.admit(64);
                                     widths.set(first.value + k, wItem.value);
                                 }
                             }
@@ -143,6 +151,9 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                         else if (first?.kind === "number" && second?.kind === "number") {
                             const third = (yield* resolve(wArr.items[idx++]));
                             if (third?.kind === "number") {
+                                if (!Number.isSafeInteger(first.value) || !Number.isSafeInteger(second.value))
+                                    throw new PdfError("E_LIMIT", "Unsafe PDF font width range");
+                                allocation.admit(Math.max(0, second.value - first.value + 1) * 64);
                                 for (let c = first.value; c <= second.value; c++) {
                                     widths.set(c, third.value);
                                 }
@@ -165,6 +176,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                 for (let k = 0; k < widthsArr.items.length; k++) {
                     const wItem = (yield* resolve(widthsArr.items[k]));
                     if (wItem?.kind === "number") {
+                        allocation.admit(64);
                         widths.set(firstChar + k, wItem.value * type3Scale1000);
                     }
                 }
@@ -172,8 +184,10 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
             else {
                 const stdMetrics = STANDARD_14_FONTS[normalizeStandard14FontName(baseFont)];
                 defaultWidth = stdMetrics.defaultWidth;
-                for (const [codeStr, wVal] of Object.entries(stdMetrics.widthsByCode))
+                for (const [codeStr, wVal] of Object.entries(stdMetrics.widthsByCode)) {
+                    allocation.admit(64);
                     widths.set(Number(codeStr), wVal);
+                }
             }
         }
         let embeddedCff: EmbeddedCffFont | undefined;
@@ -189,6 +203,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
             // PDF.js readCidToGidMap reads big-endian pairs; a trailing high byte
             // gets a zero low byte. Retain explicit zero entries and stream extent.
             const bytes = (yield* decodeStream(cidMap));
+            allocation.admit(Math.ceil(bytes.length / 2) * 2);
             cidToGid = new Uint16Array(Math.ceil(bytes.length / 2));
             for (let i = 0; i < bytes.length; i += 2)
                 cidToGid[i / 2] = (bytes[i]! << 8) | (bytes[i + 1] ?? 0);
@@ -258,7 +273,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
             subtype,
             isTwoByteCid,
             cmap,
-            encodingCMap: subtype === "Type0" && encNode?.kind === "stream" ? parseCharacterCMap((yield* decodeStream(encNode))) : undefined,
+            encodingCMap: subtype === "Type0" && encNode?.kind === "stream" ? parseCharacterCMap((yield* decodeStream(encNode)), cmapOptions) : undefined,
             differences,
             glyphNames,
             widths,

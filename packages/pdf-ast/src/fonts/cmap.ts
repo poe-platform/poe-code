@@ -1,3 +1,5 @@
+import { PdfFontAllocation, type PdfFontAllocationOptions } from "./memory.js";
+export type { PdfFontAllocationOptions } from "./memory.js";
 import { CosByteLexer, type CosToken } from "../cos/lexer.js";
 import { bytesToString } from "../bytes.js";
 import { CMap } from "../vendor/pdfjs-fonts.mjs";
@@ -31,9 +33,16 @@ function decodeDestination(value: number | string): string {
   return decoded;
 }
 
-export function parseCharacterCMap(cmapBytes: Uint8Array): CMap {
+export function parseCharacterCMap(cmapBytes: Uint8Array, options: PdfFontAllocationOptions = {}): CMap {
+  return parseCMap(cmapBytes, new PdfFontAllocation(options));
+}
+
+function parseCMap(cmapBytes: Uint8Array, allocation: PdfFontAllocation): CMap {
+  // Cover lexer number-array growth, token copies, byte strings and destination
+  // arrays conservatively; expanded ranges are admitted separately below.
+  allocation.admit(1024 + cmapBytes.length * 32);
   const lexer = new CosByteLexer(cmapBytes);
-  const cmap = new CMap();
+  const cmap = new CMap(false, bytes => allocation.admit(bytes));
   let inferredLength = 1;
   let section = "";
   // The block grammar follows PDF.js parseBfChar/parseBfRange/parseCidChar/
@@ -69,7 +78,7 @@ export function parseCharacterCMap(cmapBytes: Uint8Array): CMap {
           if (isString(item)) array.push(bytesToString(item.bytes));
           else if (item.kind === "number" && item.isInteger) array.push(item.value);
         }
-        try { cmap.mapBfRangeToArray(low, high, array); } catch { /* PDF.js skips oversized ranges and resumes parsing. */ }
+        try { cmap.mapBfRangeToArray(low, high, array); } catch (error) { allocation.rethrowAllocationFailure(error); /* PDF.js skips oversized ranges. */ }
       } else {
         try {
           if (isString(destination)) cmap.mapBfRange(low, high, bytesToString(destination.bytes));
@@ -77,7 +86,7 @@ export function parseCharacterCMap(cmapBytes: Uint8Array): CMap {
             if (section === "begincidrange") cmap.mapCidRange(low, high, destination.value);
             else cmap.mapBfRange(low, high, String.fromCharCode(destination.value));
           }
-        } catch { /* Match PDF.js range-budget recovery. */ }
+        } catch (error) { allocation.rethrowAllocationFailure(error); /* Match PDF.js range-budget recovery. */ }
       }
     }
   }
@@ -103,10 +112,14 @@ export function readCMapCharacters(cmap: CMap, bytes: Uint8Array): Array<{ charC
   return [...iterateCMapCharacters(cmap, bytes)];
 }
 
-export function parseToUnicodeCMap(cmapBytes: Uint8Array): ParsedToUnicodeCMap {
-  const cmap = parseCharacterCMap(cmapBytes);
+export function parseToUnicodeCMap(cmapBytes: Uint8Array, options: PdfFontAllocationOptions = {}): ParsedToUnicodeCMap {
+  const allocation = new PdfFontAllocation(options);
+  const cmap = parseCMap(cmapBytes, allocation);
   const map = new Map<number, string>();
-  cmap.forEach((code, value) => map.set(code, decodeDestination(value)));
+  cmap.forEach((code, value) => {
+    allocation.admit(68 + (typeof value === "string" ? value.length * 2 : 0));
+    map.set(code, decodeDestination(value));
+  });
   const isTwoByte = cmap.codespaceRanges.slice(1).some(ranges => ranges.length > 0);
   function* iterateBytes(bytes: Uint8Array): Generator<{ charCode: number; unicode: string }, void, void> {
     for (const { charCode } of iterateCMapCharacters(cmap, bytes)) yield {

@@ -10,7 +10,9 @@ var CMap = class {
   //   one byte per character.
   #map = /* @__PURE__ */ new Map();
   #mappedEntries = 0;
-  constructor(builtInCMap = false) {
+  #onAllocation;
+  constructor(builtInCMap = false, onAllocation) {
+    this.#onAllocation = onAllocation;
     this.codespaceRanges = [[], [], [], []];
     this.numCodespaceRanges = 0;
     this.name = "";
@@ -19,16 +21,18 @@ var CMap = class {
     this.builtInCMap = builtInCMap;
   }
   addCodespaceRange(n, low, high) {
+    this.#onAllocation?.(16);
     this.codespaceRanges[n - 1].push(low, high);
     this.numCodespaceRanges++;
   }
-  #consumeBudget(count, name) {
+  #consumeBudget(count, name, bytesPerEntry = 64) {
     if (count <= 0) {
       return;
     }
     if (this.#mappedEntries + count > MAX_MAP_RANGE) {
       throw new Error(`${name} - ignoring data above MAX_MAP_RANGE.`);
     }
+    this.#onAllocation?.(count * bytesPerEntry);
     this.#mappedEntries += count;
   }
   mapCidRange(low, high, dstLow) {
@@ -38,7 +42,7 @@ var CMap = class {
     }
   }
   mapBfRange(low, high, dstLow) {
-    this.#consumeBudget(high - low + 1, "mapBfRange");
+    this.#consumeBudget(high - low + 1, "mapBfRange", 64 + 4 * (dstLow.length + 2));
     const lastByte = dstLow.length - 1;
     while (low <= high) {
       this.#map.set(low++, dstLow);
@@ -60,6 +64,7 @@ var CMap = class {
   }
   // This is used for both bf and cid chars.
   mapOne(src, dst) {
+    this.#onAllocation?.(64 + (typeof dst === "string" ? dst.length * 2 : 0));
     this.#map.set(src, dst);
   }
   lookup(code) {

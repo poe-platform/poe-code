@@ -32,6 +32,13 @@ They avoid token-sized string copies and glyph arrays; returning early stops
 reading the token. `readCMapCharacters` and `decodeBytes` remain buffered
 convenience APIs. The shared page evaluator uses lazy glyph decoding.
 
+`parseCharacterCMap(bytes, { maxWorkingBytes, onAllocation })` and
+`parseToUnicodeCMap(bytes, { maxWorkingBytes, onAllocation })` admit conservative
+lexer scratch and expanded mapping state before allocation. The callback lets a
+containing owner account for the same allocations; its failures propagate even
+when malformed optional mappings would otherwise be ignored. Input bytes remain
+caller-owned. This accounting does not cover embedded font program parsers.
+
 `doc.fonts({ firstPage, lastPage })` lazily inspects fonts in the selected
 one-based page range, inherited resources, forms, patterns, annotations and
 AcroForm defaults. It reports font names, types, encoding, embedding, Unicode

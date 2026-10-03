@@ -85,7 +85,20 @@ const result = await build({
         const start = source.indexOf("const MAX_MAP_RANGE =");
         const end = source.indexOf("// A special case of CMap,");
         if (start < 0 || end <= start) throw new Error("PDF.js CMap source markers changed");
-        return { contents: source.slice(start, end) + "\nexport { CMap };\n", loader: "js" };
+        let cmap = source.slice(start, end);
+        const patches = [
+          ["constructor(builtInCMap = false) {", "#onAllocation;\n  constructor(builtInCMap = false, onAllocation) {\n    this.#onAllocation = onAllocation;"],
+          ["this.codespaceRanges[n - 1].push(low, high);", "this.#onAllocation?.(16);\n    this.codespaceRanges[n - 1].push(low, high);"],
+          ["#consumeBudget(count, name) {", "#consumeBudget(count, name, bytesPerEntry = 64) {"],
+          ["this.#mappedEntries += count;", "this.#onAllocation?.(count * bytesPerEntry);\n    this.#mappedEntries += count;"],
+          ['this.#consumeBudget(high - low + 1, "mapBfRange");', 'this.#consumeBudget(high - low + 1, "mapBfRange", 64 + 4 * (dstLow.length + 2));'],
+          ["mapOne(src, dst) {", 'mapOne(src, dst) {\n    this.#onAllocation?.(64 + (typeof dst === "string" ? dst.length * 2 : 0));'],
+        ];
+        for (const [before, after] of patches) {
+          if (!cmap.includes(before)) throw new Error("PDF.js CMap allocation source marker changed: " + before);
+          cmap = cmap.replace(before, after);
+        }
+        return { contents: cmap + "\nexport { CMap };\n", loader: "js" };
       });
       builder.onLoad({ filter: /crypto\.js$/ }, args => {
         let source = readFileSync(args.path, "utf8");

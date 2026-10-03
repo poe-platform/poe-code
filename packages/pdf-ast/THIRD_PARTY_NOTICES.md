@@ -152,9 +152,11 @@ Foundation, Apache-2.0; see `licenses/PDFJS-APACHE-2.0.txt`.
 
 # ToUnicode CMap decoding
 
-The same bundle includes the unmodified standalone `CMap` class and range budget
+The same bundle includes the standalone `CMap` class and range budget
 from PDF.js `src/core/cmap.js`; the regeneration script extracts that class without
-its browser/network factory. `src/fonts/cmap.ts` adapts the upstream bfchar,
+its browser/network factory and adds optional allocation callbacks before mapping
+entries or codespace ranges. The existing oversized-range recovery runs before
+allocation callbacks; caller memory rejections propagate. `src/fonts/cmap.ts` adapts the upstream bfchar,
 bfrange, cidchar, cidrange, and codespace block grammar to the existing synchronous
 lexer and delegates range expansion and variable-length character decoding to
 `CMap`. UTF-16BE conversion follows `PartialEvaluator.readToUnicode`, including

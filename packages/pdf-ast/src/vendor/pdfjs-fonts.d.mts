@@ -105,6 +105,7 @@ export interface Type1Program {
 }
 
 export class CMap {
+  constructor(builtInCMap?: boolean, onAllocation?: (bytes: number) => void);
   codespaceRanges: number[][];
   numCodespaceRanges: number;
   addCodespaceRange(length: number, low: number, high: number): void;

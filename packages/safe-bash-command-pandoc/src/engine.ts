@@ -624,7 +624,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
   const streamedFilters = options.filters === undefined || Array.isArray(options.filters) && options.filters.every(request =>
     request?.kind === "json" && typeof context.filters?.applyJsonStream === "function");
   const backedJson = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
-    && reader.descriptor.name === "json" && ["json", "plain", "html5", "commonmark", "gfm", "rst"].includes(writer.descriptor.name) && streamedFilters
+    && reader.descriptor.name === "json" && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex"].includes(writer.descriptor.name) && streamedFilters
     && Object.keys(options).every(key => ["from", "to", "filters", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
     && Object.entries(context.limits ?? {}).every(([key, value]) => ["inputBytes", "outputBytes"].includes(key) || value === Infinity);
   if (backedJson) {
@@ -632,12 +632,12 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     try {
       session.options(options);
       const filters = await session.admitFilters(options.filters);
-      await session.call(() => streamRetainedDocument(() => readRetainedJson(inputs[0]!, session, context.workingFiles!), session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst"));
+      await session.call(() => streamRetainedDocument(() => readRetainedJson(inputs[0]!, session, context.workingFiles!), session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex"));
       return {kind: "output", diagnostics: session.snapshotDiagnostics()};
     } finally {await session.close();}
   }
   const incremental = context.workingFiles && !context.reader && !context.writer
-    && (reader.descriptor.name === "csv" || reader.descriptor.name === "tsv") && ["html5", "json", "plain", "commonmark", "gfm", "rst"].includes(writer.descriptor.name) && streamedFilters
+    && (reader.descriptor.name === "csv" || reader.descriptor.name === "tsv") && ["html5", "json", "plain", "commonmark", "gfm", "rst", "latex"].includes(writer.descriptor.name) && streamedFilters
     && Object.keys(options).every(key => ["from", "to", "filters", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
     && Object.entries(context.limits ?? {}).every(([key, value]) => (["inputBytes", "outputBytes"].includes(key) || !options.filters?.length && ["tableRows", "tableColumns", "tableCells", "tableFieldText"].includes(key)) || value === Infinity);
   if (!incremental) {
@@ -648,7 +648,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
   try {
     session.options(options);
     const filters = await session.admitFilters(options.filters);
-    await session.call(() => streamDelimited(inputs, reader.descriptor.name as "csv" | "tsv", writer.descriptor.name as "html5" | "json" | "plain" | "commonmark" | "gfm" | "rst", session, context.workingFiles!, {...options, filters}));
+    await session.call(() => streamDelimited(inputs, reader.descriptor.name as "csv" | "tsv", writer.descriptor.name as "html5" | "json" | "plain" | "commonmark" | "gfm" | "rst" | "latex", session, context.workingFiles!, {...options, filters}));
     return {kind: "output", diagnostics: session.snapshotDiagnostics()};
   } finally {await session.close();}
 }

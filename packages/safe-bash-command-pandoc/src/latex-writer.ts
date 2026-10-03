@@ -4,9 +4,7 @@ import type { AdapterContext, Document, SerializedDocument } from "./types.js";
 import { PandocError } from "./errors.js";
 import { placeRows } from "./tables.js";
 
-const formatting = {Emph: "emph", Strong: "textbf", Underline: "uline", Strikeout: "sout", Superscript: "textsuperscript", Subscript: "textsubscript", SmallCaps: "textsc"};
-const languages: Readonly<Record<string, string>> = {en: "english", "en-US": "english", "en-GB": "british", de: "ngerman", "de-DE": "ngerman", fr: "french", es: "spanish", it: "italian", pt: "portuguese", nl: "dutch"};
-const mathCommands = new Set(("alpha beta gamma delta epsilon varepsilon zeta eta theta vartheta iota kappa lambda mu nu xi pi varpi rho varrho sigma varsigma tau upsilon phi varphi chi psi omega Gamma Delta Theta Lambda Xi Pi Sigma Upsilon Phi Psi Omega frac dfrac tfrac sqrt sum prod int iint iiint oint lim limsup liminf sin cos tan log ln exp min max sup inf det gcd left right middle big Big bigg Bigg cdot times div pm mp le leq ge geq ne neq approx equiv sim simeq in notin subset supset subseteq supseteq cup cap emptyset infinity infty partial nabla forall exists neg land lor to mapsto rightarrow leftarrow Rightarrow Leftarrow leftrightarrow Leftrightarrow overline underline hat widehat bar vec dot ddot text mathrm mathbf mathit mathsf mathtt mathcal mathbb mathnormal operatorname overset underset underbrace overbrace binom dbinom tbinom quad qquad hspace phantom vphantom hphantom langle rangle lbrace rbrace lvert rvert vert Vert lVert rVert ldots cdots vdots ddots degree prime ast star ell Re Im mod bmod pmod limits nolimits substack displaystyle textstyle scriptstyle scriptscriptstyle" ).split(" "));
+import {formatting, languages, mathCommands} from "./latex-profile.js";
 
 /** Serialization only. All code is escaped text; no delimiter can execute it. */
 class LatexWriter {

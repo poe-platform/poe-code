@@ -51,6 +51,12 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   reused chunks, bounded transfers, slow sinks and failure cleanup. R2 workerd
   cohorts include JSON/CSV to RST and transformed RST after chained filters.
   These are functional checks, not memory-plateau qualification.
+  LaTeX retains labels, note queues, column widths, span occupancy and repeated
+  headers, preserving standalone metadata, math safety rules and URI/path checks.
+  Tests cover generated long code/targets, 500 nested containers, output/backing
+  errors, source retirement and R2-backed JSON/CSV filter generations. Invalid
+  math command diagnostics still materialize the offending command name; this
+  belongs to the outstanding resident diagnostic boundary.
   Other conversions still require replacing whole-document input acquisition, joined text, document arrays
   and serialized results with retained sources and a paged document representation.
   Preserve diagnostics, source locations, resource identities and byte results.

@@ -199,7 +199,10 @@ JSON and CSV/TSV → RST also retain writer continuations, source-name collision
 checks, identifiers, notes, tables and output in caller storage. Existing roles,
 list-table rules, indentation, projections and diagnostics remain available; long
 name searches keep their pattern and failure links in caller pages.
-Multiple JSON inputs, legacy filters, embedded resources, other transformations
+JSON and CSV/TSV → LaTeX retain labels, deferred notes, table columns/span
+occupancy, repeated headers, writer jobs and output in caller storage. The fixed
+standalone preamble, document metadata, math allowlist and URL/image-path checks
+keep their existing behavior. Legacy filters, embedded resources, other transformations
 and other finite document budgets continue through the compatibility converter.
 
 For media extraction, supply `workingFiles` and `resourceFiles.writeStream` to

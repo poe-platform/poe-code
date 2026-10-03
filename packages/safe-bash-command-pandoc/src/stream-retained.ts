@@ -1,3 +1,4 @@
+import {writeRetainedLatex} from "./retained-latex.js";
 import {writeRetainedRst} from "./retained-rst.js";
 import {writeRetainedMarkdown} from "./retained-markdown.js";
 import {createFormatRegistry} from "./formats.js";
@@ -40,7 +41,7 @@ async function checkImageOrigins(tree: BackedJson, context: ExecutionContext): P
 
 /** Retain each document generation and filter response in caller storage. The
  * previous generation is retired before another filter starts. */
-export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>>>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" = "json"): Promise<void> {
+export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>>>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" = "json"): Promise<void> {
   let document: Awaited<ReturnType<typeof readRetainedJson>> | undefined;
   let failure: {reason: unknown} | undefined;
   const preflight = async (chunks: AsyncIterable<Uint8Array>) => {
@@ -84,6 +85,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       document = next;
     }
     if (target === "plain") await writeRetainedPlain(document.tree, context, working, options);
+    else if (target === "latex") await writeRetainedLatex(document.tree, context, working, options, document.order);
     else if (target === "rst") await writeRetainedRst(document.tree, context, working, options);
     else if (target === "html5") await writeRetainedHtml(document.tree, context, working, options);
     else if (target === "commonmark" || target === "gfm") await writeRetainedMarkdown(document.tree, context, working, options, createFormatRegistry().resolve(options.to, "write"));

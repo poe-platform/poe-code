@@ -197,3 +197,14 @@ describe("retained PDF ranges", () => {
     expect(backend.close).toHaveBeenCalledTimes(1);
   });
 });
+
+it("queries creation capabilities for the prospective staging entry rather than its existing parent",async()=>{
+ const {createMemoryFileSystem}=await import("@poe-code/safe-fs");
+ const {FsError}=await import("@poe-code/safe-fs/contracts");
+ const memory=createMemoryFileSystem();await memory.mkdir("/scratch");
+ const queries:string[]=[];
+ const fs=new Proxy(memory,{get(target,key){if(key==="capabilitiesFor")return async(path:string,options?:{create?:boolean})=>{if(options?.create){queries.push(path);if(path==="/scratch")throw new FsError("EISDIR",{path});}return memory.capabilities;};const value=Reflect.get(target,key,target);return typeof value==="function"?value.bind(target):value;}});
+ const source=await PdfFileSource.fromStream(fs,"/scratch",[Uint8Array.of(1,2,3)]);
+ try{expect(await source.read(0,3)).toEqual(Uint8Array.of(1,2,3));expect(queries[0]?.startsWith("/scratch/.pdf-")).toBe(true);}finally{await source.close();}
+ expect(await memory.readdir("/scratch")).toEqual([]);
+});

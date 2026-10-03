@@ -60,7 +60,7 @@ export class PdfRetainedDecodedImage {
     budget: Budget, depth: number): Promise<PdfRetainedDecodedImage> {
     const workingLimit = maximum(options.maxWorkingBytes, "maxWorkingBytes"), stagingLimit = maximum(options.maxStagingBytes, "maxStagingBytes"), outputLimit = maximum(options.maxOutputBytes, "maxOutputBytes");
     const maxDepth = options.maxDepth ?? document.depthLimit, chunkBytes = options.chunkBytes ?? 4096;
-    if (!Number.isSafeInteger(maxDepth) || maxDepth < 0 || !Number.isSafeInteger(chunkBytes) || chunkBytes <= 0) throw new RangeError("Invalid image decoder limits");
+    if ((maxDepth !== Infinity && (!Number.isSafeInteger(maxDepth) || maxDepth < 0)) || !Number.isSafeInteger(chunkBytes) || chunkBytes <= 0) throw new RangeError("Invalid image decoder limits");
     if (depth > maxDepth) throw new PdfError("E_LIMIT", "PDF image mask depth limit exceeded");
     const { signal } = options; signal?.throwIfAborted(); const sources = new Set<PdfFileSource>(); let owned = 0;
     let codec: PdfRetainedJpeg | PdfRetainedJpx | PdfRetainedJbig2 | undefined;

@@ -101,7 +101,9 @@ export class PdfFileSource {
     const { signal } = options;
     const io = signal === undefined ? {} : { signal };
     signal?.throwIfAborted();
-    const capabilities = await fs.capabilitiesFor?.(directory, { ...io, create: true }) ?? fs.capabilities;
+    const root = directory.endsWith("/") ? directory : `${directory}/`;
+    const stagingDirectory = `${root}.pdf-${crypto.randomUUID()}`;
+    const capabilities = await fs.capabilitiesFor?.(stagingDirectory, { ...io, create: true }) ?? fs.capabilities;
     signal?.throwIfAborted();
     if (!capabilities.retainedStagingCleanup || !capabilities.retainedStagingWrite || !capabilities.retainedRead || !fs.createStagedFile || !fs.openReadFile) {
       throw new PdfError("E_CAPABILITY", "PDF staging requires caller filesystem retained staging and reads");
@@ -109,8 +111,7 @@ export class PdfFileSource {
     const parent = await fs.stat(directory, io);
     signal?.throwIfAborted();
     if (parent.type !== "directory") throw new PdfError("E_CAPABILITY", "PDF staging parent must be a directory");
-    const root = directory.endsWith("/") ? directory : `${directory}/`;
-    const staging = await fs.createStagedFile(`${root}.pdf-${crypto.randomUUID()}`, "bytes", { type: "file", data: new Uint8Array(0) },
+    const staging = await fs.createStagedFile(stagingDirectory, "bytes", { type: "file", data: new Uint8Array(0) },
       { ...io, parent, mode: 0o600, retainCleanup: true });
     try {
       signal?.throwIfAborted();

@@ -4,6 +4,8 @@ export {
   type ZipArchive,
   type ZipEntry,
   type ZipStreamEntry,
+  type ZipStreamArchive,
+  type ZipSource,
   type ZipLimits,
   type ZipProfile,
   type ZipRuntime

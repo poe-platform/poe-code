@@ -33,8 +33,18 @@ accepts harmless compression-level hints on stored entries from producers such a
 Pandoc; the default profile remains strict. ZIP operations require `ZipLimits`:
 `maxArchiveBytes`, `maxEntryBytes`, `maxTotalBytes`, `maxMembers`, `maxPathBytes`,
 `maxDepth`, `maxPaxBytes`, `maxTextBytes`, and `chunkSize`.
+`readZipArchive` accepts either buffered bytes or a `ZipSource` with `size` and
+`read(position, maxBytes, {signal})`. A source must refer to one stable object;
+keep its retained filesystem handle open until all returned entries are consumed,
+then close it on success or failure. The codec reads metadata and streams member
+payloads on demand, handles short reads, and copies responses before another read
+can reuse the buffer. Range reads are capped by `chunkSize`. Directory metadata
+is still retained per member; this API does not yet bound large-directory memory.
+
 `decodeZipEntry` also accepts a `ZipStreamEntry`: supply `data` as an async byte
-stream and `compressedSize` alongside the usual member metadata. The stream may
+stream (or a `(signal) => stream` factory) and `compressedSize` alongside the usual
+member metadata. Range-backed entries use factories so each decode cancellation
+reaches pending reads. The stream may
 read a retained range from the caller's injected filesystem; the codec itself
 opens no files. Decoding checks the compressed length, decoded length and CRC,
 returns owned bounded chunks, and closes the input on cancellation or early return.

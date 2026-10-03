@@ -655,3 +655,33 @@ describe("checked package writing", () => {
     expect(parsed.entries.map((item) => item.name)).toEqual(["harbor"]);
   });
 });
+
+
+describe("archives supplied by retained range readers", () => {
+  for (const method of [0, 8]) for (const descriptor of [0, 1, 2]) for (const extended of [false, true]) {
+    it(`reads independent ZIP vectors with short reused reads: method=${method}, descriptor=${descriptor}, zip64=${extended}`, async () => {
+      const input = archive(method, descriptor, extended, true);
+      const scratch = new Uint8Array(13);
+      const zip = createZipCodec(undefined, {zip64: true, rejectDuplicateNames: true});
+      const source = {
+        size: input.length,
+        async read(position: number, maximum: number, options: {signal: AbortSignal}) {
+          expect(options.signal).toBe(signal);
+          expect(maximum).toBeLessThanOrEqual(limits.chunkSize);
+          const length = Math.min(maximum, scratch.length, input.length - position);
+          scratch.fill(0);
+          scratch.set(input.subarray(position, position + length));
+          return scratch.subarray(0, length);
+        }
+      };
+      const parsed = await zip.readZipArchive(source, limits, signal);
+      const entry = parsed.entries[0]!;
+      expect(entry.compressedSize).toBe(method === 8 ? compressed.length : content.length);
+      expect(entry.data).not.toBeInstanceOf(Uint8Array);
+      const output: number[] = [];
+      for await (const chunk of zip.decodeZipEntry(entry, limits, signal)) output.push(...chunk);
+      expect(Uint8Array.from(output)).toEqual(content);
+      expect(entry.rawName).toEqual(Uint8Array.of(120));
+    });
+  }
+});

@@ -77,7 +77,7 @@ export async function tryPngFile(input: string, output: string, options: SharpIn
     if (compareIdentity(initial,final)==="distinct" || !compareFileVersion(initial,final)) throw new FsError("EAGAIN",{path:input,message:"Image source changed while decoding"});
     handleClosed=true; await handle.close();
     const gamma=operations.find(node=>node.kind==="gamma");
-    const splitGamma=gamma && operations.some(node=>node.kind==="resize" || node.kind==="blur" || node.kind==="convolve" || node.kind==="modulate" || node.kind==="recomb");
+    const splitGamma=gamma && operations.some(node=>node.kind==="resize" || node.kind==="blur" || node.kind==="sharpen" || node.kind==="convolve" || node.kind==="modulate" || node.kind==="recomb");
     let gammaInApplied=false;
     const {nodes,postScale}=splitPostScaleNodes(operations);
     const ordered=orderImageNodes(nodes),stages=imageAlphaStages(ordered);

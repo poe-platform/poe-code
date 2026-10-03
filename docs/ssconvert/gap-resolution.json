@@ -4572,6 +4572,13 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "gnumericAxisExportValidation": {
+      "finding": "SDK zero axes/defaults and negative or malformed normalized defaults serialized with lost native geometry or unclassified numeric failures. Number.MAX_VALUE rounds to1.798e308 at native four-digit precision, outside finite binary64.",
+      "implementation": "Share positive finite axis-size validation across workbook and clipboard XML writers. Check the rounded decimal remains positive/finite, fail with unsupported-feature before output publication. Clipboard checks only axes within the copied range. Preserve positive native precision.",
+      "validation": "24original regressions failed before repair;out-of-range clipboard axis control passes.323tests/22files pass. Package/root SDK/command verify40zero-output refusals and16positive exports. Full root build and maintained package lint/source/test/public-consumer types pass. Repository screenshot tool captured actual command refusal;diagnostic screenshot inspected.",
+      "native": "Zero/nonpositive setters and defaults are rejected by native sheet.c; prior independent XML cohorts demonstrate the geometry replacement. Two original XLSX controls preserve25pt row and131.3pt column geometry through product/native readback;96package/root geometry observations match,including8native product readbacks.",
+      "remaining": "Positive XLSX customHeight/customWidth controls expose a separate HardSize flag loss in Gnumeric export; this geometry comparison does not claim flag preservation. Device/font-dependent dimension limits and broader19families remain open."
+    },
     "gnumericAxisInvalidSizes": {
       "finding": "Missing,nonnumeric and <=-1 XML axis sizes replaced existing dimensions/flags instead of rejecting the record.",
       "implementation": "Use native missing/invalid sentinel -1, skip rejected records before mutating axes, and await native corruption diagnostic text. Preserve strict interval validation and shared expanded-resource admission even for rejected records. Units in(-1,0] retain their existing setter-rejection semantics.",

@@ -76,7 +76,8 @@ including changes to sheet defaults. Cells retain dimensions allocated before
 a later default change. Zero-size
 records retain prior or default dimensions while applying their other metadata.
 Records with missing or malformed sizes, or sizes at or below -1, are skipped
-with a corruption warning.
+with a corruption warning. XML exports reject nonpositive, malformed, or
+rounding-overflow dimensions instead of silently changing workbook geometry.
 Nonpositive sheet defaults retain built-in dimensions. Clipboard
 exports preserve collapsed flags and outline depth. Gnumeric workbook
 and clipboard XML store row and column dimensions in points with four significant

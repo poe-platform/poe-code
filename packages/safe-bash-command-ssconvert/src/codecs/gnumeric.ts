@@ -768,6 +768,15 @@ export function clipboardStyleRecords(sheet: Sheet, range: import("../workbook.j
   return [{ source: "Gnumeric_XmlIO:sax", kind: "Styles", disposition: "retained", data: { name: "Styles", namespace, text: "", attributes: [], children } }];
 }
 
+function axisSizeXml(value: unknown): string {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0)
+    throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: Gnumeric XML axis size must be positive and finite");
+  const text = gnumericNumber(value, false, 4);
+  if (!Number.isFinite(Number(text)) || Number(text) <= 0)
+    throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: Gnumeric XML axis size overflows after rounding");
+  return text;
+}
+
 /** Native cell-region XML shares the workbook value/style serializers. */
 export function writeClipboardGnumeric(book: Workbook, sheet: Sheet, range: import("../workbook.js").CellRange, context: CapabilityContext): Uint8Array {
   const writer = new XmlWriter(context.limits.outputBytes, context);
@@ -775,10 +784,11 @@ export function writeClipboardGnumeric(book: Workbook, sheet: Sheet, range: impo
   for (const [kind, info, entries, defaultSize] of [["Cols", "ColInfo", sheet.columns, 48], ["Rows", "RowInfo", sheet.rows, 12.75]] as const) {
     const start = kind === "Cols" ? range.startColumn : range.startRow;
     const end = kind === "Cols" ? range.endColumn : range.endRow;
-    const points = Number(sheet.view?.[kind === "Cols" ? "defaultColumnWidth" : "defaultRowHeight"] ?? defaultSize);
-    body += writer.element(`gnm:${kind}`, { DefaultSizePts: gnumericNumber(points, false, 4) }, "",
+    const declared = sheet.view?.[kind === "Cols" ? "defaultColumnWidth" : "defaultRowHeight"];
+    const points = declared === undefined ? defaultSize : declared;
+    body += writer.element(`gnm:${kind}`, { DefaultSizePts: axisSizeXml(points) }, "",
       entries?.filter(axis => { context.signal.throwIfAborted(); return axis.index >= start && axis.index <= end; }).map(axis => writer.element(`gnm:${info}`, {
-        No: axis.index, Unit: gnumericNumber(axis.sizePoints ?? points, false, 4),
+        No: axis.index, Unit: axisSizeXml(axis.sizePoints ?? points),
         ...Object.fromEntries((Array.isArray(object(axis.style?.gnumeric)?.attributes) ? object(axis.style?.gnumeric)?.attributes as readonly ImportedValue[] : []).flatMap(raw => {
           const attr = object(raw); return attr?.name === "HardSize" && typeof attr.value === "string" ? [["HardSize", attr.value]] : [];
         })),
@@ -903,13 +913,14 @@ export async function writeGnumeric(book: Workbook, _options: readonly string[],
         return gnumericAttributes[kind]?.includes(attr.name) ? [[attr.name, attr.value]] : [];
       }));
       const defaultSize = sheet.view?.[kind === "Cols" ? "defaultColumnWidth" : "defaultRowHeight"];
-      if (typeof defaultSize === "number" && Number.isFinite(defaultSize) && defaultSize >= 0) axisAttrs.DefaultSizePts = gnumericNumber(defaultSize, false, 4);
+      if (defaultSize !== undefined) axisAttrs.DefaultSizePts = axisSizeXml(defaultSize);
+      else if (axisAttrs.DefaultSizePts !== undefined) axisAttrs.DefaultSizePts = axisSizeXml(Number(axisAttrs.DefaultSizePts));
       content += writer.element(`gnm:${kind}`, axisAttrs, "", entries?.filter(axis => axis.sizePoints !== undefined || axis.hidden || axis.collapsed || axis.outlineLevel).map(axis => {
         const original = object(axis.style?.gnumeric);
         const attrs = Object.fromEntries((Array.isArray(original?.attributes) ? original.attributes : []).flatMap(a => {
           const attr = object(a); return attr && typeof attr.name === "string" && typeof attr.value === "string" && attr.name === "HardSize" ? [[attr.name, attr.value]] : [];
         }));
-        return writer.element(`gnm:${info}`, { ...attrs, No: axis.index, Unit: axis.sizePoints === undefined ? axisAttrs.DefaultSizePts ?? (kind === "Cols" ? 48 : 12.75) : gnumericNumber(axis.sizePoints, false, 4),
+        return writer.element(`gnm:${info}`, { ...attrs, No: axis.index, Unit: axis.sizePoints === undefined ? axisAttrs.DefaultSizePts ?? (kind === "Cols" ? 48 : 12.75) : axisSizeXml(axis.sizePoints),
         ...(axis.hidden ? { Hidden: 1 } : {}), ...(axis.collapsed ? { Collapsed: 1 } : {}), ...(axis.outlineLevel ? { OutlineLevel: axis.outlineLevel } : {}) }, "", "", 4);
       }).join("") ?? "", 3);
     }

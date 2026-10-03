@@ -373,6 +373,7 @@
     "@poe-code/task-list-rust": "*",
     "@poe-code/agent-human-in-loop-rust": "*",
     "@poe-code/config-mutations-rust": "*",
-    "tiny-stdio-mcp-server-rust": "*"
+    "tiny-stdio-mcp-server-rust": "*",
+    "mcp-oauth-server-rust": "*"
   }
 }

@@ -4245,7 +4245,8 @@ The earlier MCP output checkpoint's package workflow 37087484577 completed with
 successful standalone bundles on Node 18.18, 20, 22 and 24 and a successful publish
 job. This is distinct from the skipped stable-root publication in its Release run.
 The dependency repair is independently verified on remote main at 6c09ddd088;
-Release 37091470539 is running.
+Release 37091470539 completed successfully with release-stable skipped; this
+verifies its build, not a fresh complete matrix or publication.
 
 ### Public MCP server and stream checkpoint
 
@@ -4290,8 +4291,9 @@ replacement and complete standalone types/platform/resource qualification remain
 open. Internal MCP integration does not change CLI presentation.
 
 Public MCP delivery is independently verified on remote main at 1d0338a3ec.
-Release 37091546615 and package publication 37091546450 are pending; the dependency
-repair Release 37091470539 remains pending too.
+Release 37091546615 completed successfully with release-stable skipped. Package
+publication 37091546450 remains pending. The successful Release verifies the build,
+not a fresh complete matrix or package publication.
 
 ### Hosted OAuth configuration checkpoint
 
@@ -4322,3 +4324,43 @@ JavaScript (13.75 times slower). Each operation creates a configuration, asserts
 production readiness and translates an API-key login field. No performance or
 default-swap gate passed. Hosted storage, login rendering, HTTP/OAuth runtime and
 public exports remain open, along with the existing full replacement gates.
+
+Hosted OAuth configuration is independently verified on remote main at f65b5efe7d.
+Release 37092065054 completed successfully with release-stable skipped; build
+verification does not imply a fresh complete matrix or publication.
+
+### Hosted OAuth development storage checkpoint
+
+Rust now selects hosted credential retrieval/update outcomes, transaction cloning,
+per-subject promise queue admission/release, missing-credential errors and signing
+key memoization. Node retains opaque credential identity, Maps, async callbacks,
+structuredClone and platform cryptography. The adapter reuses the own native OAuth
+authorization store. Built-in public KeyObject JWK export replaces the reference's
+JOSE export for generated P-256 keys; no external dependency was introduced.
+The existing mcp-oauth-server-rust workspace is now a declared runtime dependency.
+
+Five missing-module failures preceded implementation. Six final comparisons include
+the original storage conformance contract, explicit development admission, live
+credential identity, cloned interactions, clone failures, independently progressing
+subjects, queued failure propagation/recovery, stable signing keys and opaque
+subject namespaces. An added failing comparison caught import-time capture of
+structuredClone; the adapter now uses the current host function and preserves
+arbitrary thrown values. Fixtures remain in memory.
+
+The maintained selected workspace build initially failed resolving a newly pulled
+SoX workspace. Source, declarations and manifest/lockfile registrations were present,
+but seven already-declared local workspace symlinks were absent. Restoring those
+links required no install or source change. The complete maintained selected build
+then passed. Final Toolcraft verification passes Rust tests, 266 native Node checks,
+5,992 reference/parity cases in 107 files, declarations and the original CLI type
+consumer. Rust/binding lint and scoped ESLint pass. Packed consumers use the own
+native OAuth server to verify credentials, cloned transactions, signing keys and
+authorization-store records, with undeclared external runtime imports rejected.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 300 operations, retaining
+32 results, measured 21.399 microseconds native versus 7.142 microseconds JavaScript
+(3.00 times slower). Each operation sets/updates a credential, clones a transaction
+on write/read and derives a subject HMAC; signing-key generation is outside the
+measurement. No performance/default-swap gate passed. Hosted login rendering,
+request handling, HTTP/OAuth public exports and complete replacement qualification
+remain open.

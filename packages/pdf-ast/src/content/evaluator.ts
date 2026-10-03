@@ -1,17 +1,13 @@
-import { buildPostScriptJsFunction, DeviceCmykCS, getEncoding, MeshShading, Stream, type CMap } from "../vendor/pdfjs-fonts.mjs";
-import { parseEmbeddedType1Font } from "../fonts/type1.js";
-import { parseEmbeddedCffFont, type EmbeddedCffFont } from "../fonts/cff.js";
-import { getStandardFontOutlines, type StandardFontOutlines } from "../fonts/standard-outlines.js";
+import { resolvePageFonts, type ResolvedPageFont } from "../fonts/resolve.js";
+import { buildPostScriptJsFunction, DeviceCmykCS, MeshShading, Stream } from "../vendor/pdfjs-fonts.mjs";
 import { decodeInlineImageNodeToRgba, decodeXObjectImageToRgba } from "../extract/images.js";
 import {
   decodePdfString,
   dictGet,
-  dictSet,
   type PdfClipPath,
   type PdfContentNode,
   type PdfCosDict,
   type PdfCosStream,
-  type PdfDictEntry,
   type PdfDisplayList,
   type PdfEvaluatedImage,
   type PdfEvaluatedPath,
@@ -25,13 +21,10 @@ import {
 import type { ParsedCosDocument } from "../cos/parser.js";
 import { PdfError } from "../errors.js";
 import { bytesToString } from "../bytes.js";
-import { parseCharacterCMap, iterateCMapCharacters, parseToUnicodeCMap, type ParsedToUnicodeCMap } from "../fonts/cmap.js";
-import { parseTrueTypeFont, type ParsedTrueTypeFont } from "../fonts/truetype.js";
+import { iterateCMapCharacters } from "../fonts/cmap.js";
 import { parseContentStream } from "./parser.js";
 import { createCalibratedColorSpace } from "./calibrated-color.js";
 import {
-  buildFontEncodingDifferencesMap,
-  buildFontEncodingGlyphNamesMap,
   decodeWinAnsiByte,
   normalizeStandard14FontName,
   STANDARD_14_FONTS,
@@ -53,254 +46,6 @@ export function multiplyMatrices(m1: Matrix6, m2: Matrix6): Matrix6 {
 
 export function transformPoint(m: Matrix6, x: number, y: number): [number, number] {
   return [x * m[0] + y * m[2] + m[4], x * m[1] + y * m[3] + m[5]];
-}
-
-interface ResolvedPageFont {
-  readonly name: string;
-  readonly baseFont: string;
-  readonly subtype: string;
-  readonly isTwoByteCid: boolean;
-  readonly cmap?: ParsedToUnicodeCMap | undefined;
-  readonly encodingCMap?: CMap | undefined;
-  readonly differences: ReadonlyMap<number, string>;
-  readonly glyphNames: ReadonlyMap<number, string>;
-  readonly widths: ReadonlyMap<number, number>;
-  readonly defaultWidth: number;
-  readonly fontMatrix?: Matrix6 | undefined;
-  readonly charProcs?: PdfCosDict | undefined;
-  readonly fontResources?: PdfCosDict | undefined;
-  readonly embeddedCff?: EmbeddedCffFont | undefined;
-  readonly embeddedTrueType?: ParsedTrueTypeFont | undefined;
-  readonly cidToGid?: Uint16Array | undefined;
-  readonly simpleToGid?: ReadonlyMap<number, number> | undefined;
-  readonly standardOutlines?: StandardFontOutlines | undefined;
-}
-
-function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: PdfCosDict | undefined): Map<string, ResolvedPageFont> {
-  const fonts = new Map<string, ResolvedPageFont>();
-  if (!doc) return fonts;
-
-  const fontEntries: PdfDictEntry[] = [];
-  const catalog = doc.resolveDict(doc.rootRef);
-  const acroForm = catalog ? doc.resolveDict(dictGet(catalog, "AcroForm")) : undefined;
-  const drDict = acroForm ? doc.resolveDict(dictGet(acroForm, "DR")) : undefined;
-  const drFontDict = drDict ? doc.resolveDict(dictGet(drDict, "Font")) : undefined;
-  if (drFontDict) {
-    fontEntries.push(...drFontDict.entries);
-  }
-  const pageFontDict = resourcesDict ? doc.resolveDict(dictGet(resourcesDict, "Font")) : undefined;
-  if (pageFontDict) {
-    fontEntries.push(...pageFontDict.entries);
-  }
-  if (fontEntries.length === 0) return fonts;
-
-  for (const entry of fontEntries) {
-    const fName = entry.key.decoded;
-    const fObj = doc.resolveDict(entry.value);
-    if (!fObj) continue;
-
-    const subtypeNode = doc.resolve(dictGet(fObj, "Subtype"));
-    const subtype = subtypeNode?.kind === "name" ? subtypeNode.decoded : "Type1";
-    const baseFontNode = doc.resolve(dictGet(fObj, "BaseFont"));
-    const baseFont = baseFontNode?.kind === "name" ? baseFontNode.decoded : "Helvetica";
-
-    let cmap: ParsedToUnicodeCMap | undefined;
-    const toUniNode = doc.resolve(dictGet(fObj, "ToUnicode"));
-    if (toUniNode?.kind === "stream") {
-      try {
-        cmap = parseToUnicodeCMap(doc.decodeStream(toUniNode));
-      } catch (error) {
-        if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
-        // PDF.js readToUnicode ignores a damaged optional mapping: the font's
-        // character-code/CID mapping can still supply its visible outlines.
-      }
-    }
-
-    const encNode = doc.resolve(dictGet(fObj, "Encoding"));
-    if (encNode?.kind === "dict") {
-      const diffRef = dictGet(encNode, "Differences");
-      if (diffRef?.kind === "ref") {
-        const resolvedDiff = doc.resolve(diffRef);
-        if (resolvedDiff?.kind === "array") {
-          dictSet(encNode, "Differences", resolvedDiff);
-        }
-      }
-    }
-    const differences = buildFontEncodingDifferencesMap(encNode);
-    const glyphNames = buildFontEncodingGlyphNamesMap(encNode);
-    const widths = new Map<number, number>();
-    let defaultWidth = 556;
-    // ToUnicode labels codes; only the font's encoding determines their width.
-    const isTwoByteCid = subtype === "Type0";
-
-    let fontMatrix: Matrix6 | undefined;
-    let charProcs: PdfCosDict | undefined;
-    let fontResources: PdfCosDict | undefined;
-    if (subtype === "Type3") {
-      const fmArr = doc.resolveArray(dictGet(fObj, "FontMatrix"));
-      if (fmArr && fmArr.items.length >= 6) {
-        const mn = (idx: number, fb = 0) => {
-          const r = doc.resolve(fmArr.items[idx]);
-          return r?.kind === "number" ? r.value : fb;
-        };
-        fontMatrix = [mn(0, 0.001), mn(1, 0), mn(2, 0), mn(3, 0.001), mn(4, 0), mn(5, 0)];
-      } else {
-        fontMatrix = [0.001, 0, 0, 0.001, 0, 0];
-      }
-      charProcs = doc.resolveDict(dictGet(fObj, "CharProcs"));
-      fontResources = doc.resolveDict(dictGet(fObj, "Resources"));
-    }
-    const type3Scale1000 =
-      subtype === "Type3" && fontMatrix
-        ? Math.hypot(fontMatrix[0], fontMatrix[1]) * 1000
-        : 1;
-
-    if (subtype === "Type0") {
-      const descArr = doc.resolveArray(dictGet(fObj, "DescendantFonts"));
-      const cidDict = descArr && descArr.items[0] ? doc.resolveDict(descArr.items[0]) : undefined;
-      if (cidDict) {
-        const dwNode = doc.resolve(dictGet(cidDict, "DW"));
-        if (dwNode?.kind === "number") defaultWidth = dwNode.value;
-        const wArr = doc.resolveArray(dictGet(cidDict, "W"));
-        if (wArr) {
-          let idx = 0;
-          while (idx < wArr.items.length) {
-            const first = doc.resolve(wArr.items[idx++]);
-            const second = doc.resolve(wArr.items[idx++]);
-            if (first?.kind === "number" && second?.kind === "array") {
-              for (let k = 0; k < second.items.length; k++) {
-                const wItem = doc.resolve(second.items[k]);
-                if (wItem?.kind === "number") {
-                  widths.set(first.value + k, wItem.value);
-                }
-              }
-            } else if (first?.kind === "number" && second?.kind === "number") {
-              const third = doc.resolve(wArr.items[idx++]);
-              if (third?.kind === "number") {
-                for (let c = first.value; c <= second.value; c++) {
-                  widths.set(c, third.value);
-                }
-              }
-            }
-          }
-        }
-      }
-    } else {
-      const firstCharNode = doc.resolve(dictGet(fObj, "FirstChar"));
-      const widthsArr = doc.resolveArray(dictGet(fObj, "Widths"));
-      if (widthsArr) {
-        // PDF.js extractWidths: explicit tables use MissingWidth, not a
-        // standard-font width for characters omitted from the table.
-        const descriptor = doc.resolveDict(dictGet(fObj, "FontDescriptor"));
-        const missingWidth = descriptor ? doc.resolve(dictGet(descriptor, "MissingWidth")) : undefined;
-        defaultWidth = (missingWidth?.kind === "number" ? missingWidth.value : 0) * type3Scale1000;
-        const firstChar = firstCharNode?.kind === "number" ? firstCharNode.value : 0;
-        for (let k = 0; k < widthsArr.items.length; k++) {
-          const wItem = doc.resolve(widthsArr.items[k]);
-          if (wItem?.kind === "number") {
-            widths.set(firstChar + k, wItem.value * type3Scale1000);
-          }
-        }
-      } else {
-        const stdMetrics = STANDARD_14_FONTS[normalizeStandard14FontName(baseFont)];
-        defaultWidth = stdMetrics.defaultWidth;
-        for (const [codeStr, wVal] of Object.entries(stdMetrics.widthsByCode)) widths.set(Number(codeStr), wVal);
-      }
-    }
-
-    let embeddedCff: EmbeddedCffFont | undefined;
-    let embeddedTrueType: ParsedTrueTypeFont | undefined;
-    let simpleToGid: Map<number, number> | undefined;
-    const fDescDirect = doc.resolveDict(dictGet(fObj, "FontDescriptor"));
-    const descArrForTt = subtype === "Type0" ? doc.resolveArray(dictGet(fObj, "DescendantFonts")) : undefined;
-    const cidDictForTt = descArrForTt && descArrForTt.items[0] ? doc.resolveDict(descArrForTt.items[0]) : undefined;
-    const fDesc = fDescDirect ?? (cidDictForTt ? doc.resolveDict(dictGet(cidDictForTt, "FontDescriptor")) : undefined);
-    let cidToGid: Uint16Array | undefined;
-    const cidMap = cidDictForTt ? doc.resolve(dictGet(cidDictForTt, "CIDToGIDMap")) : undefined;
-    if (cidMap?.kind === "stream") {
-      // PDF.js readCidToGidMap reads big-endian pairs; a trailing high byte
-      // gets a zero low byte. Retain explicit zero entries and stream extent.
-      const bytes = doc.decodeStream(cidMap);
-      cidToGid = new Uint16Array(Math.ceil(bytes.length / 2));
-      for (let i = 0; i < bytes.length; i += 2) cidToGid[i / 2] = (bytes[i]! << 8) | (bytes[i + 1] ?? 0);
-    }
-    if (fDesc) {
-      const type1Program = doc.resolve(dictGet(fDesc, "FontFile"));
-      const program = doc.resolve(dictGet(fDesc, "FontFile2")) ?? doc.resolve(dictGet(fDesc, "FontFile3")) ?? type1Program;
-      if (program?.kind === "stream") {
-        const programType = doc.resolve(dictGet(program.dict, "Subtype"));
-        const baseEncoding = encNode?.kind === "dict" ? doc.resolve(dictGet(encNode, "BaseEncoding")) : encNode;
-        if (program === type1Program) {
-          const length1 = doc.resolve(dictGet(program.dict, "Length1"));
-          const length2 = doc.resolve(dictGet(program.dict, "Length2"));
-          const flags = doc.resolve(dictGet(fDesc, "Flags"));
-          embeddedCff = parseEmbeddedType1Font(doc.decodeStream(program), {
-            length1: length1?.kind === "number" ? length1.value : 0,
-            length2: length2?.kind === "number" ? length2.value : 0,
-            flags: flags?.kind === "number" ? flags.value : 0,
-            fontMatrix: [0.001, 0, 0, 0.001, 0, 0], bbox: [0, 0, 0, 0],
-            baseEncodingName: baseEncoding?.kind === "name" ? baseEncoding.decoded : undefined,
-            differences: glyphNames, overridableEncoding: true, widths: Object.fromEntries(widths),
-            composite: subtype === "Type0", cMap: { charCodeOf: (cid: number) => cid },
-          });
-        } else if (programType?.kind === "name" && (programType.decoded === "Type1C" || programType.decoded === "CIDFontType0C")) {
-          embeddedCff = parseEmbeddedCffFont(doc.decodeStream(program), baseEncoding?.kind === "name" ? baseEncoding.decoded : undefined, glyphNames);
-        } else {
-          embeddedTrueType = parseTrueTypeFont(doc.decodeStream(program));
-          if (subtype !== "Type0" && embeddedTrueType.isSymbolicCmap) {
-            // PDF.js maps Windows Symbol (3,0) entries by encoded byte,
-            // clearing the high byte only for the special F000–F0FF range.
-            simpleToGid = new Map();
-            for (let code = 0; code < 256; code++) {
-              const gid = embeddedTrueType.getGlyphId(0xf000 + code) || embeddedTrueType.getGlyphId(code);
-              if (gid > 0) simpleToGid.set(code, gid);
-            }
-          } else if (subtype !== "Type0" && !embeddedTrueType.hasCmap) {
-            // PDF.js recovers missing mappings from BaseEncoding/Differences
-            // and post names. ToUnicode describes text, not glyph selection.
-            simpleToGid = new Map();
-            const encoding = baseEncoding?.kind === "name" ? getEncoding(baseEncoding.decoded) : undefined;
-            for (let code = 0; code < 256; code++) {
-              const name = glyphNames.get(code) || encoding?.[code];
-              const gid = name ? embeddedTrueType.glyphNames.indexOf(name) : -1;
-              if (gid > 0) simpleToGid.set(code, gid);
-            }
-          }
-        }
-        for (const [code, unicode] of embeddedCff?.unicodeByCode ?? []) {
-          if (!differences.has(code)) differences.set(code, unicode);
-        }
-      }
-    }
-
-    const standardOutlines = !embeddedTrueType && !embeddedCff && subtype !== "Type3" ? getStandardFontOutlines(baseFont) : undefined;
-    for (const [code, unicode] of standardOutlines?.defaultUnicode ?? []) {
-      if (!differences.has(code)) differences.set(code, unicode);
-    }
-
-    fonts.set(fName, {
-      name: fName,
-      baseFont,
-      subtype,
-      isTwoByteCid,
-      cmap,
-      encodingCMap: subtype === "Type0" && encNode?.kind === "stream" ? parseCharacterCMap(doc.decodeStream(encNode)) : undefined,
-      differences,
-      glyphNames,
-      widths,
-      defaultWidth,
-      fontMatrix,
-      charProcs,
-      fontResources,
-      embeddedTrueType,
-      cidToGid,
-      simpleToGid,
-      embeddedCff,
-      standardOutlines,
-    });
-  }
-
-  return fonts;
 }
 
 interface GraphicsState {

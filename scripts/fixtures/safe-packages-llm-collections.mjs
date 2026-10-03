@@ -81,7 +81,7 @@ export async function verifyLlmCollections() {
     if(count!==1)throw new Error('Codepage row missing: '+fixture.encoding);
     if(fixture.undefinedByte!==null){
       await globFs.writeFile('/legacy',Uint8Array.of(fixture.undefinedByte));let warnings=0;
-      await withFileEmbeddingEntries({...options,undecodable(){warnings++;}},files,async entries=>{for await(const ignored of entries)throw new Error('Undefined codepage byte accepted: '+fixture.encoding);});
+      await withFileEmbeddingEntries({...options,undecodable(){warnings++;}},files,async entries=>{for await(const entry of entries)throw new Error('Undefined codepage byte accepted: '+fixture.encoding,{cause:entry});});
       if(warnings!==1)throw new Error('Undefined codepage byte was not skipped: '+fixture.encoding);
     }
     if((await globFs.readdir('/')).length!==1)throw new Error('Codepage staging leaked: '+fixture.encoding);

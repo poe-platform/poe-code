@@ -366,9 +366,18 @@ export class ExecutionContext implements AdapterContext {
         for (const key of budgets) this.charge(key, part.value.byteLength);
         this.charge("retainedBytes", part.value.byteLength);
         this.checkpoint(Math.max(1, Math.ceil(part.value.byteLength / 4096)));
-        const owned = new Uint8Array(part.value);
-        await accept(owned);
-        await this.cooperate(0);
+        // A producer may supply a whole file as one borrowed chunk. Keep our
+        // owned working copy bounded, without advancing the producer until all
+        // pieces have been accepted. Budget admission remains before copying.
+        let offset = 0;
+        do {
+          this.checkpoint(0);
+          const end = Math.min(part.value.byteLength, offset + 65536);
+          const owned = new Uint8Array(part.value.subarray(offset, end));
+          await accept(owned);
+          offset = end;
+          await this.cooperate(0);
+        } while (offset < part.value.byteLength);
       }
     } finally {
       if (done) this.cleanups.delete(cleanup);

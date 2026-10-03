@@ -383,3 +383,45 @@ it("polls a signal checkpoint without a custom yield capability", async () => {
   await expect(context.cooperate(256)).rejects.toMatchObject({ code: "E_CANCELLED" });
   expect(checkpoint).toHaveBeenCalledOnce();
 });
+
+it("consumes oversized producer chunks in bounded owned pieces before advancing", async () => {
+  const context = createExecutionContext("read", {yield: immediate});
+  const source = new Uint8Array(200000).fill(7);
+  const pieces: Uint8Array[] = [];
+  let advanced = false;
+  try {
+    await context.consume((async function* () {
+      yield source;
+      advanced = true;
+      source.fill(9);
+    })(), async bytes => {
+      expect(advanced).toBe(false);
+      expect(bytes.buffer).not.toBe(source.buffer);
+      expect(bytes.length).toBeLessThanOrEqual(65536);
+      pieces.push(bytes);
+    }, ["inputBytes"]);
+    expect(advanced).toBe(true);
+    expect(pieces.reduce((sum, bytes) => sum + bytes.length, 0)).toBe(source.length);
+    expect(pieces.every(bytes => bytes.every(byte => byte === 7))).toBe(true);
+  } finally {await context.close();}
+});
+
+it("closes an oversized producer once when cancellation interrupts a piece", async () => {
+  const controller = new AbortController();
+  const context = createExecutionContext("read", {signal: controller.signal, yield: immediate});
+  const closed = vi.fn();
+  const tail = vi.fn();
+  let accepted = 0;
+  const source = (async function* () {
+    try {yield new Uint8Array(200000); tail();} finally {closed();}
+  })();
+  await expect(context.consume(source, async () => {
+    accepted++;
+    controller.abort();
+  })).rejects.toMatchObject({code: "E_CANCELLED"});
+  await context.close();
+  await context.close();
+  expect(accepted).toBe(1);
+  expect(tail).not.toHaveBeenCalled();
+  expect(closed).toHaveBeenCalledOnce();
+});

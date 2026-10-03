@@ -17,7 +17,7 @@ import {
 import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, modulateImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, tintImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
+import { decodeImageToStorage, transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, modulateImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, tintImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -3201,7 +3201,7 @@ function* createSolidRgbaImageSteps(width: number, height: number, color: RgbaCo
     };
 }
 
-function createLabelImage(text: string, state: MagickState): RgbaImage {
+function createLabelSvg(text: string, state: MagickState): string {
   const fontSize = Math.max(8, state.pointsize);
   const w = state.hasSize ? state.sizeWidth : Math.max(16, Math.ceil(text.length * fontSize * 0.65) + 8);
   const h = state.hasSize ? state.sizeHeight : Math.max(12, Math.ceil(fontSize * 1.4));
@@ -3214,7 +3214,7 @@ function createLabelImage(text: string, state: MagickState): RgbaImage {
     ? Math.round(h / 2 + fontSize * 0.35)
     : Math.round(h * 0.75);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${bg}<text x="${textX}" y="${textY}"${anchor} font-size="${fontSize}" fill="${rgbaToCss(state.fill)}">${escapeXml(text)}</text></svg>`;
-  return decodeImage(new TextEncoder().encode(svg), { density: state.density });
+  return svg;
 }
 
 function magickResizeOptions(img:Pick<RgbaImage,"width"|"height">,geomStr:string,kernel:ResizeKernel):Parameters<typeof resizeImageSteps>[1]|undefined {
@@ -3916,7 +3916,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     if (lower.startsWith("label:") || lower.startsWith("caption:")) {
         const text = baseToken.slice(baseToken.indexOf(":") + 1);
-        return yield* applyMod([createLabelImage(text, state)]);
+        return yield* applyMod([decodeImage(new TextEncoder().encode(createLabelSvg(text, state)), { density: state.density })]);
     }
     if (lower === "null:") {
         return yield* applyMod([(yield* createSolidRgbaImageSteps(1, 1, { r: 0, g: 0, b: 0, a: 0 }))]);
@@ -5737,6 +5737,10 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const position=backend.storage.allocate(state.sizeWidth*state.sizeHeight*4);
   for(let y=0;y<state.sizeHeight;y++)for(let x=0;x<state.sizeWidth;x++){await backend.storage.write(position+(y*state.sizeWidth+x)*4,await backend.storage.read(pattern.position+((y%pattern.height)*pattern.width+x%pattern.width)*4,4));}
   image={position,width:state.sizeWidth,height:state.sizeHeight,format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:true};
+ }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
+  const svg=createLabelSvg(baseToken.slice(baseToken.indexOf(":")+1),state),encoder=new TextEncoder(),base=backend.storage.allocate(0);let size=0;
+  for(let offset=0;offset<svg.length;){const bytes=new Uint8Array(4096),{read,written}=encoder.encodeInto(svg.slice(offset,offset+4097),bytes);await backend.storage.write(backend.storage.allocate(written),bytes.subarray(0,written));offset+=read;size+=written;}
+  image=await decodeImageToStorage({size,async read(position,length){return backend.storage.read(base+position,length);}},backend.storage,signal,{density:state.density});
  }else{
   const generated=await drainSteps(parseInputOperandSteps(baseToken,new Map(),state),signal);
   if(generated)image=await backend.retain(generated);

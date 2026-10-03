@@ -24,3 +24,11 @@ it("compares SVG retained transforms with buffered pixel parity", async () => {
     expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
     expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["a.svg", "out.png"]);
 });
+
+it.each(["label:Hello <&>😀", "caption:Line one\nLine two", "label:", "label:sample[10x12!]"])("preserves generated SVG comparison pixels for %s", async operand => {
+    const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
+    const args = ["-density", "96", operand, "label:Different", "out.png"];
+    expect(await runCompareCli(args, { filesystem: retained(fs), cwd: "/" })).toEqual(await runCompareCli(args, files));
+    expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
+    expect((await fs.readdir("/")).map(entry => entry.name)).toEqual(["out.png"]);
+});

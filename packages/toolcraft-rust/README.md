@@ -22,11 +22,13 @@ keep existing applications on `toolcraft` until the complete API is available.
 | MCP schemas      | Native wire-key schemas, input/output requiredness, discriminator defaults and optional-alias constraints |
 | MCP tools        | Native scoped tool enumeration, nested allowlists, collision checks and command metadata |
 | MCP errors       | Native approval records, exact content blocks, HTTP envelopes and typed protocol errors |
-| Hosted OAuth configuration | Native URL, provider-field, callback-path and production-readiness policies; public HTTP/OAuth entry points pending |
-| Hosted OAuth storage | Native credential/update and transaction policies with the own Rust authorization store; public HTTP/OAuth entry points pending |
-| Hosted OAuth login | Native HTML/CSP assembly, escaped fields, secret-value suppression and expired-connection pages; public HTTP/OAuth entry points pending |
-| Hosted OAuth HTTP helpers | Native body-limit, header, request/response and credential-admission policies; public HTTP/OAuth entry points pending |
-| Hosted OAuth runtime | Native health, custom callback, form/CSRF and protocol routing, token identity and credential-backed services; public HTTP/OAuth entry points pending |
+| Hosted OAuth configuration | Native URL, provider-field, callback-path and production-readiness policies |
+| Hosted OAuth storage | Native credential/update and transaction policies with the own Rust authorization store |
+| Hosted OAuth login | Native HTML/CSP assembly, escaped fields, secret-value suppression and expired-connection pages |
+| Hosted OAuth HTTP helpers | Native body-limit, header, request/response and credential-admission policies |
+| Hosted OAuth runtime | Native health, custom callback, form/CSRF and protocol routing, token identity and credential-backed services |
+| Public HTTP      | `toolcraft-rust/http`: stateful/stateless MCP, bearer authorization and hosted OAuth |
+| Public hosted OAuth | `toolcraft-rust/http/hosted-oauth`: provider configuration, development storage and login errors |
 | Public MCP       | `toolcraft-rust/mcp`: server creation, deferred discovery, tool calls and session-owned streams |
 | MCP handlers     | Native invocation routing, request services, cancellation, approvals, result projection and error reporting |
 | Stack diagnostics | Native framework-frame summaries, nested cause sections and raw stack preservation |
@@ -104,6 +106,11 @@ await runCLI(app, { argv: ["node", "app", "greet", "--name", "World"] });
 // Expose the same command tree over MCP stdin/stdout.
 const { runMCP } = await import("toolcraft-rust/mcp");
 await runMCP(app, { name: "app", version: "1.0.0" });
+
+// Or expose the command tree over HTTP.
+const { runHTTPMCP } = await import("toolcraft-rust/http");
+const handle = await runHTTPMCP(app, { name: "app", version: "1.0.0", port: 3000 });
+// Call await handle.close() when shutting down.
 ```
 
 Use a human approval provider with the SDK:
@@ -223,8 +230,10 @@ remain under qualification. Public CLI parsing, prompting, rendering and errors
 are available, with existing Commander still supplying the parser objects.
 
 Public MCP supports stdin/stdout and SDK transports, including stream notifications
-and cancellation. HTTP/OAuth entry points and remaining subpaths are not yet
-available. The native CLI and MCP paths are currently slower than JavaScript.
-Declarations currently use the existing schema/design/config/MCP contract types; standalone type packaging and generic
+and cancellation. Public HTTP adds stateful/stateless requests, bearer verification
+and hosted OAuth with PKCE, credential services and canonical listener paths.
+Other subpaths remain incomplete. Native CLI, MCP and HTTP paths are currently
+slower than JavaScript.
+Declarations currently use the existing schema/design/config/MCP/HTTP contract types; standalone type packaging and generic
 stream-factory interchangeability remain pending. The migration and replacement
 gates are tracked in the repository's Toolcraft Rust API parity plan.

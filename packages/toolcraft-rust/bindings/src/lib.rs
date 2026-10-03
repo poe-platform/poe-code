@@ -41,6 +41,7 @@ pub mod hosted_oauth_http;
 pub mod hosted_oauth_login;
 pub mod hosted_oauth_runtime;
 pub mod hosted_oauth_storage;
+pub mod http;
 pub mod json_schema_converter;
 pub mod mcp_errors;
 pub mod mcp_handler;

@@ -15,6 +15,7 @@
     "tests/definition-types.ts",
     "tests/approval-types.ts",
     "tests/cli-types.ts",
-    "tests/mcp-types.ts"
+    "tests/mcp-types.ts",
+    "tests/http-types.ts"
   ]
 }

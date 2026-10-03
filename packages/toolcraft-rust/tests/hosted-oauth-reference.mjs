@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import ts from "typescript";
 
-export function loadHostedOAuthReference(names,capabilities={}){
-  const source=ts.createSourceFile("http-hosted-oauth.ts",readFileSync(new URL("../../toolcraft/src/http-hosted-oauth.ts",import.meta.url),"utf8"),ts.ScriptTarget.Latest,true);
+export function loadHostedOAuthReference(names,capabilities={},sourceUrl=new URL("../../toolcraft/src/http-hosted-oauth.ts",import.meta.url)){
+  const source=ts.createSourceFile(String(sourceUrl),readFileSync(sourceUrl,"utf8"),ts.ScriptTarget.Latest,true);
   const printer=ts.createPrinter();
   const declarations=source.statements.filter(node=>(ts.isFunctionDeclaration(node)||ts.isClassDeclaration(node))&&names.includes(node.name?.text));
   assert.equal(declarations.length,names.length);

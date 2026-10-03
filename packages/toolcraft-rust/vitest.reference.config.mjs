@@ -8,6 +8,7 @@ const suites = ["stack-trim", "suggest", "runtime-logging", "redaction", "packag
 // The original bundle suite invokes esbuild against source paths independently
 // of Vitest resolution. Native packaging is qualified separately.
 const cliSuites = readdirSync(path("../toolcraft/src")).filter(name => name.startsWith("cli") && name.endsWith(".test.ts") && name !== "cli-bundle.test.ts");
+const httpSuites = readdirSync(path("../toolcraft/src")).filter(name => name.startsWith("http") && name.endsWith(".test.ts"));
 const mcpSuites = ["mcp-default-descriptors", "mcp-default-metadata", "mcp-default-requiredness", "mcp-discriminator-metadata", "mcp-modern-output-roots", "mcp-notification-lifecycle", "mcp-output-validation", "mcp-request-cancellation", "mcp-runtime-options", "mcp-scope", "mcp-stream-errors", "mcp-proxy-native-transport", "entrypoints-mcp-proxy"];
 
 export default defineConfig({
@@ -16,6 +17,16 @@ export default defineConfig({
       name: "toolcraft-rust-reference",
       enforce: "pre",
       resolveId(name, importer) {
+        if (httpSuites.some(suite => importer === path(`../toolcraft/src/${suite}`))) {
+          if (name === "./http.js") return path("dist/http.js");
+          if (name === "./http-hosted-oauth.js") return path("dist/http-hosted-oauth.js");
+          if (name === "./index.js") return path("tests/definition-entry.mjs");
+          if (name === "./mcp.js") return path("dist/mcp.js");
+          if (name === "tiny-mcp-client") return path("../tiny-mcp-client-rust/dist/index.js");
+          if (name === "tiny-http-mcp-server/server") return path("../tiny-http-mcp-server-rust/dist/server.js");
+          if (name === "tiny-http-mcp-server/test-support") return path("../tiny-http-mcp-server-rust/dist/test-support.js");
+          if (name === "mcp-oauth-server") return path("../mcp-oauth-server-rust/dist/index.js");
+        }
         if (mcpSuites.some(suite => importer === path(`../toolcraft/src/${suite}.test.ts`))) {
           if (name === "./mcp.js") return path("dist/mcp.js");
           if (name === "./index.js") return path("tests/definition-entry.mjs");
@@ -103,6 +114,8 @@ export default defineConfig({
   ],
   test: {
     include: [
+      ...httpSuites.map(suite => path(`../toolcraft/src/${suite}`)),
+      path("tests/http-public-parity.test.ts"),
       ...cliSuites.map(suite => path(`../toolcraft/src/${suite}`)),
       path("../toolcraft/src/renderer.test.ts"),
       path("../toolcraft/src/design-subpath-exports.test.ts"),

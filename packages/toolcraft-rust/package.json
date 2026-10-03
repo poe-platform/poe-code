@@ -331,6 +331,14 @@
     "./mcp": {
       "types": "./dist/mcp.d.ts",
       "import": "./dist/mcp.js"
+    },
+    "./http": {
+      "types": "./dist/http.d.ts",
+      "import": "./dist/http.js"
+    },
+    "./http/hosted-oauth": {
+      "types": "./dist/http-hosted-oauth.d.ts",
+      "import": "./dist/http-hosted-oauth.js"
     }
   },
   "scripts": {
@@ -374,6 +382,7 @@
     "@poe-code/agent-human-in-loop-rust": "*",
     "@poe-code/config-mutations-rust": "*",
     "tiny-stdio-mcp-server-rust": "*",
-    "mcp-oauth-server-rust": "*"
+    "mcp-oauth-server-rust": "*",
+    "tiny-http-mcp-server-rust": "*"
   }
 }

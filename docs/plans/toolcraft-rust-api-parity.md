@@ -4523,3 +4523,58 @@ The earlier hosted-runtime Release 37095895081 completed successfully with the
 build passing and release-stable skipped. This is build verification, not new
 publication. The public HTTP checkpoint still has declaration/packaging/build
 qualification in progress and is not included in this dependency repair.
+
+### Public HTTP and hosted OAuth checkpoint
+
+The public toolcraft-rust/http and http/hosted-oauth entry points now expose
+HTTP server startup, authorization, hosted configuration/storage/runtime and
+OAuth server helpers. Rust selects authorization and token projection, forwarded
+transport/listener controls, stream admission, hosted identity and canonical
+listener paths. Node retains live getters, callback receivers, original thrown
+values, promise timing, I/O and application/provider service composition. The
+existing own tiny-http-mcp-server-rust workspace is now a runtime dependency.
+No third-party dependencies or JavaScript defaults changed.
+
+Seven missing-module failures preceded implementation. Eight final differential
+cases verify public export names, issuer/resource validation, token projection,
+getters/symbols, own session flags, service precedence, listener paths, source-map
+startup, live token reads across await and arbitrary thrown identity. All six
+original HTTP suites execute native adapters, own transports and in-memory HTTP
+support. Their original assertions are unchanged. The Node global require shim
+was separately reproduced as missing and now matches reference import behavior.
+
+The maintained selected workspace build passes. Local installation repair restored
+already-declared compression/ts-ast/AST-grep/rgrep workspace links, picomatch 4.0.7
+and its locked types. The wrong installed picomatch 2 had pulled Node path into
+a browser build. No manifest dependency was introduced for these repairs.
+The maintained npm test route selecting protocol, stdio, HTTP and Toolcraft
+passes, including dependency builds and the root posttest hook: Toolcraft has
+6,100 cases across 117 files and 266 native checks; HTTP has 443 reference cases
+across 21 files and 50 native checks; stdio has 362 native checks. Rust tests,
+public HTTP/hosted declaration consumers, the original CLI compile-check and
+maintained/scoped lint pass. A type fixture initially supplied credential
+services to an EmptyServices group; explicitly declaring the services fixes
+the same contract for both implementations, without widening the API.
+
+Eleven packed own packages pass public stateful/stateless HTTP discovery, defaulted
+input/output projection, protocol rejections, stream delivery and unsupported
+stream admission. A full hosted flow verifies health/metadata, registration, PKCE,
+CSP/CSRF, safe retry, token exchange, credential services, replay rejection,
+refresh-token revocation and missing-credential rejection. Packed native ESM
+imports are confined to packed packages, Node builtins and existing Commander.
+Public declarations still re-export canonical reference HTTP contracts; full
+standalone types remain unqualified. The earlier login screenshot gate remains
+open; this checkpoint does not claim additional visual QA.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 300 operations, retaining
+32 results, measured HTTP server creation at 598.618 microseconds native versus
+253.591 JavaScript (2.36 times slower). A real initialized stateful HTTP tool
+call through the shared in-memory HTTP fixture measured 215.132 versus 60.613
+microseconds (3.55 times slower), including request/response JSON and declared
+input/output processing. Preflight checks validate actual returned values. No
+performance/default-swap gate passed. Remaining subpaths, Commander replacement,
+standalone types and complete platform/resource/packaging qualification remain open.
+
+The shared-error dependency fix is verified on remote main at a7625be369. Its
+Release 37097600121 remains pending and package workflow 37097600054 is running;
+no new release publication is claimed.

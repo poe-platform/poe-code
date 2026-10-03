@@ -6,8 +6,9 @@ import { byteStringQuotingCases, byteStringQuotingInputHex } from "./byte-string
 import { byteStringArrayCase } from "./byte-string-array-fixtures.js";
 
 const bytes = (hex: string) => Uint8Array.from(hex.match(/../g) ?? [], h => parseInt(h, 16));
-it.each([...byteStringQuotingCases.filter(vector => vector.exit === 0).map(vector => ({ ...vector, inputHex: byteStringQuotingInputHex })),
-  { ...byteStringArrayCase, label: "native-array", args: ["-T", "Gnumeric_stf:stf_csv"] }])("matches native opaque-byte CSV quoting $label", async vector => {
+it.each([...byteStringQuotingCases.filter(vector => vector.exit === 0).map(vector => ({ ...vector, inputHex: byteStringQuotingInputHex, stderr: "" })),
+  // Native Perl compiles the variable-width lookbehind on load and forced recalculation.
+  { ...byteStringArrayCase, label: "native-array", args: ["-T", "Gnumeric_stf:stf_csv"], stderr: "Variable length lookbehind is experimental\n".repeat(2) }])("matches native opaque-byte CSV quoting $label", async vector => {
   const input = bytes(vector.inputHex), output: Uint8Array[] = [], errors: Uint8Array[] = [];
   const engine = createEngine({ codecs: [], runtimeFunctions: perlSampleFunctions,
     environment: { env: {}, locale: "C", timezone: "UTC" },
@@ -18,7 +19,7 @@ it.each([...byteStringQuotingCases.filter(vector => vector.exit === 0).map(vecto
       signal: new AbortController().signal, stdout: { async write(b) { output.push(new Uint8Array(b)); } }, stderr: { async write(b) { errors.push(new Uint8Array(b)); } }
     });
     expect(result.exitCode).toBe(0);
-    expect(errors).toEqual([]);
+    expect(new TextDecoder().decode(new Uint8Array(errors.flatMap(b => [...b])))).toBe(vector.stderr);
     expect(new Uint8Array(output.flatMap(b => [...b]))).toEqual(bytes(vector.stdoutHex));
   } finally { await engine.dispose(); }
 });

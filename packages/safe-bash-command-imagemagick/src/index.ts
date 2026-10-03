@@ -5824,6 +5824,22 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
   const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(baseToken.slice(baseToken.indexOf(":")+1)||"white"),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
   image={...await decodeImageToStorage({size:0,async read(){return new Uint8Array();}},backend.storage,signal,{create:{width,height,channels:4,background:{r:color.r,g:color.g,b:color.b,alpha:color.a/255}}}),format:"png"};
+ }else if(lower.startsWith("gradient:")||lower.startsWith("radial-gradient:")||lower.startsWith("pattern:")||lower.startsWith("plasma:")){
+  const width=Math.max(1,Math.round(state.sizeWidth)),height=Math.max(1,Math.round(state.sizeHeight)),position=backend.storage.allocate(width*height*4);
+  const checker=lower.startsWith("pattern:")||lower.startsWith("plasma:"),radial=lower.startsWith("radial-gradient:");
+  const [first,last]=baseToken.slice(baseToken.indexOf(":")+1).split("-"),a=parseColor(checker?"white":first||"#ffffff"),b=parseColor(checker?"black":last||"#000000");
+  const cx=(width-1)/2,cy=(height-1)/2,radius=Math.max(1,Math.hypot(cx,cy));
+  for(let start=0;start<width*height;start+=4096){
+   if(start%262144===0)await yieldTurn(signal);
+   const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4);
+   for(let i=0;i<count;i++){
+    const x=(start+i)%width,y=Math.floor((start+i)/width),offset=i*4;
+    if(checker){const cell=((Math.floor(x/8)+Math.floor(y/8))&1)===0?102:153;bytes[offset]=cell;bytes[offset+1]=cell;bytes[offset+2]=cell;bytes[offset+3]=255;}
+    else{const t=radial?Math.min(1,Math.hypot(x-cx,y-cy)/radius):height<=1?0:y/(height-1);bytes[offset]=clampByteVal(a.r*(1-t)+b.r*t);bytes[offset+1]=clampByteVal(a.g*(1-t)+b.g*t);bytes[offset+2]=clampByteVal(a.b*(1-t)+b.b*t);bytes[offset+3]=clampByteVal(a.a*(1-t)+b.a*t);}
+   }
+   await backend.storage.write(position+start*4,bytes);
+  }
+  image={position,width,height,format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:true};
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
   const svg=createLabelSvg(baseToken.slice(baseToken.indexOf(":")+1),state),encoder=new TextEncoder(),base=backend.storage.allocate(0);let size=0;
   for(let offset=0;offset<svg.length;){const bytes=new Uint8Array(4096),{read,written}=encoder.encodeInto(svg.slice(offset,offset+4097),bytes);await backend.storage.write(backend.storage.allocate(written),bytes.subarray(0,written));offset+=read;size+=written;}

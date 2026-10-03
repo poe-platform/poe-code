@@ -101,3 +101,11 @@ it("preserves a retained input close failure instead of formatting it as a decod
     await expect(runConvertCli(["a", "-flip", "out.png"], { filesystem, cwd: "/" })).rejects.toBe(reason);
     expect((await fs.readdir("/")).map(entry => entry.name)).toEqual(["a"]);
 });
+for (const operand of ["gradient:", "gradient:none-red", "radial-gradient:red-blue", "pattern:checkerboard", "plasma:fractal"])
+for (const size of ["1x1", "3x19", "19x3"])
+    it(`preserves generated ${operand} at ${size}`, async () => {
+        const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>(), args = ["-size", size, operand, "out.png"];
+        expect(await runConvertCli(args, { filesystem: fs, cwd: "/" })).toEqual(await runConvertCli(args, files));
+        expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
+        expect((await fs.readdir("/")).map(entry => entry.name)).toEqual(["out.png"]);
+    });

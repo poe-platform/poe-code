@@ -1,3 +1,4 @@
+import { parseValueSteps } from "./value-parser.js";
 import { drainWork } from "../work.js";
 import { assertDecodedByteBudget } from "./limits.js";
 import {
@@ -8,7 +9,6 @@ import {
   type PdfCosNode,
   type PdfCosRef,
   type PdfCosStream,
-  type PdfDictEntry,
   type PdfEncryptionState,
   type PdfIndirectObject,
   type PdfRevision,
@@ -158,67 +158,19 @@ export class ParsedCosDocument {
 }
 
 function* parseNodeFromLexerSteps(lexer: CosByteLexer, bytes: Uint8Array, maxDepth: number, repair = false): Generator<void, PdfCosNode | undefined, void> {
-  yield;
-  let work = 0;
-
-  type Container =
-    | { kind: "array"; start: number; items: PdfCosNode[] }
-    | { kind: "dict"; start: number; entries: PdfDictEntry[]; key?: PdfDictEntry["key"] };
-  const stack: Container[] = [];
-  while (true) {
-      if (++work % 16 === 0) yield;
-
-    const tok = lexer.nextToken();
-    const parent = stack.at(-1);
-    if (!tok) {
-      if (!parent) return undefined;
-      throw new PdfError("E_PARSE", parent.kind === "array" ? "Unterminated PDF array" : "Unterminated PDF dictionary");
-    }
-    // Eager COS materialization also visits unused dummy objects that PDF.js
-    // need not fetch. Preserve them as null only during document recovery.
-    if (!parent && repair && tok.kind === "keyword" && tok.value === "endobj") {
-      return { kind: "null", span: tok.span };
-    }
-    let node: PdfCosNode;
-    if (parent?.kind === "array" && tok.kind === "array-end") {
-      stack.pop();
-      node = { kind: "array", items: parent.items, span: { start: parent.start, end: tok.span.end } };
-    } else if (parent?.kind === "dict" && !parent.key) {
-      if (tok.kind === "dict-end") {
-        stack.pop();
-        node = parseDictionaryStream({ kind: "dict", entries: parent.entries, span: { start: parent.start, end: tok.span.end } }, lexer, bytes);
-      } else if (tok.kind === "name") {
-        parent.key = { kind: "name", rawBytes: tok.rawBytes, decoded: tok.decoded, span: tok.span };
-        continue;
+  const work = parseValueSteps(lexer, maxDepth, repair);
+  try {
+    let step = work.next();
+    while (!step.done) {
+      if (step.value === undefined) {
+        yield;
+        step = work.next();
       } else {
-        // PDF.js Parser.getObj advances past stray non-Name keys rather than
-        // discarding the dictionary (e.g. unescaped font-name spaces).
-        if (repair) continue;
-        throw new PdfError("E_PARSE", `Expected dictionary key /Name, got ${tok.kind}`);
+        step = work.next(step.value === "token" ? lexer.nextToken() : parseDictionaryStream(step.value, lexer, bytes));
       }
-    } else {
-      if (parent?.kind === "dict" && tok.kind === "dict-end") {
-        throw new PdfError("E_PARSE", `Missing value for dictionary key /${parent.key!.decoded}`);
-      }
-      if (stack.length > maxDepth) throw new PdfError("E_LIMIT", "PDF syntax nesting limit exceeded");
-      if (tok.kind === "array-start") {
-        stack.push({ kind: "array", start: tok.span.start, items: [] });
-        continue;
-      }
-      if (tok.kind === "dict-start") {
-        stack.push({ kind: "dict", start: tok.span.start, entries: [] });
-        continue;
-      }
-      node = parseLeafFromToken(tok, lexer);
     }
-    const container = stack.at(-1);
-    if (!container) return node;
-    if (container.kind === "array") container.items.push(node);
-    else {
-      container.entries.push({ key: container.key!, value: node });
-      delete container.key;
-    }
-  }
+    return step.value;
+  } finally { work.return(undefined); }
 }
 
 function resolveIndirectIntegerFromBytes(
@@ -254,45 +206,6 @@ function findEndstreamBeforeEndobj(bytes: Uint8Array, fromIndex: number): number
   return firstMatch;
 }
 
-function parseLeafFromToken(tok: CosToken, lexer: CosByteLexer): PdfCosNode {
-  switch (tok.kind) {
-    case "null":
-      return { kind: "null", span: tok.span };
-    case "boolean":
-      return { kind: "boolean", value: tok.value, span: tok.span };
-    case "number": {
-      const savedOffset = lexer.offset;
-      const t2 = lexer.nextToken();
-      if (t2?.kind === "number" && Number.isInteger(tok.value) && Number.isInteger(t2.value)) {
-        const t3 = lexer.nextToken();
-        if (t3?.kind === "keyword" && t3.value === "R") {
-          return {
-            kind: "ref",
-            objectNumber: tok.value,
-            generationNumber: t2.value,
-            span: { start: tok.span.start, end: t3.span.end },
-          };
-        }
-      }
-      lexer.offset = savedOffset;
-      return {
-        kind: "number",
-        value: tok.value,
-        isInteger: Number.isInteger(tok.value) && !tok.raw.includes("."),
-        raw: tok.raw,
-        span: tok.span,
-      };
-    }
-    case "name":
-      return { kind: "name", rawBytes: tok.rawBytes, decoded: tok.decoded, span: tok.span };
-    case "string":
-      return { kind: "string", encoding: "literal", bytes: tok.bytes, span: tok.span };
-    case "hex-string":
-      return { kind: "string", encoding: "hex", bytes: tok.bytes, span: tok.span };
-    default:
-      throw new PdfError("E_PARSE", `Unexpected PDF token: ${tok.kind}`);
-  }
-}
 
 function parseDictionaryStream(dictNode: PdfCosDict, lexer: CosByteLexer, bytes: Uint8Array): PdfCosNode {
   const savedAfterDict = lexer.offset;

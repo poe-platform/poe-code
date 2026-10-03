@@ -4,6 +4,7 @@ export * from "./cos/lexer.js";
 export * from "./cos/filters.js";
 export * from "./cos/security.js";
 export * from "./cos/parser.js";
+export * from "./cos/range-parser.js";
 export * from "./cos/writer.js";
 export * from "./fonts/standard14.js";
 export * from "./fonts/cmap.js";

@@ -26,6 +26,15 @@ memory: set `maxTokenBytes` to bound decoded strings and encoded names/numbers.
 `start`, `end`, `knownCommands`, and `signal` control scanning. The caller closes
 the source after use; the lexer does not collect a document or own its handle.
 
+`parseCosRangeObject(source, offset, options)` parses one indirect object at a
+known offset. Stream objects return their dictionary in `value` and a `stream`
+byte span; consume the payload with `source.stream(start, end - start)`. Correct
+`/Length` values let the parser seek over payloads, and a `resolveLength` callback
+can use your object index for indirect lengths. Damaged lengths use bounded
+range scanning. `maxNodes`, `maxTokenBytes`, and `maxRecursionDepth` bound the
+active structural value; the source remains caller-owned. This low-level API
+returns encoded object data, before document-level decryption or stream decoding.
+
 For stdin or intermediate data, `PdfFileSource.fromStream(fs, directory, chunks,
 options)` writes bounded chunks into retained staging in the supplied directory.
 It seals the file before reading, verifies its identity and content revision,

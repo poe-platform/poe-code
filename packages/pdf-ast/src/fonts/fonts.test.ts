@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { cosArray, cosDict, cosName, cosNumber, cosRef, dictGet } from "../ast.js";
 import { parseCosDocument } from "../cos/parser.js";
 import { serializeCosDocument } from "../cos/writer.js";
@@ -198,4 +198,66 @@ it("embeds advance widths for glyph IDs above 511", async () => {
   expect(loaded.extractText()).toBe("AA");
   expect(glyphs[0]!.charCode).toBe(599);
   expect(glyphs[1]!.matrix[4] - glyphs[0]!.matrix[4]).toBeCloseTo(13);
+});
+
+
+it("looks up compact TrueType character ranges without expanding a character map", () => {
+  const bytes = buildSyntheticTrueTypeBytes();
+  const view = new DataView(bytes.buffer);
+  view.setUint32(228, 0x10000, false);
+  view.setUint32(232, 0x1ffff, false);
+  const original = Map.prototype.set; let entries = 0;
+  const spy = vi.spyOn(Map.prototype, "set").mockImplementation(function(this: Map<unknown, unknown>, key: unknown, value: unknown) {
+    if (typeof key === "number") entries++;
+    return original.call(this, key, value);
+  });
+  let font: ReturnType<typeof parseTrueTypeFont>;
+  try { font = parseTrueTypeFont(bytes); }
+  finally { spy.mockRestore(); }
+  expect(entries).toBe(0);
+  expect(font.getGlyphId(0x10000)).toBe(1);
+  expect(font.getGlyphId(0x1ffff)).toBe(65536);
+  expect(font.getGlyphId(0x20000)).toBe(0);
+});
+
+it("preserves last-wins lookup for overlapping TrueType ranges", () => {
+  const bytes = buildSyntheticTrueTypeBytes(); const view = new DataView(bytes.buffer);
+  view.setUint32(224, 2, false);
+  view.setUint32(232, 70, false);
+  view.setUint32(240, 66, false); view.setUint32(244, 68, false); view.setUint32(248, 10, false);
+  const font = parseTrueTypeFont(bytes);
+  expect([65, 66, 68, 69, 70, 71].map(cp => font.getGlyphId(cp))).toEqual([1, 10, 12, 5, 6, 0]);
+});
+
+
+it("retains format-4 overlap fallback for zero and out-of-bounds glyphs", () => {
+  const bytes = buildSyntheticTrueTypeBytes(); const view = new DataView(bytes.buffer);
+  view.setUint16(188, 10, false);
+  view.setUint16(212, 4, false); view.setUint16(218, 6, false);
+  for (const [offset, values] of [[226, [67, 68, 65535]], [234, [65, 66, 65535]], [240, [65472, 0, 1]], [246, [0, 6, 0]]] as const) {
+    values.forEach((value, index) => view.setUint16(offset + index * 2, value, false));
+  }
+  view.setUint16(254, 9, false);
+  const font = parseTrueTypeFont(bytes);
+  expect([64, 65, 66, 67, 68, 65535, 65.5].map(cp => font.getGlyphId(cp))).toEqual([0, 1, 9, 3, 0, 0, 0]);
+});
+
+it("uses logarithmic reads for ordered TrueType character ranges", () => {
+  const bytes = new Uint8Array(228 + 1024 * 12);
+  bytes.set(buildSyntheticTrueTypeBytes()); const view = new DataView(bytes.buffer);
+  view.setUint32(224, 1024, false);
+  for (let index = 0; index < 1024; index++) {
+    view.setUint32(228 + index * 12, index * 2, false);
+    view.setUint32(232 + index * 12, index * 2, false);
+    view.setUint32(236 + index * 12, index + 1, false);
+  }
+  const font = parseTrueTypeFont(bytes);
+  const original = DataView.prototype.getUint32; let reads = 0;
+  const spy = vi.spyOn(DataView.prototype, "getUint32").mockImplementation(function(this: DataView, offset: number, littleEndian?: boolean) {
+    reads++; return original.call(this, offset, littleEndian);
+  });
+  let glyph: number;
+  try { glyph = font.getGlyphId(2046); }
+  finally { spy.mockRestore(); }
+  expect(glyph).toBe(1024); expect(reads).toBeLessThan(40);
 });

@@ -50,6 +50,43 @@ function readU32(view: DataView, offset: number): number {
   return view.getUint32(offset, false);
 }
 
+// Keep cmap ranges in their caller-owned font bytes. Valid ordered tables use
+// binary search; malformed overlapping tables preserve the old last-write wins
+// behavior without expanding or caching a map per character.
+function createRangeLookup(
+  count: number,
+  start: (index: number) => number,
+  end: (index: number) => number,
+  glyph: (index: number, codePoint: number) => number | undefined,
+): (codePoint: number) => number {
+  let ordered = true;
+  let previous = -1;
+  for (let index = 0; index < count; index++) {
+    const low = start(index), high = end(index);
+    if (low <= previous || high < low) ordered = false;
+    previous = high;
+  }
+  return codePoint => {
+    if (!Number.isInteger(codePoint) || codePoint < 0) return 0;
+    if (ordered) {
+      let low = 0, high = count - 1;
+      while (low <= high) {
+        const middle = Math.floor((low + high) / 2);
+        if (codePoint < start(middle)) high = middle - 1;
+        else if (codePoint > end(middle)) low = middle + 1;
+        else return glyph(middle, codePoint) ?? 0;
+      }
+    } else {
+      for (let index = count - 1; index >= 0; index--) {
+        if (codePoint < start(index) || codePoint > end(index)) continue;
+        const gid = glyph(index, codePoint);
+        if (gid !== undefined) return gid;
+      }
+    }
+    return 0;
+  };
+}
+
 // Adapted from PDF.js readPostScriptTable. Optional malformed names must not
 // prevent CID fonts from using their explicit glyph IDs.
 function readPostGlyphNames(bytes: Uint8Array, numGlyphs: number): (string | undefined)[] {
@@ -145,7 +182,6 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
     advanceWidths[gid] = lastWidth;
   }
 
-  const codePointToGlyph = new Map<number, number>();
   const cmapOffset = cmap?.offset ?? 0;
   const cmapNumTables = cmap ? readU16(view, cmapOffset + 2) : 0;
   let format4Offset = 0;
@@ -169,47 +205,50 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
     }
   }
 
+  let getGlyphId = (_codePoint: number): number => 0;
   if (format12Offset > 0) {
-    const numGroups = readU32(view, format12Offset + 12);
-    for (let g = 0; g < numGroups; g++) {
-      const grp = format12Offset + 16 + g * 12;
-      if (grp + 12 > bytes.byteLength) break;
-      const startChar = readU32(view, grp);
-      const endChar = readU32(view, grp + 4);
-      const startGlyph = readU32(view, grp + 8);
-      for (let cp = startChar; cp <= endChar && cp - startChar <= 65535; cp++) {
-        codePointToGlyph.set(cp, startGlyph + (cp - startChar));
-      }
-    }
+    const numGroups = Math.min(readU32(view, format12Offset + 12), Math.max(0, Math.floor((bytes.length - format12Offset - 16) / 12)));
+    getGlyphId = createRangeLookup(
+      numGroups,
+      index => readU32(view, format12Offset + 16 + index * 12),
+      index => Math.min(readU32(view, format12Offset + 20 + index * 12), readU32(view, format12Offset + 16 + index * 12) + 65535),
+      (index, cp) => readU32(view, format12Offset + 24 + index * 12) + cp - readU32(view, format12Offset + 16 + index * 12),
+    );
   } else if (format4Offset > 0) {
     const segCount = readU16(view, format4Offset + 6) >> 1;
     const endCodeStart = format4Offset + 14;
     const startCodeStart = endCodeStart + segCount * 2 + 2;
     const idDeltaStart = startCodeStart + segCount * 2;
     const idRangeOffsetStart = idDeltaStart + segCount * 2;
-    for (let s = 0; s < segCount; s++) {
-      const endCode = readU16(view, endCodeStart + s * 2);
-      const startCode = readU16(view, startCodeStart + s * 2);
-      if (startCode === 0xffff && endCode === 0xffff) break;
-      const idDelta = readI16(view, idDeltaStart + s * 2);
-      const idRangeOffsetPos = idRangeOffsetStart + s * 2;
-      const idRangeOffset = readU16(view, idRangeOffsetPos);
-      for (let cp = startCode; cp <= endCode; cp++) {
+    let count = 0;
+    for (; count < segCount; count++) {
+      const end = readU16(view, endCodeStart + count * 2);
+      const start = readU16(view, startCodeStart + count * 2);
+      if (start === 0xffff && end === 0xffff) break;
+      // Preserve eager validation of the fixed segment records.
+      readI16(view, idDeltaStart + count * 2);
+      readU16(view, idRangeOffsetStart + count * 2);
+    }
+    getGlyphId = createRangeLookup(
+      count,
+      index => readU16(view, startCodeStart + index * 2),
+      index => readU16(view, endCodeStart + index * 2),
+      (index, cp) => {
+        const delta = readI16(view, idDeltaStart + index * 2);
+        const rangePos = idRangeOffsetStart + index * 2;
+        const range = readU16(view, rangePos);
         let gid = 0;
-        if (idRangeOffset === 0) {
-          gid = (cp + idDelta) & 0xffff;
-        } else {
-          const glyphIndexOffset = idRangeOffsetPos + idRangeOffset + (cp - startCode) * 2;
-          if (glyphIndexOffset + 2 <= bytes.byteLength) {
-            gid = readU16(view, glyphIndexOffset);
-            if (gid !== 0) gid = (gid + idDelta) & 0xffff;
+        if (range === 0) gid = (cp + delta) & 0xffff;
+        else {
+          const offset = rangePos + range + (cp - readU16(view, startCodeStart + index * 2)) * 2;
+          if (offset + 2 <= bytes.length) {
+            gid = readU16(view, offset);
+            if (gid !== 0) gid = (gid + delta) & 0xffff;
           }
         }
-        if (gid > 0 && gid < numGlyphs) {
-          codePointToGlyph.set(cp, gid);
-        }
-      }
-    }
+        return gid > 0 && gid < numGlyphs ? gid : undefined;
+      },
+    );
   }
 
   let postScriptName = "EmbeddedTrueType";
@@ -456,7 +495,7 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
   };
 
   const getGlyphOutline = (codePoint: number): PdfPathSegment[] => {
-    const gid = codePointToGlyph.get(codePoint) ?? 0;
+    const gid = getGlyphId(codePoint);
     return getGlyphOutlineByGid(gid);
   };
 
@@ -475,14 +514,12 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
     hasCmap: cmap !== undefined,
     isSymbolicCmap: format12Offset > 0 ? format12IsSymbolic : format4IsSymbolic,
     glyphNames,
-    getGlyphId(codePoint: number): number {
-      return codePointToGlyph.get(codePoint) ?? 0;
-    },
+    getGlyphId,
     getAdvanceWidthUnits(glyphId: number): number {
       return advanceWidths[glyphId] ?? advanceWidths[0] ?? 500;
     },
     getAdvanceWidth1000(codePoint: number): number {
-      const gid = codePointToGlyph.get(codePoint) ?? 0;
+      const gid = getGlyphId(codePoint);
       const units = advanceWidths[gid] ?? advanceWidths[0] ?? 500;
       return scale1000(units);
     },
@@ -499,7 +536,7 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
       const usedGlyphs = new Map<number, string>();
       for (const ch of text) {
         const cp = ch.codePointAt(0) ?? 0;
-        const gid = codePointToGlyph.get(cp) ?? 0;
+        const gid = getGlyphId(cp);
         usedGlyphs.set(gid, ch);
         out.push((gid >> 8) & 0xff, gid & 0xff);
       }

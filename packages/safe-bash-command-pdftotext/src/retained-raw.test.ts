@@ -127,3 +127,19 @@ test("retained HTML streams large escaped metadata across a surrogate boundary w
   assert.equal((await createPdftotextCommand().execute(f.context)).exitCode, 0);
   assert.equal(new TextDecoder().decode(joined(f.stdout)), expected.output); assert.equal(f.counts().wholeReads, 0); await f.clean();
 });
+for (const failure of [{ reason: "backend unavailable" }, new Error("backend password service unavailable"), new FsError("EIO", { path: "/input.pdf" })]) {
+  test(`retained raw preserves backend read failures and cleanup: ${String(failure)}`, async () => {
+    const f = await fixture(pdf(), ["-raw", "input.pdf", "output.txt"]); const base = f.context.fs; let closed = false;
+    f.context.fs = new Proxy(Object.create(base) as typeof base, { get(_target, key) {
+      if (key === "openReadFile") return async (...args: Parameters<NonNullable<typeof base.openReadFile>>) => {
+        const handle = await base.openReadFile!(...args);
+        if (args[0] !== "/input.pdf") return handle;
+        return { ...handle, stat: handle.stat.bind(handle), async read() { throw failure; }, async close() { closed = true; await handle.close(); throw new Error("secondary close failure"); } };
+      };
+      const value = Reflect.get(base, key); return typeof value === "function" ? value.bind(base) : value;
+    } });
+    await assert.rejects(async () => createPdftotextCommand().execute(f.context), error => error === failure);
+    assert.equal(closed, true); assert.equal(f.stderr.length, 0); assert.equal(f.counts().published, 0);
+    assert.equal(new TextDecoder().decode(await f.fs.readFile("/output.txt")), "old output"); await f.clean();
+  });
+}

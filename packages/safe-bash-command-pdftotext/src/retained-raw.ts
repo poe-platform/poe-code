@@ -1,5 +1,5 @@
 import { streamTextHtml } from "./text-markup.js";
-import { PdfFileSource, PdfRetainedDocument, PdfStagingStorage } from "@poe-code/pdf-ast";
+import { PdfError, PdfFileSource, PdfRetainedDocument, PdfStagingStorage } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -99,10 +99,10 @@ export async function executeRetainedRawText(context: CommandContext, plan: RawT
       for await (const ignored of document.pages()) { void ignored; pageCount++; await yieldTurn(signal); }
     } catch (failure) {
       signal.throwIfAborted();
-      const message = failure instanceof Error ? failure.message : String(failure);
-      if (message.toLowerCase().includes("password") || message.toLowerCase().includes("encrypted")) return await error("Command Line Error: Incorrect password\n", 1);
-      if (failure instanceof Error && "code" in failure && (failure.code === "E_LIMIT" || failure.code === "E_CAPABILITY")) throw failure;
-      return await error(`Syntax Error: ${message}\n`, 1);
+      if (!(failure instanceof PdfError)) throw failure;
+      if (failure.code === "E_PASSWORD" || (failure.code === "E_CAPABILITY" && failure.message === "Invalid PDF password")) return await error("Command Line Error: Incorrect password\n", 1);
+      if (failure.code !== "E_PARSE") throw failure;
+      return await error(`Syntax Error: ${failure.message}\n`, 1);
     }
     const first = Math.max(1, plan.firstPage);
     const last = !plan.lastPageExplicit || plan.lastPage === 0 || plan.lastPage > pageCount ? pageCount : plan.lastPage;

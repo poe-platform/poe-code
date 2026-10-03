@@ -604,6 +604,7 @@
           "dependencies": {},
           "devDependencies": {
             "@poe-code/image-ast": "*",
+            "@poe-code/safe-fs": "*",
             "safe-bash-contracts": "*"
           },
           "portable": true

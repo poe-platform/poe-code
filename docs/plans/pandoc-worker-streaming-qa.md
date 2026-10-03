@@ -143,13 +143,17 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   parameters, hex escapes, depth/binary limits and cleanup under source, token
   storage and cancellation failures. Long/deep payloads use bounded reads.
   Private semantic definitions retain font names, numeric font/color indexes,
-  style controls and inheritance continuations in caller storage. Exercise
+  style controls and inheritance continuations in caller storage. List and
+  override catalogs and legacy-list identities are also backed; only the nine
+  supported levels and the one-byte label-length window remain resident.
+  Validate partial/full overrides, malformed excess levels, wide catalogs and
+  storage/cancellation cleanup against the existing reader. Exercise
   long names, flat/grouped tables, font-selected code pages, deep inheritance,
   malformed definitions and cleanup failures against the existing reader.
   The public reader shares bounded byte-run decoding with these definitions,
   preserving fatal UTF-8 boundaries and reused producer buffers. It still uses
   the resident token tree and AST; integrating backed definitions and migrating
-  list, table, inline and resource state remain required before exposing a
+  table, inline and resource state remain required before exposing a
   retained RTF input route. This foundation is not public streaming completion.
   ODT output now retains XML continuations, dynamic list styles, image indexes,
   ZIP member payloads and central records. Differential tests compare complete

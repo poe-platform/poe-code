@@ -108,14 +108,21 @@ async function separator(source: AsyncIterable<string>, ending: string, csv: boo
   return "";
 }
 
-/** Parse one cell at a time; the returned extent is known only after EOF. */
-async function* scanTextSource(source: RangeSource, context: CapabilityContext, encoding?: string) {
+/** Retain only decoding and grammar decisions, never input chunks or cells. */
+async function textGrammar(source: RangeSource, context: CapabilityContext, encoding?: string) {
   context.signal.throwIfAborted();
   if (source.size > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert input bytes limit exceeded");
   const text = decodeTextSource(source, context.signal, encoding);
   const { ending, unique } = await lineEnding(text);
   const csv = context.inputFilename?.toLowerCase().endsWith(".csv") ?? false;
-  const sep = await separator(text, ending, csv, formattingLocale(context.environment.locale).decimal), collapse = sep.includes(" ");
+  const sep = await separator(text, ending, csv, formattingLocale(context.environment.locale).decimal);
+  return { text, ending, unique, csv, sep };
+}
+
+/** Parse one cell at a time; each replay has its own decoder and parser state. */
+async function* scanTextSource(grammar: Awaited<ReturnType<typeof textGrammar>>, context: CapabilityContext) {
+  context.signal.throwIfAborted();
+  const { text, ending, unique, csv, sep } = grammar, collapse = sep.includes(" ");
   let count = 0, pending: Cell | undefined;
   const name = context.inputFilename?.slice(context.inputFilename.lastIndexOf("/") + 1) ?? "Sheet1";
   const book: Workbook = { sheets: [{ id: "s1", name, cells: [] }], ...(unique ? { textExportEol: ending } : {}) };
@@ -172,7 +179,8 @@ async function* scanTextSource(source: RangeSource, context: CapabilityContext, 
 
 /** Explicit array-model convenience for SDK readers and global operations. */
 export async function readTextSource(source: RangeSource, context: CapabilityContext, encoding?: string): Promise<Workbook> {
-  const scan = scanTextSource(source, context, encoding), cells: Cell[] = [];
+  const grammar = await textGrammar(source, context, encoding);
+  const scan = scanTextSource(grammar, context), cells: Cell[] = [];
   let next = await scan.next();
   while (!next.done) { cells.push(next.value); next = await scan.next(); }
   const { book, row, column, maximumColumns, rowsExceeded } = next.value;
@@ -183,7 +191,8 @@ export async function readTextSource(source: RangeSource, context: CapabilityCon
  * Formula-bearing inputs continue through the evaluator until it supports indexes.
  */
 export async function readTextWorkbookSource(source: RangeSource, context: CapabilityContext, encoding?: string): Promise<WorkbookSource | undefined> {
-  const scan = scanTextSource(source, context, encoding);
+  const grammar = await textGrammar(source, context, encoding);
+  const scan = scanTextSource(grammar, context);
   const allRows = createTextColumnInference({ sheets: [] }, context, 1);
   const withoutHeader = createTextColumnInference({ sheets: [] }, context, 2);
   let needsEvaluation = false, next = await scan.next();
@@ -203,7 +212,7 @@ export async function readTextWorkbookSource(source: RangeSource, context: Capab
   const inference = row + (column > 0 ? 1 : 0) > 1 ? withoutHeader : allRows;
   return { metadata, async *cells(sheet) {
     if (sheet !== "s1") throw new SsconvertError("invalid-request", "Unknown text sheet");
-    const cells = scanTextSource(source, context, encoding);
+    const cells = scanTextSource(grammar, context);
     for await (const cell of cells) yield inference.apply(cell);
   } };
 }

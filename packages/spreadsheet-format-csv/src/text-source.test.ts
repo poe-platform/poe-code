@@ -1,7 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { defaultSsconvertLimits, type CapabilityContext } from "@poe-code/spreadsheet-engine";
 import { readText } from "./text.js";
-import { readTextSource } from "./text-source.js";
+import { readTextSource, readTextWorkbookSource } from "./text-source.js";
 
 const context = (filename: string): CapabilityContext => ({ signal: new AbortController().signal,
   environment: { locale: "C", timezone: "UTC", env: {} }, limits: defaultSsconvertLimits, inputFilename: filename, own() {} });
@@ -53,4 +53,48 @@ it("registers range ingestion without collecting generated input", async () => {
     expect(largest).toBeLessThanOrEqual(16384);
     expect(reads).toBeGreaterThan(3 * size / 16384);
   } finally { vi.unstubAllGlobals(); await engine.dispose(); }
+});
+
+
+it.each(["data.csv", "data.txt"])("replays %s with one bounded input pass after grammar admission", async filename => {
+  const bytes = new TextEncoder().encode('Name,Value\r\n' + '"a,b",1.25\r\n'.repeat(40));
+  const buffer = new Uint8Array(7);
+  let received = 0, largest = 0;
+  const source = await readTextWorkbookSource({ size: bytes.length, async read(offset, maximum) {
+    largest = Math.max(largest, maximum);
+    const length = Math.min(buffer.length, maximum, bytes.length - offset);
+    received += length; buffer.set(bytes.subarray(offset, offset + length));
+    return buffer.subarray(0, length);
+  } }, context(filename));
+  expect(source).toBeDefined();
+  const expected = await readText(bytes, context(filename));
+  for (let replay = 0; replay < 3; replay++) {
+    received = 0;
+    const cells = [];
+    for await (const cell of source!.cells("s1")) cells.push(cell);
+    expect(cells).toEqual(expected.sheets[0]!.cells);
+    expect(received).toBe(bytes.length);
+  }
+  expect(largest).toBeLessThanOrEqual(16384);
+});
+
+
+it("isolates interleaved replay decoders and checks cancellation after grammar admission", async () => {
+  const text = 'Title,Value\r\n"🦀",1.25\r\n"é",2.50\r\n';
+  const bytes = new TextEncoder().encode(text), controller = new AbortController();
+  const options = { ...context("data.csv"), signal: controller.signal };
+  const source = await readTextWorkbookSource({ size: bytes.length, async read(offset, maximum) {
+    return bytes.subarray(offset, offset + Math.min(maximum, 1));
+  } }, options);
+  const left = source!.cells("s1")[Symbol.asyncIterator](), right = source!.cells("s1")[Symbol.asyncIterator]();
+  const expected = (await readText(bytes, context("data.csv"))).sheets[0]!.cells;
+  for (const cell of expected) {
+    expect(await left.next()).toEqual({ done: false, value: cell });
+    expect(await right.next()).toEqual({ done: false, value: cell });
+  }
+  expect((await left.next()).done).toBe(true);
+  expect((await right.next()).done).toBe(true);
+  const reason = new Error("replay cancelled");
+  controller.abort(reason);
+  await expect(source!.cells("s1")[Symbol.asyncIterator]().next()).rejects.toBe(reason);
 });

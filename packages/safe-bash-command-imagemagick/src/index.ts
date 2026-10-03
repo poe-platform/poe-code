@@ -1,3 +1,5 @@
+import {withIdentifyFiles,type IdentifyFileInput,type IdentifyFileReader,type IdentifyInspection} from "./identify-file.js";
+export type {IdentifyFileInput} from "./identify-file.js";
 import { FsError } from "safe-bash-contracts/errors";
 import { resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
@@ -4022,7 +4024,13 @@ function tryHandleMagickListOption(argv: readonly string[]): ImageMagickCliResul
     return undefined;
 }
 
-function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+type IdentifyStep=void|{run():Promise<void>};
+async function drainIdentifySteps<T>(steps:Generator<IdentifyStep,T,void>,signal?:AbortSignal):Promise<T>{
+ try{let next=steps.next();while(!next.done){try{if(next.value)await next.value.run();else await yieldTurn(signal);next=steps.next();}catch(error){next=steps.throw(error);}}return next.value;}
+ finally{steps.return(undefined as T);}
+}
+
+function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal, reader?:IdentifyFileReader): Generator<IdentifyStep, ImageMagickCliResult, void> {
     const listRes = tryHandleMagickListOption(argv);
     if (listRes) return listRes;
     let cooperativeWork = 63;
@@ -4079,24 +4087,28 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             baseInPath = baseInPath.slice(colon + 1);
         }
         const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
+        let inspected:IdentifyInspection|undefined;
+        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat!==undefined);}};
         const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
-        if (!bytes) {
+        if (!bytes&&!inspected) {
             errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
             exitCode = 1;
             continue;
         }
         try {
             const inputOptions = pageIdx !== undefined ? { page: pageIdx } : undefined;
-            const meta = readImageMetadata(bytes, inputOptions);
+            if(inspected&&"error" in inspected)throw inspected.error;
+            const meta = inspected?.metadata??readImageMetadata(bytes!, inputOptions),size=inspected?.size??bytes!.byteLength;
+            const encoded=inspected?.bytes??bytes;
             const bitDepth = meta.depth === "ushort" ? "16" : meta.depth === "bit" ? "1" : "8";
             const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
             if (customFormat !== undefined) {
-                outParts.push(yield* formatMagickPropertyStringSteps(customFormat, meta, () => decodeImage(bytes, inputOptions), {
-                    filePath: baseInPath, byteLen: bytes.byteLength, sceneIdx: pageIdx ?? 0
+                outParts.push(yield* formatMagickPropertyStringSteps(customFormat, meta, () => decodeImage(encoded!, inputOptions), {
+                    filePath: baseInPath, byteLen: size, sceneIdx: pageIdx ?? 0
                 }));
             }
             else if (verbose) {
-                const stats = (yield* computeImageStatsSteps(decodeImage(bytes, inputOptions)));
+                const stats = inspected?.stats??(yield* computeImageStatsSteps(decodeImage(encoded!, inputOptions)));
                 outParts.push(`Image: ${inPath}\n` +
                     `  Format: ${meta.format.toUpperCase()}\n` +
                     `  Geometry: ${meta.width}x${meta.height}+0+0\n` +
@@ -4105,11 +4117,11 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                     `  Depth: ${bitDepth}-bit\n` +
                     `  Channels: ${meta.channels}\n` +
                     `  Alpha: ${meta.hasAlpha ? "True" : "False"}\n` +
-                    `  Filesize: ${bytes.byteLength}B\n` +
+                    `  Filesize: ${size}B\n` +
                     `  Entropy: ${stats.entropy.toFixed(4)}\n`);
             }
             else {
-                outParts.push(`${inPath} ${meta.format.toUpperCase()} ${meta.width}x${meta.height} ${meta.width}x${meta.height}+0+0 ${bitDepth}-bit ${spaceLabel} ${bytes.byteLength}B 0.000u 0:00.000\n`);
+                outParts.push(`${inPath} ${meta.format.toUpperCase()} ${meta.width}x${meta.height} ${meta.width}x${meta.height}+0+0 ${bitDepth}-bit ${spaceLabel} ${size}B 0.000u 0:00.000\n`);
             }
         }
         catch (err) {
@@ -4123,8 +4135,10 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         stderr: errParts.join("")
     };
 }
-export async function runIdentifyCli(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
-    return drainSteps(runIdentifyCliSteps(argv, files, stdinBytes, signal), signal);
+export async function runIdentifyCli(argv: readonly string[], files: Map<string, Uint8Array>|IdentifyFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
+    if(files instanceof Map)return drainIdentifySteps(runIdentifyCliSteps(argv,files,stdinBytes,signal),signal);
+    const active=signal??new AbortController().signal;
+    return withIdentifyFiles(files,stdinBytes,active,reader=>drainIdentifySteps(runIdentifyCliSteps(argv,new Map(),stdinBytes,active,reader),active));
 }
 export function runIdentifyCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
     const steps = runIdentifyCliSteps(argv, files, stdinBytes, signal);
@@ -6222,7 +6236,7 @@ export function runMontageCliSync(argv: readonly string[], files: Map<string, Ui
 
 
 
-function* runMagickCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+function* runMagickCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<IdentifyStep, ImageMagickCliResult, void> {
     const sub = argv[0];
     if (sub === "identify") {
         return (yield* runIdentifyCliSteps(argv.slice(1), files, stdinBytes, signal));
@@ -6245,7 +6259,7 @@ function* runMagickCliSteps(argv: readonly string[], files: Map<string, Uint8Arr
     return (yield* runConvertCliSteps(argv, files, stdinBytes, signal));
 }
 export async function runMagickCli(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
-    return drainSteps(runMagickCliSteps(argv, files, stdinBytes, signal), signal);
+    return drainIdentifySteps(runMagickCliSteps(argv, files, stdinBytes, signal), signal);
 }
 export function runMagickCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
     const steps = runMagickCliSteps(argv, files, stdinBytes, signal);
@@ -6280,6 +6294,12 @@ async function executeVfsMagickTool(
       accountedBytes += bytes;
       context.inputBudget?.check(accountedBytes);
     };
+    if(runner===runIdentifyCli||(runner===runMagickCli&&argv[0]==="identify")){
+      const result=await runIdentifyCli(runner===runMagickCli?argv.slice(1):argv,{filesystem:context.fs,cwd:context.cwd,stdin:context.stdin,inputBudget:{check(total){chargeInput(total-accountedBytes);}}},undefined,invocation.signal);
+      if(result.stderr)await writeBytes(context.stderr,new TextEncoder().encode(result.stderr),invocation.signal);
+      if(result.stdout)await writeBytes(invocation.child(context.stdout).output,new TextEncoder().encode(result.stdout),invocation.signal);
+      return {exitCode:result.exitCode};
+    }
     let needsStdin = false;
     const hasOutputOperand = runner !== runIdentifyCli && !(runner === runMagickCli && argv[0] === "identify");
     let operandsOnly = false;

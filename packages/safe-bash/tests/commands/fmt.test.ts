@@ -249,12 +249,21 @@ for (const retainedBytes of [undefined, 12000]) test(`fmt supports declared read
   const fs = new Proxy(backing, { get(target, key) {
     if (key === "capabilities") return { ...target.capabilities, streamingRead: false, stat: false };
     if (key === "stat" || key === "readStream") return () => { throw new Error("disabled capability"); };
-    if (key === "readFile") return async (path: string, options: { signal?: AbortSignal; maxBytes?: number }) => { maximum = options.maxBytes; return backing.readFile(path, options); };
+    if (key === "openReadFile") return async (path: string, options?: { signal?: AbortSignal }) => {
+      const handle = await backing.openReadFile!(path, options);
+      return {
+        ...handle,
+        async read(position: number, maxBytes: number, readOptions?: { signal?: AbortSignal }) {
+          maximum ??= maxBytes;
+          return handle.read(position, maxBytes, readOptions);
+        },
+      };
+    };
     const member: unknown = Reflect.get(target, key);
     return typeof member === "function" ? member.bind(target) : member;
   } });
   assert.equal((await format(["file"], "", { fs }, undefined, retainedBytes === undefined ? {} : { retainedBytes })).stdout.toString(), "one two\n");
-  assert.equal(maximum, retainedBytes === undefined ? undefined : retainedBytes - 10120);
+  assert.equal(maximum, retainedBytes === undefined ? 4096 : retainedBytes - 10120);
 });
 
 test("fmt stops consuming and retires the producer on sink failure", async () => {

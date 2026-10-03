@@ -204,10 +204,16 @@ test("non-streaming reads pass the admitted bound and reject an oversized provid
   let admitted: number | undefined;
   const view = wrap(fs, {
     async capabilitiesFor() { return { ...fs.capabilities, streamingRead: false }; },
-    async readFile(_path, options) { admitted = options?.maxBytes; return new Uint8Array(5); },
+    async openReadFile(path, options) {
+      const handle = await fs.openReadFile(path, options);
+      return {
+        ...handle,
+        async read(_position, maximum) { admitted = maximum; return new Uint8Array(5); },
+      };
+    },
   });
-  const result = await run(view, ["source", "2"]);
-  assert.equal(admitted, 4);
+  const result = await run(view, ["source", "2"], "", { limits: { maxInputBytes: 4 } });
+  assert.equal(admitted, 65536);
   assert.equal(result.exitCode, 1);
   assert.match(result.stderr, /input bytes limit exceeded/);
   assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["source"]);

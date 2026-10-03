@@ -16,7 +16,7 @@ async function fixture(mode: "disabled" | "absent", readOnly = false, beforeQuer
   await memory.mkdir("/dev");
   await memory.writeFile("/dev/null", new TextEncoder().encode("historical backing row"));
   const backing = readOnly ? createReadOnlyFileSystem(memory) : memory;
-  const reads: { path: string; maxBytes: number | undefined }[] = [];
+  const reads: { path: string; maxBytes: number | undefined; retained?: boolean }[] = [];
   const queries: string[] = [];
   const traps: string[] = [];
   const writes: string[] = [];
@@ -29,15 +29,29 @@ async function fixture(mode: "disabled" | "absent", readOnly = false, beforeQuer
         queries.push(path);
         await beforeQuery?.(path, options);
         return mode === "absent" ? capabilities : {
-          ...capabilities, streamingRead: false, streamingWrite: false, retainedRead: false,
+          ...capabilities, streamingRead: false, streamingWrite: false,
         };
       };
-      if (property === "readStream" || property === "writeStream" || property === "openReadFile") {
+      if (property === "readStream" || property === "writeStream") {
         return mode === "absent" ? undefined : () => {
           traps.push(property);
           throw new Error(`disabled ${property} called`);
         };
       }
+      if (property === "openReadFile" && target.openReadFile) return async (path: string, options?: FsOptions) => {
+        const handle = await target.openReadFile!(path, options);
+        let recorded = false;
+        return {
+          ...handle,
+          async read(position: number, maxBytes: number, readOptions?: FsOptions) {
+            if (!recorded) {
+              recorded = true;
+              reads.push({ path, maxBytes, retained: true });
+            }
+            return handle.read(position, maxBytes, readOptions);
+          },
+        };
+      };
       if (property === "readFile") return async (...args: Parameters<FileSystem["readFile"]>) => {
         reads.push({ path: args[0], maxBytes: args[1]?.maxBytes });
         return target.readFile(...args);
@@ -84,7 +98,8 @@ for (const mode of ["disabled", "absent"] as const) {
         assert.ok(state.reads.length > 0);
         for (const read of state.reads) {
           assert.ok(state.queries.includes(read.path), read.path);
-          assert.equal(read.maxBytes, maxBytes, read.path);
+          if (read.retained) assert.ok(read.maxBytes !== undefined && read.maxBytes <= 65536, read.path);
+          else assert.equal(read.maxBytes, maxBytes, read.path);
         }
       } finally { await state.shell.dispose(); }
     });
@@ -109,7 +124,10 @@ for (const mode of ["disabled", "absent"] as const) {
         assert.ok(state.queries.includes("/out/input.txt"));
         assert.ok(state.writes.includes("/out/input.txt"));
         assert.ok(state.reads.length > 0);
-        for (const read of state.reads) assert.equal(read.maxBytes, maxBufferedFileBytes, read.path);
+        for (const read of state.reads) {
+          if (read.retained) assert.ok(read.maxBytes !== undefined && read.maxBytes <= 65536, read.path);
+          else assert.equal(read.maxBytes, maxBufferedFileBytes, read.path);
+        }
       } finally { await state.shell.dispose(); }
     }
   });
@@ -150,7 +168,7 @@ test("disabled: capped fallbacks keep rejecting oversized inputs", async () => {
       .use(streamInspectionCommands({ replace: true, limits: { maxInputBytes: 2 } }))
       .use(streamFormatCommands({ replace: true, limits: { maxInputBytes: 2 } }))
       .use(textProgramCommands({ replace: true, maxBufferBytes: 2 }))
-      .use(archiveCommands({ replace: true, limits: { maxBufferedFileBytes: 2 } }));
+      .use(archiveCommands({ replace: true, limits: { maxBufferedFileBytes: 2, maxEntryBytes: 2 } }));
     for (const command of ["jq -f /filter.jq /input.json", "file /input.txt", "tac /input.txt", "nl /input.txt", 'awk \'BEGIN { getline line < "/input.txt"; print line }\'', "tar -cf /bundle.tar /input.txt"]) {
       const result = await state.shell.exec(command);
       assert.notEqual(result.exitCode, 0, command);

@@ -253,8 +253,15 @@ test("VFS fallback readFile obeys signal/maxBytes and byte/chunk bounds", async 
   let calls = 0;
   const fs: FileSystem = new Proxy(base, { get(target, key) {
     if (key === "readStream") return undefined;
-    if (key === "readFile") return async (path: string, options: { signal?: AbortSignal; maxBytes?: number }) => {
-      calls++; assert.ok(options.signal); assert.equal(options.maxBytes, 7); return target.readFile(path, options);
+    if (key === "openReadFile") return async (path: string, options?: { signal?: AbortSignal }) => {
+      calls++; assert.ok(options?.signal);
+      const handle = await target.openReadFile!(path, options);
+      return {
+        ...handle,
+        async read(position: number, maxBytes: number, readOptions?: { signal?: AbortSignal }) {
+          assert.ok(readOptions?.signal); assert.equal(maxBytes, 7); return handle.read(position, maxBytes, readOptions);
+        },
+      };
     };
     const value: unknown = Reflect.get(target, key, target);
     return typeof value === "function" ? value.bind(target) : value;

@@ -122,6 +122,10 @@ test("abort interrupts fallback readFile and pending stdout with late rejection"
       if (property === "readFile") return (_: string, options: { signal?: AbortSignal; maxBytes?: number }) => {
         assert.equal(options.signal, controller.signal); assert.equal(options.maxBytes, undefined); return operation();
       };
+      if (property === "openReadFile") return (_: string, options?: { signal?: AbortSignal }) => {
+        assert.equal(options?.signal, controller.signal);
+        return operation();
+      };
       const value: unknown = Reflect.get(target, property); return typeof value === "function" ? value.bind(target) : value;
     } });
     const args = mode === "program" ? ["-f", "/program"] : mode === "data" ? [".", "/data"] : ["-nc", "0"];

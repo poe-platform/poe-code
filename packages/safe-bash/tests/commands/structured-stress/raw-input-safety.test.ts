@@ -85,8 +85,8 @@ for (const operation of ["read", "write", "file-stream", "file-fallback", "clean
     if (operation === "file-stream") Object.assign(overrides, { fs: filesystem({ readStream: (_path, options) => {
       assert.equal(options?.signal, controller.signal); return stdin;
     } }) });
-    if (operation === "file-fallback") Object.assign(overrides, { fs: filesystem({ readStream: undefined, readFile: (_path, options) => {
-      assert.equal(options?.signal, controller.signal); assert.equal(options?.maxBytes, undefined); return pending();
+    if (operation === "file-fallback") Object.assign(overrides, { fs: filesystem({ readStream: undefined, openReadFile: (_path, options) => {
+      assert.equal(options?.signal, controller.signal); return pending();
     } }) });
     const running = execute(["-Rr", ".", ...(operation.startsWith("file") ? ["input"] : [])], operation === "write" ? "record\n" : stdin,
       operation === "cleanup" ? { limits: { maxOutputBytes: 1 } } : {}, overrides);
@@ -156,9 +156,18 @@ test("raw exact budgets distinguish values, records, slurp and join-output", asy
 
 test("raw fallback files share input and value budgets and consume stdin only once", async () => {
   const requests: number[] = [];
-  const fs = filesystem({ readStream: undefined, async readFile(path, options) {
-    requests.push(options?.maxBytes ?? -1);
-    return Buffer.from(path.endsWith("one") ? "ab" : "cd");
+  const fs = filesystem({ readStream: undefined, async openReadFile(path) {
+    let done = false;
+    return {
+      async stat() { throw new FsError("ENOENT"); },
+      async read(_position, maximum) {
+        if (done) return new Uint8Array();
+        done = true;
+        requests.push(maximum);
+        return Buffer.from(path.endsWith("one") ? "ab" : "cd");
+      },
+      async close() {},
+    };
   } });
   const result = await execute(["-Rr", ".", "one", "-", "two", "-"], toByteSource("\n"), { limits: { maxInputBytes: 16 } }, { fs });
   assert.deepEqual(result, { status: 0, stdout: "ab\ncd\n", stderr: "" });

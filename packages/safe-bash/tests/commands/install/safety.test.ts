@@ -160,7 +160,11 @@ test("bounded copy refusal preserves an existing target", async () => {
 
 test("reused producer buffers are owned before advancing, including non-streaming output", async () => {
   const fs = await seed();
-  const host = wrapped(fs, { open: undefined, writeStream: undefined, async *readStream() { const buffer = Uint8Array.of(1, 2); yield buffer; buffer.set([3, 4]); yield buffer; buffer.fill(99); } });
+  const host = wrapped(fs, {
+    writeStream: undefined,
+    async capabilitiesFor(path) { return path === "/source" ? { ...fs.capabilities, open: false } : fs.capabilities; },
+    async *readStream() { const buffer = Uint8Array.of(1, 2); yield buffer; buffer.set([3, 4]); yield buffer; buffer.fill(99); },
+  });
   assert.equal((await run(["source", "target"], host)).exitCode, 0);
   assert.deepEqual(await fs.readFile("/target"), Uint8Array.of(1, 2, 3, 4));
 });

@@ -28,10 +28,19 @@ async function fixture() {
 test("nonstream entropy readFile leaves omitted byte limits unlimited", async () => {
   const { fs } = await fixture();
   Object.defineProperty(fs, "readStream", { value: undefined });
-  fs.readFile = async (_path, options) => {
-    assert.equal(options?.maxBytes, undefined);
+  fs.openReadFile = async (_path, options) => {
     assert.ok(options?.signal);
-    return entropy;
+    let read = false;
+    return {
+      async stat() { return fs.stat("/random"); },
+      async read(_position, maxBytes) {
+        assert.equal(maxBytes, 65536);
+        if (read) return new Uint8Array();
+        read = true;
+        return entropy;
+      },
+      async close() {},
+    };
   };
   assert.equal((await run(["-e", "a", "b", "--random-source=/random"], undefined, undefined, { fs })).exitCode, 0);
 });
@@ -39,9 +48,18 @@ test("nonstream entropy readFile leaves omitted byte limits unlimited", async ()
 test("nonstream record readFile leaves omitted byte limits unlimited", async () => {
   const { fs } = await fixture();
   Object.defineProperty(fs, "readStream", { value: undefined });
-  fs.readFile = async (_path, options) => {
-    assert.equal(options?.maxBytes, undefined);
-    return Buffer.from("x\n");
+  fs.openReadFile = async () => {
+    let read = false;
+    return {
+      async stat() { return fs.stat("/random"); },
+      async read(_position, maxBytes) {
+        assert.equal(maxBytes, 65536);
+        if (read) return new Uint8Array();
+        read = true;
+        return Buffer.from("x\n");
+      },
+      async close() {},
+    };
   };
   assert.equal((await run(["/random"], undefined, undefined, { fs })).exitCode, 0);
 });
@@ -133,7 +151,6 @@ test("entropy close interrupts pending next and waits for cooperative return", a
 
 test("nonstream entropy is not read before repeat output truncates its alias", async () => {
   const { fs } = await fixture();
-  Object.defineProperty(fs, "readStream", { value: undefined });
   const result = await run(["-ern1", "a", "b", "--random-source=/random", "-o/random"], undefined, undefined, { fs });
   assert.equal(result.exitCode, 1);
   assert.equal(result.stderr, "shuf: '/random': end of file\n");
@@ -143,7 +160,11 @@ test("nonstream entropy is not read before repeat output truncates its alias", a
 test("single-choice nonstream entropy is opened but never read", async () => {
   const { fs } = await fixture();
   Object.defineProperty(fs, "readStream", { value: undefined });
-  fs.readFile = async () => { assert.fail("unused entropy must not be loaded"); };
+  fs.openReadFile = async () => ({
+    async stat() { return fs.stat("/random"); },
+    async read() { assert.fail("unused entropy must not be loaded"); },
+    async close() {},
+  });
   assert.equal((await run(["-e", "x", "--random-source=/random"], undefined, undefined, { fs })).exitCode, 0);
 });
 
@@ -154,7 +175,11 @@ for (const streaming of [false, true]) {
     if (streaming) fs.readStream = () => (async function* () { yield bytes; })();
     else {
       Object.defineProperty(fs, "readStream", { value: undefined });
-      fs.readFile = async (_path, options) => { assert.equal(options?.maxBytes, 2); return bytes; };
+      fs.openReadFile = async () => ({
+        async stat() { return fs.stat("/random"); },
+        async read(_position, maxBytes) { assert.equal(maxBytes, 2); return bytes; },
+        async close() {},
+      });
     }
     const random = new RandomIntegers(context, "/random", 2);
     await random.open();

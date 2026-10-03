@@ -340,7 +340,8 @@ async function installFile(operation: Operation, sourceDisplay: string, destinat
           yield buffer.subarray(0, count);
         }
       })();
-    } else chunks = readFileStream(context.fs, source, fsOptions);
+    } else chunks = context.fs.readStream && capabilities.streamingRead !== false ? context.fs.readStream(source, fsOptions)
+      : readFileStream(context.fs, source, { ...fsOptions, skipStream: true });
     iterator = chunks[Symbol.asyncIterator]();
     let size = 0, untilYield = 65536;
     const guarded: ByteSource = { [Symbol.asyncIterator]: () => ({ next: () => iterator!.next(), return: returnSource }) };

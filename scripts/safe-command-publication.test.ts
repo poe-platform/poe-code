@@ -48,3 +48,15 @@ describe("declarative command export recipes", () => {
     expect(() => resolveCommandExportBuilds("/repo", invalid, {}, [], { alias: {}, external: [], recipes: invalid.poeCode.publication.commandExports })).toThrow("Invalid command publication source");
   });
 });
+
+
+it("exposes graphviz through the root package and portable build", async () => {
+  const root = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  const { resolveBrowserShellBuild } = await import("./bundle-safe-bash.mjs");
+  expect(root.exports["./safe-bash/graphviz"]).toEqual({
+    types: "./dist/types/safe-bash/commands/graphviz/index.d.ts",
+    import: "./packages/safe-bash/dist/commands/graphviz/index.browser.js",
+  });
+  expect(resolveBrowserShellBuild(process.cwd()).entryPoints["commands/graphviz/index.browser"])
+    .toBe(process.cwd() + "/packages/safe-bash/src/commands/graphviz/index.ts");
+});

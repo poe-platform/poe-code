@@ -110,6 +110,14 @@ it("preserves the portable export surface when canonical owners remain external"
     for (const entry of ["ast-grep.browser.js", "commands/ast-grep/index.browser.js"]) {
       expect(surface["packages/safe-bash/dist/" + entry]).toEqual(expect.arrayContaining(["astGrepCommands", "createAstGrepCommand", "createAstGrepCommands"]));
     }
+    for (const [entry, exports] of Object.entries({
+      "commands/graphviz/index.browser.js": ["createGraphvizCommands", "graphvizCommands", "createDotCommand", "createNeatoCommand", "createSvgoCommand", "parseDot"],
+      "commands/audio/index.browser.js": ["createAudioCommands", "createFfprobeCommand", "createSoxCommand", "createSoxiCommand"],
+      "audio-ast.browser.js": ["parseAudio", "encodeWav", "decodePcm"],
+      "ts-ast.browser.js": ["parseCode", "findMatches", "matchPattern"],
+    })) {
+      expect(surface["packages/safe-bash/dist/" + entry]).toEqual(expect.arrayContaining(exports));
+    }
     if (external.length) {
       const outputs = new Map(result.outputFiles.map(file => [file.path, file.text]));
       const entry = path.join(options.outdir, "commands/csplit/index.browser.js");
@@ -384,4 +392,26 @@ it("prepares portable conditional entries without falling through blocked host e
     [name + "/dist/index.browser"]: "/repo/packages/" + name + "/src/index.browser.ts",
     [name + "/dist/shared"]: "/repo/packages/" + name + "/src/shared.ts",
   });
+});
+
+// These engines and command owners ship through Safe Bash, never as npm dependencies.
+it.each([
+  "graphviz-ast", "audio-ast", "ts-ast", "safe-bash-graphviz-engine",
+  "safe-bash-command-dot", "safe-bash-command-neato", "safe-bash-command-svgo",
+  "safe-bash-command-audio", "safe-bash-command-ffprobe", "safe-bash-command-sox",
+  "safe-bash-command-soxi", "safe-bash-command-ast-grep", "safe-bash-command-rgrep",
+])("ships %s as a self-contained private bundle", async directory => {
+  const root = process.cwd();
+  const pkg = JSON.parse(readFileSync(path.join(root, "packages", directory, "package.json"), "utf8"));
+  expect(pkg.private).toBe(true);
+  expect(pkg.dependencies).toEqual({});
+  const result = await build({
+    entryPoints: [path.join(root, "packages", directory, "dist/index.js")],
+    bundle: true, packages: "external", platform: "browser", format: "esm",
+    write: false, metafile: true,
+  });
+  const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
+  expect(imports.filter(entry => entry.path !== "safe-bash-contracts" &&
+    !entry.path.startsWith("safe-bash-contracts/"))).toEqual([]);
+  expect(Object.keys(result.metafile!.inputs)).toHaveLength(1);
 });

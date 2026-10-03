@@ -181,6 +181,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
       "commands/stat/index.browser": path.join(directory, "src/commands/stat/index.ts"),
       "commands/mktemp/index.browser": path.join(directory, "src/commands/mktemp/index.ts"),
       "commands/media/index.browser": path.join(directory, "src/commands/media/index.ts"),
+      "commands/graphviz/index.browser": path.join(directory, "src/commands/graphviz/index.ts"),
       "commands/audio/index.browser": path.join(directory, "src/commands/audio/index.ts"),
       "commands/ffprobe/index.browser": path.join(directory, "src/commands/ffprobe/index.ts"),
       "commands/sox/index.browser": path.join(directory, "src/commands/sox/index.ts"),

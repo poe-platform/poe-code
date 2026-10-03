@@ -25,6 +25,7 @@ import type {
   WriterCapability
 } from "./types.js";
 
+import {streamJson} from "./stream-json.js";
 import {streamDelimited} from "./stream-delimited.js";
 import type {OutputConversionContext, ConversionSummary} from "./types.js";
 import {LocalTemplate} from "./templates.js";
@@ -615,6 +616,18 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     throw new PandocError("E_CAPABILITY", "convert", "An output sink with write, close and abort is required");
   const registry = createFormatRegistry(undefined, context);
   const reader = registry.resolve(options.from, "read"), writer = registry.resolve(options.to, "write");
+  const backedJson = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
+    && reader.descriptor.name === "json" && writer.descriptor.name === "json"
+    && Object.keys(options).every(key => ["from", "to", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "fileScope", "sandbox", "failIfWarnings"].includes(key))
+    && Object.entries(context.limits ?? {}).every(([key, value]) => ["inputBytes", "outputBytes"].includes(key) || value === Infinity);
+  if (backedJson) {
+    const session = new Session("convert", context);
+    try {
+      session.options(options);
+      await session.call(() => streamJson(inputs[0]!, session, context.workingFiles!, options.eol));
+      return {kind: "output", diagnostics: session.snapshotDiagnostics()};
+    } finally {await session.close();}
+  }
   const incremental = context.workingFiles && !context.reader && !context.writer
     && (reader.descriptor.name === "csv" || reader.descriptor.name === "tsv") && ["html5", "json"].includes(writer.descriptor.name)
     && Object.keys(options).every(key => ["from", "to", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "fileScope", "sandbox", "failIfWarnings"].includes(key))

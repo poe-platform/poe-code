@@ -158,6 +158,17 @@ Pandoc JSON stores tree nodes, parent links, subtree boundaries and string conte
 in that backing store. Construction and serialization keep no resident document
 index or traversal stack; long fields retain their original inline semantics.
 
+Single-input JSON → JSON conversion also retains the complete wire document in
+caller storage. Strings, nesting state, duplicate-key indexes, schema traversal,
+table-span occupancy, and numeric metadata-key ordering do not require resident
+document collections. Output preserves constructor bytes and binary64 numeric
+semantics, validates the complete document before publication, and preflights
+finite output budgets. This path supports finite `inputBytes` and `outputBytes`,
+line endings, and the same non-transforming options as the table path. It uses
+two page caches of at most `cacheBytes` each, plus fixed small index caches.
+Multiple inputs, filters, other transformations and other finite document budgets
+continue through the compatibility converter while their retained paths are built.
+
 For media extraction, supply `workingFiles` and `resourceFiles.writeStream` to
 spool external resources in caller storage and publish them in 16 KiB chunks.
 The publisher must consume through EOF, await writes, and honor exclusive

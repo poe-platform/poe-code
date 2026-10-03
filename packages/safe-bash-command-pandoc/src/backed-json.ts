@@ -16,6 +16,8 @@ export class BackedJson {
   private complete = false;
   constructor(private readonly storage: PagedStorage, private readonly cooperate: (units?: number) => Promise<void>) {}
 
+  get rootPosition(): number {return this.root;}
+
   async describe(position: number): Promise<Header> {
     const bytes = await this.storage.read(position, headerBytes);
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
@@ -89,6 +91,36 @@ export class BackedJson {
     return true;
   }
 
+  /** Immediate children only; no resident index or recursive iterator chain. */
+  async *children(position: number): AsyncGenerator<number> {
+    const header = await this.describe(position);
+    if (header.kind !== "array" && header.kind !== "object") throw new Error("Container required");
+    for (let child = position + headerBytes; child < header.end;) {
+      yield child;
+      child = (await this.describe(child)).end;
+    }
+  }
+
+  /** Small schema names are bounded; document strings use scalarChunks. */
+  async smallText(position: number, maxUnits: number): Promise<string | undefined> {
+    const header = await this.describe(position);
+    if (!["string", "key", "literal"].includes(header.kind) || (header.end - position - headerBytes) / 2 > maxUnits) return undefined;
+    let value = "";
+    for await (const text of this.scalarChunks(position)) value += text;
+    return value;
+  }
+
+  async property(position: number, name: string): Promise<number | undefined> {
+    const header = await this.describe(position);
+    if (header.kind !== "object") throw new Error("Object required");
+    for (let key = position + headerBytes; key < header.end;) {
+      const value = (await this.describe(key)).end;
+      if (await this.smallText(key, name.length) === name) return value;
+      key = (await this.describe(value)).end;
+    }
+    return undefined;
+  }
+
   async key(value: string): Promise<void> {
     await this.begin("key");
     await this.text(value);
@@ -135,7 +167,11 @@ export class BackedJson {
     }
   }
 
-  async *chunks(): AsyncGenerator<Uint8Array> {
+  async *chunks(root = this.root, order?: {
+    first(position: number): Promise<number>;
+    next(position: number, parent: number): Promise<number>;
+    literal(position: number): Promise<string>;
+  }): AsyncGenerator<Uint8Array> {
     if (!this.complete) throw new Error("Tree is incomplete");
     const encoder = new TextEncoder();
     let output = "";
@@ -144,23 +180,24 @@ export class BackedJson {
       if (output.length >= 4096) {yield encoder.encode(output); output = "";}
     }
     const surrogate = (char: string) => `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`;
-    let position = this.root;
+    let position = root;
     let closing = false;
     while (position) {
       await this.cooperate();
       const header = await this.describe(position);
       if (!closing) {
-        if (header.parent) {
+        if (position !== root && header.parent) {
           const parent = await this.describe(header.parent);
           if (parent.kind === "object" && header.kind !== "key") yield* add(":");
-          else if (position !== header.parent + headerBytes) yield* add(",");
+          else if (position !== (order && parent.kind === "object" ? await order.first(header.parent) : header.parent + headerBytes)) yield* add(",");
         }
         if (header.kind === "array" || header.kind === "object") {
           yield* add(header.kind === "array" ? "[" : "{");
-          if (header.end > position + headerBytes) {position += headerBytes; continue;}
+          if (header.end > position + headerBytes) {position = order && header.kind === "object" ? await order.first(position) : position + headerBytes; continue;}
           yield* add(header.kind === "array" ? "]" : "}");
         } else if (header.kind === "literal") {
-          for await (const text of this.textChunks(position + headerBytes, header.end)) yield* add(text);
+          if (order) yield* add(await order.literal(position));
+          else for await (const text of this.textChunks(position + headerBytes, header.end)) yield* add(text);
         } else {
           yield* add('"');
           let high = "";
@@ -182,9 +219,10 @@ export class BackedJson {
           yield* add('"');
         }
       }
-      if (!header.parent) break;
+      if (position === root || !header.parent) break;
       const parent = await this.describe(header.parent);
-      if (header.end < parent.end) {position = header.end; closing = false;}
+      const next = order && parent.kind === "object" && header.kind !== "key" ? await order.next(position, header.parent) : header.end < parent.end ? header.end : 0;
+      if (next) {position = next; closing = false;}
       else {
         yield* add(parent.kind === "array" ? "]" : "}");
         position = header.parent;

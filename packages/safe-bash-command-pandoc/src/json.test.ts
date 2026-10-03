@@ -1,5 +1,6 @@
 import { expect, it, vi } from "vitest";
-import { convert, readDocument, writeDocument } from "./index.js";
+import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
+import { convertToOutput, convert, readDocument, writeDocument } from "./index.js";
 import type { Document } from "./types.js";
 
 const attr = [
@@ -509,4 +510,21 @@ it.each([
   await expect(readDocument(input(envelope([node])), { from: "json" }, {})).rejects.toMatchObject({
     code: "E_AST"
   });
+});
+
+
+it.each([
+  ...inlineCases.map(([, json]) => envelope([{t: "Para", c: [json]}], metadata)),
+  ...blockCases.map(([, json]) => envelope([json], metadata))
+])("preserves constructor bytes through retained conversion %#", async value => {
+  const source = input(value);
+  const expected = await convert([source], {from: "json", to: "json"}, {});
+  let text = "";
+  const fs = new MemoryFileSystem();
+  await convertToOutput([source], {from: "json", to: "json"}, {
+    workingFiles: {fs, directory: "/", cacheBytes: 16384},
+    output: {async write(bytes) {text += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}}
+  });
+  expect(expected).toMatchObject({text});
+  expect(await fs.readdir("/")).toEqual([]);
 });

@@ -69,3 +69,25 @@ it("observes timer cancellation while serializing a long stored string", async (
   }
   expect(await fs.readdir("/")).toEqual([]);
 });
+
+it("navigates and serializes a retained subtree without collecting siblings", async () => {
+  const fs = new MemoryFileSystem();
+  const context = new ExecutionContext("convert", {});
+  const storage = new PagedStorage({fs, cwd: "/", env: {}, signal: new AbortController().signal}, 1);
+  const tree = new BackedJson(storage, units => context.cooperate(units));
+  try {
+    await tree.value({before: "x".repeat(20000), selected: {nested: [1, "two"]}, after: null});
+    const selected = await tree.property(tree.rootPosition, "selected");
+    expect(selected).toBeGreaterThan(0);
+    expect(await tree.property(tree.rootPosition, "absent")).toBeUndefined();
+    let output = "";
+    for await (const chunk of tree.chunks(selected)) output += new TextDecoder().decode(chunk);
+    expect(output).toBe('{"nested":[1,"two"]}');
+    const nested = await tree.property(selected!, "nested");
+    const children = [];
+    for await (const position of tree.children(nested!)) children.push(await tree.smallText(position, 8));
+    expect(children).toEqual(["1", "two"]);
+    const before = await tree.property(tree.rootPosition, "before");
+    expect(await tree.smallText(before!, 8)).toBeUndefined();
+  } finally {await storage.close(); await context.close();}
+});

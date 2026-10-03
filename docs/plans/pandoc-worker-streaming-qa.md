@@ -11,8 +11,11 @@ here yet.
   Markdown reference resolution, HTML/XML trees, DOCX/EPUB archives, PDF layout,
   presentation and spreadsheet conversion. Record the tested commit and hashes
   of the owning source files with each run.
-- Replace whole-document input acquisition, joined text, document arrays and
-  serialized results with retained sources and a paged document representation.
+- Single-input, unfiltered JSON to JSON now uses retained syntax, schema tasks,
+  table occupancy, numeric key ordering and output. Test its fixed cache sizes
+  independently of input bytes and document nesting. Other conversions still
+  require replacing whole-document input acquisition, joined text, document arrays
+  and serialized results with retained sources and a paged document representation.
   Preserve diagnostics, source locations, resource identities and byte results.
 - Exercise JSON filter protocol streams and genuine Lua callbacks, including
   document callbacks, arbitrary reordering, long strings, tables and metadata.

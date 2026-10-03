@@ -7,6 +7,7 @@ import {LuaStorage} from "./lua-storage.js";
 import {LuaProgram} from "./lua-program.js";
 import {LuaFrames} from "./lua-frames.js";
 import {LuaMachine,type LuaNative,type LuaArguments,type LuaNativeContext} from "./lua-machine.js";
+import {LuaTable} from "./lua-table.js";
 import {LuaUtf8} from "./lua-utf8.js";
 import {LuaMath} from "./lua-math.js";
 import {LuaBase} from "./lua-base.js";
@@ -15,10 +16,10 @@ import {LuaSyntax} from "./lua-syntax.js";
 import {LuaParser} from "./lua-parser.js";
 import {LuaCompiler} from "./lua-compiler.js";
 
-async function execute(source: string,options: {signal?: AbortSignal; beforeRun?():void;
+async function execute(source: string,options: {pages?:number;table?:boolean;signal?: AbortSignal; beforeRun?():void;
   native?(heap: LuaStorage,prototype: number,args: LuaArguments,context: LuaNativeContext):ReturnType<LuaNative>}={}):Promise<unknown[]> {
   const fs=new MemoryFileSystem(), execution=new ExecutionContext("convert",options.signal?{signal:options.signal}:{});
-  const storage=new PagedStorage({fs,cwd:"/",env:{},signal:options.signal ?? new AbortController().signal},1);
+  const storage=new PagedStorage({fs,cwd:"/",env:{},signal:options.signal ?? new AbortController().signal},options.pages ?? (options.table?64:1));
   const cooperate=(units?:number)=>execution.cooperate(units), heap=new LuaStorage(storage,cooperate), program=new LuaProgram(storage,heap,cooperate);
   const syntax=new LuaSyntax(heap), lexer=new LuaLexer((async function*(){yield new TextEncoder().encode(source);})(),heap,cooperate);
   try {
@@ -27,8 +28,10 @@ async function execute(source: string,options: {signal?: AbortSignal; beforeRun?
     const math=new LuaMath(heap); await math.install(environment);
     const utf8=new LuaUtf8(heap); await utf8.install(environment);
     if(options.native) await heap.set(environment,await heap.string([new TextEncoder().encode("host")]),await heap.closure(-1000,[]));
+    const table=new LuaTable(heap);
     const machine=new LuaMachine(program,new LuaFrames(storage,heap,cooperate),heap,cooperate,(prototype,args,context)=>
-      prototype===-1000 && options.native?options.native(heap,prototype,args,context):prototype<=-200 && prototype>-300?math.invoke(prototype,args,context):prototype<=-300 && prototype>-400?utf8.invoke(prototype,args):base.invoke(prototype,args,context));
+      prototype===-1000 && options.native?options.native(heap,prototype,args,context):prototype<=-200 && prototype>-300?math.invoke(prototype,args,context):prototype<=-300 && prototype>-400?utf8.invoke(prototype,args):prototype<=-400 && prototype>-500?table.invoke(prototype,args):base.invoke(prototype,args,context));
+    if(options.table) await table.install(environment,program,machine);
     const closure=await heap.closure(prototype,[await heap.cell(environment)]);
     options.beforeRun?.();
     const result=await machine.run(closure,[]), values:unknown[]=[];
@@ -49,6 +52,7 @@ function native(source:string):unknown[] {
     compiler.lauxlib.luaL_requiref(state,new TextEncoder().encode("_G"),compiler.lualib.luaopen_base,true); compiler.lua.lua_pop(state,1);
     compiler.lauxlib.luaL_requiref(state,new TextEncoder().encode("math"),compiler.lualib.luaopen_math,true); compiler.lua.lua_pop(state,1);
     compiler.lauxlib.luaL_requiref(state,new TextEncoder().encode("utf8"),compiler.lualib.luaopen_utf8,true); compiler.lua.lua_pop(state,1);
+    compiler.lauxlib.luaL_requiref(state,new TextEncoder().encode("table"),compiler.lualib.luaopen_table,true); compiler.lua.lua_pop(state,1);
     expect(compiler.lauxlib.luaL_loadbuffer(state,bytes,bytes.length,new TextEncoder().encode("fixture"))).toBe(compiler.lua.LUA_OK);
     expect(compiler.lua.lua_pcall(state,0,-1,0)).toBe(compiler.lua.LUA_OK);
     const internal=state as unknown as {top:number; stack:{type:number; value:unknown}[]};
@@ -225,4 +229,59 @@ it("cancels while scanning UTF-8 bytes and cleans up indexed storage",async()=>{
     });
     return [value];
   }})).rejects.toMatchObject({code:"E_CANCELLED"});
+});
+
+
+it.each([
+  "local t=table.pack(1,nil,3,nil); return t.n,table.unpack(t,1,t.n)",
+  "local t={1,2,3}; table.insert(t,2,7); table.insert(t,9); local x=table.remove(t,3); return x,table.concat(t,':')",
+  "local t={}; return table.remove(t),table.concat(t),select('#',table.unpack(t))",
+  "local t={1,2}; return table.remove(t,3),t[1],t[2]",
+  "local t={1,2,3,4}; table.move(t,1,3,2); return table.concat(t,':')",
+  "local t={1,2,3,4}; table.move(t,2,4,1); return table.concat(t,':')",
+  "local t={1,2,3}; local u={}; return rawequal(table.move(t,2,3,1,u),u),table.concat(u,':')",
+  "return table.concat({1,2.0,3},7,2,3),table.concat({},nil,2,1)",
+  "local t={5,3,1,4,2,2}; table.sort(t); return table.concat(t,':')",
+  "local t={5,3,1,4,2}; table.sort(t,function(a,b) return a>b end); return table.concat(t,':')",
+  "local t={{x=3},{x=1},{x=2}}; local mt={__lt=function(a,b) return a.x<b.x end}; for _,v in ipairs(t) do setmetatable(v,mt) end; table.sort(t); return t[1].x,t[2].x,t[3].x",
+  "local values={3,1,2}; local events=''; local t=setmetatable({}, {__len=function() events=events..'L'; return 3 end,__index=function(_,i) events=events..'R'..i; return values[i] end,__newindex=function(_,i,v) events=events..'W'..i; values[i]=v end}); table.insert(t,2,7); return events,table.concat(values,':')",
+  "local values={3,1,2}; local events=''; local t=setmetatable({}, {__len=function() events=events..'L'; return 3 end,__index=function(_,i) events=events..'R'..i; return values[i] end,__newindex=function(_,i,v) events=events..'W'..i; values[i]=v end}); table.remove(t,2); return events,table.concat(values,':')",
+  "local t=setmetatable({}, {__len=function() return 3 end,__index=function(_,i) return i*2 end}); return table.unpack(t)",
+  "local t=setmetatable({}, {__len=function() return 3 end,__index=function(_,i) return i*2 end}); return table.concat(t,':')",
+  "local t={}; table.sort(t,false); return select('#',table.sort(t))",
+  "local insert=table.insert; type=nil; math=nil; select=nil; table=nil; local t={1}; insert(t,2); return t[2]"
+])("preserves retained table library behavior: %s",async source=>{expect(await execute(source,{table:true})).toEqual(native(source));});
+it.each(["table.insert({},1,2,3)","table.insert({},0,1)","table.remove({1},0)","table.concat({true})","table.sort({1,2},false)","table.move({},-2147483648,0,1)","table.move({},1,2,2147483647)"])("reports table errors: %s",async source=>{await expect(execute(source,{table:true})).rejects.toMatchObject({code:"E_AST"});});
+
+it.each([
+  "local key,value; local t=setmetatable({}, {__len=function() return 2147483646 end,__index=function() error('unexpected read') end,__newindex=function(_,k,v) key=k; value=v end}); table.insert(t,2147483647,9); return key,value",
+  "local values={4,1,5,2,3}; local events=''; local t=setmetatable({}, {__len=function() events=events..'L'; return 5 end,__index=function(_,i) events=events..'R'..i..';'; return values[i] end,__newindex=function(_,i,v) events=events..'W'..i..';'; values[i]=v end}); table.sort(t,function(a,b) events=events..'C'..a..','..b..';'; return a<b end); return events,table.concat(values,':')",
+  "local values={1,2,3,4}; local events=''; local mt={__eq=function() events=events..'E'; return true end,__index=function(_,i) events=events..'R'..i; return values[i] end,__newindex=function(_,i,v) events=events..'W'..i; values[i]=v end}; local a=setmetatable({},mt); local b=setmetatable({},mt); table.move(a,1,3,2,b); return events,table.concat(values,':')",
+  "local events=''; local t=setmetatable({}, {__len=function() events=events..'L'; return 7 end,__index=function(_,i) events=events..'R'..i; return i end}); local a,b=table.unpack(t,2,3); return events,a,b",
+  "local t={1,1,1,1,1,1,1}; table.sort(t); return table.concat(t,':')"
+])("preserves table bounds and callback order: %s",async source=>{expect(await execute(source,{table:true})).toEqual(native(source));});
+it("runs table callbacks and streamed results with a single backing cache page",async()=>{
+  const source="local t={5,2,4,1,3}; table.sort(t,function(a,b) return a<b end); local p=table.pack(table.unpack(t)); return p.n,table.concat(p,':')";
+  expect(await execute(source,{table:true,pages:1})).toEqual(native(source));
+});
+it("cancels inside a table comparator and cleans up caller storage",async()=>{
+  const controller=new AbortController();
+  await expect(execute("table.sort({2,1},function() while true do end end)",{table:true,signal:controller.signal,
+    beforeRun(){setTimeout(()=>controller.abort(),0);}})).rejects.toMatchObject({code:"E_CANCELLED"});
+});
+
+it.each([
+  "local t={}; for i=1,31 do t[i]=(i*17)%31 end; table.sort(t); return table.concat(t,':')",
+  "local t={4,1,3,2}; table.sort(t,function(a,b) local u={b,a}; table.sort(u); return a<b end); return table.concat(t,':')",
+  "return select('#',table.unpack('abc',2,1))",
+  "local t={[0]=7}; return table.remove(t),t[0]",
+  "local t={}; table.move(t,2,1,2147483647); table.insert(t,nil); return select('#',table.unpack(t))"
+])("preserves table recursion and empty ranges: %s",async source=>{expect(await execute(source,{table:true})).toEqual(native(source));});
+it("rejects an inconsistent table comparator",async()=>{
+  await expect(execute("table.sort({1,2,3,4,5},function() return true end)",{table:true})).rejects.toMatchObject({code:"E_AST"});
+});
+
+it("streams table unpack results beyond fixed registers while retaining nil slots",async()=>{
+  const source="local t={}; for i=1,260 do if i~=19 then t[i]=i end end; local p=table.pack(table.unpack(t,1,260)); return p.n,p[19],p[260]";
+  expect(await execute(source,{table:true})).toEqual(native(source));
 });

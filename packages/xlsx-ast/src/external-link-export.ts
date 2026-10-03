@@ -15,7 +15,15 @@ export class XlsxExternalLinkWriter {
   private register(workbook: string, sheets: readonly (string | undefined)[]) {
     this.charge(workbook.length + 1);
     let book = this.books.get(workbook);
-    if (!book) { book = { index: this.books.size + 1, sheets: new Map(), names: new Map(), definitions: this.definitions.get(workbook)?.names ?? new Map() }; this.books.set(workbook, book); }
+    if (!book) {
+      const retained = this.definitions.get(workbook);
+      book = { index: this.books.size + 1, sheets: new Map(), names: new Map(), definitions: retained?.names ?? new Map() };
+      this.books.set(workbook, book);
+      for (const sheet of retained?.sheets ?? []) {
+        this.charge(sheet.length + 1);
+        book.sheets.set(foldSheetName(sheet), sheet);
+      }
+    }
     for (const sheet of sheets) if (sheet !== undefined) { this.charge(sheet.length + 1); const key = foldSheetName(sheet); if (!book.sheets.has(key)) book.sheets.set(key, sheet); }
     return book;
   }

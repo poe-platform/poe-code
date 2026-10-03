@@ -355,7 +355,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       }
       opc.charge(workbookRecords.length);
       const index = workbookRecords.findIndex(record => record.source === source && record.kind === "externalLink"), retained = workbookRecords[index];
-      if (names.length && retained?.data && typeof retained.data === "object" && !Array.isArray(retained.data))
+      if ((names.length || sheets.length) && retained?.data && typeof retained.data === "object" && !Array.isArray(retained.data))
         workbookRecords[index] = { ...retained, data: { ...retained.data, externalNameDefinitions: { workbook: link.target, sheets, names } } };
     }
     const uniqueSheets = new Map<string, XmlElement>();

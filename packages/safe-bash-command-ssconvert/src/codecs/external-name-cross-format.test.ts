@@ -21,14 +21,14 @@ function words(...values: number[]): Uint8Array {
 }
 function record(opcode: number, payload: Uint8Array = new Uint8Array()): Uint8Array { return join(words(opcode, payload.length), payload); }
 function text(value: string): Uint8Array { return join(words(value.length), new Uint8Array([0]), new TextEncoder().encode(value)); }
-function biffFixture(): Uint8Array {
+function biffFixture(named = true): Uint8Array {
   const cell = new Uint8Array(29), view = new DataView(cell.buffer);
-  view.setFloat64(6, 999, true); view.setUint16(20, 7, true); cell.set([0x59, 0, 0, 1, 0, 0, 0], 22);
+  view.setFloat64(6, 999, true); view.setUint16(20, 7, true); cell.set(named ? [0x59, 0, 0, 1, 0, 0, 0] : [0x5a, 0, 0, 0, 0, 0, 0], 22);
   const definition = join(new Uint8Array([0x3a]), words(1, 1, 2, 3));
   return join(record(0x809, words(0x600, 5)),
     record(0x1ae, join(words(2), text("\u0001book.xls"), text("Unused"), text("Other"))),
-    record(0x23, join(words(0, 0, 0), new Uint8Array([4, 0]), new TextEncoder().encode("Rate"), words(definition.length), definition)),
-    record(0x17, words(1, 0, 0xfffe, 0xfffe)), record(10), record(0x809, words(0x600, 16)), record(6, cell), record(10));
+    named ? record(0x23, join(words(0, 0, 0), new Uint8Array([4, 0]), new TextEncoder().encode("Rate"), words(definition.length), definition)) : new Uint8Array(),
+    record(0x17, named ? words(1, 0, 0xfffe, 0xfffe) : words(1, 0, 1, 1)), record(10), record(0x809, words(0x600, 16)), record(6, cell), record(10));
 }
 async function xlsxFixture(expression = "[1]Other!$D$3"): Promise<Uint8Array> {
   const ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main", rel = "http://schemas.openxmlformats.org/officeDocument/2006/relationships", pkg = "http://schemas.openxmlformats.org/package/2006/relationships";
@@ -75,4 +75,12 @@ it("compiles an absolute external area definition", async () => {
   const start = 8 + external.data.u8(6) * 2;
   expect(external.data.u16(start)).toBe(13);
   expect(external.data.slice(start + 2, 13)).toEqual(join(new Uint8Array([0x3b]), words(1, 1, 2, 3, 3, 4)));
+});
+
+it.each([false, true])("preserves unused external sheets through BIFF to XLSX transport, named: %s", async named => {
+  const book = await readBiff(biffFixture(named), context), zip = createZipCodec();
+  const archive = await zip.readZipArchive(await createXlsxWriter("2008")(book, [], context), limits, context.signal);
+  const entry = archive.entries.find(entry => entry.name === "xl/externalLinks/externalLink1.xml")!;
+  let xml = ""; for await (const chunk of zip.decodeZipEntry(entry, limits, context.signal)) xml += new TextDecoder().decode(chunk);
+  expect(xml).toContain('<sheetNames><sheetName val="Unused"/><sheetName val="Other"/></sheetNames>');
 });

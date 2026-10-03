@@ -315,7 +315,10 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
         }
       }
       supbooks.push({ kind, names: [], sheets: externalSheets, ...(workbook === undefined ? {} : { workbook }) });
-      if (kind !== "addin") await retain(record, unsupported, kind === "external" && workbook === undefined);
+      if (kind !== "addin") await retain(record, unsupported, kind === "external" && workbook === undefined,
+        workbook === undefined ? {} : { externalNameDefinitions: {
+          workbook: accountText(workbook), sheets: externalSheets.map(accountText), names: []
+        } });
       continue;
     }
     if (ver >= 7 && (opcode === 0x23 || opcode === 0x223)) {

@@ -43,6 +43,39 @@ test("portable shell executes in workerd without Node compatibility", { timeout:
             if (result.exitCode !== 0 || result.stdout !== expected || result.stderr !== "")
               throw new Error(JSON.stringify({ script, expected, result }));
           }
+          let delivered = 0;
+          let produced = 0;
+          let peakOutstanding = 0;
+          shell.register({ name: "stream-fixture", async execute({ stdout, stderr }) {
+            const chunk = new Uint8Array(4096);
+            for (let index = 0; index < 256; index++) {
+              chunk.fill(index);
+              produced += chunk.length;
+              peakOutstanding = Math.max(peakOutstanding, produced - delivered);
+              await stdout.write(chunk);
+            }
+            await stderr.write(Uint8Array.of(0, 255));
+            return { exitCode: 7 };
+          } });
+          let errors = 0;
+          const streamed = await shell.exec('stream-fixture', {
+            captureOutput: false,
+            stdout: { async write(chunk) {
+              const expected = delivered / 4096;
+              await Promise.resolve();
+              if (chunk.length !== 4096 || !chunk.every(byte => byte === expected))
+                throw new Error("Streaming byte ownership changed");
+              delivered += chunk.length;
+            } },
+            stderr: { async write(chunk) {
+              if (chunk.length !== 2 || chunk[0] !== 0 || chunk[1] !== 255)
+                throw new Error("Streaming stderr changed");
+              errors++;
+            } },
+          });
+          if (streamed.exitCode !== 7 || streamed.stdoutBytes.length || streamed.stderrBytes.length ||
+              streamed.stdout || streamed.stderr || delivered !== 1048576 || errors !== 1 || peakOutstanding !== 4096)
+            throw new Error("Noncapturing portable execution failed");
           const download = await shell.exec('curl -sS --data-binary @/input https://example.test/data -o /download');
           if (download.exitCode !== 0 || download.stderr !== "" ||
               JSON.stringify([...await fs.readFile("/download")]) !== "[0,128,255]")

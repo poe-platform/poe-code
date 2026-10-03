@@ -94,7 +94,8 @@
 
 - Contracts are src/contracts/**. Command/FS payloads are Uint8Array. Await sink
   writes, preserve backpressure and chunk ownership, and bound collected output.
-  Shell exec returns buffered results while internal pipelines use byte streams.
+  Shell exec buffers results by default; captureOutput: false streams without
+  result captures. Internal pipelines use byte streams.
 - Copy retained ByteSource fragments into owned bytes before advancing or
   finalizing the producer; Buffer.slice/subarray are views, not copies. Completed
   awaited transient writes need not copy indiscriminately. This tested producer-

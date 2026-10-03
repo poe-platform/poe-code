@@ -171,6 +171,9 @@ export interface ShellOptions {
 }
 
 export interface ShellExecOptions {
+  /** False forwards output only to supplied sinks (or discards it when omitted).
+   * Result and hook output fields are empty; shell values/substitutions still retain bytes. */
+  readonly captureOutput?: boolean;
   readonly capabilities?: ShellCapabilities;
   readonly admittedHandles?: CommandContext["admittedHandles"];
   readonly processSignals?: CommandContext["processSignals"];

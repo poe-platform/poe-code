@@ -202,7 +202,7 @@ async function run(): Promise<void> {
     });
   } });
   try {
-    const result = await shell.exec(dispatch, { stdin: input, stdout, stderr, signal: cancellation.signal,
+    const result = await shell.exec(dispatch, { captureOutput: false, stdin: input, stdout, stderr, signal: cancellation.signal,
       state: { cwd: workerData.cwd, umask: workerData.umask, functions, exportedFunctions: Object.keys(functions) },
     });
     await shell.dispose();

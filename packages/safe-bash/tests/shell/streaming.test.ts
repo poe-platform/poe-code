@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { getEventListeners } from "node:events";
 import { test } from "node:test";
 import { FsError, writeText } from "../../src/contracts/index.js";
+import { Shell } from "../../src/shell/shell.js";
 import { ShellLimitError } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
 import { Budget, Capture, Runtime } from "../../src/shell/runtime.js";
@@ -431,4 +432,165 @@ test("parallel exec calls cannot leak environment, cwd or status", async () => {
   const results = await Promise.all(Array.from({ length: 20 }, (_, index) => shell.exec('cd /other; VALUE=local; say "$VALUE"; pwd; status 7', { env: { VALUE: String(index) } })));
   assert.ok(results.every((result) => result.stdout === "local\n/other\n" && result.exitCode === 7));
   assert.equal((await shell.exec('args "$VALUE" "$?"; pwd')).stdout, '["","0"]/\n');
+});
+
+for (const source of ["generate", "generate | pass", "sh -c generate", "generate & wait"]) test(`noncapturing execution streams reused chunks: ${source}`, async context => {
+  const { shell, commands, fs } = setup({ backgroundJobs: true, limits: { pipeHighWaterMark: 4096 } });
+  let produced = 0;
+  let consumed = 0;
+  let outstanding = 0;
+  const chunk = new Uint8Array(4096);
+  commands.register({ name: "generate", async execute({ stdout, stderr }) {
+    for (let index = 0; index < 128; index++) {
+      chunk.fill(index);
+      produced += chunk.length;
+      outstanding = Math.max(outstanding, produced - consumed);
+      await stdout.write(chunk);
+    }
+    await stderr.write(Uint8Array.of(255, 0));
+    return { exitCode: 0 };
+  } });
+  for (const method of ["writeRawSync", "takeBytes"] as const) context.mock.method(Capture.prototype, method, () => { throw new Error(`unexpected capture ${method}`); });
+  for (const method of ["readFile", "writeFile", "appendFile", "open"] as const) context.mock.method(fs, method, () => { throw new Error(`unexpected storage ${method}`); });
+  let errors = 0;
+  try {
+    const result = await shell.exec(source, {
+      captureOutput: false,
+      stdout: { async write(bytes) {
+        const expected = consumed / chunk.length;
+        await new Promise<void>(resolve => setImmediate(resolve));
+        assert.equal(bytes.length, chunk.length);
+        assert.ok(bytes.every(byte => byte === expected));
+        consumed += bytes.length;
+      } },
+      stderr: { async write(bytes) { assert.deepEqual(bytes, Uint8Array.of(255, 0)); errors++; } },
+    });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdoutBytes.length + result.stderrBytes.length, 0);
+    assert.equal(consumed, 128 * chunk.length);
+    assert.equal(errors, 1);
+    assert.ok(outstanding <= 3 * chunk.length, `outstanding bytes: ${outstanding}`);
+  } finally { await shell.dispose(); }
+});
+
+for (const captureOutput of [false, true]) test(`capture mode preserves binary sinks and hook metadata: ${captureOutput}`, async () => {
+  const { shell } = setup();
+  const chunks: number[] = [];
+  try {
+    const result = await shell.exec("bytes; status 7", {
+      captureOutput,
+      stdout: { async write(bytes) { chunks.push(...bytes); } },
+      onState(_state, hookResult) {
+        assert.equal(hookResult.exitCode, 7);
+        assert.equal(hookResult.stdoutBytes.length, captureOutput ? 6 : 0);
+      },
+    });
+    assert.deepEqual(chunks, [0, 255, 195, 169, 128, 10]);
+    assert.equal(result.exitCode, 7);
+    assert.equal(result.stdoutBytes.length, captureOutput ? 6 : 0);
+  } finally { await shell.dispose(); }
+});
+
+test("noncapturing mode bypasses warm captures and discards omitted sinks with output accounting", async () => {
+  const { fs } = setup();
+  const shell = new Shell({ fs });
+  try {
+    await shell.exec("");
+    const result = await shell.exec("pwd; pwd >&2", { captureOutput: false });
+    assert.equal(result.stdoutBytes.length + result.stderrBytes.length, 0);
+    await assert.rejects(shell.exec("pwd", { captureOutput: false, limits: { maxOutputBytes: 1 } }),
+      error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
+    assert.equal((await shell.exec("pwd")).stdout, "/\n");
+  } finally { await shell.dispose(); }
+});
+
+test("noncapturing command substitution retains only semantic output and respects explicit quotas", async context => {
+  const { shell } = setup();
+  let captured = 0;
+  const original = Capture.prototype.writeRawSync;
+  context.mock.method(Capture.prototype, "writeRawSync", function (this: Capture, bytes: Uint8Array) {
+    captured += bytes.length;
+    return original.call(this, bytes);
+  });
+  let output = "";
+  try {
+    const result = await shell.exec('value=$(say retained); say "$value"', {
+      captureOutput: false, stdout: { async write(bytes) { output += new TextDecoder().decode(bytes); } },
+    });
+    assert.equal(result.stdout, "");
+    assert.equal(output, "retained\n");
+    assert.equal(captured, "retained\n".length);
+    await assert.rejects(shell.exec('value=$(say retained)', { captureOutput: false, limits: { maxOutputBytes: 3 } }),
+      error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
+  } finally { await shell.dispose(); }
+});
+
+test("noncapturing session background output survives the foreground return without capture", async context => {
+  const { shell, commands } = setup({ backgroundJobs: true });
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  commands.register({ name: "later", async execute({ stdout }) {
+    await gate;
+    await stdout.write(Uint8Array.of(42));
+    return { exitCode: 0 };
+  } });
+  context.mock.method(Capture.prototype, "writeRawSync", () => { throw new Error("background capture"); });
+  context.mock.method(Capture.prototype, "takeBytes", () => { throw new Error("background concatenation"); });
+  const session = shell.createSession();
+  let count = 0;
+  try {
+    const result = await session.exec("later &", { captureOutput: false, stdout: { async write(bytes) { count += bytes.length; } } });
+    assert.equal(count, 0);
+    assert.equal(result.stdoutBytes.length, 0);
+    release();
+    assert.equal((await session.exec("wait", { captureOutput: false })).exitCode, 0);
+    assert.equal(count, 1);
+  } finally { release(); await session.dispose(); await shell.dispose(); }
+});
+
+for (const captureOutput of [false, true]) for (const cancel of [false, true]) test(`sink failure settles cleanup: capture=${captureOutput}, cancellation=${cancel}`, async () => {
+  const { shell, commands } = setup();
+  const controller = new AbortController();
+  const reason = new Error("sink stopped");
+  let cleaned = false;
+  commands.register({ name: "produce", async execute({ stdout, registerCleanup }) {
+    registerCleanup!(async () => { await Promise.resolve(); cleaned = true; });
+    await stdout.write(Uint8Array.of(1));
+    return { exitCode: 0 };
+  } });
+  try {
+    const execution = shell.exec("produce", {
+      captureOutput, signal: controller.signal,
+      stdout: { async write() {
+        if (cancel) controller.abort(reason);
+        throw reason;
+      } },
+      stderr: { async write() { throw reason; } },
+    });
+    if (cancel) await assert.rejects(execution, error => error === reason);
+    else assert.equal((await execution).exitCode, 1);
+    assert.equal(cleaned, true);
+  } finally { await shell.dispose(); }
+});
+
+test("noncapturing execution preserves owned output enrollment", async () => {
+  const { shell, commands } = setup();
+  let writes = 0;
+  const consumerClosed = new AbortController().signal;
+  commands.register({ name: "owned", async execute({ stdout }) {
+    assert.ok(stdout.ownedOutput);
+    assert.equal(stdout.ownedOutput.consumerClosed, consumerClosed);
+    await stdout.ownedOutput.write(Uint8Array.of(255));
+    return { exitCode: 0 };
+  } });
+  try {
+    const result = await shell.exec("owned", { captureOutput: false, stdout: {
+      async write() { throw new Error("ordinary sink path"); },
+      ownedOutput: { consumerClosed, async write(bytes) { assert.deepEqual(bytes, Uint8Array.of(255)); writes++; } },
+    } });
+    assert.equal(result.exitCode, 0);
+    assert.equal(writes, 1);
+  } finally { await shell.dispose(); }
 });

@@ -311,7 +311,10 @@ Object.assign(RootInvocationCancellationOwner.prototype, {
   _finished: false,
 });
 
-function createInvocationSink(budget: Budget, capture: Capture, external?: ByteSink): ByteSink {
+const discardOutput: ByteSink = { async write() {} };
+
+function createInvocationSink(budget: Budget, capture: Capture | undefined, external?: ByteSink): ByteSink {
+  if (capture === undefined) return budget.sink(external ?? discardOutput);
   if (external === undefined) return capture.budget === budget ? capture : budget.sink(capture);
   return budget.sink({
     ...(external.ownedOutput ? { ownedOutput: {
@@ -598,6 +601,7 @@ export class Shell implements PluginHost {
 
   #isDefaultExecOptions(options: ShellExecOptions, currentScope?: InvocationScope): boolean {
     return (
+      options.captureOutput !== false &&
       options.signal === undefined &&
       options.limits === undefined &&
       options.onInternalError === undefined &&
@@ -744,8 +748,8 @@ export class Shell implements PluginHost {
     budget.signal.throwIfAborted();
     if (!warm) scope.setActiveBudget(budget);
     const captureSignal = !this.#hasCustomCommands && this.#middleware.length === 0 ? cancellation.deliverySignal : budget.signal;
-    const stdout = warm ? warm.stdout : new Capture(options.stdout === undefined ? budget : undefined, captureSignal);
-    const stderr = warm ? warm.stderr : new Capture(options.stderr === undefined ? budget : undefined, captureSignal);
+    const stdout = options.captureOutput === false ? undefined : warm ? warm.stdout : new Capture(options.stdout === undefined ? budget : undefined, captureSignal);
+    const stderr = options.captureOutput === false ? undefined : warm ? warm.stderr : new Capture(options.stderr === undefined ? budget : undefined, captureSignal);
     let stdin: ShellInput | undefined = warm?.stdin;
     let unregisterStdin: (() => void) | undefined;
     if (options.stdin !== undefined && typeof options.stdin !== "string" && !(options.stdin instanceof Uint8Array)) {
@@ -959,6 +963,7 @@ export class Shell implements PluginHost {
         budget.limits.maxCpuMs === Infinity &&
         budget.limits.maxWallClockMs === Infinity &&
         !this._warmedInvocation &&
+        stdout && stderr &&
         !budget.hasExecutionCleanup &&
         !scope.hasFailures &&
         !budget.signal.aborted &&
@@ -1024,8 +1029,8 @@ export class Shell implements PluginHost {
       }
     }
     if (budget.hasExecutionCleanup) throwCleanupFailures(budget.executionCleanup.failures);
-    const stdoutBytes = stdout.takeBytes();
-    const stderrBytes = stderr.takeBytes();
+    const stdoutBytes = stdout?.takeBytes() ?? EMPTY_STDOUT_BYTES;
+    const stderrBytes = stderr?.takeBytes() ?? EMPTY_STDOUT_BYTES;
     const afterExecHook = options.hooks?.afterExec ?? this._options.hooks?.afterExec;
     const shouldCaptureState = Boolean(
       state && (options.state !== undefined || options.onState !== undefined || options.hooks !== undefined || this._options.hooks !== undefined),

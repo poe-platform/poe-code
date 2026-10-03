@@ -43,6 +43,16 @@ try {
 Output: `Hello, reader!\nAda\nGrace\n`. The script, input, and generated
 `names.sorted.txt` stay in memory. Results contain `exitCode`, `stdout`, `stderr`,
 `stdoutBytes`, and `stderrBytes`; use the byte fields for binary output.
+For large output, use `await shell.exec(source, { captureOutput: false, stdout, stderr })`.
+Each sink implements `async write(bytes)`; writes are awaited for backpressure.
+This mode creates no stdout/stderr captures or decoded output copies. Results and
+hooks retain exit/state metadata but have empty output fields. An omitted sink
+discards its stream. The CLI and timeout worker use this mode; the same SDK option
+works in Workers and `session.exec()`. Buffered results remain the default.
+Sinks must consume bytes before their write resolves, or copy bytes they retain.
+This bounds shell output transport, not arbitrary programs: command substitution,
+variables, arrays, arguments, process substitution and individual commands may
+retain data. See [streaming boundaries](src/contracts/streaming-execution.md).
 Each `exec()` starts fresh shell variables, functions, and working-directory state;
 filesystem changes persist in the supplied `fs`. The invocation-local `umask`
 starts at `0022`, accepts octal or symbolic modes, and is inherited by child shells.

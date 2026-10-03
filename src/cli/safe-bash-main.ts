@@ -758,6 +758,7 @@ export async function runSafeBashCli(
 
   try {
     const result = await shell.exec(source, {
+      captureOutput: false,
       ...(options.stdin !== undefined && parsed.command !== undefined
         ? { stdin: options.stdin }
         : {}),

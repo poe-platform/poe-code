@@ -262,3 +262,100 @@ it("accounts for table cells across all input documents before publishing", asyn
   })).rejects.toMatchObject({code: "E_LIMIT"});
   expect(write).not.toHaveBeenCalled();
 });
+
+it.each(["csv", "tsv"])("writes backed Pandoc JSON from %s without collecting the input or document", async from => {
+  const text = from === "csv" ? 'a,b\n"x y\nz",\u0000\n' : "a\tb\nx y\tz\n";
+  const input = encoder.encode(text);
+  const expected = await convert([{bytes: input}], {from, to: "json"}, {});
+  const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("input collector forbidden"));
+  const fs = new MemoryFileSystem();
+  let output = "";
+  try {
+    await convertToOutput([{chunks: (async function* () {
+      for (const byte of input) yield Uint8Array.of(byte);
+    })()}], {from, to: "json"}, {
+      workingFiles: {fs, directory: "/", cacheBytes: 16384},
+      output: {async write(bytes) {output += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}}
+    });
+    expect(expected).toMatchObject({kind: "text", text: output});
+    expect(acquire).not.toHaveBeenCalled();
+    expect(await fs.readdir("/")).toEqual([]);
+  } finally {acquire.mockRestore();}
+});
+
+it.each([
+  ["csv", ["", "\n", "a,", "a,b\n1,2,3\n4\n"]],
+  ["tsv", ['a\tb\n"literal"\t✓\n', "", "a\n"]],
+  ["csv", ['\ufeff"a\r\nb",c\r\n"✓ 😀 <&>","quoted ""text"""\r\n']]
+])("preserves empty, ragged and multi-document JSON tables (%s)", async (from, texts) => {
+  const inputs = texts.map(text => ({bytes: encoder.encode(text)}));
+  const expected = await convert(inputs, {from, to: "json"}, {});
+  const fs = new MemoryFileSystem();
+  let output = "";
+  await convertToOutput(inputs, {from, to: "json"}, {
+    workingFiles: {fs, directory: "/", cacheBytes: 16384},
+    output: {async write(bytes) {output += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}}
+  });
+  expect(expected).toMatchObject({kind: "text", text: output});
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it("spills JSON structure and long string payloads while emitting bounded chunks", async () => {
+  const fs = new MemoryFileSystem();
+  const open = vi.spyOn(fs, "open");
+  const text = 'heading\n"' + "😀x".repeat(20000) + '"\n' + "one two three\n".repeat(60);
+  const expected = await convert([{bytes: encoder.encode(text)}], {from: "csv", to: "json"}, {});
+  const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("input collector forbidden"));
+  let output = "", largest = 0;
+  try {
+    await convertToOutput([{bytes: encoder.encode(text)}], {from: "csv", to: "json"}, {
+      workingFiles: {fs, directory: "/", cacheBytes: 16384},
+      output: {async write(bytes) {largest = Math.max(largest, bytes.length); output += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}}
+    });
+    expect(expected).toMatchObject({kind: "text", text: output});
+    expect(largest).toBeLessThanOrEqual(16384);
+    expect(open).toHaveBeenCalled();
+    expect(acquire).not.toHaveBeenCalled();
+    expect(await fs.readdir("/")).toEqual([]);
+  } finally {acquire.mockRestore();}
+});
+
+it.each(["lf", "crlf"] as const)("preflights exact backed JSON output budgets with %s endings", async eol => {
+  const input = [{bytes: encoder.encode('a,b\n"😀\n\\",z')}];
+  const options = {from: "csv", to: "json", eol};
+  const expected = await convert(input, options, {});
+  if (expected.kind !== "text") throw new Error("expected JSON text");
+  for (const deficit of [0, 1]) {
+    const fs = new MemoryFileSystem();
+    let output = "";
+    const write = vi.fn(async (bytes: Uint8Array) => {output += new TextDecoder().decode(bytes);});
+    const operation = convertToOutput(input, options, {
+      limits: {outputBytes: encoder.encode(expected.text).length - deficit, tableRows: 2, tableColumns: 2, tableCells: 4},
+      workingFiles: {fs, directory: "/", cacheBytes: 16384},
+      output: {write, async close() {}, async abort() {}}
+    });
+    if (deficit) {await expect(operation).rejects.toMatchObject({code: "E_LIMIT"}); expect(write).not.toHaveBeenCalled();}
+    else {await operation; expect(output).toBe(expected.text);}
+    expect(await fs.readdir("/")).toEqual([]);
+  }
+});
+
+it.each(["cancel", "output failure"])("cleans backed JSON trees after %s", async mode => {
+  const fs = new MemoryFileSystem();
+  const controller = new AbortController();
+  let spilled = false;
+  const open = fs.open.bind(fs);
+  vi.spyOn(fs, "open").mockImplementation(async (...args) => {const descriptor = await open(...args); spilled = true; return descriptor;});
+  const write = vi.fn(async () => {if (mode === "output failure") throw new Error("sink unavailable");});
+  const abort = vi.fn(async () => {});
+  await expect(convertToOutput([{bytes: encoder.encode("a\n" + "x y\n".repeat(100))}], {from: "csv", to: "json"}, {
+    signal: controller.signal,
+    yield: async () => {if (mode === "cancel" && spilled) controller.abort();},
+    workingFiles: {fs, directory: "/", cacheBytes: 16384},
+    output: {write, async close() {}, abort}
+  })).rejects.toMatchObject({code: mode === "cancel" ? "E_CANCELLED" : "E_IO"});
+  expect(spilled).toBe(true);
+  if (mode === "cancel") expect(write).not.toHaveBeenCalled();
+  else expect(abort).toHaveBeenCalledOnce();
+  expect(await fs.readdir("/")).toEqual([]);
+});

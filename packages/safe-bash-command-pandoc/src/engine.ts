@@ -25,7 +25,7 @@ import type {
   WriterCapability
 } from "./types.js";
 
-import {streamDelimitedHtml} from "./stream-delimited.js";
+import {streamDelimited} from "./stream-delimited.js";
 import type {OutputConversionContext, ConversionSummary} from "./types.js";
 import {LocalTemplate} from "./templates.js";
 
@@ -616,7 +616,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
   const registry = createFormatRegistry(undefined, context);
   const reader = registry.resolve(options.from, "read"), writer = registry.resolve(options.to, "write");
   const incremental = context.workingFiles && !context.reader && !context.writer
-    && (reader.descriptor.name === "csv" || reader.descriptor.name === "tsv") && writer.descriptor.name === "html5"
+    && (reader.descriptor.name === "csv" || reader.descriptor.name === "tsv") && ["html5", "json"].includes(writer.descriptor.name)
     && Object.keys(options).every(key => ["from", "to", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "fileScope", "sandbox", "failIfWarnings"].includes(key))
     && Object.entries(context.limits ?? {}).every(([key, value]) => ["inputBytes", "outputBytes", "tableRows", "tableColumns", "tableCells", "tableFieldText"].includes(key) || value === Infinity);
   if (!incremental) {
@@ -626,7 +626,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
   const session = new Session("convert", context);
   try {
     session.options(options);
-    await session.call(() => streamDelimitedHtml(inputs, reader.descriptor.name as "csv" | "tsv", session, context.workingFiles!, options));
+    await session.call(() => streamDelimited(inputs, reader.descriptor.name as "csv" | "tsv", writer.descriptor.name as "html5" | "json", session, context.workingFiles!, options));
     return {kind: "output", diagnostics: session.snapshotDiagnostics()};
   } finally {await session.close();}
 }

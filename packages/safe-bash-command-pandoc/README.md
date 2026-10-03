@@ -148,12 +148,15 @@ fallback. File reads are lazy and close on cancellation or budget failure; the
 `convert` convenience API retains document ASTs and output in memory.
 
 `convertToOutput(inputs, options, {output, workingFiles})` returns an output summary
-instead of a complete payload. Its unfiltered CSV/TSV → HTML path uses a bounded
+instead of a complete payload. Its unfiltered CSV/TSV → HTML and Pandoc JSON paths use a bounded
 page cache and the caller’s safe-fs backing storage for source data and table
 widths; individual fields can exceed the cache. `workingFiles` supplies `fs`, an
 absolute `directory`, and optional `cacheBytes` (one MiB by default, in 16 KiB
 pages). Use an external filesystem backend for large data: a memory filesystem
 still retains the backing bytes in RAM. No host scratch directory is used.
+Pandoc JSON stores tree nodes, parent links, subtree boundaries and string contents
+in that backing store. Construction and serialization keep no resident document
+index or traversal stack; long fields retain their original inline semantics.
 
 EPUB reads also accept `workingFiles` through `readDocument` and `convert`.
 Streamed archives and expanded ZIP members use the bounded page cache and caller
@@ -162,7 +165,7 @@ unused members are still CRC-checked. XML parts feed the parser incrementally.
 XML trees and tokens, images, publication metadata and the document AST remain
 materialized in memory.
 
-The backed CSV/TSV path supports ASCII conversion, line endings, and finite
+The backed CSV/TSV paths support line endings (and ASCII conversion for HTML) and finite
 `inputBytes`, `outputBytes`, `tableRows`, `tableColumns`, `tableCells`, and
 `tableFieldText` limits. Additional document transformations, other finite limits,
 and other format pairs

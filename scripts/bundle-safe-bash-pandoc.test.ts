@@ -68,7 +68,7 @@ it("uses prepared Pandoc adapters in the standalone browser shell build", async 
   expect(filtered.blocks).toEqual([{ t: "Para", c: [{ t: "Str", c: "HELLO" }] }]);
 });
 
-it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd without Node compatibility", async () => {
+it.each(["tables", "json-tables"])("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd without Node compatibility (%s)", async tableScenario => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const fsBuild = await build({
     entryPoints: [path.join(root, "packages/safe-fs/src/core.ts")],
@@ -91,7 +91,7 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
         const scenario = new URL(request.url).pathname.slice(1);
         const vfs = fs.createMemoryFileSystem();
         const encoder = new TextEncoder();
-        if (scenario !== "composed" && scenario !== "tables" && scenario !== "ranges") vfs.readFile = () => {
+        if (scenario !== "composed" && scenario !== "tables" && scenario !== "json-tables" && scenario !== "ranges") vfs.readFile = () => {
           throw new Error("Document and filter files must stream");
         };
         await vfs.writeFile("/input.md", encoder.encode("**portable**"));
@@ -132,7 +132,8 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
           await execute(pandoc.createPandocCommand(), ["-f", "commonmark", "-t", "html", "-L", "/filter.lua", "/words.md"]);
           return Response.json(outputs);
         }
-        if (scenario === "tables") {
+        if (scenario === "tables" || scenario === "json-tables") {
+          const target = scenario === "json-tables" ? "json" : "html";
           await vfs.mkdir("/spill");
           await vfs.writeFile("/table.csv", encoder.encode("header\\n" + "x".repeat(1100000)));
           const results = [];
@@ -165,14 +166,14 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
               expected: null, parent: await supplied.stat("/"), maxBytes: Infinity
             }) : output;
             if (mode === "sdk" || mode === "sdk-file") await pandoc.convertToOutput([{chunks: supplied.readStream("/table.csv", {chunkSize: 16384})}],
-              {from: "csv", to: "html"}, {limits: {outputBytes: 1200000, tableRows: 2, tableColumns: 1, tableCells: 2, tableFieldText: 1100000}, workingFiles: {fs: supplied, directory: "/spill", cacheBytes: 16384}, output: sink});
+              {from: "csv", to: target}, {limits: {outputBytes: 1200000, tableRows: 2, tableColumns: 1, tableCells: 2, tableFieldText: 1100000}, workingFiles: {fs: supplied, directory: "/spill", cacheBytes: 16384}, output: sink});
             else if (mode === "standalone-file") {
               const parent = await supplied.stat("/");
               const result = await pandoc.createStandalonePandocCommand({
                 limits: {outputBytes: 1200000, tableRows: 2, tableColumns: 1, tableCells: 2, tableFieldText: 1100000},
                 workingFiles: {fs: supplied, directory: "/spill", cacheBytes: 16384}
               }).execute({
-                args: ["-f", "csv", "-t", "html", "/table.csv", "-o", "/result.html"],
+                args: ["-f", "csv", "-t", target, "/table.csv", "-o", "/result.html"],
                 fs: supplied, cwd: "/", signal: new AbortController().signal,
                 createOutput: (path, signal) => pandoc.createFileOutput(supplied, path, {expected: null, parent, maxBytes: Infinity, signal}),
                 stdin: (async function* () {})(), stdout: output,
@@ -181,7 +182,7 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
               exitCode = result.exitCode;
             } else {
               const result = await pandoc.createPandocCommand({limits: {outputBytes: 1200000, tableRows: 2, tableColumns: 1, tableCells: 2, tableFieldText: 1100000}}).execute({
-                command: "pandoc", args: ["-f", "csv", "-t", "html", "/table.csv", ...(mode === "command-file" ? ["-o", "/result.html"] : [])],
+                command: "pandoc", args: ["-f", "csv", "-t", target, "/table.csv", ...(mode === "command-file" ? ["-o", "/result.html"] : [])],
                 fs: supplied, cwd: "/", env: {TMPDIR: "/spill"}, signal: new AbortController().signal,
                 stdin: (async function* () {})(), stdout: output,
                 stderr: {async write(bytes) {stderr += new TextDecoder().decode(bytes);}}
@@ -211,36 +212,47 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
     `,
   });
   try {
-    const response = await runtime.dispatchFetch("https://pandoc.test");
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ exitCode: 0, stdout: "<p><strong>portable</strong></p>\n", stderr: "" });
-    for (const scenario of ["lua", "sdk", "ranges"]) {
-      const filtered = await runtime.dispatchFetch("https://pandoc.test/" + scenario);
-      expect(await filtered.json()).toEqual({exitCode: 0, stdout: "<p><strong>PORTABLE</strong></p>\n", stderr: ""});
+    if (tableScenario === "tables") {
+      const response = await runtime.dispatchFetch("https://pandoc.test");
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({ exitCode: 0, stdout: "<p><strong>portable</strong></p>\n", stderr: "" });
+      for (const scenario of ["lua", "sdk", "ranges"]) {
+        const filtered = await runtime.dispatchFetch("https://pandoc.test/" + scenario);
+        expect(await filtered.json()).toEqual({exitCode: 0, stdout: "<p><strong>PORTABLE</strong></p>\n", stderr: ""});
+      }
     }
-    const tablesResponse = await runtime.dispatchFetch("https://pandoc.test/tables");
+    const scenario = tableScenario;
+    const tablesResponse = await runtime.dispatchFetch("https://pandoc.test/" + scenario);
     const tablesText = await tablesResponse.text();
     expect(tablesResponse.status, tablesText).toBe(200);
     const expectedTable = new TextEncoder().encode('<table>\n<colgroup><col></colgroup>\n<thead>\n<tr><th scope="col">header</th></tr>\n</thead>\n<tbody>\n<tr><td>' + "x".repeat(1100000) + '</td></tr>\n</tbody>\n</table>\n');
+    const attr = ["", [], []];
+    const row = (text: string) => [attr, [[attr, {t: "AlignDefault"}, 1, 1, [{t: "Plain", c: [{t: "Str", c: text}]}]]]];
+    const expectedJson = new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [
+      {t: "Table", c: [attr, [null, []], [[{t: "AlignDefault"}, {t: "ColWidthDefault"}]], [attr, [row("header")]], [[attr, 0, [], [row("x".repeat(1100000))]]], [attr, []]]}
+    ]}) + "\n");
+    const expectedBytes = scenario === "tables" ? expectedTable : expectedJson;
     let expectedHash = 2166136261;
-    for (const byte of expectedTable) expectedHash = Math.imul(expectedHash ^ byte, 16777619) >>> 0;
+    for (const byte of expectedBytes) expectedHash = Math.imul(expectedHash ^ byte, 16777619) >>> 0;
     const tables = JSON.parse(tablesText) as {mode: string; opened: number; bytesWritten: number; largestWrite: number; hash: number; exitCode: number; stderr: string; remaining: unknown[]}[];
     expect(tables.map(table => table.mode)).toEqual(["sdk", "command", "sdk-file", "command-file", "standalone-file"]);
     for (const table of tables) {
-      expect(table).toMatchObject({bytesWritten: expectedTable.length, hash: expectedHash, exitCode: 0, stderr: "", remaining: []});
+      expect(table).toMatchObject({bytesWritten: expectedBytes.length, hash: expectedHash, exitCode: 0, stderr: "", remaining: []});
       expect(table.opened).toBeGreaterThan(0);
       expect(table.largestWrite).toBeLessThanOrEqual(16384);
     }
-    const composedResponse = await runtime.dispatchFetch("https://pandoc.test/composed");
-    const composedText = await composedResponse.text();
-    expect(composedResponse.status, composedText).toBe(200);
-    const composed = JSON.parse(composedText) as {exitCode: number; stdout: string; stderr: string}[];
-    expect(composed.every(result => result.exitCode === 0 && result.stderr === "")).toBe(true);
-    expect(composed[1]!.stdout).toContain("description: shared-vfs");
-    expect(composed[3]!.stdout).toMatch(/^<p>(HELLO\nWORLD|WORLD\nHELLO)<\/p>\n$/);
-    for (const [scenario, code, status] of [["host", "E_AST", 4], ["syntax", "E_AST", 4], ["missing", "E_IO", 9], ["budget", "E_LIMIT", 7]]) {
-      const failed = await runtime.dispatchFetch("https://pandoc.test/" + scenario);
-      expect(await failed.json()).toEqual({exitCode: status, stdout: "", stderr: expect.stringContaining(code)});
+    if (tableScenario === "tables") {
+      const composedResponse = await runtime.dispatchFetch("https://pandoc.test/composed");
+      const composedText = await composedResponse.text();
+      expect(composedResponse.status, composedText).toBe(200);
+      const composed = JSON.parse(composedText) as {exitCode: number; stdout: string; stderr: string}[];
+      expect(composed.every(result => result.exitCode === 0 && result.stderr === "")).toBe(true);
+      expect(composed[1]!.stdout).toContain("description: shared-vfs");
+      expect(composed[3]!.stdout).toMatch(/^<p>(HELLO\nWORLD|WORLD\nHELLO)<\/p>\n$/);
+      for (const [scenario, code, status] of [["host", "E_AST", 4], ["syntax", "E_AST", 4], ["missing", "E_IO", 9], ["budget", "E_LIMIT", 7]]) {
+        const failed = await runtime.dispatchFetch("https://pandoc.test/" + scenario);
+        expect(await failed.json()).toEqual({exitCode: status, stdout: "", stderr: expect.stringContaining(code)});
+      }
     }
   } finally {
     await runtime.dispose();

@@ -23,7 +23,6 @@
     "@modelcontextprotocol/sdk": "1.29.0",
     "mcp-protocol-rust": "*",
     "tiny-mcp-client": "*",
-    "tiny-stdio-mcp-server-rust": "*",
     "tsx": ">=4.21.0",
     "typescript": "5.9.3",
     "mcp-oauth-rust": "*",
@@ -55,5 +54,8 @@
       "worker": "./dist/spawn.browser.js",
       "default": "./dist/spawn.node.js"
     }
+  },
+  "dependencies": {
+    "tiny-stdio-mcp-server-rust": "*"
   }
 }

@@ -87,6 +87,19 @@ import type { Readable, Writable } from "node:stream";
 import type { ChildProcessWithoutNullStreams, SpawnOptions } from "node:child_process";
 import type { Implementation, Resource, ResourceTemplate, Prompt, Tool as CoreTool, ContentItem as CoreContentItem, ResourceContents as CoreResourceContents } from "tiny-stdio-mcp-server-rust";
 export type { Implementation, Resource, ResourceTemplate, Prompt, ResourceLink, PromptArgument, ToolAnnotations, Icon, ContentAnnotations, ToolExecution } from "tiny-stdio-mcp-server-rust";
+export interface ClientCapabilities {
+    extensions?: Record<string, Record<string, unknown>>;
+    elicitation?: { form?: Record<string, unknown>; url?: Record<string, unknown> };
+    roots?: { listChanged?: boolean; [key: string]: unknown };
+    sampling?: { [key: string]: unknown };
+    experimental?: Record<string, unknown>;
+}
+
+export interface Tool extends Omit<CoreTool, "inputSchema" | "outputSchema"> {
+    inputSchema: Record<string, unknown>;
+    outputSchema?: Record<string, unknown>;
+}
+
 export interface ServerCapabilities {
     extensions?: Record<string, Record<string, unknown>>;
     prompts?: {
@@ -403,7 +416,7 @@ export declare class StdioTransport implements McpTransport {
   dispose(reason?: Error): void;
 }
 import type { OAuthClientProviderOptions } from "./oauth/index.js";
-export type { OAuthClientProvider, OAuthClientProviderOptions, OAuthSessionStore } from "./oauth/index.js";
+export type { OAuthClientProvider, OAuthClientProviderOptions, OAuthSessionStore, StoredOAuthSession } from "./oauth/index.js";
 export type HttpTransportFetch = (input: string | URL, init?: RequestInit) => Promise<Response>;
 export declare class HttpTransportError extends Error {
   readonly status: number;

@@ -1,4 +1,36 @@
 import { PassThrough } from "node:stream";
+import type { ClientCapabilities, Tool, StoredOAuthSession } from "../dist/index.js";
+import type {
+  ClientCapabilities as ReferenceCapabilities,
+  Tool as ReferenceTool,
+  StoredOAuthSession as ReferenceSession
+} from "tiny-mcp-client";
+declare const capabilities: ClientCapabilities;
+declare const referenceCapabilities: ReferenceCapabilities;
+declare const tool: Tool;
+declare const referenceTool: ReferenceTool;
+declare const session: StoredOAuthSession;
+declare const referenceSession: ReferenceSession;
+const capabilitiesToReference: ReferenceCapabilities = capabilities;
+const capabilitiesFromReference: ClientCapabilities = referenceCapabilities;
+const toolToReference: ReferenceTool = tool;
+const toolFromReference: Tool = referenceTool;
+const sessionToReference: ReferenceSession = session;
+const sessionFromReference: StoredOAuthSession = referenceSession;
+type Assert<T extends true> = T;
+type IsTyped<T> = 0 extends (1 & T) ? false : true;
+export type PublicDeclarationsAreTyped = [
+  Assert<IsTyped<ClientCapabilities>>,
+  Assert<IsTyped<Tool>>,
+  Assert<IsTyped<StoredOAuthSession>>,
+  Assert<IsTyped<Awaited<ReturnType<McpClient["listTools"]>>["tools"][number]>>
+];
+// @ts-expect-error Capability flags must retain their boolean contract.
+const invalidCapabilities: ClientCapabilities = { roots: { listChanged: "yes" } };
+// @ts-expect-error Tool schemas must remain records.
+const invalidTool: Tool = { name: "echo", inputSchema: 42 };
+void [capabilitiesToReference, capabilitiesFromReference, toolToReference,
+  toolFromReference, sessionToReference, sessionFromReference, invalidCapabilities, invalidTool];
 import {defaultStdioSpawn, snapshotHttpTransportHeaders} from "../dist/index.js";
 import {defaultStdioSpawn as referenceSpawn, snapshotHttpTransportHeaders as referenceHeaders} from "tiny-mcp-client";
 const spawnToReference:typeof referenceSpawn=defaultStdioSpawn;

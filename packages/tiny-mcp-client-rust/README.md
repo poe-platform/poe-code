@@ -1,7 +1,8 @@
 # tiny-mcp-client-rust
 
 An independent Rust MCP client with native Node bindings and zero external npm
-runtime dependencies. This private additive package is under development.
+runtime dependencies. Its public wire types use the own `tiny-stdio-mcp-server-rust`
+package, installed automatically. This private additive package is under development.
 
 The first checkpoint implements client JSON-RPC envelope parsing: requests,
 notifications, successful/error responses and malformed-message diagnostics.
@@ -69,7 +70,7 @@ metadata, preserves exact issuer identifiers and tries the standard OAuth/OIDC
 metadata fallbacks. Inject a fetch function or shared cache when needed. Its memory
 cache returns independent snapshots; explicit metadata URLs bypass cached results.
 `discoverOAuthMetadata` performs a one-off lookup. `fetchMcpResponse` rejects redirects.
-The native artifact embeds the own OAuth and credential support without npm runtime
+The native artifact embeds the own OAuth and credential support without external npm runtime
 dependencies. Metadata bodies have a 1 MiB limit and a 10-second candidate deadline.
 
 `HttpTransport` connects to HTTP MCP servers with JSON or SSE responses, legacy

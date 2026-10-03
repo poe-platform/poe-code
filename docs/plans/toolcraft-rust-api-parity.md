@@ -4673,3 +4673,24 @@ including rejection of nonnumeric error codes, with workspace declaration
 fallback forbidden. The original client compiler check no longer reports the
 protocol error declaration failure; it still correctly reports missing client
 capability/tool types. Those and the missing stored-session export are next.
+
+### MCP client standalone declaration repair
+
+Strict compilation reproduced eight undeclared-type errors, and a new consumer
+fixture reproduced missing ClientCapabilities, Tool and StoredOAuthSession exports.
+The client now declares the first two against own wire types and exports the
+existing embedded OAuth session contract. Maintained declaration checks disable
+skipLibCheck and compare reference assignments in both directions, reject invalid
+schemas/capability flags and guard against implicit any in discovered tools.
+
+The existing own tiny-stdio-mcp-server-rust package moves from development to
+installed dependencies because the public declarations import its wire contracts.
+The lockfile records the same promotion. No third-party dependency was added and
+no runtime policy changed. The own OAuth/credential implementation remains embedded.
+
+The selected maintained build, client npm test route, Rust/binding lint and scoped
+TypeScript fixture lint pass. The route retains 445 reference cases across 56 files
+and 83 native checks. Three packed own packages pass strict consumer checking with
+workspace fallback forbidden, using only installed own declarations and the existing
+Node/compiler type environment. This qualifies the client declaration closure on
+this host, not all Toolcraft declarations or the native platform matrix.

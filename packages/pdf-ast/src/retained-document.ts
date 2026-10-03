@@ -1,3 +1,4 @@
+import { walkRetainedImages, type PdfRetainedImage, type PdfImageSelection } from "./extract/retained-images.js";
 import { walkRetainedFonts, type PdfRetainedFont, type PdfFontSelection } from "./extract/retained-fonts.js";
 import { walkRetainedAttachments, type PdfRetainedAttachment } from "./extract/retained-attachments.js";
 import { cosDict, decodePdfString, dictGet, type ByteSpan, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfRect } from "./ast.js";
@@ -149,6 +150,21 @@ export class PdfRetainedDocument {
       doc.assertOpen(); doc.walks.add(work);
       try {
         yield* walkRetainedFonts(doc, doc.storage, { ...selection, maxDepth: doc.depthLimit,
+          ...(doc.options.maxTraversalStagingBytes === undefined ? {} : { maxStagingBytes: doc.options.maxTraversalStagingBytes }),
+          ...(doc.options.signal ? { signal: doc.options.signal } : {}),
+        });
+      } finally { doc.walks.delete(work); }
+    }
+    const work = visit(this); return work;
+  }
+
+  images(selection: PdfImageSelection = {}): AsyncGenerator<PdfRetainedImage, void, void> {
+    async function* visit(doc: PdfRetainedDocument): AsyncGenerator<PdfRetainedImage, void, void> {
+      doc.assertOpen(); doc.walks.add(work);
+      try {
+        yield* walkRetainedImages(doc, doc.storage, { ...selection, maxDepth: doc.depthLimit,
+          ...(doc.options.chunkBytes === undefined ? {} : { chunkBytes: doc.options.chunkBytes }),
+          ...(doc.options.maxDecodedBytes === undefined ? {} : { maxDecodedBytes: doc.options.maxDecodedBytes }),
           ...(doc.options.maxTraversalStagingBytes === undefined ? {} : { maxStagingBytes: doc.options.maxTraversalStagingBytes }),
           ...(doc.options.signal ? { signal: doc.options.signal } : {}),
         });

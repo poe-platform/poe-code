@@ -39,3 +39,5 @@ export * from "./staged-outputs.js";
 export type { PdfRetainedFont, PdfFontSelection } from "./extract/retained-fonts.js";
 export { encodePortableBitmapChunks, type PdfPortableBitmapFormat, type PdfPortableBitmapOptions } from "./render/portable-bitmap-stream.js";
 export { encodeRetainedPng, type PdfRetainedPngOptions } from "./render/retained-png.js";
+
+export type { PdfRetainedImage, PdfImageSelection } from "./extract/retained-images.js";

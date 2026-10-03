@@ -33,6 +33,16 @@ mapping and indirect references without decoding font programs. Exact duplicate
 tracking uses caller-backed storage; closing the document releases suspended
 font traversals.
 
+`doc.images({ firstPage, lastPage })` yields lazy image occurrences from page
+content, forms, patterns, Type 3 glyphs, annotation appearances and unreferenced
+page resources. Each exposes its dictionary, resources, transform, reference and
+encoded byte length. Consume `image.contents({ native: true })` before advancing
+the iterator to unwrap transport filters while preserving JPEG, JPX, JBIG2 or
+CCITT bytes; the default applies the normal stream decoder. These are stream
+bytes, not RGBA pixels. Image occurrences expire on advancement. Content and deep
+graphics-state stacks use caller-backed staging, released on return or document
+close. Supply external storage for large inputs.
+
 `doc.attachments()` on a retained document visits embedded name trees,
 catalog/page associated files, and file-attachment annotations in document order.
 Each result exposes `index`, `name`, and `contents()`, which streams decoded

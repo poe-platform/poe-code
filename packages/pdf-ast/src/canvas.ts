@@ -1,3 +1,4 @@
+import { preparePageAppearanceSteps } from "./content/appearance.js";
 import {
   cosArray,
   cosDict,
@@ -6,7 +7,6 @@ import {
   cosNumber,
   cosStream,
   cosString,
-  decodePdfString,
   dictGet,
   dictSet,
   type PdfContentNode,
@@ -23,7 +23,6 @@ import {
 import {
   evaluateContentStreamToDisplayList,
   extractPageAnnotations,
-  isOptionalContentVisible,
 } from "./content/evaluator.js";
 import { parseContentStream } from "./content/parser.js";
 import { serializeContentAst } from "./content/serializer.js";
@@ -765,169 +764,19 @@ export class PdfPage {
     const baseNodes = [...this.getContentAst()];
     const pageRes = this.getResourcesDict();
     const evalResourcesDict = cosDict({});
-    for (const entry of pageRes.entries) {
-      const sub = this.cosDoc.resolveDict(entry.value);
-      if (sub) {
-        const clonedSub = cosDict({});
-        for (const se of sub.entries) dictSet(clonedSub, se.key.decoded, se.value);
-        dictSet(evalResourcesDict, entry.key.decoded, clonedSub);
+    const work = preparePageAppearanceSteps(this.pageDict, pageRes, evalResourcesDict, options?.hideAnnotations);
+    let appearance: PdfContentNode[] = [];
+    let step = work.next();
+    while (!step.done) {
+      const request = step.value;
+      if (request.kind === "resolve" || request.kind === "catalog") {
+        step = work.next(this.cosDoc.resolve(request.kind === "catalog" ? this.cosDoc.rootRef : request.node));
+      } else if (request.kind === "appearance-content") {
+        appearance = parseContentStream(this.cosDoc.decodeStream(request.stream));
+        step = work.next(appearance.length > 0);
       } else {
-        dictSet(evalResourcesDict, entry.key.decoded, entry.value);
-      }
-    }
-
-    const annotsArr = this.cosDoc.resolveArray(dictGet(this.pageDict, "Annots"));
-    if (!options?.hideAnnotations && annotsArr && annotsArr.items.length > 0) {
-      for (const item of annotsArr.items) {
-        const annotDict = this.cosDoc.resolveDict(item);
-        if (!annotDict) continue;
-        const fNode = this.cosDoc.resolve(dictGet(annotDict, "F"));
-        const annotFlags = fNode?.kind === "number" ? fNode.value : 0;
-        // Skip Hidden (bit 2 = 2) or NoView (bit 6 = 32) annotations on screen
-        if ((annotFlags & 2) !== 0 || (annotFlags & 32) !== 0) continue;
-        if (!isOptionalContentVisible(this.cosDoc, dictGet(annotDict, "OC"))) continue;
-
-        const rectArr = this.cosDoc.resolveArray(dictGet(annotDict, "Rect"));
-        let rx0 = 50;
-        let ry0 = 700;
-        if (rectArr && rectArr.items.length >= 2) {
-          const r0 = this.cosDoc.resolve(rectArr.items[0]);
-          const r1 = this.cosDoc.resolve(rectArr.items[1]);
-          if (r0?.kind === "number") rx0 = r0.value;
-          if (r1?.kind === "number") ry0 = r1.value;
-        }
-
-        const parentDict = this.cosDoc.resolveDict(dictGet(annotDict, "Parent"));
-        const ownAsOrV = dictGet(annotDict, "AS") ?? dictGet(annotDict, "V");
-        const vNode = this.cosDoc.resolve(
-          ownAsOrV ?? (parentDict ? dictGet(parentDict, "V") ?? dictGet(parentDict, "AS") : undefined)
-        );
-
-        let renderedApStream = false;
-        const apDict = this.cosDoc.resolveDict(dictGet(annotDict, "AP"));
-        let apN = apDict ? this.cosDoc.resolve(dictGet(apDict, "N")) : undefined;
-        if (apN?.kind === "dict" && vNode?.kind === "name" && vNode.decoded !== "Off") {
-          apN = this.cosDoc.resolve(dictGet(apN, vNode.decoded));
-        }
-        if (apN?.kind === "stream") {
-          const apBytes = this.cosDoc.decodeStream(apN);
-          const apNodes = parseContentStream(apBytes);
-          if (apNodes.length > 0) {
-            renderedApStream = true;
-            const apRes = this.cosDoc.resolveDict(dictGet(apN.dict, "Resources"));
-            if (apRes) {
-              for (const subKey of ["Font", "XObject", "ExtGState", "ColorSpace", "Pattern", "Shading"]) {
-                const srcSub = this.cosDoc.resolveDict(dictGet(apRes, subKey));
-                if (!srcSub) continue;
-                let dstSub = this.cosDoc.resolveDict(dictGet(evalResourcesDict, subKey));
-                if (!dstSub) {
-                  dstSub = cosDict({});
-                  dictSet(evalResourcesDict, subKey, dstSub);
-                }
-                for (const se of srcSub.entries) {
-                  if (!dictGet(dstSub, se.key.decoded)) {
-                    dictSet(dstSub, se.key.decoded, se.value);
-                  }
-                }
-              }
-            }
-
-            const r2Node = rectArr && rectArr.items[2] ? this.cosDoc.resolve(rectArr.items[2]) : undefined;
-            const r3Node = rectArr && rectArr.items[3] ? this.cosDoc.resolve(rectArr.items[3]) : undefined;
-            const rectW = r2Node?.kind === "number" ? Math.max(1, Math.abs(r2Node.value - rx0)) : 20;
-            const rectH = r3Node?.kind === "number" ? Math.max(1, Math.abs(r3Node.value - ry0)) : 20;
-            const bboxArr = this.cosDoc.resolveArray(dictGet(apN.dict, "BBox"));
-            let bx0 = 0, by0 = 0, bw = rectW, bh = rectH;
-            if (bboxArr && bboxArr.items.length >= 4) {
-              const b0 = this.cosDoc.resolve(bboxArr.items[0]);
-              const b1 = this.cosDoc.resolve(bboxArr.items[1]);
-              const b2 = this.cosDoc.resolve(bboxArr.items[2]);
-              const b3 = this.cosDoc.resolve(bboxArr.items[3]);
-              if (b0?.kind === "number" && b1?.kind === "number" && b2?.kind === "number" && b3?.kind === "number") {
-                bx0 = Math.min(b0.value, b2.value);
-                by0 = Math.min(b1.value, b3.value);
-                bw = Math.max(1, Math.abs(b2.value - b0.value));
-                bh = Math.max(1, Math.abs(b3.value - b1.value));
-              }
-            }
-            let ma = 1, mb = 0, mc = 0, md = 1, me = 0, mf = 0;
-            const matArr = this.cosDoc.resolveArray(dictGet(apN.dict, "Matrix"));
-            if (matArr && matArr.items.length >= 6) {
-              const mn = (idx: number, fb = 0) => {
-                const r = this.cosDoc.resolve(matArr.items[idx]);
-                return r?.kind === "number" ? r.value : fb;
-              };
-              ma = mn(0, 1); mb = mn(1, 0); mc = mn(2, 0); md = mn(3, 1); me = mn(4, 0); mf = mn(5, 0);
-            }
-            const corners: Array<[number, number]> = [
-              [ma * bx0 + mc * by0 + me, mb * bx0 + md * by0 + mf],
-              [ma * (bx0 + bw) + mc * by0 + me, mb * (bx0 + bw) + md * by0 + mf],
-              [ma * bx0 + mc * (by0 + bh) + me, mb * bx0 + md * (by0 + bh) + mf],
-              [ma * (bx0 + bw) + mc * (by0 + bh) + me, mb * (bx0 + bw) + md * (by0 + bh) + mf],
-            ];
-            const tMinX = Math.min(...corners.map(c => c[0]));
-            const tMinY = Math.min(...corners.map(c => c[1]));
-            const tW = Math.max(1, Math.max(...corners.map(c => c[0])) - tMinX);
-            const tH = Math.max(1, Math.max(...corners.map(c => c[1])) - tMinY);
-            const sx = rectW / tW;
-            const sy = rectH / tH;
-            const tx = rx0 - tMinX * sx;
-            const ty = ry0 - tMinY * sy;
-            const ops: PdfContentNode[] = [
-              {
-                kind: "state-op",
-                operator: "cm",
-                operands: [
-                  cosNumber(sx),
-                  cosNumber(0),
-                  cosNumber(0),
-                  cosNumber(sy),
-                  cosNumber(tx),
-                  cosNumber(ty),
-                ],
-              },
-            ];
-            if (matArr && matArr.items.length >= 6) {
-              ops.push({
-                kind: "state-op",
-                operator: "cm",
-                operands: [
-                  cosNumber(ma),
-                  cosNumber(mb),
-                  cosNumber(mc),
-                  cosNumber(md),
-                  cosNumber(me),
-                  cosNumber(mf),
-                ],
-              });
-            }
-            ops.push(...apNodes);
-            baseNodes.push({
-              kind: "graphics-group",
-              ops,
-            });
-          }
-        }
-
-        const subNode = this.cosDoc.resolve(dictGet(annotDict, "Subtype"));
-        const isWidget =
-          (subNode?.kind === "name" && subNode.decoded === "Widget") ||
-          Boolean(dictGet(annotDict, "FT") || dictGet(annotDict, "T") || parentDict);
-        if (!isWidget || renderedApStream) continue;
-
-        let valText = "";
-        if (vNode?.kind === "string") valText = decodePdfString(vNode);
-        else if (vNode?.kind === "name" && vNode.decoded !== "Off") valText = vNode.decoded;
-        if (!valText) continue;
-
-        baseNodes.push({
-          kind: "text-object",
-          commands: [
-            { kind: "font", fontName: "Helvetica", size: 11 },
-            { kind: "move", tx: rx0 + 2, ty: ry0 + 4 },
-            { kind: "show-text", token: cosString(valText) },
-          ],
-        });
+        baseNodes.push(request.stream ? { kind: "graphics-group", ops: [...request.nodes, ...appearance] } : request.nodes[0]!);
+        step = work.next();
       }
     }
     const mediaBox = this.getMediaBox(), cropBox = this.getCropBox();

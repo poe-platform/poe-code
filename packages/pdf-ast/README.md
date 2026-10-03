@@ -48,6 +48,16 @@ containing owner account for the same allocations; its failures propagate even
 when malformed optional mappings would otherwise be ignored. Input bytes remain
 caller-owned. This accounting does not cover embedded font program parsers.
 
+`page.evaluateSteps(storage, options)` pulls complete retained-page paint
+operations, including annotation appearances and widget fallback text.
+`hideAnnotations` matches the buffered page option. A resource prepass preserves
+fonts and other resources supplied by later appearances; each prepass cursor
+closes before the next annotation, then appearance events stream on demand.
+The same staging allowance and conservative resource admission cover page
+preparation and evaluation. Individual paths, composite captures and admitted
+raster images still use the shared resident representation; this is not yet a
+bounded page renderer. Use `page.annotations()` separately for link metadata.
+
 `page.annotations()` pulls link rectangles, contents, and external or internal
 URIs from a retained page. Named and legacy destinations share the buffered
 page API's interpretation. Destination page traversal uses caller-backed

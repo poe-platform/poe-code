@@ -1,3 +1,6 @@
+import { prepareRetainedPageContent, type PdfRetainedPageEvaluationOptions } from "./content/retained-page.js";
+import { evaluateRetainedContentSteps } from "./content/retained-evaluator.js";
+import { PdfStagingStorage } from "./staging-budget.js";
 import { annotationPageNumberSteps, extractPageAnnotationSteps, type PdfAnnotationResult } from "./content/annotations.js";
 import { walkRetainedStructure, type PdfRetainedStructureItem, type PdfStructureSelection } from "./extract/retained-structure.js";
 import { walkRetainedDestinations, walkRetainedUrls, type PdfRetainedDestination, type PdfRetainedUrl, type PdfUrlSelection } from "./extract/retained-links.js";
@@ -320,6 +323,28 @@ export class PdfRetainedPage {
       rotation: normalizedRotation === 90 || normalizedRotation === 180 || normalizedRotation === 270 ? normalizedRotation : 0,
       resources: resources?.kind === "dict" ? resources : cosDict({}),
     };
+  }
+
+  /** Pull complete page paint operations, including annotation appearances and
+   * widget fallback text. The caller owns results it retains. */
+  async *evaluateSteps(storage: PdfIndexStorage, options: PdfRetainedPageEvaluationOptions = {}) {
+    const maximum = options.maxResourceBytes ?? Infinity;
+    if (maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("Invalid maxResourceBytes");
+    let admitted = 0;
+    const configured = { ...options, maxResourceBytes: Infinity, onAllocation(bytes: number) {
+      options.signal?.throwIfAborted();
+      if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > Math.min(maximum, Number.MAX_SAFE_INTEGER) - admitted) throw new PdfError("E_LIMIT", "PDF page resource byte limit exceeded");
+      options.onAllocation?.(bytes); admitted += bytes;
+    } };
+    const shared = new PdfStagingStorage(storage, options.maxStagingBytes);
+    configured.onAllocation(256);
+    const attributes = await this.attributes();
+    const prepared = await prepareRetainedPageContent(this.document, this, attributes.resources, shared, configured);
+    const [x0, y0, x1, y1] = attributes.mediaBox;
+    yield* evaluateRetainedContentSteps(this.document, prepared, {
+      pageIndex: this.index, width: Math.abs(x1 - x0), height: Math.abs(y1 - y0),
+      origin: [Math.min(x0, x1), Math.min(y0, y1)], rotation: attributes.rotation, resourcesDict: prepared.resources,
+    }, shared, configured);
   }
 
   /** Pull one annotation at a time. Destination page lookup uses the document's

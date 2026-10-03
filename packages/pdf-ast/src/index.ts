@@ -73,3 +73,5 @@ export type { PdfRetainedStructureItem, PdfStructureSelection } from "./extract/
 export { resolveRetainedFont, type PdfRetainedFontOptions } from "./fonts/retained.js";
 
 export * from "./staging-budget.js";
+
+export type { PdfRetainedPageEvaluationOptions } from "./content/retained-page.js";

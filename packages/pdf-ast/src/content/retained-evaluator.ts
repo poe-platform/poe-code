@@ -23,12 +23,14 @@ export interface PdfRetainedEvaluationOptions extends ParseContentRangeOptions {
   readonly maxImageBytes?: number;
   readonly maxCachedFonts?: number;
 }
+/** Event sources own borrowed ranges until the evaluator advances or closes them. */
+export interface PdfRetainedContentEvents { readonly events: AsyncIterable<PdfContentEvent> }
 export type PdfRetainedEvaluationParameters = Omit<PdfContentEvaluationOptions, "nodes" | "cosDoc" | "onShadingAllocation">;
 
 /** Drive shared evaluation using retained input and caller-backed staging.
  * Paint operations are pulled on demand. Composite captures, individual paths,
  * and admitted raster results still use the shared in-memory representation. */
-export async function* evaluateRetainedContentSteps(document: PdfRetainedDocument, content: AsyncIterable<Uint8Array> | Iterable<Uint8Array>,
+export async function* evaluateRetainedContentSteps(document: PdfRetainedDocument, content: AsyncIterable<Uint8Array> | Iterable<Uint8Array> | PdfRetainedContentEvents,
   params: PdfRetainedEvaluationParameters, storage: PdfIndexStorage, options: PdfRetainedEvaluationOptions = {}): AsyncGenerator<PdfEvaluationOperation, void, void> {
   const maximum = options.maxResourceBytes ?? Infinity, chunkBytes = options.chunkBytes ?? 4096, maxCachedFonts = options.maxCachedFonts ?? 16;
   if (maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("Invalid maxResourceBytes");
@@ -79,7 +81,8 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
     } catch (error) { failed = true; throw error; }
     finally { await owner.close().catch(error => { if (!failed) throw error; }); }
   }
-  const input = cursor(content), work = evaluateContentSteps(params);
+  const input = "events" in content ? (async function* () { yield* content.events; })() : cursor(content);
+  const work = evaluateContentSteps(params);
   const nested = new Map<PdfEvaluationContentSource, AsyncGenerator<PdfContentEvent, void, void>>();
   const fonts: { resources: PdfCosDict | undefined; name: string; font: ResolvedPageFont | undefined }[] = [];
   const resourceOptions = { chunkBytes, maxStagingBytes: options.maxStagingBytes ?? Infinity, onAllocation: charge, ...(signal ? { signal } : {}) };

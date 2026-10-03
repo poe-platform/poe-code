@@ -1981,7 +1981,10 @@
             "@poe-code/safe-fs": "*",
             "@poe-code/pdf-ast": "*",
             "safe-bash-command-neato": "*",
-            "safe-bash-command-svgo": "*"
+            "safe-bash-command-svgo": "*",
+            "@poe-code/graphviz-ast": "*",
+            "@poe-code/image-ast": "*",
+            "@poe-code/xml-ast": "*"
           },
           "portable": true
         },

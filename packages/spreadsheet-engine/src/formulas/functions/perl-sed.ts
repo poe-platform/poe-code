@@ -5,11 +5,12 @@ import { byteStringValue } from "@poe-code/spreadsheet-ast/byte-value";
 import type { FunctionHost, Value } from "./types.js";
 
 type Flags = { insensitive: boolean; multiline: boolean; dotall: boolean; extended: 0 | 1 | 2 };
-type Node = { kind: "char"; byte?: number; test: (byte: number) => boolean }
+type Node = { kind: "keep" }
+  | { kind: "char"; byte?: number; test: (byte: number) => boolean }
   | { kind: "anchor"; test: (source: string, position: number) => boolean }
   | { kind: "sequence"; nodes: Node[] }
   | { kind: "alternative"; nodes: Node[] }
-  | { kind: "repeat"; node: Node; min: number; max: number; lazy: boolean }
+  | { kind: "repeat"; node: Node; min: number; max: number; lazy: boolean; retainReset: boolean }
   | { kind: "capture"; node: Node; index: number }
   | { kind: "atomic"; node: Node }
   | { kind: "reference"; indices: number[]; insensitive: boolean }
@@ -23,7 +24,8 @@ const fold = (byte: number) => byte >= 65 && byte <= 90 ? byte + 32 : byte;
 /** A byte grammar and step-accounted ordered matcher. No guest pattern is
  * compiled by JavaScript or passed to a native runtime. */
 function compile(pattern: string, host: FunctionHost): Node {
-  let at = 0, depth = 0, nodes = 0, captures = 0;
+  let at = 0, depth = 0, nodes = 0, captures = 0, lookaroundDepth = 0;
+  let hasReset = false;
   const references: number[] = [];
   const names = new Map<string, number[]>(), namedReferences: { name: string; indices: number[] }[] = [];
   const flags: Flags = { insensitive: false, multiline: false, dotall: false, extended: 0 };
@@ -67,6 +69,11 @@ function compile(pattern: string, host: FunctionHost): Node {
   function escaped(mode: Flags, inClass = false): Node {
     host.tick();
     const char = pattern[at++]; if (char === undefined) return unsupported();
+    if (!inClass && char === "K") {
+      if (lookaroundDepth) return unsupported("match reset in lookaround");
+      hasReset = true;
+      return node({ kind: "keep" });
+    }
     if (!inClass && char === "k") {
       const opening = pattern[at++], closing = opening === "<" ? ">" : opening === "{" ? "}" : opening === "'" ? "'" : undefined;
       if (closing === undefined) return unsupported();
@@ -309,7 +316,9 @@ function compile(pattern: string, host: FunctionHost): Node {
         if (pattern[at++] !== ":") return unsupported("embedded modifier grammar");
       }
     }
+    if (assertion !== undefined) lookaroundDepth++;
     const inner = alternative(mode, resetCaptures); if (pattern[at++] !== ")") return unsupported(); depth--;
+    if (assertion !== undefined) lookaroundDepth--;
     if (atomic) return node({ kind: "atomic", node: inner });
     if (assertion !== undefined) return behind
       ? node({ kind: "behind", node: inner, negative: assertion, ...widthRange(inner) })
@@ -319,7 +328,7 @@ function compile(pattern: string, host: FunctionHost): Node {
   function widthRange(value: Node): { min: number; max: number } {
     host.tick(); let min: number, max: number;
     if (value.kind === "char") min = max = 1;
-    else if (value.kind === "anchor" || value.kind === "assert" || value.kind === "behind") min = max = 0;
+    else if (value.kind === "keep" || value.kind === "anchor" || value.kind === "assert" || value.kind === "behind") min = max = 0;
     else if (value.kind === "reference") return unsupported();
     else if (value.kind === "capture" || value.kind === "atomic") return widthRange(value.node);
     else if (value.kind === "repeat") {
@@ -336,6 +345,40 @@ function compile(pattern: string, host: FunctionHost): Node {
     }
     if (!Number.isFinite(max) || max > 255) return unsupported();
     return { min, max };
+  }
+  function repeatRetainsReset(value: Node): boolean {
+    // Perl regcomp_study CURLYX_TO_CURLYM requires a nonzero fixed-width
+    // body without internal captures (one encompassing capture is allowed).
+    function shape(current: Node): { width: number | undefined; captures: number } {
+      host.tick();
+      if (current.kind === "char") return { width: 1, captures: 0 };
+      if (current.kind === "keep" || current.kind === "anchor") return { width: 0, captures: 0 };
+      if (current.kind === "reference") return { width: undefined, captures: 0 };
+      if (current.kind === "capture" || current.kind === "atomic" || current.kind === "repeat"
+        || current.kind === "assert" || current.kind === "behind") {
+        const child = shape(current.node);
+        if (current.kind === "capture") return { ...child, captures: child.captures + 1 };
+        if (current.kind === "assert" || current.kind === "behind") return { ...child, width: 0 };
+        if (current.kind === "repeat") return { ...child,
+          width: child.width === 0 ? 0 : current.min === current.max && child.width !== undefined ? child.width * current.min : undefined };
+        return child;
+      }
+      const children = current.kind === "conditional" ? [current.yes, current.no] : current.nodes;
+      let width: number | undefined = current.kind === "sequence" ? 0 : undefined, captures = 0, first = true;
+      for (const child of children) {
+        const next = shape(child); captures += next.captures;
+        width = current.kind === "sequence"
+          ? width === undefined || next.width === undefined ? undefined : width + next.width
+          : first || width === next.width ? next.width : undefined;
+        first = false;
+      }
+      if (current.kind === "conditional" && current.condition.kind === "assertion")
+        captures += shape(current.condition.node).captures;
+      return { width, captures };
+    }
+    while (value.kind === "sequence" && value.nodes.length === 1) { host.tick(); value = value.nodes[0]!; }
+    const result = shape(value.kind === "capture" ? value.node : value);
+    return result.captures === 0 && result.width !== undefined && result.width > 0;
   }
   function integer(): number {
     let value = 0, count = 0;
@@ -386,7 +429,7 @@ function compile(pattern: string, host: FunctionHost): Node {
       if (min !== undefined) {
         const lazy = pattern[at] === "?"; if (lazy) at++;
         const possessive = !lazy && pattern[at] === "+"; if (possessive) at++;
-        value = node({ kind: "repeat", node: value, min, max, lazy });
+        value = node({ kind: "repeat", node: value, min, max, lazy, retainReset: hasReset && repeatRetainsReset(value) });
         if (possessive) value = node({ kind: "atomic", node: value });
       }
       result.push(value);
@@ -415,7 +458,9 @@ function compile(pattern: string, host: FunctionHost): Node {
   return result;
 }
 
-type MatchState = { position: number; captures: readonly (readonly [number, number] | undefined)[] };
+type MatchReset = { position: number; order: number };
+type MatchProgress = { order: number; repeatedReset?: MatchReset };
+type MatchState = { position: number; reset?: MatchReset; captures: readonly (readonly [number, number] | undefined)[] };
 
 function clearCaptures(node: Node, state: MatchState, host: FunctionHost): MatchState {
   const nested: Node[] = [node], cleared = new Set<number>();
@@ -437,9 +482,10 @@ function clearCaptures(node: Node, state: MatchState, host: FunctionHost): Match
   return state;
 }
 
-function* match(node: Node, source: string, state: MatchState, host: FunctionHost, modern: boolean): Generator<MatchState> {
+function* match(node: Node, source: string, state: MatchState, host: FunctionHost, modern: boolean, progress: MatchProgress): Generator<MatchState> {
   host.tick(); const position = state.position;
   if (node.kind === "char") { if (position < source.length && node.test(source.charCodeAt(position))) yield { ...state, position: position + 1 }; }
+  else if (node.kind === "keep") yield { ...state, reset: { position, order: ++progress.order } };
   else if (node.kind === "anchor") { if (node.test(source, position)) yield state; }
   else if (node.kind === "reference") {
     let captured: readonly [number, number] | undefined;
@@ -459,22 +505,22 @@ function* match(node: Node, source: string, state: MatchState, host: FunctionHos
         if (state.captures[index] !== undefined) { branch = state; break; }
       }
     } else {
-      const inner = match(node.condition.node, source, state, host, modern), result = inner.next(); inner.return(undefined);
+      const inner = match(node.condition.node, source, state, host, modern, progress), result = inner.next(); inner.return(undefined);
       if (!result.done) branch = result.value;
     }
-    yield* match(branch === undefined ? node.no : node.yes, source, branch ?? state, host, modern);
+    yield* match(branch === undefined ? node.no : node.yes, source, branch ?? state, host, modern, progress);
   } else if (node.kind === "capture") {
-    for (const result of match(node.node, source, state, host, modern)) {
+    for (const result of match(node.node, source, state, host, modern, progress)) {
       const captures: (readonly [number, number] | undefined)[] = [];
       for (const capture of result.captures) { host.tick(); captures.push(capture); }
       captures[node.index] = [position, result.position];
       yield { ...result, captures };
     }
   } else if (node.kind === "atomic") {
-    const inner = match(node.node, source, state, host, modern), result = inner.next(); inner.return(undefined);
+    const inner = match(node.node, source, state, host, modern, progress), result = inner.next(); inner.return(undefined);
     if (!result.done) yield result.value;
   } else if (node.kind === "assert") {
-    const inner = match(node.node, source, state, host, modern), result = inner.next(); inner.return(undefined);
+    const inner = match(node.node, source, state, host, modern, progress), result = inner.next(); inner.return(undefined);
     if (result.done) { if (node.negative) yield state; }
     else if (!node.negative) yield { ...result.value, position };
   } else if (node.kind === "behind") {
@@ -483,7 +529,7 @@ function* match(node: Node, source: string, state: MatchState, host: FunctionHos
       host.tick();
       // Perl 5.40 LOOKBEHIND_END backtracks until the assertion boundary.
       // The 5.34 experimental profile accepts the first result at each start.
-      for (const candidate of match(node.node, source, { ...state, position: position - width }, host, modern)) {
+      for (const candidate of match(node.node, source, { ...state, position: position - width }, host, modern, progress)) {
         if (!modern || candidate.position === position) { result = candidate; break; }
       }
       if (result !== undefined) break;
@@ -492,7 +538,7 @@ function* match(node: Node, source: string, state: MatchState, host: FunctionHos
     else if (!node.negative) yield { ...result, position };
   } else if (node.kind === "alternative") {
     for (const child of node.nodes) {
-      yield* match(child, source, state, host, modern);
+      yield* match(child, source, state, host, modern, progress);
       // Perl 5.40 BRANCH_next_fail clears the failed branch's captures.
       if (modern) state = clearCaptures(child, state, host);
     }
@@ -500,12 +546,12 @@ function* match(node: Node, source: string, state: MatchState, host: FunctionHos
   else if (node.kind === "sequence") {
     const stack: { index: number; iterator: Generator<MatchState> }[] = [];
     if (!node.nodes.length) { yield state; return; }
-    stack.push({ index: 0, iterator: match(node.nodes[0]!, source, state, host, modern) });
+    stack.push({ index: 0, iterator: match(node.nodes[0]!, source, state, host, modern, progress) });
     while (stack.length) {
       host.tick(); const top = stack[stack.length - 1]!, step = top.iterator.next();
       if (step.done) stack.pop();
       else if (top.index === node.nodes.length - 1) yield step.value;
-      else stack.push({ index: top.index + 1, iterator: match(node.nodes[top.index + 1]!, source, step.value, host, modern) });
+      else stack.push({ index: top.index + 1, iterator: match(node.nodes[top.index + 1]!, source, step.value, host, modern, progress) });
     }
   } else {
     if (node.min === 0) state = clearCaptures(node.node, state, host);
@@ -515,9 +561,13 @@ function* match(node: Node, source: string, state: MatchState, host: FunctionHos
       host.tick(); const top = stack[stack.length - 1]!;
       if (node.lazy && !top.emitted) { top.emitted = true; if (top.count >= node.min) yield top.state; }
       if (!top.stopped && top.count < node.max) {
-        top.iterator ??= match(node.node, source, top.state, host, modern);
+        top.iterator ??= match(node.node, source, top.state, host, modern, progress);
         const step = top.iterator.next();
         if (!step.done) {
+          // Perl's repetition checkpoints retain a reset from a completed
+          // iteration when the quantifier subsequently backtracks.
+          if (node.retainReset && step.value.reset && step.value.reset.order > (top.state.reset?.order ?? -1))
+            progress.repeatedReset = step.value.reset;
           if (stack.length >= host.context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert PERL_SED match state limit exceeded");
           stack.push({ state: step.value, count: top.count + 1, emitted: false,
             stopped: step.value.position === top.state.position && top.count + 1 >= node.min });
@@ -551,14 +601,18 @@ export function perlSed(args: readonly (Value | undefined)[], host: FunctionHost
     outputSize += text.length; output.push(text);
   };
   while (position <= source.length) {
-    host.tick(); const iterator = match(pattern, source, { position, captures: [] }, host, version === "5.40.1"); let end: number | undefined;
+    host.tick(); const progress: MatchProgress = { order: 0 };
+    const iterator = match(pattern, source, { position, captures: [] }, host, version === "5.40.1", progress); let end: number | undefined, start = position;
     for (const candidate of iterator) {
       if (candidate.position === position && position === emptyAt) continue;
-      end = candidate.position; break;
+      end = candidate.position;
+      const reset = (progress.repeatedReset?.order ?? -1) > (candidate.reset?.order ?? -1)
+        ? progress.repeatedReset : candidate.reset;
+      start = reset?.position ?? position; break;
     }
     if (end === undefined) { position++; continue; }
-    emit(source.slice(published, position)); emit(replacement); published = end;
-    emptyAt = end === position ? position : -1; position = end;
+    emit(source.slice(published, start)); emit(replacement); published = end;
+    emptyAt = end === start ? end : -1; position = end;
   }
   emit(source.slice(published));
   const bytes = Uint8Array.from(output.join(""), char => char.charCodeAt(0));

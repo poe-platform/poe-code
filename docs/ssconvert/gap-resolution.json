@@ -3,6 +3,23 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "perlMatchReset": {
+      "scope": "Both explicit Perl profiles implement the bounded \\K match-start reset: preserve consumed prefixes, restore ordinary failed-branch resets, retain native fixed-width repetition resets, honor later resets and global empty-match advancement. Lookaround reset uses remain refused as native syntax errors.",
+      "source": "Perl5.40.1 regexec.c KEEPS/KEEPS_next_fail:6600-6611, original retained SHA25646c02b63b5ecf25a02cbb6bb105ea4ec7cf2ad60b5ee2ffe99b059a600e3ea04. regcomp_study.c CURLYX_TO_CURLYM:2656-2669 requires nonzero fixed width without internal captures; SHA256c66f8fc148c0f7447e850119588a0c4f02f6db75b493e671f426e07fd586a96d. No reference interpreter changes for this qualification.",
+      "reproduction": "All52initial native-result checks failed as unsupported;8native-invalid lookaround controls passed. Native repetition holdouts exposed9variable-width differences and7zero-width-body differences in the intermediate implementation; all are repaired and representative cases retained in memory tests.",
+      "validation": "4987focused Perl/profile/optional-runtime tests pass, including141reset tests, explicit work ceiling and exact cancellation reason. Maintained selectedssconvertbuild and engine lint/source/testtypes pass. No root/release qualification inferred.",
+      "native": "Exact declared48plugin Gnumeric Perl5.40.1 loader, zero activation errors and no calculation warnings.960holdouts match standalone hostPerl5.34.1 byte-for-byte. Includes internal captures, fixed/variable/zero-width bodies, failed alternatives, nested/lazy/possessive/atomic repeats, lookahead tails, global empty matches and raw UTF8bytes.",
+      "public": "Rebuilt command-package SDK andrunCommand each match all960native outputs inbothprofiles:3840caseoutputs, zero diagnostics. Raw unquotedCSV matches concatenated resultbytes without splitting embeddednewlines. Actual command screenshot checked separately before delivery.",
+      "evidence": {
+        "directory": "out/ssconvert-continuation-1748/perl-keep-current",
+        "holdouts.json": "5fa9160a5a2ed912be1a80772c35c878fdb0eaf0f1c2251ab38b46987aa3fff4",
+        "holdouts.hex": "22ef4073ee2c5ed8e56eb2232b3029ddbdecbca8b0d993444dfecc6568eb8574",
+        "5.34-native.hex": "ca23f10f5f04c3b2f71fe88a93bf0d4f9045376d855c9e5b123133afd3680662",
+        "5.34.1-comparison.json": "28510080f1060c245c24fe9a60a46933f1b66e686c01b6206b7800b8ea4d26a5",
+        "5.40.1-comparison.json": "28510080f1060c245c24fe9a60a46933f1b66e686c01b6206b7800b8ea4d26a5"
+      },
+      "remaining": "Native atomic-lookbehind state defects, experimental warning parity, broader grammar/Unicode/NUL/installed-artifact qualification and all19family completion remain open."
+    },
     "perlRuntimeProfiles": {
       "scope": "createPerlSampleFunctions selects 5.34.1 or 5.40.1 explicitly. The existing perlSampleFunctions default remains 5.34.1. The modern matcher enforces the lookbehind end boundary and clears captures when abandoning an alternative.",
       "source": "Unmodified Perl 5.40.1 regexec.c LOOKBEHIND_END (9720-9731) and BRANCH_next_fail/CAPTURE_CLEAR (9128-9139). Native /usr/bin/perl SHA256 b37d5994e1790b1901d23e3939278de303de0eec57b181da0d1ff3f5ca54f3bb. Each of 4150 native byte-scalar cases ran in a fresh interpreter.",

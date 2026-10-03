@@ -19,14 +19,19 @@ import { readXlsx, probeXlsx, createXlsxWriter } from "@poe-code/xlsx-ast";
 
 const engine = createEngine({ codecs: [{
   id: "xlsx", description: "XLSX workbook", extensions: ["xlsx"],
-  probeContent: probeXlsx, contentProbe: true,
-  read: readXlsx, write: createXlsxWriter("2008")
+  probeContent: probeXlsx, probeSource: probeXlsx, contentProbe: true,
+  read: readXlsx, readSource: readXlsx, write: createXlsxWriter("2008")
 }] });
 ```
 
 Supply explicit input/output streams and operation options to the engine, then
 call `engine.dispose()` when finished. The existing XLSX format module provides
-ssconvert service registration around these same functions.
+ssconvert service registration around these same functions. Both readers accept
+retained range sources as well as byte arrays. Range input fetches ZIP metadata
+and requested member data in chunks of at most 16 KiB, without copying the whole
+compressed archive. Keep the source open until the operation settles. This does
+not yet bound the retained directory, decoded XML documents, or workbook model;
+large workbook conversion still requires further storage migration.
 
 For table import, `readCachedXlsx` accepts an admitted ZIP archive, its codec and
 limits, a cancellation signal, and aggregate `work`/`retain` admission callbacks.

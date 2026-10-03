@@ -1,7 +1,7 @@
-import { createZipCodec, CodecError, type ZipLimits, type ZipEntry } from "@poe-code/office-package";
+import { createZipCodec, CodecError, type ZipLimits, type ZipEntry, type ZipStreamEntry, type ZipSource } from "@poe-code/office-package";
 import { expandIndexSheetAreas } from "@poe-code/spreadsheet-engine/formulas/index-sheet-areas";
 import { parseXmlSteps, XmlLimitError, type XmlElement } from "@poe-code/safe-fs/xml";
-import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
+import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 import { parseA1, formatA1, type Cell, type CellValue, type Workbook, type Sheet, type Range, type RichTextRun,
   type ImportedValue, type AxisMetadata, type FormulaGroup, type NamedExpression, type UnsupportedRecord } from "@poe-code/spreadsheet-ast";
 import { parseExpression } from "@poe-code/spreadsheet-engine/formulas/parser";
@@ -142,14 +142,28 @@ function path(base: string, target: string): string {
 }
 interface Relationship { readonly id: string; readonly type: string; readonly target: string; readonly external: boolean; }
 
-async function openPackage(bytes: Uint8Array, context: CapabilityContext) {
+class RangeReadFailure {
+  constructor(readonly cause: unknown) {}
+}
+
+async function openPackage(bytes: Uint8Array | RangeSource, context: CapabilityContext) {
   context.signal.throwIfAborted();
   const bounds = zipLimits(context); const zip = createZipCodec(undefined, { rejectDuplicateNames: true, zip64: true });
-  const archive = await zip.readZipArchive(bytes, bounds, context.signal);
-  for (const entry of archive.entries) {
-    if (entry.size > (context.limits.zipRatio ?? Infinity) * Math.max(1, entry.data.length)) limit("ZIP ratio");
+  let source: ZipSource | undefined;
+  if (!(bytes instanceof Uint8Array)) {
+    const read = bytes.read.bind(bytes);
+    source = { size: bytes.size, async read(position, maximum, options) {
+      try { return await read(position, maximum, options); }
+      catch (error) { throw new RangeReadFailure(error); }
+    } };
   }
-  const entries = new Map<string, ZipEntry>();
+  const archive = source ? await zip.readZipArchive(source, bounds, context.signal) :
+    await zip.readZipArchive(bytes as Uint8Array, bounds, context.signal);
+  for (const entry of archive.entries) {
+    const compressedSize = "compressedSize" in entry ? entry.compressedSize : entry.data.length;
+    if (entry.size > (context.limits.zipRatio ?? Infinity) * Math.max(1, compressedSize)) limit("ZIP ratio");
+  }
+  const entries = new Map<string, ZipEntry | ZipStreamEntry>();
   for (const entry of archive.entries) {
     if (entry.directory) continue;
     if (entry.symlink || path("", entry.name) !== entry.name) invalid("noncanonical package member");
@@ -212,13 +226,14 @@ async function openPackage(bytes: Uint8Array, context: CapabilityContext) {
 }
 function translateFailure(error: unknown, context: CapabilityContext): never {
   context.signal.throwIfAborted();
+  if (error instanceof RangeReadFailure) throw error.cause;
   if (error instanceof SyntaxError && error.message === "Invalid XML: DTD and entity declarations are forbidden")
     throw new SsconvertError("capability-denied", "ssconvert host denies XML DTD and entity declarations");
   if (error instanceof SsconvertError) throw error;
   if (error instanceof XmlLimitError || error instanceof CodecError && error.code === "resource-limit") limit("package");
   return invalid(error instanceof Error ? error.message : "invalid package");
 }
-export async function probeXlsx(bytes: Uint8Array, context: CapabilityContext): Promise<boolean> {
+export async function probeXlsx(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<boolean> {
   // Native xlsx_file_probe checks member existence, without parsing workbook XML.
   try { return (await openPackage(bytes, context)).entries.has("xl/workbook.xml"); }
   catch (error) {
@@ -257,7 +272,7 @@ function formula(source: string, sheet: string, row: number, column: number, con
   });
   return serializeExpression(parsed.document, simpleSheets ? { ...gnumericGrammar, unquotedSheets: true } : gnumericGrammar, false, true);
 }
-export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): Promise<Workbook> {
+export async function readXlsx(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<Workbook> {
   try {
     const opc = await openPackage(bytes, context);
     const rootRelations = await opc.relations("");

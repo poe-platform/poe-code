@@ -2,7 +2,8 @@
 
 This is a manual execution plan, not a completed Worker qualification. Incremental
 CSV/text range input and incremental output, plus caller-backed input staging,
-are available. Other built-in input collection, the owned array-based workbook,
+are available. XLSX also reads the compressed archive through retained ranges;
+its directory, decoded XML documents, and workbook remain resident. Other built-in input collection, the owned array-based workbook,
 unordered CSV lookup without working storage, large individual fields, and the remaining format codecs still
 need migration before the complete conversion pipeline can pass this plan.
 

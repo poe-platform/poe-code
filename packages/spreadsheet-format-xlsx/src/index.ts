@@ -8,6 +8,8 @@ export const xlsxFormat: FormatProvider = {
       "id": "xlsx",
       "direction": "read",
       probeContent: async (bytes, context) => (await import("./xlsx.js")).probeXlsx(bytes, context),
+      probeSource: async (source, context) => (await import("./xlsx.js")).probeXlsx(source, context),
+      readSource: async (source, context) => (await import("./xlsx.js")).readXlsx(source, context),
       read: async (bytes, context) => (await import("./xlsx.js")).readXlsx(bytes, context),
       "description": "ECMA 376 / Office Open XML [MS Excel™ 2007/2010] (*.xlsx)",
       "extensions": [

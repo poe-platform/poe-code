@@ -6,8 +6,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "node scripts/cargo.mjs build",
-    "test:unit": "node --test scripts/run-native-tests.test.mjs scripts/cargo-cache.test.mjs && node scripts/cargo.mjs test",
+    "build": "node scripts/cargo.mjs build && cp src/errors.d.ts dist/errors.d.ts",
+    "test:unit": "node --test scripts/run-native-tests.test.mjs scripts/cargo-cache.test.mjs && node scripts/cargo.mjs test && cp src/errors.d.ts dist/errors.d.ts",
     "lint": "node scripts/cargo.mjs lint"
   },
   "repository": {

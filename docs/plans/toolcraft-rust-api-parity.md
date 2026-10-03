@@ -4658,3 +4658,18 @@ release-stable skipped. Shared-error package workflow 37097600054 has passed its
 Node 18.18/20/22/24 standalone jobs and is still in the publish job. Those workflow
 checks do not qualify the native platform matrix. No new publication is claimed.
 Core-subpath temporary artifacts were purged.
+
+### Shared protocol error declaration packaging repair
+
+A strict client declaration audit reproduced TS7016 for mcp-protocol-rust/errors:
+the public export referenced errors.d.ts, but only errors.js reached dist. The
+protocol build and unit scripts now copy the existing own error declaration.
+This package-scoped change leaves generated native declarations and the shared
+Cargo build behavior unchanged. No dependency or runtime behavior changed.
+
+The selected maintained build, npm test -- --workspace=mcp-protocol-rust and
+Rust/binding lint pass. A packed consumer passes strict TypeScript checking,
+including rejection of nonnumeric error codes, with workspace declaration
+fallback forbidden. The original client compiler check no longer reports the
+protocol error declaration failure; it still correctly reports missing client
+capability/tool types. Those and the missing stored-session export are next.

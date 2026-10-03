@@ -2,9 +2,9 @@ import { expect, it, vi } from "vitest";
 import { createEngine } from "@poe-code/spreadsheet-engine";
 import { createMemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createZipCodec } from "@poe-code/office-package";
-import { probeXlsx } from "./xlsx.js";
+import { probeOdf } from "./odf.js";
 
-it.each(["success", "write", "cancel", "invalid-late"])("externalizes XLSX directory indexes and retires them on %s", async mode => {
+it.each(["success", "write", "cancel", "invalid-late"])("externalizes ODF directory indexes and retires them on %s", async mode => {
   const fs = createMemoryFileSystem(), open = fs.open.bind(fs), controller = new AbortController(), signal = controller.signal;
   const failure = new Error("directory spill failed");
   let bytesWritten = 0, maximum = 0, storesClosed = 0, handlesClosed = 0;
@@ -23,15 +23,15 @@ it.each(["success", "write", "cancel", "invalid-late"])("externalizes XLSX direc
   const zip = createZipCodec(), limits = { maxArchiveBytes: Infinity, maxEntryBytes: Infinity, maxTotalBytes: Infinity,
     maxMembers: Infinity, maxPathBytes: Infinity, maxDepth: Infinity, maxPaxBytes: Infinity, maxTextBytes: Infinity, chunkSize: 16384 };
   const entries = [];
-  for (let i = 0; i < 200; i++) entries.push(await zip.makeZipEntry(i ? mode === "invalid-late" && i === 199 ? "unused/%61.xml" : `unused/${i}.xml` : "xl/workbook.xml", new Uint8Array(), {
-    modified: new Date("2000-01-01T00:00:00Z"), mode: 0o100644, directory: false, symlink: false, compression: "store"
+  for (let i = 0; i < 200; i++) entries.push(await zip.makeZipEntry(i ? `unused/${i}.xml` : "mimetype", i ? new Uint8Array() : new TextEncoder().encode("application/vnd.oasis.opendocument.spreadsheet"), {
+    modified: new Date("2000-01-01T00:00:00Z"), mode: mode === "invalid-late" && i === 199 ? 0o120777 : 0o100644, directory: false, symlink: mode === "invalid-late" && i === 199, compression: "store"
   }, limits, signal));
   const bytes = await zip.writeZipArchive({ entries, comment: new Uint8Array() }, limits, signal);
   const reused = new Uint8Array(257);
   const engine = createEngine({ workingFiles: { fs, directory: "/", cacheBytes: 16384 }, codecs: [{
-    id: "xlsx", description: "XLSX", extensions: [],
+    id: "ods", description: "ODF", extensions: [],
     async probeSource(source, context) {
-      return probeXlsx(source, { ...context, createWorkingStorage() {
+      return probeOdf(source, { ...context, createWorkingStorage() {
         const store = context.createWorkingStorage!();
         return { ...store, async close() { storesClosed++; await store.close(); } };
       } });

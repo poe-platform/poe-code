@@ -1,6 +1,4 @@
 import { transformOdfBlowfish } from "./odf-blowfish.js";
-import { cbc, gcm } from "@noble/ciphers/aes.js";
-import { argon2idAsync } from "@noble/hashes/argon2.js";
 import { sha1 } from "@noble/hashes/legacy.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { hmac } from "@noble/hashes/hmac.js";
@@ -76,14 +74,21 @@ export async function deriveOdfKey(start: Uint8Array, salt: Uint8Array, iteratio
 
 /** Admit every encrypted member before acquiring one package password. Legacy
  * checksums check password correctness; GCM authenticates before inflation. */
-export async function decryptOdfEntries(manifest: XmlElement, entries: ReadonlyMap<string, ZipEntry>,
+export async function decryptOdfEntries(manifest: XmlElement, entries: {
+    readonly size: number;
+    has(name: string): boolean | Promise<boolean>;
+    get(name: string): Pick<ZipEntry, "method" | "size"> | undefined | Promise<Pick<ZipEntry, "method" | "size"> | undefined>;
+  },
   read: (name: string) => Promise<Uint8Array>, context: CapabilityContext, charge: (amount?: number) => void,
   remainingBytes: number, maximumEntryBytes: number): Promise<Map<string, Uint8Array>> {
   if (!context.password) unsupported();
   if (manifest.namespace !== manifestNamespace) unsupported("manifest revision");
-  const container = entries.has("encrypted-package");
-  if (container && (manifest.children.length !== 1 || [...entries.keys()].some(name =>
-    !["mimetype", "META-INF/manifest.xml", "encrypted-package"].includes(name)))) invalid("ambiguous encrypted package");
+  const container = await entries.has("encrypted-package");
+  if (container) {
+    let recognized = 0;
+    for (const name of ["mimetype", "META-INF/manifest.xml", "encrypted-package"]) if (await entries.has(name)) recognized++;
+    if (manifest.children.length !== 1 || recognized !== entries.size) invalid("ambiguous encrypted package");
+  }
   const profiles = [], paths = new Set<string>(); let total = 0;
   for (const entry of manifest.children) {
     charge();
@@ -99,8 +104,8 @@ export async function decryptOdfEntries(manifest: XmlElement, entries: ReadonlyM
     if (declarations.length !== 1 || entry.namespace !== manifestNamespace || entry.localName !== "file-entry" || declarations[0]!.namespace !== manifestNamespace)
       invalid("invalid encryption declaration");
     const path = attribute(entry, "full-path");
-    if (!path || path === "mimetype" || path === "META-INF/manifest.xml" || !entries.has(path)) invalid("invalid encrypted member");
-    const member = entries.get(path)!, encryption = declarations[0]!, algorithm = child(encryption, "algorithm")!, derivation = child(encryption, "key-derivation")!;
+    if (!path || path === "mimetype" || path === "META-INF/manifest.xml" || !await entries.has(path)) invalid("invalid encrypted member");
+    const member = (await entries.get(path))!, encryption = declarations[0]!, algorithm = child(encryption, "algorithm")!, derivation = child(encryption, "key-derivation")!;
     const algorithmName = attribute(algorithm, "algorithm-name") ?? "";
     const blowfish = algorithmName === "Blowfish CFB" || algorithmName === manifestNamespace + "#blowfish";
     const authenticated = algorithmName === "http://www.w3.org/2009/xmlenc11#aes256-gcm";

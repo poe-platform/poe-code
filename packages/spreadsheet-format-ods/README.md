@@ -26,6 +26,11 @@ try {
 }
 ```
 
+Retained range input avoids a complete compressed-archive copy. With engine
+`workingFiles`, directory and member indexes spill through the caller's safe-fs
+using a shared bounded page cache. Decoded XML, decrypted members and the workbook
+model are still retained; this is not yet a fully bounded conversion pipeline.
+
 Compose additional format modules explicitly to convert between file types.
 Existing ssconvert service IDs, supported profiles and documented fidelity limits
 remain unchanged. This private workspace is shipped through the containing

@@ -22,3 +22,5 @@ export {
   type CompressionReader
 } from "./compression.js";
 export { CodecError, yieldEventLoop, type ByteSource, type CodecRuntime } from "./runtime.js";
+
+export { createStoredZipEntries, ZipStorageFailure, type ZipEntryStorage } from "./zip-entry-storage.js";

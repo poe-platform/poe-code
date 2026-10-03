@@ -2,8 +2,9 @@
 
 This is a manual execution plan, not a completed Worker qualification. Incremental
 CSV/text range input and incremental output, plus caller-backed input staging,
-are available. XLSX also reads the compressed archive through retained ranges;
-its directory uses caller-backed indexes when working storage is configured.
+are available. XLSX and ODF also read compressed archives through retained ranges;
+their directories use caller-backed indexes when working storage is configured.
+ODF decrypted members and wrapped inner packages are still buffered.
 Decoded XML documents and the workbook remain resident. Other built-in input collection, the owned array-based workbook,
 unordered CSV lookup without working storage, large individual fields, and the remaining format codecs still
 need migration before the complete conversion pipeline can pass this plan.

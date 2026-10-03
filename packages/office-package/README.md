@@ -47,6 +47,14 @@ its entries are provisional until the scan resolves, so stage external effects
 until final directory validation. The caller owns and closes the source and
 scratch storage on success, cancellation and failure.
 
+`createStoredZipEntries(createStorage, source)` keeps member decode records and
+name lookups in that scratch storage. Pass its `storage` and awaited `set(entry)`
+to a directory scan, then use `get(name)` to retrieve a member for decoding and
+`close()` to retire the index. Retained reader entries expose `dataOffset` beside
+`compressedSize`; payloads remain in the stable source. This index requires owned
+source responses and preserves decode metadata, not archive rewriting extras or
+comments. Backend failures carry their original cause in `ZipStorageFailure`.
+
 `decodeZipEntry` also accepts a `ZipStreamEntry`: supply `data` as an async byte
 stream (or a `(signal) => stream` factory) and `compressedSize` alongside the usual
 member metadata. Range-backed entries use factories so each decode cancellation

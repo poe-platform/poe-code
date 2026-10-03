@@ -1,4 +1,4 @@
-import { createStoredZipEntries, PackageIoFailure } from "./entry-storage.js";
+import { createStoredZipEntries, ZipStorageFailure } from "@poe-code/office-package";
 import { ownedRangeSource } from "@poe-code/spreadsheet-engine/range-input";
 import { createZipCodec, CodecError, type ZipLimits, type ZipEntry, type ZipStreamEntry, type ZipSource } from "@poe-code/office-package";
 import { expandIndexSheetAreas } from "@poe-code/spreadsheet-engine/formulas/index-sheet-areas";
@@ -152,7 +152,7 @@ async function openPackage(bytes: Uint8Array | RangeSource, context: CapabilityC
     const read = bytes.read.bind(bytes);
     source = ownedRangeSource({ size: bytes.size, async read(position, maximum, options) {
       try { return await read(position, maximum, options); }
-      catch (error) { throw new PackageIoFailure(error); }
+      catch (error) { throw new ZipStorageFailure(error); }
     } }, context.signal, () => context.signal.throwIfAborted(), context.own);
   }
   const admit = (entry: ZipEntry | ZipStreamEntry) => {
@@ -237,7 +237,7 @@ async function openPackage(bytes: Uint8Array | RangeSource, context: CapabilityC
 }
 function translateFailure(error: unknown, context: CapabilityContext): never {
   context.signal.throwIfAborted();
-  if (error instanceof PackageIoFailure) throw error.cause;
+  if (error instanceof ZipStorageFailure) throw error.cause;
   if (error instanceof SyntaxError && error.message === "Invalid XML: DTD and entity declarations are forbidden")
     throw new SsconvertError("capability-denied", "ssconvert host denies XML DTD and entity declarations");
   if (error instanceof SsconvertError) throw error;

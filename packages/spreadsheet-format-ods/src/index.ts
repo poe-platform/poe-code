@@ -15,6 +15,8 @@ export const odsFormat: FormatProvider = {
     {
       "id": "openoffice",
       "direction": "read",
+      probeSource: async (...args) => (await import("./odf.js")).probeOdf(...args),
+      readSource: async (source, context) => (await import("./odf.js")).readOdf(source, context),
       read: async (bytes, context) => (await import("./odf.js")).readOdf(bytes, context),
       probeContent: async (...args) => (await import("./odf.js")).probeOdf(...args),
       "description": "Open Document Format (*.sxc, *.ods)",

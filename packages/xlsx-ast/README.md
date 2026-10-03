@@ -9,8 +9,10 @@ Imports resolve numbered external links to their declared workbook paths in cell
 shared, array and defined-name formulas. They do not fetch linked files;
 recalculation uses only the explicit host resolver. Exports include numbered external-workbook relationships for live cell/range
 references and local names that refer to them, including quoted sheet names.
-External-name definitions are not yet exported; a loss warning identifies each
-name that can fail to resolve in native applications.
+Imported XLSX external-name definitions retain their workbook and sheet scope
+when links are reordered, including case-insensitive name bindings. Names without
+a retained definition still produce a loss warning. External cached data remains
+separate from live host resolution.
 Custom error caches use Gnumeric’s quoted error syntax; imports retain the stored
 cache text, including its quotes, as Gnumeric does. Fixed and automatic row/column
 sizing survives workbook and clipboard conversions, including best-fit columns.

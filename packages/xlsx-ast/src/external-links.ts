@@ -4,8 +4,13 @@ import type { FormulaNode, ReferenceEndpoint } from "@poe-code/spreadsheet-engin
 /** Link numbers are local to the package; only host-facing workbook identities escape it. */
 export function resolveExternalLinks(root: FormulaNode, links: ReadonlyMap<string, string | undefined>, signal: AbortSignal): FormulaNode {
   const workbook = (name: string): string => {
-    if (!links.has(name)) return name;
-    const target = links.get(name);
+    const numeric = name.length > 0 && [...name].every(character => character >= "0" && character <= "9");
+    const key = numeric ? String(Number(name)) : name;
+    if (!links.has(key)) {
+      if (numeric && Number(name) > 0) throw new SsconvertError("unsupported-feature", "Unresolved XLSX external link index");
+      return name;
+    }
+    const target = links.get(key);
     if (target === undefined) throw new SsconvertError("unsupported-feature", "Unsupported XLSX external link target");
     return target;
   };

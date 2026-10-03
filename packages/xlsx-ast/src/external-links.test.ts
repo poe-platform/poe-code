@@ -3,7 +3,7 @@ import { createZipCodec, type ZipLimits } from "@poe-code/office-package";
 import type { CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
 import { parseExpression } from "@poe-code/spreadsheet-engine/formulas/parser";
 import { visitFormula } from "@poe-code/spreadsheet-engine/formulas/rewriting";
-import { readXlsx } from "./xlsx.js";
+import { readXlsx, createXlsxWriter } from "./xlsx.js";
 
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},
   environment: { env: {}, locale: "C", timezone: "UTC" },
@@ -14,14 +14,14 @@ const ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
 const rel = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 const pkg = "http://schemas.openxmlformats.org/package/2006/relationships";
 
-async function fixture(expression: string, mode = "External", shared = false, target = "dir/linked.xls"): Promise<Uint8Array> {
+async function fixture(expression: string, mode = "External", shared = false, target = "dir/linked.xls", definitionSheet?: number): Promise<Uint8Array> {
   const zip = createZipCodec();
   const parts = {
     "_rels/.rels": `<Relationships xmlns="${pkg}"><Relationship Id="w" Type="${rel}/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
     "xl/workbook.xml": `<workbook xmlns="${ns}" xmlns:r="${rel}"><sheets><sheet name="Data" sheetId="1" r:id="s"/></sheets><externalReferences><externalReference r:id="e"/></externalReferences><definedNames><definedName name="Alias">${expression}</definedName></definedNames></workbook>`,
     "xl/_rels/workbook.xml.rels": `<Relationships xmlns="${pkg}"><Relationship Id="s" Type="${rel}/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="unused" Type="${rel}/externalLink" Target="externalLinks/unused.xml"/><Relationship Id="e" Type="${rel}/externalLink" Target="externalLinks/link.xml"/></Relationships>`,
     "xl/worksheets/sheet1.xml": `<worksheet xmlns="${ns}"><sheetData><row r="1"><c r="A1"><f ${shared ? 't="shared" si="0" ref="A1:A2"' : ""}>${expression}</f><v>999</v></c></row>${shared ? '<row r="2"><c r="A2"><f t="shared" si="0"/><v>999</v></c></row>' : ""}</sheetData></worksheet>`,
-    "xl/externalLinks/link.xml": `<externalLink xmlns="${ns}" xmlns:r="${rel}"><externalBook r:id="target"><sheetNames><sheetName val="Other"/></sheetNames></externalBook></externalLink>`,
+    "xl/externalLinks/link.xml": `<externalLink xmlns="${ns}" xmlns:r="${rel}"><externalBook r:id="target"><sheetNames><sheetName val="Other"/></sheetNames><definedNames><definedName name="Rate" refersTo="[1]Other!$A$1" ${definitionSheet === undefined ? "" : `sheetId="${definitionSheet}"`}/></definedNames></externalBook></externalLink>`,
     "xl/externalLinks/unused.xml": `<externalLink xmlns="${ns}"/>`,
     "xl/externalLinks/_rels/link.xml.rels": `<Relationships xmlns="${pkg}"><Relationship Id="target" Type="${rel}/externalLinkPath" Target="${target}" TargetMode="${mode}"/></Relationships>`
   };
@@ -65,4 +65,63 @@ it.each(["a]b.xls", "表 空間.xls", "Bob&apos;s book.xls"])("keeps linked work
   const parsed = parseExpression(book.sheets[0]!.cells[0]!.formula!, { position: { sheet: "1", row: 0, column: 0 } });
   expect(parsed.ok).toBe(true);
   if (parsed.ok) expect(parsed.document.root).toMatchObject({ kind: "reference", first: { workbook: target.split("&apos;").join("'") } });
+});
+
+it.each([false, true])("preserves external-name definitions when link numbering changes: %s", async reordered => {
+  const imported = await readXlsx(await fixture("[1]!Rate+1"), context);
+  const book = reordered ? { ...imported, sheets: [{ ...imported.sheets[0]!, cells: [
+    { row: 0, column: 0, formula: "=['earlier.xls']Other!A1", value: { kind: "number" as const, value: 999 } },
+    { ...imported.sheets[0]!.cells[0]!, column: 1 }
+  ] }] } : imported;
+  const warnings: string[] = [];
+  const bytes = await createXlsxWriter("2008")(book, [], { ...context, diagnostic: async d => { warnings.push(d.message); },
+    externalReferences: { resolve() { throw new Error("Definition preservation must not execute links"); } } });
+  const zip = createZipCodec(), archive = await zip.readZipArchive(bytes, limits, context.signal);
+  const index = reordered ? 2 : 1;
+  const entry = archive.entries.find(entry => entry.name === `xl/externalLinks/externalLink${index}.xml`)!;
+  let xml = ""; for await (const chunk of zip.decodeZipEntry(entry, limits, context.signal)) xml += new TextDecoder().decode(chunk);
+  expect(xml).toContain('name="Rate"');
+  expect(xml).toContain(`[${index}]Other`);
+  expect(warnings.some(warning => warning.includes("definition for external name"))).toBe(false);
+});
+
+it.each(["Rate", "RATE"])("retains case-insensitive external name bindings: %s", async name => {
+  const book = await readXlsx(await fixture(`[1]!${name}+1`), context);
+  const warnings: string[] = [];
+  await createXlsxWriter("2008")(book, [], { ...context, diagnostic: async d => { warnings.push(d.message); } });
+  expect(warnings.some(warning => warning.includes("definition for external name"))).toBe(false);
+});
+
+it("relocates the definition's sheet scope after an earlier reference", async () => {
+  const imported = await readXlsx(await fixture("[1]Other!Rate", "External", false, "dir/linked.xls", 0), context);
+  const book = { ...imported, sheets: [{ ...imported.sheets[0]!, cells: [
+    { row: 0, column: 0, formula: "=['dir/linked.xls']Unused!A1", value: { kind: "number" as const, value: 999 } },
+    { ...imported.sheets[0]!.cells[0]!, column: 1 }
+  ] }] };
+  const zip = createZipCodec(), archive = await zip.readZipArchive(await createXlsxWriter("2008")(book, [], context), limits, context.signal);
+  const entry = archive.entries.find(entry => entry.name === "xl/externalLinks/externalLink1.xml")!;
+  let xml = ""; for await (const chunk of zip.decodeZipEntry(entry, limits, context.signal)) xml += new TextDecoder().decode(chunk);
+  expect(xml).toContain('sheetId="1"');
+});
+
+it("rejects conflicting retained definitions instead of choosing a target", async () => {
+  const imported = await readXlsx(await fixture("[1]!Rate+1"), context);
+  const book = { ...imported, unsupportedRecords: [...imported.unsupportedRecords!, {
+    source: "other", kind: "externalLink", disposition: "retained" as const,
+    data: { externalNameDefinitions: { workbook: "dir/linked.xls", names: [
+      { name: "RATE", expression: "=['dir/linked.xls']Other!B1" }
+    ] } }
+  }] };
+  await expect(createXlsxWriter("2008")(book, [], context)).rejects.toThrow("Conflicting retained XLSX external name definitions");
+});
+
+it("refuses an undeclared numeric link instead of inventing a workbook path", async () => {
+  await expect(readXlsx(await fixture("[2]Other!A1"), context)).rejects.toThrow("Unresolved XLSX external link index");
+});
+
+it("resolves leading-zero numeric link indexes", async () => {
+  const book = await readXlsx(await fixture("[01]Other!A1"), context);
+  const parsed = parseExpression(book.sheets[0]!.cells[0]!.formula!, { position: { sheet: "1", row: 0, column: 0 } });
+  expect(parsed.ok).toBe(true);
+  if (parsed.ok) expect(parsed.document.root).toMatchObject({ kind: "reference", first: { workbook: "dir/linked.xls" } });
 });

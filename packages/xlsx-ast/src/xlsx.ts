@@ -1,3 +1,4 @@
+import { foldSheetName } from "@poe-code/spreadsheet-ast/case-fold";
 import { XlsxExternalLinkWriter } from "./external-link-export.js";
 import { resolveExternalLinks } from "./external-links.js";
 import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-stream";
@@ -320,6 +321,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
         workbookRecords.push(record(await opc.document(relation.target), relation.target));
     }
     const externalLinks = new Map<string, string | undefined>();
+    const externalDefinitions = new Map<string, { target: string; node: XmlElement }>();
     for (const reference of children(child(workbook, "externalReferences"), "externalReference")) {
       opc.charge(workbookRelations.length + 1);
       const id = attr(reference, "id", relationships);
@@ -332,9 +334,29 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
           const relations = await opc.relations(relation.target);
           opc.charge(relations.length);
           target = relations.find(item => item.id === targetId && item.type === relationships + "/externalLinkPath" && item.external)?.target;
+          if (target !== undefined) externalDefinitions.set(relation.target, { target, node: link });
         }
       }
       externalLinks.set(String(externalLinks.size + 1), target);
+    }
+    for (const [source, link] of externalDefinitions) {
+      const externalBook = child(link.node, "externalBook");
+      const sheets = children(child(externalBook, "sheetNames"), "sheetName").map(node => decodeXlsxString(attr(node, "val") ?? ""));
+      const names: ImportedValue[] = [];
+      for (const node of children(child(externalBook, "definedNames"), "definedName")) {
+        const name = attr(node, "name"), refersTo = attr(node, "refersTo"), scope = attr(node, "sheetId");
+        if (!name || !refersTo) continue;
+        const index = scope === undefined ? undefined : Number(scope);
+        if (index !== undefined && (!scope?.trim() || !Number.isSafeInteger(index) || index < 0 || index >= sheets.length)) continue;
+        const sheet = index === undefined ? undefined : sheets[index];
+        const expression = formula(decodeXlsxString(refersTo), sheet ?? sheets[0] ?? "", 0, 0, context, false, externalLinks);
+        opc.charge(name.length + expression.length + (sheet?.length ?? 0) + 1);
+        names.push({ name: decodeXlsxString(name), expression, ...(sheet === undefined ? {} : { sheet }) });
+      }
+      opc.charge(workbookRecords.length);
+      const index = workbookRecords.findIndex(record => record.source === source && record.kind === "externalLink"), retained = workbookRecords[index];
+      if (names.length && retained?.data && typeof retained.data === "object" && !Array.isArray(retained.data))
+        workbookRecords[index] = { ...retained, data: { ...retained.data, externalNameDefinitions: { workbook: link.target, names } } };
     }
     const uniqueSheets = new Map<string, XmlElement>();
     for (const node of children(child(workbook, "sheets"), "sheet")) {
@@ -834,7 +856,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
       xml("Relationships", { xmlns: packageRelationships }, [...items].reverse().map(r => xml("Relationship", {
         Id: r.id, Type: r.type, Target: r.target, ...(r.external ? { TargetMode: "External" } : {}) })).join(""));
     const workbookRelations: { id: string; type: string; target: string }[] = [];
-    const externalLinks = new XlsxExternalLinkWriter(charge);
+    const externalLinks = new XlsxExternalLinkWriter(book, charge);
     const shared: Cell[] = [], sharedIds = new Map<string, number>(), stringCounts = new Map<string, number>();
     let sharedReferences = 0;
     let totalCells = 0;
@@ -1011,13 +1033,24 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
     }
     let externalReferences = "";
     for (const [target, link] of externalLinks.books) {
-      for (const name of link.names) await context.diagnostic?.({ code: "xlsx-write-loss", severity: "warning",
-        message: `XLSX writer does not export definition for external name '${name}' in '${target}'` });
+      let definitions = "";
+      for (const [key, name] of link.names) {
+        const definition = link.definitions.get(key);
+        if (!definition) {
+          await context.diagnostic?.({ code: "xlsx-write-loss", severity: "warning",
+            message: `XLSX writer does not export definition for external name '${name.name}' in '${target}'` });
+          continue;
+        }
+        const expression = exportXlsxFormula(book, definition.expression, book.sheets[0]!, 0, 0, context, false, externalLinks);
+        charge(link.sheets.size);
+        definitions += xml("definedName", { name: encodeXlsxString(definition.name), refersTo: encodeXlsxString(expression),
+          sheetId: definition.sheet === undefined ? undefined : [...link.sheets.keys()].indexOf(foldSheetName(definition.sheet)) });
+      }
       const filename = `externalLink${link.index}.xml`, id = `rId${workbookRelations.length + 1}`;
       workbookRelations.push({ id, type: relationships + "/externalLink", target: "externalLinks/" + filename });
       externalReferences += xml("externalReference", { "r:id": id });
       await add("xl/externalLinks/" + filename, xml("externalLink", { xmlns: namespace, "xmlns:r": relationships },
-        xml("externalBook", { "r:id": "rId1" }, xml("sheetNames", {}, [...link.sheets].map(sheet => xml("sheetName", { val: sheet })).join("")) + xml("sheetDataSet", {}))),
+        xml("externalBook", { "r:id": "rId1" }, xml("sheetNames", {}, [...link.sheets.values()].map(sheet => xml("sheetName", { val: sheet })).join("")) + (definitions ? xml("definedNames", {}, definitions) : "") + xml("sheetDataSet", {}))),
         "application/vnd.openxmlformats-officedocument.spreadsheetml.externalLink+xml");
       await add("xl/externalLinks/_rels/" + filename + ".rels", relationshipXml([
         { id: "rId1", type: relationships + "/externalLinkPath", target, external: true }

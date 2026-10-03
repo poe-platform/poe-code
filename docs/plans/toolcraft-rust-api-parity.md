@@ -4443,3 +4443,54 @@ Timings varied across rounds; no performance/default-swap gate passed. Full host
 runtime routing, HTTP/OAuth public exports and complete replacement qualification
 remain open. These helpers introduce no visual presentation change; the earlier
 login screenshot verification remains pending.
+
+Login rendering and HTTP helpers are independently verified on remote main at
+ece5a18562 and e95d87689f, respectively. Release 37094787512 remains pending;
+Pages 37094787318 was cancelled. No completed release/publication is claimed.
+
+### Hosted OAuth runtime checkpoint
+
+The internal prepareHostedOAuthRuntime now composes the native configuration,
+login/HTTP helpers and own native OAuth authorization server. Rust selects startup
+metadata, routes health/custom/form/protocol requests, validates CSRF/expiry and
+provider account IDs, chooses safe login failures and response policies, and
+projects verified token identity. Node retains the exact await boundaries,
+callback receivers, abort events, stream I/O and opaque credential references.
+Custom interactions and credential-backed request services are included. No
+external dependencies or default implementation changed.
+
+Seven missing-module comparisons preceded implementation. Ten final differential
+cases cover secured login startup, health failure, protocol/unhandled paths,
+custom callback completion, CSRF and replay rejection, successful/failed form
+connection, safe versus arbitrary errors, token projection, credential admission,
+abort wiring, cleanup failures, live configuration getters and setup rejections.
+Additional failures caught the handler's async function shape, writeHead lookup
+after redirect getters and late Response constructor capture. Those now preserve
+the reference's function kind and evaluation order without an extra async proxy.
+Fixtures stay in memory.
+
+The final maintained unit route passes Rust tests, 266 native Node checks,
+6,016 reference/parity cases across 110 files, declarations and the original CLI
+type consumer. Maintained Rust/binding lint and scoped ESLint pass. Packed own
+Toolcraft/OAuth packages pass a full in-memory flow with real client registration,
+PKCE, signed CSRF cookies, safe login retry, authorization-code exchange, access
+token verification, credential-backed services, transaction replay rejection,
+refresh-token revocation and health. A loader rejects undeclared external imports
+from packed native modules. The same flow also passes against the reference.
+
+The first packed fixture incorrectly expected refresh-token revocation to
+immediately invalidate an issued access token. Direct execution of the original
+JavaScript flow disproved that assumption. The corrected fixture verifies the
+reference behavior: the issued access token remains verifiable and refreshing
+with the revoked refresh token returns invalid_grant. No authorization-server
+behavior was changed to satisfy the mistaken expectation.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 300 operations, retaining
+32 results, measured 7.410 microseconds native versus 1.609 microseconds JavaScript
+(4.61 times slower). Each operation handles a health request and resolves services
+through stored credentials using a prepared runtime; runtime construction and key
+generation are outside the measurement. This is a different workload from earlier
+helper benchmarks, not evidence of a speedup. No performance/default-swap gate
+passed. Public HTTP/OAuth exports, standalone types and complete replacement
+qualification remain open. The earlier login screenshot verification also remains
+pending; no new visual verification is claimed here.

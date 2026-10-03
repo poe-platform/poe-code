@@ -252,47 +252,85 @@ async function* manifestLines(input: ByteSource, signal: AbortSignal): AsyncGene
   if (size) yield buffer.subarray(0, size);
 }
 
-function parseEntry(bytes: Uint8Array, algorithm: Algorithm): Entry | "skip" | undefined {
-  if (algorithm === "crc") {
-    // The default cksum verifier accepts tagged records only, selecting a hash per line.
-    let rawText: string;
-    try { rawText = utf8.decode(bytes); } catch { return undefined; }
-    if (rawText.endsWith("\r")) rawText = rawText.slice(0, -1);
-    if (rawText === "" || rawText.startsWith("#")) return "skip";
-    let text = rawText.trimStart();
-    if (text.startsWith("\\")) text = text.slice(1);
-    if (/^BLAKE2b(?:-\d+)? ?\(/u.test(text)) return parseEntry(bytes, "blake2b");
-    if (/^SHA3-(?:224|256|384|512) ?\(/u.test(text)) return parseEntry(bytes, "sha3");
-    for (const candidate of Object.keys(hashes) as (keyof typeof hashes)[]) {
-      if (text.startsWith(`${candidate.toUpperCase()} (`) || text.startsWith(`${candidate.toUpperCase()}(`)) return parseEntry(bytes, candidate);
-    }
-    return undefined;
-  }
+function parseEntry(bytes: Uint8Array, algorithm: Algorithm, allowBase64: boolean): Entry | "skip" | undefined {
   let line: string;
   try { line = utf8.decode(bytes); } catch { return undefined; }
   if (line.endsWith("\r")) line = line.slice(0, -1);
   if (line === "" || line.startsWith("#")) return "skip";
-  const digits = { sha512: 128, sha384: 96, sha256: 64, sha224: 56, sha1: 40, md5: 32, crc: 0, bsd: 0, sysv: 0, crc32b: 0, sm3: 64, blake2b: 128, sha3: 128 }[algorithm];
-  const tagPrefix = algorithm === "blake2b" ? "BLAKE2b(?:-[0-9]+)?" : algorithm === "sha3" ? "SHA3-(?:224|256|384|512)" : algorithm.toUpperCase();
-  const hexCount = algorithm === "blake2b" || algorithm === "sha3" ? "2,128" : String(digits);
-  const tagged = new RegExp(`^[ \\t]*(\\\\?)${tagPrefix} ?\\((.*)\\)[ \\t]*=[ \\t]*([a-fA-F0-9]{${hexCount}})$`, "su").exec(line);
-  const match = tagged ? null : new RegExp(`^[ \\t]*(\\\\?)([a-fA-F0-9]{${hexCount}})[ \\t][ *](.+)$`, "su").exec(line);
-  if (!tagged && !match) return undefined;
-  let filename = tagged ? tagged[2]! : match![3]!;
-  if (tagged ? tagged[1] : match![1]) {
-    let invalid = false;
-    filename = filename.replace(/\\([\s\S]?)/gu, (_, character: string) => {
-      if (character === "n") return "\n";
-      if (character === "r") return "\r";
-      if (character === "\\") return "\\";
-      invalid = true;
-      return "";
-    });
-    if (invalid) return undefined;
+  line = line.trimStart();
+  const escapedName = line.startsWith("\\");
+  if (escapedName) line = line.slice(1);
+  const hashBits = { sha512: 512, sha384: 384, sha256: 256, sha224: 224, sha1: 160, md5: 128, sm3: 256 };
+  let bits: number | undefined;
+  let encoded: string;
+  let filename: string;
+  const opening = line.indexOf("(");
+  const closing = line.lastIndexOf(")");
+  const label = opening < 0 ? "" : line.slice(0, opening).trimEnd();
+  let taggedAlgorithm: HashAlgorithm | undefined;
+  if (label === "BLAKE2b" || label.startsWith("BLAKE2b-")) {
+    taggedAlgorithm = "blake2b";
+    const size = label === "BLAKE2b" ? "512" : label.slice(8);
+    if (!size.length || ![...size].every(c => c >= "0" && c <= "9")) return undefined;
+    bits = Number(size);
+    if (bits < 8 || bits > 512 || bits % 8 !== 0) return undefined;
+  } else if (label.startsWith("SHA3-")) {
+    taggedAlgorithm = "sha3";
+    const size = label.slice(5);
+    if (!["224", "256", "384", "512"].includes(size)) return undefined;
+    bits = Number(size);
+  } else {
+    taggedAlgorithm = (Object.keys(hashBits) as (keyof typeof hashBits)[]).find(candidate => label === candidate.toUpperCase());
+    if (taggedAlgorithm) bits = hashBits[taggedAlgorithm];
+  }
+  if (taggedAlgorithm) {
+    if (algorithm !== "crc" && algorithm !== taggedAlgorithm) return undefined;
+    algorithm = taggedAlgorithm;
+    if (closing <= opening) return undefined;
+    const suffix = line.slice(closing + 1).trimStart();
+    if (!suffix.startsWith("=")) return undefined;
+    encoded = suffix.slice(1).trimStart();
+    filename = line.slice(opening + 1, closing);
+  } else {
+    if (algorithm === "crc" || numericAlgorithms.has(algorithm)) return undefined;
+    const separator = [...line].findIndex(c => c === " " || c === "\t");
+    if (separator < 0 || ![" ", "*"].includes(line[separator + 1]!)) return undefined;
+    encoded = line.slice(0, separator);
+    filename = line.slice(separator + 2);
+    if (algorithm !== "blake2b" && algorithm !== "sha3") bits = hashBits[algorithm as keyof typeof hashBits];
+  }
+  // Require canonical encodings and the size declared by the tag. Never let
+  // digest text select a different SHA3 or BLAKE2b variant than the label.
+  if (!encoded.length || encoded.length > 128) return undefined;
+  let hex: string;
+  if (encoded.length % 2 === 0 && [...encoded].every(c => "0123456789abcdefABCDEF".includes(c)) && (bits === undefined || encoded.length * 4 === bits)) {
+    hex = encoded.toLowerCase();
+  } else {
+    if (!allowBase64) return undefined;
+    let decoded: string;
+    try { decoded = atob(encoded); } catch { return undefined; }
+    if (btoa(decoded) !== encoded) return undefined;
+    hex = bytesToHex(Uint8Array.from(decoded, c => c.charCodeAt(0)));
+  }
+  const digestBits = hex.length * 4;
+  if (bits !== undefined && digestBits !== bits) return undefined;
+  if (algorithm === "blake2b" && (digestBits < 8 || digestBits > 512)) return undefined;
+  if (algorithm === "sha3" && ![224, 256, 384, 512].includes(digestBits)) return undefined;
+  if (escapedName) {
+    let decoded = "";
+    for (let index = 0; index < filename.length; index++) {
+      const character = filename[index]!;
+      if (character !== "\\") { decoded += character; continue; }
+      const escape = filename[++index];
+      if (escape === "n") decoded += "\n";
+      else if (escape === "r") decoded += "\r";
+      else if (escape === "\\") decoded += "\\";
+      else return undefined;
+    }
+    filename = decoded;
   }
   try { validateFilename(filename); } catch { return undefined; }
-  const hex = (tagged ? tagged[3]! : match![2]!).toLowerCase();
-  return { digest: hex, filename, algorithm, bits: hex.length * 4 };
+  return { digest: hex, filename, algorithm, bits: digestBits };
 }
 
 async function report(context: CommandContext, filename: string, status: string): Promise<void> {
@@ -309,7 +347,7 @@ async function verify(context: CommandContext, manifest: string, algorithm: Algo
   let lineNumber = 0;
   for await (const line of manifestLines(source(context, manifest, state), context.signal)) {
     if (++lineNumber > Number.MAX_SAFE_INTEGER) throw new FsError("EFBIG", { message: "too many manifest lines" });
-    const entry = parseEntry(line, algorithm);
+    const entry = parseEntry(line, algorithm, context.command === "cksum");
     if (entry === "skip") continue;
     if (!entry || (manifest === "-" && entry.filename === "-")) {
       malformed++;
@@ -480,7 +518,7 @@ export function evalSyncChecksum(
       let valid = 0;
       let matched = 0;
       for (const rawLine of rawLines) {
-        const parsedEntry = parseEntry(encoder.encode(rawLine), selectedAlgorithm);
+        const parsedEntry = parseEntry(encoder.encode(rawLine), selectedAlgorithm, name === "cksum");
         if (parsedEntry === "skip") continue;
         if (!parsedEntry) return undefined;
         valid++;

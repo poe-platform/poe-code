@@ -5,8 +5,10 @@ import { CFFParser, Stream, Type1Font, getEncoding, getGlyphsUnicode, type Type1
 
 export function parseEmbeddedType1Font(bytes: Uint8Array, properties: Type1Properties, options: Pick<PdfFontAllocationOptions, "onAllocation"> = {}): EmbeddedCffFont {
   const allocation = new PdfFontAllocation(options);
+  allocation.admit(bytes.length);
   const font = new Type1Font("EmbeddedType1", new Stream(bytes.slice()), properties);
-  const cff = new CFFParser(new Stream(Uint8Array.from(font.data)), {}, false).parse();
+  allocation.admit(font.data.length);
+  const cff = new CFFParser(new Stream(Uint8Array.from(font.data)), {}, false, bytes => allocation.admit(bytes)).parse();
   // Type1Font owns the mapping: reparsing the generated CFF charset is not
   // sufficient to preserve original glyph IDs (including its extra .notdef).
   const charset = font.getCharset();

@@ -56,8 +56,11 @@ export interface EmbeddedCffFont {
 }
 
 export function parseEmbeddedCffFont(bytes: Uint8Array, encodingName: string | undefined, differences: ReadonlyMap<number, string>, options: Pick<PdfFontAllocationOptions, "onAllocation"> = {}): EmbeddedCffFont {
+  const allocation = new PdfFontAllocation(options);
   // PDF.js repairs charstrings in place; never mutate the document stream.
-  const cff = new CFFParser(new Stream(bytes.slice()), {}, false).parse();
+  allocation.admit(bytes.length);
+  const cff = new CFFParser(new Stream(bytes.slice()), {}, false, bytes => allocation.admit(bytes)).parse();
+  allocation.admit(65536 + cff.charset.charset.length * 192);
   const glyphIds = new Map<number, number>();
   const unicodeByCode = new Map<number, string>();
   if (cff.isCIDFont) {

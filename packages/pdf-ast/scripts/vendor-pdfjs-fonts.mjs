@@ -110,6 +110,37 @@ const result = await build({
         source = source.replace(cache, "if (!this.#cipherCache.has(key)) this.#cipherCache.set(key, this.resolveCipher(filterName));\n    return this.#cipherCache.get(key);");
         return { contents: source, loader: "js" };
       });
+      builder.onLoad({ filter: /cff_parser\.js$/ }, args => {
+        const source = readFileSync(args.path, "utf8");
+        const start = source.indexOf("class CFFParser {");
+        const end = source.indexOf("\nclass CFF {", start);
+        if (start < 0 || end <= start) throw new Error("PDF.js CFF parser source markers changed");
+        let parser = source.slice(start, end);
+        const patches = [
+          ["constructor(file, properties, seacAnalysisEnabled) {", "constructor(file, properties, seacAnalysisEnabled, onAllocation) {\n    this.onAllocation = onAllocation;\n    onAllocation?.(2048);"],
+          ["  parse() {", "  parse() {\n    this.onAllocation?.(2048);"],
+          ["  parseDict(dict) {", "  parseDict(dict) {\n    this.onAllocation?.(1024 + dict.length * 128);"],
+          ["const count = (bytes[pos++] << 8) | bytes[pos++];", "const count = (bytes[pos++] << 8) | bytes[pos++];\n    this.onAllocation?.(256 + count * 128);"],
+          ["const name = index.get(i);", "const name = index.get(i);\n      this.onAllocation?.(64 + name.length * 32);"],
+          ["const data = index.get(i);", "const data = index.get(i);\n      this.onAllocation?.(64 + data.length * 32);"],
+          ["  createDict(Type, dict, strings) {", "  createDict(Type, dict, strings) {\n    this.onAllocation?.(2048 + dict.length * 128);"],
+          ["const view = new DataView(data.buffer, data.byteOffset, data.bytesLength);", "this.onAllocation?.(256 + data.length * 16);\n    const view = new DataView(data.buffer, data.byteOffset, data.bytesLength);"],
+          ["const count = charStrings.count;", "const count = charStrings.count;\n    this.onAllocation?.(count * 512);"],
+          ["  parseCharsets(pos, length, strings, cid) {", "  parseCharsets(pos, length, strings, cid) {\n    this.onAllocation?.(256);"],
+          ["for (i = 0; i < length; i++) {", "this.onAllocation?.(Math.max(0, length) * 16);\n        for (i = 0; i < length; i++) {"],
+          ["while (charset.length <= length) {", "while (charset.length <= length) {\n          if (pos + (format === 1 ? 3 : 4) > bytes.length) throw new FormatError(\"Truncated CFF charset range\");"],
+          ["for (i = 0; i <= count; i++) {", "this.onAllocation?.((count + 1) * 16);\n          for (i = 0; i <= count; i++) {"],
+          ["  parseEncoding(pos, properties, strings, charset) {", "  parseEncoding(pos, properties, strings, charset) {\n    this.onAllocation?.(32768);"],
+          ["  parseFDSelect(pos, length) {", "  parseFDSelect(pos, length) {\n    this.onAllocation?.(256);"],
+          ["for (i = 0; i < length; ++i) {", "this.onAllocation?.(Math.max(0, length) * 16);\n        for (i = 0; i < length; ++i) {"],
+          ["for (let j = first; j < next; ++j) {", "this.onAllocation?.(Math.max(0, next - first) * 16);\n          for (let j = first; j < next; ++j) {"],
+        ];
+        for (const [before, after] of patches) {
+          if (!parser.includes(before)) throw new Error("PDF.js CFF allocation source marker changed: " + before);
+          parser = parser.replaceAll(before, after);
+        }
+        return { contents: source.slice(0, start) + parser + source.slice(end), loader: "js" };
+      });
       builder.onLoad({ filter: /font_renderer\.js$/ }, args => {
         let source = readFileSync(args.path, "utf8");
         const patches = [

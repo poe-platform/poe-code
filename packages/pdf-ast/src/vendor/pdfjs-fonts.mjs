@@ -3605,12 +3605,15 @@ var CharstringValidationData12 = [
   { id: "flex1", min: 11, resetStack: true }
 ];
 var CFFParser = class {
-  constructor(file, properties, seacAnalysisEnabled) {
+  constructor(file, properties, seacAnalysisEnabled, onAllocation) {
+    this.onAllocation = onAllocation;
+    onAllocation?.(2048);
     this.bytes = file.getBytes();
     this.properties = properties;
     this.seacAnalysisEnabled = !!seacAnalysisEnabled;
   }
   parse() {
+    this.onAllocation?.(2048);
     const properties = this.properties;
     const cff = new CFF(this.bytes.length);
     this.cff = cff;
@@ -3737,6 +3740,7 @@ var CFFParser = class {
     return { obj: header, endPos: hdrSize };
   }
   parseDict(dict) {
+    this.onAllocation?.(1024 + dict.length * 128);
     const view = new DataView(dict.buffer, dict.byteOffset, dict.bytesLength);
     let pos = 0;
     function parseOperand() {
@@ -3820,6 +3824,7 @@ var CFFParser = class {
     const cffIndex = new CFFIndex();
     const bytes = this.bytes;
     const count = bytes[pos++] << 8 | bytes[pos++];
+    this.onAllocation?.(256 + count * 128);
     const offsets = [];
     let end = pos;
     let i, ii;
@@ -3847,6 +3852,7 @@ var CFFParser = class {
     const names = [];
     for (let i = 0, ii = index.count; i < ii; ++i) {
       const name = index.get(i);
+      this.onAllocation?.(64 + name.length * 32);
       names.push(bytesToString(name));
     }
     return names;
@@ -3855,11 +3861,13 @@ var CFFParser = class {
     const strings = new CFFStrings();
     for (let i = 0, ii = index.count; i < ii; ++i) {
       const data = index.get(i);
+      this.onAllocation?.(64 + data.length * 32);
       strings.add(bytesToString(data));
     }
     return strings;
   }
   createDict(Type, dict, strings) {
+    this.onAllocation?.(2048 + dict.length * 128);
     const cffDict = new Type(strings);
     for (const [key, value] of dict) {
       cffDict.setByKey(key, value);
@@ -3870,6 +3878,7 @@ var CFFParser = class {
     if (!data || state.callDepth > MAX_SUBR_NESTING) {
       return false;
     }
+    this.onAllocation?.(256 + data.length * 16);
     const view = new DataView(data.buffer, data.byteOffset, data.bytesLength);
     let stackSize = state.stackSize;
     const stack = state.stack;
@@ -4031,6 +4040,7 @@ var CFFParser = class {
     const seacs = /* @__PURE__ */ new Map();
     const widths = [];
     const count = charStrings.count;
+    this.onAllocation?.(count * 512);
     for (let i = 0; i < count; i++) {
       const charstring = charStrings.get(i);
       const state = {
@@ -4169,6 +4179,7 @@ var CFFParser = class {
     privateDict.subrsIndex = subrsIndex.obj;
   }
   parseCharsets(pos, length, strings, cid) {
+    this.onAllocation?.(256);
     if (pos === 0) {
       return new CFFCharset(
         true,
@@ -4195,6 +4206,7 @@ var CFFParser = class {
     length -= 1;
     switch (format) {
       case 0:
+        this.onAllocation?.(Math.max(0, length) * 16);
         for (i = 0; i < length; i++) {
           id = bytes[pos++] << 8 | bytes[pos++];
           charset.push(cid ? id : strings.get(id));
@@ -4202,8 +4214,10 @@ var CFFParser = class {
         break;
       case 1:
         while (charset.length <= length) {
+          if (pos + (format === 1 ? 3 : 4) > bytes.length) throw new FormatError("Truncated CFF charset range");
           id = bytes[pos++] << 8 | bytes[pos++];
           count = bytes[pos++];
+          this.onAllocation?.((count + 1) * 16);
           for (i = 0; i <= count; i++) {
             charset.push(cid ? id++ : strings.get(id++));
           }
@@ -4211,8 +4225,10 @@ var CFFParser = class {
         break;
       case 2:
         while (charset.length <= length) {
+          if (pos + (format === 1 ? 3 : 4) > bytes.length) throw new FormatError("Truncated CFF charset range");
           id = bytes[pos++] << 8 | bytes[pos++];
           count = bytes[pos++] << 8 | bytes[pos++];
+          this.onAllocation?.((count + 1) * 16);
           for (i = 0; i <= count; i++) {
             charset.push(cid ? id++ : strings.get(id++));
           }
@@ -4224,6 +4240,7 @@ var CFFParser = class {
     return new CFFCharset(false, format, charset);
   }
   parseEncoding(pos, properties, strings, charset) {
+    this.onAllocation?.(32768);
     const encoding = /* @__PURE__ */ Object.create(null);
     const bytes = this.bytes;
     let predefined = false;
@@ -4282,12 +4299,14 @@ var CFFParser = class {
     return new CFFEncoding(predefined, format, encoding, raw);
   }
   parseFDSelect(pos, length) {
+    this.onAllocation?.(256);
     const bytes = this.bytes;
     const format = bytes[pos++];
     const fdSelect = [];
     let i;
     switch (format) {
       case 0:
+        this.onAllocation?.(Math.max(0, length) * 16);
         for (i = 0; i < length; ++i) {
           const id = bytes[pos++];
           fdSelect.push(id);
@@ -4305,6 +4324,7 @@ var CFFParser = class {
           }
           const fdIndex = bytes[pos++];
           const next = bytes[pos] << 8 | bytes[pos + 1];
+          this.onAllocation?.(Math.max(0, next - first) * 16);
           for (let j = first; j < next; ++j) {
             fdSelect.push(fdIndex);
           }

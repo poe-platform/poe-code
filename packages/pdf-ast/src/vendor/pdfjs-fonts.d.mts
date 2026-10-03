@@ -24,7 +24,7 @@ export interface CffFont {
 }
 export class CFFStrings { get(index: number): string; }
 export class CFFParser {
-  constructor(stream: Stream, properties: Record<string, unknown>, seacAnalysisEnabled: boolean);
+  constructor(stream: Stream, properties: Record<string, unknown>, seacAnalysisEnabled: boolean, onAllocation?: (bytes: number) => void);
   parse(): CffFont;
   parseCharsets(offset: number, count: number, strings: CFFStrings | null, cid: boolean): { predefined: boolean; charset: Array<string | number> };
   parseEncoding(offset: number, properties: Record<string, unknown>, strings: CFFStrings, charset: null): { encoding: Record<number, number> };

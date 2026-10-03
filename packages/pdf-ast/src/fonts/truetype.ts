@@ -306,7 +306,7 @@ export function parseTrueTypeFont(bytes: Uint8Array, options: Pick<PdfFontAlloca
     // PDF.js FontRendererFactory selects the CFF table when glyf is absent.
     // Copy it because PDF.js can repair charstrings in place.
     allocation.admit(cffTable.length);
-    const cff = new CFFParser(new Stream(bytes.slice(cffTable.offset, cffTable.offset + cffTable.length)), {}, false).parse();
+    const cff = new CFFParser(new Stream(bytes.slice(cffTable.offset, cffTable.offset + cffTable.length)), {}, false, bytes => allocation.admit(bytes)).parse();
     renderCffGlyph = createCffGlyphRenderer(cff, options);
   }
 

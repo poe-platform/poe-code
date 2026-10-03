@@ -590,4 +590,7 @@ The font renderer regeneration also adds optional allocation callbacks before
 CFF outline parser scratch, subroutine expansion, command storage, transforms,
 and typed path output. Local path conversion charges the containing font owner,
 and its outline cache retains at most 256 KiB of conservatively sized paths.
-These hooks do not account for the preceding CFF/Type1 font-program parse.
+The CFF parser also admits indices, dictionaries, decoded strings, charset and
+FDSelect ranges, and charstring scratch. Truncated charset ranges now fail
+instead of entering a non-progressing loop. Type1 decoding and CFF compilation
+still need separate allocation accounting.

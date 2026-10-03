@@ -1,3 +1,4 @@
+import { streamTextHtml } from "./text-markup.js";
 import { PdfFileSource, PdfRetainedDocument, PdfStagingStorage } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
@@ -16,6 +17,7 @@ interface RawTextPlan {
   readonly lastPage: number;
   readonly lastPageExplicit: boolean;
   readonly quiet: boolean;
+  readonly htmlmeta: boolean;
   readonly invalidEolWarning: boolean;
   readonly nopgbrk: boolean;
   readonly nodiag: boolean;
@@ -115,7 +117,9 @@ export async function executeRetainedRawText(context: CommandContext, plan: RawT
         if (!plan.nopgbrk) yield new Uint8Array([12]);
       }
     }
-    result = await PdfFileSource.fromStream(storage.fs, directory, encodePopplerChunks(text(), plan.encoding, plan.eol), { signal });
+    const formatted = plan.htmlmeta
+      ? streamTextHtml(encodePopplerChunks(text(), "UTF-8", plan.eol), await document.info()) : text();
+    result = await PdfFileSource.fromStream(storage.fs, directory, encodePopplerChunks(formatted, plan.encoding, plan.htmlmeta ? "unix" : plan.eol), { signal });
     if (warning) await writeBytes(context.stderr, encoder.encode(warning), signal);
     if (outputPath === "-") {
       for await (const bytes of result.stream(0, result.size, signal)) await writeBytes(stdout, bytes, signal);

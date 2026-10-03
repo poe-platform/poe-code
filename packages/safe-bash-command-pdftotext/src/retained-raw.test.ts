@@ -107,3 +107,23 @@ test("retained raw supports publishing over its retained input after extraction"
   const f = await fixture(input, args); assert.equal((await createPdftotextCommand().execute(f.context)).exitCode, 0);
   assert.equal(new TextDecoder().decode(await f.fs.readFile("/input.pdf")), expected.output); await f.clean();
 });
+for (const encoding of ["UTF-8", "Latin1", "ASCII7", "UCS-2", "Symbol", "ZapfDingbats"]) {
+  test(`retained raw HTML metadata preserves ${encoding}, escaping and body-only EOL conversion`, async () => {
+    const doc = PdfDocument.create();
+    doc.setMetadata({ title: "café <title> & 'quote'", author: 'A "writer"', subject: "topic", creator: "tool", producer: "engine" });
+    doc.addPage().drawText("café <text> & 'quote'", { x: 20, y: 100, size: 12 }); doc.addPage();
+    const input = doc.save(), args = ["-raw", "-htmlmeta", "-enc", encoding, "-eol", "dos", "input.pdf", "output.txt"];
+    const expected = await runPdftotextCli(args, new Map([["input.pdf", input]])); const f = await fixture(input, args);
+    assert.equal((await createPdftotextCommand().execute(f.context)).exitCode, expected.exitCode);
+    assert.deepEqual(await f.fs.readFile("/output.txt"), encoded(expected.output, encoding));
+    assert.deepEqual(f.counts(), { wholeReads: 0, payloadWrites: 0, published: 1 }); await f.clean();
+  });
+}
+test("retained HTML streams large escaped metadata across a surrogate boundary without whole reads", async () => {
+  const doc = PdfDocument.create(); doc.setMetadata({ title: "&".repeat(4095) + "😀" + "<".repeat(8192) });
+  doc.addPage().drawText("kept", { x: 20, y: 100, size: 12 });
+  const input = doc.save(), args = ["-raw", "-htmlmeta", "input.pdf", "-"];
+  const expected = await runPdftotextCli(args, new Map([["input.pdf", input]])); const f = await fixture(input, args);
+  assert.equal((await createPdftotextCommand().execute(f.context)).exitCode, 0);
+  assert.equal(new TextDecoder().decode(joined(f.stdout)), expected.output); assert.equal(f.counts().wholeReads, 0); await f.clean();
+});

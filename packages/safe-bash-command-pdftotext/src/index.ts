@@ -1,3 +1,4 @@
+import { escapeXml } from "./text-markup.js";
 import { encodeUcs2, applyPopplerOutputEncoding } from "./output-encoding.js";
 import { executeRetainedRawText } from "./retained-raw.js";
 import { resolvePath } from "safe-bash-contracts/path";
@@ -335,14 +336,6 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
 }
 
 
-function escapeXml(text: string): string {
-  return text
-    .replaceAll("&", "&amp;")
-    .replaceAll("'", "&apos;")
-    .replaceAll("\"", "&quot;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
-}
 
 function filterExtractedPageByCrop(
   extracted: PdfExtractedPage,
@@ -855,7 +848,7 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
       return { exitCode: res.exitCode };
     }
 
-    if (parsed.raw && !parsed.bbox && !parsed.tsv && !parsed.htmlmeta && !parsed.urls && !parsed.cropbox
+    if (parsed.raw && !parsed.bbox && !parsed.tsv && !parsed.urls && !parsed.cropbox
       && parsed.cropX === undefined && parsed.cropY === undefined && parsed.cropW === undefined && parsed.cropH === undefined) {
       return await executeRetainedRawText(context, parsed, invocation.child(context.stdout).output, invocation.signal);
     }

@@ -78,3 +78,15 @@ it("preserves image origins and SDK sidecars while transforming captions", async
   expect(result.direction).toBe("rtl");
   expect(image.c[1]).toEqual([{t: "Str", c: "Caption"}]);
 });
+
+
+it("does not acquire a filter through the reader after cancellation", async () => {
+  const readFile = vi.fn(async () => encoder.encode("function Str(el) return el end"));
+  const controller = new AbortController();
+  const context = Object.assign(createExecutionContext("convert", {signal: controller.signal}), {to: "html"});
+  controller.abort();
+  await expect(createLuaFilterCapability({readFile}).apply(
+    {blocks: [], metadata: {}, resources: []}, {kind: "lua", path: "/uppercase.lua"}, context
+  )).rejects.toMatchObject({code: "E_CANCELLED"});
+  expect(readFile).not.toHaveBeenCalled();
+});

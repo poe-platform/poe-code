@@ -21,12 +21,14 @@ export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptio
     supports: request => request.kind === "lua",
     async apply(document, request, context) {
       if (request.kind !== "lua") throw new PandocError("E_CAPABILITY", "convert", "This capability supports Lua filters only");
+      context.checkpoint(0);
       const source = await readFile(request.path, context.signal);
       context.checkpoint();
       if (!(source instanceof Uint8Array)) throw new PandocError("E_IO", "convert", "Lua filter source must be bytes");
       context.charge("inputBytes", source.byteLength);
       context.charge("retainedBytes", source.byteLength);
       const runtime = (await import("./fengari.generated.js")).default as typeof import("fengari");
+      context.checkpoint(0);
       const {lua, lauxlib, lualib, to_luastring, to_jsstring} = runtime;
       const state = lauxlib.luaL_newstate();
       let hookFailure: unknown;

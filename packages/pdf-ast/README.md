@@ -17,6 +17,14 @@ payload read. Sources require retained-read support and never reopen a pathname
 or fall back to whole-file reads. The caller chooses and owns the backend;
 memory-backed safe-fs still stores its files in RAM.
 
+For stdin or intermediate data, `PdfFileSource.fromStream(fs, directory, chunks,
+options)` writes bounded chunks into retained staging in the supplied directory.
+It seals the file before reading, verifies its identity and content revision,
+and removes its staging directory when the source closes. Writes apply
+backpressure to the input iterator; failed or cancelled spooling cleans up
+without replacing the original error. The injected backend must support retained
+staging writes and cleanup. This primitive does not publish output destinations.
+
 `serializeCosNodeChunks(node, options)` emits owned, bounded output chunks for
 COS values, including streams and escaped strings. Consumers control progress
 by advancing the iterator; `signal`, `maxOutputBytes`, and `maxRecursionDepth`

@@ -5,7 +5,7 @@ import {withFileEmbeddingEntries} from './import-files.js';
 
 test('file import uses the last successful decoding and Python universal newlines',async()=>{
  const fs=new MemoryFileSystem();await fs.writeFile('/text',new TextEncoder().encode('café\r\nline\r'));
- for(const [encodings,expected]of [[undefined,'cafÃ©\nline\n'],[['utf-8'],'café\nline\n'],[['latin-1','utf-8'],'café\nline\n'],[['utf-8','ascii'],'café\nline\n']] as const){
+ for(const [encodings,expected]of [[undefined,'cafÃ©\nline\n'],[['utf-8'],'café\nline\n'],[['cp65001'],'café\nline\n'],[['ISO 8859-1'],'cafÃ©\nline\n'],[['latin-1','utf-8'],'café\nline\n'],[['utf-8','ascii'],'café\nline\n']] as const){
   const rows:unknown[]=[];
   await withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,...(encodings?{encodings}:{})},{async *[Symbol.asyncIterator](){yield {path:'/text',id:'a.txt'};}},async entries=>{
    for await(const entry of entries){let text='';for await(const bytes of entry.input.bytes)text+=new TextDecoder().decode(bytes);rows.push({id:entry.id,binary:entry.binary,text});await entry.input.dispose();}

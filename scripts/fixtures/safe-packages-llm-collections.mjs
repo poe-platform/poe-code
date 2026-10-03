@@ -9,7 +9,7 @@ export async function verifyLlmCollections() {
   const globFs=new MemoryFileSystem();
   await globFs.writeFile('/signature',Uint8Array.of(0xef,0xbb));
   let signatureRows=0;
-  await withFileEmbeddingEntries({fs:globFs,directory:'/',signal:new AbortController().signal,encodings:['utf-8-sig'],undecodable(){throw new Error('Incomplete UTF8 signature was skipped');}},{async *[Symbol.asyncIterator](){yield {path:'/signature',id:'signature'};}},async entries=>{
+  await withFileEmbeddingEntries({fs:globFs,directory:'/',signal:new AbortController().signal,encodings:['UTF 8 SIG'],undecodable(){throw new Error('Incomplete UTF8 signature was skipped');}},{async *[Symbol.asyncIterator](){yield {path:'/signature',id:'signature'};}},async entries=>{
     for await(const entry of entries){signatureRows++;for await(const bytes of entry.input.bytes)if(bytes.length)throw new Error('Incomplete signature produced content');}
   });
   if(signatureRows!==1)throw new Error('Incomplete signature did not yield an empty row');
@@ -181,7 +181,7 @@ export async function verifyLlmCollections() {
     await fs.unlink('/auto.json');
     await fs.mkdir('/file-inputs');
     await fs.writeFile('/file-inputs/a.txt',new TextEncoder().encode('café'));
-    const fileImport=await cliShell.exec("llm embed-multi files --files /file-inputs '*.txt' --encoding utf-8 --store -m embed -d /cli.db");
+    const fileImport=await cliShell.exec("llm embed-multi files --files /file-inputs '*.txt' --encoding cp65001 --store -m embed -d /cli.db");
     if(fileImport.exitCode!==0||fileImport.stdout!=='Embedding\n')throw new Error('File CLI import failed: '+fileImport.stderr);
     const fileRows=await cliShell.exec('llm similar files -c query -d /cli.db');
     if(fileRows.exitCode!==0||JSON.parse(fileRows.stdout).content!=='café'||JSON.parse(fileRows.stdout).id!=='a.txt')throw new Error('File CLI stored content changed');

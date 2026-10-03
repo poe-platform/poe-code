@@ -36,3 +36,17 @@ test('UTF8 signature is stripped only once across incremental final calls',()=>{
  assert.equal(pending.decode(bom.subarray(0,1)),'');assert.equal(pending.decode(bom.subarray(1)),'');
  assert.equal(pending.decode(new TextEncoder().encode('done')),'done');
 });
+
+// Captured with codecs.getincrementaldecoder in the pinned Python 3.9 oracle.
+test('Python codec aliases and punctuation retain canonical decoding behavior',()=>{
+ for(const name of ['cp65001','u8','UTF/8','__utf--8__'])assert.equal(new PythonTextDecoder(name).decode(Uint8Array.of(0xc3,0xa9)),'é');
+ for(const name of ['UTF 8 SIG','UTF_8_SIG'])assert.equal(new PythonTextDecoder(name).decode(Uint8Array.of(0xef,0xbb,0xbf,65)),'A');
+ for(const name of ['ISO 8859-1','cp819','L1'])assert.equal(new PythonTextDecoder(name).decode(Uint8Array.of(0x80,0xe9)),'\u0080é');
+ for(const name of ['ansi_x3.4-1968','646','US']){
+  assert.equal(new PythonTextDecoder(name).decode(Uint8Array.of(65)),'A');
+  assert.throws(()=>new PythonTextDecoder(name).decode(Uint8Array.of(128)),PythonTextDecodeError);
+ }
+});
+test('Python rejects near aliases and inherited object names',()=>{
+ for(const name of ['utf8-sig','utf.8','latin.1','constructor','__proto__'])assert.throws(()=>new PythonTextDecoder(name),RangeError);
+});

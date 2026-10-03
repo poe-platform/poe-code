@@ -24,7 +24,8 @@ all 256 byte values for ASCII, Latin-1 and CP1252, plus UTF-8/sig and UTF-16
 signature/endian/surrogate/truncation cases. Successful decode results also retain
 native str.encode bytes. These observations qualify the finite primitive subset,
 not arbitrary codec/error-handler combinations or TextIO encoding behavior.
-src/codecs/aliases.ts was generated from frozen codecs.lookup results over
+The shared safe-bash-csv-engine/python-codec-aliases registry (re-exported by
+src/codecs/aliases.ts) was generated from frozen codecs.lookup results over
 encodings.aliases keys/values and installed standard encodings module names;
 it records factual lookup names, not a copied codec implementation. Names without
 ported injected providers remain blockers. Injected custom codec providers remain

@@ -26,6 +26,10 @@
     "./text-decoder": {
       "types": "./dist/text-decoder.d.ts",
       "import": "./dist/text-decoder.js"
+    },
+    "./python-codec-aliases": {
+      "types": "./dist/python-codec-aliases.d.ts",
+      "import": "./dist/python-codec-aliases.js"
     }
   },
   "files": [

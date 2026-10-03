@@ -1,3 +1,5 @@
+import { normalizeEncoding, pythonCodecAliases } from "./python-codec-aliases.js";
+
 /** Existing CSV text codecs shared with Python-style file consumers. Callers
  * feed bounded chunks; this decoder never owns filesystem or payload storage. */
 const utf8Signature=Uint8Array.of(0xef,0xbb,0xbf);
@@ -8,16 +10,18 @@ export class PythonTextDecoder {
  private signatureOffset=0;
  private signatureComplete:boolean;
  constructor(encoding:string){
-  this.encoding=encoding.toLowerCase().replaceAll('_','-');
-  if(!['utf-8-sig','utf8-sig','utf-8','utf8','ascii','us-ascii','latin1','latin-1','iso-8859-1'].includes(this.encoding))throw new RangeError(`unknown encoding: ${encoding}`);
-  this.signatureComplete=!['utf-8-sig','utf8-sig'].includes(this.encoding);
+  const name=normalizeEncoding(encoding);
+  const canonical=Object.hasOwn(pythonCodecAliases,name)?pythonCodecAliases[name]:undefined;
+  if(canonical===undefined||!['utf-8-sig','utf-8','ascii','iso8859-1'].includes(canonical))throw new RangeError(`unknown encoding: ${encoding}`);
+  this.encoding=canonical;
+  this.signatureComplete=canonical!=='utf-8-sig';
   this.decoder=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});
  }
  decode(bytes?:Uint8Array,options?:{stream?:boolean}):string{
-  if(['ascii','us-ascii','latin1','latin-1','iso-8859-1'].includes(this.encoding)){
+  if(['ascii','iso8859-1'].includes(this.encoding)){
    let text='';
    for(const byte of bytes??[]){
-    if((this.encoding==='ascii'||this.encoding==='us-ascii')&&byte>127)throw new PythonTextDecodeError('Invalid ASCII input');
+    if(this.encoding==='ascii'&&byte>127)throw new PythonTextDecodeError('Invalid ASCII input');
     text+=String.fromCharCode(byte);
    }
    return text;

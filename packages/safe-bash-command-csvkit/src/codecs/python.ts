@@ -1,24 +1,11 @@
 import type { ByteSource, CodecProvider } from "../contracts.js";
 import { PythonException } from "../diagnostics/exception.js";
 import { CsvkitBlocked } from "../errors.js";
-import { pythonCodecAliases } from "./aliases.js";
+import { pythonCodecAliases, normalizeEncoding } from "safe-bash-csv-engine/python-codec-aliases";
+export { normalizeEncoding } from "safe-bash-csv-engine/python-codec-aliases";
 import { decodeFrames } from "./frames.js";
 import { utf8Codec } from "./utf8.js";
 import { dbfCodepages } from './dbf-codepages.js';
-
-/** encodings.normalize_encoding: punctuation collapses, trailing punctuation drops. */
-export function normalizeEncoding(encoding: string): string {
-  let result = "", punctuation = false;
-  for (const char of encoding) {
-    const code = char.codePointAt(0)!;
-    if ((code >= 48 && code <= 57) || (code >= 65 && code <= 90) || (code >= 97 && code <= 122) || char === ".") {
-      if (punctuation && result) result += "_";
-      result += char.toLowerCase();
-      punctuation = false;
-    } else punctuation = true;
-  }
-  return result;
-}
 
 export function resolveCodec(providers: readonly CodecProvider[], encoding: string): { readonly codec: CodecProvider; readonly encoding: string } {
   const name = normalizeEncoding(encoding);

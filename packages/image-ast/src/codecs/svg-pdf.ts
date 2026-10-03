@@ -670,6 +670,46 @@ export function decodeSvgImage(
         }
       }
     }
+    // Primitive outlines are independent of fill (Graphviz uses fill="none").
+    if (stroke.a > 0 && strokeW > 0 && ["rect", "ellipse", "circle"].includes(tag)) {
+      const points: Array<[number, number]> = [];
+      if (tag === "rect") {
+        const x = parseSvgCoord(getAttr(attrs, "x"), 0, vbW);
+        const y = parseSvgCoord(getAttr(attrs, "y"), 0, vbH);
+        const w = parseSvgNumber(getAttr(attrs, "width"), vbW);
+        const h = parseSvgNumber(getAttr(attrs, "height"), vbH);
+        const rawRx = parseSvgCoord(getAttr(attrs, "rx"), 0, vbW);
+        const rawRy = parseSvgCoord(getAttr(attrs, "ry"), 0, vbH);
+        const rx = Math.max(0, Math.min(w / 2, rawRx || rawRy));
+        const ry = Math.max(0, Math.min(h / 2, rawRy || rawRx));
+        if (w <= 0 || h <= 0) continue;
+        if (rx && ry) {
+          const corners = [[x + w - rx, y + ry], [x + w - rx, y + h - ry], [x + rx, y + h - ry], [x + rx, y + ry]];
+          for (let corner = 0; corner < 4; corner++)
+            for (let step = 0; step <= 16; step++) {
+              const angle = (corner - 1 + step / 16) * Math.PI / 2;
+              points.push(mapPt(corners[corner]![0]! + rx * Math.cos(angle), corners[corner]![1]! + ry * Math.sin(angle)));
+            }
+        } else points.push(mapPt(x, y), mapPt(x + w, y), mapPt(x + w, y + h), mapPt(x, y + h));
+      } else {
+        const cx = parseSvgCoord(getAttr(attrs, "cx"), 0, vbW);
+        const cy = parseSvgCoord(getAttr(attrs, "cy"), 0, vbH);
+        const r = parseSvgCoord(getAttr(attrs, "r"), 0, (vbW + vbH) / 2);
+        const rx = tag === "circle" ? r : parseSvgCoord(getAttr(attrs, "rx"), 0, vbW);
+        const ry = tag === "circle" ? r : parseSvgCoord(getAttr(attrs, "ry"), 0, vbH);
+        if (rx <= 0 || ry <= 0) continue;
+        for (let step = 0; step < 128; step++) {
+          const angle = step * Math.PI / 64;
+          points.push(mapPt(cx + rx * Math.cos(angle), cy + ry * Math.sin(angle)));
+        }
+      }
+      const strokeOpacity = Number(getAttr(attrs, "stroke-opacity") ?? 1);
+      const alpha = Math.round(stroke.a * (Number.isFinite(opAttr) ? opAttr : 1) * (Number.isFinite(strokeOpacity) ? strokeOpacity : 1));
+      for (let i = 0; i < points.length; i++) {
+        const a = points[i]!, b = points[(i + 1) % points.length]!;
+        drawSegment(a[0], a[1], b[0], b[1], strokeW, stroke.r, stroke.g, stroke.b, alpha);
+      }
+    }
   }
 
   return {

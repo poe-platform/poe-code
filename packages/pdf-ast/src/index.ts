@@ -5,6 +5,7 @@ export * from "./cos/filters.js";
 export * from "./cos/flate-stream.js";
 export * from "./cos/predictor-stream.js";
 export * from "./cos/filter-stream.js";
+export { decodeCcittFaxChunks, type PdfCcittOptions } from "./cos/ccitt.js";
 export * from "./cos/security.js";
 export * from "./cos/parser.js";
 export * from "./cos/range-parser.js";

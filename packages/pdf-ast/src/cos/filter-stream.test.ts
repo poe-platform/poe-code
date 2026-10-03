@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { cosArray, cosDict, cosName, cosNumber } from "../ast.js";
 import { decodeStreamObject, encodeFlate, encodeAsciiHex, encodeAscii85, encodeRunLength, encodeLzw } from "./filters.js";
 import { decodePdfStreamChunks } from "./filter-stream.js";
@@ -53,6 +53,25 @@ describe("streaming PDF filter pipelines", () => {
     const encoded = encodeLzw(bytes);
     const dict = cosDict({ Filter: cosName("LZW") });
     expect(await collect(decodePdfStreamChunks(dict, pieces(encoded), { chunkBytes: 7 }))).toEqual(bytes);
+  });
+
+  it.each([false, true])("replays the preceding filter stages for CCITT fallback (%s)", async fallback => {
+    const raw = fallback ? new Uint8Array([0, 0, 17, 23]) : new Uint8Array([255]);
+    const encoded = encodeFlate(raw);
+    const dict = cosDict({ Filter: cosArray([cosName("FlateDecode"), cosName("CCF")]), DecodeParms: cosArray([
+      cosDict({}), cosDict({ Columns: cosNumber(8), K: cosNumber(fallback ? 0 : -1) }),
+    ]) });
+    const open = vi.fn(() => pieces(encoded));
+    expect(await collect(decodePdfStreamChunks(dict, open, { chunkBytes: 7 }))).toEqual(fallback ? raw : new Uint8Array(8).fill(255));
+    expect(open).toHaveBeenCalledTimes(fallback ? 2 : 1);
+  });
+
+  it("rejects non-replayable CCITT input before pulling or buffering it", async () => {
+    const pull = vi.fn();
+    async function* input() { pull(); yield new Uint8Array([0]); }
+    const dict = cosDict({ Filter: cosName("CCF") });
+    await expect(collect(decodePdfStreamChunks(dict, input(), { chunkBytes: 7 }))).rejects.toThrow("replayable");
+    expect(pull).not.toHaveBeenCalled();
   });
 
 });

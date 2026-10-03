@@ -195,4 +195,16 @@ describe("range cross-reference revisions", () => {
     await source.close();
   });
 
+  it("uses retained replayable input for CCITT xref streams", async () => {
+    const head = text("1 0 obj << /Type /XRef /W [0 1 0] /Index [1 8] /Size 9 /Root 1 0 R /Filter /CCF /DecodeParms << /K -1 /Columns 8 >> /Length 1 >> stream\n");
+    const tail = text("\nendstream endobj");
+    const bytes = new Uint8Array(head.length + 1 + tail.length);
+    bytes.set(head); bytes[head.length] = 255; bytes.set(tail, head.length + 1);
+    const source = await input(bytes, 1).open();
+    const result = await collect(source, 0);
+    expect(result.entries).toHaveLength(8);
+    expect(result.entries[7]).toEqual({ type: "uncompressed", objectNumber: 8, offset: 255, generationNumber: 0 });
+    await source.close();
+  });
+
 });

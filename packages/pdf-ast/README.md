@@ -46,16 +46,19 @@ before combining revisions. This primitive does not follow `/Prev` or hybrid
 xref links or replace the buffered document loader.
 
 `decodePdfStreamChunks(dict, input, options)` streams direct filter dictionaries
-with Flate, LZW, ASCIIHex, ASCII85 and run-length decoding, including TIFF/PNG
+with Flate, LZW, ASCIIHex, ASCII85, run-length and CCITT decoding, including TIFF/PNG
 predictors. `chunkBytes` bounds owned output chunks, `maxDecodedBytes` bounds
 each decoded stage, `maxRowBytes` admits predictor rows, and `signal` cancels
 pending input. Flate retains a 32 KiB history plus bounded Huffman tables and
 preserves PDF.js/pypdf damaged-stream recovery. LZW uses a fixed 4096-entry
 prefix dictionary; predictors retain at most two rows. Image-codec and Crypt
-filters pass encoded bytes through as in the buffered decoder. CCITT streaming
-still requires a caller decoder; this API never falls back to whole-payload
-buffering. `inflatePdfChunks` and `decodePredictorChunks` expose the individual
-stages for callers that already manage filter parameters.
+filters pass encoded bytes through as in the buffered decoder. For CCITT, supply
+input as a factory such as `() => source.stream(start, length)`: if no rows decode,
+the original-byte fallback replays the same retained bytes through earlier filter
+stages. No encoded payload is buffered or privately spooled. CCITT retains two
+packed rows and applies the same row and output budgets. `inflatePdfChunks`,
+`decodePredictorChunks` and `decodeCcittFaxChunks` expose the individual stages
+for callers that already manage filter parameters.
 
 `PdfObjectIndex.build(entries, { fs, directory }, options)` sorts streamed
 cross-reference entries into caller-backed retained storage. Supply revisions

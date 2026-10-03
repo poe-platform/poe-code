@@ -151,8 +151,9 @@ export async function* readCosXrefRevision(source: PdfFileSource, offset: number
   if (admitted > Math.floor(Math.min(maxDecoded, Number.MAX_SAFE_INTEGER) / (w0 + w1 + w2))) {
     throw new PdfError("E_LIMIT", "PDF xref decoded byte limit exceeded");
   }
-  const raw = source.stream(object.stream.start, object.stream.end - object.stream.start, signal);
-  const decoded = options.decodeStream ? options.decodeStream(object, raw, signal) : decodePdfStreamChunks(dict, raw, {
+  const span = object.stream;
+  const raw = () => source.stream(span.start, span.end - span.start, signal);
+  const decoded = options.decodeStream ? options.decodeStream(object, raw(), signal) : decodePdfStreamChunks(dict, raw, {
     chunkBytes: source.chunkBytes, maxDecodedBytes: maxDecoded,
     ...(options.maxRowBytes === undefined ? {} : { maxRowBytes: options.maxRowBytes }),
     ...(signal ? { signal } : {}),

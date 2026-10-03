@@ -50,9 +50,9 @@ export interface BiffFormulaContext {
   readonly limit: number;
 }
 const binaryOperators: Readonly<Record<number, readonly [string, number]>> = {
-  3: ["+", 3], 4: ["-", 3], 5: ["*", 4], 6: ["/", 4], 7: ["^", 5], 8: ["&", 2],
+  3: ["+", 3], 4: ["-", 3], 5: ["*", 4], 6: ["/", 4], 7: ["^", 6], 8: ["&", 2],
   9: ["<", 1], 10: ["<=", 1], 11: ["=", 1], 12: [">=", 1], 13: [">", 1], 14: ["<>", 1],
-  15: [" ", 7], 16: [",", 6], 17: [":", 8]
+  15: [" ", 11], 16: [",", 10], 17: [":", 12]
 };
 export const biffErrors: Readonly<Record<number, string>> = {
   0: "#NULL!", 7: "#DIV/0!", 15: "#VALUE!", 23: "#REF!", 29: "#NAME?", 36: "#NUM!", 42: "#N/A"
@@ -128,9 +128,11 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
     if (context.shared && token === 0x18) invalidBiff("ELF label in shared formula");
     if (binaryOperators[token]) {
       const [operator, precedence] = binaryOperators[token]!, right = pop(), left = pop();
-      push(protect(left, precedence) + operator + protect(right, precedence + (token === 4 || token === 6 || token === 7 ? 1 : 0)), precedence);
-    } else if (token === 0x12 || token === 0x13) { const value = pop(); push((token === 0x12 ? "+" : "-") + protect(value, 5), 5); }
-    else if (token === 0x14) { const value = pop(); push(protect(value, 6) + "%", 6); }
+      // RPN fixes the operand tree, even for floating-point + and *.
+      // Gnumeric text binds powers to the right and other operators to the left.
+      push(protect(left, precedence + (token === 7 ? 1 : 0)) + operator + protect(right, precedence + 1), precedence);
+    } else if (token === 0x12 || token === 0x13) { const value = pop(); push((token === 0x12 ? "+" : "-") + protect(value, 8), 8); }
+    else if (token === 0x14) { const value = pop(); push(protect(value, 7) + "%", 7); }
     else if (token === 0x15) push("(" + pop().text + ")");
     else if (token === 0x16) push("");
     else if (token === 0x17) {

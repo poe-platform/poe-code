@@ -4085,6 +4085,24 @@
         "mismatches": 0
       },
       "remaining": "This qualifies these Linux holdouts only. Wider domains, runtime/platform profiles and installed registry artifacts remain open; no family is closed."
+    },
+    "biffOperationOrder": {
+      "auditedAt": "2026-10-03",
+      "finding": "BIFF RPN operands lost grouping during text reconstruction. Four original tests exposed changed addition, multiplication/division and left exponent evaluation; a fifth exposed negating an exponent result becoming negation of its base. For example 1e16+(-1e16+1) became 1 rather than 0, and (2^3)^2 became 512 rather than 64.",
+      "implementation": "Preserve equal-precedence right operands and left powers; align power, prefix unary, percent and reference precedence with the target Gnumeric grammar. Existing token-stack and text-work limits remain active.",
+      "verification": "All 2288 tests across 85 focused BIFF/XLS files pass, including ten original operation trees in each supported BIFF revision (2/3/4/5/7/8). Owner lint and source/test types pass. Final normal root build passes. Independently assembled CFB/BIFF8 fixture uses RPN with no PtgParen and stale caches of999; native Gnumeric1.12.61 Linux arm64 recalculates all ten expected values without diagnostics. Root/package SDK and command each export XLSX/BIFF7/BIFF8; all twelve native readbacks preserve the ten values with zero diagnostics. Actual command-output screenshot inspected.",
+      "nativeBinarySha256": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
+      "receipt": {
+        "publicCachedXlsxChecks": 40,
+        "nativeReadbackChecks": 120,
+        "checks": 160,
+        "nativeReadbacks": 12,
+        "cases": 10,
+        "inputSha256": "054af8df841cea45b472dbaed9b24af861780835ceda074dc325eac3b64bef30",
+        "nativeSha256": "9ae69a8ecc917da735bd95a79a39522dd183a3de1bd73a487e0aed2dc5d26324",
+        "diagnostics": 0
+      },
+      "remaining": "This resolves operand-tree reconstruction for the qualified operators and contexts. Other BIFF tokens, label transports, external bindings and wider format qualification remain open; no family is closed."
     }
   },
   "cases": [
@@ -4101,7 +4119,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "BIFF7/8 imports and exports preserve external cell/range and global/scoped name identities, including defined expressions and arrays, with separate local/add-in/external namespaces. Import/export never fetch links or execute stored external name definitions; recalculation requires the explicit host. Original-record, namespace-order, codepage, path-length, index-limit, cancellation and budget controls pass; earlier name-index, relative-row, array and memory-area repairs remain. Compiled SDK/Shell profiles pass. Gnumeric 1.12.61 warns on external records; BIFF7 readback also misbinds external cells locally, so application qualification has not passed. Missing local targets now encode deleted references and recalculate as #REF! through cells, spans, names and array/shared formulas; both native BIFF7/8 reexports match with empty stderr. BIFF7 external multi-sheet ranges, wider token/version semantics, metadata preservation and other application/optional profiles remain open. Live row/column label subtypes 02/03/06/07 now preserve identity during import, recalculation and BIFF8 reexport, including edit dependency propagation. Native NAME export, radical/extra-data subtypes and other-format/native qualification remain open; see biffLiveLabelRangeAudit."
+      "currentFinding": "RPN formula import now retains floating-point operation order, exponent grouping and unary precedence; see biffOperationOrder. BIFF7/8 imports and exports preserve external cell/range and global/scoped name identities, including defined expressions and arrays, with separate local/add-in/external namespaces. Import/export never fetch links or execute stored external name definitions; recalculation requires the explicit host. Original-record, namespace-order, codepage, path-length, index-limit, cancellation and budget controls pass; earlier name-index, relative-row, array and memory-area repairs remain. Compiled SDK/Shell profiles pass. Gnumeric 1.12.61 warns on external records; BIFF7 readback also misbinds external cells locally, so application qualification has not passed. Missing local targets now encode deleted references and recalculate as #REF! through cells, spans, names and array/shared formulas; both native BIFF7/8 reexports match with empty stderr. BIFF7 external multi-sheet ranges, wider token/version semantics, metadata preservation and other application/optional profiles remain open. Live row/column label subtypes 02/03/06/07 now preserve identity during import, recalculation and BIFF8 reexport, including edit dependency propagation. Native NAME export, radical/extra-data subtypes and other-format/native qualification remain open; see biffLiveLabelRangeAudit."
     },
     {
       "id": "encrypted-biff",

@@ -4572,6 +4572,13 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "xlsxSparseSharedGroups": {
+      "status": "partial; all nineteen families remain open",
+      "reference": "Unmodified Gnumeric1.12.61 xlsx_cell_expr_begin/end and three independent XLSX files: shared A1/A3 declare A1:A3 while A2 is missing, numeric42 or a separate3+4 formula. Native recalculation retains the gap/42/7; prior product incorrectly wrote9 in all three.",
+      "repair": "Retain complete rectangular shared groups only when every cell still belongs to the declaration. Otherwise retain translated explicit scalar formulas, without filling gaps or overwriting unrelated cells. Shared-group accounting scans stored cells and declarations, never the declared area.",
+      "verification": "Three failing original memory regressions repaired.623 focused tests across23 files pass;32 final repeated-cell controls include a million-row sparse declaration under a100-cell ceiling. Selected workspace build, owner lint/types and changed-test lint/types pass.18 compiled SDK/command exports match9 route pairs and6 native CSV comparisons.12 native XLSX/XML readbacks preserve all values. Full root build passes and all18 root exports match package outputs byte-for-byte. Native input/output GUI captures visibly retain9/42/9 with the live shared formula; horizontal scrollbar extent differs, so no pixel-identity claim. Owned viewers/display stopped.",
+      "remaining": "Repeated shared definitions, malformed anchor/range profiles, broader records and registry qualification remain open."
+    },
     "xlsxRepeatedArrays": {
       "status": "partial; format records and all nineteen families remain open",
       "reference": "Unmodified Gnumeric 1.12.61: xlsx_cell_end, gnm_cell_set_array, sheet_range_splits_array and scalar setters. Ten independent source-order fixtures include overlapping shared groups and rejected arrays with/without caches.",

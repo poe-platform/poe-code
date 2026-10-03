@@ -526,6 +526,31 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
           }
         }
       }
+      let completeSharedGroups = groups;
+      if (groups.length) {
+        // A shared ref bounds explicitly recorded members; it does not create cells.
+        // Keep compact rectangular groups only when every member still belongs to them.
+        opc.charge(cells.length * 2 + groups.length * 3);
+        const sharedRanges = new Map(groups.map(group => [group.id, group.range]));
+        const sharedCounts = new Map<string, number>();
+        for (const cell of cells) {
+          const bounds = cell.formulaGroup && sharedRanges.get(cell.formulaGroup);
+          if (bounds && cell.row >= bounds.startRow && cell.row <= bounds.endRow &&
+            cell.column >= bounds.startColumn && cell.column <= bounds.endColumn) {
+            sharedCounts.set(cell.formulaGroup!, (sharedCounts.get(cell.formulaGroup!) ?? 0) + 1);
+          }
+        }
+        completeSharedGroups = groups.filter(group => sharedCounts.get(group.id) ===
+          (group.range.endRow - group.range.startRow + 1) * (group.range.endColumn - group.range.startColumn + 1));
+        const completeSharedIds = new Set(completeSharedGroups.map(group => group.id));
+        for (let index = 0; index < cells.length; index++) {
+          const cell = cells[index]!;
+          if (cell.formulaGroup && sharedRanges.has(cell.formulaGroup) && !completeSharedIds.has(cell.formulaGroup)) {
+            const { formulaGroup: ignoredGroup, ...retained } = cell;
+            cells[index] = retained;
+          }
+        }
+      }
       for (const metadata of rowState.values()) {
         const allocatedHeight = allocatedRowHeights.get(metadata.index);
         rows.push(metadata.sizePoints === undefined && allocatedHeight !== undefined && allocatedHeight !== defaultRowHeight
@@ -636,7 +661,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       if (child(source, "sheetProtection")) viewAttributes.Protected = boolean(attr(child(source, "sheetProtection"), "sheet")) ? "1" : "0";
       sheets.push({ id, name, cells, size: { rows: 1048576, columns: 16384 },
         visibility: visibility === "hidden" ? "hidden" : visibility === "veryHidden" ? "very-hidden" : "visible", rows, columns,
-        merges: children(child(source, "mergeCells"), "mergeCell").map(node => range(attr(node, "ref"))), formulaGroups: [...groups, ...arrayGroups.values()],
+        merges: children(child(source, "mergeCells"), "mergeCell").map(node => range(attr(node, "ref"))), formulaGroups: [...completeSharedGroups, ...arrayGroups.values()],
         view: { ...dimensions, ...(child(source, "sheetViews") ? { xlsx: data(child(source, "sheetViews")!) } : {}),
           gnumeric: viewAttributes, ...(attr(sheetView, "zoomScale") === undefined ? {} : { zoom: number(attr(sheetView, "zoomScale")) / 100 }) },
         ...(records.length ? { unsupportedRecords: records } : {}) });

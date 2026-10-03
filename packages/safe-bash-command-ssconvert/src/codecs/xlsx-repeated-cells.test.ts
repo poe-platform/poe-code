@@ -111,3 +111,37 @@ for (const cached of [false, true]) {
     expect(book.sheets[0]!.formulaGroups![0]!.range).toEqual({ startRow: 1, startColumn: 0, endRow: 2, endColumn: 0 });
   });
 }
+
+for (const [middle, expected] of [
+  ['', '9\n\n9\n'],
+  ['<c r="A2"><v>42</v></c>', '9\n42\n9\n'],
+  ['<c r="A2"><f>3+4</f><v>7</v></c>', '9\n7\n9\n'],
+  ['<c r="A2"><f t="shared" si="0"/><v>9</v></c>', '9\n9\n9\n']
+] as const) {
+  it(`preserves explicit cells inside a shared formula declaration: ${middle || 'missing'}`, async () => {
+    const bytes = await input(`<sheetData><row r="1"><c r="A1"><f t="shared" si="0" ref="A1:A3">9</f><v>9</v></c></row>
+      <row r="2">${middle}</row><row r="3"><c r="A3"><f t="shared" si="0"/><v>9</v></c></row></sheetData>`);
+    const engine = createEngine({ limits: context.limits });
+    try {
+      let output = '';
+      const result = await engine.convert({ input: { kind: 'stream', filename: 'input.xlsx', source: [bytes] }, recalc: true,
+        exportType: 'Gnumeric_stf:stf_csv', destination: { kind: 'stream', sink: { async write(chunk) { output += new TextDecoder().decode(chunk); } } } },
+      { signal: context.signal });
+      expect(result.exitCode).toBe(0);
+      expect(output).toBe(expected);
+    } finally { await engine.dispose(); }
+  });
+}
+
+it("does not allocate a shared declaration's missing million-row range", async () => {
+  const bytes = await input('<sheetData><row r="1"><c r="A1"><f t="shared" si="0" ref="A1:A1048576">9</f><v>9</v></c></row></sheetData>');
+  const engine = createEngine({ limits: context.limits });
+  try {
+    let output = '';
+    const result = await engine.convert({ input: { kind: 'stream', filename: 'input.xlsx', source: [bytes] }, recalc: true,
+      exportType: 'Gnumeric_stf:stf_csv', destination: { kind: 'stream', sink: { async write(chunk) { output += new TextDecoder().decode(chunk); } } } },
+    { signal: context.signal });
+    expect(result.exitCode).toBe(0);
+    expect(output).toBe('9\n');
+  } finally { await engine.dispose(); }
+});

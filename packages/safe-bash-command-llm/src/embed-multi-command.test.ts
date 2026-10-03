@@ -81,3 +81,14 @@ test('JSON lone surrogate IDs fail after embedding while lone surrogate content 
   assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name).sort(),mode==='stdin'?['db']:['db','input.json']);
  }
 });
+
+test('file prepass counts JSON and JSONL rows before embedding-shape validation',async()=>{
+ for(const [format,input,code,progress]of [['json','[1]',1,true],['json','[{}]',1,true],['json','[]',0,true],['json','123',1,false],['nl','1\n',1,true],['nl','{}\n',1,true],['json','[1,',1,false],['nl','{"id":1,"body":"hello"}\ninvalid',1,false]] as const)for(const explicit of format==='json'&&(input.startsWith('[')||input.startsWith('{'))?[true,false]:[true]){
+  const fs=new MemoryFileSystem(),signal=new AbortController().signal,out:Uint8Array[]=[];
+  await fs.writeFile('/input',new TextEncoder().encode(input));
+  const command=createLlmCommand({collections:createLlmCollectionCommands({maxFileBytes:1048576,maxIndexBytes:1048576,maxOpenFiles:8}),providers:[{name:'test',models:[{id:'e',capabilities:['embed']}],async *complete(){},async embedSources(){assert.fail('reference never calls the provider');}}]});
+  const result=await command.execute({command:'llm',args:['embed-multi','docs','/input',...(explicit?['--format',format]:[]),'-m','e','-d','/db'],fs,cwd:'/',env:{},signal,stdin:{async *[Symbol.asyncIterator](){}},stdout:{async write(bytes){out.push(bytes.slice());}},stderr:{async write(){}}});
+  assert.equal(result.exitCode,code,input);assert.equal(Buffer.concat(out).toString(),progress?'Embedding\n':'',input);
+  assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name).sort(),['db','input']);
+ }
+});

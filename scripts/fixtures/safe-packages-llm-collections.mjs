@@ -211,6 +211,12 @@ export async function verifyLlmCollections() {
     const fileRows=await cliShell.exec('llm similar files -c query -d /cli.db');
     if(fileRows.exitCode!==0||JSON.parse(fileRows.stdout).content!=='café'||JSON.parse(fileRows.stdout).id!=='a.txt')throw new Error('File CLI stored content changed');
     await fs.unlink('/file-inputs/a.txt');await fs.rmdir('/file-inputs');
+    for(const [format,input]of [['json','[1]'],['nl','1\n']]){
+      await fs.writeFile('/count-input',new TextEncoder().encode(input));
+      const counted=await cliShell.exec('llm embed-multi count-'+format+' /count-input --format '+format+' -m embed -d /cli.db');
+      if(counted.exitCode!==1||counted.stdout!=='Embedding\n'||!counted.stderr.includes("'int' object has no attribute 'values'"))throw new Error('JSON count prepass timing changed: '+format);
+    }
+    await fs.unlink('/count-input');
     const deleted=await cliShell.exec('llm collections delete cli -d /cli.db');
     if(deleted.exitCode!==0)throw new Error('Collection CLI delete failed');
   }finally{await cliShell.dispose();}

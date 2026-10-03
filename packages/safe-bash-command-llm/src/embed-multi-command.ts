@@ -4,11 +4,11 @@ import type {LlmCollectionCommands} from './collections-command-types.js';
 import {withLlmCollections} from './collections.js';
 import {createLlmConfiguration} from './configuration.js';
 import {withCsvEmbeddingEntries} from './import-csv.js';
-import {withJsonEmbeddingEntries} from './import-json.js';
+import {withJsonEmbeddingEntries,countJsonEmbeddingRows} from './import-json.js';
 import {withEmbeddingFileGlob,type LlmEmbeddingGlob} from './import-glob.js';
 import {withFileEmbeddingEntries} from './import-files.js';
 import type {LlmCollectionBatchEntry} from './collections-batch.js';
-import {withJsonLinesEmbeddingEntries} from './import-json-lines.js';
+import {withJsonLinesEmbeddingEntries,countJsonLinesEmbeddingRows} from './import-json-lines.js';
 import {fileSource} from './file-source.js';
 import type {LlmInputSource} from './types.js';
 import {tokenInteger} from './token-integer.js';
@@ -78,11 +78,13 @@ export async function embedMultiCommand(invocation:Parameters<LlmCollectionComma
  if(missingModel)return fail('You need to specify an embedding model (no default model is set)',1);
  const batchSize=Math.min(requested,service.resolve(model).model.embeddingBatchSize??requested);
  const acquire=async():Promise<LlmInputSource>=>operands[1]==='-'?{async dispose(){},bytes:context.stdinInput?{[Symbol.asyncIterator](){return {next:()=>context.stdinInput!.read(16384,context.signal)};}}:context.stdin}:fileSource({fs:context.fs,path:pathOf(context,operands[1]!),signal:context.signal,maxBytes:maxInputBytes});
- const importEntries:typeof withCsvEmbeddingEntries=async(opts,bytes,operation)=>{
-  if(values.format!==undefined)return (values.format==='json'?withJsonEmbeddingEntries:values.format==='nl'?withJsonLinesEmbeddingEntries:withCsvEmbeddingEntries)(opts,bytes,operation);
+ type InputFormat='json'|'nl'|'csv'|'tsv';
+ const readInput=async<T>(bytes:AsyncIterable<Uint8Array>,operation:(format:InputFormat,bytes:AsyncIterable<Uint8Array>)=>Promise<T>):Promise<T>=>{
+  if(values.format!==undefined)return operation(values.format as InputFormat,bytes);
   const detected=await sniffEmbeddingInput(bytes,context.signal);
-  try{return await (detected.format==='json'?withJsonEmbeddingEntries:withCsvEmbeddingEntries)(opts,detected.bytes,operation);}finally{await detected.close();}
+  try{return await operation(detected.format,detected.bytes);}finally{await detected.close();}
  };
+ const importEntries:typeof withCsvEmbeddingEntries=async(opts,bytes,operation)=>readInput(bytes,(format,input)=>(format==='json'?withJsonEmbeddingEntries:format==='nl'?withJsonLinesEmbeddingEntries:withCsvEmbeddingEntries)(opts,input,operation));
  const csvOptions={...options,directory:context.cwd,tabs:values.format==='tsv',autoDetect:values.format===undefined,prefix:values.prefix??'',prepend:values.prepend??''};
  const consume=async(entries:AsyncIterable<LlmCollectionBatchEntry>):Promise<void>=>{
    const iterator=entries[Symbol.asyncIterator]();let finished=false;
@@ -111,7 +113,11 @@ export async function embedMultiCommand(invocation:Parameters<LlmCollectionComma
  }
  if(operands[1]!=='-'){
   const input=await acquire();
-  try{await importEntries(csvOptions,input.bytes,async entries=>{for await(const entry of entries)await entry.input.dispose();});}finally{await input.dispose();}
+  try{await readInput(input.bytes,async(format,bytes)=>{
+   if(format==='json')await countJsonEmbeddingRows(csvOptions,bytes);
+   else if(format==='nl')await countJsonLinesEmbeddingRows(csvOptions,bytes);
+   else await withCsvEmbeddingEntries(csvOptions,bytes,async entries=>{for await(const entry of entries)await entry.input.dispose();});
+  });}finally{await input.dispose();}
  }
  const input=await acquire();
  try{

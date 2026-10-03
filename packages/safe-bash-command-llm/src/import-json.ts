@@ -12,6 +12,16 @@ export async function withJsonEmbeddingEntries<T>(options:{fs:FileSystem;directo
  });
 }
 
+/** The CLI's first pass counts raw rows without converting IDs or content. */
+export async function countJsonEmbeddingRows(options:Parameters<typeof withJsonEmbeddingEntries>[0],input:AsyncIterable<Uint8Array>):Promise<number>{
+ return withEmbeddingJsonDocument(options,input,async document=>{
+  if(document.root.type==='object')return 1;
+  if(document.root.type!=='array')throw new TypeError('JSON must be a list or a dictionary');
+  let count=0,position=-1;
+  while(true){const next=await document.child(document.root.id,position);if(!next)return count;position=next.position;count++;}
+ });
+}
+
 /** Borrow rows from an already validated document; JSONL treats its root as one row. */
 export async function withEmbeddingJsonRows<T>(options:Parameters<typeof withJsonEmbeddingEntries>[0],document:EmbeddingJsonDocument,operation:(entries:AsyncIterable<LlmCollectionBatchEntry>)=>Promise<T>,singleRow=false):Promise<T>{
   const encoder=new TextEncoder();

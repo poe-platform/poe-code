@@ -89,7 +89,7 @@ interface PendingExternalName { name: string; sheetIndex: number; tokens: Uint8A
 interface LegacyExternalLink { workbook?: string; sheet?: string; addin: boolean; names: PendingExternalName[]; }
 interface PendingSheet {
   id: string; name: string; offset: number; visibility: "visible" | "hidden" | "very-hidden";
-  cells: PendingCell[]; merges: Range[]; rows: Map<number, AxisMetadata>; columns: AxisMetadata[]; labelRanges: LabelRange[];
+  cells: PendingCell[]; merges: Range[]; rows: Map<number, AxisMetadata & { hardSize?: boolean }>; columns: AxisMetadata[]; labelRanges: LabelRange[];
   unsupportedRecords: UnsupportedRecord[]; view: Record<string, ImportedValue>;
   records: BiffRecord[]; revision: number; codepage: number;
   legacyExternalSheets: (string | null | undefined)[];
@@ -495,7 +495,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       const customHeight = height > 0 && !(height & 0x8000);
       if (customHeight || flags & 0x37) {
         const previous = sheet.rows.get(row) ?? { index: row, sizePoints: Number(sheet.view.defaultRowHeight ?? 12.75) };
-        sheet.rows.set(row, { ...previous, ...(customHeight ? { sizePoints: 0.05 * height } : {}),
+        sheet.rows.set(row, { ...previous, ...(customHeight ? { sizePoints: 0.05 * height, hardSize: !!(flags & 0x40) } : {}),
           ...(flags & 0x20 ? { hidden: true } : {}),
           ...(flags & 0x17 ? { outlineLevel: flags & 7, collapsed: !!(flags & 0x10) } : {}) });
       }
@@ -772,7 +772,8 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       cells.push({ ...cell, ...style(pending.xf) });
     }
     const rows = [...sheet.rows.values()].filter(row => row.sizePoints !== Number(sheet.view.defaultRowHeight ?? 12.75) ||
-      row.hidden || row.collapsed || row.outlineLevel);
+      row.hidden || row.collapsed || row.outlineLevel || row.hardSize)
+      .map(({ hardSize, ...row }) => ({ ...row, style: { gnumeric: node("RowInfo", { HardSize: hardSize ? 1 : 0 }) } }));
     resultSheets.push({ id: sheet.id, name: sheet.name, cells, visibility: sheet.visibility,
       size: { rows: sheet.cells.some(cell => cell.revision >= 8) || ver >= 8 ? 65536 : 16384, columns: 256 },
       ...(sheet.merges.length ? { merges: sheet.merges } : {}), ...(rows.length ? { rows } : {}),

@@ -50,7 +50,7 @@ for (const revision of [7, 8] as const) {
     input.record(0x27e, words(0, 1, 0, 6, 0));
     input.record(10);
     const book = await readBiff(input.finish(), context);
-    expect(book.sheets[0]!.rows).toEqual([{ index: 0, sizePoints: 12.75 }, { index: 1, sizePoints: 20 }]);
+    expect(book.sheets[0]!.rows).toMatchObject([{ index: 0, sizePoints: 12.75 }, { index: 1, sizePoints: 20 }]);
     const restored = await readBiff(await writeBiffStream(book, revision, false, context), context);
     expect(restored.sheets[0]!.rows).toEqual(book.sheets[0]!.rows);
     expect(restored.sheets[0]!.view?.defaultRowHeight).toBe(30);
@@ -82,7 +82,7 @@ it("instantiates a formula row even when its cached value is blank", async () =>
   const formula = new Uint8Array(25); formula[6] = 3; formula[12] = 255; formula[13] = 255;
   formula[20] = 3; formula.set([0x1e, 1, 0], 22); input.record(6, formula);
   input.record(0x225, words(0, 600)); input.record(10);
-  expect((await readBiff(input.finish(), context)).sheets[0]!.rows).toEqual([{ index: 0, sizePoints: 12.75 }]);
+  expect((await readBiff(input.finish(), context)).sheets[0]!.rows).toMatchObject([{ index: 0, sizePoints: 12.75 }]);
 });
 
 for (const revision of [7, 8] as const) {

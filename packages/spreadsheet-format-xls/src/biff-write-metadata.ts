@@ -205,8 +205,10 @@ export class BiffMetadataWriter {
       const height = row.sizePoints ?? defaultHeight, twips = Math.floor(height * 20 + 1e-6);
       if (!Number.isFinite(height) || twips < 1 || twips > 32767 && twips !== heightTwips)
         throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF row height");
+      const imported = metadataNode(row.style?.gnumeric, amount => this.charge(amount));
+      const hardSize = imported ? imported.attributes.HardSize === "1" : true;
       output.record(0x208, words(row.index, 0, 256, twips > 32767 ? 0x8000 : twips, 0, 0,
-        0x140 | (row.hidden ? 32 : 0) | (row.collapsed ? 16 : 0) | Math.min(row.outlineLevel ?? 0, 7), 15));
+        0x100 | (hardSize ? 0x40 : 0) | (row.hidden ? 32 : 0) | (row.collapsed ? 16 : 0) | Math.min(row.outlineLevel ?? 0, 7), 15));
     }
     for (const column of sheet.columns ?? []) if (column.index < 256) output.record(0x7d,
       words(column.index, column.index, Math.round(((column.sizePoints ?? defaultWidth) / (fontScale * 72 / 96) - 8 * unit) * step + baseline), 15,

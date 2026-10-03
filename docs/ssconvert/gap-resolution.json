@@ -4572,6 +4572,19 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "biffRowHardSize": {
+      "finding": "BIFF ROW hard-size flag was lost on import; export always marked every row fixed, including automatically sized rows. Fixed rows equal to the sheet default were omitted.",
+      "implementation": "Retain hard-size state while processing ROW records and encode it in existing shared Gnumeric RowInfo/HardSize metadata. Preserve fixed rows equal to the default. Honor shared metadata on export; API-only explicit sizes remain fixed. No public model field added.",
+      "validation": "Ten original memory failures repaired.2191tests/74BIFF files,owner lint/types,changed-test lint/types and18workspace build pass.",
+      "publicNative": "144independent input containers yield1440compiled SDK/command exports across BIFF7/8,Gnumeric XML and both XLSX editions. Native input assertions confirm prior/default/custom sizes and hard flags.7488BIFF and7488XLSX comparisons match size,visibility and hard flag exactly.72zero-size native input warnings are expected; XLSX/native XML product stderr empty.",
+      "xml": "3744native XML export/readback comparisons preserve all hard/visibility flags, but32explicit-size precision differences remain: product409.55 versus native409.6, and1638.3500000000001 versus1638. Source defaults already use native4-digit formatting; explicit axis sizes do not. These32cases are unresolved, not passes.",
+      "visual": "Native input/output inspected: visible row geometry and hidden rows retained; export synthesized gutters and default-column/window differences remain. First input GUI launch raced Xvfb and yielded blank capture; repeated after display readiness,inspected valid capture. All owned GUI/Xvfb1757/1758 stopped; final GUIstderr0.",
+      "hashes": {
+        "nativeBiff": "9ac3eb7dbc99d9024efb9ca4c68f65fc68d8ccad2d1cd5f2c2b3d1841bd94ad5",
+        "nativeXlsx": "e70e98f73186d846cbf898803783fc5ab09ebc527f67878b5b1cbd254b7e656b"
+      },
+      "remaining": "XML explicit-axis precision,next; row styles,nonzero default flags,missing column defaults,root/registry consumers and all19families remain open."
+    },
     "biffRowExport": {
       "finding": "ROW exports rounded differently from native and allowed integer overflow into the standard-height flag.",
       "implementation": "Use native floor(points*20+1e-6) quantization. Reject nonfinite,subtwip and custom heights above32767twips. Rows matching larger valid sheet defaults use the standard-height flag without truncating the inherited value.",

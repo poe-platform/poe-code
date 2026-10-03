@@ -3919,3 +3919,55 @@ the earlier execution-only workload and does not establish a speedup. No
 performance/default-swap gate passed. MCP/HTTP/OAuth public entrypoints, remaining
 subpaths, standalone types and complete platform/resource/reentrancy qualification
 remain open, as does replacing/qualifying Commander.
+
+Public CLI delivery is independently verified on remote main at 790a90a872.
+Release 37084694820 remains pending. The crash-fix Release 37083989733 finished
+with failures: all four Bash jobs rejected eager PDF imports, and fresh unit
+validation rejected obsolete browser fixtures and build-cache admission. The
+cached unit job, build, audit and checks passed; no publication is claimed.
+
+The optional-engine repair 423004a5c5 is independently verified on remote main.
+diffpdf now loads the PDF parser when invoked; dot and rsvg-convert load the SVG
+renderer only when needed. Focused esbuild graph failures preceded the repair.
+All 37 command tests, scoped lint/types, the 221-stage selected Safe Bash build
+closure and all 170 maintained runner checks pass, including the original root
+lazy-import guard. Release 37085699359 remains pending.
+
+The cache-admission repair fd137a8e75 is independently verified on remote main.
+The original failing repository-admission test exposed the shortened spreadsheet
+build, extracted ssconvert build, and new externalized diagram builds. All three
+exact commands now join the allowlist. HarfBuzz verification uses repository
+inputs covered by the fingerprint; provider generation and bundling also use
+tracked scripts, source and declared dependency inputs. All 43 cache tests and
+scoped ESLint pass. Release 37085920172 remains pending. The browser-fixture
+repair is already present in abdc4745b9; its fresh Release rerun is still active.
+
+### MCP metadata checkpoint
+
+The native MCP prerequisite now normalizes root groups, formats snake/camel field
+names and snake-only tool paths, collects nested parameter descriptions, renders
+examples and admits complete allowlist prefixes. The existing Rust CLI word
+boundary policy is shared without changing CLI casing behavior. Rust controls
+optional/default decisions, description assembly and value serialization routing;
+Node preserves live string/array methods, JSON serialization, property access,
+iteration and host identities. No dependencies or default implementation changed.
+
+Eight missing-module failures preceded implementation. Differential tests extract
+the actual MCP declarations in memory and compare Unicode and lone surrogates,
+string-like access order, root/child identity, nested optional and inherited
+defaults, empty objects, examples, allowlist short circuit and receivers, getter
+order, arbitrary thrown values and iterator cleanup. Maintained verification
+passes 266 native Node tests, Rust tests, 5,106 reference/parity cases in 83 files,
+declaration consumers and the original CLI compile-check. Rust/binding lint and
+scoped ESLint pass. A packed consumer executes the metadata module with packed
+own native dependencies and existing Commander; no new public MCP subpath is
+claimed. There is no CLI presentation change in this checkpoint.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 300 metadata calls, retaining
+32 results, measured medians of 300.509 microseconds native and 6.083 microseconds
+JavaScript (49.40 times slower). Each call formats a three-segment tool name,
+builds a nested parameter/example description and checks its allowlist prefix.
+Native/host crossings require optimization; no performance/default-swap gate
+passed. MCP schema conversion, input/result validation, enumeration, server and
+stream lifecycle, HTTP/OAuth and complete platform/resource/packaging qualification
+remain open.

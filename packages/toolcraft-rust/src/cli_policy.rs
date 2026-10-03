@@ -16,7 +16,7 @@ pub fn run<H: TextHost>(
             }
             host.call("list", levels)
         }
-        ("name", [value, casing]) => {
+        ("name" | "mcpName", [value, casing]) => {
             let separator = host.literal(if host.is_kind(*casing, "snake")? {
                 "_"
             } else {
@@ -91,7 +91,11 @@ pub fn run<H: TextHost>(
                 let word = c!("currentLower", current);
                 c!("pushWord", words, word);
             }
-            host.call("joinWords", vec![words, separator])
+            if operation == "mcpName" && !host.is_kind(*casing, "snake")? {
+                host.call("camelWords", vec![words])
+            } else {
+                host.call("joinWords", vec![words, separator])
+            }
         }
         ("controls", [controls]) => {
             let output = c!("optionalOutput", *controls);

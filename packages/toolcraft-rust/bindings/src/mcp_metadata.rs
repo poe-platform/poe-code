@@ -1,0 +1,13 @@
+use crate::host::NodeHost;
+use napi::{Env, bindgen_prelude::*};
+use napi_derive::napi;
+
+#[napi]
+pub fn mcp_metadata_policy<'env>(
+    env: Env,
+    operation: String,
+    args: Vec<Unknown<'env>>,
+    host: Object<'env>,
+) -> Result<Unknown<'env>> {
+    toolcraft_rust::mcp_metadata::run(&mut NodeHost { env, object: host }, &operation, &args)
+}

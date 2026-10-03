@@ -27,6 +27,7 @@ const operations={
   currentNonempty:current=>current.length>0,currentLower:current=>current.toLowerCase(),
   append:(current,char)=>current+char,increment:index=>index+1,
   joinWords:(words,separator)=>words.join(separator),
+  camelWords:words=>words.map((word,index)=>index===0?word:`${word[0]?.toUpperCase()??""}${word.slice(1)}`).join(""),
   optionalOutput:controls=>controls?.output,optionalDebug:controls=>controls?.debug,
   optionalHelp:controls=>controls?.help,optionalLogLevel:controls=>controls?.logLevel,
   optionalVerbose:controls=>controls?.verbose,optionalYes:controls=>controls?.yes,
@@ -51,6 +52,7 @@ const host={operate:protect((name,args)=>operations[name](...args)),get:protect(
 const LOG_LEVELS=Object.freeze(invoke("logLevels",[]));
 
 export function formatCLIName(segment,casing){return invoke("name",[segment,casing]);}
+export function formatMCPName(segment,casing){return invoke("mcpName",[segment,casing]);}
 export function outputFormatNames(controls){return [...BUILT_IN_OUTPUT_FORMATS,...Object.keys(controls.outputFormats)];}
 export function resolveCLIControls(controls){return invoke("controls",[controls]);}
 export function getGlobalLongOptionFlags(presetsEnabled,versionEnabled,controls){return invoke("flags",[presetsEnabled,versionEnabled,controls]);}

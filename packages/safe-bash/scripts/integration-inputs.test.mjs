@@ -3307,7 +3307,7 @@ test("published root exposes supported shell SDKs while preserving private works
   const root = JSON.parse(readFileSync(new URL("../../../package.json", import.meta.url), "utf8"));
   const build = JSON.parse(readFileSync(new URL("../tsconfig.build.json", import.meta.url), "utf8"));
   assert.deepEqual(Object.keys(root.exports).filter(key => key.startsWith("./safe")).sort(), [
-    "./safe-bash", "./safe-bash/commands/dot", "./safe-bash/commands/neato", "./safe-bash/commands/svgo", "./safe-bash/commands/graphviz", "./safe-bash/graphviz", "./safe-bash/audio-ast", "./safe-bash/commands/audio", "./safe-bash/commands/ffprobe", "./safe-bash/commands/sox", "./safe-bash/commands/soxi", "./safe-bash/commands/media", "./safe-bash/contracts", "./safe-bash/contracts/*", "./safe-bash/full", "./safe-bash/image-ast",
+    "./safe-bash", "./safe-bash/audio-ast", "./safe-bash/commands/audio", "./safe-bash/commands/ffprobe", "./safe-bash/commands/sox", "./safe-bash/commands/soxi", "./safe-bash/commands/media", "./safe-bash/contracts", "./safe-bash/contracts/*", "./safe-bash/full", "./safe-bash/image-ast",
     "./safe-bash/pdf-ast", "./safe-bash/registry", "./safe-bash/sharp", "./safe-bash/shell", "./safe-bash/spreadsheet-ast", "./safe-fs", "./safe-fs/core",
     "./safe-fs/node", "./safe-fs/node/filesystem", "./safe-js", "./safe-js/cli",
     "./safe-js/core", "./safe-js/workerd", "./safe-playwright", "./safe-playwright/adapter",

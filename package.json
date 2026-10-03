@@ -392,26 +392,6 @@
       "browser": null,
       "import": "./packages/safe-js/dist/workerd.js"
     },
-    "./safe-bash/commands/dot": {
-      "types": "./packages/safe-bash/dist/commands/dot/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/dot/index.js"
-    },
-    "./safe-bash/commands/neato": {
-      "types": "./packages/safe-bash/dist/commands/neato/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/neato/index.js"
-    },
-    "./safe-bash/commands/svgo": {
-      "types": "./packages/safe-bash/dist/commands/svgo/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/svgo/index.js"
-    },
-    "./safe-bash/commands/graphviz": {
-      "types": "./packages/safe-bash/dist/commands/graphviz/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/graphviz/index.js"
-    },
-    "./safe-bash/graphviz": {
-      "types": "./packages/safe-bash/dist/commands/graphviz/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/graphviz/index.js"
-    },
     "./safe-bash/commands/ffprobe": {
       "types": "./dist/types/safe-bash/commands/ffprobe/index.d.ts",
       "import": "./packages/safe-bash/dist/commands/ffprobe/index.browser.js"

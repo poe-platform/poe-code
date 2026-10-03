@@ -41,7 +41,7 @@ function fixture(extra = {}, compilerOptions = {}) {
 }
 
 
-for (const name of ["safe-bash-command-fixture", "safe-bash-csv-engine", "safe-bash-fixture-engine", "@poe-code/pdf-ast", "@poe-code/audio-ast"]) for (const defect of ["none", "public", "closure", "source", "link"]) test(`build qualified private declarations: ${name} ${defect}`, async () => {
+for (const name of ["safe-bash-command-fixture", "safe-bash-csv-engine", "safe-bash-fixture-engine", "@poe-code/pdf-ast", "@poe-code/audio-ast", "@poe-code/ts-ast"]) for (const defect of ["none", "public", "closure", "source", "link"]) test(`build qualified private declarations: ${name} ${defect}`, async () => {
   const directory = name.split("/").at(-1);
   const implementation = {
     name, version: "0.0.1", private: defect !== "public", type: "module", dependencies: defect === "closure" ? { forbidden: "1" } : {},

@@ -411,6 +411,18 @@
     "./safe-bash/audio-ast": {
       "types": "./dist/types/safe-bash/audio-ast.d.ts",
       "import": "./packages/safe-bash/dist/audio-ast.browser.js"
+    },
+    "./safe-bash/ts-ast": {
+      "types": "./dist/types/safe-bash/ts-ast.d.ts",
+      "import": "./packages/safe-bash/dist/ts-ast.browser.js"
+    },
+    "./safe-bash/ast-grep": {
+      "types": "./dist/types/safe-bash/ast-grep.d.ts",
+      "import": "./packages/safe-bash/dist/ast-grep.browser.js"
+    },
+    "./safe-bash/commands/ast-grep": {
+      "types": "./dist/types/safe-bash/commands/ast-grep/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/ast-grep/index.browser.js"
     }
   },
   "engines": {
@@ -714,7 +726,9 @@
     "safe-bash-command-sox": "*",
     "safe-bash-command-soxi": "*",
     "safe-bash-command-audio": "*",
-    "safe-bash-command-rgrep": "*"
+    "safe-bash-command-rgrep": "*",
+    "safe-bash-command-ast-grep": "*",
+    "@poe-code/ts-ast": "*"
   },
   "version": "0.0.0-dev",
   "repository": {
@@ -935,7 +949,9 @@
     "packages/safe-bash-command-neato/dist",
     "packages/safe-bash-command-neato/LICENSE",
     "packages/safe-bash-command-svgo/dist",
-    "packages/safe-bash-command-svgo/LICENSE"
+    "packages/safe-bash-command-svgo/LICENSE",
+    "packages/safe-bash-command-ast-grep/dist",
+    "packages/safe-bash-command-ast-grep/LICENSE"
   ],
   "license": "MIT",
   "imports": {

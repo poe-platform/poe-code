@@ -162,7 +162,7 @@ poe-code models --search claude
 
 ## SDK
 
-Safe Bash also provides [local audio inspection and WAV editing](packages/safe-bash-command-audio/README.md) through `poe-code/safe-bash/commands/audio`, and [recursive file search with `rgrep`](packages/safe-bash-command-rgrep/README.md).
+Safe Bash also provides [local audio inspection and WAV editing](packages/safe-bash-command-audio/README.md) through `poe-code/safe-bash/commands/audio`, [recursive file search with `rgrep`](packages/safe-bash-command-rgrep/README.md), and [structural code search and rewrites with `ast-grep` / `sg`](packages/safe-bash-command-ast-grep/README.md).
 
 Use `poe-code` programmatically in your own code:
 

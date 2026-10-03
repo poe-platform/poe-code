@@ -1,7 +1,8 @@
 # process-runner-rust
 
 Run host commands through the same Node streams and cancellation API, with
-independent Rust execution policies and no npm runtime dependencies.
+independent Rust execution policies and the existing own filesystem capability
+contract. No third-party npm runtime package is required by the process adapter.
 
 | Capability | Node API |
 | --- | --- |
@@ -100,6 +101,12 @@ Workspace uploads stage files and archives before promotion. Rust owns the
 mutation and rollback order, ordered ignore rules, SHA-256 content state, size
 admission, conflict checks and remote-deletion candidates. Node executes builtin
 filesystem operations and keeps payload buffers outside retained native state.
+Local and remote filesystems can use Node-style methods or the existing
+`@poe-code/safe-fs` capability; that package also supplies the public filesystem
+types for independent consumers.
+Filesystem callbacks retain their supplied byte-array views during upload and
+download. Generated archives are ordinary `Uint8Array` values; Buffer views are
+confined to the native hashing and archive boundary.
 Downloads refuse or overwrite local conflicts, reject symlinks and use exclusive
 temporary writes followed by rename. Download traversal and filesystem sequencing
 currently remain in Node transport.

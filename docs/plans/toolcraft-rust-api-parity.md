@@ -5485,3 +5485,29 @@ pushed head remains pending, as do bridge Release 37112297042 and configuration
 facade Release 37112770887. No native publication is claimed. JavaScript remains
 the default; process-runner, safe-bash, testing and composition entry points and
 the wider dependency/platform/performance qualification remain unfinished.
+
+### Process filesystem capability compatibility
+
+The process-runner facade audit exposed two dependency gaps. Packed declarations
+failed because WorkspaceTransferEnv imports the existing own safe-fs contract
+without declaring that package. The process package now declares that workspace
+edge. No third-party package or version is added.
+
+A differential capability reproduction also showed that native upload/download
+converted supplied Uint8Array views into Buffer copies before passing them to
+destination callbacks; the reference retains the original views. Generated
+archives likewise reached callbacks as Buffer instead of Uint8Array. The adapter
+now preserves payload objects and confines Buffer views to the native hashing
+and tar boundaries. Ignore-file decoding remains explicit UTF-8, including when
+the input is a nonzero-offset byte view.
+
+The callback identity/constructor regression failed before the repair. Two added
+capability cases cover separate local/remote providers, binary copies, ignored
+files, conflict refusal and overwrite, nonzero offsets, original upload/download
+byte identity and archive constructors. The maintained process package route
+passes 22 native checks and 170 reference-route cases across ten files, plus Rust,
+declaration and root posttest checks. Maintained and scoped lint pass. Packed
+runtime checks exercise capabilities and original byte views without canonical
+fallback; standalone declarations now resolve the declared filesystem contract.
+The public Toolcraft facade is being qualified separately. Real-engine, platform,
+malformed/getter and broader performance gates remain open.

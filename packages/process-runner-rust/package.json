@@ -50,5 +50,8 @@
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
     "directory": "packages/process-runner-rust"
+  },
+  "dependencies": {
+    "@poe-code/safe-fs": "*"
   }
 }

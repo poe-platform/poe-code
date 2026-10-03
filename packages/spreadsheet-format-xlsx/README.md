@@ -17,6 +17,11 @@ try {
 }
 ```
 
+With engine `workingFiles`, both XLSX exporters stage archive members and central
+records through the caller’s safe-fs and emit output with bounded chunks and
+backpressure. Worksheet XML, shared strings and workbook cells still reside in
+memory; an external safe-fs backend is required for staging outside the isolate.
+
 Compose additional format modules explicitly to convert between file types.
 Existing ssconvert service IDs, supported profiles and documented fidelity limits
 remain unchanged. This private workspace is shipped through the containing

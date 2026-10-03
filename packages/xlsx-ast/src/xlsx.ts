@@ -727,7 +727,26 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
 
 /** Both native savers use transitional namespaces, but different edition handlers. */
 export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("@poe-code/spreadsheet-engine/codecs/types").Codec["write"]> {
-  return async (book, _options, context) => {
+  const stream = createXlsxStreamWriter(edition);
+  return async (book, options, context) => {
+    const chunks: Uint8Array[] = []; let length = 0;
+    for await (const bytes of stream(book, options, context)) { chunks.push(bytes.slice()); length += bytes.length; }
+    const result = new Uint8Array(length); let offset = 0;
+    for (const bytes of chunks) { result.set(bytes, offset); offset += bytes.length; }
+    return result;
+  };
+}
+
+export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<import("@poe-code/spreadsheet-engine/codecs/types").Codec["writeStream"]> {
+  return async function* (book, _options, context) {
+    let storage: import("@poe-code/spreadsheet-engine/contracts").WorkingStorage | undefined;
+    let closed = false, closing: Promise<void> | undefined, failure: { error: unknown } | undefined;
+    const close = () => {
+      closed = true;
+      return closing ??= Promise.resolve().then(async () => { await storage?.close(); });
+    };
+    context.own(close);
+    try {
     context.signal.throwIfAborted();
     const { element: xml, charge } = createXlsxXml(context);
     book = snapshotXlsxWorkbook(book, context, charge);
@@ -757,6 +776,11 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
     const styles = createXlsxStyles(xml, edition, namespace, charge);
     const zip = createZipCodec(); const bounds = { ...zipLimits(context), maxArchiveBytes: context.limits.outputBytes,
       maxEntryBytes: context.limits.outputBytes, maxTotalBytes: context.limits.outputBytes, maxTextBytes: context.limits.outputBytes };
+    if (closed) throw new SsconvertError("invalid-request", "XLSX writer is closed");
+    storage = context.createWorkingStorage?.();
+    if (closed) throw new SsconvertError("invalid-request", "XLSX writer is closed");
+    const staged = storage ? zip.createStagedWriter(storage, bounds, context.signal) : undefined;
+    let members = 0;
     const entries: ZipEntry[] = [], types: { name: string; type: string }[] = [
       { name: "xl/workbook.xml", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml" }
     ];
@@ -767,10 +791,12 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
       context.signal.throwIfAborted(); charge(content.length);
       const length = encoder.encode(declaration + content + "\n").length;
       if (length > context.limits.outputBytes - plainBytes) limit("output bytes");
-      if (entries.length >= bounds.maxMembers) limit("members");
+      if (members >= bounds.maxMembers) limit("members");
       plainBytes += length;
-      entries.push(await zip.makeZipEntry(name, encoder.encode(declaration + content + "\n"),
-        { modified, mode: 0o644, directory: false, symlink: false, compression: "deflate" }, bounds, context.signal));
+      const entry = await zip.makeZipEntry(name, encoder.encode(declaration + content + "\n"),
+        { modified, mode: 0o644, directory: false, symlink: false, compression: "deflate" }, bounds, context.signal);
+      if (staged) await staged.add(entry); else entries.push(entry);
+      members++;
       if (type) types.push({ name, type });
     }
     const relationshipXml = (items: readonly { id: string; type: string; target: string; external?: boolean }[]) =>
@@ -1001,8 +1027,20 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
         message: `XLSX writer does not export workbook record '${record.kind}'` });
     }
     context.signal.throwIfAborted();
-    try { return await zip.writeZipArchive({ entries, comment: new Uint8Array() }, bounds, context.signal); }
-    catch (error) { context.signal.throwIfAborted(); if (error instanceof CodecError && error.code === "resource-limit") limit("output package"); throw error; }
+    if (staged) yield* staged.finish();
+    else yield await zip.writeZipArchive({ entries, comment: new Uint8Array() }, bounds, context.signal);
+    } catch (error) {
+      try {
+        context.signal.throwIfAborted();
+        if (error instanceof CodecError && error.code === "resource-limit") limit("output package");
+        throw error;
+      } catch (cause) { failure = { error: cause }; throw cause; }
+    } finally {
+      await close().catch(error => {
+        if (failure) throw new AggregateError([failure.error, error], "XLSX export and storage cleanup failed");
+        throw error;
+      });
+    }
   };
 }
 function exportXlsxFormula(book: Workbook, source: string, sheet: Sheet, row: number, column: number, context: CapabilityContext, arrayStringLiterals = false): string {

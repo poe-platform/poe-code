@@ -221,6 +221,9 @@ for staging. Configure `workingFiles: { directory, cacheBytes }` on the command
 factory to select a staging directory and a cache size in 16 KiB multiples
 (default 1 MiB). Other built-in importers and workbook models still buffer; an external
 safe-fs backend is needed for staging without retaining its contents in RAM.
+XLSX exporters use working storage to stage ZIP member payloads and central
+records, then emit bounded archive chunks; worksheet XML, shared strings and
+workbook cells still reside in memory.
 Gnumeric XML and gzip exports stream encoded output with backpressure. CSV/text
 conversions without global evaluation replay cells from retained input, including
 styles and sheet extents, without building full cell arrays. With working storage

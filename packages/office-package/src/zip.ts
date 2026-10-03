@@ -1,3 +1,4 @@
+import { ZipWriteChain } from "./zip-write-storage.js";
 import {ZipDirectoryIndex, type ZipMetadataStorage} from "./zip-index.js";
 export {ZipDirectoryIndex, type ZipMetadataStorage} from "./zip-index.js";
 import { ZipWindow, type ZipSource } from "./zip-source.js";
@@ -889,8 +890,8 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
     return bytes;
   }
 
-  interface EncodedEntry {
-    entry: ZipEntry;
+  interface EncodedEntry<T extends ZipEntry | ZipStreamEntry = ZipEntry> {
+    entry: T;
     rawName: Uint8Array;
     localExtra: Uint8Array;
     centralExtra: Uint8Array;
@@ -899,6 +900,205 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
     date: number;
     time: number;
     offset: number;
+  }
+
+  function encodeEntry<T extends ZipEntry | ZipStreamEntry>(entry: T, limits: ZipLimits, offset: number): EncodedEntry<T> {
+    entryBounds(entry, limits, limits.maxArchiveBytes, true);
+    const compressedSize = "compressedSize" in entry ? entry.compressedSize : entry.data.length;
+    if (entry.method === 0 && compressedSize !== entry.size) fail("ZIP stored size mismatch");
+    const rawName = entry.rawName ?? pathBytes(entry.name, limits);
+    const flags = (entry.flags ?? 0x800) & ~8;
+    const comment = entry.comment ?? new Uint8Array();
+    number(comment.length, Math.min(limits.maxTextBytes, 65535), "entry comment");
+    if (flags & 0x800) text(comment);
+    const localExtra = entry.localExtra ?? timestampExtra(entry.modified);
+    const centralExtra = entry.centralExtra ?? timestampExtra(entry.modified);
+    const localMetadata = extras(
+      localExtra,
+      rawName,
+      comment,
+      false,
+      limits,
+      profile.validatePayloads
+    );
+    const centralMetadata = extras(
+      centralExtra,
+      rawName,
+      comment,
+      true,
+      limits,
+      profile.validatePayloads
+    );
+    if (
+      nameFrom(rawName, flags, centralMetadata, limits) !== entry.name ||
+      (localMetadata.name !== undefined &&
+        nameFrom(rawName, flags, localMetadata, limits) !== entry.name) ||
+      (entry.localName && !equal(rawName, entry.localName))
+    )
+      fail("ZIP retained filename metadata mismatch");
+    if (
+      localMetadata.modified !== undefined &&
+      centralMetadata.modified !== undefined &&
+      localMetadata.modified !== centralMetadata.modified
+    )
+      fail("ZIP retained timestamp metadata mismatch");
+    const rounded = new Date(Math.ceil(Math.floor(entry.modified.getTime() / 1000) / 2) * 2000);
+    const utc = profile.utcDates !== false;
+    const year = Math.max(
+      1980,
+      Math.min(2107, utc ? rounded.getUTCFullYear() : rounded.getFullYear())
+    );
+    const date =
+      entry.dosDate ??
+      ((year - 1980) << 9) |
+        (((utc ? rounded.getUTCMonth() : rounded.getMonth()) + 1) << 5) |
+        (utc ? rounded.getUTCDate() : rounded.getDate());
+    const time =
+      entry.dosTime ??
+      ((utc ? rounded.getUTCHours() : rounded.getHours()) << 11) |
+        ((utc ? rounded.getUTCMinutes() : rounded.getMinutes()) << 5) |
+        ((utc ? rounded.getUTCSeconds() : rounded.getSeconds()) >>> 1);
+    number(date, 65535, "DOS date");
+    number(time, 65535, "DOS time");
+    const dosTimestamp = dosModified(date, time).getTime();
+    const extendedTimestamp = centralMetadata.modified ?? localMetadata.modified;
+    if (
+      extendedTimestamp === undefined
+        ? dosTimestamp !== rounded.getTime()
+        : Math.floor(extendedTimestamp / 1000) !== Math.floor(entry.modified.getTime() / 1000)
+    )
+      fail("ZIP retained or unrepresentable timestamp metadata mismatch");
+    for (const [value, maximum, label] of [
+      [entry.versionMadeBy ?? 0x31e, 65535, "creator version"],
+      [entry.internalAttributes ?? 0, 65535, "internal attributes"],
+      [entry.externalAttributes ?? 0, 0xffffffff, "external attributes"]
+    ] as const)
+      number(value, maximum, label);
+    if ((entry.internalAttributes ?? 0) & ~1) fail("ZIP unsupported internal attributes");
+    if (entry.externalAttributes !== undefined) {
+      const host = (entry.versionMadeBy ?? 0x31e) >>> 8;
+      const unixMode = host === 3 || host === 19 ? entry.externalAttributes >>> 16 : 0;
+      const mode = unixMode || (entry.directory ? 0o040755 : 0o100644);
+      if (mode !== entry.mode || (Boolean(entry.externalAttributes & 16) && !entry.directory))
+        fail("ZIP retained file attributes mismatch");
+    }
+    return { entry, rawName, flags, localExtra, centralExtra, comment, date, time, offset };
+  }
+
+  function entryHeaders(item: EncodedEntry<ZipEntry | ZipStreamEntry>) {
+    const { entry, rawName, flags, localExtra, centralExtra, comment, date, time, offset } = item;
+    const compressedSize = "compressedSize" in entry ? entry.compressedSize : entry.data.length;
+    const version = entry.method === 8 ? 20 : 10;
+    const local = new Uint8Array(30 + rawName.length + localExtra.length);
+    const central = new Uint8Array(46 + rawName.length + centralExtra.length + comment.length);
+    {
+      const bytes = local, view = new DataView(bytes.buffer);
+      view.setUint32(0, 0x04034b50, true);
+      view.setUint16(4, version, true);
+      view.setUint16(6, flags, true);
+      view.setUint16(8, entry.method, true);
+      view.setUint16(10, time, true);
+      view.setUint16(12, date, true);
+      view.setUint32(14, entry.crc32, true);
+      view.setUint32(18, compressedSize, true);
+      view.setUint32(22, entry.size, true);
+      view.setUint16(26, rawName.length, true);
+      view.setUint16(28, localExtra.length, true);
+      bytes.set(rawName, 30);
+      bytes.set(localExtra, 30 + rawName.length);
+    }
+    {
+      const bytes = central, view = new DataView(bytes.buffer);
+      view.setUint32(0, 0x02014b50, true);
+      view.setUint16(4, entry.versionMadeBy ?? 0x31e, true);
+      view.setUint16(6, version, true);
+      view.setUint16(8, flags, true);
+      view.setUint16(10, entry.method, true);
+      view.setUint16(12, time, true);
+      view.setUint16(14, date, true);
+      view.setUint32(16, entry.crc32, true);
+      view.setUint32(20, compressedSize, true);
+      view.setUint32(24, entry.size, true);
+      view.setUint16(28, rawName.length, true);
+      view.setUint16(30, centralExtra.length, true);
+      view.setUint16(32, comment.length, true);
+      view.setUint16(36, entry.internalAttributes ?? 0, true);
+      view.setUint32(
+        38,
+        entry.externalAttributes ??
+          (entry.mode | (entry.directory ? 0o040000 : entry.symlink ? 0o120000 : 0o100000)) *
+            65536 +
+            (entry.directory ? 16 : 0),
+        true
+      );
+      view.setUint32(42, offset, true);
+      bytes.set(rawName, 46);
+      bytes.set(centralExtra, 46 + rawName.length);
+      bytes.set(comment, 46 + rawName.length + centralExtra.length);
+    }
+    return { local, central };
+  }
+
+  /** Stage complete archive bytes in caller-owned storage; no archive-sized
+   * payload or member collection is retained. add borrows its source until settlement. The caller
+   * owns storage cleanup, including cancellation and abandoned output. */
+  function createStagedWriter(storage: ZipMetadataStorage, limits: ZipLimits, signal: AbortSignal) {
+    const chunkSize = Math.min(admit(limits, signal), 16384);
+    const local = new ZipWriteChain(storage, chunkSize, signal, yieldTurn);
+    const central = new ZipWriteChain(storage, chunkSize, signal, yieldTurn);
+    const names = profile.rejectDuplicateNames ? new ZipDirectoryIndex(storage) : undefined;
+    let state: "open" | "adding" | "finished" | "failed" = "open", members = 0, total = 0;
+    return {
+      async add(entry: ZipEntry | ZipStreamEntry): Promise<void> {
+        signal.throwIfAborted();
+        if (state !== "open") fail("ZIP writer is not open");
+        state = "adding";
+        try {
+          number(members + 1, Math.min(limits.maxMembers, 65534), "member");
+          entry = { ...entry, modified: new Date(entry.modified.getTime()) };
+          const item = encodeEntry(entry, limits, local.length), headers = entryHeaders(item);
+          const compressedSize = "compressedSize" in entry ? entry.compressedSize : entry.data.length;
+          number(total + entry.size, limits.maxTotalBytes, "total byte");
+          number(local.length + central.length + headers.local.length + headers.central.length + compressedSize + 22,
+            Math.min(limits.maxArchiveBytes, 0xfffffffe), "archive byte");
+          if (names) {
+            if (await names.get(entry.name) !== undefined) fail("ZIP duplicate member name");
+            await names.set(entry.name, members + 1);
+          }
+          // Store the member independently so validation replays those exact
+          // owned bytes before the archive can be exposed to a destination.
+          signal.throwIfAborted();
+          const payload = new ZipWriteChain(storage, chunkSize, signal, yieldTurn);
+          const source = entry.data instanceof Uint8Array ? [entry.data] : typeof entry.data === "function" ? entry.data(signal) : entry.data;
+          await payload.append(source, compressedSize);
+          if (profile.validatePayloads) {
+            const owned = { ...entry, data: payload.read(), compressedSize };
+            for await (const chunk of decodeZipEntry(owned, limits, signal)) { signal.throwIfAborted(); void chunk; }
+          }
+          await local.append([headers.local], headers.local.length);
+          await local.join(payload);
+          await central.append([headers.central], headers.central.length);
+          signal.throwIfAborted();
+          members++; total += entry.size; state = "open";
+        } catch (error) { state = "failed"; throw error; }
+      },
+      async *finish(comment = new Uint8Array()): AsyncGenerator<Uint8Array> {
+        signal.throwIfAborted();
+        if (state !== "open") fail("ZIP writer is not open");
+        state = "finished";
+        number(comment.length, Math.min(limits.maxTextBytes, 65535), "archive comment");
+        number(local.length + central.length + 22 + comment.length, Math.min(limits.maxArchiveBytes, 0xfffffffe), "archive byte");
+        const end = new Uint8Array(22 + comment.length), view = new DataView(end.buffer);
+        view.setUint32(0, 0x06054b50, true);
+        view.setUint16(8, members, true); view.setUint16(10, members, true);
+        view.setUint32(12, central.length, true); view.setUint32(16, local.length, true);
+        view.setUint16(20, comment.length, true); end.set(comment, 22);
+        yield* local.read(); yield* central.read();
+        for (let offset = 0; offset < end.length; offset += chunkSize) {
+          signal.throwIfAborted(); yield end.subarray(offset, offset + chunkSize); await yieldTurn(signal);
+        }
+      }
+    };
   }
 
   async function writeZipArchive(
@@ -964,93 +1164,9 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
       if (entry.method === 0 && entry.data.length !== entry.size) fail("ZIP stored size mismatch");
       total += entry.size;
       number(total, limits.maxTotalBytes, "total byte");
-      const rawName = entry.rawName ?? pathBytes(entry.name, limits);
-      const flags = (entry.flags ?? 0x800) & ~8;
-      const comment = entry.comment ?? new Uint8Array();
-      number(comment.length, Math.min(limits.maxTextBytes, 65535), "entry comment");
-      if (flags & 0x800) text(comment);
-      const localExtra = entry.localExtra ?? timestampExtra(entry.modified);
-      const centralExtra = entry.centralExtra ?? timestampExtra(entry.modified);
-      const localMetadata = extras(
-        localExtra,
-        rawName,
-        comment,
-        false,
-        limits,
-        profile.validatePayloads
-      );
-      const centralMetadata = extras(
-        centralExtra,
-        rawName,
-        comment,
-        true,
-        limits,
-        profile.validatePayloads
-      );
-      if (
-        nameFrom(rawName, flags, centralMetadata, limits) !== entry.name ||
-        (localMetadata.name !== undefined &&
-          nameFrom(rawName, flags, localMetadata, limits) !== entry.name) ||
-        (entry.localName && !equal(rawName, entry.localName))
-      )
-        fail("ZIP retained filename metadata mismatch");
-      if (
-        localMetadata.modified !== undefined &&
-        centralMetadata.modified !== undefined &&
-        localMetadata.modified !== centralMetadata.modified
-      )
-        fail("ZIP retained timestamp metadata mismatch");
-      const rounded = new Date(Math.ceil(Math.floor(entry.modified.getTime() / 1000) / 2) * 2000);
-      const utc = profile.utcDates !== false;
-      const year = Math.max(
-        1980,
-        Math.min(2107, utc ? rounded.getUTCFullYear() : rounded.getFullYear())
-      );
-      const date =
-        entry.dosDate ??
-        ((year - 1980) << 9) |
-          (((utc ? rounded.getUTCMonth() : rounded.getMonth()) + 1) << 5) |
-          (utc ? rounded.getUTCDate() : rounded.getDate());
-      const time =
-        entry.dosTime ??
-        ((utc ? rounded.getUTCHours() : rounded.getHours()) << 11) |
-          ((utc ? rounded.getUTCMinutes() : rounded.getMinutes()) << 5) |
-          ((utc ? rounded.getUTCSeconds() : rounded.getSeconds()) >>> 1);
-      number(date, 65535, "DOS date");
-      number(time, 65535, "DOS time");
-      const dosTimestamp = dosModified(date, time).getTime();
-      const extendedTimestamp = centralMetadata.modified ?? localMetadata.modified;
-      if (
-        extendedTimestamp === undefined
-          ? dosTimestamp !== rounded.getTime()
-          : Math.floor(extendedTimestamp / 1000) !== Math.floor(entry.modified.getTime() / 1000)
-      )
-        fail("ZIP retained or unrepresentable timestamp metadata mismatch");
-      for (const [value, maximum, label] of [
-        [entry.versionMadeBy ?? 0x31e, 65535, "creator version"],
-        [entry.internalAttributes ?? 0, 65535, "internal attributes"],
-        [entry.externalAttributes ?? 0, 0xffffffff, "external attributes"]
-      ] as const)
-        number(value, maximum, label);
-      if ((entry.internalAttributes ?? 0) & ~1) fail("ZIP unsupported internal attributes");
-      if (entry.externalAttributes !== undefined) {
-        const host = (entry.versionMadeBy ?? 0x31e) >>> 8;
-        const unixMode = host === 3 || host === 19 ? entry.externalAttributes >>> 16 : 0;
-        const mode = unixMode || (entry.directory ? 0o040755 : 0o100644);
-        if (mode !== entry.mode || (Boolean(entry.externalAttributes & 16) && !entry.directory))
-          fail("ZIP retained file attributes mismatch");
-      }
-      encoded.push({
-        entry,
-        rawName,
-        flags,
-        localExtra,
-        centralExtra,
-        comment,
-        date,
-        time,
-        offset: localLength
-      });
+      const item = encodeEntry(entry, limits, localLength);
+      const { rawName, localExtra, centralExtra, comment } = item;
+      encoded.push(item);
       localLength += 30 + rawName.length + localExtra.length + entry.data.length;
       length +=
         76 +
@@ -1067,21 +1183,9 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
     let central = localLength;
     for (const item of encoded) {
       await yieldTurn(signal);
-      const { entry, rawName, flags, localExtra, centralExtra, comment, date, time, offset } = item;
-      const version = entry.method === 8 ? 20 : 10;
-      view.setUint32(offset, 0x04034b50, true);
-      view.setUint16(offset + 4, version, true);
-      view.setUint16(offset + 6, flags, true);
-      view.setUint16(offset + 8, entry.method, true);
-      view.setUint16(offset + 10, time, true);
-      view.setUint16(offset + 12, date, true);
-      view.setUint32(offset + 14, entry.crc32, true);
-      view.setUint32(offset + 18, entry.data.length, true);
-      view.setUint32(offset + 22, entry.size, true);
-      view.setUint16(offset + 26, rawName.length, true);
-      view.setUint16(offset + 28, localExtra.length, true);
-      bytes.set(rawName, offset + 30);
-      bytes.set(localExtra, offset + 30 + rawName.length);
+      const { entry, rawName, localExtra, offset } = item;
+      const headers = entryHeaders(item);
+      bytes.set(headers.local, offset);
       await copyBytes(
         entry.data,
         bytes,
@@ -1103,33 +1207,8 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
           void chunk;
         }
       }
-      view.setUint32(central, 0x02014b50, true);
-      view.setUint16(central + 4, entry.versionMadeBy ?? 0x31e, true);
-      view.setUint16(central + 6, version, true);
-      view.setUint16(central + 8, flags, true);
-      view.setUint16(central + 10, entry.method, true);
-      view.setUint16(central + 12, time, true);
-      view.setUint16(central + 14, date, true);
-      view.setUint32(central + 16, entry.crc32, true);
-      view.setUint32(central + 20, entry.data.length, true);
-      view.setUint32(central + 24, entry.size, true);
-      view.setUint16(central + 28, rawName.length, true);
-      view.setUint16(central + 30, centralExtra.length, true);
-      view.setUint16(central + 32, comment.length, true);
-      view.setUint16(central + 36, entry.internalAttributes ?? 0, true);
-      view.setUint32(
-        central + 38,
-        entry.externalAttributes ??
-          (entry.mode | (entry.directory ? 0o040000 : entry.symlink ? 0o120000 : 0o100000)) *
-            65536 +
-            (entry.directory ? 16 : 0),
-        true
-      );
-      view.setUint32(central + 42, offset, true);
-      bytes.set(rawName, central + 46);
-      bytes.set(centralExtra, central + 46 + rawName.length);
-      bytes.set(comment, central + 46 + rawName.length + centralExtra.length);
-      central += 46 + rawName.length + centralExtra.length + comment.length;
+      bytes.set(headers.central, central);
+      central += headers.central.length;
     }
     view.setUint32(central, 0x06054b50, true);
     view.setUint16(central + 8, encoded.length, true);
@@ -1142,5 +1221,5 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
     return bytes;
   }
 
-  return { readZipArchive, decodeZipEntry, makeZipEntry, writeZipArchive };
+  return { readZipArchive, decodeZipEntry, makeZipEntry, writeZipArchive, createStagedWriter };
 }

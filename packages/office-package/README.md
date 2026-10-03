@@ -63,6 +63,17 @@ read a retained range from the caller's injected filesystem; the codec itself
 opens no files. Decoding checks the compressed length, decoded length and CRC,
 returns owned bounded chunks, and closes the input on cancellation or early return.
 
+`createStagedWriter(storage, limits, signal)` writes member payloads and central
+headers to caller storage instead of retaining an archive-sized byte array.
+Await `writer.add(entry)` for each buffered or streamed compressed member, then
+consume `writer.finish(comment?)` with backpressure. Transfers are capped at
+16 KiB and by `chunkSize`; directory names use an external index when duplicate
+rejection is enabled. Payload validation replays the staged bytes before output.
+The caller must close storage on every outcome, including abandoned output.
+A failed writer cannot publish or accept further members. Sources are borrowed
+until `add` settles; yielded archive chunks are owned. The existing
+`writeZipArchive` remains an explicit buffered convenience.
+
 See [ZIP contracts](src/zip.ts) and [compression contracts](src/compression.ts)
 for operation signatures and validation. ZIP decoding alone does not validate
 Office relationships or document semantics.

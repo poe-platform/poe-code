@@ -21,12 +21,13 @@ explicit empty payloads remain empty strings.
 
 ```ts
 import { createEngine } from "@poe-code/spreadsheet-engine";
-import { readXlsx, probeXlsx, createXlsxWriter } from "@poe-code/xlsx-ast";
+import { readXlsx, probeXlsx, createXlsxWriter, createXlsxStreamWriter } from "@poe-code/xlsx-ast";
 
 const engine = createEngine({ codecs: [{
   id: "xlsx", description: "XLSX workbook", extensions: ["xlsx"],
   probeContent: probeXlsx, probeSource: probeXlsx, contentProbe: true,
-  read: readXlsx, readSource: readXlsx, write: createXlsxWriter("2008")
+  read: readXlsx, readSource: readXlsx, write: createXlsxWriter("2008"),
+  writeStream: createXlsxStreamWriter("2008")
 }] });
 ```
 
@@ -40,6 +41,12 @@ not yet bound decoded XML documents or the workbook model; large workbook
 conversion still requires further storage migration. With engine `workingFiles`,
 the directory and member indexes use caller-backed scratch storage and bounded
 caches. Without that capability the convenience reader retains the directory.
+
+`createXlsxStreamWriter` uses `workingFiles` to stage ZIP member payloads and
+central records in the caller’s safe-fs, then emits bounded output chunks. The
+format provider registers this path for both editions. Worksheet XML, shared
+strings and workbook cells still use in-memory representations. Hosts without
+working storage and explicit `createXlsxWriter` calls retain buffered output.
 
 For table import, `readCachedXlsx` accepts an admitted ZIP archive, its codec and
 limits, a cancellation signal, and aggregate `work`/`retain` admission callbacks.

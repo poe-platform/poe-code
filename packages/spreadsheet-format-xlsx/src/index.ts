@@ -30,6 +30,7 @@ export const xlsxFormat: FormatProvider = {
       "id": "xlsx",
       "direction": "write",
       write: async (book, options, context) => (await import("./xlsx.js")).createXlsxWriter("2006")(book, options, context),
+      writeStream: async function* (book, options, context) { yield* (await import("./xlsx.js")).createXlsxStreamWriter("2006")(book, options, context); },
       "description": "ECMA 376 1st edition (2006); [MS Excel™ 2007]",
       "extensions": [
         "xlsx"
@@ -43,6 +44,7 @@ export const xlsxFormat: FormatProvider = {
       "id": "xlsx2",
       "direction": "write",
       write: async (book, options, context) => (await import("./xlsx.js")).createXlsxWriter("2008")(book, options, context),
+      writeStream: async function* (book, options, context) { yield* (await import("./xlsx.js")).createXlsxStreamWriter("2008")(book, options, context); },
       "description": "ISO/IEC 29500:2008 & ECMA 376 2nd edition (2008); [MS Excel™ 2010]",
       "extensions": [
         "xlsx"

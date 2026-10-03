@@ -819,6 +819,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
 export function createOdfStreamWriter(profile: "strict" | "extended") {
   return async function* (input: Workbook | WorkbookSource, options: readonly string[], context: CapabilityContext): AsyncGenerator<Uint8Array> {
     let storage: import("@poe-code/spreadsheet-engine/contracts").WorkingStorage | undefined;
+    let cellStyles: Awaited<ReturnType<typeof createOdfStyles>> | undefined;
     let closed = false, closing: Promise<void> | undefined, failure: { error: unknown } | undefined;
     const bufferedTables: Uint8Array[] = [], tableBuffer = new Uint8Array(16384);
     const close = () => {
@@ -837,20 +838,43 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
     const extended = profile === "extended", xml = createOdfXml(context, extended), e = xml.element;
     const source = "metadata" in input ? await ownWorkbookSource(input, context.limits, () => context.signal.throwIfAborted()) : undefined;
     const preparedLabels = prepareOdfFormulaLabels(source?.metadata ?? input as Workbook, context, xml.charge);
-    const book = preparedLabels.book;
-    const cellStyles = createOdfStyles(xml, extended, book, context);
+    let book = preparedLabels.book;
+    if (book.sheets.some(sheet => !Object.isFrozen(sheet.cells))) {
+      let captured = 0;
+      book = { ...book, sheets: book.sheets.map(sheet => {
+        if (Object.isFrozen(sheet.cells)) {
+          captured += sheet.cells.length;
+          if (captured > context.limits.cells) limit("cells");
+          return sheet;
+        }
+        // Low-level mutable SDK input retains references before style storage
+        // can yield to the caller; admitted engine arrays need no extra copy.
+        const cells: Cell[] = [];
+        for (const cell of sheet.cells) {
+          if (++captured > context.limits.cells) limit("cells");
+          cells.push(cell);
+        }
+        return { ...sheet, cells: Object.freeze(cells) };
+      }) };
+    }
     const zip = createZipCodec(), zipLimits = { ...bounds(context), maxArchiveBytes: context.limits.outputBytes,
       maxEntryBytes: context.limits.outputBytes, maxTotalBytes: context.limits.outputBytes };
     if (closed) throw new SsconvertError("invalid-request", "ODF writer is closed");
     storage = context.createWorkingStorage?.();
     if (closed) throw new SsconvertError("invalid-request", "ODF writer is closed");
+    let stagedContentBytes = 0;
+    function admitContentBytes(bytes: number) {
+      if (bytes > context.limits.outputBytes - stagedContentBytes) limit("output bytes");
+      stagedContentBytes += bytes;
+    }
+    cellStyles = await createOdfStyles(xml, extended, book, context, storage, admitContentBytes);
     const sourceCounts = source ? new Map<string, number>() : undefined;
     let suppliedCellCount = 0;
     if (source) for (const sheet of book.sheets) {
       let count = 0;
       for await (const cell of source.cells(sheet.id)) {
         if (++suppliedCellCount > context.limits.cells) limit("cells");
-        cellStyles.reserve(cell); count++;
+        await cellStyles.reserve(cell); count++;
       }
       sourceCounts!.set(sheet.id, count);
     }
@@ -939,9 +963,6 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
         ...(extended ? { "gnm:display-formulas": String(Boolean(Number(view.DisplayFormulas ?? 0))), "gnm:display-col-header": String(!Number(view.HideColHeader ?? 0)),
           "gnm:display-row-header": String(!Number(view.HideRowHeader ?? 0)), "gnm:tab-color": originalProperties["tab-color"], "gnm:tab-text-color": originalProperties["tab-text-color"] } : {}) }));
       const inputCells = sheet.cells;
-      // Engine snapshots are frozen; low-level mutable SDK input retains the
-      // original cell references even if the caller replaces an array entry.
-      const retainedCells = !source && !Object.isFrozen(inputCells) ? new Map<bigint, Cell>() : undefined;
       const addresses = storage ? new IntegerTable(storage, 128) : new Map<bigint, bigint>();
       const address = (row: number, column: number) => BigInt(row) << 14n | BigInt(column);
       let inputCellCount = 0;
@@ -953,10 +974,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
         inputCellCount++;
         return address(cell.row, cell.column);
       }
-      if (retainedCells) {
-        for (const cell of inputCells) retainedCells.set(admitCell(cell), cell);
-        for (const key of retainedCells.keys()) await addresses.set(key, 1n);
-      } else for await (const cell of source?.cells(sheet.id) ?? inputCells) {
+      for await (const cell of source?.cells(sheet.id) ?? inputCells) {
         const key = admitCell(cell);
         await addresses.set(key, BigInt(inputCellCount));
       }
@@ -980,7 +998,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
               if (next.done || ordinal !== BigInt(++read) || address(next.value.row, next.value.column) !== key)
                 throw new SsconvertError("invalid-request", "ODF source coordinates changed during replay");
               yield next.value;
-            } else yield retainedCells?.get(key) ?? inputCells[Number(ordinal - 1n)]!;
+            } else yield inputCells[Number(ordinal - 1n)]!;
           }
           if (cursor && !(await cursor.next()).done)
             throw new SsconvertError("invalid-request", "ODF source coordinates changed during replay");
@@ -1029,7 +1047,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
           xml.charge(); const a = odfAttributes(region), style = odfChildren(region).find(n => odfObject(n)?.name === "Style");
           if (!style) continue;
           const r = { startRow: Number(a.startRow), endRow: Number(a.endRow), startColumn: Number(a.startCol), endColumn: Number(a.endCol) }; range(r);
-          const metadata = await writeOdfRegion(style,r,`rg${index}_${cellMetadata.length}`,sheet,xml,cellStyles,context,expression,sheetNames);
+          const metadata = await writeOdfRegion(style,r,`rg${index}_${cellMetadata.length}`,sheet,xml,cellStyles!,context,expression,sheetNames);
           automatic += metadata.styleXml;
           validations += metadata.validationXml;
           cellMetadata.push({ range: r, style: metadata.styleName, validation: metadata.validationName, link: metadata.link });
@@ -1186,7 +1204,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
             content += originalAnnotation ? xml.retained(originalAnnotation.node,0,undefined,false,body) : e("office:annotation", {}, body);
           }
           if (cell) {
-            const style = cellStyles.register(cell); if (style.name && !meta?.style) a["table:style-name"] = style.name;
+            const style = await cellStyles!.register(cell); if (style.name && !meta?.style) a["table:style-name"] = style.name;
             const value = cell.formula ? cell.cachedResult ?? cell.value : cell.value;
             if (value.kind === "number") {
               if (!Number.isFinite(value.value)) throw new SsconvertError("invalid-request", "Invalid OpenDocument numeric value");
@@ -1239,10 +1257,9 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
     // Cell traversal registers styles before the document's style declarations.
     // Stage encoded tables in caller storage, coalescing small row fragments.
     const tableTape = storage ? new ZipWriteChain(storage, 16384, context.signal, async signal => { signal.throwIfAborted(); }) : undefined;
-    let tableBytes = 0, tableTotal = 0;
+    let tableBytes = 0;
     for await (const bytes of tables()) {
-      if (bytes.length > context.limits.outputBytes - tableTotal) limit("output bytes");
-      tableTotal += bytes.length;
+      admitContentBytes(bytes.length);
       if (!tableTape) { bufferedTables.push(bytes.slice()); continue; }
       for (let offset = 0; offset < bytes.length;) {
         const take = Math.min(tableBuffer.length - tableBytes, bytes.length - offset);
@@ -1284,7 +1301,10 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
     async function* content() {
       yield e("office:scripts");
       yield e("office:font-face-decls", {}, definitions.render("fonts"));
-      yield e("office:automatic-styles", {}, definitions.render("contentAutomatic") + automatic + cellStyles.styles.join(""));
+      async function* automaticStyles() {
+        yield definitions.render("contentAutomatic"); yield automatic; yield* cellStyles!.render();
+      }
+      yield* xml.stream("office:automatic-styles", {}, automaticStyles());
       yield* xml.stream("office:body", {}, xml.stream("office:spreadsheet", {}, spreadsheetContent()));
     }
     part("content.xml", xml.documentStream("office:document-content", content()));
@@ -1387,7 +1407,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
     }
     } catch (error) { failure = { error }; throw error; }
     finally {
-      tableBuffer.fill(0); for (const bytes of bufferedTables) bytes.fill(0);
+      cellStyles?.dispose(); tableBuffer.fill(0); for (const bytes of bufferedTables) bytes.fill(0);
       await close().catch(error => {
         if (failure) throw new AggregateError([failure.error, error], "ODF export and storage cleanup failed");
         throw error;

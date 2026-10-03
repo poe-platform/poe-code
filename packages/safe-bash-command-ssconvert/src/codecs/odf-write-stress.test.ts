@@ -88,10 +88,10 @@ it("prunes extension attributes and elements only in strict metadata", () => {
   expect(extended).toContain("<gnm:foreign/>");
 });
 
-it.each([false, true])("orders automatic cell style properties according to ODF 1.2 (extended=%s)", extended => {
+it.each([false, true])("orders automatic cell style properties according to ODF 1.2 (extended=%s)", async extended => {
   const book: Workbook = { sheets: [{ id: "S", name: "S", cells: [] }] };
-  const styles = createOdfStyles(createOdfXml(context, extended), extended, book, context);
-  styles.register({ style: { gnumeric: { name: "Style", attributes: { HAlign: "2" }, children: [
+  const styles = await createOdfStyles(createOdfXml(context, extended), extended, book, context);
+  await styles.register({ style: { gnumeric: { name: "Style", attributes: { HAlign: "2" }, children: [
     { name: "Font", attributes: { Bold: "1" }, text: "Sans" }
   ] } } });
   const style = styles.styles.join("");
@@ -168,12 +168,12 @@ it("rejects XML-illegal scalar text instead of replacing its byte value", async 
   await expect(createOdfWriter("extended")(book, [], context)).rejects.toThrow("non-XML OpenDocument character");
 });
 
-it("rejects cyclic style metadata with the public invalid-request error", () => {
+it("rejects cyclic style metadata with the public invalid-request error", async () => {
   const cyclic: Record<string, ImportedValue> = { name: "Style", attributes: {}, children: [] };
   cyclic.children = [cyclic];
   const book: Workbook = { sheets: [{ id: "S", name: "S", cells: [] }] };
-  const styles = createOdfStyles(createOdfXml(context, true), true, book, context);
-  try { styles.register({ style: { gnumeric: cyclic } }); }
+  const styles = await createOdfStyles(createOdfXml(context, true), true, book, context);
+  try { await styles.register({ style: { gnumeric: cyclic } }); }
   catch (error) { expect(error).toMatchObject({ code: "invalid-request", message: "Invalid cyclic OpenDocument style metadata" }); return; }
   throw new Error("Cyclic style metadata was accepted");
 });
@@ -189,19 +189,19 @@ it("does not collide generated cell styles with original ODF style names", async
   expect(round.sheets[0]!.cells[1]!.format).toBe("0.00");
 });
 
-it("accepts deep style metadata and enforces explicit depth and work limits", () => {
+it("accepts deep style metadata and enforces explicit depth and work limits", async () => {
   const book: Workbook = { sheets: [{ id: "S", name: "S", cells: [] }] };
   let deep: ImportedValue = { name: "Font", text: "Sans" };
   for (let i = 0; i < 130; i++) deep = { name: "Style", children: [deep] };
-  const styles = createOdfStyles(createOdfXml(context, true), true, book, context);
-  expect(() => styles.register({ style: { gnumeric: deep } })).not.toThrow();
+  const styles = await createOdfStyles(createOdfXml(context, true), true, book, context);
+  await expect(styles.register({ style: { gnumeric: deep } })).resolves.toBeDefined();
   const depthBounded = { ...context, limits: { ...context.limits, xmlDepth: 128 } };
-  expect(() => createOdfStyles(createOdfXml(depthBounded, true), true, book, depthBounded)
-    .register({ style: { gnumeric: deep } })).toThrow("style metadata depth limit");
+  await expect((await createOdfStyles(createOdfXml(depthBounded, true), true, book, depthBounded))
+    .register({ style: { gnumeric: deep } })).rejects.toThrow("style metadata depth limit");
   const bounded = { ...context, limits: { ...context.limits, workbookWork: 50 } };
-  expect(() => createOdfStyles(createOdfXml(bounded, true), true, book, bounded).register({ style: {
+  await expect((await createOdfStyles(createOdfXml(bounded, true), true, book, bounded)).register({ style: {
     gnumeric: { name: "Style", children: [{ name: "Font", text: "a".repeat(100) }] }
-  } })).toThrow("work limit");
+  } })).rejects.toThrow("work limit");
 });
 
 it("preserves the resolved style at overlapping original Gnumeric regions", async () => {

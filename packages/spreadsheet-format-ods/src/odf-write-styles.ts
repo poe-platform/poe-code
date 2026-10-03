@@ -1,12 +1,42 @@
+import { ZipDirectoryIndex, ZipWriteChain } from "@poe-code/office-package";
+import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-stream";
 import type { Cell, ImportedValue, Workbook } from "@poe-code/spreadsheet-ast";
-import type { CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
+import type { CapabilityContext, WorkingStorage } from "@poe-code/spreadsheet-engine/contracts";
 import { SsconvertError } from "@poe-code/spreadsheet-engine/contracts";
 import { parseFormatSections } from "@poe-code/spreadsheet-engine/formatting/sections";
 import { scanFormat } from "@poe-code/spreadsheet-engine/formatting/numeric";
 import { createOdfXml, odfObject, odfAttributes, odfChildren, odfNamespaces } from "@poe-code/spreadsheet-engine/codecs/odf-write-support";
 
-export function createOdfStyles(xml: ReturnType<typeof createOdfXml>, extended: boolean, book: Workbook, context: CapabilityContext) {
-  const e = xml.element, styles: string[] = [], keys = new Map<string, string>();
+export async function createOdfStyles(xml: ReturnType<typeof createOdfXml>, extended: boolean, book: Workbook, context: CapabilityContext,
+  storage?: WorkingStorage, admitContentBytes?: (bytes: number) => void) {
+  const e = xml.element, styles: string[] = [];
+  const keys = storage ? new ZipDirectoryIndex(storage, { maximumKeyLength: Infinity, signal: context.signal }) : new Map<string, number>();
+  const reservedNames = storage ? new ZipDirectoryIndex(storage, { maximumKeyLength: Infinity, signal: context.signal }) : new Map<string, number>();
+  const tape = storage ? new ZipWriteChain(storage, 16384, context.signal, async signal => { signal.throwIfAborted(); }) : undefined;
+  const buffer = tape ? new Uint8Array(16384) : undefined;
+  let used = 0, total = 0, nextName = 0;
+  function dispose() { buffer?.fill(0); }
+  context.own(dispose);
+  async function append(...fragments: string[]): Promise<void> {
+    if (!tape) { styles.push(...fragments); return; }
+    async function* content() { yield* fragments; }
+    for await (const bytes of encodeTextStream(content(), "UTF-8", false, context)) {
+      if (bytes.length > context.limits.outputBytes - total)
+        throw new SsconvertError("resource-limit", "ssconvert OpenDocument output bytes limit exceeded");
+      admitContentBytes?.(bytes.length); total += bytes.length;
+      for (let offset = 0; offset < bytes.length;) {
+        const take = Math.min(buffer!.length - used, bytes.length - offset);
+        buffer!.set(bytes.subarray(offset, offset + take), used); used += take; offset += take;
+        if (used === buffer!.length) { await tape.append([buffer!], used); used = 0; }
+      }
+    }
+  }
+  async function* render(): AsyncGenerator<string | Uint8Array> {
+    if (!tape) { yield* styles; return; }
+    if (used) { await tape.append([buffer!.subarray(0, used)], used); used = 0; }
+    buffer!.fill(0);
+    yield* tape.read();
+  }
   function admitMetadata(value: ImportedValue | undefined, active = new Set<object>(), depth = 0) {
     xml.charge(typeof value === "string" ? value.length : 1);
     if (value === null || typeof value !== "object") return;
@@ -18,20 +48,19 @@ export function createOdfStyles(xml: ReturnType<typeof createOdfXml>, extended: 
       else for (const [key, child] of Object.entries(value)) { xml.charge(key.length); admitMetadata(child, active, depth + 1); }
     } finally { active.delete(value); }
   }
-  const reservedNames = new Set<string>();
-  function reserveNames(value: ImportedValue | undefined) {
+  async function reserveNames(value: ImportedValue | undefined) {
     xml.charge(); const name = odfAttributes(value, odfNamespaces.style).name;
-    if (name) reservedNames.add(name);
-    for (const child of odfChildren(value)) reserveNames(child);
+    if (name) await reservedNames.set(name, 0);
+    for (const child of odfChildren(value)) await reserveNames(child);
   }
   for (const record of book.unsupportedRecords ?? []) if (["styles", "automatic-styles"].includes(record.kind)) {
-    const node = odfObject(record.data)?.xml; admitMetadata(node); reserveNames(node);
+    const node = odfObject(record.data)?.xml; admitMetadata(node); await reserveNames(node);
   }
-  function reserve(cell: Pick<Cell, "style">) {
+  async function reserve(cell: Pick<Cell, "style">) {
     const node = cell.style?.odf;
-    if (node) { admitMetadata(node); reserveNames(node); }
+    if (node) { admitMetadata(node); await reserveNames(node); }
   }
-  for (const sheet of book.sheets) for (const cell of sheet.cells) reserve(cell);
+  for (const sheet of book.sheets) for (const cell of sheet.cells) await reserve(cell);
   function color(value: string | undefined) {
     if (!value) return undefined;
     const parts = value.split(":");
@@ -76,7 +105,7 @@ export function createOdfStyles(xml: ReturnType<typeof createOdfXml>, extended: 
       tokens.slice(last+1).map(t => e("number:text", {}, xml.escape(t.text))).join("");
     return { kind, xml: e(raw.includes("%") ? "number:percentage-style" : "number:number-style", { "style:name": name }, body) };
   }
-  function register(cell: Pick<Cell, "style" | "format">): { name?: string | undefined; kind: "date" | "time" | "float" | "string" } {
+  async function register(cell: Pick<Cell, "style" | "format">): Promise<{ name?: string | undefined; kind: "date" | "time" | "float" | "string" }> {
     xml.charge();
     const original = odfObject(cell.style?.odf), node = cell.style?.gnumeric, a = odfAttributes(node);
     const format = cell.format ?? a.Format ?? "General";
@@ -84,16 +113,16 @@ export function createOdfStyles(xml: ReturnType<typeof createOdfXml>, extended: 
     if (!node && format === "General") return { kind: "float" };
     admitMetadata(node); xml.charge(format.length);
     const key = JSON.stringify([node,format]); xml.charge(key.length);
-    const existing = keys.get(key);
-    let name = existing ?? "ce" + keys.size;
-    if (!existing) {
-      let index = keys.size;
-      while (reservedNames.has(name) || reservedNames.has("N" + name)) { xml.charge(); name = "ce" + ++index; }
-      reservedNames.add(name); reservedNames.add("N" + name);
+    const existing = await keys.get(key);
+    let index = existing ?? nextName, name = "ce" + index;
+    if (existing === undefined) {
+      while (await reservedNames.get(name) !== undefined || await reservedNames.get("N" + name) !== undefined) { xml.charge(); name = "ce" + ++index; }
+      nextName = index + 1;
+      await reservedNames.set(name, 0); await reservedNames.set("N" + name, 0);
     }
     const number = numberStyle(format, "N" + name);
-    if (existing) return { name, kind: number.kind };
-    keys.set(key,name); styles.push(number.xml);
+    if (existing !== undefined) return { name, kind: number.kind };
+    await keys.set(key, index);
     const p: Record<string,string|number|undefined> = {}, text: Record<string,string|number|undefined> = {}, paragraph: Record<string,string|number|undefined> = {};
     p["fo:background-color"] = Number(a.Shade ?? 0) ? color(a.Back) : undefined;
     if (extended && a.Shade !== undefined) { p["gnm:pattern"] = a.Shade; p["gnm:background-colour"] = color(a.Back); p["gnm:pattern-colour"] = color(a.PatternColor); }
@@ -130,11 +159,11 @@ export function createOdfStyles(xml: ReturnType<typeof createOdfXml>, extended: 
       xml.charge(); const b = odfAttributes(border), side = sides[String(odfObject(border)?.name)];
       if (side) p["fo:border-" + side] = `${[0,1,2,1,1,3,1,0.5,2,1,2,1,2][Number(b.Style)] ?? 1}pt ${lines[Number(b.Style)] ?? "solid"} ${color(b.Color) ?? "#000000"}`;
     }
-    styles.push(e("style:style", { "style:name": name, "style:family": "table-cell", "style:data-style-name": number.xml ? "N" + name : undefined },
+    await append(number.xml, e("style:style", { "style:name": name, "style:family": "table-cell", "style:data-style-name": number.xml ? "N" + name : undefined },
       e("style:table-cell-properties", p) + e("style:paragraph-properties", paragraph) + e("style:text-properties", text)));
     return { name, kind: number.kind };
   }
-  return { register, reserve, styles };
+  return { register, reserve, styles, render, dispose };
 }
 
 export function odfPrintProperties(records: readonly ImportedValue[], xml: ReturnType<typeof createOdfXml>, extended: boolean) {

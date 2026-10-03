@@ -232,8 +232,10 @@ Individual strings, other workbook cells, style indexes and other
 metadata still reside in memory. ODF exporters also stage compressed members and
 central records through working storage and stream unencrypted member encoding,
 compression and archive output. Rows, tables and the document body stream through
-caller-backed staging before styles are serialized. Individual cell strings,
-style/metadata XML, embedded resources and encryption buffers remain resident.
+caller-backed staging before styles are serialized. Generated ODF cell-style keys,
+reserved names and XML use working storage, and the automatic-styles container
+streams. Individual cell strings, retained style definitions and other metadata
+XML, embedded resources and encryption buffers remain resident.
 Gnumeric XML and gzip exports stream encoded output with backpressure. CSV/text
 conversions without global evaluation replay cells from retained input, including
 styles and sheet extents, without building full cell arrays. With working storage

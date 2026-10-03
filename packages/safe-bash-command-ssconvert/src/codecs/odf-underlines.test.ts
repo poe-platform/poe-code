@@ -19,9 +19,9 @@ for (const extended of [false, true])
 it.each([
   [0, "none", "none"], [1, "single", "solid"], [2, "double", "solid"],
   [3, "single", "solid"], [4, "double", "solid"]
-] as const)(`exports underline %s with interoperable ODF properties (extended=${extended})`, (underline, type, line) => {
-  const styles = createOdfStyles(createOdfXml(context, extended), extended, { sheets: [] }, context);
-  styles.register({ style: { gnumeric: { name: "Style", attributes: {}, children: [
+] as const)(`exports underline %s with interoperable ODF properties (extended=${extended})`, async (underline, type, line) => {
+  const styles = await createOdfStyles(createOdfXml(context, extended), extended, { sheets: [] }, context);
+  await styles.register({ style: { gnumeric: { name: "Style", attributes: {}, children: [
     { name: "Font", attributes: { Underline: String(underline) }, text: "Sans" }
   ] } } });
   const node = styleXml(styles.styles.join("")).children.find(node => node.localName === "style")!;

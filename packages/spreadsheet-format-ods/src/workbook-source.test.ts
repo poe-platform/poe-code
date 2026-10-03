@@ -80,6 +80,9 @@ it.each(["failure", "cancel", "moved", "shorter", "longer"])("closes source repl
 
 it("keeps captured mutable SDK cells and last duplicate coordinates during backing writes", async () => {
   const cells: Cell[] = Array.from({ length: 130 }, (_, row) => ({ row, column: 0, value: { kind: "number", value: row } }));
+  cells[0] = { ...cells[0]!, style: { odf: { name: "style", namespace: "urn:oasis:names:tc:opendocument:xmlns:style:1.0", attributes: [
+    { name: "name", namespace: "urn:oasis:names:tc:opendocument:xmlns:style:1.0", value: "ce4" }
+  ], children: [] } } };
   cells.push({ row: 0, column: 0, value: { kind: "string", value: "last duplicate" } });
   const book = { sheets: [{ id: "s", name: "Data", cells }] };
   const reference = context();
@@ -89,14 +92,14 @@ it("keeps captured mutable SDK cells and last duplicate coordinates during backi
   let changed = false;
   const actual = await collect(createOdfStreamWriter("strict")(book, [], { ...runtime.context,
     createWorkingStorage() {
-      const storage = acquire(), read = storage.read.bind(storage);
-      return { ...storage, async read(position, length) {
+      const storage = acquire(), write = storage.write.bind(storage);
+      return { ...storage, async write(position, bytes) {
         if (!changed) {
           changed = true;
           cells[129] = { row: 129, column: 0, value: { kind: "string", value: "replacement" } };
           cells[130] = { row: 0, column: 0, value: { kind: "string", value: "replacement duplicate" } };
         }
-        return read(position, length);
+        return write(position, bytes);
       } };
     }
   }));

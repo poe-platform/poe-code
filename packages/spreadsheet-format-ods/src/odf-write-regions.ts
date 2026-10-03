@@ -9,9 +9,9 @@ import { translateOdfHyperlink } from "@poe-code/spreadsheet-engine/codecs/odf-h
 
 /** Translate original Gnumeric regions without materializing a sheet-sized grid. */
 export async function writeOdfRegion(node: ImportedValue, r: Range, id: string, sheet: Sheet,
-  xml: ReturnType<typeof createOdfXml>, styles: ReturnType<typeof createOdfStyles>, context: CapabilityContext,
+  xml: ReturnType<typeof createOdfXml>, styles: Awaited<ReturnType<typeof createOdfStyles>>, context: CapabilityContext,
   formula: (source: string, sheet: Sheet, row: number, column: number) => string, sheetNames: readonly string[]) {
-  const e = xml.element, a = odfAttributes(node), base = styles.register({ style: { gnumeric: node }, ...(a.Format ? { format: a.Format } : {}) });
+  const e = xml.element, a = odfAttributes(node), base = await styles.register({ style: { gnumeric: node }, ...(a.Format ? { format: a.Format } : {}) });
   const children = odfChildren(node), baseAddress = quoteFormulaString(sheet.name, "'", odfGrammar) + "." + formatA1(r.startRow,r.startColumn);
   function expression(source: ImportedValue | undefined, name: string) {
     const n = odfChildren(source).find(n => odfObject(n)?.name === name), text = odfObject(n)?.text;
@@ -25,7 +25,7 @@ export async function writeOdfRegion(node: ImportedValue, r: Range, id: string, 
     if (!overlay || !first || !Number.isInteger(op) || op < 0 || op > 8) {
       await context.diagnostic?.({ code: "odf-write-loss", severity: "warning", message: `ODF writer does not export sheet '${sheet.name}' conditional operator '${a.Operator ?? ""}'` }); continue;
     }
-    const target = styles.register({ style: { gnumeric: overlay } }).name;
+    const target = (await styles.register({ style: { gnumeric: overlay } })).name;
     const conditionText = op === 0 || op === 1 ? `of:cell-content-is-${op === 1 ? "not-" : ""}between(${first};${last})` : op === 8 ? `of:is-true-formula(${first})` : "of:cell-content()" + operators[op] + first;
     maps += e("style:map", { "style:apply-style-name": target, "style:condition": conditionText, "style:base-cell-address": baseAddress });
   }

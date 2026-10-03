@@ -15,9 +15,9 @@ function styleXml(body: string) {
 // Gnumeric openoffice-write.c:1441-1455 uses 80% for whole-cell script styles.
 for (const extended of [false, true])
 it.each([[-1, "sub 80%"], [0, "0% 100%"], [1, "super 80%"]] as const)(
-  `exports whole-cell script %s through ODF (extended=${extended})`, (script, position) => {
-    const styles = createOdfStyles(createOdfXml(context, extended), extended, { sheets: [] }, context);
-    styles.register({ style: { gnumeric: { name: "Style", attributes: {}, children: [
+  `exports whole-cell script %s through ODF (extended=${extended})`, async (script, position) => {
+    const styles = await createOdfStyles(createOdfXml(context, extended), extended, { sheets: [] }, context);
+    await styles.register({ style: { gnumeric: { name: "Style", attributes: {}, children: [
       { name: "Font", attributes: { Script: String(script) }, text: "Sans" }
     ] } } });
     const node = styleXml(styles.styles.join("")).children.find(node => node.localName === "style")!;

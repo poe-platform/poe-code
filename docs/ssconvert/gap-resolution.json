@@ -3,6 +3,13 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "externalSpanOrderAdmission": {
+      "scope": "BIFF8 compilation of portable external name definitions. A multi-sheet span requires both endpoints in the retained sheet table; appending an unknown endpoint would fabricate span membership. Single-sheet references may still add a new sheet.",
+      "reproduction": "Three independent XLSX endpoint-missing fixtures exported invented spans before the repair; all three now refuse. Known endpoints and case aliases preserve original indexes.",
+      "verification": "69 focused BIFF tests; selected ssconvert build; XLS owner lint/types; changed integration test lint/types. Compiled SDK and command: three refusals per route with zero SDK chunks and unchanged command destination; three positive controls per route. Inputs for the command route use independently constructed ZIP/XML.",
+      "evidence": "out/ssconvert-continuation-1748/external-span-order-current; external-span-order-{before,after,build,lint}.log",
+      "remaining": "XLSX export itself appends unknown endpoint names to its retained sheet list; repeated transport can therefore manufacture a complete-looking order. That path still requires repair. Native external3D evaluation limitations and broader19-family scope remain open."
+    },
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
     "nativeFormatProfile": {

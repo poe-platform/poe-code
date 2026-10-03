@@ -94,7 +94,12 @@ export class BiffFormulaWriter {
         !Number.isInteger(endpoint.column.value) || endpoint.column.value < 0 || endpoint.column.value > 255) return unsupported();
     }
     const firstSheet = root.first.sheet, lastSheet = root.last?.sheet ?? firstSheet;
-    if (foldSheetName(firstSheet) !== foldSheetName(lastSheet) && !this.portableNames.get(book.workbook)?.sheets.length) return unsupported();
+    if (foldSheetName(firstSheet) !== foldSheetName(lastSheet)) {
+      // Appending an unknown endpoint would invent the membership of the span.
+      const sheets = this.portableNames.get(book.workbook)?.sheets;
+      if (!sheets?.some(sheet => foldSheetName(sheet) === foldSheetName(firstSheet)) ||
+        !sheets.some(sheet => foldSheetName(sheet) === foldSheetName(lastSheet))) return unsupported();
+    }
     const tokens = new Uint8Array(root.last ? 13 : 9), view = new DataView(tokens.buffer);
     tokens[0] = root.last ? 0x3b : 0x3a;
     view.setUint16(1, this.externalScope(bookIndex, firstSheet), true);

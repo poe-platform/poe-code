@@ -84,3 +84,17 @@ it.each([false, true])("preserves unused external sheets through BIFF to XLSX tr
   let xml = ""; for await (const chunk of zip.decodeZipEntry(entry, limits, context.signal)) xml += new TextDecoder().decode(chunk);
   expect(xml).toContain('<sheetNames><sheetName val="Unused"/><sheetName val="Other"/></sheetNames>');
 });
+
+for (const expression of ["[1]Unused:Missing!$D$3", "[1]Missing:Other!$D$3", "[1]Missing:Absent!$D$3"]) {
+  it(`refuses to invent sheet order for external span ${expression}`, async () => {
+    const book = await readXlsx(await xlsxFixture(expression), context);
+    await expect(writeBiffStream(book, 8, false, context)).rejects.toThrow("Unsupported BIFF external name definition");
+  });
+}
+
+it.each(["[1]Unused:Other!$D$3", "[1]UNUSED:other!$D$3"])("keeps known external span order for %s", async expression => {
+  const book = await readXlsx(await xlsxFixture(expression), context);
+  const external = readBiffRecords(await writeBiffStream(book, 8, false, context), context).find(record => record.opcode === 0x23)!;
+  const start = 8 + external.data.u8(6) * 2;
+  expect(external.data.slice(start + 2, 13)).toEqual(join(new Uint8Array([0x3b]), words(0, 1, 2, 2, 3, 3)));
+});

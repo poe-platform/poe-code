@@ -4572,12 +4572,19 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "xlsxReplacementFormulaCache": {
+      "finding": "A later uncached formula discarded the previous cell value/rich text. An earlier regression incorrectly expected that blank result; corrected native-backed expectations failed before this repair.",
+      "native": "Unmodified Gnumeric1.12.61 cell_set_expr_internal preserves cell->value; xlsx_cell_end queues uncached formulas. A compiled direct-setter probe retains2 and sets needs_recalc=1. Whole workbook loading recalculates to7, so that observation alone cannot prove the pre-recalculation cache.",
+      "implementation": "Retain prior nonblank cache and rich runs when the new formula has no cache. Preserve formulaDirty=true and normal replacement of explicit caches. Keep existing writer host-authority and cache-preservation behavior.",
+      "validation": "Two regressions failed;609focused tests/23files, selected workspace build, owner lint/source/test types,newtest lint and ssconvert test types pass. Public SDK imports value/cache2 with dirty replacement formula3+4. SDK writeWorkbook exports cache2; explicit --recalc command exports7. Independent OOXML inspection and native API/GUI confirm both outcomes.128earlier public exports remain byte-identical;96native readbacks and4800row/160cell checks remain exact.",
+      "remaining": "Root artifact qualification for this cache change and broader array/shared/group/format cases remain open. All19families remain open."
+    },
     "xlsxRepeatedCells": {
       "finding": "Repeated XLSX coordinates produced duplicate model cells. Native Gnumeric1.12.61 xlsx_cell_end skips val/expr-absent records and otherwise updates the existing coordinate; value-only updates assign a value without removing a live expression.",
       "implementation": "Maintain a bounded coordinate index into the cell array. Blank updates preserve prior content, new values clear prior rich runs, new expressions replace formula/cache metadata, and value-only updates retain live expressions. Count every source record against the cell limit.",
       "validation": "Four original memory regressions failed before repair;12native input controls and4formula controls retained.608focused tests across23files pass, plus16specific tests. Maintained owner lint/source/test types, new test ESLint and ssconvert test types pass after selected build dependencies complete.128compiled package SDK/command exports have no diagnostics;96native readbacks and16native clipboard controls match4800row scalars and160cell projections. Parenthesis normalization is limited to the two explicit addition formula controls.",
       "visual": "Native original and product XLSX screenshots inspected, identical SHA256 a7712c0c24226ff7bb42b1bdec0a8bca5edad15abeb33d859c77da678f0e8f0c. Owned viewers/display terminated.",
-      "remaining": "Exact delivered root artifact verification pending. Wider shared/array repetition, styled blanks, format records and all19families remain open."
+      "remaining": "Delivered55abcd9bb7 root build/lint and256exports verified;128baseline hashes and128root/package pairs exact. Wider shared/array repetition, styled blanks, format records and all19families remain open."
     },
     "encryptedBiffCalc252Poi541": {
       "status": "partial independent qualification; encrypted BIFF family remains open",

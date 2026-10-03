@@ -41,11 +41,11 @@ it("retains a live formula when a later record assigns its cached value", async 
   const book = await readXlsx(await input(`<sheetData><row r="1">${original}<c r="A1"><v>42</v></c></row></sheetData>`), context);
   expect(book.sheets[0]!.cells).toEqual([{ ...reference.sheets[0]!.cells[0], value: { kind: "number", value: 42 }, cachedResult: { kind: "number", value: 42 } }]);
 });
-it("replaces a formula cache and marks a later uncached formula dirty", async () => {
+it("retains the prior cache while marking a later uncached formula dirty", async () => {
   const original = '<c r="A1"><f>1+1</f><v>2</v></c>', replacement = '<c r="A1"><f>3+4</f></c>';
   const reference = await readXlsx(await input(`<sheetData><row r="1">${replacement}</row></sheetData>`), context);
   const book = await readXlsx(await input(`<sheetData><row r="1">${original}${replacement}</row></sheetData>`), context);
-  expect(book.sheets[0]!.cells).toEqual(reference.sheets[0]!.cells);
+  expect(book.sheets[0]!.cells).toEqual([{ ...reference.sheets[0]!.cells[0], value: { kind: "number", value: 2 }, cachedResult: { kind: "number", value: 2 } }]);
 });
 it("removes earlier rich runs when a later record supplies a plain value", async () => {
   const book = await readXlsx(await input('<sheetData><row r="1"><c r="A1" t="inlineStr"><is><r><rPr><b/></rPr><t>rich</t></r></is></c><c r="A1"><v>42</v></c></row></sheetData>'), context);
@@ -54,4 +54,13 @@ it("removes earlier rich runs when a later record supplies a plain value", async
 it("charges every repeated source cell against the admission limit", async () => {
   const bytes = await input(`<sheetData><row r="1">${records.number}${records.empty}</row></sheetData>`);
   await expect(readXlsx(bytes, { ...context, limits: { ...context.limits, cells: 1 } })).rejects.toMatchObject({ code: "resource-limit" });
+});
+
+it("retains rich cached text when a replacement formula has no cache", async () => {
+  const original = '<c r="A1" t="inlineStr"><is><r><rPr><b/></rPr><t>rich</t></r></is></c>';
+  const reference = await readXlsx(await input(`<sheetData><row r="1">${original}</row></sheetData>`), context);
+  const book = await readXlsx(await input(`<sheetData><row r="1">${original}<c r="A1"><f>3+4</f></c></row></sheetData>`), context);
+  expect(reference.sheets[0]!.cells[0]!.richText).toHaveLength(1);
+  expect(book.sheets[0]!.cells[0]).toMatchObject({ value: { kind: "string", value: "rich" }, cachedResult: { kind: "string", value: "rich" },
+    richText: reference.sheets[0]!.cells[0]!.richText, formulaDirty: true });
 });

@@ -463,7 +463,8 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
             const key = position.row * 16384 + position.column, index = cellIndexes.get(key);
             const previous = index === undefined ? undefined : cells[index];
             let retained: Partial<Cell> = previous ?? {};
-            if (value.kind !== "blank" || expression !== undefined) {
+            const cache = hasCache ? value : previous?.value.kind === "blank" ? undefined : previous?.value;
+            if (value.kind !== "blank" || hasCache) {
               const { richText: ignoredRichText, ...rest } = retained;
               retained = rest;
             }
@@ -474,9 +475,9 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
             }
             // A value-only record updates the existing cell without removing its expression.
             const cell: Cell = { ...retained, ...position,
-              value: value.kind === "blank" && expression === undefined && previous ? previous.value : value,
+              value: value.kind === "blank" && (expression === undefined || !hasCache) && previous ? previous.value : value,
               ...(expression === undefined ? previous?.formula && value.kind !== "blank" ? { cachedResult: value } : {}
-                : { formula: expression, ...semantics, formulaDirty: !hasCache, ...(hasCache ? { cachedResult: value } : {}) }),
+                : { formula: expression, ...semantics, formulaDirty: !hasCache, ...(cache === undefined ? {} : { cachedResult: cache }) }),
               ...(groupId ? { formulaGroup: groupId } : {}), ...(style ?? {}), ...(richText ? { richText } : {}) };
             if (index === undefined) { cellIndexes.set(key, cells.length); cells.push(cell); }
             else cells[index] = cell;

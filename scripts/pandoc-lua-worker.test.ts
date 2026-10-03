@@ -3,7 +3,8 @@ import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {expect,it} from "vitest";
 
-it("runs the shipped Lua SDK with caller R2 pages and no Node compatibility",async()=>{
+it.each(["json", "rtf"])("runs shipped %s Lua SDK with caller R2 pages and no Node compatibility",async from=>{
+  const input = from === "rtf" ? String.raw`{\rtf1 hello}` : JSON.stringify({"pandoc-api-version":[1,23,1,2],meta:{},blocks:[{t:"Para",c:[{t:"Str",c:"hello"}]}]});
   const root=fileURLToPath(new URL("../",import.meta.url));
   const bundle=await build({stdin:{resolveDir:root,contents:`
     export {convertToOutput,createLuaFilterCapability} from "./packages/safe-bash-command-pandoc/dist/index.js";
@@ -25,10 +26,10 @@ it("runs the shipped Lua SDK with caller R2 pages and no Node compatibility",asy
         await namespace.writeFile('/filter.lua',new Uint8Array());
         await env.PAGES.put('source',encoder.encode("function Str(el) return pandoc.Str(string.upper(el.text)) end"));
         const supplied=new Proxy(fs,{get(target,key){if(key==='readStream')return async function*(path){if(path!=='/filter.lua')throw new Error('Unexpected read');const source=await env.PAGES.get('source');yield* source.body;};const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;}});
-        const result=await api.createPandocCommand().execute({command:'pandoc',args:['-fjson','-tplain','-L','/filter.lua'],cwd:'/',env:{TMPDIR:'/spill'},fs:supplied,signal:new AbortController().signal,stdin:(async function*(){yield encoder.encode(JSON.stringify({'pandoc-api-version':[1,23,1,2],meta:{},blocks:[{t:'Para',c:[{t:'Str',c:'hello'}]}]}));})(),stdout:{async write(bytes){text+=new TextDecoder().decode(bytes);length+=bytes.length;largest=Math.max(largest,bytes.length);}},stderr:{async write(bytes){throw new Error(new TextDecoder().decode(bytes));}}});
+        const result=await api.createPandocCommand().execute({command:'pandoc',args:['-f${from}','-tplain','-L','/filter.lua'],cwd:'/',env:{TMPDIR:'/spill'},fs:supplied,signal:new AbortController().signal,stdin:(async function*(){yield encoder.encode(${JSON.stringify(input)});})(),stdout:{async write(bytes){text+=new TextDecoder().decode(bytes);length+=bytes.length;largest=Math.max(largest,bytes.length);}},stderr:{async write(bytes){throw new Error(new TextDecoder().decode(bytes));}}});
         if(result.exitCode!==0)throw new Error('Command failed');closed++;
         await env.PAGES.delete('source');
-      } else try {await api.convertToOutput([{bytes:encoder.encode(JSON.stringify({'pandoc-api-version':[1,23,1,2],meta:{},blocks:[{t:'Para',c:[{t:'Str',c:'hello'}]}]}))}],{from:'json',to:'plain',filters:[{kind:'lua',path:'/filter.lua'}]},{workingFiles:{fs,directory:'/spill',cacheBytes:1048576},filters,output:{async write(bytes){length+=bytes.length;largest=Math.max(largest,bytes.length);text+=new TextDecoder().decode(bytes);},async close(){closed++;},async abort(){}}});}
+      } else try {await api.convertToOutput([{bytes:encoder.encode(${JSON.stringify(input)})}],{from:'${from}',to:'plain',filters:[{kind:'lua',path:'/filter.lua'}]},{workingFiles:{fs,directory:'/spill',cacheBytes:1048576},filters,output:{async write(bytes){length+=bytes.length;largest=Math.max(largest,bytes.length);text+=new TextDecoder().decode(bytes);},async close(){closed++;},async abort(){}}});}
       catch(error){code=error.code;if(error!==delivered)throw error;}
       return Response.json({text,length,largest,errorBytes,code,closed,events,remaining:(await env.PAGES.list({limit:1})).objects.length,namespace:await namespace.readdir('/spill')});
     }};

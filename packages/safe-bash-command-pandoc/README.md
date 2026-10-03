@@ -198,6 +198,11 @@ response replaces the prior document before the next filter starts. At most five
 page caches coexist (two document pairs and one response spool), independently
 of filter count. Filter image-origin admission currently materializes each URI;
 the trusted runtime's own document state is separate and must be measured.
+Single-input RTF → JSON/plain/HTML/CommonMark/GFM/RST/LaTeX also uses caller-backed
+source, parser state, document nodes and real Lua or JSON filters. Embedded picture
+bytes stay in caller storage independently of filter document generations; JSON
+output continues to reject resource sidecars even after a filter removes the images.
+RTF → RTF/ODT, embedded HTML and finite structural budgets still use the compatibility path.
 Single-input JSON → plain text uses the same retained document and streaming
 JSON filters. Its writer jobs, diagnostic paths, intermediate text, wrapping and
 indentation use caller storage, including long words and nested lists. It preserves
@@ -372,6 +377,7 @@ chunks; source bytes count toward cooperative work and cancellation checkpoints.
 The shell uses the injected filesystem’s stream reader when available; an explicitly
 buffered reader remains supported for compatibility. For the retained JSON/CSV
 conversion routes targeting JSON, plain text, HTML, Markdown, RST, LaTeX, RTF or ODT,
+and the RTF text conversions described above,
 `convertToOutput` with `workingFiles` runs Lua through caller-backed
 compiler, VM, tables, strings and document storage with fixed page caches. Use an
 external safe-fs backend for large files. RTF/ODT preserve image-origin sidecars in caller storage, including unchanged

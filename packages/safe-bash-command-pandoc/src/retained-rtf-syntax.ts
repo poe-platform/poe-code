@@ -17,7 +17,7 @@ const digit = (byte: number) => byte >= 48 && byte <= 57;
 
 /** Caller-backed source spans and token links. Group parents replace a resident
  * parser stack; payloads are replayed in bounded chunks, never copied into tokens.
- * This is private reader infrastructure, not yet a replacement for RtfReader. */
+ * The retained reader uses this tape for public output conversions. */
 export class RetainedRtfSyntax {
   root = 0;
   private readonly source: PagedStorage;

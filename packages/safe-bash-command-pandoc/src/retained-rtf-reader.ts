@@ -23,7 +23,7 @@ type Frame = {
 /** Invocation-owned semantic execution. Only one formatting state and the
  * current root/note flow are resident; group and field continuations are backed.
  * The caller owns storage and syntax until both document and resource consumers
- * finish. This private reader is not yet the public conversion admission path. */
+ * finish. The output adapter preserves that ownership across filters. */
 class RetainedRtfReader {
   readonly ast: RetainedRtfAst;
   blocks!: RtfValue;
@@ -300,6 +300,7 @@ class RetainedRtfReader {
     const id = `rtf-picture-${number}.${encoding === "jpeg" ? "jpg" : "png"}`;
     await this.flow.append(await this.ast.tag("Image", await this.ast.value([["", [], []], [], [id, ""]])));
   }
+  get resourceCount(): number {return this.pictureCount;}
   async resource(id: string): Promise<{chunks: () => AsyncGenerator<Uint8Array>} | undefined> {
     if (!id.startsWith("rtf-picture-") || id.length > 40) return undefined;
     const number = Number(id.slice(12, id.lastIndexOf(".")));

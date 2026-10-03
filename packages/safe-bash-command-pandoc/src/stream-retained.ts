@@ -49,7 +49,8 @@ async function checkImageOrigins(tree: BackedJson, context: ExecutionContext): P
 
 /** Retain each document generation and filter response in caller storage. The
  * previous generation is retired before another filter starts. */
-export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>>>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt" = "json", origin?: ResourceOrigin, includes?: RetainedOptions): Promise<void> {
+export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>> & {resourceCount?: number; closeResources?: () => Promise<void>}>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt" = "json", origin?: ResourceOrigin, includes?: RetainedOptions): Promise<void> {
+  let closeResources: (() => Promise<void>) | undefined;
   let originStorage:PagedStorage | undefined, origins:RetainedOrigins | undefined;
   let releaseOrigins:(()=>void) | undefined;
   let document: Awaited<ReturnType<typeof readRetainedJson>> | undefined;
@@ -65,7 +66,10 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       const owned=originStorage;releaseOrigins=context.onClose(()=>owned.close());
       origins=new RetainedOrigins(originStorage,units=>context.cooperate(units));
     }
-    document = await load();
+    const loaded = await load();
+    const resourceCount = loaded.resourceCount ?? 0;
+    closeResources = loaded.closeResources;
+    document = loaded;
     for (const file of options.metadataFiles ?? []) {
       const next = await mergeRetainedMetadata(document, {source: file}, context, working);
       await document.close();
@@ -136,11 +140,13 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     else if (target === "html5") await writeRetainedHtml(document.tree, context, working, includes ? {...options, standalone: includes.standalone} : options, includes);
     else if (target === "commonmark" || target === "gfm") await writeRetainedMarkdown(document.tree, context, working, options, createFormatRegistry().resolve(options.to, "write"));
     else {
+      if (resourceCount) throw new PandocError("E_UNSUPPORTED_FEATURE", "write", "Pandoc JSON cannot represent resources, language or direction document fields", "json", "$");
       await preflight(document.chunks(options.eol));
       for await (const bytes of document.chunks(options.eol)) await context.emit(bytes);
     }
   } catch (reason) {failure = {reason};}
   try {await document?.close();} catch (reason) {failure ??= {reason};}
+  try {await closeResources?.();} catch (reason) {failure ??= {reason};}
   try {await originStorage?.close();} catch (reason) {failure ??= {reason};} finally{releaseOrigins?.();}
   try {await includes?.close();} catch (reason) {failure ??= {reason};}
   if (failure) throw failure.reason;

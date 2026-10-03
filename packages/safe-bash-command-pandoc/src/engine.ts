@@ -26,6 +26,7 @@ import type {
   WriterCapability
 } from "./types.js";
 
+import {readRetainedRtfDocument} from "./retained-rtf-document.js";
 import {streamRetainedDocument} from "./stream-retained.js";
 import {readRetainedJson} from "./retained-json.js";
 import {streamDelimited} from "./stream-delimited.js";
@@ -624,17 +625,21 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
   const reader = registry.resolve(options.from, "read"), writer = registry.resolve(options.to, "write");
   const streamedFilters = options.filters === undefined || Array.isArray(options.filters) && options.filters.every(request =>
     (request?.kind === "json" || request?.kind === "lua") && typeof context.filters?.applyJsonStream === "function");
-  const backedJson = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
-    && reader.descriptor.name === "json" && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
+  const backedDocument = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
+    && (reader.descriptor.name === "json" || reader.descriptor.name === "rtf" && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex"].includes(writer.descriptor.name)) && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
     && Object.keys(options).every(key => key === "resourcePath" && ["rtf", "odt"].includes(writer.descriptor.name) || ["from", "to", "filters", "metadata", "metadataFiles", "metadataJson", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
     && Object.entries(context.limits ?? {}).every(([key, value]) => ["inputBytes", "outputBytes", "work", "diagnostics"].includes(key) || value === Infinity);
-  if (backedJson) {
+  if (backedDocument) {
     const session = new Session("convert", context);
     try {
       session.options(options);
       const includes = await session.call(() => RetainedOptions.acquire(session, context.workingFiles!, options));
       const filters = await session.admitFilters(options.filters);
-      await session.call(() => streamRetainedDocument(() => readRetainedJson(inputs[0]!, session, context.workingFiles!), session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", inputs[0]!, includes));
+      await session.call(() => streamRetainedDocument(async () => {
+        if (reader.descriptor.name === "json") return readRetainedJson(inputs[0]!, session, context.workingFiles!);
+        const retainedRtf = await readRetainedRtfDocument(inputs[0]!, session, context.workingFiles!);
+        return {...retainedRtf.document, resourceCount: retainedRtf.resources.count, closeResources: retainedRtf.close};
+      }, session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", inputs[0]!, includes));
       return {kind: "output", diagnostics: session.snapshotDiagnostics()};
     } finally {await session.close();}
   }

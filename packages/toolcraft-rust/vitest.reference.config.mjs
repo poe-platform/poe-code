@@ -121,6 +121,7 @@ export default defineConfig({
       path("tests/hosted-oauth-config-parity.test.ts"),
       path("tests/hosted-oauth-storage-parity.test.ts"),
       path("tests/hosted-oauth-login-parity.test.ts"),
+      path("tests/hosted-oauth-http-parity.test.ts"),
       ...mcpSuites.map(suite => path(`../toolcraft/src/${suite}.test.ts`)),
       path("tests/source-snippet-parity.test.ts"),
       path("tests/runtime-io-parity.test.ts"),

@@ -4399,3 +4399,47 @@ Screenshot verification remains pending: automatic approval review rejected
 whole-window capture because private browser bookmarks/profile metadata remain
 visible, and no tab-scoped browser backend is available. User approval for that
 incidental metadata capture has been requested. This is not completed visual QA.
+
+### Safe Bash discovery performance observation
+
+During hosted HTTP work, the routine Safe Bash command
+`rg --files -g AGENTS.md packages/toolcraft-rust packages` remained live for more
+than 12 minutes without returning its inventory. The identified child still used
+41.8% CPU at 12:37 elapsed. Native ripgrep completed the same command from the same
+checkout in 0.39 seconds and listed six instruction files. The unnecessary Safe
+Bash scan was terminated after its process identity was verified. This records
+an observed performance difference; ignored-directory traversal, symlink behavior
+and other possible causes have not yet been isolated. No Safe Bash code was changed.
+
+### Hosted OAuth HTTP helper checkpoint
+
+Rust now controls chunk conversion/admission, exact byte-limit rejection, header
+array normalization, default request paths, body inclusion, response forwarding
+order and missing-credential admission. Node retains async iteration and iterator
+cleanup, live platform constructors, original promises/thenables, Buffer operations
+and credential callback receivers. No external dependencies or defaults changed.
+
+Six missing-module failures preceded implementation. Eight final differential
+cases exercise mixed chunks, exact limits, NaN limits, rejected iterator cleanup,
+UTF-8 conversion, header filtering, URL/method behavior, response ordering and
+thenables, original failures, live credential methods and opaque identity. Added
+failures caught late constructor lookup, inherited body setters, a leaked
+response.end return value and strict-boolean treatment of overridden Buffer and
+array predicates. Constructors now retain reference evaluation order, body is an
+own property, response forwarding preserves the reference's void callback, and
+host predicates preserve truthiness. Fixtures remain in memory.
+
+The final maintained unit route passes Rust tests, 266 native Node checks,
+6,006 reference/parity cases across 109 files, declarations and the original CLI
+type consumer. Maintained Rust/binding lint and scoped ESLint pass. A packed
+consumer verifies body reading, Web Request conversion, response forwarding and
+opaque credential identity against the reference without adding dependencies.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 300 operations, retaining
+32 results, measured 83.728 microseconds native versus 39.923 microseconds
+JavaScript (2.10 times slower). Each operation reads two chunks, creates a POST
+request, reads its text, forwards a Web Response and reads an opaque credential.
+Timings varied across rounds; no performance/default-swap gate passed. Full hosted
+runtime routing, HTTP/OAuth public exports and complete replacement qualification
+remain open. These helpers introduce no visual presentation change; the earlier
+login screenshot verification remains pending.

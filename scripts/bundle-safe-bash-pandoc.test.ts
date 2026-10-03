@@ -91,7 +91,7 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
         const scenario = new URL(request.url).pathname.slice(1);
         const vfs = fs.createMemoryFileSystem();
         const encoder = new TextEncoder();
-        if (scenario !== "composed" && scenario !== "tables") vfs.readFile = () => {
+        if (scenario !== "composed" && scenario !== "tables" && scenario !== "ranges") vfs.readFile = () => {
           throw new Error("Document and filter files must stream");
         };
         await vfs.writeFile("/input.md", encoder.encode("**portable**"));
@@ -102,6 +102,7 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
           syntax: 'function Str(',
           budget: 'while true do end',
         };
+        if (scenario === "ranges") await vfs.writeFile("/filter.lua", encoder.encode(scripts.lua));
         if (scripts[scenario]) await vfs.writeFile("/filter.lua", encoder.encode(scripts[scenario]));
         if (scenario === "sdk") {
           await vfs.writeFile("/filter.lua", encoder.encode(scripts.lua));
@@ -182,7 +183,12 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
         const command = pandoc.createPandocCommand(scenario === "budget" ? {limits: {work: 10000}} : {});
         const outcome = await command.execute({
           command: "pandoc", args: ["-f", "markdown", "-t", "html", ...(scenario ? ["--lua-filter", "/filter.lua", "/input.md"] : [])], cwd: "/", env: {},
-          fs: vfs, signal: new AbortController().signal,
+          fs: scenario === "ranges" ? new Proxy(vfs, {get(target, key) {
+            if (key === "readStream") return undefined;
+            if (key === "readFile") return () => {throw new Error("Whole-file access is forbidden");};
+            const value = Reflect.get(target, key, target);
+            return typeof value === "function" ? value.bind(target) : value;
+          }}) : vfs, signal: new AbortController().signal,
           stdin: (async function* () { yield new TextEncoder().encode("**portable**"); })(),
           stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
           stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
@@ -195,7 +201,7 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
     const response = await runtime.dispatchFetch("https://pandoc.test");
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ exitCode: 0, stdout: "<p><strong>portable</strong></p>\n", stderr: "" });
-    for (const scenario of ["lua", "sdk"]) {
+    for (const scenario of ["lua", "sdk", "ranges"]) {
       const filtered = await runtime.dispatchFetch("https://pandoc.test/" + scenario);
       expect(await filtered.json()).toEqual({exitCode: 0, stdout: "<p><strong>PORTABLE</strong></p>\n", stderr: ""});
     }

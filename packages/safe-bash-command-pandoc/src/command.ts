@@ -11,7 +11,7 @@ import {inspectCommand} from "./inspection.js";
 import {PandocError} from "./errors.js";
 import {defaultLimits} from "./execution.js";
 import type {ConversionContext, FilterCapability} from "./types.js";
-import {dirname} from "@poe-code/safe-fs/core";
+import {dirname, readFileStream} from "@poe-code/safe-fs/core";
 import {createOutputOperation, getCommandArguments, readBytes, FsError, type CommandDefinition, type CommandContext, type OutputOperation, type FileStat, type VirtualShellPlugin} from "safe-bash-contracts";
 import {writeFileOutput} from "safe-bash-contracts/filesystem-output-budget";
 import {compareObservedEntries, compareCopyIdentity} from "safe-bash-contracts/filesystem-identity";
@@ -110,12 +110,12 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
           context.inputBudget?.check(total);
           return bytes;
         }, () => {}),
-        ...(context.fs.readStream ? {readStream: async function* (path: string, _signal: AbortSignal, remainingBytes?: number) {
+        readStream: async function* (path: string, _signal: AbortSignal, remainingBytes?: number) {
           const signal = readSignal;
           signal.throwIfAborted();
           const bound = Math.min(maxBytes, remainingBytes ?? maxBytes);
           let bytes = 0;
-          const source = context.fs.readStream!(pathOf(context, path), {signal, chunkSize: 65536});
+          const source = readFileStream(context.fs, pathOf(context, path), {signal, chunkSize: 65536});
           for await (const chunk of readBytes(source, signal)) {
             bytes += chunk.byteLength;
             if (bytes > bound) throw new PandocError("E_LIMIT", "convert", "Input byte limit exceeded");
@@ -123,7 +123,7 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
             context.inputBudget?.check(total);
             yield chunk;
           }
-        }} : {}),
+        },
         // Parsing checks authority without acquiring or opening the destination.
         writeFile: async () => {}
       };

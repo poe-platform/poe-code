@@ -1,4 +1,5 @@
 import {expect, it, vi} from "vitest";
+import {FsError} from "@poe-code/safe-fs/core";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {parseConversionArgs} from "./cli.js";
 import {convert} from "./engine.js";
@@ -145,4 +146,33 @@ it("closes a remote document stream when its next pull cancels the command", asy
   })).rejects.toBe(reason);
   expect(closed).toHaveBeenCalledOnce();
   expect(stdout).not.toHaveBeenCalled();
+});
+
+it.each(["absent", "unsupported"])("reads documents and Lua filters through retained ranges with %s streams", async mode => {
+  const backing = new MemoryFileSystem();
+  await backing.writeFile("/document.md", encoder.encode("Hello"));
+  await backing.writeFile("/filter.lua", encoder.encode('function Str(el) el.text = string.upper(el.text); return el end'));
+  const readFile = vi.fn(async () => {throw new Error("whole-file access is forbidden");});
+  const openReadFile = vi.fn(backing.openReadFile.bind(backing));
+  const fs = new Proxy(backing, {
+    get(target, key) {
+      if (key === "readStream") return mode === "absent" ? undefined : async function* () {yield await Promise.reject(new FsError("ENOTSUP"));};
+      if (key === "readFile") return readFile;
+      if (key === "openReadFile") return openReadFile;
+      const value = Reflect.get(target, key);
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  });
+  let output = "";
+  const stderr = vi.fn(async () => {});
+  const result = await createPandocCommand().execute({
+    command: "pandoc", args: ["-f", "commonmark", "-t", "html", "--lua-filter", "filter.lua", "document.md"],
+    cwd: "/", env: {}, fs, signal: new AbortController().signal, stdin: (async function* () {})(),
+    stdout: {async write(bytes) {output += new TextDecoder().decode(bytes);}}, stderr: {write: stderr}
+  });
+  expect(stderr).not.toHaveBeenCalled();
+  expect(result).toEqual({exitCode: 0});
+  expect(output).toBe("<p>HELLO</p>\n");
+  expect(readFile).not.toHaveBeenCalled();
+  expect(openReadFile.mock.calls.map(([path]) => path)).toEqual(["/document.md", "/filter.lua"]);
 });

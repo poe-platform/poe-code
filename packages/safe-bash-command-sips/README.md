@@ -17,8 +17,12 @@ available for callers that already hold complete inputs.
 `runSipsCli(argv, { filesystem, cwd }, signal)` uses the same file authority as the
 command. Property queries and verification retain raster sources; PNG/JPEG custom
 properties are scanned in bounded ranges without reading unrelated pixel payloads.
-Mutations currently use the byte-oriented processing engine and publish through the
-supplied filesystem. The byte-map and synchronous convenience APIs remain available.
+PNG, JPEG, WebP, TIFF, GIF, BMP and Netpbm mutations keep pixel and encoded
+intermediates in bounded caller-backed storage, including fractional crop/pad
+sampling and intermediate lossy encodings. Capable filesystems publish output
+conditionally after processing and scratch cleanup. SVG/PDF/HEIF codecs and legacy
+filesystem capabilities retain their byte-oriented compatibility paths. The byte-map
+and synchronous convenience APIs remain available.
 
 The workspace entrypoint exports `sipsCommands()` for plugin registration,
 `createSipsCommands()` for the command collection, and

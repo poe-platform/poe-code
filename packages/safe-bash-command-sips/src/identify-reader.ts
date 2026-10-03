@@ -12,6 +12,11 @@ export interface IdentifyFileInput {
 }
 export type IdentifyInspection={readonly metadata:ImageMetadata;readonly size:number;readonly stats?:ImageStats;readonly properties?:Map<string,string|null>}|{readonly error:unknown};
 export type IdentifyReader=(path:string,base:string,page:number|undefined,verbose:boolean)=>Promise<IdentifyInspection|undefined>;
+/** Keep the command's established TIFF bounds diagnostic across byte and range parsers. */
+export function imageInspectionError(error:unknown):unknown{
+ return error instanceof Error&&error.message==="Truncated TIFF directory"?new RangeError("Offset is outside the bounds of the DataView"):error;
+}
+
 class ReadFailure extends Error {constructor(readonly reason:unknown){super("Image input read failed");}}
 const missing=(error:unknown):boolean=>error instanceof FsError&&["ENOENT","ENOTDIR","EISDIR","EACCES","EPERM"].includes(error.code);
 
@@ -71,7 +76,7 @@ export function createIdentifyReader(input:IdentifyFileInput,signal:AbortSignal,
      const stats=verbose?await computeStoredImageStats(await decodeImageToStorage(source,storage,signal,options),storage,signal):undefined;
      result={metadata,size:source.size,...(stats?{stats}:{}),...(properties?{properties:await readPropertiesFromSource(source,metadata.format,signal)}:{})};
     }
-   }catch(error){signal.throwIfAborted();if(error instanceof ReadFailure)throw error.reason;if(error instanceof FsError)throw error;result={error:error instanceof UnsupportedStoredResource?new Error("Input buffer contains unsupported image format"):error};}
+   }catch(error){signal.throwIfAborted();if(error instanceof ReadFailure)throw error.reason;if(error instanceof FsError)throw error;result={error:error instanceof UnsupportedStoredResource?new Error("Input buffer contains unsupported image format"):imageInspectionError(error)};}
    const final=await handle.stat({signal});signal.throwIfAborted();
    if(compareIdentity(initial,final)==="distinct"||!compareFileVersion(initial,final))throw new FsError("EAGAIN",{path,message:"Image source changed while inspecting"});
   }catch(error){failure={error};}

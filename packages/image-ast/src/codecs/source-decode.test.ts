@@ -26,3 +26,19 @@ it(`honors generated input before source access: ${"create" in options?"create":
  const source={get size():number{throw new Error("unused source");},async read(){throw new Error("unused source");}};
  try{const decoded=await image.decodeImageToStorage(source,storage,signal,options),expected=image.decodeImage(undefined,options);expect({width:decoded.width,height:decoded.height}).toEqual({width:expected.width,height:expected.height});expect(await storage.read(decoded.position,4)).toEqual(expected.data.subarray(0,4));}finally{await storage.close();}
 });
+
+it("exposes retained encoding with final output information",async()=>{
+ expect(image).toHaveProperty("encodeStoredImage");
+ const signal=new AbortController().signal,storage=new PagedStorage({fs:new MemoryFileSystem(),cwd:"/",env:{},signal});
+ try{const bytes=new Uint8Array([1,2,3,4]),decoded=await image.decodeImageToStorage({size:4,async read(){return bytes;}},storage,signal,{raw:{width:1,height:1,channels:4}}),encoded=image.encodeStoredImage(decoded,storage,signal,{format:"raw"});
+ expect((await encoded.next()).value).toEqual(bytes);expect(await encoded.next()).toMatchObject({done:true,value:{format:"raw",size:4,width:1,height:1,channels:4}});
+ expect(portable.encodeStoredImage).toBe(image.encodeStoredImage);
+ }finally{await storage.close();}
+});
+
+it("exposes retained file scoping to adapters using the caller filesystem",async()=>{
+ expect(image).toHaveProperty("withImageSource");const fs=new MemoryFileSystem();await fs.writeFile("/in",new Uint8Array([1,2,3]));
+ const signal=new AbortController().signal;
+ expect(await image.withImageSource("/in",fs,signal,async source=>source.read(0,3,{signal}))).toEqual(new Uint8Array([1,2,3]));
+ expect(portable.withImageSource).toBe(image.withImageSource);
+});

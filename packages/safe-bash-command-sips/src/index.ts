@@ -1,12 +1,11 @@
+import {runSipsFiles,type SipsInputReader,type SipsFileInput} from "./sips-file.js";
+export type {SipsFileInput} from "./sips-file.js";
+import {bufferedImageBackend,performImage,roundtripImage,runImageSteps,ImageStorageFailure,type SipsImageBackend} from "./image-backend.js";
 export {writePropertiesStream} from "./properties.js";
 import {createIdentifyReader,inspectIdentifyBytes,type IdentifyReader,type IdentifyFileInput,type IdentifyInspection} from "./identify-reader.js";
 export type {IdentifyFileInput} from "./identify-reader.js";
-import { resolvePath } from "safe-bash-contracts/path";
-import { readProperties, writeProperties } from "./properties.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { FsError } from "safe-bash-contracts/errors";
 import { InputByteBudget } from "safe-bash-contracts/io";
-import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
   getCommandArguments,
@@ -16,7 +15,7 @@ import {
 import { writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { decodeImage, encodeImage, parseColor, readImageMetadata, type ImageFormat, type ImageMetadata, type RgbaImage, extendImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, resizeImageSteps, rotateImageSteps } from "@poe-code/image-ast/portable";
+import { parseColor, type ImageFormat, type ImageMetadata } from "@poe-code/image-ast/portable";
 
 export interface SipsLimits {
   readonly maxInputBytes: number;
@@ -166,63 +165,7 @@ function normalizeTargetFormat(fmt: string): ImageFormat | undefined {
   return undefined;
 }
 
-function* applySipsOddCanvasCropOrPadSteps(image: RgbaImage, curW: number, curH: number, dstW: number, dstH: number, padColorInput: {
-    readonly r: number;
-    readonly g: number;
-    readonly b: number;
-    readonly alpha?: number;
-} | string): Generator<void, RgbaImage, void> {
-    let work = 0;
-    const rawObj = encodeImage(image.channels === 2 ? { ...image, space: "srgb", channels: 4 } : image, { format: "raw" });
-    const ch = rawObj.channels as 1 | 2 | 3 | 4;
-    const src = rawObj.data;
-    const pad = parseColor(padColorInput, ch === 4 || ch === 2 ? 0 : 255);
-    const bg = [pad.r, pad.g, pad.b, pad.a];
-    const offsetX = (dstW - curW) / 2;
-    const offsetY = (dstH - curH) / 2;
-    const out = new Uint8Array(dstW * dstH * ch);
-    const sampleCh = (ix: number, iy: number, c: number): number => {
-        if (ix < 0 || ix >= curW || iy < 0 || iy >= curH) {
-            return bg[c] ?? 0;
-        }
-        return src[(iy * curW + ix) * ch + c]!;
-    };
-    for (let y = 0; y < dstH; y++) {
-        if (++work % 16384 === 0)
-            yield;
-        const sy = y - offsetY;
-        const iy0 = Math.floor(sy);
-        const wy1 = sy - iy0;
-        const wy0 = 1 - wy1;
-        const iy1 = iy0 + 1;
-        for (let x = 0; x < dstW; x++) {
-            if (++work % 16384 === 0)
-                yield;
-            const sx = x - offsetX;
-            const ix0 = Math.floor(sx);
-            const wx1 = sx - ix0;
-            const wx0 = 1 - wx1;
-            const ix1 = ix0 + 1;
-            const dIdx = (y * dstW + x) * ch;
-            for (let c = 0; c < ch; c++) {
-                if (++work % 16384 === 0)
-                    yield;
-                const v = sampleCh(ix0, iy0, c) * wx0 * wy0 +
-                    sampleCh(ix1, iy0, c) * wx1 * wy0 +
-                    sampleCh(ix0, iy1, c) * wx0 * wy1 +
-                    sampleCh(ix1, iy1, c) * wx1 * wy1;
-                out[dIdx + c] = Math.max(0, Math.min(255, Math.round(v)));
-            }
-        }
-    }
-    return decodeImage(out, { raw: { width: dstW, height: dstH, channels: ch } });
-}
-
-type SipsInputReader=(path:string,mutation:boolean)=>Promise<IdentifyInspection|undefined>;
-export interface SipsFileInput extends IdentifyFileInput {
- readonly registerCleanup?:CommandContext["registerCleanup"];
-}
-function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal,read?:SipsInputReader): Generator<void|Promise<void>, SipsCliResult, void> {
+function* runSipsCliSteps<Bytes,Image>(argv: readonly string[], files: Map<string, Bytes>,backend:SipsImageBackend<Bytes,Image>, signal?: AbortSignal,read?:SipsInputReader): Generator<void|Promise<void>, SipsCliResult, void> {
     let cooperativeWork = 63;
     if (argv.length === 0) {
         return {
@@ -560,8 +503,8 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
         try {
             const inspected=inspection.value;
             if(inspected&&"error" in inspected)throw inspected.error;
-            let meta = inspected?.metadata??readImageMetadata(inBytes!);
-            const mergedProps = inspected?.properties??readProperties(inBytes!, meta.format);
+            let meta = inspected?.metadata??(yield* performImage(backend.metadata(inBytes!)));
+            const mergedProps = inspected?.properties??(yield* performImage(backend.readProperties(inBytes!, meta.format)));
             for (const [k, v] of customSetProps) {
                 if (++cooperativeWork % 64 === 0)
                     yield;
@@ -573,20 +516,22 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
             const origH = meta.height;
             const effectivePadColor = padColor ?? (meta.hasAlpha ? { r: 0, g: 0, b: 0, alpha: 0 } : "000000");
             if (hasMutation) {
-                let image = decodeImage(inBytes!);
-                let resizeInput: RgbaImage | undefined;
+                let image = (yield* performImage(backend.decode(inBytes!)));
+                let resizeInput: Image | undefined;
                 for (const act of effectiveActions) {
                     yield;
                     if (act.kind === "rotate") {
-                        const rotated = encodeImage((yield* rotateImageSteps(image, act.degrees, parseColor(effectivePadColor))), {}).data;
-                        image = decodeImage(rotated);
+                        const rotatedImage=yield* performImage(backend.rotate(image,act.degrees,parseColor(effectivePadColor)));
+                        const rotated=yield* performImage(backend.encode(rotatedImage,{}));
+                        image = (yield* performImage(backend.decode(rotated)));
                         resizeInput = undefined;
-                        meta = readImageMetadata(rotated);
+                        meta = (yield* performImage(backend.metadata(rotated)));
                         curW = meta.width;
                         curH = meta.height;
                     }
                     else if (act.kind === "flip") {
-                        image = decodeImage(encodeImage(act.direction === "horizontal" ? (yield* flopImageSteps(image)) : (yield* flipImageSteps(image)), {}).data);
+                        const flipped=yield* performImage(act.direction === "horizontal"?backend.flop(image):backend.flip(image));
+                        image=yield* roundtripImage(backend,flipped);
                         resizeInput = undefined;
                     }
                     else if (act.kind === "resampleMax") {
@@ -622,7 +567,7 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                         if (cropOffsetX === undefined &&
                             cropOffsetY === undefined &&
                             ((act.width - curW) % 2 !== 0 || (act.height - curH) % 2 !== 0)) {
-                            image = (yield* applySipsOddCanvasCropOrPadSteps(image, curW, curH, act.width, act.height, effectivePadColor));
+                            image = (yield* performImage(backend.oddCanvas(image, curW, curH, act.width, act.height, effectivePadColor)));
                             curW = act.width;
                             curH = act.height;
                             resizeInput = undefined;
@@ -637,24 +582,24 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                             const srcBottom = Math.max(srcTop + 1, Math.min(curH, oy + act.height));
                             const cw = srcRight - srcLeft;
                             const ch = srcBottom - srcTop;
-                            image = (yield* extractImageSteps(image, { left: srcLeft, top: srcTop, width: cw, height: ch }));
+                            image = (yield* performImage(backend.extract(image, { left: srcLeft, top: srcTop, width: cw, height: ch })));
                             const padLeft = Math.max(0, srcLeft - ox);
                             const padTop = Math.max(0, srcTop - oy);
                             const padRight = Math.max(0, act.width - cw - padLeft);
                             const padBottom = Math.max(0, act.height - ch - padTop);
                             if (padLeft > 0 || padTop > 0 || padRight > 0 || padBottom > 0) {
-                                image = (yield* extendImageSteps(image, {
+                                image = (yield* performImage(backend.extend(image, {
                                     top: padTop,
                                     bottom: padBottom,
                                     left: padLeft,
                                     right: padRight,
                                     background: parseColor(effectivePadColor),
                                     extendWith: "background"
-                                }));
+                                })));
                             }
                             curW = act.width;
                             curH = act.height;
-                            image = decodeImage(encodeImage(image, {}).data);
+                            image = yield* roundtripImage(backend,image);
                             resizeInput = undefined;
                             continue;
                         }
@@ -666,7 +611,7 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                         const top = cropOffsetY !== undefined
                             ? Math.max(0, Math.min(curH - ch, cropOffsetY))
                             : Math.max(0, Math.floor((curH - ch) / 2));
-                        image = (yield* extractImageSteps(image, { left, top, width: cw, height: ch }));
+                        image = (yield* performImage(backend.extract(image, { left, top, width: cw, height: ch })));
                         curW = cw;
                         curH = ch;
                         if (act.width > curW || act.height > curH) {
@@ -676,23 +621,23 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                             const padRight = padX - padLeft;
                             const padTop = Math.floor(padY / 2);
                             const padBottom = padY - padTop;
-                            image = (yield* extendImageSteps(image, {
+                            image = (yield* performImage(backend.extend(image, {
                                 top: padTop,
                                 bottom: padBottom,
                                 left: padLeft,
                                 right: padRight,
                                 background: parseColor(effectivePadColor),
                                 extendWith: "background"
-                            }));
+                            })));
                             curW = act.width;
                             curH = act.height;
                         }
-                        image = decodeImage(encodeImage(image, {}).data);
+                        image = yield* roundtripImage(backend,image);
                         resizeInput = undefined;
                     }
                     else if (act.kind === "pad") {
                         if ((act.width - curW) % 2 !== 0 || (act.height - curH) % 2 !== 0) {
-                            image = (yield* applySipsOddCanvasCropOrPadSteps(image, curW, curH, act.width, act.height, effectivePadColor));
+                            image = (yield* performImage(backend.oddCanvas(image, curW, curH, act.width, act.height, effectivePadColor)));
                             curW = act.width;
                             curH = act.height;
                             resizeInput = undefined;
@@ -703,7 +648,7 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                             const ch = Math.min(curH, act.height);
                             const left = Math.max(0, Math.floor((curW - cw) / 2));
                             const top = Math.max(0, Math.floor((curH - ch) / 2));
-                            image = (yield* extractImageSteps(image, { left, top, width: cw, height: ch }));
+                            image = (yield* performImage(backend.extract(image, { left, top, width: cw, height: ch })));
                             curW = cw;
                             curH = ch;
                         }
@@ -713,35 +658,36 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                         const right = padX - left;
                         const top = Math.floor(padY / 2);
                         const bottom = padY - top;
-                        image = (yield* extendImageSteps(image, {
+                        image = (yield* performImage(backend.extend(image, {
                             top,
                             bottom,
                             left,
                             right,
                             background: parseColor(effectivePadColor),
                             extendWith: "background"
-                        }));
+                        })));
                         curW = act.width;
                         curH = act.height;
-                        image = decodeImage(encodeImage(image, {}).data);
+                        image = yield* roundtripImage(backend,image);
                         resizeInput = undefined;
                     }
                     if (isResample(act.kind)) {
                         // Repeated resample flags replace the pending resize until the next
                         // crop, pad, rotation or flip materializes the image.
                         resizeInput ??= image;
-                        image = (yield* resizeImageSteps(resizeInput, {
+                        image = (yield* performImage(backend.resize(resizeInput, {
                             width: curW, height: curH, fit: "fill", position: "centre", kernel: "lanczos3",
                             background: parseColor(), withoutEnlargement: false, withoutReduction: false
-                        }));
+                        })));
                     }
                 }
                 const outFmt = targetFormat ?? (meta.format === "pdf" || meta.format === "svg" ? "png" : meta.format);
                 const quality = resolveQualityOption(formatOptionsStr);
-                const outBytes = writeProperties(encodeImage(image, {
-                    format: outFmt, ...(quality === undefined ? {} : { quality }),
-                    ...(targetDpi === undefined ? {} : { density: targetDpi })
-                }).data, outFmt, mergedProps);
+                const encoded=yield* performImage(backend.encode(image,{
+                    format:outFmt,...(quality===undefined?{}:{quality}),
+                    ...(targetDpi===undefined?{}:{density:targetDpi})
+                }));
+                const outBytes=yield* performImage(backend.writeProperties(encoded,outFmt,mergedProps));
                 let finalOutPath = inPath;
                 if (outTarget) {
                     const normTarget = outTarget.endsWith("/") ? outTarget.slice(0, -1) : outTarget;
@@ -774,7 +720,7 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                     }
                 }
                 files.set(finalOutPath, outBytes);
-                meta = readImageMetadata(outBytes);
+                meta = (yield* performImage(backend.metadata(outBytes)));
                 if (getProperties.length === 0) {
                     outLines.push(inPath);
                     outLines.push(`  ${finalOutPath}`);
@@ -838,6 +784,7 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
             }
         }
         catch (err) {
+            if(err instanceof ImageStorageFailure)throw err.reason;
             errLines.push(`Error: ${inPath}: ${(err as Error).message}`);
             exitCode = 1;
         }
@@ -850,52 +797,11 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
 }
 export async function runSipsCli(argv: readonly string[], input: Map<string, Uint8Array>|SipsFileInput, signal?: AbortSignal): Promise<SipsCliResult> {
     const operationSignal=signal??new AbortController().signal;operationSignal.throwIfAborted();
-    const files="filesystem" in input?new Map<string,Uint8Array>():input,original=new Map<string,Uint8Array>();
-    let read:SipsInputReader|undefined,arguments_=argv;
-    if("filesystem" in input){
-      let total=0;
-      const charge=(size:number)=>{total+=size;input.inputBudget?.check(total);};
-      let inspectedTotal=0;
-      const inspect=createIdentifyReader({...input,inputBudget:{check(size){charge(size-inspectedTotal);inspectedTotal=size;}}},operationSignal,true);
-      read=async(path,mutation)=>{
-        if(!mutation)return inspect(path,path,undefined,false);
-        const pending=files.get(path);
-        if(pending){const initial=original.get(path);if(initial)charge(initial.length);return inspectIdentifyBytes(pending,undefined,false,operationSignal,true);}
-        let bytes:Uint8Array;
-        try{bytes=await input.filesystem.readFile(resolvePath(input.cwd,path),{signal:operationSignal});}
-        catch(error){if(error instanceof FsError&&["ENOENT","ENOTDIR","EISDIR","EACCES","EPERM"].includes(error.code))return undefined;throw error;}
-        charge(bytes.length);files.set(path,bytes);original.set(path,bytes);
-        return inspectIdentifyBytes(bytes,undefined,false,operationSignal,true);
-      };
-      const normalized=[...argv];
-      for(let index=0;index<normalized.length;index++){
-        if(normalized[index]!=="-o"&&normalized[index]!=="--out")continue;
-        const target=normalized[index+1];if(!target||target.endsWith("/"))continue;
-        try{if((await input.filesystem.stat(resolvePath(input.cwd,target),{signal:operationSignal})).type==="directory")normalized[index+1]=target+"/";}
-        catch(error){if(!(error instanceof FsError)||!["ENOENT","ENOTDIR"].includes(error.code))throw error;}
-      }
-      arguments_=normalized;
-    }
-    const steps=runSipsCliSteps(arguments_,files,operationSignal,read);
-    let result:SipsCliResult;
-    try{
-      let next=steps.next();
-      while(!next.done){
-        try{await (next.value??yieldTurn(operationSignal));operationSignal.throwIfAborted();next=steps.next();}
-        catch(error){operationSignal.throwIfAborted();next=steps.throw(error);}
-      }
-      result=next.value;
-    }finally{steps.return(undefined as unknown as SipsCliResult);}
-    if("filesystem" in input){
-      for(const [path,bytes]of files){
-        if(original.get(path)===bytes)continue;
-        await writeFileOutput({signal:operationSignal,...(input.registerCleanup?{registerCleanup:input.registerCleanup}:{})},bytes,data=>input.filesystem.writeFile(resolvePath(input.cwd,path),data,{signal:operationSignal}));
-      }
-    }
-    return result;
+    if("filesystem" in input)return runSipsFiles(argv,input,operationSignal,(args,files,backend,read)=>runImageSteps(runSipsCliSteps(args,files,backend,operationSignal,read),operationSignal));
+    return runImageSteps(runSipsCliSteps(argv,input,bufferedImageBackend,operationSignal),operationSignal);
 }
 export function runSipsCliSync(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): SipsCliResult {
-    const steps = runSipsCliSteps(argv, files, signal);
+    const steps = runSipsCliSteps(argv, files, bufferedImageBackend, signal);
     let next = steps.next();
     while (!next.done) {
         next = steps.next();

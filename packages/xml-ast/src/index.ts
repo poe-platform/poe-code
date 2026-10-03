@@ -1,3 +1,6 @@
+import { XmlLimitError } from "./errors.js";
+export { XmlLimitError } from "./errors.js";
+
 export interface XmlName {
   readonly name: string;
   readonly namespace: string;
@@ -30,9 +33,6 @@ export interface XmlLimits {
   readonly maxContentNodes?: number;
   readonly maxTextLength?: number;
   readonly onElement?: (element: XmlName, parent: XmlName | undefined, depth: number) => void;
-}
-export class XmlLimitError extends SyntaxError {
-  constructor(readonly limit: string, message: string) { super(message); }
 }
 
 function* find(source: string, needle: string, start: number): Generator<number, number, void> {

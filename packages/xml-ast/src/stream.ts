@@ -1,5 +1,6 @@
 import { SaxesParser } from "saxes/saxes.js";
-import { XmlLimitError, type XmlContent, type XmlElement, type XmlLimits } from "./index.js";
+import { XmlLimitError } from "./errors.js";
+import type { XmlContent, XmlElement, XmlLimits } from "./index.js";
 
 /** Incremental source consumption. The returned tree and individual XML tokens remain resident. */
 export async function parseXmlStream(

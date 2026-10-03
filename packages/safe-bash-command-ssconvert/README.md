@@ -221,10 +221,12 @@ for staging. Configure `workingFiles: { directory, cacheBytes }` on the command
 factory to select a staging directory and a cache size in 16 KiB multiples
 (default 1 MiB). Other built-in importers and workbook models still buffer; an external
 safe-fs backend is needed for staging without retaining its contents in RAM.
-Gnumeric XML and gzip exports stream encoded output with backpressure. With
-working storage configured, unordered-cell export uses bounded merge runs in the
-caller’s safe-fs. Workbook cells, individual fields, and retained metadata still
-use in-memory representations; this is not complete bounded-memory conversion.
+Gnumeric XML and gzip exports stream encoded output with backpressure. CSV/text
+conversions without global evaluation replay cells from retained input, including
+styles and sheet extents, without building full cell arrays. With working storage
+configured, unordered-cell export uses bounded merge runs in the caller’s safe-fs.
+Other workbook paths, individual fields, and retained metadata still use in-memory
+representations; this is not complete bounded-memory conversion.
 
 Gnome Glossary PO timestamps use the injected `clock.now()` and explicit
 `environment.timezone`, with native TZif abbreviations such as `PST`/`PDT`

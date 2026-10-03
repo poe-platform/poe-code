@@ -1,4 +1,5 @@
 import { parseXmlSteps, XmlLimitError, type XmlElement } from "@poe-code/safe-fs/xml";
+import type { WorkbookSource } from "./types.js";
 import { orderedCells } from "@poe-code/spreadsheet-engine/workbook/ordered-cells";
 import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-stream";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
@@ -881,7 +882,7 @@ export function writeClipboardGnumeric(book: Workbook, sheet: Sheet, range: impo
   return new TextEncoder().encode(xml);
 }
 
-async function* gnumericChunks(book: Workbook, context: CapabilityContext): AsyncGenerator<string> {
+async function* gnumericChunks(book: Workbook, context: CapabilityContext, source?: WorkbookSource): AsyncGenerator<string> {
   const maximum = context.limits.outputBytes;
   const writer = new XmlWriter(maximum, context);
   context.signal.throwIfAborted(); yield '<?xml version="1.0" encoding="UTF-8"?>\n';
@@ -910,7 +911,11 @@ async function* gnumericChunks(book: Workbook, context: CapabilityContext): Asyn
         };
         if (view) for (const [key, val] of Object.entries(view)) if (typeof val === "string" && gnumericAttributes.Sheet?.includes(key)) attrs[key] = val;
         attrs.Visibility = sheet.visibility === "very-hidden" ? "GNM_SHEET_VISIBILITY_VERY_HIDDEN" : sheet.visibility === "hidden" ? "GNM_SHEET_VISIBILITY_HIDDEN" : "GNM_SHEET_VISIBILITY_VISIBLE";
-        const extent = sheet.cells.reduce((max, cell) => ({ row: Math.max(max.row, cell.row), column: Math.max(max.column, cell.column) }), { row: 0, column: 0 });
+        const extent = { row: 0, column: 0 };
+        for await (const cell of source ? source.cells(sheet.id) : sheet.cells) {
+          context.signal.throwIfAborted();
+          extent.row = Math.max(extent.row, cell.row); extent.column = Math.max(extent.column, cell.column);
+        }
         async function* content(): AsyncGenerator<string> {
           yield writer.element("gnm:Name", {}, sheet.name, "", 3) +
             writer.element("gnm:MaxCol", {}, String(extent.column), "", 3) +
@@ -920,7 +925,7 @@ async function* gnumericChunks(book: Workbook, context: CapabilityContext): Asyn
           yield* retainedParts(sheet.unsupportedRecords, "PrintInformation", 3, writer);
           const sourceStyles = sheet.unsupportedRecords?.find(r => r.kind === "Styles" && r.source === "Gnumeric_XmlIO:sax");
           const savedStyle = object(sourceStyles?.data);
-          function* regions(): Generator<string> {
+          async function* regions(): AsyncGenerator<string> {
             if (Array.isArray(savedStyle?.children)) for (const region of savedStyle.children) yield emitRecord(region, 4, writer);
             for (const record of sheet.unsupportedRecords ?? []) {
               if (record.disposition !== "retained" || record.kind !== "FormatRange" && record.kind !== "StyleRange") continue;
@@ -930,7 +935,8 @@ async function* gnumericChunks(book: Workbook, context: CapabilityContext): Asyn
               yield writer.element("gnm:StyleRegion", { startCol: Number(bounds[0]), startRow: Number(bounds[1]), endCol: Number(bounds[2]), endRow: Number(bounds[3]) }, "",
                 importedStyle(object(range.style), typeof range.format === "string" ? range.format : undefined, writer, range.reset === true), 4);
             }
-            for (const c of sheet.cells) {
+            for await (const c of source ? source.cells(sheet.id) : sheet.cells) {
+              context.signal.throwIfAborted();
               if (!c.style && !c.format) continue;
               const saved = object(c.style?.gnumeric);
               const format = c.format?.startsWith("@[") ? undefined : c.format;
@@ -994,7 +1000,7 @@ async function* gnumericChunks(book: Workbook, context: CapabilityContext): Asyn
           yield* writer.container("gnm:Objects", {}, comments(), 3, true);
           if (typeof sheet.view?.initialTopLeft === "string") yield writer.element("gnm:SheetLayout", { TopLeft: sheet.view.initialTopLeft }, "", "", 3);
           async function* cellXml(): AsyncGenerator<string> {
-            for await (const cell of orderedCells(sheet.cells, context)) {
+            for await (const cell of source ? source.cells(sheet.id) : orderedCells(sheet.cells, context)) {
               context.signal.throwIfAborted();
               if (!cell.formula && cell.value.kind === "blank") continue;
               const group = sheet.formulaGroups?.find(g => g.kind === "array" && cell.row >= g.range.startRow && cell.row <= g.range.endRow && cell.column >= g.range.startColumn && cell.column <= g.range.endColumn);
@@ -1033,8 +1039,8 @@ async function* gnumericChunks(book: Workbook, context: CapabilityContext): Asyn
 }
 
 
-export async function* writeGnumericStream(book: Workbook, _options: readonly string[], context: CapabilityContext): AsyncGenerator<Uint8Array> {
-  yield* encodeTextStream(gnumericChunks(book, context), "UTF-8", false, context);
+export async function* writeGnumericStream(book: Workbook | WorkbookSource, _options: readonly string[], context: CapabilityContext): AsyncGenerator<Uint8Array> {
+  yield* encodeTextStream("metadata" in book ? gnumericChunks(book.metadata, context, book) : gnumericChunks(book, context), "UTF-8", false, context);
 }
 
 async function collectGnumeric(source: AsyncIterable<Uint8Array>): Promise<Uint8Array> {
@@ -1050,7 +1056,7 @@ export async function writeGnumeric(book: Workbook, options: readonly string[], 
 }
 
 /** Compression consumes at most one encoded chunk ahead of its writable queue. */
-export async function* writeCompressedGnumericStream(book: Workbook, options: readonly string[], context: CapabilityContext): AsyncGenerator<Uint8Array> {
+export async function* writeCompressedGnumericStream(book: Workbook | WorkbookSource, options: readonly string[], context: CapabilityContext): AsyncGenerator<Uint8Array> {
   const maximum = (context.limits.workbookTextBytes ?? context.limits.inputBytes) * 8 + (context.limits.workbookNodes ?? Infinity) * 256;
   if (maximum !== Infinity && !Number.isSafeInteger(maximum)) limit("XML serialization bytes");
   context.signal.throwIfAborted();

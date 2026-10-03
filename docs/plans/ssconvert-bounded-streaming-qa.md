@@ -2,13 +2,14 @@
 
 This is a manual execution plan, not a completed Worker qualification. Incremental
 CSV/text range input and incremental output, plus caller-backed input staging,
-are available. Gnumeric XML and gzip exporters also stream encoded output; cells,
-individual fields and retained subtrees remain resident. Gnumeric cell ordering
+are available. Gnumeric XML and gzip exporters also stream encoded output and
+consume replayable text cells without full cell arrays. Individual fields and
+retained subtrees remain resident; non-replayable inputs still retain cells. Gnumeric cell ordering
 uses bounded caller-backed merge runs when working storage is configured.
 XLSX and ODF also read compressed archives through retained ranges;
 their directories use caller-backed indexes when working storage is configured.
 ODF decrypted members and wrapped inner packages are still buffered.
-Plain text conversions without global evaluation now replay cells from retained input through the exporter; they do not retain a full cell array. Formula-bearing and clock-dependent inputs, transformations, and explicit workbook SDK reads still use the array model. Decoded XML documents and non-text workbooks remain resident. Other built-in input collection, the owned array-based workbook,
+Plain text conversions to text or Gnumeric XML/gzip without global evaluation now replay cells from retained input through the exporter; they do not retain a full cell array. Formula-bearing and clock-dependent inputs, transformations, and explicit workbook SDK reads still use the array model. Decoded XML documents and non-text workbooks remain resident. Other built-in input collection, the owned array-based workbook,
 unordered CSV lookup without working storage, large individual fields, and the remaining format codecs still
 need migration before the complete conversion pipeline can pass this plan.
 

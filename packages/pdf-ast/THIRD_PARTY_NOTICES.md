@@ -592,5 +592,6 @@ and typed path output. Local path conversion charges the containing font owner,
 and its outline cache retains at most 256 KiB of conservatively sized paths.
 The CFF parser also admits indices, dictionaries, decoded strings, charset and
 FDSelect ranges, and charstring scratch. Truncated charset ranges now fail
-instead of entering a non-progressing loop. Type1 decoding and CFF compilation
-still need separate allocation accounting.
+instead of entering a non-progressing loop. CID matrix normalization follows
+CFFCompiler directly, without compiling a duplicate output font. Type1 decoding
+and conversion still need separate allocation accounting.

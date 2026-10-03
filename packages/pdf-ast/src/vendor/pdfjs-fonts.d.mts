@@ -7,7 +7,7 @@ export class FlateStream {
   ensureBuffer(requested: number): Uint8Array;
   getBytes(): Uint8Array;
 }
-export interface CffDict { getByName(name: "FontMatrix"): number[] | undefined; getByName(name: string): unknown; setByName(name: string, value: unknown): void; privateDict?: CffDict; subrsIndex?: { objects: Uint8Array[] }; }
+export interface CffDict { hasName(name: string): boolean; removeByName(name: string): void; getByName(name: "FontMatrix"): number[] | undefined; getByName(name: string): unknown; setByName(name: string, value: unknown): void; privateDict?: CffDict; subrsIndex?: { objects: Uint8Array[] }; }
 export interface CffFont {
   header: { major: number; minor: number; hdrSize: number; offSize: number };
   names: string[];
@@ -20,7 +20,7 @@ export interface CffFont {
   widths: number[];
   isCIDFont: boolean;
   fdSelect: unknown;
-  fdArray: unknown[];
+  fdArray: CffDict[];
 }
 export class CFFStrings { get(index: number): string; }
 export class CFFParser {

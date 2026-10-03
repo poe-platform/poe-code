@@ -1,12 +1,28 @@
 import { PdfFontAllocation, type PdfFontAllocationOptions } from "./memory.js";
 import type { PdfPathSegment } from "../ast.js";
-import { CFFCompiler, CFFParser, DrawOPS, Stream, Type2Compiled, getEncoding, getGlyphsUnicode, type CffFont } from "../vendor/pdfjs-fonts.mjs";
+import { CFFParser, DrawOPS, Stream, Type2Compiled, getEncoding, getGlyphsUnicode, type CffFont } from "../vendor/pdfjs-fonts.mjs";
 
 export function createCffGlyphRenderer(cff: CffFont, options: Pick<PdfFontAllocationOptions, "onAllocation"> = {}): (glyphId: number) => PdfPathSegment[] {
   const allocation = new PdfFontAllocation(options);
   allocation.admit(1024 + cff.charset.charset.length * 256);
-  // PDF.js's path compiler expects the FD matrices normalized by CFFCompiler.
-  if (cff.isCIDFont) new CFFCompiler(cff).compile();
+  // Apply PDF.js CFFCompiler's CID matrix normalization directly. Compiling
+  // another complete font merely for this mutation duplicates every index.
+  if (cff.isCIDFont && cff.topDict.hasName("FontMatrix")) {
+    const base = cff.topDict.getByName("FontMatrix")!;
+    cff.topDict.removeByName("FontMatrix");
+    for (const dict of cff.fdArray) {
+      allocation.admit(128);
+      const child = dict.hasName("FontMatrix") ? dict.getByName("FontMatrix")! : undefined;
+      dict.setByName("FontMatrix", child ? [
+        base[0]! * child[0]! + base[2]! * child[1]!,
+        base[1]! * child[0]! + base[3]! * child[1]!,
+        base[0]! * child[2]! + base[2]! * child[3]!,
+        base[1]! * child[2]! + base[3]! * child[3]!,
+        base[0]! * child[4]! + base[2]! * child[5]! + base[4]!,
+        base[1]! * child[4]! + base[3]! * child[5]! + base[5]!,
+      ] : base.slice());
+    }
+  }
   const unicodeByName = getGlyphsUnicode();
   const glyphsByUnicode = new Map<number, number>();
   cff.charset.charset.forEach((name, gid) => {

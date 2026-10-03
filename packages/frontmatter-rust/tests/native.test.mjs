@@ -36,6 +36,20 @@ test('source line counters match SDK offsets and retain lexical method receivers
   assert.deepEqual(left.linePos(source.length+7),right.linePos(source.length+7));
  }
 });
+test('source line counters preserve public property order and callback descriptors',()=>{
+ const describe=api=>{
+  const counter=api.parseFrontmatterDocument('---\r\ntitle: example\r\n---\r\nBody').lineCounter;
+  const descriptors=Object.entries(Object.getOwnPropertyDescriptors(counter)).map(([key,descriptor])=>({
+   key,enumerable:descriptor.enumerable,configurable:descriptor.configurable,writable:descriptor.writable,
+   value:typeof descriptor.value==='function'?{name:descriptor.value.name,length:descriptor.value.length}:descriptor.value
+  }));
+  const {addNewLine,linePos}=counter;
+  counter.lineStarts=[0,4,9];
+  const added=addNewLine.call({lineStarts:[]},14);
+  return {keys:Object.keys(counter),descriptors,added,position:linePos.call({lineStarts:[]},16),starts:counter.lineStarts};
+ };
+ assert.deepEqual(describe(own),describe(sdk));
+});
 test('options are never read for absent or incomplete fences and getter failures retain identity',()=>{
  const failure=new Error('unique keys'),options={get uniqueKeys(){throw failure;}};
  assert.deepEqual(own.parseFrontmatter('Body',options),{frontmatter:{},body:'Body'});

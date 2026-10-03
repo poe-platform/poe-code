@@ -5412,3 +5412,24 @@ Async skill bridge delivery is verified on remote main at abf4df0a21. Release
 37112297042 remains pending; no native publication is claimed. Temporary bridge
 checkpoint artifacts were purged. JavaScript remains the default, with remaining
 public facades, dependency fidelity, portable artifacts and swap gates open.
+
+### Frontmatter line-counter object compatibility
+
+Auditing the next public facade reproduced a dependency mismatch: native
+parseFrontmatterDocument line counters enumerated methods before lineStarts and
+assigned field-inferred names to callbacks that are anonymous in the reference.
+The host now creates its data property and callback properties in the original
+constructor order. Detached callbacks retain their lexical receiver and observe
+replacement lineStarts arrays. No parsing policy or dependency changes.
+
+The descriptor/order regression failed before the repair. The maintained
+frontmatter package route passes ten native checks, all 18 original cases, Rust
+tests, declarations and root posttest; maintained and scoped lint pass. This
+small host-object correction does not establish complete YAML conformance or
+portable artifact qualification. The public Toolcraft frontmatter entry point
+remains to be added.
+
+Configuration-mutation facade delivery is verified on remote main at b831d95b5c.
+Its Release 37112770887 and bridge Release 37112297042 remain pending. Temporary
+configuration-facade checkpoint artifacts were purged. No release or speedup is
+claimed.

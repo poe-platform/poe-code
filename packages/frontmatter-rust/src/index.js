@@ -31,14 +31,16 @@ export function parseFrontmatter(source,options={}){
  return {frontmatter:materialize(result),body:source.slice(result.bodyStart)};
 }
 class LineCounter{
- constructor(starts){this.lineStarts=starts;}
- addNewLine=offset=>this.lineStarts.push(offset);
- linePos=offset=>{
-  let low=0,high=this.lineStarts.length;
-  while(low<high){const middle=(low+high)>>1;if(this.lineStarts[middle]<offset)low=middle+1;else high=middle;}
-  if(this.lineStarts[low]===offset)return {line:low+1,col:1};
-  return low===0?{line:0,col:offset}:{line:low,col:offset-this.lineStarts[low-1]+1};
- };
+ constructor(starts){
+  this.lineStarts=starts;
+  this.addNewLine=offset=>this.lineStarts.push(offset);
+  this.linePos=offset=>{
+   let low=0,high=this.lineStarts.length;
+   while(low<high){const middle=(low+high)>>1;if(this.lineStarts[middle]<offset)low=middle+1;else high=middle;}
+   if(this.lineStarts[low]===offset)return {line:low+1,col:1};
+   return low===0?{line:0,col:offset}:{line:low,col:offset-this.lineStarts[low-1]+1};
+  };
+ }
 }
 export function parseFrontmatterDocument(source,options={}){
  const split=native.frontmatterInspect(source);

@@ -4572,6 +4572,18 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+      "biffDefaultRowHeights": {
+        "finding": "Reader retained DEFAULTROWHEIGHT without applying it; writer always emitted255twips.",
+        "implementation": "Reuse sheet.view.defaultRowHeight for old/new records. Mask old high bit, ignore zero like native, preserve full precision using0.05*height; export native floor(points*20+1e-6). Reject nonfinite/zero/overflow outputs. Preserve diagnostics for unimplemented nonzero modern flags.",
+        "validation": "28original failures and3zero/boundary failures reproduced before repair.2144tests across73BIFF files pass; owner lint/types, changed-test lint/types and18-workspace build pass.",
+        "public": "18independent SheetJS container fixtures with old/new default records and9heights produce108compiled SDK/command XML/BIFF7/8 exports.",
+        "native": "Unmodified initialized Gnumeric1.12.61 reads90input/export BIFF files;936default/row-height/visibility comparisons match exactly; stderr empty.",
+        "visual": "Inspected native input/export at24.6pt: row geometry and contents preserved. Window size and column defaults differ; no whole-image equality claim. GUI/Xvfb stopped, stderr empty.",
+        "hashes": {
+          "nativeTsv": "b4f678e3dd61cafb0103bb4d640d1d6e551a9a4345cd3aacd6a0aac362e5a976"
+        },
+        "limits": "Out-of-order defaults after populated rows retain older instantiated row sizes in native but product uses final sheet default; remains unresolved. Missing default-column records can change quantized export widths. Nonzero default-row flags, explicit-row fallback, root/registry transports and broader19families remain open."
+      },
     "biffDefaultColumnWidths": {
       "finding": "BIFF default width was used only for hidden-column fallback and omitted from the shared view model. Export emitted no DEFCOLWIDTH and replaced the Normal style with Sans10, losing the font scale required to preserve default character widths.",
       "implementation": "Preserve the Normal style as workbook.view.defaultStyle, expose sheet.view.defaultColumnWidth, and export defaults and explicit column widths using the actual emitted Normal font. Normal font size is quantized to BIFF twentieth-points before width calculations. Refuse nonrepresentable defaults/fonts instead of integer wrap. Intentional default-width edits no longer produce an unsupported-DEFCOLWIDTH warning. Existing shared width fields are reused; no axis materialization workaround.",

@@ -126,6 +126,11 @@ export class BiffMetadataWriter {
   }
   async sheet(output: BiffOutput, sheet: Sheet, revision: 7 | 8): Promise<void> {
     const [unit, baseline, step] = biffFontWidth(this.defaultFont.name), fontScale = this.defaultFont.points / 10;
+    const defaultHeight = Number(sheet.view?.defaultRowHeight ?? 12.75);
+    const heightTwips = Math.floor(defaultHeight * 20 + 1e-6);
+    if (!Number.isFinite(defaultHeight) || heightTwips < 1 || heightTwips > 65535)
+      throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF default row height");
+    output.record(0x225, words(0, heightTwips));
     const defaultWidth = Number(sheet.view?.defaultColumnWidth ?? 48);
     const defaultCharacters = Math.round(defaultWidth * (96 / 72) / (fontScale * unit));
     if (!Number.isFinite(defaultWidth) || defaultWidth < 0 || defaultCharacters > 65535)
@@ -142,7 +147,12 @@ export class BiffMetadataWriter {
     const rowDepth = depth(sheet.rows, this.maxRows), columnDepth = depth(sheet.columns, 256);
     output.record(0x80, words(rowDepth ? 5 + 12 * rowDepth : 0, columnDepth ? 5 + 12 * columnDepth : 0, rowDepth, columnDepth));
     const records = this.records.get(sheet)!, print = records.find(r => r.record.kind === "PrintInformation")?.node;
-    for (const { record } of records) if (record.source === "biff" && record.kind === "DEFCOLWIDTH") this.exported.add(record);
+    for (const { record } of records) {
+      if (record.source !== "biff") continue;
+      const data = record.data as { bytes?: unknown } | undefined;
+      if (record.kind === "DEFCOLWIDTH" || record.kind === "DEFAULTROWHEIGHT_v0" ||
+        record.kind === "DEFAULTROWHEIGHT_v2" && typeof data?.bytes === "string" && data.bytes.startsWith("0000")) this.exported.add(record);
+    }
     const child = (name: string) => print?.children.find(n => n.name === name);
     const flag = (name: string) => Number(child(name)?.attributes.value ?? 0);
     output.record(0x81, words(1 | (viewFlag(sheet, "OutlineSymbolsBelow", true) ? 0x40 : 0) |

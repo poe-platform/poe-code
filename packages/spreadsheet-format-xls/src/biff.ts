@@ -491,6 +491,11 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       const flags = data.bytes.length >= 16 ? data.u32(12) : 0;
       sheet.rows.push({ index: data.u16(0), sizePoints: (data.u16(6) & 0x7fff) / 20, hidden: !!(flags & 0x20), outlineLevel: flags & 7, collapsed: !!(flags & 0x10) }); continue;
     }
+    if (opcode === 0x25 || opcode === 0x225) {
+      const height = opcode === 0x25 ? data.u16(0) & 0x7fff : data.u16(2);
+      if (height > 0) sheet.view.defaultRowHeight = 0.05 * height;
+      await retain(record, sheet.unsupportedRecords, false); continue;
+    }
     if (opcode === 0x55) {
       const { unit, scale } = columnMetrics();
       sheet.view.defaultColumnWidth = data.u16(0) * unit * scale * 72 / 96;

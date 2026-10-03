@@ -22,6 +22,8 @@ BIFF editing preserves the workbook Normal style and font-aware column widths,
 including sheet defaults. Change `sheet.view.defaultColumnWidth` in points and
 adopt the edited workbook before export; BIFF stores defaults in whole font
 characters and explicit widths in its finer integer units.
+Set `sheet.view.defaultRowHeight` in points to change the sheet row default;
+BIFF quantizes it to twentieth-points. Nonrepresentable defaults are rejected.
 The formula reader rejects malformed shared formulas containing BIFF live-label
 tokens; ordinary cell and array formulas retain their supported live labels.
 For tabular imports, the `./cached` entrypoint reads BIFF2–8 cached values,

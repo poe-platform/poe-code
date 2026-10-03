@@ -940,7 +940,7 @@ describe("isolated private command consumers", () => {
     const consumer = await build({ stdin: { contents: readFileSync(new URL(`./fixtures/safe-packages-${command}.mjs`, import.meta.url), "utf8"), resolveDir: "/output" },
       bundle: true, write: false, platform: "browser", format: "cjs", target: "es2022", plugins: [plugin] });
     const sandbox = createContext({ URL, TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
-      AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance });
+      AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, atob, btoa, crypto: globalThis.crypto, performance });
     await runInContext(`(async () => { const module = { exports: {} }; ${consumer.outputFiles[0]!.text}; await module.exports.verification; })()`, sandbox);
   });
 
@@ -962,7 +962,7 @@ describe("isolated private command consumers", () => {
     const manifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
     for (const name of ["safe-bash-command-mdq", "safe-bash-markdown-engine", "safe-bash-regex-engine"]) expect(manifest.dependencies).not.toHaveProperty(name);
     const sandbox = createContext({ TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
-      AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance });
+      AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, atob, btoa, crypto: globalThis.crypto, performance });
     const result = await runInContext(`(async () => { const module = { exports: {} }; ${consumer.outputFiles[0]!.text}; return module.exports.run(); })()`, sandbox);
     expect(result).toMatchObject([
       { exitCode: 0, stdout: "## Token expiry\n\nOne hour.\n", stderr: "" },
@@ -1164,7 +1164,8 @@ it("resolves packaged real filesystem declarations for Workers while retaining b
     workerd: "./dist/safe-fs/platform/browser.js", browser: "./dist/safe-fs/platform/browser.js", default: "./dist/safe-fs/platform/node.js",
   });
   expect(manifest.exports["./fs/s3"]).toEqual({ types: "./dist/safe-fs/fs/s3/index.d.ts", import: "./dist/safe-fs/fs/s3/index.js" });
-  for (const entry of ["./node", "./fs/s3/http"]) {
+  expect(manifest.exports["./fs/s3/http"]).toEqual({ types: "./dist/safe-fs/fs/s3/http/index.d.ts", import: "./dist/safe-fs/fs/s3/http/index.js" });
+  for (const entry of ["./node"]) {
     expect(manifest.exports[entry].workerd).toBeUndefined();
     expect(manifest.exports[entry].types.workerd).toBeUndefined();
     expect(manifest.exports[entry].browser).toBeNull();

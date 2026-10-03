@@ -525,7 +525,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
         let target = value;
         if (name === "safe-fs") {
           if (key === "." || key === "./contracts") target = { types: { workerd: "./dist/core.d.ts", browser: "./dist/core.d.ts", default: value.types?.default ?? value.types }, workerd: "./dist/core.js", browser: "./dist/core.js", import: value.import };
-          if (["./node", "./fs/s3/http"].includes(key)) target = { types: { browser: "./dist/node-unavailable.d.ts", default: key === "./node" ? "./dist/node-host.d.ts" : value.types }, browser: null, import: key === "./node" ? "./dist/node-host.js" : value.import };
+          if (key === "./node") target = { types: { browser: "./dist/node-unavailable.d.ts", default: "./dist/node-host.d.ts" }, browser: null, import: "./dist/node-host.js" };
           if (key === "./fs/real") target = {
             types: { workerd: value.types, browser: "./dist/node-unavailable.d.ts", default: value.types },
             workerd: value.import, browser: null, import: value.import,

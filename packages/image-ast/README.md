@@ -17,9 +17,11 @@ retained byte-range source and backing storage with `allocate`, `read`, and
 `write`; the returned `position` addresses packed RGBA pixels in that storage.
 `encodePngFromStorage(image, storage, signal)` produces bounded PNG chunks
 under downstream backpressure. The caller owns source and storage cleanup.
-PNG-to-PNG `.toFile()` conversions without pixel operations use these codecs
-automatically when the supplied filesystem supports retained reads, working
-storage, and atomic streaming or retained staged publication.
+`transformStoredImage(image, storage, operation, signal)` applies flips, crops,
+right-angle rotations and EXIF orientation in small tiles. PNG-to-PNG `.toFile()`
+conversions with these operations use the backed codecs automatically when the
+supplied filesystem supports retained reads, working storage, and atomic
+streaming or retained staged publication.
 Use an external backing provider
 for large images; memory-backed storage still retains the pixels in RAM.
 

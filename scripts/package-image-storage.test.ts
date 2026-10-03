@@ -110,5 +110,7 @@ it("packs the image PNG filesystem API with canonical public storage and a host-
     return typeof value === "function" ? value.bind(target) : value;
   }});
   expect(await sharp("/input.png", {filesystem: guarded}).png().toFile("/output.png")).toMatchObject({width: 7, height: 3, format: "png"});
+  expect(await sharp("/input.png", {filesystem: guarded}).flip().rotate(90).flop().png().toFile("/rotated.png")).toMatchObject({width: 3, height: 7, format: "png"});
+  expect([...await sharp(await fs.readFile("/rotated.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [255, 0, 0, 255]).flat());
   expect([...await sharp(await fs.readFile("/output.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [255, 0, 0, 255]).flat());
 });

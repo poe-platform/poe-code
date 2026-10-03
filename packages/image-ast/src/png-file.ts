@@ -2,10 +2,12 @@ import {compareIdentity, compareFileVersion, dirname, FsError, isFsError, type F
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {decodePngToStorage, encodePngFromStorage, type ImageByteSource} from "./codecs/png-storage.js";
 import {isPngBytes} from "./codecs/png.js";
-import type {SharpInputOptions, OutputEncodeOptions, OutputInfo} from "./ast.js";
+import {transformStoredImage, type StoredImageOperation} from "./ops/storage.js";
+import type {SharpInputOptions, OutputEncodeOptions, OutputInfo, ImageAstNode} from "./ast.js";
 
 /** Select the retained PNG path only when the injected filesystem supports it. */
-export async function tryPngFile(input: string, output: string, options: SharpInputOptions, encoding: OutputEncodeOptions): Promise<OutputInfo | undefined> {
+export async function tryPngFile(input: string, output: string, options: SharpInputOptions, encoding: OutputEncodeOptions, operations: readonly ImageAstNode[] = []): Promise<OutputInfo | undefined> {
+  if (!operations.every((node): node is StoredImageOperation => node.kind === "flip" || node.kind === "flop" || node.kind === "extract" || node.kind === "autoOrient" || node.kind === "rotate" && Number.isFinite(node.angle) && node.angle % 90 === 0)) return undefined;
   const supplied = options.filesystem;
   const signal = options.signal ?? new AbortController().signal;
   signal.throwIfAborted();
@@ -66,11 +68,12 @@ export async function tryPngFile(input: string, output: string, options: SharpIn
     const directory=dirname(output), parent={...await fs.stat(directory,io)};
     signal.throwIfAborted();
     storage=new PagedStorage({fs,cwd:directory,env:{},signal});
-    const image=await decodePngToStorage(source,storage,signal,options);
+    let image=await decodePngToStorage(source,storage,signal,options);
     const final=await handle.stat(io);
     signal.throwIfAborted();
     if (compareIdentity(initial,final)==="distinct" || !compareFileVersion(initial,final)) throw new FsError("EAGAIN",{path:input,message:"Image source changed while decoding"});
     handleClosed=true; await handle.close();
+    for (const operation of operations) image=await transformStoredImage(image,storage,operation,signal);
     const backing=storage;
     let complete=false, size=0;
     stream=(async function* () {

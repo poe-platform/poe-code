@@ -1139,84 +1139,142 @@ export async function runPdfinfoCli(argv: readonly string[], files: ReadonlyMap<
     return drainSteps(runPdfinfoCliSteps(argv, files, stdinBytes, signal), signal);
 }
 
-export async function pdfinfo(context: CommandContext): Promise<{ exitCode: number }> {
-  let cooperativeWork = 63;
-  const invocation = createOutputOperation(context, { write: async () => {} });
-  try {
-    const carrier = getCommandArguments(context);
-    const argv = [...carrier.args];
-    const parsed = parseArgs(argv);
-    if (parsed.error) {
-      await writeBytes(
-        context.stderr,
-        new TextEncoder().encode(parsed.error),
-        invocation.signal
-      );
-      return { exitCode: parsed.errorExitCode ?? 99 };
-    }
-    if (parsed.listenc || parsed.version || parsed.help) {
-      const res = await drainSteps(inspectPdfBytesCooperativelySteps(new Uint8Array(0), argv, undefined, invocation.signal), invocation.signal);
-      if (res.stdout) {
-        const stdout = invocation.child(context.stdout);
-        await writeBytes(stdout.output, new TextEncoder().encode(res.stdout), invocation.signal);
+/** Execute PDF inspection through caller-owned retained input. */
+export async function pdfinfo(context: CommandContext, options: PdfinfoCommandOptions = {}): Promise<{ exitCode: number }> {
+  const argv = getCommandArguments(context).args;
+  const args = parseArgs(argv);
+  const plan = args.error || args.listenc || args.version || args.help
+    ? inspectPdfBytes(new Uint8Array(0), argv)
+    : { inputPath: args.inputFile ?? "-", password: args.opw ?? args.upw ?? "" };
+  return executeRetainedPdf(context, options, plan, async (doc, plan, { emit, error, signal, fileSize }) => {
+    let pageCount = 0;
+    for await (const ignored of doc.pages()) pageCount++;
+    const firstPage = Math.max(1, args.firstPage);
+    const lastPage = args.lastPageExplicit ? Math.min(pageCount, args.lastPage <= 0 ? pageCount : args.lastPage) : 1;
+    if (firstPage > pageCount || (args.lastPageExplicit && firstPage > lastPage))
+      return error(`Command Line Error: Wrong page range given: the first page (${firstPage}) can not be after the last page (${lastPage}).\n`, 99);
+    const resolve = async (node: PdfCosNode | undefined) => (await doc.lookup(node))?.value;
+    const root = await resolve(doc.crossReference.rootRef);
+    const rootEntry = (key: string) => root?.kind === "dict" ? dictGet(root, key) : undefined;
+    if (args.meta) {
+      const meta = await doc.lookup(rootEntry("Metadata"));
+      if (meta?.stream && meta.reference) {
+        const decoder = new TextDecoder();
+        for await (const bytes of doc.objects.decodeStream(meta.reference.objectNumber, meta.reference.generationNumber)) {
+          const nul = bytes.indexOf(0);
+          await emit(sanitizeControls(decoder.decode(nul < 0 ? bytes : bytes.subarray(0, nul), { stream: true }), true));
+          if (nul >= 0) break;
+        }
+        await emit(sanitizeControls(decoder.decode(), true) + "\n");
       }
-      return { exitCode: res.exitCode };
+      return { exitCode: 0 };
     }
-
-    const inputTarget = parsed.inputFile ?? "-";
-    let pdfBytes: Uint8Array;
-    let isStdin = false;
-    let accountedBytes = 0;
-    const chargeBytes = (delta: number) => {
-      if (delta > 0) {
-        accountedBytes += delta;
-        context.inputBudget?.check(accountedBytes);
+    async function contents(chunks: AsyncIterable<Uint8Array>, prefix = "", suffix = "", omitEmpty = false) {
+      const decoder = new TextDecoder("utf-8", { ignoreBOM: true }); let started = false;
+      for await (const bytes of chunks) {
+        const text = decoder.decode(bytes, { stream: true });
+        if (!text) continue;
+        if (!started) { await emit(prefix); started = true; }
+        await emit(text);
       }
-    };
-    if (inputTarget === "-") {
-      isStdin = true;
-      const chunks: Uint8Array[] = [];
-      let total = 0;
-      for await (const chunk of readBytes(context.stdin, invocation.signal)) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-        chunks.push(chunk);
-        total += chunk.byteLength;
-        chargeBytes(chunk.byteLength);
-      }
-      pdfBytes = new Uint8Array(total);
-      let offset = 0;
-      for (const c of chunks) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-        pdfBytes.set(c, offset);
-        offset += c.byteLength;
-      }
-    } else {
-      const resolvedPath = resolvePath(context.cwd, inputTarget);
-      try {
-        pdfBytes = await context.fs.readFile(resolvedPath, { signal: invocation.signal });
-        chargeBytes(pdfBytes.byteLength);
-      } catch {
-        const msg = `I/O Error: Couldn't open file '${inputTarget}': No such file or directory.\n`;
-        await writeBytes(context.stderr, new TextEncoder().encode(msg), invocation.signal);
-        return { exitCode: 1 };
-      }
+      const tail = decoder.decode();
+      if (tail) { if (!started) { await emit(prefix); started = true; } await emit(tail); }
+      if (!started && !omitEmpty) await emit(prefix);
+      if (started || !omitEmpty) await emit(suffix);
     }
-
-    const res = await drainSteps(inspectPdfBytesCooperativelySteps(pdfBytes, argv, {
-      fileSize: isStdin ? 0 : pdfBytes.byteLength,
-      isStdin
-    }, invocation.signal), invocation.signal);
-    if (res.stderr) {
-      await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
+    if (args.js) {
+      for await (const action of doc.javaScripts()) await contents(action.contents(), `Name: ${action.name}\nJS:\n`, "\n");
+      return { exitCode: 0 };
     }
-    if (res.stdout) {
-      const stdout = invocation.child(context.stdout);
-      await writeBytes(stdout.output, new TextEncoder().encode(res.stdout), invocation.signal);
+    if (args.struct) {
+      for await (const item of doc.structure({ includeText: args.structText })) {
+        const pad = "  ".repeat(item.depth);
+        if (item.kind === "element") await emit(`${pad}${item.role}${item.mappedRole && item.mappedRole !== item.role ? ` / ${item.mappedRole}` : ""}\n`);
+        else await contents(item.contents(), `${pad}"`, '"\n', true);
+      }
+      return { exitCode: 0 };
     }
-    return { exitCode: res.exitCode };
-  } finally {
-    await invocation.close();
-  }
+    if (args.dests) {
+      let header = false;
+      for await (const dest of doc.destinations()) {
+        if (!header) { await emit("Page  Destination                 Name\n"); header = true; }
+        const target = dest.target;
+        if (target && target.pageNumber >= firstPage && target.pageNumber <= (args.lastPageExplicit ? lastPage : pageCount))
+          await emit(`${String(target.pageNumber).padStart(4, " ")}  [${target.kind.padEnd(24, " ")}] "${dest.name}"\n`);
+      }
+      return { exitCode: 0 };
+    }
+    if (args.url) {
+      await emit("Page  Type          URL\n");
+      for await (const url of doc.urls({ firstPage, lastPage: args.lastPageExplicit ? lastPage : pageCount }))
+        await emit(`${String(url.pageNumber).padStart(4, " ")}  Annotation    ${url.url}\n`);
+      return { exitCode: 0 };
+    }
+    const field = async (key: string, value: string) => emit(applyPopplerOutputEncoding(formatField(key, value), args.encoding));
+    const info = await resolve(doc.crossReference.infoRef);
+    const infoEntries = info?.kind === "dict" ? info.entries : [];
+    async function infoValue(key: string) {
+      let text: string | undefined;
+      for (const entry of infoEntries) if (entry.key.decoded === key) {
+        const value = await resolve(entry.value);
+        if (value?.kind === "string") text = decodePdfString(value);
+      }
+      return text;
+    }
+    for (const key of ["Title", "Subject", "Keywords", "Author", "Creator", "Producer", "CreationDate", "ModDate"]) {
+      const value = await infoValue(key);
+      if (value !== undefined) await field(key, key === "CreationDate" || key === "ModDate" ? formatPdfDate(value, args.isodates ? "iso" : args.rawdates ? "raw" : "normal") : value);
+    }
+    const custom: number[] = [];
+    for (let i = 0; i < infoEntries.length; i++) {
+      if (i % 64 === 0) await yieldTurn(signal);
+      const entry = infoEntries[i]!;
+      if (!STANDARD_INFO_KEYS.has(entry.key.decoded) && (await resolve(entry.value))?.kind === "string") custom.push(i);
+    }
+    if (args.custom) {
+      custom.sort((a, b) => infoEntries[a]!.key.decoded.localeCompare(infoEntries[b]!.key.decoded));
+      for (const index of custom) { const key = infoEntries[index]!.key.decoded; await field(key, (await infoValue(key))!); }
+    }
+    await field("Custom Metadata", custom.length ? "yes" : "no");
+    await field("Metadata Stream", (await doc.lookup(rootEntry("Metadata")))?.stream ? "yes" : "no");
+    const mark = await resolve(rootEntry("MarkInfo"));
+    const markValue = async (key: string) => { const value = await resolve(mark?.kind === "dict" ? dictGet(mark, key) : undefined); return value?.kind === "boolean" && value.value; };
+    await field("Tagged", await markValue("Marked") || (await resolve(rootEntry("StructTreeRoot")))?.kind === "dict" ? "yes" : "no");
+    await field("UserProperties", await markValue("UserProperties") ? "yes" : "no");
+    await field("Suspects", await markValue("Suspects") ? "yes" : "no");
+    const form = await resolve(rootEntry("AcroForm"));
+    await field("Form", form?.kind === "dict" ? dictGet(form, "XFA") !== undefined ? "XFA" : "AcroForm" : "none");
+    let javascript = false;
+    for await (const ignored of doc.javaScripts()) { javascript = true; break; }
+    await field("JavaScript", javascript ? "yes" : "no");
+    await field("Pages", String(pageCount));
+    const encryption = doc.encryption;
+    if (encryption) {
+      const perms = encryption.permissions;
+      await field("Encrypted", `yes (print:${perms.print ? "yes" : "no"} copy:${perms.copy ? "yes" : "no"} change:${perms.modify ? "yes" : "no"} addNotes:${perms.addNotes ? "yes" : "no"} algorithm:${encryption.revision >= 5 ? "AES-256" : encryption.revision === 4 ? "AES" : "RC4"})`);
+    } else await field("Encrypted", "no");
+    for await (const page of doc.pages()) {
+      const p = page.index + 1; if (p < firstPage) continue; if (p > lastPage) break;
+      const attributes = await page.attributes(), crop = attributes.cropBox;
+      const w = Math.abs(crop[2] - crop[0]), h = Math.abs(crop[3] - crop[1]);
+      const multiPage = args.lastPageExplicit && args.lastPage !== 0;
+      const prefix = multiPage ? `Page ${String(p).padStart(4, " ")} ` : "Page ";
+      await field(`${prefix}size`, `${formatNumTrimmed(w)} x ${formatNumTrimmed(h)} pts${paperSizeLabel(w, h)}`);
+      await field(`${prefix}rot`, String(attributes.rotation));
+      if (args.box) for (const [label, box] of [["MediaBox", attributes.mediaBox], ["CropBox", crop], ["BleedBox", attributes.bleedBox], ["TrimBox", attributes.trimBox], ["ArtBox", attributes.artBox]] as const)
+        await field(`${multiPage ? prefix : ""}${label}`, formatBox8([...box]));
+    }
+    await field("File size", `${plan.inputPath === "-" ? 0 : fileSize} bytes`);
+    let linearized = false;
+    for await (const entry of doc.crossReference.index.entries(signal)) {
+      if (entry.type === "free") continue;
+      const object = await doc.objects.get(entry.objectNumber, entry.generationNumber ?? 0);
+      if (!object?.stream && object?.value.kind === "dict" && dictGet(object.value, "Linearized")) { linearized = true; break; }
+    }
+    await field("Optimized", linearized ? "yes" : "no");
+    await field("PDF version", doc.crossReference.version);
+    return { exitCode: 0 };
+  }, "info");
 }
 
 export function createPdfinfoCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
@@ -1226,7 +1284,7 @@ export function createPdfinfoCommand(options: PdfinfoCommandOptions = {}): Comma
     runtimeIdentity: commandRuntimeIdentity,
     description: "Extract PDF metadata, page boxes, encryption, and structure via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return new InputByteBudget(maxInputBytes).run(context, pdfinfo);
+      return pdfinfo(context, { limits: { maxInputBytes } });
     }
   });
 }
@@ -1797,6 +1855,7 @@ export function createPdffontsCommand(options: PdfinfoCommandOptions = {}): Comm
 export const pdffontsCommand: CommandDefinition = createPdffontsCommand();
 
 interface RetainedCommandOutput {
+  fileSize: number;
   storage: PdfIndexStorage;
   signal: AbortSignal;
   emit(text: string): Promise<void>;
@@ -1805,6 +1864,7 @@ interface RetainedCommandOutput {
 async function executeRetainedPdf<Plan extends { inputPath: string; password: string }>(
   context: CommandContext, options: PdfinfoCommandOptions, plan: Plan | PdfinfoCliResult,
   inspect: (document: PdfRetainedDocument, plan: Plan, output: RetainedCommandOutput) => Promise<{ exitCode: number }>,
+  style?: "info",
 ): Promise<{ exitCode: number }> {
   const invocation = createOutputOperation(context, { write: async () => {} });
   const signal = invocation.signal;
@@ -1824,8 +1884,8 @@ async function executeRetainedPdf<Plan extends { inputPath: string; password: st
     try {
       if (plan.inputPath === "-") {
         async function* input() {
-          let total = 0;
-          for await (const bytes of readBytes(context.stdin, signal)) { total += bytes.length; context.inputBudget?.check(total); yield bytes; }
+          let total = 0, turns = 0;
+          for await (const bytes of readBytes(context.stdin, signal)) { if (++turns % 64 === 0) await yieldTurn(signal); total += bytes.length; context.inputBudget?.check(total); yield bytes; }
         }
         source = await PdfFileSource.fromStream(context.fs, storage.directory, input(), { maxInputBytes, signal });
       } else {
@@ -1836,17 +1896,21 @@ async function executeRetainedPdf<Plan extends { inputPath: string; password: st
       }
     } catch (failure) {
       signal.throwIfAborted();
-      if (failure instanceof Error && "code" in failure && failure.code === "ENOENT") return await error(`I/O Error: Couldn't open file '${plan.inputPath}'\n`, 1);
+      if (failure instanceof Error && "code" in failure && failure.code === "ENOENT") return await error(`I/O Error: Couldn't open file '${plan.inputPath}'${style === "info" ? ": No such file or directory." : ""}\n`, 1);
       throw failure;
     }
+    if (style === "info" && source.size === 0) return await error("Syntax Error: Document stream is empty\n", 1);
     if (plan.inputPath === "-" && source.size === 0) return await error("I/O Error: Couldn't open file '-'\n", 1);
     try { document = await PdfRetainedDocument.open(source, storage, { recovery: "repair", password: plan.password, signal }); }
     catch (failure) {
       signal.throwIfAborted();
+      const message = (failure as Error).message;
+      if (style === "info" && (message.toLowerCase().includes("password") || message.toLowerCase().includes("encrypted"))) return await error("Command Line Error: Incorrect password\n", 1);
       if (failure instanceof Error && "code" in failure && (failure.code === "E_LIMIT" || failure.code === "E_CAPABILITY")) throw failure;
-      return await error(`PDF Error: ${(failure as Error).message}\n`, 1);
+      if (style === "info") return await error(`Syntax Error: ${message}\n`, 1);
+      return await error(`PDF Error: ${message}\n`, 1);
     }
-    return await inspect(document, plan, { storage, signal, emit, error });
+    return await inspect(document, plan, { storage, signal, emit, error, fileSize: source.size });
   } catch (failure) { failed = true; throw failure; } finally {
     // Close all acquired resources even if one backend cleanup fails.
     const results = await Promise.allSettled([document?.close(), source?.close(), invocation.close()]);

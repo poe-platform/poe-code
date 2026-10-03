@@ -46,6 +46,7 @@ Output parent directories must already exist. Only input file operands count as 
 `pdfunite`, `pdfseparate`, `pdffonts`, and `pdfdetach` require explicit PDF operands and return exit code `99` without consuming stdin when they are omitted. Use `-` to read stdin with `pdffonts` or `pdfdetach`; `pdfinfo` also accepts an omitted input filename. Help, version, and `pdfinfo -listenc` leave stdin unread.
 Embedded attachment filenames are reduced to their final path component when extracting, keeping them in the chosen output directory.
 
+`pdfinfo` / `pdfinfo(context, options)` and
 `pdffonts` / `executePdffonts(context, options)` inspect retained file ranges and
 stream font rows. `pdfdetach` / `executePdfdetach(context, options)` stream attachments into caller-backed staging before atomic publication. Provide
 an injected filesystem with retained reads, retained staging writes/cleanup and

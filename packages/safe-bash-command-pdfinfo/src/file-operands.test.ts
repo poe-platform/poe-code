@@ -38,7 +38,7 @@ async function execute(command: ReturnType<typeof createPdfuniteCommand>, args: 
     }
   } as unknown as CommandContext;
   if (!missing && command.name === "pdfdetach") { volume.unlinkSync("/work/out"); volume.mkdirSync("/work/out"); }
-  const retained = command.name === "pdfdetach" ? createMemoryFileSystem() : undefined;
+  const retained = (command.name === "pdfdetach" || command.name === "pdfinfo") ? createMemoryFileSystem() : undefined;
   if (retained) {
     await retained.mkdir("/work"); await retained.mkdir("/tmp");
     for (const name of volume.readdirSync("/work") as string[]) {

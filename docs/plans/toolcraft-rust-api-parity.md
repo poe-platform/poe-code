@@ -4935,3 +4935,21 @@ The HTTP maintained route passes all 50 native checks, Rust tests, 443 reference
 cases across 21 files, declarations and root posttest after the separate reference
 scheduling repair below. Its maintained native lint also passes. This expands the
 credential ticket checkpoint's verification to every discovered adapter embedding.
+
+### HTTP reference scheduling repair
+
+After spawn resolution was repaired, the parallel HTTP reference run reproduced
+a two-second timeout in the root-entry import-isolation case. The same unchanged
+four-case file passes alone in 702 ms total (299 ms test execution). The native
+reference configuration now uses one worker and serial files, matching the other
+large native conformance routes. The two-second test timeout is unchanged and no
+original assertion is modified. The maintained route then passes all 443 cases
+across 21 files in 7.53 seconds, along with its 50 native checks, declarations,
+Rust tests and posttest. Scoped configuration lint passes.
+
+During log inspection, the installed Safe Bash rg Unicode-alternation limitation
+was reconfirmed: printf 'x×y\n' piped to rg 'a|×' exits 2 with the non-NUL ASCII
+C/POSIX-profile diagnostic; native rg prints the line and exits 0. Safe Bash's
+literal rg '×' succeeds. The regex engine's admitAscii guard rejects code units
+above 127. This is an observed command compatibility limitation, not a Toolcraft
+failure, and no Safe Bash source was changed in this checkpoint.

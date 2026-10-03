@@ -22049,6 +22049,7 @@ function meshUpdateBounds(self) {
 function meshPackData(self) {
   let i, j, ii;
   const coords = self.coords;
+  self.onAllocation?.(coords.length * 8);
   const coordsPacked = new Float32Array(coords.length * 2);
   for (i = 0, j = 0, ii = coords.length; i < ii; i++) {
     const xy = coords[i];
@@ -22057,6 +22058,7 @@ function meshPackData(self) {
   }
   self.coords = coordsPacked;
   const colors = self.colors;
+  self.onAllocation?.(colors.length * 4);
   const colorsPacked = new Uint8Array(colors.length * 4);
   for (i = 0, j = 0, ii = colors.length; i < ii; i++) {
     const c = colors[i];
@@ -22067,11 +22069,12 @@ function meshPackData(self) {
   }
   self.colors = colorsPacked;
   for (const figure of self.figures) {
+    self.onAllocation?.((figure.coords.length + figure.colors.length) * 4);
     figure.coords = new Uint32Array(figure.coords);
     figure.colors = new Uint32Array(figure.colors);
   }
 }
-function buildMeshVertexData(coords, colors, figures) {
+function buildMeshVertexData(coords, colors, figures, onAllocation) {
   let vertexCount = 0;
   for (const figure of figures) {
     if (figure.type === MeshFigureType.TRIANGLES) {
@@ -22081,6 +22084,7 @@ function buildMeshVertexData(coords, colors, figures) {
       vertexCount += (Math.floor(figure.coords.length / vpr) - 1) * (vpr - 1) * 6;
     }
   }
+  onAllocation?.(vertexCount * 12);
   const posData = new Float32Array(vertexCount * 2);
   const colData = new Uint8Array(vertexCount * 4);
   let pOff = 0, cOff = 0;
@@ -22125,6 +22129,7 @@ var MeshStreamReader = class {
     this.buffer = 0;
     this.bufferLength = 0;
     const numComps = context.numComps;
+    context.onAllocation?.(numComps * 4 + (context.colorFn ? context.colorSpace.numComps * 4 : 0));
     this.tmpCompsBuf = new Float32Array(numComps);
     const csNumComps = context.colorSpace.numComps;
     this.tmpCsCompsBuf = context.colorFn ? new Float32Array(csNumComps) : this.tmpCompsBuf;
@@ -22176,6 +22181,7 @@ var MeshStreamReader = class {
     return this.readBits(this.context.bitsPerFlag);
   }
   readCoordinate() {
+    this.context.onAllocation?.(64);
     const { bitsPerCoordinate, decode } = this.context;
     const xi = this.readBits(bitsPerCoordinate);
     const yi = this.readBits(bitsPerCoordinate);
@@ -22186,6 +22192,7 @@ var MeshStreamReader = class {
     ];
   }
   readComponents() {
+    this.context.onAllocation?.(64);
     const { bitsPerComponent, colorFn, colorSpace, decode, numComps } = this.context;
     const scale = bitsPerComponent < 32 ? 1 / ((1 << bitsPerComponent) - 1) : 23283064365386963e-26;
     const components = this.tmpCompsBuf;
@@ -22199,8 +22206,9 @@ var MeshStreamReader = class {
   }
 };
 var bCache = null;
-function getB(count) {
-  if (bCache?.has(count)) return bCache.get(count);
+function getB(count, onAllocation) {
+  if (!onAllocation && bCache?.has(count)) return bCache.get(count);
+  onAllocation?.(64 + (count + 1) * 64);
   const values = Array.from({ length: count + 1 }, (_, i) => {
     const t = i / count, t_ = 1 - t;
     return new Float32Array([
@@ -22210,7 +22218,7 @@ function getB(count) {
       t ** 3
     ]);
   });
-  (bCache ??= /* @__PURE__ */ new Map()).set(count, values);
+  if (!onAllocation) (bCache ??= /* @__PURE__ */ new Map()).set(count, values);
   return values;
 }
 var MeshShading = class _MeshShading extends BaseShading {
@@ -22220,6 +22228,8 @@ var MeshShading = class _MeshShading extends BaseShading {
   static TRIANGLE_DENSITY = 20;
   constructor(shadingType, stream, context, rowVertices) {
     super();
+    context.onAllocation?.(512);
+    this.onAllocation = context.onAllocation;
     this.shadingType = shadingType;
     this.bbox = this.background = null;
     this.coords = [];
@@ -22262,10 +22272,10 @@ var MeshShading = class _MeshShading extends BaseShading {
   _decodeType4Shading(reader) {
     const coords = this.coords;
     const colors = this.colors;
-    const operators = [];
     const ps = [];
     let verticesLeft = 0;
     while (reader.hasData) {
+      this.onAllocation?.(128);
       const f = reader.readFlag();
       const coord = reader.readCoordinate();
       const color = reader.readComponents();
@@ -22286,7 +22296,6 @@ var MeshShading = class _MeshShading extends BaseShading {
             verticesLeft = 1;
             break;
         }
-        operators.push(f);
       }
       ps.push(coords.length);
       coords.push(coord);
@@ -22294,6 +22303,7 @@ var MeshShading = class _MeshShading extends BaseShading {
       verticesLeft--;
       reader.align();
     }
+    this.onAllocation?.(128 + ps.length * 8);
     this.figures.push({
       type: MeshFigureType.TRIANGLES,
       coords: new Int32Array(ps),
@@ -22305,12 +22315,14 @@ var MeshShading = class _MeshShading extends BaseShading {
     const colors = this.colors;
     const ps = [];
     while (reader.hasData) {
+      this.onAllocation?.(128);
       const coord = reader.readCoordinate();
       const color = reader.readComponents();
       ps.push(coords.length);
       coords.push(coord);
       colors.push(color);
     }
+    this.onAllocation?.(128 + ps.length * 8);
     this.figures.push({
       type: MeshFigureType.LATTICE,
       coords: new Int32Array(ps),
@@ -22321,9 +22333,11 @@ var MeshShading = class _MeshShading extends BaseShading {
   _decodeType6Shading(reader) {
     const coords = this.coords;
     const colors = this.colors;
+    this.onAllocation?.(80);
     const ps = new Int32Array(16);
     const cs = new Int32Array(4);
     while (reader.hasData) {
+      this.onAllocation?.(128);
       const f = reader.readFlag();
       if (!(0 <= f && f <= 3)) {
         throw new FormatError("Unknown type6 flag");
@@ -22424,6 +22438,7 @@ var MeshShading = class _MeshShading extends BaseShading {
           cs[1] = ci + 1;
           break;
       }
+      this.onAllocation?.(256);
       ps[5] = coords.length;
       coords.push([
         (-4 * coords[ps[0]][0] - coords[ps[15]][0] + 6 * (coords[ps[4]][0] + coords[ps[1]][0]) - 2 * (coords[ps[12]][0] + coords[ps[3]][0]) + 3 * (coords[ps[13]][0] + coords[ps[7]][0])) / 9,
@@ -22444,6 +22459,7 @@ var MeshShading = class _MeshShading extends BaseShading {
         (-4 * coords[ps[15]][0] - coords[ps[0]][0] + 6 * (coords[ps[11]][0] + coords[ps[14]][0]) - 2 * (coords[ps[12]][0] + coords[ps[3]][0]) + 3 * (coords[ps[2]][0] + coords[ps[8]][0])) / 9,
         (-4 * coords[ps[15]][1] - coords[ps[0]][1] + 6 * (coords[ps[11]][1] + coords[ps[14]][1]) - 2 * (coords[ps[12]][1] + coords[ps[3]][1]) + 3 * (coords[ps[2]][1] + coords[ps[8]][1])) / 9
       ]);
+      this.onAllocation?.(128 + (ps.length + cs.length) * 4);
       this.figures.push({
         type: MeshFigureType.PATCH,
         coords: new Int32Array(ps),
@@ -22455,9 +22471,11 @@ var MeshShading = class _MeshShading extends BaseShading {
   _decodeType7Shading(reader) {
     const coords = this.coords;
     const colors = this.colors;
+    this.onAllocation?.(80);
     const ps = new Int32Array(16);
     const cs = new Int32Array(4);
     while (reader.hasData) {
+      this.onAllocation?.(128);
       const f = reader.readFlag();
       if (!(0 <= f && f <= 3)) {
         throw new FormatError("Unknown type7 flag");
@@ -22574,6 +22592,7 @@ var MeshShading = class _MeshShading extends BaseShading {
           cs[1] = ci + 1;
           break;
       }
+      this.onAllocation?.(128 + (ps.length + cs.length) * 4);
       this.figures.push({
         type: MeshFigureType.PATCH,
         coords: new Int32Array(ps),
@@ -22632,12 +22651,13 @@ var MeshShading = class _MeshShading extends BaseShading {
       _MeshShading.MAX_SPLIT_PATCH_CHUNKS_AMOUNT
     );
     const verticesPerRow = splitXBy + 1;
+    this.onAllocation?.(128 + (splitYBy + 1) * verticesPerRow * 8);
     const figureCoords = new Int32Array((splitYBy + 1) * verticesPerRow);
     const figureColors = new Int32Array((splitYBy + 1) * verticesPerRow);
     let k = 0;
     const cl = new Uint8Array(3), cr = new Uint8Array(3);
     const c0 = colors[ci[0]], c1 = colors[ci[1]], c2 = colors[ci[2]], c3 = colors[ci[3]];
-    const bRow = getB(splitYBy), bCol = getB(splitXBy);
+    const bRow = getB(splitYBy, this.onAllocation), bCol = getB(splitXBy, this.onAllocation);
     for (let row = 0; row <= splitYBy; row++) {
       cl[0] = (c0[0] * (splitYBy - row) + c2[0] * row) / splitYBy | 0;
       cl[1] = (c0[1] * (splitYBy - row) + c2[1] * row) / splitYBy | 0;
@@ -22658,6 +22678,7 @@ var MeshShading = class _MeshShading extends BaseShading {
             y += coords[pi[q]][1] * m;
           }
         }
+        this.onAllocation?.(128);
         figureCoords[k] = coords.length;
         coords.push([x, y]);
         figureColors[k] = colors.length;
@@ -22693,7 +22714,8 @@ var MeshShading = class _MeshShading extends BaseShading {
     const { posData, colData, vertexCount } = buildMeshVertexData(
       this.coords,
       this.colors,
-      this.figures
+      this.figures,
+      this.onAllocation
     );
     return [
       "Mesh",

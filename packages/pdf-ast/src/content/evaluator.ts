@@ -461,7 +461,8 @@ function renderMeshShadingToImage(
   fillAlpha: number,
   name: string,
   clipRect?: [number, number, number, number],
-  blendMode?: string
+  blendMode?: string,
+  onAllocation?: (bytes: number) => void
 ): PdfEvaluatedImage | undefined {
   const bytes = doc.decodeStream(shStream);
   if (bytes.length === 0) return undefined;
@@ -484,6 +485,7 @@ function renderMeshShadingToImage(
   const csName = csNode?.kind === "name" ? csNode.decoded : "DeviceRGB";
   const numComps = fnNode ? 1 : runColorProgram(doc, colorComponentCountSteps(Boolean(doc), csNode));
   const mesh = new MeshShading(shType, new Stream(bytes), {
+    onAllocation,
     bitsPerCoordinate: bpcCoord, bitsPerComponent: bpcComp, bitsPerFlag: bpcFlag,
     decode: decodeNums, numComps, colorFn: null,
     colorSpace: {
@@ -503,6 +505,7 @@ function renderMeshShadingToImage(
   const boxH = Math.max(1, by1 - by0);
   const imgW = Math.max(1, Math.min(256, Math.ceil(boxW)));
   const imgH = Math.max(1, Math.min(256, Math.ceil(boxH)));
+  onAllocation?.(imgW * imgH * 4);
   const rgba = new Uint8Array(imgW * imgH * 4);
   const a8 = Math.round(fillAlpha * 255);
 
@@ -565,12 +568,13 @@ function renderShadingDictToImage(
   name: string,
   clipRect?: [number, number, number, number],
   shStream?: import("../ast.js").PdfCosStream,
-  blendMode?: string
+  blendMode?: string,
+  onAllocation?: (bytes: number) => void
 ): PdfEvaluatedImage | undefined {
   const stTypeNode = doc.resolve(dictGet(shDict, "ShadingType"));
   const shType = stTypeNode?.kind === "number" ? stTypeNode.value : 0;
   if ((shType === 4 || shType === 5 || shType === 6 || shType === 7) && shStream) {
-    return renderMeshShadingToImage(doc, shDict, shStream, shType, shadingCtm, targetBox, fillAlpha, name, clipRect, blendMode);
+    return renderMeshShadingToImage(doc, shDict, shStream, shType, shadingCtm, targetBox, fillAlpha, name, clipRect, blendMode, onAllocation);
   }
   const fnNode = dictGet(shDict, "Function");
   if ((shType !== 1 && shType !== 2 && shType !== 3) || !fnNode) return undefined;
@@ -633,6 +637,7 @@ function renderShadingDictToImage(
   const boxH = Math.max(1, by1 - by0);
   const imgW = Math.max(1, Math.min(256, Math.ceil(boxW)));
   const imgH = Math.max(1, Math.min(256, Math.ceil(boxH)));
+  onAllocation?.(imgW * imgH * 4);
   const rgba = new Uint8Array(imgW * imgH * 4);
   if (bgComps && bgComps.length > 0) {
     const [bgr, bgg, bgb] = runColorProgram(doc, convertContentColorSteps(Boolean(doc), csNode, csName, bgComps));
@@ -889,6 +894,9 @@ export interface PdfContentEvaluationOptions {
   readonly cosDoc?: ParsedCosDocument | undefined;
   readonly resourcesDict?: PdfCosDict | undefined;
   readonly annotations?: readonly PdfLinkAnnotation[] | undefined;
+  /** Intrinsic mesh geometry and shading surfaces, admitted before allocation.
+   * Resource decoding and color/function state have separate owners. */
+  readonly onShadingAllocation?: ((bytes: number) => void) | undefined;
 }
 export interface PdfEvaluationOperation {
   readonly kind: "paint";
@@ -2003,7 +2011,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF shading requires a source driver");
         const request = step.value;
         step = work.next({ kind: "shading", image: renderShadingDictToImage(params.cosDoc, request.dict, request.matrix, request.bounds,
-          request.alpha, request.name, request.clipRect, request.stream, request.blendMode) });
+          request.alpha, request.name, request.clipRect, request.stream, request.blendMode, params.onShadingAllocation) });
       } else if (step.value.kind === "color") {
         step = work.next({ kind: "color", value: runColorProgram(params.cosDoc, convertContentColorSteps(Boolean(params.cosDoc), undefined, step.value.name, step.value.components, step.value.resources)) });
       } else if (step.value.kind === "inline-image") {

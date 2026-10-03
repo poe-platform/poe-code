@@ -135,6 +135,7 @@ export class PDF17 {
 export class PDF20 extends PDF17 {}
 export class MeshShading {
   constructor(shadingType: number, stream: Stream, context: {
+    onAllocation?: ((bytes: number) => void) | undefined;
     bitsPerCoordinate: number;
     bitsPerComponent: number;
     bitsPerFlag: number;

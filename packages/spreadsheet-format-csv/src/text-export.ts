@@ -6,6 +6,7 @@ import { exportRangeForSheet } from "@poe-code/spreadsheet-engine/workbook/expre
 import { foldSheetName } from "@poe-code/spreadsheet-ast/case-fold";
 import type { Codec } from "@poe-code/spreadsheet-engine/codecs/types";
 import { encodeText } from "@poe-code/spreadsheet-engine/encoding/encode";
+import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-stream";
 import { exportLocale } from "@poe-code/spreadsheet-engine/locale/runtime";
 import { CodecWriteFailure, TextConverterUnavailable } from "@poe-code/spreadsheet-engine/codecs/write-failure";
 import { decodeByteString } from "@poe-code/spreadsheet-ast/byte-value";
@@ -67,23 +68,33 @@ interface TextOptions {
   locale?: string;
 }
 
-export function appendTextField(text: string, options: Pick<TextOptions, "mode" | "quote" | "whitespace">, append: (text: string) => void): void {
+function* textField(text: string, options: Pick<TextOptions, "mode" | "quote" | "whitespace">): Generator<string> {
   // Preserve NUL and scan the entire field. Triggers retain the initial
   // configuration even after separator, quote and eol properties change via -O.
   const whitespace = (c: string | undefined) => c !== undefined && c !== "\u000b" && c !== "\ufeff" && c.trim() === "";
   const quoted = options.mode === "always" || options.mode === "auto" &&
     (text.includes(",") || text.includes(" ") || text.includes("\t") || text.includes("\n") || text.includes('"') || options.whitespace &&
       (whitespace(text[0]) || whitespace(text.at(-1))));
-  if (!quoted || !options.quote) { append(text); return; }
-  append(options.quote);
+  if (!quoted || !options.quote) { yield text; return; }
+  yield options.quote;
+  let chunk = "";
   for (const c of text) {
-    if (options.quote.includes(c)) append(options.quote);
-    append(c);
+    if (options.quote.includes(c)) {
+      if (options.quote.length > 4096) { if (chunk) yield chunk; chunk = ""; yield options.quote; }
+      else chunk += options.quote;
+    }
+    chunk += c;
+    if (chunk.length >= 4096) { yield chunk; chunk = ""; }
   }
-  append(options.quote);
+  if (chunk) yield chunk;
+  yield options.quote;
 }
 
-async function exportText(args: Parameters<NonNullable<Codec["write"]>>, options: TextOptions): Promise<Uint8Array> {
+export function appendTextField(text: string, options: Pick<TextOptions, "mode" | "quote" | "whitespace">, append: (text: string) => void): void {
+  for (const chunk of textField(text, options)) append(chunk);
+}
+
+async function* textChunks(args: Parameters<NonNullable<Codec["write"]>>, options: TextOptions): AsyncGenerator<string | Uint8Array> {
   const [book, , suppliedContext, selection] = args;
   const context: CapabilityContext = options.locale === undefined ? suppliedContext : {
     ...suppliedContext, environment: exportLocale(suppliedContext.environment, options.locale)
@@ -96,13 +107,12 @@ async function exportText(args: Parameters<NonNullable<Codec["write"]>>, options
         context.limits.workbookTextBytes ?? context.limits.inputBytes)) })
   };
   let length = 0, work = 0;
-  const chunks: (string | Uint8Array)[] = [];
   const tick = () => {
     context.signal.throwIfAborted();
     if (++work > (context.limits.workbookWork ?? context.limits.inputBytes))
       throw new SsconvertError("resource-limit", "ssconvert text export work limit exceeded");
   };
-  const append = (text: string) => {
+  function* append(text: string) {
     // Bound intermediate storage before retaining chunks. Final encoding admits
     // the actual output bytes, including discarded and expanded transliterations.
     for (const character of text) {
@@ -110,8 +120,8 @@ async function exportText(args: Parameters<NonNullable<Codec["write"]>>, options
       if (++length > renderingContext.limits.outputBytes)
         throw new SsconvertError("resource-limit", "ssconvert output bytes limit exceeded");
     }
-    chunks.push(text);
-  };
+    yield text;
+  }
   const ids = selection?.sheets ?? book.sheets.map(sheet => sheet.id);
   for (const id of ids) {
     tick();
@@ -132,42 +142,52 @@ async function exportText(args: Parameters<NonNullable<Codec["write"]>>, options
     for (let row = range?.startRow ?? 0; row <= endRow; row++) {
       for (let column = range?.startColumn ?? 0; column <= endColumn; column++) {
         tick();
-        if (column !== (range?.startColumn ?? 0)) append(options.separator);
+        if (column !== (range?.startColumn ?? 0)) yield* append(options.separator);
         const cell = cells.get(`${row}:${column}`);
         const value = cell?.cachedResult ?? cell?.value;
         if (value?.kind === "byte-string") {
           const bytes = byteField(decodeByteString(value.value, tick, context.limits.outputBytes), options,
             renderingContext.limits.outputBytes - length, tick);
-          length += bytes.length; chunks.push(bytes);
-        } else appendTextField(cell ? await renderCellText(cell, book, renderingContext, options.format) : "", options, append);
+          length += bytes.length; yield bytes;
+        } else {
+          for (const chunk of textField(cell ? await renderCellText(cell, book, renderingContext, options.format) : "", options))
+            yield* append(chunk);
+        }
       }
-      append(options.eol);
+      yield* append(options.eol);
     }
   }
   context.signal.throwIfAborted();
-  if (chunks.some(chunk => chunk instanceof Uint8Array)) {
-    const encoded: Uint8Array[] = []; let size = 0;
-    for (const chunk of chunks) {
-      tick();
-      const bytes = typeof chunk === "string" ? encodeText(chunk, "UTF-8", false, suppliedContext) : chunk;
-      if (bytes.length > context.limits.outputBytes - size) throw new SsconvertError("resource-limit", "ssconvert output bytes limit exceeded");
-      size += bytes.length; encoded.push(bytes);
-    }
-    const result = new Uint8Array(size); let offset = 0;
-    for (const bytes of encoded) for (const byte of bytes) { tick(); result[offset++] = byte; }
-    return result;
-  }
-  const text = chunks.join("");
-  try { return encodeText(text, options.charset, options.transliterate, suppliedContext); }
+}
+
+async function* exportText(args: Parameters<NonNullable<Codec["write"]>>, options: TextOptions): AsyncGenerator<Uint8Array> {
+  const context = args[2];
+  let charset = options.charset, failed = false;
+  try { encodeText("", charset, options.transliterate, context); }
   catch (error) {
     context.signal.throwIfAborted();
     if (!(error instanceof TextConverterUnavailable)) throw error;
+    charset = "UTF-8"; failed = true;
     await context.diagnostic?.({ code: "text-converter", severity: "warning", message: "Failed to create converter." });
-    throw new CodecWriteFailure(encodeText(text, "UTF-8", false, context), "E Error while trying to export file as text");
   }
+  yield* encodeTextStream(textChunks(args, options), charset, options.transliterate, context);
+  if (failed) throw new CodecWriteFailure(new Uint8Array(), "E Error while trying to export file as text");
 }
 
-export const writeConfigurableText: NonNullable<Codec["write"]> = async (...args) => {
+/** Explicit buffering convenience; the engine uses the incremental exporters. */
+async function collect(source: AsyncIterable<Uint8Array>): Promise<Uint8Array> {
+  const chunks: Uint8Array[] = [];
+  let size = 0, failure: CodecWriteFailure | undefined;
+  try { for await (const chunk of source) { chunks.push(chunk.slice()); size += chunk.length; } }
+  catch (error) { if (!(error instanceof CodecWriteFailure)) throw error; failure = error; }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+  if (failure) throw new CodecWriteFailure(bytes, failure.message);
+  return bytes;
+}
+
+export const writeConfigurableTextStream: NonNullable<Codec["writeStream"]> = (...args) => {
   const options: TextOptions = { separator: ",", quote: '"', eol: args[0].textExportEol ?? "\n", mode: "auto", whitespace: true,
     format: "automatic", charset: "UTF-8", transliterate: true };
   const context = args[2];
@@ -192,6 +212,9 @@ export const writeConfigurableText: NonNullable<Codec["write"]> = async (...args
   return exportText(args, options);
 };
 
-export const writePlainCsv: NonNullable<Codec["write"]> = async (...args) => exportText(args,
+export const writePlainCsvStream: NonNullable<Codec["writeStream"]> = (...args) => exportText(args,
   { separator: ",", quote: '"', eol: "\n", mode: "auto", whitespace: true,
     format: "automatic", charset: "UTF-8", transliterate: false });
+
+export const writeConfigurableText: NonNullable<Codec["write"]> = (...args) => collect(writeConfigurableTextStream(...args) as AsyncIterable<Uint8Array>);
+export const writePlainCsv: NonNullable<Codec["write"]> = (...args) => collect(writePlainCsvStream(...args) as AsyncIterable<Uint8Array>);

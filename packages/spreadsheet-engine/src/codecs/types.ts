@@ -1,5 +1,5 @@
 import type { Workbook, CellRange } from "@poe-code/spreadsheet-ast";
-import type { CapabilityContext } from "../contracts.js";
+import type { ByteSource, CapabilityContext } from "../contracts.js";
 
 export type Direction = "read" | "write";
 export type SaveScope = "workbook" | "sheet" | "range";
@@ -43,6 +43,10 @@ export interface Codec extends ServiceDescriptor {
   read?(bytes: Uint8Array, context: CapabilityContext, encoding?: string): Promise<Workbook>;
   write?(book: Workbook, options: readonly string[], context: CapabilityContext,
     selection?: { readonly sheets: readonly string[]; readonly range?: CellRange }): Promise<Uint8Array>;
+  /** Incremental export; yielded bytes are borrowed until the next pull.
+   * Supply write as a buffering convenience for hosts without streaming output. */
+  writeStream?(book: Workbook, options: readonly string[], context: CapabilityContext,
+    selection?: { readonly sheets: readonly string[]; readonly range?: CellRange }): ByteSource;
   /** Installed provider's exporter option handler; no native callback is implied. */
   exportOptions?(options: readonly string[], context: CapabilityContext, book?: Workbook): Promise<readonly string[]>;
 }

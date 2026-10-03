@@ -22,7 +22,7 @@ try {
 - Enable sample functions explicitly; `PERL_SED` supports numbered/named backreferences and capture conditions, branch-reset groups, bounded lookaround conditions and alphabetic lookaround/atomic spellings, preserving literal replacements and byte results.
 - Keep live named-expression references when copying formulas with explicit relative or absolute reference modes. Formula parsing, recalculation and dependency discovery share the same name identity and displacement. Names qualified by a missing sheet stay unresolved until that sheet exists; native export still requires a format that can preserve those semantics.
 - Pass an independently created or edited AST to `await engine.adoptWorkbook(book, { signal })` before writing it. Adoption validates resource limits and owns an immutable snapshot.
-- Supply explicit streams or virtual resource bindings.
+- Supply explicit streams or virtual resource bindings. Incremental codecs expose `writeStream`; file bindings consume it through `FileOutput.writeStream` before atomic publication. Older bindings can use a codec’s optional buffered `write` convenience. CSV/text export streams encoded output, while workbook ingestion and the current AST still retain the complete workbook.
 - Control resource budgets, cancellation and cleanup through the shared SDK. Resource IO transports accept `redirects: Infinity` for unlimited redirects or a nonnegative safe integer for a finite budget; every destination still requires authorization.
 
 The compatibility `poe-code/ssconvert` entrypoint retains the existing complete

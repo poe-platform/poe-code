@@ -145,7 +145,22 @@ export function createResourceIO(options: ResourceIOOptions): FileSystem {
     async openOutput(name, context) {
       context.signal.throwIfAborted();
       if (name.includes("\0")) throw new SsconvertError("invalid-request", "Invalid resource name");
-      if (descriptor(name) !== undefined) return undefined;
+      const fd = descriptor(name);
+      if (fd !== undefined) {
+        const sink = descriptors.get(fd)?.sink;
+        if (!sink) throw new SsconvertError("io", `E Can't open '${name}' for writing: Unable to write to ${name}`);
+        return {
+          write: bytes => sink.write(bytes),
+          async writeStream(source) {
+            for await (const chunk of source) {
+              context.signal.throwIfAborted();
+              await sink.write(chunk);
+              context.signal.throwIfAborted();
+            }
+          },
+          async close() {}, async abort() {}
+        };
+      }
       const uri = resourceUri(name, cwd);
       const scheme = uri.slice(0, uri.indexOf(":")).toLowerCase();
       if (scheme === "file") return filesystem.openOutput?.(filePath(uri, "write"), context);

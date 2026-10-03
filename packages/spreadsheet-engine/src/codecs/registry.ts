@@ -32,17 +32,21 @@ function extension(filename: string): string {
 
 const scopes = { workbook: 0, sheet: 1, range: 2 } as const;
 
+function supports(codec: Codec, direction: Direction): boolean {
+  return direction === "read" ? codec.read !== undefined : codec.write !== undefined || codec.writeStream !== undefined;
+}
+
 export function createRegistry(codecs: readonly Codec[] = [], formats: readonly FormatProvider[] = []) {
   const definitions = formats.flatMap(provider =>
     provider.services.map(service => ({ ...service, id: `${provider.id}:${service.id}`, source: service.source ?? provider.source })));
   // Registration order is explicit host configuration, not filesystem enumeration.
   const entries: { codec: Codec; direction: Direction; order: number }[] = [];
   const ids = new Set<string>();
-  const installed = definitions.filter((service) => service[service.direction] &&
-    !codecs.some(codec => codec.id === service.id && codec[service.direction]));
+  const installed = definitions.filter((service) => supports(service, service.direction) &&
+    !codecs.some(codec => codec.id === service.id && supports(codec, service.direction)));
   for (const [order, supplied] of [...installed, ...codecs].entries()) {
     for (const direction of ["read", "write"] as const) {
-      if (!supplied[direction]) continue;
+      if (!supports(supplied, direction)) continue;
       const key = `${direction}:${supplied.id}`;
       if (!supplied.id || ids.has(key)) throw new TypeError(`Duplicate or empty codec ID: ${supplied.id}`);
       ids.add(key);

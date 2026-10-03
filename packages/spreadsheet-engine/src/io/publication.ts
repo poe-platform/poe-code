@@ -1,4 +1,4 @@
-import { SsconvertError, type CapabilityContext, type FileOutput } from "../contracts.js";
+import { SsconvertError, type ByteSource, type CapabilityContext, type FileOutput } from "../contracts.js";
 import { ioFailure, FileWriteError } from "../io-errors.js";
 import { resourceUri } from "../resource-uri.js";
 
@@ -22,7 +22,8 @@ export interface PublicationFileSystem {
  * Error during publication deliberately keeps the temp; preceding write errors remove it. */
 export function createVfsOutput(fs: PublicationFileSystem,
   writeBytes: (path: string, bytes: Uint8Array, signal: AbortSignal) => Promise<void>,
-  retainCleanup?: (cleanup: (remove: (path: string) => Promise<void>) => Promise<void>) => () => Promise<void>) {
+  retainCleanup?: (cleanup: (remove: (path: string) => Promise<void>) => Promise<void>) => () => Promise<void>,
+  writeStream?: (path: string, source: ByteSource, signal: AbortSignal) => Promise<void>) {
   let serial = 0;
   const removeFile = fs.unlink?.bind(fs) ?? fs.rm?.bind(fs);
   return async (filename: string, context: CapabilityContext): Promise<FileOutput> => {
@@ -111,22 +112,24 @@ export function createVfsOutput(fs: PublicationFileSystem,
         check();
         break;
       }
+      const writeOutput = async (write: (path: string) => Promise<void>) => {
+        check();
+        if (finalized || !temporary) throw new SsconvertError("invalid-request", "ssconvert file output is closed");
+        try { await write(temporary); }
+        catch (error) {
+          signal.throwIfAborted();
+          await abort();
+          if (error && typeof error === "object" && "code" in error && error.code === "ENOSPC") {
+            await context.diagnostic?.({ code: "close-error", severity: "error", message: "  ==> Failed to close file: No space left on device" });
+            throw new SsconvertError("io", "E Failed to close file: No space left on device");
+          }
+          throw error;
+        }
+      };
       return {
         abort,
-        async write(bytes) {
-          check();
-          if (finalized || !temporary) throw new SsconvertError("invalid-request", "ssconvert file output is closed");
-          try { await writeBytes(temporary, bytes, signal); }
-          catch (error) {
-            signal.throwIfAborted();
-            await abort();
-            if (error && typeof error === "object" && "code" in error && error.code === "ENOSPC") {
-              await context.diagnostic?.({ code: "close-error", severity: "error", message: "  ==> Failed to close file: No space left on device" });
-              throw new SsconvertError("io", "E Failed to close file: No space left on device");
-            }
-            throw error;
-          }
-        },
+        write: bytes => writeOutput(path => writeBytes(path, bytes, signal)),
+        ...(writeStream === undefined ? {} : { writeStream: (source: ByteSource) => writeOutput(path => writeStream(path, source, signal)) }),
         async close() {
           check();
           if (finalized || !temporary) throw new SsconvertError("invalid-request", "ssconvert file output is closed");

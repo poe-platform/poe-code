@@ -21,3 +21,5 @@ Compose additional format modules explicitly to convert between file types.
 Existing ssconvert service IDs, supported profiles and documented fidelity limits
 remain unchanged. This private workspace is shipped through the containing
 products, not as a separate npm publication.
+
+CSV and configurable text exports stream encoded chunks with backpressure, including a single BOM for UTF-16/UTF-32. The byte-array writer remains available as a buffering convenience. Input and the workbook model currently remain buffered.

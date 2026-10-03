@@ -28,6 +28,8 @@ export interface FileSystem {
   openOutput?(uri: string, context: CapabilityContext): Promise<FileOutput | undefined>;
 }
 export interface FileOutput {
+  /** Consume to EOF with backpressure before close publishes the transaction. */
+  writeStream?(source: ByteSource): Promise<void>;
   write(bytes: Uint8Array): Promise<void>;
   close(): Promise<void>;
   abort(): Promise<void>;

@@ -15,7 +15,7 @@ import {
 } from "safe-bash-contracts";
 import { builtInDirectContextExecutors, syncCommandEvaluators, type SyncCommandEvaluators } from "safe-bash-contracts/runtime-control";
 import { shellValueByteLength } from "safe-bash-contracts/value";
-import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
+import { openFileOutput, writeFileOutput } from "safe-bash-contracts/filesystem-output";
 
 export interface SsconvertCommandsOptions extends Omit<EngineConfig, "filesystem" | "codecs" | "environment"> {
   readonly codecs?: EngineConfig["codecs"];
@@ -102,7 +102,20 @@ export function createCommandBindings(
               else await context.fs.writeFile(path, data, { signal });
             }), () => {});
         }, cleanup => retainFileSystemCleanup(context.fs,
-          view => cleanup(path => view.rm(path)), { maxOperations: 1 }));
+          view => cleanup(path => view.rm(path)), { maxOperations: 1 }), async (path, source, signal) => {
+          const output = await openFileOutput({ ...context, signal }, path, "w");
+          try {
+            for await (const chunk of source) {
+              signal.throwIfAborted();
+              await output.sink.write(chunk);
+            }
+            await output.finish();
+          } catch (error) {
+            try { await output.abort(error); }
+            catch (cleanup) { if (cleanup !== error) throw new AggregateError([error, cleanup], "ssconvert output and cleanup failed"); }
+            throw error;
+          }
+        });
         let engine: Engine | undefined;
         try {
           const maximumArguments = binding.limits.argumentBytes ?? Infinity;

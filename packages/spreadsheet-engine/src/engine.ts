@@ -1,3 +1,4 @@
+import { publishExportStream } from "./stream-export.js";
 import { openDatasourceSession } from "./datasource.js";
 import { snapshotRuntimeFunctions } from "./formulas/runtime-functions.js";
 import { createRegistry } from "./codecs.js";
@@ -410,9 +411,20 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
         message: `Label ranges and automatic label lookup are omitted by ${selection.codec.id}` });
     const output = destination.kind === "resource" ? await config.filesystem?.openOutput?.(destination.uri, context) : undefined;
     check(context);
+    const writerContext = destination.kind === "resource" ? { ...context, outputFilename: destination.uri } : context;
+    if (selection.codec.writeStream && (destination.kind === "stream" || output?.writeStream)) {
+      const outputBytes = await publishExportStream(
+        () => selection.codec.writeStream!(book, selection.options, writerContext, writerSelection),
+        destination, output, context, maximumBytes, () => check(context)
+      );
+      return { exitCode: 0, diagnostics: Object.freeze([...diagnostics.get(context)!]),
+        artifacts: [{ ...(destination.kind === "resource" ? { uri: destination.uri } : {}), bytes: outputBytes }],
+        usage: { inputBytes, outputBytes }, profile: "gnumeric-1.12.61" };
+    }
     let bytes: Uint8Array;
     try {
-      bytes = await selection.codec.write!(book, selection.options, destination.kind === "resource" ? { ...context, outputFilename: destination.uri } : context,
+      if (!selection.codec.write) throw new SsconvertError("capability-denied", "Filesystem streaming output capability is required");
+      bytes = await selection.codec.write(book, selection.options, destination.kind === "resource" ? { ...context, outputFilename: destination.uri } : context,
         writerSelection);
     } catch (error) {
       if (error instanceof CodecWriteFailure) {
@@ -565,7 +577,7 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
   }
   function exporter(destination: Destination, type: string | undefined) {
     const codec = registry.select("write", type, destination.kind === "resource" ? conversionUri(destination.uri, config.environment.cwd) : undefined);
-    if (codec?.write) return codec;
+    if (codec?.write || codec?.writeStream) return codec;
     if (type !== undefined)
       throw new SsconvertError("invalid-request", `Unknown exporter '${type}'.\nTry --list-exporters to see a list of possibilities.`);
     if (destination.kind === "resource")

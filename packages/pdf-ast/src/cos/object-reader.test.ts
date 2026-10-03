@@ -334,3 +334,17 @@ describe("range-backed PDF object reader", () => {
   });
 
 });
+
+it("repairs an intact xref whose trailer root resolves to an Info dictionary", async () => {
+  const bytes = new Uint8Array(readFileSync(new URL("../fixtures/pdfjs-issue9418.pdf", import.meta.url)));
+  const expected = PdfDocument.load(bytes).cos.rootRef;
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", bytes);
+  const source = await PdfFileSource.open(fs, "/input");
+  const opened = await openPdfObjectReader(source, { fs, directory: "/scratch" }, { recovery: "repair" });
+  try {
+    expect(opened.crossReference.rootRef.objectNumber).toBe(expected.objectNumber);
+    const root = await opened.reader.get(expected.objectNumber, expected.generationNumber);
+    expect(root?.value.kind === "dict" && dictGet(root.value, "Pages")?.kind).toBe("ref");
+  } finally { await opened.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

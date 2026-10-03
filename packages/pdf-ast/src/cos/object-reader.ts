@@ -314,6 +314,24 @@ export async function openPdfObjectReader(source: PdfFileSource, storage: PdfInd
   let previousIndex: PdfObjectIndex | undefined;
   try {
     reader = new PdfObjectReader(source, crossReference.index, storage, options);
+    // A syntactically readable xref can still name a non-catalog root. Recover
+    // unencrypted inputs before trusting that root, as the buffered scan does.
+    // Encrypted compressed roots require authentication before inspection.
+    if (!repaired && options.recovery === "repair" && !crossReference.encryptNode) {
+      let valid = false;
+      try {
+        const root = await reader.get(crossReference.rootRef.objectNumber, crossReference.rootRef.generationNumber);
+        const pages = root?.value.kind === "dict" && !root.stream ? dictGet(root.value, "Pages") : undefined;
+        valid = pages?.kind === "ref" || pages?.kind === "dict";
+      } catch (error) { if (!(error instanceof PdfError) || error.code !== "E_PARSE") throw error; }
+      if (!valid) {
+        await reader.close();
+        await crossReference.index.close();
+        crossReference = await recoverPdfReferences(source, storage, xrefOptions);
+        reader = new PdfObjectReader(source, crossReference.index, storage, options);
+        repaired = true;
+      }
+    }
     let encryption: PdfEncryptionState | undefined;
     const encrypt = crossReference.encryptNode;
     if (encrypt) {

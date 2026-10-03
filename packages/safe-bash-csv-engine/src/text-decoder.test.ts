@@ -69,3 +69,15 @@ test('single-byte codecs match every byte from the pinned Python 3.9 oracle',asy
   }
  }
 });
+
+
+test('UTF16 decoding and error categories match pinned Python at every byte split',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const reference=JSON.parse(await readFile(new URL('./fixtures/utf16-python39.json',import.meta.url),'utf8')) as {cases:{encoding:string;hex:string;split:number;text?:string;error?:string}[]};
+ for(const row of reference.cases){
+  const bytes=Uint8Array.from(Buffer.from(row.hex,'hex'));
+  const decode=()=>{const decoder=new PythonTextDecoder(row.encoding);return decoder.decode(bytes.subarray(0,row.split),{stream:true})+decoder.decode(bytes.subarray(row.split));};
+  if(row.error)assert.throws(decode,error=>error instanceof Error&&(row.error==='UnicodeDecodeError'?error instanceof PythonTextDecodeError:error.message==='UTF-16 stream does not start with BOM'&&!(error instanceof PythonTextDecodeError)),JSON.stringify(row));
+  else assert.equal(decode(),row.text,JSON.stringify(row));
+ }
+});

@@ -96,3 +96,8 @@ The existing single-byte mapping tables and strict decode loop are shared throug
 `safe-bash-csv-engine/python-codepages`; CSVkit retains its codec descriptor names,
 ordering, encoding and diagnostic behavior. The shared file decoder additionally
 checks every byte of all 24 supported single-byte codecs against CPython 3.9.
+
+The incremental UTF-16 native decoder is shared through
+`safe-bash-csv-engine/python-utf16`, with 228 CPython 3.9 split-byte cases.
+Bulk `bytes.decode` remains separate because it permits native-endian input
+without a BOM; TextIO incremental decoding requires one.

@@ -1,0 +1,1373 @@
+{
+  "reference": "CPython3.9 incremental strict UTF16",
+  "cases": [
+    {
+      "encoding": "utf-16",
+      "hex": "",
+      "split": 0,
+      "text": ""
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "41",
+      "split": 0,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "41",
+      "split": 1,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "4100",
+      "split": 0,
+      "error": "UnicodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "4100",
+      "split": 1,
+      "error": "UnicodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "4100",
+      "split": 2,
+      "error": "UnicodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "0041",
+      "split": 0,
+      "error": "UnicodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "0041",
+      "split": 1,
+      "error": "UnicodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "0041",
+      "split": 2,
+      "error": "UnicodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "ff",
+      "split": 0,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "ff",
+      "split": 1,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe",
+      "split": 0,
+      "text": ""
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe",
+      "split": 1,
+      "text": ""
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe",
+      "split": 2,
+      "text": ""
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "feff",
+      "split": 0,
+      "text": ""
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "feff",
+      "split": 1,
+      "text": ""
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "feff",
+      "split": 2,
+      "text": ""
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe4100",
+      "split": 0,
+      "text": "A"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe4100",
+      "split": 1,
+      "text": "A"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe4100",
+      "split": 2,
+      "text": "A"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe4100",
+      "split": 3,
+      "text": "A"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe4100",
+      "split": 4,
+      "text": "A"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "feff0041",
+      "split": 0,
+      "text": "A"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "feff0041",
+      "split": 1,
+      "text": "A"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "feff0041",
+      "split": 2,
+      "text": "A"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "feff0041",
+      "split": 3,
+      "text": "A"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "feff0041",
+      "split": 4,
+      "text": "A"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe00d800dc",
+      "split": 0,
+      "text": "\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe00d800dc",
+      "split": 1,
+      "text": "\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe00d800dc",
+      "split": 2,
+      "text": "\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe00d800dc",
+      "split": 3,
+      "text": "\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe00d800dc",
+      "split": 4,
+      "text": "\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe00d800dc",
+      "split": 5,
+      "text": "\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe00d800dc",
+      "split": 6,
+      "text": "\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "feffd800dc00",
+      "split": 0,
+      "text": "\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "feffd800dc00",
+      "split": 1,
+      "text": "\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "feffd800dc00",
+      "split": 2,
+      "text": "\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "feffd800dc00",
+      "split": 3,
+      "text": "\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "feffd800dc00",
+      "split": 4,
+      "text": "\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "feffd800dc00",
+      "split": 5,
+      "text": "\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "feffd800dc00",
+      "split": 6,
+      "text": "\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "00d8",
+      "split": 0,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "00d8",
+      "split": 1,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "00d8",
+      "split": 2,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "00dc",
+      "split": 0,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "00dc",
+      "split": 1,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "00dc",
+      "split": 2,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe00d8",
+      "split": 0,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe00d8",
+      "split": 1,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe00d8",
+      "split": 2,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe00d8",
+      "split": 3,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe00d8",
+      "split": 4,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe00dc",
+      "split": 0,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe00dc",
+      "split": 1,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe00dc",
+      "split": 2,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe00dc",
+      "split": 3,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffe00dc",
+      "split": 4,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "410000d8",
+      "split": 0,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "410000d8",
+      "split": 1,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "410000d8",
+      "split": 2,
+      "error": "UnicodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "410000d8",
+      "split": 3,
+      "error": "UnicodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "410000d8",
+      "split": 4,
+      "error": "UnicodeError"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffefffe4100",
+      "split": 0,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffefffe4100",
+      "split": 1,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffefffe4100",
+      "split": 2,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffefffe4100",
+      "split": 3,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffefffe4100",
+      "split": 4,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffefffe4100",
+      "split": 5,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fffefffe4100",
+      "split": 6,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fefffeff0041",
+      "split": 0,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fefffeff0041",
+      "split": 1,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fefffeff0041",
+      "split": 2,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fefffeff0041",
+      "split": 3,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fefffeff0041",
+      "split": 4,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fefffeff0041",
+      "split": 5,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16",
+      "hex": "fefffeff0041",
+      "split": 6,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "",
+      "split": 0,
+      "text": ""
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "41",
+      "split": 0,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "41",
+      "split": 1,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "4100",
+      "split": 0,
+      "text": "A"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "4100",
+      "split": 1,
+      "text": "A"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "4100",
+      "split": 2,
+      "text": "A"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "0041",
+      "split": 0,
+      "text": "\u4100"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "0041",
+      "split": 1,
+      "text": "\u4100"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "0041",
+      "split": 2,
+      "text": "\u4100"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "ff",
+      "split": 0,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "ff",
+      "split": 1,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe",
+      "split": 0,
+      "text": "\ufeff"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe",
+      "split": 1,
+      "text": "\ufeff"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe",
+      "split": 2,
+      "text": "\ufeff"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "feff",
+      "split": 0,
+      "text": "\ufffe"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "feff",
+      "split": 1,
+      "text": "\ufffe"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "feff",
+      "split": 2,
+      "text": "\ufffe"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe4100",
+      "split": 0,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe4100",
+      "split": 1,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe4100",
+      "split": 2,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe4100",
+      "split": 3,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe4100",
+      "split": 4,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "feff0041",
+      "split": 0,
+      "text": "\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "feff0041",
+      "split": 1,
+      "text": "\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "feff0041",
+      "split": 2,
+      "text": "\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "feff0041",
+      "split": 3,
+      "text": "\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "feff0041",
+      "split": 4,
+      "text": "\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe00d800dc",
+      "split": 0,
+      "text": "\ufeff\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe00d800dc",
+      "split": 1,
+      "text": "\ufeff\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe00d800dc",
+      "split": 2,
+      "text": "\ufeff\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe00d800dc",
+      "split": 3,
+      "text": "\ufeff\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe00d800dc",
+      "split": 4,
+      "text": "\ufeff\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe00d800dc",
+      "split": 5,
+      "text": "\ufeff\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe00d800dc",
+      "split": 6,
+      "text": "\ufeff\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "feffd800dc00",
+      "split": 0,
+      "text": "\ufffe\u00d8\u00dc"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "feffd800dc00",
+      "split": 1,
+      "text": "\ufffe\u00d8\u00dc"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "feffd800dc00",
+      "split": 2,
+      "text": "\ufffe\u00d8\u00dc"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "feffd800dc00",
+      "split": 3,
+      "text": "\ufffe\u00d8\u00dc"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "feffd800dc00",
+      "split": 4,
+      "text": "\ufffe\u00d8\u00dc"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "feffd800dc00",
+      "split": 5,
+      "text": "\ufffe\u00d8\u00dc"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "feffd800dc00",
+      "split": 6,
+      "text": "\ufffe\u00d8\u00dc"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "00d8",
+      "split": 0,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "00d8",
+      "split": 1,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "00d8",
+      "split": 2,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "00dc",
+      "split": 0,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "00dc",
+      "split": 1,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "00dc",
+      "split": 2,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe00d8",
+      "split": 0,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe00d8",
+      "split": 1,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe00d8",
+      "split": 2,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe00d8",
+      "split": 3,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe00d8",
+      "split": 4,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe00dc",
+      "split": 0,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe00dc",
+      "split": 1,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe00dc",
+      "split": 2,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe00dc",
+      "split": 3,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffe00dc",
+      "split": 4,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "410000d8",
+      "split": 0,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "410000d8",
+      "split": 1,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "410000d8",
+      "split": 2,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "410000d8",
+      "split": 3,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "410000d8",
+      "split": 4,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffefffe4100",
+      "split": 0,
+      "text": "\ufeff\ufeffA"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffefffe4100",
+      "split": 1,
+      "text": "\ufeff\ufeffA"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffefffe4100",
+      "split": 2,
+      "text": "\ufeff\ufeffA"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffefffe4100",
+      "split": 3,
+      "text": "\ufeff\ufeffA"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffefffe4100",
+      "split": 4,
+      "text": "\ufeff\ufeffA"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffefffe4100",
+      "split": 5,
+      "text": "\ufeff\ufeffA"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fffefffe4100",
+      "split": 6,
+      "text": "\ufeff\ufeffA"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fefffeff0041",
+      "split": 0,
+      "text": "\ufffe\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fefffeff0041",
+      "split": 1,
+      "text": "\ufffe\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fefffeff0041",
+      "split": 2,
+      "text": "\ufffe\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fefffeff0041",
+      "split": 3,
+      "text": "\ufffe\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fefffeff0041",
+      "split": 4,
+      "text": "\ufffe\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fefffeff0041",
+      "split": 5,
+      "text": "\ufffe\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-le",
+      "hex": "fefffeff0041",
+      "split": 6,
+      "text": "\ufffe\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "",
+      "split": 0,
+      "text": ""
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "41",
+      "split": 0,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "41",
+      "split": 1,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "4100",
+      "split": 0,
+      "text": "\u4100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "4100",
+      "split": 1,
+      "text": "\u4100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "4100",
+      "split": 2,
+      "text": "\u4100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "0041",
+      "split": 0,
+      "text": "A"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "0041",
+      "split": 1,
+      "text": "A"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "0041",
+      "split": 2,
+      "text": "A"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "ff",
+      "split": 0,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "ff",
+      "split": 1,
+      "error": "UnicodeDecodeError"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe",
+      "split": 0,
+      "text": "\ufffe"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe",
+      "split": 1,
+      "text": "\ufffe"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe",
+      "split": 2,
+      "text": "\ufffe"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "feff",
+      "split": 0,
+      "text": "\ufeff"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "feff",
+      "split": 1,
+      "text": "\ufeff"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "feff",
+      "split": 2,
+      "text": "\ufeff"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe4100",
+      "split": 0,
+      "text": "\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe4100",
+      "split": 1,
+      "text": "\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe4100",
+      "split": 2,
+      "text": "\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe4100",
+      "split": 3,
+      "text": "\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe4100",
+      "split": 4,
+      "text": "\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "feff0041",
+      "split": 0,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "feff0041",
+      "split": 1,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "feff0041",
+      "split": 2,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "feff0041",
+      "split": 3,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "feff0041",
+      "split": 4,
+      "text": "\ufeffA"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe00d800dc",
+      "split": 0,
+      "text": "\ufffe\u00d8\u00dc"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe00d800dc",
+      "split": 1,
+      "text": "\ufffe\u00d8\u00dc"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe00d800dc",
+      "split": 2,
+      "text": "\ufffe\u00d8\u00dc"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe00d800dc",
+      "split": 3,
+      "text": "\ufffe\u00d8\u00dc"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe00d800dc",
+      "split": 4,
+      "text": "\ufffe\u00d8\u00dc"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe00d800dc",
+      "split": 5,
+      "text": "\ufffe\u00d8\u00dc"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe00d800dc",
+      "split": 6,
+      "text": "\ufffe\u00d8\u00dc"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "feffd800dc00",
+      "split": 0,
+      "text": "\ufeff\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "feffd800dc00",
+      "split": 1,
+      "text": "\ufeff\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "feffd800dc00",
+      "split": 2,
+      "text": "\ufeff\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "feffd800dc00",
+      "split": 3,
+      "text": "\ufeff\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "feffd800dc00",
+      "split": 4,
+      "text": "\ufeff\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "feffd800dc00",
+      "split": 5,
+      "text": "\ufeff\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "feffd800dc00",
+      "split": 6,
+      "text": "\ufeff\ud800\udc00"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "00d8",
+      "split": 0,
+      "text": "\u00d8"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "00d8",
+      "split": 1,
+      "text": "\u00d8"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "00d8",
+      "split": 2,
+      "text": "\u00d8"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "00dc",
+      "split": 0,
+      "text": "\u00dc"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "00dc",
+      "split": 1,
+      "text": "\u00dc"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "00dc",
+      "split": 2,
+      "text": "\u00dc"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe00d8",
+      "split": 0,
+      "text": "\ufffe\u00d8"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe00d8",
+      "split": 1,
+      "text": "\ufffe\u00d8"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe00d8",
+      "split": 2,
+      "text": "\ufffe\u00d8"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe00d8",
+      "split": 3,
+      "text": "\ufffe\u00d8"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe00d8",
+      "split": 4,
+      "text": "\ufffe\u00d8"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe00dc",
+      "split": 0,
+      "text": "\ufffe\u00dc"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe00dc",
+      "split": 1,
+      "text": "\ufffe\u00dc"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe00dc",
+      "split": 2,
+      "text": "\ufffe\u00dc"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe00dc",
+      "split": 3,
+      "text": "\ufffe\u00dc"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffe00dc",
+      "split": 4,
+      "text": "\ufffe\u00dc"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "410000d8",
+      "split": 0,
+      "text": "\u4100\u00d8"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "410000d8",
+      "split": 1,
+      "text": "\u4100\u00d8"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "410000d8",
+      "split": 2,
+      "text": "\u4100\u00d8"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "410000d8",
+      "split": 3,
+      "text": "\u4100\u00d8"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "410000d8",
+      "split": 4,
+      "text": "\u4100\u00d8"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffefffe4100",
+      "split": 0,
+      "text": "\ufffe\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffefffe4100",
+      "split": 1,
+      "text": "\ufffe\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffefffe4100",
+      "split": 2,
+      "text": "\ufffe\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffefffe4100",
+      "split": 3,
+      "text": "\ufffe\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffefffe4100",
+      "split": 4,
+      "text": "\ufffe\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffefffe4100",
+      "split": 5,
+      "text": "\ufffe\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fffefffe4100",
+      "split": 6,
+      "text": "\ufffe\ufffe\u4100"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fefffeff0041",
+      "split": 0,
+      "text": "\ufeff\ufeffA"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fefffeff0041",
+      "split": 1,
+      "text": "\ufeff\ufeffA"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fefffeff0041",
+      "split": 2,
+      "text": "\ufeff\ufeffA"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fefffeff0041",
+      "split": 3,
+      "text": "\ufeff\ufeffA"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fefffeff0041",
+      "split": 4,
+      "text": "\ufeff\ufeffA"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fefffeff0041",
+      "split": 5,
+      "text": "\ufeff\ufeffA"
+    },
+    {
+      "encoding": "utf-16-be",
+      "hex": "fefffeff0041",
+      "split": 6,
+      "text": "\ufeff\ufeffA"
+    }
+  ]
+}

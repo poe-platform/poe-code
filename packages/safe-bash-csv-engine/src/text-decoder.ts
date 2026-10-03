@@ -1,3 +1,4 @@
+import { PythonUtf16Decoder } from "./python-utf16.js";
 import { pythonSingleByteCodepages, decodePythonSingleByte, PythonTextDecodeError } from "./python-codepages.js";
 import { normalizeEncoding, pythonCodecAliases } from "./python-codec-aliases.js";
 
@@ -7,21 +8,22 @@ const utf8Signature=Uint8Array.of(0xef,0xbb,0xbf);
 export { PythonTextDecodeError } from "./python-codepages.js";
 export class PythonTextDecoder {
  readonly encoding:string;
- private readonly decoder:TextDecoder;
+ private readonly decoder:TextDecoder|PythonUtf16Decoder;
  private readonly codepoints:readonly number[]|undefined;
  private signatureOffset=0;
  private signatureComplete:boolean;
  constructor(encoding:string){
   const name=normalizeEncoding(encoding);
   const canonical=Object.hasOwn(pythonCodecAliases,name)?pythonCodecAliases[name]:undefined;
-  if(canonical===undefined||(!['utf-8-sig','utf-8'].includes(canonical)&&!Object.hasOwn(pythonSingleByteCodepages,canonical)))throw new RangeError(`unknown encoding: ${encoding}`);
+  if(canonical===undefined||(!['utf-8-sig','utf-8','utf-16','utf-16-le','utf-16-be'].includes(canonical)&&!Object.hasOwn(pythonSingleByteCodepages,canonical)))throw new RangeError(`unknown encoding: ${encoding}`);
   this.encoding=canonical;
   this.codepoints=pythonSingleByteCodepages[canonical];
   this.signatureComplete=canonical!=='utf-8-sig';
-  this.decoder=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});
+  this.decoder=canonical==='utf-16'||canonical==='utf-16-le'||canonical==='utf-16-be'?new PythonUtf16Decoder(canonical):new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});
  }
  decode(bytes?:Uint8Array,options?:{stream?:boolean}):string{
   if(this.codepoints)return decodePythonSingleByte(bytes??new Uint8Array(),this.codepoints,this.encoding);
+  if(this.decoder instanceof PythonUtf16Decoder)return this.decoder.decode(bytes,options);
   try{
    let offset=0;
    if(!this.signatureComplete){

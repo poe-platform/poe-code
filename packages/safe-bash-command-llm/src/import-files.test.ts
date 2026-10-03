@@ -108,3 +108,18 @@ test('single-byte file codecs preserve Python characters, strict errors and stag
   assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['legacy']);
  }
 });
+
+test('UTF16 files preserve split surrogate pairs and distinguish missing BOM from malformed input',async()=>{
+ const fs=new MemoryFileSystem();const valid=new Uint8Array(4098);valid.set([255,254]);
+ for(let offset=2;offset<4094;offset+=2)valid[offset]=65;
+ valid.set([0,216,0,220],4094);
+ for(const [bytes,expected,warned]of [[valid,'A'.repeat(2046)+'𐀀',false],[Uint8Array.of(255),null,true],[Uint8Array.of(65,0),null,false]] as const){
+  await fs.writeFile('/utf16',bytes);const values:string[]=[],warnings:string[]=[];
+  const run=()=>withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,encodings:['utf-16'],undecodable(path){warnings.push(path);}},{async *[Symbol.asyncIterator](){yield {path:'/utf16',id:'utf16'};}},async entries=>{
+   for await(const entry of entries){let text='';for await(const chunk of entry.input.bytes)text+=new TextDecoder().decode(chunk);values.push(text);}
+  });
+  if(expected===null&&!warned)await assert.rejects(run(),/UTF-16 stream does not start with BOM/);else await run();
+  assert.deepEqual(values,expected===null?[]:[expected]);assert.deepEqual(warnings,warned?['/utf16']:[]);
+  assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['utf16']);
+ }
+});

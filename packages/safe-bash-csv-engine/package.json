@@ -34,6 +34,10 @@
     "./python-codepages": {
       "types": "./dist/python-codepages.d.ts",
       "import": "./dist/python-codepages.js"
+    },
+    "./python-utf16": {
+      "types": "./dist/python-utf16.d.ts",
+      "import": "./dist/python-utf16.js"
     }
   },
   "files": [

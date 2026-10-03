@@ -1,3 +1,4 @@
+import { PythonUtf16Decoder } from "safe-bash-csv-engine/python-utf16";
 import type { ByteSource, CodecProvider } from "../contracts.js";
 import { PythonException } from "../diagnostics/exception.js";
 import { CsvkitBlocked } from "../errors.js";
@@ -34,7 +35,7 @@ interface EncodingDescriptor {
 
 function createCodec(descriptor: EncodingDescriptor): CodecProvider {
   const decodeStream = async function* (source: ByteSource, _encoding: string, signal: AbortSignal): AsyncGenerator<string> {
-    let decoder: InstanceType<typeof TextDecoder> | undefined;
+    let decoder: PythonUtf16Decoder | undefined;
     for await (const frame of decodeFrames(source, signal)) {
       signal.throwIfAborted();
       if (descriptor.width === 1) {
@@ -46,19 +47,9 @@ function createCodec(descriptor: EncodingDescriptor): CodecProvider {
         }
         yield text;
       } else {
-        let bytes = frame;
-        if (!decoder) {
-          let order = descriptor.byteOrder;
-          if (order === "signature") {
-            if (bytes[0] === 0xff && bytes[1] === 0xfe) order = "little";
-            else if (bytes[0] === 0xfe && bytes[1] === 0xff) order = "big";
-            else throw decodingError(descriptor.name);
-            bytes = bytes.subarray(2);
-          }
-          decoder = new TextDecoder(order === "big" ? "utf-16be" : "utf-16le", { fatal: true, ignoreBOM: true });
-        }
+        decoder ??= new PythonUtf16Decoder(descriptor.byteOrder === "signature" ? "utf-16" : descriptor.byteOrder === "big" ? "utf-16-be" : "utf-16-le");
         let text: string;
-        try { text = decoder.decode(bytes, { stream: true }); }
+        try { text = decoder.decode(frame, { stream: true }); }
         catch { throw decodingError(descriptor.name); }
         yield text;
       }

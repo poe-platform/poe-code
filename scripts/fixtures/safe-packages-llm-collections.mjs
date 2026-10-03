@@ -22,6 +22,14 @@ export async function verifyLlmCollections() {
     if(count!==1)throw new Error('Legacy codec row missing: '+encoding);
   }
   await globFs.unlink('/legacy');
+  for(const [encoding,bytes,expected]of [['utf-16',[255,254,0,216,0,220],'𐀀'],['utf-16-be',[254,255,0,65],'\ufeffA'],['utf-16-le',[255,254,65,0],'\ufeffA']]){
+    await globFs.writeFile('/utf16',Uint8Array.from(bytes));let count=0;
+    await withFileEmbeddingEntries({fs:globFs,directory:'/',signal:new AbortController().signal,encodings:[encoding]},{async *[Symbol.asyncIterator](){yield {path:'/utf16',id:'utf16'};}},async entries=>{
+      for await(const entry of entries){count++;let text='';const decoder=new TextDecoder('utf-8',{ignoreBOM:true});for await(const chunk of entry.input.bytes)text+=decoder.decode(chunk,{stream:true});text+=decoder.decode();if(text!==expected)throw new Error('UTF16 codec changed: '+encoding);}
+    });
+    if(count!==1)throw new Error('UTF16 codec row missing: '+encoding);
+  }
+  await globFs.unlink('/utf16');
   await globFs.mkdir('/nested');
   await globFs.writeFile('/first.txt',new TextEncoder().encode('first'));
   await globFs.writeFile('/nested/second.txt',new TextEncoder().encode('second'));

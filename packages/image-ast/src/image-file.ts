@@ -1,7 +1,7 @@
 import {imageOutputFormat} from "./output-format.js";
 import {encodeStoredImage,isStoredOutputFormat} from "./image-encode.js";
 import {prepareRawOutput} from "./codecs/raw-storage.js";
-import type {ImageByteSource} from "./codecs/png-storage.js";
+import type {ImageByteSource,ImageByteStorage,StoredRgbaImage} from "./codecs/png-storage.js";
 import {decodeRawResource} from "./codecs/resource-storage.js";
 import {transformStoredPipeline} from "./ops/storage-pipeline.js";
 import {storedImageDecoder} from "./codecs/stored-decoder.js";
@@ -11,8 +11,18 @@ import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {isStoredImageOperation} from "./ops/storage.js";
 import type {SharpInputOptions, OutputEncodeOptions, OutputInfo, ImageAstNode} from "./ast.js";
 
+export interface StoredImageFileInput {
+  readonly image: StoredRgbaImage;
+  readonly storage: ImageByteStorage;
+  /** Retire caller backing before atomic publication; must be idempotent. */
+  close(): Promise<void>;
+}
+
 /** Select retained codecs only when the injected filesystem supports safe publication. */
-export async function tryImageFile(input: ImageResourceInput, output: string, options: SharpInputOptions, encoding: OutputEncodeOptions, operations: readonly ImageAstNode[] = [], loadedFiles?:ReadonlyMap<string,Uint8Array>): Promise<OutputInfo | undefined> {
+export async function tryImageFile(input: ImageResourceInput | StoredImageFileInput, output: string, options: SharpInputOptions, encoding: OutputEncodeOptions, operations: readonly ImageAstNode[] = [], loadedFiles?:ReadonlyMap<string,Uint8Array>): Promise<OutputInfo | undefined> {
+  const retained = input && typeof input === "object" && "image" in input ? input as StoredImageFileInput : undefined;
+  if (retained && operations.length) throw new Error("Stored image publication accepts finalized pixels");
+  if (retained && !isStoredOutputFormat(imageOutputFormat(retained.image.format,encoding.format))) return undefined;
   if (!operations.every(isStoredImageOperation) || (input===undefined && !options.text && !options.create)) return undefined;
   const inputFile=typeof input==="string" && !options.text && !options.create?input:undefined;
   const supplied = options.filesystem;
@@ -44,12 +54,13 @@ export async function tryImageFile(input: ImageResourceInput, output: string, op
   const handle = inputFile===undefined?undefined:await fs.openReadFile!(inputFile,io);
   let handleClosed = false, failed = true;
   let staging: FileStaging | undefined;
-  let storage: PagedStorage | undefined;
+  let storage: ImageByteStorage | undefined;
+  let closeStorage: (()=>Promise<void>) | undefined;
   let stream: AsyncGenerator<Uint8Array> | undefined;
   const cleanup = async (): Promise<void> => {
     let cleanupError: {error:unknown} | undefined;
     try {await stream?.return(undefined);} catch(error) {cleanupError={error};}
-    try {await storage?.close();} catch(error) {cleanupError??={error};}
+    try {await closeStorage?.();} catch(error) {cleanupError??={error};}
     if (staging?.cleanup) {
       try {await staging.cleanup.remove();} catch(error) {cleanupError??={error};}
       try {await staging.cleanup.close();} catch(error) {cleanupError??={error};}
@@ -88,8 +99,9 @@ export async function tryImageFile(input: ImageResourceInput, output: string, op
     }
     const directory=dirname(output), parent=resolution?.parent??{...await fs.stat(directory,io)};
     signal.throwIfAborted();
-    storage=new PagedStorage({fs,cwd:options.workingDirectory??directory,env:{},signal});
-    let image=source&&decoder?await decoder(source,storage,signal,options):await readImageResource(input,options,fs,storage,signal,loadedFiles);
+    if(retained){storage=retained.storage;closeStorage=()=>retained.close();}
+    else {const owned=new PagedStorage({fs,cwd:options.workingDirectory??directory,env:{},signal});storage=owned;closeStorage=()=>owned.close();}
+    let image=retained?retained.image:source&&decoder?await decoder(source,storage,signal,options):await readImageResource(input as ImageResourceInput,options,fs,storage,signal,loadedFiles);
     const format=imageOutputFormat(image.format,encoding.format);
     if(!isStoredOutputFormat(format)) {failed=false;return undefined;}
     if(handle && initial && inputFile!==undefined){
@@ -107,7 +119,7 @@ export async function tryImageFile(input: ImageResourceInput, output: string, op
       const encoded=encodeStoredImage(image,backing,signal,{...encoding,format});
       try {while(true){const next=await encoded.next();if(next.done){info=next.value;break;}yield next.value;}}
       finally {await encoded.return(undefined);}
-      await backing.close();
+      await closeStorage!();
       complete=true;
     })();
     if (direct) await fs.publishFileConditional!(output,stream,{expected,parent,maxBytes:Infinity,signal});

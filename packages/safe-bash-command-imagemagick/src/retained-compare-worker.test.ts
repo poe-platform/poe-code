@@ -3,10 +3,11 @@ import { build } from "esbuild";
 import { Miniflare } from "miniflare";
 import { fileURLToPath } from "node:url";
 import sharp, { decodeImage } from "@poe-code/image-ast";
-import { runCompareCli } from "./index.js";
-for (const format of ["bmp", "svg", "label"] as const)
+import { runCompareCli, runConvertCli } from "./index.js";
+for (const tool of ["compare", "convert"] as const)
+for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : ["bmp"]) as ("bmp" | "svg" | "label")[])
 for (const stdout of [false, true])
-    it(`compares and streams diffs in Workerd, input=${format}, stdout=${stdout}`, async () => {
+    it(`runs ${tool} in Workerd, input=${format}, stdout=${stdout}`, async () => {
         const pixels = new Uint8Array(601 * 601 * 4);
         let state = 1234567;
         for (let i = 0; i < pixels.length; i++) {
@@ -18,11 +19,11 @@ for (const stdout of [false, true])
         const bytes = format === "svg" ? new TextEncoder().encode('<svg width="601" height="601">' + " ".repeat(1048576) + '<rect width="601" height="601" fill="red"/><circle cx="300" cy="300" r="70" fill="blue"/></svg>') : await sharp(pixels, { raw: { width: 601, height: 601, channels: 4 } }).toFormat("bmp").toBuffer();
         expect(bytes.length).toBeGreaterThan(1048576);
         const operand = format === "label" ? "label:" + "x<&😀".repeat(600) : "/input";
-        const expectedFiles = new Map([["/input", bytes]]), expected = await runCompareCli([operand, operand, "/out.bmp"], expectedFiles);
+        const expectedFiles = new Map([["/input", bytes]]), expected = tool === "compare" ? await runCompareCli([operand, operand, "/out.bmp"], expectedFiles) : await runConvertCli([operand,"-flip","-gamma","1.4","-colorspace","gray","png:/out.bmp"],expectedFiles);
         const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../../../", import.meta.url)), sourcefile: "pdf-metadata-worker.ts", contents: `
- import {runCompareCli} from './packages/safe-bash-command-imagemagick/src/index.ts';
+ import {runCompareCli,runConvertCli} from './packages/safe-bash-command-imagemagick/src/index.ts';
  import {FsError} from '@poe-code/safe-fs/contracts';
- export default {async fetch(request,env){const {size,stdout,operand}=await request.json();let outputSize=0;const output={async write(bytes){await env.BACKING.fetch('https://backing/result?position='+outputSize,{method:'PUT',body:bytes});outputSize+=bytes.length;}};let id=0,opened=0,closed=0,removed=0,maxAllocation=0,reads=0;const scope={},files=new Map([['/input',{id:'input',size}]]);
+ export default {async fetch(request,env){const {size,stdout,operand,tool}=await request.json();let outputSize=0;const output={async write(bytes){await env.BACKING.fetch('https://backing/result?position='+outputSize,{method:'PUT',body:bytes});outputSize+=bytes.length;}};let id=0,opened=0,closed=0,removed=0,maxAllocation=0,reads=0;const scope={},files=new Map([['/input',{id:'input',size}]]);
  const stat=(file,type='file')=>({type,size:file.size,mode:420,mtimeMs:1,ctimeMs:1,atimeMs:1,identityScope:scope,opaqueIdentity:file.id,opaqueVersion:'1'}),parent=stat({id:'root',size:0},'directory');
  const fs={capabilities:{atomicFilePublication:true,retainedRead:true,retainedStagingWrite:true,retainedStagingCleanup:true},async stat(){return parent;},async capabilitiesFor(){return this.capabilities;},
  async lstat(path){const file=files.get(path);if(!file)throw new FsError('ENOENT');return stat(file);},
@@ -33,7 +34,7 @@ for (const stdout of [false, true])
  async createStagedFile(path,name){const file={id:String(++id),size:0},filePath=path+'/'+name;files.set(filePath,file);return {parent:{path:'/',stat:parent},directory:{path,stat:parent},file:{path:filePath,stat:stat(file)},writer:{async write(chunk){if(chunk.length>65536)throw new Error('large write');await env.BACKING.fetch('https://backing/'+file.id+'?position='+file.size,{method:'PUT',body:chunk});file.size+=chunk.length;},async finish(){return stat(file);}},cleanup:{async remove(){files.delete(filePath);removed++;await env.BACKING.fetch('https://backing/'+file.id,{method:'DELETE'});},async close(){}}};},
  readFile(){throw new Error('whole input');},writeFile(){throw new Error('whole output');}};
  const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;maxAllocation=Math.max(maxAllocation,length);if(length>65536)throw new Error('unbounded compare allocation '+length);return Reflect.construct(target,args);}});
- try{const metadata=await runCompareCli([operand,operand,stdout?'bmp:-':'/out.bmp'],{filesystem:fs,cwd:'/',...(stdout?{stdout:output}:{})});return Response.json({metadata,opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
+ try{const input={filesystem:fs,cwd:'/',...(stdout?{stdout:output}:{})};const metadata=tool==='compare'?await runCompareCli([operand,operand,stdout?'bmp:-':'/out.bmp'],input):await runConvertCli([operand,'-flip','-gamma','1.4','-colorspace','gray',stdout?'png:-':'png:/out.bmp'],input);return Response.json({metadata,opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
  }};` }, bundle: true, write: false, platform: "browser", conditions: ["workerd"], format: "esm", metafile: true, logLevel: "silent" });
         expect(Object.values(bundle.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
         const backing = new Map<string, Uint8Array>([["/input", bytes]]);
@@ -53,7 +54,7 @@ for (const stdout of [false, true])
                     return new Response(backing.get(key)!.slice(position, position + Number(url.searchParams.get("length"))));
                 } } });
         try {
-            const response = await runtime.dispatchFetch("https://image/", { method: "POST", body: JSON.stringify({ size: bytes.length, stdout, operand }) });
+            const response = await runtime.dispatchFetch("https://image/", { method: "POST", body: JSON.stringify({ size: bytes.length, stdout, operand, tool }) });
             if (response.status !== 200)
                 throw new Error(await response.text());
             const result = await response.json() as {
@@ -69,7 +70,7 @@ for (const stdout of [false, true])
             expect(result.metadata).toEqual(expected);
             expect(result.opened).toBeGreaterThan(format === "label" ? 0 : 1);
             expect(result.closed).toBe(result.opened);
-            expect(result.removed).toBe(result.opened - (format === "label" ? 0 : 2));
+            expect(result.removed).toBe(result.opened - (format === "label" ? 0 : tool === "compare" ? 2 : 1));
             expect(result.files).toBe(stdout ? 1 : 2);
             expect(result.reads).toBeGreaterThan(8);
             expect(result.maxAllocation).toBeLessThanOrEqual(65536);

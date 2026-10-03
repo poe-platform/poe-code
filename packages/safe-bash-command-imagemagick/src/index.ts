@@ -1,5 +1,6 @@
 import {withCompareFiles,CompareInputFailure,type CompareFileInput,type CompareFileSession} from "./compare-file.js";
 export type {CompareFileInput} from "./compare-file.js";
+export interface ConvertFileInput extends CompareFileInput { readonly stderr?: ByteSink; }
 import {compareImageSteps,formatMetricNum} from "./compare-kernel.js";
 import {withIdentifyFiles,type IdentifyFileInput,type IdentifyFileReader,type IdentifyInspection,type IdentifyRaster} from "./identify-file.js";
 export type {IdentifyFileInput} from "./identify-file.js";
@@ -4247,42 +4248,10 @@ function parseMagickIndexSpec(spec: string, length: number): number[] {
   return out;
 }
 
-function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack: RgbaImage[] = [], stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, RgbaImage[], void> {
-    let cooperativeWork = 63;
-    let stack: RgbaImage[] = [];
-    let operandsOnly = false;
-    let i = 0;
-    while (i < tokens.length) {
-        yield;
-        const t = tokens[i]!;
-        if (!operandsOnly && t === "--") { operandsOnly = true; i++; continue; }
-        if (operandsOnly) {
-            const loaded = yield* parseInputOperandsSteps(t, files, state, stdinBytes);
-            if (loaded) stack.push(...loaded);
-            i++;
-            continue;
-        }
-        if (t === "(") {
-            let depth = 1;
-            let j = i + 1;
-            while (j < tokens.length && depth > 0) {
-                if (++cooperativeWork % 65536 === 0)
-                    yield;
-                if (tokens[j] === "(")
-                    depth++;
-                else if (tokens[j] === ")")
-                    depth--;
-                j++;
-            }
-            const endIdx = depth === 0 ? j - 1 : j;
-            const subTokens = tokens.slice(i + 1, endIdx);
-            const subState: MagickState = { ...state };
-            const subResult = (yield* evaluatePipelineTokensSteps(subTokens, files, subState, stack, stdinBytes, signal));
-            stack.push(...subResult);
-            i = j;
-            continue;
-        }
-        if (t === "-size") {
+function applyMagickReadSetting(tokens: readonly string[], state: MagickState, start: number): number | undefined {
+    let i = start;
+    const t = tokens[i];
+if (t === "-size") {
             const g = parseMagickGeometry(tokens[++i] ?? "1x1");
             state.sizeWidth = Math.max(1, Math.round(g.width ?? 1));
             state.sizeHeight = Math.max(1, Math.round(g.height ?? state.sizeWidth));
@@ -4347,7 +4316,47 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const v = tokens[++i] ?? "";
             if (k === "option:compose:args")
                 state.composeArgs = v;
+        } else return undefined;
+    return i;
+}
+
+function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack: RgbaImage[] = [], stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, RgbaImage[], void> {
+    let cooperativeWork = 63;
+    let stack: RgbaImage[] = [];
+    let operandsOnly = false;
+    let i = 0;
+    while (i < tokens.length) {
+        yield;
+        const t = tokens[i]!;
+        if (!operandsOnly && t === "--") { operandsOnly = true; i++; continue; }
+        if (operandsOnly) {
+            const loaded = yield* parseInputOperandsSteps(t, files, state, stdinBytes);
+            if (loaded) stack.push(...loaded);
+            i++;
+            continue;
         }
+        if (t === "(") {
+            let depth = 1;
+            let j = i + 1;
+            while (j < tokens.length && depth > 0) {
+                if (++cooperativeWork % 65536 === 0)
+                    yield;
+                if (tokens[j] === "(")
+                    depth++;
+                else if (tokens[j] === ")")
+                    depth--;
+                j++;
+            }
+            const endIdx = depth === 0 ? j - 1 : j;
+            const subTokens = tokens.slice(i + 1, endIdx);
+            const subState: MagickState = { ...state };
+            const subResult = (yield* evaluatePipelineTokensSteps(subTokens, files, subState, stack, stdinBytes, signal));
+            stack.push(...subResult);
+            i = j;
+            continue;
+        }
+        const setting = applyMagickReadSetting(tokens, state, i);
+        if (setting !== undefined) { i = setting; }
         else if (t === "-write" || t === "+write") {
             const writePath = tokens[++i] ?? "";
             if (stack.length > 0 && writePath && writePath.toLowerCase() !== "null:") {
@@ -5500,8 +5509,83 @@ function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         };
     }
 }
-export async function runConvertCli(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
-    return drainSteps(runConvertCliSteps(argv, files, stdinBytes, signal), signal);
+async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult | undefined> {
+    if (!input.filesystem.capabilities || !input.filesystem.open || !input.filesystem.removeFileConditional) return;
+    const outSpec = argv.at(-1);
+    if (!outSpec || argv.some(token => ["--help", "-help", "-h", "--version", "-version", "-list", "--list"].includes(token))) return;
+    if (["info:", "txt:", "histogram:"].some(prefix => outSpec.toLowerCase().startsWith(prefix))) return;
+    const output = inferOutputFormat(outSpec, "png");
+    if (output.format === "gif" || output.path.includes("%")) return;
+    await yieldTurn(signal);
+    const state = createDefaultState(), tokens = argv.slice(0, -1);
+    type Operation = Parameters<typeof transformStoredImage>[2];
+    type Step = (image: StoredRgbaImage | undefined, backend: CompareFileSession) => Promise<StoredRgbaImage | undefined>;
+    const steps: Step[] = [];
+    let inputs = 0, operandsOnly = false;
+    const transform = (operation: (image: StoredRgbaImage) => Operation | undefined) => {
+        steps.push(async (image, backend) => { if (!image) return; const node = operation(image); return node ? transformStoredImage(image, backend.storage, node, signal) : image; });
+    };
+    for (let i = 0; i < tokens.length; i++) {
+        if (i && i % 64 === 0) await yieldTurn(signal);
+        const token = tokens[i]!;
+        if (!operandsOnly && token === "--") { operandsOnly = true; continue; }
+        const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
+        if (setting !== undefined) { i = setting; continue; }
+        if (!operandsOnly && token === "+gravity") { state.gravity = "northwest"; continue; }
+        if (!operandsOnly && token === "-strip") { state.strip = true; continue; }
+        if (!operandsOnly && token === "+repage") continue;
+        if (!operandsOnly && token === "-repage") { i++; continue; }
+        if (!operandsOnly && ["-resize", "-scale", "-sample", "-thumbnail"].includes(token)) {
+            const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel;
+            transform(image => { const options = magickResizeOptions(image, geometry, kernel); return options ? { kind: "resize", ...options } : undefined; });
+        } else if (!operandsOnly && ["-flip", "-flop", "-auto-orient"].includes(token)) {
+            const kind = token === "-flip" ? "flip" : token === "-flop" ? "flop" : "autoOrient";
+            transform(() => ({ kind }));
+        } else if (!operandsOnly && token === "-rotate") {
+            const angle = Number(tokens[++i] ?? 0), background = state.background;
+            transform(() => ({ kind: "rotate", angle, background }));
+        } else if (!operandsOnly && token === "-gamma") {
+            const gamma = Math.max(0.1, Number(tokens[++i] ?? 1));
+            transform(() => ({ kind: "gamma", gamma, gammaOut: gamma }));
+        } else if (!operandsOnly && ["-colorspace", "-grayscale"].includes(token)) {
+            const space = (tokens[++i] ?? "gray").toLowerCase();
+            if (space.includes("gray") || space.includes("grey") || space === "rec709luma" || space === "rec601luma") transform(() => ({ kind: "grayscale" }));
+        } else if (!operandsOnly && ["-blur", "-gaussian-blur", "-sharpen", "-unsharp"].includes(token)) {
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), sigma = Math.max(0.3, geometry.height ?? geometry.width ?? 1);
+            const kind = token === "-blur" || token === "-gaussian-blur" ? "blur" : "sharpen";
+            transform(() => kind === "blur" ? { kind, sigma } : { kind, sigma, m1: 1, m2: 2 });
+        } else if (!operandsOnly && token === "-border") {
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x0"), left = Math.max(0, Math.round(geometry.width ?? 0)), top = Math.max(0, Math.round(geometry.height ?? left)), background = state.borderColor;
+            transform(() => ({ kind: "extend", left, right: left, top, bottom: top, background, extendWith: "background" }));
+        } else {
+            if (!operandsOnly && ((token.startsWith("-") && token !== "-") || token.startsWith("+") || token === "(" || token === ")")) return;
+            if (++inputs > 1) return;
+            const captured = { ...state }, maxDecodeDimension = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
+            steps.push(async (_image, backend) => parseStoredCompareInput(token, captured, backend, signal, { lastPage: true, ...(maxDecodeDimension === undefined ? {} : { maxDecodeDimension }) }));
+        }
+    }
+    if (!inputs) return;
+    return withCompareFiles(input, stdinBytes, signal, async backend => {
+        let image: StoredRgbaImage | undefined;
+        try { for (const step of steps) { signal.throwIfAborted(); image = await step(image, backend); } }
+        catch (error) {
+            signal.throwIfAborted();
+            if (error instanceof CompareInputFailure) throw error.reason;
+            return { exitCode: 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` };
+        }
+        if (!image) return { exitCode: 1, stdout: "", stderr: `magick: no images defined '${outSpec}'\n` };
+        const stdoutBytes = await backend.publish(image, output.path, { format: output.format, quality: state.quality });
+        return { exitCode: 0, stdout: "", stderr: "", ...(stdoutBytes ? { stdoutBytes } : {}) };
+    });
+}
+
+export async function runConvertCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
+    if (files instanceof Map) return drainSteps(runConvertCliSteps(argv, files, stdinBytes, signal), signal);
+    const active = signal ?? new AbortController().signal;
+    const retained = await tryConvertFiles(argv, files, stdinBytes, active);
+    if (!retained) return runBufferedImageFiles(argv, files, runConvertCli, stdinBytes, active);
+    if (files.stderr && retained.stderr) { await writeIdentifyText(files.stderr, retained.stderr, active); return { ...retained, stderr: "" }; }
+    return retained;
 }
 export function runConvertCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
     const steps = runConvertCliSteps(argv, files, stdinBytes, signal);
@@ -5730,13 +5814,16 @@ export function runCompositeCliSync(argv: readonly string[], files: Map<string, 
 }
 
 
-async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal):Promise<StoredRgbaImage|undefined>{
+async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{lastPage?:boolean;maxDecodeDimension?:number}={}):Promise<StoredRgbaImage|undefined>{
  const {baseToken,pageSpec,inlineGeom}=parseInputToken(token),lower=baseToken.toLowerCase();let image:StoredRgbaImage|undefined;
  if(lower.startsWith("tile:")){
   const pattern=await parseStoredCompareInput(baseToken.slice(5),state,backend,signal);if(!pattern)return;
   const position=backend.storage.allocate(state.sizeWidth*state.sizeHeight*4);
   for(let y=0;y<state.sizeHeight;y++)for(let x=0;x<state.sizeWidth;x++){await backend.storage.write(position+(y*state.sizeWidth+x)*4,await backend.storage.read(pattern.position+((y%pattern.height)*pattern.width+x%pattern.width)*4,4));}
   image={position,width:state.sizeWidth,height:state.sizeHeight,format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:true};
+ }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
+  const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(baseToken.slice(baseToken.indexOf(":")+1)||"white"),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
+  image={...await decodeImageToStorage({size:0,async read(){return new Uint8Array();}},backend.storage,signal,{create:{width,height,channels:4,background:{r:color.r,g:color.g,b:color.b,alpha:color.a/255}}}),format:"png"};
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
   const svg=createLabelSvg(baseToken.slice(baseToken.indexOf(":")+1),state),encoder=new TextEncoder(),base=backend.storage.allocate(0);let size=0;
   for(let offset=0;offset<svg.length;){const bytes=new Uint8Array(4096),{read,written}=encoder.encodeInto(svg.slice(offset,offset+4097),bytes);await backend.storage.write(backend.storage.allocate(written),bytes.subarray(0,written));offset+=read;size+=written;}
@@ -5746,7 +5833,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   if(generated)image=await backend.retain(generated);
   else{
    let path=baseToken;const colon=path.indexOf(":");if(colon>0&&extToImageFormat(path.slice(0,colon)))path=path.slice(colon+1);
-   image=await backend.load(path,metadata=>{const total=metadata?.pages&&metadata.pages>1?metadata.pages:1,pages=selectedInputPages(pageSpec,total),page=pages.next().value??0;pages.return(undefined);const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom);return {density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};});
+   image=await backend.load(path,metadata=>{const total=metadata?.pages&&metadata.pages>1?metadata.pages:1,pages=selectedInputPages(pageSpec,total);let page=pages.next().value??0;if(readOptions.lastPage){for(const selected of pages)page=selected;}pages.return(undefined);const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;return {density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};});
   }
  }
  if(image&&inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area)image=await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal);}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await transformStoredImage(image,backend.storage,{kind:"resize",...resize},signal);}}
@@ -6220,8 +6307,12 @@ function* runMagickCliSteps(argv: readonly string[], files: Map<string, Uint8Arr
     }
     return (yield* runConvertCliSteps(argv, files, stdinBytes, signal));
 }
-export async function runMagickCli(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
-    return drainIdentifySteps(runMagickCliSteps(argv, files, stdinBytes, signal), signal);
+export async function runMagickCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
+    if (files instanceof Map) return drainIdentifySteps(runMagickCliSteps(argv, files, stdinBytes, signal), signal);
+    if (argv[0] === "identify") return runIdentifyCli(argv.slice(1), files, stdinBytes, signal);
+    if (argv[0] === "compare") return runCompareCli(argv.slice(1), files, stdinBytes, signal);
+    if (["mogrify", "composite", "montage"].includes(argv[0] ?? "")) return runBufferedImageFiles(argv, files, runMagickCli, stdinBytes, signal ?? new AbortController().signal);
+    return runConvertCli(argv[0] === "convert" ? argv.slice(1) : argv, files, stdinBytes, signal);
 }
 export function runMagickCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
     const steps = runMagickCliSteps(argv, files, stdinBytes, signal);
@@ -6232,42 +6323,12 @@ export function runMagickCliSync(argv: readonly string[], files: Map<string, Uin
     return next.value;
 }
 
-async function executeVfsMagickTool(
-  context: CommandContext,
-  runner: (
-    argv: readonly string[],
-    files: Map<string, Uint8Array>,
-    stdinBytes?: Uint8Array,
-    signal?: AbortSignal
-  ) => Promise<ImageMagickCliResult>,
-  maxInputBytes: number
-): Promise<{ exitCode: number }> {
-  let cooperativeWork = 63;
-  const invocation = createOutputOperation(context, { write: async () => {} });
-  try {
-    const carrier = getCommandArguments(context);
-    const argv = [...carrier.args];
+async function runBufferedImageFiles(argv: readonly string[], input: ConvertFileInput, runner: (argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal) => Promise<ImageMagickCliResult>, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
+    const context = { fs: input.filesystem, cwd: input.cwd, signal, stdin: input.stdin ?? (async function* () {})(), ...(input.registerCleanup ? { registerCleanup: input.registerCleanup } : {}) };
     const vfsFiles = new Map<string, Uint8Array>();
-
-    const budget = new InputByteBudget(maxInputBytes);
-    let accountedBytes = 0;
-    const chargeInput = (bytes: number) => {
-      budget.charge(bytes);
-      accountedBytes += bytes;
-      context.inputBudget?.check(accountedBytes);
-    };
-    if(runner===runCompareCli||(runner===runMagickCli&&argv[0]==="compare")){
-      const result=await runCompareCli(runner===runMagickCli?argv.slice(1):argv,{filesystem:context.fs,cwd:context.cwd,stdin:context.stdin,stdout:invocation.child(context.stdout).output,...(context.registerCleanup?{registerCleanup:context.registerCleanup}:{}),inputBudget:{check(total){chargeInput(total-accountedBytes);}}},undefined,invocation.signal);
-      if(result.stderr)await writeBytes(context.stderr,new TextEncoder().encode(result.stderr),invocation.signal);
-      if(result.stdout)await writeBytes(invocation.child(context.stdout).output,new TextEncoder().encode(result.stdout),invocation.signal);
-      return {exitCode:result.exitCode};
-    }
-    if(runner===runIdentifyCli||(runner===runMagickCli&&argv[0]==="identify")){
-      const result=await runIdentifyCli(runner===runMagickCli?argv.slice(1):argv,{filesystem:context.fs,cwd:context.cwd,stdin:context.stdin,stdout:invocation.child(context.stdout).output,stderr:context.stderr,inputBudget:{check(total){chargeInput(total-accountedBytes);}}},undefined,invocation.signal);
-      if(result.stderr)await writeBytes(context.stderr,new TextEncoder().encode(result.stderr),invocation.signal);
-      if(result.stdout)await writeBytes(invocation.child(context.stdout).output,new TextEncoder().encode(result.stdout),invocation.signal);
-      return {exitCode:result.exitCode};
-    }
+    let cooperativeWork = 63, accountedBytes = 0;
+    const chargeInput = (bytes: number) => { accountedBytes += bytes; input.inputBudget?.check(accountedBytes); };
+    if (stdinBytes) chargeInput(stdinBytes.length);
     let needsStdin = false;
     const hasOutputOperand = runner !== runIdentifyCli && !(runner === runMagickCli && argv[0] === "identify");
     let operandsOnly = false;
@@ -6291,7 +6352,7 @@ async function executeVfsMagickTool(
       let bytes: Uint8Array;
       try {
         bytes = await context.fs.readFile(resolvePath(context.cwd, candidate), {
-          signal: invocation.signal
+          signal: signal
         });
       } catch (error) {
         if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM"].includes(error.code)) throw error;
@@ -6302,11 +6363,11 @@ async function executeVfsMagickTool(
       vfsFiles.set(candidate, bytes);
     }
 
-    let stdinBytes: Uint8Array | undefined;
-    if (needsStdin) {
+
+    if (needsStdin && stdinBytes === undefined) {
       const chunks: Uint8Array[] = [];
       let total = 0;
-      for await (const chunk of readBytes(context.stdin, invocation.signal)) {
+      for await (const chunk of readBytes(context.stdin, signal)) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
         chargeInput(chunk.byteLength);
         chunks.push(chunk);
@@ -6320,9 +6381,66 @@ async function executeVfsMagickTool(
         off += chunk.byteLength;
       }
     }
-    context.inputBudget?.check(accountedBytes);
+    input.inputBudget?.check(accountedBytes);
     const existingSnap = new Map(vfsFiles);
-    const res = await runner(argv, vfsFiles, stdinBytes, invocation.signal);
+    const res = await runner(argv, vfsFiles, stdinBytes, signal);
+    let delivered = res;
+    if (input.stderr && res.stderr) { await writeIdentifyText(input.stderr, res.stderr, signal); delivered = { ...delivered, stderr: "" }; }
+    if (input.stdout) {
+        if (res.stdoutBytes) await writeBytes(input.stdout, res.stdoutBytes, signal);
+        else if (res.stdout) await writeIdentifyText(input.stdout, res.stdout, signal);
+        const { stdoutBytes: ignored, ...result } = delivered;
+        delivered = { ...result, stdout: "" };
+    }
+    for (const [key, val] of vfsFiles.entries()) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
+      if (existingSnap.get(key) !== val) {
+        const abs = resolvePath(context.cwd, key);
+        await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: signal }));
+      }
+    }
+    vfsFiles.clear();
+    existingSnap.clear();
+    if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
+    return delivered;
+}
+
+async function executeVfsMagickTool(
+  context: CommandContext,
+  runner: (
+    argv: readonly string[],
+    files: Map<string, Uint8Array>,
+    stdinBytes?: Uint8Array,
+    signal?: AbortSignal
+  ) => Promise<ImageMagickCliResult>,
+  maxInputBytes: number
+): Promise<{ exitCode: number }> {
+  const invocation = createOutputOperation(context, { write: async () => {} });
+  try {
+    const carrier = getCommandArguments(context);
+    const argv = [...carrier.args];
+    const budget = new InputByteBudget(maxInputBytes);
+    let accountedBytes = 0;
+    const chargeInput = (bytes: number) => {
+      budget.charge(bytes);
+      accountedBytes += bytes;
+      context.inputBudget?.check(accountedBytes);
+    };
+    if(runner===runCompareCli||(runner===runMagickCli&&argv[0]==="compare")){
+      const result=await runCompareCli(runner===runMagickCli?argv.slice(1):argv,{filesystem:context.fs,cwd:context.cwd,stdin:context.stdin,stdout:invocation.child(context.stdout).output,...(context.registerCleanup?{registerCleanup:context.registerCleanup}:{}),inputBudget:{check(total){chargeInput(total-accountedBytes);}}},undefined,invocation.signal);
+      if(result.stderr)await writeBytes(context.stderr,new TextEncoder().encode(result.stderr),invocation.signal);
+      if(result.stdout)await writeBytes(invocation.child(context.stdout).output,new TextEncoder().encode(result.stdout),invocation.signal);
+      return {exitCode:result.exitCode};
+    }
+    if(runner===runIdentifyCli||(runner===runMagickCli&&argv[0]==="identify")){
+      const result=await runIdentifyCli(runner===runMagickCli?argv.slice(1):argv,{filesystem:context.fs,cwd:context.cwd,stdin:context.stdin,stdout:invocation.child(context.stdout).output,stderr:context.stderr,inputBudget:{check(total){chargeInput(total-accountedBytes);}}},undefined,invocation.signal);
+      if(result.stderr)await writeBytes(context.stderr,new TextEncoder().encode(result.stderr),invocation.signal);
+      if(result.stdout)await writeBytes(invocation.child(context.stdout).output,new TextEncoder().encode(result.stdout),invocation.signal);
+      return {exitCode:result.exitCode};
+    }
+    const fileInput: ConvertFileInput = { filesystem: context.fs, cwd: context.cwd, stdin: context.stdin, stderr: context.stderr, stdout: invocation.child(context.stdout).output, ...(context.registerCleanup ? { registerCleanup: context.registerCleanup } : {}), inputBudget: { check(total) { chargeInput(total - accountedBytes); } } };
+    const isConvert = runner === runConvertCli || (runner === runMagickCli && !["mogrify", "composite", "montage"].includes(argv[0] ?? ""));
+    const res = isConvert ? await runConvertCli(runner === runMagickCli && argv[0] === "convert" ? argv.slice(1) : argv, fileInput, undefined, invocation.signal) : await runBufferedImageFiles(argv, fileInput, runner, undefined, invocation.signal);
 
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
@@ -6335,16 +6453,6 @@ async function executeVfsMagickTool(
       await writeBytes(stdout.output, new TextEncoder().encode(res.stdout), invocation.signal);
     }
 
-    for (const [key, val] of vfsFiles.entries()) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-      if (existingSnap.get(key) !== val) {
-        const abs = resolvePath(context.cwd, key);
-        await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
-      }
-    }
-    vfsFiles.clear();
-    existingSnap.clear();
-    if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
     return { exitCode: res.exitCode };
   } finally {
     await invocation.close();

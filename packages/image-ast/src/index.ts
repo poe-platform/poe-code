@@ -1,4 +1,4 @@
-export {tryImageFile} from "./image-file.js";
+export {tryImageFile,type StoredImageFileInput} from "./image-file.js";
 export {readSvgMetadataFromSource} from "./codecs/svg-metadata-source.js";
 export {decodeSvgToStorage,decodeSvgSourceToStorage} from "./codecs/svg-storage.js";
 export {tryPdfMetadata} from "./image-pdf.js";

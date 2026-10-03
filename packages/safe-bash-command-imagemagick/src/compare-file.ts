@@ -104,13 +104,8 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                 }
             },
             async publish(image, path, encoding) {
-                const rawSize = image.width * image.height * 4;
-                const source: ImageByteSource = { size: rawSize, async read(position, length) { const bytes = await storage.read(image.position + position, length); if (position + length === rawSize) {
-                        await storage.close();
-                        await read.close();
-                    } return bytes; } };
                 if (path !== "-") {
-                    const output = resolvePath(cwd, path), info = await tryImageFile({ source }, output, { filesystem: budgetedFs, workingDirectory: cwd, signal, raw: { width: image.width, height: image.height, channels: 4 }, density: image.density }, encoding);
+                    const output = resolvePath(cwd, path), info = await tryImageFile({ image, storage, async close() { await storage.close(); await read.close(); } }, output, { filesystem: budgetedFs, workingDirectory: cwd, signal }, encoding);
                     if (info)
                         return;
                 }

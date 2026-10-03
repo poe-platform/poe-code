@@ -955,7 +955,7 @@
       },
       "configuration": "literal profile env HOME/XDG directories; fresh empty settings and exact enabledPluginIds; no ambient user plugins",
       "dependencies": "base captured dependency identities plus optional dependency build/install identities; missing optional identities block qualification",
-      "status": "native activation verified; functional parity and remaining capability qualification unresolved",
+      "status": "exact 48-plugin activation verified; actual saver fails on missing legacy gsf module",
       "nativeFallback": false,
       "enabledPluginIds": [
         "GOffice_plot_barcol",
@@ -1089,6 +1089,32 @@
         },
         "libraryHashesMatchingFrozenReference": 70,
         "limits": "Activation observation only; lazy service loading, functional parity and current-candidate qualification remain separate. System dependency matches do not equate rebuilt Gnumeric/GOffice or the host kernel to frozen binaries."
+      },
+      "currentActivationEvidence": {
+        "auditedAt": "2026-10-03",
+        "profile": "gnumeric-1.12.61-optional-python-glossary",
+        "nativeBinarySha256": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
+        "pythonLoaderSha256": "706914d052cd230b8d354a36fb88c5f4f0551d19f44245b5784c91cedb536a76",
+        "pluginManifestSha256": "77fff94d0a3cb92b088fecc86fadf90e49727fb034346b3245edfab6a994a43b",
+        "sourceModuleSha256": "81f5e170bb384f60d492b6e7923cddb050a791f9d21ebfc403778b62fd532618",
+        "headerSha256": "041a861dddd7c746663ec13348a4bda0c532f39973079d05dca0ff0e8f9199d2",
+        "activation": {
+          "expectedPlugins": 48,
+          "activePlugins": 48,
+          "exactIdSet": true,
+          "errors": 0,
+          "stderrBytes": 0,
+          "stdoutSha256": "7d87c9f4ca000ade1edc3caba96949fb995a9d46f0bc2ebfc2ab361650beeba8"
+        },
+        "actualSave": {
+          "exitCode": 1,
+          "stdoutBytes": 0,
+          "stderrBytes": 252,
+          "stderrSha256": "7d8a7f8657edd68e64d677fdbe30d8bcb38d953729f17032cf32ee042ce79063",
+          "outputCreated": false,
+          "diagnostic": "ModuleNotFoundError: No module named 'gsf'; failed to load plugin for saving"
+        },
+        "scope": "Retained authenticated source install target, original saver and Python loader; exact declared repository profile environment and plugin set. No compatibility shim or patched reference module. Activation succeeds but actual native saving does not."
       }
     },
     {
@@ -1793,9 +1819,9 @@
     },
     {
       "capability": "Gnumeric_GnomeGlossary:po",
-      "status": "implemented format/header behavior; expanded component evidence, exact optional exporter activation unresolved",
-      "implementation": "format service, not GUI; gnome-glossary Python binding/header/time/filename and stdout effects need comparison",
-      "oracle": "Pinned timezone data now supplies deterministic native abbreviations. Compiled root/package SDK and command each match 1940 independent libc-derived headers across all 485 zones at epoch, 2050 and both Date limits. See gap-resolution.json#reference.glossaryTimestampProfile. This is component evidence, not full activated Python glossary-exporter qualification; native filename/stdout effects and registry artifacts remain open."
+      "status": "portable format/header behavior implemented; exact activated native saver failure measured",
+      "implementation": "Portable glossary exporter preserves source-derived entry/header behavior and Python basename/splitext language selection, including leading-dot names. No arbitrary Python module loading or ambient clock.",
+      "oracle": "Exact declared Python glossary profile activates all48 plugins with zero errors/stderr. Actual ssconvert saving exits1 on the missing legacy gsf import and creates no output. CPython3.13.5 basename/splitext and the authenticated header independently qualify932 filename inputs;920 usable output names pass1840 compiled package SDK/command byte comparisons. These component checks do not constitute native saver parity or stdout-effect qualification. See currentActivationEvidence on the glossary profile and gap-resolution.json#reference.glossaryFilenameAndSaver."
     },
     {
       "capability": "Perl/Python loaders",

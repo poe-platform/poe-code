@@ -6,7 +6,7 @@ import { localizedValueText, formattingLocale } from "../formatting/locale.js";
 
 /** Entry construction from plugins/gnome-glossary/gnome_glossary.py (1.12.61).
  * The legacy plugin does not escape PO literals or transcode to its CHARSET marker.
- * Its Python runtime is unavailable in the captured native profile.
+ * The activated Python 3 reference cannot import its legacy gsf binding.
  */
 export const writeGlossary: NonNullable<Codec["write"]> = async (book, _options, context) => {
   const out = documentOutput(context, "glossary");
@@ -21,7 +21,10 @@ export const writeGlossary: NonNullable<Codec["write"]> = async (book, _options,
   if (!glossary) throw new SsconvertError("invalid-request", "Could not find Gnome Glossary sheet");
   if (!context.clock) throw new SsconvertError("capability-denied", "ssconvert glossary requires an injected clock");
   const filename = (context.outputFilename ?? "").split("/").at(-1) ?? "";
-  const dot = filename.lastIndexOf("."); const lang = dot > 0 ? filename.slice(0, dot) : filename;
+  // Python splitext ignores every leading dot, not only the first one.
+  let firstNonDot = 0;
+  while (filename[firstNonDot] === ".") { out.tick(); firstNonDot++; }
+  const dot = filename.lastIndexOf("."); const lang = dot > firstNonDot ? filename.slice(0, dot) : filename;
   const valueAt = (row: number, column: number) => { out.tick(); const cell = glossary!.cells.get(`${row}:${column}`); return cell ? localizedValueText(cell.cachedResult ?? cell.value, locale) : ""; };
   let languageColumn = Math.max(2, glossary.extent.endColumn + 1);
   for (let col = 2; col <= glossary.extent.endColumn; col++) if (valueAt(0, col).toLowerCase() === lang) { languageColumn = col; break; }

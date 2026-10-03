@@ -243,7 +243,8 @@ configured, unordered-cell export uses bounded merge runs in the caller’s safe
 Other workbook paths, individual fields, and retained metadata still use in-memory
 representations; this is not complete bounded-memory conversion.
 
-Gnome Glossary PO timestamps use the injected `clock.now()` and explicit
+Gnome Glossary PO output filenames select the translation column: `fr.po` selects
+`fr`, while `..po` selects `..po`. Timestamps use the injected `clock.now()` and explicit
 `environment.timezone`, with native TZif abbreviations such as `PST`/`PDT`
 and `+0545`. All 485 zones and aliases captured in the pinned Debian tzdb 2026c
 profile support historical and future dates throughout the JavaScript Date range.

@@ -4031,6 +4031,39 @@
       "implementation": "Tab moves materialize source-to-target sheet mappings for displaced names; formulas keep the original name identity. Nested maps compose in evaluation order; renames/remaps update both mapping sides; later copies use current tab order. Invalid targets stay invalid. Parser entries and mapping traversal are bounded by caller work/node limits. Internal OpenFormula preserves the mappings; native transports still refuse unqualified live-name syntax.",
       "verification": "39 focused live-name tests; 55 final engine/name/dependency checks. The broader formula/workbook cohort passes18988 tests after reconciling two existing byte-output warning expectations. Normal root build and engine/command lint, source/test/public-consumer types pass. Root and package public APIs each pass10800 checks across all120 five-sheet permutations, both modes, nine offsets and five later definition targets; both SDK and command routes produce the same independently expected CSV with no diagnostics. This is product identity qualification, not native Lotus parity.",
       "remaining": "Native Lotus name copy/move and XML/XLSX/BIFF transport remain open, together with the other family requirements. Gnumeric1.12.61 still reports Named ranges not implemented for Lotus tokens; existing pinned LibreOffice source receipt already records missing document-name registration. No family is closed."
+    },
+    "glossaryFilenameAndSaver": {
+      "source": "Gnumeric1.12.61 plugins/gnome-glossary/gnome_glossary.py uses os.path.basename/splitext; CPython3.13.5 supplies independent pathname results.",
+      "finding": "Six original filename controls reduced all-leading-dot basenames such as ..po to ., selecting the wrong header/translation. The seventh failure showed leading-dot scanning must consume the work budget before requesting the clock.",
+      "implementation": "Retain all-leading-dot basenames until a real extension follows a non-dot character. Charge leading-dot scanning to the document work budget. Existing escaping, missing-language selection, clock authority and publication behavior remain unchanged.",
+      "verification": "All43 focused and neighboring document-export tests pass. Independent CPython932-case corpus and authenticated header template produce3680 byte-exact compiled root/package SDK/command exports across920 usable output names; no diagnostics. Normal root build, selected package build, package lint and source/test/public-consumer types pass; actual command export screenshot inspected. Twelve cases have empty or dot/dot-dot basenames and are excluded from public file-output claims; direct memory-writer controls cover these filename classes.",
+      "nativeService": {
+        "auditedAt": "2026-10-03",
+        "profile": "gnumeric-1.12.61-optional-python-glossary",
+        "nativeBinarySha256": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
+        "pythonLoaderSha256": "706914d052cd230b8d354a36fb88c5f4f0551d19f44245b5784c91cedb536a76",
+        "pluginManifestSha256": "77fff94d0a3cb92b088fecc86fadf90e49727fb034346b3245edfab6a994a43b",
+        "sourceModuleSha256": "81f5e170bb384f60d492b6e7923cddb050a791f9d21ebfc403778b62fd532618",
+        "headerSha256": "041a861dddd7c746663ec13348a4bda0c532f39973079d05dca0ff0e8f9199d2",
+        "activation": {
+          "expectedPlugins": 48,
+          "activePlugins": 48,
+          "exactIdSet": true,
+          "errors": 0,
+          "stderrBytes": 0,
+          "stdoutSha256": "7d87c9f4ca000ade1edc3caba96949fb995a9d46f0bc2ebfc2ab361650beeba8"
+        },
+        "actualSave": {
+          "exitCode": 1,
+          "stdoutBytes": 0,
+          "stderrBytes": 252,
+          "stderrSha256": "7d8a7f8657edd68e64d677fdbe30d8bcb38d953729f17032cf32ee042ce79063",
+          "outputCreated": false,
+          "diagnostic": "ModuleNotFoundError: No module named 'gsf'; failed to load plugin for saving"
+        },
+        "scope": "Retained authenticated source install target, original saver and Python loader; exact declared repository profile environment and plugin set. No compatibility shim or patched reference module. Activation succeeds but actual native saving does not."
+      },
+      "remaining": "Native saver parity remains unproven: activation alone was insufficient and the actual saver fails its legacy gsf import. No shim or modified reference was substituted. Source stdout effects, wider glossary semantics and installed artifacts remain open. No family is closed."
     }
   },
   "cases": [
@@ -4147,7 +4180,7 @@
     {
       "id": "optional-profiles",
       "status": "open",
-      "currentFinding": "Retained Linux ARM64 receipts authenticate all eight declared activation profiles. Six enumerate their exact plugin sets cleanly; GDA activates with a GLib cleanup diagnostic, and GNOME-DB activates only 46/47 plugins because ui.xml is missing. Functional qualification of all eight environments and fourteen capability obligations remains open. Registration is not parity; source/receipt hashes and distinct outcomes are recorded in optional-runtime-extension-coverage.json. Glossary headers now use shared tzdb 2026c offsets and abbreviations across 485 captured zones and the full Date range, matching 99677 libc headers and 3880 compiled package SDK/command outputs. Native glossary plugin activation and installed-registry qualification remain open; see glossaryTimestampProfile."
+      "currentFinding": "Retained Linux ARM64 receipts authenticate all eight declared activation profiles. Six enumerate their exact plugin sets cleanly; GDA activates with a GLib cleanup diagnostic, and GNOME-DB activates only 46/47 plugins because ui.xml is missing. Functional qualification of all eight environments and fourteen capability obligations remains open. Registration is not parity; source/receipt hashes and distinct outcomes are recorded in optional-runtime-extension-coverage.json. Glossary headers now use shared tzdb 2026c offsets and abbreviations across 485 captured zones and the full Date range, matching 99677 libc headers and 3880 compiled package SDK/command outputs. The current exact48-plugin glossary activation succeeds, but actual saving fails on its legacy gsf import without publishing output; see glossaryFilenameAndSaver. Installed-registry and wider functional qualification remain open."
     },
     {
       "id": "public-packed-artifacts",

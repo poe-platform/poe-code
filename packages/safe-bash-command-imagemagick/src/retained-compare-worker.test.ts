@@ -4,8 +4,9 @@ import { Miniflare } from "miniflare";
 import { fileURLToPath } from "node:url";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { runCompareCli } from "./index.js";
+for (const format of ["bmp", "svg"] as const)
 for (const stdout of [false, true])
-    it(`compares and streams diffs in Workerd, stdout=${stdout}`, async () => {
+    it(`compares and streams diffs in Workerd, input=${format}, stdout=${stdout}`, async () => {
         const pixels = new Uint8Array(601 * 601 * 4);
         let state = 1234567;
         for (let i = 0; i < pixels.length; i++) {
@@ -14,7 +15,7 @@ for (const stdout of [false, true])
             state ^= state << 5;
             pixels[i] = state & 255;
         }
-        const bytes = await sharp(pixels, { raw: { width: 601, height: 601, channels: 4 } }).toFormat("bmp").toBuffer();
+        const bytes = format === "svg" ? new TextEncoder().encode('<svg width="601" height="601">' + " ".repeat(1048576) + '<rect width="601" height="601" fill="red"/><circle cx="300" cy="300" r="70" fill="blue"/></svg>') : await sharp(pixels, { raw: { width: 601, height: 601, channels: 4 } }).toFormat("bmp").toBuffer();
         expect(bytes.length).toBeGreaterThan(1048576);
         const expectedFiles = new Map([["/input", bytes]]), expected = await runCompareCli(["/input", "/input", "/out.bmp"], expectedFiles);
         const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../../../", import.meta.url)), sourcefile: "pdf-metadata-worker.ts", contents: `

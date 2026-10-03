@@ -1,3 +1,4 @@
+export {decodeJpegToStorage} from "./codecs/jpeg-input-storage.js";
 export {encodeJpegFromStorage} from "./codecs/jpeg-storage.js";
 export {decodeGifToStorage} from "./codecs/gif-input-storage.js";
 export * from "./codecs/gif-storage.js";

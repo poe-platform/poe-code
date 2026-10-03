@@ -1,5 +1,10 @@
+import {readJpegFrame} from "./jpeg-frame.js";
+import {JpegTables} from "./jpeg-tables.js";
+import {applyJpegMetadata,type JpegMetadataState} from "./jpeg-metadata.js";
+import {jpegColor} from "./jpeg-color.js";
+import {createJpegScan} from "./jpeg-decode-kernel.js";
 import type { ImageMetadata, RgbaImage, SharpInputOptions } from "../ast.js";
-import { buildExifApp1Segment, parseExifBuffer } from "./exif.js";
+import { buildExifApp1Segment } from "./exif.js";
 
 const ZIGZAG = new Uint8Array([
   0, 1, 8, 16, 9, 2, 3, 10,
@@ -89,12 +94,7 @@ export function readJpegMetadata(bytes: Uint8Array): ImageMetadata {
     throw new Error("Invalid JPEG signature");
   }
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  let width = 0;
-  let height = 0;
-  let channels: 1 | 2 | 3 | 4 = 3;
-  let isProgressive = false;
-  let density = 72;
-  let orientation: number | undefined;
+  const state:JpegMetadataState={width:0,height:0,channels:3,isProgressive:false,density:72,orientation:undefined};
 
   let pos = 2;
   while (pos + 4 <= bytes.length) {
@@ -115,42 +115,11 @@ export function readJpegMetadata(bytes: Uint8Array): ImageMetadata {
     if (segLen < 2 || pos + segLen > bytes.length) break;
     const payload = bytes.subarray(pos + 2, pos + segLen);
 
-    if (marker === 0xe0 && payload.length >= 12) {
-      // JFIF APP0
-      if (
-        payload[0] === 0x4a &&
-        payload[1] === 0x46 &&
-        payload[2] === 0x49 &&
-        payload[3] === 0x46 &&
-        payload[4] === 0x00
-      ) {
-        const units = payload[7]!;
-        const xDensity = (payload[8]! << 8) | payload[9]!;
-        if (xDensity > 0) {
-          if (units === 1) density = xDensity;
-          else if (units === 2) density = Math.round(xDensity * 2.54);
-        }
-      }
-    } else if (marker === 0xe1 && payload.length >= 8) {
-      // EXIF APP1
-      const exif = parseExifBuffer(payload);
-      if (exif.orientation !== undefined) orientation = exif.orientation;
-      if (exif.density !== undefined) density = exif.density;
-    } else if (
-      marker === 0xc0 ||
-      marker === 0xc1 ||
-      marker === 0xc2
-    ) {
-      isProgressive = marker === 0xc2;
-      height = (payload[1]! << 8) | payload[2]!;
-      width = (payload[3]! << 8) | payload[4]!;
-      const comps = payload[5]!;
-      channels = comps === 1 ? 1 : comps === 4 ? 4 : 3;
-      break;
-    }
+    if(applyJpegMetadata(state,marker,payload))break;
     pos += segLen;
   }
 
+  const {width,height,channels,isProgressive,density,orientation}=state;
   if (width <= 0 || height <= 0) {
     throw new Error("Invalid JPEG dimensions");
   }
@@ -170,47 +139,8 @@ export function readJpegMetadata(bytes: Uint8Array): ImageMetadata {
   };
 }
 
-interface HuffmanTable {
-  readonly first: Uint32Array;
-  readonly counts: Uint16Array;
-  readonly offsets: Uint16Array;
-  readonly symbols: Uint8Array;
-  readonly fastLut: Int32Array;
-}
-
-/** Canonical ranges retain only the 16 wire lengths and admitted symbols. */
-function buildHuffmanTable(counts: Uint8Array, symbols: Uint8Array): HuffmanTable {
-  const first = new Uint32Array(16);
-  const admitted = new Uint16Array(16);
-  const offsets = new Uint16Array(16);
-  const fastLut = new Int32Array(256).fill(-1);
-  let code = 0, available = 2, offset = 0;
-  for (let length = 0; length < 16; length++) {
-    // The legacy tree ignores symbols that exceed the available leaves.
-    const count = Math.min(counts[length] ?? 0, available);
-    first[length] = code;
-    admitted[length] = count;
-    offsets[length] = offset;
-    if (length < 8) {
-      const suffixBits = 7 - length;
-      for (let i = 0; i < count; i++) {
-        const symbol = symbols[offset + i];
-        if (symbol !== undefined) {
-          const start = (code + i) << suffixBits;
-          fastLut.fill(((length + 1) << 8) | symbol, start, start + (1 << suffixBits));
-        }
-      }
-    }
-    offset += count;
-    code = (code + count) * 2;
-    available = (available - count) * 2;
-  }
-  return {first, counts: admitted, offsets, symbols: new Uint8Array(symbols.subarray(0, offset)), fastLut};
-}
-
 const IDCT_DEQUANT = new Float64Array(64);
 const IDCT_TEMP = new Float64Array(64);
-const SCRATCH_COEFFS = new Int32Array(64);
 
 const BOX4_TABLE = (() => {
   const table = new Float64Array(32);
@@ -237,7 +167,7 @@ const BOX2_TABLE = (() => {
   return table;
 })();
 
-function idct8x8(coeffs: Int32Array | Int16Array, quant: Uint16Array, out: Uint8Array, maxK = 63): void {
+export function idct8x8(coeffs: Int32Array | Int16Array, quant: Uint16Array, out: Uint8Array, maxK = 63): void {
   if (maxK === 0) {
     const dcVal = Math.round(coeffs[0]! * quant[0]! * 0.125 + 128);
     const clamped = dcVal < 0 ? 0 : dcVal > 255 ? 255 : dcVal;
@@ -311,7 +241,7 @@ function idct8x8(coeffs: Int32Array | Int16Array, quant: Uint16Array, out: Uint8
   }
 }
 
-function idctScaledBlock(
+export function idctScaledBlock(
   coeffs: Int32Array | Int16Array,
   quant: Uint16Array,
   out: Uint8Array,
@@ -449,12 +379,12 @@ interface ComponentSpec {
 }
 
 export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions): RgbaImage {
+  const scratchCoeffs = new Int32Array(64);
   const meta = readJpegMetadata(bytes);
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 
-  const quantTables: Uint16Array[] = [];
-  const dcTrees: HuffmanTable[] = [];
-  const acTrees: HuffmanTable[] = [];
+  const tables=new JpegTables();
+  const {quantTables,dcTrees,acTrees}=tables;
 
   let width = 0;
   let height = 0;
@@ -468,7 +398,6 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
   let maxV = 1;
   let mcusX = 0;
   let mcusY = 0;
-  let restartInterval = 0;
   const components: ComponentSpec[] = [];
 
   let pos = 2;
@@ -488,82 +417,11 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
     if (segLen < 2 || pos + segLen > bytes.length) break;
     const payload = bytes.subarray(pos + 2, pos + segLen);
 
-    if (marker === 0xdb) {
-      // DQT
-      let qPos = 0;
-      while (qPos < payload.length) {
-        const info = payload[qPos++]!;
-        const precision = info >>> 4;
-        const qId = info & 0x0f;
-        const table = new Uint16Array(64);
-        for (let i = 0; i < 64; i++) {
-          table[i] = precision === 0 ? payload[qPos++]! : (payload[qPos++]! << 8) | payload[qPos++]!;
-        }
-        quantTables[qId] = table;
-      }
-    } else if (marker === 0xc4) {
-      // DHT
-      let hPos = 0;
-      while (hPos < payload.length) {
-        const info = payload[hPos++]!;
-        const tableClass = info >>> 4;
-        const hId = info & 0x0f;
-        const counts = payload.subarray(hPos, hPos + 16);
-        hPos += 16;
-        let totalSymbols = 0;
-        for (let i = 0; i < 16; i++) totalSymbols += counts[i]!;
-        const symbols = payload.subarray(hPos, hPos + totalSymbols);
-        hPos += totalSymbols;
-        const tree = buildHuffmanTable(counts, symbols);
-        if (tableClass === 0) dcTrees[hId] = tree;
-        else acTrees[hId] = tree;
-      }
-    } else if (marker === 0xdd && payload.length >= 2) {
-      // DRI
-      restartInterval = (payload[0]! << 8) | payload[1]!;
-    } else if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
-      height = (payload[1]! << 8) | payload[2]!;
-      width = (payload[3]! << 8) | payload[4]!;
-      if (!meta.isProgressive && options?.maxDecodeDimension && options.maxDecodeDimension > 0) {
-        const maxSide = Math.max(width, height);
-        const minSide = Math.min(width, height);
-        if (maxSide >= options.maxDecodeDimension * 4 && minSide >= options.maxDecodeDimension * 2) {
-          scaleDenom = 4;
-          blockStep = 2;
-        } else if (maxSide >= options.maxDecodeDimension * 2) {
-          scaleDenom = 2;
-          blockStep = 4;
-        }
-      }
-      outWidth = Math.max(1, Math.ceil(width / scaleDenom));
-      outHeight = Math.max(1, Math.ceil(height / scaleDenom));
-      const numComps = payload[5]!;
-      components.length = 0;
-      maxH = 1;
-      maxV = 1;
-      for (let i = 0; i < numComps; i++) {
-        const id = payload[6 + i * 3]!;
-        const hv = payload[6 + i * 3 + 1]!;
-        const h = hv >>> 4;
-        const v = hv & 0x0f;
-        const qId = payload[6 + i * 3 + 2]!;
-        if (h > maxH) maxH = h;
-        if (v > maxV) maxV = v;
-        components.push({
-          id,
-          h,
-          v,
-          qId,
-          dcId: 0,
-          acId: 0,
-          dcPred: 0,
-          blocksX: 0,
-          blocksY: 0
-        });
-      }
-      mcusX = Math.ceil(width / (maxH * 8));
-      mcusY = Math.ceil(height / (maxV * 8));
-      useStripDecode = !meta.isProgressive && (scaleDenom > 1 || width * height > 512 * 512);
+    if (tables.read(marker,payload)) {pos+=segLen;continue;}
+    if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
+      const frame=readJpegFrame(payload,meta.isProgressive??false,options,scaleDenom,blockStep);
+      ({width,height,outWidth,outHeight,maxH,maxV,mcusX,mcusY,useStripDecode,scaleDenom,blockStep}=frame);
+      components.length=0;components.push(...frame.components);
       for (const comp of components) {
         comp.blocksX = mcusX * comp.h;
         comp.blocksY = mcusY * comp.v;
@@ -607,208 +465,14 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
       const approxLow = ahAl & 0x0f;
 
       // Decode entropy-coded data starting after SOS segment
-      let scanPos = pos + segLen;
-      let bitBuf = 0;
-      let bitCount = 0;
-      let eobRun = 0;
-
-      const refillBits = (): void => {
-        while (bitCount <= 16 && scanPos < bytes.length) {
-          const b = bytes[scanPos]!;
-          if (b === 0xff) {
-            if (scanPos + 1 >= bytes.length || bytes[scanPos + 1] !== 0x00) {
-              break;
-            }
-            scanPos += 2;
-            bitBuf = ((bitBuf << 8) | 0xff) >>> 0;
-            bitCount += 8;
-          } else {
-            scanPos++;
-            bitBuf = ((bitBuf << 8) | b) >>> 0;
-            bitCount += 8;
-          }
-        }
-      };
-
-      const readBit = (): number => {
-        if (bitCount === 0) {
-          if (scanPos >= bytes.length) throw new Error("Truncated JPEG entropy data");
-          const b = bytes[scanPos++]!;
-          if (b === 0xff) {
-            if (scanPos >= bytes.length) throw new Error("Truncated JPEG entropy escape");
-            if (bytes[scanPos++] !== 0x00) throw new Error("Unexpected JPEG marker in entropy data");
-          }
-          bitBuf = b;
-          bitCount = 8;
-        }
-        const bit = (bitBuf >>> (bitCount - 1)) & 1;
-        bitCount--;
-        return bit;
-      };
-
-      const readBits = (n: number): number => {
-        if (n === 0) return 0;
-        if (bitCount < n) refillBits();
-        if (bitCount >= n) {
-          const val = (bitBuf >>> (bitCount - n)) & ((1 << n) - 1);
-          bitCount -= n;
-          return val;
-        }
-        let val = 0;
-        for (let i = 0; i < n; i++) {
-          val = (val << 1) | readBit();
-        }
-        return val;
-      };
-
-      const receiveExtend = (n: number): number => {
-        if (n === 0) return 0;
-        const v = readBits(n);
-        return v < 1 << (n - 1) ? v + (-1 << n) + 1 : v;
-      };
-
-      const decodeSymbol = (tree: HuffmanTable | undefined): number => {
-        if (!tree) throw new Error("Invalid JPEG Huffman code");
-        if (bitCount < 8) refillBits();
-        if (bitCount >= 8 && tree.fastLut) {
-          const peek = (bitBuf >>> (bitCount - 8)) & 0xff;
-          const fast = tree.fastLut[peek]!;
-          if (fast >= 0) {
-            bitCount -= fast >>> 8;
-            return fast & 0xff;
-          }
-        }
-        let code = 0;
-        for (let length = 0; length < 16; length++) {
-          code = code * 2 + readBit();
-          const index = code - tree.first[length]!;
-          if (index >= 0 && index < tree.counts[length]!) {
-            const symbol = tree.symbols[tree.offsets[length]! + index];
-            if (symbol !== undefined) return symbol;
-            // Missing declared symbols are empty leaves in the legacy tree.
-            readBit();
-            throw new Error("Invalid JPEG Huffman code");
-          }
-        }
-        // Empty depth-16 leaves consume one more bit before rejecting. Keep
-        // truncated/marker diagnostics from that read, including its escape.
-        readBit();
-        throw new Error("Invalid JPEG Huffman code");
-      };
-
-      const decodeBlockBaseline = (comp: ComponentSpec, block: Int32Array): number => {
-        block.fill(0);
-        const dcTree = dcTrees[comp.dcId];
-        const acTree = acTrees[comp.acId];
-        const t = decodeSymbol(dcTree);
-        const diff = receiveExtend(t);
-        comp.dcPred += diff;
-        block[0] = comp.dcPred;
-        let maxK = 0;
-        let k = 1;
-        while (k < 64) {
-          const rs = decodeSymbol(acTree);
-          const r = rs >>> 4;
-          const s = rs & 0x0f;
-          if (s === 0) {
-            if (r === 15) {
-              k += 16;
-              continue;
-            }
-            break;
-          }
-          k += r;
-          if (k < 64) {
-            block[k] = receiveExtend(s);
-            maxK = k;
-          }
-          k++;
-        }
-        return maxK;
-      };
-
-      const decodeBlockProgressive = (comp: ComponentSpec, block: Int16Array) => {
-        if (spectralStart === 0) {
-          if (approxHigh === 0) {
-            const dcTree = dcTrees[comp.dcId];
-            const t = decodeSymbol(dcTree);
-            const diff = receiveExtend(t);
-            comp.dcPred += diff;
-            block[0] = comp.dcPred << approxLow;
-          } else {
-            if (readBit() !== 0) {
-              block[0] = (block[0] ?? 0) | (1 << approxLow);
-            }
-          }
-        } else if (approxHigh === 0) {
-          if (eobRun > 0) {
-            eobRun--;
-            return;
-          }
-          const acTree = acTrees[comp.acId];
-          for (let k = spectralStart; k <= spectralEnd; k++) {
-            const rs = decodeSymbol(acTree);
-            const r = rs >>> 4;
-            const s = rs & 0x0f;
-            if (s === 0) {
-              if (r < 15) {
-                eobRun = (1 << r) + readBits(r) - 1;
-                break;
-              }
-              k += 15;
-            } else {
-              k += r;
-              if (k <= spectralEnd) {
-                block[k] = receiveExtend(s) << approxLow;
-              }
-            }
-          }
-        } else {
-          const bit = 1 << approxLow;
-          const refine = (k: number): void => {
-            const value = block[k]!;
-            if (readBit() && (value & bit) === 0) block[k] = value + (value > 0 ? bit : -bit);
-          };
-          let k = spectralStart;
-          if (eobRun === 0) {
-            const acTree = acTrees[comp.acId];
-            while (k <= spectralEnd) {
-              const rs = decodeSymbol(acTree);
-              let zeros = rs >>> 4;
-              const size = rs & 0x0f;
-              let coefficient = 0;
-              if (size !== 0) {
-                if (size !== 1) throw new Error("Invalid JPEG refinement coefficient size");
-                coefficient = readBit() ? bit : -bit;
-              } else if (zeros !== 15) {
-                eobRun = (1 << zeros) + readBits(zeros);
-                break;
-              }
-              // Runs count zero coefficients only; existing values each carry
-              // a correction bit before the next coefficient is introduced.
-              while (k <= spectralEnd) {
-                if (block[k] !== 0) refine(k);
-                else if (zeros-- === 0) break;
-                k++;
-              }
-              if (k > spectralEnd) throw new Error("JPEG refinement run exceeds spectral band");
-              if (coefficient !== 0) block[k] = coefficient;
-              k++;
-            }
-          }
-          if (eobRun > 0) {
-            for (; k <= spectralEnd; k++) if (block[k] !== 0) refine(k);
-            eobRun--;
-          }
-        }
-      };
-
+      const scan = createJpegScan(position => bytes[position], bytes.length, pos + segLen,
+        dcTrees, acTrees, spectralStart, spectralEnd, approxHigh, approxLow);
       const blockOut = new Uint8Array(64);
       const decodeAndStoreBaselineBlock = (comp: ComponentSpec, bx: number, by: number, stripVy: number): void => {
-        const maxK = decodeBlockBaseline(comp, SCRATCH_COEFFS);
+        const maxK = scan.decodeBaseline(comp, scratchCoeffs);
         const quant = quantTables[comp.qId];
         if (!quant) throw new Error("Missing JPEG quantization table");
-        idctScaledBlock(SCRATCH_COEFFS, quant, blockOut, maxK, blockStep);
+        idctScaledBlock(scratchCoeffs, quant, blockOut, maxK, blockStep);
         const stride = comp.blocksX * blockStep;
         const dst = useStripDecode ? comp.stripPixels! : comp.pixels!;
         const baseRow = (useStripDecode ? stripVy : by) * blockStep;
@@ -825,13 +489,13 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
       let mcuCounter = 0;
       let restartCounter = 0;
       const consumeRestart = (): void => {
+        let scanPos = scan.position;
         if (bytes[scanPos++] !== 0xff) throw new Error("Missing JPEG restart marker");
         while (bytes[scanPos] === 0xff) scanPos++;
         if (bytes[scanPos++] !== 0xd0 + restartCounter % 8) throw new Error("Invalid JPEG restart sequence");
         restartCounter++;
         for (const comp of scanComps) comp.dcPred = 0;
-        eobRun = 0;
-        bitCount = 0;
+        scan.restart(scanPos);
       };
       if (scanComps.length === 1 && (spectralStart > 0 || scanCompsCount === 1 && components.length > 1)) {
         const comp = scanComps[0]!;
@@ -839,12 +503,12 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
         const blocksRows = Math.ceil(height / (8 * (maxV / comp.v)));
         for (let by = 0; by < blocksRows; by++) {
           for (let bx = 0; bx < blocksCols; bx++) {
-            if (restartInterval > 0 && mcuCounter > 0 && mcuCounter % restartInterval === 0) {
+            if (tables.restartInterval > 0 && mcuCounter > 0 && mcuCounter % tables.restartInterval === 0) {
               consumeRestart();
             }
             if (meta.isProgressive) {
               const off = (by * comp.blocksX + bx) * 64;
-              decodeBlockProgressive(comp, comp.blocksFlat!.subarray(off, off + 64));
+              scan.decodeProgressive(comp, comp.blocksFlat!.subarray(off, off + 64));
             } else {
               decodeAndStoreBaselineBlock(comp, bx, by, by % comp.v);
             }
@@ -855,7 +519,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
         const mcuRowH = maxV * blockStep;
         for (let my = 0; my < mcusY; my++) {
           for (let mx = 0; mx < mcusX; mx++) {
-            if (restartInterval > 0 && mcuCounter > 0 && mcuCounter % restartInterval === 0) {
+            if (tables.restartInterval > 0 && mcuCounter > 0 && mcuCounter % tables.restartInterval === 0) {
               consumeRestart();
             }
             for (const comp of scanComps) {
@@ -865,7 +529,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
                   const by = my * comp.v + vy;
                   if (meta.isProgressive) {
                     const off = (by * comp.blocksX + bx) * 64;
-                    decodeBlockProgressive(comp, comp.blocksFlat!.subarray(off, off + 64));
+                    scan.decodeProgressive(comp, comp.blocksFlat!.subarray(off, off + 64));
                   } else {
                     decodeAndStoreBaselineBlock(comp, bx, by, vy);
                   }
@@ -921,24 +585,12 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
                   const yVal = pY[yRow + (hY === maxH ? x : Math.floor((x * hY) / maxH))]!;
                   const cbVal = pCb[cbRow + (hCb === maxH ? x : Math.floor((x * hCb) / maxH))]! - 128;
                   const crVal = pCr[crRow + (hCr === maxH ? x : Math.floor((x * hCr) / maxH))]! - 128;
-                  let r = (yVal + ((91881 * crVal + 32768) >> 16));
-                  let g = (yVal - ((22554 * cbVal + 46802 * crVal + 32768) >> 16));
-                  let b = (yVal + ((116130 * cbVal + 32768) >> 16));
-                  r = r < 0 ? 0 : r > 255 ? 255 : r;
-                  g = g < 0 ? 0 : g > 255 ? 255 : g;
-                  b = b < 0 ? 0 : b > 255 ? 255 : b;
-                  if (hasK && pK && c3) {
-                    const kVal = pK[kRow + (c3.h === maxH ? x : Math.floor((x * c3.h) / maxH))]!;
-                    outRgba[outIdx] = Math.round((r * kVal) / 255);
-                    outRgba[outIdx + 1] = Math.round((g * kVal) / 255);
-                    outRgba[outIdx + 2] = Math.round((b * kVal) / 255);
-                    outRgba[outIdx + 3] = 255;
-                  } else {
-                    outRgba[outIdx] = r;
-                    outRgba[outIdx + 1] = g;
-                    outRgba[outIdx + 2] = b;
-                    outRgba[outIdx + 3] = 255;
-                  }
+                  const kVal = hasK && pK && c3 ? Number(pK[kRow + (c3.h === maxH ? x : Math.floor((x * c3.h) / maxH))]) : undefined;
+                  const rgb=jpegColor(yVal,cbVal,crVal,kVal,true);
+                  outRgba[outIdx] = rgb&255;
+                  outRgba[outIdx + 1] = (rgb>>>8)&255;
+                  outRgba[outIdx + 2] = rgb>>>16;
+                  outRgba[outIdx + 3] = 255;
                   outIdx += 4;
                 }
               }
@@ -947,7 +599,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
         }
       }
 
-      pos = scanPos;
+      pos = scan.position;
       continue;
     }
     pos += segLen;
@@ -1043,26 +695,13 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
         const cbVal = samplePlane(cCb, x, y) - 128;
         const crVal = samplePlane(cCr, x, y) - 128;
 
-        let r = Math.round(yVal + 1.402 * crVal);
-        let g = Math.round(yVal - 0.344136 * cbVal - 0.714136 * crVal);
-        let b = Math.round(yVal + 1.772 * cbVal);
-        r = r < 0 ? 0 : r > 255 ? 255 : r;
-        g = g < 0 ? 0 : g > 255 ? 255 : g;
-        b = b < 0 ? 0 : b > 255 ? 255 : b;
-
-        if (compPixels.length === 4) {
-          const cK = compPixels[3]!;
-          const kVal = cK.pixels[Math.floor((y * cK.comp.v) / maxV) * cK.stride + Math.floor((x * cK.comp.h) / maxH)]! / 255;
-          rgba[outIdx] = Math.round(r * kVal);
-          rgba[outIdx + 1] = Math.round(g * kVal);
-          rgba[outIdx + 2] = Math.round(b * kVal);
-          rgba[outIdx + 3] = 255;
-        } else {
-          rgba[outIdx] = r;
-          rgba[outIdx + 1] = g;
-          rgba[outIdx + 2] = b;
-          rgba[outIdx + 3] = 255;
-        }
+        const cK=compPixels.length===4?compPixels[3]:undefined;
+        const kVal=cK?Number(cK.pixels[Math.floor((y * cK.comp.v) / maxV) * cK.stride + Math.floor((x * cK.comp.h) / maxH)]):undefined;
+        const rgb=jpegColor(yVal,cbVal,crVal,kVal,false);
+        rgba[outIdx] = rgb&255;
+        rgba[outIdx + 1] = (rgb>>>8)&255;
+        rgba[outIdx + 2] = rgb>>>16;
+        rgba[outIdx + 3] = 255;
       }
     }
   }

@@ -2472,6 +2472,25 @@ export class MemoryFileSystem implements FileSystem {
     return stat;
   }
 
+  async *iterateDirectory(path: string, options: FsOptions = {}): AsyncIterable<DirectoryEntry> {
+    options.signal?.throwIfAborted();
+    const root = this.root, node = this.resolveNode(path, "iterateDirectory", true);
+    if (node.type !== "directory") this.fail("ENOTDIR", "iterateDirectory", path);
+    this.permission(node, 4, "iterateDirectory", path);
+    const revision = node.revision, ino = node.ino;
+    const check = (): void => {
+      options.signal?.throwIfAborted();
+      if (this.root !== root || node.ino !== ino || node.revision !== revision || this.resolveNode(path, "iterateDirectory", true) !== node) this.fail("EBUSY", "iterateDirectory", path);
+      this.permission(node, 4, "iterateDirectory", path);
+    };
+    node.atimeMs = Date.now();
+    for (const [name, entry] of node.entries) {
+      check();
+      yield { name, type: entry.type };
+    }
+    check();
+  }
+
   async readdir(path: string, options: ReadDirectoryOptions = {}): Promise<DirectoryEntry[]> {
     const limit = directoryEntryLimit(options, path);
     const node = this.resolveNode(path, "readdir", true);

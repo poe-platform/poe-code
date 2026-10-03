@@ -601,6 +601,30 @@ export class RealFileSystem implements FileSystem {
     });
   }
 
+  async *iterateDirectory(path: string, options: FsOptions = {}): AsyncIterable<DirectoryEntry> {
+    let handle: Awaited<ReturnType<typeof native.opendir>> | undefined, failed = false;
+    try {
+      // Preserve the acquired handle even if cancellation arrives during open:
+      // the following read admission will observe it and finally will close it.
+      handle = await this.operation("iterateDirectory", path, options, async () => {
+        const target = await this.path(path, options);
+        options.signal?.throwIfAborted();
+        return native.opendir(target, { bufferSize: 1 });
+      }, undefined, true);
+      while (true) {
+        const entry = await this.operation("iterateDirectory", path, options, () => handle!.read());
+        if (entry === null) break;
+        yield { name: entry.name, type: fileType(entry) };
+      }
+    } catch (error) {
+      failed = true;
+      options.signal?.throwIfAborted();
+      throw error;
+    } finally {
+      if (handle) await finishCleanup(() => handle!.close(), failed);
+    }
+  }
+
   async readdir(path: string, options: ReadDirectoryOptions = {}): Promise<DirectoryEntry[]> {
     const limit = directoryEntryLimit(options, path);
     return this.operation("readdir", path, options, async () => {

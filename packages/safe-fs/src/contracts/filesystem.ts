@@ -385,6 +385,11 @@ export interface FileSystem {
   lstat(path: string, options?: FsOptions): Promise<FileStat>;
   compareEntry?(path: string, peer: FileSystem, peerPath: string, options?: FsOptions): Promise<EntryComparison>;
   readdir(path: string, options?: ReadDirectoryOptions): Promise<DirectoryEntry[]>;
+  /** Optional bounded, lazy directory enumeration in backend-defined order.
+   * No complete listing/sort fallback. Consumers must retire the iterator on
+   * early exit. Namespace changes may reject or follow the backend's live view;
+   * this is not a tree snapshot or a retained path-authority grant. */
+  iterateDirectory?(path: string, options?: FsOptions): AsyncIterable<DirectoryEntry>;
   mkdir(path: string, options?: MkdirOptions): Promise<void>;
   rm(path: string, options?: RemoveOptions): Promise<void>;
   /** Atomic final-entry removal; every directory is refused, including raced replacements. */

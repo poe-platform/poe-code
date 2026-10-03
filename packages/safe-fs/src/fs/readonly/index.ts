@@ -136,6 +136,16 @@ export class ReadOnlyFileSystem implements FileSystem {
     return compareEntries(this, path, peer, peerPath, options);
   }
 
+  async *iterateDirectory(path: string, options: FsOptions = {}): AsyncIterable<DirectoryEntry> {
+    options.signal?.throwIfAborted();
+    if (!this.#filesystem.iterateDirectory) throw new FsError("ENOTSUP", { syscall: "iterateDirectory", path });
+    for await (const entry of this.#filesystem.iterateDirectory(path, options)) {
+      options.signal?.throwIfAborted();
+      yield { name: entry.name, type: entry.type };
+    }
+    options.signal?.throwIfAborted();
+  }
+
   async readdir(path: string, options?: ReadDirectoryOptions): Promise<DirectoryEntry[]> {
     const limit = options?.maxEntries === undefined ? undefined : directoryEntryLimit(options, path);
     const entries = await this.#filesystem.readdir(path, options);

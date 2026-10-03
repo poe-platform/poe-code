@@ -227,3 +227,25 @@ independent transport limits and from unbounded total traversal work.
 The implemented-through record identifies the implementation verified against
 these profiles. Global traversal budgets and streaming enumeration remain
 separate possible extensions, not implied requirements of this contract.
+
+## 10. Optional streaming enumeration
+
+`iterateDirectory(path, options?)` returns an async iterable of immediate-child
+entries without materializing a complete listing. It is a separate optional
+capability; callers MUST NOT substitute an uncapped `readdir` array when it is
+missing. Order is backend-defined and may differ from `readdir`. Consumers MUST
+close the iterator on early exit (for example, using `for await`).
+
+Memory enumeration visits the existing directory map incrementally and checks
+namespace identity, revision, permissions and cancellation between entries.
+Mutation can fail with `EBUSY`; ordinary resolution errors remain possible.
+Native enumeration uses an open directory with a one-entry read buffer, closes
+on completion, early return and failure, and preserves primary failures over
+cleanup errors. Native cancellation is cooperative around open/read operations;
+it does not preempt a stalled operating-system call.
+
+Readonly views forward the iterator and reject absent support with `ENOTSUP`;
+quota views delegate without collecting entries. Mount, overlay, S3 and WebDAV
+streaming are not qualified by this extension. No snapshot, retained path
+authority, total traversal quota or bound on caller-owned collections follows
+from this API. Legacy array enumeration behavior remains unchanged.

@@ -202,7 +202,7 @@ export class BiffMetadataWriter {
       if (breaks.length) output.record(opcode, words(breaks.length, ...breaks.flatMap(n => revision === 8 ? [Number(n.attributes.pos), 0, name === "hPageBreaks" ? 256 : 65536] : [Number(n.attributes.pos)])));
     }
     for (const row of sheet.rows ?? []) if (row.index < this.maxRows) output.record(0x208,
-      words(row.index, 0, 256, Math.round((row.sizePoints ?? 12.75) * 20), 0, 0,
+      words(row.index, 0, 256, Math.round((row.sizePoints ?? defaultHeight) * 20), 0, 0,
         0x140 | (row.hidden ? 32 : 0) | (row.collapsed ? 16 : 0) | Math.min(row.outlineLevel ?? 0, 7), 15));
     for (const column of sheet.columns ?? []) if (column.index < 256) output.record(0x7d,
       words(column.index, column.index, Math.round(((column.sizePoints ?? defaultWidth) / (fontScale * 72 / 96) - 8 * unit) * step + baseline), 15,

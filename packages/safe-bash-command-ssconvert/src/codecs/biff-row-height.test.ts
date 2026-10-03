@@ -37,3 +37,50 @@ it("ignores a zero default height like the native importer", async () => {
   input.record(0x225, words(0, 400)); input.record(0x225, words(0, 0)); input.record(10);
   expect((await readBiff(input.finish(), context)).sheets[0]!.view?.defaultRowHeight).toBe(20);
 });
+
+for (const revision of [7, 8] as const) {
+  it(`retains BIFF${revision} heights of rows instantiated before a later default`, async () => {
+    const input = new BiffOutput(context, 8224);
+    input.record(0x809, words(revision === 8 ? 0x600 : 0x500, 16, 0, 0));
+    input.record(0x27e, words(0, 0, 0, 6, 0));
+    input.record(0x201, words(3, 0, 0));
+    input.record(0x225, words(0, 400));
+    input.record(0x27e, words(1, 0, 0, 6, 0));
+    input.record(0x225, words(0, 600));
+    input.record(0x27e, words(0, 1, 0, 6, 0));
+    input.record(10);
+    const book = await readBiff(input.finish(), context);
+    expect(book.sheets[0]!.rows).toEqual([{ index: 0, sizePoints: 12.75 }, { index: 1, sizePoints: 20 }]);
+    const restored = await readBiff(await writeBiffStream(book, revision, false, context), context);
+    expect(restored.sheets[0]!.rows).toEqual(book.sheets[0]!.rows);
+    expect(restored.sheets[0]!.view?.defaultRowHeight).toBe(30);
+  });
+  it.each([0, 0x8000 | 123])(`uses BIFF${revision} current row height for ignored ROW size %s`, async height => {
+    const input = new BiffOutput(context, 8224);
+    input.record(0x809, words(revision === 8 ? 0x600 : 0x500, 16, 0, 0));
+    input.record(0x225, words(0, 400));
+    input.record(0x208, words(1, 0, 1, 500, 0, 0, 0x20, 0));
+    input.record(0x208, words(1, 0, 1, height, 0, 0, 0, 0));
+    input.record(0x208, words(2, 0, 1, height, 0, 0, 0x22, 0));
+    input.record(0x225, words(0, 600)); input.record(10);
+    const rows = (await readBiff(input.finish(), context)).sheets[0]!.rows;
+    expect(rows).toHaveLength(2);
+    expect(rows?.[0]).toMatchObject({ index: 1, sizePoints: 25, hidden: true });
+    expect(rows?.[1]).toMatchObject({ index: 2, sizePoints: 20, hidden: true, outlineLevel: 2 });
+  });
+}
+
+it("uses the sheet default for row metadata without an explicit height", async () => {
+  const book = { sheets: [{ id: "s", name: "S", cells: [], view: { defaultRowHeight: 30 }, rows: [{ index: 1, hidden: true }] }] };
+  const restored = await readBiff(await writeBiffStream(book, 8, false, context), context);
+  expect(restored.sheets[0]!.rows?.[0]).toMatchObject({ index: 1, hidden: true, sizePoints: 30 });
+});
+
+it("instantiates a formula row even when its cached value is blank", async () => {
+  const input = new BiffOutput(context, 8224);
+  input.record(0x809, words(0x600, 16, 0, 0));
+  const formula = new Uint8Array(25); formula[6] = 3; formula[12] = 255; formula[13] = 255;
+  formula[20] = 3; formula.set([0x1e, 1, 0], 22); input.record(6, formula);
+  input.record(0x225, words(0, 600)); input.record(10);
+  expect((await readBiff(input.finish(), context)).sheets[0]!.rows).toEqual([{ index: 0, sizePoints: 12.75 }]);
+});

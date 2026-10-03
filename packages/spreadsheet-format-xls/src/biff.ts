@@ -89,7 +89,7 @@ interface PendingExternalName { name: string; sheetIndex: number; tokens: Uint8A
 interface LegacyExternalLink { workbook?: string; sheet?: string; addin: boolean; names: PendingExternalName[]; }
 interface PendingSheet {
   id: string; name: string; offset: number; visibility: "visible" | "hidden" | "very-hidden";
-  cells: PendingCell[]; merges: Range[]; rows: AxisMetadata[]; columns: AxisMetadata[]; labelRanges: LabelRange[];
+  cells: PendingCell[]; merges: Range[]; rows: Map<number, AxisMetadata>; columns: AxisMetadata[]; labelRanges: LabelRange[];
   unsupportedRecords: UnsupportedRecord[]; view: Record<string, ImportedValue>;
   records: BiffRecord[]; revision: number; codepage: number;
   legacyExternalSheets: (string | null | undefined)[];
@@ -178,6 +178,8 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     if (++cellCount > context.limits.cells) throw new SsconvertError("resource-limit", "ssconvert cells limit exceeded");
     const xf = ver === 2 ? data.u8(4) & 63 : data.u16(4);
     const cell: PendingCell = { cell: { row, column, value, ...extra }, xf, revision: ver, codepage };
+    if ((value.kind !== "blank" || extra.cachedResult !== undefined) && !sheet.rows.has(row))
+      sheet.rows.set(row, { index: row, sizePoints: Number(sheet.view.defaultRowHeight ?? 12.75) });
     sheet.cells.push(cell); return cell;
   };
   const stringParts = (index: number, offset: number): { parts: Binary[]; next: number } => {
@@ -220,7 +222,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
         const name = accountText(bound?.name ?? (sheets.length ? `Worksheet${sheets.length + 1}` : "Worksheet"));
         if (sheets.some(sheet => sheet.name === name)) invalidBiff("duplicate worksheet name");
         sheet = { id: name, name, offset: record.offset, visibility: bound?.visibility ?? "visible", cells: [],
-          merges: [], rows: [], columns: [], labelRanges: [], unsupportedRecords: [], view: {}, records: [], revision: ver, codepage, groups: [], legacyExternalSheets: [], legacyExternalLinks: new Map() }; sheets.push(sheet);
+          merges: [], rows: new Map(), columns: [], labelRanges: [], unsupportedRecords: [], view: {}, records: [], revision: ver, codepage, groups: [], legacyExternalSheets: [], legacyExternalLinks: new Map() }; sheets.push(sheet);
       }
       scopes.push({ type, ...(sheet ? { sheet } : {}), revision: ver }); lastFormula = undefined;
       if (![5, 0x10, 0x40, 0x100].includes(type)) await retain(record, sheet?.unsupportedRecords ?? unsupported);
@@ -488,8 +490,16 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     }
     if (opcode === 0x200 || opcode === 0) { data.check(0, opcode === 0 ? 8 : ver >= 8 ? 14 : 10); continue; }
     if (opcode === 0x208 || opcode === 8) {
-      const flags = data.bytes.length >= 16 ? data.u32(12) : 0;
-      sheet.rows.push({ index: data.u16(0), sizePoints: (data.u16(6) & 0x7fff) / 20, hidden: !!(flags & 0x20), outlineLevel: flags & 7, collapsed: !!(flags & 0x10) }); continue;
+      data.check(0, opcode === 0x208 ? 16 : 8);
+      const flags = opcode === 0x208 ? data.u16(12) : 0, row = data.u16(0), height = data.u16(6);
+      const customHeight = height > 0 && !(height & 0x8000);
+      if (customHeight || flags & 0x37) {
+        const previous = sheet.rows.get(row) ?? { index: row, sizePoints: Number(sheet.view.defaultRowHeight ?? 12.75) };
+        sheet.rows.set(row, { ...previous, ...(customHeight ? { sizePoints: 0.05 * height } : {}),
+          ...(flags & 0x20 ? { hidden: true } : {}),
+          ...(flags & 0x17 ? { outlineLevel: flags & 7, collapsed: !!(flags & 0x10) } : {}) });
+      }
+      continue;
     }
     if (opcode === 0x25 || opcode === 0x225) {
       const height = opcode === 0x25 ? data.u16(0) & 0x7fff : data.u16(2);
@@ -761,9 +771,11 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       }
       cells.push({ ...cell, ...style(pending.xf) });
     }
+    const rows = [...sheet.rows.values()].filter(row => row.sizePoints !== Number(sheet.view.defaultRowHeight ?? 12.75) ||
+      row.hidden || row.collapsed || row.outlineLevel);
     resultSheets.push({ id: sheet.id, name: sheet.name, cells, visibility: sheet.visibility,
       size: { rows: sheet.cells.some(cell => cell.revision >= 8) || ver >= 8 ? 65536 : 16384, columns: 256 },
-      ...(sheet.merges.length ? { merges: sheet.merges } : {}), ...(sheet.rows.length ? { rows: sheet.rows } : {}),
+      ...(sheet.merges.length ? { merges: sheet.merges } : {}), ...(rows.length ? { rows } : {}),
       ...(sheet.columns.length ? { columns: sheet.columns } : {}), ...(Object.keys(sheet.view).length ? { view: sheet.view } : {}),
       ...(formulaGroups.length ? { formulaGroups } : {}),
       ...(sheet.labelRanges.length ? { labelRanges: sheet.labelRanges } : {}),

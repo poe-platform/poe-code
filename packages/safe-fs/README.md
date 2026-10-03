@@ -86,10 +86,11 @@ cause. Preserve cancellation/control exceptions separately. Cross-family
 | Change the namespace | `mkdir`, `rm`, `rename`, `copyFile` |
 | Remove an empty directory | Optional `rmdir`; never a recursive-delete fallback |
 | Links and metadata | Optional `readlink`, `symlink`, `link`, `chmod`, `utimes`, `truncate` |
-| Enumerate directories lazily | Optional `iterateDirectory`; memory and native backends, with readonly/quota/device/scoped delegation; backend order, no sorted-array fallback |
+| Enumerate directories lazily | Optional `iterateDirectory`; memory and native backends, with mount/readonly/quota/device/scoped delegation; backend order, no sorted-array fallback |
 | Stream bytes | Optional `readStream`, `writeStream`, using async iterables of byte chunks |
 | Retain an open file | Optional `open` with positioned I/O and synchronization; memory and real backends support `noFollow: true` to atomically refuse a final symlink |
 | Publish immutable objects atomically | Optional `publishFileConditional` with opaque identity/version stats and authoritative compare-and-publish |
+| Publish a checked source set | Optional `publishStagedFileSet` publishes a staged file and retires sibling entries in one backend commit; mount views require all entries on the same supporting backend |
 | Compare backing entries | Optional `compareEntry`, returning `same`, `distinct`, or `unknown` |
 
 All required methods must exist, but a backend may reject an operation with `FsError`, such as `EROFS` for a write or `ENOTSUP` for unsupported semantics. Check optional methods and `capabilities` rather than assuming every backend behaves like a local disk. Errors expose `code` and may include `syscall`, `path`, `dest`, and `cause`.

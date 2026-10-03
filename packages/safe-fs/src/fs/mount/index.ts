@@ -4,7 +4,7 @@ import type {
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileResizeOperation, FileResizeOptions, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
   FileSystemCapabilities, FsOptions, ChmodOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
-  ConditionalFilePublicationOptions, ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, FileResolutionStep, FileStagingResolution, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalFilePublicationOptions, ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, FileResolutionStep, FileStagingResolution, PublishStagedFileOptions, PublishStagedFileSetOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { readBytes } from "../../contracts/io.js";
@@ -506,7 +506,7 @@ export class MountFileSystem implements FileSystem {
       release = await this.acquireNamespace(options, [
         "rename", "symlink", "link", "unlink", "rm", "rmdir",
         "removeEntryConditional", "removeFileConditional", "removeTreeConditional",
-        "publishStagedFile", "removeStagedFile",
+        "publishStagedFile", "publishStagedFileSet", "removeStagedFile",
       ].includes(syscall));
       const result = await action();
       if (!preserveReceipt) options.signal?.throwIfAborted();
@@ -792,6 +792,65 @@ export class MountFileSystem implements FileSystem {
     });
   }
 
+  async *iterateDirectory(path: string, options: FsOptions = {}): AsyncIterable<DirectoryEntry> {
+    try {
+      const location = await this.operation("iterateDirectory", path, options, async () => {
+        const resolved = await this.resolve(path, options);
+        if (resolved.stat?.type !== "directory") fail("ENOTDIR");
+        return resolved;
+      });
+      // Only configured mount children are retained, never backend entries.
+      const mounted = new Set<string>();
+      for (const mount of this.mounts) {
+        if (mount.path !== location.path && within(location.path, mount.path)) {
+          const suffix = mount.path.slice(location.path === "/" ? 1 : location.path.length + 1);
+          mounted.add(suffix.split("/")[0]!);
+        }
+      }
+      const admit = async (): Promise<void> => {
+        const current = await this.resolve(path, options);
+        if (current.path !== location.path || current.mount !== location.mount ||
+            current.local !== location.local || current.synthetic !== location.synthetic ||
+            current.stat?.type !== "directory") fail("EBUSY");
+      };
+      if (!location.synthetic) {
+        const iterator = await this.operation("iterateDirectory", path, options, async () => {
+          await admit();
+          const backend = location.mount.backend;
+          if (!backend.iterateDirectory) fail("ENOTSUP");
+          return backend.iterateDirectory(location.local, options)[Symbol.asyncIterator]();
+        }, undefined, true); // Transfer ownership before checking cancellation on the first pull.
+        // Admission covers each backend pull, but never a consumer pause. In
+        // particular, caller-backed traversal may publish scratch files between pulls.
+        let complete = false, failed = false;
+        try {
+          while (true) {
+            const result = await this.operation("iterateDirectory", path, options, async () => {
+              await admit();
+              return iterator.next();
+            });
+            if (result.done) { complete = true; break; }
+            const { name, type } = result.value;
+            if (!name || name === "." || name === ".." || name.includes("/") || name.includes("\0")) fail("EIO");
+            if (!mounted.has(name)) yield { name, type };
+          }
+        } catch (error) {
+          failed = true;
+          throw error;
+        } finally {
+          if (!complete) await finishCleanup(() => iterator.return?.(), failed);
+        }
+      }
+      for (const name of mounted) {
+        await this.operation("iterateDirectory", path, options, admit);
+        yield { name, type: "directory" };
+      }
+      options.signal?.throwIfAborted();
+    } catch (error) {
+      throw this.error(error, "iterateDirectory", path, options);
+    }
+  }
+
   mkdir(path: string, options: MkdirOptions = {}): Promise<void> {
     return this.operation("mkdir", path, options, async () => {
       const directories = new Map<string, Location>();
@@ -1033,6 +1092,71 @@ export class MountFileSystem implements FileSystem {
           return true;
         },
       });
+    }, destination, true);
+  }
+
+  async publishStagedFileSet(staging: FileStaging, destination: string, supplied: PublishStagedFileSetOptions): Promise<FileStat> {
+    const entry = (value: FileStagingEntry): FileStagingEntry => ({ path: value.path, stat: snapshotStat(value.stat) });
+    staging = { parent: entry(staging.parent), directory: entry(staging.directory), file: entry(staging.file) };
+    const options: PublishStagedFileSetOptions = {
+      ...supplied, parent: snapshotStat(supplied.parent),
+      destination: supplied.destination === null ? null : snapshotStat(supplied.destination),
+      companions: supplied.companions.map(value => ({ ...value, expected: value.expected === null ? null : snapshotStat(value.expected) })),
+      ...(supplied.ancestors === undefined ? {} : { ancestors: snapshotDirectoryAncestry(supplied.ancestors) }),
+    };
+    return this.operation("publishStagedFileSet", staging.file.path, options, async () => {
+      validatePath(destination);
+      if (normalizePath(globalPath(destination)) !== destination || destination === "/") fail("EINVAL");
+      const parent = destination.slice(0, destination.lastIndexOf("/")) || "/";
+      const paths = new Set([destination]);
+      for (const companion of options.companions) {
+        validatePath(companion.path);
+        if (normalizePath(globalPath(companion.path)) !== companion.path || paths.has(companion.path) ||
+            (companion.path.slice(0, companion.path.lastIndexOf("/")) || "/") !== parent) fail("EINVAL");
+        paths.add(companion.path);
+      }
+      const ancestors = options.ancestors;
+      if (ancestors && ancestors.at(-1)?.path !== parent) fail("EINVAL");
+      const guard = ancestors ? await this.prepareAncestry(ancestors, options) : undefined;
+      const local = await this.localStaging(staging, options);
+      const target = await this.resolve(destination, options, { followFinal: false, entry: true, allowMissing: true });
+      if (this.protected(target.path)) fail("EBUSY");
+      if (local.mount !== target.mount) fail("EXDEV");
+      if (ancestors && target.path !== destination) fail("EAGAIN");
+      this.mutable(target);
+      const backend = local.mount.backend;
+      if (!backend.publishStagedFileSet) fail("ENOTSUP");
+      await requireOwnedMutation(backend, local.staging.directory.path, "atomicFileStaging", options);
+      await requireOwnedMutation(backend, target.local, "atomicFileStaging", options, options.destination === null);
+      const companions: { path: string; expected: FileStat | null; remove: boolean }[] = [];
+      for (const companion of options.companions) {
+        const resolved = await this.resolve(companion.path, options, { followFinal: false, entry: true, allowMissing: true });
+        if (this.protected(resolved.path)) fail("EBUSY");
+        if (resolved.mount !== target.mount) fail("EXDEV");
+        this.mutable(resolved);
+        companions.push({ ...companion, path: resolved.local });
+      }
+      let localAncestors: FileStagingEntry[] | undefined;
+      if (ancestors) {
+        const first = ancestors.findIndex(value => value.path === target.mount.path);
+        if (first < 0) fail("EINVAL");
+        localAncestors = ancestors.slice(first).map(value => ({
+          path: target.mount.path === "/" ? value.path : value.path.slice(target.mount.path.length) || "/", stat: value.stat,
+        }));
+      }
+      const callerGuard = options.commitGuard;
+      if (guard || callerGuard !== undefined) await requireOwnedMutation(backend, target.local, "guardedStagingPublication", options, options.destination === null);
+      // One backend performs all version checks and the indivisible commit.
+      // The namespace lock covers admission through its committed receipt.
+      return snapshotStat(await backend.publishStagedFileSet(local.staging, target.local, {
+        ...options, companions,
+        ...(localAncestors === undefined ? {} : { ancestors: localAncestors }),
+        ...(guard || callerGuard !== undefined ? { commitGuard: () => {
+          if (callerGuard !== undefined) runStagingGuard(callerGuard);
+          if (guard) runStagingGuard(guard);
+          return true as const;
+        } } : {}),
+      }));
     }, destination, true);
   }
 

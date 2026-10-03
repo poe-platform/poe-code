@@ -1,4 +1,4 @@
-import { MemoryFileSystem } from "@poe-platform/safe-fs/core";
+import { MemoryFileSystem, createMountFileSystem } from "@poe-platform/safe-fs/core";
 import { withLlmCollections, createLlmCollectionCommands, withCsvEmbeddingEntries, withJsonEmbeddingEntries, withJsonLinesEmbeddingEntries, withFileEmbeddingEntries, withEmbeddingFileGlob } from "@poe-platform/safe-bash/commands/llm/collections";
 import { createLlmService, llmCommands } from "@poe-platform/safe-bash/commands/llm";
 import { legacyCollectionDatabases, jsonImportEncodingInputs, jsonImportRejectedInputs, singleByteFileInputs } from "./safe-packages-llm-collections-reference.mjs";
@@ -26,6 +26,19 @@ export async function verifyLlmCollections() {
     }));
   }catch(error){if(!(error instanceof Error)||!error.message.includes('surrogates not allowed'))throw error;invalidRejected=true;}
   if(!invalidRejected||invalidCalls!==1||(await invalidFs.readdir('/')).length)throw new Error('Raw surrogate ID timing or rollback changed');
+  const mountRoot=new MemoryFileSystem(),mountLeaf=new MemoryFileSystem();
+  await mountRoot.mkdir('/scratch');await mountRoot.writeFile('/visible.txt',new TextEncoder().encode('root'));
+  await mountLeaf.writeFile('/leaf.txt',new TextEncoder().encode('mounted'));
+  const mounted=createMountFileSystem({root:mountRoot,mounts:{'/synthetic/deep':mountLeaf}});
+  mountRoot.readdir=mountLeaf.readdir=async()=>{throw new Error('Mounted glob used eager listing');};
+  const mountOptions={fs:mounted,directory:'/scratch',signal:new AbortController().signal,maxFileBytes:1048576,maxOpenFiles:8};
+  const mountRows=[];
+  await withEmbeddingFileGlob(mountOptions,{directory:'/',pattern:'**/*.txt'},files=>withFileEmbeddingEntries({...mountOptions,encodings:['utf8']},files,async entries=>{
+    for await(const entry of entries){let text='';for await(const chunk of entry.input.bytes)text+=new TextDecoder().decode(chunk);mountRows.push([entry.id,text]);}
+  }));
+  mountRows.sort((a,b)=>a[0].localeCompare(b[0]));
+  if(JSON.stringify(mountRows)!==JSON.stringify([['synthetic/deep/leaf.txt','mounted'],['visible.txt','root']]))throw new Error('Installed mounted file traversal changed');
+  for await(const entry of mountRoot.iterateDirectory('/scratch'))throw new Error('Mounted traversal leaked scratch storage: '+entry.name);
   const globFs=new MemoryFileSystem();
   await globFs.writeFile('/signature',Uint8Array.of(0xef,0xbb));
   let signatureRows=0;
@@ -259,6 +272,15 @@ export async function verifyLlmCollections() {
     if(deleted.exitCode!==0)throw new Error('Collection CLI delete failed');
   }finally{await cliShell.dispose();}
   await fs.unlink('/cli.db');
+  const mountShell=new Shell({fs:mounted}).use(llmCommands({service,collections:createLlmCollectionCommands({maxFileBytes:1048576,maxIndexBytes:1048576,maxOpenFiles:8})}));
+  try{
+    const imported=await mountShell.exec('llm embed-multi mounted --files /synthetic "**/*.txt" --encoding utf8 --store -m embed -d /mounted.db');
+    if(imported.exitCode!==0)throw new Error('Mounted CLI import failed: '+imported.stderr);
+    const rows=await mountShell.exec('llm similar mounted -c query -d /mounted.db');
+    if(rows.exitCode!==0||JSON.parse(rows.stdout).content!=='mounted')throw new Error('Mounted CLI readback changed');
+  }finally{await mountShell.dispose();}
+  await mounted.unlink('/mounted.db');
+
   for (const {version, zlibBase64} of legacyCollectionDatabases) {
     const bytes = Uint8Array.from(atob(zlibBase64), character => character.charCodeAt(0));
     const database = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate"))).arrayBuffer());

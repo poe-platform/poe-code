@@ -1,3 +1,5 @@
+import {decodeSvgToStorage} from "./codecs/svg-storage.js";
+import {isSvgBytes} from "./codecs/svg-pdf.js";
 import {joinStoredImages} from "./ops/join-storage.js";
 import {withImageSource,type RetainedImageInput} from "./image-source.js";
 import {renderTextToStorage} from "./codecs/text-storage.js";
@@ -30,5 +32,6 @@ export async function readImageResource(input:ImageResourceInput,options:SharpIn
  if(options?.text) return renderTextToStorage({...options,text:options.text},storage,signal);
  if(options?.create) return createStoredResource(storage,{...options,create:options.create},signal);
  if(input===undefined) throw new UnsupportedStoredResource();
+ if(input instanceof Uint8Array&&!options?.raw&&isSvgBytes(input))return decodeSvgToStorage(input,storage,signal,options);
  return withImageSource(input,fs,signal,source=>decodeImageToStorage(source,storage,signal,options));
 }

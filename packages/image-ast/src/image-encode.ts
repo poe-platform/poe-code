@@ -1,3 +1,4 @@
+import {imageOutputFormat} from "./output-format.js";
 import {encodePdfFromStorage} from "./codecs/pdf-storage.js";
 import {encodeHeifFromStorage} from "./codecs/heif-storage.js";
 import {encodeRawFromStorage} from "./codecs/raw-storage.js";
@@ -17,7 +18,7 @@ export function isStoredOutputFormat(format:ImageFormat):boolean {
 
 /** Shared bounded encoder and exact final output information. */
 export async function* encodeStoredImage(image:StoredRgbaImage,backing:ImageByteStorage,signal:AbortSignal,encoding:OutputEncodeOptions):AsyncGenerator<Uint8Array,OutputInfo|undefined> {
- const format=encoding.format??image.format;if(!isStoredOutputFormat(format))throw new UnsupportedStoredResource();
+ const format=imageOutputFormat(image.format,encoding.format);if(!isStoredOutputFormat(format))throw new UnsupportedStoredResource();
  let size=0;
  for await(const bytes of format==="pdf"?encodePdfFromStorage(image,backing,signal):["heic","heif","avif"].includes(format)?encodeHeifFromStorage(image,backing,signal,{...encoding,format}):format==="raw"?encodeRawFromStorage(image,backing,signal,encoding):format==="png"?encodePngFromStorage(image,backing,signal,encoding):format==="webp"?encodeWebpFromStorage(image,backing,signal,encoding):format==="jpeg"?encodeJpegFromStorage(image,backing,signal,encoding):format==="gif"?encodeGifFromStorage(image,backing,signal,encoding):format==="tiff"?encodeTiffFromStorage(image,backing,signal,encoding):format==="bmp"?encodeBmpFromStorage(image,backing,signal):encodeNetpbmFromStorage(image,backing,signal,format as "ppm"|"pgm"|"pbm")) {size+=bytes.length;yield bytes;}
     const gray=image.space==="b-w" || image.channels===1 || image.channels===2;

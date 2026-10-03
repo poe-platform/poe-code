@@ -42,6 +42,10 @@ export const verification = (async () => {
     assert.equal(await fs.readlink("/link.jpg"), "out.jpg");
     assert.equal((await sharp(await fs.readFile("/out.jpg")).metadata()).width, 13);
     assert.deepEqual(await fs.readFile("/hard.jpg"), await fs.readFile("/out.jpg"));
+    const svg = new TextEncoder().encode('<svg width="9" height="5"><rect width="9" height="5" fill="red"/></svg>');
+    const svgInfo = await sharp(svg, {filesystem}).toFile("/svg.png");
+    assert.equal(svgInfo.format, "png");
+    assert.equal((await sharp(await fs.readFile("/svg.png")).metadata()).width, 9);
     const composed = await shell.exec("pandoc -f markdown -t plain /input.md | shuf --random-source=/random");
     assert.equal(composed.exitCode, 0, composed.stderr);
     assert.deepEqual(composed.stdout.split("\n").filter(Boolean).sort(), ["alpha", "beta"]);

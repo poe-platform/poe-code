@@ -1,3 +1,4 @@
+import {imageOutputFormat} from "./output-format.js";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {dirname,type FileSystem} from "@poe-code/safe-fs/contracts";
 import {readImageResource,UnsupportedStoredResource,type ImageResourceInput} from "./image-resources.js";
@@ -21,7 +22,7 @@ export async function tryImageStream(input:ImageResourceInput,options:SharpInput
  let failure:unknown;
  try {
   const resources={readImage:(source:ImageResourceInput,resourceOptions:SharpInputOptions|undefined,resourceSignal:AbortSignal)=>readImageResource(source,resourceOptions,fs as FileSystem,storage,resourceSignal,loadedFiles)};
-  let image=await resources.readImage(input,options,signal);const format=encoding.format??image.format;
+  let image=await resources.readImage(input,options,signal);const format=imageOutputFormat(image.format,encoding.format);
   if(!isStoredOutputFormat(format))throw new UnsupportedStoredResource();
   image=await transformStoredPipeline(image,storage,operations,signal,resources);
   if(format==="raw")image=prepareRawOutput(image,operations);

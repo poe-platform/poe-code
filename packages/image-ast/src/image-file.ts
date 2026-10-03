@@ -1,3 +1,4 @@
+import {imageOutputFormat} from "./output-format.js";
 import {encodeStoredImage,isStoredOutputFormat} from "./image-encode.js";
 import {prepareRawOutput} from "./codecs/raw-storage.js";
 import type {ImageByteSource} from "./codecs/png-storage.js";
@@ -89,7 +90,7 @@ export async function tryImageFile(input: ImageResourceInput, output: string, op
     signal.throwIfAborted();
     storage=new PagedStorage({fs,cwd:options.workingDirectory??directory,env:{},signal});
     let image=source&&decoder?await decoder(source,storage,signal,options):await readImageResource(input,options,fs,storage,signal,loadedFiles);
-    const format=encoding.format??image.format;
+    const format=imageOutputFormat(image.format,encoding.format);
     if(!isStoredOutputFormat(format)) {failed=false;return undefined;}
     if(handle && initial && inputFile!==undefined){
     const final=await handle.stat(io);

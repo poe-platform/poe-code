@@ -102,32 +102,8 @@ export function encodePdfImage(img: RgbaImage): Uint8Array {
 }
 
 function parseSvgNumber(val: string | undefined, fallback: number): number {
-  if (!val) return fallback;
-  const trimmed = val.trim();
-  const match = /^([+-]?(?:\d+\.?\d*|\.\d+))(px|pt|pc|mm|cm|in|%)?$/i.exec(trimmed);
-  if (!match) {
-    const num = parseFloat(trimmed);
-    return Number.isFinite(num) && num > 0 ? num : fallback;
-  }
-  const num = parseFloat(match[1]!);
-  if (!Number.isFinite(num) || num <= 0) return fallback;
-  const unit = (match[2] ?? "px").toLowerCase();
-  switch (unit) {
-    case "in":
-      return num * 72;
-    case "cm":
-      return (num * 72) / 2.54;
-    case "mm":
-      return (num * 72) / 25.4;
-    case "pc":
-      return num * 12;
-    case "%":
-      return (num / 100) * fallback;
-    case "pt":
-    case "px":
-    default:
-      return num;
-  }
+  const value = parseSvgCoord(val, fallback, fallback);
+  return value > 0 ? value : fallback;
 }
 
 function parseSvgCoord(val: string | undefined, fallback: number, refSize = 0): number {
@@ -206,13 +182,36 @@ export function readSvgMetadata(
   };
 }
 
-export function decodeSvgImage(
-  bytes: Uint8Array,
-  options?: { readonly density?: number }
-): RgbaImage {
-  const meta = readSvgMetadata(bytes, options);
-  const { width, height, density } = meta;
+
+/** One source-over paint operation, in the established SVG document order. */
+export type SvgPixel = readonly [x: number, y: number, r: number, g: number, b: number, a: number];
+
+/** Shared blend arithmetic for buffered and caller-backed raster surfaces. */
+export function blendSvgPixel(data: Uint8Array, idx: number, r: number, g: number, b: number, a: number): void {
+  const srcA = a / 255;
+  const dstA = data[idx + 3]! / 255;
+  const outA = srcA + dstA * (1 - srcA);
+  if (outA <= 0) return;
+  data[idx] = Math.round((r * srcA + data[idx]! * dstA * (1 - srcA)) / outA);
+  data[idx + 1] = Math.round((g * srcA + data[idx + 1]! * dstA * (1 - srcA)) / outA);
+  data[idx + 2] = Math.round((b * srcA + data[idx + 2]! * dstA * (1 - srcA)) / outA);
+  data[idx + 3] = Math.round(outA * 255);
+}
+
+export function decodeSvgImage(bytes: Uint8Array, options?: {readonly density?: number}): RgbaImage {
+  const meta = readSvgMetadata(bytes, options), {width, height, density} = meta;
   const data = new Uint8Array(new ArrayBuffer(width * height * 4 + height), 0, width * height * 4);
+  for (const pixel of svgRasterSteps(bytes, options, meta)) {if (!pixel) continue; const [x, y, r, g, b, a] = pixel; blendSvgPixel(data, (y * width + x) * 4, r, g, b, a);}
+  return {width, height, data, format: "svg", space: "srgb", channels: 4, depth: "uchar", density, hasAlpha: true};
+}
+
+export function* svgRasterSteps(
+  bytes: Uint8Array,
+  options?: { readonly density?: number },
+  meta: ImageMetadata = readSvgMetadata(bytes, options)
+): Generator<SvgPixel | undefined, void, unknown> {
+  const { width, height, density } = meta;
+  let rasterWork = 0;
   const text = new TextDecoder().decode(bytes);
   const svgTagMatch = /<svg\b[^>]*>/i.exec(text);
   const svgTag = svgTagMatch?.[0] ?? "";
@@ -292,20 +291,12 @@ export function decodeSvgImage(
   const mapX = (ux: number) => activeCtm[0] * ux + activeCtm[4];
   const mapY = (uy: number) => activeCtm[3] * uy + activeCtm[5];
 
-  const blendPixel = (px: number, py: number, r: number, g: number, b: number, a: number) => {
+  const blendPixel = function* (px: number, py: number, r: number, g: number, b: number, a: number): Generator<SvgPixel | undefined, void, unknown> {
     if (px < 0 || py < 0 || px >= width || py >= height || a <= 0) return;
-    const idx = (py * width + px) * 4;
-    const srcA = a / 255;
-    const dstA = data[idx + 3]! / 255;
-    const outA = srcA + dstA * (1 - srcA);
-    if (outA <= 0) return;
-    data[idx] = Math.round((r * srcA + data[idx]! * dstA * (1 - srcA)) / outA);
-    data[idx + 1] = Math.round((g * srcA + data[idx + 1]! * dstA * (1 - srcA)) / outA);
-    data[idx + 2] = Math.round((b * srcA + data[idx + 2]! * dstA * (1 - srcA)) / outA);
-    data[idx + 3] = Math.round(outA * 255);
+    yield [px, py, r, g, b, a];
   };
 
-  const drawSegment = (
+  const drawSegment = function* (
     x1: number,
     y1: number,
     x2: number,
@@ -315,7 +306,7 @@ export function decodeSvgImage(
     g: number,
     b: number,
     a: number
-  ) => {
+  ): Generator<SvgPixel | undefined, void, unknown> {
     if (a <= 0) return;
     const steps = Math.max(1, Math.ceil(Math.hypot(x2 - x1, y2 - y1) * 2));
     const half = Math.max(0, (strokeWidth - 1) / 2);
@@ -325,8 +316,9 @@ export function decodeSvgImage(
       const py = y1 + ((y2 - y1) * s) / steps;
       for (let dy = -rad; dy <= rad; dy++) {
         for (let dx = -rad; dx <= rad; dx++) {
+          if (++rasterWork % 16384 === 0) yield undefined;
           if (dx * dx + dy * dy <= (half + 0.5) * (half + 0.5)) {
-            blendPixel(Math.round(px + dx), Math.round(py + dy), r, g, b, a);
+            yield* blendPixel(Math.round(px + dx), Math.round(py + dy), r, g, b, a);
           }
         }
       }
@@ -436,6 +428,7 @@ export function decodeSvgImage(
   const elemRegex = /<text\b([^>]*)>([\s\S]*?)<\/text>|<(\/?)(g|rect|circle|ellipse|line|polygon|polyline|path)\b([^>]*)\/?>/gi;
   let match: RegExpExecArray | null;
   while ((match = elemRegex.exec(text)) !== null) {
+          if (++rasterWork % 16384 === 0) yield undefined;
     const isTextTag = match[1] !== undefined && match[3] === undefined && match[4] === undefined;
     const isClose = !isTextTag && match[3] === "/";
     const tag = isTextTag ? "text" : match[4]!.toLowerCase();
@@ -493,12 +486,13 @@ export function decodeSvgImage(
           const screenY = charTopY + py;
           if (screenY < 0 || screenY >= height) continue;
           for (let px = 0; px < glyphW; px++) {
+          if (++rasterWork % 16384 === 0) yield undefined;
             const gx = Math.min(4, Math.floor((px * 5) / glyphW));
             const colBits = FONT_5X7[glyphIdx * 5 + gx]!;
             if ((colBits & (1 << gy)) !== 0) {
               const screenX = charLeftX + px;
               if (screenX >= 0 && screenX < width) {
-                blendPixel(screenX, screenY, fill.r, fill.g, fill.b, effAlpha);
+                yield* blendPixel(screenX, screenY, fill.r, fill.g, fill.b, effAlpha);
               }
             }
           }
@@ -517,6 +511,7 @@ export function decodeSvgImage(
       const cRy = Math.min(rh / 2, rawCornerRy > 0 ? rawCornerRy : rawCornerRx);
       for (let y = Math.max(0, ry); y < Math.min(height, ry + rh); y++) {
         for (let x = Math.max(0, rx); x < Math.min(width, rx + rw); x++) {
+          if (++rasterWork % 16384 === 0) yield undefined;
           let pixAlpha = effAlpha;
           if (cRx > 0 && cRy > 0) {
             const px = x + 0.5;
@@ -536,47 +531,28 @@ export function decodeSvgImage(
               pixAlpha = Math.round(effAlpha * cov);
             }
           }
-          blendPixel(x, y, fill.r, fill.g, fill.b, pixAlpha);
+          yield* blendPixel(x, y, fill.r, fill.g, fill.b, pixAlpha);
         }
       }
-    } else if (tag === "circle" && effAlpha > 0) {
+    } else if ((tag === "circle" || tag === "ellipse") && effAlpha > 0) {
       const cx = mapX(parseSvgCoord(getAttr(attrs, "cx"), 0, vbW));
       const cy = mapY(parseSvgCoord(getAttr(attrs, "cy"), 0, vbH));
       const r = parseSvgCoord(getAttr(attrs, "r"), 0, (vbW + vbH) / 2);
-      const rx = Math.max(0.5, r * effScaleX);
-      const ry = Math.max(0.5, r * effScaleY);
+      const rx = Math.max(0.5, (tag === "circle" ? r : parseSvgCoord(getAttr(attrs, "rx"), 0, vbW)) * effScaleX);
+      const ry = Math.max(0.5, (tag === "circle" ? r : parseSvgCoord(getAttr(attrs, "ry"), 0, vbH)) * effScaleY);
       const minY = Math.max(0, Math.floor(cy - ry));
       const maxY = Math.min(height - 1, Math.ceil(cy + ry));
       const minX = Math.max(0, Math.floor(cx - rx));
       const maxX = Math.min(width - 1, Math.ceil(cx + rx));
       for (let y = minY; y <= maxY; y++) {
         for (let x = minX; x <= maxX; x++) {
+          if (++rasterWork % 16384 === 0) yield undefined;
           const dx = (x + 0.5 - cx) / rx;
           const dy = (y + 0.5 - cy) / ry;
           const d = Math.hypot(dx, dy);
           const cov = Math.max(0, Math.min(1, 0.5 - (d - 1) * Math.min(rx, ry)));
           if (cov > 0) {
-            blendPixel(x, y, fill.r, fill.g, fill.b, Math.round(effAlpha * cov));
-          }
-        }
-      }
-    } else if (tag === "ellipse" && effAlpha > 0) {
-      const cx = mapX(parseSvgCoord(getAttr(attrs, "cx"), 0, vbW));
-      const cy = mapY(parseSvgCoord(getAttr(attrs, "cy"), 0, vbH));
-      const rx = Math.max(0.5, parseSvgCoord(getAttr(attrs, "rx"), 0, vbW) * effScaleX);
-      const ry = Math.max(0.5, parseSvgCoord(getAttr(attrs, "ry"), 0, vbH) * effScaleY);
-      const minY = Math.max(0, Math.floor(cy - ry));
-      const maxY = Math.min(height - 1, Math.ceil(cy + ry));
-      const minX = Math.max(0, Math.floor(cx - rx));
-      const maxX = Math.min(width - 1, Math.ceil(cx + rx));
-      for (let y = minY; y <= maxY; y++) {
-        for (let x = minX; x <= maxX; x++) {
-          const dx = (x + 0.5 - cx) / rx;
-          const dy = (y + 0.5 - cy) / ry;
-          const d = Math.hypot(dx, dy);
-          const cov = Math.max(0, Math.min(1, 0.5 - (d - 1) * Math.min(rx, ry)));
-          if (cov > 0) {
-            blendPixel(x, y, fill.r, fill.g, fill.b, Math.round(effAlpha * cov));
+            yield* blendPixel(x, y, fill.r, fill.g, fill.b, Math.round(effAlpha * cov));
           }
         }
       }
@@ -586,7 +562,7 @@ export function decodeSvgImage(
       const y1 = mapY(parseSvgCoord(getAttr(attrs, "y1"), 0, vbH));
       const x2 = mapX(parseSvgCoord(getAttr(attrs, "x2"), 0, vbW));
       const y2 = mapY(parseSvgCoord(getAttr(attrs, "y2"), 0, vbH));
-      drawSegment(x1, y1, x2, y2, strokeW, lineStroke.r, lineStroke.g, lineStroke.b, lineStroke.a);
+      yield* drawSegment(x1, y1, x2, y2, strokeW, lineStroke.r, lineStroke.g, lineStroke.b, lineStroke.a);
     } else if (tag === "polygon" || tag === "polyline" || tag === "path") {
       const parsedPath = tag === "path" ? parsePathPoints(getAttr(attrs, "d")) : undefined;
       const pts = parsedPath ? parsedPath.pts : parsePointsList(getAttr(attrs, "points"));
@@ -612,6 +588,7 @@ export function decodeSvgImage(
         for (let y = y0; y <= y1; y++) {
           const py = y + 0.5;
           for (let x = x0; x <= x1; x++) {
+          if (++rasterWork % 16384 === 0) yield undefined;
             const px = x + 0.5;
             let inside = false;
             for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
@@ -622,7 +599,7 @@ export function decodeSvgImage(
               }
             }
             if (inside) {
-              blendPixel(x, y, fill.r, fill.g, fill.b, effAlpha);
+              yield* blendPixel(x, y, fill.r, fill.g, fill.b, effAlpha);
             }
           }
         }
@@ -630,10 +607,10 @@ export function decodeSvgImage(
       if (pts.length >= 2 && (stroke.a > 0 || tag === "polyline")) {
         const sCol = stroke.a > 0 ? stroke : parseColor(getAttr(attrs, "stroke") ?? "#000000");
         for (let i = 0; i + 1 < pts.length; i++) {
-          drawSegment(pts[i]![0], pts[i]![1], pts[i + 1]![0], pts[i + 1]![1], strokeW, sCol.r, sCol.g, sCol.b, sCol.a);
+          yield* drawSegment(pts[i]![0], pts[i]![1], pts[i + 1]![0], pts[i + 1]![1], strokeW, sCol.r, sCol.g, sCol.b, sCol.a);
         }
         if ((tag === "polygon" || (tag === "path" && parsedPath?.closed)) && stroke.a > 0) {
-          drawSegment(
+          yield* drawSegment(
             pts[pts.length - 1]![0],
             pts[pts.length - 1]![1],
             pts[0]![0],
@@ -684,20 +661,9 @@ export function decodeSvgImage(
       const alpha = Math.round(stroke.a * (Number.isFinite(opAttr) ? opAttr : 1) * (Number.isFinite(strokeOpacity) ? strokeOpacity : 1));
       for (let i = 0; i < points.length; i++) {
         const a = points[i]!, b = points[(i + 1) % points.length]!;
-        drawSegment(a[0], a[1], b[0], b[1], strokeW, stroke.r, stroke.g, stroke.b, alpha);
+        yield* drawSegment(a[0], a[1], b[0], b[1], strokeW, stroke.r, stroke.g, stroke.b, alpha);
       }
     }
   }
 
-  return {
-    width,
-    height,
-    data,
-    format: "svg",
-    space: "srgb",
-    channels: 4,
-    depth: "uchar",
-    density,
-    hasAlpha: true
-  };
 }

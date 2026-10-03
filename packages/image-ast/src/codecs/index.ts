@@ -1,3 +1,4 @@
+import {imageOutputFormat} from "../output-format.js";
 import {TextPixels} from "./text-pixels.js";
 import {CreatedPixels} from "./create-pixels.js";
 import {checkLimitInputPixels} from "../limits.js";
@@ -394,10 +395,7 @@ export function encodeImage(
   img: RgbaImage,
   options: OutputEncodeOptions
 ): { readonly data: Uint8Array; readonly format: ImageFormat; readonly channels: number } {
-  const fmt: ImageFormat =
-    options.format === "svg"
-      ? "png"
-      : (options.format ?? (img.format === "pdf" || img.format === "svg" ? "png" : img.format));
+  const fmt = imageOutputFormat(img.format,options.format);
 
   switch (fmt) {
     case "png": {

@@ -63,8 +63,9 @@ operands and composite overlays use the parent filesystem with retained reads an
 Raw operands support every sample depth in bounded chunks, and created overlays
 (including deterministic Gaussian noise) generate directly into caller storage.
 Composite placement, tiling and blend modes use fixed pixel caches. Text overlays
-scan style ranges and generate bounded pixel chunks in caller storage; SVG/PDF
-overlays currently use the buffered fallback.
+scan style ranges and generate bounded pixel chunks in caller storage. Explicit SVG
+byte resources use caller-backed raster pages through `decodeSvgToStorage(bytes, storage, signal, options)`;
+SVG syntax, file inputs and PDF rendering still use buffered compatibility paths.
 Combined resize/blur/sharpen/convolution stages share premultiplied alpha and gamma handling.
 `resizeStoredImage(image, storage, options, signal)` supports all resize fits,
 gravity, entropy/attention crops, background canvases and image pages.

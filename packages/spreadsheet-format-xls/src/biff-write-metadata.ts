@@ -31,7 +31,7 @@ export class BiffMetadataWriter {
   private work = 0;
   private readonly records = new Map<Sheet, { record: Sheet["unsupportedRecords"] extends readonly (infer T)[] | undefined ? T : never; node?: MetadataNode }[]>();
   private readonly comments = new Map<Sheet, MetadataNode[]>();
-  private readonly exported = new Set<UnsupportedRecord>();
+  readonly exported = new Set<UnsupportedRecord>();
   constructor(readonly book: Workbook, readonly context: CapabilityContext, readonly maxRows: number,
     readonly defaultFont = { name: "Sans", points: 10 }) {
     for (const sheet of book.sheets) {

@@ -40,6 +40,12 @@
     },
     "biffExternalIdentity": {
       "format": "MS-XLS VirtualPath, SupBook, ExternSheet, ExternName/ExternDocName and PtgRef3d/PtgArea3d/PtgNameX.",
+      "retainedDefinitionQualification": {
+        "scope": "BIFF8 flags-zero external-name cell (9-byte ptgRef3d), area (13-byte ptgArea3d) and error definitions retained as transport metadata, with original SUPBOOK sheet order and scope. No external host execution during import/export. Conflicting definitions and invalid indexes refuse export.",
+        "source": "LibreOffice 25.2.3.2 sc/source/filter/excel/{xilink,excform8}.cxx; ConvertExternName uses two direct sheet indexes, unlike ordinary formula tokens. Native authored input independently decoded with olefile 0.47.",
+        "validation": "Two failing original memory regressions and one failing sheet-order control repaired. BIFF suite: 2197 tests; additional scoped and invalid-index controls pass. Compiled package SDK and command re-exports match byte-for-byte. Calc 25.2.3.2 opens/recalculates native-authored then product-reexported external cell and Rate name: 42, then 101 after linked A1 changes 41 to 100, then 42 after restoration; no native errors.",
+        "remaining": "New external names without retained definitions still use existing #REF placeholder; unsupported token forms, BIFF7 native name/alias failures, other application profiles and cross-format definition preservation remain open. This does not close the BIFF or format family."
+      },
       "independentSource": "LibreOffice XclImpUrlHelper::DecodeUrl and XclExpExtNameBase/XclExpExtName at eb239f1a15f3bd8481ee5c5cf72bdb52c347efae.",
       "sourceHashes": {
         "xihelper.cxx": "c678ce03ec89fa59c7b2c17d9141a3f92461360af374886937b0d203bad53b65",

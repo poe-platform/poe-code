@@ -162,13 +162,13 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     if (formulaWork > (context.limits.workbookWork ?? context.limits.inputBytes * 8))
       throw new SsconvertError("resource-limit", "ssconvert BIFF formula work limit exceeded");
   };
-  const retain = async (record: BiffRecord, target: UnsupportedRecord[], warn = true) => {
+  const retain = async (record: BiffRecord, target: UnsupportedRecord[], warn = true, extra: Readonly<Record<string, ImportedValue>> = {}) => {
     metadataBytes += record.data.bytes.length * 2;
     if (metadataBytes > (context.limits.workbookTextBytes ?? context.limits.inputBytes * 2))
       throw new SsconvertError("resource-limit", "ssconvert BIFF metadata limit exceeded");
     const kind = biffOpcodes[record.opcode]?.join("/") ?? `opcode-0x${record.opcode.toString(16)}`;
     target.push({ source: "biff", kind, disposition: "retained", data: { opcode: record.opcode, offset: record.offset,
-      bytes: Array.from(record.data.bytes, byte => byte.toString(16).padStart(2, "0")).join("") } });
+      bytes: Array.from(record.data.bytes, byte => byte.toString(16).padStart(2, "0")).join(""), ...extra } });
     if (warn) await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning",
       message: `BIFF ${kind} retained without semantic interpretation` });
   };
@@ -332,7 +332,19 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       table.push({ name, sheetIndex: data.u16(2), tokens: formula.tokens, arrays: formula.arrays, revision: ver, codepage, supported: flags === 0, record });
       const addin = ver >= 8 ? supbooks.at(-1)?.kind === "addin" : legacyLink?.addin;
       const externalIdentity = (ver >= 8 ? supbooks.at(-1)?.workbook : legacyLink?.workbook) !== undefined && flags === 0;
-      if (!addin || flags !== 0) await retain(record, sheet?.unsupportedRecords ?? unsupported, !externalIdentity);
+      const externalBook = ver >= 8 ? supbooks.at(-1) : undefined, tokens = formula.tokens;
+      let definition: ImportedValue | undefined;
+      if (externalBook?.workbook !== undefined && flags === 0 && data.u16(4) === 0 &&
+        (tokens[0] === 0x1c && tokens.length === 2 || tokens[0] === 0x3a && tokens.length === 9 || tokens[0] === 0x3b && tokens.length === 13)) {
+        accountFormulaWork(tokens.length + externalBook.sheets.length);
+        const scope = data.u16(2) ? externalBook.sheets[data.u16(2) - 1] : undefined;
+        if (!data.u16(2) || scope !== undefined) definition = {
+          workbook: accountText(externalBook.workbook), name: accountText(name),
+          sheets: externalBook.sheets.map(accountText), ...(scope === undefined ? {} : { scope: accountText(scope) }),
+          tokens: accountText(Array.from(tokens, byte => byte.toString(16).padStart(2, "0")).join("")) };
+      }
+      if (!addin || flags !== 0) await retain(record, sheet?.unsupportedRecords ?? unsupported, !externalIdentity,
+        definition === undefined ? {} : { externalNameDefinition: definition });
       continue;
     }
     if (opcode === 0x17 && ver >= 8) {

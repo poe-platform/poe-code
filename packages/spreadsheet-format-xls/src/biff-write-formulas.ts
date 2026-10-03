@@ -1,3 +1,4 @@
+import { retainedBiffExternalNames, type RetainedExternalName } from "./biff-external-definitions.js";
 import { SsconvertError, type CapabilityContext, type Diagnostic } from "@poe-code/spreadsheet-engine/contracts";
 import type { Workbook, CellValue, NamedExpression } from "@poe-code/spreadsheet-ast";
 import type { FormulaNode, ParsePosition, ReferenceEndpoint } from "@poe-code/spreadsheet-engine/formulas/ast";
@@ -29,18 +30,22 @@ export interface CompiledBiffFormula {
 
 export class BiffFormulaWriter {
   readonly externalSheets: { book?: number; first: number; last: number }[] = [];
-  readonly externalBooks: { workbook: string; sheets: string[]; names: { name: string; sheet?: number }[] }[] = [];
+  readonly externalBooks: { workbook: string; sheets: string[]; names: { name: string; sheet?: number; definition?: RetainedExternalName }[] }[] = [];
   readonly externNames: string[] = [];
   readonly macroNames: string[] = [];
   private readonly workbookIndices = new Map<string, number>();
   private readonly linkIndices = new Map<string, number>();
   private readonly relocations: { tokens: Uint8Array; offset: number; index: number; kind: "sheet" | "name" }[] = [];
-  constructor(readonly book: Workbook, readonly revision: 7 | 8, readonly context: CapabilityContext) {}
+  private readonly retainedNames: Map<string, Map<string, RetainedExternalName>>;
+  constructor(readonly book: Workbook, readonly revision: 7 | 8, readonly context: CapabilityContext) {
+    this.retainedNames = revision === 8 ? retainedBiffExternalNames(book, context) : new Map();
+  }
   private externalBook(workbook: string): number {
     let index = this.workbookIndices.get(workbook);
     if (index === undefined) {
       index = this.externalBooks.length;
-      this.externalBooks.push({ workbook, sheets: [], names: [] });
+      const retained = this.retainedNames.get(workbook)?.values().next().value;
+      this.externalBooks.push({ workbook, sheets: retained ? [...retained.sheets] : [], names: [] });
       this.workbookIndices.set(workbook, index);
     }
     return index;
@@ -301,7 +306,11 @@ export class BiffFormulaWriter {
           const bookIndex = this.externalBook(node.workbook), book = this.externalBooks[bookIndex]!;
           const scope = node.sheet === undefined ? undefined : this.externalScope(bookIndex, node.sheet);
           let index = book.names.findIndex(name => name.name === node.name && name.sheet === scope);
-          if (index < 0) { index = book.names.length; book.names.push({ name: node.name, ...(scope === undefined ? {} : { sheet: scope }) }); }
+          if (index < 0) {
+            const definition = this.retainedNames.get(node.workbook)?.get(JSON.stringify([node.name, node.sheet ?? null]));
+            index = book.names.length;
+            book.names.push({ name: node.name, ...(scope === undefined ? {} : { sheet: scope }), ...(definition ? { definition } : {}) });
+          }
           const link = this.sheetLink(bookIndex, this.revision === 7 ? 0xfffe : scope ?? 0xfffe, this.revision === 7 ? 0xfffe : scope ?? 0xfffe);
           const data = new Uint8Array(this.revision === 8 ? 7 : 25), view = new DataView(data.buffer);
           data[0] = 0x59;

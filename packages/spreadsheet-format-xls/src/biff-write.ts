@@ -164,8 +164,12 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
         data = join(data, text);
       }
       output.record(0x1ae, data);
-      for (const name of external.names) output.record(0x23, join(join(words(0, name.sheet === undefined ? 0 : name.sheet + 1, 0),
-        biffString(name.name, revision, context, 1)), new Uint8Array([2, 0, 28, 23])));
+      for (const name of external.names) {
+        const definition = name.definition;
+        output.record(0x23, join(join(words(0, name.sheet === undefined ? 0 : name.sheet + 1, 0),
+          biffString(name.name, revision, context, 1)), definition ? join(words(definition.tokens.length), definition.tokens) : new Uint8Array([2, 0, 28, 23])));
+        if (definition) metadata.exported.add(definition.record);
+      }
     }
     output.record(0x17, words(formulaWriter.externalSheets.length + Number(addins),
       ...(addins ? [0, 0xfffe, 0xfffe] : []), ...formulaWriter.externalSheets.flatMap(s => [Number(addins) + (s.book === undefined ? 0 : s.book + 1), s.first, s.last])));

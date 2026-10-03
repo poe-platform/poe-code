@@ -29,6 +29,10 @@ rejected unless they inherit the sheet default. Imported fixed and automatic
 row sizing is preserved through the shared row metadata.
 The formula reader rejects malformed shared formulas containing BIFF live-label
 tokens; ordinary cell and array formulas retain their supported live labels.
+BIFF8 re-export preserves imported external-name cell, area and error definitions,
+including their original external sheet order. Import and export do not fetch links;
+recalculation still requires an explicit host. Other definition forms and newly
+constructed external names are not covered by this preservation.
 For tabular imports, the `./cached` entrypoint reads BIFF2–8 cached values,
 including BIFF4 workbook containers, without translating formulas or names.
 It preserves raw error codes, encoding overrides, worksheet order and number

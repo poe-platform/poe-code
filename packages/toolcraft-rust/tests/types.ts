@@ -300,3 +300,18 @@ cliFixtures.createFixtureResponse({status:"200"});
 // @ts-expect-error fixture mode does not accept arbitrary embedded selectors
 cliFixtures.resolveFixtureRuntime(null as unknown as native.Command<any,any,any,any>,{},{},fixtureFetch,undefined,undefined,"yes");
 void [fixtureResponse,fixtureFetch,fixtureRuntime,fixtureScenario];
+
+import * as cliExecution from "../dist/cli-execution.js";
+const invocationRuntime:cliExecution.CLIInvocationRuntime={signal:new AbortController().signal,write(_chunk,_stream){},async flush(){},exitCode:0,defaults:{run:{name:"value"}}};
+const compatibleInvocation:import("toolcraft/cli").CLIInvocationRuntime=invocationRuntime;
+const nativeInvocation:cliExecution.CLIInvocationRuntime=compatibleInvocation;
+const executedCommand:Promise<void>=cliExecution.executeCommand(null as unknown as cliCommands.ExecutionState<{service:string}>,"app",{service:"value"},{},fetch,undefined,{},undefined,undefined,{},{},{verboseControlEnabled:true},context=>{
+  const command:native.Command<{service:string},any,any,any>=context.command;
+  const secrets:Record<string,string|undefined>|undefined=context.secrets;
+  void [command,secrets];
+},invocationRuntime);
+const resolvedFlags:Record<string,unknown>=cliExecution.getResolvedFlags(commanderProgram);
+const pendingApproval:boolean=cliExecution.isHumanInLoopPending({});
+// @ts-expect-error stream writers accept only stdout or stderr
+invocationRuntime.write("hello","other");
+void [executedCommand,resolvedFlags,pendingApproval,nativeInvocation];

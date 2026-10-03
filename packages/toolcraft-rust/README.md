@@ -34,6 +34,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | CLI presets | Native nested file-value routing, scalar/dynamic validation, defaults and read/JSON diagnostics; prepared for CLI integration |
 | CLI parameters | Native positional/option/preset precedence, root defaults, missing-value callbacks, prompts, variants and combined validation; prepared for CLI integration |
 | CLI fixtures | Native scenario loading, request matching, service proxies, fetch/filesystem fixtures and runtime selection; prepared for CLI integration |
+| CLI execution | Native handler/approval routing, requirements, embedded validation, confirmation, managed streams and output/error handling; public CLI integration remains unfinished |
 | Source snippets  | Context windows, line gutters, carets and terminal/Markdown/JSON styling          |
 | Design           | `toolcraft-rust/design` and 72 flat helper paths backed by the native design package |
 | File changes     | `toolcraft-rust/file-changes`: native status summaries and unified diffs through standard renderers |

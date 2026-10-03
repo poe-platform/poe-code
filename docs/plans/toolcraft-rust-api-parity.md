@@ -3762,3 +3762,47 @@ runtime/environment construction, a service match, fixture filesystem read and
 fixture fetch JSON response. It does not pass the performance/default-swap gate.
 Full execution, generated help, transports and complete platform/resource/
 reentrancy/standalone-packaging qualification remain open.
+
+Fixture runtime is independently verified in remote main at 346598b3fb. Its
+Release workflow 37079355930 completed successfully with validate/build passing
+and release-stable skipped; this does not establish a new publication.
+
+### CLI command-execution checkpoint
+
+Native execution now composes fixture/runtime selection, parameter resolution,
+requirements, native-schema and embedded validation, confirmation, approval
+routing, handler invocation, managed streams and result/error presentation.
+Rust controls admission and transitions; Node retains actual awaits, for-await
+iteration, callback receivers, signal/listener identity and try/finally cleanup.
+Runtime creation remains outside the error-report catch, and resolved parameter
+and secret context is exposed only after the same reference validation stages.
+No dependency declarations or default implementation changed. Public runCLI and
+executeCLICommand orchestration and generated help are still unfinished.
+
+Five missing-module failures preceded implementation. Thirteen differential
+tests compare extracted reference code with native dependencies, including
+requirements, defaults, diagnostics, approval output, custom rendering, MCP error
+exit status, arbitrary rejection identity, error-report scope, callback receivers
+and property order, native JSON-schema validation, concurrent handlers, status
+and secret refresh, stream cancellation/closing and SIGINT listener cleanup.
+A composed test builds commands, prepares argv, dispatches through Commander,
+resolves parameters, executes the handler and renders JSON. The maintained
+package route passes 263 native Node tests, Rust tests, 1,785 reference/parity
+cases across 52 files and declarations; Rust/binding and scoped JS lint pass.
+
+Packed runtime consumers execute ordinary and embedded handlers with only packed
+own schema/design/config-codec packages and existing Commander admitted as external
+ESM imports. Packed declarations compile with types: [], but contract types still
+resolve from the checkout, leaving standalone type qualification open. An actual
+in-memory TTY prompt-to-handler run matches reference output and raw-mode
+transitions; its rich/JSON screenshot was inspected. This does not qualify the
+full public CLI or all original CLI suites.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 500 calls, retaining 32
+results, measured native/reference medians of 142.938/8.634 microseconds
+(16.56 times slower). The workload uses prebuilt command fields and includes
+normal runtime construction, scalar/dynamic/default parameters, handler execution
+and JSON rendering, with no I/O or interactive wait. It differs from earlier
+parameter-only workloads and does not pass the performance/default-swap gate.
+Public CLI/help, transports and complete platform/resource/reentrancy/standalone
+packaging qualification remain open.

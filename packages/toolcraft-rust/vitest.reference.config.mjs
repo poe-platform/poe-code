@@ -97,6 +97,7 @@ export default defineConfig({
       path("tests/cli-presets-parity.test.ts"),
       path("tests/cli-params-parity.test.ts"),
       path("tests/cli-fixtures-parity.test.ts"),
+      path("tests/cli-execution-parity.test.ts"),
       path("../toolcraft/src/human-in-loop/sdk-runtime.integration.test.ts"),
       path("../toolcraft/src/human-in-loop/plan-hash.test.ts"),
       path("../toolcraft/src/human-in-loop/approval-tasks.test.ts"),

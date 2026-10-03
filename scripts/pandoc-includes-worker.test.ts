@@ -38,7 +38,7 @@ it.each([["json", "html", false], ["csv", "html", false], ["json", "html", true]
           template: ${template} ? {bytes: encoder.encode("$if(body)$<main>$body$</main>$endif$$for(header-includes)$$header-includes$$endfor$$for(rows)$$for(rows)$$rows$$endfor$$endfor$")} : undefined,
           includeBeforeBody: [{chunks: chunks()}], includeInHeader: [{bytes: encoder.encode('<meta name="author" content="Writer">')}], includeAfterBody: [{bytes: encoder.encode('<footer>After</footer>')}], filters: [{kind: "json", path: "filter"}]
         }, {
-          workingFiles: {fs, directory: "/spill", cacheBytes: 16384}, limits: {outputBytes: 500000}, signal: controller.signal,
+          workingFiles: {fs, directory: "/spill", cacheBytes: 16384}, limits: {outputBytes: 500000, includes: ${template ? 4 : 3}, fonts: 0}, signal: controller.signal,
           filters: {async apply() {throw new Error("Resident filter forbidden");}, async applyJsonStream({stdin, stdout}) {
             filtered++; for await (const bytes of stdin) await stdout.write(bytes.map(byte => byte === 120 ? 121 : byte));
           }},

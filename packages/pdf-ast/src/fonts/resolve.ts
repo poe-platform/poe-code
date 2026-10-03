@@ -1,3 +1,4 @@
+import { FontWidths } from "./widths.js";
 import { PdfFontAllocation, type PdfFontAllocationOptions } from "./memory.js";
 import { getEncoding, type CMap } from "../vendor/pdfjs-fonts.mjs";
 import { parseEmbeddedType1Font } from "./type1.js";
@@ -37,7 +38,7 @@ export interface ResolvedPageFont {
   readonly encodingCMap?: CMap | undefined;
   readonly differences: ReadonlyMap<number, string>;
   readonly glyphNames: ReadonlyMap<number, string>;
-  readonly widths: ReadonlyMap<number, number>;
+  readonly widths: Pick<ReadonlyMap<number, number>, "get" | "has">;
   readonly defaultWidth: number;
   readonly fontMatrix?: Matrix6 | undefined;
   readonly charProcs?: PdfCosDict | undefined;
@@ -101,7 +102,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
         allocation.admit(32768 + (differenceArray?.kind === "array" ? differenceArray.items.length * 128 : 0));
         const differences = buildFontEncodingDifferencesMap(encNode);
         const glyphNames = buildFontEncodingGlyphNamesMap(encNode);
-        const widths = new Map<number, number>();
+        const widths = new FontWidths(allocation);
         let defaultWidth = 556;
         // ToUnicode labels codes; only the font's encoding determines their width.
         const isTwoByteCid = subtype === "Type0";
@@ -143,7 +144,6 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                             for (let k = 0; k < second.items.length; k++) {
                                 const wItem = (yield* resolve(second.items[k]));
                                 if (wItem?.kind === "number") {
-                                    allocation.admit(64);
                                     widths.set(first.value + k, wItem.value);
                                 }
                             }
@@ -153,10 +153,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                             if (third?.kind === "number") {
                                 if (!Number.isSafeInteger(first.value) || !Number.isSafeInteger(second.value))
                                     throw new PdfError("E_LIMIT", "Unsafe PDF font width range");
-                                allocation.admit(Math.max(0, second.value - first.value + 1) * 64);
-                                for (let c = first.value; c <= second.value; c++) {
-                                    widths.set(c, third.value);
-                                }
+                                widths.set(first.value, third.value, second.value);
                             }
                         }
                     }
@@ -176,7 +173,6 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                 for (let k = 0; k < widthsArr.items.length; k++) {
                     const wItem = (yield* resolve(widthsArr.items[k]));
                     if (wItem?.kind === "number") {
-                        allocation.admit(64);
                         widths.set(firstChar + k, wItem.value * type3Scale1000);
                     }
                 }
@@ -185,7 +181,6 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                 const stdMetrics = STANDARD_14_FONTS[normalizeStandard14FontName(baseFont)];
                 defaultWidth = stdMetrics.defaultWidth;
                 for (const [codeStr, wVal] of Object.entries(stdMetrics.widthsByCode)) {
-                    allocation.admit(64);
                     widths.set(Number(codeStr), wVal);
                 }
             }
@@ -224,7 +219,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                         flags: flags?.kind === "number" ? flags.value : 0,
                         fontMatrix: [0.001, 0, 0, 0.001, 0, 0], bbox: [0, 0, 0, 0],
                         baseEncodingName: baseEncoding?.kind === "name" ? baseEncoding.decoded : undefined,
-                        differences: glyphNames, overridableEncoding: true, widths: Object.fromEntries(widths),
+                        differences: glyphNames, overridableEncoding: true, widths: widths.createType1View(),
                         composite: subtype === "Type0", cMap: { charCodeOf: (cid: number) => cid },
                     });
                 }

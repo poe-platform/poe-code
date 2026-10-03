@@ -34,11 +34,9 @@ it("preserves optional ToUnicode recovery when the asynchronous decoder fails", 
   expect(step.value.get("F1")!.baseFont).toBe("Helvetica");
 });
 
-it.each(["widths", "unicode"])("admits %s expansion to the containing font owner before allocating", kind => {
+it("admits unicode expansion to the containing font owner before allocating", () => {
   const doc = PdfDocument.create();
-  const font = kind === "widths"
-    ? cosDict({ Subtype: cosName("Type0"), DescendantFonts: cosArray([cosDict({ W: cosArray([cosNumber(0), cosNumber(4095), cosNumber(500)]) })]) })
-    : cosDict({ Subtype: cosName("Type1"), ToUnicode: doc.cos.allocateObject(cosStream(new TextEncoder().encode("1 begincidrange <0000> <0fff> 0 endcidrange"))) });
+  const font = cosDict({ Subtype: cosName("Type1"), ToUnicode: doc.cos.allocateObject(cosStream(new TextEncoder().encode("1 begincidrange <0000> <0fff> 0 endcidrange"))) });
   const resources = cosDict({ Font: cosDict({ F1: font }) });
   const failure = new Error("containing font owner exhausted"); let rejected = false;
   const steps = resolvePageFontsSteps(doc.cos.rootRef, resources, "F1", { onAllocation(size) {
@@ -68,4 +66,24 @@ it("rejects CID width endpoints that cannot advance by one", () => {
   finally { spy.mockRestore(); }
   expect(failure).toMatchObject({ code: "E_LIMIT" });
   expect(writes).toBe(0);
+});
+
+
+it("retains compact CID width ranges without allocating per-CID entries", () => {
+  const doc = PdfDocument.create(); let admitted = 0;
+  const resources = cosDict({ Font: cosDict({ F1: cosDict({ Subtype: cosName("Type0"), DescendantFonts: cosArray([cosDict({ W: cosArray([
+    cosNumber(0), cosNumber(65535), cosNumber(500),
+    cosNumber(65), cosArray([cosNumber(700), cosNumber(800)]),
+    cosNumber(64), cosNumber(65), cosNumber(900),
+  ]) })]) }) }) });
+  const steps = resolvePageFontsSteps(doc.cos.rootRef, resources, "F1", { onAllocation(bytes) {
+    admitted += bytes;
+    if (admitted > 40000) throw new Error("widths expanded beyond compact budget");
+  } });
+  let step = steps.next();
+  while (!step.done) step = steps.next(step.value.kind === "resolve" ? doc.cos.resolve(step.value.node) : doc.cos.decodeStream(step.value.stream));
+  const widths = step.value.get("F1")!.widths;
+  expect([0, 63, 64, 65, 66, 67, 65535, 65536].map(code => widths.get(code))).toEqual([500, 500, 900, 900, 800, 500, 500, undefined]);
+  expect(widths.get(65.5)).toBeUndefined();
+  expect(widths.has(65535)).toBe(true); expect(widths.has(65536)).toBe(false);
 });

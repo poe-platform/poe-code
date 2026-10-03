@@ -29,14 +29,17 @@ it.each(["2006", "2008"] as const)("publishes XLSX %s using caller-backed ZIP re
     value: { kind: "string" as const, value: `shared é🦀${row % 400}` } })) }] };
   // Shared values can exceed ZIP pathname limits; no workbook limit is lowered.
   raw.sheets[0]!.cells[0]!.value.value = raw.sheets[0]!.cells[400]!.value.value = "é🦀".repeat(22000);
+  raw.sheets[0]!.cells.reverse();
   const expected = await createXlsxWriter(edition)(raw, [], { signal, limits: defaultSsconvertLimits,
     environment: { env: {}, locale: "C", timezone: "UTC" }, own() {} });
   try {
     const book = await engine.adoptWorkbook(raw, { signal }), chunks: Uint8Array[] = [];
     const keys = new Set(raw.sheets[0]!.cells.map(cell => JSON.stringify([cell.value.value, []])));
+    const coordinates = new Set(raw.sheets[0]!.cells.map(cell => `${cell.row}:${cell.column}`));
     const set = Map.prototype.set;
     const stringMaps = vi.spyOn(Map.prototype, "set").mockImplementation(function(this: Map<unknown, unknown>, key, value) {
       if (typeof key === "string" && keys.has(key)) throw new Error("resident shared-string index");
+      if (typeof key === "string" && coordinates.has(key) && value && typeof value === "object" && "row" in value) throw new Error("resident coordinate index");
       return set.call(this, key, value);
     });
     const createXml = xmlSupport.createXlsxXml;

@@ -191,3 +191,37 @@ it("stores sparse integer indexes with a bounded cache through the same backing 
   } finally {await storage.close();}
   expect(await fs.readdir("/")).toEqual([]);
 });
+
+it("iterates sparse integer records in key order with bounded borrowed reads", async () => {
+  const bytes = new Uint8Array(2 * 1024 * 1024), response = new Uint8Array(128);
+  let end = 128;
+  const table = new IntegerTable({
+    allocate(length) { const at = end; end += length; return at; },
+    async read(at, length) { expect(length).toBeLessThanOrEqual(128); response.set(bytes.subarray(at, at + length)); return response.subarray(0, length); },
+    async write(at, value) { bytes.set(value, at); }
+  }, 8);
+  const expected = new Map<bigint, bigint>([[0n, 5n], [0xffffffffffffffffn, 7n]]);
+  for (let i = 599; i >= 0; i--) expected.set(BigInt(i * 65537), BigInt(i));
+  for (const [key, value] of expected) await table.set(key, value);
+  await table.set(0n, 123n); expected.set(0n, 123n);
+  const entries = []; for await (const entry of table.entries()) entries.push(entry);
+  expect(entries).toEqual([...expected].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
+  const cursor = table.entries(); await cursor.next(); await cursor.return(undefined);
+  expect(await table.get(0n)).toBe(123n);
+  const replay = []; for await (const entry of table.entries()) replay.push(entry);
+  expect(replay).toEqual(entries);
+});
+
+it("rejects mutation during integer-table traversal and propagates backing failure", async () => {
+  const bytes = new Uint8Array(4096); let end = 128, fail = false;
+  const reason = new Error("read failure");
+  const table = new IntegerTable({
+    allocate(length) { const at = end; end += length; return at; },
+    async read(at, length) { if (fail) throw reason; return bytes.slice(at, at + length); },
+    async write(at, value) { bytes.set(value, at); }
+  }, 2);
+  await table.set(1n, 10n); await table.set(2n, 20n);
+  const cursor = table.entries(); await cursor.next(); await table.set(2n, 30n);
+  await expect(cursor.next()).rejects.toThrow("changed during iteration");
+  fail = true; await expect(table.entries().next()).rejects.toBe(reason);
+});

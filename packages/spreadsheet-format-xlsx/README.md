@@ -21,8 +21,9 @@ With engine `workingFiles`, both XLSX exporters stage archive members and centra
 records through the caller’s safe-fs. XML encoding, member compression and archive
 output use bounded chunks and backpressure. Worksheet rows use caller-backed
 staging, and row, worksheet and shared-string XML containers stream. Shared-string
-counts, IDs and XML use caller-backed storage. Workbook cells, individual strings,
-style/coordinate indexes and metadata still reside in memory; an external safe-fs backend is required for staging outside the isolate.
+counts, IDs, XML and ordered cell-coordinate indexes use caller-backed storage.
+Style-region blanks are generated during traversal. Workbook cells, individual
+strings, style indexes and metadata still reside in memory; an external safe-fs backend is required for staging outside the isolate.
 
 Compose additional format modules explicitly to convert between file types.
 Existing ssconvert service IDs, supported profiles and documented fidelity limits

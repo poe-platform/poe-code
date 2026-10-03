@@ -1,3 +1,4 @@
+import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { foldSheetName } from "@poe-code/spreadsheet-ast/case-fold";
 import { XlsxExternalLinkWriter } from "./external-link-export.js";
 import { resolveExternalLinks } from "./external-links.js";
@@ -903,7 +904,15 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
           throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: XLSX axis outside writer sheet limits");
       for (const cell of sheet.cells) if (!Number.isSafeInteger(cell.row) || !Number.isSafeInteger(cell.column) || cell.row >= rows || cell.column >= columns || cell.row < 0 || cell.column < 0)
         throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: XLSX cell outside writer sheet limits");
-      const addresses = new Map(sheet.cells.map(c => [`${c.row}:${c.column}`, c]));
+      const addresses = storage ? new IntegerTable(storage, 128) : new Map<bigint, bigint>();
+      const coordinate = (row: number, column: number) => BigInt(row) << 14n | BigInt(column);
+      for (let index = 0; index < sheet.cells.length; index++) {
+        context.signal.throwIfAborted();
+        const cell = sheet.cells[index]!; await addresses.set(coordinate(cell.row, cell.column), BigInt(index));
+      }
+      // Regions keep one template each. Their potentially millions of blank cells
+      // are reconstructed from indexed coordinates during bounded traversal.
+      const styled: Omit<Cell, "row" | "column">[] = [];
       let columnDefaultStyle = 0;
       for (const record of sheet.unsupportedRecords ?? []) if (record.kind === "Styles") {
         const source = metadataNode(record.data, charge);
@@ -918,81 +927,100 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
           const count = (r.endRow - r.startRow + 1) * (r.endColumn - r.startColumn + 1);
           if (count > context.limits.cells) limit("styled cells");
           charge(count);
+          const template = BigInt(sheet.cells.length + styled.length);
+          styled.push({ value: { kind: "blank" }, format: a.Format ?? node.attributes.Format ?? "General", style: { gnumeric: node as unknown as ImportedValue } });
           for (let row = r.startRow; row <= r.endRow; row++) for (let column = r.startColumn; column <= r.endColumn; column++) {
-            const key = `${row}:${column}`;
-            if (!addresses.has(key)) {
+            context.signal.throwIfAborted();
+            const key = coordinate(row, column);
+            if (await addresses.get(key) === undefined) {
               if (++totalCells > context.limits.cells) limit("styled cells");
-              addresses.set(key, { row, column, value: { kind: "blank" }, format: a.Format ?? node.attributes.Format ?? "General", style: { gnumeric: region.children.find(n => n.name === "Style") as unknown as ImportedValue } });
+              await addresses.set(key, template);
             }
           }
         }
       }
-      const cells = [...addresses.values()].sort((a, b) => a.row - b.row || a.column - b.column);
-      let endRow = 0, endColumn = 0, startRow = cells[0]?.row ?? 0, startColumn = columns - 1;
-      for (const cell of cells) { endRow = Math.max(endRow, cell.row); endColumn = Math.max(endColumn, cell.column); startColumn = Math.min(startColumn, cell.column); }
+      async function* cells(): AsyncGenerator<Cell> {
+        const entries = addresses instanceof Map ? [...addresses].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0) : addresses.entries();
+        for await (const [key, value] of entries) {
+          context.signal.throwIfAborted(); const index = Number(value);
+          yield index < sheet.cells.length ? sheet.cells[index]! : {
+            ...styled[index - sheet.cells.length]!, row: Number(key >> 14n), column: Number(key & 0x3fffn)
+          };
+        }
+      }
+      let endRow = 0, endColumn = 0, startRow = 0, startColumn = columns - 1, cellCount = 0;
+      for await (const cell of cells()) {
+        if (!cellCount++) startRow = cell.row;
+        endRow = Math.max(endRow, cell.row); endColumn = Math.max(endColumn, cell.column); startColumn = Math.min(startColumn, cell.column);
+      }
       for (const merge of sheet.merges ?? []) { endRow = Math.max(endRow, merge.endRow); endColumn = Math.max(endColumn, merge.endColumn); startRow = Math.min(startRow, merge.startRow); startColumn = Math.min(startColumn, merge.startColumn); }
       for (const row of sheet.rows ?? []) { charge(); endRow = Math.max(endRow, row.index); }
       for (const column of sheet.columns ?? []) { charge(); endColumn = Math.max(endColumn, column.index); }
-      if (!cells.length && !sheet.merges?.length) startColumn = 0;
+      if (!cellCount && !sheet.merges?.length) startColumn = 0;
       const rangeText = (r: Range) => formatA1(r.startRow, r.startColumn) + (r.startRow === r.endRow && r.startColumn === r.endColumn ? "" : ":" + formatA1(r.endRow, r.endColumn));
       const dimension = rangeText({ startRow, startColumn, endRow, endColumn });
-      const rowGroups = new Map<number, Cell[]>();
-      for (const cell of cells) { const group = rowGroups.get(cell.row) ?? []; group.push(cell); rowGroups.set(cell.row, group); }
-      for (const row of sheet.rows ?? []) if (row.index <= endRow && !rowGroups.has(row.index)) rowGroups.set(row.index, []);
       const rowInfo = new Map((sheet.rows ?? []).map(r => [r.index, r]));
       async function* rowXml() {
-        for (const [row, group] of [...rowGroups].sort((a, b) => a[0] - b[0])) {
-          const info = rowInfo.get(row);
-          async function* content() {
-            for (const cell of group) {
-              charge(); const value = cell.formula ? cell.cachedResult ?? cell.value : cell.value;
-              const valueFormat = value.kind === "number" ? value.format : undefined;
-              const style = cell.style || cell.format ? styles.register(cell) : valueFormat !== undefined ? styles.register(cell, columnDefaultStyle) : columnDefaultStyle;
-              const stringKey = value.kind === "string" ? JSON.stringify([value.value, cell.richText ?? []]) : "";
-              let type: string | undefined, body = "";
-              charge(sheet.formulaGroups?.length ?? 0);
-              const array = sheet.formulaGroups?.find(g => g.kind === "array" && g.range.startRow <= cell.row && g.range.endRow >= cell.row && g.range.startColumn <= cell.column && g.range.endColumn >= cell.column);
-              if (cell.formula && (!array || cell.row === array.range.startRow && cell.column === array.range.startColumn))
-                body += xml("f", { ...(array ? { t: "array", ref: rangeText(array.range) } : {}),
-                  ...formulaSemanticsAttributes(array?.arrayStringLiterals ?? cell.arrayStringLiterals, true, cell.formula) },
-                  escapeXlsx(encodeXlsxString(exportXlsxFormula(book, cell.formula, sheet, cell.row, cell.column, context, array?.arrayStringLiterals ?? cell.arrayStringLiterals, externalLinks))));
-              const stringState = !cell.formula && value.kind === "string" ? await stringIndex.get(stringKey) ?? 0 : 0;
-              if (value.kind === "string") {
-                if (cell.formula) { type = "str"; body += xml("v", {}, escapeXlsx(encodeXlsxString(value.value))); }
-                else if (stringState >= 2) {
-                  sharedReferences++;
-                  type = "s"; const id = stringState >= 3 ? stringState - 3 : sharedCount++;
-                  if (stringState === 2) {
-                    await stringIndex.set(stringKey, id + 3);
-                    if (sharedTape) {
-                      const text = xml("si", {}, writeRichString(value.value, cell.richText, xml, charge));
-                      async function* content() { yield text; }
-                      for await (const bytes of encodeTextStream(content(), "UTF-8", false, context)) {
-                        if (bytes.length > context.limits.outputBytes - sharedTotal) limit("output bytes");
-                        sharedTotal += bytes.length;
-                        for (let offset = 0; offset < bytes.length;) {
-                          const take = Math.min(sharedBuffer.length - sharedBytes, bytes.length - offset);
-                          sharedBuffer.set(bytes.subarray(offset, offset + take), sharedBytes);
-                          sharedBytes += take; offset += take;
-                          if (sharedBytes === sharedBuffer.length) { await sharedTape.append([sharedBuffer], sharedBytes); sharedBytes = 0; }
+        const rowKeys = [...rowInfo.keys()].filter(row => row <= endRow).sort((a, b) => a - b);
+        const cursor = cells(); let next = await cursor.next(), axis = 0;
+        try {
+          while (!next.done || axis < rowKeys.length) {
+            const row = Math.min(next.done ? Infinity : next.value.row, rowKeys[axis] ?? Infinity);
+            if (rowKeys[axis] === row) axis++;
+            const info = rowInfo.get(row);
+            async function* content() {
+              while (!next.done && next.value.row === row) {
+                const cell = next.value;
+                charge(); const value = cell.formula ? cell.cachedResult ?? cell.value : cell.value;
+                const valueFormat = value.kind === "number" ? value.format : undefined;
+                const style = cell.style || cell.format ? styles.register(cell) : valueFormat !== undefined ? styles.register(cell, columnDefaultStyle) : columnDefaultStyle;
+                const stringKey = value.kind === "string" ? JSON.stringify([value.value, cell.richText ?? []]) : "";
+                let type: string | undefined, body = "";
+                charge(sheet.formulaGroups?.length ?? 0);
+                const array = sheet.formulaGroups?.find(g => g.kind === "array" && g.range.startRow <= cell.row && g.range.endRow >= cell.row && g.range.startColumn <= cell.column && g.range.endColumn >= cell.column);
+                if (cell.formula && (!array || cell.row === array.range.startRow && cell.column === array.range.startColumn))
+                  body += xml("f", { ...(array ? { t: "array", ref: rangeText(array.range) } : {}),
+                    ...formulaSemanticsAttributes(array?.arrayStringLiterals ?? cell.arrayStringLiterals, true, cell.formula) },
+                    escapeXlsx(encodeXlsxString(exportXlsxFormula(book, cell.formula, sheet, cell.row, cell.column, context, array?.arrayStringLiterals ?? cell.arrayStringLiterals, externalLinks))));
+                const stringState = !cell.formula && value.kind === "string" ? await stringIndex.get(stringKey) ?? 0 : 0;
+                if (value.kind === "string") {
+                  if (cell.formula) { type = "str"; body += xml("v", {}, escapeXlsx(encodeXlsxString(value.value))); }
+                  else if (stringState >= 2) {
+                    sharedReferences++;
+                    type = "s"; const id = stringState >= 3 ? stringState - 3 : sharedCount++;
+                    if (stringState === 2) {
+                      await stringIndex.set(stringKey, id + 3);
+                      if (sharedTape) {
+                        const text = xml("si", {}, writeRichString(value.value, cell.richText, xml, charge));
+                        async function* content() { yield text; }
+                        for await (const bytes of encodeTextStream(content(), "UTF-8", false, context)) {
+                          if (bytes.length > context.limits.outputBytes - sharedTotal) limit("output bytes");
+                          sharedTotal += bytes.length;
+                          for (let offset = 0; offset < bytes.length;) {
+                            const take = Math.min(sharedBuffer.length - sharedBytes, bytes.length - offset);
+                            sharedBuffer.set(bytes.subarray(offset, offset + take), sharedBytes);
+                            sharedBytes += take; offset += take;
+                            if (sharedBytes === sharedBuffer.length) { await sharedTape.append([sharedBuffer], sharedBytes); sharedBytes = 0; }
+                          }
                         }
-                      }
-                    } else shared.push({ ...cell, value });
-                  }
-                  body += xml("v", {}, String(id));
-                } else { type = "inlineStr"; body += xml("is", {}, writeRichString(value.value, cell.richText, xml, charge)); }
-              } else if (value.kind !== "blank") {
-                type = value.kind === "boolean" ? "b" : value.kind === "error" ? "e" : undefined;
-                body += xml("v", {}, value.kind === "boolean" ? value.value ? "1" : "0" : value.kind === "number" ? gnumericNumber(value.value) : escapeXlsx(standardErrors.has(value.value) ? value.value : "#" + quoteFormulaString(value.value, '"', gnumericGrammar)));
+                      } else shared.push({ ...cell, value });
+                    }
+                    body += xml("v", {}, String(id));
+                  } else { type = "inlineStr"; body += xml("is", {}, writeRichString(value.value, cell.richText, xml, charge)); }
+                } else if (value.kind !== "blank") {
+                  type = value.kind === "boolean" ? "b" : value.kind === "error" ? "e" : undefined;
+                  body += xml("v", {}, value.kind === "boolean" ? value.value ? "1" : "0" : value.kind === "number" ? gnumericNumber(value.value) : escapeXlsx(standardErrors.has(value.value) ? value.value : "#" + quoteFormulaString(value.value, '"', gnumericGrammar)));
+                }
+                yield xml("c", { r: formatA1(cell.row, cell.column), s: style !== columnDefaultStyle ? style : undefined, t: type }, body);
+                next = await cursor.next();
               }
-              yield xml("c", { r: formatA1(cell.row, cell.column), s: style !== columnDefaultStyle ? style : undefined, t: type }, body);
             }
+            const importedRow = metadataNode(info?.style?.gnumeric, charge);
+            yield* xmlStream("row", { r: row + 1, spans: `${startColumn + 1}:${endColumn + 1}`,
+              customHeight: info?.sizePoints === undefined || importedRow?.name === "RowInfo" && !Number(importedRow.attributes.HardSize) ? undefined : 1, ht: info?.sizePoints,
+              collapsed: info?.collapsed ? 1 : undefined, hidden: info?.hidden ? 1 : undefined, outlineLevel: info?.outlineLevel || (info?.collapsed ? 0 : undefined) }, content());
           }
-          const importedRow = metadataNode(info?.style?.gnumeric, charge);
-          yield* xmlStream("row", { r: row + 1, spans: `${startColumn + 1}:${endColumn + 1}`,
-            customHeight: info?.sizePoints === undefined || importedRow?.name === "RowInfo" && !Number(importedRow.attributes.HardSize) ? undefined : 1, ht: info?.sizePoints,
-            collapsed: info?.collapsed ? 1 : undefined, hidden: info?.hidden ? 1 : undefined, outlineLevel: info?.outlineLevel || (info?.collapsed ? 0 : undefined) }, content());
-        }
+        } finally { await cursor.return(undefined); }
       }
       // Serialize rows before metadata to preserve style/shared-string registration
       // order. Only bounded encoded pieces stay resident while the tape is written.
@@ -1053,7 +1081,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
         await add("xl/" + part.name, part.content, part.relation === "vmlDrawing" ? undefined : part.type);
       }
       let hyperlinks = "";
-      for (const cell of cells) {
+      for await (const cell of cells()) {
         const link = styleRecord(cell.style)?.children.find(n => n.name === "HyperLink"); if (!link) continue;
         let target = link.attributes.target; if (!target) continue;
         const isInternal = link.attributes.type === "GnmHLinkCurWB";

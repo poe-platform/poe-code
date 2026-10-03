@@ -189,8 +189,10 @@ export class PagedStorage {
 /** Fixed-depth radix index: both dense and sparse 64-bit keys use bounded RAM. */
 export class IntegerTable {
   private root = 0;
+  private revision = 0;
+  private readonly branches = new Map<bigint, number>();
   private readonly cache = new Map<bigint, { value: bigint; dirty: boolean }>();
-  constructor(private readonly storage: PagedStorage, private readonly maxEntries = 4096) {
+  constructor(private readonly storage: Pick<PagedStorage, "allocate" | "read" | "write">, private readonly maxEntries = 4096) {
     if (!Number.isSafeInteger(maxEntries) || maxEntries < 1) throw new RangeError("Invalid integer table cache size");
   }
 
@@ -218,18 +220,70 @@ export class IntegerTable {
 
   async set(key: bigint, value: bigint): Promise<void> {
     if (key < 0n || key > 0xffffffffffffffffn || value < 0n || value >= 0xffffffffffffffffn) throw new RangeError("Invalid storage integer table value");
+    this.revision++;
     await this.retain(key, value, true);
+  }
+
+  /** Ordered replay with a fixed 16-level radix stack (at most 2 KiB of
+   * owned node bytes) and 128 output records. Batches avoid alternating sparse
+   * index reads with consumer writes on every record. Mutation is not permitted. */
+  async *entries(): AsyncGenerator<readonly [bigint, bigint]> {
+    const revision = this.revision;
+    const check = () => { if (revision !== this.revision) throw new Error("Integer table changed during iteration"); };
+    for (const [key, entry] of this.cache) if (entry.dirty) {
+      check(); await this.persist(key, entry.value); check(); entry.dirty = false;
+    }
+    const storage = this.storage;
+    async function* visit(position: number, shift: bigint, prefix: bigint): AsyncGenerator<readonly [bigint, bigint]> {
+      check();
+      if (!position) return;
+      const bytes = new Uint8Array(await storage.read(position, 128));
+      check();
+      if (bytes.length !== 128) throw new RangeError("Truncated integer table node");
+      const node = new DataView(bytes.buffer);
+      for (let slot = 0; slot < 16; slot++) {
+        check(); const value = node.getBigUint64(slot * 8, true);
+        if (!value) continue;
+        const key = prefix | BigInt(slot) << shift;
+        if (shift === 0n) yield [key, value - 1n];
+        else yield* visit(Number(value), shift - 4n, key);
+      }
+    }
+    const batch: (readonly [bigint, bigint])[] = [];
+    for await (const entry of visit(this.root, 60n, 0n)) {
+      batch.push(entry);
+      if (batch.length === 128) {
+        for (const entry of batch) { check(); yield entry; }
+        batch.length = 0;
+      }
+    }
+    for (const entry of batch) { check(); yield entry; }
+    check();
+  }
+
+  /** Hot radix paths must not evict dirty leaf pages in a one-page backend. */
+  private branch(key: bigint, shift: bigint, position?: number): number | undefined {
+    const prefix = key >> shift | 1n << (64n - shift);
+    const value = position ?? this.branches.get(prefix);
+    if (value !== undefined) {
+      this.branches.delete(prefix); this.branches.set(prefix, value);
+      if (this.branches.size > 128) this.branches.delete(this.branches.keys().next().value!);
+    }
+    return value;
   }
 
   private async lookup(key: bigint): Promise<bigint | undefined> {
     let node = this.root;
     for (let shift = 60n; shift >= 0n; shift -= 4n) {
       if (!node) return undefined;
+      const cached = shift === 0n ? undefined : this.branch(key, shift);
+      if (cached !== undefined) { node = cached; continue; }
       const slot = node + Number((key >> shift) & 15n) * 8;
       const bytes = await this.storage.read(slot, 8);
       const value = new DataView(bytes.buffer, bytes.byteOffset, 8).getBigUint64(0, true);
       if (shift === 0n) return value === 0n ? undefined : value - 1n;
       node = Number(value);
+      if (node) this.branch(key, shift, node);
     }
     return undefined;
   }
@@ -238,6 +292,8 @@ export class IntegerTable {
     if (!this.root) this.root = this.storage.allocate(128);
     let node = this.root;
     for (let shift = 60n; shift >= 0n; shift -= 4n) {
+      const cached = shift === 0n ? undefined : this.branch(key, shift);
+      if (cached !== undefined) { node = cached; continue; }
       const slot = node + Number((key >> shift) & 15n) * 8;
       const bytes = await this.storage.read(slot, 8);
       const view = new DataView(bytes.buffer, bytes.byteOffset, 8);
@@ -253,6 +309,7 @@ export class IntegerTable {
         await this.storage.write(slot, bytes);
       }
       node = child;
+      this.branch(key, shift, child);
     }
   }
 }

@@ -57,8 +57,10 @@ format provider registers this path for both editions. Worksheet rows are staged
 in caller storage before metadata serialization; row, worksheet and shared-string
 XML containers stream without complete strings. Shared-string counts and IDs
 use a caller-backed index with a fixed header cache; shared-string XML is staged
-as IDs are assigned. Individual cells/strings, styles, coordinate indexes and
-other metadata still use in-memory representations. Hosts without
+as IDs are assigned. Cell coordinates use an ordered caller-backed index;
+row traversal avoids sorted cell copies, and style-region blanks are generated
+from metadata templates. Individual cells/strings, style indexes and other
+metadata still use in-memory representations. Hosts without
 working storage and explicit `createXlsxWriter` calls retain buffered output.
 
 For table import, `readCachedXlsx` accepts an admitted ZIP archive, its codec and

@@ -12,8 +12,10 @@ XLSX exporters also stage ZIP member payloads and central records in caller
 storage. UTF-8 encoding and member compression consume bounded chunks before
 bounded archive output. Worksheet rows are staged before metadata registration,
 and row, worksheet and shared-string XML containers stream. Shared-string counts,
-IDs and XML use caller-backed storage with a fixed header cache. Individual cell
-strings, style/coordinate indexes, other metadata XML and the workbook model
+IDs and XML use caller-backed storage with a fixed header cache. Cell coordinates
+use an ordered external index; row traversal keeps bounded batches and generates
+style-region blanks from templates. Individual cell strings, style indexes,
+other metadata XML and the workbook model
 are still buffered. ODF decrypted members and wrapped inner
 packages are still buffered.
 Plain text conversions to text or Gnumeric XML/gzip without global evaluation now replay cells from retained input through the exporter; they do not retain a full cell array. Formula-bearing and clock-dependent inputs, transformations, and explicit workbook SDK reads still use the array model. Decoded XML documents and non-text workbooks remain resident. Other built-in input collection, the owned array-based workbook,

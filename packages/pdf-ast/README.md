@@ -17,6 +17,15 @@ payload read. Sources require retained-read support and never reopen a pathname
 or fall back to whole-file reads. The caller chooses and owns the backend;
 memory-backed safe-fs still stores its files in RAM.
 
+`new CosRangeLexer(source, options)` reads COS tokens asynchronously from a
+retained source. Await `nextToken()` or `skipWhitespaceAndComments()`, and set
+`offset` to seek between operations. It uses the buffered lexer's grammar,
+including numeric and malformed-string recovery, with one input chunk plus the
+source cache. Returned tokens own their bytes. The active token is additional
+memory: set `maxTokenBytes` to bound decoded strings and encoded names/numbers.
+`start`, `end`, `knownCommands`, and `signal` control scanning. The caller closes
+the source after use; the lexer does not collect a document or own its handle.
+
 For stdin or intermediate data, `PdfFileSource.fromStream(fs, directory, chunks,
 options)` writes bounded chunks into retained staging in the supplied directory.
 It seals the file before reading, verifies its identity and content revision,

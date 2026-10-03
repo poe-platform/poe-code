@@ -20,6 +20,8 @@ Netpbm variants, including 16-bit samples and comments.
 `encodeNetpbmFromStorage(image, storage, signal, format)` streams PPM, PGM or PBM.
 `decodeBmpToStorage` and `encodeBmpFromStorage` use bounded palette and row access
 for BMP inputs and standard 24-bit BMP output.
+`decodeTiffToStorage` reads classic TIFF strips and tiles through caller backing,
+including uncompressed, DEFLATE, LZW and PackBits data and horizontal prediction.
 `encodeTiffFromStorage` streams RGBA TIFF pixels with fixed-size header/directory
 state, preserving density and orientation.
 `encodePngFromStorage(image, storage, signal)` produces bounded PNG chunks
@@ -31,7 +33,7 @@ affine transforms, arbitrary rotation, median filtering, trimming, convolution,
 Gaussian blur, sharpening, local contrast enhancement (CLAHE), dilation and erosion
 also keep raster data in caller storage. For compositing, Boolean operations and channel joins, supply
 a `StoredImageResources` resolver as the fifth `transformStoredImage`
-argument; it returns decoded images in the same caller-owned storage. PNG, Netpbm and BMP file
+argument; it returns decoded images in the same caller-owned storage. PNG, Netpbm, BMP and supported TIFF file
 operands and composite overlays use the parent filesystem with retained reads and version checks.
 Raw operands support every sample depth in bounded chunks, and created overlays
 (including deterministic Gaussian noise) generate directly into caller storage.
@@ -40,11 +42,11 @@ encoded overlay formats currently use the buffered fallback.
 Combined resize/blur/sharpen/convolution stages share premultiplied alpha and gamma handling.
 `resizeStoredImage(image, storage, options, signal)` supports all resize fits,
 gravity, entropy/attention crops, background canvases and image pages.
-PNG/PPM/PGM/PBM/BMP `.toFile()`
+PNG/PPM/PGM/PBM/BMP/TIFF `.toFile()`
 conversions with these operations and `.resize()` use the backed codecs automatically when the
 supplied filesystem supports retained reads, working storage, and atomic
 streaming or retained staged publication. These input formats also support
-streaming TIFF output; TIFF input decoding still uses the buffered path.
+streaming TIFF output; JPEG-compressed TIFF input still uses the buffered path.
 `resampleStoredImage(image, storage, {width, height, kernel}, signal)` resamples
 backed RGBA pixels with bounded caches, including alpha and all resize kernels.
 Optional explicit scales must round to the requested output dimensions.

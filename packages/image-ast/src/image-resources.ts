@@ -3,7 +3,8 @@ import {decodeRawResource,createStoredResource} from "./codecs/resource-storage.
 import {compareIdentity,compareFileVersion,FsError,type FileSystem} from "@poe-code/safe-fs/contracts";
 import type {SharpInputOptions} from "./ast.js";
 import type {ImageByteStorage,ImageByteSource,StoredRgbaImage} from "./codecs/png-storage.js";
-export class UnsupportedStoredResource extends Error {}
+import {UnsupportedStoredResource} from "./codecs/unsupported-storage.js";
+export {UnsupportedStoredResource} from "./codecs/unsupported-storage.js";
 /** File resources use the parent's authority and retained version checks. */
 export async function readImageResource(input:Uint8Array|string|undefined,options:SharpInputOptions|undefined,fs:FileSystem,storage:ImageByteStorage,signal:AbortSignal):Promise<StoredRgbaImage> {
  signal.throwIfAborted();

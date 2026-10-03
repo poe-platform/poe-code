@@ -28,7 +28,7 @@ it.each([["#!/usr/bin/env python3", "python3"], ["#!/usr/bin/env node", "node"],
 it("propagates AbortError from interpreter detection without capability diagnostics", async () => {
   const {context, fs, invoke} = await fixture("#!/usr/bin/env node");
   const error = new DOMException("Read cancelled", "AbortError");
-  vi.spyOn(fs, "readFile").mockRejectedValue(error);
+  vi.spyOn(fs, "readStream").mockImplementation(async function* () {yield new Uint8Array(); throw error;});
   await expect(createPandocCommand({}, name => name === "node").execute(context)).rejects.toBe(error);
   expect(invoke).not.toHaveBeenCalled();
   expect(context.stderr.write).not.toHaveBeenCalled();
@@ -44,10 +44,49 @@ it("preserves the caller's cancellation reason during interpreter detection", as
   const {context, fs, invoke} = await fixture("#!/usr/bin/env node");
   const controller = new AbortController();
   const reason = new Error("Caller cancelled filter read");
-  vi.spyOn(fs, "readFile").mockImplementation(async () => {
+  vi.spyOn(fs, "readStream").mockImplementation(async function* () {
+    yield new Uint8Array();
     controller.abort(reason);
     throw reason;
   });
   await expect(createPandocCommand({}, name => name === "node").execute({...context, signal: controller.signal})).rejects.toBe(reason);
   expect(invoke).not.toHaveBeenCalled();
+});
+
+
+it("detects an interpreter from reused chunks without collecting the script", async () => {
+  const {context, fs, invoke} = await fixture("#!/usr/bin/env node");
+  const readFile = vi.spyOn(fs, "readFile").mockRejectedValue(new Error("Whole script reads forbidden"));
+  let closed = 0, yielded = 0;
+  vi.spyOn(fs, "readStream").mockImplementation(async function* () {
+    try {
+      yield new TextEncoder().encode("#!/usr/bin/");
+      yield new TextEncoder().encode("env node\n");
+      const reused = new Uint8Array(16384);
+      for (let i = 0; i < 64; i++) {reused.fill(32); yielded += reused.length; yield reused;}
+    } finally {closed++;}
+  });
+  expect(await createPandocCommand({}, name => name === "node").execute(context)).toEqual({exitCode: 0});
+  expect(invoke).toHaveBeenCalledOnce();
+  expect(readFile).not.toHaveBeenCalled();
+  expect(closed).toBeGreaterThan(0);
+  expect(yielded).toBe(closed * 1048576);
+});
+
+
+it("closes a filter source on budget failure and rejects late read errors", async () => {
+  for (const limited of [false, true]) {
+    const {context, fs, invoke} = await fixture("#!/usr/bin/env node");
+    let closed = false;
+    vi.spyOn(fs, "readStream").mockImplementation(async function* () {
+      try {
+        yield new TextEncoder().encode("#!/usr/bin/env node\n");
+        yield new Uint8Array(16384);
+        throw new Error("Late script read failure");
+      } finally {closed = true;}
+    });
+    expect(await createPandocCommand(limited ? {limits: {resourceBytes: 256}} : {}, name => name === "node").execute(context)).toEqual({exitCode: 3});
+    expect(invoke).not.toHaveBeenCalled();
+    expect(closed).toBe(true);
+  }
 });

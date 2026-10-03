@@ -154,11 +154,20 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
         if (!["python3", "python", "node", "sh", "bash"].some(candidate => hasCommand(candidate))) return undefined;
         try {
           const bound = Math.min(limits.resourceBytes ?? defaultLimits.resourceBytes, maxBytes);
-          const head = await (stdout ?? invocation).acquire(() => context.fs.readFile(pathOf(context, filterPath),
-            Number.isFinite(bound) ? {signal: readSignal, maxBytes: bound} : {signal: readSignal}), () => {});
-          total += head.byteLength;
-          context.inputBudget?.check(total);
-          const shebangCmd = parseShebangCommand(head.subarray(0, 256));
+          const head = new Uint8Array(256);
+          let retained = 0, length = 0;
+          // Drain the source to preserve whole-script budget and error semantics,
+          // retaining only the prefix used by interpreter detection.
+          for await (const chunk of readBytes(readFileStream(context.fs, pathOf(context, filterPath), {signal: readSignal, chunkSize: 16384}), readSignal)) {
+            length += chunk.length;
+            if (length > bound) throw new PandocError("E_LIMIT", "convert", "Filter script byte limit exceeded");
+            total += chunk.length;
+            context.inputBudget?.check(total);
+            const count = Math.min(chunk.length, head.length - retained);
+            head.set(chunk.subarray(0, count), retained);
+            retained += count;
+          }
+          const shebangCmd = parseShebangCommand(head.subarray(0, retained));
           if (shebangCmd && hasCommand(shebangCmd)) return shebangCmd;
         } catch (error) {
           readSignal.throwIfAborted();

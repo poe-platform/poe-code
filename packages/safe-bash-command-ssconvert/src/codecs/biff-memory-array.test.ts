@@ -31,7 +31,7 @@ it(`consumes ${first} auxiliary data first across ${continued ? "continued" : "s
   const tokens = first === "memory" ? [...sumMemory, ...sumArray, 3] : [...sumArray, ...sumMemory, 3];
   const extra = first === "memory" ? [...memory, ...array] : [...array, ...memory];
   const book = await readBiff(workbook(tokens, continued ? [extra.slice(0, 5), extra.slice(5)] : [extra]), context);
-  expect(book.sheets[0]!.cells[0]!.formula).toBe(first === "memory" ? "=SUM($A$2,$A$3)+SUM({1})" : "=SUM({1})+SUM($A$2,$A$3)");
+  expect(book.sheets[0]!.cells[0]!.formula).toBe(first === "memory" ? "=SUM(($A$2,$A$3))+SUM({1})" : "=SUM({1})+SUM(($A$2,$A$3))");
   expect(book.sheets[0]!.cells[0]!.arrayStringLiterals).toBe(true);
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 43 });
 });
@@ -47,7 +47,7 @@ it(`consumes six-byte BIFF7 cached ranges with ${first} first across ${continued
   const tokens = first === "memory" ? [...legacySumMemory, ...sumArray, 3] : [...sumArray, ...legacySumMemory, 3];
   const extra = first === "memory" ? [...legacyMemory, ...legacyArray] : [...legacyArray, ...legacyMemory];
   const book = await readBiff(workbook(tokens, continued ? [extra.slice(0, 5), extra.slice(5)] : [extra], 7), context);
-  expect(book.sheets[0]!.cells[0]!.formula).toBe(first === "memory" ? "=SUM($A$2,$A$3)+SUM({1})" : "=SUM({1})+SUM($A$2,$A$3)");
+  expect(book.sheets[0]!.cells[0]!.formula).toBe(first === "memory" ? "=SUM(($A$2,$A$3))+SUM({1})" : "=SUM({1})+SUM(($A$2,$A$3))");
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 43 });
 });
 

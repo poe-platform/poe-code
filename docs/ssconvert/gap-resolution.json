@@ -4103,6 +4103,37 @@
         "diagnostics": 0
       },
       "remaining": "This resolves operand-tree reconstruction for the qualified operators and contexts. Other BIFF tokens, label transports, external bindings and wider format qualification remain open; no family is closed."
+    },
+    "biffUnionArguments": {
+      "repair": "Preserve union operands as one function argument in BIFF imports. Flatten synthesized union groups only; preserve original inner PtgParen grouping. Omit the syntactically required outer union argument group when writing BIFF, whose function token already stores argument count.",
+      "validation": {
+        "initialFailures": "Three function-argument regressions, native-readable grouping spelling, and two BIFF writer token controls failed before repair.",
+        "focusedTests": 2570,
+        "testFiles": 88,
+        "checks": "Final normal root build, XLS owner lint/types, command lint/types/public consumers passed. Actual recalculated command screenshot inspected: 2,2,2,3,2,0.",
+        "unionArguments": {
+          "publicCachedXlsxChecks": 24,
+          "nativeReadbackChecks": 72,
+          "checks": 96,
+          "nativeReadbacks": 12,
+          "cases": 6,
+          "inputSha256": "be1c540241a7554bb37f7635b6ba49dc1e7476430ebe3adac688667c1c4a54c0",
+          "nativeSha256": "5fabf2cb1beb56d9fca9493fa78c7c112faec9f16a4ea42289c7c4f19972aef2",
+          "diagnostics": 0
+        },
+        "nestedAreas": {
+          "publicCachedXlsxChecks": 20,
+          "nativeReadbackChecks": 20,
+          "checks": 40,
+          "nativeReadbacks": 4,
+          "cases": 5,
+          "inputSha256": "aab427eaa1a1a4bd25f915a4c72441368f56ac70e8cf37f1e1528370202f88b4",
+          "nativeSha256": "393c4a0bd654ef58e1024cbdec4befa0311dd3b28f4b2d05c35d8240fabe9e90",
+          "diagnostics": 0
+        }
+      },
+      "nativeDistinction": "AREAS counts ungrouped three-member unions as 3 and explicitly grouped inner unions as 2. Existing engine behavior is correct. Native exported double-group XLSX fails its own reimport with All entries in the set must be references (93 stderr bytes); the single-group product spelling passes native readback.",
+      "remaining": "Explicit PtgParen around a SUM union produces native #VALUE! for both reference classes and both FuncVar/AttrSUM encodings; product imports return 0. Eight package SDK/command mismatches remain unresolved and are not counted as passes. Broader BIFF and all 19-family requirements remain open."
     }
   },
   "cases": [

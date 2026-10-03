@@ -7,7 +7,7 @@ import { functionDescriptors } from "@poe-code/spreadsheet-engine/formulas/funct
 import { excelGrammar, gnumericGrammar } from "@poe-code/spreadsheet-engine/formulas/conventions";
 import { quoteFormulaString } from "@poe-code/spreadsheet-engine/formulas/serialization";
 
-interface Expression { text: string; precedence: number; functionName?: string; }
+interface Expression { text: string; precedence: number; functionName?: string; union?: boolean; }
 export interface BiffNameReference {
   readonly value: number | "#REF!" | "#NAME?";
   readonly functionName: string | undefined;
@@ -74,11 +74,11 @@ export function isBiffRadicalArea(row: number, column: number, [r1, r2, c1, c2]:
 export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaContext): string {
   const data = new Binary(bytes), stack: Expression[] = [];
   let offset = 0, work = 0;
-  const push = (text: string, precedence = 99, functionName?: string) => {
+  const push = (text: string, precedence = 99, functionName?: string, union = false) => {
     work += text.length;
     if (work > context.limit) throw new SsconvertError("resource-limit", "ssconvert BIFF formula work limit exceeded");
     context.accountWork?.(text.length);
-    stack.push({ text, precedence, ...(functionName === undefined ? {} : { functionName }) });
+    stack.push({ text, precedence, ...(functionName === undefined ? {} : { functionName }), ...(union ? { union } : {}) });
   };
   function nameText(index: number, fallbackSheet?: string): string {
     const name = context.names[index - 1]!;
@@ -130,10 +130,19 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       const [operator, precedence] = binaryOperators[token]!, right = pop(), left = pop();
       // RPN fixes the operand tree, even for floating-point + and *.
       // Gnumeric text binds powers to the right and other operators to the left.
-      push(protect(left, precedence + (token === 7 ? 1 : 0)) + operator + protect(right, precedence + 1), precedence);
+      // Group argument commas, but flatten only our synthesized union groups.
+      // An original PtgParen resets this marker and retains its own semantics.
+      if (token === 16) push("(" + (left.union ? left.text.slice(1, -1) : left.text) + "," +
+        (right.union ? right.text.slice(1, -1) : right.text) + ")", 99, undefined, true);
+      else push(protect(left, precedence + (token === 7 ? 1 : 0)) + operator + protect(right, precedence + 1), precedence);
     } else if (token === 0x12 || token === 0x13) { const value = pop(); push((token === 0x12 ? "+" : "-") + protect(value, 8), 8); }
     else if (token === 0x14) { const value = pop(); push(protect(value, 7) + "%", 7); }
-    else if (token === 0x15) push("(" + pop().text + ")");
+    else if (token === 0x15) {
+      const value = pop();
+      // Promote a synthesized union group to an explicit one without adding
+      // another wrapper. Both have the same grouping and reset union folding.
+      push(value.union ? value.text : "(" + value.text + ")");
+    }
     else if (token === 0x16) push("");
     else if (token === 0x17) {
       const length = data.u8(offset++); let text: string;

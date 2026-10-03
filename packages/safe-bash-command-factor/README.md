@@ -12,3 +12,5 @@ const result = await shell.exec("factor --help");
 ```
 
 The module also exports `createFactorCommand`, its command-list factory, and typed options and limits.
+
+Factor unsigned 64-bit integers, including large primes and semiprimes, exactly. Use `factor -h 18446744073709551615` to print repeated factors as powers. Larger integers remain accepted, but may require slow trial division. Hosts can set `limits.maxWork`, `limits.maxBufferedBytes`, and a BigInt `limits.maxValue` to bound computation and memory; cancellation interrupts ongoing factorization.

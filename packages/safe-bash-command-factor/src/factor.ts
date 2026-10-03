@@ -50,6 +50,50 @@ async function prime64(value: bigint, budget: Budget): Promise<boolean> {
   return true;
 }
 
+// Pollard rho batches GCDs while keeping every iteration charged and cancellable.
+// Restarting the polynomial handles cycles that contain every factor at once.
+async function splitComposite(value: bigint, budget: Budget): Promise<bigint> {
+  for (let constant = 1n; ; constant++) {
+    let slow = 2n, fast = 2n, batchSize = 64;
+    for (let iteration = 0; iteration < 131072; iteration += batchSize) {
+      const previousSlow = slow, previousFast = fast;
+      let product = 1n;
+      for (let step = 0; step < batchSize; step++) {
+        budget.charge(4);
+        slow = (slow * slow + constant) % value;
+        fast = (fast * fast + constant) % value;
+        fast = (fast * fast + constant) % value;
+        product = product * (slow > fast ? slow - fast : fast - slow) % value;
+        const checkpoint = budget.checkpointWork();
+        if (checkpoint) await checkpoint;
+      }
+      let divisor = value, remainder = product;
+      while (remainder !== 0n) {
+        budget.charge();
+        [divisor, remainder] = [remainder, divisor % remainder];
+      }
+      if (divisor === value) {
+        if (batchSize === 1) break;
+        // Replay this batch individually so small factors are not lost together.
+        slow = previousSlow; fast = previousFast; batchSize = 1;
+        continue;
+      }
+      if (divisor > 1n) return divisor;
+    }
+  }
+}
+
+async function collectFactors64(value: bigint, factors: bigint[], budget: Budget): Promise<void> {
+  if (value === 1n) return;
+  if (value === 2n || await prime64(value, budget)) {
+    factors.push(value);
+    return;
+  }
+  const divisor = value % 2n === 0n ? 2n : await splitComposite(value, budget);
+  await collectFactors64(divisor, factors, budget);
+  await collectFactors64(value / divisor, factors, budget);
+}
+
 function prime32Sync(n: number): boolean {
   if (n < 2) return false;
   if (n === 2 || n === 3 || n === 5 || n === 7) return true;
@@ -93,7 +137,16 @@ export async function factorRecord(value: bigint, budget: Budget, exponents: boo
         { const cp = budget.checkpointWork(); if (cp) await cp; }
         break;
       }
-      if (checkPrime && remaining > 4_294_967_295n && await prime64(remaining, budget)) break;
+      if (checkPrime && remaining > 4_294_967_295n && remaining < 1n << 64n) {
+        // At most 64 prime factors and 64 recursion frames for a uint64 input.
+        budget.retain(8192); retained += 8192;
+        const tail: bigint[] = [];
+        await collectFactors64(remaining, tail, budget);
+        tail.sort((left, right) => left < right ? -1 : left > right ? 1 : 0);
+        factors.push(...tail);
+        remaining = 1n;
+        break;
+      }
       checkPrime = false;
       for (;;) {
         budget.charge();

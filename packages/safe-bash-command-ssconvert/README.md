@@ -83,7 +83,8 @@ exports preserve collapsed flags and outline depth. Gnumeric workbook
 and clipboard XML store row and column dimensions in points with four significant
 digits of precision, including inherited sheet defaults. XLSX imports retain
 fixed/automatic sizing, including best-fit column overrides, through XML,
-clipboard and both XLSX editions.
+clipboard and both XLSX editions. Rejected XLSX dimensions retain defaults;
+direct SDK exports still refuse unrepresentable dimensions.
 
 Filesystem and network access require explicit host bindings. The engine never
 uses a native spreadsheet converter as a fallback. PDF exports can use an explicit

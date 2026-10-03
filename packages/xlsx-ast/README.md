@@ -8,6 +8,8 @@ defined names, validation rules and conditional formatting.
 Custom error caches use Gnumeric’s quoted error syntax; imports retain the stored
 cache text, including its quotes, as Gnumeric does. Fixed and automatic row/column
 sizing survives workbook and clipboard conversions, including best-fit columns.
+Nonpositive row heights and column widths up to four points retain default
+dimensions and their visibility/outline metadata, matching native import.
 
 ```ts
 import { createEngine } from "@poe-code/spreadsheet-engine";

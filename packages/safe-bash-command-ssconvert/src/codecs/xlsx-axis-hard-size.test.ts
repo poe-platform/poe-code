@@ -40,3 +40,24 @@ for (const kind of ['row', 'column'] as const) for (const custom of [undefined, 
     });
   }
 }
+
+for (const [kind, value, expected] of [
+  ['row', -1, 12.75], ['row', 0, 12.75], ['row', 0.25, 0.25], ['row', 25, 25],
+  ['column', -1, 48], ['column', 0, 48], ['column', 0.5, 48], ['column', 1, 5.25], ['column', 25, 131.3],
+  ['column', 0.7618589743589743, 48], ['column', 0.7618589743589744, 48], ['column', 0.7618589743589745, 4]
+] as const) {
+  it(`${kind} retains native accepted geometry for source dimension ${value}`, async () => {
+    const flags = 'hidden="1" collapsed="1" outlineLevel="2"';
+    const content = kind === 'row' ? `<sheetData><row r="1" ht="${value}" customHeight="1" ${flags}/></sheetData>` :
+      `<cols><col min="1" max="1" width="${value}" customWidth="1" ${flags}/></cols>`;
+    const original = await readXlsx(await input(content), context);
+    const sheet = original.sheets[0]!;
+    for (const bytes of [await writeGnumeric(original, [], context), writeClipboardGnumeric(original, sheet, { sheet: sheet.id, startRow: 0, startColumn: 0, endRow: 1, endColumn: 1 }, context)]) {
+      const axis = descendants(parseXml(new TextDecoder().decode(bytes))).find(n => n.localName === (kind === 'row' ? 'RowInfo' : 'ColInfo') && n.attributes.some(a => a.localName === 'No' && a.value === '0'))!;
+      const attrs = Object.fromEntries(axis.attributes.map(a => [a.localName, a.value]));
+      expect(Number(attrs.Unit)).toBe(expected);
+      expect(Number(attrs.HardSize ?? 0)).toBe(Number(kind === 'row' ? value > 0 : expected !== 48));
+      expect(attrs).toMatchObject({ Hidden: '1', Collapsed: '1', OutlineLevel: '2' });
+    }
+  });
+}

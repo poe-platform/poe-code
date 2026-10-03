@@ -1,4 +1,4 @@
-import {orderImageNodes,splitPostScaleNodes} from "./ops/order.js";
+import {orderImageNodes,splitPostScaleNodes,imageAlphaStages} from "./ops/order.js";
 import {tryPngFile} from "./png-file.js";
 import { EventEmitter, Duplex, outputBytes } from "./streams/web.js";
 import { extname, normalizePath } from "@poe-code/safe-fs/contracts";
@@ -655,17 +655,7 @@ export class SharpInstance extends Duplex {
 
     const orderedNodes = orderImageNodes(preScaleNodes);
 
-    const isPremulStageKind = (kind: string): boolean =>
-      kind === "resize" || kind === "blur" || kind === "convolve" || kind === "sharpen";
-    const premulStageCount = orderedNodes.filter(n => isPremulStageKind(n.kind)).length;
-    const firstPremulIdx = orderedNodes.findIndex(n => isPremulStageKind(n.kind));
-    let lastPremulIdx = -1;
-    for (let i = orderedNodes.length - 1; i >= 0; i--) {
-      if (isPremulStageKind(orderedNodes[i]!.kind)) {
-        lastPremulIdx = i;
-        break;
-      }
-    }
+    const {first:firstPremulIdx,last:lastPremulIdx,count:premulStageCount}=imageAlphaStages(orderedNodes);
     let gammaInApplied = false;
     let gammaOutApplied = false;
 

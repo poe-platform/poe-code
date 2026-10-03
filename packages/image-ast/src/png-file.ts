@@ -1,9 +1,10 @@
+import {transformStoredPixels} from "./ops/storage-pixels.js";
 import {resizeStoredImage} from "./ops/storage-resize.js";
 import {compareIdentity, compareFileVersion, dirname, FsError, isFsError, type FileSystem, type FileStat, type FileStaging} from "@poe-code/safe-fs/contracts";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {decodePngToStorage, encodePngFromStorage, type ImageByteSource} from "./codecs/png-storage.js";
 import {isPngBytes} from "./codecs/png.js";
-import {orderImageNodes,splitPostScaleNodes} from "./ops/order.js";
+import {orderImageNodes,splitPostScaleNodes,imageAlphaStages} from "./ops/order.js";
 import {transformStoredImage, isStoredImageOperation} from "./ops/storage.js";
 import type {SharpInputOptions, OutputEncodeOptions, OutputInfo, ImageAstNode} from "./ast.js";
 
@@ -76,23 +77,27 @@ export async function tryPngFile(input: string, output: string, options: SharpIn
     if (compareIdentity(initial,final)==="distinct" || !compareFileVersion(initial,final)) throw new FsError("EAGAIN",{path:input,message:"Image source changed while decoding"});
     handleClosed=true; await handle.close();
     const gamma=operations.find(node=>node.kind==="gamma");
-    const splitGamma=gamma && operations.some(node=>node.kind==="resize" || node.kind==="modulate" || node.kind==="recomb");
+    const splitGamma=gamma && operations.some(node=>node.kind==="resize" || node.kind==="convolve" || node.kind==="modulate" || node.kind==="recomb");
     let gammaInApplied=false;
     const {nodes,postScale}=splitPostScaleNodes(operations);
-    for (const operation of orderImageNodes(nodes)) {
-      if (splitGamma && !gammaInApplied && (operation.kind==="resize" || operation.kind==="modulate" || operation.kind==="recomb")) {
+    const ordered=orderImageNodes(nodes),stages=imageAlphaStages(ordered);
+    for (let index=0;index<ordered.length;index++) {
+      const operation=ordered[index]!;
+      if (splitGamma && !gammaInApplied && (index===stages.first || operation.kind==="modulate" || operation.kind==="recomb")) {
         image=await transformStoredImage(image,storage,{...gamma,gammaOut:1},signal);
         gammaInApplied=true;
+      }
+      if(index===stages.first && image.hasAlpha) {
+        image=stages.count>1?await transformStoredPixels(image,storage,{kind:"premultiply"},signal):{...image,wasPremultiplied:true};
       }
       if(operation.kind==="resize") {
         image=await resizeStoredImage(image,storage,operation,signal,postScale.length?async scaled=>{
           for(const node of postScale) scaled=await transformStoredImage(scaled,storage!,node,signal);
           return scaled;
         }:undefined);
-        if(image.hasAlpha) image={...image,wasPremultiplied:true};
-        continue;
-      }
-      image=await transformStoredImage(image,storage,splitGamma && operation.kind==="gamma"?{...operation,gamma:1}:operation,signal);
+        if(image.hasAlpha && !image.isPremultiplied) image=index<stages.last?await transformStoredPixels(image,storage,{kind:"premultiply"},signal):{...image,wasPremultiplied:true};
+      } else image=await transformStoredImage(image,storage,splitGamma && operation.kind==="gamma"?{...operation,gamma:1}:operation,signal);
+      if(index===stages.last && image.isPremultiplied) image=await transformStoredPixels(image,storage,{kind:"unpremultiply"},signal);
     }
     const backing=storage;
     let complete=false, size=0;

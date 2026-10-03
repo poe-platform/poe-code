@@ -1,3 +1,4 @@
+import {ConvolutionPixel} from "./convolve.js";
 import {extendedCoordinate,PixelMedian,trimBackground} from "./canvas-math.js";
 import {SRGB_TO_LINEAR_LUT,linearToSrgbByte,srgbToBwByte,srgbToLab,labToSrgb} from "./color.js";
 import {NormalizationHistogram,normalizeRgb} from "./normalize.js";
@@ -1835,35 +1836,13 @@ export function *convolveImageSteps(
   const kh = spec.height;
   const rx = Math.floor(kw / 2);
   const ry = Math.floor(kh / 2);
-  const scale = spec.scale === 0 ? 1 : spec.scale;
-  const out = new Uint8Array(data.length);
-  const alreadyPremultiplied = Boolean(img.isPremultiplied);
-  const usePremul = alreadyPremultiplied || img.hasAlpha || img.channels === 4 || img.channels === 2;
-  let premul: Uint8Array | undefined;
-  if (alreadyPremultiplied) {
-    premul = data;
-  } else if (usePremul) {
-    premul = new Uint8Array(new ArrayBuffer(width * height * 4 + height), 0, width * height * 4);
-    for (let i = 0; i < width * height; i++) {
-    if (++work % 16384 === 0) yield;
-      const idx = i * 4;
-      const a = data[idx + 3]!;
-      const af = Math.fround(a / 255.0);
-      premul[idx] = Math.max(0, Math.min(255, Math.trunc(Math.fround(data[idx]! * af))));
-      premul[idx + 1] = Math.max(0, Math.min(255, Math.trunc(Math.fround(data[idx + 1]! * af))));
-      premul[idx + 2] = Math.max(0, Math.min(255, Math.trunc(Math.fround(data[idx + 2]! * af))));
-      premul[idx + 3] = a;
-    }
-  }
+  const out=new Uint8Array(data.length),accumulator=new ConvolutionPixel(img,spec.scale,spec.offset);
 
   for (let y = 0; y < height; y++) {
     if (++work % 16384 === 0) yield;
     for (let x = 0; x < width; x++) {
     if (++work % 16384 === 0) yield;
-      let r = 0;
-      let g = 0;
-      let b = 0;
-      let a = 0;
+      accumulator.clear();
       for (let ky = 0; ky < kh; ky++) {
     if (++work % 16384 === 0) yield;
         const sy = Math.max(0, Math.min(height - 1, y + ky - ry));
@@ -1872,41 +1851,12 @@ export function *convolveImageSteps(
           const sx = Math.max(0, Math.min(width - 1, x + kx - rx));
           const w = spec.kernel[ky * kw + kx] ?? 0;
           const sIdx = (sy * width + sx) * 4;
-          if (premul) {
-            r += premul[sIdx]! * w;
-            g += premul[sIdx + 1]! * w;
-            b += premul[sIdx + 2]! * w;
-            a += premul[sIdx + 3]! * w;
-          } else {
-            r += data[sIdx]! * w;
-            g += data[sIdx + 1]! * w;
-            b += data[sIdx + 2]! * w;
-          }
+          accumulator.add(data[sIdx]!,data[sIdx+1]!,data[sIdx+2]!,data[sIdx+3]!,w);
         }
       }
       const dIdx = (y * width + x) * 4;
-      const fR = Math.fround(r / scale + spec.offset);
-      const fG = Math.fround(g / scale + spec.offset);
-      const fB = Math.fround(b / scale + spec.offset);
-      if (alreadyPremultiplied) {
-        const fA = Math.fround(a / scale + spec.offset);
-        out[dIdx] = Math.max(0, Math.min(255, Math.trunc(fR)));
-        out[dIdx + 1] = Math.max(0, Math.min(255, Math.trunc(fG)));
-        out[dIdx + 2] = Math.max(0, Math.min(255, Math.trunc(fB)));
-        out[dIdx + 3] = Math.max(0, Math.min(255, Math.trunc(fA)));
-      } else if (premul) {
-        const fA = Math.fround(a / scale + spec.offset);
-        const factor = fA === 0 ? 0 : Math.fround(255.0 / fA);
-        out[dIdx] = fA === 0 ? 0 : Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * fR))));
-        out[dIdx + 1] = fA === 0 ? 0 : Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * fG))));
-        out[dIdx + 2] = fA === 0 ? 0 : Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * fB))));
-        out[dIdx + 3] = Math.max(0, Math.min(255, Math.trunc(fA)));
-      } else {
-        out[dIdx] = Math.max(0, Math.min(255, Math.trunc(fR)));
-        out[dIdx + 1] = Math.max(0, Math.min(255, Math.trunc(fG)));
-        out[dIdx + 2] = Math.max(0, Math.min(255, Math.trunc(fB)));
-        out[dIdx + 3] = data[dIdx + 3]!;
-      }
+      const pixel=accumulator.pixel(data[dIdx+3]!);
+      out[dIdx]=pixel&255;out[dIdx+1]=pixel>>>8&255;out[dIdx+2]=pixel>>>16&255;out[dIdx+3]=pixel>>>24;
     }
   }
   return { ...img, data: out };

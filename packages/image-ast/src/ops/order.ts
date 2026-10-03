@@ -45,3 +45,13 @@ export function splitPostScaleNodes<Node extends ImageAstNode>(nodes:readonly No
   }
   return {nodes:before,postScale};
 }
+
+/** Locate the stages that share one premultiplied-alpha interval. */
+export function imageAlphaStages(nodes:readonly ImageAstNode[]):{first:number;last:number;count:number} {
+  let first=-1,last=-1,count=0;
+  for(let i=0;i<nodes.length;i++) {
+    const kind=nodes[i]!.kind;
+    if(kind==="resize" || kind==="blur" || kind==="convolve" || kind==="sharpen") {if(first===-1) first=i;last=i;count++;}
+  }
+  return {first,last,count};
+}

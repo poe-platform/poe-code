@@ -1,14 +1,17 @@
 import type {ImageAstNode,RgbaImage} from "../ast.js";
 import type {ImageByteStorage,StoredRgbaImage} from "../codecs/png-storage.js";
 import {defaultRuntime} from "@poe-code/compression";
-import {grayscaleImage,flattenImage,unflattenImage,negateImage,modulateImage,tintImage,gammaImage,linearImage,thresholdImage,ensureAlphaImage,removeAlphaImage,extractChannelImage,recombImage,toColorspaceImage,bandboolImage} from "./transform.js";
+import {premultiplyRgbaImage,unpremultiplyRgbaImage,grayscaleImage,flattenImage,unflattenImage,negateImage,modulateImage,tintImage,gammaImage,linearImage,thresholdImage,ensureAlphaImage,removeAlphaImage,extractChannelImage,recombImage,toColorspaceImage,bandboolImage} from "./transform.js";
 
 export type StoredPixelOperation=Extract<ImageAstNode,{kind:"grayscale"|"flatten"|"unflatten"|"negate"|"modulate"|"tint"|"gamma"|"linear"|"threshold"|"ensureAlpha"|"removeAlpha"|"extractChannel"|"recomb"|"toColorspace"|"bandbool"|"withMetadata"}>;
 export function isStoredPixelOperation(node:ImageAstNode):node is StoredPixelOperation {
   return ["grayscale","flatten","unflatten","negate","modulate","tint","gamma","linear","threshold","ensureAlpha","removeAlpha","extractChannel","recomb","toColorspace","bandbool","withMetadata"].includes(node.kind);
 }
-function apply(image:RgbaImage,node:StoredPixelOperation):RgbaImage {
+type InternalPixelOperation=StoredPixelOperation|{readonly kind:"premultiply"|"unpremultiply"};
+function apply(image:RgbaImage,node:InternalPixelOperation):RgbaImage {
   switch(node.kind) {
+    case "premultiply":return premultiplyRgbaImage(image);
+    case "unpremultiply":return unpremultiplyRgbaImage(image);
     case "grayscale":return grayscaleImage(image);
     case "flatten":return flattenImage(image,node.background);
     case "unflatten":return unflattenImage(image);
@@ -27,7 +30,7 @@ function apply(image:RgbaImage,node:StoredPixelOperation):RgbaImage {
     case "withMetadata":return {...image,...(node.density===undefined?{}:{density:node.density}),...(node.orientation===undefined?{}:{orientation:node.orientation})};
   }
 }
-export async function transformStoredPixels(image:StoredRgbaImage,storage:ImageByteStorage,operation:StoredPixelOperation,signal:AbortSignal):Promise<StoredRgbaImage> {
+export async function transformStoredPixels(image:StoredRgbaImage,storage:ImageByteStorage,operation:InternalPixelOperation,signal:AbortSignal):Promise<StoredRgbaImage> {
   signal.throwIfAborted();
   // Selected operators have pixel-independent metadata. Validate their arguments
   // before acquiring output space, using the same implementation as each chunk.

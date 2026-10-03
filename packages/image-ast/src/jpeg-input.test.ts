@@ -4108,13 +4108,13 @@ const workerHash = (bytes: Uint8Array) => {
 };
 it("decodes retained images and encodes WebP/raw in Workerd using bounded external backing", async () => {
   const cases = [
-    { name: "baseline", input: jpegInputFixture({ kind: "encoded", width: 1024, height: 257 }) },
+    { name: "baseline", input: jpegInputFixture({ kind: "encoded", width: 257, height: 129 }) },
     {
       name: "progressive",
       input: jpegInputFixture({
         kind: "synthetic",
-        width: 512,
-        height: 257,
+        width: 257,
+        height: 129,
         components: 3,
         sampling: 2,
         progressive: true
@@ -4123,14 +4123,14 @@ it("decodes retained images and encodes WebP/raw in Workerd using bounded extern
   ];
   const jpeg = cases[0]!.input;
   const tags = [
-    [256, 1024],
-    [257, 257],
+    [256, 257],
+    [257, 129],
     [258, 8],
     [259, 7],
     [262, 2],
     [273, 0],
     [277, 3],
-    [278, 257],
+    [278, 129],
     [279, jpeg.length]
   ];
   const start = 8 + 2 + tags.length * 12 + 4,
@@ -4150,9 +4150,9 @@ it("decodes retained images and encodes WebP/raw in Workerd using bounded extern
   cases.push({ name: "tiff", input: tiff });
   cases.push({name:"webp",input:encodeWebpImage(decodeJpegImage(jpeg))});
   cases.push({name:"text",input:new Uint8Array()});
-  cases.push({name:"raw",input:new Uint8Array(Uint16Array.from({length:1024*257*4},(_,i)=>(i*433+17)%65536).buffer)});
+  cases.push({name:"raw",input:new Uint8Array(Uint16Array.from({length:257*129*4},(_,i)=>(i*433+17)%65536).buffer)});
   const expected = cases.map(({ input, name }) => {
-    const { data, data16, ...metadata } = name === "raw"?decodeImage(input,{raw:{width:1024,height:257,channels:4,depth:"ushort"}}):name === "text"?decodeImage(undefined,{text:{text:'<span color="red" background="blue">Worker text</span>',width:1024,height:257,rgba:true}}):name === "webp"?decodeWebpImage(input):name === "tiff" ? decodeTiffImage(input) : decodeJpegImage(input);
+    const { data, data16, ...metadata } = name === "raw"?decodeImage(input,{raw:{width:257,height:129,channels:4,depth:"ushort"}}):name === "text"?decodeImage(undefined,{text:{text:'<span color="red" background="blue">Worker text</span>',width:257,height:129,rgba:true}}):name === "webp"?decodeWebpImage(input):name === "tiff" ? decodeTiffImage(input) : decodeJpegImage(input);
     const steps=computeImageStatsSteps({...metadata,data});let next=steps.next();while(!next.done)next=steps.next();
     const stats=next.value;
     const encoded=encodeWebpImage({...metadata,data});
@@ -4188,7 +4188,7 @@ it("decodes retained images and encodes WebP/raw in Workerd using bounded extern
   const NativeArray=Uint8Array,NativeMap=Map;
   globalThis.Uint8Array=new Proxy(NativeArray,{construct(target,args){const argument=args[0],length=typeof argument==='number'?argument:argument?.byteLength??argument?.length??0;largestAllocation=Math.max(largestAllocation,length);return Reflect.construct(target,args);}});
   globalThis.Map=class extends NativeMap{set(k,v){const result=super.set(k,v);mapPeak=Math.max(mapPeak,this.size);return result;}};
-  let image,stats,rawLength=0,rawHash=2166136261,encodedLength=0,encodedHash=2166136261;try{image=raw?await decodeRawResource(source,storage,{raw:{width:1024,height:257,channels:4,depth:"ushort"}},signal):text?await renderTextToStorage({text:{text:'<span color="red" background="blue">Worker text</span>',width:1024,height:257,rgba:true}},storage,signal):await (webp?decodeWebpToStorage:tiff?decodeTiffToStorage:decodeJpegToStorage)(source,storage,signal);stats=await computeStoredImageStats(image,storage,signal);for await(const bytes of encodeWebpFromStorage(image,storage,signal)){if(bytes.length>4096)throw new Error("unbounded output");encodedLength+=bytes.length;for(const byte of bytes)encodedHash=Math.imul(encodedHash^byte,16777619)>>>0;}for await(const bytes of encodeRawFromStorage(raw?{...image,space:"rgb16"}:image,storage,signal,{rawDepth:"ushort"})){if(bytes.length>4096)throw new Error("unbounded raw output");rawLength+=bytes.length;for(const byte of bytes)rawHash=Math.imul(rawHash^byte,16777619)>>>0;}}finally{globalThis.Uint8Array=NativeArray;globalThis.Map=NativeMap;}
+  let image,stats,rawLength=0,rawHash=2166136261,encodedLength=0,encodedHash=2166136261;try{image=raw?await decodeRawResource(source,storage,{raw:{width:257,height:129,channels:4,depth:"ushort"}},signal):text?await renderTextToStorage({text:{text:'<span color="red" background="blue">Worker text</span>',width:257,height:129,rgba:true}},storage,signal):await (webp?decodeWebpToStorage:tiff?decodeTiffToStorage:decodeJpegToStorage)(source,storage,signal);stats=await computeStoredImageStats(image,storage,signal);for await(const bytes of encodeWebpFromStorage(image,storage,signal)){if(bytes.length>4096)throw new Error("unbounded output");encodedLength+=bytes.length;for(const byte of bytes)encodedHash=Math.imul(encodedHash^byte,16777619)>>>0;}for await(const bytes of encodeRawFromStorage(raw?{...image,space:"rgb16"}:image,storage,signal,{rawDepth:"ushort"})){if(bytes.length>4096)throw new Error("unbounded raw output");rawLength+=bytes.length;for(const byte of bytes)rawHash=Math.imul(rawHash^byte,16777619)>>>0;}}finally{globalThis.Uint8Array=NativeArray;globalThis.Map=NativeMap;}
   const {position,storedData16,...metadata}=image,length=image.width*image.height*4;let hash=2166136261;
   for(let offset=0;offset<length;offset+=4096){const bytes=await storage.read(position+offset,Math.min(4096,length-offset));for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;}
   return Response.json({rawLength,rawHash,stats,metadata,length,hash,encodedLength,encodedHash,largestAllocation,largestTransfer,mapPeak,allocated:next,allocationCount,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});

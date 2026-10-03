@@ -1,7 +1,7 @@
 import {readPngMetadataFromSource} from "./codecs/png-storage.js";
 import {readJpegMetadataFromSource} from "./codecs/jpeg-input-storage.js";
 import {readJpegMetadata} from "./codecs/jpeg.js";
-import {expect,it} from "vitest";
+import {afterAll,beforeAll,describe,expect,it} from "vitest";
 import sharp from "./index.js";
 import {readPngMetadata} from "./codecs/png.js";
 import {buildExifApp1Segment} from "./codecs/exif.js";
@@ -110,7 +110,7 @@ it("does not turn metadata inspection into an implicit file snapshot",async()=>{
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {fileURLToPath} from "node:url";
-it("inspects externally retained metadata in Workerd without whole-file allocation",async()=>{
+async function metadataWorkerFixture(){
  const segment=(marker:number,data:Uint8Array)=>join([Uint8Array.of(255,marker,(data.length+2)>>>8,(data.length+2)&255),data]);
  const app=new Uint8Array(65533);app.set(buildExifApp1Segment({orientation:8,density:144}));
  const smallWebp=await sharp({create:{width:17,height:19,channels:4,background:"red"}}).webp().toBuffer();
@@ -166,17 +166,23 @@ it("inspects externally retained metadata in Workerd without whole-file allocati
   if(!Number.isSafeInteger(position)||position<0||!Number.isSafeInteger(length)||length<0||length>4096)return new Response(null,{status:400});
   return new Response(cases[id]!.bytes.slice(position,position+length));
  }}});
- try {
-  for(const [id,sample] of cases.entries()) {
+ return {runtime,cases,expected};
+}
+describe("externally retained metadata in Workerd",()=>{
+ let fixture:Awaited<ReturnType<typeof metadataWorkerFixture>>;
+ beforeAll(async()=>{fixture=await metadataWorkerFixture();},15000);
+ afterAll(async()=>{await fixture?.runtime.dispose();});
+ it.each(["PNG","JPEG","raw","Netpbm","BMP","WebP","TIFF","transformed","GIF delays","joined","stream"].map((name,id)=>({name,id})))("inspects $name without whole-file allocation",async ({id})=>{
+  const {runtime,cases,expected}=fixture;
+  const sample=cases[id]!;
    const response=await runtime.dispatchFetch("https://metadata/",{method:"POST",body:JSON.stringify({id,size:sample.bytes.length,options:sample.options,transform:sample.transform,inspect:sample.inspect,joined:sample.joined,stream:sample.stream})});
    expect(response.status).toBe(200);
    const result=await response.json() as {metadata:unknown;reads:number;closed:number;scratchClosed:number;scratchWrites:number;largestAllocation:number;nodeGlobals:boolean};
    if(id>=6){expect(result.scratchClosed).toBe(1);expect(result.scratchWrites).toBeGreaterThan(64);}else expect(result.scratchClosed).toBe(0);
    expect(result.metadata).toEqual(expected[id]);expect(result.closed).toBe(sample.stream?0:1);expect(result.nodeGlobals).toBe(false);
    expect(result.largestAllocation).toBeLessThanOrEqual(id===5?4096:65536);if(id===2)expect(result.reads).toBe(0);else expect(result.reads).toBeGreaterThan(0);
-  }
- } finally {await runtime.dispose();}
-},15000);
+ },15000);
+});
 
 import {readImageMetadataFromSource} from "./codecs/metadata-source.js";
 import {readImageMetadata} from "./codecs/index.js";

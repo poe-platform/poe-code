@@ -55,7 +55,7 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
     catch {throw new PandocError("E_ENCODING", "convert", "Invalid UTF-8 input");}
   })();
   let failure: {reason: unknown} | undefined;
-  let result: {tree: BackedJson; chunks(eol?: "lf" | "crlf" | "native"): AsyncGenerator<Uint8Array>; close(): Promise<void>} | undefined;
+  let result: {tree: BackedJson; order: Awaited<ReturnType<typeof backedJsonOrder>>; chunks(eol?: "lf" | "crlf" | "native"): AsyncGenerator<Uint8Array>; close(): Promise<void>} | undefined;
   const close = async () => {
     let failure: {reason: unknown} | undefined;
     try {await storage.close();} catch (reason) {failure = {reason};}
@@ -84,7 +84,7 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
       yield* tree.chunks(blocks, order);
       yield encoder.encode(eol === "crlf" ? "}\r\n" : "}\n");
     };
-    result = {tree, chunks: output, close};
+    result = {tree, order, chunks: output, close};
   } catch (reason) {
     failure = {reason: reason instanceof PandocError && reason.code === "E_AST" && input.source
       ? new PandocError(reason.code, reason.operation, reason.message, reason.format, `${input.source}:${reason.location ?? "1:1"}`)

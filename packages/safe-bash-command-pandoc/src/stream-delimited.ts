@@ -1,10 +1,12 @@
 import {BackedJson} from "./backed-json.js";
+import {writeRetainedPlain} from "./retained-plain.js";
+import {backedJsonOrder} from "./backed-json-order.js";
 import {appendDelimitedJson} from "./backed-delimited-json.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {DelimitedParser} from "./delimited-parser.js";
 import {PandocError} from "./errors.js";
 import type {ExecutionContext} from "./execution.js";
-import type {InputSource, WorkingStorageOptions} from "./types.js";
+import type {ConversionOptions, InputSource, WorkingStorageOptions} from "./types.js";
 
 /** Decode one document, preserving BOM and newline semantics across chunk edges. */
 class DocumentDecoder {
@@ -33,8 +35,8 @@ class DocumentDecoder {
 /** Parse before publishing. The tape and table dimensions live in caller storage;
  * no input, field, row, document tree or output grows a resident collection. */
 export async function streamDelimited(
-  inputs: readonly InputSource[], format: "csv" | "tsv", target: "html5" | "json", context: ExecutionContext,
-  working: WorkingStorageOptions, options: {readonly ascii?: boolean; readonly eol?: "lf" | "crlf" | "native"}
+  inputs: readonly InputSource[], format: "csv" | "tsv", target: "html5" | "json" | "plain", context: ExecutionContext,
+  working: WorkingStorageOptions, options: Pick<ConversionOptions, "ascii" | "eol" | "wrap" | "columns" | "lossy" | "rawContent" | "failIfWarnings">
 ): Promise<void> {
   const cacheBytes = working.cacheBytes ?? 1024 * 1024;
   if (!Number.isSafeInteger(cacheBytes) || cacheBytes < 16384 || cacheBytes % 16384 !== 0)
@@ -96,7 +98,7 @@ export async function streamDelimited(
     }
     if (nul && target === "html5") throw new PandocError("E_CAPABILITY", "convert", "NUL cannot be represented in HTML", "html5");
 
-    if (target === "json") {
+    if (target === "json" || target === "plain") {
       const tree = new BackedJson(storage, units => context.cooperate(units));
       await tree.begin("object");
       await tree.key("pandoc-api-version"); await tree.value([1, 23, 1, 2]);
@@ -111,13 +113,18 @@ export async function streamDelimited(
         position += 24 + length;
       }
       await tree.end(); await tree.end();
-      const ending = new TextEncoder().encode(options.eol === "crlf" ? "\r\n" : "\n");
-      if (Number.isFinite(context.limits.outputBytes)) {
-        let length = ending.length;
-        for await (const bytes of tree.chunks()) {length += bytes.length; context.bound("outputBytes", length);}
+      if (target === "plain") {
+        const order = await backedJsonOrder(tree, storage, units => context.cooperate(units));
+        await writeRetainedPlain(tree, order, context, working, {from: format, to: "plain", ...options});
+      } else {
+        const ending = new TextEncoder().encode(options.eol === "crlf" ? "\r\n" : "\n");
+        if (Number.isFinite(context.limits.outputBytes)) {
+          let length = ending.length;
+          for await (const bytes of tree.chunks()) {length += bytes.length; context.bound("outputBytes", length);}
+        }
+        for await (const bytes of tree.chunks()) await context.emit(bytes);
+        await context.emit(ending);
       }
-      for await (const bytes of tree.chunks()) await context.emit(bytes);
-      await context.emit(ending);
     } else {
       let output = "";
       let measuring = false;

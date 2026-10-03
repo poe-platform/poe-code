@@ -148,7 +148,7 @@ fallback. File reads are lazy and close on cancellation or budget failure; the
 `convert` convenience API retains document ASTs and output in memory.
 
 `convertToOutput(inputs, options, {output, workingFiles})` returns an output summary
-instead of a complete payload. Its unfiltered CSV/TSV → HTML and Pandoc JSON paths use a bounded
+instead of a complete payload. Its unfiltered CSV/TSV → HTML, Pandoc JSON and plain text paths use a bounded
 page cache and the caller’s safe-fs backing storage for source data and table
 widths; individual fields can exceed the cache. `workingFiles` supplies `fs`, an
 absolute `directory`, and optional `cacheBytes` (one MiB by default, in 16 KiB
@@ -171,8 +171,14 @@ response replaces the prior document before the next filter starts. At most five
 page caches coexist (two document pairs and one response spool), independently
 of filter count. Filter image-origin admission currently materializes each URI;
 the trusted runtime's own document state is separate and must be measured.
-Multiple inputs, legacy filters, other transformations and other finite document
-budgets continue through the compatibility converter.
+Single-input JSON → plain text uses the same retained document and streaming
+JSON filters. Its writer jobs, diagnostic paths, intermediate text, wrapping and
+indentation use caller storage, including long words and nested lists. It preserves
+the existing plain writer's constructors, raw-content policy and diagnostics.
+Rendering uses three page caches (the document pair and writer); filter validation
+still uses up to five. Plain text accepts `wrap` and `columns` on these paths.
+Multiple JSON inputs, legacy filters, other transformations and other finite
+document budgets continue through the compatibility converter.
 
 For media extraction, supply `workingFiles` and `resourceFiles.writeStream` to
 spool external resources in caller storage and publish them in 16 KiB chunks.

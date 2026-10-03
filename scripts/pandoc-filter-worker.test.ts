@@ -3,7 +3,7 @@ import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {expect, it} from "vitest";
 
-it("streams JSON filter generations through external pages in workerd", async () => {
+it.each(["json", "plain"])("streams JSON filter generations through external pages in workerd (%s)", async target => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const bundled = await build({
     stdin: {resolveDir: root, contents: `
@@ -40,7 +40,7 @@ it("streams JSON filter generations through external pages in workerd", async ()
             const reused = new Uint8Array(8192);
             for (let i = 0; i < 8; i++) {reused.fill(120); yield reused;}
             yield encoder.encode('"]}]}');
-          })()}], {from: "json", to: "json", filters: ["one", "two", "three"].map(path => ({kind: "json", path}))}, {
+          })()}], {from: "json", to: ${JSON.stringify(target)}, filters: ["one", "two", "three"].map(path => ({kind: "json", path}))}, {
             filters, signal: controller.signal, workingFiles: {fs, directory: "/spill", cacheBytes: 16384},
             output: {async write(bytes) {
               if (mode === "output-failure") throw new Error("Destination failed");
@@ -56,7 +56,7 @@ it("streams JSON filter generations through external pages in workerd", async ()
     `,
   });
   try {
-    const expected = new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "y".repeat(65536)]}]}) + "\n");
+    const expected = new TextEncoder().encode(target === "plain" ? "    " + "y".repeat(65536) + "\n" : JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "y".repeat(65536)]}]}) + "\n");
     let hash = 2166136261;
     for (const byte of expected) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
     for (const mode of ["success", "filter-failure", "filter-cancel", "output-failure"]) {

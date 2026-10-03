@@ -13,7 +13,14 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   of the owning source files with each run.
 - Single-input JSON to JSON now uses retained syntax, schema tasks,
   table occupancy, numeric key ordering and output. Test its fixed cache sizes
-  independently of input bytes and document nesting. Other conversions still
+  independently of input bytes and document nesting. JSON and CSV/TSV to plain
+  text now retain writer jobs, linked diagnostic paths, intermediate text, wrapping
+  and indentation in caller storage. Differential unit tests cover existing plain
+  constructors, diagnostics, long words and deep nesting; external R2 workerd tests
+  cover JSON filters to plain output with failure/cancellation cleanup. Rendering
+  uses three page caches; filter validation uses up to five. These tests establish
+  behavior and backing I/O, not a memory plateau or Cloudflare qualification.
+  Other conversions still
   require replacing whole-document input acquisition, joined text, document arrays
   and serialized results with retained sources and a paged document representation.
   Preserve diagnostics, source locations, resource identities and byte results.

@@ -1,4 +1,5 @@
 import {PagedStorage} from "safe-bash-io-engine/storage";
+import {writeRetainedPlain} from "./retained-plain.js";
 import {readRetainedJson} from "./retained-json.js";
 import {PandocError} from "./errors.js";
 import type {BackedJson} from "./backed-json.js";
@@ -34,7 +35,7 @@ async function checkImageOrigins(tree: BackedJson, context: ExecutionContext): P
 
 /** Retain each document generation and filter response in caller storage. The
  * previous generation is retired before another filter starts. */
-export async function streamJson(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions, options: Pick<ConversionOptions, "to" | "eol" | "filters">): Promise<void> {
+export async function streamJson(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" = "json"): Promise<void> {
   let document: Awaited<ReturnType<typeof readRetainedJson>> | undefined;
   let failure: {reason: unknown} | undefined;
   const preflight = async (chunks: AsyncIterable<Uint8Array>) => {
@@ -71,8 +72,11 @@ export async function streamJson(input: InputSource, context: ExecutionContext, 
       finally {release();}
       if (filterFailure) throw filterFailure.reason;
     }
-    await preflight(document.chunks(options.eol));
-    for await (const bytes of document.chunks(options.eol)) await context.emit(bytes);
+    if (target === "plain") await writeRetainedPlain(document.tree, document.order, context, working, options);
+    else {
+      await preflight(document.chunks(options.eol));
+      for await (const bytes of document.chunks(options.eol)) await context.emit(bytes);
+    }
     await context.completeOutput();
   } catch (reason) {failure = {reason};}
   try {await document?.close();} catch (reason) {failure ??= {reason};}

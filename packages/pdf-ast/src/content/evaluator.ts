@@ -23,7 +23,7 @@ import type { ParsedCosDocument } from "../cos/parser.js";
 import { PdfError } from "../errors.js";
 import { bytesToString } from "../bytes.js";
 import { iterateCMapCharacters } from "../fonts/cmap.js";
-import { parseContentStream, parseContentEvents, type PdfContentEvent } from "./parser.js";
+import { parseContentEvents, type PdfContentEvent } from "./parser.js";
 import { createCalibratedColorSpace } from "./calibrated-color.js";
 import {
   decodeWinAnsiByte,
@@ -843,7 +843,8 @@ export interface PdfEvaluationContentSource { readonly stream: PdfCosStream }
 export type PdfEvaluationRequest = PdfEvaluationOperation | { readonly kind: "node"; readonly source?: PdfEvaluationContentSource }
   | { readonly kind: "font"; readonly name: string; readonly resources: PdfCosDict | undefined }
   | { readonly kind: "resolve"; readonly node: PdfCosNode }
-  | { readonly kind: "catalog" };
+  | { readonly kind: "catalog" }
+  | { readonly kind: "close-content"; readonly source: PdfEvaluationContentSource };
 export type PdfEvaluationResult = PdfContentEvent | ResolvedPageFont | { readonly kind: "resolved"; readonly node: PdfCosNode | undefined } | undefined;
 type EvaluationWork<T = void> = Generator<PdfEvaluationRequest, T, PdfEvaluationResult>;
 type FontScope = ReadonlyArray<PdfCosDict | undefined>;
@@ -1288,7 +1289,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           ];
           stateStack.push({ ...curState(), fillPatternName: undefined, ctm: tileCtm, initialCtm: tileCtm,
             clipPaths: [...(curState().clipPaths ?? []), tileClip] });
-          try { yield* walkNodes(nodes, mcid, actualText, patternResources, patternFonts, depth + 1); }
+          try { yield* walkNodes({ ...nodes }, mcid, actualText, patternResources, patternFonts, depth + 1); }
           finally { stateStack.pop(); }
         }
       }
@@ -1424,18 +1425,20 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     actualText?: string,
     activeResources: PdfCosDict | undefined = params.resourcesDict,
     activeFonts: FontScope = fonts,
-    depth = 0
+    depth = 0,
+    initialNode?: PdfContentEvent
   ): EvaluationWork {
     const groups: Array<{ pushed: boolean; hidden: boolean; mcid: number | undefined; actualText: string | undefined }> = [];
     let hidden = false;
-    const source = nodes && "stream" in nodes ? { stream: nodes.stream } : undefined;
+    const source = nodes && "stream" in nodes ? nodes : undefined;
     const iterator = nodes && !("stream" in nodes) ? nodes[Symbol.iterator]() : undefined;
     let failed = false, exhausted = false;
     try {
     while (true) {
-      const next = iterator?.next();
+      const next = initialNode ? undefined : iterator?.next();
       if (next?.done) exhausted = true;
-      const node = next ? (next.done ? undefined : next.value) : yield { kind: "node", ...(source ? { source } : {}) };
+      const node = initialNode ?? (next ? (next.done ? undefined : next.value) : yield { kind: "node", ...(source ? { source } : {}) });
+      initialNode = undefined;
       if (!node) break;
       if (!("kind" in node)) throw new TypeError("Expected a PDF content event");
       if (node.kind === "end-group") {
@@ -1704,9 +1707,10 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                 const procNode = gName ? params.cosDoc.resolve(dictGet(font.charProcs, gName)) : undefined;
                 if (procNode?.kind === "stream") {
                   const fm: Matrix6 = font.fontMatrix ?? [0.001, 0, 0, 0.001, 0, 0];
-                  const procNodes = parseContentStream(params.cosDoc.decodeStream(procNode));
-                  if (!font.widths.has(item.charCode) && procNodes.length > 0) {
-                    const firstOp = procNodes[0];
+                  const source = { stream: procNode };
+                  const firstOp = yield { kind: "node", source };
+                  if (firstOp && (!("kind" in firstOp) || firstOp.kind === "resolved")) throw new TypeError("Expected Type3 content event");
+                  if (!font.widths.has(item.charCode)) {
                     if (
                       firstOp?.kind === "state-op" &&
                       (firstOp.operator === "d0" || firstOp.operator === "d1") &&
@@ -1722,17 +1726,19 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                     );
                     const glyphCtm = multiplyMatrices(fm, textSpaceMatrix);
                     stateStack.push({ ...st, ctm: glyphCtm });
-                    yield* walkNodes(
-                      procNodes,
-                      mcid,
-                      actualText,
-                      font.fontResources ?? activeResources,
-                      activeFonts,
-                      depth + 1
-                    );
-                    if (stateStack.length > 1) stateStack.pop();
+                    try {
+                      if (firstOp) yield* walkNodes(
+                        source,
+                        mcid,
+                        actualText,
+                        font.fontResources ?? activeResources,
+                        activeFonts,
+                        depth + 1,
+                        firstOp
+                      );
+                    } finally { stateStack.pop(); }
                     evaluatedType3 = true;
-                  }
+                  } else if (firstOp) yield { kind: "close-content", source };
                 }
               } else if ((font?.embeddedTrueType || font?.embeddedCff || font?.standardOutlines) && st.textRenderMode !== 3) {
                 const cp = item.unicode ? item.unicode.codePointAt(0) : undefined;
@@ -1933,6 +1939,11 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
+      } else if (step.value.kind === "close-content") {
+        const cursor = nestedInputs.get(step.value.source);
+        nestedInputs.delete(step.value.source);
+        cursor?.return?.();
+        step = work.next();
       } else if (step.value.kind === "resolve" || step.value.kind === "catalog") {
         step = work.next({ kind: "resolved", node: params.cosDoc?.resolve(step.value.kind === "catalog" ? params.cosDoc.rootRef : step.value.node) });
       } else if (step.value.kind === "font") {

@@ -215,3 +215,67 @@ it.each([false, true])("closes all nested cursors and preserves primary failure:
     expect(opened).toBe(2); expect(closed).toBe(2); expect(rootClosed).toBe(true);
   } finally { spy.mockRestore(); }
 });
+
+it.each([[0, false], [3, false], [0, true], [3, true]] as const)("requests Type3 width and content through one cursor in render mode %s, empty %s", async (mode, empty) => {
+  const { evaluateContentSteps } = await import("./evaluator.js");
+  const { PdfDocument } = await import("../document.js");
+  const { cosDict, cosNumber, cosStream } = await import("../ast.js");
+  const doc = PdfDocument.create(); const stream = cosStream(new TextEncoder().encode("500 0 d0 0 0 10 10 re f"));
+  doc.cos.decodeStream = () => { throw new Error("Type3 decoding belongs to the input driver"); };
+  const font: import("../fonts/resolve.js").ResolvedPageFont = {
+    name: "T3", baseFont: "Custom", subtype: "Type3", isTwoByteCid: false,
+    differences: new Map(), glyphNames: new Map([[65, "A"]]), widths: new Map(), defaultWidth: 1000,
+    charProcs: cosDict({ A: stream }), fontMatrix: [0.001, 0, 0, 0.001, 0, 0],
+  };
+  const work = evaluateContentSteps({ pageIndex: 0, width: 100, height: 100, cosDoc: doc.cos });
+  work.next();
+  expect(work.next(parseContentStream(new TextEncoder().encode(`BT /T3 10 Tf ${mode} Tr (AA) Tj ET`))[0]).value).toMatchObject({ kind: "font" });
+  let step = work.next(font); const positions: number[] = []; let closes = 0;
+  const seen = new Map<object, number>();
+  while (!step.done) {
+    const request = step.value;
+    if (request.kind === "node" && request.source) {
+      const count = seen.get(request.source) ?? 0; seen.set(request.source, count + 1);
+      await Promise.resolve();
+      step = work.next(!empty && count === 0 ? { kind: "state-op", operator: "d0", operands: [cosNumber(500), cosNumber(0)] } : undefined);
+    } else if (request.kind === "close-content") { closes++; step = work.next(); }
+    else if (request.kind === "font") step = work.next(font);
+    else if (request.kind === "paint") {
+      if (request.operation.kind === "glyph") positions.push(request.operation.value.matrix[4]);
+      step = work.next();
+    } else step = work.next(undefined);
+  }
+  expect(positions).toEqual([0, empty ? 10 : 5]); expect(seen.size).toBe(2);
+  expect(closes).toBe(mode === 3 && !empty ? 2 : 0);
+  expect([...seen.values()]).toEqual(mode === 3 || empty ? [1, 1] : [2, 2]);
+});
+
+it.each([false, true])("releases an invisible Type3 cursor without consuming its program: cleanup failure %s", async fail => {
+  const { vi } = await import("vitest");
+  const parser = await import("./parser.js");
+  const { PdfDocument } = await import("../document.js");
+  const { cosArray, cosDict, cosName, cosNumber, cosStream } = await import("../ast.js");
+  const doc = PdfDocument.create();
+  const resources = cosDict({ Font: cosDict({ T3: cosDict({ Subtype: cosName("Type3"),
+    Encoding: cosDict({ Differences: cosArray([cosNumber(65), cosName("A")]) }),
+    CharProcs: cosDict({ A: cosStream(new Uint8Array()) }),
+  }) }) });
+  const parsed = parseContentStream(new TextEncoder().encode("BT /T3 10 Tf 3 Tr (AA) Tj ET"));
+  const failure = new Error("cursor close failed");
+  function failCleanup(): never { throw failure; }
+  let closed = 0, readPastWidth = false, inputClosed = false;
+  const spy = vi.spyOn(parser, "parseContentEvents").mockImplementation(function* () {
+    try {
+      yield { kind: "state-op", operator: "d0", operands: [cosNumber(500), cosNumber(0)] };
+      readPastWidth = true;
+      yield { kind: "path-op", paint: "f", segments: [] };
+    } finally { closed++; if (fail) failCleanup(); }
+  });
+  function* input() { try { yield* parsed; } finally { inputClosed = true; } }
+  const work = evaluateContentStreamSteps({ pageIndex: 0, width: 100, height: 100, cosDoc: doc.cos, resourcesDict: resources, nodes: input() });
+  try {
+    if (fail) expect(() => [...work]).toThrow(failure);
+    else expect([...work]).toHaveLength(2);
+    expect(closed).toBe(fail ? 1 : 2); expect(readPastWidth).toBe(false); expect(inputClosed).toBe(true);
+  } finally { spy.mockRestore(); }
+});

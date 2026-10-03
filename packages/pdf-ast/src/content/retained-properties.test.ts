@@ -35,7 +35,8 @@ it.each(["AllOn", "AnyOn", "AllOff", "AnyOff"])("evaluates retained marked prope
       else if (request.kind === "font") step = work.next(undefined);
       else if (request.kind === "resolve" || request.kind === "catalog") {
         step = work.next({ kind: "resolved", node: (await doc.lookup(request.kind === "catalog" ? doc.crossReference.rootRef : request.node))?.value });
-      } else { actualOperations.push(request); step = work.next(); }
+      } else if (request.kind === "close-content") throw new Error("Unexpected nested content");
+      else { actualOperations.push(request); step = work.next(); }
     }
     expect(actualOperations).toEqual(expected);
     expect(actualOperations.filter(event => event.operation.kind === "path")).toHaveLength(policy === "AnyOn" || policy === "AnyOff" ? 1 : 0);

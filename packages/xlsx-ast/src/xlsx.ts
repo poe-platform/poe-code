@@ -1120,7 +1120,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
       workbookRelations.push({ id, type: relationships + "/externalLink", target: "externalLinks/" + filename });
       externalReferences += xml("externalReference", { "r:id": id });
       await add("xl/externalLinks/" + filename, xml("externalLink", { xmlns: namespace, "xmlns:r": relationships },
-        xml("externalBook", { "r:id": "rId1" }, xml("sheetNames", {}, [...link.sheets.values()].map(sheet => xml("sheetName", { val: sheet })).join("")) + (definitions ? xml("definedNames", {}, definitions) : "") + xml("sheetDataSet", {}))),
+        xml("externalBook", { "r:id": "rId1" }, xml("sheetNames", {}, [...link.sheets.values()].map(sheet => xml("sheetName", { val: encodeXlsxString(sheet) })).join("")) + (definitions ? xml("definedNames", {}, definitions) : "") + xml("sheetDataSet", {}))),
         "application/vnd.openxmlformats-officedocument.spreadsheetml.externalLink+xml");
       await add("xl/externalLinks/_rels/" + filename + ".rels", relationshipXml([
         { id: "rId1", type: relationships + "/externalLinkPath", target, external: true }

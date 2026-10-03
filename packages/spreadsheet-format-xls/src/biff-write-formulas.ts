@@ -352,7 +352,7 @@ export class BiffFormulaWriter {
           const scope = node.sheet === undefined ? undefined : this.externalScope(bookIndex, node.sheet);
           let index = book.names.findIndex(name => name.name === node.name && name.sheet === scope);
           if (index < 0) {
-            let definition = this.retainedNames.get(node.workbook)?.get(JSON.stringify([node.name, node.sheet ?? null]));
+            let definition = this.retainedNames.get(node.workbook)?.get(externalNameKey(node.name, node.sheet));
             const portable = this.portableNames.get(node.workbook)?.names.get(externalNameKey(node.name, node.sheet));
             if (!definition && portable) definition = this.externalDefinition(bookIndex, portable);
             index = book.names.length;

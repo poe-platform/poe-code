@@ -1,3 +1,4 @@
+import { externalNameKey } from "@poe-code/spreadsheet-engine/codecs/external-name-definitions";
 import { serializeReference } from "@poe-code/spreadsheet-engine/formulas/serialization";
 import { gnumericGrammar } from "@poe-code/spreadsheet-engine/formulas/conventions";
 import { biffErrors } from "./biff-formulas.js";
@@ -55,7 +56,7 @@ export function retainedBiffExternalNames(book: Workbook, context: CapabilityCon
     const first = names.values().next().value;
     if (first && JSON.stringify(first.sheets) !== JSON.stringify(sheets))
       throw new SsconvertError("unsupported-feature", "Conflicting retained BIFF external sheet order");
-    const key = JSON.stringify([data.name, data.scope ?? null]), previous = names.get(key);
+    const key = externalNameKey(data.name, data.scope as string | undefined), previous = names.get(key);
     if (previous && (JSON.stringify(previous.sheets) !== JSON.stringify(sheets) ||
       previous.tokens.length !== tokens.length || previous.tokens.some((byte, index) => byte !== tokens[index])))
       throw new SsconvertError("unsupported-feature", "Conflicting retained BIFF external name definitions");

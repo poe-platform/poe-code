@@ -89,3 +89,17 @@ it("rejects invalid retained sheet indexes before writing a dangling definition"
   const book = await readBiff(fixture(join(new Uint8Array([0x3a]), words(2, 2, 0, 0))), context);
   await expect(writeBiffStream(book, 8, false, context)).rejects.toThrow("Invalid retained BIFF external name definition");
 });
+
+for (const scope of [0, 2]) {
+  it(`preserves native-only definitions through case aliases in scope ${scope}`, async () => {
+    const definition = join(new Uint8Array([0x3a]), words(1, 1, 2, 0xc003));
+    const book = await readBiff(fixture(definition, scope), context);
+    const edited = { ...book, sheets: book.sheets.map(sheet => ({ ...sheet, cells: sheet.cells.map(cell =>
+      ({ ...cell, formula: scope ? "=['book.xls']OTHER!RATE" : "=['book.xls']!RATE" })) })) };
+    const records = readBiffRecords(await writeBiffStream(edited, 8, false, context), context);
+    const external = records.find(record => record.opcode === 0x23)!;
+    const start = 8 + external.data.u8(6) * 2;
+    expect(external.data.u16(start)).toBe(definition.length);
+    expect(external.data.slice(start + 2, definition.length)).toEqual(definition);
+  });
+}

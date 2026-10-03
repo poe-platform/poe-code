@@ -11,6 +11,20 @@ import { createDeviceFileSystem, DeviceFileSystem } from "../src/fs/devices/inde
 
 const bytes = (value: string) => new TextEncoder().encode(value);
 
+it("publishes a staged file set beneath the filesystem root without replacing the root", async () => {
+  const fs = createDeviceFileSystem(new MemoryFileSystem());
+  const parent = await fs.stat("/");
+  const staged = await fs.createStagedFile("/.stage", "database", { type: "file", data: bytes("database") }, { parent, retainCleanup: true });
+  try {
+    await fs.publishStagedFileSet(staged, "/data.db", { parent, destination: null, companions: [] });
+    expect(await fs.readFile("/data.db")).toEqual(bytes("database"));
+    expect((await fs.stat("/")).type).toBe("directory");
+  } finally {
+    await staged.cleanup?.remove();
+    await staged.cleanup?.close();
+  }
+});
+
 async function fixture(historical = false) {
   const backing = new MemoryFileSystem();
   await backing.writeFile("/ordinary", bytes("ordinary"));

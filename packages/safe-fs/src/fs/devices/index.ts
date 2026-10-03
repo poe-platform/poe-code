@@ -621,7 +621,11 @@ export class DeviceFileSystem implements FileSystem {
     options.signal?.throwIfAborted();
     const capabilities = await this.#filesystem.capabilitiesFor?.(destination, { ...options, create: options.destination === null }) ?? this.#filesystem.capabilities;
     if (capabilities.readOnly === true) throw new FsError("EROFS", { path: destination });
-    for (const path of [staging.parent.path, staging.directory.path]) await this.#mutable(path, options, false);
+    // The parent is an identity guard, not an entry being replaced. Root is a
+    // valid parent; the synthetic device directory still cannot own staging.
+    const parentPath = await this.#resolve(staging.parent.path, options, false);
+    if (parentPath === deviceDirectory || parentPath === nullPath) throw new FsError("EBUSY", { path: staging.parent.path });
+    await this.#mutable(staging.directory.path, options, false);
     const guards: (() => true)[] = [];
     if (options.ancestors) guards.push(await this.prepareDirectoryAncestry(options.ancestors, options));
     for (const path of [staging.file.path, destination, ...options.companions.map(value => value.path)]) {

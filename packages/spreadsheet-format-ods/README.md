@@ -39,7 +39,7 @@ boundaries use ordered storage indexes. Plain CSV/text conversions without globa
 evaluation replay cells into either ODF profile without a full cell array; style
 names are reserved before rows are emitted. Low-level mutable workbook inputs
 retain captured cell references. Generated cell-style keys, reserved names and XML also use working storage;
-the automatic-styles container streams. Individual cell strings, retained
+The automatic-styles, named-expression and label-range containers stream. Individual cell strings, retained
 style definitions and other metadata XML, embedded resources and encryption buffers, including wrapped
 inner archives, still reside in memory; use an external safe-fs backend to keep
 staged archive data outside the isolate.

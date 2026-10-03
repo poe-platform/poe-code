@@ -915,8 +915,8 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
         }
       });
     }
-    function names(scope?: string) {
-      let body = "";
+    async function* names(scope?: string) {
+      async function* entries() {
       for (const n of book.names ?? []) {
         xml.charge(); if (n.sheet !== scope) continue;
         const sheet = book.sheets.find(s => s.id === (n.position?.sheet ?? scope) || s.name === (n.position?.sheet ?? scope)) ?? book.sheets[0]!;
@@ -927,11 +927,12 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
         const parsed = parseExpression(n.expression, { maximumDepth: context.limits.formulaDepth, position: { sheet: sheet.id, row, column }, workbook: book,
           signal: context.signal, onWork: xml.charge, maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes,
           maximumNodes: context.limits.workbookNodes ?? Infinity });
-        body += parsed.ok && parsed.document.root.kind === "reference" && !parsed.document.root.label ? e("table:named-range", {
+        yield parsed.ok && parsed.document.root.kind === "reference" && !parsed.document.root.label ? e("table:named-range", {
           "table:name": n.name, "table:cell-range-address": formula.slice(5, -1), "table:base-cell-address": base
         }) : e("table:named-expression", { "table:name": n.name, "table:expression": formula, "table:base-cell-address": base });
       }
-      return e("table:named-expressions", {}, body);
+      }
+      yield* xml.stream("table:named-expressions", {}, entries());
     }
     const iteration = book.iteration;
     const prelude = e("table:calculation-settings", { "table:null-year": 1930, "table:automatic-find-labels": String(book.automaticLabelLookup ?? false),
@@ -1248,7 +1249,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
         }
         yield* xml.stream("table:table-row", rowAttributes, rowContent());
       }
-      yield names(sheet.id);
+      yield* names(sheet.id);
       } finally { await cursor.return(undefined); }
       }
       yield* xml.stream("table:table", { "table:name": sheet.name, "table:style-name": sheetStyle }, tableContent());
@@ -1273,7 +1274,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
       if (tableTape) yield* tableTape.read(); else yield* bufferedTables;
     }
     const labelSheets = new Map(book.sheets.map(sheet => { xml.charge(); return [sheet.id, sheet] as const; }));
-    let labelRanges = "";
+    async function* labelRanges() {
     for (const sheet of book.sheets) for (const pair of sheet.labelRanges ?? []) {
       xml.charge(); range(pair.labels); range(pair.data);
       if (pair.axis !== "row" && pair.axis !== "column") throw new SsconvertError("invalid-request", "Invalid OpenDocument label orientation");
@@ -1282,15 +1283,16 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
       const absolute = (row: number, column: number) => "$" + formatA1(0, column).slice(0, -1) + "$" + (row + 1);
       const address = (r: Range, name: string) => "$" + quoteFormulaString(name, "'", odfGrammar) + "." + absolute(r.startRow, r.startColumn) +
         ":." + absolute(r.endRow, r.endColumn);
-      labelRanges += e("table:label-range", { "table:label-cell-range-address": address(pair.labels, sheet.name),
+      yield e("table:label-range", { "table:label-cell-range-address": address(pair.labels, sheet.name),
         "table:data-cell-range-address": address(pair.data, dataSheet.name), "table:orientation": pair.axis });
+    }
     }
     async function* spreadsheetContent() {
       yield prelude;
       if (validations) yield e("table:content-validations", {}, validations);
       yield* tableData();
-      if (labelRanges) yield e("table:label-ranges", {}, labelRanges);
-      yield names(); yield databaseRanges;
+      if (book.sheets.some(sheet => sheet.labelRanges?.length)) yield* xml.stream("table:label-ranges", {}, labelRanges());
+      yield* names(); yield databaseRanges;
     }
     const parts = new Map<string, string | Uint8Array | AsyncIterable<Uint8Array>>(), encoder = new TextEncoder();
     if (wrapped) context.own(() => { for (const bytes of parts.values()) if (bytes instanceof Uint8Array) bytes.fill(0); });

@@ -145,7 +145,7 @@ export async function withLlmCollections<T>(options:{
      const collection=await editor.withSession(session=>lookup(session,name));
      if(!collection)throw new LlmCollectionDoesNotExist(name);
      if(!settings.service.embedSources)throw new Error('LLM service does not support streamed embeddings');
-     if(!Number.isSafeInteger(settings.maxInputBytes)||settings.maxInputBytes<0)throw new RangeError('Invalid embedding input byte limit');
+     if(settings.maxInputBytes!==Infinity&&(!Number.isSafeInteger(settings.maxInputBytes)||settings.maxInputBytes<0))throw new RangeError('Invalid embedding input byte limit');
      let borrowed=true;
      const input={dispose,bytes:{async *[Symbol.asyncIterator](){
       if(!borrowed||closing)throw new FsError('EBADF',{message:'Similarity source lease is closed'});

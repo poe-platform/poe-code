@@ -6,6 +6,7 @@ import {createLlmConfiguration} from './configuration.js';
 import type {LlmCollectionCommands} from './collections-command-types.js';
 import {embeddingCommand} from './embed-command.js';
 import {acquireEmbeddingInput} from './embed-source.js';
+import {similarCommand} from './similar-command.js';
 import type {LlmInputSource,LlmOption} from './types.js';
 
 class EmbeddingCommandError extends Error {}
@@ -22,7 +23,9 @@ const help={
 export function createLlmCollectionCommands(options:{readonly maxFileBytes:number;readonly maxIndexBytes:number;readonly maxOpenFiles:number;readonly now?:()=>Date}):LlmCollectionCommands{
  for(const name of ['maxFileBytes','maxIndexBytes','maxOpenFiles'] as const)if(!Number.isSafeInteger(options[name])||options[name]<0)throw new RangeError(`Invalid collection ${name}`);
  const limits={maxFileBytes:options.maxFileBytes,maxIndexBytes:options.maxIndexBytes,maxOpenFiles:options.maxOpenFiles},now=options.now??(()=>new Date());
- return {async execute({context,tokens,write,diagnostic,step,maxConfigurationBytes,maxInputBytes,service,admit,command:group}){
+ return {async execute(invocation){
+  const {context,tokens,write,diagnostic,step,maxConfigurationBytes,maxInputBytes,service,admit,command:group}=invocation;
+  if(group==='similar')return similarCommand(invocation,{...limits,now});
   const encoder=new TextEncoder();
   const emit=async(text:string)=>{for(let offset=0;offset<text.length;){await step();let end=Math.min(offset+4096,text.length);const last=text.charCodeAt(end-1);if(end<text.length&&last>=0xd800&&last<=0xdbff)end--;await write(encoder.encode(text.slice(offset,end)));offset=end;}};
   if(group==='embed')return embeddingCommand(context,service,tokens,write,diagnostic,step,admit,maxConfigurationBytes,async request=>{

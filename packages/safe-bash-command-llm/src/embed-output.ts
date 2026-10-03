@@ -3,7 +3,7 @@ import { base64Stream } from './base64-stream.js';
 export type LlmEmbeddingFormat = 'json' | 'blob' | 'base64' | 'hex';
 
 /** Reference float spelling; retain signed zero and Python's exponent thresholds. */
-function floatText(value: number): string {
+export function floatText(value: number): string {
  if(Object.is(value,-0))return '-0.0';
  const magnitude=Math.abs(value);
  if(magnitude!==0&&(magnitude<0.0001||magnitude>=1e16)){

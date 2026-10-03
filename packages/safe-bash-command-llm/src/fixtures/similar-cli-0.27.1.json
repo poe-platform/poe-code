@@ -1,0 +1,93 @@
+[
+  {
+    "args": [],
+    "code": 2,
+    "out": "",
+    "err": "Usage: llm similar [OPTIONS] COLLECTION [ID]\nTry 'llm similar -h' for help.\n\nError: Missing argument 'COLLECTION'.\n"
+  },
+  {
+    "args": [
+      "docs"
+    ],
+    "code": 1,
+    "out": "",
+    "err": "Error: Must provide content or an ID for the comparison\n"
+  },
+  {
+    "args": [
+      "missing",
+      "one"
+    ],
+    "code": 1,
+    "out": "",
+    "err": "Error: Collection does not exist\n"
+  },
+  {
+    "args": [
+      "docs",
+      "missing"
+    ],
+    "code": 1,
+    "out": "",
+    "err": "Error: ID not found in collection\n"
+  },
+  {
+    "args": [
+      "docs",
+      "one"
+    ],
+    "code": 0,
+    "out": "{\"id\": \"two\", \"score\": 0.9999999999999998, \"content\": \"second\", \"metadata\": null}\n",
+    "err": ""
+  },
+  {
+    "args": [
+      "docs",
+      "one",
+      "--plain"
+    ],
+    "code": 0,
+    "out": "two (0.9999999999999998)\n\n  second\n\n",
+    "err": ""
+  },
+  {
+    "args": [
+      "docs",
+      "one",
+      "-n",
+      "0"
+    ],
+    "code": 0,
+    "out": "",
+    "err": ""
+  },
+  {
+    "args": [
+      "docs",
+      "one",
+      "--prefix",
+      "z"
+    ],
+    "code": 0,
+    "out": "",
+    "err": ""
+  },
+  {
+    "args": [
+      "docs",
+      "--number",
+      "x"
+    ],
+    "code": 2,
+    "out": "",
+    "err": "Usage: llm similar [OPTIONS] COLLECTION [ID]\nTry 'llm similar -h' for help.\n\nError: Invalid value for '-n' / '--number': 'x' is not a valid integer.\n"
+  },
+  {
+    "args": [
+      "--help"
+    ],
+    "code": 0,
+    "out": "Usage: llm similar [OPTIONS] COLLECTION [ID]\n\n  Return top N similar IDs from a collection using cosine similarity.\n\n  Example usage:\n\n      llm similar my-collection -c \"I like cats\"\n\n  Or to find content similar to a specific stored ID:\n\n      llm similar my-collection 1234\n\nOptions:\n  -i, --input PATH      File to embed for comparison\n  -c, --content TEXT    Content to embed for comparison\n  --binary              Treat input as binary data\n  -n, --number INTEGER  Number of results to return\n  -p, --plain           Output in plain text format\n  -d, --database FILE\n  --prefix TEXT         Just IDs with this prefix\n  -h, --help            Show this message and exit.\n",
+    "err": ""
+  }
+]

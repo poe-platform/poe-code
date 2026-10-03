@@ -71,3 +71,19 @@ test('optional collections preserve stateless embed and Python JSON Unicode esca
  const result=await execute(fs,['collections','--json','-d/data.db']);
  assert.equal(result.code,0);assert.ok(result.out.includes('"name": "\\ud83d\\ude00"'));assert.ok(result.out.includes('"model": "m\\u00e9"'));
 });
+test('similar command matches pinned reference ID lookup, formatting and diagnostics',async()=>{
+ const fs=new MemoryFileSystem();
+ await execute(fs,['embed','docs','one','-m','e','-c','hello\nworld','--store','--metadata','{"x":"é"}']);
+ await execute(fs,['embed','docs','two','-m','e','-c','second','--store']);
+ const cases=JSON.parse(readFileSync(new URL('./fixtures/similar-cli-0.27.1.json',import.meta.url),'utf8')) as {args:string[];code:number;out:string;err:string}[];
+ for(const row of cases)assert.deepEqual(await execute(fs,['similar',...row.args]),{code:row.code,out:row.out,err:row.err},JSON.stringify(row.args));
+});
+test('similar embeds content through the shared service and applies prefix and limit',async()=>{
+ const fs=new MemoryFileSystem();
+ await execute(fs,['embed','docs','one','-m','e','-c','one','--store']);
+ await execute(fs,['embed','docs','two','-m','e','-c','two','--store']);
+ let calls=0;
+ const result=await execute(fs,['similar','docs','-c','query','-n1','--prefix','t'],{},async request=>{calls++;let text='';for await(const bytes of request.inputs[0]!.bytes)text+=new TextDecoder().decode(bytes);assert.equal(text,'query');});
+ assert.equal(result.code,0,result.err);assert.equal(calls,1);assert.equal(JSON.parse(result.out).id,'two');
+ assert.deepEqual(await execute(fs,['similar','docs','-i','/missing']),{code:2,out:'',err:"Usage: llm similar [OPTIONS] COLLECTION [ID]\nTry 'llm similar -h' for help.\n\nError: Invalid value for '-i' / '--input': Path '/missing' does not exist.\n"});
+});

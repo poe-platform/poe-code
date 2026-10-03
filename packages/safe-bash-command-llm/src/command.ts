@@ -214,7 +214,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       await emitText(JSON.stringify(parseLlmSchemaDsl(inputs[0]!, multi), null, 2) + "\n");
       return { exitCode: 0 };
     }
-    if (argumentsValue.args[0] === 'collections'||collections&&argumentsValue.args[0]==='embed') {
+    if (argumentsValue.args[0] === 'collections'||argumentsValue.args[0]==='similar'||collections&&argumentsValue.args[0]==='embed') {
       const tokens=Array.from({length:argumentsValue.args.length-1},(_,index)=>argumentText(index+1));
       if(!collections){await writeDiagnostic(context.stderr,'Error: Collection storage is not configured\n',signal);return {exitCode:1};}
       return {exitCode:await collections.execute({context:{...context,signal},service,command:argumentsValue.args[0]!,tokens,write,diagnostic:text=>writeDiagnostic(context.stderr,text,signal),step,admit:admitInput,maxConfigurationBytes:limits?.maxConfigurationBytes??Infinity,maxInputBytes:limits?.maxInputBytes??Infinity})};

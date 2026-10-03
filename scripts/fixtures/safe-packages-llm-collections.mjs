@@ -62,6 +62,8 @@ export async function verifyLlmCollections() {
     if(stored.exitCode!==0||stored.stdout)throw new Error(`Stored CLI embedding failed: ${stored.stderr}`);
     const listed=await cliShell.exec('llm collections --json -d /cli.db');
     if(listed.exitCode!==0||JSON.stringify(JSON.parse(listed.stdout))!==JSON.stringify([{name:'cli',model:'embed',num_embeddings:1}]))throw new Error('Collection CLI list failed');
+    const similar=await cliShell.exec('llm similar cli -c query -d /cli.db');
+    if(similar.exitCode!==0||JSON.parse(similar.stdout).id!=='one'||JSON.parse(similar.stdout).content!=='hello')throw new Error(`Similarity CLI failed: ${similar.stderr}`);
     const deleted=await cliShell.exec('llm collections delete cli -d /cli.db');
     if(deleted.exitCode!==0)throw new Error('Collection CLI delete failed');
   }finally{await cliShell.dispose();}

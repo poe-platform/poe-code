@@ -45,7 +45,7 @@ with `{ size, bytes }`. Consume these streams inside the visitor; they expire wh
 it returns. Ranking uses caller-backed SQLite temporary storage and bounded vector
 blocks. `catalog.exists(name)` checks a collection without creating it. Pass
 `create: false` to `withLlmCollections` to require an existing embedding schema.
-Batch imports and the similarity CLI remain incomplete.
+Batch imports remain incomplete.
 This optional catalog does not store conversation or response history.
 
 To enable collection commands, import `createLlmCollectionCommands` from the same
@@ -58,6 +58,11 @@ createLlmCollectionCommands({ maxFileBytes: 16 * 1024 * 1024, maxIndexBytes:
 `embeddings.db` in `LLM_USER_PATH`'s configuration directory. Existing collections
 retain their model even if another `-m` is supplied. Stored embedding commands
 are silent by default; pinned `--format json` behavior prints `null`.
+Use `llm similar documents intro` to find neighbors of a stored ID, or
+`llm similar documents -c 'A query'` to embed a query. `-i PATH` accepts a file
+(`-` reads stdin), and `--binary` selects binary input. Results stream as JSON
+lines; `--plain` prints stored content and metadata. Control results with
+`--number`, `--prefix`, and the same database selection options.
 
 Query injected language and media models through the shared LLM service. Register `llmCommands({ providers, defaultModel })` with your shell. Providers own credentials and HTTP transport. `llm --version` reports the pinned CLI reference target, also available to SDK callers as `llmReferenceVersion`. Use `limits.maxInputBytes` and `limits.maxOutputBytes` to bound per-command byte accounting.
 

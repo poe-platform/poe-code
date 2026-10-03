@@ -362,6 +362,10 @@
     "./package-uri": {
       "types": "./dist/package-uri.d.ts",
       "import": "./dist/package-uri.js"
+    },
+    "./retained-package": {
+      "types": "./dist/retained-package.d.ts",
+      "import": "./dist/retained-package.js"
     }
   },
   "files": [

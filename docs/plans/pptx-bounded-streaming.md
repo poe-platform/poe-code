@@ -8,6 +8,23 @@ with a 64 KiB requested chunk size. Buffered-only filesystems retain their exist
 fallback. The original input is still a complete byte array. Metadata identity
 checks and conditional publication remain required in addition to byte comparison.
 
+`openPackageArchive` now accepts a stable retained range source and explicit
+caller-owned safe-fs working storage. It validates ZIP payloads incrementally,
+keeps names and entry metadata in a bounded page cache backed by that storage,
+and streams individual parts. Its rewrite operation retains unchanged compressed
+members, supports streamed replacements/additions/removals, and stages archive
+serialization in the same storage before writing an output sink. Closing retires
+scratch storage; input and sink ownership remain with the caller. This layer
+admits OPC part names and ZIP contents, not the presentation relationship graph.
+
+Deterministic coverage includes generated payloads larger than the cache,
+filesystem descriptor spies, index spills, reused source buffers, concurrent
+member streams, slow sinks, byte-preserving passthrough, and injected IO/cancellation
+failures. Native python-pptx 1.0.2 opened a two-slide streamed rewrite with expected
+edited/unchanged text; Python ZIP CRC verification passed. The retained module
+bundled for the browser/workerd target with no external imports. These results
+cover the archive layer, not every presentation operation or runtime memory.
+
 This is not an end-to-end bounded-memory implementation or Worker qualification.
 The command still collects input, returns complete stdout/stderr, and publishes
 complete output arrays. `safe-bash-presentation-engine` still collects the archive,
@@ -19,7 +36,9 @@ retains decompressed members in `readPackage`, copies members in
 1. Carry caller-owned retained/range sources, explicit spill-storage authorization,
    output sinks and owned staged publications through both command and engine APIs.
    Keep buffering convenience APIs available without requiring them for Worker use.
-2. Replace synchronous package-member access on the streaming execution path with
+2. Build stored content-type and relationship indexes over the retained archive,
+   preserving the existing semantic admission checks before extraction/publication.
+   Replace synchronous package-member access on the streaming execution path with
    asynchronous reads and a bounded cache backed by the caller's safe-fs. Migrate
    mutation state, embedded workbooks, archive indexes and serialization too.
    Do not hide full-payload arrays behind a source interface or a private RAM spool.

@@ -1,4 +1,17 @@
 import { PassThrough } from "node:stream";
+import { createTestPair as referencePair, createSdkTestPair as referenceSdkPair } from "tiny-mcp-client";
+import type { McpClientConnection as ReferenceConnection } from "tiny-mcp-client";
+import type { McpClientConnection } from "../dist/index.js";
+declare const connection: McpClientConnection;
+declare const referenceConnection: ReferenceConnection;
+const connectionToReference: ReferenceConnection = connection;
+const connectionFromReference: McpClientConnection = referenceConnection;
+const pairToReference: typeof referencePair = createTestPair;
+const pairFromReference: typeof createTestPair = referencePair;
+const sdkPairToReference: typeof referenceSdkPair = createSdkTestPair;
+const sdkPairFromReference: typeof createSdkTestPair = referenceSdkPair;
+void [connectionToReference, connectionFromReference, pairToReference,
+  pairFromReference, sdkPairToReference, sdkPairFromReference];
 import type { ClientCapabilities, Tool, StoredOAuthSession } from "../dist/index.js";
 import type {
   ClientCapabilities as ReferenceCapabilities,
@@ -110,8 +123,16 @@ layer.onRequest("callback", (_params, context: McpRequestContext) => {
 });
 import { Server as OfficialServer } from "@modelcontextprotocol/sdk/server/index.js";
 import { createServer } from "tiny-stdio-mcp-server-rust";
-void createSdkTestPair(new OfficialServer({ name: "official", version: "1" }), () => client);
+void createSdkTestPair(new OfficialServer({ name: "official", version: "1" }), () => connection);
+void createTestPair(createServer({ name: "own", version: "1" }), () => connection);
+// @ts-expect-error The reference helper requires a void-returning connection.
+void referencePair(createServer({ name: "own", version: "1" }), () => client);
+// @ts-expect-error Preserve the reference helper's void-returning connection constraint.
 void createTestPair(createServer({ name: "own", version: "1" }), () => client);
+// @ts-expect-error A server must expose the complete public stdio server contract.
+void createTestPair({ async connect() {} }, () => connection);
+// @ts-expect-error SDK server connection completion must return void.
+void createSdkTestPair({ async connect() { return 1; } }, () => connection);
 layer.onInputRequest("roots/list", () => ({ roots: [] }));
 layer.onNotification("changed", (_params, context) => {
   const method: string = context.method;

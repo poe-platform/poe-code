@@ -85,7 +85,7 @@ export declare class JsonRpcMessageLayer {
 
 import type { Readable, Writable } from "node:stream";
 import type { ChildProcessWithoutNullStreams, SpawnOptions } from "node:child_process";
-import type { Implementation, Resource, ResourceTemplate, Prompt, Tool as CoreTool, ContentItem as CoreContentItem, ResourceContents as CoreResourceContents } from "tiny-stdio-mcp-server-rust";
+import type { Implementation, Resource, ResourceTemplate, Prompt, Server, Tool as CoreTool, ContentItem as CoreContentItem, ResourceContents as CoreResourceContents } from "tiny-stdio-mcp-server-rust";
 export type { Implementation, Resource, ResourceTemplate, Prompt, ResourceLink, PromptArgument, ToolAnnotations, Icon, ContentAnnotations, ToolExecution } from "tiny-stdio-mcp-server-rust";
 export interface ClientCapabilities {
     extensions?: Record<string, Record<string, unknown>>;
@@ -485,19 +485,42 @@ export interface McpSubscription {
 }
 
 export interface McpClientConnection {
-  connect(transport: McpTransport): Promise<unknown>;
+  connect(transport: McpTransport): Promise<void>;
   close(): Promise<void>;
 }
 export interface SdkTestPair<TClient extends McpClientConnection> {
   client: TClient;
   cleanup(): Promise<void>;
 }
+// Match the public server contract without requiring native diagnostic session methods.
+interface TestPairServer extends Omit<Server,
+  "tool" | "registerTool" | "prompt" | "resource" | "resourceTemplate" | "method" | "createMessageSession" | "connectSDK"
+> {
+  tool<T, TOut = never>(
+    name: string,
+    description: string,
+    inputSchema: import("tiny-stdio-mcp-server-rust").TypedSchema<T>,
+    handler: import("tiny-stdio-mcp-server-rust").ToolHandler<T, TOut>,
+    outputSchema?: import("tiny-stdio-mcp-server-rust").TypedOutputSchema<TOut>
+  ): TestPairServer;
+  registerTool<T, TOut = never>(
+    definition: Omit<import("tiny-stdio-mcp-server-rust").ToolDefinition<T, TOut>, "handler">,
+    handler: import("tiny-stdio-mcp-server-rust").ToolHandler<T, TOut>
+  ): TestPairServer;
+  prompt(...args: Parameters<Server["prompt"]>): TestPairServer;
+  resource(...args: Parameters<Server["resource"]>): TestPairServer;
+  resourceTemplate(...args: Parameters<Server["resourceTemplate"]>): TestPairServer;
+  method(...args: Parameters<Server["method"]>): TestPairServer;
+  createMessageSession(...args: Parameters<Server["createMessageSession"]>):
+    Pick<ReturnType<Server["createMessageSession"]>, "handleMessage" | "close">;
+  connectSDK(transport: import("tiny-stdio-mcp-server-rust").SDKTransport): Promise<void>;
+}
 export declare function createSdkTestPair<TClient extends McpClientConnection>(
-  server: { connect(transport: unknown): Promise<unknown> },
+  server: { connect(transport: unknown): Promise<void> },
   createClient: () => TClient
 ): Promise<SdkTestPair<TClient>>;
 export declare function createTestPair<TClient extends McpClientConnection>(
-  server: { connect(transport: InMemoryServerTransport): Promise<unknown> },
+  server: TestPairServer,
   createClient: () => TClient
 ): Promise<SdkTestPair<TClient>>;
 export interface OAuthUnauthorizedChallenge {

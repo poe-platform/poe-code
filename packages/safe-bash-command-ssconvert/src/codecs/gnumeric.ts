@@ -732,9 +732,10 @@ export function writeClipboardGnumeric(book: Workbook, sheet: Sheet, range: impo
   for (const [kind, info, entries, defaultSize] of [["Cols", "ColInfo", sheet.columns, 48], ["Rows", "RowInfo", sheet.rows, 12.75]] as const) {
     const start = kind === "Cols" ? range.startColumn : range.startRow;
     const end = kind === "Cols" ? range.endColumn : range.endRow;
-    body += writer.element(`gnm:${kind}`, { DefaultSizePts: Number(sheet.view?.[kind === "Cols" ? "defaultColumnWidth" : "defaultRowHeight"] ?? defaultSize) }, "",
+    const points = Number(sheet.view?.[kind === "Cols" ? "defaultColumnWidth" : "defaultRowHeight"] ?? defaultSize);
+    body += writer.element(`gnm:${kind}`, { DefaultSizePts: gnumericNumber(points, false, 4) }, "",
       entries?.filter(axis => { context.signal.throwIfAborted(); return axis.index >= start && axis.index <= end; }).map(axis => writer.element(`gnm:${info}`, {
-        No: axis.index, Unit: axis.sizePoints ?? defaultSize,
+        No: axis.index, Unit: gnumericNumber(axis.sizePoints ?? points, false, 4),
         ...Object.fromEntries((Array.isArray(object(axis.style?.gnumeric)?.attributes) ? object(axis.style?.gnumeric)?.attributes as readonly ImportedValue[] : []).flatMap(raw => {
           const attr = object(raw); return attr?.name === "HardSize" && typeof attr.value === "string" ? [["HardSize", attr.value]] : [];
         })),
@@ -864,7 +865,7 @@ export async function writeGnumeric(book: Workbook, _options: readonly string[],
         const attrs = Object.fromEntries((Array.isArray(original?.attributes) ? original.attributes : []).flatMap(a => {
           const attr = object(a); return attr && typeof attr.name === "string" && typeof attr.value === "string" && attr.name === "HardSize" ? [[attr.name, attr.value]] : [];
         }));
-        return writer.element(`gnm:${info}`, { ...attrs, No: axis.index, Unit: axis.sizePoints ?? axisAttrs.DefaultSizePts ?? (kind === "Cols" ? 48 : 12.75),
+        return writer.element(`gnm:${info}`, { ...attrs, No: axis.index, Unit: axis.sizePoints === undefined ? axisAttrs.DefaultSizePts ?? (kind === "Cols" ? 48 : 12.75) : gnumericNumber(axis.sizePoints, false, 4),
         ...(axis.hidden ? { Hidden: 1 } : {}), ...(axis.collapsed ? { Collapsed: 1 } : {}), ...(axis.outlineLevel ? { OutlineLevel: axis.outlineLevel } : {}) }, "", "", 4);
       }).join("") ?? "", 3);
     }

@@ -70,7 +70,9 @@ resource limits and output publication use the same shell adapter as the
 compatibility commands. Omitting `formats` from a composable command installs no formats. The same API is
 available at `@poe-platform/safe-bash/ssconvert/commands`.
 The compatibility entrypoint also supplies default rendering and clipboard
-capabilities; `/core` requires those capabilities explicitly.
+capabilities; `/core` requires those capabilities explicitly. Gnumeric workbook
+and clipboard XML store row and column dimensions in points with four significant
+digits of precision, including inherited sheet defaults.
 
 Filesystem and network access require explicit host bindings. The engine never
 uses a native spreadsheet converter as a fallback. PDF exports can use an explicit

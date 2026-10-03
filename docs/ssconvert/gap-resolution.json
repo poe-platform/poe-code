@@ -4572,6 +4572,19 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "gnumericAxisPrecision": {
+      "finding": "Gnumeric workbook explicit row/column sizes and clipboard defaults/explicit sizes bypassed native four-significant-digit point serialization. Clipboard metadata without explicit sizes used base defaults instead of current sheet defaults.",
+      "implementation": "Use existing exact C-locale gnumericNumber formatter with precision4 for axis points in workbook and clipboard XML; inherited clipboard axes use current sheet defaults. Native xml-sax-write.c:83,133,758,783 and1688 establish the shared formatter/routes.",
+      "validation": "12original memory failures repaired,4neighboring controls pass.256tests/18Gnumeric+clipboard files pass. Maintained selected workspace build,full root build and complete ssconvert lint/source/test/public-consumer types pass.",
+      "publicNative": "144retained independent BIFF inputs produce288workbook and288clipboard outputs through compiled SDK/command.3744native XML readback and3744native clipboard size comparisons pass,including all32prior explicit-row precision failures. Four explicitly versioned row/column controls produce16package and16root SDK/command exports;128comparisons per entrypoint match native workbook/clipboard exports.",
+      "visual": "Native/reference and product XML screenshots inspected and byte-identical. GUI/Xvfb1759 stopped;stderr empty.",
+      "hashes": {
+        "nativeApi": "cd97191267f38a547e32ddd6ebf3a3f8cc5ebe5d46f90ba4d458db89b95dbb71",
+        "bothScreenshots": "5ebd54f4336ec2fdd2c0a17b04f8e9f6b11e9ad0ca3478ad69a3107ef322bb45"
+      },
+      "nativeReferenceDefect": "Unversioned XML can read an uninitialized hack_colrow_size flag: gnm_xml_file_open declares stack XMLSaxParseState,read_file_init_state never initializes this member,and only the Version callback sets it. Source xml-sax-read.c SHA25605e313c36412e6572203fd2f4194487ac939cf63f984d21d8c30bdecfe1713f3. Original unversioned controls/native outputs retained as legacy-axis-*; no product emulation of undefined state. Explicit Version1.12.61 controls avoid this defect. Installed reference unchanged.",
+      "remaining": "Explicit pre1.12.60 version/DPI migration semantics still need qualification. Native reference defects,other format records/rendering,registry artifacts and all19families remain open."
+    },
     "biffRowHardSize": {
       "finding": "BIFF ROW hard-size flag was lost on import; export always marked every row fixed, including automatically sized rows. Fixed rows equal to the sheet default were omitted.",
       "implementation": "Retain hard-size state while processing ROW records and encode it in existing shared Gnumeric RowInfo/HardSize metadata. Preserve fixed rows equal to the default. Honor shared metadata on export; API-only explicit sizes remain fixed. No public model field added.",

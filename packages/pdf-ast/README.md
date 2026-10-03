@@ -51,6 +51,14 @@ Duplicate names and name-tree cycles use caller-backed indexes; filename equalit
 is exact, including Unicode code units. Returning early or closing the document
 releases traversal staging. Keep the document open while reading contents.
 
+`decodeRetainedSampleRows(source, width, height, bitsPerComponent, color, options)`
+converts decoded sample planes to owned RGBA rows using the same color conversion
+as buffered extraction. It preserves packed row padding, truncated sample rules,
+Decode mappings, calibrated/tint colors and optional retained alpha samples.
+`maxWorkingBytes` admits row buffers and tint-channel scratch before reading;
+`maxOutputBytes` admits total RGBA output. Caller-owned source caches and resolved
+color-space state are additional memory. Sources remain open and caller-owned.
+
 `parseContentRangeOperators(source, storage, options)` yields normalized content
 operators without collecting a page AST. Its recovery rules are shared with
 `parseContentStream` and `parseContentOperators`. Inline images carry a dictionary

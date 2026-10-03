@@ -128,7 +128,7 @@ function *decodeContentBytesSteps(doc: ParsedCosDocument, contentsNode: PdfCosNo
   return new Uint8Array(0);
 }
 
-interface ResolvedColorSpace {
+export interface ResolvedColorSpace {
   readonly colorSpace: "rgb" | "gray" | "cmyk" | "index";
   readonly colorSpaceLabel?:
     | "rgb"
@@ -478,7 +478,7 @@ function remapUnitSampleWithDecode(
   return Math.max(0, Math.min(1, dMin + unitVal * (dMax - dMin)));
 }
 
-function *decodeSamplesToRgbaSteps(
+export function *decodeSamplesToRgbaSteps(
   rawSamples: Uint8Array,
   width: number,
   height: number,

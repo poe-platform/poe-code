@@ -41,3 +41,5 @@ export { encodePortableBitmapChunks, type PdfPortableBitmapFormat, type PdfPorta
 export { encodeRetainedPng, type PdfRetainedPngOptions } from "./render/retained-png.js";
 
 export type { PdfRetainedImage, PdfImageSelection } from "./extract/retained-images.js";
+
+export { decodeRetainedSampleRows, type PdfSampleRowOptions } from "./extract/retained-samples.js";

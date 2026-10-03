@@ -1,6 +1,6 @@
 import {native} from './native.js';
 import {createTemplateEngine} from './design/engine.js';
-import {jsonFormat} from './json.js';
+import {jsonFormat} from './json-config.js';
 import {tomlFormat} from './toml.js';
 import {configRequests} from './config.js';
 import {writeAtomically} from './io.js';

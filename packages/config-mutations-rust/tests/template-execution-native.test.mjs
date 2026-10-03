@@ -15,6 +15,12 @@ test('native template write matches SDK rendering, resolver order and all outcom
 test('native template merge uses full JSON/TOML serialization and invalid current backup',async()=>{
  for(const [kind,template,current]of [['templateMergeJson','{"added":"{{name}}"}','{ // discard comments\n"keep":true}\n'],['templateMergeToml','added="{{name}}"','keep=true\n']])for(const dryRun of [false,true])for(const source of [undefined,current,'{{broken'])await compare(()=>[{kind,target:'~/file',templateId:'agent',context:{name:'<K>'}}],source===undefined?{}:{'/home/k/file':source},{dryRun,templates:async()=>template});
 });
+test('public JSON templates project prototype assignments in both template and current documents',async()=>{
+ const sources=['{"__proto__":{"marker":true},"kept":1}','{"__proto__":null,"__proto__":{"marker":true},"kept":1}','{"nested":{"__proto__":{"marker":true},"kept":1}}'];
+ for(const template of sources)for(const current of sources)for(const dryRun of [false,true]){
+  await compare(()=>[{kind:'templateMergeJson',target:'~/file.json',templateId:'agent'}],{'/home/k/file.json':current},{dryRun,templates:async()=>template});
+ }
+});
 test('native missing template loader rejects before application target resolver',async()=>{
  for(const kind of ['templateWrite','templateMergeJson','templateMergeToml'])await compare(events=>[{kind,target(){events.push('target');return '~/file';},templateId:'agent',context(){throw Error('unused context');}}],{});
 });

@@ -128,8 +128,10 @@ const enabled=parseJson(fs.getContent('~/agent.json')!).enabled;
 It is not integrated into applications. JSON nesting is bounded to 512
 levels; malformed edit input
 is rejected rather than recovered by the development oracle's tolerant editor.
-Unlike the original JSONC parser, `__proto__` keys are retained as ordinary own
-data properties instead of being lost through a prototype assignment.
+The standalone JSON codec retains `__proto__` keys as ordinary own data properties.
+Public mutation and testing APIs instead match the original JSONC assignment-and-clone
+behavior, including duplicate keys after null-prototype assignments. Rust computes
+the resulting own fields without assigning JavaScript object prototypes.
 Removing the final array item also fixes an SDK bug that joins adjacent numbers
 (`remove [1,2,3] at index 2` returns `[1,2]`, instead of `[1,23]`).
 TOML parsing and diagnostics track the locked smol-toml 1.7 development reference;

@@ -1,5 +1,5 @@
 import {native} from './native.js';
-import {jsonFormat} from './json.js';
+import {jsonFormat} from './json-config.js';
 import {tomlFormat} from './toml.js';
 import {yamlFormat} from './yaml.js';
 import {isConfigObject,mergeWithPruneByPrefix} from './object.js';

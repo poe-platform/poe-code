@@ -22,6 +22,12 @@ pub fn config_json_parse(source: Utf16String) -> Result<NativeJson> {
         .map_err(|e| Error::from_reason(e.to_string()))
 }
 #[napi]
+pub fn config_json_parse_config(source: Utf16String) -> Result<NativeJson> {
+    jsonc::parse_config_object(&source)
+        .map(NativeJson)
+        .map_err(|e| Error::from_reason(e.to_string()))
+}
+#[napi]
 pub fn config_json_indent(source: Utf16String) -> Utf16String {
     jsonc::detect_indent(&source).into()
 }

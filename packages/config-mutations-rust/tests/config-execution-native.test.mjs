@@ -49,3 +49,21 @@ test('native configuration factories retain transforms and guards and match SDK 
  for(const method of Object.keys(reference)){const events=[],input={get target(){events.push('target');return resolver;},get value(){events.push('value');return resolver;},get shape(){events.push('shape');return resolver;},get format(){events.push('format');return 'json';},get pruneByPrefix(){events.push('prefix');return {servers:'old-'};},get onlyIf(){events.push('onlyIf');return guard;},get transform(){events.push('transform');return transform;},get label(){events.push('label');return 'Managed';},get unknown(){throw Error('unused option');}};const expected=reference[method](input),order=events.splice(0),actual=configMutation[method](input);assert.deepEqual(actual,expected);assert.deepEqual(events,order);assert.equal(actual.target,resolver);if(actual.transform)assert.equal(actual.transform,transform);if(actual.onlyIf)assert.equal(actual.onlyIf,guard);}
  assert.deepEqual(Object.keys(configMutation),Object.keys(reference));
 });
+
+test('public JSON mutation callbacks and file edits retain JSONC prototype-assignment semantics',async()=>{
+ const sources=[
+  '{"__proto__":{"marker":true},"kept":1}',
+  '{"__proto__":null,"__proto__":{"marker":true},"kept":1}',
+  '{"__proto__":{"__proto__":null},"__proto__":7,"kept":1}',
+  '{"nested":{"__proto__":{"marker":true},"kept":2},"array":[{"__proto__":null,"__proto__":3}]}',
+  '{"__proto__":[],"__proto__":false,"kept":1}',
+  '{"__proto__":{"__proto__":null,"__proto__":1},"__proto__":{"last":2}}'
+ ];
+ for(const content of sources)for(const dryRun of [false,true]){
+  const target='~/file.json',initial={'/home/k/file.json':content+'\n'};
+  const inspect=document=>({own:Object.hasOwn(document,'__proto__'),keys:Object.keys(document),value:document});
+  await compare([{kind:'configTransform',target,transform:document=>({content:{observed:inspect(document)},changed:true})}],initial,{dryRun});
+  await compare([{kind:'configPrune',target,shape:{kept:null},onlyIf:document=>Object.hasOwn(document,'__proto__')}],initial,{dryRun});
+  await compare([{kind:'configMerge',target,value:{added:true}}],initial,{dryRun});
+ }
+});

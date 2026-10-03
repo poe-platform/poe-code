@@ -5118,3 +5118,50 @@ Release 37106896772 remains pending. Package workflow 37106896675 succeeded with
 standalone-bundle/publication skipped; descendant package workflow 37106921154
 is checking standalone bundles on Node 18.18, 20, 22 and 24. No native publication
 is claimed. The completed portable checkpoint's temporary artifacts were purged.
+
+
+### Public JSONC assignment projection repair
+
+A public configMutation.transform reproduction showed different callback keys and
+written files for an authored __proto__ field: the reference JSONC parser assigns
+properties before cloning its own fields, while the native standalone codec
+retains every field. Public mutation, template and testing entry points now use a
+Rust projection of that assignment-and-clone policy. It tracks whether each raw
+parsed object still exposes the inherited prototype setter, including null
+prototype transitions, duplicate fields, arrays and nested prototype objects.
+It computes the resulting own fields without setting JavaScript prototypes.
+The standalone native JSON codec retains its existing own-field contract.
+
+The public callback/file trace test and Rust missing-function test failed before
+the repair. Regression coverage now includes merge, prune guards, transform,
+dry-run and template/current-document behavior using memfs. Public parseJson is
+compared against 162 paired/nested duplicate-key documents plus escaped-key
+coverage, including own descriptors and cloned prototype identity. The maintained
+four-package route passes: configuration 73 native checks and 261 original cases;
+agent MCP 13/63; skill configuration 8/137; and Toolcraft 266 native checks plus
+6,202 reference cases across 126 files. Rust tests, declarations, the original CLI
+type consumer and root posttest pass. All selected maintained lint and scoped
+JavaScript lint pass. Three packed own artifacts verify mutation callbacks and
+exact output, MCP unconfiguration and the standalone/MCP/skill embedded codec
+projections, with imports confined to the artifacts and Node builtins. The skill
+package's separate async helper aliases still reference its canonical package;
+this codec verification does not qualify those unrelated helpers as rewritten.
+
+Seven alternating warmed Node 22.23.2 ARM64 rounds of 1,000 public parseJson calls
+measured reference/native medians of 96.483/117.916 microseconds for 64 ordinary
+fields (1.22 times slower), and 7.829/3.937 microseconds for a small nested and
+duplicate prototype-field document (1.99 times faster). Outputs were compared
+before timing and 32 results retained. Shared-host, workload-specific results do
+not establish an overall speedup or satisfy replacement performance gates.
+No dependency or default JavaScript implementation changed.
+
+The next verified configuration gap is TOML table admission: the current locked
+reference accepts [[section] at EOF as {section:[{}]}, while native parsing
+rejects it. With a following value line, both reject but produce different error
+messages/locations. Both current consumers resolve smol-toml 1.7.0, so the older
+README/test claim about different SDK versions is stale. This needs public-contract
+reconciliation; direct-codec standards fixes do not establish swap parity.
+
+The public agent MCP facade is verified on remote main at 2b1ebdad72. Release
+37107639647 succeeded with its workspace/CLI build passing and stable publication
+skipped. Native package publication remains unverified.

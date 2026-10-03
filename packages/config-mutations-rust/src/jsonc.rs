@@ -48,16 +48,39 @@ struct Node {
     data: Data,
 }
 impl Node {
-    fn into_value(self) -> Value {
+    fn into_value(self, configuration: bool) -> (Value, bool) {
+        // Whether the raw parsed value exposes Object.prototype's __proto__
+        // setter. Configuration cloning keeps own fields, not that prototype.
+        const PROTO: &[u16] = &[95, 95, 112, 114, 111, 116, 111, 95, 95];
         match self.data {
-            Data::Scalar(v) => v,
-            Data::Array(v) => Value::Array(v.into_iter().map(Self::into_value).collect()),
+            Data::Scalar(v) => (v, true),
+            Data::Array(v) => (
+                Value::Array(
+                    v.into_iter()
+                        .map(|node| node.into_value(configuration).0)
+                        .collect(),
+                ),
+                true,
+            ),
             Data::Object(properties) => {
+                let mut prototype_setter = true;
                 let mut entries: Vec<(Vec<u16>, Value)> = Vec::new();
                 let mut positions: std::collections::HashMap<Vec<u16>, usize> =
                     std::collections::HashMap::new();
                 for (key, _, node) in properties {
-                    let value = node.into_value();
+                    let (value, child_setter) = node.into_value(configuration);
+                    if configuration
+                        && key.as_slice() == PROTO
+                        && !positions.contains_key(PROTO)
+                        && prototype_setter
+                    {
+                        match &value {
+                            Value::Null => prototype_setter = false,
+                            Value::Object(_) | Value::Array(_) => prototype_setter = child_setter,
+                            _ => {}
+                        }
+                        continue;
+                    }
                     if let Some(index) = positions.get(&key).copied() {
                         entries[index].1 = value;
                     } else {
@@ -66,7 +89,10 @@ impl Node {
                     }
                 }
                 entries.sort_by_key(|(key, _)| property_index(key).map_or(u64::MAX, u64::from));
-                Value::Object(entries)
+                (
+                    Value::Object(entries),
+                    prototype_setter && !positions.contains_key(PROTO),
+                )
             }
         }
     }
@@ -229,7 +255,24 @@ pub fn parse_object(source: &[u16]) -> Result<Value, Error> {
     }
     let value = tree(source)?
         .ok_or_else(|| error("ValueExpected", source.len()))?
-        .into_value();
+        .into_value(false)
+        .0;
+    match value {
+        Value::Null => Ok(Value::Object(vec![])),
+        Value::Object(_) => Ok(value),
+        _ => Err(edit_error("Expected JSON object.")),
+    }
+}
+/// Match JSONC assignment followed by the configuration SDK's own-field clone.
+/// Track the prototype setter in Rust without mutating a host object's prototype.
+pub fn parse_config_object(source: &[u16]) -> Result<Value, Error> {
+    if source.iter().all(|ch| trim_space(*ch)) {
+        return Ok(Value::Object(vec![]));
+    }
+    let value = tree(source)?
+        .ok_or_else(|| error("ValueExpected", source.len()))?
+        .into_value(true)
+        .0;
     match value {
         Value::Null => Ok(Value::Object(vec![])),
         Value::Object(_) => Ok(value),

@@ -5,6 +5,20 @@ test('testing export matches SDK codecs and symbols with no production SDK',asyn
  const rust=await import('@poe-code/config-mutations-rust/testing');assert.deepEqual(Object.keys(rust).sort(),Object.keys(reference).sort());
  for(const [parse,serialize,source]of [['parseJson','serializeJson','{ // comment\n"enabled":true}'],['parseToml','serializeToml','enabled=true\n'],['parseYaml','serializeYaml','enabled: true\n']]){assert.deepEqual(rust[parse](source),reference[parse](source));assert.equal(rust[serialize]({enabled:true,nested:{keep:'🦀'}}),reference[serialize]({enabled:true,nested:{keep:'🦀'}}));}
 });
+test('public JSON testing parser matches duplicate prototype fields, nested values and own descriptors',async()=>{
+ const {parseJson}=await import('@poe-code/config-mutations-rust/testing');
+ const values=['null','1','false','"text"','[]','{}','{"__proto__":null}','{"__proto__":null,"__proto__":1}','{"__proto__":{"__proto__":null}}'];
+ for(const first of values)for(const second of values){
+  const object=`{"8":8,"__proto__":${first},"2":2,"__proto__":${second},"kept":{"__proto__":${first},"other":1}}`;
+  for(const source of [object,`{ // nested\n "nested":${object},"array":[${object}],}`]){
+   const actual=parseJson(source),expected=reference.parseJson(source);
+   assert.deepEqual(actual,expected,source);
+   assert.deepEqual(Object.getOwnPropertyDescriptors(actual),Object.getOwnPropertyDescriptors(expected),source);
+   assert.equal(Object.getPrototypeOf(actual),Object.prototype);
+  }
+ }
+ assert.deepEqual(parseJson('{"\\u005f_proto__":null,"__proto__":3}'),reference.parseJson('{"\\u005f_proto__":null,"__proto__":3}'));
+});
 async function exercise(create){
  const fs=create({'~/config/file':'before','~./raw':'raw','relative/file':'relative'},'/home/k'),events=[];
  const call=async(method,...args)=>{try{const value=await fs[method](...args);events.push([method,Buffer.isBuffer(value)?['buffer',value.toString('utf8')]:value&&typeof value.isSymbolicLink==='function'?['link',value.isSymbolicLink()]:value]);}catch(e){events.push([method,{code:e.code,message:e.message}]);}};

@@ -8,6 +8,34 @@ fn string(text: &str) -> Value {
 }
 
 #[test]
+fn configuration_projection_tracks_proto_setters_and_null_prototype_duplicates() {
+    for (source, expected) in [
+        (r#"{"__proto__":{"marker":true},"kept":1}"#, r#"{"kept":1}"#),
+        (
+            r#"{"__proto__":null,"__proto__":{"marker":true},"kept":1}"#,
+            r#"{"__proto__":{"marker":true},"kept":1}"#,
+        ),
+        (
+            r#"{"__proto__":{"__proto__":null},"__proto__":7}"#,
+            r#"{"__proto__":7}"#,
+        ),
+        (
+            r#"{"__proto__":[],"__proto__":false,"kept":1}"#,
+            r#"{"kept":1}"#,
+        ),
+        (
+            r#"{"nested":{"__proto__":1},"array":[{"__proto__":null,"__proto__":3}]}"#,
+            r#"{"nested":{},"array":[{"__proto__":3}]}"#,
+        ),
+    ] {
+        assert_eq!(
+            jsonc::parse_config_object(&units(source)).unwrap(),
+            jsonc::parse_object(&units(expected)).unwrap()
+        );
+    }
+}
+
+#[test]
 fn comments_and_trailing_commas_do_not_change_strings_or_proto_keys() {
     let source = units(
         "{ // line\r\n \"__proto__\": {\"x\":1,}, /* block */ \"text\":\"https://x/*a*/ // b\",\"arr\":[true,null,],}",

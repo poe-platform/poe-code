@@ -1,6 +1,6 @@
 import path from 'node:path';
 import {native} from './native.js';
-import {jsonFormat} from './json.js';
+import {jsonFormat} from './json-config.js';
 import {tomlFormat} from './toml.js';
 import {yamlFormat} from './yaml.js';
 const utf8Encoder=new TextEncoder(),utf8Decoder=new TextDecoder('utf-8',{ignoreBOM:true});

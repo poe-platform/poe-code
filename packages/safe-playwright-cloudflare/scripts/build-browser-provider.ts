@@ -4,6 +4,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import ts from 'typescript';
+import { preserveBrowserPolling } from './build-browser-provider-evaluation.js';
 
 /** Compile the pinned provider with JavaScript browser implementations. No
  * globals or installed SDK files are modified, and no Node import escapes. */
@@ -15,6 +16,7 @@ export async function buildBrowserProvider(): Promise<void> {
   if (metadata.version !== '1.3.6') throw new Error('Qualify the portable provider before upgrading Playwright');
   const polyfills = join(dirname(require.resolve('@jspm/core/nodelibs/buffer')), '../browser');
   const transport = join(dirname(provider), 'cloudflare/webSocketTransport.js');
+  const frames = join(dirname(provider), 'playwright-core/src/server/frames.js');
   const snapshotter = join(dirname(provider), 'playwright-core/src/server/trace/recorder/snapshotterInjected.js');
   const builtins = new Set(builtinModules.map(name => name.startsWith('node:') ? name.slice(5) : name));
   // Select the host adapter at build time only. The plugin below replaces its
@@ -40,6 +42,10 @@ export async function buildBrowserProvider(): Promise<void> {
     // The provider serializes error constructor names across its protocol.
     minify: true, keepNames: true, legalComments: 'inline', metafile: true,
     plugins: [{ name: 'portable-provider', setup(builder) {
+      builder.onLoad({ filter: /frames\.js$/ }, async args => {
+        if (args.path !== frames) return;
+        return { contents: preserveBrowserPolling(await readFile(args.path, 'utf8')), loader: 'js' };
+      });
       builder.onLoad({ filter: /snapshotterInjected\.js$/ }, async args => {
         if (args.path !== snapshotter) return;
         const source = ts.createSourceFile(args.path, await readFile(args.path, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);

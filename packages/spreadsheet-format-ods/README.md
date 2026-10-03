@@ -31,8 +31,9 @@ Retained range input avoids a complete compressed-archive copy. With engine
 using a shared bounded page cache. Decoded XML, decrypted members and the workbook
 model are still retained; this is not yet a fully bounded conversion pipeline.
 Both exporters use working storage for compressed ZIP members and central records,
-with incremental compression and archive output. Buffered `createOdfWriter` calls
-remain available. XML/encoded members and encryption buffers, including wrapped
+with incremental UTF-8 encoding, compression and archive output for unencrypted
+XML members. XML byte-limit checks count bytes without encoding full containers. Buffered `createOdfWriter` calls
+remain available. XML strings, embedded resources and encryption buffers, including wrapped
 inner archives, still reside in memory; use an external safe-fs backend to keep
 staged archive data outside the isolate.
 

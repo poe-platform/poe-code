@@ -37,9 +37,15 @@ it.each(["strict", "extended"] as const)("streams %s ODF archives through caller
     formats: [{ ...odsFormat, services: odsFormat.services.map(codec => codec.direction === "write" ? { ...codec, write: array } : codec) }] });
   try {
     const book = await engine.adoptWorkbook(raw, { signal }), chunks: Uint8Array[] = [];
-    await engine.writeWorkbook(book, { kind: "stream", sink: { async write(bytes) {
-      expect(bytes.length).toBeLessThanOrEqual(16384); await Promise.resolve(); chunks.push(bytes.slice());
-    } } }, { exportType: profile === "strict" ? "Gnumeric_OpenCalc:openoffice" : "Gnumeric_OpenCalc:odf" }, { signal });
+    const encode = TextEncoder.prototype.encode;
+    const encoding = vi.spyOn(TextEncoder.prototype, "encode").mockImplementation(function(this: TextEncoder, text) {
+      expect(text?.length ?? 0).toBeLessThanOrEqual(16384); return encode.call(this, text);
+    });
+    try {
+      await engine.writeWorkbook(book, { kind: "stream", sink: { async write(bytes) {
+        expect(bytes.length).toBeLessThanOrEqual(16384); await Promise.resolve(); chunks.push(bytes.slice());
+      } } }, { exportType: profile === "strict" ? "Gnumeric_OpenCalc:openoffice" : "Gnumeric_OpenCalc:odf" }, { signal });
+    } finally { encoding.mockRestore(); }
     expect(Buffer.concat(chunks)).toEqual(Buffer.from(expected)); expect(chunks.length).toBeGreaterThan(1);
     expect(array).not.toHaveBeenCalled(); expect(written).toBeGreaterThan(16384);
     expect(largest).toBeLessThanOrEqual(16384); expect(pending).toBe(0);

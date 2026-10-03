@@ -54,7 +54,7 @@ export function upgradeOdfAnnotation(node: Readonly<Record<string, ImportedValue
 
 export function createOdfXml(context: CapabilityContext, extended: boolean) {
   let work = 0, nodes = 0;
-  const encoder = new TextEncoder(), names = new Set<string>();
+  const names = new Set<string>();
   const declarations = { ...Object.fromEntries(Object.entries(odfNamespaces).map(([prefix, uri]) => ["xmlns:" + prefix, uri])),
     "xmlns:loext": odfEncryptionNamespace };
   function charge(amount = 1) {
@@ -92,8 +92,14 @@ export function createOdfXml(context: CapabilityContext, extended: boolean) {
       result += ` ${key}="${escape(String(value))}"`;
     }
     result += content ? ">" + content + "</" + tag + ">" : "/>";
-    if (result.length > context.limits.outputBytes || encoder.encode(result).length > context.limits.outputBytes)
-      throw new SsconvertError("resource-limit", "ssconvert OpenDocument output bytes limit exceeded");
+    let bytes = 0, characters = 0;
+    if (context.limits.outputBytes !== Infinity) for (const character of result) {
+      if (++characters % 16384 === 0) context.signal.throwIfAborted();
+      const point = character.codePointAt(0)!;
+      bytes += point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4;
+      if (bytes > context.limits.outputBytes)
+        throw new SsconvertError("resource-limit", "ssconvert OpenDocument output bytes limit exceeded");
+    }
     return result;
   }
   function text(value: string, inlineControls = false): string {

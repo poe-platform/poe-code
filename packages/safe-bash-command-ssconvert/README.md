@@ -230,8 +230,9 @@ during traversal. Scalar CSV/text inputs replay into either XLSX edition without
 full cell arrays; formula inputs and global transformations retain the workbook path.
 Individual strings, other workbook cells, style indexes and other
 metadata still reside in memory. ODF exporters also stage compressed members and
-central records through working storage and stream archive output; their XML,
-encoded members and encryption buffers remain resident.
+central records through working storage and stream unencrypted member encoding,
+compression and archive output; their XML strings, embedded resources and encryption
+buffers remain resident.
 Gnumeric XML and gzip exports stream encoded output with backpressure. CSV/text
 conversions without global evaluation replay cells from retained input, including
 styles and sheet extents, without building full cell arrays. With working storage

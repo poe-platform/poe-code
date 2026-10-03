@@ -51,6 +51,15 @@ Duplicate names and name-tree cycles use caller-backed indexes; filename equalit
 is exact, including Unicode code units. Returning early or closing the document
 releases traversal staging. Keep the document open while reading contents.
 
+`PdfRetainedJbig2.open(source, width, height, options)` admits encoded input,
+optional retained `globals`, arithmetic contexts, symbol/region bitmaps and
+custom Huffman state. It keeps page pixels packed and emits owned RGBA `rows()`;
+standalone files use their embedded dimensions. `maxWorkingBytes` conservatively
+counts cumulative decoder allocations plus one RGBA row; source caches and
+fixed shared codec tables are additional. `maxOutputBytes` bounds decoded
+output. Sources stay caller-owned and may close after opening; call `close()`
+to release the packed bitmap. Intrinsic input and codec state remain resident.
+
 `PdfRetainedJpx.open(source, options)` admits encoded JPEG 2000 input, tile
 grids, codeblocks, tag trees and wavelet buffers before their allocations.
 Its `rows()` iterator assembles owned RGBA rows with tile overlap precedence,

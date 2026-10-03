@@ -2372,15 +2372,19 @@ class Jbig2Error extends BaseException {
   }
 }
 class ContextCache {
+  constructor(onAllocation) { this.onAllocation = onAllocation; }
   getContexts(id) {
     if (id in this) {
       return this[id];
     }
+    this.onAllocation?.((1 << 16) + 256);
     return this[id] = new Int8Array(1 << 16);
   }
 }
 class DecodingContext {
-  constructor(data, start, end, onImageDimensions) {
+  constructor(data, start, end, onImageDimensions, onAllocation) {
+    this.onAllocation = onAllocation;
+    onAllocation?.(1024);
     this.onImageDimensions = onImageDimensions;
     this.data = data;
     this.start = start;
@@ -2391,7 +2395,7 @@ class DecodingContext {
     return util_shadow(this, "decoder", decoder);
   }
   get contextCache() {
-    const cache = new ContextCache();
+    const cache = new ContextCache(this.onAllocation);
     return util_shadow(this, "contextCache", cache);
   }
 }
@@ -2654,9 +2658,10 @@ function decodeBitmapTemplate0(width, height, decodingContext) {
 }
 function decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, decodingContext) {
   decodingContext.onImageDimensions?.(width, height);
+  decodingContext.onAllocation?.((width + 256) * (height + 1) + 4096);
   if (mmr) {
     const input = new Reader(decodingContext.data, decodingContext.start, decodingContext.end);
-    return decodeMMRBitmap(input, width, height, false);
+    return decodeMMRBitmap(input, width, height, false, decodingContext.onAllocation);
   }
   if (templateIndex === 0 && !skip && !prediction && at.length === 4 && at[0].x === 3 && at[0].y === -1 && at[1].x === -3 && at[1].y === -1 && at[2].x === 2 && at[2].y === -2 && at[3].x === -2 && at[3].y === -2) {
     return decodeBitmapTemplate0(width, height, decodingContext);
@@ -2763,6 +2768,7 @@ function decodeBitmap(mmr, width, height, templateIndex, prediction, skip, at, d
 }
 function decodeRefinement(width, height, templateIndex, referenceBitmap, offsetX, offsetY, prediction, at, decodingContext) {
   decodingContext.onImageDimensions?.(width, height);
+  decodingContext.onAllocation?.((width + 256) * (height + 1) + 4096);
   let codingTemplate = RefinementTemplates[templateIndex].coding;
   if (templateIndex === 0) {
     codingTemplate = codingTemplate.concat([at[0]]);
@@ -2834,6 +2840,7 @@ function decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols
   if (huffman && refinement) {
     throw new Jbig2Error("symbol refinement with Huffman is not supported");
   }
+  decodingContext.onAllocation?.((symbols.length + numberOfNewSymbols + numberOfExportedSymbols) * 256 + 1024);
   const newSymbols = [];
   let currentHeight = 0;
   let symbolCodeLength = log2(symbols.length + numberOfNewSymbols);
@@ -2862,6 +2869,7 @@ function decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols
       if (refinement) {
         const numberOfInstances = decodeInteger(contextCache, "IAAI", decoder);
         if (numberOfInstances > 1) {
+          decodingContext.onAllocation?.((symbols.length + newSymbols.length) * 16 + 128);
           bitmap = decodeTextRegion(huffman, refinement, currentWidth, currentHeight, 0, numberOfInstances, 1, symbols.concat(newSymbols), symbolCodeLength, 0, 0, 1, 0, huffmanTables, refinementTemplateIndex, refinementAt, decodingContext, 0, huffmanInput);
         } else {
           const symbolId = decodeIAID(contextCache, decoder, symbolCodeLength);
@@ -2870,11 +2878,14 @@ function decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols
           const symbol = symbolId < symbols.length ? symbols[symbolId] : newSymbols[symbolId - symbols.length];
           bitmap = decodeRefinement(currentWidth, currentHeight, refinementTemplateIndex, symbol, rdx, rdy, false, refinementAt, decodingContext);
         }
+        decodingContext.onAllocation?.(128);
         newSymbols.push(bitmap);
       } else if (huffman) {
+        decodingContext.onAllocation?.(16);
         symbolWidths.push(currentWidth);
       } else {
         bitmap = decodeBitmap(false, currentWidth, currentHeight, templateIndex, false, null, at, decodingContext);
+        decodingContext.onAllocation?.(128);
         newSymbols.push(bitmap);
       }
     }
@@ -2883,17 +2894,18 @@ function decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols
       huffmanInput.byteAlign();
       let collectiveBitmap;
       if (bitmapSize === 0) {
-        collectiveBitmap = readUncompressedBitmap(huffmanInput, totalWidth, currentHeight);
+        collectiveBitmap = readUncompressedBitmap(huffmanInput, totalWidth, currentHeight, decodingContext.onAllocation);
       } else {
         const originalEnd = huffmanInput.end;
         const bitmapEnd = huffmanInput.position + bitmapSize;
         huffmanInput.end = bitmapEnd;
-        collectiveBitmap = decodeMMRBitmap(huffmanInput, totalWidth, currentHeight, false);
+        collectiveBitmap = decodeMMRBitmap(huffmanInput, totalWidth, currentHeight, false, decodingContext.onAllocation);
         huffmanInput.end = originalEnd;
         huffmanInput.position = bitmapEnd;
       }
       const numberOfSymbolsDecoded = symbolWidths.length;
       if (firstSymbol === numberOfSymbolsDecoded - 1) {
+        decodingContext.onAllocation?.(128);
         newSymbols.push(collectiveBitmap);
       } else {
         let i,
@@ -2905,10 +2917,12 @@ function decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols
         for (i = firstSymbol; i < numberOfSymbolsDecoded; i++) {
           bitmapWidth = symbolWidths[i];
           xMax = xMin + bitmapWidth;
+          decodingContext.onAllocation?.(currentHeight * 256 + 128);
           symbolBitmap = [];
           for (y = 0; y < currentHeight; y++) {
             symbolBitmap.push(collectiveBitmap[y].subarray(xMin, xMax));
           }
+          decodingContext.onAllocation?.(128);
           newSymbols.push(symbolBitmap);
           xMin = xMax;
         }
@@ -2923,6 +2937,7 @@ function decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols
   const totalSymbolsLength = symbols.length + numberOfNewSymbols;
   while (flags.length < totalSymbolsLength) {
     let runLength = huffman ? tableB1.decode(huffmanInput) : decodeInteger(contextCache, "IAEX", decoder);
+    decodingContext.onAllocation?.(runLength * 16);
     while (runLength--) {
       flags.push(currentFlag);
     }
@@ -2942,6 +2957,7 @@ function decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbols
 }
 function decodeTextRegion(huffman, refinement, width, height, defaultPixelValue, numberOfSymbolInstances, stripSize, inputSymbols, symbolCodeLength, transposed, dsOffset, referenceCorner, combinationOperator, huffmanTables, refinementTemplateIndex, refinementAt, decodingContext, logStripSize, huffmanInput) {
   decodingContext.onImageDimensions?.(width, height);
+  decodingContext.onAllocation?.((width + 256) * (height + 1) + 4096);
   if (huffman && refinement) {
     throw new Jbig2Error("refinement with Huffman is not supported");
   }
@@ -3080,6 +3096,7 @@ function decodePatternDictionary(mmr, patternWidth, patternHeight, maxPatternInd
   }
   const collectiveWidth = (maxPatternIndex + 1) * patternWidth;
   const collectiveBitmap = decodeBitmap(mmr, collectiveWidth, patternHeight, template, false, null, at, decodingContext);
+  decodingContext.onAllocation?.((maxPatternIndex + 1) * (patternHeight * 256 + 128));
   const patterns = [];
   for (let i = 0; i <= maxPatternIndex; i++) {
     const patternBitmap = [];
@@ -3094,6 +3111,7 @@ function decodePatternDictionary(mmr, patternWidth, patternHeight, maxPatternInd
 }
 function decodeHalftoneRegion(mmr, patterns, template, regionWidth, regionHeight, defaultPixelValue, enableSkip, combinationOperator, gridWidth, gridHeight, gridOffsetX, gridOffsetY, gridVectorX, gridVectorY, decodingContext) {
   decodingContext.onImageDimensions?.(regionWidth, regionHeight);
+  decodingContext.onAllocation?.((regionWidth + 256) * regionHeight + 4096);
   const skip = null;
   if (enableSkip) {
     throw new Jbig2Error("skip is not supported");
@@ -3143,7 +3161,7 @@ function decodeHalftoneRegion(mmr, patterns, template, regionWidth, regionHeight
   }
   for (i = bitsPerValue - 1; i >= 0; i--) {
     if (mmr) {
-      bitmap = decodeMMRBitmap(mmrInput, gridWidth, gridHeight, true);
+      bitmap = decodeMMRBitmap(mmrInput, gridWidth, gridHeight, true, decodingContext.onAllocation);
     } else {
       bitmap = decodeBitmap(false, gridWidth, gridHeight, template, false, skip, at, decodingContext);
     }
@@ -3190,7 +3208,8 @@ function decodeHalftoneRegion(mmr, patterns, template, regionWidth, regionHeight
   }
   return regionBitmap;
 }
-function readSegmentHeader(data, start) {
+function readSegmentHeader(data, start, onAllocation) {
+  onAllocation?.(4096);
   const segmentHeader = {};
   segmentHeader.number = readUint32(data, start);
   const flags = data[start + 4];
@@ -3209,6 +3228,7 @@ function readSegmentHeader(data, start) {
   if (referredFlags === 7) {
     referredToCount = readUint32(data, position - 1) & 0x1fffffff;
     position += 3;
+    onAllocation?.(Math.ceil(referredToCount / 8) * 16);
     let bytes = referredToCount + 7 >> 3;
     retainBits[0] = data[position++];
     while (--bytes > 0) {
@@ -3224,6 +3244,7 @@ function readSegmentHeader(data, start) {
   } else if (segmentHeader.number <= 65536) {
     referredToSegmentNumberSize = 2;
   }
+  onAllocation?.(referredToCount * 16);
   const referredTo = [];
   let i, ii;
   for (i = 0; i < referredToCount; i++) {
@@ -3282,11 +3303,11 @@ function readSegmentHeader(data, start) {
   segmentHeader.headerEnd = position;
   return segmentHeader;
 }
-function readSegments(header, data, start, end) {
+function readSegments(header, data, start, end, onAllocation) {
   const segments = [];
   let position = start;
   while (position < end) {
-    const segmentHeader = readSegmentHeader(data, position);
+    const segmentHeader = readSegmentHeader(data, position, onAllocation);
     position = segmentHeader.headerEnd;
     const segment = {
       header: segmentHeader,
@@ -3518,16 +3539,16 @@ function processSegments(segments, visitor) {
     processSegment(segments[i], visitor);
   }
 }
-function parseJbig2Chunks(chunks, onImageDimensions) {
-  const visitor = new SimpleSegmentVisitor(onImageDimensions);
+function parseJbig2Chunks(chunks, onImageDimensions, onAllocation) {
+  const visitor = new SimpleSegmentVisitor(onImageDimensions, onAllocation);
   for (let i = 0, ii = chunks.length; i < ii; i++) {
     const chunk = chunks[i];
-    const segments = readSegments({}, chunk.data, chunk.start, chunk.end);
+    const segments = readSegments({}, chunk.data, chunk.start, chunk.end, onAllocation);
     processSegments(segments, visitor);
   }
   return visitor.buffer;
 }
-function parseJbig2(data, onImageDimensions) {
+function parseJbig2(data, onImageDimensions, onAllocation, packed) {
   const end = data.length;
   let position = 0;
   if (data[position] !== 0x97 || data[position + 1] !== 0x4a || data[position + 2] !== 0x42 || data[position + 3] !== 0x32 || data[position + 4] !== 0x0d || data[position + 5] !== 0x0a || data[position + 6] !== 0x1a || data[position + 7] !== 0x0a) {
@@ -3541,14 +3562,16 @@ function parseJbig2(data, onImageDimensions) {
     header.numberOfPages = readUint32(data, position);
     position += 4;
   }
-  const segments = readSegments(header, data, position, end);
-  const visitor = new SimpleSegmentVisitor(onImageDimensions);
+  const segments = readSegments(header, data, position, end, onAllocation);
+  const visitor = new SimpleSegmentVisitor(onImageDimensions, onAllocation);
   processSegments(segments, visitor);
   const {
     width,
     height
   } = visitor.currentPageInfo;
   const bitPacked = visitor.buffer;
+  if (packed) return { imgData: bitPacked, width, height };
+  onAllocation?.(width * height + 128);
   const imgData = new Uint8ClampedArray(width * height);
   let q = 0,
     k = 0;
@@ -3571,11 +3594,12 @@ function parseJbig2(data, onImageDimensions) {
   };
 }
 class SimpleSegmentVisitor {
-  constructor(onImageDimensions) { this.onImageDimensions = onImageDimensions; }
+  constructor(onImageDimensions, onAllocation) { this.onImageDimensions = onImageDimensions; this.onAllocation = onAllocation; }
   onPageInformation(info) {
     this.onImageDimensions?.(info.width, info.height);
     this.currentPageInfo = info;
     const rowSize = info.width + 7 >> 3;
+    this.onAllocation?.(rowSize * info.height + 256);
     const buffer = new Uint8ClampedArray(rowSize * info.height);
     if (info.defaultPixelValue) {
       buffer.fill(0xff);
@@ -3633,7 +3657,7 @@ class SimpleSegmentVisitor {
   }
   onImmediateGenericRegion(region, data, start, end) {
     const regionInfo = region.info;
-    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions);
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
     const bitmap = decodeBitmap(region.mmr, regionInfo.width, regionInfo.height, region.template, region.prediction, null, region.at, decodingContext);
     this.drawBitmap(regionInfo, bitmap);
   }
@@ -3654,10 +3678,11 @@ class SimpleSegmentVisitor {
     for (const referredSegment of referredSegments) {
       const referredSymbols = symbols[referredSegment];
       if (referredSymbols) {
-        inputSymbols.push(...referredSymbols);
+        this.onAllocation?.(referredSymbols.length * 16 + 128);
+        for (const symbol of referredSymbols) inputSymbols.push(symbol);
       }
     }
-    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions);
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
     symbols[currentSegment] = decodeSymbolDictionary(dictionary.huffman, dictionary.refinement, inputSymbols, dictionary.numberOfNewSymbols, dictionary.numberOfExportedSymbols, huffmanTables, dictionary.template, dictionary.at, dictionary.refinementTemplate, dictionary.refinementAt, decodingContext, huffmanInput);
   }
   onImmediateTextRegion(region, referredSegments, data, start, end) {
@@ -3668,15 +3693,16 @@ class SimpleSegmentVisitor {
     for (const referredSegment of referredSegments) {
       const referredSymbols = symbols[referredSegment];
       if (referredSymbols) {
-        inputSymbols.push(...referredSymbols);
+        this.onAllocation?.(referredSymbols.length * 16 + 128);
+        for (const symbol of referredSymbols) inputSymbols.push(symbol);
       }
     }
     const symbolCodeLength = log2(inputSymbols.length);
     if (region.huffman) {
       huffmanInput = new Reader(data, start, end);
-      huffmanTables = getTextRegionHuffmanTables(region, referredSegments, this.customTables, inputSymbols.length, huffmanInput);
+      huffmanTables = getTextRegionHuffmanTables(region, referredSegments, this.customTables, inputSymbols.length, huffmanInput, this.onAllocation);
     }
-    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions);
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
     const bitmap = decodeTextRegion(region.huffman, region.refinement, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.numberOfSymbolInstances, region.stripSize, inputSymbols, symbolCodeLength, region.transposed, region.dsOffset, region.referenceCorner, region.combinationOperator, huffmanTables, region.refinementTemplate, region.refinementAt, decodingContext, region.logStripSize, huffmanInput);
     this.drawBitmap(regionInfo, bitmap);
   }
@@ -3688,13 +3714,13 @@ class SimpleSegmentVisitor {
     if (!patterns) {
       this.patterns = patterns = {};
     }
-    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions);
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
     patterns[currentSegment] = decodePatternDictionary(dictionary.mmr, dictionary.patternWidth, dictionary.patternHeight, dictionary.maxPatternIndex, dictionary.template, decodingContext);
   }
   onImmediateHalftoneRegion(region, referredSegments, data, start, end) {
     const patterns = this.patterns[referredSegments[0]];
     const regionInfo = region.info;
-    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions);
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
     const bitmap = decodeHalftoneRegion(region.mmr, patterns, region.template, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.enableSkip, region.combinationOperator, region.gridWidth, region.gridHeight, region.gridOffsetX, region.gridOffsetY, region.gridVectorX, region.gridVectorY, decodingContext);
     this.drawBitmap(regionInfo, bitmap);
   }
@@ -3706,7 +3732,7 @@ class SimpleSegmentVisitor {
     if (!customTables) {
       this.customTables = customTables = {};
     }
-    customTables[currentSegment] = decodeTablesSegment(data, start, end);
+    customTables[currentSegment] = decodeTablesSegment(data, start, end, this.onAllocation);
   }
 }
 class HuffmanLine {
@@ -3729,7 +3755,9 @@ class HuffmanLine {
   }
 }
 class HuffmanTreeNode {
-  constructor(line) {
+  constructor(line, onAllocation) {
+    this.onAllocation = onAllocation;
+    onAllocation?.(256);
     this.children = [];
     if (line) {
       this.isLeaf = true;
@@ -3744,11 +3772,11 @@ class HuffmanTreeNode {
   buildTree(line, shift) {
     const bit = line.prefixCode >> shift & 1;
     if (shift <= 0) {
-      this.children[bit] = new HuffmanTreeNode(line);
+      this.children[bit] = new HuffmanTreeNode(line, this.onAllocation);
     } else {
       let node = this.children[bit];
       if (!node) {
-        this.children[bit] = node = new HuffmanTreeNode(null);
+        this.children[bit] = node = new HuffmanTreeNode(null, this.onAllocation);
       }
       node.buildTree(line, shift - 1);
     }
@@ -3769,11 +3797,13 @@ class HuffmanTreeNode {
   }
 }
 class HuffmanTable {
-  constructor(lines, prefixCodesDone) {
+  constructor(lines, prefixCodesDone, onAllocation) {
+    this.onAllocation = onAllocation;
+    onAllocation?.(256);
     if (!prefixCodesDone) {
       this.assignPrefixCodes(lines);
     }
-    this.rootNode = new HuffmanTreeNode(null);
+    this.rootNode = new HuffmanTreeNode(null, this.onAllocation);
     for (let i = 0, ii = lines.length; i < ii; i++) {
       const line = lines[i];
       if (line.prefixLength > 0) {
@@ -3790,6 +3820,7 @@ class HuffmanTable {
     for (let i = 0; i < linesLength; i++) {
       prefixLengthMax = Math.max(prefixLengthMax, lines[i].prefixLength);
     }
+    this.onAllocation?.((prefixLengthMax + 1) * 4 + 128);
     const histogram = new Uint32Array(prefixLengthMax + 1);
     for (let i = 0; i < linesLength; i++) {
       histogram[lines[i].prefixLength]++;
@@ -3816,7 +3847,8 @@ class HuffmanTable {
     }
   }
 }
-function decodeTablesSegment(data, start, end) {
+function decodeTablesSegment(data, start, end, onAllocation) {
+  onAllocation?.(1024);
   const flags = data[start];
   const lowestValue = readUint32(data, start + 1) & 0xffffffff;
   const highestValue = readUint32(data, start + 5) & 0xffffffff;
@@ -3830,6 +3862,7 @@ function decodeTablesSegment(data, start, end) {
   do {
     prefixLength = reader.readBits(prefixSizeBits);
     rangeLength = reader.readBits(rangeSizeBits);
+    onAllocation?.(256);
     lines.push(new HuffmanLine([currentRangeLow, prefixLength, rangeLength, 0]));
     currentRangeLow += 1 << rangeLength;
   } while (currentRangeLow < highestValue);
@@ -3841,7 +3874,7 @@ function decodeTablesSegment(data, start, end) {
     prefixLength = reader.readBits(prefixSizeBits);
     lines.push(new HuffmanLine([prefixLength, 0]));
   }
-  return new HuffmanTable(lines, false);
+  return new HuffmanTable(lines, false, onAllocation);
 }
 const standardTablesCache = {};
 function getStandardTable(number) {
@@ -3958,13 +3991,14 @@ function getCustomHuffmanTable(index, referredTo, customTables) {
   }
   throw new Jbig2Error("can't find custom Huffman table");
 }
-function getTextRegionHuffmanTables(textRegion, referredTo, customTables, numberOfSymbols, reader) {
+function getTextRegionHuffmanTables(textRegion, referredTo, customTables, numberOfSymbols, reader, onAllocation) {
+  onAllocation?.((numberOfSymbols + 173) * 256);
   const codes = [];
   for (let i = 0; i <= 34; i++) {
     const codeLength = reader.readBits(4);
     codes.push(new HuffmanLine([i, codeLength, 0, 0]));
   }
-  const runCodesTable = new HuffmanTable(codes, false);
+  const runCodesTable = new HuffmanTable(codes, false, onAllocation);
   codes.length = 0;
   for (let i = 0; i < numberOfSymbols;) {
     const codeLength = runCodesTable.decode(reader);
@@ -3999,7 +4033,7 @@ function getTextRegionHuffmanTables(textRegion, referredTo, customTables, number
     }
   }
   reader.byteAlign();
-  const symbolIDTable = new HuffmanTable(codes, false);
+  const symbolIDTable = new HuffmanTable(codes, false, onAllocation);
   let customIndex = 0,
     tableFirstS,
     tableDeltaS,
@@ -4099,7 +4133,8 @@ function getSymbolDictionaryHuffmanTables(dictionary, referredTo, customTables) 
     tableAggregateInstances
   };
 }
-function readUncompressedBitmap(reader, width, height) {
+function readUncompressedBitmap(reader, width, height, onAllocation) {
+  onAllocation?.((width + 256) * height + 128);
   const bitmap = [];
   for (let y = 0; y < height; y++) {
     const row = new Uint8Array(width);
@@ -4111,7 +4146,8 @@ function readUncompressedBitmap(reader, width, height) {
   }
   return bitmap;
 }
-function decodeMMRBitmap(input, width, height, endOfBlock) {
+function decodeMMRBitmap(input, width, height, endOfBlock, onAllocation) {
+  onAllocation?.((width + 256) * height + (width + 2) * 8 + 1024);
   const params = {
     K: -1,
     Columns: width,
@@ -4151,16 +4187,16 @@ function decodeMMRBitmap(input, width, height, endOfBlock) {
   return bitmap;
 }
 class Jbig2Image {
-  constructor(onImageDimensions) { this.onImageDimensions = onImageDimensions; }
+  constructor(onImageDimensions, onAllocation) { this.onImageDimensions = onImageDimensions; this.onAllocation = onAllocation; }
   parseChunks(chunks) {
-    return parseJbig2Chunks(chunks, this.onImageDimensions);
+    return parseJbig2Chunks(chunks, this.onImageDimensions, this.onAllocation);
   }
-  parse(data) {
+  parse(data, { packed = false } = {}) {
     const {
       imgData,
       width,
       height
-    } = parseJbig2(data, this.onImageDimensions);
+    } = parseJbig2(data, this.onImageDimensions, this.onAllocation, packed);
     this.width = width;
     this.height = height;
     return imgData;

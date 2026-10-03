@@ -51,3 +51,5 @@ export { resolveRetainedImageColor, type PdfRetainedColorOptions } from "./extra
 export { PdfRetainedJpeg, type PdfRetainedJpegOptions } from "./extract/retained-jpeg.js";
 
 export { PdfRetainedJpx, type PdfRetainedJpxOptions } from "./extract/retained-jpx.js";
+
+export { PdfRetainedJbig2, type PdfRetainedJbig2Options } from "./extract/retained-jbig2.js";

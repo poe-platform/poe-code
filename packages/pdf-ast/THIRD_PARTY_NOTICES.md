@@ -66,7 +66,9 @@ otherwise exhausts memory in the upstream build. Other adaptations remove the gl
 assignment and unavailable source-map reference, add per-instance dimension
 callbacks to enforce requested image budgets before pixel/region allocation,
 preserve budget errors through JPX recovery, add per-instance JPX pre-allocation
-charges for decoder buffers and conservative structural metadata, add JPEG row-window conversion
+charges for decoder buffers and conservative structural metadata, add JBIG2
+packed standalone output and per-instance admission for contexts, symbols,
+regions, segment metadata and custom Huffman state, add JPEG row-window conversion
 and per-instance pre-allocation callbacks for typed buffers and conservative
 metadata accounting, add a generated-code lint
 comment, and provide a local TypeScript declaration for the used API.

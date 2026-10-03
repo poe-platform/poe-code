@@ -5,7 +5,7 @@ import {decodeRawResource} from "./codecs/resource-storage.js";
 import {transformStoredPipeline} from "./ops/storage-pipeline.js";
 import {storedImageDecoder} from "./codecs/stored-decoder.js";
 import {readImageResource,UnsupportedStoredResource,type ImageResourceInput} from "./image-resources.js";
-import {compareIdentity, compareFileVersion, dirname, FsError, isFsError, type FileSystem, type FileStat, type FileStaging} from "@poe-code/safe-fs/contracts";
+import {compareIdentity, compareFileVersion, dirname, FsError, isFsError, type FileSystem, type FileStat, type FileStaging, type FileStagingResolution} from "@poe-code/safe-fs/contracts";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {isStoredImageOperation} from "./ops/storage.js";
 import type {SharpInputOptions, OutputEncodeOptions, OutputInfo, ImageAstNode} from "./ast.js";
@@ -21,16 +21,24 @@ export async function tryImageFile(input: ImageResourceInput, output: string, op
   const fs = supplied as FileSystem;
   const io = {signal};
   const reading = inputFile===undefined?undefined:await fs.capabilitiesFor?.(inputFile, io) ?? fs.capabilities;
-  const writing = await fs.capabilitiesFor?.(output, io) ?? fs.capabilities;
-  signal.throwIfAborted();
-  const direct = writing.atomicFilePublication && fs.publishFileConditional;
-  const staged = writing.atomicFileStaging && writing.retainedStagingCleanup && writing.retainedStagingWrite && fs.createStagedFile && fs.publishStagedFile && fs.removeStagedFile;
-  if ((reading && !reading.retainedRead) || (!direct && !staged)) return undefined;
   let expected: FileStat | null = null;
   try {expected = {...await fs.lstat(output,io)};}
   catch(error) {if (!isFsError(error) || error.code !== "ENOENT") throw error;}
-  // The compatibility API follows symlinks. Keep that behavior until the
-  // streaming publisher exposes an equivalent retained resolution capability.
+  const writing = await fs.capabilitiesFor?.(output, expected?.type==="symlink"?{...io,stagingResolution:true,followFinalSymlink:true}:io) ?? fs.capabilities;
+  signal.throwIfAborted();
+  let direct = writing.atomicFilePublication && fs.publishFileConditional;
+  const staged = writing.atomicFileStaging && writing.retainedStagingCleanup && writing.retainedStagingWrite && fs.createStagedFile && fs.publishStagedFile && fs.removeStagedFile;
+  if ((reading && !reading.retainedRead) || (!direct && !staged)) return undefined;
+  let resolution: FileStagingResolution | undefined;
+  if (expected?.type === "symlink") {
+    if (!staged || !writing.synchronousFollowedStagingResolution || !writing.guardedStagingPublication || !writing.atomicStagedFileMutation || !fs.prepareStagingResolution) return undefined;
+    resolution = await fs.prepareStagingResolution(output,{...io,followFinalSymlink:true});
+    const destinationCapabilities=await fs.capabilitiesFor?.(resolution.path,{...io,stagingAncestry:true})??fs.capabilities;
+    if(!destinationCapabilities.atomicStagingAncestry)return undefined;
+    output = resolution.path;
+    expected = resolution.destination;
+    direct = false;
+  }
   if (expected && expected.type !== "file") return undefined;
   const handle = inputFile===undefined?undefined:await fs.openReadFile!(inputFile,io);
   let handleClosed = false, failed = true;
@@ -77,7 +85,7 @@ export async function tryImageFile(input: ImageResourceInput, output: string, op
     decoder=raw?(source,storage,signal)=>decodeRawResource(source,storage,{...options,raw},signal):await storedImageDecoder(source,signal);
     if (!decoder) {failed=false; return undefined;}
     }
-    const directory=dirname(output), parent={...await fs.stat(directory,io)};
+    const directory=dirname(output), parent=resolution?.parent??{...await fs.stat(directory,io)};
     signal.throwIfAborted();
     storage=new PagedStorage({fs,cwd:options.workingDirectory??directory,env:{},signal});
     let image=source&&decoder?await decoder(source,storage,signal,options):await readImageResource(input,options,fs,storage,signal,loadedFiles);
@@ -109,7 +117,7 @@ export async function tryImageFile(input: ImageResourceInput, output: string, op
       for await (const bytes of stream) await staging.writer.write(bytes,io);
       const sealed=await staging.writer.finish(io);
       signal.throwIfAborted();
-      await fs.publishStagedFile!({...staging,file:{...staging.file,stat:sealed}},output,{parent,destination:expected,signal});
+      await fs.publishStagedFile!({...staging,file:{...staging.file,stat:sealed}},output,{parent,destination:expected,signal,...(resolution?{ancestors:resolution.ancestors,commitGuard:resolution.validate,preserveIdentity:expected!==null}:{})});
     }
     if (!complete) throw new FsError("EIO",{path:output,message:"Image publisher returned before consuming output"});
     failed=false;

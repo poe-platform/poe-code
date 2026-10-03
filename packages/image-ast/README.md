@@ -73,7 +73,7 @@ conversions with these operations and `.resize()` use the backed codecs automati
 supplied filesystem supports retained reads, working storage, and atomic
 streaming or retained staged publication. Explicit byte inputs, raw files/bytes and
 previously cached files also use this retained output path; cached resource
-snapshots remain valid. Joined file, byte and generated inputs use caller backing for
+snapshots remain valid. Symlink destinations stream through guarded retained staging when supported, preserving the link and target hardlink aliases and rejecting concurrent retargeting. Joined file, byte and generated inputs use caller backing for
 file output, statistics and metadata, preserving alignment, spacing and animation layout. Generated text and color/noise images
 use the same retained output path, and text metadata avoids rendering a pixel canvas.
 These input formats also support

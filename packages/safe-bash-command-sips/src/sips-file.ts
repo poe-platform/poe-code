@@ -1,6 +1,6 @@
 import {withImageSource,type ImageByteSource} from "@poe-code/image-ast/portable";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
-import {FsError,dirname,type FileStat,type FileStaging} from "@poe-code/safe-fs/contracts";
+import {FsError,dirname,type FileStat,type FileStaging,type FileStagingResolution} from "@poe-code/safe-fs/contracts";
 import {resolvePath} from "safe-bash-contracts/path";
 import {writeFileOutput} from "safe-bash-contracts/filesystem-output-budget";
 import type {CommandContext} from "safe-bash-contracts/command";
@@ -17,12 +17,22 @@ const missing=(error:unknown):boolean=>error instanceof FsError&&["ENOENT","ENOT
 export async function runSipsFiles(argv:readonly string[],input:SipsFileInput,signal:AbortSignal,run:FileRunner):Promise<SipsCliResult>{
  const fs=input.filesystem,io={signal},context={fs,signal,...(input.registerCleanup?{registerCleanup:input.registerCleanup}:{})};
  const pixels=new PagedStorage({fs,cwd:input.cwd,env:{},signal}),payloads=new PagedStorage({fs,cwd:input.cwd,env:{},signal}),images=new StoredSipsImages(pixels,payloads,signal);
- const files=new Map<string,SipsPayload>(),original=new Map<string,SipsPayload>(),expectations=new Map<string,FileStat|null>();
+ const files=new Map<string,SipsPayload>(),original=new Map<string,SipsPayload>(),expectations=new Map<string,FileStat|null>(),resolutions=new Map<string,FileStagingResolution>();
  let total=0,inspectedTotal=0,failed=true;
  const charge=(size:number)=>{total+=size;input.inputBudget?.check(total);};
  const inspect=createIdentifyReader({...input,inputBudget:{check(size){charge(size-inspectedTotal);inspectedTotal=size;}}},signal,true);
  const size=(bytes:SipsPayload)=>bytes instanceof Uint8Array?bytes.length:bytes.size;
  const receipt=async(path:string):Promise<FileStat|null>=>{try{return {...await fs.lstat(path,io)};}catch(error){if(error instanceof FsError&&error.code==="ENOENT")return null;throw error;}};
+ const reserve=async(path:string):Promise<void>=>{
+  if(expectations.has(path))return;
+  const expected=await receipt(path);expectations.set(path,expected);
+  if(expected?.type!=="symlink")return;
+  const capabilities=await fs.capabilitiesFor?.(path,{...io,stagingResolution:true,followFinalSymlink:true})??fs.capabilities;
+  if(!capabilities?.synchronousFollowedStagingResolution||!capabilities.guardedStagingPublication||!capabilities.atomicStagedFileMutation||!capabilities.atomicFileStaging||!capabilities.retainedStagingWrite||!capabilities.retainedStagingCleanup||!fs.prepareStagingResolution||!fs.createStagedFile||!fs.publishStagedFile||!fs.removeStagedFile)return;
+  const resolution=await fs.prepareStagingResolution(path,{...io,followFinalSymlink:true});
+  const target=await fs.capabilitiesFor?.(resolution.path,{...io,stagingAncestry:true})??fs.capabilities;
+  if(target?.atomicStagingAncestry)resolutions.set(path,resolution);
+ };
  const inspectPayload=async(bytes:SipsPayload):Promise<IdentifyInspection>=>{
   try{const metadata=await runImageSteps(performImage(images.backend.metadata(bytes)),signal),properties=await runImageSteps(performImage(images.backend.readProperties(bytes,metadata.format)),signal);return {metadata,properties,size:size(bytes)};}
   catch(error){signal.throwIfAborted();if(error instanceof FsError)throw error;return {error:imageInspectionError(error)};}
@@ -34,22 +44,25 @@ export async function runSipsFiles(argv:readonly string[],input:SipsFileInput,si
   try{
    const capabilities=await fs.capabilitiesFor?.(absolute,io)??fs.capabilities;
    if(capabilities?.retainedRead&&fs.openReadFile){
-    if(!expectations.has(absolute))expectations.set(absolute,await receipt(absolute));
+    await reserve(absolute);
     bytes=await withImageSource(absolute,fs,signal,async source=>{charge(source.size);return images.retain(images.chunks(source));});
    }else{bytes=await fs.readFile(absolute,io);charge(bytes.length);}
   }catch(error){if(missing(error))return undefined;throw error;}
   files.set(path,bytes);original.set(path,bytes);return inspectPayload(bytes);
  };
  const publish=async(path:string,source:ImageByteSource,last:boolean):Promise<void>=>{
-  const capabilities=await fs.capabilitiesFor?.(path,io)??fs.capabilities;
-  const direct=capabilities?.atomicFilePublication&&fs.publishFileConditional;
+  await reserve(path);
+  const resolution=resolutions.get(path);
+  const capabilities=await fs.capabilitiesFor?.(resolution?.path??path,io)??fs.capabilities;
+  const direct=!resolution&&capabilities?.atomicFilePublication&&fs.publishFileConditional;
   const staged=capabilities?.atomicFileStaging&&capabilities.retainedStagingWrite&&capabilities.retainedStagingCleanup&&fs.createStagedFile&&fs.publishStagedFile&&fs.removeStagedFile;
-  const expected=expectations.has(path)?expectations.get(path)!:await receipt(path);
+  const expected=resolution?resolution.destination:expectations.get(path)!;
   if((!direct&&!staged)||expected!==null&&expected.type!=="file"){
    const bytes=await images.materialize(source);if(last)await payloads.close();
    await writeFileOutput(context,bytes,data=>fs.writeFile(path,data,io));return;
   }
-  const parent={...await fs.stat(dirname(path),io)};
+  if(resolution)path=resolution.path;
+  const parent=resolution?.parent??{...await fs.stat(dirname(path),io)};
   if(direct){
    let complete=false;
    const chunks=(async function*(){for await(const bytes of images.chunks(source)){let admitted:Uint8Array|undefined;await writeFileOutput(context,bytes,async bytes=>{admitted=bytes;});if(!admitted)throw new FsError("EIO",{path,message:"Image output budget did not admit data"});yield admitted;}if(last)await payloads.close();complete=true;})();
@@ -68,7 +81,7 @@ export async function runSipsFiles(argv:readonly string[],input:SipsFileInput,si
     if(!staging.writer||!staging.cleanup)throw new FsError("ENOTSUP",{path,message:"Sips output requires retained staging handles"});
     const writer=staging.writer;for await(const bytes of images.chunks(source))await writeFileOutput(context,bytes,async bytes=>{await writer.write(bytes,io);});
     if(last)await payloads.close();
-    const sealed=await writer.finish(io);signal.throwIfAborted();await fs.publishStagedFile!({...staging,file:{...staging.file,stat:sealed}},path,{parent,destination:expected,signal});published=true;
+    const sealed=await writer.finish(io);signal.throwIfAborted();await fs.publishStagedFile!({...staging,file:{...staging.file,stat:sealed}},path,{parent,destination:expected,signal,...(resolution?{ancestors:resolution.ancestors,commitGuard:resolution.validate,preserveIdentity:expected!==null}:{})});published=true;
    }finally{await cleanup();}
   }
  };

@@ -5,6 +5,7 @@ import {loadLuaLibrary} from "./lua-library.js";
 import {stringLibrary} from "./lua-string.generated.js";
 import type {LuaProgram} from "./lua-program.js";
 import type {LuaMachine} from "./lua-machine.js";
+import {LuaPack} from "./lua-pack.js";
 import {LuaPattern} from "./lua-pattern.js";
 import {LuaStrings} from "./lua-strings.js";
 import type {LuaArguments,LuaNativeOutput} from "./lua-machine.js";
@@ -22,6 +23,7 @@ export class LuaStringLibrary {
   constructor(private readonly heap:LuaStorage,private readonly cooperate:(units?:number)=>Promise<void>) {this.numbers=new LuaNumbers(heap);this.strings=new LuaStrings(heap);}
   async install(environment:LuaReference,program:LuaProgram,machine:LuaMachine):Promise<void> {
     const library=await this.heap.table(),key=(name:string)=>this.heap.string([new TextEncoder().encode(name)]);
+    for(const [i,name] of ["pack","packsize","unpack"].entries()) await this.heap.set(library,await key(name),await this.heap.closure(-520-i,[]));
     for(let i=0;i<names.length;i++) await this.heap.set(library,await key(names[i]!),await this.heap.closure(-500-i,[]));
     const metatable=await this.heap.table();
     await this.heap.set(metatable,await key("__index"),library);
@@ -39,6 +41,7 @@ export class LuaStringLibrary {
     return value===undefined && fallback!==undefined?fallback:integral(await this.numbers.coerce(value));
   }
   async invoke(prototype:number,args:LuaArguments):Promise<LuaNativeOutput> {
+    if(prototype<=-520 && prototype>=-522) return new LuaPack(this.heap,this.cooperate).invoke(["pack","packsize","unpack"][-520-prototype]!,args);
     if(prototype===-512) return [integer(await this.argument(args,0))];
     if(prototype===-513) {
       const heap=this.heap,table=await args.get(0) as LuaReference,count=await this.numbers.coerce(await args.get(1));

@@ -455,3 +455,56 @@ it("cancels inside a replacement callback and cleans retained iterator state",as
   const controller=new AbortController();
   await expect(execute("return string.gsub('x','.',function() host(); while true do end end)",{string:true,signal:controller.signal,native:()=>{setTimeout(()=>controller.abort(),0);return [];}})).rejects.toMatchObject({code:"E_CANCELLED"});
 });
+
+it.each([
+  "return string.packsize('bBhHlLjJTfdn'),string.packsize('!8 bXd c3')",
+  "return string.byte(string.pack('<bBhHi4I4',-7,250,-1024,65000,-2147483648,-1),1,-1)",
+  "return string.byte(string.pack('>i8I8',-1,-1),1,-1)",
+  "return string.unpack('>i2I2fd',string.pack('>i2I2fd',-123,50000,1.25,-2.5))",
+  "return string.unpack('!8 bXd d',string.pack('!8 bXd d',7,2.5))",
+  "return string.byte(string.pack('c5s1z','ab','xyz','ok'),1,-1)",
+  "return string.unpack('c5s1z',string.pack('c5s1z','ab','xyz','ok'))",
+  "return string.unpack('c0z','abc')",
+  "return string.unpack('z','abc',2)",
+  "return string.unpack('b','abc',-1),string.unpack('','abc',4)",
+  "return string.packsize('!16 i16Xi16'),string.packsize('=iI! b'),string.packsize('c0')"
+])("preserves retained binary string formats: %s",async source=>{expect(await execute(source,{string:true})).toEqual(native(source));});
+it.each([
+  "string.packsize('z')","string.packsize('s')","string.packsize('i0')","string.packsize('i17')","string.packsize('!3i3')","string.packsize('Xc2')","string.packsize('X')","string.packsize('c')","string.packsize('q')","string.packsize('c2147483647')",
+  "string.pack('b',128)","string.pack('B',-1)","string.pack('c2','abc')","string.pack('z','a'..string.char(0))",
+  "string.unpack('i4','a')","string.unpack('','a',0)","string.unpack('I8',string.pack('I8',-1))"
+])("rejects invalid binary string formats: %s",async source=>{await expect(execute(source,{string:true})).rejects.toMatchObject({code:"E_AST"});});
+
+it("streams binary fields and formats across retained chunk boundaries",async()=>{
+  const result=await execute("local s,f=host(); local packed=string.pack(f,s,s); local a,b,p=string.unpack(f,packed); return #packed,#a,#b,p,string.byte(a,-1),string.byte(b,-1)",{string:true,native:async heap=>{
+    const input=await heap.string([new Uint8Array(17003).fill(65)]),format=await heap.string([new TextEncoder().encode(' '.repeat(8191)+'s4z')]);
+    const read=heap.readBytes.bind(heap);
+    vi.spyOn(heap,"readBytes").mockImplementation(async(value,start,count)=>{expect(count).toBeLessThanOrEqual(8192);return read(value,start,count);});
+    return [input,format];
+  }});
+  expect(result).toEqual([34011,17003,17003,34012,65,65].map(value=>({kind:"integer",value})));
+});
+it("computes binary field sizes without materializing field bytes",async()=>{
+  expect(await execute("return string.packsize(host())",{string:true,native:async heap=>{
+    const value=await heap.string([new TextEncoder().encode('c2147483639')]);
+    vi.spyOn(heap,"string").mockRejectedValue(new Error("Unexpected string materialization"));
+    return [value];
+  }})).toEqual([{kind:"integer",value:2147483639}]);
+});
+it("streams unpack results beyond fixed Lua registers",async()=>{
+  expect(await execute("return select('#',string.unpack(string.rep('B',300),string.rep('a',300)))",{string:true})).toEqual([{kind:"integer",value:301}]);
+});
+it("cancels streamed binary padding and cleans backing files",async()=>{
+  const controller=new AbortController();
+  await expect(execute("return string.pack(host(),'')",{string:true,signal:controller.signal,native:async heap=>{
+    const value=await heap.string([new TextEncoder().encode('c2147483639')]);
+    setTimeout(()=>controller.abort(),0);return [value];
+  }})).rejects.toMatchObject({code:"E_CANCELLED"});
+});
+it.each([
+  "return string.unpack('i8',string.pack('i8',-2147483648))",
+  "return string.unpack('>I16',string.pack('>I16',2147483647))",
+  "return string.unpack('z','abc',4)",
+  "return string.unpack('s4',string.pack('i4',-1))",
+  "return string.packsize('c2147483639')"
+])("preserves binary format boundary behavior: %s",async source=>{expect(await execute(source,{string:true})).toEqual(native(source));});

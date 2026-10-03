@@ -1,3 +1,4 @@
+import {fmaDouble,buildVipsReduceTable,VIPS_BICUBIC_TABLE,nearestCoordinates} from "./resize-math.js";
 import type {
   GravityPosition,
   ResizeFit,
@@ -5,73 +6,6 @@ import type {
   RgbaColor,
   RgbaImage
 } from "../ast.js";
-
-function sinc(x: number): number {
-  if (Math.abs(x) < 1e-7) return 1;
-  const px = Math.PI * x;
-  return Math.sin(px) / px;
-}
-
-function kernelWeight(x: number, kernel: ResizeKernel): number {
-  const ax = Math.abs(x);
-  switch (kernel) {
-    case "nearest":
-      return ax < 0.5 ? 1 : 0;
-    case "linear":
-    case "bilinear":
-      return ax < 1 ? 1 - ax : 0;
-    case "cubic": {
-      // Catmull-Rom (B = 0, C = 0.5)
-      if (ax < 1) {
-        return 1.5 * ax * ax * ax - 2.5 * ax * ax + 1;
-      }
-      if (ax < 2) {
-        return -0.5 * ax * ax * ax + 2.5 * ax * ax - 4 * ax + 2;
-      }
-      return 0;
-    }
-    case "mitchell": {
-      // Mitchell-Netravali (B = 1/3, C = 1/3)
-      const B = 1 / 3;
-      const C = 1 / 3;
-      if (ax < 1) {
-        return ((12 - 9 * B - 6 * C) * ax * ax * ax + (-18 + 12 * B + 6 * C) * ax * ax + (6 - 2 * B)) / 6;
-      }
-      if (ax < 2) {
-        return (
-          ((-B - 6 * C) * ax * ax * ax +
-            (6 * B + 30 * C) * ax * ax +
-            (-12 * B - 48 * C) * ax +
-            (8 * B + 24 * C)) /
-          6
-        );
-      }
-      return 0;
-    }
-    case "lanczos2":
-      return ax < 2 ? sinc(x) * sinc(x / 2) : 0;
-    case "lanczos3":
-    default:
-      return ax < 3 ? sinc(x) * sinc(x / 3) : 0;
-  }
-}
-
-function kernelRadius(kernel: ResizeKernel): number {
-  switch (kernel) {
-    case "nearest":
-      return 0.5;
-    case "linear":
-    case "bilinear":
-      return 1;
-    case "cubic":
-    case "mitchell":
-    case "lanczos2":
-      return 2;
-    case "lanczos3":
-    default:
-      return 3;
-  }
-}
 
 export function resolveGravityOffset(
   outerW: number,
@@ -335,187 +269,15 @@ function *smartcropAttentionSteps(
   return { x: left, y: top };
 }
 
-function fmaDouble(a: number, b: number, c: number): number {
-  const splitter = 134217729;
-  const p = a * b;
-  const ca = splitter * a;
-  const ah = ca - (ca - a);
-  const al = a - ah;
-  const cb = splitter * b;
-  const bh = cb - (cb - b);
-  const bl = b - bh;
-  const err = ((ah * bh - p) + ah * bl + al * bh) + al * bl;
-  return (p + c) + err;
+function *computeVipsNearestIndices2DSteps(srcW:number,srcH:number,dstW:number,dstH:number,explicitHscale?:number,explicitVscale?:number):Generator<void,{readonly xs:Int32Array;readonly ys:Int32Array},void> {
+  const coordinates=nearestCoordinates(srcW,srcH,dstW,dstH,explicitHscale,explicitVscale);
+  const xs=new Int32Array(dstW),ys=new Int32Array(dstH);
+  let work=0,index=0;
+  for(const value of coordinates.x()) {if(++work%16384===0) yield;xs[index++]=value;}
+  index=0;
+  for(const value of coordinates.y()) {if(++work%16384===0) yield;ys[index++]=value;}
+  return {xs,ys};
 }
-
-function *computeVipsNearestIndices2DSteps(
-  srcW: number,
-  srcH: number,
-  dstW: number,
-  dstH: number,
-  explicitHscale?: number,
-  explicitVscale?: number
-): Generator<void, { readonly xs: Int32Array; readonly ys: Int32Array }, void> {
-  let work = 0;
-  let hscale = explicitHscale ?? 1.0 / (srcW / dstW);
-  let vscale = explicitVscale ?? 1.0 / (srcH / dstH);
-  const targetW = Math.trunc(fmaDouble(srcW, hscale, 0.5));
-  const targetH = Math.trunc(fmaDouble(srcH, vscale, 0.5));
-  const intHshrink = Math.max(1, Math.floor((srcW / targetW) / 2.0));
-  const intVshrink = Math.max(1, Math.floor((srcH / targetH) / 2.0));
-  let subW = srcW;
-  let subH = srcH;
-  let xshrink = 1;
-  let yshrink = 1;
-  if (intHshrink > 1 || intVshrink > 1) {
-    xshrink = intHshrink;
-    yshrink = intVshrink;
-    subW = Math.floor(srcW / xshrink);
-    subH = Math.floor(srcH / yshrink);
-    hscale *= xshrink;
-    vscale *= yshrink;
-  }
-  hscale = Math.max(hscale, 1.0 / subW);
-  vscale = Math.max(vscale, 1.0 / subH);
-
-  let remVscale = vscale;
-  const ys = new Int32Array(dstH);
-  if (vscale < 1.0) {
-    const vshrink = 1.0 / vscale;
-    const outH = Math.trunc(subH / vshrink + 0.5);
-    const extraPixels = fmaDouble(outH, vshrink, -subH);
-    const voffset = (extraPixels + 1.0) * 0.5 - 1.0;
-    let pos = fmaDouble(0.5, vshrink, -0.5) - voffset;
-    for (let y = 0; y < dstH; y++) {
-    if (++work % 16384 === 0) yield;
-      const subIdx = Math.max(0, Math.min(subH - 1, Math.trunc(pos)));
-      ys[y] = subIdx * yshrink;
-      pos += vshrink;
-    }
-    remVscale = 1.0;
-  }
-
-  let remHscale = hscale;
-  const xs = new Int32Array(dstW);
-  if (hscale < 1.0) {
-    const hshrink = 1.0 / hscale;
-    const outW = Math.trunc(subW / hshrink + 0.5);
-    const extraPixels = fmaDouble(outW, hshrink, -subW);
-    const hoffset = (extraPixels + 1.0) * 0.5 - 1.0;
-    let pos = fmaDouble(0.5, hshrink, -0.5) - hoffset;
-    for (let x = 0; x < dstW; x++) {
-    if (++work % 16384 === 0) yield;
-      const subIdx = Math.max(0, Math.min(subW - 1, Math.trunc(pos)));
-      xs[x] = subIdx * xshrink;
-      pos += hshrink;
-    }
-    remHscale = 1.0;
-  }
-
-  if (remHscale > 1.0 || remVscale > 1.0) {
-    const isIntZoom = remHscale === Math.floor(remHscale) && remVscale === Math.floor(remVscale);
-    if (isIntZoom) {
-      if (hscale >= 1.0) {
-        const zoomX = Math.floor(remHscale);
-        for (let x = 0; x < dstW; x++) {
-    if (++work % 16384 === 0) yield;
-          xs[x] = Math.max(0, Math.min(subW - 1, Math.floor(x / zoomX))) * xshrink;
-        }
-      }
-      if (vscale >= 1.0) {
-        const zoomY = Math.floor(remVscale);
-        for (let y = 0; y < dstH; y++) {
-    if (++work % 16384 === 0) yield;
-          ys[y] = Math.max(0, Math.min(subH - 1, Math.floor(y / zoomY))) * yshrink;
-        }
-      }
-    } else {
-      const invDet = 1.0 / (remHscale * remVscale);
-      const ia = remVscale * invDet;
-      const id = remHscale * invDet;
-      if (hscale >= 1.0) {
-        let d9 = 1.0;
-        for (let x = 0; x < dstW; x++) {
-    if (++work % 16384 === 0) yield;
-          const subIdx = Math.max(0, Math.min(subW - 1, Math.trunc(d9) - 1));
-          xs[x] = subIdx * xshrink;
-          d9 += ia;
-        }
-      }
-      if (vscale >= 1.0) {
-        for (let y = 0; y < dstH; y++) {
-    if (++work % 16384 === 0) yield;
-          const d8 = y * id + 1.0;
-          const subIdx = Math.max(0, Math.min(subH - 1, Math.trunc(d8) - 1));
-          ys[y] = subIdx * yshrink;
-        }
-      }
-    }
-  } else {
-    if (hscale === 1.0) {
-      for (let x = 0; x < dstW; x++) { if (++work % 16384 === 0) yield; xs[x] = Math.min(subW - 1, x) * xshrink; }
-    }
-    if (vscale === 1.0) {
-      for (let y = 0; y < dstH; y++) { if (++work % 16384 === 0) yield; ys[y] = Math.min(subH - 1, y) * yshrink; }
-    }
-  }
-  return { xs, ys };
-}
-
-function rintEven(x: number): number {
-  const r = Math.round(x);
-  if (Math.abs(x - r) === 0.5) return r % 2 === 0 ? r : r - 1;
-  return r;
-}
-
-function buildVipsReduceTable(
-  shrink: number,
-  kernel: ResizeKernel
-): { readonly nPoint: number; readonly table: Int32Array } {
-  const mult =
-    kernel === "linear" || kernel === "bilinear" ? 1.0 : kernel === "lanczos3" ? 3.0 : 2.0;
-  const nPoint = 2 * rintEven(mult * shrink) + 1;
-  const table = new Int32Array(65 * nPoint);
-  const wf = new Float64Array(nPoint);
-  for (let k = 0; k < 65; k++) {
-    const s = Math.fround(k * Math.fround(1.0 / 64.0));
-    const d15 = nPoint * 0.5 + s - 1.0;
-    let sum = 0.0;
-    for (let j = 0; j < nPoint; j++) {
-      const x = (j - d15) / shrink;
-      const v = kernelWeight(x, kernel);
-      wf[j] = v;
-      sum += v;
-    }
-    for (let j = 0; j < nPoint; j++) {
-      table[k * nPoint + j] = Math.trunc((wf[j]! / sum) * 4096.0);
-    }
-  }
-  return { nPoint, table };
-}
-
-const VIPS_BICUBIC_TABLE = (() => {
-  const t = new Int32Array(65 * 4);
-  for (let k = 0; k < 64; k++) {
-    const s = Math.fround(k * Math.fround(1.0 / 64.0));
-    const u = Math.fround(1.0 - s);
-    const t0 = Math.fround(Math.fround(-0.5 * s) * u);
-    const c0 = Math.fround(t0 * u);
-    const c3 = Math.fround(t0 * s);
-    const diff = Math.fround(c3 - c0);
-    const c1 = Math.fround(Math.fround(u - c0) + diff);
-    const c2 = Math.fround(Math.fround(s - c3) - diff);
-    t[k * 4] = Math.trunc(c0 * 4096.0);
-    t[k * 4 + 1] = Math.trunc(c1 * 4096.0);
-    t[k * 4 + 2] = Math.trunc(c2 * 4096.0);
-    t[k * 4 + 3] = Math.trunc(c3 * 4096.0);
-  }
-  t[64 * 4] = 0;
-  t[64 * 4 + 1] = 0;
-  t[64 * 4 + 2] = 4096;
-  t[64 * 4 + 3] = 0;
-  return t;
-})();
 
 function *shrinkVBoxSteps(
   src: Uint8Array,

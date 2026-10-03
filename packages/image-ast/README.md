@@ -23,6 +23,9 @@ alpha, gamma, threshold, normalization and metadata operations. PNG-to-PNG `.toF
 conversions with these operations use the backed codecs automatically when the
 supplied filesystem supports retained reads, working storage, and atomic
 streaming or retained staged publication.
+`resampleStoredImage(image, storage, {width, height, kernel}, signal)` resamples
+backed RGBA pixels with bounded caches, including alpha and all resize kernels.
+Optional explicit scales must round to the requested output dimensions.
 Use an external backing provider
 for large images; memory-backed storage still retains the pixels in RAM.
 

@@ -70,7 +70,7 @@ it("packs the image PNG filesystem API with canonical public storage and a host-
   expect(ts.getPreEmitDiagnostics(program).map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"))).toEqual([]);
   copy(path.join(root, "node_modules/pako"), "/installed/pako");
   copy(path.join(root, "node_modules/@noble/hashes"), "/installed/@noble/hashes");
-  write("/consumer.js", 'export {default as sharp} from "@poe-platform/safe-bash/sharp"; export {MemoryFileSystem} from "@poe-platform/safe-fs/core";');
+  write("/consumer.js", 'export {default as sharp, resampleStoredImage} from "@poe-platform/safe-bash/sharp"; export {MemoryFileSystem} from "@poe-platform/safe-fs/core";');
   const select = (value: unknown): string => {
     if (typeof value === "string") return value;
     for (const condition of ["workerd", "browser", "import", "default"]) {
@@ -98,9 +98,19 @@ it("packs the image PNG filesystem API with canonical public storage and a host-
       builder.onLoad({filter: /.*/, namespace: "packed"}, args => ({contents: volume.readFileSync(args.path, "utf8").toString(), resolveDir: path.dirname(args.path)}));
     }}]});
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
-  const module = {exports: {} as {sharp: typeof import("../packages/image-ast/src/index.js").default; MemoryFileSystem: typeof import("../packages/safe-fs/src/core.js").MemoryFileSystem}};
+  const module = {exports: {} as {sharp: typeof import("../packages/image-ast/src/index.js").default; resampleStoredImage: typeof import("../packages/image-ast/src/index.js").resampleStoredImage; MemoryFileSystem: typeof import("../packages/safe-fs/src/core.js").MemoryFileSystem}};
   runInContext(result.outputFiles[0]!.text, createContext({module, exports: module.exports, Uint8Array, ArrayBuffer, TextEncoder, TextDecoder, AbortSignal, AbortController, structuredClone, ReadableStream, WritableStream, TransformStream, queueMicrotask, setTimeout, clearTimeout, crypto: globalThis.crypto}));
-  const {sharp, MemoryFileSystem} = module.exports;
+  const {sharp, MemoryFileSystem, resampleStoredImage} = module.exports;
+  const pixels = new Uint8Array(4096);
+  pixels.set([255, 0, 0, 255]);
+  let end = 4;
+  const storage = {
+    allocate(length: number) {const position = end; end += length; return position;},
+    async read(position: number, length: number) {return pixels.subarray(position, position + length);},
+    async write(position: number, bytes: Uint8Array) {pixels.set(bytes, position);}
+  };
+  const resized = await resampleStoredImage({width: 1, height: 1, position: 0, format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false}, storage, {width: 3, height: 2}, new AbortController().signal);
+  expect([...pixels.subarray(resized.position, resized.position + 24)]).toEqual(Array.from({length: 6}, () => [255, 0, 0, 255]).flat());
   const fs = new MemoryFileSystem();
   const input = await sharp({create: {width: 7, height: 3, channels: 4, background: "red"}}).png().toBuffer();
   await fs.writeFile("/input.png", input);

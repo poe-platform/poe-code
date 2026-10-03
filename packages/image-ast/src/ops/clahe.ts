@@ -1,4 +1,4 @@
-import type {RgbaImage} from "../ast.js";
+import type {RgbaImage,ImageAstNode} from "../ast.js";
 import {extendedCoordinate} from "./canvas-math.js";
 export interface ClaheOptions {readonly width:number;readonly height:number;readonly maxSlope:number;}
 /** Four fixed histograms; coordinates are calculated instead of image-sized tables. */
@@ -34,4 +34,11 @@ export class ClaheWindow {
   }
   return result;
  }
+}
+
+/** Sharp promotes grayscale sources unless the caller explicitly keeps grayscale. */
+export function prepareClaheImage<T extends Pick<RgbaImage,"channels"|"space"|"hasAlpha">>(image:T,nodes:readonly ImageAstNode[]):T {
+ const explicitBw=nodes.some(node=>node.kind==="grayscale" || node.kind==="toColorspace" && (node.space==="b-w" || node.space==="grey16"));
+ if(!explicitBw && (image.channels===1 || image.channels===2)) return {...image,channels:image.channels===2?4:3,space:"srgb",hasAlpha:image.channels===2};
+ return image;
 }

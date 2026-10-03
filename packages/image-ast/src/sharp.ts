@@ -1,3 +1,4 @@
+import {prepareClaheImage} from "./ops/clahe.js";
 import {orderImageNodes,splitPostScaleNodes,imageAlphaStages} from "./ops/order.js";
 import {tryPngFile} from "./png-file.js";
 import { EventEmitter, Duplex, outputBytes } from "./streams/web.js";
@@ -793,17 +794,7 @@ export class SharpInstance extends Duplex {
           break;
         }
         case "clahe": {
-          const explicitBw = this.nodes.some(
-            n => n.kind === "grayscale" || (n.kind === "toColorspace" && (n.space === "b-w" || n.space === "grey16"))
-          );
-          if (!explicitBw && (img.channels === 1 || img.channels === 2)) {
-            img = {
-              ...img,
-              channels: img.channels === 2 ? 4 : 3,
-              space: "srgb",
-              hasAlpha: img.channels === 2
-            };
-          }
+          img = prepareClaheImage(img,this.nodes);
           img = claheImage(img, node);
           break;
         }

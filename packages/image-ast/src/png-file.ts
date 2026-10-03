@@ -1,3 +1,4 @@
+import {prepareClaheImage} from "./ops/clahe.js";
 import {transformStoredPixels} from "./ops/storage-pixels.js";
 import {resizeStoredImage} from "./ops/storage-resize.js";
 import {compareIdentity, compareFileVersion, dirname, FsError, isFsError, type FileSystem, type FileStat, type FileStaging} from "@poe-code/safe-fs/contracts";
@@ -83,6 +84,7 @@ export async function tryPngFile(input: string, output: string, options: SharpIn
     const ordered=orderImageNodes(nodes),stages=imageAlphaStages(ordered);
     for (let index=0;index<ordered.length;index++) {
       const operation=ordered[index]!;
+      if(operation.kind==="clahe") image=prepareClaheImage(image,operations);
       if (splitGamma && !gammaInApplied && (index===stages.first || operation.kind==="modulate" || operation.kind==="recomb")) {
         image=await transformStoredImage(image,storage,{...gamma,gammaOut:1},signal);
         gammaInApplied=true;

@@ -101,3 +101,36 @@ it("retains only addressable palette entries while validating the remaining stre
   await expect(resolveRetainedImageColor(f.doc, cosName("Palette"), f.resources, f.storage, { maxWorkingBytes: 4096, maxStagingBytes: 768 })).rejects.toThrow("malformed tail");
   expect(await f.storage.fs.readdir("/scratch")).toEqual(before); await f.close();
 });
+
+it("reads only the selected vector palette entry into admitted memory", async () => {
+  const { convertRetainedContentColor } = await import("./retained-color.js");
+  const f = await fixture();
+  const original = f.doc.objects.decodeStream.bind(f.doc.objects);
+  const decode = vi.spyOn(f.doc.objects, "decodeStream").mockImplementation(function (objectNumber, generationNumber, options) {
+    if (objectNumber !== f.palette.objectNumber) return original(objectNumber, generationNumber, options);
+    return (async function* () {
+      const bytes = new Uint8Array(4096).fill(127);
+      for (let i = 0; i < 32; i++) yield bytes;
+    })();
+  });
+  try {
+    expect(await convertRetainedContentColor(f.doc, undefined, "Palette", [1], f.resources, f.storage, { maxWorkingBytes: 16384, chunkBytes: 4096 })).toEqual([127 / 255, 127 / 255, 127 / 255]);
+    expect(decode).toHaveBeenCalledOnce();
+  } finally { await f.close(); }
+});
+
+it("validates the palette tail and preserves cancellation and owner rejection", async () => {
+  const { convertRetainedContentColor } = await import("./retained-color.js");
+  const f = await fixture(); const failure = new Error("bad palette tail");
+  const decode = vi.spyOn(f.doc.objects, "decodeStream").mockImplementation(() => (async function* () {
+    yield new Uint8Array([255, 0, 0, 0, 255, 0]); throw failure;
+  })());
+  try {
+    await expect(convertRetainedContentColor(f.doc, undefined, "Palette", [0], f.resources, f.storage)).rejects.toBe(failure);
+    decode.mockClear();
+    await expect(convertRetainedContentColor(f.doc, undefined, "Palette", [0], f.resources, f.storage, { onAllocation() { throw failure; } })).rejects.toBe(failure);
+    expect(decode).not.toHaveBeenCalled();
+    const controller = new AbortController(); controller.abort(failure);
+    await expect(convertRetainedContentColor(f.doc, undefined, "DeviceRGB", [1, 0, 0], undefined, f.storage, { signal: controller.signal })).rejects.toBe(failure);
+  } finally { await f.close(); }
+});

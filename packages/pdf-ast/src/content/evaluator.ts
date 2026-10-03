@@ -263,40 +263,74 @@ function kClamp(v: number): number {
   return Math.max(0, Math.min(1, v));
 }
 
-function getColorSpaceComponentCount(
-  doc: ParsedCosDocument | undefined,
+export type PdfColorRequest = { readonly kind: "resolve"; readonly node: PdfCosNode | undefined }
+  | { readonly kind: "decode"; readonly stream: PdfCosStream; readonly start: number; readonly length: number }
+  | { readonly kind: "calibrated"; readonly family: "CalGray" | "CalRGB" | "Lab"; readonly parameters: PdfCosNode | undefined }
+  | { readonly kind: "function"; readonly node: PdfCosNode | undefined; readonly components: readonly number[] };
+type ColorWork<T> = Generator<PdfColorRequest, T, unknown>;
+
+function resolveColorNode(node: PdfCosNode | undefined): ColorWork<PdfCosNode | undefined>;
+function resolveColorNode<K extends PdfCosNode["kind"]>(node: PdfCosNode | undefined, kind: K): ColorWork<Extract<PdfCosNode, { kind: K }> | undefined>;
+function* resolveColorNode(node: PdfCosNode | undefined, kind?: PdfCosNode["kind"]): ColorWork<PdfCosNode | undefined> {
+  const value = (yield { kind: "resolve", node }) as PdfCosNode | undefined;
+  if (kind === "dict" && value?.kind === "stream") return value.dict;
+  return kind && value?.kind !== kind ? undefined : value;
+}
+
+function runColorProgram<T>(doc: ParsedCosDocument | undefined, work: ColorWork<T>): T {
+  try {
+    let step = work.next();
+    while (!step.done) {
+      const request = step.value;
+      if (request.kind === "resolve") step = work.next(doc?.resolve(request.node));
+      else {
+        if (!doc) throw new PdfError("E_CAPABILITY", "PDF resource color requires a source driver");
+        if (request.kind === "decode") {
+          const bytes = doc.decodeStream(request.stream);
+          step = work.next(Number.isSafeInteger(request.start) && request.start >= 0 ? bytes.subarray(request.start, request.start + request.length) : new Uint8Array());
+        }
+        else if (request.kind === "calibrated") step = work.next(createCalibratedColorSpace(doc, request.family, request.parameters));
+        else step = work.next(evalShadingFunctionToComponents(doc, request.node, request.components));
+      }
+    }
+    return step.value;
+  } finally { work.return(undefined as never); }
+}
+
+function* colorComponentCountSteps(
+  hasDocument: boolean,
   csNode: import("../ast.js").PdfCosNode | undefined,
   activeResources?: PdfCosDict,
   depth = 0
-): number {
+): ColorWork<number> {
   if (!csNode || depth > 4) return 3;
-  const resolved = doc ? doc.resolve(csNode) : csNode;
+  const resolved = hasDocument ? (yield* resolveColorNode(csNode)) : csNode;
   if (!resolved) return 3;
   if (resolved.kind === "name") {
     const name = resolved.decoded;
     if (name === "DeviceGray" || name === "G" || name === "CalGray") return 1;
     if (name === "DeviceCMYK" || name === "CMYK") return 4;
     if (name === "DeviceRGB" || name === "RGB" || name === "CalRGB" || name === "Lab") return 3;
-    if (doc && activeResources) {
-      const csDict = doc.resolveDict(dictGet(activeResources, "ColorSpace"));
+    if (hasDocument && activeResources) {
+      const csDict = (yield* resolveColorNode(dictGet(activeResources, "ColorSpace"), "dict"));
       const mapped = csDict ? dictGet(csDict, name) : undefined;
-      if (mapped) return getColorSpaceComponentCount(doc, mapped, activeResources, depth + 1);
+      if (mapped) return yield* colorComponentCountSteps(hasDocument, mapped, activeResources, depth + 1);
     }
     return 3;
   }
   if (resolved.kind === "array" && resolved.items.length > 0) {
-    const familyNode = doc ? doc.resolve(resolved.items[0]) : resolved.items[0];
+    const familyNode = hasDocument ? (yield* resolveColorNode(resolved.items[0])) : resolved.items[0];
     const family = familyNode?.kind === "name" ? familyNode.decoded : "";
     if (family === "CalGray" || family === "Indexed" || family === "Separation") return 1;
     if (family === "CalRGB" || family === "Lab") return 3;
     if (family === "DeviceN") {
-      const namesArr = doc && resolved.items[1] ? doc.resolveArray(resolved.items[1]) : undefined;
+      const namesArr = hasDocument && resolved.items[1] ? (yield* resolveColorNode(resolved.items[1], "array")) : undefined;
       return namesArr ? Math.max(1, namesArr.items.length) : 1;
     }
-    if (family === "ICCBased" && doc && resolved.items[1]) {
-      const iccStream = doc.resolve(resolved.items[1]);
+    if (family === "ICCBased" && hasDocument && resolved.items[1]) {
+      const iccStream = (yield* resolveColorNode(resolved.items[1]));
       const iccDict = iccStream?.kind === "stream" ? iccStream.dict : iccStream?.kind === "dict" ? iccStream : undefined;
-      const nNode = iccDict ? doc.resolve(dictGet(iccDict, "N")) : undefined;
+      const nNode = iccDict ? (yield* resolveColorNode(dictGet(iccDict, "N"))) : undefined;
       if (nNode?.kind === "number" && (nNode.value === 1 || nNode.value === 3 || nNode.value === 4)) {
         return nNode.value;
       }
@@ -305,17 +339,17 @@ function getColorSpaceComponentCount(
   return 3;
 }
 
-function convertColorSpaceComponentsToRgb(
-  doc: ParsedCosDocument | undefined,
+export function* convertContentColorSteps(
+  hasDocument: boolean,
   csNode: import("../ast.js").PdfCosNode | undefined,
   csNameFallback: string,
   comps: readonly number[],
   activeResources?: PdfCosDict,
   depth = 0
-): [number, number, number] {
+): ColorWork<[number, number, number]> {
   if (depth > 5) return shadingComponentsToRgb(csNameFallback, comps);
-  let resolved = csNode && doc ? doc.resolve(csNode) : csNode;
-  if ((!resolved || resolved.kind === "name") && doc && activeResources) {
+  let resolved = csNode && hasDocument ? (yield* resolveColorNode(csNode)) : csNode;
+  if ((!resolved || resolved.kind === "name") && hasDocument && activeResources) {
     const lookupName = resolved?.kind === "name" ? resolved.decoded : csNameFallback;
     if (
       lookupName &&
@@ -326,10 +360,10 @@ function convertColorSpaceComponentsToRgb(
       lookupName !== "DeviceCMYK" &&
       lookupName !== "CMYK"
     ) {
-      const csDict = doc.resolveDict(dictGet(activeResources, "ColorSpace"));
+      const csDict = (yield* resolveColorNode(dictGet(activeResources, "ColorSpace"), "dict"));
       const mapped = csDict ? dictGet(csDict, lookupName) : undefined;
       if (mapped) {
-        resolved = doc.resolve(mapped);
+        resolved = (yield* resolveColorNode(mapped));
       }
     }
   }
@@ -337,22 +371,22 @@ function convertColorSpaceComponentsToRgb(
     const name = resolved?.kind === "name" ? resolved.decoded : csNameFallback;
     return shadingComponentsToRgb(name, comps);
   }
-  if (resolved.kind === "array" && resolved.items.length > 0 && doc) {
-    const familyNode = doc.resolve(resolved.items[0]);
+  if (resolved.kind === "array" && resolved.items.length > 0 && hasDocument) {
+    const familyNode = (yield* resolveColorNode(resolved.items[0]));
     const family = familyNode?.kind === "name" ? familyNode.decoded : "";
     if (family === "CalGray" || family === "CalRGB" || family === "Lab") {
-      const colorSpace = createCalibratedColorSpace(doc, family, resolved.items[1]);
+      const colorSpace = ((yield { kind: "calibrated", family, parameters: resolved.items[1] }) as ReturnType<typeof createCalibratedColorSpace>);
       const rgb = colorSpace.getRgb(comps, 0);
       return [rgb[0]! / 255, rgb[1]! / 255, rgb[2]! / 255];
     }
     if (family === "ICCBased" && resolved.items[1]) {
-      const iccNode = doc.resolve(resolved.items[1]);
+      const iccNode = (yield* resolveColorNode(resolved.items[1]));
       const iccDict = iccNode?.kind === "stream" ? iccNode.dict : iccNode?.kind === "dict" ? iccNode : undefined;
       const altNode = iccDict ? dictGet(iccDict, "Alternate") : undefined;
       if (altNode) {
-        return convertColorSpaceComponentsToRgb(doc, altNode, "DeviceRGB", comps, activeResources, depth + 1);
+        return yield* convertContentColorSteps(hasDocument, altNode, "DeviceRGB", comps, activeResources, depth + 1);
       }
-      const nNode = iccDict ? doc.resolve(dictGet(iccDict, "N")) : undefined;
+      const nNode = iccDict ? (yield* resolveColorNode(dictGet(iccDict, "N"))) : undefined;
       const n = nNode?.kind === "number" ? nNode.value : comps.length;
       if (n === 1) return shadingComponentsToRgb("DeviceGray", comps);
       if (n === 4) return shadingComponentsToRgb("DeviceCMYK", comps);
@@ -361,43 +395,44 @@ function convertColorSpaceComponentsToRgb(
     if ((family === "Separation" || family === "DeviceN") && resolved.items.length >= 4) {
       const altSpaceNode = resolved.items[2];
       const tintFnNode = resolved.items[3];
-      const altComps = evalShadingFunctionToComponents(doc, tintFnNode, comps);
-      return convertColorSpaceComponentsToRgb(doc, altSpaceNode, "DeviceRGB", altComps, activeResources, depth + 1);
+      const altComps = ((yield { kind: "function", node: tintFnNode, components: comps }) as number[]);
+      return yield* convertContentColorSteps(hasDocument, altSpaceNode, "DeviceRGB", altComps, activeResources, depth + 1);
     }
     if (family === "Indexed" && resolved.items.length >= 4) {
       const baseSpaceNode = resolved.items[1];
-      const hivalNode = doc.resolve(resolved.items[2]);
+      const hivalNode = (yield* resolveColorNode(resolved.items[2]));
       const hival = hivalNode?.kind === "number" ? Math.max(0, Math.floor(hivalNode.value)) : 255;
-      const lookupNode = doc.resolve(resolved.items[3]);
+      const lookupNode = (yield* resolveColorNode(resolved.items[3]));
+      if (lookupNode?.kind !== "stream" && lookupNode?.kind !== "string") return shadingComponentsToRgb(csNameFallback, comps);
+      const nBase = yield* colorComponentCountSteps(hasDocument, baseSpaceNode, activeResources, depth + 1);
+      const idx = Math.max(0, Math.min(hival, Math.round(comps[0] ?? 0)));
+      const offset = idx * nBase;
       let lookupBytes: Uint8Array | undefined;
       if (lookupNode?.kind === "stream") {
-        lookupBytes = doc.decodeStream(lookupNode);
+        lookupBytes = ((yield { kind: "decode", stream: lookupNode, start: offset, length: nBase }) as Uint8Array);
       } else if (lookupNode?.kind === "string") {
-        lookupBytes = lookupNode.bytes;
+        lookupBytes = Number.isSafeInteger(offset) && offset >= 0 ? lookupNode.bytes.subarray(offset, offset + nBase) : new Uint8Array();
       }
       if (lookupBytes) {
-        const nBase = getColorSpaceComponentCount(doc, baseSpaceNode, activeResources, depth + 1);
-        const idx = Math.max(0, Math.min(hival, Math.round(comps[0] ?? 0)));
-        const offset = idx * nBase;
-        const baseResolved = baseSpaceNode ? doc.resolve(baseSpaceNode) : undefined;
+        const baseResolved = baseSpaceNode ? (yield* resolveColorNode(baseSpaceNode)) : undefined;
         const baseFamilyNode =
-          baseResolved?.kind === "array" && baseResolved.items[0] ? doc.resolve(baseResolved.items[0]) : baseResolved;
+          baseResolved?.kind === "array" && baseResolved.items[0] ? (yield* resolveColorNode(baseResolved.items[0])) : baseResolved;
         const baseFamily = baseFamilyNode?.kind === "name" ? baseFamilyNode.decoded : "";
         const baseComps: number[] = [];
         for (let c = 0; c < nBase; c++) {
-          const byteVal = lookupBytes[offset + c] ?? 0;
+          const byteVal = lookupBytes[c] ?? 0;
           if (baseFamily === "Lab") {
             if (c === 0) {
               baseComps.push((byteVal / 255) * 100);
             } else {
               const labDict =
                 baseResolved?.kind === "array" && baseResolved.items[1]
-                  ? doc.resolveDict(baseResolved.items[1])
+                  ? (yield* resolveColorNode(baseResolved.items[1], "dict"))
                   : undefined;
-              const rArr = labDict ? doc.resolveArray(dictGet(labDict, "Range")) : undefined;
-              const rMinNode = rArr && rArr.items[(c - 1) * 2] ? doc.resolve(rArr.items[(c - 1) * 2]) : undefined;
+              const rArr = labDict ? (yield* resolveColorNode(dictGet(labDict, "Range"), "array")) : undefined;
+              const rMinNode = rArr && rArr.items[(c - 1) * 2] ? (yield* resolveColorNode(rArr.items[(c - 1) * 2])) : undefined;
               const rMaxNode =
-                rArr && rArr.items[(c - 1) * 2 + 1] ? doc.resolve(rArr.items[(c - 1) * 2 + 1]) : undefined;
+                rArr && rArr.items[(c - 1) * 2 + 1] ? (yield* resolveColorNode(rArr.items[(c - 1) * 2 + 1])) : undefined;
               const rMin = rMinNode?.kind === "number" ? rMinNode.value : -100;
               const rMax = rMaxNode?.kind === "number" ? rMaxNode.value : 100;
               baseComps.push(rMin + (byteVal / 255) * (rMax - rMin));
@@ -406,7 +441,7 @@ function convertColorSpaceComponentsToRgb(
             baseComps.push(byteVal / 255);
           }
         }
-        return convertColorSpaceComponentsToRgb(doc, baseSpaceNode, "DeviceRGB", baseComps, activeResources, depth + 1);
+        return yield* convertContentColorSteps(hasDocument, baseSpaceNode, "DeviceRGB", baseComps, activeResources, depth + 1);
       }
     }
   }
@@ -444,7 +479,7 @@ function renderMeshShadingToImage(
   const fnNode = dictGet(shDict, "Function");
   const csNode = doc.resolve(dictGet(shDict, "ColorSpace"));
   const csName = csNode?.kind === "name" ? csNode.decoded : "DeviceRGB";
-  const numComps = fnNode ? 1 : getColorSpaceComponentCount(doc, csNode);
+  const numComps = fnNode ? 1 : runColorProgram(doc, colorComponentCountSteps(Boolean(doc), csNode));
   const mesh = new MeshShading(shType, new Stream(bytes), {
     bitsPerCoordinate: bpcCoord, bitsPerComponent: bpcComp, bitsPerFlag: bpcFlag,
     decode: decodeNums, numComps, colorFn: null,
@@ -453,7 +488,7 @@ function renderMeshShadingToImage(
       getRgb(components) {
         const params = Array.from(components);
         const values = fnNode ? evalShadingFunctionToComponents(doc, fnNode, params) : params;
-        return new Uint8Array(convertColorSpaceComponentsToRgb(doc, csNode, csName, values)
+        return new Uint8Array(runColorProgram(doc, convertContentColorSteps(Boolean(doc), csNode, csName, values))
           .map(value => Math.round(Math.max(0, Math.min(1, value)) * 255)));
       },
     },
@@ -597,7 +632,7 @@ function renderShadingDictToImage(
   const imgH = Math.max(1, Math.min(256, Math.ceil(boxH)));
   const rgba = new Uint8Array(imgW * imgH * 4);
   if (bgComps && bgComps.length > 0) {
-    const [bgr, bgg, bgb] = convertColorSpaceComponentsToRgb(doc, csNode, csName, bgComps);
+    const [bgr, bgg, bgb] = runColorProgram(doc, convertContentColorSteps(Boolean(doc), csNode, csName, bgComps));
     const br8 = Math.round(Math.max(0, Math.min(1, bgr)) * 255);
     const bg8 = Math.round(Math.max(0, Math.min(1, bgg)) * 255);
     const bb8 = Math.round(Math.max(0, Math.min(1, bgb)) * 255);
@@ -701,7 +736,7 @@ function renderShadingDictToImage(
       }
 
       if (comps !== undefined) {
-        const [r, g, bl] = convertColorSpaceComponentsToRgb(doc, csNode, csName, comps);
+        const [r, g, bl] = runColorProgram(doc, convertContentColorSteps(Boolean(doc), csNode, csName, comps));
         const pIdx = (iy * imgW + ix) * 4;
         rgba[pIdx] = Math.round(Math.max(0, Math.min(1, r)) * 255);
         rgba[pIdx + 1] = Math.round(Math.max(0, Math.min(1, g)) * 255);
@@ -825,7 +860,7 @@ function resolveMaskParameters(doc: ParsedCosDocument, mask: PdfCosDict, form: P
     const value = doc.resolve(item);
     return value?.kind === "number" ? value.value : 0;
   });
-  const [r, g, b] = components ? convertColorSpaceComponentsToRgb(doc, colorSpace, "DeviceRGB", components, activeResources) : [0, 0, 0];
+  const [r, g, b] = components ? runColorProgram(doc, convertContentColorSteps(Boolean(doc), colorSpace, "DeviceRGB", components, activeResources)) : [0, 0, 0];
   const transfer = doc.resolve(dictGet(mask, "TR"));
   const transferMap = transfer?.kind === "dict" || transfer?.kind === "stream"
     ? Uint8Array.from({ length: 256 }, (_, i) => Math.floor(kClamp(Math.fround(evalShadingFunctionToComponents(doc, transfer, Math.fround(i / 255))[0] ?? 0)) * 255))
@@ -1959,7 +1994,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
         step = work.next({ kind: "shading", image: renderShadingDictToImage(params.cosDoc, request.dict, request.matrix, request.bounds,
           request.alpha, request.name, request.clipRect, request.stream, request.blendMode) });
       } else if (step.value.kind === "color") {
-        step = work.next({ kind: "color", value: convertColorSpaceComponentsToRgb(params.cosDoc, undefined, step.value.name, step.value.components, step.value.resources) });
+        step = work.next({ kind: "color", value: runColorProgram(params.cosDoc, convertContentColorSteps(Boolean(params.cosDoc), undefined, step.value.name, step.value.components, step.value.resources)) });
       } else if (step.value.kind === "inline-image") {
         if (!(step.value.data instanceof Uint8Array)) throw new PdfError("E_CAPABILITY", "Retained inline images require an asynchronous source driver");
         step = work.next({ kind: "decoded-image", image: decodeInlineImageNodeToRgba(params.cosDoc, step.value.dict, step.value.data, step.value.resources, step.value.fillColor) });

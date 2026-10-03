@@ -185,6 +185,14 @@ streams use caller-backed staging before admitted materialization.
 `maxWorkingBytes`, `maxNodes`, `maxDepth` and `maxStagingBytes` bound that state;
 object-reader/parser and I/O caches are additional memory.
 
+`convertRetainedContentColor(document, colorNode, name, components, resources,
+storage, options)` converts vector paint colors with the same calculations as
+buffered evaluation. It resolves selected resources asynchronously, reads ICC
+metadata without loading profiles, and retains only the selected Indexed palette
+entry while validating the remaining decoded stream. Calibrated and tint-function
+state uses the same admission options as retained image colors. The RGB result
+has no borrowed-source lifetime.
+
 `decodeRetainedSampleRows(source, width, height, bitsPerComponent, color, options)`
 converts decoded sample planes to owned RGBA rows using the same color conversion
 as buffered extraction. It preserves packed row padding, truncated sample rules,

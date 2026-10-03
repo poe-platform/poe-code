@@ -1,5 +1,6 @@
 import { readBytes } from "@poe-code/safe-fs/contracts";
 import { cosName, cosNumber, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream } from "../ast.js";
+import { convertContentColorSteps, evalShadingFunctionToComponents } from "../content/evaluator.js";
 import { createCalibratedColorSpace } from "../content/calibrated-color.js";
 import { decodePdfStreamChunks } from "../cos/filter-stream.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
@@ -29,8 +30,7 @@ function limit(value: number | undefined, fallback: number, name: string) {
 /** Resolve one color space without following unrelated resources. ICC profiles
  * contribute dictionary metadata only. Palette and tint-function state is
  * admitted before materialization and remains usable after document closure. */
-export async function resolveRetainedImageColor(document: PdfRetainedDocument, node: PdfCosNode | undefined,
-  resources: PdfCosDict | undefined, storage: PdfIndexStorage, options: PdfRetainedColorOptions = {}): Promise<ResolvedColorSpace> {
+function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIndexStorage, options: PdfRetainedColorOptions) {
   const maximum = limit(options.maxWorkingBytes, Infinity, "maxWorkingBytes");
   const maxStaging = limit(options.maxStagingBytes, Infinity, "maxStagingBytes");
   const maxNodes = limit(options.maxNodes, 65536, "maxNodes");
@@ -58,15 +58,16 @@ export async function resolveRetainedImageColor(document: PdfRetainedDocument, n
     if (resolved.value.kind === "name") charge(resolved.value.decoded.length * 2);
     return resolved.value;
   }
-  async function decode(stream: PdfCosStream, prefix = Infinity): Promise<Uint8Array> {
+  async function decode(stream: PdfCosStream, prefix = Infinity, start = 0): Promise<Uint8Array> {
     const reference = streams.get(stream);
     const input = reference ? document.objects.decodeStream(reference.objectNumber, reference.generationNumber)
       : decodePdfStreamChunks(stream.dict, async function* () { yield stream.rawBytes; }, { chunkBytes, ...(options.signal ? { signal: options.signal } : {}) });
     async function* selected() {
-      let remaining = prefix;
+      let remaining = prefix, skip = Number.isSafeInteger(start) && start >= 0 ? start : Infinity;
       for await (const chunk of readBytes(input, options.signal)) {
-        const length = Math.min(remaining, chunk.length);
-        if (length > 0) yield chunk.subarray(0, length);
+        const offset = Math.min(skip, chunk.length); skip -= offset;
+        const length = Math.min(remaining, chunk.length - offset);
+        if (length > 0) yield chunk.subarray(offset, offset + length);
         remaining -= length;
       }
     }
@@ -115,6 +116,12 @@ export async function resolveRetainedImageColor(document: PdfRetainedDocument, n
   const context = new ParsedCosDocument({ version: "1.7", bytes: new Uint8Array(), objects: new Map(), revisions: [],
     rootRef: { kind: "ref", objectNumber: 0, generationNumber: 0 }, maxDecompressedBytes: maximum, maxRecursionDepth: maxDepth });
   options.signal?.throwIfAborted();
+  return { resolve, decode, snapshot, charge, context, maxDepth };
+}
+
+export async function resolveRetainedImageColor(document: PdfRetainedDocument, node: PdfCosNode | undefined,
+  resources: PdfCosDict | undefined, storage: PdfIndexStorage, options: PdfRetainedColorOptions = {}): Promise<ResolvedColorSpace> {
+  const { resolve, decode, snapshot, charge, context, maxDepth } = createRetainedColorAccess(document, storage, options);
   const work = imageColorSpaceProgram(node, resources, maxDepth);
   try {
     let step = work.next();
@@ -136,6 +143,32 @@ export async function resolveRetainedImageColor(document: PdfRetainedDocument, n
         case "tint": result = { doc: context, node: await snapshot(request.node) }; break;
         case "admit": charge(request.bytes); break;
       }
+      step = work.next(result);
+    }
+    return step.value;
+  } finally { work.return(undefined as never); }
+}
+
+
+/** Resolve the same vector colors as buffered evaluation using retained reads.
+ * Palette/function state is admitted; unrelated resources and ICC payloads are
+ * not read. The returned RGB value has no retained source lifetime. */
+export async function convertRetainedContentColor(document: PdfRetainedDocument, node: PdfCosNode | undefined,
+  name: string, components: readonly number[], resources: PdfCosDict | undefined, storage: PdfIndexStorage,
+  options: PdfRetainedColorOptions = {}): Promise<[number, number, number]> {
+  const { resolve, decode, snapshot, context } = createRetainedColorAccess(document, storage, options);
+  const work = convertContentColorSteps(true, node, name, components, resources);
+  try {
+    let step = work.next();
+    while (!step.done) {
+      options.signal?.throwIfAborted();
+      const request = step.value;
+      let result: unknown;
+      if (request.kind === "resolve") result = await resolve(request.node);
+      else if (request.kind === "decode") result = await decode(request.stream, request.length, request.start);
+      else if (request.kind === "calibrated") result = createCalibratedColorSpace(context, request.family, await snapshot(request.parameters));
+      else result = evalShadingFunctionToComponents(context, await snapshot(request.node), request.components);
+      options.signal?.throwIfAborted();
       step = work.next(result);
     }
     return step.value;

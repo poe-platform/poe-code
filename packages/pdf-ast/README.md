@@ -695,3 +695,12 @@ masks and codec header dimensions. It is a per-buffer limit, not a total documen
 memory limit; codec working memory can exceed the final pixel buffer size.
 
 For cooperative hosts, `PdfDocument.loadSteps`, `doc.saveSteps`, and `doc.copyPagesFromSteps` return generators that pause between bounded object/page batches. Yield to your host event loop between steps and check cancellation before resuming; the final generator value matches the synchronous method.
+
+`serializeRetainedCosDocumentChunks(options, storage)` writes ordinary PDFs from
+objects in increasing object-number order. Supply `{ value: dictionary, stream:
+{ length, chunks } }` to emit encoded stream bytes without buffering the payload.
+Cross-reference offsets use a 64 KiB cache backed by the supplied safe-fs; use an
+external backend for large indexes. The caller owns stream encoding/encryption
+and atomic publication. `maxIndexBytes`, `maxObjects` and `maxOutputBytes` admit
+backing slots and output before use. Object-stream generation and linearization
+remain available through the existing serializer.

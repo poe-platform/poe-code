@@ -357,13 +357,23 @@ function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () =>
   }
   return { formulas: bound, placeholders, rejections };
 }
+function axisDefaultSize(node: XmlElement | undefined, fallback: number): number {
+  const size = number(node, "DefaultSizePts", fallback);
+  return size > 0 ? size : fallback;
+}
 function axes(node: XmlElement | undefined, axis: "RowInfo" | "ColInfo", maximum: number, admit: (count: number) => void): AxisMetadata[] {
   const result = new Map<number, AxisMetadata>();
   for (const item of children(node, axis)) {
     const start = number(item, "No", -1), count = number(item, "Count", 1);
     if (!Number.isSafeInteger(start) || !Number.isSafeInteger(count) || start < 0 || count < 1 || count > maximum - start) invalid("invalid axis interval");
     admit(count);
-    for (let i = 0; i < count; i++) result.set(start + i, { index: start + i, sizePoints: number(item, "Unit", 0),
+    const unit = number(item, "Unit", 0);
+    // Native import updates flags first, rejects nonpositive sizes, then copies
+    // the first axis (including its retained size) across the complete interval.
+    const sizePoints = attribute(item, "Unit") !== undefined && unit > -1 && unit <= 0
+      ? result.get(start)?.sizePoints ?? axisDefaultSize(node, axis === "RowInfo" ? 12.75 : 48)
+      : unit;
+    for (let i = 0; i < count; i++) result.set(start + i, { index: start + i, sizePoints,
       hidden: number(item, "Hidden", 0) !== 0, collapsed: number(item, "Collapsed", 0) !== 0, outlineLevel: number(item, "OutlineLevel", 0),
       style: { gnumeric: record(item) } });
   }
@@ -486,8 +496,8 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
       rows: axes(child(node, "Rows"), "RowInfo", size.rows, admitAxes), columns: axes(child(node, "Cols"), "ColInfo", size.columns, admitAxes),
       merges: children(child(node, "MergedRegions"), "Merge").map(n => range(n.text)), formulaGroups: groups,
       view: { gnumeric: Object.fromEntries(node.attributes.filter(a => !a.namespace && gnumericAttributes.Sheet?.includes(a.localName)).map(a => [a.localName, a.value])), zoom: Number(child(node, "Zoom")?.text ?? 1),
-        ...(attribute(child(node, "Cols"), "DefaultSizePts") === undefined ? {} : { defaultColumnWidth: number(child(node, "Cols"), "DefaultSizePts", 48) }),
-        ...(attribute(child(node, "Rows"), "DefaultSizePts") === undefined ? {} : { defaultRowHeight: number(child(node, "Rows"), "DefaultSizePts", 12.75) }) },
+        ...(attribute(child(node, "Cols"), "DefaultSizePts") === undefined ? {} : { defaultColumnWidth: axisDefaultSize(child(node, "Cols"), 48) }),
+        ...(attribute(child(node, "Rows"), "DefaultSizePts") === undefined ? {} : { defaultRowHeight: axisDefaultSize(child(node, "Rows"), 12.75) }) },
       unsupportedRecords: node.children.filter(n => namespaces.has(n.namespace) && ["PrintInformation", "Styles", "Cols", "Rows", "Selections", "Objects", "SheetLayout", "Filters", "Solver", "Scenarios"].includes(n.localName)).map(retained) });
   }
   const selected = number(child(root, "UIData"), "SelectedTab", 0);

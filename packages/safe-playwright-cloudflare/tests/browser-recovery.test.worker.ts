@@ -43,7 +43,7 @@ export default { async fetch(request: Request, env: Env) {
   }
   try {
     if (new URL(request.url).pathname === '/attach-recover') {
-      await controller.run({ args: ['attach', 'owned'], env: {}, signal, async write() {} });
+      await controller.run({ args: ['attach', 'owned'], operationId: 'attach-112', env: {}, signal, async write() {} });
       const session = controller.inspectSessions()[0]!;
       if (session.selectedPage!.url() !== 'about:blank') throw new Error('Attachment must not replay interrupted navigation');
       if (!(await session.context.cookies!()).some(cookie => cookie.name === 'session' && cookie.value === 'retained')) throw new Error('Committed profile cookie was not restored');

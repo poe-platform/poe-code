@@ -46,7 +46,9 @@ test('forced owner reset during outstanding POST inspects unknown outcome and re
       const text = await response.text();
       expect(response.status, `${route}: ${text}`).toBe(200);
       if (route === 'attach-recover') expect(response.headers.get('x-attached-session')).toBe('owned');
-      expect(JSON.parse(text)).toEqual(expected);
+      expect(JSON.parse(text)).toEqual(route === 'attach-recover'
+        ? { ...expected, operation: { operationId: 'attach-112', status: 'completed' } }
+        : expected);
       expect(text).not.toContain('never-print');
       expect(effects).toBe(1);
       expect(navigations).toBe(1);

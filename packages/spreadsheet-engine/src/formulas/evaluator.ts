@@ -201,9 +201,9 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
         return !wantReference && !node.label && !node.last && node.first.row && node.first.column ? scalar(value, position) : value;
       }
       if (node.kind === "parentheses") {
-        const value = evaluate(node.child, position, array, names, wantReference);
         // A union wrapper is set syntax; extra grouping is scalar even through names.
         const grouped = !(node.child.kind === "binary" && node.child.op === "union");
+        const value = evaluate(node.child, position, array, names, wantReference, aggregate && !grouped);
         return aggregate && grouped && !array ? scalar(value, position) : value;
       }
       if (node.kind === "array") return { kind: "matrix", rows: node.rows.map(row => row.map(child => scalar(evaluate(child, position, array, names), position))) };
@@ -234,9 +234,9 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
           // during tokenization, before selecting the label's data range. Keep
           // the original AST for serialization, dependencies and copy/move.
           a = reference(node.left, position, true);
-        } else a = evaluate(node.left, position, array, names, node.op === "union" ? wantReference : true);
+        } else a = evaluate(node.left, position, array, names, node.op === "union" ? wantReference : true, aggregate && node.op === "union");
         if (node.op === "union") {
-          const b = evaluate(node.right, position, array, names, wantReference);
+          const b = evaluate(node.right, position, array, names, wantReference, aggregate);
           if (wantReference) return { kind: "set", values: [a, b] };
           const rows: CellValue[][] = [];
           const collect = (value: Value) => {

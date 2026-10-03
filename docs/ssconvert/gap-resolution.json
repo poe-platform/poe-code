@@ -4228,6 +4228,15 @@
         "validation": "Eight original memory tests failed before repair. Final 19,153 formula tests across 146 files, engine lint/source/test types and normal root build pass. Root/package SDK and command XLSX/BIFF7/BIFF8 outputs match all 560 typed cached/native comparisons without diagnostics. Actual command screenshot inspected. Installed registry qualification remains separate.",
         "evidence": "out/ssconvert-continuation-1748/variadic-grouping",
         "remaining": "A distinct BIFF-only nested explicit-set cohort exposes 15 calculation mismatches; diagnostic XLSX conversion also retains 20 metadata-loss warnings per route and is not passing transport qualification. Broader compatibility and registry requirements remain open."
+      },
+      "nestedGroupedAggregate": {
+        "repair": "Aggregate context now passes through syntactic union wrappers and both set members. Explicit grouping inside a set retains scalar semantics outside array context, including named arguments. Existing recursion, operation limits and array behavior remain in the evaluator.",
+        "native": "The same retained BIFF8 input bytes were recalculated by the product and unchanged Gnumeric 1.12.61. Fifteen original value mismatches cover SUM, PRODUCT, AVERAGE, COUNT, COUNTA, AND, CONCAT and ARRAY; ARRAY with the ordinary cell first remains the numeric4 control.",
+        "validation": "Eight original memory tests failed before repair. All 19,161 formula tests across147 files, engine lint/source/test types and normal root build pass. Final root/package SDK/command checks match228 values:76 cached XLSX cells plus152 native BIFF7/8 readback cells. Actual compiled command screenshot inspected.",
+        "diagnostics": "Every XLSX export retains exactly20 metadata-loss warnings; each BIFF7 export retains exactly4 warnings for SUPBOOK, HEADER, FOOTER and WINDOW2_v2. BIFF8 reexports and all eight native BIFF readbacks are diagnostic-free. This is formula-value qualification, not lossless metadata qualification.",
+        "nativeXlsxLimit": "Four actual native XLSX readbacks reject all16 expressions each:64 rejected formulas, not passing readbacks. Native own BIFF-to-XLSX export also rejects its own16 formulas on reimport. Its1438-byte diagnostic differs from the1410-byte product diagnostic only by the native _xlfngnumeric.ARRAY prefix on two expressions. Raw captures and exact per-route diagnostics are retained.",
+        "evidence": "out/ssconvert-continuation-1748/nested-grouped-aggregate; final/input.xls preserves original stale caches and has SHA25622718e9ce35860dfd2828dab5398c3e7ac25e637031e9cbac7f9e74cae15e620. final/receipt.json separates native BIFF diagnostics from64 native XLSX rejection messages.",
+        "remaining": "Metadata mapping/loss, native XLSX representation, other BIFF/token/format requirements and broader qualification remain open."
       }
     }
   },

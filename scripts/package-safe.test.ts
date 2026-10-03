@@ -816,8 +816,8 @@ describe("isolated private command consumers", () => {
     volume.writeFileSync("/repo/packages/safe-fs/dist/core.js", fs.outputFiles[0]!.contents);
     // The command type fixture models only its external filesystem contracts;
     // complete published declarations are checked by the installed consumer.
-    volume.writeFileSync("/repo/packages/safe-fs/dist/core.d.ts", ['errors', 'filesystem', 'io'].map(name => `export * from "./contracts/${name}.js";`).join("\n") + '\nexport { assertPathWithin, isPathWithin, normalizePath, relativePath, resolvePath, validatePath } from "./contracts/virtual-path.js";\nexport { basename, dirname, extname, isAbsolutePath, joinPath, posixPath } from "./contracts/portable-path.js";');
-    const declarationQueue = ["contracts/virtual-path.ts", "contracts/portable-path.ts", "contracts/errors.ts", "contracts/filesystem.ts", "contracts/io.ts", "platform/browser.ts", "platform/node.ts"], declared = new Set<string>();
+    volume.writeFileSync("/repo/packages/safe-fs/dist/core.d.ts", ['errors', 'filesystem', 'io'].map(name => `export * from "./contracts/${name}.js";`).join("\n") + '\nexport { assertPathWithin, isPathWithin, normalizePath, relativePath, resolvePath, validatePath } from "./contracts/virtual-path.js";\nexport { basename, dirname, extname, isAbsolutePath, joinPath, posixPath } from "./contracts/portable-path.js";\nexport { readFileStream } from "./fs/read-file-stream.js";');
+    const declarationQueue = ["contracts/virtual-path.ts", "contracts/portable-path.ts", "contracts/errors.ts", "contracts/filesystem.ts", "contracts/io.ts", "fs/read-file-stream.ts", "platform/browser.ts", "platform/node.ts"], declared = new Set<string>();
     while (declarationQueue.length) {
       const relative = declarationQueue.pop()!;
       if (declared.has(relative)) continue;

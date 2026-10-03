@@ -1,4 +1,5 @@
 import {createJsonFilterCapability} from "./json-filters.js";
+import {rasterPng, rasterGif, rasterBmp, rasterTiff} from "../../safe-bash-docx-engine/tests/fixtures/raster.js";
 import {expect, it, vi} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {Volume} from "memfs";
@@ -8,9 +9,9 @@ import type {ConversionContext, ConversionOptions, ResourceFileSystem} from "./t
 const segment = (marker: number, data: number[]) => [255, marker, (data.length + 2) >>> 8, (data.length + 2) & 255, ...data];
 const picture = new Uint8Array([255,216,...segment(219,[0,...Array<number>(64).fill(1)]),...segment(192,[8,0,1,0,1,1,1,0x11,0]),...segment(196,[0,1,...Array<number>(15).fill(0),0,16,1,...Array<number>(15).fill(0),0]),...segment(218,[1,1,0,0,63,0]),0x3f,255,217]);
 const image = (url: string) => ({t: "Image", c: [["", [], []], [], [url, ""]]});
-function host() {
+function host(bytes: Uint8Array = picture) {
   const volume = Volume.fromJSON({"/doc/p x.jpg": "", "/cwd/fallback.jpg": ""});
-  volume.writeFileSync("/doc/p x.jpg", picture); volume.writeFileSync("/cwd/fallback.jpg", picture);
+  volume.writeFileSync("/doc/p x.jpg", bytes); volume.writeFileSync("/cwd/fallback.jpg", bytes);
   volume.symlinkSync("p x.jpg", "/doc/link.jpg");
   const readFile = vi.fn(async (path: string) => new Uint8Array(volume.readFileSync(path) as Uint8Array));
   const readStream = vi.fn(async function* (path: string) {
@@ -22,20 +23,20 @@ function host() {
   }};
   return {fs, readFile, readStream};
 }
-async function parity(urls: string[], lossy = false, metadata = false, extra: ConversionContext = {}, additional: Partial<ConversionOptions> = {}) {
+async function parity(urls: string[], lossy = false, metadata = false, extra: ConversionContext = {}, additional: Partial<ConversionOptions> = {}, bytes: Uint8Array = picture) {
   const input = {source: "source.json", base: "/doc", bytes: new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: metadata ? {images: {t: "MetaInlines", c: urls.map(image)}} : {}, blocks: metadata ? [] : [{t: "Para", c: urls.map(image)}]}))};
-  const expectedHost = host(), actualHost = host(), options = {from: "json", to: "rtf", lossy, ...additional};
+  const expectedHost = host(bytes), actualHost = host(bytes), options = {from: "json", to: "odt", lossy, ...additional};
   const expected = await convert([input], options, {resourceFiles: expectedHost.fs, resourceCwd: "/cwd", ...extra}).catch(error => error);
-  const fs = new MemoryFileSystem(), close = vi.fn(async () => {}), abort = vi.fn(async () => {}); let output = "";
+  const fs = new MemoryFileSystem(), close = vi.fn(async () => {}), abort = vi.fn(async () => {}); const output: Uint8Array[] = [];
   const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Collector forbidden"));
   let actual: unknown;
   try {
-    actual = await convertToOutput([input], options, {resourceFiles: actualHost.fs, resourceCwd: "/cwd", ...extra, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write(bytes) {await Promise.resolve(); output += new TextDecoder().decode(bytes);}, close, abort}}).then(summary => ({text: output, diagnostics: summary.diagnostics})).catch(error => error);
+    actual = await convertToOutput([input], options, {resourceFiles: actualHost.fs, resourceCwd: "/cwd", ...extra, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write(bytes) {await Promise.resolve(); output.push(bytes.slice());}, close, abort}}).then(summary => ({bytes: Uint8Array.from(output.flatMap(chunk => [...chunk])), diagnostics: summary.diagnostics})).catch(error => error);
     expect(acquire).not.toHaveBeenCalled();
   } finally {acquire.mockRestore();}
   expect(actualHost.readFile).not.toHaveBeenCalled(); expect(await fs.readdir("/")).toEqual([]);
   if (expected instanceof Error) {expect(actual).toMatchObject({code: (expected as {code?: string}).code, message: expected.message}); expect(close).not.toHaveBeenCalled();}
-  else {expect(actual).toEqual({text: expected.text, diagnostics: expected.diagnostics}); expect(close).toHaveBeenCalledOnce();}
+  else {expect(actual).toEqual({bytes: expected.bytes, diagnostics: expected.diagnostics}); expect(close).toHaveBeenCalledOnce();}
   return {...actualHost, actual, expected};
 }
 it("streams reused image chunks and deduplicates decoded paths with cwd fallback", async () => {
@@ -62,7 +63,7 @@ it.each(["source", "cancel", "sink"])("cleans up streamed pictures on %s failure
     }
   });
   const close = vi.fn(async () => {});
-  await expect(convertToOutput([input], {from: "json", to: "rtf"}, {resourceFiles: resources.fs, signal: controller.signal, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write() {if (mode === "sink") throw new Error("Sink failed");}, close, async abort() {}}})).rejects.toMatchObject({code: mode === "cancel" ? "E_CANCELLED" : "E_IO"});
+  await expect(convertToOutput([input], {from: "json", to: "odt"}, {resourceFiles: resources.fs, signal: controller.signal, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write() {if (mode === "sink") throw new Error("Sink failed");}, close, async abort() {}}})).rejects.toMatchObject({code: mode === "cancel" ? "E_CANCELLED" : "E_IO"});
   expect(close).not.toHaveBeenCalled(); expect(resources.readFile).not.toHaveBeenCalled(); expect(await fs.readdir("/")).toEqual([]);
 });
 
@@ -88,6 +89,16 @@ it("preserves explicit empty and relative resource search paths", async () => {
 
 it.each([null, "directory", [null], ["../escape"]])("preserves malformed resourcePath admission: %j", async value => {
   await parity(["fallback.jpg"], false, false, {}, {resourcePath: value as unknown as string[]});
+});
+it("rejects retained metadata resource warnings before output when requested", async () => {
+  await parity(["missing.jpg"], true, true, {}, {failIfWarnings: true});
+});
+
+it("preserves streamed PNG/GIF/BMP/TIFF packaging and physical dimensions", async () => {
+  for (const bytes of [rasterPng(10,20,[1654,945,1]), rasterGif(), rasterBmp(), rasterTiff(), rasterTiff(false)]) {
+    const result = await parity(["p%20x.jpg", "p%20x.jpg"], false, false, {}, {}, bytes);
+    expect(result.expected).not.toBeInstanceOf(Error); expect(result.readStream).toHaveBeenCalledOnce();
+  }
 });
 
 it("resolves newly filtered image targets from resourceCwd rather than the original input base", async () => {

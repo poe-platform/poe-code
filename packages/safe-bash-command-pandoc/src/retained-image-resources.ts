@@ -6,16 +6,15 @@ import {BackedTextSet} from "./backed-text-set.js";
 import type {ExecutionContext} from "./execution.js";
 import type {ConversionOptions, WorkingStorageOptions} from "./types.js";
 import {inspectResourcePath, localResourceTarget, resourceDirectory, type ResourceOrigin} from "./resources.js";
-import {inspectRetainedRtfPicture} from "./retained-rtf-pictures.js";
 import {PandocError} from "./errors.js";
 type Span = {position: number; length: number};
 
-/** RTF references no filenames in its output: retain resource identity and bytes,
- * then validate and hex-emit each picture without a document-sized media bag. */
-export async function prepareRetainedRtfResources(tree: BackedJson, order: Awaited<ReturnType<typeof backedJsonOrder>>, context: ExecutionContext,
+/** Retain image identity and admitted bytes independently of format validation. */
+export async function prepareRetainedImageResources(tree: BackedJson, order: Awaited<ReturnType<typeof backedJsonOrder>>, context: ExecutionContext,
   working: WorkingStorageOptions, options: ConversionOptions, origin: ResourceOrigin = {}) {
   const storage = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, (working.cacheBytes ?? 1048576) / 16384);
   const release = context.onClose(() => storage.close()), text = new BackedText(storage, units => context.cooperate(units));
+  const identities = new BackedTextSet(storage, text);
   const targets = new BackedTextSet(storage, text), paths = new BackedTextSet(storage, text), targetSpans = new IntegerTable(storage, 64), pathSpans = new IntegerTable(storage, 64);
   const fs = context.context.resourceFiles, readOptions = context.signal ? {signal: context.signal} : {};
   let search: string[] | undefined;
@@ -159,18 +158,27 @@ export async function prepareRetainedRtfResources(tree: BackedJson, order: Await
   return {
     async image(node: number) {
       let span: Span;
-      if (context.resources) {
+      const key = BigInt(await targets.add(await text.from(tree.scalarChunks(node))));
+      const cached = options.to === "odt" ? Number(await targetSpans.get(key) ?? 0n) : 0;
+      if (context.resources && cached) span = await load(cached);
+      else if (context.resources) {
         const bytes = await context.resources.resolve(await scalar(node), undefined, context.signal);
-        if (!(bytes instanceof Uint8Array)) throw new PandocError("E_RESOURCE", "convert", "Invalid resource bytes", "rtf");
+        if (!(bytes instanceof Uint8Array)) throw new PandocError("E_RESOURCE", "convert", "Invalid resource bytes", options.to);
         context.charge("resources", 1); span = await acquire([bytes]);
+        if (options.to === "odt") await targetSpans.set(key, BigInt(await save(span)));
       } else {
-        const key = BigInt(await targets.add(await text.from(tree.scalarChunks(node)))), record = Number(await targetSpans.get(key) ?? 0n);
-        if (!record) throw new PandocError("E_RESOURCE", "convert", "Missing explicit picture resource: " + await scalar(node), "rtf");
+        const record = Number(await targetSpans.get(key) ?? 0n);
+        if (!record) throw new PandocError("E_RESOURCE", "convert", (options.to === "odt" ? "Missing image resource: " : "Missing explicit picture resource: ") + await scalar(node), options.to);
         span = await load(record);
       }
       const source = {size: span.length, read: (position: number, length: number) => storage.read(span.position + position, length)};
-      const picture = await inspectRetainedRtfPicture(source, storage, context);
-      return {...picture, chunks: (async function* () {for (let offset = 0; offset < span.length; offset += 16384) yield await source.read(offset, Math.min(16384, span.length - offset));})()};
+      let identity = Number(key);
+      if (options.to === "odt" && !context.resources) {
+        let prefix = ""; for await (const chunk of tree.scalarChunks(node)) {prefix = chunk.slice(0,32); break;}
+        const suffix = dataPrefix(prefix) ? "" : localResourceTarget(await scalar(node), context).suffix;
+        identity = await identities.add(await text.from([String(span.position) + ":", suffix]));
+      }
+      return {source, storage, identity, chunks: (async function* () {for (let offset = 0; offset < span.length; offset += 16384) yield await source.read(offset, Math.min(16384, span.length - offset));})()};
     },
     async close() {try {await storage.close();} finally {release();}}
   };

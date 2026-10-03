@@ -214,6 +214,13 @@ Filesystem path strings and diagnostic messages still materialize; this does not
 qualify all resource handling or conversion formats for bounded Worker memory.
 Malformed base64 image data reports `E_RESOURCE` consistently across both paths.
 
+JSON and CSV/TSV → ODT retain XML continuations, list styles, image indexes and
+ZIP members in caller storage. PNG, JPEG, GIF, BMP and TIFF metadata use bounded
+source reads; TIFF directory traversal also uses caller storage. Image dimensions
+are parsed incrementally. The output preserves package member order, image density,
+XML escaping and warning rejection. Other ODT input and compatibility paths still
+materialize documents; the Worker measurement plan remains incomplete.
+
 For media extraction, supply `workingFiles` and `resourceFiles.writeStream` to
 spool external resources in caller storage and publish them in 16 KiB chunks.
 The publisher must consume through EOF, await writes, and honor exclusive

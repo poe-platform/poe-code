@@ -1,14 +1,15 @@
+import {odtBaseStyles, odtDocumentNamespaces, odtStylesDocument} from "./odt-styles.js";
 import {encodeXML} from "entities";
 import type {Block, Inline} from "./ast-types.js";
 import type {WriterCapability} from "./types.js";
 import {imageLength} from "./image-dimensions.js";
-import {odtNamespaces as ns, odtMime, odtPackage, odtFailure, fo, xlink, svg} from "./odt-package.js";
+import {odtNamespaces as ns, odtMime, odtPackage, odtFailure} from "./odt-package.js";
 
 export const odtWriter: WriterCapability = {format: "odt", imageResources: "embed", async write(document, ctx) {
   const parts = new Map<string, Uint8Array>([["mimetype", new TextEncoder().encode(odtMime)]]);
   const mediaTypes = new Map<string, string>();
   const images = new Map<string, {name: string; width: number; height: number}>();
-  const styles = new Map<string, string>();
+  const styles = new Map(odtBaseStyles);
   let serial = 0;
   const escaped = (value: string): string => {
     ctx.checkpoint(value.length);
@@ -16,10 +17,6 @@ export const odtWriter: WriterCapability = {format: "odt", imageResources: "embe
     const result = encodeXML(value); ctx.charge("retainedBytes", result.length * 2); return result;
   };
   const text = (value: string): string => escaped(value).split(" ").join("<text:s/>").split("\t").join("<text:tab/>").split("\n").join("<text:line-break/>");
-  const textStyles: Record<string, string> = {Strong: 'fo:font-weight="bold"', Emph: 'fo:font-style="italic"', Strikeout: 'style:text-line-through-style="solid"', Superscript: 'style:text-position="super 58%"', Subscript: 'style:text-position="sub 58%"', Underline: 'style:text-underline-style="solid"', SmallCaps: 'fo:font-variant="small-caps"', Code: 'fo:font-family="monospace"'};
-  for (const [name, properties] of Object.entries(textStyles)) styles.set(name, `<style:style style:name="${name}" style:family="text"><style:text-properties ${properties}/></style:style>`);
-  styles.set("Rule", '<style:style style:name="Rule" style:family="paragraph"><style:paragraph-properties fo:border-bottom="0.5pt solid #000000"/></style:style>');
-  styles.set("Preformatted", '<style:style style:name="Preformatted" style:family="paragraph"><style:text-properties fo:font-family="monospace"/></style:style>');
   const inlines = async (nodes: readonly Inline[]): Promise<string> => {
     const output: string[] = [];
     for (const node of nodes) {
@@ -101,10 +98,10 @@ export const odtWriter: WriterCapability = {format: "odt", imageResources: "embe
     const value = output.join(""); ctx.bound("outputBytes", value.length); ctx.charge("retainedBytes", value.length * 2); return value;
   };
   const content = await blocks(document.blocks);
-  const namespaces = Object.entries(ns).map(([key, value]) => `xmlns:${key}="${value}"`).join(" ") + ` xmlns:fo="${fo}" xmlns:xlink="${xlink}" xmlns:svg="${svg}"`;
+  const namespaces = odtDocumentNamespaces;
   const put = (name: string, xml: string) => {ctx.bound("outputBytes", xml.length); parts.set(name, new TextEncoder().encode(xml));};
   put("content.xml", `<?xml version="1.0" encoding="UTF-8"?><office:document-content ${namespaces} office:version="1.3"><office:automatic-styles>${[...styles.values()].join("")}</office:automatic-styles><office:body><office:text>${content}</office:text></office:body></office:document-content>`);
-  put("styles.xml", `<?xml version="1.0"?><office:document-styles ${namespaces} office:version="1.3"><office:styles><style:style style:name="Standard" style:family="paragraph"/><style:style style:name="Quotations" style:family="paragraph" style:parent-style-name="Standard" style:class="html"><style:paragraph-properties fo:margin-left="0.5in" fo:margin-right="0.5in"/></style:style><style:style style:name="Table_20_Contents" style:display-name="Table Contents" style:family="paragraph" style:parent-style-name="Standard"/><style:style style:name="Table_20_Heading" style:display-name="Table Heading" style:family="paragraph" style:parent-style-name="Table_20_Contents"><style:text-properties fo:font-weight="bold"/></style:style></office:styles></office:document-styles>`);
+  put("styles.xml", odtStylesDocument);
   const title = document.metadata.title;
   put("meta.xml", `<?xml version="1.0"?><office:document-meta xmlns:office="${ns.office}" xmlns:dc="http://purl.org/dc/elements/1.1/" office:version="1.3"><office:meta>${title?.t === "MetaString" ? `<dc:title>${escaped(title.c)}</dc:title>` : ""}</office:meta></office:document-meta>`);
   put("META-INF/manifest.xml", `<?xml version="1.0"?><manifest:manifest xmlns:manifest="${ns.manifest}" manifest:version="1.3"><manifest:file-entry manifest:full-path="/" manifest:media-type="${odtMime}"/>${[...parts.keys()].filter(name => name !== "mimetype").map(name => `<manifest:file-entry manifest:full-path="${name}" manifest:media-type="${mediaTypes.get(name) ?? "text/xml"}"/>`).join("")}</manifest:manifest>`);

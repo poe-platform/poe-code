@@ -35,7 +35,7 @@ class DocumentDecoder {
 /** Parse before publishing. The tape and table dimensions live in caller storage;
  * no input, field, row, document tree or output grows a resident collection. */
 export async function streamDelimited(
-  inputs: readonly InputSource[], format: "csv" | "tsv", target: "html5" | "json" | "plain" | "commonmark" | "gfm" | "rst" | "latex" | "rtf", context: ExecutionContext,
+  inputs: readonly InputSource[], format: "csv" | "tsv", target: "html5" | "json" | "plain" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", context: ExecutionContext,
   working: WorkingStorageOptions, options: ConversionOptions
 ): Promise<void> {
   const cacheBytes = working.cacheBytes ?? 1024 * 1024;

@@ -66,6 +66,14 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   paths: filesystem path strings, explicit byte-only resource capabilities and
   full diagnostic messages remain resident boundaries. Functional tests do not
   establish a memory plateau, CPU or first-byte qualification for these cohorts.
+  ODT output now retains XML continuations, dynamic list styles, image indexes,
+  ZIP member payloads and central records. Differential tests compare complete
+  archive bytes, including image density and PNG/JPEG/GIF/BMP/TIFF profiles.
+  TIFF directory traversal uses a backed work stack and visited index; long
+  authored dimensions use bounded numeric parsing. Include large image metadata,
+  many members, nested tables/lists and resource search paths in the Worker
+  size/concurrency cohorts. ODT reading and compatibility conversion still
+  materialize documents; this output path alone is not full qualification.
   Other conversions still require replacing whole-document input acquisition, joined text, document arrays
   and serialized results with retained sources and a paged document representation.
   Preserve diagnostics, source locations, resource identities and byte results.

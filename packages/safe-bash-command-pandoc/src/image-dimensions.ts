@@ -1,3 +1,4 @@
+import {readNumericUnit} from "./numeric-unit.js";
 import type {AdapterContext} from "./types.js";
 import {PandocError} from "./errors.js";
 
@@ -10,5 +11,14 @@ export function imageLength(value: string | undefined, natural: number, context:
   const result = unit ? Math.round(number * units[unit]!) : NaN;
   if (!Number.isSafeInteger(result) || result <= 0)
     throw new PandocError("E_OPTION", context.operation ?? "write", "Image dimensions require positive in, pt, cm, mm or px values", format);
+  return result;
+}
+
+/** Streaming form of authored Office dimensions, including native Number syntax. */
+export async function retainedImageLength(source: Iterable<string> | AsyncIterable<string>, context: AdapterContext, format: string): Promise<number> {
+  const {unit, value} = await readNumericUnit(source);
+  const multiplier = ({in: 914400, pt: 12700, cm: 360000, mm: 36000, px: 9525} as Record<string, number>)[unit];
+  const result = multiplier === undefined ? NaN : Math.round(value * multiplier);
+  if (!Number.isSafeInteger(result) || result <= 0) throw new PandocError("E_OPTION", context.operation ?? "write", "Image dimensions require positive in, pt, cm, mm or px values", format);
   return result;
 }

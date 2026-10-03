@@ -417,7 +417,27 @@ function compile(pattern: string, host: FunctionHost): Node {
 
 type MatchState = { position: number; captures: readonly (readonly [number, number] | undefined)[] };
 
-function* match(node: Node, source: string, state: MatchState, host: FunctionHost): Generator<MatchState> {
+function clearCaptures(node: Node, state: MatchState, host: FunctionHost): MatchState {
+  const nested: Node[] = [node], cleared = new Set<number>();
+  while (nested.length) {
+    host.tick(); const child = nested.pop()!;
+    if (child.kind === "capture") cleared.add(child.index);
+    if (child.kind === "capture" || child.kind === "atomic" || child.kind === "repeat" || child.kind === "assert" || child.kind === "behind") nested.push(child.node);
+    else if (child.kind === "sequence" || child.kind === "alternative") for (const descendant of child.nodes) { host.tick(); nested.push(descendant); }
+    else if (child.kind === "conditional") {
+      nested.push(child.yes, child.no);
+      if (child.condition.kind === "assertion") nested.push(child.condition.node);
+    }
+  }
+  if (cleared.size) {
+    const captures: (readonly [number, number] | undefined)[] = [];
+    for (let index = 0; index < state.captures.length; index++) { host.tick(); captures.push(cleared.has(index) ? undefined : state.captures[index]); }
+    state = { ...state, captures };
+  }
+  return state;
+}
+
+function* match(node: Node, source: string, state: MatchState, host: FunctionHost, modern: boolean): Generator<MatchState> {
   host.tick(); const position = state.position;
   if (node.kind === "char") { if (position < source.length && node.test(source.charCodeAt(position))) yield { ...state, position: position + 1 }; }
   else if (node.kind === "anchor") { if (node.test(source, position)) yield state; }
@@ -439,74 +459,63 @@ function* match(node: Node, source: string, state: MatchState, host: FunctionHos
         if (state.captures[index] !== undefined) { branch = state; break; }
       }
     } else {
-      const inner = match(node.condition.node, source, state, host), result = inner.next(); inner.return(undefined);
+      const inner = match(node.condition.node, source, state, host, modern), result = inner.next(); inner.return(undefined);
       if (!result.done) branch = result.value;
     }
-    yield* match(branch === undefined ? node.no : node.yes, source, branch ?? state, host);
+    yield* match(branch === undefined ? node.no : node.yes, source, branch ?? state, host, modern);
   } else if (node.kind === "capture") {
-    for (const result of match(node.node, source, state, host)) {
+    for (const result of match(node.node, source, state, host, modern)) {
       const captures: (readonly [number, number] | undefined)[] = [];
       for (const capture of result.captures) { host.tick(); captures.push(capture); }
       captures[node.index] = [position, result.position];
       yield { ...result, captures };
     }
   } else if (node.kind === "atomic") {
-    const inner = match(node.node, source, state, host), result = inner.next(); inner.return(undefined);
+    const inner = match(node.node, source, state, host, modern), result = inner.next(); inner.return(undefined);
     if (!result.done) yield result.value;
   } else if (node.kind === "assert") {
-    const inner = match(node.node, source, state, host), result = inner.next(); inner.return(undefined);
+    const inner = match(node.node, source, state, host, modern), result = inner.next(); inner.return(undefined);
     if (result.done) { if (node.negative) yield state; }
     else if (!node.negative) yield { ...result.value, position };
   } else if (node.kind === "behind") {
     let result: MatchState | undefined;
     for (let width = Math.min(position, node.max); width >= node.min; width--) {
       host.tick();
-      // The qualified Perl 5.34 experimental profile tries longest starts
-      // first without constraining the inner match's end to this position.
-      // Captures can therefore extend into the forward source.
-      const inner = match(node.node, source, { ...state, position: position - width }, host);
-      const first = inner.next(); inner.return(undefined);
-      if (!first.done) { result = first.value; break; }
+      // Perl 5.40 LOOKBEHIND_END backtracks until the assertion boundary.
+      // The 5.34 experimental profile accepts the first result at each start.
+      for (const candidate of match(node.node, source, { ...state, position: position - width }, host, modern)) {
+        if (!modern || candidate.position === position) { result = candidate; break; }
+      }
+      if (result !== undefined) break;
     }
     if (result === undefined) { if (node.negative) yield state; }
     else if (!node.negative) yield { ...result, position };
-  } else if (node.kind === "alternative") { for (const child of node.nodes) yield* match(child, source, state, host); }
+  } else if (node.kind === "alternative") {
+    for (const child of node.nodes) {
+      yield* match(child, source, state, host, modern);
+      // Perl 5.40 BRANCH_next_fail clears the failed branch's captures.
+      if (modern) state = clearCaptures(child, state, host);
+    }
+  }
   else if (node.kind === "sequence") {
     const stack: { index: number; iterator: Generator<MatchState> }[] = [];
     if (!node.nodes.length) { yield state; return; }
-    stack.push({ index: 0, iterator: match(node.nodes[0]!, source, state, host) });
+    stack.push({ index: 0, iterator: match(node.nodes[0]!, source, state, host, modern) });
     while (stack.length) {
       host.tick(); const top = stack[stack.length - 1]!, step = top.iterator.next();
       if (step.done) stack.pop();
       else if (top.index === node.nodes.length - 1) yield step.value;
-      else stack.push({ index: top.index + 1, iterator: match(node.nodes[top.index + 1]!, source, step.value, host) });
+      else stack.push({ index: top.index + 1, iterator: match(node.nodes[top.index + 1]!, source, step.value, host, modern) });
     }
   } else {
-    if (node.min === 0) {
-      const nested: Node[] = [node.node], cleared = new Set<number>();
-      while (nested.length) {
-        host.tick(); const child = nested.pop()!;
-        if (child.kind === "capture") cleared.add(child.index);
-        if (child.kind === "capture" || child.kind === "atomic" || child.kind === "repeat" || child.kind === "assert" || child.kind === "behind") nested.push(child.node);
-        else if (child.kind === "sequence" || child.kind === "alternative") for (const descendant of child.nodes) { host.tick(); nested.push(descendant); }
-        else if (child.kind === "conditional") {
-          nested.push(child.yes, child.no);
-          if (child.condition.kind === "assertion") nested.push(child.condition.node);
-        }
-      }
-      if (cleared.size) {
-        const captures: (readonly [number, number] | undefined)[] = [];
-        for (let index = 0; index < state.captures.length; index++) { host.tick(); captures.push(cleared.has(index) ? undefined : state.captures[index]); }
-        state = { ...state, captures };
-      }
-    }
+    if (node.min === 0) state = clearCaptures(node.node, state, host);
     type Frame = { state: MatchState; count: number; iterator?: Generator<MatchState>; emitted: boolean; stopped: boolean };
     const stack: Frame[] = [{ state, count: 0, emitted: false, stopped: false }];
     while (stack.length) {
       host.tick(); const top = stack[stack.length - 1]!;
       if (node.lazy && !top.emitted) { top.emitted = true; if (top.count >= node.min) yield top.state; }
       if (!top.stopped && top.count < node.max) {
-        top.iterator ??= match(node.node, source, top.state, host);
+        top.iterator ??= match(node.node, source, top.state, host, modern);
         const step = top.iterator.next();
         if (!step.done) {
           if (stack.length >= host.context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert PERL_SED match state limit exceeded");
@@ -520,7 +529,9 @@ function* match(node: Node, source: string, state: MatchState, host: FunctionHos
   }
 }
 
-export function perlSed(args: readonly (Value | undefined)[], host: FunctionHost): CellValue {
+export type PerlSampleVersion = "5.34.1" | "5.40.1";
+
+export function perlSed(args: readonly (Value | undefined)[], host: FunctionHost, version: PerlSampleVersion = "5.34.1"): CellValue {
   const inputs = args.map((_value, index) => byteTextArg(args, index, host));
   let inputSize = 0;
   for (const bytes of inputs) for (const byte of bytes) {
@@ -540,7 +551,7 @@ export function perlSed(args: readonly (Value | undefined)[], host: FunctionHost
     outputSize += text.length; output.push(text);
   };
   while (position <= source.length) {
-    host.tick(); const iterator = match(pattern, source, { position, captures: [] }, host); let end: number | undefined;
+    host.tick(); const iterator = match(pattern, source, { position, captures: [] }, host, version === "5.40.1"); let end: number | undefined;
     for (const candidate of iterator) {
       if (candidate.position === position && position === emptyAt) continue;
       end = candidate.position; break;

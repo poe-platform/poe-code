@@ -72,7 +72,7 @@ export type { SolverParameters, SolverConstraint, SolverRelation, SolverAddress,
 export { solverAlgorithms, runSolverValidation as runSolver } from "./solver/run.js";
 
 export type { RuntimeFunction, RuntimeFunctions, RuntimeFunctionResult } from "./formulas/runtime-functions.js";
-export { perlSampleFunctions, pythonSampleFunctions, createPythonSampleFunctions } from "./formulas/optional-providers.js";
+export { perlSampleFunctions, createPerlSampleFunctions, type PerlSampleVersion, pythonSampleFunctions, createPythonSampleFunctions } from "./formulas/optional-providers.js";
 export type { PythonUnicodeVersion } from "./formulas/functions/python-unicode-profile.js";
 export { snapshotRuntimeFunctions } from "./formulas/runtime-functions.js";
 

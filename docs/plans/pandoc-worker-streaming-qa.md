@@ -96,8 +96,10 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   call forms, associativity and cancellation after a source read. Retained lexical
   scopes now resolve locals, definition-time shadowing and shared upvalues into
   prototype captures, with bounded name indexes and close-before-register-reuse
-  execution coverage. Label/goto legality, temporary register allocation and code
-  generation, complete standard libraries and
+  execution coverage. Label/goto state and pending jump lists are also retained,
+  including inner-label shadowing, illegal local-scope entry, outward jump
+  propagation and close-register patching. Compiler orchestration, temporary
+  register allocation and code generation, complete standard libraries and
   Pandoc constructor translation still require integration and runtime
   qualification. Measurements of unavoidable live runtime state remain required.
 - Exercise citeproc with bibliography and citation counts that grow independently

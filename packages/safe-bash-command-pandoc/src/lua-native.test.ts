@@ -30,7 +30,7 @@ async function execute(source: string,options: {string?:boolean;pages?:number;ta
     const utf8=new LuaUtf8(heap); await utf8.install(environment);
     if(options.native) await heap.set(environment,await heap.string([new TextEncoder().encode("host")]),await heap.closure(-1000,[]));
     const table=new LuaTable(heap);
-    const strings=new LuaStringLibrary(heap); if(options.string) await strings.install(environment);
+    const strings=new LuaStringLibrary(heap,cooperate); if(options.string) await strings.install(environment);
     const machine=new LuaMachine(program,new LuaFrames(storage,heap,cooperate),heap,cooperate,(prototype,args,context)=>
       prototype===-1000 && options.native?options.native(heap,prototype,args,context):prototype<=-200 && prototype>-300?math.invoke(prototype,args,context):prototype<=-300 && prototype>-400?utf8.invoke(prototype,args):prototype<=-400 && prototype>-500?table.invoke(prototype,args):prototype<=-500 && prototype>-600?strings.invoke(prototype,args):base.invoke(prototype,args,context));
     if(options.table) await table.install(environment,program,machine);
@@ -346,6 +346,58 @@ it("cancels while producing repeated string bytes and cleans up storage",async()
   const controller=new AbortController();
   await expect(execute("return string.rep(host(),40000)",{string:true,signal:controller.signal,native:async heap=>{
     const value=await heap.string([Uint8Array.of(65)]),read=heap.readBytes.bind(heap);
+    let scheduled=false;
+    vi.spyOn(heap,"readBytes").mockImplementation(async(...args)=>{const result=await read(...args);if(!scheduled){scheduled=true;setTimeout(()=>controller.abort(),0);}return result;});
+    return [value];
+  }})).rejects.toMatchObject({code:"E_CANCELLED"});
+});
+
+it.each([
+  "return string.find('abcabc','bc'),string.match('abc123','%a+'),string.find('abc','x')",
+  "return string.find('a.b','.',1,true)",
+  "return string.find('abc','',4),string.find('abc','',5),string.find('abc','b',-2)",
+  "return string.find('abc123','(%a+)(%d+)')",
+  "return string.match('abc123','()(%a+)()(%d+)()')",
+  "return string.match('one two','%f[%a]%a+'),string.match('word','%f[%z]')",
+  "return string.match('x(a(b)c)y','%b()'),string.match('q[abc]r','%b[]')",
+  "return string.match('abc-abc','(%a+)%-%1'),string.match('abc-def','(%a+)%-%1')",
+  "return string.match('aaaab','a-b'),string.match('ab','a?b'),string.match('b','a?b')",
+  "return string.match('abcd','^a.*d$'),string.match('xabc','^abc',2),string.match('abc','a$')",
+  "return string.match('abc123','[^%d]+'),string.match('ABC','[a-zA-Z]+'),string.match(']-','[]-]+')",
+  "return string.match(string.char(0,255,65),'%z%Z%u')",
+  "return string.find('a','a*%f[a]')",
+  "return string.match('abc','()%1')",
+  "return string.find('a]b',']'),string.match('x$y','$')",
+  "return ('a1b2'):match('%d+'),('a1b2'):find('b')"
+])("preserves retained Lua pattern matching: %s",async source=>{expect(await execute(source,{string:true})).toEqual(native(source));});
+it.each(["string.match('x','%')","string.match('x','[')","string.match('x','%f')","string.match('x','%b(')","string.match('x','%1')","string.match('x','(')","string.match('x',')')"])("reports malformed Lua patterns: %s",async source=>{await expect(execute(source,{string:true})).rejects.toMatchObject({code:"E_AST"});});
+
+it.each([
+  "return string.find('abc','()%1%1')",
+  "return string.match('aa','^(a?)(a*)$'),string.match('aaab','(a*)ab')",
+  "return string.match(' 09_f!','%s%d%d%p%l%p'),string.match('AZ','%u+'),string.match('xyz','%X+')",
+  "return string.match('aabb','(a+)(b+)%1?'),string.match('abab','((ab)%2)')",
+  "return select('#',string.match('',string.rep('()',32)))",
+  "return string.find('xx.a','.',3,0),string.find('abc',')'),string.match('abc','abc',-99)"
+])("preserves pattern backtracking and capture edges: %s",async source=>{expect(await execute(source,{string:true})).toEqual(native(source));});
+it.each([
+  "return string.match('',string.rep('()',33))",
+  "return string.match(string.rep('a',200),string.rep('a?',200))"
+])("retains existing pattern complexity limits: %s",async source=>{await expect(execute(source,{string:true})).rejects.toMatchObject({code:"E_AST"});});
+
+it("matches retained input across cache boundaries with bounded reads",async()=>{
+  const result=await execute("local s=host(); local a,b=string.find(s,'xyz',1,true); local c=string.match(s,'(x+y+)z'); return a,b,#c,string.sub(c,-3)",{string:true,native:async heap=>{
+    const value=await heap.string([new TextEncoder().encode('x'.repeat(8191)+'xyz')]);
+    const read=heap.readBytes.bind(heap);
+    vi.spyOn(heap,"readBytes").mockImplementation(async(value,start,count)=>{expect(count).toBeLessThanOrEqual(8192);return read(value,start,count);});
+    return [value];
+  }});
+  expect(result).toEqual([{kind:"integer",value:8192},{kind:"integer",value:8194},{kind:"integer",value:8193},"xxy"]);
+});
+it("cancels backtracking within resident pattern caches and cleans storage",async()=>{
+  const controller=new AbortController();
+  await expect(execute("return string.match(host(),'a*a*a*a*a*a*a*a*b')",{string:true,signal:controller.signal,native:async heap=>{
+    const value=await heap.string([new TextEncoder().encode('a'.repeat(40))]),read=heap.readBytes.bind(heap);
     let scheduled=false;
     vi.spyOn(heap,"readBytes").mockImplementation(async(...args)=>{const result=await read(...args);if(!scheduled){scheduled=true;setTimeout(()=>controller.abort(),0);}return result;});
     return [value];

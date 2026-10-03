@@ -1,11 +1,12 @@
 import {PandocError} from "./errors.js";
 import {integer,integral} from "./lua-arithmetic.js";
 import {LuaNumbers} from "./lua-numbers.js";
+import {LuaPattern} from "./lua-pattern.js";
 import {LuaStrings} from "./lua-strings.js";
 import type {LuaArguments,LuaNativeOutput} from "./lua-machine.js";
 import type {LuaReference,LuaStorage,StoredLuaValue} from "./lua-storage.js";
 
-const names=["byte","char","len","sub","rep","reverse","lower","upper"];
+const names=["byte","char","len","sub","rep","reverse","lower","upper","find","match"];
 const relative=(position:number,length:number)=>position>=0?position:Math.max(0,length+position+1);
 function fail(message:string):never {throw new PandocError("E_AST","convert",message);}
 
@@ -14,7 +15,7 @@ function fail(message:string):never {throw new PandocError("E_AST","convert",mes
 export class LuaStringLibrary {
   private readonly numbers:LuaNumbers;
   private readonly strings:LuaStrings;
-  constructor(private readonly heap:LuaStorage) {this.numbers=new LuaNumbers(heap);this.strings=new LuaStrings(heap);}
+  constructor(private readonly heap:LuaStorage,private readonly cooperate:(units?:number)=>Promise<void>) {this.numbers=new LuaNumbers(heap);this.strings=new LuaStrings(heap);}
   async install(environment:LuaReference):Promise<void> {
     const library=await this.heap.table(),key=(name:string)=>this.heap.string([new TextEncoder().encode(name)]);
     for(let i=0;i<names.length;i++) await this.heap.set(library,await key(names[i]!),await this.heap.closure(-500-i,[]));
@@ -35,6 +36,12 @@ export class LuaStringLibrary {
     if(!name) throw new PandocError("E_UNSUPPORTED_FEATURE","convert","Unknown Lua string function");
     if(name==="char") return [await this.heap.string(this.characters(args))];
     const value=await this.string(await args.get(0)),length=await this.heap.byteLength(value);
+    if(name==="find" || name==="match") {
+      const pattern=await this.string(await args.get(1)),start=Math.max(1,relative(await this.argument(args,2,1),length));
+      if(start>length+1) return [undefined];
+      const plain=await args.get(3),matcher=await LuaPattern.open(this.heap,value,pattern,this.cooperate);
+      return matcher.search(start-1,name==="find",plain!==undefined && plain!==false);
+    }
     if(name==="len") return [integer(length)];
     if(name==="rep") {
       const count=await this.argument(args,1),argument=await args.get(2);

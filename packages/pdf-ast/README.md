@@ -200,6 +200,14 @@ backpressure to the input iterator; failed or cancelled spooling cleans up
 without replacing the original error. The injected backend must support retained
 staging writes and cleanup. This primitive does not publish output destinations.
 
+`encodeRetainedPng(width, height, rgbaChunks, storage, options)` preserves the
+buffered PNG byte layout while staging pixels and compressed bytes through the
+injected filesystem. It detects opaque input automatically; `alpha: "rgba"`
+keeps the alpha channel. `maxStagingBytes` admits aggregate live staging and
+`maxOutputBytes` bounds the final file. Chunks are owned and bounded by
+`chunkBytes`; cancellation, failure and early consumer return remove staging.
+The underlying scanline, compression and framing codecs are filesystem-independent.
+
 `encodePortableBitmapChunks(format, width, height, rgbaChunks, options)` emits
 PPM, PGM or PBM from incremental RGBA input, using a fixed output buffer rather
 than a full image. It preserves grayscale rounding, monochrome row padding and

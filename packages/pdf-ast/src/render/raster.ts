@@ -1,3 +1,4 @@
+import { updatePngCrc } from "./png-stream.js";
 import { encodePortableBitmapSteps } from "./portable-bitmap-stream.js";
 import { getStandardFontOutlines } from "../fonts/standard-outlines.js";
 import { encodeToXmlString, PageViewport } from "../vendor/pdfjs-fonts.mjs";
@@ -692,26 +693,10 @@ export function *cropRgbaBitmapSteps(bitmap: RgbaBitmap, rect: PdfCropRect): Gen
   return { width: w, height: h, data: out };
 }
 
-const CRC_TABLE = (() => {
-  const table = new Uint32Array(256);
-  for (let n = 0; n < 256; n++) {
-    let c = n;
-    for (let k = 0; k < 8; k++) {
-      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-    }
-    table[n] = c >>> 0;
-  }
-  return table;
-})();
-
 function *crc32Steps(bytes: Uint8Array): Generator<void, number, void> {
-  let work = 0;
-  let c = 0xffffffff;
-  for (let i = 0; i < bytes.length; i++) {
-    if (++work % 16384 === 0) yield;
-    c = CRC_TABLE[(c ^ bytes[i]!) & 0xff]! ^ (c >>> 8);
-  }
-  return (c ^ 0xffffffff) >>> 0;
+  let crc = 0xffffffff;
+  for (let at = 0; at < bytes.length; at += 16384) { crc = updatePngCrc(crc, bytes.subarray(at, at + 16384)); yield; }
+  return (crc ^ 0xffffffff) >>> 0;
 }
 
 function *makePngChunkSteps(type: string, data: Uint8Array): Generator<void, Uint8Array, void> {

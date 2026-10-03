@@ -11,6 +11,14 @@ async function collect(input: AsyncIterable<Uint8Array>) {
 }
 
 describe("streaming PDF filter pipelines", () => {
+  it.each(["DCTDecode", "DCT", "JPXDecode", "JBIG2Decode", "CCITTFaxDecode", "CCF"])("preserves native %s bytes after transport decoding", async codec => {
+    const plain = new Uint8Array([255, 216, 17, 23, 255, 217]);
+    const raw = encodeAsciiHex(plain);
+    const dict = cosDict({ Filter: cosArray([cosName("ASCIIHexDecode"), cosName(codec), cosName("Unsupported")]) });
+    expect(await collect(decodePdfStreamChunks(dict, pieces(raw), { chunkBytes: 7, stopBeforeImageCodec: true }))).toEqual(plain);
+    await expect(collect(decodePdfStreamChunks(dict, pieces(raw), { chunkBytes: 7 }))).rejects.toThrow();
+    await expect(collect(decodePdfStreamChunks(dict, pieces(raw), { chunkBytes: 7, maxDecodedBytes: 5, stopBeforeImageCodec: true }))).rejects.toMatchObject({ code: "E_LIMIT" });
+  });
   it("decodes chained Flate filters and PNG rows from DecodeParms", async () => {
     const raw = encodeFlate(encodeFlate(new Uint8Array([2, 100, 3, 2, 1, 255, 2, 1, 255])));
     const dict = cosDict({ Filter: cosArray([cosName("FlateDecode"), cosName("Fl")]), DecodeParms: cosArray([

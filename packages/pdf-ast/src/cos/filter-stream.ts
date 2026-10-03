@@ -7,7 +7,20 @@ import { extractDecodeParms } from "./filters.js";
 import { inflatePdfChunks, type PdfInflateOptions } from "./flate-stream.js";
 import { decodePredictorChunks, type PdfPredictorOptions } from "./predictor-stream.js";
 
-export interface PdfStreamDecodeOptions extends PdfInflateOptions, PdfPredictorOptions {}
+export interface PdfStreamDecodeOptions extends PdfInflateOptions, PdfPredictorOptions {
+  /** Decode transport wrappers but preserve the first native image codec payload. */
+  stopBeforeImageCodec?: boolean;
+}
+
+export function pdfImageCodec(filter: string): "jpeg" | "ccitt" | "jbig2" | "jpx" | undefined {
+  switch (filter) {
+    case "DCTDecode": case "DCT": return "jpeg";
+    case "CCITTFaxDecode": case "CCF": return "ccitt";
+    case "JBIG2Decode": return "jbig2";
+    case "JPXDecode": return "jpx";
+    default: return undefined;
+  }
+}
 /** Factories must replay the same bytes; retained PDF ranges satisfy this contract. */
 export type PdfStreamInput = AsyncIterable<Uint8Array> | (() => AsyncIterable<Uint8Array>);
 
@@ -28,6 +41,7 @@ export async function* decodePdfStreamChunks(dict: PdfCosDict, input: PdfStreamI
   const filters = filter?.kind === "array" ? filter.items : filter ? [filter] : [];
   for (const node of filters) {
     if (node.kind !== "name") continue;
+    if (options.stopBeforeImageCodec && pdfImageCodec(node.decoded)) break;
     const parms = parameters?.kind === "array" ? parameters.items[filterIndex] : parameters;
     filterIndex++;
     const upstream = current;

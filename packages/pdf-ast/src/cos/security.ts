@@ -1,5 +1,5 @@
 import { readBytes } from "@poe-code/safe-fs/contracts";
-import { decodePdfStreamChunks, type PdfStreamDecodeOptions, type PdfStreamInput } from "./filter-stream.js";
+import { decodePdfStreamChunks, pdfImageCodec, type PdfStreamDecodeOptions, type PdfStreamInput } from "./filter-stream.js";
 import { drainWork, drainWorkAsync } from "../work.js";
 import { CipherTransformFactory, Dict, Name, Stream, PDF17, PDF20, saslPrep } from "../vendor/pdfjs-fonts.mjs";
 import { bytesToString, stringToBytes } from "../bytes.js";
@@ -345,6 +345,7 @@ export async function* decodePdfEncryptedStreamChunks(
   for (let index = 0; index < filters.length; index++) {
     const filter = filters[index]!;
     if (filter.kind !== "name") throw new PdfError("E_PARSE", "Invalid encrypted stream filter");
+    if (options.stopBeforeImageCodec && pdfImageCodec(filter.decoded)) break;
     const parameter = parameters?.kind === "array" ? parameters.items[index] : parameters;
     const upstream = current;
     let apply: (chunks: AsyncIterable<Uint8Array>) => AsyncIterable<Uint8Array>;
@@ -358,7 +359,7 @@ export async function* decodePdfEncryptedStreamChunks(
       current = typeof upstream === "function" ? () => decodePdfStreamChunks(single, upstream, options) : decodePdfStreamChunks(single, upstream, options);
     }
   }
-  yield* (typeof current === "function" ? current() : current);
+  yield* decodePdfStreamChunks(cosDict({}), current, options);
 }
 
 export function encryptPdfBuffer(

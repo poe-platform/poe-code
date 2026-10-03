@@ -1,3 +1,4 @@
+import { pdfImageCodec } from "../cos/filter-stream.js";
 import { assertDecodedByteBudget } from "../cos/limits.js";
 import { Jbig2Image, JpegImage, JpxImage } from "../vendor/pdfjs-image-decoders.mjs";
 import { DeviceCmykCS } from "../vendor/pdfjs-fonts.mjs";
@@ -291,10 +292,8 @@ function *resolveEncodingKindSteps(filters: readonly string[]): Generator<void, 
   let work = 0;
   for (const f of filters) {
     if (++work % 16384 === 0) yield;
-    if (f === "DCTDecode" || f === "DCT") return "jpeg";
-    if (f === "CCITTFaxDecode" || f === "CCF") return "ccitt";
-    if (f === "JBIG2Decode") return "jbig2";
-    if (f === "JPXDecode") return "jpx";
+    const codec = pdfImageCodec(f);
+    if (codec) return codec;
   }
   return "image";
 }
@@ -304,16 +303,7 @@ function *extractRawJpegFromStreamSteps(doc: ParsedCosDocument, stream: PdfCosSt
   let bytes = stream.rawBytes;
   for (const f of filters) {
     if (++work % 16384 === 0) yield;
-    if (
-      f === "DCTDecode" ||
-      f === "DCT" ||
-      f === "JPXDecode" ||
-      f === "JBIG2Decode" ||
-      f === "CCITTFaxDecode" ||
-      f === "CCF"
-    ) {
-      return bytes;
-    }
+    if (pdfImageCodec(f)) return bytes;
     try {
       bytes = decodePdfFilter(f, bytes, undefined, doc.maxDecompressedBytes);
     } catch (error) {

@@ -34,6 +34,23 @@ function encrypted(plain: Uint8Array, key: Uint8Array) {
 }
 
 describe("bounded PDF stream security", () => {
+  it.each([false, true])("decrypts native image payloads with explicit Crypt=%s", async explicit => {
+    const security = state("AESV3");
+    const plain = new Uint8Array([255, 216, 17, 23, 255, 217]);
+    const raw = explicit ? encodeAsciiHex(encrypted(plain, security.fileKey)) : encrypted(encodeAsciiHex(plain), security.fileKey);
+    const dict = cosDict({ Filter: cosArray([cosName("ASCIIHexDecode"), ...(explicit ? [cosName("Crypt")] : []), cosName("DCTDecode"), cosName("Unsupported")]),
+      DecodeParms: cosArray([cosDict({}), ...(explicit ? [cosDict({ Name: cosName("StdCF") })] : [])]) });
+    expect(await collect(decodePdfEncryptedStreamChunks(security, 2, 0, dict, () => chunks(raw), { chunkBytes: 31, stopBeforeImageCodec: true }))).toEqual(plain);
+  });
+  it("bounds native bytes when explicit Crypt occurs after the image boundary", async () => {
+    const security = state("AESV3");
+    const bytes = new Uint8Array(80).fill(17);
+    const dict = cosDict({ Filter: cosArray([cosName("DCTDecode"), cosName("Crypt")]) });
+    const options = { chunkBytes: 7, stopBeforeImageCodec: true };
+    expect(await collect(decodePdfEncryptedStreamChunks(security, 2, 0, dict, chunks(bytes, 80), options), 7)).toEqual(bytes);
+    await expect(collect(decodePdfEncryptedStreamChunks(security, 2, 0, dict, chunks(bytes, 80), { ...options, maxDecodedBytes: 79 }))).rejects.toMatchObject({ code: "E_LIMIT" });
+  });
+
   it.each(["RC4", "AESV2", "AESV3"] as const)("decrypts %s across arbitrary input and final padding boundaries", async kind => {
     const security = state(kind);
     for (const size of [0, 1, 15, 16, 17, 511, 512, 513, 1031]) {

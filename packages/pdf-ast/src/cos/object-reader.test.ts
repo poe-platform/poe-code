@@ -34,6 +34,15 @@ function objectStream(body = "1 0 2 5 <<>> [1 0 R]", count = 2, first = 8) {
 }
 
 describe("range-backed PDF object reader", () => {
+  it("selects native image payloads per call without changing subsequent decoding", async () => {
+    const f = await fixture("1 0 obj << /Filter [/ASCIIHexDecode /DCTDecode /Unsupported] /Length 13 >>\nstream\nFFD81117FFD9>\nendstream\nendobj", [plain(1)]);
+    const result: number[] = [];
+    for await (const chunk of f.reader.decodeStream(1, 0, { stopBeforeImageCodec: true })) result.push(...chunk);
+    expect(result).toEqual([255, 216, 17, 23, 255, 217]);
+    await expect(f.reader.decodeStream(1).next()).rejects.toThrow("Unsupported");
+    expect(f.readFile).not.toHaveBeenCalled();
+    await f.close();
+  });
   it("loads only requested objects and retains stream ranges", async () => {
     const first = "1 0 obj << /Length 3 0 R >>\nstream\nhello\nendstream\nendobj\n";
     const f = await fixture(first + "3 0 obj 5 endobj", [plain(1), plain(3, first.length)]);

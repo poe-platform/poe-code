@@ -50,7 +50,7 @@ function lineEnding(text: string): { ending: NonNullable<Workbook["textExportEol
     unique: [cr, lf, crlf].filter(count => count > 0).length === 1 };
 }
 
-function trimSpace(field: string): string {
+export function trimSpace(field: string): string {
   let start = 0, end = field.length;
   while (start < end && /[\p{Z}\u0009-\u000d]/u.test(field[start]!)) start++;
   while (end > start && /[\p{Z}\u0009-\u000d]/u.test(field[end - 1]!)) end--;
@@ -149,6 +149,10 @@ export async function readText(bytes: Uint8Array, context: CapabilityContext, en
     maximumColumns = Math.max(maximumColumns, column + (separatorAt(i) ? 1 : 0));
     if (i < text.length && separatorAt(i)) { i += separatorAt(i); if (collapse) while (i < text.length && separatorAt(i)) i++; }
   }
+  return finishTextImport(book, cells, row, column, maximumColumns, rowsExceeded, context);
+}
+
+export async function finishTextImport(book: Workbook, cells: Cell[], row: number, column: number, maximumColumns: number, rowsExceeded: boolean, context: CapabilityContext): Promise<Workbook> {
   const rowCount = Math.min(MAX_SHEET_SIZE.rows, row + (column > 0 ? 1 : 0));
   const size = { ...DEFAULT_SHEET_SIZE };
   while (size.rows < rowCount && size.rows < MAX_SHEET_SIZE.rows) size.rows *= 2;

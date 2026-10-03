@@ -1,4 +1,5 @@
 import type { FormatProvider } from "@poe-code/spreadsheet-engine/codecs/types";
+import { probeTextSource, readTextSource } from "./text-source.js";
 import { probeText, probeTextName, readText, readTextAssistant } from "./text.js";
 import { writeConfigurableText, writePlainCsv, writeConfigurableTextStream, writePlainCsvStream } from "./text-export.js";
 
@@ -6,7 +7,7 @@ export const csvFormat: FormatProvider = {
   "id": "Gnumeric_stf",
   source: "src/stf.c",
   services: [
-    { id: "stf_csvtab", direction: "read", description: "Comma or tab separated values (CSV/TSV)", extensions: ["csv", "tsv", "txt"], mimeTypes: ["application/tab-separated-values", "text/comma-separated-values", "text/csv", "text/x-csv", "text/spreadsheet", "text/tab-separated-values"], probePriority: 0, contentProbe: true, encodingDependent: true, probeName: probeTextName, probeContent: probeText, read: readText },
+    { id: "stf_csvtab", direction: "read", description: "Comma or tab separated values (CSV/TSV)", extensions: ["csv", "tsv", "txt"], mimeTypes: ["application/tab-separated-values", "text/comma-separated-values", "text/csv", "text/x-csv", "text/spreadsheet", "text/tab-separated-values"], probePriority: 0, contentProbe: true, encodingDependent: true, probeName: probeTextName, probeContent: probeText, probeSource: probeTextSource, read: readText, readSource: readTextSource },
     { id: "stf_assistant", direction: "read", description: "Text import (configurable)", extensions: [], mimeTypes: ["text/plain", "text/csv", "text/x-csv", "text/comma-separated-values", "text/tab-separated-values"], probePriority: 0, encodingDependent: true, interactiveOnly: true, read: readTextAssistant },
     { id: "stf_assistant", direction: "write", description: "Text (configurable)", extensions: ["txt"], byteStrings: "utf8-text", sheetSelection: true, honorsExportRange: true, write: writeConfigurableText, writeStream: writeConfigurableTextStream,
       exportOptionRules: {

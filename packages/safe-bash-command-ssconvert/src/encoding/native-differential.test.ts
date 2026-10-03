@@ -2583,13 +2583,17 @@ function bytes(hex: string): Uint8Array {
   return new Uint8Array(Array.from({ length: hex.length / 2 }, (_, index) => Number.parseInt(hex.slice(index * 2, index * 2 + 2), 16)));
 }
 
-it.each(cases.map((c, index) => [index, c] as const))("matches native encoding/locale bytes, diagnostics and status, case %s", async (_index, c) => {
+it.each(cases.flatMap((c, index) => ["buffered", "range"].map(mode => [mode, index, c] as const)))("matches native encoding/locale bytes, diagnostics and status via %s, case %s", async (mode, _index, c) => {
   const fs = Volume.fromJSON({ "/input.csv": Buffer.from(bytes(c.inputHex)) });
   const errors: Uint8Array[] = [];
   const engine = createEngine({ codecs: [],
     limits: { inputBytes: 10000, outputBytes: 10000, cells: 100, sheets: 10, operations: 100 },
     environment: { env: { LC_ALL: c.locale ?? "C", LANG: "C", TZ: "UTC", ...c.env }, locale: "C", timezone: "UTC" },
     filesystem: {
+      ...(mode === "range" ? { async openInput(uri: string) {
+        const data = new Uint8Array(fs.readFileSync(uri) as Uint8Array);
+        return { size: data.length, async read(offset: number, maximum: number) { return data.subarray(offset, offset + Math.min(3, maximum)); } };
+      } } : {}),
       async read(uri) { return [new Uint8Array(fs.readFileSync(uri) as Uint8Array)]; },
       async write(uri, data) { fs.writeFileSync(uri, data); }
     } });

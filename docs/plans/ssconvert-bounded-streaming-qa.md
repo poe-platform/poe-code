@@ -1,8 +1,8 @@
 # ssconvert bounded streaming qualification
 
 This is a manual execution plan, not a completed Worker qualification. Incremental
-CSV/text output and custom-codec range input with caller-backed staging are available.
-Built-in input collection, the owned array-based workbook,
+CSV/text range input and incremental output, plus caller-backed input staging,
+are available. Other built-in input collection, the owned array-based workbook,
 CSV cell lookup, large individual fields, and the remaining format codecs still
 need migration before the complete conversion pipeline can pass this plan.
 

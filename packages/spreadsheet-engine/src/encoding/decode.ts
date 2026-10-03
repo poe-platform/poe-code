@@ -4,7 +4,7 @@ import { encodingName } from "./names.js";
 import { singleByteTables } from "./tables.js";
 
 /** GOffice tries the override first, then detection, ASCII, UTF-8 and Latin-1. */
-export function decodeText(bytes: Uint8Array, encoding?: string): string {
+export function decodingGuesses(bytes: Uint8Array, encoding?: string): readonly string[] {
   if (encoding !== undefined) {
     const name = encodingName(encoding);
     if (!Object.hasOwn(singleByteTables, name) && !["utf-8", "utf-16", "utf-16le", "utf-16be",
@@ -22,7 +22,11 @@ export function decodeText(bytes: Uint8Array, encoding?: string): string {
   if (bytes[0] === 60 && bytes[1] === 0 && bytes[2] === 63 && bytes[3] === 0) guesses.push("utf-16le");
   if (bytes[0] === 0 && bytes[1] === 60 && bytes[2] === 0 && bytes[3] === 63) guesses.push("utf-16be");
   guesses.push("utf-8");
-  for (const guess of guesses) {
+  return guesses;
+}
+
+export function decodeText(bytes: Uint8Array, encoding?: string): string {
+  for (const guess of decodingGuesses(bytes, encoding)) {
     try {
       const label = guess.toLowerCase();
       const table = Object.hasOwn(singleByteTables, label) ? singleByteTables[label] : undefined;

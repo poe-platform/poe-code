@@ -132,8 +132,10 @@ export function createRealpathCommand(configuration: RealpathCommandsOptions = {
               const component = components[index]!;
               if (!component && index < components.length - 1) continue;
               if (!component || component === ".." || component === ".") {
-                const parent = await context.fs.stat(prefix, { signal: context.signal });
-                if (parent.type !== "directory") throw new FsError("ENOTDIR", { path: prefix });
+                const parent = !component && mode !== "e"
+                  ? await maybeStat(context, prefix)
+                  : await context.fs.stat(prefix, { signal: context.signal });
+                if (parent !== undefined && parent.type !== "directory") throw new FsError("ENOTDIR", { path: prefix });
                 if (!component || component === ".") continue;
               }
               prefix = normalizePath(component, prefix);

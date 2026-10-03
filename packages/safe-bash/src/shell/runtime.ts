@@ -993,7 +993,7 @@ export interface IO {
   readonly [invocationScope]: InvocationScope;
   readonly [valueScope]?: ValueScope;
   readonly parameterDepth?: number;
-  readonly execution?: { readonly ignoreErrexit: boolean };
+  readonly execution?: { readonly ignoreErrexit: boolean; arithmeticDiagnostic?: boolean };
   readonly stdin: ByteSource;
   readonly stdinIsDefault?: boolean;
   readonly asyncDefaultInput?: ByteSource | undefined;
@@ -4410,7 +4410,7 @@ export class Runtime {
           throw completedExit(1);
         }
         try {
-          const status = await this.pipeline(pipeline, state, ignored ? { ...io, execution: { ignoreErrexit: true } } : io);
+          const status = await this.pipeline(pipeline, state, ignored ? (io.execution?.ignoreErrexit ? io : { ...io, execution: { ignoreErrexit: true } }) : io);
           if (completion) completion.completeStatus(status);
           else state.status = status;
         } finally { completion?.close(); }
@@ -5060,7 +5060,7 @@ export class Runtime {
         try {
           status = Number(await this.expandedArithmeticValue(command.expression, state, io) === 0n);
         }
-        catch (error) { this.rethrowArithmeticControl(error); throw new PublicDiagnostic(`((: ${message(error, this.budget.onInternalError)}`); }
+        catch (error) { this.rethrowArithmeticControl(error); if (io.execution) io.execution.arithmeticDiagnostic = true; throw new PublicDiagnostic(`((: ${message(error, this.budget.onInternalError)}`); }
       } else if (command.kind === "subshell") {
         const child = tryCloneStateSync(state) ?? await cloneState(state, this.signal);
         child.extensions = undefined;
@@ -5299,13 +5299,15 @@ export class Runtime {
           }
           }
         } else {
-          const conditionIO = io.execution?.ignoreErrexit ? io : { ...io, execution: { ignoreErrexit: true } };
+          const conditionExecution = { ignoreErrexit: true, arithmeticDiagnostic: false };
+          const conditionIO = { ...io, execution: conditionExecution };
           let loopTurn = 0;
           while (true) {
             if ((++loopTurn & 127) === 0) {
               if (this.budget._hasExternalSignal || hasYieldCheckpoint(this.signal) || (loopTurn & 2047) === 0) await yieldTurn(this.signal);
               else runYieldCheckpoint(this.signal);
             }
+            conditionExecution.arithmeticDiagnostic = false;
             let condition: number;
             try { condition = await this.script(command.condition, state, conditionIO); }
             catch (error) {
@@ -5315,7 +5317,7 @@ export class Runtime {
               if (error.kind === "break") break;
               continue;
             }
-            if ((condition === 0) !== (command.kind === "while")) break;
+            if (conditionExecution.arithmeticDiagnostic || (condition === 0) !== (command.kind === "while")) break;
             this.budget.loop();
             const result = await this.loopBody(command.body, state, io);
             status = result.status;

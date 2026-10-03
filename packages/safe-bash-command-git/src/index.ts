@@ -523,13 +523,10 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
   for(const [name,value] of Object.entries(limits)) if(value!==Infinity && (!Number.isSafeInteger(value) || value<1)) throw new Error(`${name} must be a positive safe integer or Infinity`);
   const def: CommandDefinition = {name:'git',runtimeIdentity:commandRuntimeIdentity,description:'Git repositories in the virtual filesystem',async execute(context) {
     try {
-      if (context.args.length === 1 && (context.args[0] === "--version" || context.args[0] === "-v" || context.args[0] === "version")) {
-        await writeBytes(context.stdout, encoder.encode("git version 0.0.0-development\n"), context.signal);
-        return { exitCode: 0 };
-      }
       let stdin: string | undefined;
       const env = {...context.env, POE_GIT_TIMESTAMP: String(Math.floor(Date.now()/1000))};
-      const before=await snapshot(context.fs,limits,context.signal,context.cwd,context.args,env);
+      const isVersionOnly = context.args.length === 1 && (context.args[0] === "--version" || context.args[0] === "-v" || context.args[0] === "version");
+      const before = isVersionOnly ? [] : await snapshot(context.fs,limits,context.signal,context.cwd,context.args,env);
       const customExports = options.wasmModule ? new ((globalThis as unknown as {WebAssembly:{Instance:new(mod:object)=>{exports:GitExports}}}).WebAssembly.Instance)(options.wasmModule).exports : undefined;
       const responses: {status:number;headers:Readonly<Record<string,string>>;body:string}[]=[];
       let httpBytes=0;
@@ -737,7 +734,7 @@ export function evalSyncGit(
   const readOnly = isReadOnlyGitArgs(args);
   if (!readOnly && (!writeFileSync || !mkdirSync || !rmSync)) return undefined;
   if (args.length === 1 && (args[0] === "--version" || args[0] === "-v" || args[0] === "version")) {
-    return "git version 0.0.0-development\n";
+    return undefined;
   }
   if (!inspectNode || !readFile) return undefined;
 

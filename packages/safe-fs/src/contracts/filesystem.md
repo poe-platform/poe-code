@@ -1436,7 +1436,11 @@ Real's trusted staging is not promoted to either capability.
 
 `synchronousStagingResolution: true` adds
 `prepareStagingResolution(path, options?)` for a regular-file destination or a
-missing final entry. The final entry is not followed. The immutable result
+missing final entry. The final entry is not followed by default. Backends advertising
+`synchronousFollowedStagingResolution: true` additionally accept
+`{ followFinalSymlink: true }`, including in a `stagingResolution` capability query.
+This binds the final link chain and its existing or absent regular target in the
+same commit validator; unsupported views must refuse before effects. The immutable result
 contains its canonical `path`, `parent` and `destination` snapshot (or null),
 canonical directory-only `ancestors`, and the ordered `traversed` resolution
 steps. Steps include directories later left by `..`, each followed symlink's

@@ -4,7 +4,7 @@ import type {
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileResizeOperation, FileResizeOptions, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
   FileSystemCapabilities, FsOptions, ChmodOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
-  ConditionalFilePublicationOptions, ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, FileResolutionStep, FileStagingResolution, PublishStagedFileOptions, PublishStagedFileSetOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalFilePublicationOptions, ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, FileResolutionStep, FileStagingResolution, PrepareStagingResolutionOptions, PublishStagedFileOptions, PublishStagedFileSetOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { readBytes } from "../../contracts/io.js";
@@ -46,6 +46,8 @@ interface Component {
 }
 
 interface ResolveOptions {
+  /** Missing followed targets are validated by the backend resolution receipt. */
+  readonly retainedResolution?: boolean;
   readonly resolutionSteps?: FileResolutionStep[];
   readonly resizeCreate?: boolean;
   readonly followFinal?: boolean;
@@ -237,7 +239,8 @@ export class MountFileSystem implements FileSystem {
       if (options.stagingResolution === true && normalizePath(globalPath(path)) !== path) fail("EINVAL");
       const location = await this.resolve(path, options, {
         allowMissing: options.create ?? true,
-        followFinal: options.stagingResolution !== true && (options.create !== undefined || options.creation !== "exclusive"),
+        retainedResolution: options.stagingResolution === true && options.followFinalSymlink === true,
+        followFinal: options.stagingResolution === true ? options.followFinalSymlink === true : options.create !== undefined || options.creation !== "exclusive",
         ...(options.create === undefined ? {} : { resizeCreate: options.create }),
       });
       const observed = ownedMutationCapabilities(location.mount.backend, await location.mount.backend.capabilitiesFor?.(location.local, options)
@@ -259,15 +262,15 @@ export class MountFileSystem implements FileSystem {
           const declared = input === location.local ? resize : ownedMutationCapabilities(location.mount.backend,
             await location.mount.backend.capabilitiesFor?.(input, options) ?? location.mount.backend.capabilities);
           options.signal?.throwIfAborted();
-          resolution = declared.synchronousStagingResolution === true && await this.supportsStagingAncestry(location, resize, options);
+          resolution = declared.synchronousStagingResolution === true && (options.followFinalSymlink !== true || declared.synchronousFollowedStagingResolution === true) && await this.supportsStagingAncestry(location, resize, options);
         }
       }
       const conditionalChmod = options.conditionalChmod === true
         ? resize.conditionalChmod === true && typeof location.mount.backend.chmod === "function"
           && await this.supportsDirectoryValidation(location.path.slice(0, location.path.lastIndexOf("/")) || "/", options, true)
         : this.capabilities.conditionalChmod;
-      const { synchronousDirectoryValidation: ignoredValidation, synchronousStagingResolution: ignoredResolution, ...ordinary } = resize;
-      const withOpen = { ...ordinary, ...(conditionalChmod === undefined ? {} : { conditionalChmod }), ...(resolution === undefined ? {} : { synchronousStagingResolution: resolution }), ...(validation === undefined ? {} : { synchronousDirectoryValidation: validation }), atomicStagingAncestry: ancestry, ...(typeof location.mount.backend.open === "function" ? {} : { open: false }) };
+      const { synchronousDirectoryValidation: ignoredValidation, synchronousStagingResolution: ignoredResolution, synchronousFollowedStagingResolution: ignoredFollowedResolution, ...ordinary } = resize;
+      const withOpen = { ...ordinary, ...(conditionalChmod === undefined ? {} : { conditionalChmod }), ...(resolution === undefined ? {} : { synchronousStagingResolution: resolution, ...(options.followFinalSymlink === true ? {synchronousFollowedStagingResolution: resolution} : {}) }), ...(validation === undefined ? {} : { synchronousDirectoryValidation: validation }), atomicStagingAncestry: ancestry, ...(typeof location.mount.backend.open === "function" ? {} : { open: false }) };
       const capabilities = location.synthetic ? { ...withOpen, open: false, retainedRead: false }
         : retainedResizeCapabilities(location.mount.backend, retainedReadCapabilities(location.mount.backend, withOpen));
       if (location.synthetic) return readOnlyCapabilities(capabilities);
@@ -310,19 +313,19 @@ export class MountFileSystem implements FileSystem {
       () => this.prepareAncestry(ancestors, options));
   }
 
-  prepareStagingResolution(path: string, options: FsOptions = {}): Promise<FileStagingResolution> {
-    const controls: FsOptions = options.signal === undefined ? {} : { signal: options.signal };
+  prepareStagingResolution(path: string, options: PrepareStagingResolutionOptions = {}): Promise<FileStagingResolution> {
+    const controls: PrepareStagingResolutionOptions = {...(options.signal === undefined ? {} : { signal: options.signal }), ...(options.followFinalSymlink === true ? {followFinalSymlink:true} : {})};
     return this.operation("prepareStagingResolution", path, controls, async () => {
       if (normalizePath(globalPath(path)) !== path) fail("EINVAL");
       const observed: FileResolutionStep[] = [];
-      const location = await this.resolve(path, controls, { followFinal: false, allowMissing: true, resolutionSteps: observed });
+      const location = await this.resolve(path, controls, { followFinal: controls.followFinalSymlink === true, retainedResolution: controls.followFinalSymlink === true, allowMissing: true, resolutionSteps: observed });
       if (location.synthetic || !within(location.mount.path, path)) fail("ENOTSUP");
       const backend = location.mount.backend;
       const input = location.mount.path === "/" ? path : path.slice(location.mount.path.length) || "/";
       const declared = ownedMutationCapabilities(backend,
         await backend.capabilitiesFor?.(input, { ...controls, stagingResolution: true }) ?? backend.capabilities);
       controls.signal?.throwIfAborted();
-      if (declared.synchronousStagingResolution !== true || !backend.prepareStagingResolution) fail("ENOTSUP");
+      if (declared.synchronousStagingResolution !== true || controls.followFinalSymlink === true && declared.synchronousFollowedStagingResolution !== true || !backend.prepareStagingResolution) fail("ENOTSUP");
       const prefix = directoryAncestryPaths(location.mount.path).map(ancestor => {
         const entry = observed.find(step => step.path === ancestor);
         if (!entry) fail("ENOTSUP");
@@ -562,6 +565,9 @@ export class MountFileSystem implements FileSystem {
     let followedFinalLink = false;
     const verified = async (location: Location): Promise<Location> => {
       let inspection = !location.stat && settings.resizeCreate === true ? creationVerification : verification;
+      // A guarded resolution binds the original link chain and missing target
+      // through the authoritative backend receipt; realpath cannot name absence.
+      if (settings.retainedResolution && !location.stat && followedFinalLink) inspection = undefined;
       // A missing entry has no realpath. Verify its existing parent while
       // leaving dangling final symlinks on the ordinary following path.
       if (inspection && !location.stat && settings.allowMissing && !followedFinalLink && inspection.finalName === undefined) {

@@ -92,6 +92,8 @@ export interface FileSystemCapabilities {
   readonly synchronousDirectoryValidation?: boolean;
   /** Captures a followed destination path with a synchronous commit validator. */
   readonly synchronousStagingResolution?: boolean;
+  /** Also binds the final symlink and its target in the synchronous validator. */
+  readonly synchronousFollowedStagingResolution?: boolean;
   /** Invokes commitGuard in the same synchronous section as staged replacement. */
   readonly guardedStagingPublication?: boolean;
   readonly atomicFilePublication?: boolean;
@@ -138,6 +140,7 @@ export interface CapabilityQueryOptions extends OpenReadFileOptions {
    * Omission retains the ordinary per-target query and its acquisition intent. */
   readonly stagingAncestry?: boolean;
   readonly stagingResolution?: boolean;
+  readonly followFinalSymlink?: boolean;
   readonly create?: boolean;
   readonly creation?: OpenFileOptions["creation"];
 }
@@ -263,6 +266,11 @@ export interface FileResolutionStep extends FileStagingEntry {
   readonly linkTarget?: string;
 }
 
+export interface PrepareStagingResolutionOptions extends FsOptions {
+  /** Requires synchronousFollowedStagingResolution; omission preserves final-entry resolution. */
+  readonly followFinalSymlink?: boolean;
+}
+
 export interface FileStagingResolution {
   readonly path: string;
   readonly parent: FileStat;
@@ -377,7 +385,7 @@ export interface FileSystem {
    * The returned guard checks current identities/search access synchronously;
    * preparation is not validation, and the guard's result is not an async lease. */
   prepareDirectoryAncestry?(ancestors: readonly FileStagingEntry[], options?: FsOptions): Promise<() => true>;
-  prepareStagingResolution?(path: string, options?: FsOptions): Promise<FileStagingResolution>;
+  prepareStagingResolution?(path: string, options?: PrepareStagingResolutionOptions): Promise<FileStagingResolution>;
   removeStagedFile?(staging: FileStaging, options?: FsOptions): Promise<void>;
   openReadFile?(path: string, options?: OpenReadFileOptions): Promise<FileReadHandle>;
   openResizeFile?(path: string, options?: OpenResizeFileOptions): Promise<FileResizeHandle>;

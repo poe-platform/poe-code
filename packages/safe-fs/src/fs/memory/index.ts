@@ -4,7 +4,7 @@ import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileReadHandle, FileResizeHandle, FileStat, FileSystem, FileSystemCapabilities,
   FsOptions, ChmodOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions,
   FileDescriptor, OpenFileOptions, OpenReadFileOptions, OpenResizeFileOptions, WriteFileOptions,
-  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingCleanup, FileStagingEntry, FileResolutionStep, FileStagingResolution, PublishStagedFileOptions, PublishStagedFileSetOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingCleanup, FileStagingEntry, FileResolutionStep, FileStagingResolution, PrepareStagingResolutionOptions, PublishStagedFileOptions, PublishStagedFileSetOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { normalizePath, validatePath, pathByteLength } from "../../contracts/virtual-path.js";
@@ -712,7 +712,7 @@ const SHARED_STOCK_MEMORY_CAPABILITIES: FileSystemCapabilities = Object.freeze({
   timestamps: true,
   atomicRename: true,
   atomicStagedFileMutation: true, atomicFileStaging: true, retainedStagingCleanup: true, retainedStagingWrite: true, atomicStagingAncestry: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicEntryRemovalReceipt: true, atomicTreeRemoval: true,
-  synchronousDirectoryValidation: true, synchronousStagingResolution: true, guardedStagingPublication: true,
+  synchronousDirectoryValidation: true, synchronousStagingResolution: true, synchronousFollowedStagingResolution: true, guardedStagingPublication: true,
   atomicDirectoryMetadata: true,
   streamingRead: true,
   retainedRead: true,
@@ -2180,13 +2180,14 @@ export class MemoryFileSystem implements FileSystem {
     return () => this.verifyDirectoryAncestry(entries, controls);
   }
 
-  async prepareStagingResolution(path: string, options: FsOptions = {}): Promise<FileStagingResolution> {
+  async prepareStagingResolution(path: string, options: PrepareStagingResolutionOptions = {}): Promise<FileStagingResolution> {
+    const followFinal = options.followFinalSymlink === true;
     const controls: FsOptions = options.signal === undefined ? {} : { signal: options.signal };
     controls.signal?.throwIfAborted();
     this.validatePath(path, "prepareStagingResolution");
     if (!path.startsWith("/") || normalizePath(path) !== path) this.fail("EINVAL", "prepareStagingResolution", path);
     const traversed: FileResolutionStep[] = [];
-    const location = this.resolve(path, "prepareStagingResolution", { followFinal: false, allowMissing: true, resolutionSteps: traversed });
+    const location = this.resolve(path, "prepareStagingResolution", { followFinal, allowMissing: true, resolutionSteps: traversed });
     if (location.node && location.node.type !== "file") this.fail("ENOTSUP", "prepareStagingResolution", path);
     const parentPath = location.path.slice(0, location.path.lastIndexOf("/")) || "/";
     const ancestors = snapshotDirectoryAncestry(directoryAncestryPaths(parentPath).map(entryPath => ({
@@ -2199,7 +2200,7 @@ export class MemoryFileSystem implements FileSystem {
       controls.signal?.throwIfAborted();
       const currentSteps: FileResolutionStep[] = [];
       let current: Location;
-      try { current = this.resolve(path, "verifyStagingResolution", { followFinal: false, allowMissing: true, resolutionSteps: currentSteps }); }
+      try { current = this.resolve(path, "verifyStagingResolution", { followFinal, allowMissing: true, resolutionSteps: currentSteps }); }
       catch (error) {
         if (error instanceof FsError && ["ENOENT", "ENOTDIR", "ELOOP"].includes(error.code)) this.fail("EAGAIN", "verifyStagingResolution", path);
         throw error;

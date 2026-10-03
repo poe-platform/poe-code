@@ -6,7 +6,7 @@ import type {
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileResizeOperation, FileResizeOptions, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
   FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
-  ConditionalFilePublicationOptions, ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, FileStagingResolution, PublishStagedFileOptions, PublishStagedFileSetOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalFilePublicationOptions, ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, FileStagingResolution, PrepareStagingResolutionOptions, PublishStagedFileOptions, PublishStagedFileSetOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
@@ -22,7 +22,7 @@ import { normalizePath } from "../../contracts/virtual-path.js";
 
 const views = new WeakMap<FileSystem, DeviceFileSystem>();
 const deviceCapabilities: FileSystemCapabilities = Object.freeze({
-  synchronousStagingResolution: false,
+  synchronousStagingResolution: false, synchronousFollowedStagingResolution: false,
   readOnly: false, read: true, stat: true, realpath: true, access: true, readdir: false,
   write: true, append: true, exclusiveCreate: true, streamingRead: true, retainedRead: true,
   streamingWrite: true, streamingAppend: true, independentWriteStreams: true, copy: true, exclusiveCopy: true,
@@ -181,7 +181,7 @@ export class DeviceFileSystem implements FileSystem {
     let resolved: string;
     let selected: FileSystemCapabilities | undefined;
     const traversal = options.stagingResolution === true ? { virtual: false } : undefined;
-    try { resolved = await this.#resolve(path, options, options.stagingResolution !== true && (options.create !== undefined || options.creation !== "exclusive"), options.create, traversal); }
+    try { resolved = await this.#resolve(path, options, options.stagingResolution === true ? options.followFinalSymlink === true : options.create !== undefined || options.creation !== "exclusive", options.create, traversal); }
     catch (error) {
       options.signal?.throwIfAborted();
       if (options.create !== true || !isFsError(error, "ENOENT")) throw error;
@@ -204,7 +204,7 @@ export class DeviceFileSystem implements FileSystem {
       retainedRead: false, retainedResize: false, streamingRead: false, copy: false, exclusiveCopy: false };
     // This intent cannot bind virtual traversal. Do not infer other path
     // capabilities by resolving the shadowed entry in the backing filesystem.
-    if (traversal?.virtual) return Object.freeze({ synchronousStagingResolution: false });
+    if (traversal?.virtual) return Object.freeze({ synchronousStagingResolution: false, synchronousFollowedStagingResolution:false });
     if (selected === undefined) {
       const query = this.#filesystem.capabilitiesFor;
       options.signal?.throwIfAborted();
@@ -222,12 +222,14 @@ export class DeviceFileSystem implements FileSystem {
         if (resolution.path !== resolved) throw new FsError("EAGAIN", { path });
         if ([resolution.path, ...resolution.traversed.map(entry => entry.path)].some(entry => entry === deviceDirectory || entry.startsWith(`${deviceDirectory}/`))) {
           (unavailable ??= {}).synchronousStagingResolution = false;
+          unavailable.synchronousFollowedStagingResolution = false;
         }
         runStagingGuard(resolution.validate);
       } catch (error) {
         options.signal?.throwIfAborted();
         if (!isFsError(error, "ENOTSUP")) throw error;
         (unavailable ??= {}).synchronousStagingResolution = false;
+        unavailable.synchronousFollowedStagingResolution = false;
       }
     }
     if (resolved.startsWith(`${deviceDirectory}/`)) {
@@ -235,6 +237,7 @@ export class DeviceFileSystem implements FileSystem {
       u.atomicStagingAncestry = false;
       u.synchronousDirectoryValidation = false;
       u.synchronousStagingResolution = false;
+      u.synchronousFollowedStagingResolution = false;
     }
     if (typeof this.#filesystem.open !== "function" && capabilities.open !== false) (unavailable ??= {}).open = false;
     if (typeof this.#filesystem.readStream !== "function" && capabilities.streamingRead !== false) (unavailable ??= {}).streamingRead = false;
@@ -699,19 +702,19 @@ export class DeviceFileSystem implements FileSystem {
     } catch (error) { options.signal?.throwIfAborted(); throw error; }
   }
 
-  async prepareStagingResolution(path: string, options: FsOptions = {}): Promise<FileStagingResolution> {
-    const controls: FsOptions = options.signal === undefined ? {} : { signal: options.signal };
+  async prepareStagingResolution(path: string, options: PrepareStagingResolutionOptions = {}): Promise<FileStagingResolution> {
+    const controls: PrepareStagingResolutionOptions = {...(options.signal === undefined ? {} : { signal: options.signal }), ...(options.followFinalSymlink === true ? {followFinalSymlink:true} : {})};
     controls.signal?.throwIfAborted();
     if (normalizePath(path) !== path || !path.startsWith("/")) throw new FsError("EINVAL", { path });
     try {
       const traversal = { virtual: false };
-      const resolved = await this.#resolve(path, controls, false, undefined, traversal);
+      const resolved = await this.#resolve(path, controls, controls.followFinalSymlink === true, undefined, traversal);
       controls.signal?.throwIfAborted();
       if (traversal.virtual) throw new FsError("ENOTSUP", { path });
       const declared = ownedMutationCapabilities(this.#filesystem,
         await this.#filesystem.capabilitiesFor?.(path, { ...controls, stagingResolution: true }) ?? this.#filesystem.capabilities);
       controls.signal?.throwIfAborted();
-      if (declared.synchronousStagingResolution !== true || !this.#filesystem.prepareStagingResolution) throw new FsError("ENOTSUP", { path });
+      if (declared.synchronousStagingResolution !== true || controls.followFinalSymlink === true && declared.synchronousFollowedStagingResolution !== true || !this.#filesystem.prepareStagingResolution) throw new FsError("ENOTSUP", { path });
       const receipt = snapshotStagingResolution(await this.#filesystem.prepareStagingResolution(path, controls));
       controls.signal?.throwIfAborted();
       if (receipt.path !== resolved) throw new FsError("EAGAIN", { path });

@@ -1,4 +1,4 @@
-import type { DirectoryEntry, CreateStagedFileOptions, FileStaging, FileStagingEntry, FileStagingResolution, FileStat, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, PublishStagedFileOptions, PublishStagedFileSetOptions, RenameOptions } from "../contracts/filesystem.js";
+import type { DirectoryEntry, CreateStagedFileOptions, FileStaging, FileStagingEntry, FileStagingResolution, PrepareStagingResolutionOptions, FileStat, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, PublishStagedFileOptions, PublishStagedFileSetOptions, RenameOptions } from "../contracts/filesystem.js";
 import type { FileDescriptor, OpenFileOptions } from "../contracts/descriptor.js";
 import { FsError, toFsError } from "../contracts/errors.js";
 import { validatePath } from "../contracts/virtual-path.js";
@@ -402,7 +402,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
         return runScopedTransportBudget(admit, () => executeDispatch(args), credit);
       };
       const scoped = property === "prepareStagingResolution"
-        ? async (path: string, options: FsOptions = {}) => {
+        ? async (path: string, options: PrepareStagingResolutionOptions = {}) => {
           const controls = resizeOptions({ ...options });
           controls.signal?.throwIfAborted();
           admit(controls);
@@ -410,7 +410,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
             const declared = ownedMutationCapabilities(original,
               await original.capabilitiesFor?.(path, { ...controls, stagingResolution: true }) ?? original.capabilities);
             controls.signal?.throwIfAborted();
-            if (declared.synchronousStagingResolution !== true) throw new FsError("ENOTSUP", { path });
+            if (declared.synchronousStagingResolution !== true || controls.followFinalSymlink === true && declared.synchronousFollowedStagingResolution !== true) throw new FsError("ENOTSUP", { path });
             const resolution = snapshotStagingResolution(await Reflect.apply(method, original, [path, controls]) as FileStagingResolution);
             controls.signal?.throwIfAborted();
             return snapshotStagingResolution({ ...resolution, validate: () => {

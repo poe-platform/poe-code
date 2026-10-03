@@ -395,7 +395,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
         if (!hasRegisteredS3FileSystem) return executeDispatch(args);
         if (operations.has(property as keyof FileSystem)) {
           const optionIndex = ["compareEntry", "createStagedFile", "utimes"].includes(String(property)) ? 3
-            : ["writeFile", "appendFile", "writeStream", "rename", "copyFile", "link", "symlink", "access", "chmod", "truncate", "resizeFile", "publishFileConditional", "writeFileConditional", "publishStagedFile"].includes(String(property)) ? 2 : 1;
+            : ["writeFile", "appendFile", "writeStream", "rename", "copyFile", "link", "symlink", "access", "chmod", "truncate", "resizeFile", "publishFileConditional", "writeFileConditional", "publishStagedFile", "publishStagedFileSet"].includes(String(property)) ? 2 : 1;
           args[optionIndex] = scopeTransportOptions((args[optionIndex] ?? {}) as FsOptions, admit, credit);
         }
         return runScopedTransportBudget(admit, () => executeDispatch(args), credit);

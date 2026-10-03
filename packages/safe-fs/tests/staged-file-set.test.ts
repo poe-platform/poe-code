@@ -1,3 +1,4 @@
+import { MockS3Client, S3FileSystem } from "../src/fs/s3/index.js";
 import assert from "node:assert/strict";
 import { test } from "vitest";
 import { createDeviceFileSystem } from "../src/fs/devices/index.js";
@@ -122,7 +123,8 @@ test("quota wrappers withhold unsupported source-set mutation", async () => {
 });
 
 
-test("scoped source-set publication charges admission and preserves its receipt", async () => {
+test("scoped source-set publication charges admission and preserves its receipt after S3 registration", async () => {
+  new S3FileSystem({ transport: new MockS3Client({ buckets: ["bucket"] }), bucket: "bucket" });
   const { fs, staged, options } = await fixture();
   let charges = 0;
   const scoped = scopeFileSystem(fs, () => { charges++; }, new AbortController().signal);

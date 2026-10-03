@@ -3,6 +3,16 @@ import { getEventListeners } from "node:events";
 import { test } from "vitest";
 import { listenForAbort, readBytes, type ByteSource } from "../src/contracts/io.js";
 
+// Node 26 initializes EventTarget bookkeeping lazily. Initialize it before
+// freezing so these cases exercise a host that supports frozen listeners.
+function listenerCapableSignal(): AbortSignal {
+  const signal = new AbortController().signal;
+  const listener = () => {};
+  signal.addEventListener("abort", listener);
+  signal.removeEventListener("abort", listener);
+  return signal;
+}
+
 function pendingRead() {
   let resolve!: (value: IteratorResult<Uint8Array>) => void;
   let reject!: (reason: unknown) => void;
@@ -12,7 +22,7 @@ function pendingRead() {
 }
 
 test("byte reads tolerate frozen host bookkeeping and remove partially registered listeners", async () => {
-  const signal = new AbortController().signal;
+  const signal = listenerCapableSignal();
   const add = signal.addEventListener.bind(signal);
   Object.defineProperty(signal, "addEventListener", { value: (...args: Parameters<AbortSignal["addEventListener"]>) => {
     add(...args);
@@ -27,7 +37,7 @@ test("byte reads tolerate frozen host bookkeeping and remove partially registere
 });
 
 test("frozen signals that support listeners still register and release them", () => {
-  const signal = Object.freeze(new AbortController().signal);
+  const signal = Object.freeze(listenerCapableSignal());
   const dispose = listenForAbort(signal, () => {});
   assert.equal(getEventListeners(signal, "abort").length, 1);
   dispose();
@@ -36,7 +46,7 @@ test("frozen signals that support listeners still register and release them", ()
 });
 
 test("disposed listeners are inactive when frozen hosts cannot remove them", () => {
-  const signal = new AbortController().signal;
+  const signal = listenerCapableSignal();
   Object.defineProperty(signal, "removeEventListener", { value: () => {
     Object.defineProperty(signal, "hostListenerCount", { value: 0 });
   } });
@@ -49,7 +59,7 @@ test("disposed listeners are inactive when frozen hosts cannot remove them", () 
 });
 
 test("listener cleanup tolerates frozen host bookkeeping", async () => {
-  const signal = new AbortController().signal;
+  const signal = listenerCapableSignal();
   const remove = signal.removeEventListener.bind(signal);
   Object.defineProperty(signal, "removeEventListener", { value: (...args: Parameters<AbortSignal["removeEventListener"]>) => {
     remove(...args);
@@ -64,7 +74,7 @@ test("listener cleanup tolerates frozen host bookkeeping", async () => {
 });
 
 for (const frozen of [false, true]) test(`unexpected listener errors propagate and clean up with frozen=${frozen}`, () => {
-  const signal = new AbortController().signal;
+  const signal = listenerCapableSignal();
   const error = frozen ? new Error("host failure") : new TypeError("host failure");
   const add = signal.addEventListener.bind(signal);
   Object.defineProperty(signal, "addEventListener", { value: (...args: Parameters<AbortSignal["addEventListener"]>) => {

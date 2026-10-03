@@ -5747,10 +5747,22 @@ export function runCompositeCliSync(argv: readonly string[], files: Map<string, 
 async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{lastPage?:boolean;maxDecodeDimension?:number}={}):Promise<StoredRgbaImage|undefined>{
  const {baseToken,pageSpec,inlineGeom}=parseInputToken(token),lower=baseToken.toLowerCase();let image:StoredRgbaImage|undefined;
  if(lower.startsWith("tile:")){
-  const pattern=await parseStoredCompareInput(baseToken.slice(5),state,backend,signal);if(!pattern)return;
-  const position=backend.storage.allocate(state.sizeWidth*state.sizeHeight*4);
-  for(let y=0;y<state.sizeHeight;y++)for(let x=0;x<state.sizeWidth;x++){await backend.storage.write(position+(y*state.sizeWidth+x)*4,await backend.storage.read(pattern.position+((y%pattern.height)*pattern.width+x%pattern.width)*4,4));}
-  image={position,width:state.sizeWidth,height:state.sizeHeight,format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:true};
+  const pattern=await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{lastPage:readOptions.lastPage===true});if(!pattern)return;
+  const width=state.sizeWidth,height=state.sizeHeight,position=backend.storage.allocate(width*height*4);
+  let cachedPosition=-1,cached:Uint8Array=new Uint8Array();
+  for(let start=0;start<width*height;start+=4096){
+   if(start%262144===0)await yieldTurn(signal);
+   const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4);
+   for(let offset=0;offset<count;){
+    const x=(start+offset)%width,y=Math.floor((start+offset)/width),px=x%pattern.width,py=y%pattern.height,blockX=Math.floor(px/4096)*4096;
+    const sourcePosition=pattern.position+(py*pattern.width+blockX)*4;
+    if(cachedPosition!==sourcePosition){cached=await backend.storage.read(sourcePosition,Math.min(4096,pattern.width-blockX)*4);cachedPosition=sourcePosition;}
+    const sourceOffset=px-blockX,take=Math.min(count-offset,width-x,pattern.width-px,cached.length/4-sourceOffset);
+    bytes.set(cached.subarray(sourceOffset*4,(sourceOffset+take)*4),offset*4);offset+=take;
+   }
+   await backend.storage.write(position+start*4,bytes);
+  }
+  image={position,width,height,format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:true};
  }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
   const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(baseToken.slice(baseToken.indexOf(":")+1)||"white"),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
   image=await createStoredCanvas(width,height,color,backend,signal);

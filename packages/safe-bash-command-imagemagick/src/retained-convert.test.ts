@@ -1,6 +1,6 @@
 import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
 import { bindFileOutputBudget } from "safe-bash-contracts/filesystem-output-budget";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createConvertCommand, createMagickCommand, runMagickCli, runConvertCli } from "./index.js";
@@ -22,7 +22,7 @@ for (const operators of [[], ["-resize", "9x7!"], ["-flip"], ["-flop"], ["-rotat
     });
 }
 
-it.each(["frames.gif", "frames.gif[-1]", "frames.gif[0,1]", "frames.gif[1,0]"])("preserves selected final frames for %s", async operand => {
+it.each(["tile:frames.gif", "tile:frames.gif[-1]", "frames.gif", "frames.gif[-1]", "frames.gif[0,1]", "frames.gif[1,0]"])("preserves selected final frames for %s", async operand => {
     const red = await sharp({ create: { width: 13, height: 17, channels: 4, background: "red" } }).png().toBuffer();
     const blue = await sharp({ create: { width: 13, height: 17, channels: 4, background: "blue" } }).png().toBuffer();
     const files = new Map([["red", red], ["blue", blue]]);
@@ -114,4 +114,39 @@ it.each(["-fill", "-opaque", "-transparent"])("preserves malformed %s diagnostic
     const fs = new MemoryFileSystem(), args = [option, "invalid-color", "missing", "out.png"];
     expect(await runConvertCli(args, { filesystem: fs, cwd: "/" })).toEqual(await runConvertCli(args, new Map()));
     expect(await fs.readdir("/")).toEqual([]);
+});
+
+for (const [width, height, canvasWidth, canvasHeight, format] of [[3, 7, 19, 23, "png"], [5003, 3, 5009, 5, "png"], [128, 96, 161, 127, "jpeg"]] as const) {
+    it(`tiles ${width}x${height} ${format} across bounded row fragments`, async () => {
+        const pixels = Uint8Array.from({ length: width * height * 4 }, (_, i) => i * 37 % 256);
+        const bytes = await sharp(pixels, { raw: { width, height, channels: 4 } }).toFormat(format).toBuffer();
+        const fs = new MemoryFileSystem(), files = new Map([["input", bytes]]);
+        await fs.writeFile("/input", bytes);
+        const args = ["-size", `${canvasWidth}x${canvasHeight}`, "tile:input", "-resize", "17x11!", "out.png"];
+        expect(await runConvertCli(args, { filesystem: fs, cwd: "/" })).toEqual(await runConvertCli(args, files));
+        expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
+    });
+}
+it("observes timer cancellation after loading a tile pattern and before output publication", async () => {
+    vi.stubGlobal("setImmediate", undefined);
+    vi.spyOn(performance, "now").mockReturnValue(0);
+    const fs = new MemoryFileSystem(), controller = new AbortController(), reason = new Error("cancel tile expansion");
+    const bytes = await sharp({ create: { width: 3, height: 2, channels: 4, background: "red" } }).png().toBuffer();
+    await fs.writeFile("/input", bytes);
+    let publicationStarted = false, closed = 0, timer: ReturnType<typeof setTimeout> | undefined;
+    const filesystem = new Proxy(fs, { get(target, key) {
+        if (key === "openReadFile") return async (...args: Parameters<typeof fs.openReadFile>) => {
+            const handle = await fs.openReadFile(...args);
+            return { stat: handle.stat.bind(handle), read: handle.read.bind(handle), async close() { await handle.close(); closed++; timer = setTimeout(() => controller.abort(reason), 0); } };
+        };
+        if (key === "createStagedFile") return async (...args: Parameters<typeof fs.createStagedFile>) => { publicationStarted = true; return fs.createStagedFile(...args); };
+        const value = Reflect.get(target, key, target);
+        return typeof value === "function" ? value.bind(target) : value;
+    } });
+    try {
+        await expect(runConvertCli(["-size", "129x131", "tile:input", "out.png"], { filesystem, cwd: "/" }, undefined, controller.signal)).rejects.toBe(reason);
+        expect(closed).toBe(1);
+        expect(publicationStarted).toBe(false);
+        expect((await fs.readdir("/")).map(entry => entry.name)).toEqual(["input"]);
+    } finally { clearTimeout(timer); vi.unstubAllGlobals(); vi.restoreAllMocks(); }
 });

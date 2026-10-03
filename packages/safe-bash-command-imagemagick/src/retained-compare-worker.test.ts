@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { runCompareCli, runConvertCli } from "./index.js";
 for (const tool of ["compare", "convert"] as const)
-for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : ["bmp", "gradient", "radial-gradient", "pattern"]) as ("bmp" | "svg" | "label" | "gradient" | "radial-gradient" | "pattern")[])
+for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : ["bmp", "gradient", "radial-gradient", "pattern", "tile"]) as ("bmp" | "svg" | "label" | "gradient" | "radial-gradient" | "pattern" | "tile")[])
 for (const stdout of [false, true])
     it(`runs ${tool} in Workerd, input=${format}, stdout=${stdout}`, async () => {
         const pixels = new Uint8Array(601 * 601 * 4);
@@ -18,8 +18,8 @@ for (const stdout of [false, true])
         }
         const bytes = format === "svg" ? new TextEncoder().encode('<svg width="601" height="601">' + " ".repeat(1048576) + '<rect width="601" height="601" fill="red"/><circle cx="300" cy="300" r="70" fill="blue"/></svg>') : await sharp(pixels, { raw: { width: 601, height: 601, channels: 4 } }).toFormat("bmp").toBuffer();
         expect(bytes.length).toBeGreaterThan(1048576);
-        const generated = ["label", "gradient", "radial-gradient", "pattern"].includes(format);
-        const operand = format === "label" ? "label:" + "x<&😀".repeat(600) : format === "gradient" || format === "radial-gradient" ? format + ":red-blue" : format === "pattern" ? "pattern:checkerboard" : "/input";
+        const generated = ["label", "gradient", "radial-gradient", "pattern", "tile"].includes(format);
+        const operand = format === "label" ? "label:" + "x<&😀".repeat(600) : format === "gradient" || format === "radial-gradient" ? format + ":red-blue" : format === "pattern" ? "pattern:checkerboard" : format === "tile" ? "tile:rose:" : "/input";
         const args = format === "bmp" ? ["-size","601x601",operand,"-flip","-gamma","1.4","-colorspace","gray","-modulate","110,90,70","-function","Polynomial","0.5,0.2","-transparent","red","-level","20%,80%,1.3","-negate","-black-threshold","30%","-normalize","-auto-gamma","-crop","590x590+5+5","-background","#ff00ff80","-gravity","center","-extent","601x601"] : ["-size", "601x601", operand, "-flip", "-gamma", "1.4", "-colorspace", "gray"];
         const expectedFiles = new Map([["/input", bytes]]), expected = tool === "compare" ? await runCompareCli([operand, operand, "/out.bmp"], expectedFiles) : await runConvertCli([...args, "png:/out.bmp"], expectedFiles);
         const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../../../", import.meta.url)), sourcefile: "pdf-metadata-worker.ts", contents: `

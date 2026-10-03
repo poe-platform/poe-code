@@ -99,7 +99,7 @@ it("packs the image PNG filesystem API with canonical public storage and a host-
     }}]});
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
   const module = {exports: {} as {sharp: typeof import("../packages/image-ast/src/index.js").default; MemoryFileSystem: typeof import("../packages/safe-fs/src/core.js").MemoryFileSystem}};
-  runInContext(result.outputFiles[0]!.text, createContext({module, exports: module.exports, Uint8Array, ArrayBuffer, TextEncoder, TextDecoder, AbortSignal, AbortController, structuredClone, ReadableStream, WritableStream, TransformStream, queueMicrotask, crypto: globalThis.crypto}));
+  runInContext(result.outputFiles[0]!.text, createContext({module, exports: module.exports, Uint8Array, ArrayBuffer, TextEncoder, TextDecoder, AbortSignal, AbortController, structuredClone, ReadableStream, WritableStream, TransformStream, queueMicrotask, setTimeout, clearTimeout, crypto: globalThis.crypto}));
   const {sharp, MemoryFileSystem} = module.exports;
   const fs = new MemoryFileSystem();
   const input = await sharp({create: {width: 7, height: 3, channels: 4, background: "red"}}).png().toBuffer();
@@ -112,5 +112,7 @@ it("packs the image PNG filesystem API with canonical public storage and a host-
   expect(await sharp("/input.png", {filesystem: guarded}).png().toFile("/output.png")).toMatchObject({width: 7, height: 3, format: "png"});
   expect(await sharp("/input.png", {filesystem: guarded}).flip().rotate(90).flop().png().toFile("/rotated.png")).toMatchObject({width: 3, height: 7, format: "png"});
   expect([...await sharp(await fs.readFile("/rotated.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [255, 0, 0, 255]).flat());
+  expect(await sharp("/input.png", {filesystem: guarded}).negate({alpha:false}).png().toFile("/negative.png")).toMatchObject({width: 7, height: 3, format: "png"});
+  expect([...await sharp(await fs.readFile("/negative.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [0, 255, 255, 255]).flat());
   expect([...await sharp(await fs.readFile("/output.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [255, 0, 0, 255]).flat());
 });

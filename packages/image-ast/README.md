@@ -18,7 +18,8 @@ retained byte-range source and backing storage with `allocate`, `read`, and
 `encodePngFromStorage(image, storage, signal)` produces bounded PNG chunks
 under downstream backpressure. The caller owns source and storage cleanup.
 `transformStoredImage(image, storage, operation, signal)` applies flips, crops,
-right-angle rotations and EXIF orientation in small tiles. PNG-to-PNG `.toFile()`
+right-angle rotations and EXIF orientation in small tiles, plus bounded color,
+alpha, gamma, threshold and metadata operations. PNG-to-PNG `.toFile()`
 conversions with these operations use the backed codecs automatically when the
 supplied filesystem supports retained reads, working storage, and atomic
 streaming or retained staged publication.

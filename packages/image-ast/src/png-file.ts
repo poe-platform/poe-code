@@ -2,12 +2,13 @@ import {compareIdentity, compareFileVersion, dirname, FsError, isFsError, type F
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {decodePngToStorage, encodePngFromStorage, type ImageByteSource} from "./codecs/png-storage.js";
 import {isPngBytes} from "./codecs/png.js";
-import {transformStoredImage, type StoredImageOperation} from "./ops/storage.js";
+import {orderImageNodes} from "./ops/order.js";
+import {transformStoredImage, isStoredImageOperation} from "./ops/storage.js";
 import type {SharpInputOptions, OutputEncodeOptions, OutputInfo, ImageAstNode} from "./ast.js";
 
 /** Select the retained PNG path only when the injected filesystem supports it. */
 export async function tryPngFile(input: string, output: string, options: SharpInputOptions, encoding: OutputEncodeOptions, operations: readonly ImageAstNode[] = []): Promise<OutputInfo | undefined> {
-  if (!operations.every((node): node is StoredImageOperation => node.kind === "flip" || node.kind === "flop" || node.kind === "extract" || node.kind === "autoOrient" || node.kind === "rotate" && Number.isFinite(node.angle) && node.angle % 90 === 0)) return undefined;
+  if (!operations.every(isStoredImageOperation)) return undefined;
   const supplied = options.filesystem;
   const signal = options.signal ?? new AbortController().signal;
   signal.throwIfAborted();
@@ -73,7 +74,16 @@ export async function tryPngFile(input: string, output: string, options: SharpIn
     signal.throwIfAborted();
     if (compareIdentity(initial,final)==="distinct" || !compareFileVersion(initial,final)) throw new FsError("EAGAIN",{path:input,message:"Image source changed while decoding"});
     handleClosed=true; await handle.close();
-    for (const operation of operations) image=await transformStoredImage(image,storage,operation,signal);
+    const gamma=operations.find(node=>node.kind==="gamma");
+    const splitGamma=gamma && operations.some(node=>node.kind==="modulate" || node.kind==="recomb");
+    let gammaInApplied=false;
+    for (const operation of orderImageNodes(operations)) {
+      if (splitGamma && !gammaInApplied && (operation.kind==="modulate" || operation.kind==="recomb")) {
+        image=await transformStoredImage(image,storage,{...gamma,gammaOut:1},signal);
+        gammaInApplied=true;
+      }
+      image=await transformStoredImage(image,storage,splitGamma && operation.kind==="gamma"?{...operation,gamma:1}:operation,signal);
+    }
     const backing=storage;
     let complete=false, size=0;
     stream=(async function* () {

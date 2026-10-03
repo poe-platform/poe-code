@@ -1,3 +1,4 @@
+import {orderImageNodes} from "./ops/order.js";
 import {tryPngFile} from "./png-file.js";
 import { EventEmitter, Duplex, outputBytes } from "./streams/web.js";
 import { extname, normalizePath } from "@poe-code/safe-fs/contracts";
@@ -662,39 +663,7 @@ export class SharpInstance extends Duplex {
           n.kind === "composite"
       );
 
-    const postStageRank: Record<string, number> = {
-      extend: 10,
-      median: 20,
-      threshold: 30,
-      dilate: 40,
-      erode: 50,
-      blur: 60,
-      unflatten: 70,
-      convolve: 80,
-      recomb: 90,
-      modulate: 100,
-      sharpen: 110,
-      composite: 120,
-      gamma: 130,
-      linear: 140,
-      normalize: 150,
-      clahe: 160,
-      negate: 170,
-      tint: 180,
-      grayscale: 190,
-      toColorspace: 200,
-      bandbool: 210,
-      boolean: 220,
-      joinChannel: 230,
-      extractChannel: 240,
-      withMetadata: 250
-    };
-    const activeNodes = this.nodes.filter((_, idx) => !postScaleIndices.has(idx));
-    const preNodes = activeNodes.filter(n => !(n.kind in postStageRank));
-    const postNodes = activeNodes
-      .filter(n => n.kind in postStageRank)
-      .sort((a, b) => (postStageRank[a.kind] ?? 999) - (postStageRank[b.kind] ?? 999));
-    const orderedNodes = [...preNodes, ...postNodes];
+    const orderedNodes = orderImageNodes(this.nodes.filter((_, idx) => !postScaleIndices.has(idx)));
 
     const isPremulStageKind = (kind: string): boolean =>
       kind === "resize" || kind === "blur" || kind === "convolve" || kind === "sharpen";

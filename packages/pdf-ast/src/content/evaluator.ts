@@ -862,8 +862,11 @@ export type PdfEvaluationRequest = PdfEvaluationOperation | { readonly kind: "no
   | { readonly kind: "catalog" }
   | { readonly kind: "close-content"; readonly source: PdfEvaluationContentSource }
   | { readonly kind: "mask-parameters"; readonly mask: PdfCosDict; readonly form: PdfCosStream; readonly resources: PdfCosDict | undefined }
+  | { readonly kind: "color"; readonly name: string; readonly components: readonly number[]; readonly resources: PdfCosDict | undefined }
+  | { readonly kind: "inline-image"; readonly dict: PdfCosDict; readonly data: Uint8Array; readonly resources: PdfCosDict | undefined; readonly fillColor: Parameters<typeof decodeInlineImageNodeToRgba>[4] }
   | { readonly kind: "image"; readonly stream: PdfCosStream; readonly resources: PdfCosDict | undefined; readonly fillColor: Parameters<typeof decodeXObjectImageToRgba>[3] };
 export type PdfEvaluationResult = PdfContentEvent | ResolvedPageFont
+  | { readonly kind: "color"; readonly value: readonly [number, number, number] }
   | { readonly kind: "resolved"; readonly node: PdfCosNode | undefined }
   | { readonly kind: "mask-parameters"; readonly value: Pick<PdfSoftMask, "backdrop" | "transferMap"> }
   | { readonly kind: "decoded-image"; readonly image: ReturnType<typeof decodeXObjectImageToRgba> } | undefined;
@@ -972,23 +975,24 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     }
   }
 
-  const resolveScColorOperands = (
+  function* resolveScColorOperands(
     csName: string,
     ops: readonly import("../ast.js").PdfCosNode[],
     activeResources: PdfCosDict | undefined
-  ): PdfRgbColor => {
+  ): EvaluationWork<PdfRgbColor> {
     const comps: number[] = [];
     for (const op of ops) {
       if (op.kind === "number") comps.push(op.value);
     }
     if (comps.length === 0) return { r: 0, g: 0, b: 0 };
-    const [r, g, b] = convertColorSpaceComponentsToRgb(
-      params.cosDoc,
-      undefined,
-      csName,
-      comps,
-      activeResources
-    );
+    let rgb: readonly [number, number, number];
+    if (["DeviceRGB", "RGB", "DeviceGray", "G", "DeviceCMYK", "CMYK"].includes(csName)) rgb = shadingComponentsToRgb(csName, comps);
+    else {
+      const color = yield { kind: "color", name: csName, components: comps, resources: activeResources };
+      if (!color || !("kind" in color) || color.kind !== "color") throw new TypeError("Expected a resolved PDF color");
+      rgb = color.value;
+    }
+    const [r, g, b] = rgb;
     return { r: kClamp(r), g: kClamp(g), b: kClamp(b) };
   };
 
@@ -1065,19 +1069,19 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       if (operator === "scn" && lastOp?.kind === "name") {
         st.fillPatternName = lastOp.decoded;
         if (ops.length > 1) {
-          st.fillColor = resolveScColorOperands(st.fillColorSpaceName, ops.slice(0, -1), activeResources);
+          st.fillColor = yield* resolveScColorOperands(st.fillColorSpaceName, ops.slice(0, -1), activeResources);
         }
       } else {
         st.fillPatternName = undefined;
-        st.fillColor = resolveScColorOperands(operator === "rg" ? "DeviceRGB" : st.fillColorSpaceName, ops, activeResources);
+        st.fillColor = yield* resolveScColorOperands(operator === "rg" ? "DeviceRGB" : st.fillColorSpaceName, ops, activeResources);
       }
     } else if (operator === "RG" || operator === "SC" || operator === "SCN") {
-      st.strokeColor = resolveScColorOperands(operator === "RG" ? "DeviceRGB" : st.strokeColorSpaceName, ops, activeResources);
+      st.strokeColor = yield* resolveScColorOperands(operator === "RG" ? "DeviceRGB" : st.strokeColorSpaceName, ops, activeResources);
     } else if (operator === "k") {
-      st.fillColor = resolveScColorOperands("DeviceCMYK", ops, activeResources);
+      st.fillColor = yield* resolveScColorOperands("DeviceCMYK", ops, activeResources);
       st.fillPatternName = undefined;
     } else if (operator === "K") {
-      st.strokeColor = resolveScColorOperands("DeviceCMYK", ops, activeResources);
+      st.strokeColor = yield* resolveScColorOperands("DeviceCMYK", ops, activeResources);
     } else if (operator === "gs" && activeResources && ops[0]?.kind === "name") {
       const extDict = yield* resolveEvaluationDict(dictGet(activeResources, "ExtGState"));
       const gsDict = extDict ? yield* resolveEvaluationDict(dictGet(extDict, ops[0].decoded)) : undefined;
@@ -1657,20 +1661,12 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
         case "inline-image": {
           const st = curState();
           const maskEntry = dictGet(node.dict, "ImageMask") ?? dictGet(node.dict, "IM");
-          const maskNode = params.cosDoc ? params.cosDoc.resolve(maskEntry) : maskEntry;
+          const maskNode = maskEntry?.kind === "ref" ? yield* resolveEvaluationNode(maskEntry) : maskEntry;
           const patternMask = !!st.fillPatternName && maskNode?.kind === "boolean" && maskNode.value;
-          const decoded = decodeInlineImageNodeToRgba(
-            params.cosDoc,
-            node.dict,
-            node.data,
-            activeResources,
-            patternMask ? { r: 1, g: 1, b: 1, alpha: 1 } : {
-              r: st.fillColor.r,
-              g: st.fillColor.g,
-              b: st.fillColor.b,
-              alpha: st.fillAlpha,
-            }
-          );
+          const imageResult = yield { kind: "inline-image", dict: node.dict, data: node.data, resources: activeResources,
+            fillColor: patternMask ? { r: 1, g: 1, b: 1, alpha: 1 } : { ...st.fillColor, alpha: st.fillAlpha } };
+          if (!imageResult || !("kind" in imageResult) || imageResult.kind !== "decoded-image") throw new TypeError("Expected a decoded inline PDF image");
+          const decoded = imageResult.image;
           yield* paintImage({
             name: "InlineImage",
             matrix: [...st.ctm],
@@ -1715,7 +1711,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                   const fm: Matrix6 = font.fontMatrix ?? [0.001, 0, 0, 0.001, 0, 0];
                   const source = { stream: procNode };
                   const firstOp = yield { kind: "node", source };
-                  if (firstOp && (!("kind" in firstOp) || (firstOp.kind === "resolved" || firstOp.kind === "decoded-image" || firstOp.kind === "mask-parameters"))) throw new TypeError("Expected Type3 content event");
+                  if (firstOp && (!("kind" in firstOp) || (firstOp.kind === "resolved" || firstOp.kind === "decoded-image" || firstOp.kind === "mask-parameters" || firstOp.kind === "color"))) throw new TypeError("Expected Type3 content event");
                   if (!font.widths.has(item.charCode)) {
                     if (
                       firstOp?.kind === "state-op" &&
@@ -1945,6 +1941,10 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
+      } else if (step.value.kind === "color") {
+        step = work.next({ kind: "color", value: convertColorSpaceComponentsToRgb(params.cosDoc, undefined, step.value.name, step.value.components, step.value.resources) });
+      } else if (step.value.kind === "inline-image") {
+        step = work.next({ kind: "decoded-image", image: decodeInlineImageNodeToRgba(params.cosDoc, step.value.dict, step.value.data, step.value.resources, step.value.fillColor) });
       } else if (step.value.kind === "mask-parameters") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF soft-mask parameters require a source driver");
         step = work.next({ kind: "mask-parameters", value: resolveMaskParameters(params.cosDoc, step.value.mask, step.value.form, step.value.resources) });

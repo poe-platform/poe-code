@@ -392,3 +392,36 @@ it.each([false, true])("resolves ExtGState asynchronously, including font, style
     expect(actual.at(-1)?.operation.value.softMask).toBeUndefined();
   } finally { work.return(); for (const cursor of cursors.values()) cursor.return?.(); }
 });
+
+it("suspends named color conversion and preserves q/Q color scope", async () => {
+  const { evaluateContentSteps } = await import("./evaluator.js");
+  const { cosDict } = await import("../ast.js");
+  const resources = cosDict();
+  const nodes = parseContentStream(new TextEncoder().encode("q /Custom cs .25 scn 0 0 1 1 re f Q 2 0 1 1 re f"))[Symbol.iterator]();
+  const work = evaluateContentSteps({ pageIndex: 0, width: 100, height: 100, resourcesDict: resources });
+  const colors = []; let conversions = 0, step = work.next();
+  while (!step.done) {
+    const request = step.value;
+    if (request.kind === "node") step = work.next(nodes.next().value);
+    else if (request.kind === "color") {
+      expect(request).toEqual({ kind: "color", name: "Custom", components: [.25], resources });
+      conversions++; await Promise.resolve(); step = work.next({ kind: "color", value: [-1, .5, 2] });
+    } else if (request.kind === "paint") {
+      if (request.operation.kind === "path") colors.push(request.operation.value.fillColor);
+      step = work.next();
+    } else throw new Error(`Unexpected request: ${request.kind}`);
+  }
+  expect(conversions).toBe(1); expect(colors).toEqual([{ r: 0, g: .5, b: 1 }, { r: 0, g: 0, b: 0 }]);
+});
+
+it("suspends inline-image decoding while preserving stencil color and placement", async () => {
+  const { evaluateContentSteps } = await import("./evaluator.js");
+  const { cosDict, cosBool } = await import("../ast.js");
+  const dict = cosDict({ IM: cosBool(true) }), data = new Uint8Array([128]);
+  const work = evaluateContentSteps({ pageIndex: 0, width: 100, height: 100 });
+  expect(work.next().value).toEqual({ kind: "node" });
+  expect(work.next({ kind: "inline-image", dict, data }).value).toMatchObject({ kind: "inline-image", dict, data, fillColor: { r: 0, g: 0, b: 0, alpha: 1 } });
+  const rgba = new Uint8Array([0, 0, 0, 255]); await Promise.resolve();
+  expect(work.next({ kind: "decoded-image", image: { width: 1, height: 1, bitsPerComponent: 1, colorSpace: "gray", rgba } }).value).toMatchObject({ kind: "paint", operation: { kind: "image", value: { name: "InlineImage", decodedRgba: rgba } } });
+  work.return();
+});

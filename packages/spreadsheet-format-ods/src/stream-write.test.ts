@@ -2,6 +2,7 @@ import { expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createEngine, defaultSsconvertLimits } from "@poe-code/spreadsheet-engine";
 import * as office from "@poe-code/office-package";
+import * as xmlSupport from "@poe-code/spreadsheet-engine/codecs/odf-write-support";
 import { createOdfWriter } from "./odf.js";
 import { odsFormat } from "./index.js";
 
@@ -37,6 +38,17 @@ it.each(["strict", "extended"] as const)("streams %s ODF archives through caller
     formats: [{ ...odsFormat, services: odsFormat.services.map(codec => codec.direction === "write" ? { ...codec, write: array } : codec) }] });
   try {
     const book = await engine.adoptWorkbook(raw, { signal }), chunks: Uint8Array[] = [];
+    const createXml = xmlSupport.createOdfXml;
+    const containers = vi.spyOn(xmlSupport, "createOdfXml").mockImplementation((...args) => {
+      const xml = createXml(...args);
+      return { ...xml, element(name, ...args) {
+        if (["table:table-row", "table:table", "office:spreadsheet", "office:body"].includes(name)) throw new Error("buffered ODF container " + name);
+        return xml.element(name, ...args);
+      }, document(name, ...args) {
+        if (name === "office:document-content") throw new Error("buffered ODF document");
+        return xml.document(name, ...args);
+      } };
+    });
     const encode = TextEncoder.prototype.encode;
     const encoding = vi.spyOn(TextEncoder.prototype, "encode").mockImplementation(function(this: TextEncoder, text) {
       expect(text?.length ?? 0).toBeLessThanOrEqual(16384); return encode.call(this, text);
@@ -45,7 +57,7 @@ it.each(["strict", "extended"] as const)("streams %s ODF archives through caller
       await engine.writeWorkbook(book, { kind: "stream", sink: { async write(bytes) {
         expect(bytes.length).toBeLessThanOrEqual(16384); await Promise.resolve(); chunks.push(bytes.slice());
       } } }, { exportType: profile === "strict" ? "Gnumeric_OpenCalc:openoffice" : "Gnumeric_OpenCalc:odf" }, { signal });
-    } finally { encoding.mockRestore(); }
+    } finally { encoding.mockRestore(); containers.mockRestore(); }
     expect(Buffer.concat(chunks)).toEqual(Buffer.from(expected)); expect(chunks.length).toBeGreaterThan(1);
     expect(array).not.toHaveBeenCalled(); expect(written).toBeGreaterThan(16384);
     expect(largest).toBeLessThanOrEqual(16384); expect(pending).toBe(0);
@@ -105,4 +117,23 @@ it("clears temporary owned archive copies while preserving returned bytes", asyn
     expect(owned.length).toBeGreaterThan(0);
     expect(owned.every(copy => copy.every(byte => byte === 0))).toBe(true);
   } finally { spy.mockRestore(); }
+});
+
+it("bounds aggregate table staging before the final document is serialized", async () => {
+  const fs = createMemoryFileSystem(), budget = 35000;
+  const engine = createEngine({ formats: [odsFormat], limits: { outputBytes: budget }, workingFiles: { fs, directory: "/", cacheBytes: 16384 } });
+  const append = office.ZipWriteChain.prototype.append; let staged = 0;
+  const spy = vi.spyOn(office.ZipWriteChain.prototype, "append").mockImplementation(async function(this: office.ZipWriteChain, chunks, length) {
+    staged += length;
+    return append.call(this, chunks, length);
+  });
+  const signal = new AbortController().signal;
+  try {
+    const book = await engine.adoptWorkbook({ sheets: ["a", "b"].map(id => ({ id, name: id,
+      cells: [{ row: 0, column: 0, value: { kind: "string" as const, value: "é".repeat(10000) } }] })) }, { signal });
+    await expect(engine.writeWorkbook(book, { kind: "stream", sink: { async write() { throw new Error("unexpected publication"); } } },
+      { exportType: "Gnumeric_OpenCalc:odf" }, { signal })).rejects.toMatchObject({ code: "resource-limit" });
+    expect(staged).toBeGreaterThan(0); expect(staged).toBeLessThanOrEqual(budget);
+    expect(await fs.readdir("/")).toEqual([]);
+  } finally { spy.mockRestore(); await engine.dispose(); }
 });

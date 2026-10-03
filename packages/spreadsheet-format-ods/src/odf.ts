@@ -1,7 +1,7 @@
 import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-stream";
 import { ownedRangeSource } from "@poe-code/spreadsheet-engine/range-input";
 import { decryptOdfEntries } from "./odf-encryption.js";
-import { createZipCodec, CodecError, createStoredZipEntries, ZipStorageFailure, type ZipLimits, type ZipEntry, type ZipStreamEntry, type ZipSource } from "@poe-code/office-package";
+import { createZipCodec, ZipWriteChain, CodecError, createStoredZipEntries, ZipStorageFailure, type ZipLimits, type ZipEntry, type ZipStreamEntry, type ZipSource } from "@poe-code/office-package";
 import { parseXmlSteps, XmlLimitError, type XmlElement, type XmlContent } from "@poe-code/safe-fs/xml";
 import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 import { MAX_SHEET_SIZE, DEFAULT_SHEET_SIZE, formatA1, type Workbook, type Sheet, type Cell,
@@ -817,6 +817,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
   return async function* (book: Workbook, options: readonly string[], context: CapabilityContext): AsyncGenerator<Uint8Array> {
     let storage: import("@poe-code/spreadsheet-engine/contracts").WorkingStorage | undefined;
     let closed = false, closing: Promise<void> | undefined, failure: { error: unknown } | undefined;
+    const bufferedTables: Uint8Array[] = [], tableBuffer = new Uint8Array(16384);
     const close = () => {
       closed = true;
       return closing ??= Promise.resolve().then(async () => { await storage?.close(); });
@@ -902,7 +903,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
       e("table:iteration", { "table:status": iteration?.enabled ? "enable" : "disable", "table:steps": iteration?.maximum ?? 100,
         "table:maximum-difference": iteration?.tolerance ?? 0.001 }));
     const definitions = createOdfStyleDefinitions(book, xml);
-    let automatic = "", spreadsheet = "", validations = "", databaseRanges = "";
+    let automatic = "", validations = "", databaseRanges = "";
     for (const record of book.unsupportedRecords ?? []) {
       xml.charge(); const v = odfObject(record.data), node = odfObject(v?.xml);
       if (record.source === "Gnumeric_OpenCalc:openoffice" && node) {
@@ -910,6 +911,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
         else if (record.kind === "database-ranges") databaseRanges += xml.retained(node);
       }
     }
+    async function* tables(): AsyncGenerator<Uint8Array> {
     for (const [index, sheet] of book.sheets.entries()) {
       xml.charge();
       const view = odfObject(sheet.view?.gnumeric) ?? {}, properties = odfChildren(sheet.view?.odf).find(n => odfObject(n)?.name === "table-properties");
@@ -1026,22 +1028,23 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
       coordinate(rowCount - 1, MAX_SHEET_SIZE.rows);
       for (const event of events) rowCount = Math.max(rowCount,event);
       events.add(rowCount);
-      let tableBody = "", position = 0;
+      async function* tableContent(): AsyncGenerator<string | Uint8Array> {
+      let position = 0;
       for (const [i, axis] of [...(sheet.columns ?? [])].sort((a,b) => a.index - b.index).entries()) {
         coordinate(axis.index, MAX_SHEET_SIZE.columns);
         if (axis.index < position) throw new SsconvertError("invalid-request", "Duplicate OpenDocument column metadata");
-        if (axis.index > position) tableBody += e("table:table-column", { "table:number-columns-repeated": axis.index - position });
+        if (axis.index > position) yield e("table:table-column", { "table:number-columns-repeated": axis.index - position });
         const name = `co${index}_${i}`;
         automatic += e("style:style", { "style:name": name, "style:family": "table-column" }, e("style:table-column-properties", {
           "style:column-width": axis.sizePoints === undefined ? undefined : axis.sizePoints + "pt" }));
-        tableBody += e("table:table-column", { "table:style-name": name, "table:visibility": axis.hidden ? "collapse" : "visible" }); position = axis.index + 1;
+        yield e("table:table-column", { "table:style-name": name, "table:visibility": axis.hidden ? "collapse" : "visible" }); position = axis.index + 1;
       }
       let columnCount = Math.max(sheet.size?.columns ?? DEFAULT_SHEET_SIZE.columns, position);
       coordinate(columnCount - 1, MAX_SHEET_SIZE.columns);
       for (const cell of addresses.values()) columnCount = Math.max(columnCount,cell.column + 1);
       for (const { range: r } of cellMetadata) columnCount = Math.max(columnCount,r.endColumn + 1);
       for (const r of sheet.merges ?? []) columnCount = Math.max(columnCount,r.endColumn + 1);
-      if (columnCount > position) tableBody += e("table:table-column", { "table:number-columns-repeated": columnCount - position > 1 ? columnCount - position : undefined });
+      if (columnCount > position) yield e("table:table-column", { "table:number-columns-repeated": columnCount - position > 1 ? columnCount - position : undefined });
       const sorted = [...events].sort((a,b) => a-b);
       for (let event = 0; event < sorted.length - 1 || event === 0; event++) {
         const row = sorted[event]!, repeat = (sorted[event + 1] ?? row + 1) - row;
@@ -1055,15 +1058,22 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
         for (const c of cells.keys()) { columns.add(c); columns.add(c + 1); }
         for (const m of merges) { columns.add(m.startColumn); columns.add(m.startColumn + 1); columns.add(m.endColumn + 1); }
         for (const m of metadata) { columns.add(m.range.startColumn); columns.add(m.range.endColumn + 1); }
-        const stops = [...columns].sort((a,b) => a-b); let body = "", col = 0;
+        const axis = sheet.rows?.find(a => a.index === row); const rowAttributes: Record<string, string | number | undefined> = {
+          "table:number-rows-repeated": repeat > 1 ? repeat : undefined, "table:visibility": axis?.hidden ? "collapse" : undefined };
+        if (axis?.sizePoints !== undefined) {
+          const name = `ro${index}_${row}`; automatic += e("style:style", { "style:name": name, "style:family": "table-row" },
+            e("style:table-row-properties", { "style:row-height": axis.sizePoints + "pt" })); rowAttributes["table:style-name"] = name;
+        }
+        async function* rowContent(): AsyncGenerator<string> {
+        const stops = [...columns].sort((a,b) => a-b); let col = 0;
         for (const start of stops) {
           xml.charge(); if (start < col || start >= MAX_SHEET_SIZE.columns) continue;
-          if (start > col) body += e("table:table-cell", start - col > 1 ? { "table:number-columns-repeated": start - col } : {});
+          if (start > col) yield e("table:table-cell", start - col > 1 ? { "table:number-columns-repeated": start - col } : {});
           const cell = cells.get(start), merge = merges.find(r => start >= r.startColumn && start <= r.endColumn);
           const meta = metadata.find(m => start >= m.range.startColumn && start <= m.range.endColumn);
           if (merge && (row !== merge.startRow || start !== merge.startColumn)) {
             const next = Math.min(merge.endColumn + 1, stops.find(s => s > start) ?? merge.endColumn + 1);
-            body += e("table:covered-table-cell", next - start > 1 ? { "table:number-columns-repeated": next - start } : {}); col = next; continue;
+            yield e("table:covered-table-cell", next - start > 1 ? { "table:number-columns-repeated": next - start } : {}); col = next; continue;
           }
           if (!cell && !merge && !meta) { col = start; continue; }
           const a: Record<string, string | number | undefined> = {};
@@ -1142,18 +1152,35 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
           }
           const next = !cell && !merge && meta ? Math.min(meta.range.endColumn + 1, stops.find(s => s > start) ?? meta.range.endColumn + 1) : start + 1;
           if (next - start > 1) a["table:number-columns-repeated"] = next - start;
-          body += e("table:table-cell", a, content); col = next;
+          yield e("table:table-cell", a, content); col = next;
         }
-        if (col < columnCount) body += e("table:table-cell", { "table:number-columns-repeated": columnCount - col > 1 ? columnCount - col : undefined });
-        const axis = sheet.rows?.find(a => a.index === row); const rowAttributes: Record<string, string | number | undefined> = {
-          "table:number-rows-repeated": repeat > 1 ? repeat : undefined, "table:visibility": axis?.hidden ? "collapse" : undefined };
-        if (axis?.sizePoints !== undefined) {
-          const name = `ro${index}_${row}`; automatic += e("style:style", { "style:name": name, "style:family": "table-row" },
-            e("style:table-row-properties", { "style:row-height": axis.sizePoints + "pt" })); rowAttributes["table:style-name"] = name;
+        if (col < columnCount) yield e("table:table-cell", { "table:number-columns-repeated": columnCount - col > 1 ? columnCount - col : undefined });
         }
-        tableBody += e("table:table-row", rowAttributes, body);
+        yield* xml.stream("table:table-row", rowAttributes, rowContent());
       }
-      spreadsheet += e("table:table", { "table:name": sheet.name, "table:style-name": sheetStyle }, tableBody + names(sheet.id));
+      yield names(sheet.id);
+      }
+      yield* xml.stream("table:table", { "table:name": sheet.name, "table:style-name": sheetStyle }, tableContent());
+    }
+    }
+    // Cell traversal registers styles before the document's style declarations.
+    // Stage encoded tables in caller storage, coalescing small row fragments.
+    const tableTape = storage ? new ZipWriteChain(storage, 16384, context.signal, async signal => { signal.throwIfAborted(); }) : undefined;
+    let tableBytes = 0, tableTotal = 0;
+    for await (const bytes of tables()) {
+      if (bytes.length > context.limits.outputBytes - tableTotal) limit("output bytes");
+      tableTotal += bytes.length;
+      if (!tableTape) { bufferedTables.push(bytes.slice()); continue; }
+      for (let offset = 0; offset < bytes.length;) {
+        const take = Math.min(tableBuffer.length - tableBytes, bytes.length - offset);
+        tableBuffer.set(bytes.subarray(offset, offset + take), tableBytes);
+        tableBytes += take; offset += take;
+        if (tableBytes === tableBuffer.length) { await tableTape.append([tableBuffer], tableBytes); tableBytes = 0; }
+      }
+    }
+    if (tableTape && tableBytes) await tableTape.append([tableBuffer.subarray(0, tableBytes)], tableBytes);
+    async function* tableData() {
+      if (tableTape) yield* tableTape.read(); else yield* bufferedTables;
     }
     const labelSheets = new Map(book.sheets.map(sheet => { xml.charge(); return [sheet.id, sheet] as const; }));
     let labelRanges = "";
@@ -1168,13 +1195,26 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
       labelRanges += e("table:label-range", { "table:label-cell-range-address": address(pair.labels, sheet.name),
         "table:data-cell-range-address": address(pair.data, dataSheet.name), "table:orientation": pair.axis });
     }
-    spreadsheet = prelude + (validations ? e("table:content-validations", {}, validations) : "") + spreadsheet +
-      (labelRanges ? e("table:label-ranges", {}, labelRanges) : "") + names() + databaseRanges;
-    const parts = new Map<string, string | Uint8Array>(), encoder = new TextEncoder();
+    async function* spreadsheetContent() {
+      yield prelude;
+      if (validations) yield e("table:content-validations", {}, validations);
+      yield* tableData();
+      if (labelRanges) yield e("table:label-ranges", {}, labelRanges);
+      yield names(); yield databaseRanges;
+    }
+    const parts = new Map<string, string | Uint8Array | AsyncIterable<Uint8Array>>(), encoder = new TextEncoder();
     if (wrapped) context.own(() => { for (const bytes of parts.values()) if (bytes instanceof Uint8Array) bytes.fill(0); });
-    function part(name: string, value: string) { parts.set(name, storage && !encryptionProfile ? value : encoder.encode(value)); }
+    function part(name: string, value: string | AsyncIterable<Uint8Array>) {
+      parts.set(name, typeof value === "string" && (!storage || encryptionProfile) ? encoder.encode(value) : value);
+    }
     part("mimetype", "application/vnd.oasis.opendocument.spreadsheet");
-    part("content.xml", xml.document("office:document-content", e("office:scripts") + e("office:font-face-decls", {}, definitions.render("fonts")) + e("office:automatic-styles", {}, definitions.render("contentAutomatic") + automatic + cellStyles.styles.join("")) + e("office:body", {}, e("office:spreadsheet", {}, spreadsheet))));
+    async function* content() {
+      yield e("office:scripts");
+      yield e("office:font-face-decls", {}, definitions.render("fonts"));
+      yield e("office:automatic-styles", {}, definitions.render("contentAutomatic") + automatic + cellStyles.styles.join(""));
+      yield* xml.stream("office:body", {}, xml.stream("office:spreadsheet", {}, spreadsheetContent()));
+    }
+    part("content.xml", xml.documentStream("office:document-content", content()));
     part("styles.xml", xml.document("office:document-styles", e("office:font-face-decls", {}, definitions.render("fonts")) + e("office:styles", {}, definitions.render("styles")) + e("office:automatic-styles", {}, definitions.render("stylesAutomatic")) + e("office:master-styles", {}, definitions.render("masters"))));
     part("meta.xml", xml.document("office:document-meta", e("office:meta", {}, e("meta:generator", {}, "Gnumeric/1.12.61"))));
     part("settings.xml", xml.document("office:document-settings", e("office:settings", {}, e("config:config-item-set", { "config:name": "gnm:settings" },
@@ -1205,8 +1245,12 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
         part(record.kind === "document-meta" ? "meta.xml" : "settings.xml", xml.document("office:" + record.kind, odfChildren(v.xml).map(n => xml.retained(n)).join("")));
       }
     }
-    const protectedParts = encryptionProfile === undefined || wrapped ? undefined : await encryptOdfParts(new Map([...parts].map(([name, value]) =>
-      [name, typeof value === "string" ? encoder.encode(value) : value])), context, xml, encryptionProfile);
+    const encryptionParts = encryptionProfile ? new Map<string, Uint8Array>() : undefined;
+    if (encryptionParts) for (const [name, value] of parts) {
+      const bytes = typeof value === "string" ? encoder.encode(value) : value instanceof Uint8Array ? value : await collectOdfArchive(value);
+      parts.set(name, bytes); encryptionParts.set(name, bytes);
+    }
+    const protectedParts = encryptionProfile === undefined || wrapped ? undefined : await encryptOdfParts(encryptionParts!, context, xml, encryptionProfile);
     part("META-INF/manifest.xml", '<?xml version="1.0" encoding="UTF-8"?>' + e("manifest:manifest", {
       "xmlns:manifest": "urn:oasis:names:tc:opendocument:xmlns:manifest:1.0", "manifest:version": "1.2" },
     e("manifest:file-entry", { "manifest:full-path": "/", "manifest:media-type": "application/vnd.oasis.opendocument.spreadsheet", "manifest:version": "1.2" }) +
@@ -1217,7 +1261,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
       [...parts.keys()].filter(n => n !== "mimetype").map(n => e("manifest:file-entry", { "manifest:full-path": n, "manifest:media-type": n.endsWith(".xml") ? "text/xml" : n.endsWith(".png") ? "image/png" : n.endsWith(".jpg") || n.endsWith(".jpeg") ? "image/jpeg" : "",
         "manifest:size": protectedParts?.get(n)?.size }, protectedParts?.get(n)?.declaration ?? "")).join("")));
     let memberCount = 0;
-    async function* packageParts(values: ReadonlyMap<string, string | Uint8Array>, encrypted = protectedParts): AsyncGenerator<Uint8Array> {
+    async function* packageParts(values: ReadonlyMap<string, string | Uint8Array | AsyncIterable<Uint8Array>>, encrypted = protectedParts): AsyncGenerator<Uint8Array> {
       if (values.size > zipLimits.maxMembers - memberCount) limit("ZIP members");
       memberCount += values.size;
       const entries: ZipEntry[] = []; let bytes = 0;
@@ -1228,7 +1272,10 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
           const attributes = { modified: new Date("2000-01-01Z"), mode: 0o644,
             directory: false, symlink: false, compression: name === "mimetype" || encrypted?.has(name) ? "store" as const : "deflate" as const };
           if (staged) {
-            async function* text() { yield payload; }
+            async function* text() {
+              if (typeof payload === "string" || payload instanceof Uint8Array) yield payload;
+              else yield* payload;
+            }
             async function* chunks() {
               for await (const chunk of encodeTextStream(text(), "UTF-8", false, context)) {
                 xml.charge(chunk.length); bytes += chunk.length;
@@ -1238,7 +1285,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
             }
             await staged.addSource(name, chunks(), attributes);
           } else {
-            const encoded = typeof payload === "string" ? encoder.encode(payload) : payload;
+            const encoded = typeof payload === "string" ? encoder.encode(payload) : payload instanceof Uint8Array ? payload : await collectOdfArchive(payload);
             xml.charge(encoded.length); bytes += encoded.length;
             if (bytes > context.limits.outputBytes) limit("output bytes");
             entries.push(await zip.makeZipEntry(name, encoded, attributes, zipLimits, context.signal));
@@ -1254,8 +1301,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
     const inner = await collectOdfArchive(packageParts(parts));
     try {
       const encrypted = await encryptOdfParts(new Map([["encrypted-package", inner]]), context, xml, encryptionProfile!);
-      const member = encrypted.get("encrypted-package")!, mimePart = parts.get("mimetype")!;
-      const mime = typeof mimePart === "string" ? encoder.encode(mimePart) : mimePart;
+      const member = encrypted.get("encrypted-package")!, mime = encryptionParts!.get("mimetype")!;
       const manifest = '<?xml version="1.0" encoding="UTF-8"?>' + e("manifest:manifest", {
         "xmlns:manifest": odfNamespaces.manifest, "xmlns:loext": odfEncryptionNamespace, "manifest:version": "1.4" },
         e("manifest:file-entry", { "manifest:full-path": "encrypted-package", "manifest:media-type": new TextDecoder().decode(mime),
@@ -1268,6 +1314,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
     }
     } catch (error) { failure = { error }; throw error; }
     finally {
+      tableBuffer.fill(0); for (const bytes of bufferedTables) bytes.fill(0);
       await close().catch(error => {
         if (failure) throw new AggregateError([failure.error, error], "ODF export and storage cleanup failed");
         throw error;

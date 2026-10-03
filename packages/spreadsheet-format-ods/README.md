@@ -33,7 +33,9 @@ model are still retained; this is not yet a fully bounded conversion pipeline.
 Both exporters use working storage for compressed ZIP members and central records,
 with incremental UTF-8 encoding, compression and archive output for unencrypted
 XML members. XML byte-limit checks count bytes without encoding full containers. Buffered `createOdfWriter` calls
-remain available. XML strings, embedded resources and encryption buffers, including wrapped
+remain available. Rows, tables and the main document body stream through caller-backed staging
+before style declarations are serialized. Individual cell strings, style/metadata
+XML, embedded resources and encryption buffers, including wrapped
 inner archives, still reside in memory; use an external safe-fs backend to keep
 staged archive data outside the isolate.
 

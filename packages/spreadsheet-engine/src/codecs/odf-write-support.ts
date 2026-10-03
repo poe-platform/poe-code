@@ -1,3 +1,4 @@
+import { encodeTextStream } from "../encoding/encode-stream.js";
 import { parseXmlSteps } from "@poe-code/safe-fs/xml";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import type { ImportedValue } from "@poe-code/spreadsheet-ast";
@@ -102,6 +103,28 @@ export function createOdfXml(context: CapabilityContext, extended: boolean) {
     }
     return result;
   }
+  async function* stream(tag: string, attributes: OdfAttributes,
+    content: AsyncIterable<string | Uint8Array>): AsyncGenerator<Uint8Array> {
+    const empty = element(tag, attributes);
+    async function* parts() {
+      let opened = false;
+      for await (const part of content) {
+        context.signal.throwIfAborted();
+        if (!part.length) continue;
+        if (!opened) { yield empty.slice(0, -2) + ">"; opened = true; }
+        yield part;
+      }
+      yield opened ? "</" + tag + ">" : empty;
+    }
+    yield* encodeTextStream(parts(), "UTF-8", false, context);
+  }
+  async function* documentStream(tag: string, content: AsyncIterable<string | Uint8Array>): AsyncGenerator<Uint8Array> {
+    async function* parts() {
+      yield '<?xml version="1.0" encoding="UTF-8"?>\n';
+      yield* stream(tag, { ...declarations, "xmlns:loext": undefined, "office:version": "1.2" }, content);
+    }
+    yield* encodeTextStream(parts(), "UTF-8", false, context);
+  }
   function text(value: string, inlineControls = false): string {
     charge(value.length); let result = "", plain = "";
     function flush() { result += escape(plain); plain = ""; }
@@ -164,5 +187,5 @@ export function createOdfXml(context: CapabilityContext, extended: boolean) {
     // The encryption extension is declared only on its outer package manifest.
     return '<?xml version="1.0" encoding="UTF-8"?>\n' + element(tag, { ...declarations, "xmlns:loext": undefined, "office:version": "1.2" }, body);
   }
-  return { element, escape, text, retained, document, charge };
+  return { element, stream, escape, text, retained, document, documentStream, charge };
 }

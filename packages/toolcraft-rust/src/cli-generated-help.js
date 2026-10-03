@@ -109,6 +109,7 @@ const operations={
 };
 const host={operate:protect((name,args)=>operations[name](...args)),get:protect((value,key)=>value[key])};
 export function resolveHelpOutput(argv){return invoke("output",[argv]);}
+export function inferProgramName(argv){return invoke("inferName",[argv]);}
 export function resolveHelpTarget(root,argv,scope,rootUsageName,rootDisplayName){return invoke("target",[root,argv,scope,rootUsageName,rootDisplayName]);}
 export function formatCommandRows(group,scope,casing,globals,help){return invoke("commandRows",[group,scope,casing,globals,help]);}
 export function renderGroupHelp(group,breadcrumb,scope,casing,globals,usage,isRoot){return invoke("group",[group,breadcrumb,scope,casing,globals,usage,isRoot]);}

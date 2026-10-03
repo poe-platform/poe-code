@@ -8,6 +8,7 @@ export interface GlobalHelpOptions {controls:ResolvedCLIControls;showVersion:boo
 export interface ResolvedHelpTarget<TServices extends object> {breadcrumb:string[];node:Command<TServices,any,any,any>|Group<TServices>;}
 export interface HelpCommandRow {name:string;nameTokens:HelpToken[];description:string;kind:"command"|"group";depth:number;}
 export declare function resolveHelpOutput(argv:string[]):OutputMode;
+export declare function inferProgramName(argv:string[]):string;
 export declare function resolveHelpTarget<TServices extends object>(root:Group<TServices>,argv:string[],scope:Scope,rootUsageName:string,rootDisplayName?:string):ResolvedHelpTarget<TServices>;
 export declare function formatCommandRows<TServices extends object>(group:Group<TServices>,scope:Scope,casing:Casing,globals:ReadonlySet<string>,help:CLIHelpDepth):HelpCommandRow[];
 export declare function renderGroupHelp<TServices extends object>(group:Group<TServices>,breadcrumb:string[],scope:Scope,casing:Casing,globals:GlobalHelpOptions,usage:string,isRoot:boolean):string;

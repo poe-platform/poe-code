@@ -16,26 +16,27 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Cloning          | Detached command trees, scope overrides, source locations and MCP proxy metadata |
 | Package metadata | Nearest package lookup, symlink resolution and optional entrypoint lookup        |
 | MCP results      | Explicit result markers, shallow copy semantics and cross-bundle recognition     |
-| Stack diagnostics | Native framework-frame summaries, nested cause sections and raw stack preservation; prepared for CLI integration |
-| Result rendering | Native rich cards, tables, Markdown/JSON, custom hooks and MCP error routing; prepared for CLI integration |
-| CLI snapshots    | Native command-tree assembly, scope filtering, defaults and option metadata; prepared for CLI integration |
-| CLI arguments    | Native comma-separated array scanning, negative-number option normalization and output/debug selection; prepared for CLI integration |
-| CLI values       | Native scalar/array admission, nullable values, bounds, patterns, enum choices and JSON diagnostics; prepared for CLI integration |
-| JSON locations   | Native parse-error precedence, UTF-16 source offsets and file diagnostics with source snippets; prepared for CLI integration |
-| CLI options      | Native alias grouping, global-flag collision policies, boolean negation and array parser setup with existing Commander options; prepared for CLI integration |
-| CLI consumption  | Native inline/next-token selection, boolean presets, variadic arrays and collected field validation errors; prepared for CLI integration |
-| Dynamic CLI paths | Native dotted-flag matching, object/record/indexed-array traversal and qualified path diagnostics; prepared for CLI integration |
-| Dynamic CLI values | Native object/record assembly, contiguous indexed arrays, cloned defaults and nested validation errors; prepared for CLI integration |
-| Dynamic CLI arguments | Native dotted-flag parsing, negated booleans, repeated values, positionals and nested own-property writes; prepared for CLI integration |
-| CLI preparation | Native command/alias/default selection, short option clusters, help routing and dynamic flag normalization; prepared for CLI integration |
-| CLI command trees | Native scoped construction, hidden defaults, lazy field loading, global options and async action wiring through Commander; prepared for CLI integration |
-| CLI field prompts | Native enum/boolean/text routing, loaded choices, defaults, cancellation and result parsing with native design prompts; prepared for CLI integration |
-| CLI variants | Native active-branch selection, cloned defaults, required-field prompts and inactive-branch diagnostics; prepared for CLI integration |
-| CLI presets | Native nested file-value routing, scalar/dynamic validation, defaults and read/JSON diagnostics; prepared for CLI integration |
-| CLI parameters | Native positional/option/preset precedence, root defaults, missing-value callbacks, prompts, variants and combined validation; prepared for CLI integration |
-| CLI fixtures | Native scenario loading, request matching, service proxies, fetch/filesystem fixtures and runtime selection; prepared for CLI integration |
-| CLI execution | Native handler/approval routing, requirements, embedded validation, confirmation, managed streams and output/error handling; public CLI integration remains unfinished |
-| Generated help | Native group/leaf help, aliases, hidden defaults, scoped command lists, global options, examples, secrets and rich/Markdown/JSON output; public CLI integration remains unfinished |
+| Stack diagnostics | Native framework-frame summaries, nested cause sections and raw stack preservation |
+| Result rendering | Native rich cards, tables, Markdown/JSON, custom hooks and MCP error routing |
+| CLI snapshots    | Native command-tree assembly, scope filtering, defaults and option metadata |
+| CLI arguments    | Native comma-separated array scanning, negative-number option normalization and output/debug selection |
+| CLI values       | Native scalar/array admission, nullable values, bounds, patterns, enum choices and JSON diagnostics |
+| JSON locations   | Native parse-error precedence, UTF-16 source offsets and file diagnostics with source snippets |
+| CLI options      | Native alias grouping, global-flag collision policies, boolean negation and array parser setup with existing Commander options |
+| CLI consumption  | Native inline/next-token selection, boolean presets, variadic arrays and collected field validation errors |
+| Dynamic CLI paths | Native dotted-flag matching, object/record/indexed-array traversal and qualified path diagnostics |
+| Dynamic CLI values | Native object/record assembly, contiguous indexed arrays, cloned defaults and nested validation errors |
+| Dynamic CLI arguments | Native dotted-flag parsing, negated booleans, repeated values, positionals and nested own-property writes |
+| CLI preparation | Native command/alias/default selection, short option clusters, help routing and dynamic flag normalization |
+| CLI command trees | Native scoped construction, hidden defaults, lazy field loading, global options and async action wiring through Commander |
+| CLI field prompts | Native enum/boolean/text routing, loaded choices, defaults, cancellation and result parsing with native design prompts |
+| CLI variants | Native active-branch selection, cloned defaults, required-field prompts and inactive-branch diagnostics |
+| CLI presets | Native nested file-value routing, scalar/dynamic validation, defaults and read/JSON diagnostics |
+| CLI parameters | Native positional/option/preset precedence, root defaults, missing-value callbacks, prompts, variants and combined validation |
+| CLI fixtures | Native scenario loading, request matching, service proxies, fetch/filesystem fixtures and runtime selection |
+| Public CLI | `toolcraft-rust/cli`: standalone and invocation-local commands, help, diagnostics and proxy cleanup |
+| CLI execution | Native handler/approval routing, requirements, embedded validation, confirmation, managed streams and output/error handling |
+| Generated help | Native group/leaf help, aliases, hidden defaults, scoped command lists, global options, examples, secrets and rich/Markdown/JSON output |
 | Source snippets  | Context windows, line gutters, carets and terminal/Markdown/JSON styling          |
 | Design           | `toolcraft-rust/design` and 72 flat helper paths backed by the native design package |
 | File changes     | `toolcraft-rust/file-changes`: native status summaries and unified diffs through standard renderers |
@@ -81,6 +82,10 @@ const app = defineGroup({ name: "app", children: [greet], default: greet });
 // Create a typed SDK with the same command and parameter inference.
 const { createSDK } = await import("toolcraft-rust/sdk");
 await createSDK(app).greet({ name: "World" });
+
+// Run the same command tree from a terminal.
+const { runCLI } = await import("toolcraft-rust/cli");
+await runCLI(app, { argv: ["node", "app", "greet", "--name", "World"] });
 ```
 
 Use a human approval provider with the SDK:
@@ -196,10 +201,11 @@ const renderers = createFileChangeRenderers({ mode: 'diff' });
 
 Deep graph resource limits still require compatibility qualification before a swap.
 Result rendering uses the own Rust YAML codec; YAML-library Document/node inputs
-and complete CLI integration remain under qualification.
+remain under qualification. Public CLI parsing, prompting, rendering and errors
+are available, with existing Commander still supplying the parser objects.
 
-The CLI, transports and
-remaining subpaths are not yet available. Declarations currently use the existing
+Transports and remaining subpaths are not yet available. The native CLI is
+currently slower than the JavaScript implementation; it is not a performance upgrade. Declarations currently use the existing
 schema/design/config contract types; standalone type packaging and generic
 stream-factory interchangeability remain pending. The migration and replacement
 gates are tracked in the repository's Toolcraft Rust API parity plan.

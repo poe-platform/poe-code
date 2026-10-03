@@ -39,3 +39,4 @@ export interface CLICommandTreeSnapshotOptions {
 }
 export declare function createCLICommandTreeSnapshot<TServices extends object>(roots:Group<TServices>|Group<TServices>[],options?:CLICommandTreeSnapshotOptions):Promise<CLICommandTreeSnapshot>;
 export declare function isNodeVisibleInScope<TServices extends object>(node:Command<TServices,any,any,any>|Group<TServices>,scope:Scope):boolean;
+export declare function normalizeRoots<TServices extends object>(roots:Group<TServices>|Group<TServices>[],argv:string[]):Group<TServices>;

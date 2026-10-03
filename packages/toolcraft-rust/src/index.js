@@ -47,6 +47,16 @@ export function isUserError(error) {
   return error instanceof UserError || (error instanceof Error && error.name === "UserError");
 }
 
+export class ApprovalDeclinedError extends UserError {
+  constructor(options) {
+    super(options.reason === undefined ? "Declined." : `Declined: ${options.reason}`);
+    this.name = "ApprovalDeclinedError";
+    this.reason = options.reason;
+    this.approvalId = options.approvalId;
+    this.commandPath = options.commandPath;
+  }
+}
+
 export class ToolcraftBugError extends Error {
   constructor(message) {
     super(message);

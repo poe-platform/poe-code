@@ -323,11 +323,15 @@
     "./design/with-spinner": {
       "types": "./dist/design-with-spinner.d.ts",
       "import": "./dist/design-with-spinner.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
     }
   },
   "scripts": {
     "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build && cp src/*.d.ts dist/",
-    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && cp src/*.d.ts dist/ && vitest run --config vitest.reference.config.mjs && tsc --project tsconfig.types.json",
+    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && cp src/*.d.ts dist/ && vitest run --config vitest.reference.config.mjs && tsc --project tsconfig.types.json && node tests/reference-cli-types.mjs",
     "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
   },
   "devDependencies": {

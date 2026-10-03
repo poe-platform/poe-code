@@ -3849,3 +3849,73 @@ definitions, including field collection, command traversal, optional signatures,
 global controls and plain terminal formatting. Native/host crossings still need
 optimization; no performance/default-swap gate passed. Transports and complete
 platform/resource/reentrancy/standalone-packaging qualification also remain open.
+
+Generated help is independently verified on remote main at 91af5a9e3c. Its
+Release workflow 37081801459 completed successfully with release-stable skipped;
+this verifies the build, not a new publication.
+
+### Public CLI and error-handling checkpoint
+
+The public `toolcraft-rust/cli` entrypoint now exposes standalone `runCLI`,
+invocation-local `executeCLICommand`, command snapshots, naming, theme configuration
+and error-report rendering. Rust owns startup/dispatch/error/cleanup decisions,
+Commander diagnostic traversal, unknown-command admission, usage pointers and
+HTTP/problem-details/GraphQL presentation. Node retains actual await boundaries,
+callbacks, streams, live object methods and finally cleanup. The adapter composes
+native parameter, execution, help, schema, design and proxy modules. Optional
+proxy discovery remains lazy and is excluded from basic CLI bundles. Existing
+Commander still supplies parser objects; no dependency declarations or default
+implementation changed.
+
+Eight initial missing-module fixtures were separately validated against the JS
+reference before implementation. The root now exports the same declined-error
+constructor as the approval subpath. Public differential tests cover standalone
+and embedded output, aliases, dynamic flags, help/version, usage errors, defaults,
+abort identity, option getter order, thenable flush timing/failures, initialization
+outside the try/finally boundary, concurrent continuations and runtime export
+names. Additional mocked-boundary comparisons verify proxy discovery, help and
+handler cleanup, discovery/close failures and embedded discovery rejection.
+Original approval/CLI integration runs through native dependencies. HTTP error
+comparisons cover redaction, problem details, GraphQL, output modes and stacks.
+
+Enabling the original large CLI suite exposed a real native SIGSEGV. LLDB showed
+recursive napi-rs exception conversion; the isolated original inherited-location
+case and a minimal native regression both reproduced it. An Object.prototype
+cause made the private error carrier inherit a cyclic cause chain. Giving the
+carrier its own undefined cause prevents traversal and inherited getters while
+retaining arbitrary thrown identity. The separate fix 14f25e00a4 is independently
+verified on remote main; Release workflow 37083989733 is still running at this
+checkpoint. The original 181-case CLI suite now passes in full. This was not a
+Safe Bash failure.
+
+The original CLI compile-check exposed a native/reference recursive Command type
+mismatch in error-report context. The native public context now uses the native
+Command declaration with the same fields. The unchanged original consumer and
+additional CLI service/invocation consumers pass. Contract-only imports still
+refer to the JS package, so this is not standalone declaration qualification.
+
+Maintained package verification passes 266 native Node tests, Rust tests, 5,098
+reference/parity cases across 82 files, declaration consumers and the original
+CLI compile-check. Rust/binding lint and scoped ESLint pass. The original bundle
+suite also includes the unported MCP entrypoint and is not counted as passing;
+a separate maintained native test verifies lazy optional discovery. Packed public
+consumers execute standalone/embedded commands, dynamic flags, defaults, help and
+errors with only packed own schema/design/config-codec packages and existing
+Commander admitted as external ESM imports. A basic packed CLI bundle executes
+with its native binary sidecar. Packed types compile with types: [], while
+reference contract declarations still resolve from the checkout.
+
+Actual in-memory TTY input verifies a required text prompt through the public
+CLI into its handler. Prompt output, raw-mode transitions, root/leaf help, JSON
+results and unknown-command output match the reference; the combined terminal
+screenshot was inspected. Temporary evidence is removed after recording delivery.
+
+After local checks finished, five alternating warmed Node 22.23.2 ARM64 rounds
+of 300 public embedded executions, retaining 32 results, measured native/reference
+medians of 546.921/38.498 microseconds (14.21 times slower). The fixture includes
+command construction, aliases/dynamic argv parsing, defaults, validation, handler,
+JSON rendering and invocation flush, using prebuilt definitions. It differs from
+the earlier execution-only workload and does not establish a speedup. No
+performance/default-swap gate passed. MCP/HTTP/OAuth public entrypoints, remaining
+subpaths, standalone types and complete platform/resource/reentrancy qualification
+remain open, as does replacing/qualifying Commander.

@@ -1,9 +1,13 @@
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import { readdirSync } from "node:fs";
 
 const path = (value) => fileURLToPath(new URL(value, import.meta.url));
 const suites = ["stack-trim", "suggest", "runtime-logging", "redaction", "package-metadata", "source-snippet"];
+// The original bundle suite invokes esbuild against source paths independently
+// of Vitest resolution. Native packaging is qualified separately.
+const cliSuites = readdirSync(path("../toolcraft/src")).filter(name => name.startsWith("cli") && name.endsWith(".test.ts") && name !== "cli-bundle.test.ts");
 
 export default defineConfig({
   plugins: [
@@ -11,9 +15,15 @@ export default defineConfig({
       name: "toolcraft-rust-reference",
       enforce: "pre",
       resolveId(name, importer) {
-        if (importer === path("../toolcraft/src/cli-snapshot.test.ts")) {
-          if (name === "./cli.js") return path("dist/cli-snapshot.js");
+        if (importer === path("../toolcraft/src/human-in-loop/cli-runtime.integration.test.ts")) {
+          if (name === "../cli.js") return path("dist/cli.js");
+          if (name === "../index.js") return path("tests/definition-entry.mjs");
+          if (name === "toolcraft-design") return path("../toolcraft-design-rust/dist/index.js");
+        }
+        if (cliSuites.some(suite => importer === path(`../toolcraft/src/${suite}`))) {
+          if (name === "./cli.js") return path("dist/cli.js");
           if (name === "./index.js") return path("tests/definition-entry.mjs");
+          if (name === "toolcraft-design") return path("../toolcraft-design-rust/dist/index.js");
         }
         if (importer === path("../toolcraft/src/design-subpath-exports.test.ts") && name === "./design.js") return path("dist/design.js");
         if (importer?.startsWith(path("../toolcraft/src/")) && name.startsWith(".")) {
@@ -79,7 +89,7 @@ export default defineConfig({
   ],
   test: {
     include: [
-      path("../toolcraft/src/cli-snapshot.test.ts"),
+      ...cliSuites.map(suite => path(`../toolcraft/src/${suite}`)),
       path("../toolcraft/src/renderer.test.ts"),
       path("../toolcraft/src/design-subpath-exports.test.ts"),
       path("../toolcraft/src/file-change-renderer.test.ts"),
@@ -99,7 +109,11 @@ export default defineConfig({
       path("tests/cli-fixtures-parity.test.ts"),
       path("tests/cli-execution-parity.test.ts"),
       path("tests/cli-generated-help-parity.test.ts"),
+      path("tests/cli-public-parity.test.ts"),
+      path("tests/cli-proxy-parity.test.ts"),
+      path("tests/cli-errors-parity.test.ts"),
       path("../toolcraft/src/human-in-loop/sdk-runtime.integration.test.ts"),
+      path("../toolcraft/src/human-in-loop/cli-runtime.integration.test.ts"),
       path("../toolcraft/src/human-in-loop/plan-hash.test.ts"),
       path("../toolcraft/src/human-in-loop/approval-tasks.test.ts"),
       path("../toolcraft/src/human-in-loop/state-machine.test.ts"),

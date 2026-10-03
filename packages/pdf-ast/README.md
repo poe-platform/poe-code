@@ -442,6 +442,11 @@ group opacity, blending, or soft masks appear as `group` operations; `softMask` 
 Alpha/Luminosity mask content, backdrop, and transfer values. Standard-font glyph outlines are attached
 to `glyph.outline`, keeping letters separate from page drawing paths. The `glyphs`, `paths`, and
 `images` arrays remain available for inspection and extraction.
+`evaluateContentStreamSteps(options)` accepts an iterable of content nodes and
+yields one evaluated operation at a time, including capture/mask membership.
+Returning from its iterator closes the input. It avoids a page-wide output list;
+fonts, resource decoding and composite captures still use the buffered evaluator
+and require separate admission/backing in retained execution.
 
 Text, paths, and stencil images preserve shading and tiling pattern fills in
 bitmap and SVG output, including uncolored tiles and transformed Forms.

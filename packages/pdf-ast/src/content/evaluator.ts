@@ -787,36 +787,38 @@ export function isOptionalContentVisible(
   return isSingleOcgOn(ocNode);
 }
 
-export function evaluateContentStreamToDisplayList(params: {
+export interface PdfContentEvaluationOptions {
   readonly pageIndex: number;
   readonly width: number;
   readonly height: number;
   readonly origin?: readonly [number, number] | undefined;
   readonly rotation?: 0 | 90 | 180 | 270 | undefined;
-  readonly nodes: readonly PdfContentNode[];
+  readonly nodes: Iterable<PdfContentNode>;
   readonly cosDoc?: ParsedCosDocument | undefined;
   readonly resourcesDict?: PdfCosDict | undefined;
   readonly annotations?: readonly PdfLinkAnnotation[] | undefined;
-}): PdfDisplayList {
+}
+export interface PdfEvaluationOperation {
+  readonly operation: PdfPaintOperation;
+  /** The operation belongs to a captured group rather than the page paint list. */
+  readonly captured: boolean;
+  /** Mask paint is excluded from the page's text/image extraction views. */
+  readonly insideSoftMask: boolean;
+}
+
+/** Pull individual evaluated operations. Composite captures, fonts and decoded
+ * resources still belong to this evaluator; this is not a retained I/O driver. */
+export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions): Generator<PdfEvaluationOperation, void, void> {
   const fonts = resolvePageFonts(params.cosDoc, params.resourcesDict);
-  const glyphs: PdfPlacedGlyph[] = [];
-  const paths: PdfEvaluatedPath[] = [];
-  const images: PdfEvaluatedImage[] = [];
-  const operations: PdfPaintOperation[] = [];
   let capturedOperations: PdfPaintOperation[] | undefined;
   let insideSoftMask = false;
-  const emit = (operation: PdfPaintOperation): void => {
+  function* emit(operation: PdfPaintOperation): Generator<PdfEvaluationOperation, void, void> {
     const { clipPaths, clipImages, softMask } = curState();
     if (clipPaths || clipImages || softMask) operation = { ...operation, value: { ...operation.value,
       ...(clipPaths ? { clipPaths } : {}), ...(clipImages ? { clipImages } : {}), ...(softMask ? { softMask } : {}),
     } } as PdfPaintOperation;
-    (capturedOperations ?? operations).push(operation);
-    if (insideSoftMask) return;
-    switch (operation.kind) {
-      case "path": paths.push(operation.value); break;
-      case "image": images.push(operation.value); break;
-      case "glyph": glyphs.push(operation.value); break;
-    }
+    capturedOperations?.push(operation);
+    yield { operation, captured: capturedOperations !== undefined, insideSoftMask };
   };
 
   const initialState: GraphicsState = {
@@ -910,14 +912,14 @@ export function evaluateContentStreamToDisplayList(params: {
     return { r: kClamp(r), g: kClamp(g), b: kClamp(b) };
   };
 
-  const applyStateOperator = (
+  function* applyStateOperator(
     st: GraphicsState,
     operator: string,
     ops: readonly import("../ast.js").PdfCosNode[],
     activeResources: PdfCosDict | undefined,
     activeFonts: Map<string, ResolvedPageFont>,
     depth: number
-  ): void => {
+  ): Generator<PdfEvaluationOperation, void, void> {
     const num = (i: number, fb = 0) => (ops[i]?.kind === "number" ? ops[i]!.value : fb);
     if (operator === "cm") {
       const m: Matrix6 = [num(0, 1), num(1, 0), num(2, 0), num(3, 1), num(4, 0), num(5, 0)];
@@ -965,7 +967,7 @@ export function evaluateContentStreamToDisplayList(params: {
           shStream,
           st.blendMode
         );
-        if (img) emit({ kind: "image", value: img });
+        if (img) yield* emit({ kind: "image", value: img });
       }
     } else if (operator === "g") {
       const v = num(0, 0);
@@ -1023,7 +1025,7 @@ export function evaluateContentStreamToDisplayList(params: {
             delete maskState.clipRect;
             stateStack.push(maskState);
             try {
-              paintForm(form, activeResources, activeFonts, depth, undefined, undefined, true);
+              yield* paintForm(form, activeResources, activeFonts, depth, undefined, undefined, true);
             } finally {
               stateStack.pop();
               capturedOperations = parentOperations;
@@ -1124,28 +1126,28 @@ export function evaluateContentStreamToDisplayList(params: {
   let activeTm: Matrix6 = [1, 0, 0, 1, 0, 0];
   let activeTlm: Matrix6 = [1, 0, 0, 1, 0, 0];
 
-  const paintImage = (
+  function* paintImage(
     image: PdfEvaluatedImage,
     patternMask: boolean,
     resources: PdfCosDict | undefined,
     activeFonts: Map<string, ResolvedPageFont>,
     depth: number
-  ): void => {
+  ): Generator<PdfEvaluationOperation, void, void> {
     if (!patternMask) {
-      emit({ kind: "image", value: image });
+      yield* emit({ kind: "image", value: image });
       return;
     }
     const st = curState();
     // Like PDF.js _createMaskCanvas: paint at page resolution, then apply the
     // transformed stencil alpha. A one-pixel mask must not flatten a gradient.
     stateStack.push({ ...st, clipImages: [...(st.clipImages ?? []), image] });
-    walkNodes([{ kind: "path-op", paint: "f", segments: [
+    yield* walkNodes([{ kind: "path-op", paint: "f", segments: [
       { kind: "rect", x: 0, y: 0, width: 1, height: 1 },
     ] }], undefined, undefined, resources, activeFonts, depth);
     stateStack.pop();
   };
 
-  const paintPattern = (
+  function* paintPattern(
     segments: PdfPathSegment[],
     fillRule: "nonzero" | "evenodd",
     resources: PdfCosDict | undefined,
@@ -1153,7 +1155,7 @@ export function evaluateContentStreamToDisplayList(params: {
     depth: number,
     mcid?: number,
     actualText?: string
-  ): boolean => {
+  ): Generator<PdfEvaluationOperation, boolean, void> {
     const st = curState(), doc = params.cosDoc;
     if (!st.fillPatternName || !doc || !resources) return false;
     if (depth >= 8) throw new PdfError("E_LIMIT", "Pattern nesting exceeds the form depth limit");
@@ -1195,7 +1197,7 @@ export function evaluateContentStreamToDisplayList(params: {
         if (!shadingDict) return false;
         const image = renderShadingDictToImage(doc, shadingDict, matrix, bounds, st.fillAlpha,
           "PatternShading_" + st.fillPatternName, bounds, shading?.kind === "stream" ? shading : undefined, st.blendMode);
-        if (image) emit({ kind: "image", value: image });
+        if (image) yield* emit({ kind: "image", value: image });
         return !!image;
       }
       if (pattern?.kind !== "stream") return false;
@@ -1230,7 +1232,7 @@ export function evaluateContentStreamToDisplayList(params: {
           ];
           stateStack.push({ ...curState(), fillPatternName: undefined, ctm: tileCtm, initialCtm: tileCtm,
             clipPaths: [...(curState().clipPaths ?? []), tileClip] });
-          try { walkNodes(nodes, mcid, actualText, patternResources, patternFonts, depth + 1); }
+          try { yield* walkNodes(nodes, mcid, actualText, patternResources, patternFonts, depth + 1); }
           finally { stateStack.pop(); }
         }
       }
@@ -1238,7 +1240,7 @@ export function evaluateContentStreamToDisplayList(params: {
     } finally { stateStack.pop(); }
   };
 
-  const paintForm = (
+  function* paintForm(
     form: PdfCosStream,
     activeResources: PdfCosDict | undefined,
     activeFonts: Map<string, ResolvedPageFont>,
@@ -1246,7 +1248,7 @@ export function evaluateContentStreamToDisplayList(params: {
     mcid?: number,
     actualText?: string,
     maskGroup = false
-  ): void => {
+  ): Generator<PdfEvaluationOperation, void, void> {
     const st = curState();
     const group = params.cosDoc!.resolveDict(dictGet(form.dict, "Group"));
     const groupType = group ? params.cosDoc!.resolve(dictGet(group, "S")) : undefined;
@@ -1324,27 +1326,27 @@ export function evaluateContentStreamToDisplayList(params: {
     if (nextClipPaths) nextState.clipPaths = nextClipPaths;
     stateStack.push(nextState);
     try {
-      walkNodes(formNodes, mcid, actualText, formResDict, formFonts, depth + 1);
+      yield* walkNodes(formNodes, mcid, actualText, formResDict, formFonts, depth + 1);
     } finally {
       stateStack.pop();
       capturedOperations = parentOperations;
     }
-    if (compositeGroup) emit({ kind: "group", value: { operations: children, alpha: st.fillAlpha, isolated, bboxClip: nextClipPaths?.[0], blendMode: st.blendMode, clipRect: st.clipRect } });
+    if (compositeGroup) yield* emit({ kind: "group", value: { operations: children, alpha: st.fillAlpha, isolated, bboxClip: nextClipPaths?.[0], blendMode: st.blendMode, clipRect: st.clipRect } });
   };
 
-  const walkNodes = (
-    nodes: readonly PdfContentNode[],
+  function* walkNodes(
+    nodes: Iterable<PdfContentNode>,
     mcid?: number,
     actualText?: string,
     activeResources: PdfCosDict | undefined = params.resourcesDict,
     activeFonts: Map<string, ResolvedPageFont> = fonts,
     depth = 0
-  ): void => {
+  ): Generator<PdfEvaluationOperation, void, void> {
     for (const node of nodes) {
       switch (node.kind) {
         case "graphics-group":
           stateStack.push({ ...curState(), ctm: [...curState().ctm] as Matrix6 });
-          walkNodes(node.ops, mcid, actualText, activeResources, activeFonts, depth);
+          yield* walkNodes(node.ops, mcid, actualText, activeResources, activeFonts, depth);
           if (stateStack.length > 1) stateStack.pop();
           break;
 
@@ -1375,7 +1377,7 @@ export function evaluateContentStreamToDisplayList(params: {
               }
             }
           }
-          walkNodes(
+          yield* walkNodes(
             node.children,
             resolvedMcid ?? mcid,
             resolvedActualText ?? actualText,
@@ -1387,7 +1389,7 @@ export function evaluateContentStreamToDisplayList(params: {
         }
 
         case "state-op": {
-          applyStateOperator(curState(), node.operator, node.operands, activeResources, activeFonts, depth);
+          yield* applyStateOperator(curState(), node.operator, node.operands, activeResources, activeFonts, depth);
           break;
         }
 
@@ -1488,14 +1490,14 @@ export function evaluateContentStreamToDisplayList(params: {
 
           const isFill = ["f", "F", "f*", "B", "B*", "b", "b*"].includes(node.paint);
           const isStroke = ["S", "s", "B", "B*", "b", "b*"].includes(node.paint);
-          const evaluatedFillPattern = isFill && paintPattern(transformedSegments,
-            node.paint.includes("*") ? "evenodd" : "nonzero", activeResources, activeFonts, depth, mcid, actualText);
+          const evaluatedFillPattern = isFill && (yield* paintPattern(transformedSegments,
+            node.paint.includes("*") ? "evenodd" : "nonzero", activeResources, activeFonts, depth, mcid, actualText));
           if (evaluatedFillPattern && !isStroke) {
             applyClip();
             break;
           }
           const fillRule = node.paint.includes("*") ? "evenodd" : "nonzero";
-          emit({ kind: "path", value: {
+          yield* emit({ kind: "path", value: {
             segments: transformedSegments,
             fillColor: isFill && !evaluatedFillPattern ? st.fillColor : undefined,
             fillAlpha: isFill && !evaluatedFillPattern ? st.fillAlpha : undefined,
@@ -1541,7 +1543,7 @@ export function evaluateContentStreamToDisplayList(params: {
                     alpha: st.fillAlpha,
                   }
                 );
-                paintImage({
+                yield* paintImage({
                   name: node.name,
                   matrix: [...st.ctm],
                   width: decoded.width,
@@ -1553,7 +1555,7 @@ export function evaluateContentStreamToDisplayList(params: {
                   ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
                 }, patternMask, activeResources, activeFonts, depth);
               } else if (sub === "Form" && depth < 8) {
-                paintForm(xobjNode, activeResources, activeFonts, depth, mcid, actualText);
+                yield* paintForm(xobjNode, activeResources, activeFonts, depth, mcid, actualText);
               }
             }
           }
@@ -1577,7 +1579,7 @@ export function evaluateContentStreamToDisplayList(params: {
               alpha: st.fillAlpha,
             }
           );
-          paintImage({
+          yield* paintImage({
             name: "InlineImage",
             matrix: [...st.ctm],
             width: decoded.width,
@@ -1602,7 +1604,7 @@ export function evaluateContentStreamToDisplayList(params: {
           let tm: Matrix6 = activeTm;
           let tlm: Matrix6 = activeTlm;
 
-          const emitTokenBytes = (bytes: Uint8Array) => {
+          function* emitTokenBytes(bytes: Uint8Array): Generator<PdfEvaluationOperation, void, void> {
             const font = activeFonts.get(st.fontName) ?? fonts.get(st.fontName);
             const decoded = decodeTokenGlyphs(bytes, font);
             const scaleH = st.horizScale / 100;
@@ -1637,7 +1639,7 @@ export function evaluateContentStreamToDisplayList(params: {
                     );
                     const glyphCtm = multiplyMatrices(fm, textSpaceMatrix);
                     stateStack.push({ ...st, ctm: glyphCtm });
-                    walkNodes(
+                    yield* walkNodes(
                       procNodes,
                       mcid,
                       actualText,
@@ -1700,8 +1702,8 @@ export function evaluateContentStreamToDisplayList(params: {
                   if (st.textRenderMode >= 4 && st.textRenderMode <= 7) pendingTextClip.push(...transformedGlyphSegs);
                   const isFillGlyph = st.textRenderMode === 0 || st.textRenderMode === 2 || st.textRenderMode === 4 || st.textRenderMode === 6;
                   const isStrokeGlyph = st.textRenderMode === 1 || st.textRenderMode === 2 || st.textRenderMode === 5 || st.textRenderMode === 6;
-                  const patterned = isFillGlyph && paintPattern(transformedGlyphSegs, "nonzero",
-                    activeResources, activeFonts, depth, mcid, actualText);
+                  const patterned = isFillGlyph && (yield* paintPattern(transformedGlyphSegs, "nonzero",
+                    activeResources, activeFonts, depth, mcid, actualText));
                   const paint: PdfEvaluatedPath = {
                     segments: transformedGlyphSegs,
                     fillColor: isFillGlyph && !patterned ? st.fillColor : undefined,
@@ -1715,7 +1717,7 @@ export function evaluateContentStreamToDisplayList(params: {
                     ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
                   };
                   if (font.standardOutlines || font.embeddedCff) glyphPaint = paint;
-                  else emit({ kind: "path", value: paint });
+                  else yield* emit({ kind: "path", value: paint });
                   evaluatedType3 = !font.standardOutlines && !font.embeddedCff;
                 }
               }
@@ -1725,7 +1727,7 @@ export function evaluateContentStreamToDisplayList(params: {
                 Math.hypot(nextX - px, nextY - py),
                 (advance1000 * effectiveFontSize) / 1000
               );
-              emit({ kind: "glyph", value: {
+              yield* emit({ kind: "glyph", value: {
                 ...(glyphPaint ? { outline: glyphPaint } : {}),
                 charCode: item.charCode,
                 unicode: item.unicode,
@@ -1784,15 +1786,15 @@ export function evaluateContentStreamToDisplayList(params: {
                 st.textRenderMode = cmd.mode;
                 break;
               case "state-op":
-                applyStateOperator(st, cmd.operator, cmd.operands, activeResources, activeFonts, depth);
+                yield* applyStateOperator(st, cmd.operator, cmd.operands, activeResources, activeFonts, depth);
                 break;
               case "show-text":
-                emitTokenBytes(cmd.token.bytes);
+                yield* emitTokenBytes(cmd.token.bytes);
                 break;
               case "show-text-array":
                 for (const part of cmd.items) {
                   if (part.kind === "string") {
-                    emitTokenBytes(part.bytes);
+                    yield* emitTokenBytes(part.bytes);
                   } else if (part.kind === "number") {
                     const shiftUser = ((-part.value * st.fontSize) / 1000) * (st.horizScale / 100);
                     tm = multiplyMatrices([1, 0, 0, 1, shiftUser, 0], tm);
@@ -1814,8 +1816,24 @@ export function evaluateContentStreamToDisplayList(params: {
     }
   };
 
-  walkNodes(params.nodes);
+  yield* walkNodes(params.nodes);
 
+}
+
+export function evaluateContentStreamToDisplayList(params: PdfContentEvaluationOptions): PdfDisplayList {
+  const glyphs: PdfPlacedGlyph[] = [];
+  const paths: PdfEvaluatedPath[] = [];
+  const images: PdfEvaluatedImage[] = [];
+  const operations: PdfPaintOperation[] = [];
+  for (const { operation, captured, insideSoftMask } of evaluateContentStreamSteps(params)) {
+    if (!captured) operations.push(operation);
+    if (insideSoftMask) continue;
+    switch (operation.kind) {
+      case "path": paths.push(operation.value); break;
+      case "image": images.push(operation.value); break;
+      case "glyph": glyphs.push(operation.value); break;
+    }
+  }
   return {
     pageIndex: params.pageIndex,
     width: params.width,

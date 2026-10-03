@@ -351,7 +351,7 @@ export const complexFunctions: Readonly<Record<string, FunctionImplementation>> 
 };
 export const complexSpecialForms: Readonly<Record<string, SpecialForm>> = Object.fromEntries(["IMSUM", "IMPRODUCT"].map(name => [name, ((nodes, host) => {
   let acc = c(name === "IMSUM" ? 0 : 1, 0, "j"), unit = "j";
-  for (const node of nodes) for (const cell of collect(host.evaluate(node, true), host)) {
+  for (const node of nodes) for (const cell of collect(host.evaluate(node, true, false, true), host)) {
     if (cell.kind === "error") return cell;
     if (cell.kind === "blank") continue;
     const z = parse(cell, host); if (!z) return error("#NUM!");

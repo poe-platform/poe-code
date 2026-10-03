@@ -102,7 +102,7 @@ export const numberTheoryFunctions: Readonly<Record<string, FunctionImplementati
 export const numberTheorySpecialForms: Readonly<Record<string, SpecialForm>> = Object.fromEntries(
   ["BITAND", "BITOR", "BITXOR"].map(name => [name, ((nodes, host) => {
     let result = name === "BITAND" ? (1n << 64n) - 1n : 0n, count = 0, invalid = false;
-    for (const node of nodes) for (const cell of collect(host.evaluate(node, true), host)) {
+    for (const node of nodes) for (const cell of collect(host.evaluate(node, true, false, true), host)) {
       if (cell.kind === "error") return cell;
       if (cell.kind !== "number" && cell.kind !== "boolean") continue;
       const n = fakeFloor(Number(cell.value));

@@ -57,7 +57,7 @@ export const engineeringExtraFunctions: Readonly<Record<string, FunctionImplemen
 export const engineeringExtraSpecialForms: Readonly<Record<string, SpecialForm>> = {
   INVSUMINV: (nodes, host) => {
     let count = 0, total = 0, zero = false, negative = false;
-    for (const node of nodes) for (const cell of collect(host.evaluate(node, true), host)) {
+    for (const node of nodes) for (const cell of collect(host.evaluate(node, true, false, true), host)) {
       if (cell.kind === "error") return cell;
       if (cell.kind !== "number") continue;
       count++; if (cell.value < 0) { negative = true; continue; }

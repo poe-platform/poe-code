@@ -4214,6 +4214,13 @@
         "validation": "Eight statistical and eleven SUBTOTAL memory tests failed before their respective repairs. Final 19,132 formula tests across 144 files, engine lint/source/test types and normal root build pass. Root/package SDK and command XLSX/BIFF7/BIFF8 outputs match all 1,136 cached/native comparisons without diagnostics (560 statistical, 576 SUBTOTAL). Both actual command screenshots inspected. Installed registry qualification remains separate.",
         "evidence": "out/ssconvert-continuation-1748/other-aggregate and subtotal-grouping",
         "remaining": "Separate math/bitwise/engineering/complex aggregate controls expose39 current cached-value mismatches; those handlers and broader compatibility and registry qualification remain open."
+      },
+      "mathAggregate": {
+        "repair": "Math, bitwise, engineering and complex aggregate handlers request the existing bounded aggregate evaluator context. Explicit grouping remains scalar through names; bare sets retain iteration. Arithmetic and coercion implementations are unchanged.",
+        "native": "Unchanged Gnumeric 1.12.61 glossary profile: 52 formulas and three data cells cover GCD, LCM, MULTINOMIAL, SUMSQ, SUMA, HYPOT, G_PRODUCT, INVSUMINV, BITAND, BITOR, BITXOR, IMSUM and IMPRODUCT. Grouped ranges, named groups and grouped unions produce 39 #VALUE! results; all thirteen bare named-set controls retain numeric results. No native diagnostics.",
+        "validation": "All thirteen original memory tests failed before the repair. Final 19,145 formula tests across 145 files, engine lint/source/test types and normal root build pass. Compiled root/package SDK and command cached/native XLSX/BIFF7/BIFF8 checks match all 880 values without diagnostics. Actual command screenshot inspected. Installed registry qualification remains separate.",
+        "evidence": "out/ssconvert-continuation-1748/math-aggregate",
+        "remaining": "A separate current variadic-function cohort exposes 24 grouping mismatches in logical/text/ARRAY/SIMTABLE handlers. Broader compatibility and installed registry qualification remain open."
       }
     }
   },

@@ -257,7 +257,7 @@ export const mathFunctions: Readonly<Record<string, FunctionImplementation>> = {
 export const mathSpecialForms: Readonly<Record<string, SpecialForm>> = {
   ...Object.fromEntries(["GCD", "LCM", "MULTINOMIAL", "SUMSQ", "SUMA", "HYPOT", "G_PRODUCT"].map(name => [name, ((nodes, host) => {
     const values: number[] = [];
-    for (const node of nodes) for (const cell of collect(host.evaluate(node, true), host)) {
+    for (const node of nodes) for (const cell of collect(host.evaluate(node, true, false, true), host)) {
       if (cell.kind === "error") return cell;
       if (cell.kind === "number") values.push(cell.value);
       else if (name === "SUMA") values.push(cell.kind === "boolean" ? Number(cell.value) : 0);

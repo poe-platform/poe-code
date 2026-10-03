@@ -91,6 +91,10 @@ it.each([
   let evaluating = evaluator.next(); const actual = [];
   while (!evaluating.done) {
     if (evaluating.value.kind === "paint") { actual.push(evaluating.value); evaluating = evaluator.next(); continue; }
+    if (evaluating.value.kind === "resolve" || evaluating.value.kind === "catalog") {
+      evaluating = evaluator.next({ kind: "resolved", node: doc.cos.resolve(evaluating.value.kind === "catalog" ? doc.cos.rootRef : evaluating.value.node) });
+      continue;
+    }
     if (evaluating.value.kind === "font") {
       const { resolvePageFonts } = await import("../fonts/resolve.js");
       evaluating = evaluator.next(resolvePageFonts(doc.cos, evaluating.value.resources, evaluating.value.name).get(evaluating.value.name));
@@ -132,4 +136,30 @@ it("suspends for the selected font before emitting its glyphs", async () => {
   await Promise.resolve();
   expect(work.next(font).value).toMatchObject({ kind: "paint", operation: { kind: "glyph", value: { unicode: "A", fontName: "Courier" } } });
   work.return();
+});
+
+it("suspends named marked-content properties for retained lookup", async () => {
+  const { evaluateContentSteps } = await import("./evaluator.js");
+  const { cosDict, cosNumber, cosString, dictGet } = await import("../ast.js");
+  const properties = cosDict({ Label: cosDict({ MCID: cosNumber(42), ActualText: cosString("accessible") }) });
+  const resources = cosDict({ Properties: properties });
+  const work = evaluateContentSteps({ pageIndex: 0, width: 100, height: 100, resourcesDict: resources });
+  expect(work.next().value).toEqual({ kind: "node" });
+  const nodes = parseContentStream(new TextEncoder().encode("/Span /Label BDC BT /F1 12 Tf (A) Tj ET EMC"));
+  let step = work.next(nodes[0]);
+  expect(step.value).toEqual({ kind: "resolve", node: properties });
+  let reads = 0;
+  while (!step.done) {
+    if (step.value.kind === "resolve") {
+      reads++;
+      await Promise.resolve();
+      step = work.next({ kind: "resolved", node: step.value.node });
+    } else if (step.value.kind === "font") step = work.next(undefined);
+    else if (step.value.kind === "paint") {
+      expect(step.value.operation).toMatchObject({ kind: "glyph", value: { mcid: 42, actualText: "accessible" } });
+      step = work.next();
+    } else step = work.next(undefined);
+  }
+  expect(reads).toBeGreaterThan(0);
+  expect(dictGet(resources, "Properties")).toBe(properties);
 });

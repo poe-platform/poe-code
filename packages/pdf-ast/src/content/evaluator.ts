@@ -7,6 +7,7 @@ import {
   type PdfClipPath,
   type PdfContentNode,
   type PdfCosDict,
+  type PdfCosNode,
   type PdfCosStream,
   type PdfDisplayList,
   type PdfEvaluatedImage,
@@ -723,41 +724,65 @@ function renderShadingDictToImage(
   };
 }
 
-export function isOptionalContentVisible(
-  doc: ParsedCosDocument | undefined,
-  ocNode: import("../ast.js").PdfCosNode | undefined
-): boolean {
+export function isOptionalContentVisible(doc: ParsedCosDocument | undefined, ocNode: PdfCosNode | undefined): boolean {
   if (!doc || !ocNode) return true;
-  const resolved = doc.resolve(ocNode);
+  const work = optionalContentVisibilitySteps(ocNode);
+  let step = work.next();
+  while (!step.done) {
+    if (step.value.kind !== "resolve" && step.value.kind !== "catalog") throw new TypeError("Expected a PDF object request");
+    step = work.next({ kind: "resolved", node: doc.resolve(step.value.kind === "catalog" ? doc.rootRef : step.value.node) });
+  }
+  return step.value;
+}
+
+function* resolveEvaluationNode(node: PdfCosNode | undefined): EvaluationWork<PdfCosNode | undefined> {
+  if (!node) return undefined;
+  const result = yield { kind: "resolve", node };
+  if (!result || !("kind" in result) || result.kind !== "resolved") throw new TypeError("Expected a resolved PDF object");
+  return result.node;
+}
+function* resolveEvaluationDict(node: PdfCosNode | undefined): EvaluationWork<PdfCosDict | undefined> {
+  const resolved = yield* resolveEvaluationNode(node);
+  return resolved?.kind === "dict" ? resolved : resolved?.kind === "stream" ? resolved.dict : undefined;
+}
+function* resolveEvaluationArray(node: PdfCosNode | undefined): EvaluationWork<import("../ast.js").PdfCosArray | undefined> {
+  const resolved = yield* resolveEvaluationNode(node);
+  return resolved?.kind === "array" ? resolved : undefined;
+}
+
+export function* optionalContentVisibilitySteps(ocNode: PdfCosNode | undefined): EvaluationWork<boolean> {
+  if (!ocNode) return true;
+  const resolved = yield* resolveEvaluationNode(ocNode);
   const ocDict = resolved?.kind === "dict" ? resolved : resolved?.kind === "stream" ? resolved.dict : undefined;
   if (!ocDict) return true;
 
-  const catalog = doc.resolveDict(doc.rootRef);
-  const ocProps = catalog ? doc.resolveDict(dictGet(catalog, "OCProperties")) : undefined;
-  const dDict = ocProps ? doc.resolveDict(dictGet(ocProps, "D")) : undefined;
-  const baseStateNode = dDict ? doc.resolve(dictGet(dDict, "BaseState")) : undefined;
+  const root = yield { kind: "catalog" };
+  const catalog = root && "kind" in root && root.kind === "resolved" && root.node?.kind === "dict" ? root.node : undefined;
+  const ocProps = catalog ? yield* resolveEvaluationDict(dictGet(catalog, "OCProperties")) : undefined;
+  const dDict = ocProps ? yield* resolveEvaluationDict(dictGet(ocProps, "D")) : undefined;
+  const baseStateNode = dDict ? yield* resolveEvaluationNode(dictGet(dDict, "BaseState")) : undefined;
   const baseStateOff = baseStateNode?.kind === "name" && baseStateNode.decoded === "OFF";
 
-  const collectRefSet = (arrNode: import("../ast.js").PdfCosNode | undefined): Set<number> => {
+  function* collectRefSet(arrNode: PdfCosNode | undefined): EvaluationWork<Set<number>> {
     const set = new Set<number>();
-    const arr = doc.resolveArray(arrNode);
+    const arr = yield* resolveEvaluationArray(arrNode);
     if (!arr) return set;
     for (const item of arr.items) {
       if (item.kind === "ref") set.add(item.objectNumber);
     }
     return set;
   };
-  const onSet = dDict ? collectRefSet(dictGet(dDict, "ON")) : new Set<number>();
-  const offSet = dDict ? collectRefSet(dictGet(dDict, "OFF")) : new Set<number>();
+  const onSet = dDict ? yield* collectRefSet(dictGet(dDict, "ON")) : new Set<number>();
+  const offSet = dDict ? yield* collectRefSet(dictGet(dDict, "OFF")) : new Set<number>();
 
-  const isSingleOcgOn = (node: import("../ast.js").PdfCosNode | undefined): boolean => {
+  function* isSingleOcgOn(node: PdfCosNode | undefined): EvaluationWork<boolean> {
     if (!node) return true;
     const refObjNum = node.kind === "ref" ? node.objectNumber : undefined;
-    const dict = doc.resolveDict(node);
+    const dict = yield* resolveEvaluationDict(node);
     if (dict) {
-      const usageDict = doc.resolveDict(dictGet(dict, "Usage"));
-      const viewDict = usageDict ? doc.resolveDict(dictGet(usageDict, "View")) : undefined;
-      const viewState = viewDict ? doc.resolve(dictGet(viewDict, "ViewState")) : undefined;
+      const usageDict = yield* resolveEvaluationDict(dictGet(dict, "Usage"));
+      const viewDict = usageDict ? yield* resolveEvaluationDict(dictGet(usageDict, "View")) : undefined;
+      const viewState = viewDict ? yield* resolveEvaluationNode(dictGet(viewDict, "ViewState")) : undefined;
       if (viewState?.kind === "name") {
         if (viewState.decoded === "OFF") return false;
         if (viewState.decoded === "ON") return true;
@@ -770,22 +795,26 @@ export function isOptionalContentVisible(
     return !baseStateOff;
   };
 
-  const typeNode = doc.resolve(dictGet(ocDict, "Type"));
+  const typeNode = yield* resolveEvaluationNode(dictGet(ocDict, "Type"));
   const typeName = typeNode?.kind === "name" ? typeNode.decoded : "";
   if (typeName === "OCMD") {
-    const pNode = doc.resolve(dictGet(ocDict, "P"));
+    const pNode = yield* resolveEvaluationNode(dictGet(ocDict, "P"));
     const policy = pNode?.kind === "name" ? pNode.decoded : "AnyOn";
     const ocgsEntry = dictGet(ocDict, "OCGs");
-    const ocgsArr = doc.resolveArray(ocgsEntry);
+    const ocgsArr = yield* resolveEvaluationArray(ocgsEntry);
     const memberNodes = ocgsArr ? ocgsArr.items : ocgsEntry ? [ocgsEntry] : [];
     if (memberNodes.length === 0) return true;
-    const states = memberNodes.map(isSingleOcgOn);
-    if (policy === "AllOn") return states.every(Boolean);
-    if (policy === "AnyOff") return states.some((s) => !s);
-    if (policy === "AllOff") return states.every((s) => !s);
-    return states.some(Boolean);
+    let anyOn = false, anyOff = false;
+    for (const member of memberNodes) {
+      const on = yield* isSingleOcgOn(member);
+      anyOn ||= on; anyOff ||= !on;
+    }
+    if (policy === "AllOn") return !anyOff;
+    if (policy === "AnyOff") return anyOff;
+    if (policy === "AllOff") return !anyOn;
+    return anyOn;
   }
-  return isSingleOcgOn(ocNode);
+  return yield* isSingleOcgOn(ocNode);
 }
 
 export interface PdfContentEvaluationOptions {
@@ -809,8 +838,10 @@ export interface PdfEvaluationOperation {
 }
 
 export type PdfEvaluationRequest = PdfEvaluationOperation | { readonly kind: "node" }
-  | { readonly kind: "font"; readonly name: string; readonly resources: PdfCosDict | undefined };
-export type PdfEvaluationResult = PdfContentEvent | ResolvedPageFont | undefined;
+  | { readonly kind: "font"; readonly name: string; readonly resources: PdfCosDict | undefined }
+  | { readonly kind: "resolve"; readonly node: PdfCosNode }
+  | { readonly kind: "catalog" };
+export type PdfEvaluationResult = PdfContentEvent | ResolvedPageFont | { readonly kind: "resolved"; readonly node: PdfCosNode | undefined } | undefined;
 type EvaluationWork<T = void> = Generator<PdfEvaluationRequest, T, PdfEvaluationResult>;
 type FontScope = ReadonlyArray<PdfCosDict | undefined>;
 
@@ -1353,30 +1384,30 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     if (compositeGroup) yield* emit({ kind: "group", value: { operations: children, alpha: st.fillAlpha, isolated, bboxClip: nextClipPaths?.[0], blendMode: st.blendMode, clipRect: st.clipRect } });
   };
 
-  function markedContext(node: Extract<PdfContentNode, { kind: "marked-content" }>,
+  function* markedContext(node: Extract<PdfContentNode, { kind: "marked-content" }>,
     mcid: number | undefined, actualText: string | undefined, activeResources: PdfCosDict | undefined
-  ): { mcid: number | undefined; actualText: string | undefined } | undefined {
+  ): EvaluationWork<{ mcid: number | undefined; actualText: string | undefined } | undefined> {
     let resolvedMcid = node.mcid;
     let resolvedActualText = node.actualText;
-    if (params.cosDoc && typeof node.properties === "string" && activeResources) {
-      const propsMap = params.cosDoc.resolveDict(dictGet(activeResources, "Properties"));
+    if (typeof node.properties === "string" && activeResources) {
+      const propsMap = yield* resolveEvaluationDict(dictGet(activeResources, "Properties"));
       const propRefOrNode = propsMap ? dictGet(propsMap, node.properties) : undefined;
       if (propRefOrNode) {
-        const propDict = params.cosDoc.resolveDict(propRefOrNode);
-        const propType = propDict ? params.cosDoc.resolve(dictGet(propDict, "Type")) : undefined;
+        const propDict = yield* resolveEvaluationDict(propRefOrNode);
+        const propType = propDict ? yield* resolveEvaluationNode(dictGet(propDict, "Type")) : undefined;
         const isOcTag =
           node.tag === "OC" ||
           (propType?.kind === "name" && (propType.decoded === "OCG" || propType.decoded === "OCMD"));
-        if (isOcTag && !isOptionalContentVisible(params.cosDoc, propRefOrNode)) {
+        if (isOcTag && !(yield* optionalContentVisibilitySteps(propRefOrNode))) {
           return undefined;
         }
         if (propDict) {
           if (resolvedActualText === undefined) {
-            const at = params.cosDoc.resolve(dictGet(propDict, "ActualText"));
+            const at = yield* resolveEvaluationNode(dictGet(propDict, "ActualText"));
             if (at?.kind === "string") resolvedActualText = decodePdfString(at);
           }
           if (resolvedMcid === undefined) {
-            const mc = params.cosDoc.resolve(dictGet(propDict, "MCID"));
+            const mc = yield* resolveEvaluationNode(dictGet(propDict, "MCID"));
             if (mc?.kind === "number") resolvedMcid = mc.value;
           }
         }
@@ -1417,7 +1448,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
         groups.push({ pushed, hidden, mcid, actualText });
         if (pushed) stateStack.push({ ...curState(), ctm: [...curState().ctm] as Matrix6 });
         else if (!hidden && node.group.kind === "marked-content") {
-          const context = markedContext(node.group, mcid, actualText, activeResources);
+          const context = yield* markedContext(node.group, mcid, actualText, activeResources);
           if (context) ({ mcid, actualText } = context);
           else hidden = true;
         }
@@ -1432,7 +1463,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           break;
 
         case "marked-content": {
-          const context = markedContext(node, mcid, actualText, activeResources);
+          const context = yield* markedContext(node, mcid, actualText, activeResources);
           if (context) yield* walkNodes(node.children, context.mcid, context.actualText, activeResources, activeFonts, depth);
           break;
         }
@@ -1888,6 +1919,8 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
         const next = input.next();
         if (next.done) exhausted = true;
         step = work.next(next.done ? undefined : next.value);
+      } else if (step.value.kind === "resolve" || step.value.kind === "catalog") {
+        step = work.next({ kind: "resolved", node: params.cosDoc?.resolve(step.value.kind === "catalog" ? params.cosDoc.rootRef : step.value.node) });
       } else if (step.value.kind === "font") {
         const { resources, name } = step.value;
         let cache = resources ? fontCaches.get(resources) : defaultFonts;

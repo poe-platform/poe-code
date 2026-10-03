@@ -96,7 +96,7 @@ test("portable search help declares separate supported, unsupported, and unknown
   try {
     for (const name of ["grep", "rg", "sed"]) {
       const command = commands.get(name)!;
-      const help = browser.evaluateCommandSupport(command, { read: false, streamingRead: false, write: false, append: false, readOnly: true });
+      const help = browser.evaluateCommandSupport(command, { read: false, streamingRead: false, retainedRead: false, write: false, append: false, readOnly: true });
       assert.equal(help.declared, true, name);
       assert.equal(help.modes.find(mode => mode.id === "stdin")?.status, "supported", name);
       assert.equal(help.modes.find(mode => mode.id === "file")?.status, "unsupported", name);
@@ -108,7 +108,7 @@ test("portable search help declares separate supported, unsupported, and unknown
 });
 
 test("portable search rejects denied file operands and pattern/script files before reads", async () => {
-  const { shell, calls } = await capabilityShell({ read: false, streamingRead: false });
+  const { shell, calls } = await capabilityShell({ read: false, streamingRead: false, retainedRead: false });
   try {
     for (const source of ["grep second /input", "grep -f /patterns -", "rg second /input", "rg -f /patterns -", "sed p /input", "sed -f /script"]) {
       const result = await shell.exec(source, { stdin: "second\n" });
@@ -145,7 +145,7 @@ test("rg traversal admission is conditional and precedes unsupported directory m
     assert.match(result.stderr, /ENOTSUP/);
     assert.equal(calls.some(call => call.startsWith("readdir:")), false);
   } finally { await shell.dispose(); }
-  const listing = await capabilityShell({ read: false, streamingRead: false });
+  const listing = await capabilityShell({ read: false, streamingRead: false, retainedRead: false });
   try {
     assert.equal((await listing.shell.exec("rg --files --no-ignore /")).exitCode, 0);
     const result = await listing.shell.exec("rg --files /");
@@ -178,7 +178,7 @@ test("sed required writes and backups are rejected before any truncation or stdi
 test("sed preflights all path-specific script reads, outputs, and backup destinations", async () => {
   for (const [paths, source] of [
     [{ "/denied": { readOnly: true } }, "sed -e 'w /output' -e 'w /denied' /input"],
-    [{ "/extra": { read: false, streamingRead: false } }, "sed -e 'w /output' -e 'r /extra' /input"],
+    [{ "/extra": { read: false, streamingRead: false, retainedRead: false } }, "sed -e 'w /output' -e 'r /extra' /input"],
     [{ "/input.bak": { atomicFileMutation: false } }, "sed -i.bak -e 'w /output' /input"],
   ] as const) {
     const { shell, backing, calls } = await capabilityShell({}, paths);

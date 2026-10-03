@@ -76,6 +76,11 @@ test("direct and command copies use bounded exclusive creation without streaming
       write: false, streamingWrite: false, exclusiveCreate: true }), {
       get(backing, property) {
         if (property === "writeStream") return async () => { streamWrites++; assert.fail("unsupported streaming write must not be invoked"); };
+        if (property === "open") return async (path: string, options: Parameters<NonNullable<FileSystem["open"]>>[1]) => {
+          assert.equal(options?.creation, "exclusive");
+          flags.push("wx");
+          return target.open!(path, options);
+        };
         if (property === "writeFile") return async (path: string, bytes: Uint8Array, options: Parameters<FileSystem["writeFile"]>[2]) => {
           assert.equal(options?.flag, "wx");
           flags.push(options?.flag ?? "");
@@ -162,7 +167,7 @@ test("default pure and optional-file commands retain honest capability help", ()
       assert.equal(evaluateCommandSupport(command, {}).status, "supported", command.name);
     }
     if (["cat", "cut", "sort", "uniq", "head", "tail", "wc"].includes(command.name)) {
-      const support = evaluateCommandSupport(command, { read: false, streamingRead: false, write: false, streamingWrite: false });
+      const support = evaluateCommandSupport(command, { read: false, streamingRead: false, retainedRead: false, write: false, streamingWrite: false });
       assert.equal(support.status, "partial", command.name);
       assert.equal(support.modes.find(mode => mode.id === "stdin")?.status, "supported", command.name);
       assert.equal(support.modes.find(mode => mode.id === "file")?.status, "unsupported", command.name);
@@ -172,7 +177,7 @@ test("default pure and optional-file commands retain honest capability help", ()
 
 test("text file input and output modes fail before reading stdin or truncating output", async () => {
   const backing = await fixture({ input: "b\na\n", output: "keep" });
-  const fs = restricted(backing, { read: false, streamingRead: false, write: false, streamingWrite: false });
+  const fs = restricted(backing, { read: false, streamingRead: false, retainedRead: false, write: false, streamingWrite: false });
   for (const [command, args] of [["cut", ["-b1", "input"]], ["sort", ["input"]], ["uniq", ["input", "output"]]] as const) {
     const result = await run(command, args, { fs });
     assert.equal(result.exitCode, 1, command);

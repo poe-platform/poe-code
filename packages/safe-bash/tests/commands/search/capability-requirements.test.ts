@@ -46,7 +46,7 @@ test("portable search definitions expose stdin, file, and special filesystem mod
   try {
     for (const name of ["grep", "rg", "sed"]) {
       const command = commands.get(name)!;
-      const help = evaluateCommandSupport(command, { readOnly: true, read: false, streamingRead: false });
+      const help = evaluateCommandSupport(command, { readOnly: true, read: false, streamingRead: false, retainedRead: false });
       assert.equal(help.declared, true, command.name);
       assert.equal(help.status, "partial", command.name);
       assert.equal(help.modes.find(mode => mode.id === "stdin")?.status, "supported", command.name);
@@ -59,7 +59,7 @@ test("portable search definitions expose stdin, file, and special filesystem mod
 
 test("pure stdin works on readonly filesystems with unsupported file primitives", async () => {
   const calls: string[] = [];
-  const fs = profile(await fixture(), { readOnly: true, read: false, streamingRead: false, stat: false, readdir: false, realpath: false, write: false, append: false }, calls);
+  const fs = profile(await fixture(), { readOnly: true, read: false, streamingRead: false, retainedRead: false, stat: false, readdir: false, realpath: false, write: false, append: false }, calls);
   for (const [name, args] of [["grep", ["match"]], ["rg", ["match", "-"]], ["sed", ["-n", "/match/p"]]] as const) {
     const result = await run(name, args, fs);
     assert.equal(result.exitCode, 0, result.stderr);
@@ -70,7 +70,7 @@ test("pure stdin works on readonly filesystems with unsupported file primitives"
 
 test("max-count zero does not admit or read unused input files", async () => {
   const calls: string[] = [];
-  const fs = profile(await fixture({ file: "match\n" }), { read: false, streamingRead: false, stat: false, readdir: false, realpath: false }, calls);
+  const fs = profile(await fixture({ file: "match\n" }), { read: false, streamingRead: false, retainedRead: false, stat: false, readdir: false, realpath: false }, calls);
   for (const name of ["grep", "rg"]) {
     const result = await run(name, ["-m0", "match", "file"], fs);
     assert.equal(result.exitCode, 1, result.stderr);
@@ -83,7 +83,7 @@ test("max-count zero does not admit or read unused input files", async () => {
 test("pattern and script files use their actual read routes even with no input scan", async () => {
   const backing = await fixture({ patterns: "match\n", script: "p", file: "match\n" });
   const calls: string[] = [];
-  const fs = profile(backing, { read: false, streamingRead: false }, calls);
+  const fs = profile(backing, { read: false, streamingRead: false, retainedRead: false }, calls);
   for (const name of ["grep", "rg"]) {
     const result = await run(name, ["-m0", "-f", "patterns", "file"], fs);
     assert.notEqual(result.exitCode, 0);
@@ -96,7 +96,7 @@ test("pattern and script files use their actual read routes even with no input s
 
 test("rg --files admits directory traversal but no content reads when ignores are disabled", async () => {
   const backing = await fixture({ "tree/file": "match\n" });
-  const fs = profile(backing, { read: false, streamingRead: false });
+  const fs = profile(backing, { read: false, streamingRead: false, retainedRead: false });
   const files = await run("rg", ["--files", "--no-ignore", "tree"], fs);
   assert.equal(files.exitCode, 0, files.stderr);
   assert.equal(files.stdout, "tree/file\n");
@@ -116,14 +116,14 @@ test("rg file input honors the read route and does not require directory primiti
   const result = await run("rg", ["match", "file"], profile(backing, { readdir: false, realpath: false, streamingRead: false, read: true }, calls));
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "match\n");
-  assert.ok(calls.includes("readFile:/work/file"));
+  assert.ok(calls.includes("openReadFile:/work/file"));
   assert.ok(!calls.some(call => call.startsWith("readStream:")));
 });
 
 test("rg depth zero does not admit unused directory or content operations", async () => {
   const calls: string[] = [];
   const backing = await fixture({ "tree/file": "match\n" });
-  const fs = profile(backing, { read: false, streamingRead: false, readdir: false, realpath: false }, calls);
+  const fs = profile(backing, { read: false, streamingRead: false, retainedRead: false, readdir: false, realpath: false }, calls);
   const result = await run("rg", ["--files", "--no-ignore", "--max-depth", "0", "tree"], fs);
   assert.equal(result.exitCode, 1, result.stderr);
   assert.equal(result.stderr, "");
@@ -197,7 +197,7 @@ test("sed preflights all selected in-place paths before changing the first", asy
 
 test("sed lazy reads and grep quiet mode do not admit skipped paths", async () => {
   const backing = await fixture({ first: "match\n", second: "match\n", extra: "extra\n" });
-  const fs = profile(backing, {}, [], path => path === "/work/second" || path === "/work/extra" ? { read: false, streamingRead: false } : {});
+  const fs = profile(backing, {}, [], path => path === "/work/second" || path === "/work/extra" ? { read: false, streamingRead: false, retainedRead: false } : {});
   assert.equal((await run("grep", ["-q", "match", "first", "second"], fs)).exitCode, 0);
   assert.equal((await run("rg", ["-q", "match", "first", "second"], fs)).exitCode, 0);
   assert.equal((await run("sed", ["q", "first", "second"], fs)).exitCode, 0);

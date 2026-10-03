@@ -1,7 +1,7 @@
 import { FsError } from "safe-bash-contracts/errors";
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { PdfDocument } from "@poe-code/pdf-ast";
+import { PdfDocument, cosDict, cosName, cosString, cosArray, cosNumber, dictSet } from "@poe-code/pdf-ast";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createPdftotextCommand, runPdftotextCli } from "./index.js";
@@ -151,5 +151,25 @@ for (const stdin of [false, true]) for (const html of [false, true]) {
       inputBudget: { maxBytes: input.length, check(total) { assert.ok(total <= input.length); totals.push(total); } } });
     assert.equal(result.exitCode, 0); assert.equal(Math.max(...totals), input.length);
     assert.equal(f.counts().published, 1); await f.clean();
+  });
+}
+
+for (const encoding of ["UTF-8", "UCS-2", "Latin1"]) for (const stdin of [false, true]) {
+  test(`retained raw URLs preserve duplicates, existing text and page isolation (${encoding}, stdin=${stdin})`, async () => {
+    const doc = PdfDocument.create();
+    for (const text of ["https://example.test/already", "", "other page"]) {
+      const page = doc.addPage(); if (text) page.drawText(text, { x: 10, y: 30, size: 10 });
+      const links = ["https://example.test/already", "https://example.test/new", "https://example.test/new", "https://example.test/café"];
+      dictSet(page.dict, "Annots", cosArray(links.map(uri => doc.cos.allocateObject(cosDict({
+        Type: cosName("Annot"), Subtype: cosName("Link"), Rect: cosArray([0, 0, 30, 30].map(value => cosNumber(value))),
+        A: cosDict({ S: cosName("URI"), URI: cosString(uri) }),
+      })))));
+    }
+    const input = doc.save(), args = ["-raw", "-urls", "-enc", encoding, "-eol", "dos", stdin ? "-" : "input.pdf", stdin ? "-" : "output.txt"];
+    const expected = await runPdftotextCli(args, new Map([["input.pdf", input]]), stdin ? input : undefined);
+    const f = await fixture(input, args, stdin);
+    assert.equal((await createPdftotextCommand({ limits: { maxInputBytes: input.length } }).execute(f.context)).exitCode, expected.exitCode);
+    assert.deepEqual(stdin ? joined(f.stdout) : await f.fs.readFile("/output.txt"), encoded(expected.output, encoding));
+    assert.deepEqual(f.counts(), { wholeReads: 0, payloadWrites: 0, published: stdin ? 0 : 1 }); await f.clean();
   });
 }

@@ -1,5 +1,5 @@
 import { streamTextHtml } from "./text-markup.js";
-import { PdfError, PdfFileSource, PdfRetainedDocument, PdfStagingStorage } from "@poe-code/pdf-ast";
+import { PdfError, PdfNameIndex, PdfFileSource, PdfRetainedDocument, PdfStagingStorage } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -18,6 +18,7 @@ interface RawTextPlan {
   readonly lastPageExplicit: boolean;
   readonly quiet: boolean;
   readonly htmlmeta: boolean;
+  readonly urls: boolean;
   readonly invalidEolWarning: boolean;
   readonly nopgbrk: boolean;
   readonly nodiag: boolean;
@@ -113,7 +114,27 @@ export async function executeRetainedRawText(context: CommandContext, plan: RawT
         await yieldTurn(signal);
         if (page.index + 1 < first) continue;
         if (page.index + 1 > last) break;
-        yield* page.streamRawText(storage, { rejoinHyphens: false, discardDiagonal: plan.nodiag, clipText: plan.clip, signal });
+        const raw = page.streamRawText(storage, { rejoinHyphens: false, discardDiagonal: plan.nodiag, clipText: plan.clip, signal });
+        if (!plan.urls) yield* raw;
+        else {
+          const names = new PdfNameIndex(storage, Infinity, signal);
+          let body: PdfFileSource | undefined, pageFailed = false;
+          try {
+            body = await PdfFileSource.fromStream(storage.fs, directory, raw, { signal });
+            let lastByte: number | undefined;
+            for await (const bytes of body.stream(0, body.size, signal)) { lastByte = bytes.at(-1) ?? lastByte; yield bytes; }
+            for await (const annotation of page.annotations()) {
+              const uri = annotation.uri;
+              if (!uri || !(await names.intern(uri)).added || await containsText(body, uri, signal)) continue;
+              if (lastByte !== undefined && lastByte !== 10) yield new Uint8Array([10]);
+              yield encoder.encode(uri); yield new Uint8Array([10]); lastByte = 10;
+            }
+          } catch (failure) { pageFailed = true; throw failure; }
+          finally {
+            const results = await Promise.allSettled([body?.close(), names.close()]);
+            if (!pageFailed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
+          }
+        }
         if (!plan.nopgbrk) yield new Uint8Array([12]);
       }
     }
@@ -137,4 +158,17 @@ export async function executeRetainedRawText(context: CommandContext, plan: RawT
     const closed = await Promise.allSettled([document?.close(), source?.close(), result?.close()]);
     if (!failed) for (const entry of closed) if (entry.status === "rejected") await Promise.reject(entry.reason);
   }
+}
+
+/** Search staged UTF-8 text without retaining the page. Only one annotation's
+ * overlap is live; individual COS string admission remains the parser's job. */
+async function containsText(source: PdfFileSource, needle: string, signal: AbortSignal): Promise<boolean> {
+  const decoder = new TextDecoder(); let overlap = "";
+  for await (const bytes of source.stream(0, source.size, signal)) {
+    await yieldTurn(signal);
+    const text = overlap + decoder.decode(bytes, { stream: true });
+    if (text.includes(needle)) return true;
+    overlap = needle.length > 1 ? text.slice(-(needle.length - 1)) : "";
+  }
+  return (overlap + decoder.decode()).includes(needle);
 }

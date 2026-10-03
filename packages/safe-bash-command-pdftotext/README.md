@@ -40,9 +40,10 @@ Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. 
 
 Plain `pdftotext -raw` uses retained reads and caller-backed staging for input,
 line formatting and output. It supports page ranges, passwords, encodings,
-line endings, `-clip`, `-nodiag` and `-htmlmeta`; file publication is atomic. Scratch lives in
+line endings, `-clip`, `-nodiag`, `-urls` and `-htmlmeta`; file publication is atomic. Scratch lives in
 `TMPDIR` (or `/tmp`) on the supplied filesystem. Use an external backend for
-large spills. Cropped raw output, URL appendices, bounding-box/TSV formats and other
+large spills. URL appendices search staged page text and deduplicate links on
+caller storage. Cropped raw output, bounding-box/TSV formats and other
 text modes still use the buffered path; page evaluation also retains admitted
 rendering resources.
 

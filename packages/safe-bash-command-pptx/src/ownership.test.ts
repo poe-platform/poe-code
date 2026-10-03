@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import { createPptxCommandEngine } from "./command-engine.js";
 
 test("the command owner executes discovery without document IO", async () => {

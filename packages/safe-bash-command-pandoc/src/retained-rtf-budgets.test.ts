@@ -22,7 +22,7 @@ it.each(["images", "binaryBytes", "layoutWork"].flatMap(key => ["plain", "html",
 });
 
 
-it.each(["json", "rtf"].flatMap(from => ["plain", "html", "commonmark", "gfm", "rst", "latex", "rtf", "odt", "json"].map(to => ({from, to}))))("keeps $from to $to retained with finite font budgets", async ({from, to}) => {
+it.each(["json", "rtf", "csv", "tsv"].flatMap(from => ["plain", "html", "commonmark", "gfm", "rst", "latex", "rtf", "odt", "json"].map(to => ({from, to}))))("keeps $from to $to retained with finite font budgets", async ({from, to}) => {
   const fixtures = from === "rtf" ? [
     String.raw`{\rtf1{\fonttbl{\f0 Arial;}{\f1 Courier;}}text}`,
     String.raw`{\rtf1{\fonttbl{\f0 Arial;}{\f1 Arial;}}text}`
@@ -30,7 +30,8 @@ it.each(["json", "rtf"].flatMap(from => ["plain", "html", "commonmark", "gfm", "
     "pandoc-api-version": [1, 23, 1, 2], meta: {"rtf-fonts": {t: "MetaList", c: names.map(c => ({t: "MetaString", c}))}}, blocks: []
   }));
   for (const text of fixtures) for (const fonts of [0, 1, 2, 4]) {
-    const input = {bytes: new TextEncoder().encode(text)}, options = {from, to}, limits = {fonts};
+    const delimited = from === "csv" || from === "tsv";
+    const input = {bytes: new TextEncoder().encode(delimited ? "head\nvalue" : text)}, options = {from, to, ...(delimited ? {metadata: JSON.parse(text).meta} : {})}, limits = {fonts};
     const expected = await convert([input], options, {limits}).catch(error => error);
     const fs = new MemoryFileSystem(), parts: Uint8Array[] = [];
     const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));

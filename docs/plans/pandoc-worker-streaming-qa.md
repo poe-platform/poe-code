@@ -104,10 +104,15 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   prototype captures, with bounded name indexes and close-before-register-reuse
   execution coverage. Label/goto state and pending jump lists are also retained,
   including inner-label shadowing, illegal local-scope entry, outward jump
-  propagation and close-register patching. Compiler orchestration, temporary
-  register allocation and code generation, complete standard libraries and
-  Pandoc constructor translation still require integration and runtime
-  qualification. Measurements of unavoidable live runtime state remain required.
+  propagation and close-register patching. The private source compiler now emits
+  executable retained bytecode for statements, expressions, constructors,
+  closures, loops and multiple returns. Expression continuations and numeric
+  constant folding use backed stacks/caches; differential tests cover assignment
+  conflicts, delayed upvalue table access, native calls, metamethod ordering and
+  register pressure at the existing local limit. The shipped constructor/traversal
+  bootstrap compiles with a fixed page cache. Complete standard libraries,
+  Pandoc constructor translation and public runtime integration still require
+  implementation and qualification. Measurements of unavoidable live runtime state remain required.
 - Exercise citeproc with bibliography and citation counts that grow independently
   of document bytes. Measure its retained processor state separately.
 - External resource extraction now spools payloads when working storage and a

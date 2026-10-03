@@ -52,6 +52,11 @@ export class LuaProgram {
       options.source?.id ?? 0, ...vectors, 0, 0, 0, 0);
     return prototype;
   }
+  async setRegisters(prototype: number, registers: number): Promise<void> {
+    if (!Number.isInteger(registers) || registers < 0 || registers > 255) throw new RangeError("Invalid Lua prototype register count");
+    await this.cooperate();
+    await this.fields(prototype + 16, registers);
+  }
   async describe(prototype: number): Promise<LuaPrototype> {
     const bytes = await this.storage.read(prototype, 104), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
     const source = view.getFloat64(24, true);

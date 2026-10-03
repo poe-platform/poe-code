@@ -1,57 +1,16 @@
+import {arithmetic,integer,isInteger,numeric,integral} from "./lua-arithmetic.js";
 import {LuaMetatables, type LuaCall} from "./lua-metatables.js";
 import {LuaNumbers} from "./lua-numbers.js";
 import {LuaStrings} from "./lua-strings.js";
 import {PandocError} from "./errors.js";
 import type {LuaFrames} from "./lua-frames.js";
 import type {LuaProgram} from "./lua-program.js";
-import type {LuaInteger, LuaReference, LuaStorage, StoredLuaValue} from "./lua-storage.js";
+import type {LuaReference, LuaStorage, StoredLuaValue} from "./lua-storage.js";
 
 const arithmeticMethods = ["__add", "__sub", "__mul", "__mod", "__pow", "__div", "__idiv", "__band", "__bor", "__bxor", "__shl", "__shr"] as const;
-const integer = (value: number): LuaInteger => ({kind: "integer", value: value | 0});
-const isInteger = (value: StoredLuaValue): value is LuaInteger => typeof value === "object" && value.kind === "integer";
 const concatenable = (value: StoredLuaValue): boolean => typeof value === "number" || typeof value === "object" && (value.kind === "integer" || value.kind === "string");
 const truth = (value: StoredLuaValue): boolean => value !== undefined && value !== false;
 function fail(message: string): never {throw new PandocError("E_AST", "convert", message);}
-function numeric(value: StoredLuaValue): number {
-  if (typeof value === "number") return value;
-  if (isInteger(value)) return value.value;
-  return fail("Expected Lua number");
-}
-function integral(value: StoredLuaValue): number {
-  const number = numeric(value);
-  if ((number | 0) !== number) fail("Number has no integer representation");
-  return number;
-}
-function shift(value: number, amount: number): number {
-  if (amount >= 32 || amount <= -32) return 0;
-  return amount < 0 ? value >>> -amount : value << amount;
-}
-function arithmetic(op: number, left: StoredLuaValue, right: StoredLuaValue): StoredLuaValue {
-  const a = numeric(left), b = numeric(right), integers = isInteger(left) && isInteger(right);
-  let result: number;
-  switch (op) {
-    case 13: result = a + b; break;
-    case 14: result = a - b; break;
-    case 15: result = integers ? Math.imul(a, b) : a * b; break;
-    case 16:
-      if (integers && b === 0) fail("Attempt to perform n%0");
-      result = a % b;
-      if (result !== 0 && (result < 0) !== (b < 0)) result += b;
-      break;
-    case 17: return a ** b;
-    case 18: return a / b;
-    case 19:
-      if (integers && b === 0) fail("Attempt to divide by zero");
-      result = Math.floor(a / b); break;
-    case 20: return integer(integral(left) & integral(right));
-    case 21: return integer(integral(left) | integral(right));
-    case 22: return integer(integral(left) ^ integral(right));
-    case 23: return integer(shift(integral(left), integral(right)));
-    case 24: return integer(shift(integral(left), -integral(right)));
-    default: return fail("Invalid arithmetic instruction");
-  }
-  return integers ? integer(result) : result;
-}
 
 export interface LuaResults {values: LuaReference; count: number}
 export interface LuaArguments {readonly count: number; get(index: number): Promise<StoredLuaValue>}

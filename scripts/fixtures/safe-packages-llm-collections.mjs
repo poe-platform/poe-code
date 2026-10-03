@@ -13,7 +13,7 @@ export async function verifyLlmCollections() {
       await catalog.collection('docs',{model:'embed'});
       await catalog.embedMany('docs',{service:invalidService,directory:'/',maxInputBytes:1024,entries:{async *[Symbol.asyncIterator](){yield {id:'\ud800',input:{bytes:{async *[Symbol.asyncIterator](){yield new TextEncoder().encode('hello');}},async dispose(){}}};}}});
     });
-  }catch(error){if(!(error instanceof Error)||!error.message.includes('surrogates not allowed'))throw error;invalidRejected=true;}
+  }catch(error){if(!(error instanceof TypeError)||!error.message.includes('surrogates not allowed'))throw error;invalidRejected=true;}
   if(!invalidRejected||invalidCalls!==1||(await invalidFs.readdir('/')).length)throw new Error('Invalid Unicode ID timing or rollback changed');
   const rawPair=Uint8Array.of(0xed,0xa0,0x80,0xed,0xb0,0x80);
   const rawInput=Uint8Array.from([...new TextEncoder().encode('{"id":"'),...rawPair,...new TextEncoder().encode('","body":"hello"}')]);
@@ -24,7 +24,7 @@ export async function verifyLlmCollections() {
       await catalog.collection('docs',{model:'embed'});
       await catalog.embedMany('docs',{service:invalidService,directory:'/',maxInputBytes:1024,entries});
     }));
-  }catch(error){if(!(error instanceof Error)||!error.message.includes('surrogates not allowed'))throw error;invalidRejected=true;}
+  }catch(error){if(!(error instanceof TypeError)||!error.message.includes('surrogates not allowed'))throw error;invalidRejected=true;}
   if(!invalidRejected||invalidCalls!==1||(await invalidFs.readdir('/')).length)throw new Error('Raw surrogate ID timing or rollback changed');
   const mountRoot=new MemoryFileSystem(),mountLeaf=new MemoryFileSystem();
   await mountRoot.mkdir('/scratch');await mountRoot.writeFile('/visible.txt',new TextEncoder().encode('root'));

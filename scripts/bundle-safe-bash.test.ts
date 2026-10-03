@@ -77,7 +77,7 @@ it("exposes portable command plugins and media factories to browser consumers", 
     .use(browser.ssconvertCommands({ codecs: [], environment: { env: {}, locale: "C", timezone: "UTC" },
         limits: { inputBytes: 1024, outputBytes: 1024, cells: 100, sheets: 1, operations: 1000 } }));
   try {
-    expect(await shell.exec("ffprobe -version")).toMatchObject({ exitCode: 0, stdout: expect.stringContaining("ffmpeg version"), stderr: "" });
+    expect(await shell.exec("ffprobe -version")).toMatchObject({ exitCode: 0, stdout: expect.stringContaining("ffprobe version"), stderr: "" });
     expect(await shell.exec("htmlq --text p", { stdin: "<p>portable</p>" })).toMatchObject({ exitCode: 0, stdout: "portable\n", stderr: "" });
     expect(await shell.exec("csvcut -c2", { stdin: "a,b\nx,y\n" })).toMatchObject({ exitCode: 0, stdout: "b\ny\n", stderr: "" });
     expect(await shell.exec("magick -size 2x3 xc:red /image.png")).toMatchObject({ exitCode: 0, stderr: "" });
@@ -673,7 +673,7 @@ beforeAll(async () => {
           }
           return { contents: output.exports.map(name => `export const ${name} = globalThis.browser.${name};`).join("\n"), loader: "js" };
         });
-        builder.onResolve({ filter: /^(?:@poe-code\/safe-fs\/(?:core|runtime-core|fs\/memory|xml|contracts(?:\/(?:errors|object))?)|poe-code\/safe-fs\/core|@poe-platform\/(?:safe-fs(?:\/(?:core|runtime-core))?|safe-js\/fs\/core))$/ }, () => ({ path: "core", namespace: "evaluated-fs" }));
+        builder.onResolve({ filter: /^(?:@poe-code\/safe-fs\/(?:core|runtime-core|storage|fs\/memory|xml|contracts(?:\/(?:errors|object))?)|poe-code\/safe-fs\/core|@poe-platform\/(?:safe-fs(?:\/(?:core|runtime-core))?|safe-js\/fs\/core))$/ }, () => ({ path: "core", namespace: "evaluated-fs" }));
         builder.onLoad({ filter: /.*/, namespace: "evaluated-fs" }, () => ({
           contents: Object.keys(filesystem).map(name => `export const ${name} = globalThis.canonical.${name};`).join("\n"), loader: "js",
         }));

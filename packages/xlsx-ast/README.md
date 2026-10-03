@@ -45,8 +45,10 @@ call `engine.dispose()` when finished. The existing XLSX format module provides
 ssconvert service registration around these same functions. Both readers accept
 retained range sources as well as byte arrays. Range input fetches ZIP metadata
 and requested member data in chunks of at most 16 KiB, without copying the whole
-compressed archive. Keep the source open until the operation settles. This does
-not yet bound decoded XML documents or the workbook model; large workbook
+compressed archive. XML decoding and parsing consume member chunks directly,
+including UTF-8 and both UTF-16 byte orders, without full decoded byte/string
+copies. Keep the source open until the operation settles. XML trees, individual
+parser tokens and the workbook model remain resident; large workbook
 conversion still requires further storage migration. With engine `workingFiles`,
 the directory and member indexes use caller-backed scratch storage and bounded
 caches. Without that capability the convenience reader retains the directory.
@@ -71,6 +73,9 @@ limits, a cancellation signal, and aggregate `work`/`retain` admission callbacks
 It returns stored values without parsing formulas, preserves ISO date strings and
 declared dimensions, and exposes the workbook epoch and active sheet index.
 Built-in number formats remain numeric IDs; custom formats remain strings.
+Its UTF-8 XML parser starts before the member finishes decoding and closes the
+producer on parse, cancellation or admission failure. It still returns resident
+cells and retains parsed XML trees while extracting values.
 
 This private workspace is shipped through the containing products. The full
 `readXlsx` reader retains its Gnumeric compatibility profile and documented

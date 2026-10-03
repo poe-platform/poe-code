@@ -9,7 +9,7 @@ import { createStoredZipEntries, ZipStorageFailure, ZipWriteChain, ZipDirectoryI
 import { ownedRangeSource } from "@poe-code/spreadsheet-engine/range-input";
 import { createZipCodec, CodecError, type ZipLimits, type ZipEntry, type ZipStreamEntry, type ZipSource } from "@poe-code/office-package";
 import { expandIndexSheetAreas } from "@poe-code/spreadsheet-engine/formulas/index-sheet-areas";
-import { parseXmlSteps, XmlLimitError, type XmlElement } from "@poe-code/safe-fs/xml";
+import { parseXmlStream, XmlLimitError, type XmlElement } from "@poe-code/safe-fs/xml";
 import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 import { parseA1, formatA1, type Cell, type CellValue, type Workbook, type Sheet, type Range, type RichTextRun,
   type ImportedValue, type AxisMetadata, type FormulaGroup, type NamedExpression, type UnsupportedRecord } from "@poe-code/spreadsheet-ast";
@@ -199,31 +199,43 @@ async function openPackage(bytes: Uint8Array | RangeSource, context: CapabilityC
     context.signal.throwIfAborted();
     const cached = documents.get(name); if (cached) return cached;
     const entry = await entries.get(name); if (!entry) return invalid(`missing part '${name}'`);
-    const chunks: Uint8Array[] = []; let length = 0;
-    for await (const bytes of zip.decodeZipEntry(entry, bounds, context.signal)) {
-      if (bytes.length > bounds.maxTotalBytes - decodedBytes) limit("decoded bytes");
-      decodedBytes += bytes.length; length += bytes.length; chunks.push(bytes);
-    }
-    const plain = new Uint8Array(length); let offset = 0;
-    for (const chunk of chunks) { plain.set(chunk, offset); offset += chunk.length; }
-    let encoding: "UTF-8" | "UTF-16LE" | "UTF-16BE" = "UTF-8";
-    if (plain[0] === 255 && plain[1] === 254 || plain[0] === 60 && plain[1] === 0) encoding = "UTF-16LE";
-    if (plain[0] === 254 && plain[1] === 255 || plain[0] === 0 && plain[1] === 60) encoding = "UTF-16BE";
-    const text = new TextDecoder(encoding, { fatal: true }).decode(plain);
-    textBytes += plain.length;
-    if (textBytes > (context.limits.workbookTextBytes ?? bounds.maxTotalBytes)) limit("XML text");
-    const parser = parseXmlSteps(text, { expectedEncoding: encoding, maxDepth: context.limits.xmlDepth ?? Infinity,
+    const xmlLimits = { expectedEncoding: "UTF-8" as "UTF-8" | "UTF-16LE" | "UTF-16BE",
+      maxDepth: context.limits.xmlDepth ?? Infinity,
       maxNodes: (context.limits.workbookNodes ?? Infinity) - nodes,
       maxAttributes: context.limits.workbookNodes ?? Infinity, maxTextLength: bounds.maxTextBytes,
-      onElement() { nodes++; charge(1); } });
-    let step = parser.next(), parserWork = 0;
-    while (!step.done) {
-      charge(1);
-      if (++parserWork % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
-      step = parser.next();
+      onElement() { nodes++; charge(1); } };
+    async function* text() {
+      const prefix = new Uint8Array(2); let length = 0, decoder: TextDecoder | undefined;
+      for await (const bytes of zip.decodeZipEntry(entry!, bounds, context.signal)) {
+        if (bytes.length > bounds.maxTotalBytes - decodedBytes) limit("decoded bytes");
+        decodedBytes += bytes.length;
+        if (bytes.length > (context.limits.workbookTextBytes ?? bounds.maxTotalBytes) - textBytes) limit("XML text");
+        textBytes += bytes.length;
+        let offset = 0;
+        if (!decoder) {
+          while (length < 2 && offset < bytes.length) prefix[length++] = bytes[offset++]!;
+          if (length < 2) continue;
+          if (prefix[0] === 255 && prefix[1] === 254 || prefix[0] === 60 && prefix[1] === 0) xmlLimits.expectedEncoding = "UTF-16LE";
+          if (prefix[0] === 254 && prefix[1] === 255 || prefix[0] === 0 && prefix[1] === 60) xmlLimits.expectedEncoding = "UTF-16BE";
+          decoder = new TextDecoder(xmlLimits.expectedEncoding, { fatal: true });
+          yield decoder.decode(prefix, { stream: true });
+        }
+        yield decoder.decode(bytes.subarray(offset), { stream: true });
+      }
+      yield decoder ? decoder.decode() : new TextDecoder("UTF-8", { fatal: true }).decode(prefix.subarray(0, length));
     }
-    documents.set(name, step.value); return step.value;
+    let parserWork = 0, pendingUnits = 0;
+    const result = await parseXmlStream(text(), xmlLimits, async units => {
+      // Admit both normalization and tokenization, independently of ZIP/range
+      // chunk boundaries. Node construction is charged by onElement above.
+      pendingUnits += units * 2;
+      charge(Math.floor(pendingUnits / 512)); pendingUnits %= 512;
+      if (units && ++parserWork % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+    });
+    if (pendingUnits) charge(1);
+    documents.set(name, result); return result;
   }
+
   async function relations(base: string): Promise<readonly Relationship[]> {
     const slash = base.lastIndexOf("/");
     const name = base ? base.slice(0, slash + 1) + "_rels/" + base.slice(slash + 1) + ".rels" : "_rels/.rels";

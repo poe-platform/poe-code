@@ -1,4 +1,4 @@
-import { parseXmlSteps, type XmlElement } from "@poe-code/safe-fs/xml";
+import { parseXmlStream, type XmlElement } from "@poe-code/safe-fs/xml";
 import { parseA1 } from "@poe-code/spreadsheet-ast";
 import type { ZipArchive, ZipLimits, createZipCodec } from "@poe-code/office-package";
 
@@ -76,23 +76,24 @@ export async function readCachedXlsx(options: CachedXlsxOptions): Promise<Cached
   const parse = async (name: string): Promise<XmlElement | undefined> => {
     step();
     const entry = entries.get(name); if (!entry) return undefined;
-    let source = "";
-    const decoder = new TextDecoder("utf-8", { fatal: true });
-    for await (const bytes of codec.decodeZipEntry(entry, limits, signal)) {
-      step(); options.retain(bytes.byteLength * 32);
-      source += decoder.decode(bytes, { stream: true });
+    async function* text() {
+      const decoder = new TextDecoder("utf-8", { fatal: true });
+      for await (const bytes of codec.decodeZipEntry(entry!, limits, signal)) {
+        step(); options.retain(bytes.byteLength * 32);
+        yield decoder.decode(bytes, { stream: true });
+      }
+      yield decoder.decode();
     }
-    source += decoder.decode();
-    const parser = parseXmlSteps(source, { expectedEncoding: "UTF-8", maxDepth: limits.maxDepth,
+    let checkpoints = 0;
+    return parseXmlStream(text(), { expectedEncoding: "UTF-8", maxDepth: limits.maxDepth,
       maxNodes: options.maxXmlNodes - nodes, maxTextLength: limits.maxTextBytes,
-      onElement() { step(); options.retain(256); nodes++; } });
-    let next = parser.next(), checkpoints = 0;
-    while (!next.done) {
-      step();
-      if (++checkpoints % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
-      next = parser.next();
-    }
-    return next.value;
+      onElement() { step(); options.retain(256); nodes++; } }, async units => {
+      signal.throwIfAborted();
+      if (units) {
+        step();
+        if (++checkpoints % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+      }
+    });
   };
   const contentTypes = await parse("[Content_Types].xml");
   const workbookTypes = ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml",

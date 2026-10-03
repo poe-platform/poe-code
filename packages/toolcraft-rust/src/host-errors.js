@@ -7,7 +7,9 @@ export function protect(operation) {
     } catch (value) {
       // napi-rs preserves Error identity but converts non-Error throws. Carry
       // arbitrary thrown values through an Error without stringifying them.
-      const carrier = new Error("Toolcraft host operation failed");
+      // napi-rs inspects .cause while converting exceptions. Shadow inherited
+      // causes so a polluted prototype cannot introduce getters or a cycle.
+      const carrier = new Error("Toolcraft host operation failed", { cause: undefined });
       thrownValues.set(carrier, value);
       throw carrier;
     }

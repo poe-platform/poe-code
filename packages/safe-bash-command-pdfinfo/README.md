@@ -49,7 +49,8 @@ Embedded attachment filenames are reduced to their final path component when ext
 `pdffonts` / `executePdffonts(context, options)` inspect retained file ranges and
 stream font rows. `pdfdetach` / `executePdfdetach(context, options)` stream attachments into caller-backed staging before atomic publication. Provide
 an injected filesystem with retained reads, retained staging writes/cleanup and
-atomic ancestry-checked publication, plus an existing `TMPDIR` (default `/tmp`).
+atomic ancestry-checked publication. The commands create `TMPDIR` (default `/tmp`)
+and any missing parent directories before staging input or output.
 Use external storage for large files; an in-memory filesystem stores its files in
 RAM. Input limits are checked before range reads, and file writes use the shared
 shell output budget. The map-based CLI runners remain buffering convenience APIs.

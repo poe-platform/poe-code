@@ -1820,6 +1820,7 @@ async function executeRetainedPdf<Plan extends { inputPath: string; password: st
     if ("exitCode" in plan) { if (plan.stdout) await emit(plan.stdout); return await error(plan.stderr, plan.exitCode); }
     const storage = { fs: context.fs, directory: resolvePath(context.cwd, context.env.TMPDIR || "/tmp") };
     const maxInputBytes = Math.min(InputByteBudget.limit(options.limits?.maxInputBytes), context.inputBudget?.maxBytes ?? Infinity);
+    await context.fs.mkdir(storage.directory, { recursive: true, signal });
     try {
       if (plan.inputPath === "-") {
         async function* input() {

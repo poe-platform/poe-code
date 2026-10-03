@@ -1,7 +1,10 @@
+import { PdfFontAllocation, type PdfFontAllocationOptions } from "./memory.js";
 import type { PdfPathSegment } from "../ast.js";
 import { CFFCompiler, CFFParser, DrawOPS, Stream, Type2Compiled, getEncoding, getGlyphsUnicode, type CffFont } from "../vendor/pdfjs-fonts.mjs";
 
-export function createCffGlyphRenderer(cff: CffFont): (glyphId: number) => PdfPathSegment[] {
+export function createCffGlyphRenderer(cff: CffFont, options: Pick<PdfFontAllocationOptions, "onAllocation"> = {}): (glyphId: number) => PdfPathSegment[] {
+  const allocation = new PdfFontAllocation(options);
+  allocation.admit(1024 + cff.charset.charset.length * 256);
   // PDF.js's path compiler expects the FD matrices normalized by CFFCompiler.
   if (cff.isCIDFont) new CFFCompiler(cff).compile();
   const unicodeByName = getGlyphsUnicode();
@@ -16,10 +19,13 @@ export function createCffGlyphRenderer(cff: CffFont): (glyphId: number) => PdfPa
     gsubrs: cff.globalSubrIndex.objects, isCFFCIDFont: cff.isCIDFont, fdSelect: cff.fdSelect, fdArray: cff.fdArray,
   }, cmap, cff.topDict.getByName("FontMatrix") ?? [0.001, 0, 0, 0.001, 0, 0]);
   const paths = new Map<number, PdfPathSegment[]>();
+  const maxCachedBytes = 256 * 1024;
+  let cachedBytes = 0;
   return glyphId => {
     const cached = paths.get(glyphId);
     if (cached) return cached;
-    const commands = renderer.compileGlyph(cff.charStrings.objects[glyphId] ?? new Uint8Array(), glyphId);
+    const commands = renderer.compileGlyph(cff.charStrings.objects[glyphId] ?? new Uint8Array(), glyphId, bytes => allocation.admit(bytes));
+    allocation.admit(commands.length * 128);
     const path: PdfPathSegment[] = [];
     for (let i = 0; i < commands.length;) {
       const op = commands[i++];
@@ -29,7 +35,17 @@ export function createCffGlyphRenderer(cff: CffFont): (glyphId: number) => PdfPa
       else if (op === DrawOPS.closePath) path.push({ kind: "close" });
       else throw new Error(`Unsupported PDF.js CFF path operation: ${op}`);
     }
-    paths.set(glyphId, path);
+    const pathBytes = 64 + path.length * 128;
+    if (pathBytes <= maxCachedBytes) {
+      allocation.admit(64);
+      while (cachedBytes + pathBytes > maxCachedBytes) {
+        const oldest = paths.keys().next().value!;
+        cachedBytes -= 64 + paths.get(oldest)!.length * 128;
+        paths.delete(oldest);
+      }
+      paths.set(glyphId, path);
+      cachedBytes += pathBytes;
+    }
     return path;
   };
 }
@@ -39,7 +55,7 @@ export interface EmbeddedCffFont {
   getGlyphOutline(code: number): PdfPathSegment[];
 }
 
-export function parseEmbeddedCffFont(bytes: Uint8Array, encodingName: string | undefined, differences: ReadonlyMap<number, string>): EmbeddedCffFont {
+export function parseEmbeddedCffFont(bytes: Uint8Array, encodingName: string | undefined, differences: ReadonlyMap<number, string>, options: Pick<PdfFontAllocationOptions, "onAllocation"> = {}): EmbeddedCffFont {
   // PDF.js repairs charstrings in place; never mutate the document stream.
   const cff = new CFFParser(new Stream(bytes.slice()), {}, false).parse();
   const glyphIds = new Map<number, number>();
@@ -62,6 +78,6 @@ export function parseEmbeddedCffFont(bytes: Uint8Array, encodingName: string | u
       if (unicode !== undefined) unicodeByCode.set(code, String.fromCodePoint(unicode));
     }
   }
-  const renderGlyph = createCffGlyphRenderer(cff);
+  const renderGlyph = createCffGlyphRenderer(cff, options);
   return { unicodeByCode, getGlyphOutline: code => renderGlyph(glyphIds.get(code) ?? 0) };
 }

@@ -110,9 +110,25 @@ const result = await build({
         source = source.replace(cache, "if (!this.#cipherCache.has(key)) this.#cipherCache.set(key, this.resolveCipher(filterName));\n    return this.#cipherCache.get(key);");
         return { contents: source, loader: "js" };
       });
-      builder.onLoad({ filter: /font_renderer\.js$/ }, args => ({
-        contents: readFileSync(args.path, "utf8") + "\nexport { Type2Compiled };\n", loader: "js",
-      }));
+      builder.onLoad({ filter: /font_renderer\.js$/ }, args => {
+        let source = readFileSync(args.path, "utf8");
+        const patches = [
+          ["class Commands {", "class Commands {\n  constructor(onAllocation) { this.onAllocation = onAllocation; }"],
+          ["  add(cmd, args) {", "  add(cmd, args) {\n    this.onAllocation?.(64 + (args?.length ?? 0) * 16);"],
+          ["  transform(transf) {", "  transform(transf) {\n    this.onAllocation?.(128);"],
+          ["  save() {", "  save() {\n    this.onAllocation?.(128);"],
+          ["  getPath() {", "  getPath() {\n    this.onAllocation?.(this.cmds.length * 4);"],
+          ["  compileGlyph(code, glyphId) {", "  compileGlyph(code, glyphId, onAllocation) {\n    onAllocation?.(512);"],
+          ["const cmds = new Commands();", "const cmds = new Commands(onAllocation);"],
+          ["function compileCharString(charStringCode, cmds, font, glyphId) {", "function compileCharString(charStringCode, cmds, font, glyphId) {\n  cmds.onAllocation?.(512);"],
+          ["  function parse(code) {", "  function parse(code) {\n    cmds.onAllocation?.(256 + code.length * 16);"],
+        ];
+        for (const [before, after] of patches) {
+          if (!source.includes(before)) throw new Error("PDF.js outline allocation source marker changed: " + before);
+          source = source.replace(before, after);
+        }
+        return { contents: source + "\nexport { Type2Compiled };\n", loader: "js" };
+      });
     },
   }],
 });

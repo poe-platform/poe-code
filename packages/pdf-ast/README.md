@@ -470,7 +470,11 @@ expanding ranges into per-character Maps. Ordered ranges use binary search;
 overlapping ranges retain their existing last-match behavior.
 Embedded Type0 Encoding CMaps resolve
 source character codes to CIDs before width and TrueType/CFF glyph selection.
-OpenType CFF tables use the same PDF.js outline renderer. `doc.embedFont()`
+OpenType CFF tables use the same PDF.js outline renderer. Its path cache retains
+at most 256 KiB of conservatively sized outlines; evicted outlines are rebuilt
+on demand. Outline compilation and conversion report allocations to the
+containing font owner before growing state, including subroutine expansion.
+CFF/Type1 font-program parsing still has separate intrinsic resident state. `doc.embedFont()`
 preserves full OpenType CFF programs with their matching PDF font metadata,
 including widths for every embedded glyph.
 Word spacing follows encoded one-byte spaces, including remapped characters.

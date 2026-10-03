@@ -10153,6 +10153,7 @@ function lookupCmap(ranges, unicode) {
   };
 }
 function compileCharString(charStringCode, cmds, font, glyphId) {
+  cmds.onAllocation?.(512);
   function moveTo(x2, y2) {
     if (firstPoint) {
       cmds.add(DrawOPS.lineTo, firstPoint);
@@ -10171,6 +10172,7 @@ function compileCharString(charStringCode, cmds, font, glyphId) {
   let stems = 0;
   let firstPoint = null;
   function parse(code) {
+    cmds.onAllocation?.(256 + code.length * 16);
     const view = new DataView(code.buffer, code.byteOffset, code.byteLength);
     let i = 0;
     while (i < code.length) {
@@ -10521,10 +10523,14 @@ function compileCharString(charStringCode, cmds, font, glyphId) {
   parse(charStringCode);
 }
 var Commands = class {
+  constructor(onAllocation) {
+    this.onAllocation = onAllocation;
+  }
   cmds = [];
   transformStack = [];
   currentTransform = [1, 0, 0, 1, 0, 0];
   add(cmd, args) {
+    this.onAllocation?.(64 + (args?.length ?? 0) * 16);
     if (args) {
       const { currentTransform } = this;
       for (let i = 0, ii = args.length; i < ii; i += 2) {
@@ -10536,18 +10542,21 @@ var Commands = class {
     }
   }
   transform(transf) {
+    this.onAllocation?.(128);
     this.currentTransform = Util.transform(this.currentTransform, transf);
   }
   translate(x, y) {
     this.transform([1, 0, 0, 1, x, y]);
   }
   save() {
+    this.onAllocation?.(128);
     this.transformStack.push(this.currentTransform.slice());
   }
   restore() {
     this.currentTransform = this.transformStack.pop() || [1, 0, 0, 1, 0, 0];
   }
   getPath() {
+    this.onAllocation?.(this.cmds.length * 4);
     if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL") || FeatureTest.isFloat16ArraySupported) {
       return new Float16Array(this.cmds);
     }
@@ -10588,7 +10597,8 @@ var CompiledFont = class _CompiledFont {
     }
     return compileFontPathInfo(path);
   }
-  compileGlyph(code, glyphId) {
+  compileGlyph(code, glyphId, onAllocation) {
+    onAllocation?.(512);
     if (!code?.length || code[0] === 14) {
       return _CompiledFont.NOOP;
     }
@@ -10603,7 +10613,7 @@ var CompiledFont = class _CompiledFont {
       }
     }
     assert(isNumberArray(fontMatrix, 6), "Expected a valid fontMatrix.");
-    const cmds = new Commands();
+    const cmds = new Commands(onAllocation);
     cmds.transform(fontMatrix.slice());
     this.compileGlyphImpl(code, cmds, glyphId);
     cmds.add(DrawOPS.closePath);

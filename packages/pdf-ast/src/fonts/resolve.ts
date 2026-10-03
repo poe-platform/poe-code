@@ -52,7 +52,7 @@ export interface ResolvedPageFont {
 
 export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resourcesDict: PdfCosDict | undefined, selectedName?: string, options: Pick<PdfFontAllocationOptions, "onAllocation"> = {}): Generator<FontResolutionRequest, Map<string, ResolvedPageFont>, FontResolutionResult> {
     const allocation = new PdfFontAllocation(options);
-    const cmapOptions = { onAllocation: (bytes: number) => allocation.admit(bytes) };
+    const allocationOptions = { onAllocation: (bytes: number) => allocation.admit(bytes) };
     const fonts = new Map<string, ResolvedPageFont>();
     const catalog = (yield* resolveDict(rootRef));
     const acroForm = catalog ? (yield* resolveDict(dictGet(catalog, "AcroForm"))) : undefined;
@@ -78,7 +78,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
         const toUniNode = (yield* resolve(dictGet(fObj, "ToUnicode")));
         if (toUniNode?.kind === "stream") {
             try {
-                cmap = parseToUnicodeCMap((yield* decodeStream(toUniNode)), cmapOptions);
+                cmap = parseToUnicodeCMap((yield* decodeStream(toUniNode)), allocationOptions);
             }
             catch (error) {
                 allocation.rethrowAllocationFailure(error);
@@ -221,13 +221,13 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                         baseEncodingName: baseEncoding?.kind === "name" ? baseEncoding.decoded : undefined,
                         differences: glyphNames, overridableEncoding: true, widths: widths.createType1View(),
                         composite: subtype === "Type0", cMap: { charCodeOf: (cid: number) => cid },
-                    });
+                    }, allocationOptions);
                 }
                 else if (programType?.kind === "name" && (programType.decoded === "Type1C" || programType.decoded === "CIDFontType0C")) {
-                    embeddedCff = parseEmbeddedCffFont((yield* decodeStream(program)), baseEncoding?.kind === "name" ? baseEncoding.decoded : undefined, glyphNames);
+                    embeddedCff = parseEmbeddedCffFont((yield* decodeStream(program)), baseEncoding?.kind === "name" ? baseEncoding.decoded : undefined, glyphNames, allocationOptions);
                 }
                 else {
-                    embeddedTrueType = parseTrueTypeFont((yield* decodeStream(program)));
+                    embeddedTrueType = parseTrueTypeFont((yield* decodeStream(program)), allocationOptions);
                     if (subtype !== "Type0" && embeddedTrueType.isSymbolicCmap) {
                         // PDF.js maps Windows Symbol (3,0) entries by encoded byte,
                         // clearing the high byte only for the special F000–F0FF range.
@@ -268,7 +268,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
             subtype,
             isTwoByteCid,
             cmap,
-            encodingCMap: subtype === "Type0" && encNode?.kind === "stream" ? parseCharacterCMap((yield* decodeStream(encNode)), cmapOptions) : undefined,
+            encodingCMap: subtype === "Type0" && encNode?.kind === "stream" ? parseCharacterCMap((yield* decodeStream(encNode)), allocationOptions) : undefined,
             differences,
             glyphNames,
             widths,

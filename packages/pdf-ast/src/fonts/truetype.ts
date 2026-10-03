@@ -1,3 +1,4 @@
+import type { PdfFontAllocationOptions } from "./memory.js";
 import { CFFParser, MacStandardGlyphOrdering, Stream } from "../vendor/pdfjs-fonts.mjs";
 import { createCffGlyphRenderer } from "./cff.js";
 import {
@@ -111,7 +112,7 @@ function readPostGlyphNames(bytes: Uint8Array, numGlyphs: number): (string | und
   return indices.map(index => index < 258 ? MacStandardGlyphOrdering[index] : customNames[index - 258]);
 }
 
-export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
+export function parseTrueTypeFont(bytes: Uint8Array, options: Pick<PdfFontAllocationOptions, "onAllocation"> = {}): ParsedTrueTypeFont {
   if (bytes.byteLength < 12) {
     throw new PdfError("E_PARSE", "TrueType font is too short");
   }
@@ -299,7 +300,7 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
     // PDF.js FontRendererFactory selects the CFF table when glyf is absent.
     // Copy it because PDF.js can repair charstrings in place.
     const cff = new CFFParser(new Stream(bytes.slice(cffTable.offset, cffTable.offset + cffTable.length)), {}, false).parse();
-    renderCffGlyph = createCffGlyphRenderer(cff);
+    renderCffGlyph = createCffGlyphRenderer(cff, options);
   }
 
   const getGlyphOutlineByGid = (gid: number, depth = 0): PdfPathSegment[] => {

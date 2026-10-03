@@ -25,3 +25,11 @@ workspace is bundled into Safe Bash and does not need a separate installation.
 `trim`, `ltrim` and `rtrim` remove whitespace from both ends, the start or the
 end of a string, respectively. They use ECMAScript whitespace (including Unicode
 spaces and line separators), preserve interior whitespace, and reject nonstrings.
+
+Internal import consumers can use `jsonValues` with `stream: true` and
+`stringChunks: {maxControlBytes: 65536}` to receive string payloads incrementally.
+String leaves emit `[path, text, final]`; other leaves and container endings keep
+the normal stream format. UTF-8 sequences and escaped surrogate pairs stay intact
+across chunks. Keys and numeric tokens use the explicit control-token budget.
+Treat chunks as provisional until parsing succeeds, and store large payloads in
+the caller's backing storage instead of collecting them in memory.

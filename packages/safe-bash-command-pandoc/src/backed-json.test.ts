@@ -1,4 +1,4 @@
-import {expect, it} from "vitest";
+import {expect, it, vi} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedJson} from "./backed-json.js";
@@ -90,4 +90,33 @@ it("navigates and serializes a retained subtree without collecting siblings", as
     const before = await tree.property(tree.rootPosition, "before");
     expect(await tree.smallText(before!, 8)).toBeUndefined();
   } finally {await storage.close(); await context.close();}
+});
+
+
+it("appends long scalars sequentially without rereading evicted headers per chunk", async () => {
+  const fs = new MemoryFileSystem(), open = fs.open.bind(fs);
+  let reads = 0;
+  vi.spyOn(fs, "open").mockImplementation(async (...args) => {
+    const handle = await open(...args), read = handle.read.bind(handle);
+    vi.spyOn(handle, "read").mockImplementation(async (...args) => {reads++; return read(...args);});
+    return handle;
+  });
+  const storage = new PagedStorage({fs, cwd: "/", env: {}, signal: new AbortController().signal}, 1);
+  const tree = new BackedJson(storage, async () => {});
+  try {
+    await tree.begin("array");
+    await expect(tree.text("invalid")).rejects.toThrow("Text requires a scalar");
+    await tree.begin("string");
+    const text = "x".repeat(4096);
+    for (let index = 0; index < 128; index++) await tree.text(text);
+    await tree.end();
+    await expect(tree.text("invalid")).rejects.toThrow("Text requires a scalar");
+    await tree.end();
+    // Only final header updates may reread existing pages during construction.
+    expect(reads).toBeLessThanOrEqual(4);
+    let count = 0;
+    for await (const chunk of tree.chunks()) count += chunk.length;
+    expect(count).toBe(128 * 4096 + 4);
+  } finally {await storage.close();}
+  expect(await fs.readdir("/")).toEqual([]);
 });

@@ -14,6 +14,7 @@ export class BackedJson {
   private root = 0;
   private current = 0;
   private complete = false;
+  private scalar = false;
   constructor(private readonly storage: PagedStorage, private readonly cooperate: (units?: number) => Promise<void>) {}
 
   get rootPosition(): number {return this.root;}
@@ -48,12 +49,12 @@ export class BackedJson {
     await this.put(position, {kind, end: 0, parent: this.current, children: 0});
     this.root ||= position;
     this.current = position;
+    this.scalar = kind !== "array" && kind !== "object";
     return position;
   }
 
   async text(value: string): Promise<void> {
-    const header = await this.describe(this.current);
-    if (!["string", "key", "literal"].includes(header.kind)) throw new Error("Text requires a scalar");
+    if (!this.scalar) throw new Error("Text requires a scalar");
     for (let start = 0; start < value.length; start += 4096) {
       const length = Math.min(4096, value.length - start);
       const bytes = new Uint8Array(length * 2);
@@ -72,6 +73,7 @@ export class BackedJson {
     header.end = this.storage.allocate(0);
     await this.put(this.current, header);
     this.current = header.parent;
+    this.scalar = false;
     if (!this.current) this.complete = true;
     return this.current;
   }

@@ -5,7 +5,9 @@ import {
   languageFor,
   type Match,
   type Edit,
-  type Language
+  type Language,
+  type CodeNode,
+  type Position
 } from "@poe-code/ts-ast";
 import picomatch from "picomatch";
 import {
@@ -82,27 +84,40 @@ function replacement(template: string, match: Match): string {
 }
 function record(match: Match, file: string, lines: readonly string[], rule: SearchRule) {
   const node = match.node;
-  const capture = (m: { text: string; range: [number, number] }) => ({
+  // The engine uses byte columns; ast-grep JSON uses Unicode scalar columns.
+  const position = (p: Position) => ({
+    line: p.line,
+    column: Array.from(new TextDecoder().decode(encoder.encode(lines[p.line] ?? "").slice(0, p.column))).length
+  });
+  const capture = (m: CodeNode) => ({
     text: m.text,
-    range: { byteOffset: { start: m.range[0], end: m.range[1] } }
+    range: {
+      byteOffset: { start: m.range[0], end: m.range[1] },
+      start: position(m.start), end: position(m.end)
+    }
   });
   const single: Record<string, unknown> = {},
     multi: Record<string, unknown> = {};
   for (const [name, c] of Object.entries(match.captures)) {
-    if (c.nodes.length === 1) single[name] = capture(c);
-    else multi[name] = c.nodes.map(capture);
+    if (!c.many) single[name] = capture(c.nodes[0]!);
+    else {
+      // Native variadic metadata includes separators and comments between nodes.
+      const siblings = c.nodes[0]?.parent?.children ?? c.nodes;
+      multi[name] = siblings.filter(n => n.kind !== "Trivia" &&
+        n.range[0] >= c.range[0] && n.range[1] <= c.range[1]).map(capture);
+    }
   }
   const result = {
     text: node.text,
     range: {
       byteOffset: { start: node.range[0], end: node.range[1] },
-      start: node.start,
-      end: node.end
+      start: position(node.start),
+      end: position(node.end)
     },
     file,
     lines: lines.slice(node.start.line, node.end.line + 1).join("\n"),
     language: node.language,
-    metaVariables: { single, multi },
+    metaVariables: { single, multi, transformed: {} },
     ...(rule.id
       ? { ruleId: rule.id, message: rule.message ?? "", severity: rule.severity ?? "warning" }
       : {}),

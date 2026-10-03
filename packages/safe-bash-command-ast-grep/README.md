@@ -47,3 +47,25 @@ Rewrites preserve UTF-8 source outside changed spans. Nested matches use the out
 `createAstGrepCommand()`, `createAstGrepCommands()` and `astGrepCommands()` accept `AstGrepCommandsOptions`. Limits may be passed directly or under `limits`: `maxInputBytes` (8 MiB total), `maxOutputBytes` (16 MiB, including rewritten files), `maxFiles` (10,000), `maxMatches` (10,000), and `maxDirectoryEntries` (50,000). Positive finite integers are required. The AST matcher runs synchronously within each bounded file; these are byte/count limits, not a CPU deadline. Set `replace: true` to replace existing registrations.
 
 The plugin is also exported from `poe-code/safe-bash/commands/ast-grep`. The matching `@poe-platform/safe-bash` subpaths expose the same APIs. The parser, matcher and rewriter are available from `/ts-ast`. This private workspace bundles its parser, YAML reader and glob matcher; consumers do not install it separately.
+
+## Native compatibility checks
+
+JSON ranges retain UTF-8 byte offsets and use Unicode character columns, matching
+native ast-grep. Capture metadata includes full ranges, single/variadic maps and
+`transformed`; repeated metavariables report the last unified occurrence.
+
+The checked-in corpus records ast-grep 0.45.3 results for TS, TSX, JS, JSON and
+YAML. Unit tests compare both command aliases and the engine against it, and
+also compare against an installed `ast-grep` or `sg`. Set `AST_GREP_BINARY` to
+select a native executable. Live stdin rewrite comparisons remove only the one
+newline added by native stdout rendering, preserving source line endings.
+
+Run `npm run test:native --workspace=safe-bash-command-ast-grep` for native JSON
+and actual file rewrites with both update flags. This integration check uses a
+cleaned temporary directory under `out`; unit tests never write source files.
+Missing native tools are reported as skipped, while recorded comparisons still run.
+
+The engine deliberately supports populated middle variadics such as
+`fn($A, $$$MID, $Z)`, including nested calls. Native 0.45.3 only matches the
+empty-middle case for that pattern. The shared differential corpus covers the
+empty case; engine stress tests retain the populated-case behavior.

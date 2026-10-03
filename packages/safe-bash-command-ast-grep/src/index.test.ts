@@ -1,50 +1,7 @@
 import { it, expect } from "vitest";
-import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { createCommandArguments, type CommandContext } from "safe-bash-contracts";
-import {
-  createAstGrepCommand,
-  createAstGrepCommands,
-  type AstGrepCommandsOptions
-} from "./index.js";
+import { createAstGrepCommands } from "./index.js";
+import { run } from "./test-support.js";
 
-async function run(
-  args: string[],
-  files: Record<string, string> = {},
-  stdin = "",
-  options: AstGrepCommandsOptions = {},
-  overrides: Partial<CommandContext> = {}
-) {
-  const fs = createMemoryFileSystem();
-  for (const [path, text] of Object.entries(files)) {
-    await fs.mkdir(path.slice(0, path.lastIndexOf("/")) || "/", { recursive: true });
-    await fs.writeFile(path, new TextEncoder().encode(text));
-  }
-  let stdout = "",
-    stderr = "";
-  const result = await createAstGrepCommand(options).execute({
-    command: "ast-grep",
-    args: createCommandArguments(args).args,
-    cwd: "/",
-    env: {},
-    fs,
-    stdin: (async function* () {
-      yield new TextEncoder().encode(stdin);
-    })(),
-    stdout: {
-      async write(bytes) {
-        stdout += new TextDecoder().decode(bytes);
-      }
-    },
-    stderr: {
-      async write(bytes) {
-        stderr += new TextDecoder().decode(bytes);
-      }
-    },
-    signal: new AbortController().signal,
-    ...overrides
-  });
-  return { ...result, stdout, stderr, fs };
-}
 it("registers ast-grep and sg", () =>
   expect(createAstGrepCommands().map((c) => c.name)).toEqual(["ast-grep", "sg"]));
 it("searches directories structurally and emits UTF-8 ranges and captures", async () => {

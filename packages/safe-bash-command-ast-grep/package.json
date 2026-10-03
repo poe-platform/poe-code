@@ -25,7 +25,8 @@
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "lint": "eslint src && npm run typecheck",
     "test": "cd ../.. && vitest run packages/safe-bash-command-ast-grep",
-    "test:unit": "cd ../.. && vitest run packages/safe-bash-command-ast-grep"
+    "test:unit": "cd ../.. && vitest run packages/safe-bash-command-ast-grep",
+    "test:native": "node scripts/native.mjs"
   },
   "dependencies": {},
   "devDependencies": {

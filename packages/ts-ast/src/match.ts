@@ -1,7 +1,8 @@
 import { patternNode, variable } from './pattern.js';
 import { walk, type CodeNode, type CodeTree, type Language } from './tree.js';
 
-export interface Capture { nodes: CodeNode[]; text: string; range: [number, number] }
+/** many distinguishes a variadic capture even when it contains zero or one node. */
+export interface Capture { many?: boolean; nodes: CodeNode[]; text: string; range: [number, number] }
 export interface Match { node: CodeNode; captures: Record<string, Capture> }
 export type Pattern = string | Rule;
 export interface Rule {
@@ -34,14 +35,14 @@ function same(a: CodeNode, b: CodeNode): boolean {
   const ac = children(a), bc = children(b);
   return ac.length || bc.length ? ac.length === bc.length && ac.every((n, i) => same(n, bc[i]!)) : a.text === b.text;
 }
-function capture(name: string, nodes: CodeNode[], owner: CodeNode, captures: Captures): Captures | undefined {
+function capture(name: string, nodes: CodeNode[], owner: CodeNode, captures: Captures, many = false): Captures | undefined {
   if (!name || name === '_') return captures;
   const previous = captures[name];
-  if (previous) return previous.nodes.length === nodes.length && nodes.every((n, i) => same(n, previous.nodes[i]!)) ? captures : undefined;
+  if (previous && (previous.nodes.length !== nodes.length || !nodes.every((n, i) => same(n, previous.nodes[i]!)))) return undefined;
   const start = nodes[0]?.range[0] ?? owner.range[0];
   const end = nodes.at(-1)?.range[1] ?? start;
   const text = new TextDecoder('utf-8', { ignoreBOM: true }).decode(new TextEncoder().encode(owner.text).slice(start - owner.range[0], end - owner.range[0]));
-  return { ...captures, [name]: { nodes, range: [start, end], text } };
+  return { ...captures, [name]: { many, nodes, range: [start, end], text } };
 }
 function structural(pattern: CodeNode, node: CodeNode, captures: Captures): Captures | undefined {
   const meta = variable(pattern);
@@ -49,7 +50,7 @@ function structural(pattern: CodeNode, node: CodeNode, captures: Captures): Capt
     // Lezer names syntax productions with initial capitals; punctuation/keywords
     // remain concrete tokens and cannot satisfy a single AST-node capture.
     if (node.trivia || node.kind === 'ERROR' || node.kind[0]! < 'A' || node.kind[0]! > 'Z') return undefined;
-    return capture(meta.name, [node], node, captures);
+    return capture(meta.name, [node], node, captures, meta.many);
   }
   if (pattern.kind !== node.kind) return undefined;
   const ps = children(pattern), ns = children(node);
@@ -61,7 +62,7 @@ function structural(pattern: CodeNode, node: CodeNode, captures: Captures): Capt
     if (v?.many) {
       // Reluctant matching permits fixed suffixes and multiple variadics.
       for (let end = ni; end <= ns.length; end++) {
-        const next = capture(v.name, ns.slice(ni, end), node, state);
+        const next = capture(v.name, ns.slice(ni, end), node, state, true);
         const result = next && sequence(pi + 1, end, next);
         if (result) return result;
       }

@@ -1,3 +1,4 @@
+import { walkRetainedJavaScripts, type PdfRetainedJavaScript } from "./extract/retained-javascript.js";
 import { walkRetainedImages, type PdfRetainedImage, type PdfImageSelection } from "./extract/retained-images.js";
 import { walkRetainedFonts, type PdfRetainedFont, type PdfFontSelection } from "./extract/retained-fonts.js";
 import { walkRetainedAttachments, type PdfRetainedAttachment } from "./extract/retained-attachments.js";
@@ -130,6 +131,20 @@ export class PdfRetainedDocument {
     }
     const work = visit(this);
     return work;
+  }
+
+  javaScripts(): AsyncGenerator<PdfRetainedJavaScript, void, void> {
+    async function* visit(doc: PdfRetainedDocument): AsyncGenerator<PdfRetainedJavaScript, void, void> {
+      doc.assertOpen(); doc.walks.add(work);
+      try {
+        yield* walkRetainedJavaScripts(doc, doc.storage, { maxDepth: doc.depthLimit,
+          ...(doc.options.chunkBytes === undefined ? {} : { chunkBytes: doc.options.chunkBytes }),
+          ...(doc.options.maxTraversalStagingBytes === undefined ? {} : { maxStagingBytes: doc.options.maxTraversalStagingBytes }),
+          ...(doc.options.signal ? { signal: doc.options.signal } : {}),
+        });
+      } finally { doc.walks.delete(work); }
+    }
+    const work = visit(this); return work;
   }
 
   attachments(): AsyncGenerator<PdfRetainedAttachment, void, void> {

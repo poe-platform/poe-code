@@ -51,6 +51,15 @@ Duplicate names and name-tree cycles use caller-backed indexes; filename equalit
 is exact, including Unicode code units. Returning early or closing the document
 releases traversal staging. Keep the document open while reading contents.
 
+`doc.javaScripts()` visits document actions, JavaScript name trees, page and
+annotation actions, and form fields in inspection order. Each result exposes a
+`name` and lazy UTF-8 `contents()` chunks. It follows action chains with the
+existing eight-level recovery policy; duplicate and cycle tracking use one
+caller-backed index. Payloads stream/decrypt only when consumed. Returning early
+or closing the document releases traversal staging, and closing cancels active
+payload reads. Parser-owned dictionary/string values remain subject to parser
+admission; streamed scripts and the full result list are never collected.
+
 Image occurrences also accept `contents({ raw: true })` for malformed-filter
 recovery. Raw reads preserve ownership and byte limits and still decrypt:
 default stream encryption is removed, while explicit chains decode through the

@@ -61,3 +61,5 @@ export { encodeRetainedTiff, type PdfRetainedTiffOptions } from "./render/retain
 export { PdfRetainedDecodedImage, type PdfRetainedImageDecodeOptions } from "./extract/retained-decoded-image.js";
 
 export { PdfNameIndex } from "./cos/name-index.js";
+
+export type { PdfRetainedJavaScript } from "./extract/retained-javascript.js";

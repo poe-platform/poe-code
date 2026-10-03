@@ -1,3 +1,5 @@
+import {ZipDirectoryIndex, type ZipMetadataStorage} from "./zip-index.js";
+export {ZipDirectoryIndex, type ZipMetadataStorage} from "./zip-index.js";
 import { ZipWindow, type ZipSource } from "./zip-source.js";
 export type { ZipSource } from "./zip-source.js";
 import { createCompressionCodec } from "./compression.js";
@@ -70,6 +72,17 @@ export interface ZipStreamEntry extends Omit<ZipEntry, "data"> {
 export interface ZipStreamArchive {
   entries: readonly ZipStreamEntry[];
   comment: Uint8Array;
+}
+
+/** Entries are provisional until the scan resolves: callers stage side effects
+ * until all directory spans have been validated. Backpressure awaits onEntry. */
+export interface ZipScanOptions {
+  readonly storage: ZipMetadataStorage;
+  onEntry(entry: ZipStreamEntry): Promise<void>;
+}
+export interface ZipScanSummary {
+  readonly members: number;
+  readonly comment: Uint8Array;
 }
 
 export interface ZipArchive {
@@ -370,11 +383,13 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
 
   function readZipArchive(input: Uint8Array, limits: ZipLimits, signal: AbortSignal): Promise<ZipArchive>;
   function readZipArchive(input: ZipSource, limits: ZipLimits, signal: AbortSignal): Promise<ZipStreamArchive>;
+  function readZipArchive(input: ZipSource, limits: ZipLimits, signal: AbortSignal, scan: ZipScanOptions): Promise<ZipScanSummary>;
   async function readZipArchive(
     input: Uint8Array | ZipSource,
     limits: ZipLimits,
-    signal: AbortSignal
-  ): Promise<ZipArchive | ZipStreamArchive> {
+    signal: AbortSignal,
+    scan?: ZipScanOptions
+  ): Promise<ZipArchive | ZipStreamArchive | ZipScanSummary> {
     const chunkSize = admit(limits, signal);
     const length = input instanceof Uint8Array ? input.length : input.size;
     number(length, Math.min(limits.maxArchiveBytes, 0xfffffffe), "archive byte");
@@ -477,6 +492,8 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
     const entries: ZipStreamEntry[] = [];
     const spans: Array<{ start: number; end: number }> = [];
     const names = new Set<string>();
+    const diskNames = scan && profile.rejectDuplicateNames ? new ZipDirectoryIndex(scan.storage) : undefined;
+    const diskSpans = scan ? new ZipDirectoryIndex(scan.storage) : undefined;
     let offset = centralStart;
     let total = 0;
     for (let index = 0; index < members; index++) {
@@ -543,8 +560,13 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
       total += size;
       number(total, limits.maxTotalBytes, "total byte");
       const name = nameFrom(rawName, flags, centralMetadata, limits);
-      if (profile.rejectDuplicateNames && names.has(name)) fail("ZIP duplicate member name");
-      names.add(name);
+      if (diskNames) {
+        if (await diskNames.get(name) !== undefined) fail("ZIP duplicate member name");
+        await diskNames.set(name, 0);
+      } else if (!scan && profile.rejectDuplicateNames) {
+        if (names.has(name)) fail("ZIP duplicate member name");
+        names.add(name);
+      }
       if (local + 30 > centralStart) fail("ZIP invalid local header span");
       await view.load(local, local + 30);
       if (view.getUint32(local, true) !== 0x04034b50) fail("ZIP invalid local header span");
@@ -674,8 +696,15 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
         dosDate
       };
       entryBounds(entry, limits);
-      entries.push(entry);
-      spans.push({ start: local, end: payloadEnd });
+      if (scan) {
+        if (await diskSpans!.get(String(local)) !== undefined) fail("ZIP overlapping spans, gaps or self-extracting prefix are unsupported");
+        await diskSpans!.set(String(local), payloadEnd);
+        await scan.onEntry(entry);
+        signal.throwIfAborted();
+      } else {
+        entries.push(entry);
+        spans.push({ start: local, end: payloadEnd });
+      }
       offset = next;
     }
     if (offset !== centralEnd) fail("ZIP central directory size or member count mismatch");
@@ -686,7 +715,16 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
         fail("ZIP overlapping spans, gaps or self-extracting prefix are unsupported");
       covered = span.end;
     }
+    if (diskSpans) {
+      for (let index = 0; index < members; index++) {
+        await yieldTurn(signal);
+        const end = await diskSpans.get(String(covered));
+        if (end === undefined || end <= covered) fail("ZIP overlapping spans, gaps or self-extracting prefix are unsupported");
+        covered = end!;
+      }
+    }
     if (covered !== centralStart) fail("ZIP unreferenced local data is unsupported");
+    if (scan) return {members, comment};
     if (!snapshot) return {entries, comment};
     const buffered: ZipEntry[] = [];
     for (const entry of entries) {

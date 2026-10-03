@@ -181,3 +181,22 @@ it("uses injected EPUB backing for command file destinations as well as stdout",
   expect(new TextDecoder().decode(await read("/book.txt"))).toBe("Streamed book.\n");
   expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["book.epub", "book.txt"]);
 });
+
+it("reads a book with many unused long-named members through the caller-backed directory index", async () => {
+  const signal = new AbortController().signal;
+  const base = await zip.readZipArchive(await publication(0), zipLimits, signal);
+  const limits = {...zipLimits, maxMembers: 200};
+  const extra = await Promise.all(Array.from({length: 128}, (_, index) => zip.makeZipEntry(`unused/${"shared-prefix-".repeat(30)}${index}.bin`, Uint8Array.of(index), {modified: new Date("1980-01-01T00:00:00Z"), mode: 0o100644, directory: false, symlink: false, compression: "store"}, limits, signal)));
+  const bytes = await zip.writeZipArchive({entries: [...base.entries, ...extra], comment: new Uint8Array()}, limits, signal);
+  expect(bytes.length).toBeGreaterThan(64 * 1024);
+  const fs = new MemoryFileSystem();
+  const open = vi.spyOn(fs, "open");
+  const read = vi.spyOn(PagedStorage.prototype, "read");
+  try {
+    const result = await convert([{chunks: (async function* () {for (let offset = 0; offset < bytes.length; offset += 997) yield bytes.subarray(offset, offset + 997);})()}], {from: "epub", to: "plain"}, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, limits: {retainedBytes: 64 * 1024}, yield: async () => {}});
+    expect(result).toMatchObject({kind: "text", text: "Streamed book.\n", diagnostics: []});
+    expect(open).toHaveBeenCalled();
+    expect(Math.max(...read.mock.calls.map(([, length]) => length))).toBeLessThanOrEqual(4096);
+    expect(await fs.readdir("/")).toEqual([]);
+  } finally {read.mockRestore();}
+});

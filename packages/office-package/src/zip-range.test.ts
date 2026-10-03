@@ -139,3 +139,22 @@ it("shares one composed cancellation signal across a member's range reads", asyn
   for await (const chunk of codec.decodeZipEntry(parsed.entries[0]!, limits, new AbortController().signal)) void chunk;
   expect(observed.size).toBe(1);
 });
+
+it("visits entries with caller-backed directory validation and no retained entry collection", async () => {
+  const scanLimits = {...limits, maxMembers: 500};
+  const entries = await Promise.all(Array.from({length: 300}, (_, n) => codec.makeZipEntry(`part-${n}`, new Uint8Array([n]), attributes, scanLimits, signal)));
+  const archive = await codec.writeZipArchive({entries, comment: new Uint8Array([42])}, scanLimits, signal);
+  const bytes = new Uint8Array(1024 * 1024);
+  let end = 8, visits = 0;
+  const result = await codec.readZipArchive({size: archive.length, async read(position, length) {return archive.subarray(position, position + length);}}, scanLimits, signal, {
+    storage: {allocate(length) {const start = end; end += length; return start;}, async read(position, length) {return bytes.slice(position, position + length);}, async write(position, chunk) {bytes.set(chunk, position);}},
+    async onEntry(entry) {
+      expect(entry.name).toBe(`part-${visits}`);
+      for await (const chunk of codec.decodeZipEntry(entry, scanLimits, signal)) expect(chunk).toEqual(new Uint8Array([visits]));
+      visits++;
+    }
+  });
+  expect(visits).toBe(300);
+  expect(result).toEqual({members: 300, comment: new Uint8Array([42])});
+  expect(end).toBeGreaterThan(16384);
+});

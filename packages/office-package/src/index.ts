@@ -1,5 +1,9 @@
 export {
   createZipCodec,
+  ZipDirectoryIndex,
+  type ZipMetadataStorage,
+  type ZipScanOptions,
+  type ZipScanSummary,
   crc32,
   type ZipArchive,
   type ZipEntry,

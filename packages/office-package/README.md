@@ -39,7 +39,13 @@ keep its retained filesystem handle open until all returned entries are consumed
 then close it on success or failure. The codec reads metadata and streams member
 payloads on demand, handles short reads, and copies responses before another read
 can reuse the buffer. Range reads are capped by `chunkSize`. Directory metadata
-is still retained per member; this API does not yet bound large-directory memory.
+is retained per member by the convenience overload. Pass a fourth argument,
+`{storage, onEntry}`, to scan with caller-backed name/span indexes and receive
+`{members, comment}` instead. `storage` allocates positive scratch addresses and
+provides exact reads and writes through a bounded cache. Each `onEntry` is awaited;
+its entries are provisional until the scan resolves, so stage external effects
+until final directory validation. The caller owns and closes the source and
+scratch storage on success, cancellation and failure.
 
 `decodeZipEntry` also accepts a `ZipStreamEntry`: supply `data` as an async byte
 stream (or a `(signal) => stream` factory) and `compressedSize` alongside the usual

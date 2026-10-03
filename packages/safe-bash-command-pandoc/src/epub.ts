@@ -1,6 +1,6 @@
 import {PandocError} from "./errors.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
-import { createZipCodec, type ZipLimits } from "@poe-code/office-package/zip";
+import { createZipCodec, ZipDirectoryIndex, type ZipLimits, type ZipSource, type ZipEntry, type ZipStreamEntry } from "@poe-code/office-package/zip";
 import { createCompressionCodec } from "@poe-code/compression";
 import { attribute as a, children, epubFailure, namespaces as ns, parseEpubXml, xhtmlTree, xmlText, type XmlElement } from "./epub-xml.js";
 import { htmlTreeDocument } from "./html.js";
@@ -66,13 +66,13 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
     const release = storage && ctx.onClose?.(() => storage.close());
     let failure: {reason: unknown} | undefined;
     try {
-    let archive;
+    let source: ZipSource | undefined;
     if (storage) {
       ctx.charge("retainedBytes", cacheBytes);
       const position = storage.allocate(0);
       let size = 0;
-      const source = "chunks" in input ? input.chunks : [input.bytes];
-      const iterator = Symbol.asyncIterator in source ? source[Symbol.asyncIterator]() : source[Symbol.iterator]();
+      const chunks = "chunks" in input ? input.chunks : [input.bytes];
+      const iterator = Symbol.asyncIterator in chunks ? chunks[Symbol.asyncIterator]() : chunks[Symbol.iterator]();
       let done = false;
       const cleanup = async () => {if (!done) {done = true; await iterator.return?.();}};
       const unregister = ctx.onClose?.(cleanup);
@@ -94,17 +94,21 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
       }
       } catch (reason) {inputFailure = {reason}; throw reason;}
       finally {try {await cleanup().catch(reason => {if (!inputFailure) throw reason;});} finally {unregister?.();}}
-      archive = await codec.readZipArchive({size, read: (offset, length) => storage.read(position + offset, length)}, limits, signal);
+      source = {size, read: (offset, length) => storage.read(position + offset, length)};
     } else {
       if (!("bytes" in input)) return fail("archive", "Streaming EPUB requires caller working storage");
-      archive = await codec.readZipArchive(input.bytes, limits, signal);
       ctx.charge("retainedBytes", input.bytes.length);
     }
-    ctx.charge("parts", archive.entries.length);
-    const parts = new Map<string, Uint8Array | {position: number; length: number}>();
+    const parts = new Map<string, Uint8Array>();
+    const partIndex = storage ? new ZipDirectoryIndex(storage) : undefined;
+    const hasPart = async (name: string) => partIndex ? await partIndex.get(name) !== undefined : parts.has(name);
     const getPart = async (name: string): Promise<Uint8Array | undefined> => {
-      const part = parts.get(name);
-      if (!part || part instanceof Uint8Array) return part;
+      if (!partIndex) return parts.get(name);
+      const pointer = await partIndex.get(name);
+      if (pointer === undefined) return undefined;
+      const record = await storage!.read(pointer, 16);
+      const header = new DataView(record.buffer, record.byteOffset, 16);
+      const part = {position: header.getFloat64(0, true), length: header.getFloat64(8, true)};
       ctx.charge("retainedBytes", part.length);
       const bytes = new Uint8Array(part.length);
       for (let offset = 0; offset < part.length; offset += 4096) {
@@ -114,7 +118,8 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
       return bytes;
     };
     // Validate every member, including unused resources, before reading the book.
-    for (const entry of archive.entries) {
+    const processEntry = async (entry: ZipEntry | ZipStreamEntry) => {
+      ctx.charge("parts", 1);
       if (entry.symlink || entry.name.includes("\\") || entry.name.includes(":")) fail(entry.name, "Unsafe EPUB ZIP member");
       const chunks: Uint8Array[] = [];
       const position = storage?.allocate(0);
@@ -125,8 +130,13 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
         if (storage) await storage.append(chunk);
         else chunks.push(chunk);
       }
-      if (entry.directory) continue;
-      if (storage) parts.set(entry.name, {position: position!, length});
+      if (entry.directory) return;
+      if (storage) {
+        const record = new DataView(new ArrayBuffer(16));
+        record.setFloat64(0, position!, true); record.setFloat64(8, length, true);
+        const pointer = await storage.append(new Uint8Array(record.buffer));
+        await partIndex!.set(entry.name, pointer);
+      }
       else {
         ctx.charge("retainedBytes", length);
         const bytes = new Uint8Array(length);
@@ -134,9 +144,14 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
         for (const chunk of chunks) {bytes.set(chunk, offset); offset += chunk.length;}
         parts.set(entry.name, bytes);
       }
+    };
+    if (storage) await codec.readZipArchive(source!, limits, signal, {storage, onEntry: processEntry});
+    else {
+      const archive = await codec.readZipArchive((input as Input).bytes, limits, signal);
+      for (const entry of archive.entries) await processEntry(entry);
     }
     if (new TextDecoder().decode(await getPart("mimetype")) !== "application/epub+zip") fail("mimetype", "Invalid or missing EPUB mimetype");
-    if (parts.has("META-INF/encryption.xml")) fail("META-INF/encryption.xml", "Unsupported EPUB encryption/DRM or font obfuscation");
+    if (await hasPart("META-INF/encryption.xml")) fail("META-INF/encryption.xml", "Unsupported EPUB encryption/DRM or font obfuscation");
     const xmlCache = new Map<string, XmlElement>();
     const xml = async (part: string) => {
       if (xmlCache.has(part)) return xmlCache.get(part)!;
@@ -205,7 +220,7 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
     const chapterParts = new Set<string>();
     for (const ref of children(spine[0]!, "itemref")) {
       const item = manifest.get(a(ref, "idref"));
-      if (!item || !parts.has(item.part)) fail(packagePart, "Missing EPUB spine item");
+      if (!item || !await hasPart(item.part)) fail(packagePart, "Missing EPUB spine item");
       if (a(ref, "properties").includes("rendition:layout-pre-paginated")) fail(item.part, "Fixed-layout EPUB spine is unsupported");
       if (item.media !== "application/xhtml+xml") fail(item.part, "Unsupported EPUB spine media type");
       if (chapterParts.has(item.part)) fail(item.part, "Duplicate EPUB spine chapter");
@@ -258,16 +273,16 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
       noteDocuments.set(part, (await htmlTreeDocument(xhtmlTree(root, ctx, part), ctx)).blocks);
     }
     const bag = new Map<string, Resource>();
-    const media = (part: string): boolean => {
+    const media = async (part: string): Promise<boolean> => {
       if (bag.has(part)) return true;
       const item = admitted.get(part);
-      if (!item || !parts.has(part)) {warn(part, "Missing admitted EPUB media resource", "W_RESOURCE_MISSING"); return false;}
+      if (!item || !await hasPart(part)) {warn(part, "Missing admitted EPUB media resource", "W_RESOURCE_MISSING"); return false;}
       if (!["image/png", "image/jpeg", "image/gif", "image/webp", "image/svg+xml"].includes(item.media)) {warn(part, `Unsupported EPUB media type: ${item.media}`); return false;}
       if (item.media === "image/svg+xml") {warn(part, "Unsupported EPUB SVG media rendering loss"); return false;}
       return true;
     };
     const loadMedia = async (part: string): Promise<boolean> => {
-      if (!media(part)) return false;
+      if (!await media(part)) return false;
       if (!bag.has(part)) {
         ctx.bound("resources", bag.size + 1);
         bag.set(part, {id: part, bytes: (await getPart(part))!});
@@ -282,13 +297,13 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
     if (cover && await loadMedia(cover.part)) metadata["cover-image"] = {t: "MetaString", c: cover.part};
     for (const ref of children(opf, "guide").flatMap(g => children(g, "reference"))) if (tokens(a(ref, "type")).includes("cover")) {
       const target = resolve(a(ref, "href"), packagePart, ctx);
-      if (!admitted.has(target.part) || !parts.has(target.part)) fail(packagePart, "Missing EPUB guide cover page");
+      if (!admitted.has(target.part) || !await hasPart(target.part)) fail(packagePart, "Missing EPUB guide cover page");
       metadata["epub-cover-page"] = {t: "MetaString", c: target.part};
     }
     for (const item of manifest.values()) if (item.media.startsWith("image/")) await loadMedia(item.part);
     const noteBlocks = new Map<string, readonly Block[]>();
     // Rewrite all AST identities first so notes can be resolved across chapters.
-    const rewrite = (value: unknown, part: string): void => {
+    const rewrite = async (value: unknown, part: string): Promise<void> => {
       ctx.checkpoint();
       if (!value || typeof value !== "object") return;
       if (Array.isArray(value)) {
@@ -309,11 +324,11 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
           if (target.includes(":") || target.startsWith("//")) {
             warn(part, "Unsupported remote EPUB image ignored");
             Object.assign(node, {t: "Span", c: [node.c[0], node.c[1]]});
-            for (const child of Object.values(value)) rewrite(child, part);
+            for (const child of Object.values(value)) await rewrite(child, part);
             return;
           }
           const ref = resolve(target, part, ctx);
-          if (media(ref.part)) (node.c[2] as [string, string])[0] = ref.part;
+          if (await media(ref.part)) (node.c[2] as [string, string])[0] = ref.part;
           else Object.assign(node, {t: "Span", c: [node.c[0], node.c[1]]});
         } else if (!target.includes(":") && !target.startsWith("//")) {
           const ref = resolve(target, part, ctx);
@@ -323,10 +338,10 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
           else (node.c[2] as [string, string])[0] = uriPart(ref.part) + (ref.fragment ? `#${encodeURIComponent(ref.fragment)}` : "");
         }
       }
-      for (const child of Object.values(value)) rewrite(child, part);
+      for (const child of Object.values(value)) await rewrite(child, part);
     };
-    for (const chapter of chapters) rewrite(chapter.blocks, chapter.item.part);
-    for (const [part, blocks] of noteDocuments) rewrite(blocks, part);
+    for (const chapter of chapters) await rewrite(chapter.blocks, chapter.item.part);
+    for (const [part, blocks] of noteDocuments) await rewrite(blocks, part);
     const collect = (value: unknown): void => {
       ctx.checkpoint();
       if (!value || typeof value !== "object") return;
@@ -384,13 +399,13 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
       if (ncx && (root.name !== "ncx" || root.uri !== ns.ncx)) fail(item.part, "Invalid NCX namespace");
       if (!ncx) xhtmlTree(root, ctx, item.part);
       const consumed = new Set<XmlElement>();
-      const walk = (node: XmlElement, inToc: boolean, inLandmarks: boolean, destination: MetaValue[]): void => {
+      const walk = async (node: XmlElement, inToc: boolean, inLandmarks: boolean, destination: MetaValue[]): Promise<void> => {
         ctx.checkpoint();
         const inside = inToc || (!ncx && node.uri === ns.xhtml && node.name === "nav" && tokens(a(node, "type", ns.epub)).includes("toc"));
         const landmarks = inLandmarks || (!ncx && node.uri === ns.xhtml && node.name === "nav" && tokens(a(node, "type", ns.epub)).includes("landmarks"));
         if (landmarks && node.uri === ns.xhtml && node.name === "a" && tokens(a(node, "type", ns.epub)).includes("cover")) {
           const ref = resolve(a(node, "href"), item.part, ctx);
-          if (!admitted.has(ref.part) || !parts.has(ref.part)) fail(item.part, "Missing EPUB landmark cover page");
+          if (!admitted.has(ref.part) || !await hasPart(ref.part)) fail(item.part, "Missing EPUB landmark cover page");
           metadata["epub-cover-page"] = {t: "MetaString", c: ref.part};
         }
         let nextDestination = destination;
@@ -400,16 +415,16 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
           if (anchor) consumed.add(anchor);
           const target = ncx ? a(children(entry, "content")[0] ?? entry, "src") : a(entry, "href");
           const ref = resolve(target, item.part, ctx);
-          if (!admitted.has(ref.part) || !parts.has(ref.part)) fail(item.part, "Navigation target is missing or not admitted");
+          if (!admitted.has(ref.part) || !await hasPart(ref.part)) fail(item.part, "Navigation target is missing or not admitted");
           const label = ncx ? children(entry, "navLabel").map(xmlText).join("") : xmlText(entry);
           const nested: MetaValue[] = [];
           const link = chapterParts.has(ref.part) ? `#${encodeURI(identity(ref.part, ref.fragment))}` : identity(ref.part, ref.fragment);
           destination.push({t: "MetaMap", c: {label: {t: "MetaString", c: label}, target: {t: "MetaString", c: link}, children: {t: "MetaList", c: nested}}});
           nextDestination = nested;
         }
-        for (const child of node.children) if (typeof child !== "string") walk(child, inside, landmarks, nextDestination);
+        for (const child of node.children) if (typeof child !== "string") await walk(child, inside, landmarks, nextDestination);
       };
-      walk(root, false, false, toc);
+      await walk(root, false, false, toc);
     };
     const ncxId = a(spine[0]!, "toc");
     const nav = [...manifest.values()].filter(i => i.properties.includes("nav"));

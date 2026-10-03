@@ -167,3 +167,10 @@ it("retains native payloads independently of decoded sample rows", async () => {
   expect(await collect(image.rows())).toEqual(f.expected.rgba);
   await expect(collect(image.nativeContents())).rejects.toThrow("closed"); await image.close(); await f.close();
 });
+
+it("reports image allocation to a containing owner before payload reads", async () => {
+  const f = await open(new Uint8Array(12).fill(37), cosDict()); const before = await f.storage.fs.readdir("/scratch");
+  const contents = vi.spyOn(f.image, "contents"); const rejection = { rejected: true };
+  await expect(PdfRetainedDecodedImage.open(f.document, f.image, f.storage, { onAllocation() { throw rejection; } })).rejects.toBe(rejection);
+  expect(contents).not.toHaveBeenCalled(); expect(await f.storage.fs.readdir("/scratch")).toEqual(before); await f.close();
+});

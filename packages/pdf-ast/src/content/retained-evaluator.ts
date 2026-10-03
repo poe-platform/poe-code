@@ -1,0 +1,144 @@
+import { cosDict, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream } from "../ast.js";
+import { decodePdfStreamChunks, type PdfStreamDecodeOptions } from "../cos/filter-stream.js";
+import type { PdfIndexStorage } from "../cos/object-index.js";
+import { PdfError } from "../errors.js";
+import { convertRetainedContentColor, renderRetainedShading, resolveRetainedMaskParameters } from "../extract/retained-color.js";
+import { PdfRetainedDecodedImage } from "../extract/retained-decoded-image.js";
+import type { PdfRetainedImage } from "../extract/retained-images.js";
+import type { DecodedDisplayImage } from "../extract/images.js";
+import { resolveRetainedFont } from "../fonts/retained.js";
+import type { ResolvedPageFont } from "../fonts/resolve.js";
+import type { PdfRetainedDocument } from "../retained-document.js";
+import { PdfStagingStorage } from "../staging-budget.js";
+import { evaluateContentSteps, type PdfContentEvaluationOptions, type PdfEvaluationContentSource, type PdfEvaluationOperation, type PdfEvaluationResult } from "./evaluator.js";
+import type { PdfContentEvent } from "./parser.js";
+import { parseContentStreamEvents } from "./range-events.js";
+import type { ParseContentRangeOptions } from "./range-operator-parser.js";
+
+export interface PdfRetainedEvaluationOptions extends ParseContentRangeOptions {
+  /** Conservative cumulative resource admission for this traversal. Path and
+   * composite capture arrays and object-reader caches have separate ownership. */
+  readonly maxResourceBytes?: number;
+  readonly onAllocation?: (bytes: number) => void;
+  readonly maxImageBytes?: number;
+  readonly maxCachedFonts?: number;
+}
+export type PdfRetainedEvaluationParameters = Omit<PdfContentEvaluationOptions, "nodes" | "cosDoc" | "onShadingAllocation">;
+
+/** Drive shared evaluation using retained input and caller-backed staging.
+ * Paint operations are pulled on demand. Composite captures, individual paths,
+ * and admitted raster results still use the shared in-memory representation. */
+export async function* evaluateRetainedContentSteps(document: PdfRetainedDocument, content: AsyncIterable<Uint8Array> | Iterable<Uint8Array>,
+  params: PdfRetainedEvaluationParameters, storage: PdfIndexStorage, options: PdfRetainedEvaluationOptions = {}): AsyncGenerator<PdfEvaluationOperation, void, void> {
+  const maximum = options.maxResourceBytes ?? Infinity, chunkBytes = options.chunkBytes ?? 4096, maxCachedFonts = options.maxCachedFonts ?? 16;
+  if (maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("Invalid maxResourceBytes");
+  if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 8) throw new RangeError("chunkBytes must be at least 8");
+  if (!Number.isSafeInteger(maxCachedFonts) || maxCachedFonts < 0) throw new RangeError("Invalid maxCachedFonts");
+  const shared = new PdfStagingStorage(storage, options.maxStagingBytes);
+  const { signal } = options;
+  let admitted = 0;
+  function charge(bytes: number) {
+    signal?.throwIfAborted();
+    if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > Math.min(maximum, Number.MAX_SAFE_INTEGER) - admitted) throw new PdfError("E_LIMIT", "PDF evaluation resource byte limit exceeded");
+    options.onAllocation?.(bytes); admitted += bytes;
+  }
+  const identities = new WeakMap<PdfCosStream, PdfCosRef>();
+  async function resolve(node: PdfCosNode | undefined): Promise<PdfCosNode | undefined> {
+    charge(64);
+    const value = await document.lookup(node);
+    signal?.throwIfAborted();
+    if (value?.stream && value.reference && value.value.kind === "dict") {
+      charge(128);
+      const stream: PdfCosStream = { kind: "stream", dict: value.value, rawBytes: new Uint8Array() };
+      identities.set(stream, value.reference); return stream;
+    }
+    return value?.value;
+  }
+  function streamContents(stream: PdfCosStream, selection: PdfStreamDecodeOptions = {}): AsyncGenerator<Uint8Array, void, void> {
+    const reference = identities.get(stream);
+    return reference ? document.objects.decodeStream(reference.objectNumber, reference.generationNumber, selection)
+      : decodePdfStreamChunks(stream.dict, async function* () { yield stream.rawBytes; }, { ...selection, chunkBytes, ...(signal ? { signal } : {}) });
+  }
+  function cursor(chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>) {
+    charge(chunkBytes * 5);
+    return parseContentStreamEvents(chunks, shared, { ...options, chunkBytes });
+  }
+  async function decodeImage(image: Pick<PdfRetainedImage, "dict" | "resources" | "contents">,
+    fillColor: { r: number; g: number; b: number; alpha: number } | undefined): Promise<DecodedDisplayImage> {
+    const owner = await PdfRetainedDecodedImage.open(document, image, shared, {
+      chunkBytes, maxOutputBytes: options.maxImageBytes ?? Infinity, maxStagingBytes: options.maxStagingBytes ?? Infinity,
+      onAllocation: charge, fillColor, ...(signal ? { signal } : {}),
+    });
+    let failed = false;
+    try {
+      charge(owner.width * owner.height * 4);
+      const rgba = new Uint8Array(owner.width * owner.height * 4); let offset = 0;
+      for await (const row of owner.rows()) { signal?.throwIfAborted(); rgba.set(row, offset); offset += row.length; }
+      if (offset !== rgba.length) throw new PdfError("E_PARSE", "Incomplete retained image rows");
+      return { width: owner.width, height: owner.height, bitsPerComponent: owner.bitsPerComponent, colorSpace: owner.color.colorSpace, rgba };
+    } catch (error) { failed = true; throw error; }
+    finally { await owner.close().catch(error => { if (!failed) throw error; }); }
+  }
+  const input = cursor(content), work = evaluateContentSteps(params);
+  const nested = new Map<PdfEvaluationContentSource, AsyncGenerator<PdfContentEvent, void, void>>();
+  const fonts: { resources: PdfCosDict | undefined; name: string; font: ResolvedPageFont | undefined }[] = [];
+  const resourceOptions = { chunkBytes, maxStagingBytes: options.maxStagingBytes ?? Infinity, onAllocation: charge, ...(signal ? { signal } : {}) };
+  let failed = false;
+  try {
+    let step = work.next();
+    while (!step.done) {
+      signal?.throwIfAborted();
+      const request = step.value; let reply: PdfEvaluationResult;
+      switch (request.kind) {
+        case "node": {
+          const source = request.source;
+          let selected = source ? nested.get(source) : input;
+          if (!selected) { selected = cursor(streamContents(source!.stream)); nested.set(source!, selected); }
+          const next = await selected.next();
+          if (next.done && source) nested.delete(source);
+          reply = next.done ? undefined : next.value;
+          break;
+        }
+        case "close-content": {
+          const selected = nested.get(request.source); nested.delete(request.source);
+          await selected?.return(); break;
+        }
+        case "resolve": case "catalog": reply = { kind: "resolved", node: await resolve(request.kind === "catalog" ? document.crossReference.rootRef : request.node) }; break;
+        case "font": {
+          const index = fonts.findIndex(entry => entry.resources === request.resources && entry.name === request.name);
+          if (index >= 0) { const entry = fonts.splice(index, 1)[0]!; fonts.push(entry); reply = entry.font; }
+          else {
+            reply = await resolveRetainedFont(document, shared, request.resources, request.name, resourceOptions);
+            if (maxCachedFonts) { charge(128); if (fonts.length >= maxCachedFonts) fonts.shift(); fonts.push({ resources: request.resources, name: request.name, font: reply }); }
+          }
+          break;
+        }
+        case "color": reply = { kind: "color", value: await convertRetainedContentColor(document, undefined, request.name, request.components, request.resources, shared, resourceOptions) }; break;
+        case "mask-parameters": reply = { kind: "mask-parameters", value: await resolveRetainedMaskParameters(document, request.mask, request.form, request.resources, shared, resourceOptions) }; break;
+        case "shading": reply = { kind: "shading", image: await renderRetainedShading(document, request.stream ? identities.get(request.stream) ?? request.stream : request.dict, request, shared, resourceOptions) }; break;
+        case "image": reply = { kind: "decoded-image", image: await decodeImage({ dict: request.stream.dict, resources: request.resources ?? cosDict(),
+          contents: selected => streamContents(request.stream, { raw: selected?.raw ?? false, stopBeforeImageCodec: selected?.native ?? false }) }, request.fillColor) }; break;
+        case "inline-image": {
+          const data = request.data;
+          const raw = async function* () {
+            if (data instanceof Uint8Array) { for (let offset = 0; offset < data.length; offset += chunkBytes) yield data.subarray(offset, offset + chunkBytes); }
+            else yield* data.source.stream(data.start, data.end - data.start, signal);
+          };
+          reply = { kind: "decoded-image", image: await decodeImage({ dict: request.dict, resources: request.resources ?? cosDict(),
+            contents: selected => decodePdfStreamChunks(request.dict, raw, { chunkBytes, raw: selected?.raw ?? false, stopBeforeImageCodec: selected?.native ?? false, ...(signal ? { signal } : {}) }) }, request.fillColor) };
+          break;
+        }
+        case "paint": yield request; break;
+      }
+      step = work.next(reply);
+    }
+  } catch (error) { failed = true; throw error; }
+  finally {
+    let cleanupFailure: { error: unknown } | undefined;
+    try { work.return(); } catch (error) { cleanupFailure = { error }; }
+    for (const selected of [...nested.values(), input]) {
+      try { await selected.return(); } catch (error) { cleanupFailure ??= { error }; }
+    }
+    if (!failed && cleanupFailure) await Promise.reject(cleanupFailure.error);
+  }
+}

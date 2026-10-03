@@ -24,6 +24,7 @@ export * from "./content/range-operator-parser.js";
 export * from "./content/range-events.js";
 export * from "./content/serializer.js";
 export * from "./content/evaluator.js";
+export * from "./content/retained-evaluator.js";
 export * from "./extract/text.js";
 export * from "./extract/tables.js";
 export * from "./extract/semantic-ast.js";

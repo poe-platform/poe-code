@@ -65,6 +65,16 @@ bytes, not RGBA pixels. Image occurrences expire on advancement. Content and dee
 graphics-state stacks use caller-backed staging, released on return or document
 close. Supply external storage for large inputs.
 
+`evaluateRetainedContentSteps(document, content, parameters, storage, options)`
+pulls paint operations from decoded content chunks and retained resources. Pass
+`page.streamContents()` as content and the page geometry/resources as parameters.
+Forms, Type3 glyphs, fonts, images, masks and shading share caller-backed staging;
+returning or failing closes every content cursor. `maxStagingBytes` covers their
+combined live scratch files, and `maxResourceBytes` conservatively admits
+resource allocations across the traversal. The font cache retains at most
+`maxCachedFonts` entries (16 by default). Paths, composite captures, and raster
+results remain resident; this is not yet an externally backed display list.
+
 `renderRetainedShading(document, node, settings, storage, options)` renders a
 selected shading through retained reads. It shares the buffered renderer for
 all seven PDF shading types, skips ICC profile payloads and unrelated resources,

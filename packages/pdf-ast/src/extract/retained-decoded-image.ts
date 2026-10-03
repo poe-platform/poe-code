@@ -16,6 +16,8 @@ import { decodeRetainedSampleRows } from "./retained-samples.js";
 type Input = Pick<PdfRetainedImage, "dict" | "resources" | "contents">;
 export interface PdfRetainedImageDecodeOptions {
   readonly maxWorkingBytes?: number;
+  /** Compose decoder and color allocations with a containing resource owner. */
+  readonly onAllocation?: (bytes: number) => void;
   readonly maxStagingBytes?: number;
   readonly maxOutputBytes?: number;
   readonly maxDepth?: number;
@@ -64,6 +66,7 @@ export class PdfRetainedDecodedImage {
     let codec: PdfRetainedJpeg | PdfRetainedJpx | PdfRetainedJbig2 | undefined;
     function charge(bytes: number) {
       if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > workingLimit - budget.working) throw new PdfError("E_LIMIT", "PDF image working byte limit exceeded");
+      options.onAllocation?.(bytes);
       budget.working += bytes; owned += bytes;
     }
     async function release(source: PdfFileSource) {

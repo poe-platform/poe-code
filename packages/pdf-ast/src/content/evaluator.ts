@@ -856,7 +856,19 @@ export interface PdfEvaluationOperation {
 /** Identity of one nested content traversal. Drivers own and close its cursor. */
 export interface PdfEvaluationContentSource { readonly stream: PdfCosStream }
 
-export type PdfEvaluationRequest = PdfEvaluationOperation | { readonly kind: "node"; readonly source?: PdfEvaluationContentSource }
+export interface PdfEvaluationShadingRequest {
+  readonly kind: "shading";
+  readonly dict: PdfCosDict;
+  readonly matrix: Matrix6;
+  readonly bounds: [number, number, number, number];
+  readonly alpha: number;
+  readonly name: string;
+  readonly clipRect: [number, number, number, number] | undefined;
+  readonly stream: PdfCosStream | undefined;
+  readonly blendMode: string | undefined;
+}
+
+export type PdfEvaluationRequest = PdfEvaluationShadingRequest | PdfEvaluationOperation | { readonly kind: "node"; readonly source?: PdfEvaluationContentSource }
   | { readonly kind: "font"; readonly name: string; readonly resources: PdfCosDict | undefined }
   | { readonly kind: "resolve"; readonly node: PdfCosNode }
   | { readonly kind: "catalog" }
@@ -866,6 +878,7 @@ export type PdfEvaluationRequest = PdfEvaluationOperation | { readonly kind: "no
   | { readonly kind: "inline-image"; readonly dict: PdfCosDict; readonly data: Uint8Array; readonly resources: PdfCosDict | undefined; readonly fillColor: Parameters<typeof decodeInlineImageNodeToRgba>[4] }
   | { readonly kind: "image"; readonly stream: PdfCosStream; readonly resources: PdfCosDict | undefined; readonly fillColor: Parameters<typeof decodeXObjectImageToRgba>[3] };
 export type PdfEvaluationResult = PdfContentEvent | ResolvedPageFont
+  | { readonly kind: "shading"; readonly image: PdfEvaluatedImage | undefined }
   | { readonly kind: "color"; readonly value: readonly [number, number, number] }
   | { readonly kind: "resolved"; readonly node: PdfCosNode | undefined }
   | { readonly kind: "mask-parameters"; readonly value: Pick<PdfSoftMask, "backdrop" | "transferMap"> }
@@ -881,8 +894,9 @@ function closeEvaluationIterators(iterators: ReadonlyArray<Pick<Iterator<unknown
   if (!failed && cleanupFailure) throw cleanupFailure.error;
 }
 
-/** Pull individual evaluated operations. Composite captures, fonts and decoded
- * resources still belong to this evaluator; this is not a retained I/O driver. */
+/** Pull evaluated operations while the driver supplies content and resources.
+ * Composite captures and path geometry remain in memory; the driver owns
+ * resource admission and cursor cleanup, including on early return or failure. */
 export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, "nodes">): EvaluationWork {
   const fonts: FontScope = [params.resourcesDict];
   function* selectedFont(scopes: FontScope, name: string): EvaluationWork<ResolvedPageFont | undefined> {
@@ -1032,25 +1046,18 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
         st.dashArray = undefined;
         st.dashPhase = undefined;
       }
-    } else if (operator === "sh" && params.cosDoc && activeResources && ops[0]?.kind === "name") {
-      const shMap = params.cosDoc.resolveDict(dictGet(activeResources, "Shading"));
-      const shNode = shMap ? params.cosDoc.resolve(dictGet(shMap, ops[0].decoded)) : undefined;
+    } else if (operator === "sh" && activeResources && ops[0]?.kind === "name") {
+      const shMap = yield* resolveEvaluationDict(dictGet(activeResources, "Shading"));
+      const shNode = shMap ? yield* resolveEvaluationNode(dictGet(shMap, ops[0].decoded)) : undefined;
       const shDict = shNode?.kind === "dict" ? shNode : shNode?.kind === "stream" ? shNode.dict : undefined;
       const shStream = shNode?.kind === "stream" ? shNode : undefined;
       if (shDict) {
         const [originX, originY] = params.origin ?? [0, 0];
         const targetBox: [number, number, number, number] = st.clipRect ?? [originX, originY, originX + params.width, originY + params.height];
-        const img = renderShadingDictToImage(
-          params.cosDoc,
-          shDict,
-          st.ctm,
-          targetBox,
-          st.fillAlpha,
-          "Shading_" + ops[0].decoded,
-          st.clipRect ? ([...st.clipRect] as [number, number, number, number]) : undefined,
-          shStream,
-          st.blendMode
-        );
+        const rendered = yield { kind: "shading", dict: shDict, matrix: st.ctm, bounds: targetBox, alpha: st.fillAlpha,
+          name: "Shading_" + ops[0].decoded, clipRect: st.clipRect ? [...st.clipRect] : undefined, stream: shStream, blendMode: st.blendMode };
+        if (!rendered || !("kind" in rendered) || rendered.kind !== "shading") throw new TypeError("Expected a rendered PDF shading");
+        const img = rendered.image;
         if (img) yield* emit({ kind: "image", value: img });
       }
     } else if (operator === "g") {
@@ -1229,19 +1236,22 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     mcid?: number,
     actualText?: string
   ): EvaluationWork<boolean> {
-    const st = curState(), doc = params.cosDoc;
-    if (!st.fillPatternName || !doc || !resources) return false;
+    const st = curState();
+    if (!st.fillPatternName || !resources) return false;
     if (depth >= 8) throw new PdfError("E_LIMIT", "Pattern nesting exceeds the form depth limit");
-    const patterns = doc.resolveDict(dictGet(resources, "Pattern"));
-    const pattern = patterns && doc.resolve(dictGet(patterns, st.fillPatternName));
+    const patterns = yield* resolveEvaluationDict(dictGet(resources, "Pattern"));
+    const pattern = patterns && (yield* resolveEvaluationNode(dictGet(patterns, st.fillPatternName)));
     const dict = pattern?.kind === "stream" ? pattern.dict : pattern?.kind === "dict" ? pattern : undefined;
     if (!dict) return false;
-    const nums = (key: string, fallback: number[]): number[] => {
-      const array = doc.resolveArray(dictGet(dict, key));
-      return array ? array.items.map((item, i) => {
-        const value = doc.resolve(item);
-        return value?.kind === "number" ? value.value : fallback[i] ?? 0;
-      }) : fallback;
+    const nums = function* (key: string, fallback: number[]): EvaluationWork<number[]> {
+      const array = yield* resolveEvaluationArray(dictGet(dict, key));
+      if (!array) return fallback;
+      const values: number[] = [];
+      for (const [i, item] of array.items.entries()) {
+        const value = yield* resolveEvaluationNode(item);
+        values.push(value?.kind === "number" ? value.value : fallback[i] ?? 0);
+      }
+      return values;
     };
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     const include = (x: number, y: number) => {
@@ -1260,22 +1270,24 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     if (!(bounds[2] > bounds[0] && bounds[3] > bounds[1])) return true;
     // PDFBox TilingPaint / PageDrawer: pattern coordinates start at the
     // containing stream's initial matrix, independently of the text matrix.
-    const matrix = multiplyMatrices(nums("Matrix", [1, 0, 0, 1, 0, 0]) as Matrix6, st.initialCtm);
-    const type = doc.resolve(dictGet(dict, "PatternType"));
+    const matrix = multiplyMatrices((yield* nums("Matrix", [1, 0, 0, 1, 0, 0])) as Matrix6, st.initialCtm);
+    const type = yield* resolveEvaluationNode(dictGet(dict, "PatternType"));
     stateStack.push({ ...st, clipRect: bounds, clipPaths: [...(st.clipPaths ?? []), { segments, fillRule }] });
     try {
       if (type?.kind === "number" && type.value === 2) {
-        const shading = doc.resolve(dictGet(dict, "Shading"));
+        const shading = yield* resolveEvaluationNode(dictGet(dict, "Shading"));
         const shadingDict = shading?.kind === "stream" ? shading.dict : shading?.kind === "dict" ? shading : undefined;
         if (!shadingDict) return false;
-        const image = renderShadingDictToImage(doc, shadingDict, matrix, bounds, st.fillAlpha,
-          "PatternShading_" + st.fillPatternName, bounds, shading?.kind === "stream" ? shading : undefined, st.blendMode);
+        const rendered = yield { kind: "shading", dict: shadingDict, matrix, bounds, alpha: st.fillAlpha,
+          name: "PatternShading_" + st.fillPatternName, clipRect: bounds, stream: shading?.kind === "stream" ? shading : undefined, blendMode: st.blendMode };
+        if (!rendered || !("kind" in rendered) || rendered.kind !== "shading") throw new TypeError("Expected a rendered PDF pattern shading");
+        const image = rendered.image;
         if (image) yield* emit({ kind: "image", value: image });
         return !!image;
       }
       if (pattern?.kind !== "stream") return false;
-      const xStepNode = doc.resolve(dictGet(dict, "XStep"));
-      const yStepNode = doc.resolve(dictGet(dict, "YStep"));
+      const xStepNode = yield* resolveEvaluationNode(dictGet(dict, "XStep"));
+      const yStepNode = yield* resolveEvaluationNode(dictGet(dict, "YStep"));
       const xStep = xStepNode?.kind === "number" ? Math.abs(xStepNode.value) : 0;
       const yStep = yStepNode?.kind === "number" ? Math.abs(yStepNode.value) : 0;
       const determinant = matrix[0] * matrix[3] - matrix[1] * matrix[2];
@@ -1285,14 +1297,14 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
         (matrix[1] * matrix[4] - matrix[0] * matrix[5]) / determinant];
       const corners = [[bounds[0], bounds[1]], [bounds[2], bounds[1]], [bounds[2], bounds[3]], [bounds[0], bounds[3]]]
         .map(([x, y]) => transformPoint(inverse, x!, y!));
-      const box = nums("BBox", [0, 0, xStep, yStep]);
+      const box = yield* nums("BBox", [0, 0, xStep, yStep]);
       const ix0 = Math.floor((Math.min(...corners.map(p => p[0])) - box[2]!) / xStep) + 1;
       const ix1 = Math.ceil((Math.max(...corners.map(p => p[0])) - box[0]!) / xStep) - 1;
       const iy0 = Math.floor((Math.min(...corners.map(p => p[1])) - box[3]!) / yStep) + 1;
       const iy1 = Math.ceil((Math.max(...corners.map(p => p[1])) - box[1]!) / yStep) - 1;
       if ((ix1 - ix0 + 1) * (iy1 - iy0 + 1) > 20000) throw new PdfError("E_LIMIT", "Pattern tile count exceeds 20000");
       const nodes = { stream: pattern };
-      const patternResources = doc.resolveDict(dictGet(dict, "Resources")) ?? resources;
+      const patternResources = (yield* resolveEvaluationDict(dictGet(dict, "Resources"))) ?? resources;
       const patternFonts: FontScope = [patternResources, ...activeFonts];
       for (let iy = iy0; iy <= iy1; iy++) {
         for (let ix = ix0; ix <= ix1; ix++) {
@@ -1711,7 +1723,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                   const fm: Matrix6 = font.fontMatrix ?? [0.001, 0, 0, 0.001, 0, 0];
                   const source = { stream: procNode };
                   const firstOp = yield { kind: "node", source };
-                  if (firstOp && (!("kind" in firstOp) || (firstOp.kind === "resolved" || firstOp.kind === "decoded-image" || firstOp.kind === "mask-parameters" || firstOp.kind === "color"))) throw new TypeError("Expected Type3 content event");
+                  if (firstOp && (!("kind" in firstOp) || (firstOp.kind === "resolved" || firstOp.kind === "decoded-image" || firstOp.kind === "mask-parameters" || firstOp.kind === "color" || firstOp.kind === "shading"))) throw new TypeError("Expected Type3 content event");
                   if (!font.widths.has(item.charCode)) {
                     if (
                       firstOp?.kind === "state-op" &&
@@ -1941,6 +1953,11 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
+      } else if (step.value.kind === "shading") {
+        if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF shading requires a source driver");
+        const request = step.value;
+        step = work.next({ kind: "shading", image: renderShadingDictToImage(params.cosDoc, request.dict, request.matrix, request.bounds,
+          request.alpha, request.name, request.clipRect, request.stream, request.blendMode) });
       } else if (step.value.kind === "color") {
         step = work.next({ kind: "color", value: convertColorSpaceComponentsToRgb(params.cosDoc, undefined, step.value.name, step.value.components, step.value.resources) });
       } else if (step.value.kind === "inline-image") {

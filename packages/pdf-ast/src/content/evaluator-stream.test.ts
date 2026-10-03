@@ -425,3 +425,60 @@ it("suspends inline-image decoding while preserving stencil color and placement"
   expect(work.next({ kind: "decoded-image", image: { width: 1, height: 1, bitsPerComponent: 1, colorSpace: "gray", rgba } }).value).toMatchObject({ kind: "paint", operation: { kind: "image", value: { name: "InlineImage", decodedRgba: rgba } } });
   work.return();
 });
+
+it("evaluates tiling patterns through asynchronous metadata and fresh tile cursors", async () => {
+  const { evaluateContentSteps } = await import("./evaluator.js");
+  const { PdfDocument } = await import("../document.js");
+  const { cosArray, cosDict, cosNumber, cosStream } = await import("../ast.js");
+  const { parseContentEvents } = await import("./parser.js");
+  const doc = PdfDocument.create();
+  const nums = (values: number[]) => cosArray(values.map(value => doc.cos.allocateObject(cosNumber(value))));
+  const pattern = doc.cos.allocateObject(cosStream(cosDict({ PatternType: cosNumber(1), PaintType: cosNumber(1), XStep: cosNumber(5), YStep: cosNumber(5),
+    BBox: nums([0, 0, 5, 5]), Matrix: nums([1, 0, 0, 1, 0, 0]),
+  }), new TextEncoder().encode("0 1 0 rg 0 0 3 3 re f")));
+  const resources = cosDict({ Pattern: doc.cos.allocateObject(cosDict({ P: pattern })) });
+  const nodes = parseContentStream(new TextEncoder().encode("/Pattern cs /P scn 0 0 10 10 re f"));
+  const expected = [...evaluateContentStreamSteps({ pageIndex: 0, width: 100, height: 100, cosDoc: doc.cos, resourcesDict: resources, nodes })];
+  const work = evaluateContentSteps({ pageIndex: 0, width: 100, height: 100, resourcesDict: resources });
+  const cursors = new Map<object, Iterator<import("./parser.js").PdfContentEvent>>(), sources = new Set<object>();
+  const input = nodes[Symbol.iterator](), actual = []; let step = work.next();
+  try {
+    while (!step.done) {
+      const request = step.value; await Promise.resolve();
+      if (request.kind === "resolve") step = work.next({ kind: "resolved", node: doc.cos.resolve(request.node) });
+      else if (request.kind === "node") {
+        let cursor = request.source ? cursors.get(request.source) : input;
+        if (!cursor && request.source) { sources.add(request.source); cursor = parseContentEvents(doc.cos.decodeStream(request.source.stream)); cursors.set(request.source, cursor); }
+        const next = cursor!.next(); if (next.done && request.source) cursors.delete(request.source);
+        step = work.next(next.done ? undefined : next.value);
+      } else if (request.kind === "paint") { actual.push(request); step = work.next(); }
+      else throw new Error(`Unexpected request: ${request.kind}`);
+    }
+    expect(actual).toEqual(expected); expect(actual).toHaveLength(4); expect(sources.size).toBe(4); expect(cursors.size).toBe(0);
+  } finally { work.return(); for (const cursor of cursors.values()) cursor.return?.(); }
+});
+
+it.each([false, true])("requests shading rendering with correct page or pattern bounds: %s", async pattern => {
+  const { evaluateContentSteps } = await import("./evaluator.js");
+  const { cosArray, cosDict, cosNumber } = await import("../ast.js");
+  const dict = cosDict();
+  const resources = cosDict({ Shading: cosDict({ S: dict }), Pattern: cosDict({ P: cosDict({ PatternType: cosNumber(2), Shading: dict,
+    Matrix: cosArray([1, 0, 0, 1, 3, 4].map(n => cosNumber(n))),
+  }) }) });
+  const nodes = parseContentStream(new TextEncoder().encode(pattern ? "/Pattern cs /P scn 10 20 10 10 re f" : "/S sh"))[Symbol.iterator]();
+  const work = evaluateContentSteps({ pageIndex: 0, width: 100, height: 80, origin: [10, 20], resourcesDict: resources });
+  let rendered = 0, painted = 0, step = work.next();
+  while (!step.done) {
+    const request = step.value;
+    if (request.kind === "node") step = work.next(nodes.next().value);
+    else if (request.kind === "resolve") step = work.next({ kind: "resolved", node: request.node });
+    else if (request.kind === "shading") {
+      expect(request.dict).toBe(dict); expect(request.bounds).toEqual(pattern ? [10, 20, 20, 30] : [10, 20, 110, 100]);
+      expect(request.matrix).toEqual(pattern ? [1, 0, 0, 1, 3, 4] : [1, 0, 0, 1, 0, 0]);
+      rendered++; await Promise.resolve();
+      step = work.next({ kind: "shading", image: { name: request.name, matrix: [10, 0, 0, 10, 10, 20], width: 1, height: 1, colorSpace: "rgb", bitsPerComponent: 8, decodedRgba: new Uint8Array([0, 255, 0, 255]) } });
+    } else if (request.kind === "paint") { expect(request.operation.kind).toBe("image"); painted++; step = work.next(); }
+    else throw new Error(`Unexpected request: ${request.kind}`);
+  }
+  expect(rendered).toBe(1); expect(painted).toBe(1);
+});

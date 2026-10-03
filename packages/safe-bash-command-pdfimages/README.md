@@ -35,6 +35,17 @@ The workspace entrypoint exports `pdfimagesCommands()` for plugin registration,
 
 Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `PdfimagesLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops and PDF page traversal and image decoding yield to timers and cancellation, including Workers with frozen clocks.
 
+`executePdfimages(context, options)` exposes the same retained handler used by
+the command. Input uses retained range reads; stdin, decoded samples and output
+use the caller's filesystem. Images are decoded one at a time and PNG/TIFF/PNM
+encoders consume rows. Native JPEG, JPX, JBIG2 and CCITT payloads stream with
+sidecars. All results finish staging before publication; each destination is
+published atomically. The filesystem must support retained reads and atomic
+staging, with an existing `TMPDIR` (default `/tmp`). Use an external backend for
+large jobs; a memory filesystem still stores its files in RAM. Intrinsic native
+decoder state remains resident. The Map-based `runPdfimagesCli` and sync helper
+remain optional buffering conveniences.
+
 Output parent directories must already exist. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.
 
 Unknown options, missing option values, invalid numeric values, and extra operands return exit code `99`. Extraction requires an image root; `-list` accepts only the PDF filename. Use `-` as the PDF filename to read stdin. Empty PDF input returns exit code `1`.

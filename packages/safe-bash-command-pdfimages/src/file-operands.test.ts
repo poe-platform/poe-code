@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { it } from "vitest";
 import { Volume } from "memfs";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PdfDocument, cosArray, cosDict, cosName, cosString, cosStream, dictSet } from "@poe-code/pdf-ast";
 import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
 import { createPdfimagesCommand } from "./index.js";
@@ -16,7 +17,7 @@ function fixture(name = "payload.txt") {
   return doc.save();
 }
 
-async function execute(command: ReturnType<typeof createPdfimagesCommand>, args: string[], missing = false, attachment = "payload.txt") {
+async function execute(command: ReturnType<typeof createPdfimagesCommand>, args: string[], _missing = false, attachment = "payload.txt") {
   const volume = new Volume();
   volume.mkdirSync("/work");
   volume.writeFileSync("/work/in.pdf", fixture(attachment));
@@ -24,19 +25,23 @@ async function execute(command: ReturnType<typeof createPdfimagesCommand>, args:
   for (const name of ["out.pdf", "out.html", "out", "out-%d.pdf", "cat", "1", "output"]) volume.writeFileSync(`/work/${name}`, new Uint8Array(10000));
   const reads: string[] = [], errors: Uint8Array[] = [];
   const carrier = createCommandArguments(args);
+  const fs = createMemoryFileSystem(); await fs.mkdir("/work"); await fs.mkdir("/tmp");
+  for (const name of volume.readdirSync("/work") as string[]) await fs.writeFile(`/work/${name}`, new Uint8Array(volume.readFileSync(`/work/${name}`) as Buffer));
   const context = {
     command: command.name, args: carrier.args, argumentValues: carrier, cwd: "/work", env: {},
-    signal: new AbortController().signal, registerCleanup() {},
-    stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} },
+    signal: new AbortController().signal, registerCleanup() {}, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} },
     stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } },
-    fs: {
-      async readFile(path: string) { reads.push(path); return new Uint8Array(volume.readFileSync(path) as Buffer); },
-      async mkdir(path: string) { volume.mkdirSync(path, { recursive: true }); },
-      async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); }
-    }
-  } as unknown as CommandContext;
-  if (!missing && command.name === "pdfdetach") { volume.unlinkSync("/work/out"); volume.mkdirSync("/work/out"); }
+    fs: new Proxy(fs, { get(target, key) {
+      if (key === "openReadFile") return async (...args: Parameters<typeof fs.openReadFile>) => {
+        if (!args[0].startsWith("/tmp/") && !args[0].includes("/.pdf-")) reads.push(args[0]);
+        return target.openReadFile(...args);
+      };
+      if (key === "readFile") return async () => { throw new Error("whole read forbidden"); };
+      const value = Reflect.get(target,key,target); return typeof value === "function" ? value.bind(target) : value;
+    } })
+  } as CommandContext;
   const result = await command.execute(context);
+  for (const entry of await fs.readdir("/work")) if (entry.type === "file") volume.writeFileSync(`/work/${entry.name}`, await fs.readFile(`/work/${entry.name}`));
   return { result, reads, volume, stderr: Buffer.concat(errors).toString() };
 }
 

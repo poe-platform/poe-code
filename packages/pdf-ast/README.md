@@ -63,7 +63,10 @@ explicit masks, matte correction, color keys and stencil fills. Its `rows()`
 iterator yields owned RGBA rows once; completion, errors, early return and
 `close()` release staging. Consume the occurrence before advancing `doc.images()`.
 Raw/decrypted input and intermediate samples/masks use caller-authorized storage;
-no full RGBA plane is collected. Set `maxWorkingBytes`, `maxStagingBytes`,
+no full RGBA plane is collected. `nativeContents()` streams the retained native
+payload and `nativeContents("globals")` streams JBIG2 globals when
+`globalsByteLength` is defined. Read these before rows complete or the owner
+closes; `nativeByteLength` indicates native payload availability. Set `maxWorkingBytes`, `maxStagingBytes`,
 `maxOutputBytes`, `maxDepth`, `chunkBytes` and `signal`. Admission combines codec,
 color, mask and row state; native compressed/decoder state remains intrinsic.
 Document/parser caches, decryption scratch, the caller's current input chunk and

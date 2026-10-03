@@ -26,6 +26,7 @@ it.each([
 ] as const)("assembles retained %s decoding with buffered pixels", async (name, filter) => {
   const f = await open(fixture(name), cosDict({ Filter: cosName(filter), ...(filter === "JBIG2Decode" ? { Width: cosNumber(64), Height: cosNumber(32), ColorSpace: cosName("DeviceGray") } : {}) }));
   const image = await PdfRetainedDecodedImage.open(f.document, f.image, f.storage, { chunkBytes: 31 });
+  expect(await collect(image.nativeContents())).toEqual(fixture(name));
   expect(image.width).toBe(f.expected.width); expect(image.height).toBe(f.expected.height); expect(await collect(image.rows())).toEqual(f.expected.rgba);
   await image.close(); await f.close();
 });
@@ -52,7 +53,9 @@ it("resolves JBIG2 globals from the matching filter parameter slot", async () =>
   const f = await open(encodeAsciiHex(fixture("jbig2-symbols.0000")), cosDict({ Width: cosNumber(64), Height: cosNumber(32), ColorSpace: cosName("DeviceGray"), Filter: cosArray([cosName("ASCIIHexDecode"), cosName("JBIG2Decode")]) }), (doc, dict) => {
     dictSet(dict, "DecodeParms", cosArray([cosDict(), cosDict({ JBIG2Globals: doc.cos.allocateObject(cosStream(fixture("jbig2-symbols.sym"))) })]));
   });
-  const image = await PdfRetainedDecodedImage.open(f.document, f.image, f.storage); expect(await collect(image.rows())).toEqual(f.expected.rgba); await image.close(); await f.close();
+  const image = await PdfRetainedDecodedImage.open(f.document, f.image, f.storage);
+  expect(await collect(image.nativeContents("globals"))).toEqual(fixture("jbig2-symbols.sym"));
+  expect(await collect(image.rows())).toEqual(f.expected.rgba); await image.close(); await f.close();
 });
 it("preserves RGB color keys and caller alpha", async () => {
   const f = await open(new Uint8Array([1, 2, 3, 4, 5, 6, 1, 2, 3, 7, 8, 9]), cosDict({ Mask: cosArray([1, 1, 2, 2, 3, 3].map(n => cosNumber(n))) }));
@@ -154,4 +157,13 @@ it.each(["CalRGB", "Lab", "Separation"])("preserves combined %s color resolution
   const f = await open(new Uint8Array([10,20,30,40,50,60,70,80,90,100,110,120]), cosDict({ ColorSpace: space }));
   const image = await PdfRetainedDecodedImage.open(f.document, f.image, f.storage, { chunkBytes: 3 });
   expect(await collect(image.rows())).toEqual(f.expected.rgba); await image.close(); await f.close();
+});
+it("retains native payloads independently of decoded sample rows", async () => {
+  const { encodeAsciiHex } = await import("../cos/filters.js");
+  const bytes = new Uint8Array([0xff]);
+  const f = await open(encodeAsciiHex(bytes), cosDict({ Filter: cosArray([cosName("ASCIIHexDecode"), cosName("CCITTFaxDecode")]), ColorSpace: cosName("DeviceGray"), Width: cosNumber(8), Height: cosNumber(2), BitsPerComponent: cosNumber(1), DecodeParms: cosArray([cosDict(), cosDict({ K: cosNumber(-1), Columns: cosNumber(8), Rows: cosNumber(2) })]) }));
+  const image = await PdfRetainedDecodedImage.open(f.document, f.image, f.storage, { chunkBytes: 3 });
+  expect(image.nativeByteLength).toBe(1); expect(await collect(image.nativeContents())).toEqual(bytes);
+  expect(await collect(image.rows())).toEqual(f.expected.rgba);
+  await expect(collect(image.nativeContents())).rejects.toThrow("closed"); await image.close(); await f.close();
 });

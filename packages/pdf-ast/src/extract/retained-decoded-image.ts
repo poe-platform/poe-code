@@ -37,7 +37,17 @@ export class PdfRetainedDecodedImage {
   private controller: AbortController | undefined;
   private constructor(readonly width: number, readonly height: number, readonly bitsPerComponent: number,
     readonly color: ResolvedColorSpace, readonly encoding: "image" | "jpeg" | "jpx" | "jbig2" | "ccitt",
-    private readonly produce: () => AsyncGenerator<Uint8Array, void, void>, private readonly dispose: () => Promise<void>) {}
+    private readonly produce: () => AsyncGenerator<Uint8Array, void, void>, private readonly dispose: () => Promise<void>,
+    private readonly nativeSource: PdfFileSource | undefined, private readonly globalsSource: PdfFileSource | undefined) {}
+  get nativeByteLength(): number | undefined { return this.nativeSource?.size; }
+  get globalsByteLength(): number | undefined { return this.globalsSource?.size; }
+  /** Read before rows finish or close releases this owner's staging. */
+  async *nativeContents(kind: "image" | "globals" = "image"): AsyncGenerator<Uint8Array, void, void> {
+    if (this.released) throw new PdfError("E_CAPABILITY", "Retained image is closed");
+    const source = kind === "globals" ? this.globalsSource : this.nativeSource;
+    if (!source) throw new PdfError("E_CAPABILITY", "Retained image has no native payload");
+    yield* source.stream();
+  }
   static async open(document: PdfRetainedDocument, image: Input, storage: PdfIndexStorage, options: PdfRetainedImageDecodeOptions = {}): Promise<PdfRetainedDecodedImage> {
     const controller = new AbortController();
     const signal = options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal;
@@ -116,9 +126,11 @@ export class PdfRetainedDecodedImage {
         { maxWorkingBytes: workingLimit - budget.working, maxStagingBytes: stagingLimit - budget.staged, chunkBytes, onAllocation: charge, ...(signal ? { signal } : {}) });
       const raw = await stage(image.contents({ raw: true }));
       let samples = raw;
+      let nativeSource: PdfFileSource | undefined, globals: PdfFileSource | undefined;
       let first = 0; if (document.encryption) for (let i = 0; i < filters.length; i++) if (filters[i] === "Crypt") first = i + 1;
       for (let i = first; i < filters.length && !(native && pdfImageCodec(filters[i]!)); i++) {
         let decodeError: unknown, readError: unknown; const previous = samples;
+        if (i === index) nativeSource = samples;
         async function* input() { try { yield* previous.stream(0, previous.size, signal); } catch (error) { readError = error; throw error; } }
         const parms = parameters?.kind === "array" ? await resolve(parameters.items[i]) : parameters;
         const filter = filters[i]!;
@@ -139,23 +151,25 @@ export class PdfRetainedDecodedImage {
               { chunkBytes, maxRowBytes: Math.max(0, rowBytes), maxDecodedBytes: stagingLimit, ...(signal ? { signal } : {}) });
           } catch (error) { decodeError = error; throw error; }
         }
-        try { samples = await stage(decode()); if (previous !== raw) await release(previous); }
+        try { samples = await stage(decode()); if (previous !== raw && previous !== nativeSource) await release(previous); }
         catch (error) {
           signal?.throwIfAborted();
           if (readError !== undefined) throw readError;
           if (error !== decodeError || !(error instanceof PdfError) || !["E_CAPABILITY", "E_PARSE"].includes(error.code)) throw error;
-          if (!native) { if (samples !== raw) await release(samples); samples = raw; }
+          if (encoding !== "image") nativeSource ??= samples;
+          if (!native) { if (samples !== raw && samples !== nativeSource) await release(samples); samples = raw; }
           break;
         } finally { budget.working -= filterWorking; owned -= filterWorking; }
       }
-      if (samples !== raw) await release(raw);
+      if (native) nativeSource = samples;
+      if (samples !== raw && raw !== nativeSource) await release(raw);
       const decode = await pairs(dict);
       const colorTransform = parameter?.kind === "dict" ? await resolve(dictGet(parameter, "ColorTransform")) : undefined;
       const codecOptions = { maxWorkingBytes: workingLimit - budget.working, maxOutputBytes: outputLimit, ...(signal ? { signal } : {}) };
       if (encoding === "jpeg") codec = await PdfRetainedJpeg.open(samples, { ...codecOptions, isSourcePdf: true, decode, colorTransform: colorTransform?.kind === "number" ? colorTransform.value : undefined });
       else if (encoding === "jpx") codec = await PdfRetainedJpx.open(samples, { ...codecOptions, ...(colorNode ? { color } : {}) });
       else if (encoding === "jbig2") {
-        const globalsValue = parameter?.kind === "dict" ? await document.lookup(dictGet(parameter, "JBIG2Globals")) : undefined; let globals: PdfFileSource | undefined;
+        const globalsValue = parameter?.kind === "dict" ? await document.lookup(dictGet(parameter, "JBIG2Globals")) : undefined;
         if (globalsValue?.stream && globalsValue.reference) globals = await stage(document.objects.decodeStream(globalsValue.reference.objectNumber, globalsValue.reference.generationNumber));
         codec = await PdfRetainedJbig2.open(samples, width, height, { ...codecOptions, maxWorkingBytes: workingLimit - budget.working, ...(globals ? { globals } : {}) });
       }
@@ -197,7 +211,7 @@ export class PdfRetainedDecodedImage {
           y++; yield row;
         }
       }
-      return new PdfRetainedDecodedImage(width, height, bitsPerComponent, color, encoding, produce, cleanup);
+      return new PdfRetainedDecodedImage(width, height, bitsPerComponent, color, encoding, produce, cleanup, nativeSource, globals);
     } catch (error) { try { await cleanup(); } catch { /* Preserve the primary failure. */ } throw error; }
   }
   rows(): AsyncGenerator<Uint8Array, void, void> {

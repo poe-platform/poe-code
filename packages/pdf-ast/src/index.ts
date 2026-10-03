@@ -59,3 +59,5 @@ export { encodeJpegChunks, type PdfJpegChunkOptions } from "./render/jpeg-stream
 export { encodeRetainedTiff, type PdfRetainedTiffOptions } from "./render/retained-tiff.js";
 
 export { PdfRetainedDecodedImage, type PdfRetainedImageDecodeOptions } from "./extract/retained-decoded-image.js";
+
+export { PdfNameIndex } from "./cos/name-index.js";

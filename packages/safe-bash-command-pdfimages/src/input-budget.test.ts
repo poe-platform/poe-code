@@ -13,7 +13,7 @@ for (const entry of [
     const page = doc.addPage([8, 8]);
     page.drawImage(doc.embedRgbImage(1, 1, new Uint8Array([255, 0, 0])), { x: 0, y: 0, width: 8, height: 8 });
     const input = doc.save();
-    const fs = createMemoryFileSystem();
+    const fs = createMemoryFileSystem(); await fs.mkdir("/tmp");
     await fs.writeFile("/in.pdf", input);
     for (const path of ["/out.pdf", "/out.txt", "/out.html", "/out", "/out-%d.pdf"]) {
       await fs.writeFile(path, new Uint8Array(input.byteLength * 2));

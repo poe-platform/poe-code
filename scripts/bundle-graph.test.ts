@@ -120,7 +120,7 @@ it("preserves XML error identity for a canonical route outside the primary works
     "@poe-code/xml-ast-extra": "/unrelated/index.ts",
   }, external: [] }, canonicalFs);
   const output = await build({ ...graph, stdin: {
-    contents: 'export {parseXml, XmlLimitError} from "@poe-code/xml-ast";', resolveDir: process.cwd(),
+    contents: 'export {parseXml, parseXmlStream, XmlLimitError} from "@poe-code/xml-ast";', resolveDir: process.cwd(),
   }, bundle: true, write: false, platform: "browser", format: "cjs", target: "es2022" });
   const module = { exports: {} as typeof filesystem };
   runInContext(output.outputFiles[0]!.text, createContext({ module, exports: module.exports,
@@ -130,6 +130,8 @@ it("preserves XML error identity for a canonical route outside the primary works
     },
   }));
   expect(module.exports.XmlLimitError).toBe(filesystem.XmlLimitError);
+  expect(typeof module.exports.parseXmlStream).toBe("function");
+  await expect(module.exports.parseXmlStream(["<r>", "<x/>", "</r>"], { maxNodes: 1 })).rejects.toBeInstanceOf(filesystem.XmlLimitError);
   expect(() => module.exports.parseXml("<r><x/></r>", {maxNodes: 1})).toThrow(filesystem.XmlLimitError);
   expect(graph.alias["@poe-code/xml-ast-extra"]).toBe("/unrelated/index.ts");
 });

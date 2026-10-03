@@ -14,7 +14,7 @@ export * from "./fs/object-publication/index.js";
 export * from "./fs/webdav/index.js";
 export * from "./bridge/index.js";
 export * from "./python/index.js";
-export { parseXml, parseXmlSteps, XmlLimitError } from "./xml.js";
+export { parseXml, parseXmlSteps, parseXmlStream, XmlLimitError } from "./xml.js";
 export type { XmlName, XmlAttribute, XmlContent, XmlElement, XmlLimits } from "./xml.js";
 export * from "./contracts/object.js";
 export { ObjectAuthority } from "./fs/object-authority.js";

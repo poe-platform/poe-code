@@ -5,8 +5,8 @@ import { isCanonicalNativeClosure, type NativeClosure } from "./native-assets.js
 export { collectCanonicalNativeAssets } from "./native-assets.js";
 export type { NativeClosure, NativeAssetFiles } from "./native-assets.js";
 
-// Pure JavaScript signing code is part of the self-contained filesystem runtime.
-export const canonicalFsBundledDependencies = ["@noble/hashes"] as const;
+// Portable signing and XML parsing belong to the self-contained filesystem runtime.
+export const canonicalFsBundledDependencies = ["@noble/hashes", "saxes", "xmlchars"] as const;
 
 export const canonicalFsRoutes = [
   {
@@ -134,8 +134,12 @@ export const canonicalXml = {
   workspace: "@poe-code/xml-ast",
   specifier: "poe-code/safe-fs/core",
   source: "packages/xml-ast/src/index.ts",
+  modules: ["index", "stream"],
   types: "dist/types/xml-ast/index.d.ts"
 } as const;
+
+const canonicalXmlSources = canonicalXml.modules.map(name => `${path.posix.dirname(canonicalXml.source)}/${name}.ts`);
+const canonicalXmlTypes = canonicalXml.modules.map(name => `${path.posix.dirname(canonicalXml.types)}/${name}.d.ts`);
 
 export const canonicalFs = {
   workspace: "@poe-code/safe-fs",
@@ -347,7 +351,7 @@ export function findBundleIssues(
     )
   )
     fail("duplicate-packed-runtime");
-  if (Object.keys(metafile.inputs ?? {}).some((input) => input.startsWith("packages/safe-fs/src/") || input === canonicalXml.source))
+  if (Object.keys(metafile.inputs ?? {}).some((input) => input.startsWith("packages/safe-fs/src/") || canonicalXmlSources.includes(input)))
     fail("duplicate-canonical-runtime");
   const emptyTypes = "dist/types/safe-fs/node-unavailable.d.ts";
   if (!metafile.canonicalEmptyTypes?.includes(emptyTypes))
@@ -376,7 +380,7 @@ export function findBundleIssues(
       "fs/s3/registry.ts",
       "fs/s3/authority.ts",
       `platform/${profile}.ts`
-    ].map(singleton => `packages/safe-fs/src/${singleton}`), canonicalXml.source]) {
+    ].map(singleton => `packages/safe-fs/src/${singleton}`), ...canonicalXmlSources]) {
       if (!Object.hasOwn(inputs, source)) continue;
       const copies = Object.entries(outputs).filter(
         ([filename, output]) =>
@@ -437,9 +441,10 @@ export function findBundleIssues(
       if (!packedFiles.has(filename)) fail("unpacked-canonical-output");
       if (
         Object.keys(output.inputs ?? {}).some((input) =>
-          !input.startsWith("packages/safe-fs/src/") && input !== canonicalXml.source &&
+          !input.startsWith("packages/safe-fs/src/") && !canonicalXmlSources.includes(input) &&
           !(path.posix.normalize(input) === input && canonicalFsBundledDependencies.some(dependency =>
-            input.startsWith(`node_modules/${dependency}/`) || input.startsWith(`packages/safe-fs/node_modules/${dependency}/`))))
+            input.startsWith(`node_modules/${dependency}/`) || input.startsWith(`packages/safe-fs/node_modules/${dependency}/`) ||
+            input.startsWith(`packages/xml-ast/node_modules/${dependency}/`))))
       )
         fail("foreign-canonical-input");
       if (output.cssBundle) pending.push(output.cssBundle);
@@ -465,7 +470,7 @@ export function findBundleIssues(
       if (seenTypes.has(filename)) continue;
       seenTypes.add(filename);
       if (
-        (!filename.startsWith("dist/types/safe-fs/") && filename !== canonicalXml.types) ||
+        (!filename.startsWith("dist/types/safe-fs/") && !canonicalXmlTypes.includes(filename)) ||
         path.posix.normalize(filename) !== filename ||
         !filename.endsWith(".d.ts")
       ) {
@@ -516,7 +521,7 @@ export async function collectCanonicalDeclarations(
   const { default: ts } = await import("typescript");
   const declarations = await collectPackageFiles(
     rootDir,
-    ["dist/types/safe-fs/**/*.d.ts", canonicalXml.types],
+    ["dist/types/safe-fs/**/*.d.ts", ...canonicalXmlTypes],
     files
   );
   const canonicalTypes: Record<string, string[]> = {};

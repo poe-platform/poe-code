@@ -1,3 +1,4 @@
+import {blurKernel,blurFloatPixel} from "./blur.js";
 import {ConvolutionPixel} from "./convolve.js";
 import {extendedCoordinate,PixelMedian,trimBackground} from "./canvas-math.js";
 import {SRGB_TO_LINEAR_LUT,linearToSrgbByte,srgbToBwByte,srgbToLab,labToSrgb} from "./color.js";
@@ -1382,24 +1383,8 @@ export function *blurImageSteps(
     }));
   }
   if (sigma < 0.2) return img;
-  const twoSigmaSq = 2 * sigma * sigma;
-  let rIdx = 0;
-  while (rIdx < 5000 && Math.exp(-(rIdx * rIdx) / twoSigmaSq) >= minAmplitude) {
-    if (++work % 16384 === 0) yield;
-    rIdx++;
-  }
-  const radius = Math.max(1, rIdx) - 1;
-  if (radius <= 0) return img;
-  const size = radius * 2 + 1;
-  const kernel = new Float64Array(size);
-  let sum = 0;
-  for (let i = -radius; i <= radius; i++) {
-    if (++work % 16384 === 0) yield;
-    const rawW = Math.exp(-(i * i) / twoSigmaSq);
-    const w = precision === "float" ? rawW : Math.round(20.0 * rawW);
-    kernel[i + radius] = w;
-    sum += w;
-  }
+  const {radius,weights:kernel,shift,half}=blurKernel(sigma,minAmplitude,precision);
+  if(radius<=0) return img;
 
   const { width, height, data } = img;
   const out = new Uint8Array(data.length);
@@ -1431,20 +1416,7 @@ export function *blurImageSteps(
   }
 
   if (precision !== "float") {
-    let maxW = 0;
-    for (let i = 0; i < size; i++) {
-    if (++work % 16384 === 0) yield;
-      if (kernel[i]! > maxW) maxW = kernel[i]!;
-    }
-    const w27 = Math.ceil(Math.log2(maxW / sum) + 1.0);
-    const shift = 7 - w27;
-    const scale = 1 << shift;
-    const half = 1 << (shift - 1);
-    const mant = new Int32Array(size);
-    for (let i = 0; i < size; i++) {
-    if (++work % 16384 === 0) yield;
-      mant[i] = Math.round((kernel[i]! / sum) * scale);
-    }
+    const mant=kernel;
     const temp = new Uint8Array(data.length);
     const blurred = new Uint8Array(data.length);
     for (let y = 0; y < height; y++) {
@@ -1533,7 +1505,6 @@ export function *blurImageSteps(
     return { ...img, data: out };
   }
 
-  for (let i = 0; i < size; i++) { if (++work % 16384 === 0) yield; kernel[i]! /= sum; }
   const temp = new Float32Array(data.length);
 
   for (let y = 0; y < height; y++) {
@@ -1581,34 +1552,8 @@ export function *blurImageSteps(
         a += temp[sIdx + 3]! * w;
       }
       const dIdx = (y * width + x) * 4;
-      const fR = Math.fround(r);
-      const fG = Math.fround(g);
-      const fB = Math.fround(b);
-      const fA = Math.fround(a);
-      if (alreadyPremultiplied) {
-        out[dIdx] = Math.max(0, Math.min(255, Math.trunc(fR)));
-        out[dIdx + 1] = Math.max(0, Math.min(255, Math.trunc(fG)));
-        out[dIdx + 2] = Math.max(0, Math.min(255, Math.trunc(fB)));
-        out[dIdx + 3] = Math.max(0, Math.min(255, Math.trunc(fA)));
-      } else if (usePremul) {
-        if (fA === 0) {
-          out[dIdx] = 0;
-          out[dIdx + 1] = 0;
-          out[dIdx + 2] = 0;
-          out[dIdx + 3] = 0;
-        } else {
-          const factor = Math.fround(255.0 / fA);
-          out[dIdx] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * fR))));
-          out[dIdx + 1] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * fG))));
-          out[dIdx + 2] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * fB))));
-          out[dIdx + 3] = Math.max(0, Math.min(255, Math.trunc(fA)));
-        }
-      } else {
-        out[dIdx] = Math.max(0, Math.min(255, Math.trunc(fR)));
-        out[dIdx + 1] = Math.max(0, Math.min(255, Math.trunc(fG)));
-        out[dIdx + 2] = Math.max(0, Math.min(255, Math.trunc(fB)));
-        out[dIdx + 3] = 255;
-      }
+      const pixel=blurFloatPixel(r,g,b,a,alreadyPremultiplied,usePremul);
+      out[dIdx]=pixel&255;out[dIdx+1]=pixel>>>8&255;out[dIdx+2]=pixel>>>16&255;out[dIdx+3]=pixel>>>24;
     }
   }
   return { ...img, data: out };

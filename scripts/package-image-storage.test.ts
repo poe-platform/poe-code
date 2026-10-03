@@ -127,7 +127,7 @@ it("packs the image PNG filesystem API with canonical public storage and a host-
   const expectedResized = await sharp(input).resize(3, 5, {fit: "contain"}).rotate(90).raw().toBuffer();
   expect([...resizedPixels]).toEqual([...expectedResized]);
   expect(await sharp("/input.png", {filesystem: guarded}).extend({top: 3, bottom: 3, left: 3, right: 3, background: "white"}).median(3).trim({lineArt: true}).toFile("/canvas.png")).toMatchObject({format: "png", width: 13, height: 9, trimOffsetLeft: 0, trimOffsetTop: 0});
-  expect(await sharp("/input.png", {filesystem: guarded}).gamma(2.2).resize(3, 2).convolve({width: 3, height: 3, kernel: [1, 2, 1, 2, 4, 2, 1, 2, 1]}).dilate(2).erode(2).toFile("/filtered.png")).toMatchObject({width: 3, height: 2, format: "png", premultiplied: true});
+  expect(await sharp("/input.png", {filesystem: guarded}).gamma(2.2).resize(3, 2).convolve({width: 3, height: 3, kernel: [1, 2, 1, 2, 4, 2, 1, 2, 1]}).dilate(2).erode(2).blur({sigma: 1.5, precision: "float"}).toFile("/filtered.png")).toMatchObject({width: 3, height: 2, format: "png", premultiplied: true});
   expect([...await sharp(await fs.readFile("/filtered.png")).raw().toBuffer()]).toEqual(Array.from({length: 6}, () => [255, 0, 0, 255]).flat());
   expect(await sharp("/input.png", {filesystem: guarded}).negate({alpha:false}).normalize().png().toFile("/negative.png")).toMatchObject({width: 7, height: 3, format: "png"});
   expect([...await sharp(await fs.readFile("/negative.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [0, 255, 255, 255]).flat());

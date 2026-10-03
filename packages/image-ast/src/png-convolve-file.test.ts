@@ -3,6 +3,11 @@ import sharp from "./index.js";
 import {MemoryFileSystem} from "@poe-code/safe-fs/core";
 const kernel={width:3,height:3,kernel:[1,2,1,2,4,2,1,2,1]};
 const pipelines=[
+ (s:ReturnType<typeof sharp>)=>s.blur(),
+ (s:ReturnType<typeof sharp>)=>s.blur({sigma:1.5,precision:"float"}),
+ (s:ReturnType<typeof sharp>)=>s.blur({sigma:5,precision:"approximate"}),
+ (s:ReturnType<typeof sharp>)=>s.gamma(2.2).resize(9,7).blur({sigma:1.5,precision:"float"}).convolve(kernel),
+ (s:ReturnType<typeof sharp>)=>s.resize(9,7).blur(1.5).convolve(kernel).gamma(2.2),
  (s:ReturnType<typeof sharp>)=>s.convolve(kernel),
  (s:ReturnType<typeof sharp>)=>s.resize(9,7).convolve(kernel),
  (s:ReturnType<typeof sharp>)=>s.gamma(2.2).resize(9,7).median(3).convolve(kernel).modulate({brightness:1.2}),

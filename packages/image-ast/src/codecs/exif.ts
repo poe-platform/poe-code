@@ -1,71 +1,10 @@
-export interface ExifMetadata {
-  readonly orientation?: number;
-  readonly density?: number;
-}
+import {exifMetadataSteps,type ExifMetadata} from "./exif-metadata.js";
+export type {ExifMetadata} from "./exif-metadata.js";
 
-export function parseExifBuffer(raw: Uint8Array): ExifMetadata {
-  let offset = 0;
-  if (
-    raw.length >= 6 &&
-    raw[0] === 0x45 && // E
-    raw[1] === 0x78 && // x
-    raw[2] === 0x69 && // i
-    raw[3] === 0x66 && // f
-    raw[4] === 0x00 &&
-    raw[5] === 0x00
-  ) {
-    offset = 6;
-  }
-  if (raw.length < offset + 8) return {};
-  const sub = raw.subarray(offset);
-  const view = new DataView(sub.buffer, sub.byteOffset, sub.byteLength);
-  const littleEndian = sub[0] === 0x49 && sub[1] === 0x49;
-  const bigEndian = sub[0] === 0x4d && sub[1] === 0x4d;
-  if (!littleEndian && !bigEndian) return {};
-
-  const magic = view.getUint16(2, littleEndian);
-  if (magic !== 0x002a) return {};
-  const ifdOffset = view.getUint32(4, littleEndian);
-  if (ifdOffset + 2 > sub.length) return {};
-
-  const numEntries = view.getUint16(ifdOffset, littleEndian);
-  let orientation: number | undefined;
-  let xRes: number | undefined;
-  let resUnit = 2; // 2 = inches (DPI), 3 = cm (DPCM)
-
-  for (let i = 0; i < numEntries; i++) {
-    const entryPos = ifdOffset + 2 + i * 12;
-    if (entryPos + 12 > sub.length) break;
-    const tag = view.getUint16(entryPos, littleEndian);
-    const type = view.getUint16(entryPos + 2, littleEndian);
-    const valueOffset = view.getUint32(entryPos + 8, littleEndian);
-
-    if (tag === 0x0112) {
-      // Orientation (SHORT = 3)
-      const val = type === 3 ? view.getUint16(entryPos + 8, littleEndian) : valueOffset;
-      if (val >= 1 && val <= 8) orientation = val;
-    } else if (tag === 0x0128) {
-      const val = type === 3 ? view.getUint16(entryPos + 8, littleEndian) : valueOffset;
-      if (val === 2 || val === 3) resUnit = val;
-    } else if (tag === 0x011a && type === 5) {
-      // RATIONAL (two uint32s at valueOffset)
-      if (valueOffset + 8 <= sub.length) {
-        const num = view.getUint32(valueOffset, littleEndian);
-        const den = view.getUint32(valueOffset + 4, littleEndian);
-        if (den > 0) xRes = num / den;
-      }
-    }
-  }
-
-  let density: number | undefined;
-  if (xRes !== undefined && xRes > 0) {
-    density = resUnit === 3 ? Math.round(xRes * 2.54) : Math.round(xRes);
-  }
-
-  return {
-    ...(orientation !== undefined ? { orientation } : {}),
-    ...(density !== undefined ? { density } : {})
-  };
+export function parseExifBuffer(raw:Uint8Array):ExifMetadata {
+  const steps=exifMetadataSteps(raw.length);let next=steps.next();
+  while(!next.done)next=steps.next(raw.subarray(next.value.position,next.value.position+next.value.length));
+  return next.value;
 }
 
 export function buildExifApp1Segment(options: {

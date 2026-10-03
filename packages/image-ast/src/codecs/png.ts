@@ -1,3 +1,4 @@
+import {pngMetadataSteps} from "./png-metadata.js";
 import {PNG_SIGNATURE, makeChunk} from "./png-chunks.js";
 import {paethPredictor, writePngPixel} from "./png-pixels.js";
 import { createByteCodec, transformBytes, ByteCodecError } from "@poe-code/compression";
@@ -23,7 +24,7 @@ function inflatePngIdat(compressed: Uint8Array, target: Uint8Array): Uint8Array 
 }
 
 import type { ImageMetadata, RgbaImage } from "../ast.js";
-import { buildExifApp1Segment, parseExifBuffer } from "./exif.js";
+import { buildExifApp1Segment } from "./exif.js";
 
 
 export function isPngBytes(bytes: Uint8Array): boolean {
@@ -34,101 +35,10 @@ export function isPngBytes(bytes: Uint8Array): boolean {
   return true;
 }
 
-export function readPngMetadata(bytes: Uint8Array): ImageMetadata {
-  if (!isPngBytes(bytes) || bytes.length < 24) {
-    throw new Error("Invalid PNG header");
-  }
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  let width = 0;
-  let height = 0;
-  let bitDepth = 8;
-  let colorType = 6;
-  let interlace = 0;
-  let density = 72;
-  let hasTrns = false;
-  let orientation: number | undefined;
-
-  let pos = 8;
-  while (pos + 8 <= bytes.length) {
-    const len = view.getUint32(pos, false);
-    const type = String.fromCharCode(
-      bytes[pos + 4]!,
-      bytes[pos + 5]!,
-      bytes[pos + 6]!,
-      bytes[pos + 7]!
-    );
-    const dataStart = pos + 8;
-    if (dataStart + len > bytes.length) break;
-    const chunk = bytes.subarray(dataStart, dataStart + len);
-
-    if (type === "IHDR" && len >= 13) {
-      width = view.getUint32(dataStart, false);
-      height = view.getUint32(dataStart + 4, false);
-      bitDepth = chunk[8]!;
-      colorType = chunk[9]!;
-      interlace = chunk[12]!;
-    } else if (type === "pHYs" && len >= 9) {
-      const ppuX = view.getUint32(dataStart, false);
-      const unit = chunk[8]!;
-      if (unit === 1 && ppuX > 0) {
-        density = Math.max(1, Math.round(ppuX * 0.0254));
-      } else if (ppuX > 0) {
-        density = ppuX;
-      }
-    } else if (type === "tRNS") {
-      hasTrns = true;
-    } else if (type === "eXIf" && len >= 8) {
-      const exif = parseExifBuffer(chunk);
-      if (exif.orientation !== undefined) orientation = exif.orientation;
-      if (exif.density !== undefined) density = exif.density;
-    } else if (type === "IDAT" || type === "IEND") {
-      if (type === "IEND") break;
-    }
-    pos = dataStart + len + 4;
-  }
-
-  const channels: 1 | 2 | 3 | 4 =
-    colorType === 6
-      ? 4
-      : colorType === 4
-        ? 2
-        : colorType === 2
-          ? hasTrns
-            ? 4
-            : 3
-          : colorType === 3
-            ? hasTrns
-              ? 4
-              : 3
-            : hasTrns
-              ? 2
-              : 1;
-
-  const hasAlpha = colorType === 6 || colorType === 4 || hasTrns;
-  const space =
-    colorType === 0 || colorType === 4
-      ? bitDepth === 16
-        ? "grey16"
-        : "b-w"
-      : bitDepth === 16
-        ? "rgb16"
-        : "srgb";
-  const depth = bitDepth === 16 ? "ushort" : bitDepth < 8 ? "bit" : "uchar";
-
-  return {
-    format: "png",
-    width,
-    height,
-    space,
-    channels,
-    depth,
-    bitsPerSample: bitDepth,
-    density,
-    hasAlpha,
-    ...(orientation !== undefined ? { orientation } : {}),
-    isProgressive: interlace === 1,
-    size: bytes.byteLength
-  };
+export function readPngMetadata(bytes:Uint8Array):ImageMetadata {
+  const steps=pngMetadataSteps(bytes.length);let next=steps.next();
+  while(!next.done)next=steps.next(bytes.subarray(next.value.position,next.value.position+next.value.length));
+  return next.value;
 }
 
 export function decodePngImage(bytes: Uint8Array): RgbaImage {

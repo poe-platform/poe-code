@@ -1,3 +1,5 @@
+import {pngMetadataSteps} from "./png-metadata.js";
+import {exifMetadataSteps} from "./exif-metadata.js";
 import {PNG_SIGNATURE, makeChunk} from "./png-chunks.js";
 import {buildExifApp1Segment} from "./exif.js";
 import {createByteCodec, defaultRuntime} from "@poe-code/compression";
@@ -49,34 +51,25 @@ async function* chunks(source: ImageByteSource, signal: AbortSignal) {
   }
 }
 
-async function exif(source: ImageByteSource, start: number, length: number, signal: AbortSignal): Promise<{orientation?: number; density?: number}> {
-  if (length < 8) return {};
-  const prefix = await range(source, start, 8, signal);
-  if (prefix[0] === 69 && prefix[1] === 120 && prefix[2] === 105 && prefix[3] === 102 && prefix[4] === 0 && prefix[5] === 0) {start += 6; length -= 6;}
-  if (length < 8) return {};
-  const header = await range(source, start, 8, signal);
-  const little = header[0] === 73 && header[1] === 73;
-  if (!little && !(header[0] === 77 && header[1] === 77)) return {};
-  const view = new DataView(header.buffer);
-  if (view.getUint16(2, little) !== 42) return {};
-  const ifd = view.getUint32(4, little);
-  if (ifd + 2 > length) return {};
-  const count = new DataView((await range(source, start + ifd, 2, signal)).buffer).getUint16(0, little);
-  let orientation: number | undefined, resolution: number | undefined, unit = 2;
-  for (let index = 0; index < count && ifd + 2 + (index + 1) * 12 <= length; index++) {
-    if (index % 64 === 0) await defaultRuntime.yieldTurn(signal);
-    const entry = new DataView((await range(source, start + ifd + 2 + index * 12, 12, signal)).buffer);
-    const tag = entry.getUint16(0, little), type = entry.getUint16(2, little), offset = entry.getUint32(8, little);
-    const value = type === 3 ? entry.getUint16(8, little) : offset;
-    if (tag === 0x0112 && value >= 1 && value <= 8) orientation = value;
-    else if (tag === 0x0128 && (value === 2 || value === 3)) unit = value;
-    else if (tag === 0x011a && type === 5 && offset + 8 <= length) {
-      const ratio = new DataView((await range(source, start + offset, 8, signal)).buffer);
-      const denominator = ratio.getUint32(4, little);
-      if (denominator) resolution = ratio.getUint32(0, little) / denominator;
-    }
+async function exif(source:ImageByteSource,start:number,length:number,signal:AbortSignal) {
+  const steps=exifMetadataSteps(length,start);let next=steps.next(),work=0;
+  while(!next.done) {
+    if(++work%64===0)await defaultRuntime.yieldTurn(signal);
+    next=steps.next(await range(source,next.value.position,next.value.length,signal));
   }
-  return {...(orientation === undefined ? {} : {orientation}), ...(resolution !== undefined && resolution > 0 ? {density: Math.round(resolution * (unit === 3 ? 2.54 : 1))} : {})};
+  return next.value;
+}
+
+/** Read original PNG metadata without decoding pixels or reading compressed payloads. */
+export async function readPngMetadataFromSource(source:ImageByteSource,signal:AbortSignal) {
+  signal.throwIfAborted();
+  if(!Number.isSafeInteger(source.size)||source.size<0)throw new RangeError("Invalid image source size");
+  const steps=pngMetadataSteps(source.size);let next=steps.next(),work=0;
+  while(!next.done) {
+    if(++work%64===0)await defaultRuntime.yieldTurn(signal);
+    next=steps.next(await range(source,next.value.position,next.value.length,signal));
+  }
+  signal.throwIfAborted();return next.value;
 }
 
 async function* inflated(source: ImageByteSource, signal: AbortSignal): AsyncGenerator<Uint8Array> {

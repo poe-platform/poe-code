@@ -14,7 +14,7 @@ for(const kind of ["encoded","raw-bytes","raw-file","text","create","cached"] as
  const text={text:'<span color="red">file bytes</span>',width:53,height:37,rgba:true};
  const create={width:53,height:37,channels:4 as const,background:"blue"};
  const actual=kind==="encoded"?sharp(png,{filesystem:guarded}):kind==="raw-bytes"?sharp(data,{raw,filesystem:guarded}):kind==="raw-file"?sharp("/input",{raw,filesystem:guarded}):kind==="text"?sharp(png,{text,filesystem:guarded}):kind==="create"?sharp(png,{create,filesystem:guarded}):sharp("/input",{filesystem:fs});
- if(kind==="cached") {await actual.metadata();await fs.writeFile("/input",new Uint8Array());}
+ if(kind==="cached") {await actual.toBuffer();await fs.writeFile("/input",new Uint8Array());}
  const expected=await (kind==="text"?sharp(png,{text}):kind==="create"?sharp(png,{create}):kind.startsWith("raw")?sharp(data,{raw}):sharp(png)).resize(31,23).gamma(1.8,2.4).png().toBuffer({resolveWithObject:true});
  const originalWrite=fs.writeFile.bind(fs);
  if(kind==="cached") fs.writeFile=async()=>{throw new Error("whole-file I/O forbidden");};

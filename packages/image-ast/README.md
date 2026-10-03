@@ -77,6 +77,13 @@ the output directory for `.toFile()`, the input directory for file `.stats()`, o
 `.` for byte/generated `.stats()`. Scratch handles close on success, failure and
 cancellation. Async file statistics do not implicitly cache whole input files;
 synchronous statistics require an explicit buffered input.
+`readImageMetadataFromSource(source, signal, options)` inspects PNG, JPEG, BMP,
+Netpbm and raw metadata without rendering pixels. The PNG and JPEG readers are
+also available individually. File `.metadata()` for these formats
+uses retained reads when no transforms are queued, including source version checks
+and handle cleanup. Raw metadata needs only the retained file size. These reads do
+not implicitly cache the file for later operations; explicit buffer outputs keep
+their existing snapshot behavior.
 Use an external backing provider
 for large images; memory-backed storage still retains the pixels in RAM.
 

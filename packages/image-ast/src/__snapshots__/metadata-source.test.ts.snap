@@ -1,0 +1,985 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`preserves PNG metadata 1/0/false 1`] = `
+{
+  "bitsPerSample": 1,
+  "channels": 1,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": false,
+  "height": 19,
+  "isProgressive": true,
+  "orientation": 6,
+  "size": 177,
+  "space": "b-w",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 1/0/true 1`] = `
+{
+  "bitsPerSample": 1,
+  "channels": 2,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": true,
+  "orientation": 6,
+  "size": 189,
+  "space": "b-w",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 1/2/false 1`] = `
+{
+  "bitsPerSample": 1,
+  "channels": 3,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": false,
+  "height": 19,
+  "isProgressive": true,
+  "orientation": 6,
+  "size": 177,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 1/2/true 1`] = `
+{
+  "bitsPerSample": 1,
+  "channels": 4,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": true,
+  "orientation": 6,
+  "size": 189,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 1/3/false 1`] = `
+{
+  "bitsPerSample": 1,
+  "channels": 3,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": false,
+  "height": 19,
+  "isProgressive": true,
+  "orientation": 6,
+  "size": 177,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 1/3/true 1`] = `
+{
+  "bitsPerSample": 1,
+  "channels": 4,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": true,
+  "orientation": 6,
+  "size": 189,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 1/4/false 1`] = `
+{
+  "bitsPerSample": 1,
+  "channels": 2,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": true,
+  "orientation": 6,
+  "size": 177,
+  "space": "b-w",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 1/4/true 1`] = `
+{
+  "bitsPerSample": 1,
+  "channels": 2,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": true,
+  "orientation": 6,
+  "size": 189,
+  "space": "b-w",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 1/6/false 1`] = `
+{
+  "bitsPerSample": 1,
+  "channels": 4,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": true,
+  "orientation": 6,
+  "size": 177,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 1/6/true 1`] = `
+{
+  "bitsPerSample": 1,
+  "channels": 4,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": true,
+  "orientation": 6,
+  "size": 189,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 2/0/false 1`] = `
+{
+  "bitsPerSample": 2,
+  "channels": 1,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": false,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "b-w",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 2/0/true 1`] = `
+{
+  "bitsPerSample": 2,
+  "channels": 2,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "b-w",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 2/2/false 1`] = `
+{
+  "bitsPerSample": 2,
+  "channels": 3,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": false,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 2/2/true 1`] = `
+{
+  "bitsPerSample": 2,
+  "channels": 4,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 2/3/false 1`] = `
+{
+  "bitsPerSample": 2,
+  "channels": 3,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": false,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 2/3/true 1`] = `
+{
+  "bitsPerSample": 2,
+  "channels": 4,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 2/4/false 1`] = `
+{
+  "bitsPerSample": 2,
+  "channels": 2,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "b-w",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 2/4/true 1`] = `
+{
+  "bitsPerSample": 2,
+  "channels": 2,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "b-w",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 2/6/false 1`] = `
+{
+  "bitsPerSample": 2,
+  "channels": 4,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 2/6/true 1`] = `
+{
+  "bitsPerSample": 2,
+  "channels": 4,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 4/0/false 1`] = `
+{
+  "bitsPerSample": 4,
+  "channels": 1,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": false,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "b-w",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 4/0/true 1`] = `
+{
+  "bitsPerSample": 4,
+  "channels": 2,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "b-w",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 4/2/false 1`] = `
+{
+  "bitsPerSample": 4,
+  "channels": 3,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": false,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 4/2/true 1`] = `
+{
+  "bitsPerSample": 4,
+  "channels": 4,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 4/3/false 1`] = `
+{
+  "bitsPerSample": 4,
+  "channels": 3,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": false,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 4/3/true 1`] = `
+{
+  "bitsPerSample": 4,
+  "channels": 4,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 4/4/false 1`] = `
+{
+  "bitsPerSample": 4,
+  "channels": 2,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "b-w",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 4/4/true 1`] = `
+{
+  "bitsPerSample": 4,
+  "channels": 2,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "b-w",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 4/6/false 1`] = `
+{
+  "bitsPerSample": 4,
+  "channels": 4,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 4/6/true 1`] = `
+{
+  "bitsPerSample": 4,
+  "channels": 4,
+  "density": 144,
+  "depth": "bit",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 8/0/false 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 1,
+  "density": 144,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": false,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "b-w",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 8/0/true 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 2,
+  "density": 144,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "b-w",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 8/2/false 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 3,
+  "density": 144,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": false,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 8/2/true 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 4,
+  "density": 144,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 8/3/false 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 3,
+  "density": 144,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": false,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 8/3/true 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 4,
+  "density": 144,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 8/4/false 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 2,
+  "density": 144,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "b-w",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 8/4/true 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 2,
+  "density": 144,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "b-w",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 8/6/false 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 4,
+  "density": 144,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 8/6/true 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 4,
+  "density": 144,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 16/0/false 1`] = `
+{
+  "bitsPerSample": 16,
+  "channels": 1,
+  "density": 144,
+  "depth": "ushort",
+  "format": "png",
+  "hasAlpha": false,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "grey16",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 16/0/true 1`] = `
+{
+  "bitsPerSample": 16,
+  "channels": 2,
+  "density": 144,
+  "depth": "ushort",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "grey16",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 16/2/false 1`] = `
+{
+  "bitsPerSample": 16,
+  "channels": 3,
+  "density": 144,
+  "depth": "ushort",
+  "format": "png",
+  "hasAlpha": false,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "rgb16",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 16/2/true 1`] = `
+{
+  "bitsPerSample": 16,
+  "channels": 4,
+  "density": 144,
+  "depth": "ushort",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "rgb16",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 16/3/false 1`] = `
+{
+  "bitsPerSample": 16,
+  "channels": 3,
+  "density": 144,
+  "depth": "ushort",
+  "format": "png",
+  "hasAlpha": false,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "rgb16",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 16/3/true 1`] = `
+{
+  "bitsPerSample": 16,
+  "channels": 4,
+  "density": 144,
+  "depth": "ushort",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "rgb16",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 16/4/false 1`] = `
+{
+  "bitsPerSample": 16,
+  "channels": 2,
+  "density": 144,
+  "depth": "ushort",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "grey16",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 16/4/true 1`] = `
+{
+  "bitsPerSample": 16,
+  "channels": 2,
+  "density": 144,
+  "depth": "ushort",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "grey16",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 16/6/false 1`] = `
+{
+  "bitsPerSample": 16,
+  "channels": 4,
+  "density": 144,
+  "depth": "ushort",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 177,
+  "space": "rgb16",
+  "width": 17,
+}
+`;
+
+exports[`preserves PNG metadata 16/6/true 1`] = `
+{
+  "bitsPerSample": 16,
+  "channels": 4,
+  "density": 144,
+  "depth": "ushort",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "orientation": 6,
+  "size": 189,
+  "space": "rgb16",
+  "width": 17,
+}
+`;
+
+exports[`preserves truncated PNG metadata at 0 1`] = `"Invalid PNG header"`;
+
+exports[`preserves truncated PNG metadata at 8 1`] = `"Invalid PNG header"`;
+
+exports[`preserves truncated PNG metadata at 23 1`] = `"Invalid PNG header"`;
+
+exports[`preserves truncated PNG metadata at 24 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 0,
+  "isProgressive": false,
+  "size": 24,
+  "space": "srgb",
+  "width": 0,
+}
+`;
+
+exports[`preserves truncated PNG metadata at 28 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 0,
+  "isProgressive": false,
+  "size": 28,
+  "space": "srgb",
+  "width": 0,
+}
+`;
+
+exports[`preserves truncated PNG metadata at 29 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "size": 29,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves truncated PNG metadata at 32 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "size": 32,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves truncated PNG metadata at 33 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "size": 33,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves truncated PNG metadata at 45 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "size": 45,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves truncated PNG metadata at 76 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 4,
+  "density": 144,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "size": 76,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves truncated PNG metadata at 128 1`] = `
+{
+  "bitsPerSample": 8,
+  "channels": 4,
+  "density": 144,
+  "depth": "uchar",
+  "format": "png",
+  "hasAlpha": true,
+  "height": 19,
+  "isProgressive": false,
+  "size": 128,
+  "space": "srgb",
+  "width": 17,
+}
+`;

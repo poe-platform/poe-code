@@ -1,3 +1,4 @@
+import {tryImageMetadata} from "./image-metadata.js";
 import {tryImageStats} from "./image-stats.js";
 import {prepareClaheImage} from "./ops/clahe.js";
 import {orderImageNodes,splitPostScaleNodes,imageAlphaStages} from "./ops/order.js";
@@ -871,6 +872,15 @@ export class SharpInstance extends Duplex {
 
   async metadata(callback?: (err: Error | null, metadata?: ImageMetadata) => void): Promise<ImageMetadata> {
     try {
+      if(this.nodes.length===0 && !this.joinInputs && this.inputFilePath && !this.fileInputs.has(this.inputFilePath) && this.inputOptions?.filesystem) {
+        if(this.streamFailure)throw this.streamFailure;
+        const metadata=await tryImageMetadata(this.inputFilePath,this.inputOptions);
+        if(metadata) {
+          const rotated=metadata.orientation!==undefined && metadata.orientation>=5 && metadata.orientation<=8;
+          const result={...metadata,autoOrient:{width:rotated?metadata.height:metadata.width,height:rotated?metadata.width:metadata.height}};
+          if(callback)callback(null,result);return result;
+        }
+      }
       await this.waitForStreamInput();
       const res = this.metadataSync();
       if (callback) callback(null, res);

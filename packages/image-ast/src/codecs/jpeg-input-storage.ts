@@ -156,7 +156,9 @@ async function payloadBytes(reader: SourceBytes, start: number, length: number) 
   for (let i = 0; i < length; i++) bytes[i] = (await reader.at(start + i))!;
   return bytes;
 }
-async function metadata(source: ImageByteSource, reader: SourceBytes): Promise<ImageMetadata> {
+export async function readJpegMetadataFromSource(source:ImageByteSource,signal:AbortSignal):Promise<ImageMetadata> {
+  signal.throwIfAborted();
+  const reader=new SourceBytes(source,signal,"JPEG");
   if (!isJpegBytes(await payloadBytes(reader, 0, Math.min(3, source.size))))
     throw new Error("Invalid JPEG signature");
   const state: JpegMetadataState = {
@@ -198,6 +200,7 @@ async function metadata(source: ImageByteSource, reader: SourceBytes): Promise<I
     }
     position += length;
   }
+  signal.throwIfAborted();
   const { width, height, channels, isProgressive, density, orientation } = state;
   if (width <= 0 || height <= 0) throw new Error("Invalid JPEG dimensions");
   return {
@@ -224,7 +227,7 @@ export async function decodeJpegToStorage(
   const reader = new SourceBytes(source, signal, "JPEG"),
     window = new EntropyWindow(source, signal),
     cache = new BackingCache(storage, signal);
-  const meta = await metadata(source, reader);
+  const meta = await readJpegMetadataFromSource(source, signal);
   checkLimitInputPixels(meta.width, meta.height, options);
 
   const tables = new JpegTables();

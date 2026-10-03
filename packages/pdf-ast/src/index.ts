@@ -75,3 +75,5 @@ export { resolveRetainedFont, type PdfRetainedFontOptions } from "./fonts/retain
 export * from "./staging-budget.js";
 
 export type { PdfRetainedPageEvaluationOptions } from "./content/retained-page.js";
+
+export { streamRawTextChunks, type PdfRawTextOptions } from "./extract/raw-text-stream.js";

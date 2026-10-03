@@ -1,3 +1,4 @@
+import { glyphDirection, mergeBBox, PdfTextGlyphNormalizer } from "./text-glyphs.js";
 import type {
   PdfDisplayList,
   PdfExtractedPage,
@@ -17,86 +18,14 @@ export interface ExtractTextOptions {
   readonly lineSpacing?: number | undefined;
 }
 
-function mergeBBox(
-  a: readonly [number, number, number, number],
-  b: readonly [number, number, number, number]
-): [number, number, number, number] {
-  return [
-    Math.min(a[0], b[0]),
-    Math.min(a[1], b[1]),
-    Math.max(a[2], b[2]),
-    Math.max(a[3], b[3]),
-  ];
-}
-
-function glyphDirection(g: PdfPlacedGlyph): {
-  readonly ux: number;
-  readonly uy: number;
-  readonly along: number;
-  readonly normal: number;
-} {
-  const a = g.matrix[0] ?? 1;
-  const b = g.matrix[1] ?? 0;
-  const len = Math.hypot(a, b) || 1;
-  const ux = a / len;
-  const uy = b / len;
-  const px = g.matrix[4] ?? g.bbox[0];
-  const py = g.matrix[5] ?? g.baselineY;
-  return {
-    ux,
-    uy,
-    along: px * ux + py * uy,
-    normal: -px * uy + py * ux,
-  };
-}
-
 export function extractPageFromDisplayList(
   displayList: PdfDisplayList,
   options: ExtractTextOptions = {}
 ): PdfExtractedPage {
-  const collapsedGlyphs: PdfPlacedGlyph[] = [];
-  for (let i = 0; i < displayList.glyphs.length; i++) {
-    const g = displayList.glyphs[i]!;
-    if (g.actualText !== undefined) {
-      let mergedBox: [number, number, number, number] = [...g.bbox] as [number, number, number, number];
-      let totalAdv = g.advanceWidth;
-      while (
-        i + 1 < displayList.glyphs.length &&
-        displayList.glyphs[i + 1]!.actualText === g.actualText &&
-        displayList.glyphs[i + 1]!.mcid === g.mcid
-      ) {
-        i++;
-        const nextG = displayList.glyphs[i]!;
-        mergedBox = mergeBBox(mergedBox, nextG.bbox);
-        totalAdv += nextG.advanceWidth;
-      }
-      collapsedGlyphs.push({
-        ...g,
-        unicode: g.actualText,
-        bbox: mergedBox,
-        advanceWidth: totalAdv,
-      });
-    } else {
-      collapsedGlyphs.push(g);
-    }
-  }
-  const glyphs = collapsedGlyphs.filter(g => {
-    if (g.unicode.length === 0) return false;
-    if (options.discardDiagonal) {
-      const dir = glyphDirection(g);
-      if (Math.abs(dir.ux) > 0.1 && Math.abs(dir.uy) > 0.1) {
-        return false;
-      }
-    }
-    if (options.clipText && g.clipRect) {
-      const cx = (g.bbox[0] + g.bbox[2]) / 2;
-      const cy = (g.bbox[1] + g.bbox[3]) / 2;
-      if (cx < g.clipRect[0] || cx > g.clipRect[2] || cy < g.clipRect[1] || cy > g.clipRect[3]) {
-        return false;
-      }
-    }
-    return true;
-  });
+  const glyphs: PdfPlacedGlyph[] = [];
+  const normalizer = new PdfTextGlyphNormalizer(options);
+  for (const glyph of displayList.glyphs) for (const normalized of normalizer.push(glyph)) glyphs.push(normalized);
+  for (const normalized of normalizer.finish()) glyphs.push(normalized);
   if (glyphs.length === 0) {
     return {
       pageIndex: displayList.pageIndex,

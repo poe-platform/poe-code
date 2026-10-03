@@ -58,6 +58,14 @@ preparation and evaluation. Individual paths, composite captures and admitted
 raster images still use the shared resident representation; this is not yet a
 bounded page renderer. Use `page.annotations()` separately for link metadata.
 
+`page.streamRawText(storage, options)` emits UTF-8 raw-mode page text from
+retained evaluation. `streamRawTextChunks(glyphs, storage, options)` formats an
+existing glyph stream the same way. It preserves ActualText, paragraph spacing,
+clipping/diagonal filters and hyphen joining, while staging one line at a time
+to determine its final geometry. `chunkBytes` bounds output buffers;
+`maxWorkingBytes` admits formatter scratch before input is pulled. Page resource
+and rendering allocations still belong to the evaluator described above.
+
 `page.annotations()` pulls link rectangles, contents, and external or internal
 URIs from a retained page. Named and legacy destinations share the buffered
 page API's interpretation. Destination page traversal uses caller-backed

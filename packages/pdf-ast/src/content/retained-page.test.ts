@@ -77,3 +77,12 @@ it("stops all page work when cancelled while holding an appearance image", async
   controller.abort(reason); await expect(work.next()).rejects.toBe(reason);
   expect(await f.storage.fs.readdir("/scratch")).toEqual(before); await f.close();
 });
+
+it("streams raw page text through retained evaluation and caller staging", async () => {
+  const { extractPageFromDisplayList, formatExtractedPageText } = await import("../extract/text.js");
+  const f = await fixture(); const options = { mode: "raw" as const };
+  const expected = formatExtractedPageText(extractPageFromDisplayList(f.expected, options), options);
+  const decoder = new TextDecoder(); let actual = "";
+  for await (const chunk of f.retained.streamRawText(f.storage, { chunkBytes: 32 })) actual += decoder.decode(chunk, { stream: true });
+  actual += decoder.decode(); expect(actual).toBe(expected); expect(f.readFile).not.toHaveBeenCalled(); await f.close();
+});

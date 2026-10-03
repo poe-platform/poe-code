@@ -1,3 +1,4 @@
+import { streamRawTextChunks, type PdfRawTextOptions } from "./extract/raw-text-stream.js";
 import { prepareRetainedPageContent, type PdfRetainedPageEvaluationOptions } from "./content/retained-page.js";
 import { evaluateRetainedContentSteps } from "./content/retained-evaluator.js";
 import { PdfStagingStorage } from "./staging-budget.js";
@@ -345,6 +346,19 @@ export class PdfRetainedPage {
       pageIndex: this.index, width: Math.abs(x1 - x0), height: Math.abs(y1 - y0),
       origin: [Math.min(x0, x1), Math.min(y0, y1)], rotation: attributes.rotation, resourcesDict: prepared.resources,
     }, shared, configured);
+  }
+
+  /** Stream UTF-8 raw-mode page text; share staging with content and resource
+   * evaluation so a staged line cannot exceed the enclosing scratch allowance. */
+  async *streamRawText(storage: PdfIndexStorage, options: PdfRetainedPageEvaluationOptions & PdfRawTextOptions = {}): AsyncGenerator<Uint8Array, void, void> {
+    const shared = new PdfStagingStorage(storage, options.maxStagingBytes);
+    const operations = this.evaluateSteps(shared, options);
+    async function* glyphs() {
+      for await (const event of operations) {
+        if (!event.insideSoftMask && event.operation.kind === "glyph") yield event.operation.value;
+      }
+    }
+    yield* streamRawTextChunks(glyphs(), shared, options);
   }
 
   /** Pull one annotation at a time. Destination page lookup uses the document's

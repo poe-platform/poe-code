@@ -73,15 +73,23 @@ test("output errors and random-source exhaustion do not truncate input before pe
   assert.equal((await fs.readFile("/input")).length, 0);
 });
 
-test("readFile-only VFS works for both records and entropy", async () => {
-  const fs = createMemoryFileSystem();
-  await fs.writeFile("/in", Buffer.from("a\nb\nc\n"));
-  await fs.writeFile("/random", entropy);
-  Object.defineProperty(fs, "readStream", { value: undefined });
-  Object.defineProperty(fs, "openReadFile", { value: undefined });
-  const actual = await run(["--random-source=/random", "/in"], undefined, undefined, { fs });
+test("retained-read VFS works for both records and entropy and readFile-only VFS is rejected", async () => {
+  const memory = createMemoryFileSystem();
+  await memory.writeFile("/in", Buffer.from("a\nb\nc\n"));
+  await memory.writeFile("/random", entropy);
+  const retainedOnly = new Proxy(memory, { get(target, key) {
+    if (key === "readStream") return undefined;
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const actual = await run(["--random-source=/random", "/in"], undefined, undefined, { fs: retainedOnly });
   assert.equal(actual.exitCode, 0);
   assert.equal(actual.stdout.length, 6);
+  Object.defineProperty(memory, "readStream", { value: undefined });
+  Object.defineProperty(memory, "openReadFile", { value: undefined });
+  const unsupported = await run(["--random-source=/random", "/in"], undefined, undefined, { fs: memory });
+  assert.equal(unsupported.exitCode, 1);
+  assert.match(unsupported.stderr, /Operation not supported/);
 });
 
 test("owned byte argv preserve distinct invalid UTF-8 and embedded delimiters", async () => {
@@ -243,8 +251,8 @@ test("secure system entropy is used and its failure is propagated", async contex
     assert.equal(mock.mock.callCount(), 1);
     assert.equal(mock.mock.calls[0]!.this, globalThis.crypto);
     const seed = mock.mock.calls[0]!.arguments[0];
-    assert.ok(seed instanceof Uint32Array);
-    assert.equal(seed.length, 4);
+    assert.ok(seed instanceof Uint8Array);
+    assert.equal(seed.length, 4096);
   } finally { mock.mock.restore(); }
 });
 

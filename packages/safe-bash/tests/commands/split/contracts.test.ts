@@ -352,19 +352,39 @@ test("writeFile-only fallback has bounded per-segment publication", async () => 
   assert.equal(Buffer.from(await fs.readFile("/yaa")).toString(), "UNCHANGED");
 });
 
-test("readFile fallback receives and enforces byte cap", async () => {
+test("retained-range fallback receives chunk cap and readFile-only VFS is rejected", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/input", Buffer.from("abcdef"));
   let maximum: number | undefined;
-  const fallback = wrapped(fs, { capabilities: { ...fs.capabilities, streamingRead: false }, async readFile(path, options) {
-    maximum = options?.maxBytes;
-    return fs.readFile(path);
-  } });
-  const result = await run(["-b2", "input"], "", { limits: { maxBufferBytes: 3 } }, { fs: fallback });
+  const fallback = wrapped(fs, {
+    capabilities: { ...fs.capabilities, streamingRead: false },
+    readStream: undefined,
+    async openReadFile(path, options) {
+      const handle = await fs.openReadFile!(path, options);
+      return {
+        ...handle,
+        async read(position, maxBytes, readOptions) {
+          maximum = maxBytes;
+          return handle.read(position, maxBytes, readOptions);
+        },
+      };
+    },
+    async readFile() { throw new Error("whole-file fallback must not run"); },
+  });
+  const result = await run(["-b2", "input"], "", { limits: { maxChunkBytes: 3, maxInputBytes: 3 } }, { fs: fallback });
   assert.equal(maximum, 3);
   assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /read buffer limit/);
-  assert.deepEqual(await files(fs), { input: "616263646566" });
+  assert.match(result.stderr, /split input limit exceeded/);
+  const unsupported = await run(["-b2", "input"], "", {}, {
+    fs: wrapped(fs, {
+      capabilities: { ...fs.capabilities, streamingRead: false, retainedRead: false },
+      readStream: undefined,
+      openReadFile: undefined,
+      async readFile() { throw new Error("whole-file fallback must not run"); },
+    }),
+  });
+  assert.equal(unsupported.exitCode, 1);
+  assert.match(unsupported.stderr, /operation not supported/i);
 });
 
 test("streaming writer applies backpressure and owns yielded buffers", async () => {

@@ -1010,7 +1010,7 @@ for (const streaming of [false, true]) {
     let closed = false;
     const readOnly = readOnlyArchive(fs).fs;
     const overrides: Partial<FileSystem> = {
-      capabilities: { ...readOnly.capabilities, streamingRead: streaming },
+      capabilities: { ...readOnly.capabilities, retainedRead: !streaming, streamingRead: streaming },
       async openReadFile() { return {
         async stat() { return fs.stat("/work/sample.zip"); },
         async read(position, maximum) { entered(); await held; return bytes.subarray(position, position + maximum); },

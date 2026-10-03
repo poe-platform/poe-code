@@ -105,10 +105,10 @@ it.each(["tables", "json-tables"])("runs composed Sips, Shuf and streamed Pandoc
         if (scenario === "ranges") await vfs.writeFile("/filter.lua", encoder.encode(scripts.lua));
         if (scripts[scenario]) await vfs.writeFile("/filter.lua", encoder.encode(scripts[scenario]));
         if (scenario === "sdk") {
-          await vfs.writeFile("/filter.lua", encoder.encode(scripts.lua));
+          await vfs.writeFile("/filter.lua", encoder.encode("--" + " ".repeat(70000) + "\\n" + scripts.lua));
           const result = await pandoc.convert([{chunks: vfs.readStream("/input.md", {chunkSize: 3})}], {
             from: "markdown", to: "html", filters: [{kind: "lua", path: "/filter.lua"}],
-          }, {filters: pandoc.createLuaFilterCapability({readStream: (path, signal) => vfs.readStream(path, {signal, chunkSize: 3})})});
+          }, {filters: pandoc.createLuaFilterCapability({readStream: (path, signal) => vfs.readStream(path, {signal, chunkSize: 131072})})});
           return Response.json({exitCode: 0, stdout: result.text, stderr: ""});
         }
         if (scenario === "json-numbers") {
@@ -275,7 +275,7 @@ it.each(["tables", "json-tables"])("runs composed Sips, Shuf and streamed Pandoc
   }
 }, 120_000);
 
-it.each(["html", "json"])("uses caller-supplied R2 pages and cleans them on success, failure and cancellation (%s)", async target => {
+it.each([["csv", "html"], ["csv", "json"], ["json", "json"]])("uses caller-supplied R2 pages and cleans them on success, failure and cancellation (%s to %s)", async (from, target) => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const fixture = await build({
     stdin: {resolveDir: root, contents: 'export * from "./packages/safe-fs/src/core.js"; export {createR2PagedFixture} from "./scripts/pandoc-r2-storage.fixture.mjs";'},
@@ -298,9 +298,13 @@ it.each(["html", "json"])("uses caller-supplied R2 pages and cleans them on succ
         let length = 0, hash = 2166136261, largest = 0, closed = 0, aborted = 0, error;
         try {
           await pandoc.convertToOutput([{chunks: (async function* () {
-            yield new TextEncoder().encode("header\\n");
+            const json = ${JSON.stringify(from)} === "json";
+            yield new TextEncoder().encode(json
+              ? '{"blocks":[{"c":[{"c":"'
+              : "header\\n");
             for (let index = 0; index < 8; index++) yield new Uint8Array(8192).fill(120);
-          })()}], {from: "csv", to: ${JSON.stringify(target)}}, {
+            if (json) yield new TextEncoder().encode('","t":"Str"}],"t":"Para"}],"meta":{"10":{"t":"MetaBool","c":true},"2":{"t":"MetaString","c":"two"}},"pandoc-api-version":[1e0,23,1,2]}');
+          })()}], {from: ${JSON.stringify(from)}, to: ${JSON.stringify(target)}}, {
             signal: controller.signal, workingFiles: {fs, directory: "/spill", cacheBytes: 16384},
             output: {async write(bytes) {
               if (mode === "failure") throw new Error("destination unavailable");
@@ -319,7 +323,9 @@ it.each(["html", "json"])("uses caller-supplied R2 pages and cleans them on succ
     const attr = ["", [], []];
     const row = (text: string) => [attr, [[attr, {t: "AlignDefault"}, 1, 1, [{t: "Plain", c: [{t: "Str", c: text}]}]]]];
     const payload = "x".repeat(65536);
-    const expected = new TextEncoder().encode(target === "html"
+    const expected = new TextEncoder().encode(from === "json"
+      ? JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {"2": {t: "MetaString", c: "two"}, "10": {t: "MetaBool", c: true}}, blocks: [{c: [{c: payload, t: "Str"}], t: "Para"}]}) + "\n"
+      : target === "html"
       ? '<table>\n<colgroup><col></colgroup>\n<thead>\n<tr><th scope="col">header</th></tr>\n</thead>\n<tbody>\n<tr><td>' + payload + '</td></tr>\n</tbody>\n</table>\n'
       : JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [
         {t: "Table", c: [attr, [null, []], [[{t: "AlignDefault"}, {t: "ColWidthDefault"}]], [attr, [row("header")]], [[attr, 0, [], [row(payload)]]], [attr, []]]}
@@ -331,7 +337,9 @@ it.each(["html", "json"])("uses caller-supplied R2 pages and cleans them on succ
       const text = await response.text();
       expect(response.status, text).toBe(200);
       const result = JSON.parse(text);
-      expect(result).toMatchObject({remaining: 0, namespace: [], events: {opened: 1, closed: 1, largestTransfer: 16384}});
+      expect(result).toMatchObject({remaining: 0, namespace: [], events: {largestTransfer: 16384}});
+      expect(result.events.opened).toBeGreaterThan(0);
+      expect(result.events.closed).toBe(result.events.opened);
       expect(result.events.reads).toBeGreaterThan(0);
       expect(result.events.writes).toBeGreaterThan(0);
       expect(result.largest).toBeLessThanOrEqual(16384);

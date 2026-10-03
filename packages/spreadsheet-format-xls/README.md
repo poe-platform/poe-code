@@ -26,8 +26,8 @@ The explicit byte-array API remains available. Retained imports index BIFF recor
 headers and per-sheet selections in caller storage and load record payloads on
 demand. Decrypted replacements use fixed staging blocks, with transient plaintext
 erased after staging. Shared-string CONTINUE payloads decode one record at a time.
-Workbook cells, shared strings, formula/style state, stream
-names and interpreted property/encryption payloads still remain resident; this
+Decoded shared text and rich runs use caller storage with fixed descriptor and
+payload windows for lookup. Workbook cells, formula/style state, stream names and interpreted property/encryption payloads still remain resident; this
 does not yet provide bounded memory for the complete conversion.
 BIFF editing preserves the workbook Normal style and font-aware column widths,
 including sheet defaults. Change `sheet.view.defaultColumnWidth` in points and

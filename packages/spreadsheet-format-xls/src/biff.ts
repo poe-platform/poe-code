@@ -1,3 +1,4 @@
+import { createBiffSharedStrings } from "./biff-shared-strings.js";
 import { biffRecord, createBiffRecordSelections, type BiffRecords, type BiffRecordSelection } from "./biff-record-storage.js";
 import { readBiffRange } from "./biff-range.js";
 import { biffExternalNameExpression } from "./biff-external-definitions.js";
@@ -166,6 +167,7 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
   };
   const formatTable = new Map<number, string>(Object.entries(formats).map(([id, code]) => [Number(id), code]));
   const sharedStrings: { text: string; richText?: readonly RichTextRun[] }[] = [];
+  const storedStrings = "get" in records ? createBiffSharedStrings(context) : undefined;
   const scopes: { type: number; sheet?: PendingSheet; revision: number }[] = [];
   let lastFormula: PendingCell | undefined;
   let groupCount = 0;
@@ -292,7 +294,7 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
           for (let at = start + 1; await stored.opcode(at) === 0x3c; at++) yield (await stored.get(at))!.data;
         }
         for await (const value of readBiffStrings(parts(), count, context, codepage)) {
-          accountText(value.text); sharedStrings.push(value);
+          accountText(value.text); await storedStrings!.append(value);
         }
         while (await stored.opcode(index + 1) === 0x3c) index++;
       } else {
@@ -446,7 +448,7 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
         { kind: "error", value: biffErrors[data.u8(start)] ?? "#UNKNOWN!" } : { kind: "boolean", value: !!data.u8(start) });
       else if (opcode === 0x27e) addCell(sheet, data, { kind: "number", value: rk(data.u32(6)) });
       else if (opcode === 0xfd) {
-        const string = sharedStrings[data.u32(6)]; if (!string) invalidBiff("invalid shared string index");
+        const string = storedStrings ? await storedStrings.get(data.u32(6)) : sharedStrings[data.u32(6)]; if (!string) invalidBiff("invalid shared string index");
         addCell(sheet, data, { kind: "string", value: string.text }, string.richText ? { richText: string.richText } : {});
       } else {
         const length = opcode === 4 ? data.u8(7) : data.u16(6), parts = await stringParts(index, 8); index = parts.next;

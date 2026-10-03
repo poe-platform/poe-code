@@ -68,6 +68,8 @@ test("retained BIFF ingestion does not collect shared-string CONTINUE payloads",
   const push = Array.prototype.push;
   Array.prototype.push = function(this: unknown[], ...items: unknown[]) {
     if (items.some(item => item instanceof Binary)) throw new Error("retained CONTINUE payload collection");
+    if (items.some(item => item && typeof item === "object" && "text" in item && Object.keys(item).every(key => key === "text" || key === "richText")))
+      throw new Error("retained shared string table");
     return push.apply(this, items);
   };
   try {

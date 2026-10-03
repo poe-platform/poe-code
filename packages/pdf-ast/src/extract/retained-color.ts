@@ -1,6 +1,6 @@
 import { readBytes } from "@poe-code/safe-fs/contracts";
 import { cosName, cosNumber, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream } from "../ast.js";
-import { convertContentColorSteps, evalShadingFunctionToComponents } from "../content/evaluator.js";
+import { convertContentColorSteps, evalShadingFunctionToComponents, evaluateMaskTransfer, resolveMaskParameterSteps, type PdfMaskParameterRequest } from "../content/evaluator.js";
 import { createCalibratedColorSpace } from "../content/calibrated-color.js";
 import { decodePdfStreamChunks } from "../cos/filter-stream.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
@@ -156,8 +156,18 @@ export async function resolveRetainedImageColor(document: PdfRetainedDocument, n
 export async function convertRetainedContentColor(document: PdfRetainedDocument, node: PdfCosNode | undefined,
   name: string, components: readonly number[], resources: PdfCosDict | undefined, storage: PdfIndexStorage,
   options: PdfRetainedColorOptions = {}): Promise<[number, number, number]> {
-  const { resolve, decode, snapshot, context } = createRetainedColorAccess(document, storage, options);
-  const work = convertContentColorSteps(true, node, name, components, resources);
+  return runRetainedColorProgram(document, storage, options, convertContentColorSteps(true, node, name, components, resources));
+}
+
+/** Resolve only mask backdrop and transfer state, without decoding the Form. */
+export async function resolveRetainedMaskParameters(document: PdfRetainedDocument, mask: PdfCosDict, form: PdfCosStream,
+  resources: PdfCosDict | undefined, storage: PdfIndexStorage, options: PdfRetainedColorOptions = {}) {
+  return runRetainedColorProgram(document, storage, options, resolveMaskParameterSteps(mask, form, resources));
+}
+
+async function runRetainedColorProgram<T>(document: PdfRetainedDocument, storage: PdfIndexStorage, options: PdfRetainedColorOptions,
+  work: Generator<PdfMaskParameterRequest, T, unknown>): Promise<T> {
+  const { resolve, decode, snapshot, context, charge } = createRetainedColorAccess(document, storage, options);
   try {
     let step = work.next();
     while (!step.done) {
@@ -167,7 +177,11 @@ export async function convertRetainedContentColor(document: PdfRetainedDocument,
       if (request.kind === "resolve") result = await resolve(request.node);
       else if (request.kind === "decode") result = await decode(request.stream, request.length, request.start);
       else if (request.kind === "calibrated") result = createCalibratedColorSpace(context, request.family, await snapshot(request.parameters));
-      else result = evalShadingFunctionToComponents(context, await snapshot(request.node), request.components);
+      else if (request.kind === "transfer") {
+        const transfer = await snapshot(request.node);
+        charge(256);
+        result = evaluateMaskTransfer(context, transfer!);
+      } else result = evalShadingFunctionToComponents(context, await snapshot(request.node), request.components);
       options.signal?.throwIfAborted();
       step = work.next(result);
     }

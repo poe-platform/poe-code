@@ -5,7 +5,7 @@ import { PdfDocument } from "../document.js";
 import { PdfRetainedDocument } from "../retained-document.js";
 import { PdfFileSource } from "../source.js";
 import { encodeFlate } from "../cos/filters.js";
-import { resolveRetainedImageColor } from "./retained-color.js";
+import { resolveRetainedMaskParameters, resolveRetainedImageColor } from "./retained-color.js";
 import { decodeSamplesToRgbaSteps } from "./images.js";
 import { drainWork } from "../work.js";
 
@@ -33,7 +33,7 @@ async function fixture() {
   const storage = { fs, directory: "/scratch" };
   const doc = await PdfRetainedDocument.open(source, storage, { chunkBytes: 32, cacheBytes: 64 });
   const retained = (await doc.pages().next()).value!;
-  return { doc, resources: (await retained.attributes()).resources, storage, palette, unused,
+  return { doc, resources: (await retained.attributes()).resources, storage, palette, unused, sampled,
     async close() { await doc.close(); await source.close(); expect(await fs.readdir("/scratch")).toEqual([]); } };
 }
 it("resolves only the requested resource color and decoded palette", async () => {
@@ -133,4 +133,58 @@ it("validates the palette tail and preserves cancellation and owner rejection", 
     const controller = new AbortController(); controller.abort(failure);
     await expect(convertRetainedContentColor(f.doc, undefined, "DeviceRGB", [1, 0, 0], undefined, f.storage, { signal: controller.signal })).rejects.toBe(failure);
   } finally { await f.close(); }
+});
+
+it("resolves soft-mask backdrop and transfer without reading Form payloads", async () => {
+  const f = await fixture();
+  const decode = vi.spyOn(f.doc.objects, "decodeStream");
+  const form = cosStream(cosDict({ Group: cosDict({ CS: cosName("DeviceRGB") }) }), new Uint8Array([255]));
+  const mask = cosDict({ BC: cosArray([0.25, 0.5, 0.75].map(value => cosNumber(value))), TR: cosDict({
+    FunctionType: cosNumber(2), C0: cosArray([cosNumber(1)]), C1: cosArray([cosNumber(0)]), N: cosNumber(1),
+  }) });
+  const result = await resolveRetainedMaskParameters(f.doc, mask, form, f.resources, f.storage);
+  expect(result.backdrop).toEqual({ r: 0.25, g: 0.5, b: 0.75 });
+  expect(result.transferMap).toEqual(Uint8Array.from({ length: 256 }, (_, i) => Math.floor(Math.fround(1 - Math.fround(i / 255)) * 255)));
+  expect(decode).not.toHaveBeenCalled();
+  await f.close();
+});
+it("admits mask transfer storage before allocation and preserves rejection identity", async () => {
+  const f = await fixture(); const rejection = { rejected: true };
+  const mask = cosDict({ TR: cosDict({ FunctionType: cosNumber(2), N: cosNumber(1) }) });
+  const form = cosStream(cosDict(), new Uint8Array());
+  await expect(resolveRetainedMaskParameters(f.doc, mask, form, f.resources, f.storage, {
+    onAllocation(bytes) { if (bytes === 256) throw rejection; },
+  })).rejects.toBe(rejection);
+  const abort = new AbortController(); abort.abort(rejection);
+  await expect(resolveRetainedMaskParameters(f.doc, mask, form, f.resources, f.storage, { signal: abort.signal })).rejects.toBe(rejection);
+  await f.close();
+});
+
+it("decodes an indirect sampled mask transfer once and retains exact bytes", async () => {
+  const f = await fixture(); const decode = vi.spyOn(f.doc.objects, "decodeStream");
+  const result = await resolveRetainedMaskParameters(f.doc, cosDict({ TR: f.sampled }), cosStream(cosDict(), new Uint8Array()), f.resources, f.storage);
+  expect(result.transferMap?.[0]).toBe(255);
+  expect(result.transferMap?.[255]).toBe(0);
+  expect(decode.mock.calls.map(call => call[0])).toEqual([f.sampled.objectNumber]);
+  await f.close();
+});
+
+it("shares admission across mask backdrop and transfer resolution", async () => {
+  const f = await fixture();
+  const mask = cosDict({ BC: cosArray([cosNumber(1)]), TR: f.sampled });
+  const form = cosStream(cosDict({ Group: cosDict({ CS: cosName("Palette") }) }), new Uint8Array());
+  let admitted = 0;
+  const result = await resolveRetainedMaskParameters(f.doc, mask, form, f.resources, f.storage, { onAllocation(bytes) { admitted += bytes; } });
+  expect(result.backdrop).toEqual({ r: 0, g: 1, b: 0 });
+  await expect(resolveRetainedMaskParameters(f.doc, mask, form, f.resources, f.storage, { maxWorkingBytes: admitted - 1 })).rejects.toThrow("limit");
+  expect(await resolveRetainedMaskParameters(f.doc, mask, form, f.resources, f.storage, { maxWorkingBytes: admitted })).toEqual(result);
+  await f.close();
+});
+it("preserves late mask transfer decode failures and cleans staging", async () => {
+  const f = await fixture(); const rejection = new Error("transfer tail"); let closed = false;
+  vi.spyOn(f.doc.objects, "decodeStream").mockImplementation(async function* () {
+    try { yield new Uint8Array([255, 0, 0]); throw rejection; } finally { closed = true; }
+  });
+  await expect(resolveRetainedMaskParameters(f.doc, cosDict({ TR: f.sampled }), cosStream(cosDict(), new Uint8Array()), f.resources, f.storage)).rejects.toBe(rejection);
+  expect(closed).toBe(true); await f.close();
 });

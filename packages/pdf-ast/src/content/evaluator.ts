@@ -277,7 +277,9 @@ function* resolveColorNode(node: PdfCosNode | undefined, kind?: PdfCosNode["kind
   return kind && value?.kind !== kind ? undefined : value;
 }
 
-function runColorProgram<T>(doc: ParsedCosDocument | undefined, work: ColorWork<T>): T {
+export type PdfMaskParameterRequest = PdfColorRequest | { readonly kind: "transfer"; readonly node: PdfCosNode };
+
+function runColorProgram<T>(doc: ParsedCosDocument | undefined, work: Generator<PdfMaskParameterRequest, T, unknown>): T {
   try {
     let step = work.next();
     while (!step.done) {
@@ -290,6 +292,7 @@ function runColorProgram<T>(doc: ParsedCosDocument | undefined, work: ColorWork<
           step = work.next(Number.isSafeInteger(request.start) && request.start >= 0 ? bytes.subarray(request.start, request.start + request.length) : new Uint8Array());
         }
         else if (request.kind === "calibrated") step = work.next(createCalibratedColorSpace(doc, request.family, request.parameters));
+        else if (request.kind === "transfer") step = work.next(evaluateMaskTransfer(doc, request.node));
         else step = work.next(evalShadingFunctionToComponents(doc, request.node, request.components));
       }
     }
@@ -852,18 +855,26 @@ export function* optionalContentVisibilitySteps(ocNode: PdfCosNode | undefined):
   return yield* isSingleOcgOn(ocNode);
 }
 
-function resolveMaskParameters(doc: ParsedCosDocument, mask: PdfCosDict, form: PdfCosStream, activeResources: PdfCosDict | undefined): Pick<PdfSoftMask, "backdrop" | "transferMap"> {
-  const group = doc.resolveDict(dictGet(form.dict, "Group"));
+export function evaluateMaskTransfer(doc: ParsedCosDocument, transfer: PdfCosNode): Uint8Array {
+  return Uint8Array.from({ length: 256 }, (_, i) => Math.floor(kClamp(Math.fround(evalShadingFunctionToComponents(doc, transfer, Math.fround(i / 255))[0] ?? 0)) * 255));
+}
+
+export function* resolveMaskParameterSteps(mask: PdfCosDict, form: PdfCosStream, activeResources: PdfCosDict | undefined): Generator<PdfMaskParameterRequest, Pick<PdfSoftMask, "backdrop" | "transferMap">, unknown> {
+  const group = yield* resolveColorNode(dictGet(form.dict, "Group"), "dict");
   const colorSpace = group ? dictGet(group, "CS") : undefined;
-  const bc = doc.resolveArray(dictGet(mask, "BC"));
-  const components = bc?.items.map(item => {
-    const value = doc.resolve(item);
-    return value?.kind === "number" ? value.value : 0;
-  });
-  const [r, g, b] = components ? runColorProgram(doc, convertContentColorSteps(Boolean(doc), colorSpace, "DeviceRGB", components, activeResources)) : [0, 0, 0];
-  const transfer = doc.resolve(dictGet(mask, "TR"));
+  const bc = yield* resolveColorNode(dictGet(mask, "BC"), "array");
+  let components: number[] | undefined;
+  if (bc) {
+    components = [];
+    for (const item of bc.items) {
+      const value = yield* resolveColorNode(item);
+      components.push(value?.kind === "number" ? value.value : 0);
+    }
+  }
+  const [r, g, b] = components ? yield* convertContentColorSteps(true, colorSpace, "DeviceRGB", components, activeResources) : [0, 0, 0];
+  const transfer = yield* resolveColorNode(dictGet(mask, "TR"));
   const transferMap = transfer?.kind === "dict" || transfer?.kind === "stream"
-    ? Uint8Array.from({ length: 256 }, (_, i) => Math.floor(kClamp(Math.fround(evalShadingFunctionToComponents(doc, transfer, Math.fround(i / 255))[0] ?? 0)) * 255))
+    ? (yield { kind: "transfer", node: transfer }) as Uint8Array
     : undefined;
   return { backdrop: { r, g, b }, transferMap };
 }
@@ -2000,7 +2011,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
         step = work.next({ kind: "decoded-image", image: decodeInlineImageNodeToRgba(params.cosDoc, step.value.dict, step.value.data, step.value.resources, step.value.fillColor) });
       } else if (step.value.kind === "mask-parameters") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF soft-mask parameters require a source driver");
-        step = work.next({ kind: "mask-parameters", value: resolveMaskParameters(params.cosDoc, step.value.mask, step.value.form, step.value.resources) });
+        step = work.next({ kind: "mask-parameters", value: runColorProgram(params.cosDoc, resolveMaskParameterSteps(step.value.mask, step.value.form, step.value.resources)) });
       } else if (step.value.kind === "image") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF image decoding requires a source driver");
         step = work.next({ kind: "decoded-image", image: decodeXObjectImageToRgba(params.cosDoc, step.value.stream, step.value.resources, step.value.fillColor) });

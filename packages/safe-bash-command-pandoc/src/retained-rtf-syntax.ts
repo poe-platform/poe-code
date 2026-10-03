@@ -78,6 +78,8 @@ export class RetainedRtfSyntax {
     if (kind === "symbol") return {kind, offset, name};
     return {kind, offset, name, parameter: Number.isNaN(fields[4]!) ? undefined : fields[4]!};
   }
+  async first(node: number): Promise<number> {return (await this.fields(node))[6]!;}
+  async next(node: number): Promise<number> {return (await this.fields(node))[8]!;}
   async *children(node: number): AsyncGenerator<number> {
     let child = (await this.fields(node))[6]!;
     while (child) {await this.context.cooperate(); yield child; child = (await this.fields(child))[8]!;}

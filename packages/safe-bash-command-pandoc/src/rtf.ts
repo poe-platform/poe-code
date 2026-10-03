@@ -1,10 +1,11 @@
+import {decodeRtfText} from "./rtf-text.js";
+import {runControls, layoutControls, type RunTag} from "./rtf-profile.js";
 import type { Attr, Block, Cell, Inline, Row } from "./ast-types.js";
 import type { AdapterContext, Document, ReaderCapability, Resource } from "./types.js";
 import { destination, hexDigit, parseRtf, rtfError } from "./rtf-syntax.js";
 import type { RtfGroup, RtfToken } from "./rtf-syntax.js";
 
 const empty: Attr = ["", [], []];
-type RunTag = "Strong" | "Emph" | "Underline" | "Strikeout" | "SmallCaps" | "Superscript" | "Subscript";
 interface State {
   codepage: number;
   defaultFont: number | undefined;
@@ -26,23 +27,10 @@ type ListStyle = Extract<Block, {t: "OrderedList"}>["c"][0][1];
 type ListDelim = Extract<Block, {t: "OrderedList"}>["c"][0][2];
 interface ListLevel {start: number; style: ListStyle | "bullet"; delimiter: ListDelim}
 interface ListFrame {id: number; level: number; items: Block[][]}
-const runControls: Readonly<Record<string, RunTag>> = {
-  b: "Strong", i: "Emph", ul: "Underline", strike: "Strikeout", scaps: "SmallCaps", super: "Superscript", sub: "Subscript"
-};
 const characters: Readonly<Record<string, string>> = {
   emdash: "—", endash: "–", bullet: "•", lquote: "‘", rquote: "’", ldblquote: "“", rdblquote: "”",
   emspace: "\u2003", enspace: "\u2002", qmspace: "\u2005"
 };
-// These change layout or document bookkeeping, not textual content in the
-// declared subset. Unlisted controls fail rather than pretending to support them.
-const layoutControls = new Set([
-  "deff", "deflang", "deflangfe", "lang", "langfe", "adeflang", "viewkind", "viewscale", "viewzk",
-  "fet", "fromtext", "fromhtml", "nouicompat", "widowctrl", "hyphauto", "deftab", "paperw", "paperh",
-  "margl", "margr", "margt", "margb", "gutter", "pgnstart", "facingp", "landscape", "sectd",
-  "ql", "qr", "qc", "qj", "fi", "li", "ri", "sb", "sa", "sl", "slmult", "keep", "keepn",
-  "widctlpar", "nowidctlpar", "tx", "tql", "tqr", "tqc", "tqdec", "tlhyph", "tldot", "tlul",
-  "trgaph", "trleft", "trrh", "trql", "trqr", "trqc", "trkeep", "trhdr", "clvertalt", "clvertalc", "clvertalb"
-]);
 const metadataDestinations = new Set(["info", "generator", "fonttbl", "colortbl", "stylesheet", "listtable", "listoverridetable"]);
 const forbiddenDestinations = new Set(["object", "objdata", "objclass", "objname", "objalias", "datafield", "filetbl"]);
 const unsupportedDestinations = new Set(["header", "headerl", "headerr", "headerf", "footer", "footerl", "footerr", "footerf", "annotation", "shp", "shptxt", "nonshppict", "upr", "ud", "xmlopen", "xmlattrname", "xmlattrvalue"]);
@@ -79,28 +67,6 @@ class RtfReader {
     const n = token.parameter;
     if (n === undefined || n < min || n > max) rtfError(this.context, `Invalid RTF ${token.name} parameter`, "E_PARSE", token.offset);
     return n;
-  }
-  async decode(bytes: Uint8Array, page: number): Promise<string> {
-    this.page(page);
-    if (page === 1252) return this.context.decodeCodepage(bytes, page);
-    const decoder = new TextDecoder("utf-8", {fatal: true, ignoreBOM: true});
-    const parts: string[] = [];
-    for (let offset = 0; offset < bytes.length; offset += 256) {
-      await this.context.cooperate(256);
-      this.context.charge("retainedBytes", 1024);
-      let text: string;
-      try {text = decoder.decode(bytes.subarray(offset, offset + 256), {stream: true});}
-      catch {return rtfError(this.context, `Invalid RTF bytes for code page ${page}`, "E_ENCODING");}
-      this.context.charge("text", text.length);
-      parts.push(text);
-    }
-    let tail: string;
-    try {tail = decoder.decode();} catch {return rtfError(this.context, `Truncated RTF code-page sequence ${page}`, "E_ENCODING");}
-    this.context.charge("text", tail.length);
-    parts.push(tail);
-    const length = parts.reduce((sum, part) => sum + part.length, 0);
-    this.context.charge("retainedBytes", length * 2);
-    return parts.join("");
   }
   append(node: Inline): void {
     const last = this.inlines.at(-1);
@@ -571,25 +537,23 @@ class RtfReader {
       await this.context.cooperate();
       const token = tokens[index]!;
       if (token.kind === "text" || token.kind === "hex") {
-        const parts: Uint8Array[] = []; let size = 0;
-        do {
-          const t = tokens[index]!;
-          const part = t.kind === "text" ? t.bytes : t.kind === "hex" ? Uint8Array.of(t.byte) : new Uint8Array();
-          const skipped = Math.min(this.fallback, part.length); this.fallback -= skipped;
-          const remaining = part.subarray(skipped);
-          parts.push(remaining); size += remaining.length;
-          await this.context.cooperate();
-          index++;
-        } while (tokens[index]?.kind === "text" || tokens[index]?.kind === "hex");
-        index--;
-        if (size) {
-          this.noSurrogate(); this.context.charge("retainedBytes", size);
-          const raw = new Uint8Array(size); let offset = 0;
-          for (const part of parts) {raw.set(part, offset); offset += part.length;}
-          const font = state.font ?? state.defaultFont;
-          const page = font === undefined ? state.codepage : this.fonts.get(font)?.codepage ?? state.codepage;
-          this.emit(await this.decode(raw, page));
-        }
+        const parts = (async function* (this: RtfReader) {
+          let first = true;
+          do {
+            const t = tokens[index]!;
+            const part = t.kind === "text" ? t.bytes : t.kind === "hex" ? Uint8Array.of(t.byte) : new Uint8Array();
+            const skipped = Math.min(this.fallback, part.length); this.fallback -= skipped;
+            if (part.length > skipped) {
+              if (first) {this.noSurrogate(); first = false;}
+              yield part.subarray(skipped);
+            }
+            await this.context.cooperate(); index++;
+          } while (tokens[index]?.kind === "text" || tokens[index]?.kind === "hex");
+          index--;
+        }).call(this);
+        const font = state.font ?? state.defaultFont;
+        const page = font === undefined ? state.codepage : this.fonts.get(font)?.codepage ?? state.codepage;
+        for await (const text of decodeRtfText(parts, page, this.context)) this.emit(text);
         continue;
       }
       if (token.kind === "group") {

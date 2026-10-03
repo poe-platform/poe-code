@@ -1,7 +1,7 @@
 import {PandocError} from "./errors.js";
 import type {LuaReference, LuaStorage, StoredLuaValue} from "./lua-storage.js";
 
-type Method = "__index" | "__newindex" | "__call" | "__len" | "__eq" | "__lt" | "__le" | "__concat"
+type Method = "__pairs" | "__tostring" | "__name" | "__index" | "__newindex" | "__call" | "__len" | "__eq" | "__lt" | "__le" | "__concat"
   | "__add" | "__sub" | "__mul" | "__mod" | "__pow" | "__div" | "__idiv" | "__band" | "__bor" | "__bxor" | "__shl" | "__shr" | "__unm" | "__bnot";
 export interface LuaCall {callee: StoredLuaValue; args: Iterable<StoredLuaValue> | AsyncIterable<StoredLuaValue>}
 export type LuaAccess = {value: StoredLuaValue} | {call: LuaCall};

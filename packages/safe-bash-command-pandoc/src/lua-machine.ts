@@ -14,15 +14,23 @@ function fail(message: string): never {throw new PandocError("E_AST", "convert",
 
 export interface LuaResults {values: LuaReference; count: number}
 export interface LuaArguments {readonly count: number; get(index: number): Promise<StoredLuaValue>}
-/** Negative prototype IDs identify the caller's fixed native library. Arguments
- * and results stay backed; a native operation must stream variable-sized state. */
-export type LuaNative = (prototype: number, args: LuaArguments) => Iterable<StoredLuaValue> | AsyncIterable<StoredLuaValue>;
+export interface LuaNativeContext {
+  readonly continuation: number;
+  readonly state: LuaReference;
+  readonly results: LuaArguments;
+}
+export interface LuaNativeCall {call: LuaCall; continuation: number}
+export type LuaNativeOutput=Iterable<StoredLuaValue> | AsyncIterable<StoredLuaValue> | LuaNativeCall;
+/** A native step either streams final values or requests a Lua callback. Its JS
+ * activation ends before the callback runs. Resumption uses the same backed
+ * arguments, private state and result count, including nil slots. */
+export type LuaNative = (prototype: number, args: LuaArguments, context: LuaNativeContext) => LuaNativeOutput | Promise<LuaNativeOutput>;
 
 /** Internal retained execution core. Calls use linked backing records, including
  * tail-call replacement and captured cells; results retain their nil-slot count.
  * This is not yet selected by public filters. Complete native libraries and
- * bounded source compilation must be integrated before it can replace the
- * supported public interpreter. */
+ * the Pandoc bridge must be integrated before it can replace the supported
+ * public interpreter. */
 export class LuaMachine {
   private closures: Promise<LuaReference> | undefined;
   private readonly strings: LuaStrings;
@@ -78,11 +86,28 @@ export class LuaMachine {
       let code: number;
       if (prototype < 0) {
         if (!this.native) throw new PandocError("E_UNSUPPORTED_FEATURE", "convert", "Native Lua library is not installed");
+        const nativeFrame=frame,resultRegisters=current.registers,resultCount=current.top;
+        const output=await this.native(prototype,{count:current.argumentCount,get:index=>this.frames.argument(nativeFrame,index)}, {
+          continuation:current.pc,state:await this.frames.state(frame),results:{count:resultCount,get:async index=>{
+            if(index<0 || index>=resultCount) return undefined;
+            const cell=await this.heap.get(resultRegisters,index) as number | undefined;
+            return cell===undefined?undefined:this.heap.value(cell);
+          }}
+        });
+        await this.cooperate(0);
+        if("call" in output) {
+          if(!Number.isSafeInteger(output.continuation) || output.continuation<0) throw new RangeError("Invalid native Lua continuation");
+          await this.frames.pc(frame,output.continuation);
+          frame=await this.call(frame,output.call,0,-1);
+          continue;
+        }
+        if(resultCount) await this.frames.resetResults(frame);
         let count = 0;
-        for await (const value of this.native(prototype, {count: current.argumentCount, get: index => this.frames.argument(frame, index)})) {
+        for await (const value of output) {
           await this.cooperate();
           await this.frames.set(frame, count++, value);
         }
+        await this.cooperate(0);
         await this.frames.top(frame, count);
         current = await this.frames.read(frame);
         code = 38; // RETURN all streamed results through the ordinary continuation.

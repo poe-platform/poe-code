@@ -27,11 +27,12 @@ async function execute(source: string, args: StoredLuaValue[] = [], signal?: Abo
   const heap = new LuaStorage(storage, cooperate), program = new LuaProgram(storage, heap, cooperate);
   const frames = new LuaFrames(storage, heap, cooperate);
   const base = new LuaBase(heap);
-  const machine = new LuaMachine(program, frames, heap, cooperate, async function* (prototype, args) {
+  const machine = new LuaMachine(program, frames, heap, cooperate, (prototype, args, context) => {
     if (prototype === -1000 && native) {
-      if (typeof native === "function") yield* native(prototype, args);
-      else for (let i = 0; i < args.count; i++) yield await args.get(i);
-    } else yield* base.invoke(prototype, args);
+      if (typeof native === "function") return native(prototype, args, context);
+      return (async function* () {for (let i = 0; i < args.count; i++) yield await args.get(i);})();
+    }
+    return base.invoke(prototype, args, context);
   });
   const compiler = runtime as typeof import("fengari"), state = compiler.lauxlib.luaL_newstate();
   try {

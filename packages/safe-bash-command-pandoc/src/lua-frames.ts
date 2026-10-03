@@ -12,6 +12,7 @@ interface Frame {
   results: number;
   argumentCount: number;
   concatEnd: number;
+  nativeState: number;
 }
 
 /** Linked activation records and register cells for retained Lua execution.
@@ -28,20 +29,20 @@ export class LuaFrames {
     await this.storage.write(position, bytes);
   }
   async read(frame: number): Promise<Frame> {
-    const bytes = await this.storage.read(frame, 80), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+    const bytes = await this.storage.read(frame, 88), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
     return {
       parent: view.getFloat64(0, true), closure: {kind: "function", id: view.getFloat64(8, true)},
       registers: {kind: "table", id: view.getFloat64(16, true)}, arguments: {kind: "table", id: view.getFloat64(24, true)},
       pc: view.getFloat64(32, true), top: view.getFloat64(40, true), returnBase: view.getFloat64(48, true),
-      results: view.getFloat64(56, true), argumentCount: view.getFloat64(64, true), concatEnd: view.getFloat64(72, true)
+      results: view.getFloat64(56, true), argumentCount: view.getFloat64(64, true), concatEnd: view.getFloat64(72, true), nativeState: view.getFloat64(80, true)
     };
   }
   async push(parent: number, closure: LuaReference, returnBase: number, results: number): Promise<number> {
     if (closure.kind !== "function") throw new TypeError("Expected Lua function");
     await this.cooperate();
     const registers = await this.heap.table(), args = await this.heap.table();
-    const frame = this.storage.allocate(80);
-    await this.fields(frame, parent, closure.id, registers.id, args.id, 0, 0, returnBase, results, 0, -1);
+    const frame = this.storage.allocate(88);
+    await this.fields(frame, parent, closure.id, registers.id, args.id, 0, 0, returnBase, results, 0, -1, 0);
     return frame;
   }
   async replace(frame: number, closure: LuaReference): Promise<void> {
@@ -49,7 +50,19 @@ export class LuaFrames {
     await this.cooperate();
     const registers = await this.heap.table(), args = await this.heap.table();
     await this.fields(frame + 8, closure.id, registers.id, args.id, 0, 0);
-    await this.fields(frame + 64, 0, -1);
+    await this.fields(frame + 64, 0, -1, 0);
+  }
+  async state(frame: number): Promise<LuaReference> {
+    const {nativeState}=await this.read(frame);
+    if(nativeState) return {kind:"table",id:nativeState};
+    const state=await this.heap.table();
+    await this.fields(frame+80,state.id);
+    return state;
+  }
+  async resetResults(frame:number):Promise<void> {
+    const registers=await this.heap.table();
+    await this.fields(frame+16,registers.id);
+    await this.fields(frame+40,0);
   }
   async pc(frame: number, value: number): Promise<void> {
     await this.fields(frame + 32, value);

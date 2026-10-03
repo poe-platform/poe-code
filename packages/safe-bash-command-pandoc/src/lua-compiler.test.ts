@@ -28,7 +28,7 @@ async function execute(source: string, options: {compileOnly?: boolean; base?: b
     if(options.compileOnly) return [(await program.describe(prototype)).instructions];
     const environment=await heap.table(), closure=await heap.closure(prototype,[await heap.cell(environment)]), base=new LuaBase(heap);
     if(options.base) await base.install(environment);
-    const machine=new LuaMachine(program,new LuaFrames(storage,heap,cooperate),heap,cooperate,(prototype,args)=>base.invoke(prototype,args));
+    const machine=new LuaMachine(program,new LuaFrames(storage,heap,cooperate),heap,cooperate,(prototype,args,context)=>base.invoke(prototype,args,context));
     const result=await machine.run(closure,[]), values: unknown[]=[];
     for(let i=0;i<result.count;i++) {
       const value=await heap.get(result.values,i);

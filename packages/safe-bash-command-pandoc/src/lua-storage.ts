@@ -1,3 +1,4 @@
+import {PandocError} from "./errors.js";
 import {IntegerTable, type PagedStorage} from "safe-bash-io-engine/storage";
 
 export type LuaReference = {readonly kind: "string" | "table" | "function"; readonly id: number};
@@ -190,8 +191,8 @@ export class LuaStorage {
     return position ? decode(await this.storage.read(position + 40, 16)) : undefined;
   }
   async set(table: LuaReference, key: StoredLuaValue, value: StoredLuaValue): Promise<void> {
-    if (key === undefined) throw new TypeError("Table index is nil");
-    if (typeof key === "number" && Number.isNaN(key)) throw new TypeError("Table index is NaN");
+    if (key === undefined) throw new PandocError("E_AST", "convert", "Table index is nil");
+    if (typeof key === "number" && Number.isNaN(key)) throw new PandocError("E_AST", "convert", "Table index is NaN");
     await this.cooperate();
     const bucket = await this.bucket(table, key);
     let position = await this.find(table, key, bucket);
@@ -214,7 +215,7 @@ export class LuaStorage {
     if (after === undefined) position = (await this.fields(table.id, 1))[0]!;
     else {
       const previous = await this.find(table, after, await this.bucket(table, after));
-      if (!previous) throw new TypeError("Invalid key to next");
+      if (!previous) throw new PandocError("E_AST", "convert", "Invalid key to next");
       position = (await this.fields(previous + 16, 1))[0]!;
     }
     while (position) {

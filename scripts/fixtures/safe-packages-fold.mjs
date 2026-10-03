@@ -77,6 +77,7 @@ for (const route of ['stdin', 'stream', 'file']) {
     Object.defineProperty(bytes, Symbol.iterator, { value: function* () { yield 120; } });
     const carrier = contracts.createCommandArguments(['-w3', ...(route === 'stdin' ? [] : ['--', '-literal'])]);
     const output = [], cleanups = [];
+    let fileCloses = 0;
     const input = (async function* () { yield bytes; bytes.fill(120); })();
     const host = {
       command: 'fold', args: carrier.args, argumentValues: carrier, cwd: '/vfs', env: {},
@@ -85,9 +86,13 @@ for (const route of ['stdin', 'stream', 'file']) {
       fs: route === 'stdin' ? { readStream() { throw new Error('Unexpected VFS read'); } }
         : route === 'stream' ? { readStream(path, options) {
           assert.equal(path, '/vfs/-literal'); assert.ok(options.signal); return input;
-        } } : { async readFile(path, options) {
-          assert.equal(path, '/vfs/-literal'); assert.ok(options.signal); return bytes;
-        } },
+        } } : { capabilities: { read: true, retainedRead: true }, async openReadFile(path, options) {
+          assert.equal(path, '/vfs/-literal'); assert.ok(options.signal);
+          return { async read(position, maximum) {
+            assert.ok(maximum >= bytes.length);
+            return position === 0 ? bytes : new Uint8Array();
+          }, async close() { fileCloses++; } };
+        }, async readFile() { throw new Error('Whole-file fallback must not run'); } },
       stdout: { async write(chunk) { output.push(...chunk); } },
       stderr: { async write() { throw new Error('Unexpected diagnostic'); } },
       registerCleanup(cleanup) { cleanups.push(cleanup); },
@@ -98,6 +103,7 @@ for (const route of ['stdin', 'stream', 'file']) {
     bytes.fill(120);
     assert.deepEqual(Uint8Array.from(output), new TextEncoder().encode('abc\ndef'));
     await Promise.all(cleanups.map(cleanup => cleanup()));
+    assert.equal(fileCloses, route === 'file' ? 1 : 0);
   }
 }
 console.log('Installed cross-realm CLI/SDK byte input routes passed');

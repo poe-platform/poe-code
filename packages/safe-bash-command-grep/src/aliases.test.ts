@@ -36,10 +36,12 @@ for (const { args, output, code = 0 } of cases) {
     assert.deepEqual({ ...result, stdout, stderr }, { exitCode: code, stdout: output, stderr: "" });
     const native = spawnSync("grep", ["-r", ...args], {
       cwd: new URL("../fixtures/rgrep/", import.meta.url),
-      input: "needle stdin\nother\n", encoding: "utf8", env: { ...process.env, LC_ALL: "C" }, timeout: 2000,
+      ...(args.includes("-") ? { input: "needle stdin\nother\n" } : {}),
+      encoding: "utf8", env: { ...process.env, LC_ALL: "C" }, timeout: 2000,
     });
     assert.ifError(native.error);
-    assert.deepEqual({ exitCode: native.status, stdout: native.stdout, stderr: native.stderr }, { ...result, stdout, stderr });
+    const sortedNativeStdout = native.stdout ? native.stdout.slice(0, -1).split("\n").sort().join("\n") + "\n" : "";
+    assert.deepEqual({ exitCode: native.status, stdout: sortedNativeStdout, stderr: native.stderr }, { ...result, stdout, stderr });
   });
 }
 

@@ -6,22 +6,22 @@ import {isStoredImageOperation} from "./ops/storage.js";
 import {transformStoredPipeline} from "./ops/storage-pipeline.js";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {dirname,type FileSystem} from "@poe-code/safe-fs/contracts";
-import type {ImageMetadata,SharpInputOptions,ImageAstNode,OutputEncodeOptions,RgbaImage} from "./ast.js";
+import type {ImageMetadata,RetainedImageMetadata,SharpInputOptions,ImageAstNode,OutputEncodeOptions,RgbaImage} from "./ast.js";
 import {withImageSource} from "./image-source.js";
 import {UnsupportedStoredResource} from "./codecs/unsupported-storage.js";
 import {readImageMetadata} from "./codecs/index.js";
 import {readImageMetadataFromSource} from "./codecs/metadata-source.js";
 
-export async function tryImageMetadata(input:string|Uint8Array|undefined,options:SharpInputOptions,operations:readonly ImageAstNode[]=[],encoding:OutputEncodeOptions={},loadedFiles?:ReadonlyMap<string,Uint8Array>):Promise<ImageMetadata|undefined> {
+export async function tryInspectImageMetadata<T>(input:string|Uint8Array|undefined,options:SharpInputOptions,operations:readonly ImageAstNode[],encoding:OutputEncodeOptions,loadedFiles:ReadonlyMap<string,Uint8Array>|undefined,consume:(metadata:RetainedImageMetadata)=>Promise<T>):Promise<{value:T}|undefined> {
  if(!operations.every(isStoredImageOperation) || (input===undefined&&!options.text&&!options.create))return undefined;
  const signal=options.signal??new AbortController().signal;signal.throwIfAborted();
  const supplied=options.filesystem;if(!supplied?.capabilities || (typeof input==="string"&&!supplied.openReadFile))return undefined;
- if((options.text || options.create)&&!operations.length)return readImageMetadata(undefined,options);
+ if((options.text || options.create)&&!operations.length)return {value:await consume(readImageMetadata(undefined,options))};
  const storage=supplied.open && supplied.removeFileConditional && supplied.stat
   ?new PagedStorage({fs:supplied as FileSystem,cwd:options.workingDirectory??(typeof input==="string"?dirname(input):"."),env:{},signal}):undefined;
- let failure:{error:unknown}|undefined,result:ImageMetadata|undefined;
+ let failure:{error:unknown}|undefined,result:{value:T}|undefined,consumed=false;
  try {
-  const inspect=async(source?:ImageByteSource):Promise<ImageMetadata>=>{
+  const inspect=async(source?:ImageByteSource):Promise<RetainedImageMetadata>=>{
    const generated=options.text||options.create;
    const metadata=generated?readImageMetadata(undefined,options):await readImageMetadataFromSource(source!,signal,options,storage);
    if(!operations.length)return metadata;
@@ -38,10 +38,11 @@ export async function tryImageMetadata(input:string|Uint8Array|undefined,options
    const evaluated=await transformStoredPipeline(initial,storage,operations,signal,resources);
    return transformedImageMetadata(metadata,evaluated,encoding);
   };
-  result=options.text||options.create?await inspect():await withImageSource(input!,supplied as FileSystem,signal,inspect);
+  const metadata=options.text||options.create?await inspect():await withImageSource(input!,supplied as FileSystem,signal,inspect);
+  signal.throwIfAborted();consumed=true;result={value:await consume(metadata)};
  } catch(error){failure={error};}
- try {await storage?.close();}catch(error){if(!failure || failure.error instanceof UnsupportedStoredResource)throw error;}
- if(failure && !(failure.error instanceof UnsupportedStoredResource))throw failure.error;
+ try {await storage?.close();}catch(error){if(!failure || (!consumed&&failure.error instanceof UnsupportedStoredResource))throw error;}
+ if(failure && (consumed || !(failure.error instanceof UnsupportedStoredResource)))throw failure.error;
  return result;
 }
 

@@ -1,3 +1,4 @@
+export {readGifMetadataFromSource} from "./codecs/gif-metadata-storage.js";
 export {encodeRawFromStorage} from "./codecs/raw-storage.js";
 export {readWebpMetadataFromSource} from "./codecs/webp-input-storage.js";
 export {readImageMetadataFromSource} from "./codecs/metadata-source.js";

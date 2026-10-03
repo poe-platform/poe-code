@@ -1,5 +1,5 @@
 import {prepareRawOutput} from "./codecs/raw-storage.js";
-import {tryImageMetadata,transformedImageMetadata} from "./image-metadata.js";
+import {tryInspectImageMetadata,transformedImageMetadata} from "./image-metadata.js";
 import {tryImageStats} from "./image-stats.js";
 import {prepareClaheImage} from "./ops/clahe.js";
 import {orderImageNodes,splitPostScaleNodes,imageAlphaStages} from "./ops/order.js";
@@ -14,6 +14,7 @@ import {
   type ImageAstNode,
   type ImageFormat,
   type ImageMetadata,
+  type RetainedImageMetadata,
   type ImageStats,
   type OutputEncodeOptions,
   type OutputInfo,
@@ -856,26 +857,33 @@ export class SharpInstance extends Duplex {
     return transformedImageMetadata(rawMeta,evaluated,this.outputOptions);
   }
 
+  /** Inspect retained metadata within the lifetime of its caller-backed resources. */
+  async inspectMetadata<T>(read:(metadata:RetainedImageMetadata)=>T|Promise<T>):Promise<T> {
+    const consume=async(metadata:RetainedImageMetadata):Promise<T>=>{
+      this.inputOptions?.signal?.throwIfAborted();
+      const rotated=metadata.orientation!==undefined && metadata.orientation>=5 && metadata.orientation<=8;
+      const value=await read({...metadata,autoOrient:{width:rotated?metadata.height:metadata.width,height:rotated?metadata.width:metadata.height}});
+      this.inputOptions?.signal?.throwIfAborted();return value;
+    };
+    if(!this.joinInputs && (!this.streamIn || this.streamInFinished) && this.inputOptions?.filesystem){
+      if(this.streamFailure)throw this.streamFailure;
+      const input=this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
+      const result=await tryInspectImageMetadata(input,this.inputOptions,this.nodes,this.outputOptions,this.fileInputs,consume);
+      if(result)return result.value;
+    }
+    await this.waitForStreamInput();return consume(this.metadataSync());
+  }
+
   async metadata(callback?: (err: Error | null, metadata?: ImageMetadata) => void): Promise<ImageMetadata> {
     try {
-      if(!this.joinInputs && (!this.streamIn || this.streamInFinished) && this.inputOptions?.filesystem) {
-        if(this.streamFailure)throw this.streamFailure;
-        const input=this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
-        const metadata=await tryImageMetadata(input,this.inputOptions,this.nodes,this.outputOptions,this.fileInputs);
-        if(metadata) {
-          const rotated=metadata.orientation!==undefined && metadata.orientation>=5 && metadata.orientation<=8;
-          const result={...metadata,autoOrient:{width:rotated?metadata.height:metadata.width,height:rotated?metadata.width:metadata.height}};
-          if(callback)callback(null,result);return result;
-        }
-      }
-      await this.waitForStreamInput();
-      const res = this.metadataSync();
-      if (callback) callback(null, res);
-      return res;
-    } catch (err) {
-      if (callback) callback(err as Error);
-      throw err;
-    }
+      const result=await this.inspectMetadata(async retained=>{
+        const {storedDelay,...metadata}=retained;
+        if(!storedDelay)return metadata;
+        const delay:number[]=[];for(let i=0;i<storedDelay.length;i++)delay.push((await storedDelay.at(i))!);
+        return {...metadata,delay};
+      });
+      if(callback)callback(null,result);return result;
+    } catch(error){if(callback)callback(error as Error);throw error;}
   }
 
   statsSync(): ImageStats {

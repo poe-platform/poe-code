@@ -1,135 +1,14 @@
 import {GifCodes,GifPalette,gifLayout,gifHeader,gifFrameHeader,type GifOptions} from "./gif-output-parts.js";
 import type { ImageMetadata, RgbaImage } from "../ast.js";
 
-export function isGifBytes(bytes: Uint8Array): boolean {
-  return (
-    bytes.length >= 6 &&
-    bytes[0] === 0x47 && // G
-    bytes[1] === 0x49 && // I
-    bytes[2] === 0x46 && // F
-    bytes[3] === 0x38 && // 8
-    (bytes[4] === 0x37 || bytes[4] === 0x39) && // 7 or 9
-    bytes[5] === 0x61 // a
-  );
-}
+export {isGifBytes} from "./gif-metadata.js";
+import {isGifBytes,gifAnimationSteps,gifMetadataFields} from "./gif-metadata.js";
 
-function parseGifAnimationInfo(bytes: Uint8Array): {
-  readonly frames: number;
-  readonly delays: number[];
-  readonly loop: number | undefined;
-} {
-  const packed = bytes[10]!;
-  const hasGct = (packed & 0x80) !== 0;
-  const gctSize = 1 << ((packed & 0x07) + 1);
-  let pos = 13 + (hasGct ? gctSize * 3 : 0);
-  let frames = 0;
-  const delays: number[] = [];
-  let pendingDelayMs = 100;
-  let loop: number | undefined;
-  while (pos < bytes.length) {
-    const intro = bytes[pos++]!;
-    if (intro === 0x3b) break;
-    if (intro === 0x21) {
-      const label = bytes[pos++]!;
-      if (label === 0xf9) {
-        const blockSize = bytes[pos++] ?? 0;
-        if (blockSize >= 4 && pos + blockSize <= bytes.length) {
-          const delayCs = (bytes[pos + 1] ?? 0) | ((bytes[pos + 2] ?? 0) << 8);
-          pendingDelayMs = delayCs * 10;
-        }
-        pos += blockSize;
-        while (pos < bytes.length) {
-          const subLen = bytes[pos++]!;
-          if (subLen === 0) break;
-          pos += subLen;
-        }
-      } else if (label === 0xff) {
-        const appLen = bytes[pos++] ?? 0;
-        const appName =
-          pos + appLen <= bytes.length
-            ? String.fromCharCode(...bytes.subarray(pos, pos + appLen))
-            : "";
-        pos += appLen;
-        while (pos < bytes.length) {
-          const subLen = bytes[pos++]!;
-          if (subLen === 0) break;
-          if (
-            (appName.startsWith("NETSCAPE") || appName.startsWith("ANIMEXTS")) &&
-            subLen >= 3 &&
-            bytes[pos] === 0x01
-          ) {
-            const rawLoop = (bytes[pos + 1] ?? 0) | ((bytes[pos + 2] ?? 0) << 8);
-            loop = rawLoop === 0 ? 0 : rawLoop + 1;
-          }
-          pos += subLen;
-        }
-      } else {
-        while (pos < bytes.length) {
-          const subLen = bytes[pos++]!;
-          if (subLen === 0) break;
-          pos += subLen;
-        }
-      }
-    } else if (intro === 0x2c) {
-      if (pos + 9 > bytes.length) break;
-      frames++;
-      delays.push(pendingDelayMs);
-      pendingDelayMs = 100;
-      const imgFlags = bytes[pos + 8]!;
-      pos += 9;
-      if (imgFlags & 0x80) {
-        const lctSize = 1 << ((imgFlags & 0x07) + 1);
-        pos += lctSize * 3;
-      }
-      pos++; // minCodeSize
-      while (pos < bytes.length) {
-        const subLen = bytes[pos++]!;
-        if (subLen === 0) break;
-        pos += subLen;
-      }
-    } else {
-      break;
-    }
-  }
-  return { frames: Math.max(1, frames), delays, loop };
-}
-
-export function readGifMetadata(
-  bytes: Uint8Array,
-  options?: { readonly animated?: boolean; readonly page?: number; readonly pages?: number }
-): ImageMetadata {
-  if (!isGifBytes(bytes) || bytes.length < 13) {
-    throw new Error("Invalid GIF header");
-  }
-  const width = bytes[6]! | (bytes[7]! << 8);
-  const height = bytes[8]! | (bytes[9]! << 8);
-  const anim = parseGifAnimationInfo(bytes);
-  const totalPages = anim.frames;
-  const isMulti =
-    options?.animated === true ||
-    options?.pages === -1 ||
-    (options?.pages !== undefined && options.pages > 1);
-  const startPage = Math.max(0, options?.page ?? 0);
-  const numPages = isMulti
-    ? options?.pages !== undefined && options.pages > 0
-      ? Math.min(options.pages, Math.max(1, totalPages - startPage))
-      : Math.max(1, totalPages - startPage)
-    : 1;
-  return {
-    format: "gif",
-    width,
-    height: height * numPages,
-    space: "srgb",
-    channels: 4,
-    depth: "uchar",
-    density: 72,
-    hasAlpha: true,
-    pages: totalPages,
-    ...(isMulti && totalPages > 1 ? { pageHeight: height } : {}),
-    ...(anim.delays.length > 0 ? { delay: anim.delays } : {}),
-    ...(anim.loop !== undefined ? { loop: anim.loop } : totalPages > 1 ? { loop: 0 } : {}),
-    size: bytes.byteLength
-  };
+export function readGifMetadata(bytes:Uint8Array,options?:{readonly animated?:boolean;readonly page?:number;readonly pages?:number}):ImageMetadata {
+ if(!isGifBytes(bytes)||bytes.length<13)throw new Error("Invalid GIF header");
+ const start=13+(bytes[10]!&128?3*(1<<((bytes[10]!&7)+1)):0),steps=gifAnimationSteps(bytes.length,start),delays:number[]=[];let next=steps.next();
+ while(!next.done){if(typeof next.value==="number")next=steps.next(bytes[next.value]);else {delays.push(next.value.delay);next=steps.next();}}
+ return {...gifMetadataFields(bytes[6]!|(bytes[7]!<<8),bytes[8]!|(bytes[9]!<<8),bytes.length,next.value.frames,next.value.loop,options),...(delays.length?{delay:delays}:{})};
 }
 
 function lzwDecode(minCodeSize: number, data: Uint8Array, pixelCount: number): Uint8Array {

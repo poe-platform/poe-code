@@ -116,6 +116,8 @@ it("inspects externally retained metadata in Workerd without whole-file allocati
  const smallWebp=await sharp({create:{width:17,height:19,channels:4,background:"red"}}).webp().toBuffer();
  const largeWebp=new Uint8Array(smallWebp.length+8+256*1024);largeWebp.set(smallWebp.subarray(0,12));largeWebp.set([74,85,78,75],12);
  new DataView(largeWebp.buffer).setUint32(16,256*1024,true);largeWebp.set(smallWebp.subarray(12),20+256*1024);new DataView(largeWebp.buffer).setUint32(4,largeWebp.length-8,true);
+ const gifFrames=524289,gif=new Uint8Array(14+gifFrames*23);gif.set([71,73,70,56,57,97,1,0,1,0,0,0,0]);
+ for(let i=0;i<gifFrames;i++)gif.set([33,249,4,0,i&255,(i>>>8)&255,0,0,44,0,0,0,0,1,0,1,0,0,2,2,68,1,0],13+i*23);gif[gif.length-1]=59;
  const cases=[
   {bytes:join([png(8,0,true,1).subarray(0,33),makeChunk("tEXt",new Uint8Array(256*1024)),makeChunk("IEND",new Uint8Array())]),options:{}},
   {bytes:join([Uint8Array.of(255,216),segment(0xe1,app),segment(0xe1,app),segment(0xe1,app),segment(0xc2,Uint8Array.of(8,1,3,3,5,3)),Uint8Array.of(255,217)]),options:{}},
@@ -124,13 +126,17 @@ it("inspects externally retained metadata in Workerd without whole-file allocati
   {bytes:await sharp({create:{width:1024,height:64,channels:3,background:"red"}}).bmp().toBuffer(),options:{}},
   {bytes:largeWebp,options:{}},
   {bytes:await sharp({create:{width:531,height:513,channels:4,background:"red"}}).tiff().toBuffer(),options:{}},
-  {bytes:await sharp({create:{width:531,height:513,channels:4,background:"red"}}).png().toBuffer(),options:{},transform:true}
+  {bytes:await sharp({create:{width:531,height:513,channels:4,background:"red"}}).png().toBuffer(),options:{},transform:true},
+  {bytes:gif,options:{},inspect:true}
  ];
- const expected=await Promise.all(cases.map(sample=>(sample.transform?sharp(sample.bytes,sample.options).resize(401,257).withMetadata({density:144,orientation:6}):sharp(sample.bytes,sample.options)).metadata()));
+ const expected=await Promise.all(cases.map(async sample=>{
+  const metadata=await (sample.transform?sharp(sample.bytes,sample.options).resize(401,257).withMetadata({density:144,orientation:6}):sharp(sample.bytes,sample.options)).metadata();
+  if(!sample.inspect)return metadata;const {delay,...fields}=metadata;return {...fields,count:delay!.length,first:delay![0],last:delay!.at(-1)};
+ }));
  const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../../../",import.meta.url)),sourcefile:"metadata-worker.ts",contents:`
  import sharp from './packages/image-ast/src/index.ts';
  export default {async fetch(request,env){
-  const {id,size,options,transform}=await request.json();let reads=0,closed=0,scratchClosed=0,scratchWrites=0,largestAllocation=0;const scope={};
+  const {id,size,options,transform,inspect}=await request.json();let reads=0,closed=0,scratchClosed=0,scratchWrites=0,largestAllocation=0;const scope={};
   const filesystem={capabilities:{retainedRead:true},
    async stat(){return {type:'directory'};},async removeFileConditional(){},async open(){return {
     capabilities:{positionedRead:true,positionedWrite:true},async stat(){return {type:'file',size:0};},
@@ -143,7 +149,7 @@ it("inspects externally retained metadata in Workerd without whole-file allocati
    async close(){closed++;}
   };}};
   const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;largestAllocation=Math.max(largestAllocation,length);if(length>65536)throw new Error('unbounded metadata allocation');return Reflect.construct(target,args);}});
-  let metadata;try{const input=sharp('/image',{...options,filesystem});metadata=await (transform?input.resize(401,257).withMetadata({density:144,orientation:6}):input).metadata();}finally{globalThis.Uint8Array=Native;}
+  let metadata;try{const input=sharp('/image',{...options,filesystem});metadata=inspect?await input.inspectMetadata(async meta=>{const {storedDelay,delay,...fields}=meta;if(delay!==undefined)throw new Error("materialized delays");return {...fields,count:storedDelay.length,first:await storedDelay.at(0),last:await storedDelay.at(storedDelay.length-1)};}):await (transform?input.resize(401,257).withMetadata({density:144,orientation:6}):input).metadata();}finally{globalThis.Uint8Array=Native;}
   return Response.json({metadata,reads,closed,scratchClosed,scratchWrites,largestAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});
  }};`},bundle:true,write:false,platform:"browser",conditions:["workerd"],format:"esm",metafile:true,logLevel:"silent"});
  expect(Object.values(bundle.metafile!.outputs).flatMap(output=>output.imports)).toEqual([]);
@@ -160,7 +166,7 @@ it("inspects externally retained metadata in Workerd without whole-file allocati
  }}});
  try {
   for(const [id,sample] of cases.entries()) {
-   const response=await runtime.dispatchFetch("https://metadata/",{method:"POST",body:JSON.stringify({id,size:sample.bytes.length,options:sample.options,transform:sample.transform})});
+   const response=await runtime.dispatchFetch("https://metadata/",{method:"POST",body:JSON.stringify({id,size:sample.bytes.length,options:sample.options,transform:sample.transform,inspect:sample.inspect})});
    expect(response.status).toBe(200);
    const result=await response.json() as {metadata:unknown;reads:number;closed:number;scratchClosed:number;scratchWrites:number;largestAllocation:number;nodeGlobals:boolean};
    if(id>=6){expect(result.scratchClosed).toBe(1);expect(result.scratchWrites).toBeGreaterThan(64);}else expect(result.scratchClosed).toBe(0);

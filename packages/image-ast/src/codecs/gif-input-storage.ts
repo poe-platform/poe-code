@@ -1,3 +1,5 @@
+import {createImageDelayReader} from "./stored-delay.js";
+import {scanGifAnimation} from "./gif-metadata-storage.js";
 import { defaultRuntime } from "@poe-code/compression";
 import type { SharpInputOptions } from "../ast.js";
 import { checkLimitInputPixels } from "../limits.js";
@@ -125,57 +127,7 @@ export async function decodeGifToStorage(
     }
     return at;
   };
-  // The metadata pass retains only frame count and the final loop value.
-  let frames = 0,
-    loop: number | undefined;
-  const scan = async (onFrame?: (frame: number, delay: number) => Promise<void>) => {
-    let at = start,
-      pending = 100,
-      count = 0;
-    while (at < source.size) {
-      const intro = await reader.at(at++);
-      if (intro === 59) break;
-      if (intro === 33) {
-        const label = await reader.at(at++);
-        if (label === 249) {
-          const length = (await reader.at(at++)) ?? 0;
-          if (length >= 4 && at + length <= source.size) pending = (await word(at + 1)) * 10;
-          at = await skip(at + length);
-        } else if (label === 255) {
-          const length = (await reader.at(at++)) ?? 0;
-          let name = "";
-          if (at + length <= source.size)
-            for (let i = 0; i < length; i++)
-              name += String.fromCharCode((await reader.at(at + i)) ?? 0);
-          at += length;
-          while (at < source.size) {
-            const n = (await reader.at(at++)) ?? 0;
-            if (!n) break;
-            if (
-              (name.startsWith("NETSCAPE") || name.startsWith("ANIMEXTS")) &&
-              n >= 3 &&
-              (await reader.at(at)) === 1
-            ) {
-              const raw = await word(at + 1);
-              loop = raw === 0 ? 0 : raw + 1;
-            }
-            at += n;
-          }
-        } else at = await skip(at);
-      } else if (intro === 44) {
-        if (at + 9 > source.size) break;
-        await onFrame?.(count, pending);
-        count++;
-        pending = 100;
-        const flags = (await reader.at(at + 8)) ?? 0;
-        at += 9;
-        if (flags & 128) at += 3 * (1 << ((flags & 7) + 1));
-        at = await skip(at + 1);
-      } else break;
-    }
-    return count;
-  };
-  frames = await scan();
+  const {frames,loop}=await scanGifAnimation(reader,source.size,start);
   const totalPages = Math.max(1, frames),
     multi =
       options?.animated === true ||
@@ -213,7 +165,7 @@ export async function decodeGifToStorage(
     delayBytes = new Uint8Array(4),
     delayView = new DataView(delayBytes.buffer);
   if (frames)
-    await scan(async (frame, delay) => {
+    await scanGifAnimation(reader,source.size,start,async (frame, delay) => {
       delayView.setUint32(0, delay, true);
       await write(delayPosition + frame * 4, delayBytes);
     });
@@ -385,14 +337,7 @@ export async function decodeGifToStorage(
     ...(pages > 1 ? { pages, sourcePages: totalPages, pageHeight: height } : {}),
     ...(frames
       ? {
-          storedDelay: {
-            length: frames,
-            async at(index: number, options?: { readonly signal?: AbortSignal }) {
-              if (!Number.isInteger(index) || index < 0 || index >= frames) return undefined;
-              const bytes = await read(delayPosition + index * 4, 4, options?.signal ?? signal);
-              return new DataView(bytes.buffer, bytes.byteOffset, 4).getUint32(0, true);
-            }
-          }
+          storedDelay:createImageDelayReader(storage,delayPosition,frames,signal)
         }
       : {}),
     ...(loop !== undefined ? { loop } : totalPages > 1 ? { loop: 0 } : {})

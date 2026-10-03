@@ -4,7 +4,7 @@ import {PNG_SIGNATURE, makeChunk} from "./png-chunks.js";
 import {buildExifApp1Segment} from "./exif.js";
 import {createByteCodec, defaultRuntime} from "@poe-code/compression";
 import {checkLimitInputPixels} from "../limits.js";
-import type {RgbaImage, SharpInputOptions} from "../ast.js";
+import type {RgbaImage, SharpInputOptions, ImageDelayReader} from "../ast.js";
 import {isPngBytes, readPngMetadata, type encodePngImage} from "./png.js";
 import {paethPredictor, writePngPixel} from "./png-pixels.js";
 
@@ -23,10 +23,7 @@ export interface StoredRgbaImage extends Omit<RgbaImage, "data" | "data16"> {
   /** Original high-depth raw samples retain the same lifetime as buffered data16. */
   readonly storedData16?: {readonly position:number;readonly length:number};
   /** Frame delays can remain in caller storage instead of an unbounded metadata array. */
-  readonly storedDelay?: {
-    readonly length: number;
-    at(index: number, options?: {readonly signal?: AbortSignal}): Promise<number | undefined>;
-  };
+  readonly storedDelay?: ImageDelayReader;
 }
 
 async function range(source: ImageByteSource, position: number, length: number, signal: AbortSignal): Promise<Uint8Array> {

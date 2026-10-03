@@ -84,6 +84,15 @@ export interface ImageMetadata {
   readonly size?: number;
 }
 
+/** Valid only while its caller-owned backing storage remains open. */
+export interface ImageDelayReader {
+ readonly length:number;
+ at(index:number,options?:{readonly signal?:AbortSignal}):Promise<number|undefined>;
+}
+export interface RetainedImageMetadata extends ImageMetadata {
+ readonly storedDelay?:ImageDelayReader;
+}
+
 export interface ChannelStats {
   readonly min: number;
   readonly max: number;

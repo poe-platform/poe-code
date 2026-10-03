@@ -79,12 +79,15 @@ the output directory for `.toFile()`, the input directory for file `.stats()` an
 cancellation. Async file statistics do not implicitly cache whole input files;
 synchronous statistics require an explicit buffered input.
 `readImageMetadataFromSource(source, signal, options, storage?)` inspects PNG, JPEG, WebP, BMP,
-Netpbm and raw metadata without rendering pixels. The PNG, JPEG and WebP readers are
+Netpbm and raw metadata without rendering pixels. GIF metadata retains frame delays
+in caller storage, available through `storedDelay.length` and asynchronous `storedDelay.at(index)`. The PNG, JPEG and WebP readers are
 also available individually. TIFF inspection uses the optional caller backing storage
 to preserve full decode validation with bounded memory. File `.metadata()` for these formats
 uses retained reads and caller-backed transforms, including source version checks
 and handle cleanup. Raw metadata needs only the retained file size. These reads do
-not implicitly cache the file for later operations; explicit buffer outputs keep
+not implicitly cache the file for later operations. Use `await image.inspectMetadata(async metadata => { /* read metadata.storedDelay here */ })`
+with the injected filesystem to keep lazy metadata resources scoped to your callback.
+`.metadata()` preserves its explicit delay-array convenience result. Explicit buffer outputs keep
 their existing snapshot behavior.
 Use an external backing provider
 for large images; memory-backed storage still retains the pixels in RAM.

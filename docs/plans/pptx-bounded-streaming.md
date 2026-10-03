@@ -46,9 +46,22 @@ retaining whole values or digit strings. Tests force storage spills, stream
 multi-megabyte reused chunks, and cover split encodings, delimiter overlap,
 malformed input, limits, cancellation and error cleanup. Python ElementTree
 independently agreed with retained attribute/text normalization for Unicode,
-CRLF, predefined references and numeric references. This is lexical scanning,
-not semantic XML admission: qualified-name/namespace validation, element matching,
-stored tree indexes and application checks still need implementation and wiring.
+CRLF, predefined references and numeric references.
+
+`openRetainedXmlDocument` now builds the semantic tree in caller storage: fixed-size
+node/attribute records, stored sibling/parent links, and stored namespace/duplicate
+attribute indexes. It validates qualified names, namespace scope and reserved
+bindings, expanded-name uniqueness, element matching, declarations and values.
+Scoped bindings are restored from stored records rather than an in-memory stack.
+Queries stream children, attributes, namespace values and descendant text. Node
+handles are document-owned and expire on close. Tests cover deep trees, large
+namespace values and attribute sets, parser admission/node-budget parity, UTF-16,
+source-setting ownership, cancellation and IO cleanup. Python ElementTree agreed
+with expanded names, attributes and mixed text on an independent fixture.
+
+This semantic layer is still internal and immutable. Stored content-type and
+relationship indexes, presentation checks, mutations and shipped-engine wiring
+remain required before it replaces the buffered path.
 
 This is not an end-to-end bounded-memory implementation or Worker qualification.
 The built-in command engine still collects input, returns complete stdout/stderr, and publishes

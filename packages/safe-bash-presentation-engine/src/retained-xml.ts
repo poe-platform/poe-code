@@ -20,7 +20,7 @@ export interface RetainedXml {
   tokens(): AsyncGenerator<XmlLexicalToken>;
   read(range: XmlRange): ByteSource;
   /** Expand predefined/numeric references and normalize XML 1.0 value whitespace. */
-  value(range: XmlRange, attribute?: boolean): ByteSource;
+  value(range: XmlRange, attribute?: boolean, entities?: boolean): ByteSource;
   close(): Promise<void>;
 }
 
@@ -114,7 +114,7 @@ export async function openRetainedXml(source: ByteSource, settings: RetainedPack
     } catch (error) { throw failure(error); }
   }
   return Object.freeze({ encoding, bom, byteLength: length, close, read,
-    async *value(range: XmlRange, attribute = false) {
+    async *value(range: XmlRange, attribute = false, entities = true) {
       const decoder = new TextDecoder("utf-8", { fatal: true });
       let output = "", entity = "", mode = 0, point = 0, digits = false, carriage = false, brackets = 0;
       const predefined: Readonly<Record<string, string>> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
@@ -147,9 +147,9 @@ export async function openRetainedXml(source: ByteSource, settings: RetainedPack
           if (point > 0x10ffff) invalid(); return;
         }
         if (carriage) { carriage = false; if (value === "\n") return; }
-        if (value === "<" || !attribute && value === ">" && brackets === 2) invalid();
+        if (entities && (value === "<" || !attribute && value === ">" && brackets === 2)) invalid();
         brackets = value === "]" ? Math.min(2, brackets + 1) : 0;
-        if (value === "&") { mode = 1; return; }
+        if (entities && value === "&") { mode = 1; return; }
         if (value === "\r") { carriage = true; output += attribute ? " " : "\n"; }
         else output += attribute && (value === "\n" || value === "\t") ? " " : value;
       };

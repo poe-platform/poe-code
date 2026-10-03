@@ -3,7 +3,9 @@
 Zero-dependency image processing AST and pixel pipeline with a `sharp`-compatible API for `@poe-platform/safe-bash` and `@poe-platform/safe-js`.
 
 The main export uses Web Streams and Uint8Array in every runtime, including
-Node, browsers and Workers, without Node builtins. File paths require an explicit
+Node, browsers and Workers, without Node builtins. Stream cancellation and writable
+abort await asynchronous cleanup; `await image.dispose()` explicitly releases stream
+resources and reports cleanup failures. File paths require an explicit
 `filesystem` with asynchronous `readFile` and `writeFile` methods (such as safe-fs)
 and an asynchronous output method; byte inputs also
 support synchronous output. `@poe-code/image-ast/portable` exposes the same `sharp` API alongside codecs and

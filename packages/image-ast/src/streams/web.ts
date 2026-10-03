@@ -32,13 +32,17 @@ export class Duplex extends EventEmitter {
   writableFinished = false;
   private controller!: ReadableStreamDefaultController<Uint8Array>;
   private closed = false;
+  private destruction?: Promise<void>;
 
   constructor() {
     super();
     this.readable = new ReadableStream({
       start: controller => { this.controller = controller; },
-      pull: () => { this._read(); },
-      cancel: reason => { this.destroy(reason instanceof Error ? reason : undefined); },
+      pull: async () => {
+        try { await this._read(); }
+        catch (error) { this.destroy(error instanceof Error ? error : new Error(String(error))); }
+      },
+      cancel: reason => this.dispose(reason instanceof Error ? reason : undefined),
     }, { highWaterMark: 0 });
     this.writable = new WritableStream({
       write: chunk => new Promise<void>((resolve, reject) => {
@@ -48,21 +52,32 @@ export class Duplex extends EventEmitter {
         });
       }),
       close: () => { this.writableFinished = true; this.emit("finish"); },
-      abort: reason => { this.destroy(reason instanceof Error ? reason : undefined); },
+      abort: reason => this.dispose(reason instanceof Error ? reason : undefined),
     });
   }
 
   _write(_chunk: unknown, _encoding: string, callback: (error?: Error | null) => void): void {
     callback(new Error("Writable operation is not implemented"));
   }
-  _read(): void { throw new Error("Readable operation is not implemented"); }
+  _read(): void | Promise<void> { throw new Error("Readable operation is not implemented"); }
   push(chunk: Uint8Array | null): boolean {
     if (this.closed) return false;
     if (chunk === null) { this.closed = true; this.controller.close(); }
     else this.controller.enqueue(new Uint8Array(chunk));
     return (this.controller.desiredSize ?? 0) > 0;
   }
+  /** Release asynchronous backing resources; subclasses retain their own error policy. */
+  _destroy(_error?: Error): void | Promise<void> {}
+  async dispose(error?: Error): Promise<void> {
+    this.destroy(error);
+    await this.destruction;
+  }
   destroy(error?: Error): this {
+    if (this.destruction) return this;
+    // Install the promise before invoking hooks or listeners, which may reenter.
+    this.destruction = Promise.resolve().then(() => this._destroy(error));
+    // Synchronous callers cannot await cleanup; dispose/cancel/abort still observe it.
+    void this.destruction.catch(() => {});
     if (!this.closed) {
       this.closed = true;
       this.controller.error(error ?? new Error("Stream cancelled"));

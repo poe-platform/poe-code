@@ -16,6 +16,7 @@ it("inspects raster statistics in Workerd with external input and scratch backin
     const bytes = await sharp(pixels, { raw: { width: 601, height: 601, channels: 4 } }).toFormat("bmp").toBuffer();
     expect(bytes.length).toBeGreaterThan(1048576);
     const expected = await runIdentifyCli(["-verbose", "/input"], new Map([["/input", bytes]]));
+    const expectedFormat = await runIdentifyCli(["-format", "%m %wx%h %b %% %[channels] %[mean] %[opaque] %[bit-depth] %[type] %[standard-deviation] %[fx:p{600,600}.r] %[pixel:p{23,7}] %[hex:p{p{0,0}.r*600,500}]", "/input"], new Map([["/input", bytes]]));
     const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../../../", import.meta.url)), sourcefile: "pdf-metadata-worker.ts", contents: `
  import {runIdentifyCli} from './packages/safe-bash-command-imagemagick/src/index.ts';
  export default {async fetch(request,env){const {size}=await request.json();let id=0,opened=0,closed=0,removed=0,maxAllocation=0,reads=0;const scope={},files=new Map([['/input',{id:'input',size}]]);
@@ -27,7 +28,7 @@ it("inspects raster statistics in Workerd with external input and scratch backin
  async createStagedFile(path,name){const file={id:String(++id),size:0},filePath=path+'/'+name;files.set(filePath,file);return {parent:{path:'/',stat:parent},directory:{path,stat:parent},file:{path:filePath,stat:stat(file)},writer:{async write(chunk){if(chunk.length>65536)throw new Error('large write');await env.BACKING.fetch('https://backing/'+file.id+'?position='+file.size,{method:'PUT',body:chunk});file.size+=chunk.length;},async finish(){return stat(file);}},cleanup:{async remove(){files.delete(filePath);removed++;await env.BACKING.fetch('https://backing/'+file.id,{method:'DELETE'});},async close(){}}};},
  readFile(){throw new Error('whole input');},writeFile(){throw new Error('whole output');}};
  const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;maxAllocation=Math.max(maxAllocation,length);if(length>65536)throw new Error('unbounded identify allocation '+length);return Reflect.construct(target,args);}});
- try{const metadata=await runIdentifyCli(['-verbose','/input'],{filesystem:fs,cwd:'/'});return Response.json({metadata,opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
+ try{const metadata=await runIdentifyCli(['-verbose','/input'],{filesystem:fs,cwd:'/'});const formatted=await runIdentifyCli(['-format','%m %wx%h %b %% %[channels] %[mean] %[opaque] %[bit-depth] %[type] %[standard-deviation] %[fx:p{600,600}.r] %[pixel:p{23,7}] %[hex:p{p{0,0}.r*600,500}]','/input'],{filesystem:fs,cwd:'/'});return Response.json({metadata,formatted,opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
  }};` }, bundle: true, write: false, platform: "browser", conditions: ["workerd"], format: "esm", metafile: true, logLevel: "silent" });
     expect(Object.values(bundle.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
     const backing = new Map<string, Uint8Array>([["/input", bytes]]);
@@ -51,7 +52,7 @@ it("inspects raster statistics in Workerd with external input and scratch backin
         if (response.status !== 200)
             throw new Error(await response.text());
         const result = await response.json() as {
-            metadata: unknown;
+            metadata: unknown; formatted: unknown;
             opened: number;
             closed: number;
             removed: number;
@@ -61,9 +62,10 @@ it("inspects raster statistics in Workerd with external input and scratch backin
             nodeGlobals: boolean;
         };
         expect(result.metadata).toEqual(expected);
+        expect(result.formatted).toEqual(expectedFormat);
         expect(result.opened).toBeGreaterThan(1);
         expect(result.closed).toBe(result.opened);
-        expect(result.removed).toBe(result.opened - 1);
+        expect(result.removed).toBe(result.opened - 2);
         expect(result.files).toBe(1);
         expect(result.reads).toBeGreaterThan(8);
         expect(result.maxAllocation).toBeLessThanOrEqual(65536);

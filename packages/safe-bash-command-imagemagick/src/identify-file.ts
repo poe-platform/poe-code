@@ -1,4 +1,4 @@
-import { withImageSource, readImageMetadataFromSource, tryPdfMetadata, decodeImageToStorage, computeStoredImageStats, readImageMetadata, decodeImage, computeImageStatsSteps, UnsupportedStoredResource, type ImageMetadata, type ImageStats, type ImageByteSource } from "@poe-code/image-ast/portable";
+import { withImageSource, readImageMetadataFromSource, tryPdfMetadata, decodeImageToStorage, computeStoredImageStats, readImageMetadata, decodeImage, computeImageStatsSteps, UnsupportedStoredResource, type ImageMetadata, type ImageStats, type ImageByteSource, type StoredRgbaImage, type ImageByteStorage } from "@poe-code/image-ast/portable";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { FsError, type FileSystem } from "@poe-code/safe-fs/contracts";
 import { resolvePath } from "safe-bash-contracts/path";
@@ -17,10 +17,12 @@ export type IdentifyInspection = {
     readonly size: number;
     readonly stats?: ImageStats;
     readonly bytes?: Uint8Array;
+    readonly formatted?: string;
 } | {
     readonly error: unknown;
 };
-export type IdentifyFileReader = (path: string, page: number | undefined, verbose: boolean, custom: boolean) => Promise<IdentifyInspection | undefined>;
+export interface IdentifyRaster { readonly image: StoredRgbaImage; readonly storage: ImageByteStorage; }
+export type IdentifyFileReader = (path: string, page: number | undefined, verbose: boolean, custom?: (metadata: ImageMetadata, size: number, pixels:()=>Promise<IdentifyRaster>) => Promise<string>) => Promise<IdentifyInspection | undefined>;
 class ReadFailure extends Error {
     constructor(readonly reason: unknown) { super("Image read failed"); }
 }
@@ -41,7 +43,7 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                         throw new ReadFailure(error);
                     } } };
                 try {
-                    if (!custom) {
+                    {
                         try {
                             let metadata: ImageMetadata;
                             try {
@@ -56,6 +58,7 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                                     throw error;
                                 metadata = pdf;
                             }
+                            if(custom) return {metadata,size:source.size,formatted:await custom(metadata,source.size,async()=>({image:await decodeImageToStorage(checked,storage,signal,options),storage}))};
                             const stats = verbose ? await computeStoredImageStats(await decodeImageToStorage(checked, storage, signal, options), storage, signal) : undefined;
                             return { metadata, size: source.size, ...(stats ? { stats } : {}) };
                         }

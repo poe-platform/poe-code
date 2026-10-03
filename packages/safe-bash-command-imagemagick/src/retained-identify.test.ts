@@ -114,3 +114,27 @@ it("decodes verbose statistics from retained multi-page stdin reads",async()=>{
  expect(await runIdentifyCli(["-verbose","-"],{filesystem:fs,cwd:"/",stdin})).toEqual(await runIdentifyCli(["-verbose","-"],new Map(),bytes));
  expect(await fs.readdir("/")).toEqual([]);
 });
+
+for(const format of ["png","jpeg","webp","tiff","gif","bmp","ppm","heif","pdf"] as const)it(`formats retained ${format} metadata without decoding pixels`,async()=>{
+ const bytes=await sharp({create:{width:17,height:11,channels:4,background:"red"}}).toFormat(format).toBuffer(),fs=new MemoryFileSystem();await fs.writeFile("/input",bytes);
+ const args=["-format","%m %wx%h %b %n %[channels] %[compression] %[unknown] %%", "input"];
+ expect(await runIdentifyCli(args,{filesystem:fs,cwd:"/"})).toEqual(await runIdentifyCli(args,new Map([["input",bytes]])));
+ expect((await fs.readdir("/")).map(entry=>entry.name)).toEqual(["input"]);
+});
+
+for(const format of ["png","jpeg","webp","tiff","gif","bmp","ppm","heif","pdf"] as const)it(`formats ${format} pixel properties with legacy parity`,async()=>{
+ const bytes=await sharp({create:{width:17,height:11,channels:4,background:{r:71,g:33,b:91,alpha:0.5}}}).toFormat(format).toBuffer(),fs=new MemoryFileSystem();await fs.writeFile("/input",bytes);
+ const args=["-format","%[mean] %[min] %[max] %[standard-deviation] %[opaque] %[type] %[bit-depth]", "input"];
+ expect(await runIdentifyCli(args,{filesystem:fs,cwd:"/"})).toEqual(await runIdentifyCli(args,new Map([["input",bytes]])));
+ expect((await fs.readdir("/")).map(entry=>entry.name)).toEqual(["input"]);
+});
+
+it("preserves custom expression assignments, branches, coordinates and channels",async()=>{
+ const data=Uint8Array.from({length:17*11*4},(_,i)=>(i*71+17)%256),bytes=await sharp(data,{raw:{width:17,height:11,channels:4}}).png().toBuffer(),fs=new MemoryFileSystem();await fs.writeFile("/input",bytes);
+ const expressions=["r", "g", "b", "a", "intensity", "hue", "saturation", "lightness", "p{-20,999}.r", "p{16,10}.g", "p{p{1,1}.r*17,p{2,3}.g*11}", "p{0/0,0}", "u[9].p{5,6}.a", "u[-1].w+h", "x=p{2,3}.r;x>0.3?p{4,5}.g:p{9,1}.b", "x=p{2,3}.r;x=x+p{4,5}.g;x/2", "sin(pi/2)*p{3,4}.r", "min(r,g,b)", "0?p{1,1}:p{2,2}"];
+ for(const prefix of ["fx","pixel","hex"]){
+  const args=["-format",expressions.map(expression=>`%[${prefix}:${expression}]`).join("|"),"input"];
+  expect(await runIdentifyCli(args,{filesystem:fs,cwd:"/"})).toEqual(await runIdentifyCli(args,new Map([["input",bytes]])));
+ }
+ expect((await fs.readdir("/")).map(entry=>entry.name)).toEqual(["input"]);
+});

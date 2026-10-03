@@ -123,6 +123,16 @@ export class BiffMetadataWriter {
         Object.keys(node.attributes).every(key => key === "FrozenTopLeft" || key === "UnfrozenTopLeft"))) this.exported.add(layouts[0]!.record);
   }
   async sheet(output: BiffOutput, sheet: Sheet, revision: 7 | 8): Promise<void> {
+    const depth = (records: Sheet["rows"], maximum: number): number => {
+      let level = 0;
+      for (const record of records ?? []) {
+        this.charge();
+        if (record.index < maximum) level = Math.max(level, Math.min(record.outlineLevel ?? 0, 7));
+      }
+      return level ? level + 1 : 0;
+    };
+    const rowDepth = depth(sheet.rows, this.maxRows), columnDepth = depth(sheet.columns, 256);
+    output.record(0x80, words(rowDepth ? 5 + 12 * rowDepth : 0, columnDepth ? 5 + 12 * columnDepth : 0, rowDepth, columnDepth));
     const records = this.records.get(sheet)!, print = records.find(r => r.record.kind === "PrintInformation")?.node;
     const child = (name: string) => print?.children.find(n => n.name === name);
     const flag = (name: string) => Number(child(name)?.attributes.value ?? 0);
@@ -174,10 +184,10 @@ export class BiffMetadataWriter {
     }
     for (const row of sheet.rows ?? []) if (row.index < this.maxRows) output.record(0x208,
       words(row.index, 0, 256, Math.round((row.sizePoints ?? 12.75) * 20), 0, 0,
-        0x140 | (row.hidden ? 32 : 0) | (row.collapsed ? 16 : 0) | (row.outlineLevel ?? 0), 15));
+        0x140 | (row.hidden ? 32 : 0) | (row.collapsed ? 16 : 0) | Math.min(row.outlineLevel ?? 0, 7), 15));
     for (const column of sheet.columns ?? []) if (column.index < 256) output.record(0x7d,
       words(column.index, column.index, Math.round(((column.sizePoints ?? 48) / 0.75 - 64) * 36.5 + 0x0924), 15,
-        (column.hidden ? 1 : 0) | (column.collapsed ? 0x1000 : 0) | (column.outlineLevel ?? 0) << 8, 0));
+        (column.hidden ? 1 : 0) | (column.collapsed ? 0x1000 : 0) | Math.min(column.outlineLevel ?? 0, 7) << 8, 0));
     if (revision === 7) this.legacyComments(output, sheet);
     else this.drawComments(output, sheet);
   }

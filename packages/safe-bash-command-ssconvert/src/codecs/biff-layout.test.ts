@@ -161,3 +161,38 @@ it("keeps worksheet display settings when WSBOOL follows WINDOW2", () => {
   expect(parsed.view?.gnumeric).toMatchObject({ DisplayFormulas: "1", RTL_Layout: "1", HideGrid: "1",
     OutlineSymbolsBelow: "1", OutlineSymbolsRight: "0" });
 });
+
+for (const revision of [7, 8] as const) for (const rowLevel of [0, 1, 3, 7, 8, 16, 4096]) {
+  for (const columnLevel of [0, 2, 7, 8, 16, 4096]) {
+    it(`exports BIFF${revision} outline gutters and bounded levels ${rowLevel}/${columnLevel}`, async () => {
+      const source: Workbook = { sheets: [{ id: "s", name: "S", cells: [],
+        rows: [{ index: 1, outlineLevel: rowLevel }, { index: 2, outlineLevel: 0 }],
+        columns: [{ index: 1, outlineLevel: columnLevel }, { index: 2, outlineLevel: 0 }]
+      }] };
+      const records = readBiffRecords(await writeBiffStream(source, revision, false, context), context);
+      const row = Math.min(rowLevel, 7), column = Math.min(columnLevel, 7);
+      const gutters = records.filter(record => record.opcode === 0x80);
+      expect(gutters).toHaveLength(1);
+      expect([0, 2, 4, 6].map(offset => gutters[0]!.data.u16(offset))).toEqual([
+        row ? 5 + 12 * (row + 1) : 0, column ? 5 + 12 * (column + 1) : 0,
+        row ? row + 1 : 0, column ? column + 1 : 0
+      ]);
+      const rows = records.filter(record => record.opcode === 0x208);
+      const columns = records.filter(record => record.opcode === 0x7d);
+      expect(rows.map(record => record.data.u16(12))).toEqual([0x140 | row, 0x140]);
+      expect(columns.map(record => record.data.u16(8))).toEqual([column << 8, 0]);
+    });
+  }
+}
+
+for (const revision of [7, 8] as const) {
+  it(`does not create BIFF${revision} gutters for omitted axis metadata`, async () => {
+    const source: Workbook = { sheets: [{ id: "s", name: "S", cells: [],
+      rows: [{ index: revision === 7 ? 16384 : 65536, outlineLevel: 7 }],
+      columns: [{ index: 256, outlineLevel: 7 }]
+    }] };
+    const records = readBiffRecords(await writeBiffStream(source, revision, false, context), context);
+    expect(Array.from(records.find(record => record.opcode === 0x80)!.data.bytes)).toEqual(Array(8).fill(0));
+    expect(records.some(record => record.opcode === 0x208 || record.opcode === 0x7d)).toBe(false);
+  });
+}

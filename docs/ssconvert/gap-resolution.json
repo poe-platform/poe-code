@@ -4572,6 +4572,21 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "biffOutlineGutters": {
+      "finding": "BIFF export emitted an all-zero GUTS record regardless of grouped rows/columns. Outline levels above seven were ORed directly into ROW/COLINFO flags, potentially changing collapsed/hidden metadata.",
+      "implementation": "Derive gutter sizes and level counts from exported axis metadata, cap levels at seven as native Gnumeric does, and leave omitted rows/columns out of the calculation. Charge the axis scan against metadata work and cancellation limits.",
+      "source": "Gnumeric 1.12.61 ms-excel-write.c excel_write_GUTS lines 3831-3850, COLINFO line 3938 and ROW line 5331. Same retained source hash as biffWindow2. Nonzero levels gain one outline button; gutter dimension is 5 + 12 * button count.",
+      "validation": "82 failing-before regressions repaired. All 284 layout/metadata/current-writer tests pass, including level overflow and omitted-axis controls. Maintained XLS lint/source/test types, command-test lint/types and selected ssconvert build pass; initial lint was rerun after dependency declarations finished building.",
+      "public": "64 independently constructed SheetJS 0.18.5 inputs cover all BIFF row/column levels. All 256 compiled package SDK/command BIFF7/8 exports retain expected gutter words and row/column outline bits.",
+      "native": "320 unmodified Gnumeric 1.12.61 input/output readbacks retain grouped axis levels with empty stderr. All 64 separately generated native BIFF8 exports have identical expected GUTS words. Explicit installed schema path and memory settings backend; no saved environment profile used.",
+      "visual": "Inspected native input and SDK-exported grouped workbook screenshots: four row-level buttons, three column-level buttons and corresponding group controls remain visible; cell values remain intact. Owned applications/display stopped with empty stderr.",
+      "hashes": {
+        "nativeReadbacks": "418643713f75aa9948a4b500a0d6dcb4c7a49b4297499f9b27d52cc832eab3c3",
+        "inputScreenshot": "5db2b35912cc89c0b4ce2771db9fa39a6f6456d341531290cf47ef10b93e076a",
+        "outputScreenshot": "1dfeb41c2167aebe54ebafc51171dd2b85bcb50ecd54a7994ebf21912b32703a"
+      },
+      "remaining": "Native readbacks and screenshots reveal a separate column-width discrepancy: input COLINFO width 2048 loads as 50.4 points natively, while the public conversion exports a 42-point result. Preserve this current reproducer for the next format repair. Collapsed/hidden interaction and other rendering profiles remain open. No family or registry qualification closure."
+    },
     "biffOutlineSettings": {
       "finding": "BIFF7/8 export hardcoded WSBOOL outline direction and visibility flags, losing imported above/left/hidden choices. WSBOOL after WINDOW2 also replaced previously imported display attributes.",
       "implementation": "Export below/right/visible flags from the worksheet model using the same typed boolean interpretation as WINDOW2, preserving existing defaults and fit-to-page bits. Merge imported outline placement attributes with existing display settings.",

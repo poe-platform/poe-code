@@ -1,3 +1,5 @@
+import {decodeNetpbmToStorage} from "./codecs/netpbm-storage.js";
+import {isNetpbmBytes} from "./codecs/netpbm.js";
 import {decodeRawResource,createStoredResource} from "./codecs/resource-storage.js";
 import {compareIdentity,compareFileVersion,FsError,type FileSystem} from "@poe-code/safe-fs/contracts";
 import type {SharpInputOptions} from "./ast.js";
@@ -10,9 +12,9 @@ export async function readImageResource(input:Uint8Array|string|undefined,option
  if(options?.text) throw new UnsupportedStoredResource();
  if(options?.create) return createStoredResource(storage,{...options,create:options.create},signal);
  if(input===undefined) throw new UnsupportedStoredResource();
- const decode=(source:ImageByteSource)=>options?.raw?decodeRawResource(source,storage,{...options,raw:options.raw},signal):decodePngToStorage(source,storage,signal,options);
+ const decode=async(source:ImageByteSource)=>options?.raw?decodeRawResource(source,storage,{...options,raw:options.raw},signal):isNetpbmBytes(await source.read(0,Math.min(8,source.size),{signal}))?decodeNetpbmToStorage(source,storage,signal,options):decodePngToStorage(source,storage,signal,options);
  if(typeof input!=="string") {
-  if(!options?.raw && !isPngBytes(input)) throw new UnsupportedStoredResource();
+  if(!options?.raw && !isPngBytes(input) && !isNetpbmBytes(input)) throw new UnsupportedStoredResource();
   return decode({size:input.length,async read(position,length){signal.throwIfAborted();return new Uint8Array(input.subarray(position,position+length));}});
  }
  const capabilities=await fs.capabilitiesFor?.(input,{signal})??fs.capabilities;
@@ -31,7 +33,7 @@ export async function readImageResource(input:Uint8Array|string|undefined,option
    }
    return result;
   }};
-  if(!options?.raw && (initial.size<8 || !isPngBytes(await source.read(0,8,{signal})))) throw new UnsupportedStoredResource();
+  if(!options?.raw) {const prefix=await source.read(0,Math.min(8,initial.size),{signal});if(!isPngBytes(prefix)&&!isNetpbmBytes(prefix)) throw new UnsupportedStoredResource();}
   const image=await decode(source),final=await handle.stat({signal});signal.throwIfAborted();
   if(compareIdentity(initial,final)==="distinct" || !compareFileVersion(initial,final)) throw new FsError("EAGAIN",{path:input,message:"Image source changed while decoding"});
   result=image;

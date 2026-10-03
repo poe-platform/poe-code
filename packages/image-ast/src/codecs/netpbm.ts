@@ -1,5 +1,6 @@
+import {parseNetpbmHeader} from "./netpbm-header.js";
 import { transformBytes } from "@poe-code/compression";
-import type { ImageFormat, ImageMetadata, RgbaImage } from "../ast.js";
+import type { ImageMetadata, RgbaImage } from "../ast.js";
 import { decodeJpegImage } from "./jpeg.js";
 
 export function isNetpbmBytes(bytes: Uint8Array): boolean {
@@ -20,73 +21,6 @@ export function isTiffBytes(bytes: Uint8Array): boolean {
     ((bytes[0] === 0x49 && bytes[1] === 0x49 && bytes[2] === 0x2a && bytes[3] === 0x00) ||
       (bytes[0] === 0x4d && bytes[1] === 0x4d && bytes[2] === 0x00 && bytes[3] === 0x2a))
   );
-}
-
-function parseNetpbmHeader(bytes: Uint8Array): {
-  magic: string;
-  format: ImageFormat;
-  width: number;
-  height: number;
-  maxval: number;
-  dataOffset: number;
-} {
-  const magic = String.fromCharCode(bytes[0]!, bytes[1]!);
-  const format: ImageFormat =
-    magic === "P1" || magic === "P4"
-      ? "pbm"
-      : magic === "P2" || magic === "P5"
-        ? "pgm"
-        : "ppm";
-  let pos = 2;
-  const tokens: number[] = [];
-  const needed = format === "pbm" ? 2 : 3;
-
-  while (pos < bytes.length && tokens.length < needed) {
-    while (pos < bytes.length) {
-      const c = bytes[pos]!;
-      if (c === 0x23) {
-        // '#' comment
-        while (pos < bytes.length && bytes[pos] !== 0x0a && bytes[pos] !== 0x0d) pos++;
-      } else if (c === 0x20 || c === 0x09 || c === 0x0a || c === 0x0d) {
-        pos++;
-      } else {
-        break;
-      }
-    }
-    let num = 0;
-    let hasDigit = false;
-    while (pos < bytes.length && bytes[pos]! >= 0x30 && bytes[pos]! <= 0x39) {
-      num = num * 10 + (bytes[pos]! - 0x30);
-      hasDigit = true;
-      pos++;
-    }
-    if (!hasDigit) break;
-    tokens.push(num);
-  }
-  // If there is horizontal whitespace followed by a # comment on the final header line, skip to newline
-  let look = pos;
-  while (look < bytes.length && (bytes[look] === 0x20 || bytes[look] === 0x09)) look++;
-  if (look < bytes.length && bytes[look] === 0x23) {
-    pos = look;
-    while (pos < bytes.length && bytes[pos] !== 0x0a && bytes[pos] !== 0x0d) pos++;
-  }
-  // Skip the single terminating whitespace/newline character after header
-  if (
-    pos < bytes.length &&
-    (bytes[pos] === 0x20 || bytes[pos] === 0x09 || bytes[pos] === 0x0a || bytes[pos] === 0x0d)
-  ) {
-    if (bytes[pos] === 0x0d && bytes[pos + 1] === 0x0a) pos += 2;
-    else pos++;
-  }
-
-  return {
-    magic,
-    format,
-    width: tokens[0] ?? 0,
-    height: tokens[1] ?? 0,
-    maxval: format === "pbm" ? 1 : (tokens[2] ?? 255),
-    dataOffset: pos
-  };
 }
 
 export function readNetpbmMetadata(bytes: Uint8Array): ImageMetadata {

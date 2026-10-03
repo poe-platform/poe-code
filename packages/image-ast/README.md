@@ -15,6 +15,9 @@ functions return the same pixel results.
 of at most 4 KiB, including wide scanlines and Adam7 interlacing. Supply a
 retained byte-range source and backing storage with `allocate`, `read`, and
 `write`; the returned `position` addresses packed RGBA pixels in that storage.
+`decodeNetpbmToStorage(source, storage, signal)` also accepts all six ASCII/binary
+Netpbm variants, including 16-bit samples and comments.
+`encodeNetpbmFromStorage(image, storage, signal, format)` streams PPM, PGM or PBM.
 `encodePngFromStorage(image, storage, signal)` produces bounded PNG chunks
 under downstream backpressure. The caller owns source and storage cleanup.
 `transformStoredImage(image, storage, operation, signal)` applies flips, crops,
@@ -24,7 +27,7 @@ affine transforms, arbitrary rotation, median filtering, trimming, convolution,
 Gaussian blur, sharpening, local contrast enhancement (CLAHE), dilation and erosion
 also keep raster data in caller storage. For compositing, Boolean operations and channel joins, supply
 a `StoredImageResources` resolver as the fifth `transformStoredImage`
-argument; it returns decoded images in the same caller-owned storage. PNG file
+argument; it returns decoded images in the same caller-owned storage. PNG and Netpbm file
 operands and composite overlays use the parent filesystem with retained reads and version checks.
 Raw operands support every sample depth in bounded chunks, and created overlays
 (including deterministic Gaussian noise) generate directly into caller storage.
@@ -33,7 +36,7 @@ encoded overlay formats currently use the buffered fallback.
 Combined resize/blur/sharpen/convolution stages share premultiplied alpha and gamma handling.
 `resizeStoredImage(image, storage, options, signal)` supports all resize fits,
 gravity, entropy/attention crops, background canvases and image pages.
-PNG-to-PNG `.toFile()`
+PNG/PPM/PGM/PBM `.toFile()`
 conversions with these operations and `.resize()` use the backed codecs automatically when the
 supplied filesystem supports retained reads, working storage, and atomic
 streaming or retained staged publication.

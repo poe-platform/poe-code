@@ -1,3 +1,5 @@
+import {decodeNetpbmToStorage,encodeNetpbmFromStorage} from "./codecs/netpbm-storage.js";
+import {isNetpbmBytes} from "./codecs/netpbm.js";
 import {readImageResource,UnsupportedStoredResource} from "./image-resources.js";
 import {prepareClaheImage} from "./ops/clahe.js";
 import {transformStoredPixels} from "./ops/storage-pixels.js";
@@ -10,8 +12,8 @@ import {orderImageNodes,splitPostScaleNodes,imageAlphaStages} from "./ops/order.
 import {transformStoredImage, isStoredImageOperation} from "./ops/storage.js";
 import type {SharpInputOptions, OutputEncodeOptions, OutputInfo, ImageAstNode} from "./ast.js";
 
-/** Select the retained PNG path only when the injected filesystem supports it. */
-export async function tryPngFile(input: string, output: string, options: SharpInputOptions, encoding: OutputEncodeOptions, operations: readonly ImageAstNode[] = []): Promise<OutputInfo | undefined> {
+/** Select retained codecs only when the injected filesystem supports safe publication. */
+export async function tryImageFile(input: string, output: string, options: SharpInputOptions, encoding: OutputEncodeOptions, operations: readonly ImageAstNode[] = []): Promise<OutputInfo | undefined> {
   if (!operations.every(isStoredImageOperation)) return undefined;
   const supplied = options.filesystem;
   const signal = options.signal ?? new AbortController().signal;
@@ -69,11 +71,14 @@ export async function tryPngFile(input: string, output: string, options: SharpIn
         return result;
       }
     };
-    if (initial.size < 8 || !isPngBytes(await source.read(0,8,io))) {failed=false; return undefined;}
+    const prefix=await source.read(0,Math.min(8,initial.size),io),netpbm=isNetpbmBytes(prefix);
+    if (!netpbm && !isPngBytes(prefix)) {failed=false; return undefined;}
     const directory=dirname(output), parent={...await fs.stat(directory,io)};
     signal.throwIfAborted();
     storage=new PagedStorage({fs,cwd:directory,env:{},signal});
-    let image=await decodePngToStorage(source,storage,signal,options);
+    let image=netpbm?await decodeNetpbmToStorage(source,storage,signal,options):await decodePngToStorage(source,storage,signal,options);
+    const format=encoding.format??image.format;
+    if(format!=="png"&&format!=="ppm"&&format!=="pgm"&&format!=="pbm") {failed=false;return undefined;}
     const final=await handle.stat(io);
     signal.throwIfAborted();
     if (compareIdentity(initial,final)==="distinct" || !compareFileVersion(initial,final)) throw new FsError("EAGAIN",{path:input,message:"Image source changed while decoding"});
@@ -106,7 +111,7 @@ export async function tryPngFile(input: string, output: string, options: SharpIn
     const backing=storage;
     let complete=false, size=0;
     stream=(async function* () {
-      for await (const bytes of encodePngFromStorage(image,backing,signal,encoding)) {size+=bytes.length; yield bytes;}
+      for await (const bytes of format==="png"?encodePngFromStorage(image,backing,signal,encoding):encodeNetpbmFromStorage(image,backing,signal,format)) {size+=bytes.length; yield bytes;}
       await backing.close();
       complete=true;
     })();
@@ -123,6 +128,6 @@ export async function tryPngFile(input: string, output: string, options: SharpIn
     if (!complete) throw new FsError("EIO",{path:output,message:"Image publisher returned before consuming output"});
     failed=false;
     const gray=image.space==="b-w" || image.channels===1 || image.channels===2;
-    return {format:"png",width:image.width,height:image.height,channels:gray ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3,premultiplied:Boolean(image.wasPremultiplied),...(image.trimOffsetLeft===undefined?{}:{trimOffsetLeft:image.trimOffsetLeft}),...(image.trimOffsetTop===undefined?{}:{trimOffsetTop:image.trimOffsetTop}),size};
+    return {format,width:image.width,height:image.height,channels:format==="ppm"?3:format==="pgm"||format==="pbm"?1:gray ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3,premultiplied:Boolean(image.wasPremultiplied),...(image.trimOffsetLeft===undefined?{}:{trimOffsetLeft:image.trimOffsetLeft}),...(image.trimOffsetTop===undefined?{}:{trimOffsetTop:image.trimOffsetTop}),size};
   } catch(error) {if(error instanceof UnsupportedStoredResource) {failed=false;return undefined;} throw error;} finally {await cleanup();}
 }

@@ -10,7 +10,7 @@ import {packageSafeLibraries} from "./package-safe.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 
-it("packs the image PNG filesystem API with canonical public storage and a host-free Worker closure", async () => {
+it("packs the caller-backed image filesystem API with canonical public storage and a host-free Worker closure", async () => {
   const volume = new Volume();
   const write = (filename: string, bytes: string | Uint8Array) => {
     volume.mkdirSync(path.dirname(filename), {recursive: true});
@@ -133,6 +133,9 @@ it("packs the image PNG filesystem API with canonical public storage and a host-
   await fs.writeFile("/raw", Uint8Array.of(0, 255, 0, 255));
   expect(await sharp("/input.png", {filesystem: guarded}).boolean("/raw", "or", {raw: {width: 1, height: 1, channels: 4}}).composite([{input: {create: {width: 1, height: 1, channels: 4, background: "blue"}}, tile: true}]).toFile("/resources.png")).toMatchObject({format: "png", width: 7, height: 3});
   expect([...await sharp(await fs.readFile("/resources.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [0, 255, 255, 255]).flat());
+  expect(await sharp("/input.png", {filesystem: guarded}).toFormat("ppm").toFile("/output.ppm")).toMatchObject({format: "ppm", width: 7, height: 3, channels: 3});
+  expect(await sharp("/output.ppm", {filesystem: guarded}).composite([{input: "/output.ppm", blend: "difference"}]).png().toFile("/netpbm.png")).toMatchObject({format: "png", width: 7, height: 3});
+  expect([...await sharp(await fs.readFile("/netpbm.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [0, 0, 0, 255]).flat());
   expect(await sharp("/input.png", {filesystem: guarded}).removeAlpha().grayscale().joinChannel(["/input.png", "/input.png"]).toFile("/joined.png")).toMatchObject({format: "png", channels: 3});
   expect(await sharp("/input.png", {filesystem: guarded}).extend({top: 3, bottom: 3, left: 3, right: 3, background: "white"}).median(3).trim({lineArt: true}).toFile("/canvas.png")).toMatchObject({format: "png", width: 13, height: 9, trimOffsetLeft: 0, trimOffsetTop: 0});
   expect(await sharp("/input.png", {filesystem: guarded}).gamma(2.2).resize(3, 2).convolve({width: 3, height: 3, kernel: [1, 2, 1, 2, 4, 2, 1, 2, 1]}).dilate(2).erode(2).blur({sigma: 1.5, precision: "float"}).sharpen({sigma: 1.5}).clahe({width: 5, height: 3, maxSlope: 2}).toFile("/filtered.png")).toMatchObject({width: 3, height: 2, format: "png", premultiplied: true});

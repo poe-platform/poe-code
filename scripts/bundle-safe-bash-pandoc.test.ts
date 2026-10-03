@@ -11,6 +11,7 @@ import * as filesystem from "../packages/safe-fs/src/core.js";
 
 let result: BuildResult;
 let script: string;
+let publishedScript: string;
 beforeAll(async () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const options = resolveBrowserShellBuild(root);
@@ -23,6 +24,16 @@ beforeAll(async () => {
     }
   });
   script = result.outputFiles!.find(file => file.path.endsWith(".js"))!.text;
+  const published = await build({
+    entryPoints: [path.join(root, "packages/safe-bash/dist/commands/pandoc/index.browser.js")],
+    bundle: true, platform: "browser", format: "cjs", write: false, metafile: true,
+    logLevel: "silent", external: ["poe-code/safe-fs/core"], loader: {".wasm": "copy"},
+    outdir: path.join(root, "out/pandoc-qualification"),
+  });
+  expect([...new Set(Object.values(published.metafile!.outputs).flatMap(output =>
+    output.imports.filter(entry => entry.external).map(entry => entry.path)
+  ))]).toEqual(["poe-code/safe-fs/core"]);
+  publishedScript = published.outputFiles!.find(file => file.path.endsWith(".js"))!.text;
 });
 
 it("uses prepared Pandoc adapters in the standalone browser shell build", async () => {
@@ -61,7 +72,7 @@ it("loads the Pandoc bundle and converts Markdown in workerd without Node compat
       const fs = (() => { const module = { exports: {} }; ${fsBuild.outputFiles[0]!.text}; return module.exports; })();
       const pandoc = ((require) => {
         const module = { exports: {} };
-        ${script};
+        ${publishedScript};
         return module.exports;
       })(name => {
         if (name !== "poe-code/safe-fs/core") throw new Error("Unexpected external: " + name);

@@ -13,8 +13,10 @@ use std::sync::OnceLock;
 mod apply;
 mod bridge;
 mod discovery;
+mod resolve_async;
 mod templates;
 pub use config_mutations_rust_napi_core::*;
+pub use resolve_async::skill_resolve_plan;
 fn u(text: &str) -> Vec<u16> {
     text.encode_utf16().collect()
 }
@@ -412,7 +414,10 @@ pub fn skill_resolve(
         Err(error) => return host_error(error),
         Ok(result) => result,
     };
-    Ok(NativeJson(match result {
+    Ok(NativeJson(resolution(result)))
+}
+fn resolution(result: Resolution) -> J {
+    match result {
         Resolution::Malformed { reference } => object(vec![
             ("kind", text("malformed")),
             ("ref", J::String(reference)),
@@ -462,5 +467,5 @@ pub fn skill_resolve(
             }
             object(fields)
         }
-    }))
+    }
 }

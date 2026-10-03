@@ -75,6 +75,37 @@ impl Host for Memory {
     }
 }
 #[test]
+fn async_search_plan_prepares_paths_without_observing_the_filesystem() {
+    let catalog = Catalog::builtins().unwrap();
+    let mut host = Memory::default();
+    let plan = resolve::plan_skill_reference(
+        &catalog,
+        &u("CLAUDE/demo"),
+        &u("/repo"),
+        &u("/home"),
+        &mut host,
+    )
+    .unwrap();
+    let resolve::Plan::Search(search) = plan else {
+        panic!("expected search")
+    };
+    assert!(host.calls.is_empty());
+    assert_eq!(search.tiers.len(), 2);
+    assert!(
+        matches!(search.found(1), Resolution::Resolved { source_agent_id: Some(id), scope: Scope::Global, .. } if id == u("claude-code"))
+    );
+    assert_eq!(
+        search.missing(),
+        Resolution::NotFound {
+            reference: u("CLAUDE/demo"),
+            searched_paths: vec![
+                u("/repo/.claude/skills/demo"),
+                u("/home/.claude/skills/demo")
+            ]
+        }
+    );
+}
+#[test]
 fn reference_resolution_preserves_search_order_case_and_original_foreign_errors() {
     let catalog = Catalog::builtins().unwrap();
     let mut host = Memory::default();

@@ -61,15 +61,46 @@ pub(crate) fn execute<H: Host>(
         PathPlan::From { directory, path } => host.resolve(&[&directory, &path]),
     }
 }
-pub fn resolve_skill_reference<H: Host>(
+pub enum Plan {
+    Terminal(Resolution),
+    Search(Search),
+}
+pub struct Search {
+    reference: Vec<u16>,
+    name: Vec<u16>,
+    source_agent_id: Option<Vec<u16>>,
+    pub tiers: Vec<(Scope, Vec<u16>)>,
+}
+impl Search {
+    pub fn found(&self, index: usize) -> Resolution {
+        let (scope, path) = &self.tiers[index];
+        Resolution::Resolved {
+            reference: self.reference.clone(),
+            name: self.name.clone(),
+            source_agent_id: self.source_agent_id.clone(),
+            source_path: path.clone(),
+            scope: *scope,
+        }
+    }
+    pub fn missing(&self) -> Resolution {
+        Resolution::NotFound {
+            reference: self.reference.clone(),
+            searched_paths: self.tiers.iter().map(|(_, path)| path.clone()).collect(),
+        }
+    }
+}
+/// Prepare both search tiers before any host stat, for synchronous or async hosts.
+pub fn plan_skill_reference<H: Host>(
     catalog: &Catalog,
     reference: &[u16],
     cwd: &[u16],
     home: &[u16],
     host: &mut H,
-) -> std::result::Result<Resolution, H::Error> {
-    let bad = || Resolution::Malformed {
-        reference: reference.to_vec(),
+) -> std::result::Result<Plan, H::Error> {
+    let bad = || {
+        Plan::Terminal(Resolution::Malformed {
+            reference: reference.to_vec(),
+        })
     };
     let split = reference.iter().position(|unit| *unit == 47);
     if reference.is_empty()
@@ -86,10 +117,10 @@ pub fn resolve_skill_reference<H: Host>(
         }
         let support = catalog.resolve(agent);
         if support.status != SupportStatus::Supported {
-            return Ok(Resolution::UnknownAgent {
+            return Ok(Plan::Terminal(Resolution::UnknownAgent {
                 reference: reference.to_vec(),
                 agent_input: agent.to_vec(),
-            });
+            }));
         }
         let config = support.config.unwrap();
         let project = execute(paths::plan_skill_dir(config, Scope::Local, cwd, home), host)?;
@@ -116,23 +147,30 @@ pub fn resolve_skill_reference<H: Host>(
             vec![(Scope::Local, project), (Scope::Global, user)],
         )
     };
-    for (scope, path) in &tiers {
+    Ok(Plan::Search(Search {
+        reference: reference.to_vec(),
+        name: name.to_vec(),
+        source_agent_id: id,
+        tiers,
+    }))
+}
+pub fn resolve_skill_reference<H: Host>(
+    catalog: &Catalog,
+    reference: &[u16],
+    cwd: &[u16],
+    home: &[u16],
+    host: &mut H,
+) -> std::result::Result<Resolution, H::Error> {
+    let search = match plan_skill_reference(catalog, reference, cwd, home, host)? {
+        Plan::Terminal(result) => return Ok(result),
+        Plan::Search(search) => search,
+    };
+    for (index, (_, path)) in search.tiers.iter().enumerate() {
         match host.is_directory(path) {
-            Ok(true) => {
-                return Ok(Resolution::Resolved {
-                    reference: reference.to_vec(),
-                    name: name.to_vec(),
-                    source_agent_id: id,
-                    source_path: path.clone(),
-                    scope: *scope,
-                });
-            }
+            Ok(true) => return Ok(search.found(index)),
             Ok(false) | Err(StatError::NoEntry(_)) => {}
             Err(StatError::Other(error)) => return Err(error),
         }
     }
-    Ok(Resolution::NotFound {
-        reference: reference.to_vec(),
-        searched_paths: tiers.into_iter().map(|(_, path)| path).collect(),
-    })
+    Ok(search.missing())
 }

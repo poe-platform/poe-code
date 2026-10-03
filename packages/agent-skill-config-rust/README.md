@@ -10,7 +10,7 @@ uses the existing own `@poe-code/safe-fs` capability and path contracts.
 | --- | --- |
 | Supported agents, aliases and independent configs | `supportedAgents`, `resolveAgentSupport`, `getAgentConfig` |
 | Global and project skill directories | `resolveSkillDir` |
-| Project-first skill reference lookup | `resolveSkillReference` |
+| Project-first skill reference lookup | `resolveSkillReference`, `resolveSkillReferenceAsync` |
 | Discover ordered, unique skills through a supplied filesystem | `discoverSkillsAsync` |
 | Independent run-owned Git exclude blocks | `appendExcludeBlock`, `removeExcludeBlock` |
 | Install bundled skills without overwriting user files | `configure`, `unconfigure` |
@@ -28,6 +28,9 @@ Bare names search `.poe-code/skills` in project and user scope. Agent-prefixed
 names use that agent's configured directories, with case-insensitive agent aliases
 and exact skill-name casing. Failed lookups report the ordered paths searched.
 Unexpected filesystem errors preserve their original Node exception identity.
+Async lookup uses the supplied `fs`, `cwd`, `homeDir` and optional `signal`.
+It shares Rust validation and search plans with synchronous lookup and uses the
+existing filesystem bridge for provider operations and cancellation.
 
 Exclude blocks preserve existing content and allocate separate ownership IDs
 when two runs share a caller ID. Removal leaves other runs and incomplete marker
@@ -69,8 +72,8 @@ decoding, cancellation and original exception identities. Symbolic-link roots
 and nonregular skill files are rejected. Pass `fs`, `cwd` and `homeDir`, with an
 optional `signal`; `nativePaths` retains the original direct-filesystem mode.
 
-This additive experimental workspace exposes the current Node SDK API. Five
-async helpers (reference resolution, exclude append/removal and bridge/cleanup)
+This additive experimental workspace exposes the current Node SDK API. Four
+async helpers (exclude append/removal and bridge/cleanup)
 still delegate to the original package and are not independent Rust replacements.
 Full malformed/accessor fidelity, Python bindings and cross-platform artifacts
 remain in progress. Small native Node lookups, discovery and configuration cycles

@@ -1606,44 +1606,6 @@ slower). No performance gate passed. Output/stats/context renderers, dashboard
 lifecycle and snapshots, explorer, native batching and broader replacement
 qualification remain open.
 
-### Async skill discovery ownership
-
-The native package's public discoverSkillsAsync export was the canonical
-JavaScript function itself. It now uses an own Rust discovery state machine for
-UTF-16 child ordering, root/file admission, traversal and successfully loaded path
-deduplication. The host retains injected filesystem calls, POSIX path operations,
-text decoding, cancellation checkpoints and original foreign exception identities.
-The already-existing own safe-fs package supplies its bridge/type/path contracts;
-the lockfile adds only that workspace edge, with no new third-party package or
-version. Five other async skill helpers still delegate to the canonical package.
-
-The ownership test and missing Rust module test failed before implementation.
-Six Node differential checks cover exact filesystem traces, repeated roots,
-Unicode ordering, string/byte BOM decoding, symbolic roots/children/files,
-nonregular files, missing/error admission by operation, foreign error identity,
-cancellation/iterator closure and a real in-memory safe-fs capability. Two Rust
-tests independently exercise traversal state and errors. The maintained package
-route passes 14 native checks and 137 original cases, Rust tests, bidirectional
-public types and root posttest. Maintained/scoped lint and the selected build
-with its declared dependency closure pass.
-
-Packed discovery runs with imports confined to its artifact, packed safe-fs/xml-ast,
-the existing noble package and Node. Its independent declaration consumer passes
-strict checking with 253 source files and a compiler host forbidding workspace
-reads. These checks target the discovery module: the root still imports the five
-canonical async aliases and is not independently qualified as rewritten.
-
-Seven alternating warmed rounds of 100 calls on Node 22.23.2 ARM64 discover 16
-memfs skills from a repeated directory. Reference/native medians are
-178.374/245.577 microseconds (1.38 times slower); outputs match before timing and
-28 results are retained. This is not a performance improvement or default-swap
-qualification. No browser/Worker native-addon support is claimed.
-
-TOML delivery is verified on remote main at 3ebac55815. Releases 37108901356
-(TOML) and 37108412662 (JSONC) remain pending at this checkpoint. JavaScript
-remains the default; all remaining dependency, facade/type, platform and
-performance/swap gates stay open.
-
 ### Explorer detail renderer checkpoint
 
 `explorer/render/detail` exposes `renderDetail` with the original declaration.
@@ -5229,3 +5191,76 @@ The preceding JSONC repair is verified on remote main at 62abc4f3d8. Its Release
 or publication claim changes. Async skill helper delegation, remaining public
 facades/types, YAML diagnostics, resource bounds and platform/performance/swap
 qualification remain open.
+
+### Async skill discovery ownership
+
+The native package's public discoverSkillsAsync export was the canonical
+JavaScript function itself. It now uses an own Rust discovery state machine for
+UTF-16 child ordering, root/file admission, traversal and successfully loaded path
+deduplication. The host retains injected filesystem calls, POSIX path operations,
+text decoding, cancellation checkpoints and original foreign exception identities.
+The already-existing own safe-fs package supplies its bridge/type/path contracts;
+the lockfile adds only that workspace edge, with no new third-party package or
+version. Five other async skill helpers still delegate to the canonical package.
+
+The ownership test and missing Rust module test failed before implementation.
+Six Node differential checks cover exact filesystem traces, repeated roots,
+Unicode ordering, string/byte BOM decoding, symbolic roots/children/files,
+nonregular files, missing/error admission by operation, foreign error identity,
+cancellation/iterator closure and a real in-memory safe-fs capability. Two Rust
+tests independently exercise traversal state and errors. The maintained package
+route passes 14 native checks and 137 original cases, Rust tests, bidirectional
+public types and root posttest. Maintained/scoped lint and the selected build
+with its declared dependency closure pass.
+
+Packed discovery runs with imports confined to its artifact, packed safe-fs/xml-ast,
+the existing noble package and Node. Its independent declaration consumer passes
+strict checking with 253 source files and a compiler host forbidding workspace
+reads. These checks target the discovery module: the root still imports the five
+canonical async aliases and is not independently qualified as rewritten.
+
+Seven alternating warmed rounds of 100 calls on Node 22.23.2 ARM64 discover 16
+memfs skills from a repeated directory. Reference/native medians are
+178.374/245.577 microseconds (1.38 times slower); outputs match before timing and
+28 results are retained. This is not a performance improvement or default-swap
+qualification. No browser/Worker native-addon support is claimed.
+
+TOML delivery is verified on remote main at 3ebac55815. Releases 37108901356
+(TOML) and 37108412662 (JSONC) remain pending at this checkpoint. JavaScript
+remains the default; all remaining dependency, facade/type, platform and
+performance/swap gates stay open.
+
+### Async skill-reference resolution ownership
+
+The public async resolver now shares the own Rust validation, alias/catalog,
+path-planning and result-construction policy with synchronous lookup. The host
+executes the ordered stat requests through the existing safe-fs bridge and retains
+error admission and cancellation timing. Malformed and unknown-agent references
+return before acquiring a filesystem capability. Four async helpers still delegate:
+exclude append/removal and bridge/cleanup. Arbitrary malformed JS values/accessors,
+remaining independent root packaging, platform and default-swap gates remain open.
+
+The ownership regression and missing Rust search-plan API failed before the port.
+Three native tests cover malformed string references, six agents and their aliases,
+project-before-user lookup, a project file with a user directory fallback, exact
+provider call traces, admitted/missing/denied stat errors and cancellation.
+A Rust test proves that preparing the shared plan performs no filesystem stat.
+The maintained route passes 17 native checks, 137 original cases, Rust tests,
+bidirectional public declarations and root posttest. Maintained Rust lint and
+scoped JavaScript lint pass; the binding's free-function visibility was corrected
+when the lint build exposed it as unreachable.
+
+Fresh packed lookup matches canonical outcomes using only packed artifacts and
+Node at runtime. Its strict independent type consumer loads 255 source files
+with workspace reads forbidden. As with discovery, this qualifies the new module,
+not the four remaining delegated root aliases. No dependency is added here.
+
+Seven alternating warmed rounds of 1,000 project skill lookups on Node 22.23.2
+ARM64 measured reference/native medians of 5.720/22.116 microseconds (3.87 times
+slower). Outputs match before timing and 28 results are retained. This sample
+shows no speedup and leaves performance qualification open.
+
+Discovery is verified on remote main at 5e820498b3, including ancestry after
+remote main advanced. Its Release 37109364927 and package workflow 37109364787,
+plus the preceding JSONC/TOML releases, are still pending at this checkpoint.
+JavaScript remains the default, and native publication is not claimed.

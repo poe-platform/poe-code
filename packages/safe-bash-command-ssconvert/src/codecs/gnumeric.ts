@@ -739,7 +739,8 @@ export function writeClipboardGnumeric(book: Workbook, sheet: Sheet, range: impo
         ...Object.fromEntries((Array.isArray(object(axis.style?.gnumeric)?.attributes) ? object(axis.style?.gnumeric)?.attributes as readonly ImportedValue[] : []).flatMap(raw => {
           const attr = object(raw); return attr?.name === "HardSize" && typeof attr.value === "string" ? [["HardSize", attr.value]] : [];
         })),
-        ...(axis.hidden ? { Hidden: 1 } : {})
+        ...(axis.hidden ? { Hidden: 1 } : {}), ...(axis.collapsed ? { Collapsed: 1 } : {}),
+        ...(axis.outlineLevel ? { OutlineLevel: axis.outlineLevel } : {})
       }, "", "", 2)).join("") ?? "", 1);
   }
   let cells = "";

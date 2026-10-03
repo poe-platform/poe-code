@@ -4572,6 +4572,15 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "gnumericAxisRecordOrder": {
+      "finding": "Overlapping XML row/column records appended duplicate normalized axes instead of updating existing entries. Clipboard exports independently dropped collapsed flags and outline depth.",
+      "implementation": "Index imported axes by coordinate and replace metadata in record order; return unique sorted axes. Keep admission accounting for every expanded input record. Clipboard emits normalized collapsed/outline fields using the same attribute rules as workbook XML.",
+      "nativeSource": "Unmodified Gnumeric1.12.61 xml-sax-read.c:1460-1527 fetches and updates each existing axis, then copies range metadata; xml-sax-write.c uses shared colrow serialization for clipboard and workbook.",
+      "validation": "Four original record-order and three clipboard regressions fail before their respective fixes.263 tests across20Gnumeric/clipboard files pass. Final19-workspace selected build and complete ssconvert lint/source/test/public consumer type checks pass. Full root build also passed during qualification before final clipboard package rebuild; final root artifact qualification remains separate.",
+      "publicNative": "Six independent versioned inputs exercise overlapping, repeated and unsorted intervals in both orders with sizes20/30, hard/hidden/collapsed flags and outline depths2/7.24compiled package SDK/command workbook+clipboard exports;12native workbook readbacks.1440workbook/readback and720clipboard scalar comparisons exact against native independent exports.",
+      "visual": "Input and SDK-output native renderings inspected; identical SHA25657211566ec2cf894291754702892de5b0e8c153b74f7437c5be4fa3126b2e8e0. Owned GUI/Xvfb1760 stopped; both GUI logs empty.",
+      "remaining": "Historical XML DPI/font migration, malformed or zero-size axis behavior, other format records/rendering and all19families remain open."
+    },
     "gnumericAxisPrecision": {
       "finding": "Gnumeric workbook explicit row/column sizes and clipboard defaults/explicit sizes bypassed native four-significant-digit point serialization. Clipboard metadata without explicit sizes used base defaults instead of current sheet defaults.",
       "implementation": "Use existing exact C-locale gnumericNumber formatter with precision4 for axis points in workbook and clipboard XML; inherited clipboard axes use current sheet defaults. Native xml-sax-write.c:83,133,758,783 and1688 establish the shared formatter/routes.",

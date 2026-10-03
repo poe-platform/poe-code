@@ -21,7 +21,8 @@ Netpbm variants, including 16-bit samples and comments.
 `decodeBmpToStorage` and `encodeBmpFromStorage` use bounded palette and row access
 for BMP inputs and standard 24-bit BMP output.
 `decodeTiffToStorage` reads classic TIFF strips and tiles through caller backing,
-including uncompressed, DEFLATE, LZW and PackBits data and horizontal prediction.
+including uncompressed, DEFLATE, LZW, PackBits and JPEG data and horizontal prediction.
+Shared JPEG tables and strip/tile data are read through bounded logical ranges.
 `encodeTiffFromStorage` streams RGBA TIFF pixels with fixed-size header/directory
 state, preserving density and orientation.
 `encodePngFromStorage(image, storage, signal)` produces bounded PNG chunks
@@ -50,8 +51,8 @@ streaming TIFF, GIF and JPEG output. `encodeGifFromStorage` uses a fixed palette
 pixel caches and pull-driven owned data subblocks, including animated frames.
 `decodeGifToStorage` retains LZW input, animation canvases and frame delays in caller
 storage, including page selection, interlacing and disposal. Async GIF output reads
-those retained delays without a frame-count-sized array. JPEG-compressed TIFF input
-still uses the buffered path. `encodeJpegFromStorage` emits bounded 8×8 blocks
+those retained delays without a frame-count-sized array.
+`encodeJpegFromStorage` emits bounded 8×8 blocks
 from caller storage with the same quality, density and EXIF semantics as the
 buffered encoder. `decodeJpegToStorage` reads baseline and progressive JPEGs with
 bounded input pages and caller-backed coefficients and component planes.

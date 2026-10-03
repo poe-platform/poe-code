@@ -1,3 +1,4 @@
+import { decodeTiffImage } from "./codecs/netpbm.js";
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
 import { fileURLToPath } from "node:url";
@@ -4102,7 +4103,7 @@ const workerHash = (bytes: Uint8Array) => {
   for (const byte of bytes) value = Math.imul(value ^ byte, 16777619) >>> 0;
   return value;
 };
-it("decodes JPEG in actual Workerd using only bounded transfers to external caller backing", async () => {
+it("decodes JPEG and JPEG-in-TIFF in actual Workerd using only bounded transfers to external caller backing", async () => {
   const cases = [
     { name: "baseline", input: jpegInputFixture({ kind: "encoded", width: 1024, height: 257 }) },
     {
@@ -4117,8 +4118,35 @@ it("decodes JPEG in actual Workerd using only bounded transfers to external call
       })
     }
   ];
-  const expected = cases.map(({ input }) => {
-    const { data, ...metadata } = decodeJpegImage(input);
+  const jpeg = cases[0]!.input;
+  const tags = [
+    [256, 1024],
+    [257, 257],
+    [258, 8],
+    [259, 7],
+    [262, 2],
+    [273, 0],
+    [277, 3],
+    [278, 257],
+    [279, jpeg.length]
+  ];
+  const start = 8 + 2 + tags.length * 12 + 4,
+    tiff = new Uint8Array(start + jpeg.length),
+    view = new DataView(tiff.buffer);
+  tiff.set([73, 73, 42, 0]);
+  view.setUint32(4, 8, true);
+  view.setUint16(8, tags.length, true);
+  tags.forEach(([tag, value], index) => {
+    const at = 10 + index * 12;
+    view.setUint16(at, tag!, true);
+    view.setUint16(at + 2, 4, true);
+    view.setUint32(at + 4, 1, true);
+    view.setUint32(at + 8, tag === 273 ? start : value!, true);
+  });
+  tiff.set(jpeg, start);
+  cases.push({ name: "tiff", input: tiff });
+  const expected = cases.map(({ input, name }) => {
+    const { data, ...metadata } = name === "tiff" ? decodeTiffImage(input) : decodeJpegImage(input);
     return { metadata, length: data.length, hash: workerHash(data) };
   });
   const stores = cases.map(() => ({
@@ -4135,15 +4163,16 @@ it("decodes JPEG in actual Workerd using only bounded transfers to external call
       sourcefile: "worker.ts",
       contents: `
  import {decodeJpegToStorage} from './packages/image-ast/src/codecs/jpeg-input-storage.ts';
+ import {decodeTiffToStorage} from './packages/image-ast/src/codecs/tiff-input-storage.ts';
  export default {async fetch(request,env){
-  const {id,size}=await request.json(), signal=new AbortController().signal;let next=17,largestAllocation=0,largestTransfer=0,mapPeak=0,allocationCount=0;
+  const {id,size,tiff}=await request.json(), signal=new AbortController().signal;let next=17,largestAllocation=0,largestTransfer=0,mapPeak=0,allocationCount=0;
   const transfer=async(kind,position,length,bytes)=>{if(length>4096)throw new Error('unbounded transfer');largestTransfer=Math.max(largestTransfer,length);const response=await env.BACKING.fetch('https://backing/'+id+'/'+kind+'?position='+position+'&length='+length,{method:bytes?'POST':'GET',body:bytes});if(!response.ok)throw new Error('backing status '+response.status);return bytes?undefined:new Uint8Array(await response.arrayBuffer());};
   const source={size,read(position,length){return transfer('source',position,length);}};
   const storage={allocate(length){const position=next;next+=length+19;allocationCount++;return position;},read(position,length){return transfer('read',position,length);},write(position,bytes){return transfer('write',position,bytes.length,bytes);}};
   const NativeArray=Uint8Array,NativeMap=Map;
   globalThis.Uint8Array=new Proxy(NativeArray,{construct(target,args){const argument=args[0],length=typeof argument==='number'?argument:argument?.byteLength??argument?.length??0;largestAllocation=Math.max(largestAllocation,length);return Reflect.construct(target,args);}});
   globalThis.Map=class extends NativeMap{set(k,v){const result=super.set(k,v);mapPeak=Math.max(mapPeak,this.size);return result;}};
-  let image;try{image=await decodeJpegToStorage(source,storage,signal);}finally{globalThis.Uint8Array=NativeArray;globalThis.Map=NativeMap;}
+  let image;try{image=await (tiff?decodeTiffToStorage:decodeJpegToStorage)(source,storage,signal);}finally{globalThis.Uint8Array=NativeArray;globalThis.Map=NativeMap;}
   const {position,...metadata}=image,length=image.width*image.height*4;let hash=2166136261;
   for(let offset=0;offset<length;offset+=4096){const bytes=await storage.read(position+offset,Math.min(4096,length-offset));for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;}
   return Response.json({metadata,length,hash,largestAllocation,largestTransfer,mapPeak,allocated:next,allocationCount,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});
@@ -4228,7 +4257,7 @@ it("decodes JPEG in actual Workerd using only bounded transfers to external call
     for (const [index, sample] of cases.entries()) {
       const response = await runtime.dispatchFetch("https://jpeg.test/", {
         method: "POST",
-        body: JSON.stringify({ id: index, size: sample.input.length })
+        body: JSON.stringify({ id: index, size: sample.input.length, tiff: sample.name === "tiff" })
       });
       expect(response.status).toBe(200);
       const result = (await response.json()) as Record<string, unknown>;

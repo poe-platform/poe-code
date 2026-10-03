@@ -1,10 +1,11 @@
+import {BackingArena} from "./backing-arena.js";
 import {createByteCodec,defaultRuntime} from "@poe-code/compression";
 import type {SharpInputOptions} from "../ast.js";
 import {checkLimitInputPixels} from "../limits.js";
 import {Output} from "../ops/storage-raster.js";
 import type {ImageByteSource,ImageByteStorage,StoredRgbaImage} from "./png-storage.js";
 import {SourceBytes} from "./storage-source.js";
-import {UnsupportedStoredResource} from "./unsupported-storage.js";
+import {decodeJpegToStorage} from "./jpeg-input-storage.js";
 
 interface Values {count:number;at(index:number):Promise<number|undefined>}
 const empty:Values={count:0,async at(){return undefined;}};
@@ -68,6 +69,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  const number=async(at:number,size:number)=>{let value=0;for(let i=0;i<size;i++)value+=(await byte(at+i))*2**(8*(le?i:size-i-1));return value;};
  const ifd=await number(4,4),count=await number(ifd,2);
  let width=0,height=0,bits=8,compression=1,photometric=2,samples=4,rows=0,predictor=1,xRes=72,resUnit=2,tileWidth=0,tileHeight=0,orientation:number|undefined;
+ let jpegTables:{start:number;length:number}|undefined;
  let offsets:Values={count:1,async at(i){return i===0?8:undefined;}},counts=empty,tileOffsets=empty,tileCounts=empty;
  for(let i=0;i<count;i++) {
   const p=ifd+2+i*12,tag=await number(p,2),type=await number(p+2,2),n=await number(p+4,4),size=type===3?2:type===4?4:type===5?8:1;
@@ -82,8 +84,8 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   else if(tag===282&&first>0)xRes=first;else if(tag===296&&(first===2||first===3))resUnit=first;
   else if(tag===317&&first>0)predictor=first;else if(tag===322&&first>0)tileWidth=first;
   else if(tag===323&&first>0)tileHeight=first;else if(tag===324&&available)tileOffsets=values;else if(tag===325&&available)tileCounts=values;
+  else if(tag===347){const offset=n<=4?p+8:await number(p+8,4);if(offset+n<=source.size)jpegTables={start:offset,length:n};}
  }
- if(compression===6||compression===7)throw new UnsupportedStoredResource();
  const sampleBytes=Math.max(1,bits>>>3),pixelBytes=samples*sampleBytes,stride=width*pixelBytes,total=height*stride;
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(samples)||samples<=0||!Number.isSafeInteger(total)||!Number.isSafeInteger(width*height*4))throw new RangeError("Invalid TIFF dimensions");
  checkLimitInputPixels(width,height,options);
@@ -94,11 +96,37 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  if(tiled&&(!Number.isSafeInteger(tileWidth)||!Number.isSafeInteger(tileHeight)||!Number.isSafeInteger(tileBytes)))throw new RangeError("Invalid TIFF tile dimensions");
  const combined=allocate(total),scratch=allocate(tiled?tileBytes:total),zeros=new Uint8Array(4096);
  for(let at=0;at<total;at+=4096){await write(combined+at,zeros.subarray(0,Math.min(4096,total-at)));if(at%65536===0)await defaultRuntime.yieldTurn(signal);}
+ const jpegStorage=new BackingArena(storage);
  const decompress=async(off:number,rawLength:number,expected:number,max:number)=>{
   // Uint8Array.subarray clamps source offsets in the compatibility decoder.
   const start=Math.min(source.size,Math.max(0,Math.trunc(off))),end=Math.max(start,Math.min(source.size,Math.trunc(off+rawLength))),position=scratch;
   let length=0;
   const append=async(bytes:Uint8Array)=>{const size=Math.min(bytes.length,max-length);if(size>0){await write(position+length,bytes.subarray(0,size));length+=size;}};
+  if(compression===6||compression===7){
+   const tables=jpegTables;
+   const shared=tables&&tables.length>4&&await reader.at(tables.start)===255&&await reader.at(tables.start+1)===216&&end-start>2&&await reader.at(start)===255&&await reader.at(start+1)===216;
+   const regions=shared?[{start,length:2},{start:tables.start+2,length:tables.length-4},{start:start+2,length:end-start-2}]:[{start,length:end-start}];
+   const jpegSource:ImageByteSource={size:regions.reduce((size,region)=>size+region.length,0),async read(at,count){
+    signal.throwIfAborted();
+    const bytes=new Uint8Array(count);let cursor=0,used=0;
+    for(const region of regions){
+     const local=Math.max(0,at+used-cursor),take=Math.min(region.length-local,count-used);
+     if(take>0){const input=await source.read(region.start+local,take,{signal});signal.throwIfAborted();if(!(input instanceof Uint8Array)||input.length!==take)throw new Error("Truncated TIFF JPEG source");bytes.set(input,used);used+=take;}
+     cursor+=region.length;if(used===count)break;
+    }
+    if(used!==count)throw new Error("Truncated TIFF JPEG source");return bytes;
+   }};
+   // The embedded JPEG keeps its own dimensions and receives no TIFF shrink/orientation options.
+   jpegStorage.reset();
+   const image=await decodeJpegToStorage(jpegSource,jpegStorage,signal),pixels=new Raster(image.position,image.width*image.height*4,jpegStorage,signal);
+   const copied=Math.min(image.width*image.height,Math.floor(expected/samples))*samples;
+   for(let at=0;at<expected;at+=4096){
+    const bytes=new Uint8Array(Math.min(4096,expected-at));
+    for(let i=0;i<bytes.length&&at+i<copied;i++){const index=at+i;bytes[i]=await pixels.at(Math.floor(index/samples)*4+Math.min(index%samples,3));}
+    await append(bytes);if(at%65536===0)await defaultRuntime.yieldTurn(signal);
+   }
+   return {position,length};
+  }
   if(compression===5||compression===32773){const buffer=new Uint8Array(4096);let used=0,work=0;
    for await(const value of compression===5?lzw(reader,start,end-start,Math.trunc(expected)):packBits(reader,start,end-start,Math.trunc(expected))){
     signal.throwIfAborted();buffer[used++]=value;if(used===4096){await append(buffer);used=0;if(++work%16===0)await defaultRuntime.yieldTurn(signal);}

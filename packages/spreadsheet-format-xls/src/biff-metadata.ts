@@ -1,3 +1,4 @@
+import { biffRecord, type BiffRecordSequence } from "./biff-record-storage.js";
 import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
 import { formatA1, type ImportedValue, type UnsupportedRecord } from "@poe-code/spreadsheet-ast";
 import { Binary, invalidBiff, type BiffRecord } from "./biff-binary.js";
@@ -25,9 +26,20 @@ function header(text: string): Readonly<Record<string, string>> {
 }
 
 /** Source-backed neutral records consumed by both existing workbook writers. */
-export function readBiffMetadata(records: readonly BiffRecord[], revision: number, codepage: number, context: CapabilityContext): {
-  records: UnsupportedRecord[]; view: Record<string, ImportedValue>; active: boolean;
-} {
+interface BiffMetadata { records: UnsupportedRecord[]; view: Record<string, ImportedValue>; active: boolean; }
+export function readBiffMetadata(records: readonly BiffRecord[], revision: number, codepage: number, context: CapabilityContext): BiffMetadata {
+  const steps = metadataSteps(records.length, revision, codepage, context);
+  let next = steps.next();
+  while (!next.done) next = steps.next(records[next.value]);
+  return next.value;
+}
+export async function readBiffMetadataSource(records: BiffRecordSequence, revision: number, codepage: number, context: CapabilityContext): Promise<BiffMetadata> {
+  const steps = metadataSteps(records.length, revision, codepage, context);
+  let next = steps.next();
+  while (!next.done) next = steps.next(await biffRecord(records, next.value));
+  return next.value;
+}
+function* metadataSteps(length: number, revision: number, codepage: number, context: CapabilityContext): Generator<number, BiffMetadata, BiffRecord | undefined> {
   const print: Record<string, ImportedValue> = { vcenter: 0, hcenter: 0, grid: 0, titles: 0, monochrome: 0, draft: 0 };
   const margins: Record<string, number> = { top: 120, bottom: 120, left: 72, right: 72, header: 72, footer: 72 };
   let scale: Record<string, ImportedValue> = { type: "percentage", percentage: 100 }, orientation = "portrait", paper = "iso_a4", order = "d_then_r";
@@ -44,9 +56,9 @@ export function readBiffMetadata(records: readonly BiffRecord[], revision: numbe
     if (textBytes > (context.limits.workbookTextBytes ?? context.limits.inputBytes))
       throw new SsconvertError("resource-limit", "ssconvert BIFF metadata text limit exceeded");
   };
-  for (let index = 0; index < records.length; index++) {
+  for (let index = 0; index < length; index++) {
     context.signal.throwIfAborted();
-    const record = records[index]!, data = record.data, opcode = record.opcode;
+    const record = (yield index)!, data = record.data, opcode = record.opcode;
     if (opcode === 0x5d) {
       lastObject = undefined;
       for (let at = 0; at + 4 <= data.bytes.length;) {
@@ -56,7 +68,7 @@ export function readBiffMetadata(records: readonly BiffRecord[], revision: numbe
       }
     } else if (opcode === 0x1b6 && lastObject !== undefined) {
       const length = data.u16(10), parts: Binary[] = [];
-      while (records[index + 1]?.opcode === 0x3c) parts.push(records[++index]!.data);
+      while ((yield index + 1)?.opcode === 0x3c) parts.push((yield ++index)!.data);
       if (length) comments.set(lastObject, new BiffStrings(parts, context, codepage).unicode(length).text);
     } else if (opcode === 0x1c) {
       const row = data.u16(0), column = data.u16(2); if (column > 255) invalidBiff("invalid comment position");
@@ -73,7 +85,7 @@ export function readBiffMetadata(records: readonly BiffRecord[], revision: numbe
           context.signal.throwIfAborted();
           const amount = Math.min(2048, remaining); text += biffDecode(current.slice(6, amount), codepage); remaining -= amount;
           if (!remaining) break;
-          const continuation = records[++index]; if (!continuation || continuation.opcode !== 0x1c || continuation.data.u16(0) !== 0xffff || continuation.data.u16(2) !== 0)
+          const continuation = yield ++index; if (!continuation || continuation.opcode !== 0x1c || continuation.data.u16(0) !== 0xffff || continuation.data.u16(2) !== 0)
             invalidBiff("missing NOTE continuation");
           current = continuation.data;
         }

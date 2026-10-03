@@ -1,5 +1,6 @@
+import { biffRecord, type BiffRecords } from "./biff-record-storage.js";
 import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
-import { Binary, invalidBiff, type BiffRecord } from "./biff-binary.js";
+import { Binary, invalidBiff } from "./biff-binary.js";
 import { decryptBiffPropertyContainer, encryptedBiffPropertyStream } from "./biff-encrypted-properties.js";
 import { md5, sha1 } from "@noble/hashes/legacy.js";
 
@@ -26,7 +27,7 @@ export function rc4Stream(key: Uint8Array, length: number, context: CapabilityCo
 }
 
 /** Decode admitted XOR/RC4 profiles; optional secret acquisition is explicit host authority. */
-export async function decryptBiffRecords(records: BiffRecord[], revision: number, context: CapabilityContext,
+export async function decryptBiffRecords(records: BiffRecords, revision: number, context: CapabilityContext,
   streams?: ReadonlyMap<string, Uint8Array>): Promise<ReadonlyMap<string, Uint8Array> | undefined> {
   let array: Uint8Array | undefined, base: Uint8Array | undefined, work = 0;
   let block = -1, stream: Uint8Array | undefined;
@@ -47,8 +48,9 @@ export async function decryptBiffRecords(records: BiffRecord[], revision: number
   let declarations = 0;
   for (let index = 0; index < records.length; index++) {
     if ((index & 1023) === 0) context.signal.throwIfAborted();
-    if (records[index]!.opcode === 0x2f && ++declarations > 1) invalidBiff("duplicate FILEPASS");
+    if (("opcode" in records ? await records.opcode(index) : records[index]!.opcode) === 0x2f && ++declarations > 1) invalidBiff("duplicate FILEPASS");
   }
+  if (!declarations) return undefined;
   const acquire = async (algorithm: "xor" | "rc4" | "rc4-cryptoapi"): Promise<Uint8Array | undefined> => {
     if (!context.password) return undefined;
     context.signal.throwIfAborted();
@@ -90,7 +92,7 @@ export async function decryptBiffRecords(records: BiffRecord[], revision: number
   try {
     for (let at = 0; at < records.length; at++) {
       context.signal.throwIfAborted();
-      const record = records[at]!, data = record.data, opcode = record.opcode;
+      const record = (await biffRecord(records, at))!, data = record.data, opcode = record.opcode;
       if (opcode === 0x2f) {
         const prefix = revision >= 8 ? 2 : 0;
         const method = prefix ? data.u16(0) : 0;
@@ -213,19 +215,22 @@ export async function decryptBiffRecords(records: BiffRecord[], revision: number
       // Plaintext gaps advance offsets without generating or charging unused blocks.
       admit(count + blocks * (64 + 256 + 1024));
       const decoded = data.bytes.slice(), end = record.offset + 4 + decoded.length;
-      decodedBuffers.push(decoded);
-      for (let index = start; index < decoded.length; index++) {
-        if ((index & 1023) === 0) context.signal.throwIfAborted();
-        if (base) {
-          const absolute = record.offset + 4 + index, number = Math.floor(absolute / 1024);
-          if (number !== block) { stream?.fill(0); stream = keyStream(number, 1024); block = number; }
-          decoded[index] = decoded[index]! ^ stream![absolute % 1024]!;
-        } else {
-          const value = decoded[index]! ^ array![(end + index) % 16]!;
-          decoded[index] = value >> 5 | value << 3;
+      if (!("set" in records)) decodedBuffers.push(decoded);
+      try {
+        for (let index = start; index < decoded.length; index++) {
+          if ((index & 1023) === 0) context.signal.throwIfAborted();
+          if (base) {
+            const absolute = record.offset + 4 + index, number = Math.floor(absolute / 1024);
+            if (number !== block) { stream?.fill(0); stream = keyStream(number, 1024); block = number; }
+            decoded[index] = decoded[index]! ^ stream![absolute % 1024]!;
+          } else {
+            const value = decoded[index]! ^ array![(end + index) % 16]!;
+            decoded[index] = value >> 5 | value << 3;
+          }
         }
-      }
-      records[at] = { ...record, data: new Binary(decoded) };
+        if ("set" in records) await records.set(at, decoded);
+        else records[at] = { ...record, data: new Binary(decoded) };
+      } finally { if ("set" in records) decoded.fill(0); }
     }
     return properties ? decryptBiffPropertyContainer(properties, keyStream, context, admit) : undefined;
   } catch (error) { for (const bytes of decodedBuffers) bytes.fill(0); throw error; }

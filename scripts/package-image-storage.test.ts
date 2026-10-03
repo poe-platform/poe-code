@@ -127,6 +127,8 @@ it("packs the image PNG filesystem API with canonical public storage and a host-
   const expectedResized = await sharp(input).resize(3, 5, {fit: "contain"}).rotate(90).raw().toBuffer();
   expect([...resizedPixels]).toEqual([...expectedResized]);
   expect(await sharp("/input.png", {filesystem: guarded}).rotate(37).affine([1, 0.2, 0.1, 1], {interpolator: "bicubic"}).toFile("/affine.png")).toMatchObject({format: "png"});
+  expect(await sharp("/input.png", {filesystem: guarded}).boolean("/input.png", "eor").toFile("/boolean.png")).toMatchObject({format: "png", width: 7, height: 3});
+  expect(await sharp("/input.png", {filesystem: guarded}).removeAlpha().grayscale().joinChannel(["/input.png", "/input.png"]).toFile("/joined.png")).toMatchObject({format: "png", channels: 3});
   expect(await sharp("/input.png", {filesystem: guarded}).extend({top: 3, bottom: 3, left: 3, right: 3, background: "white"}).median(3).trim({lineArt: true}).toFile("/canvas.png")).toMatchObject({format: "png", width: 13, height: 9, trimOffsetLeft: 0, trimOffsetTop: 0});
   expect(await sharp("/input.png", {filesystem: guarded}).gamma(2.2).resize(3, 2).convolve({width: 3, height: 3, kernel: [1, 2, 1, 2, 4, 2, 1, 2, 1]}).dilate(2).erode(2).blur({sigma: 1.5, precision: "float"}).sharpen({sigma: 1.5}).clahe({width: 5, height: 3, maxSlope: 2}).toFile("/filtered.png")).toMatchObject({width: 3, height: 2, format: "png", premultiplied: true});
   // A 15-pixel flat CLAHE window clipped at 2 maps zero to floor(255 * 2 / 15).

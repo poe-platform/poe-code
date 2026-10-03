@@ -1,3 +1,4 @@
+import {readPngResource,UnsupportedStoredResource} from "./png-resources.js";
 import {prepareClaheImage} from "./ops/clahe.js";
 import {transformStoredPixels} from "./ops/storage-pixels.js";
 import {resizeStoredImage} from "./ops/storage-resize.js";
@@ -77,6 +78,7 @@ export async function tryPngFile(input: string, output: string, options: SharpIn
     signal.throwIfAborted();
     if (compareIdentity(initial,final)==="distinct" || !compareFileVersion(initial,final)) throw new FsError("EAGAIN",{path:input,message:"Image source changed while decoding"});
     handleClosed=true; await handle.close();
+    const resources={readImage:(input:Uint8Array|string,resourceOptions:SharpInputOptions|undefined,resourceSignal:AbortSignal)=>readPngResource(input,resourceOptions,fs,storage!,resourceSignal)};
     const gamma=operations.find(node=>node.kind==="gamma");
     const splitGamma=gamma && operations.some(node=>node.kind==="resize" || node.kind==="blur" || node.kind==="sharpen" || node.kind==="convolve" || node.kind==="modulate" || node.kind==="recomb");
     let gammaInApplied=false;
@@ -98,7 +100,7 @@ export async function tryPngFile(input: string, output: string, options: SharpIn
           return scaled;
         }:undefined);
         if(image.hasAlpha && !image.isPremultiplied) image=index<stages.last?await transformStoredPixels(image,storage,{kind:"premultiply"},signal):{...image,wasPremultiplied:true};
-      } else image=await transformStoredImage(image,storage,splitGamma && operation.kind==="gamma"?{...operation,gamma:1}:operation,signal);
+      } else image=await transformStoredImage(image,storage,splitGamma && operation.kind==="gamma"?{...operation,gamma:1}:operation,signal,resources);
       if(index===stages.last && image.isPremultiplied) image=await transformStoredPixels(image,storage,{kind:"unpremultiply"},signal);
     }
     const backing=storage;
@@ -122,5 +124,5 @@ export async function tryPngFile(input: string, output: string, options: SharpIn
     failed=false;
     const gray=image.space==="b-w" || image.channels===1 || image.channels===2;
     return {format:"png",width:image.width,height:image.height,channels:gray ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3,premultiplied:Boolean(image.wasPremultiplied),...(image.trimOffsetLeft===undefined?{}:{trimOffsetLeft:image.trimOffsetLeft}),...(image.trimOffsetTop===undefined?{}:{trimOffsetTop:image.trimOffsetTop}),size};
-  } finally {await cleanup();}
+  } catch(error) {if(error instanceof UnsupportedStoredResource) {failed=false;return undefined;} throw error;} finally {await cleanup();}
 }

@@ -1,6 +1,7 @@
 import type { ByteSource } from "safe-bash-contracts";
 import type { LlmService } from "./service.js";
 import type { LlmTemplateLoader } from "./templates.js";
+import type {LlmCollectionCommands} from './collections-command-types.js';
 export type LlmOption = string | number | boolean | null | readonly LlmOption[] | { readonly [key: string]: LlmOption };
 export type LlmCapability = "messages" | "schema" | "embed" | "embed-binary";
 export interface LlmResponseMetadata {
@@ -76,6 +77,7 @@ export interface LlmLimits {
   readonly maxOutputBytes: number;
 }
 export interface LlmCommandsOptions {
+  readonly collections?:LlmCollectionCommands;
   readonly limits?: Partial<LlmLimits>;
   readonly service?: LlmService;
   readonly providers?: readonly LlmProvider[];

@@ -7,6 +7,8 @@ import {similarCollection,type LlmCollectionSimilarOptions,type LlmCollectionSim
 export type {LlmCollectionSimilarOptions,LlmCollectionSimilarity,LlmCollectionField} from './collections-similarity.js';
 import {LlmCollectionDoesNotExist} from './collections-errors.js';
 export {LlmCollectionDoesNotExist} from './collections-errors.js';
+export {createLlmCollectionCommands} from './collections-command.js';
+export type {LlmCollectionCommands} from './collections-command-types.js';
 import {sourceBytes} from './request-source.js';
 
 export interface LlmCollectionSearchOptions extends LlmCollectionSimilarOptions {
@@ -19,6 +21,7 @@ export interface LlmCollectionSearchOptions extends LlmCollectionSimilarOptions 
 export interface LlmCollection {readonly id:bigint;readonly name:string;readonly model:string}
 export interface LlmCollectionCatalog {
  collection(name:string,options?:{readonly model?:string;readonly create?:boolean}):Promise<LlmCollection>;
+ exists(name:string):Promise<boolean>;
  list(visit:(collection:LlmCollection & {readonly count:bigint})=>void|Promise<void>):Promise<void>;
  delete(name:string):Promise<void>;
  embed(name:string,id:string,options:LlmCollectionEmbedOptions):Promise<void>;
@@ -35,12 +38,13 @@ const schema=[
  'CREATE INDEX [idx_embeddings_content_hash] ON [embeddings] ([content_hash])',
 ];
 
-async function initialize(session:PrivateSqliteSession,signal:AbortSignal,now:()=>Date):Promise<((editor:SqliteFinalizer)=>Promise<void>)|undefined>{
+async function initialize(session:PrivateSqliteSession,signal:AbortSignal,now:()=>Date,create:boolean):Promise<((editor:SqliteFinalizer)=>Promise<void>)|undefined>{
  const tables:string[]=[];
  await withSqliteStatement(session.module,{...session,signal,sql:"SELECT name FROM sqlite_schema WHERE type='table' AND name IN ('collections','embeddings')"},async query=>{
   for await(const [name]of query.rows([],['text']))tables.push(name as string);
  });
  if(!tables.length){
+  if(!create)throw new FsError('ENOENT',{message:'Embedding collection database does not exist'});
   // An unrelated database may already use sqlite-migrate's shared ledger.
   await session.execute(schema[0]!.replace('CREATE TABLE','CREATE TABLE IF NOT EXISTS'));
   for(const statement of schema.slice(1))await session.execute(statement);
@@ -66,6 +70,7 @@ export async function withLlmCollections<T>(options:{
  readonly fs:FileSystem;readonly path:string;readonly signal:AbortSignal;
  readonly maxFileBytes:number;readonly maxIndexBytes:number;readonly maxOpenFiles:number;
  readonly now:()=>Date;
+ readonly create?:boolean;
 },operation:(catalog:LlmCollectionCatalog)=>Promise<T>){
  const {signal}=options;
  const execute=async(editor:SqliteFinalizer):Promise<T>=>{
@@ -93,6 +98,7 @@ export async function withLlmCollections<T>(options:{
    });
   };
   const catalog:LlmCollectionCatalog={
+   exists(name){return native(async session=>Boolean(await lookup(session,name)));},
    collection(name,settings={}){return native(async session=>{
     const existing=await lookup(session,name);if(existing)return existing;
     if(settings.create===false)throw new LlmCollectionDoesNotExist(name);
@@ -104,7 +110,7 @@ export async function withLlmCollections<T>(options:{
     });
    });},
    list(visit){return native(async session=>{
-    await withSqliteStatement(session.module,{...session,signal,sql:'SELECT id,name,model,(SELECT count(*) FROM embeddings WHERE collection_id=collections.id) FROM collections ORDER BY id'},async query=>{
+    await withSqliteStatement(session.module,{...session,signal,sql:'SELECT id,name,model,(SELECT count(id) FROM embeddings WHERE collection_id=collections.id) FROM collections ORDER BY name,model'},async query=>{
      for await(const [id,name,model,count]of query.rows([],['integer','text','text','integer']))await visit({id:id as bigint,name:name as string,model:model as string,count:count as bigint});
     });
    });},
@@ -176,7 +182,7 @@ export async function withLlmCollections<T>(options:{
   if(migration)await migration(editor);
   value=await execute(editor);
  }},async session=>{
-  migration=await initialize(session,signal,options.now);
+  migration=await initialize(session,signal,options.now,options.create!==false);
  });
  return {...receipt,value};
 }

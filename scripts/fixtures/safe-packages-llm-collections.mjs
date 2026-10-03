@@ -1,6 +1,6 @@
 import { MemoryFileSystem } from "@poe-platform/safe-fs/core";
-import { withLlmCollections } from "@poe-platform/safe-bash/commands/llm/collections";
-import { createLlmService } from "@poe-platform/safe-bash/commands/llm";
+import { withLlmCollections, createLlmCollectionCommands } from "@poe-platform/safe-bash/commands/llm/collections";
+import { createLlmService, llmCommands } from "@poe-platform/safe-bash/commands/llm";
 import { legacyCollectionDatabases } from "./safe-packages-llm-collections-reference.mjs";
 import { Shell } from "@poe-platform/safe-bash/shell";
 import { sqlite3Commands } from "@poe-platform/safe-bash/commands/sqlite3";
@@ -56,6 +56,16 @@ export async function verifyLlmCollections() {
     const result=await embeddingShell.exec('sqlite3 -readonly /embeddings.db "SELECT id,hex(embedding),content,metadata FROM embeddings;"');
     if(result.exitCode!==0||result.stdout!=='one|0000803F0000003F000000C0|stored content|{"name":"fixture"}\n')throw new Error(`Embedding readback failed: ${result.stderr||result.stdout}`);
   }finally{await embeddingShell.dispose();}
+  const cliShell=new Shell({fs}).use(llmCommands({service,collections:createLlmCollectionCommands({maxFileBytes:1048576,maxIndexBytes:1048576,maxOpenFiles:8})}));
+  try{
+    const stored=await cliShell.exec('llm embed cli one -m embed -c hello --store -d /cli.db');
+    if(stored.exitCode!==0||stored.stdout)throw new Error(`Stored CLI embedding failed: ${stored.stderr}`);
+    const listed=await cliShell.exec('llm collections --json -d /cli.db');
+    if(listed.exitCode!==0||JSON.stringify(JSON.parse(listed.stdout))!==JSON.stringify([{name:'cli',model:'embed',num_embeddings:1}]))throw new Error('Collection CLI list failed');
+    const deleted=await cliShell.exec('llm collections delete cli -d /cli.db');
+    if(deleted.exitCode!==0)throw new Error('Collection CLI delete failed');
+  }finally{await cliShell.dispose();}
+  await fs.unlink('/cli.db');
   for (const {version, zlibBase64} of legacyCollectionDatabases) {
     const bytes = Uint8Array.from(atob(zlibBase64), character => character.charCodeAt(0));
     const database = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate"))).arrayBuffer());

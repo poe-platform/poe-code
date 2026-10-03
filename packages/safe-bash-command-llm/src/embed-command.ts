@@ -1,18 +1,15 @@
-import { embeddingText } from "./embed-input.js";
 import { FsError } from "safe-bash-contracts";
 import { pathOf } from 'safe-bash-contracts/path';
 import type { CommandContext } from 'safe-bash-contracts';
 import type { LlmService } from './service.js';
 import type { LlmInputSource, LlmEmbeddingResponse } from './types.js';
 import { createLlmConfiguration } from './configuration.js';
-import { fileSource } from './file-source.js';
-import { createLlmSpool } from './retained-spool.js';
-import { sourceBytes } from './request-source.js';
+import {acquireEmbeddingInput} from './embed-source.js';
 import { serializeLlmEmbedding, type LlmEmbeddingFormat } from './embed-output.js';
 const usage="Usage: llm embed [OPTIONS] [COLLECTION] [ID]\n";
 const help="Usage: llm embed [OPTIONS] [COLLECTION] [ID]\n\n  Embed text and store or return the result\n\nOptions:\n  -i, --input PATH                File to embed\n  -m, --model TEXT                Embedding model to use\n  --store                         Store the text itself in the database\n  -d, --database FILE\n  -c, --content TEXT              Content to embed\n  --binary                        Treat input as binary data\n  --metadata TEXT                 JSON object metadata to store\n  -f, --format [json|blob|base64|hex]\n                                  Output format\n  -h, --help                      Show this message and exit.\n";
 
-export async function embeddingCommand(context:CommandContext,service:LlmService,tokens:readonly string[],write:(bytes:Uint8Array)=>Promise<void>,diagnostic:(text:string)=>Promise<void>,step:()=>Promise<void>,admit:(bytes:number,materialized?:boolean)=>void,maxConfigurationBytes=Infinity):Promise<number>{
+export async function embeddingCommand(context:CommandContext,service:LlmService,tokens:readonly string[],write:(bytes:Uint8Array)=>Promise<void>,diagnostic:(text:string)=>Promise<void>,step:()=>Promise<void>,admit:(bytes:number,materialized?:boolean)=>void,maxConfigurationBytes=Infinity,stored?: (request:{collection:string;id:string;values:Readonly<Record<string,string>>;store:boolean;binary:boolean})=>Promise<number>):Promise<number>{
  const encoder=new TextEncoder();
  const fail=async(message:string,code=1,withUsage=false):Promise<number>=>{await diagnostic((withUsage?usage+"Try 'llm embed -h' for help.\n\n":'')+`Error: ${message}\n`);return code;};
  const values:Record<string,string>={},operands:string[]=[];
@@ -49,7 +46,7 @@ export async function embeddingCommand(context:CommandContext,service:LlmService
  }
  if(operands.length===1)return fail('Must provide both collection and id');
  if(store&&!operands.length)return fail('Must provide collection when using --store');
- if(operands.length)return fail('Embedding collections are not yet available');
+ if(operands.length)return stored?stored({collection:operands[0]!,id:operands[1]!,values,store,binary}):fail('Embedding collections are not yet available');
  const config=createLlmConfiguration(context,maxConfigurationBytes);
  const selected=values.model??(context.env.LLM_EMBEDDING_MODEL||undefined)??await config.defaultModel('default_embedding_model.txt');
  let entry;
@@ -64,33 +61,10 @@ export async function embeddingCommand(context:CommandContext,service:LlmService
   if(values.content&&entry.provider.embed){result=await service.embed({...request,inputs:[values.content]});}
   else{
    if(!service.embedSources||!entry.provider.embedSources)return fail(`Model ${entry.model.id} does not support streamed embeddings`);
-   if(values.content){
-    const content=values.content;
-    input={async dispose(){},bytes:{async *[Symbol.asyncIterator](){for(let offset=0;offset<content.length;){let end=Math.min(offset+4096,content.length);const last=content.charCodeAt(end-1);if(end<content.length&&last>=0xd800&&last<=0xdbff)end--;yield encoder.encode(content.slice(offset,end));offset=end;}}}};
-   }else if(values.input&&values.input!=='-'){
-    const path=pathOf(context,values.input),stat=await context.fs.stat(path,{signal:context.signal});
-    if(!stat.size)return fail('No content provided');
-    admit(stat.size);
-    input=await fileSource({fs:context.fs,path,signal:context.signal,expectedStat:stat});
-   }else{
-    let spool:Awaited<ReturnType<typeof createLlmSpool>>|undefined;
-    try{
-     const stdin=context.stdinInput?{[Symbol.asyncIterator](){return {next:()=>context.stdinInput!.read(16384,context.signal)};}}:context.stdin;
-     const decoder=new TextDecoder('utf-8',{fatal:true});
-     for await(const bytes of sourceBytes(stdin,context.signal)){
-      if(!bytes.length)continue;admit(bytes.length);
-      spool??=await createLlmSpool(context.fs,context.cwd,context.signal,'input');
-      if(!binaryInput)for(let offset=0;offset<bytes.length;offset+=16384)decoder.decode(bytes.subarray(offset,offset+16384),{stream:true});
-      await spool.write(bytes);
-     }
-     if(!binaryInput)decoder.decode();
-     if(!spool)return fail('No content provided');
-     const retained=spool;input={bytes:retained.replay(),dispose:()=>retained.close()};
-    }catch(error){await spool?.close();throw error;}
-   }
+   input=await acquireEmbeddingInput(context,values,binaryInput,admit);
+   if(!input)return fail('No content provided');
    // Service owns the input lease from this point, including rejected requests.
-   const raw=input;
-   const owned=!binaryInput&&!values.content?{bytes:embeddingText(raw.bytes,context.signal),dispose:()=>raw.dispose()}:raw;input=undefined;
+   const owned=input;input=undefined;
    result=await service.embedSources({...request,inputs:[owned],...(binaryInput?{binary:true}:{})});
   }
   for await(const chunk of serializeLlmEmbedding(result.vectors[0]!,(values.format??'json') as LlmEmbeddingFormat,context.signal))await write(chunk);

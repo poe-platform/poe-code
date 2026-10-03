@@ -98,7 +98,7 @@ async function interrupted<Value>(start: () => Value | PromiseLike<Value>, signa
   });
 }
 
-async function execute(context: CommandContext, service: LlmService, limits: LlmCommandsOptions["limits"], templateLoaderOptions: TemplateLoaderOptions) {
+async function execute(context: CommandContext, service: LlmService, limits: LlmCommandsOptions["limits"], templateLoaderOptions: TemplateLoaderOptions, collections:LlmCommandsOptions['collections']) {
   context.signal.throwIfAborted();
   const controller = new AbortController();
   const operation = createOutputOperation(context, context.stdout);
@@ -213,6 +213,11 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       }
       await emitText(JSON.stringify(parseLlmSchemaDsl(inputs[0]!, multi), null, 2) + "\n");
       return { exitCode: 0 };
+    }
+    if (argumentsValue.args[0] === 'collections'||collections&&argumentsValue.args[0]==='embed') {
+      const tokens=Array.from({length:argumentsValue.args.length-1},(_,index)=>argumentText(index+1));
+      if(!collections){await writeDiagnostic(context.stderr,'Error: Collection storage is not configured\n',signal);return {exitCode:1};}
+      return {exitCode:await collections.execute({context:{...context,signal},service,command:argumentsValue.args[0]!,tokens,write,diagnostic:text=>writeDiagnostic(context.stderr,text,signal),step,admit:admitInput,maxConfigurationBytes:limits?.maxConfigurationBytes??Infinity,maxInputBytes:limits?.maxInputBytes??Infinity})};
     }
     if (argumentsValue.args[0] === "embed") {
       const tokens = Array.from({ length: argumentsValue.args.length - 1 }, (_, index) => argumentText(index + 1));
@@ -511,7 +516,8 @@ export function createLlmCommand(options: LlmCommandsOptions = {}): CommandDefin
   const maxRemoteBytes = options.maxRemoteTemplateBytes ?? limits?.maxInputBytes ?? Infinity;
   const templateLoaderOptions: TemplateLoaderOptions = { maxRemoteBytes, ...(options.templateLoaders ? { loaders: options.templateLoaders } : {}) };
   const service = options.service ?? createLlmService({ ...options, providers: options.providers ?? [] });
-  return { name: "llm", description: "Query injected language and media models", execute: context => execute(context, service, limits, templateLoaderOptions) };
+  const collections=options.collections;
+  return { name: "llm", description: "Query injected language and media models", execute: context => execute(context, service, limits, templateLoaderOptions, collections) };
 }
 
 export function createLlmCommands(options: LlmCommandsOptions = {}): readonly CommandDefinition[] {

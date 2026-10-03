@@ -34,7 +34,7 @@ export async function embedCollection(editor:SqliteFinalizer,options:LlmCollecti
  const digest=md5.create();
  try{
   if(typeof id!=='string')throw new TypeError('Embedding ID must be a string');
-  if(!Number.isSafeInteger(options.maxInputBytes)||options.maxInputBytes<0)throw new RangeError('Invalid embedding input byte limit');
+  if(options.maxInputBytes!==Infinity&&(!Number.isSafeInteger(options.maxInputBytes)||options.maxInputBytes<0))throw new RangeError('Invalid embedding input byte limit');
   spool=await createLlmSpool(options.fs,options.directory,signal,'input');
   const decoder=options.binary?undefined:new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});
   let size=0;

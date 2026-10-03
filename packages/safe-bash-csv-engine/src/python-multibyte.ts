@@ -1,3 +1,4 @@
+import {decodeBase64Latin1} from './codepage-table.js';
 import {PythonTextDecodeError} from './python-codepages.js';
 
 import {multibytePool,multibytePoolLengths,cp949Hangul} from './python-multibyte-tables.js';
@@ -16,7 +17,7 @@ const expandedTables=new WeakMap<PythonMultibyteTable,ExpandedTable>();
 // Signed varints encode start deltas, flagged lengths, and distinct target deltas.
 // These are fixed codec metadata, never buffers derived from caller payloads.
 function unpack(encoded:string):Range[]{
- const bytes=Uint8Array.from(atob(encoded),char=>char.charCodeAt(0)),values:number[]=[];
+ const bytes=Uint8Array.from(decodeBase64Latin1(encoded),char=>char.charCodeAt(0)),values:number[]=[];
  let value=0,factor=1;
  for(const byte of bytes){value+=(byte&127)*factor;if(byte&128){factor*=128;continue;}values.push(value&1?-(value+1)/2:value/2);value=0;factor=1;}
  const ranges:Range[]=[];let key=0,target=0;
@@ -32,13 +33,13 @@ function lookup(ranges:readonly Range[],key:number):number|undefined{
 // The bitmap also preserves one-unit values without UTF-16 index ambiguity.
 let pooledValues:string[]|undefined,extendedHangul:number[]|undefined;
 function poolValue(index:number):string{
- if(!pooledValues){pooledValues=[];const lengths=atob(multibytePoolLengths),bytes=atob(multibytePool);let pool='';for(let i=0;i<bytes.length;i+=2)pool+=String.fromCharCode(bytes.charCodeAt(i)|(bytes.charCodeAt(i+1)<<8));let offset=0;
+ if(!pooledValues){pooledValues=[];const lengths=decodeBase64Latin1(multibytePoolLengths),bytes=decodeBase64Latin1(multibytePool);let pool='';for(let i=0;i<bytes.length;i+=2)pool+=String.fromCharCode(bytes.charCodeAt(i)|(bytes.charCodeAt(i+1)<<8));let offset=0;
   for(let i=0;offset<pool.length;i++){const length=1+((lengths.charCodeAt(i>>>3)>>>(i&7))&1);pooledValues.push(pool.slice(offset,offset+length));offset+=length;}
  }
  return pooledValues[index]!;
 }
 function hangulPoint(index:number):number{
- if(!extendedHangul){extendedHangul=[];const bitmap=atob(cp949Hangul);for(let i=0;i<11172;i++)if((bitmap.charCodeAt(i>>>3)>>(i&7))&1)extendedHangul.push(0xac00+i);}
+ if(!extendedHangul){extendedHangul=[];const bitmap=decodeBase64Latin1(cp949Hangul);for(let i=0;i<11172;i++)if((bitmap.charCodeAt(i>>>3)>>(i&7))&1)extendedHangul.push(0xac00+i);}
  return extendedHangul[index]!;
 }
 const johabMedial=[3,4,5,6,7,10,11,12,13,14,15,18,19,20,21,22,23,26,27,28,29];

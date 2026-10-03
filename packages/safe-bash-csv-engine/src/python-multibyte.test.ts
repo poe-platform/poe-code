@@ -60,3 +60,12 @@ test('EUC-KR defers malformed composition until byte eight and retains incomplet
   assert.equal(decoder.decode(Uint8Array.of(65)),'A');
  }
 });
+
+test('codepage and multibyte tables initialize without global atob or btoa',async()=>{
+ const {build}=await import('esbuild'),{createContext,runInContext}=await import('node:vm');
+ const bundle=await build({entryPoints:[new URL('./text-decoder.ts',import.meta.url).pathname],bundle:true,write:false,platform:'browser',format:'cjs',target:'es2022'});
+ const sandbox=createContext({TextEncoder,TextDecoder,Uint8Array,ArrayBuffer});
+ const exported=runInContext(`(function(){const module={exports:{}};${bundle.outputFiles[0]!.text};return module.exports;})()`,sandbox) as {PythonTextDecoder:typeof PythonTextDecoder};
+ assert.equal(new exported.PythonTextDecoder('cp1252').decode(Uint8Array.of(0x80)),'€');
+ assert.equal(new exported.PythonTextDecoder('euc_jis_2004').decode(Uint8Array.of(0xa4,0xa2)),'あ');
+});

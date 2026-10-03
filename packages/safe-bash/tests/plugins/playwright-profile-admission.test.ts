@@ -444,7 +444,10 @@ test('storage recovery applies routing, timeouts and test ids without running in
     }
     playwrightLocatorSelector(page, "getByTestId('save')");
     assert.ok(locator.mock.calls[0]!.arguments[0].includes('data-qa'));
-    assert.deepEqual(checkpoints.at(-1)?.configuration, configuration);
+    assert.deepEqual(checkpoints.at(-1)?.configuration, {
+      timeouts: configuration.timeouts, testIdAttribute: configuration.testIdAttribute,
+      network: configuration.network,
+    });
     assert.equal(item.navigations[0]!.mock.callCount(), 1);
     assert.equal(item.navigations[0]!.mock.calls[0]?.arguments[0], 'https://allowed.test/status');
   } finally { await controller.dispose(); }

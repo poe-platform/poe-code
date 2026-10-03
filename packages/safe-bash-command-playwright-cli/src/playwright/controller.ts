@@ -222,12 +222,20 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     if (!options.persistence || session.state !== 'open' || !session.lease || session.failure) return;
     if (session.lease.context.pages().some(page => getPlaywrightModal(page))) return;
     signal.throwIfAborted();
+    const configuration = session.configuration === undefined ? undefined : structuredClone({ ...session.configuration });
+    if (configuration && session.recovery === 'saved-storage') {
+      // A completed recovery checkpoint must not re-enable startup effects when
+      // the next owner restores it without an unresolved operation receipt.
+      delete configuration.initScripts;
+      delete configuration.initScriptFiles;
+      delete configuration.initPages;
+    }
     try {
       const outcome = await options.persistence.checkpoint({ name: session.name, context: session.lease.context,
         ...(session.page ? { selectedPage: session.page } : {}), ...(session.expiresAt === undefined ? {} : { expiresAt: session.expiresAt }),
         ...(session.idleTimeoutMs === undefined ? {} : { idleTimeoutMs: session.idleTimeoutMs }),
         ...(session.contextOptions === undefined ? {} : { contextOptions: structuredClone(session.contextOptions) }),
-        ...(session.configuration === undefined ? {} : { configuration: structuredClone(session.configuration) }) }, signal);
+        ...(configuration === undefined ? {} : { configuration }) }, signal);
       signal.throwIfAborted();
       if (outcome?.status === 'storage-read-failed') {
         if (!(outcome.error instanceof PlaywrightStorageReadError)) throw new TypeError('Invalid checkpoint failure outcome');
@@ -299,9 +307,9 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     session.failure = new PlaywrightResourceLimitError('Playwright tab limit exceeded');
     void release(session).catch(() => {});
   };
-  const selectPage = async (session: Session, page: PlaywrightPage, check: () => void) => {
+  const selectPage = async (session: Session, page: PlaywrightPage, check: () => void, onPageWork?: () => void) => {
     check();
-    await initializePage(session, page);
+    await initializePage(session, page, onPageWork);
     check();
     await session.snapshot.invalidate();
     check();
@@ -320,7 +328,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       page.on('close', closed);
     }
   };
-  const initializePage = async (session: Session, page: PlaywrightPage): Promise<void> => {
+  const initializePage = async (session: Session, page: PlaywrightPage, onPageWork?: () => void): Promise<void> => {
     setPlaywrightTestIdAttribute(page, session.configuration?.testIdAttribute);
     if (session.recovery === 'saved-storage') return;
     const key = page.mainFrame?.() ?? page;
@@ -331,7 +339,9 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         for (const module of session.configuration?.initPages ?? []) {
           if (!session.lease?.executeCode) throw new Error('Browser initPage requires isolated native code execution');
           try {
-            await session.lease.executeCode({ page, source: playwrightInitPageSource(module.source), signal: lifetime.signal,
+            const source = playwrightInitPageSource(module.source);
+            onPageWork?.();
+            await session.lease.executeCode({ page, source, signal: lifetime.signal,
               timeoutMs: codeExecutionTimeoutMs, maxOutputBytes: maxCommandBytes, maxPages: maxTabs });
           } catch (cause) { throw new Error(`Failed to load init page "${module.filename}": ${cause instanceof Error ? cause.message : String(cause)}`, { cause }); }
         }
@@ -590,7 +600,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       livePageStateLost: !live, ...(copiedOperation ? { operation: !live && copiedOperation.status === 'running'
         ? Object.freeze({ operationId: copiedOperation.operationId, status: 'unknown' as const }) : copiedOperation } : {}) });
   };
-  const restoreSession = async (request: PlaywrightSessionRestoreOptions, withinQueue = false): Promise<void> => {
+  const restoreSession = async (request: PlaywrightSessionRestoreOptions, internal: { withinQueue?: boolean; onPageWork?: () => void } = {}): Promise<void> => {
     if (!request || typeof request !== 'object' || Object.keys(request).some(key => !['name', 'expiresAt', 'idleTimeoutMs', 'contextOptions', 'configuration', 'signal', 'acquire', 'recovery'].includes(key))
       || typeof request.acquire !== 'function' || request.signal !== undefined && typeof request.signal.throwIfAborted !== 'function') throw new TypeError('Invalid Playwright session restoration');
     validatePlaywrightSessionName(request.name);
@@ -655,11 +665,12 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         }
         if (restored.selectedPage !== undefined) {
           if (!pages.includes(restored.selectedPage)) throw new Error('Selected tab does not belong to the restored context');
-          await selectPage(session, restored.selectedPage, check);
+          await selectPage(session, restored.selectedPage, check, internal.onPageWork);
         }
         check();
         if (session.recovery !== 'saved-storage' && restored.initialize !== undefined) {
           if (typeof restored.initialize !== 'function') throw new TypeError('Invalid Playwright session initializer');
+          internal.onPageWork?.();
           await restored.initialize({ signal });
           check();
         }
@@ -677,14 +688,14 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         throw reason;
       } finally { signal.removeEventListener('abort', cancel); }
     };
-    const operation = withinQueue ? restore() : enqueue(name, restore);
+    const operation = internal.withinQueue ? restore() : enqueue(name, restore);
     work.add(operation);
     try { await operation; }
     finally { work.delete(operation); }
   };
   // Called only while holding this name's queue. Persistence returns a fresh
   // owned lease from its last committed resumable profile.
-  const restorePersistedSession = async (name: string, signal: AbortSignal): Promise<void> => {
+  const restorePersistedSession = async (name: string, signal: AbortSignal, onPageWork: () => void): Promise<void> => {
     signal.throwIfAborted();
     if (!options.persistence || explicitlyClosed.has(name) || suppressUnknownRestores && !sessions.has(name)) return;
     const current = sessions.get(name);
@@ -705,7 +716,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           ...(restored.idleTimeoutMs === undefined ? {} : { idleTimeoutMs: restored.idleTimeoutMs }),
           ...(restored.contextOptions === undefined ? {} : { contextOptions: restored.contextOptions }),
           ...(restored.configuration === undefined ? {} : { configuration: restored.configuration }),
-          acquire: async () => { transferred = true; return restored; } }, true);
+          acquire: async () => { transferred = true; return restored; } }, { withinQueue: true, onPageWork });
       } catch (error) {
         if (!transferred) {
           try { await restored.lease.release(); }
@@ -731,6 +742,23 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     if ('session' in parsed && options.namedSessionAttachment && parsed.command !== 'attach' && !parsed.explicitSession && selection.current?.selection === defaultSelection) parsed.session = selection.current.name;
     if (invocation.operationId !== undefined) validatePlaywrightSessionName(invocation.operationId);
     const operationId = invocation.operationId ?? (options.persistence?.recordOperation ? crypto.randomUUID() : undefined);
+    let receiptRetired = false;
+    const recordOutcome = async (name: string, status: PlaywrightOperationOutcome['status'], signal: AbortSignal) => {
+      if (operationId === undefined || receiptRetired) return;
+      const outcome = parsePlaywrightOperationOutcome({ operationId, status });
+      if (!options.persistence?.inspectRecovery) {
+        pruneOutcomes();
+        if (status === 'running') {
+          outcomes.delete(name);
+          outcomes.set(name, { operation: outcome, expiresAt: operationClock() + (options.limits?.maxOperationOutcomeAgeMs ?? Infinity) });
+          if (outcomes.size > (options.limits?.maxOperationOutcomes ?? Infinity)) outcomes.delete(outcomes.keys().next().value!);
+        } else {
+          const receipt = outcomes.get(name);
+          if (receipt?.operation.operationId === operationId) receipt.operation = outcome;
+        }
+      }
+      await options.persistence?.recordOperation?.({ name, operation: outcome }, signal);
+    };
     invocation.signal.throwIfAborted();
     const local = new AbortController();
     let active: Session | undefined;
@@ -1109,7 +1137,25 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           if (explicitlyClosed.has(name)) throw sessions.get(name)?.failure ?? new Error(`Session closed: ${name}; reopen explicitly`);
           const wasLive = sessions.get(name)?.state === 'open';
           if (!wasLive && options.persistence?.list && !(await savedSessions(local.signal)).some(saved => saved.name === name)) throw new Error(`No resumable owned session: ${name}`);
-          await restorePersistedSession(name, local.signal);
+          if (!wasLive) {
+            await recordOutcome(name, 'running', local.signal);
+            let restorationUncertain = false;
+            try {
+              await restorePersistedSession(name, local.signal, () => { restorationUncertain = true; });
+              const restored = sessions.get(name);
+              // Completing recovery must commit the blank profile before clearing
+              // uncertainty, including when attach is the owner's last command.
+              if (restored?.state === 'open') {
+                active = restored;
+                restorationUncertain = true;
+                await checkpoint(restored, local.signal);
+              }
+            } catch (error) {
+              await recordOutcome(name, restorationUncertain || local.signal.aborted ? 'unknown' : 'completed', new AbortController().signal);
+              throw error;
+            }
+            await recordOutcome(name, 'completed', local.signal);
+          }
           const session = sessions.get(name);
           if (!session || session.state !== 'open') throw new Error(`No resumable owned session: ${name}`);
           if (!wasLive) active = session;
@@ -1185,32 +1231,16 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         return;
       }
       await enqueue(parsed.session, async () => {
-        let receiptRetired = false;
-        const recordOutcome = async (status: PlaywrightOperationOutcome['status'], signal: AbortSignal) => {
-          if (operationId === undefined || receiptRetired) return;
-          const outcome = parsePlaywrightOperationOutcome({ operationId, status });
-          if (!options.persistence?.inspectRecovery) {
-            pruneOutcomes();
-            if (status === 'running') {
-              outcomes.delete(parsed.session);
-              outcomes.set(parsed.session, { operation: outcome, expiresAt: operationClock() + (options.limits?.maxOperationOutcomeAgeMs ?? Infinity) });
-              if (outcomes.size > (options.limits?.maxOperationOutcomes ?? Infinity)) outcomes.delete(outcomes.keys().next().value!);
-            } else {
-              const receipt = outcomes.get(parsed.session);
-              if (receipt?.operation.operationId === operationId) receipt.operation = outcome;
-            }
-          }
-          await options.persistence?.recordOperation?.({ name: parsed.session, operation: outcome }, signal);
-        };
         check();
-        await recordOutcome('running', local.signal);
+        await recordOutcome(parsed.session, 'running', local.signal);
         let paused: Session | undefined;
         let commandFailure: { error: unknown } | undefined;
         let commandAdmitted = false;
+        let restorationWorkStarted = false;
         await (async () => {
           check();
           if (ability.scope === 'session' && !['open', 'close', 'close-all', 'list', 'delete-data'].includes(parsed.command)) {
-            await restorePersistedSession(parsed.session, local.signal);
+            await restorePersistedSession(parsed.session, local.signal, () => { restorationWorkStarted = true; });
             check();
           }
           const current = sessions.get(parsed.session);
@@ -1603,8 +1633,8 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         if (active && !retained) await release(active).catch(() => {});
         // A lost-page refusal proves no page action was attempted; it must not
         // turn an ordinary saved profile into an interrupted-operation profile.
-        const uncertainFailure = commandAdmitted && commandFailure && !(commandFailure.error instanceof PlaywrightPageUnavailableError) && !(commandFailure.error instanceof SnapshotReferenceError);
-        await recordOutcome(uncertainFailure || traceFailure || reportedError || local.signal.aborted ? 'unknown' : 'completed', new AbortController().signal);
+        const uncertainFailure = commandFailure && (restorationWorkStarted || commandAdmitted && !(commandFailure.error instanceof PlaywrightPageUnavailableError) && !(commandFailure.error instanceof SnapshotReferenceError));
+        await recordOutcome(parsed.session, uncertainFailure || traceFailure || reportedError || local.signal.aborted ? 'unknown' : 'completed', new AbortController().signal);
         if (traceFailure) {
           if (commandFailure) throw new AggregateError([commandFailure.error, traceFailure.error], 'Playwright command and trace flush failed');
           throw traceFailure.error;

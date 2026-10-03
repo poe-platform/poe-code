@@ -12,6 +12,7 @@ use napi_derive::napi;
 use std::sync::OnceLock;
 mod apply;
 mod bridge;
+mod bridge_async;
 mod discovery;
 mod exclude_async;
 mod resolve_async;

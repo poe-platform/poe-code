@@ -5326,3 +5326,51 @@ main advanced. Release 37110534115 remains pending. Earlier JSONC Release
 37108412662 completed successfully through its queue check, but build, validation
 and publication were skipped; this does not verify publication. Async bridge and
 cleanup, complete root independence and the wider rewrite/swap gates remain open.
+
+### Async skill bridge and cleanup ownership
+
+The last two canonical async skill aliases are replaced with an own Rust bridge
+engine. Rust owns registry claims, SHA-256 fingerprints, collision policy, binary
+tree copies, rollback, selective cleanup and reference counts. A standard-library
+polled Future bridge requests host I/O without threads, an executor, unsafe code
+or a new dependency. The Node host retains filesystem/path/UUID operations,
+promise queues, manifest entry identities and original errors. Queued references
+are observed when work starts; serialized manifests resolve through bridgeId.
+Rollback clears cancellation only for its cleanup operations.
+
+Native ownership, missing Rust module and explicit bridgeId declaration tests
+failed before the implementation. The maintained package route passes 34 native
+checks, 141 original cases across six files, Rust tests, bidirectional public
+types and root posttest. Maintained Rust lint, scoped JavaScript/TypeScript lint
+and diff checks pass. Differential coverage includes successful binary copies,
+warnings, shared ownership, serialized cleanup, source/target/token changes,
+collisions and symlinks, copy/token/exclude failures, cancellation and racing
+target creation. It also checks queued reference mutations, retained entry arrays,
+cleanup getter timing, provider identity and foreign primary-error identity.
+Successful scenarios explicitly assert entries, warning kinds, bytes and cleanup.
+
+Freshly packed artifacts now qualify the complete public skill-package root:
+all 20 runtime exports match the canonical namespace, and discovery, lookup,
+exclude updates, binary bridging, overlapping ownership and serialized cleanup
+pass for all six agents. The import guard admits only the packed own packages,
+existing noble package and Node builtins. No canonical skill package or workspace
+fallback is available. Strict packed root declarations pass with 265 source
+files, skipLibCheck disabled and compiler reads outside the packed consumer and
+TypeScript standard library forbidden. The consumer includes bridgeId and the
+optional fifth resolveSkillDir path argument.
+
+Seven alternating warmed rounds of 100 in-memory bridge/cleanup cycles on Node
+22.23.2 ARM64 measured reference/native medians of 279.515/1062.699 microseconds
+(3.80 times slower). Each cycle bridges one skill with a nested 256-byte asset;
+outputs match before timing and original excludes are checked after each round.
+There are 28 retained results. This does not demonstrate an overall speedup or
+qualify the implementation for a default swap.
+
+Path injection is verified on remote main at 26f68ecef3. Releases 37108412662,
+37108901356, 37109364927, 37109849456, 37110534115 and 37110983516 completed
+successfully through queue checks with build/validation/publication skipped;
+package workflow 37109364787 also skipped standalone bundling and publication.
+These are not verified builds or native releases. JavaScript remains the default;
+arbitrary malformed/accessor behavior, host-reply JSON resource limits, portable
+artifacts, remaining Toolcraft facade/type/dependency coverage and performance
+qualification remain open. No new third-party dependency was added.

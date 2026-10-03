@@ -1,6 +1,7 @@
 //! Portable coding-agent skill catalogs and filesystem policies.
 pub mod apply;
 pub mod bridge;
+pub mod bridge_async;
 pub mod discovery;
 pub mod exclude;
 pub mod exclude_async;

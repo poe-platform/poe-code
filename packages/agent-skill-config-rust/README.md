@@ -4,7 +4,7 @@ Find and install coding-agent skills, protect user files, and keep temporary Git
 ignore rules scoped to one run.
 The portable Rust core derives skill directories from the declarative agent
 catalog and uses only the standard library and own path crates. Async operations
-uses the existing own `@poe-code/safe-fs` capability and path contracts.
+use the existing own `@poe-code/safe-fs` capability and path contracts.
 
 | Capability | Node API |
 | --- | --- |
@@ -15,7 +15,7 @@ uses the existing own `@poe-code/safe-fs` capability and path contracts.
 | Independent run-owned Git exclude blocks | `appendExcludeBlock`, `removeExcludeBlock`, `appendExcludeBlockAsync`, `removeExcludeBlockAsync` |
 | Install bundled skills without overwriting user files | `configure`, `unconfigure` |
 | Install named skills with explicit overwrite control | `installSkill` |
-| Temporarily copy selected skills into a spawning agent | `bridgeActiveSkills`, `cleanupBridgedSkills` |
+| Temporarily copy selected skills into a spawning agent | `bridgeActiveSkills`, `cleanupBridgedSkills`, `bridgeActiveSkillsAsync`, `cleanupBridgedSkillsAsync` |
 
 ```typescript
 import { resolveSkillReference } from '@poe-code/agent-skill-config-rust';
@@ -73,6 +73,14 @@ copies; exclude cleanup must succeed before targets are removed. Original
 manifests have idempotent cleanup, and serialized manifests retain duplicate-run
 exclude IDs.
 
+Async bridges use the supplied filesystem capability and serialize operations
+per provider. Rust owns claims, fingerprints, copying, rollback and reference
+counts; the host supplies filesystem calls, paths, promises and original errors.
+Shared copies survive until the last owning manifest is cleaned. Serialized
+manifests recover their in-process ownership through `bridgeId`; cleaning with a
+different provider cannot remove another provider's copies. Rollback releases
+owned copies even after cancellation.
+
 Async discovery loads direct child `SKILL.md` files, preserves directory order,
 sorts child names by UTF-16 units and deduplicates successfully loaded paths.
 Rust owns traversal and file admission; the host retains filesystem operations,
@@ -80,10 +88,10 @@ decoding, cancellation and original exception identities. Symbolic-link roots
 and nonregular skill files are rejected. Pass `fs`, `cwd` and `homeDir`, with an
 optional `signal`; `nativePaths` retains the original direct-filesystem mode.
 
-This additive experimental workspace exposes the current Node SDK API. Two
-async helpers (bridge and cleanup)
-still delegate to the original package and are not independent Rust replacements.
-Full malformed/accessor fidelity, Python bindings and cross-platform artifacts
+This additive experimental workspace exposes the current Node SDK API without
+runtime imports from the original skill package. Its packed Node entry point and
+strict declarations are checked independently from the source workspace.
+Full malformed/accessor fidelity, resource-bound compatibility, Python bindings and cross-platform artifacts
 remain in progress. Small native Node lookups, discovery and configuration cycles
 are slower than the existing SDK in measured samples.
 Existing applications continue to use the original TypeScript package.

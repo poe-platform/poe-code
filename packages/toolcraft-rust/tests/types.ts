@@ -315,3 +315,12 @@ const pendingApproval:boolean=cliExecution.isHumanInLoopPending({});
 // @ts-expect-error stream writers accept only stdout or stderr
 invocationRuntime.write("hello","other");
 void [executedCommand,resolvedFlags,pendingApproval,nativeInvocation];
+
+import * as generatedHelp from "../dist/cli-generated-help.js";
+const helpRoot=null as unknown as native.Group<{service:string}>;
+const helpTarget:generatedHelp.ResolvedHelpTarget<{service:string}>=generatedHelp.resolveHelpTarget(helpRoot,["node","app"],"cli","app");
+const generatedHelpResult:Promise<void>=generatedHelp.renderGeneratedHelp(helpRoot,[],{controls:{help:"extended",output:true},rootUsageName:"app"},invocationRuntime);
+const helpRows:generatedHelp.HelpCommandRow[]=generatedHelp.formatCommandRows(helpRoot,"cli","kebab",new Set(),"concise");
+// @ts-expect-error generated help only accepts supported CLI casing
+generatedHelp.renderGeneratedHelp(helpRoot,[],{casing:"camel"});
+void [helpTarget,generatedHelpResult,helpRows];

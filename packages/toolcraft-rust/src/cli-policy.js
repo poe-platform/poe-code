@@ -41,7 +41,7 @@ const operations={
   builtInFormat(name){throw new ToolcraftBugError(`Custom output format "${name}" conflicts with a built-in format.`);},
   invalidRenderer(name){throw new ToolcraftBugError(`Custom output format "${name}" must define a renderer function.`);},
   set:flags=>new Set(flags),
-  outputFormatNames:controls=>[...BUILT_IN_OUTPUT_FORMATS,...Object.keys(controls.outputFormats)],
+  outputFormatNames,
   logLevels:()=>[...LOG_LEVELS],
   option:(name,flags,type,hidden,description)=>({name,flags,type,required:false,hidden,description}),
   optionChoices:(name,flags,type,hidden,description,choices)=>({name,flags,type,required:false,hidden,description,choices}),
@@ -51,6 +51,7 @@ const host={operate:protect((name,args)=>operations[name](...args)),get:protect(
 const LOG_LEVELS=Object.freeze(invoke("logLevels",[]));
 
 export function formatCLIName(segment,casing){return invoke("name",[segment,casing]);}
+export function outputFormatNames(controls){return [...BUILT_IN_OUTPUT_FORMATS,...Object.keys(controls.outputFormats)];}
 export function resolveCLIControls(controls){return invoke("controls",[controls]);}
 export function getGlobalLongOptionFlags(presetsEnabled,versionEnabled,controls){return invoke("flags",[presetsEnabled,versionEnabled,controls]);}
 export function createGlobalSnapshotOptions(presetsEnabled,versionEnabled,controls){return invoke("snapshotOptions",[presetsEnabled,versionEnabled,controls]);}

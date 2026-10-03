@@ -41,6 +41,7 @@ export interface CLICommandTreeSnapshotOption {
   choices?: string[];
 }
 export declare function formatCLIName(segment:string,casing:Casing):string;
+export declare function outputFormatNames(controls:ResolvedCLIControls):string[];
 export declare function resolveCLIControls(controls:CLIControls|undefined):ResolvedCLIControls;
 export declare function getGlobalLongOptionFlags(presetsEnabled:boolean,versionEnabled:boolean,controls:ResolvedCLIControls):ReadonlySet<string>;
 export declare function createGlobalSnapshotOptions(presetsEnabled:boolean,versionEnabled:boolean,controls:ResolvedCLIControls):CLICommandTreeSnapshotOption[];

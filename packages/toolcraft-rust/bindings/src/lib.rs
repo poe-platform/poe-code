@@ -19,6 +19,7 @@ pub mod cli_dynamic_values;
 pub mod cli_execution;
 pub mod cli_fields;
 pub mod cli_fixtures;
+pub mod cli_generated_help;
 pub mod cli_help_fields;
 pub mod cli_json_errors;
 pub mod cli_options;

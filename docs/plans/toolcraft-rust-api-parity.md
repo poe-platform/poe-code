@@ -3806,3 +3806,46 @@ and JSON rendering, with no I/O or interactive wait. It differs from earlier
 parameter-only workloads and does not pass the performance/default-swap gate.
 Public CLI/help, transports and complete platform/resource/reentrancy/standalone
 packaging qualification remain open.
+
+Command execution is independently verified in remote main at 1a5029d7c1. Its
+Release workflow 37080772388 completed successfully with validate/build passing
+and release-stable skipped; no new publication is claimed.
+
+### Generated CLI help checkpoint
+
+Generated group/leaf help now composes native command visibility, field
+collection, positional assignment, help-field formatting and design rendering.
+Rust controls help-output precedence, target/alias selection, unknown-command
+diagnostics, secret/example policy, parameter signatures and collapsing, command
+traversal, global-field deduplication, section ordering and JSON/terminal output.
+Node retains live string/array/Map methods, callback order, iterator cleanup,
+property access, JSON serialization, terminal dimensions and output-format scope.
+Existing output-format name enumeration is shared with the control module.
+No dependency declarations or default implementation changed.
+
+Four missing-module failures preceded implementation. Nine differential tests
+cover root/leaf/nested help in rich, Markdown and JSON modes; aliases, hidden
+defaults, scope, suggestions, casing, root naming and control combinations;
+global-field deduplication, secrets, examples and variadic positionals; terminal
+width, optional signature collapsing, actual styled TTY output, property order,
+arbitrary writer failures, output precedence, fallback program names and iterator
+cleanup. A missing native import for output-format names failed the custom-format
+comparison and was corrected by exposing the existing enumeration. The maintained
+package route passes 263 native Node tests, Rust tests, 1,794 reference/parity
+cases across 53 files and declarations; Rust/binding and scoped JS lint pass.
+
+Packed runtime consumers render roots, aliases, leaves and JSON help with only
+packed own schema/design/config-codec packages and existing Commander admitted as
+external ESM imports. Packed declarations compile with types: [], but contract
+types still resolve from the checkout. Root and leaf help screenshots were
+inspected after exact reference comparisons, including JSON and Markdown outputs.
+Public runCLI/executeCLICommand orchestration, CLI error handling and the complete
+original CLI test suites still require integration; this module is internal.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 300 calls, retaining 32
+results, measured native/reference medians of 3,123.320/85.801 microseconds
+(36.40 times slower). The workload renders extended root help from prebuilt
+definitions, including field collection, command traversal, optional signatures,
+global controls and plain terminal formatting. Native/host crossings still need
+optimization; no performance/default-swap gate passed. Transports and complete
+platform/resource/reentrancy/standalone-packaging qualification also remain open.

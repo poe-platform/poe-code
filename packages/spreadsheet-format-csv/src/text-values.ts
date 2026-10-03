@@ -111,13 +111,13 @@ function generalValue(text: string, book: Workbook, decimal: string, context: Ca
   return original;
 }
 
-function guess(values: readonly string[], book: Workbook): ColumnFormat {
+function createColumnGuess(book: Workbook) {
   const dates = new Set<DateOrder>(["dmy", "mdy", "ymd"]);
   const decimals = new Set([".", ","]);
   const precision = new Map<string, number>();
   let seenDot = false, seenComma = false;
-  for (const value of values) {
-    if (!value || value.startsWith("'") || value.startsWith("=")) continue;
+  function observe(value: string): void {
+    if (!value || value.startsWith("'") || value.startsWith("=")) return;
     for (const order of dates) if (dateValue(value, order, book) === undefined) dates.delete(order);
     const dot = value.indexOf("."), comma = value.indexOf(",");
     if (decimals.size === 2) {
@@ -136,36 +136,49 @@ function guess(values: readonly string[], book: Workbook): ColumnFormat {
       precision.set(decimal, previous === undefined ? count : previous === count ? count : -2);
     }
   }
-  if (decimals.size === 2) {
-    if (!seenComma) decimals.delete(",");
-    else if (seenComma && !seenDot) decimals.clear();
+  function finish(): ColumnFormat {
+    if (decimals.size === 2) {
+      if (!seenComma) decimals.delete(",");
+      else if (seenComma && !seenDot) decimals.clear();
+    }
+    if (dates.size === 1 && !decimals.size) {
+      const date = [...dates][0]!;
+      return { date, format: date === "dmy" ? "d-mmm-yyyy" : date === "mdy" ? "m/d/yyyy" : "yyyy-mm-dd" };
+    }
+    if (!dates.size && decimals.size === 1) {
+      const decimal = [...decimals][0]!, count = precision.get(decimal) ?? 0;
+      return { decimal, ...(count > 0 ? { format: (decimal === "." ? seenComma : seenDot) ? "#,##0." + "0".repeat(count) : "0." + "0".repeat(count) } : {}) };
+    }
+    return {};
   }
-  if (dates.size === 1 && !decimals.size) {
-    const date = [...dates][0]!;
-    return { date, format: date === "dmy" ? "d-mmm-yyyy" : date === "mdy" ? "m/d/yyyy" : "yyyy-mm-dd" };
-  }
-  if (!dates.size && decimals.size === 1) {
-    const decimal = [...decimals][0]!, count = precision.get(decimal) ?? 0;
-    return { decimal, ...(count > 0 ? { format: (decimal === "." ? seenComma : seenDot) ? "#,##0." + "0".repeat(count) : "0." + "0".repeat(count) } : {}) };
-  }
-  return {};
+  return { observe, finish };
 }
 
-/** Guess once per column, ignoring the first physical row when others exist. */
-export function inferTextColumns(cells: readonly Cell[], book: Workbook, context: CapabilityContext, rowCount: number): Cell[] {
+/** Observe each cell once, then replay cells after all column evidence is known.
+ * Retains only fixed candidate state per column, never observed cells or strings.
+ */
+export function createTextColumnInference(suppliedBook: Workbook, context: CapabilityContext, rowCount: number) {
+  const book: Workbook = { sheets: [], ...(suppliedBook.dateSystem ? { dateSystem: suppliedBook.dateSystem } : {}) };
   const locale = formattingLocale(context.environment.locale);
-  const columns = new Map<number, string[]>();
-  for (const cell of cells) {
-    if (cell.value.kind !== "string") continue;
-    let values = columns.get(cell.column);
-    if (!values) { values = []; columns.set(cell.column, values); }
-    if (rowCount <= 1 || cell.row > 0) values.push(cell.value.value);
-  }
-  const formats = new Map([...columns].map(([column, values]) => [column, guess(values, book)]));
-  return cells.map(cell => {
+  const columns = new Map<number, ReturnType<typeof createColumnGuess>>();
+  let formats: Map<number, ColumnFormat> | undefined;
+  function observe(cell: Cell): void {
     context.signal.throwIfAborted();
+    if (formats) throw new Error("Text column inference is finished");
+    if (cell.value.kind !== "string") return;
+    let column = columns.get(cell.column);
+    if (!column) { column = createColumnGuess(book); columns.set(cell.column, column); }
+    if (rowCount <= 1 || cell.row > 0) column.observe(cell.value.value);
+  }
+  function apply(cell: Cell): Cell {
+    context.signal.throwIfAborted();
+    if (!formats) {
+      formats = new Map();
+      for (const [column, guess] of columns) formats.set(column, guess.finish());
+      columns.clear();
+    }
     if (cell.formula || cell.value.kind !== "string") return cell;
-    const text = cell.value.value, format = formats.get(cell.column)!;
+    const text = cell.value.value, format = formats.get(cell.column) ?? {};
     let inferred: { value: CellValue; format?: string };
     if (format.decimal && !text.startsWith("'") && !text.startsWith("=")) {
       const number = decimalNumber(text, format.decimal);
@@ -181,5 +194,13 @@ export function inferTextColumns(cells: readonly Cell[], book: Workbook, context
     return { ...cell, ...inferred,
       ...(format.format === undefined && inferred.format !== undefined ? { inferredValueFormat: inferred.format } : {}),
       ...(format.format === undefined ? {} : { format: format.format }) };
-  });
+  }
+  return { observe, apply };
+}
+
+/** Buffering convenience for callers that already retain their cells. */
+export function inferTextColumns(cells: readonly Cell[], book: Workbook, context: CapabilityContext, rowCount: number): Cell[] {
+  const inference = createTextColumnInference(book, context, rowCount);
+  for (const cell of cells) inference.observe(cell);
+  return cells.map(inference.apply);
 }

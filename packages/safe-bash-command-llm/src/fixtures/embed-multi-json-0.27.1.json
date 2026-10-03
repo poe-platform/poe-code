@@ -328,5 +328,382 @@
         "content": "object ID"
       }
     ]
+  },
+  {
+    "label": "utf-8",
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "inputBase64": "W3siaWQiOiJvbmUiLCJib2R5IjoiaGVsbG8ifV0=",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "one",
+        "content": "hello"
+      }
+    ],
+    "exception": null,
+    "message": null
+  },
+  {
+    "label": "utf-8-bom",
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "inputBase64": "77u/W3siaWQiOiJvbmUiLCJib2R5IjoiaGVsbG8ifV0=",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "one",
+        "content": "hello"
+      }
+    ],
+    "exception": null,
+    "message": null
+  },
+  {
+    "label": "utf-16-le",
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "inputBase64": "WwB7ACIAaQBkACIAOgAiAG8AbgBlACIALAAiAGIAbwBkAHkAIgA6ACIAaABlAGwAbABvACIAfQBdAA==",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "one",
+        "content": "hello"
+      }
+    ],
+    "exception": null,
+    "message": null
+  },
+  {
+    "label": "utf-16-le-bom",
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "inputBase64": "//5bAHsAIgBpAGQAIgA6ACIAbwBuAGUAIgAsACIAYgBvAGQAeQAiADoAIgBoAGUAbABsAG8AIgB9AF0A",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "one",
+        "content": "hello"
+      }
+    ],
+    "exception": null,
+    "message": null
+  },
+  {
+    "label": "utf-16-be",
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "inputBase64": "AFsAewAiAGkAZAAiADoAIgBvAG4AZQAiACwAIgBiAG8AZAB5ACIAOgAiAGgAZQBsAGwAbwAiAH0AXQ==",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "one",
+        "content": "hello"
+      }
+    ],
+    "exception": null,
+    "message": null
+  },
+  {
+    "label": "utf-16-be-bom",
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "inputBase64": "/v8AWwB7ACIAaQBkACIAOgAiAG8AbgBlACIALAAiAGIAbwBkAHkAIgA6ACIAaABlAGwAbABvACIAfQBd",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "one",
+        "content": "hello"
+      }
+    ],
+    "exception": null,
+    "message": null
+  },
+  {
+    "label": "utf-32-le",
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "inputBase64": "WwAAAHsAAAAiAAAAaQAAAGQAAAAiAAAAOgAAACIAAABvAAAAbgAAAGUAAAAiAAAALAAAACIAAABiAAAAbwAAAGQAAAB5AAAAIgAAADoAAAAiAAAAaAAAAGUAAABsAAAAbAAAAG8AAAAiAAAAfQAAAF0AAAA=",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "one",
+        "content": "hello"
+      }
+    ],
+    "exception": null,
+    "message": null
+  },
+  {
+    "label": "utf-32-le-bom",
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "inputBase64": "//4AAFsAAAB7AAAAIgAAAGkAAABkAAAAIgAAADoAAAAiAAAAbwAAAG4AAABlAAAAIgAAACwAAAAiAAAAYgAAAG8AAABkAAAAeQAAACIAAAA6AAAAIgAAAGgAAABlAAAAbAAAAGwAAABvAAAAIgAAAH0AAABdAAAA",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "one",
+        "content": "hello"
+      }
+    ],
+    "exception": null,
+    "message": null
+  },
+  {
+    "label": "utf-32-be",
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "inputBase64": "AAAAWwAAAHsAAAAiAAAAaQAAAGQAAAAiAAAAOgAAACIAAABvAAAAbgAAAGUAAAAiAAAALAAAACIAAABiAAAAbwAAAGQAAAB5AAAAIgAAADoAAAAiAAAAaAAAAGUAAABsAAAAbAAAAG8AAAAiAAAAfQAAAF0=",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "one",
+        "content": "hello"
+      }
+    ],
+    "exception": null,
+    "message": null
+  },
+  {
+    "label": "utf-32-be-bom",
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "inputBase64": "AAD+/wAAAFsAAAB7AAAAIgAAAGkAAABkAAAAIgAAADoAAAAiAAAAbwAAAG4AAABlAAAAIgAAACwAAAAiAAAAYgAAAG8AAABkAAAAeQAAACIAAAA6AAAAIgAAAGgAAABlAAAAbAAAAGwAAABvAAAAIgAAAH0AAABd",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "one",
+        "content": "hello"
+      }
+    ],
+    "exception": null,
+    "message": null
+  },
+  {
+    "label": "nl-bom",
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "nl",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "inputBase64": "77u/eyJpZCI6MSwiYm9keSI6ImEifQrvu797ImlkIjoyLCJib2R5IjoiYiJ9Cg==",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "a",
+        "b"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "1",
+        "content": "a"
+      },
+      {
+        "id": "2",
+        "content": "b"
+      }
+    ],
+    "exception": null,
+    "message": null
+  },
+  {
+    "label": "nl-empty-controls",
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "nl",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "inputBase64": "CwwNCnsiaWQiOjEsImJvZHkiOiJhIn0K",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "a"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "1",
+        "content": "a"
+      }
+    ],
+    "exception": null,
+    "message": null
   }
 ]

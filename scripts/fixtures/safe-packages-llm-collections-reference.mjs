@@ -17,3 +17,70 @@ export const legacyCollectionDatabases = [
     "zlibBase64": "eJzt3c9v21QAwPHn1KubrInbreCNaZq7TqIZYVoonCYBbTFVtdKxrINNVWR5tZda5EdJXGmsAq2DC2f+ByT+AiQuHBDizpUL4swFJC6ceHHS2CGtOiEsi/L9flIpcV+8Z8eV9lK1vXN7zQ8882Gr3XACc0FMCUURb5qmEGJGflwQUdPyQ409VsTxzYhrzW/yhfeENqkK/Un+58nv9ZuFHybVwuNneDYREREREf3r7b+e04xyWXn6YuA8qHt258O6XBPYDb/WdgK/1eyMbtGWK9bihmVuLC6tWebm6ICqOZ8zTXNzsMXueEHV3LDubZTCTzSdhhd/7Ozs1H3PtZ34qHcrq+8sVu6bN6375vzf9lXq76OYKz49p2nG7Kzy6V54AF7jgee6frPWie6NDU34cvSJy/2JbrXqdW8r3LvvVs3V9Q1rxaqYFettq2KtL1t34kM61flNOarYm3p3fHQgg11XzaW1W0ul/t6bgdccOgH9Tfa209mOD214geM6gRMfu7sjt3jRtA45OcPzL4WzkqcmUDXjtTll/6LfdL1HvvvIjh2F3T2Bscen+ifp7vrq7buW/Mfesu51dzT6pGp3Auat9eGTIqfRe0kK34orx111y6fHjffLiggn1r9+nN2gFT62D7kIy6PbJuR+JsJLWMlqxvKssv/S4Dijl9iOn+po83j/aGOHecRzoqONBlTDcx4bU1yYGDdWZo86oNiuy9F99RNFM+bk67McXrmxkxm7mxn+Yhs+44Mr8OCKjV0Wh3+lNVquV+9tyBXz8uQp+q9C3oiIiIiIiIjoBHRGU8Ulw21t7Ta8ZtB7cyxc/2tnhbwRERH9n/vst/NKTjFmPv8lPzWtaHWnXfOEePLGd18BAAD8x8n/62Rzovv9/z+EvBERERERERHRSSqnKka2942N3vr/dyFvRERERERERHRiyo9dUgY/A6D11v9/CnkjIiIiIiIiohPXqbGprJLp/vy/qq8I/Uf9S/2xvENERERERERER1VW1eKNi/V641r0u/0b16+/aneCVtsb+mMCrbZf85tO/eqYWnx59CkLtuO6dv8PPgzGZg4d+4r9UO7drzXtD7yPDsaWFLVYHh1btrfantynHf6hgc7B6O73/1V9W+g/6V/rX8g7RERERERERPSPu6oWbyjP9P6AOifX+qNDh94XGDt8zND7AZkrarGcPe59ADm1XNq/hxAAAAAAACRLrv9Ppz0HAAAAAACQLLn+n0x7DgAAAAAAIFly/Z9Pew4AAAAAACBZcv1fSHsOAAAAAAAgWXL9r6c9BwAAAAAAkCy5/p9Kew4AAAAAACBZcv0/nfYcAAAAAABAsuT6/0zacwAAAAAAAMmS6/+zac8BAAAAAAAkS67/Z9KeAwAAAAAASJZc/z+X9hwAAAAAAECy5Pr/+bTnAAAAAAAAkiXX/0bacwAAAAAAAMmS6/9zac8BAAAAAAAkS67/z6c9BwAAAAAAkCy5/n8h7TkAAAAAAIBkyfX/hbTnAAAAAAAAkiXX/yLtOQAAAAAAgMQomb2P9/4CjVceMw=="
   }
 ];
+
+// Successful byte encodings captured from pinned LLM 0.27.1 / Python 3.9.
+export const jsonImportEncodingInputs = [
+  {
+    "label": "utf-8",
+    "base64": "W3siaWQiOiJvbmUiLCJib2R5IjoiaGVsbG8ifV0="
+  },
+  {
+    "label": "utf-8-bom",
+    "base64": "77u/W3siaWQiOiJvbmUiLCJib2R5IjoiaGVsbG8ifV0="
+  },
+  {
+    "label": "utf-16-le",
+    "base64": "WwB7ACIAaQBkACIAOgAiAG8AbgBlACIALAAiAGIAbwBkAHkAIgA6ACIAaABlAGwAbABvACIAfQBdAA=="
+  },
+  {
+    "label": "utf-16-le-bom",
+    "base64": "//5bAHsAIgBpAGQAIgA6ACIAbwBuAGUAIgAsACIAYgBvAGQAeQAiADoAIgBoAGUAbABsAG8AIgB9AF0A"
+  },
+  {
+    "label": "utf-16-be",
+    "base64": "AFsAewAiAGkAZAAiADoAIgBvAG4AZQAiACwAIgBiAG8AZAB5ACIAOgAiAGgAZQBsAGwAbwAiAH0AXQ=="
+  },
+  {
+    "label": "utf-16-be-bom",
+    "base64": "/v8AWwB7ACIAaQBkACIAOgAiAG8AbgBlACIALAAiAGIAbwBkAHkAIgA6ACIAaABlAGwAbABvACIAfQBd"
+  },
+  {
+    "label": "utf-32-le",
+    "base64": "WwAAAHsAAAAiAAAAaQAAAGQAAAAiAAAAOgAAACIAAABvAAAAbgAAAGUAAAAiAAAALAAAACIAAABiAAAAbwAAAGQAAAB5AAAAIgAAADoAAAAiAAAAaAAAAGUAAABsAAAAbAAAAG8AAAAiAAAAfQAAAF0AAAA="
+  },
+  {
+    "label": "utf-32-le-bom",
+    "base64": "//4AAFsAAAB7AAAAIgAAAGkAAABkAAAAIgAAADoAAAAiAAAAbwAAAG4AAABlAAAAIgAAACwAAAAiAAAAYgAAAG8AAABkAAAAeQAAACIAAAA6AAAAIgAAAGgAAABlAAAAbAAAAGwAAABvAAAAIgAAAH0AAABdAAAA"
+  },
+  {
+    "label": "utf-32-be",
+    "base64": "AAAAWwAAAHsAAAAiAAAAaQAAAGQAAAAiAAAAOgAAACIAAABvAAAAbgAAAGUAAAAiAAAALAAAACIAAABiAAAAbwAAAGQAAAB5AAAAIgAAADoAAAAiAAAAaAAAAGUAAABsAAAAbAAAAG8AAAAiAAAAfQAAAF0="
+  },
+  {
+    "label": "utf-32-be-bom",
+    "base64": "AAD+/wAAAFsAAAB7AAAAIgAAAGkAAABkAAAAIgAAADoAAAAiAAAAbwAAAG4AAABlAAAAIgAAACwAAAAiAAAAYgAAAG8AAABkAAAAeQAAACIAAAA6AAAAIgAAAGgAAABlAAAAbAAAAGwAAABvAAAAIgAAAH0AAABd"
+  }
+];
+
+export const jsonImportRejectedInputs = [
+  {
+    "label": "utf-8-double-bom",
+    "base64": "77u/77u/ImhlbGxvIg=="
+  },
+  {
+    "label": "utf-16-le-double-bom",
+    "base64": "//7//iIAaABlAGwAbABvACIA"
+  },
+  {
+    "label": "utf-16-be-double-bom",
+    "base64": "/v/+/wAiAGgAZQBsAGwAbwAi"
+  },
+  {
+    "label": "utf-32-le-double-bom",
+    "base64": "//4AAP/+AAAiAAAAaAAAAGUAAABsAAAAbAAAAG8AAAAiAAAA"
+  },
+  {
+    "label": "utf-32-be-double-bom",
+    "base64": "AAD+/wAA/v8AAAAiAAAAaAAAAGUAAABsAAAAbAAAAG8AAAAi"
+  }
+];

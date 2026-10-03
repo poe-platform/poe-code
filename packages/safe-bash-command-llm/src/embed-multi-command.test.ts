@@ -6,7 +6,7 @@ import {createLlmCommand} from './command.js';
 import {createLlmCollectionCommands,withLlmCollections} from './collections.js';
 
 test('delimited and JSON command calls, output and stored rows match genuine Python fixtures',async()=>{
- const cases=['embed-multi-csv-0.27.1.json','embed-multi-json-0.27.1.json'].flatMap(name=>JSON.parse(readFileSync(new URL('./fixtures/'+name,import.meta.url),'utf8'))) as {args:string[];input:string;code:number;out:string;err:string;calls:string[][];rows:{id:string;content:string}[]}[];
+ const cases=['embed-multi-csv-0.27.1.json','embed-multi-json-0.27.1.json'].flatMap(name=>JSON.parse(readFileSync(new URL('./fixtures/'+name,import.meta.url),'utf8'))) as {args:string[];input?:string;inputBase64?:string;code:number;out:string;err:string;calls:string[][];rows:{id:string;content:string}[]}[];
  for(const fixture of cases){
   const fs=new MemoryFileSystem(),signal=new AbortController().signal,calls:string[][]=[];
   const limits={maxFileBytes:1048576,maxIndexBytes:1048576,maxOpenFiles:8};
@@ -14,7 +14,7 @@ test('delimited and JSON command calls, output and stored rows match genuine Pyt
    const texts=[];for(const input of request.inputs){let text='';for await(const bytes of input.bytes)text+=new TextDecoder().decode(bytes);texts.push(text);}calls.push(texts);return {model:'e',vectors:texts.map(text=>[text.length,1])};
   }}]});
   const out:Uint8Array[]=[],err:Uint8Array[]=[];
-  const result=await command.execute({command:'llm',args:['embed-multi',...fixture.args],fs,cwd:'/',env:{},signal,stdin:{async *[Symbol.asyncIterator](){yield new TextEncoder().encode(fixture.input);}},stdout:{async write(bytes){out.push(bytes.slice());}},stderr:{async write(bytes){err.push(bytes.slice());}}});
+  const result=await command.execute({command:'llm',args:['embed-multi',...fixture.args],fs,cwd:'/',env:{},signal,stdin:{async *[Symbol.asyncIterator](){yield fixture.inputBase64?Uint8Array.from(atob(fixture.inputBase64),c=>c.charCodeAt(0)):new TextEncoder().encode(fixture.input);}},stdout:{async write(bytes){out.push(bytes.slice());}},stderr:{async write(bytes){err.push(bytes.slice());}}});
   assert.equal(result.exitCode,fixture.code,JSON.stringify(fixture.args)+' '+Buffer.concat(err).toString());
   const rows:{id:string;content:string}[]=[];
   await withLlmCollections({fs,path:'/db',signal,...limits,now:()=>new Date(0)},async catalog=>{await catalog.similarByVector('docs',[1,1],{},async row=>{let content='';for await(const bytes of row.content!.bytes)content+=new TextDecoder().decode(bytes);rows.push({id:row.id,content});});});

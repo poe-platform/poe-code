@@ -1,7 +1,7 @@
 import { MemoryFileSystem } from "@poe-platform/safe-fs/core";
 import { withLlmCollections, createLlmCollectionCommands, withCsvEmbeddingEntries, withJsonEmbeddingEntries, withJsonLinesEmbeddingEntries } from "@poe-platform/safe-bash/commands/llm/collections";
 import { createLlmService, llmCommands } from "@poe-platform/safe-bash/commands/llm";
-import { legacyCollectionDatabases } from "./safe-packages-llm-collections-reference.mjs";
+import { legacyCollectionDatabases, jsonImportEncodingInputs, jsonImportRejectedInputs } from "./safe-packages-llm-collections-reference.mjs";
 import { Shell } from "@poe-platform/safe-bash/shell";
 import { sqlite3Commands } from "@poe-platform/safe-bash/commands/sqlite3";
 
@@ -35,6 +35,19 @@ export async function verifyLlmCollections() {
     await entry.input.dispose();
   }});
   if(jsonBytes!==4194304)throw new Error('Large JSON field was truncated');
+  for(const fixture of jsonImportEncodingInputs){
+    let count=0;
+    await withJsonEmbeddingEntries({...options,directory:'/'},{async *[Symbol.asyncIterator](){for(const byte of Uint8Array.from(atob(fixture.base64),c=>c.charCodeAt(0)))yield Uint8Array.of(byte);}},async entries=>{
+      for await(const entry of entries){let text='';for await(const bytes of entry.input.bytes)text+=new TextDecoder().decode(bytes);if(entry.id!=='one'||text!=='hello')throw new Error('JSON encoding changed: '+fixture.label);count++;await entry.input.dispose();}
+    });
+    if(count!==1)throw new Error('JSON encoding row count changed: '+fixture.label);
+  }
+  for(const fixture of jsonImportRejectedInputs){
+    let rejected=false;
+    try{await withJsonEmbeddingEntries({...options,directory:'/'},{async *[Symbol.asyncIterator](){yield Uint8Array.from(atob(fixture.base64),c=>c.charCodeAt(0));}},async()=>{});}
+    catch(error){if(!String(error).includes('parse error'))throw error;rejected=true;}
+    if(!rejected)throw new Error('Double BOM accepted: '+fixture.label);
+  }
   let jsonLineCount=0;
   await withJsonLinesEmbeddingEntries({...options,directory:'/'},{async *[Symbol.asyncIterator](){yield new TextEncoder().encode('\ufeff{"id":1,"body":"first"}\n\x0b\x0c\r\n\ufeff{"id":2,"body":"second"}\n');}},async entries=>{for await(const entry of entries){jsonLineCount++;for await(const bytes of entry.input.bytes)if(!bytes.length)throw new Error('Empty JSONL payload chunk');await entry.input.dispose();}});
   if(jsonLineCount!==2)throw new Error('JSONL row count changed');

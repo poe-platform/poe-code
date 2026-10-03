@@ -55,7 +55,7 @@ async function publish(context: CommandContext, path: string, source: PdfFileSou
 
 /** Keep raw command inputs and all-or-nothing output on caller-authorized
  * retained storage. Other extraction modes keep their existing command path. */
-export async function executeRetainedRawText(context: CommandContext, plan: RawTextPlan, stdout: ByteSink, signal: AbortSignal): Promise<{ exitCode: number }> {
+export async function executeRetainedRawText(context: CommandContext, plan: RawTextPlan, stdout: ByteSink, signal: AbortSignal, maxInputBytes = Infinity): Promise<{ exitCode: number }> {
   const encoder = new TextEncoder(), inputPath = plan.inputFile ?? "-", outputPath = plan.outputFile ?? "-";
   const warning = plan.invalidEolWarning ? "Bad '-eol' value on command line\n" : "";
   async function error(message: string, exitCode: number, includeWarning = true) {
@@ -67,7 +67,7 @@ export async function executeRetainedRawText(context: CommandContext, plan: RawT
   let source: PdfFileSource | undefined, document: PdfRetainedDocument | undefined, result: PdfFileSource | undefined, failed = false;
   try {
     await context.fs.mkdir(directory, { recursive: true, signal });
-    const maximum = context.inputBudget?.maxBytes ?? Infinity;
+    const maximum = Math.min(maxInputBytes, context.inputBudget?.maxBytes ?? Infinity);
     try {
       if (inputPath === "-") {
         async function* input() {

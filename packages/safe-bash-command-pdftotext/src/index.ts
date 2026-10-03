@@ -828,6 +828,11 @@ export async function runPdftotextCli(argv: readonly string[], files: ReadonlyMa
     return drainSteps(runPdftotextCliSteps(argv, files, stdinBytes, signal), signal);
 }
 
+function usesRetainedRaw(parsed: ParsedArgs): boolean {
+  return !parsed.error && !parsed.listenc && !parsed.version && !parsed.help && parsed.raw && !parsed.bbox && !parsed.tsv && !parsed.urls && !parsed.cropbox
+    && parsed.cropX === undefined && parsed.cropY === undefined && parsed.cropW === undefined && parsed.cropH === undefined;
+}
+
 export async function pdftotext(context: CommandContext): Promise<{ exitCode: number }> {
   let cooperativeWork = 63;
   const invocation = createOutputOperation(context, { write: async () => {} });
@@ -848,8 +853,7 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
       return { exitCode: res.exitCode };
     }
 
-    if (parsed.raw && !parsed.bbox && !parsed.tsv && !parsed.urls && !parsed.cropbox
-      && parsed.cropX === undefined && parsed.cropY === undefined && parsed.cropW === undefined && parsed.cropH === undefined) {
+    if (usesRetainedRaw(parsed)) {
       return await executeRetainedRawText(context, parsed, invocation.child(context.stdout).output, invocation.signal);
     }
 
@@ -933,7 +937,13 @@ export function createPdftotextCommand(options: PdftotextCommandOptions = {}): C
     name: "pdftotext",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Extract PDF text, layout, XHTML bounding boxes, and TSV via @poe-code/pdf-ast",
-    execute(context: CommandContext) {
+    async execute(context: CommandContext) {
+      const parsed = parseArgs(getCommandArguments(context).args);
+      if (usesRetainedRaw(parsed)) {
+        const invocation = createOutputOperation(context, { write: async () => {} });
+        try { return await executeRetainedRawText(context, parsed, invocation.child(context.stdout).output, invocation.signal, maxInputBytes); }
+        finally { await invocation.close(); }
+      }
       return new InputByteBudget(maxInputBytes).run(context, pdftotext);
     }
   });

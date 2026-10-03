@@ -143,3 +143,13 @@ for (const failure of [{ reason: "backend unavailable" }, new Error("backend pas
     assert.equal(new TextDecoder().decode(await f.fs.readFile("/output.txt")), "old output"); await f.clean();
   });
 }
+for (const stdin of [false, true]) for (const html of [false, true]) {
+  test(`retained raw budgets only the PDF at the exact configured input limit (stdin=${stdin}, html=${html})`, async () => {
+    const input = pdf(), args = ["-raw", ...(html ? ["-htmlmeta"] : []), stdin ? "-" : "input.pdf", "output.txt"];
+    const f = await fixture(input, args, stdin), totals: number[] = [];
+    const result = await createPdftotextCommand({ limits: { maxInputBytes: input.length } }).execute({ ...f.context,
+      inputBudget: { maxBytes: input.length, check(total) { assert.ok(total <= input.length); totals.push(total); } } });
+    assert.equal(result.exitCode, 0); assert.equal(Math.max(...totals), input.length);
+    assert.equal(f.counts().published, 1); await f.clean();
+  });
+}

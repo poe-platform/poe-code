@@ -22,6 +22,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | MCP schemas      | Native wire-key schemas, input/output requiredness, discriminator defaults and optional-alias constraints |
 | MCP tools        | Native scoped tool enumeration, nested allowlists, collision checks and command metadata |
 | MCP errors       | Native approval records, exact content blocks, HTTP envelopes and typed protocol errors |
+| Hosted OAuth configuration | Native URL, provider-field, callback-path and production-readiness policies; public HTTP/OAuth entry points pending |
 | Public MCP       | `toolcraft-rust/mcp`: server creation, deferred discovery, tool calls and session-owned streams |
 | MCP handlers     | Native invocation routing, request services, cancellation, approvals, result projection and error reporting |
 | Stack diagnostics | Native framework-frame summaries, nested cause sections and raw stack preservation |

@@ -4288,3 +4288,37 @@ from earlier internal-helper benchmarks and do not establish an improvement.
 No performance/default-swap gate passed. HTTP/OAuth, remaining exports, Commander
 replacement and complete standalone types/platform/resource qualification remain
 open. Internal MCP integration does not change CLI presentation.
+
+Public MCP delivery is independently verified on remote main at 1d0338a3ec.
+Release 37091546615 and package publication 37091546450 are pending; the dependency
+repair Release 37091470539 remains pending too.
+
+### Hosted OAuth configuration checkpoint
+
+The native HTTP prerequisite validates hosted URLs, required provider hooks,
+unique non-reserved login fields and callback paths, scope names and production
+storage capabilities. Rust controls validation order, admission and field labels/
+types. Node retains URL construction, live string/array methods, object spreads,
+Set iteration and async prepare methods with the caller's receiver. Preparation
+reads current configuration and the current production environment; it does not
+snapshot them at factory creation. No external dependencies or defaults changed.
+
+Six missing-module comparisons preceded implementation. Eight final comparisons
+extract the reference declarations in memory and exercise invalid configuration
+matrices, inherited discriminants, Unicode field labels, property/method order,
+borrowed receivers, overridden methods, arbitrary thrown values, reentrancy and
+production defaults. An additional failed comparison exposed strict-boolean
+handling of an overridden startsWith result; the host capability now preserves
+JavaScript truthiness. Maintained verification passes Rust tests, 266 native Node
+checks, 5,986 reference/parity cases across 106 files, existing declarations and
+the original CLI type consumer. Rust/binding lint and scoped ESLint pass. A packed
+consumer verifies configuration identity, preparation, field translation and
+production rejection with external runtime imports restricted to packed own
+dependencies and existing Commander.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 300 operations, retaining
+32 results, measured 48.367 microseconds native versus 3.518 microseconds
+JavaScript (13.75 times slower). Each operation creates a configuration, asserts
+production readiness and translates an API-key login field. No performance or
+default-swap gate passed. Hosted storage, login rendering, HTTP/OAuth runtime and
+public exports remain open, along with the existing full replacement gates.

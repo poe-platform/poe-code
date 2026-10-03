@@ -34,6 +34,7 @@ pub mod cli_variants;
 pub mod definitions;
 pub mod error_report;
 pub mod host;
+pub mod hosted_oauth_config;
 pub mod json_schema_converter;
 pub mod mcp_errors;
 pub mod mcp_handler;

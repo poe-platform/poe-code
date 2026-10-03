@@ -118,6 +118,7 @@ export default defineConfig({
       path("tests/mcp-handler-parity.test.ts"),
       path("tests/mcp-public-parity.test.ts"),
       path("tests/mcp-deferred-parity.test.ts"),
+      path("tests/hosted-oauth-config-parity.test.ts"),
       ...mcpSuites.map(suite => path(`../toolcraft/src/${suite}.test.ts`)),
       path("tests/source-snippet-parity.test.ts"),
       path("tests/runtime-io-parity.test.ts"),

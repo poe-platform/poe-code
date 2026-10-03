@@ -6,6 +6,8 @@ import { resourceDirectory } from "./resources.js";
 export interface CommandInputs {
   readonly cwd?: string;
   readonly stdin?: AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
+  /** Preferred file path: opened lazily and consumed with backpressure. */
+  readStream?(path: string, signal: AbortSignal, maxBytes?: number): AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
   readFile?(path: string, signal: AbortSignal, maxBytes?: number): Promise<Uint8Array>;
   writeFile?(path: string, bytes: Uint8Array, signal: AbortSignal): Promise<void>;
 }
@@ -24,10 +26,13 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
   const names = new Map<string, "from" | "to" | "rawContent" | "wrap">([["-f", "from"], ["--from", "from"], ["-r", "from"], ["--read", "from"], ["-t", "to"], ["--to", "to"], ["-w", "to"], ["--write", "to"], ["--raw-content", "rawContent"], ["--wrap", "wrap"]]);
   const fail = (message: string): never => {throw new PandocError("E_OPTION", "convert", message);};
   const source = (path: string, metadata = false): InputSource => {
-    if (!files.readFile) fail("File operands require an explicit readFile capability");
+    if (!files.readStream && !files.readFile) fail("File operands require an explicit readStream or readFile capability");
     const split = path.lastIndexOf("/");
     const base = resourceDirectory(split < 0 ? "." : path.slice(0, split) || "/", files.cwd ?? "/");
-    return {source: path, base: metadata ? path : base, chunks: (async function* () {yield await files.readFile!(path, signal);})()};
+    return {source: path, base: metadata ? path : base, chunks: (async function* () {
+      if (files.readStream) yield* files.readStream(path, signal);
+      else yield await files.readFile!(path, signal);
+    })()};
   };
   let positional = false;
   let stdinUsed = false;

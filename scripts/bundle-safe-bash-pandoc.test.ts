@@ -91,10 +91,8 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
         const scenario = new URL(request.url).pathname.slice(1);
         const vfs = fs.createMemoryFileSystem();
         const encoder = new TextEncoder();
-        const readFile = vfs.readFile.bind(vfs);
-        if (scenario !== "composed") vfs.readFile = (path, options) => {
-          if (path === "/filter.lua") throw new Error("Filter source must stream");
-          return readFile(path, options);
+        if (scenario !== "composed") vfs.readFile = () => {
+          throw new Error("Document and filter files must stream");
         };
         await vfs.writeFile("/input.md", encoder.encode("**portable**"));
         const scripts = {
@@ -107,7 +105,7 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
         if (scripts[scenario]) await vfs.writeFile("/filter.lua", encoder.encode(scripts[scenario]));
         if (scenario === "sdk") {
           await vfs.writeFile("/filter.lua", encoder.encode(scripts.lua));
-          const result = await pandoc.convert([{bytes: await vfs.readFile("/input.md")}], {
+          const result = await pandoc.convert([{chunks: vfs.readStream("/input.md", {chunkSize: 3})}], {
             from: "markdown", to: "html", filters: [{kind: "lua", path: "/filter.lua"}],
           }, {filters: pandoc.createLuaFilterCapability({readStream: (path, signal) => vfs.readStream(path, {signal, chunkSize: 3})})});
           return Response.json({exitCode: 0, stdout: result.text, stderr: ""});

@@ -107,19 +107,26 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
           context.inputBudget?.check(total);
           return bytes;
         }, () => {}),
+        ...(context.fs.readStream ? {readStream: async function* (path: string, _signal: AbortSignal, remainingBytes?: number) {
+          const signal = readSignal;
+          signal.throwIfAborted();
+          const bound = Math.min(maxBytes, remainingBytes ?? maxBytes);
+          let bytes = 0;
+          const source = context.fs.readStream!(pathOf(context, path), {signal, chunkSize: 65536});
+          for await (const chunk of readBytes(source, signal)) {
+            bytes += chunk.byteLength;
+            if (bytes > bound) throw new PandocError("E_LIMIT", "convert", "Input byte limit exceeded");
+            total += chunk.byteLength;
+            context.inputBudget?.check(total);
+            yield chunk;
+          }
+        }} : {}),
         // Parsing checks authority without acquiring or opening the destination.
         writeFile: async () => {}
       };
       const luaCapability = createLuaFilterCapability({
         readFile: (path, signal) => files.readFile(path, signal ?? readSignal),
-        ...(context.fs.readStream ? {readStream: async function* (path: string) {
-          const source = context.fs.readStream!(pathOf(context, path), {signal: readSignal, chunkSize: 65536});
-          for await (const chunk of readBytes(source, readSignal)) {
-            total += chunk.byteLength;
-            context.inputBudget?.check(total);
-            yield chunk;
-          }
-        }} : {})
+        ...(files.readStream ? {readStream: (path: string, signal: AbortSignal | undefined) => files.readStream!(path, signal ?? readSignal)} : {})
       });
       const dynamicCiteprocCapability = createCiteprocFilterCapability({...options.citeproc, readFile: (path, signal) => files.readFile(path, signal ?? readSignal)});
       const resolveJsonInterpreter = async (filterPath: string): Promise<string | undefined> => {
@@ -201,6 +208,7 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
       })()} : input);
       const owner = stdout ?? invocation;
       const resourceFiles = {
+        ...(files.readStream ? {readStream: (path: string) => files.readStream!(path, signal)} : {}),
         lstat: (path: string) => owner.acquire(() => context.fs.lstat(path, {signal}), () => {}),
         readFile: (path: string, supplied?: {maxBytes?: number}) => owner.acquire(async () => {
           const bound = Math.min(supplied?.maxBytes ?? defaultLimits.resourceBytes, maxBytes);

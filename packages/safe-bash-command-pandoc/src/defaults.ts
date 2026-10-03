@@ -23,7 +23,7 @@ export async function resolveConversionArgs(args: readonly string[], files: Comm
       const name = arg.split("=")[0];
       if (!positional && (name === "--defaults" || name === "-d" || arg.startsWith("-d") && arg.length > 2)) {
         const path = arg.startsWith("-d") && arg.length > 2 && arg[2] !== "=" ? arg.slice(2) : arg.includes("=") ? arg.slice(arg.indexOf("=") + 1) : args[++i];
-        if (!path || path.startsWith("-") || !files.readFile) execution.fail("E_OPTION", "Defaults require a path and explicit readFile capability");
+        if (!path || path.startsWith("-") || (!files.readStream && !files.readFile)) execution.fail("E_OPTION", "Defaults require a path and explicit readStream or readFile capability");
         paths.push(path!);
       } else {explicit.push(arg); if (!positional && valueFlags.has(arg) && i + 1 < args.length) explicit.push(args[++i]!);}
     }
@@ -47,7 +47,11 @@ export async function resolveConversionArgs(args: readonly string[], files: Comm
     };
     for (const path of paths) {
       execution.charge("includes", 1);
-      const bytes = await execution.acquire((async function* () {yield await files.readFile!(path, signal, execution.remaining("inputBytes"));})(), "resourceBytes");
+      const bytes = await execution.acquire((async function* () {
+        const remaining = execution.remaining("inputBytes");
+        if (files.readStream) yield* files.readStream(path, signal, remaining);
+        else yield await files.readFile!(path, signal, remaining);
+      })(), "resourceBytes");
       const text = await execution.decodeUtf8([bytes]);
       execution.checkpoint(text.length);
       const document = parseDocument(text, {uniqueKeys: true});

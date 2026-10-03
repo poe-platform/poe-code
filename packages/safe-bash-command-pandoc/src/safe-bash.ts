@@ -1,3 +1,4 @@
+import {resolvePath} from "@poe-code/safe-fs/core";
 import { inspectFormats, inspectCommand } from "./inspection.js";
 import { PandocError } from "./errors.js";
 import { convert } from "./engine.js";
@@ -47,8 +48,9 @@ export function createStandalonePandocCommand(capabilities: Omit<ConversionConte
         else {
           const files: CommandInputs = context.fs ? {
             ...(context.cwd === undefined ? {} : {cwd: context.cwd}), stdin: context.stdin,
-            readFile: (path, signal, maxBytes) => context.fs!.readFile(path.startsWith("/") ? path : `${context.cwd ?? "/"}/${path}`, {signal, ...(maxBytes === undefined || maxBytes === Infinity ? {} : {maxBytes})}),
-            writeFile: (path, bytes, signal) => context.fs!.writeFile(path.startsWith("/") ? path : `${context.cwd ?? "/"}/${path}`, bytes, {signal})
+            ...(context.fs.readStream ? {readStream: (path: string, signal: AbortSignal) => context.fs!.readStream!(resolvePath(context.cwd ?? "/", path), {signal})} : {}),
+            readFile: (path, signal, maxBytes) => context.fs!.readFile(resolvePath(context.cwd ?? "/", path), {signal, ...(maxBytes === undefined || maxBytes === Infinity ? {} : {maxBytes})}),
+            writeFile: (path, bytes, signal) => context.fs!.writeFile(resolvePath(context.cwd ?? "/", path), bytes, {signal})
           } : context;
           const {options, operands, destination, limits} = await resolveConversionArgs(context.args, files, context.signal, configured);
           const result = await convert((operands ?? [{chunks: context.stdin}]).map(input => ({...input, ...(input.base === undefined && context.cwd !== undefined ? {base: context.cwd} : {})})), options, {...configured, limits, signal: context.signal,

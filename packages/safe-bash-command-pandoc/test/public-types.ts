@@ -40,3 +40,11 @@ void pandocCommands({filters: streamedLuaFilters});
 // Existing reader methods retain their original method variance.
 const singleScriptReader: LuaFilterOptions = {readFile: async (_path: "/filter.lua") => new Uint8Array()};
 void createLuaFilterCapability(singleScriptReader);
+
+import type {CommandInputs} from "safe-bash-command-pandoc";
+const streamedFiles: CommandInputs = {readStream: async function* (_path, signal, maxBytes) {
+  signal.throwIfAborted();
+  if (maxBytes !== undefined && maxBytes < 1) throw new Error("no byte budget");
+  yield Uint8Array.of(65);
+}};
+void resolveConversionArgs(["document.md"], streamedFiles, new AbortController().signal);

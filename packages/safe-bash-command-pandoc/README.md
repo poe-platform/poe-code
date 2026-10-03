@@ -141,7 +141,11 @@ Explicit publication metadata takes precedence.
 `writer`, `output`, `signal`, `yield`, and `limits`. Output supports atomic
 publication or an explicitly supplied streaming destination; streaming output
 can remain partial after failure. Inputs contain `bytes` or `chunks`, with
-optional `source` and `base`.
+optional `source` and `base`. File adapters prefer the caller’s `readStream`
+capability for document operands, defaults, metadata, templates, includes, fonts,
+and local image resources. `CommandInputs.readFile` remains a compatibility
+fallback. File reads are lazy and close on cancellation or budget failure; the
+conversion engine still retains complete document inputs and ASTs in memory.
 
 Conversion-only `filters` is an ordered list of `{kind: "json", path}`,
 `{kind: "lua", path}`, or `{kind: "citeproc"}` requests. Shell equivalents are

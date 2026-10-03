@@ -15,4 +15,4 @@ export interface AgentSupportResult {
 }
 export declare function resolveAgentSupport(input: string, registry?: Record<string, AgentSkillConfig>): AgentSupportResult;
 export declare function getAgentConfig(agentId: string): AgentSkillConfig | undefined;
-export declare function resolveSkillDir(config: AgentSkillConfig, scope: SkillScope, cwd: string, homeDir?: string): string;
+export declare function resolveSkillDir(config: AgentSkillConfig, scope: SkillScope, cwd: string, homeDir?: string, paths?: Pick<typeof import('node:path'), 'join' | 'resolve'>): string;

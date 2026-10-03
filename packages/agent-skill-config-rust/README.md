@@ -31,6 +31,8 @@ Unexpected filesystem errors preserve their original Node exception identity.
 Async lookup uses the supplied `fs`, `cwd`, `homeDir` and optional `signal`.
 It shares Rust validation and search plans with synchronous lookup and uses the
 existing filesystem bridge for provider operations and cancellation.
+`resolveSkillDir` also accepts an optional fifth argument with `join` and
+`resolve` methods, so callers can select their filesystem's path conventions.
 
 Exclude blocks preserve existing content and allocate separate ownership IDs
 when two runs share a caller ID. Removal leaves other runs and incomplete marker

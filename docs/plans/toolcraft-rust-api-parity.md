@@ -5303,3 +5303,26 @@ Async lookup is verified on remote main at 6bfb99f86f. Release 37109849456 remai
 pending. Discovery package workflow 37109364787 succeeded with standalone-bundle
 and publication skipped; it does not verify a native publication. The preceding
 root releases and remaining dependency/type/platform/performance gates stay open.
+
+### Skill-directory path injection parity
+
+Preparing the async bridge port exposed a public API omission: resolveSkillDir
+ignored the canonical fifth path argument and its declaration rejected it. Native
+resolution now uses the supplied join/resolve methods with their original receiver
+and evaluation order, reads only the selected configuration field, and obtains a
+default home only for global scope. Rust retains the scope/home-expansion policy.
+
+Three runtime tests and an explicit five-argument type consumer failed before
+the fix. They cover all six agents with portable POSIX and Windows path primitives,
+custom path receivers/getters, unused configuration fields and default-home timing.
+The maintained route passes 26 native checks, 137 original cases, Rust tests,
+public declarations and root posttest. Maintained/scoped lint passes. Fresh packed
+configuration paths match the reference, and strict standalone declarations load
+192 sources with workspace reads forbidden. This exercises path policies, not a
+Windows native-addon deployment. No dependency or default implementation changes.
+
+Async excludes are verified on remote main at 727123dbd9, including ancestry after
+main advanced. Release 37110534115 remains pending. Earlier JSONC Release
+37108412662 completed successfully through its queue check, but build, validation
+and publication were skipped; this does not verify publication. Async bridge and
+cleanup, complete root independence and the wider rewrite/swap gates remain open.

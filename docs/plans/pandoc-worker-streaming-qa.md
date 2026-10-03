@@ -137,30 +137,32 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   paths: filesystem path strings, explicit byte-only resource capabilities and
   full diagnostic messages remain resident boundaries. Functional tests do not
   establish a memory plateau, CPU or first-byte qualification for these cohorts.
-  RTF input has a private retained syntax foundation: source bytes, opaque
-  text/binary spans, token records and parent/sibling group links use caller
-  storage. Differential checks preserve syntax errors and byte offsets, signed
-  parameters, hex escapes, depth/binary limits and cleanup under source, token
-  storage and cancellation failures. Long/deep payloads use bounded reads.
-  Private semantic definitions retain font names, numeric font/color indexes,
-  style controls and inheritance continuations in caller storage. List and
-  override catalogs and legacy-list identities are also backed; only the nine
-  supported levels and the one-byte label-length window remain resident.
-  Validate partial/full overrides, malformed excess levels, wide catalogs and
-  storage/cancellation cleanup against the existing reader. Exercise
-  long names, flat/grouped tables, font-selected code pages, deep inheritance,
-  malformed definitions and cleanup failures against the existing reader.
-  The public reader shares bounded byte-run decoding with these definitions,
-  preserving fatal UTF-8 boundaries and reused producer buffers. It still uses
-  the resident token tree and AST. Private document construction now retains
-  mutable inline/block arrays, text, list items, table cells/rows and traversal
-  continuations. Differential checks preserve formatting, paragraphs, table
-  geometry errors, Unicode and table budgets. Note definition snapshots use
-  bounded index replay, preserving local legacy IDs. Hyperlink instructions
-  and literal text are retained, including quoting, bookmark targets, scheme
-  admission and late malformed-input errors. Group/field/note execution and
-  picture resources still need integration before exposing a retained RTF input
-  route. This foundation is not public streaming completion.
+  Single-input RTF conversion now retains source bytes, opaque text/binary spans,
+  token/group links, semantic definitions, document nodes and group/field/note
+  continuations in caller storage. Font/color/style and list/override indexes
+  are backed; supported list levels and label-length windows remain bounded.
+  Differential checks cover malformed definitions, byte offsets, Unicode/code
+  pages, tables, notes, hyperlinks, deep groups and cancellation/storage cleanup.
+  The public output path supports JSON, plain text, HTML, Markdown, RST, LaTeX,
+  RTF and ODT with genuine Lua filters. Picture bytes outlive replaceable filter
+  generations and retire before publication. Test Lua replacement/deletion,
+  shared picture identities across origins, external resolver priority, JSON
+  image-origin diagnostics and RTF unreferenced-resource errors with and without
+  a resource filesystem. Finite image-count, binary-byte and layout-work budgets
+  remain on this path; other finite structural budgets still need accounting.
+  Shipped SDK/command workerd tests use R2 pages and prohibit resident Lua.
+  These functional checks do not establish size/concurrency memory or CPU limits.
+
+  Embedded HTML uses caller-backed resource bytes and base64 text. The encoder
+  retains at most 12 KiB of raw binary string before emitting a base64 segment;
+  resource chunks are at most 16 KiB. Exercise zero/one/two-byte payloads, MIME
+  sniffing, base64 remainder boundaries, long pictures, Lua image origins,
+  templates, and standalone output from JSON, RTF and delimited inputs. Verify
+  source/scratch cleanup before publication and the unchanged behavior of absent
+  filesystems and explicit resource resolvers. Workerd/R2 SDK and command cohorts
+  cover JSON/RTF images, real Lua and the CLI embedding option. Extend the size,
+  concurrency, cancellation and failing-storage measurements to this path before
+  claiming full Worker qualification.
   ODT output now retains XML continuations, dynamic list styles, image indexes,
   ZIP member payloads and central records. Differential tests compare complete
   archive bytes, including image density and PNG/JPEG/GIF/BMP/TIFF profiles.

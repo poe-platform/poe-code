@@ -62,7 +62,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     for await (const bytes of chunks) {length += bytes.length; context.bound("outputBytes", length);}
   };
   try {
-    if((target==="rtf" || target==="odt") && (options.metadata !== undefined || options.filters?.some(request=>request.kind==="lua"))) {
+    if((target==="rtf" || target==="odt" || target==="html5" && options.embedResources) && (options.metadata !== undefined || options.filters?.some(request=>request.kind==="lua"))) {
       originStorage=new PagedStorage({fs:working.fs,cwd:working.directory,env:{},signal:context.signal??new AbortController().signal},(working.cacheBytes??1048576)/16384);
       const owned=originStorage;releaseOrigins=context.onClose(()=>owned.close());
       origins=new RetainedOrigins(originStorage,units=>context.cooperate(units));
@@ -123,10 +123,11 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       await document.close();
       document = next;
     }
-    if (target === "rtf" || target === "odt") {
+    if (target === "rtf" || target === "odt" || target === "html5" && options.embedResources) {
       const resources = await prepareRetainedImageResources(document.tree, document.order, context, working, options, origins ? async node=>await origins!.inherited(node)?origin??{}:{} : options.filters?.length ? undefined : origin, inputResources);
       let writerFailure: {reason: unknown} | undefined;
-      try {if (target === "odt") await writeRetainedOdt(document.tree, context, working, options, resources);
+      try {if (target === "html5") await writeRetainedHtml(document.tree, context, working, {...options, standalone: includes ? includes.standalone : options.standalone || options.embedResources === true}, includes, resources.html);
+      else if (target === "odt") await writeRetainedOdt(document.tree, context, working, options, resources);
       else await writeRetainedRtf(document.tree, context, working, options, document.order, async node => {
         const image = await resources.image(node);
         return {...await inspectRetainedRtfPicture(image.source, image.storage, context), chunks: image.chunks};

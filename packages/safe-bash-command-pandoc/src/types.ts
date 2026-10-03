@@ -120,6 +120,8 @@ export interface EpubOptions {
   readonly chapterLevel?: number;
 }
 export interface WriteOptions {
+  /** Embed supplied image resources in standalone HTML (CLI: --embed-resources). */
+  readonly embedResources?: boolean;
   readonly template?: InputSource;
   readonly variables?: Readonly<Record<string, MetadataValue>>;
   readonly includeInHeader?: readonly InputSource[];

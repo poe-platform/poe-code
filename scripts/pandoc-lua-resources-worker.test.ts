@@ -2,7 +2,7 @@ import {fileURLToPath} from "node:url";
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {expect,it} from "vitest";
-it.each(["sdk-rtf","sdk-odt","command-rtf","command-odt"].flatMap(mode => ["json", "rtf"].map(from => [mode, from] as const)))("preserves Lua image resources with R2 storage (%s from %s)",async (mode,from)=>{
+it.each(["sdk-rtf","sdk-odt","command-rtf","command-odt","sdk-html","command-html"].flatMap(mode => ["json", "rtf"].map(from => [mode, from] as const)))("preserves Lua image resources with R2 storage (%s from %s)",async (mode,from)=>{
   const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../",import.meta.url)),contents:`
     export {convertToOutput,createLuaFilterCapability} from "./packages/safe-bash-command-pandoc/dist/index.js";
     export {createPandocCommand} from "./packages/safe-bash-command-pandoc/dist/command.js";
@@ -29,12 +29,12 @@ it.each(["sdk-rtf","sdk-odt","command-rtf","command-odt"].flatMap(mode => ["json
       let length=0,largest=0,closed=0;
       const output={async write(bytes){length+=bytes.length;largest=Math.max(largest,bytes.length);},async close(){closed++;},async abort(){}};
       if(mode==='command') {
-        const result=await api.createPandocCommand().execute({command:'pandoc',args:['-f'+from,'-t'+to,'-L','/filter.lua','/doc/input.json'],cwd:'/cwd',env:{TMPDIR:'/spill'},fs,signal:new AbortController().signal,stdin:(async function*(){})(),stdout:output,stderr:{async write(bytes){throw new Error(new TextDecoder().decode(bytes));}}});
+        const result=await api.createPandocCommand().execute({command:'pandoc',args:['-f'+from,'-t'+to,...(to==='html'?['--embed-resources']:[]),'-L','/filter.lua','/doc/input.json'],cwd:'/cwd',env:{TMPDIR:'/spill'},fs,signal:new AbortController().signal,stdin:(async function*(){})(),stdout:output,stderr:{async write(bytes){throw new Error(new TextDecoder().decode(bytes));}}});
         if(result.exitCode!==0)throw new Error('Command failed');closed++;
       } else {
         const filters=api.createLuaFilterCapability({readStream:(path,signal)=>fs.readStream(path,{signal})});
         filters.apply=async()=>{throw new Error('Resident Lua forbidden');};
-        await api.convertToOutput([{base:'/doc',bytes:input}],{from,to,...(from==='json'?{metadata:{nested:{t:'MetaMap',c:{typed:{t:'MetaInlines',c:[image('a.jpg')]}}}}}:{}),filters:[{kind:'lua',path:'/filter.lua'}]},{workingFiles:{fs,directory:'/spill',cacheBytes:1048576},resourceFiles:fs,resourceCwd:'/cwd',filters,output});
+        await api.convertToOutput([{base:'/doc',bytes:input}],{from,to,...(to==='html'?{embedResources:true}:{}),...(from==='json'?{metadata:{nested:{t:'MetaMap',c:{typed:{t:'MetaInlines',c:[image('a.jpg')]}}}}}:{}),filters:[{kind:'lua',path:'/filter.lua'}]},{workingFiles:{fs,directory:'/spill',cacheBytes:1048576},resourceFiles:fs,resourceCwd:'/cwd',filters,output});
       }
       for(const path of Object.keys(files))await env.PAGES.delete(path);
       return Response.json({reads,length,largest,closed,events,remaining:(await env.PAGES.list({limit:1})).objects.length,namespace:await namespace.readdir('/spill')});

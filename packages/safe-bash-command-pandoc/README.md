@@ -202,10 +202,13 @@ Single-input RTF → JSON/plain/HTML/CommonMark/GFM/RST/LaTeX/RTF/ODT also uses 
 source, parser state, document nodes and real Lua or JSON filters. Embedded picture
 bytes stay in caller storage independently of filter document generations; JSON
 output continues to reject resource sidecars even after a filter removes the images.
-Embedded pictures survive Lua filter generations; JSON filters reject unrepresentable
-resource sidecars. Finite image-count, binary-byte and layout-work budgets also
-retain this path and their existing failures. Embedded HTML and other finite
-structural budgets still use the compatibility path.
+Embedded pictures survive Lua filter generations; JSON filters reject relative
+image targets whose origin cannot be preserved. Finite image-count, binary-byte
+and layout-work budgets also retain this path and their existing failures.
+HTML image embedding (`embedResources: true` or `--embed-resources`) streams
+image bytes and base64 text through caller storage, including local VFS images
+and pictures retained from RTF. Templates and Lua image origins are preserved.
+Other finite structural budgets still use the compatibility path.
 Single-input JSON → plain text uses the same retained document and streaming
 JSON filters. Its writer jobs, diagnostic paths, intermediate text, wrapping and
 indentation use caller storage, including long words and nested lists. It preserves

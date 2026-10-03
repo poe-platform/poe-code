@@ -31,7 +31,7 @@ export class RetainedOptions {
     if (typeof working.directory !== "string" || !working.directory.startsWith("/")) context.fail("E_OPTION", "Working storage requires an absolute caller filesystem directory");
     const storage = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, pages);
     const result = new RetainedOptions(storage, context);
-    result.standalone = !options.template && (options.standalone === true || Boolean(options.includeInHeader?.length || options.includeBeforeBody?.length || options.includeAfterBody?.length));
+    result.standalone = !options.template && (options.standalone === true || options.embedResources === true || Boolean(options.includeInHeader?.length || options.includeBeforeBody?.length || options.includeAfterBody?.length));
     try {
       if (options.variables !== undefined) result.variables = await RetainedJsonOptions.acquire(options.variables, context, working, storage);
       if (options.template) {result.template = new RetainedTemplate(storage, context); await result.template.acquire(options.template);}

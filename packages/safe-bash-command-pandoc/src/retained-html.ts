@@ -13,6 +13,7 @@ type Job = {
   value?: string; columns?: number; columnCount?: number; occupancy?: number; column?: number;
   row?: number; rowHeads?: number; header?: boolean;
 };
+type HtmlResource = (node: number) => Promise<AsyncIterable<Uint8Array> | undefined>;
 type Section = {node: number; id: TextRange; number: string};
 type Note = {node: number; path: number; id: TextRange; ref: TextRange};
 const formatting: Record<string, string> = {Emph: "em", Underline: "u", Strong: "strong", Strikeout: "del", Superscript: "sup", Subscript: "sub", SmallCaps: "span"};
@@ -32,10 +33,28 @@ class HtmlTape {
   private noteCount = 0;
   private readonly counters = [0, 0, 0, 0, 0, 0];
   constructor(private readonly tree: BackedJson, private readonly storage: PagedStorage,
-    private readonly context: ExecutionContext, private readonly options: ConversionOptions) {
+    private readonly context: ExecutionContext, private readonly options: ConversionOptions, private readonly resource?: HtmlResource) {
     this.text = new BackedText(storage, units => context.cooperate(units));
     this.reserved = new BackedTextSet(storage, this.text); this.headings = new BackedTextSet(storage, this.text);
     this.sectionByNode = new IntegerTable(storage, 64); this.sections = new IntegerTable(storage, 64); this.notes = new IntegerTable(storage, 64);
+  }
+  private async embeddedUrl(source: AsyncIterable<Uint8Array>): Promise<TextRange> {
+    const context = this.context;
+    return this.text.from((async function* () {
+      const prefix: number[] = []; let raw = "", header = false;
+      const mime = () => prefix[0] === 137 && prefix[1] === 80 ? "image/png" : prefix[0] === 255 && prefix[1] === 216 ? "image/jpeg" : prefix[0] === 71 && prefix[1] === 73 ? "image/gif" : "application/octet-stream";
+      for await (const bytes of source) {
+        await context.cooperate(bytes.length);
+        for (const byte of bytes) {
+          if (prefix.length < 2) prefix.push(byte);
+          raw += String.fromCharCode(byte);
+          if (!header && prefix.length === 2) {yield "data:" + mime() + ";base64,"; header = true;}
+          if (raw.length === 12288) {yield btoa(raw); raw = "";}
+        }
+      }
+      if (!header) yield "data:" + mime() + ";base64,";
+      if (raw) yield btoa(raw);
+    })());
   }
   private async record(value: unknown): Promise<number> {
     const payload = new TextEncoder().encode(JSON.stringify(value)), bytes = new Uint8Array(8 + payload.length);
@@ -312,7 +331,9 @@ class HtmlTape {
           else {const inner = await child(1); await this.add("<span"); await this.attrs(await this.at(content!, 0)); await this.add(">"); await this.sequence(this.list(inner.node, inner.path, "inline"), this.literal("</span>"));}
         } else if (tag === "Link" || tag === "Image") {
           const image = tag === "Image", target = await this.at(content!, 2), attrs = await this.at(content!, 0), label = await child(1);
-          const url = await this.url(await this.scalar(target + 32)), title = await this.scalar(await this.at(target, 1));
+          let url = await this.url(await this.scalar(target + 32));
+          const title = await this.scalar(await this.at(target, 1));
+          if (image && this.resource) {const source = await this.resource(target + 32); if (source) url = await this.embeddedUrl(source);}
           await this.add(image ? "<img" : "<a"); await this.attribute(image ? "src" : "href", url);
           if (image) await this.attribute("alt", await this.plain(label.node));
           if (title.units) await this.attribute("title", title);
@@ -457,12 +478,12 @@ class HtmlTape {
   }
 }
 
-export async function writeRetainedHtml(tree: BackedJson, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, includes?: RetainedOptions): Promise<void> {
+export async function writeRetainedHtml(tree: BackedJson, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, includes?: RetainedOptions, resource?: HtmlResource): Promise<void> {
   const storage = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, (working.cacheBytes ?? 1048576) / 16384);
   const release = context.onClose(() => storage.close());
   let failure: {reason: unknown} | undefined;
   try {
-    const writer = new HtmlTape(tree, storage, context, options), result = await writer.render();
+    const writer = new HtmlTape(tree, storage, context, options, resource), result = await writer.render();
     const diagnostics = context.snapshotDiagnostics();
     if (options.failIfWarnings && diagnostics.length) {
       const first = diagnostics[0]!;

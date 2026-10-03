@@ -209,6 +209,17 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
         else if (!await used.get(identity)) throw new PandocError("E_RESOURCE", "convert", "Unreferenced RTF resource; embedded fonts/objects unsupported", "rtf");
       }
     },
+    async html(node: number): Promise<AsyncIterable<Uint8Array> | undefined> {
+      const key = await targetKey(node);
+      const record = Number(await inputSpans.get(key) ?? (!context.resources ? await targetSpans.get(key) : undefined) ?? 0n);
+      if (!record) return undefined;
+      const span = await load(record);
+      return (async function* () {
+        for (let offset = 0; offset < span.length; offset += 16384) {
+          await context.cooperate(); yield await storage.read(span.position + offset, Math.min(16384, span.length - offset));
+        }
+      })();
+    },
     async image(node: number) {
       let span: Span;
       const key = await targetKey(node);

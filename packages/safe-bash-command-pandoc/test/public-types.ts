@@ -52,6 +52,7 @@ void resolveConversionArgs(["document.md"], streamedFiles, new AbortController()
 import {convertToOutput, type OutputConversionContext, type ConversionSummary} from "safe-bash-command-pandoc";
 declare const outputContext: OutputConversionContext;
 const written: ConversionSummary = await convertToOutput([], {from: "csv", to: "html"}, outputContext);
+void convertToOutput([], {from: "rtf", to: "html", embedResources: true}, outputContext);
 const outputKind: "output" = written.kind;
 void outputKind;
 

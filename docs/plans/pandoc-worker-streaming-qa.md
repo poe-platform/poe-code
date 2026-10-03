@@ -475,6 +475,32 @@ cleanup, page counts and transfer sizes exactly matched the earlier cases.
 
 No samples timed out. These lower backing peaks are encouraging observations,
 not a general upper bound or isolated attribution of all memory savings.
-Repeat the larger, concurrent and deployed cohorts after this change; the
-pre-change 32/128 MiB and concurrency measurements above must not be presented
-as measurements of the modified cache.
+The subsequent larger/concurrent reruns are recorded below. Deployed cohorts
+remain outstanding; pre-change measurements above must not be presented as
+measurements of the modified cache.
+
+
+Subsequent unforced reruns used the rebuilt cache change above on base
+`b0a0d09b1a`, before the final delivery rebase; the storage source hash is
+unchanged. The 32/128 MiB cases share one isolate; sixteen concurrent 1 MiB
+requests use a separate isolate and overlap the size cohort on the host.
+All output checksums, lengths, transfer bounds, handle closure and cleanup
+receipts were checked. Sixteen requests each closed six handles; the last
+completions observed an empty shared bucket. Per-request page counts match
+the corresponding pre-change cases.
+
+| Payload | Concurrency | Wall ms | First output ms | Peak used heap bytes | Peak backing bytes | Peak embedder heap bytes | Samples | Timeouts |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 32 MiB | 1 | 93680 | 78650 | 87139984 | 47665732 | 7479712 | 344 | 0 |
+| 128 MiB | 1 | 352248 | 264519 | 99531528 | 47071596 | 12509152 | 1308 | 1 |
+| 1 MiB | 16 | 111731–112071 | 109837–110352 | 93441000 | 105199438 | 4642592 | 204 | 0 |
+
+Baseline used heap was 29,573,496 bytes for 32 MiB, 59,083,740 for 128 MiB,
+and 29,572,164 for the concurrency cohort. The 128 MiB backing peak fell from
+406,118,716 to 47,071,596 bytes in these observations; backing peaks at 32 and
+128 MiB were similar after reuse. This supports reduced allocation pressure
+for one long CodeBlock, not a guarantee for all document shapes or formats.
+The 16-request aggregate backing peak was 105,199,438 bytes; independently
+sampled heap metrics must not be summed into a simultaneous memory total.
+Cloudflare deployment, runtime CPU/subrequest costs, other document shapes,
+small-cache reruns and resident fallback paths still require qualification.

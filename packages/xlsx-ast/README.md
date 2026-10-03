@@ -53,8 +53,10 @@ caches. Without that capability the convenience reader retains the directory.
 `createXlsxStreamWriter` uses `workingFiles` to stage ZIP member payloads and
 central records in the caller’s safe-fs. XML encoding and member compression
 consume bounded chunks, followed by bounded archive output. The
-format provider registers this path for both editions. Worksheet XML, shared
-strings and workbook cells still use in-memory representations. Hosts without
+format provider registers this path for both editions. Worksheet rows are staged
+in caller storage before metadata serialization; row, worksheet and shared-string
+XML containers stream without complete strings. Individual cells, shared-string
+indexes, styles and other metadata still use in-memory representations. Hosts without
 working storage and explicit `createXlsxWriter` calls retain buffered output.
 
 For table import, `readCachedXlsx` accepts an admitted ZIP archive, its codec and

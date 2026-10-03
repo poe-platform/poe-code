@@ -1,3 +1,4 @@
+import { encodeTextStream } from "../encoding/encode-stream.js";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import type { ImportedValue, RichTextRun } from "@poe-code/spreadsheet-ast";
 import { parseXmlSteps } from "@poe-code/safe-fs/xml";
@@ -64,7 +65,24 @@ export function createXlsxXml(context: CapabilityContext) {
     }
     return text;
   };
-  return { element, charge };
+  /** Serialize a container without retaining its children. Empty fragments do
+   * not alter self-closing spelling; the encoder enforces the complete UTF-8 budget. */
+  async function* stream(name: string, attributes: Attributes,
+    content: AsyncIterable<string | Uint8Array>): AsyncGenerator<Uint8Array> {
+    const empty = element(name, attributes);
+    async function* parts() {
+      let opened = false;
+      for await (const part of content) {
+        context.signal.throwIfAborted();
+        if (!part.length) continue;
+        if (!opened) { yield empty.slice(0, -2) + ">"; opened = true; }
+        yield part;
+      }
+      yield opened ? "</" + name + ">" : empty;
+    }
+    yield* encodeTextStream(parts(), "UTF-8", false, context);
+  }
+  return { element, stream, charge };
 }
 export interface MetadataNode { readonly name: string; readonly namespace: string; readonly attributes: Readonly<Record<string, string>>; readonly text: string; readonly children: readonly MetadataNode[]; }
 /** The workbook stores both parsed Gnumeric attribute arrays and OOXML attribute maps. */

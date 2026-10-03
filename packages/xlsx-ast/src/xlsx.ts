@@ -2,7 +2,7 @@ import { foldSheetName } from "@poe-code/spreadsheet-ast/case-fold";
 import { XlsxExternalLinkWriter } from "./external-link-export.js";
 import { resolveExternalLinks } from "./external-links.js";
 import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-stream";
-import { createStoredZipEntries, ZipStorageFailure } from "@poe-code/office-package";
+import { createStoredZipEntries, ZipStorageFailure, ZipWriteChain } from "@poe-code/office-package";
 import { ownedRangeSource } from "@poe-code/spreadsheet-engine/range-input";
 import { createZipCodec, CodecError, type ZipLimits, type ZipEntry, type ZipStreamEntry, type ZipSource } from "@poe-code/office-package";
 import { expandIndexSheetAreas } from "@poe-code/spreadsheet-engine/formulas/index-sheet-areas";
@@ -791,7 +791,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
     context.own(close);
     try {
     context.signal.throwIfAborted();
-    const { element: xml, charge } = createXlsxXml(context);
+    const { element: xml, stream: xmlStream, charge } = createXlsxXml(context);
     book = snapshotXlsxWorkbook(book, context, charge);
     if (book.sheets.length > context.limits.sheets) limit("sheets");
     let admittedCells = 0;
@@ -827,27 +827,38 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
     const entries: ZipEntry[] = [], types: { name: string; type: string }[] = [
       { name: "xl/workbook.xml", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml" }
     ];
-    const encoder = new TextEncoder(); let plainBytes = 0;
+    let plainBytes = 0;
     const declaration = '<?xml version="1.0" encoding="UTF-8"?>\n';
     const modified = new Date(context.clock?.now() ?? Date.UTC(2000, 0, 1));
-    async function add(name: string, content: string, type?: string): Promise<void> {
-      context.signal.throwIfAborted(); charge(content.length);
+    async function add(name: string, content: string | AsyncIterable<Uint8Array>, type?: string): Promise<void> {
+      context.signal.throwIfAborted();
       if (members >= bounds.maxMembers) limit("members");
       const attributes = { modified, mode: 0o644, directory: false, symlink: false, compression: "deflate" as const };
-      if (staged) {
-        async function* text() { yield declaration; yield content; yield "\n"; }
-        async function* bytes() {
-          for await (const chunk of encodeTextStream(text(), "UTF-8", false, context)) {
-            if (chunk.length > context.limits.outputBytes - plainBytes) limit("output bytes");
-            plainBytes += chunk.length; yield chunk;
-          }
+      async function* text() {
+        yield declaration;
+        if (typeof content === "string") { charge(content.length); yield content; }
+        else {
+          // Keep the existing UTF-16 work accounting while replaying staged UTF-8.
+          const decoder = new TextDecoder();
+          for await (const chunk of content) { charge(decoder.decode(chunk, { stream: true }).length); yield chunk; }
+          charge(decoder.decode().length);
         }
-        await staged.addSource(name, bytes(), attributes);
-      } else {
-        const bytes = encoder.encode(declaration + content + "\n");
-        if (bytes.length > context.limits.outputBytes - plainBytes) limit("output bytes");
-        plainBytes += bytes.length;
-        entries.push(await zip.makeZipEntry(name, bytes, attributes, bounds, context.signal));
+        yield "\n";
+      }
+      async function* bytes() {
+        for await (const chunk of encodeTextStream(text(), "UTF-8", false, context)) {
+          if (chunk.length > context.limits.outputBytes - plainBytes) limit("output bytes");
+          plainBytes += chunk.length; yield chunk;
+        }
+      }
+      if (staged) await staged.addSource(name, bytes(), attributes);
+      else {
+        // Explicit SDK convenience when the caller supplies no working storage.
+        const chunks: Uint8Array[] = []; let length = 0;
+        for await (const chunk of bytes()) { chunks.push(chunk.slice()); length += chunk.length; }
+        const payload = new Uint8Array(length); let offset = 0;
+        for (const chunk of chunks) { payload.set(chunk, offset); offset += chunk.length; }
+        entries.push(await zip.makeZipEntry(name, payload, attributes, bounds, context.signal));
       }
       members++;
       if (type) types.push({ name, type });
@@ -920,40 +931,62 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
       const rowGroups = new Map<number, Cell[]>();
       for (const cell of cells) { const group = rowGroups.get(cell.row) ?? []; group.push(cell); rowGroups.set(cell.row, group); }
       for (const row of sheet.rows ?? []) if (row.index <= endRow && !rowGroups.has(row.index)) rowGroups.set(row.index, []);
-      let sheetData = "";
       const rowInfo = new Map((sheet.rows ?? []).map(r => [r.index, r]));
-      for (const [row, group] of [...rowGroups].sort((a, b) => a[0] - b[0])) {
-        const info = rowInfo.get(row); let content = "";
-        for (const cell of group) {
-          charge(); const value = cell.formula ? cell.cachedResult ?? cell.value : cell.value;
-          const valueFormat = value.kind === "number" ? value.format : undefined;
-          const style = cell.style || cell.format ? styles.register(cell) : valueFormat !== undefined ? styles.register(cell, columnDefaultStyle) : columnDefaultStyle;
-          const stringKey = value.kind === "string" ? JSON.stringify([value.value, cell.richText ?? []]) : "";
-          let type: string | undefined, body = "";
-          charge(sheet.formulaGroups?.length ?? 0);
-          const array = sheet.formulaGroups?.find(g => g.kind === "array" && g.range.startRow <= cell.row && g.range.endRow >= cell.row && g.range.startColumn <= cell.column && g.range.endColumn >= cell.column);
-          if (cell.formula && (!array || cell.row === array.range.startRow && cell.column === array.range.startColumn))
-            body += xml("f", { ...(array ? { t: "array", ref: rangeText(array.range) } : {}),
-              ...formulaSemanticsAttributes(array?.arrayStringLiterals ?? cell.arrayStringLiterals, true, cell.formula) },
-              escapeXlsx(encodeXlsxString(exportXlsxFormula(book, cell.formula, sheet, cell.row, cell.column, context, array?.arrayStringLiterals ?? cell.arrayStringLiterals, externalLinks))));
-          if (value.kind === "string") {
-            if (cell.formula) { type = "str"; body += xml("v", {}, escapeXlsx(encodeXlsxString(value.value))); }
-            else if ((stringCounts.get(stringKey) ?? 0) > 1) {
-              sharedReferences++;
-              type = "s"; let id = sharedIds.get(stringKey);
-              if (id === undefined) { id = shared.length; sharedIds.set(stringKey, id); shared.push({ ...cell, value }); }
-              body += xml("v", {}, String(id));
-            } else { type = "inlineStr"; body += xml("is", {}, writeRichString(value.value, cell.richText, xml, charge)); }
-          } else if (value.kind !== "blank") {
-            type = value.kind === "boolean" ? "b" : value.kind === "error" ? "e" : undefined;
-            body += xml("v", {}, value.kind === "boolean" ? value.value ? "1" : "0" : value.kind === "number" ? gnumericNumber(value.value) : escapeXlsx(standardErrors.has(value.value) ? value.value : "#" + quoteFormulaString(value.value, '"', gnumericGrammar)));
+      async function* rowXml() {
+        for (const [row, group] of [...rowGroups].sort((a, b) => a[0] - b[0])) {
+          const info = rowInfo.get(row);
+          async function* content() {
+            for (const cell of group) {
+              charge(); const value = cell.formula ? cell.cachedResult ?? cell.value : cell.value;
+              const valueFormat = value.kind === "number" ? value.format : undefined;
+              const style = cell.style || cell.format ? styles.register(cell) : valueFormat !== undefined ? styles.register(cell, columnDefaultStyle) : columnDefaultStyle;
+              const stringKey = value.kind === "string" ? JSON.stringify([value.value, cell.richText ?? []]) : "";
+              let type: string | undefined, body = "";
+              charge(sheet.formulaGroups?.length ?? 0);
+              const array = sheet.formulaGroups?.find(g => g.kind === "array" && g.range.startRow <= cell.row && g.range.endRow >= cell.row && g.range.startColumn <= cell.column && g.range.endColumn >= cell.column);
+              if (cell.formula && (!array || cell.row === array.range.startRow && cell.column === array.range.startColumn))
+                body += xml("f", { ...(array ? { t: "array", ref: rangeText(array.range) } : {}),
+                  ...formulaSemanticsAttributes(array?.arrayStringLiterals ?? cell.arrayStringLiterals, true, cell.formula) },
+                  escapeXlsx(encodeXlsxString(exportXlsxFormula(book, cell.formula, sheet, cell.row, cell.column, context, array?.arrayStringLiterals ?? cell.arrayStringLiterals, externalLinks))));
+              if (value.kind === "string") {
+                if (cell.formula) { type = "str"; body += xml("v", {}, escapeXlsx(encodeXlsxString(value.value))); }
+                else if ((stringCounts.get(stringKey) ?? 0) > 1) {
+                  sharedReferences++;
+                  type = "s"; let id = sharedIds.get(stringKey);
+                  if (id === undefined) { id = shared.length; sharedIds.set(stringKey, id); shared.push({ ...cell, value }); }
+                  body += xml("v", {}, String(id));
+                } else { type = "inlineStr"; body += xml("is", {}, writeRichString(value.value, cell.richText, xml, charge)); }
+              } else if (value.kind !== "blank") {
+                type = value.kind === "boolean" ? "b" : value.kind === "error" ? "e" : undefined;
+                body += xml("v", {}, value.kind === "boolean" ? value.value ? "1" : "0" : value.kind === "number" ? gnumericNumber(value.value) : escapeXlsx(standardErrors.has(value.value) ? value.value : "#" + quoteFormulaString(value.value, '"', gnumericGrammar)));
+              }
+              yield xml("c", { r: formatA1(cell.row, cell.column), s: style !== columnDefaultStyle ? style : undefined, t: type }, body);
+            }
           }
-          content += xml("c", { r: formatA1(cell.row, cell.column), s: style !== columnDefaultStyle ? style : undefined, t: type }, body);
+          const importedRow = metadataNode(info?.style?.gnumeric, charge);
+          yield* xmlStream("row", { r: row + 1, spans: `${startColumn + 1}:${endColumn + 1}`,
+            customHeight: info?.sizePoints === undefined || importedRow?.name === "RowInfo" && !Number(importedRow.attributes.HardSize) ? undefined : 1, ht: info?.sizePoints,
+            collapsed: info?.collapsed ? 1 : undefined, hidden: info?.hidden ? 1 : undefined, outlineLevel: info?.outlineLevel || (info?.collapsed ? 0 : undefined) }, content());
         }
-        const importedRow = metadataNode(info?.style?.gnumeric, charge);
-        sheetData += xml("row", { r: row + 1, spans: `${startColumn + 1}:${endColumn + 1}`,
-          customHeight: info?.sizePoints === undefined || importedRow?.name === "RowInfo" && !Number(importedRow.attributes.HardSize) ? undefined : 1, ht: info?.sizePoints,
-          collapsed: info?.collapsed ? 1 : undefined, hidden: info?.hidden ? 1 : undefined, outlineLevel: info?.outlineLevel || (info?.collapsed ? 0 : undefined) }, content);
+      }
+      // Serialize rows before metadata to preserve style/shared-string registration
+      // order. Only bounded encoded pieces stay resident while the tape is written.
+      const rowTape = storage ? new ZipWriteChain(storage, 16384, context.signal, async signal => { signal.throwIfAborted(); }) : undefined;
+      const bufferedRows: Uint8Array[] = [];
+      const rowBuffer = new Uint8Array(16384); let rowBytes = 0;
+      for await (const bytes of xmlStream("sheetData", {}, rowXml())) {
+        if (!rowTape) { bufferedRows.push(bytes.slice()); continue; }
+        for (let offset = 0; offset < bytes.length;) {
+          const take = Math.min(rowBuffer.length - rowBytes, bytes.length - offset);
+          rowBuffer.set(bytes.subarray(offset, offset + take), rowBytes);
+          rowBytes += take; offset += take;
+          if (rowBytes === rowBuffer.length) { await rowTape.append([rowBuffer], rowBytes); rowBytes = 0; }
+        }
+      }
+      if (rowTape && rowBytes) await rowTape.append([rowBuffer.subarray(0, rowBytes)], rowBytes);
+      async function* sheetData() {
+        if (rowTape) yield* rowTape.read();
+        else yield* bufferedRows;
       }
       const view = sheet.view?.gnumeric && typeof sheet.view.gnumeric === "object" && !Array.isArray(sheet.view.gnumeric)
         ? sheet.view.gnumeric as Readonly<Record<string, ImportedValue>> : {};
@@ -993,12 +1026,20 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
         hyperlinks += xml("hyperlink", { ref: formatA1(cell.row, cell.column), "r:id": isInternal ? undefined : id,
           location, tooltip: link.attributes.tip });
       }
-      const sheetXml = xml("worksheet", { xmlns: namespace, "xmlns:r": relationships, "xmlns:gnmx": "http://www.gnumeric.org/ext/spreadsheetml" },
-        metadata.properties + xml("dimension", { ref: dimension }) +
-        xml("sheetViews", {}, xml("sheetView", viewAttrs, xml("selection", { activeCell: "A1", sqref: "A1" }))) +
-        metadata.format + xml("cols", {}, cols) + xml("sheetData", {}, sheetData) + metadata.protection +
-        metadata.filters + (sheet.merges?.length ? xml("mergeCells", {}, sheet.merges.map(r => xml("mergeCell", { ref: rangeText(r) })).join("")) : "") +
-        metadata.rules + (hyperlinks ? xml("hyperlinks", {}, hyperlinks) : "") + metadata.print + (legacyDrawing ? xml("legacyDrawing", { "r:id": legacyDrawing }) : ""));
+      async function* worksheet() {
+        yield metadata.properties;
+        yield xml("dimension", { ref: dimension });
+        yield xml("sheetViews", {}, xml("sheetView", viewAttrs, xml("selection", { activeCell: "A1", sqref: "A1" })));
+        yield metadata.format; yield xml("cols", {}, cols);
+        yield* sheetData();
+        yield metadata.protection; yield metadata.filters;
+        if (sheet.merges?.length) yield xml("mergeCells", {}, sheet.merges.map(r => xml("mergeCell", { ref: rangeText(r) })).join(""));
+        yield metadata.rules;
+        if (hyperlinks) yield xml("hyperlinks", {}, hyperlinks);
+        yield metadata.print;
+        if (legacyDrawing) yield xml("legacyDrawing", { "r:id": legacyDrawing });
+      }
+      const sheetXml = xmlStream("worksheet", { xmlns: namespace, "xmlns:r": relationships, "xmlns:gnmx": "http://www.gnumeric.org/ext/spreadsheetml" }, worksheet());
       const partName = `worksheets/sheet${index + 1}.xml`;
       await add("xl/" + partName, sheetXml);
       if (rels.length) await add(`xl/worksheets/_rels/sheet${index + 1}.xml.rels`, relationshipXml(rels));
@@ -1007,8 +1048,10 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
       sheetNodes.push(xml("sheet", { name: sheet.name, sheetId: index + 1, "r:id": id }));
     }
     if (shared.length) {
-      await add("xl/sharedStrings.xml", xml("sst", { xmlns: namespace, uniqueCount: shared.length, count: sharedReferences }, shared.map(cell =>
-        xml("si", {}, writeRichString(cell.value.kind === "string" ? cell.value.value : "", cell.richText, xml, charge))).join("")), "application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml");
+      async function* strings() {
+        for (const cell of shared) yield xml("si", {}, writeRichString(cell.value.kind === "string" ? cell.value.value : "", cell.richText, xml, charge));
+      }
+      await add("xl/sharedStrings.xml", xmlStream("sst", { xmlns: namespace, uniqueCount: shared.length, count: sharedReferences }, strings()), "application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml");
       workbookRelations.push({ id: `rId${workbookRelations.length + 1}`, type: relationships + "/sharedStrings", target: "sharedStrings.xml" });
     }
     await add("xl/styles.xml", styles.serialize(), "application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml");

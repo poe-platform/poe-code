@@ -3,7 +3,7 @@ import {compareIdentity,compareFileVersion,FsError,type FileSystem} from "@poe-c
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {resolvePath} from "safe-bash-contracts/path";
 import {drainCooperativeSteps} from "safe-bash-contracts/yield";
-import {tryPdfMetadata,readImageMetadata,decodeImage,computeImageStatsSteps,readImageMetadataFromSource,decodeImageToStorage,computeStoredImageStats,UnsupportedStoredResource,isPdfBytes,type ImageMetadata,type ImageStats,type SharpInputOptions,type ImageByteSource} from "@poe-code/image-ast/portable";
+import {tryPdfDecode,tryPdfMetadata,readImageMetadata,decodeImage,computeImageStatsSteps,readImageMetadataFromSource,decodeImageToStorage,computeStoredImageStats,UnsupportedStoredResource,isPdfBytes,type ImageMetadata,type ImageStats,type SharpInputOptions,type ImageByteSource} from "@poe-code/image-ast/portable";
 
 export interface IdentifyFileInput {
  readonly filesystem:FileSystem;
@@ -51,10 +51,14 @@ export function createIdentifyReader(input:IdentifyFileInput,signal:AbortSignal,
    try{
     const prefix=await source.read(0,Math.min(1029,source.size),{signal});
     let pdfMetadata:ImageMetadata|undefined;
-    if(isPdfBytes(prefix)&&!verbose){try{pdfMetadata=await tryPdfMetadata(source,fs,input.cwd,signal,options??{});}catch(error){if(!(error instanceof UnsupportedStoredResource))throw error;}}
-    if(pdfMetadata)result={metadata:pdfMetadata,size:source.size,...(properties?{properties:await readPropertiesFromSource(source,"pdf",signal)}:{})};
+    if(isPdfBytes(prefix)){try{pdfMetadata=await tryPdfMetadata(source,fs,input.cwd,signal,options??{});}catch(error){if(!(error instanceof UnsupportedStoredResource))throw error;}}
+    if(pdfMetadata){
+     const image=verbose?await tryPdfDecode(source,storage,fs,input.cwd,signal,options):undefined;
+     const stats=image?await computeStoredImageStats(image,storage,signal):undefined;
+     result={metadata:pdfMetadata,size:source.size,...(stats?{stats}:{}),...(properties?{properties:await readPropertiesFromSource(source,"pdf",signal)}:{})};
+    }
     else if(isPdfBytes(prefix)){
-     // PDF raster statistics still use the convenience codec.
+     // Preserve legacy adapters that lack retained PDF staging capabilities.
      const bytes=new Uint8Array(source.size);for(let offset=0;offset<bytes.length;offset+=16384)bytes.set(await source.read(offset,Math.min(16384,bytes.length-offset),{signal}),offset);
      result=await inspectIdentifyBytes(bytes,options,verbose,signal,properties);
     }else{

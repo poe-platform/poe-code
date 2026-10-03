@@ -1,4 +1,4 @@
-import {tryPdfMetadata} from "./image-pdf.js";
+import {tryPdfMetadata,tryPdfDecode} from "./image-pdf.js";
 import {storedImageDecoder} from "./codecs/stored-decoder.js";
 import {decodeRawResource} from "./codecs/resource-storage.js";
 import type {ImageByteSource} from "./codecs/png-storage.js";
@@ -37,8 +37,8 @@ export async function tryInspectImageMetadata<T>(input:ImageResourceInput,option
    else if(options.raw)initial=await decodeRawResource(source!,storage,{...options,raw:options.raw},signal);
    else {
     const decoder=await storedImageDecoder(source!,signal);
-    if(!decoder)throw new UnsupportedStoredResource();
-    initial=await decoder(source!,storage,signal,options);
+    initial=decoder?await decoder(source!,storage,signal,options):await tryPdfDecode(source!,storage,supplied as FileSystem,options.workingDirectory??(typeof input==="string"?dirname(input):"."),signal,options);
+    if(!initial)throw new UnsupportedStoredResource();
    }
    }
    const evaluated=await transformStoredPipeline(initial,storage,operations,signal,resources);

@@ -35,6 +35,13 @@ export const verification = (async () => {
     const pdf = await shell.exec("sips -s format pdf /out.jpg --out /out.pdf");
     assert.equal(pdf.exitCode, 0, pdf.stderr);
     assert.equal((await sharp(await fs.readFile("/out.pdf")).metadata()).width, 7);
+    const pdfInput = await shell.exec("sips -s format png /out.pdf --out /pdf-sips.png && identify -verbose /out.pdf");
+    assert.equal(pdfInput.exitCode, 0, pdfInput.stderr);
+    assert.ok(pdfInput.stdout.includes("Entropy:"));
+    assert.equal((await sharp(await fs.readFile("/pdf-sips.png")).metadata()).height, 13);
+    const pdfFile = await sharp("/out.pdf", {filesystem}).resize(5, 9).png().toFile("/pdf-sdk.png");
+    assert.equal(pdfFile.width, 5);
+    assert.equal(pdfFile.height, 9);
     await fs.link("/out.jpg", "/hard.jpg");
     await fs.symlink("out.jpg", "/link.jpg");
     const aliased = await shell.exec("sips -r 90 /link.jpg /out.jpg /hard.jpg");

@@ -1,4 +1,5 @@
-import {decodeImage,readImageMetadata,encodeImage,decodeImageToStorage,readImageMetadataFromSource,encodeStoredImage,isStoredOutputFormat,transformStoredImage,UnsupportedStoredResource,parseColor,type ImageByteSource,type ImageByteStorage,type RgbaImage,type StoredRgbaImage,type StoredImageOperation} from "@poe-code/image-ast/portable";
+import type {FileSystem} from "@poe-code/safe-fs/contracts";
+import {tryPdfDecode,tryPdfMetadata,decodeImage,readImageMetadata,encodeImage,decodeImageToStorage,readImageMetadataFromSource,encodeStoredImage,isStoredOutputFormat,transformStoredImage,UnsupportedStoredResource,parseColor,type ImageByteSource,type ImageByteStorage,type RgbaImage,type StoredRgbaImage,type StoredImageOperation} from "@poe-code/image-ast/portable";
 import type {PagedStorage} from "@poe-code/safe-fs/storage";
 import {yieldTurn} from "safe-bash-contracts/yield";
 import {readPropertiesFromSource,writePropertiesStream} from "./properties.js";
@@ -12,7 +13,7 @@ export class StoredSipsImages {
  readonly backend:SipsImageBackend<SipsPayload,SipsImage>;
  private readonly pixelStorage:ImageByteStorage;
  private readonly payloadStorage:ImageByteStorage;
- constructor(readonly pixels:PagedStorage,readonly payloads:PagedStorage,readonly signal:AbortSignal){
+ constructor(readonly pixels:PagedStorage,readonly payloads:PagedStorage,readonly signal:AbortSignal,fs:FileSystem,directory:string){
   const protect=(storage:PagedStorage):ImageByteStorage=>({
    allocate(length){try{return storage.allocate(length);}catch(error){throw new ImageStorageFailure(error);}},
    async read(position,length){try{return await storage.read(position,length);}catch(error){throw new ImageStorageFailure(error);}},
@@ -23,11 +24,11 @@ export class StoredSipsImages {
   this.backend={
    decode:async bytes=>{
     if(bytes instanceof Uint8Array)return decodeImage(bytes);
-    try{return await decodeImageToStorage(bytes,this.pixelStorage,signal);}catch(error){if(!(error instanceof UnsupportedStoredResource))throw error;return decodeImage(await this.materialize(bytes));}
+    try{return await decodeImageToStorage(bytes,this.pixelStorage,signal);}catch(error){if(!(error instanceof UnsupportedStoredResource))throw error;const pdf=await tryPdfDecode(bytes,this.pixelStorage,fs,directory,signal).catch(error=>{if(error instanceof UnsupportedStoredResource)return undefined;throw error;});return pdf??decodeImage(await this.materialize(bytes));}
    },
    metadata:async bytes=>{
     if(bytes instanceof Uint8Array)return readImageMetadata(bytes);
-    try{const {storedDelay:ignoredDelay,...metadata}=await readImageMetadataFromSource(bytes,signal,undefined,this.pixelStorage);return metadata;}catch(error){if(!(error instanceof UnsupportedStoredResource))throw error;return readImageMetadata(await this.materialize(bytes));}
+    try{const {storedDelay:ignoredDelay,...metadata}=await readImageMetadataFromSource(bytes,signal,undefined,this.pixelStorage);return metadata;}catch(error){if(!(error instanceof UnsupportedStoredResource))throw error;const pdf=await tryPdfMetadata(bytes,fs,directory,signal,{}).catch(error=>{if(error instanceof UnsupportedStoredResource)return undefined;throw error;});return pdf??readImageMetadata(await this.materialize(bytes));}
    },
    readProperties:(bytes,format)=>bytes instanceof Uint8Array?bufferedImageBackend.readProperties(bytes,format):readPropertiesFromSource(bytes,format,signal),
    encode:async(image,options)=>{

@@ -16,7 +16,7 @@ const missing=(error:unknown):boolean=>error instanceof FsError&&["ENOENT","ENOT
 
 export async function runSipsFiles(argv:readonly string[],input:SipsFileInput,signal:AbortSignal,run:FileRunner):Promise<SipsCliResult>{
  const fs=input.filesystem,io={signal},context={fs,signal,...(input.registerCleanup?{registerCleanup:input.registerCleanup}:{})};
- const pixels=new PagedStorage({fs,cwd:input.cwd,env:{},signal}),payloads=new PagedStorage({fs,cwd:input.cwd,env:{},signal}),images=new StoredSipsImages(pixels,payloads,signal);
+ const pixels=new PagedStorage({fs,cwd:input.cwd,env:{},signal}),payloads=new PagedStorage({fs,cwd:input.cwd,env:{},signal}),images=new StoredSipsImages(pixels,payloads,signal,fs,input.cwd);
  const files=new Map<string,SipsPayload>(),original=new Map<string,SipsPayload>(),expectations=new Map<string,FileStat|null>(),resolutions=new Map<string,FileStagingResolution>();
  let total=0,inspectedTotal=0,failed=true;
  const charge=(size:number)=>{total+=size;input.inputBudget?.check(total);};

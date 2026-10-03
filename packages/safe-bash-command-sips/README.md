@@ -25,7 +25,7 @@ sampling and intermediate lossy encodings. Capable filesystems publish output
 conditionally after processing and scratch cleanup. Guarded staging preserves final
 symlinks and hardlink identity; aliased output operands publish the last result once,
 while validating every original path at commit. PDF output also streams compressed
-pixels and transparency from caller backing. PDF rasterization and legacy
+pixels and transparency from caller backing. PDF conversion and verbose identify use caller-backed input, image resources and page tiles; paths, shading and nested captures retain the shared PDF engine’s memory requirements. Legacy
 filesystem capabilities retain their byte-oriented compatibility paths. The byte-map
 and synchronous convenience APIs remain available.
 

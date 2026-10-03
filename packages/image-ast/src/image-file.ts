@@ -1,3 +1,4 @@
+import {tryPdfDecode} from "./image-pdf.js";
 import {imageOutputFormat} from "./output-format.js";
 import {encodeStoredImage,isStoredOutputFormat} from "./image-encode.js";
 import {prepareRawOutput} from "./codecs/raw-storage.js";
@@ -95,13 +96,14 @@ export async function tryImageFile(input: ImageResourceInput | StoredImageFileIn
     };
     const raw=options.raw;
     decoder=raw?(source,storage,signal)=>decodeRawResource(source,storage,{...options,raw},signal):await storedImageDecoder(source,signal);
-    if (!decoder) {failed=false; return undefined;}
+
     }
     const directory=dirname(output), parent=resolution?.parent??{...await fs.stat(directory,io)};
     signal.throwIfAborted();
     if(retained){storage=retained.storage;closeStorage=()=>retained.close();}
     else {const owned=new PagedStorage({fs,cwd:options.workingDirectory??directory,env:{},signal});storage=owned;closeStorage=()=>owned.close();}
-    let image=retained?retained.image:source&&decoder?await decoder(source,storage,signal,options):await readImageResource(input as ImageResourceInput,options,fs,storage,signal,loadedFiles);
+    let image=retained?retained.image:source?decoder?await decoder(source,storage,signal,options):await tryPdfDecode(source,storage,fs,options.workingDirectory??directory,signal,options):await readImageResource(input as ImageResourceInput,options,fs,storage,signal,loadedFiles);
+    if(!image){failed=false;return undefined;}
     const format=imageOutputFormat(image.format,encoding.format);
     if(!isStoredOutputFormat(format)) {failed=false;return undefined;}
     if(handle && initial && inputFile!==undefined){

@@ -69,7 +69,7 @@ SVG metadata uses bounded header ranges through `readSvgMetadataFromSource(sourc
 including long dimension tokens. `decodeSvgSourceToStorage(source, storage, signal, options)`
 reads SVG syntax in bounded ranges and stores path points, text, nested transforms,
 and raster pages in caller backing. File inputs and composite resources use this path
-automatically. PDF rendering still uses a buffered compatibility path.
+automatically. PDF file rendering uses caller-backed input, images and page tiles through `tryPdfDecode`; the same path serves composite resources and transformed metadata. PDF paths, shading and nested captures still have the shared engine’s memory requirements.
 Combined resize/blur/sharpen/convolution stages share premultiplied alpha and gamma handling.
 `resizeStoredImage(image, storage, options, signal)` supports all resize fits,
 gravity, entropy/attention crops, background canvases and image pages.

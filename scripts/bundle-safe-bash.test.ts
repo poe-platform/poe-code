@@ -540,6 +540,7 @@ beforeAll(async () => {
   const routes = [...new Set(["core", "jobs", "optional-host", "commands/node", ...commandFactories.map(([command]) => `commands/${command}`)])];
   browserConsumerSource = await bundlePublicConsumer(`
     export * from "@poe-platform/safe-bash";
+    export * from "@poe-platform/safe-bash/commands/llm/collections";
     export { trapExtension as PortableTrapExtension } from "@poe-platform/safe-bash/trap";
     import * as root from "@poe-platform/safe-bash";
     import * as core from "@poe-platform/safe-bash/core";
@@ -574,7 +575,7 @@ beforeAll(async () => {
 
 beforeAll(() => {
   const sandbox = createContext({
-    TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
+    TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream, DecompressionStream,
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
     URL, FormData, Blob, Response, btoa, atob, structuredClone,
   });
@@ -663,7 +664,7 @@ beforeAll(async () => {
           }
           return { contents: output.exports.map(name => `export const ${name} = globalThis.browser.${name};`).join("\n"), loader: "js" };
         });
-        builder.onResolve({ filter: /^(?:@poe-code\/safe-fs\/(?:core|runtime-core|fs\/memory|xml|contracts(?:\/(?:errors|object))?)|poe-code\/safe-fs\/core|@poe-platform\/(?:safe-fs\/(?:core|runtime-core)|safe-js\/fs\/core))$/ }, () => ({ path: "core", namespace: "evaluated-fs" }));
+        builder.onResolve({ filter: /^(?:@poe-code\/safe-fs\/(?:core|runtime-core|fs\/memory|xml|contracts(?:\/(?:errors|object))?)|poe-code\/safe-fs\/core|@poe-platform\/(?:safe-fs(?:\/(?:core|runtime-core))?|safe-js\/fs\/core))$/ }, () => ({ path: "core", namespace: "evaluated-fs" }));
         builder.onLoad({ filter: /.*/, namespace: "evaluated-fs" }, () => ({
           contents: Object.keys(filesystem).map(name => `export const ${name} = globalThis.canonical.${name};`).join("\n"), loader: "js",
         }));
@@ -680,7 +681,36 @@ it("executes the maintained browser fixture with all top-level workflows in a No
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.exports)).toEqual([]);
   const sandbox = browserRealm;
-  Object.assign(sandbox, { URL, TypeError, console, structuredClone,
+  const vmObjectProto = runInContext("Object.prototype", sandbox);
+  const vmArrayProto = runInContext("Array.prototype", sandbox);
+  const vmMapProto = runInContext("Map.prototype", sandbox);
+  const vmSetProto = runInContext("Set.prototype", sandbox);
+  const adoptRealm = (val: unknown, seen = new Set<object>()): unknown => {
+    if (val === null || typeof val !== "object" || seen.has(val)) return val;
+    seen.add(val);
+    if (Array.isArray(val)) {
+      Object.setPrototypeOf(val, vmArrayProto);
+      for (let i = 0; i < val.length; i++) adoptRealm(val[i], seen);
+      return val;
+    }
+    if (val instanceof Map) {
+      Object.setPrototypeOf(val, vmMapProto);
+      for (const [k, v] of val.entries()) { adoptRealm(k, seen); adoptRealm(v, seen); }
+      return val;
+    }
+    if (val instanceof Set) {
+      Object.setPrototypeOf(val, vmSetProto);
+      for (const v of val.values()) adoptRealm(v, seen);
+      return val;
+    }
+    if (Object.getPrototypeOf(val) === Object.prototype) {
+      Object.setPrototypeOf(val, vmObjectProto);
+      for (const v of Object.values(val)) adoptRealm(v, seen);
+    }
+    return val;
+  };
+  Object.assign(sandbox, { URL, TypeError, console,
+    structuredClone: (val: unknown, opts?: StructuredSerializeOptions) => adoptRealm(structuredClone(val, opts)),
     fetch: async () => { throw new Error("Unexpected fetch in browser fixture"); },
   });
   factoryIdentity = (browser as BrowserShell & { factoryIdentity: boolean[] }).factoryIdentity;

@@ -68,7 +68,9 @@ export async function validateBackedPandoc(tree: BackedJson, scratch: PagedStora
       let index = 0;
       for await (const sibling of tree.children(parent)) {
         if (header.kind === "object") {
-          const value = (await tree.describe(sibling)).end;
+          const member = await tree.describe(sibling);
+          if (member.kind !== "key") continue;
+          const value = member.end;
           if (sibling === child || value === child) {
             let key = "";
             for await (const part of tree.scalarChunks(sibling)) key += part;

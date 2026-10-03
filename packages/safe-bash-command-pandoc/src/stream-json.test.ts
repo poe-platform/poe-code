@@ -201,3 +201,15 @@ it("retains operand identity on JSON parse errors", async () => {
     output: {async write() {}, async close() {}, async abort() {}}
   })).rejects.toMatchObject({code: "E_AST", location: (legacy as {location: string}).location});
 });
+
+
+it("preserves AST diagnostics for a forbidden metadata key after a valid value", async () => {
+  const bytes = encoder.encode('{"pandoc-api-version":[1,23,1,2],"meta":{"valid":{"t":"MetaString","c":"ok"},"constructor":{"t":"MetaString","c":"bad"}},"blocks":[]}');
+  const fs = new MemoryFileSystem(), write = vi.fn(async () => {});
+  await expect(convertToOutput([{bytes}], {from: "json", to: "json"}, {
+    workingFiles: {fs, directory: "/", cacheBytes: 16384},
+    output: {write, async close() {}, async abort() {}}
+  })).rejects.toMatchObject({code: "E_AST", location: "$.meta.constructor"});
+  expect(write).not.toHaveBeenCalled();
+  expect(await fs.readdir("/")).toEqual([]);
+});

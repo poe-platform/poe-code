@@ -1,11 +1,13 @@
-import { dictGet, type PdfCosDict, type PdfCosNode, type PdfEncryptionState } from "../ast.js";
+import { scanCosRangeObjects } from "./range-repair.js";
+import { recoveredBodies, recoverPdfReferences } from "./recovered-reference.js";
+import { cosRef, dictGet, type PdfXRefEntry, type PdfCosDict, type PdfCosNode, type PdfEncryptionState } from "../ast.js";
 import { PdfError } from "../errors.js";
 import { PdfFileSource } from "../source.js";
 import { decodePdfStreamChunks, type PdfStreamDecodeOptions } from "./filter-stream.js";
 import { openPdfCrossReference, type PdfCrossReference, type PdfCrossReferenceOptions } from "./cross-reference.js";
 import { decryptPdfObjectStrings, decodePdfEncryptedStreamChunks, derivePdfEncryptionKey } from "./security.js";
 import { CosRangeLexer } from "./lexer.js";
-import type { PdfIndexStorage, PdfObjectIndex } from "./object-index.js";
+import { PdfObjectIndex, type PdfIndexStorage } from "./object-index.js";
 import { parseCosRangeObject, parseCosRangeValue, type ParseCosRangeOptions, type PdfRangeObject } from "./range-parser.js";
 
 export interface PdfObjectReaderOptions extends Omit<ParseCosRangeOptions, "resolveLength">, PdfStreamDecodeOptions {
@@ -44,6 +46,7 @@ function field(dict: PdfCosDict, key: string): number {
  * openPdfObjectReader to discover xrefs and authenticate a password. */
 export class PdfObjectReader {
   private readonly streams = new Map<number, ObjectStream>();
+  private readonly repairedOffsets = new Map<number, number>();
   private readonly options: PdfObjectReaderOptions;
   private readonly capacity: number;
   private readonly stagingLimit: number;
@@ -113,14 +116,28 @@ export class PdfObjectReader {
         if (!parsed.value) throw new PdfError("E_PARSE", "Empty compressed object");
         return { objectNumber, generationNumber, value: parsed.value, span: { start, end: parsed.offset } };
       }
-      const object = await parseCosRangeObject(this.source, entry.offset!, {
-        ...this.options,
-        resolveLength: async reference => {
-          const resolved = await this.load(reference.objectNumber, reference.generationNumber, active);
-          return resolved?.value.kind === "number" ? resolved.value.value : undefined;
-        },
-      });
-      if (object.objectNumber !== objectNumber || object.generationNumber !== generationNumber) throw new PdfError("E_PARSE", "Indirect object identity does not match xref");
+      let object: PdfRangeObject;
+      try {
+        object = await parseCosRangeObject(this.source, this.repairedOffsets.get(objectNumber) ?? entry.offset!, {
+          ...this.options,
+          resolveLength: async reference => {
+            const resolved = await this.load(reference.objectNumber, reference.generationNumber, active);
+            return resolved?.value.kind === "number" ? resolved.value.value : undefined;
+          },
+        });
+        if (object.objectNumber !== objectNumber || object.generationNumber !== generationNumber) throw new PdfError("E_PARSE", "Indirect object identity does not match xref");
+      } catch (error) {
+        this.options.signal?.throwIfAborted();
+        if (this.options.recovery !== "repair" || !(error instanceof PdfError) || error.code !== "E_PARSE") throw error;
+        let recovered: PdfRangeObject | undefined;
+        for await (const event of scanCosRangeObjects(this.source, this.options)) {
+          if (event.kind === "object" && event.object.objectNumber === objectNumber && event.object.generationNumber === generationNumber) recovered = event.object;
+        }
+        if (!recovered) throw error;
+        object = recovered;
+        if (this.repairedOffsets.size >= 64) this.repairedOffsets.delete(this.repairedOffsets.keys().next().value!);
+        this.repairedOffsets.set(objectNumber, object.span.start);
+      }
       if (this.options.encryption && objectNumber !== this.options.encryptionObjectNumber) {
         let type = object.stream && object.value.kind === "dict" ? dictGet(object.value, "Type") : undefined;
         if (type?.kind === "ref") type = (await this.load(type.objectNumber, type.generationNumber, active))?.value;
@@ -130,6 +147,22 @@ export class PdfObjectReader {
       }
       return object;
     } finally { active.delete(objectNumber); }
+  }
+
+  /** Discover compressed members after authentication, without retaining a
+   * member array. Each pull re-enters the serialized cache before reading. */
+  async *objectStreamEntries(objectNumber: number, generationNumber = 0): AsyncGenerator<PdfXRefEntry, void> {
+    integer(objectNumber, "objectNumber"); integer(generationNumber, "generationNumber");
+    for (let ordinal = 0; ; ordinal++) {
+      const entry = await this.enqueue(async () => {
+        const stream = await this.objectStream(objectNumber, generationNumber, new Set());
+        if (ordinal >= stream.count) return undefined;
+        const row = await this.headerRow(stream.header, ordinal);
+        return { objectNumber: row.number, type: "compressed" as const, objectStreamNumber: objectNumber, indexInStream: ordinal };
+      });
+      if (!entry) return;
+      yield entry;
+    }
   }
 
   private async headerRow(source: PdfFileSource, ordinal: number): Promise<{ number: number; offset: number }> {
@@ -243,6 +276,7 @@ export class PdfObjectReader {
       let failure: { error: unknown } | undefined;
       for (const stream of this.streams.values()) { try { await this.release(stream); } catch (error) { failure ??= { error }; } }
       this.streams.clear();
+      this.repairedOffsets.clear();
       if (failure) throw failure.error;
     });
     return this.closing;
@@ -266,8 +300,17 @@ export interface PdfOpenedObjectReader {
  * encryption dictionary reference graph is retained during authentication. */
 export async function openPdfObjectReader(source: PdfFileSource, storage: PdfIndexStorage,
   options: OpenPdfObjectReaderOptions = {}): Promise<PdfOpenedObjectReader> {
-  const crossReference = await openPdfCrossReference(source, storage, { maxNodes: 65536, maxTokenBytes: 1048576, maxRecursionDepth: 100, ...options, ...options.xref });
+  const xrefOptions = { maxNodes: 65536, maxTokenBytes: 1048576, maxRecursionDepth: 100, ...options, ...options.xref };
+  let crossReference: PdfCrossReference;
+  let repaired = false;
+  try { crossReference = await openPdfCrossReference(source, storage, xrefOptions); }
+  catch (error) {
+    options.signal?.throwIfAborted();
+    if (options.recovery !== "repair" || !(error instanceof PdfError) || error.code !== "E_PARSE") throw error;
+    crossReference = await recoverPdfReferences(source, storage, xrefOptions); repaired = true;
+  }
   let reader: PdfObjectReader | undefined;
+  let previousIndex: PdfObjectIndex | undefined;
   try {
     reader = new PdfObjectReader(source, crossReference.index, storage, options);
     let encryption: PdfEncryptionState | undefined;
@@ -304,6 +347,42 @@ export async function openPdfObjectReader(source: PdfFileSource, storage: PdfInd
       reader = new PdfObjectReader(source, crossReference.index, storage,
         { ...options, encryption, ...(encrypt.kind === "ref" ? { encryptionObjectNumber: encrypt.objectNumber } : {}) });
     }
+    if (repaired) {
+      const direct = crossReference.index;
+      const currentReader = reader;
+      async function* recoveredEntries(): AsyncGenerator<PdfXRefEntry> {
+        yield* direct.entries(options.signal);
+        for await (const object of recoveredBodies(source, direct, storage, xrefOptions)) {
+          const type = object?.value.kind === "dict" && dictGet(object.value, "Type");
+          if (!object?.stream || !type || type.kind !== "name" || type.decoded !== "ObjStm") continue;
+          try { yield* currentReader.objectStreamEntries(object.objectNumber, object.generationNumber); }
+          catch (error) { if (!(error instanceof PdfError) || error.code !== "E_PARSE") throw error; }
+        }
+      }
+      const recovered = await PdfObjectIndex.build(recoveredEntries(), storage, { ...options.xref?.index, maxEntries: Math.min(options.xref?.maxEntries ?? Infinity, options.xref?.index?.maxEntries ?? Infinity), duplicate: "first", ...(options.signal ? { signal: options.signal } : {}) });
+      previousIndex = direct;
+      crossReference = { ...crossReference, index: recovered };
+      await reader.close();
+      await direct.close();
+      previousIndex = undefined;
+      reader = new PdfObjectReader(source, recovered, storage, { ...options, ...(encryption ? { encryption } : {}),
+        ...(encrypt?.kind === "ref" ? { encryptionObjectNumber: encrypt.objectNumber } : {}),
+      });
+      if (crossReference.rootRef.objectNumber === 0 || !crossReference.infoRef) {
+        let root = crossReference.rootRef; let info = crossReference.infoRef;
+        for await (const entry of recovered.entries(options.signal)) {
+          let object: PdfRangeObject | undefined;
+          try { object = await reader.get(entry.objectNumber, entry.generationNumber ?? 0); }
+          catch (error) { if (error instanceof PdfError && error.code === "E_PARSE") continue; throw error; }
+          if (object?.value.kind !== "dict") continue;
+          const type = dictGet(object.value, "Type");
+          if (crossReference.rootRef.objectNumber === 0 && type?.kind === "name" && type.decoded === "Catalog") root = cosRef(object.objectNumber, object.generationNumber);
+          if (!crossReference.infoRef && ["Title", "Producer", "Author"].some(key => dictGet(object.value as PdfCosDict, key))) info = cosRef(object.objectNumber, object.generationNumber);
+        }
+        crossReference = { ...crossReference, rootRef: root, ...(info ? { infoRef: info } : {}) };
+      }
+      if (crossReference.rootRef.objectNumber === 0) throw new PdfError("E_PARSE", "Unable to repair PDF: no /Type /Catalog object found");
+    }
     const ownedReader = reader;
     let closing: Promise<void> | undefined;
     return { crossReference, reader: ownedReader, ...(encryption ? { encryption } : {}), close() {
@@ -316,7 +395,7 @@ export async function openPdfObjectReader(source: PdfFileSource, storage: PdfInd
       return closing;
     } };
   } catch (error) {
-    for (const close of [() => reader?.close(), () => crossReference.index.close()]) { try { await close(); } catch { /* Preserve authentication/parse failure. */ } }
+    for (const close of [() => reader?.close(), () => crossReference.index.close(), () => previousIndex?.close()]) { try { await close(); } catch { /* Preserve authentication/parse failure. */ } }
     throw error;
   }
 }

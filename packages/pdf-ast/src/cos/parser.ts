@@ -1,3 +1,4 @@
+import { repairCandidateSteps } from "./repair-scanner.js";
 import { parseValueSteps } from "./value-parser.js";
 import { drainWork } from "../work.js";
 import { assertDecodedByteBudget } from "./limits.js";
@@ -509,97 +510,47 @@ function* parseXrefRevisionAtSteps(bytes: Uint8Array, xrefOffset: number, maxDec
   };
 }
 
-function isAsciiWhitespace(ch: number): boolean {
-  return ch === 0x20 || ch === 0x09 || ch === 0x0a || ch === 0x0d || ch === 0x0c || ch === 0x00;
-}
-
-function isAsciiDigit(ch: number): boolean {
-  return ch >= 0x30 && ch <= 0x39;
-}
-
 function* repairScanCosDocumentSteps(bytes: Uint8Array, maxObjects: number, maxRecursionDepth: number): Generator<void, {
   objects: Map<number, PdfIndirectObject>;
   trailers: PdfCosDict[];
 }, void> {
   yield;
-  let work = 0;
-
   const objects = new Map<number, PdfIndirectObject>();
   const trailers: PdfCosDict[] = [];
-  let pos = 0;
-  while (pos < bytes.length) {
-      if (++work % 16 === 0) yield;
-
-    // Like PDF.js XRef.indexObjects, retain trailers before trying ObjStm
-    // decoding: their Encrypt/ID entries are needed to decrypt those streams.
-    while (pos < bytes.length && !isAsciiDigit(bytes[pos]!)) {
-      if (++work % 16 === 0) yield;
-
-      if (bytes[pos] === 0x25) {
-        while (pos < bytes.length && bytes[pos] !== 0x0a && bytes[pos] !== 0x0d) pos++;
-        continue;
-      }
-      if (bytes[pos] === 0x74 && (pos === 0 || isAsciiWhitespace(bytes[pos - 1]!))) {
-        const lexer = new CosByteLexer(bytes, pos);
+  const work = repairCandidateSteps(bytes.length);
+  let turns = 0;
+  try {
+    let step = work.next();
+    while (!step.done) {
+      if (++turns % 4096 === 0) yield;
+      const request = step.value;
+      let result: number | undefined;
+      if (request.kind === "byte") result = bytes[request.offset];
+      else {
         try {
-          const token = lexer.nextToken();
-          if (token?.kind === "keyword" && token.value === "trailer") {
-            const trailer = (yield* parseNodeFromLexerSteps(lexer, bytes, maxRecursionDepth, true));
-            if (trailer?.kind === "dict") trailers.push(trailer);
-            pos = lexer.offset;
-            continue;
+          if (request.kind === "trailer") {
+            const lexer = new CosByteLexer(bytes, request.offset);
+            const value = yield* parseNodeFromLexerSteps(lexer, bytes, maxRecursionDepth, true);
+            if (value?.kind === "dict") trailers.push(value);
+            result = lexer.offset;
+          } else {
+            const parsed = yield* parseObjectAtOffsetSteps(bytes, request.offset, maxRecursionDepth, true);
+            objects.set(parsed.objectNumber, parsed);
+            if (parsed.value.kind === "stream") {
+              const type = dictGet(parsed.value.dict, "Type");
+              if (type?.kind === "name" && type.decoded === "XRef") trailers.push(parsed.value.dict);
+            }
+            if (objects.size > maxObjects) throw new PdfError("E_LIMIT", "PDF object count limit exceeded");
+            result = parsed.span?.end;
           }
         } catch (error) {
           if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
-          // Continue scanning past a damaged trailer.
+          // Preserve the buffered repair path's damaged-fragment tolerance.
         }
       }
-      pos++;
+      step = work.next(result);
     }
-    if (pos >= bytes.length) break;
-    if (pos > 0 && !isAsciiWhitespace(bytes[pos - 1]!)) {
-      while (pos < bytes.length && !isAsciiWhitespace(bytes[pos]!)) pos++;
-      continue;
-    }
-    const headerStart = pos;
-    while (pos < bytes.length && isAsciiDigit(bytes[pos]!)) pos++;
-    if (pos >= bytes.length || !isAsciiWhitespace(bytes[pos]!)) continue;
-    while (pos < bytes.length && isAsciiWhitespace(bytes[pos]!)) pos++;
-    const genStart = pos;
-    while (pos < bytes.length && isAsciiDigit(bytes[pos]!)) pos++;
-    if (pos === genStart || pos >= bytes.length || !isAsciiWhitespace(bytes[pos]!)) continue;
-    while (pos < bytes.length && isAsciiWhitespace(bytes[pos]!)) pos++;
-    if (
-      pos + 3 <= bytes.length &&
-      bytes[pos] === 0x6f && // 'o'
-      bytes[pos + 1] === 0x62 && // 'b'
-      bytes[pos + 2] === 0x6a && // 'j'
-      (pos + 3 === bytes.length ||
-        isAsciiWhitespace(bytes[pos + 3]!) ||
-        bytes[pos + 3] === 0x3c || // '<'
-        bytes[pos + 3] === 0x5b || // '['
-        bytes[pos + 3] === 0x2f || // '/'
-        bytes[pos + 3] === 0x28) // '('
-    ) {
-      pos += 3;
-      try {
-        const parsed = (yield* parseObjectAtOffsetSteps(bytes, headerStart, maxRecursionDepth, true));
-        objects.set(parsed.objectNumber, parsed);
-        if (parsed.value.kind === "stream") {
-          const type = dictGet(parsed.value.dict, "Type");
-          if (type?.kind === "name" && type.decoded === "XRef") trailers.push(parsed.value.dict);
-        }
-        if (objects.size > maxObjects) throw new PdfError("E_LIMIT", "PDF object count limit exceeded");
-        if (parsed.span && parsed.span.end > pos) {
-          pos = parsed.span.end;
-        }
-      } catch (error) {
-        if (error instanceof PdfError && error.code === "E_LIMIT") throw error;
-        // Skip unparseable fragments during full-file repair scan
-      }
-    }
-  }
-
+  } finally { work.return(); }
   return { objects, trailers };
 }
 

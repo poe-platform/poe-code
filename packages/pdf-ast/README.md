@@ -62,6 +62,19 @@ range scanning. `maxNodes`, `maxTokenBytes`, and `maxRecursionDepth` bound the
 active structural value; the source remains caller-owned. This low-level API
 returns encoded object data, before document-level decryption or stream decoding.
 
+`scanCosRangeObjects(source, options)` discovers object bodies and trailers in
+damaged PDFs without collecting their payloads. Its candidate scanner is shared
+with the buffered repair loader. Objects retain stream byte ranges; duplicate
+bodies remain in file order. Consume events incrementally and keep the source
+open. Structural budgets, I/O errors, and cancellation remain fatal during repair.
+
+Pass `recovery: "repair"` to `openPdfObjectReader` or `PdfRetainedDocument.open`
+to recover damaged xrefs into caller-backed indexes. Security trailers are
+selected before authentication; compressed members are discovered only after
+successful authentication. Direct bodies take precedence over recovered packed
+members. Bad indexed object offsets can also be rescanned lazily, with at most
+64 corrected offsets cached. Strict mode remains the default for retained APIs.
+
 `readCosXrefRevision(source, offset, options)` yields classic or binary xref
 rows on demand and returns the trailer as the generator's final value. It keeps
 one decoded chunk and the bounded trailer structure, with `maxEntries` and

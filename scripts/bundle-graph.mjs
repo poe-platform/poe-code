@@ -208,7 +208,7 @@ export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { r
               try {
                 await fileSystem.readFile(fallbackCandidate);
                 resolvedSource = fallbackCandidate;
-              } catch {}
+              } catch { /* Keep the original resolution when no source fallback exists. */ }
             }
           }
         }

@@ -604,7 +604,7 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
       readOnlyGitResultCache.clear();
       const gc = (globalThis as { gc?: () => void }).gc;
       if (typeof gc === "function") {
-        try { gc(); gc(); } catch {}
+        try { gc(); gc(); } catch { /* Optional collection must not change the command result. */ }
       }
     }
   }};

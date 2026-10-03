@@ -326,7 +326,7 @@ export function* renderMermaidPngSteps(
   const raster = yield* rasterizeSceneSteps(scene, { scale, budget });
   clearMmdcFontCaches();
   if (typeof (globalThis as { gc?: () => void }).gc === "function") {
-    try { (globalThis as { gc?: () => void }).gc!(); } catch {}
+    try { (globalThis as { gc?: () => void }).gc!(); } catch { /* Optional collection must not change rendering results. */ }
   }
   const png = yield* encodeRgbaToPngSteps(raster.rgba, raster.width, raster.height, budget);
 
@@ -728,7 +728,7 @@ export async function runMmdc(
   } finally {
     await cleanup();
     if (typeof (globalThis as { gc?: () => void }).gc === "function") {
-      try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {}
+      try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional collection must not change rendering results. */ }
     }
   }
 }

@@ -71,6 +71,7 @@ export const nonCodeDirectoryIgnores = [
   "packages/remote-execution/schemas/**",
   "packages/remote-execution/scripts/**",
   "packages/safe-bash-command-fmt/fixtures/**",
+  "packages/safe-bash-command-grep/fixtures/rgrep/**",
   "packages/safe-bash-command-wkhtmltopdf/fixtures/**",
   "packages/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/**",
   "packages/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/**",

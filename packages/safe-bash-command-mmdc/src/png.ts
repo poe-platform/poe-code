@@ -298,10 +298,10 @@ export function* encodeRgbaToPngSteps(
 
   const compressed = (yield* compressZlibDeflateSteps(filtered));
   if (typeof (filtered.buffer as unknown as { transfer?: (n: number) => ArrayBuffer }).transfer === "function") {
-    try { (filtered.buffer as unknown as { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+    try { (filtered.buffer as unknown as { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch { /* Releasing the scratch buffer is only an optimization. */ }
   }
   if (typeof (globalThis as { gc?: () => void }).gc === "function") {
-    try { (globalThis as { gc?: () => void }).gc!(); } catch {}
+    try { (globalThis as { gc?: () => void }).gc!(); } catch { /* Optional collection must not change encoded output. */ }
   }
 
   const ihdr = new Uint8Array(13);

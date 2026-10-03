@@ -102,6 +102,24 @@ export async function writeXlsxSheetSettings(sheet: Sheet,
   current.push(node("sheetFormatPr", { defaultColWidth: typeof sheet.view?.defaultColumnWidth === "number" || originalWidth !== undefined || !format ? defaultColumnWidth / xlsxColumnWidthPoints : undefined,
     defaultRowHeight, outlineLevelRow: sheet.rows?.reduce((maximum, row) => { charge(); return Math.max(maximum, row.outlineLevel ?? 0); }, 0) || undefined,
     outlineLevelCol: sheet.columns?.reduce((maximum, column) => { charge(); return Math.max(maximum, column.outlineLevel ?? 0); }, 0) || undefined }));
+  // BIFF heights with no flags are fully represented by the editable portable
+  // default. Other flags, zero heights and malformed payloads still need warnings.
+  for (const { record } of records) {
+    charge();
+    if (record.source !== "biff" || typeof sheet.view?.defaultRowHeight !== "number" ||
+      !Number.isFinite(defaultRowHeight) || defaultRowHeight <= 0 ||
+      !record.data || typeof record.data !== "object" || Array.isArray(record.data)) continue;
+    const data = record.data as Readonly<Record<string, ImportedValue>>;
+    const legacy = record.kind === "DEFAULTROWHEIGHT_v0" && data.opcode === 0x25;
+    if (!legacy && !(record.kind === "DEFAULTROWHEIGHT_v2" && data.opcode === 0x225)) continue;
+    const bytes = data.bytes;
+    if (typeof bytes !== "string" || bytes.length !== (legacy ? 4 : 8) ||
+      ![...bytes].every(character => "0123456789abcdefABCDEF".includes(character)) ||
+      !legacy && !bytes.startsWith("0000")) continue;
+    const at = legacy ? 0 : 4;
+    const height = Number.parseInt(bytes.slice(at, at + 2), 16) + 256 * Number.parseInt(bytes.slice(at + 2, at + 4), 16);
+    if (height > 0 && (!legacy || height < 0x8000)) handled.add(record);
+  }
   const view = sheet.view?.gnumeric && typeof sheet.view.gnumeric === "object" && !Array.isArray(sheet.view.gnumeric) ? sheet.view.gnumeric as Readonly<Record<string, ImportedValue>> : {};
   const protectedValue = raw.get("sheetProtection")?.attributes.sheet;
   const originalProtection = protectedValue === "1" || protectedValue === "true" ? 1 : undefined;

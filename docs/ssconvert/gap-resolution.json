@@ -3,6 +3,14 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "xlsxBiffDefaultRowHeight": {
+      "status": "Narrow false loss diagnostic repaired; format family remains open",
+      "source": "Gnumeric 1.12.61 plugins/excel/ms-excel-read.c:4624-4649 reads BIFF default heights in twips; legacy high bit and newer flags are not fully portable.",
+      "reproducer": "Same original BIFF input SHA256 22718e9ce35860dfd2828dab5398c3e7ac25e637031e9cbac7f9e74cae15e620 yields defaultRowHeight=12.75 in both native and product XLSX, yet product reports DEFAULTROWHEIGHT_v2 loss. Four original memory failures cover both record versions and canonical edits.",
+      "implementation": "Recognize exact valid unflagged positive-height payloads only when an explicit finite positive canonical height is exported. Preserve diagnostics for zero height, flags, malformed or mismatched records and absent canonical settings; canonical edits remain authoritative.",
+      "verification": "142 XLSX owner tests, owner lint/source/test types and full build pass. Twelve root/package SDK/command exports assert exact warning sets (XLSX19, BIFF7 four, BIFF8 zero); eight exported/native row-height checks pass. Actual warning screenshot inspected. Native XLSX still rejects64 nested formulas across four readbacks; these are not passing formula readbacks.",
+      "limits": "Default column width still differs (native 48 versus product 9.142307692307693); pinned xlsx-write.c:2951 writes point units directly into defaultColWidth. Column-width qualification, its warning and other metadata diagnostics remain. Native nested-formula XLSX reimport limitations and all broader families remain open."
+    },
     "perlExperimentalWarnings": {
       "scope": "PERL_SED reports perl-regex experimental-lookbehind warnings: all variable-width lookbehind in 5.34.1; variable width with enclosed captures in 5.40.1, distinguishing positive and negative assertions. One warning per compilation; consecutive equal patterns reuse warnings across load/recalculation stages of one operation. Standalone calculations and separate or concurrent operations remain isolated.",
       "source": "Perl 5.40.1 regcomp_study.c:3202-3215 tests variable width and enclosed CLOSE operations; regcomp_internal.h:1127-1146 limits experimental warnings to one per compilation. SHA256 c66f8fc148c0f7447e850119588a0c4f02f6db75b493e671f426e07fd586a96d and 04eab6cd02a9b1ef7edc1d79e86f6a1ce3360e950b91541351caa60f44487406 respectively. Both installed interpreters are unchanged.",

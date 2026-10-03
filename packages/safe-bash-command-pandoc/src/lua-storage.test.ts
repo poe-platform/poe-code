@@ -222,3 +222,38 @@ it.each([NaN, Infinity, 1.5, 2147483648, -2147483649])("rejects invalid tagged L
     await expect(heap.cell({kind: "integer", value})).rejects.toThrow("Lua integer must fit signed 32 bits");
   });
 });
+
+it("seeks retained string bytes across arbitrary source chunks without whole-string reads",async()=>{
+  await usingHeap(async(heap,fs)=>{
+    vi.spyOn(fs,"readFile").mockRejectedValue(new Error("Whole payload forbidden"));
+    const value=await heap.string((async function*(){
+      const chunk=new Uint8Array(137);
+      for(let offset=0;offset<25000;offset+=chunk.length) {
+        const count=Math.min(chunk.length,25000-offset);
+        for(let i=0;i<count;i++) chunk[i]=(offset+i)%251;
+        yield chunk.subarray(0,count);
+      }
+    })());
+    for(const offset of [24999,0,8191,8192,16383,16384,123,24900]) {
+      const bytes=await heap.readBytes(value,offset,Math.min(200,25000-offset));
+      expect([...bytes]).toEqual(Array.from({length:bytes.length},(_,i)=>(offset+i)%251));
+    }
+    expect(await heap.readBytes(value,25000,0)).toEqual(new Uint8Array());
+    await expect(heap.readBytes(value,-1,1)).rejects.toThrow();
+    await expect(heap.readBytes(value,0,8193)).rejects.toThrow();
+    await expect(heap.readBytes(value,25000,1)).rejects.toThrow();
+  });
+});
+
+it.each(["end","chunk"])("normalizes cancellation after a string source returns %s",async mode=>{
+  const fs=new MemoryFileSystem(),controller=new AbortController(),context=new ExecutionContext("convert",{signal:controller.signal});
+  const storage=new PagedStorage({fs,cwd:"/",env:{},signal:controller.signal},1),heap=new LuaStorage(storage,units=>context.cooperate(units));
+  try {
+    await expect(heap.string((async function*(){
+      yield Uint8Array.of(1);
+      controller.abort();
+      if(mode==="chunk") yield new Uint8Array(8192);
+    })())).rejects.toMatchObject({code:"E_CANCELLED"});
+  } finally {await storage.close();await context.close();}
+  expect(await fs.readdir("/")).toEqual([]);
+});

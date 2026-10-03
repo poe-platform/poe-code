@@ -55,28 +55,40 @@ export class LuaStorage {
     let exhausted = false;
     let failure: {reason: unknown} | undefined, result: LuaReference | undefined;
     try {
-      const id = this.storage.allocate(32);
-      let length = 0, first = 0, last = 0, digest = 2166136261;
+      const id = this.storage.allocate(40);
+      let length = 0, first = 0, last = 0, digest = 2166136261, used = 0;
+      let index: LuaReference | undefined;
+      const pending = new Uint8Array(8192);
+      const flush = async () => {
+        const bytes = pending.subarray(0, used), position = this.storage.allocate(16 + used);
+        await this.put(position, 0, used);
+        await this.storage.write(position + 16, bytes);
+        if (last) {
+          await this.put(last, position);
+          index ??= await this.table();
+          await this.set(index, length / 8192, position);
+        } else first = position;
+        last = position;
+        length += used;
+        digest = hash(bytes, digest);
+        used = 0;
+      };
       while (true) {
         const next = await iterator.next();
-        if (next.done) {exhausted = true; break;}
+        if (next.done) {exhausted = true; await this.cooperate(0); break;}
         const chunk = next.value;
         if (!(chunk instanceof Uint8Array)) throw new TypeError("Lua string source must yield bytes");
-        if (!chunk.length) await this.cooperate(1);
-        for (let offset = 0; offset < chunk.length; offset += 8192) {
-          const bytes = chunk.subarray(offset, offset + 8192);
-          const position = this.storage.allocate(16 + bytes.length);
-          await this.put(position, 0, bytes.length);
-          await this.storage.write(position + 16, bytes);
-          if (last) await this.put(last, position);
-          else first = position;
-          last = position;
-          length += bytes.length;
-          digest = hash(bytes, digest);
-          await this.cooperate(bytes.length);
+        await this.cooperate(chunk.length ? 0 : 1);
+        for (let offset = 0; offset < chunk.length;) {
+          const count = Math.min(8192 - used, chunk.length - offset);
+          pending.set(chunk.subarray(offset, offset + count), used);
+          used += count; offset += count;
+          if (used === 8192) await flush();
+          await this.cooperate(count);
         }
       }
-      await this.put(id, length, first, last, digest);
+      if (used) await flush();
+      await this.put(id, length, first, last, digest, index?.id ?? 0);
       result = {kind: "string", id};
     } catch (reason) {failure = {reason};}
     if (!exhausted) {
@@ -90,6 +102,22 @@ export class LuaStorage {
   async byteLength(value: LuaReference): Promise<number> {
     if (value.kind !== "string") throw new TypeError("Expected Lua string");
     return (await this.fields(value.id, 1))[0]!;
+  }
+  /** Bounded random access; the chunk index itself lives in caller storage. */
+  async readBytes(value: LuaReference, offset: number, count: number): Promise<Uint8Array> {
+    if (value.kind !== "string") throw new TypeError("Expected Lua string");
+    const [length, first, , , index] = await this.fields(value.id, 5);
+    if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(count) || offset < 0 || count < 0 || count > 8192 || offset + count > length!)
+      throw new RangeError("Invalid Lua string byte range");
+    const result = new Uint8Array(count);
+    for (let copied = 0; copied < count;) {
+      const block = Math.floor(offset / 8192), within = offset % 8192, take = Math.min(count - copied, 8192 - within);
+      const position = block === 0 ? first! : await this.get({kind: "table", id: index!}, block) as number;
+      result.set(await this.storage.read(position + 16 + within, take), copied);
+      copied += take; offset += take;
+      await this.cooperate(take);
+    }
+    return result;
   }
   async *bytes(value: LuaReference): AsyncGenerator<Uint8Array> {
     if (value.kind !== "string") throw new TypeError("Expected Lua string");

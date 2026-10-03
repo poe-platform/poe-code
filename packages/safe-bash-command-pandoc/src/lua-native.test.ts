@@ -1,4 +1,4 @@
-import {expect,it} from "vitest";
+import {expect,it,vi} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import runtime from "./fengari.generated.js";
@@ -7,6 +7,7 @@ import {LuaStorage} from "./lua-storage.js";
 import {LuaProgram} from "./lua-program.js";
 import {LuaFrames} from "./lua-frames.js";
 import {LuaMachine,type LuaNative,type LuaArguments,type LuaNativeContext} from "./lua-machine.js";
+import {LuaUtf8} from "./lua-utf8.js";
 import {LuaMath} from "./lua-math.js";
 import {LuaBase} from "./lua-base.js";
 import {LuaLexer} from "./lua-lexer.js";
@@ -24,9 +25,10 @@ async function execute(source: string,options: {signal?: AbortSignal; beforeRun?
     const root=await new LuaParser(lexer,syntax).parse(), prototype=await new LuaCompiler(heap,program,syntax).compile(root);
     const base=new LuaBase(heap), environment=await heap.table(); await base.install(environment);
     const math=new LuaMath(heap); await math.install(environment);
+    const utf8=new LuaUtf8(heap); await utf8.install(environment);
     if(options.native) await heap.set(environment,await heap.string([new TextEncoder().encode("host")]),await heap.closure(-1000,[]));
     const machine=new LuaMachine(program,new LuaFrames(storage,heap,cooperate),heap,cooperate,(prototype,args,context)=>
-      prototype===-1000 && options.native?options.native(heap,prototype,args,context):prototype<=-200 && prototype>-300?math.invoke(prototype,args,context):base.invoke(prototype,args,context));
+      prototype===-1000 && options.native?options.native(heap,prototype,args,context):prototype<=-200 && prototype>-300?math.invoke(prototype,args,context):prototype<=-300 && prototype>-400?utf8.invoke(prototype,args):base.invoke(prototype,args,context));
     const closure=await heap.closure(prototype,[await heap.cell(environment)]);
     options.beforeRun?.();
     const result=await machine.run(closure,[]), values:unknown[]=[];
@@ -46,6 +48,7 @@ function native(source:string):unknown[] {
   try {
     compiler.lauxlib.luaL_requiref(state,new TextEncoder().encode("_G"),compiler.lualib.luaopen_base,true); compiler.lua.lua_pop(state,1);
     compiler.lauxlib.luaL_requiref(state,new TextEncoder().encode("math"),compiler.lualib.luaopen_math,true); compiler.lua.lua_pop(state,1);
+    compiler.lauxlib.luaL_requiref(state,new TextEncoder().encode("utf8"),compiler.lualib.luaopen_utf8,true); compiler.lua.lua_pop(state,1);
     expect(compiler.lauxlib.luaL_loadbuffer(state,bytes,bytes.length,new TextEncoder().encode("fixture"))).toBe(compiler.lua.LUA_OK);
     expect(compiler.lua.lua_pcall(state,0,-1,0)).toBe(compiler.lua.LUA_OK);
     const internal=state as unknown as {top:number; stack:{type:number; value:unknown}[]};
@@ -176,4 +179,50 @@ it("cancels a suspended math comparator and cleans up caller storage",async()=>{
 it("scans variadic math arguments through backed frames with a single cache page",async()=>{
   const source=`return math.min(${Array.from({length:180},(_,i)=>180-i).join(",")})`;
   expect(await execute(source)).toEqual(native(source));
+});
+
+
+it.each([
+  "return utf8.char(),utf8.char(65,8364,128512),utf8.len('a€😀'),utf8.codepoint('a€😀',1,-1)",
+  "return utf8.len('a€😀',2,2),utf8.len('abc',4),utf8.len('abc',2,0),utf8.codepoint('abc',4,3)",
+  "return utf8.codepoint(123,1,-1),utf8.len(123),utf8.codepoint('€',1,1)",
+  "return utf8.codepoint(utf8.char(55296)),utf8.codepoint(utf8.char(1114111))",
+  "return utf8.offset('a€😀',1),utf8.offset('a€😀',2),utf8.offset('a€😀',3),utf8.offset('a€😀',4),utf8.offset('a€😀',5)",
+  "return utf8.offset('a€😀',-1),utf8.offset('a€😀',-2),utf8.offset('a€😀',-3),utf8.offset('a€😀',-4),utf8.offset('a€😀',0,3)",
+  "return utf8.offset('',0),utf8.offset('',1),utf8.offset('',-1),utf8.offset('abc',1,-1)",
+  "local text=''; for i,c in utf8.codes('a€😀') do text=text..i..':'..c..';' end; return text",
+  "local f,s,i=utf8.codes('abc'); return f(s,'bad')",
+  "return utf8.len('a\\255b')",
+  "return utf8.len('\\192\\128'),utf8.len('\\244\\144\\128\\128')",
+  "return utf8.len('a\\128'),utf8.charpattern"
+])("preserves retained UTF-8 semantics: %s",async source=>{expect(await execute(source)).toEqual(native(source));});
+it.each([
+  "utf8.char(-1)","utf8.char(1114112)","utf8.char(1.5)","utf8.len('a',0)","utf8.len('a',1,2)",
+  "utf8.codepoint('a',0)","utf8.codepoint('a',1,2)","utf8.codepoint('\\255')",
+  "utf8.offset('€',1,2)","utf8.offset('a',1,0)","for i,c in utf8.codes('a\\128') do end"
+])("reports UTF-8 errors: %s",async source=>{await expect(execute(source)).rejects.toMatchObject({code:"E_AST"});});
+
+
+it("reads UTF-8 across backing pages without copying its input string",async()=>{
+  const text="a".repeat(8191)+"€😀";
+  const result=await execute("local s=host(); local f,state=utf8.codes(s); local p,c=f(state,8191); return utf8.len(s),utf8.offset(s,-1),utf8.codepoint(s,8192,8192),p,c",{native:async heap=>{
+    const value=await heap.string([new TextEncoder().encode(text)]);
+    vi.spyOn(heap,"string").mockRejectedValue(new Error("Unexpected string copy"));
+    return [value];
+  }});
+  expect(result).toEqual([8193,8195,8364,8192,8364].map(value=>({kind:"integer",value})));
+});
+
+it("cancels while scanning UTF-8 bytes and cleans up indexed storage",async()=>{
+  const controller=new AbortController();
+  await expect(execute("return utf8.len(host())",{signal:controller.signal,native:async heap=>{
+    const value=await heap.string([new Uint8Array(32768).fill(65)]),read=heap.readBytes.bind(heap);
+    let scheduled=false;
+    vi.spyOn(heap,"readBytes").mockImplementation(async(...args)=>{
+      const result=await read(...args);
+      if(!scheduled) {scheduled=true;setTimeout(()=>controller.abort(),0);}
+      return result;
+    });
+    return [value];
+  }})).rejects.toMatchObject({code:"E_CANCELLED"});
 });

@@ -1,3 +1,4 @@
+import { walkRetainedAttachments, type PdfRetainedAttachment } from "./extract/retained-attachments.js";
 import { cosDict, decodePdfString, dictGet, type ByteSpan, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfRect } from "./ast.js";
 import { PdfError } from "./errors.js";
 import { openPdfObjectReader, type OpenPdfObjectReaderOptions, type PdfOpenedObjectReader } from "./cos/object-reader.js";
@@ -40,7 +41,7 @@ export class PdfRetainedDocument {
   readonly crossReference: PdfOpenedObjectReader["crossReference"];
   readonly encryption: PdfOpenedObjectReader["encryption"];
   readonly depthLimit: number;
-  private readonly walks = new Set<AsyncGenerator<PdfRetainedPage, void, void>>();
+  private readonly walks = new Set<AsyncGenerator<unknown, void, void>>();
   private closing: Promise<void> | undefined;
   private constructor(private readonly opened: PdfOpenedObjectReader, private readonly storage: PdfIndexStorage,
     private readonly options: PdfRetainedDocumentOptions, private readonly controller: AbortController) {
@@ -127,6 +128,19 @@ export class PdfRetainedDocument {
     }
     const work = visit(this);
     return work;
+  }
+
+  attachments(): AsyncGenerator<PdfRetainedAttachment, void, void> {
+    async function* visit(doc: PdfRetainedDocument): AsyncGenerator<PdfRetainedAttachment, void, void> {
+      doc.assertOpen(); doc.walks.add(work);
+      try {
+        yield* walkRetainedAttachments(doc, doc.storage, { maxDepth: doc.depthLimit,
+          ...(doc.options.maxTraversalStagingBytes === undefined ? {} : { maxStagingBytes: doc.options.maxTraversalStagingBytes }),
+          ...(doc.options.signal ? { signal: doc.options.signal } : {}),
+        });
+      } finally { doc.walks.delete(work); }
+    }
+    const work = visit(this); return work;
   }
 
   close(): Promise<void> {

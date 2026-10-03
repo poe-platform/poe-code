@@ -26,6 +26,14 @@ memory: set `maxTokenBytes` to bound decoded strings and encoded names/numbers.
 `start`, `end`, `knownCommands`, and `signal` control scanning. The caller closes
 the source after use; the lexer does not collect a document or own its handle.
 
+`doc.attachments()` on a retained document visits embedded name trees,
+catalog/page associated files, and file-attachment annotations in document order.
+Each result exposes `index`, `name`, and `contents()`, which streams decoded
+payload chunks only when requested. Listing leaves attachment payloads untouched.
+Duplicate names and name-tree cycles use caller-backed indexes; filename equality
+is exact, including Unicode code units. Returning early or closing the document
+releases traversal staging. Keep the document open while reading contents.
+
 `parseContentRangeOperators(source, storage, options)` yields normalized content
 operators without collecting a page AST. Its recovery rules are shared with
 `parseContentStream` and `parseContentOperators`. Inline images carry a dictionary

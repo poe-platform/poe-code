@@ -27,6 +27,7 @@ export * from "./extract/text.js";
 export * from "./extract/tables.js";
 export * from "./extract/semantic-ast.js";
 export * from "./extract/images.js";
+export type { PdfRetainedAttachment } from "./extract/retained-attachments.js";
 export * from "./edit/redact.js";
 export * from "./edit/forms.js";
 export * from "./render/raster.js";

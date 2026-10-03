@@ -1,4 +1,5 @@
 import { Volume } from "memfs";
+import { fileURLToPath } from "node:url";
 import { afterEach, expect, it } from "vitest";
 import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
 import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
@@ -7,7 +8,7 @@ import { textFixture, textContext, w } from "../../../safe-bash-docx-engine/test
 import { readPackage } from "../../../safe-bash-docx-engine/tests/assertions.js";
 import { useNativeProcess } from "../../../safe-bash-docx-engine/tests/native-process.js";
 
-const execute = useNativeProcess(["--expose-gc", "--import", "tsx", "packages/safe-bash-docx-engine/tests/fixtures/comment-extension-native.ts"]);
+const execute = useNativeProcess(["--expose-gc", "--import", "tsx", fileURLToPath(new URL("../tests/fixtures/comment-extension-native.ts", import.meta.url))]);
 afterEach(async () => { expect(await execute({ cleanup: true })).toEqual({ cleaned: true }); });
 
 const namespace = "http://schemas.microsoft.com/office/word/2018/wordml/cex";

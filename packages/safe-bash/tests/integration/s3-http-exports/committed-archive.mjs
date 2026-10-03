@@ -391,6 +391,10 @@ export function assertRootShellExports(manifest, rootManifest) {
       "types": "./dist/types/safe-bash/commands/ast-grep/index.d.ts",
       "import": "./packages/safe-bash/dist/commands/ast-grep/index.browser.js"
     },
+    "./safe-bash/graphviz": {
+      "types": "./dist/types/safe-bash/commands/graphviz/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/graphviz/index.browser.js"
+    },
     "./safe-bash/audio-ast": {
       "types": "./dist/types/safe-bash/audio-ast.d.ts",
       "import": "./packages/safe-bash/dist/audio-ast.browser.js"

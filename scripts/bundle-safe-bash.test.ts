@@ -419,6 +419,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "commands/sox/index.browser": path.join(root, "packages/safe-bash/src/commands/sox/index.ts"),
     "commands/soxi/index.browser": path.join(root, "packages/safe-bash/src/commands/soxi/index.ts"),
     "commands/media/index.browser": path.join(root, "packages/safe-bash/src/commands/media/index.ts"),
+    "commands/graphviz/index.browser": path.join(root, "packages/safe-bash/src/commands/graphviz/index.ts"),
     "commands/docx/index.browser": path.join(root, "packages/safe-bash/src/commands/docx/index.ts"),
     "commands/bc/index.browser": path.join(root, "packages/safe-bash/src/commands/bc/index.ts"),
     "commands/pptx/index.browser": path.join(root, "packages/safe-bash/src/commands/pptx/index.ts"),

@@ -196,6 +196,7 @@ describe("standalone package publish metadata", () => {
     expect(Object.keys(readPackageJson("package.json").exports ?? {}).sort()).toEqual([
       ".", "./agent", "./config", "./config/testing", "./credentials", "./memory", "./skills", "./csvkit", "./csvkit/codecs/python", "./csvkit/codecs/utf8", "./ssconvert",
       "./safe-bash", "./safe-bash/contracts", "./safe-bash/contracts/*", "./safe-bash/commands/media", "./media", "./media/server",
+      "./safe-bash/graphviz",
       "./safe-bash/ts-ast", "./safe-bash/ast-grep", "./safe-bash/commands/ast-grep",
       "./safe-bash/audio-ast", "./safe-bash/commands/audio", "./safe-bash/commands/ffprobe", "./safe-bash/commands/sox", "./safe-bash/commands/soxi",
       "./safe-bash/image-ast", "./safe-bash/pdf-ast", "./safe-bash/sharp", "./safe-bash/spreadsheet-ast",

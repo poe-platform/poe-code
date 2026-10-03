@@ -46,12 +46,14 @@ PNG/PPM/PGM/PBM/BMP/TIFF/GIF `.toFile()`
 conversions with these operations and `.resize()` use the backed codecs automatically when the
 supplied filesystem supports retained reads, working storage, and atomic
 streaming or retained staged publication. These input formats also support
-streaming TIFF and GIF output. `encodeGifFromStorage` uses a fixed palette, bounded
+streaming TIFF, GIF and JPEG output. `encodeGifFromStorage` uses a fixed palette, bounded
 pixel caches and pull-driven owned data subblocks, including animated frames.
 `decodeGifToStorage` retains LZW input, animation canvases and frame delays in caller
 storage, including page selection, interlacing and disposal. Async GIF output reads
 those retained delays without a frame-count-sized array. JPEG-compressed TIFF input
-still uses the buffered path.
+still uses the buffered path. `encodeJpegFromStorage` emits bounded 8×8 blocks
+from caller storage with the same quality, density and EXIF semantics as the
+buffered encoder; JPEG input still uses the buffered path.
 `resampleStoredImage(image, storage, {width, height, kernel}, signal)` resamples
 backed RGBA pixels with bounded caches, including alpha and all resize kernels.
 Optional explicit scales must round to the requested output dimensions.

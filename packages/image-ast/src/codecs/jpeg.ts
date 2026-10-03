@@ -1149,15 +1149,16 @@ function scaleQuantTable(base: Uint8Array, quality: number): Uint8Array {
   return out;
 }
 
-export function encodeJpegImage(
-  img: RgbaImage,
+export function createJpegEncoder(
+  img: Pick<RgbaImage,"width"|"height"|"density"|"orientation">,
   options?: {
     readonly quality?: number;
     readonly density?: number;
     readonly orientation?: number;
   }
-): Uint8Array {
-  const { width, height, data } = img;
+){
+  const { width, height } = img;
+  if(!Number.isSafeInteger(width)||width<=0||width>65535||!Number.isSafeInteger(height)||height<=0||height>65535)throw new RangeError("JPEG dimensions exceed 16-bit frame fields");
   const quality = options?.quality ?? 85;
   const density = Math.max(1, Math.round(options?.density ?? img.density ?? 72));
   const orientation = options?.orientation ?? img.orientation;
@@ -1300,22 +1301,20 @@ export function encodeJpegImage(
   let dcCb = 0;
   let dcCr = 0;
 
-  for (let by = 0; by < height; by += 8) {
-    for (let bx = 0; bx < width; bx += 8) {
-      for (let py = 0; py < 8; py++) {
-        const sy = Math.min(height - 1, by + py);
-        for (let px = 0; px < 8; px++) {
-          const sx = Math.min(width - 1, bx + px);
-          const idx = (sy * width + sx) * 4;
+  const take=()=>{const chunk=Uint8Array.from(bytes);bytes.length=0;return chunk;};
+  return {
+    header:take(),
+    block(data:Uint8Array) {
+      if(data.length!==256)throw new RangeError("JPEG block must contain 64 RGBA pixels");
+      for(let bIdx=0;bIdx<64;bIdx++){
+          const idx=bIdx*4;
           const a = data[idx + 3]! / 255;
           const r = data[idx]! * a + 255 * (1 - a);
           const g = data[idx + 1]! * a + 255 * (1 - a);
           const b = data[idx + 2]! * a + 255 * (1 - a);
-          const bIdx = py * 8 + px;
           yBlock[bIdx] = 0.299 * r + 0.587 * g + 0.114 * b - 128;
           cbBlock[bIdx] = -0.168736 * r - 0.331264 * g + 0.5 * b;
           crBlock[bIdx] = 0.5 * r - 0.418688 * g - 0.081312 * b;
-        }
       }
       fdct8x8(yBlock, lumaQ, zzOut);
       dcY = encodeBlock(zzOut, dcY, ENC_DC_LUMA, ENC_AC_LUMA);
@@ -1323,14 +1322,23 @@ export function encodeJpegImage(
       dcCb = encodeBlock(zzOut, dcCb, ENC_DC_CHROMA, ENC_AC_CHROMA);
       fdct8x8(crBlock, chromaQ, zzOut);
       dcCr = encodeBlock(zzOut, dcCr, ENC_DC_CHROMA, ENC_AC_CHROMA);
-    }
-  }
-
+      return take();
+    },
+    finish(){
   if (bitCnt > 0) {
     writeBits((1 << (8 - bitCnt)) - 1, 8 - bitCnt);
   }
 
   // EOI
   bytes.push(0xff, 0xd9);
-  return new Uint8Array(bytes);
+  return take();
+    }
+  };
+}
+
+/** Explicit in-memory convenience; file output uses caller-backed blocks. */
+export function encodeJpegImage(image:RgbaImage,options?:Parameters<typeof createJpegEncoder>[1]):Uint8Array {
+ const encoder=createJpegEncoder(image,options),chunks=[encoder.header],block=new Uint8Array(256),{width,height,data}=image;
+ for(let by=0;by<height;by+=8)for(let bx=0;bx<width;bx+=8){for(let y=0;y<8;y++)for(let x=0;x<8;x++){const at=(Math.min(height-1,by+y)*width+Math.min(width-1,bx+x))*4;block.set(data.subarray(at,at+4),(y*8+x)*4);}chunks.push(encoder.block(block));}
+ chunks.push(encoder.finish());const output=new Uint8Array(chunks.reduce((total,chunk)=>total+chunk.length,0));let offset=0;for(const chunk of chunks){output.set(chunk,offset);offset+=chunk.length;}return output;
 }

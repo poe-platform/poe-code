@@ -57,6 +57,19 @@ default stream encryption is removed, while explicit chains decode through the
 last `Crypt` filter. Remaining image/transport filters stay encoded. The same
 option is available on `PdfObjectReader.decodeStream()`.
 
+`PdfRetainedDecodedImage.open(doc, occurrence, storage, options)` combines native
+JPEG/JPX/JBIG2 decoders, CCITT and plain samples with color resolution, soft and
+explicit masks, matte correction, color keys and stencil fills. Its `rows()`
+iterator yields owned RGBA rows once; completion, errors, early return and
+`close()` release staging. Consume the occurrence before advancing `doc.images()`.
+Raw/decrypted input and intermediate samples/masks use caller-authorized storage;
+no full RGBA plane is collected. Set `maxWorkingBytes`, `maxStagingBytes`,
+`maxOutputBytes`, `maxDepth`, `chunkBytes` and `signal`. Admission combines codec,
+color, mask and row state; native compressed/decoder state remains intrinsic.
+Document/parser caches, decryption scratch, the caller's current input chunk and
+backend-owned storage are additional. Use external storage for large images.
+Malformed filters retain buffered recovery behavior; backend errors propagate.
+
 `encodeRetainedTiff(width, height, rgbaChunks, storage, options)` writes TIFF
 with uncompressed, PackBits, DEFLATE, LZW, or JPEG strips. It stages compressed
 bytes in the caller's filesystem to determine the strip length, then emits a

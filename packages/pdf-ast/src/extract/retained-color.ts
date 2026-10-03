@@ -13,6 +13,8 @@ export interface PdfRetainedColorOptions {
   /** Admission for retained color metadata, palette/function bytes and palette
    * conversion scratch. Object-reader/parser and I/O caches are additional. */
   readonly maxWorkingBytes?: number;
+  /** Compose conservative color admission with a containing image owner. */
+  readonly onAllocation?: (bytes: number) => void;
   readonly maxStagingBytes?: number;
   readonly maxNodes?: number;
   readonly maxDepth?: number;
@@ -39,6 +41,7 @@ export async function resolveRetainedImageColor(document: PdfRetainedDocument, n
   const streams = new WeakMap<PdfCosStream, PdfCosRef>();
   function charge(bytes: number) {
     if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > maximum - used) throw new PdfError("E_LIMIT", "PDF color working byte limit exceeded");
+    options.onAllocation?.(bytes);
     used += bytes;
   }
   async function resolve(value: PdfCosNode | undefined): Promise<PdfCosNode | undefined> {

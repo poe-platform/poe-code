@@ -1,0 +1,398 @@
+[
+  {
+    "args": [
+      "docs",
+      "--files",
+      "docs",
+      "*.txt",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "files": {
+      "docs/a.txt": "636166c3a90d0a6c696e650d",
+      "docs/.hidden.txt": "68696464656e",
+      "docs/nested/c.txt": "6e6573746564",
+      "docs/empty.bin": "",
+      "docs/raw.bin": "ff00",
+      "docs/ignored.md": "69676e6f7265"
+    },
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "caf\u00c3\u00a9\nline\n",
+        "hidden"
+      ]
+    ],
+    "rows": [
+      {
+        "id": ".hidden.txt",
+        "content": "hidden",
+        "blob": ""
+      },
+      {
+        "id": "a.txt",
+        "content": "caf\u00c3\u00a9\nline\n",
+        "blob": ""
+      }
+    ],
+    "exception": null,
+    "message": null
+  },
+  {
+    "args": [
+      "docs",
+      "--files",
+      "docs",
+      "*.txt",
+      "--encoding",
+      "utf-8",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "files": {
+      "docs/a.txt": "636166c3a90d0a6c696e650d",
+      "docs/.hidden.txt": "68696464656e",
+      "docs/nested/c.txt": "6e6573746564",
+      "docs/empty.bin": "",
+      "docs/raw.bin": "ff00",
+      "docs/ignored.md": "69676e6f7265"
+    },
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "caf\u00e9\nline\n",
+        "hidden"
+      ]
+    ],
+    "rows": [
+      {
+        "id": ".hidden.txt",
+        "content": "hidden",
+        "blob": ""
+      },
+      {
+        "id": "a.txt",
+        "content": "caf\u00e9\nline\n",
+        "blob": ""
+      }
+    ],
+    "exception": null,
+    "message": null
+  },
+  {
+    "args": [
+      "docs",
+      "--files",
+      "docs",
+      "*.txt",
+      "--encoding",
+      "latin-1",
+      "--encoding",
+      "utf-8",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "files": {
+      "docs/a.txt": "636166c3a90d0a6c696e650d",
+      "docs/.hidden.txt": "68696464656e",
+      "docs/nested/c.txt": "6e6573746564",
+      "docs/empty.bin": "",
+      "docs/raw.bin": "ff00",
+      "docs/ignored.md": "69676e6f7265"
+    },
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "caf\u00e9\nline\n",
+        "hidden"
+      ]
+    ],
+    "rows": [
+      {
+        "id": ".hidden.txt",
+        "content": "hidden",
+        "blob": ""
+      },
+      {
+        "id": "a.txt",
+        "content": "caf\u00e9\nline\n",
+        "blob": ""
+      }
+    ],
+    "exception": null,
+    "message": null
+  },
+  {
+    "args": [
+      "docs",
+      "--files",
+      "docs",
+      "**/*.txt",
+      "--prefix",
+      "p:",
+      "--prepend",
+      "T:",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "files": {
+      "docs/a.txt": "636166c3a90d0a6c696e650d",
+      "docs/.hidden.txt": "68696464656e",
+      "docs/nested/c.txt": "6e6573746564",
+      "docs/empty.bin": "",
+      "docs/raw.bin": "ff00",
+      "docs/ignored.md": "69676e6f7265"
+    },
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "T:caf\u00c3\u00a9\nline\n",
+        "T:hidden"
+      ],
+      [
+        "T:nested"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "p:.hidden.txt",
+        "content": "T:hidden",
+        "blob": ""
+      },
+      {
+        "id": "p:a.txt",
+        "content": "T:caf\u00c3\u00a9\nline\n",
+        "blob": ""
+      },
+      {
+        "id": "p:nested/c.txt",
+        "content": "T:nested",
+        "blob": ""
+      }
+    ],
+    "exception": null,
+    "message": null
+  },
+  {
+    "args": [
+      "docs",
+      "--files",
+      "docs",
+      "*.bin",
+      "--encoding",
+      "utf-8",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "files": {
+      "docs/a.txt": "636166c3a90d0a6c696e650d",
+      "docs/.hidden.txt": "68696464656e",
+      "docs/nested/c.txt": "6e6573746564",
+      "docs/empty.bin": "",
+      "docs/raw.bin": "ff00",
+      "docs/ignored.md": "69676e6f7265"
+    },
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "Could not decode text in file docs/raw.bin\n",
+    "calls": [
+      [
+        ""
+      ]
+    ],
+    "rows": [
+      {
+        "id": "empty.bin",
+        "content": "",
+        "blob": ""
+      }
+    ],
+    "exception": null,
+    "message": null
+  },
+  {
+    "args": [
+      "docs",
+      "--files",
+      "docs",
+      "*.bin",
+      "--binary",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "files": {
+      "docs/a.txt": "636166c3a90d0a6c696e650d",
+      "docs/.hidden.txt": "68696464656e",
+      "docs/nested/c.txt": "6e6573746564",
+      "docs/empty.bin": "",
+      "docs/raw.bin": "ff00",
+      "docs/ignored.md": "69676e6f7265"
+    },
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "",
+        {
+          "hex": "ff00"
+        }
+      ]
+    ],
+    "rows": [
+      {
+        "id": "empty.bin",
+        "content": "",
+        "blob": ""
+      },
+      {
+        "id": "raw.bin",
+        "content": null,
+        "blob": "FF00"
+      }
+    ],
+    "exception": null,
+    "message": null
+  },
+  {
+    "args": [
+      "docs",
+      "--files",
+      "docs",
+      "no-match",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "files": {
+      "docs/a.txt": "636166c3a90d0a6c696e650d",
+      "docs/.hidden.txt": "68696464656e",
+      "docs/nested/c.txt": "6e6573746564",
+      "docs/empty.bin": "",
+      "docs/raw.bin": "ff00",
+      "docs/ignored.md": "69676e6f7265"
+    },
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [],
+    "rows": [],
+    "exception": null,
+    "message": null
+  },
+  {
+    "args": [
+      "docs",
+      "--files",
+      "missing",
+      "*.txt",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "files": {
+      "docs/a.txt": "636166c3a90d0a6c696e650d",
+      "docs/.hidden.txt": "68696464656e",
+      "docs/nested/c.txt": "6e6573746564",
+      "docs/empty.bin": "",
+      "docs/raw.bin": "ff00",
+      "docs/ignored.md": "69676e6f7265"
+    },
+    "code": 2,
+    "out": "Embedding\n",
+    "err": "Usage: llm embed-multi [OPTIONS] COLLECTION [INPUT_PATH]\nTry 'llm embed-multi -h' for help.\n\nError: Invalid directory: missing\n",
+    "calls": [],
+    "rows": [],
+    "exception": "SystemExit",
+    "message": "2"
+  },
+  {
+    "args": [
+      "docs",
+      "--files",
+      "docs",
+      "**",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "files": {
+      "docs/a.txt": "636166c3a90d0a6c696e650d",
+      "docs/.hidden.txt": "68696464656e",
+      "docs/nested/c.txt": "6e6573746564",
+      "docs/empty.bin": "",
+      "docs/raw.bin": "ff00",
+      "docs/ignored.md": "69676e6f7265"
+    },
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [],
+    "rows": [],
+    "exception": null,
+    "message": null
+  },
+  {
+    "args": [
+      "docs",
+      "--files",
+      "docs",
+      "*.txt",
+      "--binary",
+      "--encoding",
+      "utf-8",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "files": {
+      "docs/a.txt": "636166c3a90d0a6c696e650d",
+      "docs/.hidden.txt": "68696464656e",
+      "docs/nested/c.txt": "6e6573746564",
+      "docs/empty.bin": "",
+      "docs/raw.bin": "ff00",
+      "docs/ignored.md": "69676e6f7265"
+    },
+    "code": 2,
+    "out": "",
+    "err": "Usage: llm embed-multi [OPTIONS] COLLECTION [INPUT_PATH]\nTry 'llm embed-multi -h' for help.\n\nError: --binary cannot be used with --encoding\n",
+    "calls": [],
+    "rows": [],
+    "exception": "SystemExit",
+    "message": "2"
+  }
+]

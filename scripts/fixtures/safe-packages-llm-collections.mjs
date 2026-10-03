@@ -1,5 +1,5 @@
 import { MemoryFileSystem } from "@poe-platform/safe-fs/core";
-import { withLlmCollections, createLlmCollectionCommands, withCsvEmbeddingEntries, withJsonEmbeddingEntries, withJsonLinesEmbeddingEntries } from "@poe-platform/safe-bash/commands/llm/collections";
+import { withLlmCollections, createLlmCollectionCommands, withCsvEmbeddingEntries, withJsonEmbeddingEntries, withJsonLinesEmbeddingEntries, withFileEmbeddingEntries } from "@poe-platform/safe-bash/commands/llm/collections";
 import { createLlmService, llmCommands } from "@poe-platform/safe-bash/commands/llm";
 import { legacyCollectionDatabases, jsonImportEncodingInputs, jsonImportRejectedInputs } from "./safe-packages-llm-collections-reference.mjs";
 import { Shell } from "@poe-platform/safe-bash/shell";
@@ -67,6 +67,16 @@ export async function verifyLlmCollections() {
     await catalog.list(() => { throw new Error("Deleted collection survived"); });
   });
   if ((await fs.readdir("/")).length !== 1) throw new Error("Collection scratch files leaked");
+  await fs.writeFile('/file-input',new TextEncoder().encode('café\r\nline\r'));
+  await withFileEmbeddingEntries({...options,directory:'/'},{async *[Symbol.asyncIterator](){yield {path:'/file-input',id:'text'};}},async entries=>{
+    for await(const entry of entries){let value='';for await(const bytes of entry.input.bytes)value+=new TextDecoder().decode(bytes);if(value!=='cafÃ©\nline\n'||entry.binary)throw new Error('File decoding differs from reference');}
+  });
+  await fs.writeFile('/file-input',new Uint8Array(4194304).fill(233));let fileBytes=0;
+  await withFileEmbeddingEntries({...options,directory:'/',encodings:['latin-1']},{async *[Symbol.asyncIterator](){yield {path:'/file-input',id:'large'};}},async entries=>{
+    for await(const entry of entries)for await(const bytes of entry.input.bytes){if(bytes.length>16384)throw new Error('Unbounded file decoding');fileBytes+=bytes.length;}
+  });
+  if(fileBytes!==8388608)throw new Error('File decoding truncated');await fs.unlink('/file-input');
+  await fs.writeFile('/empty-file',new Uint8Array());await fs.writeFile('/binary-file',Uint8Array.of(255,0));
   let mixedCalls=0;
   const mixedService=createLlmService({providers:[{name:'mixed',models:[{id:'mixed',capabilities:['embed','embed-binary','embed-mixed']}],async *complete(){},async embedSources(request){
     mixedCalls++;if(JSON.stringify(request.inputTypes)!=='["text","binary"]'||request.binary!==undefined)throw new Error('Mixed input kinds lost');
@@ -76,10 +86,9 @@ export async function verifyLlmCollections() {
   }}]});
   await withLlmCollections(options,async catalog=>{
     await catalog.collection('mixed',{model:'mixed'});
-    await catalog.embedMany('mixed',{service:mixedService,directory:'/',maxInputBytes:100,store:true,binary:true,entries:{async *[Symbol.asyncIterator](){
-      for(const binary of [false,true])yield {id:binary?'binary':'text',binary,input:{bytes:{async *[Symbol.asyncIterator](){yield binary?Uint8Array.of(255,0):new Uint8Array();}},async dispose(){}}};
-    }}});
+    await withFileEmbeddingEntries({...options,directory:'/',binary:true},{async *[Symbol.asyncIterator](){yield {path:'/empty-file',id:'text'};yield {path:'/binary-file',id:'binary'};}},entries=>catalog.embedMany('mixed',{service:mixedService,directory:'/',maxInputBytes:100,store:true,binary:true,entries}));
   });
+  await fs.unlink('/empty-file');await fs.unlink('/binary-file');
   if(mixedCalls!==1)throw new Error('Mixed batch split across calls');
   const mixedShell=new Shell({fs}).use(sqlite3Commands());
   try{

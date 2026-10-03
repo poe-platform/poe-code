@@ -1,0 +1,88 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {MemoryFileSystem} from '@poe-code/safe-fs/core';
+import {withFileEmbeddingEntries} from './import-files.js';
+
+test('file import uses the last successful decoding and Python universal newlines',async()=>{
+ const fs=new MemoryFileSystem();await fs.writeFile('/text',new TextEncoder().encode('café\r\nline\r'));
+ for(const [encodings,expected]of [[undefined,'cafÃ©\nline\n'],[['utf-8'],'café\nline\n'],[['latin-1','utf-8'],'café\nline\n'],[['utf-8','ascii'],'café\nline\n']] as const){
+  const rows:unknown[]=[];
+  await withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,...(encodings?{encodings}:{})},{async *[Symbol.asyncIterator](){yield {path:'/text',id:'a.txt'};}},async entries=>{
+   for await(const entry of entries){let text='';for await(const bytes of entry.input.bytes)text+=new TextDecoder().decode(bytes);rows.push({id:entry.id,binary:entry.binary,text});await entry.input.dispose();}
+  });
+  assert.deepEqual(rows,[{id:'a.txt',binary:false,text:expected}]);
+  assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['text']);
+ }
+});
+test('file import preserves empty text in binary mode and skips undecodable text',async()=>{
+ const fs=new MemoryFileSystem();await fs.writeFile('/empty',new Uint8Array());await fs.writeFile('/raw',Uint8Array.of(255,0));
+ const files={async *[Symbol.asyncIterator](){yield {path:'/empty',id:'empty'};yield {path:'/raw',id:'raw'};}};
+ for(const binary of [true,false]){
+  const rows:unknown[]=[],warnings:string[]=[];
+  await withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,binary,...(binary?{}:{encodings:['utf-8']}),prefix:'p:',prepend:'T:',undecodable:path=>{warnings.push(path);}},files,async entries=>{
+   for await(const entry of entries){const bytes:number[]=[];for await(const chunk of entry.input.bytes)bytes.push(...chunk);rows.push([entry.id,entry.binary,bytes]);}
+  });
+  assert.deepEqual(rows,binary?[['p:empty',false,[84,58]],['p:raw',true,[255,0]]]:[['p:empty',false,[84,58]]]);
+  assert.deepEqual(warnings,binary?[]:['/raw']);
+ }
+ assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name).sort(),['empty','raw']);
+});
+
+test('file preparation uses bounded reads and output chunks and retires escaped leases before prepend',async()=>{
+ const backing=new MemoryFileSystem();await backing.writeFile('/large',new Uint8Array(1024*1024).fill(233));let peak=0,open=0;
+ const fs=new Proxy(backing,{get(target,key){
+  if(key==='readFile')return ()=>{throw Error('whole file read');};
+  if(key==='openReadFile')return async(...args:Parameters<typeof target.openReadFile>)=>{
+   const handle=await target.openReadFile(...args);open++;let closed=false;
+   return {...handle,async read(position:number,maxBytes:number,options:Parameters<typeof handle.read>[2]){peak=Math.max(peak,maxBytes);assert.ok(maxBytes<=16384);return handle.read(position,maxBytes,options);},async close(){if(!closed){closed=true;open--;}await handle.close();}};
+  };
+  const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }});
+ let saved:import('./collections-batch.js').LlmCollectionBatchEntry|undefined;
+ await withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,encodings:['latin-1'],prepend:'before:'},{async *[Symbol.asyncIterator](){yield {path:'/large',id:'large'};}},async entries=>{
+  for await(const entry of entries){saved=entry;let count=0;for await(const bytes of entry.input.bytes){assert.ok(bytes.length<=16384);count+=bytes.length;}assert.equal(count,2*1024*1024+7);}
+ });
+ assert.ok(peak>0);assert.equal(open,0);
+ assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['large']);
+ await assert.rejects(saved!.input.bytes[Symbol.asyncIterator]().next(),/closed/);
+});
+test('early return, unknown codec, quotas and cancellation leave only original files',async()=>{
+ for(const scenario of ['return','codec','quota','cancel']){
+  const fs=new MemoryFileSystem();await fs.writeFile('/file',new TextEncoder().encode('hello'));
+  const controller=new AbortController(),reason=new Error('cancel import');let retired=false;
+  const files={async *[Symbol.asyncIterator](){try{yield {path:'/file',id:'file'};yield {path:'/file',id:'again'};}finally{retired=true;}}};
+  const run=()=>withFileEmbeddingEntries({fs,directory:'/',signal:controller.signal,encodings:scenario==='codec'?['utf-8','unknown']:['utf-8'],maxInputBytes:scenario==='quota'?1:Infinity,admit(){if(scenario==='cancel')controller.abort(reason);}},files,async entries=>{await entries[Symbol.asyncIterator]().next();});
+  if(scenario==='return')await run();else await assert.rejects(run(),scenario==='codec'?/unknown encoding/:scenario==='quota'?/byte limit/:error=>error===reason);
+  assert.equal(retired,true);assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['file']);
+ }
+});
+
+test('prepared file payloads match genuine LLM 0.27.1 capture values',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const fixtures=JSON.parse(readFileSync(new URL('./fixtures/files-0.27.1.json',import.meta.url),'utf8')) as {args:string[];files:Record<string,string>;code:number;calls:(string|{hex:string})[][];rows:{id:string;content:string|null;blob:string}[]}[];
+ for(const fixture of fixtures.filter(row=>row.code===0)){
+  const fs=new MemoryFileSystem();
+  for(const [path,hex]of Object.entries(fixture.files)){await fs.mkdir('/'+path.slice(0,path.lastIndexOf('/')),{recursive:true});await fs.writeFile('/'+path,Uint8Array.from(Buffer.from(hex,'hex')));}
+  const pattern=fixture.args[fixture.args.indexOf('--files')+2];
+  // This fixture qualifies payload preparation; traversal is a separate API.
+  const paths=pattern==='*.txt'?['docs/a.txt','docs/.hidden.txt']:pattern==='**/*.txt'?['docs/a.txt','docs/.hidden.txt','docs/nested/c.txt']:pattern==='*.bin'?['docs/empty.bin','docs/raw.bin']:[];
+  const encodings=fixture.args.flatMap((value,index)=>value==='--encoding'?[fixture.args[index+1]!]:[]);
+  const prefix=fixture.args.includes('--prefix')?'p:':'',prepend=fixture.args.includes('--prepend')?'T:':'';
+  const actual:(string|{hex:string})[]=[],rows:{id:string;content:string|null;blob:string}[]=[];
+  await withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,encodings,binary:fixture.args.includes('--binary'),prefix,prepend},{async *[Symbol.asyncIterator](){for(const path of paths)yield {path:'/'+path,id:path.slice(5)};}},async entries=>{
+   for await(const entry of entries){const chunks=[];for await(const bytes of entry.input.bytes)chunks.push(bytes);const payload=Buffer.concat(chunks),text=payload.toString('utf8');actual.push(entry.binary?{hex:payload.toString('hex')}:text);rows.push({id:entry.id,content:entry.binary?null:text,blob:entry.binary?payload.toString('hex').toUpperCase():''});}
+  });
+  assert.deepEqual(actual,fixture.calls.flat());assert.deepEqual(rows.sort((a,b)=>a.id<b.id?-1:1),fixture.rows);
+ }
+});
+
+test('filesystem failures are never classified as undecodable text',async()=>{
+ const backing=new MemoryFileSystem();await backing.writeFile('/file',new TextEncoder().encode('hello'));
+ const reason=new Error('retained read failed');let warned=false;
+ const fs=new Proxy(backing,{get(target,key){
+  if(key==='openReadFile')return async(...args:Parameters<typeof target.openReadFile>)=>{const reader=await target.openReadFile(...args);return {...reader,async read(){throw reason;}};};
+  const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }});
+ await assert.rejects(withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,undecodable(){warned=true;}},{async *[Symbol.asyncIterator](){yield {path:'/file',id:'file'};}},async entries=>{for await(const ignored of entries)assert.fail('unexpected entry');}),error=>error===reason);
+ assert.equal(warned,false);assert.deepEqual((await backing.readdir('/')).map(entry=>entry.name),['file']);
+});

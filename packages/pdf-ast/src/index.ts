@@ -45,3 +45,5 @@ export type { PdfRetainedImage, PdfImageSelection } from "./extract/retained-ima
 export { decodeRetainedSampleRows, type PdfSampleRowOptions } from "./extract/retained-samples.js";
 
 export { applyRetainedImageMask, type PdfRetainedImageMask, type PdfImageMaskOptions } from "./extract/retained-mask.js";
+
+export { resolveRetainedImageColor, type PdfRetainedColorOptions } from "./extract/retained-color.js";

@@ -51,6 +51,15 @@ Duplicate names and name-tree cycles use caller-backed indexes; filename equalit
 is exact, including Unicode code units. Returning early or closing the document
 releases traversal staging. Keep the document open while reading contents.
 
+`resolveRetainedImageColor(document, colorNode, resources, storage, options)`
+resolves only the selected color resource using the buffered engine's color rules.
+ICC profiles supply component metadata without decoding their payload. Indexed
+palettes keep at most 256 addressable entries while validating the complete
+stream. Calibrated and tint-function state survives document closure; function
+streams use caller-backed staging before admitted materialization.
+`maxWorkingBytes`, `maxNodes`, `maxDepth` and `maxStagingBytes` bound that state;
+object-reader/parser and I/O caches are additional memory.
+
 `decodeRetainedSampleRows(source, width, height, bitsPerComponent, color, options)`
 converts decoded sample planes to owned RGBA rows using the same color conversion
 as buffered extraction. It preserves packed row padding, truncated sample rules,

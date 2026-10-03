@@ -1,3 +1,4 @@
+import { drainWork } from "../work.js";
 import { applyImageMaskPixel } from "./mask-pixel.js";
 import { pdfImageCodec } from "../cos/filter-stream.js";
 import { assertDecodedByteBudget } from "../cos/limits.js";
@@ -156,14 +157,43 @@ export interface ResolvedColorSpace {
   readonly alternateCalibrated?: CalibratedColorSpace | undefined;
 }
 
-function *resolveColorSpaceInfoSteps(
-  doc: ParsedCosDocument,
+export type PdfImageColorRequest =
+  | { kind: "resolve"; node: PdfCosNode | undefined }
+  | { kind: "palette"; node: PdfCosStream | Extract<PdfCosNode, { kind: "string" }>; maxBytes: number }
+  | { kind: "calibrated"; family: "CalGray" | "CalRGB" | "Lab"; parameters: PdfCosNode | undefined }
+  | { kind: "tint"; node: PdfCosNode | undefined }
+  | { kind: "admit"; bytes: number };
+
+function *resolveColorSpaceInfoSteps(doc: ParsedCosDocument, node: PdfCosNode | undefined,
+  resources: PdfCosDict | undefined): Generator<void, ResolvedColorSpace, void> {
+  const work = imageColorSpaceProgram(node, resources);
+  try {
+    let step = work.next();
+    while (!step.done) {
+      yield;
+      const request = step.value;
+      let result: unknown;
+      switch (request?.kind) {
+        case "resolve": result = doc.resolve(request.node); break;
+        case "palette": result = request.node.kind === "stream" ? doc.decodeStream(request.node) : request.node.bytes; break;
+        case "calibrated": result = createCalibratedColorSpace(doc, request.family, request.parameters); break;
+        case "tint": result = { doc, node: request.node }; break;
+      }
+      step = work.next(result);
+    }
+    return step.value;
+  } finally { work.return(undefined as never); }
+}
+
+export function *imageColorSpaceProgram(
   csNode: PdfCosNode | undefined,
-  resourcesDict: PdfCosDict | undefined
-): Generator<void, ResolvedColorSpace, void> {
+  resourcesDict: PdfCosDict | undefined,
+  maxDepth = Infinity, depth = 0
+): Generator<PdfImageColorRequest | undefined, ResolvedColorSpace, unknown> {
+  if (depth > maxDepth) throw new PdfError("E_LIMIT", "PDF image color depth limit exceeded");
   let work = 0;
   if (!csNode) return { colorSpace: "rgb", colorSpaceLabel: "rgb", components: 3 };
-  const resolved = doc.resolve(csNode);
+  const resolved = (yield { kind: "resolve", node: csNode }) as PdfCosNode | undefined;
   if (!resolved) return { colorSpace: "rgb", colorSpaceLabel: "rgb", components: 3 };
 
   if (resolved.kind === "name") {
@@ -180,27 +210,26 @@ function *resolveColorSpaceInfoSteps(
     if (name === "DeviceRGB" || name === "RGB" || name === "CalRGB") {
       return { colorSpace: "rgb", colorSpaceLabel: name === "CalRGB" ? "cal-rgb" : "rgb", components: 3 };
     }
-    const csResDict = resourcesDict ? doc.resolveDict(dictGet(resourcesDict, "ColorSpace")) : undefined;
+    const csResources = resourcesDict ? (yield { kind: "resolve", node: dictGet(resourcesDict, "ColorSpace") }) as PdfCosNode | undefined : undefined;
+    const csResDict = csResources?.kind === "dict" ? csResources : undefined;
     const mapped = csResDict ? dictGet(csResDict, name) : undefined;
     if (mapped) {
-      return (yield* resolveColorSpaceInfoSteps(doc, mapped, resourcesDict));
+      return (yield* imageColorSpaceProgram(mapped, resourcesDict, maxDepth, depth + 1));
     }
     return { colorSpace: "rgb", colorSpaceLabel: "rgb", components: 3 };
   }
 
   if (resolved.kind === "array" && resolved.items.length > 0) {
-    const first = doc.resolve(resolved.items[0]);
+    const first = (yield { kind: "resolve", node: resolved.items[0] }) as PdfCosNode | undefined;
     const kindName = first?.kind === "name" ? first.decoded : "";
     if (kindName === "Indexed" || kindName === "I") {
-      const baseInfo = (yield* resolveColorSpaceInfoSteps(doc, resolved.items[1], resourcesDict));
-      const hivalNode = doc.resolve(resolved.items[2]);
+      const baseInfo = (yield* imageColorSpaceProgram(resolved.items[1], resourcesDict, maxDepth, depth + 1));
+      const hivalNode = (yield { kind: "resolve", node: resolved.items[2] }) as PdfCosNode | undefined;
       const hival = hivalNode?.kind === "number" ? Math.max(0, Math.min(255, Math.floor(hivalNode.value))) : 255;
-      const lookupNode = doc.resolve(resolved.items[3]);
+      const lookupNode = (yield { kind: "resolve", node: resolved.items[3] }) as PdfCosNode | undefined;
       let palette: Uint8Array | undefined;
-      if (lookupNode?.kind === "stream") {
-        palette = doc.decodeStream(lookupNode);
-      } else if (lookupNode?.kind === "string") {
-        palette = lookupNode.bytes;
+      if (lookupNode?.kind === "stream" || lookupNode?.kind === "string") {
+        palette = (yield { kind: "palette", node: lookupNode, maxBytes: 256 * Math.max(1, baseInfo.components) }) as Uint8Array;
       }
       let resolvedBaseComp = baseInfo.components;
       if (
@@ -210,7 +239,8 @@ function *resolveColorSpaceInfoSteps(
           baseInfo.calibrated !== undefined)
       ) {
         const numEntries = Math.max(1, Math.min(hival + 1, Math.floor(palette.length / Math.max(1, baseInfo.components))));
-        const rgbaPal = (yield* decodeSamplesToRgbaSteps(palette, numEntries, 1, 8, baseInfo));
+        yield { kind: "admit", bytes: numEntries * 7 + (baseInfo.isSeparation || baseInfo.isDeviceN ? baseInfo.components * 8 : 0) };
+        const rgbaPal = drainWork(decodeSamplesToRgbaSteps(palette, numEntries, 1, 8, baseInfo));
         const rgbPal = new Uint8Array(numEntries * 3);
         for (let idx = 0; idx < numEntries; idx++) {
     if (++work % 16384 === 0) yield;
@@ -230,9 +260,9 @@ function *resolveColorSpaceInfoSteps(
       };
     }
     if (kindName === "ICCBased") {
-      const profileStream = doc.resolve(resolved.items[1]);
+      const profileStream = (yield { kind: "resolve", node: resolved.items[1] }) as PdfCosNode | undefined;
       if (profileStream?.kind === "stream") {
-        const nNode = doc.resolve(dictGet(profileStream.dict, "N"));
+        const nNode = (yield { kind: "resolve", node: dictGet(profileStream.dict, "N") }) as PdfCosNode | undefined;
         const n = nNode?.kind === "number" ? nNode.value : 3;
         if (n === 1) return { colorSpace: "gray", colorSpaceLabel: "icc", components: 1 };
         if (n === 4) return { colorSpace: "cmyk", colorSpaceLabel: "icc", components: 4 };
@@ -240,7 +270,7 @@ function *resolveColorSpaceInfoSteps(
       return { colorSpace: "rgb", colorSpaceLabel: "icc", components: 3 };
     }
     if (kindName === "CalGray" || kindName === "CalRGB" || kindName === "Lab") {
-      const calibrated = createCalibratedColorSpace(doc, kindName, resolved.items[1]);
+      const calibrated = (yield { kind: "calibrated", family: kindName, parameters: resolved.items[1] }) as CalibratedColorSpace;
       return {
         colorSpace: kindName === "CalGray" ? "gray" : "rgb",
         colorSpaceLabel: kindName === "CalGray" ? "cal-gray" : kindName === "CalRGB" ? "cal-rgb" : "lab",
@@ -250,11 +280,13 @@ function *resolveColorSpaceInfoSteps(
     }
     if (kindName === "Separation" || kindName === "DeviceN") {
       const isDevN = kindName === "DeviceN";
-      const namesArr = isDevN ? doc.resolveArray(resolved.items[1]) : undefined;
+      const namesNode = isDevN ? (yield { kind: "resolve", node: resolved.items[1] }) as PdfCosNode | undefined : undefined;
+      const namesArr = namesNode?.kind === "array" ? namesNode : undefined;
       const devNComponents = isDevN && namesArr ? Math.max(1, namesArr.items.length) : 1;
-      const altInfo = (yield* resolveColorSpaceInfoSteps(doc, resolved.items[2], resourcesDict));
+      const altInfo = (yield* imageColorSpaceProgram(resolved.items[2], resourcesDict, maxDepth, depth + 1));
       const altSpace: "rgb" | "gray" | "cmyk" =
         altInfo.colorSpace === "cmyk" ? "cmyk" : altInfo.colorSpace === "gray" ? "gray" : "rgb";
+      const tint = (yield { kind: "tint", node: resolved.items[3] }) as { doc: ParsedCosDocument; node: PdfCosNode | undefined };
       return {
         colorSpace: altSpace,
         colorSpaceLabel: isDevN ? "devn" : "sep",
@@ -263,8 +295,8 @@ function *resolveColorSpaceInfoSteps(
         isDeviceN: isDevN,
         separationAltSpace: altSpace,
         alternateCalibrated: altInfo.calibrated,
-        tintFunctionDoc: doc,
-        tintFunctionNode: resolved.items[3],
+        tintFunctionDoc: tint.doc,
+        tintFunctionNode: tint.node,
       };
     }
   }

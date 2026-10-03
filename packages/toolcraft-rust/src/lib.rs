@@ -35,6 +35,7 @@ pub mod definitions;
 pub mod error_report;
 pub mod host;
 pub mod json_schema_converter;
+pub mod mcp_errors;
 pub mod mcp_metadata;
 pub mod mcp_output;
 pub mod mcp_proxy;

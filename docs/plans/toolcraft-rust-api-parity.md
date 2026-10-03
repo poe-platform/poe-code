@@ -4049,7 +4049,8 @@ Schema projection/enumeration, the public MCP server, HTTP/OAuth and full platfo
 resource and standalone packaging qualification remain open.
 
 MCP result validation is independently verified on remote main at ae6a793708.
-Release 37087484789 is pending; Toolcraft package workflow 37087484577 is running
+Release 37087484789 completed successfully with release-stable skipped;
+Toolcraft package workflow 37087484577 is running
 standalone-bundle jobs for Node 18.18, 20, 22 and 24. No publication is claimed.
 
 ### MCP schema-projection checkpoint
@@ -4079,7 +4080,8 @@ Tool enumeration and public MCP lifecycle/transport integration, HTTP/OAuth and
 complete platform/resource/standalone packaging qualification remain open.
 
 MCP schema projection is independently verified on remote main at f60ebee457.
-Release 37087862488 is pending.
+Release 37087862488 completed successfully with release-stable skipped. This
+verifies its build, not a full fresh matrix or new publication.
 
 ### MCP tool-enumeration checkpoint
 
@@ -4108,3 +4110,33 @@ scoped params, defaults, descriptions, output schemas and collision checks.
 No performance/default-swap gate passed. Public MCP handler, approval/error,
 stream and transport lifecycle integration, HTTP/OAuth and full platform/resource/
 standalone packaging qualification remain open.
+
+MCP tool enumeration is independently verified on remote main at b5dc169902.
+Release 37088180709 is building.
+
+### MCP approvals and error-mapping checkpoint
+
+Rust now classifies pending approvals and protocol errors, preserves existing
+ToolError identity, maps client/server HTTP statuses and redacted envelopes, and
+selects pending/declined content. Node retains actual Error/ToolError construction,
+live property/JSON operations and the async handler await/catch boundary. Existing
+native HTTP diagnostics and the own MCP server dependency are reused. No external
+dependencies or default implementation changed.
+
+Six missing-module failures preceded implementation. Differential tests extract
+the reference functions and compare pending-record short circuits, exact content
+blocks, reason getters, Error/UserError/ToolError identity, HTTP status families,
+redaction/envelopes, property order, arbitrary rendering/mapping failures,
+reentrant string conversion, thenable timing, handler receiver/argument identity,
+sync/async failures and independent concurrent calls. The final maintained route
+passes 266 native Node tests, Rust tests, 5,149 parity cases across 88 files,
+declarations and the original CLI compile-check. Rust/binding lint and scoped
+ESLint pass. Packed consumers preserve own UserError-to-ToolError classification,
+approval rendering and async failure identity with packed native dependencies.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 300 calls, retaining 32
+results, measured native/reference medians of 38.939/4.441 microseconds (8.77 times
+slower). Each call recognizes/renders a pending approval and maps a synthetic HTTP
+429 error with redaction/report metadata. No performance/default-swap gate passed.
+Public MCP handler/server/stream integration, HTTP/OAuth and full platform,
+resource and standalone packaging qualification remain open.

@@ -26,7 +26,7 @@ for (const { range, count, entropy, expected } of [
   });
 }
 
-test("shuf samples 64-bit ranges with the synchronous PRNG and unlimited defaults", async () => {
+test("shuf samples 64-bit ranges with the synchronous secure entropy and unlimited defaults", async () => {
   let stdout = "";
   const result = await createShufCommand().execute({
     command: "shuf", args: ["-i", "9007199254740992-18446744073709551615", "-n", "3"],

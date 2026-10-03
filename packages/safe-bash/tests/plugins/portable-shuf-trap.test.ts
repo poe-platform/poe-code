@@ -32,6 +32,9 @@ test("shuf entropy, explicit traps, and node path contracts work without Node gl
   const samples = sampled.stdout.trim().split("\n");
   assert.equal(samples.length, 40);
   assert.ok(samples.every(value => ["1", "2", "3"].includes(value)));
+  const explicit = await shell.exec("printf 'abc' > /random; printf 'one\\ntwo\\nthree\\n' > /input; shuf --random-source=/random /input");
+  assert.equal(explicit.exitCode, 0, explicit.stderr);
+  assert.deepEqual(explicit.stdout.trim().split("\n").sort(), ["one", "three", "two"]);
   const trapped = await shell.exec("trap 'echo portable-exit' EXIT; echo body");
   assert.equal(trapped.exitCode, 0, trapped.stderr);
   assert.equal(trapped.stdout, "body\nportable-exit\n");

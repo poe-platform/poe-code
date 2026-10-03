@@ -9,7 +9,6 @@ export class RandomIntegers {
   private bytes = new Uint8Array();
   private offset = 0;
   private source: FileInput | undefined;
-  private state: Uint32Array | undefined;
   private closed = false;
   private closing: Promise<void> | undefined;
   private opening: Promise<void> | undefined;
@@ -44,25 +43,19 @@ export class RandomIntegers {
   }
 
   seed(): void {
-    if (!this.state) {
-      this.state = globalThis.crypto.getRandomValues(new Uint32Array(4));
-      if (this.state.every(value => value === 0)) this.state[0] = 1;
-    }
+    if (this.bytes.length === 0) this.refill();
   }
 
   private refill(): void {
-    this.seed();
-    const state = this.state!;
-    const product = Math.imul(state[1]!, 5);
-    const result = Math.imul((product << 7) | (product >>> 25), 9) >>> 0;
-    const shifted = state[1]! << 9;
-    state[2] = state[2]! ^ state[0]!;
-    state[3] = state[3]! ^ state[1]!;
-    state[1] = state[1]! ^ state[2]!;
-    state[0] = state[0]! ^ state[3]!;
-    state[2] = state[2]! ^ shifted;
-    state[3] = (state[3]! << 11) | (state[3]! >>> 21);
-    this.bytes = Uint8Array.of(result & 255, (result >>> 8) & 255, (result >>> 16) & 255, result >>> 24);
+    if (this.bytes.length === 0) this.bytes = new Uint8Array(4096);
+    this.offset = this.bytes.length;
+    try {
+      globalThis.crypto.getRandomValues(this.bytes);
+      this.offset = 0;
+    } catch (error) {
+      this.bytes.fill(0);
+      throw error;
+    }
   }
 
   private async byte(): Promise<number> {

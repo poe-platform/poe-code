@@ -204,9 +204,6 @@ fn own_parser_and_serializer_match_sdk_values_temporals_and_diagnostics() {
             .into_iter()
             .map(str::to_owned),
     );
-    // Legacy parsing accepts a missing second table-array bracket at EOF.
-    // Dedicated own coverage requires rejection of that malformed header.
-    cases.retain(|source| source != "[[section]" && !source.starts_with("[[section]\n"));
     for year in [0, 1, 4, 99, 100, 400, 1900, 2000, 2024, 9999] {
         for month in [1, 2, 12] {
             for day in [1, 28, 29, 30, 31] {

@@ -45,5 +45,14 @@ test('TOML parser errors retain full codeblocks and UTF-16 line/column diagnosti
   let actual;try{tomlFormat.parse(source);}catch(error){actual=error;}
   assert.equal(actual.message,expected.message);assert.equal(actual.line,expected.line);assert.equal(actual.column,expected.column);assert.equal(actual.codeblock,expected.codeblock);
  }
- assert.throws(()=>tomlFormat.parse('[[section]'),{message:/expected end of table declaration/});
+});
+
+test('TOML table-array termination matches public SDK values and complete diagnostics',async()=>{
+ const own=await import('@poe-code/config-mutations-rust/testing'),reference=await import('@poe-code/config-mutations/testing');
+ const outcome=(parse,source)=>{try{return {value:parse(source)}}catch(error){return {message:error.message,line:error.line,column:error.column,codeblock:error.codeblock}}};
+ for(const key of ['section','outer.inner','"quoted 雪"'])for(const suffix of ['',']','x','\nkey=1','\r\nkey=1','\n\nkey=1',' ]','#comment','\t]','\n[other]\nx=1']){
+  const source=`[[${key}]${suffix}`,expected=outcome(reference.parseToml,source);
+  assert.deepEqual(outcome(own.parseToml,source),expected,source);
+  assert.deepEqual(outcome(tomlFormat.parse,source),expected,source);
+ }
 });

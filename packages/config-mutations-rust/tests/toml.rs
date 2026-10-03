@@ -215,10 +215,26 @@ fn serializer_emits_scalars_before_nested_and_array_tables() {
 }
 
 #[test]
-fn table_array_headers_require_two_adjacent_closing_brackets() {
-    for source in ["[[section]", "[[section] ]", "[[section]\nkey=1"] {
-        assert!(toml::parse(&u(source)).is_err(), "{source}");
+fn table_array_headers_preserve_reference_terminator_consumption() {
+    for source in ["[[section]", "[[section]x"] {
+        assert_eq!(
+            toml::parse(&u(source)).unwrap(),
+            toml::parse(&u("[[section]]")).unwrap()
+        );
     }
+    for source in ["[[section]\r\nkey=1", "[[section]\n\nkey=1"] {
+        assert_eq!(
+            toml::parse(&u(source)).unwrap(),
+            toml::parse(&u("[[section]]\nkey=1")).unwrap()
+        );
+    }
+    assert!(toml::parse(&u("[[section] ]")).is_err());
+    let error = toml::parse(&u("[[section]\nkey=1")).unwrap_err();
+    assert_eq!(
+        error.reason,
+        "each key-value declaration must be followed by an end-of-line"
+    );
+    assert_eq!((error.line, error.column), (2, 1));
 }
 
 #[test]

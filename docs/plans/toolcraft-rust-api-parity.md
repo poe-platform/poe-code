@@ -5165,3 +5165,29 @@ reconciliation; direct-codec standards fixes do not establish swap parity.
 The public agent MCP facade is verified on remote main at 2b1ebdad72. Release
 37107639647 succeeded with its workspace/CLI build passing and stable publication
 skipped. Native package publication remains unverified.
+
+### TOML table-header consumption parity
+
+The public parser now follows the current reference's table-array terminator
+consumption, including accepting `[[section]` at EOF and consuming one further
+UTF-16 unit. The earlier native check rejected such files, causing public
+configuration mutations to create invalid-file backups and discard accepted
+table content. Both consumers resolve smol-toml 1.7.0; stale version-divergence
+claims and oracle exclusions were removed.
+
+Rust and public mutation/parser regressions failed before the repair. Differential
+checks cover plain, dotted and quoted Unicode keys with ten suffixes, complete
+error diagnostics, merge/transform file traces, backups and dry runs. The maintained
+four-package route passes configuration 75 native/261 original cases, agent MCP
+13/63, skill configuration 8/137 and Toolcraft 266 native/6,202 original cases
+across 126 files, plus Rust, declaration and root posttest checks. Maintained lint
+for all four packages and scoped JavaScript lint pass. Three freshly packed
+artifacts verify standalone/MCP/skill embedded TOML values and diagnostics with
+runtime imports confined to those artifacts and Node. Packed public mutation
+preserves the accepted section without creating an invalid-file backup.
+
+The preceding JSONC repair is verified on remote main at 62abc4f3d8. Its Release
+37108412662 is pending at this checkpoint. No dependency, default implementation
+or publication claim changes. Async skill helper delegation, remaining public
+facades/types, YAML diagnostics, resource bounds and platform/performance/swap
+qualification remain open.

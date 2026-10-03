@@ -762,8 +762,9 @@ pub fn parse(source: &[u16]) -> Result<Value, Error> {
             let start = cursor.pos;
             let key = cursor.key(93)?;
             if array {
-                if cursor.ch() != Some(93) || source.get(cursor.pos.saturating_sub(1)) != Some(&93)
-                {
+                // The reference validates the consumed bracket, then advances
+                // one more unit even at EOF. Preserve that admission and cursor.
+                if source.get(cursor.pos.saturating_sub(1)) != Some(&93) {
                     return Err(Error::new(
                         source,
                         cursor.pos.saturating_sub(1),

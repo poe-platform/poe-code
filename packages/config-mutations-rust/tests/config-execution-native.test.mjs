@@ -67,3 +67,11 @@ test('public JSON mutation callbacks and file edits retain JSONC prototype-assig
   await compare([{kind:'configMerge',target,value:{added:true}}],initial,{dryRun});
  }
 });
+
+test('public TOML mutations retain reference table admission and invalid-document recovery',async()=>{
+ for(const source of ['[[section]','[[section]x','[[section]\nkey=1','[[section]\r\nkey=1','[[section]\n\nkey=1','[[section] ]'])for(const dryRun of [false,true]){
+  const target='~/file.toml',initial={'/home/k/file.toml':source};
+  await compare([{kind:'configMerge',target,value:{added:true}}],initial,{dryRun});
+  await compare([{kind:'configTransform',target,transform:document=>({content:{...document,seen:true},changed:true})}],initial,{dryRun});
+ }
+});

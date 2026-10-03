@@ -136,8 +136,8 @@ Removing the final array item also fixes an SDK bug that joins adjacent numbers
 (`remove [1,2,3] at index 2` returns `[1,2]`, instead of `[1,23]`).
 TOML parsing and diagnostics track the locked smol-toml 1.7 development reference;
 the SDK is not a runtime dependency. TOML nesting is bounded to 1,000 levels, including dotted paths combined with
-literal nesting. Arrays-of-tables headers require both closing brackets, fixing
-the development oracle's acceptance of `[[section]`. Rust does not guarantee a
+literal nesting. Array-of-table headers preserve the reference parser's cursor
+behavior, including its acceptance of `[[section]` at end of input. Rust does not guarantee a
 speedup for every workload: native transfer overhead can outweigh parsing savings
 on small documents, and JavaScript TOML serialization currently remains faster.
 

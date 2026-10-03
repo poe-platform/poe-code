@@ -31,7 +31,7 @@ test('native template getter receivers, lazy loader and foreign errors match SDK
 test('native template parse errors preserve cause and do not read current',async()=>{
  for(const kind of ['templateMergeJson','templateMergeToml'])await compare(()=>[{kind,target:'~/file',templateId:'agent'}],{'/home/k/file':'existing'},{templates:async()=> '{{broken'});
  await compare(()=>[{kind:'templateMergeJson',target:'~/file',templateId:'agent'}],{'/home/k/file':'existing'},{templates:async()=> '= invalid'});
- // Native TOML diagnostics track this package's pinned parser, not the SDK's older version.
+ // Compare complete native TOML diagnostics with the currently locked parser.
  let expectedCause;
  assert.throws(()=>tomlReference.parse('= invalid'),error=>{expectedCause=error.message;return true;});
  const events=[],f=fixture({'/home/k/file':'existing'},async()=> '= invalid',events);

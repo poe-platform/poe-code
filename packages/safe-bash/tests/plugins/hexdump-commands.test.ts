@@ -56,10 +56,10 @@ test("the standalone util-linux plugin distinguishes decimal and binary size suf
 
 test("the default preset appends hexdump and hd and exposes their public factories", () => {
   const names = entry.createAgentCommands().map(command => command.name);
-  assert.equal(names.length, 189);
+  assert.equal(names.length, 190);
   for (const name of ["lzma", "unlzma", "lzcat"]) assert.ok(names.includes(name));
   assert.deepEqual(names.slice(-79), ["getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq", "xan", "bc", "sponge", "openssl", "ssh", "ssh-keygen", "gpg", "fd", "less", "more", "id", "whoami", "uname", "hostname", "nproc", "yes", "envsubst", "cal", "ncal", "pathchk", "getconf", "locale", "df", "sqlite3", "yq", "htmlq", "diff3", "exiftool", "unrtf", "mmdc", "op", "ffmpeg", "ffprobe", "soffice", "libreoffice", "pandoc", "ssconvert", "pdfinfo", "pdfunite", "pdfseparate", "pdffonts", "pdfdetach", "pdftotext", "pdftohtml", "pdfimages", "pdftoppm", "pdftocairo", "pdftk", "qpdf", "sips", "magick", "convert", "mogrify", "composite", "montage", "identify", "compare", "wkhtmltopdf", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin", "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "in2csv", "sql2csv"]);
-  assert.equal(new Set(names).size, 189);
+  assert.equal(new Set(names).size, 190);
   for (const name of ["createHexdumpCommand", "createHdCommand", "createHexdumpCommands", "hexdumpCommands"]) {
     assert.ok(name in entry, `Missing public export: ${name}`);
   }

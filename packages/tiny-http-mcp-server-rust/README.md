@@ -1,6 +1,6 @@
 # tiny-http-mcp-server-rust
 
-Build an MCP service over HTTP with a native Rust protocol core and zero npm
+Build an MCP service over HTTP with a native Rust protocol core and zero third-party npm
 runtime dependencies. This private additive rewrite supports legacy stateful
 sessions and modern requests, JSON or SSE responses, resource/prompt/tool
 registration, bearer authentication and Express-compatible middleware.
@@ -27,6 +27,7 @@ await handle.close();
 | Node HTTP listener or existing request handler | `listenHttp`, `handleRequest` |
 | Standalone HTTP service | `tiny-http-mcp-server-rust`, `./cli`: `runCli` |
 | Tools, resources, prompts and subscriptions | `createHttpServer` registration methods |
+| Shared protocol errors | `ToolError` preserves codes and data when thrown by native stdio consumers |
 | JSON or SSE responses and bounded replay | `enableJsonResponse`, stream/history limits |
 | OAuth bearer admission | `oauth.verifier`, `requiredScopes` |
 | Public JWT verification keys | `createJwksTokenVerifier` |

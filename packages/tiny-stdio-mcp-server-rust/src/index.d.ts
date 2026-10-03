@@ -23,11 +23,7 @@ export interface HandleResult {
   error?: JSONRPCError;
 }
 
-export declare class ToolError extends Error {
-  readonly code: number;
-  readonly data?: unknown;
-  constructor(code: number, message: string, data?: unknown);
-}
+export { ToolError } from "mcp-protocol-rust/errors";
 
 export interface HandlerRequestContext {
   readonly signal: AbortSignal;

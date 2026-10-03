@@ -1,11 +1,12 @@
 # tiny-stdio-mcp-server-rust
 
 An independent Rust MCP engine with native Node bindings and JavaScript tool
-callbacks. The package includes its native addon and has no external npm runtime
+callbacks. The package includes its native addon and has no third-party npm runtime
 dependencies. It is private and under development.
 
 The public API includes typed tool, prompt, resource and protocol contracts plus
-the frozen `JSON_RPC_ERROR_CODES` map. Its server interface can be used wherever
+the frozen `JSON_RPC_ERROR_CODES` map. Its `ToolError` constructor is shared with
+the native HTTP server through `mcp-protocol-rust/errors`. Its server interface can be used wherever
 the existing `tiny-stdio-mcp-server` interface is expected. Existing consumers
 still use their current package until this independent rewrite is integrated.
 

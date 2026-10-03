@@ -22,7 +22,6 @@
   "devDependencies": {
     "@napi-rs/cli": "3.10.4",
     "@modelcontextprotocol/sdk": "1.29.0",
-    "mcp-protocol-rust": "*",
     "tiny-stdio-mcp-server": "^0.1.0",
     "toolcraft-schema-rust": "*",
     "typescript": "5.9.3"
@@ -43,5 +42,8 @@
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
     "directory": "packages/tiny-stdio-mcp-server-rust"
+  },
+  "dependencies": {
+    "mcp-protocol-rust": "*"
   }
 }

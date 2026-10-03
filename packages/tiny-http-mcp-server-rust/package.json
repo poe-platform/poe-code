@@ -37,7 +37,6 @@
   },
   "devDependencies": {
     "@napi-rs/cli": "3.10.4",
-    "mcp-protocol-rust": "*",
     "tiny-stdio-mcp-server-rust": "*",
     "tiny-http-mcp-server": "*",
     "typescript": "5.9.3",
@@ -67,5 +66,8 @@
   },
   "bin": {
     "tiny-http-mcp-server-rust": "dist/cli.js"
+  },
+  "dependencies": {
+    "mcp-protocol-rust": "*"
   }
 }

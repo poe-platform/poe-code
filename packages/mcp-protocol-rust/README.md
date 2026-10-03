@@ -12,6 +12,7 @@ input bytes, nesting, and value count with explicit limits for untrusted message
 | Resource limits | Configurable bytes, container depth, and parsed value count                                 |
 | Serialization   | Iterative traversal, escaped controls, and ECMAScript shortest number spelling              |
 | Wire formats    | Canonical base64 and strict absolute resource URI checks                                    |
+| Protocol errors | `mcp-protocol-rust/errors` shares the `ToolError` constructor across native stdio and HTTP servers |
 
 JSON-RPC helpers distinguish requests from notifications, preserve legacy IDs,
 enforce modern safe request IDs, and format success/error envelopes.

@@ -4494,3 +4494,32 @@ helper benchmarks, not evidence of a speedup. No performance/default-swap gate
 passed. Public HTTP/OAuth exports, standalone types and complete replacement
 qualification remain open. The earlier login screenshot verification also remains
 pending; no new visual verification is claimed here.
+
+### Shared HTTP and stdio protocol errors
+
+Public HTTP integration reproduced two original Toolcraft failures: handler and
+missing-credential errors became successful isError results instead of protocol
+rejections. The native HTTP build embeds the stdio adapter, creating a second
+ToolError constructor. Both adapters now import the shared constructor from the
+existing own mcp-protocol-rust/errors subpath. The two servers promote that own
+workspace from development to runtime dependencies; no third-party package is
+added. Error lookalikes remain ordinary errors.
+
+Two failing native regressions preceded the fix. The final regression compares
+reference stdio behavior with native stdio and HTTP, verifies constructor identity,
+and checks exact code/data preservation and ordinary-error handling. An initial
+reference HTTP comparison accidentally mixed constructors from two installed
+stdio copies; ESM resolution proved the separate nested installation. It was
+replaced with the reference stdio error contract. Original Toolcraft HTTP
+assertions are unchanged and all 6,099 cases across 117 files now pass.
+
+Maintained protocol and stdio unit routes passed before the HTTP regression was
+corrected; the corrected HTTP route passes Rust tests, 50 native checks, 443
+reference cases across 21 files, and declarations. All three maintained lint
+routes and scoped ESLint pass. Three packed own dependencies independently
+verify shared class identity and an exact protocol error response.
+
+The earlier hosted-runtime Release 37095895081 completed successfully with the
+build passing and release-stable skipped. This is build verification, not new
+publication. The public HTTP checkpoint still has declaration/packaging/build
+qualification in progress and is not included in this dependency repair.

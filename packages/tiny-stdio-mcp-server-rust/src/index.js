@@ -1,6 +1,8 @@
 import { createRequire } from "node:module";
 import { connectStreams } from "./stdio.js";
 import { prepareToolValue } from "./media.js";
+import { ToolError } from "mcp-protocol-rust/errors";
+export { ToolError };
 export {
   Image,
   Audio,
@@ -20,16 +22,6 @@ export const { validateProtocolValue, defineSchema } = createRequire(import.meta
 export function parseUriTemplate(source) {
   if (typeof source !== "string") throw new Error("URI template must be a string.");
   return new NativeUriTemplate(source);
-}
-
-export class ToolError extends Error {
-  constructor(code, message, data) {
-    if (!Number.isFinite(code)) throw new Error("ToolError code must be a finite number");
-    super(message);
-    this.name = "ToolError";
-    this.code = code;
-    this.data = data;
-  }
 }
 
 export const JSON_RPC_ERROR_CODES = Object.freeze({

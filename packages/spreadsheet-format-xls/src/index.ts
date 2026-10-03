@@ -18,6 +18,7 @@ export const xlsFormat: FormatProvider = {
     {
       "id": "excel",
       "direction": "read",
+      readWorkbookSource: async (...args) => (await import("./biff.js")).readBiffWorkbookSource(...args),
       readSource: async (...args) => (await import("./biff.js")).readBiff(...args),
       probeSource: async (...args) => (await import("./biff.js")).probeBiff(...args),
       read: async (...args) => (await import("./biff.js")).readBiff(...args),

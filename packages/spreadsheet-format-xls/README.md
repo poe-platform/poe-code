@@ -27,7 +27,10 @@ headers and per-sheet selections in caller storage and load record payloads on
 demand. Decrypted replacements use fixed staging blocks, with transient plaintext
 erased after staging. Shared-string CONTINUE payloads decode one record at a time.
 Decoded shared text and rich runs use caller storage with fixed descriptor and
-payload windows for lookup. Workbook cells, formula/style state, stream names and interpreted property/encryption payloads still remain resident; this
+payload windows for lookup. Scalar imports can replay ordered cells from caller
+storage into streaming exporters, preserving cell styles and metadata. Formula
+workbooks and global transformations keep the workbook path. Row/metadata maps,
+formula/style state, stream names and interpreted property/encryption payloads still remain resident; this
 does not yet provide bounded memory for the complete conversion.
 BIFF editing preserves the workbook Normal style and font-aware column widths,
 including sheet defaults. Change `sheet.view.defaultColumnWidth` in points and

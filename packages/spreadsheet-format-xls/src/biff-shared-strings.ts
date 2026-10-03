@@ -60,7 +60,7 @@ export function createBiffSharedStrings(context: CapabilityContext) {
     pending = result.then(() => undefined, () => undefined); return result;
   }
   return {
-    append(value: StringValue): Promise<void> { return serial(async () => {
+    append(value: StringValue): Promise<number> { return serial(async () => {
       const scratch = new Uint8Array(4096), view = new DataView(scratch.buffer);
       const address = payloads.start + payloads.length, runs = value.richText ?? [];
       try {
@@ -79,7 +79,7 @@ export function createBiffSharedStrings(context: CapabilityContext) {
           await payloads.append(scratch.subarray(0, amount * 12));
         }
         view.setFloat64(0, address, true); view.setFloat64(8, value.text.length, true); view.setFloat64(16, runs.length, true);
-        await descriptors.append(scratch.subarray(0, 24)); check(); count++;
+        await descriptors.append(scratch.subarray(0, 24)); check(); return count++;
       } catch (error) { closed = true; for (const buffer of buffers) buffer.fill(0); throw error; }
       finally { scratch.fill(0); }
     }); },

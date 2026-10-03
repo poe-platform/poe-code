@@ -50,13 +50,22 @@ test('source line counters preserve public property order and callback descripto
  };
  assert.deepEqual(describe(own),describe(sdk));
 });
-test('options are never read for absent or incomplete fences and getter failures retain identity',()=>{
+test('options are never read for absent or incomplete fences and errors match each entry point',()=>{
  const failure=new Error('unique keys'),options={get uniqueKeys(){throw failure;}};
  assert.deepEqual(own.parseFrontmatter('Body',options),{frontmatter:{},body:'Body'});
  assert.equal(own.parseFrontmatterDocument('Body',options).body,'Body');
  assert.throws(()=>own.parseFrontmatter('---\ntitle: hello',options),/Missing YAML/);
  assert.equal(own.parseFrontmatterDocument('---\ntitle: hello',options).errors.length,1);
- for(const fn of [own.parseFrontmatter,own.parseFrontmatterDocument])assert.throws(()=>fn('---\ntitle: hello\n---',options),error=>error===failure);
+ for(const failure of [new Error('unique keys'),new TypeError('option'),null,'arbitrary',{message:'foreign'}]){
+  const options={get uniqueKeys(){throw failure;}};
+  for(const name of ['parseFrontmatter','parseFrontmatterDocument']){
+   const outcome=api=>{
+    try{api[name]('---\ntitle: hello\n---',options);return {thrown:false};}
+    catch(error){return {thrown:true,original:error===failure,name:error?.name,message:error?.message,parseError:error instanceof api.FrontmatterParseError};}
+   };
+   assert.deepEqual(outcome(own),outcome(sdk));
+  }
+ }
 });
 test('acyclic traversal preserves getter ordering and closes custom iterators on cycle failures',()=>{
  const invoke=fn=>{const log=[],inner={get value(){log.push('inner');return 'example';}},root={get first(){log.push('first');return inner;},get second(){log.push('second');return inner;}};

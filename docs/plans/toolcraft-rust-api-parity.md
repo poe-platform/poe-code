@@ -5433,3 +5433,16 @@ Configuration-mutation facade delivery is verified on remote main at b831d95b5c.
 Its Release 37112770887 and bridge Release 37112297042 remain pending. Temporary
 configuration-facade checkpoint artifacts were purged. No release or speedup is
 claimed.
+
+### Frontmatter option-error compatibility
+
+A direct comparison exposed an incorrect exception-identity assumption in the
+native tests: parseFrontmatter must wrap errors thrown by the uniqueKeys getter
+as FrontmatterParseError, while parseFrontmatterDocument preserves the original
+thrown value. The parser host now follows those distinct entry-point boundaries.
+Absent and incomplete fences still do not read options. The differential
+regression failed before the repair and covers Error, TypeError, null, string and
+plain-object throws, including the reference's unknown-parse-error fallback.
+The maintained frontmatter route passes ten native checks, 18 original cases,
+Rust tests, declarations and root posttest; maintained/scoped lint pass.
+This does not close the remaining YAML diagnostic or resource-boundary gaps.

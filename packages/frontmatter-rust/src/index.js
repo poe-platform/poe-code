@@ -26,7 +26,9 @@ export function parseFrontmatter(source,options={}){
  const split=native.frontmatterInspect(source);
  if(split.kind==='body')return {frontmatter:{},body:source};
  if(split.kind==='missing-closing-fence')throw new FrontmatterParseError('Missing YAML frontmatter end delimiter (---).');
- const result=read(source,options);
+ let result;
+ try{result=read(source,options);}
+ catch(error){throw new FrontmatterParseError('Invalid YAML frontmatter: '+(error instanceof Error?error.message:'Unknown YAML parse error'));}
  if(result.errors.length)throw new FrontmatterParseError(result.errors[0].parseMessage);
  return {frontmatter:materialize(result),body:source.slice(result.bodyStart)};
 }

@@ -61,3 +61,41 @@ for (const [kind, value, expected] of [
     }
   });
 }
+
+const orderedColumnCases = [
+  ["<col min=\"1\" max=\"2\" hidden=\"1\" outlineLevel=\"2\"/>",[[48,0,1,0,2],[48,0,1,0,2],[48,0,0,1,0]]],
+  ["<col min=\"1\" max=\"2\" hidden=\"1\" outlineLevel=\"2\"/><col min=\"3\" max=\"3\" outlineLevel=\"0\" collapsed=\"0\"/>",[[48,0,1,0,2],[48,0,1,0,2],[48,0,0,1,0]]],
+  ["<col min=\"1\" max=\"2\" hidden=\"1\" outlineLevel=\"2\"/><col min=\"2\" max=\"2\" hidden=\"0\" outlineLevel=\"0\"/>",[[48,0,1,0,2],[48,0,1,0,2],[48,0,0,1,0]]],
+  ["<col min=\"1\" max=\"1\" width=\"25\" customWidth=\"1\"/><col min=\"1\" max=\"1\" width=\"0\"/>",[[131.3,1,0,0,0],[48,0,0,0,0],[48,0,0,0,0]]],
+  ["<col min=\"1\" max=\"2\" outlineLevel=\"3\" collapsed=\"1\"/><col min=\"2\" max=\"2\" outlineLevel=\"1\"/><col min=\"1\" max=\"2\" hidden=\"1\"/>",[[48,0,1,1,3],[48,0,1,0,1],[48,0,0,1,0]]]
+] as const;
+for (const [columns, expected] of orderedColumnCases) {
+  it(`preserves native ordered column state for ${columns}`, async () => {
+    const book = await readXlsx(await input(`<cols>${columns}</cols><sheetData/>`), context);
+    const bytes = await writeGnumeric(book, [], context);
+    const axes = descendants(parseXml(new TextDecoder().decode(bytes))).filter(n => n.localName === "ColInfo");
+    const values = Array.from({ length: 3 }, () => [48, 0, 0, 0, 0]);
+    for (const axis of axes) {
+      const attrs = Object.fromEntries(axis.attributes.map(a => [a.localName, a.value]));
+      for (let i = Number(attrs.No); i < Math.min(3, Number(attrs.No) + Number(attrs.Count ?? 1)); i++) {
+        values[i] = [Number(attrs.Unit), Number(attrs.HardSize ?? 0), Number(attrs.Hidden ?? 0), Number(attrs.Collapsed ?? 0), Number(attrs.OutlineLevel ?? 0)];
+      }
+    }
+    expect(values).toEqual(expected);
+  });
+}
+
+it("charges generated column summary markers against the metadata budget", async () => {
+  const bytes = await input('<cols><col min="1" max="1" hidden="1" outlineLevel="2"/></cols>');
+  await expect(readXlsx(bytes, { ...context, limits: { ...context.limits, workbookNodes: 1 } }))
+    .rejects.toMatchObject({ code: "resource-limit" });
+});
+it("keeps a hidden group at the final XLSX column inside worksheet bounds", async () => {
+  const book = await readXlsx(await input('<cols><col min="16384" max="16384" hidden="1" outlineLevel="2"/></cols>'), context);
+  expect(book.sheets[0]!.columns).toEqual([{ index: 16383, hidden: true, outlineLevel: 2, collapsed: false }]);
+});
+it("charges repeated column spans even when they update existing metadata", async () => {
+  const bytes = await input('<cols><col min="1" max="1"/><col min="1" max="1"/></cols>');
+  await expect(readXlsx(bytes, { ...context, limits: { ...context.limits, workbookNodes: 1 } }))
+    .rejects.toMatchObject({ code: "resource-limit" });
+});

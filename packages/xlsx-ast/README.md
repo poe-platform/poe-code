@@ -10,6 +10,8 @@ cache text, including its quotes, as Gnumeric does. Fixed and automatic row/colu
 sizing survives workbook and clipboard conversions, including best-fit columns.
 Nonpositive row heights and column widths up to four points retain default
 dimensions and their visibility/outline metadata, matching native import.
+Repeated column records preserve earlier accepted widths and outlines; hidden
+groups retain their adjacent collapsed summary markers.
 
 ```ts
 import { createEngine } from "@poe-code/spreadsheet-engine";

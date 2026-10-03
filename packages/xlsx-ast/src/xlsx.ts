@@ -377,19 +377,51 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
             ...(style ?? {}), ...(richText ? { richText } : {}) });
         }
       }
+      const columnState = new Map<number, AxisMetadata>();
+      let expandedColumns = 0;
       for (const node of children(child(source, "cols"), "col")) {
         const min = integer(attr(node, "min")), max = integer(attr(node, "max"));
         if (min < 1 || max < min || max > 16384) invalid("invalid column span");
-        if (max - min + 1 > (context.limits.workbookNodes ?? Infinity) - columns.length) limit("column metadata");
-        opc.charge(max - min + 1);
+        const count = max - min + 1;
+        if (count > (context.limits.workbookNodes ?? Infinity) - expandedColumns) limit("column metadata");
+        expandedColumns += count;
+        opc.charge(count);
         const width = attr(node, "width") === undefined ? undefined : number(attr(node, "width"));
         const sizePoints = width === undefined ? undefined : width * (130 / 18.5703125) * (72 / 96);
         const style = sizePoints === undefined || sizePoints <= 4 ? undefined : { xlsxWidth: width!, gnumeric: gnode("ColInfo", {
           HardSize: boolean(attr(node, "customWidth")) && !boolean(attr(node, "bestFit")) ? 1 : 0 }) };
-        for (let index = min - 1; index < max; index++) columns.push({ index, hidden: boolean(attr(node, "hidden")),
-          outlineLevel: integer(attr(node, "outlineLevel")), collapsed: boolean(attr(node, "collapsed")),
-          ...(style === undefined ? {} : { sizePoints: sizePoints!, style }) });
+        const outlineLevel = integer(attr(node, "outlineLevel"));
+        for (let index = min - 1; index < max; index++) {
+          const previous = columnState.get(index) ?? { index, hidden: false, outlineLevel: 0, collapsed: false };
+          columnState.set(index, { ...previous,
+            ...(outlineLevel > 0 ? { outlineLevel, collapsed: boolean(attr(node, "collapsed")) } : {}),
+            ...(style === undefined ? {} : { sizePoints: sizePoints!, style }) });
+        }
+        // Native XLSX applies outlines before hiding. Only newly hidden columns
+        // change adjacent summary markers; absent/false hidden never unhides.
+        if (boolean(attr(node, "hidden"))) {
+          opc.charge(count);
+          let changed = false, previousOutline = 0;
+          for (let index = min - 1; index < max; index++) {
+            const column = columnState.get(index)!;
+            const collapsed = changed && previousOutline > (column.outlineLevel ?? 0) ? false : column.collapsed ?? false;
+            changed = !column.hidden;
+            if (changed) previousOutline = column.outlineLevel ?? 0;
+            columnState.set(index, { ...column, hidden: true, collapsed });
+          }
+          if (changed && max < 16384 && previousOutline > 0) {
+            const adjacent = columnState.get(max);
+            if (!adjacent) {
+              if (expandedColumns >= (context.limits.workbookNodes ?? Infinity)) limit("column metadata");
+              expandedColumns++; opc.charge(1);
+            }
+            if (previousOutline > (adjacent?.outlineLevel ?? 0)) {
+              columnState.set(max, { ...(adjacent ?? { index: max }), collapsed: true });
+            }
+          }
+        }
       }
+      columns.push(...columnState.values());
       const records: UnsupportedRecord[] = [];
       const hyperlinkRegions: ImportedValue[] = [];
       for (const link of children(child(source, "hyperlinks"), "hyperlink")) {

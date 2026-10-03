@@ -178,7 +178,7 @@ it("uses the source writer's four significant digits for imported print points",
 });
 it("imports row sizing, source column width conversion and measured view effects", async () => {
   const book = await readXlsx(await fixture(parts('<sheetViews><sheetView zoomScale="125" showGridLines="0" showFormulas="1" showZeros="0" showRowColHeaders="0" topLeftCell="C3"><pane state="frozen" xSplit="1" ySplit="2" topLeftCell="D4"/></sheetView></sheetViews><cols><col min="2" max="3" width="18.5703125" customWidth="1" hidden="1" outlineLevel="2" collapsed="1"/></cols><sheetData><row r="3" ht="22" customHeight="1" hidden="1"/></sheetData>')), context);
-  expect(book.sheets[0]!.columns).toMatchObject([{ index: 1, sizePoints: 97.5, hidden: true, outlineLevel: 2, collapsed: true }, { index: 2, sizePoints: 97.5 }]);
+  expect(book.sheets[0]!.columns).toMatchObject([{ index: 1, sizePoints: 97.5, hidden: true, outlineLevel: 2, collapsed: true }, { index: 2, sizePoints: 97.5 }, { index: 3, collapsed: true }]);
   expect(book.sheets[0]!.rows).toMatchObject([{ index: 2, sizePoints: 22, hidden: true }]);
   const xml = new TextDecoder().decode(await writeGnumeric(book, [], context));
   expect(xml).toContain('DisplayFormulas="1" HideZero="1" HideGrid="1" HideColHeader="1" HideRowHeader="1"');

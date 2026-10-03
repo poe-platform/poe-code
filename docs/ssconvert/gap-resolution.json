@@ -4167,6 +4167,26 @@
       "groupedAggregateInvestigation": {
         "nativeText": "With A11:A13=2,3,4: SUM((A11,A12))=5; SUM(((A11,A12)))=#VALUE!; left/right nested sets total 9; SUM((A11:A12)) and SUM(((A11:A12))) outside the data rows return #VALUE!.",
         "source": "func.c:1832-1903 iterates bare sets and names before scalar evaluation. expr.c:1642 rejects scalar sets. Original PtgParen identity and this evaluator distinction still need preservation; no error substitution is implemented."
+      },
+      "groupedAggregateEvaluation": {
+        "repair": "SUM and PRODUCT retain one union wrapper as set syntax. Other explicit argument parentheses use scalar evaluation outside array context, including implicit intersection for grouped ranges.",
+        "native": "Twenty valid SUM/PRODUCT formulas and three data cells. Six error results distinguish extra union grouping and out-of-range scalar intersection; four in-range controls select 2 or 3. Native input conversion has zero diagnostics. Four separately retained nested-set spellings are rejected by the native parser and are not passing evaluation cases.",
+        "validation": "Both original SUM/PRODUCT regressions failed before repair. The 19112-test/142-file formula cohort passes; final memory controls cover twenty cases. Engine lint/source/test types, final test lint/types and normal root build pass. Actual root command screenshot inspected.",
+        "publicXlsx": "All 184 root/package SDK/command cached and native XLSX value comparisons match, without diagnostics.",
+        "allFormatReceipt": {
+          "publicCachedXlsxChecks": 92,
+          "nativeReadbackChecks": 276,
+          "checks": 368,
+          "nativeReadbacks": 12,
+          "cases": 23,
+          "inputSha256": "be6b4bd2c7f7516e2591a4f4b4790e158d81fed17b759f6e0611d5de48788987",
+          "nativeSha256": "c97f4e46a914a448a4d14ace34dc788ae29491afcef7ca770d96582995155b09",
+          "diagnostics": 0,
+          "mismatches": 32,
+          "matchedChecks": 336
+        },
+        "remaining": "The all-format receipt contains 32 confirmed BIFF7/BIFF8 export mismatches: four nested SUM/PRODUCT formulas across root/package SDK/command. They are not passes. Native own BIFF export/reimport retains all expected values, proving a product writer defect. The original eight grouped-SUM BIFF import mismatches also remain open. Broader contexts and all19families remain unresolved.",
+        "writerSource": "Gnumeric 1.12.61 plugins/excel/ms-formula-write.c SHA256 129e2d69f00182f9458f03698a264c498dca61f566c8d54e3517e6c20e7ef1b7:703-735 and890-908 use set precedence8 and child association levels1/0. Syntactic set wrappers must remain distinct from explicit PtgParen tokens."
       }
     }
   },

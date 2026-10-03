@@ -328,7 +328,14 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
           if (v.kind === "set") { for (const child of v.values) collect(child); return; }
           for (const row of matrix(v).rows) for (const item of row) { tick(); if (item.kind === "error") { failure ??= item; return; } if (item.kind === "number") values.push(item.value); }
         };
-        for (const arg of node.args) { collect(evaluate(arg, position, array, names)); if (failure) return failure; }
+        for (const arg of node.args) {
+          const value = evaluate(arg, position, array, names);
+          // One union wrapper is set syntax. Further grouping reaches native
+          // scalar evaluation instead of the aggregate's argument iterator.
+          const grouped = arg.kind === "parentheses" && !(arg.child.kind === "binary" && arg.child.op === "union");
+          collect(grouped && !array ? scalar(value, position) : value);
+          if (failure) return failure;
+        }
         if (node.name === "SUM") return numericResult(sum(values, tick));
         return numericResult(product(values));
       }

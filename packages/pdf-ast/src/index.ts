@@ -1,3 +1,4 @@
+export { renderRetainedPagePixels, type PdfRetainedPixelOptions, type PdfRetainedPixels } from "./render/retained-page-pixels.js";
 export * from "./ast.js";
 export * from "./errors.js";
 export * from "./cos/lexer.js";

@@ -320,14 +320,19 @@ export function *rotateRgbaBitmapQuarterTurnsSteps(bitmap: RgbaBitmap, degrees: 
   return { width: dstW, height: dstH, data: out };
 }
 
-export function *cropRgbaBitmapSteps(bitmap: RgbaBitmap, rect: PdfCropRect): Generator<void, RgbaBitmap, void> {
-  let work = 0;
-  const x0 = Math.max(0, Math.min(bitmap.width - 1, Math.round(rect.x)));
-  const y0 = Math.max(0, Math.min(bitmap.height - 1, Math.round(rect.y)));
-  const maxW = Math.max(1, bitmap.width - x0);
-  const maxH = Math.max(1, bitmap.height - y0);
+export function getBitmapCropRect(width: number, height: number, rect: PdfCropRect): PdfCropRect {
+  const x0 = Math.max(0, Math.min(width - 1, Math.round(rect.x)));
+  const y0 = Math.max(0, Math.min(height - 1, Math.round(rect.y)));
+  const maxW = Math.max(1, width - x0);
+  const maxH = Math.max(1, height - y0);
   const w = rect.width > 0 ? Math.max(1, Math.min(maxW, Math.round(rect.width))) : maxW;
   const h = rect.height > 0 ? Math.max(1, Math.min(maxH, Math.round(rect.height))) : maxH;
+  return { x: x0, y: y0, width: w, height: h };
+}
+
+export function *cropRgbaBitmapSteps(bitmap: RgbaBitmap, rect: PdfCropRect): Generator<void, RgbaBitmap, void> {
+  let work = 0;
+  const { x: x0, y: y0, width: w, height: h } = getBitmapCropRect(bitmap.width, bitmap.height, rect);
   const out = new Uint8Array(w * h * 4);
   for (let dy = 0; dy < h; dy++) {
     if (++work % 16384 === 0) yield;
@@ -1002,7 +1007,7 @@ function *renderSoftMaskSteps(mask: PdfSoftMask, displayList: PdfDisplayList, sc
 
 // PDF.js Page.view: visible bounds are the normalized CropBox/MediaBox
 // intersection. An empty or malformed crop falls back to the full media box.
-export function getDisplayListCropBox(list: PdfDisplayList): [number, number, number, number] {
+export function getDisplayListCropBox(list: Pick<PdfDisplayList, "width" | "height" | "cropBox">): [number, number, number, number] {
   const full: [number, number, number, number] = [0, 0, list.width, list.height];
   const box = list.cropBox;
   if (!box || !box.every(Number.isFinite)) return full;

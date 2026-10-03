@@ -29,6 +29,18 @@ backing, preserving the buffered sampling math. Keep the backing alive until
 painting finishes, then close it. Codec/color state, paths, shading and nested
 captures retain their own memory requirements.
 
+`await renderRetainedPagePixels(page, storage, options)` returns
+`{ width, height, pixels }` with row-major RGBA chunks. It replays retained page
+operations into fixed-size windows, stages tiles on caller storage, and applies
+crop boxes, quarter-turn rotation, output cropping and asymmetric DPI without a
+full-page pixel allocation. Consume `pixels` directly or pass it to
+`encodeRetainedPng`; stopping consumption cleans the temporary pixels. Use an
+external backend for large pages. `tileSize` defaults to 128 and `chunkBytes` to
+65536. `maxPixelWorkingBytes` admits driver scratch, excluding rasterizer window
+surfaces and evaluator resources; nested captures and individual decoded
+resources still need bounded ownership. Rendering repeats page evaluation per
+tile and uses seekable staging before yielding the first output chunk.
+
 `PdfFileSource.open(fs, path, options)` provides retained random-access input
 using the caller's safe-fs. `read(position, maxBytes)` returns owned bytes up to
 `chunkBytes`, and `stream(position, length)` yields ranges under consumer

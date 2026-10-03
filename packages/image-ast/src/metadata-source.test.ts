@@ -110,7 +110,7 @@ it("does not turn metadata inspection into an implicit file snapshot",async()=>{
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {fileURLToPath} from "node:url";
-it("inspects externally retained metadata in Workerd without whole-file or raster allocation",async()=>{
+it("inspects externally retained metadata in Workerd without whole-file allocation",async()=>{
  const segment=(marker:number,data:Uint8Array)=>join([Uint8Array.of(255,marker,(data.length+2)>>>8,(data.length+2)&255),data]);
  const app=new Uint8Array(65533);app.set(buildExifApp1Segment({orientation:8,density:144}));
  const smallWebp=await sharp({create:{width:17,height:19,channels:4,background:"red"}}).webp().toBuffer();
@@ -122,25 +122,37 @@ it("inspects externally retained metadata in Workerd without whole-file or raste
   {bytes:new Uint8Array(256*1024),options:{raw:{width:257,height:129,channels:2 as const,depth:"ushort" as const}}},
   {bytes:new TextEncoder().encode("P6\n#"+"x".repeat(256*1024)+"\n17 19\n65535\n"),options:{}},
   {bytes:await sharp({create:{width:1024,height:64,channels:3,background:"red"}}).bmp().toBuffer(),options:{}},
-  {bytes:largeWebp,options:{}}
+  {bytes:largeWebp,options:{}},
+  {bytes:await sharp({create:{width:531,height:513,channels:4,background:"red"}}).tiff().toBuffer(),options:{}}
  ];
  const expected=await Promise.all(cases.map(sample=>sharp(sample.bytes,sample.options).metadata()));
  const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../../../",import.meta.url)),sourcefile:"metadata-worker.ts",contents:`
  import sharp from './packages/image-ast/src/index.ts';
  export default {async fetch(request,env){
-  const {id,size,options}=await request.json();let reads=0,closed=0,largestAllocation=0;const scope={};
-  const filesystem={capabilities:{retainedRead:true},readFile(){throw new Error('whole-file read');},writeFile(){throw new Error('metadata write');},async openReadFile(){return {
+  const {id,size,options}=await request.json();let reads=0,closed=0,scratchClosed=0,scratchWrites=0,largestAllocation=0;const scope={};
+  const filesystem={capabilities:{retainedRead:true},
+   async stat(){return {type:'directory'};},async removeFileConditional(){},async open(){return {
+    capabilities:{positionedRead:true,positionedWrite:true},async stat(){return {type:'file',size:0};},
+    async write(bytes,position){if(bytes.length>16384)throw new Error('large scratch write');scratchWrites++;const response=await env.SCRATCH.fetch('https://scratch/'+id+'?position='+position,{method:'PUT',body:bytes});if(!response.ok)throw new Error('scratch write failed');return bytes.length;},
+    async read(bytes,position){if(bytes.length>16384)throw new Error('large scratch read');const response=await env.SCRATCH.fetch('https://scratch/'+id+'?position='+position+'&length='+bytes.length);if(!response.ok)throw new Error('scratch read failed');bytes.set(new Uint8Array(await response.arrayBuffer()));return bytes.length;},
+    async close(){scratchClosed++;}
+   };},readFile(){throw new Error('whole-file read');},writeFile(){throw new Error('metadata write');},async openReadFile(){return {
    async stat(){return {type:'file',size,mode:420,mtimeMs:1,atimeMs:1,ctimeMs:1,identityScope:scope,opaqueIdentity:String(id),opaqueVersion:'v1'};},
    async read(position,length){if(length>4096)throw new Error('large transfer');reads++;const response=await env.SOURCE.fetch('https://source/'+id+'?position='+position+'&length='+length);if(!response.ok)throw new Error('source failed');return new Uint8Array(await response.arrayBuffer());},
    async close(){closed++;}
   };}};
   const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;largestAllocation=Math.max(largestAllocation,length);if(length>65536)throw new Error('unbounded metadata allocation');return Reflect.construct(target,args);}});
   let metadata;try{metadata=await sharp('/image',{...options,filesystem}).metadata();}finally{globalThis.Uint8Array=Native;}
-  return Response.json({metadata,reads,closed,largestAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});
+  return Response.json({metadata,reads,closed,scratchClosed,scratchWrites,largestAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});
  }};`},bundle:true,write:false,platform:"browser",conditions:["workerd"],format:"esm",metafile:true,logLevel:"silent"});
  expect(Object.values(bundle.metafile!.outputs).flatMap(output=>output.imports)).toEqual([]);
  expect(Object.keys(bundle.metafile!.inputs).some(input=>input.startsWith("node:"))).toBe(false);
- const runtime=new Miniflare({modules:true,compatibilityDate:"2026-07-01",cf:false,script:bundle.outputFiles[0]!.text,serviceBindings:{SOURCE:async request=>{
+ const scratch=new Map<string,Uint8Array>();
+ const runtime=new Miniflare({modules:true,compatibilityDate:"2026-07-01",cf:false,script:bundle.outputFiles[0]!.text,serviceBindings:{SCRATCH:async request=>{
+  const url=new URL(request.url),position=Number(url.searchParams.get("position")),key=url.pathname+":"+position;
+  if(request.method==="PUT"){const bytes=new Uint8Array(await request.arrayBuffer());if(bytes.length>16384)return new Response(null,{status:400});scratch.set(key,bytes);return new Response();}
+  const length=Number(url.searchParams.get("length"));return new Response(scratch.get(key)?.slice(0,length)??new Uint8Array(length));
+ },SOURCE:async request=>{
   const url=new URL(request.url),id=Number(url.pathname.slice(1)),position=Number(url.searchParams.get("position")),length=Number(url.searchParams.get("length"));
   if(!Number.isSafeInteger(position)||position<0||!Number.isSafeInteger(length)||length<0||length>4096)return new Response(null,{status:400});
   return new Response(cases[id]!.bytes.slice(position,position+length));
@@ -149,7 +161,8 @@ it("inspects externally retained metadata in Workerd without whole-file or raste
   for(const [id,sample] of cases.entries()) {
    const response=await runtime.dispatchFetch("https://metadata/",{method:"POST",body:JSON.stringify({id,size:sample.bytes.length,options:sample.options})});
    expect(response.status).toBe(200);
-   const result=await response.json() as {metadata:unknown;reads:number;closed:number;largestAllocation:number;nodeGlobals:boolean};
+   const result=await response.json() as {metadata:unknown;reads:number;closed:number;scratchClosed:number;scratchWrites:number;largestAllocation:number;nodeGlobals:boolean};
+   if(id===6){expect(result.scratchClosed).toBe(1);expect(result.scratchWrites).toBeGreaterThan(64);}else expect(result.scratchClosed).toBe(0);
    expect(result.metadata).toEqual(expected[id]);expect(result.closed).toBe(1);expect(result.nodeGlobals).toBe(false);
    expect(result.largestAllocation).toBeLessThanOrEqual(id===5?4096:65536);if(id===2)expect(result.reads).toBe(0);else expect(result.reads).toBeGreaterThan(0);
   }
@@ -162,8 +175,66 @@ for(const magic of ["P1","P2","P3","P4","P5","P6"])for(const end of ["\n","\r\n"
  const bytes=new TextEncoder().encode(`${magic}\n# header comment\n17\t19\n${magic==="P1"||magic==="P4"?"":"65535"}${end}1 0 1`);
  expect(await readImageMetadataFromSource(source(bytes),new AbortController().signal)).toEqual(readImageMetadata(bytes));
 });
-for(const format of ["png","jpeg","bmp","ppm"] as const)it(`preserves ${format} pixel admission during file metadata`,async()=>{
+for(const format of ["png","jpeg","bmp","ppm","tiff"] as const)it(`preserves ${format} pixel admission during file metadata`,async()=>{
  const fs=new MemoryFileSystem();
  const bytes=await sharp({create:{width:31,height:19,channels:3,background:"red"}}).toFormat(format).toBuffer();await fs.writeFile("/image",bytes);
  await expect(sharp("/image",{filesystem:fs,limitInputPixels:1}).metadata()).rejects.toThrow("Input image exceeds pixel limit");
+});
+
+for(const compression of ["none","deflate","lzw","packbits"] as const) it(`reads TIFF ${compression} metadata through caller backing`,async()=>{
+ const fs=new MemoryFileSystem();
+ const bytes=await sharp({create:{width:531,height:513,channels:4,background:"red"}}).tiff({compression}).toBuffer();
+ await fs.writeFile("/image",bytes);let opened=0,closed=0;
+ const guarded=new Proxy(fs,{get(target,key){
+  if(key==="readFile" || key==="writeFile")return ()=>{throw new Error("whole-file metadata I/O forbidden");};
+  if(key==="open")return async(...args:Parameters<typeof fs.open>)=>{
+   const handle=await fs.open(...args);opened++;
+   return new Proxy(handle,{get(target,key){if(key==="close")return async(...values:Parameters<typeof handle.close>)=>{closed++;return handle.close(...values);};const value=Reflect.get(target,key,target);return typeof value==="function"?value.bind(target):value;}});
+  };
+  const value=Reflect.get(target,key,target);return typeof value==="function"?value.bind(target):value;
+ }});
+ expect(await sharp("/image",{filesystem:guarded}).metadata()).toEqual(await sharp(bytes).metadata());
+ expect(opened).toBeGreaterThan(0);expect(closed).toBe(opened);
+});
+
+for(const mode of ["success","write","read","cancel","close"] as const) it(`owns spilled TIFF metadata handles on ${mode}`,async()=>{
+ const fs=new MemoryFileSystem(),controller=new AbortController(),failure=new Error(`injected ${mode}`);
+ await fs.mkdir("/scratch");
+ const bytes=await sharp({create:{width:2053,height:129,channels:4,background:"red"}}).tiff().toBuffer();
+ await fs.writeFile("/input.tiff",bytes);
+ const expected=await sharp(bytes).metadata();
+ let sourceHandles=0,scratchHandles=0,opens=0,reads=0,writes=0;
+ const guarded=new Proxy(fs,{get(target,key){
+  if(key==="readFile" || key==="writeFile") return ()=>{throw new Error("whole-file I/O forbidden");};
+  if(key==="openReadFile") return async(...args:Parameters<NonNullable<typeof fs.openReadFile>>)=>{
+   const handle=await fs.openReadFile(...args);sourceHandles++;
+   return {...handle,async close(){sourceHandles--;await handle.close();}};
+  };
+  if(key==="open") return async(...args:Parameters<typeof fs.open>)=>{
+   expect(args[0].startsWith("/scratch/.storage-")).toBe(true);
+   const handle=await fs.open(...args);scratchHandles++;opens++;
+   return new Proxy(handle,{get(retained,method){
+    if(method==="write") return async(...values:Parameters<typeof handle.write>)=>{
+     writes++;
+     if(writes===2 && mode==="write") throw failure;
+     if(writes===2 && mode==="cancel") controller.abort(failure);
+     return handle.write(...values);
+    };
+    if(method==="read") return async(...values:Parameters<typeof handle.read>)=>{
+     reads++;if(reads===2 && mode==="read") throw failure;return handle.read(...values);
+    };
+    if(method==="close") return async()=>{scratchHandles--;await handle.close();if(mode==="close") throw failure;};
+    const value=Reflect.get(retained,method,retained);return typeof value==="function"?value.bind(retained):value;
+   }});
+  };
+  const value=Reflect.get(target,key,target);return typeof value==="function"?value.bind(target):value;
+ }});
+ let callbackCount=0;
+ const result=sharp("/input.tiff",{filesystem:guarded,workingDirectory:"/scratch",signal:controller.signal}).metadata((error,value)=>{
+  callbackCount++;if(mode==="success"){expect(error).toBeNull();expect(value).toEqual(expected);}else expect(error).toBe(failure);
+ });
+ if(mode==="success") expect(await result).toEqual(expected);else await expect(result).rejects.toBe(failure);
+ expect(callbackCount).toBe(1);expect(opens).toBe(1);expect(sourceHandles).toBe(0);expect(scratchHandles).toBe(0);
+ expect(await fs.readdir("/scratch")).toEqual([]);
+ expect(await fs.readFile("/input.tiff")).toEqual(bytes);
 });

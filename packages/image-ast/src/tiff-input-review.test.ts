@@ -1,3 +1,4 @@
+import {readImageMetadataFromSource} from "./codecs/metadata-source.js";
 import {createHash} from "node:crypto";
 import {gzipSync,deflateSync} from "node:zlib";
 import {expect,it,vi} from "vitest";
@@ -118,3 +119,5 @@ it.each(["identity","version","read","abort"])("preserves output and closes hand
  const filesystem=guarded(fs,{openReadFile:async(path,options)=>{const handle=await fs.openReadFile(path,options);let stats=0;return {stat:async()=>{const stat=await handle.stat();return stats++===0?stat:phase==="identity"?{...stat,ino:stat.ino!+1}:phase==="version"?{...stat,mtimeMs:stat.mtimeMs+1}:stat;},read:async(position,length)=>{if(phase==="abort")controller.abort(reason);return phase==="read"?new Uint8Array():handle.read(position,Math.min(length,7));},close:async()=>{closed++;await handle.close();throw new Error("secondary close failure");}};}});
  const result=sharp("/in",{filesystem,signal:controller.signal}).png().toFile("/out");if(phase==="abort")await expect(result).rejects.toBe(reason);else await expect(result).rejects.toMatchObject({code:phase==="read"?"EIO":"EAGAIN"});expect(closed).toBe(1);expect(await fs.readFile("/out")).toEqual(Uint8Array.of(42));expect((await fs.readdir("/")).map(entry=>entry.name)).toEqual(["in","out"]);
 });
+
+it.each(vectors)("preserves TIFF metadata fields $spec",async vector=>{const bytes=fixture(vector.spec);expect(await readImageMetadataFromSource(source(bytes),new AbortController().signal,undefined,backing().storage)).toEqual({...vector.expected,size:bytes.length});});

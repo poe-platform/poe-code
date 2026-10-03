@@ -1,20 +1,21 @@
+import {decodeTiffToStorage} from "./tiff-input-storage.js";
 import {isWebpBytes} from "./webp.js";
 import {readWebpMetadataFromSource} from "./webp-input-storage.js";
 import type {ImageMetadata,SharpInputOptions} from "../ast.js";
-import type {ImageByteSource} from "./png-storage.js";
+import type {ImageByteSource,ImageByteStorage} from "./png-storage.js";
 import {readPngMetadataFromSource} from "./png-storage.js";
 import {readJpegMetadataFromSource} from "./jpeg-input-storage.js";
 import {readImageMetadata} from "./index.js";
 import {isPngBytes} from "./png.js";
 import {isJpegBytes} from "./jpeg.js";
-import {isBmpBytes,isNetpbmBytes,readBmpMetadata} from "./netpbm.js";
+import {isBmpBytes,isNetpbmBytes,isTiffBytes,readBmpMetadata} from "./netpbm.js";
 import {netpbmHeaderSteps} from "./netpbm-header.js";
 import {SourceBytes} from "./storage-source.js";
 import {UnsupportedStoredResource} from "./unsupported-storage.js";
 import {checkLimitInputPixels} from "../limits.js";
 
 /** Inspect caller-retained encoded ranges. Source ownership stays with the caller. */
-export async function readImageMetadataFromSource(source:ImageByteSource,signal:AbortSignal,options?:SharpInputOptions):Promise<ImageMetadata> {
+export async function readImageMetadataFromSource(source:ImageByteSource,signal:AbortSignal,options?:SharpInputOptions,storage?:ImageByteStorage):Promise<ImageMetadata> {
  signal.throwIfAborted();
  if(!Number.isSafeInteger(source.size)||source.size<0)throw new RangeError("Invalid image source size");
  if(options?.text || options?.create)return readImageMetadata(undefined,options);
@@ -25,6 +26,13 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  if(isPngBytes(prefix))metadata=await readPngMetadataFromSource(source,signal);
  else if(isJpegBytes(prefix))metadata=await readJpegMetadataFromSource(source,signal);
  else if(isWebpBytes(prefix))metadata=await readWebpMetadataFromSource(source,signal);
+ else if(isTiffBytes(prefix)) {
+  if(!storage)throw new UnsupportedStoredResource();
+  const decoded=await decodeTiffToStorage(source,storage,signal);
+  metadata={format:"tiff",width:decoded.width,height:decoded.height,space:decoded.space,channels:decoded.channels,depth:decoded.depth,
+   ...(decoded.bitsPerSample===undefined?{}:{bitsPerSample:decoded.bitsPerSample}),density:decoded.density,hasAlpha:decoded.hasAlpha,
+   ...(decoded.orientation===undefined?{}:{orientation:decoded.orientation}),size:source.size};
+ }
  else if(isBmpBytes(prefix))metadata={...readBmpMetadata(prefix),size:source.size};
  else if(isNetpbmBytes(prefix)) {
   const reader=new SourceBytes(source,signal,"Netpbm"),steps=netpbmHeaderSteps(source.size);let next=steps.next();

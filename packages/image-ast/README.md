@@ -73,13 +73,14 @@ a bounded pixel cache, without allocating a grayscale canvas. Async `.stats()`
 uses the same retained decoding and transform pipeline when a capable filesystem
 is supplied, including file resources, raw data and generated images. Set
 `workingDirectory` to select scratch storage in that filesystem; it defaults to
-the output directory for `.toFile()`, the input directory for file `.stats()`, or
+the output directory for `.toFile()`, the input directory for file `.stats()` and `.metadata()`, or
 `.` for byte/generated `.stats()`. Scratch handles close on success, failure and
 cancellation. Async file statistics do not implicitly cache whole input files;
 synchronous statistics require an explicit buffered input.
-`readImageMetadataFromSource(source, signal, options)` inspects PNG, JPEG, WebP, BMP,
+`readImageMetadataFromSource(source, signal, options, storage?)` inspects PNG, JPEG, WebP, BMP,
 Netpbm and raw metadata without rendering pixels. The PNG, JPEG and WebP readers are
-also available individually. File `.metadata()` for these formats
+also available individually. TIFF inspection uses the optional caller backing storage
+to preserve full decode validation with bounded memory. File `.metadata()` for these formats
 uses retained reads when no transforms are queued, including source version checks
 and handle cleanup. Raw metadata needs only the retained file size. These reads do
 not implicitly cache the file for later operations; explicit buffer outputs keep

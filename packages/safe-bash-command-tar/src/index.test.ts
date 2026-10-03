@@ -223,6 +223,27 @@ for (const mode of ["c", "r", "u"]) test(`tar ${mode} applies exclusions positio
   assert.equal((await run(createTarCommand(), ["-tf", "/out.tar"], "", fs)).stdout, "pkg1/\npkg1/a.tmp\npkg1/b.txt\npkg2/\npkg2/b.txt\n");
 });
 
+for (const exclusion of [["--exclude=*.tmp"], ["--exclude", "*.tmp"], ["-X", "/excludes"], ["--exclude-from=/excludes"]]) {
+  for (const position of [0, 1, 2]) test(`tar scopes ${exclusion[0]} at operand position ${position}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/excludes", new TextEncoder().encode("*.tmp\n"));
+    for (const dir of ["one", "two"]) {
+      await fs.mkdir(`/${dir}`);
+      await fs.writeFile(`/${dir}/a.tmp`, new Uint8Array([1]));
+      await fs.writeFile(`/${dir}/b.txt`, new Uint8Array([2]));
+    }
+    const operands = ["one", "two"];
+    operands.splice(position, 0, ...exclusion);
+    const created = await run(createTarCommand(), ["-cf", "/out.tar", "--sort=name", ...operands], "", fs);
+    assert.equal(created.exitCode, 0, created.stderr);
+    const listed = await run(createTarCommand(), ["-tf", "/out.tar"], "", fs);
+    assert.equal(listed.exitCode, 0, listed.stderr);
+    assert.equal(listed.stdout, ["one", "two"].flatMap((dir, index) => [
+      `${dir}/`, ...(index < position ? [`${dir}/a.tmp`] : []), `${dir}/b.txt`,
+    ]).join("\n") + "\n");
+  });
+}
+
 test("tar verbose listing formats default timestamps to minute precision", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/a", new Uint8Array([1]));

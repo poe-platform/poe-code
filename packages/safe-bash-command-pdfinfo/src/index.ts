@@ -1,3 +1,4 @@
+import { sortMetadataIndices } from "./metadata-order.js";
 import { FsError } from "safe-bash-contracts/errors";
 import { resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
@@ -1146,7 +1147,7 @@ export async function pdfinfo(context: CommandContext, options: PdfinfoCommandOp
   const plan = args.error || args.listenc || args.version || args.help
     ? inspectPdfBytes(new Uint8Array(0), argv)
     : { inputPath: args.inputFile ?? "-", password: args.opw ?? args.upw ?? "" };
-  return executeRetainedPdf(context, options, plan, async (doc, plan, { emit, error, signal, fileSize }) => {
+  return executeRetainedPdf(context, options, plan, async (doc, plan, { emit, error, signal, fileSize, storage }) => {
     let pageCount = 0;
     for await (const ignored of doc.pages()) pageCount++;
     const firstPage = Math.max(1, args.firstPage);
@@ -1225,17 +1226,21 @@ export async function pdfinfo(context: CommandContext, options: PdfinfoCommandOp
       const value = await infoValue(key);
       if (value !== undefined) await field(key, key === "CreationDate" || key === "ModDate" ? formatPdfDate(value, args.isodates ? "iso" : args.rawdates ? "raw" : "normal") : value);
     }
-    const custom: number[] = [];
-    for (let i = 0; i < infoEntries.length; i++) {
-      if (i % 64 === 0) await yieldTurn(signal);
-      const entry = infoEntries[i]!;
-      if (!STANDARD_INFO_KEYS.has(entry.key.decoded) && (await resolve(entry.value))?.kind === "string") custom.push(i);
+    let hasCustom = false;
+    async function* customIndices() {
+      for (let i = 0; i < infoEntries.length; i++) {
+        if (i % 64 === 0) await yieldTurn(signal);
+        const entry = infoEntries[i]!;
+        if (!STANDARD_INFO_KEYS.has(entry.key.decoded) && (await resolve(entry.value))?.kind === "string") { hasCustom = true; yield i; }
+      }
     }
     if (args.custom) {
-      custom.sort((a, b) => infoEntries[a]!.key.decoded.localeCompare(infoEntries[b]!.key.decoded));
-      for (const index of custom) { const key = infoEntries[index]!.key.decoded; await field(key, (await infoValue(key))!); }
-    }
-    await field("Custom Metadata", custom.length ? "yes" : "no");
+      const compare = (a: number, b: number) => infoEntries[a]!.key.decoded.localeCompare(infoEntries[b]!.key.decoded);
+      for await (const index of sortMetadataIndices(customIndices(), compare, storage, signal)) {
+        const key = infoEntries[index]!.key.decoded; await field(key, (await infoValue(key))!);
+      }
+    } else for await (const ignored of customIndices()) break;
+    await field("Custom Metadata", hasCustom ? "yes" : "no");
     await field("Metadata Stream", (await doc.lookup(rootEntry("Metadata")))?.stream ? "yes" : "no");
     const mark = await resolve(rootEntry("MarkInfo"));
     const markValue = async (key: string) => { const value = await resolve(mark?.kind === "dict" ? dictGet(mark, key) : undefined); return value?.kind === "boolean" && value.value; };

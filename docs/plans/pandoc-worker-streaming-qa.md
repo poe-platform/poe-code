@@ -7,6 +7,19 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
 
 ## Coverage to complete
 
+- Composed workerd coverage in `scripts/pandoc-composed-worker.test.ts` builds
+  the shipped Sips, Shuf and Pandoc exports with explicit Node-import rejection
+  and no source aliases. Sips inspects an R2-backed image; Shuf streams a sampled
+  document into Lua-filtered Pandoc, which reads the same image through the same
+  supplied filesystem. SDK and command paths prohibit whole-file reads, enforce
+  pipe backpressure and verify source/scratch closure and empty backing storage.
+  This functional cohort does not qualify Sips mutations, all format pairs, or
+  memory/CPU plateaus. Extend its size, concurrency and failure cohorts below.
+  Retained Lua translates wire enums to the established string API and back;
+  differential tests cover quotes, math, ordered lists, citations and table
+  alignments. Numeric Lua traversal preserves tuple/list order independently of
+  table insertion order.
+
 - HTML includes retain decoded input and replacement generations in one extra
   caller-backed page cache. Verify acquisition before document input, UTF-8
   diagnostics, implicit standalone output, raw Unicode, replacement tokens,

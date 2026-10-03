@@ -162,6 +162,23 @@ local function apply_callback(callback, value)
   if type(result) ~= "table" then ast_error() end
   return result
 end
+local function walk_children(value, walk, depth)
+  local result = list({})
+  local count = #value
+  for index = 1, count do
+    local child = value[index]
+    if child == nil then ast_error() end
+    local replacement = walk(child, nil, depth + 1)
+    if type(child) == "table" and child.tag and (inline[child.tag] or block[child.tag]) and not replacement.tag then
+      for _, item in ipairs(replacement) do result[#result+1] = item end
+    else result[#result+1] = replacement end
+  end
+  for key, child in pairs(value) do
+    if type(key) ~= "number" then result[key] = walk(child, nil, depth + 1)
+    elseif key < 1 or key > count or key % 1 ~= 0 then ast_error() end
+  end
+  return result
+end
 local function walk_with_filter(root_value, filter, root_kind)
   assert(type(filter) == "table", "Lua walk filter must be a table")
   local value = copy(root_value)
@@ -185,14 +202,7 @@ local function walk_with_filter(root_value, filter, root_kind)
         end
         return cur
       end
-      local result = list({})
-      for key, child in pairs(cur) do
-        local replacement = walk(child, nil, depth + 1)
-        if type(key) == "number" and type(child) == "table" and child.tag and (inline[child.tag] or block[child.tag]) and not replacement.tag then
-          for _, item in ipairs(replacement) do result[#result+1] = item end
-        elseif type(key) == "number" then result[#result+1] = replacement
-        else result[key] = replacement end
-      end
+      local result = walk_children(cur, walk, depth)
       if not kind and #cur > 0 and type(cur[1]) == "table" then
         if inline[cur[1].tag] then kind = "Inlines" elseif block[cur[1].tag] then kind = "Blocks" end
       end
@@ -227,14 +237,7 @@ function __pandoc_run(ast, filters)
         end
         return value
       end
-      local result = list({})
-      for key, child in pairs(value) do
-        local replacement = walk(child, nil, depth + 1)
-        if type(key) == "number" and type(child) == "table" and child.tag and (inline[child.tag] or block[child.tag]) and not replacement.tag then
-          for _, item in ipairs(replacement) do result[#result+1] = item end
-        elseif type(key) == "number" then result[#result+1] = replacement
-        else result[key] = replacement end
-      end
+      local result = walk_children(value, walk, depth)
       if not kind and #value > 0 and type(value[1]) == "table" then
         if inline[value[1].tag] then kind = "Inlines" elseif block[value[1].tag] then kind = "Blocks" end
       end

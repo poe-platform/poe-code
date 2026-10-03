@@ -66,8 +66,10 @@ Composite placement, tiling and blend modes use fixed pixel caches. Text overlay
 scan style ranges and generate bounded pixel chunks in caller storage. Explicit SVG
 byte resources use caller-backed raster pages through `decodeSvgToStorage(bytes, storage, signal, options)`;
 SVG metadata uses bounded header ranges through `readSvgMetadataFromSource(source, signal, options)`,
-including long dimension tokens. SVG rasterization syntax/file inputs and PDF rendering
-still use buffered compatibility paths.
+including long dimension tokens. `decodeSvgSourceToStorage(source, storage, signal, options)`
+reads SVG syntax in bounded ranges and stores path points, text, nested transforms,
+and raster pages in caller backing. File inputs and composite resources use this path
+automatically. PDF rendering still uses a buffered compatibility path.
 Combined resize/blur/sharpen/convolution stages share premultiplied alpha and gamma handling.
 `resizeStoredImage(image, storage, options, signal)` supports all resize fits,
 gravity, entropy/attention crops, background canvases and image pages.

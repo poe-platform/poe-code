@@ -100,3 +100,22 @@ export function scaleSvgNumber(value:number,unit:string|undefined,reference:numb
   default:return value;
  }
 }
+
+export function parseSvgNumber(val: string | undefined, fallback: number): number {
+  const value = parseSvgCoord(val, fallback, fallback);
+  return value > 0 ? value : fallback;
+}
+
+export function parseSvgCoord(val: string | undefined, fallback: number, refSize = 0): number {
+  if (!val) return fallback;
+  const trimmed = val.trim();
+  const match = /^([+-]?(?:\d+\.?\d*|\.\d+))(px|pt|pc|mm|cm|in|%)?$/i.exec(trimmed);
+  if (!match) {
+    const num = parseFloat(trimmed);
+    return Number.isFinite(num) ? num : fallback;
+  }
+  const num = parseFloat(match[1]!);
+  if (!Number.isFinite(num)) return fallback;
+  const unit = (match[2] ?? "px").toLowerCase();
+  return scaleSvgNumber(num, unit, refSize);
+}

@@ -18,13 +18,14 @@ available for callers that already hold complete inputs.
 command. Property queries and verification retain raster sources; PNG/JPEG custom
 properties are scanned in bounded ranges without reading unrelated pixel payloads.
 SVG metadata queries read bounded header ranges without consuming the document body.
-PNG, JPEG, WebP, TIFF, GIF, BMP, Netpbm and HEIC/HEIF/AVIF mutations keep pixel and encoded
+SVG rendering uses bounded source reads with caller-backed path, text, transform and pixel state.
+PNG, JPEG, WebP, TIFF, GIF, BMP, Netpbm, SVG and HEIC/HEIF/AVIF mutations keep pixel and encoded
 intermediates in bounded caller-backed storage, including fractional crop/pad
 sampling and intermediate lossy encodings. Capable filesystems publish output
 conditionally after processing and scratch cleanup. Guarded staging preserves final
 symlinks and hardlink identity; aliased output operands publish the last result once,
 while validating every original path at commit. PDF output also streams compressed
-pixels and transparency from caller backing. SVG/PDF rasterization and legacy
+pixels and transparency from caller backing. PDF rasterization and legacy
 filesystem capabilities retain their byte-oriented compatibility paths. The byte-map
 and synchronous convenience APIs remain available.
 

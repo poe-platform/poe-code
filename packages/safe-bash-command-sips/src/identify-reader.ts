@@ -3,7 +3,7 @@ import {compareIdentity,compareFileVersion,FsError,type FileSystem} from "@poe-c
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {resolvePath} from "safe-bash-contracts/path";
 import {drainCooperativeSteps} from "safe-bash-contracts/yield";
-import {tryPdfMetadata,readImageMetadata,decodeImage,computeImageStatsSteps,readImageMetadataFromSource,decodeImageToStorage,computeStoredImageStats,UnsupportedStoredResource,isPdfBytes,isSvgBytes,type ImageMetadata,type ImageStats,type SharpInputOptions,type ImageByteSource} from "@poe-code/image-ast/portable";
+import {tryPdfMetadata,readImageMetadata,decodeImage,computeImageStatsSteps,readImageMetadataFromSource,decodeImageToStorage,computeStoredImageStats,UnsupportedStoredResource,isPdfBytes,type ImageMetadata,type ImageStats,type SharpInputOptions,type ImageByteSource} from "@poe-code/image-ast/portable";
 
 export interface IdentifyFileInput {
  readonly filesystem:FileSystem;
@@ -53,8 +53,8 @@ export function createIdentifyReader(input:IdentifyFileInput,signal:AbortSignal,
     let pdfMetadata:ImageMetadata|undefined;
     if(isPdfBytes(prefix)&&!verbose){try{pdfMetadata=await tryPdfMetadata(source,fs,input.cwd,signal,options??{});}catch(error){if(!(error instanceof UnsupportedStoredResource))throw error;}}
     if(pdfMetadata)result={metadata:pdfMetadata,size:source.size,...(properties?{properties:await readPropertiesFromSource(source,"pdf",signal)}:{})};
-    else if(isPdfBytes(prefix)||(isSvgBytes(prefix)&&verbose)){
-     // Vector raster statistics still use the convenience codecs.
+    else if(isPdfBytes(prefix)){
+     // PDF raster statistics still use the convenience codec.
      const bytes=new Uint8Array(source.size);for(let offset=0;offset<bytes.length;offset+=16384)bytes.set(await source.read(offset,Math.min(16384,bytes.length-offset),{signal}),offset);
      result=await inspectIdentifyBytes(bytes,options,verbose,signal,properties);
     }else{

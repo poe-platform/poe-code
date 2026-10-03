@@ -1,3 +1,6 @@
+import {prepareRetainedRtfResources} from "./retained-rtf-resources.js";
+import {writeRetainedRtf} from "./retained-rtf.js";
+import type {ResourceOrigin} from "./resources.js";
 import {writeRetainedLatex} from "./retained-latex.js";
 import {writeRetainedRst} from "./retained-rst.js";
 import {writeRetainedMarkdown} from "./retained-markdown.js";
@@ -41,7 +44,7 @@ async function checkImageOrigins(tree: BackedJson, context: ExecutionContext): P
 
 /** Retain each document generation and filter response in caller storage. The
  * previous generation is retired before another filter starts. */
-export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>>>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" = "json"): Promise<void> {
+export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>>>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" = "json", origin?: ResourceOrigin): Promise<void> {
   let document: Awaited<ReturnType<typeof readRetainedJson>> | undefined;
   let failure: {reason: unknown} | undefined;
   const preflight = async (chunks: AsyncIterable<Uint8Array>) => {
@@ -78,13 +81,21 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       finally {release();}
       if (filterFailure) throw filterFailure.reason;
     }
-    if (["plain", "commonmark", "gfm"].includes(target)) await assertRetainedPlainMath(document.tree, document.order, context);
+    if (["plain", "commonmark", "gfm", "rtf"].includes(target)) await assertRetainedPlainMath(document.tree, document.order, context);
     if (options.shiftHeadingLevelBy || options.stripComments) {
       const next = await transformRetainedJson(document.tree, context, working, options);
       await document.close();
       document = next;
     }
-    if (target === "plain") await writeRetainedPlain(document.tree, context, working, options);
+    if (target === "rtf") {
+      const resources = await prepareRetainedRtfResources(document.tree, document.order, context, working, options, origin);
+      let writerFailure: {reason: unknown} | undefined;
+      try {await writeRetainedRtf(document.tree, context, working, options, document.order, resources.image);}
+      catch (reason) {writerFailure = {reason};}
+      try {await resources.close();} catch (reason) {writerFailure ??= {reason};}
+      if (writerFailure) throw writerFailure.reason;
+    }
+    else if (target === "plain") await writeRetainedPlain(document.tree, context, working, options);
     else if (target === "latex") await writeRetainedLatex(document.tree, context, working, options, document.order);
     else if (target === "rst") await writeRetainedRst(document.tree, context, working, options);
     else if (target === "html5") await writeRetainedHtml(document.tree, context, working, options);

@@ -18,7 +18,7 @@ export function resourceDirectory(path: string, cwd = "/"): string {
   return "/" + parts.filter(p => p && p !== ".").join("/");
 }
 
-function localTarget(url: string, context: ExecutionContext): {name: string; suffix: string} {
+export function localResourceTarget(url: string, context: ExecutionContext): {name: string; suffix: string} {
   const split = [url.indexOf("?"), url.indexOf("#")].filter(n => n >= 0);
   const end = split.length ? Math.min(...split) : url.length;
   const raw = url.slice(0, end);
@@ -45,7 +45,7 @@ function mediaKeyBasename(key: string, context: ExecutionContext): string {
   return key.split("/").at(-1)!;
 }
 
-async function inspect(fs: ResourceFileSystem, path: string, context: ExecutionContext): Promise<string | undefined> {
+export async function inspectResourcePath(fs: ResourceFileSystem, path: string, context: ExecutionContext): Promise<string | undefined> {
   let current = "";
   let type: string | undefined;
   const parts = path.split("/").filter(Boolean);
@@ -134,14 +134,16 @@ export class ResourceSession {
         const url = image.c[2][0];
         if (this.destination === undefined && embedImages && /^data:image\/(?:png|jpe?g);base64,/i.test(url) && !embedded.has(url)) {
           const comma = url.indexOf(",");
-          const raw = atob(url.slice(comma + 1)); const bytes = new Uint8Array(raw.length); for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+          let raw: string;
+          try {raw = atob(url.slice(comma + 1));} catch {throw new PandocError("E_RESOURCE", "convert", "Invalid base64 image resource");}
+          const bytes = new Uint8Array(raw.length); for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
           ctx.charge("resources", 1);
           ctx.charge("resourceBytes", bytes.length);
           ctx.charge("retainedBytes", bytes.length);
           embedded.set(url, bytes);
         }
         if (!embedded.has(url)) {
-          localTarget(url, ctx);
+          localResourceTarget(url, ctx);
           if (!this.search) resourceDirectory(this.origins.get(image.c[2])?.base ?? ctx.context.resourceCwd ?? "/");
         }
       }
@@ -150,7 +152,7 @@ export class ResourceSession {
     await validate(document.blocks);
     await validate(document.metadata);
     if (this.destination !== undefined) {
-      const destinationType = await inspect(fs, this.destination, ctx);
+      const destinationType = await inspectResourcePath(fs, this.destination, ctx);
       if (destinationType !== undefined && destinationType !== "directory") ctx.fail("E_IO", "Extraction destination is not a directory");
     }
     for (const [key, bytes] of embedded) {
@@ -172,7 +174,7 @@ export class ResourceSession {
         const origin = this.origins.get(image.c[2]) ?? {};
         const location = origin.source ? `${origin.source}:${path}` : path;
         const embeddedBytes = embedded.get(url);
-        const target = embeddedBytes ? {name: url, suffix: ""} : localTarget(url, ctx);
+        const target = embeddedBytes ? {name: url, suffix: ""} : localResourceTarget(url, ctx);
         const defaultRoots = [resourceDirectory(origin.base ?? ctx.context.resourceCwd ?? "/")];
         if (origin.base && ctx.context.resourceCwd) {
           const cwdRoot = resourceDirectory(ctx.context.resourceCwd);
@@ -184,7 +186,7 @@ export class ResourceSession {
           const key = `${root === "/" ? "" : root}/${target.name}`;
           entry = this.bag.get(key);
           if (entry) break;
-          const type = await inspect(fs, key, ctx);
+          const type = await inspectResourcePath(fs, key, ctx);
           if (type === undefined) continue;
           if (type !== "file") ctx.fail("E_CAPABILITY", "Image resource is not a regular file");
           ctx.charge("resources", 1);
@@ -252,7 +254,7 @@ export class ResourceSession {
       return result;
     };
     const prepared = {...document, blocks: await visit(document.blocks, "$.blocks"), metadata: await visit(document.metadata, "$.metadata")} as Document;
-    if (this.destination !== undefined) for (const entry of this.plans) if (await inspect(fs, entry.path, ctx) !== undefined) ctx.fail("E_IO", `Extraction destination already exists: ${entry.path}`);
+    if (this.destination !== undefined) for (const entry of this.plans) if (await inspectResourcePath(fs, entry.path, ctx) !== undefined) ctx.fail("E_IO", `Extraction destination already exists: ${entry.path}`);
     return embedImages ? {...prepared, resources: [...imageResources].map(([id, bytes]) => ({id, bytes}))} : prepared;
   }
 
@@ -265,7 +267,7 @@ export class ResourceSession {
     for (const entry of this.plans) {
       // Recheck after preflight and request exclusive creation. Ancestor authority
       // remains with the provider; this is not a filesystem transaction.
-      if (await inspect(fs, entry.path, ctx) !== undefined) ctx.fail("E_IO", "Extraction destination changed after preflight");
+      if (await inspectResourcePath(fs, entry.path, ctx) !== undefined) ctx.fail("E_IO", "Extraction destination changed after preflight");
       if ("bytes" in entry) await ctx.call(() => fs.writeFile(entry.path, entry.bytes, {...options, flag: "wx"}));
       else {
         const storage = this.storage!;

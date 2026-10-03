@@ -57,6 +57,15 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   errors, source retirement and R2-backed JSON/CSV filter generations. Invalid
   math command diagnostics still materialize the offending command name; this
   belongs to the outstanding resident diagnostic boundary.
+  RTF retains writer jobs, sorted fonts/colors, list definitions, table columns,
+  image target/path indexes and output in caller storage. PNG validation streams
+  inflate output; JPEG decoding uses caller storage. Differential tests cover
+  resource security, reused chunks, errors and atomic retirement; workerd/R2
+  tests exercise filter generations and streamed PNG/baseline/progressive JPEG.
+  Extend the size/concurrency measurements to large pictures, fonts, lists and
+  paths: filesystem path strings, explicit byte-only resource capabilities and
+  full diagnostic messages remain resident boundaries. Functional tests do not
+  establish a memory plateau, CPU or first-byte qualification for these cohorts.
   Other conversions still require replacing whole-document input acquisition, joined text, document arrays
   and serialized results with retained sources and a paged document representation.
   Preserve diagnostics, source locations, resource identities and byte results.

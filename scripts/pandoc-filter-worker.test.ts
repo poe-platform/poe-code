@@ -3,7 +3,7 @@ import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {expect, it} from "vitest";
 
-it.each(["latex", "transformed-latex", "csv-latex", "rst", "transformed-rst", "csv-rst", "json", "plain", "html5", "transformed-json", "transformed-plain", "transformed-html5", "csv-json", "csv-plain", "csv-html5", "commonmark", "gfm", "transformed-commonmark", "transformed-gfm", "csv-gfm"])("streams filter generations through external pages in workerd (%s)", async scenario => {
+it.each(["rtf", "transformed-rtf", "csv-rtf", "latex", "transformed-latex", "csv-latex", "rst", "transformed-rst", "csv-rst", "json", "plain", "html5", "transformed-json", "transformed-plain", "transformed-html5", "csv-json", "csv-plain", "csv-html5", "commonmark", "gfm", "transformed-commonmark", "transformed-gfm", "csv-gfm"])("streams filter generations through external pages in workerd (%s)", async scenario => {
   const delimited = scenario.startsWith("csv-");
   const transformed = scenario.startsWith("transformed-");
   const target = scenario.split("-").at(-1)!;
@@ -59,7 +59,7 @@ it.each(["latex", "transformed-latex", "csv-latex", "rst", "transformed-rst", "c
     `,
   });
   try {
-    const table = delimited ? await (await import("../packages/safe-bash-command-pandoc/dist/index.js")).convert([{bytes: new TextEncoder().encode("head\n" + "y".repeat(65536))}], {from: "csv", to: target}, {}) : undefined;
+    const table = delimited ? await (await import("../packages/safe-bash-command-pandoc/dist/index.js")).convert([{bytes: new TextEncoder().encode("head\n" + "y".repeat(65536))}], {from: "csv", to: target}, {}) : target === "rtf" ? await (await import("../packages/safe-bash-command-pandoc/dist/index.js")).convert([{bytes: new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "y".repeat(65536)]}, ...(transformed ? [{t: "Para", c: [{t: "Str", c: "tail"}]}] : [])]}))}], {from: "json", to: target}, {}) : undefined;
     const expected = new TextEncoder().encode(table?.kind === "text" ? table.text : target === "commonmark" || target === "gfm" ? "```\n" + "y".repeat(65536) + "\n```" + (transformed ? "\n\ntail\n" : "\n") : target === "latex" ? "\\begin{flushleft}\\ttfamily\n\\mbox{" + "y".repeat(65536) + "}\\\\\n\\end{flushleft}" + (transformed ? "\n\ntail\n" : "\n") : target === "rst" ? "::\n\n   " + "y".repeat(65536) + (transformed ? "\n\ntail\n" : "\n") : target === "html5" ? "<pre><code>" + "y".repeat(65536) + "</code></pre>\n" + (transformed ? "<p>tail</p>\n" : "") : target === "plain" ? "    " + "y".repeat(65536) + (transformed ? "\n\ntail\n" : "\n") : JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "y".repeat(65536)]}, ...(transformed ? [{t: "Para", c: [{t: "Str", c: "tail"}]}] : [])]}) + "\n");
     let hash = 2166136261;
     for (const byte of expected) hash = Math.imul(hash ^ byte, 16777619) >>> 0;

@@ -205,6 +205,15 @@ standalone preamble, document metadata, math allowlist and URL/image-path checks
 keep their existing behavior. Legacy filters, embedded resources, other transformations
 and other finite document budgets continue through the compatibility converter.
 
+JSON and CSV/TSV → RTF retain writer continuations, sorted font/color indexes,
+list definitions, table columns and output in caller storage. Local pictures use
+`resourceFiles.readStream`; data URI decoding, PNG validation and JPEG decoding
+also use bounded transfers and caller backing storage. Explicit byte-only resource
+resolvers and `readFile`-only capabilities remain buffering convenience boundaries.
+Filesystem path strings and diagnostic messages still materialize; this does not
+qualify all resource handling or conversion formats for bounded Worker memory.
+Malformed base64 image data reports `E_RESOURCE` consistently across both paths.
+
 For media extraction, supply `workingFiles` and `resourceFiles.writeStream` to
 spool external resources in caller storage and publish them in 16 KiB chunks.
 The publisher must consume through EOF, await writes, and honor exclusive

@@ -97,3 +97,66 @@ it("uses retained capabilities advertised for a mounted path",async()=>{
  expect((await runSipsCli(["-r","90","in"],{filesystem,cwd:"/"})).exitCode).toBe(0);
  expect(await sharp(await fs.readFile("/in")).metadata()).toMatchObject({width:3,height:5});
 });
+
+for(const inPlace of [false,true])
+it(`streams publication through a final symlink while preserving links (${inPlace})`,async()=>{
+ const fs=new MemoryFileSystem(),bytes=await sharp({create:{width:5,height:3,channels:4,background:"red"}}).png().toBuffer();
+ await fs.writeFile("/target",bytes);await fs.link("/target","/hard");await fs.symlink("target","/link");await fs.writeFile("/input",bytes);
+ const before=await fs.stat("/target");
+ const filesystem=new Proxy(fs,{get(target,key){if(key==="readFile"||key==="writeFile")return()=>{throw new Error("whole-file I/O forbidden");};const value=Reflect.get(target,key,target);return typeof value==="function"?value.bind(target):value;}});
+ const args=inPlace?["-r","90","link"]:["-r","90","input","-o","link"];
+ expect((await runSipsCli(args,{filesystem,cwd:"/"})).exitCode).toBe(0);
+ expect(await sharp(await fs.readFile("/target")).metadata()).toMatchObject({width:3,height:5});
+ expect(await fs.readFile("/hard")).toEqual(await fs.readFile("/target"));expect((await fs.stat("/target")).ino).toBe(before.ino);
+ expect(await fs.readlink("/link")).toBe("target");expect((await fs.readdir("/")).map(entry=>entry.name).sort()).toEqual(["hard","input","link","target"]);
+});
+
+it("rejects a replaced input symlink before publication and cleans owned staging",async()=>{
+ const fs=new MemoryFileSystem(),bytes=await sharp({create:{width:5,height:3,channels:4,background:"red"}}).png().toBuffer();
+ await fs.writeFile("/target",bytes);await fs.writeFile("/other",bytes);await fs.symlink("target","/link");let raced=false;
+ const filesystem=new Proxy(fs,{get(target,key){if(key==="readFile"||key==="writeFile")return()=>{throw new Error("whole-file I/O forbidden");};if(key==="openReadFile")return async(...args:Parameters<typeof fs.openReadFile>)=>{const handle=await fs.openReadFile(...args);if(!raced){raced=true;await fs.rm("/link");await fs.symlink("other","/link");}return handle;};const value=Reflect.get(target,key,target);return typeof value==="function"?value.bind(target):value;}});
+ await expect(runSipsCli(["-r","90","link"],{filesystem,cwd:"/"})).rejects.toMatchObject({code:"EAGAIN"});
+ expect(await fs.readFile("/target")).toEqual(bytes);expect(await fs.readFile("/other")).toEqual(bytes);
+ expect((await fs.readdir("/")).map(entry=>entry.name).sort()).toEqual(["link","other","target"]);
+});
+
+it("streams output through a dangling final symlink without replacing the link",async()=>{
+ const fs=new MemoryFileSystem(),bytes=await sharp({create:{width:5,height:3,channels:4,background:"red"}}).png().toBuffer();await fs.writeFile("/in",bytes);await fs.symlink("missing","/link");
+ const filesystem=new Proxy(fs,{get(target,key){if(key==="readFile"||key==="writeFile")return()=>{throw new Error("whole-file I/O forbidden");};const value=Reflect.get(target,key,target);return typeof value==="function"?value.bind(target):value;}});
+ expect((await runSipsCli(["-r","90","in","-o","link"],{filesystem,cwd:"/"})).exitCode).toBe(0);
+ expect(await sharp(await fs.readFile("/missing")).metadata()).toMatchObject({width:3,height:5});expect(await fs.readlink("/link")).toBe("missing");
+});
+
+it("validates the retained symlink at the publication commit and removes private output on conflict",async()=>{
+ const fs=new MemoryFileSystem(),bytes=await sharp({create:{width:5,height:3,channels:4,background:"red"}}).png().toBuffer();
+ await fs.writeFile("/in",bytes);await fs.writeFile("/target",bytes);await fs.writeFile("/other",bytes);await fs.symlink("target","/link");
+ const filesystem=new Proxy(fs,{get(target,key){
+  if(key==="readFile"||key==="writeFile")return()=>{throw new Error("whole-file I/O forbidden");};
+  if(key==="createStagedFile")return async(...args:Parameters<typeof fs.createStagedFile>)=>{const staging=await fs.createStagedFile(...args),writer=staging.writer!;return {...staging,writer:{write:writer.write.bind(writer),async finish(...args:Parameters<typeof writer.finish>){const stat=await writer.finish(...args);await fs.rm("/link");await fs.symlink("other","/link");return stat;}}};};
+  const value=Reflect.get(target,key,target);return typeof value==="function"?value.bind(target):value;
+ }});
+ await expect(runSipsCli(["-r","90","in","-o","link"],{filesystem,cwd:"/"})).rejects.toMatchObject({code:"EAGAIN"});
+ expect(await fs.readFile("/target")).toEqual(bytes);expect(await fs.readFile("/other")).toEqual(bytes);expect((await fs.readdir("/")).map(entry=>entry.name).sort()).toEqual(["in","link","other","target"]);
+});
+
+for(const direct of [false,true])
+for(const paths of [["link","target"],["target","link"],["hard","target"],["target","hard"]])
+it(`preserves sequential publication through aliases: ${paths.join(",")} (direct=${direct})`,async()=>{
+ const fs=new MemoryFileSystem(),bytes=await sharp({create:{width:5,height:3,channels:4,background:"red"}}).png().toBuffer();await fs.writeFile("/target",bytes);await fs.link("/target","/hard");await fs.symlink("target","/link");
+ const filesystem=new Proxy(fs,{get(target,key){if(direct&&key==="capabilitiesFor")return async()=>({...fs.capabilities,atomicFilePublication:true});if(direct&&key==="publishFileConditional")return()=>{throw new Error("Aliases must use guarded staged publication");};const value=Reflect.get(target,key,target);return typeof value==="function"?value.bind(target):value;}});
+ expect((await runSipsCli(["-r","90",...paths],{filesystem,cwd:"/"})).exitCode).toBe(0);
+ for(const path of ["/target","/hard","/link"])expect(await sharp(await fs.readFile(path)).metadata()).toMatchObject({width:3,height:5});
+});
+
+for(const paths of [["link","target"],["target","link"],["hard","target"],["target","hard"]])
+it(`guards every coalesced alias at commit: ${paths.join(",")}`,async()=>{
+ const fs=new MemoryFileSystem(),bytes=await sharp({create:{width:5,height:3,channels:4,background:"red"}}).png().toBuffer();
+ await fs.writeFile("/target",bytes);await fs.link("/target","/hard");await fs.symlink("target","/link");await fs.writeFile("/other",bytes);
+ const filesystem=new Proxy(fs,{get(target,key){
+  if(key==="createStagedFile")return async(...args:Parameters<typeof fs.createStagedFile>)=>{const staging=await fs.createStagedFile(...args),writer=staging.writer!;return {...staging,writer:{write:writer.write.bind(writer),async finish(...args:Parameters<typeof writer.finish>){const stat=await writer.finish(...args);const alias=paths.includes("link")?"/link":"/hard";await fs.rm(alias);await fs.symlink("other",alias);return stat;}}};};
+  const value=Reflect.get(target,key,target);return typeof value==="function"?value.bind(target):value;
+ }});
+ await expect(runSipsCli(["-r","90",...paths],{filesystem,cwd:"/"})).rejects.toMatchObject({code:"EAGAIN"});
+ expect(await fs.readFile("/target")).toEqual(bytes);expect(await fs.readFile("/other")).toEqual(bytes);
+ expect((await fs.readdir("/")).map(entry=>entry.name).sort()).toEqual(["hard","link","other","target"]);
+});

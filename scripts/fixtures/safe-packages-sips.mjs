@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { Shell } from "@poe-platform/safe-bash/core";
-import { sipsCommands, createIdentifyCommand } from "@poe-platform/safe-bash/commands/sips";
+import { Shell as RootShell, createSipsCommand as createRootSipsCommand } from "@poe-platform/safe-bash";
+import { sipsCommands, createSipsCommand, createIdentifyCommand } from "@poe-platform/safe-bash/commands/sips";
 import { pandocCommands } from "@poe-platform/safe-bash/commands/pandoc";
 import { shufCommands } from "@poe-platform/safe-bash/commands/shuf";
 import sharp from "@poe-platform/safe-bash/sharp";
@@ -8,6 +9,8 @@ import { readHeifMetadataFromSource } from "@poe-platform/safe-bash/image-ast";
 import { createMemoryFileSystem } from "@poe-platform/safe-fs";
 
 export const verification = (async () => {
+  assert.equal(RootShell, Shell);
+  assert.equal(createRootSipsCommand().runtimeIdentity, createSipsCommand().runtimeIdentity);
   const heif = await sharp({create: {width: 3, height: 2, channels: 4, background: "blue"}}).heif().toBuffer();
   class BorrowedBytes extends Uint8Array {slice(start, end) {return this.subarray(start, end);}}
   const loan = new BorrowedBytes(4096);
@@ -32,11 +35,18 @@ export const verification = (async () => {
     const pdf = await shell.exec("sips -s format pdf /out.jpg --out /out.pdf");
     assert.equal(pdf.exitCode, 0, pdf.stderr);
     assert.equal((await sharp(await fs.readFile("/out.pdf")).metadata()).width, 7);
+    await fs.link("/out.jpg", "/hard.jpg");
+    await fs.symlink("out.jpg", "/link.jpg");
+    const aliased = await shell.exec("sips -r 90 /link.jpg /out.jpg /hard.jpg");
+    assert.equal(aliased.exitCode, 0, aliased.stderr);
+    assert.equal(await fs.readlink("/link.jpg"), "out.jpg");
+    assert.equal((await sharp(await fs.readFile("/out.jpg")).metadata()).width, 13);
+    assert.deepEqual(await fs.readFile("/hard.jpg"), await fs.readFile("/out.jpg"));
     const composed = await shell.exec("pandoc -f markdown -t plain /input.md | shuf --random-source=/random");
     assert.equal(composed.exitCode, 0, composed.stderr);
     assert.deepEqual(composed.stdout.split("\n").filter(Boolean).sort(), ["alpha", "beta"]);
     const inspected = await shell.exec("sips -g pixelWidth /out.jpg | shuf --random-source=/random");
     assert.equal(inspected.exitCode, 0, inspected.stderr);
-    assert.ok(inspected.stdout.includes("pixelWidth: 7"));
+    assert.ok(inspected.stdout.includes("pixelWidth: 13"));
   } finally {await shell.dispose();}
 })();

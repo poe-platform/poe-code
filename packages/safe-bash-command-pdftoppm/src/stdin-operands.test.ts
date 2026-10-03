@@ -1,3 +1,4 @@
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { expect, it } from "vitest";
 import { PdfDocument, decodePng } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts";
@@ -16,7 +17,7 @@ for (const create of [createPdftoppmCommand, createPdftocairoCommand]) {
         args: ["-png", "-singlefile", "-r", "72", ...operand],
         cwd: "/", env: {}, signal: new AbortController().signal,
         stdin: { async *[Symbol.asyncIterator]() { reads++; yield pdf; } },
-        fs: { async readFile() { throw new Error("unexpected file read"); } },
+        fs: createMemoryFileSystem(),
         stdout: { async write(bytes: Uint8Array) { output.push(bytes); } },
         stderr: { async write() {} },
       } as unknown as CommandContext;

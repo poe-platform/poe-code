@@ -2,7 +2,7 @@
 
 `createPdftoppmCommand(options?)` creates one command, `createPdftoppmCommands(options?)` returns the command family, and `pdftoppmCommands(options?)` registers it as a shell plugin. `PdftoppmCommandsOptions` describes configuration; all three factories accept no arguments.
 
-Zero-dependency Poppler `pdftoppm` page renderer for `@poe-platform/safe-bash` powered by `@poe-code/pdf-ast`. Render PDF pages to PNG, PPM, PGM, PBM, or SVG inside the in-memory virtual filesystem without native Poppler binaries.
+Zero-dependency Poppler `pdftoppm` page renderer for `@poe-platform/safe-bash` powered by `@poe-code/pdf-ast`. Render PDF pages to PNG, JPEG, TIFF, PPM, PGM, PBM, or SVG through the supplied filesystem without native Poppler binaries.
 
 ## Features
 
@@ -35,6 +35,13 @@ The workspace entrypoint exports `pdftoppmCommands()` for plugin registration,
 `PdftoppmCommandsOptions` object; existing factory names remain available.
 
 Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `PdftoppmLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops and PDF page rasterization and pixel encoding yield to timers and cancellation, including Workers with frozen clocks.
+
+Raster output uses retained PDF reads, fixed-size pixel windows and caller-backed
+staging in `TMPDIR` (default `/tmp`). All pages finish rendering before output
+publication, and each file is published atomically. Use an external filesystem
+backend for large documents. Individual decoded resources and nested paint
+captures retain their current memory requirements. SVG, `pdftocairo`, and the
+buffered convenience runners still use their existing execution paths.
 
 Output parent directories must already exist. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.
 

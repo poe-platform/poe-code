@@ -26,11 +26,6 @@
         "vitest.config.ts",
         "vitest.root.config.ts",
         "!packages/safe-bash/**"
-      ],
-      "dependsOn": [
-        "@poe-code/superintendent#build",
-        "@poe-code/poe-agent#build",
-        "@poe-code/agent-skill-config#build"
       ]
     },
     "lint": {

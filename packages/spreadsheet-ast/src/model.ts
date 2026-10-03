@@ -178,8 +178,10 @@ function ownershipBudgets(limits: WorkbookLimits) {
     operations: admitted.operations!
   };
 }
-/** Only JSON-like owned data is admitted; no prototypes, accessors or host capabilities. */
-export function snapshotRecords<T>(records: T, limits: WorkbookLimits): T {
+/** Successive copies share node/text budgets without retaining prior records.
+ * Depth is relative to the containing document when copying streamed children.
+ * Only JSON-like owned data is admitted; no prototypes, accessors or capabilities. */
+export function createRecordSnapshot(limits: WorkbookLimits) {
   let nodes = 0,
     textBytes = 0;
   const { nodeLimit, textLimit, depthLimit } = ownershipBudgets(limits);
@@ -240,7 +242,11 @@ export function snapshotRecords<T>(records: T, limits: WorkbookLimits): T {
     ancestors.delete(value);
     return Object.freeze(result);
   }
-  return copy(records) as T;
+  return <T>(records: T, depth = 0): T => copy(records, depth) as T;
+}
+
+export function snapshotRecords<T>(records: T, limits: WorkbookLimits): T {
+  return createRecordSnapshot(limits)(records);
 }
 export function snapshotWorkbook(book: Workbook, limits: WorkbookLimits): Workbook {
   const budgets = ownershipBudgets(limits);

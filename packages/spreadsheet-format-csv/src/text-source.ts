@@ -3,6 +3,8 @@ import { decodeTextSource } from "@poe-code/spreadsheet-engine/encoding/decode-s
 import { formattingLocale } from "@poe-code/spreadsheet-engine/formatting/locale";
 import { MAX_SHEET_SIZE } from "@poe-code/spreadsheet-ast/model";
 import type { Cell, Workbook } from "@poe-code/spreadsheet-ast";
+import type { WorkbookSource } from "@poe-code/spreadsheet-engine/codecs/types";
+import { createTextColumnInference, isPartialTextDate } from "./text-values.js";
 import { finishTextImport, probeText, trimSpace } from "./text.js";
 
 /** Only the native 512-byte probe prefix is needed, including short reads. */
@@ -106,25 +108,24 @@ async function separator(source: AsyncIterable<string>, ending: string, csv: boo
   return "";
 }
 
-/** Retains the public workbook cells, but never the complete source bytes/text.
- * EOL and column inference keep their global semantics using source replay. */
-export async function readTextSource(source: RangeSource, context: CapabilityContext, encoding?: string): Promise<Workbook> {
+/** Parse one cell at a time; the returned extent is known only after EOF. */
+async function* scanTextSource(source: RangeSource, context: CapabilityContext, encoding?: string) {
   context.signal.throwIfAborted();
   if (source.size > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert input bytes limit exceeded");
   const text = decodeTextSource(source, context.signal, encoding);
   const { ending, unique } = await lineEnding(text);
   const csv = context.inputFilename?.toLowerCase().endsWith(".csv") ?? false;
   const sep = await separator(text, ending, csv, formattingLocale(context.environment.locale).decimal), collapse = sep.includes(" ");
-  const cells: Cell[] = [];
+  let count = 0, pending: Cell | undefined;
   const name = context.inputFilename?.slice(context.inputFilename.lastIndexOf("/") + 1) ?? "Sheet1";
-  const book: Workbook = { sheets: [{ id: "s1", name, cells }], ...(unique ? { textExportEol: ending } : {}) };
+  const book: Workbook = { sheets: [{ id: "s1", name, cells: [] }], ...(unique ? { textExportEol: ending } : {}) };
   let row = 0, column = 0, maximumColumns = 0, rowsExceeded = false, field = "", trimmed = false;
   let state: "start" | "plain" | "quoted" | "quote" | "discard" = "start";
   const finish = (separator: boolean) => {
     if (!csv) field = trimSpace(field);
     if (field && column < MAX_SHEET_SIZE.columns) {
-      if (cells.length >= context.limits.cells) throw new SsconvertError("resource-limit", "ssconvert cells limit exceeded");
-      cells.push({ row, column, value: { kind: "string", value: field } });
+      if (count >= context.limits.cells) throw new SsconvertError("resource-limit", "ssconvert cells limit exceeded");
+      count++; pending = { row, column, value: { kind: "string", value: field } };
     }
     column++; maximumColumns = Math.max(maximumColumns, column + (separator ? 1 : 0));
     field = ""; state = "start"; trimmed = false;
@@ -156,10 +157,53 @@ export async function readTextSource(source: RangeSource, context: CapabilityCon
   };
   for await (const fragment of lines(text, ending)) {
     context.signal.throwIfAborted();
-    for (const character of fragment.text) consume(character, false);
+    for (const character of fragment.text) {
+      consume(character, false);
+      if (pending) { yield pending; pending = undefined; }
+    }
     if (fragment.end) consume(ending, true);
+    if (pending) { yield pending; pending = undefined; }
     if (rowsExceeded) break;
   }
   if (state !== "start" || trimmed) finish(false);
+  if (pending) yield pending;
+  return { book, row, column, maximumColumns, rowsExceeded };
+}
+
+/** Explicit array-model convenience for SDK readers and global operations. */
+export async function readTextSource(source: RangeSource, context: CapabilityContext, encoding?: string): Promise<Workbook> {
+  const scan = scanTextSource(source, context, encoding), cells: Cell[] = [];
+  let next = await scan.next();
+  while (!next.done) { cells.push(next.value); next = await scan.next(); }
+  const { book, row, column, maximumColumns, rowsExceeded } = next.value;
   return finishTextImport(book, cells, row, column, maximumColumns, rowsExceeded, context);
+}
+
+/** Source replay replaces a retained cell array for sequential conversions.
+ * Formula-bearing inputs continue through the evaluator until it supports indexes.
+ */
+export async function readTextWorkbookSource(source: RangeSource, context: CapabilityContext, encoding?: string): Promise<WorkbookSource | undefined> {
+  const scan = scanTextSource(source, context, encoding);
+  const allRows = createTextColumnInference({ sheets: [] }, context, 1);
+  const withoutHeader = createTextColumnInference({ sheets: [] }, context, 2);
+  let needsEvaluation = false, next = await scan.next();
+  while (!next.done) {
+    const cell = next.value;
+    if (cell.value.kind === "string") {
+      const text = cell.value.value;
+      // Partial dates consult the clock; replay must not reevaluate them later.
+      if (text.startsWith("=") && text.length > 1 || isPartialTextDate(text)) needsEvaluation = true;
+    }
+    allRows.observe(cell); withoutHeader.observe(cell);
+    next = await scan.next();
+  }
+  if (needsEvaluation) return undefined;
+  const { book, row, column, maximumColumns, rowsExceeded } = next.value;
+  const metadata = await finishTextImport(book, [], row, column, maximumColumns, rowsExceeded, context);
+  const inference = row + (column > 0 ? 1 : 0) > 1 ? withoutHeader : allRows;
+  return { metadata, async *cells(sheet) {
+    if (sheet !== "s1") throw new SsconvertError("invalid-request", "Unknown text sheet");
+    const cells = scanTextSource(source, context, encoding);
+    for await (const cell of cells) yield inference.apply(cell);
+  } };
 }

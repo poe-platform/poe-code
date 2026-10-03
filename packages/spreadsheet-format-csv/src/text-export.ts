@@ -4,7 +4,7 @@ import { exportOptionPairs } from "@poe-code/spreadsheet-engine/cli/export-optio
 import { renderCellText, type TextFormatMode } from "@poe-code/spreadsheet-engine/formatting";
 import { exportRangeForSheet } from "@poe-code/spreadsheet-engine/workbook/expressions";
 import { foldSheetName } from "@poe-code/spreadsheet-ast/case-fold";
-import type { Codec } from "@poe-code/spreadsheet-engine/codecs/types";
+import type { Codec, WorkbookSource } from "@poe-code/spreadsheet-engine/codecs/types";
 import { encodeText } from "@poe-code/spreadsheet-engine/encoding/encode";
 import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-stream";
 import { exportLocale } from "@poe-code/spreadsheet-engine/locale/runtime";
@@ -94,7 +94,7 @@ export function appendTextField(text: string, options: Pick<TextOptions, "mode" 
   for (const chunk of textField(text, options)) append(chunk);
 }
 
-async function* textChunks(args: Parameters<NonNullable<Codec["write"]>>, options: TextOptions): AsyncGenerator<string | Uint8Array> {
+async function* textChunks(args: Parameters<NonNullable<Codec["write"]>>, options: TextOptions, source?: WorkbookSource): AsyncGenerator<string | Uint8Array> {
   const [book, , suppliedContext, selection] = args;
   const context: CapabilityContext = options.locale === undefined ? suppliedContext : {
     ...suppliedContext, environment: exportLocale(suppliedContext.environment, options.locale)
@@ -131,7 +131,7 @@ async function* textChunks(args: Parameters<NonNullable<Codec["write"]>>, option
     if (selection?.range && !range) continue;
     let endRow = 0, endColumn = 0, ordered = true;
     let previous: (typeof sheet.cells)[number] | undefined;
-    for (const cell of sheet.cells) {
+    for await (const cell of source ? source.cells(id) : sheet.cells) {
       tick();
       if (previous && (previous.row > cell.row || previous.row === cell.row && previous.column > cell.column)) ordered = false;
       previous = cell;
@@ -142,14 +142,16 @@ async function* textChunks(args: Parameters<NonNullable<Codec["write"]>>, option
     const index = ordered ? undefined : await context.createCellIndex?.(sheet.cells);
     const cells = ordered || index ? undefined : new Map<string, (typeof sheet.cells)[number]>();
     if (cells) for (const cell of sheet.cells) cells.set(`${cell.row}:${cell.column}`, cell);
-    let cursor = 0;
-    const orderedCell = (row: number, column: number) => {
+    const iterator = source ? source.cells(id)[Symbol.asyncIterator]() : sheet.cells[Symbol.iterator]();
+    let next: IteratorResult<(typeof sheet.cells)[number]> | undefined;
+    const orderedCell = async (row: number, column: number) => {
       let found: (typeof sheet.cells)[number] | undefined;
-      while (cursor < sheet.cells.length) {
-        const cell = sheet.cells[cursor]!;
+      next ??= await iterator.next();
+      while (!next.done) {
+        const cell = next.value;
         if (cell.row > row || cell.row === row && cell.column > column) break;
-        cursor++;
         if (cell.row === row && cell.column === column) found = cell;
+        next = await iterator.next();
       }
       return found;
     };
@@ -159,7 +161,7 @@ async function* textChunks(args: Parameters<NonNullable<Codec["write"]>>, option
         for (let column = range?.startColumn ?? 0; column <= endColumn; column++) {
           tick();
           if (column !== (range?.startColumn ?? 0)) yield* append(options.separator);
-          const cell = ordered ? orderedCell(row, column) : index ? await index.get(row, column) : cells!.get(`${row}:${column}`);
+          const cell = ordered ? await orderedCell(row, column) : index ? await index.get(row, column) : cells!.get(`${row}:${column}`);
           const value = cell?.cachedResult ?? cell?.value;
           if (value?.kind === "byte-string") {
             const bytes = byteField(decodeByteString(value.value, tick, context.limits.outputBytes), options,
@@ -172,12 +174,12 @@ async function* textChunks(args: Parameters<NonNullable<Codec["write"]>>, option
         }
         yield* append(options.eol);
       }
-    } finally { await index?.close(); }
+    } finally { await iterator.return?.(); await index?.close(); }
   }
   context.signal.throwIfAborted();
 }
 
-async function* exportText(args: Parameters<NonNullable<Codec["write"]>>, options: TextOptions): AsyncGenerator<Uint8Array> {
+async function* exportText(args: Parameters<NonNullable<Codec["write"]>>, options: TextOptions, source?: WorkbookSource): AsyncGenerator<Uint8Array> {
   const context = args[2];
   let charset = options.charset, failed = false;
   try { encodeText("", charset, options.transliterate, context); }
@@ -187,7 +189,7 @@ async function* exportText(args: Parameters<NonNullable<Codec["write"]>>, option
     charset = "UTF-8"; failed = true;
     await context.diagnostic?.({ code: "text-converter", severity: "warning", message: "Failed to create converter." });
   }
-  yield* encodeTextStream(textChunks(args, options), charset, options.transliterate, context);
+  yield* encodeTextStream(textChunks(args, options, source), charset, options.transliterate, context);
   if (failed) throw new CodecWriteFailure(new Uint8Array(), "E Error while trying to export file as text");
 }
 
@@ -204,7 +206,7 @@ async function collect(source: AsyncIterable<Uint8Array>): Promise<Uint8Array> {
   return bytes;
 }
 
-export const writeConfigurableTextStream: NonNullable<Codec["writeStream"]> = (...args) => {
+function configurableOptions(args: Parameters<NonNullable<Codec["write"]>>): TextOptions {
   const options: TextOptions = { separator: ",", quote: '"', eol: args[0].textExportEol ?? "\n", mode: "auto", whitespace: true,
     format: "automatic", charset: "UTF-8", transliterate: true };
   const context = args[2];
@@ -226,12 +228,24 @@ export const writeConfigurableTextStream: NonNullable<Codec["writeStream"]> = (.
       case "transliterate-mode": options.transliterate = ["transliterate", "GNM_STF_TRANSLITERATE_MODE_TRANS"].includes(value); break;
     }
   }
-  return exportText(args, options);
+  return options;
+}
+
+export const writeConfigurableTextStream: NonNullable<Codec["writeStream"]> = (...args) => exportText(args, configurableOptions(args));
+
+export const writeConfigurableTextSource: NonNullable<Codec["writeWorkbookSource"]> = (source, options, context, selection) => {
+  const args: Parameters<NonNullable<Codec["write"]>> = [source.metadata, options, context, selection];
+  return exportText(args, configurableOptions(args), source);
 };
 
 export const writePlainCsvStream: NonNullable<Codec["writeStream"]> = (...args) => exportText(args,
   { separator: ",", quote: '"', eol: "\n", mode: "auto", whitespace: true,
     format: "automatic", charset: "UTF-8", transliterate: false });
+
+export const writePlainCsvSource: NonNullable<Codec["writeWorkbookSource"]> = (source, options, context, selection) =>
+  exportText([source.metadata, options, context, selection],
+    { separator: ",", quote: '"', eol: "\n", mode: "auto", whitespace: true,
+      format: "automatic", charset: "UTF-8", transliterate: false }, source);
 
 export const writeConfigurableText: NonNullable<Codec["write"]> = (...args) => collect(writeConfigurableTextStream(...args) as AsyncIterable<Uint8Array>);
 export const writePlainCsv: NonNullable<Codec["write"]> = (...args) => collect(writePlainCsvStream(...args) as AsyncIterable<Uint8Array>);

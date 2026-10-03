@@ -1,4 +1,4 @@
-import type { Workbook, CellRange } from "@poe-code/spreadsheet-ast";
+import type { Workbook, CellRange, Cell } from "@poe-code/spreadsheet-ast";
 import type { ByteSource, CapabilityContext, RangeSource } from "../contracts.js";
 
 export type Direction = "read" | "write";
@@ -32,6 +32,14 @@ export interface ServiceDescriptor {
   readonly byteStrings?: "utf8-text" | "formula-only";
   readonly exporterOptionKeys?: readonly string[];
 }
+/** Replayable, row-major cells backed by retained input or caller working storage.
+ * Metadata contains empty cell arrays. Each iteration owns only its current cell.
+ * Readers may decline this representation when global evaluation is still needed.
+ */
+export interface WorkbookSource {
+  readonly metadata: Workbook;
+  cells(sheet: string): AsyncIterable<Cell>;
+}
 export interface Codec extends ServiceDescriptor {
   /** Handles label metadata explicitly; other writers report its omission. */
   readonly labelRanges?: true;
@@ -41,6 +49,7 @@ export interface Codec extends ServiceDescriptor {
   probeName?(filename: string, context: CapabilityContext): boolean | Promise<boolean>;
   probeContent?(bytes: Uint8Array, context: CapabilityContext): boolean | Promise<boolean>;
   probeSource?(source: RangeSource, context: CapabilityContext): boolean | Promise<boolean>;
+  readWorkbookSource?(source: RangeSource, context: CapabilityContext, encoding?: string): Promise<WorkbookSource | undefined>;
   readSource?(source: RangeSource, context: CapabilityContext, encoding?: string): Promise<Workbook>;
   read?(bytes: Uint8Array, context: CapabilityContext, encoding?: string): Promise<Workbook>;
   write?(book: Workbook, options: readonly string[], context: CapabilityContext,
@@ -48,6 +57,8 @@ export interface Codec extends ServiceDescriptor {
   /** Incremental export; yielded bytes are borrowed until the next pull.
    * Supply write as a buffering convenience for hosts without streaming output. */
   writeStream?(book: Workbook, options: readonly string[], context: CapabilityContext,
+    selection?: { readonly sheets: readonly string[]; readonly range?: CellRange }): ByteSource;
+  writeWorkbookSource?(source: WorkbookSource, options: readonly string[], context: CapabilityContext,
     selection?: { readonly sheets: readonly string[]; readonly range?: CellRange }): ByteSource;
   /** Installed provider's exporter option handler; no native callback is implied. */
   exportOptions?(options: readonly string[], context: CapabilityContext, book?: Workbook): Promise<readonly string[]>;

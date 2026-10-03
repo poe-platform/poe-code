@@ -7,15 +7,14 @@ import { exportOptionPairs } from "../cli/export-options.js";
 /** Gate unqualified writers before opening a destination. An opaque byte value
  * must never be mistaken for its hex payload or silently exported as blank. */
 export function admitByteStringExport(book: Workbook, codec: Codec, context: CapabilityContext,
-  selection?: Parameters<NonNullable<Codec["write"]>>[3], options: readonly string[] = []): void {
-  let work = 0;
+  selection?: Parameters<NonNullable<Codec["write"]>>[3], options: readonly string[] = [], budget = { work: 0 }): void {
   for (const sheet of book.sheets) {
     if (selection && !selection.sheets.includes(sheet.id)) continue;
     const range = selection?.range && exportRangeForSheet(selection.range, book, sheet.id);
     if (selection?.range && !range) continue;
     for (const cell of sheet.cells) {
       context.signal.throwIfAborted();
-      if (++work > (context.limits.workbookWork ?? context.limits.inputBytes))
+      if (++budget.work > (context.limits.workbookWork ?? context.limits.inputBytes))
         throw new SsconvertError("resource-limit", "ssconvert byte-string export work limit exceeded");
       if (range && (cell.row < range.startRow || cell.row > range.endRow || cell.column < range.startColumn || cell.column > range.endColumn)) continue;
       if (cell.value.kind !== "byte-string" && cell.cachedResult?.kind !== "byte-string") continue;

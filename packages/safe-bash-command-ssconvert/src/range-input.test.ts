@@ -43,3 +43,32 @@ it.each(["retained", "stream", "fallback"] as const)("uses injected %s input wit
   } finally { for (const cleanup of cleanups.reverse()) await cleanup(); }
   expect((await fs.readdir("/")).map(entry => entry.name)).toEqual(["input.data"]);
 });
+
+it("publishes CSV from replayable cells through the command's injected filesystem", async () => {
+  const { csvFormat } = await import("./formats/csv.js");
+  const backend = createMemoryFileSystem();
+  const input = new TextEncoder().encode("Label,Value\na,1.25\nb,2.50\n");
+  await backend.writeFile("/input.csv", input);
+  const readFile = vi.fn(async () => { throw new Error("whole file read"); });
+  const fs = new Proxy(backend, { get(target, key) {
+    if (key === "readFile") return readFile;
+    const value: unknown = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const arrayRead = vi.fn(async () => { throw new Error("retained cell array"); });
+  const arrayWrite = vi.fn(() => { throw new Error("array writer"); });
+  const format = { ...csvFormat, services: csvFormat.services.map(service => service.direction === "read" && service.readSource
+    ? { ...service, readSource: arrayRead } : service.direction === "write"
+      ? { ...service, write: arrayWrite, writeStream: arrayWrite } : service) };
+  const args = createCommandArguments(["-I", "Gnumeric_stf:stf_csvtab", "-T", "Gnumeric_stf:stf_csv", "/input.csv", "/output.csv"]);
+  const cleanups: (() => void | Promise<void>)[] = [], errors: string[] = [];
+  const context: CommandContext = { command: "ssconvert", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+    signal: new AbortController().signal, stdin: toByteSource(""), stdout: { async write() {} },
+    stderr: { async write(bytes) { errors.push(new TextDecoder().decode(bytes)); } }, registerCleanup(cleanup) { cleanups.push(cleanup); } };
+  try {
+    expect(await createSsconvertCommand({ formats: [format] }).execute(context), errors.join("")).toMatchObject({ exitCode: 0 });
+    expect(new TextDecoder().decode(await backend.readFile("/output.csv"))).toBe("Label,Value\na,1.25\nb,2.5\n");
+    expect(arrayRead).not.toHaveBeenCalled(); expect(arrayWrite).not.toHaveBeenCalled(); expect(readFile).not.toHaveBeenCalled();
+  } finally { for (const cleanup of cleanups.reverse()) await cleanup(); }
+  expect((await backend.readdir("/")).map(entry => entry.name).sort()).toEqual(["input.csv", "output.csv"]);
+});

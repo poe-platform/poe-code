@@ -59,6 +59,11 @@ function dateValue(text: string, order: DateOrder, book: Workbook): number | und
   return value + (book.dateSystem !== "1904" && (year > 1900 || month > 2) ? 1 : 0);
 }
 
+export function isPartialTextDate(text: string): boolean {
+  const parts = text.trim().split("/");
+  return parts.length === 2 && parts.every(p => p.length > 0 && p.length <= 2 && [...p].every(c => c >= "0" && c <= "9"));
+}
+
 function generalValue(text: string, book: Workbook, decimal: string, context: CapabilityContext): { value: CellValue; format?: string } {
   const original = inferText(text, book);
   if (text.startsWith("'") || text.startsWith("=")) return original;
@@ -80,8 +85,7 @@ function generalValue(text: string, book: Workbook, decimal: string, context: Ca
     const value = dateValue(text, order, book);
     if (value !== undefined) return { value: { kind: "number", value }, format: order === "ymd" ? "yyyy-mm-dd" : order === "mdy" ? "m/d/yyyy" : "d-mmm-yyyy" };
   }
-  const partialDate = text.trim().split("/");
-  if (partialDate.length === 2 && partialDate.every(p => p.length > 0 && p.length <= 2 && [...p].every(c => c >= "0" && c <= "9"))) {
+  if (isPartialTextDate(text)) {
     if (!context.clock) throw new SsconvertError("capability-denied", "ssconvert text dates require an explicit clock");
     const now = context.clock.now();
     if (!Number.isFinite(now)) throw new SsconvertError("invalid-request", "Invalid ssconvert clock result");

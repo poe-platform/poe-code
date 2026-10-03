@@ -1,3 +1,5 @@
+import type { WorkbookSource } from "./codecs/types.js";
+import { ownWorkbookSource } from "./workbook/source.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { createWorkingStorage } from "./working-storage.js";
 import { createCellIndex } from "./workbook/cell-index.js";
@@ -256,8 +258,9 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
     encoding: string | undefined,
     context: CapabilityContext,
     maximumBytes = config.limits.inputBytes,
-    storageLimits: RuntimeLimits = config.limits
-  ): Promise<{ book: Workbook; bytes: number }> {
+    storageLimits: RuntimeLimits = config.limits,
+    replayable = false
+  ): Promise<{ book: Workbook; bytes: number; source?: WorkbookSource }> {
     check(context);
     const filename = input.kind === "resource" ? input.uri : input.filename;
     const forced = type === undefined ? undefined : registry.select("read", type);
@@ -273,6 +276,13 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
       check(context);
       if (!codec?.readSource && !codec?.read)
         throw new SsconvertError("io", `E Unsupported file format for file "${resourceBasename(filename, config.environment.cwd)}"`);
+      if (replayable && codec.readWorkbookSource) {
+        const decoded = await codec.readWorkbookSource(source, importContext, encoding);
+        if (decoded) {
+          const owned = await ownWorkbookSource(decoded, storageLimits, () => check(context));
+          return { book: owned.metadata, source: owned, bytes: source.size };
+        }
+      }
       const decoded = codec.readSource ? await codec.readSource(source, importContext, encoding) :
         await codec.read!(await bufferRangeInput(source, context.signal), importContext, encoding);
       check(context);
@@ -438,7 +448,8 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
     inputBytes: number,
     prepared?: Awaited<ReturnType<typeof prepareExport>>,
     maximumBytes = config.limits.outputBytes,
-    range?: import("@poe-code/spreadsheet-ast").CellRange
+    range?: import("@poe-code/spreadsheet-ast").CellRange,
+    source?: WorkbookSource
   ): Promise<OperationResult> {
     check(context);
     const selection = prepared ?? await prepareExport(book, destination, type, options, context);
@@ -452,7 +463,14 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
     const exportRange = selection.codec.honorsExportRange ? range : undefined;
     const writerSelection = sheets === undefined && exportRange === undefined ? undefined : Object.freeze({ sheets: Object.freeze([...(sheets ?? [])]),
       ...(exportRange === undefined ? {} : { range: exportRange }) });
-    admitByteStringExport(book, selection.codec, context, writerSelection, selection.options);
+    if (source) {
+      const budget = { work: 0 };
+      for (const sheet of book.sheets) {
+        if (writerSelection && !writerSelection.sheets.includes(sheet.id)) continue;
+        for await (const cell of source.cells(sheet.id))
+          admitByteStringExport({ ...book, sheets: [{ ...sheet, cells: [cell] }] }, selection.codec, context, writerSelection, selection.options, budget);
+      }
+    } else admitByteStringExport(book, selection.codec, context, writerSelection, selection.options);
     if (!selection.codec.labelRanges && (book.automaticLabelLookup || book.sheets.some(sheet =>
       (sheets === undefined || sheets.includes(sheet.id)) && sheet.labelRanges?.length)))
       await context.diagnostic?.({ code: "label-range-loss-warning", severity: "warning",
@@ -460,9 +478,10 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
     const output = destination.kind === "resource" ? await config.filesystem?.openOutput?.(destination.uri, context) : undefined;
     check(context);
     const writerContext = destination.kind === "resource" ? { ...context, outputFilename: destination.uri } : context;
-    if (selection.codec.writeStream && (destination.kind === "stream" || output?.writeStream)) {
+    if ((source ? selection.codec.writeWorkbookSource : selection.codec.writeStream) && (destination.kind === "stream" || output?.writeStream)) {
       const outputBytes = await publishExportStream(
-        () => selection.codec.writeStream!(book, selection.options, writerContext, writerSelection),
+        () => source ? selection.codec.writeWorkbookSource!(source, selection.options, writerContext, writerSelection) :
+          selection.codec.writeStream!(book, selection.options, writerContext, writerSelection),
         destination, output, context, maximumBytes, () => check(context)
       );
       return { exitCode: 0, diagnostics: Object.freeze([...diagnostics.get(context)!]),
@@ -471,6 +490,16 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
     }
     let bytes: Uint8Array;
     try {
+      // Explicit compatibility for hosts whose output capability requires full bytes.
+      if (source) {
+        const sheets = [];
+        for (const sheet of source.metadata.sheets) {
+          const cells = [];
+          for await (const cell of source.cells(sheet.id)) cells.push(cell);
+          sheets.push({ ...sheet, cells });
+        }
+        book = retain({ ...source.metadata, sheets });
+      }
       if (!selection.codec.write) throw new SsconvertError("capability-denied", "Filesystem streaming output capability is required");
       bytes = await selection.codec.write(book, selection.options, destination.kind === "resource" ? { ...context, outputFilename: destination.uri } : context,
         writerSelection);
@@ -485,7 +514,7 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
     return publishBytes(destination, bytes, context, inputBytes, maximumBytes, output);
   }
   async function saveConversion(book: Workbook, request: ResolvedRequest, context: CapabilityContext,
-    inputBytes: number, prepared?: Awaited<ReturnType<typeof prepareExport>>, range?: import("@poe-code/spreadsheet-ast").CellRange) {
+    inputBytes: number, prepared?: Awaited<ReturnType<typeof prepareExport>>, range?: import("@poe-code/spreadsheet-ast").CellRange, source?: WorkbookSource) {
     if (request.clipboard !== undefined) {
       if (!range) throw new SsconvertError("invalid-request", "Invalid range specified.");
       if (!config.clipboard) unsupported("clipboard serialization");
@@ -578,7 +607,7 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
     if (!prepared) throw new SsconvertError("invalid-request", "ssconvert exporter was not prepared");
     if (!request.perSheet)
       return write(book, request.destination, request.exportType, request.exportOptions ?? [], context, inputBytes, prepared,
-        config.limits.outputBytes, range);
+        config.limits.outputBytes, range, source);
     const destination = request.destination;
     if (destination.kind !== "resource") return unsupported("split stream template");
     const artifacts: OperationResult["artifacts"][number][] = [];
@@ -593,7 +622,7 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
       const result = await write(view,
         splitOutput(destination.uri, sheet, index, config.environment.cwd),
         request.exportType, request.exportOptions ?? [], context, inputBytes,
-        { ...prepared, selected: Object.freeze([sheet.id]) }, config.limits.outputBytes - outputBytes, range);
+        { ...prepared, selected: Object.freeze([sheet.id]) }, config.limits.outputBytes - outputBytes, range, source);
       outputBytes += result.usage.outputBytes;
       artifacts.push(...result.artifacts);
     }
@@ -743,13 +772,23 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
           check(context);
         }
         requireCapabilities(request);
+        const replayable = !config.formulas && !config.formatting && request.clipboard === undefined && !request.graphs &&
+          !request.updates?.length && !request.updateExpressions?.length && !request.goalSeek?.length &&
+          !request.goalSeekExpressions?.length && !request.solve && !request.analysis && !request.toolTest?.length &&
+          !request.resize && request.resizeExpression === undefined && !request.recalc &&
+          !request.exportRange && request.exportRangeExpression === undefined &&
+          !!exporter(request.destination, request.exportType).writeWorkbookSource;
         const imported = await read(
           request.input,
           request.clipboard === undefined ? request.importType : undefined,
           request.importEncoding,
-          context
+          context, config.limits.inputBytes, config.limits, replayable
         );
         if (!imported.book.sheets.length) throw new SsconvertError("io", `Loading ${resourceUri(request.input.kind === "resource" ? request.input.uri : request.input.filename ?? "(unspecified)", config.environment.cwd)} failed`);
+        if (imported.source) {
+          const prepared = await prepareExport(imported.book, request.destination, request.exportType, request.exportOptions ?? [], context, request);
+          return saveConversion(imported.book, request, context, imported.bytes, prepared, undefined, imported.source);
+        }
         const sourceName = request.input.kind === "resource" ? request.input.uri : request.input.filename;
         const sourceUri = sourceName === undefined ? undefined : resourceUri(sourceName, config.environment.cwd);
         const loaded = await prepareWorkbookLoad(imported.book, config, context);

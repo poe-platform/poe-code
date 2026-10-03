@@ -226,7 +226,7 @@ records. XML encoding, member compression and archive output use bounded chunks;
 worksheet rows use caller-backed staging, and row, worksheet and shared-string
 XML containers stream. Shared-string counts, IDs and XML use caller-backed
 storage, as do ordered cell-coordinate indexes. Style-region blanks are generated
-during traversal. Scalar CSV/text inputs replay into either XLSX edition without
+during traversal. Scalar CSV/text inputs replay into either XLSX edition or ODF profile without
 full cell arrays; formula inputs and global transformations retain the workbook path.
 Individual strings, other workbook cells, style indexes and other
 metadata still reside in memory. ODF exporters also stage compressed members and

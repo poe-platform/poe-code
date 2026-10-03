@@ -34,7 +34,11 @@ Both exporters use working storage for compressed ZIP members and central record
 with incremental UTF-8 encoding, compression and archive output for unencrypted
 XML members. XML byte-limit checks count bytes without encoding full containers. Buffered `createOdfWriter` calls
 remain available. Rows, tables and the main document body stream through caller-backed staging
-before style declarations are serialized. Individual cell strings, style/metadata
+before style declarations are serialized. Engine-owned cell coordinates and row
+boundaries use ordered storage indexes. Plain CSV/text conversions without global
+evaluation replay cells into either ODF profile without a full cell array; style
+names are reserved before rows are emitted. Low-level mutable workbook inputs
+retain captured cell references. Individual cell strings, style/metadata
 XML, embedded resources and encryption buffers, including wrapped
 inner archives, still reside in memory; use an external safe-fs backend to keep
 staged archive data outside the isolate.

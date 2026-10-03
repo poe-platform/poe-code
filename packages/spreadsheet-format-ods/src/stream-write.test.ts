@@ -154,6 +154,7 @@ it.each(["strict", "extended"] as const)("stages sparse %s row boundaries instea
     const book = await engine.adoptWorkbook(raw, { signal }), output: Uint8Array[] = [];
     const set = Map.prototype.set;
     const maps = vi.spyOn(Map.prototype, "set").mockImplementation(function(this: Map<unknown, unknown>, key: unknown, value: unknown) {
+      if ((typeof key === "string" || typeof key === "bigint") && typeof value === "object" && value !== null && "row" in value && "column" in value) throw new Error("resident cell address map");
       if (typeof key === "number" && value instanceof Map) throw new Error("resident row map");
       return set.call(this, key, value);
     });

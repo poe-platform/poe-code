@@ -27,10 +27,11 @@ export function createOdfStyles(xml: ReturnType<typeof createOdfXml>, extended: 
   for (const record of book.unsupportedRecords ?? []) if (["styles", "automatic-styles"].includes(record.kind)) {
     const node = odfObject(record.data)?.xml; admitMetadata(node); reserveNames(node);
   }
-  for (const sheet of book.sheets) for (const cell of sheet.cells) {
+  function reserve(cell: Pick<Cell, "style">) {
     const node = cell.style?.odf;
     if (node) { admitMetadata(node); reserveNames(node); }
   }
+  for (const sheet of book.sheets) for (const cell of sheet.cells) reserve(cell);
   function color(value: string | undefined) {
     if (!value) return undefined;
     const parts = value.split(":");
@@ -133,7 +134,7 @@ export function createOdfStyles(xml: ReturnType<typeof createOdfXml>, extended: 
       e("style:table-cell-properties", p) + e("style:paragraph-properties", paragraph) + e("style:text-properties", text)));
     return { name, kind: number.kind };
   }
-  return { register, styles };
+  return { register, reserve, styles };
 }
 
 export function odfPrintProperties(records: readonly ImportedValue[], xml: ReturnType<typeof createOdfXml>, extended: boolean) {

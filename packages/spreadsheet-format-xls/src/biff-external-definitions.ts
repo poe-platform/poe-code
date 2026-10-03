@@ -1,10 +1,13 @@
+import { serializeReference } from "@poe-code/spreadsheet-engine/formulas/serialization";
+import { gnumericGrammar } from "@poe-code/spreadsheet-engine/formulas/conventions";
+import { biffErrors } from "./biff-formulas.js";
 import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
 import type { UnsupportedRecord, Workbook } from "@poe-code/spreadsheet-ast";
 
 export interface RetainedExternalName {
   readonly sheets: readonly string[];
   readonly tokens: Uint8Array;
-  readonly record: UnsupportedRecord;
+  readonly record?: UnsupportedRecord;
 }
 
 /** Definitions remain transport metadata; resolving a name still requires the host. */
@@ -59,4 +62,20 @@ export function retainedBiffExternalNames(book: Workbook, context: CapabilityCon
     names.set(key, { sheets, tokens, record }); books.set(data.workbook, names);
   }
   return books;
+}
+
+/** BIFF external definitions have direct SUPBOOK sheet indexes, not cell-formula indexes. */
+export function biffExternalNameExpression(tokens: Uint8Array, workbook: string, sheets: readonly string[]): string | undefined {
+  if (tokens[0] === 0x1c && tokens.length === 2) return biffErrors[tokens[1]!] === undefined ? undefined : "=" + biffErrors[tokens[1]!];
+  const area = tokens[0] === 0x3b;
+  if (!(tokens[0] === 0x3a && tokens.length === 9 || area && tokens.length === 13)) return undefined;
+  const view = new DataView(tokens.buffer, tokens.byteOffset, tokens.byteLength);
+  const firstSheet = sheets[view.getUint16(1, true)], lastSheet = sheets[view.getUint16(3, true)];
+  const firstRow = view.getUint16(5, true), lastRow = area ? view.getUint16(7, true) : firstRow;
+  const firstColumn = view.getUint16(area ? 9 : 7, true), lastColumn = area ? view.getUint16(11, true) : firstColumn;
+  // Relative definitions still retain their exact native tokens; portable transport is qualified for absolute endpoints.
+  if (!firstSheet || !lastSheet || firstColumn > 255 || lastColumn > 255) return undefined;
+  const first = { workbook, sheet: firstSheet, row: { value: firstRow, relative: false }, column: { value: firstColumn, relative: false } };
+  const last = area || firstSheet !== lastSheet ? { workbook, sheet: lastSheet, row: { value: lastRow, relative: false }, column: { value: lastColumn, relative: false } } : undefined;
+  return "=" + serializeReference(first, last, gnumericGrammar, { sheet: firstSheet, row: 0, column: 0 });
 }

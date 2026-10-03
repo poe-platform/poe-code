@@ -112,7 +112,7 @@ it("rejects conflicting retained definitions instead of choosing a target", asyn
       { name: "RATE", expression: "=['dir/linked.xls']Other!B1" }
     ] } }
   }] };
-  await expect(createXlsxWriter("2008")(book, [], context)).rejects.toThrow("Conflicting retained XLSX external name definitions");
+  await expect(createXlsxWriter("2008")(book, [], context)).rejects.toThrow("Conflicting retained external name definitions");
 });
 
 it("refuses an undeclared numeric link instead of inventing a workbook path", async () => {

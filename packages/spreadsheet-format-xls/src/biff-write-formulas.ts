@@ -1,3 +1,4 @@
+import { retainedExternalNameDefinitions, externalNameKey, type ExternalBookDefinitions, type ExternalNameDefinition } from "@poe-code/spreadsheet-engine/codecs/external-name-definitions";
 import { retainedBiffExternalNames, type RetainedExternalName } from "./biff-external-definitions.js";
 import { SsconvertError, type CapabilityContext, type Diagnostic } from "@poe-code/spreadsheet-engine/contracts";
 import type { Workbook, CellValue, NamedExpression } from "@poe-code/spreadsheet-ast";
@@ -37,15 +38,25 @@ export class BiffFormulaWriter {
   private readonly linkIndices = new Map<string, number>();
   private readonly relocations: { tokens: Uint8Array; offset: number; index: number; kind: "sheet" | "name" }[] = [];
   private readonly retainedNames: Map<string, Map<string, RetainedExternalName>>;
+  private readonly portableNames: Map<string, ExternalBookDefinitions>;
   constructor(readonly book: Workbook, readonly revision: 7 | 8, readonly context: CapabilityContext) {
     this.retainedNames = revision === 8 ? retainedBiffExternalNames(book, context) : new Map();
+    let work = 0;
+    this.portableNames = revision === 8 ? retainedExternalNameDefinitions(book, (amount = 1) => {
+      context.signal.throwIfAborted(); work += amount;
+      if (work > (context.limits.workbookWork ?? context.limits.outputBytes * 8))
+        throw new SsconvertError("resource-limit", "ssconvert BIFF external definition work limit exceeded");
+    }) : new Map();
   }
   private externalBook(workbook: string): number {
     let index = this.workbookIndices.get(workbook);
     if (index === undefined) {
       index = this.externalBooks.length;
       const retained = this.retainedNames.get(workbook)?.values().next().value;
-      this.externalBooks.push({ workbook, sheets: retained ? [...retained.sheets] : [], names: [] });
+      const sheets = retained?.sheets ?? this.portableNames.get(workbook)?.sheets ?? [];
+      if (sheets.length >= 0xfffe || sheets.some(sheet => !sheet || sheet.length > 31))
+        throw new SsconvertError("unsupported-feature", "Excel BIFF external sheet table exceeds version limits");
+      this.externalBooks.push({ workbook, sheets: [...sheets], names: [] });
       this.workbookIndices.set(workbook, index);
     }
     return index;
@@ -53,13 +64,47 @@ export class BiffFormulaWriter {
   private externalScope(book: number, sheet: string): number {
     if (!sheet || sheet.length > 31) throw new SsconvertError("unsupported-feature", "Excel BIFF external sheet name exceeds version limits");
     const sheets = this.externalBooks[book]!.sheets;
-    let index = sheets.indexOf(sheet);
+    const key = foldSheetName(sheet);
+    let index = sheets.findIndex(name => name !== undefined && foldSheetName(name) === key);
     if (index < 0) {
       index = sheets.length;
       if (index >= 0xfffe) throw new SsconvertError("unsupported-feature", "Excel BIFF external sheet index exceeds version limits");
       sheets.push(sheet);
     }
     return index;
+  }
+  private externalDefinition(bookIndex: number, definition: ExternalNameDefinition): RetainedExternalName {
+    const book = this.externalBooks[bookIndex]!;
+    const parsed = parseExpression(definition.expression, { position: { sheet: this.book.sheets[0]?.id ?? "", row: 0, column: 0 },
+      signal: this.context.signal, maximumDepth: this.context.limits.formulaDepth,
+      maximumLength: this.context.limits.workbookTextBytes ?? this.context.limits.outputBytes,
+      maximumNodes: this.context.limits.workbookNodes ?? this.context.limits.cells });
+    const unsupported = (): never => { throw new SsconvertError("unsupported-feature", "Unsupported BIFF external name definition"); };
+    if (!parsed.ok) return unsupported();
+    let root = parsed.document.root;
+    while (root.kind === "parentheses") root = root.child;
+    if (root.kind === "literal" && root.value.kind === "error")
+      return { sheets: book.sheets, tokens: new Uint8Array([0x1c, biffError(root.value.value)]) };
+    if (root.kind !== "reference" || root.label || root.first.workbook !== book.workbook || !root.first.sheet ||
+      root.last?.workbook !== undefined && root.last.workbook !== book.workbook) return unsupported();
+    const endpoints = [root.first, root.last ?? root.first];
+    for (const endpoint of endpoints) {
+      if (!endpoint.row || !endpoint.column || endpoint.row.relative || endpoint.column.relative ||
+        !Number.isInteger(endpoint.row.value) || endpoint.row.value < 0 || endpoint.row.value > 65535 ||
+        !Number.isInteger(endpoint.column.value) || endpoint.column.value < 0 || endpoint.column.value > 255) return unsupported();
+    }
+    const firstSheet = root.first.sheet, lastSheet = root.last?.sheet ?? firstSheet;
+    if (foldSheetName(firstSheet) !== foldSheetName(lastSheet) && !this.portableNames.get(book.workbook)?.sheets.length) return unsupported();
+    const tokens = new Uint8Array(root.last ? 13 : 9), view = new DataView(tokens.buffer);
+    tokens[0] = root.last ? 0x3b : 0x3a;
+    view.setUint16(1, this.externalScope(bookIndex, firstSheet), true);
+    view.setUint16(3, this.externalScope(bookIndex, lastSheet), true);
+    view.setUint16(5, root.first.row!.value, true);
+    if (root.last) {
+      view.setUint16(7, root.last.row!.value, true);
+      view.setUint16(9, root.first.column!.value, true); view.setUint16(11, root.last.column!.value, true);
+    } else view.setUint16(7, root.first.column!.value, true);
+    return { sheets: book.sheets, tokens };
   }
   private sheetLink(book: number | undefined, first: number, last: number): number {
     const key = `${book ?? -1}:${first}:${last}`;
@@ -307,7 +352,9 @@ export class BiffFormulaWriter {
           const scope = node.sheet === undefined ? undefined : this.externalScope(bookIndex, node.sheet);
           let index = book.names.findIndex(name => name.name === node.name && name.sheet === scope);
           if (index < 0) {
-            const definition = this.retainedNames.get(node.workbook)?.get(JSON.stringify([node.name, node.sheet ?? null]));
+            let definition = this.retainedNames.get(node.workbook)?.get(JSON.stringify([node.name, node.sheet ?? null]));
+            const portable = this.portableNames.get(node.workbook)?.names.get(externalNameKey(node.name, node.sheet));
+            if (!definition && portable) definition = this.externalDefinition(bookIndex, portable);
             index = book.names.length;
             book.names.push({ name: node.name, ...(scope === undefined ? {} : { sheet: scope }), ...(definition ? { definition } : {}) });
           }

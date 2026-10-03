@@ -1,3 +1,4 @@
+import { biffExternalNameExpression } from "./biff-external-definitions.js";
 import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
 import type { Cell, CellValue, Workbook, Range, AxisMetadata, NamedExpression, ImportedValue, UnsupportedRecord, RichTextRun, FormulaGroup, LabelRange } from "@poe-code/spreadsheet-ast";
 import { Binary, isCfb, readCfb, readBiffRecords, invalidBiff, type BiffRecord } from "./biff-binary.js";
@@ -333,7 +334,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       const addin = ver >= 8 ? supbooks.at(-1)?.kind === "addin" : legacyLink?.addin;
       const externalIdentity = (ver >= 8 ? supbooks.at(-1)?.workbook : legacyLink?.workbook) !== undefined && flags === 0;
       const externalBook = ver >= 8 ? supbooks.at(-1) : undefined, tokens = formula.tokens;
-      let definition: ImportedValue | undefined;
+      let definition: ImportedValue | undefined, portableDefinitions: ImportedValue | undefined;
       if (externalBook?.workbook !== undefined && flags === 0 && data.u16(4) === 0 &&
         (tokens[0] === 0x1c && tokens.length === 2 || tokens[0] === 0x3a && tokens.length === 9 || tokens[0] === 0x3b && tokens.length === 13)) {
         accountFormulaWork(tokens.length + externalBook.sheets.length);
@@ -342,9 +343,14 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
           workbook: accountText(externalBook.workbook), name: accountText(name),
           sheets: externalBook.sheets.map(accountText), ...(scope === undefined ? {} : { scope: accountText(scope) }),
           tokens: accountText(Array.from(tokens, byte => byte.toString(16).padStart(2, "0")).join("")) };
+        const expression = definition === undefined ? undefined : biffExternalNameExpression(tokens, externalBook.workbook, externalBook.sheets);
+        if (expression !== undefined) {
+          portableDefinitions = { workbook: accountText(externalBook.workbook), sheets: externalBook.sheets.map(accountText),
+            names: [{ name: accountText(name), expression: accountText(expression), ...(scope === undefined ? {} : { sheet: accountText(scope) }) }] };
+        }
       }
       if (!addin || flags !== 0) await retain(record, sheet?.unsupportedRecords ?? unsupported, !externalIdentity,
-        definition === undefined ? {} : { externalNameDefinition: definition });
+        { ...(definition === undefined ? {} : { externalNameDefinition: definition }), ...(portableDefinitions === undefined ? {} : { externalNameDefinitions: portableDefinitions }) });
       continue;
     }
     if (opcode === 0x17 && ver >= 8) {

@@ -834,40 +834,6 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
     return { ...img, data: out };
 }
 
-function* applyMagickEqualizeSteps(img: RgbaImage, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    let cooperativeWork = 0;
-    const out = new Uint8Array(img.data);
-    const totalPixels = Math.max(1, img.width * img.height);
-    for (let c = 0; c < 3; c++) {
-        if (++cooperativeWork % 65536 === 0)
-            yield;
-        const hist = new Uint32Array(256);
-        for (let i = c; i < out.length; i += 4) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            hist[out[i]!]!++;
-        }
-        const lut = new Uint8Array(256);
-        let cdf = 0;
-        let cdfMin = 0;
-        for (let v = 0; v < 256; v++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            cdf += hist[v]!;
-            if (cdfMin === 0 && cdf > 0)
-                cdfMin = cdf;
-            const denom = Math.max(1, totalPixels - cdfMin);
-            lut[v] = clampByteVal(((cdf - cdfMin) / denom) * 255);
-        }
-        for (let i = c; i < out.length; i += 4) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            out[i] = lut[out[i]!]!;
-        }
-    }
-    return { ...img, data: out };
-}
-
 function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const palette: Array<{
@@ -4248,6 +4214,72 @@ function parseMagickIndexSpec(spec: string, length: number): number[] {
   return out;
 }
 
+type MagickHistogram = Float64Array[];
+type MagickAnalysisOperation = { end: number; lookup(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha">): Uint8Array[] };
+function* accumulateMagickHistogram(data: Uint8Array, histogram: MagickHistogram): Generator<void, void, void> {
+    for (let i = 0; i < data.length; i += 4) {
+        if (i && i % 65536 === 0) yield;
+        for (let channel = 0; channel < 4; channel++) histogram[channel]![data[i + channel]!]!++;
+    }
+}
+function* applyMagickLookup(image: RgbaImage, lookup: Uint8Array[]): Generator<void, RgbaImage, void> {
+    const data = new Uint8Array(image.data);
+    for (let i = 0; i < data.length; i += 4) {
+        if (i && i % 65536 === 0) yield;
+        for (let channel = 0; channel < 4; channel++) data[i + channel] = lookup[channel]![data[i + channel]!]!;
+    }
+    return { ...image, data };
+}
+function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickState, start: number): MagickAnalysisOperation | undefined {
+    const token = tokens[start];
+    if (!["-auto-level", "-auto-gamma", "-normalize", "-contrast-stretch", "-linear-stretch", "-equalize"].includes(token ?? "")) return;
+    let end = start;
+    const argument = token === "-normalize" ? "2%x1%" : token === "-contrast-stretch" || token === "-linear-stretch" ? tokens[++end] ?? "0%x0%" : "";
+    const independent = state.channelExplicit, channels = independent ? state.channels : { r: true, g: true, b: true, a: false };
+    return { end, lookup(histogram, image) {
+        const lookup = Array.from({ length: 4 }, () => Uint8Array.from({ length: 256 }, (_, value) => value));
+        const count = Math.max(1, image.width * image.height);
+        if (token === "-auto-gamma") {
+            const channelCount = image.hasAlpha ? 4 : 3;
+            let sum = 0;
+            for (let channel = 0; channel < channelCount; channel++) for (let value = 0; value < 256; value++) sum += histogram[channel]![value]! * value;
+            const mean = sum / Math.max(1, image.width * image.height * channelCount * 255);
+            if (mean > 0 && mean < 1) {
+                const exponent = Math.log(0.5) / Math.log(mean);
+                for (let channel = 0; channel < channelCount; channel++) for (let value = 0; value < 256; value++) lookup[channel]![value] = clampByteVal(Math.pow(value / 255, exponent) * 255);
+            }
+        } else if (token === "-auto-level") {
+            const mins = [255, 255, 255, 255], maxs = [0, 0, 0, 0], active = [channels.r, channels.g, channels.b, channels.a];
+            for (let channel = 0; channel < 4; channel++) for (let value = 0; value < 256; value++) if (histogram[channel]![value]! > 0) { mins[channel] = Math.min(mins[channel]!, value); maxs[channel] = Math.max(maxs[channel]!, value); }
+            if (!independent) { const low = Math.min(mins[0]!, mins[1]!, mins[2]!), high = Math.max(maxs[0]!, maxs[1]!, maxs[2]!); mins[0] = mins[1] = mins[2] = low; maxs[0] = maxs[1] = maxs[2] = high; }
+            for (let channel = 0; channel < 4; channel++) {
+                const range = maxs[channel]! - mins[channel]!;
+                if (active[channel] && range > 0) for (let value = 0; value < 256; value++) lookup[channel]![value] = clampByteVal((value - mins[channel]!) / range * 255);
+            }
+        } else if (token === "-equalize") {
+            for (let channel = 0; channel < 3; channel++) {
+                let cumulative = 0, first = 0;
+                for (let value = 0; value < 256; value++) {
+                    cumulative += histogram[channel]![value]!;
+                    if (first === 0 && cumulative > 0) first = cumulative;
+                    lookup[channel]![value] = clampByteVal((cumulative - first) / Math.max(1, count - first) * 255);
+                }
+            }
+        } else {
+            const [black, white] = argument.split("x"), percentage = argument.includes("%"), blackValue = parseFloat(black || "0") || 0, whiteValue = white !== undefined ? parseFloat(white) || 0 : blackValue;
+            const lowTarget = percentage ? blackValue / 100 * count : blackValue, highTarget = percentage ? (100 - whiteValue) / 100 * count : count - whiteValue;
+            for (let channel = 0; channel < 3; channel++) {
+                let low = 0, high = 255, sum = 0;
+                for (let value = 0; value < 256; value++) { sum += histogram[channel]![value]!; if (sum > lowTarget) { low = value; break; } }
+                sum = 0;
+                for (let value = 0; value < 256; value++) { sum += histogram[channel]![value]!; if (sum >= highTarget) { high = value; break; } }
+                if (high > low) for (let value = 0; value < 256; value++) lookup[channel]![value] = clampByteVal((value - low) / (high - low) * 255);
+            }
+        }
+        return lookup;
+    } };
+}
+
 type MagickPixelOperation = { end: number; apply(image: RgbaImage): Generator<void, RgbaImage, void> };
 function parseMagickPixelOperation(tokens: readonly string[], settings: MagickState, start: number, signal?: AbortSignal): MagickPixelOperation | undefined {
     const state = { ...settings }, token = tokens[start];
@@ -4543,7 +4575,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         const setting = applyMagickReadSetting(tokens, state, i);
         const pixelOperation = setting === undefined ? parseMagickPixelOperation(tokens, state, i, signal) : undefined;
+        const analysisOperation = setting === undefined && !pixelOperation ? parseMagickAnalysisOperation(tokens, state, i) : undefined;
         if (setting !== undefined) { i = setting; }
+        else if (analysisOperation) {
+            i = analysisOperation.end;
+            stack = yield* mapSteps(stack, function* (image) {
+                const histogram = Array.from({ length: 4 }, () => new Float64Array(256));
+                yield* accumulateMagickHistogram(image.data, histogram);
+                return yield* applyMagickLookup(image, analysisOperation.lookup(histogram, image));
+            });
+        }
         else if (pixelOperation) { i = pixelOperation.end; stack = yield* mapSteps(stack, pixelOperation.apply); }
         else if (t === "-write" || t === "+write") {
             const writePath = tokens[++i] ?? "";
@@ -4644,11 +4685,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const mSpec = tokens[++i] ?? "1,0,0 0,1,0 0,0,1";
             stack = yield* mapSteps(stack, function* (im) {
                 return (yield* applyMagickColorMatrixSteps(im, mSpec, signal));
-            });
-        }
-        else if (t === "-equalize") {
-            stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickEqualizeSteps(im, signal));
             });
         }
         else if (t === "-remap") {
@@ -4852,106 +4888,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return (yield* gammaImageSteps(im, gammaVal, gammaVal));
             }));
         }
-        else if (t === "-auto-level") {
-            const indep = state.channelExplicit;
-            const ch = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: false };
-            stack = (yield* mapSteps(stack, function* (im) {
-                let pixelWork = 0;
-                const out = new Uint8Array(im.data);
-                const mins = [255, 255, 255, 255];
-                const maxs = [0, 0, 0, 0];
-                for (let idx = 0; idx < out.length; idx += 4) {
-                    if (++pixelWork % 16384 === 0)
-                        yield;
-                    for (let c = 0; c < 4; c++) {
-                        if (++pixelWork % 16384 === 0)
-                            yield;
-                        const v = out[idx + c]!;
-                        if (v < mins[c]!)
-                            mins[c] = v;
-                        if (v > maxs[c]!)
-                            maxs[c] = v;
-                    }
-                }
-                if (!indep) {
-                    const gMin = Math.min(mins[0]!, mins[1]!, mins[2]!);
-                    const gMax = Math.max(maxs[0]!, maxs[1]!, maxs[2]!);
-                    mins[0] = mins[1] = mins[2] = gMin;
-                    maxs[0] = maxs[1] = maxs[2] = gMax;
-                }
-                const active = [ch.r, ch.g, ch.b, ch.a];
-                for (let idx = 0; idx < out.length; idx += 4) {
-                    if (++pixelWork % 16384 === 0)
-                        yield;
-                    for (let c = 0; c < 4; c++) {
-                        if (++pixelWork % 16384 === 0)
-                            yield;
-                        if (!active[c])
-                            continue;
-                        const range = maxs[c]! - mins[c]!;
-                        if (range > 0) {
-                            out[idx + c] = clampByteVal(((out[idx + c]! - mins[c]!) / range) * 255);
-                        }
-                    }
-                }
-                return { ...im, data: out };
-            }));
-        }
-        else if (t === "-normalize" || t === "-contrast-stretch" || t === "-linear-stretch") {
-            const arg = t === "-normalize" ? "2%x1%" : (tokens[++i] ?? "0%x0%");
-            const [bStr, wStr] = arg.split("x");
-            const isPct = arg.includes("%");
-            const bVal = parseFloat(bStr || "0") || 0;
-            const wVal = wStr !== undefined ? (parseFloat(wStr) || 0) : bVal;
-            stack = (yield* mapSteps(stack, function* (im) {
-                let pixelWork = 0;
-                const out = new Uint8Array(im.data);
-                const nPix = Math.max(1, im.width * im.height);
-                const lowTarget = isPct ? (bVal / 100) * nPix : bVal;
-                const highTarget = isPct ? ((100 - wVal) / 100) * nPix : nPix - wVal;
-                for (let c = 0; c < 3; c++) {
-                    if (++pixelWork % 16384 === 0)
-                        yield;
-                    const hist = new Uint32Array(256);
-                    for (let idx = c; idx < out.length; idx += 4) {
-                        if (++pixelWork % 16384 === 0)
-                            yield;
-                        hist[out[idx]!]!++;
-                    }
-                    let lowBin = 0;
-                    let acc = 0;
-                    for (let b = 0; b < 256; b++) {
-                        if (++pixelWork % 16384 === 0)
-                            yield;
-                        acc += hist[b]!;
-                        if (acc > lowTarget) {
-                            lowBin = b;
-                            break;
-                        }
-                    }
-                    let highBin = 255;
-                    acc = 0;
-                    for (let b = 0; b < 256; b++) {
-                        if (++pixelWork % 16384 === 0)
-                            yield;
-                        acc += hist[b]!;
-                        if (acc >= highTarget) {
-                            highBin = b;
-                            break;
-                        }
-                    }
-                    const range = highBin - lowBin;
-                    if (range > 0) {
-                        for (let idx = c; idx < out.length; idx += 4) {
-                            if (++pixelWork % 16384 === 0)
-                                yield;
-                            out[idx] = clampByteVal(((out[idx]! - lowBin) / range) * 255);
-                        }
-                    }
-                }
-                return { ...im, data: out };
-            }));
-        }
         else if (t === "-raise" || t === "+raise") {
             const g = parseMagickGeometry(tokens[++i] ?? "4");
             const bw = Math.max(1, Math.round(g.width ?? 4));
@@ -4998,37 +4934,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-deskew") {
             i++;
-        }
-        else if (t === "-auto-gamma") {
-            stack = (yield* mapSteps(stack, function* (im) {
-                let pixelWork = 0;
-                const out = new Uint8Array(im.data);
-                const numCh = im.hasAlpha ? 4 : 3;
-                let sum = 0;
-                for (let idx = 0; idx < out.length; idx += 4) {
-                    if (++pixelWork % 16384 === 0)
-                        yield;
-                    for (let c = 0; c < numCh; c++) {
-                        if (++pixelWork % 16384 === 0)
-                            yield;
-                        sum += out[idx + c]!;
-                    }
-                }
-                const mean = sum / Math.max(1, im.width * im.height * numCh * 255);
-                if (mean > 0 && mean < 1) {
-                    const exp = Math.log(0.5) / Math.log(mean);
-                    for (let idx = 0; idx < out.length; idx += 4) {
-                        if (++pixelWork % 16384 === 0)
-                            yield;
-                        for (let c = 0; c < numCh; c++) {
-                            if (++pixelWork % 16384 === 0)
-                                yield;
-                            out[idx + c] = clampByteVal(Math.pow(out[idx + c]! / 255, exp) * 255);
-                        }
-                    }
-                }
-                return { ...im, data: out };
-            }));
         }
         else if (t === "-blur" || t === "-gaussian-blur") {
             const g = parseMagickGeometry(tokens[++i] ?? "0x1");
@@ -5507,6 +5412,21 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         if (pixelOperation) {
             i = pixelOperation.end;
             steps.push(async (image, backend) => image ? transformStoredMagickPixels(image, backend, pixelOperation, signal) : undefined);
+            continue;
+        }
+        const analysisOperation = operandsOnly ? undefined : parseMagickAnalysisOperation(tokens, state, i);
+        if (analysisOperation) {
+            i = analysisOperation.end;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const histogram = Array.from({ length: 4 }, () => new Float64Array(256)), size = image.width * image.height * 4;
+                for (let offset = 0; offset < size; offset += 16384) {
+                    if (offset % 1048576 === 0) await yieldTurn(signal);
+                    await drainSteps(accumulateMagickHistogram(await backend.storage.read(image.position + offset, Math.min(16384, size - offset)), histogram), signal);
+                }
+                const lookup = analysisOperation.lookup(histogram, image);
+                return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, apply: pixels => applyMagickLookup(pixels, lookup) }, signal);
+            });
             continue;
         }
         if (!operandsOnly && token === "+gravity") { state.gravity = "northwest"; continue; }

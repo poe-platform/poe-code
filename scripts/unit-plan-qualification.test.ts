@@ -5,5 +5,5 @@ it("admits maintained unit declarations and builds generated source resources",(
  const plan=createWorkspaceTestPlan(fileURLToPath(new URL("../",import.meta.url)));
  expect(plan.testStages.some(stage=>stage.path===null)).toBe(true);
  const builds=new Set(plan.buildStages.map(stage=>stage.name));
- for(const owner of ["@poe-code/superintendent","@poe-code/poe-agent","@poe-code/agent-skill-config"])expect(builds.has(owner),owner).toBe(true);
+ for(const owner of ["@poe-code/superintendent","@poe-code/poe-agent","@poe-code/agent-skill-config","@poe-code/agent-gaslight","@poe-code/agent-harness","@poe-code/experiment-loop"])expect(builds.has(owner),owner).toBe(true);
 });

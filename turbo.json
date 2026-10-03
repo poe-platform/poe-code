@@ -672,6 +672,21 @@
       "dependsOn": [
         "build"
       ]
+    },
+    "@poe-code/agent-gaslight#test:unit": {
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "@poe-code/agent-harness#test:unit": {
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "@poe-code/experiment-loop#test:unit": {
+      "dependsOn": [
+        "build"
+      ]
     }
   }
 }

@@ -1,3 +1,4 @@
+export {encodeWebpFromStorage} from "./codecs/webp-storage.js";
 export {decodeJpegToStorage} from "./codecs/jpeg-input-storage.js";
 export {encodeJpegFromStorage} from "./codecs/jpeg-storage.js";
 export {decodeGifToStorage} from "./codecs/gif-input-storage.js";

@@ -1,3 +1,4 @@
+import {encodeWebpImage} from "./codecs/webp.js";
 import { decodeTiffImage } from "./codecs/netpbm.js";
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
@@ -4103,7 +4104,7 @@ const workerHash = (bytes: Uint8Array) => {
   for (const byte of bytes) value = Math.imul(value ^ byte, 16777619) >>> 0;
   return value;
 };
-it("decodes JPEG and JPEG-in-TIFF in actual Workerd using only bounded transfers to external caller backing", async () => {
+it("decodes JPEG and JPEG-in-TIFF and encodes WebP in actual Workerd using only bounded transfers to external caller backing", async () => {
   const cases = [
     { name: "baseline", input: jpegInputFixture({ kind: "encoded", width: 1024, height: 257 }) },
     {
@@ -4147,7 +4148,8 @@ it("decodes JPEG and JPEG-in-TIFF in actual Workerd using only bounded transfers
   cases.push({ name: "tiff", input: tiff });
   const expected = cases.map(({ input, name }) => {
     const { data, ...metadata } = name === "tiff" ? decodeTiffImage(input) : decodeJpegImage(input);
-    return { metadata, length: data.length, hash: workerHash(data) };
+    const encoded=encodeWebpImage({...metadata,data});
+    return { metadata, length: data.length, hash: workerHash(data), encodedLength:encoded.length,encodedHash:workerHash(encoded) };
   });
   const stores = cases.map(() => ({
     pages: new Map<number, Uint8Array>(),
@@ -4164,6 +4166,7 @@ it("decodes JPEG and JPEG-in-TIFF in actual Workerd using only bounded transfers
       contents: `
  import {decodeJpegToStorage} from './packages/image-ast/src/codecs/jpeg-input-storage.ts';
  import {decodeTiffToStorage} from './packages/image-ast/src/codecs/tiff-input-storage.ts';
+ import {encodeWebpFromStorage} from './packages/image-ast/src/codecs/webp-storage.ts';
  export default {async fetch(request,env){
   const {id,size,tiff}=await request.json(), signal=new AbortController().signal;let next=17,largestAllocation=0,largestTransfer=0,mapPeak=0,allocationCount=0;
   const transfer=async(kind,position,length,bytes)=>{if(length>4096)throw new Error('unbounded transfer');largestTransfer=Math.max(largestTransfer,length);const response=await env.BACKING.fetch('https://backing/'+id+'/'+kind+'?position='+position+'&length='+length,{method:bytes?'POST':'GET',body:bytes});if(!response.ok)throw new Error('backing status '+response.status);return bytes?undefined:new Uint8Array(await response.arrayBuffer());};
@@ -4172,10 +4175,10 @@ it("decodes JPEG and JPEG-in-TIFF in actual Workerd using only bounded transfers
   const NativeArray=Uint8Array,NativeMap=Map;
   globalThis.Uint8Array=new Proxy(NativeArray,{construct(target,args){const argument=args[0],length=typeof argument==='number'?argument:argument?.byteLength??argument?.length??0;largestAllocation=Math.max(largestAllocation,length);return Reflect.construct(target,args);}});
   globalThis.Map=class extends NativeMap{set(k,v){const result=super.set(k,v);mapPeak=Math.max(mapPeak,this.size);return result;}};
-  let image;try{image=await (tiff?decodeTiffToStorage:decodeJpegToStorage)(source,storage,signal);}finally{globalThis.Uint8Array=NativeArray;globalThis.Map=NativeMap;}
+  let image,encodedLength=0,encodedHash=2166136261;try{image=await (tiff?decodeTiffToStorage:decodeJpegToStorage)(source,storage,signal);for await(const bytes of encodeWebpFromStorage(image,storage,signal)){if(bytes.length>4096)throw new Error("unbounded output");encodedLength+=bytes.length;for(const byte of bytes)encodedHash=Math.imul(encodedHash^byte,16777619)>>>0;}}finally{globalThis.Uint8Array=NativeArray;globalThis.Map=NativeMap;}
   const {position,...metadata}=image,length=image.width*image.height*4;let hash=2166136261;
   for(let offset=0;offset<length;offset+=4096){const bytes=await storage.read(position+offset,Math.min(4096,length-offset));for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;}
-  return Response.json({metadata,length,hash,largestAllocation,largestTransfer,mapPeak,allocated:next,allocationCount,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});
+  return Response.json({metadata,length,hash,encodedLength,encodedHash,largestAllocation,largestTransfer,mapPeak,allocated:next,allocationCount,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});
  }};`
     },
     bundle: true,

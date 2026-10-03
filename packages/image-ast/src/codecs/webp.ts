@@ -85,28 +85,27 @@ export function readWebpMetadata(bytes: Uint8Array): ImageMetadata {
   };
 }
 
-export function encodeWebpImage(
-  img: RgbaImage,
+export function createWebpEncoder(
+  img: Pick<RgbaImage, "width" | "height" | "density" | "orientation">,
+  hasAlpha: boolean,
   options?: {
     readonly quality?: number;
     readonly lossless?: boolean;
     readonly density?: number;
     readonly orientation?: number;
   }
-): Uint8Array {
-  const { width, height, data } = img;
-  let hasAlpha = false;
-  for (let i = 3; i < data.length; i += 4) {
-    if (data[i]! < 255) {
-      hasAlpha = true;
-      break;
-    }
-  }
-
-  // Build standard RFC 9649 / libwebp-compliant VP8L lossless bitstream
+) {
+  const { width, height } = img;
   const numPixels = width * height;
-  const maxBits = 64 + 5 * 300 + numPixels * 32;
-  const vp8lBuf = new Uint8Array(5 + Math.ceil(maxBits / 8));
+  if (
+    !Number.isSafeInteger(width) ||
+    width <= 0 ||
+    !Number.isSafeInteger(height) ||
+    height <= 0 ||
+    !Number.isSafeInteger(numPixels)
+  )
+    throw new RangeError("Invalid WebP dimensions");
+  const vp8lBuf = new Uint8Array(4096);
   vp8lBuf[0] = 0x2f;
   const wMinus1 = (width - 1) & 0x3fff;
   const hMinus1 = (height - 1) & 0x3fff;
@@ -169,79 +168,114 @@ export function encodeWebpImage(
   writeBits(0, 1); // is_first_8bits = 0 (1-bit symbol)
   writeBits(0, 1); // symbol0 = 0
 
-  // Write pixels in order: Green, Red, Blue, Alpha (each 8-bit canonical code = rev8[val])
-  for (let i = 0; i < numPixels; i++) {
-    const r = data[i * 4]!;
-    const g = data[i * 4 + 1]!;
-    const b = data[i * 4 + 2]!;
-    const a = hasAlpha ? data[i * 4 + 3]! : 255;
-    writeBits(rev8[g]!, 8);
-    writeBits(rev8[r]!, 8);
-    writeBits(rev8[b]!, 8);
-    writeBits(rev8[a]!, 8);
-  }
-
-  const vp8lChunkLen = Math.ceil(bitPos / 8);
-  const vp8lPayload = vp8lBuf.subarray(0, vp8lChunkLen);
-  const vp8lPaddedLen = vp8lChunkLen + (vp8lChunkLen & 1);
-
-  const effDensity = options?.density ?? img.density;
-  const effOrientation = options?.orientation ?? img.orientation;
+  const headerBits = bitPos,
+    vp8lChunkLen = Math.ceil((headerBits + numPixels * 32) / 8),
+    vp8lPaddedLen = vp8lChunkLen + (vp8lChunkLen & 1);
+  const effDensity = options?.density ?? img.density,
+    effOrientation = options?.orientation ?? img.orientation;
   const needExif =
     (effDensity !== undefined && effDensity !== 72) ||
     (effOrientation !== undefined && effOrientation !== 1);
-
-  if (!needExif) {
-    const totalSize = 12 + 8 + vp8lPaddedLen;
-    const out = new Uint8Array(totalSize);
-    const view = new DataView(out.buffer);
-    out.set([0x52, 0x49, 0x46, 0x46], 0);
-    view.setUint32(4, totalSize - 8, true);
-    out.set([0x57, 0x45, 0x42, 0x50], 8);
-    out.set([0x56, 0x50, 0x38, 0x4c], 12);
-    view.setUint32(16, vp8lChunkLen, true);
-    out.set(vp8lPayload, 20);
-    return out;
-  }
-
-  const exifPayload = buildExifApp1Segment({
-    density: effDensity ?? 72,
-    orientation: effOrientation ?? 1
-  }).subarray(6);
-  const exifPaddedLen = exifPayload.length + (exifPayload.length & 1);
-  const vp8xLen = 10;
-  const totalSize = 12 + (8 + vp8xLen) + (8 + vp8lPaddedLen) + (8 + exifPaddedLen);
-  const out = new Uint8Array(totalSize);
-  const view = new DataView(out.buffer);
-  out.set([0x52, 0x49, 0x46, 0x46], 0);
+  const exifPayload = needExif
+    ? buildExifApp1Segment({
+        density: effDensity ?? 72,
+        orientation: effOrientation ?? 1
+      }).subarray(6)
+    : new Uint8Array();
+  const exifPaddedLen = exifPayload.length + (exifPayload.length & 1),
+    vp8xLen = needExif ? 18 : 0;
+  const totalSize = 20 + vp8xLen + vp8lPaddedLen + (needExif ? 8 + exifPaddedLen : 0);
+  if (totalSize - 8 > 0xffffffff) throw new RangeError("WebP exceeds RIFF size range");
+  const drain = () => {
+    const length = Math.floor(bitPos / 8),
+      result = vp8lBuf.slice(0, length),
+      remaining = vp8lBuf[length]!;
+    vp8lBuf.fill(0);
+    vp8lBuf[0] = remaining;
+    bitPos %= 8;
+    return result;
+  };
+  const prefix = drain(),
+    header = new Uint8Array(20 + vp8xLen + prefix.length),
+    view = new DataView(header.buffer);
+  header.set([82, 73, 70, 70], 0);
   view.setUint32(4, totalSize - 8, true);
-  out.set([0x57, 0x45, 0x42, 0x50], 8);
+  header.set([87, 69, 66, 80], 8);
+  if (needExif) {
+    header.set([86, 80, 56, 88], 12);
+    view.setUint32(16, 10, true);
+    header[20] = (hasAlpha ? 16 : 0) | 8;
+    const w = width - 1,
+      h = height - 1;
+    header.set(
+      [w & 255, (w >>> 8) & 255, (w >>> 16) & 255, h & 255, (h >>> 8) & 255, (h >>> 16) & 255],
+      24
+    );
+  }
+  const at = 12 + vp8xLen;
+  header.set([86, 80, 56, 76], at);
+  view.setUint32(at + 4, vp8lChunkLen, true);
+  header.set(prefix, at + 8);
+  let written = 0,
+    finished = false;
+  return {
+    header,
+    pixels(data: Uint8Array) {
+      if (
+        finished ||
+        data.length % 4 !== 0 ||
+        data.length > 4092 ||
+        written + data.length / 4 > numPixels
+      )
+        throw new RangeError("Invalid WebP pixel chunk");
+      for (let i = 0; i < data.length; i += 4) {
+        writeBits(rev8[data[i + 1]!]!, 8);
+        writeBits(rev8[data[i]!]!, 8);
+        writeBits(rev8[data[i + 2]!]!, 8);
+        writeBits(rev8[hasAlpha ? data[i + 3]! : 255]!, 8);
+      }
+      written += data.length / 4;
+      return drain();
+    },
+    finish() {
+      if (finished || written !== numPixels) throw new Error("Incomplete WebP pixels");
+      finished = true;
+      const tailLength = (bitPos ? 1 : 0) + (vp8lChunkLen & 1),
+        tail = new Uint8Array(tailLength + (needExif ? 8 + exifPaddedLen : 0));
+      if (bitPos) tail[0] = vp8lBuf[0]!;
+      if (needExif) {
+        tail.set([69, 88, 73, 70], tailLength);
+        new DataView(tail.buffer).setUint32(tailLength + 4, exifPayload.length, true);
+        tail.set(exifPayload, tailLength + 8);
+      }
+      return tail;
+    }
+  };
+}
 
-  // VP8X chunk
-  let off = 12;
-  out.set([0x56, 0x50, 0x38, 0x58], off);
-  view.setUint32(off + 4, vp8xLen, true);
-  out[off + 8] = (hasAlpha ? 0x10 : 0) | 0x08;
-  const w24 = width - 1;
-  const h24 = height - 1;
-  out[off + 12] = w24 & 0xff;
-  out[off + 13] = (w24 >>> 8) & 0xff;
-  out[off + 14] = (w24 >>> 16) & 0xff;
-  out[off + 15] = h24 & 0xff;
-  out[off + 16] = (h24 >>> 8) & 0xff;
-  out[off + 17] = (h24 >>> 16) & 0xff;
-  off += 8 + vp8xLen;
-
-  // VP8L chunk
-  out.set([0x56, 0x50, 0x38, 0x4c], off);
-  view.setUint32(off + 4, vp8lChunkLen, true);
-  out.set(vp8lPayload, off + 8);
-  off += 8 + vp8lPaddedLen;
-
-  // EXIF chunk
-  out.set([0x45, 0x58, 0x49, 0x46], off);
-  view.setUint32(off + 4, exifPayload.length, true);
-  out.set(exifPayload, off + 8);
+export function encodeWebpImage(
+  img: RgbaImage,
+  options?: Parameters<typeof createWebpEncoder>[2]
+): Uint8Array {
+  let hasAlpha = false;
+  for (let i = 3; i < img.data.length; i += 4)
+    if (img.data[i]! < 255) {
+      hasAlpha = true;
+      break;
+    }
+  const encoder = createWebpEncoder(img, hasAlpha, options),
+    parts = [encoder.header];
+  for (let at = 0; at < img.width * img.height * 4; at += 4092)
+    parts.push(
+      encoder.pixels(img.data.subarray(at, Math.min(at + 4092, img.width * img.height * 4)))
+    );
+  parts.push(encoder.finish());
+  const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
+  let at = 0;
+  for (const part of parts) {
+    out.set(part, at);
+    at += part.length;
+  }
   return out;
 }
 

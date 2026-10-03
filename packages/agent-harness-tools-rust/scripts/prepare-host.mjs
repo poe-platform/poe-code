@@ -100,6 +100,8 @@ function embedConfigHosts(source, target) {
   }
 }
 embedConfigHosts(new URL("../poe-code-config-rust/dist/", root), new URL("config/", dist));
+writeFileSync(new URL("config/core.js", dist), readFileSync(new URL("config/core.js", dist), "utf8") + "export { resolveRuntimeSync } from './runtime.js';\n");
+writeFileSync(new URL("config/core.d.ts", dist), readFileSync(new URL("config/core.d.ts", dist), "utf8") + "export { resolveRuntimeSync } from './runtime.js';\n");
 copyFileSync(
   new URL("../task-list-rust/src/runner-types.d.ts", root),
   new URL("runner-types.d.ts", dist)

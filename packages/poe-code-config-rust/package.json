@@ -33,7 +33,8 @@
     "memfs": "4.56.10",
     "@poe-code/providers-rust": "*",
     "@poe-code/agent-defs-rust": "*",
-    "toolcraft-template-rust": "*"
+    "toolcraft-template-rust": "*",
+    "@poe-code/safe-fs": "*"
   },
   "files": [
     "dist",

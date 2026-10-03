@@ -509,8 +509,9 @@ const ext4HtreeEof64 = (1n << 63n) - 1n;
 const extractionStreamGuard = Symbol("extractionStreamGuard");
 type ConfinedWriteOptions = WriteFileOptions & { readonly [extractionStreamGuard]?: (node: FileNode) => void };
 const ownedStats = new WeakMap<FileStat, { filesystem: FileSystem; path: string; root: DirectoryNode }>();
-type OwnedStore = { root: DirectoryNode; ledger: MemoryLedger; capabilities: FileSystem["capabilities"]; intact: () => boolean };
+type OwnedStore = { root: DirectoryNode; ledger: MemoryLedger; capabilities: FileSystem["capabilities"]; customCapabilities?: FileSystemCapabilities; identityScope?: symbol; atomicView?: MemoryAtomicView; intact: () => boolean };
 const ownedStores = new WeakMap<FileSystem, OwnedStore>();
+const receiverCapabilities = new WeakMap<object, FileSystemCapabilities>();
 // Ensure V8 uses Tagged representation for timestamp fields so all 4 fields share one HeapNumber pointer.
 {
   const dummyAlloc = new MemoryAllocation(new Uint8Array(0), new MemoryLedger(normalizeMemoryFileSystemLimits({})));
@@ -730,17 +731,24 @@ function customMemoryCapabilities(filesystem: MemoryFileSystem): FileSystemCapab
 
 export class MemoryFileSystem implements FileSystem {
   capabilitiesFor?: NonNullable<FileSystem["capabilitiesFor"]>;
-  #customCapabilities: FileSystemCapabilities | undefined;
-  #identityScopeSym: symbol | undefined;
   private get identityScope(): symbol {
-    return (this.#identityScopeSym ??= Symbol());
+    return (this._owner.identityScope ??= Symbol());
   }
   get capabilities(): FileSystemCapabilities {
-    if (!this.#customCapabilities) {
-      this.#customCapabilities = customMemoryCapabilities(this);
-      this._owner.capabilities = this.#customCapabilities;
+    const owner = ownedStores.get(this);
+    if (owner) {
+      if (!owner.customCapabilities) {
+        owner.customCapabilities = customMemoryCapabilities(this);
+        owner.capabilities = owner.customCapabilities;
+      }
+      return owner.customCapabilities;
     }
-    return this.#customCapabilities;
+    let caps = receiverCapabilities.get(this);
+    if (!caps) {
+      caps = customMemoryCapabilities(this);
+      receiverCapabilities.set(this, caps);
+    }
+    return caps;
   }
 
   private nextInode = 1;
@@ -751,7 +759,6 @@ export class MemoryFileSystem implements FileSystem {
   private readonly root: DirectoryNode;
   private totalBytes = 0;
   symlinkCount = 0;
-  #atomicView: MemoryAtomicView | undefined;
 
   _getAtomicView() {
     const owner = ownedStores.get(this);
@@ -777,7 +784,7 @@ export class MemoryFileSystem implements FileSystem {
         if (!actual || actual.value !== expected.value || actual.get !== expected.get || actual.set !== expected.set) return undefined;
       }
     }
-    return this.#atomicView ??= {
+    return owner.atomicView ??= {
       stat: (path: string) => {
         this.validatePath(path, "overlayAtomicView");
         let node: MemoryNode | undefined = this.root;

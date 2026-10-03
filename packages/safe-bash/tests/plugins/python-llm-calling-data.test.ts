@@ -4,6 +4,10 @@ import test from 'node:test';
 import { installPythonLlmModule } from '../../src/commands/python/llm-module.js';
 import { pythonLlmReferenceModule } from '../../src/commands/python/llm-reference-module.js';
 
+const testPython = process.env.LLM_TEST_PYTHON ?? process.env.LLM_REFERENCE_PYTHON ?? 'python3';
+const pydanticAvailable = spawnSync(testPython, ['-B', '-c', 'import pydantic'], { timeout: 5000 }).status === 0;
+const pythonDependency = pydanticAvailable ? false : 'Requires Python with Pydantic 2; set LLM_TEST_PYTHON or LLM_REFERENCE_PYTHON';
+
 const setup = `
 import sys, json, asyncio, types
 bundle = json.load(sys.stdin)
@@ -41,7 +45,7 @@ function run(program: string): string {
   return result.stdout;
 }
 
-test('legacy Python shim prompts preserve finite structured options', () => { run(`
+test('legacy Python shim prompts preserve finite structured options', { skip: pythonDependency }, () => { run(`
 model = llm.get_model("fixture")
 assert model.prompt("hello", logit_bias={42:5}, stop=["end"]).text() == "ok"
 assert payloads[-1]["options"] == {"logit_bias":{"42":5},"stop":["end"]}
@@ -55,7 +59,7 @@ for value in [{"nested":float("inf")}, {"nested":9007199254740992}, cycle, {"nes
  assert len(payloads) == before
 `); });
 
-test('legacy Python shim dictionary and list options retain validation and transport', () => { run(`
+test('legacy Python shim dictionary and list options retain validation and transport', { skip: pythonDependency }, () => { run(`
 model = llm.Model("fixture", metadata={"options": {
  "logit_bias": {"type":"object"}, "stop": {"type":"array"}
 }})
@@ -72,7 +76,7 @@ for options in [{"logit_bias":[]}, {"stop":{}}, {"unknown":True}]:
  assert len(payloads) == before
 `); });
 
-test('legacy Python shim sync and async conversations preserve completed response attachments', () => { run(`
+test('legacy Python shim sync and async conversations preserve completed response attachments', { skip: pythonDependency }, () => { run(`
 model = llm.get_model("fixture")
 conversation = model.conversation()
 first = conversation.prompt("before")

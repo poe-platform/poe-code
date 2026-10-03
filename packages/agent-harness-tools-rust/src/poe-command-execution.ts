@@ -7,7 +7,6 @@ import {
   parseRuntime,
   resolveConfigPath,
   resolveProjectConfigPath,
-  resolveRuntime,
   resolveScope,
   runtimeConfigScope,
   type RunnerScope,
@@ -15,7 +14,8 @@ import {
   type JobEntry,
   type JobListFilter,
   type ResolvedConfig,
-  type StateManager
+  type StateManager,
+  resolveRuntimeSync as resolveRuntime
 } from "./config/core.js";
 import { selectExecutionEnv, type OpenSpec } from "./execution-env.js";
 

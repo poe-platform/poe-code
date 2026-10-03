@@ -109,6 +109,9 @@ export function serializeLabelReference(node: Extract<FormulaNode, { kind: "refe
 /** Serialize the tree, retaining explicit grouping even across different precedences. */
 export function serializeExpression(document: FormulaDocument, grammar = document.grammar, preserveSource = true, canonical = false,
   options: { readonly relativeSheets?: "preserve" | "fixed";
+    /** Package-specific external-link spellings, after link identity registration. */
+    readonly externalReference?: (node: Extract<FormulaNode, { kind: "reference" }>) => string;
+    readonly externalName?: (node: Extract<FormulaNode, { kind: "name" }>) => string;
     /** Native label spelling, resolved and identity-checked by the workbook exporter. */
     readonly quotedLabel?: (node: Extract<FormulaNode, { kind: "reference" }>) => string } = {}): string {
   if (preserveSource && grammar === document.grammar && options.relativeSheets !== "fixed") return document.source;
@@ -133,7 +136,7 @@ export function serializeExpression(document: FormulaDocument, grammar = documen
         value.value.kind === "error" && grammar.quotedErrors && !["#NAME?", "#REF!", "#VALUE!", "#NUM!", "#DIV/0!", "#N/A", "#NULL!"].includes(value.value.value) ? "#" + quoteFormulaString(value.value.value, '"', grammar) :
         value.value.kind === "boolean" ? (value.value.value ? "TRUE" : "FALSE") + (grammar.booleanFunctions ? "()" : "") : String(value.value.value);
       case "omitted": return "";
-      case "reference": return value.label ? grammar.quotedLabels === "openformula" && options.quotedLabel
+      case "reference": return value.first.workbook !== undefined && value.first.workbook !== "" && !value.label && options.externalReference ? options.externalReference(value) : value.label ? grammar.quotedLabels === "openformula" && options.quotedLabel
         ? quoteFormulaString(options.quotedLabel(value), "'", grammar) : serializeLabelReference(value, grammar, position) : serializeReference(
         options.relativeSheets === "fixed" ? { ...value.first, sheetRelative: false } : value.first,
         options.relativeSheets === "fixed" && value.last ? { ...value.last, sheetRelative: false } : value.last, grammar, position);
@@ -148,6 +151,7 @@ export function serializeExpression(document: FormulaDocument, grammar = documen
           throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: qualified formula name in target grammar");
         if (value.workbook === "" && grammar.bracketReferences && value.sheet === undefined)
           throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: global formula name in target grammar");
+        if (value.workbook !== undefined && value.workbook !== "" && options.externalName) return options.externalName(value);
         const external = value.workbook === undefined || value.workbook === "" && value.sheet !== undefined ? "" : value.workbook === "" ? "[]" : grammar.bracketReferences ? quoteFormulaString(value.workbook, "'", grammar) + "#" : grammar.stringEscape === "raw" ? workbookReference(value.workbook, grammar) : "[" + quoteFormulaString(value.workbook, "'", grammar) + "]";
         const text = external + (value.sheet ? (grammar.quoteSheetName?.(value.sheet) ?? quoteFormulaString(value.sheet, "'", grammar)) + grammar.sheetSeparator : "") + value.name;
         return grammar.bracketReferences && (value.sheet || value.workbook !== undefined) ? "[" + text + "]" : text;

@@ -7,8 +7,10 @@ Formula exports preserve control characters and literal escape tokens in cells,
 defined names, validation rules and conditional formatting.
 Imports resolve numbered external links to their declared workbook paths in cell,
 shared, array and defined-name formulas. They do not fetch linked files;
-recalculation uses only the explicit host resolver. Native external-link export
-and external-name definition transport remain outside this import support.
+recalculation uses only the explicit host resolver. Exports include numbered external-workbook relationships for live cell/range
+references and local names that refer to them, including quoted sheet names.
+External-name definitions are not yet exported; a loss warning identifies each
+name that can fail to resolve in native applications.
 Custom error caches use Gnumeric’s quoted error syntax; imports retain the stored
 cache text, including its quotes, as Gnumeric does. Fixed and automatic row/column
 sizing survives workbook and clipboard conversions, including best-fit columns.

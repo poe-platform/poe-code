@@ -1,3 +1,4 @@
+import { XlsxExternalLinkWriter } from "./external-link-export.js";
 import { resolveExternalLinks } from "./external-links.js";
 import { createStoredZipEntries, ZipStorageFailure } from "@poe-code/office-package";
 import { ownedRangeSource } from "@poe-code/spreadsheet-engine/range-input";
@@ -822,6 +823,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
       xml("Relationships", { xmlns: packageRelationships }, [...items].reverse().map(r => xml("Relationship", {
         Id: r.id, Type: r.type, Target: r.target, ...(r.external ? { TargetMode: "External" } : {}) })).join(""));
     const workbookRelations: { id: string; type: string; target: string }[] = [];
+    const externalLinks = new XlsxExternalLinkWriter(charge);
     const shared: Cell[] = [], sharedIds = new Map<string, number>(), stringCounts = new Map<string, number>();
     let sharedReferences = 0;
     let totalCells = 0;
@@ -900,7 +902,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
           if (cell.formula && (!array || cell.row === array.range.startRow && cell.column === array.range.startColumn))
             body += xml("f", { ...(array ? { t: "array", ref: rangeText(array.range) } : {}),
               ...formulaSemanticsAttributes(array?.arrayStringLiterals ?? cell.arrayStringLiterals, true, cell.formula) },
-              escapeXlsx(encodeXlsxString(exportXlsxFormula(book, cell.formula, sheet, cell.row, cell.column, context, array?.arrayStringLiterals ?? cell.arrayStringLiterals))));
+              escapeXlsx(encodeXlsxString(exportXlsxFormula(book, cell.formula, sheet, cell.row, cell.column, context, array?.arrayStringLiterals ?? cell.arrayStringLiterals, externalLinks))));
           if (value.kind === "string") {
             if (cell.formula) { type = "str"; body += xml("v", {}, escapeXlsx(encodeXlsxString(value.value))); }
             else if ((stringCounts.get(stringKey) ?? 0) > 1) {
@@ -989,16 +991,30 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
       const sheet = book.sheets[index < 0 ? 0 : index]; if (!sheet) continue;
       names += xml("definedName", { name: ["Print_Area", "Sheet_Title"].includes(name.name) ? "_xlnm." + name.name : name.name,
         localSheetId: index < 0 ? undefined : index, ...formulaSemanticsAttributes(name.arrayStringLiterals, true, name.expression, name.position ? { ...name.position, sheet: book.sheets.find(s => s.id === name.position!.sheet)?.name ?? name.position.sheet } : undefined) },
-        escapeXlsx(encodeXlsxString(exportXlsxFormula(book, name.expression, sheet, name.position?.row ?? 0, name.position?.column ?? 0, context, name.arrayStringLiterals))));
+        escapeXlsx(encodeXlsxString(exportXlsxFormula(book, name.expression, sheet, name.position?.row ?? 0, name.position?.column ?? 0, context, name.arrayStringLiterals, externalLinks))));
     }
     for (const [index, sheet] of book.sheets.entries()) {
       for (const [name, expression] of [["Sheet_Title", '"' + sheet.name.split('"').join('""') + '"'], ["Print_Area", "#REF!"]])
         if (!book.names?.some(n => n.name === name && n.sheet === sheet.id))
           names += xml("definedName", { name: "_xlnm." + name, localSheetId: index }, escapeXlsx(encodeXlsxString(expression!)));
     }
+    let externalReferences = "";
+    for (const [target, link] of externalLinks.books) {
+      for (const name of link.names) await context.diagnostic?.({ code: "xlsx-write-loss", severity: "warning",
+        message: `XLSX writer does not export definition for external name '${name}' in '${target}'` });
+      const filename = `externalLink${link.index}.xml`, id = `rId${workbookRelations.length + 1}`;
+      workbookRelations.push({ id, type: relationships + "/externalLink", target: "externalLinks/" + filename });
+      externalReferences += xml("externalReference", { "r:id": id });
+      await add("xl/externalLinks/" + filename, xml("externalLink", { xmlns: namespace, "xmlns:r": relationships },
+        xml("externalBook", { "r:id": "rId1" }, xml("sheetNames", {}, [...link.sheets].map(sheet => xml("sheetName", { val: sheet })).join("")) + xml("sheetDataSet", {}))),
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.externalLink+xml");
+      await add("xl/externalLinks/_rels/" + filename + ".rels", relationshipXml([
+        { id: "rId1", type: relationships + "/externalLinkPath", target, external: true }
+      ]));
+    }
     await add("xl/workbook.xml", xml("workbook", { xmlns: namespace, "xmlns:r": relationships },
       xml("fileVersion", { lastEdited: 4, lowestEdited: 4, rupBuild: 3820 }) + xml("workbookPr", { date1904: book.dateSystem === "1904" ? 1 : 0 }) +
-      xml("bookViews", {}, xml("workbookView", { activeTab: active })) + xml("sheets", {}, sheetNodes.join("")) + xml("definedNames", {}, names) +
+      xml("bookViews", {}, xml("workbookView", { activeTab: active })) + xml("sheets", {}, sheetNodes.join("")) + (externalReferences ? xml("externalReferences", {}, externalReferences) : "") + xml("definedNames", {}, names) +
       xml("calcPr", { calcMode: book.calculationMode === "manual" ? "manual" : "auto", iterate: book.iteration?.enabled === false ? 0 : 1,
         iterateCount: book.iteration?.maximum ?? 100, iterateDelta: book.iteration?.tolerance ?? 0.001 }) +
       xml("webPublishing", { allowPng: 1, css: 0, ...(edition === "2006" ? { codePage: 1252 } : { characterSet: "UTF-8" }) })));
@@ -1062,7 +1078,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
     }
   };
 }
-function exportXlsxFormula(book: Workbook, source: string, sheet: Sheet, row: number, column: number, context: CapabilityContext, arrayStringLiterals = false): string {
+function exportXlsxFormula(book: Workbook, source: string, sheet: Sheet, row: number, column: number, context: CapabilityContext, arrayStringLiterals = false, externalLinks?: XlsxExternalLinkWriter): string {
   const position = { sheet: sheet.id, row, column };
   let work = 0;
   const onWork = () => {
@@ -1074,6 +1090,7 @@ function exportXlsxFormula(book: Workbook, source: string, sheet: Sheet, row: nu
     workbook: book, signal: context.signal, maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes,
     maximumNodes: context.limits.workbookNodes ?? Infinity });
   if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: unparsed XLSX formula");
-  const result = serializeExpression(expandIndexSheetAreas(parsed.document, onWork), excelGrammar, false, true, { relativeSheets: "fixed" });
+  const result = serializeExpression(expandIndexSheetAreas(parsed.document, onWork), excelGrammar, false, true, { relativeSheets: "fixed",
+    ...(externalLinks ? { externalReference: node => externalLinks.reference(node, position), externalName: node => externalLinks.name(node) } : {}) });
   return result.startsWith("=") ? result.slice(1) : result;
 }

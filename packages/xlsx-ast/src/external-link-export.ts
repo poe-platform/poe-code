@@ -1,0 +1,31 @@
+import type { FormulaNode, ParsePosition } from "@poe-code/spreadsheet-engine/formulas/ast";
+import { excelGrammar } from "@poe-code/spreadsheet-engine/formulas/conventions";
+import { quoteFormulaString, serializeReference } from "@poe-code/spreadsheet-engine/formulas/serialization";
+
+/** An XLSX link table is ordered independently of workbook relationship IDs. */
+export class XlsxExternalLinkWriter {
+  readonly books = new Map<string, { index: number; sheets: Set<string>; names: Set<string> }>();
+  constructor(private readonly charge: (amount?: number) => void) {}
+  private register(workbook: string, sheets: readonly (string | undefined)[]) {
+    this.charge(workbook.length + 1);
+    let book = this.books.get(workbook);
+    if (!book) { book = { index: this.books.size + 1, sheets: new Set(), names: new Set() }; this.books.set(workbook, book); }
+    for (const sheet of sheets) if (sheet !== undefined) { this.charge(sheet.length + 1); book.sheets.add(sheet); }
+    return book;
+  }
+  reference(node: Extract<FormulaNode, { kind: "reference" }>, position: ParsePosition): string {
+    const { index } = this.register(node.first.workbook!, [node.first.sheet, node.last?.sheet]);
+    const sheet = node.first.sheet ?? position.sheet;
+    const span = node.last?.sheet && node.last.sheet !== sheet ? sheet + ":" + node.last.sheet : sheet;
+    const { workbook: ignoredFirstBook, sheet: ignoredFirstSheet, sheetRelative: ignoredFirstRelative, ...first } = node.first;
+    const { workbook: ignoredLastBook, sheet: ignoredLastSheet, sheetRelative: ignoredLastRelative, ...last } = node.last ?? node.first;
+    const address = serializeReference(first, node.last ? last : undefined, excelGrammar, position);
+    return quoteFormulaString(`[${index}]${span}`, "'", excelGrammar) + "!" + address;
+  }
+  name(node: Extract<FormulaNode, { kind: "name" }>): string {
+    const book = this.register(node.workbook!, [node.sheet]);
+    this.charge(node.name.length + 1); book.names.add(node.name);
+    const { index } = book;
+    return (node.sheet ? quoteFormulaString(`[${index}]${node.sheet}`, "'", excelGrammar) : `[${index}]`) + "!" + node.name;
+  }
+}

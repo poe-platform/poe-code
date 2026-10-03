@@ -57,6 +57,6 @@ export const randomFunctions: Readonly<Record<string, FunctionImplementation>> =
   RANDDISCRETE:(a,h) => { const values = statisticalNumbers(a[0]!,h), probs = a[1] && statisticalNumbers(a[1],h); if (!Array.isArray(values)) return values; if (probs && !Array.isArray(probs)) return probs; if (!values.length || probs && (probs.length !== values.length || probs.some(x => x < 0) || Math.abs(sum(probs,h.tick) - 1) > 1e-10)) return error('#NUM!'); let u = uniformRandom(h), i = 0; if (probs) { for (; i < probs.length; i++) { h.tick(); u -= probs[i]!; if (u < 0) break; } } else i = Math.floor(u * values.length); return numericResult(values[Math.min(i,values.length - 1)]!); },
 };
 export const simtable: SpecialForm = (nodes,host) => {
-  for (const node of nodes) { const values = collect(host.evaluate(node,true),host); const first = values.find(v => v.kind !== 'blank'); if (first) return first; }
+  for (const node of nodes) { const values = collect(host.evaluate(node, true, false, true),host); const first = values.find(v => v.kind !== 'blank'); if (first) return first; }
   return error('#N/A');
 };

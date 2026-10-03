@@ -378,7 +378,7 @@ export const textSpecialForms: Readonly<Record<string, SpecialForm>> = {
       const b = asBoolean(value); if (b === undefined) return error("#VALUE!"); ignore = b; from = 2;
     }
     const parts: Uint8Array[] = []; let size = 0;
-    for (const arg of args.slice(from)) for (const cell of collect(host.evaluate(arg), host)) {
+    for (const arg of args.slice(from)) for (const cell of collect(host.evaluate(arg, true, false, true), host)) {
       if (cell.kind === "error") return cell;
       const bytes = byteTextArg([cell], 0, host); if (ignore && !bytes.length) continue;
       size += bytes.length + (parts.length ? separator.length : 0);

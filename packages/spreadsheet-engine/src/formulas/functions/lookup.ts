@@ -266,7 +266,7 @@ export const lookupSpecialForms: Readonly<Record<string, SpecialForm>> = {
   },
   ARRAY: (args, host) => {
     const values: CellValue[] = [];
-    for (const arg of args) collect(host.evaluate(arg), host, values);
+    for (const arg of args) collect(host.evaluate(arg, true, false, true), host, values);
     return !values.length ? error("#VALUE!") : values.length === 1 ? values[0]! : admitMatrix(values.map(value => [value]), host);
   }
 };

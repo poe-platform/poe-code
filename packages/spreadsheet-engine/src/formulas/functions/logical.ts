@@ -11,7 +11,7 @@ export const logicalFunctions: Readonly<Record<string, FunctionImplementation>> 
 export const logicalSpecialForms: Readonly<Record<string, SpecialForm>> = {
   ...Object.fromEntries(["AND", "OR", "XOR"].map(name => [name, ((args, host) => {
     let count = 0, result = name === "AND";
-    for (const arg of args) for (const value of collect(host.evaluate(arg), host)) {
+    for (const arg of args) for (const value of collect(host.evaluate(arg, true, false, true), host)) {
       if (value.kind === "error") return value;
       if (value.kind !== "number" && value.kind !== "boolean") continue;
       const yes = asBoolean(value)!; count++;

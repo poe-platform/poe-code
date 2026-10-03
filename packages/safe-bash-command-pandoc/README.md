@@ -145,7 +145,7 @@ optional `source` and `base`. File adapters prefer the caller’s `readStream`
 capability for document operands, defaults, metadata, templates, includes, fonts,
 and local image resources. `CommandInputs.readFile` remains a compatibility
 fallback. File reads are lazy and close on cancellation or budget failure; the
-`convert` convenience API retains complete document inputs and ASTs in memory.
+`convert` convenience API retains document ASTs and output in memory.
 
 `convertToOutput(inputs, options, {output, workingFiles})` returns an output summary
 instead of a complete payload. Its unfiltered CSV/TSV → HTML path uses a bounded
@@ -155,7 +155,12 @@ absolute `directory`, and optional `cacheBytes` (one MiB by default, in 16 KiB
 pages). Use an external filesystem backend for large data: a memory filesystem
 still retains the backing bytes in RAM. No host scratch directory is used.
 
-The backed path supports ASCII conversion and line endings. Additional document
+EPUB reads also accept `workingFiles` through `readDocument` and `convert`.
+Streamed archives and expanded ZIP members use the bounded page cache and caller
+backing storage; unused members are still CRC-checked. Referenced XML, images,
+archive metadata and the document AST remain materialized in memory.
+
+The backed CSV/TSV path supports ASCII conversion and line endings. Additional document
 transformations, finite limits other than `inputBytes`, and other format pairs
 currently use the existing buffered converter. The Safe Bash command uses the
 output-only API for stdout and selects backing storage in the injected filesystem

@@ -176,6 +176,7 @@ export interface MetadataObject { readonly [key: string]: MetadataValue }
 export type MetadataValue = string | number | boolean | null | readonly MetadataValue[] | MetadataObject;
 /** Explicit trusted adapters; their format conformance is not established by this seam. */
 export interface AdapterContext {
+  readonly workingFiles?: WorkingStorageOptions | undefined;
   readonly sinceYield?: number | undefined;
   readonly wrap?: WriteOptions["wrap"] | undefined;
   readonly columns?: number | undefined;
@@ -199,8 +200,9 @@ export interface AdapterContext {
   /** Enroll capability cleanup in conversion completion, including cancellation. */
   onClose?(cleanup: () => Promise<unknown>): () => void;
   checkpoint(units?: number): void;
-  /** Reserve aggregate capacity before allocating or extending parser/writer data. */
-  charge(key: keyof Limits, units: number): void;
+  /** Reserve aggregate capacity before allocating or extending parser/writer data.
+   * Set retained=false only for expanded/binary bytes written to bounded backing storage. */
+  charge(key: keyof Limits, units: number, retained?: boolean): void;
   /** Check a gauge (e.g. nesting depth) without accumulating it. */
   bound(key: keyof Limits, actual: number): void;
   cooperate(units?: number): Promise<void>;
@@ -222,6 +224,7 @@ export interface ResourceCapability {
 }
 export interface ReaderCapability {
   readonly format: string;
+  readStream?(input: StreamingInput, context: AdapterContext, selection?: FormatSelection): Promise<Document>;
   read(input: Input, context: AdapterContext, selection?: FormatSelection): Promise<Document>;
 }
 export interface WriterCapability {
@@ -255,13 +258,13 @@ export interface WorkingStorageOptions {
 }
 export interface OutputConversionContext extends ConversionContext {
   readonly output: StreamingOutputCapability;
-  readonly workingFiles?: WorkingStorageOptions;
 }
 export interface ConversionSummary {
   readonly kind: "output";
   readonly diagnostics: readonly Diagnostic[];
 }
 export interface ConversionContext {
+  readonly workingFiles?: WorkingStorageOptions;
   readonly filters?: FilterCapability;
   /** Only this configured filesystem may supply/extract local image resources. */
   readonly resourceFiles?: ResourceFileSystem;

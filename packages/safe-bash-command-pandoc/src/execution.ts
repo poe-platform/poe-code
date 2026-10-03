@@ -56,6 +56,7 @@ const windows1252 = [
 ] as const;
 
 export class ExecutionContext implements AdapterContext {
+  get workingFiles(): AdapterContext["workingFiles"] {return this.context.workingFiles;}
   readonly limits: Limits;
   readonly signal: AbortSignal | undefined;
   readonly resources: AdapterContext["resources"];
@@ -150,7 +151,7 @@ export class ExecutionContext implements AdapterContext {
       this.fail("E_LIMIT", `${key}: ${actual} exceeds ${this.limits[key]}`);
   }
 
-  charge(key: keyof Limits, units: number): void {
+  charge(key: keyof Limits, units: number, retained = true): void {
     if (this.failure) throw this.failure;
     if (this.signal?.aborted) this.fail("E_CANCELLED", "Conversion cancelled");
     if (this.closing) this.fail("E_IO", "Execution context is closed");
@@ -173,7 +174,7 @@ export class ExecutionContext implements AdapterContext {
       this.usage[key] = next;
       return;
     }
-    const keys: (keyof Limits)[] = [key, "resourceBytes", "retainedBytes"];
+    const keys: (keyof Limits)[] = retained ? [key, "resourceBytes", "retainedBytes"] : [key, "resourceBytes"];
     // Admit the whole reservation before changing any counter.
     for (const budget of keys) this.bound(budget, this.usage[budget] + units);
     for (const budget of keys) this.usage[budget] += units;

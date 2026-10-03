@@ -1,9 +1,11 @@
+import {PandocError} from "./errors.js";
+import {PagedStorage} from "safe-bash-io-engine/storage";
 import { createZipCodec, type ZipLimits } from "@poe-code/office-package/zip";
 import { createCompressionCodec } from "@poe-code/compression";
 import { attribute as a, children, epubFailure, namespaces as ns, parseEpubXml, xhtmlTree, xmlText, type XmlElement } from "./epub-xml.js";
 import { htmlTreeDocument } from "./html.js";
 import type { Attr, Block, Inline, MetaValue } from "./ast-types.js";
-import type { AdapterContext, Document, ReaderCapability, Resource } from "./types.js";
+import type { AdapterContext, Document, Input, StreamingInput, ReaderCapability, Resource } from "./types.js";
 
 interface ManifestItem {
   id: string;
@@ -44,7 +46,11 @@ function resolve(target: string, base: string, ctx: AdapterContext): {part: stri
 
 export const epubReader: ReaderCapability = {
   format: "epub",
-  async read(input, ctx): Promise<Document> {
+  read: readEpub,
+  readStream: readEpub
+};
+
+async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Promise<Document> {
     const fail: (part: string, message: string) => never = (part, message) => epubFailure(ctx, part, message);
     const warn = (part: string, message: string, code: "W_RAW_CONTENT" | "W_RESOURCE_MISSING" = "W_RAW_CONTENT") => ctx.report({code, operation: ctx.operation ?? "read", format: "epub", location: part, message});
     const signal = ctx.signal ?? new AbortController().signal;
@@ -52,33 +58,89 @@ export const epubReader: ReaderCapability = {
     const codec = createZipCodec({compression: createCompressionCodec(), yieldTurn: async () => ctx.cooperate(1), fail: message => {
       return epubFailure(ctx, input.source ?? "archive", message, message.includes("limit") ? "E_LIMIT" : "E_PARSE");
     }}, {rejectDuplicateNames: true});
-    const archive = await codec.readZipArchive(input.bytes, limits, signal);
+    const working = ctx.workingFiles;
+    const cacheBytes = working?.cacheBytes ?? 1024 * 1024;
+    if (working && (!Number.isSafeInteger(cacheBytes) || cacheBytes < 16384 || cacheBytes % 16384 !== 0 || !working.directory.startsWith("/")))
+      {throw new PandocError("E_OPTION", ctx.operation ?? "read", "Invalid working storage configuration");}
+    const storage = working ? new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal}, cacheBytes / 16384) : undefined;
+    const release = storage && ctx.onClose?.(() => storage.close());
+    let failure: {reason: unknown} | undefined;
+    try {
+    let archive;
+    if (storage) {
+      ctx.charge("retainedBytes", cacheBytes);
+      const position = storage.allocate(0);
+      let size = 0;
+      const source = "chunks" in input ? input.chunks : [input.bytes];
+      const iterator = Symbol.asyncIterator in source ? source[Symbol.asyncIterator]() : source[Symbol.iterator]();
+      let done = false;
+      const cleanup = async () => {if (!done) {done = true; await iterator.return?.();}};
+      const unregister = ctx.onClose?.(cleanup);
+      let inputFailure: {reason: unknown} | undefined;
+      try {
+      while (!done) {
+        ctx.checkpoint();
+        const next = await iterator.next();
+        if (next.done) {done = true; break;}
+        const bytes = next.value;
+        if (!(bytes instanceof Uint8Array)) throw new PandocError("E_IO", ctx.operation ?? "read", "Producer must yield bytes");
+        ctx.checkpoint();
+        if ("chunks" in input) {ctx.charge("inputBytes", bytes.length); ctx.charge("compressedBytes", bytes.length);}
+        for (let offset = 0; offset < bytes.length; offset += 4096) {
+          await storage.append(bytes.subarray(offset, offset + 4096));
+          await ctx.cooperate();
+        }
+        size += bytes.length;
+      }
+      } catch (reason) {inputFailure = {reason}; throw reason;}
+      finally {try {await cleanup().catch(reason => {if (!inputFailure) throw reason;});} finally {unregister?.();}}
+      archive = await codec.readZipArchive({size, read: (offset, length) => storage.read(position + offset, length)}, limits, signal);
+    } else {
+      if (!("bytes" in input)) return fail("archive", "Streaming EPUB requires caller working storage");
+      archive = await codec.readZipArchive(input.bytes, limits, signal);
+      ctx.charge("retainedBytes", input.bytes.length);
+    }
     ctx.charge("parts", archive.entries.length);
-    ctx.charge("retainedBytes", input.bytes.length);
-    const parts = new Map<string, Uint8Array>();
-    // Decode all members once to validate CRCs, encryption and the aggregate size.
+    const parts = new Map<string, Uint8Array | {position: number; length: number}>();
+    const getPart = async (name: string): Promise<Uint8Array | undefined> => {
+      const part = parts.get(name);
+      if (!part || part instanceof Uint8Array) return part;
+      ctx.charge("retainedBytes", part.length);
+      const bytes = new Uint8Array(part.length);
+      for (let offset = 0; offset < part.length; offset += 4096) {
+        bytes.set(await storage!.read(part.position + offset, Math.min(4096, part.length - offset)), offset);
+        await ctx.cooperate();
+      }
+      return bytes;
+    };
+    // Validate every member, including unused resources, before reading the book.
     for (const entry of archive.entries) {
       if (entry.symlink || entry.name.includes("\\") || entry.name.includes(":")) fail(entry.name, "Unsafe EPUB ZIP member");
       const chunks: Uint8Array[] = [];
+      const position = storage?.allocate(0);
       let length = 0;
       for await (const chunk of codec.decodeZipEntry(entry, limits, signal)) {
-        ctx.charge("expandedBytes", chunk.length);
+        ctx.charge("expandedBytes", chunk.length, !storage);
         length += chunk.length;
-        chunks.push(chunk);
+        if (storage) await storage.append(chunk);
+        else chunks.push(chunk);
       }
       if (entry.directory) continue;
-      const bytes = new Uint8Array(length);
-      ctx.charge("retainedBytes", length);
-      let offset = 0;
-      for (const chunk of chunks) {bytes.set(chunk, offset); offset += chunk.length;}
-      parts.set(entry.name, bytes);
+      if (storage) parts.set(entry.name, {position: position!, length});
+      else {
+        ctx.charge("retainedBytes", length);
+        const bytes = new Uint8Array(length);
+        let offset = 0;
+        for (const chunk of chunks) {bytes.set(chunk, offset); offset += chunk.length;}
+        parts.set(entry.name, bytes);
+      }
     }
-    if (new TextDecoder().decode(parts.get("mimetype")) !== "application/epub+zip") fail("mimetype", "Invalid or missing EPUB mimetype");
+    if (new TextDecoder().decode(await getPart("mimetype")) !== "application/epub+zip") fail("mimetype", "Invalid or missing EPUB mimetype");
     if (parts.has("META-INF/encryption.xml")) fail("META-INF/encryption.xml", "Unsupported EPUB encryption/DRM or font obfuscation");
     const xmlCache = new Map<string, XmlElement>();
     const xml = async (part: string) => {
       if (xmlCache.has(part)) return xmlCache.get(part)!;
-      const bytes = parts.get(part);
+      const bytes = await getPart(part);
       if (!bytes) return fail(part, "Missing required EPUB part");
       const node = await parseEpubXml(bytes, part, ctx);
       xmlCache.set(part, node);
@@ -199,12 +261,17 @@ export const epubReader: ReaderCapability = {
     const media = (part: string): boolean => {
       if (bag.has(part)) return true;
       const item = admitted.get(part);
-      const bytes = parts.get(part);
-      if (!item || !bytes) {warn(part, "Missing admitted EPUB media resource", "W_RESOURCE_MISSING"); return false;}
+      if (!item || !parts.has(part)) {warn(part, "Missing admitted EPUB media resource", "W_RESOURCE_MISSING"); return false;}
       if (!["image/png", "image/jpeg", "image/gif", "image/webp", "image/svg+xml"].includes(item.media)) {warn(part, `Unsupported EPUB media type: ${item.media}`); return false;}
       if (item.media === "image/svg+xml") {warn(part, "Unsupported EPUB SVG media rendering loss"); return false;}
-      ctx.bound("resources", bag.size + 1);
-      bag.set(part, {id: part, bytes});
+      return true;
+    };
+    const loadMedia = async (part: string): Promise<boolean> => {
+      if (!media(part)) return false;
+      if (!bag.has(part)) {
+        ctx.bound("resources", bag.size + 1);
+        bag.set(part, {id: part, bytes: (await getPart(part))!});
+      }
       return true;
     };
     const legacyCover = children(meta, "meta").find(n => a(n, "name") === "cover");
@@ -212,13 +279,13 @@ export const epubReader: ReaderCapability = {
     if (coverItems.length > 1) fail(packagePart, "Ambiguous EPUB cover image");
     const cover = coverItems[0] ?? manifest.get(legacyCover ? a(legacyCover, "content") : "");
     if (legacyCover && !cover) warn(packagePart, "Missing legacy EPUB cover manifest item", "W_RESOURCE_MISSING");
-    if (cover && media(cover.part)) metadata["cover-image"] = {t: "MetaString", c: cover.part};
+    if (cover && await loadMedia(cover.part)) metadata["cover-image"] = {t: "MetaString", c: cover.part};
     for (const ref of children(opf, "guide").flatMap(g => children(g, "reference"))) if (tokens(a(ref, "type")).includes("cover")) {
       const target = resolve(a(ref, "href"), packagePart, ctx);
       if (!admitted.has(target.part) || !parts.has(target.part)) fail(packagePart, "Missing EPUB guide cover page");
       metadata["epub-cover-page"] = {t: "MetaString", c: target.part};
     }
-    for (const item of manifest.values()) if (item.media.startsWith("image/")) media(item.part);
+    for (const item of manifest.values()) if (item.media.startsWith("image/")) await loadMedia(item.part);
     const noteBlocks = new Map<string, readonly Block[]>();
     // Rewrite all AST identities first so notes can be resolved across chapters.
     const rewrite = (value: unknown, part: string): void => {
@@ -362,5 +429,9 @@ export const epubReader: ReaderCapability = {
       const attr: Attr = [identity(chapter.item.part), ["epub-chapter"], [["data-epub-source", chapter.item.part], ["data-epub-item-id", chapter.item.id], ["data-epub-linear", chapter.linear], ...(chapter.language ? [["lang", chapter.language] as const] : [])]];
       return {t: "Div", c: [attr, chapter.blocks]};
     }), metadata, resources: [...bag.values()], ...(bookLanguage ? {language: xmlText(bookLanguage)} : {}), ...(["ltr", "rtl"].includes(bookDirection) ? {direction: bookDirection as "ltr" | "rtl"} : {})};
-  }
-};
+    } catch (reason) {failure = {reason}; throw reason;}
+    finally {
+      try {await storage?.close().catch(reason => {if (!failure) throw reason;});}
+      finally {release?.();}
+    }
+}

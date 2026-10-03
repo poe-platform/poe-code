@@ -225,7 +225,7 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
         mkdir: (path: string, supplied?: {recursive?: boolean}) => owner.acquire(() => context.fs.mkdir(path, {signal, ...(supplied?.recursive === undefined ? {} : {recursive: supplied.recursive})}), () => {}),
         writeFile: (path: string, bytes: Uint8Array, supplied?: {flag?: "wx"}) => owner.acquire(() => writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, {signal, ...(supplied?.flag === undefined ? {} : {flag: supplied.flag})})), () => {})
       };
-      const conversion = {limits: parsed.limits, signal, resourceFiles, resourceCwd: context.cwd, ...(filters === undefined ? {} : {filters})};
+      const conversion = {workingFiles: {fs: context.fs, directory: pathOf(context, context.env.TMPDIR || context.cwd)}, limits: parsed.limits, signal, resourceFiles, resourceCwd: context.cwd, ...(filters === undefined ? {} : {filters})};
       if (destination !== undefined && streamingFile) {
         fileOutput = createFileOutput(context.fs, destination, {expected, parent: parent!, signal, maxBytes: parsed.limits?.outputBytes ?? Infinity});
         const owned = fileOutput;
@@ -233,7 +233,6 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
       }
       const result = destination === undefined || fileOutput !== undefined
         ? await convertToOutput(inputs, parsed.options, {...conversion,
-          workingFiles: {fs: context.fs, directory: pathOf(context, context.env.TMPDIR || context.cwd)},
           output: fileOutput ? {
             write: bytes => writeFileOutput(context, bytes, data => fileOutput!.write(data, signal)),
             close: () => fileOutput!.close(signal), abort: reason => fileOutput!.abort(reason)

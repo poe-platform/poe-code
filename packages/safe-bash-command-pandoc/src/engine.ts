@@ -15,6 +15,7 @@ import type {
   Document,
   Input,
   InputSource,
+  StreamingInput,
   ReadOptions,
   SerializedDocument,
   WriteOptions,
@@ -192,11 +193,11 @@ class Session extends ExecutionContext {
       this.pdfFonts = fonts;
     }
   }
-  async readOwned(input: Input, selection: FormatSelection & {reader: ReaderCapability | undefined}, locations: readonly {source: string; line: number; base?: string}[] = []): Promise<Document> {
+  async readOwned(input: Input | StreamingInput, selection: FormatSelection & {reader: ReaderCapability | undefined}, locations: readonly {source: string; line: number; base?: string}[] = []): Promise<Document> {
     this.sourceLocations = locations;
     this.inputBase = input.base;
     try {
-      const document = await this.document(await this.call(() => selection.reader!.read(input, this, selection)));
+      const document = await this.document(await this.call(() => "chunks" in input ? selection.reader!.readStream!(input, this, selection) : selection.reader!.read(input, this, selection)));
       const originStack: unknown[] = [document.metadata, document.blocks];
       while (originStack.length > 0) {
         const p = this.cooperateFast();
@@ -232,8 +233,9 @@ class Session extends ExecutionContext {
       this.inputBase = undefined;
     }
   }
-  async input(input: InputSource, format: string): Promise<Input> {
-    const { descriptor } = this.registry.parse(format, "read");
+  async input(input: InputSource, format: string): Promise<Input | StreamingInput> {
+    const { descriptor, reader } = this.registry.resolve(format, "read");
+    if (this.workingFiles && reader?.readStream && descriptor.inputEncoding === "bytes" && "chunks" in input) return input;
     const bytes = await this.acquire(
       "bytes" in input ? [input.bytes] : input.chunks,
       descriptor.inputBudget
@@ -311,7 +313,7 @@ class Session extends ExecutionContext {
     let metadata = document.metadata;
     for (const file of this.metadataFiles ?? []) {
       const input = await this.input(file, "json");
-      const parsed = await parseMetadataJson(input.text!, this, file.source ?? file.base);
+      const parsed = await parseMetadataJson((input as Input).text!, this, file.source ?? file.base);
       metadata = await mergeJsonMetadata(metadata, parsed, this);
     }
     for (const layer of this.metadataJson ?? []) metadata = await mergeJsonMetadata(metadata, layer, this);
@@ -516,7 +518,7 @@ export async function convert(
     if (inputs.length > 1 && !reader.descriptor.operands) session.fail("E_OPTION", "This reader accepts only one input");
     await session.preflightOptions();
     // Account for every operand before invoking readers or writers.
-    const ownedInputs: Input[] = [];
+    const ownedInputs: (Input | StreamingInput)[] = [];
     for (const input of inputs) {
       session.charge("references", 1);
       ownedInputs.push(await session.input(input, options.from));
@@ -531,7 +533,7 @@ export async function convert(
       const parts: string[] = [];
       let line = 1;
       for (const input of ownedInputs) {
-        const text = input.text!;
+        const text = (input as Input).text!;
         if (parts.length) {
           session.charge("retainedBytes", 2);
           line++;

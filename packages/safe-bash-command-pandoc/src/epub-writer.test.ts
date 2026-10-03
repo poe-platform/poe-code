@@ -1,6 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import { inflateRawSync } from "node:zlib";
+import { createHash } from "node:crypto";
 import { encode as jpeg } from "jpeg-js";
 import { SaxesParser } from "saxes";
 import { writeDocument, convert } from "./engine.js";
@@ -238,4 +239,21 @@ it("gives empty and symbol headings navigation anchors present in chapter XHTML"
     expect(id).not.toBe("undefined");
     expect(xml(parts.get(`EPUB/${chapter}`)!).tags.some(t => t.attrs.id === decodeURIComponent(id!))).toBe(true);
   }
+});
+
+
+it("hashes publication parts incrementally while preserving independently computed identifiers", async () => {
+  const digest = vi.spyOn(globalThis.crypto.subtle, "digest").mockRejectedValue(new Error("whole-payload digest unavailable"));
+  try {
+    const {parts} = await output(book([heading("Streaming identity"), {t: "Para", c: [{t: "Str", c: "Bounded digest input ".repeat(6000)}]}]));
+    const expected = createHash("sha256");
+    for (const [name, bytes] of parts) {
+      if (name === "EPUB/package.opf") continue;
+      expected.update(`${name.length}:${name}:${bytes.length}:`);
+      expected.update(bytes);
+    }
+    expected.update(JSON.stringify(["Streaming identity", "en-US", "1970-01-01T00:00:00Z"]));
+    expect(xml(parts.get("EPUB/package.opf")!).text).toContain(`urn:sha256:${expected.digest("hex")}`);
+    expect(digest).not.toHaveBeenCalled();
+  } finally { digest.mockRestore(); }
 });

@@ -1,6 +1,7 @@
 import { parseFragment, defaultTreeAdapter as tree, type DefaultTreeAdapterTypes as H } from "parse5";
 import { createZipCodec, type ZipEntry, type ZipLimits } from "@poe-code/office-package/zip";
 import { createCompressionCodec } from "@poe-code/compression";
+import { sha256 } from "@noble/hashes/sha2.js";
 import { writeHtml5 } from "./html-writer.js";
 import { PandocError } from "./errors.js";
 import type { AdapterContext, WriterCapability } from "./types.js";
@@ -233,19 +234,21 @@ export const epubWriter: WriterCapability = {
     add("EPUB/nav.xhtml", xhtml(`<nav epub:type="toc" id="toc"><h1>Contents</h1><ol>${toc.map(t => `<li class="level-${t.level}"><a href="${escape(t.href)}">${escape(t.label)}</a></li>`).join("")}</ol></nav>${cover === undefined ? "" : '<nav epub:type="landmarks"><h2>Landmarks</h2><ol><li><a epub:type="cover" href="cover.xhtml">Cover</a></li></ol></nav>'}`, "Contents"));
     // Hash ordered path/length-framed parts, so resource bytes and all publication
     // metadata affect identity. OPF identifier itself is excluded from this hash.
-    const digestInput: Uint8Array[] = [];
-    let digestSize = 0;
-    for(const [name, bytes] of parts) {
-      const prefix = new TextEncoder().encode(`${name.length}:${name}:${bytes.length}:`);
-      digestInput.push(prefix, bytes); digestSize += prefix.length + bytes.length;
+    const hash = sha256.create();
+    let digest: Uint8Array;
+    try {
+      for(const [name, bytes] of parts) {
+        hash.update(new TextEncoder().encode(`${name.length}:${name}:${bytes.length}:`));
+        for(let offset = 0; offset < bytes.length; offset += 64 * 1024) {
+          hash.update(bytes.subarray(offset, offset + 64 * 1024));
+          await ctx.cooperate();
+        }
+      }
+      hash.update(new TextEncoder().encode(JSON.stringify([title, lang, modified])));
+      digest = hash.digest();
+    } finally {
+      hash.destroy();
     }
-    const metadataBytes = new TextEncoder().encode(JSON.stringify([title, lang, modified]));
-    digestInput.push(metadataBytes); digestSize += metadataBytes.length;
-    ctx.charge("retainedBytes", digestSize);
-    const input = new Uint8Array(digestSize);
-    let offset = 0;
-    for(const bytes of digestInput) {input.set(bytes, offset); offset += bytes.length; await ctx.cooperate();}
-    const digest = new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", input));
     ctx.checkpoint();
     const identifier = explicitIdentifier ?? `urn:sha256:${[...digest].map(n => n.toString(16).padStart(2,"0")).join("")}`;
     const items = [`<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>`, '<item id="css" href="style.css" media-type="text/css"/>', ...chapters.map((c,i) => `<item id="chapter-${i+1}" href="${c.name}" media-type="application/xhtml+xml"/>`), ...[...media.entries()].map(([key,r],i) => `<item id="resource-${i+1}" href="${escape(uri(r.path))}" media-type="${r.type}"${key === cover ? ' properties="cover-image"' : ""}/>`), ...(cover === undefined ? [] : ['<item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>'])];

@@ -81,7 +81,8 @@
     "safe-bash-presentation-engine": "*",
     "@poe-code/spreadsheet-engine": "*",
     "@poe-code/spreadsheet-format-xlsx": "*",
-    "@poe-code/spreadsheet-ast": "*"
+    "@poe-code/spreadsheet-ast": "*",
+    "@noble/hashes": "2.4.0"
   },
   "private": true,
   "types": "dist/index.d.ts",

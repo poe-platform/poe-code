@@ -1,0 +1,115 @@
+[
+  {
+    "input": "\"\\ud800\"",
+    "valid": true,
+    "codepoints": [
+      55296
+    ]
+  },
+  {
+    "input": "\"\\udfff\"",
+    "valid": true,
+    "codepoints": [
+      57343
+    ]
+  },
+  {
+    "input": "\"\\ud83d\\ude00\"",
+    "valid": true,
+    "codepoints": [
+      128512
+    ]
+  },
+  {
+    "input": "\"\\ud800x\"",
+    "valid": true,
+    "codepoints": [
+      55296,
+      120
+    ]
+  },
+  {
+    "input": "\"\\ud800\\u0041\"",
+    "valid": true,
+    "codepoints": [
+      55296,
+      65
+    ]
+  },
+  {
+    "input": "-0",
+    "valid": true,
+    "codepoints": null
+  },
+  {
+    "input": "0.0",
+    "valid": true,
+    "codepoints": null
+  },
+  {
+    "input": "1e9999",
+    "valid": true,
+    "codepoints": null
+  },
+  {
+    "input": "NaN",
+    "valid": true,
+    "codepoints": null
+  },
+  {
+    "input": "Infinity",
+    "valid": true,
+    "codepoints": null
+  },
+  {
+    "input": "-Infinity",
+    "valid": true,
+    "codepoints": null
+  },
+  {
+    "input": "nan",
+    "valid": false
+  },
+  {
+    "input": ".5",
+    "valid": false
+  },
+  {
+    "input": "+1",
+    "valid": false
+  },
+  {
+    "input": "00",
+    "valid": false
+  },
+  {
+    "input": "1.",
+    "valid": false
+  },
+  {
+    "input": "1e",
+    "valid": false
+  },
+  {
+    "input": "true",
+    "valid": true,
+    "codepoints": null
+  },
+  {
+    "input": "null",
+    "valid": true,
+    "codepoints": null
+  },
+  {
+    "input": "1 2",
+    "valid": false
+  },
+  {
+    "input": "{\"a\":1,}",
+    "valid": false
+  },
+  {
+    "input": "[1,]",
+    "valid": false
+  }
+]

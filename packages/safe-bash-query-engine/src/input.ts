@@ -8,8 +8,9 @@ export class JqParseError extends JqError {
   constructor(readonly detail: string, readonly offset: number, readonly line = 1, readonly column = offset, readonly located = true) { super(detail); }
   diagnostic(): string { return this.located ? `${this.detail} at line ${this.line}, column ${this.column}` : this.detail; }
 }
-export function decodeUtf8(bytes: string, budget: Budget): string {
+export function decodeUtf8(bytes: string, budget: Budget, fatal = false): string {
   budget.step(Math.ceil(bytes.length / 1024));
+  if (fatal) return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(encodeLatin1(bytes));
   let ascii = true;
   for (let index = 0; index < bytes.length; index++) {
     if ((index & 1023) === 0) budget.signal.throwIfAborted();
@@ -68,6 +69,22 @@ function shortSliceString(bytes: Uint8Array, start: number, end: number): string
   return decodeLatin1(bytes.subarray(start, start + len));
 }
 
+/** The Python JSON scanner accepts these constants but otherwise requires JSON
+ * number syntax. Preserve the existing decimal representation after admission. */
+function pythonJsonNumber(text: string): boolean {
+  if (text === "NaN" || text === "Infinity" || text === "-Infinity") return true;
+  let index = text[0] === "-" ? 1 : 0;
+  const digit = (offset: number) => { const code = text.charCodeAt(offset); return code >= 48 && code <= 57; };
+  if (text[index] === "0") index++;
+  else { if (!digit(index) || text[index] === "0") return false; while (digit(index)) index++; }
+  if (text[index] === ".") { index++; if (!digit(index)) return false; while (digit(index)) index++; }
+  if (text[index] === "e" || text[index] === "E") {
+    index++; if (text[index] === "+" || text[index] === "-") index++;
+    if (!digit(index)) return false; while (digit(index)) index++;
+  }
+  return index === text.length;
+}
+
 class JsonParser {
   private readonly stack: (Json[] | Record<string, Json> | string)[] = [];
   private next: Json | undefined;
@@ -75,6 +92,7 @@ class JsonParser {
   private quoted = false;
   private chunkedString = false;
   private chunkedLeaf = false;
+  private completedValues = 0;
   private escaped = false;
   private bom = 0;
   private bytes = 0;
@@ -93,7 +111,7 @@ class JsonParser {
   private readonly reusableKeys: string[] = [];
   private readonly reusableArr: Json[] = [];
   private reusableInUse = false;
-  constructor(private readonly budget: Budget, private readonly stream = false, line = 1, column = 0, private readonly stringChunks?: { readonly maxControlBytes: number }) {
+  constructor(private readonly budget: Budget, private readonly stream = false, line = 1, column = 0, private readonly stringChunks?: JsonInputOptions["stringChunks"], private readonly profile?: JsonInputOptions["profile"]) {
     this.line = line; this.column = column;
   }
   releaseReusable(): void {
@@ -368,6 +386,7 @@ class JsonParser {
     this.flushStringChunks();
   }
   appendTokenSpan(span: string): void {
+    if (this.profile && this.completedValues) this.fail("Extra data");
     const len = span.length;
     this.offset += len;
     this.column += len;
@@ -447,6 +466,7 @@ class JsonParser {
       if (text !== pattern) this.fail("Invalid literal" + (eof ? " at EOF" : ""));
       value = pattern === "true" ? true : pattern === "false" ? false : null;
     } else {
+      if (this.profile && !pythonJsonNumber(text)) this.fail("Invalid numeric literal" + (eof ? " at EOF" : ""));
       value = numericToken(text, this.budget);
       if (value === undefined) this.fail("Invalid numeric literal" + (eof ? " at EOF" : ""));
     }
@@ -475,7 +495,7 @@ class JsonParser {
       if (index % 1024 === 0) this.budget.step();
       const character = this.token[index]!;
       if (character === "\\") {
-        result += decodeUtf8(this.token.slice(start, index), this.budget);
+        result += decodeUtf8(this.token.slice(start, index), this.budget, this.profile === "python39");
         const escaped = this.token[++index];
         if (escaped === "u") {
           const digits = this.token.slice(index + 1, index + 5);
@@ -486,11 +506,14 @@ class JsonParser {
           if (point >= 0xd800 && point <= 0xdbff) {
             const tail = this.token.slice(index + 1, index + 7);
             const low = /^\\u[0-9a-f]{4}$/iu.test(tail) ? parseInt(tail.slice(2), 16) : 0;
-            if (low < 0xdc00 || low > 0xdfff) this.fail("Invalid \\uXXXX\\uXXXX surrogate pair escape");
-            point = 0x10000 + ((point - 0xd800) << 10) + low - 0xdc00;
-            index += 6;
+            if (low < 0xdc00 || low > 0xdfff) {
+              if (!this.profile) this.fail("Invalid \\uXXXX\\uXXXX surrogate pair escape");
+            } else {
+              point = 0x10000 + ((point - 0xd800) << 10) + low - 0xdc00;
+              index += 6;
+            }
           }
-          result += String.fromCodePoint(point >= 0xdc00 && point <= 0xdfff ? 0xfffd : point);
+          result += String.fromCodePoint(!this.profile && point >= 0xdc00 && point <= 0xdfff ? 0xfffd : point);
         } else {
           const escapes: Record<string, string> = { '"': '"', "\\": "\\", "/": "/", b: "\b", f: "\f", n: "\n", r: "\r", t: "\t" };
           if (escaped === undefined || !Object.hasOwn(escapes, escaped)) this.fail("Invalid escape");
@@ -499,12 +522,13 @@ class JsonParser {
         start = index + 1;
       } else if (character.charCodeAt(0) < 0x20) this.fail("Invalid string: control characters from U+0000 through U+001F must be escaped");
     }
-    result += decodeUtf8(this.token.slice(start), this.budget);
+    result += decodeUtf8(this.token.slice(start), this.budget, this.profile === "python39");
     this.budget.text(result);
     return result;
   }
   private done(): Json | undefined {
     if (this.stack.length || this.next === undefined) return undefined;
+    if (this.profile && this.completedValues++) this.fail("Extra data");
     const value = this.next;
     this.next = undefined;
     this.budget.value(value);
@@ -548,6 +572,7 @@ class JsonParser {
     if (character === "[" || character === "{") {
       if (this.next !== undefined) this.fail("Expected separator between values");
       if (++this.depth > this.budget.limits.maxDepth) throw new JqLimitError("maxDepth");
+      if (this.stringChunks?.containers) this.event([this.path(), character, "open"]);
       this.stack.push(character === "[" ? [] : object());
     } else if (character === ":") {
       if (this.next === undefined) this.fail("Expected string key before ':'");
@@ -584,6 +609,7 @@ class JsonParser {
       this.next = this.stack.pop() as Json;
       this.depth--;
     }
+    if (this.stringChunks?.containers && (character === "]" || character === "}")) this.event([this.path(), character, "close"]);
     if (closingPath && this.next !== null && typeof this.next === "object") {
       if (closingCount || (closingContainer && typeof closingContainer === "object" && (this.counts.get(closingContainer) ?? 0))) {
         // A close event identifies the last child, including nested containers.
@@ -606,6 +632,7 @@ class JsonParser {
     }
     if (character === "\n") { this.line++; this.column = 0; } else this.column++;
     const space = character === " " || character === "\t" || character === "\r" || character === "\n";
+    if (this.profile && this.completedValues && !space) this.fail("Extra data");
     const structure = character === "[" || character === "]" || character === "{" || character === "}" || character === ":" || character === ",";
     const endsScalar = !this.quoted && !this.stack.length && this.token !== "" && (space || structure || character === '"');
     if (!endsScalar && (this.bytes || !space)) {
@@ -651,7 +678,9 @@ class JsonParser {
     if (this.quoted) this.fail("Unfinished string at EOF");
     this.literal(true);
     if (this.stack.length) this.fail("Unfinished JSON term at EOF");
-    return this.done();
+    const result = this.done();
+    if (this.profile && !this.completedValues) this.fail("Expecting value");
+    return result;
   }
 }
 export function parseJson(input: string, budget: Budget, byteEncoded = false): Json {
@@ -697,7 +726,9 @@ export interface JsonInputOptions {
   /** Requires stream. String values emit [path, text, final] chunks instead of
    * ordinary leaf events. Keys and numeric tokens are bounded controls. Chunks
    * preceding a parse error are provisional; consumers must discard them. */
-  readonly stringChunks?: { readonly maxControlBytes: number };
+  readonly stringChunks?: { readonly maxControlBytes: number; readonly containers?: boolean };
+  /** Python 3.9 JSON grammar, one document, strict UTF-8 and preserved escaped surrogates. */
+  readonly profile?: "python39";
   readonly stream?: boolean;
   readonly streamErrors?: boolean;
   readonly sequence?: boolean;
@@ -1008,7 +1039,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
   if (options.stringChunks && (!options.stream || !Number.isSafeInteger(options.stringChunks.maxControlBytes) || options.stringChunks.maxControlBytes < 1)) {
     throw new RangeError("stringChunks requires stream and a positive maxControlBytes");
   }
-  let parser = new JsonParser(budget, options.stream, 1, 0, options.stringChunks);
+  let parser = new JsonParser(budget, options.stream, 1, 0, options.stringChunks, options.profile);
   let active = !options.sequence;
   let failed = false;
   const values = function* (value: Json | undefined): Generator<Json> {
@@ -1058,7 +1089,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
         if (newline >= 0 && segEnd === newline + 1) {
           budget.inputLocation.line++;
           budget.inputLocation.complete = true;
-          if (nulTail === undefined && active && !failed && !options.sequence && !options.stream && !options.streamErrors && parser.isTopLevelIdle()) {
+          if (nulTail === undefined && active && !failed && !options.sequence && !options.stream && !options.streamErrors && !options.profile && parser.isTopLevelIdle()) {
             const fastObj = parser.tryParseFlatLine(rawChunk, chunkOffset, newline);
             if (fastObj !== undefined) {
               line++;
@@ -1129,7 +1160,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
             }
           }
           const character = segmentText[index - textOffset]!;
-          if (!options.stringChunks && character === "\0" && nulTail === undefined) nulTail = "";
+          if (!options.stringChunks && !options.profile && character === "\0" && nulTail === undefined) nulTail = "";
           if (nulTail !== undefined) {
             nulTail += character;
             if (nulTail.length > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
@@ -1147,7 +1178,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
                   if (active && !failed) {
                     try { yield* values(parser.finish({ line, column, eof: false })); } catch (error) { yield* failure(error, true); }
                   }
-                  parser = new JsonParser(budget, options.stream, line, column, options.stringChunks);
+                  parser = new JsonParser(budget, options.stream, line, column, options.stringChunks, options.profile);
                   active = true; failed = false;
                   continue;
                 }
@@ -1163,7 +1194,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
                   } catch (error) { yield* failure(error); }
                 }
                 if (failed && options.streamErrors && !options.sequence && tc === "\n") {
-                  parser = new JsonParser(budget, true, line, column, options.stringChunks);
+                  parser = new JsonParser(budget, true, line, column, options.stringChunks, options.profile);
                   failed = false;
                 }
               }
@@ -1175,7 +1206,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
             if (active && !failed) {
               try { yield* values(parser.finish({ line, column, eof: false })); } catch (error) { yield* failure(error, true); }
             }
-            parser = new JsonParser(budget, options.stream, line, column, options.stringChunks);
+            parser = new JsonParser(budget, options.stream, line, column, options.stringChunks, options.profile);
             active = true; failed = false;
             continue;
           }
@@ -1191,7 +1222,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
             } catch (error) { yield* failure(error); }
           }
           if (failed && options.streamErrors && !options.sequence && character === "\n") {
-            parser = new JsonParser(budget, true, line, column, options.stringChunks);
+            parser = new JsonParser(budget, true, line, column, options.stringChunks, options.profile);
             failed = false;
           }
         }

@@ -33,3 +33,8 @@ the normal stream format. UTF-8 sequences and escaped surrogate pairs stay intac
 across chunks. Keys and numeric tokens use the explicit control-token budget.
 Treat chunks as provisional until parsing succeeds, and store large payloads in
 the caller's backing storage instead of collecting them in memory.
+For Python-compatible imports, `profile: "python39"` admits one JSON document,
+uses Python's numeric grammar (including `NaN` and infinities), rejects malformed
+UTF-8, and preserves escaped lone surrogates for the consuming encoder to handle.
+With `stringChunks.containers: true`, additional `[path, bracket, "open"|"close"]`
+events identify container types and boundaries without constructing their values.

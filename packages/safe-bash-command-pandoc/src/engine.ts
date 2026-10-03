@@ -1,3 +1,4 @@
+import {RetainedIncludes} from "./retained-includes.js";
 import { normalizeDocumentCooperatively, AstError } from "./ast.js";
 import type { MetaValue } from "./ast-types.js";
 import { createFormatRegistry } from "./formats.js";
@@ -625,20 +626,21 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     request?.kind === "json" && typeof context.filters?.applyJsonStream === "function");
   const backedJson = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
     && reader.descriptor.name === "json" && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
-    && Object.keys(options).every(key => key === "resourcePath" && ["rtf", "odt"].includes(writer.descriptor.name) || ["from", "to", "filters", "metadataFiles", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
+    && Object.keys(options).every(key => key === "resourcePath" && ["rtf", "odt"].includes(writer.descriptor.name) || ["from", "to", "filters", "metadataFiles", "includeInHeader", "includeBeforeBody", "includeAfterBody", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
     && Object.entries(context.limits ?? {}).every(([key, value]) => ["inputBytes", "outputBytes", "work", "diagnostics"].includes(key) || value === Infinity);
   if (backedJson) {
     const session = new Session("convert", context);
     try {
       session.options(options);
+      const includes = await session.call(() => RetainedIncludes.acquire(session, context.workingFiles!, options));
       const filters = await session.admitFilters(options.filters);
-      await session.call(() => streamRetainedDocument(() => readRetainedJson(inputs[0]!, session, context.workingFiles!), session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", inputs[0]!));
+      await session.call(() => streamRetainedDocument(() => readRetainedJson(inputs[0]!, session, context.workingFiles!), session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", inputs[0]!, includes));
       return {kind: "output", diagnostics: session.snapshotDiagnostics()};
     } finally {await session.close();}
   }
   const incremental = context.workingFiles && !context.reader && !context.writer
     && (reader.descriptor.name === "csv" || reader.descriptor.name === "tsv") && ["html5", "json", "plain", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
-    && Object.keys(options).every(key => key === "resourcePath" && ["rtf", "odt"].includes(writer.descriptor.name) || ["from", "to", "filters", "metadataFiles", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
+    && Object.keys(options).every(key => key === "resourcePath" && ["rtf", "odt"].includes(writer.descriptor.name) || ["from", "to", "filters", "metadataFiles", "includeInHeader", "includeBeforeBody", "includeAfterBody", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
     && Object.entries(context.limits ?? {}).every(([key, value]) => (["inputBytes", "outputBytes", "work", "diagnostics"].includes(key) || !options.filters?.length && ["tableRows", "tableColumns", "tableCells", "tableFieldText"].includes(key)) || value === Infinity);
   if (!incremental) {
     const result = await convert(inputs, options, context);
@@ -647,8 +649,9 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
   const session = new Session("convert", context);
   try {
     session.options(options);
+    const includes = await session.call(() => RetainedIncludes.acquire(session, context.workingFiles!, options));
     const filters = await session.admitFilters(options.filters);
-    await session.call(() => streamDelimited(inputs, reader.descriptor.name as "csv" | "tsv", writer.descriptor.name as "html5" | "json" | "plain" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", session, context.workingFiles!, {...options, filters}));
+    await session.call(() => streamDelimited(inputs, reader.descriptor.name as "csv" | "tsv", writer.descriptor.name as "html5" | "json" | "plain" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", session, context.workingFiles!, {...options, filters}, includes));
     return {kind: "output", diagnostics: session.snapshotDiagnostics()};
   } finally {await session.close();}
 }

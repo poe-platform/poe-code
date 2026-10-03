@@ -429,7 +429,15 @@ export class ExecutionContext implements AdapterContext {
   }
 
   async decodeUtf8(chunks: Chunks): Promise<string> {
-    const parts: string[] = [];
+    const parts: string[] = []; let length = 0;
+    await this.decodeUtf8To(chunks, async text => {parts.push(text); length += text.length;});
+    this.charge("retainedBytes", length * 2);
+    this.checkpoint(0);
+    return parts.join("");
+  }
+
+  async decodeUtf8To(chunks: Chunks, accept: (text: string) => Promise<void>, budgets: readonly (keyof Limits)[] = []): Promise<void> {
+    let ready: string | undefined;
     let fragment = "";
     let cr = false;
     let first = true;
@@ -440,7 +448,7 @@ export class ExecutionContext implements AdapterContext {
       if (!fragment) this.charge("references", 1);
       fragment += text;
       if (fragment.length >= 2048) {
-        parts.push(fragment);
+        ready = fragment;
         fragment = "";
       }
     };
@@ -486,17 +494,16 @@ export class ExecutionContext implements AdapterContext {
           scalar = byte & 7;
           minimum = 0x10000;
         } else this.fail("E_ENCODING", "Invalid UTF-8 leading byte");
+        if (ready !== undefined) {const text = ready; ready = undefined; await accept(text);}
         if ((offset + 1) % 256 === 0) await this.cooperate(0);
       }
       await this.cooperate(0);
-    });
+    }, budgets);
     if (remaining) this.fail("E_ENCODING", "Incomplete trailing UTF-8 sequence");
     if (cr) append("\n");
-    if (fragment) parts.push(fragment);
-    const length = parts.reduce((total, part) => total + part.length, 0);
-    this.charge("retainedBytes", length * 2);
+    if (ready !== undefined) await accept(ready);
+    if (fragment) await accept(fragment);
     this.checkpoint(0);
-    return parts.join("");
   }
 
   async emit(bytes: Uint8Array): Promise<void> {

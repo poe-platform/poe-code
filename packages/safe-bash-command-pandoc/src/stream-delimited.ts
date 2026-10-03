@@ -1,3 +1,4 @@
+import type {RetainedIncludes} from "./retained-includes.js";
 import {BackedJson} from "./backed-json.js";
 import {streamRetainedDocument} from "./stream-retained.js";
 import {backedJsonOrder} from "./backed-json-order.js";
@@ -36,7 +37,7 @@ class DocumentDecoder {
  * no input, field, row, document tree or output grows a resident collection. */
 export async function streamDelimited(
   inputs: readonly InputSource[], format: "csv" | "tsv", target: "html5" | "json" | "plain" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", context: ExecutionContext,
-  working: WorkingStorageOptions, options: ConversionOptions
+  working: WorkingStorageOptions, options: ConversionOptions, includes?: RetainedIncludes
 ): Promise<void> {
   const cacheBytes = working.cacheBytes ?? 1024 * 1024;
   if (!Number.isSafeInteger(cacheBytes) || cacheBytes < 16384 || cacheBytes % 16384 !== 0)
@@ -98,7 +99,7 @@ export async function streamDelimited(
     }
     if (nul && target === "html5" && !options.filters?.length) throw new PandocError("E_CAPABILITY", "convert", "NUL cannot be represented in HTML", "html5");
 
-    if (target !== "html5" || options.metadataFiles?.length || options.filters?.length || options.standalone || options.toc || options.numberSections || options.stripComments || options.shiftHeadingLevelBy) {
+    if (includes || target !== "html5" || options.metadataFiles?.length || options.filters?.length || options.standalone || options.toc || options.numberSections || options.stripComments || options.shiftHeadingLevelBy) {
       const tree = new BackedJson(storage, units => context.cooperate(units));
       await tree.begin("object");
       await tree.key("pandoc-api-version"); await tree.value([1, 23, 1, 2]);
@@ -121,7 +122,7 @@ export async function streamDelimited(
           yield new TextEncoder().encode(eol === "crlf" ? "\r\n" : "\n");
         },
         async close() {try {await storage.close();} finally {release();}}
-      }), context, working, options, target);
+      }), context, working, options, target, undefined, includes);
       return;
     } else {
       let output = "";

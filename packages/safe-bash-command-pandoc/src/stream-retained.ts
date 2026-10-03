@@ -1,3 +1,4 @@
+import type {RetainedIncludes} from "./retained-includes.js";
 import {mergeRetainedMetadataFile} from "./retained-metadata.js";
 import {writeRetainedOdt} from "./retained-odt.js";
 import {inspectRetainedRtfPicture} from "./retained-rtf-pictures.js";
@@ -47,7 +48,7 @@ async function checkImageOrigins(tree: BackedJson, context: ExecutionContext): P
 
 /** Retain each document generation and filter response in caller storage. The
  * previous generation is retired before another filter starts. */
-export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>>>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt" = "json", origin?: ResourceOrigin): Promise<void> {
+export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>>>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt" = "json", origin?: ResourceOrigin, includes?: RetainedIncludes): Promise<void> {
   let document: Awaited<ReturnType<typeof readRetainedJson>> | undefined;
   let failure: {reason: unknown} | undefined;
   const preflight = async (chunks: AsyncIterable<Uint8Array>) => {
@@ -110,7 +111,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     else if (target === "plain") await writeRetainedPlain(document.tree, context, working, options);
     else if (target === "latex") await writeRetainedLatex(document.tree, context, working, options, document.order);
     else if (target === "rst") await writeRetainedRst(document.tree, context, working, options);
-    else if (target === "html5") await writeRetainedHtml(document.tree, context, working, options);
+    else if (target === "html5") await writeRetainedHtml(document.tree, context, working, includes ? {...options, standalone: true} : options, includes);
     else if (target === "commonmark" || target === "gfm") await writeRetainedMarkdown(document.tree, context, working, options, createFormatRegistry().resolve(options.to, "write"));
     else {
       await preflight(document.chunks(options.eol));
@@ -118,6 +119,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     }
   } catch (reason) {failure = {reason};}
   try {await document?.close();} catch (reason) {failure ??= {reason};}
+  try {await includes?.close();} catch (reason) {failure ??= {reason};}
   if (failure) throw failure.reason;
   await context.completeOutput();
 }

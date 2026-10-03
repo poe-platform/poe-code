@@ -7,6 +7,14 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
 
 ## Coverage to complete
 
+- HTML includes retain decoded input and replacement generations in one extra
+  caller-backed page cache. Verify acquisition before document input, UTF-8
+  diagnostics, implicit standalone output, raw Unicode, replacement tokens,
+  finite output preflight and retirement before commit. The workerd/R2 include
+  scenarios cover JSON/CSV with streamed filters and producer/cancel/sink
+  failures. Extend the increasing-size and concurrent-request measurements to
+  these paths; custom templates/variables remain on the compatibility path.
+
 - JSON metadata files now retain raw input, parsing state, duplicate-key indexes,
   merge jobs and resulting generations in caller storage (at most seven page
   caches during a merge). Exercise long keys/values, duplicate maps, null

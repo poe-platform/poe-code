@@ -21,7 +21,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=browser --conditions=workerd --format=esm --target=es2022 --outfile=dist/index.js --metafile=dist/metafile.json --external:safe-bash-contracts --external:safe-bash-contracts/*",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=browser --conditions=workerd --format=esm --target=es2022 --packages=external --outfile=dist/index.js",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "lint": "eslint src && npm run typecheck",
     "test": "cd ../.. && vitest run packages/safe-bash-command-neato",
@@ -31,5 +31,6 @@
   "devDependencies": {
     "safe-bash-graphviz-engine": "*",
     "safe-bash-contracts": "*"
-  }
+  },
+  "sideEffects": false
 }

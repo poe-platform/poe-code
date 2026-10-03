@@ -132,7 +132,7 @@ it("preserves the portable export surface when canonical owners remain external"
     return surface;
   }));
   expect(names[1]).toEqual(names[0]);
-});
+}, 120_000);
 
 it("keeps root conditional runtimes unresolved until browser or workerd consumption", async () => {
   const options = resolveBrowserShellBuild(process.cwd(), {

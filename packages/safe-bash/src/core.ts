@@ -217,3 +217,6 @@ export { createWdiffCommand, createWdiffCommands, wdiffCommands, type WdiffComma
 export { createDiffpdfCommand, createDiffpdfCommands, diffpdfCommands, type DiffpdfCommandsOptions, type DiffpdfLimits } from "./commands/diffpdf/index.js";
 export { createDotCommand, createDotCommands, dotCommands, type DotCommandsOptions, type DotLimits } from "./commands/dot/index.js";
 export { createRsvgConvertCommand, createRsvgConvertCommands, rsvgConvertCommands, type RsvgConvertCommandsOptions, type RsvgConvertLimits } from "./commands/rsvg-convert/index.js";
+export { createNeatoCommand, createNeatoCommands, neatoCommands, type NeatoCommandsOptions, type NeatoLimits } from "./commands/neato/index.js";
+export { createSvgoCommand, createSvgoCommands, svgoCommands, type SvgoCommandsOptions, type SvgoLimits } from "./commands/svgo/index.js";
+export { createGraphvizCommands, graphvizCommands, type GraphvizCommandsOptions } from "./commands/graphviz/index.js";

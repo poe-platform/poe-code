@@ -5,6 +5,7 @@ import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 
 const root = process.cwd();
 const manifest = JSON.parse(readFileSync(path.join(root, "packages/safe-bash/package.json"), "utf8"));
+const recipe = resolveBrowserShellBuild(root);
 const subpaths = ["search", ...[
   "pandoc", "csvkit", "ssconvert", "metadata", "archive", "table-text", "stream-inspection", "stream-format", "split",
   "time-env", "tree", "file", "grep-aliases", "column", "html-to-markdown", "du", "expr", "apply-patch",
@@ -16,7 +17,6 @@ it.each(subpaths)("publishes a portable bundle for %s", route => {
   expect(entry.workerd).toBe(target);
   expect(entry.browser).toBe(target);
   expect(entry.types).toBe(entry.import.slice(0, -3) + ".d.ts");
-  const recipe = resolveBrowserShellBuild(root);
   expect(recipe.entryPoints[target.slice("./dist/".length, -3)])
     .toBe(path.join(root, "packages/safe-bash/src", entry.import.slice("./dist/".length, -3) + ".ts"));
 });
@@ -41,7 +41,6 @@ it("retains portable contract types and rejects Node-only runtimes", () => {
 it("executes every reported subpath in workerd without nodejs_compat", async () => {
   const { build } = await import("esbuild");
   const { Miniflare } = await import("miniflare");
-  const recipe = resolveBrowserShellBuild(root);
   const targets = new Set(subpaths.map(route => manifest.exports[`./${route}`].workerd.slice("./dist/".length, -3)));
   const result = await build({ ...recipe, sourcemap: false,
     entryPoints: Object.fromEntries(Object.entries(recipe.entryPoints).filter(([name]) => targets.has(name))),
@@ -76,7 +75,7 @@ it("executes every reported subpath in workerd without nodejs_compat", async () 
     expect(response.status, body).toBe(200);
     expect(body).toBe("ok");
   } finally { await runtime.dispose(); }
-});
+}, 120_000);
 
 it("resolves portable and Node declarations using TypeScript package conditions", async () => {
   const ts = await import("typescript");

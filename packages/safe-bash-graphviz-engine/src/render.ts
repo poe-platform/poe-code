@@ -8,8 +8,6 @@ import {
   type LayoutOptions,
   type GraphLayout
 } from "@poe-code/graphviz-ast";
-import { renderSvgDocument } from "safe-bash-svg-engine";
-import sharp from "@poe-code/image-ast";
 import { UsageError, type GraphvizLimits } from "./index.js";
 function admit(graph: DotGraph, limits: GraphvizLimits): void {
   const nodes = new Set<string>();
@@ -208,7 +206,7 @@ export async function renderGraph(
   const svg = new TextEncoder().encode(renderSvg(graph));
   if (format === "svg") return svg;
   if (format === "pdf")
-    return renderSvgDocument(new TextDecoder().decode(svg), "pdf", {
+    return (await import("safe-bash-svg-engine")).renderSvgDocument(new TextDecoder().decode(svg), "pdf", {
       ...(signal ? { signal } : {}),
       maxNodes: limits.maxNodes * 20,
       maxPixels: limits.maxPixels
@@ -220,7 +218,7 @@ export async function renderGraph(
     throw new UsageError("raster pixel limit exceeded");
   if (!["png", "jpg", "jpeg", "webp"].includes(format))
     throw new UsageError(`unknown format: ${format}`);
-  return sharp(svg)
+  return (await import("@poe-code/image-ast")).default(svg)
     .toFormat({ id: format === "jpg" ? "jpeg" : format })
     .toBuffer();
 }

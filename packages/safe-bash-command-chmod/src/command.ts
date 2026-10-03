@@ -14,10 +14,15 @@ export function createChmodCommand(configuration: MetadataCommandsOptions = {}) 
     const budget = new MetadataBudget(context, configured.limits);
     const modeOptions: string[] = [];
     let ended = false, referenceValue = false;
+    let preserveRoot = true;
     const args = context.args.flatMap(argument => {
       if (referenceValue) { referenceValue = false; return [argument]; }
       if (argument === "--") ended = true;
       if (ended) return [argument];
+      if (argument === "--preserve-root" || argument === "--no-preserve-root") {
+        preserveRoot = argument === "--preserve-root";
+        return [];
+      }
       if (argument === "--reference") referenceValue = true;
       if (argument.startsWith("-") && argument.length > 1 && "rwxXstugo01234567".includes(argument[1]!)) {
         modeOptions.push(argument);
@@ -45,7 +50,7 @@ export function createChmodCommand(configuration: MetadataCommandsOptions = {}) 
       const target = link.type === "symlink" ? await context.fs.realpath(path, { signal: context.signal }) : path;
       const stat = link.type === "symlink" ? await context.fs.stat(target, { signal: context.signal }) : link;
       const mode = referenceMode ?? change!(stat);
-      if (parsed.flags.has("R") && stat.type === "directory" && await context.fs.realpath(target, { signal: context.signal }) === "/") throw new FsError("EBUSY", { syscall: "chmod", path, message: "refusing recursive mode changes at virtual root" });
+      if (preserveRoot && parsed.flags.has("R") && stat.type === "directory" && await context.fs.realpath(target, { signal: context.signal }) === "/") throw new FsError("EBUSY", { syscall: "chmod", path, message: "refusing recursive mode changes at virtual root" });
       const canonicalTarget = await context.fs.realpath(target, { signal: context.signal });
       const apply = async () => {
         context.signal.throwIfAborted();
@@ -117,6 +122,7 @@ export function evalSyncChmod(
     for (const argument of opArgs) {
       if (referenceValue) { referenceValue = false; args.push(argument); continue; }
       if (argument === "--") { ended = true; args.push(argument); continue; }
+      if (!ended && (argument === "--preserve-root" || argument === "--no-preserve-root")) continue;
       if (!ended && argument === "--reference") { referenceValue = true; args.push(argument); continue; }
       if (!ended && argument.startsWith("-") && argument.length > 1 && "rwxXstugo01234567".includes(argument[1]!)) {
         modeOptions.push(argument);

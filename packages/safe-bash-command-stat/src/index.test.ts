@@ -46,3 +46,27 @@ test("BSD stat exposes raw symlink targets and obeys dereference", async () => {
   assert.equal((await run(["-f", "%N %Y %HT", "/link"], fs)).stdout, "/link file Symbolic Link\n");
   assert.equal((await run(["-L", "-f", "%z %Y %HT", "/link"], fs)).stdout, "5  Regular File\n");
 });
+
+
+test("GNU stat supports epoch precision, block units, virtual identities and mount root", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/file", new TextEncoder().encode("hello"));
+  const stat = { ...await fs.lstat("/file"), atimeMs: -1, mtimeMs: 1700000000123.456, ctimeMs: 1234, birthtimeMs: 0 };
+  const supplied = new Proxy(fs, { get(target, property) {
+    if (property === "lstat") return async () => stat;
+    const member: unknown = Reflect.get(target, property, target);
+    return typeof member === "function" ? member.bind(target) : member;
+  } });
+  for (const [format, expected] of [
+    ["%.9X|%.X|%.9Y|%.Y|%.9Z|%.Z|%.9W|%.W|%.12Y", "-0.001000000|-0.001000000|1700000000.123456000|1700000000.123456000|1.234000000|1.234000000|0.000000000|0.000000000|1700000000.123456000000"],
+    ["%B|%U:%G|%m", "512|root:root|/"],
+    [String.raw`\"%s\"`, '"5"'],
+  ]) {
+    const args = ["--printf", format!, "/file"];
+    assert.deepEqual(await run(args, supplied), { exitCode: 0, stdout: expected, stderr: "" });
+    assert.equal(evalSyncStat(args, "/", undefined, () => stat), expected);
+  }
+  for (const format of ["%.Y", "%.9Y"]) {
+    assert.deepEqual(await run(["-c", format, "/file"], supplied), { exitCode: 0, stdout: "1700000000.123456000\n", stderr: "" });
+  }
+});

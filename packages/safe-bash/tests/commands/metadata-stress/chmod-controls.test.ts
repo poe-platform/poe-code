@@ -25,7 +25,7 @@ test("chmod root and unsupported traversal controls fail without namespace effec
   const fs = new MemoryFileSystem();
   await fs.mkdir("/work");
   await fs.writeFile("/work/file", Uint8Array.of(3), { mode: 0o640 });
-  for (const args of [["-R", "777", "/"], ["-RL", "777", "/work"], ["-RH", "777", "/work"], ["-RP", "777", "/work"], ["--no-preserve-root", "-R", "777", "/"]]) {
+  for (const args of [["-R", "777", "/"], ["-RL", "777", "/work"], ["-RH", "777", "/work"], ["-RP", "777", "/work"], ["--preserve-root", "-R", "777", "/"]]) {
     const result = await run("chmod", args, fs);
     assert.equal(result.exitCode, 1);
     assert.equal((await fs.stat("/work/file")).mode & 0o777, 0o640);

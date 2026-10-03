@@ -9,6 +9,7 @@
     "tests/agent-mcp-config-subpath-types.ts",
     "tests/config-mutations-subpath-types.ts",
     "tests/frontmatter-subpath-types.ts",
+    "tests/process-runner-subpath-types.ts",
     "tests/auth-store-subpath-types.ts"
   ]
 }

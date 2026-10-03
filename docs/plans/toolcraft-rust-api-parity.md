@@ -5511,3 +5511,47 @@ runtime checks exercise capabilities and original byte views without canonical
 fallback; standalone declarations now resolve the declared filesystem contract.
 The public Toolcraft facade is being qualified separately. Real-engine, platform,
 malformed/getter and broader performance gates remain open.
+
+### Public process-runner subpath checkpoint
+
+The missing toolcraft-rust/process-runner entry point now exposes all 14 runtime
+exports and the canonical named public types from the own Rust process package.
+Direct reexports retain dependency identities; implementation-only Docker build
+type aliases are not added to the Toolcraft namespace. The manifest and lockfile
+add the existing own process-runner-rust workspace edge. No new third-party
+package or version is introduced. The public import regression failed before
+implementation.
+
+The maintained two-package route passes Toolcraft's 266 native checks and 6,210
+reference-route cases across 129 files, plus the process dependency's 22 native
+checks and 170 reference-route cases across ten files. Rust tests, declarations,
+the original CLI compile-check consumer, strict dependency types and root
+posttest pass. Maintained Rust lint and scoped JavaScript/TypeScript lint pass.
+The facade tests cover exact exports and identities, Docker/Podman context
+arguments, mock stream bytes and results, command lookup, pre-aborted handles and
+host environment capability and lifecycle outcomes.
+
+Fresh packed artifacts verify a real Node subprocess with piped input, UTF-8
+stdout/stderr, explicit environment and nonzero exit, pre-aborted execution, mock
+streams, host lifecycle and capability-based workspace upload/download. Runtime
+imports are confined to packed own artifacts, the existing noble package and
+Node builtins. Binary callback identity and ordinary Uint8Array archives are
+asserted. Strict packed public declarations pass with 260 sources, skipLibCheck
+disabled and compiler reads confined to the consumer and TypeScript library.
+These checks qualify this subpath; real Docker engines, all malformed/getter
+behavior, platform artifacts and the full Toolcraft installation remain open.
+
+Seven alternating warmed rounds of 1,000 simulated mock-runner create/exec/result
+cycles on Node 22.23.2 ARM64 measured reference/native medians of 0.687/2.374
+microseconds (3.46 times slower). Outputs match before timing and after each
+round, with 28 retained results. This measures native policy/adapter overhead,
+not real process or container latency, and establishes no speedup.
+
+Frontmatter facade delivery is verified on remote main at 9131703e03. Root
+Releases 37112297042, 37112770887, 37113109684 and 37113411495 completed through
+queue checks with actual builds, validation and publication skipped. The separate
+package workflow 37113411412 has passed real standalone bundles on Node 22/24;
+Node 18/20 checks remain active. It tests existing Toolcraft packaging and does
+not establish native artifact publication. JavaScript remains the default.
+Safe Bash, testing and composition entry points and broader replacement gates
+remain unfinished.

@@ -375,6 +375,10 @@
     "./frontmatter": {
       "types": "./dist/frontmatter.d.ts",
       "import": "./dist/frontmatter.js"
+    },
+    "./process-runner": {
+      "types": "./dist/process-runner.d.ts",
+      "import": "./dist/process-runner.js"
     }
   },
   "scripts": {
@@ -423,6 +427,7 @@
     "@poe-code/agent-defs-rust": "*",
     "auth-store-rust": "*",
     "@poe-code/agent-mcp-config-rust": "*",
-    "@poe-code/frontmatter-rust": "*"
+    "@poe-code/frontmatter-rust": "*",
+    "@poe-code/process-runner-rust": "*"
   }
 }

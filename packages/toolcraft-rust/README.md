@@ -35,6 +35,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | MCP configuration | `toolcraft-rust/agent-mcp-config`: configure and remove agent servers through injected filesystems, with JSON, TOML and YAML formats |
 | Configuration mutations | `toolcraft-rust/config-mutations`: merge, prune and transform JSON/TOML/YAML, render templates and manage files through injected filesystems |
 | Frontmatter | `toolcraft-rust/frontmatter`: parse and write YAML metadata while retaining Markdown bodies, source positions and typed errors |
+| Process execution | `toolcraft-rust/process-runner`: host/container runners, streams, cancellation, workspace transfer and deterministic mock runners |
 | Credential stores | `toolcraft-rust/auth-store`: Node encrypted-file and Keychain stores, backend selection and legacy migration |
 | MCP handlers     | Native invocation routing, request services, cancellation, approvals, result projection and error reporting |
 | Stack diagnostics | Native framework-frame summaries, nested cause sections and raw stack preservation |

@@ -130,6 +130,7 @@ export default defineConfig({
       path("tests/agent-mcp-config-subpath-parity.test.ts"),
       path("tests/config-mutations-subpath-parity.test.ts"),
       path("tests/frontmatter-subpath-parity.test.ts"),
+      path("tests/process-runner-subpath-parity.test.ts"),
       path("tests/auth-store-subpath-parity.test.ts"),
       ...authStoreSuites.map(suite => path(`../auth-store/src/${suite}.test.ts`)),
       ...cliSuites.map(suite => path(`../toolcraft/src/${suite}`)),

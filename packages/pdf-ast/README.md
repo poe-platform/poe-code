@@ -51,6 +51,18 @@ Duplicate names and name-tree cycles use caller-backed indexes; filename equalit
 is exact, including Unicode code units. Returning early or closing the document
 releases traversal staging. Keep the document open while reading contents.
 
+`doc.structure({ includeText: true })` streams logical structure items. Element
+items expose `depth`, `role` and optional `mappedRole`; text items expose `depth`
+and UTF-8 `contents()` chunks that must be consumed before advancing the walk.
+Text includes ActualText/Alt values and page MCID/MCR content. Page operators,
+marked-content state and text segments use caller-backed staging, preserving
+text-object grouping and nested-BT recovery without collecting a page AST or
+all extracted text. Trimming scans stored segments without retaining whitespace
+tails. Closing or returning the walk releases its staging; active-path cycles
+are skipped while repeated sibling references remain visible. Individual COS
+values remain subject to parser admission. Omit `includeText` to inspect roles
+without decoding page contents.
+
 `doc.destinations()` visits legacy and name-tree destinations in stored order.
 Each entry has a `name` and, when valid, a `target` containing `pageNumber` and
 `kind`. Page references use a caller-backed index; malformed named entries remain

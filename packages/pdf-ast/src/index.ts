@@ -65,3 +65,5 @@ export { PdfNameIndex } from "./cos/name-index.js";
 export type { PdfRetainedJavaScript } from "./extract/retained-javascript.js";
 
 export type { PdfRetainedDestination, PdfRetainedUrl, PdfUrlSelection } from "./extract/retained-links.js";
+
+export type { PdfRetainedStructureItem, PdfStructureSelection } from "./extract/retained-structure.js";

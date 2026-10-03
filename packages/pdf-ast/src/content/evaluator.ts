@@ -25,7 +25,7 @@ import {
 import type { ParsedCosDocument } from "../cos/parser.js";
 import { PdfError } from "../errors.js";
 import { bytesToString } from "../bytes.js";
-import { parseCharacterCMap, readCMapCharacters, parseToUnicodeCMap, type ParsedToUnicodeCMap } from "../fonts/cmap.js";
+import { parseCharacterCMap, iterateCMapCharacters, parseToUnicodeCMap, type ParsedToUnicodeCMap } from "../fonts/cmap.js";
 import { parseTrueTypeFont, type ParsedTrueTypeFont } from "../fonts/truetype.js";
 import { parseContentStream } from "./parser.js";
 import { createCalibratedColorSpace } from "./calibrated-color.js";
@@ -1100,66 +1100,50 @@ export function evaluateContentStreamToDisplayList(params: {
   const stateStack: GraphicsState[] = [initialState];
   const curState = (): GraphicsState => stateStack[stateStack.length - 1]!;
 
-  const decodeTokenGlyphs = (
+  function* decodeTokenGlyphs(
     bytes: Uint8Array,
     font: ResolvedPageFont | undefined
-  ): Array<{ charCode: number; cid?: number; isSpace: boolean; unicode: string; advance1000: number }> => {
+  ): Generator<{ charCode: number; cid?: number; isSpace: boolean; unicode: string; advance1000: number }, void, void> {
     if (font?.encodingCMap) {
       const encoding = font.encodingCMap;
-      return readCMapCharacters(encoding, bytes).map(({ charCode, isSpace }) => {
+      for (const { charCode, isSpace } of iterateCMapCharacters(encoding, bytes)) {
         const value = encoding.lookup(charCode);
         const cid = typeof value === "number" ? value : 0;
         const unicode = font.cmap?.map.get(charCode) ?? font.differences.get(cid) ?? (cid >= 0x20 && cid <= 0x10ffff ? String.fromCodePoint(cid) : "");
-        return { charCode, cid, isSpace, unicode, advance1000: font.widths.get(cid) ?? font.defaultWidth };
-      });
+        yield { charCode, cid, isSpace, unicode, advance1000: font.widths.get(cid) ?? font.defaultWidth };
+      }
+      return;
     }
     if (font?.cmap) {
       if (!font.isTwoByteCid) {
-        const out: Array<{ charCode: number; isSpace: boolean; unicode: string; advance1000: number }> = [];
         for (let i = 0; i < bytes.length; i++) {
           const code = bytes[i]!;
-          const unicode =
-            font.cmap.map.get(code) ??
-            (font.differences.has(code) ? font.differences.get(code)! : decodeWinAnsiByte(code));
-          const advance1000 = font.widths.get(code) ?? font.defaultWidth;
-          out.push({ charCode: code, isSpace: code === 0x20, unicode, advance1000 });
+          const unicode = font.cmap.map.get(code) ?? (font.differences.has(code) ? font.differences.get(code)! : decodeWinAnsiByte(code));
+          yield { charCode: code, isSpace: code === 0x20, unicode, advance1000: font.widths.get(code) ?? font.defaultWidth };
         }
-        return out;
+        return;
       }
-      const decoded = font.cmap.decodeBytes(bytes);
-      return decoded.map(item => ({
-        charCode: item.charCode,
-        isSpace: false,
-        unicode: item.unicode,
+      for (const item of font.cmap.iterateBytes(bytes)) yield {
+        charCode: item.charCode, isSpace: false, unicode: item.unicode,
         advance1000: font.widths.get(item.charCode) ?? font.defaultWidth,
-      }));
+      };
+      return;
     }
     if (font?.isTwoByteCid && bytes.length >= 2 && bytes.length % 2 === 0) {
-      const out: Array<{ charCode: number; isSpace: boolean; unicode: string; advance1000: number }> = [];
       for (let i = 0; i < bytes.length; i += 2) {
         const cid = (bytes[i]! << 8) | bytes[i + 1]!;
-        out.push({
-          charCode: cid,
-          isSpace: false,
-          unicode: cid >= 0x20 ? String.fromCodePoint(cid) : "",
-          advance1000: font.widths.get(cid) ?? font.defaultWidth,
-        });
+        yield { charCode: cid, isSpace: false, unicode: cid >= 0x20 ? String.fromCodePoint(cid) : "",
+          advance1000: font.widths.get(cid) ?? font.defaultWidth };
       }
-      return out;
+      return;
     }
-    const stdName = normalizeStandard14FontName(font?.baseFont ?? curState().fontName);
-    const stdMetrics = STANDARD_14_FONTS[stdName];
-    const out: Array<{ charCode: number; isSpace: boolean; unicode: string; advance1000: number }> = [];
+    const stdMetrics = STANDARD_14_FONTS[normalizeStandard14FontName(font?.baseFont ?? curState().fontName)];
     for (let i = 0; i < bytes.length; i++) {
       const code = bytes[i]!;
-      const unicode = font?.differences.get(code) ?? decodeWinAnsiByte(code);
-      const advance1000 = font
-        ? font.widths.get(code) ?? font.defaultWidth
-        : stdMetrics.widthsByCode[code] ?? stdMetrics.defaultWidth;
-      out.push({ charCode: code, isSpace: code === 0x20, unicode, advance1000 });
+      yield { charCode: code, isSpace: code === 0x20, unicode: font?.differences.get(code) ?? decodeWinAnsiByte(code),
+        advance1000: font ? font.widths.get(code) ?? font.defaultWidth : stdMetrics.widthsByCode[code] ?? stdMetrics.defaultWidth };
     }
-    return out;
-  };
+  }
 
   const resolveScColorOperands = (
     csName: string,

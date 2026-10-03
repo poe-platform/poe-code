@@ -5,6 +5,7 @@ import { CMap } from "../vendor/pdfjs-fonts.mjs";
 export interface ParsedToUnicodeCMap {
   readonly map: ReadonlyMap<number, string>;
   readonly isTwoByte: boolean;
+  iterateBytes(bytes: Uint8Array): Generator<{ charCode: number; unicode: string }, void, void>;
   decodeBytes(bytes: Uint8Array): Array<{ charCode: number; unicode: string }>;
 }
 
@@ -86,17 +87,20 @@ export function parseCharacterCMap(cmapBytes: Uint8Array): CMap {
   return cmap;
 }
 
-export function readCMapCharacters(cmap: CMap, bytes: Uint8Array): Array<{ charCode: number; isSpace: boolean }> {
-  const codes: Array<{ charCode: number; isSpace: boolean }> = [];
-  const input = bytesToString(bytes);
+export function* iterateCMapCharacters(cmap: CMap, bytes: Uint8Array): Generator<{ charCode: number; isSpace: boolean }, void, void> {
+  // PDF.js only requires charCodeAt; avoid constructing a token-sized string.
+  const input = { charCodeAt: (index: number) => bytes[index] ?? NaN };
   const result = { charcode: 0, length: 0 };
   for (let offset = 0; offset < bytes.length;) {
     cmap.readCharCode(input, offset, result);
     if (offset + result.length > bytes.length) break;
-    codes.push({ charCode: result.charcode, isSpace: result.length === 1 && bytes[offset] === 0x20 });
+    yield { charCode: result.charcode, isSpace: result.length === 1 && bytes[offset] === 0x20 };
     offset += result.length;
   }
-  return codes;
+}
+
+export function readCMapCharacters(cmap: CMap, bytes: Uint8Array): Array<{ charCode: number; isSpace: boolean }> {
+  return [...iterateCMapCharacters(cmap, bytes)];
 }
 
 export function parseToUnicodeCMap(cmapBytes: Uint8Array): ParsedToUnicodeCMap {
@@ -104,16 +108,14 @@ export function parseToUnicodeCMap(cmapBytes: Uint8Array): ParsedToUnicodeCMap {
   const map = new Map<number, string>();
   cmap.forEach((code, value) => map.set(code, decodeDestination(value)));
   const isTwoByte = cmap.codespaceRanges.slice(1).some(ranges => ranges.length > 0);
-  return {
-    map,
-    isTwoByte,
-    decodeBytes(bytes) {
-      return readCMapCharacters(cmap, bytes).map(({ charCode }) => ({
-        charCode,
-        unicode: map.get(charCode) ?? (charCode >= 0x20 && charCode <= 0x10ffff ? String.fromCodePoint(charCode) : ""),
-      }));
-    },
-  };
+  function* iterateBytes(bytes: Uint8Array): Generator<{ charCode: number; unicode: string }, void, void> {
+    for (const { charCode } of iterateCMapCharacters(cmap, bytes)) yield {
+      charCode,
+      unicode: map.get(charCode) ?? (charCode >= 0x20 && charCode <= 0x10ffff ? String.fromCodePoint(charCode) : ""),
+    };
+  }
+  return { map, isTwoByte, iterateBytes, decodeBytes(bytes) { return [...iterateBytes(bytes)]; } };
+
 }
 
 export function generateToUnicodeCMap(cidToUnicode: ReadonlyMap<number, string>): Uint8Array {

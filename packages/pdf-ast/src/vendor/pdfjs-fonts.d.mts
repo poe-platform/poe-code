@@ -114,7 +114,7 @@ export class CMap {
   mapBfRangeToArray(low: number, high: number, destinations: Array<string | number>): void;
   mapCidRange(low: number, high: number, destination: number): void;
   forEach(callback: (code: number, value: number | string) => void): void;
-  readCharCode(value: string, offset: number, result: { charcode: number; length: number }): void;
+  readCharCode(value: Pick<string, "charCodeAt">, offset: number, result: { charcode: number; length: number }): void;
 }
 
 export class Dict {

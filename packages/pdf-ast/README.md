@@ -26,6 +26,12 @@ memory: set `maxTokenBytes` to bound decoded strings and encoded names/numbers.
 `start`, `end`, `knownCommands`, and `signal` control scanning. The caller closes
 the source after use; the lexer does not collect a document or own its handle.
 
+`iterateCMapCharacters(cmap, bytes)` and
+`parseToUnicodeCMap(mapping).iterateBytes(bytes)` decode text characters lazily.
+They avoid token-sized string copies and glyph arrays; returning early stops
+reading the token. `readCMapCharacters` and `decodeBytes` remain buffered
+convenience APIs. The shared page evaluator uses lazy glyph decoding.
+
 `doc.fonts({ firstPage, lastPage })` lazily inspects fonts in the selected
 one-based page range, inherited resources, forms, patterns, annotations and
 AcroForm defaults. It reports font names, types, encoding, embedding, Unicode

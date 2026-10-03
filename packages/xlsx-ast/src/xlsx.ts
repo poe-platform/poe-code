@@ -1,3 +1,4 @@
+import { resolveExternalLinks } from "./external-links.js";
 import { createStoredZipEntries, ZipStorageFailure } from "@poe-code/office-package";
 import { ownedRangeSource } from "@poe-code/spreadsheet-engine/range-input";
 import { createZipCodec, CodecError, type ZipLimits, type ZipEntry, type ZipStreamEntry, type ZipSource } from "@poe-code/office-package";
@@ -275,17 +276,18 @@ function data(node: XmlElement): ImportedValue {
 function record(node: XmlElement, source: string): UnsupportedRecord {
   return { source, kind: node.localName, disposition: "retained", data: data(node) };
 }
-function formula(source: string, sheet: string, row: number, column: number, context: CapabilityContext, arrayStringLiterals = false): string {
+function formula(source: string, sheet: string, row: number, column: number, context: CapabilityContext, arrayStringLiterals = false, externalLinks: ReadonlyMap<string, string | undefined> = new Map()): string {
   const parsed = parseExpression("=" + source, { maximumDepth: context.limits.formulaDepth, grammar: excelGrammar, position: { sheet, row, column }, arrayStringLiterals, signal: context.signal,
     maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? Infinity });
   if (!parsed.ok) return "=" + source;
+  const document = { ...parsed.document, root: resolveExternalLinks(parsed.document.root, externalLinks, context.signal) };
   let simpleSheets = true;
-  visitFormula(parsed.document.root, node => {
+  visitFormula(document.root, node => {
     if (node.kind !== "reference") return;
     for (const name of [node.first.sheet, node.last?.sheet, node.first.workbook]) if (name !== undefined
       && (!name || [...name].some(c => !(c >= "A" && c <= "Z" || c >= "a" && c <= "z" || c >= "0" && c <= "9")))) simpleSheets = false;
   });
-  return serializeExpression(parsed.document, simpleSheets ? { ...gnumericGrammar, unquotedSheets: true } : gnumericGrammar, false, true);
+  return serializeExpression(document, simpleSheets ? { ...gnumericGrammar, unquotedSheets: true } : gnumericGrammar, false, true);
 }
 export async function readXlsx(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<Workbook> {
   let close: (() => Promise<void>) | undefined;
@@ -314,6 +316,23 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
     for (const type of ["theme", "externalLink", "pivotCacheDefinition"]) {
       for (const relation of workbookRelations.filter(r => r.type === relationships + "/" + type && !r.external))
         workbookRecords.push(record(await opc.document(relation.target), relation.target));
+    }
+    const externalLinks = new Map<string, string | undefined>();
+    for (const reference of children(child(workbook, "externalReferences"), "externalReference")) {
+      opc.charge(workbookRelations.length + 1);
+      const id = attr(reference, "id", relationships);
+      const relation = workbookRelations.find(item => item.id === id && item.type === relationships + "/externalLink" && !item.external);
+      let target: string | undefined;
+      if (relation) {
+        const link = await opc.document(relation.target); rootIs(link, "externalLink");
+        const book = child(link, "externalBook"), targetId = attr(book, "id", relationships);
+        if (targetId !== undefined) {
+          const relations = await opc.relations(relation.target);
+          opc.charge(relations.length);
+          target = relations.find(item => item.id === targetId && item.type === relationships + "/externalLinkPath" && item.external)?.target;
+        }
+      }
+      externalLinks.set(String(externalLinks.size + 1), target);
     }
     const uniqueSheets = new Map<string, XmlElement>();
     for (const node of children(child(workbook, "sheets"), "sheet")) {
@@ -456,7 +475,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
                   await context.diagnostic?.({ code: "xlsx-formula", severity: "warning", message,
                     bytes: warningBytes(message + "\n", context) });
                   expression = '=ERROR("")';
-                } else expression = openFormula ?? formula(source, id, position.row, position.column, context, semantics.arrayStringLiterals);
+                } else expression = openFormula ?? formula(source, id, position.row, position.column, context, semantics.arrayStringLiterals, externalLinks);
                 if (si !== undefined) {
                   const bounds = ref === undefined ? undefined : range(ref);
                   // Compact groups are anchored at their top-left; other definitions remain scalar.
@@ -696,7 +715,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       }
       const semantics = readFormulaSemantics(node);
       const openFormula = readOpenFormula(node);
-      const imported = { name, ...(openFormula?.position ? { position: { ...openFormula.position, sheet: sheets.find(s => s.name === openFormula.position!.sheet)?.id ?? openFormula.position.sheet } } : {}), expression: openFormula?.source ?? (expression ? formula(expression, position.sheet, 0, 0, context, semantics.arrayStringLiterals) : "=#REF!"), ...semantics, ...(sheet ? { sheet: sheet.id } : {}) };
+      const imported = { name, ...(openFormula?.position ? { position: { ...openFormula.position, sheet: sheets.find(s => s.name === openFormula.position!.sheet)?.id ?? openFormula.position.sheet } } : {}), expression: openFormula?.source ?? (expression ? formula(expression, position.sheet, 0, 0, context, semantics.arrayStringLiterals, externalLinks) : "=#REF!"), ...semantics, ...(sheet ? { sheet: sheet.id } : {}) };
       opc.charge(names.length);
       const existing = names.findIndex(n => n.name === name && n.sheet === sheet?.id);
       if (existing < 0) names.push(imported); else names[existing] = imported;

@@ -1309,7 +1309,8 @@
             "safe-bash-command-pdftoppm": "*",
             "safe-bash-command-pdfimages": "*",
             "safe-bash-command-pdfunite": "*",
-            "safe-bash-command-pdfseparate": "*"
+            "safe-bash-command-pdfseparate": "*",
+            "@poe-code/safe-fs": "*"
           },
           "portable": true
         },

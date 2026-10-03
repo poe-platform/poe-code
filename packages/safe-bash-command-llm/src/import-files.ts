@@ -6,7 +6,7 @@ import {embeddingText} from './embed-input.js';
 import {sourceBytes} from './request-source.js';
 import type {LlmCollectionBatchEntry} from './collections-batch.js';
 
-export interface LlmEmbeddingFile {readonly path:string;readonly id:string}
+export interface LlmEmbeddingFile {readonly path:string;readonly id:string;readonly displayPath?:string}
 export interface LlmFileEmbeddingOptions {
  readonly fs:FileSystem;readonly directory:string;readonly signal:AbortSignal;
  readonly encodings?:readonly string[];readonly binary?:boolean;
@@ -52,7 +52,7 @@ export async function withFileEmbeddingEntries<T>(options:LlmFileEmbeddingOption
      finally{if(!accepted)try{await candidate.close();}catch(error){if(!failedAttempt)await Promise.reject(error);}}
      if(accepted){const previous=selected;selected=candidate;await previous?.close();}
     }
-    if(!selected){await options.undecodable?.(file.path);continue;}
+    if(!selected){await options.undecodable?.(file.displayPath??file.path);continue;}
     const retained=selected;let closed=false,consumed=false;retire=()=>{closed=true;};
     yield {id:(options.prefix??'')+file.id,binary,input:{async dispose(){closed=true;await retained.close();},bytes:{async *[Symbol.asyncIterator](){
      if(closed||consumed)throw new FsError('EBADF',{message:'File embedding lease is closed'});consumed=true;

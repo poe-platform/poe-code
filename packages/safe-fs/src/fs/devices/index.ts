@@ -464,6 +464,31 @@ export class DeviceFileSystem implements FileSystem {
     await this.#filesystem.writeStream(path, source, options);
   }
 
+  async *iterateDirectory(path: string, options: FsOptions = {}): AsyncIterable<DirectoryEntry> {
+    const resolved = await this.#resolve(path, options);
+    if (resolved === nullPath) throw new FsError("ENOTDIR", { syscall: "iterateDirectory", path });
+    const virtual = resolved === "/" ? "dev" : resolved === deviceDirectory ? "null" : undefined;
+    if (!this.#filesystem.iterateDirectory) throw new FsError("ENOTSUP", { syscall: "iterateDirectory", path });
+    let seen = false;
+    try {
+      for await (const entry of this.#filesystem.iterateDirectory(virtual ? resolved : path, options)) {
+        options.signal?.throwIfAborted();
+        if (entry.name === "." || entry.name === "..") continue;
+        if (!entry.name || entry.name.includes("/") || entry.name.includes("\0")) throw new FsError("EIO", { path, message: "invalid directory entry" });
+        if (entry.name === virtual) {
+          if (seen) continue;
+          seen = true;
+          yield { name: virtual, type: virtual === "dev" ? "directory" : "character" };
+        } else yield { name: entry.name, type: entry.type };
+      }
+    } catch (error) {
+      options.signal?.throwIfAborted();
+      if (!virtual || !isFsError(error, "ENOENT") && !isFsError(error, "ENOTDIR")) throw error;
+    }
+    options.signal?.throwIfAborted();
+    if (virtual && !seen) yield { name: virtual, type: virtual === "dev" ? "directory" : "character" };
+  }
+
   readdir(path: string, options: ReadDirectoryOptions = {}): Promise<DirectoryEntry[]> {
     const fast = this.#tryResolveSync(path, options);
     if (fast !== undefined && fast !== "/") {

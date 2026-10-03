@@ -245,7 +245,10 @@ cleanup errors. Native cancellation is cooperative around open/read operations;
 it does not preempt a stalled operating-system call.
 
 Readonly views forward the iterator and reject absent support with `ENOTSUP`;
-quota views delegate without collecting entries. Mount, overlay, S3 and WebDAV
+quota views delegate without collecting entries. Device views merge virtual
+`dev`/`null` entries incrementally. Scoped views charge iterator acquisition and
+advancement, enforce path admission and preserve scope cancellation and iterator
+cleanup. Mount, overlay, S3 and WebDAV
 streaming are not qualified by this extension. No snapshot, retained path
 authority, total traversal quota or bound on caller-owned collections follows
 from this API. Legacy array enumeration behavior remains unchanged.

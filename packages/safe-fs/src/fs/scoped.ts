@@ -1,4 +1,4 @@
-import type { CreateStagedFileOptions, FileStaging, FileStagingEntry, FileStagingResolution, FileStat, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, PublishStagedFileOptions, PublishStagedFileSetOptions, RenameOptions } from "../contracts/filesystem.js";
+import type { DirectoryEntry, CreateStagedFileOptions, FileStaging, FileStagingEntry, FileStagingResolution, FileStat, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, PublishStagedFileOptions, PublishStagedFileSetOptions, RenameOptions } from "../contracts/filesystem.js";
 import type { FileDescriptor, OpenFileOptions } from "../contracts/descriptor.js";
 import { FsError, toFsError } from "../contracts/errors.js";
 import { validatePath } from "../contracts/virtual-path.js";
@@ -38,7 +38,7 @@ const operations = new Set<keyof FileSystem>([
   "prepareDirectoryAncestry", "prepareStagingResolution", "publishStagedFileSet",
   "publishFileConditional", "removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory",
   "confineExtraction", "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
-  "copyFile", "link", "lstat", "mkdir", "openReadFile", "openResizeFile", "readFile", "readStream", "readdir",
+  "copyFile", "link", "lstat", "mkdir", "openReadFile", "openResizeFile", "readFile", "readStream", "readdir", "iterateDirectory",
   "readlink", "realpath", "rename", "resizeFile", "rm", "rmdir", "unlink", "stat", "symlink", "truncate", "utimes",
   "writeFile", "writeStream",
 ]);
@@ -173,20 +173,21 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       close: (options = {}) => closing ??= Promise.resolve().then(() => descriptor.close(options)),
     };
   };
-  const wrapStream = (source: ByteSource, options?: FsOptions): ByteSource => {
+  const wrapStream = <T>(source: AsyncIterable<T>, options?: FsOptions, chargeNext = false): AsyncIterable<T> => {
     const budgetFrames = getScopedTransportBudget();
     return {
     [Symbol.asyncIterator]() {
       assertOpen(options);
       const iterator = source[Symbol.asyncIterator]();
-      let closing: Promise<IteratorResult<Uint8Array>> | undefined;
-      const close = (value?: unknown): Promise<IteratorResult<Uint8Array>> => closing ??= Promise.resolve().then(
+      let closing: Promise<IteratorResult<T>> | undefined;
+      const close = (value?: unknown): Promise<IteratorResult<T>> => closing ??= Promise.resolve().then(
         () => iterator.return ? iterator.return(value) : { done: true, value: undefined },
       );
-      const advance = async (operation: () => Promise<IteratorResult<Uint8Array>>): Promise<IteratorResult<Uint8Array>> => {
+      const advance = async (operation: () => Promise<IteratorResult<T>>): Promise<IteratorResult<T>> => {
         try {
           assertOpen(options);
           if (closing) { await closing; return { done: true, value: undefined }; }
+          if (chargeNext) admit(options);
           const result = await withScopedTransportBudget(budgetFrames, operation);
           assertOpen(options);
           if (closing) { await closing; return { done: true, value: undefined }; }
@@ -385,7 +386,9 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           });
           return Reflect.apply(method, original, args);
         })();
+        if (property === "iterateDirectory") args[1] = { ...args[1] as FsOptions, signal: combineSignal((args[1] as FsOptions | undefined)?.signal) };
         const result: unknown = Reflect.apply(method, original, args);
+        if (property === "iterateDirectory") return wrapStream(result as AsyncIterable<DirectoryEntry>, args[1] as FsOptions, true);
         return property === "readStream" ? wrapStream(result as ByteSource, args[1] as FsOptions | undefined) : result;
       };
       const dispatch = (...args: unknown[]): unknown => {
@@ -470,7 +473,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           ? async (...args: unknown[]) => ownedMutationCapabilities(original, retainedResizeCapabilities(original, await dispatch(...args) as FileSystem["capabilities"]))
           : property === "openReadFile"
             ? async (...args: unknown[]) => wrapHandle(await dispatch(...args) as FileReadHandle)
-            : operations.has(property as keyof FileSystem) && property !== "canonicalizeMissingTarget" && property !== "readStream"
+            : operations.has(property as keyof FileSystem) && property !== "canonicalizeMissingTarget" && property !== "readStream" && property !== "iterateDirectory"
                 ? (...args: unknown[]) => {
                     try {
                       const res = dispatch(...args);

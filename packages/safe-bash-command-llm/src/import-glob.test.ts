@@ -68,3 +68,9 @@ test('queued cancellation during enumeration closes both iterator and private st
  await assert.rejects(withEmbeddingFileGlob({...options(fs),signal:controller.signal},{directory:'/',pattern:'*'},async files=>{for await(const ignored of files)assert.fail('unexpected file');}),error=>error===reason);
  assert.equal(closed,true);assert.equal((await fs.readdir('/')).length,7);
 });
+test('multiple glob groups share one iterator and retain duplicates between groups',async()=>{
+ const fs=await fixture(),ids:string[]=[];
+ await withEmbeddingFileGlob(options(fs),[{directory:'/',pattern:'a.txt'},{directory:'/nested',pattern:'a.txt'}],async files=>{for await(const file of files)ids.push(file.id+':'+file.path);});
+ assert.deepEqual(ids,['a.txt:/a.txt','a.txt:/nested/a.txt']);
+ assert.equal((await fs.readdir('/')).length,7);
+});

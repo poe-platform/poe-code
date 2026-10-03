@@ -86,7 +86,7 @@ cause. Preserve cancellation/control exceptions separately. Cross-family
 | Change the namespace | `mkdir`, `rm`, `rename`, `copyFile` |
 | Remove an empty directory | Optional `rmdir`; never a recursive-delete fallback |
 | Links and metadata | Optional `readlink`, `symlink`, `link`, `chmod`, `utimes`, `truncate` |
-| Enumerate directories lazily | Optional `iterateDirectory`; memory and native backends, with readonly/quota delegation; backend order, no sorted-array fallback |
+| Enumerate directories lazily | Optional `iterateDirectory`; memory and native backends, with readonly/quota/device/scoped delegation; backend order, no sorted-array fallback |
 | Stream bytes | Optional `readStream`, `writeStream`, using async iterables of byte chunks |
 | Retain an open file | Optional `open` with positioned I/O and synchronization; memory and real backends support `noFollow: true` to atomically refuse a final symlink |
 | Publish immutable objects atomically | Optional `publishFileConditional` with opaque identity/version stats and authoritative compare-and-publish |

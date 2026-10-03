@@ -5,6 +5,9 @@ import {withLlmCollections} from './collections.js';
 import {createLlmConfiguration} from './configuration.js';
 import {withCsvEmbeddingEntries} from './import-csv.js';
 import {withJsonEmbeddingEntries} from './import-json.js';
+import {withEmbeddingFileGlob,type LlmEmbeddingGlob} from './import-glob.js';
+import {withFileEmbeddingEntries} from './import-files.js';
+import type {LlmCollectionBatchEntry} from './collections-batch.js';
 import {withJsonLinesEmbeddingEntries} from './import-json-lines.js';
 import {fileSource} from './file-source.js';
 import type {LlmInputSource} from './types.js';
@@ -12,11 +15,13 @@ import {tokenInteger} from './token-integer.js';
 import {sourceBytes} from './request-source.js';
 import {sniffEmbeddingInput} from './import-csv-sniff.js';
 
+class InvalidFileDirectory extends Error {}
+
 const usage='Usage: llm embed-multi [OPTIONS] COLLECTION [INPUT_PATH]\n';
 export async function embedMultiCommand(invocation:Parameters<LlmCollectionCommands['execute']>[0],limits:{maxFileBytes:number;maxIndexBytes:number;maxOpenFiles:number;now:()=>Date}):Promise<number>{
  const {context,tokens,service,diagnostic,maxConfigurationBytes,maxInputBytes,step}=invocation;
  const fail=async(message:string,code=2)=>{await diagnostic((code===2?usage+"Try 'llm embed-multi -h' for help.\n\n":'')+`Error: ${message}\n`);return code;};
- const values:Record<string,string>={},operands:string[]=[];let store=false,ended=false,help=false;
+ const values:Record<string,string>={},operands:string[]=[],encodings:string[]=[],files:(LlmEmbeddingGlob & {originalDirectory:string})[]=[];let store=false,binary=false,ended=false,help=false;
  for(let index=0;index<tokens.length;index++){
   await step();const token=tokens[index]!;
   if(!ended&&token==='--'){ended=true;continue;}
@@ -26,17 +31,27 @@ export async function embedMultiCommand(invocation:Parameters<LlmCollectionComma
    const flag=long?token.slice(0,equals<0?undefined:equals):'-'+token[cursor];
    if(flag==='-h'||flag==='--help'){if(equals>=0)return fail(`Option '${flag}' does not take a value.`);help=true;if(long)break;continue;}
    if(flag==='--store'){if(equals>=0)return fail(`Option '${flag}' does not take a value.`);store=true;break;}
-   const name=({'--format':'format','--batch-size':'batchSize','--prefix':'prefix','--prepend':'prepend','-m':'model','--model':'model','-d':'database','--database':'database'} as Record<string,string>)[flag];
+   if(flag==='--binary'){if(equals>=0)return fail(`Option '${flag}' does not take a value.`);binary=true;break;}
+   if(flag==='--files'){
+    const directory=(equals<0?undefined:token.slice(equals+1))??tokens[++index],pattern=tokens[++index];
+    if(directory===undefined||pattern===undefined)return fail("Option '--files' requires 2 arguments.");
+    const normalized=directory.split('/').filter(part=>part&&part!=='.').join('/');
+    files.push({originalDirectory:directory,directory:pathOf(context,directory),pattern,displayDirectory:(directory.startsWith('/')?'/':'')+normalized});break;
+   }
+   const name=({'--encoding':'encoding','--format':'format','--batch-size':'batchSize','--prefix':'prefix','--prepend':'prepend','-m':'model','--model':'model','-d':'database','--database':'database'} as Record<string,string>)[flag];
    if(!name)return fail(`No such option: ${flag}`);
    const value=(long?(equals<0?undefined:token.slice(equals+1)):(token.slice(cursor+1)||undefined))??tokens[++index];
-   if(value===undefined)return fail(`Option '${flag}' requires an argument.`);values[name]=value;break;
+   if(value===undefined)return fail(`Option '${flag}' requires an argument.`);if(name==='encoding')encodings.push(value);else values[name]=value;break;
   }
  }
- if(help){await invocation.write(new TextEncoder().encode(usage+'\n  Store embeddings from a CSV, TSV, JSON or JSONL file. Use - to read stdin.\n\nOptions:\n  --format [json|csv|tsv|nl]  Input format (auto-detected by default)\n  --batch-size INTEGER        Batch size to use when running embeddings\n  --prefix TEXT               Prefix to add to the IDs\n  -m, --model TEXT            Embedding model to use\n  --prepend TEXT              Prepend this string to all content\n  --store                     Store the text itself in the database\n  -d, --database FILE         Path to embeddings database\n  -h, --help                  Show this message and exit.\n'));return 0;}
+ if(help){await invocation.write(new TextEncoder().encode(usage+'\n  Store embeddings from files or CSV, TSV, JSON or JSONL input. Use - to read stdin.\n\nOptions:\n  --files DIRECTORY GLOB     Files to embed (repeatable)\n  --encoding TEXT             File encoding (repeatable)\n  --binary                    Embed files as binary data\n  --format [json|csv|tsv|nl]  Input format (auto-detected by default)\n  --batch-size INTEGER        Batch size to use when running embeddings\n  --prefix TEXT               Prefix to add to the IDs\n  -m, --model TEXT            Embedding model to use\n  --prepend TEXT              Prepend this string to all content\n  --store                     Store the text itself in the database\n  -d, --database FILE         Path to embeddings database\n  -h, --help                  Show this message and exit.\n'));return 0;}
  if(!operands.length)return fail("Missing argument 'COLLECTION'.");
  if(operands.length>2)return fail(`Got unexpected extra argument${operands.length===3?'':'s'} (${operands.slice(2).join(' ')})`);
- if(!operands[1])return fail('Either --sql or input path or --files is required');
- if(operands[1]!=='-'){
+ if(binary&&!files.length)return fail('--binary must be used with --files');
+ if(binary&&encodings.length)return fail('--binary cannot be used with --encoding');
+ if(!operands[1]&&!files.length)return fail('Either --sql or input path or --files is required');
+ if(files.length&&(operands[1]||values.format))return fail('Cannot use --files with --sql, input path or --format');
+ if(operands[1]&&operands[1]!=='-'){
   try{const stat=await context.fs.stat(pathOf(context,operands[1]),{signal:context.signal});if(stat.type==='directory')return fail(`Invalid value for '[INPUT_PATH]': File '${operands[1]}' is a directory.`);}
   catch(error){if(error instanceof FsError&&error.code==='ENOENT')return fail(`Invalid value for '[INPUT_PATH]': File '${operands[1]}' does not exist.`);throw error;}
  }
@@ -69,15 +84,7 @@ export async function embedMultiCommand(invocation:Parameters<LlmCollectionComma
   try{return await (detected.format==='json'?withJsonEmbeddingEntries:withCsvEmbeddingEntries)(opts,detected.bytes,operation);}finally{await detected.close();}
  };
  const csvOptions={...options,directory:context.cwd,tabs:values.format==='tsv',autoDetect:values.format===undefined,prefix:values.prefix??'',prepend:values.prepend??''};
- if(operands[1]!=='-'){
-  const input=await acquire();
-  try{await importEntries(csvOptions,input.bytes,async entries=>{for await(const entry of entries)await entry.input.dispose();});}finally{await input.dispose();}
- }
- const input=await acquire();
- try{
-  const admitted={async *[Symbol.asyncIterator](){for await(const bytes of sourceBytes(input.bytes,context.signal)){invocation.admit(bytes.length);yield bytes;}}};
-  await importEntries(csvOptions,admitted,async entries=>{
-   await invocation.write(new TextEncoder().encode('Embedding\n'));
+ const consume=async(entries:AsyncIterable<LlmCollectionBatchEntry>):Promise<void>=>{
    const iterator=entries[Symbol.asyncIterator]();let finished=false;
    while(!finished){
     const first=await iterator.next();if(first.done)break;
@@ -88,6 +95,30 @@ export async function embedMultiCommand(invocation:Parameters<LlmCollectionComma
      }
     }}}));
    }
+ };
+ if(files.length){
+  await withEmbeddingFileGlob(csvOptions,files,async entries=>{for await(const ignored of entries)await step();});
+  await invocation.write(new TextEncoder().encode('Embedding\n'));
+  const sources={async *[Symbol.asyncIterator](){for(const file of files){
+   let valid=false;
+   try{valid=(await context.fs.stat(file.directory,{signal:context.signal})).type==='directory';}
+   catch(error){context.signal.throwIfAborted();if(!(error instanceof FsError)||!['ENOENT','ENOTDIR'].includes(error.code))throw error;}
+   if(!valid)throw new InvalidFileDirectory(file.originalDirectory);yield file;
+  }}};
+  try{await withEmbeddingFileGlob(csvOptions,sources,entries=>withFileEmbeddingEntries({...csvOptions,binary,encodings,maxInputBytes,admit:invocation.admit,undecodable:path=>diagnostic(`Could not decode text in file ${path}\n`)},entries,consume));}
+  catch(error){context.signal.throwIfAborted();if(error instanceof InvalidFileDirectory)return fail('Invalid directory: '+error.message);throw error;}
+  return 0;
+ }
+ if(operands[1]!=='-'){
+  const input=await acquire();
+  try{await importEntries(csvOptions,input.bytes,async entries=>{for await(const entry of entries)await entry.input.dispose();});}finally{await input.dispose();}
+ }
+ const input=await acquire();
+ try{
+  const admitted={async *[Symbol.asyncIterator](){for await(const bytes of sourceBytes(input.bytes,context.signal)){invocation.admit(bytes.length);yield bytes;}}};
+  await importEntries(csvOptions,admitted,async entries=>{
+   await invocation.write(new TextEncoder().encode('Embedding\n'));
+   await consume(entries);
   });
  }finally{await input.dispose();}
  return 0;

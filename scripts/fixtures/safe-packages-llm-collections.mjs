@@ -172,6 +172,13 @@ export async function verifyLlmCollections() {
     const jsonRow=JSON.parse(jsonRows.stdout);
     if(jsonRows.exitCode!==0||jsonRow.id!=='[1, True]'||jsonRow.content!=='json content')throw new Error('JSON import readback changed');
     await fs.unlink('/auto.json');
+    await fs.mkdir('/file-inputs');
+    await fs.writeFile('/file-inputs/a.txt',new TextEncoder().encode('café'));
+    const fileImport=await cliShell.exec("llm embed-multi files --files /file-inputs '*.txt' --encoding utf-8 --store -m embed -d /cli.db");
+    if(fileImport.exitCode!==0||fileImport.stdout!=='Embedding\n')throw new Error('File CLI import failed: '+fileImport.stderr);
+    const fileRows=await cliShell.exec('llm similar files -c query -d /cli.db');
+    if(fileRows.exitCode!==0||JSON.parse(fileRows.stdout).content!=='café'||JSON.parse(fileRows.stdout).id!=='a.txt')throw new Error('File CLI stored content changed');
+    await fs.unlink('/file-inputs/a.txt');await fs.rmdir('/file-inputs');
     const deleted=await cliShell.exec('llm collections delete cli -d /cli.db');
     if(deleted.exitCode!==0)throw new Error('Collection CLI delete failed');
   }finally{await cliShell.dispose();}

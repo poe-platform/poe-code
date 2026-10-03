@@ -70,3 +70,24 @@ it("uses caller color state and rejects a component mismatch", async () => {
   for await (const row of image.rows()) for (let x = 0; x < image.width; x++) expect([...row.subarray(x * 4, x * 4 + 4)]).toEqual([42, 42, 42, 255]);
   image.close(); await input.close();
 });
+
+
+it("admits decoder allocations to the containing owner before reads and preserves rejection", async () => {
+  const input = await source(fixture("rgb-tiled.jp2")); const read = vi.spyOn(input, "read");
+  const firstFailure = new Error("owner rejected input");
+  await expect(PdfRetainedJpx.open(input, { onDecoderAllocation() { throw firstFailure; } })).rejects.toBe(firstFailure);
+  expect(read).not.toHaveBeenCalled();
+  const allocations: number[] = [];
+  const image = await PdfRetainedJpx.open(input, { onDecoderAllocation(bytes) { allocations.push(bytes); } });
+  expect(allocations.reduce((a, b) => a + b, 0)).toBe(image.decoderBytes);
+  expect(allocations.length).toBeGreaterThan(3);
+  const count = allocations.length;
+  for await (const ignored of image.rows()) void ignored;
+  expect(allocations).toHaveLength(count); image.close();
+  for (const failure of [new Error("owner rejected decoder state"), undefined, NaN]) {
+    let called = 0;
+    await expect(PdfRetainedJpx.open(input, { onDecoderAllocation() { if (++called === count) throw failure; } })).rejects.toBe(failure);
+    expect(called).toBe(count);
+  }
+  await input.close();
+});

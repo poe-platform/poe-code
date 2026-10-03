@@ -7,6 +7,9 @@ export interface PdfRetainedJpegOptions extends JpegDecodeOptions {
   /** Conservative encoded-input and decoder allocation admission, plus one
    * output row. The caller-owned source cache is additional memory. */
   readonly maxWorkingBytes?: number;
+  /** Admit intrinsic encoded/decoder allocations to a containing owner before
+   * allocation. Row scratch is separate; the owner releases admitted state. */
+  readonly onDecoderAllocation?: (bytes: number) => void;
   readonly maxOutputBytes?: number;
   readonly signal?: AbortSignal;
 }
@@ -28,11 +31,14 @@ export class PdfRetainedJpeg {
     const maximum = limit(options.maxWorkingBytes, "maxWorkingBytes");
     const outputMaximum = limit(options.maxOutputBytes, "maxOutputBytes");
     let allocated = 0;
+    let parsing = true;
     function charge(bytes: number) {
       if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > maximum - allocated) throw new PdfError("E_LIMIT", "JPEG working byte limit exceeded");
+      if (parsing) options.onDecoderAllocation?.(bytes);
       allocated += bytes;
     }
     options.signal?.throwIfAborted(); charge(source.size);
+    charge(Math.min(source.size, source.chunkBytes));
     const bytes = new Uint8Array(source.size); let offset = 0;
     for await (const chunk of source.stream(0, source.size, options.signal)) { bytes.set(chunk, offset); offset += chunk.length; }
     let decodeTransform: Int32Array | undefined;
@@ -56,7 +62,7 @@ export class PdfRetainedJpeg {
     options.signal?.throwIfAborted(); decoder.parse(bytes.subarray(start));
     const { width, height, numComponents: components } = decoder;
     if (![1, 3, 4].includes(components)) throw new PdfError("E_CAPABILITY", "Unsupported JPEG component count");
-    const base = allocated;
+    const base = allocated; parsing = false;
     function readRow(y: number) {
       allocated = base;
       const rgb = decoder.getData({ width, height, forceRGB: true, isSourcePDF: options.isSourcePdf ?? false, rowStart: y, rowCount: 1 });

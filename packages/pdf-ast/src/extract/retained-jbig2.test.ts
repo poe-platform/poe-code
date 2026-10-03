@@ -56,3 +56,24 @@ it("propagates allocation failures through globals, symbols and region decoding"
     expect(count).toBe(stopAt + 1);
   }
 });
+
+
+it("admits decoder allocations to the containing owner before reads and preserves rejection", async () => {
+  const input = await source(fixture("jbig2-generic-stream.bin")); const read = vi.spyOn(input, "read");
+  const firstFailure = new Error("owner rejected input");
+  await expect(PdfRetainedJbig2.open(input, 64, 32, { onDecoderAllocation() { throw firstFailure; } })).rejects.toBe(firstFailure);
+  expect(read).not.toHaveBeenCalled();
+  const allocations: number[] = [];
+  const image = await PdfRetainedJbig2.open(input, 64, 32, { onDecoderAllocation(bytes) { allocations.push(bytes); } });
+  expect(allocations.reduce((a, b) => a + b, 0)).toBe(image.decoderBytes);
+  expect(allocations.length).toBeGreaterThan(3);
+  const count = allocations.length;
+  for await (const ignored of image.rows()) void ignored;
+  expect(allocations).toHaveLength(count); image.close();
+  for (const failure of [new Error("owner rejected decoder state"), undefined, NaN]) {
+    let called = 0;
+    await expect(PdfRetainedJbig2.open(input, 64, 32, { onDecoderAllocation() { if (++called === count) throw failure; } })).rejects.toBe(failure);
+    expect(called).toBe(count);
+  }
+  await input.close();
+});

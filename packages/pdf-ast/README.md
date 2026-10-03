@@ -161,6 +161,12 @@ Encoded input and DCT coefficient state remain intrinsic resident allocations.
 The source stays caller-owned and can close after `open()`; call `jpeg.close()`
 to release decoder references. PDF Decode and ColorTransform options are supported.
 
+JPEG, JPEG 2000 and JBIG2 options also accept `onDecoderAllocation(bytes)`
+to admit encoded input and intrinsic decoder state to a containing owner before
+allocation. Their `decoderBytes` total matches these admissions. Row scratch is
+separate, and the containing owner controls release of its reservations. Retained
+image decoding uses this hook for its shared image/mask working allowance.
+
 `resolveRetainedImageColor(document, colorNode, resources, storage, options)`
 resolves only the selected color resource using the buffered engine's color rules.
 ICC profiles supply component metadata without decoding their payload. Indexed

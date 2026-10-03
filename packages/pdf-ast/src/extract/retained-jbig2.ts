@@ -7,6 +7,9 @@ export interface PdfRetainedJbig2Options {
   /** Conservative cumulative encoded input and decoder state, plus one RGBA
    * row. Caller-owned source caches are additional memory. */
   readonly maxWorkingBytes?: number;
+  /** Admit intrinsic encoded/decoder allocations to a containing owner before
+   * allocation. Row scratch is separate; the owner releases admitted state. */
+  readonly onDecoderAllocation?: (bytes: number) => void;
   readonly maxOutputBytes?: number;
   readonly signal?: AbortSignal;
 }
@@ -32,6 +35,7 @@ export class PdfRetainedJbig2 {
     let allocated = 0;
     function charge(bytes: number) {
       if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > maximum - allocated) throw new PdfError("E_LIMIT", "JBIG2 working byte limit exceeded");
+      options.onDecoderAllocation?.(bytes);
       allocated += bytes;
     }
     function dimensions(width: number, height: number) {

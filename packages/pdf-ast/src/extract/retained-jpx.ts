@@ -8,6 +8,9 @@ export interface PdfRetainedJpxOptions {
   /** Conservative cumulative encoded/decoder admission plus one sample and RGBA
    * row. Caller source caches and resolved color state are additional memory. */
   readonly maxWorkingBytes?: number;
+  /** Admit intrinsic encoded/decoder allocations to a containing owner before
+   * allocation. Row scratch is separate; the owner releases admitted state. */
+  readonly onDecoderAllocation?: (bytes: number) => void;
   readonly maxOutputBytes?: number;
   readonly color?: ResolvedColorSpace;
   readonly signal?: AbortSignal;
@@ -33,6 +36,7 @@ export class PdfRetainedJpx {
     let allocated = 0;
     function charge(bytes: number) {
       if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > maximum - allocated) throw new PdfError("E_LIMIT", "JPEG 2000 working byte limit exceeded");
+      options.onDecoderAllocation?.(bytes);
       allocated += bytes;
     }
     function dimensions(width: number, height: number) {

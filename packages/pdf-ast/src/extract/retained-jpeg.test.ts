@@ -64,3 +64,33 @@ it("preserves row windows when scaling the full image", () => {
     expect(partial).toEqual(full.slice(width! * 6, width! * 15));
   }
 });
+
+
+it("admits decoder allocations to the containing owner before reads and preserves rejection", async () => {
+  const input = await source(fixture("jpeg-RGB-0-0-17")); const read = vi.spyOn(input, "read");
+  const firstFailure = new Error("owner rejected input");
+  await expect(PdfRetainedJpeg.open(input, { onDecoderAllocation() { throw firstFailure; } })).rejects.toBe(firstFailure);
+  expect(read).not.toHaveBeenCalled();
+  const allocations: number[] = [];
+  const image = await PdfRetainedJpeg.open(input, { onDecoderAllocation(bytes) { allocations.push(bytes); } });
+  expect(allocations.reduce((a, b) => a + b, 0)).toBe(image.decoderBytes);
+  expect(allocations.length).toBeGreaterThan(3);
+  const count = allocations.length;
+  for await (const ignored of image.rows()) void ignored;
+  expect(allocations).toHaveLength(count); image.close();
+  for (const failure of [new Error("owner rejected decoder state"), undefined, NaN]) {
+    let called = 0;
+    await expect(PdfRetainedJpeg.open(input, { onDecoderAllocation() { if (++called === count) throw failure; } })).rejects.toBe(failure);
+    expect(called).toBe(count);
+  }
+  await input.close();
+});
+
+
+it("admits the live retained-read result alongside encoded JPEG input before reading", async () => {
+  const input = await source(fixture("jpeg-RGB-0-0-17")); const read = vi.spyOn(input, "read");
+  try {
+    await expect(PdfRetainedJpeg.open(input, { maxWorkingBytes: input.size + input.chunkBytes - 1 })).rejects.toThrow("limit");
+    expect(read).not.toHaveBeenCalled();
+  } finally { await input.close(); }
+});

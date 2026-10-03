@@ -165,7 +165,7 @@ export class PdfRetainedDecodedImage {
       if (samples !== raw && raw !== nativeSource) await release(raw);
       const decode = await pairs(dict);
       const colorTransform = parameter?.kind === "dict" ? await resolve(dictGet(parameter, "ColorTransform")) : undefined;
-      const codecOptions = { maxWorkingBytes: workingLimit - budget.working, maxOutputBytes: outputLimit, ...(signal ? { signal } : {}) };
+      const codecOptions = { onDecoderAllocation: charge, maxWorkingBytes: workingLimit - budget.working, maxOutputBytes: outputLimit, ...(signal ? { signal } : {}) };
       if (encoding === "jpeg") codec = await PdfRetainedJpeg.open(samples, { ...codecOptions, isSourcePdf: true, decode, colorTransform: colorTransform?.kind === "number" ? colorTransform.value : undefined });
       else if (encoding === "jpx") codec = await PdfRetainedJpx.open(samples, { ...codecOptions, ...(colorNode ? { color } : {}) });
       else if (encoding === "jbig2") {
@@ -173,7 +173,7 @@ export class PdfRetainedDecodedImage {
         if (globalsValue?.stream && globalsValue.reference) globals = await stage(document.objects.decodeStream(globalsValue.reference.objectNumber, globalsValue.reference.generationNumber));
         codec = await PdfRetainedJbig2.open(samples, width, height, { ...codecOptions, maxWorkingBytes: workingLimit - budget.working, ...(globals ? { globals } : {}) });
       }
-      if (codec) { charge(codec.decoderBytes); width = codec.width; height = codec.height; bitsPerComponent = encoding === "jbig2" ? bitsPerComponent : 8;
+      if (codec) { width = codec.width; height = codec.height; bitsPerComponent = encoding === "jbig2" ? bitsPerComponent : 8;
         if (encoding === "jpx" && !colorNode) { const components = (codec as PdfRetainedJpx).components; color = { colorSpace: components === 1 ? "gray" : components === 4 ? "cmyk" : "rgb", components }; } }
       admitOutput();
       const maskScratch = masks.reduce((sum, mask) => sum + width * 8 + mask.width * 4 + Math.min(chunkBytes, mask.width * 4), 0);

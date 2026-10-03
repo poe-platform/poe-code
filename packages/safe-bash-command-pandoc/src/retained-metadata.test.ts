@@ -190,8 +190,8 @@ it("retains large option keys, native numbers and strings", async () => {
   const key = "k".repeat(32768), text = "😀".repeat(18000);
   await compare([], {metadataJson: [{[key]: {keep: text, remove: true}, number: 1e308, zero: -0}, {[key]: {remove: null, added: text}, title: text}]});
 });
-it.each([null, [], "text", {list: [null]}, {constructor: "unsafe"}, {value: Infinity}].map(invalid => ({invalid})))("validates every option layer before acquiring document input: %#", async ({invalid}) => {
-  const options = {from: "json", to: "json", metadataJson: [{valid: true}, invalid] as unknown as NonNullable<ConversionOptions["metadataJson"]>};
+it.each([null, [], "text", {list: [null]}, {constructor: "unsafe"}, {value: Infinity}].flatMap(invalid => ["json", "csv"].map(from => ({invalid, from}))))("validates every option layer before acquiring document input: %#", async ({invalid, from}) => {
+  const options = {from, to: "json", metadataJson: [{valid: true}, invalid] as unknown as NonNullable<ConversionOptions["metadataJson"]>};
   const expected = await convert([input], options, {}).catch(error => error);
   const fs = new MemoryFileSystem(), next = vi.fn(async () => ({done: true as const, value: undefined})), write = vi.fn(async () => {});
   await expect(convertToOutput([{chunks: {[Symbol.asyncIterator]() {return {next};}}}], options, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {write, async close() {}, async abort() {}}})).rejects.toMatchObject({code: expected.code, message: expected.message});

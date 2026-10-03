@@ -1,3 +1,5 @@
+import {SRGB_TO_LINEAR_LUT,linearToSrgbByte,srgbToBwByte,srgbToLab,labToSrgb} from "./color.js";
+import {NormalizationHistogram,normalizeRgb} from "./normalize.js";
 import type {
   BlendMode,
   ChannelStats,
@@ -1030,75 +1032,6 @@ export function *booleanImageSteps(
   };
 }
 
-const SRGB_TO_LINEAR_LUT = new Float64Array(256);
-for (let i = 0; i < 256; i++) {
-  const v = i / 255;
-  SRGB_TO_LINEAR_LUT[i] = v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-}
-
-const VIPS_Y2V_8 = new Int32Array(257);
-for (let i = 0; i <= 256; i++) {
-  const y = i / 255;
-  const v = y <= 0.0031308 ? 12.92 * y : 1.055 * Math.pow(y, 1 / 2.4) - 0.055;
-  VIPS_Y2V_8[i] = Math.min(255, Math.max(0, Math.round(v * 255)));
-}
-
-function linearToSrgbByte(v: number): number {
-  if (v <= 0) return 0;
-  if (v >= 1) return 255;
-  const s0 = v * 255;
-  const idx = s0 | 0;
-  const frac = s0 - idx;
-  return Math.round(VIPS_Y2V_8[idx]! + (VIPS_Y2V_8[idx + 1]! - VIPS_Y2V_8[idx]!) * frac);
-}
-
-function srgbToBwByte(r: number, g: number, b: number): number {
-  if (r === g && g === b) return r;
-  const y = Math.fround(
-    Math.fround(0.2126) * Math.fround(SRGB_TO_LINEAR_LUT[r]!) +
-    Math.fround(0.7152) * Math.fround(SRGB_TO_LINEAR_LUT[g]!) +
-    Math.fround(0.0722) * Math.fround(SRGB_TO_LINEAR_LUT[b]!)
-  );
-  return linearToSrgbByte(y);
-}
-
-function srgbToLab(r: number, g: number, b: number): [number, number, number] {
-  const lr = SRGB_TO_LINEAR_LUT[r]!;
-  const lg = SRGB_TO_LINEAR_LUT[g]!;
-  const lb = SRGB_TO_LINEAR_LUT[b]!;
-  const x = (0.4124564 * lr + 0.3575761 * lg + 0.1804375 * lb) / 0.95047;
-  const y = (0.2126729 * lr + 0.7151522 * lg + 0.0721750 * lb) / 1.0;
-  const z = (0.0193339 * lr + 0.1191920 * lg + 0.9503041 * lb) / 1.08883;
-  const f = (t: number): number => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
-  const fx = f(x);
-  const fy = f(y);
-  const fz = f(z);
-  return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
-}
-
-function labToSrgb(L: number, a: number, b: number): [number, number, number] {
-  let Y: number;
-  let fy: number;
-  if (L < 8.0) {
-    Y = Math.fround((L * 100.0) / 903.3);
-    fy = (Y / 100.0) * 7.787 + 16.0 / 116.0;
-  } else {
-    fy = (L + 16.0) / 116.0;
-    Y = Math.fround(fy * fy * fy * 100.0);
-  }
-  const fx = a / 500.0 + fy;
-  const X = Math.fround(95.047 * (fx > 0.206893 ? fx * fx * fx : (fx - 16.0 / 116.0) / 7.787));
-  const fz = fy - b / 200.0;
-  const Z = Math.fround(108.883 * (fz > 0.206893 ? fz * fz * fz : (fz - 16.0 / 116.0) / 7.787));
-  const x = X / 100.0;
-  const y = Y / 100.0;
-  const z = Z / 100.0;
-  const lr = 3.2404542 * x - 1.5371385 * y - 0.4985314 * z;
-  const lg = -0.9692660 * x + 1.8760108 * y + 0.0415560 * z;
-  const lb = 0.0556434 * x - 0.2040259 * y + 1.0572252 * z;
-  return [linearToSrgbByte(lr), linearToSrgbByte(lg), linearToSrgbByte(lb)];
-}
-
 export function *grayscaleImageSteps(img: RgbaImage): Generator<void, RgbaImage, void> {
   let work = 0;
   const out = new Uint8Array(img.data.length);
@@ -1365,119 +1298,25 @@ export function *normalizeImageSteps(
   img: RgbaImage,
   options?: { readonly lower?: number; readonly upper?: number }
 ): Generator<void, RgbaImage, void> {
-  let work = 0;
-  const lowerPct = Math.max(0, Math.min(100, options?.lower ?? 1));
-  const upperPct = Math.max(lowerPct, Math.min(100, options?.upper ?? 99));
-  const numPixels = img.width * img.height;
-  if (numPixels === 0) return img;
-
-  if (numPixels > 0) {
-    const Lvals = new Float32Array(numPixels);
-    const aVals = new Float32Array(numPixels);
-    const bVals = new Float32Array(numPixels);
-    const hist = new Uint32Array(256);
-    let mx = 0;
-    let minFloat = Infinity;
-    let maxFloat = -Infinity;
-    for (let p = 0; p < numPixels; p++) {
-    if (++work % 16384 === 0) yield;
-      const idx = p * 4;
-      const [L, a, b] = srgbToLab(img.data[idx]!, img.data[idx + 1]!, img.data[idx + 2]!);
-      Lvals[p] = L;
-      aVals[p] = a;
-      bVals[p] = b;
-      if (L < minFloat) minFloat = L;
-      if (L > maxFloat) maxFloat = L;
-      const bin = Math.max(0, Math.min(255, Math.trunc(L)));
-      if (bin > mx) mx = bin;
-      hist[bin]!++;
-    }
-    const vipsPercent = (pct: number): number => {
-      const W = mx + 1;
-      const threshold = (pct / 100.0) * W;
-      let cum = 0;
-      for (let i = 0; i <= mx; i++) {
-        cum += hist[i]!;
-        const norm = Math.trunc((cum * mx) / numPixels);
-        if (norm > threshold) return i;
-      }
-      return W;
-    };
-    const minL = lowerPct <= 0 ? Math.trunc(minFloat) : vipsPercent(lowerPct);
-    const maxL = upperPct >= 100 ? Math.trunc(maxFloat) : vipsPercent(upperPct);
-    const range = maxL - minL;
-    if (Math.abs(range) < 2) return img;
-    const f = 100.0 / range;
-    const offset = -(f * minL);
-    const out = new Uint8Array(img.data.length);
-    for (let p = 0; p < numPixels; p++) {
-    if (++work % 16384 === 0) yield;
-      const idx = p * 4;
-      const L = Lvals[p]! * f + offset;
-      const [r, g, b] = labToSrgb(L, aVals[p]!, bVals[p]!);
-      out[idx] = r;
-      out[idx + 1] = g;
-      out[idx + 2] = b;
-      out[idx + 3] = img.data[idx + 3]!;
-    }
-    return { ...img, data: out };
+  const numPixels=img.width*img.height;
+  if (!(numPixels>0)) return img;
+  const histogram=new NormalizationHistogram(numPixels);
+  let work=0;
+  for(let p=0;p<numPixels;p++) {
+    if(++work%16384===0) yield;
+    const offset=p*4;
+    histogram.add(img.data[offset]!,img.data[offset+1]!,img.data[offset+2]!);
   }
-
-  const totalSamples = numPixels * 3;
-  const hist = new Uint32Array(256);
-  let min = 255;
-  let max = 0;
-  for (let i = 0; i < img.width * img.height; i++) {
-    if (++work % 16384 === 0) yield;
-    const idx = i * 4;
-    for (let c = 0; c < 3; c++) {
-    if (++work % 16384 === 0) yield;
-      const v = img.data[idx + c]!;
-      hist[v]!++;
-      if (v < min) min = v;
-      if (v > max) max = v;
-    }
+  const scale=histogram.scale(options);
+  if(!scale) return img;
+  const out=new Uint8Array(img.data.length);
+  for(let p=0;p<numPixels;p++) {
+    if(++work%16384===0) yield;
+    const offset=p*4;
+    out.set(normalizeRgb(img.data[offset]!,img.data[offset+1]!,img.data[offset+2]!,scale),offset);
+    out[offset+3]=img.data[offset+3]!;
   }
-
-  let lowBound = min;
-  let highBound = max;
-  if (lowerPct > 0 || upperPct < 100) {
-    const lowTarget = Math.floor((totalSamples * lowerPct) / 100);
-    const highTarget = Math.ceil((totalSamples * upperPct) / 100);
-    let cum = 0;
-    for (let v = 0; v < 256; v++) {
-    if (++work % 16384 === 0) yield;
-      cum += hist[v]!;
-      if (cum > lowTarget) {
-        lowBound = v;
-        break;
-      }
-    }
-    cum = 0;
-    for (let v = 0; v < 256; v++) {
-    if (++work % 16384 === 0) yield;
-      cum += hist[v]!;
-      if (cum >= highTarget) {
-        highBound = v;
-        break;
-      }
-    }
-  }
-
-  const range = highBound - lowBound;
-  if (range <= 0) return img;
-  const out = new Uint8Array(img.data.length);
-  for (let i = 0; i < img.width * img.height; i++) {
-    if (++work % 16384 === 0) yield;
-    const idx = i * 4;
-    for (let c = 0; c < 3; c++) {
-    if (++work % 16384 === 0) yield;
-      const scaled = Math.round(((img.data[idx + c]! - lowBound) * 255) / range);
-      out[idx + c] = scaled < 0 ? 0 : scaled > 255 ? 255 : scaled;
-    }
-    out[idx + 3] = img.data[idx + 3]!;
-  }
-  return { ...img, data: out };
+  return {...img,data:out};
 }
 
 export function *thresholdImageSteps(

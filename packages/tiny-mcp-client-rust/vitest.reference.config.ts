@@ -6,9 +6,12 @@ const redirects = new Map([
   ["index.js", "index.js"],
   ["internal.js", "index.js"],
   ["oauth-discovery.js", "oauth-discovery.js"],
+  ["stdio-transport.js", "transports.js"],
+  ["spawn.browser.js", "spawn.browser.js"],
   ["http-response.js", "oauth/http.js"]
 ].map(([original, native]) => [fileURLToPath(new URL(original, new URL("../tiny-mcp-client/src/", import.meta.url))), fileURLToPath(new URL(native, new URL("./dist/", import.meta.url)))]));
 function redirect(source: string, importer: string) {
+  if (source === "#tiny-mcp-spawn") return fileURLToPath(new URL("./dist/spawn.node.js", import.meta.url));
   if (source === "mcp-oauth" && importer.startsWith(referenceRoot)) return fileURLToPath(new URL("./dist/oauth/index.js", import.meta.url));
   if (!source.startsWith(".") || !importer.startsWith(referenceRoot)) return;
   return redirects.get(fileURLToPath(new URL(source, pathToFileURL(importer))));

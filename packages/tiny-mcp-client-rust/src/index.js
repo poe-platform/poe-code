@@ -21,11 +21,11 @@ export function parseJsonRpcMessage(line) {
     parsed.error = new McpError(parsed.error.code, parsed.error.message);
   return parsed;
 }
-export { createInMemoryTransportPair, StdioTransport } from "./transports.js";
+export { createInMemoryTransportPair, StdioTransport, defaultStdioSpawn } from "./transports.js";
 export { createSdkTestPair, createTestPair } from "./sdk.js";
 export { parseBearerWwwAuthenticateHeader, OAuthMetadataError, OAuthMetadataDiscovery, discoverOAuthMetadata,
   resolveAuthorizationServerMetadataUrl, resolveProtectedResourceMetadataUrl } from "./oauth-discovery.js";
 export { fetchMcpResponse } from "./oauth/http.js";
-export { HttpTransport, HttpTransportError } from "./http-transport.js";
+export { HttpTransport, HttpTransportError, snapshotHttpTransportHeaders } from "./http-transport.js";
 
 export const MCP_PROTOCOL_VERSIONS = Object.freeze(["2025-03-26", "2025-06-18", "2025-11-25", "2026-07-28"]);

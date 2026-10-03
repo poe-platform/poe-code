@@ -4618,3 +4618,43 @@ before wiring Toolcraft's tiny-mcp-client subpath. Export-name inventories match
 for native agent definitions, agent MCP config, auth store, config mutations,
 frontmatter and process runner; that is inventory evidence, not fresh behavior
 or standalone-type qualification. All broader replacement gates remain open.
+
+### MCP client public host helpers
+
+The native client now exports defaultStdioSpawn and snapshotHttpTransportHeaders.
+The named spawn capability retains the reference function's name/arity, opaque
+arguments and returned process identity; it is also the stdio default. Header
+ownership and sanitized validation errors use the same live platform constructor
+as the existing HTTP adapter, now shared with the public helper. These are host
+capabilities; the Rust protocol and transport policies are unchanged. No external
+dependency or JavaScript default changes.
+
+Three failing native tests preceded the exports. Final comparisons cover owned
+normalized headers, invalid/private inputs, a replaced live Headers constructor,
+spawn receiver/argument/result identity and arbitrary thrown spawn values. Fixtures
+are in memory and the process capability is mocked without spawning in unit tests.
+The maintained client route also discovered a newer portable-stdio suite with no
+verified native import. The own conditional process capability and resolver now
+route its original assertions to the native transport and an own rejection stub.
+The same two assertions verify explicit injection and lifecycle preservation.
+
+The selected maintained build and npm test -- --workspace=tiny-mcp-client-rust
+pass: Rust tests, 83 native checks, 445 reference cases across 56 files, declarations
+and the root posttest route. Maintained Rust/binding lint and scoped ESLint pass.
+A single packed client artifact with external ESM imports forbidden verifies header
+ownership and a real default Node subprocess. A separate Node run with browser
+conditions rejects the default process capability and verifies an injected process
+lifecycle. This is conditional host-capability evidence, not browser execution of
+the native addon. The unchanged Node primitives do not establish a Rust speedup.
+
+The package still exposes its four documented native diagnostic helpers. Toolcraft's
+client subpath should forward the exact reference export set rather than leaking
+those additions. That public subpath, remaining dependencies/testing/composition,
+standalone types and full replacement qualification remain open.
+
+Core subpaths are verified on remote main at 20e52d140e; Release 37098829515 remains
+pending. HTTP Release 37098144968 completed successfully with its build passing and
+release-stable skipped. Shared-error package workflow 37097600054 has passed its
+Node 18.18/20/22/24 standalone jobs and is still in the publish job. Those workflow
+checks do not qualify the native platform matrix. No new publication is claimed.
+Core-subpath temporary artifacts were purged.

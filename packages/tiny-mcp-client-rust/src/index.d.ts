@@ -386,6 +386,7 @@ export interface InMemoryTransportPair {
 }
 export declare function createInMemoryTransportPair(): InMemoryTransportPair;
 export type StdioSpawn = (command: string, args: ReadonlyArray<string>, options: SpawnOptions) => ChildProcessWithoutNullStreams;
+export declare function defaultStdioSpawn(command: string, args: ReadonlyArray<string>, options: SpawnOptions): ChildProcessWithoutNullStreams;
 export interface StdioTransportOptions {
   command: string;
   args?: string[];
@@ -420,6 +421,7 @@ export interface HttpTransportOptions {
   onWarning?: (message: string) => void;
   maxResponseBytes?: number;
 }
+export declare function snapshotHttpTransportHeaders(headers?: RequestInit["headers"]): Headers;
 export declare class HttpTransport implements McpTransport {
   readonly readable: Readable;
   readonly writable: Writable;

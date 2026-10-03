@@ -1,4 +1,11 @@
 import { PassThrough } from "node:stream";
+import {defaultStdioSpawn, snapshotHttpTransportHeaders} from "../dist/index.js";
+import {defaultStdioSpawn as referenceSpawn, snapshotHttpTransportHeaders as referenceHeaders} from "tiny-mcp-client";
+const spawnToReference:typeof referenceSpawn=defaultStdioSpawn;
+const spawnFromReference:typeof defaultStdioSpawn=referenceSpawn;
+const headersToReference:typeof referenceHeaders=snapshotHttpTransportHeaders;
+const headersFromReference:typeof snapshotHttpTransportHeaders=referenceHeaders;
+void [spawnToReference,spawnFromReference,headersToReference,headersFromReference];
 import { parseBearerWwwAuthenticateHeader } from "../dist/index.js";
 import type { OAuthUnauthorizedChallenge as ReferenceChallenge } from "tiny-mcp-client";
 import type { OAuthUnauthorizedChallenge } from "../dist/index.js";

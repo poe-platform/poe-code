@@ -51,6 +51,9 @@ after completion. Filters and stream counts have explicit bounds.
 `StdioTransport` starts an MCP process with configurable arguments, directory and
 environment, tracks exit/error metadata, and terminates it on disposal. Stderr
 diagnostics retain at most 65,536 UTF-16 units in the Rust core.
+`defaultStdioSpawn` exposes the default Node process capability for injected spawn
+hooks. `snapshotHttpTransportHeaders` creates an independent normalized header
+snapshot and rejects malformed headers without exposing their contents.
 
 `createTestPair` connects a local stream server, while `createSdkTestPair` connects
 an SDK-compatible server over own message transports. Official SDK imports are

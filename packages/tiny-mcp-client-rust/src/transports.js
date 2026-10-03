@@ -1,7 +1,11 @@
-import { spawn } from "node:child_process";
+import { spawn } from "#tiny-mcp-spawn";
 import { createRequire } from "node:module";
 import { PassThrough } from "node:stream";
 const { NativeStderr } = createRequire(import.meta.url)("./tiny-mcp-client-rust.node");
+
+export function defaultStdioSpawn(command, args, options) {
+  return spawn(command, args, options);
+}
 
 export function createInMemoryTransportPair() {
   const upstream = new PassThrough();
@@ -30,7 +34,7 @@ export class StdioTransport {
   #child;
   #stderr = new NativeStderr();
   #disposed = false;
-  constructor({ command, args = [], cwd, env, spawn: start = spawn }) {
+  constructor({ command, args = [], cwd, env, spawn: start = defaultStdioSpawn }) {
     const child = start(command, args, { cwd, env, stdio: ["pipe", "pipe", "pipe"] });
     this.#child = child;
     this.readable = child.stdout;

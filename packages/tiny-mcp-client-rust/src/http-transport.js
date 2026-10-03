@@ -7,6 +7,11 @@ import { OAuthError } from "./oauth/tokens.js";
 import { fetchMcpResponse, readBoundedResponseText } from "./oauth/http.js";
 const { NativeHttpTransport, NativeSseParser, httpResponseKind, assertHttpJsonBudget, validateRequestTimeout } = createRequire(import.meta.url)("./tiny-mcp-client-rust.node");
 
+export function snapshotHttpTransportHeaders(headers) {
+  try { return new Headers(headers); }
+  catch { throw new Error("Invalid HTTP transport headers"); }
+}
+
 export class HttpTransportError extends Error {
   constructor(message, status, method, rpcMethod) {
     super(message);
@@ -46,8 +51,7 @@ export class HttpTransport {
     if (!["http:", "https:"].includes(target.protocol) || target.username || target.password || target.href.includes("#")) {
       throw new Error("HTTP transport URL must be an absolute HTTP URL without credentials or fragment");
     }
-    try { this.#headers = new Headers(headers); }
-    catch { throw new Error("Invalid HTTP transport headers"); }
+    this.#headers = snapshotHttpTransportHeaders(headers);
     try { this.#state = new NativeHttpTransport(maxResponseBytes); }
     catch (error) { throw new Error(error.message); }
     this.#url = target.href;

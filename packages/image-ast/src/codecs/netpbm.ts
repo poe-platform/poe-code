@@ -1,3 +1,4 @@
+import {createTiffLayout} from "./tiff-layout.js";
 import {createBmpHeader} from "./bmp-header.js";
 import {parseNetpbmHeader} from "./netpbm-header.js";
 import { transformBytes } from "@poe-code/compression";
@@ -290,65 +291,11 @@ export function encodeBmpImage(img: RgbaImage): Uint8Array {
   return out;
 }
 
-export function encodeTiffImage(
-  img: RgbaImage,
-  options?: { readonly density?: number; readonly orientation?: number }
-): Uint8Array {
-  const { width, height, data } = img;
-  const pixelBytes = width * height * 4;
-  const density = Math.max(1, Math.round(options?.density ?? img.density ?? 72));
-  const orientation = options?.orientation ?? img.orientation ?? 1;
-  // Little-endian baseline RGBA TIFF: 8-byte header + pixel data + IFD (15 entries) + extras
-  const ifdOffset = 8 + pixelBytes;
-  const numEntries = 15;
-  const bpsOffset = ifdOffset + 2 + numEntries * 12 + 4;
-  const xResOffset = bpsOffset + 8;
-  const yResOffset = xResOffset + 8;
-  const out = new Uint8Array(yResOffset + 8);
-  const view = new DataView(out.buffer);
-  out[0] = 0x49;
-  out[1] = 0x49;
-  view.setUint16(2, 42, true);
-  view.setUint32(4, ifdOffset, true);
-  out.set(data, 8);
-
-  view.setUint16(ifdOffset, numEntries, true);
-  const writeEntry = (idx: number, tag: number, type: number, count: number, val: number) => {
-    const p = ifdOffset + 2 + idx * 12;
-    view.setUint16(p, tag, true);
-    view.setUint16(p + 2, type, true);
-    view.setUint32(p + 4, count, true);
-    if (type === 3 && count === 1) {
-      view.setUint16(p + 8, val, true);
-    } else {
-      view.setUint32(p + 8, val, true);
-    }
-  };
-  writeEntry(0, 256, 4, 1, width); // ImageWidth
-  writeEntry(1, 257, 4, 1, height); // ImageLength
-  writeEntry(2, 258, 3, 4, bpsOffset); // BitsPerSample (8,8,8,8)
-  writeEntry(3, 259, 3, 1, 1); // Compression = None
-  writeEntry(4, 262, 3, 1, 2); // PhotometricInterpretation = RGB
-  writeEntry(5, 273, 4, 1, 8); // StripOffsets
-  writeEntry(6, 274, 3, 1, orientation); // Orientation
-  writeEntry(7, 277, 3, 1, 4); // SamplesPerPixel = 4
-  writeEntry(8, 278, 4, 1, height); // RowsPerStrip
-  writeEntry(9, 279, 4, 1, pixelBytes); // StripByteCounts
-  writeEntry(10, 282, 5, 1, xResOffset); // XResolution
-  writeEntry(11, 283, 5, 1, yResOffset); // YResolution
-  writeEntry(12, 284, 3, 1, 1); // PlanarConfiguration = Chunky
-  writeEntry(13, 296, 3, 1, 2); // ResolutionUnit = Inch
-  writeEntry(14, 338, 3, 1, 2); // ExtraSamples = Unassociated Alpha
-  view.setUint32(ifdOffset + 2 + numEntries * 12, 0, true);
-  view.setUint16(bpsOffset, 8, true);
-  view.setUint16(bpsOffset + 2, 8, true);
-  view.setUint16(bpsOffset + 4, 8, true);
-  view.setUint16(bpsOffset + 6, 8, true);
-  view.setUint32(xResOffset, density, true);
-  view.setUint32(xResOffset + 4, 1, true);
-  view.setUint32(yResOffset, density, true);
-  view.setUint32(yResOffset + 4, 1, true);
-  return out;
+export function encodeTiffImage(img:RgbaImage,options?:{readonly density?:number;readonly orientation?:number}):Uint8Array {
+ const {header,directory}=createTiffLayout(img,options),pixelBytes=img.width*img.height*4;
+ const out=new Uint8Array(header.length+pixelBytes+directory.length);
+ out.set(header);out.set(img.data,header.length);out.set(directory,header.length+pixelBytes);
+ return out;
 }
 
 function readTiffTagValues(

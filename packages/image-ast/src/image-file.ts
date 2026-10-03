@@ -1,3 +1,4 @@
+import {encodeTiffFromStorage} from "./codecs/tiff-storage.js";
 import {encodeNetpbmFromStorage} from "./codecs/netpbm-storage.js";
 import {storedImageDecoder} from "./codecs/stored-decoder.js";
 import {encodeBmpFromStorage} from "./codecs/bmp-storage.js";
@@ -78,7 +79,7 @@ export async function tryImageFile(input: string, output: string, options: Sharp
     storage=new PagedStorage({fs,cwd:directory,env:{},signal});
     let image=await decoder(source,storage,signal,options);
     const format=encoding.format??image.format;
-    if(format!=="png"&&format!=="ppm"&&format!=="pgm"&&format!=="pbm"&&format!=="bmp") {failed=false;return undefined;}
+    if(format!=="png"&&format!=="ppm"&&format!=="pgm"&&format!=="pbm"&&format!=="bmp"&&format!=="tiff") {failed=false;return undefined;}
     const final=await handle.stat(io);
     signal.throwIfAborted();
     if (compareIdentity(initial,final)==="distinct" || !compareFileVersion(initial,final)) throw new FsError("EAGAIN",{path:input,message:"Image source changed while decoding"});
@@ -111,7 +112,7 @@ export async function tryImageFile(input: string, output: string, options: Sharp
     const backing=storage;
     let complete=false, size=0;
     stream=(async function* () {
-      for await (const bytes of format==="png"?encodePngFromStorage(image,backing,signal,encoding):format==="bmp"?encodeBmpFromStorage(image,backing,signal):encodeNetpbmFromStorage(image,backing,signal,format)) {size+=bytes.length; yield bytes;}
+      for await (const bytes of format==="png"?encodePngFromStorage(image,backing,signal,encoding):format==="tiff"?encodeTiffFromStorage(image,backing,signal,encoding):format==="bmp"?encodeBmpFromStorage(image,backing,signal):encodeNetpbmFromStorage(image,backing,signal,format)) {size+=bytes.length; yield bytes;}
       await backing.close();
       complete=true;
     })();
@@ -128,6 +129,6 @@ export async function tryImageFile(input: string, output: string, options: Sharp
     if (!complete) throw new FsError("EIO",{path:output,message:"Image publisher returned before consuming output"});
     failed=false;
     const gray=image.space==="b-w" || image.channels===1 || image.channels===2;
-    return {format,width:image.width,height:image.height,channels:format==="ppm"||format==="bmp"?3:format==="pgm"||format==="pbm"?1:gray ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3,premultiplied:Boolean(image.wasPremultiplied),...(image.trimOffsetLeft===undefined?{}:{trimOffsetLeft:image.trimOffsetLeft}),...(image.trimOffsetTop===undefined?{}:{trimOffsetTop:image.trimOffsetTop}),size};
+    return {format,width:image.width,height:image.height,channels:format==="tiff"?4:format==="ppm"||format==="bmp"?3:format==="pgm"||format==="pbm"?1:gray ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3,premultiplied:Boolean(image.wasPremultiplied),...(image.trimOffsetLeft===undefined?{}:{trimOffsetLeft:image.trimOffsetLeft}),...(image.trimOffsetTop===undefined?{}:{trimOffsetTop:image.trimOffsetTop}),size};
   } catch(error) {if(error instanceof UnsupportedStoredResource) {failed=false;return undefined;} throw error;} finally {await cleanup();}
 }

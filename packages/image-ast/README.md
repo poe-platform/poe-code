@@ -20,6 +20,8 @@ Netpbm variants, including 16-bit samples and comments.
 `encodeNetpbmFromStorage(image, storage, signal, format)` streams PPM, PGM or PBM.
 `decodeBmpToStorage` and `encodeBmpFromStorage` use bounded palette and row access
 for BMP inputs and standard 24-bit BMP output.
+`encodeTiffFromStorage` streams RGBA TIFF pixels with fixed-size header/directory
+state, preserving density and orientation.
 `encodePngFromStorage(image, storage, signal)` produces bounded PNG chunks
 under downstream backpressure. The caller owns source and storage cleanup.
 `transformStoredImage(image, storage, operation, signal)` applies flips, crops,
@@ -41,7 +43,8 @@ gravity, entropy/attention crops, background canvases and image pages.
 PNG/PPM/PGM/PBM/BMP `.toFile()`
 conversions with these operations and `.resize()` use the backed codecs automatically when the
 supplied filesystem supports retained reads, working storage, and atomic
-streaming or retained staged publication.
+streaming or retained staged publication. These input formats also support
+streaming TIFF output; TIFF input decoding still uses the buffered path.
 `resampleStoredImage(image, storage, {width, height, kernel}, signal)` resamples
 backed RGBA pixels with bounded caches, including alpha and all resize kernels.
 Optional explicit scales must round to the requested output dimensions.

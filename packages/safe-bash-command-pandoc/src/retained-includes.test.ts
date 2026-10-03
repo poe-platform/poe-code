@@ -132,3 +132,83 @@ it.each([16, 64])("does not rescan a %i-chunk body for each suffix replacement t
   } finally {await includes.close(); await context.close();}
   expect(await fs.readdir("/")).toEqual([]);
 });
+
+it.each([
+  "$body$\n", "<main>$include-before$$body$$include-after$</main>",
+  "$if(body)$yes:$body$$else$no$endif$", "$if(missing)$no$else$$body$$endif$",
+  "$for(body)$[$body$]$endfor$", "$for(missing)$no$endfor$$body$",
+  "$if(body)$$for(header-includes)$$header-includes$$endfor$$endif$$body$",
+  "$$body$$:$missing$:$body$", "$" + "x".repeat(32768) + "$:$body$"
+])("retains custom template evaluation case %#", async template => {
+  await compare({template: input(template), includeInHeader: [input("HEADER")], includeBeforeBody: [input("BEFORE")], includeAfterBody: [input("AFTER")]});
+});
+
+it.each(["$", "$if(body)$x", "$if(body)$x$endfor$", "$for(body)$x$else$y$endfor$", "$bad.name$", "$endif$", "$if(missing)$$bad.name$$endif$$body$", "$if(body)$$if(missing)$a$else$b$endif$$else$c$endif$", "$for(include-before)$x$endfor$"])("preserves template errors and dead branches: %s", async template => {
+  const options = {from: "json", to: "html", template: input(template)};
+  const expected = await convert([source], options, {}).catch(error => error);
+  if (expected.kind === "text") {await compare({template: input(template)}); return;}
+  const fs = new MemoryFileSystem(), write = vi.fn(async () => {});
+  await expect(convertToOutput([source], options, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {write, async close() {}, async abort() {}}})).rejects.toMatchObject({code: expected.code, message: expected.message});
+  expect(write).not.toHaveBeenCalled(); expect(await fs.readdir("/")).toEqual([]);
+});
+it.each(["success", "source-error", "cancel", "sink-error", "retire-error"])("cleans custom template state on %s", async mode => {
+  const fs = new MemoryFileSystem(), controller = new AbortController(), open = fs.open.bind(fs);
+  let finalized = 0, live = 0, opened = 0, emitted = false;
+  vi.spyOn(fs, "open").mockImplementation(async (...args) => {
+    const handle = await open(...args), close = handle.close.bind(handle), ordinal = ++opened; live++;
+    vi.spyOn(handle, "close").mockImplementation(async (...args) => {
+      try {await close(...args);} finally {live--;}
+      if (mode === "retire-error" && ordinal === 1 && emitted) throw new Error("Template retirement failed");
+    }); return handle;
+  });
+  const chunks = async function* () {
+    try {
+      const reused = new Uint8Array(8192);
+      for (let i = 0; i < 8; i++) {
+        reused.fill(97 + i % 2); yield reused;
+        if (i === 4 && mode === "source-error") throw new Error("Template source failed");
+        if (i === 4 && mode === "cancel") controller.abort();
+      }
+      yield encoder.encode("$body$\n");
+    } finally {finalized++;}
+  };
+  const close = vi.fn(async () => {}), abort = vi.fn(async () => {});
+  const run = convertToOutput([source], {from: "json", to: "html", template: {chunks: chunks()}}, {
+    signal: controller.signal, limits: {outputBytes: 100000}, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
+      async write(bytes) {expect(bytes.length).toBeLessThanOrEqual(16384); emitted = true; if (mode === "sink-error") throw new Error("Sink failed"); await Promise.resolve();}, close, abort
+    }
+  });
+  if (mode === "success") {await run; expect(close).toHaveBeenCalledOnce();}
+  else {await expect(run).rejects.toMatchObject({code: mode === "cancel" ? "E_CANCELLED" : "E_IO"}); expect(close).not.toHaveBeenCalled();}
+  expect(finalized).toBe(1); expect(live).toBe(0); expect(opened).toBeGreaterThan(0);
+  expect(abort).toHaveBeenCalledTimes(mode === "sink-error" || mode === "retire-error" ? 1 : 0); expect(await fs.readdir("/")).toEqual([]);
+});
+it("retains deeply nested template continuations", async () => {
+  await compare({template: input("$if(body)$".repeat(128) + "$body$" + "$endif$".repeat(128))});
+});
+
+it.each(["$constructor$", "$toString$", "$__proto__$", "$if(constructor)$yes$endif$", "$for(toString)$$toString$$endfor$"])("preserves inherited template binding behavior: %s", async template => {
+  const options = {from: "json", to: "html", template: input(template)};
+  const expected = await convert([source], options, {}).catch(error => error);
+  if (expected.kind === "text") {await compare({template: input(template)}); return;}
+  const fs = new MemoryFileSystem();
+  await expect(convertToOutput([source], options, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write() {}, async close() {}, async abort() {}}})).rejects.toMatchObject({code: expected.code, message: expected.message});
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it("streams CLI custom templates through caller storage", async () => {
+  const {createPandocCommand} = await import("./command.js");
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/document.json", source.bytes); await fs.writeFile("/template.html", encoder.encode("<main>\n$body$\n</main>\n"));
+  const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));
+  const read = vi.spyOn(fs, "readFile").mockRejectedValue(new Error("Whole file forbidden"));
+  let output = "", error = "";
+  try {
+    expect(await createPandocCommand().execute({command: "pandoc", args: ["-f", "json", "-t", "html", "--template", "/template.html", "/document.json"], cwd: "/", env: {}, fs,
+      signal: new AbortController().signal, stdin: (async function* () {})(), stdout: {async write(bytes) {output += new TextDecoder().decode(bytes);}}, stderr: {async write(bytes) {error += new TextDecoder().decode(bytes);}}
+    })).toEqual({exitCode: 0});
+    expect(error).toBe(""); expect(output).toBe("<main>\n<p>Body 😀</p>\n</main>\n");
+    expect(acquire).not.toHaveBeenCalled(); expect(read).not.toHaveBeenCalled();
+  } finally {acquire.mockRestore(); read.mockRestore();}
+  expect((await fs.readdir("/")).map(entry => entry.name)).toEqual(["document.json", "template.html"]);
+});

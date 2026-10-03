@@ -1,3 +1,4 @@
+import {RetainedTemplate} from "./retained-template.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
 import type {ExecutionContext} from "./execution.js";
@@ -6,6 +7,7 @@ import type {ConversionOptions, WorkingStorageOptions} from "./types.js";
 /** Include text and each replacement generation belong to caller storage.
  * String.replace's replacement tokens are intentional compatibility behavior. */
 export class RetainedIncludes {
+  private template: RetainedTemplate | undefined;
   private readonly text: BackedText;
   private readonly before = emptyText();
   private readonly after = emptyText();
@@ -17,13 +19,14 @@ export class RetainedIncludes {
     this.release = context.onClose(() => this.close());
   }
   static async acquire(context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions): Promise<RetainedIncludes | undefined> {
-    if (!options.includeInHeader?.length && !options.includeBeforeBody?.length && !options.includeAfterBody?.length) return undefined;
+    if (!options.template && !options.includeInHeader?.length && !options.includeBeforeBody?.length && !options.includeAfterBody?.length) return undefined;
     const pages = (working.cacheBytes ?? 1048576) / 16384;
     if (!Number.isSafeInteger(pages) || pages < 1) context.fail("E_OPTION", "Working storage cacheBytes must be a positive multiple of 16384");
     if (typeof working.directory !== "string" || !working.directory.startsWith("/")) context.fail("E_OPTION", "Working storage requires an absolute caller filesystem directory");
     const storage = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, pages);
     const result = new RetainedIncludes(storage, context);
     try {
+      if (options.template) {result.template = new RetainedTemplate(storage, context); await result.template.acquire(options.template);}
       for (const [sources, target] of [[options.includeInHeader, result.header], [options.includeBeforeBody, result.before], [options.includeAfterBody, result.after]] as const) {
         for (const source of sources ?? []) {
           context.charge("includes", 1);
@@ -86,6 +89,12 @@ export class RetainedIncludes {
   }
   async render(source: AsyncIterable<string>): Promise<() => AsyncIterable<string>> {
     let value = await this.text.from(source);
+    if (this.template) {
+      const text = this.text, before = this.before, after = this.after, body = value;
+      const combined = await text.from((async function* () {yield* text.chunks(before); yield* text.chunks(body); yield* text.chunks(after);})());
+      value = await this.template.render(text, {body: combined, "header-includes": this.header, "include-before": before, "include-after": after});
+      return () => text.unicodeChunks(value);
+    }
     if (!this.before.units && !this.after.units && !this.header.units) return () => this.text.unicodeChunks(value);
     if (await this.find(value, "<body>") >= 0) {
       value = await this.replace(value, "<body>\n", "<body>\n", this.before, "");

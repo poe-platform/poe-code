@@ -176,7 +176,7 @@ HTML `includeInHeader`, `includeBeforeBody`, and `includeAfterBody` inputs also
 stream into caller storage before document acquisition. Include replacement
 generations use one additional page cache, preserve raw text and replacement
 tokens, and retire before output commit. CLI `-H`, `-B`, and `-A` use this same
-path. Custom templates and template variables still use the compatibility converter.
+path. Custom HTML templates without a `variables` map retain their source, block continuations, body and output in the same caller storage. Template variables still use the compatibility converter.
 JSON filters with `applyJsonStream` also use retained generations: each validated
 response replaces the prior document before the next filter starts. At most five
 page caches coexist (two document pairs and one response spool), independently

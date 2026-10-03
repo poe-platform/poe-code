@@ -111,7 +111,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     else if (target === "plain") await writeRetainedPlain(document.tree, context, working, options);
     else if (target === "latex") await writeRetainedLatex(document.tree, context, working, options, document.order);
     else if (target === "rst") await writeRetainedRst(document.tree, context, working, options);
-    else if (target === "html5") await writeRetainedHtml(document.tree, context, working, includes ? {...options, standalone: true} : options, includes);
+    else if (target === "html5") await writeRetainedHtml(document.tree, context, working, includes ? {...options, standalone: !options.template} : options, includes);
     else if (target === "commonmark" || target === "gfm") await writeRetainedMarkdown(document.tree, context, working, options, createFormatRegistry().resolve(options.to, "write"));
     else {
       await preflight(document.chunks(options.eol));

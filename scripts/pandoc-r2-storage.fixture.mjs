@@ -3,7 +3,7 @@
  * page index. It deliberately supports retained scratch handles only. */
 export function createR2PagedFixture(namespace, bucket) {
   const pageBytes = 16384;
-  const events = {opened: 0, closed: 0, reads: 0, writes: 0, largestTransfer: 0};
+  const events = {opened: 0, closed: 0, reads: 0, writes: 0, largestTransfer: 0, peakHandles: 0};
   function check(value, message) {if (!value) throw new Error(message);}
   const fs = new Proxy(namespace, {get(target, key) {
     if (key === "readFile" || key === "writeFile" || key === "readStream")
@@ -13,6 +13,7 @@ export function createR2PagedFixture(namespace, bucket) {
       const receipt = await target.open(path, options);
       const prefix = crypto.randomUUID() + "/";
       events.opened++;
+      events.peakHandles = Math.max(events.peakHandles, events.opened - events.closed);
       let size = 0, closing;
       const checkOpen = options => {
         options?.signal?.throwIfAborted();

@@ -82,8 +82,9 @@ export interface Type1Properties extends Record<string, unknown> {
   bbox: number[];
 }
 export class Type1Font {
-  constructor(name: string, stream: Stream, properties: Type1Properties);
-  data: number[];
+  constructor(name: string, stream: Stream, properties: Type1Properties, onAllocation?: (bytes: number) => void);
+  readonly data: ArrayLike<number>;
+  readonly cff: CffFont;
   seacs: Map<number, number[]>;
   getCharset(): string[];
   getGlyphMapping(properties: Type1Properties): Map<number, number>;

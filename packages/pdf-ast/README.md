@@ -469,7 +469,7 @@ simple fonts recover glyph selection from PDF encodings and `post` names.
 TrueType point/contour scratch and compound outline allocations before creating
 them. Input remains caller-owned. Embedded CFF copies, indices, dictionaries,
 charset/FDSelect expansion and charstring parser scratch also report admission;
-Type1 decoding and conversion still need separate accounting. TrueType character maps use direct range lookups over the font bytes without
+Type1 lexical/decryption and charstring parsing still need separate accounting. TrueType character maps use direct range lookups over the font bytes without
 expanding ranges into per-character Maps. Ordered ranges use binary search;
 overlapping ranges retain their existing last-match behavior.
 Embedded Type0 Encoding CMaps resolve
@@ -479,8 +479,11 @@ at most 256 KiB of conservatively sized outlines; evicted outlines are rebuilt
 on demand. Outline compilation and conversion report allocations to the
 containing font owner before growing state, including subroutine expansion.
 CID CFF matrices normalize directly without recompiling a duplicate font.
+Type1 outlines consume converted glyphs directly, without compiling and reparsing
+a whole CFF stream; compiled bytes remain a lazy convenience. Conversion copies
+and mapping state report allocations to the containing owner.
 CFF font-program parsing reports its intrinsic allocations to the same owner;
-Type1 decoding and conversion still need separate accounting. `doc.embedFont()`
+Type1 lexical/decryption and charstring parsing still need separate accounting. `doc.embedFont()`
 preserves full OpenType CFF programs with their matching PDF font metadata,
 including widths for every embedded glyph.
 Word spacing follows encoded one-byte spaces, including remapped characters.

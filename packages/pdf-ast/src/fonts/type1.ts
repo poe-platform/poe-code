@@ -1,18 +1,16 @@
 import { PdfFontAllocation, type PdfFontAllocationOptions } from "./memory.js";
 import type { PdfPathSegment } from "../ast.js";
 import { createCffGlyphRenderer, type EmbeddedCffFont } from "./cff.js";
-import { CFFParser, Stream, Type1Font, getEncoding, getGlyphsUnicode, type Type1Properties } from "../vendor/pdfjs-fonts.mjs";
+import { Stream, Type1Font, getEncoding, getGlyphsUnicode, type Type1Properties } from "../vendor/pdfjs-fonts.mjs";
 
 export function parseEmbeddedType1Font(bytes: Uint8Array, properties: Type1Properties, options: Pick<PdfFontAllocationOptions, "onAllocation"> = {}): EmbeddedCffFont {
   const allocation = new PdfFontAllocation(options);
   allocation.admit(bytes.length);
-  const font = new Type1Font("EmbeddedType1", new Stream(bytes.slice()), properties);
-  allocation.admit(font.data.length);
-  const cff = new CFFParser(new Stream(Uint8Array.from(font.data)), {}, false, bytes => allocation.admit(bytes)).parse();
-  // Type1Font owns the mapping: reparsing the generated CFF charset is not
-  // sufficient to preserve original glyph IDs (including its extra .notdef).
-  const charset = font.getCharset();
-  cff.charset.charset = charset;
+  const font = new Type1Font("EmbeddedType1", new Stream(bytes.slice()), properties, bytes => allocation.admit(bytes));
+  const cff = font.cff;
+  // Type1Font owns the original mapping, including its extra .notdef glyph.
+  const charset = cff.charset.charset as string[];
+  const seacs = font.seacs;
   const mapping = font.getGlyphMapping(properties);
   const notdef = Math.max(0, charset.indexOf(".notdef", 1));
   const unicodeByName = getGlyphsUnicode();
@@ -29,7 +27,7 @@ export function parseEmbeddedType1Font(bytes: Uint8Array, properties: Type1Prope
     getGlyphOutline(code) {
       const gid = mapping.get(code) || notdef;
       let path = render(gid);
-      const seac = font.seacs.get(gid);
+      const seac = seacs.get(gid);
       if (seac) {
         // PDF.js fonts.js resolves seac through StandardEncoding and transforms
         // its accent displacement with the font matrix.

@@ -110,6 +110,29 @@ const result = await build({
         source = source.replace(cache, "if (!this.#cipherCache.has(key)) this.#cipherCache.set(key, this.resolveCipher(filterName));\n    return this.#cipherCache.get(key);");
         return { contents: source, loader: "js" };
       });
+      builder.onLoad({ filter: /type1_font\.js$/ }, args => {
+        let source = readFileSync(args.path, "utf8");
+        const patches = [
+          ["class Type1Font {", "class Type1Font {\n  #data;\n  get data() { return this.#data ??= new CFFCompiler(this.cff).compile(); }"],
+          ["constructor(name, file, properties) {", "constructor(name, file, properties, onAllocation) {\n    this.onAllocation = onAllocation;\n    onAllocation?.(2048);"],
+          ["this.data = this.wrap(", "this.cff = this.wrap("],
+          ["  getCharset() {", "  getCharset() {\n    this.onAllocation?.(256 + this.charstrings.length * 16);"],
+          ["  getGlyphMapping(properties) {", "  getGlyphMapping(properties) {\n    this.onAllocation?.(65536 + this.charstrings.length * 128);"],
+          ["  getSeacs(charstrings) {", "  getSeacs(charstrings) {\n    this.onAllocation?.(256 + charstrings.length * 64);"],
+          ["  getType2Charstrings(type1Charstrings) {", "  getType2Charstrings(type1Charstrings) {\n    this.onAllocation?.(256 + type1Charstrings.length * 16);"],
+          ["const type2Subrs = [];", "this.onAllocation?.(256 + (count + bias) * 64);\n    const type2Subrs = [];"],
+          ["  wrap(name, glyphs, charstrings, subrs, properties) {", "  wrap(name, glyphs, charstrings, subrs, properties) {\n    this.onAllocation?.(4096 + glyphs.length * 256 + subrs.length * 128);"],
+          ["charStringsIndex.add([0x8b, 0x0e]);", "charStringsIndex.add(new Uint8Array([0x8b, 0x0e]));"],
+          ["charStringsIndex.add(glyphs[i]);", "this.onAllocation?.(glyphs[i].length);\n      charStringsIndex.add(Uint8Array.from(glyphs[i]));"],
+          ["subrIndex.add(subr);", "this.onAllocation?.(subr.length);\n      subrIndex.add(Uint8Array.from(subr));"],
+          ["const compiler = new CFFCompiler(cff);\n    return compiler.compile();", "return cff;"],
+        ];
+        for (const [before, after] of patches) {
+          if (!source.includes(before)) throw new Error("PDF.js Type1 font source marker changed: " + before);
+          source = source.replace(before, after);
+        }
+        return { contents: source, loader: "js" };
+      });
       builder.onLoad({ filter: /cff_parser\.js$/ }, args => {
         const source = readFileSync(args.path, "utf8");
         const start = source.indexOf("class CFFParser {");

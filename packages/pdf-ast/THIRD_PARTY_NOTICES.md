@@ -593,5 +593,8 @@ and its outline cache retains at most 256 KiB of conservatively sized paths.
 The CFF parser also admits indices, dictionaries, decoded strings, charset and
 FDSelect ranges, and charstring scratch. Truncated charset ranges now fail
 instead of entering a non-progressing loop. CID matrix normalization follows
-CFFCompiler directly, without compiling a duplicate output font. Type1 decoding
-and conversion still need separate allocation accounting.
+CFFCompiler directly, without compiling a duplicate output font. Type1Font now
+retains its converted CFF structure and compiles its byte representation lazily.
+Glyph/subroutine copies and mapping state report allocation callbacks; rendering
+uses the converted structure directly. Type1 lexical/decryption and charstring
+parser state still need separate allocation accounting.

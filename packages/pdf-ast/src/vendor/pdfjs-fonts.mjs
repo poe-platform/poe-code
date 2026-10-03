@@ -12053,8 +12053,14 @@ function isCidKeyedType1File(file) {
   return text.includes("Resource-CIDFont") || /\/CIDFontType\s+0\b/.test(text);
 }
 var Type1Font = class {
+  #data;
+  get data() {
+    return this.#data ??= new CFFCompiler(this.cff).compile();
+  }
   #rawFileLength;
-  constructor(name, file, properties) {
+  constructor(name, file, properties, onAllocation) {
+    this.onAllocation = onAllocation;
+    onAllocation?.(2048);
     let data;
     if (properties.composite && isCidKeyedType1File(file)) {
       data = this.#parseCidKeyedType1(file, properties);
@@ -12067,7 +12073,7 @@ var Type1Font = class {
     const type2Charstrings = this.getType2Charstrings(charstrings);
     const subrs = this.getType2Subrs(data.subrs);
     this.charstrings = charstrings;
-    this.data = this.wrap(
+    this.cff = this.wrap(
       name,
       type2Charstrings,
       this.charstrings,
@@ -12124,6 +12130,7 @@ var Type1Font = class {
     return this.charstrings.length + 1;
   }
   getCharset() {
+    this.onAllocation?.(256 + this.charstrings.length * 16);
     const charset = [".notdef"];
     for (const { glyphName } of this.charstrings) {
       charset.push(glyphName);
@@ -12131,6 +12138,7 @@ var Type1Font = class {
     return charset;
   }
   getGlyphMapping(properties) {
+    this.onAllocation?.(65536 + this.charstrings.length * 128);
     const charstrings = this.charstrings;
     if (properties.composite) {
       const charCodeToGlyphId = /* @__PURE__ */ new Map();
@@ -12168,6 +12176,7 @@ var Type1Font = class {
     return glyph.charstring.length > 0;
   }
   getSeacs(charstrings) {
+    this.onAllocation?.(256 + charstrings.length * 64);
     const seacs = /* @__PURE__ */ new Map();
     for (let i = 0, ii = charstrings.length; i < ii; i++) {
       const { seac } = charstrings[i];
@@ -12178,6 +12187,7 @@ var Type1Font = class {
     return seacs;
   }
   getType2Charstrings(type1Charstrings) {
+    this.onAllocation?.(256 + type1Charstrings.length * 16);
     const type2Charstrings = [];
     for (const type1Charstring of type1Charstrings) {
       type2Charstrings.push(type1Charstring.charstring);
@@ -12194,6 +12204,7 @@ var Type1Font = class {
     } else {
       bias = 32768;
     }
+    this.onAllocation?.(256 + (count + bias) * 64);
     const type2Subrs = [];
     let i;
     for (i = 0; i < bias; i++) {
@@ -12205,6 +12216,7 @@ var Type1Font = class {
     return type2Subrs;
   }
   wrap(name, glyphs, charstrings, subrs, properties) {
+    this.onAllocation?.(4096 + glyphs.length * 256 + subrs.length * 128);
     const cff = new CFF(this.#rawFileLength);
     cff.header = new CFFHeader(1, 0, 4, 4);
     cff.names = [name];
@@ -12241,9 +12253,10 @@ var Type1Font = class {
     }
     cff.charset = new CFFCharset(false, 0, charsetArray);
     const charStringsIndex = new CFFIndex();
-    charStringsIndex.add([139, 14]);
+    charStringsIndex.add(new Uint8Array([139, 14]));
     for (let i = 0; i < count; i++) {
-      charStringsIndex.add(glyphs[i]);
+      this.onAllocation?.(glyphs[i].length);
+      charStringsIndex.add(Uint8Array.from(glyphs[i]));
     }
     cff.charStrings = charStringsIndex;
     const privateDict = new CFFPrivateDict();
@@ -12279,11 +12292,11 @@ var Type1Font = class {
     cff.topDict.privateDict = privateDict;
     const subrIndex = new CFFIndex();
     for (const subr of subrs) {
-      subrIndex.add(subr);
+      this.onAllocation?.(subr.length);
+      subrIndex.add(Uint8Array.from(subr));
     }
     privateDict.subrsIndex = subrIndex;
-    const compiler = new CFFCompiler(cff);
-    return compiler.compile();
+    return cff;
   }
 };
 

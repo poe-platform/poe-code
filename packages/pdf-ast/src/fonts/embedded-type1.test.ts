@@ -1,4 +1,5 @@
-import { expect, it } from "vitest";
+import { CFFCompiler, CFFParser, Stream, Type1Font } from "../vendor/pdfjs-fonts.mjs";
+import { expect, it, vi } from "vitest";
 import { PdfDocument, cosArray, cosDict, cosName, cosNumber, cosStream, dictSet } from "../index.js";
 import { parseEmbeddedType1Font } from "./type1.js";
 import { bytesToString, stringToBytes } from "../bytes.js";
@@ -90,4 +91,35 @@ it("keeps CID-keyed Type 1 glyph IDs aligned after CFF conversion", () => {
   expect(font.getGlyphOutline(0).filter(segment => segment.kind === "line")).toHaveLength(0);
   const vertices = new Set(font.getGlyphOutline(2).flatMap(segment => segment.kind === "line" ? [`${Math.round(segment.x * 1000)},${Math.round(segment.y * 1000)}`] : []));
   expect(vertices).toEqual(new Set(["0,0", "600,0", "300,700"]));
+});
+
+
+it("renders Type1 outlines without compiling a font and reparsing its bytes", () => {
+  const source = type1Program(true);
+  const compile = vi.spyOn(CFFCompiler.prototype, "compile").mockImplementation(() => { throw new Error("whole-font compilation"); });
+  const parse = vi.spyOn(CFFParser.prototype, "parse").mockImplementation(() => { throw new Error("whole-font reparse"); });
+  try {
+    const font = parseEmbeddedType1Font(source.bytes, {
+      length1: source.length1, length2: source.length2, fontMatrix: [0.001, 0, 0, 0.001, 0, 0],
+      bbox: [0, 0, 600, 700], widths: {}, flags: 32, overridableEncoding: true, baseEncodingName: "WinAnsiEncoding",
+    });
+    expect(font.unicodeByCode.get(193)).toBe("Á");
+    expect(font.getGlyphOutline(193).some(segment => segment.kind === "line")).toBe(true);
+  } finally { compile.mockRestore(); parse.mockRestore(); }
+});
+
+it("keeps Type1 compiled font bytes available as a lazy convenience", () => {
+  const source = type1Program();
+  const compile = vi.spyOn(CFFCompiler.prototype, "compile");
+  try {
+    const font = new Type1Font("Triangle", new Stream(source.bytes), {
+      length1: source.length1, length2: source.length2, fontMatrix: [0.001, 0, 0, 0.001, 0, 0],
+      bbox: [0, 0, 600, 700], widths: {}, flags: 32, overridableEncoding: true,
+    });
+    expect(compile).not.toHaveBeenCalled();
+    const bytes = font.data;
+    expect(compile).toHaveBeenCalledTimes(1);
+    expect(font.data).toBe(bytes);
+    expect(new CFFParser(new Stream(Uint8Array.from(bytes)), {}, false).parse().charStrings.objects.length).toBeGreaterThan(1);
+  } finally { compile.mockRestore(); }
 });

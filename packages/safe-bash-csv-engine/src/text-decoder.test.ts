@@ -16,3 +16,23 @@ test('shared Python decoder distinguishes undecodable input from unknown codecs'
  assert.throws(()=>decoder.decode(),PythonTextDecodeError);
  assert.throws(()=>new PythonTextDecoder('unknown'),/unknown encoding: unknown/);
 });
+
+test('UTF8 signature decoder retains an incomplete initial BOM at final EOF like Python 3.9',()=>{
+ for(const hex of ['','ef','efbb','efbbbf']){
+  const bytes=Uint8Array.from(Buffer.from(hex,'hex'));
+  for(let split=0;split<=bytes.length;split++){
+   const decoder=new PythonTextDecoder('utf-8-sig');
+   assert.equal(decoder.decode(bytes.subarray(0,split),{stream:true})+decoder.decode(bytes.subarray(split)), '');
+  }
+ }
+ for(const hex of ['efbb78','61ef'])assert.throws(()=>new PythonTextDecoder('utf-8-sig').decode(Uint8Array.from(Buffer.from(hex,'hex'))),PythonTextDecodeError);
+ for(const hex of ['ef','efbb'])assert.throws(()=>new PythonTextDecoder('utf-8').decode(Uint8Array.from(Buffer.from(hex,'hex'))),PythonTextDecodeError);
+ assert.equal(new PythonTextDecoder('utf-8').decode(Uint8Array.of(0xef,0xbb,0xbf)),'\ufeff');
+});
+test('UTF8 signature is stripped only once across incremental final calls',()=>{
+ const decoder=new PythonTextDecoder('utf-8-sig'),bom=Uint8Array.of(0xef,0xbb,0xbf);
+ assert.equal(decoder.decode(bom),'');assert.equal(decoder.decode(bom),'\ufeff');
+ const pending=new PythonTextDecoder('utf-8-sig');
+ assert.equal(pending.decode(bom.subarray(0,1)),'');assert.equal(pending.decode(bom.subarray(1)),'');
+ assert.equal(pending.decode(new TextEncoder().encode('done')),'done');
+});

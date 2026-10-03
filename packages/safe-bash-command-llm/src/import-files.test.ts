@@ -86,3 +86,13 @@ test('filesystem failures are never classified as undecodable text',async()=>{
  await assert.rejects(withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,undecodable(){warned=true;}},{async *[Symbol.asyncIterator](){yield {path:'/file',id:'file'};}},async entries=>{for await(const ignored of entries)assert.fail('unexpected entry');}),error=>error===reason);
  assert.equal(warned,false);assert.deepEqual((await backing.readdir('/')).map(entry=>entry.name),['file']);
 });
+test('UTF8-sig incomplete signatures import as empty text instead of being skipped',async()=>{
+ const fs=new MemoryFileSystem();
+ for(const bytes of [Uint8Array.of(0xef),Uint8Array.of(0xef,0xbb)]){
+  await fs.writeFile('/prefix',bytes);let count=0;
+  await withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,encodings:['utf-8-sig'],undecodable(){assert.fail('Python accepts an incomplete initial signature');}},{async *[Symbol.asyncIterator](){yield {path:'/prefix',id:'prefix'};}},async entries=>{
+   for await(const entry of entries){count++;let text='';for await(const chunk of entry.input.bytes)text+=new TextDecoder().decode(chunk);assert.equal(text,'');}
+  });
+  assert.equal(count,1);assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['prefix']);
+ }
+});

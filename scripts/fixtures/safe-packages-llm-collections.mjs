@@ -7,6 +7,13 @@ import { sqlite3Commands } from "@poe-platform/safe-bash/commands/sqlite3";
 
 export async function verifyLlmCollections() {
   const globFs=new MemoryFileSystem();
+  await globFs.writeFile('/signature',Uint8Array.of(0xef,0xbb));
+  let signatureRows=0;
+  await withFileEmbeddingEntries({fs:globFs,directory:'/',signal:new AbortController().signal,encodings:['utf-8-sig'],undecodable(){throw new Error('Incomplete UTF8 signature was skipped');}},{async *[Symbol.asyncIterator](){yield {path:'/signature',id:'signature'};}},async entries=>{
+    for await(const entry of entries){signatureRows++;for await(const bytes of entry.input.bytes)if(bytes.length)throw new Error('Incomplete signature produced content');}
+  });
+  if(signatureRows!==1)throw new Error('Incomplete signature did not yield an empty row');
+  await globFs.unlink('/signature');
   await globFs.mkdir('/nested');
   await globFs.writeFile('/first.txt',new TextEncoder().encode('first'));
   await globFs.writeFile('/nested/second.txt',new TextEncoder().encode('second'));

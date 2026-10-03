@@ -6,11 +6,25 @@ on:
         description: Exact poe-code main revision containing the qualification tooling
         required: true
         type: string
+      prepare_only:
+        description: Run native Python qualification and export receipts without Cloudflare access or deployment
+        type: boolean
+        default: false
     secrets:
       CLOUDFLARE_ACCOUNT_ID:
         required: true
       CLOUDFLARE_API_TOKEN:
         required: true
+  workflow_dispatch:
+    inputs:
+      source_revision:
+        description: Exact poe-code main revision containing the qualification tooling
+        required: true
+        type: string
+      prepare_only:
+        description: Run native Python qualification and export receipts without Cloudflare access or deployment
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -43,6 +57,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: node packages/safe-fs/tests/integration/object-io-cloudflare-api.mjs
+        if: ${{ !inputs.prepare_only }}
       - run: npm clean-install
       - name: Install isolated pinned native and public runtime tooling
         run: |
@@ -53,7 +68,7 @@ jobs:
           npm install --prefix out/issue-781/public-consumer --no-save --package-lock=false --ignore-scripts @poe-platform/safe-bash@0.1.695 @poe-platform/safe-fs@0.1.695 @poe-platform/safe-js@0.1.695
       - name: Validate hosted lifecycle and response gates
         run: |
-          node --test packages/safe-fs/tests/integration/object-io-hosted.test.mjs packages/safe-fs/tests/integration/object-io-hosted-protocol.test.mjs packages/safe-fs/tests/integration/object-io-cloudflare-api.test.mjs packages/safe-fs/tests/integration/object-io-hosted-matrix.test.mjs packages/safe-fs/tests/integration/object-io-hosted-cli.test.mjs
+          node --test packages/safe-fs/tests/integration/object-io-hosted.test.mjs packages/safe-fs/tests/integration/object-io-hosted-protocol.test.mjs packages/safe-fs/tests/integration/object-io-cloudflare-api.test.mjs packages/safe-fs/tests/integration/object-io-hosted-matrix.test.mjs packages/safe-fs/tests/integration/object-io-hosted-cli.test.mjs packages/safe-fs/tests/integration/object-io-workloads.test.mjs
       - name: Qualify actual Python locally and export authenticated modules
         env:
           TMPDIR: ${{ github.workspace }}/poe-code/out/issue-781/runtime
@@ -69,6 +84,7 @@ jobs:
           SOURCE_REVISION: ${{ inputs.source_revision }}
         run: |
           node packages/safe-fs/tests/integration/object-io-hosted-cli.mjs --artifacts out/issue-781/exported --receipt out/issue-781/hosted-receipt.json --source-revision "$SOURCE_REVISION" --run-id "$GITHUB_RUN_ID"
+        if: ${{ !inputs.prepare_only }}
       - name: Retain credential-free qualification receipts
         if: ${{ always() }}
         uses: actions/upload-artifact@v7.0.1

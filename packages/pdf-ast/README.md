@@ -47,7 +47,8 @@ xref links or replace the buffered document loader.
 
 `PdfObjectIndex.build(entries, { fs, directory }, options)` sorts streamed
 cross-reference entries into caller-backed retained storage. Supply revisions
-newest first: the first entry for an object wins, including free entries. Use
+newest first: the first entry for an object wins, including free entries. Set
+`duplicate: "last"` when indexing the rows within one revision. Use
 `get(objectNumber)` for binary lookup, `entries()` for ordered iteration, and
 `close()` to remove owned staging. Compressed entries preserve their object-stream
 number and index. Construction retains one `runEntries` batch and active merge
@@ -56,6 +57,18 @@ entry in a Map. `chunkBytes` (a multiple of 32), `cacheBytes`, `maxEntries`,
 `maxStagingBytes`, and `signal` control I/O and admission. The staging budget
 includes merge inputs and output simultaneously. Choose external injected storage
 for large indexes; a memory filesystem still stores those files in RAM.
+
+`openPdfCrossReference(source, storage, options)` discovers the header and last
+`startxref`, follows incremental `/Prev` links, and combines classic and hybrid
+xref streams into a caller-backed `index`. Duplicate rows use last-row precedence
+within a revision and newest-first precedence across revisions. It returns the
+newest trailer plus inherited root, info, encryption and file-ID metadata. Close
+`result.index` after use; the input source stays open. Cycle tracking uses another
+external index, not an unbounded in-memory set. `maxRevisions` bounds traversal;
+`index` options apply to each index construction (the combined index and a nested
+builder can coexist). Trailer/value limits and the streaming decoder callback
+are the same as `readCosXrefRevision`. This API requires valid xrefs; repair scanning,
+object loading, decryption and the buffered document API remain separate.
 
 For stdin or intermediate data, `PdfFileSource.fromStream(fs, directory, chunks,
 options)` writes bounded chunks into retained staging in the supplied directory.

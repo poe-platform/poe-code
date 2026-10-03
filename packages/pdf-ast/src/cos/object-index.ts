@@ -11,6 +11,8 @@ export interface PdfIndexStorage {
   readonly directory: string;
 }
 export interface PdfObjectIndexOptions {
+  /** Across revisions first wins; within one revision last wins. */
+  readonly duplicate?: "first" | "last";
   readonly runEntries?: number;
   readonly chunkBytes?: number;
   readonly cacheBytes?: number;
@@ -68,7 +70,7 @@ async function* records(source: PdfFileSource, signal?: AbortSignal): AsyncGener
   }
 }
 
-async function* merge(first: PdfFileSource, second: PdfFileSource, signal?: AbortSignal): AsyncGenerator<PdfXRefEntry> {
+async function* merge(first: PdfFileSource, second: PdfFileSource, duplicate: "first" | "last", signal?: AbortSignal): AsyncGenerator<PdfXRefEntry> {
   const left = records(first, signal);
   const right = records(second, signal);
   try {
@@ -78,8 +80,9 @@ async function* merge(first: PdfFileSource, second: PdfFileSource, signal?: Abor
     while (!a.done || !b.done) {
       signal?.throwIfAborted();
       if (!a.done && (b.done || a.value.objectNumber <= b.value.objectNumber)) {
-        yield a.value;
-        if (!b.done && a.value.objectNumber === b.value.objectNumber) b = await right.next();
+        const equal = !b.done && a.value.objectNumber === b.value.objectNumber;
+        yield equal && duplicate === "last" && !b.done ? b.value : a.value;
+        if (equal) b = await right.next();
         a = await left.next();
       } else if (!b.done) { yield b.value; b = await right.next(); }
       if (++turns % 1024 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
@@ -88,8 +91,9 @@ async function* merge(first: PdfFileSource, second: PdfFileSource, signal?: Abor
 }
 
 /** Immutable cross-reference index in caller-authorized storage. Input order is
- * newest first; the first occurrence wins, including free-entry tombstones.
- * Construction keeps one sort batch and two merge windows in memory. Dormant
+ * newest first; the first occurrence wins by default, including free-entry
+ * tombstones. Use duplicate: "last" for rows within one revision. Construction
+ * keeps one sort batch and two merge windows in memory. Dormant
  * runs retain empty caches; at most 53 levels exist for safe-integer counts. */
 export class PdfObjectIndex {
   private closing: Promise<void> | undefined;
@@ -98,6 +102,8 @@ export class PdfObjectIndex {
 
   static async build(input: Iterable<PdfXRefEntry> | AsyncIterable<PdfXRefEntry>, storage: PdfIndexStorage,
     options: PdfObjectIndexOptions = {}): Promise<PdfObjectIndex> {
+    const duplicate = options.duplicate ?? "first";
+    if (duplicate !== "first" && duplicate !== "last") throw new RangeError("Invalid PDF index duplicate policy");
     const runEntries = integer(options.runEntries ?? 2048, "runEntries");
     const chunkBytes = integer(options.chunkBytes ?? 64 * 1024, "chunkBytes");
     const cacheBytes = integer(options.cacheBytes ?? 256 * 1024, "cacheBytes");
@@ -133,8 +139,9 @@ export class PdfObjectIndex {
       } catch (error) { stagedBytes -= reserved; throw error; }
     };
     const flush = async () => {
+      // Stable sort preserves row order; reversing selects the last duplicate.
+      if (duplicate === "last") batch.reverse();
       batch.sort((a, b) => a.objectNumber - b.objectNumber);
-      // Stable sort keeps the first revision entry for each object.
       const sorted = batch;
       batch = [];
       function* unique() {
@@ -145,7 +152,7 @@ export class PdfObjectIndex {
       let level = 0;
       while (levels[level]) {
         const earlier = levels[level]!;
-        const combined = await stage(merge(earlier, run, signal));
+        const combined = await stage(merge(earlier, run, duplicate, signal));
         await dispose(earlier);
         await dispose(run);
         levels[level++] = undefined;
@@ -193,7 +200,7 @@ export class PdfObjectIndex {
         if (!run) continue;
         if (!result) result = run;
         else {
-          const combined = await stage(merge(result, run, signal));
+          const combined = await stage(merge(result, run, duplicate, signal));
           await dispose(result);
           await dispose(run);
           result = combined;

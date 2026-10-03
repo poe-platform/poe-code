@@ -2,13 +2,15 @@ import { describe, expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import type { FileStat, FileSystem } from "@poe-code/safe-fs/contracts";
 import type { PdfXRefEntry } from "../ast.js";
+import { PdfFileSource } from "../source.js";
+import { openPdfCrossReference } from "./cross-reference.js";
 import { PdfObjectIndex } from "./object-index.js";
 
 // This backend stores only constant-size descriptors for each live sorted run.
 // Record bytes are checked on write and generated on read, never RAM-spooled.
 function externalOracle() {
   const scope = {};
-  const live = new Map<string, { first: number; count: number; identity: string; revision: number }>();
+  const live = new Map<string, { first: number; count: number; identity: string; revision: number; visited: boolean }>();
   let peakFiles = 0;
   let maxWrite = 0;
   let reads = 0;
@@ -19,7 +21,7 @@ function externalOracle() {
     capabilities: { retainedRead: true, retainedStagingWrite: true, retainedStagingCleanup: true },
     stat: async () => ({ type: "directory", size: 0 }),
     async createStagedFile(path: string) {
-      const state = { first: -1, count: 0, identity: path, revision: 0 };
+      const state = { first: -1, count: 0, identity: path, revision: 0, visited: false };
       const file = path + "/bytes";
       live.set(file, state);
       peakFiles = Math.max(peakFiles, live.size);
@@ -30,9 +32,9 @@ function externalOracle() {
           for (let offset = 0; offset < bytes.length; offset += 32) {
             const view = new DataView(bytes.buffer, bytes.byteOffset + offset, 32);
             const key = view.getFloat64(0);
-            if (state.first < 0) state.first = key;
+            if (state.first < 0) { state.first = key; state.visited = key === 9 && view.getFloat64(8) === 0; }
             expect(key).toBe(state.first + state.count);
-            expect(view.getFloat64(8)).toBe(key * 10);
+            expect(view.getFloat64(8)).toBe(state.visited ? 0 : key * 10);
             expect(view.getFloat64(16)).toBe(0);
             expect(view.getFloat64(24)).toBe(1);
             state.count++;
@@ -50,7 +52,7 @@ function externalOracle() {
         for (let i = 0; i < result.length; i++) {
           const absolute = position + i;
           const key = state.first + Math.floor(absolute / 32);
-          view.setFloat64(0, key); view.setFloat64(8, key * 10); view.setFloat64(16, 0); view.setFloat64(24, 1);
+          view.setFloat64(0, key); view.setFloat64(8, state.visited ? 0 : key * 10); view.setFloat64(16, 0); view.setFloat64(24, 1);
           result[i] = record[absolute % 32]!;
         }
         return result;
@@ -91,6 +93,17 @@ describe("externally backed PDF object index", () => {
     expect(keys).toEqual([1, 2, 3, 4]);
     expect(await backing.fs.readdir("/authorized")).toHaveLength(1);
     await index.close();
+    await index.close();
+    expect(await backing.fs.readdir("/authorized")).toEqual([]);
+  });
+
+  it.each([1, 2, 3, 5, 30])("keeps the last row of a revision across merge batches of %i", async runEntries => {
+    const backing = await storage();
+    const entries: PdfXRefEntry[] = [];
+    for (let i = 0; i < 23; i++) entries.push({ objectNumber: i % 4, type: "uncompressed", offset: i });
+    entries.push({ objectNumber: 1, type: "free", generationNumber: 2, nextFreeObjectNumber: 0 });
+    const index = await PdfObjectIndex.build(entries, backing, { ...options, runEntries, duplicate: "last" });
+    for (let i = 0; i < 4; i++) expect(await index.get(i)).toMatchObject(entries.filter(entry => entry.objectNumber === i).at(-1)!);
     await index.close();
     expect(await backing.fs.readdir("/authorized")).toEqual([]);
   });
@@ -247,6 +260,49 @@ describe("externally backed PDF object index", () => {
       index = await PdfObjectIndex.build(entries(), backing, { ...options, runEntries: 8, signal });
       expect(maximum).toBeLessThan(32);
     } finally { Object.defineProperty(Promise.prototype, "then", descriptor); await index?.close(); }
+  });
+
+  it.each([65, 257])("builds a %i-row document index without input or staging payloads in RAM", async count => {
+    const backend = externalOracle();
+    const head = `%PDF-1.7\nxref\n1 ${count}\n`;
+    const tail = `trailer << /Root 1 0 R /Size ${count + 1} >>\nstartxref\n9\n%%EOF`;
+    const size = head.length + count * 20 + tail.length;
+    const scratch = new Uint8Array(64);
+    let maximumRead = 0;
+    const input = {
+      capabilities: { retainedRead: true },
+      async openReadFile() { return {
+        stat: async () => ({ type: "file", size }), close: async () => {},
+        async read(position: number, length: number) {
+          maximumRead = Math.max(maximumRead, length);
+          expect(length).toBeLessThanOrEqual(64);
+          const available = Math.min(length, size - position);
+          for (let i = 0; i < available; i++) {
+            const offset = position + i;
+            if (offset < head.length) scratch[i] = head.charCodeAt(offset);
+            else if (offset >= head.length + count * 20) scratch[i] = tail.charCodeAt(offset - head.length - count * 20);
+            else {
+              const row = Math.floor((offset - head.length) / 20) + 1;
+              const encoded = `${String(row * 10).padStart(10, "0")} 00000 n \n`;
+              scratch[i] = encoded.charCodeAt((offset - head.length) % 20);
+            }
+          }
+          return scratch.subarray(0, available);
+        },
+      }; },
+      readFile() { throw new Error("full input reads forbidden"); },
+    } as unknown as FileSystem;
+    const source = await PdfFileSource.open(input, "/generated.pdf", { chunkBytes: 64, cacheBytes: 128 });
+    const result = await openPdfCrossReference(source, backend, { index: { runEntries: 32, chunkBytes: 64, cacheBytes: 128 } });
+    expect(result.index.size).toBe(count);
+    expect(await result.index.get(count)).toMatchObject({ offset: count * 10 });
+    expect(maximumRead).toBeLessThanOrEqual(64);
+    expect(backend.maxWrite).toBeLessThanOrEqual(64);
+    expect(backend.peakFiles).toBeLessThanOrEqual(20);
+    expect(backend.live.size).toBe(1);
+    await result.index.close();
+    expect(backend.live.size).toBe(0);
+    await source.close();
   });
 
 });

@@ -6,6 +6,7 @@ export * from "./cos/security.js";
 export * from "./cos/parser.js";
 export * from "./cos/range-parser.js";
 export * from "./cos/range-xref.js";
+export * from "./cos/cross-reference.js";
 export * from "./cos/object-index.js";
 export * from "./cos/writer.js";
 export * from "./fonts/standard14.js";

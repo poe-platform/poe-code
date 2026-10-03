@@ -78,8 +78,8 @@ export async function readPropertiesFromSource(source:ImageByteSource,format:Ima
   return next.value;
 }
 
-export function writeProperties(bytes: Uint8Array, format: ImageFormat, properties: ReadonlyMap<string, string | null>): Uint8Array {
-  if (properties.size === 0) return bytes;
+function propertyChunk(format:ImageFormat,properties:ReadonlyMap<string,string|null>):Uint8Array {
+
   if (format !== "png" && format !== "jpeg") throw new Error(`sips property persistence is not supported for ${format}; use PNG or JPEG output`);
   // Check before serialization/encoding as well as after UTF-8 expansion.
   let size = 0;
@@ -109,6 +109,12 @@ export function writeProperties(bytes: Uint8Array, format: ImageFormat, properti
     view.setUint16(0, 0xfffe);
     view.setUint16(2, dataLength + 2);
   }
+  return chunk;
+}
+
+export function writeProperties(bytes: Uint8Array, format: ImageFormat, properties: ReadonlyMap<string, string | null>): Uint8Array {
+  if (properties.size === 0) return bytes;
+  const chunk=propertyChunk(format,properties);
   // Freshly encoded images have no prior payload. PNG inserts after IHDR;
   // JPEG inserts after SOI, before the first image segment.
   const offset = format === "png" ? 33 : 2;
@@ -117,4 +123,31 @@ export function writeProperties(bytes: Uint8Array, format: ImageFormat, properti
   output.set(chunk, offset);
   output.set(bytes.subarray(offset), offset + chunk.length);
   return output;
+}
+
+
+/** Insert metadata into freshly encoded chunks without retaining the encoded image. */
+export async function* writePropertiesStream(source:AsyncIterable<Uint8Array>,format:ImageFormat,properties:ReadonlyMap<string,string|null>,signal:AbortSignal):AsyncGenerator<Uint8Array,void>{
+  signal.throwIfAborted();
+  const metadata=properties.size?propertyChunk(format,properties):undefined;
+  const insertionOffset=format==="png"?33:2;
+  let position=0,inserted=!metadata,work=63;
+  for await(const bytes of source){
+    if(++work%64===0)await yieldTurn(signal);
+    signal.throwIfAborted();
+    for(let offset=0;offset<bytes.length;){
+      if(++work%64===0)await yieldTurn(signal);
+      if(!inserted&&position===insertionOffset){
+        for(let start=0;start<metadata!.length;start+=16384){signal.throwIfAborted();yield metadata!.slice(start,start+16384);}
+        inserted=true;
+      }
+      const length=Math.min(16384,bytes.length-offset,inserted?Infinity:insertionOffset-position);
+      signal.throwIfAborted();yield new Uint8Array(bytes.subarray(offset,offset+length));offset+=length;position+=length;
+    }
+  }
+  signal.throwIfAborted();
+  if(!inserted){
+    if(position!==insertionOffset)throw new Error("Truncated image metadata insertion header");
+    for(let start=0;start<metadata!.length;start+=16384){signal.throwIfAborted();yield metadata!.slice(start,start+16384);}
+  }
 }

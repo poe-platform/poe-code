@@ -1,3 +1,4 @@
+export {writePropertiesStream} from "./properties.js";
 import {createIdentifyReader,inspectIdentifyBytes,type IdentifyReader,type IdentifyFileInput,type IdentifyInspection} from "./identify-reader.js";
 export type {IdentifyFileInput} from "./identify-reader.js";
 import { resolvePath } from "safe-bash-contracts/path";

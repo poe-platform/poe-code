@@ -248,6 +248,7 @@ export class PdfRetainedPage {
 
   async attributes(): Promise<PdfRetainedPageAttributes> {
     const values = new Map<string, PdfCosNode | undefined>();
+    const boxes = new Map<string, PdfRect>();
     const keys = ["MediaBox", "CropBox", "BleedBox", "TrimBox", "ArtBox", "Rotate", "Resources"];
     let current: PdfCosDict | undefined = this.dict;
     const visited = new Set<number>();
@@ -256,7 +257,14 @@ export class PdfRetainedPage {
       if (depth++ > this.document.depthLimit) throw new PdfError("E_LIMIT", "PDF inherited page depth limit exceeded");
       for (const key of keys) {
         const entry = dictGet(current, key);
-        if (!values.has(key) && entry) values.set(key, (await this.document.lookup(entry))?.value);
+        if (values.has(key) || !entry) continue;
+        const value = (await this.document.lookup(entry))?.value;
+        if (key.endsWith("Box")) {
+          const rectangle = await box(value, this.document);
+          if (!rectangle) continue;
+          boxes.set(key, rectangle);
+        }
+        values.set(key, value);
       }
       if (values.size === keys.length) break;
       const parent = dictGet(current, "Parent");
@@ -274,16 +282,17 @@ export class PdfRetainedPage {
       }
       return numbers as unknown as PdfRect;
     }
-    const mediaBox = await box(values.get("MediaBox"), this.document) ?? [0, 0, 612, 792];
+    const mediaBox: PdfRect = boxes.get("MediaBox") ?? [0, 0, 612, 792];
+    const cropBox = boxes.get("CropBox") ?? mediaBox;
     const rotation = values.get("Rotate");
     const resources = values.get("Resources");
     const normalizedRotation = rotation?.kind === "number" ? ((rotation.value % 360) + 360) % 360 : 0;
     return {
       mediaBox,
-      cropBox: await box(values.get("CropBox"), this.document) ?? mediaBox,
-      bleedBox: await box(values.get("BleedBox"), this.document) ?? mediaBox,
-      trimBox: await box(values.get("TrimBox"), this.document) ?? mediaBox,
-      artBox: await box(values.get("ArtBox"), this.document) ?? mediaBox,
+      cropBox,
+      bleedBox: boxes.get("BleedBox") ?? cropBox,
+      trimBox: boxes.get("TrimBox") ?? cropBox,
+      artBox: boxes.get("ArtBox") ?? cropBox,
       rotation: normalizedRotation === 90 || normalizedRotation === 180 || normalizedRotation === 270 ? normalizedRotation : 0,
       resources: resources?.kind === "dict" ? resources : cosDict({}),
     };

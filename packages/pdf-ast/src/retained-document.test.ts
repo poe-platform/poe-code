@@ -19,13 +19,13 @@ async function fixture(bytes: Uint8Array, options = {}) {
   const doc = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { chunkBytes: 64, cacheBytes: 128, ...options });
   return { fs, source, reads, readFile, doc, async close() { await doc.close(); expect(await fs.readdir("/scratch")).toEqual([]); expect((await source.read(0, 1))[0]).toBe(37); await source.close(); } };
 }
-function inheritedPdf() {
+function inheritedPdf(malformed = false) {
   return serializeCosDocument({ rootRef: cosRef(1), objects: [
     { objectNumber: 1, generationNumber: 0, value: cosDict({ Type: cosName("Catalog"), Pages: cosRef(2) }) },
     { objectNumber: 2, generationNumber: 0, value: cosDict({ Type: cosName("Pages"), Kids: cosArray([cosRef(3)]), Count: cosNumber(1) }) },
     { objectNumber: 3, generationNumber: 0, value: cosDict({ Type: cosName("Pages"), Parent: cosRef(2), Kids: cosArray([cosRef(4)]), Count: cosNumber(1),
       MediaBox: cosArray([10, 20, 210, 120].map(value => cosNumber(value))), CropBox: cosArray([20, 30, 200, 110].map(value => cosNumber(value))), Rotate: cosNumber(-90), Resources: cosDict({ Font: cosDict({ F1: cosRef(7) }) }) }) },
-    { objectNumber: 4, generationNumber: 0, value: cosDict({ Type: cosName("Page"), Parent: cosRef(3), Contents: cosArray([cosRef(5), cosRef(6)]) }) },
+    { objectNumber: 4, generationNumber: 0, value: cosDict({ Type: cosName("Page"), Parent: cosRef(3), Contents: cosArray([cosRef(5), cosRef(6)]), ...(malformed ? { MediaBox: cosArray([cosNumber(1)]), CropBox: cosArray([cosNumber(0), cosName("invalid"), cosNumber(100), cosNumber(100)]) } : {}) }) },
     { objectNumber: 5, generationNumber: 0, value: cosStream(text("BT /F1 12 Tf "), { compress: true }) },
     { objectNumber: 6, generationNumber: 0, value: cosStream(text("(Retained) Tj ET"), { compress: true }) },
     { objectNumber: 7, generationNumber: 0, value: cosDict({ Type: cosName("Font"), Subtype: cosName("Type1"), BaseFont: cosName("Courier") }) },
@@ -49,6 +49,26 @@ describe("retained document pages", () => {
     expect(attributes.rotation).toBe(expected.getRotation()); expect(attributes.resources?.kind).toBe("dict");
     expect(await contents(page)).toEqual(expected.getRawContentStream());
     expect((await iterator.next()).done).toBe(true); expect(f.readFile).not.toHaveBeenCalled();
+    await f.close();
+  });
+
+  it("defaults production boxes to the inherited CropBox", async () => {
+    const f = await fixture(inheritedPdf());
+    for await (const page of f.doc.pages()) {
+      const attributes = await page.attributes();
+      for (const key of ["bleedBox", "trimBox", "artBox"] as const)
+        expect(attributes[key]).toEqual([20, 30, 200, 110]);
+    }
+    await f.close();
+  });
+
+  it("continues box inheritance past malformed child values", async () => {
+    const f = await fixture(inheritedPdf(true));
+    for await (const retained of f.doc.pages()) {
+      const attributes = await retained.attributes();
+      expect(attributes.mediaBox).toEqual([10, 20, 210, 120]);
+      expect(attributes.cropBox).toEqual([20, 30, 200, 110]);
+    }
     await f.close();
   });
 

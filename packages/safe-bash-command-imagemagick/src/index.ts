@@ -4285,7 +4285,130 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-tint" || token === "-colorize") {
         i++;
         apply = image => tintImageSteps(image, state.fill);
-    } else return;
+    }
+    else if (token === "-negate" || token === "+negate") {
+        const onlyGray = token === "+negate";
+        const ch = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: false };
+        apply = function* (im) {
+            let pixelWork = 0;
+            const out = new Uint8Array(im.data);
+            for (let idx = 0; idx < out.length; idx += 4) {
+                if (++pixelWork % 16384 === 0)
+                    yield;
+                const r = out[idx]!;
+                const g = out[idx + 1]!;
+                const b = out[idx + 2]!;
+                if (onlyGray && !(r === g && g === b))
+                    continue;
+                if (ch.r)
+                    out[idx] = 255 - r;
+                if (ch.g)
+                    out[idx + 1] = 255 - g;
+                if (ch.b)
+                    out[idx + 2] = 255 - b;
+                if (ch.a)
+                    out[idx + 3] = 255 - out[idx + 3]!;
+            }
+            return { ...im, data: out };
+        };
+    }
+    else if (token === "-contrast" || token === "+contrast") {
+        const slope = token === "-contrast" ? 1.15 : 0.87;
+        const offset = 128 * (1 - slope);
+        apply = image => linearImageSteps(image, [slope], [offset]);
+    }
+    else if (token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast") {
+        const raw = tokens[++i] ?? "3x50%";
+        const [cStr, mStr] = raw.split("x");
+        const beta = Math.max(1e-4, parseFloat(cStr || "3"));
+        const mRaw = parseFloat(mStr || "50");
+        const alpha = (mStr ?? "50%").endsWith("%") ? mRaw / 100 : mRaw / 255;
+        const sig = (u: number) => 1 / (1 + Math.exp(beta * (alpha - u)));
+        const s0 = sig(0);
+        const s1 = sig(1);
+        const span = Math.max(1e-6, s1 - s0);
+        apply = function* (im) {
+            let pixelWork = 0;
+            const out = new Uint8Array(im.data);
+            for (let idx = 0; idx < out.length; idx += 4) {
+                if (++pixelWork % 16384 === 0)
+                    yield;
+                for (let c = 0; c < 3; c++) {
+                    if (++pixelWork % 16384 === 0)
+                        yield;
+                    const u = out[idx + c]! / 255;
+                    out[idx + c] = clampByteVal(((sig(u) - s0) / span) * 255);
+                }
+            }
+            return { ...im, data: out };
+        };
+    }
+    else if (token === "-level" || token === "+level") {
+        const raw = tokens[++i] ?? "0,100%";
+        const parts = raw.split(",");
+        const anyPct = raw.includes("%");
+        const parsePt = (p: string | undefined, def: number) => {
+            if (!p || p.length === 0)
+                return def;
+            if (p.endsWith("%") || anyPct) {
+                return (parseFloat(p) / 100) * 255;
+            }
+            return parseFloat(p);
+        };
+        const black = parsePt(parts[0], 0);
+        const white = parsePt(parts[1], 255);
+        const gamma = parts[2] !== undefined ? Math.max(0.01, parseFloat(parts[2])) : 1.0;
+        const inverse = token === "+level";
+        apply = function* (im) {
+            let pixelWork = 0;
+            const out = new Uint8Array(im.data);
+            const span = Math.max(1e-6, white - black);
+            for (let idx = 0; idx < out.length; idx += 4) {
+                if (++pixelWork % 16384 === 0)
+                    yield;
+                for (let c = 0; c < 3; c++) {
+                    if (++pixelWork % 16384 === 0)
+                        yield;
+                    const v = out[idx + c]!;
+                    if (inverse) {
+                        const gVal = Math.pow(Math.max(0, Math.min(1, v / 255)), 1 / gamma);
+                        out[idx + c] = clampByteVal(black + gVal * span);
+                    }
+                    else {
+                        const norm = Math.max(0, Math.min(1, (v - black) / span));
+                        out[idx + c] = clampByteVal(Math.pow(norm, 1 / gamma) * 255);
+                    }
+                }
+            }
+            return { ...im, data: out };
+        };
+    }
+    else if (token === "-black-threshold" || token === "-white-threshold") {
+        const raw = tokens[++i] ?? "50%";
+        const thresh = raw.endsWith("%") ? (parseFloat(raw) / 100) * 255 : parseFloat(raw);
+        const isBlack = token === "-black-threshold";
+        apply = function* (im) {
+            let pixelWork = 0;
+            const out = new Uint8Array(im.data);
+            for (let idx = 0; idx < out.length; idx += 4) {
+                if (++pixelWork % 16384 === 0)
+                    yield;
+                const intensity = 0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!;
+                if (isBlack && intensity <= thresh) {
+                    out[idx] = 0;
+                    out[idx + 1] = 0;
+                    out[idx + 2] = 0;
+                }
+                else if (!isBlack && intensity > thresh) {
+                    out[idx] = 255;
+                    out[idx + 1] = 255;
+                    out[idx + 2] = 255;
+                }
+            }
+            return { ...im, data: out };
+        };
+    }
+    else return;
     return { end: i, apply };
 }
 
@@ -4715,32 +4838,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return (yield* applyExifOrientationSteps(im));
             }));
         }
-        else if (t === "-negate" || t === "+negate") {
-            const onlyGray = t === "+negate";
-            const ch = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: false };
-            stack = (yield* mapSteps(stack, function* (im) {
-                let pixelWork = 0;
-                const out = new Uint8Array(im.data);
-                for (let idx = 0; idx < out.length; idx += 4) {
-                    if (++pixelWork % 16384 === 0)
-                        yield;
-                    const r = out[idx]!;
-                    const g = out[idx + 1]!;
-                    const b = out[idx + 2]!;
-                    if (onlyGray && !(r === g && g === b))
-                        continue;
-                    if (ch.r)
-                        out[idx] = 255 - r;
-                    if (ch.g)
-                        out[idx + 1] = 255 - g;
-                    if (ch.b)
-                        out[idx + 2] = 255 - b;
-                    if (ch.a)
-                        out[idx + 3] = 255 - out[idx + 3]!;
-                }
-                return { ...im, data: out };
-            }));
-        }
         else if (t === "-colorspace" || t === "-grayscale") {
             const cs = (tokens[++i] ?? "gray").toLowerCase();
             if (cs.includes("gray") || cs.includes("grey") || cs === "rec709luma" || cs === "rec601luma") {
@@ -4855,13 +4952,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return { ...im, data: out };
             }));
         }
-        else if (t === "-contrast" || t === "+contrast") {
-            const slope = t === "-contrast" ? 1.15 : 0.87;
-            const offset = 128 * (1 - slope);
-            stack = (yield* mapSteps(stack, function* (im) {
-                return (yield* linearImageSteps(im, [slope], [offset]));
-            }));
-        }
         else if (t === "-raise" || t === "+raise") {
             const g = parseMagickGeometry(tokens[++i] ?? "4");
             const bw = Math.max(1, Math.round(g.width ?? 4));
@@ -4935,97 +5025,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                                 yield;
                             out[idx + c] = clampByteVal(Math.pow(out[idx + c]! / 255, exp) * 255);
                         }
-                    }
-                }
-                return { ...im, data: out };
-            }));
-        }
-        else if (t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") {
-            const raw = tokens[++i] ?? "3x50%";
-            const [cStr, mStr] = raw.split("x");
-            const beta = Math.max(1e-4, parseFloat(cStr || "3"));
-            const mRaw = parseFloat(mStr || "50");
-            const alpha = (mStr ?? "50%").endsWith("%") ? mRaw / 100 : mRaw / 255;
-            const sig = (u: number) => 1 / (1 + Math.exp(beta * (alpha - u)));
-            const s0 = sig(0);
-            const s1 = sig(1);
-            const span = Math.max(1e-6, s1 - s0);
-            stack = (yield* mapSteps(stack, function* (im) {
-                let pixelWork = 0;
-                const out = new Uint8Array(im.data);
-                for (let idx = 0; idx < out.length; idx += 4) {
-                    if (++pixelWork % 16384 === 0)
-                        yield;
-                    for (let c = 0; c < 3; c++) {
-                        if (++pixelWork % 16384 === 0)
-                            yield;
-                        const u = out[idx + c]! / 255;
-                        out[idx + c] = clampByteVal(((sig(u) - s0) / span) * 255);
-                    }
-                }
-                return { ...im, data: out };
-            }));
-        }
-        else if (t === "-level" || t === "+level") {
-            const raw = tokens[++i] ?? "0,100%";
-            const parts = raw.split(",");
-            const anyPct = raw.includes("%");
-            const parsePt = (p: string | undefined, def: number) => {
-                if (!p || p.length === 0)
-                    return def;
-                if (p.endsWith("%") || anyPct) {
-                    return (parseFloat(p) / 100) * 255;
-                }
-                return parseFloat(p);
-            };
-            const black = parsePt(parts[0], 0);
-            const white = parsePt(parts[1], 255);
-            const gamma = parts[2] !== undefined ? Math.max(0.01, parseFloat(parts[2])) : 1.0;
-            const inverse = t === "+level";
-            stack = (yield* mapSteps(stack, function* (im) {
-                let pixelWork = 0;
-                const out = new Uint8Array(im.data);
-                const span = Math.max(1e-6, white - black);
-                for (let idx = 0; idx < out.length; idx += 4) {
-                    if (++pixelWork % 16384 === 0)
-                        yield;
-                    for (let c = 0; c < 3; c++) {
-                        if (++pixelWork % 16384 === 0)
-                            yield;
-                        const v = out[idx + c]!;
-                        if (inverse) {
-                            const gVal = Math.pow(Math.max(0, Math.min(1, v / 255)), 1 / gamma);
-                            out[idx + c] = clampByteVal(black + gVal * span);
-                        }
-                        else {
-                            const norm = Math.max(0, Math.min(1, (v - black) / span));
-                            out[idx + c] = clampByteVal(Math.pow(norm, 1 / gamma) * 255);
-                        }
-                    }
-                }
-                return { ...im, data: out };
-            }));
-        }
-        else if (t === "-black-threshold" || t === "-white-threshold") {
-            const raw = tokens[++i] ?? "50%";
-            const thresh = raw.endsWith("%") ? (parseFloat(raw) / 100) * 255 : parseFloat(raw);
-            const isBlack = t === "-black-threshold";
-            stack = (yield* mapSteps(stack, function* (im) {
-                let pixelWork = 0;
-                const out = new Uint8Array(im.data);
-                for (let idx = 0; idx < out.length; idx += 4) {
-                    if (++pixelWork % 16384 === 0)
-                        yield;
-                    const intensity = 0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!;
-                    if (isBlack && intensity <= thresh) {
-                        out[idx] = 0;
-                        out[idx + 1] = 0;
-                        out[idx + 2] = 0;
-                    }
-                    else if (!isBlack && intensity > thresh) {
-                        out[idx] = 255;
-                        out[idx + 1] = 255;
-                        out[idx + 2] = 255;
                     }
                 }
                 return { ...im, data: out };

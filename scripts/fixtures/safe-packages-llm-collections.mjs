@@ -1,7 +1,7 @@
 import { MemoryFileSystem, createMountFileSystem, createOverlayFileSystem } from "@poe-platform/safe-fs/core";
 import { withLlmCollections, createLlmCollectionCommands, withCsvEmbeddingEntries, withJsonEmbeddingEntries, withJsonLinesEmbeddingEntries, withFileEmbeddingEntries, withEmbeddingFileGlob } from "@poe-platform/safe-bash/commands/llm/collections";
 import { createLlmService, llmCommands } from "@poe-platform/safe-bash/commands/llm";
-import { legacyCollectionDatabases, jsonImportEncodingInputs, jsonImportRejectedInputs, singleByteFileInputs } from "./safe-packages-llm-collections-reference.mjs";
+import { legacyCollectionDatabases, jsonImportEncodingInputs, jsonImportRejectedInputs, singleByteFileInputs, multibyteFileInputs } from "./safe-packages-llm-collections-reference.mjs";
 import { Shell } from "@poe-platform/safe-bash/shell";
 import { sqlite3Commands } from "@poe-platform/safe-bash/commands/sqlite3";
 
@@ -61,7 +61,7 @@ export async function verifyLlmCollections() {
   });
   if(signatureRows!==1)throw new Error('Incomplete signature did not yield an empty row');
   await globFs.unlink('/signature');
-  for(const fixture of singleByteFileInputs){
+  for(const fixture of [...singleByteFileInputs,...multibyteFileInputs]){
     await globFs.writeFile('/legacy',Uint8Array.from(atob(fixture.base64),char=>char.charCodeAt(0)));let count=0;
     const options={fs:globFs,directory:'/',signal:new AbortController().signal,encodings:[fixture.encoding]};
     const files={async *[Symbol.asyncIterator](){yield {path:'/legacy',id:'legacy'};}};
@@ -262,6 +262,12 @@ export async function verifyLlmCollections() {
     const unicodeRows=await cliShell.exec('llm similar utf32 -c query -d /cli.db');
     if(unicodeRows.exitCode!==0||JSON.parse(unicodeRows.stdout).content!=='𐀀')throw new Error('UTF32 CLI stored content changed');
     await fs.unlink('/file-inputs/u32.txt');
+    await fs.writeFile('/file-inputs/korean.txt',Uint8Array.of(0xa4,0xd4,0xa4,0xa1,0xa4,0xbf,0xa4,0xa1,13,10));
+    const koreanImport=await cliShell.exec('llm embed-multi korean --files /file-inputs korean.txt --encoding euc_kr --store -m embed -d /cli.db');
+    if(koreanImport.exitCode!==0||koreanImport.stdout!=='Embedding\n')throw new Error('EUC-KR CLI import failed: '+koreanImport.stderr);
+    const koreanRows=await cliShell.exec('llm similar korean -c query -d /cli.db');
+    if(koreanRows.exitCode!==0||JSON.parse(koreanRows.stdout).content!=='각\n')throw new Error('EUC-KR CLI stored content changed');
+    await fs.unlink('/file-inputs/korean.txt');
     await fs.writeFile('/file-inputs/ebcdic.txt',Uint8Array.of(0xc1,0x0d,0x25));
     const ebcdicImport=await cliShell.exec('llm embed-multi ebcdic --files /file-inputs ebcdic.txt --encoding ibm037 --store -m embed -d /cli.db');
     if(ebcdicImport.exitCode!==0||ebcdicImport.stdout!=='Embedding\n')throw new Error('EBCDIC CLI import failed: '+ebcdicImport.stderr);

@@ -1,3 +1,5 @@
+import { PythonMultibyteDecoder } from "./python-multibyte.js";
+import { pythonMultibyteTables } from "./python-multibyte-tables.js";
 import { pythonFileCodepages } from "./python-file-codepages.js";
 import { PythonUtf32Decoder } from "./python-utf32.js";
 import { PythonUtf16Decoder } from "./python-utf16.js";
@@ -11,22 +13,22 @@ const utf8Signature=Uint8Array.of(0xef,0xbb,0xbf);
 export { PythonTextDecodeError } from "./python-codepages.js";
 export class PythonTextDecoder {
  readonly encoding:string;
- private readonly decoder:TextDecoder|PythonUtf16Decoder|PythonUtf32Decoder;
+ private readonly decoder:TextDecoder|PythonUtf16Decoder|PythonUtf32Decoder|PythonMultibyteDecoder;
  private readonly codepoints:readonly number[]|undefined;
  private signatureOffset=0;
  private signatureComplete:boolean;
  constructor(encoding:string){
   const name=normalizeEncoding(encoding);
   const canonical=Object.hasOwn(pythonCodecAliases,name)?pythonCodecAliases[name]:undefined;
-  if(canonical===undefined||(!['utf-8-sig','utf-8','utf-16','utf-16-le','utf-16-be','utf-32','utf-32-le','utf-32-be'].includes(canonical)&&!Object.hasOwn(fileCodepages,canonical)))throw new RangeError(`unknown encoding: ${encoding}`);
+  if(canonical===undefined||(!['utf-8-sig','utf-8','utf-16','utf-16-le','utf-16-be','utf-32','utf-32-le','utf-32-be'].includes(canonical)&&!Object.hasOwn(fileCodepages,canonical)&&!Object.hasOwn(pythonMultibyteTables,canonical)))throw new RangeError(`unknown encoding: ${encoding}`);
   this.encoding=canonical;
   this.codepoints=fileCodepages[canonical];
   this.signatureComplete=canonical!=='utf-8-sig';
-  this.decoder=canonical==='utf-16'||canonical==='utf-16-le'||canonical==='utf-16-be'?new PythonUtf16Decoder(canonical):canonical==='utf-32'||canonical==='utf-32-le'||canonical==='utf-32-be'?new PythonUtf32Decoder(canonical):new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});
+  this.decoder=pythonMultibyteTables[canonical]?new PythonMultibyteDecoder(pythonMultibyteTables[canonical]!):canonical==='utf-16'||canonical==='utf-16-le'||canonical==='utf-16-be'?new PythonUtf16Decoder(canonical):canonical==='utf-32'||canonical==='utf-32-le'||canonical==='utf-32-be'?new PythonUtf32Decoder(canonical):new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});
  }
  decode(bytes?:Uint8Array,options?:{stream?:boolean}):string{
   if(this.codepoints)return decodePythonSingleByte(bytes??new Uint8Array(),this.codepoints,this.encoding);
-  if(this.decoder instanceof PythonUtf16Decoder||this.decoder instanceof PythonUtf32Decoder)return this.decoder.decode(bytes,options);
+  if(this.decoder instanceof PythonUtf16Decoder||this.decoder instanceof PythonUtf32Decoder||this.decoder instanceof PythonMultibyteDecoder)return this.decoder.decode(bytes,options);
   try{
    let offset=0;
    if(!this.signatureComplete){

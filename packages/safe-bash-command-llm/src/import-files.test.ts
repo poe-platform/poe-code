@@ -147,3 +147,17 @@ test('EBCDIC file decoding translates low-byte controls before universal newline
  });
  assert.deepEqual(values,['A\nB\u0085']);assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['ebcdic']);
 });
+
+test('multibyte file imports cross read boundaries and clean up rejected input',async()=>{
+ const fs=new MemoryFileSystem();
+ for(const suffix of [[0xa4,0xd4,0xa4,0xa1,0xa4,0xbf,0xa4,0xa1,13,10],[0xa4,0xd4,0]]){
+  const bytes=new Uint8Array(4095+suffix.length);bytes.fill(65,0,4095);bytes.set(suffix,4095);
+  await fs.writeFile('/korean',bytes);const values:string[]=[],warnings:string[]=[];
+  await withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,encodings:['euc_kr'],undecodable(path){warnings.push(path);}},{async *[Symbol.asyncIterator](){yield {path:'/korean',id:'one'};}},async entries=>{
+   for await(const entry of entries){let text='';const decoder=new TextDecoder();for await(const bytes of entry.input.bytes)text+=decoder.decode(bytes,{stream:true});values.push(text+decoder.decode());}
+  });
+  assert.deepEqual(values,suffix.length===10?['A'.repeat(4095)+'각\n']:[]);
+  assert.deepEqual(warnings,suffix.length===10?[]:['/korean']);
+  assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['korean']);
+ }
+});

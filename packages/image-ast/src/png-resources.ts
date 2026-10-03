@@ -4,8 +4,9 @@ import {decodePngToStorage,type ImageByteStorage,type ImageByteSource,type Store
 import {isPngBytes} from "./codecs/png.js";
 export class UnsupportedStoredResource extends Error {}
 /** File resources use the parent's authority and retained version checks. */
-export async function readPngResource(input:Uint8Array|string,options:SharpInputOptions|undefined,fs:FileSystem,storage:ImageByteStorage,signal:AbortSignal):Promise<StoredRgbaImage> {
+export async function readPngResource(input:Uint8Array|string|undefined,options:SharpInputOptions|undefined,fs:FileSystem,storage:ImageByteStorage,signal:AbortSignal):Promise<StoredRgbaImage> {
  signal.throwIfAborted();
+ if(input===undefined) throw new UnsupportedStoredResource();
  if(options?.raw || options?.create || options?.text) throw new UnsupportedStoredResource();
  if(typeof input!=="string") {
   if(!isPngBytes(input)) throw new UnsupportedStoredResource();

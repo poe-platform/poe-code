@@ -128,6 +128,8 @@ it("packs the image PNG filesystem API with canonical public storage and a host-
   expect([...resizedPixels]).toEqual([...expectedResized]);
   expect(await sharp("/input.png", {filesystem: guarded}).rotate(37).affine([1, 0.2, 0.1, 1], {interpolator: "bicubic"}).toFile("/affine.png")).toMatchObject({format: "png"});
   expect(await sharp("/input.png", {filesystem: guarded}).boolean("/input.png", "eor").toFile("/boolean.png")).toMatchObject({format: "png", width: 7, height: 3});
+  expect(await sharp("/input.png", {filesystem: guarded}).composite([{input: "/input.png", blend: "difference", tile: true}]).toFile("/composite.png")).toMatchObject({format: "png", width: 7, height: 3});
+  expect([...await sharp(await fs.readFile("/composite.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [0, 0, 0, 255]).flat());
   expect(await sharp("/input.png", {filesystem: guarded}).removeAlpha().grayscale().joinChannel(["/input.png", "/input.png"]).toFile("/joined.png")).toMatchObject({format: "png", channels: 3});
   expect(await sharp("/input.png", {filesystem: guarded}).extend({top: 3, bottom: 3, left: 3, right: 3, background: "white"}).median(3).trim({lineArt: true}).toFile("/canvas.png")).toMatchObject({format: "png", width: 13, height: 9, trimOffsetLeft: 0, trimOffsetTop: 0});
   expect(await sharp("/input.png", {filesystem: guarded}).gamma(2.2).resize(3, 2).convolve({width: 3, height: 3, kernel: [1, 2, 1, 2, 4, 2, 1, 2, 1]}).dilate(2).erode(2).blur({sigma: 1.5, precision: "float"}).sharpen({sigma: 1.5}).clahe({width: 5, height: 3, maxSlope: 2}).toFile("/filtered.png")).toMatchObject({width: 3, height: 2, format: "png", premultiplied: true});

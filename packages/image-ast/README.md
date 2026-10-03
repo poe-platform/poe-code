@@ -22,10 +22,12 @@ right-angle rotations and EXIF orientation in small tiles, plus bounded color,
 alpha, gamma, threshold, normalization and metadata operations. Canvas extension,
 affine transforms, arbitrary rotation, median filtering, trimming, convolution,
 Gaussian blur, sharpening, local contrast enhancement (CLAHE), dilation and erosion
-also keep raster data in caller storage. For Boolean operations and channel joins, supply
+also keep raster data in caller storage. For compositing, Boolean operations and channel joins, supply
 a `StoredImageResources` resolver as the fifth `transformStoredImage`
 argument; it returns decoded images in the same caller-owned storage. PNG file
-operands use the parent filesystem with retained reads and version checks.
+operands and composite overlays use the parent filesystem with retained reads and version checks.
+Composite placement, tiling and blend modes use fixed pixel caches; non-PNG
+overlays currently use the buffered fallback.
 Combined resize/blur/sharpen/convolution stages share premultiplied alpha and gamma handling.
 `resizeStoredImage(image, storage, options, signal)` supports all resize fits,
 gravity, entropy/attention crops, background canvases and image pages.

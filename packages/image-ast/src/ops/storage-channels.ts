@@ -5,7 +5,7 @@ import {booleanImage,joinChannelImage} from "./transform.js";
 import {Pixels} from "./storage-raster.js";
 export interface StoredImageResources {
  /** Return pixels in the operation's caller-owned backing storage. */
- readImage(input:Uint8Array|string,options:SharpInputOptions|undefined,signal:AbortSignal):Promise<StoredRgbaImage>;
+ readImage(input:Uint8Array|string|undefined,options:SharpInputOptions|undefined,signal:AbortSignal):Promise<StoredRgbaImage>;
 }
 export async function transformStoredChannels(image:StoredRgbaImage,storage:ImageByteStorage,operation:Extract<ImageAstNode,{kind:"boolean"|"joinChannel"}>,signal:AbortSignal,resources:StoredImageResources):Promise<StoredRgbaImage> {
  signal.throwIfAborted();

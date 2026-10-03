@@ -193,6 +193,14 @@ backpressure to the input iterator; failed or cancelled spooling cleans up
 without replacing the original error. The injected backend must support retained
 staging writes and cleanup. This primitive does not publish output destinations.
 
+`PdfStagedOutputs.create(storage, entries, options)` stages named chunk producers
+without keeping their payloads in memory. `entries()` returns names, sizes and
+streaming `contents()` readers after every producer succeeds. Repeated names keep
+their first position and select the last payload. `maxStagingBytes` admits the
+aggregate data and index storage before writes; `chunkBytes`, `maxNameChars` and
+`signal` control bounded I/O and cancellation. Call `close()` to remove owned
+staging. Publication remains the caller's responsibility.
+
 `serializeCosNodeChunks(node, options)` emits owned, bounded output chunks for
 COS values, including streams and escaped strings. Consumers control progress
 by advancing the iterator; `signal`, `maxOutputBytes`, and `maxRecursionDepth`

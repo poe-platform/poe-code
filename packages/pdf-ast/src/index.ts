@@ -35,3 +35,4 @@ export * from "./canvas.js";
 export * from "./document.js";
 export * from "./retained-document.js";
 export * from "./source.js";
+export * from "./staged-outputs.js";

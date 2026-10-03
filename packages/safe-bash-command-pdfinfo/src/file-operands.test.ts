@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { Volume } from "memfs";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PdfDocument, cosArray, cosDict, cosName, cosString, cosStream, dictSet } from "@poe-code/pdf-ast";
 import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
 import { createPdfinfoCommand, createPdfuniteCommand, createPdfseparateCommand, createPdfdetachCommand } from "./index.js";
@@ -24,7 +25,7 @@ async function execute(command: ReturnType<typeof createPdfuniteCommand>, args: 
   for (const name of ["out.pdf", "out.html", "out", "out-%d.pdf", "cat", "1", "output"]) volume.writeFileSync(`/work/${name}`, new Uint8Array(10000));
   const reads: string[] = [], errors: Uint8Array[] = [];
   const carrier = createCommandArguments(args);
-  const context = {
+  let context = {
     command: command.name, args: carrier.args, argumentValues: carrier, cwd: "/work", env: {},
     signal: new AbortController().signal, registerCleanup() {},
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} },
@@ -37,7 +38,34 @@ async function execute(command: ReturnType<typeof createPdfuniteCommand>, args: 
     }
   } as unknown as CommandContext;
   if (!missing && command.name === "pdfdetach") { volume.unlinkSync("/work/out"); volume.mkdirSync("/work/out"); }
+  const retained = command.name === "pdfdetach" ? createMemoryFileSystem() : undefined;
+  if (retained) {
+    await retained.mkdir("/work"); await retained.mkdir("/tmp");
+    for (const name of volume.readdirSync("/work") as string[]) {
+      const path = `/work/${name}`;
+      if (volume.statSync(path).isDirectory()) await retained.mkdir(path);
+      else await retained.writeFile(path, new Uint8Array(volume.readFileSync(path) as Buffer));
+    }
+    context = { ...context, fs: new Proxy(retained, { get(target, key) {
+      if (key === "openReadFile") return async (...args: Parameters<typeof retained.openReadFile>) => {
+        if (!args[0].startsWith("/tmp/")) reads.push(args[0]);
+        return target.openReadFile(...args);
+      };
+      if (key === "readFile") return async () => { throw new Error("whole input read forbidden"); };
+      const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
+    } }) };
+  }
   const result = await command.execute(context);
+  if (retained) {
+    async function copy(directory: string) {
+      for (const entry of await retained!.readdir(directory)) {
+        const path = `${directory}/${entry.name}`;
+        if ((await retained!.stat(path)).type === "directory") { volume.mkdirSync(path, { recursive: true }); await copy(path); }
+        else volume.writeFileSync(path, await retained!.readFile(path));
+      }
+    }
+    await copy("/work");
+  }
   return { result, reads, volume, stderr: Buffer.concat(errors).toString() };
 }
 
@@ -129,3 +157,9 @@ for (const args of [["-save", "1"], ["-savefile", "../escaped.txt"]]) {
     assert.equal(volume.readFileSync("/work/out/escaped.txt", "utf8"), "payload");
   });
 }
+
+it("allows an explicit safe destination for an otherwise invalid embedded basename", async () => {
+  const { result, volume, stderr } = await execute(createPdfdetachCommand(), ["-save", "1", "-o", "/work/chosen.txt", "in.pdf"], false, "..");
+  assert.equal(result.exitCode, 0, stderr);
+  assert.equal(volume.readFileSync("/work/chosen.txt", "utf8"), "payload");
+});

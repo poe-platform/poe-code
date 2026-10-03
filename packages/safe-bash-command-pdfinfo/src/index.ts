@@ -1,3 +1,4 @@
+import { FsError } from "safe-bash-contracts/errors";
 import { resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
@@ -11,7 +12,7 @@ import {
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { PdfDocument, dictGet, decodePdfString, parseContentStream, type PdfPage, type PdfCosNode, type PdfCosDict, type ParsedCosDocument } from "@poe-code/pdf-ast";
+import { PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, type PdfOutputEntry, PdfDocument, dictGet, decodePdfString, parseContentStream, type PdfPage, type PdfCosNode, type PdfCosDict, type ParsedCosDocument } from "@poe-code/pdf-ast";
 
 export interface PdfinfoLimits {
   readonly maxInputBytes: number;
@@ -1629,12 +1630,10 @@ function attachmentBasename(name: string): string {
   return leaf;
 }
 
-function* runPdfdetachCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, {
-    exitCode: number;
-    stdout: string;
-    stderr: string;
-}, void> {
-    let cooperativeWork = 63;
+function parsePdfdetachArgs(argv: readonly string[]): PdfinfoCliResult | {
+  listOnly: boolean; saveNumber: number; saveFileName: string; saveAll: boolean;
+  outputPath: string; password: string; encoding: string; inputPath: string;
+} {
     let listOnly = false;
     let saveNumber = 0;
     let saveFileName = "";
@@ -1642,10 +1641,8 @@ function* runPdfdetachCliSteps(argv: readonly string[], files: Map<string, Uint8
     let outputPath = "";
     let password = "";
     let encoding = "UTF-8";
-    const positionals: string[] = [];
+    let inputPath: string | undefined;
     for (let i = 0; i < argv.length; i++) {
-        if (++cooperativeWork % 64 === 0)
-            yield;
         const arg = argv[i]!;
         if (arg === "-v" || arg === "--version") {
             return { exitCode: 0, stdout: "pdfdetach version 24.08.0\n", stderr: "" };
@@ -1681,12 +1678,23 @@ function* runPdfdetachCliSteps(argv: readonly string[], files: Map<string, Uint8
             encoding = nextEnc;
         }
         else if (!arg.startsWith("-") || arg === "-")
-            positionals.push(arg);
+            inputPath ??= arg;
     }
-    const inputPath = positionals[0];
     if (!inputPath) {
         return { exitCode: 99, stdout: "", stderr: "Usage: pdfdetach [options] <PDF-file>\n" };
     }
+    return { listOnly, saveNumber, saveFileName, saveAll, outputPath, password, encoding, inputPath };
+}
+
+function* runPdfdetachCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, {
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+}, void> {
+    let cooperativeWork = 63;
+    const plan = parsePdfdetachArgs(argv);
+    if ("exitCode" in plan) return plan;
+    const { listOnly, saveNumber, saveFileName, saveAll, outputPath, password, encoding, inputPath } = plan;
     const pdfBytes = files.get(inputPath);
     if (!pdfBytes) {
         return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
@@ -1950,6 +1958,120 @@ export function createPdffontsCommand(options: PdfinfoCommandOptions = {}): Comm
 
 export const pdffontsCommand: CommandDefinition = createPdffontsCommand();
 
+/** Execute attachment extraction with caller-owned retained input and staging. */
+export async function executePdfdetach(context: CommandContext, options: PdfinfoCommandOptions = {}): Promise<{ exitCode: number }> {
+  const invocation = createOutputOperation(context, { write: async () => {} });
+  const signal = invocation.signal;
+  const output = invocation.child(context.stdout).output;
+  const emit = (text: string) => writeBytes(output, new TextEncoder().encode(text), signal);
+  const error = async (text: string, exitCode: number) => {
+    await writeBytes(context.stderr, new TextEncoder().encode(text), signal); return { exitCode };
+  };
+  let source: PdfFileSource | undefined;
+  let document: PdfRetainedDocument | undefined;
+  let outputs: PdfStagedOutputs | undefined;
+  let failed = false;
+  try {
+    const plan = parsePdfdetachArgs(getCommandArguments(context).args);
+    if ("exitCode" in plan) { if (plan.stdout) await emit(plan.stdout); return await error(plan.stderr, plan.exitCode); }
+    const storage = { fs: context.fs, directory: resolvePath(context.cwd, context.env.TMPDIR || "/tmp") };
+    const maxInputBytes = Math.min(InputByteBudget.limit(options.limits?.maxInputBytes), context.inputBudget?.maxBytes ?? Infinity);
+    try {
+      if (plan.inputPath === "-") {
+        async function* input() {
+          let total = 0;
+          for await (const bytes of readBytes(context.stdin, signal)) { total += bytes.length; context.inputBudget?.check(total); yield bytes; }
+        }
+        source = await PdfFileSource.fromStream(context.fs, storage.directory, input(), { maxInputBytes, signal });
+      } else {
+        const path = resolvePath(context.cwd, plan.inputPath);
+        context.inputBudget?.check((await context.fs.stat(path, { signal })).size);
+        source = await PdfFileSource.open(context.fs, path, { maxInputBytes, signal });
+        context.inputBudget?.check(source.size);
+      }
+    } catch (failure) {
+      signal.throwIfAborted();
+      if (failure instanceof Error && "code" in failure && failure.code === "ENOENT") return await error(`I/O Error: Couldn't open file '${plan.inputPath}'\n`, 1);
+      throw failure;
+    }
+    if (plan.inputPath === "-" && source.size === 0) return await error("I/O Error: Couldn't open file '-'\n", 1);
+    try { document = await PdfRetainedDocument.open(source, storage, { recovery: "repair", password: plan.password, signal }); }
+    catch (failure) {
+      signal.throwIfAborted();
+      if (failure instanceof Error && "code" in failure && (failure.code === "E_LIMIT" || failure.code === "E_CAPABILITY")) throw failure;
+      return await error(`PDF Error: ${(failure as Error).message}\n`, 1);
+    }
+    const doc = document;
+    const listing = plan.listOnly || (!plan.saveNumber && !plan.saveFileName && !plan.saveAll);
+    if (listing) {
+      let count = 0;
+      // Validate all payloads before stdout, preserving buffered-runner errors.
+      for await (const attachment of doc.attachments()) { for await (const ignored of attachment.contents()) { signal.throwIfAborted(); } count++; }
+      await emit(`${count} embedded files\n`);
+      for await (const attachment of doc.attachments()) await emit(`${attachment.index + 1}: ${applyPopplerOutputEncoding(attachment.name, plan.encoding)}\n`);
+      return { exitCode: 0 };
+    }
+    let destination = plan.outputPath;
+    if (destination && !destination.endsWith("/")) {
+      try { if ((await context.fs.stat(resolvePath(context.cwd, destination), { signal })).type === "directory") destination += "/"; }
+      catch (failure) { if (!(failure instanceof Error) || !("code" in failure) || (failure.code !== "ENOENT" && failure.code !== "ENOTDIR")) throw failure; }
+    }
+    let selected = false;
+    const selection = plan;
+    async function* entries(): AsyncGenerator<PdfOutputEntry> {
+      for await (const attachment of doc.attachments()) {
+        const matches = selection.saveNumber > 0 ? attachment.index === selection.saveNumber - 1 : selection.saveFileName ? attachment.name === selection.saveFileName : selection.saveAll;
+        if (!matches) { for await (const ignored of attachment.contents()) { signal.throwIfAborted(); } continue; }
+        selected = true;
+        const explicit = (selection.saveNumber > 0 || selection.saveFileName) && destination && !destination.endsWith("/");
+        const basename = explicit ? "" : attachmentBasename(attachment.name);
+        const name = explicit ? destination : destination ? `${destination.endsWith("/") ? destination.slice(0, -1) : destination}/${basename}` : basename;
+        yield { name, chunks: attachment.contents() };
+      }
+    }
+    outputs = await PdfStagedOutputs.create(storage, entries(), { signal });
+    if (!selected && plan.saveNumber > 0) return await error(`Error: Invalid file index ${plan.saveNumber}\n`, 1);
+    if (!selected && plan.saveFileName) return await error(`Error: Embedded file '${plan.saveFileName}' not found\n`, 1);
+    for await (const entry of outputs.entries()) {
+      try { await publishPdfOutput(context, resolvePath(context.cwd, entry.name), entry.contents(), signal); }
+      catch (failure) {
+        signal.throwIfAborted();
+        if (!(failure instanceof Error) || !("code" in failure)) throw failure;
+        return await error(`I/O Error: Error saving embedded file as '${entry.name}'\n`, 2);
+      }
+    }
+    return { exitCode: 0 };
+  } catch (failure) { failed = true; throw failure; } finally {
+    // Close all acquired resources even if one backend cleanup fails.
+    const results = await Promise.allSettled([outputs?.close(), document?.close(), source?.close(), invocation.close()]);
+    if (!failed) await Promise.all(results.map(result => result.status === "rejected" ? Promise.reject(result.reason) : undefined));
+  }
+}
+
+async function publishPdfOutput(context: CommandContext, path: string, chunks: AsyncIterable<Uint8Array>, signal: AbortSignal): Promise<void> {
+  const fs = context.fs;
+  const capabilities = await fs.capabilitiesFor?.(path, { signal, create: true, stagingAncestry: true }) ?? fs.capabilities;
+  if (!capabilities.atomicFileStaging || !capabilities.retainedStagingWrite || !capabilities.retainedStagingCleanup || !capabilities.atomicStagingAncestry ||
+      !fs.prepareStagingResolution || !fs.createStagedFile || !fs.publishStagedFile) {
+    throw new FsError("ENOTSUP", { path, message: "PDF output requires retained atomic staging" });
+  }
+  const resolution = await fs.prepareStagingResolution(path, { signal });
+  const directory = resolvePath(resolution.path, "..");
+  const staging = await fs.createStagedFile(`${directory}/.pdf-${crypto.randomUUID()}`, "output", { type: "file", data: new Uint8Array() },
+    { parent: resolution.parent, retainCleanup: true, signal });
+  let failed = false;
+  try {
+    if (!staging.writer || !staging.cleanup) throw new FsError("ENOTSUP", { path, message: "PDF backend omitted retained staging handles" });
+    for await (const bytes of chunks) await writeFileOutput({ ...context, signal }, bytes, data => staging.writer!.write(data, { signal }));
+    const stat = await staging.writer.finish({ signal });
+    await fs.publishStagedFile({ ...staging, file: { ...staging.file, stat } }, resolution.path,
+      { parent: resolution.parent, destination: resolution.destination, ancestors: resolution.ancestors, commitGuard: resolution.validate, signal });
+  } catch (failure) { failed = true; throw failure; } finally {
+    const cleanup = async () => { try { await staging.cleanup?.remove(); } finally { await staging.cleanup?.close(); } };
+    await cleanup().catch(failure => { if (!failed) throw failure; });
+  }
+}
+
 export function createPdfdetachCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
   const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
@@ -1957,9 +2079,7 @@ export function createPdfdetachCommand(options: PdfinfoCommandOptions = {}): Com
     runtimeIdentity: commandRuntimeIdentity,
     description: "List and extract embedded file attachments from PDF documents via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return new InputByteBudget(maxInputBytes).run(context, async context => {
-        return executePopplerFileTool(context, runPdfdetachCli);
-      });
+      return executePdfdetach(context, { limits: { maxInputBytes } });
     }
   });
 }

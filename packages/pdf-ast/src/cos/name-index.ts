@@ -12,9 +12,12 @@ export class PdfNameIndex {
   private nextNode = 2;
   private nextName = 0;
   private closed = false;
-  constructor(private readonly storage: PdfIndexStorage, private readonly maximum = Infinity, private readonly signal?: AbortSignal) {
-    if (maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("Invalid name staging limit");
+  constructor(private readonly storage: PdfIndexStorage, private readonly maximum: number | (() => number) = Infinity, private readonly signal?: AbortSignal) {
+    const limit = typeof maximum === "function" ? maximum() : maximum;
+    if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 0)) throw new RangeError("Invalid name staging limit");
   }
+
+  get stagedBytes(): number { return this.levels.reduce((sum, index) => sum + (index?.size ?? 0) * 32, 0); }
 
   private async get(edge: number): Promise<number | undefined> {
     if (this.tail.has(edge)) return this.tail.get(edge);
@@ -33,8 +36,8 @@ export class PdfNameIndex {
       for (const [objectNumber, offset] of tail) yield { objectNumber, offset, type: "uncompressed" };
       for (const index of inputs) yield* index!.entries(signal);
     }
-    const retained = this.levels.reduce((sum, index) => sum + (index?.size ?? 0) * 32, 0);
-    const remaining = Math.min(this.maximum, Number.MAX_SAFE_INTEGER) - retained;
+    const limit = typeof this.maximum === "function" ? this.maximum() : this.maximum;
+    const remaining = Math.min(limit, Number.MAX_SAFE_INTEGER) - this.stagedBytes;
     if (remaining < 0) throw new PdfError("E_LIMIT", "PDF name staging byte limit exceeded");
     const combined = await PdfObjectIndex.build(rows(), this.storage, {
       runEntries: 64, chunkBytes: 2048, cacheBytes: 2048, maxStagingBytes: remaining, ...(signal ? { signal } : {}),

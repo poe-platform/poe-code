@@ -4,9 +4,10 @@
 
 This is a manual execution plan, not a qualification result. The retained
 `PdfFileSource` primitive has deterministic range, ownership, budget, lifecycle,
-and backpressure tests. The document engine and command adapters still buffer
-inputs and objects. Complete their migration before claiming command-level
-bounded working memory. No actual Worker memory or CPU measurements have yet
+and backpressure tests. Retained document traversal, filters, attachment extraction
+and the `pdfdetach` command now use caller-backed sources and staging. Other
+command adapters, editing/rendering engines and giant structural values still
+need migration before claiming command-level bounded working memory. No actual Worker memory or CPU measurements have yet
 been recorded for this implementation.
 
 Use the caller's injected external safe-fs backend with retained reads and the

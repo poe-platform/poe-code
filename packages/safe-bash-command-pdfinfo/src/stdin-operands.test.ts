@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PdfDocument } from "@poe-code/pdf-ast";
 import type { CommandContext, CommandDefinition } from "safe-bash-contracts";
 import {
@@ -16,13 +17,14 @@ const pdf = doc.save();
 async function execute(command: CommandDefinition, args: string[]) {
   let reads = 0;
   let stdout = "", stderr = "";
-  const context = {
+  let context = {
     args, cwd: "/", env: {}, signal: new AbortController().signal,
     stdin: { async *[Symbol.asyncIterator]() { reads++; yield pdf; } },
     fs: { async readFile() { throw new Error("unexpected file read"); } },
     stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
     stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } },
   } as unknown as CommandContext;
+  if (command.name === "pdfdetach") { const fs = createMemoryFileSystem(); await fs.mkdir("/tmp"); context = { ...context, fs }; }
   const result = await command.execute(context);
   return { ...result, reads, stdout, stderr };
 }

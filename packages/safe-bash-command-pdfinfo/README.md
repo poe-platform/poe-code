@@ -45,3 +45,11 @@ Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. 
 Output parent directories must already exist. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.
 `pdfunite`, `pdfseparate`, `pdffonts`, and `pdfdetach` require explicit PDF operands and return exit code `99` without consuming stdin when they are omitted. Use `-` to read stdin with `pdffonts` or `pdfdetach`; `pdfinfo` also accepts an omitted input filename. Help, version, and `pdfinfo -listenc` leave stdin unread.
 Embedded attachment filenames are reduced to their final path component when extracting, keeping them in the chosen output directory.
+
+`pdfdetach` and `executePdfdetach(context, options)` use retained file ranges and
+stream attachments into caller-backed staging before atomic publication. Provide
+an injected filesystem with retained reads, retained staging writes/cleanup and
+atomic ancestry-checked publication, plus an existing `TMPDIR` (default `/tmp`).
+Use external storage for large files; an in-memory filesystem stores its files in
+RAM. Input limits are checked before range reads, and file writes use the shared
+shell output budget. The map-based CLI runners remain buffering convenience APIs.

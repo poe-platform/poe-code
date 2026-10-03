@@ -13,6 +13,7 @@ export * from "./ops/resize.js";
 export * from "./ops/transform.js";
 export * from "./ops/storage.js";
 export * from "./ops/storage-resample.js";
+export * from "./ops/storage-resize.js";
 export * from "./sharp.js";
 export { default } from "./sharp.js";
 

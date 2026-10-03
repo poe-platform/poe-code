@@ -1,4 +1,4 @@
-import type {ResizeKernel} from "../ast.js";
+import type {ResizeKernel,ResizeFit,GravityPosition,RgbaColor} from "../ast.js";
 
 function sinc(x: number): number {
   if (Math.abs(x) < 1e-7) return 1;
@@ -152,4 +152,55 @@ export function nearestCoordinates(srcW:number,srcH:number,dstW:number,dstH:numb
     }
   }
   return {x:()=>axis(subW,dstW,hscale,xshrink,false),y:()=>axis(subH,dstH,vscale,yshrink,true)};
+}
+
+export interface ResizeSpec {
+    readonly width: number | null;
+    readonly height: number | null;
+    readonly fit: ResizeFit;
+    readonly position: GravityPosition;
+    readonly kernel: ResizeKernel;
+    readonly background: RgbaColor;
+    readonly withoutEnlargement: boolean;
+    readonly withoutReduction: boolean;
+  }
+
+export function resizeScale(srcW:number,srcH:number,spec:ResizeSpec) {
+  const reqW = spec.width ?? 0;
+  const reqH = spec.height ?? 0;
+  let xShrink = 1.0;
+  let yShrink = 1.0;
+  if (reqW > 0 && reqH > 0) {
+    xShrink = srcW / reqW;
+    yShrink = srcH / reqH;
+    if (spec.fit === "cover" || spec.fit === "outside") {
+      if (xShrink < yShrink) yShrink = xShrink;
+      else xShrink = yShrink;
+    } else if (spec.fit === "contain" || spec.fit === "inside") {
+      if (xShrink > yShrink) yShrink = xShrink;
+      else xShrink = yShrink;
+    }
+  } else if (reqW > 0) {
+    xShrink = srcW / reqW;
+    if (spec.fit !== "fill") yShrink = xShrink;
+  } else if (reqH > 0) {
+    yShrink = srcH / reqH;
+    if (spec.fit !== "fill") xShrink = yShrink;
+  }
+  if (spec.withoutEnlargement) {
+    xShrink = Math.max(1.0, xShrink);
+    yShrink = Math.max(1.0, yShrink);
+  }
+  if (spec.withoutReduction) {
+    xShrink = Math.min(1.0, xShrink);
+    yShrink = Math.min(1.0, yShrink);
+  }
+  xShrink = Math.min(srcW, xShrink);
+  yShrink = Math.min(srcH, yShrink);
+
+  const hscale = 1.0 / xShrink;
+  const vscale = 1.0 / yShrink;
+  const scaledW = Math.max(1, Math.trunc(fmaDouble(srcW, hscale, 0.5)));
+  const scaledH = Math.max(1, Math.trunc(fmaDouble(srcH, vscale, 0.5)));
+  return {reqW,reqH,hscale,vscale,width:scaledW,height:scaledH};
 }

@@ -1,4 +1,4 @@
-import {orderImageNodes} from "./ops/order.js";
+import {orderImageNodes,splitPostScaleNodes} from "./ops/order.js";
 import {tryPngFile} from "./png-file.js";
 import { EventEmitter, Duplex, outputBytes } from "./streams/web.js";
 import { extname, normalizePath } from "@poe-code/safe-fs/contracts";
@@ -621,17 +621,7 @@ export class SharpInstance extends Duplex {
 
   private evaluateImage(): RgbaImage {
     let img = this.decodeInitialImage();
-    const resizeIdx = this.nodes.findIndex(n => n.kind === "resize");
-    const postScaleIndices = new Set<number>();
-    if (resizeIdx !== -1) {
-      for (let i = resizeIdx + 1; i < this.nodes.length; i++) {
-        const n = this.nodes[i]!;
-        if (n.kind === "flip" || n.kind === "flop" || (n.kind === "rotate" && n.angle % 90 === 0)) {
-          postScaleIndices.add(i);
-        }
-      }
-    }
-    const postScaleNodes = this.nodes.filter((_, idx) => postScaleIndices.has(idx));
+    const {nodes:preScaleNodes,postScale:postScaleNodes}=splitPostScaleNodes(this.nodes);
     const postScaleTransform =
       postScaleNodes.length > 0
         ? (scaled: RgbaImage): RgbaImage => {
@@ -663,7 +653,7 @@ export class SharpInstance extends Duplex {
           n.kind === "composite"
       );
 
-    const orderedNodes = orderImageNodes(this.nodes.filter((_, idx) => !postScaleIndices.has(idx)));
+    const orderedNodes = orderImageNodes(preScaleNodes);
 
     const isPremulStageKind = (kind: string): boolean =>
       kind === "resize" || kind === "blur" || kind === "convolve" || kind === "sharpen";
@@ -2465,7 +2455,7 @@ export class SharpInstance extends Duplex {
         this.outputOptions = { ...this.outputOptions, format: inferred };
       }
       try {
-        if (this.inputFilePath && !this.fileInputs.has(this.inputFilePath) && this.outputOptions.format === "png" && !this.inputOptions?.raw && !this.inputOptions?.create && !this.inputOptions?.text) {
+        if (this.inputFilePath && !this.fileInputs.has(this.inputFilePath) && (this.outputOptions.format === "png" || this.outputOptions.format === undefined) && !this.inputOptions?.raw && !this.inputOptions?.create && !this.inputOptions?.text) {
           const streamed = await tryPngFile(this.inputFilePath, fileOut, this.inputOptions!, this.outputOptions, this.nodes);
           if (streamed) {if (callback) callback(null, streamed); return streamed;}
         }

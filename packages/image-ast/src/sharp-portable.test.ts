@@ -15,7 +15,7 @@ it.each(["index", "portable"])("runs %s sharp pixel, stream and safe-fs file wor
     },
   });
   const context = createContext({ TextEncoder, TextDecoder, Uint8Array, ReadableStream, WritableStream,
-    AbortController, AbortSignal, setTimeout, clearTimeout, DOMException });
+    AbortController, AbortSignal, setTimeout, clearTimeout, crypto: globalThis.crypto, DOMException });
   runInContext(output.outputFiles[0]!.text, context);
   expect(await runInContext("checks.run()", context)).toBe(true);
 });
@@ -37,7 +37,7 @@ it.each(["image-ast", "sips", "imagemagick", "yq", "jq", "exiftool"])("imports %
     },
   });
   const context = createContext({ TextEncoder, TextDecoder, Uint8Array, ReadableStream, WritableStream,
-    AbortController, AbortSignal, setTimeout, clearTimeout, DOMException, btoa, atob, performance });
+    AbortController, AbortSignal, setTimeout, clearTimeout, crypto: globalThis.crypto, DOMException, btoa, atob, performance });
   runInContext(output.outputFiles[0]!.text, context);
   expect(runInContext(`typeof commands.${command === "image-ast" ? "default" : `${command}Commands`}`, context)).toBe("function");
   expect(runInContext('"Buffer" in globalThis || "process" in globalThis', context)).toBe(false);

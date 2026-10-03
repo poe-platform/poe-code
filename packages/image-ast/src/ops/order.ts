@@ -33,3 +33,15 @@ export function orderImageNodes<Node extends ImageAstNode>(nodes:readonly Node[]
   const post=nodes.filter(node=>node.kind in postStageRank).sort((a,b)=>postStageRank[a.kind]!-postStageRank[b.kind]!);
   return [...pre,...post];
 }
+
+/** Right-angle transforms after resize run after scaling but before crop/embed. */
+export function splitPostScaleNodes<Node extends ImageAstNode>(nodes:readonly Node[]):{nodes:Node[];postScale:Node[]} {
+  const resize=nodes.findIndex(node=>node.kind==="resize");
+  const before:Node[]=[],postScale:Node[]=[];
+  for(let i=0;i<nodes.length;i++) {
+    const node=nodes[i]!;
+    if(resize!==-1 && i>resize && (node.kind==="flip" || node.kind==="flop" || node.kind==="rotate" && node.angle%90===0)) postScale.push(node);
+    else before.push(node);
+  }
+  return {nodes:before,postScale};
+}

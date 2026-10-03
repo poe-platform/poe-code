@@ -1,8 +1,9 @@
+import {resizeStoredImage} from "./ops/storage-resize.js";
 import {compareIdentity, compareFileVersion, dirname, FsError, isFsError, type FileSystem, type FileStat, type FileStaging} from "@poe-code/safe-fs/contracts";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {decodePngToStorage, encodePngFromStorage, type ImageByteSource} from "./codecs/png-storage.js";
 import {isPngBytes} from "./codecs/png.js";
-import {orderImageNodes} from "./ops/order.js";
+import {orderImageNodes,splitPostScaleNodes} from "./ops/order.js";
 import {transformStoredImage, isStoredImageOperation} from "./ops/storage.js";
 import type {SharpInputOptions, OutputEncodeOptions, OutputInfo, ImageAstNode} from "./ast.js";
 
@@ -75,12 +76,21 @@ export async function tryPngFile(input: string, output: string, options: SharpIn
     if (compareIdentity(initial,final)==="distinct" || !compareFileVersion(initial,final)) throw new FsError("EAGAIN",{path:input,message:"Image source changed while decoding"});
     handleClosed=true; await handle.close();
     const gamma=operations.find(node=>node.kind==="gamma");
-    const splitGamma=gamma && operations.some(node=>node.kind==="modulate" || node.kind==="recomb");
+    const splitGamma=gamma && operations.some(node=>node.kind==="resize" || node.kind==="modulate" || node.kind==="recomb");
     let gammaInApplied=false;
-    for (const operation of orderImageNodes(operations)) {
-      if (splitGamma && !gammaInApplied && (operation.kind==="modulate" || operation.kind==="recomb")) {
+    const {nodes,postScale}=splitPostScaleNodes(operations);
+    for (const operation of orderImageNodes(nodes)) {
+      if (splitGamma && !gammaInApplied && (operation.kind==="resize" || operation.kind==="modulate" || operation.kind==="recomb")) {
         image=await transformStoredImage(image,storage,{...gamma,gammaOut:1},signal);
         gammaInApplied=true;
+      }
+      if(operation.kind==="resize") {
+        image=await resizeStoredImage(image,storage,operation,signal,postScale.length?async scaled=>{
+          for(const node of postScale) scaled=await transformStoredImage(scaled,storage!,node,signal);
+          return scaled;
+        }:undefined);
+        if(image.hasAlpha) image={...image,wasPremultiplied:true};
+        continue;
       }
       image=await transformStoredImage(image,storage,splitGamma && operation.kind==="gamma"?{...operation,gamma:1}:operation,signal);
     }
@@ -104,6 +114,6 @@ export async function tryPngFile(input: string, output: string, options: SharpIn
     if (!complete) throw new FsError("EIO",{path:output,message:"Image publisher returned before consuming output"});
     failed=false;
     const gray=image.space==="b-w" || image.channels===1 || image.channels===2;
-    return {format:"png",width:image.width,height:image.height,channels:gray ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3,premultiplied:false,size};
+    return {format:"png",width:image.width,height:image.height,channels:gray ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3,premultiplied:Boolean(image.wasPremultiplied),size};
   } finally {await cleanup();}
 }

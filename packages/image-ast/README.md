@@ -19,8 +19,11 @@ retained byte-range source and backing storage with `allocate`, `read`, and
 under downstream backpressure. The caller owns source and storage cleanup.
 `transformStoredImage(image, storage, operation, signal)` applies flips, crops,
 right-angle rotations and EXIF orientation in small tiles, plus bounded color,
-alpha, gamma, threshold, normalization and metadata operations. PNG-to-PNG `.toFile()`
-conversions with these operations use the backed codecs automatically when the
+alpha, gamma, threshold, normalization and metadata operations.
+`resizeStoredImage(image, storage, options, signal)` supports all resize fits,
+gravity, entropy/attention crops, background canvases and image pages.
+PNG-to-PNG `.toFile()`
+conversions with these operations and `.resize()` use the backed codecs automatically when the
 supplied filesystem supports retained reads, working storage, and atomic
 streaming or retained staged publication.
 `resampleStoredImage(image, storage, {width, height, kernel}, signal)` resamples

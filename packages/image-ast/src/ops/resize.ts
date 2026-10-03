@@ -1,4 +1,5 @@
-import {fmaDouble,buildVipsReduceTable,VIPS_BICUBIC_TABLE,nearestCoordinates} from "./resize-math.js";
+import {EntropyHistogram} from "./resize-crop.js";
+import {fmaDouble,buildVipsReduceTable,VIPS_BICUBIC_TABLE,nearestCoordinates,resizeScale,type ResizeSpec} from "./resize-math.js";
 import type {
   GravityPosition,
   ResizeFit,
@@ -49,56 +50,16 @@ function *regionEntropySteps(
   let work = 0;
   const total = rw * rh;
   if (total <= 0) return 0;
-  const bands = hasAlpha ? 4 : channels === 1 ? 1 : 3;
-  const hR = new Int32Array(256);
-  const hG = new Int32Array(256);
-  const hB = new Int32Array(256);
-  const hA = new Int32Array(256);
+  const histogram=new EntropyHistogram(channels,hasAlpha);
   for (let y = ry; y < ry + rh; y++) {
     if (++work % 16384 === 0) yield;
     for (let x = rx; x < rx + rw; x++) {
     if (++work % 16384 === 0) yield;
       const idx = (y * imgW + x) * 4;
-      if (hasAlpha) {
-        const a = rgba[idx + 3]!;
-        const af = Math.fround(a / 255.0);
-        hR[Math.trunc(Math.fround(rgba[idx]! * af))]!++;
-        hG[Math.trunc(Math.fround(rgba[idx + 1]! * af))]!++;
-        hB[Math.trunc(Math.fround(rgba[idx + 2]! * af))]!++;
-        hA[a]!++;
-      } else {
-        hR[rgba[idx]!]!++;
-        if (bands >= 3) {
-          hG[rgba[idx + 1]!]!++;
-          hB[rgba[idx + 2]!]!++;
-        }
-      }
+      histogram.add(rgba[idx]!,rgba[idx+1]!,rgba[idx+2]!,rgba[idx+3]!);
     }
   }
-  const bins = new Int32Array(256);
-  let sum = 0;
-  for (let i = 0; i < 256; i++) {
-    if (++work % 16384 === 0) yield;
-    const b =
-      bands === 1
-        ? hR[i]!
-        : bands === 4
-          ? hR[i]! + hG[i]! + hB[i]! + hA[i]!
-          : hR[i]! + hG[i]! + hB[i]!;
-    bins[i] = b;
-    sum += b;
-  }
-  if (sum <= 0) return 0;
-  let h = 0;
-  for (let i = 0; i < 256; i++) {
-    if (++work % 16384 === 0) yield;
-    const c = bins[i]!;
-    if (c > 0) {
-      const p = c / sum;
-      h -= p * Math.log2(p);
-    }
-  }
-  return h;
+  return histogram.entropy();
 }
 
 function *smartcropEntropySteps(
@@ -148,10 +109,16 @@ function *smartcropAttentionSteps(
   dstH: number,
   hasAlpha = false
 ): Generator<void, { readonly x: number; readonly y: number }, void> {
-  let work = 0;
   const hscale = 32.0 / srcW;
   const vscale = 32.0 / srcH;
   const rgba32 = (yield* resampleRawBitmapSteps(rgba, srcW, srcH, 32, 32, "lanczos3", hscale, vscale));
+  return yield* attentionCropSteps(rgba32,srcW,srcH,dstW,dstH,hasAlpha);
+}
+
+/** Scores a fixed 32 by 32 thumbnail, shared by buffered and backed crops. */
+export function *attentionCropSteps(rgba32:Uint8Array,srcW:number,srcH:number,dstW:number,dstH:number,hasAlpha:boolean):Generator<void,{readonly x:number;readonly y:number},void> {
+  let work=0;
+  const hscale=32/srcW,vscale=32/srcH;
   const X = new Float32Array(32 * 32);
   const Y = new Float32Array(32 * 32);
   const Z = new Float32Array(32 * 32);
@@ -649,16 +616,7 @@ export function *resampleRawBitmapSteps(
 
 export function *resizeImageSteps(
   img: RgbaImage,
-  spec: {
-    readonly width: number | null;
-    readonly height: number | null;
-    readonly fit: ResizeFit;
-    readonly position: GravityPosition;
-    readonly kernel: ResizeKernel;
-    readonly background: RgbaColor;
-    readonly withoutEnlargement: boolean;
-    readonly withoutReduction: boolean;
-  },
+  spec: ResizeSpec,
   postScaleTransform?: (scaled: RgbaImage) => RgbaImage
 ): Generator<void, RgbaImage, void> {
   let work = 0;
@@ -710,42 +668,8 @@ export function *resizeImageSteps(
     return img;
   }
 
-  const reqW = spec.width ?? 0;
-  const reqH = spec.height ?? 0;
-  let xShrink = 1.0;
-  let yShrink = 1.0;
-  if (reqW > 0 && reqH > 0) {
-    xShrink = srcW / reqW;
-    yShrink = srcH / reqH;
-    if (spec.fit === "cover" || spec.fit === "outside") {
-      if (xShrink < yShrink) yShrink = xShrink;
-      else xShrink = yShrink;
-    } else if (spec.fit === "contain" || spec.fit === "inside") {
-      if (xShrink > yShrink) yShrink = xShrink;
-      else xShrink = yShrink;
-    }
-  } else if (reqW > 0) {
-    xShrink = srcW / reqW;
-    if (spec.fit !== "fill") yShrink = xShrink;
-  } else if (reqH > 0) {
-    yShrink = srcH / reqH;
-    if (spec.fit !== "fill") xShrink = yShrink;
-  }
-  if (spec.withoutEnlargement) {
-    xShrink = Math.max(1.0, xShrink);
-    yShrink = Math.max(1.0, yShrink);
-  }
-  if (spec.withoutReduction) {
-    xShrink = Math.min(1.0, xShrink);
-    yShrink = Math.min(1.0, yShrink);
-  }
-  xShrink = Math.min(srcW, xShrink);
-  yShrink = Math.min(srcH, yShrink);
-
-  const hscale = 1.0 / xShrink;
-  const vscale = 1.0 / yShrink;
-  let scaledW = Math.max(1, Math.trunc(fmaDouble(srcW, hscale, 0.5)));
-  let scaledH = Math.max(1, Math.trunc(fmaDouble(srcH, vscale, 0.5)));
+  const {reqW,reqH,hscale,vscale,width,height}=resizeScale(srcW,srcH,spec);
+  let scaledW=width,scaledH=height;
   let scaledData = (yield* resampleRawBitmapSteps(
     img.data,
     srcW,

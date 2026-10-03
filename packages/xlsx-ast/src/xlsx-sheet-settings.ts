@@ -30,6 +30,9 @@ const children: Readonly<Record<string, readonly string[]>> = {
 const biffPrintFlags: Readonly<Record<string, readonly [number, string]>> = {
   PRINTHEADERS: [0x2a, "titles"], PRINTGRIDLINES: [0x2b, "grid"], HCENTER: [0x83, "hcenter"], VCENTER: [0x84, "vcenter"]
 };
+const biffMargins: Readonly<Record<string, readonly [number, string]>> = {
+  LEFT_MARGIN: [0x26, "left"], RIGHT_MARGIN: [0x27, "right"], TOP_MARGIN: [0x28, "top"], BOTTOM_MARGIN: [0x29, "bottom"]
+};
 const child = (node: MetadataNode | undefined, name: string) => node?.children.find(node => node.name === name);
 
 function header(node: MetadataNode | undefined, fallback: string, charge: (amount?: number) => void): string {
@@ -116,6 +119,19 @@ export async function writeXlsxSheetSettings(sheet: Sheet,
       const value = child(currentPrint, field)?.attributes.value;
       if (data.opcode === opcode && (data.bytes === "0000" || data.bytes === "0100") &&
         (value === "0" || value === "1")) handled.add(record);
+      continue;
+    }
+    if (Object.hasOwn(biffMargins, record.kind)) {
+      const [opcode, side] = biffMargins[record.kind]!, bytes = data.bytes;
+      if (data.opcode !== opcode || typeof bytes !== "string" || bytes.length !== 16) continue;
+      charge(16);
+      if (![...bytes].every(character => "0123456789abcdefABCDEF".includes(character))) continue;
+      const decoded = Uint8Array.from({ length: 8 }, (_, index) => Number.parseInt(bytes.slice(index * 2, index * 2 + 2), 16));
+      const original = new DataView(decoded.buffer).getFloat64(0, true);
+      const margins = currentPrint?.children.find(node => { charge(); return node.name === "Margins"; });
+      const points = margins?.children.find(node => { charge(); return node.name === side; })?.attributes.Points;
+      if (Number.isFinite(original * 72) && original >= 0 && points?.trim() &&
+        Number.isFinite(Number(points)) && Number(points) >= 0) handled.add(record);
       continue;
     }
     if (typeof sheet.view?.defaultRowHeight !== "number" || !Number.isFinite(defaultRowHeight) || defaultRowHeight <= 0) continue;

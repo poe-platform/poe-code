@@ -3,6 +3,14 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "xlsxBiffMargins": {
+      "status": "False loss warnings for represented BIFF margins repaired and qualified; broader format family remains open",
+      "source": "Native Gnumeric1.12.61 BIFF-to-XLSX preserves the four margin records as pageMargins. The same input produces identical native/product values despite raw-record loss warnings. BIFF stores inch doubles; portable PrintInformation stores points.",
+      "inputSha256": "0fd308464532b3fe842e3e52b25c0beb16c357982425e051344fe3abb20ebfcd",
+      "implementation": "Require exact kind/opcode, eight valid bytes encoding a finite nonnegative margin representable in points, and an explicit finite nonnegative canonical margin. Charge payload parsing and canonical lookup. Canonical edits win; malformed/missing/nonfinite/negative cases retain warnings.",
+      "verification": "Eight original memory failures repaired;166 XLSX tests, owner lint/types and full build pass. Four root/package SDK/command exports assert all21 remaining warnings.32 encoded margin values,32 Gnumeric readback values and32 Calc readback values match the independent native fixture. Actual command screenshot inspected.",
+      "limits": "Checks cover left/right/top/bottom, not complete workbook equality. Gnumeric printOptions loss and other metadata warnings remain. Calc emits the exact javaldx startup warning. Broader format and19-family requirements remain open."
+    },
     "biffPrintFlagValues": {
       "status": "Noncanonical BIFF print-flag values repaired and qualified; broader format family remains open",
       "source": "Pinned Gnumeric1.12.61 ms-excel-read.c:6589-6617 enables PRINTHEADERS/PRINTGRIDLINES/HCENTER/VCENTER only for word1. A native-generated BIFF fixture changed only those four words to2/3/256/65535; native BIFF-to-XML returns false for allfour, retaining true controls on the second sheet.",

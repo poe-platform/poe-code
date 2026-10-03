@@ -41,12 +41,13 @@ it.each(["png", "jpeg", "progressive"])("retains streamed %s pictures in R2 unde
       const {fs, events} = api.createR2PagedFixture(namespace, env.PAGES), controller = new AbortController();
       let text = "", closed = 0, aborted = 0, error, largest = 0;
       try {
-        await api.convertToOutput([{bytes: new TextEncoder().encode(${JSON.stringify(JSON.stringify(input))})}], {from: "json", to: "rtf"}, {
+        await api.convertToOutput([{bytes: new TextEncoder().encode(${JSON.stringify(JSON.stringify(input))})}], {from: "json", to: "rtf", resourcePath: ["/images"]}, {
           signal: controller.signal, workingFiles: {fs, directory: "/spill", cacheBytes: 16384},
           resourceFiles: {
-            async lstat(path) {return {type: path === "/" ? "directory" : "file"};},
+            async lstat(path) {return {type: (path === "/" || path === "/images") ? "directory" : "file"};},
             async readFile() {throw new Error("Full resource reads forbidden");}, async mkdir() {}, async writeFile() {},
-            async *readStream() {
+            async *readStream(path) {
+              if (path !== "/images/picture") throw new Error("Wrong resource search root");
               const bytes = new Uint8Array(${JSON.stringify([...bytes])}), reused = new Uint8Array(7);
               for (let offset = 0; offset < bytes.length; offset += 7) {
                 if (offset > 7 && mode === "source-failure") throw new Error("Resource failed");

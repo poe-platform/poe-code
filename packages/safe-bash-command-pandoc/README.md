@@ -207,7 +207,7 @@ and other finite document budgets continue through the compatibility converter.
 
 JSON and CSV/TSV → RTF retain writer continuations, sorted font/color indexes,
 list definitions, table columns and output in caller storage. Local pictures use
-`resourceFiles.readStream`; data URI decoding, PNG validation and JPEG decoding
+`resourceFiles.readStream`, honoring ordered `resourcePath` directories; data URI decoding, PNG validation and JPEG decoding
 also use bounded transfers and caller backing storage. Explicit byte-only resource
 resolvers and `readFile`-only capabilities remain buffering convenience boundaries.
 Filesystem path strings and diagnostic messages still materialize; this does not

@@ -19,7 +19,11 @@ export async function prepareRetainedRtfResources(tree: BackedJson, order: Await
   const targets = new BackedTextSet(storage, text), paths = new BackedTextSet(storage, text), targetSpans = new IntegerTable(storage, 64), pathSpans = new IntegerTable(storage, 64);
   const fs = context.context.resourceFiles, readOptions = context.signal ? {signal: context.signal} : {};
   let search: string[] | undefined;
-  if (options.resourcePath) search = options.resourcePath.map(path => resourceDirectory(path, resourceDirectory(context.context.resourceCwd ?? "/")));
+  if (options.resourcePath !== undefined) {
+    if (!Array.isArray(options.resourcePath) || !options.resourcePath.length || options.resourcePath.some(path => typeof path !== "string"))
+      context.fail("E_OPTION", "resourcePath requires directories");
+    search = options.resourcePath.map(path => resourceDirectory(path, resourceDirectory(context.context.resourceCwd ?? "/")));
+  }
   const scalar = async (node: number): Promise<string> => {
     let value = ""; for await (const chunk of tree.scalarChunks(node)) value += chunk; return value;
   };

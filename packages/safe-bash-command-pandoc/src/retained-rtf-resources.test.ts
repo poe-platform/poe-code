@@ -3,7 +3,7 @@ import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {Volume} from "memfs";
 import {convert, convertToOutput} from "./engine.js";
 import {ExecutionContext} from "./execution.js";
-import type {ConversionContext, ResourceFileSystem} from "./types.js";
+import type {ConversionContext, ConversionOptions, ResourceFileSystem} from "./types.js";
 const segment = (marker: number, data: number[]) => [255, marker, (data.length + 2) >>> 8, (data.length + 2) & 255, ...data];
 const picture = new Uint8Array([255,216,...segment(219,[0,...Array<number>(64).fill(1)]),...segment(192,[8,0,1,0,1,1,1,0x11,0]),...segment(196,[0,1,...Array<number>(15).fill(0),0,16,1,...Array<number>(15).fill(0),0]),...segment(218,[1,1,0,0,63,0]),0x3f,255,217]);
 const image = (url: string) => ({t: "Image", c: [["", [], []], [], [url, ""]]});
@@ -21,9 +21,9 @@ function host() {
   }};
   return {fs, readFile, readStream};
 }
-async function parity(urls: string[], lossy = false, metadata = false, extra: ConversionContext = {}) {
+async function parity(urls: string[], lossy = false, metadata = false, extra: ConversionContext = {}, additional: Partial<ConversionOptions> = {}) {
   const input = {source: "source.json", base: "/doc", bytes: new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: metadata ? {images: {t: "MetaInlines", c: urls.map(image)}} : {}, blocks: metadata ? [] : [{t: "Para", c: urls.map(image)}]}))};
-  const expectedHost = host(), actualHost = host(), options = {from: "json", to: "rtf", lossy};
+  const expectedHost = host(), actualHost = host(), options = {from: "json", to: "rtf", lossy, ...additional};
   const expected = await convert([input], options, {resourceFiles: expectedHost.fs, resourceCwd: "/cwd", ...extra}).catch(error => error);
   const fs = new MemoryFileSystem(), close = vi.fn(async () => {}), abort = vi.fn(async () => {}); let output = "";
   const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Collector forbidden"));
@@ -71,4 +71,20 @@ it("spools a data URI larger than scalar and resource buffers", async () => {
   const url = "data:image/jpeg;base64," + btoa(String.fromCharCode(...large));
   const result = await parity([url, url]);
   expect(result.expected).not.toBeInstanceOf(Error); expect(result.readStream).not.toHaveBeenCalled();
+});
+
+it("streams ordered resource search directories without acquiring the document", async () => {
+  const result = await parity(["fallback.jpg", "p%20x.jpg"], false, false, {}, {resourcePath: ["/missing", "/cwd", "/doc"]});
+  expect(result.expected).not.toBeInstanceOf(Error);
+  expect(result.readStream.mock.calls.map(call => call[0])).toEqual(["/cwd/fallback.jpg", "/doc/p x.jpg"]);
+});
+it("preserves explicit empty and relative resource search paths", async () => {
+  await parity(["p%20x.jpg"], false, false, {}, {resourcePath: []});
+  const result = await parity(["fallback.jpg"], false, false, {}, {resourcePath: ["."]});
+  expect(result.expected).not.toBeInstanceOf(Error);
+  expect(result.readStream.mock.calls.map(call => call[0])).toEqual(["/cwd/fallback.jpg"]);
+});
+
+it.each([null, "directory", [null], ["../escape"]])("preserves malformed resourcePath admission: %j", async value => {
+  await parity(["fallback.jpg"], false, false, {}, {resourcePath: value as unknown as string[]});
 });

@@ -34,11 +34,11 @@ test("cp counts successive retained reads and accepts the exact byte limit", asy
 for (const boxed of [false, true]) {
   for (const streaming of [false, undefined]) {
     test(`mounted buffered redirections: boxed=${boxed}, streaming=${streaming}`, async () => {
-      const backend = await bufferedBackend();
+      const backend = await retainedBackend();
       backend.readStream = (path) => ({ [Symbol.asyncIterator]: () => ({
         async next(): Promise<IteratorResult<Uint8Array>> { throw new FsError("ENOTSUP", { syscall: "readStream", path }); },
       }) });
-      const mounted = { ...backend, capabilities: streaming === undefined ? {} : { streamingRead: streaming } };
+      const mounted = { ...backend, capabilities: { ...backend.capabilities, streamingRead: streaming } };
       const fs = createMountFileSystem({ root: createReadOnlyFileSystem(new MemoryFileSystem()), mounts: {
         "/data": boxed ? createReadOnlyFileSystem(mounted) : mounted,
         "/scratch": new MemoryFileSystem(),
@@ -345,12 +345,13 @@ test("redirected input honors disabled streaming and execution-specific input li
   } finally { await shell.dispose(); }
 });
 
-async function bufferedBackend(readOnly = false): Promise<FileSystem> {
+async function bufferedBackend(readOnly = false, retainedRead = false): Promise<FileSystem> {
   const memory = new MemoryFileSystem();
   await memory.writeFile("/note", new TextEncoder().encode("buffered\n"));
   const backend = readOnly ? createReadOnlyFileSystem(memory) : memory;
   return {
-    capabilities: { readOnly, streamingRead: false },
+    capabilities: { readOnly, ...(retainedRead ? { retainedRead: true } : {}), streamingRead: false },
+    ...(retainedRead ? { openReadFile: backend.openReadFile!.bind(backend) } : {}),
     readFile: backend.readFile.bind(backend),
     writeFile: backend.writeFile.bind(backend),
     appendFile: backend.appendFile.bind(backend),
@@ -366,6 +367,10 @@ async function bufferedBackend(readOnly = false): Promise<FileSystem> {
   };
 }
 
+function retainedBackend(readOnly = false): Promise<FileSystem> {
+  return bufferedBackend(readOnly, true);
+}
+
 function context(fs: FileSystem, signal = new AbortController().signal): CommandContext {
   return {
     command: "cat", args: [], cwd: "/", env: {}, fs, signal,
@@ -376,10 +381,10 @@ function context(fs: FileSystem, signal = new AbortController().signal): Command
 }
 
 test("Shell cat reads required-method-only catalog and persisted-memory mounts", async (suite) => {
-  const inputs = await bufferedBackend(true);
-  const memory = await bufferedBackend();
-  const inputRead = suite.mock.method(inputs, "readFile");
-  const memoryRead = suite.mock.method(memory, "readFile");
+  const inputs = await retainedBackend(true);
+  const memory = await retainedBackend();
+  const inputRead = suite.mock.method(inputs, "openReadFile");
+  const memoryRead = suite.mock.method(memory, "openReadFile");
   const fs = createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/inputs": inputs, "/memory": memory } });
   assert.equal(inputs.readStream, undefined);
   assert.equal(memory.readStream, undefined);
@@ -392,7 +397,6 @@ test("Shell cat reads required-method-only catalog and persisted-memory mounts",
     assert.equal(result.stdout, "buffered\npersisted\n");
     for (const read of [inputRead, memoryRead]) {
       assert.equal(read.mock.callCount(), 1);
-      assert.equal(read.mock.calls[0]!.arguments[1]?.maxBytes, undefined);
       assert.ok(read.mock.calls[0]!.arguments[1]?.signal instanceof AbortSignal);
     }
     const denied = await shell.exec("printf changed > /inputs/note");
@@ -403,7 +407,7 @@ test("Shell cat reads required-method-only catalog and persisted-memory mounts",
 });
 
 test("input honors streamingRead false even when a method exists", async (suite) => {
-  const fs = await bufferedBackend();
+  const fs = await retainedBackend();
   const stream = suite.mock.fn(() => { throw new Error("disabled stream called"); });
   fs.readStream = stream;
   const bytes = await collectBytes(input(context(fs), "/note"), { maxBytes: bufferLimit });
@@ -412,7 +416,7 @@ test("input honors streamingRead false even when a method exists", async (suite)
 });
 
 test("a mixed mount preserves genuine streaming and closes on early consumption", async (suite) => {
-  const backend = await bufferedBackend();
+  const backend = await retainedBackend();
   let pulls = 0;
   let closed = false;
   backend.readStream = async function* () {
@@ -423,10 +427,10 @@ test("a mixed mount preserves genuine streaming and closes on early consumption"
       yield Uint8Array.of(66);
     } finally { closed = true; }
   };
-  const read = suite.mock.method(backend, "readFile");
+  const read = suite.mock.method(backend, "openReadFile");
   const fs = createMountFileSystem({
     root: new MemoryFileSystem(),
-    mounts: { "/stream": { ...backend, capabilities: { streamingRead: true } }, "/buffer": await bufferedBackend() },
+    mounts: { "/stream": { ...backend, capabilities: { retainedRead: true, streamingRead: true } }, "/buffer": await retainedBackend() },
   });
   const shell = new Shell({ fs }).use(standardCommands());
   try {
@@ -443,14 +447,14 @@ test("a mixed mount preserves genuine streaming and closes on early consumption"
 for (const partial of [false, true]) {
   for (const code of ["ENOTSUP", "EIO", "EACCES"] as const) {
     test(`input ${code} ${partial ? "after bytes" : "before bytes"} only retries unsupported pre-data reads`, async (suite) => {
-      const backend = await bufferedBackend();
+      const backend = await retainedBackend();
       backend.readStream = async function* () {
         if (partial) yield Uint8Array.of(65);
         throw new FsError(code, { syscall: "readStream", path: "/note" });
       };
-      const read = suite.mock.method(backend, "readFile");
+      const read = suite.mock.method(backend, "openReadFile");
       const fs = createMountFileSystem({ root: new MemoryFileSystem(), mounts: {
-        "/data": { ...backend, capabilities: { streamingRead: true } },
+        "/data": { ...backend, capabilities: { retainedRead: true, streamingRead: true } },
       } });
       const shell = new Shell({ fs }).use(standardCommands());
       try {
@@ -466,10 +470,10 @@ for (const partial of [false, true]) {
 }
 
 test("input does not mistake a code-shaped noncanonical error for unsupported streaming", async (suite) => {
-  const backend = await bufferedBackend();
+  const backend = await retainedBackend();
   const failure = Object.assign(new Error("unrelated"), { code: "ENOTSUP" });
-  const fs = { ...backend, capabilities: {}, readStream() { throw failure; } };
-  const read = suite.mock.method(fs, "readFile");
+  const fs = { ...backend, capabilities: { retainedRead: true }, readStream() { throw failure; } };
+  const read = suite.mock.method(fs, "openReadFile");
   await assert.rejects(collectBytes(input(context(fs), "/note"), { maxBytes: bufferLimit }), error => error === failure);
   assert.equal(read.mock.callCount(), 0);
 });
@@ -477,17 +481,17 @@ test("input does not mistake a code-shaped noncanonical error for unsupported st
 for (const mounted of [false, true]) {
   for (const control of ["return", "throw"] as const) {
     test(`input never retries ${mounted ? "mounted" : "direct"} empty-chunk ${control} failures`, async (suite) => {
-      const backend = await bufferedBackend();
+      const backend = await retainedBackend();
       const failure = new FsError("ENOTSUP", { syscall: "readStream", path: "/note" });
       let closed = false;
-      const streaming = { ...backend, capabilities: {}, async *readStream() {
+      const streaming = { ...backend, capabilities: { retainedRead: true }, async *readStream() {
         try { yield new Uint8Array(); }
         finally {
           closed = true;
           if (control === "return") await Promise.reject(failure);
         }
       } };
-      const read = suite.mock.method(streaming, "readFile");
+      const read = suite.mock.method(streaming, "openReadFile");
       const fs = mounted ? createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/data": streaming } }) : streaming;
       const source = input(context(fs), mounted ? "/data/note" : "/note")[Symbol.asyncIterator]();
       assert.deepEqual(await source.next(), { done: false, value: new Uint8Array() });
@@ -500,40 +504,44 @@ for (const mounted of [false, true]) {
 }
 
 test("input can still fall back on a producer ENOTSUP after an empty chunk", async (suite) => {
-  const backend = await bufferedBackend();
-  const fs = { ...backend, capabilities: {}, async *readStream() {
+  const backend = await retainedBackend();
+  const fs = { ...backend, capabilities: { retainedRead: true }, async *readStream() {
     yield new Uint8Array();
     throw new FsError("ENOTSUP");
   } };
-  const read = suite.mock.method(fs, "readFile");
+  const read = suite.mock.method(fs, "openReadFile");
   const bytes = await collectBytes(input(context(fs), "/note"), { maxBytes: bufferLimit });
   assert.equal(new TextDecoder().decode(bytes), "buffered\n");
   assert.equal(read.mock.callCount(), 1);
 });
 
 test("buffered fallback preserves canonical read errors and the mounted path", async (suite) => {
-  const backend = await bufferedBackend();
-  const read = suite.mock.method(backend, "readFile", async (_path: string, options?: ReadFileOptions) => {
-    assert.equal(options?.maxBytes, undefined);
-    throw new FsError("EFBIG", { syscall: "readFile", path: "/note" });
+  const backend = await retainedBackend();
+  const read = suite.mock.method(backend, "openReadFile", async (_path: string) => {
+    throw new FsError("EFBIG", { syscall: "openReadFile", path: "/note" });
   });
   const fs = createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/data": backend } });
   await assert.rejects(collectBytes(input(context(fs), "/data/note"), { maxBytes: bufferLimit }), error =>
-    error instanceof FsError && error.code === "EFBIG" && error.path === "/data/note" && error.syscall === "readFile");
+    error instanceof FsError && error.code === "EFBIG" && error.path === "/data/note" && error.syscall === "openReadFile");
   assert.equal(read.mock.callCount(), 1);
 });
 
 test("buffered input leaves finite admission to its caller", async (suite) => {
-  const fs = await bufferedBackend();
+  const fs = await retainedBackend();
   const bytes = Uint8Array.of(1, 2, 3, 4, 5, 6, 7, 8, 9);
   suite.mock.method(fs, "readFile", async () => bytes);
+  suite.mock.method(fs, "openReadFile", async () => ({
+    async stat() { return fs.stat("/note"); },
+    async read(position: number, maximum: number) { return bytes.subarray(position, position + maximum); },
+    async close() {},
+  }));
   assert.deepEqual(await collectBytes(input(context(fs), "/note"), {}), bytes);
   await assert.rejects(fileInput(fs, "/note", 8, new AbortController().signal), { code: "EFBIG" });
 });
 
 test("Shell output limits still apply to buffered mounted input", async (suite) => {
-  const backend = await bufferedBackend();
-  const read = suite.mock.method(backend, "readFile");
+  const backend = await retainedBackend();
+  const read = suite.mock.method(backend, "openReadFile");
   const fs = createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/data": backend } });
   const shell = new Shell({ fs, limits: { maxOutputBytes: 3 } }).use(standardCommands());
   try {
@@ -543,8 +551,8 @@ test("Shell output limits still apply to buffered mounted input", async (suite) 
 });
 
 test("pre-aborted input never starts a read", async (suite) => {
-  const fs = await bufferedBackend();
-  const read = suite.mock.method(fs, "readFile");
+  const fs = await retainedBackend();
+  const read = suite.mock.method(fs, "openReadFile");
   const failure = new FsError("ENOTSUP");
   await assert.rejects(collectBytes(input(context(fs, AbortSignal.abort(failure)), "/note"), { maxBytes: bufferLimit }), error => error === failure);
   assert.equal(read.mock.callCount(), 0);
@@ -553,13 +561,14 @@ test("pre-aborted input never starts a read", async (suite) => {
 for (const reason of [false, 0, "", null]) {
   for (const kind of ["stdin", "buffered", "streaming"] as const) {
     test(`${kind} input defers ${String(reason)} cancellation until iteration without touching its source`, async () => {
-      const backend = await bufferedBackend();
+      const backend = await retainedBackend();
       let accesses = 0;
       const unexpected = (): never => { accesses++; throw new Error("cancelled input was accessed"); };
       const fs: FileSystem = {
         ...backend,
         capabilities: { ...backend.capabilities, streamingRead: kind === "streaming" },
         ...(kind === "streaming" ? {} : { capabilitiesFor: unexpected }),
+        openReadFile: unexpected,
         readFile: unexpected,
         readStream: unexpected,
       };
@@ -577,10 +586,10 @@ for (const reason of [false, 0, "", null]) {
 }
 
 test("synchronous file input acquires one stream lazily and keeps synchronous reads", async () => {
-  const backend = await bufferedBackend();
+  const backend = await retainedBackend();
   let streams = 0;
   let pulls = 0;
-  const fs = { ...backend, capabilities: {}, readStream() {
+  const fs = { ...backend, capabilities: { retainedRead: true }, readStream() {
     streams++;
     return { [Symbol.asyncIterator]: () => ({
       tryNextSync() { return ++pulls === 1 ? { done: false, value: Uint8Array.of(65) } : { done: true, value: undefined }; },
@@ -596,11 +605,11 @@ test("synchronous file input acquires one stream lazily and keeps synchronous re
 });
 
 for (const synchronous of [false, true]) test(`file input closes an iterator acquired during cancellation with synchronous=${synchronous}`, async () => {
-  const backend = await bufferedBackend();
+  const backend = await retainedBackend();
   const controller = new AbortController();
   let reads = 0;
   let closes = 0;
-  const fs = { ...backend, capabilities: {}, readStream() {
+  const fs = { ...backend, capabilities: { retainedRead: true }, readStream() {
     return { [Symbol.asyncIterator]() {
       controller.abort(false);
       return {
@@ -617,10 +626,10 @@ for (const synchronous of [false, true]) test(`file input closes an iterator acq
 });
 
 test("asynchronous file input keeps its first iterator and awaits early-return cleanup", async () => {
-  const backend = await bufferedBackend();
+  const backend = await retainedBackend();
   let streams = 0;
   let closes = 0;
-  const fs: FileSystem = { ...backend, capabilities: {}, readStream() {
+  const fs: FileSystem = { ...backend, capabilities: { retainedRead: true }, readStream() {
     streams++;
     return { [Symbol.asyncIterator]: () => ({
       next: async () => ({ done: false, value: Uint8Array.of(65) }),
@@ -637,20 +646,20 @@ test("asynchronous file input keeps its first iterator and awaits early-return c
 });
 
 test("synchronous ENOTSUP before bytes falls back once after closing the stream", async () => {
-  const backend = await bufferedBackend();
+  const backend = await retainedBackend();
   let closes = 0;
   let streams = 0;
-  const read = backend.readFile;
-  const fs: FileSystem = { ...backend, capabilities: {}, readStream() {
+  const openReadFile = backend.openReadFile!;
+  const fs: FileSystem = { ...backend, capabilities: { retainedRead: true }, readStream() {
     streams++;
     return { [Symbol.asyncIterator]: () => ({
       tryNextSync(): IteratorResult<Uint8Array> | undefined { throw new FsError("ENOTSUP"); },
       next: async () => assert.fail("failed synchronous stream read again"),
       async return() { await Promise.resolve(); closes++; return { done: true, value: undefined }; },
     }) };
-  }, readFile(path: string, options?: ReadFileOptions) {
+  }, openReadFile(path: string, options?: ReadFileOptions) {
     assert.equal(closes, 1);
-    return read(path, options);
+    return openReadFile(path, options);
   } };
   const source = input(context(fs), "/note");
   const result = await collectBytes(source, { maxBytes: bufferLimit });
@@ -659,29 +668,29 @@ test("synchronous ENOTSUP before bytes falls back once after closing the stream"
 });
 
 test("an ENOTSUP-shaped stream cancellation never starts fallback", async (suite) => {
-  const backend = await bufferedBackend();
+  const backend = await retainedBackend();
   const controller = new AbortController();
   const failure = new FsError("ENOTSUP");
-  const fs = { ...backend, capabilities: {}, readStream() {
+  const fs = { ...backend, capabilities: { retainedRead: true }, readStream() {
     controller.abort(failure);
     throw failure;
   } };
-  const read = suite.mock.method(fs, "readFile");
+  const read = suite.mock.method(fs, "openReadFile");
   await assert.rejects(collectBytes(input(context(fs, controller.signal), "/note"), { maxBytes: bufferLimit }), error => error === failure);
   assert.equal(read.mock.callCount(), 0);
 });
 
 test("buffered mounted input cancels pending reads and observes late failures", async (suite) => {
-  const backend = await bufferedBackend();
+  const backend = await retainedBackend();
   const controller = new AbortController();
   const failure = new Error("cancel input");
   let start!: () => void;
   const started = new Promise<void>(resolve => { start = resolve; });
   let rejectRead: ((reason: unknown) => void) | undefined;
-  suite.mock.method(backend, "readFile", async (_path: string, options?: ReadFileOptions) => {
+  suite.mock.method(backend, "openReadFile", async (_path: string, options?: ReadFileOptions) => {
     assert.equal(options?.signal, controller.signal);
     start();
-    return new Promise<Uint8Array>((_resolve, reject) => { rejectRead = reject; });
+    return new Promise((_resolve, reject) => { rejectRead = reject; });
   });
   const fs = createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/data": backend } });
   const reading = collectBytes(input(context(fs, controller.signal), "/data/note"), { maxBytes: bufferLimit });

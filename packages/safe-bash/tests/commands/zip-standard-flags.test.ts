@@ -1010,8 +1010,12 @@ for (const streaming of [false, true]) {
     let closed = false;
     const readOnly = readOnlyArchive(fs).fs;
     const overrides: Partial<FileSystem> = {
-      capabilities: { streamingRead: streaming },
-      async readFile() { entered(); await held; return bytes; },
+      capabilities: { ...readOnly.capabilities, streamingRead: streaming },
+      async openReadFile() { return {
+        async stat() { return fs.stat("/work/sample.zip"); },
+        async read(position, maximum) { entered(); await held; return bytes.subarray(position, position + maximum); },
+        async close() { closed = true; },
+      }; },
       readStream() { return { async *[Symbol.asyncIterator]() { try { entered(); await held; yield bytes; } finally { closed = true; } } }; },
     };
     const delayed = new Proxy(readOnly, { get(target, property) {
@@ -1030,7 +1034,7 @@ for (const streaming of [false, true]) {
       assert.equal(settled, false);
     } finally { release(); }
     assert.equal(await pending, false);
-    if (streaming) assert.equal(closed, true);
+    assert.equal(closed, true);
   });
 }
 

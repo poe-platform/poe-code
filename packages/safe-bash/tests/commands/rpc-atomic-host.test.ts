@@ -96,6 +96,7 @@ test("RPC ZIP input without a retained reader uses checked pathname reads", asyn
   const { fs, calls } = await rpcAdapter(backend);
   const limited = new Proxy(fs, { get(target, key) {
     if (key === "openReadFile") return undefined;
+    if (key === "readStream") return backend.readStream?.bind(backend);
     if (key === "capabilities") return { ...target.capabilities, retainedRead: false };
     return Reflect.get(target, key);
   } });
@@ -118,9 +119,10 @@ for (const retained of [false, true]) test(`exclusive RPC writes create ZIP but 
   const { fs, readers } = await rpcAdapter(backend);
   const unavailable = new Set(["createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory", "writeFileConditional", "removeFileConditional"]);
   const limited = new Proxy(fs, { get(target, key) {
-    if (key === "capabilities") return { ...target.capabilities, atomicFileStaging: false, atomicDirectoryMetadata: false, atomicFileMutation: false };
+    if (key === "capabilities") return { ...target.capabilities, retainedRead: retained, atomicFileStaging: false, atomicDirectoryMetadata: false, atomicFileMutation: false };
     if (key === "capabilitiesFor") return undefined;
     if (key === "openReadFile" && !retained) return undefined;
+    if (key === "readStream" && !retained) return backend.readStream?.bind(backend);
     if (unavailable.has(String(key))) return undefined;
     return Reflect.get(target, key);
   } });

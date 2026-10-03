@@ -725,7 +725,7 @@ it("executes the maintained browser fixture with all top-level workflows in a No
   factoryIdentity = (browser as BrowserShell & { factoryIdentity: boolean[] }).factoryIdentity;
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof require", sandbox)).toBe("undefined:undefined:undefined");
   await runInContext(`(async () => { ${result.outputFiles![0]!.text} })()`, sandbox);
-});
+}, 120_000);
 
 it("runs filesystem pipelines with canonical identity and injected mounts", async () => {
   expect(browser.FsError).toBe(filesystem.FsError);

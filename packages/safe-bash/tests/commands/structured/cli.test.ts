@@ -117,19 +117,32 @@ test("bounded readFile fallback supplies signal and explicit maxBytes", async ()
   const memory = new MemoryFileSystem();
   await memory.writeFile("/filter", Buffer.from(".")); await memory.writeFile("/data", Buffer.from("1"));
   const signal = new AbortController().signal;
-  const observed: number[] = [];
+  const observed: (number | undefined)[] = [];
   const fs = new Proxy(memory, { get(target, property) {
     if (property === "readStream") return undefined;
     if (property === "readFile") return async (path: string, options: { signal?: AbortSignal; maxBytes?: number }) => {
-      assert.equal(options.signal, signal); assert.equal(options.maxBytes, undefined); observed.push(options.maxBytes!);
+      assert.equal(options.signal, signal); assert.equal(options.maxBytes, undefined); observed.push(options.maxBytes);
       return memory.readFile(path, options);
+    };
+    if (property === "openReadFile") return async (path: string, options: { signal?: AbortSignal }) => {
+      assert.equal(options.signal, signal);
+      const handle = await memory.openReadFile(path, options);
+      return {
+        stat: handle.stat.bind(handle),
+        read: async (position: number, maximum: number, readOptions?: { signal?: AbortSignal }) => {
+          assert.equal(readOptions?.signal, signal);
+          if (position === 0) observed.push(maximum);
+          return handle.read(position, maximum, readOptions);
+        },
+        close: handle.close.bind(handle),
+      };
     };
     const value: unknown = Reflect.get(target, property); return typeof value === "function" ? value.bind(target) : value;
   } });
   const result = await run(["-cf", "/filter"], "", {}, { fs, signal });
   assert.equal(result.exitCode, 2);
   assert.equal((await run(["-c", "-f", "/filter", "/data"], "", {}, { fs, signal })).stdout, "1\n");
-  assert.deepEqual(observed, [undefined, undefined]);
+  assert.deepEqual(observed, [undefined, 65536]);
 });
 
 test("plugin definitions, duplicate registration, replacement, and immutable defaults", async () => {

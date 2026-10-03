@@ -24,14 +24,26 @@ test("readFile-only backend receives remaining cap and the same owned operation 
   const original = new MemoryFileSystem(); const controller = new AbortController();
   const calls: unknown[] = [];
   let operationSignal: AbortSignal | undefined;
-  const fs = readonlyFacade(original, { readFile: async (path, options) => {
-    calls.push([path, options?.maxBytes]);
-    assert.ok(options?.signal instanceof AbortSignal); assert.notEqual(options.signal, controller.signal);
-    operationSignal ??= options.signal; assert.equal(options.signal, operationSignal);
-    assert.equal(options.signal.aborted, false); return Buffer.from("<p>x</p>");
-  } }, ["readStream"]);
+  const fs = readonlyFacade(original, {
+    readFile: async () => { throw new Error("whole-file read"); },
+    openReadFile: async (path, options) => {
+      assert.ok(options?.signal instanceof AbortSignal); assert.notEqual(options.signal, controller.signal);
+      operationSignal ??= options.signal; assert.equal(options.signal, operationSignal);
+      assert.equal(options.signal.aborted, false);
+      const data = Buffer.from("<p>x</p>");
+      return {
+        stat: async () => { throw new Error("unexpected stat"); },
+        read: async (position, maximum, readOptions) => {
+          if (position === 0) calls.push([path, maximum]);
+          assert.equal(readOptions?.signal, operationSignal);
+          return data.subarray(position, position + maximum);
+        },
+        close: async () => {},
+      };
+    },
+  }, ["readStream"]);
   const result = await convert("", { limits: { maxInputBytes: 16 } }, { fs, signal: controller.signal, args: ["a", "b"] });
-  assert.equal(result.exitCode, 0); assert.equal(result.stdout, "x\n\nx\n"); assert.deepEqual(calls, [["/a", 16], ["/b", 8]]);
+  assert.equal(result.exitCode, 0); assert.equal(result.stdout, "x\n\nx\n"); assert.deepEqual(calls, [["/a", 16384], ["/b", 16384]]);
   assert.equal(controller.signal.aborted, false);
 });
 test("missing file produces status1 and leaves previous output explicit", async () => {

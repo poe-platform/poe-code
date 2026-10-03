@@ -226,7 +226,7 @@ for (const entry of ["@poe-platform/safe-bash", "@poe-platform/safe-bash/node"])
     for (const mode of ["disabled", "missing", "unsupported"]) {
       const backend = createMemoryFileSystem();
       await backend.writeFile("/note", new TextEncoder().encode("hello\n"));
-      Object.defineProperty(backend, "capabilities", { value: { streamingRead: mode === "unsupported" ? undefined : false } });
+      Object.defineProperty(backend, "capabilities", { value: { ...backend.capabilities, streamingRead: mode === "unsupported" ? undefined : false } });
       backend.readStream = mode === "missing" ? undefined : (path) => ({ [Symbol.asyncIterator]: () => ({
         async next() { throw new FsError("ENOTSUP", { syscall: "readStream", path }); },
       }) });

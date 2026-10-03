@@ -391,6 +391,46 @@
       "workerd": "./packages/safe-js/dist/workerd.js",
       "browser": null,
       "import": "./packages/safe-js/dist/workerd.js"
+    },
+    "./safe-bash/commands/dot": {
+      "types": "./packages/safe-bash/dist/commands/dot/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/dot/index.js"
+    },
+    "./safe-bash/commands/neato": {
+      "types": "./packages/safe-bash/dist/commands/neato/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/neato/index.js"
+    },
+    "./safe-bash/commands/svgo": {
+      "types": "./packages/safe-bash/dist/commands/svgo/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/svgo/index.js"
+    },
+    "./safe-bash/commands/graphviz": {
+      "types": "./packages/safe-bash/dist/commands/graphviz/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/graphviz/index.js"
+    },
+    "./safe-bash/graphviz": {
+      "types": "./packages/safe-bash/dist/commands/graphviz/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/graphviz/index.js"
+    },
+    "./safe-bash/commands/ffprobe": {
+      "types": "./dist/types/safe-bash/commands/ffprobe/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/ffprobe/index.browser.js"
+    },
+    "./safe-bash/commands/sox": {
+      "types": "./dist/types/safe-bash/commands/sox/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/sox/index.browser.js"
+    },
+    "./safe-bash/commands/soxi": {
+      "types": "./dist/types/safe-bash/commands/soxi/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/soxi/index.browser.js"
+    },
+    "./safe-bash/commands/audio": {
+      "types": "./dist/types/safe-bash/commands/audio/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/audio/index.browser.js"
+    },
+    "./safe-bash/audio-ast": {
+      "types": "./dist/types/safe-bash/audio-ast.d.ts",
+      "import": "./packages/safe-bash/dist/audio-ast.browser.js"
     }
   },
   "engines": {
@@ -689,7 +729,11 @@
     "safe-bash-svg-engine": "*",
     "safe-bash-graphviz-engine": "*",
     "safe-bash-command-neato": "*",
-    "safe-bash-command-svgo": "*"
+    "safe-bash-command-svgo": "*",
+    "safe-bash-command-ffprobe": "*",
+    "safe-bash-command-sox": "*",
+    "safe-bash-command-soxi": "*",
+    "safe-bash-command-audio": "*"
   },
   "version": "0.0.0-dev",
   "repository": {

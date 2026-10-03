@@ -2037,6 +2037,52 @@
             "@poe-code/graphviz-ast": "*"
           },
           "portable": true
+        },
+        "safe-bash-command-ffprobe": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/audio-ast": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-sox": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/audio-ast": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-soxi": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/audio-ast": "*",
+            "safe-bash-command-sox": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-audio": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/audio-ast": "*",
+            "safe-bash-command-ffprobe": "*",
+            "safe-bash-command-sox": "*",
+            "safe-bash-command-soxi": "*"
+          },
+          "portable": true
+        },
+        "@poe-code/audio-ast": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {},
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -3294,6 +3340,26 @@
       "workerd": "./dist/commands/graphviz/index.js",
       "browser": "./dist/commands/graphviz/index.js",
       "import": "./dist/commands/graphviz/index.js"
+    },
+    "./commands/ffprobe": {
+      "types": "./dist/commands/ffprobe/index.d.ts",
+      "import": "./dist/commands/ffprobe/index.js"
+    },
+    "./commands/sox": {
+      "types": "./dist/commands/sox/index.d.ts",
+      "import": "./dist/commands/sox/index.js"
+    },
+    "./commands/soxi": {
+      "types": "./dist/commands/soxi/index.d.ts",
+      "import": "./dist/commands/soxi/index.js"
+    },
+    "./commands/audio": {
+      "types": "./dist/commands/audio/index.d.ts",
+      "import": "./dist/commands/audio/index.js"
+    },
+    "./audio-ast": {
+      "types": "./dist/audio-ast.d.ts",
+      "import": "./dist/audio-ast.js"
     }
   },
   "sideEffects": [
@@ -3551,7 +3617,12 @@
     "safe-bash-svg-engine": "*",
     "safe-bash-graphviz-engine": "*",
     "safe-bash-command-neato": "*",
-    "safe-bash-command-svgo": "*"
+    "safe-bash-command-svgo": "*",
+    "safe-bash-command-ffprobe": "*",
+    "safe-bash-command-sox": "*",
+    "safe-bash-command-soxi": "*",
+    "safe-bash-command-audio": "*",
+    "@poe-code/audio-ast": "*"
   },
   "main": "./dist/index.js",
   "imports": {

@@ -528,7 +528,7 @@ test("ordinary triple-slash file references still use the unchanged compiler hos
   assert.deepEqual(result.program.getRootFileNames(), [join(root, "tests/check.ts")]);
 });
 
-for (const [name, directory] of [["safe-bash-command-example", "safe-bash-command-example"], ["@poe-code/pdf-ast", "pdf-ast"]]) for (const sourceDependencies of [false, true]) test(`private dependency ${name} checks ${sourceDependencies ? "source" : "built declarations"} without changing runtime aliases or strict caller diagnostics`, () => {
+for (const [name, directory] of [["safe-bash-command-example", "safe-bash-command-example"], ["@poe-code/pdf-ast", "pdf-ast"], ["@poe-code/audio-ast", "audio-ast"]]) for (const sourceDependencies of [false, true]) test(`private dependency ${name} checks ${sourceDependencies ? "source" : "built declarations"} without changing runtime aliases or strict caller diagnostics`, () => {
   const specimen = fixture();
   addStandardLibrary(specimen.fileSystem);
   specimen.fileSystem.mkdirSync(`/${directory}/src`, { recursive: true });
@@ -547,7 +547,7 @@ for (const [name, directory] of [["safe-bash-command-example", "safe-bash-comman
   const result = checkHistoricalSources(root, { ...specimen, boundaries, sourceDependencies });
   assert.equal(Boolean(result.program.getSourceFile(`/${directory}/dist/index.d.ts`)), !sourceDependencies);
   assert.equal(Boolean(result.program.getSourceFile(`/${directory}/src/index.ts`)), sourceDependencies);
-  assert.deepEqual(result.diagnostics.map(diagnostic => diagnostic.code), sourceDependencies ? [2375, 2322, 7006] : [2375, 2322]);
+  assert.deepEqual(result.diagnostics.map(diagnostic => diagnostic.code).sort(), sourceDependencies ? [2322, 2375, 7006] : [2322, 2375]);
   assert.deepEqual(JSON.parse(specimen.fileSystem.readFileSync(join(root, "tsconfig.json"), "utf8")), config);
 });
 

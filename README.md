@@ -162,6 +162,8 @@ poe-code models --search claude
 
 ## SDK
 
+Safe Bash also provides [local audio inspection and WAV editing](packages/safe-bash-command-audio/README.md) through `poe-code/safe-bash/commands/audio`.
+
 Use `poe-code` programmatically in your own code:
 
 ```typescript

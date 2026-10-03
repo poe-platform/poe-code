@@ -1,3 +1,4 @@
+import { createTiffHeader, encodePackBitsRowSteps } from "./tiff-stream.js";
 import { jpegEncodingProgram } from "./jpeg-stream.js";
 import { updatePngCrc } from "./png-stream.js";
 import { encodePortableBitmapSteps } from "./portable-bitmap-stream.js";
@@ -7,7 +8,7 @@ import { parseCosDocument, type ParsedCosDocument } from "../cos/parser.js";
 import { PdfPage } from "../canvas.js";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
 import type { PdfClipPath, PdfDisplayList, PdfPaintGroup, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage, PdfSoftMask } from "../ast.js";
-import { applyPredictor, decodeFlate, encodeFlate } from "../cos/filters.js";
+import { applyPredictor, decodeFlate, encodeFlate, encodeLzw } from "../cos/filters.js";
 import { flattenCubic } from "./cubic.js";
 import { downscaleImage, sampleImageLinear } from "./image-sampling.js";
 import { strokeOutlines, type StrokePoint, type StrokeSubpath } from "./stroke.js";
@@ -226,39 +227,6 @@ export function *encodePgmSteps(bitmap: RgbaBitmap): Generator<void, Uint8Array,
   return yield* encodePortableBitmapSteps("pgm", bitmap);
 }
 
-function *encodePackBitsRowSteps(row: Uint8Array): Generator<void, number[], void> {
-  let work = 0;
-  const out: number[] = [];
-  let i = 0;
-  while (i < row.length) {
-    if (++work % 16384 === 0) yield;
-    let runLen = 1;
-    while (i + runLen < row.length && runLen < 128 && row[i + runLen] === row[i]) {
-    if (++work % 16384 === 0) yield;
-      runLen++;
-    }
-    if (runLen >= 2) {
-      out.push((257 - runLen) & 0xff, row[i]!);
-      i += runLen;
-    } else {
-      const litStart = i;
-      let litLen = 0;
-      while (i < row.length && litLen < 128) {
-    if (++work % 16384 === 0) yield;
-        if (i + 1 < row.length && row[i + 1] === row[i]) break;
-        i++;
-        litLen++;
-      }
-      out.push(litLen - 1);
-      for (let k = 0; k < litLen; k++) {
-    if (++work % 16384 === 0) yield;
-        out.push(row[litStart + k]!);
-      }
-    }
-  }
-  return out;
-}
-
 export type TiffCompressionMode = "none" | "packbits" | "deflate" | "lzw" | "jpeg";
 
 export function *encodeTiffSteps(
@@ -294,70 +262,15 @@ export function *encodeTiffSteps(
     stripBytes = new Uint8Array(packed);
   } else if (compression === "lzw") {
     compressionTag = 5;
+    stripBytes = encodeLzw(rawRgb);
   } else if (compression === "jpeg") {
     compressionTag = 7;
+    stripBytes = yield* encodeJpegSteps(bitmap);
   }
 
-  const numEntries = 12;
-  const ifdOffset = 8;
-  const ifdByteLength = 2 + numEntries * 12 + 4; // 150 bytes
-  const bitsPerSampleOffset = ifdOffset + ifdByteLength; // 158 (6 bytes: 8, 8, 8)
-  const xResOffset = bitsPerSampleOffset + 6; // 164 (8 bytes: dpi, 1)
-  const yResOffset = xResOffset + 8; // 172 (8 bytes: dpi, 1)
-  const stripOffset = yResOffset + 8; // 180
-
-  const out = new Uint8Array(stripOffset + stripBytes.byteLength);
-  const view = new DataView(out.buffer);
-
-  // Little-endian TIFF 6.0 header ('II' + 42 + IFD offset 8)
-  out[0] = 0x49;
-  out[1] = 0x49;
-  view.setUint16(2, 42, true);
-  view.setUint32(4, ifdOffset, true);
-
-  view.setUint16(ifdOffset, numEntries, true);
-  let pos = ifdOffset + 2;
-  const writeEntry = (tag: number, type: number, count: number, valueOrOffset: number) => {
-    view.setUint16(pos, tag, true);
-    view.setUint16(pos + 2, type, true);
-    view.setUint32(pos + 4, count, true);
-    if (type === 3 && count === 1) {
-      view.setUint16(pos + 8, valueOrOffset, true);
-      view.setUint16(pos + 10, 0, true);
-    } else {
-      view.setUint32(pos + 8, valueOrOffset, true);
-    }
-    pos += 12;
-  };
-
-  const resolvedDpi = Math.max(1, Math.round(dpi));
-  writeEntry(256, 4, 1, width); // ImageWidth
-  writeEntry(257, 4, 1, height); // ImageLength
-  writeEntry(258, 3, 3, bitsPerSampleOffset); // BitsPerSample -> [8, 8, 8]
-  writeEntry(259, 3, 1, compressionTag); // Compression
-  writeEntry(262, 3, 1, 2); // PhotometricInterpretation = 2 (RGB)
-  writeEntry(273, 4, 1, stripOffset); // StripOffsets
-  writeEntry(277, 3, 1, 3); // SamplesPerPixel = 3
-  writeEntry(278, 4, 1, height); // RowsPerStrip
-  writeEntry(279, 4, 1, stripBytes.byteLength); // StripByteCounts
-  writeEntry(282, 5, 1, xResOffset); // XResolution
-  writeEntry(283, 5, 1, yResOffset); // YResolution
-  writeEntry(296, 3, 1, 2); // ResolutionUnit = 2 (Inch)
-  view.setUint32(pos, 0, true); // Next IFD offset = 0
-
-  // BitsPerSample [8, 8, 8]
-  view.setUint16(bitsPerSampleOffset, 8, true);
-  view.setUint16(bitsPerSampleOffset + 2, 8, true);
-  view.setUint16(bitsPerSampleOffset + 4, 8, true);
-
-  // XResolution & YResolution rationals
-  view.setUint32(xResOffset, resolvedDpi, true);
-  view.setUint32(xResOffset + 4, 1, true);
-  view.setUint32(yResOffset, resolvedDpi, true);
-  view.setUint32(yResOffset + 4, 1, true);
-
-  out.set(stripBytes, stripOffset);
-  return out;
+  const header = createTiffHeader(width, height, dpi, compressionTag, stripBytes.length);
+  const output = new Uint8Array(header.length + stripBytes.length); output.set(header); output.set(stripBytes, header.length);
+  return output;
 }
 
 export function *encodePbmSteps(bitmap: RgbaBitmap): Generator<void, Uint8Array, void> {

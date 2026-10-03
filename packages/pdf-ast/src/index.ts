@@ -55,3 +55,5 @@ export { PdfRetainedJpx, type PdfRetainedJpxOptions } from "./extract/retained-j
 export { PdfRetainedJbig2, type PdfRetainedJbig2Options } from "./extract/retained-jbig2.js";
 
 export { encodeJpegChunks, type PdfJpegChunkOptions } from "./render/jpeg-stream.js";
+
+export { encodeRetainedTiff, type PdfRetainedTiffOptions } from "./render/retained-tiff.js";

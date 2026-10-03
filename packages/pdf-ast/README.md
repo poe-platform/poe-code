@@ -51,6 +51,16 @@ Duplicate names and name-tree cycles use caller-backed indexes; filename equalit
 is exact, including Unicode code units. Returning early or closing the document
 releases traversal staging. Keep the document open while reading contents.
 
+`encodeRetainedTiff(width, height, rgbaChunks, storage, options)` writes TIFF
+with uncompressed, PackBits, DEFLATE, LZW, or JPEG strips. It stages compressed
+bytes in the caller's filesystem to determine the strip length, then emits a
+header and bounded payload chunks. `maxStagingBytes`, `maxOutputBytes`,
+`maxWorkingBytes`, `chunkBytes`, `dpi`, and `signal` control admission and
+publication. Working admission covers conservative row/codec scratch; the
+current caller input chunk and filesystem caches are additional. JPEG uses
+YCbCr metadata matching its 1:1 component sampling. Staging is removed on
+success, failure, cancellation, and consumer return.
+
 `encodeJpegChunks(width, height, rgbaChunks, options)` writes sequential JPEG
 chunks while retaining only eight RGBA rows and one MCU's entropy bytes.
 It shares the buffered encoder's quality and pixel conversion, including

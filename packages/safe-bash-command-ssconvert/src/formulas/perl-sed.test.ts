@@ -341,7 +341,7 @@ it.each(["(?ad)a", "(?da)a", "(?-d:a)", "(?-a:a)", "(?aaa:a)", "(?dd:a)", "(?aia
 );
 
 it("ignores raw-byte next-line pattern whitespace in extended modes", () => {
-  const host = { context, tick() {}, scalar(value: CellValue) { return value; } } as unknown as FunctionHost;
+  const host = { context, book: { sheets: [] }, tick() {}, scalar(value: CellValue) { return value; } } as unknown as FunctionHost;
   for (const prefix of ["283f7829", "283f787829"])
     expect(perlSed([{ kind: "string", value: "ab" }, { kind: "byte-string", value: prefix + "618562" }, { kind: "string", value: "X" }], host))
       .toEqual({ kind: "string", value: "X" });

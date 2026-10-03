@@ -1,7 +1,12 @@
+import type { CapabilityContext } from "../contracts.js";
 import type { CellValue } from "@poe-code/spreadsheet-ast";
 import type { FunctionImplementation, Matrix, Reference } from "./functions/types.js";
 import { functionDescriptors } from "./function-descriptors.js";
 import { snapshotRuntimeResult } from "./runtime-result.js";
+
+/** Internal operation identity survives context copies but is never shared by operations. */
+export const runtimeFunctionScope = Symbol("ssconvert runtime function scope");
+export type RuntimeFunctionContext = CapabilityContext & { readonly [runtimeFunctionScope]?: object };
 
 export type RuntimeFunctionResult = CellValue | Matrix | Reference;
 

@@ -6,7 +6,7 @@ import { createCellIndex } from "./workbook/cell-index.js";
 import { ownedRangeSource, bufferRangeInput } from "./range-input.js";
 import { publishExportStream } from "./stream-export.js";
 import { openDatasourceSession } from "./datasource.js";
-import { snapshotRuntimeFunctions } from "./formulas/runtime-functions.js";
+import { snapshotRuntimeFunctions, runtimeFunctionScope, type RuntimeFunctionContext } from "./formulas/runtime-functions.js";
 import { createRegistry } from "./codecs.js";
 import { runtimeEnvironment } from "./locale/runtime.js";
 import {
@@ -168,7 +168,8 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
     });
     const abort = () => { void finish().catch(() => {}); };
     operation.signal.addEventListener("abort", abort, { once: true });
-    let context: CapabilityContext = {
+    let context: RuntimeFunctionContext = {
+      [runtimeFunctionScope]: {},
       ...(storage ? { createWorkingStorage: () => createWorkingStorage(storage, () => check(context), context.own),
         createCellIndex: (cells: readonly import("@poe-code/spreadsheet-ast").Cell[]) =>
         createCellIndex(cells, storage, () => check(context), context.own) } : {}),

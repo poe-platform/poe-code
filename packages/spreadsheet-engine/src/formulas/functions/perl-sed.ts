@@ -1,3 +1,4 @@
+import { runtimeFunctionScope, type RuntimeFunctionContext } from "../runtime-functions.js";
 import { SsconvertError } from "../../contracts.js";
 import type { CellValue } from "@poe-code/spreadsheet-ast";
 import { byteTextArg } from "./common.js";
@@ -23,9 +24,10 @@ const fold = (byte: number) => byte >= 65 && byte <= 90 ? byte + 32 : byte;
 
 /** A byte grammar and step-accounted ordered matcher. No guest pattern is
  * compiled by JavaScript or passed to a native runtime. */
-function compile(pattern: string, host: FunctionHost): Node {
+function compile(pattern: string, host: FunctionHost, version: PerlSampleVersion): { node: Node; warning?: string } {
   let at = 0, depth = 0, nodes = 0, captures = 0, lookaroundDepth = 0;
-  let hasReset = false;
+  let hasReset = false, closedCaptures = 0;
+  let warning: string | undefined;
   const references: number[] = [];
   const names = new Map<string, number[]>(), namedReferences: { name: string; indices: number[] }[] = [];
   const flags: Flags = { insensitive: false, multiline: false, dotall: false, extended: 0 };
@@ -316,14 +318,22 @@ function compile(pattern: string, host: FunctionHost): Node {
         if (pattern[at++] !== ":") return unsupported("embedded modifier grammar");
       }
     }
+    const previousClosedCaptures = closedCaptures;
     if (assertion !== undefined) lookaroundDepth++;
     const inner = alternative(mode, resetCaptures); if (pattern[at++] !== ")") return unsupported(); depth--;
     if (assertion !== undefined) lookaroundDepth--;
     if (atomic) return node({ kind: "atomic", node: inner });
-    if (assertion !== undefined) return behind
-      ? node({ kind: "behind", node: inner, negative: assertion, ...widthRange(inner) })
-      : node({ kind: "assert", node: inner, negative: assertion });
-    return capture === undefined ? inner : node({ kind: "capture", node: inner, index: capture });
+    if (assertion !== undefined) {
+      if (!behind) return node({ kind: "assert", node: inner, negative: assertion });
+      const width = widthRange(inner);
+      if (width.min !== width.max && (version === "5.34.1" || closedCaptures !== previousClosedCaptures))
+        warning ??= version === "5.34.1" ? "Variable length lookbehind is experimental"
+          : `Variable length ${assertion ? "negative" : "positive"} lookbehind with capturing is experimental`;
+      return node({ kind: "behind", node: inner, negative: assertion, ...width });
+    }
+    if (capture === undefined) return inner;
+    closedCaptures++;
+    return node({ kind: "capture", node: inner, index: capture });
   }
   function widthRange(value: Node): { min: number; max: number } {
     host.tick(); let min: number, max: number;
@@ -455,7 +465,7 @@ function compile(pattern: string, host: FunctionHost): Node {
     host.tick(); const indices = names.get(reference.name); if (indices === undefined) return unsupported();
     for (const index of indices) { host.tick(); reference.indices.push(index); }
   }
-  return result;
+  return warning === undefined ? { node: result } : { node: result, warning };
 }
 
 type MatchReset = { position: number; order: number };
@@ -581,6 +591,10 @@ function* match(node: Node, source: string, state: MatchState, host: FunctionHos
 
 export type PerlSampleVersion = "5.34.1" | "5.40.1";
 
+// Native dynamic patterns reuse compilation across one operation's calculation
+// stages. Standalone calculations own fresh workbook snapshots instead.
+const previousPatterns = new WeakMap<object, { pattern: string; version: PerlSampleVersion }>();
+
 export function perlSed(args: readonly (Value | undefined)[], host: FunctionHost, version: PerlSampleVersion = "5.34.1"): CellValue {
   const inputs = args.map((_value, index) => byteTextArg(args, index, host));
   let inputSize = 0;
@@ -594,7 +608,13 @@ export function perlSed(args: readonly (Value | undefined)[], host: FunctionHost
     for (const byte of bytes) { host.tick(); output.push(String.fromCharCode(byte)); }
     return output.join("");
   });
-  const source = raw[0]!, pattern = compile(raw[1]!, host), replacement = raw[2]!, output: string[] = [];
+  const source = raw[0]!, compiled = compile(raw[1]!, host, version), replacement = raw[2]!, output: string[] = [];
+  const scope = (host.context as RuntimeFunctionContext)[runtimeFunctionScope] ?? host.book;
+  const previous = previousPatterns.get(scope);
+  if (compiled.warning && (previous?.pattern !== raw[1]! || previous.version !== version))
+    host.diagnostic?.({ code: "perl-regex", severity: "warning", message: compiled.warning });
+  previousPatterns.set(scope, { pattern: raw[1]!, version });
+  const pattern = compiled.node;
   let position = 0, published = 0, emptyAt = -1, outputSize = 0;
   const emit = (text: string) => {
     if (text.length > host.context.limits.outputBytes - outputSize) throw new SsconvertError("resource-limit", "ssconvert calculation text limit exceeded");

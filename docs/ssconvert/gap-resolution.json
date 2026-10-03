@@ -3,6 +3,23 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "perlExperimentalWarnings": {
+      "scope": "PERL_SED reports perl-regex experimental-lookbehind warnings: all variable-width lookbehind in 5.34.1; variable width with enclosed captures in 5.40.1, distinguishing positive and negative assertions. One warning per compilation; consecutive equal patterns reuse warnings across load/recalculation stages of one operation. Standalone calculations and separate or concurrent operations remain isolated.",
+      "source": "Perl 5.40.1 regcomp_study.c:3202-3215 tests variable width and enclosed CLOSE operations; regcomp_internal.h:1127-1146 limits experimental warnings to one per compilation. SHA256 c66f8fc148c0f7447e850119588a0c4f02f6db75b493e671f426e07fd586a96d and 04eab6cd02a9b1ef7edc1d79e86f6a1ce3360e950b91541351caa60f44487406 respectively. Both installed interpreters are unchanged.",
+      "reproduction": "13 initial missing-warning failures and two subsequent conversion-stage duplicate-warning failures repaired. The existing direct FunctionHost fixture now supplies its required workbook. Native controls cover nested assertions, branch resets, eliminated captures/repeats and pattern changes.",
+      "validation": "5020 focused Perl/runtime tests, including 33 warning tests, pass. The broader 1068-test engine/conversion/lifecycle cohort also passes (overlapping scope, not a disjoint total). Full maintained root build, engine lint/source/test types and command-package lint/types/public consumers pass. Warning byte limits refuse publication; concurrent operation isolation passes.",
+      "public": "Root and package SDK/runCommand each match all 88 native values in both profiles: 704 conversion case outputs. Direct calculation warnings match native core text and order (21 legacy,17 modern); full conversion matches two-stage counts (42,34). Sixteen additional root/package single-pattern conversions each emit exactly one warning. CLI screenshot inspected. This is built-artifact verification, not registry installation.",
+      "formatting": "Portable diagnostics preserve warning messages and multiplicity, without native regex-location markers or machine-specific script paths. No raw native stderr-byte identity claim.",
+      "nativeFixtureControl": "The native reader creates an extra empty S1 sheet when the same single-cell XML uses ns0 instead of gnm as its namespace prefix. Canonical gnm input produces aaX and one warning; ns0 input is retained as a native namespace limitation, not a passing value comparison. The product accepts either prefix. A diagnostic probe assumed A1 existed and crashed; its owned core dump was removed.",
+      "evidence": {
+        "directory": "out/ssconvert-continuation-1748/perl-warning-current",
+        "5.34-native.stderr": "27780cdde249dc7fecb2ce0c009b68086989adb9851ae482be8bc1e335df53a4",
+        "5.40-cases.stderr": "0c36c409468ec01b189ce696c561950641091fd01a13394ecea7719643015c63",
+        "native-conversion.stderr": "a627681d955ad1dec358dcf2f5ede336ea35da42b4521d5142c45868de8e0fc5",
+        "root-5.40.1-comparison.json": "c19c27ad4935d4ed260001ccd6b2d2d5659c1eae0bf69fff8301c9285c3f2636"
+      },
+      "remaining": "Atomic-lookbehind native state defects, other grammar/Unicode/NUL and diagnostic requirements, installed artifacts and the broader 19-family scope remain open."
+    },
     "perlMatchReset": {
       "scope": "Both explicit Perl profiles implement the bounded \\K match-start reset: preserve consumed prefixes, restore ordinary failed-branch resets, retain native fixed-width repetition resets, honor later resets and global empty-match advancement. Lookaround reset uses remain refused as native syntax errors.",
       "source": "Perl5.40.1 regexec.c KEEPS/KEEPS_next_fail:6600-6611, original retained SHA25646c02b63b5ecf25a02cbb6bb105ea4ec7cf2ad60b5ee2ffe99b059a600e3ea04. regcomp_study.c CURLYX_TO_CURLYM:2656-2669 requires nonzero fixed width without internal captures; SHA256c66f8fc148c0f7447e850119588a0c4f02f6db75b493e671f426e07fd586a96d. No reference interpreter changes for this qualification.",
@@ -18,7 +35,7 @@
         "5.34.1-comparison.json": "28510080f1060c245c24fe9a60a46933f1b66e686c01b6206b7800b8ea4d26a5",
         "5.40.1-comparison.json": "28510080f1060c245c24fe9a60a46933f1b66e686c01b6206b7800b8ea4d26a5"
       },
-      "remaining": "Native atomic-lookbehind state defects, experimental warning parity, broader grammar/Unicode/NUL/installed-artifact qualification and all19family completion remain open."
+      "remaining": "Native atomic-lookbehind state defects, other diagnostics, broader grammar/Unicode/NUL/installed-artifact qualification and all19family completion remain open."
     },
     "perlRuntimeProfiles": {
       "scope": "createPerlSampleFunctions selects 5.34.1 or 5.40.1 explicitly. The existing perlSampleFunctions default remains 5.34.1. The modern matcher enforces the lookbehind end boundary and clears captures when abandoning an alternative.",
@@ -27,7 +44,7 @@
       "publicArtifacts": "Root and command-package SDK and runCommand each process all 4150 cases in both profiles. All eight outputs match raw calculated bytes exactly, without diagnostics. Default profile matches all 4150 old native expectations; modern profile resolves 78 differences and matches 4113 fresh native results. The remaining 37 are retained mismatches, not counted as passes. Quoting-mode=never isolates matcher bytes; native-compatible quoted CSV intentionally transforms invalid UTF-8.",
       "nativeLimits": "37 fresh-native discrepancies are atomic-lookbehind patterns affected by the previously authenticated SUSPEND/prev_match_end defect. A direct native atomic control returns aX while the same packed-argument isolated harness returns ab. The portable matcher does not emulate uninitialized native state. Patched interpreter output is not used as a replacement golden.",
       "evidence": "out/ssconvert-continuation-1748/perl-profile-current, plus perl-profile-{before-valid,final-tests,runtime-tests,root-build,final-lint,package-lint}.log",
-      "remaining": "Activated-loader corpus now measured, with 18 retained native-state mismatches and unresolved experimental warnings. Wider grammar/Unicode/diagnostics, NUL transports, containing registry artifacts and other 19-family obligations remain open. No full profile or family closure.",
+      "remaining": "Activated-loader corpus now measured, with 18 retained native-state mismatches. Experimental warning semantics are covered by reference.perlExperimentalWarnings. Wider grammar/Unicode/diagnostics, NUL transports, containing registry artifacts and other 19-family obligations remain open. No full profile or family closure.",
       "activatedLoader": {
         "profile": "gnumeric-1.12.61-optional-perl-samples; exact register environment and all 48 enabledPluginIds independently compared; zero activation errors and empty activation stderr. Extra sample_datasource preserved outside discovery at /out/perl-profile-disabled-current.",
         "identities": {
@@ -38,7 +55,7 @@
         },
         "procedure": "4150 retained inputs through unchanged Gnumeric sheet_cell_set_value, PERL_SED formulas and workbook_recalc_all; hex-encode each native string cell. No embedded-NUL claim. Native unquoted CSV independently equals concatenated cell bytes plus LF, including embedded newlines and invalid UTF-8; do not split raw CSV into lines to identify cells.",
         "comparison": "Rebuilt command-package SDK and runCommand at 31651cd0a0 preserve all 4150 legacy outputs and the existing modern outputs. Modern profile matches 4132/4150 activated-loader cells. Remaining 18 are 10 (?<=(?>a))b, 4 (?<=(?>a|ab))b and 4 (?<=a{1,3}+)b cases, retained explicitly as mismatches. The standalone fresh-interpreter 37-mismatch result remains separate; context-dependent native defects are not passes.",
-        "diagnostics": "Activation stderr is empty. Cell evaluation emits seven experimental variable-length-capturing-lookbehind warnings (eight lines including trailing blank); product emits none. Native regcomp_study.c:3202-3215 gates the warning on variable width and an enclosed CLOSE operation. Diagnostic parity remains unresolved.",
+        "diagnostics": "At qualification commit d881ca3626, activation stderr is empty. Cell evaluation emits seven experimental variable-length-capturing-lookbehind warnings (eight lines including trailing blank); product emits none. Native regcomp_study.c:3202-3215 gates the warning on variable width and an enclosed CLOSE operation. Diagnostic parity remains unresolved.",
         "checks": "Maintained selected ssconvert workspace build succeeds. Both rebuilt package SDK/command profiles produce exact raw byte output with zero product diagnostics: four exports, 16600 case outputs. This is local built-package qualification, not a new root build or installed registry qualification.",
         "evidence": {
           "exact-activation.stdout": "97f9e1969a44a0a8ec1f5ae6866a4590b016283d6d716a879a81cb6055b10335",

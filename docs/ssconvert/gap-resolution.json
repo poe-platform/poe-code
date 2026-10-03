@@ -4572,6 +4572,13 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "xlsxSharedDefinitions": {
+      "status": "partial; all nineteen families remain open",
+      "reference": "Unmodified Gnumeric 1.12.61 shared expression parser, with five independent XLSX fixtures for repeated definitions, follower text, non-top-left masters, absent ranges and followers outside declared ranges.",
+      "repair": "Each shared definition gets a distinct identity; earlier members retain their formula when its identifier is reused. Followers without ref reuse the existing expression even when they contain text. Non-top-left masters and out-of-range members retain translated scalar formulas instead of invalid rectangular membership.",
+      "verification": "Three original memory failures repaired. 627 focused tests across 23 files and 37 final controls pass. Selected build, owner lint/types and changed-test lint/types pass. Thirty compiled SDK/command exports match fifteen route pairs and ten native CSV comparisons; twenty native XLSX/XML readbacks match the originals. Full root build passes; all thirty root exports match package output byte-for-byte. Sixty prior array exports remain byte-identical. Inspected native and product GUI captures show the live B1+1 formula and 11/21/31 results; scrollbar extents differ. Owned viewers/display stopped.",
+      "remaining": "Malformed or missing shared identifiers/expressions, broader record preservation and registry qualification remain open."
+    },
     "xlsxSparseSharedGroups": {
       "status": "partial; all nineteen families remain open",
       "reference": "Unmodified Gnumeric1.12.61 xlsx_cell_expr_begin/end and three independent XLSX files: shared A1/A3 declare A1:A3 while A2 is missing, numeric42 or a separate3+4 formula. Native recalculation retains the gap/42/7; prior product incorrectly wrote9 in all three.",

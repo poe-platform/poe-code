@@ -339,7 +339,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       const cells: Cell[] = [], rows: AxisMetadata[] = [], columns: AxisMetadata[] = [], groups: FormulaGroup[] = [];
       const cellIndexes = new Map<number, number>();
       const arrayGroups = new Map<string, FormulaGroup>();
-      const shared = new Map<string, { expression: string; row: number; column: number; id: string; arrayStringLiterals?: boolean }>();
+      const shared = new Map<string, { expression: string; row: number; column: number; id?: string; range?: Range; arrayStringLiterals?: boolean }>();
       const columnStyles = children(child(source, "cols"), "col").filter(node => attr(node, "style") !== undefined)
         .map(node => ({ min: integer(attr(node, "min")) - 1, max: integer(attr(node, "max")) - 1, style: cellStyles[integer(attr(node, "style"))] }));
       const rowState = new Map<number, AxisMetadata>();
@@ -437,16 +437,25 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
             if (f) {
               const kind = attr(f, "t");
               if (kind === "shared") {
-                const si = attr(f, "si") ?? "0"; const existing = shared.get(si);
-                if (f.text) {
-                  expression = readOpenFormula(f)?.source ?? formula(decodeXlsxString(f.text), id, position.row, position.column, context, semantics.arrayStringLiterals); groupId = `shared-${si}`;
-                  shared.set(si, { expression, ...position, id: groupId, ...semantics });
-                  if (attr(f, "ref")) groups.push({ id: groupId, kind: "shared", expression, range: range(attr(f, "ref")), ...semantics });
-                } else if (existing) {
+                const si = attr(f, "si") ?? "0", existing = shared.get(si), ref = attr(f, "ref");
+                if (existing && ref === undefined) {
+                  // Native followers reuse the parsed definition even if they contain text.
                   semantics = existing.arrayStringLiterals ? { arrayStringLiterals: true } : {};
                   const parsed = parseExpression(existing.expression, { maximumDepth: context.limits.formulaDepth, position: { sheet: id, row: existing.row, column: existing.column }, ...semantics, signal: context.signal });
                   if (!parsed.ok) invalid("invalid shared formula");
-                  expression = rewriteReferences(parsed.document, { position: { sheet: id, ...position }, translation: "copy", signal: context.signal }); groupId = existing.id;
+                  expression = rewriteReferences(parsed.document, { position: { sheet: id, ...position }, translation: "copy", signal: context.signal });
+                  const bounds = existing.range;
+                  if (bounds && position.row >= bounds.startRow && position.row <= bounds.endRow &&
+                    position.column >= bounds.startColumn && position.column <= bounds.endColumn) groupId = existing.id;
+                } else if (f.text) {
+                  expression = readOpenFormula(f)?.source ?? formula(decodeXlsxString(f.text), id, position.row, position.column, context, semantics.arrayStringLiterals);
+                  const bounds = ref === undefined ? undefined : range(ref);
+                  // Compact groups are anchored at their top-left; other definitions remain scalar.
+                  if (bounds && bounds.startRow === position.row && bounds.startColumn === position.column) {
+                    groupId = `shared-${si}-${cellCount}`;
+                    groups.push({ id: groupId, kind: "shared", expression, range: bounds, ...semantics });
+                  }
+                  shared.set(si, { expression, ...position, ...(groupId && bounds ? { id: groupId, range: bounds } : {}), ...semantics });
                 } else invalid("shared formula has no preceding definition");
               } else {
                 expression = readOpenFormula(f)?.source ?? formula(decodeXlsxString(f.text), id, position.row, position.column, context, semantics.arrayStringLiterals);

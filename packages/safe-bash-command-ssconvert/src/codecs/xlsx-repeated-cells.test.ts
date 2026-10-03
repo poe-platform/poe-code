@@ -145,3 +145,48 @@ it("does not allocate a shared declaration's missing million-row range", async (
     expect(output).toBe('9\n');
   } finally { await engine.dispose(); }
 });
+
+it("preserves earlier shared members when the same identifier is redefined", async () => {
+  const bytes = await input(`<sheetData>
+    <row r="1"><c r="A1"><f t="shared" si="0" ref="A1:A3">9</f><v>9</v></c></row>
+    <row r="2"><c r="A2"><f t="shared" si="0"/><v>9</v></c></row>
+    <row r="1"><c r="A1"><f t="shared" si="0" ref="A1:A3">7</f><v>7</v></c></row>
+    <row r="3"><c r="A3"><f t="shared" si="0"/><v>7</v></c></row></sheetData>`);
+  const engine = createEngine({ limits: context.limits });
+  try {
+    const book = await engine.readWorkbook({ kind: 'stream', filename: 'input.xlsx', source: [bytes] }, {}, { signal: context.signal });
+    expect(book.sheets[0]!.cells.map(cell => cell.formula)).toEqual(['=7', '=9', '=7']);
+  } finally { await engine.dispose(); }
+});
+it("ignores follower text when a shared definition is already available", async () => {
+  const book = await readXlsx(await input(`<sheetData><row r="1"><c r="A1"><f t="shared" si="0" ref="A1:A2">9</f><v>9</v></c></row>
+    <row r="2"><c r="A2"><f t="shared" si="0">7</f><v>7</v></c></row></sheetData>`), context);
+  expect(book.sheets[0]!.cells[1]).toMatchObject({ formula: '=9', value: { kind: 'number', value: 7 } });
+});
+it("anchors relative shared references at the defining cell", async () => {
+  const bytes = await input(`<sheetData>
+    <row r="2"><c r="A2"><f t="shared" si="0" ref="A1:A3">B2+1</f><v>21</v></c><c r="B2"><v>20</v></c></row>
+    <row r="1"><c r="A1"><f t="shared" si="0"/><v>11</v></c><c r="B1"><v>10</v></c></row>
+    <row r="3"><c r="A3"><f t="shared" si="0"/><v>31</v></c><c r="B3"><v>30</v></c></row></sheetData>`);
+  const engine = createEngine({ limits: context.limits });
+  try {
+    let output = '';
+    const result = await engine.convert({ input: { kind: 'stream', filename: 'input.xlsx', source: [bytes] }, recalc: true,
+      exportType: 'Gnumeric_stf:stf_csv', destination: { kind: 'stream', sink: { async write(chunk) { output += new TextDecoder().decode(chunk); } } } },
+    { signal: context.signal });
+    expect(result.exitCode).toBe(0);
+    expect(output).toBe('11,10\n21,20\n31,30\n');
+  } finally { await engine.dispose(); }
+});
+
+for (const ref of ['', ' ref="A1:A1"']) {
+  it(`retains shared followers outside optional declaration bounds: ${ref || 'absent'}`, async () => {
+    const bytes = await input(`<sheetData><row r="1"><c r="A1"><f t="shared" si="0"${ref}>9</f><v>9</v></c></row>
+      <row r="3"><c r="A3"><f t="shared" si="0"/><v>9</v></c></row></sheetData>`);
+    const engine = createEngine({ limits: context.limits });
+    try {
+      const book = await engine.readWorkbook({ kind: 'stream', filename: 'input.xlsx', source: [bytes] }, {}, { signal: context.signal });
+      expect(book.sheets[0]!.cells.map(cell => cell.formula)).toEqual(['=9', '=9']);
+    } finally { await engine.dispose(); }
+  });
+}

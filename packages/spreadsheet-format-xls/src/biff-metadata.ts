@@ -104,7 +104,7 @@ function* metadataSteps(length: number, revision: number, codepage: number, cont
       accountText(text);
       if (opcode === 0x14) headerText = text; else footerText = text; hasPrint = true;
     } else if (opcode === 0x2a || opcode === 0x2b || opcode === 0x83 || opcode === 0x84) {
-      print[opcode === 0x2a ? "titles" : opcode === 0x2b ? "grid" : opcode === 0x83 ? "hcenter" : "vcenter"] = data.u16(0) ? 1 : 0; hasPrint = true;
+      print[opcode === 0x2a ? "titles" : opcode === 0x2b ? "grid" : opcode === 0x83 ? "hcenter" : "vcenter"] = data.u16(0) === 1 ? 1 : 0; hasPrint = true;
     } else if (opcode === 0xa1) {
       data.check(0, revision > 4 ? 34 : 12); const flags = data.u16(10);
       fitColumns = data.u16(6); fitRows = data.u16(8);

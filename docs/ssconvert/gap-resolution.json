@@ -3,6 +3,14 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "biffPrintFlagValues": {
+      "status": "Noncanonical BIFF print-flag values repaired and qualified; broader format family remains open",
+      "source": "Pinned Gnumeric1.12.61 ms-excel-read.c:6589-6617 enables PRINTHEADERS/PRINTGRIDLINES/HCENTER/VCENTER only for word1. A native-generated BIFF fixture changed only those four words to2/3/256/65535; native BIFF-to-XML returns false for allfour, retaining true controls on the second sheet.",
+      "inputSha256": "69cbfa10c34d9d90a1892be3c69d2d9a78b4b22f802f55cabe8ac60a64d0b4c8",
+      "implementation": "Compare the word exactly with1. Preserve original records and their normalization warnings. Six word controls across four fields and six BIFF revisions exercise the metadata reader.",
+      "verification": "Four original failures repaired. After integrating bounded BIFF records and string sources,2349 focused tests, owner lint/types and full build pass. Root/package SDK/command exports assert exact29 XLSX and12 BIFF8 warnings;32 encoded XLSX,32 nativeBIFF and32 Calc flag checks pass. Four BIFF7 refusals preserve zero output. Gnumeric XLSX loses16 true controls, explicitly retained as failures. Screenshot inspected.",
+      "limits": "BIFF7 refuses this fixture because automatic label lookup is enabled, with zero output; no successful BIFF7 transport claimed. Gnumeric ignores XLSX printOptions and loses true controls; these remain explicit mismatches. Calc retains print flags but emits the exact javaldx startup warning. All broader families remain open."
+    },
     "xlsxBiffPrintFlags": {
       "status": "False warnings for four canonical BIFF print flags repaired; format family remains open",
       "source": "Gnumeric 1.12.61 ms-excel-read.c:6589-6617; PRINTHEADERS, PRINTGRIDLINES, HCENTER, VCENTER are enabled only by word1. XLSX printOptions maps headings/gridLines/horizontalCentered/verticalCentered.",
@@ -10,7 +18,7 @@
       "verification": "Eight original memory failures repaired.154 XLSX tests, owner lint/types and full build pass. Four root/package SDK/command outputs assert all25 remaining diagnostics.32 exported print values match native BIFF-to-XML;32 LibreOffice25.2.3.2 readback values match. Screenshot inspected.",
       "nativeLimits": "Gnumeric xlsx-write.c:2623-2624 emits empty printOptions; xlsx-read.c:3646 has no handler. Four Gnumeric readbacks lose16 true flags, retained as mismatches, not passes. Calc emits the exact javaldx startup warning on every launch; no claim of diagnostic-free runs.",
       "inputSha256": "2a024b812a7facb325bdcde6dd6f9972f0d2e8ef8c7e2eacc5f27ed852c4ab35",
-      "remaining": "Source review suggests noncanonical BIFF words2+ are imported incorrectly as true; requires native reproduction and separate repair. Broader metadata and all19 families remain open."
+      "remaining": "Noncanonical BIFF words2+ are repaired and qualified in biffPrintFlagValues. Broader metadata and all19 families remain open."
     },
     "xlsxBiffDefaultRowHeight": {
       "status": "Narrow false loss diagnostic repaired; format family remains open",

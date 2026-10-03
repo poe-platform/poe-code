@@ -5022,3 +5022,57 @@ Toolcraft types and performance/platform/default-swap qualification remain open.
 
 Claim validation is verified on remote main at 4326346862. Its Release workflow
 37105342163 remains pending; no native publication is claimed.
+
+
+### Portable credential WebAssembly checkpoint
+
+The credential dependency now exposes ./portable and the original browser,
+worker, workerd, Node and default conditions. Portable construction remains
+synchronous. A dependency-free Rust/WASM module owns path normalization and
+ancestor selection, key/document admission, encrypted length validation, provider
+keys and migration/rollback decisions. Host adapters retain filesystem effects,
+WebCrypto, UTF-8/base64, promises, property access and error objects. The workerd
+condition imports a compiled WASM module; browser/default portable consumers load
+an embedded module. Node retains its original native-addon entry point.
+
+The existing own safe-fs package supplies the shared FsError identity and exact
+FileSystem type contract. Its existing xml-ast/noble runtime closure is included
+in packed verification; no new third-party package or dependency version was
+introduced. This shared host dependency remains part of the complete dependency
+and packaging audit. Build/lint explicitly select rustup's stable WASM compiler:
+the local Homebrew compiler did not have the target installed even though rustup
+did. The package scripts build the WASM artifact before running native consumers.
+
+Rust path/key/document tests failed on the missing module, and the public runtime
+test failed on the missing ./portable export. Five new differential suites now
+verify exact browser namespaces, encrypted interoperability, UTF-16 paths, public
+class members, path/key failures, getter order, malformed documents, staging-file
+ownership, symbolic links and original failure identity. Fixtures use memfs.
+The maintained credential route passes 45 native checks and all 27 unchanged
+original portable-storage/provider tests across two files, Rust tests, strict
+Node/portable declarations and root posttest. All five credential-consumer routes
+pass: OAuth 772 reference/114 native, client 445/83, HTTP 443/50 and Toolcraft
+6,200 reference cases across 125 files plus 266 native checks. The original CLI
+type consumer and remaining strict declarations pass. Maintained lint for the
+five packages, WASM-target Clippy and scoped JS/TS lint pass.
+
+Four packed artifacts independently verify portable encryption/deletion and the
+Node export with imports confined to the installed artifacts and Node builtins.
+Strict packed portable declarations resolve 122 modules entirely inside the
+consumer, without workspace type fallback. Both workspace and packed artifacts
+execute encryption, migration and cleanup in workerd without Node compatibility.
+The packed browser-condition bundle also executes its embedded WASM in a VM with
+browser capabilities and no runtime imports; this is VM evidence, not an actual
+browser deployment or native-platform qualification. Toolcraft's auth-store
+facade inherits the matching browser namespace and own class identities.
+
+Seven warmed alternating rounds of 200 encrypted reads using memfs and WebCrypto
+on Node 22.23.2 ARM64 measured 164.172 microseconds reference and 164.441
+microseconds WASM. These shared-host measurements show no speedup. Full portable
+lifecycle/host-semantics audit, standalone Toolcraft declarations, remaining
+facades/testing/composition, Commander replacement and performance/platform/swap
+qualification remain required. JavaScript stays the default implementation.
+
+The lock lifecycle commit is verified on remote main at 3a89bc159a. Descendant
+Release 37106007262 succeeded with the workspace/CLI build passing and stable
+publication skipped. No native publication is claimed.

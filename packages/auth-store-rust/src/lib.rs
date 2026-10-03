@@ -1,6 +1,9 @@
 //! Host-independent credential storage policy.
 pub mod cache;
 pub mod lock;
+pub mod portable;
+#[cfg(target_arch = "wasm32")]
+mod wasm;
 use mcp_protocol_rust::{
     json::{self, Limits, Value},
     strings::trim_ecmascript,

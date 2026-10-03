@@ -5,5 +5,7 @@ edition = "2024"
 rust-version = "1.88"
 license = "MIT"
 description = "Independent Rust credential storage policy"
+[lib]
+crate-type = ["rlib", "cdylib"]
 [dependencies]
 mcp-protocol-rust = { path = "../mcp-protocol-rust" }

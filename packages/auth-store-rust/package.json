@@ -7,11 +7,30 @@
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "exports": {
+    ".": {
+      "types": {
+        "workerd": "./dist/index.browser.d.ts",
+        "browser": "./dist/index.browser.d.ts",
+        "worker": "./dist/index.browser.d.ts",
+        "node": "./dist/index.d.ts",
+        "default": "./dist/index.browser.d.ts"
+      },
+      "workerd": "./dist/index.browser.js",
+      "browser": "./dist/index.browser.js",
+      "worker": "./dist/index.browser.js",
+      "node": "./dist/index.js",
+      "default": "./dist/index.browser.js"
+    },
+    "./portable": {
+      "types": "./dist/index.browser.d.ts",
+      "default": "./dist/index.browser.js"
+    }
+  },
   "scripts": {
-    "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build",
-    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json",
-    "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
+    "build": "node scripts/cargo.mjs build",
+    "test:unit": "node scripts/cargo.mjs test && tsc --project tsconfig.types.json && cd ../.. && vitest run --config packages/auth-store-rust/vitest.reference.config.mjs",
+    "lint": "node scripts/cargo.mjs lint"
   },
   "devDependencies": {
     "@napi-rs/cli": "3.10.4",
@@ -21,8 +40,28 @@
     "tsx": ">=4.21.0",
     "typescript": "5.9.3"
   },
-  "files": ["dist", "LICENSE"],
-  "engines": { "node": ">=18.18" },
-  "napi": { "binaryName": "auth-store-rust" },
-  "repository": { "type": "git", "url": "git+https://github.com/poe-platform/poe-code.git", "directory": "packages/auth-store-rust" }
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.18"
+  },
+  "napi": {
+    "binaryName": "auth-store-rust"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/auth-store-rust"
+  },
+  "imports": {
+    "#auth-store-portable-module": {
+      "workerd": "./dist/portable-module.workerd.js",
+      "default": "./dist/portable-module.js"
+    }
+  },
+  "dependencies": {
+    "@poe-code/safe-fs": "*"
+  }
 }

@@ -16,7 +16,7 @@ export class BackedJson {
   private complete = false;
   constructor(private readonly storage: PagedStorage, private readonly cooperate: (units?: number) => Promise<void>) {}
 
-  private async header(position: number): Promise<Header> {
+  async describe(position: number): Promise<Header> {
     const bytes = await this.storage.read(position, headerBytes);
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
     return {kind: kinds[view.getFloat64(0, true)]!, end: view.getFloat64(8, true), parent: view.getFloat64(16, true), children: view.getFloat64(24, true)};
@@ -31,11 +31,11 @@ export class BackedJson {
     await this.storage.write(position, bytes);
   }
 
-  async begin(kind: Kind): Promise<void> {
+  async begin(kind: Kind): Promise<number> {
     await this.cooperate();
     if (this.complete || !this.current && this.root) throw new Error("Tree already complete");
     if (this.current) {
-      const parent = await this.header(this.current);
+      const parent = await this.describe(this.current);
       if (parent.kind !== "array" && parent.kind !== "object") throw new Error("Scalar cannot contain children");
       const expectsKey = parent.kind === "object" && parent.children % 2 === 0;
       if ((kind === "key") !== expectsKey) throw new Error("Invalid object key/value order");
@@ -46,10 +46,11 @@ export class BackedJson {
     await this.put(position, {kind, end: 0, parent: this.current, children: 0});
     this.root ||= position;
     this.current = position;
+    return position;
   }
 
   async text(value: string): Promise<void> {
-    const header = await this.header(this.current);
+    const header = await this.describe(this.current);
     if (!["string", "key", "literal"].includes(header.kind)) throw new Error("Text requires a scalar");
     for (let start = 0; start < value.length; start += 4096) {
       const length = Math.min(4096, value.length - start);
@@ -61,15 +62,31 @@ export class BackedJson {
     }
   }
 
-  async end(): Promise<void> {
+  async end(): Promise<number> {
     await this.cooperate();
     if (!this.current) throw new Error("No open tree node");
-    const header = await this.header(this.current);
+    const header = await this.describe(this.current);
     if (header.kind === "object" && header.children % 2) throw new Error("Object key has no value");
     header.end = this.storage.allocate(0);
     await this.put(this.current, header);
     this.current = header.parent;
     if (!this.current) this.complete = true;
+    return this.current;
+  }
+
+  /** Compare stored scalar code units without collecting either token. */
+  async equalText(left: number, right: number): Promise<boolean> {
+    const a = await this.describe(left), b = await this.describe(right);
+    const length = a.end - left - headerBytes;
+    if (length !== b.end - right - headerBytes) return false;
+    for (let offset = 0; offset < length; offset += 8192) {
+      const count = Math.min(8192, length - offset);
+      const first = await this.storage.read(left + headerBytes + offset, count);
+      const second = await this.storage.read(right + headerBytes + offset, count);
+      await this.cooperate(count / 2);
+      for (let index = 0; index < count; index++) if (first[index] !== second[index]) return false;
+    }
+    return true;
   }
 
   async key(value: string): Promise<void> {
@@ -124,10 +141,10 @@ export class BackedJson {
     let closing = false;
     while (position) {
       await this.cooperate();
-      const header = await this.header(position);
+      const header = await this.describe(position);
       if (!closing) {
         if (header.parent) {
-          const parent = await this.header(header.parent);
+          const parent = await this.describe(header.parent);
           if (parent.kind === "object" && header.kind !== "key") yield* add(":");
           else if (position !== header.parent + headerBytes) yield* add(",");
         }
@@ -159,7 +176,7 @@ export class BackedJson {
         }
       }
       if (!header.parent) break;
-      const parent = await this.header(header.parent);
+      const parent = await this.describe(header.parent);
       if (header.end < parent.end) {position = header.end; closing = false;}
       else {
         yield* add(parent.kind === "array" ? "]" : "}");

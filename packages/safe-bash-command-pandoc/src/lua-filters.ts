@@ -144,15 +144,19 @@ export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptio
         lua.lua_getglobal(state, to_luastring("__pandoc_run"));
         const runner = lauxlib.luaL_ref(state, lua.LUA_REGISTRYINDEX);
         if (readStream) {
-          const chunks = readStream(request.path, context.signal);
-          const iterator = (async function* () {yield* chunks;})();
           let first = true;
           const release = context.onClose?.(async () => {await compilation.catch(() => {});});
-          const compilation = (async () => {
+          const compilation = Promise.resolve().then(async () => {
+            const chunks = readStream(request.path, context.signal);
+            const iterator = Symbol.asyncIterator in chunks
+              ? chunks[Symbol.asyncIterator]()
+              : chunks[Symbol.iterator]();
+            let exhausted = false;
             let failure: {reason: unknown} | undefined;
             try {checked(await runtime.loadStream(state, async () => {
               context.checkpoint(0);
               const next = await iterator.next();
+              exhausted = next.done === true;
               context.checkpoint(0);
               if (next.done) return null;
               const chunk = next.value;
@@ -168,9 +172,9 @@ export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptio
               return owned;
             }, to_luastring(request.path)), true);
             } catch (reason) {failure = {reason};}
-            try {await iterator.return(undefined);} catch (reason) {failure ??= {reason};}
+            try {if (!exhausted) await iterator.return?.();} catch (reason) {failure ??= {reason};}
             if (failure) throw failure.reason;
-          })();
+          });
           try {await compilation;} finally {release?.();}
         } else {
           if (source![0] === 27) fail("E_UNSUPPORTED_FEATURE", "Lua bytecode filters are unsupported");

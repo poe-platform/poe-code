@@ -138,3 +138,33 @@ it("preserves a syntax error when source cleanup also fails", async () => {
   }});
   await expect(convert(input, options, {filters: createLuaFilterCapability({readStream})})).rejects.toMatchObject({code: "E_AST"});
 });
+
+it.each([false, true])("closes an owned iterator when its reader factory cancels before the first pull (async: %s)", async asynchronous => {
+  const controller = new AbortController();
+  const next = vi.fn(() => ({done: false as const, value: encoder.encode("return {}")}));
+  const close = vi.fn(() => ({done: true as const, value: undefined}));
+  const readStream = () => {
+    controller.abort();
+    return asynchronous
+      ? {[Symbol.asyncIterator]() {return {async next() {return next();}, async return() {return close();}};}}
+      : {[Symbol.iterator]() {return {next, return: close};}};
+  };
+  await expect(convert(input, options, {signal: controller.signal, filters: createLuaFilterCapability({readStream})})).rejects.toMatchObject({code: "E_CANCELLED"});
+  expect(next).not.toHaveBeenCalled();
+  expect(close).toHaveBeenCalledOnce();
+});
+
+it("does not return an iterator that already completed normally", async () => {
+  const close = vi.fn(() => {throw new Error("iterator already closed");});
+  let consumed = false;
+  const readStream = () => ({[Symbol.iterator]() {return {
+    next() {
+      if (consumed) return {done: true as const, value: undefined};
+      consumed = true;
+      return {done: false as const, value: encoder.encode("return {}")};
+    },
+    return: close
+  };}});
+  await expect(convert(input, options, {filters: createLuaFilterCapability({readStream})})).resolves.toMatchObject({text: "<p>Hello <em>world</em></p>\n"});
+  expect(close).not.toHaveBeenCalled();
+});

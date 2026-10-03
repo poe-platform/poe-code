@@ -2,6 +2,8 @@ import {expect, it, vi} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import type {FileSystem} from "@poe-code/safe-fs/core";
 import {createPandocCommand} from "./command.js";
+import {createStandalonePandocCommand} from "./safe-bash.js";
+import {createFileOutput} from "./file-output.js";
 import {ExecutionContext} from "./execution.js";
 
 const encoder = new TextEncoder();
@@ -130,4 +132,98 @@ it("publishes an empty conversion only when its sink closes", async () => {
   });
   expect(await run(streamingFiles(memory, publish), "")).toEqual({exitCode: 0, stderr: ""});
   expect(publish).toHaveBeenCalledOnce();
+});
+
+it.each([false, true])("streams standalone file destinations with explicit sink authority (fs=%s)", async withFs => {
+  const memory = new MemoryFileSystem();
+  let total = 0;
+  let largest = 0;
+  let committed = false;
+  const fs = streamingFiles(memory, async (_path, source) => {
+    for await (const bytes of source) {total += bytes.length; largest = Math.max(largest, bytes.length);}
+    committed = true;
+    return {...await memory.stat("/"), type: "file", size: total};
+  });
+  const parent = await fs.stat("/");
+  const createOutput = vi.fn((path: string, signal: AbortSignal) => {
+    expect(path).toBe("/result.html");
+    return createFileOutput(fs, path, {expected: null, parent, maxBytes: Infinity, signal});
+  });
+  const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("input collector forbidden"));
+  const writeFile = vi.fn(async () => {throw new Error("buffered output forbidden");});
+  const stderr = vi.fn(async () => {});
+  try {
+    expect(await createStandalonePandocCommand({workingFiles: {fs, directory: "/", cacheBytes: 16384}}).execute({
+      args: ["-f", "csv", "-t", "html", "-o", "/result.html"],
+      ...(withFs ? {fs} : {}), cwd: "/", createOutput, writeFile,
+      signal: new AbortController().signal,
+      stdin: (async function* () {yield encoder.encode("header\n" + "x".repeat(50000));})(),
+      stdout: {async write() {throw new Error("unexpected stdout");}}, stderr: {write: stderr}
+    })).toEqual({exitCode: 0});
+    expect(stderr).not.toHaveBeenCalled();
+    expect(createOutput).toHaveBeenCalledOnce();
+    expect(committed).toBe(true);
+    expect(total).toBeGreaterThan(50000);
+    expect(largest).toBeLessThanOrEqual(16384);
+    expect(writeFile).not.toHaveBeenCalled();
+    expect(acquire).not.toHaveBeenCalled();
+    expect(await memory.readdir("/")).toEqual([]);
+  } finally {acquire.mockRestore();}
+});
+
+it.each(['"unterminated', "a\nb"])("does not acquire standalone output before parse and budget preflight (%s)", async text => {
+  const createOutput = vi.fn(() => {throw new Error("destination must stay unopened");});
+  let error = "";
+  const result = await createStandalonePandocCommand({
+    workingFiles: {fs: new MemoryFileSystem(), directory: "/"}, limits: {outputBytes: 1}
+  }).execute({
+    args: ["-f", "csv", "-t", "html", "-o", "/result.html"], createOutput,
+    signal: new AbortController().signal,
+    stdin: (async function* () {yield encoder.encode(text);})(),
+    stdout: {async write() {throw new Error("unexpected stdout");}},
+    stderr: {async write(bytes) {error += new TextDecoder().decode(bytes);}}
+  });
+  expect(result.exitCode).toBe(text.startsWith('"') ? 4 : 7);
+  expect(error).toContain(text.startsWith('"') ? "E_PARSE" : "E_LIMIT");
+  expect(createOutput).not.toHaveBeenCalled();
+});
+
+it.each(["empty", "write failure", "close failure", "cancel", "factory cancel", "factory failure"])("owns standalone destination lifecycle: %s", async mode => {
+  const fs = new MemoryFileSystem();
+  const controller = new AbortController();
+  const reason = new Error(mode);
+  let retired = false;
+  const write = vi.fn(async () => {
+    if (mode === "write failure") throw reason;
+    if (mode === "cancel") controller.abort(reason);
+  });
+  const close = vi.fn(async () => {if (mode === "close failure") throw reason;});
+  const abort = vi.fn(async () => {await Promise.resolve(); retired = true;});
+  const createOutput = vi.fn(() => {
+    if (mode === "factory failure") throw reason;
+    if (mode === "factory cancel") controller.abort(reason);
+    return {write, close, abort};
+  });
+  let error = "";
+  const run = createStandalonePandocCommand({workingFiles: {fs, directory: "/"}}).execute({
+    args: ["-f", "csv", "-t", "html", "-o", "/result.html"], createOutput,
+    signal: controller.signal,
+    stdin: (async function* () {yield encoder.encode(mode === "empty" ? "" : "a\nb");})(),
+    stdout: {async write() {throw new Error("unexpected stdout");}},
+    stderr: {async write(bytes) {error += new TextDecoder().decode(bytes);}}
+  });
+  if (mode === "cancel" || mode === "factory cancel") await expect(run).rejects.toBe(reason);
+  else await expect(run).resolves.toEqual({exitCode: mode === "empty" ? 0 : 9});
+  expect(createOutput).toHaveBeenCalledOnce();
+  if (mode === "factory cancel") {expect(write).not.toHaveBeenCalled(); expect(close).not.toHaveBeenCalled();}
+  if (mode === "empty") {
+    expect(close).toHaveBeenCalledOnce();
+    expect(abort).not.toHaveBeenCalled();
+    expect(error).toBe("");
+  } else if (mode !== "factory failure") {
+    expect(abort).toHaveBeenCalledOnce();
+    expect(retired).toBe(true);
+  }
+  if (mode === "write failure" || mode === "close failure" || mode === "factory failure") expect(error).toContain("E_IO");
+  expect(await fs.readdir("/")).toEqual([]);
 });

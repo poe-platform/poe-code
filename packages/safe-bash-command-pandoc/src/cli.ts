@@ -1,5 +1,5 @@
 import { PandocError } from "./errors.js";
-import type { ConversionOptions, InputSource, MetadataObject, WriteOptions } from "./types.js";
+import type { ConversionOptions, InputSource, MetadataObject, WriteOptions, StreamingOutputCapability } from "./types.js";
 import {createFormatRegistry} from "./formats.js";
 import { resourceDirectory } from "./resources.js";
 
@@ -9,6 +9,9 @@ export interface CommandInputs {
   /** Preferred file path: opened lazily and consumed with backpressure. */
   readStream?(path: string, signal: AbortSignal, maxBytes?: number): AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
   readFile?(path: string, signal: AbortSignal, maxBytes?: number): Promise<Uint8Array>;
+  /** Lazily acquire a destination sink after conversion preflight. The host owns
+   * path resolution and atomic publication guards (for example createFileOutput). */
+  createOutput?(path: string, signal: AbortSignal): StreamingOutputCapability;
   writeFile?(path: string, bytes: Uint8Array, signal: AbortSignal): Promise<void>;
 }
 
@@ -184,7 +187,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     }
     if (name === "-o" || name === "--output") {
       const path = equals < 0 ? args[++i] : arg.slice(equals + 1);
-      if (!path || outputSeen || (path !== "-" && !files.writeFile)) fail("Output requires one path and an explicit writeFile capability");
+      if (!path || outputSeen || (path !== "-" && !files.writeFile && !files.createOutput)) fail("Output requires one path and an explicit createOutput or writeFile capability");
       outputSeen = true;
       destination = path === "-" ? undefined : path; continue;
     }

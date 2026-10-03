@@ -174,7 +174,12 @@ retain the buffered compatibility path. SDK hosts can use
 `createFileOutput(fs, path, {expected, parent, maxBytes, signal})` with
 `convertToOutput`; the sink retains the supplied publication guards and waits for
 commit before completing. Standalone hosts can pass `workingFiles` to
-`createStandalonePandocCommand` explicitly. These remaining buffered paths are
+`createStandalonePandocCommand` explicitly. For standalone file output, supply
+`CommandInputs.createOutput(path, signal)` returning a streaming sink such as
+`createFileOutput`. The host supplies path resolution and publication guards;
+the adapter creates the sink lazily after preflight and awaits commit or cleanup.
+This capability takes precedence over `writeFile`, which remains a buffered
+compatibility option. These remaining buffered paths are
 not yet suitable for files larger than Worker memory.
 
 Conversion-only `filters` is an ordered list of `{kind: "json", path}`,

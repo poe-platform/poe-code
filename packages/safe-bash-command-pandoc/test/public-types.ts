@@ -62,3 +62,15 @@ declare const publicationParent: FileStat;
 void convertToOutput([], {from: "csv", to: "html"}, {
   output: createFileOutput(publicationFs, "/result.html", {expected: null, parent: publicationParent, maxBytes: Infinity})
 });
+
+import {createStandalonePandocCommand} from "safe-bash-command-pandoc";
+const standaloneFiles: CommandInputs = {
+  createOutput: (path, signal) => createFileOutput(publicationFs, path, {
+    expected: null, parent: publicationParent, maxBytes: Infinity, signal
+  })
+};
+void createStandalonePandocCommand({workingFiles: {fs: publicationFs, directory: "/scratch"}}).execute({
+  ...standaloneFiles, args: ["-f", "csv", "-t", "html", "-o", "/result.html"],
+  signal: new AbortController().signal, stdin: [],
+  stdout: {async write() {}}, stderr: {async write() {}}
+});

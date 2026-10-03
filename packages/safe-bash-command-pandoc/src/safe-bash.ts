@@ -2,7 +2,7 @@ import {resolvePath} from "@poe-code/safe-fs/core";
 import { inspectFormats, inspectCommand } from "./inspection.js";
 import { PandocError } from "./errors.js";
 import { convert, convertToOutput } from "./engine.js";
-import type { ConversionContext, ResourceFileSystem } from "./types.js";
+import type { ConversionContext, ResourceFileSystem, StreamingOutputCapability } from "./types.js";
 import { resolveConversionArgs } from "./defaults.js";
 import type { CommandInputs } from "./cli.js";
 export { createPandocCommand, createPandocCommands, pandocCommands } from "./command.js";
@@ -49,6 +49,7 @@ export function createStandalonePandocCommand(capabilities: Omit<ConversionConte
         else {
           const files: CommandInputs = context.fs ? {
             ...(context.cwd === undefined ? {} : {cwd: context.cwd}), stdin: context.stdin,
+            ...(context.createOutput ? {createOutput: context.createOutput.bind(context)} : {}),
             ...(context.fs.readStream ? {readStream: async function* (path: string, signal: AbortSignal, remainingBytes?: number) {
               try {
                 yield* context.fs!.readStream!(resolvePath(context.cwd ?? "/", path), {signal});
@@ -66,11 +67,24 @@ export function createStandalonePandocCommand(capabilities: Omit<ConversionConte
           const conversion = {...configured, limits, signal: context.signal,
             ...(context.fs === undefined ? {} : {resourceFiles: context.fs, resources: {resolve: async (id: string, base: string | undefined, signal: AbortSignal | undefined) => context.fs!.readFile(`${base ?? context.cwd ?? "/"}/${id}`, {...(signal === undefined ? {} : {signal})})}}),
             ...(context.cwd === undefined ? {} : {resourceCwd: context.cwd})};
-          const result = destination === undefined
-            ? await convertToOutput(inputs, options, {...conversion,
-              output: {async write(bytes) {
-                try {await context.stdout.write(bytes);} catch (reason) {outputFailure = {reason}; throw reason;}
-              }, async close() {}, async abort() {}}})
+          let destinationOutput: StreamingOutputCapability | undefined;
+          const output: StreamingOutputCapability = destination !== undefined && files.createOutput ? {
+            async write(bytes, signal) {
+              destinationOutput ??= files.createOutput!(destination, signal ?? context.signal);
+              (signal ?? context.signal).throwIfAborted();
+              await destinationOutput.write(bytes, signal);
+            },
+            async close(signal) {
+              destinationOutput ??= files.createOutput!(destination, signal ?? context.signal);
+              (signal ?? context.signal).throwIfAborted();
+              await destinationOutput.close(signal);
+            },
+            async abort(reason) {await destinationOutput?.abort(reason);}
+          } : {async write(bytes) {
+            try {await context.stdout.write(bytes);} catch (reason) {outputFailure = {reason}; throw reason;}
+          }, async close() {}, async abort() {}};
+          const result = destination === undefined || files.createOutput
+            ? await convertToOutput(inputs, options, {...conversion, output})
             : await convert(inputs, options, {...conversion, output: {publish: async (bytes: Uint8Array, signal: AbortSignal | undefined) => files.writeFile!(destination, bytes, signal!)}});
           for(const diagnostic of result.diagnostics) {
             await context.stderr.write(encoder.encode(`${diagnostic.code}: ${diagnostic.location ? `${diagnostic.location}: ` : ""}${diagnostic.message}\n`));

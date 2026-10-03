@@ -136,7 +136,7 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
           await vfs.mkdir("/spill");
           await vfs.writeFile("/table.csv", encoder.encode("header\\n" + "x".repeat(1100000)));
           const results = [];
-          for (const mode of ["sdk", "command", "sdk-file", "command-file"]) {
+          for (const mode of ["sdk", "command", "sdk-file", "command-file", "standalone-file"]) {
             let opened = 0, bytesWritten = 0, largestWrite = 0, hash = 2166136261, stderr = "";
             const supplied = new Proxy(vfs, {get(target, key) {
               if (key === "readFile") return () => {throw new Error("Whole-file table reads are forbidden");};
@@ -166,7 +166,20 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
             }) : output;
             if (mode === "sdk" || mode === "sdk-file") await pandoc.convertToOutput([{chunks: supplied.readStream("/table.csv", {chunkSize: 16384})}],
               {from: "csv", to: "html"}, {limits: {outputBytes: 1200000, tableRows: 2, tableColumns: 1, tableCells: 2, tableFieldText: 1100000}, workingFiles: {fs: supplied, directory: "/spill", cacheBytes: 16384}, output: sink});
-            else {
+            else if (mode === "standalone-file") {
+              const parent = await supplied.stat("/");
+              const result = await pandoc.createStandalonePandocCommand({
+                limits: {outputBytes: 1200000, tableRows: 2, tableColumns: 1, tableCells: 2, tableFieldText: 1100000},
+                workingFiles: {fs: supplied, directory: "/spill", cacheBytes: 16384}
+              }).execute({
+                args: ["-f", "csv", "-t", "html", "/table.csv", "-o", "/result.html"],
+                fs: supplied, cwd: "/", signal: new AbortController().signal,
+                createOutput: (path, signal) => pandoc.createFileOutput(supplied, path, {expected: null, parent, maxBytes: Infinity, signal}),
+                stdin: (async function* () {})(), stdout: output,
+                stderr: {async write(bytes) {stderr += new TextDecoder().decode(bytes);}}
+              });
+              exitCode = result.exitCode;
+            } else {
               const result = await pandoc.createPandocCommand({limits: {outputBytes: 1200000, tableRows: 2, tableColumns: 1, tableCells: 2, tableFieldText: 1100000}}).execute({
                 command: "pandoc", args: ["-f", "csv", "-t", "html", "/table.csv", ...(mode === "command-file" ? ["-o", "/result.html"] : [])],
                 fs: supplied, cwd: "/", env: {TMPDIR: "/spill"}, signal: new AbortController().signal,
@@ -212,7 +225,7 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
     let expectedHash = 2166136261;
     for (const byte of expectedTable) expectedHash = Math.imul(expectedHash ^ byte, 16777619) >>> 0;
     const tables = JSON.parse(tablesText) as {mode: string; opened: number; bytesWritten: number; largestWrite: number; hash: number; exitCode: number; stderr: string; remaining: unknown[]}[];
-    expect(tables.map(table => table.mode)).toEqual(["sdk", "command", "sdk-file", "command-file"]);
+    expect(tables.map(table => table.mode)).toEqual(["sdk", "command", "sdk-file", "command-file", "standalone-file"]);
     for (const table of tables) {
       expect(table).toMatchObject({bytesWritten: expectedTable.length, hash: expectedHash, exitCode: 0, stderr: "", remaining: []});
       expect(table.opened).toBeGreaterThan(0);

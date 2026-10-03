@@ -159,8 +159,12 @@ The backed path supports ASCII conversion and line endings. Additional document
 transformations, finite limits other than `inputBytes`, and other format pairs
 currently use the existing buffered converter. The Safe Bash command uses the
 output-only API for stdout and selects backing storage in the injected filesystem
-at `TMPDIR` or the command directory. `-o` retains conditional atomic publication
-through the buffered converter. Standalone hosts can pass `workingFiles` to
+at `TMPDIR` or the command directory. `-o` streams into the supplied filesystem’s atomic
+`publishFileConditional` capability when available; byte-only atomic providers
+retain the buffered compatibility path. SDK hosts can use
+`createFileOutput(fs, path, {expected, parent, maxBytes, signal})` with
+`convertToOutput`; the sink retains the supplied publication guards and waits for
+commit before completing. Standalone hosts can pass `workingFiles` to
 `createStandalonePandocCommand` explicitly. These remaining buffered paths are
 not yet suitable for files larger than Worker memory.
 

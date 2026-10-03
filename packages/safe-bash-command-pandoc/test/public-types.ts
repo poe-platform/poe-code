@@ -54,3 +54,11 @@ declare const outputContext: OutputConversionContext;
 const written: ConversionSummary = await convertToOutput([], {from: "csv", to: "html"}, outputContext);
 const outputKind: "output" = written.kind;
 void outputKind;
+
+import {createFileOutput} from "safe-bash-command-pandoc";
+import type {FileSystem, FileStat} from "@poe-code/safe-fs/core";
+declare const publicationFs: FileSystem;
+declare const publicationParent: FileStat;
+void convertToOutput([], {from: "csv", to: "html"}, {
+  output: createFileOutput(publicationFs, "/result.html", {expected: null, parent: publicationParent, maxBytes: Infinity})
+});

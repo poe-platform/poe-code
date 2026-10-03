@@ -135,10 +135,17 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
           await vfs.mkdir("/spill");
           await vfs.writeFile("/table.csv", encoder.encode("header\\n" + "x".repeat(1100000)));
           const results = [];
-          for (const mode of ["sdk", "command"]) {
+          for (const mode of ["sdk", "command", "sdk-file", "command-file"]) {
             let opened = 0, bytesWritten = 0, largestWrite = 0, hash = 2166136261, stderr = "";
             const supplied = new Proxy(vfs, {get(target, key) {
               if (key === "readFile") return () => {throw new Error("Whole-file table reads are forbidden");};
+              if (key === "capabilities") return {...target.capabilities, atomicFilePublication: true};
+              if (key === "capabilitiesFor") return undefined;
+              if (key === "publishFileConditional") return async (path, source, options) => {
+                if (path !== "/result.html" || options.expected !== null) throw new Error("Unexpected file publication");
+                for await (const bytes of source) await output.write(bytes);
+                return {...await target.stat("/"), type: "file", size: bytesWritten};
+              };
               if (key === "open") return (path, options) => {
                 if (!path.startsWith("/spill/.storage-")) throw new Error("Backing storage escaped the supplied directory");
                 opened++;
@@ -153,11 +160,14 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
               for (const byte of bytes) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
             }, async close() {}, async abort() {}};
             let exitCode = 0;
-            if (mode === "sdk") await pandoc.convertToOutput([{chunks: supplied.readStream("/table.csv", {chunkSize: 16384})}],
-              {from: "csv", to: "html"}, {workingFiles: {fs: supplied, directory: "/spill", cacheBytes: 16384}, output});
+            const sink = mode === "sdk-file" ? pandoc.createFileOutput(supplied, "/result.html", {
+              expected: null, parent: await supplied.stat("/"), maxBytes: Infinity
+            }) : output;
+            if (mode === "sdk" || mode === "sdk-file") await pandoc.convertToOutput([{chunks: supplied.readStream("/table.csv", {chunkSize: 16384})}],
+              {from: "csv", to: "html"}, {workingFiles: {fs: supplied, directory: "/spill", cacheBytes: 16384}, output: sink});
             else {
               const result = await pandoc.createPandocCommand().execute({
-                command: "pandoc", args: ["-f", "csv", "-t", "html", "/table.csv"],
+                command: "pandoc", args: ["-f", "csv", "-t", "html", "/table.csv", ...(mode === "command-file" ? ["-o", "/result.html"] : [])],
                 fs: supplied, cwd: "/", env: {TMPDIR: "/spill"}, signal: new AbortController().signal,
                 stdin: (async function* () {})(), stdout: output,
                 stderr: {async write(bytes) {stderr += new TextDecoder().decode(bytes);}}
@@ -196,7 +206,7 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
     let expectedHash = 2166136261;
     for (const byte of expectedTable) expectedHash = Math.imul(expectedHash ^ byte, 16777619) >>> 0;
     const tables = JSON.parse(tablesText) as {mode: string; opened: number; bytesWritten: number; largestWrite: number; hash: number; exitCode: number; stderr: string; remaining: unknown[]}[];
-    expect(tables.map(table => table.mode)).toEqual(["sdk", "command"]);
+    expect(tables.map(table => table.mode)).toEqual(["sdk", "command", "sdk-file", "command-file"]);
     for (const table of tables) {
       expect(table).toMatchObject({bytesWritten: expectedTable.length, hash: expectedHash, exitCode: 0, stderr: "", remaining: []});
       expect(table.opened).toBeGreaterThan(0);

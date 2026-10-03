@@ -1,6 +1,7 @@
 import { builtInDirectContextExecutors, syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
 import { evalSyncPandoc } from "./sync.js";
 import {validatePandocOptions} from "./options.js";
+import {createFileOutput} from "./file-output.js";
 import {convert, convertToOutput} from "./engine.js";
 import {createCiteprocFilterCapability, type CiteprocFilterOptions} from "./citeproc-filters.js";
 import {createJsonFilterCapability} from "./json-filters.js";
@@ -81,6 +82,7 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
       return result.exitCode;
     }});
     let stdout: ReturnType<typeof createOutputOperation> | undefined;
+    let fileOutput: ReturnType<typeof createFileOutput> | undefined;
     let outputFailure: {reason: unknown} | undefined;
     try {
       const carrier = getCommandArguments(context);
@@ -178,9 +180,11 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
       const destination = parsed.destination === undefined ? undefined : pathOf(context, parsed.destination);
       let expected: FileStat | null = null;
       let parent: FileStat | undefined;
+      let streamingFile = false;
       if (destination !== undefined) {
         const capabilities = await invocation.acquire(async () => await context.fs.capabilitiesFor?.(destination, {signal: invocation.signal}) ?? context.fs.capabilities, () => {});
-        if ((!capabilities.atomicFileMutation && !capabilities.trustedOwnedStaging) || !context.fs.writeFileConditional || capabilities.write === false || capabilities.readOnly)
+        streamingFile = capabilities.atomicFilePublication === true && typeof context.fs.publishFileConditional === "function";
+        if ((!streamingFile && ((!capabilities.atomicFileMutation && !capabilities.trustedOwnedStaging) || !context.fs.writeFileConditional)) || capabilities.write === false || capabilities.readOnly)
           throw new PandocError("E_CAPABILITY", "convert", "Command -o requires atomic conditional file publication on this provider");
         try {expected = await invocation.acquire(() => context.fs.lstat(destination, {signal: invocation.signal}), () => {});}
         catch (error) {if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;}
@@ -222,10 +226,18 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
         writeFile: (path: string, bytes: Uint8Array, supplied?: {flag?: "wx"}) => owner.acquire(() => writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, {signal, ...(supplied?.flag === undefined ? {} : {flag: supplied.flag})})), () => {})
       };
       const conversion = {limits: parsed.limits, signal, resourceFiles, resourceCwd: context.cwd, ...(filters === undefined ? {} : {filters})};
-      const result = destination === undefined
+      if (destination !== undefined && streamingFile) {
+        fileOutput = createFileOutput(context.fs, destination, {expected, parent: parent!, signal, maxBytes: parsed.limits?.outputBytes ?? Infinity});
+        const owned = fileOutput;
+        context.registerCleanup?.(() => owned.abort(new PandocError("E_CANCELLED", "convert", "Invocation closed")));
+      }
+      const result = destination === undefined || fileOutput !== undefined
         ? await convertToOutput(inputs, parsed.options, {...conversion,
           workingFiles: {fs: context.fs, directory: pathOf(context, context.env.TMPDIR || context.cwd)},
-          output: {async write(bytes) {
+          output: fileOutput ? {
+            write: bytes => writeFileOutput(context, bytes, data => fileOutput!.write(data, signal)),
+            close: () => fileOutput!.close(signal), abort: reason => fileOutput!.abort(reason)
+          } : {async write(bytes) {
             try {await stdout!.output.write(bytes);} catch (reason) {outputFailure = {reason}; throw reason;}
           }, close: () => stdout!.close(), abort: reason => stdout!.abort(reason)}})
         : await convert(inputs, parsed.options, conversion);
@@ -248,6 +260,7 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
       await context.stderr.write(new TextEncoder().encode(`${code}: ${error.message}\n`));
       return {exitCode: statuses[code] ?? 2};
     } finally {
+      await fileOutput?.abort(new PandocError("E_CANCELLED", "convert", "Invocation closed"));
       await invocation.close();
       if (typeof (globalThis as { gc?: () => void }).gc === "function") {
         try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC must not override the conversion result. */ }

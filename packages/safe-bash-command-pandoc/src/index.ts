@@ -1,3 +1,4 @@
+export { createFileOutput } from "./file-output.js";
 export { evalSyncPandoc } from "./sync.js";
 export { convert, convertToOutput, convertSync, readDocument, writeDocument, PandocError } from "./engine.js";
 export { createFormatRegistry, coreFormats, formatCapabilities } from "./formats.js";

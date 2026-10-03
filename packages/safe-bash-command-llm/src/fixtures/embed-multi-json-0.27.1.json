@@ -705,5 +705,61 @@
     ],
     "exception": null,
     "message": null
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "inputBase64": "eyJpZCI6eyLtoIDtsIAiOlsi7aCA7bCAIl19LCJib2R5Ijoib2sifQ==",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "ok"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "{'\\ud800\\udc00': ['\\ud800\\udc00']}",
+        "content": "ok"
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "json",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "inputBase64": "eyJpZCI6Im9uZSIsIu2ggO2wgCI6ImZpcnN0Iiwi8JCAgCI6InNlY29uZCIsIu2ggO2wgCI6Imxhc3QifQ==",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "last second"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "one",
+        "content": "last second"
+      }
+    ]
   }
 ]

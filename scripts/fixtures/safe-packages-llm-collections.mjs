@@ -15,6 +15,17 @@ export async function verifyLlmCollections() {
     });
   }catch(error){if(!(error instanceof Error)||!error.message.includes('surrogates not allowed'))throw error;invalidRejected=true;}
   if(!invalidRejected||invalidCalls!==1||(await invalidFs.readdir('/')).length)throw new Error('Invalid Unicode ID timing or rollback changed');
+  const rawPair=Uint8Array.of(0xed,0xa0,0x80,0xed,0xb0,0x80);
+  const rawInput=Uint8Array.from([...new TextEncoder().encode('{"id":"'),...rawPair,...new TextEncoder().encode('","body":"hello"}')]);
+  invalidRejected=false;invalidCalls=0;
+  try{
+    const settings={fs:invalidFs,directory:'/',path:'/invalid.db',signal:new AbortController().signal,maxFileBytes:1048576,maxIndexBytes:1048576,maxOpenFiles:8,now:()=>new Date(0)};
+    await withJsonEmbeddingEntries(settings,{async *[Symbol.asyncIterator](){for(const byte of rawInput)yield Uint8Array.of(byte);}},entries=>withLlmCollections(settings,async catalog=>{
+      await catalog.collection('docs',{model:'embed'});
+      await catalog.embedMany('docs',{service:invalidService,directory:'/',maxInputBytes:1024,entries});
+    }));
+  }catch(error){if(!(error instanceof Error)||!error.message.includes('surrogates not allowed'))throw error;invalidRejected=true;}
+  if(!invalidRejected||invalidCalls!==1||(await invalidFs.readdir('/')).length)throw new Error('Raw surrogate ID timing or rollback changed');
   const globFs=new MemoryFileSystem();
   await globFs.writeFile('/signature',Uint8Array.of(0xef,0xbb));
   let signatureRows=0;
@@ -217,6 +228,13 @@ export async function verifyLlmCollections() {
       if(counted.exitCode!==1||counted.stdout!=='Embedding\n'||!counted.stderr.includes("'int' object has no attribute 'values'"))throw new Error('JSON count prepass timing changed: '+format);
     }
     await fs.unlink('/count-input');
+    await fs.writeFile('/raw.json',Uint8Array.from([...new TextEncoder().encode('{"id":["'),...rawPair,...new TextEncoder().encode('"],"body":"raw unicode"}')]));
+    const rawImport=await cliShell.exec('llm embed-multi raw /raw.json --format json -m embed --store -d /cli.db');
+    if(rawImport.exitCode!==0||rawImport.stdout!=='Embedding\n')throw new Error('Raw JSON import failed: '+rawImport.stderr);
+    const rawRows=await cliShell.exec('llm similar raw -c query -d /cli.db');
+    if(rawRows.exitCode!==0||JSON.parse(rawRows.stdout).id!=="['\\ud800\\udc00']")throw new Error('Raw JSON repr changed');
+    await fs.unlink('/raw.json');
+
     const deleted=await cliShell.exec('llm collections delete cli -d /cli.db');
     if(deleted.exitCode!==0)throw new Error('Collection CLI delete failed');
   }finally{await cliShell.dispose();}

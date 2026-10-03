@@ -68,14 +68,15 @@ for(const [format,input,expectedCalls,expectedIds,expectedOut]of [
 test('JSON lone surrogate IDs fail after embedding while lone surrogate content fails before it',async()=>{
  // Captured from llm0.27.1 CliRunner: both errors follow Embedding, but only
  // the invalid ID reaches the provider before Python's SQLite encoder fails.
- for(const mode of ['stdin','file'])for(const [input,expectedCalls]of [['[{"id":"\\ud800","body":"hello"}]',[['hello']]],['[{"id":"one","body":"\\ud800"}]',[]]] as const){
+ for(const mode of ['stdin','file'])for(const raw of [false,true])for(const [input,expectedCalls]of [['[{"id":"\\ud800","body":"hello"}]',[['hello']]],['[{"id":"one","body":"\\ud800"}]',[]]] as const){
   const fs=new MemoryFileSystem(),signal=new AbortController().signal,calls:string[][]=[],out:Uint8Array[]=[];
   const limits={maxFileBytes:1048576,maxIndexBytes:1048576,maxOpenFiles:8,now:()=>new Date(0)};
   const command=createLlmCommand({collections:createLlmCollectionCommands(limits),providers:[{name:'test',models:[{id:'e',capabilities:['embed']}],async *complete(){},async embedSources(request){
    const values:string[]=[];for(const source of request.inputs){let text='';for await(const bytes of source.bytes)text+=new TextDecoder().decode(bytes);values.push(text);}calls.push(values);return {model:'e',vectors:values.map(()=>[1])};
   }}]});
-  if(mode==='file')await fs.writeFile('/input.json',new TextEncoder().encode(input));
-  const result=await command.execute({command:'llm',args:['embed-multi','docs',mode==='stdin'?'-':'/input.json','--format','json','-m','e','--store','-d','/db'],fs,cwd:'/',env:{},signal,stdin:{async *[Symbol.asyncIterator](){yield new TextEncoder().encode(input);}},stdout:{async write(bytes){out.push(bytes.slice());}},stderr:{async write(){}}});assert.equal(result.exitCode,1);
+  const inputBytes=raw?Uint8Array.from(Array.from(input.replaceAll('\\ud800',String.fromCharCode(0xed,0xa0,0x80,0xed,0xb0,0x80)),char=>char.charCodeAt(0))):new TextEncoder().encode(input);
+  if(mode==='file')await fs.writeFile('/input.json',inputBytes);
+  const result=await command.execute({command:'llm',args:['embed-multi','docs',mode==='stdin'?'-':'/input.json','--format','json','-m','e','--store','-d','/db'],fs,cwd:'/',env:{},signal,stdin:{async *[Symbol.asyncIterator](){yield inputBytes;}},stdout:{async write(bytes){out.push(bytes.slice());}},stderr:{async write(){}}});assert.equal(result.exitCode,1);
   assert.deepEqual(calls,expectedCalls);assert.equal(Buffer.concat(out).toString(),'Embedding\n');
   const rows:unknown[]=[];await withLlmCollections({fs,path:'/db',signal,...limits},catalog=>catalog.list(row=>{rows.push(row.count);}));assert.deepEqual(rows,[0n]);
   assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name).sort(),mode==='stdin'?['db']:['db','input.json']);

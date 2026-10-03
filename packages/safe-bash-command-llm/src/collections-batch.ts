@@ -1,4 +1,4 @@
-import {hasUnpairedSurrogate} from "./python-unicode.js";
+import {hasUnpairedSurrogate,pythonSurrogateId} from "./python-unicode.js";
 import {FsError,type FileSystem} from 'safe-bash-contracts';
 import {md5} from 'safe-bash-checksum-engine/md5';
 import {withSqliteStatement,type SqliteFinalizer,type SqliteRecordValue} from 'safe-bash-sqlite-engine/storage';
@@ -10,14 +10,14 @@ import {createLlmSpool} from './retained-spool.js';
 import {jsonValue} from './json-value.js';
 import {writeEmbeddings,type StoredEmbedding} from './collections-write.js';
 
-export interface LlmCollectionBatchEntry {readonly id:string;readonly input:LlmInputSource;readonly binary?:boolean;readonly metadata?:Readonly<Record<string,LlmOption>>}
+export interface LlmCollectionBatchEntry {readonly id:string;readonly [pythonSurrogateId]?:true|undefined;readonly input:LlmInputSource;readonly binary?:boolean;readonly metadata?:Readonly<Record<string,LlmOption>>}
 export interface LlmCollectionBatchOptions {
  readonly service:LlmService;readonly entries:AsyncIterable<LlmCollectionBatchEntry>;
  readonly directory:string;readonly maxInputBytes:number;readonly batchSize?:number;
  readonly binary?:boolean;readonly store?:boolean;
 }
 type Spool=Awaited<ReturnType<typeof createLlmSpool>>;
-type Staged={binary:boolean;id:string;hash:Uint8Array;input:Spool;size:number;metadata:SqliteRecordValue};
+type Staged={readonly [pythonSurrogateId]?:true|undefined;binary:boolean;id:string;hash:Uint8Array;input:Spool;size:number;metadata:SqliteRecordValue};
 const hashKey=(bytes:Uint8Array)=>Array.from(bytes,value=>value.toString(16).padStart(2,'0')).join('');
 
 export async function embedCollectionBatch(editor:SqliteFinalizer,options:LlmCollectionBatchOptions & {fs:FileSystem;signal:AbortSignal;collection:LlmCollection;now:()=>Date}):Promise<void>{
@@ -55,7 +55,7 @@ export async function embedCollectionBatch(editor:SqliteFinalizer,options:LlmCol
        for await(const chunk of jsonValue(entry.metadata,signal)){admit(chunk.length);metadataSize+=chunk.length;await retained.write(chunk);}
        metadata={type:'text',size:metadataSize,bytes:{[Symbol.asyncIterator]:()=>retained.replay()[Symbol.asyncIterator]()}};
       }
-      staged.push({binary,id:entry.id,hash:digest.digest(),input,size,metadata});
+      staged.push({binary,id:entry.id,[pythonSurrogateId]:entry[pythonSurrogateId],hash:digest.digest(),input,size,metadata});
      }catch(error){entryFailed=true;throw error;}
      finally{digest.destroy();try{await entry.input.dispose();}catch(error){if(!entryFailed)await Promise.reject(error);}}
     }
@@ -69,7 +69,7 @@ export async function embedCollectionBatch(editor:SqliteFinalizer,options:LlmCol
        // A Python SQLite TEXT ID cannot contain a lone surrogate. It cannot
        // match a stored ID, and Python reports its encoding failure only after
        // the provider call when inserting the result. Never query a lossy ID.
-       if(entry.id.length<=65536&&hasUnpairedSurrogate(entry.id)){
+       if(entry.id.length<=65536&&(entry[pythonSurrogateId]||hasUnpairedSurrogate(entry.id))){
         if(new TextEncoder().encode(entry.id).length>65536)throw new RangeError('SQLite binding exceeds scalar byte budget');
         filtered.push(entry);continue;
        }
@@ -89,7 +89,7 @@ export async function embedCollectionBatch(editor:SqliteFinalizer,options:LlmCol
     const kinds=mixed?{inputTypes:filtered.map(entry=>entry.binary?'binary' as const:'text' as const)}:{binary:filtered[0]!.binary};
     const response=await service.embedSources({model:collection.model,inputs,options:{},signal,...kinds}).finally(()=>{borrowed=false;});
     if(response.vectors.length!==filtered.length)throw new TypeError('Invalid embedding response');
-    const records:StoredEmbedding[]=filtered.map((entry,index)=>({id:entry.id,hash:entry.hash,vector:response.vectors[index]!,metadata:entry.metadata,binary:entry.binary,updated:BigInt(Math.floor(options.now().getTime()/1000)),content:options.store?{type:entry.binary?'blob':'text',size:entry.size,bytes:{[Symbol.asyncIterator]:()=>entry.input.replay()[Symbol.asyncIterator]()}}:null}));
+    const records:StoredEmbedding[]=filtered.map((entry,index)=>({id:entry.id,[pythonSurrogateId]:entry[pythonSurrogateId],hash:entry.hash,vector:response.vectors[index]!,metadata:entry.metadata,binary:entry.binary,updated:BigInt(Math.floor(options.now().getTime()/1000)),content:options.store?{type:entry.binary?'blob':'text',size:entry.size,bytes:{[Symbol.asyncIterator]:()=>entry.input.replay()[Symbol.asyncIterator]()}}:null}));
     await writeEmbeddings(editor,collection.id,records,signal);
    }catch(error){batchFailed=true;throw error;}
    finally{

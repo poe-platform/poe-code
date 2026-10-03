@@ -38,8 +38,13 @@ uses Python's numeric grammar (including `NaN` and infinities), rejects malforme
 UTF-8, and preserves escaped lone surrogates for the consuming encoder to handle.
 The byte probe recognizes UTF-8, UTF-16LE/BE and UTF-32LE/BE, with or without
 a BOM. Transcoding uses bounded chunks and charges the original input bytes.
-Raw surrogate code points in encoded input and exact Python decoding diagnostics
-remain unsupported; escaped JSON surrogates retain the behavior described above.
+Set `stringChunks.codePoints: true` with this profile for lossless Python strings,
+including raw encoded surrogates. Events add a fourth `{key, points}` field with
+code-point arrays for the current object key and string chunk (otherwise `null`).
+Ordinary leaves use `null` in the third field; container-ending path-only events
+use `"end"`. This distinguishes raw surrogate pairs from supplementary characters
+when selecting object keys or applying Python string conversions. Exact Python
+decoding diagnostics remain incomplete.
 With `stringChunks.containers: true`, additional `[path, bracket, "open"|"close"]`
 events identify container types and boundaries without constructing their values.
 Numeric values in this profile retain their original token in `Decimal.text`, so

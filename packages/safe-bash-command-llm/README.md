@@ -70,7 +70,9 @@ SDK callers can use `withCsvEmbeddingEntries(options, bytes, async entries =>
 use retained filesystem spools; header and ID controls retain SQLite's scalar
 byte limits. Without `--format`, the CLI detects CSV dialects from a bounded
 4096-byte sample using the pinned Python rules. A leading array or object selects JSON. SQL and directory imports remain
-incomplete, as do raw encoded surrogate code points and exact invalid-JSON diagnostics.
+incomplete, as do exact invalid-JSON diagnostics. Raw surrogate code points retain
+Python string and object-key identity, including nested ID representations and
+encoding failures before embedding content or after embedding invalid IDs.
 Explicit JSON imports accept UTF-8, UTF-16LE/BE and UTF-32LE/BE with or without a BOM.
 This optional catalog does not store conversation or response history.
 

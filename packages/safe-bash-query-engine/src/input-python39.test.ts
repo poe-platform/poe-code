@@ -72,3 +72,43 @@ test('Python UTF-32 input streams a large string through bounded text events',as
  for await(const event of jsonValues(input,b,{profile:'python39',stream:true,stringChunks:{maxControlBytes:65536}}))if(Array.isArray(event)&&event.length===3){assert.equal(typeof event[1],'string');const text=String(event[1]);assert.ok(text.length<=4096);length+=text.length;}
  assert.equal(length,128*2048);assert.equal(b.inputBytes,128*4096+12);
 });
+
+
+test('Python lossless string events distinguish raw surrogate code points from supplementary characters',async()=>{
+ const raw=Uint8Array.of(0xed,0xa0,0x80,0xed,0xb0,0x80), scalar=Uint8Array.of(0xf0,0x90,0x80,0x80);
+ for(const size of [1,3,4096]){
+  const bytes=Uint8Array.from([123,34,...raw,34,58,34,...raw,34,44,34,...scalar,34,58,34,...scalar,34,125]);
+  const b=new Budget(resolveJqLimits(),new AbortController().signal),values:unknown[]=[];
+  for await(const event of jsonValues({async *[Symbol.asyncIterator](){for(let i=0;i<bytes.length;i+=size)yield bytes.subarray(i,i+size);}},b,{profile:'python39',stream:true,stringChunks:{maxControlBytes:65536,codePoints:true}})){
+   if(Array.isArray(event)&&typeof event[2]==='boolean')values.push(event[3]);
+  }
+  assert.deepEqual(values,[{key:[0xd800,0xdc00],points:[0xd800,0xdc00]},{key:[0x10000],points:[0x10000]}]);
+ }
+});
+
+test('lossless JSON byte decoding matches pinned Python 3.9 surrogatepass across encodings',async()=>{
+ const fixtures=JSON.parse(readFileSync(new URL('./input-python39-surrogates.json',import.meta.url),'utf8')) as {encoding:string;base64:string;points:number[]}[];
+ for(const fixture of fixtures)for(const size of [1,3,4096]){
+  const bytes=Uint8Array.from(atob(fixture.base64),c=>c.charCodeAt(0)),actual:number[]=[];
+  const b=new Budget(resolveJqLimits(),new AbortController().signal);
+  for await(const event of jsonValues({async *[Symbol.asyncIterator](){for(let i=0;i<bytes.length;i+=size)yield bytes.subarray(i,i+size);}},b,{profile:'python39',stream:true,stringChunks:{maxControlBytes:65536,codePoints:true}})){
+   if(Array.isArray(event)&&typeof event[2]==='boolean')actual.push(...(event[3] as {points:number[]}).points);
+  }
+  assert.deepEqual(actual,fixture.points,fixture.encoding+' '+fixture.base64);
+ }
+});
+
+test('lossless Python chunks keep raw surrogates separate and reject malformed UTF8',async()=>{
+ const prefix=new TextEncoder().encode('"'+'a'.repeat(4095));
+ const bytes=Uint8Array.from([...prefix,0xed,0xa0,0x80,0xed,0xb0,0x80,34]),points:number[]=[];
+ const b=new Budget(resolveJqLimits(),new AbortController().signal);
+ for await(const event of jsonValues({async *[Symbol.asyncIterator](){for(let i=0;i<bytes.length;i+=7)yield bytes.subarray(i,i+7);}},b,{profile:'python39',stream:true,stringChunks:{maxControlBytes:65536,codePoints:true}})){
+  if(Array.isArray(event)&&typeof event[2]==='boolean'){const part=(event[3] as {points:number[]}).points;assert.ok(part.length<=8192);points.push(...part);}
+ }
+ assert.deepEqual(points.slice(-2),[0xd800,0xdc00]);assert.equal(points.length,4097);
+ for(const bytes of [[0xff],[0xc0,0x80],[0xe0,0x80,0x80],[0xf4,0x90,0x80,0x80],[0xc2],[0xe2,0x28,0xa1]]){
+  let retired=false;
+  await assert.rejects(async()=>{for await(const event of jsonValues({async *[Symbol.asyncIterator](){try{yield Uint8Array.from([34,...bytes,34]);}finally{retired=true;}}},new Budget(resolveJqLimits(),new AbortController().signal),{profile:'python39',stream:true,stringChunks:{maxControlBytes:65536,codePoints:true}}))void event;});
+  assert.equal(retired,true);
+ }
+});

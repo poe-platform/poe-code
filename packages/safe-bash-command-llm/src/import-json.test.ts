@@ -57,3 +57,13 @@ test('JSONL does not accept nonblank control whitespace or unwrap array rows',as
   assert.equal(count,0);assert.deepEqual(await fs.readdir('/'),[]);
  }
 });
+
+test('nested raw-surrogate IDs use Python repr without merging code points',async()=>{
+ const fs=new MemoryFileSystem(),raw=[0xed,0xa0,0x80,0xed,0xb0,0x80];
+ const head=new TextEncoder().encode('{"id":{"'),tail=new TextEncoder().encode('":["');
+ const bytes=Uint8Array.from([...head,...raw,...tail,...raw,...new TextEncoder().encode('"]},"body":"ok"}')]);
+ await withJsonEmbeddingEntries({fs,directory:'/',signal,maxFileBytes:1048576,maxOpenFiles:8},{async *[Symbol.asyncIterator](){yield bytes;}},async entries=>{
+  for await(const entry of entries){assert.equal(entry.id,"{'\\ud800\\udc00': ['\\ud800\\udc00']}");let text='';for await(const bytes of entry.input.bytes)text+=new TextDecoder().decode(bytes);assert.equal(text,'ok');}
+ });
+ assert.deepEqual(await fs.readdir('/'),[]);
+});

@@ -6,3 +6,6 @@ export function hasUnpairedSurrogate(value: string): boolean {
   }
   return false;
 }
+
+/** Internal provenance for Python IDs that cannot be represented by a JS string. */
+export const pythonSurrogateId: unique symbol = Symbol("pythonSurrogateId");

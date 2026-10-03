@@ -1,3 +1,4 @@
+export { encodePythonCodePoints } from "./python-json-encoding.js";
 import { pythonJsonBytes } from './python-json-encoding.js';
 import { utf8ByteLength, utf8Encoder, decodeLatin1, encodeLatin1 } from "./bytes.js";
 import { readBytes, type ByteSource } from "safe-bash-contracts";
@@ -9,9 +10,9 @@ export class JqParseError extends JqError {
   constructor(readonly detail: string, readonly offset: number, readonly line = 1, readonly column = offset, readonly located = true) { super(detail); }
   diagnostic(): string { return this.located ? `${this.detail} at line ${this.line}, column ${this.column}` : this.detail; }
 }
-export function decodeUtf8(bytes: string, budget: Budget, fatal = false): string {
+export function decodeUtf8(bytes: string, budget: Budget, fatal: boolean | "surrogatepass" = false, points?: number[]): string {
   budget.step(Math.ceil(bytes.length / 1024));
-  if (fatal) return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(encodeLatin1(bytes));
+  if (fatal === true && !points) return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(encodeLatin1(bytes));
   let ascii = true;
   for (let index = 0; index < bytes.length; index++) {
     if ((index & 1023) === 0) budget.signal.throwIfAborted();
@@ -20,11 +21,11 @@ export function decodeUtf8(bytes: string, budget: Budget, fatal = false): string
       break;
     }
   }
-  if (ascii) return bytes;
-  const points: string[] = [];
+  if (ascii) { if (points) for (let i = 0; i < bytes.length; i++) points.push(bytes.charCodeAt(i)); return bytes; }
+  const blocks: string[] = [];
   let block = "";
   for (let offset = 0; offset < bytes.length;) {
-    if (offset % 1024 === 0) { budget.signal.throwIfAborted(); points.push(block); block = ""; }
+    if (offset % 1024 === 0) { budget.signal.throwIfAborted(); blocks.push(block); block = ""; }
     const first = bytes.charCodeAt(offset);
     let length = first < 0x80 ? 1 : first >= 0xc2 && first <= 0xdf ? 2 : first >= 0xe0 && first <= 0xef ? 3 : first >= 0xf0 && first <= 0xf4 ? 4 : 1;
     let point = first < 0x80 ? first : -1;
@@ -36,12 +37,14 @@ export function decodeUtf8(bytes: string, budget: Budget, fatal = false): string
         if (next < 0x80 || next > 0xbf) { point = -1; length = index; break; }
         point = (point << 6) | (next & 0x3f);
       }
-      if (point < [0, 0, 0x80, 0x800, 0x10000][length]! || point > 0x10ffff || (point >= 0xd800 && point <= 0xdfff)) point = -1;
+      if (point < [0, 0, 0x80, 0x800, 0x10000][length]! || point > 0x10ffff || (fatal !== "surrogatepass" && point >= 0xd800 && point <= 0xdfff)) point = -1;
     }
+    if (fatal && point < 0) throw new TypeError("Invalid UTF-8 JSON code point");
+    points?.push(point < 0 ? 0xfffd : point);
     block += String.fromCodePoint(point < 0 ? 0xfffd : point);
     offset += length;
   }
-  return points.join("") + block;
+  return blocks.join("") + block;
 }
 const SHORT_JSON_STRINGS = new Array<string>(512);
 function matchAsciiBytes(bytes: Uint8Array, start: number, expected: string): boolean {
@@ -93,6 +96,8 @@ class JsonParser {
   private quoted = false;
   private chunkedString = false;
   private chunkedLeaf = false;
+  private stringPoints: number[] | undefined;
+  private readonly keyPoints = new Map<number, number[]>();
   private completedValues = 0;
   private escaped = false;
   private bom = 0;
@@ -432,7 +437,7 @@ class JsonParser {
     const tail = this.token.slice(end);
     this.token = this.token.slice(0, end);
     const decoded = this.string();
-    this.event([this.path(), decoded, final]);
+    this.event([this.path(), decoded, final], this.stringPoints);
     this.token = tail;
   }
   path(): Json[] {
@@ -443,7 +448,12 @@ class JsonParser {
     }
     return path;
   }
-  private event(value: Json): void {
+  private event(value: Json, points?: number[]): void {
+    if (this.stringChunks?.codePoints && Array.isArray(value)) {
+      if (value.length === 1) value.push(null, "end");
+      else if (value.length === 2) value.push(null);
+      value.push({ key: this.keyPoints.get(this.stack.length - 1) ?? null, points: points ?? null });
+    }
     this.budget.value(value);
     this.events.push(value);
   }
@@ -477,6 +487,9 @@ class JsonParser {
     this.token = "";
   }
   private string(): string {
+    const points = this.stringChunks?.codePoints ? [] as number[] : undefined;
+    this.stringPoints = points;
+    const decoding = this.profile === "python39" ? (points ? "surrogatepass" : true) : false;
     let fastAscii = true;
     for (let index = 0; index < this.token.length; index++) {
       const code = this.token.charCodeAt(index);
@@ -490,6 +503,7 @@ class JsonParser {
       if (steps > 0) this.budget.step(steps * 2);
       else this.budget.signal.throwIfAborted();
       this.budget.text(this.token);
+      if (points) for (let i = 0; i < this.token.length; i++) points.push(this.token.charCodeAt(i));
       return this.token;
     }
     let result = "";
@@ -498,7 +512,7 @@ class JsonParser {
       if (index % 1024 === 0) this.budget.step();
       const character = this.token[index]!;
       if (character === "\\") {
-        result += decodeUtf8(this.token.slice(start, index), this.budget, this.profile === "python39");
+        result += decodeUtf8(this.token.slice(start, index), this.budget, decoding, points);
         const escaped = this.token[++index];
         if (escaped === "u") {
           const digits = this.token.slice(index + 1, index + 5);
@@ -516,16 +530,18 @@ class JsonParser {
               index += 6;
             }
           }
+          points?.push(point);
           result += String.fromCodePoint(!this.profile && point >= 0xdc00 && point <= 0xdfff ? 0xfffd : point);
         } else {
           const escapes: Record<string, string> = { '"': '"', "\\": "\\", "/": "/", b: "\b", f: "\f", n: "\n", r: "\r", t: "\t" };
           if (escaped === undefined || !Object.hasOwn(escapes, escaped)) this.fail("Invalid escape");
           result += escapes[escaped];
+          points?.push(escapes[escaped]!.charCodeAt(0));
         }
         start = index + 1;
       } else if (character.charCodeAt(0) < 0x20) this.fail("Invalid string: control characters from U+0000 through U+001F must be escaped");
     }
-    result += decodeUtf8(this.token.slice(start), this.budget, this.profile === "python39");
+    result += decodeUtf8(this.token.slice(start), this.budget, decoding, points);
     this.budget.text(result);
     return result;
   }
@@ -549,7 +565,7 @@ class JsonParser {
       const count = (this.counts.get(container) ?? 0) + 1;
       this.budget.collection(count);
       this.counts.set(container, count);
-      if (typeof parent === "string") this.stack.pop();
+      if (typeof parent === "string") { this.keyPoints.delete(this.stack.length - 1); this.stack.pop(); }
       else if (!Array.isArray(parent)) this.fail("Objects must consist of key:value pairs");
       this.next = undefined;
       return;
@@ -582,6 +598,7 @@ class JsonParser {
       if (!parent || Array.isArray(parent) || typeof parent === "string") this.fail("':' not as part of an object");
       if (typeof this.next !== "string") this.fail("Object keys must be strings");
       if (this.stream) this.lastKey.set(parent as object, this.next);
+      if (this.stringPoints) this.keyPoints.set(this.stack.length, this.stringPoints);
       this.stack.push(this.next);
       this.next = undefined;
     } else if (character === ",") {
@@ -729,7 +746,7 @@ export interface JsonInputOptions {
   /** Requires stream. String values emit [path, text, final] chunks instead of
    * ordinary leaf events. Keys and numeric tokens are bounded controls. Chunks
    * preceding a parse error are provisional; consumers must discard them. */
-  readonly stringChunks?: { readonly maxControlBytes: number; readonly containers?: boolean };
+  readonly stringChunks?: { readonly maxControlBytes: number; readonly containers?: boolean; /** Preserve Python code points in a fourth event field: { key, points }. Requires python39. */ readonly codePoints?: boolean };
   /** Python 3.9 JSON grammar, byte encoding detection and preserved escaped surrogates. */
   readonly profile?: "python39";
   readonly stream?: boolean;
@@ -1042,6 +1059,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
   if (options.stringChunks && (!options.stream || !Number.isSafeInteger(options.stringChunks.maxControlBytes) || options.stringChunks.maxControlBytes < 1)) {
     throw new RangeError("stringChunks requires stream and a positive maxControlBytes");
   }
+  if (options.stringChunks?.codePoints && options.profile !== "python39") throw new RangeError("codePoints requires python39");
   let parser = new JsonParser(budget, options.stream, 1, 0, options.stringChunks, options.profile);
   let active = !options.sequence;
   let failed = false;
@@ -1060,7 +1078,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
   let line = 1;
   let column = 0;
   let nulTail: string | undefined;
-  const input = options.profile ? pythonJsonBytes(source, budget) : source;
+  const input = options.profile ? pythonJsonBytes(source, budget, options.stringChunks?.codePoints) : source;
   const iter = (typeof (input as { tryNextSync?: unknown }).tryNextSync === "function"
     ? (input as unknown as AsyncIterator<Uint8Array>)
     : readBytes(input, budget.signal)[Symbol.asyncIterator]()) as AsyncIterator<Uint8Array> & {

@@ -18,7 +18,7 @@ console.log(info.stdout); // PNG 60x40
 
 Output parent directories must already exist, including directories selected with `mogrify -path`.
 
-Async `runIdentifyCli(args, { filesystem, cwd, stdin })` uses the supplied filesystem for retained input and scratch storage. Ordinary raster metadata and verbose statistics use bounded reads and caller-backed pixels; streamed stdin is retained once for repeated `-` operands. Custom metadata, statistical properties and pixel expressions share retained inspection; expressions read only the samples they reference. Unsupported retained decoders currently use buffered compatibility paths.
+Async `runIdentifyCli(args, { filesystem, cwd, stdin })` uses the supplied filesystem for retained input and scratch storage. Ordinary raster metadata and verbose statistics use bounded reads and caller-backed pixels; streamed stdin is retained once for repeated `-` operands. Custom metadata, statistical properties and pixel expressions share retained inspection; expressions read only the samples they reference. Async `runCompareCli(args, { filesystem, cwd, stdin, stdout })` also retains raster inputs and diff pixels in caller backing, streams encoded stdout to the optional sink, and safely publishes diff files. Unsupported retained decoders and filesystems without retained publication currently use buffered compatibility paths.
 
 `identify -format` and `magick ... -format FORMAT info:` support literal `%%`,
 geometry (`%g`, `%P`), compression (`%C`, `%Q`), and named properties including

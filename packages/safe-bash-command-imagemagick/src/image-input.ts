@@ -11,13 +11,21 @@ export interface ImageFileInput {
         check(bytes: number): void;
     };
 }
-export type ImageInputReader = <Result>(path: string, inspect: (source: ImageByteSource) => Promise<Result>) => Promise<Result | undefined>;
+export interface ImageInputReader {
+    <Result>(path: string, inspect: (source: ImageByteSource) => Promise<Result>): Promise<Result | undefined>;
+    /** Retire input backing before publishing derived output. */
+    close(): Promise<void>;
+}
 const missing = (error: unknown) => error instanceof FsError && ["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM"].includes(error.code);
 export async function withImageInputs<T>(input: ImageFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal, run: (reader: ImageInputReader) => Promise<T>): Promise<T> {
     const { filesystem: fs, cwd, stdin, inputBudget } = input, io = { signal };
     let total = 0, failed = true, stdinSource: ImageByteSource | undefined, stdinStorage: PagedStorage | undefined;
     const charge = (size: number) => { total += size; inputBudget?.check(total); };
-    const read: ImageInputReader = async <Result>(path: string, inspect: (source: ImageByteSource) => Promise<Result>) => {
+    let retired = false, closing: Promise<void> | undefined;
+    const close = () => closing ??= (async () => { retired = true; await stdinStorage?.close(); })();
+    const read: ImageInputReader = Object.assign(async <Result>(path: string, inspect: (source: ImageByteSource) => Promise<Result>) => {
+        if (retired)
+            throw new FsError("ECANCELED");
         let result: Result | undefined;
         if (path === "-") {
             if (!stdinSource) {
@@ -74,7 +82,7 @@ export async function withImageInputs<T>(input: ImageFileInput, stdinBytes: Uint
             }
         }
         return result;
-    };
+    }, { close });
     try {
         const result = await run(read);
         failed = false;
@@ -82,7 +90,7 @@ export async function withImageInputs<T>(input: ImageFileInput, stdinBytes: Uint
     }
     finally {
         try {
-            await stdinStorage?.close();
+            await close();
         }
         catch (error) {
             if (!failed)

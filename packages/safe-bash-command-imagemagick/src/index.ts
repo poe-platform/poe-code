@@ -1,3 +1,5 @@
+import {withCompareFiles,CompareInputFailure,type CompareFileInput,type CompareFileSession} from "./compare-file.js";
+export type {CompareFileInput} from "./compare-file.js";
 import {compareImageSteps,formatMetricNum} from "./compare-kernel.js";
 import {withIdentifyFiles,type IdentifyFileInput,type IdentifyFileReader,type IdentifyInspection,type IdentifyRaster} from "./identify-file.js";
 export type {IdentifyFileInput} from "./identify-file.js";
@@ -15,7 +17,7 @@ import {
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, modulateImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, tintImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
+import { transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, modulateImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, tintImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -3215,7 +3217,7 @@ function createLabelImage(text: string, state: MagickState): RgbaImage {
   return decodeImage(new TextEncoder().encode(svg), { density: state.density });
 }
 
-function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel): Generator<void, RgbaImage, void> {
+function magickResizeOptions(img:Pick<RgbaImage,"width"|"height">,geomStr:string,kernel:ResizeKernel):Parameters<typeof resizeImageSteps>[1]|undefined {
     const g = parseMagickGeometry(geomStr);
     const srcW = img.width;
     const srcH = img.height;
@@ -3225,9 +3227,9 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
         const currentArea = srcW * srcH;
         const scale = Math.sqrt(g.areaLimit / Math.max(1, currentArea));
         if (g.shrinkOnly && scale >= 1)
-            return img;
+            return undefined;
         if (g.enlargeOnly && scale <= 1)
-            return img;
+            return undefined;
         targetW = Math.max(1, Math.round(srcW * scale));
         targetH = Math.max(1, Math.round(srcH * scale));
     }
@@ -3241,17 +3243,17 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
         targetW = Math.max(1, Math.round(g.width ?? srcW));
         targetH = Math.max(1, Math.round(g.height ?? srcH));
         if (g.shrinkOnly && srcW <= targetW && srcH <= targetH)
-            return img;
+            return undefined;
         if (g.enlargeOnly && srcW >= targetW && srcH >= targetH)
-            return img;
+            return undefined;
     }
     else if (g.fillArea) {
         const boxW = g.width ?? srcW;
         const boxH = g.height ?? srcH;
         if (g.shrinkOnly && srcW <= boxW && srcH <= boxH)
-            return img;
+            return undefined;
         if (g.enlargeOnly && srcW >= boxW && srcH >= boxH)
-            return img;
+            return undefined;
         const scale = Math.max(boxW / srcW, boxH / srcH);
         targetW = Math.max(1, Math.round(srcW * scale));
         targetH = Math.max(1, Math.round(srcH * scale));
@@ -3261,36 +3263,36 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
         const boxH = g.height;
         if (boxW !== undefined && boxH !== undefined) {
             if (g.shrinkOnly && srcW <= boxW && srcH <= boxH)
-                return img;
+                return undefined;
             if (g.enlargeOnly && srcW >= boxW && srcH >= boxH)
-                return img;
+                return undefined;
             const scale = Math.min(boxW / srcW, boxH / srcH);
             targetW = Math.max(1, Math.round(srcW * scale));
             targetH = Math.max(1, Math.round(srcH * scale));
         }
         else if (boxW !== undefined) {
             if (g.shrinkOnly && srcW <= boxW)
-                return img;
+                return undefined;
             if (g.enlargeOnly && srcW >= boxW)
-                return img;
+                return undefined;
             const scale = boxW / srcW;
             targetW = Math.max(1, Math.round(boxW));
             targetH = Math.max(1, Math.round(srcH * scale));
         }
         else if (boxH !== undefined) {
             if (g.shrinkOnly && srcH <= boxH)
-                return img;
+                return undefined;
             if (g.enlargeOnly && srcH >= boxH)
-                return img;
+                return undefined;
             const scale = boxH / srcH;
             targetW = Math.max(1, Math.round(srcW * scale));
             targetH = Math.max(1, Math.round(boxH));
         }
         else {
-            return img;
+            return undefined;
         }
     }
-    return (yield* resizeImageSteps(img, {
+    return {
         width: targetW,
         height: targetH,
         fit: "fill",
@@ -3299,8 +3301,10 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
         background: { r: 0, g: 0, b: 0, a: 0 },
         withoutEnlargement: false,
         withoutReduction: false
-    }));
+    };
 }
+
+function* applyMagickResizeSteps(img:RgbaImage,geomStr:string,kernel:ResizeKernel):Generator<void,RgbaImage,void>{const options=magickResizeOptions(img,geomStr,kernel);return options?yield*resizeImageSteps(img,options):img;}
 
 function* applyMagickCropSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition): Generator<void, RgbaImage, void> {
     return (yield* applyMagickCropToStackSteps(img, geomStr, gravity))[0]!;
@@ -3330,6 +3334,11 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
         }
         return tiles;
     }
+    const area=magickCropArea(img,geomStr,gravity);return area?[(yield*extractImageSteps(img,area))]:[img];
+}
+
+function magickCropArea(img:Pick<RgbaImage,"width"|"height">,geomStr:string,gravity:GravityPosition):Parameters<typeof extractImageSteps>[1]|undefined {
+ const g=parseMagickGeometry(geomStr);
     const rawW = g.isPercent
         ? Math.max(1, Math.round((img.width * (g.percentX ?? 100)) / 100))
         : Math.max(1, Math.round(g.width ?? img.width));
@@ -3338,23 +3347,21 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
         : Math.max(1, Math.round(g.height ?? img.height));
     const { x: x0, y: y0 } = gravityAdjustBox(img.width, img.height, rawW, rawH, g.x, g.y, gravity);
     if (x0 === img.width || y0 === img.height) {
-        return [img];
+        return undefined;
     }
     const ix0 = Math.max(0, x0);
     const iy0 = Math.max(0, y0);
     const ix1 = Math.min(img.width, x0 + rawW);
     const iy1 = Math.min(img.height, y0 + rawH);
     if (ix1 <= ix0 || iy1 <= iy0) {
-        return [(yield* extractImageSteps(img, { left: 0, top: 0, width: 1, height: 1 }))];
+        return {left:0,top:0,width:1,height:1};
     }
-    return [
-        (yield* extractImageSteps(img, {
+    return {
             left: ix0,
             top: iy0,
             width: ix1 - ix0,
             height: iy1 - iy0
-        }))
-    ];
+    };
 }
 
 function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -3838,8 +3845,7 @@ function inferMaxDecodeDimensionFromUpcomingTokens(
     return undefined;
 }
 
-function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array, maxDecodeDimension?: number): Generator<void, RgbaImage[] | undefined, void> {
-    let work = 0;
+function parseInputToken(token:string):{baseToken:string;pageSpec?:string;inlineGeom?:string}{
     let baseToken = token;
     let pageSpec: string | undefined;
     let inlineGeom: string | undefined;
@@ -3854,6 +3860,20 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             inlineGeom = inside;
         }
     }
+ return {baseToken,...(pageSpec===undefined?{}:{pageSpec}),...(inlineGeom===undefined?{}:{inlineGeom})};
+}
+
+function* selectedInputPages(pageSpec:string|undefined,totalPages:number):Generator<number>{
+ const resolveIdx=(n:number)=>n<0?Math.max(0,totalPages+n):Math.min(Math.max(0,n),Math.max(0,totalPages-1));
+ if(pageSpec===undefined){for(let page=0;page<totalPages;page++)yield page;}
+ else if(/^-?\d+$/.test(pageSpec))yield resolveIdx(parseInt(pageSpec,10));
+ else if(/^-?\d+--?\d+$/.test(pageSpec)){const match=/^(-?\d+)-(-?\d+)$/.exec(pageSpec)!;const start=resolveIdx(parseInt(match[1]!,10)),end=resolveIdx(parseInt(match[2]!,10)),step=start<=end?1:-1;for(let page=start;;page+=step){yield page;if(page===end)break;}}
+ else for(const page of pageSpec.split(","))yield resolveIdx(parseInt(page,10));
+}
+
+function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array, maxDecodeDimension?: number): Generator<void, RgbaImage[] | undefined, void> {
+    let work = 0;
+    const {baseToken,pageSpec,inlineGeom}=parseInputToken(token);
     function* applyMod(imgs: RgbaImage[]): Generator<void, RgbaImage[], void> {
         if (!inlineGeom)
             return imgs;
@@ -3919,42 +3939,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     catch {
         totalPages = 1;
     }
-    const resolveIdx = (n: number): number => n < 0 ? Math.max(0, totalPages + n) : Math.min(Math.max(0, n), Math.max(0, totalPages - 1));
-    let pageIndices: number[];
-    if (pageSpec !== undefined) {
-        if (/^-?\d+$/.test(pageSpec)) {
-            pageIndices = [resolveIdx(parseInt(pageSpec, 10))];
-        }
-        else if (/^-?\d+--?\d+$/.test(pageSpec)) {
-            const m = /^(-?\d+)-(-?\d+)$/.exec(pageSpec)!;
-            const start = resolveIdx(parseInt(m[1]!, 10));
-            const end = resolveIdx(parseInt(m[2]!, 10));
-            pageIndices = [];
-            if (start <= end) {
-                for (let p = start; p <= end; p++) {
-                    if (++work % 16384 === 0)
-                        yield;
-                    pageIndices.push(p);
-                }
-            }
-            else {
-                for (let p = start; p >= end; p--) {
-                    if (++work % 16384 === 0)
-                        yield;
-                    pageIndices.push(p);
-                }
-            }
-        }
-        else {
-            pageIndices = pageSpec.split(",").map((s) => resolveIdx(parseInt(s, 10)));
-        }
-    }
-    else if (totalPages > 1) {
-        pageIndices = Array.from({ length: totalPages }, (_, idx) => idx);
-    }
-    else {
-        pageIndices = [0];
-    }
+    const pageIndices:number[]=[];for(const page of selectedInputPages(pageSpec,totalPages)){if(++work%16384===0)yield;pageIndices.push(page);}
     const effectiveMaxDecodeDim = inferMaxDecodeDimensionFromUpcomingTokens([], 0, inlineGeom) ?? maxDecodeDimension;
     const results: RgbaImage[] = [];
     for (const pageIdx of pageIndices) {
@@ -5722,7 +5707,26 @@ export function runCompositeCliSync(argv: readonly string[], files: Map<string, 
 }
 
 
-function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal):Promise<StoredRgbaImage|undefined>{
+ const {baseToken,pageSpec,inlineGeom}=parseInputToken(token),lower=baseToken.toLowerCase();let image:StoredRgbaImage|undefined;
+ if(lower.startsWith("tile:")){
+  const pattern=await parseStoredCompareInput(baseToken.slice(5),state,backend,signal);if(!pattern)return;
+  const position=backend.storage.allocate(state.sizeWidth*state.sizeHeight*4);
+  for(let y=0;y<state.sizeHeight;y++)for(let x=0;x<state.sizeWidth;x++){await backend.storage.write(position+(y*state.sizeWidth+x)*4,await backend.storage.read(pattern.position+((y%pattern.height)*pattern.width+x%pattern.width)*4,4));}
+  image={position,width:state.sizeWidth,height:state.sizeHeight,format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:true};
+ }else{
+  const generated=await drainSteps(parseInputOperandSteps(baseToken,new Map(),state),signal);
+  if(generated)image=await backend.retain(generated);
+  else{
+   let path=baseToken;const colon=path.indexOf(":");if(colon>0&&extToImageFormat(path.slice(0,colon)))path=path.slice(colon+1);
+   image=await backend.load(path,metadata=>{const total=metadata?.pages&&metadata.pages>1?metadata.pages:1,pages=selectedInputPages(pageSpec,total),page=pages.next().value??0;pages.return(undefined);const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom);return {density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};});
+  }
+ }
+ if(image&&inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area)image=await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal);}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await transformStoredImage(image,backend.storage,{kind:"resize",...resize},signal);}}
+ return image;
+}
+
+function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal,backend?:CompareFileSession): Generator<IdentifyStep, ImageMagickCliResult, void> {
     let cooperativeWork = 63;
     const state = createDefaultState();
     state.fuzz = 0;
@@ -5792,14 +5796,15 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const refSpec = operands[0]!;
     const candSpec = operands[1]!;
     const outSpec = operands[2] ?? "null:";
-    let imgA: RgbaImage | undefined;
-    let imgB: RgbaImage | undefined;
+    let imgA: RgbaImage | StoredRgbaImage | undefined;
+    let imgB: RgbaImage | StoredRgbaImage | undefined;
     try {
-        imgA = (yield* parseInputOperandSteps(refSpec, files, state, stdinBytes));
+        if(backend)yield {async run(){imgA=await parseStoredCompareInput(refSpec,state,backend,signal!);}};else imgA = (yield* parseInputOperandSteps(refSpec, files, state, stdinBytes));
         if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); } catch { /* Collection is best-effort. */ } }
-        imgB = (yield* parseInputOperandSteps(candSpec, files, state, stdinBytes));
+        if(backend)yield {async run(){imgB=await parseStoredCompareInput(candSpec,state,backend,signal!);}};else imgB = (yield* parseInputOperandSteps(candSpec, files, state, stdinBytes));
     }
     catch (err) {
+        signal?.throwIfAborted();if(err instanceof CompareInputFailure)throw err.reason;
         return {
             exitCode: 2,
             stdout: "",
@@ -5821,16 +5826,18 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         };
     }
     const width=Math.max(imgA.width,imgB.width),height=Math.max(imgA.height,imgB.height);
-    const diffData=outSpec.toLowerCase()!=="null:"?new Uint8Array(width*height*4):undefined;
-    const comparison=compareImageSteps(imgA,imgB,{metric,fuzz:state.fuzz,highlightColor,composeSrc,diff:!!diffData,...(lowlightColor?{lowlightColor}:{}),...(dissimilarityThreshold===undefined?{}:{dissimilarityThreshold})});
+    const diff=outSpec.toLowerCase()!=="null:",diffPosition=backend&&diff?backend.storage.allocate(width*height*4):undefined;
+    const diffData=!backend&&diff?new Uint8Array(width*height*4):undefined;
+    const comparison=compareImageSteps(imgA,imgB,{metric,fuzz:state.fuzz,highlightColor,composeSrc,diff,...(lowlightColor?{lowlightColor}:{}),...(dissimilarityThreshold===undefined?{}:{dissimilarityThreshold})});
     let compared=comparison.next();
     try{while(!compared.done){const request=compared.value;
       if(!request){yield;compared=comparison.next();}
-      else if(request.kind==="read"){const data=request.image===0?imgA.data:imgB.data;compared=comparison.next(data.subarray(request.position,request.position+request.length));}
-      else{diffData!.set(request.data,request.position);compared=comparison.next();}
+      else if(request.kind==="read"){const image=request.image===0?imgA:imgB;let bytes:Uint8Array;if("data" in image)bytes=image.data.subarray(request.position,request.position+request.length);else {yield {async run(){bytes=await backend!.storage.read(image.position+request.position,request.length);}};}compared=comparison.next(bytes!);}
+      else{if(backend)yield {async run(){await backend.storage.write(diffPosition!+request.position,request.data);}};else diffData!.set(request.data,request.position);compared=comparison.next();}
     }}finally{comparison.return(undefined as never);}
     const {metric:metricStr,exitCode}=compared.value;
-    detachRgbaBuffer(imgA.data);detachRgbaBuffer(imgB.data);
+    if("data" in imgA)detachRgbaBuffer(imgA.data);if("data" in imgB)detachRgbaBuffer(imgB.data);
+    if(backend&&diff){const {format,path}=inferOutputFormat(outSpec,"png");let stdoutBytes:Uint8Array|undefined;yield {async run(){stdoutBytes=await backend.publish({width,height,format:"png",channels:4,depth:"uchar",density:state.density,space:"srgb",hasAlpha:true,position:diffPosition!},path,{format,quality:state.quality});}};return {exitCode,stdout:"",stderr:`${metricStr}\n`,...(stdoutBytes?{stdoutBytes}:{})};}
     if (diffData) {
         const diffImg: RgbaImage = {
             width,
@@ -5862,8 +5869,9 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         stderr: `${metricStr}\n`
     };
 }
-export async function runCompareCli(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
-    return drainSteps(runCompareCliSteps(argv, files, stdinBytes, signal), signal);
+export async function runCompareCli(argv: readonly string[], files: Map<string, Uint8Array>|CompareFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
+ if(files instanceof Map)return drainIdentifySteps(runCompareCliSteps(argv,files,stdinBytes,signal),signal);
+ const active=signal??new AbortController().signal;return withCompareFiles(files,stdinBytes,active,backend=>drainIdentifySteps(runCompareCliSteps(argv,new Map(),stdinBytes,active,backend),active));
 }
 export function runCompareCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
     const steps = runCompareCliSteps(argv, files, stdinBytes, signal);
@@ -6221,6 +6229,12 @@ async function executeVfsMagickTool(
       accountedBytes += bytes;
       context.inputBudget?.check(accountedBytes);
     };
+    if(runner===runCompareCli||(runner===runMagickCli&&argv[0]==="compare")){
+      const result=await runCompareCli(runner===runMagickCli?argv.slice(1):argv,{filesystem:context.fs,cwd:context.cwd,stdin:context.stdin,stdout:invocation.child(context.stdout).output,...(context.registerCleanup?{registerCleanup:context.registerCleanup}:{}),inputBudget:{check(total){chargeInput(total-accountedBytes);}}},undefined,invocation.signal);
+      if(result.stderr)await writeBytes(context.stderr,new TextEncoder().encode(result.stderr),invocation.signal);
+      if(result.stdout)await writeBytes(invocation.child(context.stdout).output,new TextEncoder().encode(result.stdout),invocation.signal);
+      return {exitCode:result.exitCode};
+    }
     if(runner===runIdentifyCli||(runner===runMagickCli&&argv[0]==="identify")){
       const result=await runIdentifyCli(runner===runMagickCli?argv.slice(1):argv,{filesystem:context.fs,cwd:context.cwd,stdin:context.stdin,inputBudget:{check(total){chargeInput(total-accountedBytes);}}},undefined,invocation.signal);
       if(result.stderr)await writeBytes(context.stderr,new TextEncoder().encode(result.stderr),invocation.signal);

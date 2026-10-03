@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { setImmediate } from "node:timers/promises";
 import { deflateRawSync } from "node:zlib";
-import { createMemoryFileSystem, Shell, type CommandContext, type FileSystem } from "../../src/index.js";
+import { createMemoryFileSystem, Shell, type CommandContext, type FileSystem, type FileStaging } from "../../src/index.js";
 import { createZipCommand } from "../../src/commands/archive/zip.js";
 import { createUnzipCommand } from "../../src/commands/archive/unzip.js";
 import { bindFileOutputBudget } from "../../src/contracts/filesystem-output.js";
@@ -164,14 +164,18 @@ test("ZIP STORE file writes its owned staging before gated source EOF", async ()
     async openReadFile(path, options) {
       const handle = await fs.openReadFile!(path, options);
       return { ...handle, async read(position, size, readOptions) {
-        if (position) {
-          assert.ok(writes >= 2, "header and payload must reach staging before next input");
+        if (path === "/work/live" && position) {
+          assert.ok(writes >= 1, "payload must reach owned staging before next input");
           assert.equal(published, false);
         }
         return handle.read(position, Math.min(size, 512), readOptions);
       } };
     },
-    async writeFileConditional(path, bytes, options) { writes++; return fs.writeFileConditional!(path, bytes, options); },
+    async createStagedFile(...args) {
+      const staging = await fs.createStagedFile!(...args);
+      assert.ok(staging.writer);
+      return { ...staging, writer: { ...staging.writer, async write(bytes, options) { writes++; await staging.writer!.write(bytes, options); } } };
+    },
     async publishStagedFile(staging, path, options) { published = true; return fs.publishStagedFile!(staging, path, options); },
   });
   const result = await run(stream, "zip", ["-q0", "created.zip", "live"]);
@@ -181,7 +185,7 @@ test("ZIP STORE file writes its owned staging before gated source EOF", async ()
   assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name).sort(), ["created.zip", "live"]);
 });
 
-for (const phase of ["createStagedFile", "writeFileConditional", "publishStagedFile"] as const) {
+for (const phase of ["createStagedFile", "retainedWrite", "publishStagedFile"] as const) {
   test(`ZIP streamed file abort at ${phase} cleans staging without publication`, async () => {
     const fs = createMemoryFileSystem();
     await fs.mkdir("/work");
@@ -197,6 +201,14 @@ for (const phase of ["createStagedFile", "writeFileConditional", "publishStagedF
         if (method === phase && !injected && phase === "publishStagedFile") { injected = true; controller.abort(reason); }
         const result: unknown = await Reflect.apply(value, target, args);
         if (method === phase && !injected) { injected = true; controller.abort(reason); }
+        if (method === "createStagedFile" && phase === "retainedWrite") {
+          const staging = result as FileStaging;
+          assert.ok(staging.writer);
+          return { ...staging, writer: { ...staging.writer, async write(bytes: Uint8Array, options: Parameters<NonNullable<FileStaging["writer"]>["write"]>[1]) {
+            await staging.writer!.write(bytes, options);
+            if (!injected) { injected = true; controller.abort(reason); }
+          } } };
+        }
         return result;
       };
     } });
@@ -228,20 +240,25 @@ test("ZIP live source failure leaves no file or staging publication", async () =
   assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["live"]);
 });
 
-test("ZIP live conditional writes preserve a replaced staging file", async () => {
+test("ZIP retained writes preserve a replaced staging file", async () => {
   const fs = createMemoryFileSystem();
   await fs.mkdir("/work");
   await fs.writeFile("/work/live", Buffer.alloc(1024));
   let injected = false;
   let replacement = "";
-  const stream = wrapped(fs, { async writeFileConditional(path, bytes, options) {
-    if (!injected) {
-      injected = true;
-      replacement = path;
-      await fs.rm(path);
-      await fs.writeFile(path, Buffer.from("someone else's bytes"));
-    }
-    return fs.writeFileConditional!(path, bytes, options);
+  const stream = wrapped(fs, { async createStagedFile(...args) {
+    const staging = await fs.createStagedFile!(...args);
+    if (args[1] !== "archive.zip") return staging;
+    assert.ok(staging.writer);
+    return { ...staging, writer: { ...staging.writer, async write(bytes, options) {
+      if (!injected) {
+        injected = true;
+        replacement = staging.file.path;
+        await fs.rm(replacement);
+        await fs.writeFile(replacement, Buffer.from("someone else's bytes"));
+      }
+      await staging.writer!.write(bytes, options);
+    } } };
   } });
   const result = await run(stream, "zip", ["-q0", "created.zip", "live"]);
   assert.equal(result.exitCode, 2);
@@ -254,7 +271,7 @@ test("ZIP live staging refuses missing conditional-write authority before input"
   const fs = createMemoryFileSystem();
   await fs.mkdir("/work");
   let pulls = 0;
-  const stream = wrapped(fs, { capabilities: { ...fs.capabilities, atomicFileMutation: false } });
+  const stream = wrapped(fs, { capabilities: { ...fs.capabilities, atomicFileMutation: false, trustedOwnedStaging: false }, capabilitiesFor: async () => ({ ...fs.capabilities, atomicFileMutation: false, trustedOwnedStaging: false }) });
   const result = await run(stream, "zip", ["-q0", "created.zip", "-"], { stdin: (async function* () { pulls++; yield new Uint8Array(512); })() });
   assert.equal(result.exitCode, 2);
   assert.equal(pulls, 0);
@@ -297,6 +314,7 @@ test("ZIP live sink rejection cancels a pending cooperative VFS read", async () 
   const rejection = new Promise<void>(resolve => { rejected = resolve; });
   const stream = wrapped(fs, { async openReadFile(path, options) {
     const handle = await fs.openReadFile!(path, options);
+    if (path !== "/work/live") return handle;
     return { ...handle, async read(position, _size, readOptions) {
       if (position) {
         await new Promise<void>(resolve => {
@@ -767,6 +785,7 @@ test("zip review: replaced staging directory cannot redirect archive mode restor
   let outsideBytes: Uint8Array | undefined;
   const dynamic = wrapped(fs, { async createStagedFile(path, name, content, options) {
     const receipt = await fs.createStagedFile!(path, name, content, options);
+    if (name !== "archive.zip") return receipt;
     assert.equal(content.type, "file");
     const bytes = content.type === "file" ? content.data : new Uint8Array();
     outsideBytes = Uint8Array.from(bytes);

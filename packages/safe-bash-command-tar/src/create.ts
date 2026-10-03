@@ -4,12 +4,13 @@ import { quoteName } from "./listing.js";
 import { Exclusions,type Operand,type TarOptions } from "./options.js";
 import { recordPadding } from "./stream.js";
 import { TransformedNames } from "./transform.js";
-import { dirname,readBytes,resolvePath,type ByteSource,type CommandContext,type FileStat } from "safe-bash-contracts";
+import { dirname,readBytes,resolvePath,type ByteSource,type CommandContext,type FileStat,type DirectoryEntry } from "safe-bash-contracts";
 import { escapeText } from "safe-bash-contracts/escaping";
 import { compareByteArrays,encodeBytes,equalBytes } from "safe-bash-io-engine/byte-encoding";
 import { Budget,checkPath,display,fail,fileSource,maybeStat,operation,vfsPath } from "safe-bash-io-engine/commands/archive/internal";
 
-interface SourceEntry { readonly path: string; readonly canonical: string; readonly stat: FileStat; readonly entry: Entry; readonly sourceLink?: string }
+import { ArchiveMetadataMap } from "safe-bash-io-engine/commands/archive/metadata";
+import { ManifestStorage, type ManifestBacking, type SourceEntry } from "./manifest-storage.js";
 
 function safeName(name: string): string {
   const relative = name.replace(/^\/+/u, "");
@@ -17,10 +18,13 @@ function safeName(name: string): string {
   return components.slice(components.lastIndexOf("..") + 1).join("/") || ".";
 }
 
-export async function manifest(context: CommandContext, options: TarOptions, budget: Budget): Promise<{ entries: SourceEntry[]; output?: string; outputStat?: FileStat }> {
+interface ManifestResult<Entries> { entries: Entries; output?: string; outputStat?: FileStat }
+export function manifest(context: CommandContext, options: TarOptions, budget: Budget): Promise<ManifestResult<SourceEntry[]>>;
+export function manifest(context: CommandContext, options: TarOptions, budget: Budget, backing: ManifestBacking): Promise<ManifestResult<ManifestStorage>>;
+export async function manifest(context: CommandContext, options: TarOptions, budget: Budget, backing?: ManifestBacking): Promise<ManifestResult<SourceEntry[] | ManifestStorage>> {
   const exclusions = new Exclusions(options.excludes, budget.limits.maxPatternSteps);
   const transformedNames = new TransformedNames(context, options.transforms, budget.limits);
-  const entries: SourceEntry[] = [];
+  const storage = new ManifestStorage(context, backing);
   let archiveBytes = 1024;
   let output: string | undefined;
   let outputStat: FileStat | undefined;
@@ -32,9 +36,8 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
     const parent = await operation(context, () => context.fs.realpath(dirname(path), { signal: context.signal }));
     output = resolvePath(parent, path.slice(path.lastIndexOf("/") + 1));
   }
-  const identities = new Map<object | symbol, Map<string, Map<string, SourceEntry>>>();
-  const bindings = new Map<string, { scope: object | symbol; key: string }>();
   const visit = async (path: string, name: string, depth: number, explicit: boolean, ancestors: readonly string[], operand: Operand): Promise<void> => {
+    if (backing?.ownsPath(path)) return;
     checkPath(name, budget.limits);
     if (depth > budget.limits.maxDepth) fail("source traversal depth limit exceeded");
     await budget.member();
@@ -73,28 +76,12 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
       checkPath(entry.linkname, budget.limits);
     }
     const archivePath = resolvePath("/", entry.name);
-    const binding = bindings.get(archivePath);
-    if (binding) {
-      identities.get(binding.scope)?.get(binding.key)?.delete(archivePath);
-      bindings.delete(archivePath);
-    }
     if (stat.type === "file") {
       if (outputStat && compareIdentity(stat, stat) !== "same") fail("cannot replace an existing archive when a source has unknown backing identity");
       if ((stat.nlink ?? 1) > 1 && compareIdentity(stat, stat) !== "same") fail(`cannot preserve hardlinks without complete backing identity: ${display(name)}`);
-      if (compareIdentity(stat, stat) === "same") {
-        let scope = identities.get(stat.identityScope!);
-        if (!scope) { scope = new Map(); identities.set(stat.identityScope!, scope); }
-        const key = Number.isSafeInteger(stat.dev) && stat.dev! >= 0 && Number.isSafeInteger(stat.ino) && stat.ino! >= 0
-          ? `native:${stat.dev}:${stat.ino}` : `opaque:${stat.opaqueIdentity}`;
-        let paths = scope.get(key);
-        if (!paths) { paths = new Map(); scope.set(key, paths); }
-        const previous = paths.values().next().value;
-        if (previous) {
-          entry.type = "1"; entry.linkname = previous.entry.name; entry.size = 0;
-        }
-        paths.set(archivePath, { path, canonical, stat, entry });
-        bindings.set(archivePath, { scope: stat.identityScope!, key });
-      }
+    }
+    await storage.bind(archivePath, stat, entry);
+    if (stat.type === "file") {
       if (!Number.isSafeInteger(entry.size) || entry.size < 0 || entry.size > budget.limits.maxEntryBytes) fail("entry byte limit exceeded");
       if (entry.size > budget.limits.maxTotalBytes - budget.totalBytes) fail("total payload byte limit exceeded");
       budget.totalBytes += entry.size;
@@ -106,18 +93,37 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
     const headers = encodeEntry(entry, budget.limits);
     archiveBytes += headers.reduce((size, header) => size + header.length, 0) + Math.ceil(entry.size / 512) * 512;
     if (options.format === "ustar" && headers.length > 1) fail(`metadata requires PAX format: ${display(name)}`);
-    entries.push({ path, canonical, stat, entry, ...(sourceLink === undefined ? {} : { sourceLink }) });
+    await storage.append({ path, canonical, stat, entry, ...(sourceLink === undefined ? {} : { sourceLink }) });
     if (stat.type === "directory" && (operand.recursion ?? options.recursion)) {
       const maxEntries = budget.limits.maxMembers - budget.members;
-      const children = await operation(context, () => context.fs.readdir(path, { signal: context.signal,
-        ...(Number.isFinite(maxEntries) ? { maxEntries } : {}) }));
-      if (children.length > budget.limits.maxMembers - budget.members) fail("member/header limit exceeded");
-      if (options.sort === "name") children.sort((a, b) => compareByteArrays(encodeBytes(a.name), encodeBytes(b.name)));
+      const children = async function* (): AsyncIterable<DirectoryEntry> {
+        if (!backing) {
+          const items = await operation(context, () => context.fs.readdir(path, { signal: context.signal,
+            ...(Number.isFinite(maxEntries) ? { maxEntries } : {}) }));
+          if (items.length > maxEntries) fail("member/header limit exceeded");
+          if (options.sort === "name") items.sort((a, b) => compareByteArrays(encodeBytes(a.name), encodeBytes(b.name)));
+          yield* items;
+          return;
+        }
+        if (!context.fs.iterateDirectory) fail("archive mutation requires streaming directory enumeration");
+        const ordered = options.sort === "name" ? new ArchiveMetadataMap<DirectoryEntry>(backing.factory, context.signal) : undefined;
+        let count = 0;
+        try {
+          for await (const child of context.fs.iterateDirectory(path, { signal: context.signal })) {
+            if (backing.ownsPath(resolvePath(canonical, child.name))) continue;
+            if (++count > maxEntries) fail("member/header limit exceeded");
+            if (ordered) await ordered.set(Array.from(encodeBytes(child.name), byte => byte.toString(16).padStart(2, "0")).join(""), child);
+            else yield child;
+          }
+          if (ordered) for await (const [, child] of ordered.sortedEntries()) yield child;
+        } finally { await ordered?.close(); }
+      };
       let cache = false;
-      if (options.excludeCaches && children.some(child => child.name === "CACHEDIR.TAG")) {
+      if (options.excludeCaches) {
         const tag = resolvePath(canonical, "CACHEDIR.TAG");
-        const tagStat = await operation(context, () => context.fs.stat(tag, { signal: context.signal }));
-        if (tagStat.type === "file") {
+        const tagExists = await maybeStat(context, tag);
+        const tagStat = tagExists ? await operation(context, () => context.fs.stat(tag, { signal: context.signal })) : undefined;
+        if (tagStat?.type === "file") {
           const signature = encodeBytes("Signature: 8a477f597d28d172789f06886806bc55");
           let offset = 0;
           for await (const chunk of readBytes(fileSource(context, tag, budget.limits), context.signal)) {
@@ -128,7 +134,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
           }
         }
       }
-      for (const child of children) {
+      for await (const child of children()) {
         if (!child.name || child.name === "." || child.name === ".." || /[/\0]/u.test(child.name)) fail("invalid filesystem directory entry");
         if (cache && child.name !== "CACHEDIR.TAG") continue;
         await visit(resolvePath(canonical, child.name), `${rawName}${child.name}`, depth + 1, false, [...ancestors, canonical], operand);
@@ -143,7 +149,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
     await visit(vfsPath(operand.cwd, operand.name), safeName(operand.name), 0, true, [], operand);
   }
   if (options.mode === "c") recordPadding(archiveBytes, options.recordSize, budget.limits.maxArchiveBytes);
-  return { entries, ...(output === undefined ? {} : { output }), ...(outputStat === undefined ? {} : { outputStat }) };
+  return { entries: backing ? storage : storage.entries, ...(output === undefined ? {} : { output }), ...(outputStat === undefined ? {} : { outputStat }) };
 }
 
 function checkSource(source: SourceEntry, current: FileStat): void {
@@ -159,9 +165,9 @@ async function unchanged(context: CommandContext, source: SourceEntry): Promise<
   }
 }
 
-export async function* createArchive(context: CommandContext, entries: readonly SourceEntry[], options: TarOptions, budget: Budget): ByteSource {
+export async function* createArchive(context: CommandContext, entries: Iterable<SourceEntry> | AsyncIterable<SourceEntry>, options: TarOptions, budget: Budget, backing?: ManifestBacking): ByteSource {
   let headers = 0;
-  for (const source of entries) {
+  for await (const source of entries) {
     await unchanged(context, source);
     const encoded = encodeEntry(source.entry, budget.limits);
     headers += encoded.length > 1 ? 2 : 1;
@@ -203,12 +209,12 @@ export async function* createArchive(context: CommandContext, entries: readonly 
     }
   }
   if (options.metadata.preserveAtime) {
-    const restored = new Set<string>();
-    for (const source of entries) {
-      if ((source.entry.type !== "0" && source.entry.type !== "5") || restored.has(source.path)) continue;
+    const restored = backing ? new ArchiveMetadataMap<boolean>(backing.factory, context.signal) : new Map<string, boolean>();
+    for await (const source of entries) {
+      if ((source.entry.type !== "0" && source.entry.type !== "5") || await restored.has(source.path)) continue;
       await unchanged(context, source);
       await operation(context, () => context.fs.utimes!(source.path, source.stat.atimeMs, source.stat.mtimeMs, { signal: context.signal }));
-      restored.add(source.path);
+      await restored.set(source.path, true);
     }
   }
   yield new Uint8Array(1024);

@@ -98,7 +98,7 @@ test("Info-ZIP 6.00 raw bytes, member selection and -p/-l/-o/-d precedence", asy
   }
   assert.equal(index, 100);
   assert.deepEqual(snapshot.groups.selection.namespace, { root: ["binary", "folder", "sample.zip"], folder: ["data"] });
-  assert.ok(observed.calls.every(call => call.path === "/work/sample.zip"));
+  assert.ok(observed.calls.every(call => call.path === "/work/sample.zip" || call.method === "capabilitiesFor" && call.path === "/work"));
 });
 
 test("Info-ZIP 6.00 missing/empty archives and CRC failure preserve stream bytes and status", async () => {

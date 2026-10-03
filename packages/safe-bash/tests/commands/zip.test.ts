@@ -285,8 +285,10 @@ test("zip copies reusable read fragments and prepares all files before publicati
       };
     },
     async createStagedFile(path, name, content, options) {
-      assert.equal(completed, true);
-      writes++;
+      if (name === "archive.zip") {
+        assert.equal(completed, true);
+        writes++;
+      }
       return fs.createStagedFile!(path, name, content, options);
     },
   });
@@ -470,14 +472,15 @@ test("zip registers cleanup before filesystem admission and rejects new publicat
       }
       return fs.capabilities;
     },
-    async createStagedFile(path, name, content, options) { writes++; return fs.createStagedFile!(path, name, content, options); },
+    async createStagedFile(path, name, content, options) { if (name === "archive.zip") writes++; return fs.createStagedFile!(path, name, content, options); },
   });
-  await assert.rejects(run(observed, ["bundle", "file"], {}, { registerCleanup(callback) { cleanup = callback; } }), reason => Object.is(reason, closingSignal?.reason));
+  await assert.rejects(run(observed, ["bundle", "file"], {}, { registerCleanup(callback) { cleanup ??= callback; } }), reason => Object.is(reason, closingSignal?.reason));
   assert.equal(closure, repeatedClosure);
   await closure;
   assert.equal(closingSignal?.aborted, true);
   assert.equal(writes, 0);
   await assert.rejects(fs.stat("/work/bundle.zip"));
+  assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["file", "tree"]);
 });
 
 for (const stop of ["caller", "dispose"]) test(`zip drains an admitted source read before ${stop} settlement`, async () => {
@@ -593,6 +596,7 @@ test("zip checks staging ownership after writes before restoring archive mode", 
   let staging = "";
   const replaced = wrapped(fs, { async createStagedFile(path, name, content, options) {
     const receipt = await fs.createStagedFile!(path, name, content, options);
+    if (name !== "archive.zip") return receipt;
     assert.equal(content.type, "file");
     const bytes = content.type === "file" ? content.data : new Uint8Array();
     outside = Uint8Array.from(bytes);
@@ -632,6 +636,7 @@ for (const replacement of [false, true]) test(`zip atomic acquisition preserves 
   let acquisitionSignal: AbortSignal | undefined;
   const acquired = wrapped(fs, { async createStagedFile(path, name, content, options) {
     const receipt = await fs.createStagedFile!(path, name, content, options);
+    if (name !== "archive.zip") return receipt;
     staging = path;
     acquisitionSignal = options?.signal;
     if (replacement) {

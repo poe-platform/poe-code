@@ -77,7 +77,7 @@ async function run(command: CommandDefinition, args: string[], input = "", fs: F
 }
 
 for (const destination of ["-", "/new.tar"]) test(`tar creates ${destination} from S3 sources`, async () => {
-  const fs = new S3FileSystem({ bucket: "test", transport: createS3Transport(new MockS3Client({ buckets: ["test"] }), { conditionalPut: true }) });
+  const fs = new S3FileSystem({ bucket: "test", transport: createS3Transport(new MockS3Client({ buckets: ["test"] }), { conditionalPut: true, streamingRead: true }) });
   await fs.writeFile("/hello.txt", new TextEncoder().encode("hello"));
   const result = await run(createTarCommand(), ["-cf", destination, "hello.txt"], "", fs);
   assert.equal(result.exitCode, 0, result.stderr);
@@ -296,4 +296,47 @@ for (const mode of ["c", "x"]) test(`tar ${mode} rejects transformed traversal n
   const result = await run(createTarCommand(), [`-${mode}f`, "/out.tar", "--transform=s,a,../escape,", "a"], "", fs);
   assert.equal(result.exitCode, 2, result.stderr);
   await assert.rejects(fs.stat("/escape"));
+});
+
+for (const mode of ["-rf", "-uf", "--delete", "-Af"]) test(`tar mutation ${mode} uses retained reads and staged publication`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/a", new Uint8Array(256 * 1024).fill(37));
+  await fs.writeFile("/b", new Uint8Array(256 * 1024).fill(42));
+  assert.equal((await run(createTarCommand(), ["-cf", "/archive.tar", "a"], "", fs)).exitCode, 0);
+  assert.equal((await run(createTarCommand(), ["-cf", "/other.tar", "b"], "", fs)).exitCode, 0);
+  let reads = 0, writes = 0, publications = 0;
+  const view = new Proxy(fs, { get(target, property) {
+    if (property === "readFile" || property === "readStream" || property === "rm") return () => { throw new Error(`unexpected ${String(property)}`); };
+    if (property === "openReadFile") return async (...args: Parameters<NonNullable<FileSystem["openReadFile"]>>) => {
+      const handle = await fs.openReadFile!(...args);
+      return { ...handle, read: async (...range: Parameters<typeof handle.read>) => {
+        assert.ok(range[1] <= 65536);
+        reads++;
+        return handle.read(...range);
+      } };
+    };
+    if (property === "createStagedFile") return async (...args: Parameters<NonNullable<FileSystem["createStagedFile"]>>) => {
+      const stage = await fs.createStagedFile!(...args);
+      assert.ok(stage.writer);
+      return { ...stage, writer: { ...stage.writer, write: async (...args: Parameters<typeof stage.writer.write>) => {
+        assert.ok(args[0].length <= 65536);
+        await Promise.resolve();
+        writes++;
+        return stage.writer!.write(...args);
+      } } };
+    };
+    if (property === "publishStagedFile") return async (...args: Parameters<NonNullable<FileSystem["publishStagedFile"]>>) => {
+      publications++;
+      return fs.publishStagedFile!(...args);
+    };
+    const value: unknown = Reflect.get(target, property);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const args = mode === "--delete" ? [mode, "-f", "/archive.tar", "a"] : [mode, "/archive.tar", mode === "-Af" ? "/other.tar" : "b"];
+  const result = await run(createTarCommand(), args, "", view);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(reads > 0);
+  assert.ok(writes > 0);
+  assert.equal(publications, 1);
+  assert.equal((await run(createTarCommand(), ["-tf", "/archive.tar"], "", fs)).stdout, mode === "--delete" ? "" : "a\nb\n");
 });

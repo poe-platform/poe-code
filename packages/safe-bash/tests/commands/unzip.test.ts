@@ -214,7 +214,8 @@ for (const replacement of [false, true]) test(`unzip atomic acquisition abort: $
       assert.equal(retained.type, "file");
       assert.equal(retained.ino, allocation.stat.ino);
       assert.equal(retained.mode, allocation.stat.mode);
-      assert.equal(retained.size, 5);
+      assert.equal(retained.size, allocation.stat.size);
+      assert.equal(retained.size, 0, "streaming acquisition does not preload the member");
       assert.equal((await fs.lstat(allocation.path)).type, "symlink");
       assert.equal(await fs.readlink!(allocation.path), "/outside");
     } else await assert.rejects(fs.lstat(allocation.path));

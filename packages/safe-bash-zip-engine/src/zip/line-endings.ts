@@ -1,3 +1,5 @@
+import { createBytePipe, readBytes, type ByteSource } from "safe-bash-contracts";
+import { CodecReader } from "safe-bash-compression-engine/codec";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { fail } from "safe-bash-io-engine/commands/archive/internal";
 
@@ -39,7 +41,7 @@ export async function zipFromCrlf(bytes: Uint8Array, store: boolean, signal: Abo
       if (read(window + 1) === 0) break;
     }
   } else {
-    await zipDeflateReads(output, read, () => length, level, signal);
+    await zipDeflateReads(index => output[index], read, () => length, level, signal);
   }
   return output.slice(0, length);
 }
@@ -47,7 +49,7 @@ export async function zipFromCrlf(bytes: Uint8Array, store: boolean, signal: Abo
 // Only the Unix Info-ZIP internal compressor's input schedule is modeled here;
 // the existing codec still encodes the resulting bytes. Refill capacity depends
 // on converted bytes, sliding, and fast/lazy match advancement, not I/O chunks.
-async function zipDeflateReads(output: Uint8Array, read: (size: number) => number, length: () => number, level: number, signal: AbortSignal): Promise<void> {
+async function zipDeflateReads(at: (index: number) => number | undefined, read: (size: number) => number | Promise<number>, length: () => number, level: number, signal: AbortSignal): Promise<void> {
   const profiles = [
     [0, 0, 0, 0], [4, 4, 8, 4], [4, 5, 16, 8], [4, 6, 32, 32],
     [4, 4, 16, 16], [8, 16, 32, 32], [8, 16, 128, 128],
@@ -62,15 +64,15 @@ async function zipDeflateReads(output: Uint8Array, read: (size: number) => numbe
   const previous = new Float64Array(32768);
   let position = 0;
   let base = 0;
-  let eof = read(65536) === 0;
+  let eof = await read(65536) === 0;
   let matchLength = 2;
   let matchStart = 0;
   let work = 0;
-  const insert = (at: number): number => {
-    const hash = ((output[at]! << 10) ^ (output[at + 1]! << 5) ^ output[at + 2]!) & 32767;
+  const insert = (position: number): number => {
+    const hash = ((at(position)! << 10) ^ (at(position + 1)! << 5) ^ at(position + 2)!) & 32767;
     const candidate = head[hash]!;
-    previous[at & 32767] = candidate;
-    head[hash] = at;
+    previous[position & 32767] = candidate;
+    head[hash] = position;
     return candidate;
   };
   const longest = (candidate: number, best: number, available: number): number => {
@@ -79,11 +81,11 @@ async function zipDeflateReads(output: Uint8Array, read: (size: number) => numbe
     const maximum = Math.min(258, available);
     do {
       work++;
-      if (output[candidate + best] === output[position + best] &&
-          output[candidate + best - 1] === output[position + best - 1] &&
-          output[candidate] === output[position] && output[candidate + 1] === output[position + 1]) {
+      if (at(candidate + best) === at(position + best) &&
+          at(candidate + best - 1) === at(position + best - 1) &&
+          at(candidate) === at(position) && at(candidate + 1) === at(position + 1)) {
         let count = 2;
-        while (count < maximum && output[candidate + count] === output[position + count]) count++;
+        while (count < maximum && at(candidate + count) === at(position + count)) count++;
         if (count > best) {
           best = count;
           matchStart = candidate;
@@ -104,7 +106,7 @@ async function zipDeflateReads(output: Uint8Array, read: (size: number) => numbe
       if (position - base >= 65274) base += 32768;
       if (eof) break;
       await yieldTurn(signal);
-      eof = read(65536 - (length() - base)) === 0;
+      eof = await read(65536 - (length() - base)) === 0;
       available = length() - position;
     }
     if (available === 0) return;
@@ -160,4 +162,93 @@ export async function zipToCrlf(bytes: Uint8Array, store: boolean, maxBytes: num
     output[offset++] = byte;
   }
   return output;
+}
+
+/** Preserve native conversion read schedules with a fixed history ring and one
+ * backpressured output chunk; producer chunk boundaries do not affect results. */
+export async function* zipLineEndingStream(source: ByteSource, from: boolean, store: boolean, maximum: number, signal: AbortSignal, level = 6, profile?: (converted: boolean) => void): ByteSource {
+  const controller = new AbortController();
+  const active = AbortSignal.any([signal, controller.signal]);
+  const pipe = createBytePipe({ highWaterMark: 65536, signal: active });
+  const original = new CodecReader(source, active);
+  let reader = original;
+  const take = async (size: number): Promise<Uint8Array> => {
+    const result = new Uint8Array(size);
+    let length = 0;
+    while (length < size) {
+      const chunk = await reader.chunk();
+      if (!chunk) break;
+      const used = Math.min(size - length, chunk.length);
+      result.set(chunk.subarray(0, used), length); length += used;
+      if (used < chunk.length) reader.restore(chunk.subarray(used));
+    }
+    return result.subarray(0, length);
+  };
+  const producer = (async () => {
+    let written = 0;
+    const emit = async (bytes: Uint8Array) => {
+      if (bytes.length > maximum - written) fail("converted payload byte limit exceeded");
+      written += bytes.length;
+      for (let offset = 0; offset < bytes.length; offset += 65536) await pipe.writable.write(bytes.subarray(offset, offset + 65536));
+    };
+    try {
+      const window = from ? store ? 16383 : 65535 : store ? 8192 : 32768;
+      const prefix = await take(window);
+      let textual = false, binary = false;
+      for (const byte of prefix) {
+        if (byte <= 6 || byte >= 14 && byte <= 25 || byte >= 28 && byte <= 31) binary = true;
+        if (byte >= 32) textual = true;
+      }
+      const convert = textual && !binary;
+      profile?.(convert);
+      reader = new CodecReader((async function* () {
+        yield prefix;
+        for (;;) { const chunk = await original.chunk(); if (!chunk) break; yield chunk; }
+      })(), active);
+      if (!convert) {
+        for (;;) { const chunk = await reader.chunk(); if (!chunk) break; await emit(chunk); }
+      } else if (!from) {
+        for (;;) {
+          const chunk = await take(32768);
+          if (!chunk.length) break;
+          const output = new Uint8Array(chunk.length * 2);
+          let size = 0;
+          for (const byte of chunk) { if (byte === 10) output[size++] = 13; output[size++] = byte; }
+          await emit(output.subarray(0, size));
+        }
+      } else {
+        const ring = new Uint8Array(65536);
+        let length = 0;
+        const read = async (size: number) => {
+          const chunk = await take(size - 1);
+          if (!chunk.length) return 0;
+          const output = new Uint8Array(chunk.length + 1);
+          let count = 0;
+          for (let index = 0; index < chunk.length; index++) {
+            const byte = chunk[index]!;
+            if (byte !== 13 || index + 1 < chunk.length && chunk[index + 1] !== 10) output[count++] = byte;
+          }
+          if (!count) {
+            const extra = await take(1);
+            output[count++] = extra.length ? extra[0]! : chunk[chunk.length - 1]!;
+          } else if (output[count - 1] === 26) count--;
+          for (let index = 0; index < count; index++) ring[(length + index) % ring.length] = output[index]!;
+          length += count;
+          await emit(output.subarray(0, count));
+          return count;
+        };
+        if (store || prefix.length < window) {
+          while (await read(window + 1)) await yieldTurn(active);
+        } else await zipDeflateReads(index => ring[index % ring.length], read, () => length, level, active);
+      }
+      await pipe.close();
+    } catch (error) { await pipe.abort(error); }
+    finally { await reader.close(); if (reader !== original) await original.close(); }
+  })();
+  try { yield* readBytes(pipe.readable, active); }
+  finally {
+    controller.abort(new Error("ZIP conversion closed"));
+    await pipe.abort();
+    await producer;
+  }
 }

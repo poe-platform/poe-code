@@ -1,7 +1,13 @@
+import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
+import { createZipPatchWriter, type ZipPatchedSource } from "./metadata-patches.js";
+import { ZipBackedEntries } from "./metadata-entries.js";
+import { ZipMetadataMap } from "./metadata.js";
+import type { ZipMetadataFactory } from "./metadata-types.js";
+import { ZipRanges, joinZipSources, patchZipSource, type ZipReadSource } from "./ranges.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { concatBytes } from "safe-bash-io-engine/byte-encoding";
 import { fail,type ArchiveLimits } from "safe-bash-io-engine/commands/archive/internal";
-import { decodeZipEntry,readZipArchive,type ZipArchive,type ZipEntry } from "../zip-format.js";
+import { decodeZipEntry,readZipArchive,readZipIndexedArchive,type ZipIndexedArchive,type ZipArchive,type ZipEntry } from "../zip-format.js";
 import { ZipFailure } from "./options.js";
 import { stripZip64,zip64Fields,zipEnd } from "./zip64.js";
 
@@ -23,39 +29,58 @@ function zip64Payload(bytes: Uint8Array): Uint8Array | undefined {
 
 /** Recovery is opt-in. Signatures nominate records; the normal reader and
  * codecs validate metadata, descriptors, names, sizes and CRC before retention. */
-export async function repairZip(bytes: Uint8Array, mode: "F" | "FF", limits: ArchiveLimits, signal: AbortSignal, password?: Uint8Array): Promise<{ archive: ZipArchive; partial: boolean }> {
+export function repairZip(input: Uint8Array | ZipReadSource, mode: "F" | "FF", limits: ArchiveLimits, signal: AbortSignal, password?: Uint8Array): Promise<{ archive: ZipArchive; partial: boolean }>;
+export function repairZip(input: Uint8Array | ZipReadSource, mode: "F" | "FF", limits: ArchiveLimits, signal: AbortSignal, password: Uint8Array | undefined, factory: ZipMetadataFactory): Promise<{ archive: ZipIndexedArchive; partial: boolean }>;
+export function repairZip(input: Uint8Array | ZipReadSource, mode: "F" | "FF", limits: ArchiveLimits, signal: AbortSignal, password: Uint8Array | undefined, factory: ZipMetadataFactory | undefined): Promise<{ archive: ZipArchive | ZipIndexedArchive; partial: boolean }>;
+export async function repairZip(input: Uint8Array | ZipReadSource, mode: "F" | "FF", limits: ArchiveLimits, signal: AbortSignal, password?: Uint8Array, factory?: ZipMetadataFactory): Promise<{ archive: ZipArchive | ZipIndexedArchive; partial: boolean }> {
   signal.throwIfAborted();
+  const source: ZipReadSource = input instanceof Uint8Array ? { size: input.length, read: async (offset, length) => input.slice(offset, offset + length) } : input;
+  const bytes = new ZipRanges(source, signal, Math.min(limits.chunkSize, 65536));
   if (bytes.length > limits.maxArchiveBytes) fail("ZIP archive byte limit exceeded");
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const view = bytes;
+  const read = (source: ZipReadSource, prefix = false) => factory ? readZipIndexedArchive(source, limits, signal, factory, { prefix }) : readZipArchive(source, limits, signal, { prefix });
   let work = 0, candidates = 0, decoded = 0;
   const charge = (amount: number) => {
     signal.throwIfAborted();
     if (amount > limits.maxPatternSteps - work) throw new ZipFailure(4, "Out of memory", "ZIP recovery work limit exceeded");
     work += amount;
   };
-  const verify = async (archive: ZipArchive) => {
-    for (const entry of archive.entries) {
-      for await (const chunk of decodeZipEntry(entry, limits, signal, password)) {
+  const verify = async (archive: Pick<ZipArchive | ZipIndexedArchive, "entries" | "comment">) => {
+    for await (const entry of archive.entries) {
+      for await (const chunk of decodeZipEntry(entry, limits, signal, password, source => source)) {
         charge(chunk.length);
         if (chunk.length > limits.maxTotalBytes - decoded) throw new ZipFailure(4, "Out of memory", "ZIP recovery total byte limit exceeded");
         decoded += chunk.length;
       }
     }
   };
-  const recoverCentral = async (archive: ZipArchive) => {
+  const recoverCentral = async (archive: ZipArchive | ZipIndexedArchive): Promise<{ archive: ZipArchive | ZipIndexedArchive; partial: boolean }> => {
     const entries: ZipEntry[] = [];
-    let partial = false;
-    for (const entry of archive.entries) {
-      try { await verify({ entries: [entry], comment: new Uint8Array() }); entries.push(entry); }
-      catch (error) {
-        signal.throwIfAborted();
-        if (error instanceof ZipFailure) throw error;
-        if (mode === "F") throw new ZipFailure(3, "Zip file structure invalid", "entry payload could not be verified; try -FF with a separate --out file");
-        partial = true;
+    const retained = factory ? new ZipBackedEntries(source, factory, signal, bytes.chunkSize) : undefined;
+    let partial = false, count = 0;
+    try {
+      for await (const entry of archive.entries) {
+        try {
+          await verify({ entries: [entry], comment: new Uint8Array() });
+        } catch (error) {
+          signal.throwIfAborted();
+          if (error instanceof ZipFailure) throw error;
+          if (mode === "F") throw new ZipFailure(3, "Zip file structure invalid", "entry payload could not be verified; try -FF with a separate --out file");
+          partial = true;
+          continue;
+        }
+        if (retained) await retained.append(entry); else entries.push(entry);
+        count++;
       }
-    }
-    if (partial && !entries.length) throw new ZipFailure(3, "Zip file structure invalid", "no verified members recovered");
-    return { archive: { ...archive, entries }, partial };
+      if (partial && !count) throw new ZipFailure(3, "Zip file structure invalid", "no verified members recovered");
+      const prefix = {
+        ...(archive.prefixSize === undefined ? {} : { prefixSize: archive.prefixSize }),
+        ...(archive.prefixSource ? { prefixSource: archive.prefixSource } : {}),
+        ...("prefix" in archive && archive.prefix ? { prefix: archive.prefix } : {}),
+      };
+      return { archive: retained ? { ...prefix, ...retained.archive(archive.comment) } : { ...prefix, entries, comment: archive.comment }, partial };
+    } catch (error) { await retained?.close(); throw error; }
+    finally { if ("close" in archive) await archive.close(); }
   };
   const admitCandidate = (length: number) => {
     if (++candidates > limits.maxMembers) fail("ZIP recovery candidate limit exceeded");
@@ -63,22 +88,24 @@ export async function repairZip(bytes: Uint8Array, mode: "F" | "FF", limits: Arc
     if (length > limits.maxArchiveBytes) fail("ZIP recovery archive byte limit exceeded");
   };
   charge(bytes.length);
-  let complete: ZipArchive | undefined;
-  try { complete = await readZipArchive(bytes, limits, signal, { prefix: true }); }
-  catch { signal.throwIfAborted(); }
-  if (complete?.prefix?.length) {
+  let complete: ZipArchive | ZipIndexedArchive | undefined;
+  try { complete = await read(source, true); }
+  catch (error) { signal.throwIfAborted(); if (factory && !(error instanceof PublicDiagnostic)) throw error; }
+  try {
+  if (complete && (complete.prefixSize ?? ("prefix" in complete ? complete.prefix?.length : undefined))) {
     // A complete ZIP at EOF can itself be a bounded outer member's payload.
     // Recovery must not reinterpret that preceding local record as an SFX stub.
-    const prefixLength = complete.prefix.length;
+    const prefixLength = complete.prefixSize ?? ("prefix" in complete ? complete.prefix!.length : 0);
     for (let offset = 0; offset + 30 <= prefixLength; offset++) {
       charge(1);
       if (offset % 4096 === 0) await yieldTurn(signal);
-      if (view.getUint32(offset, true) !== 0x04034b50) continue;
-      const payload = offset + 30 + view.getUint16(offset + 26, true) + view.getUint16(offset + 28, true);
-      if (view.getUint16(offset + 26, true) && payload <= prefixLength) { complete = undefined; break; }
+      if ((await view.getUint32(offset, true)) !== 0x04034b50) continue;
+      const payload = offset + 30 + (await view.getUint16(offset + 26, true)) + (await view.getUint16(offset + 28, true));
+      if ((await view.getUint16(offset + 26, true)) && payload <= prefixLength) { if ("close" in complete) await complete.close(); complete = undefined; break; }
     }
   }
-  if (complete) return recoverCentral(complete);
+  if (complete) return await recoverCentral(complete);
+  } catch (error) { if (complete && "close" in complete) await complete.close(); throw error; }
   // -F uses existing central metadata. It never invents attributes or guesses
   // missing members. A synthetic EOCD must pass the complete strict reader.
   {
@@ -86,29 +113,29 @@ export async function repairZip(bytes: Uint8Array, mode: "F" | "FF", limits: Arc
     for (let start = 0; start + 46 <= bytes.length; start++) {
       charge(1);
       if (start % 4096 === 0) await yieldTurn(signal);
-      if (start + 30 <= bytes.length && view.getUint32(start, true) === 0x04034b50) {
+      if (start + 30 <= bytes.length && (await view.getUint32(start, true)) === 0x04034b50) {
         if (firstLocal < 0) firstLocal = start;
-        const payload = start + 30 + view.getUint16(start + 26, true) + view.getUint16(start + 28, true);
-        let compressed = view.getUint32(start + 18, true);
+        const payload = start + 30 + (await view.getUint16(start + 26, true)) + (await view.getUint16(start + 28, true));
+        let compressed = (await view.getUint32(start + 18, true));
         if (compressed === 0xffffffff && payload <= bytes.length) {
           try {
-            const extra = bytes.subarray(start + 30 + view.getUint16(start + 26, true), payload);
-            compressed = zip64Fields(zip64Payload(extra), [view.getUint32(start + 22, true), compressed])[1]!;
+            const extra = (await bytes.subarray(start + 30 + (await view.getUint16(start + 26, true)), payload));
+            compressed = zip64Fields(zip64Payload(extra), [(await view.getUint32(start + 22, true)), compressed])[1]!;
           } catch { signal.throwIfAborted(); }
         }
         const end = payload + compressed;
         if (compressed !== 0xffffffff && compressed && end <= bytes.length) { start = end - 1; continue; }
       }
-      if (view.getUint32(start, true) !== 0x02014b50) continue;
+      if ((await view.getUint32(start, true)) !== 0x02014b50) continue;
       let end = start, members = 0, minimumLocal = Infinity;
-      while (end + 46 <= bytes.length && view.getUint32(end, true) === 0x02014b50) {
+      while (end + 46 <= bytes.length && (await view.getUint32(end, true)) === 0x02014b50) {
         charge(46);
         if (++members > limits.maxMembers) fail("ZIP recovery member limit exceeded");
-        const next = end + 46 + view.getUint16(end + 28, true) + view.getUint16(end + 30, true) + view.getUint16(end + 32, true);
+        const next = end + 46 + (await view.getUint16(end + 28, true)) + (await view.getUint16(end + 30, true)) + (await view.getUint16(end + 32, true));
         if (next > bytes.length) break;
         try {
-          const extra = end + 46 + view.getUint16(end + 28, true);
-          const values = zip64Fields(zip64Payload(bytes.subarray(extra, extra + view.getUint16(end + 30, true))), [view.getUint32(end + 24, true), view.getUint32(end + 20, true), view.getUint32(end + 42, true)]);
+          const extra = end + 46 + (await view.getUint16(end + 28, true));
+          const values = zip64Fields(zip64Payload((await bytes.subarray(extra, extra + (await view.getUint16(end + 30, true))))), [(await view.getUint32(end + 24, true)), (await view.getUint32(end + 20, true)), (await view.getUint32(end + 42, true))]);
           minimumLocal = Math.min(minimumLocal, values[2]!);
         } catch { signal.throwIfAborted(); }
         end = next;
@@ -116,32 +143,34 @@ export async function repairZip(bytes: Uint8Array, mode: "F" | "FF", limits: Arc
       const displacement = firstLocal >= 0 && minimumLocal !== Infinity ? Math.max(0, firstLocal - minimumLocal) : 0;
       const tail = zipEnd(members, end - start, start - displacement, new Uint8Array());
       admitCandidate(end + tail.length);
-      const candidate = new Uint8Array(end + tail.length);
-      candidate.set(bytes.subarray(0, end)); candidate.set(tail, end);
-      let archive: ZipArchive;
-      try { archive = await readZipArchive(candidate, limits, signal, { prefix: true }); }
-      catch { signal.throwIfAborted(); continue; }
-      if (firstLocal >= 0 && archive.prefix?.length !== firstLocal) continue;
+      const candidate = joinZipSources([bytes.slice(0, end), tail]);
+      let archive: ZipArchive | ZipIndexedArchive;
+      try { archive = await read(candidate, true); }
+      catch (error) { signal.throwIfAborted(); if (factory && !(error instanceof PublicDiagnostic)) throw error; continue; }
+      if (firstLocal >= 0 && (archive.prefixSize ?? ("prefix" in archive ? archive.prefix?.length : 0) ?? 0) !== firstLocal) { if ("close" in archive) await archive.close(); continue; }
       return recoverCentral(archive);
     }
     if (mode === "F") throw new ZipFailure(3, "Zip file structure invalid", "central directory could not be verified; try -FF with a separate --out file");
   }
   const entries: ZipEntry[] = [];
-  const names = new Set<string>();
+  const names = factory ? new ZipMetadataMap<boolean>(factory, signal) : new Set<string>();
+  const retained = factory ? new ZipBackedEntries(source, factory, signal, bytes.chunkSize) : undefined;
+  let count = 0;
   let partial = false, total = 0;
+  try {
   for (let start = 0; start + 4 <= bytes.length; start++) {
     charge(1);
     if (start % 4096 === 0) await yieldTurn(signal);
-    if (view.getUint32(start, true) !== 0x04034b50) continue;
+    if ((await view.getUint32(start, true)) !== 0x04034b50) continue;
     if (start + 30 > bytes.length) { partial = true; break; }
-    const flags = view.getUint16(start + 6, true);
-    const nameLength = view.getUint16(start + 26, true), extraLength = view.getUint16(start + 28, true);
+    const flags = (await view.getUint16(start + 6, true));
+    const nameLength = (await view.getUint16(start + 26, true)), extraLength = (await view.getUint16(start + 28, true));
     const payload = start + 30 + nameLength + extraLength;
     if (payload > bytes.length || nameLength > limits.maxPathBytes || extraLength > limits.maxPaxBytes) { partial = true; break; }
-    const rawCompressed = view.getUint32(start + 18, true), rawSize = view.getUint32(start + 22, true);
-    const checksum = view.getUint32(start + 14, true);
+    const rawCompressed = (await view.getUint32(start + 18, true)), rawSize = (await view.getUint32(start + 22, true));
+    const checksum = (await view.getUint32(start + 14, true));
     const wide = rawCompressed === 0xffffffff || rawSize === 0xffffffff;
-    const localExtra = bytes.subarray(start + 30 + nameLength, payload);
+    const localExtra = (await bytes.subarray(start + 30 + nameLength, payload));
     let compressed = rawCompressed, size = rawSize;
     let centralExtra: Uint8Array;
     try {
@@ -180,22 +209,26 @@ export async function repairZip(bytes: Uint8Array, mode: "F" | "FF", limits: Arc
       const localLength = end - start, centralLength = 46 + nameLength + centralExtra.length;
       const tail = zipEnd(1, centralLength, localLength, new Uint8Array());
       admitCandidate(localLength + centralLength + tail.length);
-      const candidate = new Uint8Array(localLength + centralLength + tail.length);
-      candidate.set(bytes.subarray(start, end));
-      const central = new DataView(candidate.buffer, localLength, centralLength);
+      const metadata = new Uint8Array(centralLength + tail.length);
+      const central = new DataView(metadata.buffer, 0, centralLength);
       central.setUint32(0, 0x02014b50, true); central.setUint16(4, 20, true);
-      candidate.set(bytes.subarray(start + 4, start + 14), localLength + 6);
+      metadata.set((await bytes.subarray(start + 4, start + 14)), 6);
       central.setUint32(16, crc, true); central.setUint32(20, compressedSize, true); central.setUint32(24, expanded, true);
       central.setUint16(28, nameLength, true); central.setUint16(30, centralExtra.length, true);
-      candidate.set(bytes.subarray(start + 30, start + 30 + nameLength), localLength + 46);
-      candidate.set(centralExtra, localLength + 46 + nameLength); candidate.set(tail, localLength + centralLength);
+      metadata.set((await bytes.subarray(start + 30, start + 30 + nameLength)), 46);
+      metadata.set(centralExtra, 46 + nameLength); metadata.set(tail, centralLength);
+      const candidate = joinZipSources([bytes.slice(start, end), metadata]);
       try {
-        const archive = await readZipArchive(candidate, limits, signal);
-        await verify(archive);
-        return archive.entries[0]!;
+        const archive = await read(candidate);
+        try {
+          await verify(archive);
+          const entry = "get" in archive.entries ? await archive.entries.get(0) : archive.entries[0]!;
+          if (entry.compressedOffset !== undefined) entry.compressedOffset += start;
+          return entry;
+        } finally { if ("close" in archive) await archive.close(); }
       } catch (error) {
         signal.throwIfAborted();
-        if (error instanceof ZipFailure) throw error;
+        if (error instanceof ZipFailure || factory && !(error instanceof PublicDiagnostic)) throw error;
         return undefined;
       }
     };
@@ -206,17 +239,17 @@ export async function repairZip(bytes: Uint8Array, mode: "F" | "FF", limits: Arc
       for (let offset = payload; offset + length <= bytes.length; offset++) {
         charge(1);
         if ((offset - payload) % 4096 === 0) await yieldTurn(signal);
-        const signed = view.getUint32(offset, true) === 0x08074b50;
+        const signed = (await view.getUint32(offset, true)) === 0x08074b50;
         const base = offset + (signed ? 4 : 0), next = base + length;
         if (next > bytes.length) continue;
-        const packed = wide ? view.getBigUint64(base + 4, true) : BigInt(view.getUint32(base + 4, true));
-        const expanded = wide ? view.getBigUint64(base + 12, true) : BigInt(view.getUint32(base + 8, true));
+        const packed = wide ? (await view.getBigUint64(base + 4, true)) : BigInt((await view.getUint32(base + 4, true)));
+        const expanded = wide ? (await view.getBigUint64(base + 12, true)) : BigInt((await view.getUint32(base + 8, true)));
         if (packed !== BigInt(offset - payload) || Number.isFinite(limits.maxEntryBytes) && expanded > BigInt(limits.maxEntryBytes)) continue;
-        if (compressed && packed !== BigInt(compressed) || size && expanded !== BigInt(size) || checksum && checksum !== view.getUint32(base, true)) continue;
+        if (compressed && packed !== BigInt(compressed) || size && expanded !== BigInt(size) || checksum && checksum !== (await view.getUint32(base, true))) continue;
         // An unknown-size descriptor needs a record boundary, not arbitrary
         // matching integers embedded in a payload.
-        if (next !== bytes.length && (next + 4 > bytes.length || ![0x04034b50, 0x02014b50, 0x06054b50, 0x06064b50].includes(view.getUint32(next, true)))) continue;
-        const candidateEntry = await attempt(next, Number(packed), Number(expanded), view.getUint32(base, true));
+        if (next !== bytes.length && (next + 4 > bytes.length || ![0x04034b50, 0x02014b50, 0x06054b50, 0x06064b50].includes((await view.getUint32(next, true))))) continue;
+        const candidateEntry = await attempt(next, Number(packed), Number(expanded), (await view.getUint32(base, true)));
         if (!candidateEntry) continue;
         entry = candidateEntry; end = next;
         if (++matches > 1) { partial = true; entry = undefined; break; }
@@ -229,60 +262,84 @@ export async function repairZip(bytes: Uint8Array, mode: "F" | "FF", limits: Arc
       entry = await attempt(end, compressed, size, checksum);
     }
     start = end - 1;
-    if (!entry || names.has(entry.name)) { partial = true; continue; }
+    if (!entry || await names.has(entry.name)) { partial = true; continue; }
     if (entry.size > limits.maxTotalBytes - total) fail("ZIP recovery total byte limit exceeded");
-    names.add(entry.name); total += entry.size; entries.push(entry);
+    if (names instanceof Set) names.add(entry.name); else await names.set(entry.name, true);
+    total += entry.size; count++;
+    if (retained) await retained.append(entry); else entries.push(entry);
   }
-  if (!entries.length) throw new ZipFailure(3, "Zip file structure invalid", "no verified members recovered");
-  return { archive: { entries, comment: new Uint8Array() }, partial };
+  if (!count) throw new ZipFailure(3, "Zip file structure invalid", "no verified members recovered");
+  return { archive: retained ? retained.archive() : { entries, comment: new Uint8Array() }, partial };
+  } catch (error) { await retained?.close(); throw error; }
+  finally { if (!(names instanceof Set)) await names.close(); }
 }
 
 /** Adjust a validated SFX using owned bytes; prefix bytes are inert. */
 export async function adjustZipSfx(bytes: Uint8Array, archive: ZipArchive, limits: ArchiveLimits, signal: AbortSignal, password?: Uint8Array): Promise<Uint8Array> {
-  const prefix = archive.prefix?.length ?? 0;
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const adjusted = await adjustZipRanges({ size: bytes.length, read: async (offset, length) => bytes.slice(offset, offset + length) }, archive, limits, signal, password);
+  return new ZipRanges(adjusted, signal, Math.min(limits.chunkSize, 65536)).subarray(0);
+}
+
+export async function adjustZipRanges(source: ZipReadSource, archive: ZipArchive | ZipIndexedArchive, limits: ArchiveLimits, signal: AbortSignal, password?: Uint8Array, factory?: ZipMetadataFactory): Promise<ZipPatchedSource> {
+  const bytes = new ZipRanges(source, signal, Math.min(limits.chunkSize, 65536));
+  const prefix = archive.prefixSize ?? ("prefix" in archive ? archive.prefix?.length : 0) ?? 0;
+  const view = bytes;
   const end = bytes.length - 22 - archive.comment.length;
-  let centralEnd = end, central = end - view.getUint32(end + 12, true);
-  let displacement = central - view.getUint32(end + 16, true);
-  const wide = end >= 20 && view.getUint32(end - 20, true) === 0x07064b50;
+  let centralEnd = end, central = end - (await view.getUint32(end + 12, true));
+  let displacement = central - (await view.getUint32(end + 16, true));
+  const wide = end >= 20 && (await view.getUint32(end - 20, true)) === 0x07064b50;
   if (wide) {
-    const declared = Number(view.getBigUint64(end - 12, true));
+    const declared = Number((await view.getBigUint64(end - 12, true)));
     centralEnd = declared;
-    if (declared + 12 > end - 20 || view.getUint32(declared, true) !== 0x06064b50) centralEnd += prefix;
+    if (declared + 12 > end - 20 || (await view.getUint32(declared, true)) !== 0x06064b50) centralEnd += prefix;
     displacement = centralEnd - declared;
-    central = Number(view.getBigUint64(centralEnd + 48, true)) + displacement;
+    central = Number((await view.getBigUint64(centralEnd + 48, true))) + displacement;
   }
   if (displacement !== 0 && displacement !== prefix) fail("ZIP inconsistent SFX offsets");
-  for (const entry of archive.entries) for await (const chunk of decodeZipEntry(entry, limits, signal, password)) { void chunk; }
-  const result = new Uint8Array(bytes);
-  const output = new DataView(result.buffer);
+  for await (const entry of archive.entries) for await (const chunk of decodeZipEntry(entry, limits, signal, password, source => source)) { void chunk; }
+  const patches: { offset: number; bytes: Uint8Array }[] = [];
+  const retained = factory ? await createZipPatchWriter(factory, signal) : undefined;
+  const output = retained ?? {
+    setUint32(offset: number, value: number, little: boolean) {
+      const bytes = new Uint8Array(4); new DataView(bytes.buffer).setUint32(0, value, little); patches.push({ offset, bytes });
+    },
+    setBigUint64(offset: number, value: bigint, little: boolean) {
+      const bytes = new Uint8Array(8); new DataView(bytes.buffer).setBigUint64(0, value, little); patches.push({ offset, bytes });
+    },
+  };
+  try {
   for (let offset = central; offset < centralEnd;) {
     await yieldTurn(signal);
-    const local = view.getUint32(offset + 42, true);
+    const local = (await view.getUint32(offset + 42, true));
     if (local === 0xffffffff) {
-      const extraStart = offset + 46 + view.getUint16(offset + 28, true);
-      const extraEnd = extraStart + view.getUint16(offset + 30, true);
-      for (let extra = extraStart; extra < extraEnd; extra += 4 + view.getUint16(extra + 2, true)) {
-        if (view.getUint16(extra, true) !== 1) continue;
-        const position = extra + 4 + (view.getUint32(offset + 24, true) === 0xffffffff ? 8 : 0) + (view.getUint32(offset + 20, true) === 0xffffffff ? 8 : 0);
-        const adjusted = view.getBigUint64(position, true) + BigInt(displacement);
+      const extraStart = offset + 46 + (await view.getUint16(offset + 28, true));
+      const extraEnd = extraStart + (await view.getUint16(offset + 30, true));
+      for (let extra = extraStart; extra < extraEnd; extra += 4 + (await view.getUint16(extra + 2, true))) {
+        if ((await view.getUint16(extra, true)) !== 1) continue;
+        const position = extra + 4 + ((await view.getUint32(offset + 24, true)) === 0xffffffff ? 8 : 0) + ((await view.getUint32(offset + 20, true)) === 0xffffffff ? 8 : 0);
+        const adjusted = (await view.getBigUint64(position, true)) + BigInt(displacement);
         if (adjusted > BigInt(Number.MAX_SAFE_INTEGER)) fail("ZIP64 unsafe adjusted offset");
-        output.setBigUint64(position, adjusted, true);
+        await output.setBigUint64(position, adjusted, true);
       }
     } else {
       if (local + displacement >= 0xffffffff) fail("ZIP SFX adjusted offset requires ZIP64 promotion");
-      output.setUint32(offset + 42, local + displacement, true);
+      await output.setUint32(offset + 42, local + displacement, true);
     }
-    offset += 46 + view.getUint16(offset + 28, true) + view.getUint16(offset + 30, true) + view.getUint16(offset + 32, true);
-  }
-  if (view.getUint32(end + 16, true) !== 0xffffffff) {
-    if (central >= 0xffffffff) fail("ZIP SFX adjusted directory requires ZIP64 promotion");
-    output.setUint32(end + 16, central, true);
+    offset += 46 + (await view.getUint16(offset + 28, true)) + (await view.getUint16(offset + 30, true)) + (await view.getUint16(offset + 32, true));
   }
   if (wide) {
-    output.setBigUint64(centralEnd + 48, BigInt(central), true);
-    output.setBigUint64(end - 12, BigInt(centralEnd), true);
+    await output.setBigUint64(centralEnd + 48, BigInt(central), true);
+    await output.setBigUint64(end - 12, BigInt(centralEnd), true);
   }
-  await readZipArchive(result, limits, signal, { prefix: true });
+  if ((await view.getUint32(end + 16, true)) !== 0xffffffff) {
+    if (central >= 0xffffffff) fail("ZIP SFX adjusted directory requires ZIP64 promotion");
+    await output.setUint32(end + 16, central, true);
+  }
+  const result = retained ? await retained.finish(source) : { ...patchZipSource(source, patches), async close() {} };
+  if (factory) {
+    const checked = await readZipIndexedArchive(result, limits, signal, factory, { prefix: true });
+    await checked.close();
+  } else await readZipArchive(result, limits, signal, { prefix: true });
   return result;
+  } catch (error) { await retained?.close(); throw error; }
 }

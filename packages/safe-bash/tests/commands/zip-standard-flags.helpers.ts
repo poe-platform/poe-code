@@ -58,12 +58,12 @@ export async function execute(command: "zip" | "unzip", fs: FileSystem, args: re
 
 export function readOnlyArchive(fs: FileSystem) {
   const calls: { method: string; path: unknown }[] = [];
-  const readable = new Set(["lstat", "stat", "realpath", "readFile", "readStream", "capabilitiesFor"]);
+  const readable = new Set(["lstat", "stat", "realpath", "readFile", "readStream", "openReadFile", "capabilitiesFor"]);
   const view = new Proxy(fs, { get(target, property) {
-    if (property === "capabilities") return { streamingRead: true, permissions: false, symlinks: false };
+    if (property === "capabilities") return { streamingRead: true, retainedRead: true, permissions: false, symlinks: false };
     if (property === "capabilitiesFor") return (path: string) => {
       calls.push({ method: "capabilitiesFor", path });
-      return { streamingRead: true, permissions: false, symlinks: false };
+      return { streamingRead: true, retainedRead: true, permissions: false, symlinks: false };
     };
     const value: unknown = Reflect.get(target, property);
     if (typeof value !== "function") return value;

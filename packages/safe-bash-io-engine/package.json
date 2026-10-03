@@ -102,6 +102,14 @@
     "./storage": {
       "types": "./dist/storage.d.ts",
       "import": "./dist/storage.js"
+    },
+    "./commands/archive/metadata": {
+      "types": "./dist/commands/archive/metadata.d.ts",
+      "import": "./dist/commands/archive/metadata.js"
+    },
+    "./commands/archive/scratch": {
+      "types": "./dist/commands/archive/scratch.d.ts",
+      "import": "./dist/commands/archive/scratch.js"
     }
   },
   "files": [

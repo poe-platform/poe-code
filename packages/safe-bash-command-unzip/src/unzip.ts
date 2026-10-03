@@ -1,16 +1,19 @@
+import { createZipScratchFactory } from "safe-bash-zip-engine/zip/scratch";
+import { ZipMetadataMap } from "safe-bash-zip-engine/zip/metadata";
+import { hasZipIdentity, spoolZipSource } from "safe-bash-zip-engine/zip/safety";
 import { withInputByteBudget } from "safe-bash-contracts";
 import { Extraction } from "./unzip/safety.js";
 import { collectBytes,dirname,readBytes,resolvePath,writeBytes,type CommandContext,type CommandDefinition,type FileStat } from "safe-bash-contracts";
 import { PublicDiagnostic,publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
 import { createOutputOperation,type OutputOperation } from "safe-bash-contracts/output";
-import { byteLength,concatBytes,encodeBytes } from "safe-bash-io-engine/byte-encoding";
-import { bounded,Budget,checkPath,display,fail,invocationLimits,settings,text,vfsPath,type ArchiveCommandsOptions } from "safe-bash-io-engine/commands/archive/internal";
+import { byteLength,encodeBytes } from "safe-bash-io-engine/byte-encoding";
+import { Budget,checkPath,display,fail,invocationLimits,settings,text,vfsPath,type ArchiveCommandsOptions } from "safe-bash-io-engine/commands/archive/internal";
 import { Answers,parseArguments } from "./unzip/arguments.js";
 import { Selection } from "safe-bash-zip-engine/unzip/arguments";
-import { decodeZipEntry,readZipArchive,type ZipEntry } from "safe-bash-zip-engine/zip-format";
+import { decodeZipEntry,readZipArchive,readZipIndexedArchive,type ZipIndexedArchive,type ZipEntry } from "safe-bash-zip-engine/zip-format";
 import { readZipPassword } from "safe-bash-zip-engine/zip/crypto";
-import { resolveZipVolumes } from "safe-bash-zip-engine/zip/volumes";
+import { openZipVolumes } from "safe-bash-zip-engine/zip/volumes";
 
 function filtered(name: string): string {
   let output = "";
@@ -61,12 +64,15 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
     const controller = new AbortController();
     const context: CommandContext = { ...original, signal: AbortSignal.any([original.signal, controller.signal]) };
     const extraction = new Extraction(context, limits);
+    let archiveInput: Awaited<ReturnType<typeof openZipVolumes>> | undefined;
     let output: OutputOperation | undefined;
+    let scratch: ReturnType<typeof createZipScratchFactory> | undefined;
+    let indexed: ZipIndexedArchive | undefined;
     let answers: Answers | undefined;
     let closing: Promise<void> | undefined;
     const close = () => closing ??= (async () => {
       controller.abort(new Error("unzip command closed"));
-      await Promise.all([extraction.close(), output?.close()]);
+      await Promise.all([extraction.close(), output?.close(), archiveInput?.close(), indexed?.close(), scratch?.close()]);
       await answers?.close().catch(() => {});
     })();
     original.registerCleanup?.(close);
@@ -79,24 +85,41 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       const exclusions = new Selection(parsed.exclusions, limits, context.signal, { caseInsensitive: parsed.caseInsensitive });
       let archive = parsed.archive;
       let archiveStat: FileStat | undefined;
-      for (const candidate of [archive, `${archive}.zip`, `${archive}.ZIP`]) {
-        checkPath(candidate, limits);
-        const candidateStat = await extraction.stat(vfsPath(context.cwd, candidate));
-        if (candidateStat) { archive = candidate; archiveStat = candidateStat; break; }
+      let archivePath: string;
+      if (archive === "-") {
+        const spool = await extraction.operation(() => spoolZipSource({ context, limits, operation: action => extraction.operation(async () => action()) }, context.cwd, extraction.source(context.stdin), limits.maxArchiveBytes));
+        archivePath = spool.path;
+        archiveStat = spool.stat;
+        archiveInput = { source: spool.source, paths: [spool.path], volumes: [{ path: spool.path, stat: spool.stat }], close: spool.close };
+        if ((!parsed.pipe || parsed.pipeHeaders) && !parsed.names && !parsed.quiet) await budget.output(`Archive:  -\n`);
+      } else {
+        for (const candidate of [archive, `${archive}.zip`, `${archive}.ZIP`]) {
+          checkPath(candidate, limits);
+          const candidateStat = await extraction.stat(vfsPath(context.cwd, candidate));
+          if (candidateStat) { archive = candidate; archiveStat = candidateStat; break; }
+        }
+        if (!archiveStat) {
+          if (!parsed.pipe) await budget.output(`unzip:  cannot find or open ${archive}, ${archive}.zip or ${archive}.ZIP.\n`, true);
+          return { exitCode: 9 };
+        }
+        archivePath = await extraction.operation(() => context.fs.realpath(vfsPath(context.cwd, archive), { signal: context.signal }));
+        archiveStat = await extraction.operation(() => context.fs.stat(archivePath, { signal: context.signal }));
+        if (archiveStat.type !== "file") fail("input archive is not a regular file");
+        if (!Number.isSafeInteger(archiveStat.size) || archiveStat.size < 0 || archiveStat.size > limits.maxArchiveBytes) fail("archive byte limit exceeded");
+        if ((!parsed.pipe || parsed.pipeHeaders) && !parsed.names && !parsed.quiet) await budget.output(`Archive:  ${filtered(archive)}\n`);
+        archiveInput = await extraction.operation(() => openZipVolumes({ context, limits, operation: action => extraction.operation(async () => action()), stat: path => extraction.stat(path) }, archivePath, options.zipHost));
       }
-      if (!archiveStat) {
-        if (!parsed.pipe) await budget.output(`unzip:  cannot find or open ${archive}, ${archive}.zip or ${archive}.ZIP.\n`, true);
-        return { exitCode: 9 };
+      extraction.inputVolumes = archiveInput.volumes;
+      const scope = { context, limits, operation: <T>(action: () => Promise<T> | T) => extraction.operation(async () => action()) };
+      const capabilities = await extraction.operation(async () => await context.fs.capabilitiesFor?.(context.cwd, { signal: context.signal }) ?? context.fs.capabilities);
+      if (capabilities.retainedRead && capabilities.retainedStagingWrite && capabilities.retainedStagingCleanup) {
+        const parent = await extraction.operation(() => context.fs.stat(context.cwd, { signal: context.signal }));
+        if (hasZipIdentity(parent)) scratch = createZipScratchFactory(scope, context.cwd);
       }
-      const archivePath = await extraction.operation(() => context.fs.realpath(vfsPath(context.cwd, archive), { signal: context.signal }));
-      archiveStat = await extraction.operation(() => context.fs.stat(archivePath, { signal: context.signal }));
-      if (archiveStat.type !== "file") fail("input archive is not a regular file");
-      if (!Number.isSafeInteger(archiveStat.size) || archiveStat.size < 0 || archiveStat.size > limits.maxArchiveBytes) fail("archive byte limit exceeded");
-      const bytes = await collectBytes(bounded(extraction.input(archivePath), limits.maxArchiveBytes, context.signal, limits.chunkSize), { signal: context.signal, ...(Number.isFinite(limits.maxArchiveBytes) ? { maxBytes: limits.maxArchiveBytes } : {}), ...(Number.isFinite(limits.maxInputMemoryBytes) ? { maxMemoryBytes: limits.maxInputMemoryBytes } : {}) });
-      if ((!parsed.pipe || parsed.pipeHeaders) && !parsed.names && !parsed.quiet) await budget.output(`Archive:  ${filtered(archive)}\n`);
-      const resolved = await resolveZipVolumes({ context, limits, operation: action => extraction.operation(async () => action()), stat: path => extraction.stat(path), input: path => extraction.input(path) }, archivePath, bytes, options.zipHost);
-      extraction.inputVolumes = resolved.volumes ?? [];
-      const zip = await readZipArchive(resolved.bytes, limits, context.signal, resolved.disks ? { disks: resolved.disks } : { prefix: true });
+      const profile = archiveInput.disks ? { disks: archiveInput.disks } : { prefix: true };
+      const zip = scratch
+        ? indexed = await readZipIndexedArchive(archiveInput.source, limits, context.signal, scratch, profile)
+        : await readZipArchive(archiveInput.source, limits, context.signal, profile);
       if (parsed.archiveComment || (!parsed.pipe || parsed.pipeHeaders) && !parsed.names && !parsed.quiet) await comment(zip.comment, budget);
       if (parsed.archiveComment) return { exitCode: 0 };
       if (!zip.entries.length) {
@@ -105,7 +128,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       }
       if (parsed.names) {
         let selected = 0;
-        for (const entry of zip.entries) {
+        for await (const entry of zip.entries) {
           await budget.member(entry.size);
           checkPath(entry.name, limits);
           if (!await selection.matches(entry.name, true)) continue;
@@ -143,9 +166,19 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           for (let attempt = password !== undefined && parsed.password === undefined ? -1 : 0; attempt < 3; attempt++) {
             if (password === undefined) password = await extraction.operation(() => readZipPassword(options.zipHost, limits.maxArgumentBytes, signal, false));
             try {
-              const verified = await collectBytes(decodeZipEntry(entry, limits, signal, password), { ...(Number.isFinite(Math.min(limits.maxEntryBytes, limits.maxTotalBytes - actualTotal)) ? { maxBytes: Math.min(limits.maxEntryBytes, limits.maxTotalBytes - actualTotal) } : {}), signal });
-              actualTotal += verified.length;
-              yield verified;
+              const stage = async function* (source: import("safe-bash-contracts").ByteSource) {
+                const verified = await extraction.operation(() => spoolZipSource({ context, limits, operation: action => extraction.operation(async () => action()) }, context.cwd, source, Math.min(limits.maxEntryBytes, limits.maxTotalBytes - actualTotal)));
+                try {
+                  actualTotal += verified.source.size;
+                  for (let offset = 0; offset < verified.source.size;) {
+                    const chunk = await verified.source.read(offset, Math.min(limits.chunkSize, verified.source.size - offset));
+                    if (!chunk.length) fail("ZIP truncated authenticated staging");
+                    offset += chunk.length;
+                    yield chunk;
+                  }
+                } finally { await verified.close(); }
+              };
+              yield* decodeZipEntry(entry, limits, signal, password, stage);
               return;
             } catch (error) {
               signal.throwIfAborted();
@@ -161,9 +194,24 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           yield chunk;
         }
       };
-      const links: { path: string; shown: string; target: string; existing: FileStat | undefined; parent: FileStat; entry: ZipEntry }[] = [];
-      const directories: { path: string; entry: ZipEntry; identity: FileStat; parent: FileStat }[] = [];
-      for (const entry of zip.entries) {
+      type StoredStat = Omit<FileStat, "identityScope"> & { identityScopeIndex?: number };
+      const identityScopes: NonNullable<FileStat["identityScope"]>[] = [];
+      const storeStat = (stat: FileStat): StoredStat => {
+        const { identityScope, ...rest } = stat;
+        if (identityScope === undefined) return rest;
+        let index = identityScopes.indexOf(identityScope);
+        if (index < 0) { index = identityScopes.length; identityScopes.push(identityScope); }
+        return { ...rest, identityScopeIndex: index };
+      };
+      const restoreStat = (stat: StoredStat): FileStat => {
+        const { identityScopeIndex, ...rest } = stat;
+        return identityScopeIndex === undefined ? rest : { ...rest, identityScope: identityScopes[identityScopeIndex]! };
+      };
+      type Link = { path: string; shown: string; target: string; existing: StoredStat | undefined; parent: StoredStat; mode: number; modified: Date };
+      type Directory = { path: string; identity: StoredStat; parent: StoredStat; mode: number; modified: Date };
+      const links = scratch ? new ZipMetadataMap<Link>(scratch, context.signal) : new Map<string, Link>();
+      const directories = scratch ? new ZipMetadataMap<Directory>(scratch, context.signal) : new Map<string, Directory>();
+      for await (const entry of zip.entries) {
         await budget.member(entry.size);
         checkPath(entry.name, limits);
         if (!await selection.matches(entry.name, true)) continue;
@@ -217,7 +265,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
               if (!parsed.quiet) await budget.output(`   creating: ${filtered(shown)}\n`);
             }
             if (!identity || identity.type !== "directory") fail("directory changed during creation");
-            directories.push({ path, entry, identity, parent });
+            await directories.set(String(directories.size), { path, mode: entry.mode, modified: entry.modified, identity: storeStat(identity), parent: storeStat(parent) });
             continue;
           }
           let parent = await extraction.operation(() => context.fs.lstat(dirname(path), { signal: context.signal }));
@@ -257,21 +305,16 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
             await budget.output(`error:  invalid response [${response}]\n`, true);
           }
           if (skip) continue;
-          const chunks: Uint8Array[] = [];
-          let actual = 0;
-          for await (const chunk of payload(entry)) {
-            actual += chunk.length;
-            await writeFileOutput(context, chunk, async bytes => { chunks.push(Uint8Array.from(bytes)); });
-          }
           if (entry.symlink) {
-            if (actual > limits.maxPathBytes) fail("symlink target byte limit exceeded");
-            const target = text(concatBytes(chunks));
+            const bytes = await collectBytes(payload(entry), { maxBytes: limits.maxPathBytes, signal: context.signal });
+            await writeFileOutput(context, bytes, async () => {});
+            const target = text(bytes);
             await extraction.target(root, path, target);
             if (!context.fs.symlink || context.fs.capabilities.symlinks === false) fail("filesystem does not support symlinks");
-            links.push({ path, shown, target, existing, parent, entry });
+            await links.set(String(links.size), { path, shown, target, existing: existing && storeStat(existing), parent: storeStat(parent), mode: entry.mode, modified: entry.modified });
             if (!parsed.quiet) await budget.output(`    linking: ${padded(filtered(shown))}  -> ${filtered(target)} \n`);
           } else {
-            await extraction.publish(root, path, chunks, existing, parent, entry.mode, entry.modified);
+            await extraction.publish(root, path, payload(entry), existing, parent, entry.mode, entry.modified);
             if (!parsed.quiet) await budget.output(`${entry.method === 0 ? " extracting" : "  inflating"}: ${padded(filtered(shown))}  \n`);
           }
         } catch (error) {
@@ -285,16 +328,17 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         ? `--------          -------  ---                            -------\n${String(total).padStart(8)}         ${String(compressedTotal).padStart(8)} ${String(total ? Math.round(100 * (total - compressedTotal) / total) : 0).padStart(3)}%                            ${selected} file${selected === 1 ? "" : "s"}\n`
         : `---------                     -------\n${String(total).padStart(9)}                     ${selected} file${selected === 1 ? "" : "s"}\n`);
       else {
-        if (links.length && !parsed.quiet) await budget.output("finishing deferred symbolic links:\n");
-        for (const link of links) {
+        if (links.size && !parsed.quiet) await budget.output("finishing deferred symbolic links:\n");
+        for await (const link of links.values()) {
           await extraction.parents(root, link.path, false);
           await extraction.target(root, link.path, link.target);
           await extraction.destination(link.path, archivePath, archiveStat);
-          await extraction.publish(root, link.path, [], link.existing, link.parent, link.entry.mode, link.entry.modified, link.target);
+          await extraction.publish(root, link.path, [], link.existing && restoreStat(link.existing), restoreStat(link.parent), link.mode, link.modified, link.target);
           if (!parsed.quiet) await budget.output(`  ${padded(filtered(link.shown))} -> ${filtered(link.target)}\n`);
         }
-        for (const { path, entry, identity, parent } of directories.reverse()) {
-          await extraction.metadata(root, path, identity, parent, entry.mode, entry.modified);
+        for (let ordinal = directories.size - 1; ordinal >= 0; ordinal--) {
+          const directory = (await directories.get(String(ordinal)))!;
+          await extraction.metadata(root, directory.path, restoreStat(directory.identity), restoreStat(directory.parent), directory.mode, directory.modified);
         }
       }
       for (let index = 0; index < parsed.patterns.length; index++) if (!selection.matched.has(index)) {

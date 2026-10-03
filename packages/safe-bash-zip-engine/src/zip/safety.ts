@@ -1,3 +1,4 @@
+import type { ZipReadSource } from "./ranges.js";
 import { readFileStream } from "safe-bash-contracts/filesystem";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { collectBytes,readBytes,type ByteSource,type CommandContext,type FileReadHandle,type FileStaging,type FileStat } from "safe-bash-contracts";
@@ -65,6 +66,10 @@ export class ZipScope {
     }
     return this.drain;
   };
+  retain(close: () => Promise<void>): void {
+    if (this.inputDrain) fail("ZIP inputs are closed");
+    this.readers.add(close);
+  }
   closeInputs(): Promise<void> {
     return this.inputDrain ??= Promise.allSettled([...this.readers].map(close => close())).then(results => {
       const failures = results.filter(result => result.status === "rejected").map(result => result.reason);
@@ -222,7 +227,8 @@ export async function stageZip(scope: ZipScope, prepared: ZipStaging, consume: (
   const close = retainFileSystemCleanup(fs, async cleanup => {
     if (staging) {
       if (!cleanup.removeStagedFile) fail("ZIP atomic cleanup unavailable");
-      await cleanup.removeStagedFile(staging);
+      if (staging.cleanup) await staging.cleanup.remove();
+      else await cleanup.removeStagedFile(staging);
     }
   }, { maxOperations: 16 });
   try {
@@ -234,7 +240,7 @@ export async function stageZip(scope: ZipScope, prepared: ZipStaging, consume: (
       try {
         await scope.operation(async () => {
           staging = await fs.createStagedFile!(path, "archive.zip", { type: "file", data: prepared.bytes ?? new Uint8Array() }, {
-            signal, parent: prepared.parentStat, ...(prepared.existing ? { mode: prepared.existing.mode & 0o7777 } : {}),
+            signal, parent: prepared.parentStat, ...(capabilities.retainedStagingCleanup ? { retainCleanup: true } : {}), ...(prepared.existing ? { mode: prepared.existing.mode & 0o7777 } : {}),
             ...(prepared.mtimeMs === undefined ? {} : { mtimeMs: prepared.mtimeMs, atimeMs: prepared.mtimeMs }),
           });
         });
@@ -248,6 +254,10 @@ export async function stageZip(scope: ZipScope, prepared: ZipStaging, consume: (
     if (prepared.source) {
       for await (const chunk of readBytes(prepared.source, signal)) {
         try { await writeFileOutput(scope.context, chunk, bytes => scope.operation(async () => {
+          if (staging!.writer) {
+            await staging!.writer.write(bytes, { signal });
+            return;
+          }
           const stat = await fs.writeFileConditional!(staging!.file.path, bytes, {
             signal, parent: staging!.directory.stat, expected: staging!.file.stat, append: true,
           });
@@ -257,6 +267,10 @@ export async function stageZip(scope: ZipScope, prepared: ZipStaging, consume: (
           throw error;
         }
       }
+    }
+    if (staging.writer) {
+      const stat = await scope.operation(() => staging!.writer!.finish({ signal }));
+      staging = { ...staging, file: { ...staging.file, stat } };
     }
     if (prepared.mtimeMs !== undefined && (staging.file.stat.mtimeMs !== prepared.mtimeMs || staging.file.stat.atimeMs !== prepared.mtimeMs)) fail("ZIP staging did not retain archive modification time");
     await consume(staging);
@@ -332,6 +346,10 @@ export async function publishZip(scope: ZipScope, prepared: ZipPublication): Pro
     if (parent !== prepared.parent) fail("archive parent changed before publication");
     if (prepared.existing && (prepared.existing.nlink ?? 1) > 1) {
       if (capabilities.atomicFileMutation !== true || !fs.writeFileConditional) fail("ZIP hardlinked archive update requires conditional in-place file mutation");
+      if (capabilities.atomicStagedFileMutation === true) {
+        await scope.operation(() => fs.publishStagedFile!(staging, prepared.output, { signal, parent: prepared.parentStat, destination: prepared.existing!, preserveIdentity: true }));
+        return;
+      }
       const stagedBytes = await scope.operation(() => fs.readFile(staging.file.path, { signal, ...(Number.isFinite(scope.limits.maxArchiveBytes) ? { maxBytes: scope.limits.maxArchiveBytes } : {}) }));
       const receipt = await scope.operation(() => fs.writeFileConditional!(prepared.output, stagedBytes, {
         signal, parent: prepared.parentStat, expected: prepared.existing!,
@@ -345,4 +363,142 @@ export async function publishZip(scope: ZipScope, prepared: ZipPublication): Pro
       signal, parent: prepared.parentStat, destination: prepared.existing ?? null,
     }));
   });
+}
+
+/** Retain one archive object, validating its version around every range read. */
+export async function openZipSource(scope: Pick<ZipScope, "context" | "limits" | "operation">, path: string, maximum = scope.limits.maxArchiveBytes, allowSpool = true): Promise<{ source: ZipReadSource; stat: FileStat; close(): Promise<void> }> {
+  const { fs, signal } = scope.context;
+  let handle: FileReadHandle | undefined;
+  let closed: Promise<void> | undefined;
+  const close = () => closed ??= Promise.resolve().then(() => handle?.close());
+  const capabilities = await scope.operation(() => fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities);
+  if (!fs.openReadFile || capabilities.retainedRead !== true) {
+    if (!allowSpool) fail("ZIP staging requires retained reads");
+    const canonical = await scope.operation(() => fs.realpath(path, { signal }));
+    const stat = await scope.operation(() => fs.stat(path, { signal }));
+    if (stat.type !== "file" || !Number.isSafeInteger(stat.size) || stat.size < 0 || stat.size > maximum) fail("ZIP invalid archive input");
+    const input = (async function* (): ByteSource {
+      let size = 0;
+      for await (const chunk of readFileStream(fs, path, { signal, chunkSize: scope.limits.chunkSize })) {
+        if (chunk.length > stat.size - size) fail("ZIP archive changed while reading");
+        size += chunk.length;
+        yield chunk;
+      }
+      const current = await fs.stat(path, { signal });
+      if (size !== stat.size || !unchangedZipSource(stat, current) || canonical !== await fs.realpath(path, { signal })) fail("ZIP archive changed while reading");
+    })();
+    const spool = await spoolZipSource(scope, scope.context.cwd, input, maximum);
+    return { source: spool.source, stat, close: spool.close };
+  }
+  try {
+    await scope.operation(async () => {
+      const capabilities = await fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities;
+      if (!fs.openReadFile || capabilities.retainedRead !== true) fail("ZIP range input requires retained reads");
+      handle = await fs.openReadFile(path, { signal });
+    });
+    const stat = await scope.operation(() => handle!.stat({ signal }));
+    if (stat.type !== "file" || !hasZipIdentity(stat) || !Number.isSafeInteger(stat.size) || stat.size < 0 || stat.size > maximum) fail("ZIP invalid retained archive");
+    const source = { size: stat.size, async read(offset: number, length: number): Promise<Uint8Array> {
+      return scope.operation(async () => {
+        if (closed) fail("ZIP retained archive is closed");
+        if (!unchangedZipSource(stat, await handle!.stat({ signal }))) fail("ZIP archive changed while reading");
+        const bytes = await handle!.read(offset, length, { signal });
+        if (!unchangedZipSource(stat, await handle!.stat({ signal }))) fail("ZIP archive changed while reading");
+        return bytes;
+      });
+    } };
+    return { source, stat, close };
+  } catch (error) { await close(); throw error; }
+}
+
+const spoolOwners = new WeakMap<CommandContext, { active: Set<() => Promise<void>>; closing?: Promise<void> }>();
+
+function retainSpool(context: CommandContext, cleanup: () => Promise<void>): () => void {
+  let owner = spoolOwners.get(context);
+  if (!owner) {
+    const created: { active: Set<() => Promise<void>>; closing?: Promise<void> } = { active: new Set() };
+    spoolOwners.set(context, created);
+    context.registerCleanup?.(() => created.closing ??= Promise.resolve().then(async () => {
+      const results = await Promise.allSettled([...created.active].map(close => close()));
+      const failures = results.filter(result => result.status === "rejected").map(result => result.reason);
+      if (failures.length === 1) throw failures[0];
+      if (failures.length) throw new AggregateError(failures, "ZIP spool cleanup failed");
+    }));
+    owner = created;
+  }
+  if (owner.closing) fail("ZIP spool owner is closed");
+  owner.active.add(cleanup);
+  return () => { owner.active.delete(cleanup); };
+}
+
+/** Fully consume and validate a stream before exposing its owned staging object. */
+export async function spoolZipSource(scope: Pick<ZipScope, "context" | "limits" | "operation">, parentPath: string, source: ByteSource, maximum: number): Promise<{ source: ZipReadSource; stat: FileStat; path: string; close(): Promise<void> }> {
+  const controller = new AbortController();
+  const signal = AbortSignal.any([scope.context.signal, controller.signal]);
+  const fs = scope.context.fs;
+  const admitted = new Set<Promise<unknown>>();
+  const owned = {
+    context: { ...scope.context, signal }, limits: scope.limits,
+    async operation<Value>(action: () => Value | PromiseLike<Value>): Promise<Value> {
+      signal.throwIfAborted();
+      const pending = scope.operation(action);
+      admitted.add(pending);
+      try { return await pending; } finally { admitted.delete(pending); }
+    },
+  };
+  let staging: FileStaging | undefined;
+  let retained: Awaited<ReturnType<typeof openZipSource>> | undefined;
+  const remove = retainFileSystemCleanup(fs, async view => {
+    await retained?.close();
+    if (staging?.cleanup) await staging.cleanup.remove();
+    else if (staging) await view.removeStagedFile!(staging);
+  }, { maxOperations: 16 });
+  let closing: Promise<void> | undefined;
+  const cleanup = (): Promise<void> => {
+    if (!closing) {
+      controller.abort(new Error("ZIP spool is closed"));
+      closing = Promise.resolve().then(async () => {
+        await work.catch(() => {});
+        while (admitted.size) await Promise.allSettled([...admitted]);
+        try { await remove(); } finally { releaseOwnership(); }
+      });
+    }
+    return closing;
+  };
+  const releaseOwnership = retainSpool(scope.context, cleanup);
+  const work = (async () => {
+    const parent = await owned.operation(() => fs.stat(parentPath, { signal }));
+    const capabilities = await owned.operation(() => fs.capabilitiesFor?.(parentPath, { signal }) ?? fs.capabilities);
+    if (!fs.createStagedFile || capabilities.retainedStagingWrite !== true || capabilities.retainedStagingCleanup !== true) fail("ZIP spool requires owned streaming staging");
+    for (let attempt = 0; attempt < scope.limits.maxMembers; attempt++) {
+      const path = `${parentPath === "/" ? "" : parentPath}/.zip-spool-${attempt + 1}`;
+      checkPath(`${path}/payload`, scope.limits);
+      try {
+        await owned.operation(async () => { staging = await fs.createStagedFile!(path, "payload", { type: "file", data: new Uint8Array() }, { signal, parent, mode: 0o600, retainCleanup: true }); });
+        break;
+      } catch (error) {
+        signal.throwIfAborted();
+        if (typeof error !== "object" || error === null || !("code" in error) || error.code !== "EEXIST") throw error;
+      }
+    }
+    if (!staging?.writer) fail("ZIP spool requires retained staged writer");
+    let size = 0;
+    for await (const chunk of readBytes(source)) {
+      signal.throwIfAborted();
+      if (chunk.length > maximum - size) fail("ZIP spool byte limit exceeded");
+      size += chunk.length;
+      for (let offset = 0; offset < chunk.length; offset += scope.limits.chunkSize) {
+        await staging.writer.write(chunk.subarray(offset, offset + scope.limits.chunkSize), { signal });
+      }
+    }
+    signal.throwIfAborted();
+    const stat = await staging.writer.finish({ signal });
+    staging = { ...staging, file: { ...staging.file, stat } };
+    retained = await openZipSource(owned, staging.file.path, maximum, false);
+    return { source: retained.source, path: staging.file.path, stat: retained.stat, close: cleanup };
+  })();
+  try { return await work; } catch (error) {
+    try { await cleanup(); } catch (cleanupError) { throw new AggregateError([error, cleanupError], "ZIP spool and cleanup failed"); }
+    throw error;
+  }
 }

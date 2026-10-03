@@ -102,6 +102,14 @@
     "./zip-format": {
       "types": "./dist/zip-format.d.ts",
       "import": "./dist/zip-format.js"
+    },
+    "./zip/metadata": {
+      "types": "./dist/zip/metadata.d.ts",
+      "import": "./dist/zip/metadata.js"
+    },
+    "./zip/scratch": {
+      "types": "./dist/zip/scratch.d.ts",
+      "import": "./dist/zip/scratch.js"
     }
   },
   "files": [

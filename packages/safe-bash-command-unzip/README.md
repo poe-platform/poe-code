@@ -1,7 +1,7 @@
 # unzip
 
 List, test and extract ZIP archives in an injected virtual filesystem, or stream
-selected members into a shell pipeline.
+selected members into a shell pipeline. Use `unzip -p -` to read an archive from stdin.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
@@ -22,7 +22,13 @@ member streaming (`-p`, `-c`), include/exclude patterns (`-x`), case-insensitive
 matching (`-C`), destination selection (`-d`), overwrite policy (`-o`, `-n`),
 update/freshen (`-u`, `-f`), and flattened paths (`-j`). Unsafe member paths and
 escaping symlinks are rejected; extraction uses staged publication and retained
-cleanup. Filesystem backends must support the required safe publication operations.
+cleanup. ZIP files use retained ranges; stdin, nonseekable archives and authenticated
+plaintext use owned staging in the injected filesystem. Large streams need an
+external backend with retained reads, retained staged writes and cleanup; a memory
+filesystem still stores its contents in RAM. Qualified backends also keep member indexes
+and deferred extraction metadata in owned backing storage. Read-only backends retain
+the compatible buffered metadata path for smaller archives. Filesystem backends must support the
+required safe publication operations. Directory indexes and deferred extraction metadata spill through bounded caches on this profile. Read-only backends without scratch capabilities retain the compatibility buffering path.
 
 `createUnzipCommand()` returns one definition; `createUnzipCommands()` returns the
 family; `unzipCommands()` registers it. Duplicate registration fails unless

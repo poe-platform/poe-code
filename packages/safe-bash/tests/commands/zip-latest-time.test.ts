@@ -64,7 +64,7 @@ test("zip latest timestamp is supplied to staging before publication", async () 
   const observed = new Proxy(fs, { get(target, property) {
     const value = Reflect.get(target, property);
     if (property === "createStagedFile") return (...args: Parameters<NonNullable<typeof fs.createStagedFile>>) => {
-      stagedTime = args[3].mtimeMs;
+      if (args[1] === "archive.zip") stagedTime = args[3].mtimeMs;
       return value.apply(target, args);
     };
     return typeof value === "function" ? value.bind(target) : value;

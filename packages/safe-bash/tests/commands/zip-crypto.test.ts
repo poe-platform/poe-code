@@ -224,14 +224,13 @@ test("AE-1 validates CRC before yielding; AE-2 requires zero CRC", async () => {
   await assert.rejects(readZipArchive(bytes, settings({}), signal), /AE-2 CRC/);
 });
 
-test("AES encryption budget and entropy validation fail before archive publication", async () => {
+test("AES encryption streams beyond buffer budgets and rejects invalid entropy before publication", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/file", Buffer.from(aesFixtures.plaintext, "hex"));
-  const maxBufferedFileBytes = 33 * 6 + 28;
   for (const [name, limit, entropy, expected] of [
-    ["exact", maxBufferedFileBytes, (n: number) => new Uint8Array(n), 0],
-    ["over", maxBufferedFileBytes - 1, (n: number) => new Uint8Array(n), 1],
-    ["short", maxBufferedFileBytes, (n: number) => new Uint8Array(n - 1), 1],
+    ["small", 1024, (n: number) => new Uint8Array(n), 0],
+    ["tiny", 1, (n: number) => new Uint8Array(n), 0],
+    ["short", 1024, (n: number) => new Uint8Array(n - 1), 1],
   ] as const) {
     const shell = new Shell({ fs }).use(archiveCommands({ limits: { maxBufferedFileBytes: limit }, zip: { compression: "store", encryption: "aes-256-ae2" }, zipHost: { entropy } }));
     const result = await shell.exec(`zip -P password ${name}.zip file`);
@@ -289,7 +288,7 @@ test("AES cancellation while decoding emits no plaintext; invalid staging or inn
   await assert.rejects(collectBytes(decodeZipEntry(entry, settings({}), signal, password), { maxBytes: 1024, signal }), /compression/);
 });
 
-test("AES live writer retains measured progress metadata and reports its staged ciphertext", async () => {
+test("AES live writer retains measured progress metadata without retaining ciphertext", async () => {
   const signal = new AbortController().signal, limits = settings({});
   const entry = await makeZipEntry("file", new Uint8Array(), { modified: new Date(1980, 0, 1), mode: 0o100644, directory: false, symlink: false }, limits, signal, 0);
   entry.source = toByteSource(Buffer.from("secret"));
@@ -300,7 +299,9 @@ test("AES live writer retains measured progress metadata and reports its staged 
   assert.equal(Buffer.from(await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal, Buffer.from("password")), { maxBytes: 6, signal })).toString(), "secret");
   assert.equal(entry.size, 6);
   assert.equal(entry.compressedSize, 34);
-  assert.ok(retained.some(bytes => bytes >= 34));
+  assert.ok(retained.length > 0);
+  assert.ok(retained.every(bytes => bytes <= limits.chunkSize * 2));
+  assert.equal(retained.at(-1), 0);
 });
 
 test("AES member/work admission precedes entropy acquisition", async () => {

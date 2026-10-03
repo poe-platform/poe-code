@@ -1,12 +1,22 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { FsError, Shell, archiveCommands, createMemoryFileSystem, type FileSystem } from "../../src/index.js";
+import { FsError, Shell, archiveCommands, createMemoryFileSystem, type FileSystem, type FileStaging } from "../../src/index.js";
 
 function intercept(fs: FileSystem, before: (method: PropertyKey, args: unknown[]) => Promise<void>): FileSystem {
   return new Proxy(fs, { get(target, method) {
     const value: unknown = Reflect.get(target, method);
     if (typeof value !== "function") return value;
-    return async (...args: unknown[]) => { await before(method, args); return Reflect.apply(value, target, args); };
+    return async (...args: unknown[]) => {
+      await before(method, args);
+      const result: unknown = await Reflect.apply(value, target, args);
+      if (method !== "createStagedFile") return result;
+      const staging = result as FileStaging;
+      if (!staging.cleanup) return staging;
+      return { ...staging, cleanup: {
+        close: () => staging.cleanup!.close(),
+        async remove() { await before("removeStagedFile", [staging]); await staging.cleanup!.remove(); },
+      } };
+    };
   } });
 }
 
@@ -104,7 +114,8 @@ test("ZIP never claims a replacement inserted after staging creation as its own"
     return async (...args: unknown[]) => {
       const result: unknown = await Reflect.apply(value, target, args);
       const path = method === "createStagedFile" ? (result as { file: { path: string } }).file.path : args[0];
-      if (!injected && ((method === "writeFile" && typeof path === "string" && path.includes("/.zip-")) || method === "createStagedFile")) {
+      // Attack the archive publication receipt, not metadata scratch ownership.
+      if (!injected && method === "createStagedFile" && args[1] === "archive.zip") {
         injected = true;
         replacement = path as string;
         const bytes = await fs.readFile(replacement);
@@ -136,7 +147,7 @@ test("unzip omits unsupported metadata during atomic directory and file creation
     const value: unknown = Reflect.get(target, method);
     if (typeof value !== "function") return value;
     return async (...args: unknown[]) => {
-      if (method === "prepareDirectory" || method === "createStagedFile") {
+      if (method === "prepareDirectory" || method === "createStagedFile" && args[1] === "entry") {
         creations++;
         const options = args.at(-1) as { mode?: number; atimeMs?: number; mtimeMs?: number };
         assert.equal(options.mode, undefined);

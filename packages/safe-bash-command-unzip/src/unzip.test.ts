@@ -427,7 +427,7 @@ test("unzip waits for staging cleanup after abort during exclusive acquisition",
   const controller = new AbortController();
   const faulty = wrapped(fs, { async createStagedFile(path, name, content, options) {
     const receipt = await fs.createStagedFile!(path, name, content, options);
-    controller.abort(false);
+    if (name === "entry") controller.abort(false);
     return receipt;
   } });
   await assert.rejects(run(faulty, ["sample.zip"], "", {}, { signal: controller.signal }), reason => reason === false);
@@ -505,16 +505,16 @@ test("unzip registered cleanup waits for admitted publication and removes stagin
   let entered!: () => void;
   const enteredPromise = new Promise<void>(resolve => { entered = resolve; });
   const blocked = new Promise<void>(resolve => { unblock = resolve; });
-  let cleanup: (() => void | Promise<void>) | undefined;
+  const cleanups: (() => void | Promise<void>)[] = [];
   const delayed = wrapped(fs, { async createStagedFile(path, name, content, options) {
     const receipt = await fs.createStagedFile!(path, name, content, options);
-    entered(); await blocked;
+    if (name === "entry") { entered(); await blocked; }
     return receipt;
   } });
-  const result = run(delayed, ["sample.zip"], "", {}, { registerCleanup(handler) { cleanup = handler; } });
+  const result = run(delayed, ["sample.zip"], "", {}, { registerCleanup(handler) { cleanups.push(handler); } });
   await enteredPromise;
   let settled = false;
-  const closing = Promise.resolve(cleanup!()).then(() => { settled = true; });
+  const closing = Promise.all(cleanups.map(cleanup => cleanup())).then(() => { settled = true; });
   await Promise.resolve(); assert.equal(settled, false);
   unblock(); await closing; await result;
   assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["sample.zip"]);
@@ -579,7 +579,7 @@ for (const after of ["creation", "publication"]) test(`unzip rejects staging sym
   const faulty = wrapped(fs, {
     async createStagedFile(path, name, content, options) {
       const receipt = await fs.createStagedFile!(path, name, content, options);
-      if (after === "creation") await replace(receipt.file.path);
+      if (after === "creation" && name === "entry") await replace(receipt.file.path);
       return receipt;
     },
     async publishStagedFile(staging, destination, options) {
@@ -602,8 +602,10 @@ test("unzip checks staging parents before later mutation and cleanup", async () 
   const before = await fs.stat("/outside/.unzip-1");
   const faulty = wrapped(fs, { async createStagedFile(path, name, content, options) {
     const receipt = await fs.createStagedFile!(path, name, content, options);
-    await fs.rename("/work/dir", "/work/held-dir");
-    await fs.symlink!("/outside", "/work/dir");
+    if (name === "entry") {
+      await fs.rename("/work/dir", "/work/held-dir");
+      await fs.symlink!("/outside", "/work/dir");
+    }
     return receipt;
   } });
   assert.equal((await run(faulty, ["sample.zip"])).exitCode, 2);
@@ -631,7 +633,12 @@ test("unzip preserves both publication and falsey retained-cleanup failures", as
   const observed: unknown[] = [];
   const faulty = wrapped(fs, {
     async publishStagedFile() { throw original; },
-    async removeStagedFile() { throw false; },
+    async createStagedFile(...args) {
+      const staging = await fs.createStagedFile!(...args);
+      if (args[1] !== "entry") return staging;
+      assert.ok(staging.cleanup);
+      return { ...staging, cleanup: { close: () => staging.cleanup!.close(), async remove() { await staging.cleanup!.remove(); throw false; } } };
+    },
   });
   const result = await run(faulty, ["sample.zip"], "", {}, { onInternalError(error) { observed.push(error); } });
   assert.equal(result.exitCode, 2);
@@ -674,11 +681,49 @@ test("unzip rejects a backend without atomic ancestry verification before stagin
   let staged = false;
   const unsupported = wrapped(fs, {
     capabilities: { ...fs.capabilities, atomicStagingAncestry: false },
-    async createStagedFile(...args) { staged = true; return fs.createStagedFile!(...args); },
+    async createStagedFile(...args) { if (args[1] === "entry") staged = true; return fs.createStagedFile!(...args); },
   });
   const result = await run(unsupported, ["sample.zip"]);
   assert.equal(result.exitCode, 2);
   assert.match(result.stderr, /atomic staging ancestry verification/u);
   assert.equal(staged, false);
   await assert.rejects(fs.lstat("/work/input"));
+});
+
+test("unzip lists and streams via bounded retained ranges without whole-file reads", async () => {
+  const fs = await fixture([{ name: "large", body: new Uint8Array(512 * 1024).fill(65) }]);
+  let read = 0;
+  const ranged = wrapped(fs, {
+    async readFile() { throw new Error("whole archive read"); },
+    readStream() { throw new Error("sequential archive read"); },
+    async openReadFile(...args) {
+      const handle = await fs.openReadFile!(...args);
+      return { ...handle, async read(...args) {
+        assert.ok(args[1] <= 65536);
+        read += args[1];
+        return handle.read(...args);
+      } };
+    },
+  });
+  const listed = await run(ranged, ["-Z1", "sample.zip"]);
+  assert.equal(listed.exitCode, 0, listed.stderr);
+  assert.equal(listed.stdout, "large\n");
+  assert.ok(read < 200000);
+  const streamed = await run(ranged, ["-p", "sample.zip"]);
+  assert.equal(streamed.exitCode, 0, streamed.stderr);
+  assert.equal(streamed.stdout.length, 512 * 1024);
+});
+
+test("unzip stages stdin through the injected filesystem before range reads", async () => {
+  const fs = await fixture();
+  const bytes = zip([{ name: "large", body: new Uint8Array(100003).fill(65) }]);
+  let stages = 0;
+  const view = wrapped(fs, { async createStagedFile(...args) { if (args[1] === "payload") stages++; return fs.createStagedFile!(...args); } });
+  const result = await run(view, ["-p", "-"], "", { limits: { maxInputMemoryBytes: 1024, maxBufferedFileBytes: 1024 } }, {
+    stdin: (async function* () { for (let offset = 0; offset < bytes.length; offset += 997) yield bytes.subarray(offset, offset + 997); })(),
+  });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "A".repeat(100003));
+  assert.equal(stages, 1);
+  assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["sample.zip"]);
 });

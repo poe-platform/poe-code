@@ -26,40 +26,66 @@ export function zipDiskOffset(disks: ZipDisks | undefined, disk: number, offset:
   return disks.starts[disk]! + offset;
 }
 
-export function zip64Directory(view: DataView, end: number, limits: ArchiveLimits, disks?: ZipDisks, displacement = 0) {
+type Directory = { members: number; centralStart: number; centralSize: number; centralEnd: number; diskMembers: number; disk: number; zip64Disk: number; zip64DiskMembers: number };
+type DirectoryView = { readonly byteLength: number; getUint16(offset: number, little: boolean): number | Promise<number>; getUint32(offset: number, little: boolean): number | Promise<number>; getBigUint64(offset: number, little: boolean): bigint | Promise<bigint> };
+
+export function zip64Directory(view: DataView, end: number, limits: ArchiveLimits, disks?: ZipDisks, displacement = 0): Directory {
+  const fields = directoryFields(view, end, limits, disks, displacement);
+  let next = fields.next();
+  while (!next.done) {
+    const [offset, width] = next.value;
+    next = fields.next(width === 8 ? wide(view, offset) : width === 4 ? view.getUint32(offset, true) : view.getUint16(offset, true));
+  }
+  return next.value;
+}
+
+export async function zip64RangeDirectory(view: DirectoryView, end: number, limits: ArchiveLimits, disks?: ZipDisks, displacement = 0): Promise<Directory> {
+  const fields = directoryFields(view, end, limits, disks, displacement);
+  let next = fields.next();
+  while (!next.done) {
+    const [offset, width] = next.value;
+    if (offset < 0 || offset + width > view.byteLength) fail("ZIP64 truncated numeric field");
+    const value = width === 8 ? await view.getBigUint64(offset, true) : width === 4 ? await view.getUint32(offset, true) : await view.getUint16(offset, true);
+    if (value > Number.MAX_SAFE_INTEGER) fail("ZIP64 unsafe numeric field");
+    next = fields.next(Number(value));
+  }
+  return next.value;
+}
+
+function* directoryFields(view: { byteLength: number }, end: number, limits: ArchiveLimits, disks?: ZipDisks, displacement = 0): Generator<readonly [number, number], Directory, number> {
   zipDiskRecord(disks, end, view.byteLength);
-  let members = view.getUint16(end + 10, true);
-  let centralSize = view.getUint32(end + 12, true);
-  let centralStart = view.getUint32(end + 16, true);
+  let members = (yield [end + 10, 2]);
+  let centralSize = (yield [end + 12, 4]);
+  let centralStart = (yield [end + 16, 4]);
   let centralEnd = end;
   let zip64Disk = -1, zip64DiskMembers = -1;
-  let diskMembers = view.getUint16(end + 8, true);
-  const disk = view.getUint16(end + 4, true);
+  let diskMembers = (yield [end + 8, 2]);
+  const disk = (yield [end + 4, 2]);
   if (!disks && disk) fail("ZIP multi-disk archive requires a volume resolver");
-  const centralDisk = view.getUint16(end + 6, true);
+  const centralDisk = (yield [end + 6, 2]);
   if (disks && disk !== disks.starts.length - 1) fail("ZIP final disk number mismatch");
   if (centralStart !== 0xffffffff) centralStart = zipDiskOffset(disks, centralDisk, centralStart);
   if (centralStart !== 0xffffffff) centralStart += displacement;
-  const locator = end >= 20 && view.getUint32(end - 20, true) === 0x07064b50;
+  const locator = end >= 20 && (yield [end - 20, 4]) === 0x07064b50;
   if (locator) {
     zipDiskRecord(disks, end - 20, end);
-    const recordDisk = view.getUint32(end - 16, true);
-    if (view.getUint32(end - 4, true) !== (disks?.starts.length ?? 1)) fail("ZIP64 multi-disk locator count mismatch");
-    centralEnd = zipDiskOffset(disks, recordDisk, wide(view, end - 12)) + displacement;
-    if (centralEnd > end - 76 || view.getUint32(centralEnd, true) !== 0x06064b50) fail("ZIP64 invalid end-record span");
-    const length = wide(view, centralEnd + 4);
+    const recordDisk = (yield [end - 16, 4]);
+    if ((yield [end - 4, 4]) !== (disks?.starts.length ?? 1)) fail("ZIP64 multi-disk locator count mismatch");
+    centralEnd = zipDiskOffset(disks, recordDisk, (yield [end - 12, 8])) + displacement;
+    if (centralEnd > end - 76 || (yield [centralEnd, 4]) !== 0x06064b50) fail("ZIP64 invalid end-record span");
+    const length = (yield [centralEnd + 4, 8]);
     if (length < 44 || length - 44 > limits.maxPaxBytes || length !== end - 32 - centralEnd) fail("ZIP64 invalid end-record length");
     zipDiskRecord(disks, centralEnd, centralEnd + 12 + length);
-    const version = view.getUint16(centralEnd + 14, true);
+    const version = (yield [centralEnd + 14, 2]);
     if (version < 45 || version > 46) fail("ZIP64 unsupported end-record extraction version");
-    if (view.getUint32(centralEnd + 16, true) !== recordDisk || view.getUint32(centralEnd + 20, true) !== centralDisk) fail("ZIP64 inconsistent disk numbers");
-    const count = wide(view, centralEnd + 32);
-    const wideDiskMembers = wide(view, centralEnd + 24);
+    if ((yield [centralEnd + 16, 4]) !== recordDisk || (yield [centralEnd + 20, 4]) !== centralDisk) fail("ZIP64 inconsistent disk numbers");
+    const count = (yield [centralEnd + 32, 8]);
+    const wideDiskMembers = (yield [centralEnd + 24, 8]);
     if (wideDiskMembers > count || recordDisk === disk && wideDiskMembers !== diskMembers && diskMembers !== 65535 || members !== 65535 && members !== count || !disks && wideDiskMembers !== count) fail("ZIP64 inconsistent member count");
     if (recordDisk === disk) diskMembers = wideDiskMembers;
     zip64Disk = recordDisk; zip64DiskMembers = wideDiskMembers;
-    const size = wide(view, centralEnd + 40);
-    const start = zipDiskOffset(disks, centralDisk, wide(view, centralEnd + 48)) + displacement;
+    const size = (yield [centralEnd + 40, 8]);
+    const start = zipDiskOffset(disks, centralDisk, (yield [centralEnd + 48, 8])) + displacement;
     if (centralSize !== 0xffffffff && centralSize !== size || centralStart !== 0xffffffff && centralStart !== start) fail("ZIP64 inconsistent central directory");
     members = count;
     centralSize = size;

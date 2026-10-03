@@ -1,3 +1,5 @@
+import { ZipStateList, ZipStateMap } from "./state.js";
+import { createZipScratchFactory } from "safe-bash-zip-engine/zip/scratch";
 import { withInputByteBudget } from "safe-bash-contracts";
 import { collectBytes,dirname,getCommandArguments,writeBytes,type ByteSource,type CommandDefinition,type FileStat } from "safe-bash-contracts";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
@@ -9,7 +11,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { byteLength,encodeBytes } from "safe-bash-io-engine/byte-encoding";
 import { Budget,checkPath,display,fail,invocationLimits,settings,text,vfsPath,type ArchiveCommandsOptions,type ArchiveLimits } from "safe-bash-io-engine/commands/archive/internal";
 import { Selection } from "safe-bash-zip-engine/unzip/arguments";
-import { decodeZipEntry,makeZipEntry,readZipArchive,setZipEntryComment,streamZipArchive,updateZipExtras,writeZipArchive,type ZipArchive,type ZipEntry } from "safe-bash-zip-engine/zip-format";
+import { makeZipEntry,makeZipEntryFromSource,readZipArchive,readZipIndexedArchive,setZipEntryComment,streamZipArchive,updateZipExtras,type ZipArchive,type ZipIndexedArchive,type ZipMetadataSpool,type ZipReadSource,type ZipEntry } from "safe-bash-zip-engine/zip-format";
 import { zipEncryptionProfile,type ZipAes } from "safe-bash-zip-engine/zip/aes";
 import { readZipComment,ZipCommentInput } from "safe-bash-zip-engine/zip/comments";
 import { readZipPassword,ZipHostFailure,type ZipEncryption } from "safe-bash-zip-engine/zip/crypto";
@@ -17,16 +19,16 @@ import { parseZipDate,zipDateMatches,zipLatestTime } from "safe-bash-zip-engine/
 import { zipEnvironmentArguments } from "safe-bash-zip-engine/zip/environment";
 import { zipGrowRecords } from "safe-bash-zip-engine/zip/grow";
 import { zipExtendedHelp,zipHelp,zipLicense,zipVersion } from "safe-bash-zip-engine/zip/help";
-import { zipFromCrlf,zipToCrlf } from "safe-bash-zip-engine/zip/line-endings";
+import { zipFromCrlf,zipToCrlf,zipLineEndingStream } from "safe-bash-zip-engine/zip/line-endings";
 import { ZipLog } from "safe-bash-zip-engine/zip/log";
 import { inspectZipMoveSource,removeZipSources,type ZipMoveSource } from "safe-bash-zip-engine/zip/move";
 import { zipDosName } from "safe-bash-zip-engine/zip/names";
 import { normalizeZipOption,parseZipDotSize,reservedZipShortOptions,zipDisplaySize,ZipFailure,zipLongOptions,zipNegatableOptions,zipPasswordArgument,zipPublicText } from "safe-bash-zip-engine/zip/options";
-import { adjustZipSfx,repairZip } from "safe-bash-zip-engine/zip/repair";
-import { hasZipIdentity as hasIdentity,publishZip,safeZipFile,sameZipIdentity as sameIdentity,stageZip,unchangedZipSource as unchanged,ZipScope,type ZipPublication } from "safe-bash-zip-engine/zip/safety";
+import { adjustZipRanges,repairZip } from "safe-bash-zip-engine/zip/repair";
+import { hasZipIdentity as hasIdentity,openZipSource,publishZip,safeZipFile,sameZipIdentity as sameIdentity,stageZip,unchangedZipSource as unchanged,ZipScope,type ZipPublication } from "safe-bash-zip-engine/zip/safety";
 import { readZipSfx } from "safe-bash-zip-engine/zip/sfx";
 import { parseZipTestCommand,testZipCommand } from "safe-bash-zip-engine/zip/test-command";
-import { publishZipVolumes,resolveZipVolumes,splitSize,splitZipVolumes,volumeName } from "safe-bash-zip-engine/zip/volumes";
+import { publishZipVolumes,openZipVolumes,splitSize,splitZipRanges,splitZipVolumes,volumeName } from "safe-bash-zip-engine/zip/volumes";
 
 interface ZipOptions {
   readonly split: number | undefined;
@@ -597,15 +599,94 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
   if (publication?.existing && !await safeZipFile(scope, publication.output, publication.existing, allowHardlinkedUpdate)) fail("output archive requires a regular, single-link file with known backing identity");
   if (parsed.archive === "-" && parsed.test && !parsed.quiet) await budget.output("\tzip warning: can't use -T on stdout, -T ignored\n");
   if (existing && !await safeZipFile(scope, input!, existing, allowHardlinkedUpdate)) fail("updating archive requires a regular, single-link file with known backing identity; archive aliases are unsupported");
-  let archive: ZipArchive = { entries: [], comment: new Uint8Array() };
-  let originalBytes: Uint8Array | undefined;
+  const scratchParent = temporary?.parent ?? publication?.parent ?? context.cwd;
+  const directStdin = parsed.archive === "-" && parsed.operands.length === 1 && parsed.operands[0] === "-" && !parsed.archiveComment && !parsed.entryComments && parsed.tempPath === undefined;
+  const scratchCapabilities = directStdin ? {} : await scope.operation(() => context.fs.capabilitiesFor?.(scratchParent, { signal: context.signal }) ?? context.fs.capabilities);
+  const scratch = scratchCapabilities.retainedRead && scratchCapabilities.retainedStagingWrite && scratchCapabilities.retainedStagingCleanup
+    ? createZipScratchFactory(scope, scratchParent) : undefined;
+  if (scratch) scope.retain(scratch.close);
+  let originalSource: ZipReadSource | undefined;
+  let payloadSpool: ZipMetadataSpool | undefined;
+  let payloadSource: ZipReadSource | undefined;
+  let payloadSize = 0;
+  type StoredEntry = ZipEntry & { bankOffset?: number; inputName?: string; inputStat?: FileStat | undefined; inputCanonical?: string | undefined; inputFifo?: boolean | undefined; selectedSource?: string; converted?: boolean };
+  const identityScopes: unknown[] = [];
+  const encodeState = (value: unknown): unknown => {
+    if (value === null || typeof value !== "object" || value instanceof Uint8Array || value instanceof Date) return value;
+    if (Array.isArray(value)) return value.map(encodeState);
+    const result: Record<string, unknown> = {};
+    for (const [key, item] of Object.entries(value)) {
+      if (typeof item === "function" || key === "source" && typeof item !== "string") continue;
+      if (key === "identityScope" && item !== undefined) {
+        let id = identityScopes.indexOf(item);
+        if (id < 0) { id = identityScopes.length; identityScopes.push(item); }
+        result.identityScopeIndex = id;
+      } else result[key] = encodeState(item);
+    }
+    return result;
+  };
+  const decodeState = (value: unknown): unknown => {
+    if (value === null || typeof value !== "object" || value instanceof Uint8Array || value instanceof Date) return value;
+    if (Array.isArray(value)) return value.map(decodeState);
+    const result: Record<string, unknown> = {};
+    for (const [key, item] of Object.entries(value)) {
+      if (key === "identityScopeIndex") result.identityScope = identityScopes[item as number];
+      else result[key] = decodeState(item);
+    }
+    if ("method" in result && "crc32" in result && "data" in result) {
+      const entry = result as unknown as StoredEntry;
+      if (entry.encryption && parsed.encryption) entry.encryption = parsed.encryption;
+      if (entry.bankOffset !== undefined || entry.compressedOffset !== undefined) entry.compressedSource = () => (async function* () {
+        const source = entry.bankOffset === undefined ? originalSource : payloadSource;
+        if (!source) fail("ZIP missing retained payload storage");
+        const start = entry.bankOffset ?? entry.compressedOffset!;
+        for (let offset = 0; offset < entry.compressedSize!;) {
+          const bytes = await source.read(start + offset, Math.min(limits.chunkSize, entry.compressedSize! - offset));
+          if (!bytes.length) fail("ZIP truncated retained payload");
+          offset += bytes.length; yield bytes;
+        }
+      })();
+      if (entry.growStart !== undefined && originalSource) zipGrowRecords.set(entry, { length: entry.growLength!, version: entry.growVersion!, source: () => (async function* () {
+        for (let offset = 0; offset < entry.growLength!;) {
+          const bytes = await originalSource!.read(entry.growStart! + offset, Math.min(limits.chunkSize, entry.growLength! - offset));
+          if (!bytes.length) fail("ZIP truncated grow record");
+          offset += bytes.length; yield bytes;
+        }
+      })() });
+      if (entry.inputName !== undefined) {
+        const name = entry.inputName;
+        const raw = (async function* (): ByteSource {
+          if (name === "-") { yield* scope.stdin; return; }
+          const path = vfsPath(context.cwd, name);
+          try { yield* scope.input(path, entry.inputFifo, entry.inputFifo ? undefined : entry.inputStat); }
+          catch (error) {
+            context.signal.throwIfAborted();
+            if (parsed.mustMatch && typeof error === "object" && error !== null && "code" in error && (error.code === "ENOENT" || error.code === "EACCES")) throw new ZipFailure(18, "File not found or no read permission", `was zipping ${name}`);
+            throw error;
+          }
+          const current = await inspectSource(scope, path, parsed.storeLinks);
+          if (current.canonical !== entry.inputCanonical || !unchanged(entry.inputStat!, current.stat)) fail(`source changed while reading: ${name}`);
+        })();
+        entry.source = parsed.toCrlf || parsed.fromCrlf ? zipLineEndingStream(raw, parsed.fromCrlf, entry.method === 0, limits.maxEntryBytes, context.signal, entry.level, converted => { entry.converted = converted; }) : raw;
+      }
+    }
+    return result;
+  };
+  const stateMap = <T>() => new ZipStateMap<T>(scratch, context.signal, value => encodeState(value), value => decodeState(value) as T);
+  const moveBacking = scratch ? { createMap: stateMap, identityKey: (stat: FileStat) => {
+    let scopeIndex = identityScopes.indexOf(stat.identityScope);
+    if (scopeIndex < 0) { scopeIndex = identityScopes.length; identityScopes.push(stat.identityScope); }
+    return JSON.stringify([scopeIndex, stat.dev, stat.ino, stat.opaqueIdentity]);
+  } } : undefined;
+  let archive: ZipArchive | ZipIndexedArchive = { entries: [], comment: new Uint8Array() };
   let inputPaths: readonly string[] = [];
   let inputSplit: number | undefined;
   if (existing && input) {
     if (!Number.isSafeInteger(existing.size) || existing.size < 0 || existing.size > limits.maxArchiveBytes) fail("archive byte limit exceeded");
-    const bytes = await collectBytes(scope.input(input), { ...(Number.isFinite(limits.maxArchiveBytes) ? { maxBytes: limits.maxArchiveBytes } : {}), ...(Number.isFinite(limits.maxInputMemoryBytes) ? { maxMemoryBytes: limits.maxInputMemoryBytes } : {}), signal: context.signal });
-    if (bytes.length !== existing.size) fail("archive changed while reading");
-    const resolved = parsed.repair || parsed.adjust ? { bytes, paths: [input] } : await resolveZipVolumes(scope, input, bytes, host);
+    const retained = parsed.repair || parsed.adjust ? await openZipSource(scope, input) : await openZipVolumes(scope, input, host);
+    scope.retain(retained.close);
+    originalSource = retained.source;
+    const resolved = "paths" in retained ? retained : { ...retained, paths: [input], disks: undefined };
     inputPaths = resolved.paths;
     await log?.protect(inputPaths);
     if (resolved.disks && resolved.disks.starts.length > 1) inputSplit = Math.max(65536, ...resolved.disks.lengths.slice(0, -1));
@@ -616,84 +697,117 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
     if ((parsed.split || resolved.disks) && parsed.output === undefined && parsed.showFiles === undefined) throw new ZipFailure(16, "Invalid command arguments", "split archives require a separate --out destination");
     if (parsed.repair || parsed.adjust) {
       if (!publication) fail("ZIP repair requires a file destination");
-      let outputBytes: Uint8Array, partial = false;
+      let source: ByteSource, partial = false;
       if (parsed.repair) {
-        const recovered = await repairZip(bytes, parsed.repair, limits, context.signal, parsed.password);
+        const recovered = await repairZip(retained.source, parsed.repair, limits, context.signal, parsed.password, scratch);
         partial = recovered.partial;
-        outputBytes = await writeZipArchive(recovered.archive, limits, context.signal);
-        const verified = await readZipArchive(outputBytes, limits, context.signal);
-        for (const entry of verified.entries) for await (const chunk of decodeZipEntry(entry, limits, context.signal, parsed.password)) { void chunk; }
+        if ("close" in recovered.archive) scope.retain(recovered.archive.close);
+        source = streamZipArchive(recovered.archive, limits, context.signal, false, false, true, scratch);
       } else {
-        archive = await readZipArchive(bytes, limits, context.signal, { prefix: true });
-        outputBytes = await adjustZipSfx(bytes, archive, limits, context.signal, parsed.password);
+        archive = scratch ? await readZipIndexedArchive(retained.source, limits, context.signal, scratch, { prefix: true }) : await readZipArchive(retained.source, limits, context.signal, { prefix: true });
+        const adjusted = await adjustZipRanges(retained.source, archive, limits, context.signal, parsed.password, scratch);
+        scope.retain(adjusted.close);
+        source = (async function* (): ByteSource {
+          for (let offset = 0; offset < adjusted.size;) {
+            const chunk = await adjusted.read(offset, Math.min(limits.chunkSize, adjusted.size - offset));
+            if (!chunk.length) fail("ZIP truncated adjusted archive");
+            offset += chunk.length;
+            yield chunk;
+          }
+        })();
       }
       const current = await scope.stat(input);
       if (!current || !unchanged(existing, current)) fail("archive changed while reading");
       const progress: string[] = [];
       if (!parsed.quiet) progress.push(parsed.repair ? `Fix archive (-${parsed.repair}) - verified recovered members\n` : "Zip entry offsets adjusted\n");
       if (partial) progress.push("\tzip warning: partial recovery; some entries were not recovered\n");
-      return { kind: "file" as const, inputSplit, inputPaths, testRequired: parsed.test, publication, bytes: outputBytes, progress, exitCode: 0, moves: [] };
+      return { kind: "staged-source" as const, inputSplit, inputPaths, publication: { ...publication, ...(parsed.test ? { validate: (path: string) => testZipCommand(scope, parsed.testCommand, path, budget, parsed.archive, parsed.quiet, parsed.password) } : {}) }, source, scratch, progress, exitCode: 0, moveBacking, moves: [] };
     }
-    archive = parsed.junkSfx ? await readZipSfx(bytes, limits, context.signal, parsed.password) : await readZipArchive(resolved.bytes, limits, context.signal, { grow: parsed.grow, ...(resolved.disks ? { disks: resolved.disks } : {}) });
-    if (!resolved.disks && (parsed.latestTime || parsed.test)) originalBytes = bytes;
+    archive = parsed.junkSfx ? await readZipSfx(retained.source, limits, context.signal, parsed.password, scratch) : scratch ? await readZipIndexedArchive(retained.source, limits, context.signal, scratch, { grow: parsed.grow, ...(resolved.disks ? { disks: resolved.disks } : {}) }) : await readZipArchive(retained.source, limits, context.signal, { grow: parsed.grow, ...(resolved.disks ? { disks: resolved.disks } : {}) });
     const current = await scope.stat(input);
     if (!current || !unchanged(existing, current)) fail("archive changed while reading");
   }
   const logStat = parsed.logPath === undefined ? undefined : await scope.stat(vfsPath(context.cwd, parsed.logPath));
-  const old = new Map(archive.entries.map(entry => [entry.name, entry]));
-  const liveProfile = !parsed.split && !existing && !parsed.toCrlf && !parsed.fromCrlf && !parsed.archiveComment && !parsed.entryComments
-    && !parsed.test && !parsed.latestTime && parsed.tempPath === undefined;
+  const old = stateMap<ZipEntry>();
+  for await (const entry of archive.entries) await await old.set(entry.name, entry);
+  const convertedNames = stateMap<boolean>();
   if (!archive.entries.length && !parsed.quiet && (parsed.action === "update" || parsed.action === "freshen")) await budget.output(`\tzip warning: ${zipPublicText(parsed.archive)} not found or empty\n`);
-  const dosConvertedNames = new Set<string>();
-  const selected = new Map<string, { entry: ZipEntry; source: string; sourceSize: number }>();
-  const conversionWarnings = new Map<string, string>();
-  const listed = new Map<string, { name: string; size: number; source: string }>();
-  const moves = new Map<string, ZipMoveSource>();
-  const deleted = new Set<string>();
-  const synchronized = new Map<string, string>();
-  const commentNames = new Set<string>();
+  const dosConvertedNames = stateMap<boolean>();
+  const selected = stateMap<{ entry: ZipEntry; source: string; sourceSize: number }>();
+  const conversionWarnings = stateMap<string>();
+  const listed = stateMap<{ name: string; size: number; source: string }>();
+  const moves = stateMap<ZipMoveSource>();
+  const deleted = stateMap<boolean>();
+  const synchronized = stateMap<string>();
+  const commentNames = stateMap<boolean>();
   const selection = new Selection([...parsed.includes, ...parsed.excludes], limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
   const recursiveSelection = parsed.recursivePatterns ? new Selection(parsed.dosNames ? parsed.operands.map(zipDosName) : parsed.operands, limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories, trailingComponents: true }) : undefined;
   const ancestors: { path: string; stat: FileStat }[] = [];
   let visits = 0;
   let work = 0;
   let compressedBytes = 0;
-  const encodeSelected = async (source: string, name: string, input: Uint8Array | ByteSource, attributes: Pick<ZipEntry, "modified" | "mode" | "directory" | "symlink">, expectedSize?: number) => {
+  const encodeSelected = async (source: string, name: string, input: Uint8Array | ByteSource, attributes: Pick<ZipEntry, "modified" | "mode" | "directory" | "symlink">, expectedSize?: number, sourceStat?: FileStat, sourceCanonical?: string, sourceFifo?: boolean) => {
     const live = !(input instanceof Uint8Array);
     let bytes = live ? new Uint8Array() : input;
     const sourceSize = live ? expectedSize ?? 0 : bytes.length;
     const originalBytes = bytes;
     const store = parsed.method === "store" || parsed.level !== 9 && parsed.suffixes.some(suffix => name.endsWith(suffix));
-    if (!store && parsed.level === 0 && bytes.length && !attributes.directory && !attributes.symlink) throw new ZipFailure(5, "Internal logic error", "bad pack level");
-    if ((parsed.toCrlf || parsed.fromCrlf) && !attributes.directory && !attributes.symlink) {
+    if (!store && parsed.level === 0 && (bytes.length || expectedSize) && !attributes.directory && !attributes.symlink) throw new ZipFailure(5, "Internal logic error", "bad pack level");
+    if (!live && (parsed.toCrlf || parsed.fromCrlf) && !attributes.directory && !attributes.symlink) {
       if (parsed.fromCrlf && parsed.method === "bzip2" && !store) fail("from-crlf BZIP2 native read profile unsupported");
       const originalSize = bytes.length;
       bytes = parsed.fromCrlf ? await zipFromCrlf(bytes, store, context.signal, parsed.level) : await zipToCrlf(bytes, store, Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes + originalSize), context.signal);
       budget.totalBytes += bytes.length - originalSize;
     }
     const level = store ? 0 : parsed.level;
-    let entry = await makeZipEntry(name, bytes, attributes, limits, context.signal, level, !store && (parsed.archive === "-" && parsed.tempPath === undefined || parsed.descriptors && bytes.length > 0), parsed.method === "store" ? "deflate" : parsed.method);
+    let entry: StoredEntry = await makeZipEntry(name, bytes, attributes, limits, context.signal, level, !store && (parsed.archive === "-" && parsed.tempPath === undefined || parsed.descriptors && bytes.length > 0), parsed.method === "store" ? "deflate" : parsed.method);
     if (live) {
-      entry = { ...entry, data: new Uint8Array(), size: expectedSize ?? 0, source: input as ByteSource, level,
-        method: store || expectedSize === 0 && parsed.archive !== "-" ? 0 : parsed.method === "lzma" ? 14 : parsed.method === "bzip2" ? 12 : 8, ...(parsed.method === "lzma" && !store && !(expectedSize === 0 && parsed.archive !== "-") ? { flags: 0x802 } : {}), ...(expectedSize === undefined ? {} : { expectedSize }) };
+      const converting = parsed.toCrlf || parsed.fromCrlf;
+      if (parsed.fromCrlf && parsed.method === "bzip2" && !store) fail("from-crlf BZIP2 native read profile unsupported");
+      const convertedInput = converting ? zipLineEndingStream(input as ByteSource, parsed.fromCrlf, store, Math.min(limits.maxEntryBytes, limits.maxTotalBytes), context.signal, level, converted => { entry.converted = converted; }) : input as ByteSource;
+      entry = { ...entry, inputName: source, inputStat: sourceStat, inputCanonical: sourceCanonical, inputFifo: sourceFifo, data: new Uint8Array(), size: expectedSize ?? 0, source: convertedInput, level,
+        method: store || expectedSize === 0 && parsed.archive !== "-" ? 0 : parsed.method === "lzma" ? 14 : parsed.method === "bzip2" ? 12 : 8, ...(parsed.method === "lzma" && !store && !(expectedSize === 0 && parsed.archive !== "-") ? { flags: 0x802 } : {}), ...(expectedSize === undefined ? {} : converting ? { maxSourceSize: expectedSize * (parsed.toCrlf ? 2 : 1) } : { expectedSize }) };
+      const storage = directStdin ? {} : await scope.operation(() => context.fs.capabilitiesFor?.(temporary?.parent ?? publication?.parent ?? context.cwd, { signal: context.signal }) ?? context.fs.capabilities);
+      if ((parsed.archive !== "-" || parsed.tempPath !== undefined || parsed.archiveComment || parsed.entryComments) && scratch && storage.retainedStagingWrite === true && storage.retainedStagingCleanup === true) {
+        if (publication && ((storage.atomicFileMutation !== true && storage.trustedOwnedStaging !== true) || !context.fs.writeFileConditional)) fail("ZIP temporary path requires atomic conditional writes");
+        const conversionEntry = entry;
+        const memberSpools: ZipMetadataSpool[] = [];
+        try {
+          entry = await makeZipEntryFromSource(name, convertedInput, attributes, limits, context.signal, async (source, maximum) => {
+            const spool = await scratch!(); memberSpools.push(spool);
+            let size = 0;
+            for await (const bytes of source) {
+              if (bytes.length > maximum - size) fail("ZIP payload byte limit exceeded");
+              size += bytes.length; await spool.append(bytes);
+            }
+            return spool.finish();
+          }, level, parsed.descriptors && expectedSize !== 0, parsed.method === "store" ? "deflate" : parsed.method);
+          if (conversionEntry.converted) await convertedNames.set(name, true);
+          payloadSpool ??= await scratch!();
+          entry.bankOffset = payloadSize;
+          for await (const bytes of entry.compressedSource!()) { await payloadSpool.append(bytes); payloadSize += bytes.length; }
+          delete entry.compressedSource;
+        } finally { await Promise.all(memberSpools.map(spool => spool.close())); }
+      }
     }
     if (parsed.fromCrlf && sourceSize > 0 && !store && entry.internalAttributes === 0 && !attributes.directory && !attributes.symlink && !parsed.quiet) {
-      conversionWarnings.set(name, `\tzip warning: ${bytes === originalBytes ? "has binary so -ll ignored" : "-ll used on binary file - corrupted?"}\n`);
+      await conversionWarnings.set(name, `\tzip warning: ${live ? await convertedNames.has(name) ? "-ll used on binary file - corrupted?" : "has binary so -ll ignored" : bytes === originalBytes ? "has binary so -ll ignored" : "-ll used on binary file - corrupted?"}\n`);
     }
-    if (parsed.descriptors) entry.descriptors = true;
+    if (parsed.descriptors || source === "-") entry.descriptors = true;
     if (parsed.zip64 === false) entry.zip64 = false;
     if (parsed.zip64 === true || parsed.zip64 === undefined && source === "-") entry.zip64 = true;
-    const prior = old.get(name);
+    const prior = await old.get(name);
     if (prior?.comment) entry = { ...entry, comment: prior.comment };
     if (parsed.metadata !== "default") entry = updateZipExtras(entry, prior, parsed.metadata, limits);
-    if (entry.data.length > limits.maxArchiveBytes - compressedBytes) fail("archive byte limit exceeded");
-    compressedBytes += entry.data.length;
-    if (dosConvertedNames.has(name)) {
+    if ((entry.compressedSize ?? entry.data.length) > limits.maxArchiveBytes - compressedBytes) fail("archive byte limit exceeded");
+    compressedBytes += entry.compressedSize ?? entry.data.length;
+    if (await dosConvertedNames.has(name)) {
       entry = { ...entry, mode: attributes.directory ? 0o040755 : 0o100644, versionMadeBy: 30, externalAttributes: attributes.directory ? 16 : 0, flags: (entry.flags ?? 0) & ~0x800 | (prior?.comment?.some(byte => byte >= 128) ? (prior.flags ?? 0) & 0x800 : 0) };
     }
     if (parsed.encryption && !entry.directory) entry.encryption = parsed.encryption;
-    selected.set(name, { entry, source, sourceSize });
-    if (parsed.entryComments) commentNames.add(name);
+    entry.selectedSource = source;
+    await selected.set(name, { entry, source, sourceSize });
+    if (parsed.entryComments) await commentNames.set(name, true);
   };
   const visit = async (source: string, name: string, depth: number, storedName = false): Promise<void> => {
     context.signal.throwIfAborted();
@@ -702,24 +816,24 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
     if (visits % 128 === 0) await yieldTurn(context.signal);
     if (depth > limits.maxDepth) fail("archive recursion depth limit exceeded");
     if (source === "-") {
-      const previous = selected.get(name) ?? listed.get(name);
+      const previous = await selected.get(name) ?? await listed.get(name);
       if (previous && previous.source !== source) throw new ZipFailure(16, "Invalid command arguments", "cannot repeat names in zip file");
       if (previous || !await filterName(name, selection, parsed.includes.length)) return;
-      const prior = old.get(name);
+      const prior = await old.get(name);
       const modified = new Date();
-      if (parsed.entryComments && prior) commentNames.add(name);
+      if (parsed.entryComments && prior) await commentNames.set(name, true);
       if (!zipDateMatches(modified, parsed.fromDate, parsed.beforeDate)) return;
       if (parsed.filesync) {
-        if (synchronized.has(name) && synchronized.get(name) !== source) throw new ZipFailure(16, "Invalid command arguments", "cannot repeat names in zip file");
-        synchronized.set(name, source);
+        if (await synchronized.has(name) && await synchronized.get(name) !== source) throw new ZipFailure(16, "Invalid command arguments", "cannot repeat names in zip file");
+        await synchronized.set(name, source);
       }
       if (parsed.action === "freshen" && !prior || prior && (parsed.action === "update" || parsed.action === "freshen") && Math.floor(modified.getTime() / 1000) <= Math.floor(prior.modified.getTime() / 1000)) return;
       if (parsed.showFiles !== undefined) {
         await budget.member(0);
-        listed.set(name, { name, size: 0, source });
+        await listed.set(name, { name, size: 0, source });
         return;
       }
-      const live = liveProfile;
+      const live = true;
       const bytes = live ? scope.stdin : await collectBytes(scope.stdin, { ...(Number.isFinite(Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes)) ? { maxBytes: Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes) } : {}), signal: context.signal });
       await budget.member(bytes instanceof Uint8Array ? bytes.length : 0);
       await encodeSelected(source, name, bytes, { modified, mode: 0o010660, directory: false, symlink: false });
@@ -740,7 +854,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
         const operandName = memberName(source, limits);
         const pattern = new Selection([parsed.junkPaths ? operandName.slice(operandName.lastIndexOf("/") + 1) : operandName], limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
         let matched = false;
-        for (const entry of archive.entries) {
+        for await (const entry of archive.entries) {
           if (await pattern.matches(entry.name, true)) {
             matched = true;
             await visit(entry.name, entry.name, depth, true);
@@ -748,7 +862,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
         }
         if (matched) return;
       }
-      if (parsed.entryComments && old.has(name) && await filterName(name, selection, parsed.includes.length)) commentNames.add(name);
+      if (parsed.entryComments && await old.has(name) && await filterName(name, selection, parsed.includes.length)) await commentNames.set(name, true);
       if (parsed.mustMatch && !storedName) {
         if (!parsed.quiet) await budget.output(`\tzip warning: name not matched: ${zipPublicText(source)}\n`);
         throw new ZipFailure(18, "File not found or no read permission", source);
@@ -779,24 +893,24 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
     if (parsed.dosNames && !storedName && name && included) {
       name = zipDosName(name);
       if (!name || (directory ? name.slice(0, -1) : name).split("/").some(component => !component)) throw new ZipFailure(16, "Invalid command arguments", "DOS conversion produces an empty component");
-      dosConvertedNames.add(name);
+      await dosConvertedNames.set(name, true);
     }
-    const prior = old.get(name);
-    if (parsed.entryComments && prior && nameIncluded) commentNames.add(name);
+    const prior = await old.get(name);
+    if (parsed.entryComments && prior && nameIncluded) await commentNames.set(name, true);
     if ((parsed.filesync || parsed.difference) && name && included && !(directory && parsed.omitDirectories)) {
-      if (synchronized.has(name) && synchronized.get(name) !== source) throw new ZipFailure(16, "Invalid command arguments", "cannot repeat names in zip file");
-      synchronized.set(name, source);
+      if (await synchronized.has(name) && await synchronized.get(name) !== source) throw new ZipFailure(16, "Invalid command arguments", "cannot repeat names in zip file");
+      await synchronized.set(name, source);
     }
     const current = !fifoSource && (parsed.filesync || parsed.difference) && prior && prior.size === (directory ? 0 : stat.size)
       && Math.ceil(Math.floor(stat.mtimeMs / 1000) / 2) === Math.ceil(Math.floor(prior.modified.getTime() / 1000) / 2);
     const eligible = parsed.action !== "update" && parsed.action !== "freshen"
       || (prior ? Math.floor(stat.mtimeMs / 1000) > Math.floor(prior.modified.getTime() / 1000) : parsed.action === "update");
     if (parsed.showFiles === undefined && parsed.move && (!parsed.difference || !current && eligible) && name && included && !(directory && parsed.omitDirectories) && (prior || parsed.action !== "freshen")) {
-      if (!moves.has(path)) moves.set(path, await inspectZipMoveSource(scope, path, source));
+      if (!await moves.has(path)) await moves.set(path, await inspectZipMoveSource(scope, path, source));
     }
     if (name && included && eligible && (!current || parsed.showFiles !== undefined) && !(directory && parsed.omitDirectories)) {
       checkPath(name, limits);
-      const previous = selected.get(name) ?? listed.get(name);
+      const previous = await selected.get(name) ?? await listed.get(name);
       if (previous && previous.source !== source) {
         if (!parsed.quiet) await budget.output(`\tzip warning:   first full name: ${zipPublicText(previous.source)}\n                      second full name: ${zipPublicText(source)}\n                     name in zip file repeated: ${zipPublicText(name)}\n`);
         throw new ZipFailure(16, "Invalid command arguments", "cannot repeat names in zip file");
@@ -805,24 +919,35 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
         if (fifoSource && parsed.move) fail("FIFO move is unsupported: producer streams have no removable file snapshot");
         await budget.member(directory || fifoSource ? 0 : stat.size);
         if (parsed.showFiles !== undefined) {
-          listed.set(name, { name, size: directory ? 0 : stat.size, source });
+          await listed.set(name, { name, size: directory ? 0 : stat.size, source });
         } else {
-          const store = parsed.method === "store" || parsed.level !== 9 && parsed.suffixes.some(suffix => name.endsWith(suffix));
           if (fifoSource) {
-            const bytes = await collectBytes(scope.input(path, true), { ...(Number.isFinite(Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes)) ? { maxBytes: Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes) } : {}), signal: context.signal });
-            const current = await inspectSource(scope, path, parsed.storeLinks);
-            if (current.canonical !== canonical || !unchanged(stat, current.stat)) fail(`source changed while reading: ${source}`);
-            budget.totalBytes += bytes.length;
-            await encodeSelected(source, name, bytes, { modified: new Date(stat.mtimeMs), mode: 0o100644, directory: false, symlink: false });
+            const input = (async function* (): ByteSource {
+              let size = 0;
+              for await (const chunk of scope.input(path, true)) {
+                if (chunk.length > Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes) - size) fail("input byte limit exceeded");
+                size += chunk.length;
+                yield chunk;
+              }
+              const current = await inspectSource(scope, path, parsed.storeLinks);
+              if (current.canonical !== canonical || !unchanged(stat, current.stat)) fail(`source changed while reading: ${source}`);
+              budget.totalBytes += size;
+            })();
+            await encodeSelected(source, name, input, { modified: new Date(stat.mtimeMs), mode: 0o100644, directory: false, symlink: false }, undefined, stat, canonical, true);
             return;
           }
-          if (liveProfile && !directory && !symlink && (parsed.archive === "-" || store || parsed.descriptors)) {
+          if (!directory && !symlink) {
             const input = (async function* (): ByteSource {
-              yield* scope.input(path, false, stat);
+              try { yield* scope.input(path, false, stat); }
+              catch (error) {
+                context.signal.throwIfAborted();
+                if (parsed.mustMatch && typeof error === "object" && error !== null && "code" in error && (error.code === "ENOENT" || error.code === "EACCES")) throw new ZipFailure(18, "File not found or no read permission", `was zipping ${source}`);
+                throw error;
+              }
               const current = await inspectSource(scope, path, parsed.storeLinks);
               if (current.canonical !== canonical || !unchanged(stat, current.stat)) fail(`source changed while reading: ${source}`);
             })();
-            await encodeSelected(source, name, input, { modified: new Date(stat.mtimeMs), mode: stat.mode, directory, symlink }, stat.size);
+            await encodeSelected(source, name, input, { modified: new Date(stat.mtimeMs), mode: stat.mode, directory, symlink }, stat.size, stat, canonical);
             return;
           }
           let bytes: Uint8Array;
@@ -851,13 +976,37 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
       if (ancestors.some(ancestor => ancestor.path === canonical || sameIdentity(ancestor.stat, stat))) fail(`directory cycle while archiving: ${source}`);
       ancestors.push({ path: canonical, stat });
       try {
-        const children = await scope.operation(() => context.fs.readdir(path, { signal: context.signal, ...(Number.isFinite(limits.maxMembers) ? { maxEntries: limits.maxMembers - visits } : {}) }));
-        if (children.length > limits.maxMembers - visits) fail("traversal member limit exceeded");
-        for (const child of children) {
-          if (!child.name || child.name === "." || child.name === ".." || child.name.includes("/") || child.name.includes("\0")) fail("invalid filesystem directory entry");
-          const prefix = source === "." ? "" : source.endsWith("/") ? source : `${source}/`;
-          await visit(`${prefix}${child.name}`, `${sourceName}${child.name}`, depth + 1);
+        let children: Iterable<{ name: string }> | AsyncIterable<{ name: string }>;
+        let ordered: ZipStateMap<{ name: string }> | undefined;
+        if (scratch && context.fs.iterateDirectory) {
+          await scratch.initialize();
+          ordered = stateMap<{ name: string }>();
+          const iterator = context.fs.iterateDirectory(path, { signal: context.signal })[Symbol.asyncIterator]();
+          let count = 0;
+          try {
+            for (;;) {
+              const next = await scope.operation(() => iterator.next());
+              if (next.done) break;
+              const child = next.value;
+              if (scratch.ownsPath(`${canonical === "/" ? "" : canonical}/${child.name}`)) continue;
+              if (++count > limits.maxMembers - visits) fail("traversal member limit exceeded");
+              await ordered.set(child.name, child);
+            }
+          } finally { await iterator.return?.(); }
+          children = { async *[Symbol.asyncIterator]() { for await (const [, child] of ordered!.sortedEntries()) yield child; } };
+        } else {
+          const listed = await scope.operation(() => context.fs.readdir(path, { signal: context.signal, ...(Number.isFinite(limits.maxMembers) ? { maxEntries: limits.maxMembers - visits } : {}) }));
+          if (listed.length > limits.maxMembers - visits) fail("traversal member limit exceeded");
+          children = listed;
         }
+        try {
+          for await (const child of children) {
+            if (scratch?.ownsPath(`${canonical === "/" ? "" : canonical}/${child.name}`)) continue;
+            if (!child.name || child.name === "." || child.name === ".." || child.name.includes("/") || child.name.includes("\0")) fail("invalid filesystem directory entry");
+            const prefix = source === "." ? "" : source.endsWith("/") ? source : `${source}/`;
+            await visit(`${prefix}${child.name}`, `${sourceName}${child.name}`, depth + 1);
+          }
+        } finally { await ordered?.close(); }
       } finally { ancestors.pop(); }
     }
   };
@@ -866,10 +1015,10 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
   if ((parsed.archiveComment || parsed.entryComments || parsed.move) && parsed.action === "copy" && !parsed.quiet) await budget.output("\tzip warning: can't set method, move, recurse, or comments with copy mode.\n");
   if (parsed.action === "copy") {
     const operands = new Selection(parsed.operands, limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
-    for (const entry of archive.entries) {
+    for await (const entry of archive.entries) {
       if (await operands.matches(entry.name) && await filterName(entry.name, selection, parsed.includes.length) && zipDateMatches(entry.modified, parsed.fromDate, parsed.beforeDate)) {
         await budget.member(entry.size);
-        selected.set(entry.name, { entry, source: entry.name, sourceSize: entry.size });
+        await selected.set(entry.name, { entry, source: entry.name, sourceSize: entry.size });
       }
     }
   } else if (parsed.action === "delete") {
@@ -877,8 +1026,8 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
     if (!parsed.quiet && !archive.entries.length) await budget.output(`\tzip warning: ${zipPublicText(parsed.archive)} not found or empty\n`);
     const operands = new Selection(parsed.recursivePatterns ? [] : parsed.operands, limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
     if (parsed.operands.length && !parsed.recursivePatterns) {
-      for (const entry of archive.entries) {
-        if (await operands.matches(entry.name) && await filterName(entry.name, selection, parsed.includes.length) && zipDateMatches(entry.modified, parsed.fromDate, parsed.beforeDate)) deleted.add(entry.name);
+      for await (const entry of archive.entries) {
+        if (await operands.matches(entry.name) && await filterName(entry.name, selection, parsed.includes.length) && zipDateMatches(entry.modified, parsed.fromDate, parsed.beforeDate)) await deleted.set(entry.name, true);
       }
     }
     if (parsed.mustMatch && !parsed.recursivePatterns) {
@@ -892,35 +1041,46 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
       }
     }
   } else {
-    const operands = parsed.showFiles !== undefined && !parsed.operands.length ? [] : parsed.operands.length || parsed.action === "add" ? parsed.operands : archive.entries.map(entry => entry.name);
     if (parsed.recursivePatterns) await visit(".", "", 0);
-    else for (const operand of operands) await visit(operand, memberName(operand, limits), 0);
+    else if (parsed.showFiles !== undefined && !parsed.operands.length) { /* Listing existing entries does not traverse sources. */ }
+    else if (parsed.operands.length || parsed.action === "add") {
+      for (const operand of parsed.operands) await visit(operand, memberName(operand, limits), 0);
+    } else for await (const entry of archive.entries) await visit(entry.name, memberName(entry.name, limits), 0);
   }
+  if (payloadSpool) payloadSource = await payloadSpool.finish();
   if (!publication || !(parsed.split ?? inputSplit)) await log?.start();
   if (parsed.showFiles !== undefined) {
     const contains = !parsed.operands.length && !parsed.includes.length && !parsed.excludes.length;
-    const listing = contains ? archive.entries : parsed.action === "delete" ? archive.entries.filter(entry => deleted.has(entry.name)) : parsed.action === "copy" ? [...selected.values()].map(item => item.entry) : [...listed.values()];
+    const listing = (async function* (): AsyncIterable<{name: string; size: number}> {
+      if (contains || parsed.action === "delete") {
+        for await (const entry of archive.entries) if (contains || await deleted.has(entry.name)) yield entry;
+      } else if (parsed.action === "copy") {
+        for await (const value of selected.values()) yield value.entry;
+      } else yield* listed.values();
+    })();
     const title = contains ? "Archive contains" : parsed.action === "delete" ? "Would Delete" : parsed.action === "freshen" ? "Would Freshen" : parsed.action === "copy" ? "Would Copy" : "Would Add/Update";
-    if (!parsed.quiet && parsed.showFiles) {
-      await budget.output(`${title}:\n`);
-      for (const entry of listing) await budget.output(`  ${escapeText(zipPublicText(entry.name), "display")}\n`);
+    if (!parsed.quiet && parsed.showFiles) await budget.output(`${title}:\n`);
+    let count = 0, size = 0;
+    for await (const entry of listing) {
+      count++; size += entry.size;
+      if (!parsed.quiet && parsed.showFiles) await budget.output(`  ${escapeText(zipPublicText(entry.name), "display")}\n`);
     }
-    await budget.output(`Total ${listing.length} entries (${listing.reduce((total, entry) => total + entry.size, 0)} bytes)\n`);
-    return { kind: "current" as const, exitCode: 0, moves: [] };
+    await budget.output(`Total ${count} entries (${size} bytes)\n`);
+    return { kind: "current" as const, exitCode: 0, moveBacking, moves: [] };
   }
   if (parsed.filesync) {
     if (!synchronized.size) throw new ZipFailure(12, "Nothing to do!", parsed.archive);
-    for (const entry of archive.entries) if (!synchronized.has(entry.name)) deleted.add(entry.name);
+    for await (const entry of archive.entries) if (!await synchronized.has(entry.name)) await deleted.set(entry.name, true);
     if (!selected.size && !deleted.size) {
       if (!parsed.quiet) await budget.output("Archive is current\n");
-      if (!parsed.latestTime) return { kind: "current" as const, exitCode: 0, moves: [...moves.values()] };
+      if (!parsed.latestTime) return { kind: "current" as const, exitCode: 0, moveBacking, moves: moves.values() };
     }
   }
   const changed = selected.size > 0 || deleted.size > 0;
   const testRequired = parsed.test && !(parsed.filesync && !changed);
   let exitCode = 0;
   if (!parsed.difference && !selected.size && !((editComment || editEntries || parsed.junkSfx || parsed.test) && archive.entries.length) && (parsed.action === "freshen" || parsed.action === "update" && (existing || !parsed.includes.length))) {
-    if (!parsed.latestTime || !archive.entries.length) return moves.size ? { kind: "current" as const, exitCode: 12, moves: [...moves.values()] } : undefined;
+    if (!parsed.latestTime || !archive.entries.length) return moves.size ? { kind: "current" as const, exitCode: 12, moveBacking, moves: moves.values() } : undefined;
     exitCode = 12;
   }
   if (parsed.latestTime && !changed && !archive.entries.length && parsed.archive !== "-") throw new ZipFailure(13, "Missing or empty zip file", parsed.archive);
@@ -930,88 +1090,102 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
       : parsed.archive;
     throw new ZipFailure(12, "Nothing to do!", detail);
   }
-  const entries: ZipEntry[] = [];
-  const progress: string[] = [];
+  const entries = new ZipStateList(stateMap<ZipEntry>());
+  const progress = new ZipStateList(stateMap<string>());
   let progressBytes = 0;
-  const queue = (message: string) => {
+  let progressRead = 0;
+  const flushProgress = async () => {
+    while (progressRead < progress.length) await budget.output(await progress.get(progressRead++));
+    progressBytes = 0;
+  };
+  const queue = async (message: string) => {
     if (parsed.quiet) return;
     const size = byteLength(message);
     if (size > limits.maxTextBytes - budget.textBytes - progressBytes) fail("text output limit exceeded");
     progressBytes += size;
-    progress.push(message);
+    await progress.push(message);
   };
-  const counted = parsed.action === "delete" ? archive.entries.filter(entry => deleted.has(entry.name)) : [...selected.values()].map(item => item.entry);
-  let remainingBytes = counted.reduce((total, entry) => total + (parsed.action === "delete" || parsed.action === "copy" ? entry.data.length : selected.get(entry.name)?.sourceSize ?? entry.size), 0);
+  let countedLength = 0, remainingBytes = 0;
+  if (parsed.action === "delete") {
+    for await (const entry of archive.entries) if (await deleted.has(entry.name)) { countedLength++; remainingBytes += entry.compressedSize ?? entry.data.length; }
+  } else for await (const {entry, sourceSize} of selected.values()) {
+    countedLength++; remainingBytes += parsed.action === "copy" ? entry.compressedSize ?? entry.data.length : sourceSize;
+  }
   let doneBytes = 0;
   let done = 0;
-  const stats = (entry: ZipEntry) => {
+  const stats = async (entry: ZipEntry) => {
     let prefix = parsed.displayVolume ? "1>1: " : "";
-    if (parsed.displayCounts) prefix += `${String(done).padStart(3)}/${String(counted.length - done).padStart(3)} `;
+    if (parsed.displayCounts) prefix += `${String(done).padStart(3)}/${String(countedLength - done).padStart(3)} `;
     if (parsed.displayBytes) prefix += `[${zipDisplaySize(doneBytes).padStart(4)}/${zipDisplaySize(remainingBytes).padStart(4)}] `;
-    const size = parsed.action === "delete" || parsed.action === "copy" ? entry.data.length : selected.get(entry.name)?.sourceSize ?? entry.size;
+    const size = parsed.action === "delete" || parsed.action === "copy" ? entry.compressedSize ?? entry.data.length : (await selected.get(entry.name))?.sourceSize ?? entry.size;
     done++;
     doneBytes += size;
     remainingBytes -= size;
     return prefix;
   };
-  const append = (entry: ZipEntry, update: boolean) => {
+  const append = async (entry: ZipEntry, update: boolean) => {
     if (parsed.quiet) return;
     const compressedSize = entry.compressedSize ?? entry.data.length;
     const percentage = entry.size ? Math.trunc((Math.trunc(200 * (entry.size - compressedSize) / entry.size) + 1) / 2) : 0;
-    const prefix = stats(entry);
-    const usize = parsed.displayUsize ? ` (${zipDisplaySize(selected.get(entry.name)?.sourceSize ?? entry.size)})` : "";
+    const prefix = await stats(entry);
+    const usize = parsed.displayUsize ? ` (${zipDisplaySize((await selected.get(entry.name))?.sourceSize ?? entry.size)})` : "";
     const verbose = parsed.verbose ? `${entry.method === 0 ? "" : " "}\t(in=${entry.size}) (out=${compressedSize})` : "";
     const dotCount = !parsed.globalDots && parsed.dotSize ? Math.floor(entry.size / parsed.dotSize) : 0;
     if (dotCount > limits.maxTextBytes - budget.textBytes - progressBytes) fail("text output limit exceeded");
     const dots = ".".repeat(dotCount);
-    const warning = conversionWarnings.get(entry.name);
-    queue(`${prefix}${update ? parsed.action === "freshen" ? "freshening:" : "updating:" : "  adding:"} ${escapeText(zipPublicText(entry.name), "display")}${usize}${verbose}${warning ? `\n${warning}` : ""} ${dots ? `${dots} ` : ""}(${entry.method === 14 ? `lzma ${percentage}%` : entry.method === 12 ? `bzipped ${percentage}%` : entry.method === 8 ? `deflated ${percentage}%` : "stored 0%"})\n`);
+    if (entry.source && parsed.fromCrlf && entry.size > 0 && entry.method !== 0 && entry.internalAttributes === 0) await conversionWarnings.set(entry.name, `\tzip warning: ${await convertedNames.has(entry.name) ? "-ll used on binary file - corrupted?" : "has binary so -ll ignored"}\n`);
+    const warning = await conversionWarnings.get(entry.name);
+    await queue(`${prefix}${update ? parsed.action === "freshen" ? "freshening:" : "updating:" : "  adding:"} ${escapeText(zipPublicText(entry.name), "display")}${usize}${verbose}${warning ? `\n${warning}` : ""} ${dots ? `${dots} ` : ""}(${entry.method === 14 ? `lzma ${percentage}%` : entry.method === 12 ? `bzipped ${percentage}%` : entry.method === 8 ? `deflated ${percentage}%` : "stored 0%"})\n`);
   };
-  for (const entry of archive.entries) {
+  const pendingProgress = stateMap<boolean>();
+  let growReplaced = false;
+  for await (const entry of archive.entries) {
     if (++work > limits.maxPatternSteps) fail("archive work limit exceeded");
-    if (deleted.has(entry.name)) { queue(`${stats(entry)}deleting: ${escapeText(zipPublicText(entry.name), "display")}\n`); continue; }
-    const replacement = selected.get(entry.name);
+    if (await deleted.has(entry.name)) { await queue(`${await stats(entry)}deleting: ${escapeText(zipPublicText(entry.name), "display")}\n`); continue; }
+    const replacement = await selected.get(entry.name);
     if (parsed.action === "copy") {
-      if (replacement) { entries.push(replacement.entry); queue(`${stats(entry)} copying: ${escapeText(zipPublicText(entry.name), "display")}\n`); selected.delete(entry.name); }
+      if (replacement) { growReplaced = true; await entries.push(replacement.entry); await queue(`${await stats(entry)} copying: ${escapeText(zipPublicText(entry.name), "display")}\n`); await selected.delete(entry.name); }
       continue;
     }
-    if (replacement) { entries.push(replacement.entry); append(replacement.entry, true); selected.delete(entry.name); }
-    else if (!parsed.difference) { await budget.member(entry.size); entries.push(entry); }
+    if (replacement) { growReplaced = true; await entries.push(replacement.entry); if (replacement.entry.source) await pendingProgress.set(replacement.entry.name, true); else await append(replacement.entry, true); await selected.delete(entry.name); }
+    else if (!parsed.difference) { await budget.member(entry.size); await entries.push(entry); }
   }
-  if (parsed.grow && (parsed.zip64 !== undefined || deleted.size || archive.entries.some(entry => !entries.includes(entry)))) {
-    for (const entry of archive.entries) {
+  if (parsed.grow && (parsed.zip64 !== undefined || deleted.size || growReplaced)) {
+    for (let index = 0; index < entries.length; index++) {
+      const entry = await entries.get(index);
       zipGrowRecords.delete(entry);
+      delete entry.growStart; delete entry.growLength; delete entry.growVersion;
       if (parsed.zip64 === false) entry.zip64 = false;
+      await entries.set(index, entry);
     }
   }
-  const pendingProgress: ZipEntry[] = [];
-  for (const { entry } of selected.values()) { entries.push(entry); if (entry.source) pendingProgress.push(entry); else append(entry, false); }
-  const summary = () => {
+  for await (const { entry } of selected.values()) { await entries.push(entry); if (entry.source) await pendingProgress.set(entry.name, false); else await append(entry, false); }
+  const summary = async () => {
     if (!parsed.verbose || parsed.quiet) return;
-    const size = entries.reduce((total, entry) => total + entry.size, 0);
-    const compressed = entries.reduce((total, entry) => total + (entry.compressedSize ?? entry.data.length), 0);
-    queue(`total bytes=${size}, compressed=${compressed} -> ${size ? Math.round(100 * (size - compressed) / size) : 0}% savings\n`);
+    let size = 0, compressed = 0;
+    for await (const entry of entries) { size += entry.size; compressed += entry.compressedSize ?? entry.data.length; }
+    await queue(`total bytes=${size}, compressed=${compressed} -> ${size ? Math.round(100 * (size - compressed) / size) : 0}% savings\n`);
   };
-  const finishProgress = () => {
-    if (!pendingProgress.length) return;
-    for (const entry of pendingProgress.splice(0)) append(entry, false);
-    summary();
+  let pendingFinished = false;
+  const finishProgress = async () => {
+    if (!pendingProgress.size || pendingFinished) return;
+    for await (const entry of entries) if (await pendingProgress.has(entry.name)) await append(entry, (await pendingProgress.get(entry.name))!);
+    pendingFinished = true;
+    await summary();
   };
-  if (!pendingProgress.length) summary();
-  if (!entries.length) queue("\tzip warning: zip file empty\n");
+  if (!pendingProgress.size) await summary();
+  if (!entries.length) await queue("\tzip warning: zip file empty\n");
   let comment = archive.comment;
   if (editComment || editEntries && commentNames.size) {
-    for (const message of progress) await budget.output(message);
-    progress.length = 0;
-    progressBytes = 0;
+    await flushProgress();
     const commentInput = new ZipCommentInput(scope.stdin, limits, context.signal);
     if (editEntries) {
       for (let index = 0; index < entries.length; index++) {
-        const entry = entries[index]!;
-        if (!commentNames.has(entry.name)) continue;
+        const entry = await entries.get(index);
+        if (!await commentNames.has(entry.name)) continue;
         if (!parsed.quiet) await budget.output(`Enter comment for ${zipPublicText(entry.name)}:\n`);
         const line = await commentInput.readLine();
-        if (line !== undefined) entries[index] = setZipEntryComment(entry, line.at(-1) === 10 ? line.subarray(0, -1) : line, limits);
+        if (line !== undefined) await entries.set(index, setZipEntryComment(entry, line.at(-1) === 10 ? line.subarray(0, -1) : line, limits));
       }
     }
     if (editComment && !parsed.quiet) {
@@ -1024,8 +1198,14 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
     }
     if (editComment) comment = await readZipComment(commentInput, limits, context.signal);
   }
-  if (!publication) return { kind: "stream" as const, temporary, archive: { entries, comment }, progress, finishProgress, moves: [...moves.values()] };
-  if (entries.some(entry => entry.source)) return { kind: "staged-stream" as const, publication, archive: { entries, comment }, progress, finishProgress, exitCode, moves: [...moves.values()] };
+  const outputArchive = async () => {
+    const onEntry = async (index: number, entry: ZipEntry) => { await entries.set(index, entry); };
+    if (scratch) return { entries, comment, onEntry };
+    const buffered: ZipEntry[] = [];
+    for await (const entry of entries) buffered.push(entry);
+    return { entries: buffered, comment, onEntry };
+  };
+  if (!publication) return { kind: "stream" as const, temporary, archive: await outputArchive(), scratch, progress, finishProgress, flushProgress, moveBacking, moves: moves.values() };
   let latestWarning: string | undefined;
   if (parsed.latestTime) {
     const mtimeMs = await zipLatestTime(entries, context.signal);
@@ -1034,29 +1214,33 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
       : "\tzip warning: zip file is empty, can't make it as old as latest entry\n";
     else publication = { ...publication, mtimeMs };
   }
-  const bytes = originalBytes && !changed && !editComment && !editEntries && !parsed.junkSfx && !parsed.difference ? originalBytes
-    : await writeZipArchive({ entries, comment }, limits, context.signal, false, parsed.zip64 === true, parsed.zip64 !== false);
-  if (testRequired && parsed.archive !== "-") {
-    for (const message of progress) await budget.output(message);
-    progress.length = 0;
-    progressBytes = 0;
+  if (!changed && existing && input && !editComment && !editEntries && !parsed.junkSfx && !parsed.difference && (parsed.output === undefined || parsed.action === "copy" && parsed.test) && (latestWarning !== undefined || parsed.test && !parsed.latestTime)) {
+    if (testRequired) await testZipCommand(scope, parsed.testCommand, input, budget, parsed.archive, parsed.quiet, parsed.password);
+    if (latestWarning !== undefined) await queue(latestWarning);
+    await flushProgress();
+    return { kind: "current" as const, exitCode, moveBacking, moves: moves.values() };
   }
-  if (latestWarning !== undefined) queue(latestWarning);
-  if (!changed && originalBytes && !editComment && !editEntries && !parsed.junkSfx && !parsed.difference && (parsed.output === undefined || parsed.action === "copy" && parsed.test) && (latestWarning !== undefined || parsed.test && !parsed.latestTime)) {
-    if (testRequired && input) await testZipCommand(scope, parsed.testCommand, input, budget, parsed.archive, parsed.quiet, parsed.password);
-    for (const message of progress) await budget.output(message);
-    return { kind: "current" as const, exitCode, moves: [...moves.values()] };
-  }
-  const sourcePaths: string[] = [];
-  if ((parsed.split ?? inputSplit) && parsed.action !== "copy" && parsed.action !== "delete") for (const value of selected.values()) {
-    if (value.source === "-") continue;
-    const path = vfsPath(context.cwd, value.source);
-    if (value.entry.symlink) {
+  const sourcePaths = new ZipStateList(stateMap<string>());
+  if ((parsed.split ?? inputSplit) && parsed.action !== "copy" && parsed.action !== "delete") for await (const entry of entries) {
+    const source = (entry as StoredEntry).selectedSource;
+    if (source === undefined || source === "-") continue;
+    const path = vfsPath(context.cwd, source);
+    if (entry.symlink) {
       const parent = await scope.operation(() => context.fs.realpath(dirname(path), { signal: context.signal }));
-      sourcePaths.push(`${parent === "/" ? "" : parent}/${path.slice(path.lastIndexOf("/") + 1)}`);
-    } else sourcePaths.push(await scope.operation(() => context.fs.realpath(path, { signal: context.signal })));
+      await sourcePaths.push(`${parent === "/" ? "" : parent}/${path.slice(path.lastIndexOf("/") + 1)}`);
+    } else await sourcePaths.push(await scope.operation(() => context.fs.realpath(path, { signal: context.signal })));
   }
-  return { kind: "file" as const, inputSplit, inputPaths: [...inputPaths, ...sourcePaths], testRequired, publication, bytes, progress, exitCode, moves: [...moves.values()] };
+  const publicationInputs = { async *[Symbol.asyncIterator]() { yield* inputPaths; yield* sourcePaths; } };
+  if ((publication.existing?.nlink ?? 1) <= 1 || (await scope.operation(() => context.fs.capabilitiesFor?.(publication.output, { signal: context.signal }) ?? context.fs.capabilities)).atomicStagedFileMutation === true) {
+    if (latestWarning !== undefined) await queue(latestWarning);
+    return { kind: "staged-stream" as const, inputSplit, inputPaths: publicationInputs, publication: { ...publication, ...(testRequired ? { validate: async (path: string) => { await finishProgress(); await flushProgress(); await testZipCommand(scope, parsed.testCommand, path, budget, parsed.archive, parsed.quiet, parsed.password); } } : {}) }, archive: await outputArchive(), scratch, progress, finishProgress, flushProgress, exitCode, moveBacking, moves: moves.values() };
+  }
+  const bytes = await collectBytes(streamZipArchive(await outputArchive(), limits, context.signal, false, parsed.zip64 === true, parsed.zip64 !== false, scratch), { maxBytes: limits.maxArchiveBytes, signal: context.signal });
+  if (testRequired && parsed.archive !== "-") {
+    await flushProgress();
+  }
+  if (latestWarning !== undefined) await queue(latestWarning);
+  return { kind: "file" as const, inputSplit, inputPaths: publicationInputs, testRequired, publication, bytes, progress, flushProgress, exitCode, moveBacking, moves: moves.values() };
 }
 
 export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandDefinition {
@@ -1115,7 +1299,7 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
       const prepared = await prepare(scope, parsed, budget, log, options.zipHost);
       if (!prepared) return { exitCode: 12 };
       if (prepared.kind === "current") {
-        await removeZipSources(scope, prepared.moves, budget, parsed.quiet);
+        await removeZipSources(scope, prepared.moves, budget, parsed.quiet, prepared.moveBacking);
         return { exitCode: prepared.exitCode };
       }
       if (parsed.debug) await budget.output("sd: Writing virtual archive\n");
@@ -1148,23 +1332,39 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
             }
           }));
         } else await writeFileOutput(context, prepared.bytes, () => scope.operation(() => publishZip(scope, { ...publication, bytes: prepared.bytes, ...(prepared.testRequired ? { validate: (path: string) => testZipCommand(scope, parsed.testCommand, path, budget, parsed.archive, parsed.quiet, parsed.password) } : {}) })));
-        for (const message of prepared.progress) await budget.output(message);
-      } else if (prepared.kind === "staged-stream") {
+        await prepared.flushProgress();
+      } else if (prepared.kind === "staged-stream" || prepared.kind === "staged-source") {
         const source = (async function* (): ByteSource {
-          for await (const chunk of streamZipArchive(prepared.archive, limits, context.signal, true, parsed.zip64 === true, parsed.zip64 !== false)) {
+          for await (const chunk of prepared.kind === "staged-source" ? prepared.source : streamZipArchive(prepared.archive, limits, context.signal, false, parsed.zip64 === true, parsed.zip64 !== false, prepared.scratch)) {
             yield chunk;
             try { await dots(chunk.length); }
             catch (error) { void scope.closeInputs().catch(() => {}); throw error; }
           }
-          prepared.finishProgress();
+          if (prepared.kind === "staged-stream") await prepared.finishProgress();
         })();
-        await scope.operation(() => publishZip(scope, { ...prepared.publication, source }));
-        prepared.finishProgress();
-        for (const message of prepared.progress) await budget.output(message);
+        const split = parsed.split ?? prepared.inputSplit;
+        if (split) {
+          await scope.operation(() => stageZip(scope, { ...prepared.publication, source, reservedPath: prepared.publication.output }, async staging => {
+            if (prepared.publication.validate) await prepared.publication.validate(staging.file.path);
+            const retained = await openZipSource(scope, staging.file.path);
+            try {
+              const parts = await splitZipRanges(retained.source, split, limits, context.signal, prepared.scratch);
+              await publishZipVolumes(scope, prepared.publication, parts, prepared.inputPaths, async (path, disk) => {
+                if (parsed.splitVerbose) await budget.output(`split ${disk + 1}/${parts.length}: ${zipPublicText(path)} (${parts[disk]!.length} bytes)\n`);
+                if (disk && parsed.splitPause) {
+                  if (parsed.splitBell) await budget.output("\u0007");
+                  if (!await scope.operation(() => options.zipHost!.volumePrompt!({ path, disk, disks: parts.length, signal: context.signal }))) fail("ZIP split volume prompt cancelled");
+                }
+              });
+            } finally { await retained.close(); }
+          }));
+        } else await scope.operation(() => publishZip(scope, { ...prepared.publication, source }));
+        if (prepared.kind === "staged-stream") await prepared.finishProgress();
+        if ("flushProgress" in prepared) await prepared.flushProgress(); else for (const message of prepared.progress) await budget.output(message);
       } else {
         const output = createOutputOperation(context, context.stdout);
         try {
-          const source = streamZipArchive(prepared.archive, limits, output.signal, !prepared.temporary || parsed.descriptors, parsed.zip64 === true, parsed.zip64 !== false);
+          const source = streamZipArchive(prepared.archive, limits, output.signal, !prepared.temporary || parsed.descriptors, parsed.zip64 === true, parsed.zip64 !== false, prepared.scratch);
           const emit = async (input: ByteSource) => {
             for await (const chunk of input) {
               try { await writeBytes(output.output, chunk, output.signal); await dots(chunk.length); }
@@ -1180,13 +1380,13 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
             }));
           } else await emit(source);
         } finally { await output.close(); }
-        prepared.finishProgress();
-        for (const message of prepared.progress) await budget.output(message);
+        await prepared.finishProgress();
+        await prepared.flushProgress();
       }
       if (parsed.globalDots) await budget.output("\n");
       if (parsed.debug) await budget.output("sd: Virtual archive complete\n");
-      await removeZipSources(scope, prepared.moves, budget, parsed.quiet);
-      return { exitCode: prepared.kind === "file" || prepared.kind === "staged-stream" ? prepared.exitCode : 0 };
+      await removeZipSources(scope, prepared.moves, budget, parsed.quiet, prepared.moveBacking);
+      return { exitCode: prepared.kind === "file" || prepared.kind === "staged-stream" || prepared.kind === "staged-source" ? prepared.exitCode : 0 };
     } catch (error) {
       original.signal.throwIfAborted();
       context.signal.throwIfAborted();

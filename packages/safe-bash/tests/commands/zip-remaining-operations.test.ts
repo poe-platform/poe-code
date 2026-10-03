@@ -115,7 +115,8 @@ test("zip temp path uses requested authorized VFS directory", async () => {
   } });
   const result = await execute("zip", guarded, ["-b", "/scratch", "sample.zip", "b"]);
   assert.equal(result.exitCode, 0, result.stderr + result.stdout);
-  assert.deepEqual(paths, ["/scratch/.zip-1"]);
+  assert.ok(paths.includes("/scratch/.zip-1"));
+  assert.ok(paths.every(path => path.startsWith("/scratch/.zip-")), JSON.stringify(paths));
   assert.deepEqual(await fs.readdir("/scratch"), []);
 });
 test("zip junk-sfx removes a prefix only after validating the archive", async () => {
@@ -413,7 +414,7 @@ test("temp path stdout spools inside VFS and cleans before completion", async ()
   const guarded = new Proxy(fs, { get(target, property) {
     const value = Reflect.get(target, property);
     if (property === "createStagedFile") return (path: string, ...args: unknown[]) => {
-      assert.equal(path, "/scratch/.zip-1"); staged = true; return Reflect.apply(value, target, [path, ...args]);
+      assert.ok(path.startsWith("/scratch/.zip-"), path); staged = true; return Reflect.apply(value, target, [path, ...args]);
     };
     return typeof value === "function" ? value.bind(target) : value;
   } });
@@ -679,7 +680,14 @@ test("stdout spooling registered cleanup waits for owned staging retirement", as
   const reason = new Error("retire stdout spool");
   const guarded = new Proxy(fs, { get(target, property) {
     const value = Reflect.get(target, property);
-    if (property === "removeStagedFile") return async (...args: unknown[]) => { acquired(); await gate; return Reflect.apply(value, target, args); };
+    if (property === "createStagedFile") return async (...args: Parameters<NonNullable<typeof fs.createStagedFile>>) => {
+      const staging = await fs.createStagedFile!(...args);
+      assert.ok(staging.cleanup);
+      return { ...staging, cleanup: {
+        close: () => staging.cleanup!.close(),
+        async remove() { if (controller.signal.aborted) { acquired(); await gate; } await staging.cleanup!.remove(); },
+      } };
+    };
     return typeof value === "function" ? value.bind(target) : value;
   } });
   const execution = execute("zip", guarded, ["-b/scratch", "-", "b"], {}, {

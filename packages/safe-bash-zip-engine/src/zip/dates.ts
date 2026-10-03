@@ -2,12 +2,12 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import type { ZipEntry } from "../zip-format.js";
 import { ZipFailure } from "./options.js";
 
-export async function zipLatestTime(entries: readonly ZipEntry[], signal: AbortSignal): Promise<number | undefined> {
+export async function zipLatestTime(entries: Iterable<ZipEntry> | AsyncIterable<ZipEntry>, signal: AbortSignal): Promise<number | undefined> {
   signal.throwIfAborted();
   let latest: number | undefined;
-  for (let index = 0; index < entries.length; index++) {
-    if (index % 128 === 0) await yieldTurn(signal);
-    const entry = entries[index]!;
+  let index = 0;
+  for await (const entry of entries) {
+    if (index++ % 128 === 0) await yieldTurn(signal);
     if (entry.directory) continue;
     const rounded = new Date(Math.ceil(Math.floor(entry.modified.getTime() / 1000) / 2) * 2000);
     const timestamp = rounded.getFullYear() < 1980 ? new Date(1980, 0, 1).getTime()

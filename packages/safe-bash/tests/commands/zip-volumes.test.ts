@@ -13,6 +13,14 @@ import native from "./fixtures/zip-volumes-infozip.json" with { type: "json" };
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
 import { archiveCommands } from "../../src/commands/archive/index.js";
 
+function hooked(fs: CommandContext["fs"], overrides: Partial<CommandContext["fs"]>): CommandContext["fs"] {
+  return new Proxy(fs, { get(target, property) {
+    if (Object.hasOwn(overrides, property)) return Reflect.get(overrides, property);
+    const value: unknown = Reflect.get(target, property);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+}
+
 async function run(fs: CommandContext["fs"], command: "zip" | "unzip", args: string[], options: ArchiveCommandsOptions = {}, signal = new AbortController().signal, registerCleanup?: CommandContext["registerCleanup"]) {
   const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
   const result = await (command === "zip" ? createZipCommand(options) : createUnzipCommand(options)).execute({
@@ -41,28 +49,41 @@ test("zip -s 64k emits split signature and relative offsets instead of rejecting
 const resolver: ArchiveCommandsOptions = { zipHost: { volume: ({ archive, disk, disks }) => volumeName(archive, disk, disks) } };
 const limits = settings({});
 
-test("split input memory admission includes the retained final disk and producer slabs", async () => {
+test("split input reads bounded ranges within a budget smaller than the archive", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/file", new Uint8Array(70000).fill(42));
   assert.equal((await run(fs, "zip", ["-q", "-0", "-s64k", "archive.zip", "file"])).exitCode, 0);
-  const result = await run(fs, "unzip", ["-t", "archive.zip"], {
-    ...resolver, limits: { maxInputMemoryBytes: 100000 },
+  const open = fs.openReadFile!.bind(fs);
+  const ranges: number[] = [];
+  const wrapped = hooked(fs, { openReadFile: async (...args) => {
+    const handle = await open(...args);
+    return { ...handle, async read(position, maximum, options) {
+      ranges.push(maximum);
+      return handle.read(position, maximum, options);
+    } };
+  } });
+  const result = await run(wrapped, "unzip", ["-t", "archive.zip"], {
+    ...resolver, limits: { maxInputMemoryBytes: 68000 },
   });
-  assert.equal(result.exitCode, 2);
-  assert.match(result.stderr, /memory budget/);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(ranges.length > 1);
+  assert.ok(ranges.every(maximum => maximum <= 65557), String(ranges));
 });
 
 test("split metadata admission includes the final disk before reading earlier disks", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/file", new Uint8Array(70000).fill(42));
   assert.equal((await run(fs, "zip", ["-q", "-0", "-s64k", "archive.zip", "file"])).exitCode, 0);
-  const original = fs.readStream!.bind(fs);
+  const original = fs.openReadFile!.bind(fs);
   let earlierDiskReads = 0;
-  fs.readStream = (path, options) => {
-    if (path === "/archive.z01") earlierDiskReads++;
-    return original(path, options);
-  };
-  const result = await run(fs, "unzip", ["-t", "archive.zip"], {
+  const wrapped = hooked(fs, { openReadFile: async (path, options) => {
+    const handle = await original(path, options);
+    return { ...handle, async read(position, maximum, options) {
+      if (path === "/archive.z01") earlierDiskReads++;
+      return handle.read(position, maximum, options);
+    } };
+  } });
+  const result = await run(wrapped, "unzip", ["-t", "archive.zip"], {
     ...resolver, limits: { maxArchiveBytes: 68000 },
   });
   assert.equal(result.exitCode, 2);
@@ -312,8 +333,13 @@ test("registered cleanup waits for cooperative owned stage retirement", async ()
   let entered!: () => void, release!: () => void;
   const retiring = new Promise<void>(resolve => { entered = resolve; });
   const gate = new Promise<void>(resolve => { release = resolve; });
-  const remove = fs.removeStagedFile!.bind(fs);
-  fs.removeStagedFile = async (...args) => { entered(); await gate; return remove(...args); };
+  const create = fs.createStagedFile!.bind(fs);
+  fs.createStagedFile = async (...args) => {
+    const staging = await create(...args);
+    if (!args[0].startsWith("/.zip-volume-")) return staging;
+    assert.ok(staging.cleanup);
+    return { ...staging, cleanup: { close: () => staging.cleanup!.close(), async remove() { entered(); await gate; await staging.cleanup!.remove(); } } };
+  };
   const executing = run(fs, "zip", ["-q", "-0", "-s64k", "-sp", "archive.zip", "file"], { zipHost: { volumePrompt: () => { controller.abort(new Error("retire stop")); return false; } } }, controller.signal, close => cleanups.push(close));
   const rejected = assert.rejects(executing, /retire stop/);
   await retiring;
@@ -515,12 +541,21 @@ for (const command of ["zip", "unzip"] as const) {
     assert.equal((await run(fs, "zip", ["-q", "-0", "-s64k", "archive.zip", "file"])).exitCode, 0);
     await fs.writeFile("/joined.zip", Uint8Array.of(9));
     const before = await fs.readFile("/archive.z01"), controller = new AbortController();
-    const lstat = fs.lstat.bind(fs); let reads = 0;
-    fs.lstat = async (path, options) => {
-      if (path === "/archive.z01" && ++reads === 3) controller.abort(new Error("revalidate stop"));
-      return lstat(path, options);
-    };
-    await assert.rejects(run(fs, command, command === "zip" ? ["-q", "-s0", "archive.zip", "-O", "joined.zip"] : ["archive.zip", "-d", "output"], resolver, controller.signal), /revalidate stop/);
+    const open = fs.openReadFile!.bind(fs);
+    let revalidated = false;
+    const wrapped = hooked(fs, { openReadFile: async (path, options) => {
+      const handle = await open(path, options);
+      let stats = 0;
+      return { ...handle, async stat(options) {
+        if (path === "/archive.z01" && ++stats === 2) {
+          revalidated = true;
+          controller.abort(new Error("revalidate stop"));
+        }
+        return handle.stat(options);
+      } };
+    } });
+    await assert.rejects(run(wrapped, command, command === "zip" ? ["-q", "-s0", "archive.zip", "-O", "joined.zip"] : ["archive.zip", "-d", "output"], resolver, controller.signal), /revalidate stop/);
+    assert.equal(revalidated, true);
     assert.deepEqual(await fs.readFile("/archive.z01"), before);
     assert.deepEqual(await fs.readFile("/joined.zip"), Uint8Array.of(9));
     await assert.rejects(fs.lstat("/output"), { code: "ENOENT" });

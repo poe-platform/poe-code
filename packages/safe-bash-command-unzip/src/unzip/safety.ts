@@ -1,6 +1,7 @@
 import { readFileStream } from "safe-bash-contracts/filesystem";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { dirname,isPathWithin,readBytes,resolvePath,type ByteSource,type CommandContext,type FileStaging,type FileStagingEntry,type FileStat } from "safe-bash-contracts";
+import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
 import { concatBytes } from "safe-bash-io-engine/byte-encoding";
 import { checkPath,display,fail,hasIdentity,sameIdentity,type ArchiveLimits } from "safe-bash-io-engine/commands/archive/internal";
 
@@ -161,12 +162,12 @@ export class Extraction {
       ...(capabilities.timestamps === false ? {} : { atimeMs: modified.getTime(), mtimeMs: modified.getTime() }),
     }));
   }
-  publish(root: string, path: string, chunks: readonly Uint8Array[], expected: FileStat | undefined, parent: FileStat, mode: number, modified: Date, target?: string): Promise<void> {
+  publish(root: string, path: string, chunks: ByteSource | readonly Uint8Array[], expected: FileStat | undefined, parent: FileStat, mode: number, modified: Date, target?: string): Promise<void> {
     const publication = this.stage(root, path, chunks, expected, parent, mode, modified, target);
     this.publications.add(publication);
     return publication.finally(() => { this.publications.delete(publication); });
   }
-  private async stage(root: string, path: string, chunks: readonly Uint8Array[], expected: FileStat | undefined, parent: FileStat, mode: number, modified: Date, target: string | undefined): Promise<void> {
+  private async stage(root: string, path: string, chunks: ByteSource | readonly Uint8Array[], expected: FileStat | undefined, parent: FileStat, mode: number, modified: Date, target: string | undefined): Promise<void> {
     const { fs, signal } = this.context;
     const capabilities = await this.operation(async () => await fs.capabilitiesFor?.(path, { signal, create: true }) ?? fs.capabilities);
     if ((capabilities.atomicFileStaging !== true && capabilities.trustedOwnedStaging !== true) || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) fail("extraction requires atomic owned file staging");
@@ -177,13 +178,20 @@ export class Extraction {
     const cleanup = retainFileSystemCleanup(fs, async view => {
       if (staging) {
         if (!view.removeStagedFile) fail("extraction atomic cleanup unavailable");
-        await view.removeStagedFile(staging);
+        if (staging.cleanup) await staging.cleanup.remove();
+        else await view.removeStagedFile(staging);
       }
     }, { maxOperations: Math.min(4096, this.limits.maxDepth + 3) });
     try {
       if (!isPathWithin(root, path)) fail("extraction path escapes root");
       await this.directory(dirname(path), false, ancestors);
-      const content = target === undefined ? { type: "file" as const, data: concatBytes(chunks) } : { type: "symlink" as const, target };
+      const streaming = target === undefined && capabilities.retainedStagingWrite === true;
+      const source: ByteSource = Symbol.asyncIterator in chunks ? chunks as ByteSource : (async function* () { yield* chunks as readonly Uint8Array[]; })();
+      const buffered: Uint8Array[] = [];
+      if (target === undefined && !streaming) for await (const chunk of readBytes(this.source(source), signal)) {
+        await writeFileOutput(this.context, chunk, async bytes => { buffered.push(new Uint8Array(bytes)); });
+      }
+      const content = target === undefined ? { type: "file" as const, data: streaming ? new Uint8Array() : concatBytes(buffered) } : { type: "symlink" as const, target };
       for (let attempt = 0; attempt < this.limits.maxMembers; attempt++) {
         const temporary = resolvePath(dirname(path), `.unzip-${++this.serial}`);
         checkPath(temporary, this.limits);
@@ -192,7 +200,7 @@ export class Extraction {
         try {
           await this.operation(async () => {
             staging = await fs.createStagedFile!(temporary, "entry", content, {
-              signal, parent,
+              signal, parent, ...(capabilities.retainedStagingCleanup ? { retainCleanup: true } : {}),
               ...(target !== undefined || capabilities.permissions === false ? {} : { mode: mode & 0o777 }),
               ...(target !== undefined || capabilities.timestamps === false ? {} : { atimeMs: modified.getTime(), mtimeMs: modified.getTime() }),
             });
@@ -204,6 +212,12 @@ export class Extraction {
         }
       }
       if (!staging) fail("temporary file attempt limit exceeded");
+      if (streaming) {
+        if (!staging.writer) fail("extraction requires retained staged writer");
+        for await (const chunk of readBytes(this.source(source), signal)) await writeFileOutput(this.context, chunk, bytes => this.operation(() => staging!.writer!.write(bytes, { signal })));
+        const stat = await this.operation(() => staging!.writer!.finish({ signal }));
+        staging = { ...staging, file: { ...staging.file, stat } };
+      }
       await this.parents(root, path, false);
       await this.operation(() => fs.publishStagedFile!(staging!, path, { signal, parent, destination: expected ?? null, ancestors }));
     } catch (error) { failure = { reason: error }; }

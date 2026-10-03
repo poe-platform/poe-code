@@ -4572,6 +4572,17 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "encryptedBiffCalc252Poi541": {
+      "status": "partial independent qualification; encrypted BIFF family remains open",
+      "candidate": "Compiled package SDK at3321648ee0; isolated install and maintained selected workspace build pass.",
+      "references": "LibreOffice25.2.3.2 Debian arm64; Apache POI5.4.1 with its pinned Maven dependencies, OpenJDK25.0.2 Homebrew. Downloaded jars checked against Maven SHA1 and retained SHA256 receipts.",
+      "calc": "53correct/wrong-password attempts over27BIFF8 profiles including plaintext control. XOR,standard RC4 and128-bit CryptoAPI with/without encrypted properties open and recalculate SUM from49 to107 after editing A1 from42 to100. All26wrong passwords refuse. Other22CryptoAPI variants refuse even with the correct password. Five edited XLSX outputs retain formula and values through public reader.",
+      "properties": "Separate nine-attempt metadata cohort preserves title/custom Note for plaintext,XOR,RC4 and128-bit CryptoAPI with plaintext properties. Calc opens the encrypted-properties workbook but drops its encrypted title/Note. This is not successful metadata interoperability.",
+      "poi": "54files (27profiles each with/without title and custom property) independently open, preserve values and recalculate107. All52encrypted wrong-password attempts refuse. All27metadata fixtures retain title and Note, including all12encrypted-property key sizes. POI prints only its missing logging-provider warning.",
+      "nulPassword": "Calc refuses product XOR/RC4/CryptoAPI128 files encrypted with a NUL-containing password; POI reads/recalculates all3 and refuses wrong passwords. Calc-generated BIFF with requested a-NUL-b instead uses a; product SDK/command open it with a and reject the full NUL-containing value. Preserve password bytes; do not silently truncate product passwords.",
+      "nativeGenerated": "Native ASCII and Unicode password files plus the native-truncated NUL control pass current public SDK/command imports. All3wrong-password commands refuse with zero output bytes.",
+      "remaining": "Native password limits/encoding variants, all applicable version/ancillary-stream profiles, command-export parity, root/registry artifacts and GUI evidence remain open. This is not all19-family completion."
+    },
     "encryptedOdfCalc252": {
       "status": "partial native interoperability qualification; family remains open",
       "reference": "Unmodified LibreOffice25.2.3.2 520(Build:2), Debian arm64 pinned image a99cfc517144bc59b1978475ec53b46ecabec7e43635402ee5b77cc54cd1b20a; Python UNO pipe-only isolated profile. Explicit abort interaction handler, bounded executions.",

@@ -7,7 +7,7 @@ type JsonlSessionStoreFs = {
     }
   ): Promise<unknown>;
   appendFile(path: string, data: string, encoding: "utf8"): Promise<unknown>;
-  readFile(path: string, encoding: "utf8"): Promise<string | Buffer>;
+  readFile(path: string, encoding: "utf8"): Promise<string | Uint8Array>;
 };
 export interface SessionStore {
   readonly sessionId: string;

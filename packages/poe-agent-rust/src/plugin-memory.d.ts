@@ -1,7 +1,12 @@
-import fsPromises from "node:fs/promises";
 import type { AgentPlugin } from "./plugin-types.js";
 import type { PluginSpec } from "./plugin-spec.js";
-type MemoryPluginFileSystem = Pick<typeof fsPromises, "lstat" | "readFile" | "realpath">;
+type MemoryPluginFileSystem = {
+  lstat(path: string): Promise<{
+    isSymbolicLink(): boolean;
+  }>;
+  readFile(path: string, encoding: "utf8"): Promise<string>;
+  realpath(path: string): Promise<string>;
+};
 export type MemoryPluginOptions = {
   cwd?: string;
   homeDir?: string;

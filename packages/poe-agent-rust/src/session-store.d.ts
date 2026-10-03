@@ -7,7 +7,7 @@ interface SessionStoreFs {
       recursive?: boolean;
     }
   ): Promise<unknown>;
-  readFile(path: string, encoding: "utf8"): Promise<string | Buffer>;
+  readFile(path: string, encoding: "utf8"): Promise<string | Uint8Array>;
   writeFile(
     path: string,
     content: string,

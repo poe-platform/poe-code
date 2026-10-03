@@ -16,7 +16,8 @@ export function createAgentSessionStore(options = {}) {
       const file = paths.join(directory, `${id}.json`);
       let source;
       try {
-        source = String(await fs.readFile(file, "utf8"));
+        const raw = await fs.readFile(file, "utf8");
+        source = typeof raw === "string" ? raw : new TextDecoder().decode(raw);
       } catch (error) {
         if (error instanceof Error && "code" in error && error.code === "ENOENT") return undefined;
         throw error;

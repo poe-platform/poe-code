@@ -27,10 +27,10 @@ it("bridges retained trees and Lua values without losing nulls, empty containers
     const value = {blocks: [{t: "Str", c: "x".repeat(4095) + "😀" + "é".repeat(20000)}], meta: {}, empty: [], nullable: null, flags: [true, false, -1.25]};
     await input.value(value);
     const stored = await bridge.read(input);
-    if (typeof stored !== "object") throw new Error("Expected table");
+    if (typeof stored !== "object" || stored.kind !== "table") throw new Error("Expected table");
     const key = await heap.string([new TextEncoder().encode("flags")]);
     const flags = await heap.get(stored, key);
-    if (typeof flags !== "object") throw new Error("Expected flags");
+    if (typeof flags !== "object" || flags.kind !== "table") throw new Error("Expected flags");
     await heap.set(flags, 2, true);
     await bridge.write(stored, output);
     expect(JSON.parse(await json(output))).toEqual({...value, flags: [true, true, -1.25]});
@@ -94,5 +94,16 @@ it("reports numeric policy rejection as an AST error", async () => {
   await usingBridge(async (bridge, _heap, input) => {
     await input.begin("literal"); await input.text("1e100"); await input.end();
     await expect(bridge.read(input)).rejects.toMatchObject({code: "E_AST"});
+  });
+});
+
+
+it("serializes integer-tagged values and list keys without losing numeric key equivalence", async () => {
+  await usingBridge(async (bridge, heap, _input, output) => {
+    const list = await heap.table();
+    await heap.set(list, {kind: "integer", value: 1}, {kind: "integer", value: -2147483648});
+    await heap.set(list, 2, 0.5);
+    await bridge.write(list, output);
+    expect(await json(output)).toBe("[-2147483648,0.5]");
   });
 });

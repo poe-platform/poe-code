@@ -121,6 +121,7 @@ export class LuaJsonBridge {
     let frame = 0;
     const append = async (value: StoredLuaValue): Promise<void> => {
       await this.cooperate();
+      if (typeof value === "object" && value.kind === "integer") value = value.value;
       if (value === undefined) fail("Invalid nil Lua replacement value");
       if (typeof value !== "object") {
         if (typeof value === "number" && !Number.isFinite(value)) fail("Non-finite Lua number");
@@ -140,13 +141,13 @@ export class LuaJsonBridge {
       if (await active.get(BigInt(value.id)) === 1n) fail("Cyclic Lua replacement value");
       let array: boolean | undefined, count = 0, maximum = 0;
       for (let entry = await this.heap.next(value); entry; entry = await this.heap.next(value, entry.key)) {
-        const numeric = typeof entry.key === "number";
+        const numeric = typeof entry.key === "number" || typeof entry.key === "object" && entry.key.kind === "integer";
         if (!numeric && (typeof entry.key !== "object" || entry.key.kind !== "string")) fail("Invalid Lua table key");
         if (array !== undefined && array !== numeric) fail("Mixed Lua table keys");
         array = numeric;
         count++;
         if (numeric) {
-          const index = entry.key as number;
+          const index = typeof entry.key === "object" && entry.key.kind === "integer" ? entry.key.value : entry.key as number;
           if (!Number.isSafeInteger(index) || index < 1) fail("Lua lists require consecutive integer keys");
           maximum = Math.max(maximum, index);
         }

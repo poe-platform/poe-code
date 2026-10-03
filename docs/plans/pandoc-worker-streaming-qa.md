@@ -48,11 +48,14 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   keys/values, collision indexes, iteration cursors, metatables, closure identities
   and shared captured-variable cells in caller storage. Linked activation records
   retain registers, argument counts and return continuations; scope-close and
-  tail-call tests cover captured-cell identity after register reuse. A retained
+  tail-call tests cover captured-cell identity after register reuse. Prototype
+  storage now retains patchable bytecode, source lines, constants, nested-function
+  links and capture descriptors. Numeric values preserve Fengari integer/float
+  tags while equivalent numeric table keys still share entries. A retained
   JSON value bridge now transfers strings and containers through fixed-size backed
   traversal frames, including cycle checks and empty-container identities. It is
-  not yet connected to the compiler/interpreter: bytecode, constants, frame
-  execution, standard libraries and Pandoc constructor translation still require
+  not yet connected to the compiler/interpreter: source-token/compiler state,
+  instruction execution, standard libraries and Pandoc constructor translation still require
   integration and runtime qualification. Measurements of unavoidable live runtime
   state are still required.
 - Exercise citeproc with bibliography and citation counts that grow independently

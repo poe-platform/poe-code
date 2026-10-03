@@ -192,3 +192,33 @@ it("retains metatable identity independently of table entries and iteration", as
     expect(await heap.get(table, 1)).toBe(42);
   });
 });
+
+it("preserves Lua integer/float tags while matching equivalent numeric table keys", async () => {
+  await usingHeap(async heap => {
+    const table = await heap.table();
+    const integer = {kind: "integer" as const, value: 7};
+    const cell = await heap.cell(integer);
+    expect(await heap.value(cell)).toEqual(integer);
+    await heap.assign(cell, 7);
+    expect(await heap.value(cell)).toBe(7);
+    await heap.set(table, integer, integer);
+    expect(await heap.get(table, 7)).toEqual(integer);
+    await heap.set(table, 7, false);
+    expect(await heap.get(table, integer)).toBe(false);
+    expect(await heap.next(table)).toEqual({key: integer, value: false});
+    expect(await heap.next(table, 7)).toBeUndefined();
+    await heap.set(table, {kind: "integer", value: 0}, true);
+    expect(await heap.get(table, -0)).toBe(true);
+    await heap.set(table, {kind: "integer", value: -2147483648}, 1);
+    expect(await heap.get(table, -2147483648)).toBe(1);
+    await heap.set(table, -2147483648, undefined);
+    expect(await heap.get(table, {kind: "integer", value: -2147483648})).toBeUndefined();
+  });
+});
+
+
+it.each([NaN, Infinity, 1.5, 2147483648, -2147483649])("rejects invalid tagged Lua integers: %s", async value => {
+  await usingHeap(async heap => {
+    await expect(heap.cell({kind: "integer", value})).rejects.toThrow("Lua integer must fit signed 32 bits");
+  });
+});

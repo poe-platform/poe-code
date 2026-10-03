@@ -1,14 +1,17 @@
 import {IntegerTable, type PagedStorage} from "safe-bash-io-engine/storage";
 
 export type LuaReference = {readonly kind: "string" | "table" | "function"; readonly id: number};
-export type StoredLuaValue = undefined | boolean | number | LuaReference;
-const tags = ["nil", "boolean", "number", "string", "table", "function"] as const;
+export type LuaInteger = {readonly kind: "integer"; readonly value: number};
+export type StoredLuaValue = undefined | boolean | number | LuaInteger | LuaReference;
+const tags = ["nil", "boolean", "number", "string", "table", "function", "integer"] as const;
 
 function encode(value: StoredLuaValue): Uint8Array {
+  if (typeof value === "object" && value.kind === "integer" && (value.value | 0) !== value.value)
+    throw new TypeError("Lua integer must fit signed 32 bits");
   const bytes = new Uint8Array(16), view = new DataView(bytes.buffer);
   const tag = value === undefined ? 0 : typeof value === "boolean" ? 1 : typeof value === "number" ? 2 : tags.indexOf(value.kind);
   view.setFloat64(0, tag, true);
-  view.setFloat64(8, value === undefined ? 0 : typeof value === "object" ? value.id : Number(value), true);
+  view.setFloat64(8, value === undefined ? 0 : typeof value === "object" ? value.kind === "integer" ? value.value | 0 : value.id : Number(value), true);
   return bytes;
 }
 function decode(bytes: Uint8Array): StoredLuaValue {
@@ -17,6 +20,7 @@ function decode(bytes: Uint8Array): StoredLuaValue {
   if (!tag) return undefined;
   if (tag === 1) return Boolean(value);
   if (tag === 2) return value;
+  if (tag === 6) return {kind: "integer", value};
   return {kind: tag === 3 ? "string" : tag === 4 ? "table" : "function", id: value};
 }
 function hash(bytes: Uint8Array, initial = 2166136261): number {
@@ -142,6 +146,8 @@ export class LuaStorage {
     return await this.get({kind: "table", id}, index) as number | undefined;
   }
   private async equal(a: StoredLuaValue, b: StoredLuaValue): Promise<boolean> {
+    if (typeof a === "object" && a.kind === "integer") a = a.value;
+    if (typeof b === "object" && b.kind === "integer") b = b.value;
     if (typeof a !== "object" || typeof b !== "object") return a === b;
     if (a.kind !== b.kind) return false;
     if (a.id === b.id) return true;
@@ -162,6 +168,7 @@ export class LuaStorage {
   }
   private async bucket(table: LuaReference, key: StoredLuaValue): Promise<bigint> {
     if (table.kind !== "table") throw new TypeError("Expected Lua table");
+    if (typeof key === "object" && key.kind === "integer") key = key.value;
     const digest = typeof key === "object" && key.kind === "string"
       ? (await this.fields(key.id + 24, 1))[0]!
       : hash(encode(typeof key === "number" && key === 0 ? 0 : key));

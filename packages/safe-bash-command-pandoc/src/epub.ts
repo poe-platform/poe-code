@@ -102,18 +102,29 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
     const parts = new Map<string, Uint8Array>();
     const partIndex = storage ? new ZipDirectoryIndex(storage) : undefined;
     const hasPart = async (name: string) => partIndex ? await partIndex.get(name) !== undefined : parts.has(name);
-    const getPart = async (name: string): Promise<Uint8Array | undefined> => {
+    const partRecord = async (name: string): Promise<Uint8Array | {position: number; length: number} | undefined> => {
       if (!partIndex) return parts.get(name);
       const pointer = await partIndex.get(name);
       if (pointer === undefined) return undefined;
       const record = await storage!.read(pointer, 16);
       const header = new DataView(record.buffer, record.byteOffset, 16);
-      const part = {position: header.getFloat64(0, true), length: header.getFloat64(8, true)};
+      return {position: header.getFloat64(0, true), length: header.getFloat64(8, true)};
+    };
+    const partChunks = async function* (part: {position: number; length: number}) {
+      for (let offset = 0; offset < part.length; offset += 4096) {
+        yield await storage!.read(part.position + offset, Math.min(4096, part.length - offset));
+        await ctx.cooperate();
+      }
+    };
+    const getPart = async (name: string): Promise<Uint8Array | undefined> => {
+      const part = await partRecord(name);
+      if (part === undefined || part instanceof Uint8Array) return part;
       ctx.charge("retainedBytes", part.length);
       const bytes = new Uint8Array(part.length);
-      for (let offset = 0; offset < part.length; offset += 4096) {
-        bytes.set(await storage!.read(part.position + offset, Math.min(4096, part.length - offset)), offset);
-        await ctx.cooperate();
+      let offset = 0;
+      for await (const chunk of partChunks(part)) {
+        bytes.set(chunk, offset);
+        offset += chunk.length;
       }
       return bytes;
     };
@@ -155,9 +166,9 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
     const xmlCache = new Map<string, XmlElement>();
     const xml = async (part: string) => {
       if (xmlCache.has(part)) return xmlCache.get(part)!;
-      const bytes = await getPart(part);
-      if (!bytes) return fail(part, "Missing required EPUB part");
-      const node = await parseEpubXml(bytes, part, ctx);
+      const record = await partRecord(part);
+      if (!record) return fail(part, "Missing required EPUB part");
+      const node = await parseEpubXml(record instanceof Uint8Array ? record : partChunks(record), part, ctx);
       xmlCache.set(part, node);
       return node;
     };

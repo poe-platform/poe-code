@@ -158,8 +158,9 @@ still retains the backing bytes in RAM. No host scratch directory is used.
 EPUB reads also accept `workingFiles` through `readDocument` and `convert`.
 Streamed archives and expanded ZIP members use the bounded page cache and caller
 backing storage, including ZIP names, span validation and member locations;
-unused members are still CRC-checked. Referenced XML, images, publication metadata
-and the document AST remain materialized in memory.
+unused members are still CRC-checked. XML parts feed the parser incrementally.
+XML trees and tokens, images, publication metadata and the document AST remain
+materialized in memory.
 
 The backed CSV/TSV path supports ASCII conversion, line endings, and finite
 `inputBytes`, `outputBytes`, `tableRows`, `tableColumns`, `tableCells`, and

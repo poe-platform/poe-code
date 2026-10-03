@@ -200,3 +200,16 @@ it("reads a book with many unused long-named members through the caller-backed d
     expect(await fs.readdir("/")).toEqual([]);
   } finally {read.mockRestore();}
 });
+
+it("avoids a complete XML source copy for an SDK-backed chapter containing many small comments", async () => {
+  const content = `<!--${"x".repeat(4096)}-->`.repeat(128) + "<p>é😀 &amp; preserved.</p>";
+  const bytes = await publication(0, content);
+  const fs = new MemoryFileSystem();
+  const read = vi.spyOn(PagedStorage.prototype, "read");
+  try {
+    const result = await convert([{chunks: (async function* () {for (let offset = 0; offset < bytes.length; offset += 997) yield bytes.subarray(offset, offset + 997);})()}], {from: "epub", to: "plain"}, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, limits: {retainedBytes: 128 * 1024}, yield: async () => {}});
+    expect(result).toMatchObject({kind: "text", text: "é😀 & preserved.\n", diagnostics: []});
+    expect(Math.max(...read.mock.calls.map(([, length]) => length))).toBeLessThanOrEqual(4096);
+    expect(await fs.readdir("/")).toEqual([]);
+  } finally {read.mockRestore();}
+});

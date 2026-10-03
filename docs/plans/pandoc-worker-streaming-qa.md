@@ -137,6 +137,14 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   paths: filesystem path strings, explicit byte-only resource capabilities and
   full diagnostic messages remain resident boundaries. Functional tests do not
   establish a memory plateau, CPU or first-byte qualification for these cohorts.
+  RTF input has a private retained syntax foundation: source bytes, opaque
+  text/binary spans, token records and parent/sibling group links use caller
+  storage. Differential checks preserve syntax errors and byte offsets, signed
+  parameters, hex escapes, depth/binary limits and cleanup under source, token
+  storage and cancellation failures. Long/deep payloads use bounded reads.
+  The semantic reader still uses the resident token tree; migrating its font,
+  style, list, table, inline and resource state is required before exposing a
+  retained RTF input route. This foundation is not public streaming completion.
   ODT output now retains XML continuations, dynamic list styles, image indexes,
   ZIP member payloads and central records. Differential tests compare complete
   archive bytes, including image density and PNG/JPEG/GIF/BMP/TIFF profiles.

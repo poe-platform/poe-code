@@ -258,3 +258,77 @@ it.each(["tables", "json-tables"])("runs composed Sips, Shuf and streamed Pandoc
     await runtime.dispose();
   }
 });
+
+it.each(["html", "json"])("uses caller-supplied R2 pages and cleans them on success, failure and cancellation (%s)", async target => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const fixture = await build({
+    stdin: {resolveDir: root, contents: 'export * from "./packages/safe-fs/src/core.js"; export {createR2PagedFixture} from "./scripts/pandoc-r2-storage.fixture.mjs";'},
+    bundle: true, platform: "browser", format: "cjs", write: false,
+  });
+  const runtime = new Miniflare({
+    modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"],
+    script: `
+      const fixture = (() => {const module = {exports: {}}; ${fixture.outputFiles[0]!.text}; return module.exports;})();
+      const pandoc = ((require) => {const module = {exports: {}}; ${publishedScript}; return module.exports;})(name => {
+        if (name !== "poe-code/safe-fs/core" && name !== "@poe-platform/safe-fs/core") throw new Error("Unexpected external: " + name);
+        return fixture;
+      });
+      export default {async fetch(request, env) {
+        const mode = new URL(request.url).pathname.slice(1);
+        const namespace = new fixture.MemoryFileSystem();
+        await namespace.mkdir("/spill");
+        const {fs, events} = fixture.createR2PagedFixture(namespace, env.PAGES);
+        const controller = new AbortController();
+        let length = 0, hash = 2166136261, largest = 0, closed = 0, aborted = 0, error;
+        try {
+          await pandoc.convertToOutput([{chunks: (async function* () {
+            yield new TextEncoder().encode("header\\n");
+            for (let index = 0; index < 8; index++) yield new Uint8Array(8192).fill(120);
+          })()}], {from: "csv", to: ${JSON.stringify(target)}}, {
+            signal: controller.signal, workingFiles: {fs, directory: "/spill", cacheBytes: 16384},
+            output: {async write(bytes) {
+              if (mode === "failure") throw new Error("destination unavailable");
+              if (mode === "cancel") controller.abort();
+              length += bytes.length; largest = Math.max(largest, bytes.length);
+              for (const byte of bytes) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
+            }, async close() {closed++;}, async abort() {aborted++;}}
+          });
+        } catch (caught) {error = {message: caught.message, code: caught.code};}
+        return Response.json({length, hash, largest, closed, aborted, error, events,
+          remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir("/spill")});
+      }};
+    `,
+  });
+  try {
+    const attr = ["", [], []];
+    const row = (text: string) => [attr, [[attr, {t: "AlignDefault"}, 1, 1, [{t: "Plain", c: [{t: "Str", c: text}]}]]]];
+    const payload = "x".repeat(65536);
+    const expected = new TextEncoder().encode(target === "html"
+      ? '<table>\n<colgroup><col></colgroup>\n<thead>\n<tr><th scope="col">header</th></tr>\n</thead>\n<tbody>\n<tr><td>' + payload + '</td></tr>\n</tbody>\n</table>\n'
+      : JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [
+        {t: "Table", c: [attr, [null, []], [[{t: "AlignDefault"}, {t: "ColWidthDefault"}]], [attr, [row("header")]], [[attr, 0, [], [row(payload)]]], [attr, []]]}
+      ]}) + "\n");
+    let hash = 2166136261;
+    for (const byte of expected) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
+    for (const mode of ["success", "failure", "cancel"]) {
+      const response = await runtime.dispatchFetch("https://pandoc.test/" + mode);
+      const text = await response.text();
+      expect(response.status, text).toBe(200);
+      const result = JSON.parse(text);
+      expect(result).toMatchObject({remaining: 0, namespace: [], events: {opened: 1, closed: 1, largestTransfer: 16384}});
+      expect(result.events.reads).toBeGreaterThan(0);
+      expect(result.events.writes).toBeGreaterThan(0);
+      expect(result.largest).toBeLessThanOrEqual(16384);
+      if (mode === "success") {
+        expect(result.error).toBeUndefined();
+        expect(result).toMatchObject({length: expected.length, hash, closed: 1, aborted: 0});
+      }
+      else {
+        expect(result).toMatchObject({closed: 0, aborted: 1});
+        expect(result.length).toBeLessThan(expected.length);
+        if (mode === "cancel") expect(result.error).toMatchObject({code: "E_CANCELLED"});
+        else expect(result.error).toMatchObject({code: "E_IO", message: "Capability failed"});
+      }
+    }
+  } finally {await runtime.dispose();}
+});

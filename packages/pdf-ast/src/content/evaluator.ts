@@ -844,8 +844,11 @@ export type PdfEvaluationRequest = PdfEvaluationOperation | { readonly kind: "no
   | { readonly kind: "font"; readonly name: string; readonly resources: PdfCosDict | undefined }
   | { readonly kind: "resolve"; readonly node: PdfCosNode }
   | { readonly kind: "catalog" }
-  | { readonly kind: "close-content"; readonly source: PdfEvaluationContentSource };
-export type PdfEvaluationResult = PdfContentEvent | ResolvedPageFont | { readonly kind: "resolved"; readonly node: PdfCosNode | undefined } | undefined;
+  | { readonly kind: "close-content"; readonly source: PdfEvaluationContentSource }
+  | { readonly kind: "image"; readonly stream: PdfCosStream; readonly resources: PdfCosDict | undefined; readonly fillColor: Parameters<typeof decodeXObjectImageToRgba>[3] };
+export type PdfEvaluationResult = PdfContentEvent | ResolvedPageFont
+  | { readonly kind: "resolved"; readonly node: PdfCosNode | undefined }
+  | { readonly kind: "decoded-image"; readonly image: ReturnType<typeof decodeXObjectImageToRgba> } | undefined;
 type EvaluationWork<T = void> = Generator<PdfEvaluationRequest, T, PdfEvaluationResult>;
 type FontScope = ReadonlyArray<PdfCosDict | undefined>;
 
@@ -1307,9 +1310,9 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     maskGroup = false
   ): EvaluationWork {
     const st = curState();
-    const group = params.cosDoc!.resolveDict(dictGet(form.dict, "Group"));
-    const groupType = group ? params.cosDoc!.resolve(dictGet(group, "S")) : undefined;
-    const isolation = group ? params.cosDoc!.resolve(dictGet(group, "I")) : undefined;
+    const group = yield* resolveEvaluationDict(dictGet(form.dict, "Group"));
+    const groupType = group ? yield* resolveEvaluationNode(dictGet(group, "S")) : undefined;
+    const isolation = group ? yield* resolveEvaluationNode(dictGet(group, "I")) : undefined;
     const isolated = isolation?.kind === "boolean" && isolation.value;
     // PDF.js beginGroup: ordinary non-isolated
     // Forms paint directly, retaining inherited state. Group effects instead
@@ -1317,27 +1320,29 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     const compositeGroup = !maskGroup && groupType?.kind === "name" && groupType.decoded === "Transparency" &&
       (isolated || st.fillAlpha !== 1 || !!st.softMask || (!!st.blendMode && st.blendMode !== "Normal" && st.blendMode !== "Compatible"));
     const formNodes = { stream: form };
-    const formResDict = params.cosDoc!.resolveDict(dictGet(form.dict, "Resources")) ?? activeResources;
+    const formResDict = (yield* resolveEvaluationDict(dictGet(form.dict, "Resources"))) ?? activeResources;
     const formFonts: FontScope = [formResDict, ...activeFonts];
     let nextCtm: Matrix6 = [...st.ctm] as Matrix6;
-    const matArr = params.cosDoc!.resolveArray(dictGet(form.dict, "Matrix"));
+    const matArr = yield* resolveEvaluationArray(dictGet(form.dict, "Matrix"));
     if (matArr && matArr.items.length >= 6) {
-      const mn = (idx: number, fb = 0) => {
-        const resolved = params.cosDoc!.resolve(matArr.items[idx]);
+      const { items } = matArr;
+      function* mn(idx: number, fb = 0): EvaluationWork<number> {
+        const resolved = yield* resolveEvaluationNode(items[idx]);
         return resolved?.kind === "number" ? resolved.value : fb;
       };
-      const formMat: Matrix6 = [mn(0, 1), mn(1, 0), mn(2, 0), mn(3, 1), mn(4, 0), mn(5, 0)];
+      const formMat: Matrix6 = [(yield* mn(0, 1)), (yield* mn(1, 0)), (yield* mn(2, 0)), (yield* mn(3, 1)), (yield* mn(4, 0)), (yield* mn(5, 0))];
       nextCtm = multiplyMatrices(formMat, nextCtm);
     }
     let nextClip = !compositeGroup && st.clipRect ? ([...st.clipRect] as [number, number, number, number]) : undefined;
     let nextClipPaths = compositeGroup ? undefined : st.clipPaths;
-    const bboxArr = params.cosDoc!.resolveArray(dictGet(form.dict, "BBox"));
+    const bboxArr = yield* resolveEvaluationArray(dictGet(form.dict, "BBox"));
     if (bboxArr && bboxArr.items.length >= 4) {
-      const bn = (idx: number, fb = 0) => {
-        const resolved = params.cosDoc!.resolve(bboxArr.items[idx]);
+      const { items } = bboxArr;
+      function* bn(idx: number, fb = 0): EvaluationWork<number> {
+        const resolved = yield* resolveEvaluationNode(items[idx]);
         return resolved?.kind === "number" ? resolved.value : fb;
       };
-      const bx0 = bn(0, 0), by0 = bn(1, 0), bx1 = bn(2, 0), by1 = bn(3, 0);
+      const bx0 = (yield* bn(0, 0)), by0 = (yield* bn(1, 0)), bx1 = (yield* bn(2, 0)), by1 = (yield* bn(3, 0));
       const pts = [
         transformPoint(nextCtm, bx0, by0),
         transformPoint(nextCtm, bx1, by0),
@@ -1606,29 +1611,22 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
 
         case "xobject": {
           const st = curState();
-          if (params.cosDoc && activeResources) {
-            const xobjDict = params.cosDoc.resolveDict(dictGet(activeResources, "XObject"));
-            const xobjNode = xobjDict ? params.cosDoc.resolve(dictGet(xobjDict, node.name)) : undefined;
+          if (activeResources) {
+            const xobjDict = yield* resolveEvaluationDict(dictGet(activeResources, "XObject"));
+            const xobjNode = xobjDict ? yield* resolveEvaluationNode(dictGet(xobjDict, node.name)) : undefined;
             if (xobjNode?.kind === "stream") {
-              if (!isOptionalContentVisible(params.cosDoc, dictGet(xobjNode.dict, "OC"))) {
+              if (!(yield* optionalContentVisibilitySteps(dictGet(xobjNode.dict, "OC")))) {
                 break;
               }
-              const subNode = params.cosDoc.resolve(dictGet(xobjNode.dict, "Subtype"));
+              const subNode = yield* resolveEvaluationNode(dictGet(xobjNode.dict, "Subtype"));
               const sub = subNode?.kind === "name" ? subNode.decoded : "";
               if (sub === "Image") {
-                const maskNode = params.cosDoc.resolve(dictGet(xobjNode.dict, "ImageMask"));
+                const maskNode = yield* resolveEvaluationNode(dictGet(xobjNode.dict, "ImageMask"));
                 const patternMask = !!st.fillPatternName && maskNode?.kind === "boolean" && maskNode.value;
-                const decoded = decodeXObjectImageToRgba(
-                  params.cosDoc,
-                  xobjNode,
-                  activeResources,
-                  patternMask ? { r: 1, g: 1, b: 1, alpha: 1 } : {
-                    r: st.fillColor.r,
-                    g: st.fillColor.g,
-                    b: st.fillColor.b,
-                    alpha: st.fillAlpha,
-                  }
-                );
+                const imageResult = yield { kind: "image", stream: xobjNode, resources: activeResources,
+                  fillColor: patternMask ? { r: 1, g: 1, b: 1, alpha: 1 } : { ...st.fillColor, alpha: st.fillAlpha } };
+                if (!imageResult || !("kind" in imageResult) || imageResult.kind !== "decoded-image") throw new TypeError("Expected a decoded PDF image");
+                const decoded = imageResult.image;
                 yield* paintImage({
                   name: node.name,
                   matrix: [...st.ctm],
@@ -1702,14 +1700,14 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
               let advance1000 = item.advance1000;
               let evaluatedType3 = false;
               let glyphPaint: PdfEvaluatedPath | undefined;
-              if (font?.subtype === "Type3" && font.charProcs && params.cosDoc && depth < 8) {
+              if (font?.subtype === "Type3" && font.charProcs && depth < 8) {
                 const gName = font.glyphNames.get(item.charCode) ?? item.unicode;
-                const procNode = gName ? params.cosDoc.resolve(dictGet(font.charProcs, gName)) : undefined;
+                const procNode = gName ? yield* resolveEvaluationNode(dictGet(font.charProcs, gName)) : undefined;
                 if (procNode?.kind === "stream") {
                   const fm: Matrix6 = font.fontMatrix ?? [0.001, 0, 0, 0.001, 0, 0];
                   const source = { stream: procNode };
                   const firstOp = yield { kind: "node", source };
-                  if (firstOp && (!("kind" in firstOp) || firstOp.kind === "resolved")) throw new TypeError("Expected Type3 content event");
+                  if (firstOp && (!("kind" in firstOp) || (firstOp.kind === "resolved" || firstOp.kind === "decoded-image"))) throw new TypeError("Expected Type3 content event");
                   if (!font.widths.has(item.charCode)) {
                     if (
                       firstOp?.kind === "state-op" &&
@@ -1939,6 +1937,9 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
+      } else if (step.value.kind === "image") {
+        if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF image decoding requires a source driver");
+        step = work.next({ kind: "decoded-image", image: decodeXObjectImageToRgba(params.cosDoc, step.value.stream, step.value.resources, step.value.fillColor) });
       } else if (step.value.kind === "close-content") {
         const cursor = nestedInputs.get(step.value.source);
         nestedInputs.delete(step.value.source);

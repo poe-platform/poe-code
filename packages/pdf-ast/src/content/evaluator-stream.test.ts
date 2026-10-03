@@ -174,13 +174,17 @@ it("suspends nested Form content with a distinct cursor per invocation", async (
   doc.cos.decodeStream = () => { throw new Error("evaluator must request nested input from the driver"); };
   const work = evaluateContentSteps({ pageIndex: 0, width: 100, height: 100, cosDoc: doc.cos, resourcesDict: resources });
   expect(work.next().value).toEqual({ kind: "node" });
-  const first = work.next({ kind: "xobject", name: "F" });
+  function resolveObjects(step: ReturnType<typeof work.next>) {
+    while (!step.done && step.value.kind === "resolve") step = work.next({ kind: "resolved", node: doc.cos.resolve(step.value.node) });
+    return step;
+  }
+  const first = resolveObjects(work.next({ kind: "xobject", name: "F" }));
   expect(first.value).toMatchObject({ kind: "node", source: { stream: form } });
   const path = parseContentStream(new TextEncoder().encode("0 0 10 10 re f"))[0]!;
   expect(work.next(path).value).toMatchObject({ kind: "paint", operation: { kind: "path" } });
   expect(work.next().value).toEqual(first.value);
   expect(work.next(undefined).value).toEqual({ kind: "node" });
-  const second = work.next({ kind: "xobject", name: "F" });
+  const second = resolveObjects(work.next({ kind: "xobject", name: "F" }));
   expect(second.value).toMatchObject({ kind: "node", source: { stream: form } });
   if (first.value?.kind !== "node" || second.value?.kind !== "node") throw new Error("expected content cursors");
   expect(second.value.source).not.toBe(first.value.source);
@@ -227,7 +231,7 @@ it.each([[0, false], [3, false], [0, true], [3, true]] as const)("requests Type3
     differences: new Map(), glyphNames: new Map([[65, "A"]]), widths: new Map(), defaultWidth: 1000,
     charProcs: cosDict({ A: stream }), fontMatrix: [0.001, 0, 0, 0.001, 0, 0],
   };
-  const work = evaluateContentSteps({ pageIndex: 0, width: 100, height: 100, cosDoc: doc.cos });
+  const work = evaluateContentSteps({ pageIndex: 0, width: 100, height: 100 });
   work.next();
   expect(work.next(parseContentStream(new TextEncoder().encode(`BT /T3 10 Tf ${mode} Tr (AA) Tj ET`))[0]).value).toMatchObject({ kind: "font" });
   let step = work.next(font); const positions: number[] = []; let closes = 0;
@@ -238,7 +242,8 @@ it.each([[0, false], [3, false], [0, true], [3, true]] as const)("requests Type3
       const count = seen.get(request.source) ?? 0; seen.set(request.source, count + 1);
       await Promise.resolve();
       step = work.next(!empty && count === 0 ? { kind: "state-op", operator: "d0", operands: [cosNumber(500), cosNumber(0)] } : undefined);
-    } else if (request.kind === "close-content") { closes++; step = work.next(); }
+    } else if (request.kind === "resolve") step = work.next({ kind: "resolved", node: doc.cos.resolve(request.node) });
+    else if (request.kind === "close-content") { closes++; step = work.next(); }
     else if (request.kind === "font") step = work.next(font);
     else if (request.kind === "paint") {
       if (request.operation.kind === "glyph") positions.push(request.operation.value.matrix[4]);
@@ -278,4 +283,68 @@ it.each([false, true])("releases an invisible Type3 cursor without consuming its
     else expect([...work]).toHaveLength(2);
     expect(closed).toBe(fail ? 1 : 2); expect(readPastWidth).toBe(false); expect(inputClosed).toBe(true);
   } finally { spy.mockRestore(); }
+});
+
+it("evaluates transformed clipped Forms with asynchronous metadata and no buffered document", async () => {
+  const { evaluateContentSteps } = await import("./evaluator.js");
+  const { PdfDocument } = await import("../document.js");
+  const { cosArray, cosDict, cosName, cosNumber, cosStream, cosBool } = await import("../ast.js");
+  const { parseContentEvents } = await import("./parser.js");
+  const doc = PdfDocument.create();
+  const numbers = (values: number[]) => cosArray(values.map(value => doc.cos.allocateObject(cosNumber(value))));
+  const inner = doc.cos.allocateObject(cosStream(cosDict({ Subtype: cosName("Form") }), new TextEncoder().encode("0 0 5 5 re f")));
+  const form = doc.cos.allocateObject(cosStream(cosDict({ Subtype: cosName("Form"),
+    Matrix: doc.cos.allocateObject(numbers([1, 0, 0, 1, 12, 14])), BBox: numbers([0, 0, 20, 20]),
+    Group: doc.cos.allocateObject(cosDict({ S: cosName("Transparency"), I: cosBool(true) })),
+  }), new TextEncoder().encode("0 1 0 rg 0 0 40 40 re f /Inner Do")));
+  const resources = cosDict({ XObject: doc.cos.allocateObject(cosDict({ F: form, Inner: inner })) });
+  const nodes = parseContentStream(new TextEncoder().encode("/F Do /F Do"));
+  const expected = [...evaluateContentStreamSteps({ pageIndex: 0, width: 100, height: 100, cosDoc: doc.cos, resourcesDict: resources, nodes })];
+  const work = evaluateContentSteps({ pageIndex: 0, width: 100, height: 100, resourcesDict: resources });
+  const cursors = new Map<object, Iterator<import("./parser.js").PdfContentEvent>>();
+  const input = nodes[Symbol.iterator](), actual = [];
+  let reads = 0, step = work.next();
+  try {
+    while (!step.done) {
+      const request = step.value;
+      await Promise.resolve();
+      if (request.kind === "resolve" || request.kind === "catalog") {
+        reads++; step = work.next({ kind: "resolved", node: doc.cos.resolve(request.kind === "catalog" ? doc.cos.rootRef : request.node) });
+      } else if (request.kind === "node") {
+        let cursor = request.source ? cursors.get(request.source) : input;
+        if (!cursor && request.source) { cursor = parseContentEvents(doc.cos.decodeStream(request.source.stream)); cursors.set(request.source, cursor); }
+        const next = cursor!.next();
+        if (next.done && request.source) cursors.delete(request.source);
+        step = work.next(next.done ? undefined : next.value);
+      } else if (request.kind === "paint") { actual.push(request); step = work.next(); }
+      else throw new Error(`Unexpected request: ${request.kind}`);
+    }
+    expect(actual).toEqual(expected); expect(actual.filter(event => event.operation.kind === "path")).toHaveLength(4); expect(reads).toBeGreaterThan(10); expect(cursors.size).toBe(0);
+  } finally { work.return(); for (const cursor of cursors.values()) cursor.return?.(); }
+});
+
+it("requests XObject image decoding and preserves placement with no buffered document", async () => {
+  const { evaluateContentSteps } = await import("./evaluator.js");
+  const { cosDict, cosName, cosStream } = await import("../ast.js");
+  const stream = cosStream(cosDict({ Subtype: cosName("Image") }), new Uint8Array());
+  const resources = cosDict({ XObject: cosDict({ Im: stream }) });
+  const nodes = parseContentStream(new TextEncoder().encode("0 .5 1 rg 2 0 0 3 4 5 cm /Im Do"))[Symbol.iterator]();
+  const work = evaluateContentSteps({ pageIndex: 0, width: 100, height: 100, resourcesDict: resources });
+  const rgba = new Uint8Array([255, 0, 0, 255, 0, 255, 0, 255]);
+  let decoded = 0, painted = 0, step = work.next();
+  while (!step.done) {
+    const request = step.value;
+    if (request.kind === "node") step = work.next(nodes.next().value);
+    else if (request.kind === "resolve") step = work.next({ kind: "resolved", node: request.node });
+    else if (request.kind === "image") {
+      expect(request).toEqual({ kind: "image", stream, resources, fillColor: { r: 0, g: .5, b: 1, alpha: 1 } });
+      decoded++; await Promise.resolve();
+      step = work.next({ kind: "decoded-image", image: { width: 2, height: 1, bitsPerComponent: 8, colorSpace: "rgb", rgba } });
+    } else if (request.kind === "paint") {
+      painted++;
+      expect(request.operation).toMatchObject({ kind: "image", value: { matrix: [2, 0, 0, 3, 4, 5], width: 2, height: 1, decodedRgba: rgba } });
+      step = work.next();
+    } else throw new Error(`Unexpected request: ${request.kind}`);
+  }
+  expect(decoded).toBe(1); expect(painted).toBe(1);
 });

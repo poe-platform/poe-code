@@ -54,9 +54,9 @@ for (const count of [1, 2]) {
 test("sips propagates filesystem budget failures", async () => {
   const fs = createMemoryFileSystem();
   const failure = Object.assign(new Error("caller input ceiling exceeded"), { name: "BudgetExceededError" });
-  fs.readFile = async () => { throw failure; };
+  const supplied=new Proxy(fs,{get(target,key){if(key==="readFile"||key==="openReadFile")return async()=>{throw failure;};const value=Reflect.get(target,key,target);return typeof value==="function"?value.bind(target):value;}});
   await expect(createSipsCommand().execute({
-    command: "sips", args: createCommandArguments(["in.png"]).args, cwd: "/", env: {}, fs,
+    command: "sips", args: createCommandArguments(["in.png"]).args, cwd: "/", env: {}, fs:supplied,
     stdin: (async function* () {})(), signal: new AbortController().signal,
     stdout: { write: async () => {} }, stderr: { write: async () => {} },
   })).rejects.toBe(failure);

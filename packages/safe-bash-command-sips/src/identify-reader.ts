@@ -1,3 +1,4 @@
+import {readProperties,readPropertiesFromSource} from "./properties.js";
 import {compareIdentity,compareFileVersion,FsError,type FileSystem} from "@poe-code/safe-fs/contracts";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {resolvePath} from "safe-bash-contracts/path";
@@ -9,13 +10,13 @@ export interface IdentifyFileInput {
  readonly cwd:string;
  readonly inputBudget?:{check(bytes:number):void};
 }
-export type IdentifyInspection={readonly metadata:ImageMetadata;readonly size:number;readonly stats?:ImageStats}|{readonly error:unknown};
+export type IdentifyInspection={readonly metadata:ImageMetadata;readonly size:number;readonly stats?:ImageStats;readonly properties?:Map<string,string|null>}|{readonly error:unknown};
 export type IdentifyReader=(path:string,base:string,page:number|undefined,verbose:boolean)=>Promise<IdentifyInspection|undefined>;
 class ReadFailure extends Error {constructor(readonly reason:unknown){super("Image input read failed");}}
 const missing=(error:unknown):boolean=>error instanceof FsError&&["ENOENT","ENOTDIR","EISDIR","EACCES","EPERM"].includes(error.code);
 
-export async function inspectIdentifyBytes(bytes:Uint8Array,options:SharpInputOptions|undefined,verbose:boolean,signal?:AbortSignal):Promise<IdentifyInspection>{
- try {const metadata=readImageMetadata(bytes,options);return {metadata,size:bytes.length,...(verbose?{stats:await drainCooperativeSteps(computeImageStatsSteps(decodeImage(bytes,options)),signal)}:{})};}
+export async function inspectIdentifyBytes(bytes:Uint8Array,options:SharpInputOptions|undefined,verbose:boolean,signal?:AbortSignal,properties=false):Promise<IdentifyInspection>{
+ try {const metadata=readImageMetadata(bytes,options);return {metadata,size:bytes.length,...(properties?{properties:readProperties(bytes,metadata.format)}:{}),...(verbose?{stats:await drainCooperativeSteps(computeImageStatsSteps(decodeImage(bytes,options)),signal)}:{})};}
  catch(error){signal?.throwIfAborted();return {error};}
 }
 
@@ -37,14 +38,14 @@ async function isRetainedHeif(source:ImageByteSource,prefix:Uint8Array,signal:Ab
 }
 
 /** One retained source identity covers metadata and optional statistics. */
-export function createIdentifyReader(input:IdentifyFileInput,signal:AbortSignal):IdentifyReader{
+export function createIdentifyReader(input:IdentifyFileInput,signal:AbortSignal,properties=false):IdentifyReader{
  let total=0;
  return async(_path,base,page,verbose)=>{
   signal.throwIfAborted();const fs=input.filesystem,path=resolvePath(input.cwd,base),options=page===undefined?undefined:{page};
   let capabilities;try{capabilities=await fs.capabilitiesFor?.(path,{signal})??fs.capabilities;}catch(error){if(missing(error))return undefined;throw error;}
   if(!capabilities?.retainedRead||!fs.openReadFile){
    let bytes:Uint8Array;try{bytes=await fs.readFile(path,{signal});}catch(error){if(missing(error))return undefined;throw error;}
-   total+=bytes.length;input.inputBudget?.check(total);return inspectIdentifyBytes(bytes,options,verbose,signal);
+   total+=bytes.length;input.inputBudget?.check(total);return inspectIdentifyBytes(bytes,options,verbose,signal,properties);
   }
   let handle;try{handle=await fs.openReadFile(path,{signal});}catch(error){if(missing(error))return undefined;throw error;}
   let failure:{error:unknown}|undefined,result:IdentifyInspection|undefined,storage:PagedStorage|undefined;
@@ -64,11 +65,11 @@ export function createIdentifyReader(input:IdentifyFileInput,signal:AbortSignal)
     if(isPdfBytes(prefix)||isSvgBytes(prefix)||await isRetainedHeif(source,prefix,signal)){
      // These convenience codecs are still migrated by their format owners.
      const bytes=new Uint8Array(source.size);for(let offset=0;offset<bytes.length;offset+=16384)bytes.set(await source.read(offset,Math.min(16384,bytes.length-offset),{signal}),offset);
-     result=await inspectIdentifyBytes(bytes,options,verbose,signal);
+     result=await inspectIdentifyBytes(bytes,options,verbose,signal,properties);
     }else{
      const {storedDelay:ignoredDelay,...metadata}=await readImageMetadataFromSource(source,signal,options,storage);
      const stats=verbose?await computeStoredImageStats(await decodeImageToStorage(source,storage,signal,options),storage,signal):undefined;
-     result={metadata,size:source.size,...(stats?{stats}:{})};
+     result={metadata,size:source.size,...(stats?{stats}:{}),...(properties?{properties:await readPropertiesFromSource(source,metadata.format,signal)}:{})};
     }
    }catch(error){signal.throwIfAborted();if(error instanceof ReadFailure)throw error.reason;if(error instanceof FsError)throw error;result={error:error instanceof UnsupportedStoredResource?new Error("Input buffer contains unsupported image format"):error};}
    const final=await handle.stat({signal});signal.throwIfAborted();

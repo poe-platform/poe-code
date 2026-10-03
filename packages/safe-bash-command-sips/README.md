@@ -14,6 +14,12 @@ filesystem. PNG, JPEG, WebP, TIFF, GIF, BMP and Netpbm metadata and statistics u
 retained reads and bounded caller-backed storage. The byte-map signature remains
 available for callers that already hold complete inputs.
 
+`runSipsCli(argv, { filesystem, cwd }, signal)` uses the same file authority as the
+command. Property queries and verification retain raster sources; PNG/JPEG custom
+properties are scanned in bounded ranges without reading unrelated pixel payloads.
+Mutations currently use the byte-oriented processing engine and publish through the
+supplied filesystem. The byte-map and synchronous convenience APIs remain available.
+
 The workspace entrypoint exports `sipsCommands()` for plugin registration,
 `createSipsCommands()` for the command collection, and
 `createSipsCommand()` for a single command. Each accepts an optional

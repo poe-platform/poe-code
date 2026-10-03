@@ -2,7 +2,7 @@ import {expect,it} from "vitest";
 import sharp from "@poe-code/image-ast";
 import {MemoryFileSystem} from "@poe-code/safe-fs/core";
 import {createCommandArguments,type CommandContext} from "safe-bash-contracts/command";
-import {createIdentifyCommand,runIdentifyCli} from "./index.js";
+import {createIdentifyCommand,runIdentifyCli,runSipsCli} from "./index.js";
 
 for(const format of ["png","jpeg","webp","tiff","gif","bmp","ppm","pgm","pbm"] as const)
 for(const args of [[],["-format","%f %wx%h %[size] %[channels]"],["-verbose"]])
@@ -60,27 +60,27 @@ it("closes an admitted source without reading when the caller rejects its size",
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {fileURLToPath} from "node:url";
-it("runs identify with external source and backing in Workerd above the cache window",async()=>{
+it("runs image queries with external source and backing in Workerd above the cache window",async()=>{
  const bytes=await sharp({create:{width:1024,height:513,channels:3,background:"blue"}}).bmp().toBuffer();
- const cases=[["-format","%wx%h %[size]","/in"],["-verbose","/in"]];
- const expected=await Promise.all(cases.map(args=>runIdentifyCli(args,new Map([["/in",bytes]]))));
+ const cases=[{command:"identify",args:["-format","%wx%h %[size]","/in"],scratch:0},{command:"identify",args:["-verbose","/in"],scratch:1},{command:"sips",args:["-g","allxml","/in"],scratch:0}];
+ const expected=await Promise.all(cases.map(({command,args})=>(command==="sips"?runSipsCli:runIdentifyCli)(args,new Map([["/in",bytes]]))));
  const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../../../",import.meta.url)),sourcefile:"identify-worker.ts",contents:`
- import {createIdentifyCommand} from './packages/safe-bash-command-sips/src/index.ts';
+ import {createIdentifyCommand,createSipsCommand} from './packages/safe-bash-command-sips/src/index.ts';
  import {createCommandArguments} from 'safe-bash-contracts/command';
- export default {async fetch(request,env){const {args,size}=await request.json();let reads=0,closed=0,scratchClosed=0,writes=0,maxAllocation=0,admitted=0,stdout='',stderr='';const scope={};
+ export default {async fetch(request,env){const {args,size,command}=await request.json();let reads=0,closed=0,scratchClosed=0,writes=0,maxAllocation=0,admitted=0,stdout='',stderr='';const scope={};
  const fs={capabilities:{retainedRead:true},async stat(){return {type:'directory'};},async removeFileConditional(){},
  async openReadFile(){return {async stat(){return {type:'file',size,mode:420,mtimeMs:1,atimeMs:1,ctimeMs:1,identityScope:scope,opaqueIdentity:'in',opaqueVersion:'v1'};},async read(position,length){if(length>16384||admitted!==size)throw new Error('source admission or range');reads++;const response=await env.SOURCE.fetch('https://source/?position='+position+'&length='+length);return new Uint8Array(await response.arrayBuffer());},async close(){closed++;}};},
  async open(){return {capabilities:{positionedRead:true,positionedWrite:true},async stat(){return {type:'file',size:0};},async write(bytes,position){if(bytes.length>16384)throw new Error('large write');writes++;await env.SCRATCH.fetch('https://scratch/?position='+position,{method:'PUT',body:bytes});return bytes.length;},async read(bytes,position){if(bytes.length>16384)throw new Error('large read');const response=await env.SCRATCH.fetch('https://scratch/?position='+position+'&length='+bytes.length);bytes.set(new Uint8Array(await response.arrayBuffer()));return bytes.length;},async close(){scratchClosed++;await env.SCRATCH.fetch('https://scratch/',{method:'DELETE'});}};},
  readFile(){throw new Error('whole input');},writeFile(){throw new Error('whole output');}};
  const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;maxAllocation=Math.max(maxAllocation,length);if(length>65536)throw new Error('unbounded identify allocation');return Reflect.construct(target,args);}});
- const arguments_=createCommandArguments(args);let result;try{result=await createIdentifyCommand().execute({command:'identify',args:arguments_.args,argumentValues:arguments_,cwd:'/',env:{},fs,signal:new AbortController().signal,stdin:(async function*(){})(),inputBudget:{maxBytes:size,check(bytes){admitted=bytes;if(bytes>size)throw new Error('budget');}},stdout:{async write(bytes){stdout+=new TextDecoder().decode(bytes);}},stderr:{async write(bytes){stderr+=new TextDecoder().decode(bytes);}}});}finally{globalThis.Uint8Array=Native;}
+ const arguments_=createCommandArguments(args);let result;try{result=await (command==='sips'?createSipsCommand():createIdentifyCommand()).execute({command,args:arguments_.args,argumentValues:arguments_,cwd:'/',env:{},fs,signal:new AbortController().signal,stdin:(async function*(){})(),inputBudget:{maxBytes:size,check(bytes){admitted=bytes;if(bytes>size)throw new Error('budget');}},stdout:{async write(bytes){stdout+=new TextDecoder().decode(bytes);}},stderr:{async write(bytes){stderr+=new TextDecoder().decode(bytes);}}});}finally{globalThis.Uint8Array=Native;}
  return Response.json({...result,stdout,stderr,reads,closed,scratchClosed,writes,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});
  }};`},bundle:true,write:false,platform:"browser",conditions:["workerd"],format:"esm",metafile:true,logLevel:"silent"});
  expect(Object.values(bundle.metafile!.outputs).flatMap(output=>output.imports)).toEqual([]);
  expect(Object.keys(bundle.metafile!.inputs).some(path=>path.startsWith("node:"))).toBe(false);
  const scratch=new Map<number,Uint8Array>();
  const runtime=new Miniflare({modules:true,compatibilityDate:"2026-07-01",cf:false,script:bundle.outputFiles[0]!.text,serviceBindings:{SOURCE:async(request:Request)=>{const url=new URL(request.url),position=Number(url.searchParams.get("position")),length=Number(url.searchParams.get("length"));return new Response(bytes.slice(position,position+length));},SCRATCH:async(request:Request)=>{if(request.method==="DELETE"){scratch.clear();return new Response();}const url=new URL(request.url),position=Number(url.searchParams.get("position"));if(request.method==="PUT"){scratch.set(position,new Uint8Array(await request.arrayBuffer()));return new Response();}return new Response(scratch.get(position)?.slice(0,Number(url.searchParams.get("length"))));}}});
- try{for(const [index,args]of cases.entries()){scratch.clear();const response=await runtime.dispatchFetch("https://identify/",{method:"POST",body:JSON.stringify({args,size:bytes.length})});expect(response.status).toBe(200);const result=await response.json() as {exitCode:number;stdout:string;stderr:string;reads:number;closed:number;scratchClosed:number;writes:number;maxAllocation:number;nodeGlobals:boolean};expect({exitCode:result.exitCode,stdout:result.stdout,stderr:result.stderr}).toEqual(expected[index]);expect(result.reads).toBeGreaterThan(0);expect(result.closed).toBe(1);expect(result.scratchClosed).toBe(index);if(index)expect(result.writes).toBeGreaterThan(64);expect(result.maxAllocation).toBeLessThanOrEqual(65536);expect(result.nodeGlobals).toBe(false);expect(scratch.size).toBe(0);}}
+ try{for(const [index,{args,command,scratch:expectedScratch}]of cases.entries()){scratch.clear();const response=await runtime.dispatchFetch("https://identify/",{method:"POST",body:JSON.stringify({args,command,size:bytes.length})});expect(response.status).toBe(200);const result=await response.json() as {exitCode:number;stdout:string;stderr:string;reads:number;closed:number;scratchClosed:number;writes:number;maxAllocation:number;nodeGlobals:boolean};expect({exitCode:result.exitCode,stdout:result.stdout,stderr:result.stderr}).toEqual(expected[index]);expect(result.reads).toBeGreaterThan(0);expect(result.closed).toBe(1);expect(result.scratchClosed).toBe(expectedScratch);if(expectedScratch)expect(result.writes).toBeGreaterThan(64);expect(result.maxAllocation).toBeLessThanOrEqual(65536);expect(result.nodeGlobals).toBe(false);expect(scratch.size).toBe(0);}}
  finally{await runtime.dispose();}
 },15000);
 

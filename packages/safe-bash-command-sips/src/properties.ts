@@ -1,4 +1,5 @@
-import type { ImageFormat } from "@poe-code/image-ast/portable";
+import {yieldTurn} from "safe-bash-contracts/yield";
+import type { ImageByteSource, ImageFormat } from "@poe-code/image-ast/portable";
 
 // A namespaced payload in standard PNG iTXt / JPEG COM containers. No process
 // state: copying, replacing, or deleting a file also copies/replaces/deletes its properties.
@@ -21,37 +22,60 @@ function payloadProperties(bytes: Uint8Array): Map<string, string | null> {
   return result;
 }
 
-export function readProperties(bytes: Uint8Array, format: ImageFormat): Map<string, string | null> {
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+type PropertyRange={readonly position:number;readonly length:number};
+function* propertySteps(size:number,format:ImageFormat):Generator<PropertyRange,Map<string,string|null>,Uint8Array>{
   const prefix = encoder.encode(format === "png" ? `${keyword}\0\0\0\0\0` : `${keyword}\0`);
   let offset = format === "png" ? 8 : 2;
-  while ((format === "png" || format === "jpeg") && offset + 4 <= bytes.length) {
-    let start: number;
-    let end: number;
-    let candidate: boolean;
-    if (format === "png") {
-      const length = view.getUint32(offset);
-      start = offset + 8;
-      end = start + length;
-      if (end + 4 > bytes.length) throw new Error("Invalid PNG metadata chunk");
-      candidate = view.getUint32(offset + 4) === 0x69545874; // iTXt
-      offset = end + 4;
-    } else {
-      if (bytes[offset] !== 0xff) break;
-      const marker = bytes[offset + 1];
-      if (marker === 0xda || marker === 0xd9) break;
-      const length = view.getUint16(offset + 2);
-      if (length < 2 || offset + 2 + length > bytes.length) throw new Error("Invalid JPEG metadata segment");
-      start = offset + 4;
-      end = offset + 2 + length;
-      candidate = marker === 0xfe;
-      offset = end;
+  while ((format === "png" || format === "jpeg") && offset + 4 <= size) {
+    const header=yield {position:offset,length:4};
+    const view=new DataView(header.buffer,header.byteOffset,header.byteLength);
+    let start:number,end:number,candidate:boolean;
+    if(format==="png"){
+      start=offset+8;end=start+view.getUint32(0);
+      if(end+4>size)throw new Error("Invalid PNG metadata chunk");
+      const type=yield {position:offset+4,length:4};
+      candidate=new DataView(type.buffer,type.byteOffset,type.byteLength).getUint32(0)===0x69545874;
+      offset=end+4;
+    }else{
+      if(header[0]!==0xff||header[1]===0xda||header[1]===0xd9)break;
+      const length=view.getUint16(2);
+      if(length<2||offset+2+length>size)throw new Error("Invalid JPEG metadata segment");
+      start=offset+4;end=offset+2+length;candidate=header[1]===0xfe;offset=end;
     }
-    if (candidate && end - start >= prefix.length && prefix.every((byte, index) => bytes[start + index] === byte)) {
-      return payloadProperties(bytes.subarray(start + prefix.length, end));
+    if(candidate&&end-start>=prefix.length){
+      const key=yield {position:start,length:prefix.length};
+      if(prefix.every((byte,index)=>key[index]===byte)){
+        const length=end-start-prefix.length;
+        if(length>maxMetadataBytes)throw new Error("sips metadata byte limit exceeded");
+        return payloadProperties(yield {position:start+prefix.length,length});
+      }
     }
   }
   return new Map();
+}
+
+export function readProperties(bytes:Uint8Array,format:ImageFormat):Map<string,string|null>{
+  const steps=propertySteps(bytes.length,format);let next=steps.next();
+  while(!next.done){const {position,length}=next.value;next=steps.next(bytes.subarray(position,position+length));}
+  return next.value;
+}
+
+/** Inspect only headers and the bounded namespaced payload; unrelated data is skipped. */
+export async function readPropertiesFromSource(source:ImageByteSource,format:ImageFormat,signal:AbortSignal):Promise<Map<string,string|null>>{
+  signal.throwIfAborted();
+  if(!Number.isSafeInteger(source.size)||source.size<0)throw new RangeError("Invalid image source size");
+  const steps=propertySteps(source.size,format);let next=steps.next(),work=63;
+  while(!next.done){
+    if(++work%64===0)await yieldTurn(signal);
+    signal.throwIfAborted();const {position,length}=next.value,bytes=new Uint8Array(length);
+    for(let offset=0;offset<length;){
+      signal.throwIfAborted();const count=Math.min(16384,length-offset),chunk=await source.read(position+offset,count,{signal});signal.throwIfAborted();
+      if(!(chunk instanceof Uint8Array)||chunk.length!==count)throw new Error("Truncated image metadata source");
+      bytes.set(chunk,offset);offset+=count;
+    }
+    next=steps.next(bytes);
+  }
+  return next.value;
 }
 
 export function writeProperties(bytes: Uint8Array, format: ImageFormat, properties: ReadonlyMap<string, string | null>): Uint8Array {

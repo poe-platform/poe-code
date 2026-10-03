@@ -1,8 +1,8 @@
-import {createIdentifyReader,inspectIdentifyBytes,type IdentifyReader,type IdentifyFileInput} from "./identify-reader.js";
+import {createIdentifyReader,inspectIdentifyBytes,type IdentifyReader,type IdentifyFileInput,type IdentifyInspection} from "./identify-reader.js";
 export type {IdentifyFileInput} from "./identify-reader.js";
 import { resolvePath } from "safe-bash-contracts/path";
 import { readProperties, writeProperties } from "./properties.js";
-import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { FsError } from "safe-bash-contracts/errors";
 import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -217,7 +217,11 @@ function* applySipsOddCanvasCropOrPadSteps(image: RgbaImage, curW: number, curH:
     return decodeImage(out, { raw: { width: dstW, height: dstH, channels: ch } });
 }
 
-function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, SipsCliResult, void> {
+type SipsInputReader=(path:string,mutation:boolean)=>Promise<IdentifyInspection|undefined>;
+export interface SipsFileInput extends IdentifyFileInput {
+ readonly registerCleanup?:CommandContext["registerCleanup"];
+}
+function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal,read?:SipsInputReader): Generator<void|Promise<void>, SipsCliResult, void> {
     let cooperativeWork = 63;
     if (argv.length === 0) {
         return {
@@ -544,15 +548,19 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
     }
     for (const inPath of inputPaths) {
         yield;
+        const inspection:{value:IdentifyInspection|undefined}={value:undefined};
+        if(read)yield read(inPath,hasMutation).then(value=>{inspection.value=value;});
         const inBytes = files.get(inPath);
-        if (!inBytes) {
+        if (read?!inspection.value:!inBytes) {
             errLines.push(`Error: ${inPath}: file does not exist`);
             exitCode = 1;
             continue;
         }
         try {
-            let meta = readImageMetadata(inBytes);
-            const mergedProps = readProperties(inBytes, meta.format);
+            const inspected=inspection.value;
+            if(inspected&&"error" in inspected)throw inspected.error;
+            let meta = inspected?.metadata??readImageMetadata(inBytes!);
+            const mergedProps = inspected?.properties??readProperties(inBytes!, meta.format);
             for (const [k, v] of customSetProps) {
                 if (++cooperativeWork % 64 === 0)
                     yield;
@@ -564,7 +572,7 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
             const origH = meta.height;
             const effectivePadColor = padColor ?? (meta.hasAlpha ? { r: 0, g: 0, b: 0, alpha: 0 } : "000000");
             if (hasMutation) {
-                let image = decodeImage(inBytes);
+                let image = decodeImage(inBytes!);
                 let resizeInput: RgbaImage | undefined;
                 for (const act of effectiveActions) {
                     yield;
@@ -839,8 +847,51 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
         stderr: errLines.length > 0 ? errLines.join("\n") + "\n" : ""
     };
 }
-export async function runSipsCli(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Promise<SipsCliResult> {
-    return drainSteps(runSipsCliSteps(argv, files, signal), signal);
+export async function runSipsCli(argv: readonly string[], input: Map<string, Uint8Array>|SipsFileInput, signal?: AbortSignal): Promise<SipsCliResult> {
+    const operationSignal=signal??new AbortController().signal;operationSignal.throwIfAborted();
+    const files="filesystem" in input?new Map<string,Uint8Array>():input,original=new Map<string,Uint8Array>();
+    let read:SipsInputReader|undefined,arguments_=argv;
+    if("filesystem" in input){
+      let total=0;
+      const charge=(size:number)=>{total+=size;input.inputBudget?.check(total);};
+      let inspectedTotal=0;
+      const inspect=createIdentifyReader({...input,inputBudget:{check(size){charge(size-inspectedTotal);inspectedTotal=size;}}},operationSignal,true);
+      read=async(path,mutation)=>{
+        if(!mutation)return inspect(path,path,undefined,false);
+        const pending=files.get(path);
+        if(pending){const initial=original.get(path);if(initial)charge(initial.length);return inspectIdentifyBytes(pending,undefined,false,operationSignal,true);}
+        let bytes:Uint8Array;
+        try{bytes=await input.filesystem.readFile(resolvePath(input.cwd,path),{signal:operationSignal});}
+        catch(error){if(error instanceof FsError&&["ENOENT","ENOTDIR","EISDIR","EACCES","EPERM"].includes(error.code))return undefined;throw error;}
+        charge(bytes.length);files.set(path,bytes);original.set(path,bytes);
+        return inspectIdentifyBytes(bytes,undefined,false,operationSignal,true);
+      };
+      const normalized=[...argv];
+      for(let index=0;index<normalized.length;index++){
+        if(normalized[index]!=="-o"&&normalized[index]!=="--out")continue;
+        const target=normalized[index+1];if(!target||target.endsWith("/"))continue;
+        try{if((await input.filesystem.stat(resolvePath(input.cwd,target),{signal:operationSignal})).type==="directory")normalized[index+1]=target+"/";}
+        catch(error){if(!(error instanceof FsError)||!["ENOENT","ENOTDIR"].includes(error.code))throw error;}
+      }
+      arguments_=normalized;
+    }
+    const steps=runSipsCliSteps(arguments_,files,operationSignal,read);
+    let result:SipsCliResult;
+    try{
+      let next=steps.next();
+      while(!next.done){
+        try{await (next.value??yieldTurn(operationSignal));operationSignal.throwIfAborted();next=steps.next();}
+        catch(error){operationSignal.throwIfAborted();next=steps.throw(error);}
+      }
+      result=next.value;
+    }finally{steps.return(undefined as unknown as SipsCliResult);}
+    if("filesystem" in input){
+      for(const [path,bytes]of files){
+        if(original.get(path)===bytes)continue;
+        await writeFileOutput({signal:operationSignal,...(input.registerCleanup?{registerCleanup:input.registerCleanup}:{})},bytes,data=>input.filesystem.writeFile(resolvePath(input.cwd,path),data,{signal:operationSignal}));
+      }
+    }
+    return result;
 }
 export function runSipsCliSync(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): SipsCliResult {
     const steps = runSipsCliSteps(argv, files, signal);
@@ -1174,77 +1225,16 @@ async function executeVfsIdentify(context:CommandContext):Promise<{exitCode:numb
  }finally{await invocation.close();}
 }
 
-async function executeVfsImageTool(
-  context: CommandContext,
-  runner: (argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal) => Promise<SipsCliResult>
-): Promise<{ exitCode: number }> {
-  let cooperativeWork = 63;
-  const invocation = createOutputOperation(context, { write: async () => {} });
-  try {
-    const carrier = getCommandArguments(context);
-    const argv = [...carrier.args];
-    const vfsFiles = new Map<string, Uint8Array>();
-
-    let totalInputBytes = 0;
-    const normalizedArgv = [...argv];
-    for (let i = 0; i < normalizedArgv.length; i++) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-      const token = normalizedArgv[i]!;
-      if (token === "-o" || token === "--out") {
-        const next = normalizedArgv[i + 1];
-        if (next && !next.endsWith("/")) {
-          try {
-            const st = await context.fs.stat(resolvePath(context.cwd, next), { signal: invocation.signal });
-            if (st.type === "directory") {
-              normalizedArgv[i + 1] = next + "/";
-            }
-          } catch (error) {
-            if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR"].includes(error.code)) throw error;
-            // Target does not exist yet
-          }
-        }
-        continue;
-      }
-      if (token.startsWith("-")) continue;
-      const bracketMatch = /^(.*)\[(\d+)\]$/.exec(token);
-      const fileToken = bracketMatch ? bracketMatch[1]! : token;
-      let bytes: Uint8Array;
-      try {
-        bytes = await context.fs.readFile(resolvePath(context.cwd, fileToken), {
-          signal: invocation.signal
-        });
-      } catch (error) {
-        if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM"].includes(error.code)) throw error;
-        // Output path or non-existent file
-        continue;
-      }
-      totalInputBytes += bytes.byteLength;
-      context.inputBudget?.check(totalInputBytes);
-      vfsFiles.set(fileToken, bytes);
-    }
-
-    context.inputBudget?.check(totalInputBytes);
-    const existingSnap = new Map(vfsFiles);
-    const res = await runner(normalizedArgv, vfsFiles, invocation.signal);
-
-    for (const [key, val] of vfsFiles.entries()) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-      if (existingSnap.get(key) !== val) {
-        const abs = resolvePath(context.cwd, key);
-        await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
-      }
-    }
-    await writeImageToolResult(context,invocation,res);
-
-    return { exitCode: res.exitCode };
-  } catch (error) {
+async function executeVfsSips(context:CommandContext):Promise<{exitCode:number}>{
+  const invocation=createOutputOperation(context,{write:async()=>{}});
+  try{
+    const result=await runSipsCli([...getCommandArguments(context).args],{filesystem:context.fs,cwd:context.cwd,...(context.inputBudget?{inputBudget:context.inputBudget}:{}),...(context.registerCleanup?{registerCleanup:context.registerCleanup}:{})},invocation.signal);
+    await writeImageToolResult(context,invocation,result);return {exitCode:result.exitCode};
+  }catch(error){
     invocation.signal.throwIfAborted();
-    if (!(error instanceof Error) || !("code" in error) || !["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM"].includes(String(error.code))) throw error;
-    await writeBytes(context.stderr, new TextEncoder().encode(`${context.command}: Can't write output file: ${error.message}\n`), invocation.signal);
-    return { exitCode: 1 };
-  } finally {
-    await invocation.close();
-  }
+    if(!(error instanceof Error)||!("code" in error)||!["ENOENT","ENOTDIR","EISDIR","EACCES","EPERM"].includes(String(error.code)))throw error;
+    await writeBytes(context.stderr,new TextEncoder().encode(`${context.command}: Can't write output file: ${error.message}\n`),invocation.signal);return {exitCode:1};
+  }finally{await invocation.close();}
 }
 
 export function createSipsCommand(options: SipsCommandOptions = {}): CommandDefinition {
@@ -1255,7 +1245,7 @@ export function createSipsCommand(options: SipsCommandOptions = {}): CommandDefi
     description: "Scriptable image processing system powered by @poe-code/image-ast",
     execute(context: CommandContext) {
       return new InputByteBudget(maxInputBytes).run(context, async context => {
-        return executeVfsImageTool(context, runSipsCli);
+        return executeVfsSips(context);
       });
     }
   });

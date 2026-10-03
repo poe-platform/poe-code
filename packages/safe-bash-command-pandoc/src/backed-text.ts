@@ -82,6 +82,50 @@ export class BackedText {
     await flush();
     return output;
   }
+  /** Linear UTF-16 substring search. Both pattern units and failure links live
+   * in caller storage; only one source chunk and scalar cursors stay resident. */
+  async includes(value: TextRange, needle: TextRange): Promise<boolean> {
+    if (!needle.units) return true;
+    if (needle.units > value.units) return false;
+    if (needle.units <= 4096) {
+      let key = "", tail = "";
+      for await (const chunk of this.chunks(needle)) key += chunk;
+      for await (const chunk of this.chunks(value)) {
+        const window = tail + chunk;
+        if (window.includes(key)) return true;
+        tail = key.length > 1 ? window.slice(1 - key.length) : "";
+      }
+      return false;
+    }
+    const pattern = this.storage.allocate(needle.units * 10);
+    let offset = 0;
+    for await (const chunk of this.chunks(needle)) {
+      const bytes = new Uint8Array(chunk.length * 10), view = new DataView(bytes.buffer);
+      for (let i = 0; i < chunk.length; i++) view.setUint16(i * 10, chunk.charCodeAt(i), true);
+      await this.storage.write(pattern + offset * 10, bytes); offset += chunk.length;
+    }
+    const entry = async (index: number) => {
+      const bytes = await this.storage.read(pattern + index * 10, 10), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+      return {unit: view.getUint16(0, true), prefix: view.getFloat64(2, true)};
+    };
+    let matched = 0;
+    for (let i = 1; i < needle.units; i++) {
+      const unit = (await entry(i)).unit;
+      while (matched && unit !== (await entry(matched)).unit) matched = (await entry(matched - 1)).prefix;
+      if (unit === (await entry(matched)).unit) matched++;
+      const bytes = new Uint8Array(8); new DataView(bytes.buffer).setFloat64(0, matched, true);
+      await this.storage.write(pattern + i * 10 + 2, bytes); await this.cooperate();
+    }
+    matched = 0;
+    for await (const chunk of this.chunks(value)) for (let i = 0; i < chunk.length; i++) {
+      const unit = chunk.charCodeAt(i);
+      while (matched && unit !== (await entry(matched)).unit) matched = (await entry(matched - 1)).prefix;
+      if (unit === (await entry(matched)).unit) matched++;
+      if (matched === needle.units) return true;
+      await this.cooperate();
+    }
+    return false;
+  }
   async trimFinalNewline(value: TextRange): Promise<TextRange> {
     const source = this.chunks(value);
     return this.from((async function* () {

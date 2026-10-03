@@ -47,3 +47,19 @@ it("lowercases contextual Unicode across spilled case-ignorable runs", async () 
   } finally {await storage.close();}
   expect(await fs.readdir("/")).toEqual([]);
 });
+
+it("searches long retained patterns across pieces without changing their source", async () => {
+  const fs = new MemoryFileSystem();
+  const storage = new PagedStorage({fs, cwd: "/", env: {}, signal: new AbortController().signal}, 1);
+  const text = new BackedText(storage, async () => {});
+  try {
+    const pattern = "ab".repeat(12000) + "😀", source = "prefix" + "ab".repeat(15000) + "😀suffix";
+    const stored = await text.from([source]);
+    for (const value of [pattern, pattern + "suffix", pattern + "missing", "", "😀s", "prefix", "suffix", "unknown"]) {
+      const needle = await text.from((async function* () {for (let i = 0; i < value.length; i += 37) yield value.slice(i, i + 37);})());
+      expect(await text.includes(stored, needle)).toBe(source.includes(value));
+    }
+    let original = ""; for await (const chunk of text.chunks(stored)) original += chunk; expect(original).toBe(source);
+  } finally {await storage.close();}
+  expect(await fs.readdir("/")).toEqual([]);
+});

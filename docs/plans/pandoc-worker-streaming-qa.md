@@ -45,6 +45,12 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   backing transfers and publication failure cleanup. R2 workerd cohorts include
   Markdown outputs after chained filters, with JSON and CSV input. Include these
   paths in the size/concurrency measurements; functional tests alone are insufficient.
+  RST now retains continuations, source projection, substring-search patterns,
+  identifiers, notes, tables and output. Differential tests include long names,
+  nested notes, leading empty blocks and diagnostics; generated inputs exercise
+  reused chunks, bounded transfers, slow sinks and failure cleanup. R2 workerd
+  cohorts include JSON/CSV to RST and transformed RST after chained filters.
+  These are functional checks, not memory-plateau qualification.
   Other conversions still require replacing whole-document input acquisition, joined text, document arrays
   and serialized results with retained sources and a paged document representation.
   Preserve diagnostics, source locations, resource identities and byte results.

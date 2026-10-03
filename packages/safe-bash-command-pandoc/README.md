@@ -195,6 +195,10 @@ storage. Markdown aliases and extension switches, wrapping, task markers, rich
 tables, loss diagnostics and post-filter transforms preserve the existing writer
 behavior. Long targets, code runs and nesting do not grow resident writer state;
 the document pair and writer use three page caches plus fixed small indexes.
+JSON and CSV/TSV → RST also retain writer continuations, source-name collision
+checks, identifiers, notes, tables and output in caller storage. Existing roles,
+list-table rules, indentation, projections and diagnostics remain available; long
+name searches keep their pattern and failure links in caller pages.
 Multiple JSON inputs, legacy filters, embedded resources, other transformations
 and other finite document budgets continue through the compatibility converter.
 

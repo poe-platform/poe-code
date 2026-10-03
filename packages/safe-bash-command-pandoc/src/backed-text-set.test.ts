@@ -12,9 +12,11 @@ it("indexes long text and resolves colliding hashes without collecting keys", as
     for (const value of ["costarring", "liquid", "a".repeat(20000), "a".repeat(19999) + "b", "", "\ud800"]) {
       const first = await text.from([value]);
       expect(await set.has(first)).toBe(false);
-      await set.add(first);
+      const identity = await set.add(first);
+      expect(identity).toBeGreaterThan(0);
       const second = await text.from((async function* () {for (let i = 0; i < value.length; i += 17) yield value.slice(i, i + 17);})());
       expect(await set.has(second)).toBe(true);
+      expect(await set.add(second)).toBe(identity);
     }
     expect(await set.has(await text.from(["costarring"]))).toBe(true);
     expect(await set.has(await text.from(["liquid"]))).toBe(true);

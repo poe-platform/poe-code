@@ -20,6 +20,8 @@ export interface ImageByteStorage extends Pick<ImageByteSource, "read"> {
 }
 export interface StoredRgbaImage extends Omit<RgbaImage, "data" | "data16"> {
   readonly position: number;
+  /** Original high-depth raw samples retain the same lifetime as buffered data16. */
+  readonly storedData16?: {readonly position:number;readonly length:number};
   /** Frame delays can remain in caller storage instead of an unbounded metadata array. */
   readonly storedDelay?: {
     readonly length: number;

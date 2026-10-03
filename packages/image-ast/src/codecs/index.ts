@@ -541,40 +541,12 @@ export function encodeImage(
       }
       const mapVal = (v: number, idx: number): number =>
         rawU16 ? rawU16[idx]! : is16Bit ? (v === 255 ? 65535 : v === 1 ? 511 : v * 256) : v;
-      if (depth === "char") {
-        const arr = new Int8Array(len);
-        for (let i = 0; i < len; i++) arr[i] = Math.min(127, rawU8[i]!);
-        return { data: new Uint8Array(arr.buffer), format: "raw", channels: outCh };
-      }
-      if (depth === "ushort") {
-        const arr = new Uint16Array(len);
-        for (let i = 0; i < len; i++) arr[i] = mapVal(rawU8[i]!, i);
-        return { data: new Uint8Array(arr.buffer), format: "raw", channels: outCh };
-      }
-      if (depth === "short") {
-        const arr = new Int16Array(len);
-        for (let i = 0; i < len; i++) arr[i] = Math.min(32767, mapVal(rawU8[i]!, i));
-        return { data: new Uint8Array(arr.buffer), format: "raw", channels: outCh };
-      }
-      if (depth === "uint") {
-        const arr = new Uint32Array(len);
-        for (let i = 0; i < len; i++) arr[i] = mapVal(rawU8[i]!, i);
-        return { data: new Uint8Array(arr.buffer), format: "raw", channels: outCh };
-      }
-      if (depth === "int") {
-        const arr = new Int32Array(len);
-        for (let i = 0; i < len; i++) arr[i] = mapVal(rawU8[i]!, i);
-        return { data: new Uint8Array(arr.buffer), format: "raw", channels: outCh };
-      }
-      if (depth === "float") {
-        const arr = new Float32Array(len);
-        for (let i = 0; i < len; i++) arr[i] = mapVal(rawU8[i]!, i);
-        return { data: new Uint8Array(arr.buffer), format: "raw", channels: outCh };
-      }
-      if (depth === "double") {
-        const arr = new Float64Array(len);
-        for (let i = 0; i < len; i++) arr[i] = mapVal(rawU8[i]!, i);
-        return { data: new Uint8Array(arr.buffer), format: "raw", channels: outCh };
+      const ArrayType=depth==="char"?Int8Array:depth==="ushort"?Uint16Array:depth==="short"?Int16Array:
+        depth==="uint"?Uint32Array:depth==="int"?Int32Array:depth==="float"?Float32Array:depth==="double"?Float64Array:undefined;
+      if(ArrayType){
+        const arr=new ArrayType(len);
+        for(let i=0;i<len;i++)arr[i]=depth==="char"?Math.min(127,rawU8[i]!):depth==="short"?Math.min(32767,mapVal(rawU8[i]!,i)):mapVal(rawU8[i]!,i);
+        return {data:new Uint8Array(arr.buffer),format:"raw",channels:outCh};
       }
       return { data: rawU8, format: "raw", channels: outCh };
     }

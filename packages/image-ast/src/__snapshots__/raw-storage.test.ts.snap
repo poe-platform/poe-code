@@ -1,0 +1,65 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`encodes borrowed raw chunks 1/char above 32-bit backing offsets 1`] = `"f11f8fde4d9626dc53f65026d92abe14d1fef0ca38e2359d5713cd181ce385ba"`;
+
+exports[`encodes borrowed raw chunks 1/double above 32-bit backing offsets 1`] = `"a85a4d71f8dc347f81bf3fa110259ad2731ef3847634c8eae9fdd53989cd3116"`;
+
+exports[`encodes borrowed raw chunks 1/float above 32-bit backing offsets 1`] = `"0db86c95da287ffbaffc065441cd63ee58a3bc82a0aa8451db606529423791e9"`;
+
+exports[`encodes borrowed raw chunks 1/int above 32-bit backing offsets 1`] = `"9cc9e13a0fafc286fb7ac7a7a35dda2b34c4c5fa2bf9d1e5a2bd785869a5c239"`;
+
+exports[`encodes borrowed raw chunks 1/short above 32-bit backing offsets 1`] = `"09b80902604ea0ef7993e5ead6cecdc19d3c628be60091624547df04630fb5ec"`;
+
+exports[`encodes borrowed raw chunks 1/uchar above 32-bit backing offsets 1`] = `"e5fb75cc23462bf9938150def2f21362dfa76b1af16588e48b800f52c447f06f"`;
+
+exports[`encodes borrowed raw chunks 1/uint above 32-bit backing offsets 1`] = `"9cc9e13a0fafc286fb7ac7a7a35dda2b34c4c5fa2bf9d1e5a2bd785869a5c239"`;
+
+exports[`encodes borrowed raw chunks 1/ushort above 32-bit backing offsets 1`] = `"8978ccd38c7eb229a01a289476f328d6cb691b98cf01b7a54304b4831e117560"`;
+
+exports[`encodes borrowed raw chunks 2/char above 32-bit backing offsets 1`] = `"175bd6dffc5def62804adca82b655ac261fec8168ff888e43fac995e223f7055"`;
+
+exports[`encodes borrowed raw chunks 2/double above 32-bit backing offsets 1`] = `"ae73f8457b47c04b9a14d767f1dc12dac53868a1563ed3418ea3f6a3fe4ce79d"`;
+
+exports[`encodes borrowed raw chunks 2/float above 32-bit backing offsets 1`] = `"16fe53695992d0dc2c8b6b83ee4087f17fb9a07422c78076666f62f35bfff71a"`;
+
+exports[`encodes borrowed raw chunks 2/int above 32-bit backing offsets 1`] = `"239ad54ec8406ccbc9328cee7c65b506eea72492c00bc4a628793bb59bf3a2ec"`;
+
+exports[`encodes borrowed raw chunks 2/short above 32-bit backing offsets 1`] = `"f7465dd7e81c25d74d4691e49b0abeec1d4a0be608ff158d8b1792fc6b1b11ad"`;
+
+exports[`encodes borrowed raw chunks 2/uchar above 32-bit backing offsets 1`] = `"5c7c3b8756f7ecce04509bdc004d3a8c784c71fb3c63212d88d6019a85005830"`;
+
+exports[`encodes borrowed raw chunks 2/uint above 32-bit backing offsets 1`] = `"239ad54ec8406ccbc9328cee7c65b506eea72492c00bc4a628793bb59bf3a2ec"`;
+
+exports[`encodes borrowed raw chunks 2/ushort above 32-bit backing offsets 1`] = `"fd7411a9d845832fcb7c5d0986de82c83468ce519d982fd3b3ebdbfaee96a629"`;
+
+exports[`encodes borrowed raw chunks 3/char above 32-bit backing offsets 1`] = `"b80733def225d8e16c96195c889937115ae522e6c4b50162664c63e2f001cb9d"`;
+
+exports[`encodes borrowed raw chunks 3/double above 32-bit backing offsets 1`] = `"9e3d9808fb87ab5ea97b7aa731cb22ddcc27c51c232e392389bb6d40516c464b"`;
+
+exports[`encodes borrowed raw chunks 3/float above 32-bit backing offsets 1`] = `"4d3ca859199d5c6022ba2e7ca800d6fec29777e6ee24af7f3ede4c83fd7741b3"`;
+
+exports[`encodes borrowed raw chunks 3/int above 32-bit backing offsets 1`] = `"52ce1167ab844fd2e7daece7c4b49ccce47685bbe7c53b8a33bed88116e55268"`;
+
+exports[`encodes borrowed raw chunks 3/short above 32-bit backing offsets 1`] = `"43a0851f76051fc236110bfe4a97478b7005a7853b4c7fe77c543bdb1c6fe8fb"`;
+
+exports[`encodes borrowed raw chunks 3/uchar above 32-bit backing offsets 1`] = `"2f366ec2fbe52ca4fe7fee788d3b04e36fb7fe599efb569291ba5de982483065"`;
+
+exports[`encodes borrowed raw chunks 3/uint above 32-bit backing offsets 1`] = `"52ce1167ab844fd2e7daece7c4b49ccce47685bbe7c53b8a33bed88116e55268"`;
+
+exports[`encodes borrowed raw chunks 3/ushort above 32-bit backing offsets 1`] = `"226cf99e329d89d1491d98adab105724113886e948b6c08235c9e0d39fd27bf7"`;
+
+exports[`encodes borrowed raw chunks 4/char above 32-bit backing offsets 1`] = `"eff352d6023e3203a90f5d275b5dc9559398bc9dd87835fb1825b7ae6014b780"`;
+
+exports[`encodes borrowed raw chunks 4/double above 32-bit backing offsets 1`] = `"f0edafb091202b7404e9db27cd94923d60717e1238e6b432f4ab0a075d19cf89"`;
+
+exports[`encodes borrowed raw chunks 4/float above 32-bit backing offsets 1`] = `"413fd99eb606c5a24b43767a89d9cafc93f352709b2cec85c6a77609019d64c8"`;
+
+exports[`encodes borrowed raw chunks 4/int above 32-bit backing offsets 1`] = `"ce799347addd20cdd9c9e429410888daff06e100a68e892dc8eb953f60ec14a1"`;
+
+exports[`encodes borrowed raw chunks 4/short above 32-bit backing offsets 1`] = `"c8cc636bc80c562d766b584b84b4b37f9e020c65f60cc3a8d97e9fc8504b8c32"`;
+
+exports[`encodes borrowed raw chunks 4/uchar above 32-bit backing offsets 1`] = `"52eb4c7507454e60106874149ee23d6d6907aa40b4458345ffe6a8df89ee1bcc"`;
+
+exports[`encodes borrowed raw chunks 4/uint above 32-bit backing offsets 1`] = `"ce799347addd20cdd9c9e429410888daff06e100a68e892dc8eb953f60ec14a1"`;
+
+exports[`encodes borrowed raw chunks 4/ushort above 32-bit backing offsets 1`] = `"59edaef96057b3c2044264fa51f2a30bdabba1c1c0f44bfd0a37b86fd4dc0596"`;

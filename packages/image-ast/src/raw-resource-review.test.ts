@@ -104,7 +104,9 @@ it.each(generated)("preserves generated $options.create.channels channels and no
 });
 it.each(raw)("preserves raw $options.raw.depth channels=$options.raw.channels bytes=$length",async vector=>{
  const bytes=Uint8Array.from({length:vector.length},(_,i)=>(i*43+Math.floor(i/7)+17)%256),copy=new Uint8Array(bytes),{storage,memory}=backing(),input=source(bytes),actual=await decodeRawResource(input,storage,vector.options,new AbortController().signal),buffered=decodeImage(bytes,vector.options);
- expect({...actual,position:undefined}).toEqual(vector.expected);expect(digest(buffered.data)).toBe(vector.hash);expect(digest(memory.subarray(actual.position,actual.position+actual.width*actual.height*4))).toBe(vector.hash);expect(bytes).toEqual(copy);
+ expect({...actual,position:undefined,storedData16:undefined}).toEqual(vector.expected);
+ if(buffered.data16){expect(actual.storedData16?.length).toBe(buffered.data16.length);expect(memory.subarray(actual.storedData16!.position,actual.storedData16!.position+buffered.data16.byteLength)).toEqual(new Uint8Array(buffered.data16.buffer));}else expect(actual.storedData16).toBeUndefined();
+ expect(digest(buffered.data)).toBe(vector.hash);expect(digest(memory.subarray(actual.position,actual.position+actual.width*actual.height*4))).toBe(vector.hash);expect(bytes).toEqual(copy);
 });
 it("bounds generated and double raw allocations while copying borrowed buffers",async()=>{
  const {storage}=backing(),bytes=new Uint8Array(401*3*32),input=source(bytes),Original=Uint8Array;

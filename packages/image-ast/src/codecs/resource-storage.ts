@@ -15,6 +15,8 @@ export async function decodeRawResource(source:ImageByteSource,storage:ImageByte
  if(!Number.isSafeInteger(count*pixelBytes)) throw new RangeError("Invalid raw resource dimensions");
  const position=storage.allocate(count*4);
  if(!Number.isSafeInteger(position)||position<0||!Number.isSafeInteger(position+count*4)) throw new RangeError("Invalid image backing allocation");
+ const highDepth=sampleBytes>1,storedData16=highDepth?{position:storage.allocate(count*8),length:count*4}:undefined;
+ if(storedData16 && (!Number.isSafeInteger(storedData16.position)||storedData16.position<0||!Number.isSafeInteger(storedData16.position+count*8)))throw new RangeError("Invalid image backing allocation");
  for(let offset=0;offset<count;offset+=128) {
   signal.throwIfAborted();if(offset%16384===0) await defaultRuntime.yieldTurn(signal);
   const pixels=Math.min(128,count-offset),start=offset*pixelBytes,length=Math.min(pixels*pixelBytes,Math.max(0,source.size-start));
@@ -22,8 +24,9 @@ export async function decodeRawResource(source:ImageByteSource,storage:ImageByte
   if(!(borrowed instanceof Uint8Array)||borrowed.length!==length) throw new Error("Truncated raw backing source");
   const chunk=decodeImage(new Uint8Array(borrowed),{raw:{...raw,width:pixels,height:1}});
   await storage.write(position+offset*4,chunk.data,{signal});signal.throwIfAborted();
+  if(storedData16 && chunk.data16){await storage.write(storedData16.position+offset*8,new Uint8Array(chunk.data16.buffer,chunk.data16.byteOffset,chunk.data16.byteLength),{signal});signal.throwIfAborted();}
  }
- return {width,height,position,channels,format:"raw",space:channels<3?"b-w":"srgb",depth:"uchar",density,hasAlpha:channels===2||channels===4,...(pageHeight!==undefined?{pageHeight,pages:Math.max(1,Math.floor(height/pageHeight))}:{})};
+ return {width,height,position,...(storedData16?{storedData16}:{}),channels,format:"raw",space:channels<3?"b-w":"srgb",depth:"uchar",density,hasAlpha:channels===2||channels===4,...(pageHeight!==undefined?{pageHeight,pages:Math.max(1,Math.floor(height/pageHeight))}:{})};
 }
 export async function createStoredResource(storage:ImageByteStorage,options:SharpInputOptions & {create:NonNullable<SharpInputOptions["create"]>},signal:AbortSignal):Promise<StoredRgbaImage> {
  signal.throwIfAborted();

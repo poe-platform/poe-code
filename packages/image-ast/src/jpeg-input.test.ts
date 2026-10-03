@@ -1,5 +1,5 @@
 import {computeImageStatsSteps} from "./ops/transform.js";
-import {decodeImage} from "./codecs/index.js";
+import {decodeImage,encodeImage} from "./codecs/index.js";
 import {decodeWebpImage,encodeWebpImage} from "./codecs/webp.js";
 import { decodeTiffImage } from "./codecs/netpbm.js";
 import { build } from "esbuild";
@@ -4106,7 +4106,7 @@ const workerHash = (bytes: Uint8Array) => {
   for (const byte of bytes) value = Math.imul(value ^ byte, 16777619) >>> 0;
   return value;
 };
-it("decodes JPEG and JPEG-in-TIFF and encodes WebP in actual Workerd using only bounded transfers to external caller backing", async () => {
+it("decodes retained images and encodes WebP/raw in Workerd using bounded external backing", async () => {
   const cases = [
     { name: "baseline", input: jpegInputFixture({ kind: "encoded", width: 1024, height: 257 }) },
     {
@@ -4150,12 +4150,14 @@ it("decodes JPEG and JPEG-in-TIFF and encodes WebP in actual Workerd using only 
   cases.push({ name: "tiff", input: tiff });
   cases.push({name:"webp",input:encodeWebpImage(decodeJpegImage(jpeg))});
   cases.push({name:"text",input:new Uint8Array()});
+  cases.push({name:"raw",input:new Uint8Array(Uint16Array.from({length:1024*257*4},(_,i)=>(i*433+17)%65536).buffer)});
   const expected = cases.map(({ input, name }) => {
-    const { data, ...metadata } = name === "text"?decodeImage(undefined,{text:{text:'<span color="red" background="blue">Worker text</span>',width:1024,height:257,rgba:true}}):name === "webp"?decodeWebpImage(input):name === "tiff" ? decodeTiffImage(input) : decodeJpegImage(input);
+    const { data, data16, ...metadata } = name === "raw"?decodeImage(input,{raw:{width:1024,height:257,channels:4,depth:"ushort"}}):name === "text"?decodeImage(undefined,{text:{text:'<span color="red" background="blue">Worker text</span>',width:1024,height:257,rgba:true}}):name === "webp"?decodeWebpImage(input):name === "tiff" ? decodeTiffImage(input) : decodeJpegImage(input);
     const steps=computeImageStatsSteps({...metadata,data});let next=steps.next();while(!next.done)next=steps.next();
     const stats=next.value;
     const encoded=encodeWebpImage({...metadata,data});
-    return { stats, metadata, length: data.length, hash: workerHash(data), encodedLength:encoded.length,encodedHash:workerHash(encoded) };
+    const raw=encodeImage({...metadata,data,...(data16?{data16,space:"rgb16" as const}:{})},{format:"raw",rawDepth:"ushort"}).data;
+    return { rawLength:raw.length,rawHash:workerHash(raw),stats, metadata, length: data.length, hash: workerHash(data), encodedLength:encoded.length,encodedHash:workerHash(encoded) };
   });
   const stores = cases.map(() => ({
     pages: new Map<number, Uint8Array>(),
@@ -4170,6 +4172,8 @@ it("decodes JPEG and JPEG-in-TIFF and encodes WebP in actual Workerd using only 
       resolveDir: root,
       sourcefile: "worker.ts",
       contents: `
+ import {decodeRawResource} from './packages/image-ast/src/codecs/resource-storage.ts';
+ import {encodeRawFromStorage} from './packages/image-ast/src/codecs/raw-storage.ts';
  import {decodeJpegToStorage} from './packages/image-ast/src/codecs/jpeg-input-storage.ts';
  import {decodeTiffToStorage} from './packages/image-ast/src/codecs/tiff-input-storage.ts';
  import {encodeWebpFromStorage} from './packages/image-ast/src/codecs/webp-storage.ts';
@@ -4177,17 +4181,17 @@ it("decodes JPEG and JPEG-in-TIFF and encodes WebP in actual Workerd using only 
  import {renderTextToStorage} from './packages/image-ast/src/codecs/text-storage.ts';
  import {computeStoredImageStats} from './packages/image-ast/src/ops/stats-storage.ts';
  export default {async fetch(request,env){
-  const {id,size,tiff,webp,text}=await request.json(), signal=new AbortController().signal;let next=17,largestAllocation=0,largestTransfer=0,mapPeak=0,allocationCount=0;
+  const {id,size,tiff,webp,text,raw}=await request.json(), signal=new AbortController().signal;let next=17,largestAllocation=0,largestTransfer=0,mapPeak=0,allocationCount=0;
   const transfer=async(kind,position,length,bytes)=>{if(length>4096)throw new Error('unbounded transfer');largestTransfer=Math.max(largestTransfer,length);const response=await env.BACKING.fetch('https://backing/'+id+'/'+kind+'?position='+position+'&length='+length,{method:bytes?'POST':'GET',body:bytes});if(!response.ok)throw new Error('backing status '+response.status);return bytes?undefined:new Uint8Array(await response.arrayBuffer());};
   const source={size,read(position,length){return transfer('source',position,length);}};
   const storage={allocate(length){const position=next;next+=length+19;allocationCount++;return position;},read(position,length){return transfer('read',position,length);},write(position,bytes){return transfer('write',position,bytes.length,bytes);}};
   const NativeArray=Uint8Array,NativeMap=Map;
   globalThis.Uint8Array=new Proxy(NativeArray,{construct(target,args){const argument=args[0],length=typeof argument==='number'?argument:argument?.byteLength??argument?.length??0;largestAllocation=Math.max(largestAllocation,length);return Reflect.construct(target,args);}});
   globalThis.Map=class extends NativeMap{set(k,v){const result=super.set(k,v);mapPeak=Math.max(mapPeak,this.size);return result;}};
-  let image,stats,encodedLength=0,encodedHash=2166136261;try{image=text?await renderTextToStorage({text:{text:'<span color="red" background="blue">Worker text</span>',width:1024,height:257,rgba:true}},storage,signal):await (webp?decodeWebpToStorage:tiff?decodeTiffToStorage:decodeJpegToStorage)(source,storage,signal);stats=await computeStoredImageStats(image,storage,signal);for await(const bytes of encodeWebpFromStorage(image,storage,signal)){if(bytes.length>4096)throw new Error("unbounded output");encodedLength+=bytes.length;for(const byte of bytes)encodedHash=Math.imul(encodedHash^byte,16777619)>>>0;}}finally{globalThis.Uint8Array=NativeArray;globalThis.Map=NativeMap;}
-  const {position,...metadata}=image,length=image.width*image.height*4;let hash=2166136261;
+  let image,stats,rawLength=0,rawHash=2166136261,encodedLength=0,encodedHash=2166136261;try{image=raw?await decodeRawResource(source,storage,{raw:{width:1024,height:257,channels:4,depth:"ushort"}},signal):text?await renderTextToStorage({text:{text:'<span color="red" background="blue">Worker text</span>',width:1024,height:257,rgba:true}},storage,signal):await (webp?decodeWebpToStorage:tiff?decodeTiffToStorage:decodeJpegToStorage)(source,storage,signal);stats=await computeStoredImageStats(image,storage,signal);for await(const bytes of encodeWebpFromStorage(image,storage,signal)){if(bytes.length>4096)throw new Error("unbounded output");encodedLength+=bytes.length;for(const byte of bytes)encodedHash=Math.imul(encodedHash^byte,16777619)>>>0;}for await(const bytes of encodeRawFromStorage(raw?{...image,space:"rgb16"}:image,storage,signal,{rawDepth:"ushort"})){if(bytes.length>4096)throw new Error("unbounded raw output");rawLength+=bytes.length;for(const byte of bytes)rawHash=Math.imul(rawHash^byte,16777619)>>>0;}}finally{globalThis.Uint8Array=NativeArray;globalThis.Map=NativeMap;}
+  const {position,storedData16,...metadata}=image,length=image.width*image.height*4;let hash=2166136261;
   for(let offset=0;offset<length;offset+=4096){const bytes=await storage.read(position+offset,Math.min(4096,length-offset));for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;}
-  return Response.json({stats,metadata,length,hash,encodedLength,encodedHash,largestAllocation,largestTransfer,mapPeak,allocated:next,allocationCount,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});
+  return Response.json({rawLength,rawHash,stats,metadata,length,hash,encodedLength,encodedHash,largestAllocation,largestTransfer,mapPeak,allocated:next,allocationCount,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});
  }};`
     },
     bundle: true,
@@ -4269,7 +4273,7 @@ it("decodes JPEG and JPEG-in-TIFF and encodes WebP in actual Workerd using only 
     for (const [index, sample] of cases.entries()) {
       const response = await runtime.dispatchFetch("https://jpeg.test/", {
         method: "POST",
-        body: JSON.stringify({ id: index, size: sample.input.length, tiff: sample.name === "tiff",webp:sample.name==="webp",text:sample.name==="text" })
+        body: JSON.stringify({ id: index, size: sample.input.length, tiff: sample.name === "tiff",webp:sample.name==="webp",text:sample.name==="text",raw:sample.name==="raw" })
       });
       expect(response.status).toBe(200);
       const result = (await response.json()) as Record<string, unknown>;

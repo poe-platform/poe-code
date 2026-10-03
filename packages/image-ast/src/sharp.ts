@@ -1,3 +1,4 @@
+import {prepareRawOutput} from "./codecs/raw-storage.js";
 import {tryImageMetadata} from "./image-metadata.js";
 import {tryImageStats} from "./image-stats.js";
 import {prepareClaheImage} from "./ops/clahe.js";
@@ -2394,19 +2395,7 @@ export class SharpInstance extends Duplex {
 
   toBufferWithObjectSync(): { readonly data: Uint8Array; readonly info: OutputInfo } {
     let img = this.evaluateImage();
-    if (
-      this.outputOptions.format === "raw" &&
-      (img.channels === 2 || (img.channels === 1 && this.nodes.some(n => n.kind === "removeAlpha" || n.kind === "flatten"))) &&
-      !this.nodes.some(
-        n =>
-          (n.kind === "toColorspace" && n.space === "b-w") ||
-          n.kind === "grayscale" ||
-          n.kind === "joinChannel" ||
-          n.kind === "extractChannel"
-      )
-    ) {
-      img = { ...img, space: "srgb", channels: img.hasAlpha ? 4 : 3 };
-    }
+    if(this.outputOptions.format === "raw")img=prepareRawOutput(img,this.nodes);
     const encoded = encodeImage(img, this.outputOptions);
     const outBuf = outputBytes(encoded.data);
     return {
@@ -2453,7 +2442,7 @@ export class SharpInstance extends Duplex {
         this.outputOptions = { ...this.outputOptions, format: inferred };
       }
       try {
-        if (!this.joinInputs && (!this.streamIn || this.streamInFinished) && ["png","ppm","pgm","pbm","bmp","tiff","gif","jpeg","webp"].includes(this.outputOptions.format??"png")) {
+        if (!this.joinInputs && (!this.streamIn || this.streamInFinished) && ["raw","png","ppm","pgm","pbm","bmp","tiff","gif","jpeg","webp"].includes(this.outputOptions.format??"png")) {
           if(this.streamFailure) throw this.streamFailure;
           const input=this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
           const streamed = await tryImageFile(input, fileOut, this.inputOptions!, this.outputOptions, this.nodes,this.fileInputs);

@@ -52,7 +52,8 @@ previously cached files also use this retained output path; cached resource
 snapshots remain valid. Generated text and color/noise images
 use the same retained output path, and text metadata avoids rendering a pixel canvas.
 These input formats also support
-streaming TIFF, GIF, JPEG and WebP output. `encodeGifFromStorage` uses a fixed palette, bounded
+streaming TIFF, GIF, JPEG, WebP and raw output. `encodeRawFromStorage` preserves
+raw channel/depth conversion and original high-depth samples in caller storage. `encodeGifFromStorage` uses a fixed palette, bounded
 pixel caches and pull-driven owned data subblocks, including animated frames.
 `decodeGifToStorage` retains LZW input, animation canvases and frame delays in caller
 storage, including page selection, interlacing and disposal. Async GIF output reads

@@ -170,47 +170,42 @@ export function readJpegMetadata(bytes: Uint8Array): ImageMetadata {
   };
 }
 
-interface HuffmanNode {
-  children?: [HuffmanNode | undefined, HuffmanNode | undefined];
-  symbol?: number;
-  fastLut?: Int32Array;
+interface HuffmanTable {
+  readonly first: Uint32Array;
+  readonly counts: Uint16Array;
+  readonly offsets: Uint16Array;
+  readonly symbols: Uint8Array;
+  readonly fastLut: Int32Array;
 }
 
-function buildHuffmanTree(counts: Uint8Array, symbols: Uint8Array): HuffmanNode {
-  const root: HuffmanNode = { children: [undefined, undefined] };
-  let symbolIdx = 0;
-  let level: HuffmanNode[] = [root];
-  for (let len = 0; len < 16; len++) {
-    const nextLevel: HuffmanNode[] = [];
-    for (const node of level) {
-      if (!node.children) node.children = [undefined, undefined];
-      for (let b = 0; b < 2; b++) {
-        const child: HuffmanNode = {};
-        node.children[b] = child;
-        nextLevel.push(child);
-      }
-    }
-    const count = counts[len] ?? 0;
-    for (let i = 0; i < count && i < nextLevel.length; i++) {
-      nextLevel[i]!.symbol = symbols[symbolIdx++]!;
-    }
-    level = nextLevel.slice(count);
-  }
+/** Canonical ranges retain only the 16 wire lengths and admitted symbols. */
+function buildHuffmanTable(counts: Uint8Array, symbols: Uint8Array): HuffmanTable {
+  const first = new Uint32Array(16);
+  const admitted = new Uint16Array(16);
+  const offsets = new Uint16Array(16);
   const fastLut = new Int32Array(256).fill(-1);
-  for (let byte = 0; byte < 256; byte++) {
-    let node: HuffmanNode | undefined = root;
-    for (let bitIdx = 7; bitIdx >= 0; bitIdx--) {
-      node = node?.children?.[(byte >>> bitIdx) & 1];
-      if (!node) break;
-      if (node.symbol !== undefined) {
-        const len = 8 - bitIdx;
-        fastLut[byte] = (len << 8) | node.symbol;
-        break;
+  let code = 0, available = 2, offset = 0;
+  for (let length = 0; length < 16; length++) {
+    // The legacy tree ignores symbols that exceed the available leaves.
+    const count = Math.min(counts[length] ?? 0, available);
+    first[length] = code;
+    admitted[length] = count;
+    offsets[length] = offset;
+    if (length < 8) {
+      const suffixBits = 7 - length;
+      for (let i = 0; i < count; i++) {
+        const symbol = symbols[offset + i];
+        if (symbol !== undefined) {
+          const start = (code + i) << suffixBits;
+          fastLut.fill(((length + 1) << 8) | symbol, start, start + (1 << suffixBits));
+        }
       }
     }
+    offset += count;
+    code = (code + count) * 2;
+    available = (available - count) * 2;
   }
-  root.fastLut = fastLut;
-  return root;
+  return {first, counts: admitted, offsets, symbols: new Uint8Array(symbols.subarray(0, offset)), fastLut};
 }
 
 const IDCT_DEQUANT = new Float64Array(64);
@@ -458,8 +453,8 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 
   const quantTables: Uint16Array[] = [];
-  const dcTrees: HuffmanNode[] = [];
-  const acTrees: HuffmanNode[] = [];
+  const dcTrees: HuffmanTable[] = [];
+  const acTrees: HuffmanTable[] = [];
 
   let width = 0;
   let height = 0;
@@ -519,7 +514,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
         for (let i = 0; i < 16; i++) totalSymbols += counts[i]!;
         const symbols = payload.subarray(hPos, hPos + totalSymbols);
         hPos += totalSymbols;
-        const tree = buildHuffmanTree(counts, symbols);
+        const tree = buildHuffmanTable(counts, symbols);
         if (tableClass === 0) dcTrees[hId] = tree;
         else acTrees[hId] = tree;
       }
@@ -672,7 +667,7 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
         return v < 1 << (n - 1) ? v + (-1 << n) + 1 : v;
       };
 
-      const decodeSymbol = (tree: HuffmanNode | undefined): number => {
+      const decodeSymbol = (tree: HuffmanTable | undefined): number => {
         if (!tree) throw new Error("Invalid JPEG Huffman code");
         if (bitCount < 8) refillBits();
         if (bitCount >= 8 && tree.fastLut) {
@@ -683,13 +678,22 @@ export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions):
             return fast & 0xff;
           }
         }
-        let node: HuffmanNode | undefined = tree;
-        while (node && node.symbol === undefined) {
-          const bit = readBit();
-          node = node.children?.[bit];
+        let code = 0;
+        for (let length = 0; length < 16; length++) {
+          code = code * 2 + readBit();
+          const index = code - tree.first[length]!;
+          if (index >= 0 && index < tree.counts[length]!) {
+            const symbol = tree.symbols[tree.offsets[length]! + index];
+            if (symbol !== undefined) return symbol;
+            // Missing declared symbols are empty leaves in the legacy tree.
+            readBit();
+            throw new Error("Invalid JPEG Huffman code");
+          }
         }
-        if (node?.symbol === undefined) throw new Error("Invalid JPEG Huffman code");
-        return node.symbol;
+        // Empty depth-16 leaves consume one more bit before rejecting. Keep
+        // truncated/marker diagnostics from that read, including its escape.
+        readBit();
+        throw new Error("Invalid JPEG Huffman code");
       };
 
       const decodeBlockBaseline = (comp: ComponentSpec, block: Int32Array): number => {

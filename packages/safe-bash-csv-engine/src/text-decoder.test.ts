@@ -54,9 +54,9 @@ test('Python rejects near aliases and inherited object names',()=>{
 
 test('single-byte codecs match every byte from the pinned Python 3.9 oracle',async()=>{
  const {readFile}=await import('node:fs/promises');
- const reference=JSON.parse(await readFile(new URL('./fixtures/single-byte-python39.json',import.meta.url),'utf8')) as {cases:{name:string;canonical:string;values:(string|null)[]}[]};
- for(const {name,canonical,values}of reference.cases){
-  for(const alias of new Set([name,canonical])){
+ const reference=JSON.parse(await readFile(new URL('./fixtures/single-byte-python39.json',import.meta.url),'utf8')) as {cases:{name:string;canonical:string;aliases:string[];values:(string|null)[]}[]};
+ for(const {name,canonical,aliases,values}of reference.cases){
+  for(const alias of new Set([name,canonical,...aliases])){
    const decoder=new PythonTextDecoder(alias);let accepted='';
    for(let byte=0;byte<256;byte++){
     const value=values[byte];

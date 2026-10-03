@@ -138,3 +138,12 @@ test('UTF32 file imports preserve universal newlines, strict errors and caller s
   assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['utf32']);
  }
 });
+
+test('EBCDIC file decoding translates low-byte controls before universal newline handling',async()=>{
+ const fs=new MemoryFileSystem();await fs.writeFile('/ebcdic',Uint8Array.of(0xc1,0x0d,0x25,0xc2,0x15));
+ const values:string[]=[];
+ await withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,encodings:['ibm037']},{async *[Symbol.asyncIterator](){yield {path:'/ebcdic',id:'one'};}},async entries=>{
+  for await(const entry of entries){let text='';for await(const bytes of entry.input.bytes)text+=new TextDecoder().decode(bytes);values.push(text);}
+ });
+ assert.deepEqual(values,['A\nB\u0085']);assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['ebcdic']);
+});

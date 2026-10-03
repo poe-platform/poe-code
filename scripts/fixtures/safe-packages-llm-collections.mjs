@@ -1,7 +1,7 @@
 import { MemoryFileSystem } from "@poe-platform/safe-fs/core";
 import { withLlmCollections, createLlmCollectionCommands, withCsvEmbeddingEntries, withJsonEmbeddingEntries, withJsonLinesEmbeddingEntries, withFileEmbeddingEntries, withEmbeddingFileGlob } from "@poe-platform/safe-bash/commands/llm/collections";
 import { createLlmService, llmCommands } from "@poe-platform/safe-bash/commands/llm";
-import { legacyCollectionDatabases, jsonImportEncodingInputs, jsonImportRejectedInputs } from "./safe-packages-llm-collections-reference.mjs";
+import { legacyCollectionDatabases, jsonImportEncodingInputs, jsonImportRejectedInputs, singleByteFileInputs } from "./safe-packages-llm-collections-reference.mjs";
 import { Shell } from "@poe-platform/safe-bash/shell";
 import { sqlite3Commands } from "@poe-platform/safe-bash/commands/sqlite3";
 
@@ -34,12 +34,20 @@ export async function verifyLlmCollections() {
   });
   if(signatureRows!==1)throw new Error('Incomplete signature did not yield an empty row');
   await globFs.unlink('/signature');
-  for(const [encoding,byte,expected]of [['windows-1252',0x80,'€'],['mac-roman',0x80,'Ä'],['cp437',0x80,'Ç'],['cp1251',0xc0,'А']]){
-    await globFs.writeFile('/legacy',Uint8Array.of(byte));let count=0;
-    await withFileEmbeddingEntries({fs:globFs,directory:'/',signal:new AbortController().signal,encodings:[encoding]},{async *[Symbol.asyncIterator](){yield {path:'/legacy',id:'legacy'};}},async entries=>{
-      for await(const entry of entries){count++;let text='';for await(const bytes of entry.input.bytes)text+=new TextDecoder().decode(bytes);if(text!==expected)throw new Error('Legacy codec changed: '+encoding);}
+  for(const fixture of singleByteFileInputs){
+    await globFs.writeFile('/legacy',Uint8Array.from(atob(fixture.base64),char=>char.charCodeAt(0)));let count=0;
+    const options={fs:globFs,directory:'/',signal:new AbortController().signal,encodings:[fixture.encoding]};
+    const files={async *[Symbol.asyncIterator](){yield {path:'/legacy',id:'legacy'};}};
+    await withFileEmbeddingEntries(options,files,async entries=>{
+      for await(const entry of entries){count++;let text='';const decoder=new TextDecoder('utf-8',{ignoreBOM:true});for await(const bytes of entry.input.bytes)text+=decoder.decode(bytes,{stream:true});text+=decoder.decode();if(text!==fixture.text)throw new Error('Pinned file decoding changed: '+fixture.encoding);await entry.input.dispose();}
     });
-    if(count!==1)throw new Error('Legacy codec row missing: '+encoding);
+    if(count!==1)throw new Error('Codepage row missing: '+fixture.encoding);
+    if(fixture.undefinedByte!==null){
+      await globFs.writeFile('/legacy',Uint8Array.of(fixture.undefinedByte));let warnings=0;
+      await withFileEmbeddingEntries({...options,undecodable(){warnings++;}},files,async entries=>{for await(const ignored of entries)throw new Error('Undefined codepage byte accepted: '+fixture.encoding);});
+      if(warnings!==1)throw new Error('Undefined codepage byte was not skipped: '+fixture.encoding);
+    }
+    if((await globFs.readdir('/')).length!==1)throw new Error('Codepage staging leaked: '+fixture.encoding);
   }
   await globFs.unlink('/legacy');
   for(const [encoding,bytes,expected]of [['utf-16',[255,254,0,216,0,220],'𐀀'],['utf-16-be',[254,255,0,65],'\ufeffA'],['utf-16-le',[255,254,65,0],'\ufeffA'],['utf32',[255,254,0,0,0,0,1,0],'𐀀'],['utf-32-be',[0,0,254,255,0,0,0,65],'\ufeffA'],['utf_32_le',[255,254,0,0,65,0,0,0],'\ufeffA']]){
@@ -227,6 +235,12 @@ export async function verifyLlmCollections() {
     const unicodeRows=await cliShell.exec('llm similar utf32 -c query -d /cli.db');
     if(unicodeRows.exitCode!==0||JSON.parse(unicodeRows.stdout).content!=='𐀀')throw new Error('UTF32 CLI stored content changed');
     await fs.unlink('/file-inputs/u32.txt');
+    await fs.writeFile('/file-inputs/ebcdic.txt',Uint8Array.of(0xc1,0x0d,0x25));
+    const ebcdicImport=await cliShell.exec('llm embed-multi ebcdic --files /file-inputs ebcdic.txt --encoding ibm037 --store -m embed -d /cli.db');
+    if(ebcdicImport.exitCode!==0||ebcdicImport.stdout!=='Embedding\n')throw new Error('EBCDIC CLI import failed: '+ebcdicImport.stderr);
+    const ebcdicRows=await cliShell.exec('llm similar ebcdic -c query -d /cli.db');
+    if(ebcdicRows.exitCode!==0||JSON.parse(ebcdicRows.stdout).content!=='A\n')throw new Error('EBCDIC CLI stored content changed');
+    await fs.unlink('/file-inputs/ebcdic.txt');
     await fs.unlink('/file-inputs/a.txt');await fs.rmdir('/file-inputs');
     for(const [format,input]of [['json','[1]'],['nl','1\n']]){
       await fs.writeFile('/count-input',new TextEncoder().encode(input));

@@ -4694,3 +4694,57 @@ and 83 native checks. Three packed own packages pass strict consumer checking wi
 workspace fallback forbidden, using only installed own declarations and the existing
 Node/compiler type environment. This qualifies the client declaration closure on
 this host, not all Toolcraft declarations or the native platform matrix.
+
+### Public MCP client subpath checkpoint
+
+The new toolcraft-rust/tiny-mcp-client facade explicitly forwards the reference
+runtime and type export set to tiny-mcp-client-rust. It preserves own class and
+function identities and excludes the native package's extra diagnostic exports.
+Its declarations use only own installed contracts, unlike the remaining canonical
+Toolcraft declaration facades. No new dependency or execution policy is introduced.
+
+The focused test first failed on the missing public package specifier. A compiler
+inventory then verified all 112 runtime/type export names and strict declaration
+checking. Both new runtime cases pass, including actual discovery, calls and
+cleanup; eleven packed own packages independently pass those checks with ESM
+imports confined to packed packages, Node and existing Commander. The client
+subpath passes strict packed consumer checking with workspace fallback forbidden.
+
+The new bidirectional helper-type assignments exposed overly broad native
+createTestPair/createSdkTestPair server and connection declarations. A separate
+client repair derives the public server shape from own types without requiring
+native diagnostic session methods or the native SDK-compatible overload. It
+matches the original void-returning connection constraint. The reference itself
+therefore rejects a McpClient factory because McpClient.connect returns metadata;
+negative fixtures preserve that observed limitation without changing the target API.
+The client's maintained route again passes 445 reference cases, 83 native checks,
+strict declarations, lint and packed types. The final maintained Toolcraft route
+passes 6,105 cases across 119 files, 266 native checks, strict client declarations,
+the original CLI compiler fixture and the root posttest hook. Maintained Rust/binding
+lint and scoped JS/TypeScript lint pass. Export forwarding adds no new per-call
+algorithm; existing client performance limitations and all default-swap gates remain.
+
+The first selected build reproduced a Safe Bash private-workspace profile failure:
+pdf-ast declared the existing safe-fs development dependency, but Safe Bash's
+admission profile omitted it. Remote main already contained c6e06a4699, which fixes
+that exact mismatch; rebasing adopted it without an additional local repair.
+During the subsequent dependency rebuild, the Safe Bash launcher transiently failed
+to import safe-bash-command-exiftool/dist/command.js while that package was being
+rebuilt. This is an observed shared-artifact availability failure, not an isolated
+shell-engine defect. After the build completed, the same Safe Bash launcher read
+succeeded. The selected maintained Toolcraft build passed after the rebase.
+
+The protocol declaration repair and client type repair are verified on remote main
+at ea5a0bf6bd and a67e3466d5. Package workflow 37097600054 completed successfully,
+including its toolcraft-schema/toolcraft/toolcraft-openapi publication steps.
+Workflow 37100150751 also completed successfully but skipped publication. Main
+Release 37100151018 completed successfully with its build passing and stable
+publication skipped. Earlier Release runs 37099510137 and 37098829515 and package
+workflow 37098144780 have also completed successfully. No native publication is claimed.
+
+An early audit of agent definitions, agent MCP config, auth store, config mutations,
+frontmatter and process runner passed their existing type suites with skipLibCheck
+disabled. Their type export inventories have no missing names, but agent MCP config,
+frontmatter and process runner have extra native types that their facades must omit.
+That is workspace compiler evidence only; their facade and packed-runtime
+qualification remain ahead, as do broader performance/platform/swap requirements.

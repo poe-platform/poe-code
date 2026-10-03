@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.types.json",
+  "compilerOptions": {
+    "skipLibCheck": false
+  },
+  "include": [
+    "tests/client-subpath-types.ts"
+  ]
+}

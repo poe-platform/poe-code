@@ -30,6 +30,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Public HTTP      | `toolcraft-rust/http`: stateful/stateless MCP, bearer authorization and hosted OAuth |
 | Public hosted OAuth | `toolcraft-rust/http/hosted-oauth`: provider configuration, development storage and login errors |
 | Public MCP       | `toolcraft-rust/mcp`: server creation, deferred discovery, tool calls and session-owned streams |
+| MCP client       | `toolcraft-rust/tiny-mcp-client`: native clients, HTTP/stdio transports, OAuth discovery and in-memory test pairs with own public types |
 | MCP handlers     | Native invocation routing, request services, cancellation, approvals, result projection and error reporting |
 | Stack diagnostics | Native framework-frame summaries, nested cause sections and raw stack preservation |
 | Result rendering | Native rich cards, tables, Markdown/JSON, custom hooks and MCP error routing |
@@ -235,6 +236,9 @@ and cancellation. Public HTTP adds stateful/stateless requests, bearer verificat
 and hosted OAuth with PKCE, credential services and canonical listener paths.
 Other subpaths remain incomplete. Native CLI, MCP and HTTP paths are currently
 slower than JavaScript.
-Declarations currently use the existing schema/design/config/MCP/HTTP contract types; standalone type packaging and generic
-stream-factory interchangeability remain pending. The migration and replacement
+The `tiny-mcp-client` subpath uses the native client's own declarations and supports
+standalone type resolution through its installed own packages.
+Other declarations still use the existing schema/design/config/MCP/HTTP contract types;
+complete standalone type packaging and generic stream-factory interchangeability
+remain pending. The migration and replacement
 gates are tracked in the repository's Toolcraft Rust API parity plan.

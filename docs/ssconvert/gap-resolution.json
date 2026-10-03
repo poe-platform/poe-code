@@ -4207,6 +4207,13 @@
         "validation": "Original memory regression failed before repair; 432 engine and 18681 command formula tests pass, as do engine lint/source/test types and normal root build. Root/package SDK and command XLSX/BIFF7/BIFF8 exports match all 208 cached/native comparisons without diagnostics. Actual command screenshot inspected. This does not qualify installed registry artifacts.",
         "nativeLimitation": "Four separate formulas containing names inside union sets are rejected by the native parser (All entries in the set must be references); retained separately, not passing comparisons.",
         "remaining": "Broader BIFF, format and public registry qualification requirements remain open."
+      },
+      "statisticalAggregate": {
+        "repair": "Statistical aggregate handlers and all eleven SUBTOTAL modes request the bounded evaluator aggregate context, retaining scalar grouping through named definitions. COUNT ignores resulting errors; COUNTA counts them. SUBTOTAL keeps its existing hidden-row and nested-subtotal filtering.",
+        "native": "Unchanged Gnumeric 1.12.61 glossary profile: 32 statistical formulas plus three data cells, and 33 SUBTOTAL formulas plus three data cells. Grouped ranges, grouped sets, named groups and bare named sets distinguished; both native conversions have empty diagnostics.",
+        "validation": "Eight statistical and eleven SUBTOTAL memory tests failed before their respective repairs. Final 19,132 formula tests across 144 files, engine lint/source/test types and normal root build pass. Root/package SDK and command XLSX/BIFF7/BIFF8 outputs match all 1,136 cached/native comparisons without diagnostics (560 statistical, 576 SUBTOTAL). Both actual command screenshots inspected. Installed registry qualification remains separate.",
+        "evidence": "out/ssconvert-continuation-1748/other-aggregate and subtotal-grouping",
+        "remaining": "Separate math/bitwise/engineering/complex aggregate controls expose39 current cached-value mismatches; those handlers and broader compatibility and registry qualification remain open."
       }
     }
   },

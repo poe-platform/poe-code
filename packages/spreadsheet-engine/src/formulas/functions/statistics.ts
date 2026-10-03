@@ -50,7 +50,7 @@ export function statisticalAggregate(name: string, values: readonly Value[], hos
   const moment = sum(xs.map(x => ((x - mean) / sd) ** (kurtosis ? 4 : 3)), host.tick);
   return numericResult(kurtosis ? population ? moment / n - 3 : n * (n + 1) * moment / ((n - 1) * (n - 2) * (n - 3)) - 3 * (n - 1) ** 2 / ((n - 2) * (n - 3)) : population ? moment / n : n * moment / ((n - 1) * (n - 2)));
 }
-export const statisticsSpecialForms: Readonly<Record<string, SpecialForm>> = Object.fromEntries(aggregates.map(name => [name, (nodes, host) => statisticalAggregate(name, nodes.map(node => host.evaluate(node, true)), host)]));
+export const statisticsSpecialForms: Readonly<Record<string, SpecialForm>> = Object.fromEntries(aggregates.map(name => [name, (nodes, host) => statisticalAggregate(name, nodes.map(node => host.evaluate(node, true, false, true)), host)]));
 
 function orderStatistic(name: string, args: readonly (Value | undefined)[], host: FunctionHost): Value {
   const rank = name === 'RANK' || name === 'RANK.AVG';
@@ -140,7 +140,7 @@ export const subtotalSpecialForm: SpecialForm = (nodes, host) => {
       }
     }
   };
-  for (const node of nodes.slice(1)) visit(host.evaluate(node,true));
+  for (const node of nodes.slice(1)) visit(host.evaluate(node, true, false, true));
   const values: Value[] = [{kind:'matrix',rows:cells.map(cell => [cell])}];
   if (name !== 'PRODUCT' && name !== 'SUM') return statisticalAggregate(name,values,host);
   const xs = statisticalNumbers(values[0]!,host); if (!Array.isArray(xs)) return xs;

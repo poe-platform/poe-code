@@ -18,7 +18,7 @@ export interface FunctionHost {
   readonly context: CapabilityContext;
   readonly position: ParsePosition;
   readonly array: boolean;
-  evaluate(node: FormulaNode, wantReference?: boolean, permitNonScalar?: boolean): Value;
+  evaluate(node: FormulaNode, wantReference?: boolean, permitNonScalar?: boolean, aggregate?: boolean): Value;
   scalar(value: Value): CellValue;
   matrix(value: Value): Matrix;
   cell(sheet: Sheet, row: number, column: number): Cell | undefined;

@@ -355,7 +355,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
       const host: FunctionHost = {
         book, context, position, array, tick,
         ...(onDiagnostic === undefined ? {} : { diagnostic: onDiagnostic }),
-        evaluate: (child, retainReference = wantReference, permitNonScalar = false) => evaluate(child, position, array || permitNonScalar, names, retainReference),
+        evaluate: (child, retainReference = wantReference, permitNonScalar = false, aggregate = false) => evaluate(child, position, array || permitNonScalar, names, retainReference, aggregate),
         scalar: value => scalar(value, position), matrix, read,
         cell: (sheet, row, column) => indexes.get(sheet)?.get(`${row}:${column}`),
         fetchCell: (sheet, row, column) => {

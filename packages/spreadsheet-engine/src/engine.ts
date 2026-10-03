@@ -1,4 +1,5 @@
 import { PagedStorage } from "@poe-code/safe-fs/storage";
+import { createWorkingStorage } from "./working-storage.js";
 import { createCellIndex } from "./workbook/cell-index.js";
 import { ownedRangeSource, bufferRangeInput } from "./range-input.js";
 import { publishExportStream } from "./stream-export.js";
@@ -166,7 +167,8 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
     const abort = () => { void finish().catch(() => {}); };
     operation.signal.addEventListener("abort", abort, { once: true });
     let context: CapabilityContext = {
-      ...(storage ? { createCellIndex: (cells: readonly import("@poe-code/spreadsheet-ast").Cell[]) =>
+      ...(storage ? { createWorkingStorage: () => createWorkingStorage(storage, () => check(context), context.own),
+        createCellIndex: (cells: readonly import("@poe-code/spreadsheet-ast").Cell[]) =>
         createCellIndex(cells, storage, () => check(context), context.own) } : {}),
       signal: operation.signal,
       ...(operation.stdinIsDefault === undefined ? {} : { stdinIsDefault: operation.stdinIsDefault }),

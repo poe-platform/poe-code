@@ -67,6 +67,9 @@ export interface ZipEntry {
 export interface ZipStreamEntry extends Omit<ZipEntry, "data"> {
   readonly data: ByteSource | ((signal: AbortSignal) => ByteSource);
   readonly compressedSize: number;
+  /** Present on retained reader entries: compressed bytes start in the supplied
+   * stable source. Together with compressedSize this permits external indexes. */
+  readonly dataOffset?: number;
 }
 
 export interface ZipStreamArchive {
@@ -669,6 +672,7 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
       const entry: ZipStreamEntry = {
         name,
         compressedSize,
+        dataOffset: payloadStart,
         data: async function* (decodeSignal) {
           const readSignal = decodeSignal === signal ? signal : AbortSignal.any([signal, decodeSignal]);
           for (let offset = 0; offset < compressedSize; offset += chunkSize) {
@@ -731,7 +735,7 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
       const data = new Uint8Array(entry.compressedSize);
       let offset = 0;
       for await (const chunk of typeof entry.data === "function" ? entry.data(signal) : entry.data) {data.set(chunk, offset); offset += chunk.length;}
-      const {compressedSize: ignoredCompressedSize, ...metadata} = entry;
+      const {compressedSize: ignoredCompressedSize, dataOffset: ignoredDataOffset, ...metadata} = entry;
       buffered.push({...metadata, data});
       await yieldTurn(signal);
     }

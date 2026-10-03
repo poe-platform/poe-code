@@ -158,3 +158,14 @@ it("visits entries with caller-backed directory validation and no retained entry
   expect(result).toEqual({members: 300, comment: new Uint8Array([42])});
   expect(end).toBeGreaterThan(16384);
 });
+
+it("exposes stable compressed ranges for storing member metadata externally", async () => {
+  const entry = await codec.makeZipEntry("member", new Uint8Array(8192).fill(11), {...attributes, compression: "deflate"}, limits, signal);
+  const archive = await codec.writeZipArchive({entries: [entry], comment: new Uint8Array()}, limits, signal);
+  const parsed = await codec.readZipArchive({size: archive.length, async read(position, length) {return archive.subarray(position, position + length);}}, limits, signal);
+  const member = parsed.entries[0]!;
+  expect(member.dataOffset).toBeTypeOf("number");
+  expect(archive.subarray(member.dataOffset!, member.dataOffset! + member.compressedSize)).toEqual(entry.data);
+  const buffered = await codec.readZipArchive(archive, limits, signal);
+  expect(buffered.entries[0]).not.toHaveProperty("dataOffset");
+});

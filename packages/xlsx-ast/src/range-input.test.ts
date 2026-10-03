@@ -1,5 +1,6 @@
 import { expect, it } from "vitest";
 import { createEngine, defaultSsconvertLimits, SsconvertError, type CapabilityContext, type Codec, type RangeSource } from "@poe-code/spreadsheet-engine";
+import { createMemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createZipCodec } from "@poe-code/office-package";
 import { probeXlsx, readXlsx, createXlsxWriter } from "./index.js";
 
@@ -40,7 +41,7 @@ it("reads the same workbook through borrowed short ranges and buffered input", a
       { row: 1, column: 0, value: { kind: "number", value: 42 } }
     ] }] };
   } };
-  const engine = createEngine({ codecs: [fixture, { id: "xlsx", description: "XLSX", extensions: [], write: createXlsxWriter("2008") }] });
+  const engine = createEngine({ workingFiles: { fs: createMemoryFileSystem(), directory: "/", cacheBytes: 16384 }, codecs: [fixture, { id: "xlsx", description: "XLSX", extensions: [], read: readXlsx, readSource: readXlsx, write: createXlsxWriter("2008") }] });
   try {
     const book = await engine.readWorkbook({ kind: "stream", source: [] }, { importType: "fixture" }, { signal });
     let bytes = new Uint8Array();
@@ -51,6 +52,8 @@ it("reads the same workbook through borrowed short ranges and buffered input", a
       reused.set(bytes.subarray(position, position + count)); return reused.subarray(0, count);
     } };
     expect(await readXlsx(source, context)).toEqual(await readXlsx(bytes, context));
+    expect(await engine.readWorkbook({ kind: "range", source }, { importType: "xlsx" }, { signal })).toEqual(
+      await engine.readWorkbook({ kind: "stream", source: [bytes] }, { importType: "xlsx" }, { signal }));
   } finally { await engine.dispose(); }
 });
 

@@ -1,3 +1,5 @@
+import { createStoredZipEntries, PackageIoFailure } from "./entry-storage.js";
+import { ownedRangeSource } from "@poe-code/spreadsheet-engine/range-input";
 import { createZipCodec, CodecError, type ZipLimits, type ZipEntry, type ZipStreamEntry, type ZipSource } from "@poe-code/office-package";
 import { expandIndexSheetAreas } from "@poe-code/spreadsheet-engine/formulas/index-sheet-areas";
 import { parseXmlSteps, XmlLimitError, type XmlElement } from "@poe-code/safe-fs/xml";
@@ -142,32 +144,41 @@ function path(base: string, target: string): string {
 }
 interface Relationship { readonly id: string; readonly type: string; readonly target: string; readonly external: boolean; }
 
-class RangeReadFailure {
-  constructor(readonly cause: unknown) {}
-}
-
 async function openPackage(bytes: Uint8Array | RangeSource, context: CapabilityContext) {
   context.signal.throwIfAborted();
   const bounds = zipLimits(context); const zip = createZipCodec(undefined, { rejectDuplicateNames: true, zip64: true });
   let source: ZipSource | undefined;
   if (!(bytes instanceof Uint8Array)) {
     const read = bytes.read.bind(bytes);
-    source = { size: bytes.size, async read(position, maximum, options) {
+    source = ownedRangeSource({ size: bytes.size, async read(position, maximum, options) {
       try { return await read(position, maximum, options); }
-      catch (error) { throw new RangeReadFailure(error); }
-    } };
+      catch (error) { throw new PackageIoFailure(error); }
+    } }, context.signal, () => context.signal.throwIfAborted(), context.own);
   }
-  const archive = source ? await zip.readZipArchive(source, bounds, context.signal) :
-    await zip.readZipArchive(bytes as Uint8Array, bounds, context.signal);
-  for (const entry of archive.entries) {
+  const admit = (entry: ZipEntry | ZipStreamEntry) => {
     const compressedSize = "compressedSize" in entry ? entry.compressedSize : entry.data.length;
     if (entry.size > (context.limits.zipRatio ?? Infinity) * Math.max(1, compressedSize)) limit("ZIP ratio");
-  }
-  const entries = new Map<string, ZipEntry | ZipStreamEntry>();
-  for (const entry of archive.entries) {
-    if (entry.directory) continue;
+    if (entry.directory) return false;
     if (entry.symlink || path("", entry.name) !== entry.name) invalid("noncanonical package member");
-    entries.set(entry.name, entry);
+    return true;
+  };
+  let entries: { get(name: string): ZipEntry | ZipStreamEntry | undefined | Promise<ZipStreamEntry | undefined> };
+  let close = async () => {};
+  if (source && context.createWorkingStorage) {
+    const stored = createStoredZipEntries(context.createWorkingStorage.bind(context), source);
+    close = stored.close;
+    try {
+      await zip.readZipArchive(source, bounds, context.signal, {
+        storage: stored.storage, async onEntry(entry) { if (admit(entry)) await stored.set(entry); }
+      });
+    } catch (error) { await close(); throw error; }
+    entries = stored;
+  } else {
+    const archive = source ? await zip.readZipArchive(source, bounds, context.signal) :
+      await zip.readZipArchive(bytes as Uint8Array, bounds, context.signal);
+    const retained = new Map<string, ZipEntry | ZipStreamEntry>();
+    for (const entry of archive.entries) if (admit(entry)) retained.set(entry.name, entry);
+    entries = retained;
   }
   let decodedBytes = 0, nodes = 0, textBytes = 0;
   let packageWork = 0;
@@ -180,7 +191,7 @@ async function openPackage(bytes: Uint8Array | RangeSource, context: CapabilityC
   async function document(name: string): Promise<XmlElement> {
     context.signal.throwIfAborted();
     const cached = documents.get(name); if (cached) return cached;
-    const entry = entries.get(name); if (!entry) return invalid(`missing part '${name}'`);
+    const entry = await entries.get(name); if (!entry) return invalid(`missing part '${name}'`);
     const chunks: Uint8Array[] = []; let length = 0;
     for await (const bytes of zip.decodeZipEntry(entry, bounds, context.signal)) {
       if (bytes.length > bounds.maxTotalBytes - decodedBytes) limit("decoded bytes");
@@ -209,7 +220,7 @@ async function openPackage(bytes: Uint8Array | RangeSource, context: CapabilityC
   async function relations(base: string): Promise<readonly Relationship[]> {
     const slash = base.lastIndexOf("/");
     const name = base ? base.slice(0, slash + 1) + "_rels/" + base.slice(slash + 1) + ".rels" : "_rels/.rels";
-    if (!entries.has(name)) return [];
+    if (!await entries.get(name)) return [];
     const root = await document(name);
     if (root.localName !== "Relationships" || root.namespace !== packageRelationships) invalid("invalid relationships root");
     const result: Relationship[] = []; const ids = new Set<string>();
@@ -222,11 +233,11 @@ async function openPackage(bytes: Uint8Array | RangeSource, context: CapabilityC
     }
     return result;
   }
-  return { entries, document, relations, charge };
+  return { entries, document, relations, charge, close };
 }
 function translateFailure(error: unknown, context: CapabilityContext): never {
   context.signal.throwIfAborted();
-  if (error instanceof RangeReadFailure) throw error.cause;
+  if (error instanceof PackageIoFailure) throw error.cause;
   if (error instanceof SyntaxError && error.message === "Invalid XML: DTD and entity declarations are forbidden")
     throw new SsconvertError("capability-denied", "ssconvert host denies XML DTD and entity declarations");
   if (error instanceof SsconvertError) throw error;
@@ -235,7 +246,11 @@ function translateFailure(error: unknown, context: CapabilityContext): never {
 }
 export async function probeXlsx(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<boolean> {
   // Native xlsx_file_probe checks member existence, without parsing workbook XML.
-  try { return (await openPackage(bytes, context)).entries.has("xl/workbook.xml"); }
+  try {
+    const opc = await openPackage(bytes, context);
+    try { return await opc.entries.get("xl/workbook.xml") !== undefined; }
+    finally { await opc.close(); }
+  }
   catch (error) {
     context.signal.throwIfAborted();
     if (error instanceof CodecError && error.code === "invalid-package" || error instanceof SsconvertError && error.code === "io") return false;
@@ -273,8 +288,10 @@ function formula(source: string, sheet: string, row: number, column: number, con
   return serializeExpression(parsed.document, simpleSheets ? { ...gnumericGrammar, unquotedSheets: true } : gnumericGrammar, false, true);
 }
 export async function readXlsx(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<Workbook> {
+  let close: (() => Promise<void>) | undefined;
   try {
     const opc = await openPackage(bytes, context);
+    close = opc.close;
     const rootRelations = await opc.relations("");
     const workbookRelation = rootRelations.find(r => r.type === relationships + "/officeDocument");
     if (!workbookRelation || workbookRelation.external) throw new SsconvertError("io", "E No workbook stream found.");
@@ -572,6 +589,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       ...(Object.keys(documentProperties).length ? { properties: documentProperties } : {}),
       ...(workbookRecords.length ? { unsupportedRecords: workbookRecords } : {}) };
   } catch (error) { return translateFailure(error, context); }
+  finally { await close?.(); }
 }
 
 /** Both native savers use transitional namespaces, but different edition handlers. */

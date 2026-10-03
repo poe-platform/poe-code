@@ -32,8 +32,10 @@ ssconvert service registration around these same functions. Both readers accept
 retained range sources as well as byte arrays. Range input fetches ZIP metadata
 and requested member data in chunks of at most 16 KiB, without copying the whole
 compressed archive. Keep the source open until the operation settles. This does
-not yet bound the retained directory, decoded XML documents, or workbook model;
-large workbook conversion still requires further storage migration.
+not yet bound decoded XML documents or the workbook model; large workbook
+conversion still requires further storage migration. With engine `workingFiles`,
+the directory and member indexes use caller-backed scratch storage and bounded
+caches. Without that capability the convenience reader retains the directory.
 
 For table import, `readCachedXlsx` accepts an admitted ZIP archive, its codec and
 limits, a cancellation signal, and aggregate `work`/`retain` admission callbacks.

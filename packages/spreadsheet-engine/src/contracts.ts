@@ -129,7 +129,18 @@ export interface CellIndex {
   get(row: number, column: number): Promise<Cell | undefined>;
   close(): Promise<void>;
 }
+/** Operation-scoped scratch address space backed by the caller's workingFiles.
+ * Reads/writes are at most 16 KiB. Write bytes are borrowed until settlement.
+ * Unwritten allocated bytes read as zero. Close revokes access and drops indexes. */
+export interface WorkingStorage {
+  allocate(length: number): number;
+  read(position: number, length: number): Promise<Uint8Array>;
+  write(position: number, bytes: Uint8Array): Promise<void>;
+  close(): Promise<void>;
+}
 export interface CapabilityContext {
+  /** Each store has isolated addresses and shares the session's page budget. */
+  readonly createWorkingStorage?: () => WorkingStorage;
   /** Bounded caller-backed coordinate index over borrowed immutable cells. */
   readonly createCellIndex?: (cells: readonly Cell[]) => Promise<CellIndex>;
   readonly entropy?: CryptographicEntropyCapability;

@@ -456,6 +456,13 @@ including on partially transparent pages. SVG uses a raster fallback for pages
 whose non-isolated groups need this backdrop; other pages keep Forms as vectors.
 The viewer background stays outside page blend calculations in bitmap and SVG.
 
+`resolveRetainedFont(document, storage, resources, name, options)` resolves one
+font through retained object reads. Decoded font streams stage in caller storage;
+intrinsic parser buffers are admitted before allocation. `maxWorkingBytes`,
+`maxStagingBytes`, `onAllocation` and cancellation apply to this font operation.
+The returned font belongs to the caller; this does not account for the document's
+separate parser/decoder state or qualify aggregate Worker memory usage.
+
 All 14 standard PDF fonts use bundled PDFium/Foxit outlines and PDF.js metrics.
 Standard-font decoding, mapping and outline allocations are admitted to the
 containing font owner; owned renderers do not share another request’s budget.

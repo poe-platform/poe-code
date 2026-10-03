@@ -31,3 +31,10 @@ test('Python string chunks preserve unmatched surrogates at chunk boundaries',as
   assert.equal(actual,JSON.parse(input));
  }
 });
+test('Python profile retains numeric spelling needed to distinguish integer and float IDs',async()=>{
+ const b=new Budget(resolveJqLimits(),new AbortController().signal),tokens:string[]=[];
+ for await(const event of jsonValues({async *[Symbol.asyncIterator](){yield new TextEncoder().encode('[1,1.0,1e0,-0,-0.0,123456789012345678901234567890,NaN,Infinity]');}},b,{stream:true,profile:'python39'})){
+  if(Array.isArray(event)&&event.length===2){const value=event[1];if(value&&typeof value==='object'&&'text' in value)tokens.push(String(value.text));}
+ }
+ assert.deepEqual(tokens,['1','1.0','1e0','-0','-0.0','123456789012345678901234567890','NaN','Infinity']);
+});

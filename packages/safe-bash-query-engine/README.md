@@ -38,3 +38,5 @@ uses Python's numeric grammar (including `NaN` and infinities), rejects malforme
 UTF-8, and preserves escaped lone surrogates for the consuming encoder to handle.
 With `stringChunks.containers: true`, additional `[path, bracket, "open"|"close"]`
 events identify container types and boundaries without constructing their values.
+Numeric values in this profile retain their original token in `Decimal.text`, so
+consumers can distinguish integer IDs from floating-point IDs such as `1e0`.

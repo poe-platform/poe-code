@@ -468,6 +468,7 @@ class JsonParser {
     } else {
       if (this.profile && !pythonJsonNumber(text)) this.fail("Invalid numeric literal" + (eof ? " at EOF" : ""));
       value = numericToken(text, this.budget);
+      if (this.profile && value instanceof Decimal) value = new Decimal(value.digits, value.exponent, value.negative, text, value.double);
       if (value === undefined) this.fail("Invalid numeric literal" + (eof ? " at EOF" : ""));
     }
     this.accept(value);

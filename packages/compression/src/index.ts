@@ -30,6 +30,8 @@ export interface CodecOptions {
   readonly onMember?: () => void;
   /** Node archive streams stop at zero padding; Python text openers resume members. */
   readonly padding?: "terminal" | "members";
+  /** Require EOF immediately after the first gzip member, including no padding. */
+  readonly singleMember?: boolean;
 }
 export interface CompressionReader extends CodecInput {
   close(): Promise<void>;
@@ -160,6 +162,7 @@ export function createCompressionCodec(runtime: CodecRuntime = defaultRuntime): 
           }
           if (memberEnded) {
             if (eof) return;
+            if (options.singleMember) throw codecError(Z_DATA_ERROR, "trailing data after gzip member");
             if (current[offset] === 0 && options.padding !== "members") {
               while ((await input.chunk()) !== undefined) await yieldTurn(signal);
               return;

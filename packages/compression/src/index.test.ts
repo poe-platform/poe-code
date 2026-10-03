@@ -300,3 +300,24 @@ it("requires explicit byte direction and framing, and keeps compatibility decodi
     expect(() => createByteCodec(options as Parameters<typeof createByteCodec>[0])).toThrow();
   }
 });
+
+it("single-member gzip rejects every trailing byte across chunk boundaries", async () => {
+  const { gzipSync } = await import("node:zlib");
+  const member = new Uint8Array(gzipSync("value"));
+  const { codec, CodecReader } = createCompressionCodec();
+  for (const split of [false, true]) for (const tail of [new Uint8Array(), Uint8Array.of(0), Uint8Array.of(65), member]) {
+    const source = (async function* () {
+      if (split) { yield member; yield tail; }
+      else { const bytes = new Uint8Array(member.length + tail.length); bytes.set(member); bytes.set(tail, member.length); yield bytes; }
+    })();
+    const reader = new CodecReader(source, signal);
+    const run = async () => {
+      let output = "";
+      try { for await (const bytes of codec(reader, { mode: "gunzip", chunkSize: 2, singleMember: true }, signal)) output += new TextDecoder().decode(bytes); }
+      finally { await reader.close(); }
+      return output;
+    };
+    if (tail.length) await expect(run()).rejects.toThrow();
+    else expect(await run()).toBe("value");
+  }
+});

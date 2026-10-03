@@ -447,12 +447,15 @@ yields one evaluated operation at a time, including capture/mask membership.
 Returning from its iterator closes the input.
 `evaluateContentSteps(options)` exposes the underlying suspension protocol:
 answer `{ kind: "node" }` with `.next(node)` (or `undefined` at EOF), and consume
-`{ kind: "paint", ... }` before resuming. A driver can await input between steps.
+`{ kind: "paint", ... }` before resuming. A driver can await input between steps. A `{ kind: "font", name, resources }`
+request asks only for the font the current text uses; answer it with a resolved
+font (for example from `resolveRetainedFont`) or `undefined`. The synchronous
+driver caches selected fonts, while retained callers control their own cache.
 `parseContentSteps()` shares the buffered parser’s grammar, requesting normalized
 operators and inline-image bytes and emitting content events. Group boundaries
 and incremental text fragments feed the evaluator without building a group tree;
 individual path geometry, operands and inline-image bytes still need admission. It avoids a page-wide output list;
-fonts, resource decoding and composite captures still use the buffered evaluator
+resource decoding and composite captures still use the buffered evaluator
 and require separate admission/backing in retained execution.
 
 Text, paths, and stencil images preserve shading and tiling pattern fills in

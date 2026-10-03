@@ -60,6 +60,7 @@ interface GraphicsState {
   lineJoin: 0 | 1 | 2;
   miterLimit: number;
   fontName: string;
+  fontOverride?: ResolvedPageFont | undefined;
   fontSize: number;
   charSpace: number;
   wordSpace: number;
@@ -807,7 +808,11 @@ export interface PdfEvaluationOperation {
   readonly insideSoftMask: boolean;
 }
 
-export type PdfEvaluationRequest = PdfEvaluationOperation | { readonly kind: "node" };
+export type PdfEvaluationRequest = PdfEvaluationOperation | { readonly kind: "node" }
+  | { readonly kind: "font"; readonly name: string; readonly resources: PdfCosDict | undefined };
+export type PdfEvaluationResult = PdfContentEvent | ResolvedPageFont | undefined;
+type EvaluationWork<T = void> = Generator<PdfEvaluationRequest, T, PdfEvaluationResult>;
+type FontScope = ReadonlyArray<PdfCosDict | undefined>;
 
 function closeEvaluationIterators(iterators: ReadonlyArray<Pick<Iterator<unknown>, "return"> | undefined>, failed: boolean): void {
   let cleanupFailure: { error: unknown } | undefined;
@@ -819,11 +824,19 @@ function closeEvaluationIterators(iterators: ReadonlyArray<Pick<Iterator<unknown
 
 /** Pull individual evaluated operations. Composite captures, fonts and decoded
  * resources still belong to this evaluator; this is not a retained I/O driver. */
-export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, "nodes">): Generator<PdfEvaluationRequest, void, PdfContentEvent | undefined> {
-  const fonts = resolvePageFonts(params.cosDoc, params.resourcesDict);
+export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, "nodes">): EvaluationWork {
+  const fonts: FontScope = [params.resourcesDict];
+  function* selectedFont(scopes: FontScope, name: string): EvaluationWork<ResolvedPageFont | undefined> {
+    for (const resources of scopes) {
+      const font = yield { kind: "font", resources, name };
+      if (font && "kind" in font) throw new TypeError("Expected a resolved PDF font");
+      if (font) return font;
+    }
+    return undefined;
+  }
   let capturedOperations: PdfPaintOperation[] | undefined;
   let insideSoftMask = false;
-  function* emit(operation: PdfPaintOperation): Generator<PdfEvaluationRequest, void, PdfContentEvent | undefined> {
+  function* emit(operation: PdfPaintOperation): EvaluationWork {
     const { clipPaths, clipImages, softMask } = curState();
     if (clipPaths || clipImages || softMask) operation = { ...operation, value: { ...operation.value,
       ...(clipPaths ? { clipPaths } : {}), ...(clipImages ? { clipImages } : {}), ...(softMask ? { softMask } : {}),
@@ -928,9 +941,9 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     operator: string,
     ops: readonly import("../ast.js").PdfCosNode[],
     activeResources: PdfCosDict | undefined,
-    activeFonts: Map<string, ResolvedPageFont>,
+    activeFonts: FontScope,
     depth: number
-  ): Generator<PdfEvaluationRequest, void, PdfContentEvent | undefined> {
+  ): EvaluationWork {
     const num = (i: number, fb = 0) => (ops[i]?.kind === "number" ? ops[i]!.value : fb);
     if (operator === "cm") {
       const m: Matrix6 = [num(0, 1), num(1, 0), num(2, 0), num(3, 1), num(4, 0), num(5, 0)];
@@ -1105,7 +1118,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           const fSizeNode = params.cosDoc.resolve(fontArr.items[1]);
           if (fSizeNode?.kind === "number") st.fontSize = fSizeNode.value;
           const gsFontKey = `__ExtGS_Font_${ops[0].decoded}`;
-          const resolvedGsMap = resolvePageFonts(params.cosDoc, {
+          const resolvedGsFont = yield* selectedFont([{
             kind: "dict",
             entries: [
               {
@@ -1121,10 +1134,9 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                 },
               },
             ],
-          });
-          const resolvedGsFont = resolvedGsMap.get(gsFontKey);
+          }], gsFontKey);
           if (resolvedGsFont) {
-            fonts.set(gsFontKey, resolvedGsFont);
+            st.fontOverride = resolvedGsFont;
             st.fontName = gsFontKey;
           }
         }
@@ -1141,9 +1153,9 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     image: PdfEvaluatedImage,
     patternMask: boolean,
     resources: PdfCosDict | undefined,
-    activeFonts: Map<string, ResolvedPageFont>,
+    activeFonts: FontScope,
     depth: number
-  ): Generator<PdfEvaluationRequest, void, PdfContentEvent | undefined> {
+  ): EvaluationWork {
     if (!patternMask) {
       yield* emit({ kind: "image", value: image });
       return;
@@ -1162,11 +1174,11 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     segments: PdfPathSegment[],
     fillRule: "nonzero" | "evenodd",
     resources: PdfCosDict | undefined,
-    activeFonts: Map<string, ResolvedPageFont>,
+    activeFonts: FontScope,
     depth: number,
     mcid?: number,
     actualText?: string
-  ): Generator<PdfEvaluationRequest, boolean, PdfContentEvent | undefined> {
+  ): EvaluationWork<boolean> {
     const st = curState(), doc = params.cosDoc;
     if (!st.fillPatternName || !doc || !resources) return false;
     if (depth >= 8) throw new PdfError("E_LIMIT", "Pattern nesting exceeds the form depth limit");
@@ -1231,8 +1243,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       if ((ix1 - ix0 + 1) * (iy1 - iy0 + 1) > 20000) throw new PdfError("E_LIMIT", "Pattern tile count exceeds 20000");
       const nodes = parseContentStream(doc.decodeStream(pattern));
       const patternResources = doc.resolveDict(dictGet(dict, "Resources")) ?? resources;
-      const patternFonts = new Map(activeFonts);
-      for (const [key, font] of resolvePageFonts(doc, patternResources)) patternFonts.set(key, font);
+      const patternFonts: FontScope = [patternResources, ...activeFonts];
       for (let iy = iy0; iy <= iy1; iy++) {
         for (let ix = ix0; ix <= ix1; ix++) {
           const tileCtm = multiplyMatrices([1, 0, 0, 1, ix * xStep, iy * yStep], matrix);
@@ -1254,12 +1265,12 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
   function* paintForm(
     form: PdfCosStream,
     activeResources: PdfCosDict | undefined,
-    activeFonts: Map<string, ResolvedPageFont>,
+    activeFonts: FontScope,
     depth: number,
     mcid?: number,
     actualText?: string,
     maskGroup = false
-  ): Generator<PdfEvaluationRequest, void, PdfContentEvent | undefined> {
+  ): EvaluationWork {
     const st = curState();
     const group = params.cosDoc!.resolveDict(dictGet(form.dict, "Group"));
     const groupType = group ? params.cosDoc!.resolve(dictGet(group, "S")) : undefined;
@@ -1273,10 +1284,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     const formStreamBytes = params.cosDoc!.decodeStream(form);
     const formNodes = parseContentStream(formStreamBytes);
     const formResDict = params.cosDoc!.resolveDict(dictGet(form.dict, "Resources")) ?? activeResources;
-    const formFonts = new Map<string, ResolvedPageFont>(activeFonts);
-    for (const [k, v] of resolvePageFonts(params.cosDoc, formResDict).entries()) {
-      formFonts.set(k, v);
-    }
+    const formFonts: FontScope = [formResDict, ...activeFonts];
     let nextCtm: Matrix6 = [...st.ctm] as Matrix6;
     const matArr = params.cosDoc!.resolveArray(dictGet(form.dict, "Matrix"));
     if (matArr && matArr.items.length >= 6) {
@@ -1382,9 +1390,9 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     mcid?: number,
     actualText?: string,
     activeResources: PdfCosDict | undefined = params.resourcesDict,
-    activeFonts: Map<string, ResolvedPageFont> = fonts,
+    activeFonts: FontScope = fonts,
     depth = 0
-  ): Generator<PdfEvaluationRequest, void, PdfContentEvent | undefined> {
+  ): EvaluationWork {
     const groups: Array<{ pushed: boolean; hidden: boolean; mcid: number | undefined; actualText: string | undefined }> = [];
     let hidden = false;
     const iterator = nodes?.[Symbol.iterator]();
@@ -1393,8 +1401,9 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     while (true) {
       const next = iterator?.next();
       if (next?.done) exhausted = true;
-      const node: PdfContentEvent | undefined = next ? (next.done ? undefined : next.value) : yield { kind: "node" };
+      const node = next ? (next.done ? undefined : next.value) : yield { kind: "node" };
       if (!node) break;
+      if (!("kind" in node)) throw new TypeError("Expected a PDF content event");
       if (node.kind === "end-group") {
         const parent = groups.pop();
         if (parent) {
@@ -1644,8 +1653,8 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           let tm: Matrix6 = activeTm;
           let tlm: Matrix6 = activeTlm;
 
-          function* emitTokenBytes(bytes: Uint8Array): Generator<PdfEvaluationRequest, void, PdfContentEvent | undefined> {
-            const font = activeFonts.get(st.fontName) ?? fonts.get(st.fontName);
+          function* emitTokenBytes(bytes: Uint8Array): EvaluationWork {
+            const font = st.fontOverride ?? (yield* selectedFont(activeFonts, st.fontName));
             const decoded = decodeTokenGlyphs(bytes, font);
             const scaleH = st.horizScale / 100;
             for (const item of decoded) {
@@ -1792,6 +1801,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             switch (cmd.kind) {
               case "font":
                 st.fontName = cmd.fontName;
+                st.fontOverride = undefined;
                 st.fontSize = cmd.size;
                 break;
               case "matrix":
@@ -1868,6 +1878,8 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
 export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions): Generator<PdfEvaluationOperation, void, void> {
   const input = params.nodes[Symbol.iterator]();
   const work = evaluateContentSteps(params);
+  const fontCaches = new WeakMap<PdfCosDict, Map<string, ResolvedPageFont | undefined>>();
+  const defaultFonts = new Map<string, ResolvedPageFont | undefined>();
   let failed = false, exhausted = false;
   try {
     let step = work.next();
@@ -1876,6 +1888,12 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
         const next = input.next();
         if (next.done) exhausted = true;
         step = work.next(next.done ? undefined : next.value);
+      } else if (step.value.kind === "font") {
+        const { resources, name } = step.value;
+        let cache = resources ? fontCaches.get(resources) : defaultFonts;
+        if (!cache) { cache = new Map(); fontCaches.set(resources!, cache); }
+        if (!cache.has(name)) cache.set(name, resolvePageFonts(params.cosDoc, resources, name).get(name));
+        step = work.next(cache.get(name));
       } else {
         yield step.value;
         step = work.next();

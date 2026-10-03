@@ -286,9 +286,9 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
     return fonts;
 }
 
-export function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: PdfCosDict | undefined): Map<string, ResolvedPageFont> {
+export function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: PdfCosDict | undefined, selectedName?: string): Map<string, ResolvedPageFont> {
   if (!doc) return new Map();
-  const steps = resolvePageFontsSteps(doc.rootRef, resourcesDict);
+  const steps = resolvePageFontsSteps(doc.rootRef, resourcesDict, selectedName);
   let step = steps.next();
   while (!step.done) {
     let value: FontResolutionResult;

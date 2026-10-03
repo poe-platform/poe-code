@@ -37,13 +37,13 @@ it("suspends for asynchronous content input between paints", async () => {
   expect(work.next(undefined).done).toBe(true);
 });
 
-it("closes input when initial resource resolution fails", async () => {
+it("closes input when selected-font resolution fails", async () => {
   const { PdfDocument } = await import("../document.js");
   const doc = PdfDocument.create(); const failure = new Error("resource read failed");
   doc.cos.resolve = () => { throw failure; };
   let closed = false;
   const nodes: Iterable<PdfContentNode> = { [Symbol.iterator]() { return {
-    next() { return { done: true, value: undefined }; },
+    next() { return { done: false, value: parseContentStream(new TextEncoder().encode("BT /F1 12 Tf (A) Tj ET"))[0]! }; },
     return() { closed = true; return { done: true, value: undefined }; },
   }; } };
   const work = evaluateContentStreamSteps({ pageIndex: 0, width: 100, height: 100, nodes, cosDoc: doc.cos });
@@ -91,6 +91,11 @@ it.each([
   let evaluating = evaluator.next(); const actual = [];
   while (!evaluating.done) {
     if (evaluating.value.kind === "paint") { actual.push(evaluating.value); evaluating = evaluator.next(); continue; }
+    if (evaluating.value.kind === "font") {
+      const { resolvePageFonts } = await import("../fonts/resolve.js");
+      evaluating = evaluator.next(resolvePageFonts(doc.cos, evaluating.value.resources, evaluating.value.name).get(evaluating.value.name));
+      continue;
+    }
     while (!parsing.done && parsing.value.kind !== "event") {
       if (parsing.value.kind !== "operator") throw new Error("unexpected inline image");
       const next = operators.next(); parsing = parser.next(next.done ? undefined : next.value);
@@ -100,4 +105,31 @@ it.each([
     if (!parsing.done) parsing = parser.next();
   }
   expect(actual).toEqual(expected);
+});
+
+it("does not resolve an unused broken font program while evaluating text", async () => {
+  const { PdfDocument } = await import("../document.js");
+  const { cosDict, cosName, cosStream } = await import("../ast.js");
+  const doc = PdfDocument.create();
+  const bad = doc.cos.allocateObject(cosDict({ Subtype: cosName("TrueType"), FontDescriptor: cosDict({ FontFile2: doc.cos.allocateObject(cosStream(cosDict({ Filter: cosName("Unsupported") }), new Uint8Array([1]))) }) }));
+  const resources = cosDict({ Font: cosDict({ Good: cosDict({ Subtype: cosName("Type1"), BaseFont: cosName("Helvetica") }), Bad: bad }) });
+  const nodes = parseContentStream(new TextEncoder().encode("BT /Good 12 Tf (A) Tj ET"));
+  const operations = [...evaluateContentStreamSteps({ pageIndex: 0, width: 100, height: 100, nodes, cosDoc: doc.cos, resourcesDict: resources })];
+  expect(operations).toHaveLength(1); expect(operations[0]?.operation).toMatchObject({ kind: "glyph", value: { unicode: "A", fontName: "Helvetica" } });
+});
+
+it("suspends for the selected font before emitting its glyphs", async () => {
+  const { evaluateContentSteps } = await import("./evaluator.js");
+  const { PdfDocument } = await import("../document.js");
+  const { cosDict, cosName } = await import("../ast.js");
+  const { resolvePageFonts } = await import("../fonts/resolve.js");
+  const resources = cosDict({ Font: cosDict({ Good: cosDict({ Subtype: cosName("Type1"), BaseFont: cosName("Courier") }) }) });
+  const doc = PdfDocument.create(); const font = resolvePageFonts(doc.cos, resources).get("Good")!;
+  const nodes = parseContentStream(new TextEncoder().encode("BT /Good 12 Tf (A) Tj ET"));
+  const work = evaluateContentSteps({ pageIndex: 0, width: 100, height: 100, resourcesDict: resources });
+  expect(work.next().value).toEqual({ kind: "node" });
+  expect(work.next(nodes[0]).value).toEqual({ kind: "font", name: "Good", resources });
+  await Promise.resolve();
+  expect(work.next(font).value).toMatchObject({ kind: "paint", operation: { kind: "glyph", value: { unicode: "A", fontName: "Courier" } } });
+  work.return();
 });

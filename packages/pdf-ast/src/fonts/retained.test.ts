@@ -76,3 +76,22 @@ it("preserves malformed optional-map decoding recovery", async () => {
     expect(await f.fs.readdir("/scratch")).toHaveLength(1);
   } finally { await f.close(); }
 });
+
+it("supplies a retained font to evaluation without a buffered document", async () => {
+  const { evaluateContentSteps } = await import("../content/evaluator.js");
+  const { parseContentStream } = await import("../content/parser.js");
+  const f = await fixture();
+  const nodes = parseContentStream(new TextEncoder().encode("BT /Good 12 Tf (A) Tj ET"))[Symbol.iterator]();
+  const work = evaluateContentSteps({ pageIndex: 0, width: 100, height: 100, resourcesDict: f.resources });
+  const glyphs = [];
+  try {
+    let step = work.next();
+    while (!step.done) {
+      if (step.value.kind === "node") { const next = nodes.next(); step = work.next(next.done ? undefined : next.value); }
+      else if (step.value.kind === "font") step = work.next(await resolveRetainedFont(f.doc, { fs: f.fs, directory: "/scratch" }, step.value.resources, step.value.name, { maxWorkingBytes: 8 * 1024 * 1024, chunkBytes: 64 }));
+      else { if (step.value.operation.kind === "glyph") glyphs.push(step.value.operation.value); step = work.next(); }
+    }
+    expect(glyphs).toHaveLength(1); expect(glyphs[0]).toMatchObject({ unicode: "Ω", fontName: "Helvetica" });
+    expect(f.readFile).not.toHaveBeenCalled();
+  } finally { work.return(); await f.close(); }
+});

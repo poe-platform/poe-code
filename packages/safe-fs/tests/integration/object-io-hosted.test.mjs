@@ -69,6 +69,7 @@ test('hosted success qualifies the admitted artifact then removes only fresh own
   const upload = inputs.calls.find(call => call.method === 'PUT');
   const metadata = JSON.parse(await upload.body.get('metadata').text());
   assert.equal(metadata.main_module, 'main.mjs');
+  assert.deepEqual(metadata.limits, { subrequests: 100000 });
   assert.equal(metadata.bindings.find(binding => binding.name === 'SCRATCH').bucket_name, result.bucketName);
   assert.equal(metadata.bindings.find(binding => binding.name === 'QUALIFICATION_TOKEN').type, 'secret_text');
   assert.equal(JSON.stringify(result).includes(token), false);

@@ -85,6 +85,7 @@ export async function runHostedObjectIoQualification({
     bucketCreated = true;
     const metadata = {
       main_module: artifact.mainModule,
+      limits: { subrequests: 100000 },
       compatibility_date: artifact.compatibilityDate,
       bindings: [
         { name: 'SCRATCH', type: 'r2_bucket', bucket_name: name },

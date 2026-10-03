@@ -3,6 +3,15 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "biffHeaderSections": {
+      "status": "BIFF header/footer section parsing and explicit center export repaired; broader format family remains open",
+      "source": "Pinned Gnumeric 1.12.61 ms-excel-util.c:752-833 starts in Left and replaces repeated sections. Same-size BIFF HEADER/FOOTER mutations isolate unprefixed text and repeated left markers.",
+      "inputSha256": "1f3539c158440d22beb62cdd2728377acd3896456c87d4bde53459cfa2dec8a4",
+      "implementation": "Import starts in Left and clears a section when its marker repeats. Export always writes explicit section markers, including centered defaults, so native roundtrips retain intended alignment.",
+      "verification": "Five reader and two writer regressions initially failed. All 2365 affected BIFF tests, owner lint/types and maintained build pass. Eight root/package SDK/command exports match 96 Gnumeric section attributes and 32 Calc header/footer strings. Exact 21 XLSX and 12 BIFF8 metadata warnings retained. Four BIFF7 refusals produce zero bytes. Command screenshot inspected.",
+      "profileDifference": "Original ambiguous BIFF text x&P! and &La&Lb&P is centered/appended by Calc but left/replaced by Gnumeric. Product follows Gnumeric and exports explicit normalized sections, which Calc reads correctly. This does not establish preservation of the original Calc interpretation.",
+      "limits": "Other header/footer grammar, formatting and metadata warnings remain unresolved. Calc emits its exact javaldx startup warning. No full-workbook equality or family closure claim."
+    },
     "xlsxBiffMargins": {
       "status": "False loss warnings for represented BIFF margins repaired and qualified; broader format family remains open",
       "source": "Native Gnumeric1.12.61 BIFF-to-XLSX preserves the four margin records as pageMargins. The same input produces identical native/product values despite raw-record loss warnings. BIFF stores inch doubles; portable PrintInformation stores points.",

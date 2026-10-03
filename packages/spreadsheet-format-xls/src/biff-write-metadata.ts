@@ -182,11 +182,11 @@ export class BiffMetadataWriter {
     view.setFloat64(16, Number(child("Margins")?.children.find(n => n.name === "header")?.attributes.Points ?? 72) / 72, true);
     view.setFloat64(24, Number(child("Margins")?.children.find(n => n.name === "footer")?.attributes.Points ?? 72) / 72, true); view.setUint16(32, 1, true); output.record(0xa1, setup);
     const substitutions: Readonly<Record<string, string>> = { PAGE: "P", PAGES: "N", DATE: "D", TIME: "T", FILE: "F", TAB: "A", PATH: "Z" };
-    for (const [name, opcode, fallback] of [["Header", 0x14, "&A"], ["Footer", 0x15, "Page &P"]] as const) {
+    for (const [name, opcode, fallback] of [["Header", 0x14, "&C&A"], ["Footer", 0x15, "&CPage &P"]] as const) {
       const node = child(name); let text = node ? "" : fallback;
       for (const [part, marker] of [["Left", "L"], ["Middle", "C"], ["Right", "R"]] as const) {
         const source = node?.attributes[part]; if (!source) continue;
-        if (part !== "Middle" || node?.attributes.Left || node?.attributes.Right) text += "&" + marker;
+        text += "&" + marker;
         for (let at = 0; at < source.length; at++) {
           if (source[at] === "&" && source[at + 1] === "[") { const end = source.indexOf("]", at + 2), replacement = substitutions[source.slice(at + 2, end)];
             if (end >= 0 && replacement) { text += "&" + replacement; at = end; continue; } }

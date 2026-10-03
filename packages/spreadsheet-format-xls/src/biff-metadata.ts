@@ -14,12 +14,15 @@ export const biffMetadataOpcodes = new Set([0x2a, 0x2b, 0x25, 0x225, 0x81, 0x83,
 function header(text: string): Readonly<Record<string, string>> {
   const values: Record<string, string> = { Left: "", Middle: "", Right: "" };
   const substitutions: Readonly<Record<string, string>> = { P: "&[PAGE]", N: "&[PAGES]", D: "&[DATE]", T: "&[TIME]", F: "&[FILE]", A: "&[TAB]", Z: "&[PATH]" };
-  let side = "Middle";
+  let side = "Left";
   for (let i = 0; i < text.length; i++) {
     const character = text[i]!;
     if (character !== "&" || i + 1 >= text.length) { values[side] += character; continue; }
     const token = text[++i]!;
-    if (["L", "C", "R"].includes(token)) side = token === "L" ? "Left" : token === "R" ? "Right" : "Middle";
+    if (["L", "C", "R"].includes(token)) {
+      side = token === "L" ? "Left" : token === "R" ? "Right" : "Middle";
+      values[side] = "";
+    }
     else values[side] += substitutions[token] ?? (token === "&" ? "&" : "&" + token);
   }
   return values;

@@ -6,7 +6,6 @@ import {
   cosNumber,
   cosStream,
   dictGet,
-  dictSet,
   formatPdfNumber,
   type PdfCosArray,
   type PdfCosDict,
@@ -35,123 +34,161 @@ export interface SerializeCosOptions {
 
 const textEncoder = new TextEncoder();
 
-export function serializeCosNodeBytes(node: PdfCosNode, depth = 0, maxRecursionDepth = Infinity): Uint8Array {
-  if (maxRecursionDepth !== Infinity && (!Number.isSafeInteger(maxRecursionDepth) || maxRecursionDepth < 1)) {
-    throw new RangeError("maxRecursionDepth must be a positive safe integer or Infinity");
-  }
-  if (depth > maxRecursionDepth) {
-    throw new PdfError("E_LIMIT", "PDF object graph nesting depth exceeded");
-  }
+export interface SerializeCosNodeOptions {
+  readonly chunkBytes?: number;
+  readonly maxOutputBytes?: number;
+  readonly maxRecursionDepth?: number;
+  readonly signal?: AbortSignal;
+}
+
+function* cosNodeParts(node: PdfCosNode, depth: number, maxDepth: number, textChunk: number): Generator<string | Uint8Array, void, void> {
+  if (depth > maxDepth) throw new PdfError("E_LIMIT", "PDF object graph nesting depth exceeded");
   switch (node.kind) {
-    case "null":
-      return textEncoder.encode("null");
-    case "boolean":
-      return textEncoder.encode(node.value ? "true" : "false");
+    case "null": yield "null"; return;
+    case "boolean": yield node.value ? "true" : "false"; return;
     case "number": {
-      if (!Number.isFinite(node.value)) {
-        throw new PdfError("E_CAPABILITY", "Non-finite PDF number");
+      if (!Number.isFinite(node.value)) throw new PdfError("E_CAPABILITY", "Non-finite PDF number");
+      const raw = node.raw.includes("e") || node.raw.includes("E") ? formatPdfNumber(node.value) : node.raw;
+      for (let start = 0; start < raw.length;) {
+        let end = Math.min(raw.length, start + textChunk);
+        // Preserve UTF-8 behavior even for caller-supplied malformed number text.
+        const last = raw.charCodeAt(end - 1);
+        if (end < raw.length && last >= 0xd800 && last <= 0xdbff) end++;
+        yield raw.slice(start, end);
+        start = end;
       }
-      const hasExp = node.raw.includes("e") || node.raw.includes("E");
-      const outRaw = hasExp ? formatPdfNumber(node.value) : node.raw;
-      return textEncoder.encode(outRaw);
+      return;
     }
     case "name": {
-      let escaped = "/";
+      yield "/";
+      let part = "";
       for (let i = 0; i < node.decoded.length; i++) {
         const code = node.decoded.charCodeAt(i);
-        if (
-          code <= 0x20 ||
-          code > 0x7e ||
-          code === 0x23 || // #
-          code === 0x28 || // (
-          code === 0x29 || // )
-          code === 0x3c || // <
-          code === 0x3e || // >
-          code === 0x5b || // [
-          code === 0x5d || // ]
-          code === 0x7b || // {
-          code === 0x7d || // }
-          code === 0x2f || // /
-          code === 0x25    // %
-        ) {
-          escaped += `#${code.toString(16).padStart(2, "0").toUpperCase()}`;
-        } else {
-          escaped += node.decoded[i];
-        }
+        part += code <= 0x20 || code > 0x7e || "#()<>[]{}/%".includes(node.decoded[i]!)
+          ? `#${code.toString(16).padStart(2, "0").toUpperCase()}` : node.decoded[i];
+        if (part.length >= textChunk) { yield part; part = ""; }
       }
-      return textEncoder.encode(escaped);
+      if (part) yield part;
+      return;
     }
     case "string": {
-      if (node.format === "hex") {
-        let hex = "<";
-        for (let i = 0; i < node.bytes.length; i++) {
-          hex += node.bytes[i]!.toString(16).padStart(2, "0").toUpperCase();
+      const hex = node.format === "hex";
+      yield hex ? "<" : "(";
+      // Literal bytes are not UTF-8 text. Keep escaping independent of encoding.
+      const capacity = Math.min(textChunk, Math.max(1, node.bytes.length * 2));
+      let bytes = new Uint8Array(capacity);
+      let used = 0;
+      for (const byte of node.bytes) {
+        let first = byte;
+        let second: number | undefined;
+        if (hex) {
+          first = "0123456789ABCDEF".charCodeAt(byte >>> 4);
+          second = "0123456789ABCDEF".charCodeAt(byte & 15);
+        } else if (byte === 0x28 || byte === 0x29 || byte === 0x5c) {
+          first = 0x5c; second = byte;
+        } else if (byte === 0x0a || byte === 0x0d || byte === 0x09) {
+          first = 0x5c; second = byte === 0x0a ? 0x6e : byte === 0x0d ? 0x72 : 0x74;
         }
-        hex += ">";
-        return textEncoder.encode(hex);
-      }
-      // Literal string with balanced parens and escaped control characters
-      const out: number[] = [0x28]; // (
-      for (let i = 0; i < node.bytes.length; i++) {
-        const b = node.bytes[i]!;
-        if (b === 0x28 || b === 0x29 || b === 0x5c) {
-          out.push(0x5c, b);
-        } else if (b === 0x0a) {
-          out.push(0x5c, 0x6e);
-        } else if (b === 0x0d) {
-          out.push(0x5c, 0x72);
-        } else if (b === 0x09) {
-          out.push(0x5c, 0x74);
-        } else {
-          out.push(b);
+        bytes[used++] = first;
+        if (used === capacity) { yield bytes; bytes = new Uint8Array(capacity); used = 0; }
+        if (second !== undefined) {
+          bytes[used++] = second;
+          if (used === capacity) { yield bytes; bytes = new Uint8Array(capacity); used = 0; }
         }
       }
-      out.push(0x29); // )
-      return Uint8Array.from(out);
+      if (used) yield bytes.subarray(0, used);
+      yield hex ? ">" : ")";
+      return;
     }
-    case "ref":
-      return textEncoder.encode(`${node.objectNumber} ${node.generationNumber} R`);
-    case "array": {
-      const parts: Uint8Array[] = [textEncoder.encode("[ ")];
-      for (let i = 0; i < node.items.length; i++) {
-        parts.push(serializeCosNodeBytes(node.items[i]!, depth + 1, maxRecursionDepth));
-        parts.push(textEncoder.encode(" "));
-      }
-      parts.push(textEncoder.encode("]"));
-      return concatByteArrays(parts);
-    }
-    case "dict": {
-      const parts: Uint8Array[] = [textEncoder.encode("<<\n")];
+    case "ref": yield `${node.objectNumber} ${node.generationNumber} R`; return;
+    case "array":
+      yield "[ ";
+      for (const item of node.items) { yield* cosNodeParts(item, depth + 1, maxDepth, textChunk); yield " "; }
+      yield "]";
+      return;
+    case "dict":
+      yield "<<\n";
       for (const entry of node.entries) {
-        parts.push(serializeCosNodeBytes(entry.key, depth + 1, maxRecursionDepth));
-        parts.push(textEncoder.encode(" "));
-        parts.push(serializeCosNodeBytes(entry.value, depth + 1, maxRecursionDepth));
-        parts.push(textEncoder.encode("\n"));
+        yield* cosNodeParts(entry.key, depth + 1, maxDepth, textChunk);
+        yield " ";
+        yield* cosNodeParts(entry.value, depth + 1, maxDepth, textChunk);
+        yield "\n";
       }
-      parts.push(textEncoder.encode(">>"));
-      return concatByteArrays(parts);
-    }
+      yield ">>";
+      return;
     case "stream": {
-      const dictClone: PdfCosDict = {
-        kind: "dict",
-        entries: node.dict.entries.map(e =>
-          e.key.decoded === "Length"
-            ? { key: e.key, value: cosNumber(node.rawBytes.length) }
-            : e
-        ),
-      };
-      if (!dictGet(dictClone, "Length")) {
-        dictSet(dictClone, "Length", cosNumber(node.rawBytes.length));
+      // Override Length while traversing; no copied dictionary or stream body.
+      if (depth + 1 > maxDepth) throw new PdfError("E_LIMIT", "PDF object graph nesting depth exceeded");
+      yield "<<\n";
+      let hasLength = false;
+      for (const entry of node.dict.entries) {
+        yield* cosNodeParts(entry.key, depth + 2, maxDepth, textChunk);
+        yield " ";
+        if (entry.key.decoded === "Length") {
+          hasLength = true;
+          yield* cosNodeParts(cosNumber(node.rawBytes.length), depth + 2, maxDepth, textChunk);
+        } else yield* cosNodeParts(entry.value, depth + 2, maxDepth, textChunk);
+        yield "\n";
       }
-      const dictBytes = serializeCosNodeBytes(dictClone, depth + 1, maxRecursionDepth);
-      return concatByteArrays([
-        dictBytes,
-        textEncoder.encode("\nstream\n"),
-        node.rawBytes,
-        textEncoder.encode("\nendstream"),
-      ]);
+      if (!hasLength) {
+        yield* cosNodeParts(cosName("Length"), depth + 2, maxDepth, textChunk);
+        yield " ";
+        yield* cosNodeParts(cosNumber(node.rawBytes.length), depth + 2, maxDepth, textChunk);
+        yield "\n";
+      }
+      yield ">>\nstream\n";
+      yield node.rawBytes;
+      yield "\nendstream";
     }
   }
+}
+
+/** Owned output chunks, produced only when the consumer advances the iterator. */
+export function* serializeCosNodeChunks(node: PdfCosNode, options: SerializeCosNodeOptions = {}, depth = 0): Generator<Uint8Array, void, void> {
+  const chunkBytes = options.chunkBytes ?? 64 * 1024;
+  const maximum = options.maxOutputBytes ?? Infinity;
+  const maxDepth = options.maxRecursionDepth ?? Infinity;
+  if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1) throw new RangeError("chunkBytes must be a positive safe integer");
+  if (maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("maxOutputBytes must be a nonnegative safe integer or Infinity");
+  if (maxDepth !== Infinity && (!Number.isSafeInteger(maxDepth) || maxDepth < 1)) throw new RangeError("maxRecursionDepth must be a positive safe integer or Infinity");
+  options.signal?.throwIfAborted();
+  const capacity = Math.min(chunkBytes, maximum);
+  if (capacity === 0) throw new PdfError("E_LIMIT", "PDF output byte limit exceeded");
+  let total = 0;
+  let output: Uint8Array | undefined;
+  let used = 0;
+  for (const part of cosNodeParts(node, depth, maxDepth, capacity)) {
+    options.signal?.throwIfAborted();
+    let length = typeof part === "string" ? 0 : part.length;
+    if (typeof part === "string") {
+      for (const character of part) {
+        const code = character.codePointAt(0)!;
+        length += code < 0x80 ? 1 : code < 0x800 ? 2 : code < 0x10000 ? 3 : 4;
+      }
+    }
+    if (length > maximum - total) throw new PdfError("E_LIMIT", "PDF output byte limit exceeded");
+    total += length;
+    const bytes = typeof part === "string" ? textEncoder.encode(part) : part;
+    let position = 0;
+    while (position < bytes.length) {
+      options.signal?.throwIfAborted();
+      output ??= new Uint8Array(capacity);
+      const count = Math.min(bytes.length - position, capacity - used);
+      output.set(bytes.subarray(position, position + count), used);
+      used += count;
+      position += count;
+      if (used === capacity) {
+        yield output;
+        output = undefined;
+        used = 0;
+      }
+    }
+  }
+  if (output && used) yield output.subarray(0, used);
+}
+
+export function serializeCosNodeBytes(node: PdfCosNode, depth = 0, maxRecursionDepth = Infinity): Uint8Array {
+  return concatByteArrays([...serializeCosNodeChunks(node, { maxRecursionDepth }, depth)]);
 }
 
 export function concatByteArrays(chunks: readonly Uint8Array[]): Uint8Array {

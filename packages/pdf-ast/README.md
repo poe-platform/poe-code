@@ -17,6 +17,13 @@ payload read. Sources require retained-read support and never reopen a pathname
 or fall back to whole-file reads. The caller chooses and owns the backend;
 memory-backed safe-fs still stores its files in RAM.
 
+`serializeCosNodeChunks(node, options)` emits owned, bounded output chunks for
+COS values, including streams and escaped strings. Consumers control progress
+by advancing the iterator; `signal`, `maxOutputBytes`, and `maxRecursionDepth`
+limit the operation. `serializeCosNodeBytes` remains the buffering convenience
+API over the same serializer. Input nodes and their existing raw stream bytes
+remain caller-owned; this API does not make the document object graph lazy.
+
 This source is an I/O primitive. `PdfDocument.load`, editing, and rendering still
 use the buffered document engine; they do not yet accept `PdfFileSource`.
 

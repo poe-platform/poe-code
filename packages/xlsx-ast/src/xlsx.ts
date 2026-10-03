@@ -10,7 +10,7 @@ import { quoteFormulaString, serializeExpression } from "@poe-code/spreadsheet-e
 import { rewriteReferences, visitFormula } from "@poe-code/spreadsheet-engine/formulas/rewriting";
 import { xlsxSchemas, xlsxNamespaces, xlsxNamespaceScanElements, type XlsxSchemaNode } from "./xlsx-schema.js";
 import { converterLocale } from "@poe-code/spreadsheet-engine/locale/runtime";
-import { readXlsxMetadata, readXlsxComments } from "./xlsx-metadata.js";
+import { readXlsxMetadata, readXlsxComments, gnode } from "./xlsx-metadata.js";
 import { xlsxColumnWidthPoints } from "./xlsx-sheet-settings.js";
 import { readXlsxStyles, readXlsxString } from "./xlsx-styles.js";
 import { decodeXlsxString, encodeXlsxString } from "@poe-code/spreadsheet-engine/codecs/xlsx-strings";
@@ -312,7 +312,8 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
       for (const row of children(child(source, "sheetData"), "row")) {
         const rowIndex = attr(row, "r") === undefined ? nextRow : integer(attr(row, "r")) - 1;
         if (rowIndex < 0 || rowIndex >= 1048576) invalid("invalid row"); nextRow = rowIndex + 1;
-        rows.push({ index: rowIndex, ...(attr(row, "ht") === undefined ? {} : { sizePoints: number(attr(row, "ht")) }),
+        rows.push({ index: rowIndex, ...(attr(row, "ht") === undefined ? {} : { sizePoints: number(attr(row, "ht")),
+          style: { gnumeric: gnode("RowInfo", { HardSize: number(attr(row, "ht")) > 0 && boolean(attr(row, "customHeight")) ? 1 : 0 }) } }),
           hidden: boolean(attr(row, "hidden")), outlineLevel: integer(attr(row, "outlineLevel")), collapsed: boolean(attr(row, "collapsed")) });
         let nextColumn = 0;
         for (const node of children(row, "c")) {
@@ -380,10 +381,13 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
         if (min < 1 || max < min || max > 16384) invalid("invalid column span");
         if (max - min + 1 > (context.limits.workbookNodes ?? Infinity) - columns.length) limit("column metadata");
         opc.charge(max - min + 1);
+        const width = attr(node, "width") === undefined ? undefined : number(attr(node, "width"));
+        const sizePoints = width === undefined ? undefined : width * (130 / 18.5703125) * (72 / 96);
+        const style = sizePoints === undefined ? undefined : { xlsxWidth: width!, gnumeric: gnode("ColInfo", {
+          HardSize: sizePoints > 4 && boolean(attr(node, "customWidth")) && !boolean(attr(node, "bestFit")) ? 1 : 0 }) };
         for (let index = min - 1; index < max; index++) columns.push({ index, hidden: boolean(attr(node, "hidden")),
           outlineLevel: integer(attr(node, "outlineLevel")), collapsed: boolean(attr(node, "collapsed")),
-          ...(attr(node, "width") === undefined ? {} : { sizePoints: number(attr(node, "width")) * (130 / 18.5703125) * (72 / 96),
-            style: { xlsxWidth: number(attr(node, "width")) } }) });
+          ...(sizePoints === undefined ? {} : { sizePoints, style: style! }) });
       }
       const records: UnsupportedRecord[] = [];
       const hyperlinkRegions: ImportedValue[] = [];

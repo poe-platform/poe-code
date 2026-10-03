@@ -23,7 +23,7 @@ function numeric(source: string | undefined, fallback: number): number {
   if (!Number.isFinite(value)) throw new SsconvertError("io", "E Invalid XLSX: invalid print number");
   return value;
 }
-function gnode(name: string, attributes: Readonly<Record<string, string | number>> = {}, children: readonly ImportedValue[] = [], text = ""): ImportedValue {
+export function gnode(name: string, attributes: Readonly<Record<string, string | number>> = {}, children: readonly ImportedValue[] = [], text = ""): ImportedValue {
   return { name, namespace: gnumericNamespace, attributes: Object.entries(attributes).map(([name, value]) => ({ name, namespace: "", value: String(value) })), children, text };
 }
 function header(source: string): Readonly<Record<string, string>> {

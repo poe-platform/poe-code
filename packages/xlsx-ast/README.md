@@ -6,7 +6,8 @@ worksheet cells, formulas, styles, names, comments and workbook metadata.
 Formula exports preserve control characters and literal escape tokens in cells,
 defined names, validation rules and conditional formatting.
 Custom error caches use Gnumeric’s quoted error syntax; imports retain the stored
-cache text, including its quotes, as Gnumeric does.
+cache text, including its quotes, as Gnumeric does. Fixed and automatic row/column
+sizing survives workbook and clipboard conversions, including best-fit columns.
 
 ```ts
 import { createEngine } from "@poe-code/spreadsheet-engine";

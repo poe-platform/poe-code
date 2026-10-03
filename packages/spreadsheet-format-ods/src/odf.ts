@@ -1,3 +1,4 @@
+import { createOdfXmlTape } from "./odf-xml-tape.js";
 import type { WorkbookSource } from "@poe-code/spreadsheet-engine/codecs/types";
 import { ownWorkbookSource } from "@poe-code/spreadsheet-engine/workbook/source";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
@@ -819,6 +820,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
 export function createOdfStreamWriter(profile: "strict" | "extended") {
   return async function* (input: Workbook | WorkbookSource, options: readonly string[], context: CapabilityContext): AsyncGenerator<Uint8Array> {
     let storage: import("@poe-code/spreadsheet-engine/contracts").WorkingStorage | undefined;
+    const metadataTapes: ReturnType<typeof createOdfXmlTape>[] = [];
     let cellStyles: Awaited<ReturnType<typeof createOdfStyles>> | undefined;
     let closed = false, closing: Promise<void> | undefined, failure: { error: unknown } | undefined;
     const bufferedTables: Uint8Array[] = [], tableBuffer = new Uint8Array(16384);
@@ -942,12 +944,18 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
       e("table:iteration", { "table:status": iteration?.enabled ? "enable" : "disable", "table:steps": iteration?.maximum ?? 100,
         "table:maximum-difference": iteration?.tolerance ?? 0.001 }));
     const definitions = createOdfStyleDefinitions(book, xml);
-    let automatic = "", validations = "", databaseRanges = "";
+    const automatic = createOdfXmlTape(context, storage, admitContentBytes);
+    metadataTapes.push(automatic);
+    const validations = createOdfXmlTape(context, storage, admitContentBytes);
+    metadataTapes.push(validations);
+    const databaseRanges = createOdfXmlTape(context, storage, admitContentBytes);
+    metadataTapes.push(databaseRanges);
     for (const record of book.unsupportedRecords ?? []) {
       xml.charge(); const v = odfObject(record.data), node = odfObject(v?.xml);
       if (record.source === "Gnumeric_OpenCalc:openoffice" && node) {
-        if (record.kind === "content-validations") validations += odfChildren(node).map(n => xml.retained(n)).join("");
-        else if (record.kind === "database-ranges") databaseRanges += xml.retained(node);
+        if (record.kind === "content-validations") {
+          for (const child of odfChildren(node)) await validations.append(xml.retained(child));
+        } else if (record.kind === "database-ranges") await databaseRanges.append(xml.retained(node));
       }
     }
     async function* tables(): AsyncGenerator<Uint8Array> {
@@ -1049,8 +1057,8 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
           if (!style) continue;
           const r = { startRow: Number(a.startRow), endRow: Number(a.endRow), startColumn: Number(a.startCol), endColumn: Number(a.endCol) }; range(r);
           const metadata = await writeOdfRegion(style,r,`rg${index}_${cellMetadata.length}`,sheet,xml,cellStyles!,context,expression,sheetNames);
-          automatic += metadata.styleXml;
-          validations += metadata.validationXml;
+          await automatic.append(metadata.styleXml);
+          await validations.append(metadata.validationXml);
           cellMetadata.push({ range: r, style: metadata.styleName, validation: metadata.validationName, link: metadata.link });
         } else if (record.kind === "Objects") for (const object of odfChildren(record.data)) {
           xml.charge(); const n = odfObject(object), a = odfAttributes(object);
@@ -1120,8 +1128,8 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
         if (axis.index < position) throw new SsconvertError("invalid-request", "Duplicate OpenDocument column metadata");
         if (axis.index > position) yield e("table:table-column", { "table:number-columns-repeated": axis.index - position });
         const name = `co${index}_${i}`;
-        automatic += e("style:style", { "style:name": name, "style:family": "table-column" }, e("style:table-column-properties", {
-          "style:column-width": axis.sizePoints === undefined ? undefined : axis.sizePoints + "pt" }));
+        await automatic.append(e("style:style", { "style:name": name, "style:family": "table-column" }, e("style:table-column-properties", {
+          "style:column-width": axis.sizePoints === undefined ? undefined : axis.sizePoints + "pt" })));
         yield e("table:table-column", { "table:style-name": name, "table:visibility": axis.hidden ? "collapse" : "visible" }); position = axis.index + 1;
       }
       let columnCount = Math.max(sheet.size?.columns ?? DEFAULT_SHEET_SIZE.columns, position);
@@ -1152,8 +1160,8 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
         const axis = sheet.rows?.find(a => a.index === row); const rowAttributes: Record<string, string | number | undefined> = {
           "table:number-rows-repeated": repeat > 1 ? repeat : undefined, "table:visibility": axis?.hidden ? "collapse" : undefined };
         if (axis?.sizePoints !== undefined) {
-          const name = `ro${index}_${row}`; automatic += e("style:style", { "style:name": name, "style:family": "table-row" },
-            e("style:table-row-properties", { "style:row-height": axis.sizePoints + "pt" })); rowAttributes["table:style-name"] = name;
+          const name = `ro${index}_${row}`; await automatic.append(e("style:style", { "style:name": name, "style:family": "table-row" },
+            e("style:table-row-properties", { "style:row-height": axis.sizePoints + "pt" }))); rowAttributes["table:style-name"] = name;
         }
         async function* rowContent(): AsyncGenerator<string> {
         const stops = [...columns].sort((a,b) => a-b); let col = 0;
@@ -1289,10 +1297,10 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
     }
     async function* spreadsheetContent() {
       yield prelude;
-      if (validations) yield e("table:content-validations", {}, validations);
+      if (validations.hasContent) yield* xml.stream("table:content-validations", {}, validations.render());
       yield* tableData();
       if (book.sheets.some(sheet => sheet.labelRanges?.length)) yield* xml.stream("table:label-ranges", {}, labelRanges());
-      yield* names(); yield databaseRanges;
+      yield* names(); yield* databaseRanges.render();
     }
     const parts = new Map<string, string | Uint8Array | AsyncIterable<Uint8Array>>(), encoder = new TextEncoder();
     if (wrapped) context.own(() => { for (const bytes of parts.values()) if (bytes instanceof Uint8Array) bytes.fill(0); });
@@ -1304,7 +1312,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
       yield e("office:scripts");
       yield e("office:font-face-decls", {}, definitions.render("fonts"));
       async function* automaticStyles() {
-        yield definitions.render("contentAutomatic"); yield automatic; yield* cellStyles!.render();
+        yield definitions.render("contentAutomatic"); yield* automatic.render(); yield* cellStyles!.render();
       }
       yield* xml.stream("office:automatic-styles", {}, automaticStyles());
       yield* xml.stream("office:body", {}, xml.stream("office:spreadsheet", {}, spreadsheetContent()));
@@ -1409,6 +1417,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
     }
     } catch (error) { failure = { error }; throw error; }
     finally {
+      for (const tape of metadataTapes) tape.dispose();
       cellStyles?.dispose(); tableBuffer.fill(0); for (const bytes of bufferedTables) bytes.fill(0);
       await close().catch(error => {
         if (failure) throw new AggregateError([failure.error, error], "ODF export and storage cleanup failed");

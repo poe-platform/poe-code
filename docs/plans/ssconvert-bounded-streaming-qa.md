@@ -25,8 +25,10 @@ ordered indexes; rendering retains one row of cells at a time. Engine-owned cell
 addresses use ordinals into frozen inputs; mutable low-level SDK workbooks retain
 captured references. Non-replayable workbook payloads remain resident. The generated cell-style registry
 uses caller-backed key/name indexes and coalesced XML staging; its container
-streams. Style and table bytes share output admission. Individual cell strings,
-retained style definitions and other metadata XML, embedded
+streams. Generated axis/region metadata, validation and database fragments also
+use coalesced staging; named-expression, label-range and validation containers stream.
+Style, metadata and table bytes share output admission. Individual cell strings,
+retained style definitions and individual metadata subtrees, embedded
 resources, encrypted/decrypted members and wrapped inner packages are still buffered.
 Plain text conversions to text, Gnumeric XML/gzip, either XLSX edition or either ODF profile without global evaluation now replay cells from retained input through the exporter; they do not retain a full cell array. Formula-bearing and clock-dependent inputs, transformations, and explicit workbook SDK reads still use the array model. Decoded XML documents and non-text workbooks remain resident. Other built-in input collection, the owned array-based workbook,
 unordered CSV lookup without working storage, large individual fields, and the remaining format codecs still

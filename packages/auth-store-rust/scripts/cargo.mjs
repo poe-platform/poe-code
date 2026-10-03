@@ -16,6 +16,12 @@ function run(command, args, environment = {}) {
   if (result.error) throw result.error;
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
+const installed = spawnSync("rustup", ["target", "list", "--installed", "--toolchain", "stable"], { encoding: "utf8" });
+if (installed.error) throw installed.error;
+if (installed.status !== 0) throw new Error(installed.stderr);
+if (!installed.stdout.split(/\r?\n/).includes("wasm32-unknown-unknown")) {
+  run("rustup", ["target", "add", "wasm32-unknown-unknown", "--toolchain", "stable"]);
+}
 if (operation === "build" || operation === "test") {
   run("rustup", ["run", "stable", "cargo", "build", "--release", "--locked", "--target", "wasm32-unknown-unknown"], wasmEnvironment);
   const output = new URL("../dist/", import.meta.url);

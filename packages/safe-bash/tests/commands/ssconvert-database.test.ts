@@ -26,6 +26,7 @@ test("database virtual command preserves SDK bytes, replay and namespace without
     if (key === "writeFile") return async (path: string, bytes: Uint8Array, options?: { signal?: AbortSignal; flag?: "w" | "wx"; mode?: number }) => {
       options?.signal?.throwIfAborted(); volume.writeFileSync(path, bytes, options);
     };
+    if (key === "appendFile") return async (path: string, bytes: Uint8Array, options?: { signal?: AbortSignal; mode?: number }) => { options?.signal?.throwIfAborted(); volume.appendFileSync(path, bytes, options); };
     if (key === "rename") return async (from: string, to: string) => { volume.renameSync(from, to); };
     if (key === "unlink") return async (path: string) => { volume.unlinkSync(path); };
     if (key === "chmod") return async (path: string, mode: number) => { volume.chmodSync(path, mode); };

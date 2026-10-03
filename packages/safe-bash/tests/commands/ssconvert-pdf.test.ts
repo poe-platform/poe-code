@@ -25,6 +25,7 @@ function filesystem(volume: Volume) {
     };
     if (key === "readFile") return async (path: string, options?: { signal?: AbortSignal }) => { options?.signal?.throwIfAborted(); return new Uint8Array(volume.readFileSync(path) as Uint8Array); };
     if (key === "writeFile") return async (path: string, bytes: Uint8Array, options?: { signal?: AbortSignal; flag?: "w" | "wx"; mode?: number }) => { options?.signal?.throwIfAborted(); volume.writeFileSync(path, bytes, options); };
+    if (key === "appendFile") return async (path: string, bytes: Uint8Array, options?: { signal?: AbortSignal; mode?: number }) => { options?.signal?.throwIfAborted(); volume.appendFileSync(path, bytes, options); };
     if (key === "rename") return async (source: string, destination: string) => { volume.renameSync(source, destination); };
     if (key === "unlink") return async (path: string) => { volume.unlinkSync(path); };
     if (key === "readlink") return async (path: string) => String(volume.readlinkSync(path));

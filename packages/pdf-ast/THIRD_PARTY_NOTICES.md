@@ -32,6 +32,12 @@ Apache-2.0). Adaptations add TypeScript types, use spread with bounded 8192-byte
 chunks, and replace the upstream error helper with Error. Additional tests cover
 all byte values, content serialization, and form appearance resource isolation.
 
+The bounded zlib decoder in `src/cos/flate-stream.ts` adapts the bundled PDF.js
+`FlateStream` Huffman decoding and malformed stored-block recovery. Copyright
+Mozilla Foundation, Apache-2.0. It replaces the growing output buffer with a
+32 KiB circular history, suspends for input/output chunks, and preserves partial
+output recovery. The original bundled source and license remain included.
+
 Source: https://github.com/mozilla/pdf.js
 
 # qpdf

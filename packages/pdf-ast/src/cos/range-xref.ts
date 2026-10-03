@@ -2,6 +2,7 @@ import { readBytes } from "@poe-code/safe-fs/contracts";
 import { dictGet, type PdfCosDict, type PdfXRefEntry } from "../ast.js";
 import { PdfError } from "../errors.js";
 import type { PdfFileSource } from "../source.js";
+import { decodePdfStreamChunks } from "./filter-stream.js";
 import { CosRangeLexer } from "./lexer.js";
 import { parseCosRangeObject, parseCosRangeValue, type ParseCosRangeOptions, type PdfRangeObject } from "./range-parser.js";
 
@@ -9,8 +10,9 @@ export interface ReadCosXrefOptions extends ParseCosRangeOptions {
   /** Maximum rows in this revision, including free entries. */
   readonly maxEntries?: number;
   readonly maxDecodedBytes?: number;
-  /** Decode filtered payloads without collecting them. The reader supplies the
-   * retained raw range; the callback owns and cleans up its codec state. */
+  readonly maxRowBytes?: number;
+  /** Override the shared streaming decoder. The reader supplies the retained
+   * raw range; the callback owns and cleans up its codec state. */
   readonly decodeStream?: (object: PdfRangeObject, input: AsyncIterable<Uint8Array>, signal?: AbortSignal) => AsyncIterable<Uint8Array>;
 }
 
@@ -150,11 +152,12 @@ export async function* readCosXrefRevision(source: PdfFileSource, offset: number
     throw new PdfError("E_LIMIT", "PDF xref decoded byte limit exceeded");
   }
   const raw = source.stream(object.stream.start, object.stream.end - object.stream.start, signal);
-  const filter = dictGet(dict, "Filter") ?? dictGet(dict, "F");
-  if (!options.decodeStream && (filter?.kind === "name" || (filter?.kind === "array" && filter.items.length > 0))) {
-    throw new PdfError("E_CAPABILITY", "Filtered XRef streams require a streaming decoder");
-  }
-  const reader = new DecodedFields(options.decodeStream ? options.decodeStream(object, raw, signal) : raw, maxDecoded, signal);
+  const decoded = options.decodeStream ? options.decodeStream(object, raw, signal) : decodePdfStreamChunks(dict, raw, {
+    chunkBytes: source.chunkBytes, maxDecodedBytes: maxDecoded,
+    ...(options.maxRowBytes === undefined ? {} : { maxRowBytes: options.maxRowBytes }),
+    ...(signal ? { signal } : {}),
+  });
+  const reader = new DecodedFields(decoded, maxDecoded, signal);
   let failed = false;
   try {
     for (const [start, count] of subsections()) {

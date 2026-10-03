@@ -144,4 +144,16 @@ describe("retained document cross-reference index", () => {
     await source.close();
   });
 
+  it("uses the shared streaming Flate decoder by default", async () => {
+    const doc = PdfDocument.create(); doc.addPage();
+    const bytes = doc.save({ objectStreams: "generate" });
+    const expected = PdfDocument.load(bytes).cos;
+    const { source, storage } = await fixture(bytes);
+    const result = await openPdfCrossReference(source, storage, { index: indexOptions });
+    for (const [key, entry] of expected.revisions[0]!.entries) expect(await result.index.get(key)).toEqual(entry);
+    await result.index.close();
+    expect(await storage.fs.readdir("/scratch")).toEqual([]);
+    await source.close();
+  });
+
 });

@@ -710,7 +710,7 @@ export function decodePdfFilterPipeline(
   return current;
 }
 
-function extractDecodeParms(
+export function extractDecodeParms(
   dict: PdfCosDict,
   resolve: (node: PdfCosNode | undefined) => PdfCosNode | undefined = n => n
 ): PdfFilterDecodeParms {

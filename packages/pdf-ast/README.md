@@ -38,12 +38,24 @@ returns encoded object data, before document-level decryption or stream decoding
 `readCosXrefRevision(source, offset, options)` yields classic or binary xref
 rows on demand and returns the trailer as the generator's final value. It keeps
 one decoded chunk and the bounded trailer structure, with `maxEntries` and
-`maxDecodedBytes` budgets. Filtered streams require a caller-supplied streaming
-`decodeStream` callback; the callback must bound its codec chunks and state.
-Early return closes the decoder but leaves the source open. Rows retain file
+`maxDecodedBytes` budgets. Common filters use `decodePdfStreamChunks` by default;
+a `decodeStream` callback can override decoding for other codecs. `maxRowBytes`
+admits predictor row storage before allocation. Early return closes the decoder but leaves the source open. Rows retain file
 order, including duplicates; callers must resolve within-revision precedence
 before combining revisions. This primitive does not follow `/Prev` or hybrid
 xref links or replace the buffered document loader.
+
+`decodePdfStreamChunks(dict, input, options)` streams direct filter dictionaries
+with Flate, LZW, ASCIIHex, ASCII85 and run-length decoding, including TIFF/PNG
+predictors. `chunkBytes` bounds owned output chunks, `maxDecodedBytes` bounds
+each decoded stage, `maxRowBytes` admits predictor rows, and `signal` cancels
+pending input. Flate retains a 32 KiB history plus bounded Huffman tables and
+preserves PDF.js/pypdf damaged-stream recovery. LZW uses a fixed 4096-entry
+prefix dictionary; predictors retain at most two rows. Image-codec and Crypt
+filters pass encoded bytes through as in the buffered decoder. CCITT streaming
+still requires a caller decoder; this API never falls back to whole-payload
+buffering. `inflatePdfChunks` and `decodePredictorChunks` expose the individual
+stages for callers that already manage filter parameters.
 
 `PdfObjectIndex.build(entries, { fs, directory }, options)` sorts streamed
 cross-reference entries into caller-backed retained storage. Supply revisions

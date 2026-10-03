@@ -20,6 +20,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | MCP arguments    | Native nested wire-key validation, defaults, native JSON schemas and bounded diagnostics; public server still pending |
 | MCP output       | Native result-key projection, validated defaults, additional fields and typed result errors; public server still pending |
 | MCP schemas      | Native wire-key schemas, input/output requiredness, discriminator defaults and optional-alias constraints |
+| MCP tools        | Native scoped tool enumeration, nested allowlists, collision checks and command metadata; public server still pending |
 | Stack diagnostics | Native framework-frame summaries, nested cause sections and raw stack preservation |
 | Result rendering | Native rich cards, tables, Markdown/JSON, custom hooks and MCP error routing |
 | CLI snapshots    | Native command-tree assembly, scope filtering, defaults and option metadata |

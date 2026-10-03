@@ -42,6 +42,7 @@ pub mod mcp_output;
 pub mod mcp_proxy;
 pub mod mcp_result;
 pub mod mcp_schema;
+pub mod mcp_tools;
 pub mod number_schema;
 pub mod package_metadata;
 pub mod redaction;

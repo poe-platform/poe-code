@@ -4077,3 +4077,34 @@ Five alternating warmed Node 22.23.2 ARM64 rounds of 300 projections, retaining
 an array and a discriminated branch. No performance/default-swap gate passed.
 Tool enumeration and public MCP lifecycle/transport integration, HTTP/OAuth and
 complete platform/resource/standalone packaging qualification remain open.
+
+MCP schema projection is independently verified on remote main at f60ebee457.
+Release 37087862488 is pending.
+
+### MCP tool-enumeration checkpoint
+
+Native enumeration now composes MCP scope filtering, full-path allowlists,
+snake-only tool names, field-name validation, input/output schemas and descriptions.
+Rust controls traversal, admission and collision checks. Node preserves live
+command properties, annotations/metadata spreads, callback identity and for-of
+iterator cleanup. Root omission and empty synthetic roots follow the reference
+semantics, and command objects retain identity. No dependencies/defaults changed.
+
+Six missing-module failures preceded implementation after correcting a syntax
+error in the new fixture. Differential tests extract the original enumerator
+and cover nested ordinary/stream commands, metadata/schema composition, both field
+casings, allowlist prefixes, single/synthetic roots, scoped fields, invalid params,
+tool and input/output/event field collisions, getter order, annotation copying,
+arbitrary thrown values and nested iterator cleanup. Maintained verification
+passes 266 native Node tests, Rust tests, 5,143 parity cases across 87 files,
+declarations and the original CLI compile-check. Rust/binding lint and scoped
+ESLint pass. A packed consumer verifies tool names, both schemas and original
+command identity using packed own native dependencies.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 100 three-tool enumerations,
+retaining 32 results, measured medians of 1,488.770 microseconds native and 34.372
+microseconds JavaScript (43.31 times slower). Each call includes one nested group,
+scoped params, defaults, descriptions, output schemas and collision checks.
+No performance/default-swap gate passed. Public MCP handler, approval/error,
+stream and transport lifecycle integration, HTTP/OAuth and full platform/resource/
+standalone packaging qualification remain open.

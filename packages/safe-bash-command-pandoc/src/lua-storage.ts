@@ -145,7 +145,7 @@ export class LuaStorage {
     const id = (await this.fields(closure.id + 8, 1))[0]!;
     return await this.get({kind: "table", id}, index) as number | undefined;
   }
-  private async equal(a: StoredLuaValue, b: StoredLuaValue): Promise<boolean> {
+  async equal(a: StoredLuaValue, b: StoredLuaValue): Promise<boolean> {
     if (typeof a === "object" && a.kind === "integer") a = a.value;
     if (typeof b === "object" && b.kind === "integer") b = b.value;
     if (typeof a !== "object" || typeof b !== "object") return a === b;

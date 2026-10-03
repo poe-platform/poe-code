@@ -54,9 +54,14 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   tags while equivalent numeric table keys still share entries. A retained
   JSON value bridge now transfers strings and containers through fixed-size backed
   traversal frames, including cycle checks and empty-container identities. It is
-  not yet connected to the compiler/interpreter: source-token/compiler state,
-  instruction execution, standard libraries and Pandoc constructor translation still require
-  integration and runtime qualification. Measurements of unavoidable live runtime
+  not yet connected to public filters. The private interpreter now executes actual
+  Lua bytecode through backed frames, including calls/tail calls, loops, captures,
+  strings and numeric coercion. Differential tests compare its supported core
+  with the existing interpreter; cancellation and error tests verify scratch
+  cleanup. Decimal coercion retains 1100 significant digits plus a sticky digit;
+  string comparison preserves existing binary collation in bounded chunks.
+  Source-token/compiler state, metamethods, standard libraries and Pandoc
+  constructor translation still require integration and runtime qualification. Measurements of unavoidable live runtime
   state are still required.
 - Exercise citeproc with bibliography and citation counts that grow independently
   of document bytes. Measure its retained processor state separately.

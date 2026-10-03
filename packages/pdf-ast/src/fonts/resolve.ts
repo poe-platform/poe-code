@@ -257,7 +257,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                 }
             }
         }
-        const standardOutlines = !embeddedTrueType && !embeddedCff && subtype !== "Type3" ? getStandardFontOutlines(baseFont) : undefined;
+        const standardOutlines = !embeddedTrueType && !embeddedCff && subtype !== "Type3" ? getStandardFontOutlines(baseFont, options.onAllocation ? allocationOptions : {}) : undefined;
         for (const [code, unicode] of standardOutlines?.defaultUnicode ?? []) {
             if (!differences.has(code))
                 differences.set(code, unicode);

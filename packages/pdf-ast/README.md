@@ -457,6 +457,8 @@ whose non-isolated groups need this backdrop; other pages keep Forms as vectors.
 The viewer background stays outside page blend calculations in bitmap and SVG.
 
 All 14 standard PDF fonts use bundled PDFium/Foxit outlines and PDF.js metrics.
+Standard-font decoding, mapping and outline allocations are admitted to the
+containing font owner; owned renderers do not share another request’s budget.
 PNG and SVG preserve font styles without installed system fonts; SVG exports
 glyph paths with accessible labels. Embedded Type1C and CIDFontType0C fonts use
 PDF.js CFF decoding, including their encoding, CID selection, and font matrices.

@@ -1,3 +1,4 @@
+import { PdfFontAllocation, type PdfFontAllocationOptions } from "./memory.js";
 import { createCffGlyphRenderer } from "./cff.js";
 import type { PdfPathSegment } from "../ast.js";
 import { CFFParser, Stream, getGlyphsUnicode, getDingbatsGlyphsUnicode, SymbolSetEncoding, ZapfDingbatsEncoding } from "../vendor/pdfjs-fonts.mjs";
@@ -25,15 +26,20 @@ function scheduleFontCacheEviction(): void {
   });
 }
 
-export function getStandardFontOutlines(name: string): StandardFontOutlines {
+export function getStandardFontOutlines(name: string, options: Pick<PdfFontAllocationOptions, "onAllocation"> = {}): StandardFontOutlines {
   const standardName = normalizeStandard14FontName(name);
-  scheduleFontCacheEviction();
-  const cached = fontCache.get(standardName);
+  if (!options.onAllocation) scheduleFontCacheEviction();
+  const cached = options.onAllocation ? undefined : fontCache.get(standardName);
   if (cached) return cached;
+  const allocation = new PdfFontAllocation(options);
+  const allocationOptions = { onAllocation: (bytes: number) => allocation.admit(bytes) };
+  allocation.admit(1024 + STANDARD_FONT_CFF_BASE64[standardName].length * 3);
   const binary = atob(STANDARD_FONT_CFF_BASE64[standardName]);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  const cff = new CFFParser(new Stream(bytes), {}, false).parse();
+  const cff = new CFFParser(new Stream(bytes), {}, false, allocationOptions.onAllocation).parse();
+  // Include the bundled Adobe lookup table even when another caller warmed it.
+  allocation.admit(1024 * 1024 + cff.charset.charset.length * 512);
   const unicodeByName = standardName === "ZapfDingbats" ? (cachedDingbatsUnicodeMap ??= getDingbatsGlyphsUnicode()) : (cachedGlyphsUnicodeMap ??= getGlyphsUnicode());
   const glyphIds = new Map<number, number>();
   const aliases = new Map<number, number>();
@@ -50,8 +56,9 @@ export function getStandardFontOutlines(name: string): StandardFontOutlines {
   for (const [codePoint, gid] of aliases) {
     if (!glyphIds.has(codePoint)) glyphIds.set(codePoint, gid);
   }
-  const renderGlyph = createCffGlyphRenderer(cff);
-  const outlineCache = new Map<number, PdfPathSegment[]>();
+  const renderGlyph = createCffGlyphRenderer(cff, allocationOptions);
+  let symbolFallback: StandardFontOutlines | undefined;
+  let dingbatsFallback: StandardFontOutlines | undefined;
   const defaultUnicode = new Map<number, string>();
   const encoding = standardName === "Symbol" ? SymbolSetEncoding : standardName === "ZapfDingbats" ? ZapfDingbatsEncoding : undefined;
   encoding?.forEach((glyphName, code) => {
@@ -64,17 +71,12 @@ export function getStandardFontOutlines(name: string): StandardFontOutlines {
       const gid = glyphIds.get(codePoint);
       if (gid === undefined) {
         if (standardName === "Symbol" || standardName === "ZapfDingbats") return [];
-        const symbol = getStandardFontOutlines("Symbol").getGlyphOutline(codePoint);
-        return symbol.length ? symbol : getStandardFontOutlines("ZapfDingbats").getGlyphOutline(codePoint);
+        const symbol = (symbolFallback ??= getStandardFontOutlines("Symbol", allocationOptions)).getGlyphOutline(codePoint);
+        return symbol.length ? symbol : (dingbatsFallback ??= getStandardFontOutlines("ZapfDingbats", allocationOptions)).getGlyphOutline(codePoint);
       }
-      let cachedOutline = outlineCache.get(gid);
-      if (!cachedOutline) {
-        cachedOutline = renderGlyph(gid);
-        outlineCache.set(gid, cachedOutline);
-      }
-      return cachedOutline;
+      return renderGlyph(gid);
     },
   };
-  fontCache.set(standardName, font);
+  if (!options.onAllocation) fontCache.set(standardName, font);
   return font;
 }

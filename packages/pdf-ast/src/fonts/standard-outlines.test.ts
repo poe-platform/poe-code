@@ -26,3 +26,22 @@ it("avoids per-byte callback allocations when decoding standard CFF font outline
   const source = readFileSync(new URL("./standard-outlines.ts", import.meta.url), "utf8");
   expect(source).not.toContain("Uint8Array.from(atob");
 });
+
+it("admits owned fonts even when the unowned font cache is warm", () => {
+  getStandardFontOutlines("Helvetica");
+  const failure = new Error("font owner refused allocation");
+  expect(() => getStandardFontOutlines("Helvetica", { onAllocation() { throw failure; } })).toThrow(failure);
+});
+
+it("keeps outline and fallback admission with each font owner", () => {
+  const baseline = getStandardFontOutlines("Helvetica");
+  let reject = false;
+  const failure = new Error("outline owner refused allocation");
+  const owned = getStandardFontOutlines("Helvetica", { onAllocation() { if (reject) throw failure; } });
+  expect(owned.getGlyphOutline(65)).toEqual(baseline.getGlyphOutline(65));
+  reject = true;
+  expect(() => owned.getGlyphOutline(66)).toThrow(failure);
+  expect(() => owned.getGlyphOutline(0x03b1)).toThrow(failure);
+  const independent = getStandardFontOutlines("Helvetica", { onAllocation() {} });
+  expect(independent.getGlyphOutline(66)).toEqual(baseline.getGlyphOutline(66));
+});

@@ -1,4 +1,5 @@
 import { expect, it, vi } from "vitest";
+import { getStandardFontOutlines } from "./standard-outlines.js";
 import { PdfDocument } from "../document.js";
 import { cosArray, cosDict, cosName, cosNumber, cosStream } from "../ast.js";
 import { resolvePageFontsSteps, type FontResolutionResult } from "./resolve.js";
@@ -71,6 +72,8 @@ it("rejects CID width endpoints that cannot advance by one", () => {
 
 it("retains compact CID width ranges without allocating per-CID entries", () => {
   const doc = PdfDocument.create(); let admitted = 0;
+  let outlineBytes = 0;
+  getStandardFontOutlines("Helvetica", { onAllocation(bytes) { outlineBytes += bytes; } });
   const resources = cosDict({ Font: cosDict({ F1: cosDict({ Subtype: cosName("Type0"), DescendantFonts: cosArray([cosDict({ W: cosArray([
     cosNumber(0), cosNumber(65535), cosNumber(500),
     cosNumber(65), cosArray([cosNumber(700), cosNumber(800)]),
@@ -78,7 +81,7 @@ it("retains compact CID width ranges without allocating per-CID entries", () => 
   ]) })]) }) }) });
   const steps = resolvePageFontsSteps(doc.cos.rootRef, resources, "F1", { onAllocation(bytes) {
     admitted += bytes;
-    if (admitted > 40000) throw new Error("widths expanded beyond compact budget");
+    if (admitted > outlineBytes + 40000) throw new Error("widths expanded beyond compact budget");
   } });
   let step = steps.next();
   while (!step.done) step = steps.next(step.value.kind === "resolve" ? doc.cos.resolve(step.value.node) : doc.cos.decodeStream(step.value.stream));

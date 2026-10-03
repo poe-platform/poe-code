@@ -26,8 +26,10 @@ also keep raster data in caller storage. For compositing, Boolean operations and
 a `StoredImageResources` resolver as the fifth `transformStoredImage`
 argument; it returns decoded images in the same caller-owned storage. PNG file
 operands and composite overlays use the parent filesystem with retained reads and version checks.
-Composite placement, tiling and blend modes use fixed pixel caches; non-PNG
-overlays currently use the buffered fallback.
+Raw operands support every sample depth in bounded chunks, and created overlays
+(including deterministic Gaussian noise) generate directly into caller storage.
+Composite placement, tiling and blend modes use fixed pixel caches; text and other
+encoded overlay formats currently use the buffered fallback.
 Combined resize/blur/sharpen/convolution stages share premultiplied alpha and gamma handling.
 `resizeStoredImage(image, storage, options, signal)` supports all resize fits,
 gravity, entropy/attention crops, background canvases and image pages.

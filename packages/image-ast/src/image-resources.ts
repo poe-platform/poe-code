@@ -1,16 +1,19 @@
+import {decodeRawResource,createStoredResource} from "./codecs/resource-storage.js";
 import {compareIdentity,compareFileVersion,FsError,type FileSystem} from "@poe-code/safe-fs/contracts";
 import type {SharpInputOptions} from "./ast.js";
 import {decodePngToStorage,type ImageByteStorage,type ImageByteSource,type StoredRgbaImage} from "./codecs/png-storage.js";
 import {isPngBytes} from "./codecs/png.js";
 export class UnsupportedStoredResource extends Error {}
 /** File resources use the parent's authority and retained version checks. */
-export async function readPngResource(input:Uint8Array|string|undefined,options:SharpInputOptions|undefined,fs:FileSystem,storage:ImageByteStorage,signal:AbortSignal):Promise<StoredRgbaImage> {
+export async function readImageResource(input:Uint8Array|string|undefined,options:SharpInputOptions|undefined,fs:FileSystem,storage:ImageByteStorage,signal:AbortSignal):Promise<StoredRgbaImage> {
  signal.throwIfAborted();
+ if(options?.text) throw new UnsupportedStoredResource();
+ if(options?.create) return createStoredResource(storage,{...options,create:options.create},signal);
  if(input===undefined) throw new UnsupportedStoredResource();
- if(options?.raw || options?.create || options?.text) throw new UnsupportedStoredResource();
+ const decode=(source:ImageByteSource)=>options?.raw?decodeRawResource(source,storage,{...options,raw:options.raw},signal):decodePngToStorage(source,storage,signal,options);
  if(typeof input!=="string") {
-  if(!isPngBytes(input)) throw new UnsupportedStoredResource();
-  return decodePngToStorage({size:input.length,async read(position,length){signal.throwIfAborted();return new Uint8Array(input.subarray(position,position+length));}},storage,signal,options);
+  if(!options?.raw && !isPngBytes(input)) throw new UnsupportedStoredResource();
+  return decode({size:input.length,async read(position,length){signal.throwIfAborted();return new Uint8Array(input.subarray(position,position+length));}});
  }
  const capabilities=await fs.capabilitiesFor?.(input,{signal})??fs.capabilities;
  signal.throwIfAborted();if(!capabilities.retainedRead || !fs.openReadFile) throw new UnsupportedStoredResource();
@@ -28,8 +31,8 @@ export async function readPngResource(input:Uint8Array|string|undefined,options:
    }
    return result;
   }};
-  if(initial.size<8 || !isPngBytes(await source.read(0,8,{signal}))) throw new UnsupportedStoredResource();
-  const image=await decodePngToStorage(source,storage,signal,options),final=await handle.stat({signal});signal.throwIfAborted();
+  if(!options?.raw && (initial.size<8 || !isPngBytes(await source.read(0,8,{signal})))) throw new UnsupportedStoredResource();
+  const image=await decode(source),final=await handle.stat({signal});signal.throwIfAborted();
   if(compareIdentity(initial,final)==="distinct" || !compareFileVersion(initial,final)) throw new FsError("EAGAIN",{path:input,message:"Image source changed while decoding"});
   result=image;
  } catch(error) {failure={error};}

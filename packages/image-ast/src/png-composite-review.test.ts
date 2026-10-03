@@ -164,12 +164,12 @@ it.each(["abort","decode"])("cleans later-layer %s failure and preserves destina
  if(phase==="abort")await expect(result).rejects.toBe(reason);else {await expect(result).rejects.not.toBe(closeFailure);await expect(result).rejects.toThrow();}
  expect(closed.sort()).toEqual(["/bad.png","/in.png","/layer.png"]);expect(await fs.readFile("/out.png")).toEqual(Uint8Array.of(42));expect((await fs.readdir("/")).map(entry=>entry.name)).toEqual(["bad.png","in.png","layer.png","out.png"]);
 });
-it("falls back for generated later layers only after retained resources close",async()=>{
+it("keeps generated later layers backed and closes retained resources",async()=>{
  const {fs,bytes}=await publicFiles();let opened=0,closed=0,fallback=0;
  const filesystem=guarded(fs,{openReadFile:async(path,options)=>{const handle=await fs.openReadFile(path,options);opened++;return {read:handle.read.bind(handle),stat:handle.stat.bind(handle),close:async()=>{closed++;await handle.close();}};},readFile:async(...args)=>{fallback++;expect(closed).toBe(opened);return fs.readFile(...args);},writeFile:fs.writeFile.bind(fs)});
  const generated:CompositeLayer={input:{create:{width:2,height:3,channels:4,background:"blue"}},blend:"xor",gravity:"southeast"};
  const expected=sharp(bytes).composite([{input:bytes},generated]).png().toBufferSync();await sharp("/in.png",{filesystem}).composite([{input:"/layer.png"},generated]).png().toFile("/out.png");
- expect(fallback).toBeGreaterThan(0);expect(closed).toBe(opened);expect(Buffer.compare(sharp(await fs.readFile("/out.png")).raw().toBufferSync(),sharp(expected).raw().toBufferSync())).toBe(0);
+ expect(fallback).toBe(0);expect(closed).toBe(opened);expect(Buffer.compare(sharp(await fs.readFile("/out.png")).raw().toBufferSync(),sharp(expected).raw().toBufferSync())).toBe(0);
 });
 it("treats inline SVG layers as bytes during fallback, never filesystem paths",async()=>{
  const {fs,bytes}=await publicFiles(),svg='  <svg xmlns="http://www.w3.org/2000/svg" width="3" height="2"><rect width="3" height="2" fill="blue"/></svg>',paths:string[]=[];

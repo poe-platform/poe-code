@@ -1,4 +1,4 @@
-import {readPngResource,UnsupportedStoredResource} from "./png-resources.js";
+import {readImageResource,UnsupportedStoredResource} from "./image-resources.js";
 import {prepareClaheImage} from "./ops/clahe.js";
 import {transformStoredPixels} from "./ops/storage-pixels.js";
 import {resizeStoredImage} from "./ops/storage-resize.js";
@@ -78,7 +78,7 @@ export async function tryPngFile(input: string, output: string, options: SharpIn
     signal.throwIfAborted();
     if (compareIdentity(initial,final)==="distinct" || !compareFileVersion(initial,final)) throw new FsError("EAGAIN",{path:input,message:"Image source changed while decoding"});
     handleClosed=true; await handle.close();
-    const resources={readImage:(input:Uint8Array|string|undefined,resourceOptions:SharpInputOptions|undefined,resourceSignal:AbortSignal)=>readPngResource(input,resourceOptions,fs,storage!,resourceSignal)};
+    const resources={readImage:(input:Uint8Array|string|undefined,resourceOptions:SharpInputOptions|undefined,resourceSignal:AbortSignal)=>readImageResource(input,resourceOptions,fs,storage!,resourceSignal)};
     const gamma=operations.find(node=>node.kind==="gamma");
     const splitGamma=gamma && operations.some(node=>node.kind==="resize" || node.kind==="blur" || node.kind==="sharpen" || node.kind==="convolve" || node.kind==="modulate" || node.kind==="recomb");
     let gammaInApplied=false;

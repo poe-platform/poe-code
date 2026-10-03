@@ -7,7 +7,7 @@ import type {StoredRgbaImage} from "./codecs/png-storage.js";
 import sharp from "./index.js";
 import {transformStoredImage} from "./ops/storage.js";
 import {booleanImage,joinChannelImage} from "./ops/transform.js";
-import {readPngResource,UnsupportedStoredResource} from "./png-resources.js";
+import {readImageResource,UnsupportedStoredResource} from "./image-resources.js";
 type Operation=Extract<ImageAstNode,{kind:"boolean"|"joinChannel"}>;
 // Recorded by independently executing buffered channel operations at 557dee0d31.
 const vectors:{kind:"boolean"|"joinChannel";op?:"and"|"or"|"eor";channels:number;extraChannels:number;count:number;expected:Omit<RgbaImage,"data">;hash:string}[]=[
@@ -109,6 +109,6 @@ it("reports close failure instead of falling back from unsupported secondary for
 });
 it("decodes sliced Buffer PNG input with owned range bytes",async()=>{
  const {bytes}=await files(),buffer=Buffer.alloc(bytes.length+22);buffer.set(bytes,11);const input=buffer.subarray(11,11+bytes.length),{storage,memory}=backing();
- const actual=await readPngResource(input,undefined,new MemoryFileSystem(),storage,new AbortController().signal),expected=sharp(bytes).raw().toBufferSync();expect(Buffer.compare(memory.subarray(actual.position,actual.position+expected.length),expected)).toBe(0);expect(input).toEqual(Buffer.from(bytes));
+ const actual=await readImageResource(input,undefined,new MemoryFileSystem(),storage,new AbortController().signal),expected=sharp(bytes).raw().toBufferSync();expect(Buffer.compare(memory.subarray(actual.position,actual.position+expected.length),expected)).toBe(0);expect(input).toEqual(Buffer.from(bytes));
 });
-it("rejects unsupported byte resources without acquiring filesystem authority",async()=>{const {storage}=backing(),fs=new MemoryFileSystem(),open=vi.spyOn(fs,"openReadFile");await expect(readPngResource(Uint8Array.of(1,2,3),undefined,fs,storage,new AbortController().signal)).rejects.toBeInstanceOf(UnsupportedStoredResource);expect(open).not.toHaveBeenCalled();});
+it("rejects unsupported byte resources without acquiring filesystem authority",async()=>{const {storage}=backing(),fs=new MemoryFileSystem(),open=vi.spyOn(fs,"openReadFile");await expect(readImageResource(Uint8Array.of(1,2,3),undefined,fs,storage,new AbortController().signal)).rejects.toBeInstanceOf(UnsupportedStoredResource);expect(open).not.toHaveBeenCalled();});

@@ -1,3 +1,4 @@
+import {CreatedPixels} from "./create-pixels.js";
 import {checkLimitInputPixels} from "../limits.js";
 import {
   parseColor,
@@ -313,66 +314,10 @@ export function decodeImage(
     return renderTextInput(options.text, options.density);
   }
   if (options?.create) {
-    const { width, height, channels, pageHeight, background, noise } = options.create;
-    checkLimitInputPixels(width, height, options);
-    const bg = parseColor(background ?? { r: 0, g: 0, b: 0, alpha: 1 }, channels === 4 ? 255 : 255);
-    const data = new Uint8Array(width * height * 4);
-    if (noise && (noise.type === undefined || noise.type === "gaussian")) {
-      const mean = noise.mean ?? 128;
-      const sigma = noise.sigma ?? 30;
-      let seed = (width * 73856093) ^ (height * 19349663) ^ Math.round(mean * 100) ^ Math.round(sigma * 100) ^ 0x9e3779b9;
-      const nextUniform = (): number => {
-        seed = (seed + 0x6d2b79f5) | 0;
-        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-      };
-      const sampleGauss = (): number => {
-        const u1 = Math.max(1e-12, nextUniform());
-        const u2 = nextUniform();
-        const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-        return Math.max(0, Math.min(255, Math.floor(mean + sigma * z)));
-      };
-      for (let i = 0; i < width * height; i++) {
-        if (channels === 1) {
-          const v = sampleGauss();
-          data[i * 4] = v;
-          data[i * 4 + 1] = v;
-          data[i * 4 + 2] = v;
-          data[i * 4 + 3] = 255;
-        } else if (channels === 2) {
-          const v = sampleGauss();
-          data[i * 4] = v;
-          data[i * 4 + 1] = v;
-          data[i * 4 + 2] = v;
-          data[i * 4 + 3] = sampleGauss();
-        } else {
-          data[i * 4] = sampleGauss();
-          data[i * 4 + 1] = sampleGauss();
-          data[i * 4 + 2] = sampleGauss();
-          data[i * 4 + 3] = channels === 4 ? sampleGauss() : 255;
-        }
-      }
-    } else {
-      for (let i = 0; i < width * height; i++) {
-        data[i * 4] = bg.r;
-        data[i * 4 + 1] = bg.g;
-        data[i * 4 + 2] = bg.b;
-        data[i * 4 + 3] = channels === 4 ? bg.a : 255;
-      }
-    }
-    return {
-      width,
-      height,
-      data,
-      format: "raw",
-      space: channels < 3 ? "b-w" : "srgb",
-      channels,
-      depth: "uchar",
-      density: options.density ?? 72,
-      hasAlpha: channels === 2 || channels === 4,
-      ...(pageHeight !== undefined ? { pageHeight, pages: Math.max(1, Math.floor(height / pageHeight)) } : {})
-    };
+    const source=new CreatedPixels({...options,create:options.create});
+    const data=new Uint8Array(source.metadata.width*source.metadata.height*4);
+    source.fill(data);
+    return {...source.metadata,data};
   }
   if (options?.raw && bytes) {
     const { width, height, channels, premultiplied, pageHeight, depth: rawDepth } = options.raw;

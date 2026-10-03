@@ -5076,3 +5076,45 @@ qualification remain required. JavaScript stays the default implementation.
 The lock lifecycle commit is verified on remote main at 3a89bc159a. Descendant
 Release 37106007262 succeeded with the workspace/CLI build passing and stable
 publication skipped. No native publication is claimed.
+
+
+### Public agent MCP configuration subpath checkpoint
+
+The agent-mcp-config subpath explicitly forwards the six reference runtime exports
+and five public type exports to the existing own Rust package. Native-only helper
+types remain private to that dependency's namespace. The package becomes an
+installed own dependency; no third-party dependency or default execution path is
+added. Configure/unconfigure retain injected filesystem capabilities and the
+existing declarative agent configuration registry.
+
+The new public test failed first on the missing subpath. A compiler inventory
+verifies all eleven runtime/type export names. Two differential cases compare
+namespace/function identities, aliases, support status, platform-specific paths,
+and actual JSON/TOML/YAML configuration edits through memfs for all six agents
+and all three platform options. They cover dry runs, idempotent configuration,
+retaining a second server and removal. The platform options exercise path policy,
+not native-addon execution on three operating systems.
+
+The maintained selected build passes its declared dependency closure. The combined
+configuration/Toolcraft test route passes 63 original configuration cases and
+13 native checks, then 6,202 Toolcraft cases across 126 files plus 266 native checks,
+Rust tests, strict dependency declarations, the original CLI type consumer and
+root posttest. Maintained native lint and scoped JS/TS lint pass. Two packed own
+artifacts independently configure/remove servers for every supported agent, with
+ESM imports confined to those artifacts and Node. Strict packed declaration checks
+load 195 source files only from the packed consumer and TypeScript libraries;
+workspace reads are forbidden by the compiler host, with existing Node/undici
+declarations copied into the consumer.
+
+Seven alternating warmed rounds of 100 fresh memfs Claude stdio configurations
+on Node 22.23.2 ARM64 measured reference/native medians of 211.324/411.980
+microseconds (1.95 times slower). The facade adds no per-call transformation;
+this sample characterizes the existing native dependency under shared-host load.
+The dependency's documented YAML diagnostic limitations and broader type,
+performance/platform/default-swap gates remain open.
+
+Portable credential delivery is verified on remote main at 056d5a2c71. Its
+Release 37106896772 remains pending. Package workflow 37106896675 succeeded with
+standalone-bundle/publication skipped; descendant package workflow 37106921154
+is checking standalone bundles on Node 18.18, 20, 22 and 24. No native publication
+is claimed. The completed portable checkpoint's temporary artifacts were purged.

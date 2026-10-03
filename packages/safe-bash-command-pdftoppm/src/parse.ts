@@ -323,3 +323,229 @@ export function* parsePdftoppmArgsSteps(argv: readonly string[], hasStdin: boole
     }
     return { format, colorMode, dpi, dpiX, dpiY, scaleTo, scaleToX, scaleToY, firstPage, lastPage, oddOnly, evenOnly, singleFile, forceNum, sep, setPageNo, cropX, cropY, cropW, cropH, hasCrop, useCropBox, hideAnnotations, transparent, progress, quiet, jpegQuality, tiffCompression, antialiasText, antialiasVector, thinLineMode, password, positionals, inputPath };
 }
+
+const VALID_CAIRO_ANTIALIAS = new Set([
+  "default",
+  "none",
+  "gray",
+  "subpixel",
+  "fast",
+  "good",
+  "best",
+]);
+
+export const CAIRO_VALUE_FLAGS = new Set([
+  ...VALUE_FLAGS,
+  "-antialias",
+  "-icc",
+  "-paper",
+  "-paperw",
+  "-paperh",
+]);
+
+export interface PdftocairoPlan {
+  readonly format: "png" | "jpg" | "tif" | "svg" | "pdf" | "ps" | "eps";
+  readonly grayMode: boolean;
+  readonly monoMode: boolean;
+  readonly quiet: boolean;
+  readonly firstPage: number;
+  readonly lastPage: number;
+  readonly oddOnly: boolean;
+  readonly evenOnly: boolean;
+  readonly cropX: number;
+  readonly cropY: number;
+  readonly cropW: number;
+  readonly cropH: number;
+  readonly hasCrop: boolean;
+  readonly paperW: number;
+  readonly paperH: number;
+  readonly origPageSizes: boolean;
+  readonly password: string;
+  readonly forwardedArgs: string[];
+  readonly positionals: string[];
+  readonly inputPath: string;
+}
+
+export function* parsePdftocairoArgsSteps(argv: readonly string[], hasStdin: boolean): Generator<void, PdftocairoPlan | PdftoppmCliResult, void> {
+    let cooperativeWork = 63;
+    let format: "png" | "jpg" | "tif" | "svg" | "pdf" | "ps" | "eps" = "png";
+    let grayMode = false;
+    let monoMode = false;
+    let quiet = false;
+    let firstPage = 1;
+    let lastPage = 0;
+    let oddOnly = false;
+    let evenOnly = false;
+    let cropX = 0;
+    let cropY = 0;
+    let cropW = 0;
+    let cropH = 0;
+    let hasCrop = false;
+    let paperW = 0;
+    let paperH = 0;
+    let origPageSizes = false;
+    let password = "";
+    const forwardedArgs: string[] = [];
+    const positionals: string[] = [];
+    for (let i = 0; i < argv.length; i++) {
+        if (++cooperativeWork % 64 === 0)
+            yield;
+        const arg = argv[i]!;
+        if (arg === "--") {
+            positionals.push(...argv.slice(i + 1));
+            break;
+        }
+        if (arg === "-v" || arg === "--version") {
+            return { exitCode: 0, stdout: "pdftocairo version 24.08.0\n", stderr: "" };
+        }
+        if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
+            return {
+                exitCode: 0,
+                stdout: "Usage: pdftocairo [options] <PDF-file> [<output-file>]\n  -png / -jpeg / -tiff / -ps / -eps / -pdf / -svg\n",
+                stderr: "",
+            };
+        }
+        if (arg === "-png") {
+            format = "png";
+            forwardedArgs.push("-png");
+        }
+        else if (arg === "-jpeg" || arg === "-jpg") {
+            format = "jpg";
+            forwardedArgs.push("-jpeg");
+        }
+        else if (arg === "-tiff") {
+            format = "tif";
+            forwardedArgs.push("-tiff");
+        }
+        else if (arg === "-svg") {
+            format = "svg";
+        }
+        else if (arg === "-pdf") {
+            format = "pdf";
+        }
+        else if (arg === "-ps") {
+            format = "ps";
+        }
+        else if (arg === "-eps") {
+            format = "eps";
+        }
+        else if (arg === "-gray") {
+            grayMode = true;
+        }
+        else if (arg === "-mono") {
+            monoMode = true;
+        }
+        else if (arg === "-q") {
+            quiet = true;
+            forwardedArgs.push("-q");
+        }
+        else if (arg === "-antialias") {
+            const mode = (argv[++i] ?? "").toLowerCase();
+            if (!VALID_CAIRO_ANTIALIAS.has(mode)) {
+                return {
+                    exitCode: 99,
+                    stdout: "",
+                    stderr: quiet ? "" : `Bad '-antialias' value on command line\n`,
+                };
+            }
+            if (mode === "none") {
+                forwardedArgs.push("-aa", "no", "-aaVector", "no");
+            }
+            else {
+                forwardedArgs.push("-aa", "yes", "-aaVector", "yes");
+            }
+        }
+        else if (arg === "-icc") {
+            i++;
+        }
+        else if (arg === "-paper") {
+            const pName = (argv[++i] ?? "").toLowerCase();
+            if (pName === "letter") {
+                paperW = 612;
+                paperH = 792;
+            }
+            else if (pName === "legal") {
+                paperW = 612;
+                paperH = 1008;
+            }
+            else if (pName === "a3") {
+                paperW = 842;
+                paperH = 1191;
+            }
+            else if (pName === "a4") {
+                paperW = 595;
+                paperH = 842;
+            }
+            else if (pName === "a5") {
+                paperW = 420;
+                paperH = 595;
+            }
+        }
+        else if (arg === "-paperw") {
+            paperW = Math.max(1, Number.parseInt(argv[++i] ?? "0", 10) || 0);
+        }
+        else if (arg === "-paperh") {
+            paperH = Math.max(1, Number.parseInt(argv[++i] ?? "0", 10) || 0);
+        }
+        else if (arg === "-origpagesizes") {
+            origPageSizes = true;
+        }
+        else if (arg === "-level2" ||
+            arg === "-level3" ||
+            arg === "-nocrop" ||
+            arg === "-expand" ||
+            arg === "-noshrink" ||
+            arg === "-nocenter" ||
+            arg === "-duplex") {
+            // Standard pdftocairo vector/print flags
+        }
+        else if (VALUE_FLAGS.has(arg)) {
+            const val = argv[++i] ?? "";
+            forwardedArgs.push(arg, val);
+            if (arg === "-f")
+                firstPage = Math.max(1, Number.parseInt(val, 10) || 1);
+            else if (arg === "-l")
+                lastPage = Math.max(0, Number.parseInt(val, 10) || 0);
+            else if (arg === "-x") {
+                cropX = Math.max(0, Number.parseInt(val, 10) || 0);
+                hasCrop = true;
+            }
+            else if (arg === "-y") {
+                cropY = Math.max(0, Number.parseInt(val, 10) || 0);
+                hasCrop = true;
+            }
+            else if (arg === "-W") {
+                cropW = Math.max(0, Number.parseInt(val, 10) || 0);
+                hasCrop = true;
+            }
+            else if (arg === "-H") {
+                cropH = Math.max(0, Number.parseInt(val, 10) || 0);
+                hasCrop = true;
+            }
+            else if (arg === "-sz") {
+                const sz = Math.max(0, Number.parseInt(val, 10) || 0);
+                cropW = sz;
+                cropH = sz;
+                hasCrop = true;
+            }
+            else if (arg === "-upw" || arg === "-opw") {
+                password = val;
+            }
+        }
+        else if (arg.startsWith("-") && arg !== "-") {
+            if (arg === "-o")
+                oddOnly = true;
+            if (arg === "-e")
+                evenOnly = true;
+            forwardedArgs.push(arg);
+        }
+        else {
+            positionals.push(arg);
+        }
+    }
+    const inputPath = positionals[0] ?? (hasStdin ? "-" : undefined);
+    if (!inputPath) {
+        return { exitCode: 99, stdout: "", stderr: "Usage: pdftocairo [options] <PDF-file> [<output-file>]\n" };
+    }
+    return { format, grayMode, monoMode, quiet, firstPage, lastPage, oddOnly, evenOnly, cropX, cropY, cropW, cropH, hasCrop, paperW, paperH, origPageSizes, password, forwardedArgs, positionals, inputPath };
+}

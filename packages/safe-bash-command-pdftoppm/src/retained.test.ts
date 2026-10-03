@@ -3,7 +3,7 @@ import { test } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
 import { PdfDocument, cosArray, cosNumber, dictSet } from "@poe-code/pdf-ast";
-import { createPdftoppmCommand, runPdftoppmCli } from "./index.js";
+import { createPdftoppmCommand, runPdftoppmCli, createPdftocairoCommand, runPdftocairoCli } from "./index.js";
 function pdf() {
   const doc = PdfDocument.create();
   for (const rotation of [0, 90]) {
@@ -85,4 +85,25 @@ for (const quiet of [false, true]) test(`retained renderer preserves encrypted i
   const args = [...(quiet ? ["-q"] : []), "-upw", "wrong", "in.pdf", "out"], expected = await runPdftoppmCli(args, new Map([["in.pdf", input]]));
   const f = await fixture(input, args); assert.equal((await createPdftoppmCommand().execute(f.context)).exitCode, expected.exitCode);
   assert.equal(new TextDecoder().decode(Buffer.concat(f.stderr)), expected.stderr); assert.equal(f.counts().published, 0); await f.clean();
+});
+for (const flags of [[], ["-png"], ["-png", "-gray"], ["-png", "-mono"], ["-jpeg"], ["-tiff", "-mono"], ["-png", "-antialias", "none", "-transp"]]) {
+  test(`retained Cairo preserves existing raster bytes and default output names: ${flags.join(" ")}`, async () => {
+    const input = pdf(), args = [...flags, "in.pdf"], files = new Map([["in.pdf", input]]), expected = await runPdftocairoCli(args, files);
+    const f = await fixture(input, args); f.context.command = "pdftocairo";
+    assert.equal((await createPdftocairoCommand({ limits: { maxInputBytes: input.length } }).execute(f.context)).exitCode, expected.exitCode);
+    for (const [name, bytes] of files) if (name !== "in.pdf") assert.deepEqual(await f.fs.readFile("/" + name), bytes);
+    assert.deepEqual(f.counts(), { reads: 0, writes: 0, published: files.size - 1 }); await f.clean();
+  });
+}
+test("retained Cairo keeps stdout grayscale semantics with reused input and a slow sink", async () => {
+  const input = pdf(), args = ["-png", "-gray", "-", "-"], expected = await runPdftocairoCli(args, new Map([["-", input]]));
+  const f = await fixture(input, args, true); f.context.command = "pdftocairo";
+  assert.equal((await createPdftocairoCommand({ limits: { maxInputBytes: input.length } }).execute(f.context)).exitCode, 0);
+  assert.deepEqual(new Uint8Array(Buffer.concat(f.stdout)), expected.stdoutBytes); assert.equal(f.counts().reads, 0); await f.clean();
+});
+test("retained Cairo preserves publication exit code and missing-parent diagnostic", async () => {
+  const f = await fixture(pdf(), ["-png", "in.pdf", "/missing/out"]); f.context.command = "pdftocairo";
+  assert.equal((await createPdftocairoCommand().execute(f.context)).exitCode, 2);
+  assert.equal(new TextDecoder().decode(Buffer.concat(f.stderr)), "Error opening output file /missing/out-1.png\n");
+  assert.equal(f.counts().published, 0); await f.clean();
 });

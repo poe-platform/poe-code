@@ -8,7 +8,7 @@ import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import type { PdftoppmPlan } from "./parse.js";
 
-export async function executeRetainedRaster(context: CommandContext, plan: PdftoppmPlan, stdout: ByteSink, signal: AbortSignal, maximum: number): Promise<{ exitCode: number }> {
+export async function executeRetainedRaster(context: CommandContext, plan: PdftoppmPlan, stdout: ByteSink, signal: AbortSignal, maximum: number, publicationError?: (name: string) => { exitCode: number; stderr: string }): Promise<{ exitCode: number }> {
   const encoder = new TextEncoder(), directory = resolvePath(context.cwd, context.env.TMPDIR || "/tmp");
   const storage = new PdfStagingStorage({ fs: context.fs, directory });
   const diagnostic = async (message: string, exitCode: number) => { if (!plan.quiet) await writeBytes(context.stderr, encoder.encode(message), signal); return { exitCode }; };
@@ -91,7 +91,7 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
     for await (const entry of outputs.entries()) {
       if (toStdout) for await (const bytes of entry.contents()) await writeBytes(stdout, bytes, signal);
       else try { await publish(context, resolvePath(context.cwd, entry.name), entry.contents(), signal); }
-      catch (error) { signal.throwIfAborted(); if (!(error instanceof Error) || !("code" in error)) throw error; await writeBytes(context.stderr, encoder.encode(`Could not write image to ${entry.name}; exiting\n`), signal); return { exitCode: 1 }; }
+      catch (error) { signal.throwIfAborted(); if (!(error instanceof Error) || !("code" in error)) throw error; const failure = publicationError?.(entry.name) ?? { exitCode: 1, stderr: `Could not write image to ${entry.name}; exiting\n` }; await writeBytes(context.stderr, encoder.encode(failure.stderr), signal); return { exitCode: failure.exitCode }; }
     }
     return { exitCode: 0 };
   } catch (error) { failed = true; throw error; }

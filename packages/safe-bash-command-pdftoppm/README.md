@@ -40,8 +40,10 @@ Raster output uses retained PDF reads, fixed-size pixel windows and caller-backe
 staging in `TMPDIR` (default `/tmp`). All pages finish rendering before output
 publication, and each file is published atomically. Use an external filesystem
 backend for large documents. Individual decoded resources and nested paint
-captures retain their current memory requirements. SVG, `pdftocairo`, and the
-buffered convenience runners still use their existing execution paths.
+captures retain their current memory requirements. SVG, Cairo vector/PDF output, and the
+buffered convenience runners still use their existing execution paths. Cairo
+raster formats share the retained pipeline and preserve their output naming,
+color-conversion and error conventions.
 
 Output parent directories must already exist. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.
 

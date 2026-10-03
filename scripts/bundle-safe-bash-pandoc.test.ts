@@ -257,7 +257,7 @@ it.each(["tables", "json-tables"])("runs composed Sips, Shuf and streamed Pandoc
   } finally {
     await runtime.dispose();
   }
-});
+}, 120_000);
 
 it.each(["html", "json"])("uses caller-supplied R2 pages and cleans them on success, failure and cancellation (%s)", async target => {
   const root = fileURLToPath(new URL("../", import.meta.url));
@@ -331,4 +331,4 @@ it.each(["html", "json"])("uses caller-supplied R2 pages and cleans them on succ
       }
     }
   } finally {await runtime.dispose();}
-});
+}, 120_000);

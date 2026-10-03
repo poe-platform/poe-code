@@ -626,7 +626,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
   const backedJson = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
     && reader.descriptor.name === "json" && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
     && Object.keys(options).every(key => key === "resourcePath" && ["rtf", "odt"].includes(writer.descriptor.name) || ["from", "to", "filters", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
-    && Object.entries(context.limits ?? {}).every(([key, value]) => ["inputBytes", "outputBytes"].includes(key) || value === Infinity);
+    && Object.entries(context.limits ?? {}).every(([key, value]) => ["inputBytes", "outputBytes", "work", "diagnostics"].includes(key) || value === Infinity);
   if (backedJson) {
     const session = new Session("convert", context);
     try {
@@ -639,7 +639,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
   const incremental = context.workingFiles && !context.reader && !context.writer
     && (reader.descriptor.name === "csv" || reader.descriptor.name === "tsv") && ["html5", "json", "plain", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
     && Object.keys(options).every(key => key === "resourcePath" && ["rtf", "odt"].includes(writer.descriptor.name) || ["from", "to", "filters", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
-    && Object.entries(context.limits ?? {}).every(([key, value]) => (["inputBytes", "outputBytes"].includes(key) || !options.filters?.length && ["tableRows", "tableColumns", "tableCells", "tableFieldText"].includes(key)) || value === Infinity);
+    && Object.entries(context.limits ?? {}).every(([key, value]) => (["inputBytes", "outputBytes", "work", "diagnostics"].includes(key) || !options.filters?.length && ["tableRows", "tableColumns", "tableCells", "tableFieldText"].includes(key)) || value === Infinity);
   if (!incremental) {
     const result = await convert(inputs, options, context);
     return {kind: "output", diagnostics: result.diagnostics};

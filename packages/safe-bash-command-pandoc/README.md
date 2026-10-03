@@ -163,7 +163,7 @@ caller storage. Strings, nesting state, duplicate-key indexes, schema traversal,
 table-span occupancy, and numeric metadata-key ordering do not require resident
 document collections. Output preserves constructor bytes and binary64 numeric
 semantics, validates the complete document before publication, and preflights
-finite output budgets. This path supports finite `inputBytes` and `outputBytes`,
+finite output budgets. This path supports finite `inputBytes`, `outputBytes`, `work`, and `diagnostics`,
 line endings, and the same non-transforming options as the table path. It uses
 two page caches of at most `cacheBytes` each, plus fixed small index caches.
 JSON filters with `applyJsonStream` also use retained generations: each validated
@@ -244,7 +244,7 @@ precedes output commit, including cleanup failure and cancellation.
 
 The unfiltered backed CSV/TSV paths support line endings (and ASCII conversion for HTML) and finite
 `inputBytes`, `outputBytes`, `tableRows`, `tableColumns`, `tableCells`, and
-`tableFieldText` limits. With filters, finite input/output budgets are supported;
+`tableFieldText` limits. With filters, finite input/output, work, and diagnostics budgets are supported;
 finite table budgets still use the compatibility converter. Additional transformations, other finite limits,
 and other format pairs
 currently use the existing buffered converter. The Safe Bash command uses the

@@ -44,7 +44,7 @@ it.each(["odt", "transformed-odt", "csv-odt", "rtf", "transformed-rtf", "csv-rtf
             for (let i = 0; i < 8; i++) {reused.fill(120); yield reused;}
             yield encoder.encode(${JSON.stringify(delimited ? "" : transformed ? '"]},{"t":"RawBlock","c":["html","<!--removed-->"]},{"t":"Header","c":[1,["",[],[]],[{"t":"Str","c":"tail"}]]}]}' : '"]}]}')});
           })()}], {from: ${JSON.stringify(delimited ? "csv" : "json")}, to: ${JSON.stringify(target)}, ${transformed ? "stripComments: true, shiftHeadingLevelBy: -1," : ""} filters: ["one", "two", "three"].map(path => ({kind: "json", path}))}, {
-            filters, signal: controller.signal, workingFiles: {fs, directory: "/spill", cacheBytes: 16384},
+            filters, limits: {work: 100000000, diagnostics: 10}, signal: controller.signal, workingFiles: {fs, directory: "/spill", cacheBytes: 16384},
             output: {async write(bytes) {
               if (mode === "output-failure") throw new Error("Destination failed");
               await scheduler.wait(1);

@@ -7,6 +7,12 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
 
 ## Coverage to complete
 
+- Retained JSON and CSV/TSV routes admit finite `work` and `diagnostics` budgets
+  through the shared execution context. Exercise both budgets in filtered and
+  unfiltered cohorts, including exhaustion before publication. Other finite
+  document budgets still require separate retained accounting; these checks do
+  not establish qualification for those fallback paths.
+
 - Trace each format reader, converter, writer and resource engine, including
   Markdown reference resolution, HTML/XML trees, DOCX/EPUB archives, PDF layout,
   presentation and spreadsheet conversion. Record the tested commit and hashes

@@ -1163,8 +1163,9 @@ describe("spawn", () => {
         })
       ]);
 
-      const firstEnv = vi.mocked(spawnChildProcess).mock.calls[0]?.[2]?.env;
-      const secondEnv = vi.mocked(spawnChildProcess).mock.calls[1]?.[2]?.env;
+      const calls = vi.mocked(spawnChildProcess).mock.calls;
+      const firstEnv = calls.find((call) => call[1]?.includes("first"))?.[2]?.env;
+      const secondEnv = calls.find((call) => call[1]?.includes("second"))?.[2]?.env;
       expect(firstEnv).toMatchObject({ POE_CODE_PARALLEL_ENV_TEST: "first", FIRST_ONLY: "1" });
       expect(firstEnv).not.toHaveProperty("SECOND_ONLY");
       expect(secondEnv).toMatchObject({ POE_CODE_PARALLEL_ENV_TEST: "second", SECOND_ONLY: "1" });

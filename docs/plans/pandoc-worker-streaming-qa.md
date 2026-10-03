@@ -78,9 +78,15 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   callable tables and right-associated concatenation resume through backed
   continuations. Raw base operations preserve protected metatables and arity
   checks. Test recursive callbacks, cancellation inside metamethods and cleanup.
-  Source-token/compiler state, complete standard libraries and Pandoc
-  constructor translation still require integration and runtime qualification. Measurements of unavoidable live runtime
-  state are still required.
+  The private lexer now retains identifier/literal payloads and its intern index
+  in caller storage, with fixed token buffers and no retained comment payload.
+  Byte-boundary differential tests preserve escapes, long strings, number tags,
+  line tracking and existing binary interning collisions. Empty source chunks
+  still checkpoint, final partial work quanta are charged, and early/error exits
+  close the source. This lexer is not yet connected to public compilation:
+  compiler control state and code generation, complete standard libraries and
+  Pandoc constructor translation still require integration and runtime
+  qualification. Measurements of unavoidable live runtime state remain required.
 - Exercise citeproc with bibliography and citation counts that grow independently
   of document bytes. Measure its retained processor state separately.
 - External resource extraction now spools payloads when working storage and a

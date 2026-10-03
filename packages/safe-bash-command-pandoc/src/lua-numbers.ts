@@ -1,5 +1,5 @@
 import {PandocError} from "./errors.js";
-import type {LuaStorage, StoredLuaValue} from "./lua-storage.js";
+import type {LuaInteger, LuaStorage, StoredLuaValue} from "./lua-storage.js";
 
 const space = (byte: number): boolean => byte === 32 || byte >= 9 && byte <= 13;
 const digit = (byte: number): number => byte >= 48 && byte <= 57 ? byte - 48
@@ -12,8 +12,12 @@ const digit = (byte: number): number => byte >= 48 && byte <= 57 ? byte - 48
 export class LuaNumbers {
   constructor(private readonly heap: LuaStorage) {}
   async coerce(value: StoredLuaValue): Promise<number> {
+    const parsed = await this.parse(value);
+    return typeof parsed === "number" ? parsed : parsed.value;
+  }
+  async parse(value: StoredLuaValue): Promise<number | LuaInteger> {
     if (typeof value === "number") return value;
-    if (typeof value === "object" && value.kind === "integer") return value.value;
+    if (typeof value === "object" && value.kind === "integer") return value;
     const invalid = (): never => {throw new PandocError("E_AST", "convert", "Expected Lua number");};
     if (typeof value !== "object" || value.kind !== "string") return invalid();
     let phase: "start" | "sign" | "zero" | "mantissa" | "exponent" | "exponent-sign" | "exponent-digits" | "end" = "start";
@@ -71,8 +75,8 @@ export class LuaNumbers {
     }
     if (!digits || phase === "exponent" || phase === "exponent-sign") return invalid();
     if (!dot && !hasExponent) {
-      if (hex) return (negative ? -hexInteger : hexInteger) | 0;
-      if (decimalInteger <= 2147483647 + Number(negative)) return (negative ? -decimalInteger : decimalInteger) | 0;
+      if (hex) return {kind: "integer", value: (negative ? -hexInteger : hexInteger) | 0};
+      if (decimalInteger <= 2147483647 + Number(negative)) return {kind: "integer", value: (negative ? -decimalInteger : decimalInteger) | 0};
     }
     if (exponentNegative) exponent = -exponent;
     if (hex) {

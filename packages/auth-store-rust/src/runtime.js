@@ -114,6 +114,7 @@ export function createCredentialStoreBindings(native) {
       }
     }
     async withLock(operation, options = {}) {
+      options = { ...options, signal: options.signal, timeoutMs: options.timeoutMs };
       await this.#assertPath(`${this.#filePath}.lock`);
       if (this.#fs.readdir === undefined)
         throw new Error("Secret-store transaction locks require filesystem readdir support");

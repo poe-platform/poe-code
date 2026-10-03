@@ -3,6 +3,7 @@ import path from "node:path";
 function hasOwnErrorCode(error, code) { return error instanceof Error && Object.hasOwn(error, "code") && error.code === code; }
 /** Filesystem bakery lock: unique claims allow dead-owner cleanup without deleting a replacement owner's lock. */
 export async function withSecretStoreFileLock(fs, lockDirectory, operation, options = {}) {
+    options = { ...options, signal: options.signal, timeoutMs: options.timeoutMs };
     const timeoutMs = options.timeoutMs ?? Infinity;
     if (timeoutMs !== Infinity && (!Number.isFinite(timeoutMs) || timeoutMs < 0 || timeoutMs > 2_147_483_647))
         throw new Error("Invalid secret-store transaction lock timeout");

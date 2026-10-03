@@ -4776,3 +4776,24 @@ platform, packaging and default-swap gates remain open.
 The preceding client facade and helper type repair are verified on remote main
 at 7c3138e5b8 and 278463fa91. Release 37101346847 is in progress. The completed
 client checkpoint's temporary packed artifacts and logs were purged.
+
+### Credential transaction cancellation repair
+
+Running the original Node credential suites through the proposed public auth-store
+entry point exposed six failures: changing a caller's options.signal while an
+initial filesystem path check awaited could discard the original cancellation or
+adopt an unrelated replacement signal. The raw lock and encrypted-file wrapper
+now capture options before their first suspension, matching the current reference.
+The shared source also supplies the embedded OAuth and MCP client credential stores.
+
+Six standalone native regression cases failed before the fix and pass afterward,
+covering file, Keychain and raw locks in both cancellation directions. All 93
+focused credential cases pass without changing the original assertions. This is
+a host cancellation compatibility repair; the bakery ticket/owner coordination
+policy is still JavaScript and remains required Rust implementation work.
+
+The selected maintained npm test route passes for auth-store-rust, mcp-oauth-rust,
+tiny-mcp-client-rust and toolcraft-rust, including the root posttest hook. The
+credential package passes 28 native checks; embedded OAuth passes 114 native
+checks and 772 reference cases; the client passes 83 native checks and 445
+reference cases. Maintained Rust/binding lint and scoped JavaScript lint pass.

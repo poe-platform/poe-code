@@ -1,8 +1,9 @@
-import { createPptxInputSession, type PptxStreamingIO } from "./streaming-inputs.js";
+import { publishPptxSource } from "./streaming-publication.js";
+import { sameRetainedIdentity, createPptxInputSession, type PptxStreamingIO, type PptxRetainedInput } from "./streaming-inputs.js";
 export type { PptxStreamingIO, PptxRetainedInput } from "./streaming-inputs.js";
 import { verifyOriginalInput } from "./original-input.js";
 import { shellValueByteLength } from "safe-bash-contracts/value";
-import { collectBytes, FsError, getCommandArguments, writeBytes, type CommandDefinition, type FileStat, type VirtualShellPlugin } from "safe-bash-contracts";
+import { collectBytes, FsError, getCommandArguments, writeBytes, type ByteSource, type CommandDefinition, type FileStat, type VirtualShellPlugin } from "safe-bash-contracts";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
 import { compareObservedEntries } from "safe-bash-contracts/filesystem-identity";
 import { pathOf } from "safe-bash-io-engine/internal";
@@ -18,8 +19,8 @@ export interface PptxCommandEngine {
       readonly inputPath?: string;
       readonly protectedInputPaths?: readonly string[];
       readonly outputPath: string;
-      readonly bytes: Uint8Array;
-      readonly originalBytes: Uint8Array;
+      readonly bytes: Uint8Array | ByteSource;
+      readonly originalBytes: Uint8Array | PptxRetainedInput;
       readonly inPlace: boolean;
       readonly force: boolean;
       readonly dryRun: boolean;
@@ -112,7 +113,8 @@ export function createPptxCommand(options: PptxCommandsOptions = {}): CommandDef
             if (publication.inPlace ? !input || input !== output : input === output) throw new FsError("EINVAL");
             const capabilities = await fs.capabilitiesFor?.(output, { signal }) ?? fs.capabilities;
             signal.throwIfAborted();
-            if (capabilities.readOnly === true || capabilities.write === false || (!capabilities.atomicFileMutation && !capabilities.trustedOwnedStaging) || !fs.writeFileConditional) throw new FsError("ENOTSUP");
+            if (capabilities.readOnly === true || capabilities.write === false) throw new FsError("ENOTSUP");
+            if (publication.bytes instanceof Uint8Array && ((!capabilities.atomicFileMutation && !capabilities.trustedOwnedStaging) || !fs.writeFileConditional)) throw new FsError("ENOTSUP");
             let destination: FileStat | null;
             try { destination = await fs.lstat(output, { signal }); }
             catch (error) {
@@ -164,18 +166,25 @@ export function createPptxCommand(options: PptxCommandsOptions = {}): CommandDef
             if (parent.type !== "directory") throw new FsError("ENOTDIR");
             if (publication.inPlace) {
               const original = snapshots.get(input!);
-              if (!original || original.type !== "file" || !destination || original.revision === undefined
-                || original.revision !== destination.revision || original.size !== destination.size
+              if (!original || original.type !== "file" || !destination || (original.revision === undefined && original.opaqueVersion === undefined)
+                || original.revision !== destination.revision || original.opaqueVersion !== destination.opaqueVersion || original.size !== destination.size
                 || original.mode !== destination.mode || original.nlink !== destination.nlink
                 || original.mtimeMs !== destination.mtimeMs || original.ctimeMs !== destination.ctimeMs
-                || await compareObservedEntries(fs, input!, original, fs, output, destination, { signal }) !== "same") throw new FsError("EAGAIN");
+                || (original.opaqueIdentity !== undefined || destination.opaqueIdentity !== undefined
+                  ? !sameRetainedIdentity(original, destination)
+                  : await compareObservedEntries(fs, input!, original, fs, output, destination, { signal }) !== "same")) throw new FsError("EAGAIN");
               await verifyOriginalInput(fs, input!, publication.originalBytes, signal);
               destination = original;
             }
             signal.throwIfAborted();
-            if (!publication.dryRun) await writeFileOutput(context, publication.bytes, async bytes => {
-              await fs.writeFileConditional!(output, bytes, { parent, expected: destination, signal });
-            });
+            if (!publication.dryRun) {
+              if (publication.bytes instanceof Uint8Array) await writeFileOutput(context, publication.bytes, async bytes => {
+                await fs.writeFileConditional!(output, bytes, { parent, expected: destination, signal });
+              });
+              else await publishPptxSource(context, output, publication.bytes, destination, parent, async () => {
+                if (publication.inPlace) await verifyOriginalInput(fs, input!, publication.originalBytes, signal);
+              });
+            }
           } catch (error) {
             context.signal.throwIfAborted();
             const code = error instanceof FsError && error.code === "EAGAIN" ? "stale-input"

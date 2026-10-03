@@ -21,6 +21,12 @@ inputs require retained-read support and verifiable identity/version metadata;
 `-` snapshots stdin for replay. Memory-backed filesystems keep spilled data in
 memory, so large inputs need an external storage backend.
 
+`publishOutput` also accepts a byte source and retained `originalBytes`. Streamed
+publication requires retained atomic staging with ancestry and commit guards.
+The adapter writes bounded chunks to owned staging, rechecks in-place input,
+and publishes conditionally. Errors and cancellation retire staging without
+publishing partial output; dry-run does not consume the output source.
+
 The built-in engine still uses buffered document operations during its streaming
 migration. The custom streaming interface alone does not make those operations
 bounded-memory.

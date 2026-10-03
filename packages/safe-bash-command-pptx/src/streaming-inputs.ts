@@ -20,7 +20,7 @@ export interface PptxStreamingIO {
   openInput(path: string, maxBytes: number): Promise<PptxRetainedInput>;
 }
 
-function sameRetainedIdentity(before: FileStat, after: FileStat): boolean {
+export function sameRetainedIdentity(before: FileStat, after: FileStat): boolean {
   if (before.opaqueIdentity !== undefined || after.opaqueIdentity !== undefined) {
     const scope = before.identityScope;
     return ((typeof scope === "object" && scope !== null) || typeof scope === "symbol")

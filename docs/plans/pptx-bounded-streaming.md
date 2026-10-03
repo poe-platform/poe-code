@@ -32,10 +32,14 @@ stdin, checks numeric or opaque identity/version metadata, closes handles, and
 retires snapshots at invocation completion. Tests observe spill writes and cover
 limits, cancellation, changed input and cleanup failure. Exact original comparison
 also accepts retained snapshots without a whole-file fallback. The built-in engine
-has not yet adopted these APIs, and publication still requires output arrays.
+has not yet adopted these APIs. Public publication now also accepts byte sources
+and retained originals, using owned retained staging, bounded writes, exact
+in-place rechecks, guarded conditional publication and cleanup. Deterministic
+tests cover source failure, cancellation, changed input, force/protected input
+policy, dry-run and bounded outstanding staging writes.
 
 This is not an end-to-end bounded-memory implementation or Worker qualification.
-The command still collects input, returns complete stdout/stderr, and publishes
+The built-in command engine still collects input, returns complete stdout/stderr, and publishes
 complete output arrays. `safe-bash-presentation-engine` still collects the archive,
 retains decompressed members in `readPackage`, copies members in
 `writePackageArchive`, and builds embedded chart workbooks in memory.

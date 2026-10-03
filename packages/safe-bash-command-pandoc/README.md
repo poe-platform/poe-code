@@ -203,7 +203,9 @@ source, parser state, document nodes and real Lua or JSON filters. Embedded pict
 bytes stay in caller storage independently of filter document generations; JSON
 output continues to reject resource sidecars even after a filter removes the images.
 Embedded pictures survive Lua filter generations; JSON filters reject unrepresentable
-resource sidecars. Embedded HTML and finite structural budgets still use the compatibility path.
+resource sidecars. Finite image-count, binary-byte and layout-work budgets also
+retain this path and their existing failures. Embedded HTML and other finite
+structural budgets still use the compatibility path.
 Single-input JSON → plain text uses the same retained document and streaming
 JSON filters. Its writer jobs, diagnostic paths, intermediate text, wrapping and
 indentation use caller storage, including long words and nested lists. It preserves

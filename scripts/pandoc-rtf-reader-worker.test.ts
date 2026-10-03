@@ -31,6 +31,7 @@ it.each(["plain", "rtf", "odt"])("reads RTF through external R2 pages into %s", 
       }
       try {
         await api.convertToOutput([{chunks: source()}], {from: "rtf", to: ${JSON.stringify(to)}}, {
+          limits: {images: 100, binaryBytes: 100000, layoutWork: 100000},
           signal: controller.signal, workingFiles: {fs, directory: "/spill", cacheBytes: 16384},
           output: {async write(bytes) {
             if (mode === "sink-failure") throw new Error("Sink failed");

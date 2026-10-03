@@ -190,7 +190,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
     const at = (v: Matrix, r: number, c: number) => v.rows[v.rows.length === 1 ? 0 : r]?.[(v.rows[0]?.length ?? 0) === 1 ? 0 : c] ?? error("#N/A");
     return { kind: "matrix", rows: Array.from({ length: rows }, (_, r) => Array.from({ length: columns }, (_, c) => { tick(); return binary(op, at(x, r, c), at(y, r, c), admission); })) };
   }
-  function evaluate(node: FormulaNode, position: ParsePosition, array = false, names = new Set<object>(), wantReference = true): Value {
+  function evaluate(node: FormulaNode, position: ParsePosition, array = false, names = new Set<object>(), wantReference = true, aggregate = false): Value {
     tick();
     if (++depth > (context.limits.formulaDependencyDepth ?? Infinity)) { depth--; throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded"); }
     try {
@@ -200,7 +200,12 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
         const value = reference(node, position);
         return !wantReference && !node.label && !node.last && node.first.row && node.first.column ? scalar(value, position) : value;
       }
-      if (node.kind === "parentheses") return evaluate(node.child, position, array, names, wantReference);
+      if (node.kind === "parentheses") {
+        const value = evaluate(node.child, position, array, names, wantReference);
+        // A union wrapper is set syntax; extra grouping is scalar even through names.
+        const grouped = !(node.child.kind === "binary" && node.child.op === "union");
+        return aggregate && grouped && !array ? scalar(value, position) : value;
+      }
       if (node.kind === "array") return { kind: "matrix", rows: node.rows.map(row => row.map(child => scalar(evaluate(child, position, array, names), position))) };
       if (node.kind === "name") {
         if (node.workbook !== undefined && node.workbook !== "") return external({ kind: "name", workbook: node.workbook, name: node.name,
@@ -210,7 +215,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
         const matches = (entry: NonNullable<Workbook["names"]>[number]) => entry.name === node.name;
         const name = book.names?.find(entry => entry.sheet === sheet && matches(entry)) ?? book.names?.find(entry => entry.sheet === undefined && matches(entry));
         if (!name || names.has(name)) return error("#NAME?");
-        return evaluate(parseNamedExpression(name, book, parse, tick, context.limits.formulaDependencyDepth ?? Infinity, node.relocation), position, array, new Set([...names, name]), wantReference);
+        return evaluate(parseNamedExpression(name, book, parse, tick, context.limits.formulaDependencyDepth ?? Infinity, node.relocation), position, array, new Set([...names, name]), wantReference, aggregate);
       }
       if (node.kind === "unary") {
         const apply = (value: CellValue) => {
@@ -329,11 +334,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
           for (const row of matrix(v).rows) for (const item of row) { tick(); if (item.kind === "error") { failure ??= item; return; } if (item.kind === "number") values.push(item.value); }
         };
         for (const arg of node.args) {
-          const value = evaluate(arg, position, array, names);
-          // One union wrapper is set syntax. Further grouping reaches native
-          // scalar evaluation instead of the aggregate's argument iterator.
-          const grouped = arg.kind === "parentheses" && !(arg.child.kind === "binary" && arg.child.op === "union");
-          collect(grouped && !array ? scalar(value, position) : value);
+          collect(evaluate(arg, position, array, names, true, true));
           if (failure) return failure;
         }
         if (node.name === "SUM") return numericResult(sum(values, tick));

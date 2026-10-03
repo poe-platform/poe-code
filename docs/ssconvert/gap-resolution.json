@@ -4199,7 +4199,15 @@
         "limitation": "Four XLSX native readbacks reject Cases!A5 with exactly the same 93-byte All entries in the set must be references diagnostic as native own export/self-reimport. All eight BIFF7/BIFF8 native readbacks preserve values, and all four cached product XLSX outputs preserve values. The four failures are not passes. Removing the original grouping changes SUM/PRODUCT evaluation and is not an acceptable normalization."
       },
       "resolved": "Previously recorded eight grouped-SUM BIFF import mismatches and32 aggregate BIFF export mismatches are repaired. The import, aggregate and right-nesting cohorts total560 matching public/native value comparisons; the original explicit-parenthesis cohort separately has92matches and4native parser failures.",
-      "remaining": "Native XLSX parser limitation, warned nested-left-set structure loss, wider named/reference/array contexts and broader BIFF qualification remain unresolved. All19families remain open; no full support or release claim."
+      "remaining": "Native XLSX parser limitation, warned nested-left-set structure loss, wider named/reference/array contexts and broader BIFF qualification remain unresolved. All19families remain open; no full support or release claim.",
+      "namedAggregate": {
+        "repair": "SUM/PRODUCT preserve scalar grouping through local named definitions and aliases using the existing bounded recursive evaluator. Bare named sets retain aggregate iteration; grouped ranges retain implicit intersection. Cycle and missing-sheet errors remain intact.",
+        "native": "Ten formulas and three data cells in the unchanged Gnumeric 1.12.61 glossary profile: five #VALUE! results, direct set SUM/PRODUCT 5/6, direct alias SUM 5, in-range grouped range results 2/3; no diagnostics.",
+        "evidence": "out/ssconvert-continuation-1748/named-aggregate",
+        "validation": "Original memory regression failed before repair; 432 engine and 18681 command formula tests pass, as do engine lint/source/test types and normal root build. Root/package SDK and command XLSX/BIFF7/BIFF8 exports match all 208 cached/native comparisons without diagnostics. Actual command screenshot inspected. This does not qualify installed registry artifacts.",
+        "nativeLimitation": "Four separate formulas containing names inside union sets are rejected by the native parser (All entries in the set must be references); retained separately, not passing comparisons.",
+        "remaining": "Broader BIFF, format and public registry qualification requirements remain open."
+      }
     }
   },
   "cases": [

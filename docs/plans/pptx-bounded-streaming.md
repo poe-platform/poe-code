@@ -38,6 +38,18 @@ in-place rechecks, guarded conditional publication and cleanup. Deterministic
 tests cover source failure, cancellation, changed input, force/protected input
 policy, dry-run and bounded outstanding staging writes.
 
+The internal retained XML lexical layer now decodes UTF-8/UTF-16 in bounded
+windows into caller storage, retaining original encoding/BOM metadata. Tokens
+and long scalar values are ranges in that storage. Text/attribute value streams
+expand predefined/numeric references and normalize XML 1.0 whitespace without
+retaining whole values or digit strings. Tests force storage spills, stream
+multi-megabyte reused chunks, and cover split encodings, delimiter overlap,
+malformed input, limits, cancellation and error cleanup. Python ElementTree
+independently agreed with retained attribute/text normalization for Unicode,
+CRLF, predefined references and numeric references. This is lexical scanning,
+not semantic XML admission: qualified-name/namespace validation, element matching,
+stored tree indexes and application checks still need implementation and wiring.
+
 This is not an end-to-end bounded-memory implementation or Worker qualification.
 The built-in command engine still collects input, returns complete stdout/stderr, and publishes
 complete output arrays. `safe-bash-presentation-engine` still collects the archive,

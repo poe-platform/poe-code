@@ -51,6 +51,14 @@ Duplicate names and name-tree cycles use caller-backed indexes; filename equalit
 is exact, including Unicode code units. Returning early or closing the document
 releases traversal staging. Keep the document open while reading contents.
 
+`doc.destinations()` visits legacy and name-tree destinations in stored order.
+Each entry has a `name` and, when valid, a `target` containing `pageNumber` and
+`kind`. Page references use a caller-backed index; malformed named entries remain
+visible without a target. `doc.urls({ firstPage, lastPage })` visits annotation
+URI actions and their chains, yielding `pageNumber` and `url`. Cycles are tracked
+in caller storage, with URL deduplication scoped to each annotation. Both walks
+release their indexes on completion, return, error or document closure.
+
 `doc.javaScripts()` visits document actions, JavaScript name trees, page and
 annotation actions, and form fields in inspection order. Each result exposes a
 `name` and lazy UTF-8 `contents()` chunks. It follows action chains with the

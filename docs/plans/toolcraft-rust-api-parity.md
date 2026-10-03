@@ -4111,34 +4111,6 @@ No performance/default-swap gate passed. Public MCP handler, approval/error,
 stream and transport lifecycle integration, HTTP/OAuth and full platform/resource/
 standalone packaging qualification remain open.
 
-### Public MCP dependency ingress repair
-
-Public MCP integration exposed three differences in the own native stdio server:
-custom parameters with undefined object properties failed admission, unvalidated
-arguments lost their original identity, and undefined structured array entries
-were dropped before output validation. Three differential failures preceded the
-repair. Request snapshots now omit undefined object properties recursively while
-Node retains original custom parameters and unvalidated tool arguments. Declared
-outputs use strict JSON admission and native protocol-error selection. Existing
-untyped content conversion retains its separate policy.
-
-Five differential checks cover direct and SDK custom calls in both protocol
-versions, original argument identity, null rejection, and explicit/raw invalid
-structured arrays/objects. A new test initially assumed null should default to an
-empty object; direct inspection of the current JavaScript implementation disproved
-that assumption. The attempted null-default change was removed; the original Rust
-lifecycle test is unchanged. Maintained dependency verification passes Rust tests,
-362 native Node checks and declarations. The shared protocol workspace passes its
-Rust/Node tests and both crates pass maintained lint; scoped ESLint passes.
-
-This does not qualify arbitrary host request values: accessor properties, custom
-prototypes, cycles and undefined/sparse arrays remain restricted by native ingress.
-No external dependencies or default implementation changed.
-
-The earlier MCP output checkpoint's package workflow 37087484577 completed with
-successful standalone bundles on Node 18.18, 20, 22 and 24 and a successful publish
-job. This is distinct from the skipped stable-root publication in its Release run.
-
 MCP tool enumeration is independently verified on remote main at b5dc169902.
 Release 37088180709 completed successfully with release-stable skipped; this
 verifies the build, not publication or a full fresh matrix.
@@ -4244,3 +4216,75 @@ input validation, handler execution and object/array result projection. This doe
 not pass a performance/default-swap gate. Public MCP server/stream integration,
 HTTP/OAuth, remaining exports, Commander replacement and full standalone types,
 platform/resource/packaging qualification remain open.
+
+### Public MCP dependency ingress repair
+
+Public MCP integration exposed three differences in the own native stdio server:
+custom parameters with undefined object properties failed admission, unvalidated
+arguments lost their original identity, and undefined structured array entries
+were dropped before output validation. Three differential failures preceded the
+repair. Request snapshots now omit undefined object properties recursively while
+Node retains original custom parameters and unvalidated tool arguments. Declared
+outputs use strict JSON admission and native protocol-error selection. Existing
+untyped content conversion retains its separate policy.
+
+Five differential checks cover direct and SDK custom calls in both protocol
+versions, original argument identity, null rejection, and explicit/raw invalid
+structured arrays/objects. A new test initially assumed null should default to an
+empty object; direct inspection of the current JavaScript implementation disproved
+that assumption. The attempted null-default change was removed; the original Rust
+lifecycle test is unchanged. Maintained dependency verification passes Rust tests,
+362 native Node checks and declarations. The shared protocol workspace passes its
+Rust/Node tests and both crates pass maintained lint; scoped ESLint passes.
+
+This does not qualify arbitrary host request values: accessor properties, custom
+prototypes, cycles and undefined/sparse arrays remain restricted by native ingress.
+No external dependencies or default implementation changed.
+
+The earlier MCP output checkpoint's package workflow 37087484577 completed with
+successful standalone bundles on Node 18.18, 20, 22 and 24 and a successful publish
+job. This is distinct from the skipped stable-root publication in its Release run.
+The dependency repair is independently verified on remote main at 6c09ddd088;
+Release 37091470539 is running.
+
+### Public MCP server and stream checkpoint
+
+The public `toolcraft-rust/mcp` entry point now exports createMCPServer, runMCP,
+MCP_STREAM_METHODS and the reference's internal transport-construction function.
+Rust owns startup selection, tool registration policy, stream admission, event
+validation, subscription ownership, notification suppression and cleanup decisions.
+Node retains promises, transport/callback receivers, original values, async
+iteration and the notification queue. Deferred discovery is lazy and shared across
+concurrent consumers, and failed resolution permits a retry. No external dependency
+or default implementation changed.
+
+Four missing-module failures preceded integration. Public comparisons cover export
+names, real session discovery/tool calls, stream status/data/end, unsupported
+transport rejection, getter order and server registration. Deferred comparisons
+cover concurrent listen/connect/await, failure reset and runMCP sequencing.
+Thirteen original MCP suites and the human-approval integration suite now run
+against native entry points and own native transport dependencies. The existing
+entrypoint test uses a partial server mock so the real content helper remains
+available. Its original behavior assertions are unchanged. All fixtures are in
+memory; subprocess/disk-based proxy integration is not included in this unit route.
+
+Maintained verification passes Rust tests, 266 native Node checks, 5,978 reference/
+parity cases across 105 files, bidirectional MCP declarations and the original CLI
+type consumer. Rust/binding lint and scoped ESLint pass. Packed public consumers
+verify discovery, defaults, wire casing, error codes and stream delivery using eight
+packed own native packages and only existing Commander as an external runtime
+dependency. MCP declarations intentionally retain canonical reference Server and
+RunMCPOptions contracts; standalone native type packaging remains unqualified.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 300 operations, retaining
+32 results, measured server creation at 713.183 microseconds native versus 318.759
+microseconds JavaScript (2.24 times slower), and real-session tool calls at
+147.033 versus 21.532 microseconds (6.83 times slower). Each server registers one
+MCP-scoped tool with a defaulted input and declared output; calls validate and
+project a string field. Preflight assertions check discovery and successful output.
+An initial fixture omitted MCP scope and was rejected by the packed consumer;
+its empty-server/missing-tool measurements were discarded. These workloads differ
+from earlier internal-helper benchmarks and do not establish an improvement.
+No performance/default-swap gate passed. HTTP/OAuth, remaining exports, Commander
+replacement and complete standalone types/platform/resource qualification remain
+open. Internal MCP integration does not change CLI presentation.

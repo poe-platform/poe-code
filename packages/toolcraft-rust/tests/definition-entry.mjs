@@ -1,3 +1,3 @@
 // Definitions, schema construction and runtime helpers resolve to native code.
-// SDK imports resolve to the native adapter; MCP consumers remain the reference.
+// SDK and selected MCP integration suites resolve to the native adapters.
 export * from "../dist/index.js";

@@ -8,6 +8,7 @@ const suites = ["stack-trim", "suggest", "runtime-logging", "redaction", "packag
 // The original bundle suite invokes esbuild against source paths independently
 // of Vitest resolution. Native packaging is qualified separately.
 const cliSuites = readdirSync(path("../toolcraft/src")).filter(name => name.startsWith("cli") && name.endsWith(".test.ts") && name !== "cli-bundle.test.ts");
+const mcpSuites = ["mcp-default-descriptors", "mcp-default-metadata", "mcp-default-requiredness", "mcp-discriminator-metadata", "mcp-modern-output-roots", "mcp-notification-lifecycle", "mcp-output-validation", "mcp-request-cancellation", "mcp-runtime-options", "mcp-scope", "mcp-stream-errors", "mcp-proxy-native-transport", "entrypoints-mcp-proxy"];
 
 export default defineConfig({
   plugins: [
@@ -15,6 +16,19 @@ export default defineConfig({
       name: "toolcraft-rust-reference",
       enforce: "pre",
       resolveId(name, importer) {
+        if (mcpSuites.some(suite => importer === path(`../toolcraft/src/${suite}.test.ts`))) {
+          if (name === "./mcp.js") return path("dist/mcp.js");
+          if (name === "./index.js") return path("tests/definition-entry.mjs");
+          if (name === "tiny-stdio-mcp-server") return path("../tiny-stdio-mcp-server-rust/dist/index.js");
+          if (name === "tiny-mcp-client") return path("../tiny-mcp-client-rust/dist/index.js");
+          if (name === "./cli.js") return path("dist/cli.js");
+          if (name === "toolcraft-design") return path("../toolcraft-design-rust/dist/index.js");
+        }
+        if (importer === path("../toolcraft/src/human-in-loop/mcp-runtime.integration.test.ts")) {
+          if (name === "../mcp.js") return path("dist/mcp.js");
+          if (name === "../index.js") return path("tests/definition-entry.mjs");
+          if (name === "tiny-mcp-client") return path("../tiny-mcp-client-rust/dist/index.js");
+        }
         if (importer === path("../toolcraft/src/human-in-loop/cli-runtime.integration.test.ts")) {
           if (name === "../cli.js") return path("dist/cli.js");
           if (name === "../index.js") return path("tests/definition-entry.mjs");
@@ -102,6 +116,9 @@ export default defineConfig({
       path("tests/mcp-tools-parity.test.ts"),
       path("tests/mcp-errors-parity.test.ts"),
       path("tests/mcp-handler-parity.test.ts"),
+      path("tests/mcp-public-parity.test.ts"),
+      path("tests/mcp-deferred-parity.test.ts"),
+      ...mcpSuites.map(suite => path(`../toolcraft/src/${suite}.test.ts`)),
       path("tests/source-snippet-parity.test.ts"),
       path("tests/runtime-io-parity.test.ts"),
       path("tests/error-report-parity.test.ts"),
@@ -121,6 +138,7 @@ export default defineConfig({
       path("tests/cli-errors-parity.test.ts"),
       path("../toolcraft/src/human-in-loop/sdk-runtime.integration.test.ts"),
       path("../toolcraft/src/human-in-loop/cli-runtime.integration.test.ts"),
+      path("../toolcraft/src/human-in-loop/mcp-runtime.integration.test.ts"),
       path("../toolcraft/src/human-in-loop/plan-hash.test.ts"),
       path("../toolcraft/src/human-in-loop/approval-tasks.test.ts"),
       path("../toolcraft/src/human-in-loop/state-machine.test.ts"),

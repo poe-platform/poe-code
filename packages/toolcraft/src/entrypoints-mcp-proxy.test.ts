@@ -147,7 +147,8 @@ vi.mock("tiny-mcp-client", () => ({
   })
 }));
 
-vi.mock("tiny-stdio-mcp-server", () => ({
+vi.mock("tiny-stdio-mcp-server", async (importOriginal) => ({
+  ...await importOriginal<typeof import("tiny-stdio-mcp-server")>(),
   JSON_RPC_ERROR_CODES: {
     INVALID_PARAMS: -32602,
     INTERNAL_ERROR: -32603

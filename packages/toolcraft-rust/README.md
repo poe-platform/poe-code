@@ -16,13 +16,14 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Cloning          | Detached command trees, scope overrides, source locations and MCP proxy metadata |
 | Package metadata | Nearest package lookup, symlink resolution and optional entrypoint lookup        |
 | MCP results      | Explicit result markers, shallow copy semantics and cross-bundle recognition     |
-| MCP metadata     | Native tool names, parameter descriptions, examples and tool allowlists; public server still pending |
-| MCP arguments    | Native nested wire-key validation, defaults, native JSON schemas and bounded diagnostics; public server still pending |
-| MCP output       | Native result-key projection, validated defaults, additional fields and typed result errors; public server still pending |
+| MCP metadata     | Native tool names, parameter descriptions, examples and tool allowlists |
+| MCP arguments    | Native nested wire-key validation, defaults, native JSON schemas and bounded diagnostics |
+| MCP output       | Native result-key projection, validated defaults, additional fields and typed result errors |
 | MCP schemas      | Native wire-key schemas, input/output requiredness, discriminator defaults and optional-alias constraints |
-| MCP tools        | Native scoped tool enumeration, nested allowlists, collision checks and command metadata; public server still pending |
+| MCP tools        | Native scoped tool enumeration, nested allowlists, collision checks and command metadata |
 | MCP errors       | Native approval records, exact content blocks, HTTP envelopes and typed protocol errors |
-| MCP handlers     | Native invocation routing, request services, cancellation, approvals, result projection and error reporting; public server still pending |
+| Public MCP       | `toolcraft-rust/mcp`: server creation, deferred discovery, tool calls and session-owned streams |
+| MCP handlers     | Native invocation routing, request services, cancellation, approvals, result projection and error reporting |
 | Stack diagnostics | Native framework-frame summaries, nested cause sections and raw stack preservation |
 | Result rendering | Native rich cards, tables, Markdown/JSON, custom hooks and MCP error routing |
 | CLI snapshots    | Native command-tree assembly, scope filtering, defaults and option metadata |
@@ -81,6 +82,7 @@ import { S, defineCommand, defineGroup } from "toolcraft-rust";
 
 const greet = defineCommand({
   name: "greet",
+  scope: ["cli", "sdk", "mcp"],
   params: S.Object({ name: S.String() }),
   handler: ({ params }) => `Hello, ${params.name}`
 });
@@ -93,6 +95,10 @@ await createSDK(app).greet({ name: "World" });
 // Run the same command tree from a terminal.
 const { runCLI } = await import("toolcraft-rust/cli");
 await runCLI(app, { argv: ["node", "app", "greet", "--name", "World"] });
+
+// Expose the same command tree over MCP stdin/stdout.
+const { runMCP } = await import("toolcraft-rust/mcp");
+await runMCP(app, { name: "app", version: "1.0.0" });
 ```
 
 Use a human approval provider with the SDK:
@@ -211,8 +217,9 @@ Result rendering uses the own Rust YAML codec; YAML-library Document/node inputs
 remain under qualification. Public CLI parsing, prompting, rendering and errors
 are available, with existing Commander still supplying the parser objects.
 
-Transports and remaining subpaths are not yet available. The native CLI is
-currently slower than the JavaScript implementation; it is not a performance upgrade. Declarations currently use the existing
-schema/design/config contract types; standalone type packaging and generic
+Public MCP supports stdin/stdout and SDK transports, including stream notifications
+and cancellation. HTTP/OAuth entry points and remaining subpaths are not yet
+available. The native CLI and MCP paths are currently slower than JavaScript.
+Declarations currently use the existing schema/design/config/MCP contract types; standalone type packaging and generic
 stream-factory interchangeability remain pending. The migration and replacement
 gates are tracked in the repository's Toolcraft Rust API parity plan.

@@ -1,4 +1,6 @@
 import path from "node:path";
+import {readFile} from "node:fs/promises";
+import {encodePngImage} from "../packages/image-ast/src/codecs/png.js";
 import { fileURLToPath } from "node:url";
 import { runInNewContext } from "node:vm";
 import { build, type BuildResult } from "esbuild";
@@ -24,15 +26,21 @@ beforeAll(async () => {
     }
   });
   script = result.outputFiles!.find(file => file.path.endsWith(".js"))!.text;
+  const packageRoot = path.join(root, "packages/safe-bash");
+  const manifest = JSON.parse(await readFile(path.join(packageRoot, "package.json"), "utf8"));
   const published = await build({
-    entryPoints: [path.join(root, "packages/safe-bash/dist/commands/pandoc/index.browser.js")],
+    stdin: {resolveDir: packageRoot, contents: [
+      `export * from "${manifest.exports["./commands/pandoc"].workerd}";`,
+      `export {createSipsCommand} from "${manifest.exports["./commands/sips"].workerd}";`,
+      `export {createShufCommand} from "${manifest.exports["./commands/shuf"].workerd}";`,
+    ].join("\n")},
     bundle: true, platform: "browser", format: "cjs", write: false, metafile: true,
-    logLevel: "silent", external: ["poe-code/safe-fs/core"], loader: {".wasm": "copy"},
+    logLevel: "silent", external: ["poe-code/safe-fs/core", "@poe-platform/safe-fs/core"], loader: {".wasm": "copy"},
     outdir: path.join(root, "out/pandoc-qualification"),
   });
   expect([...new Set(Object.values(published.metafile!.outputs).flatMap(output =>
     output.imports.filter(entry => entry.external).map(entry => entry.path)
-  ))]).toEqual(["poe-code/safe-fs/core"]);
+  ))].sort()).toEqual(["@poe-platform/safe-fs/core", "poe-code/safe-fs/core"]);
   publishedScript = published.outputFiles!.find(file => file.path.endsWith(".js"))!.text;
 });
 
@@ -60,12 +68,13 @@ it("uses prepared Pandoc adapters in the standalone browser shell build", async 
   expect(filtered.blocks).toEqual([{ t: "Para", c: [{ t: "Str", c: "HELLO" }] }]);
 });
 
-it("loads the Pandoc bundle and converts Markdown in workerd without Node compatibility", async () => {
+it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd without Node compatibility", async () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const fsBuild = await build({
     entryPoints: [path.join(root, "packages/safe-fs/src/core.ts")],
     bundle: true, platform: "browser", format: "cjs", write: false,
   });
+  const png = encodePngImage({width: 1, height: 1, data: Uint8Array.of(255, 0, 0, 255), channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true});
   const runtime = new Miniflare({
     modules: true, compatibilityDate: "2026-07-01", cf: false,
     script: `
@@ -75,13 +84,18 @@ it("loads the Pandoc bundle and converts Markdown in workerd without Node compat
         ${publishedScript};
         return module.exports;
       })(name => {
-        if (name !== "poe-code/safe-fs/core") throw new Error("Unexpected external: " + name);
+        if (name !== "poe-code/safe-fs/core" && name !== "@poe-platform/safe-fs/core") throw new Error("Unexpected external: " + name);
         return fs;
       });
       export default { async fetch(request) {
         const scenario = new URL(request.url).pathname.slice(1);
         const vfs = fs.createMemoryFileSystem();
         const encoder = new TextEncoder();
+        const readFile = vfs.readFile.bind(vfs);
+        if (scenario !== "composed") vfs.readFile = (path, options) => {
+          if (path === "/filter.lua") throw new Error("Filter source must stream");
+          return readFile(path, options);
+        };
         await vfs.writeFile("/input.md", encoder.encode("**portable**"));
         const scripts = {
           lua: 'assert(io == nil and os == nil and package == nil and require == nil and dofile == nil and loadfile == nil); local xs = {3, 1, 2}; table.sort(xs); assert(table.concat(xs) == "123"); function Str(el) el.text = string.upper(el.text); return el end',
@@ -95,8 +109,29 @@ it("loads the Pandoc bundle and converts Markdown in workerd without Node compat
           await vfs.writeFile("/filter.lua", encoder.encode(scripts.lua));
           const result = await pandoc.convert([{bytes: await vfs.readFile("/input.md")}], {
             from: "markdown", to: "html", filters: [{kind: "lua", path: "/filter.lua"}],
-          }, {filters: pandoc.createLuaFilterCapability({readFile: (path, signal) => vfs.readFile(path, {signal})})});
+          }, {filters: pandoc.createLuaFilterCapability({readStream: (path, signal) => vfs.readStream(path, {signal, chunkSize: 3})})});
           return Response.json({exitCode: 0, stdout: result.text, stderr: ""});
+        }
+        if (scenario === "composed") {
+          const outputs = [];
+          const execute = async (command, args) => {
+            let stdout = "", stderr = "";
+            const result = await command.execute({command: command.name, args, cwd: "/", env: {}, fs: vfs,
+              signal: new AbortController().signal, stdin: (async function* () {})(),
+              stdout: {async write(bytes) {stdout += new TextDecoder().decode(bytes);}},
+              stderr: {async write(bytes) {stderr += new TextDecoder().decode(bytes);}},
+            });
+            outputs.push({exitCode: result.exitCode, stdout, stderr});
+            if (result.exitCode) throw new Error(stderr);
+          };
+          await vfs.writeFile("/image.png", Uint8Array.from(${JSON.stringify([...png])}));
+          await execute(pandoc.createSipsCommand(), ["-s", "description", "shared-vfs", "/image.png", "-o", "/copy.png"]);
+          await execute(pandoc.createSipsCommand(), ["-g", "description", "/copy.png"]);
+          await vfs.writeFile("/words", encoder.encode("hello\\nworld\\n"));
+          await execute(pandoc.createShufCommand(), ["/words", "-o", "/words.md"]);
+          await vfs.writeFile("/filter.lua", encoder.encode(scripts.lua));
+          await execute(pandoc.createPandocCommand(), ["-f", "commonmark", "-t", "html", "-L", "/filter.lua", "/words.md"]);
+          return Response.json(outputs);
         }
         let stdout = "", stderr = "";
         const command = pandoc.createPandocCommand(scenario === "budget" ? {limits: {work: 10000}} : {});
@@ -119,6 +154,13 @@ it("loads the Pandoc bundle and converts Markdown in workerd without Node compat
       const filtered = await runtime.dispatchFetch("https://pandoc.test/" + scenario);
       expect(await filtered.json()).toEqual({exitCode: 0, stdout: "<p><strong>PORTABLE</strong></p>\n", stderr: ""});
     }
+    const composedResponse = await runtime.dispatchFetch("https://pandoc.test/composed");
+    const composedText = await composedResponse.text();
+    expect(composedResponse.status, composedText).toBe(200);
+    const composed = JSON.parse(composedText) as {exitCode: number; stdout: string; stderr: string}[];
+    expect(composed.every(result => result.exitCode === 0 && result.stderr === "")).toBe(true);
+    expect(composed[1]!.stdout).toContain("description: shared-vfs");
+    expect(composed[3]!.stdout).toMatch(/^<p>(HELLO\nWORLD|WORLD\nHELLO)<\/p>\n$/);
     for (const [scenario, code, status] of [["host", "E_AST", 4], ["syntax", "E_AST", 4], ["missing", "E_IO", 9], ["budget", "E_LIMIT", 7]]) {
       const failed = await runtime.dispatchFetch("https://pandoc.test/" + scenario);
       expect(await failed.json()).toEqual({exitCode: status, stdout: "", stderr: expect.stringContaining(code)});

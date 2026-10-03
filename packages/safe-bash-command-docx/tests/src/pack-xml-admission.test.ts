@@ -1,6 +1,6 @@
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
-import type { FileSystem } from "@poe-code/safe-fs/core";
+import type { FileSystem, ReadStreamOptions } from "@poe-code/safe-fs/core";
 import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
 import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { Document, DocumentBudget, createDocxInspectionCommandEngine, packDocumentArchive } from "../../src/sdk.js";
@@ -30,7 +30,14 @@ it(`${route} packs XML ${essence}${parameter}; ceiling=${ceiling} delta=${delta}
     const fs = {
       async lstat(path: string) { const stat = memory.lstatSync(path); return {type: stat.isDirectory() ? "directory" : "file", size: stat.size}; },
       async realpath(path: string) { return String(memory.realpathSync(path)); },
-      async readFile(path: string) { reads.push(path); return new Uint8Array(memory.readFileSync(path) as Buffer); }
+      async *readStream(path: string, options: ReadStreamOptions = {}) {
+        options.signal?.throwIfAborted(); reads.push(path);
+        const bytes = memory.readFileSync(path) as Buffer, end = Math.min(bytes.length, options.endExclusive ?? bytes.length);
+        const chunkSize = Math.min(1024, options.chunkSize ?? 1024);
+        for (let offset = options.start ?? 0; offset < end; offset += chunkSize) {
+          options.signal?.throwIfAborted(); yield bytes.subarray(offset, Math.min(offset + chunkSize, end));
+        }
+      }
     } as unknown as FileSystem;
     const task = packDocumentArchive(inventory, {output: "-", ...(ceiling === "option" ? {limit} : {})}, {...textContext, budget: new DocumentBudget(ceiling === "host" ? {xmlPartBytes: 4096} : {}, textContext.signal), filesystem: fs, inventoryDirectory: "/tree", stdout: {async write(bytes) {memory.appendFileSync("/output", bytes);}}});
     if (delta === 1) await expect(task).rejects.toMatchObject({code: "limit-exceeded"}); else expect((await task).changed).toBe(true);

@@ -81,7 +81,8 @@ format/resource equivalence remains unqualified and part of this plan.
 
 Live Lotus name references are delivered in `2f95e87916` and `7aa2721cff`.
 Definition edits and deletion now affect imported formulas; per-use copy modes
-preserve relative/absolute axes and existing qualified-sheet behavior. Native
+preserve relative/absolute axes and existing qualified-sheet behavior. Tab moves
+and renames retain copied names’ sheet identities and later definition edits. Native
 XML/XLSX/BIFF transport remains unfinished and refuses these tokens rather than
 silently dropping identity or relocation. Complete native copy/move qualification
 before closing this family. The ledger records focused and compiled evidence.

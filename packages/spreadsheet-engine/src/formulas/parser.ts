@@ -259,11 +259,35 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
           return value;
         };
         const row = displacement(","), column = displacement(","), sheet = displacement("]");
+        const entries: [string, string | null][] = [];
+        if (source.startsWith(".sheets[", offset)) {
+          offset += 8;
+          const keys = new Set<string>();
+          do {
+            if (source[offset] !== '"') fail("Invalid live name sheet mapping");
+            const key = quoted('"', grammar.stringEscape);
+            if (!key || keys.has(foldSheetName(key)) || source[offset++] !== ",") fail("Invalid live name sheet mapping");
+            keys.add(foldSheetName(key));
+            let target: string | null;
+            if (source.startsWith("null", offset)) { target = null; offset += 4; }
+            else {
+              if (source[offset] !== '"') fail("Invalid live name sheet mapping");
+              target = quoted('"', grammar.stringEscape);
+              if (!target) fail("Invalid live name sheet mapping");
+            }
+            options.signal?.throwIfAborted(); options.onWork?.();
+            if (++nodes > (options.maximumNodes ?? Infinity)) throw new SsconvertError("resource-limit", "ssconvert formula node limit exceeded");
+            entries.push([key, target]);
+            if (source[offset] !== ",") break;
+            offset++;
+          } while (offset < source.length);
+          if (source[offset++] !== "]") fail("Invalid live name sheet mapping");
+        }
         if (!relative && (row !== 0 || column !== 0) || source[offset++] !== ":" || source[offset] !== '"') fail("Invalid live name");
         const name = quoted('"', grammar.stringEscape);
         if (!name) fail("Empty live name");
         options.onName?.(name);
-        return node({ kind: "name", name, workbook: "", relocation: { relative, row, column, sheet, ...(fixedSheet ? { sheetRelative: false } : {}) }, start, end: offset });
+        return node({ kind: "name", name, workbook: "", relocation: { relative, row, column, sheet, ...(fixedSheet ? { sheetRelative: false } : {}), ...(entries.length ? { sheetMapping: Object.fromEntries(entries) } : {}) }, start, end: offset });
       }
       if (c === "@" && !internalLabels) fail("Internal label reference in native formula");
       if (c === "@" && internalLabels) {

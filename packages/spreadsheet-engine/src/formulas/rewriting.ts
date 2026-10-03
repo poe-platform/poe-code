@@ -123,6 +123,12 @@ export function rewriteReferences(document: FormulaDocument, edit: ReferenceRewr
         throw new SsconvertError("invalid-request", "Invalid live name displacement");
       const text = serializeExpression({ ...document, root: { ...node, relocation } }, document.grammar, false).slice(document.grammar.prefixes[0]?.length ?? 0);
       changes.push({ start: node.start, end: node.end, text });
+    } else if (node.kind === "name" && node.relocation?.sheetMapping) {
+      const sheetMapping = Object.fromEntries(Object.entries(node.relocation.sheetMapping).map(([from, to]) =>
+        [renamedSheet(from) ?? from, to === null ? null : renamedSheet(to) ?? to]));
+      const text = serializeExpression({ ...document, root: { ...node, relocation: { ...node.relocation, sheetMapping } } }, document.grammar, false)
+        .slice(document.grammar.prefixes[0]?.length ?? 0);
+      changes.push({ start: node.start, end: node.end, text });
     } else if (node.kind === "name" && (node.workbook === undefined || node.workbook === "") && node.sheet && renamedSheet(node.sheet) !== undefined) {
       const text = quoteFormulaString(renamedSheet(node.sheet)!, "'", document.grammar) + document.grammar.sheetSeparator + node.name;
       changes.push({ start: node.start, end: node.end, text: document.grammar.bracketReferences ? "[" + text + "]" : text });

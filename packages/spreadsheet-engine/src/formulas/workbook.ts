@@ -4,22 +4,28 @@ export { resizeWorkbookReferences } from "../workbook/resize.js";
 import { foldSheetName } from "@poe-code/spreadsheet-ast/case-fold";
 import type { FormulaDocument, ParsePosition } from "./ast.js";
 import { parseExpression } from "./parser.js";
-import { quoteFormulaString } from "./serialization.js";
+import { quoteFormulaString, serializeExpression } from "./serialization.js";
+import { relocatedNameSheet } from "./named-expressions.js";
 import { gnumericGrammar } from "./conventions.js";
 import { rewriteReferences, visitFormula } from "./rewriting.js";
 import { chartDataTypes } from "../objects/data.js";
 import { rewriteWorkbookHyperlinks } from "../workbook/hyperlinks.js";
 
-export function rewriteWorkbook(book: Workbook, context: CapabilityContext, rewrite: (document: FormulaDocument, namedExpression: boolean) => string): Workbook {
+export function rewriteWorkbook(book: Workbook, context: CapabilityContext, rewrite: (document: FormulaDocument, namedExpression: boolean, tick: () => void) => string, include?: (source: string) => boolean): Workbook {
   let work = 0;
   const maximum = context.limits.workbookWork ?? context.limits.inputBytes + context.limits.cells * 32;
+  const tick = () => {
+    context.signal.throwIfAborted();
+    if (++work > maximum) throw new SsconvertError("resource-limit", "ssconvert workbook work limit exceeded");
+  };
   const formula = (source: string, position: ParsePosition, namedExpression = false, arrayStringLiterals = false) => {
     context.signal.throwIfAborted();
     work += source.length + 1;
     if (work > maximum) throw new SsconvertError("resource-limit", "ssconvert workbook work limit exceeded");
+    if (include && !include(source)) return source;
     const parsed = parseExpression(source, { maximumDepth: context.limits.formulaDepth, position, arrayStringLiterals, workbook: book, signal: context.signal });
     if (!parsed.ok) throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: formula syntax at ${parsed.diagnostic.start}:${parsed.diagnostic.end}`);
-    return rewrite(parsed.document, namedExpression);
+    return rewrite(parsed.document, namedExpression, tick);
   };
   // GOffice chart dimensions carry serialized expressions, not display text.
   const chart = (value: ImportedValue, sheet: string, parent?: "Objects" | "graph" | "GogObject" | "data", namespace?: string): ImportedValue => {
@@ -65,7 +71,8 @@ export function renameWorkbookSheet(book: Workbook, sheetId: string, name: strin
   const renamed = rewriteWorkbookHyperlinks(rewriteWorkbook(book, context, document => {
     const spellings = new Map<string, string>();
     visitFormula(document.root, node => {
-      const names = node.kind === "reference" ? [node.first.sheet, node.last?.sheet] : node.kind === "name" ? [node.sheet] : [];
+      const names = node.kind === "reference" ? [node.first.sheet, node.last?.sheet] : node.kind === "name" ? [node.sheet,
+        ...Object.entries(node.relocation?.sheetMapping ?? {}).flatMap(([from, to]) => to === null ? [from] : [from, to])] : [];
       for (const spelling of names) if (spelling !== undefined && foldSheetName(spelling) === foldSheetName(sheet.name)) spellings.set(spelling, name);
     });
     return rewriteReferences(document, { sheets: spellings, signal: context.signal });
@@ -84,7 +91,8 @@ export function remapWorkbookSheets(book: Workbook, mapping: ReadonlyMap<string,
   const rewritten = rewriteWorkbookHyperlinks(rewriteWorkbook(book, context, document => {
     const spellings = new Map<string, string>();
     visitFormula(document.root, node => {
-      const refs = node.kind === "reference" ? [node.first.sheet, node.last?.sheet] : node.kind === "name" ? [node.sheet] : [];
+      const refs = node.kind === "reference" ? [node.first.sheet, node.last?.sheet] : node.kind === "name" ? [node.sheet,
+        ...Object.entries(node.relocation?.sheetMapping ?? {}).flatMap(([from, to]) => to === null ? [from] : [from, to])] : [];
       for (const spelling of refs) if (spelling !== undefined && names.has(foldSheetName(spelling))) spellings.set(spelling, names.get(foldSheetName(spelling))!);
     });
     return rewriteReferences(document, { sheets: spellings, signal: context.signal });
@@ -117,7 +125,25 @@ export function moveWorkbookSheet(book: Workbook, sheet: string, index: number, 
   const current = book.sheets.findIndex(s => s.id === sheet);
   if (current < 0 || !Number.isSafeInteger(index) || index < 0 || index >= book.sheets.length) throw new SsconvertError("invalid-request", "Invalid sheet move");
   const sheets = [...book.sheets], [moved] = sheets.splice(current, 1); sheets.splice(index, 0, moved!);
-  return snapshotWorkbook({ ...book, sheets }, context.limits);
+  if (current === index) return book;
+  const rewritten = rewriteWorkbook(book, context, (document, _namedExpression, tick) => {
+    const changes: { start: number; end: number; text: string }[] = [];
+    visitFormula(document.root, node => {
+      if (node.kind !== "name" || !node.relocation?.sheet) return;
+      const relocation = { ...node.relocation, sheet: 0, sheetMapping: Object.fromEntries(book.sheets.map(source => {
+        context.signal.throwIfAborted();
+        return [source.name, relocatedNameSheet(book, source.name, node.relocation!, tick)?.name ?? null];
+      })) };
+      const text = serializeExpression({ ...document, root: { ...node, relocation } }, document.grammar, false)
+        .slice(document.grammar.prefixes[0]?.length ?? 0);
+      changes.push({ start: node.start, end: node.end, text });
+    });
+    let source = document.source;
+    for (const change of changes.sort((a, b) => b.start - a.start)) source = source.slice(0, change.start) + change.text + source.slice(change.end);
+    return source;
+  }, source => source.includes("@name."));
+  const byId = new Map(rewritten.sheets.map(sheet => [sheet.id, sheet]));
+  return snapshotWorkbook({ ...rewritten, sheets: sheets.map(sheet => byId.get(sheet.id)!) }, context.limits);
 }
 
 export function translateFormulaGroup(group: FormulaGroup, target: ParsePosition, context: CapabilityContext): string {

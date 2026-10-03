@@ -4025,6 +4025,12 @@
         "out/ssconvert-odf-settings/lotus-dollar-checks.json",
         "out/ssconvert-odf-settings/lotus-dollar-compiled.json"
       ]
+    },
+    "lotusLiveNameTabIdentity": {
+      "finding": "A displaced live name referencing Second changed from 12 to 13 when that tab moved behind Third. Both relative and absolute uses failed the original memory regressions.",
+      "implementation": "Tab moves materialize source-to-target sheet mappings for displaced names; formulas keep the original name identity. Nested maps compose in evaluation order; renames/remaps update both mapping sides; later copies use current tab order. Invalid targets stay invalid. Parser entries and mapping traversal are bounded by caller work/node limits. Internal OpenFormula preserves the mappings; native transports still refuse unqualified live-name syntax.",
+      "verification": "39 focused live-name tests; 55 final engine/name/dependency checks. The broader formula/workbook cohort passes18988 tests after reconciling two existing byte-output warning expectations. Normal root build and engine/command lint, source/test/public-consumer types pass. Root and package public APIs each pass10800 checks across all120 five-sheet permutations, both modes, nine offsets and five later definition targets; both SDK and command routes produce the same independently expected CSV with no diagnostics. This is product identity qualification, not native Lotus parity.",
+      "remaining": "Native Lotus name copy/move and XML/XLSX/BIFF transport remain open, together with the other family requirements. Gnumeric1.12.61 still reports Named ranges not implemented for Lotus tokens; existing pinned LibreOffice source receipt already records missing document-name registration. No family is closed."
     }
   },
   "cases": [

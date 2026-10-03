@@ -18,6 +18,9 @@ export interface NameRelocation {
   readonly column: number;
   readonly sheet: number;
   readonly sheetRelative?: boolean;
+  /** Stable source-to-target sheet names retained across tab reordering.
+   * The numeric sheet displacement is applied after this mapping. */
+  readonly sheetMapping?: Readonly<Record<string, string | null>>;
 }
 export interface ReferenceEndpoint {
   readonly row?: Axis;

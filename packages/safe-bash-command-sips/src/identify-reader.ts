@@ -3,7 +3,7 @@ import {compareIdentity,compareFileVersion,FsError,type FileSystem} from "@poe-c
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {resolvePath} from "safe-bash-contracts/path";
 import {drainCooperativeSteps} from "safe-bash-contracts/yield";
-import {readImageMetadata,decodeImage,computeImageStatsSteps,readImageMetadataFromSource,decodeImageToStorage,computeStoredImageStats,UnsupportedStoredResource,isPdfBytes,isSvgBytes,type ImageMetadata,type ImageStats,type SharpInputOptions,type ImageByteSource} from "@poe-code/image-ast/portable";
+import {tryPdfMetadata,readImageMetadata,decodeImage,computeImageStatsSteps,readImageMetadataFromSource,decodeImageToStorage,computeStoredImageStats,UnsupportedStoredResource,isPdfBytes,isSvgBytes,type ImageMetadata,type ImageStats,type SharpInputOptions,type ImageByteSource} from "@poe-code/image-ast/portable";
 
 export interface IdentifyFileInput {
  readonly filesystem:FileSystem;
@@ -50,7 +50,10 @@ export function createIdentifyReader(input:IdentifyFileInput,signal:AbortSignal,
    storage=new PagedStorage({fs,cwd:input.cwd,env:{},signal});
    try{
     const prefix=await source.read(0,Math.min(1029,source.size),{signal});
-    if(isPdfBytes(prefix)||isSvgBytes(prefix)){
+    let pdfMetadata:ImageMetadata|undefined;
+    if(isPdfBytes(prefix)&&!verbose){try{pdfMetadata=await tryPdfMetadata(source,fs,input.cwd,signal,options??{});}catch(error){if(!(error instanceof UnsupportedStoredResource))throw error;}}
+    if(pdfMetadata)result={metadata:pdfMetadata,size:source.size,...(properties?{properties:await readPropertiesFromSource(source,"pdf",signal)}:{})};
+    else if(isPdfBytes(prefix)||isSvgBytes(prefix)){
      // These convenience codecs are still migrated by their format owners.
      const bytes=new Uint8Array(source.size);for(let offset=0;offset<bytes.length;offset+=16384)bytes.set(await source.read(offset,Math.min(16384,bytes.length-offset),{signal}),offset);
      result=await inspectIdentifyBytes(bytes,options,verbose,signal,properties);

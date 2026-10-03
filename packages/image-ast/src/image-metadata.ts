@@ -1,3 +1,4 @@
+import {tryPdfMetadata} from "./image-pdf.js";
 import {storedImageDecoder} from "./codecs/stored-decoder.js";
 import {decodeRawResource} from "./codecs/resource-storage.js";
 import type {ImageByteSource} from "./codecs/png-storage.js";
@@ -26,7 +27,7 @@ export async function tryInspectImageMetadata<T>(input:ImageResourceInput,option
    const generated=options.text||options.create;
    if(joined&&!storage)throw new UnsupportedStoredResource();
    const joinedImage=joined?await readImageResource(joined,options,supplied as FileSystem,storage!,signal,loadedFiles):undefined;
-   const metadata=joinedImage?{format:joinedImage.format,width:joinedImage.width,height:joinedImage.height,space:joinedImage.space,channels:joinedImage.channels,depth:joinedImage.depth,density:joinedImage.density,hasAlpha:joinedImage.hasAlpha,...(joinedImage.pages===undefined?{}:{pages:joinedImage.pages}),...(joinedImage.pageHeight===undefined?{}:{pageHeight:joinedImage.pageHeight}),size:joinedImage.width*joinedImage.height*4}:generated?readImageMetadata(undefined,options):await readImageMetadataFromSource(source!,signal,options,storage);
+   const metadata=joinedImage?{format:joinedImage.format,width:joinedImage.width,height:joinedImage.height,space:joinedImage.space,channels:joinedImage.channels,depth:joinedImage.depth,density:joinedImage.density,hasAlpha:joinedImage.hasAlpha,...(joinedImage.pages===undefined?{}:{pages:joinedImage.pages}),...(joinedImage.pageHeight===undefined?{}:{pageHeight:joinedImage.pageHeight}),size:joinedImage.width*joinedImage.height*4}:generated?readImageMetadata(undefined,options):await readImageMetadataFromSource(source!,signal,options,storage).catch(async error=>{if(!(error instanceof UnsupportedStoredResource))throw error;const pdf=await tryPdfMetadata(source!,supplied as FileSystem,options.workingDirectory??(typeof input==="string"?dirname(input):"."),signal,options);if(pdf)return pdf;throw error;});
    if(!operations.length)return metadata;
    if(!storage)throw new UnsupportedStoredResource();
    const resources={readImage:(input:string|Uint8Array|undefined,inputOptions:SharpInputOptions|undefined,inputSignal:AbortSignal)=>readImageResource(typeof input==="string"?loadedFiles?.get(input)??input:input,inputOptions,supplied as FileSystem,storage,inputSignal)};

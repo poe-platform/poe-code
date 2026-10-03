@@ -4572,6 +4572,13 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "xlsxRepeatedCells": {
+      "finding": "Repeated XLSX coordinates produced duplicate model cells. Native Gnumeric1.12.61 xlsx_cell_end skips val/expr-absent records and otherwise updates the existing coordinate; value-only updates assign a value without removing a live expression.",
+      "implementation": "Maintain a bounded coordinate index into the cell array. Blank updates preserve prior content, new values clear prior rich runs, new expressions replace formula/cache metadata, and value-only updates retain live expressions. Count every source record against the cell limit.",
+      "validation": "Four original memory regressions failed before repair;12native input controls and4formula controls retained.608focused tests across23files pass, plus16specific tests. Maintained owner lint/source/test types, new test ESLint and ssconvert test types pass after selected build dependencies complete.128compiled package SDK/command exports have no diagnostics;96native readbacks and16native clipboard controls match4800row scalars and160cell projections. Parenthesis normalization is limited to the two explicit addition formula controls.",
+      "visual": "Native original and product XLSX screenshots inspected, identical SHA256 a7712c0c24226ff7bb42b1bdec0a8bca5edad15abeb33d859c77da678f0e8f0c. Owned viewers/display terminated.",
+      "remaining": "Exact delivered root artifact verification pending. Wider shared/array repetition, styled blanks, format records and all19families remain open."
+    },
     "encryptedBiffCalc252Poi541": {
       "status": "partial independent qualification; encrypted BIFF family remains open",
       "candidate": "Compiled package SDK at3321648ee0; isolated install and maintained selected workspace build pass.",

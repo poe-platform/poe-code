@@ -337,6 +337,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       source = await recognize(source, "xlsx_sheet_dtd", context);
       const sheetRelations = await opc.relations(relation.target);
       const cells: Cell[] = [], rows: AxisMetadata[] = [], columns: AxisMetadata[] = [], groups: FormulaGroup[] = [];
+      const cellIndexes = new Map<number, number>();
       const shared = new Map<string, { expression: string; row: number; column: number; id: string; arrayStringLiterals?: boolean }>();
       const columnStyles = children(child(source, "cols"), "col").filter(node => attr(node, "style") !== undefined)
         .map(node => ({ min: integer(attr(node, "min")) - 1, max: integer(attr(node, "max")) - 1, style: cellStyles[integer(attr(node, "style"))] }));
@@ -459,9 +460,26 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
             if (type === "inlineStr" && !inline && expression === undefined && style === undefined) continue;
             const hasCache = type === "inlineStr" ? inline !== undefined
               : raw !== undefined && (raw !== "" || type === "str");
-            cells.push({ ...position, value, ...(expression === undefined ? {} : { formula: expression, ...semantics, formulaDirty: !hasCache,
-              ...(hasCache ? { cachedResult: value } : {}) }), ...(groupId ? { formulaGroup: groupId } : {}),
-              ...(style ?? {}), ...(richText ? { richText } : {}) });
+            const key = position.row * 16384 + position.column, index = cellIndexes.get(key);
+            const previous = index === undefined ? undefined : cells[index];
+            let retained: Partial<Cell> = previous ?? {};
+            if (value.kind !== "blank" || expression !== undefined) {
+              const { richText: ignoredRichText, ...rest } = retained;
+              retained = rest;
+            }
+            if (expression !== undefined) {
+              const { formula: ignoredFormula, cachedResult: ignoredCache, formulaDirty: ignoredDirty,
+                formulaGroup: ignoredGroup, arrayStringLiterals: ignoredSemantics, ...rest } = retained;
+              retained = rest;
+            }
+            // A value-only record updates the existing cell without removing its expression.
+            const cell: Cell = { ...retained, ...position,
+              value: value.kind === "blank" && expression === undefined && previous ? previous.value : value,
+              ...(expression === undefined ? previous?.formula && value.kind !== "blank" ? { cachedResult: value } : {}
+                : { formula: expression, ...semantics, formulaDirty: !hasCache, ...(hasCache ? { cachedResult: value } : {}) }),
+              ...(groupId ? { formulaGroup: groupId } : {}), ...(style ?? {}), ...(richText ? { richText } : {}) };
+            if (index === undefined) { cellIndexes.set(key, cells.length); cells.push(cell); }
+            else cells[index] = cell;
           }
         }
       }

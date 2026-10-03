@@ -77,8 +77,10 @@
     "fengari": "^0.1.5",
     "@poe-code/image-ast": "*",
     "citeproc": "2.4.63",
-    "safe-bash-command-ssconvert": "*",
-    "safe-bash-presentation-engine": "*"
+    "safe-bash-presentation-engine": "*",
+    "@poe-code/spreadsheet-engine": "*",
+    "@poe-code/spreadsheet-format-xlsx": "*",
+    "@poe-code/spreadsheet-ast": "*"
   },
   "private": true,
   "types": "dist/index.d.ts",

@@ -1,4 +1,4 @@
-import type {CapabilityContext} from "safe-bash-command-ssconvert";
+import type {CapabilityContext} from "@poe-code/spreadsheet-engine";
 import type {Block, Row} from "./ast-types.js";
 import type {ReaderCapability} from "./types.js";
 import {PandocError} from "./errors.js";
@@ -13,7 +13,8 @@ export const xlsxReader: ReaderCapability = {format: "xlsx", async read(input, c
       xmlDepth: l.xmlDepth, workbookNodes: l.xmlNodes, workbookTextBytes: l.text, workbookWork: l.work}};
   try {
     if (input.bytes.length < 22) throw new PandocError("E_PARSE", "read", "Truncated XLSX archive", "xlsx");
-    const {readXlsx, recalculateWorkbook} = await import("safe-bash-command-ssconvert");
+    const {readXlsx} = await import("@poe-code/spreadsheet-format-xlsx/xlsx");
+    const {recalculateWorkbook} = await import("@poe-code/spreadsheet-engine/formulas/recalculation");
     ctx.checkpoint();
     const workbook = await recalculateWorkbook(await readXlsx(input.bytes, context), context, {force: false, ignoreCalculationMode: true});
     const blocks: Block[] = [];

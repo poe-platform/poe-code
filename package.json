@@ -771,7 +771,7 @@
     "packages/safe-bash-command-ssconvert/src/codecs/glossary-timezones.ts",
     "packages/safe-bash-command-ssconvert/src/codecs/html-NOTICE.md",
     "packages/safe-bash-command-ssconvert/src/codecs/legacy-binary-NOTICE.md",
-    "packages/safe-bash-command-ssconvert/src/rendering/print/NOTICE.md",
+    "packages/spreadsheet-engine/src/rendering/print/NOTICE.md",
     "packages/safe-bash/dist",
     "!packages/safe-bash/dist/opt-in",
     "!packages/safe-bash/dist/commands/op/op.test.js",

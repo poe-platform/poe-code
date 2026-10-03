@@ -13,7 +13,7 @@ async function worker(entry: string) {
 }
 
 it("encodes a JPEG without Buffer or any Node globals", async () => {
-  const realm = await worker("packages/safe-bash-command-ssconvert/src/rendering/images/codecs.ts");
+  const realm = await worker("packages/spreadsheet-engine/src/rendering/images/codecs.ts");
   const bytes = await runInContext(`sdk.encodeGraphImage({ width: 4, height: 4, commands: [],
     raster: { width: 4, height: 4, rgba: new Uint8Array(64) } }, "jpeg", {
     signal: new AbortController().signal, limits: { outputBytes: Infinity, imageWidth: Infinity,

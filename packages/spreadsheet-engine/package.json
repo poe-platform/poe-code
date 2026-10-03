@@ -43,17 +43,25 @@
     "src/formulas/functions/captured-bessel-transition-NOTICE.md",
     "src/formulas/functions/captured-cbrt.ts",
     "src/formulas/functions/captured-bessel-series.ts",
-    "src/formulas/functions/captured-quad.ts"
+    "src/formulas/functions/captured-quad.ts",
+    "src/rendering/print/NOTICE.md",
+    "src/rendering/print/font-normalization-NOTICE.md",
+    "src/rendering/print/font-normalization.ts",
+    "src/rendering/print/font-normalization-data.ts",
+    "src/rendering/print/harfbuzz",
+    "scripts/harfbuzz",
+    "src/rendering/images/NOTICE.md"
   ],
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
-    "test": "cd ../.. && vitest run packages/spreadsheet-engine",
+    "build": "node scripts/harfbuzz/verify.mjs && node ../../scripts/guard-package-dist.mjs && tsc",
+    "test": "node --test scripts/harfbuzz/verify.test.mjs && cd ../.. && vitest run packages/spreadsheet-engine",
     "test:unit": "cd ../.. && vitest run packages/spreadsheet-engine",
-    "lint": "eslint src && tsc --noEmit && tsc -p tsconfig.test.json"
+    "lint": "node scripts/harfbuzz/verify.mjs && eslint src && tsc --noEmit && tsc -p tsconfig.test.json"
   },
   "dependencies": {
     "@poe-code/spreadsheet-ast": "*",
-    "@poe-code/safe-fs": "*"
+    "@poe-code/safe-fs": "*",
+    "@poe-code/image-ast": "*"
   },
   "poeCode": {
     "safeLibraryExports": {
@@ -88,8 +96,34 @@
         "./src/formulas/functions/captured-bessel-transition-NOTICE.md",
         "./src/formulas/functions/captured-cbrt.ts",
         "./src/formulas/functions/captured-bessel-series.ts",
-        "./src/formulas/functions/captured-quad.ts"
+        "./src/formulas/functions/captured-quad.ts",
+        "./src/rendering/print/NOTICE.md",
+        "./src/rendering/print/font-normalization-NOTICE.md",
+        "./src/rendering/print/font-normalization.ts",
+        "./src/rendering/print/font-normalization-data.ts",
+        "./src/rendering/print/harfbuzz/HARFBUZZ-LICENSE.txt",
+        "./src/rendering/print/harfbuzz/data.ts",
+        "./src/rendering/print/harfbuzz/LIBCXX-LICENSE.txt",
+        "./src/rendering/print/harfbuzz/EMSCRIPTEN-LICENSE.txt",
+        "./src/rendering/print/harfbuzz/LIBCXXABI-LICENSE.txt",
+        "./src/rendering/print/harfbuzz/NOTICE.md",
+        "./src/rendering/print/harfbuzz/MUSL-LICENSE.txt",
+        "./scripts/harfbuzz/sources.json",
+        "./scripts/harfbuzz/allocator.cc",
+        "./scripts/harfbuzz/config-override.h",
+        "./scripts/harfbuzz/verify.test.mjs",
+        "./scripts/harfbuzz/verify.d.mts",
+        "./scripts/harfbuzz/exports.json",
+        "./scripts/harfbuzz/verify.mjs",
+        "./scripts/harfbuzz/README.md",
+        "./scripts/harfbuzz/build.mjs",
+        "./scripts/harfbuzz/completion.patch",
+        "./src/rendering/images/NOTICE.md"
       ]
     }
+  },
+  "devDependencies": {
+    "@pdf-lib/fontkit": "1.1.1",
+    "jpeg-js": "0.4.4"
   }
 }

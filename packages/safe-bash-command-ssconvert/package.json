@@ -67,10 +67,6 @@
     "src/encoding/ucs2-transliteration-tables.ts",
     "src/codecs/html-NOTICE.md",
     "src/codecs/legacy-binary-NOTICE.md",
-    "src/rendering/print/NOTICE.md",
-    "src/rendering/print/font-normalization-NOTICE.md",
-    "src/rendering/print/font-normalization.ts",
-    "src/rendering/print/font-normalization-data.ts",
     "src/formulas/functions/byte-case-NOTICE.md",
     "src/formulas/functions/byte-case.ts",
     "src/formulas/functions/byte-trim.ts",
@@ -84,15 +80,13 @@
     "src/codecs/odf-blowfish-NOTICE.md",
     "src/codecs/odf-blowfish.ts",
     "src/codecs/odf-blowfish-profile.ts",
-    "src/rendering/print/harfbuzz",
-    "scripts/harfbuzz",
     "src/codecs/glossary-timezones-NOTICE.md"
   ],
   "scripts": {
-    "build": "node scripts/harfbuzz/verify.mjs && node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",
+    "build": "node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",
     "test:unit": "cd ../.. && vitest run packages/safe-bash-command-ssconvert/src",
-    "test": "node --test scripts/harfbuzz/verify.test.mjs && node scripts/harfbuzz/verify.mjs && node scripts/generate-providers.mjs && cd ../.. && vitest run packages/safe-bash-command-ssconvert/src",
-    "lint": "node scripts/harfbuzz/verify.mjs && node scripts/generate-providers.mjs && eslint src && tsc --noEmit && tsc -p tsconfig.test.json && tsc -p tsconfig.consumer.json && tsc -p tsconfig.consumer.json --customConditions node --types node"
+    "test": "node scripts/generate-providers.mjs && cd ../.. && vitest run packages/safe-bash-command-ssconvert/src",
+    "lint": "node scripts/generate-providers.mjs && eslint src && tsc --noEmit && tsc -p tsconfig.test.json && tsc -p tsconfig.consumer.json && tsc -p tsconfig.consumer.json --customConditions node --types node"
   },
   "engines": {
     "node": ">=22"

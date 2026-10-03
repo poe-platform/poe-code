@@ -6,8 +6,8 @@ checks the compiler input and license digests. It does not download, instantiate
 WASM, or invoke a compiler:
 
 ```sh
-node packages/safe-bash-command-ssconvert/scripts/harfbuzz/verify.mjs
-node --test packages/safe-bash-command-ssconvert/scripts/harfbuzz/verify.test.mjs
+node packages/spreadsheet-engine/scripts/harfbuzz/verify.mjs
+node --test packages/spreadsheet-engine/scripts/harfbuzz/verify.test.mjs
 ```
 
 To reproduce the artifact, supply the complete `src` directory from HarfBuzz
@@ -15,7 +15,7 @@ commit `863d3f7787c6df18d20e4535c5906bf3eb803bd5` and an already installed
 Emscripten 4.0.13 `em++` executable:
 
 ```sh
-node packages/safe-bash-command-ssconvert/scripts/harfbuzz/build.mjs /absolute/harfbuzz/src /absolute/emsdk/upstream/emscripten/em++
+node packages/spreadsheet-engine/scripts/harfbuzz/build.mjs /absolute/harfbuzz/src /absolute/emsdk/upstream/emscripten/em++
 ```
 
 The script authenticates the complete upstream source tree and compiler version,

@@ -67,48 +67,48 @@
   ],
   "inputs": [
     {
-      "path": "packages/safe-bash-command-ssconvert/scripts/harfbuzz/allocator.cc",
+      "path": "packages/spreadsheet-engine/scripts/harfbuzz/allocator.cc",
       "sha256": "1ce6466e6076047929d96116808ff5633e733a3a792dbf752c49cfdd470fe57e"
     },
     {
-      "path": "packages/safe-bash-command-ssconvert/scripts/harfbuzz/completion.patch",
+      "path": "packages/spreadsheet-engine/scripts/harfbuzz/completion.patch",
       "sha256": "8f5a72341053e9af2286e85ca6e94f158fc90e2b536b645f862dd2e12efb7501"
     },
     {
-      "path": "packages/safe-bash-command-ssconvert/scripts/harfbuzz/config-override.h",
+      "path": "packages/spreadsheet-engine/scripts/harfbuzz/config-override.h",
       "sha256": "8ddfba91f84d10530f2bf00934172a0adc8c0a3c38720022505d2d02a8be261d"
     },
     {
-      "path": "packages/safe-bash-command-ssconvert/scripts/harfbuzz/exports.json",
+      "path": "packages/spreadsheet-engine/scripts/harfbuzz/exports.json",
       "sha256": "7d20b616c63dd4773f0740e00a54aa27b7c6d14f156cff80f935d3aee8e351a0"
     },
     {
-      "path": "packages/safe-bash-command-ssconvert/src/rendering/print/harfbuzz/NOTICE.md",
+      "path": "packages/spreadsheet-engine/src/rendering/print/harfbuzz/NOTICE.md",
       "sha256": "942994c8af79eca0897d964e42539d15e9fe803e65af66b467e7d451acbc0e64"
     },
     {
-      "path": "packages/safe-bash-command-ssconvert/src/rendering/print/harfbuzz/HARFBUZZ-LICENSE.txt",
+      "path": "packages/spreadsheet-engine/src/rendering/print/harfbuzz/HARFBUZZ-LICENSE.txt",
       "sha256": "ba8f810f2455c2f08e2d56bb49b72f37fcf68f1f4fade38977cfd7372050ad64"
     },
     {
-      "path": "packages/safe-bash-command-ssconvert/src/rendering/print/harfbuzz/EMSCRIPTEN-LICENSE.txt",
+      "path": "packages/spreadsheet-engine/src/rendering/print/harfbuzz/EMSCRIPTEN-LICENSE.txt",
       "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
     },
     {
-      "path": "packages/safe-bash-command-ssconvert/src/rendering/print/harfbuzz/MUSL-LICENSE.txt",
+      "path": "packages/spreadsheet-engine/src/rendering/print/harfbuzz/MUSL-LICENSE.txt",
       "sha256": "f9bc4423732350eb0b3f7ed7e91d530298476f8fec0c6c427a1c04ade22655af"
     },
     {
-      "path": "packages/safe-bash-command-ssconvert/src/rendering/print/harfbuzz/LIBCXX-LICENSE.txt",
+      "path": "packages/spreadsheet-engine/src/rendering/print/harfbuzz/LIBCXX-LICENSE.txt",
       "sha256": "539dd7aed86e8a4f12cbdd0e6c50c189c7d74847e4fecc64ce2c6ee3a01da38b"
     },
     {
-      "path": "packages/safe-bash-command-ssconvert/src/rendering/print/harfbuzz/LIBCXXABI-LICENSE.txt",
+      "path": "packages/spreadsheet-engine/src/rendering/print/harfbuzz/LIBCXXABI-LICENSE.txt",
       "sha256": "e2b35be49f7284a45b7baca8fc7b3ab7440e7902392b2528a457816b5bb2a15c"
     }
   ],
   "artifact": {
-    "path": "packages/safe-bash-command-ssconvert/src/rendering/print/harfbuzz/data.ts",
+    "path": "packages/spreadsheet-engine/src/rendering/print/harfbuzz/data.ts",
     "exportName": "harfbuzzBase64",
     "bytes": 553970,
     "sha256": "68569480a0b76c81040de1e8b5d441317d479ea07a629bc0ce75bbd0ac7c0258",

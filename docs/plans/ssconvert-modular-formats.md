@@ -383,3 +383,56 @@ The time-bounded implementation and modular composition acceptance are complete.
 Full root publication, broader format fidelity, the supplemental formula/name
 encoding question and the separately recorded native timing investigation are
 not claimed as resolved by this architecture acceptance.
+
+## Command ownership and spreadsheet consumers
+
+The command owner is the private `safe-bash-command-ssconvert` workspace. It
+owns CLI parsing, `runCommand`, shell bindings and compatibility composition;
+Safe Bash re-exports it without a second command implementation. Existing
+`poe-code/ssconvert` and Safe Bash exports remain the public entrypoints.
+Workbook contracts belong to `spreadsheet-ast`, recalculation and conversion
+orchestration to `spreadsheet-engine`, and selected readers/writers to their
+`spreadsheet-format-*` workspaces. The compatibility facade retains its default
+formats and optional rendering services. All these workspace packages remain
+private and are bundled into the existing shipping parents.
+
+Current consumer inventory: Pandoc's XLSX reader needs only the XLSX reader,
+spreadsheet capability contracts and asynchronous recalculation. It now imports
+those engine owners directly. Its fixtures use the same independent XLSX writer;
+no runtime or development dependency on the ssconvert command is required.
+The ownership regression test deliberately refuses to load that command package
+while reading and recalculating a workbook. Existing XLSX tests retain formula,
+error mapping and cancellation assertions. Safe Bash shell integration tests
+remain with the shell because they exercise registration and actual pipelines;
+command implementation and SDK regression tests stay with the command owner.
+
+Verification uses the maintained Pandoc and ssconvert build closures, Pandoc
+workspace unit/lint/type checks, focused ssconvert shell/SDK suites, package-lint,
+and isolated packed public exports with strict NodeNext declarations. No default
+command registration, CLI output, limit or runtime profile changes are intended.
+
+Reusable chart, image and print rendering now lives in `spreadsheet-engine`,
+including its independent regression tests, font data, notices and HarfBuzz
+verification recipe. Command-side source paths remain static compatibility
+re-exports. Command conversion/font integration tests remain with the command;
+the engine does not depend on it. The HarfBuzz bytes and digest are unchanged;
+only owned recipe paths and their corresponding recipe hashes move.
+
+Ownership verification on 2026-10-02: the maintained parent build completed and
+all 19 package-lint rules passed. Pandoc passed 1,484 tests; the spreadsheet
+engine passed 399 tests plus the relocated artifact characterization. The full
+ssconvert run passed 26,635 tests in 487 files and exposed one stale artifact-test
+import; moving that test to the engine fixed it, and the final CLI/SDK/modular
+selection passed all 60 checks. The shell runner passed 30 registration, argv,
+cancellation and resource-budget checks. Font verification passed seven tests;
+worker and public-bundle suites passed five and seven checks respectively.
+Engine, command and Pandoc lint/type checks passed.
+
+Fresh packed root and scoped consumers outside the repository had no private
+workspace packages installed. Both passed real pipes and VFS scripts, distinct
+invalid byte arguments, canonical error/runtime identity, cancellation with a
+false reason, collision/replacement policy, explicit limits, JPEG rendering and
+XLSX/Pandoc conversion. Their public declarations passed strict NodeNext under
+Node and browser conditions. The installed renderer also bundled and executed
+under browser/workerd conditions without Node globals. Only existing parent
+packages were packed; no standalone engine or command publication is introduced.

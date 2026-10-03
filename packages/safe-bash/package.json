@@ -542,8 +542,10 @@
             "fengari": "^0.1.5",
             "@poe-code/image-ast": "*",
             "citeproc": "2.4.63",
-            "safe-bash-command-ssconvert": "*",
-            "safe-bash-presentation-engine": "*"
+            "safe-bash-presentation-engine": "*",
+            "@poe-code/spreadsheet-engine": "*",
+            "@poe-code/spreadsheet-format-xlsx": "*",
+            "@poe-code/spreadsheet-ast": "*"
           },
           "devDependencies": {
             "safe-bash-contracts": "*",
@@ -3407,7 +3409,8 @@
     "safe-bash-command-zstd": "*",
     "safe-bash-command-cp": "*",
     "safe-bash-command-safejs": "*",
-    "safe-bash-presentation-engine": "*"
+    "safe-bash-presentation-engine": "*",
+    "@poe-code/image-ast": "*"
   },
   "main": "./dist/index.js",
   "imports": {

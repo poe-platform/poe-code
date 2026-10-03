@@ -1,6 +1,7 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { utils, write } from "@e965/xlsx";
-import * as ssconvert from "safe-bash-command-ssconvert";
+import * as recalculation from "@poe-code/spreadsheet-engine/formulas/recalculation";
+import { SsconvertError } from "@poe-code/spreadsheet-ast/errors";
 import { convert, readDocument } from "./index.js";
 
 const context = { yield: async () => {} };
@@ -52,14 +53,14 @@ it("calculates uncached formulas and their dependencies before conversion", asyn
 });
 
 it("projects asynchronous recalculation limits through the reader error boundary", async () => {
-  vi.spyOn(ssconvert, "recalculateWorkbook").mockRejectedValueOnce(new ssconvert.SsconvertError("resource-limit", "Formula work exhausted"));
+  vi.spyOn(recalculation, "recalculateWorkbook").mockRejectedValueOnce(new SsconvertError("resource-limit", "Formula work exhausted"));
   await expect(readDocument({ bytes: spreadsheet([["Value"], [5]]) }, { from: "xlsx" }, context))
     .rejects.toMatchObject({ code: "E_LIMIT", message: "Formula work exhausted" });
 });
 
 it("reports cancellation during asynchronous recalculation when the reason is false", async () => {
   const controller = new AbortController();
-  vi.spyOn(ssconvert, "recalculateWorkbook").mockImplementationOnce(async () => {
+  vi.spyOn(recalculation, "recalculateWorkbook").mockImplementationOnce(async () => {
     controller.abort(false);
     throw false;
   });

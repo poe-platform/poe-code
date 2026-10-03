@@ -6,8 +6,8 @@ import {fileURLToPath} from "node:url";
 import ts from "typescript";
 
 const repository = fileURLToPath(new URL("../../../../", import.meta.url));
-const sourcePath = "packages/safe-bash-command-ssconvert/src/rendering/print/harfbuzz/data.ts";
-const allowedRoots = ["packages/safe-bash-command-ssconvert/src/rendering/print/harfbuzz/", "packages/safe-bash-command-ssconvert/scripts/harfbuzz/"];
+const sourcePath = "packages/spreadsheet-engine/src/rendering/print/harfbuzz/data.ts";
+const allowedRoots = ["packages/spreadsheet-engine/src/rendering/print/harfbuzz/", "packages/spreadsheet-engine/scripts/harfbuzz/"];
 const digest = bytes => createHash("sha256").update(bytes).digest("hex");
 
 function inputPath(path) {

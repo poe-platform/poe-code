@@ -29,3 +29,8 @@ The compatibility `poe-code/ssconvert` entrypoint retains the existing complete
 format set and rendering/clipboard defaults. This composable entrypoint requires
 explicit rendering and clipboard capabilities for those optional operations.
 The private workspace is bundled into containing products.
+
+Chart geometry, graph image encoding and print layout are available through the
+existing `poe-code/ssconvert` SDK. The same engine owns their bounded rendering
+implementations and verified font-shaping assets; no additional package installation
+is needed.

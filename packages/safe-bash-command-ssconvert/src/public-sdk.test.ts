@@ -89,3 +89,10 @@ it.each([undefined, {}])("converts CSV through XLSX with all portable command fa
     expect(new TextDecoder().decode(await fs.readFile("/roundtrip.csv"))).toBe(input);
   }
 });
+
+it("re-exports reusable rendering from the independent spreadsheet engine", async () => {
+  const images = await import("@poe-code/spreadsheet-engine/rendering/images/index");
+  const axis = await import("@poe-code/spreadsheet-engine/rendering/chart/axis");
+  expect(sdk.createImageRendering).toBe(images.createImageRendering);
+  expect(sdk.createAxisMap).toBe(axis.createAxisMap);
+});

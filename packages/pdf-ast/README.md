@@ -51,6 +51,14 @@ Duplicate names and name-tree cycles use caller-backed indexes; filename equalit
 is exact, including Unicode code units. Returning early or closing the document
 releases traversal staging. Keep the document open while reading contents.
 
+`encodeJpegChunks(width, height, rgbaChunks, options)` writes sequential JPEG
+chunks while retaining only eight RGBA rows and one MCU's entropy bytes.
+It shares the buffered encoder's quality and pixel conversion, including
+zero-filling truncated input. Set `chunkBytes`, `maxWorkingBytes`,
+`maxOutputBytes`, and `signal` to control output ownership, admission and
+cancellation. The caller's current input chunk and fixed codec tables are
+additional memory; upstream retained image rows provide bounded input chunks.
+
 `PdfRetainedJbig2.open(source, width, height, options)` admits encoded input,
 optional retained `globals`, arithmetic contexts, symbol/region bitmaps and
 custom Huffman state. It keeps page pixels packed and emits owned RGBA `rows()`;

@@ -1,5 +1,5 @@
 import {prepareRawOutput} from "./codecs/raw-storage.js";
-import {tryImageMetadata} from "./image-metadata.js";
+import {tryImageMetadata,transformedImageMetadata} from "./image-metadata.js";
 import {tryImageStats} from "./image-stats.js";
 import {prepareClaheImage} from "./ops/clahe.js";
 import {orderImageNodes,splitPostScaleNodes,imageAlphaStages} from "./ops/order.js";
@@ -853,29 +853,15 @@ export class SharpInstance extends Duplex {
       };
     }
     const evaluated = this.evaluateImage();
-    return {
-      format: this.outputOptions.format ?? evaluated.format,
-      width: evaluated.width,
-      height: evaluated.height,
-      space: evaluated.space,
-      channels: evaluated.channels,
-      depth: evaluated.depth,
-      density: this.outputOptions.density ?? evaluated.density,
-      hasAlpha: evaluated.hasAlpha,
-      autoOrient: computeAutoOrient(evaluated.width, evaluated.height, evaluated.orientation),
-      ...(evaluated.orientation !== undefined ? { orientation: evaluated.orientation } : {}),
-      ...(rawMeta.pages !== undefined ? { pages: rawMeta.pages } : {}),
-      ...(rawMeta.pagePrimary !== undefined ? { pagePrimary: rawMeta.pagePrimary } : {}),
-      ...(rawMeta.isProgressive !== undefined ? { isProgressive: rawMeta.isProgressive } : {}),
-      ...(rawMeta.size !== undefined ? { size: rawMeta.size } : {})
-    };
+    return transformedImageMetadata(rawMeta,evaluated,this.outputOptions);
   }
 
   async metadata(callback?: (err: Error | null, metadata?: ImageMetadata) => void): Promise<ImageMetadata> {
     try {
-      if(this.nodes.length===0 && !this.joinInputs && this.inputFilePath && !this.fileInputs.has(this.inputFilePath) && this.inputOptions?.filesystem) {
+      if(!this.joinInputs && (!this.streamIn || this.streamInFinished) && this.inputOptions?.filesystem) {
         if(this.streamFailure)throw this.streamFailure;
-        const metadata=await tryImageMetadata(this.inputFilePath,this.inputOptions);
+        const input=this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
+        const metadata=await tryImageMetadata(input,this.inputOptions,this.nodes,this.outputOptions,this.fileInputs);
         if(metadata) {
           const rotated=metadata.orientation!==undefined && metadata.orientation>=5 && metadata.orientation<=8;
           const result={...metadata,autoOrient:{width:rotated?metadata.height:metadata.width,height:rotated?metadata.width:metadata.height}};

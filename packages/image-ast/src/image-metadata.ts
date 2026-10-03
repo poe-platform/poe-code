@@ -1,22 +1,65 @@
+import {storedImageDecoder} from "./codecs/stored-decoder.js";
+import {decodeRawResource} from "./codecs/resource-storage.js";
+import type {ImageByteSource} from "./codecs/png-storage.js";
+import {readImageResource} from "./image-resources.js";
+import {isStoredImageOperation} from "./ops/storage.js";
+import {transformStoredPipeline} from "./ops/storage-pipeline.js";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {dirname,type FileSystem} from "@poe-code/safe-fs/contracts";
-import type {ImageMetadata,SharpInputOptions} from "./ast.js";
+import type {ImageMetadata,SharpInputOptions,ImageAstNode,OutputEncodeOptions,RgbaImage} from "./ast.js";
 import {withImageSource} from "./image-source.js";
 import {UnsupportedStoredResource} from "./codecs/unsupported-storage.js";
 import {readImageMetadata} from "./codecs/index.js";
 import {readImageMetadataFromSource} from "./codecs/metadata-source.js";
 
-export async function tryImageMetadata(input:string,options:SharpInputOptions):Promise<ImageMetadata|undefined> {
+export async function tryImageMetadata(input:string|Uint8Array|undefined,options:SharpInputOptions,operations:readonly ImageAstNode[]=[],encoding:OutputEncodeOptions={},loadedFiles?:ReadonlyMap<string,Uint8Array>):Promise<ImageMetadata|undefined> {
+ if(!operations.every(isStoredImageOperation) || (input===undefined&&!options.text&&!options.create))return undefined;
  const signal=options.signal??new AbortController().signal;signal.throwIfAborted();
- const supplied=options.filesystem;if(!supplied?.capabilities || !supplied.openReadFile)return undefined;
- if(options.text || options.create)return readImageMetadata(undefined,options);
+ const supplied=options.filesystem;if(!supplied?.capabilities || (typeof input==="string"&&!supplied.openReadFile))return undefined;
+ if((options.text || options.create)&&!operations.length)return readImageMetadata(undefined,options);
  const storage=supplied.open && supplied.removeFileConditional && supplied.stat
-  ?new PagedStorage({fs:supplied as FileSystem,cwd:options.workingDirectory??dirname(input),env:{},signal}):undefined;
+  ?new PagedStorage({fs:supplied as FileSystem,cwd:options.workingDirectory??(typeof input==="string"?dirname(input):"."),env:{},signal}):undefined;
  let failure:{error:unknown}|undefined,result:ImageMetadata|undefined;
  try {
-  result=await withImageSource(input,supplied as FileSystem,signal,source=>readImageMetadataFromSource(source,signal,options,storage));
+  const inspect=async(source?:ImageByteSource):Promise<ImageMetadata>=>{
+   const generated=options.text||options.create;
+   const metadata=generated?readImageMetadata(undefined,options):await readImageMetadataFromSource(source!,signal,options,storage);
+   if(!operations.length)return metadata;
+   if(!storage)throw new UnsupportedStoredResource();
+   const resources={readImage:(input:string|Uint8Array|undefined,inputOptions:SharpInputOptions|undefined,inputSignal:AbortSignal)=>readImageResource(typeof input==="string"?loadedFiles?.get(input)??input:input,inputOptions,supplied as FileSystem,storage,inputSignal)};
+   let initial;
+   if(generated)initial=await resources.readImage(undefined,options,signal);
+   else if(options.raw)initial=await decodeRawResource(source!,storage,{...options,raw:options.raw},signal);
+   else {
+    const decoder=storedImageDecoder(await source!.read(0,Math.min(54,source!.size),{signal}));
+    if(!decoder)throw new UnsupportedStoredResource();
+    initial=await decoder(source!,storage,signal,options);
+   }
+   const evaluated=await transformStoredPipeline(initial,storage,operations,signal,resources);
+   return transformedImageMetadata(metadata,evaluated,encoding);
+  };
+  result=options.text||options.create?await inspect():await withImageSource(input!,supplied as FileSystem,signal,inspect);
  } catch(error){failure={error};}
  try {await storage?.close();}catch(error){if(!failure || failure.error instanceof UnsupportedStoredResource)throw error;}
  if(failure && !(failure.error instanceof UnsupportedStoredResource))throw failure.error;
  return result;
+}
+
+export function transformedImageMetadata(rawMeta:ImageMetadata,evaluated:Omit<RgbaImage,"data"|"data16">,encoding:OutputEncodeOptions):ImageMetadata {
+    return {
+      format: encoding.format ?? evaluated.format,
+      width: evaluated.width,
+      height: evaluated.height,
+      space: evaluated.space,
+      channels: evaluated.channels,
+      depth: evaluated.depth,
+      density: encoding.density ?? evaluated.density,
+      hasAlpha: evaluated.hasAlpha,
+      autoOrient: evaluated.orientation!==undefined && evaluated.orientation>=5 && evaluated.orientation<=8?{width:evaluated.height,height:evaluated.width}:{width:evaluated.width,height:evaluated.height},
+      ...(evaluated.orientation !== undefined ? { orientation: evaluated.orientation } : {}),
+      ...(rawMeta.pages !== undefined ? { pages: rawMeta.pages } : {}),
+      ...(rawMeta.pagePrimary !== undefined ? { pagePrimary: rawMeta.pagePrimary } : {}),
+      ...(rawMeta.isProgressive !== undefined ? { isProgressive: rawMeta.isProgressive } : {}),
+      ...(rawMeta.size !== undefined ? { size: rawMeta.size } : {})
+    };
 }

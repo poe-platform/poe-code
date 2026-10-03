@@ -37,8 +37,8 @@ describe("portable image engine", () => {
     const distBrowser = fsNode.readFileSync(new URL("../dist/index.browser.js", import.meta.url), "utf8");
     expect(distIndex).toContain('"@poe-code/pdf-ast"');
     expect(distIndex).toContain('"pako"');
-    // Include the retained JPEG driver while guarding against bundled host/filesystem engines.
-    expect(distIndex.length).toBeLessThan(635_000);
+    // Include retained codecs and file adapters while guarding against bundled host/filesystem engines.
+    expect(distIndex.length).toBeLessThan(640_000);
     expect(distPortable).toContain('from "./index.js"');
     expect(distBrowser).toContain('from "./index.js"');
   });

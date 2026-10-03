@@ -123,13 +123,14 @@ it("inspects externally retained metadata in Workerd without whole-file allocati
   {bytes:new TextEncoder().encode("P6\n#"+"x".repeat(256*1024)+"\n17 19\n65535\n"),options:{}},
   {bytes:await sharp({create:{width:1024,height:64,channels:3,background:"red"}}).bmp().toBuffer(),options:{}},
   {bytes:largeWebp,options:{}},
-  {bytes:await sharp({create:{width:531,height:513,channels:4,background:"red"}}).tiff().toBuffer(),options:{}}
+  {bytes:await sharp({create:{width:531,height:513,channels:4,background:"red"}}).tiff().toBuffer(),options:{}},
+  {bytes:await sharp({create:{width:531,height:513,channels:4,background:"red"}}).png().toBuffer(),options:{},transform:true}
  ];
- const expected=await Promise.all(cases.map(sample=>sharp(sample.bytes,sample.options).metadata()));
+ const expected=await Promise.all(cases.map(sample=>(sample.transform?sharp(sample.bytes,sample.options).resize(401,257).withMetadata({density:144,orientation:6}):sharp(sample.bytes,sample.options)).metadata()));
  const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../../../",import.meta.url)),sourcefile:"metadata-worker.ts",contents:`
  import sharp from './packages/image-ast/src/index.ts';
  export default {async fetch(request,env){
-  const {id,size,options}=await request.json();let reads=0,closed=0,scratchClosed=0,scratchWrites=0,largestAllocation=0;const scope={};
+  const {id,size,options,transform}=await request.json();let reads=0,closed=0,scratchClosed=0,scratchWrites=0,largestAllocation=0;const scope={};
   const filesystem={capabilities:{retainedRead:true},
    async stat(){return {type:'directory'};},async removeFileConditional(){},async open(){return {
     capabilities:{positionedRead:true,positionedWrite:true},async stat(){return {type:'file',size:0};},
@@ -142,7 +143,7 @@ it("inspects externally retained metadata in Workerd without whole-file allocati
    async close(){closed++;}
   };}};
   const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;largestAllocation=Math.max(largestAllocation,length);if(length>65536)throw new Error('unbounded metadata allocation');return Reflect.construct(target,args);}});
-  let metadata;try{metadata=await sharp('/image',{...options,filesystem}).metadata();}finally{globalThis.Uint8Array=Native;}
+  let metadata;try{const input=sharp('/image',{...options,filesystem});metadata=await (transform?input.resize(401,257).withMetadata({density:144,orientation:6}):input).metadata();}finally{globalThis.Uint8Array=Native;}
   return Response.json({metadata,reads,closed,scratchClosed,scratchWrites,largestAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});
  }};`},bundle:true,write:false,platform:"browser",conditions:["workerd"],format:"esm",metafile:true,logLevel:"silent"});
  expect(Object.values(bundle.metafile!.outputs).flatMap(output=>output.imports)).toEqual([]);
@@ -159,10 +160,10 @@ it("inspects externally retained metadata in Workerd without whole-file allocati
  }}});
  try {
   for(const [id,sample] of cases.entries()) {
-   const response=await runtime.dispatchFetch("https://metadata/",{method:"POST",body:JSON.stringify({id,size:sample.bytes.length,options:sample.options})});
+   const response=await runtime.dispatchFetch("https://metadata/",{method:"POST",body:JSON.stringify({id,size:sample.bytes.length,options:sample.options,transform:sample.transform})});
    expect(response.status).toBe(200);
    const result=await response.json() as {metadata:unknown;reads:number;closed:number;scratchClosed:number;scratchWrites:number;largestAllocation:number;nodeGlobals:boolean};
-   if(id===6){expect(result.scratchClosed).toBe(1);expect(result.scratchWrites).toBeGreaterThan(64);}else expect(result.scratchClosed).toBe(0);
+   if(id>=6){expect(result.scratchClosed).toBe(1);expect(result.scratchWrites).toBeGreaterThan(64);}else expect(result.scratchClosed).toBe(0);
    expect(result.metadata).toEqual(expected[id]);expect(result.closed).toBe(1);expect(result.nodeGlobals).toBe(false);
    expect(result.largestAllocation).toBeLessThanOrEqual(id===5?4096:65536);if(id===2)expect(result.reads).toBe(0);else expect(result.reads).toBeGreaterThan(0);
   }

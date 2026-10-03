@@ -82,7 +82,7 @@ synchronous statistics require an explicit buffered input.
 Netpbm and raw metadata without rendering pixels. The PNG, JPEG and WebP readers are
 also available individually. TIFF inspection uses the optional caller backing storage
 to preserve full decode validation with bounded memory. File `.metadata()` for these formats
-uses retained reads when no transforms are queued, including source version checks
+uses retained reads and caller-backed transforms, including source version checks
 and handle cleanup. Raw metadata needs only the retained file size. These reads do
 not implicitly cache the file for later operations; explicit buffer outputs keep
 their existing snapshot behavior.

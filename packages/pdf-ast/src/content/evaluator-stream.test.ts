@@ -66,3 +66,38 @@ it("does not close an already exhausted input iterator again", () => {
   }; } };
   expect([...evaluateContentStreamSteps({ pageIndex: 0, width: 100, height: 100, nodes })]).toEqual([]);
 });
+
+it.each([
+  "q 1 0 0 1 20 30 cm /Span << /MCID 7 /ActualText (label) >> BDC BT /F1 12 Tf (AB) Tj 4 0 Td (C) Tj ET EMC Q BT /F1 12 Tf (D) Tj ET",
+  "q 1 0 0 1 20 30 cm BT /F1 12 Tf (A) Tj (B) Tj",
+  "/Span BMC q 1 0 0 1 20 30 cm EMC BT /F1 12 Tf (A) Tj ET Q BT /F1 12 Tf (B) Tj ET",
+  "BT /F1 12 Tf 7 Tr (AB) Tj q (C) Tj Q (D) Tj ET 0 0 10 10 re f",
+  "/OC /Hidden BDC q BT /F1 12 Tf (hidden) Tj ET /Span BMC BT (nested) Tj ET EMC Q EMC BT /F1 12 Tf (visible) Tj ET",
+])("evaluates streamed group and text events with buffered parity: %s", async source => {
+  const { parseContentSteps } = await import("./parser.js");
+  const { parseContentOperators } = await import("./operator-parser.js");
+  const { evaluateContentSteps } = await import("./evaluator.js");
+  const { PdfDocument } = await import("../document.js");
+  const { cosArray, cosDict, cosName, dictSet } = await import("../ast.js");
+  const doc = PdfDocument.create();
+  const layer = doc.cos.allocateObject(cosDict({ Type: cosName("OCG") }));
+  dictSet(doc.cos.resolveDict(doc.cos.rootRef)!, "OCProperties", cosDict({ D: cosDict({ OFF: cosArray([layer]) }) }));
+  const options = { pageIndex: 0, width: 100, height: 100, cosDoc: doc.cos, resourcesDict: cosDict({ Properties: cosDict({ Hidden: layer }) }) };
+  const bytes = new TextEncoder().encode(source);
+  const expected = [...evaluateContentStreamSteps({ ...options, nodes: parseContentStream(bytes) })];
+  const parser = parseContentSteps(), operators = parseContentOperators(bytes);
+  let parsing = parser.next();
+  const evaluator = evaluateContentSteps(options);
+  let evaluating = evaluator.next(); const actual = [];
+  while (!evaluating.done) {
+    if (evaluating.value.kind === "paint") { actual.push(evaluating.value); evaluating = evaluator.next(); continue; }
+    while (!parsing.done && parsing.value.kind !== "event") {
+      if (parsing.value.kind !== "operator") throw new Error("unexpected inline image");
+      const next = operators.next(); parsing = parser.next(next.done ? undefined : next.value);
+    }
+    await Promise.resolve();
+    evaluating = evaluator.next(parsing.done ? undefined : parsing.value.kind === "event" ? parsing.value.event : undefined);
+    if (!parsing.done) parsing = parser.next();
+  }
+  expect(actual).toEqual(expected);
+});

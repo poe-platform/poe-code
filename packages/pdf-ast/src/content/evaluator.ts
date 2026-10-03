@@ -22,7 +22,7 @@ import type { ParsedCosDocument } from "../cos/parser.js";
 import { PdfError } from "../errors.js";
 import { bytesToString } from "../bytes.js";
 import { iterateCMapCharacters } from "../fonts/cmap.js";
-import { parseContentStream } from "./parser.js";
+import { parseContentStream, type PdfContentEvent } from "./parser.js";
 import { createCalibratedColorSpace } from "./calibrated-color.js";
 import {
   decodeWinAnsiByte,
@@ -793,7 +793,7 @@ export interface PdfContentEvaluationOptions {
   readonly height: number;
   readonly origin?: readonly [number, number] | undefined;
   readonly rotation?: 0 | 90 | 180 | 270 | undefined;
-  readonly nodes: Iterable<PdfContentNode>;
+  readonly nodes: Iterable<PdfContentEvent>;
   readonly cosDoc?: ParsedCosDocument | undefined;
   readonly resourcesDict?: PdfCosDict | undefined;
   readonly annotations?: readonly PdfLinkAnnotation[] | undefined;
@@ -819,11 +819,11 @@ function closeEvaluationIterators(iterators: ReadonlyArray<Pick<Iterator<unknown
 
 /** Pull individual evaluated operations. Composite captures, fonts and decoded
  * resources still belong to this evaluator; this is not a retained I/O driver. */
-export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, "nodes">): Generator<PdfEvaluationRequest, void, PdfContentNode | undefined> {
+export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, "nodes">): Generator<PdfEvaluationRequest, void, PdfContentEvent | undefined> {
   const fonts = resolvePageFonts(params.cosDoc, params.resourcesDict);
   let capturedOperations: PdfPaintOperation[] | undefined;
   let insideSoftMask = false;
-  function* emit(operation: PdfPaintOperation): Generator<PdfEvaluationRequest, void, PdfContentNode | undefined> {
+  function* emit(operation: PdfPaintOperation): Generator<PdfEvaluationRequest, void, PdfContentEvent | undefined> {
     const { clipPaths, clipImages, softMask } = curState();
     if (clipPaths || clipImages || softMask) operation = { ...operation, value: { ...operation.value,
       ...(clipPaths ? { clipPaths } : {}), ...(clipImages ? { clipImages } : {}), ...(softMask ? { softMask } : {}),
@@ -930,7 +930,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     activeResources: PdfCosDict | undefined,
     activeFonts: Map<string, ResolvedPageFont>,
     depth: number
-  ): Generator<PdfEvaluationRequest, void, PdfContentNode | undefined> {
+  ): Generator<PdfEvaluationRequest, void, PdfContentEvent | undefined> {
     const num = (i: number, fb = 0) => (ops[i]?.kind === "number" ? ops[i]!.value : fb);
     if (operator === "cm") {
       const m: Matrix6 = [num(0, 1), num(1, 0), num(2, 0), num(3, 1), num(4, 0), num(5, 0)];
@@ -1143,7 +1143,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     resources: PdfCosDict | undefined,
     activeFonts: Map<string, ResolvedPageFont>,
     depth: number
-  ): Generator<PdfEvaluationRequest, void, PdfContentNode | undefined> {
+  ): Generator<PdfEvaluationRequest, void, PdfContentEvent | undefined> {
     if (!patternMask) {
       yield* emit({ kind: "image", value: image });
       return;
@@ -1166,7 +1166,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     depth: number,
     mcid?: number,
     actualText?: string
-  ): Generator<PdfEvaluationRequest, boolean, PdfContentNode | undefined> {
+  ): Generator<PdfEvaluationRequest, boolean, PdfContentEvent | undefined> {
     const st = curState(), doc = params.cosDoc;
     if (!st.fillPatternName || !doc || !resources) return false;
     if (depth >= 8) throw new PdfError("E_LIMIT", "Pattern nesting exceeds the form depth limit");
@@ -1259,7 +1259,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     mcid?: number,
     actualText?: string,
     maskGroup = false
-  ): Generator<PdfEvaluationRequest, void, PdfContentNode | undefined> {
+  ): Generator<PdfEvaluationRequest, void, PdfContentEvent | undefined> {
     const st = curState();
     const group = params.cosDoc!.resolveDict(dictGet(form.dict, "Group"));
     const groupType = group ? params.cosDoc!.resolve(dictGet(group, "S")) : undefined;
@@ -1345,22 +1345,76 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     if (compositeGroup) yield* emit({ kind: "group", value: { operations: children, alpha: st.fillAlpha, isolated, bboxClip: nextClipPaths?.[0], blendMode: st.blendMode, clipRect: st.clipRect } });
   };
 
+  function markedContext(node: Extract<PdfContentNode, { kind: "marked-content" }>,
+    mcid: number | undefined, actualText: string | undefined, activeResources: PdfCosDict | undefined
+  ): { mcid: number | undefined; actualText: string | undefined } | undefined {
+    let resolvedMcid = node.mcid;
+    let resolvedActualText = node.actualText;
+    if (params.cosDoc && typeof node.properties === "string" && activeResources) {
+      const propsMap = params.cosDoc.resolveDict(dictGet(activeResources, "Properties"));
+      const propRefOrNode = propsMap ? dictGet(propsMap, node.properties) : undefined;
+      if (propRefOrNode) {
+        const propDict = params.cosDoc.resolveDict(propRefOrNode);
+        const propType = propDict ? params.cosDoc.resolve(dictGet(propDict, "Type")) : undefined;
+        const isOcTag =
+          node.tag === "OC" ||
+          (propType?.kind === "name" && (propType.decoded === "OCG" || propType.decoded === "OCMD"));
+        if (isOcTag && !isOptionalContentVisible(params.cosDoc, propRefOrNode)) {
+          return undefined;
+        }
+        if (propDict) {
+          if (resolvedActualText === undefined) {
+            const at = params.cosDoc.resolve(dictGet(propDict, "ActualText"));
+            if (at?.kind === "string") resolvedActualText = decodePdfString(at);
+          }
+          if (resolvedMcid === undefined) {
+            const mc = params.cosDoc.resolve(dictGet(propDict, "MCID"));
+            if (mc?.kind === "number") resolvedMcid = mc.value;
+          }
+        }
+      }
+    }
+    return { mcid: resolvedMcid ?? mcid, actualText: resolvedActualText ?? actualText };
+  }
+
   function* walkNodes(
-    nodes: Iterable<PdfContentNode> | undefined,
+    nodes: Iterable<PdfContentEvent> | undefined,
     mcid?: number,
     actualText?: string,
     activeResources: PdfCosDict | undefined = params.resourcesDict,
     activeFonts: Map<string, ResolvedPageFont> = fonts,
     depth = 0
-  ): Generator<PdfEvaluationRequest, void, PdfContentNode | undefined> {
+  ): Generator<PdfEvaluationRequest, void, PdfContentEvent | undefined> {
+    const groups: Array<{ pushed: boolean; hidden: boolean; mcid: number | undefined; actualText: string | undefined }> = [];
+    let hidden = false;
     const iterator = nodes?.[Symbol.iterator]();
     let failed = false, exhausted = false;
     try {
     while (true) {
       const next = iterator?.next();
       if (next?.done) exhausted = true;
-      const node: PdfContentNode | undefined = next ? (next.done ? undefined : next.value) : yield { kind: "node" };
+      const node: PdfContentEvent | undefined = next ? (next.done ? undefined : next.value) : yield { kind: "node" };
       if (!node) break;
+      if (node.kind === "end-group") {
+        const parent = groups.pop();
+        if (parent) {
+          if (parent.pushed) stateStack.pop();
+          ({ hidden, mcid, actualText } = parent);
+        }
+        continue;
+      }
+      if (node.kind === "begin-group") {
+        const pushed = !hidden && node.group.kind === "graphics-group";
+        groups.push({ pushed, hidden, mcid, actualText });
+        if (pushed) stateStack.push({ ...curState(), ctm: [...curState().ctm] as Matrix6 });
+        else if (!hidden && node.group.kind === "marked-content") {
+          const context = markedContext(node.group, mcid, actualText, activeResources);
+          if (context) ({ mcid, actualText } = context);
+          else hidden = true;
+        }
+        continue;
+      }
+      if (hidden) continue;
       switch (node.kind) {
         case "graphics-group":
           stateStack.push({ ...curState(), ctm: [...curState().ctm] as Matrix6 });
@@ -1369,40 +1423,8 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           break;
 
         case "marked-content": {
-          let resolvedMcid = node.mcid;
-          let resolvedActualText = node.actualText;
-          if (params.cosDoc && typeof node.properties === "string" && activeResources) {
-            const propsMap = params.cosDoc.resolveDict(dictGet(activeResources, "Properties"));
-            const propRefOrNode = propsMap ? dictGet(propsMap, node.properties) : undefined;
-            if (propRefOrNode) {
-              const propDict = params.cosDoc.resolveDict(propRefOrNode);
-              const propType = propDict ? params.cosDoc.resolve(dictGet(propDict, "Type")) : undefined;
-              const isOcTag =
-                node.tag === "OC" ||
-                (propType?.kind === "name" && (propType.decoded === "OCG" || propType.decoded === "OCMD"));
-              if (isOcTag && !isOptionalContentVisible(params.cosDoc, propRefOrNode)) {
-                break;
-              }
-              if (propDict) {
-                if (resolvedActualText === undefined) {
-                  const at = params.cosDoc.resolve(dictGet(propDict, "ActualText"));
-                  if (at?.kind === "string") resolvedActualText = decodePdfString(at);
-                }
-                if (resolvedMcid === undefined) {
-                  const mc = params.cosDoc.resolve(dictGet(propDict, "MCID"));
-                  if (mc?.kind === "number") resolvedMcid = mc.value;
-                }
-              }
-            }
-          }
-          yield* walkNodes(
-            node.children,
-            resolvedMcid ?? mcid,
-            resolvedActualText ?? actualText,
-            activeResources,
-            activeFonts,
-            depth
-          );
+          const context = markedContext(node, mcid, actualText, activeResources);
+          if (context) yield* walkNodes(node.children, context.mcid, context.actualText, activeResources, activeFonts, depth);
           break;
         }
 
@@ -1622,7 +1644,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           let tm: Matrix6 = activeTm;
           let tlm: Matrix6 = activeTlm;
 
-          function* emitTokenBytes(bytes: Uint8Array): Generator<PdfEvaluationRequest, void, PdfContentNode | undefined> {
+          function* emitTokenBytes(bytes: Uint8Array): Generator<PdfEvaluationRequest, void, PdfContentEvent | undefined> {
             const font = activeFonts.get(st.fontName) ?? fonts.get(st.fontName);
             const decoded = decodeTokenGlyphs(bytes, font);
             const scaleH = st.horizScale / 100;
@@ -1833,7 +1855,10 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       }
     }
     } catch (error) { failed = true; throw error; }
-    finally { if (!exhausted) closeEvaluationIterators([iterator], failed); }
+    finally {
+      while (groups.length) if (groups.pop()!.pushed) stateStack.pop();
+      if (!exhausted) closeEvaluationIterators([iterator], failed);
+    }
   };
 
   yield* walkNodes(undefined);

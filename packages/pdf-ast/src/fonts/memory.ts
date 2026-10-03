@@ -25,6 +25,6 @@ export class PdfFontAllocation {
   }
   /** Optional malformed-map recovery must never swallow an owner rejection. */
   rethrowAllocationFailure(reason: unknown): void {
-    if (this.failure && this.failure.reason === reason) throw reason;
+    if (this.failure && Object.is(this.failure.reason, reason)) throw reason;
   }
 }

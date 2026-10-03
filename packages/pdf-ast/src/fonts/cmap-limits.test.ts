@@ -31,3 +31,13 @@ it("charges both character mapping and Unicode conversion to one owner", () => {
   expect(() => parseCharacterCMap(input, { maxWorkingBytes: 4600 })).not.toThrow();
   expect(() => parseToUnicodeCMap(input, { maxWorkingBytes: 4600 })).toThrow(expect.objectContaining({ code: "E_LIMIT" }));
 });
+
+it.each([NaN, undefined, null, 0, ""])("preserves arbitrary owner rejection values: %s", failure => {
+  let refused = false, caught = false;
+  try {
+    parseCharacterCMap(bytes("1 begincidrange <0000> <0fff> 0 endcidrange"), {
+      onAllocation(size) { if (!refused && size > 10000) { refused = true; throw failure; } },
+    });
+  } catch (error) { caught = true; expect(Object.is(error, failure)).toBe(true); }
+  expect(refused).toBe(true); expect(caught).toBe(true);
+});

@@ -45,3 +45,10 @@ captured libgsf byte-mapping facts, whose provenance is recorded separately.
   independent compiled cipher vectors are recorded in
   `docs/ssconvert/paradox-encryption-gap-proof.json`. The LGPL text is included
   at `src/encoding/LGPL-2.1.txt`. No native pxlib code is loaded by the product.
+
+- BIFF column-width font metrics: Copyright (C) 1999-2005 Jon K Hellan,
+  Gnumeric 1.12.61 `plugins/excel/ms-excel-util.c`, GPL-2.0-or-later.
+  SHA-256: `64b2c7bb115e9eda9385c29ea9ccb64d11f69413653a371f077426a483155d66`.
+  Width conversion follows `ms-excel-read.c` Normal-XF font selection and
+  COLINFO/DEFCOLWIDTH arithmetic. These are portable captured measurements;
+  native fonts and Gnumeric are not runtime dependencies.

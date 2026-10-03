@@ -4572,6 +4572,21 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "biffColumnWidths": {
+      "finding": "Independent grouped-sheet COLINFO width 2048 with Arial 12 Normal font loads as 50.4 points natively but previously converted to 42 points. The editing reader ignored Normal-XF font name/size, font-specific width slopes and baselines, and nonpositive/narrow-width behavior.",
+      "implementation": "Use the captured Gnumeric font measurements selected by Normal XF0, preserving ASCII-only case folding and unknown-font fallback. Match source arithmetic grouping exactly. DEFCOLWIDTH supplies hidden-column fallback; nonpositive widths become hidden and positive widths below four points are raised to four. Existing explicit visibility, outline and collapse flags remain intact.",
+      "source": "Gnumeric 1.12.61 ms-excel-util.c font metrics, SHA256 64b2c7bb115e9eda9385c29ea9ccb64d11f69413653a371f077426a483155d66; ms-excel-read.c xl_find_fontspec, COLINFO and DEF_COL_WIDTH. Source-derived data attribution added to the package notice.",
+      "validation": "36 initial memory regressions failed before repair. All 2084 tests in 72 BIFF files passed before the final native arithmetic-grouping correction; final 303 width/layout tests include three exact-binary64 controls. Maintained XLS lint/source/test types, command-test lint/types and selected18-workspace build pass.",
+      "publicAndNative": "280 independent SheetJS 0.18.5 inputs cover all138 captured font names plus mixed-case and unknown controls at10/12 points, each with11 width/boundary cases.1120 compiled package SDK/command XML/BIFF exports pass. An initialized Gnumeric API probe reads842 files without conversion failure.6160 XML width/hidden-state pairs match native inputs exactly;6160 native BIFF readback pairs match emitted-width quantization exactly. Native unknown-font warning is retained separately.",
+      "precision": "Native Gnumeric XML serializes widths with limited significant digits; the initial XML-reference comparison is historical and unsuitable for exact qualification. The native in-memory ColRowInfo.size_pts probe resolves that ambiguity. BIFF integer-width quantization is explicitly distinguished from exact imported model values.",
+      "visual": "Final native grouped SDK screenshot is byte-identical to the original independent input screenshot, repairing the prior narrower columns while retaining group controls and all values. GUI stderr empty; owned GUI/Xvfb stopped.",
+      "hashes": {
+        "nativeApiResults": "8bcd81ce5ba1f27f3c709681bbc2167d8e886b41d14d3a58b53912d2b2fdc6bc",
+        "nativeProbe": "6a93275ef349facd0ee9a7095826c05fef7dde0a4ec1ea95addd0173611c4489",
+        "groupedScreenshot": "5db2b35912cc89c0b4ce2771db9fa39a6f6456d341531290cf47ef10b93e076a"
+      },
+      "limits": "Qualifies explicit COLINFO dimensions and DEFCOLWIDTH hidden fallback. General sheet-default width export, unknown-font diagnostic parity, legacy worksheet-local font-table profiles, root/registry artifacts and broader rendering/format records remain open. The cached-value reader is unchanged. All19 families remain open."
+    },
     "biffOutlineGutters": {
       "finding": "BIFF export emitted an all-zero GUTS record regardless of grouped rows/columns. Outline levels above seven were ORed directly into ROW/COLINFO flags, potentially changing collapsed/hidden metadata.",
       "implementation": "Derive gutter sizes and level counts from exported axis metadata, cap levels at seven as native Gnumeric does, and leave omitted rows/columns out of the calculation. Charge the axis scan against metadata work and cancellation limits.",

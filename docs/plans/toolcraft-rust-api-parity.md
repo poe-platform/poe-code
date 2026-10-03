@@ -4953,3 +4953,42 @@ C/POSIX-profile diagnostic; native rg prints the line and exits 0. Safe Bash's
 literal rg '×' succeeds. The regex engine's admitAscii guard rejects code units
 above 127. This is an observed command compatibility limitation, not a Toolcraft
 failure, and no Safe Bash source was changed in this checkpoint.
+
+### Credential claim-document admission checkpoint
+
+The native credential binding now owns object admission, inherited ticket presence,
+numeric/safe-integer checks, positivity and the final captured ticket value. Node
+retains JSON.parse and a guarded ECMAScript comparison primitive. Invalid/incomplete
+live documents still mean choosing, never an expired claim that can be stolen.
+The binding deliberately preserves four distinct ticket reads: inherited getters
+can change between the type, integer, positivity and final-value steps. The final
+value retains its original identity, including undefined, functions, symbols,
+BigInt and cycles when supplied by changing getters.
+
+The focused suite failed first because native claim admission was missing. Four
+new native suites compare the original predicate, property/proxy traces, rejection
+short-circuiting and thrown values without stringification. Public raw-lock
+differentials cover malformed/duplicate-key JSON, numeric boundaries, selected
+publication tickets, operation results and cleanup with memfs. The final extended
+identity cases also pass. The maintained five-package route passes: 38 credential
+native checks; 772 OAuth reference cases and 114 native checks; 445 client cases
+and 83 native checks; 443 HTTP cases and 50 native checks; and 6,200 Toolcraft cases
+across 125 files with 266 native checks. Rust tests, declarations, the original CLI
+type consumer and root posttest pass. Maintained native lint for all five packages
+and scoped JS lint pass. A freshly packed credential package verifies valid and
+malformed claim admission, publication tickets, callback results and retained-peer
+cleanup without reference implementation imports.
+
+A warmed, alternating seven-round Node 22.23.2 ARM64 benchmark (300 uncontended
+memfs acquisitions per round) measured 73.432/74.967 microseconds native/reference
+with no peer, and 97.378/91.000 microseconds with one live peer that retires before
+the waiting scan (1.07 times slower). The empty case does not exercise claim parsing;
+shared-host timing variance precludes a cross-run improvement claim. Performance,
+portable credential storage and replacement gates remain open. No dependency was
+added. The wasm32-unknown-unknown compiler target is already available for the
+remaining portable-runtime work; its availability is not browser qualification.
+
+The preceding ticket, HTTP mapping and test scheduling commits are verified on
+remote main at 29e3372169, 5ef26dd451 and 923c4eb18d. Release 37104688079 completed
+successfully with its workspace/CLI build passing and stable publication skipped.
+No native package publication is claimed.

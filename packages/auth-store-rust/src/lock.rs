@@ -48,11 +48,15 @@ pub fn next_ticket(tickets: &[f64]) -> Result<f64, &'static str> {
         }
     });
     let ticket = maximum + 1.0;
-    if ticket.is_finite() && ticket.fract() == 0.0 && ticket <= 9_007_199_254_740_991.0 {
+    if is_safe_integer(ticket) {
         Ok(ticket)
     } else {
         Err("Secret-store transaction lock ticket overflow")
     }
+}
+
+pub fn is_safe_integer(value: f64) -> bool {
+    value.is_finite() && value.fract() == 0.0 && value.abs() <= 9_007_199_254_740_991.0
 }
 
 pub fn precedes(peer: Option<f64>, ticket: f64, peer_name: &[u16], name: &[u16]) -> bool {

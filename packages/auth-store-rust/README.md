@@ -22,11 +22,10 @@ const secret = await store.get();
 ```
 
 Rust owns document validation, credential and lock path admission, lock timeout
-and owner validation, ticket selection and waiter ordering, Keychain command/result
-policy, backend selection and migration/rollback plans. Node supplies filesystem,
+and owner validation, claim ticket validation, ticket selection and waiter ordering,
+Keychain command/result policy, backend selection and migration/rollback plans. Node supplies filesystem,
 process, cancellation, JSON and platform cryptography operations. Existing consumers
-are unchanged. Claim-document admission and asynchronous lock cleanup still run in
-the adapter.
+are unchanged. Asynchronous lock cleanup still runs in the adapter.
 
 The completed-key cache retains at most 64 entries with least-recently-used eviction.
 Identity keys exceeding 16,384 UTF-16 units bypass caching. Concurrent derivations

@@ -187,6 +187,41 @@ pub fn lock_next_ticket(claims: Vec<Object<'_>>) -> Result<convert::NativeJson> 
 }
 
 #[napi]
+pub fn lock_claim_ticket<'env>(
+    source: Unknown<'env>,
+    positive: Function<'env, Unknown, bool>,
+) -> Result<Option<Unknown<'env>>> {
+    if source.get_type()? != napi::ValueType::Object {
+        return Ok(None);
+    }
+    let object: Object = unsafe { source.cast()? };
+    if !object.has_named_property("ticket")? {
+        return Ok(None);
+    }
+    let first: Unknown = object.get_named_property("ticket")?;
+    if first.get_type()? != napi::ValueType::Number {
+        return Ok(None);
+    }
+    let second: Unknown = object.get_named_property("ticket")?;
+    if second.get_type()? != napi::ValueType::Number
+        || !auth_store_rust::lock::is_safe_integer(unsafe { second.cast::<f64>()? })
+    {
+        return Ok(None);
+    }
+    let third: Unknown = object.get_named_property("ticket")?;
+    let admitted = if third.get_type()? == napi::ValueType::Number {
+        unsafe { third.cast::<f64>()? > 0.0 }
+    } else {
+        positive.call(third)?
+    };
+    if admitted {
+        Ok(Some(object.get_named_property("ticket")?))
+    } else {
+        Ok(None)
+    }
+}
+
+#[napi]
 pub fn lock_has_predecessor<'env>(
     peers: Vec<Object<'env>>,
     ticket: f64,

@@ -1,6 +1,10 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 function hasOwnErrorCode(error, code) { return error instanceof Error && Object.hasOwn(error, "code") && error.code === code; }
+const positiveClaimValue = value => {
+    try { return value > 0; }
+    catch { return false; }
+};
 export function hasLockPredecessor(native, peers, ticket, name) {
     let captured;
     try {
@@ -148,10 +152,7 @@ async function readClaims(fs, directory, ownName, native) {
             throw error;
         }
         try {
-            const value = JSON.parse(raw);
-            if (value !== null && typeof value === "object" && "ticket" in value &&
-                typeof value.ticket === "number" && Number.isSafeInteger(value.ticket) && value.ticket > 0)
-                ticket = value.ticket;
+            ticket = native.lockClaimTicket(JSON.parse(raw), positiveClaimValue);
         }
         catch { /* Incomplete live claims remain in the choosing phase; never steal them by age. */ }
         claims.push({ name, ticket });

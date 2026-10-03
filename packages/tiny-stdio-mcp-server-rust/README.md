@@ -28,6 +28,12 @@ issues for invalid input. Set `validateToolArguments: false` to skip rejecting
 schema mismatches. Arguments must still be JSON objects. Failed schema compilation
 leaves an existing registration intact.
 
+Direct and SDK custom-method calls preserve the original parameter object,
+including undefined object properties. Unvalidated tool handlers likewise receive
+the original argument object. Missing arguments default to `{}`; `null` is rejected.
+Protocol admission omits undefined object properties from its internal snapshot;
+other non-JSON values, accessors and custom prototypes remain unsupported there.
+
 Annotate static string, integer or boolean input properties with `"x-mcp-header"`
 to declare MCP parameter mirrors. For modern direct calls, pass the transport's
 headers through `handleMessage(method, params, { parameterHeaders })`. Rust checks
@@ -53,6 +59,8 @@ schema issues. Explicit tool error results skip output validation. Each active
 invocation retains its original contract until its callback settles, including
 when a tool is replaced or removed. Legacy scalar/array schemas retain the existing
 text fallback and omit structured content; modern calls validate those schemas.
+Undefined values in declared structured results produce the same protocol errors
+as other invalid JSON values, including undefined array entries.
 
 Use `parseUriTemplate(source)` for independent RFC 6570 expansion and matching.
 All four expansion levels support scalar, list and associative values, Unicode

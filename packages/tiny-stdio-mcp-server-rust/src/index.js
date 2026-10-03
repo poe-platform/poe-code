@@ -291,6 +291,8 @@ export function createServer(options) {
             ? undefined
             : { requestId: context.requestId, parameterHeaders: context.parameterHeaders }
         );
+        if (action.originalArguments === "params") action.arguments = params;
+        else if (action.originalArguments === "arguments") action.arguments = params?.arguments ?? {};
         return executeAction(action, context);
       },
       async handleLine(line, write) {
@@ -307,6 +309,8 @@ export function createServer(options) {
         let parsed;
         try {
           parsed = native.dispatchSdk(id, message.method, message.params, message.id);
+          if (parsed.action.originalArguments === "params") parsed.action.arguments = message.params;
+          else if (parsed.action.originalArguments === "arguments") parsed.action.arguments = message.params?.arguments ?? {};
         } catch {
           if (message.id === undefined) return undefined;
           return {

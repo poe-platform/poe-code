@@ -4111,6 +4111,34 @@ No performance/default-swap gate passed. Public MCP handler, approval/error,
 stream and transport lifecycle integration, HTTP/OAuth and full platform/resource/
 standalone packaging qualification remain open.
 
+### Public MCP dependency ingress repair
+
+Public MCP integration exposed three differences in the own native stdio server:
+custom parameters with undefined object properties failed admission, unvalidated
+arguments lost their original identity, and undefined structured array entries
+were dropped before output validation. Three differential failures preceded the
+repair. Request snapshots now omit undefined object properties recursively while
+Node retains original custom parameters and unvalidated tool arguments. Declared
+outputs use strict JSON admission and native protocol-error selection. Existing
+untyped content conversion retains its separate policy.
+
+Five differential checks cover direct and SDK custom calls in both protocol
+versions, original argument identity, null rejection, and explicit/raw invalid
+structured arrays/objects. A new test initially assumed null should default to an
+empty object; direct inspection of the current JavaScript implementation disproved
+that assumption. The attempted null-default change was removed; the original Rust
+lifecycle test is unchanged. Maintained dependency verification passes Rust tests,
+362 native Node checks and declarations. The shared protocol workspace passes its
+Rust/Node tests and both crates pass maintained lint; scoped ESLint passes.
+
+This does not qualify arbitrary host request values: accessor properties, custom
+prototypes, cycles and undefined/sparse arrays remain restricted by native ingress.
+No external dependencies or default implementation changed.
+
+The earlier MCP output checkpoint's package workflow 37087484577 completed with
+successful standalone bundles on Node 18.18, 20, 22 and 24 and a successful publish
+job. This is distinct from the skipped stable-root publication in its Release run.
+
 MCP tool enumeration is independently verified on remote main at b5dc169902.
 Release 37088180709 completed successfully with release-stable skipped; this
 verifies the build, not publication or a full fresh matrix.

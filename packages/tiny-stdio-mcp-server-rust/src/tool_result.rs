@@ -6,7 +6,7 @@ use mcp_protocol_rust::{
 use toolcraft_schema_rust::CompiledSchema;
 
 pub struct ToolOutput {
-    pub(crate) schema: Option<Value>,
+    pub schema: Option<Value>,
     pub(crate) validator: Option<CompiledSchema>,
 }
 
@@ -25,6 +25,21 @@ fn rpc(message: &str) -> ResultError {
 }
 
 impl ToolOutput {
+    pub fn invalid_input(&self, explicit: bool, modern: bool, message: String) -> ResultError {
+        match &self.schema {
+            None => ResultError::Content(if explicit {
+                "Invalid tool result".into()
+            } else {
+                message
+            }),
+            Some(_) if explicit => rpc("Invalid tool result"),
+            Some(schema) if modern || !string_matches(schema.get("type"), "object") => {
+                rpc("Structured tool result must be JSON")
+            }
+            Some(_) => rpc("Structured tool result must be a JSON object"),
+        }
+    }
+
     pub fn normalize(&self, returned: Option<Value>, modern: bool) -> Result<Value, ResultError> {
         let Some(output_schema) = &self.schema else {
             return content::normalize_result(returned, modern).map_err(ResultError::Content);

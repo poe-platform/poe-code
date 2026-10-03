@@ -5,6 +5,9 @@ use napi::{Env, Error, JsValue, ValueType, bindgen_prelude::*};
 pub enum Mode {
     Json,
     Tool,
+    /// Protocol admission snapshot for in-process requests. The Node adapter
+    /// retains original custom/unvalidated arguments separately.
+    Request,
 }
 
 /// Copy values directly through Node-API. Descriptor inspection rejects
@@ -51,7 +54,7 @@ impl<'env> Reader<'env> {
             ValueType::Number => {
                 let number: f64 = unsafe { source.cast()? };
                 if !number.is_finite() {
-                    if matches!(mode, Mode::Json) {
+                    if matches!(mode, Mode::Json | Mode::Request) {
                         return Err(Error::from_reason("JSON numbers must be finite"));
                     }
                     let text = if number.is_nan() {
@@ -138,10 +141,15 @@ impl<'env> Reader<'env> {
                         let entry = self
                             .data_property_utf16(source, key.to_vec().into())?
                             .ok_or_else(|| Error::from_reason("Object property disappeared"))?;
-                        let value = self
-                            .visit(entry, depth + 1, Mode::Json, false)?
-                            .expect("undefined is rejected inside JSON objects");
-                        properties.push((key.to_vec(), value));
+                        let request = matches!(mode, Mode::Request);
+                        if let Some(value) = self.visit(
+                            entry,
+                            depth + 1,
+                            if request { Mode::Request } else { Mode::Json },
+                            request,
+                        )? {
+                            properties.push((key.to_vec(), value));
+                        }
                     }
                     Value::Object(properties)
                 };

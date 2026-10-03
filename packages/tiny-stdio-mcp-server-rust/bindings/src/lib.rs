@@ -116,6 +116,7 @@ struct ServerState {
     invocations: HashMap<u64, (String, Value)>,
     tool_admission: tiny_stdio_mcp_server_rust::admission::ToolAdmission,
     tool_call_timeout_ms: Option<f64>,
+    validate_tool_arguments: bool,
 }
 
 #[napi]
@@ -176,6 +177,7 @@ impl NativeServer {
                 )
                 .map_err(Error::from_reason)?,
                 tool_call_timeout_ms: options.tool_call_timeout_ms,
+                validate_tool_arguments: options.validate_tool_arguments != Some(false),
                 requests: RequestTracker::new(limit as usize).map_err(Error::from_reason)?,
                 stdio: StdioOptions {
                     max_line_bytes: capacity(
@@ -432,11 +434,6 @@ impl NativeServer {
         token: f64,
     ) -> Result<NativeJson, String> {
         use tiny_stdio_mcp_server_rust::tool_result::ResultError;
-        let value = input::read(&env, source, input::Mode::Tool)
-            .map_err(|error| Error::new("GenericFailure".to_owned(), error.reason))?;
-        if modern && value.as_ref().and_then(|value| value.get("resultType")).is_some_and(|value| matches!(value, Value::String(units) if units.iter().copied().eq("input_required".encode_utf16()))) {
-            return Ok(NativeJson(object([("error", rpc_error_value(RpcError { code: -32603, message: "Invalid MCP input_required result".into(), data: None }))])));
-        }
         let output = self
             .state
             .borrow()
@@ -449,6 +446,48 @@ impl NativeServer {
                     "Tool invocation no longer active",
                 )
             })?;
+        let mode = if output.schema.is_some() {
+            input::Mode::Json
+        } else {
+            input::Mode::Tool
+        };
+        let value = match input::read(&env, source, mode) {
+            Ok(value) => value,
+            Err(error) => {
+                if error.status == napi::Status::PendingException {
+                    return Err(Error::new("GenericFailure".to_owned(), error.reason));
+                }
+                let explicit = if source
+                    .get_type()
+                    .map_err(|error| Error::new("GenericFailure".to_owned(), error.reason))?
+                    == ValueType::Object
+                {
+                    let object: Object = unsafe {
+                        source.cast().map_err(|error| {
+                            Error::new("GenericFailure".to_owned(), error.reason)
+                        })?
+                    };
+                    object.has_own_property("content").unwrap_or(false)
+                        && object
+                            .get_named_property::<Unknown>("content")
+                            .and_then(|value| value.is_array())
+                            .unwrap_or(false)
+                } else {
+                    false
+                };
+                return match output.invalid_input(explicit, modern, error.reason) {
+                    ResultError::Rpc(error) => {
+                        Ok(NativeJson(object([("error", rpc_error_value(error))])))
+                    }
+                    ResultError::Content(message) => {
+                        Err(Error::new("GenericFailure".to_owned(), message))
+                    }
+                };
+            }
+        };
+        if modern && value.as_ref().and_then(|value| value.get("resultType")).is_some_and(|value| matches!(value, Value::String(units) if units.iter().copied().eq("input_required".encode_utf16()))) {
+            return Ok(NativeJson(object([("error", rpc_error_value(RpcError { code: -32603, message: "Invalid MCP input_required result".into(), data: None }))])));
+        }
         match output.normalize(value, modern) {
             Ok(result) => {
                 let result = if modern {
@@ -640,7 +679,7 @@ impl NativeServer {
         if !self.state.borrow().sessions.contains_key(&id) {
             return Ok(NativeJson(object([("type", string("none"))])));
         }
-        let params = input::read(&env, source, input::Mode::Json)?;
+        let params = input::read(&env, source, input::Mode::Request)?;
         let headers = context
             .as_ref()
             .map(|context| {
@@ -682,7 +721,7 @@ impl NativeServer {
         source: Unknown<'_>,
         request_id: Unknown<'_>,
     ) -> Result<NativeJson> {
-        let params = input::read(&env, source, input::Mode::Json)?;
+        let params = input::read(&env, source, input::Mode::Request)?;
         let request_id = input::read_id(request_id)?;
         let message =
             tiny_stdio_mcp_server_rust::wire::admit(mcp_protocol_rust::jsonrpc::Request {
@@ -860,7 +899,22 @@ impl ServerState {
             (action, token)
         };
         let mut value = action_value(action);
+        let original_arguments = match value.get("handlerKind") {
+            Some(Value::String(kind)) if kind.iter().copied().eq("custom".encode_utf16()) => {
+                Some("params")
+            }
+            Some(Value::String(kind))
+                if kind.iter().copied().eq("tool".encode_utf16())
+                    && !self.validate_tool_arguments =>
+            {
+                Some("arguments")
+            }
+            _ => None,
+        };
         if let Value::Object(fields) = &mut value {
+            if let Some(source) = original_arguments {
+                fields.push(("originalArguments".encode_utf16().collect(), string(source)));
+            }
             fields.push((
                 "token".encode_utf16().collect(),
                 Value::Number(token as f64),

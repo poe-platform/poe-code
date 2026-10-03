@@ -43,3 +43,18 @@ describe("safe-bash sips & identify integration", () => {
     assert.match(ppmRes.stdout, /PNG 100x50$/);
   });
 });
+
+it("converts HEIF through the caller filesystem", async () => {
+  const fs = createMemoryFileSystem();
+  const input = sharp({create: {width: 37, height: 29, channels: 4, background: "red"}}).heif().toBufferSync();
+  await fs.writeFile("/input.heif", input);
+  const shell = new Shell({fs}).use(sipsCommands());
+  try {
+    const result = await shell.exec("sips -Z 20 -s format avif /input.heif --out /output.avif");
+    assert.equal(result.exitCode, 0, result.stderr);
+    const metadata = sharp(await fs.readFile("/output.avif")).metadataSync();
+    assert.equal(metadata.format, "avif");
+    assert.equal(metadata.width, 20);
+    assert.equal(metadata.height, 16);
+  } finally {await shell.dispose();}
+});

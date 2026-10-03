@@ -1,4 +1,4 @@
-import { deflate, inflate } from "pako";
+import { transformBytes } from "@poe-code/compression";
 import type { ColorSpace, ImageMetadata, RgbaImage } from "../ast.js";
 import { buildExifApp1Segment, parseExifBuffer } from "./exif.js";
 import { decodeJpegImage, isJpegBytes } from "./jpeg.js";
@@ -398,8 +398,9 @@ export function readHeifMetadata(bytes: Uint8Array): ImageMetadata {
   };
 }
 
-export function encodeHeifImage(
-  img: RgbaImage,
+export function createHeifContainer(
+  img: Omit<RgbaImage, "data" | "data16">,
+  compressedSize: number,
   options?: {
     readonly format?: "heic" | "heif" | "avif";
     readonly quality?: number;
@@ -408,7 +409,7 @@ export function encodeHeifImage(
     readonly density?: number;
     readonly orientation?: number;
   }
-): Uint8Array {
+) {
   const fmt = options?.format ?? "heic";
   const compression = options?.compression ?? (fmt === "avif" ? "av1" : "hevc");
   const majorBrand = fmt === "avif" ? "avif" : fmt === "heif" ? "heif" : "heic";
@@ -437,10 +438,7 @@ export function encodeHeifImage(
   exifItemPayload.set(exifApp1, 4);
 
   // 2. Build lossless compressed RGBA pixel payload for mdat
-  const compressedPixels = deflate(img.data, { level: 6 });
-  const primaryPayload = new Uint8Array(POE_PIXEL_MAGIC.length + compressedPixels.length);
-  primaryPayload.set(POE_PIXEL_MAGIC, 0);
-  primaryPayload.set(compressedPixels, POE_PIXEL_MAGIC.length);
+  const primarySize = POE_PIXEL_MAGIC.length + compressedSize;
 
   // 3. Build ftyp box (28 bytes)
   // [size:4]["ftyp":4][major:4][minor:4]["mif1":4][compat1:4][compat2:4]
@@ -590,10 +588,10 @@ export function encodeHeifImage(
   ilocView.setUint16(18, 0, false);
   ilocView.setUint16(20, 1, false);
   ilocView.setUint32(22, mdatDataStart, false);
-  ilocView.setUint32(26, primaryPayload.length, false);
+  ilocView.setUint32(26, primarySize, false);
 
   // Item 2 (Exif) right after primaryPayload
-  const exifOffset = mdatDataStart + primaryPayload.length;
+  const exifOffset = mdatDataStart + primarySize;
   ilocView.setUint16(30, 2, false);
   ilocView.setUint16(32, 0, false);
   ilocView.setUint16(34, 1, false);
@@ -609,17 +607,24 @@ export function encodeHeifImage(
     mpos += sub.length;
   }
 
-  const mdatSize = 8 + primaryPayload.length + exifItemPayload.length;
-  const mdat = new Uint8Array(mdatSize);
-  new DataView(mdat.buffer).setUint32(0, mdatSize, false);
-  writeAscii(mdat, 4, "mdat");
-  mdat.set(primaryPayload, 8);
-  mdat.set(exifItemPayload, 8 + primaryPayload.length);
+  const mdatHeader = new Uint8Array(8);
+  new DataView(mdatHeader.buffer).setUint32(0, 8 + primarySize + exifItemPayload.length, false);
+  writeAscii(mdatHeader, 4, "mdat");
+  const header = new Uint8Array(ftyp.length + meta.length + 8 + POE_PIXEL_MAGIC.length);
+  header.set(ftyp);
+  header.set(meta, ftyp.length);
+  header.set(mdatHeader, ftyp.length + meta.length);
+  header.set(POE_PIXEL_MAGIC, ftyp.length + meta.length + 8);
+  return {header, suffix: exifItemPayload};
+}
 
-  const out = new Uint8Array(ftyp.length + meta.length + mdat.length);
-  out.set(ftyp, 0);
-  out.set(meta, ftyp.length);
-  out.set(mdat, ftyp.length + meta.length);
+export function encodeHeifImage(img: RgbaImage, options?: Parameters<typeof createHeifContainer>[2]): Uint8Array {
+  const compressed = transformBytes(img.data, {direction: "encode", format: "zlib", level: 6});
+  const {header, suffix} = createHeifContainer(img, compressed.length, options);
+  const out = new Uint8Array(header.length + compressed.length + suffix.length);
+  out.set(header);
+  out.set(compressed, header.length);
+  out.set(suffix, header.length + compressed.length);
   return out;
 }
 
@@ -641,7 +646,7 @@ export function decodeHeifImage(bytes: Uint8Array): RgbaImage {
   if (magicIdx >= 0) {
     const compressedStart = magicIdx + POE_PIXEL_MAGIC.length;
     try {
-      const raw = new Uint8Array(inflate(bytes.subarray(compressedStart)));
+      const raw = transformBytes(bytes.subarray(compressedStart), {direction: "decode", format: "zlib"});
       if (raw.length >= meta.width * meta.height * 4) {
         return {
           width: meta.width,

@@ -1,3 +1,5 @@
+import {isHeifBytes} from "./heif.js";
+import {decodeHeifToStorage} from "./heif-storage.js";
 import {isWebpBytes} from "./webp.js";
 import {decodeWebpToStorage} from "./webp-input-storage.js";
 import {isJpegBytes} from "./jpeg.js";
@@ -12,5 +14,5 @@ import {decodeBmpToStorage} from "./bmp-storage.js";
 import {decodeTiffToStorage} from "./tiff-input-storage.js";
 /** Shared format admission for primary files and secondary resources. */
 export function storedImageDecoder(prefix:Uint8Array):typeof decodePngToStorage|undefined {
- return isWebpBytes(prefix)?decodeWebpToStorage:isJpegBytes(prefix)?decodeJpegToStorage:isPngBytes(prefix)?decodePngToStorage:isNetpbmBytes(prefix)?decodeNetpbmToStorage:isBmpBytes(prefix)?decodeBmpToStorage:isTiffBytes(prefix)?decodeTiffToStorage:isGifBytes(prefix)?decodeGifToStorage:undefined;
+ return isHeifBytes(prefix)?decodeHeifToStorage:isWebpBytes(prefix)?decodeWebpToStorage:isJpegBytes(prefix)?decodeJpegToStorage:isPngBytes(prefix)?decodePngToStorage:isNetpbmBytes(prefix)?decodeNetpbmToStorage:isBmpBytes(prefix)?decodeBmpToStorage:isTiffBytes(prefix)?decodeTiffToStorage:isGifBytes(prefix)?decodeGifToStorage:undefined;
 }

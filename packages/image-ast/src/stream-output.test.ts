@@ -3,7 +3,7 @@ import sharp from "./index.js";
 import {MemoryFileSystem} from "@poe-code/safe-fs/core";
 import type {OutputInfo} from "./ast.js";
 
-for(const format of ["raw","png","jpeg","webp","tiff","gif","bmp","ppm","pgm","pbm"] as const)
+for(const format of ["heic","heif","avif","raw","png","jpeg","webp","tiff","gif","bmp","ppm","pgm","pbm"] as const)
 for(const observeInfo of [false,true])it(`streams ${format} output from retained file input with info=${observeInfo}`,async()=>{
  const fs=new MemoryFileSystem(),bytes=await sharp({create:{width:17,height:13,channels:3,background:"green"}}).png().toBuffer();await fs.writeFile("/in",bytes);
  const guarded=new Proxy(fs,{get(target,key){if(key==="readFile")return ()=>{throw new Error("buffered input forbidden");};const value=Reflect.get(target,key,target);return typeof value==="function"?value.bind(target):value;}});

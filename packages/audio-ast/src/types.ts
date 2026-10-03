@@ -8,6 +8,8 @@ export interface AudioNode {
   fields?: Record<string, unknown>;
 }
 export interface AudioStream {
+  /** Container stream metadata with original field names. */
+  tags?: AudioTags;
   codec: string;
   sampleRate: number;
   channels: number;

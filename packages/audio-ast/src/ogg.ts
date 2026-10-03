@@ -168,6 +168,7 @@ export function parseOgg(bytes: Uint8Array): AudioAst {
       sampleRate: number,
       channels: number,
       preSkip = 0;
+    let comments: string[];
     if (head.length >= 8 && r.text(0, 8) === "OpusHead") {
       if (head.length < 19 || r.u8(8) > 15) throw new Error("Invalid Opus identification");
       codec = "opus";
@@ -180,7 +181,9 @@ export function parseOgg(bytes: Uint8Array): AudioAst {
       const comment = group[1]?.data;
       if (!comment || new Reader(comment).text(0, 8) !== "OpusTags")
         throw new Error("Missing OpusTags");
-      Object.assign(tags, parseComments(comment.subarray(8)).tags);
+      const parsed = parseComments(comment.subarray(8));
+      Object.assign(tags, parsed.tags);
+      comments = parsed.comments;
     } else if (head.length >= 7 && r.u8(0) === 1 && r.text(1, 6) === "vorbis") {
       if (head.length !== 30 || r.u32(7, true) !== 0 || !(r.u8(29) & 1))
         throw new Error("Invalid Vorbis identification");
@@ -193,6 +196,7 @@ export function parseOgg(bytes: Uint8Array): AudioAst {
       const parsed = parseComments(comment.subarray(7));
       if (!(comment[7 + parsed.size]! & 1)) throw new Error("Missing Vorbis comment framing bit");
       Object.assign(tags, parsed.tags);
+      comments = parsed.comments;
     } else throw new Error("Unsupported Ogg codec");
     if (!channels || !sampleRate) throw new Error("Invalid Ogg audio stream");
     const final = group.filter((p) => p.granule !== 0xffffffffffffffffn).at(-1)?.granule ?? 0n;
@@ -203,7 +207,16 @@ export function parseOgg(bytes: Uint8Array): AudioAst {
     const size = nodes
       .filter((n) => n.fields?.serial === serial)
       .reduce((sum, n) => sum + n.size, 0);
+    const streamTags: AudioTags = {};
+    for (const comment of comments) {
+      const split = comment.indexOf("=");
+      if (split <= 0) continue;
+      const key = comment.slice(0, split),
+        value = comment.slice(split + 1);
+      streamTags[key] = streamTags[key] ? `${streamTags[key]};${value}` : value;
+    }
     streams.push({
+      tags: streamTags,
       codec,
       sampleRate,
       channels,

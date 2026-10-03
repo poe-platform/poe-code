@@ -92,13 +92,29 @@ export function probe(data: Uint8Array, args: readonly string[]): string {
       ? row
       : Object.fromEntries(Object.entries(row).filter(([key]) => fields.includes(key)));
   };
-  const tags = filter("format_tags", audio.tags) as Record<string, string>;
+  const firstFrame = audio.nodes.find((node) => node.type === "MPEG");
+  const vbr = firstFrame?.fields?.vbr as { bytes?: number } | undefined;
+  const encodedSamples = Number(firstFrame?.fields?.encodedSamples);
+  const mp3Bitrate =
+    vbr?.bytes && encodedSamples
+      ? (vbr.bytes * 8 * audio.streams[0]!.sampleRate) / encodedSamples
+      : audio.streams[0]!.bitrate;
+  const formatTags = audio.format === "ogg" ? {} : { ...audio.tags };
+  const brands = audio.nodes.find((node) => node.type === "ftyp")?.fields;
+  if (brands)
+    Object.assign(formatTags, {
+      major_brand: String(brands.majorBrand),
+      minor_version: String(brands.minorVersion),
+      compatible_brands: (brands.compatibleBrands as string[]).join("")
+    });
+  const tags = filter("format_tags", formatTags) as Record<string, string>;
   const rows: { section: string; row: Row }[] = [];
   if (sections.has("stream") || sections.has("stream_tags"))
     for (const [index, stream] of audio.streams.entries()) {
       if (parsed.selector && index !== 0) continue;
       const row = filter("stream", {
         index,
+        ...(stream.tags && Object.keys(stream.tags).length ? { tags: stream.tags } : {}),
         codec_name:
           stream.codec === "pcm"
             ? stream.bitsPerSample === 8
@@ -113,11 +129,15 @@ export function probe(data: Uint8Array, args: readonly string[]): string {
         bits_per_sample: stream.codec.startsWith("pcm") ? (stream.bitsPerSample ?? 0) : 0,
         duration: durations[index]!.toFixed(6),
         ...(!["flac", "opus", "vorbis"].includes(stream.codec)
-          ? { bit_rate: String(Math.round(stream.bitrate)) }
+          ? {
+              bit_rate: String(
+                stream.codec === "mp3" ? Math.round(mp3Bitrate) : Math.floor(stream.bitrate)
+              )
+            }
           : {})
       });
       if (sections.has("stream_tags"))
-        row.tags = filter("stream_tags", audio.tags) as Record<string, string>;
+        row.tags = filter("stream_tags", stream.tags ?? audio.tags) as Record<string, string>;
       rows.push({ section: "stream", row });
     }
   if (sections.has("format") || sections.has("format_tags")) {
@@ -128,7 +148,7 @@ export function probe(data: Uint8Array, args: readonly string[]): string {
       duration: formatDuration.toFixed(6),
       size: String(data.length),
       bit_rate: String(formatDuration ? Math.floor((data.length * 8) / formatDuration) : 0),
-      tags: audio.tags
+      ...(Object.keys(formatTags).length ? { tags: formatTags } : {})
     });
     if (sections.has("format_tags")) row.tags = tags;
     rows.push({ section: "format", row });

@@ -96,8 +96,8 @@ it("preserves the portable export surface when canonical owners remain external"
       .filter(([filename]) => publicOutputs.has(filename))
       .map(([filename, output]) => [filename, output.exports]));
     const commandExports = Object.keys(manifest.poeCode.integration.privateWorkspaces)
-      // Playwright has always been an explicit opt-in subpath, outside core.
-      .filter(name => name.startsWith("safe-bash-command-") && name !== "safe-bash-command-playwright-cli")
+      // Playwright and structural search expose explicit opt-in subpaths outside core.
+      .filter(name => name.startsWith("safe-bash-command-") && !["safe-bash-command-playwright-cli", "safe-bash-command-ast-grep"].includes(name))
       .flatMap(name => {
         // Python exposes both python/python3 through its plural factory.
         if (name === "safe-bash-command-python") return ["pythonCommands", "createPythonCommands", "pythonExecutorCommands", "createPythonExecutorCommands"];
@@ -107,6 +107,9 @@ it("preserves the portable export surface when canonical owners remain external"
         return [title[0]!.toLowerCase() + title.slice(1) + "Commands", `create${title}Command`, `create${title}Commands`];
       });
     expect(surface["packages/safe-bash/dist/core.browser.js"]).toEqual(expect.arrayContaining(commandExports));
+    for (const entry of ["ast-grep.browser.js", "commands/ast-grep/index.browser.js"]) {
+      expect(surface["packages/safe-bash/dist/" + entry]).toEqual(expect.arrayContaining(["astGrepCommands", "createAstGrepCommand", "createAstGrepCommands"]));
+    }
     if (external.length) {
       const outputs = new Map(result.outputFiles.map(file => [file.path, file.text]));
       const entry = path.join(options.outdir, "commands/csplit/index.browser.js");

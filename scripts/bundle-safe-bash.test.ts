@@ -410,6 +410,14 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
       "metadata", "archive", "table-text", "stream-inspection", "stream-format", "split", "time-env",
       "tree", "file", "column", "html-to-markdown", "du", "expr", "apply-patch", "chmod", "stat", "mktemp",
     ].map(name => [`commands/${name}/index.browser`, path.join(root, `packages/safe-bash/src/commands/${name}/index.ts`)])),
+    "ts-ast.browser": path.join(root, "packages/safe-bash/src/ts-ast.ts"),
+    "ast-grep.browser": path.join(root, "packages/safe-bash/src/ast-grep.ts"),
+    "commands/ast-grep/index.browser": path.join(root, "packages/safe-bash/src/commands/ast-grep/index.ts"),
+    "audio-ast.browser": path.join(root, "packages/safe-bash/src/audio-ast.ts"),
+    "commands/audio/index.browser": path.join(root, "packages/safe-bash/src/commands/audio/index.ts"),
+    "commands/ffprobe/index.browser": path.join(root, "packages/safe-bash/src/commands/ffprobe/index.ts"),
+    "commands/sox/index.browser": path.join(root, "packages/safe-bash/src/commands/sox/index.ts"),
+    "commands/soxi/index.browser": path.join(root, "packages/safe-bash/src/commands/soxi/index.ts"),
     "commands/media/index.browser": path.join(root, "packages/safe-bash/src/commands/media/index.ts"),
     "commands/docx/index.browser": path.join(root, "packages/safe-bash/src/commands/docx/index.ts"),
     "commands/bc/index.browser": path.join(root, "packages/safe-bash/src/commands/bc/index.ts"),
@@ -454,7 +462,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
   expect(browser.posixPath).toBe(filesystem.posixPath);
   expect(browser.posixPath.join("/a", "..", "b")).toBe("/b");
   const names = browser.createAgentCommands().map(command => command.name).sort();
-  expect(names).toHaveLength(189);
+  expect(names).toHaveLength(190);
   expect(names).toEqual([
     "bc", "cal", "compare", "composite", "convert", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin",
     "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "dd", "df", "diff3", "envsubst",

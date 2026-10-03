@@ -50,7 +50,7 @@ describe("root command API", () => {
     const name = workspace.slice("safe-bash-command-".length);
     const title = name.split("-").map(word => word[0]!.toUpperCase() + word.slice(1)).join("");
     const pluginName = title[0]!.toLowerCase() + title.slice(1);
-    it(`${name} exposes its public command contract from the root`, () => {
+    it(`${name} exposes its command contract from the supported public surfaces`, () => {
       if (name === "playwright-cli") {
         for (const symbol of ["createPlaywrightCli", "PlaywrightCliOptions"]) {
           expect(playwright.has(symbol), `playwright: ${symbol}`).toBe(true);
@@ -62,9 +62,14 @@ describe("root command API", () => {
         : name === "python"
           ? ["pythonCommands", "createPythonCommands", "PythonCommandsOptions", "pythonExecutorCommands", "createPythonExecutorCommands"]
           : [`${pluginName}Commands`, `create${title}Commands`, `create${title}Command`, `${title}CommandsOptions`];
-      for (const symbol of symbols) {
-        expect(core.has(symbol), `core: ${symbol}`).toBe(true);
-        expect(index.has(symbol), `root: ${symbol}`).toBe(true);
+      const surfaces: Record<string, Set<string>> = name === "ast-grep"
+        ? {
+            "ast-grep": exportedNames(resolve(root, "packages/safe-bash/src/ast-grep.ts")),
+            "commands/ast-grep": exportedNames(resolve(root, "packages/safe-bash/src/commands/ast-grep/index.ts"))
+          }
+        : { core, root: index };
+      for (const [surface, names] of Object.entries(surfaces)) {
+        for (const symbol of symbols) expect(names.has(symbol), `${surface}: ${symbol}`).toBe(true);
       }
     });
   }

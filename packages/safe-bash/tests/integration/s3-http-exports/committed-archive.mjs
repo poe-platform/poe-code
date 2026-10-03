@@ -379,6 +379,18 @@ function buildSharedArchive(candidate, tools, dependencies, captured) {
 export function assertRootShellExports(manifest, rootManifest) {
   const checkout = manifest.poeCode?.integration?.peerProfile === "checkout-root";
   const facadeExports = {
+    "./safe-bash/ts-ast": {
+      "types": "./dist/types/safe-bash/ts-ast.d.ts",
+      "import": "./packages/safe-bash/dist/ts-ast.browser.js"
+    },
+    "./safe-bash/ast-grep": {
+      "types": "./dist/types/safe-bash/ast-grep.d.ts",
+      "import": "./packages/safe-bash/dist/ast-grep.browser.js"
+    },
+    "./safe-bash/commands/ast-grep": {
+      "types": "./dist/types/safe-bash/commands/ast-grep/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/ast-grep/index.browser.js"
+    },
     "./safe-bash/audio-ast": {
       "types": "./dist/types/safe-bash/audio-ast.d.ts",
       "import": "./packages/safe-bash/dist/audio-ast.browser.js"

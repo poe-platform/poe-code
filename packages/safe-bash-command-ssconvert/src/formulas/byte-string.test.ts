@@ -35,7 +35,11 @@ it("exports all38 native byte results through the public SDK without text replac
     const result = await engine.convert({ input: { kind: "stream", filename: "input.gnumeric", source: [input] }, recalc: true,
       exportType: "Gnumeric_stf:stf_csv", destination: { kind: "stream", sink: { async write(bytes) { chunks.push(new Uint8Array(bytes)); } } } }, { signal: context.signal });
     expect(result.exitCode).toBe(0);
-    expect(result.diagnostics).toEqual([]);
+    // The variable-width lookbehind compiles once on load and once on forced recalculation.
+    expect(result.diagnostics).toEqual([
+      { code: "perl-regex", severity: "warning", message: "Variable length lookbehind is experimental" },
+      { code: "perl-regex", severity: "warning", message: "Variable length lookbehind is experimental" }
+    ]);
     const expected = Uint8Array.from(byteStringCases.flatMap(v => [...v.outputHex.match(/../g)!.map(h => parseInt(h, 16)), 10]));
     expect(new Uint8Array(chunks.flatMap(chunk => [...chunk]))).toEqual(expected);
   } finally { await engine.dispose(); }

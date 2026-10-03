@@ -11,7 +11,11 @@ it("retains native text categories through TYPE/N/T/CELL and numerical argument 
     const result = await engine.convert({ input: { kind: "stream", filename: "input.gnumeric", source: [bytes(byteStringInfoCase.inputHex)] }, recalc: true,
       exportType: "Gnumeric_stf:stf_csv", destination: { kind: "stream", sink: { async write(b) { chunks.push(new Uint8Array(b)); } } } }, { signal: new AbortController().signal });
     expect(result.exitCode).toBe(0);
-    expect(result.diagnostics).toEqual([]);
+    // The variable-width lookbehind compiles once on load and once on forced recalculation.
+    expect(result.diagnostics).toEqual([
+      { code: "perl-regex", severity: "warning", message: "Variable length lookbehind is experimental" },
+      { code: "perl-regex", severity: "warning", message: "Variable length lookbehind is experimental" }
+    ]);
     expect(new Uint8Array(chunks.flatMap(b => [...b]))).toEqual(bytes(byteStringInfoCase.stdoutHex));
   } finally { await engine.dispose(); }
 });

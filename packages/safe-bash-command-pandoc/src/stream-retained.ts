@@ -64,7 +64,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       document = next;
     }
     for (const request of options.filters ?? []) {
-      await checkImageOrigins(document.tree, context);
+      if (request.kind === "json") await checkImageOrigins(document.tree, context);
       await preflight(document.chunks());
       const signal = context.signal ?? new AbortController().signal;
       const response = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal}, (working.cacheBytes ?? 1024 * 1024) / 16384);

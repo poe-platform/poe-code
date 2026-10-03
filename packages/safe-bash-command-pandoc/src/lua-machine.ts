@@ -2,6 +2,7 @@ import {arithmetic,integer,isInteger,numeric,integral} from "./lua-arithmetic.js
 import {LuaMetatables, type LuaCall} from "./lua-metatables.js";
 import {LuaNumbers} from "./lua-numbers.js";
 import {LuaStrings} from "./lua-strings.js";
+import {LuaError} from "./lua-error.js";
 import {PandocError} from "./errors.js";
 import type {LuaFrames} from "./lua-frames.js";
 import type {LuaProgram} from "./lua-program.js";
@@ -77,8 +78,9 @@ export class LuaMachine {
     }
   }
   async run(closure: LuaReference, args: Iterable<StoredLuaValue> | AsyncIterable<StoredLuaValue>): Promise<LuaResults> {
+    let frame=0;
     try {
-      let frame = await this.frames.push(0, this.function(closure), 0, -1);
+      frame = await this.frames.push(0, this.function(closure), 0, -1);
       await this.initialize(frame, closure, args);
       for (;;) {
         await this.cooperate();
@@ -349,6 +351,17 @@ export class LuaMachine {
     } catch(error) {
       // A backing operation may reject before the next VM checkpoint.
       await this.cooperate(0);
+      if(error instanceof LuaError && error.level>0 && typeof error.value==="object" && error.value.kind==="string") {
+        for(let level=0;frame && level<error.level;level++)frame=(await this.frames.read(frame)).parent;
+        if(frame) {
+          const current=await this.frames.read(frame),prototype=await this.heap.prototype(current.closure);
+          if(prototype>=0) {
+            const source=(await this.program.describe(prototype)).source;
+            if(source)error.source=source;
+            error.line=(await this.program.instruction(prototype,Math.max(0,current.pc-1))).line;
+          }
+        }
+      }
       throw error;
     }
   }

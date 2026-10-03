@@ -3,11 +3,16 @@
 /// <reference path="./fengari.d.ts" />
 
 import {PandocError} from "./errors.js";
+import {applyLuaStream} from "./lua-stream-filter.js";
 import {luaAst} from "./lua-ast.js";
 import type {FilterCapability, Document} from "./types.js";
 
-/** Only trusted scripts: Lua VM allocations are not isolated or metered. */
+/** Trusted scripts; buffered apply retains its resident convenience behavior. */
 export interface LuaFilterOptions {
+  /** Consume the complete error message before backing storage closes. The same
+   * error is then thrown; hosts can track its identity to avoid printing twice.
+   * Without this callback, streamed errors are collected into Error.message. */
+  onError?(error: PandocError, message: AsyncIterable<Uint8Array>): Promise<void>;
   readFile(path: string, signal: AbortSignal | undefined): Promise<Uint8Array>;
   /** Sequential source capability; preferred when both readers are supplied. */
   readStream?(path: string, signal: AbortSignal | undefined): AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
@@ -25,6 +30,7 @@ export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptio
   const reader = typeof load !== "function";
   return {
     supports: request => request.kind === "lua",
+    applyJsonStream: (streams,request,context) => applyLuaStream(load,streams,request,context),
     async apply(document, request, context) {
       if (request.kind !== "lua") throw new PandocError("E_CAPABILITY", "convert", "This capability supports Lua filters only");
       context.checkpoint(0);

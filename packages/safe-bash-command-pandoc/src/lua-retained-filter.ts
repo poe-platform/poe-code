@@ -22,14 +22,24 @@ import {loadLuaLibrary} from "./lua-library.js";
 import {pandocLibrary} from "./lua-pandoc.generated.js";
 
 /** The caller owns all three stores and their lifetime, including retained
- * error payloads. This private adapter does not activate the public filter path. */
-export async function applyRetainedLuaFilter(input:BackedJson,output:BackedJson,source:AsyncIterable<Uint8Array> | Iterable<Uint8Array>,storage:PagedStorage,context:AdapterContext,to:string,path:string):Promise<void> {
+ * error payloads. The public stream adapter renders errors before closing them. */
+export async function applyRetainedLuaFilter(input:BackedJson,output:BackedJson,source:AsyncIterable<Uint8Array> | Iterable<Uint8Array>,storage:PagedStorage,context:AdapterContext,to:string,path:string,legacyErrors=false):Promise<void> {
   const cooperate=(units?:number)=>context.cooperate(units),heap=new LuaStorage(storage,cooperate),program=new LuaProgram(storage,heap,cooperate);
   const base=new LuaBase(heap),math=new LuaMath(heap),utf8=new LuaUtf8(heap),table=new LuaTable(heap),strings=new LuaStringLibrary(heap,cooperate),numbers=new LuaNumbers(heap);
   const environment=await heap.table(),key=(text:string)=>heap.string([new TextEncoder().encode(text)]);
+  let callbackError:PandocError | undefined;
+  const script=async<T>(operation:()=>Promise<T>):Promise<T>=>{
+    try{return await operation();}
+    catch(error){
+      if(error instanceof LuaError)error.scriptFailure=true;
+      if(legacyErrors && error instanceof PandocError && error.code==="E_AST" && error!==callbackError && !(error instanceof LuaError))
+        throw new PandocError("E_IO","convert",error.message,error.format,error.location);
+      throw error;
+    }
+  };
   const machine=new LuaMachine(program,new LuaFrames(storage,heap,cooperate),heap,cooperate,async(prototype,args,native)=>{
     if(prototype===-1000){context.bound("depth",await numbers.coerce(await args.get(0)));return [];}
-    if(prototype===-1001)throw new PandocError("E_AST","convert","Lua callback must return an element, list or nil");
+    if(prototype===-1001)throw callbackError??=new PandocError("E_AST","convert","Lua callback must return an element, list or nil");
     if(prototype===-1002 || prototype===-1003)throw new LuaError(await args.get(0),0,prototype===-1002?"E_UNSUPPORTED_FEATURE":"E_AST");
     if(prototype<=-500 && prototype>-600)return strings.invoke(prototype,args);
     if(prototype<=-400 && prototype>-500)return table.invoke(prototype,args);
@@ -59,12 +69,14 @@ export async function applyRetainedLuaFilter(input:BackedJson,output:BackedJson,
     const bootstrap=await loadLuaLibrary(pandocLibrary,heap,program,await key("@pandoc constructors"));
     const environmentCell=await heap.cell(environment),bootstrapResult=await machine.run(await heap.closure(bootstrap,[environmentCell]),[]);
     const factory=await heap.get(bootstrapResult.values,0) as LuaReference;
-    const syntax=new LuaSyntax(heap),root=await new LuaParser(closeSource,syntax).parse();
-    const prototype=await new LuaCompiler(heap,program,syntax,await key("@"+path)).compile(root);
-    const script=await machine.run(await heap.closure(prototype,[environmentCell]),[]);
-    const captured=await machine.run(factory,[await heap.get(script.values,0)]),runner=await heap.get(captured.values,0) as LuaReference;
+    const syntax=new LuaSyntax(heap),root=await script(()=>new LuaParser(closeSource,syntax).parse());
+    const compiler=new LuaCompiler(heap,program,syntax,await key(path));
+    const prototype=await script(()=>compiler.compile(root));
+    const closure=await heap.closure(prototype,[environmentCell]);
+    const loaded=await script(()=>machine.run(closure,[]));
+    const captured=await machine.run(factory,[await heap.get(loaded.values,0)]),runner=await heap.get(captured.values,0) as LuaReference;
     const bridge=new LuaJsonBridge(heap,storage,cooperate),document=await bridge.read(input);
-    const result=await machine.run(runner,[document]),value=await heap.get(result.values,0);
+    const result=await script(()=>machine.run(runner,[document])),value=await heap.get(result.values,0);
     if(typeof value!=="object" || value.kind!=="table")throw new PandocError("E_AST","convert","Invalid Lua document result");
     await bridge.markObject(await heap.get(value,await key("meta")));
     await bridge.write(value,output);

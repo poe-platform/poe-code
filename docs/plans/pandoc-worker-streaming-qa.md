@@ -131,7 +131,7 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   tags while equivalent numeric table keys still share entries. A retained
   JSON value bridge now transfers strings and containers through fixed-size backed
   traversal frames, including cycle checks and empty-container identities. It is
-  not yet connected to public filters. The private interpreter now executes actual
+  connected to public `applyJsonStream` filters. The retained interpreter executes actual
   Lua bytecode through backed frames, including calls/tail calls, loops, captures,
   strings and numeric coercion. Differential tests compare its supported core
   with the existing interpreter; cancellation and error tests verify scratch
@@ -147,7 +147,7 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   Byte-boundary differential tests preserve escapes, long strings, number tags,
   line tracking and existing binary interning collisions. Empty source chunks
   still checkpoint, final partial work quanta are charged, and early/error exits
-  close the source. This lexer is not yet connected to public compilation:
+  close the source. The public stream boundary uses this lexer and compiler:
   the syntax reader now stores complete statement/expression trees and lists in
   caller storage, retaining the existing syntax nesting bound. Grammar tests
   include the shipped Pandoc constructor/traversal bootstrap, assignment targets,
@@ -162,9 +162,19 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   constant folding use backed stacks/caches; differential tests cover assignment
   conflicts, delayed upvalue table access, native calls, metamethod ordering and
   register pressure at the existing local limit. The shipped constructor/traversal
-  bootstrap compiles with a fixed page cache. Complete standard libraries,
-  Pandoc constructor translation and public runtime integration still require
-  implementation and qualification. Measurements of unavoidable live runtime state remain required.
+  bootstrap compiles with a fixed page cache. Base, math, UTF-8, table and string
+  libraries and Pandoc constructors/traversal now run through the retained runtime.
+  Public JSON/CSV conversions to JSON, plain, HTML, Markdown, RST and LaTeX use it
+  when workingFiles and the streaming Lua capability are supplied. RTF/ODT Lua
+  paths still require retained image-origin sidecars; other readers, finite-budget
+  fallbacks and buffered apply still use the resident runtime. Preserve their
+  behavior while replacing those paths. `onError` delivers retained error bytes
+  before scratch closes; the command consumes them with backpressure. Without
+  that callback, SDK errors explicitly collect Error.message for compatibility.
+  Local workerd/R2 regression coverage exercises shipped SDK and command bundles,
+  real callbacks, streamed errors and backing cleanup. Extend it to larger inputs,
+  source/callback cancellation, remote failures and concurrent requests; measure
+  live memory and CPU rather than inferring a plateau from these functional checks.
 - Exercise citeproc with bibliography and citation counts that grow independently
   of document bytes. Measure its retained processor state separately.
 - External resource extraction now spools payloads when working storage and a

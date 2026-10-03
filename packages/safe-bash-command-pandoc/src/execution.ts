@@ -329,7 +329,7 @@ export class ExecutionContext implements AdapterContext {
     } catch (error) {
       if (this.signal?.aborted) this.fail("E_CANCELLED", "Conversion cancelled");
       if (error instanceof PandocError) {
-        this.failure ??= new PandocError(error.code, this.operation, error.message, error.format, error.location);
+        this.failure ??= error.operation === this.operation ? error : new PandocError(error.code, this.operation, error.message, error.format, error.location);
         throw this.failure;
       }
       return this.fail("E_IO", "Capability failed");

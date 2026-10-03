@@ -360,16 +360,27 @@ The stream reader compiles source incrementally, without collecting the script f
 Compiler-owned source copies are capped at 64 KiB even when a reader supplies larger
 chunks; source bytes count toward cooperative work and cancellation checkpoints.
 The shell uses the injected filesystem’s stream reader when available; an explicitly
-buffered reader remains supported for compatibility. Compilation still retains Lua
-bytecode, constants and the document AST: streaming source does not isolate or bound
-those VM allocations. Streams close after compilation, syntax errors or cancellation.
-It does not expose host filesystem/process libraries. Conversion work limits
-interrupt Lua instructions. Instruction hooks also suspend execution to deliver
-caller yield checkpoints and timer-driven cancellation during Lua loops. Native
-library calls and their callbacks can defer those suspensions until they return.
-Use trusted scripts: VM allocations and library calls are not isolated or
-individually metered. `readStream` takes precedence when
-both readers are supplied. Both `createLuaFilterCapability({readFile})`
+buffered reader remains supported for compatibility. For the retained JSON/CSV
+conversion routes targeting JSON, plain text, HTML, Markdown, RST or LaTeX,
+`convertToOutput` with `workingFiles` runs Lua through caller-backed
+compiler, VM, tables, strings and document storage with fixed page caches. Use an
+external safe-fs backend for large files. Lua filters targeting RTF/ODT still use the compatibility path to preserve image-origin
+sidecars. Other conversion routes and the buffered
+`apply` convenience API still use the resident VM; streaming source alone does not
+bound their allocations. Streams close after compilation, syntax errors or cancellation.
+
+For bounded diagnostic delivery, configure `onError(error, message)` on the Lua
+capability and consume the async byte stream inside that callback. It runs before
+scratch storage closes; the same error is then thrown by conversion. The command
+writes these chunks to stderr. Without `onError`, the SDK collects the error text
+into `Error.message` for compatibility. Retaining the iterator after the callback
+returns is unsupported.
+
+Neither VM exposes host filesystem/process libraries. Conversion work limits,
+yield checkpoints and timer cancellation apply to retained execution, including
+native library loops and callbacks. Use trusted scripts; this is not an isolation
+boundary. `readStream` takes precedence when both readers are supplied.
+Both `createLuaFilterCapability({readFile})`
 and `createLuaFilterCapability(loadScript)` accept the same filters. Define global
 callbacks, return one callback table, or return a list of tables to run in order.
 Within each table, inline callbacks run before `Inlines`, block callbacks, `Blocks`,

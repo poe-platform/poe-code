@@ -622,8 +622,9 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     throw new PandocError("E_CAPABILITY", "convert", "An output sink with write, close and abort is required");
   const registry = createFormatRegistry(undefined, context);
   const reader = registry.resolve(options.from, "read"), writer = registry.resolve(options.to, "write");
+  // Lua resource writers still need parser-owned image-origin sidecars.
   const streamedFilters = options.filters === undefined || Array.isArray(options.filters) && options.filters.every(request =>
-    request?.kind === "json" && typeof context.filters?.applyJsonStream === "function");
+    (request?.kind === "json" || request?.kind === "lua" && !["rtf", "odt"].includes(writer.descriptor.name)) && typeof context.filters?.applyJsonStream === "function");
   const backedJson = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
     && reader.descriptor.name === "json" && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
     && Object.keys(options).every(key => key === "resourcePath" && ["rtf", "odt"].includes(writer.descriptor.name) || ["from", "to", "filters", "metadataFiles", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))

@@ -88,6 +88,7 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
     let stdout: ReturnType<typeof createOutputOperation> | undefined;
     let fileOutput: ReturnType<typeof createFileOutput> | undefined;
     let outputFailure: {reason: unknown} | undefined;
+    const deliveredLuaErrors = new WeakSet<PandocError>();
     try {
       const carrier = getCommandArguments(context);
       const decoder = new TextDecoder("utf-8", {fatal: true});
@@ -139,6 +140,12 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
         writeFile: async () => {}
       };
       const luaCapability = createLuaFilterCapability({
+        async onError(error, message) {
+          await context.stderr.write(new TextEncoder().encode(`${error.code}: `));
+          for await (const bytes of message) await context.stderr.write(bytes);
+          await context.stderr.write(new TextEncoder().encode("\n"));
+          deliveredLuaErrors.add(error);
+        },
         readFile: (path, signal) => files.readFile(path, signal ?? readSignal),
         ...(files.readStream ? {readStream: (path: string, signal: AbortSignal | undefined) => files.readStream!(path, signal ?? readSignal)} : {})
       });
@@ -185,7 +192,8 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
           return (await resolveJsonInterpreter(request.path)) !== undefined;
         },
         async applyJsonStream(streams, request, filterContext) {
-          if (request.kind !== "json") throw new PandocError("E_CAPABILITY", "convert", "This runtime supports JSON streams only");
+          if (request.kind === "lua") return luaCapability.applyJsonStream!(streams, request, filterContext);
+          if (request.kind !== "json") throw new PandocError("E_CAPABILITY", "convert", "This runtime supports JSON and Lua streams only");
           const resolved = await resolveJsonInterpreter(request.path);
           if (!resolved) throw new PandocError("E_CAPABILITY", "convert", "Filter capability does not support json processing");
           await makeJsonCapability(resolved).applyJsonStream!(streams, request, filterContext);
@@ -292,7 +300,8 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
       stdout?.signal.throwIfAborted();
       if (!(error instanceof PandocError) && !(error instanceof FsError)) throw error;
       const code = error instanceof PandocError ? error.code : "E_IO";
-      await context.stderr.write(new TextEncoder().encode(`${code}: ${error.message}\n`));
+      if (!(error instanceof PandocError) || !deliveredLuaErrors.has(error))
+        await context.stderr.write(new TextEncoder().encode(`${code}: ${error.message}\n`));
       return {exitCode: statuses[code] ?? 2};
     } finally {
       await fileOutput?.abort(new PandocError("E_CANCELLED", "convert", "Invocation closed"));

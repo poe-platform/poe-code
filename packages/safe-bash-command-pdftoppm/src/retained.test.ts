@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
-import { PdfDocument, cosArray, cosNumber, dictSet } from "@poe-code/pdf-ast";
+import { PdfDocument, encodePng, cosArray, cosNumber, dictSet } from "@poe-code/pdf-ast";
 import { createPdftoppmCommand, runPdftoppmCli, createPdftocairoCommand, runPdftocairoCli } from "./index.js";
 function pdf() {
   const doc = PdfDocument.create();
@@ -106,4 +106,39 @@ test("retained Cairo preserves publication exit code and missing-parent diagnost
   assert.equal((await createPdftocairoCommand().execute(f.context)).exitCode, 2);
   assert.equal(new TextDecoder().decode(Buffer.concat(f.stderr)), "Error opening output file /missing/out-1.png\n");
   assert.equal(f.counts().published, 0); await f.clean();
+});
+
+for (const cairo of [false, true]) for (const failure of ["none", "write", "cancel"]) test(`retained raster spills decoded images to caller storage (Cairo=${cairo}, failure=${failure})`, async () => {
+  const document = PdfDocument.create(), page = document.addPage([16, 16]);
+  const data = Uint8Array.from({ length: 257 * 129 * 4 }, (_, at) => at % 4 === 3 ? 255 : at * 31 % 256);
+  page.drawImage(document.embedPng(encodePng({ width: 257, height: 129, data })), { x: 0, y: 0, width: 16, height: 16 });
+  const input = document.save(), args = ["-png", "-r", "72", "in.pdf", "-"], f = await fixture(input, args);
+  const expected = await (cairo ? runPdftocairoCli : runPdftoppmCli)(args, new Map([["in.pdf", input]]));
+  const reason = new Error("pixel backing failure");
+  const base = f.context.fs; let spills = 0, closed = 0, largestWrite = 0;
+  f.context.fs = new Proxy(Object.create(base) as typeof base, { get(_target, key) {
+    if (key === "open") return async (...args: Parameters<NonNullable<typeof base.open>>) => {
+      const descriptor = await base.open!(...args);
+      if (!args[0].includes(".storage-")) return descriptor;
+      spills++;
+      return new Proxy(descriptor, { get(target, property) {
+        if (property === "write") return async (...values: Parameters<typeof descriptor.write>) => {
+          largestWrite = Math.max(largestWrite, values[0].length);
+          if (failure === "write") throw reason;
+          if (failure === "cancel") f.controller.abort(reason);
+          return descriptor.write(...values);
+        };
+        if (property === "close") return async () => { closed++; await descriptor.close(); };
+        const value = Reflect.get(target, property); return typeof value === "function" ? value.bind(target) : value;
+      } });
+    };
+    const value = Reflect.get(base, key); return typeof value === "function" ? value.bind(base) : value;
+  } });
+  const execute = async () => (cairo ? createPdftocairoCommand() : createPdftoppmCommand()).execute(f.context);
+  if (failure === "none") {
+    assert.equal((await execute()).exitCode, 0);
+    assert.deepEqual(new Uint8Array(Buffer.concat(f.stdout)), expected.stdoutBytes);
+  } else { await assert.rejects(execute, error => error === reason); assert.equal(f.stdout.length, 0); }
+  assert.ok(spills > 0, "decoded images must spill through injected safe-fs"); assert.equal(closed, spills);
+  assert.ok(largestWrite <= 16384); await f.clean();
 });

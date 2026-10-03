@@ -1,3 +1,4 @@
+import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, PdfStagingStorage, renderRetainedPagePixels, getDisplayListCropBox,
   encodeRetainedPng, encodeRetainedTiff, encodeJpegChunks, encodePortableBitmapChunks, type PdfOutputEntry } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
@@ -61,11 +62,17 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
           if (plan.scaleToX > 0) { dpiX = plan.scaleToX * 72 / Math.max(ptW, 1); if (plan.scaleToY < 0) dpiY = dpiX; }
           if (plan.scaleToY > 0) { dpiY = plan.scaleToY * 72 / Math.max(ptH, 1); if (plan.scaleToX < 0) dpiX = dpiY; }
         }
+        const imageStorage = new PagedStorage({ fs: context.fs, cwd: directory, env: {}, signal }, 4);
+        let pageFailed = false;
+        let pixelIterator: AsyncIterator<Uint8Array> | undefined;
+        try {
         const bitmap = await renderRetainedPagePixels(page, storage, { dpiX, dpiY, useCropBox: plan.useCropBox, hideAnnotations: plan.hideAnnotations, transparent: plan.transparent,
-          antialiasText: plan.antialiasText, antialiasVector: plan.antialiasVector, thinLineMode: plan.thinLineMode, tileSize: 256, signal,
+          antialiasText: plan.antialiasText, antialiasVector: plan.antialiasVector, thinLineMode: plan.thinLineMode, tileSize: 256, signal, imageStorage,
           ...(plan.hasCrop ? { cropRect: { x: plan.cropX, y: plan.cropY, width: plan.cropW, height: plan.cropH } } : {}) });
+        pixelIterator = bitmap.pixels[Symbol.asyncIterator]();
+        const ownedPixels = { [Symbol.asyncIterator]: () => pixelIterator! };
         async function* pixels() {
-          for await (const bytes of bitmap.pixels) {
+          for await (const bytes of ownedPixels) {
             if (plan.colorMode !== "rgb" && (plan.format === "png" || plan.format === "tif" || plan.format === "jpg")) {
               for (let at = 0; at < bytes.length; at += 4) {
                 const luminance = Math.round(0.299 * bytes[at]! + 0.587 * bytes[at + 1]! + 0.114 * bytes[at + 2]!);
@@ -81,9 +88,19 @@ export async function executeRetainedRaster(context: CommandContext, plan: Pdfto
           : plan.format === "jpg" ? encodeJpegChunks(bitmap.width, bitmap.height, pixels(), { quality: plan.jpegQuality, signal })
           : encodePortableBitmapChunks(plan.format === "pgm" || plan.format === "pbm" ? plan.format : "ppm", bitmap.width, bitmap.height, pixels(), { signal });
         yield { name: name(number), chunks }; if (plan.singleFile) break;
+        } catch (error) { pageFailed = true; throw error; }
+        finally {
+          const results = await Promise.allSettled([pixelIterator?.return?.()]);
+          await imageStorage.close().catch(error => { if (!pageFailed) throw error; });
+          if (!pageFailed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
+        }
       }
     }
-    outputs = await PdfStagedOutputs.create(storage, entries(), { signal });
+    const producer = entries();
+    let producerFailed = false;
+    try { outputs = await PdfStagedOutputs.create(storage, producer, { signal }); }
+    catch (error) { producerFailed = true; throw error; }
+    finally { await producer.return(undefined).catch(error => { if (!producerFailed) throw error; }); }
     if (plan.progress && !plan.quiet) for (let number = plan.firstPage; number <= endPage; number++) {
       if (!selected(number)) continue;
       await writeBytes(context.stderr, encoder.encode(`${number} ${endPage} ${toStdout ? "-" : name(number)}\n`), signal); if (plan.singleFile) break;

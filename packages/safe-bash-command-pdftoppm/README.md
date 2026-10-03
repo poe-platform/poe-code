@@ -39,8 +39,9 @@ Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. 
 Raster output uses retained PDF reads, fixed-size pixel windows and caller-backed
 staging in `TMPDIR` (default `/tmp`). All pages finish rendering before output
 publication, and each file is published atomically. Use an external filesystem
-backend for large documents. Individual decoded resources and nested paint
-captures retain their current memory requirements. SVG, Cairo vector/PDF output, and the
+backend for large documents. Decoded image pixels and resampling levels use a
+64 KiB cache with caller-backed spill storage, released after each page. Other
+resources and nested paint captures retain their current memory requirements. SVG, Cairo vector/PDF output, and the
 buffered convenience runners still use their existing execution paths. Cairo
 raster formats share the retained pipeline and preserve their output naming,
 color-conversion and error conventions.

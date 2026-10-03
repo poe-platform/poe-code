@@ -1,3 +1,4 @@
+import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-stream";
 import { ownedRangeSource } from "@poe-code/spreadsheet-engine/range-input";
 import { decryptOdfEntries } from "./odf-encryption.js";
@@ -924,7 +925,9 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
         "table:display": sheet.visibility && sheet.visibility !== "visible" ? "false" : "true", "style:writing-mode": Number(view.RTL_Layout ?? 0) ? "rl-tb" : "lr-tb",
         ...(extended ? { "gnm:display-formulas": String(Boolean(Number(view.DisplayFormulas ?? 0))), "gnm:display-col-header": String(!Number(view.HideColHeader ?? 0)),
           "gnm:display-row-header": String(!Number(view.HideRowHeader ?? 0)), "gnm:tab-color": originalProperties["tab-color"], "gnm:tab-text-color": originalProperties["tab-text-color"] } : {}) }));
-      const addresses = new Map<string, Cell>(), rowCells = new Map<number, Map<number, Cell>>();
+      const addresses = new Map<string, Cell>();
+      const storedCells = storage ? new IntegerTable(storage, 128) : undefined;
+      const rowCells = storedCells ? undefined : new Map<number, Map<number, Cell>>();
       for (const cell of sheet.cells) {
         coordinate(cell.row, MAX_SHEET_SIZE.rows); coordinate(cell.column, MAX_SHEET_SIZE.columns);
         if (++count > context.limits.cells) limit("cells");
@@ -1005,10 +1008,33 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
         if (a.target) links.set(`${cell.row}:${cell.column}`, { "xlink:href": a.type === "GnmHLinkCurWB" ? translateOdfHyperlink(a.target, "export", xml.charge, sheetNames) : a.target,
           "xlink:type": "simple", "office:title": a.tip });
       }
-      const events = new Set<number>([0]);
+      const storedEvents = storage ? new IntegerTable(storage, 128) : undefined;
+      const events = storedEvents ? undefined : new Set<number>();
+      let maximumEvent = 0;
+      async function addEvent(row: number): Promise<void> {
+        maximumEvent = Math.max(maximumEvent, row);
+        if (storedEvents) await storedEvents.set(BigInt(row), 0n);
+        else events!.add(row);
+      }
+      await addEvent(0);
+      async function* rowIntervals(): AsyncGenerator<readonly [number, number]> {
+        async function* boundaries(): AsyncGenerator<number> {
+          if (storedEvents) {
+            for await (const [row] of storedEvents.entries()) yield Number(row);
+          } else yield* [...events!].sort((a, b) => a - b);
+        }
+        let previous: number | undefined;
+        for await (const row of boundaries()) {
+          if (previous !== undefined) yield [previous, row - previous];
+          previous = row;
+        }
+      }
       for (const cell of addresses.values()) {
-        const group = rowCells.get(cell.row) ?? new Map<number, Cell>(); group.set(cell.column, cell); rowCells.set(cell.row, group);
-        events.add(cell.row); events.add(cell.row + 1);
+        if (storedCells) await storedCells.set(BigInt(cell.row) << 14n | BigInt(cell.column), 0n);
+        else {
+          const group = rowCells!.get(cell.row) ?? new Map<number, Cell>(); group.set(cell.column, cell); rowCells!.set(cell.row, group);
+        }
+        await addEvent(cell.row); await addEvent(cell.row + 1);
       }
       const admittedMerges: Range[] = [];
       for (const r of sheet.merges ?? []) {
@@ -1020,14 +1046,14 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
             throw new SsconvertError("invalid-request", "Invalid overlapping OpenDocument merges");
         }
         admittedMerges.push(r);
-        events.add(r.startRow); events.add(r.startRow + 1); events.add(r.endRow); events.add(r.endRow + 1);
+        await addEvent(r.startRow); await addEvent(r.startRow + 1); await addEvent(r.endRow); await addEvent(r.endRow + 1);
       }
-      for (const { range: r } of cellMetadata) { events.add(r.startRow); events.add(r.endRow + 1); }
-      for (const axis of sheet.rows ?? []) { coordinate(axis.index, MAX_SHEET_SIZE.rows); events.add(axis.index); events.add(axis.index + 1); }
+      for (const { range: r } of cellMetadata) { await addEvent(r.startRow); await addEvent(r.endRow + 1); }
+      for (const axis of sheet.rows ?? []) { coordinate(axis.index, MAX_SHEET_SIZE.rows); await addEvent(axis.index); await addEvent(axis.index + 1); }
       let rowCount = sheet.size?.rows ?? DEFAULT_SHEET_SIZE.rows;
       coordinate(rowCount - 1, MAX_SHEET_SIZE.rows);
-      for (const event of events) rowCount = Math.max(rowCount,event);
-      events.add(rowCount);
+      rowCount = Math.max(rowCount, maximumEvent);
+      await addEvent(rowCount);
       async function* tableContent(): AsyncGenerator<string | Uint8Array> {
       let position = 0;
       for (const [i, axis] of [...(sheet.columns ?? [])].sort((a,b) => a.index - b.index).entries()) {
@@ -1045,12 +1071,19 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
       for (const { range: r } of cellMetadata) columnCount = Math.max(columnCount,r.endColumn + 1);
       for (const r of sheet.merges ?? []) columnCount = Math.max(columnCount,r.endColumn + 1);
       if (columnCount > position) yield e("table:table-column", { "table:number-columns-repeated": columnCount - position > 1 ? columnCount - position : undefined });
-      const sorted = [...events].sort((a,b) => a-b);
-      for (let event = 0; event < sorted.length - 1 || event === 0; event++) {
-        const row = sorted[event]!, repeat = (sorted[event + 1] ?? row + 1) - row;
+      const cursor = storedCells?.entries();
+      try {
+      let nextCell = await cursor?.next();
+      let event = 0;
+      for await (const [row, repeat] of rowIntervals()) {
         if (row >= MAX_SHEET_SIZE.rows) break;
-        xml.charge(); if (event % 64 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); context.signal.throwIfAborted(); }
-        const cells = rowCells.get(row) ?? new Map<number, Cell>(), merges = (sheet.merges ?? []).filter(r => row >= r.startRow && row <= r.endRow);
+        xml.charge(); if (event++ % 64 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); context.signal.throwIfAborted(); }
+        const cells = rowCells?.get(row) ?? new Map<number, Cell>(), merges = (sheet.merges ?? []).filter(r => row >= r.startRow && row <= r.endRow);
+        while (nextCell && !nextCell.done && Number(nextCell.value[0] >> 14n) === row) {
+          const column = Number(nextCell.value[0] & 16383n);
+          cells.set(column, addresses.get(`${row}:${column}`)!);
+          nextCell = await cursor!.next();
+        }
         xml.charge(sheet.merges?.length ?? 0);
         xml.charge(cellMetadata.length);
         const metadata = cellMetadata.filter(m => row >= m.range.startRow && row <= m.range.endRow).reverse();
@@ -1159,6 +1192,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
         yield* xml.stream("table:table-row", rowAttributes, rowContent());
       }
       yield names(sheet.id);
+      } finally { await cursor?.return(undefined); }
       }
       yield* xml.stream("table:table", { "table:name": sheet.name, "table:style-name": sheetStyle }, tableContent());
     }

@@ -137,3 +137,36 @@ it("bounds aggregate table staging before the final document is serialized", asy
     expect(await fs.readdir("/")).toEqual([]);
   } finally { spy.mockRestore(); await engine.dispose(); }
 });
+
+it.each(["strict", "extended"] as const)("stages sparse %s row boundaries instead of retaining a sheet-wide event set", async profile => {
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal;
+  const firstRow = 10000000;
+  const raw = { sheets: [{ id: "s", name: "Sparse", size: { rows: 16777216, columns: 256 },
+    cells: Array.from({ length: 300 }, (_, i) => ({ row: firstRow + i * 3, column: i % 2,
+      value: { kind: "number" as const, value: i } })),
+    rows: [{ index: firstRow - 4, hidden: true }, { index: firstRow + 902, sizePoints: 24 }],
+    merges: [{ startRow: firstRow + 904, endRow: firstRow + 907, startColumn: 0, endColumn: 1 }]
+  }] };
+  const expected = await createOdfWriter(profile)(raw, [], { signal, limits: defaultSsconvertLimits,
+    environment: { env: {}, locale: "C", timezone: "UTC" }, own() {} });
+  const engine = createEngine({ formats: [odsFormat], workingFiles: { fs, directory: "/", cacheBytes: 16384 } });
+  try {
+    const book = await engine.adoptWorkbook(raw, { signal }), output: Uint8Array[] = [];
+    const set = Map.prototype.set;
+    const maps = vi.spyOn(Map.prototype, "set").mockImplementation(function(this: Map<unknown, unknown>, key: unknown, value: unknown) {
+      if (typeof key === "number" && value instanceof Map) throw new Error("resident row map");
+      return set.call(this, key, value);
+    });
+    const add = Set.prototype.add;
+    const spy = vi.spyOn(Set.prototype, "add").mockImplementation(function(this: Set<unknown>, value: unknown) {
+      if (typeof value === "number" && value >= firstRow - 4) throw new Error("resident row boundary");
+      return add.call(this, value);
+    });
+    try {
+      await engine.writeWorkbook(book, { kind: "stream", sink: { async write(bytes) { output.push(bytes.slice()); } } },
+        { exportType: profile === "strict" ? "Gnumeric_OpenCalc:openoffice" : "Gnumeric_OpenCalc:odf" }, { signal });
+    } finally { spy.mockRestore(); maps.mockRestore(); }
+    expect(Buffer.concat(output)).toEqual(Buffer.from(expected));
+    expect(await fs.readdir("/")).toEqual([]);
+  } finally { await engine.dispose(); }
+});

@@ -4,15 +4,15 @@ import type { CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
 import { createOdfStreamWriter } from "./odf.js";
 
 const book = { sheets: [{ id: "s", name: "Data", cells: [] }] };
-it("registers storage cleanup before acquisition and preserves operation plus cleanup errors", async () => {
-  const operation = new Error("storage write"), cleanup = new Error("storage close");
+it.each(["read", "write"])("registers storage cleanup before acquisition and preserves %s plus cleanup errors", async mode => {
+  const operation = new Error("storage " + mode), cleanup = new Error("storage close");
   let owned = false;
   const close = vi.fn(async () => { throw cleanup; });
   const context: CapabilityContext = { signal: new AbortController().signal, limits: defaultSsconvertLimits,
     environment: { env: {}, locale: "C", timezone: "UTC" }, own() { owned = true; },
     createWorkingStorage() {
       expect(owned).toBe(true);
-      return { allocate() { return 8; }, async read() { throw new Error("unexpected read"); },
+      return { allocate() { return 8; }, async read(_position, length) { if (mode === "read") throw operation; return new Uint8Array(length); },
         async write() { throw operation; }, close };
     } };
   const stream = createOdfStreamWriter("strict")(book, [], context);

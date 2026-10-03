@@ -20,3 +20,26 @@ it.each(["images", "binaryBytes", "layoutWork"].flatMap(key => ["plain", "html",
     expect(await fs.readdir("/")).toEqual([]);
   }
 });
+
+
+it.each(["json", "rtf"].flatMap(from => ["plain", "html", "commonmark", "gfm", "rst", "latex", "rtf", "odt", "json"].map(to => ({from, to}))))("keeps $from to $to retained with finite font budgets", async ({from, to}) => {
+  const fixtures = from === "rtf" ? [
+    String.raw`{\rtf1{\fonttbl{\f0 Arial;}{\f1 Courier;}}text}`,
+    String.raw`{\rtf1{\fonttbl{\f0 Arial;}{\f1 Arial;}}text}`
+  ] : [[], ["Arial"], ["Arial", "Arial"], ["Arial", "Courier"], ["Arial", "bad;name"], ["bad;name"]].map(names => JSON.stringify({
+    "pandoc-api-version": [1, 23, 1, 2], meta: {"rtf-fonts": {t: "MetaList", c: names.map(c => ({t: "MetaString", c}))}}, blocks: []
+  }));
+  for (const text of fixtures) for (const fonts of [0, 1, 2, 4]) {
+    const input = {bytes: new TextEncoder().encode(text)}, options = {from, to}, limits = {fonts};
+    const expected = await convert([input], options, {limits}).catch(error => error);
+    const fs = new MemoryFileSystem(), parts: Uint8Array[] = [];
+    const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));
+    try {
+      const result = await convertToOutput([input], options, {limits, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write(bytes) {parts.push(bytes.slice());}, async close() {}, async abort() {}}}).catch(error => error);
+      if (expected instanceof Error) expect(result).toMatchObject({code: (expected as Error & {code: string}).code, message: expected.message});
+      else {expect(result).not.toBeInstanceOf(Error); expect(Uint8Array.from(parts.flatMap(part => [...part]))).toEqual(expected.kind === "text" ? new TextEncoder().encode(expected.text) : expected.bytes);}
+      expect(acquire).not.toHaveBeenCalled();
+    } finally {acquire.mockRestore();}
+    expect(await fs.readdir("/")).toEqual([]);
+  }
+});

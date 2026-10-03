@@ -206,7 +206,7 @@ class RtfTape {
           for (const char of chunk) if (char.charCodeAt(0) < 32 || char.charCodeAt(0) >= 127 || ";{}\\".includes(char)) this.fail("Invalid RTF font reference", "E_OPTION");
         }
         if (!value.units || !first.trim() || !last.trim()) this.fail("Invalid RTF font reference", "E_OPTION");
-        await this.fonts.add(value);
+        if (!await this.fonts.find(value)) {this.context.charge("fonts", 1); await this.fonts.add(value);}
       }
     }
     await this.collect(blocks);

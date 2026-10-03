@@ -110,11 +110,43 @@ const result = await build({
         source = source.replace(cache, "if (!this.#cipherCache.has(key)) this.#cipherCache.set(key, this.resolveCipher(filterName));\n    return this.#cipherCache.get(key);");
         return { contents: source, loader: "js" };
       });
+      builder.onLoad({ filter: /type1_parser\.js$/ }, args => {
+        let source = readFileSync(args.path, "utf8");
+        const patches = [
+          ["class Type1CharString {", "class Type1CharString {\n  constructor(onAllocation) { this.onAllocation = onAllocation; }"],
+          ["  convert(encoded, subrs, seacAnalysisEnabled) {", "  convert(encoded, subrs, seacAnalysisEnabled) {\n    this.onAllocation?.(256 + encoded.length * 128);"],
+          ["function decrypt(data, key, discardNumber) {", "function decrypt(data, key, discardNumber, onAllocation) {\n  onAllocation?.(64 + Math.max(0, data.length - discardNumber));"],
+          ["function decryptAscii(data, key, discardNumber) {", "function decryptAscii(data, key, discardNumber, onAllocation) {\n  onAllocation?.(256 + data.length);"],
+          ["constructor(stream, encrypted, seacAnalysisEnabled) {", "constructor(stream, encrypted, seacAnalysisEnabled, onAllocation) {\n    this.onAllocation = onAllocation;\n    onAllocation?.(2048);"],
+          ["  readNumberArray() {", "  readNumberArray() {\n    this.onAllocation?.(64);"],
+          ["array.push(parseFloat(token || 0));", "this.onAllocation?.(16);\n      array.push(parseFloat(token || 0));"],
+          ["      return String.fromCharCode(ch);", "      this.onAllocation?.(64);\n      return String.fromCharCode(ch);"],
+          ["token += String.fromCharCode(ch);", "this.onAllocation?.(64);\n      token += String.fromCharCode(ch);"],
+          ["charstrings.push({\n              glyph,", "this.onAllocation?.(256);\n            charstrings.push({\n              glyph,"],
+          ["subrs[index] = encoded;", "this.onAllocation?.(128);\n            subrs[index] = encoded;"],
+          ["encoding[index] = glyph;", "this.onAllocation?.(64);\n              encoding[index] = glyph;"],
+          ["decrypt(data, EEXEC_ENCRYPT_KEY, 4)", "decrypt(data, EEXEC_ENCRYPT_KEY, 4, onAllocation)"],
+          ["decryptAscii(data, EEXEC_ENCRYPT_KEY, 4)", "decryptAscii(data, EEXEC_ENCRYPT_KEY, 4, onAllocation)"],
+          ["return decrypt(bytes, CHAR_STRS_ENCRYPT_KEY, lenIV);", "return decrypt(bytes, CHAR_STRS_ENCRYPT_KEY, lenIV, this.onAllocation);"],
+          ["new Type1CharString()", "new Type1CharString(this.onAllocation)"],
+          ["const decoded = new Uint8Array(startDataLength);", "this.onAllocation?.(startDataLength);\n      const decoded = new Uint8Array(startDataLength);"],
+          ["const subrOffsets = new Array(subrCount + 1);", "this.onAllocation?.(128 + (subrCount + 1) * 128);\n      const subrOffsets = new Array(subrCount + 1);"],
+          ["const charstrings = [];", "this.onAllocation?.(256 + cidCount * 512);\n    const charstrings = [];"],
+          ["const notDef = charstrings[0];", "const notDef = charstrings[0];\n        this.onAllocation?.(64 + (notDef?.charstring.length ?? 2) * 16);"],
+        ];
+        for (const [before, after] of patches) {
+          if (!source.includes(before)) throw new Error("PDF.js Type1 parser allocation source marker changed: " + before);
+          source = source.replaceAll(before, after);
+        }
+        return { contents: source, loader: "js" };
+      });
       builder.onLoad({ filter: /type1_font\.js$/ }, args => {
         let source = readFileSync(args.path, "utf8");
         const patches = [
           ["class Type1Font {", "class Type1Font {\n  #data;\n  get data() { return this.#data ??= new CFFCompiler(this.cff).compile(); }"],
-          ["constructor(name, file, properties) {", "constructor(name, file, properties, onAllocation) {\n    this.onAllocation = onAllocation;\n    onAllocation?.(2048);"],
+          ["constructor(name, file, properties) {", "constructor(name, file, properties, onAllocation) {\n    this.onAllocation = onAllocation;\n    onAllocation?.(2048 + Math.min(file.end - file.pos, 2048) * 32);"],
+          ["SEAC_ANALYSIS_ENABLED\n    );", "SEAC_ANALYSIS_ENABLED,\n      this.onAllocation\n    );"],
+          ["new Type1Parser(file, false, SEAC_ANALYSIS_ENABLED)", "new Type1Parser(file, false, SEAC_ANALYSIS_ENABLED, this.onAllocation)"],
           ["this.data = this.wrap(", "this.cff = this.wrap("],
           ["  getCharset() {", "  getCharset() {\n    this.onAllocation?.(256 + this.charstrings.length * 16);"],
           ["  getGlyphMapping(properties) {", "  getGlyphMapping(properties) {\n    this.onAllocation?.(65536 + this.charstrings.length * 128);"],
@@ -129,7 +161,7 @@ const result = await build({
         ];
         for (const [before, after] of patches) {
           if (!source.includes(before)) throw new Error("PDF.js Type1 font source marker changed: " + before);
-          source = source.replace(before, after);
+          source = source.replaceAll(before, after);
         }
         return { contents: source, loader: "js" };
       });

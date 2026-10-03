@@ -90,7 +90,8 @@ export class Type1Font {
   getGlyphMapping(properties: Type1Properties): Map<number, number>;
 }
 export class Type1Parser {
-  constructor(stream: Stream, encrypted: boolean, seacAnalysisEnabled: boolean);
+  constructor(stream: Stream, encrypted: boolean, seacAnalysisEnabled: boolean, onAllocation?: (bytes: number) => void);
+  readCharStrings(bytes: Uint8Array, lenIV: number): Uint8Array;
   getToken(): string | null;
   readNumber(): number;
   readBoolean(): number;

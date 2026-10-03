@@ -11131,12 +11131,16 @@ var COMMAND_MAP = {
   hvcurveto: [31]
 };
 var Type1CharString = class {
+  constructor(onAllocation) {
+    this.onAllocation = onAllocation;
+  }
   width = 0;
   lsb = 0;
   flexing = false;
   output = [];
   stack = [];
   convert(encoded, subrs, seacAnalysisEnabled) {
+    this.onAllocation?.(256 + encoded.length * 128);
     const count = encoded.length;
     let error = false;
     let wx, sbx, subrNumber;
@@ -11395,7 +11399,8 @@ function isHexDigit(code) {
   code >= 65 && code <= 70 || // 'A'-'F'
   code >= 97 && code <= 102;
 }
-function decrypt(data, key, discardNumber) {
+function decrypt(data, key, discardNumber, onAllocation) {
+  onAllocation?.(64 + Math.max(0, data.length - discardNumber));
   if (discardNumber >= data.length) {
     return new Uint8Array(0);
   }
@@ -11413,7 +11418,8 @@ function decrypt(data, key, discardNumber) {
   }
   return decrypted;
 }
-function decryptAscii(data, key, discardNumber) {
+function decryptAscii(data, key, discardNumber, onAllocation) {
+  onAllocation?.(256 + data.length);
   const c1 = 52845, c2 = 22719;
   let r = key | 0;
   const count = data.length, maybeLength = count >>> 1;
@@ -11448,12 +11454,14 @@ function isSpecial(c) {
   41;
 }
 var Type1Parser = class {
-  constructor(stream, encrypted, seacAnalysisEnabled) {
+  constructor(stream, encrypted, seacAnalysisEnabled, onAllocation) {
+    this.onAllocation = onAllocation;
+    onAllocation?.(2048);
     if (encrypted) {
       const data = stream.getBytes();
       const isBinary = !((isHexDigit(data[0]) || isWhiteSpace(data[0])) && isHexDigit(data[1]) && isHexDigit(data[2]) && isHexDigit(data[3]) && isHexDigit(data[4]) && isHexDigit(data[5]) && isHexDigit(data[6]) && isHexDigit(data[7]));
       stream = new Stream(
-        isBinary ? decrypt(data, EEXEC_ENCRYPT_KEY, 4) : decryptAscii(data, EEXEC_ENCRYPT_KEY, 4)
+        isBinary ? decrypt(data, EEXEC_ENCRYPT_KEY, 4, onAllocation) : decryptAscii(data, EEXEC_ENCRYPT_KEY, 4, onAllocation)
       );
     }
     this.seacAnalysisEnabled = !!seacAnalysisEnabled;
@@ -11461,6 +11469,7 @@ var Type1Parser = class {
     this.nextChar();
   }
   readNumberArray() {
+    this.onAllocation?.(64);
     this.getToken();
     const array = [];
     while (true) {
@@ -11468,6 +11477,7 @@ var Type1Parser = class {
       if (token === null || token === "]" || token === "}") {
         break;
       }
+      this.onAllocation?.(16);
       array.push(parseFloat(token || 0));
     }
     return array;
@@ -11512,10 +11522,12 @@ var Type1Parser = class {
     }
     if (isSpecial(ch3)) {
       this.nextChar();
+      this.onAllocation?.(64);
       return String.fromCharCode(ch3);
     }
     let token = "";
     do {
+      this.onAllocation?.(64);
       token += String.fromCharCode(ch3);
       ch3 = this.nextChar();
     } while (ch3 >= 0 && !isWhiteSpace(ch3) && !isSpecial(ch3));
@@ -11525,7 +11537,7 @@ var Type1Parser = class {
     if (lenIV === -1) {
       return bytes;
     }
-    return decrypt(bytes, CHAR_STRS_ENCRYPT_KEY, lenIV);
+    return decrypt(bytes, CHAR_STRS_ENCRYPT_KEY, lenIV, this.onAllocation);
   }
   /*
    * Returns an object containing a Subrs array and a CharStrings
@@ -11583,6 +11595,7 @@ var Type1Parser = class {
             } else if (token === "/") {
               this.prevChar();
             }
+            this.onAllocation?.(256);
             charstrings.push({
               glyph,
               encoded
@@ -11610,6 +11623,7 @@ var Type1Parser = class {
             if (token === "noaccess") {
               this.getToken();
             }
+            this.onAllocation?.(128);
             subrs[index] = encoded;
           }
           break;
@@ -11646,7 +11660,7 @@ var Type1Parser = class {
       }
     }
     for (const { encoded, glyph } of charstrings) {
-      const charString = new Type1CharString();
+      const charString = new Type1CharString(this.onAllocation);
       const error = charString.convert(
         encoded,
         subrs,
@@ -11809,6 +11823,7 @@ var Type1Parser = class {
     }
     let binary = stream.getBytes(startDataIsHex ? void 0 : startDataLength);
     if (startDataIsHex) {
+      this.onAllocation?.(startDataLength);
       const decoded = new Uint8Array(startDataLength);
       let digit1 = -1, j = 0;
       for (let i = 0, ii = binary.length; i < ii && j < startDataLength; i++) {
@@ -11849,6 +11864,7 @@ var Type1Parser = class {
       }
     }
     if (subrCount > 0) {
+      this.onAllocation?.(128 + (subrCount + 1) * 128);
       const subrOffsets = new Array(subrCount + 1);
       for (let i = 0; i <= subrCount; i++) {
         subrOffsets[i] = readUint(subrMapOffset + i * sdBytes, sdBytes);
@@ -11863,6 +11879,7 @@ var Type1Parser = class {
         subrs[i] = this.readCharStrings(binary.subarray(start, end), lenIV);
       }
     }
+    this.onAllocation?.(256 + cidCount * 512);
     const charstrings = [];
     let prevOffset = readUint(cidMapOffset + fdBytes, gdBytes);
     for (let cid = 0; cid < cidCount; cid++) {
@@ -11876,7 +11893,7 @@ var Type1Parser = class {
           binary.subarray(prevOffset, nextOffset),
           lenIV
         );
-        const charString = new Type1CharString();
+        const charString = new Type1CharString(this.onAllocation);
         const error = charString.convert(
           encoded,
           subrs,
@@ -11891,6 +11908,7 @@ var Type1Parser = class {
         });
       } else {
         const notDef = charstrings[0];
+        this.onAllocation?.(64 + (notDef?.charstring.length ?? 2) * 16);
         charstrings.push({
           glyphName,
           charstring: notDef?.charstring.slice() || [139, 14],
@@ -11940,6 +11958,7 @@ var Type1Parser = class {
               const index = this.readInt();
               this.getToken();
               const glyph = this.getToken();
+              this.onAllocation?.(64);
               encoding[index] = glyph;
               this.getToken();
             }
@@ -12060,7 +12079,7 @@ var Type1Font = class {
   #rawFileLength;
   constructor(name, file, properties, onAllocation) {
     this.onAllocation = onAllocation;
-    onAllocation?.(2048);
+    onAllocation?.(2048 + Math.min(file.end - file.pos, 2048) * 32);
     let data;
     if (properties.composite && isCidKeyedType1File(file)) {
       data = this.#parseCidKeyedType1(file, properties);
@@ -12096,7 +12115,8 @@ var Type1Font = class {
     const headerBlockParser = new Type1Parser(
       headerBlock.stream,
       false,
-      SEAC_ANALYSIS_ENABLED
+      SEAC_ANALYSIS_ENABLED,
+      this.onAllocation
     );
     headerBlockParser.extractFontHeader(properties);
     if (pfbHeaderPresent) {
@@ -12107,7 +12127,8 @@ var Type1Font = class {
     const eexecBlockParser = new Type1Parser(
       eexecBlock.stream,
       true,
-      SEAC_ANALYSIS_ENABLED
+      SEAC_ANALYSIS_ENABLED,
+      this.onAllocation
     );
     const data = eexecBlockParser.extractFontProgram(properties);
     this.#rawFileLength = headerBlock.length + eexecBlock.length;
@@ -12116,7 +12137,7 @@ var Type1Font = class {
   #parseCidKeyedType1(file, properties) {
     const fileStart = file.pos;
     const length = file.end - fileStart;
-    const parser = new Type1Parser(file, false, SEAC_ANALYSIS_ENABLED);
+    const parser = new Type1Parser(file, false, SEAC_ANALYSIS_ENABLED, this.onAllocation);
     const data = parser.extractCidKeyedFontProgram(properties);
     if (!data) {
       file.pos = fileStart;

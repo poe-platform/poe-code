@@ -596,5 +596,7 @@ instead of entering a non-progressing loop. CID matrix normalization follows
 CFFCompiler directly, without compiling a duplicate output font. Type1Font now
 retains its converted CFF structure and compiles its byte representation lazily.
 Glyph/subroutine copies and mapping state report allocation callbacks; rendering
-uses the converted structure directly. Type1 lexical/decryption and charstring
-parser state still need separate allocation accounting.
+uses the converted structure directly. Type1 parsing admits lexer token growth,
+decryption buffers, CID glyph/offset tables, fallback glyph copies, and every
+recursive charstring conversion before allocation. Skipped comments do not
+reserve token-sized buffers.

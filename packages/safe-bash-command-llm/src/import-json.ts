@@ -27,7 +27,6 @@ export async function withEmbeddingJsonRows<T>(options:Parameters<typeof withJso
   const id=async(node:EmbeddingJsonNode,nested=false):Promise<string>=>{
    if(node.type==='string'){
     const value=await string(node);if(nested)return bounded(quoted(value));
-    for(let i=0;i<value.length;i++){const point=value.charCodeAt(i);if(point>=0xd800&&point<=0xdbff){const low=value.charCodeAt(++i);if(!(low>=0xdc00&&low<=0xdfff))throw new TypeError('surrogates not allowed');}else if(point>=0xdc00&&point<=0xdfff)throw new TypeError('surrogates not allowed');}
     return value;
    }
    if(node.type==='null')return 'None';

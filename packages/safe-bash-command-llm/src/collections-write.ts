@@ -1,3 +1,4 @@
+import {hasUnpairedSurrogate} from "./python-unicode.js";
 import {sqliteRecord,withSqliteStatement,type SqliteFinalizer,type SqliteRecordValue} from 'safe-bash-sqlite-engine/storage';
 export interface StoredEmbedding {
  readonly id:string;readonly hash:Uint8Array;readonly vector:readonly number[];
@@ -25,6 +26,7 @@ export async function writeEmbeddings(editor:SqliteFinalizer,collectionId:bigint
      yield bytes;
     }
    }};
+   if(hasUnpairedSurrogate(id))throw new TypeError('surrogates not allowed');
    const idBytes=new TextEncoder().encode(id);
    const idValue:SqliteRecordValue={type:'text',size:idBytes.length,bytes:{async *[Symbol.asyncIterator](){yield idBytes;}}};
    const record=sqliteRecord([collectionId,idValue,blob(vector.length*4,encoded),binary?null:content,binary?content:null,scalar(hash),metadata,updated]);

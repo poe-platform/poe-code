@@ -25,9 +25,9 @@ for(const [name,importer,text]of [['JSON',withJsonEmbeddingEntries,'[{"id":1,"bo
   await ready;const reason=new Error('stop JSON input');controller.abort(reason);await assert.rejects(work,error=>error===reason);assert.deepEqual(await fs.readdir('/'),[]);
  });
 }
-test('JSON IDs never silently replace invalid Unicode while nested repr escapes it',async()=>{
+test('JSON IDs retain lone surrogates until the collection storage encoder consumes them',async()=>{
  const fs=new MemoryFileSystem();
- await assert.rejects(withJsonEmbeddingEntries({fs,directory:'/',signal,maxFileBytes:1048576,maxOpenFiles:8},{async *[Symbol.asyncIterator](){yield new TextEncoder().encode('{"id":"\\ud800","body":"x"}');}},async entries=>{for await(const entry of entries)await entry.input.dispose();}),/surrogates not allowed/);
+ await withJsonEmbeddingEntries({fs,directory:'/',signal,maxFileBytes:1048576,maxOpenFiles:8},{async *[Symbol.asyncIterator](){yield new TextEncoder().encode('{"id":"\\ud800","body":"x"}');}},async entries=>{for await(const entry of entries){assert.equal(entry.id,'\ud800');await entry.input.dispose();}});
  assert.deepEqual(await fs.readdir('/'),[]);
 });
 test('JSON content type errors retain integer versus float identity beyond Number range',async()=>{

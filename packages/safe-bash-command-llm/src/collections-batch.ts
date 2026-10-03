@@ -1,3 +1,4 @@
+import {hasUnpairedSurrogate} from "./python-unicode.js";
 import {FsError,type FileSystem} from 'safe-bash-contracts';
 import {md5} from 'safe-bash-checksum-engine/md5';
 import {withSqliteStatement,type SqliteFinalizer,type SqliteRecordValue} from 'safe-bash-sqlite-engine/storage';
@@ -65,6 +66,13 @@ export async function embedCollectionBatch(editor:SqliteFinalizer,options:LlmCol
     await editor.withSession(async session=>{
      await withSqliteStatement(session.module,{...session,signal,sql:'SELECT content_hash FROM embeddings WHERE collection_id=? AND id=?'},async query=>{
       for(const entry of staged){
+       // A Python SQLite TEXT ID cannot contain a lone surrogate. It cannot
+       // match a stored ID, and Python reports its encoding failure only after
+       // the provider call when inserting the result. Never query a lossy ID.
+       if(entry.id.length<=65536&&hasUnpairedSurrogate(entry.id)){
+        if(new TextEncoder().encode(entry.id).length>65536)throw new RangeError('SQLite binding exceeds scalar byte budget');
+        filtered.push(entry);continue;
+       }
        let skip=false;
        for await(const [hash]of query.rows([collection.id,entry.id],['blob']))if(hash instanceof Uint8Array&&hashes.has(hashKey(hash)))skip=true;
        if(!skip)filtered.push(entry);

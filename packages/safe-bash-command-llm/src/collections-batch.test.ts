@@ -113,3 +113,15 @@ test('later provider failure rolls back earlier binary batches and disposes thei
   }));
   assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['db']);
  });
+
+test('invalid Unicode batch IDs cannot alias a replacement-character ID during dedup',async()=>{
+ const fs=new MemoryFileSystem(),signal=new AbortController().signal;
+ const options={fs,path:'/db',signal,maxFileBytes:1048576,maxIndexBytes:1048576,maxOpenFiles:8,now:()=>new Date(0)};let calls=0,disposed=0;
+ const service=createLlmService({providers:[{name:'test',models:[{id:'e',capabilities:['embed']}],async *complete(){},async embedSources(request){calls++;return {model:'e',vectors:request.inputs.map(()=>[1])};}}]});
+ const input=()=>({bytes:{async *[Symbol.asyncIterator](){yield new TextEncoder().encode('hello');}},async dispose(){disposed++;}});
+ await withLlmCollections(options,async catalog=>{await catalog.collection('docs',{model:'e'});await catalog.embed('docs','�',{service,input:input(),directory:'/',maxInputBytes:1000,store:true});});
+ const before=await fs.readFile('/db');calls=0;disposed=0;
+ await assert.rejects(withLlmCollections(options,catalog=>catalog.embedMany('docs',{service,directory:'/',maxInputBytes:1000,store:true,entries:{async *[Symbol.asyncIterator](){yield {id:'\ud800',input:input()};}}})),/surrogates not allowed/);
+ assert.equal(calls,1);assert.equal(disposed,1);assert.deepEqual(await fs.readFile('/db'),before);
+ assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['db']);
+});

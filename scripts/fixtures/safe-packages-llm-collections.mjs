@@ -6,6 +6,15 @@ import { Shell } from "@poe-platform/safe-bash/shell";
 import { sqlite3Commands } from "@poe-platform/safe-bash/commands/sqlite3";
 
 export async function verifyLlmCollections() {
+  const invalidFs=new MemoryFileSystem();let invalidCalls=0,invalidRejected=false;
+  const invalidService=createLlmService({providers:[{name:'test',models:[{id:'embed',capabilities:['embed']}],async *complete(){},async embedSources(request){invalidCalls++;return {model:'embed',vectors:request.inputs.map(()=>[1])};}}]});
+  try{
+    await withLlmCollections({fs:invalidFs,path:'/invalid.db',signal:new AbortController().signal,maxFileBytes:1048576,maxIndexBytes:1048576,maxOpenFiles:8,now:()=>new Date(0)},async catalog=>{
+      await catalog.collection('docs',{model:'embed'});
+      await catalog.embedMany('docs',{service:invalidService,directory:'/',maxInputBytes:1024,entries:{async *[Symbol.asyncIterator](){yield {id:'\ud800',input:{bytes:{async *[Symbol.asyncIterator](){yield new TextEncoder().encode('hello');}},async dispose(){}}};}}});
+    });
+  }catch(error){if(!(error instanceof Error)||!error.message.includes('surrogates not allowed'))throw error;invalidRejected=true;}
+  if(!invalidRejected||invalidCalls!==1||(await invalidFs.readdir('/')).length)throw new Error('Invalid Unicode ID timing or rollback changed');
   const globFs=new MemoryFileSystem();
   await globFs.writeFile('/signature',Uint8Array.of(0xef,0xbb));
   let signatureRows=0;

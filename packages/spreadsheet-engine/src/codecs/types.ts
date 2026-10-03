@@ -1,5 +1,5 @@
 import type { Workbook, CellRange } from "@poe-code/spreadsheet-ast";
-import type { ByteSource, CapabilityContext } from "../contracts.js";
+import type { ByteSource, CapabilityContext, RangeSource } from "../contracts.js";
 
 export type Direction = "read" | "write";
 export type SaveScope = "workbook" | "sheet" | "range";
@@ -40,6 +40,8 @@ export interface Codec extends ServiceDescriptor {
   /** Explicit name probe: extensions alone never implement a probe. */
   probeName?(filename: string, context: CapabilityContext): boolean | Promise<boolean>;
   probeContent?(bytes: Uint8Array, context: CapabilityContext): boolean | Promise<boolean>;
+  probeSource?(source: RangeSource, context: CapabilityContext): boolean | Promise<boolean>;
+  readSource?(source: RangeSource, context: CapabilityContext, encoding?: string): Promise<Workbook>;
   read?(bytes: Uint8Array, context: CapabilityContext, encoding?: string): Promise<Workbook>;
   write?(book: Workbook, options: readonly string[], context: CapabilityContext,
     selection?: { readonly sheets: readonly string[]; readonly range?: CellRange }): Promise<Uint8Array>;

@@ -1,3 +1,5 @@
+import { PagedStorage } from "safe-bash-io-engine/storage";
+import { ownedRangeSource, bufferRangeInput } from "./range-input.js";
 import { publishExportStream } from "./stream-export.js";
 import { openDatasourceSession } from "./datasource.js";
 import { snapshotRuntimeFunctions } from "./formulas/runtime-functions.js";
@@ -15,7 +17,8 @@ import {
   type ConversionRequest,
   type OperationResult,
   type Diagnostic,
-  type RuntimeLimits
+  type RuntimeLimits,
+  type RangeSource
 } from "./contracts.js";
 import { snapshotWorkbook, type Workbook } from "@poe-code/spreadsheet-ast";
 import { snapshotRecords } from "@poe-code/spreadsheet-ast/model";
@@ -71,8 +74,11 @@ function bounded(value: number, maximum: number, name: string) {
 
 /** No host work occurs until an operation supplies cancellation and explicit I/O. */
 export function createEngine(supplied: EngineOptions = {}): Engine {
+  const workingCacheBytes = supplied.workingFiles?.cacheBytes ?? 1024 * 1024;
   const config = {
     ...supplied,
+    ...(supplied.workingFiles === undefined ? {} : { workingFiles: Object.freeze({ ...supplied.workingFiles,
+      cacheBytes: workingCacheBytes }) }),
     ...(supplied.entropy === undefined ? {} : { entropy: Object.freeze({ read: supplied.entropy.read.bind(supplied.entropy) }) }),
     ...(supplied.datasource === undefined ? {} : { datasource: Object.freeze({ open: supplied.datasource.open.bind(supplied.datasource) }) }),
     ...(supplied.fonts === undefined ? {} : { fonts: Object.freeze({ resolve: supplied.fonts.resolve.bind(supplied.fonts) }) }),
@@ -88,6 +94,9 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
       env: Object.freeze({ ...supplied.environment?.env })
     })
   };
+  if (config.workingFiles && (typeof config.workingFiles.directory !== "string" || !config.workingFiles.directory.startsWith("/") || config.workingFiles.directory.includes("\0") ||
+      !Number.isSafeInteger(workingCacheBytes) || workingCacheBytes < 16384 || workingCacheBytes % 16384 !== 0))
+    throw new TypeError("Invalid ssconvert working storage configuration");
   if (config.datasource && Object.hasOwn(config.runtimeFunctions ?? {}, "ATL_LAST"))
     throw new TypeError("Conflicting ssconvert datasource runtime function: ATL_LAST");
   if ((supplied.filesystem?.cwd !== undefined || supplied.environment?.cwd !== undefined) &&
@@ -112,6 +121,7 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
   let disposal: Promise<void> | undefined;
   const admissions = new WeakMap<CapabilityContext, () => void>();
   const diagnostics = new WeakMap<CapabilityContext, Diagnostic[]>();
+  const storageByContext = new WeakMap<CapabilityContext, PagedStorage>();
   function check(context: CapabilityContext) {
     context.signal.throwIfAborted();
     admissions.get(context)!();
@@ -124,6 +134,9 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
     if (disposed) throw new SsconvertError("invalid-request", "ssconvert engine is disposed");
     operation.signal.throwIfAborted();
     const cleanups: Cleanup[] = [];
+    const working = config.workingFiles;
+    const storage = working && new PagedStorage({ fs: working.fs, cwd: working.directory, env: {}, signal: operation.signal }, workingCacheBytes / 16384);
+    if (storage) cleanups.push(() => storage.close());
     let diagnosticBytes = 0;
     let closed = false;
     let closing: Promise<void> | undefined;
@@ -187,6 +200,7 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
       }
     };
     diagnostics.set(context, []);
+    if (storage) storageByContext.set(context, storage);
     admissions.set(context, () => {
       if (closed)
         throw new SsconvertError("invalid-request", "ssconvert ownership admission is closed");
@@ -201,6 +215,7 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
           const admission = admissions.get(context)!;
           context = { ...context, datasource, runtimeFunctions: { ...context.runtimeFunctions, ...datasource.runtimeFunctions } };
           diagnostics.set(context, records); admissions.set(context, admission);
+          if (storage) storageByContext.set(context, storage);
           check(context);
         }
         result = await work(context);
@@ -241,16 +256,41 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
     check(context);
     const filename = input.kind === "resource" ? input.uri : input.filename;
     const forced = type === undefined ? undefined : registry.select("read", type);
-    if (type !== undefined && !forced?.read)
+    if (type !== undefined && !forced?.read && !forced?.readSource)
       throw new SsconvertError("invalid-request", `Unknown importer '${type}'.\nTry --list-importers to see a list of possibilities.`);
     if (input.kind === "resource" && !config.filesystem)
       throw new SsconvertError("capability-denied", "Filesystem read capability is required");
+    const importContext = { ...context, ...(filename === undefined ? {} : { inputFilename: filename }) };
+    const decodeRange = async (supplied: RangeSource) => {
+      bounded(supplied.size, maximumBytes, "input bytes");
+      const source = ownedRangeSource(supplied, context.signal, () => check(context), context.own);
+      const codec = forced ?? await registry.probeSource(source, filename, importContext);
+      check(context);
+      if (!codec?.readSource && !codec?.read)
+        throw new SsconvertError("io", `E Unsupported file format for file "${resourceBasename(filename, config.environment.cwd)}"`);
+      const decoded = codec.readSource ? await codec.readSource(source, importContext, encoding) :
+        await codec.read!(await bufferRangeInput(source, context.signal), importContext, encoding);
+      check(context);
+      return { book: retain(decoded, storageLimits), bytes: source.size };
+    };
+    if (input.kind === "range") return decodeRange(input.source);
+    const storage = (forced ? forced.readSource !== undefined : registry.hasRangeReaders) ? storageByContext.get(context) : undefined;
+    const start = storage?.allocate(0);
     const identity = resourceUri(filename ?? "(unspecified)", config.environment.cwd);
     let display = identity;
     if (identity.startsWith("file:///")) {
       try { display = decodeURIComponent(identity.slice(7)); }
       catch { /* Keep an invalid explicit URI from masking the original I/O error. */ }
     }
+    if (input.kind === "resource" && (forced ? forced.readSource !== undefined : registry.hasRangeReaders)) {
+      let retained: RangeSource | undefined;
+      try { retained = await config.filesystem!.openInput?.(input.uri, context); }
+      catch (error) { check(context); ioFailure(error, display, "read"); }
+      check(context);
+      if (retained) return decodeRange(retained);
+    }
+    if (forced?.readSource && !forced.read && !storage)
+      throw new SsconvertError("capability-denied", "Workbook working storage capability is required for stream input");
     let source;
     try {
       source = input.kind === "stream" ? input.source : await config.filesystem!.read(input.uri, context.signal);
@@ -291,7 +331,10 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
         const chunk = next.value;
         bounded(chunk.byteLength, maximumBytes - size, "input bytes");
         size += chunk.byteLength;
-        if (chunk.byteLength) chunks.push(new Uint8Array(chunk));
+        if (chunk.byteLength) {
+          if (storage) await storage.append(chunk);
+          else chunks.push(new Uint8Array(chunk));
+        }
       }
     } catch (error) {
       sourceFailed = true;
@@ -309,13 +352,13 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
       ioFailure(sourceFailure, display, "read");
     }
     check(context);
+    if (storage) return decodeRange({ size, read: async (position, maximum) => storage.read(start! + position, Math.min(maximum, size - position)) });
     const bytes = new Uint8Array(size);
     let offset = 0;
     for (const chunk of chunks) {
       bytes.set(chunk, offset);
       offset += chunk.byteLength;
     }
-    const importContext = { ...context, ...(filename === undefined ? {} : { inputFilename: filename }) };
     const codec = forced ?? await registry.probe(bytes, filename, importContext);
     if (!codec?.read) throw new SsconvertError("io", `E Unsupported file format for file "${resourceBasename(filename, config.environment.cwd)}"`);
     const decoded = await codec.read(bytes, importContext, encoding);
@@ -572,7 +615,7 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
       throw new SsconvertError("capability-denied", "Filesystem write capability is required");
   }
   function requireCapabilities(request: ConversionRequest) {
-    if (request.clipboard === undefined && request.importType !== undefined && !registry.select("read", request.importType)?.read)
+    if (request.clipboard === undefined && request.importType !== undefined && !registry.select("read", request.importType))
       throw new SsconvertError("invalid-request", `Unknown importer '${request.importType}'.\nTry --list-importers to see a list of possibilities.`);
   }
   function exporter(destination: Destination, type: string | undefined) {

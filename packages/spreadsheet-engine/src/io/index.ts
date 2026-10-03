@@ -142,6 +142,16 @@ export function createResourceIO(options: ResourceIOOptions): FileSystem {
   }
   return {
     cwd,
+    async openInput(name, context) {
+      context.signal.throwIfAborted();
+      if (name.includes("\0")) throw new SsconvertError("invalid-request", "Invalid resource name");
+      if (descriptor(name) !== undefined) return undefined;
+      const uri = resourceUri(name, cwd);
+      const scheme = uri.slice(0, uri.indexOf(":")).toLowerCase();
+      if (scheme === "file") return filesystem.openInput?.(filePath(uri, "read"), context);
+      if (Object.hasOwn(adapters, scheme)) return adapters[scheme]!.openInput?.(uri, context);
+      return undefined;
+    },
     async openOutput(name, context) {
       context.signal.throwIfAborted();
       if (name.includes("\0")) throw new SsconvertError("invalid-request", "Invalid resource name");

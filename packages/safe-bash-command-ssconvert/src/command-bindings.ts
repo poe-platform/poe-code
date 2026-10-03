@@ -2,11 +2,12 @@ import { defaultSsconvertLimits } from "@poe-code/spreadsheet-engine";
 import { snapshotRuntimeFunctions } from "./formulas/runtime-functions.js";
 import { snapshotFormats } from "./codecs/format-provider.js";
 import { createResourceIO, type ResourceIOOptions } from "./io/index.js";
+import { createVfsInput } from "@poe-code/spreadsheet-engine/io/retained-input";
 import { createVfsOutput } from "./io/publication.js";
 import { resolveVfsCwd } from "./io/cwd.js";
 import { runCommand } from "./cli.js";
-import type { Engine, EngineConfig, EngineOptions } from "./contracts.js";
-import { retainFileSystemCleanup, resolvePath, tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
+import type { Engine, EngineConfig, EngineOptions, WorkingFiles } from "./contracts.js";
+import { readFileStream, retainFileSystemCleanup, resolvePath, tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import {
   createOutputOperation,
   getCommandArguments,
@@ -17,8 +18,9 @@ import { builtInDirectContextExecutors, syncCommandEvaluators, type SyncCommandE
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { openFileOutput, writeFileOutput } from "safe-bash-contracts/filesystem-output";
 
-export interface SsconvertCommandsOptions extends Omit<EngineConfig, "filesystem" | "codecs" | "environment"> {
+export interface SsconvertCommandsOptions extends Omit<EngineConfig, "filesystem" | "codecs" | "environment" | "workingFiles"> {
   readonly codecs?: EngineConfig["codecs"];
+  readonly workingFiles?: Partial<Omit<WorkingFiles, "fs">>;
   readonly environment?: EngineOptions["environment"];
   readonly io?: Pick<ResourceIOOptions, "descriptors" | "adapters" | "transport">;
   readonly replace?: boolean;
@@ -44,6 +46,7 @@ export function createCommandBindings(
       throw new TypeError("ssconvert replace must be boolean");
     const binding = {
       ...configured,
+      ...(configured.workingFiles === undefined ? {} : { workingFiles: Object.freeze({ ...configured.workingFiles }) }),
       ...(configured.io === undefined ? {} : { io: Object.freeze({
         ...(configured.io.descriptors === undefined ? {} : { descriptors: Object.freeze(Object.fromEntries(
           Object.entries(configured.io.descriptors).map(([key, descriptor]) => [key, Object.freeze({ ...descriptor })])
@@ -171,6 +174,8 @@ export function createCommandBindings(
           }
           engine = await createEngine({
             ...binding,
+            workingFiles: { fs: context.fs, directory: binding.workingFiles?.directory ?? cwd,
+              ...(binding.workingFiles?.cacheBytes === undefined ? {} : { cacheBytes: binding.workingFiles.cacheBytes }) },
             environment: {
               ...binding.environment,
               cwd,
@@ -186,12 +191,13 @@ export function createCommandBindings(
               },
               filesystem: {
               openOutput,
+              openInput: createVfsInput(context.fs),
               async read(uri, signal) {
                 try {
                   const capabilities = await context.fs.capabilitiesFor?.(uri, { signal }) ?? context.fs.capabilities;
                   signal.throwIfAborted();
-                  if (context.fs.readStream && capabilities.streamingRead !== false)
-                    return context.fs.readStream(uri, { signal });
+                  if (context.fs.readStream && capabilities.streamingRead !== false || context.fs.openReadFile && capabilities.retainedRead === true)
+                    return readFileStream(context.fs, uri, { signal, chunkSize: 16384 });
                   const bytes = await owner.acquire(
                     () =>
                       context.fs.readFile(uri, {

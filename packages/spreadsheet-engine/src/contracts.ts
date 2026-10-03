@@ -5,6 +5,18 @@ import type { FormulaCapability, GoalSeekRequest, ExternalReferencesCapability }
 import type { FormattingCapability } from "./formatting.js";
 import type { RenderingCapability, ClipboardCapability, GraphRequest } from "./rendering.js";
 import type { SolverCapability, AnalysisCapability, AnalysisRequest } from "./solver.js";
+/** Reads one stable caller-owned object. Short reads are allowed; each request
+ * may return at most 16 KiB. The caller retains ownership of the underlying handle. */
+export interface RangeSource {
+  readonly size: number;
+  read(position: number, maxBytes: number, options?: { readonly signal?: AbortSignal }): Promise<Uint8Array>;
+}
+export interface WorkingFiles {
+  readonly fs: import("@poe-code/safe-fs/core").FileSystem;
+  readonly directory: string;
+  /** Resident page cache; positive multiple of 16 KiB, defaults to 1 MiB. */
+  readonly cacheBytes?: number;
+}
 export type ByteSource = Iterable<Uint8Array> | AsyncIterable<Uint8Array>;
 export interface ByteSink {
   write(bytes: Uint8Array): Promise<void>;
@@ -22,6 +34,8 @@ export interface FileSystem {
   /** Actual absolute VFS working directory, captured by a resource binding. */
   readonly cwd?: string;
   read(uri: string, signal: AbortSignal): Promise<ByteSource>;
+  /** Retained range capability; register its cleanup with context before acquisition. */
+  openInput?(uri: string, context: CapabilityContext): Promise<RangeSource | undefined>;
   /** Host controls publication/overwrite policy; bytes are borrowed until settlement. */
   write(uri: string, bytes: Uint8Array, signal: AbortSignal): Promise<void>;
   /** Optional measured file publication protocol. Undefined retains the host's byte-write contract. */
@@ -134,6 +148,8 @@ export interface CapabilityContext {
   readonly diagnostic?: (diagnostic: Diagnostic) => Promise<void>;
 }
 export interface EngineConfig {
+  /** Caller-authorized backing storage; never an ambient or private filesystem. */
+  readonly workingFiles?: WorkingFiles;
   /** Required only for explicitly requested encrypted exports; never uses random.next. */
   readonly entropy?: CryptographicEntropyCapability;
   /** Explicit supplied fonts for the PDF painter. Undefined retains the packaged default. */
@@ -170,6 +186,7 @@ export interface EngineOptions extends Partial<Omit<EngineConfig, "environment">
   readonly environment?: Partial<Environment>;
 }
 export type Input =
+  | { readonly kind: "range"; readonly source: RangeSource; readonly filename?: string }
   | { readonly kind: "stream"; readonly source: ByteSource; readonly filename?: string }
   | { readonly kind: "resource"; readonly uri: string };
 export type Destination =

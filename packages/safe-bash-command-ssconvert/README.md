@@ -208,7 +208,12 @@ The workspace entrypoint exports `ssconvertCommands()` for plugin registration,
 `createSsconvertCommand()` for a single command. Each accepts an optional
 `SsconvertCommandsOptions` object; existing factory names remain available.
 The command supports streaming and buffered virtual filesystems and honors
-`limits.inputBytes` on both paths.
+`limits.inputBytes` on both paths. Custom range readers use retained file handles
+where available; stdin and other sequential sources use the invocation’s safe-fs
+for staging. Configure `workingFiles: { directory, cacheBytes }` on the command
+factory to select a staging directory and a cache size in 16 KiB multiples
+(default 1 MiB). Built-in importers and workbook models still buffer; an external
+safe-fs backend is needed for staging without retaining its contents in RAM.
 
 Gnome Glossary PO timestamps use the injected `clock.now()` and explicit
 `environment.timezone`, with native TZif abbreviations such as `PST`/`PDT`

@@ -70,13 +70,19 @@ async function fixture(format: "docx" | "pptx", withImage = false) {
   volume.writeFileSync(`/bad.${format}`, "Invalid original input");
   volume.writeFileSync(`/oversize.${format}`, new Uint8Array(limits.maxArchiveBytes + 1));
   if (withImage) volume.writeFileSync("/pixel.gif", rasterGif());
-  const fs = new MemoryFileSystem();
-  for (const path of volume.readdirSync("/") as string[]) await fs.writeFile(`/${path}`, new Uint8Array(volume.readFileSync(`/${path}`) as Buffer));
-  const readPublished = fs.readFile.bind(fs);
-  const publications = [vi.spyOn(fs, "writeFile"), vi.spyOn(fs, "createStagedFile"), vi.spyOn(fs, "publishStagedFile"), vi.spyOn(fs, "writeFileConditional")];
-  const readFile = vi.fn(async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer));
-  fs.readFile = readFile;
-  fs.readStream = path => ({ async *[Symbol.asyncIterator]() { yield await readFile(path); } });
+  const owner = new MemoryFileSystem();
+  for (const path of volume.readdirSync("/") as string[]) await owner.writeFile(`/${path}`, new Uint8Array(volume.readFileSync(`/${path}`) as Buffer));
+  const readPublished = owner.readFile.bind(owner);
+  const publications = [vi.spyOn(owner, "writeFile"), vi.spyOn(owner, "createStagedFile"), vi.spyOn(owner, "publishStagedFile"), vi.spyOn(owner, "writeFileConditional")];
+  const readFile = vi.fn(readPublished);
+  const readStream: MemoryFileSystem["readStream"] = path => ({ async *[Symbol.asyncIterator]() { yield await readFile(path); } });
+  // Keep the retained-read owner's methods intact; observe reads at the caller boundary.
+  const fs = new Proxy(owner, { get(target, key) {
+    if (key === "readFile") return readFile;
+    if (key === "readStream") return readStream;
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
   const shell = new Shell({ fs }).use(format === "docx"
     ? docxCommands({ engine: createDocxInspectionCommandEngine({ limits }) })
     : pptxCommands({ engine: createPptxCommandEngine({ context, maxArgumentBytes: 65536, maxOutputBytes: 32000000 }) }));
@@ -112,7 +118,7 @@ describe.each(["docx", "pptx"] as const)("%s common public adapter", format => {
     const f = await fixture(format);
     try {
       const result = await f.run(`validate ${f.input} --json`);
-      expect(result.exitCode, result.stderr).toBe(0);
+      expect(result.exitCode, result.stderr + result.stdout).toBe(0);
       envelope(result.stdout, "validate", true);
     } finally { await f.shell.dispose(); }
   });

@@ -8,7 +8,7 @@ import {encodeTiffFromStorage} from "./codecs/tiff-storage.js";
 import {encodeNetpbmFromStorage} from "./codecs/netpbm-storage.js";
 import {storedImageDecoder} from "./codecs/stored-decoder.js";
 import {encodeBmpFromStorage} from "./codecs/bmp-storage.js";
-import {readImageResource,UnsupportedStoredResource} from "./image-resources.js";
+import {readImageResource,UnsupportedStoredResource,type ImageResourceInput} from "./image-resources.js";
 import {compareIdentity, compareFileVersion, dirname, FsError, isFsError, type FileSystem, type FileStat, type FileStaging} from "@poe-code/safe-fs/contracts";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {encodePngFromStorage, type ImageByteSource} from "./codecs/png-storage.js";
@@ -16,7 +16,7 @@ import {isStoredImageOperation} from "./ops/storage.js";
 import type {SharpInputOptions, OutputEncodeOptions, OutputInfo, ImageAstNode} from "./ast.js";
 
 /** Select retained codecs only when the injected filesystem supports safe publication. */
-export async function tryImageFile(input: string | Uint8Array | undefined, output: string, options: SharpInputOptions, encoding: OutputEncodeOptions, operations: readonly ImageAstNode[] = [], loadedFiles?:ReadonlyMap<string,Uint8Array>): Promise<OutputInfo | undefined> {
+export async function tryImageFile(input: ImageResourceInput, output: string, options: SharpInputOptions, encoding: OutputEncodeOptions, operations: readonly ImageAstNode[] = [], loadedFiles?:ReadonlyMap<string,Uint8Array>): Promise<OutputInfo | undefined> {
   if (!operations.every(isStoredImageOperation) || (input===undefined && !options.text && !options.create)) return undefined;
   const inputFile=typeof input==="string" && !options.text && !options.create?input:undefined;
   const supplied = options.filesystem;
@@ -85,7 +85,7 @@ export async function tryImageFile(input: string | Uint8Array | undefined, outpu
     const directory=dirname(output), parent={...await fs.stat(directory,io)};
     signal.throwIfAborted();
     storage=new PagedStorage({fs,cwd:options.workingDirectory??directory,env:{},signal});
-    let image=source&&decoder?await decoder(source,storage,signal,options):await readImageResource(input,options,fs,storage,signal);
+    let image=source&&decoder?await decoder(source,storage,signal,options):await readImageResource(input,options,fs,storage,signal,loadedFiles);
     const format=encoding.format??image.format;
     if(format!=="raw"&&format!=="png"&&format!=="ppm"&&format!=="pgm"&&format!=="pbm"&&format!=="bmp"&&format!=="tiff"&&format!=="gif"&&format!=="jpeg"&&format!=="webp") {failed=false;return undefined;}
     if(handle && initial && inputFile!==undefined){

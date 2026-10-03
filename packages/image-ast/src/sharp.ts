@@ -1,3 +1,4 @@
+import {JoinLayout} from "./ops/join-layout.js";
 import {prepareRawOutput} from "./codecs/raw-storage.js";
 import {tryInspectImageMetadata,transformedImageMetadata} from "./image-metadata.js";
 import {tryImageStats} from "./image-stats.js";
@@ -536,66 +537,13 @@ export class SharpInstance extends Duplex {
       }
       return decodeImage(toBytes(item as Uint8Array | ArrayBuffer | string | undefined, path => this.loadedFile(path)), this.inputOptions);
     });
-    const n = imgs.length;
-    const cellW = Math.max(...imgs.map(i => i.width));
-    const cellH = Math.max(...imgs.map(i => i.height));
-    const joinOpts = this.inputOptions?.join;
-    const animated = Boolean(joinOpts?.animated);
-    const across = Math.max(1, joinOpts?.across ?? 1);
-    const cols = Math.min(n, across);
-    const rows = Math.ceil(n / cols);
-    const shim = Math.max(0, joinOpts?.shim ?? 0);
-    const outW = cols * cellW + (cols - 1) * shim;
-    const outH = rows * cellH + (rows - 1) * shim;
-    const anyAlpha = imgs.some(i => i.hasAlpha);
-    const bg = parseColor(joinOpts?.background ?? { r: 0, g: 0, b: 0, alpha: 1 }, 255);
-    const hasAlpha = anyAlpha || bg.a < 255;
-    const channels = (hasAlpha ? 4 : 3) as 1 | 2 | 3 | 4;
-    const out = new Uint8Array(outW * outH * 4);
-    const bgA = hasAlpha ? bg.a : 255;
-    const bgWord = ((bgA << 24) | (bg.b << 16) | (bg.g << 8) | bg.r) >>> 0;
-    new Uint32Array(out.buffer, out.byteOffset, outW * outH).fill(bgWord);
-    const halign = joinOpts?.halign ?? "left";
-    const valign = joinOpts?.valign ?? "top";
-    for (let k = 0; k < n; k++) {
-      const im = imgs[k]!;
-      const col = k % cols;
-      const row = Math.floor(k / cols);
-      const cellX = col * (cellW + shim);
-      const cellY = row * (cellH + shim);
-      const dx =
-        halign === "centre" || halign === "center"
-          ? Math.floor((cellW - im.width) / 2)
-          : halign === "right" || halign === "high"
-            ? cellW - im.width
-            : 0;
-      const dy =
-        valign === "centre" || valign === "center"
-          ? Math.floor((cellH - im.height) / 2)
-          : valign === "bottom" || valign === "high"
-            ? cellH - im.height
-            : 0;
-      for (let y = 0; y < im.height; y++) {
-        const dstY = cellY + dy + y;
-        const sRow = y * im.width * 4;
-        const dRow = (dstY * outW + cellX + dx) * 4;
-        out.set(im.data.subarray(sRow, sRow + im.width * 4), dRow);
-      }
+    const layout=new JoinLayout(imgs,this.inputOptions),{width,height}=layout.metadata;
+    const out=new Uint8Array(width*height*4);new Uint32Array(out.buffer,out.byteOffset,width*height).fill(layout.background);
+    for(let index=0;index<imgs.length;index++){
+      const image=imgs[index]!,{left,top}=layout.placement(index,image);
+      for(let row=0;row<image.height;row++)out.set(image.data.subarray(row*image.width*4,(row+1)*image.width*4),((top+row)*width+left)*4);
     }
-    const animPageHeight = animated && n > 0 ? Math.floor(outH / n) : 0;
-    const validAnim = animated && animPageHeight > 0 && outH % animPageHeight === 0 && outH / animPageHeight === n;
-    return {
-      width: outW,
-      height: outH,
-      data: out,
-      format: "raw",
-      space: "srgb",
-      channels,
-      depth: "uchar",
-      density: this.inputOptions?.density ?? 72,
-      hasAlpha,
-      ...(validAnim ? { pages: n, pageHeight: animPageHeight } : {})
-    };
+    return {...layout.metadata,data:out};
   }
 
   getAst(): readonly ImageAstNode[] {
@@ -865,9 +813,9 @@ export class SharpInstance extends Duplex {
       const value=await read({...metadata,autoOrient:{width:rotated?metadata.height:metadata.width,height:rotated?metadata.width:metadata.height}});
       this.inputOptions?.signal?.throwIfAborted();return value;
     };
-    if(!this.joinInputs && (!this.streamIn || this.streamInFinished) && this.inputOptions?.filesystem){
+    if((!this.streamIn || this.streamInFinished) && this.inputOptions?.filesystem){
       if(this.streamFailure)throw this.streamFailure;
-      const input=this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
+      const input=this.joinInputs?{inputs:this.joinInputs}:this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
       const result=await tryInspectImageMetadata(input,this.inputOptions,this.nodes,this.outputOptions,this.fileInputs,consume);
       if(result)return result.value;
     }
@@ -893,9 +841,9 @@ export class SharpInstance extends Duplex {
 
   async stats(callback?: (err: Error | null, stats?: ImageStats) => void): Promise<ImageStats> {
     try {
-      if(!this.joinInputs && (!this.streamIn || this.streamInFinished) && this.inputOptions?.filesystem) {
+      if((!this.streamIn || this.streamInFinished) && this.inputOptions?.filesystem) {
         if(this.streamFailure) throw this.streamFailure;
-        const result=await tryImageStats(this.inputFilePath??this.inputBytes,this.inputOptions,this.nodes,this.fileInputs);
+        const result=await tryImageStats(this.joinInputs?{inputs:this.joinInputs}:this.inputFilePath??this.inputBytes,this.inputOptions,this.nodes,this.fileInputs);
         if(result) {if(callback) callback(null,result);return result;}
       }
       await this.waitForStreamInput();
@@ -2436,9 +2384,9 @@ export class SharpInstance extends Duplex {
         this.outputOptions = { ...this.outputOptions, format: inferred };
       }
       try {
-        if (!this.joinInputs && (!this.streamIn || this.streamInFinished) && ["raw","png","ppm","pgm","pbm","bmp","tiff","gif","jpeg","webp"].includes(this.outputOptions.format??"png")) {
+        if ((!this.streamIn || this.streamInFinished) && ["raw","png","ppm","pgm","pbm","bmp","tiff","gif","jpeg","webp"].includes(this.outputOptions.format??"png")) {
           if(this.streamFailure) throw this.streamFailure;
-          const input=this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
+          const input=this.joinInputs?{inputs:this.joinInputs}:this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
           const streamed = await tryImageFile(input, fileOut, this.inputOptions!, this.outputOptions, this.nodes,this.fileInputs);
           if (streamed) {if (callback) callback(null, streamed); return streamed;}
         }

@@ -1,0 +1,93 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`retains joined images across=1 animated=false file 1`] = `
+{
+  "hash": "cec63017f29e31009d4e2545ad1e66b6db16bd76ddf0181dbdd5eee27d219083",
+  "info": {
+    "channels": 1,
+    "depth": "uchar",
+    "format": "raw",
+    "height": 11,
+    "premultiplied": true,
+    "size": 143,
+    "width": 13,
+  },
+}
+`;
+
+exports[`retains joined images across=1 animated=true file 1`] = `
+{
+  "hash": "cec63017f29e31009d4e2545ad1e66b6db16bd76ddf0181dbdd5eee27d219083",
+  "info": {
+    "channels": 1,
+    "depth": "uchar",
+    "format": "raw",
+    "height": 11,
+    "premultiplied": true,
+    "size": 143,
+    "width": 13,
+  },
+}
+`;
+
+exports[`retains joined images across=2 animated=false file 1`] = `
+{
+  "hash": "8b34d8414015cf3418abae1f206b57f477f92bef2c265d6eccf8c0aaf59ff07e",
+  "info": {
+    "channels": 1,
+    "depth": "uchar",
+    "format": "raw",
+    "height": 11,
+    "premultiplied": true,
+    "size": 143,
+    "width": 13,
+  },
+}
+`;
+
+exports[`retains joined images across=2 animated=true file 1`] = `
+{
+  "hash": "8b34d8414015cf3418abae1f206b57f477f92bef2c265d6eccf8c0aaf59ff07e",
+  "info": {
+    "channels": 1,
+    "depth": "uchar",
+    "format": "raw",
+    "height": 11,
+    "premultiplied": true,
+    "size": 143,
+    "width": 13,
+  },
+}
+`;
+
+exports[`retains joined images across=3 animated=false file 1`] = `
+{
+  "hash": "635e03885966353fb51016a849b7e77aee10b93ba6605cf8e611e82625182317",
+  "info": {
+    "channels": 1,
+    "depth": "uchar",
+    "format": "raw",
+    "height": 11,
+    "premultiplied": true,
+    "size": 143,
+    "width": 13,
+  },
+}
+`;
+
+exports[`retains joined images across=3 animated=true file 1`] = `
+{
+  "hash": "21ff32f0244827ea51cb0d13d790c9167dfb67988986cfe915a229a08e146ea1",
+  "info": {
+    "channels": 1,
+    "depth": "uchar",
+    "format": "raw",
+    "height": 33,
+    "pageHeight": 11,
+    "pages": 3,
+    "premultiplied": true,
+    "size": 429,
+    "width": 13,
+  },
+}
+`;

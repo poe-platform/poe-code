@@ -1,12 +1,12 @@
 import {dirname,type FileSystem} from "@poe-code/safe-fs/contracts";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import type {ImageAstNode,ImageStats,SharpInputOptions} from "./ast.js";
-import {readImageResource,UnsupportedStoredResource} from "./image-resources.js";
+import {readImageResource,UnsupportedStoredResource,type ImageResourceInput} from "./image-resources.js";
 import {isStoredImageOperation} from "./ops/storage.js";
 import {transformStoredPipeline} from "./ops/storage-pipeline.js";
 import {computeStoredImageStats} from "./ops/stats-storage.js";
 
-export async function tryImageStats(input:string|Uint8Array|undefined,options:SharpInputOptions,operations:readonly ImageAstNode[],loadedFiles:ReadonlyMap<string,Uint8Array>):Promise<ImageStats|undefined> {
+export async function tryImageStats(input:ImageResourceInput,options:SharpInputOptions,operations:readonly ImageAstNode[],loadedFiles:ReadonlyMap<string,Uint8Array>):Promise<ImageStats|undefined> {
  if(!operations.every(isStoredImageOperation)) return undefined;
  const signal=options.signal??new AbortController().signal;
  signal.throwIfAborted();
@@ -16,7 +16,7 @@ export async function tryImageStats(input:string|Uint8Array|undefined,options:Sh
  const storage=new PagedStorage({fs,cwd:options.workingDirectory??(typeof input==="string"?dirname(input):"."),env:{},signal});
  let failure:{error:unknown}|undefined,result:ImageStats|undefined;
  try {
-  const resources={readImage:(source:string|Uint8Array|undefined,resourceOptions:SharpInputOptions|undefined,resourceSignal:AbortSignal)=>readImageResource(typeof source==="string"?loadedFiles.get(source)??source:source,resourceOptions,fs,storage,resourceSignal)};
+  const resources={readImage:(source:ImageResourceInput,resourceOptions:SharpInputOptions|undefined,resourceSignal:AbortSignal)=>readImageResource(typeof source==="string"?loadedFiles.get(source)??source:source,resourceOptions,fs,storage,resourceSignal,loadedFiles)};
   const initial=await resources.readImage(input,options,signal);
   const image=await transformStoredPipeline(initial,storage,operations,signal,resources);
   result=await computeStoredImageStats(image,storage,signal);

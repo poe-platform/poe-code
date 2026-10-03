@@ -39,8 +39,8 @@ boundaries use ordered storage indexes. Plain CSV/text conversions without globa
 evaluation replay cells into either ODF profile without a full cell array; style
 names are reserved before rows are emitted. Low-level mutable workbook inputs
 retain captured cell references and snapshots of streamed document metadata; engine-owned metadata avoids those extra snapshots. Generated cell-style keys, reserved names and XML also use working storage.
-Generated row, column and region metadata XML, validations and database-range fragments also stage through bounded buffers. The automatic-styles, validation, named-expression and label-range containers stream. Individual cell strings, retained
-style definitions, cell metadata and embedded binary resources remain resident. Retained validation/database XML, document metadata and embedded XML documents serialize incrementally, including long text and attributes. Encryption buffers, including wrapped
+Generated row, column and region metadata XML, validations and database-range fragments also stage through bounded buffers. Retained definition identities, shape/name indexes and generated rich-text definitions also use working storage, with monotonic name allocation. The automatic-styles, style-definition, validation, named-expression and label-range containers stream. Individual cell strings, retained
+style payloads and individual comparison strings, cell metadata and embedded binary resources remain resident. Retained validation/database XML, document metadata and embedded XML documents serialize incrementally, including long text and attributes. Encryption buffers, including wrapped
 inner archives, still reside in memory; use an external safe-fs backend to keep
 staged archive data outside the isolate.
 

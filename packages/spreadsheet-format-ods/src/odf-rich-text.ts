@@ -117,12 +117,12 @@ export function createOdfTextReader(roots: readonly XmlElement[], charge: (amoun
   };
 }
 
-export function writeOdfRichText(value: string, runs: readonly RichTextRun[], xml: ReturnType<typeof createOdfXml>,
-  definitions: ReturnType<typeof createOdfStyleDefinitions>, extended: boolean, hyperlink?: OdfAttributes, inlineControls = true): string {
+export async function writeOdfRichText(value: string, runs: readonly RichTextRun[], xml: ReturnType<typeof createOdfXml>,
+  definitions: Awaited<ReturnType<typeof createOdfStyleDefinitions>>, extended: boolean, hyperlink?: OdfAttributes, inlineControls = true): Promise<string> {
   let result = "";
   for (const { text, attributes: a } of richTextSegments(value, runs, xml.charge)) {
     const properties: Record<string, string> = {};
-    if (typeof a.family === "string") properties["style:font-name"] = definitions.register("fonts", "style:font-face", "rtfont", { "svg:font-family": a.family });
+    if (typeof a.family === "string") properties["style:font-name"] = await definitions.register("fonts", "style:font-face", "rtfont", { "svg:font-family": a.family });
     if (typeof a.size === "number" && Number.isFinite(a.size) && a.size >= 0) properties["fo:font-size"] = a.size / 1024 + "pt";
     if (a.bold !== undefined) {
       const bold = Number(a.bold), scaled = bold * 300 + 400, nearest = Math.round(scaled);
@@ -154,7 +154,7 @@ export function writeOdfRichText(value: string, runs: readonly RichTextRun[], xm
     const content = hyperlink ? xml.element("text:a", hyperlink, xml.escape(text)) : xml.text(text, inlineControls);
     if (!Object.keys(properties).length) result += content;
     else {
-      const name = definitions.register("contentAutomatic", "style:style", "rt", { "style:family": "text" }, xml.element("style:text-properties", properties));
+      const name = await definitions.register("contentAutomatic", "style:style", "rt", { "style:family": "text" }, xml.element("style:text-properties", properties));
       result += xml.element("text:span", { "text:style-name": name }, content);
     }
   }

@@ -27,8 +27,10 @@ captured references. Non-replayable workbook payloads remain resident. The gener
 uses caller-backed key/name indexes and coalesced XML staging; its container
 streams. Generated axis/region metadata, validation and database fragments also
 use coalesced staging; named-expression, label-range and validation containers stream.
+Retained definition identities, shape/name indexes and generated definition text use
+caller storage; style sections stream and generated name allocation is monotonic.
 Style, metadata and table bytes share output admission. Individual cell strings,
-retained style definitions, cell metadata and embedded binary resources, encrypted/decrypted members and wrapped inner packages are still buffered.
+imported style payloads and individual shape strings, cell metadata and embedded binary resources, encrypted/decrypted members and wrapped inner packages are still buffered.
 Retained validation/database XML, document metadata and embedded XML documents
 serialize incrementally, with bounded escaped text/attribute fragments and a fixed XML-name cache.
 Plain text conversions to text, Gnumeric XML/gzip, either XLSX edition or either ODF profile without global evaluation now replay cells from retained input through the exporter; they do not retain a full cell array. Formula-bearing and clock-dependent inputs, transformations, and explicit workbook SDK reads still use the array model. Decoded XML documents and non-text workbooks remain resident. Other built-in input collection, the owned array-based workbook,

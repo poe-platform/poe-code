@@ -949,7 +949,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
     function captureMetadata<T extends ImportedValue | undefined>(value: T): T {
       return value !== null && typeof value === "object" && !Object.isFrozen(value) ? snapshotRecords(value, context.limits) : value;
     }
-    const definitions = createOdfStyleDefinitions(book, xml);
+    const definitions = await createOdfStyleDefinitions(book, xml, context, storage, admitContentBytes);
     const automatic = createOdfXmlTape(context, storage, admitContentBytes);
     metadataTapes.push(automatic);
     const validations = createOdfXmlTape(context, storage, admitContentBytes);
@@ -970,9 +970,9 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
       const view = odfObject(sheet.view?.gnumeric) ?? {}, properties = odfChildren(sheet.view?.odf).find(n => odfObject(n)?.name === "table-properties");
       const originalProperties = odfAttributes(properties, odfNamespaces.gnm);
       const print = odfPrintProperties((sheet.unsupportedRecords ?? []).filter(r => r.kind === "PrintInformation").flatMap(r => r.data ? [r.data] : []), xml, extended);
-      const layoutName = definitions.register("stylesAutomatic", "style:page-layout", "pl" + index, {}, e("style:page-layout-properties", print));
-      const masterName = definitions.register("masters", "style:master-page", "mp" + index, { "style:page-layout-name": layoutName });
-      const sheetStyle = definitions.register("contentAutomatic", "style:style", "ta" + index,
+      const layoutName = await definitions.register("stylesAutomatic", "style:page-layout", "pl" + index, {}, e("style:page-layout-properties", print));
+      const masterName = await definitions.register("masters", "style:master-page", "mp" + index, { "style:page-layout-name": layoutName });
+      const sheetStyle = await definitions.register("contentAutomatic", "style:style", "ta" + index,
         { "style:family": "table", "style:master-page-name": masterName }, e("style:table-properties", {
         "table:display": sheet.visibility && sheet.visibility !== "visible" ? "false" : "true", "style:writing-mode": Number(view.RTL_Layout ?? 0) ? "rl-tb" : "lr-tb",
         ...(extended ? { "gnm:display-formulas": String(Boolean(Number(view.DisplayFormulas ?? 0))), "gnm:display-col-header": String(!Number(view.HideColHeader ?? 0)),
@@ -1208,7 +1208,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
             let paragraphs = "";
             if (!keepText) {
               const runs = readGnumericRichText(annotation.TextFormat, xml.charge);
-              const text = runs?.length ? writeOdfRichText(value,runs,xml,definitions,extended,undefined,false) : xml.text(value);
+              const text = runs?.length ? await writeOdfRichText(value,runs,xml,definitions,extended,undefined,false) : xml.text(value);
               paragraphs = e("text:p", {}, text);
             }
             const retained = originalAnnotation ? odfChildren(originalAnnotation.node).filter(child => {
@@ -1250,7 +1250,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
             xml.charge(originalRich.length + currentRich.length);
             if (paragraph?.text === renderedText && originalRich === currentRich) content += paragraph.xml;
             else {
-              const rendered = richText?.length ? writeOdfRichText(renderedText, richText, xml, definitions, extended, link)
+              const rendered = richText?.length ? await writeOdfRichText(renderedText, richText, xml, definitions, extended, link)
                 : link ? e("text:a", link, xml.escape(renderedText)) : xml.text(renderedText);
               content += e("text:p", {}, rendered);
             }
@@ -1320,15 +1320,21 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
     part("mimetype", "application/vnd.oasis.opendocument.spreadsheet");
     async function* content() {
       yield e("office:scripts");
-      yield e("office:font-face-decls", {}, definitions.render("fonts"));
+      yield* xml.stream("office:font-face-decls", {}, definitions.render("fonts"));
       async function* automaticStyles() {
-        yield definitions.render("contentAutomatic"); yield* automatic.render(); yield* cellStyles!.render();
+        yield* definitions.render("contentAutomatic"); yield* automatic.render(); yield* cellStyles!.render();
       }
       yield* xml.stream("office:automatic-styles", {}, automaticStyles());
       yield* xml.stream("office:body", {}, xml.stream("office:spreadsheet", {}, spreadsheetContent()));
     }
     part("content.xml", xml.documentStream("office:document-content", content()));
-    part("styles.xml", xml.document("office:document-styles", e("office:font-face-decls", {}, definitions.render("fonts")) + e("office:styles", {}, definitions.render("styles")) + e("office:automatic-styles", {}, definitions.render("stylesAutomatic")) + e("office:master-styles", {}, definitions.render("masters"))));
+    async function* styleSections() {
+      yield* xml.stream("office:font-face-decls", {}, definitions.render("fonts"));
+      yield* xml.stream("office:styles", {}, definitions.render("styles"));
+      yield* xml.stream("office:automatic-styles", {}, definitions.render("stylesAutomatic"));
+      yield* xml.stream("office:master-styles", {}, definitions.render("masters"));
+    }
+    part("styles.xml", xml.documentStream("office:document-styles", styleSections()));
     part("meta.xml", xml.document("office:document-meta", e("office:meta", {}, e("meta:generator", {}, "Gnumeric/1.12.61"))));
     part("settings.xml", xml.document("office:document-settings", e("office:settings", {}, e("config:config-item-set", { "config:name": "gnm:settings" },
       e("config:config-item", { "config:name": "gnm:has_foreign", "config:type": "boolean" }, String(extended)) +

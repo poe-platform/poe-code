@@ -37,6 +37,15 @@ export const verification = (async () => {
     assert.equal(image.exitCode, 0, image.stderr);
     assert.equal(image.stderr, "");
     assert.ok(image.stdout.includes("pixelWidth: 1"), image.stdout);
+    await fs.mkdir("/scratch");
+    const large = new Uint8Array(1_100_002).fill(120);
+    large[550_000] = large[large.length - 1] = 10;
+    await fs.writeFile("/large", large);
+    const streamed = await shell.exec("TMPDIR=/scratch shuf /large -o /large.out --random-source=/random");
+    assert.equal(streamed.exitCode, 0, streamed.stderr);
+    assert.equal(streamed.stdout, "");
+    assert.deepEqual(await fs.readFile("/large.out"), large);
+    assert.deepEqual(await fs.readdir("/scratch"), []);
     const original = shell.commands.get("shuf");
     const duplicate = shufCommands();
     assert.throws(() => duplicate.setup({ commands: shell.commands, use() {}, registerFileSystem() {} }), /already registered/);

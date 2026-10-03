@@ -54,6 +54,14 @@
     "./sync": {
       "types": "./dist/sync.d.ts",
       "import": "./dist/sync.js"
+    },
+    "./storage": {
+      "types": "./dist/storage.d.ts",
+      "import": "./dist/storage.js"
+    },
+    "./stored-records": {
+      "types": "./dist/stored-records.d.ts",
+      "import": "./dist/stored-records.js"
     }
   },
   "files": [

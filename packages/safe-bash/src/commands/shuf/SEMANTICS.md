@@ -179,8 +179,8 @@ source opening rules still apply: nonrepeat zero output does not open entropy,
 whereas repeat zero output does.
 
 Ordinary permutations and bounded samples use a sparse Fisher-Yates mapping.
-A sample of `k` values from a huge range retains O(k) indices, not an array for
-every number in the range. Values and random-integer arithmetic use `bigint`.
+A sample of `k` values from a huge range stores O(k) indices behind a bounded
+cache, not an array for every number in the range. Values and random-integer arithmetic use `bigint`.
 Nonrepeat selections are completed before opening/truncating output, so
 `shuf -o FILE FILE` is safe within the admitted resource limits. Repeat output
 opens its destination before selecting records, matching its distinct failure
@@ -188,7 +188,7 @@ and empty-input side effects.
 
 For finite nonrepeat `-n`, unknown-size stdin uses reservoir sampling, as does
 a regular VFS file larger than 8 MiB. Smaller regular files and unrestricted or
-repeat input use full record collection. The reservoir's final EOF selection
+repeat input spool all records through the bounded storage cache. The reservoir's final EOF selection
 and subsequent permutation consume the same entropy choices as GNU 9.7.
 Regular-file stat size versus unknown pipe provenance therefore intentionally
 can change deterministic output with the same entropy file.
@@ -233,26 +233,40 @@ the clean-build oracle.
 
 ## Configuration and operational limits
 
-`ShufCommandsOptions` has these options and no product environment variables:
+`ShufCommandsOptions` accepts `replace`, nested `limits`, and the legacy
+`maxInputBytes` / `maxSampleSize` aliases. Nested limits take precedence.
 
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `replace` | `false` | Permit replacing a registered `shuf` when installing the plugin. |
-| `maxInputBytes` | `67108864` | Maximum retained record payload, individual record size including terminators, fallback file load, or retained entropy chunk. |
-| `maxSampleSize` | `1000000` | Maximum collected record count or nonrepeat permutation size. |
+| `limits.maxInputBytes` | `Infinity` | Maximum selected record payload, individual record size including terminators, fallback file load, or retained entropy chunk. |
+| `limits.maxSampleSize` | `Infinity` | Maximum collected record count or nonrepeat permutation size. |
 
-Numeric options must be positive safe integers. Resource-limit failures are
-explicit status-1 extension diagnostics, not successful truncated results.
-Reservoir sampling bounds retained records, not cumulative bytes scanned;
-repeat count is not capped by `maxSampleSize`. The record reader may retain its
-current record buffer alongside the collection/reservoir, and maps, record
-objects, stream chunks, and caller-owned argv add overhead: these settings are
-not process-RSS caps. Non-streaming record and entropy reads request `maxBytes`
-before allocation. Oversized returned data and entropy chunks are rejected
-before copying. Adapters must honor that contract: the command cannot prevent
-a custom adapter from allocating internally despite the requested bound.
-Streaming entropy requests chunks of at most 4096 bytes, further reduced for
-smaller configured limits; the limit is not a cumulative entropy-consumption cap.
+Numeric limits accept positive safe integers or `Infinity`. Limit failures are
+explicit status-1 diagnostics, not truncated success. Reservoir payload limits
+apply to selected records rather than cumulative input; repeat output count is
+not capped by `maxSampleSize`.
+
+The asynchronous command uses a 1 MiB page cache and three integer indexes with
+at most 4,096 cached entries each. Record fragments and output reads are at most
+16 KiB; no complete-record allocation is required. Larger data and indexes use
+retained positioned I/O on the invocation's safe-fs. `TMPDIR` selects a virtual
+scratch directory, defaulting to the invocation's current directory. Its backend
+must support exclusive creation and conditional removal. The scratch pathname
+is removed immediately while its retained descriptor remains open, so later
+random-source admission and named output cannot alias that pathname. Cleanup
+drains admitted I/O, closes the handle, and discards private object staging
+without publishing the scratch payload. No ambient host paths or private
+filesystem are used. Memory-backed safe-fs still stores backing bytes in RAM;
+large Worker workloads need an external backend with bounded private staging.
+
+Input uses retained range reads or streaming capabilities when supplied.
+Read-file-only adapters and the small synchronous evaluator remain convenience
+paths; they are not required by the asynchronous command. Explicit entropy
+reads request at most 64 KiB, reduced by the configured byte limit. System
+entropy uses 4,096-byte Web Crypto refills. Entropy byte limits are not cumulative
+consumption caps. Caller-provided filesystem methods must honor requested read
+sizes and provide their own bounded backend implementation.
 
 There is no independent output cap. Hosts should provide a bounded sink or
 shell output budget when buffering results; infinite repeat requires

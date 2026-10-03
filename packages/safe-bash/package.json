@@ -689,7 +689,9 @@
             "./random": "./dist/optional/commands/shuf/random.js",
             "./shuf": "./dist/optional/commands/shuf/shuf.js",
             "./usage": "./dist/optional/commands/shuf/usage.js",
-            "./sync": "./dist/optional/commands/shuf/sync.js"
+            "./sync": "./dist/optional/commands/shuf/sync.js",
+            "./storage": "./dist/optional/commands/shuf/storage.js",
+            "./stored-records": "./dist/optional/commands/shuf/stored-records.js"
           }
         },
         "safe-bash-checksum-engine": {

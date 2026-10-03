@@ -1,3 +1,4 @@
+import {GifCodes,GifPalette,gifLayout,gifHeader,gifFrameHeader,type GifOptions} from "./gif-output-parts.js";
 import type { ImageMetadata, RgbaImage } from "../ast.js";
 
 export function isGifBytes(bytes: Uint8Array): boolean {
@@ -387,184 +388,21 @@ export function decodeGifImage(
   };
 }
 
-export function encodeGifImage(
-  img: RgbaImage,
-  options?: {
-    readonly pageHeight?: number;
-    readonly delay?: number | readonly number[];
-    readonly loop?: number;
+/** Explicit in-memory convenience; file workflows use the retained encoder. */
+export function encodeGifImage(img:RgbaImage,options:GifOptions={}):Uint8Array {
+ const layout=gifLayout(img,options),palette=new GifPalette(),data=img.data;
+ for(let i=0;i<img.width*img.height;i++)palette.add(data[i*4]!,data[i*4+1]!,data[i*4+2]!,data[i*4+3]!);
+ palette.finish();const chunks:Uint8Array[]=[gifHeader(img,options,layout,palette)];
+ for(let frame=0;frame<layout.frames;frame++){
+  const start=frame*layout.framePixels;let transparent=false;
+  for(let i=0;i<layout.framePixels;i++)if(data[(start+i)*4+3]!<128){transparent=true;break;}
+  chunks.push(gifFrameHeader(img,options,layout,frame,transparent));const codes=new GifCodes();codes.code(256);
+  for(let i=0;i<layout.framePixels;i++){
+   if(i>0&&i%120===0){const chunk=codes.code(256);if(chunk)chunks.push(chunk);}
+   const at=(start+i)*4,chunk=codes.code(palette.index(data[at]!,data[at+1]!,data[at+2]!,data[at+3]!));if(chunk)chunks.push(chunk);
   }
-): Uint8Array {
-  const { width, height, data } = img;
-  const rawPageHeight = options?.pageHeight ?? img.pageHeight;
-  const numFrames =
-    rawPageHeight !== undefined &&
-    rawPageHeight > 0 &&
-    rawPageHeight < height &&
-    height % rawPageHeight === 0
-      ? height / rawPageHeight
-      : 1;
-  const frameHeight = numFrames > 1 ? rawPageHeight! : height;
-  // Build 256-color RGB332 base palette (0..253), pure white at 254, 255 = transparent,
-  // and place any non-exact colors (when <= 254 unique colors) into unused palette slots.
-  const palette = new Uint8Array(256 * 3);
-  const colorToIndex = new Map<number, number>();
-  for (let i = 0; i < 254; i++) {
-    const r = Math.round((((i >>> 5) & 0x07) * 255) / 7);
-    const g = Math.round((((i >>> 2) & 0x07) * 255) / 7);
-    const b = Math.round(((i & 0x03) * 255) / 3);
-    palette[i * 3] = r;
-    palette[i * 3 + 1] = g;
-    palette[i * 3 + 2] = b;
-    colorToIndex.set((r << 16) | (g << 8) | b, i);
-  }
-  palette[254 * 3] = 255;
-  palette[254 * 3 + 1] = 255;
-  palette[254 * 3 + 2] = 255;
-  colorToIndex.set((255 << 16) | (255 << 8) | 255, 254);
-
-  const usedSlots = new Set<number>();
-  const missingColors: number[] = [];
-  for (let i = 0; i < width * height; i++) {
-    if (data[i * 4 + 3]! < 128) continue;
-    const key = (data[i * 4]! << 16) | (data[i * 4 + 1]! << 8) | data[i * 4 + 2]!;
-    const existing = colorToIndex.get(key);
-    if (existing !== undefined) {
-      usedSlots.add(existing);
-    } else if (missingColors.length < 255 && !missingColors.includes(key)) {
-      missingColors.push(key);
-    }
-  }
-
-  if (usedSlots.size + missingColors.length <= 254) {
-    let probe = 1;
-    for (const key of missingColors) {
-      while (probe < 254 && usedSlots.has(probe)) probe++;
-      if (probe >= 254) break;
-      usedSlots.add(probe);
-      colorToIndex.set(key, probe);
-      palette[probe * 3] = (key >>> 16) & 0xff;
-      palette[probe * 3 + 1] = (key >>> 8) & 0xff;
-      palette[probe * 3 + 2] = key & 0xff;
-    }
-  }
-
-  const indices = new Uint8Array(width * height);
-  let hasTransparency = false;
-  for (let i = 0; i < width * height; i++) {
-    const a = data[i * 4 + 3]!;
-    if (a < 128) {
-      indices[i] = 255;
-      hasTransparency = true;
-    } else {
-      const key = (data[i * 4]! << 16) | (data[i * 4 + 1]! << 8) | data[i * 4 + 2]!;
-      const exact = colorToIndex.get(key);
-      if (exact !== undefined) {
-        indices[i] = exact;
-      } else {
-        const r = data[i * 4]! >>> 5;
-        const g = data[i * 4 + 1]! >>> 5;
-        const b = data[i * 4 + 2]! >>> 6;
-        const idx = (r << 5) | (g << 2) | b;
-        indices[i] = idx === 255 ? 254 : idx;
-      }
-    }
-  }
-
-  // Encode LZW with frequent CLEAR codes (every 126 pixels) so codes stay 9-bit
-  const minCodeSize = 8;
-  const clearCode = 256;
-  const eoiCode = 257;
-
-  const out: number[] = [
-    0x47, 0x49, 0x46, 0x38, 0x39, 0x61, // GIF89a
-    width & 0xff, (width >>> 8) & 0xff,
-    frameHeight & 0xff, (frameHeight >>> 8) & 0xff,
-    0xf7, // GCT present, 8-bit color, 256 entries
-    0x00,
-    0x00
-  ];
-  for (let i = 0; i < palette.length; i++) out.push(palette[i]!);
-
-  const loopVal = options?.loop ?? img.loop ?? (numFrames > 1 ? 0 : undefined);
-  if (loopVal !== undefined) {
-    const netscapeLoop = loopVal === 0 ? 0 : Math.max(0, loopVal - 1);
-    out.push(
-      0x21, 0xff, 0x0b,
-      0x4e, 0x45, 0x54, 0x53, 0x43, 0x41, 0x50, 0x45, 0x32, 0x2e, 0x30, // NETSCAPE2.0
-      0x03, 0x01,
-      netscapeLoop & 0xff, (netscapeLoop >>> 8) & 0xff,
-      0x00
-    );
-  }
-
-  const framePixelCount = width * frameHeight;
-  for (let f = 0; f < numFrames; f++) {
-    const frameSlice = indices.subarray(f * framePixelCount, (f + 1) * framePixelCount);
-    let frameTransparent = false;
-    for (let i = 0; i < frameSlice.length; i++) {
-      if (frameSlice[i] === 255) {
-        frameTransparent = true;
-        break;
-      }
-    }
-    const delayMs = Array.isArray(options?.delay)
-      ? (options.delay[f] ?? options.delay[options.delay.length - 1] ?? 100)
-      : typeof options?.delay === "number"
-        ? options.delay
-        : (img.delay?.[f] ?? (numFrames > 1 ? 100 : 0));
-    const delayCs = Math.max(0, Math.round(delayMs / 10));
-    if (numFrames > 1 || frameTransparent || options?.delay !== undefined) {
-      const gceFlags = (numFrames > 1 ? 0x04 : 0x00) | 0x01;
-      out.push(
-        0x21, 0xf9, 0x04,
-        gceFlags,
-        delayCs & 0xff, (delayCs >>> 8) & 0xff,
-        255,
-        0x00
-      );
-    }
-    out.push(
-      0x2c,
-      0x00, 0x00,
-      0x00, 0x00,
-      width & 0xff, (width >>> 8) & 0xff,
-      frameHeight & 0xff, (frameHeight >>> 8) & 0xff,
-      0x00,
-      minCodeSize
-    );
-    const bitBytes: number[] = [];
-    let bitBuf = 0;
-    let bitCount = 0;
-    const writeCode9 = (code: number) => {
-      bitBuf |= (code & 0x1ff) << bitCount;
-      bitCount += 9;
-      while (bitCount >= 8) {
-        bitBytes.push(bitBuf & 0xff);
-        bitBuf >>>= 8;
-        bitCount -= 8;
-      }
-    };
-    writeCode9(clearCode);
-    for (let i = 0; i < frameSlice.length; i++) {
-      if (i > 0 && i % 120 === 0) {
-        writeCode9(clearCode);
-      }
-      writeCode9(frameSlice[i]!);
-    }
-    writeCode9(eoiCode);
-    if (bitCount > 0) {
-      bitBytes.push(bitBuf & 0xff);
-    }
-    let bPos = 0;
-    while (bPos < bitBytes.length) {
-      const chunkLen = Math.min(255, bitBytes.length - bPos);
-      out.push(chunkLen);
-      for (let i = 0; i < chunkLen; i++) out.push(bitBytes[bPos + i]!);
-      bPos += chunkLen;
-    }
-    out.push(0x00);
-  }
-  out.push(0x3b);
-  return new Uint8Array(out);
+  chunks.push(...codes.finish());
+ }
+ chunks.push(Uint8Array.of(59));const output=new Uint8Array(chunks.reduce((length,chunk)=>length+chunk.length,0));let offset=0;
+ for(const chunk of chunks){output.set(chunk,offset);offset+=chunk.length;}return output;
 }

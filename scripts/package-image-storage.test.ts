@@ -139,6 +139,8 @@ it("packs the caller-backed image filesystem API with canonical public storage a
   expect(await sharp("/input.png", {filesystem: guarded}).toFormat("bmp").toFile("/output.bmp")).toMatchObject({format: "bmp", width: 7, height: 3, channels: 3});
   expect(await sharp("/output.bmp", {filesystem: guarded}).composite([{input: "/output.bmp", blend: "difference"}]).png().toFile("/bitmap.png")).toMatchObject({format: "png", width: 7, height: 3});
   expect([...await sharp(await fs.readFile("/bitmap.png")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [0, 0, 0, 255]).flat());
+  expect(await sharp("/input.png", {filesystem: guarded}).gif().toFile("/output.gif")).toMatchObject({format: "gif", width: 7, height: 3, channels: 4});
+  expect([...await sharp(await fs.readFile("/output.gif")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [255, 0, 0, 255]).flat());
   expect(await sharp("/input.png", {filesystem: guarded}).tiff().toFile("/output.tiff")).toMatchObject({format: "tiff", width: 7, height: 3, channels: 4});
   expect([...await sharp(await fs.readFile("/output.tiff")).raw().toBuffer()]).toEqual(Array.from({length: 21}, () => [255, 0, 0, 255]).flat());
   expect(await sharp("/output.tiff", {filesystem: guarded}).composite([{input: "/output.tiff", blend: "difference"}]).png().toFile("/tiff.png")).toMatchObject({format: "png", width: 7, height: 3});

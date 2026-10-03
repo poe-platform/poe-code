@@ -5,6 +5,7 @@
   },
   "include": [
     "tests/client-subpath-types.ts",
-    "tests/agent-defs-subpath-types.ts"
+    "tests/agent-defs-subpath-types.ts",
+    "tests/auth-store-subpath-types.ts"
   ]
 }

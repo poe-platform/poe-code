@@ -359,6 +359,10 @@
     "./agent-defs": {
       "types": "./dist/agent-defs.d.ts",
       "import": "./dist/agent-defs.js"
+    },
+    "./auth-store": {
+      "types": "./dist/auth-store.d.ts",
+      "import": "./dist/auth-store.js"
     }
   },
   "scripts": {
@@ -404,6 +408,7 @@
     "tiny-stdio-mcp-server-rust": "*",
     "mcp-oauth-server-rust": "*",
     "tiny-http-mcp-server-rust": "*",
-    "@poe-code/agent-defs-rust": "*"
+    "@poe-code/agent-defs-rust": "*",
+    "auth-store-rust": "*"
   }
 }

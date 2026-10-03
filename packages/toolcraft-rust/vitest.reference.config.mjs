@@ -10,6 +10,7 @@ const suites = ["stack-trim", "suggest", "runtime-logging", "redaction", "packag
 const cliSuites = readdirSync(path("../toolcraft/src")).filter(name => name.startsWith("cli") && name.endsWith(".test.ts") && name !== "cli-bundle.test.ts");
 const httpSuites = readdirSync(path("../toolcraft/src")).filter(name => name.startsWith("http") && name.endsWith(".test.ts"));
 const mcpSuites = ["mcp-default-descriptors", "mcp-default-metadata", "mcp-default-requiredness", "mcp-discriminator-metadata", "mcp-modern-output-roots", "mcp-notification-lifecycle", "mcp-output-validation", "mcp-request-cancellation", "mcp-runtime-options", "mcp-scope", "mcp-stream-errors", "mcp-proxy-native-transport", "entrypoints-mcp-proxy"];
+const authStoreSuites = ["auth-store", "provider-store", "keychain-process", "transaction-lock"];
 
 export default defineConfig({
   plugins: [
@@ -17,6 +18,13 @@ export default defineConfig({
       name: "toolcraft-rust-reference",
       enforce: "pre",
       resolveId(name, importer) {
+        if (name === "auth-store-rust" && [path("dist/auth-store.js"), path("tests/auth-store-subpath-parity.test.ts")].includes(importer)) {
+          return path("../auth-store-rust/dist/index.js");
+        }
+        if (authStoreSuites.some(suite => importer === path(`../auth-store/src/${suite}.test.ts`))) {
+          if (["./index.js", "./encrypted-file-store.js", "./keychain-store.js", "./provider-store.js"].includes(name)) return path("dist/auth-store.js");
+          if (name === "./transaction-lock.js") return path("../auth-store-rust/dist/credential-transaction-lock.js");
+        }
         if (httpSuites.some(suite => importer === path(`../toolcraft/src/${suite}`))) {
           if (name === "./http.js") return path("dist/http.js");
           if (name === "./http-hosted-oauth.js") return path("dist/http-hosted-oauth.js");
@@ -119,6 +127,8 @@ export default defineConfig({
       path("tests/core-subpaths-parity.test.ts"),
       path("tests/client-subpath-parity.test.ts"),
       path("tests/agent-defs-subpath-parity.test.ts"),
+      path("tests/auth-store-subpath-parity.test.ts"),
+      ...authStoreSuites.map(suite => path(`../auth-store/src/${suite}.test.ts`)),
       ...cliSuites.map(suite => path(`../toolcraft/src/${suite}`)),
       path("../toolcraft/src/renderer.test.ts"),
       path("../toolcraft/src/design-subpath-exports.test.ts"),

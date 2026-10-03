@@ -32,6 +32,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Public MCP       | `toolcraft-rust/mcp`: server creation, deferred discovery, tool calls and session-owned streams |
 | MCP client       | `toolcraft-rust/tiny-mcp-client`: native clients, HTTP/stdio transports, OAuth discovery and in-memory test pairs with own public types |
 | Agent catalog    | `toolcraft-rust/agent-defs`: native agent metadata, aliases, capabilities, model specifiers and telemetry configuration |
+| Credential stores | `toolcraft-rust/auth-store`: Node encrypted-file and Keychain stores, backend selection and legacy migration |
 | MCP handlers     | Native invocation routing, request services, cancellation, approvals, result projection and error reporting |
 | Stack diagnostics | Native framework-frame summaries, nested cause sections and raw stack preservation |
 | Result rendering | Native rich cards, tables, Markdown/JSON, custom hooks and MCP error routing |
@@ -237,7 +238,7 @@ and cancellation. Public HTTP adds stateful/stateless requests, bearer verificat
 and hosted OAuth with PKCE, credential services and canonical listener paths.
 Other subpaths remain incomplete. Native CLI, MCP and HTTP paths are currently
 slower than JavaScript.
-The `tiny-mcp-client` and `agent-defs` subpaths use own native declarations and support
+The `tiny-mcp-client`, `agent-defs` and Node `auth-store` subpaths use own declarations and support
 standalone type resolution through its installed own packages.
 Other declarations still use the existing schema/design/config/MCP/HTTP contract types;
 complete standalone type packaging and generic stream-factory interchangeability

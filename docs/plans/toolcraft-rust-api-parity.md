@@ -4797,3 +4797,43 @@ tiny-mcp-client-rust and toolcraft-rust, including the root posttest hook. The
 credential package passes 28 native checks; embedded OAuth passes 114 native
 checks and 772 reference cases; the client passes 83 native checks and 445
 reference cases. Maintained Rust/binding lint and scoped JavaScript lint pass.
+
+### Public Node credential-store subpath checkpoint
+
+The toolcraft-rust/auth-store entry point forwards the own auth-store-rust runtime
+and standalone declarations, preserving the original Node namespace and own class
+identities. The existing own workspace becomes an installed dependency; no new
+third-party dependency is introduced. Its missing-entry test failed before the
+export was implemented.
+
+Two new facade cases verify exact exports, provider keys including lone surrogates,
+encrypted-document interoperability, deterministic ciphertext, file permissions and
+deletion using memfs. Four unchanged original Node suites now run through the
+native facade: auth-store, provider-store, keychain-process and transaction-lock.
+The resolver keeps the native implementation inside Vitest's module graph so the
+original crypto and child-process mocks reach the adapters. All 93 focused cases
+pass after the separate cancellation repair. Strict type fixtures check the public
+factories/options, class methods, migration readOnly option and generic lock result,
+including negative backend and secret-value assignments.
+
+The selected maintained build passes. The maintained Toolcraft route passes 6,200
+cases across 125 files, 266 native checks, both compiler routes, the original CLI
+type fixture and root posttest. Maintained Rust/binding lint and scoped JS/TS lint
+pass. Thirteen packed own packages independently verify the Node store facade,
+reference ciphertext, lock results/cleanup, injected Keychain command behavior and
+migration. Strict packed types compile without workspace declaration fallback;
+package ESM imports are confined to packed own packages, Node and existing Commander.
+
+This checkpoint qualifies the Node entry point only. The original credential
+dependency also exports ./portable and browser/workerd/worker conditions with a
+SafeFsSecretStore, whose implementation and original suite are still unported.
+Filesystem bakery-lock ticket/owner policy also remains in the JavaScript adapter.
+Both are required remaining dependency work; neither is waived by Node parity.
+The facade adds no per-call algorithm or performance claim. Standalone types for
+the remaining Toolcraft surfaces, platform distribution, performance and swap
+qualification remain open.
+
+The catalog checkpoint is verified on remote main at 92e0361fe0. Main Release
+37101346847 completed successfully with its build passing and stable publication
+skipped. The catalog Release 37102178832 remains pending; no native publication
+is claimed.

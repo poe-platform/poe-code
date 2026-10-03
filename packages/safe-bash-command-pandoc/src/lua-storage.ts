@@ -12,7 +12,7 @@ function encode(value: StoredLuaValue): Uint8Array {
   const bytes = new Uint8Array(16), view = new DataView(bytes.buffer);
   const tag = value === undefined ? 0 : typeof value === "boolean" ? 1 : typeof value === "number" ? 2 : tags.indexOf(value.kind);
   view.setFloat64(0, tag, true);
-  view.setFloat64(8, value === undefined ? 0 : typeof value === "object" ? value.kind === "integer" ? value.value | 0 : value.id : Number(value), true);
+  view.setFloat64(8, value === undefined ? 0 : typeof value === "object" ? value.kind === "integer" ? value.value : value.id : Number(value), true);
   return bytes;
 }
 function decode(bytes: Uint8Array): StoredLuaValue {

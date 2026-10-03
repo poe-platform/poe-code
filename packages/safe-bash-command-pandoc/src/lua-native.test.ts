@@ -7,6 +7,7 @@ import {LuaStorage} from "./lua-storage.js";
 import {LuaProgram} from "./lua-program.js";
 import {LuaFrames} from "./lua-frames.js";
 import {LuaMachine,type LuaNative,type LuaArguments,type LuaNativeContext} from "./lua-machine.js";
+import {LuaMath} from "./lua-math.js";
 import {LuaBase} from "./lua-base.js";
 import {LuaLexer} from "./lua-lexer.js";
 import {LuaSyntax} from "./lua-syntax.js";
@@ -22,9 +23,10 @@ async function execute(source: string,options: {signal?: AbortSignal; beforeRun?
   try {
     const root=await new LuaParser(lexer,syntax).parse(), prototype=await new LuaCompiler(heap,program,syntax).compile(root);
     const base=new LuaBase(heap), environment=await heap.table(); await base.install(environment);
+    const math=new LuaMath(heap); await math.install(environment);
     if(options.native) await heap.set(environment,await heap.string([new TextEncoder().encode("host")]),await heap.closure(-1000,[]));
     const machine=new LuaMachine(program,new LuaFrames(storage,heap,cooperate),heap,cooperate,(prototype,args,context)=>
-      prototype===-1000 && options.native?options.native(heap,prototype,args,context):base.invoke(prototype,args,context));
+      prototype===-1000 && options.native?options.native(heap,prototype,args,context):prototype<=-200 && prototype>-300?math.invoke(prototype,args,context):base.invoke(prototype,args,context));
     const closure=await heap.closure(prototype,[await heap.cell(environment)]);
     options.beforeRun?.();
     const result=await machine.run(closure,[]), values:unknown[]=[];
@@ -43,6 +45,7 @@ function native(source:string):unknown[] {
   const compiler=runtime as typeof import("fengari"), state=compiler.lauxlib.luaL_newstate(), bytes=new TextEncoder().encode(source);
   try {
     compiler.lauxlib.luaL_requiref(state,new TextEncoder().encode("_G"),compiler.lualib.luaopen_base,true); compiler.lua.lua_pop(state,1);
+    compiler.lauxlib.luaL_requiref(state,new TextEncoder().encode("math"),compiler.lualib.luaopen_math,true); compiler.lua.lua_pop(state,1);
     expect(compiler.lauxlib.luaL_loadbuffer(state,bytes,bytes.length,new TextEncoder().encode("fixture"))).toBe(compiler.lua.LUA_OK);
     expect(compiler.lua.lua_pcall(state,0,-1,0)).toBe(compiler.lua.LUA_OK);
     const internal=state as unknown as {top:number; stack:{type:number; value:unknown}[]};
@@ -135,4 +138,42 @@ it.each(["call","values"])("normalizes cancellation when a native handler return
 it.each(["rawset({},nil,1)","rawset({},0/0,1)","next({},'missing')"])
 ("reports invalid table keys as Lua errors: %s",async source=>{
   await expect(execute(source)).rejects.toMatchObject({code:"E_AST"});
+});
+
+
+it.each([
+  "return math.pi,math.huge,math.mininteger,math.maxinteger",
+  "return math.abs(-7),math.abs(-7.0),math.abs(-2147483648),math.floor(2.7),math.ceil(-2.7),math.floor(1e30)",
+  "return math.sin(1),math.cos(1),math.tan(1),math.asin(.5),math.acos(.5),math.atan(1),math.atan(1,2)",
+  "return math.sqrt(2),math.exp(2),math.log(8,2),math.log(100,10),math.log(7,3),math.log(2),math.deg(1),math.rad(90)",
+  "return math.fmod(-7,3),math.fmod(-7.0,3),math.modf(-3.25)",
+  "return math.modf(math.huge)",
+  "return math.modf(7)",
+  "return math.tointeger('7'),math.tointeger(7.5),math.tointeger(false),math.tointeger(nil),math.type(7),math.type(7.0),math.type('7'),math.ult(-1,0),math.ult(0,-1)",
+  "return math.min(3,2.0,2),math.max(2.0,2,1),math.min('b','a'),math.max('a','b')",
+  "local mt={__lt=function(a,b) return a.x<b.x end}; local a=setmetatable({x=3},mt); local b=setmetatable({x=1},mt); local c=setmetatable({x=5},mt); return math.min(a,b,c).x,math.max(a,b,c).x",
+  "local mt={__lt=function(a,b) return math.min(a.x,b.x)==a.x end}; return math.min(setmetatable({x=3},mt),setmetatable({x=1},mt)).x",
+  "math.randomseed(17); return math.random(),math.random(10),math.random(-10,10)",
+  "math.randomseed(0); return math.random(),math.random(1)",
+  "return math.abs('7'),math.ceil('7.5'),math.tointeger('2147483648')"
+])("preserves retained math library behavior: %s",async source=>{expect(await execute(source)).toEqual(native(source));});
+it.each(["math.min()","math.max()","math.type()","math.tointeger()","math.fmod(1,0)","math.ult(1.5,2)","math.random(0)","math.random(-2147483648,2147483647)","math.random(1,2,3)"])("reports math argument errors: %s",async source=>{await expect(execute(source)).rejects.toMatchObject({code:"E_AST"});});
+
+it.each([
+  "return math.abs(-0.0),math.ceil(-0.25),math.floor(0/0),math.ceil(-math.huge),math.modf(0/0)",
+  "local z=math.ceil(-0.25); local t={[z]=17}; return 1/z,1/math.tointeger(z),1/math.abs(z),t[0],math.type(z)",
+  "return math.fmod(1.0,0),math.fmod(-2147483648,-1),math.tointeger(math.huge),math.tointeger('bad')",
+  "return math.min(0/0,2),math.max(2,0/0),math.max(2,2.0),math.min(2,2.0)",
+  "local mt={__lt=function() return 0 end}; local a=setmetatable({x=1},mt); local b=setmetatable({x=2},mt); return math.min(a,b).x",
+  "math.randomseed(17.75); return math.random(),math.random(-2147483648,-2147483648)"
+])("preserves math numeric and comparator edge behavior: %s",async source=>{expect(await execute(source)).toEqual(native(source));});
+it("cancels a suspended math comparator and cleans up caller storage",async()=>{
+  const controller=new AbortController();
+  await expect(execute("local mt={__lt=function() while true do end end}; return math.min(setmetatable({},mt),setmetatable({},mt))",{
+    signal:controller.signal,beforeRun(){setTimeout(()=>controller.abort(),0);}
+  })).rejects.toMatchObject({code:"E_CANCELLED"});
+});
+it("scans variadic math arguments through backed frames with a single cache page",async()=>{
+  const source=`return math.min(${Array.from({length:180},(_,i)=>180-i).join(",")})`;
+  expect(await execute(source)).toEqual(native(source));
 });

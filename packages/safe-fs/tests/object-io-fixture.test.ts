@@ -32,7 +32,9 @@ function fixture() {
         return (range ? bytes.slice(range.offset, range.offset + range.length) : bytes.slice()).buffer;
       } };
     },
-    async delete(key: string) { objects.delete(key); },
+    async delete(keys: string | string[]) {
+      for (const key of typeof keys === "string" ? [keys] : keys) objects.delete(key);
+    },
     async list({ prefix }: { prefix: string }) {
       return { objects: [...objects.keys()].filter(key => key.startsWith(prefix)).map(key => ({ key })), truncated: false };
     },
@@ -142,4 +144,22 @@ it("instrumentation preserves no-follow descriptor admission", async () => {
       expect(bytes[0]).toBe(42);
     } finally { await descriptor.close(); }
   } finally { await backend.dispose(); }
+});
+
+it("bounds staging retirement batches and injected request latency", async () => {
+  const backend = fixture();
+  const stage = await backend.store.createStaging('/bulk', { chunkBytes: 4, maxFileBytes: 1000 });
+  const remove = backend.bucket.delete.bind(backend.bucket);
+  let simulatedLatencyMs = 0;
+  const deletions = vi.spyOn(backend.bucket, 'delete').mockImplementation(async keys => {
+    simulatedLatencyMs += 7;
+    await remove(keys);
+  });
+  try {
+    for (let index = 0; index < 250; index++) await stage.writePage(index, new Uint8Array(4));
+    await stage.close();
+    expect(deletions).toHaveBeenCalledTimes(3);
+    expect(deletions.mock.calls.map(([keys]) => Array.isArray(keys) ? keys.length : 1)).toEqual([100, 100, 50]);
+    expect(simulatedLatencyMs).toBe(21);
+  } finally { await stage.close(); await backend.dispose(); }
 });

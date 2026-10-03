@@ -152,7 +152,15 @@ export function createR2StagingFixture(bucket, { chunkBytes, delayed, spill }) {
       },
       close() {
         return closing ??= (async () => {
-          for await (const key of keys(stagePrefix)) await bucket.delete(key);
+          let batch = [];
+          for await (const key of keys(stagePrefix)) {
+            batch.push(key);
+            if (batch.length === 100) {
+              await bucket.delete(batch);
+              batch = [];
+            }
+          }
+          if (batch.length) await bucket.delete(batch);
           events.closed++;
         })();
       },

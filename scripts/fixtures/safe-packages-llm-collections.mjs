@@ -42,12 +42,12 @@ export async function verifyLlmCollections() {
     if(count!==1)throw new Error('Legacy codec row missing: '+encoding);
   }
   await globFs.unlink('/legacy');
-  for(const [encoding,bytes,expected]of [['utf-16',[255,254,0,216,0,220],'𐀀'],['utf-16-be',[254,255,0,65],'\ufeffA'],['utf-16-le',[255,254,65,0],'\ufeffA']]){
+  for(const [encoding,bytes,expected]of [['utf-16',[255,254,0,216,0,220],'𐀀'],['utf-16-be',[254,255,0,65],'\ufeffA'],['utf-16-le',[255,254,65,0],'\ufeffA'],['utf32',[255,254,0,0,0,0,1,0],'𐀀'],['utf-32-be',[0,0,254,255,0,0,0,65],'\ufeffA'],['utf_32_le',[255,254,0,0,65,0,0,0],'\ufeffA']]){
     await globFs.writeFile('/utf16',Uint8Array.from(bytes));let count=0;
     await withFileEmbeddingEntries({fs:globFs,directory:'/',signal:new AbortController().signal,encodings:[encoding]},{async *[Symbol.asyncIterator](){yield {path:'/utf16',id:'utf16'};}},async entries=>{
-      for await(const entry of entries){count++;let text='';const decoder=new TextDecoder('utf-8',{ignoreBOM:true});for await(const chunk of entry.input.bytes)text+=decoder.decode(chunk,{stream:true});text+=decoder.decode();if(text!==expected)throw new Error('UTF16 codec changed: '+encoding);}
+      for await(const entry of entries){count++;let text='';const decoder=new TextDecoder('utf-8',{ignoreBOM:true});for await(const chunk of entry.input.bytes)text+=decoder.decode(chunk,{stream:true});text+=decoder.decode();if(text!==expected)throw new Error('Unicode codec changed: '+encoding);}
     });
-    if(count!==1)throw new Error('UTF16 codec row missing: '+encoding);
+    if(count!==1)throw new Error('Unicode codec row missing: '+encoding);
   }
   await globFs.unlink('/utf16');
   await globFs.mkdir('/nested');
@@ -221,6 +221,12 @@ export async function verifyLlmCollections() {
     if(fileImport.exitCode!==0||fileImport.stdout!=='Embedding\n')throw new Error('File CLI import failed: '+fileImport.stderr);
     const fileRows=await cliShell.exec('llm similar files -c query -d /cli.db');
     if(fileRows.exitCode!==0||JSON.parse(fileRows.stdout).content!=='café'||JSON.parse(fileRows.stdout).id!=='a.txt')throw new Error('File CLI stored content changed');
+    await fs.writeFile('/file-inputs/u32.txt',Uint8Array.of(255,254,0,0,0,0,1,0));
+    const unicodeImport=await cliShell.exec('llm embed-multi utf32 --files /file-inputs u32.txt --encoding utf32 --store -m embed -d /cli.db');
+    if(unicodeImport.exitCode!==0||unicodeImport.stdout!=='Embedding\n')throw new Error('UTF32 CLI import failed: '+unicodeImport.stderr);
+    const unicodeRows=await cliShell.exec('llm similar utf32 -c query -d /cli.db');
+    if(unicodeRows.exitCode!==0||JSON.parse(unicodeRows.stdout).content!=='𐀀')throw new Error('UTF32 CLI stored content changed');
+    await fs.unlink('/file-inputs/u32.txt');
     await fs.unlink('/file-inputs/a.txt');await fs.rmdir('/file-inputs');
     for(const [format,input]of [['json','[1]'],['nl','1\n']]){
       await fs.writeFile('/count-input',new TextEncoder().encode(input));

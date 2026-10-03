@@ -81,3 +81,25 @@ test('UTF16 decoding and error categories match pinned Python at every byte spli
   else assert.equal(decode(),row.text,JSON.stringify(row));
  }
 });
+
+test('UTF32 decoding and error categories match pinned Python at every byte split',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const reference=JSON.parse(await readFile(new URL('./fixtures/utf32-python39.json',import.meta.url),'utf8')) as {cases:{encoding:string;hex:string;split:number;text?:string;error?:string}[]};
+ for(const row of reference.cases){
+  const bytes=Uint8Array.from(Buffer.from(row.hex,'hex'));
+  const decode=()=>{const decoder=new PythonTextDecoder(row.encoding);return decoder.decode(bytes.subarray(0,row.split),{stream:true})+decoder.decode(bytes.subarray(row.split));};
+  if(row.error)assert.throws(decode,error=>error instanceof Error&&(row.error==='UnicodeDecodeError'?error instanceof PythonTextDecodeError:error.message==='UTF-32 stream does not start with BOM'&&!(error instanceof PythonTextDecodeError)),JSON.stringify(row));
+  else assert.equal(decode(),row.text,JSON.stringify(row));
+ }
+});
+
+test('UTF32 decoder preserves carry on failure and strips a generic BOM only once',()=>{
+ const decoder=new PythonTextDecoder('utf_32_le');
+ assert.equal(decoder.decode(Uint8Array.of(65),{stream:true}),'');
+ assert.throws(()=>decoder.decode(Uint8Array.of(0,0,216)),PythonTextDecodeError);
+ assert.equal(decoder.decode(Uint8Array.of(0,0,0)),'A');
+ const signature=new PythonTextDecoder('UTF/32');
+ assert.throws(()=>signature.decode(Uint8Array.of(65,0,0,0)),/does not start with BOM/);
+ assert.equal(signature.decode(Uint8Array.of(255,254,0,0)),'');
+ assert.equal(signature.decode(Uint8Array.of(255,254,0,0)),'\ufeff');
+});

@@ -123,3 +123,18 @@ test('UTF16 files preserve split surrogate pairs and distinguish missing BOM fro
   assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['utf16']);
  }
 });
+
+test('UTF32 file imports preserve universal newlines, strict errors and caller storage cleanup',async()=>{
+ const fs=new MemoryFileSystem(),valid=new Uint8Array(4104),view=new DataView(valid.buffer);view.setUint32(0,0xfeff,true);
+ for(let offset=4;offset<4092;offset+=4)view.setUint32(offset,65,true);
+ view.setUint32(4092,13,true);view.setUint32(4096,10,true);view.setUint32(4100,0x10000,true);
+ for(const [encoding,bytes,expected,warned]of [['utf32',valid,'A'.repeat(1022)+'\n𐀀',false],['utf-32',Uint8Array.of(255),null,true],['utf-32',Uint8Array.of(65,0,0,0),null,false],['utf-32-be',Uint8Array.of(0,0,254,255,0,0,0,65),'\ufeffA',false]] as const){
+  await fs.writeFile('/utf32',bytes);const values:string[]=[],warnings:string[]=[];
+  const run=()=>withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,encodings:[encoding],undecodable(path){warnings.push(path);}},{async *[Symbol.asyncIterator](){yield {path:'/utf32',id:'utf32'};}},async entries=>{
+   for await(const entry of entries){let text='';const decoder=new TextDecoder('utf-8',{ignoreBOM:true});for await(const chunk of entry.input.bytes)text+=decoder.decode(chunk,{stream:true});text+=decoder.decode();values.push(text);}
+  });
+  if(expected===null&&!warned)await assert.rejects(run(),/UTF-32 stream does not start with BOM/);else await run();
+  assert.deepEqual(values,expected===null?[]:[expected]);assert.deepEqual(warnings,warned?['/utf32']:[]);
+  assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['utf32']);
+ }
+});

@@ -74,6 +74,8 @@ incomplete, as do exact invalid-JSON diagnostics. Raw surrogate code points reta
 Python string and object-key identity, including nested ID representations and
 encoding failures before embedding content or after embedding invalid IDs.
 Explicit JSON imports accept UTF-8, UTF-16LE/BE and UTF-32LE/BE with or without a BOM.
+For text files, use `--files DIRECTORY GLOB --encoding utf32`. Generic UTF-32
+requires an initial BOM; `utf-32-le` and `utf-32-be` preserve a BOM as text.
 This optional catalog does not store conversation or response history.
 
 To enable collection commands, import `createLlmCollectionCommands` from the same

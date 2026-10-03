@@ -236,3 +236,41 @@ test("closing retained cleanup still allows ordinary owned staging removal", asy
   await fs.removeStagedFile(stage);
   assert.deepEqual(await fs.readdir("/"), []);
 });
+
+test("overlay preserves retained staged writers and publishes their finished revision", async () => {
+  const upper = new MemoryFileSystem(), lower = new MemoryFileSystem();
+  await lower.mkdir("/work");
+  const fs = new OverlayFileSystem({ upper, lower });
+  const parent = await fs.stat("/work");
+  const stage = await fs.createStagedFile("/work/.stream", "file", {type: "file", data: new Uint8Array()}, {parent, retainCleanup: true});
+  try {
+    assert.ok(stage.writer);
+    const chunk = bytes("first");
+    await stage.writer.write(chunk); chunk.fill(0);
+    await stage.writer.write(bytes("second"));
+    const stat = await stage.writer.finish();
+    assert.equal(stat.size, 11);
+    await assert.rejects(stage.writer.write(bytes("late")), {code: "EBADF"});
+    await fs.publishStagedFile({...stage, file: {...stage.file, stat}}, "/work/out", {parent, destination: null});
+    assert.deepEqual(await fs.readFile("/work/out"), bytes("firstsecond"));
+  } finally {await stage.cleanup!.remove();}
+  assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["out"]);
+});
+
+test("overlay staged writes preserve cancellation and lower ancestry guards", async () => {
+  const upper = new MemoryFileSystem(), lower = new MemoryFileSystem();
+  await lower.mkdir("/work");
+  const fs = new OverlayFileSystem({upper, lower});
+  const stage = await fs.createStagedFile("/work/.stream", "file", {type: "file", data: new Uint8Array()}, {parent: await fs.stat("/work"), retainCleanup: true});
+  try {
+    assert.ok(stage.writer);
+    const reason = new Error("cancelled");
+    await assert.rejects(stage.writer.write(bytes("cancelled"), {signal: AbortSignal.abort(reason)}), error => error === reason);
+    assert.equal((await upper.stat(stage.file.path)).size, 0);
+    await lower.rename("/work", "/old");
+    await lower.mkdir("/work");
+    await assert.rejects(stage.writer.write(bytes("foreign")), {code: "EAGAIN"});
+    await assert.rejects(stage.writer.finish(), {code: "EAGAIN"});
+    assert.equal((await upper.stat(stage.file.path)).size, 0);
+  } finally {await stage.cleanup!.remove();}
+});

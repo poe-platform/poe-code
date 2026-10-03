@@ -364,6 +364,20 @@ export class OverlayMemoryPublication {
     const owned = await this.upper.createStagedFile!(directory, name, content, { ...options, parent });
     const staging: FileStaging = Object.freeze({
       parent: owned.parent, directory: owned.directory, file: owned.file,
+      ...(owned.writer ? { writer: Object.freeze({
+        write: async (bytes: Uint8Array, controls: FsOptions = {}) => {
+          controls.signal?.throwIfAborted();
+          this.stores(); guard?.(); this.check(ancestors);
+          await owned.writer!.write(bytes, controls);
+        },
+        finish: async (controls: FsOptions = {}) => {
+          controls.signal?.throwIfAborted();
+          this.stores(); guard?.(); this.check(ancestors);
+          const stat = await owned.writer!.finish(controls);
+          this.stages.set(staging.directory, { ...owned, file: { ...owned.file, stat } });
+          return stat;
+        },
+      }) } : {}),
       ...(owned.cleanup ? { cleanup: createStagingCleanup(directory,
         controls => this.cleanup(staging, controls, true), () => owned.cleanup!.close()) } : {}),
     });

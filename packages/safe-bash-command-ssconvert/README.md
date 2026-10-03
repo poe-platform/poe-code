@@ -71,7 +71,9 @@ compatibility commands. Omitting `formats` from a composable command installs no
 available at `@poe-platform/safe-bash/ssconvert/commands`.
 The compatibility entrypoint also supplies default rendering and clipboard
 capabilities; `/core` requires those capabilities explicitly.
-Repeated and overlapping XML row/column records apply in file order. Zero-size
+Repeated XML row/column sections and overlapping records apply in file order,
+including changes to sheet defaults. Cells retain dimensions allocated before
+a later default change. Zero-size
 records retain prior or default dimensions while applying their other metadata.
 Nonpositive sheet defaults retain built-in dimensions. Clipboard
 exports preserve collapsed flags and outline depth. Gnumeric workbook

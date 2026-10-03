@@ -361,23 +361,49 @@ function axisDefaultSize(node: XmlElement | undefined, fallback: number): number
   const size = number(node, "DefaultSizePts", fallback);
   return size > 0 ? size : fallback;
 }
-function axes(node: XmlElement | undefined, axis: "RowInfo" | "ColInfo", maximum: number, admit: (count: number) => void): AxisMetadata[] {
+function axes(sheet: XmlElement, axis: "RowInfo" | "ColInfo", maximum: number, admit: (count: number) => void): { entries: AxisMetadata[]; defaultSize?: number } {
   const result = new Map<number, AxisMetadata>();
-  for (const item of children(node, axis)) {
-    const start = number(item, "No", -1), count = number(item, "Count", 1);
-    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(count) || start < 0 || count < 1 || count > maximum - start) invalid("invalid axis interval");
-    admit(count);
-    const unit = number(item, "Unit", 0);
-    // Native import updates flags first, rejects nonpositive sizes, then copies
-    // the first axis (including its retained size) across the complete interval.
-    const sizePoints = attribute(item, "Unit") !== undefined && unit > -1 && unit <= 0
-      ? result.get(start)?.sizePoints ?? axisDefaultSize(node, axis === "RowInfo" ? 12.75 : 48)
-      : unit;
-    for (let i = 0; i < count; i++) result.set(start + i, { index: start + i, sizePoints,
-      hidden: number(item, "Hidden", 0) !== 0, collapsed: number(item, "Collapsed", 0) !== 0, outlineLevel: number(item, "OutlineLevel", 0),
-      style: { gnumeric: record(item) } });
+  let defaultSize: number | undefined;
+  const fallback = axis === "RowInfo" ? 12.75 : 48;
+  const implicit = new Set<number>();
+  const container = axis === "RowInfo" ? "Rows" : "Cols";
+  for (const node of sheet.children) {
+    if (!namespaces.has(node.namespace)) continue;
+    if (node.localName === "Cells") {
+      for (const cell of children(node, "Cell")) {
+        const index = number(cell, axis === "RowInfo" ? "Row" : "Col", -1);
+        if (!Number.isSafeInteger(index) || index < 0 || index >= maximum) invalid("invalid cell position");
+        if (!result.has(index)) {
+          admit(1);
+          result.set(index, { index, sizePoints: defaultSize ?? fallback });
+          implicit.add(index);
+        }
+      }
+      continue;
+    }
+    if (node.localName !== container) continue;
+    if (attribute(node, "DefaultSizePts") !== undefined) defaultSize = axisDefaultSize(node, defaultSize ?? fallback);
+    for (const item of children(node, axis)) {
+      const start = number(item, "No", -1), count = number(item, "Count", 1);
+      if (!Number.isSafeInteger(start) || !Number.isSafeInteger(count) || start < 0 || count < 1 || count > maximum - start) invalid("invalid axis interval");
+      admit(count);
+      const unit = number(item, "Unit", 0);
+      // Native import updates flags first, rejects nonpositive sizes, then copies
+      // the first axis (including its retained size) across the complete interval.
+      const sizePoints = attribute(item, "Unit") !== undefined && unit > -1 && unit <= 0
+        ? result.get(start)?.sizePoints ?? defaultSize ?? fallback
+        : unit;
+      for (let i = 0; i < count; i++) {
+        implicit.delete(start + i);
+        result.set(start + i, { index: start + i, sizePoints,
+        hidden: number(item, "Hidden", 0) !== 0, collapsed: number(item, "Collapsed", 0) !== 0, outlineLevel: number(item, "OutlineLevel", 0),
+        style: { gnumeric: record(item) } });
+      }
+    }
   }
-  return [...result.values()].sort((a, b) => a.index - b.index);
+  // Native writers omit allocated axes which still match the final default.
+  for (const index of implicit) if (result.get(index)?.sizePoints === (defaultSize ?? fallback)) result.delete(index);
+  return { entries: [...result.values()].sort((a, b) => a.index - b.index), ...(defaultSize === undefined ? {} : { defaultSize }) };
 }
 
 export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext): Promise<Workbook> {
@@ -490,14 +516,16 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
       const address = `${row}:${column}`, previous = addresses.get(address);
       if (previous === undefined) { addresses.set(address, cells.length); cells.push(cell); } else cells[previous] = cell;
     }
+    const rows = axes(node, "RowInfo", size.rows, admitAxes);
+    const columns = axes(node, "ColInfo", size.columns, admitAxes);
     const visibility = attribute(node, "Visibility")?.toLowerCase();
     sheets.push({ id: `s${i + 1}`, name, size, cells,
       visibility: visibility?.includes("very_hidden") || visibility === "very-hidden" ? "very-hidden" : visibility?.includes("hidden") ? "hidden" : "visible",
-      rows: axes(child(node, "Rows"), "RowInfo", size.rows, admitAxes), columns: axes(child(node, "Cols"), "ColInfo", size.columns, admitAxes),
+      rows: rows.entries, columns: columns.entries,
       merges: children(child(node, "MergedRegions"), "Merge").map(n => range(n.text)), formulaGroups: groups,
       view: { gnumeric: Object.fromEntries(node.attributes.filter(a => !a.namespace && gnumericAttributes.Sheet?.includes(a.localName)).map(a => [a.localName, a.value])), zoom: Number(child(node, "Zoom")?.text ?? 1),
-        ...(attribute(child(node, "Cols"), "DefaultSizePts") === undefined ? {} : { defaultColumnWidth: axisDefaultSize(child(node, "Cols"), 48) }),
-        ...(attribute(child(node, "Rows"), "DefaultSizePts") === undefined ? {} : { defaultRowHeight: axisDefaultSize(child(node, "Rows"), 12.75) }) },
+        ...(columns.defaultSize === undefined ? {} : { defaultColumnWidth: columns.defaultSize }),
+        ...(rows.defaultSize === undefined ? {} : { defaultRowHeight: rows.defaultSize }) },
       unsupportedRecords: node.children.filter(n => namespaces.has(n.namespace) && ["PrintInformation", "Styles", "Cols", "Rows", "Selections", "Objects", "SheetLayout", "Filters", "Solver", "Scenarios"].includes(n.localName)).map(retained) });
   }
   const selected = number(child(root, "UIData"), "SelectedTab", 0);

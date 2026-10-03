@@ -93,8 +93,8 @@ it("keeps byte pages and histogram tables bounded beyond the source cache",async
   try {const actual=await transformStoredImage(stored,storage,operation,new AbortController().signal);expect(Buffer.compare(memory.subarray(actual.position,actual.position+image.data.length),expected.data)).toBe(0);expect(storage.read.mock.calls.length).toBeGreaterThan(32);}
   finally{vi.unstubAllGlobals();}
 });
-it.each([3,257])("yields to timer cancellation while processing window %s",async width=>{
-  const {stored,storage}=fixture(),controller=new AbortController(),reason={width},timer=setTimeout(()=>controller.abort(reason),0);
+it.each([3,257])("yields to task-turn cancellation while processing window %s",async width=>{
+  const {stored,storage}=fixture(),controller=new AbortController(),reason={width},turn=setImmediate(()=>controller.abort(reason));
   try {await expect(transformStoredImage(stored,storage,{...operation,width,height:width},controller.signal)).rejects.toBe(reason);expect(storage.write).not.toHaveBeenCalled();}
-  finally{clearTimeout(timer);}
+  finally{clearImmediate(turn);}
 });

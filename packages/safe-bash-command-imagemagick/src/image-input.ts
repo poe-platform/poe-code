@@ -62,11 +62,13 @@ export async function withImageInputs<T>(input: ImageFileInput, stdinBytes: Uint
         }
         else {
             const absolute = resolvePath(cwd, path);
+            let acquired = false;
             try {
                 const capabilities = await fs.capabilitiesFor?.(absolute, io) ?? fs.capabilities;
                 const fallback = async () => {
                     const buffered = async () => {
                         const bytes = await fs.readFile(absolute, io);
+                        acquired = true;
                         charge(bytes.length);
                         return withImageSource(bytes, fs, signal, inspect);
                     };
@@ -79,6 +81,7 @@ export async function withImageInputs<T>(input: ImageFileInput, stdinBytes: Uint
                         const stream = (async function* () {
                             for await (const chunk of readBytes(fs.readStream!(absolute, { ...io, chunkSize: 16384 }), signal)) {
                                 started = true;
+                                acquired = true;
                                 yield chunk;
                             }
                         })();
@@ -93,6 +96,7 @@ export async function withImageInputs<T>(input: ImageFileInput, stdinBytes: Uint
                             await backing.close();
                             return buffered();
                         }
+                        acquired = true;
                         const result = await inspect(source);
                         failed = false;
                         return result;
@@ -110,7 +114,7 @@ export async function withImageInputs<T>(input: ImageFileInput, stdinBytes: Uint
                 if (capabilities.retainedRead && fs.openReadFile) {
                     let entered = false;
                     try {
-                        result = await withImageSource(absolute, fs, signal, source => { entered = true; charge(source.size); return inspect(source); });
+                        result = await withImageSource(absolute, fs, signal, source => { entered = true; acquired = true; charge(source.size); return inspect(source); });
                     }
                     catch (error) {
                         if (entered || !(error instanceof FsError) || error.code !== "ENOTSUP")
@@ -122,7 +126,7 @@ export async function withImageInputs<T>(input: ImageFileInput, stdinBytes: Uint
                     result = await fallback();
             }
             catch (error) {
-                if (!missing(error))
+                if (acquired || !missing(error))
                     throw error;
             }
         }

@@ -137,3 +137,44 @@ it.each(["unavailable", "refused", "partial"] as const)("preserves streaming cap
     expect(closed).toBe(mode === "unavailable" ? 0 : 1);
     expect(await fs.readdir("/")).toEqual([]);
 });
+for (const route of ["retained", "stream", "buffer"] as const) {
+    it.each(["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM"] as const)(`preserves consumer %s errors after ${route} input acquisition`, async (code) => {
+        const fs = new MemoryFileSystem(), reason = new FsError(code);
+        await fs.writeFile("/input", new Uint8Array([1]));
+        const filesystem = new Proxy(fs, { get(target, key) {
+                if (key === "capabilitiesFor")
+                    return async (path: string) => ({ ...fs.capabilities, ...(path === "/input" ? { retainedRead: route === "retained", streamingRead: route !== "buffer" } : {}) });
+                const value = Reflect.get(target, key, target);
+                return typeof value === "function" ? value.bind(target) : value;
+            } });
+        await expect(withImageInputs({ filesystem, cwd: "/" }, undefined, new AbortController().signal, read => read("input", async () => { throw reason; }))).rejects.toBe(reason);
+        expect((await fs.readdir("/")).map(entry => entry.name)).toEqual(["input"]);
+    });
+}
+it("preserves missing-style errors after a stream has emitted input", async () => {
+    const fs = new MemoryFileSystem(), reason = new FsError("EACCES");
+    const filesystem = new Proxy(fs, { get(target, key) {
+            if (key === "capabilitiesFor")
+                return async () => ({ ...fs.capabilities, retainedRead: false });
+            if (key === "readStream")
+                return async function* () { yield new Uint8Array([1]); throw reason; };
+            const value = Reflect.get(target, key, target);
+            return typeof value === "function" ? value.bind(target) : value;
+        } });
+    await expect(withImageInputs({ filesystem, cwd: "/" }, undefined, new AbortController().signal, read => read("input", async () => 1))).rejects.toBe(reason);
+    expect(await fs.readdir("/")).toEqual([]);
+});
+it("preserves missing-style retained cleanup failures", async () => {
+    const fs = new MemoryFileSystem(), reason = new FsError("ENOENT");
+    await fs.writeFile("/input", new Uint8Array([1]));
+    const filesystem = new Proxy(fs, { get(target, key) {
+            if (key === "openReadFile")
+                return async (...args: Parameters<typeof fs.openReadFile>) => {
+                    const handle = await fs.openReadFile(...args);
+                    return { stat: handle.stat.bind(handle), read: handle.read.bind(handle), async close() { await handle.close(); throw reason; } };
+                };
+            const value = Reflect.get(target, key, target);
+            return typeof value === "function" ? value.bind(target) : value;
+        } });
+    await expect(withImageInputs({ filesystem, cwd: "/" }, undefined, new AbortController().signal, read => read("input", async () => 1))).rejects.toBe(reason);
+});

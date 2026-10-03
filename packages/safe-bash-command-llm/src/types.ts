@@ -3,7 +3,7 @@ import type { LlmService } from "./service.js";
 import type { LlmTemplateLoader } from "./templates.js";
 import type {LlmCollectionCommands} from './collections-command-types.js';
 export type LlmOption = string | number | boolean | null | readonly LlmOption[] | { readonly [key: string]: LlmOption };
-export type LlmCapability = "messages" | "schema" | "embed" | "embed-binary";
+export type LlmCapability = "messages" | "schema" | "embed" | "embed-binary" | "embed-mixed";
 export interface LlmResponseMetadata {
   readonly usage?: Readonly<Record<string, unknown>>;
   readonly metadata?: Readonly<Record<string, unknown>>;
@@ -47,6 +47,8 @@ export interface LlmEmbeddingRequest {
 /** UTF-8 text (or explicitly binary) inputs borrowed until the request settles. */
 export interface LlmEmbeddingSourceRequest extends Omit<LlmEmbeddingRequest, "inputs"> {
   readonly binary?: boolean;
+  /** Per-input kinds, mutually exclusive with binary; requires embed-mixed admission. */
+  readonly inputTypes?: readonly ("text" | "binary")[];
   readonly inputs: readonly LlmInputSource[];
 }
 export interface LlmEmbeddingResponse extends LlmResponseMetadata {

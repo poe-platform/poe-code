@@ -9,18 +9,19 @@ import {createLlmSpool} from './retained-spool.js';
 import {jsonValue} from './json-value.js';
 import {writeEmbeddings,type StoredEmbedding} from './collections-write.js';
 
-export interface LlmCollectionBatchEntry {readonly id:string;readonly input:LlmInputSource;readonly metadata?:Readonly<Record<string,LlmOption>>}
+export interface LlmCollectionBatchEntry {readonly id:string;readonly input:LlmInputSource;readonly binary?:boolean;readonly metadata?:Readonly<Record<string,LlmOption>>}
 export interface LlmCollectionBatchOptions {
  readonly service:LlmService;readonly entries:AsyncIterable<LlmCollectionBatchEntry>;
  readonly directory:string;readonly maxInputBytes:number;readonly batchSize?:number;
  readonly binary?:boolean;readonly store?:boolean;
 }
 type Spool=Awaited<ReturnType<typeof createLlmSpool>>;
-type Staged={id:string;hash:Uint8Array;input:Spool;size:number;metadata:SqliteRecordValue};
+type Staged={binary:boolean;id:string;hash:Uint8Array;input:Spool;size:number;metadata:SqliteRecordValue};
 const hashKey=(bytes:Uint8Array)=>Array.from(bytes,value=>value.toString(16).padStart(2,'0')).join('');
 
 export async function embedCollectionBatch(editor:SqliteFinalizer,options:LlmCollectionBatchOptions & {fs:FileSystem;signal:AbortSignal;collection:LlmCollection;now:()=>Date}):Promise<void>{
  const {signal,service,collection}=options;
+ if(options.binary!==undefined&&typeof options.binary!=='boolean')throw new TypeError('Invalid embedding binary flag');
  if(!service.embedSources)throw new Error('LLM service does not support streamed embeddings');
  if(options.maxInputBytes!==Infinity&&(!Number.isSafeInteger(options.maxInputBytes)||options.maxInputBytes<0))throw new RangeError('Invalid embedding input byte limit');
  const requested=options.batchSize??100,modelSize=service.resolve(collection.model).model.embeddingBatchSize??requested;
@@ -40,7 +41,9 @@ export async function embedCollectionBatch(editor:SqliteFinalizer,options:LlmCol
      try{
       if(typeof entry.id!=='string')throw new TypeError('Embedding ID must be a string');
       const input=await createLlmSpool(options.fs,options.directory,signal,'input');spools.push(input);
-      const decoder=options.binary?undefined:new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});let size=0;
+      if(entry.binary!==undefined&&typeof entry.binary!=='boolean')throw new TypeError('Invalid embedding binary flag');
+      const binary=entry.binary??options.binary??false;
+      const decoder=binary?undefined:new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});let size=0;
       for await(const bytes of sourceBytes(entry.input.bytes,signal)){
        admit(bytes.length);size+=bytes.length;
        for(let offset=0;offset<bytes.length;offset+=16384){const chunk=bytes.subarray(offset,offset+16384);decoder?.decode(chunk,{stream:true});digest.update(chunk);await input.write(chunk);}
@@ -51,7 +54,7 @@ export async function embedCollectionBatch(editor:SqliteFinalizer,options:LlmCol
        for await(const chunk of jsonValue(entry.metadata,signal)){admit(chunk.length);metadataSize+=chunk.length;await retained.write(chunk);}
        metadata={type:'text',size:metadataSize,bytes:{[Symbol.asyncIterator]:()=>retained.replay()[Symbol.asyncIterator]()}};
       }
-      staged.push({id:entry.id,hash:digest.digest(),input,size,metadata});
+      staged.push({binary,id:entry.id,hash:digest.digest(),input,size,metadata});
      }catch(error){entryFailed=true;throw error;}
      finally{digest.destroy();try{await entry.input.dispose();}catch(error){if(!entryFailed)await Promise.reject(error);}}
     }
@@ -74,9 +77,11 @@ export async function embedCollectionBatch(editor:SqliteFinalizer,options:LlmCol
      if(!borrowed)throw new FsError('EBADF',{message:'Embedding source lease is closed'});
      for await(const chunk of entry.input.replay()){if(!borrowed)throw new FsError('EBADF',{message:'Embedding source lease is closed'});yield chunk;}
     }}}));
-    const response=await service.embedSources({model:collection.model,inputs,options:{},signal,...(options.binary===undefined?{}:{binary:options.binary})}).finally(()=>{borrowed=false;});
+    const mixed=filtered.some(entry=>entry.binary!==filtered[0]!.binary);
+    const kinds=mixed?{inputTypes:filtered.map(entry=>entry.binary?'binary' as const:'text' as const)}:{binary:filtered[0]!.binary};
+    const response=await service.embedSources({model:collection.model,inputs,options:{},signal,...kinds}).finally(()=>{borrowed=false;});
     if(response.vectors.length!==filtered.length)throw new TypeError('Invalid embedding response');
-    const records:StoredEmbedding[]=filtered.map((entry,index)=>({id:entry.id,hash:entry.hash,vector:response.vectors[index]!,metadata:entry.metadata,binary:options.binary??false,updated:BigInt(Math.floor(options.now().getTime()/1000)),content:options.store?{type:options.binary?'blob':'text',size:entry.size,bytes:{[Symbol.asyncIterator]:()=>entry.input.replay()[Symbol.asyncIterator]()}}:null}));
+    const records:StoredEmbedding[]=filtered.map((entry,index)=>({id:entry.id,hash:entry.hash,vector:response.vectors[index]!,metadata:entry.metadata,binary:entry.binary,updated:BigInt(Math.floor(options.now().getTime()/1000)),content:options.store?{type:entry.binary?'blob':'text',size:entry.size,bytes:{[Symbol.asyncIterator]:()=>entry.input.replay()[Symbol.asyncIterator]()}}:null}));
     await writeEmbeddings(editor,collection.id,records,signal);
    }catch(error){batchFailed=true;throw error;}
    finally{

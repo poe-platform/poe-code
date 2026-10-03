@@ -112,3 +112,40 @@ test('binary embedding sources require explicit model admission and preserve byt
  await service.embedSources!({model:'binary',inputs:[input],binary:true,options:{},signal:new AbortController().signal});
  assert.equal(calls,1);assert.equal(disposed,2);
 });
+
+ test('mixed embedding batches require explicit admission and preserve one ordered provider call', async () => {
+  let calls=0,disposed=0;
+  const inputs=[source(()=>disposed++),source(()=>disposed++)];
+  const inputTypes=['text','binary'] as const;
+  const service=createLlmService({providers:[{name:'mixed',models:[
+   {id:'legacy',capabilities:['embed','embed-binary']},
+   {id:'mixed',capabilities:['embed','embed-binary','embed-mixed']}
+  ],async *complete(){},async embedSources(request){
+   calls++;assert.deepEqual(request.inputTypes,inputTypes);assert.equal(request.binary,undefined);
+   assert.deepEqual(request.inputs,inputs);return {model:request.model,vectors:[[1],[2]]};
+  }}]});
+  const request={inputs,inputTypes,options:{},signal:new AbortController().signal};
+  await assert.rejects(service.embedSources!({...request,model:'legacy'}),/does not support mixed/);
+  assert.equal(calls,0);
+  await service.embedSources!({...request,model:'mixed'});
+  assert.equal(calls,1);assert.equal(disposed,4);
+ });
+ test('embedding input types reject malformed or ambiguous requests before provider invocation', async () => {
+  let disposed=0;
+  const service=fixture(async()=>{throw Error('unexpected provider');});
+  for(const extra of [{inputTypes:[]},{inputTypes:['other']},{inputTypes:['text'],binary:false}]){
+   await assert.rejects(service.embedSources!({model:'e',inputs:[source(()=>disposed++)],options:{},signal:new AbortController().signal,...extra} as never),/Invalid embedding input types/);
+  }
+  assert.equal(disposed,3);
+ });
+
+test('mixed admission never bypasses binary model or OpenAI transport boundaries', async () => {
+ const {createOpenAiProvider}=await import('./openai.js');
+ let disposed=0;
+ const request={model:'e',inputs:[source(()=>disposed++)],inputTypes:['binary'] as const,options:{},signal:new AbortController().signal};
+ const service=createLlmService({providers:[{name:'mixed-text',models:[{id:'e',capabilities:['embed','embed-mixed']}],async *complete(){},async embedSources(){throw Error('unexpected provider');}}]});
+ await assert.rejects(service.embedSources!(request),/does not support binary/);
+ assert.equal(disposed,1);
+ const provider=createOpenAiProvider({apiKey:'test-only',models:[{id:'e',endpoint:'embeddings'}],transport:async()=>{throw Error('unexpected transport');}});
+ await assert.rejects(provider.embedSources!(request),/do not support binary/);
+});

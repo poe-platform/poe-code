@@ -94,3 +94,22 @@ test('later provider failure rolls back earlier binary batches and disposes thei
  await assert.rejects(withLlmCollections(options,catalog=>catalog.embedMany('docs',{service,entries,directory:'/',maxInputBytes:200000,batchSize:1,binary:true,store:true})),/later provider failure/);
  assert.equal(disposed,2);assert.equal(calls,2);assert.deepEqual(await fs.readFile('/db'),before);assert.deepEqual((await fs.readdir('/')).map(row=>row.name),['db']);
 });
+
+ test('mixed batches preserve empty text and non-UTF8 binary values in one call and SQLite storage',async()=>{
+  const {transactSqlite,withSqliteStatement}=await import('safe-bash-sqlite-engine/storage');
+  const fs=new MemoryFileSystem(),signal=new AbortController().signal;
+  const options={fs,path:'/db',signal,maxFileBytes:1048576,maxIndexBytes:1048576,maxOpenFiles:8,now:()=>new Date(0)};
+  let calls=0,disposed=0;
+  const service=createLlmService({providers:[{name:'test',models:[{id:'e',capabilities:['embed','embed-binary','embed-mixed']}],async *complete(){},async embedSources(request){
+   calls++;assert.deepEqual(request.inputTypes,['text','binary']);assert.equal(request.binary,undefined);
+   const values=[];for(const input of request.inputs){const bytes=[];for await(const chunk of input.bytes)bytes.push(...chunk);values.push(bytes);}
+   assert.deepEqual(values,[[],[255,0]]);return {model:'e',vectors:[[1],[2]]};
+  }}]});
+  const entries={async *[Symbol.asyncIterator](){for(const binary of [false,true])yield {id:binary?'binary':'text',binary,input:{bytes:{async *[Symbol.asyncIterator](){yield binary?Uint8Array.of(255,0):new Uint8Array();}},async dispose(){disposed++;}}};}};
+  await withLlmCollections(options,async catalog=>{await catalog.collection('docs',{model:'e'});await catalog.embedMany('docs',{service,entries,directory:'/',maxInputBytes:100,binary:true,store:true});});
+  assert.equal(calls,1);assert.equal(disposed,2);
+  await transactSqlite(options,async session=>withSqliteStatement(session.module,{...session,signal,sql:'SELECT id,typeof(content),typeof(content_blob),hex(content_blob) FROM embeddings ORDER BY id'},async query=>{
+   const rows=[];for await(const row of query.rows([], ['text','text','text','text']))rows.push(row);assert.deepEqual(rows,[['binary','null','blob','FF00'],['text','text','null','']]);
+  }));
+  assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['db']);
+ });

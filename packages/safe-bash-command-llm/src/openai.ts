@@ -161,7 +161,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
     byId.set(model.id, model);
   }
   async function embed(request: LlmEmbeddingRequest | LlmEmbeddingSourceRequest): Promise<LlmEmbeddingResponse> {
-    if ("binary" in request && request.binary) throw new TypeError("OpenAI embeddings do not support binary inputs");
+    if (("binary" in request && request.binary) || ("inputTypes" in request && request.inputTypes?.includes("binary"))) throw new TypeError("OpenAI embeddings do not support binary inputs");
     request.signal.throwIfAborted();
     const model = byId.get(request.model);
     if (!model || model.endpoint !== "embeddings") throw new Error(`Model ${request.model} does not support embeddings`);

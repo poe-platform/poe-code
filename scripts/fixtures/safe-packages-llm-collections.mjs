@@ -67,6 +67,26 @@ export async function verifyLlmCollections() {
     await catalog.list(() => { throw new Error("Deleted collection survived"); });
   });
   if ((await fs.readdir("/")).length !== 1) throw new Error("Collection scratch files leaked");
+  let mixedCalls=0;
+  const mixedService=createLlmService({providers:[{name:'mixed',models:[{id:'mixed',capabilities:['embed','embed-binary','embed-mixed']}],async *complete(){},async embedSources(request){
+    mixedCalls++;if(JSON.stringify(request.inputTypes)!=='["text","binary"]'||request.binary!==undefined)throw new Error('Mixed input kinds lost');
+    const values=[];for(const input of request.inputs){const bytes=[];for await(const chunk of input.bytes)bytes.push(...chunk);values.push(bytes);}
+    if(JSON.stringify(values)!=='[[],[255,0]]')throw new Error('Mixed payload changed');
+    return {model:'mixed',vectors:[[1],[2]]};
+  }}]});
+  await withLlmCollections(options,async catalog=>{
+    await catalog.collection('mixed',{model:'mixed'});
+    await catalog.embedMany('mixed',{service:mixedService,directory:'/',maxInputBytes:100,store:true,binary:true,entries:{async *[Symbol.asyncIterator](){
+      for(const binary of [false,true])yield {id:binary?'binary':'text',binary,input:{bytes:{async *[Symbol.asyncIterator](){yield binary?Uint8Array.of(255,0):new Uint8Array();}},async dispose(){}}};
+    }}});
+  });
+  if(mixedCalls!==1)throw new Error('Mixed batch split across calls');
+  const mixedShell=new Shell({fs}).use(sqlite3Commands());
+  try{
+  const mixedRows=await mixedShell.exec(`sqlite3 /embeddings.db "SELECT id,typeof(content),typeof(content_blob),hex(content_blob) FROM embeddings ORDER BY id"`);
+  if(mixedRows.exitCode!==0||mixedRows.stdout!=='binary|null|blob|FF00\ntext|text|null|\n')throw new Error('Mixed SQLite types changed: '+JSON.stringify(mixedRows));
+  }finally{await mixedShell.dispose();}
+  await withLlmCollections(options,catalog=>catalog.delete('mixed'));
   let calls=0;
   const service=createLlmService({providers:[{name:'fixture',models:[{id:'embed',capabilities:['embed']}],async *complete(){},async embedSources(request){
     calls++;for(const input of request.inputs)for await(const chunk of input.bytes)if(chunk.length>16384)throw new Error('Unbounded embedding chunk');

@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it, vi } from "vitest";
 import * as api from "../../src/sdk.js";
 import { saveFixture } from "../../../safe-bash-docx-engine/tests/fixtures/save-output.js";
@@ -36,9 +37,13 @@ it.each([true, false])("retains admitted alias protection in CLI publication wit
   env.volume.writeFileSync("/work/input", original);
   env.volume.linkSync("/work/input", "/work/alias");
   const capabilities = vi.mocked(env.fs.capabilitiesFor!).getMockImplementation()!;
-  vi.mocked(env.fs.capabilitiesFor!).mockImplementationOnce(async (...args) => {
-    env.volume.unlinkSync("/work/input");
-    env.volume.writeFileSync("/work/input", "replacement during destination admission");
+  let replaced = false;
+  vi.mocked(env.fs.capabilitiesFor!).mockImplementation(async (...args) => {
+    if (args[0] === "/work/alias" && !replaced) {
+      replaced = true;
+      env.volume.unlinkSync("/work/input");
+      env.volume.writeFileSync("/work/input", "replacement during destination admission");
+    }
     return capabilities(...args);
   });
   let stdout = "", stderr = "";
@@ -47,13 +52,15 @@ it.each([true, false])("retains admitted alias protection in CLI publication wit
   const result = await api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["batch", "/work/input", "--ops-json", JSON.stringify(batch), "--output", "/work/alias", "--force", "--json", ...(dryRun ? ["--dry-run"] : [])].map(s => new TextEncoder().encode(s)),
     cwd: "/work", signal: textContext.signal,
-    filesystem: { ...env.fs, async readFile(path) { return env.bytes(path); }, async realpath(path) { return String(env.volume.realpathSync(path)); } },
+    filesystem: streamingFixture({ ...env.fs, async readFile(path) { return env.bytes(path); }, async realpath(path) { return String(env.volume.realpathSync(path)); } }),
     stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
     stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
   });
   expect(result.exitCode, stderr).toBe(1);
   expect(JSON.parse(stdout)).toMatchObject({ ok: false, affected: 0, errors: [{ code: "conflict" }] });
+  expect(replaced).toBe(true);
+  expect(env.volume.readFileSync("/work/input", "utf8")).toBe("replacement during destination admission");
   expect(env.bytes("/work/alias")).toEqual(original);
   expect(env.fs.createStagedFile).not.toHaveBeenCalled();
 });

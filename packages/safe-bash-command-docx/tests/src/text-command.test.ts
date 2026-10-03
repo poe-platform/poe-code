@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { createDocxInspectionCommandEngine, extractDocumentText, getDocxDiscovery, parseDocxArguments } from "../../src/sdk.js";
@@ -12,7 +13,7 @@ it("uses the extraction SDK for text aliases, JSON and scoped memfs reads", asyn
     let stdout = "";
     let stderr = "";
     const result = await engine.execute({ args: args.map(x => new TextEncoder().encode(x)), cwd: "/work", signal: textContext.signal,
-      filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+      filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
       stdin: { async *[Symbol.asyncIterator]() { throw new Error("unexpected stdin"); yield new Uint8Array(); } },
       stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
     });
@@ -39,7 +40,7 @@ it("reports invalid text views as JSON regardless of flag order without acquirin
     let stdout = "";
     const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
       args: args.map(x => new TextEncoder().encode(x)), cwd: "/", signal: textContext.signal,
-      filesystem: { async readFile() { throw new Error("unexpected input read"); } },
+      filesystem: streamingFixture({ async readFile() { throw new Error("unexpected input read"); } }),
       stdin: { async *[Symbol.asyncIterator]() { throw new Error("unexpected stdin"); yield new Uint8Array(); } },
       stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} }
     });
@@ -59,7 +60,7 @@ it("executes preserving replacements through the CLI and publishes support", asy
   ] as const) {
     let stdout = "";
     const result = await engine.execute({ args: ["text", "replace", "report.docx", "--find", "coast", "--with", "shore", ...flags, "--dry-run", "--json"].map(x => new TextEncoder().encode(x)),
-      cwd: "/work", signal: textContext.signal, filesystem: { async readFile() { return bytes; } },
+      cwd: "/work", signal: textContext.signal, filesystem: streamingFixture({ async readFile() { return bytes; } }),
       stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} }
     });
@@ -75,7 +76,7 @@ it("uses singular wording for one replaced match", async () => {
   const bytes = await textFixture(paragraph("coast"));
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["text", "replace", "input", "--find", "coast", "--with", "shore", "--first", "--dry-run"].map(x => new TextEncoder().encode(x)),
-    cwd: "/", signal: textContext.signal, filesystem: { async readFile() { return bytes; } },
+    cwd: "/", signal: textContext.signal, filesystem: streamingFixture({ async readFile() { return bytes; } }),
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} }
   });
   expect(result.exitCode).toBe(0);

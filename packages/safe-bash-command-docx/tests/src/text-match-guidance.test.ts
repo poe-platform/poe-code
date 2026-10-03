@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { paragraph, textContext, textFixture } from "../../../safe-bash-docx-engine/tests/fixtures/text.js";
@@ -12,7 +13,7 @@ it.each([false, true])("guides unmatched literal replacement without leaking tex
     args: args.map((value) => new TextEncoder().encode(value)),
     cwd: "/",
     signal: textContext.signal,
-    filesystem: { async readFile() { throw new Error("Unexpected filesystem read"); } },
+    filesystem: streamingFixture({ async readFile() { throw new Error("Unexpected filesystem read"); } }),
     stdin: { async *[Symbol.asyncIterator]() { yield new Uint8Array(fs.readFileSync("/input") as Buffer); } },
     stdout: { async write(bytes) { fs.appendFileSync("/out", bytes); } },
     stderr: { async write(bytes) { fs.appendFileSync("/err", bytes); } }

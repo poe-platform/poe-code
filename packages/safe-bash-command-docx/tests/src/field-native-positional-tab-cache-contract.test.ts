@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import {expect,it} from "vitest";
 import {Volume} from "memfs";
 import * as api from "../../src/sdk.js";
@@ -13,7 +14,7 @@ it(`native positional-tab field caches retain logical tabs and interior XML triv
  const input=await textFixture(`<w:p ${attrs}><!--owner--><?p keep?>${field}</w:p>`,{},strict),v=Volume.fromJSON({'/input':Buffer.from(input),'/out':'','/err':''}),stdout={async write(b:Uint8Array){v.appendFileSync('/out',b);}};
  const literal='\t';expect((await api.inspectDocumentFields(input,{},textContext)).items[0]).toMatchObject({result:literal+'Sea é 海'+literal,instruction:' REF Coast ',update:false,locked:true});
  if(route==='sdk')await api.editDocumentFields(input,{operation:'fields.set',options:{field:1,result:'New é 海',output:'-'}},{...textContext,encoding:{order:'input',compression:'store'},stdout});
- else{const r=await api.createDocxInspectionCommandEngine({limits:textContext.limits}).execute({args:['fields','set','/input','--field','1','--result','New é 海','--output','-'].map(s=>new TextEncoder().encode(s)),cwd:'/',signal:textContext.signal,filesystem:{async readFile(p){return new Uint8Array(v.readFileSync(p) as Buffer);}},stdin:{async *[Symbol.asyncIterator](){}},stdout,stderr:{async write(b){v.appendFileSync('/err',b);}}});expect(r.exitCode,v.readFileSync('/err','utf8') as string).toBe(0);}
+ else{const r=await api.createDocxInspectionCommandEngine({limits:textContext.limits}).execute({args:['fields','set','/input','--field','1','--result','New é 海','--output','-'].map(s=>new TextEncoder().encode(s)),cwd:'/',signal:textContext.signal,filesystem:streamingFixture({async readFile(p){return new Uint8Array(v.readFileSync(p) as Buffer);}}),stdin:{async *[Symbol.asyncIterator](){}},stdout,stderr:{async write(b){v.appendFileSync('/err',b);}}});expect(r.exitCode,v.readFileSync('/err','utf8') as string).toBe(0);}
  const output=new Uint8Array(v.readFileSync('/out') as Buffer),before=readPackage(input),after=readPackage(output);for(const[p,b]of before)if(p!=='word/document.xml')expect(after.get(p),p).toEqual(b);
  const xml=new TextDecoder().decode(after.get('word/document.xml'));expect(xml).toContain(trivia);expect(xml).toContain(last);expect(xml).toContain('<!--owner--><?p keep?>');expect(xml).toContain('<w:b/><w:rtl/>');expect(xml.split(inert).length).toBe(new TextDecoder().decode(before.get('word/document.xml')).split(inert).length);
  expect((await api.inspectDocumentFields(output,{},textContext)).items[0]).toMatchObject({instruction:' REF Coast ',result:'New é 海',update:false,locked:true});expect((await api.extractDocumentText(output,textContext)).text).toBe('New é 海');expect(v.readFileSync('/input')).toEqual(Buffer.from(input));

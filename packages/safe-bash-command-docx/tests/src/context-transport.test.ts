@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, expectTypeOf, it, vi } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -359,11 +360,11 @@ it("maps model template selection to SDK creation and the direct CLI template fl
       ),
       cwd: "/",
       signal: textContext.signal,
-      filesystem: {
+      filesystem: streamingFixture({
         async readFile(path) {
           return new Uint8Array(volume.readFileSync(path) as Buffer);
         }
-      },
+      }),
       stdin: {
         [Symbol.asyncIterator]() {
           throw new Error("Undeclared stdin");

@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as docx from "../../src/sdk.js";
@@ -6,7 +7,7 @@ import { paragraph, run, table, textContext, textFixture } from "../../../safe-b
 async function command(bytes: Uint8Array, args: string[]) {
   const volume = Volume.fromJSON({ "/work/input.docx": Buffer.from(bytes), "/stdout": "" });
   const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: args.map(a => new TextEncoder().encode(a)), cwd: "/work", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+    filesystem: { readStream(path) { return streamVolume(volume, path); }, async readFile() { throw new Error("Unexpected whole-file read"); } }, stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { volume.appendFileSync("/stdout", bytes); } }, stderr: { async write() {} } });
   expect(volume.readFileSync("/work/input.docx")).toEqual(Buffer.from(bytes));
   return { ...result, stdout: new Uint8Array(volume.readFileSync("/stdout") as Buffer) };

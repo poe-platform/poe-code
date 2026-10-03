@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -17,7 +18,7 @@ it(`note integer XML whitespace and explicit sign are read and preserved; ${kind
   const volume = Volume.fromJSON({"/input": Buffer.from(input), "/out": "", "/err": ""});
   const cli = async (args: string[]) => api.createDocxInspectionCommandEngine({limits: textContext.limits}).execute({
     args: args.map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal,
-    filesystem: {async readFile(path) {return new Uint8Array(volume.readFileSync(path) as Buffer);}}, stdin: {async *[Symbol.asyncIterator]() {}},
+    filesystem: streamingFixture({async readFile(path) {return new Uint8Array(volume.readFileSync(path) as Buffer);}}), stdin: {async *[Symbol.asyncIterator]() {}},
     stdout: {async write(bytes) {volume.appendFileSync("/out", bytes);}}, stderr: {async write(bytes) {volume.appendFileSync("/err", bytes);}}
   });
   if (route === "sdk") {

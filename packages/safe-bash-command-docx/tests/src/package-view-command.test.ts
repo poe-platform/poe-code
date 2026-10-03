@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Ajv } from "ajv";
@@ -43,7 +44,7 @@ it("exposes the package/part/relationship surface and correct typed results thro
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["batch", "/input", "--ops-json", JSON.stringify({ version: 1, operations }), "--dry-run", "--timestamp", "2026-09-15T00:00:00Z", "--json"].map(arg => new TextEncoder().encode(arg)),
     cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { volume.appendFileSync("/stdout", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/stderr", bytes); } }
   });
   expect(result.exitCode, volume.readFileSync("/stdout", "utf8") as string).toBe(0);

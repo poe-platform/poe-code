@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { createDocxInspectionCommandEngine } from "../../src/inspection-command.js";
@@ -16,7 +17,7 @@ async function execute(flags: string[]) {
   let stderr = "";
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["batch", "input.docx", "--ops-json", JSON.stringify(batch), ...flags].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
   });
   expect(volume.readFileSync("/input.docx")).toEqual(Buffer.from(input));
@@ -47,13 +48,14 @@ it("binds only the command VFS capability for immutable image batches without pu
 });
 it("refuses image paths without bounded stream acquisition before calling readFile", async () => {
   const input = await textFixture(paragraph("Harbor"));
-  let imageReads = 0;
+  let imageReads = 0, output = "";
   const operations = [{ operation: "model.image.image.Image.from_file.call", arguments: { imageDescriptor: { path: "/large.png", capability: "command" } } }];
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
-    args: ["batch", "input.docx", "--ops-json", JSON.stringify({ version: 1, operations }), "--json", "--limit", "embeddedMediaBytes=1"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { if (path === "/input.docx") return input; imageReads++; return rasterPng(); } },
-    stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} }, stderr: { async write() {} }
+    args: ["batch", "-", "--ops-json", JSON.stringify({ version: 1, operations }), "--json", "--limit", "embeddedMediaBytes=1"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal,
+    filesystem: { async readFile() { imageReads++; return rasterPng(); } },
+    stdin: { async *[Symbol.asyncIterator]() { yield input; } }, stdout: { async write(bytes) { output += new TextDecoder().decode(bytes); } }, stderr: { async write() {} }
   });
   expect(result.exitCode).not.toBe(0);
+  expect(JSON.parse(output)).toMatchObject({ ok: false, errors: [{ code: "unsupported-profile" }] });
   expect(imageReads).toBe(0);
 });

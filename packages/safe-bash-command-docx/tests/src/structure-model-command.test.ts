@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { applyStyleModelBatch } from "../../../safe-bash-docx-engine/src/style-model-batch.js";
@@ -56,11 +57,11 @@ it("shares batch CLI schemas, JSON, dry-run effects and binary publication with 
       ].map((s) => new TextEncoder().encode(s)),
       cwd: "/",
       signal: textContext.signal,
-      filesystem: {
+      filesystem: streamingFixture({
         async readFile(path) {
           return new Uint8Array(volume.readFileSync(path) as Buffer);
         }
-      },
+      }),
       stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: {
         async write(bytes) {
@@ -125,11 +126,11 @@ it("uses the explicit CLI model timestamp for created comment bodies", async () 
     ].map((s) => new TextEncoder().encode(s)),
     cwd: "/",
     signal: textContext.signal,
-    filesystem: {
+    filesystem: streamingFixture({
       async readFile(path) {
         return new Uint8Array(volume.readFileSync(path) as Buffer);
       }
-    },
+    }),
     stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: {
       async write(bytes) {

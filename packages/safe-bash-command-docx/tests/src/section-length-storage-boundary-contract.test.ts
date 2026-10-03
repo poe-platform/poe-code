@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -27,7 +28,7 @@ it(`stored section length has exact safe EMU boundary ${value}; ${kind}; strict=
       volume.writeFileSync("/out", "");
       const result = await api.createDocxInspectionCommandEngine({limits: textContext.limits}).execute({
         args: args.map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal,
-        filesystem: {async readFile(path) {return new Uint8Array(volume.readFileSync(path) as Buffer);}}, stdin: {async *[Symbol.asyncIterator]() {}},
+        filesystem: streamingFixture({async readFile(path) {return new Uint8Array(volume.readFileSync(path) as Buffer);}}), stdin: {async *[Symbol.asyncIterator]() {}},
         stdout: {async write(bytes) {volume.appendFileSync("/out", bytes);}}, stderr: {async write(bytes) {volume.appendFileSync("/err", bytes);}}
       });
       expect(result.exitCode).toBe(1);

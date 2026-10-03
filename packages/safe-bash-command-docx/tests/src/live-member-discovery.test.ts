@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { beforeAll, expect, it } from "vitest";
 import { Volume } from "memfs";
 import {
@@ -94,11 +95,11 @@ async function execute(args: string[]) {
     ),
     cwd: "/",
     signal: context.signal,
-    filesystem: {
+    filesystem: streamingFixture({
       async readFile(path) {
         return new Uint8Array(volume.readFileSync(path) as Buffer);
       }
-    },
+    }),
     stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: {
       async write(bytes) {
@@ -238,12 +239,12 @@ it("rejects undeclared calls, extra arguments and forged receiver fields before 
       ].map((word) => new TextEncoder().encode(word)),
       cwd: "/",
       signal: context.signal,
-      filesystem: {
+      filesystem: streamingFixture({
         async readFile() {
           reads++;
           throw new Error("Input must not be acquired.");
         }
-      },
+      }),
       stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: { async write() {} },
       stderr: { async write() {} }

@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { createHash } from "node:crypto";
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
@@ -40,7 +41,7 @@ for (const strict of [false, true]) for (const variant of variants) for (const r
     else {
       const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
         args: ["inspect", "/input", "--json"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-        filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+        filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
         stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } },
         stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
       });

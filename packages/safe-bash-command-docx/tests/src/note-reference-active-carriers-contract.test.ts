@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -25,7 +26,7 @@ it(`active ${kind} reference ${carrier} retains run owner during ${action}; stri
   else {
     const result = await api.createDocxInspectionCommandEngine({limits: textContext.limits}).execute({
       args: ["notes", action === "set" ? "set" : action === "renumber" ? "add" : "remove", "/input", "--kind", kind, ...(action === "renumber" ? ["--paragraph", "1"] : ["--note", "1"]), "--output", "-", ...(action === "set" ? ["--text", "New Sea"] : action === "renumber" ? ["--renumber", "document-order", "--text", "Added Sea"] : [])].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal,
-      filesystem: {async readFile(path) {return new Uint8Array(volume.readFileSync(path) as Buffer);}}, stdin: {async *[Symbol.asyncIterator]() {}}, stdout: {async write(bytes) {volume.appendFileSync("/out", bytes);}}, stderr: {async write(bytes) {volume.appendFileSync("/err", bytes);}}
+      filesystem: streamingFixture({async readFile(path) {return new Uint8Array(volume.readFileSync(path) as Buffer);}}), stdin: {async *[Symbol.asyncIterator]() {}}, stdout: {async write(bytes) {volume.appendFileSync("/out", bytes);}}, stderr: {async write(bytes) {volume.appendFileSync("/err", bytes);}}
     }); expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
   }
   const output = new Uint8Array(volume.readFileSync("/out") as Buffer), afterData = await api.inspectDocumentNotes(output, {operation: "notes.list", options: {kind}}, textContext);

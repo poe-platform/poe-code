@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { createDocxInspectionCommandEngine, getDocxDiscovery, parseDocxArguments, getDocumentXml } from "../../src/sdk.js";
@@ -9,7 +10,7 @@ async function run(args: string[], replacement = `<w:document xmlns:w="${w}"><w:
   let reads = 0;
   const result = await createDocxInspectionCommandEngine({ limits: context.limits }).execute({
     args: args.map(arg => new TextEncoder().encode(arg)), cwd: "/", signal: context.signal,
-    filesystem: { async readFile(path) { reads++; return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    filesystem: streamingFixture({ async readFile(path) { reads++; return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
     stdin: { async *[Symbol.asyncIterator]() { yield new TextEncoder().encode(replacement); } },
     stdout: { async write(bytes) { volume.appendFileSync("/stdout", bytes); } },
     stderr: { async write(bytes) { volume.appendFileSync("/stderr", bytes); } }
@@ -68,7 +69,7 @@ it("reports possible partial binary stdout when replacement publication fails", 
   const volume = Volume.fromJSON({ "/input": Buffer.from(await textFixture(paragraph("Original coast"))), "/replacement": `<w:document xmlns:w="${w}"><w:body>${paragraph("Revised coast")}</w:body></w:document>`, "/stdout": "", "/stderr": "" });
   const result = await createDocxInspectionCommandEngine({ limits: context.limits }).execute({
     args: ["xml", "set", "/input", "--part", "/word/document.xml", "--file", "/replacement", "--output", "-"].map(arg => new TextEncoder().encode(arg)), cwd: "/", signal: context.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
     stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { volume.appendFileSync("/stdout", bytes.subarray(0, 4)); throw new Error("output unavailable"); } },
     stderr: { async write(bytes) { volume.appendFileSync("/stderr", bytes); } }

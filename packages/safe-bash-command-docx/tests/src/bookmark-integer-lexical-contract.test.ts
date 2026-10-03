@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -19,7 +20,7 @@ it(`bookmark XML integer identity remains scoped across references; strict=${str
     else await api.editDocumentBookmarks(input, { operation: "bookmarks.remove", options: { bookmark: 1, references: "remove", output: "-" } }, { ...textContext, encoding: { order: "input", compression: "store" }, stdout });
   } else {
     const args = ["bookmarks", action === "rename" ? "set" : "remove", "/input", "--bookmark", "1", "--references", action === "rename" ? "update" : "remove", ...(action === "rename" ? ["--name", "Estuary"] : []), "--output", "-"];
-    const result = await api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: args.map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
+    const result = await api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: args.map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: { readStream(path) { return streamVolume(volume, path); }, async readFile() { throw new Error("Unexpected whole-file read"); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
     expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
   }
   const output = new Uint8Array(volume.readFileSync("/out") as Buffer), current = await api.inspectDocumentBookmarks(output, {}, textContext);

@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as docx from "../../src/sdk.js";
@@ -7,7 +8,7 @@ async function command(bytes: Uint8Array, args: string[]) {
   const volume = Volume.fromJSON({ "/work/input.docx": Buffer.from(bytes), "/stdout": "" });
   let stderr = "";
   const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: args.map(a => new TextEncoder().encode(a)), cwd: "/work", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+    filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { volume.appendFileSync("/stdout", bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
   expect(volume.readFileSync("/work/input.docx")).toEqual(Buffer.from(bytes));
   return { ...result, stderr, stdout: new Uint8Array(volume.readFileSync("/stdout") as Buffer) };
@@ -55,7 +56,7 @@ it("keeps internal anchor strings in declared batch types and validation", () =>
 it.each(["https:coast.invalid", "https://coast.invalid/map\u00a0inset", "https://coast.invalid/map\u0085inset"])("rejects malformed URLs before input reads and emits common usage status: %j", async target => {
   let reads = 0, stdout = "";
   const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["links", "add", "input.docx", "--paragraph", "1", "--text", "Coast", "--target", target, "--dry-run", "--json"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile() { reads++; throw new Error("Unexpected read"); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
+    filesystem: streamingFixture({ async readFile() { reads++; throw new Error("Unexpected read"); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
   expect(result.exitCode).toBe(2);
   expect(reads).toBe(0);
   expect(JSON.parse(stdout)).toMatchObject({ ok: false, affected: 0, errors: [{ code: "usage" }] });

@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { createDocxInspectionCommandEngine, editDocumentFields, inspectDocumentFields, readArchive } from "../../src/sdk.js";
@@ -11,7 +12,7 @@ for (const route of ["sdk", "cli"] as const) it.each(["direct", "choice", "fallb
   const input = await textFixture(`<w:p xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:f="urn:original:future" mc:Ignorable="f" mc:ProcessContent="f:pass"><!--retain--><?original flag?>${level === "field" ? wrap(field) : field}</w:p>`, {}, strict), volume = Volume.fromJSON({ "/input": Buffer.from(input), "/out": "", "/err": "" }), stdout = { async write(bytes: Uint8Array) { volume.appendFileSync("/out", bytes); } };
   if (route === "sdk") await editDocumentFields(input, { operation: "fields.set", options: { field: 1, update: true, output: "-" } }, { ...textContext, encoding: { order: "input", compression: "store" }, stdout });
   else {
-    const r = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["fields", "set", "/input", "--field", "1", "--update", "true", "--output", "-"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
+    const r = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["fields", "set", "/input", "--field", "1", "--update", "true", "--output", "-"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
     expect(r.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
   }
   const output = new Uint8Array(volume.readFileSync("/out") as Buffer), before = await readArchive(input, textContext), after = await readArchive(output, textContext);

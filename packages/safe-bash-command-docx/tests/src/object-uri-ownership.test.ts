@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
 import { DocumentXmlEditor, createDocxInspectionCommandEngine, readArchive, sanitizeDocument, writeArchive } from "../../src/sdk.js";
@@ -37,7 +38,7 @@ for (const strict of [false, true]) for (const otherOwner of [false, true]) for 
     if (strict) await expect(result).rejects.toMatchObject({ code: "invalid-package" });
     else expect((await result).changed).toBe(true);
   } else {
-    const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["sanitize", "/input", "--remove", "objects", "--output", "-"].map(encode), cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
+    const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["sanitize", "/input", "--remove", "objects", "--output", "-"].map(encode), cwd: "/", signal: textContext.signal, filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
     if (strict) { expect(result.exitCode).not.toBe(0); expect(volume.readFileSync("/err", "utf8")).toContain("invalid-package"); }
     else expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
   }

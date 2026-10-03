@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -28,7 +29,7 @@ it(`active link ${action} retains paragraph owner and carriers; ${kind}; strict=
   else {
     const result = await api.createDocxInspectionCommandEngine({limits: textContext.limits}).execute({
       args: ["links", action === "set" ? "set" : "remove", "/input", "--link", "1", "--output", "-", ...(action === "set" ? ["--bookmark", "Arrival"] : action === "delete" ? ["--delete-content"] : [])].map(s => new TextEncoder().encode(s)),
-      cwd: "/", signal: textContext.signal, filesystem: {async readFile(path) {return new Uint8Array(volume.readFileSync(path) as Buffer);}}, stdin: {async *[Symbol.asyncIterator]() {}}, stdout: sink, stderr: {async write(bytes) {volume.appendFileSync("/err", bytes);}}
+      cwd: "/", signal: textContext.signal, filesystem: streamingFixture({async readFile(path) {return new Uint8Array(volume.readFileSync(path) as Buffer);}}), stdin: {async *[Symbol.asyncIterator]() {}}, stdout: sink, stderr: {async write(bytes) {volume.appendFileSync("/err", bytes);}}
     });
     expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
   }

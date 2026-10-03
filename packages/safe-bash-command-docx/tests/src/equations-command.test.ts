@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { paragraph, textFixture, textContext } from "../../../safe-bash-docx-engine/tests/fixtures/text.js";
@@ -13,7 +14,7 @@ it("reads empty physical equation inventory with global properties without mutat
   const input = await textFixture(paragraph("Original passage")), volume = Volume.fromJSON({ "/input.docx": Buffer.from(input) });
   let stdout = "", stderr = "", reads = 0;
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["equations", "list", "input.docx", "--json"].map(value => new TextEncoder().encode(value)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { reads++; return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+    filesystem: streamingFixture({ async readFile(path) { reads++; return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
   expect(result.exitCode, stderr).toBe(0); expect(reads).toBe(1);
   expect(JSON.parse(stdout)).toMatchObject({ operation: "equations.list", ok: true, data: { items: [], globalProperties: [] }, affected: 0, locations: [] });

@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { paragraph, textFixture, textContext } from "../../../safe-bash-docx-engine/tests/fixtures/text.js";
@@ -8,7 +9,7 @@ import { inspectDocumentCharts } from "../../../safe-bash-docx-engine/src/charts
 it("returns an empty physical inventory through one explicit memfs read without mutation", async () => {
   const bytes = await textFixture(paragraph("Original chart area")), volume = Volume.fromJSON({ "/input.docx": Buffer.from(bytes) }); let reads = 0, stdout = "", stderr = "";
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["charts", "list", "input.docx", "--json"].map(value => new TextEncoder().encode(value)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { reads++; return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    filesystem: streamingFixture({ async readFile(path) { reads++; return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(b) { stdout += new TextDecoder().decode(b); } }, stderr: { async write(b) { stderr += new TextDecoder().decode(b); } } });
   expect(result.exitCode, stderr).toBe(0); expect(reads).toBe(1); expect(JSON.parse(stdout)).toMatchObject({ version: 1, operation: "charts.list", ok: true, data: { items: [] }, affected: 0, locations: [], warnings: [], errors: [] });
   expect(volume.readFileSync("/input.docx")).toEqual(Buffer.from(bytes));
@@ -21,7 +22,7 @@ it("pairs CLI and SDK nested source/cache/binding snapshots without scalar coerc
     relationships: [{ owner: "/word/charts/plot.xml", id: "book", type: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/package", target: "../embeddings/data.bin" }] });
   const volume = Volume.fromJSON({ "/input.docx": Buffer.from(input) }); let stdout = "", stderr = "", reads = 0;
   const result = await createDocxInspectionCommandEngine({ limits: chartContext.limits }).execute({ args: ["charts", "list", "input.docx", "--json"].map(value => new TextEncoder().encode(value)), cwd: "/", signal: chartContext.signal,
-    filesystem: { async readFile(path) { reads++; return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+    filesystem: streamingFixture({ async readFile(path) { reads++; return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
   expect(result.exitCode, stderr).toBe(0); expect(reads).toBe(1);
   const cli = JSON.parse(stdout), sdk = await inspectDocumentCharts(input, {}, chartContext);
@@ -36,6 +37,6 @@ it("pairs CLI and SDK nested source/cache/binding snapshots without scalar coerc
 it("rejects scoped chart selectors before poisoned document capability I/O", async () => {
   let reads = 0;
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["charts", "list", "input.docx", "--scope", "headers", "--json"].map(value => new TextEncoder().encode(value)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile() { reads++; throw new Error("Poisoned capability must remain untouched"); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} }, stderr: { async write() {} } });
+    filesystem: streamingFixture({ async readFile() { reads++; throw new Error("Poisoned capability must remain untouched"); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} }, stderr: { async write() {} } });
   expect(result.exitCode).toBe(2); expect(reads).toBe(0);
 });

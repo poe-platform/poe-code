@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
@@ -118,7 +119,7 @@ it("keeps public stdout failure status and actual extraction metadata together",
 });
 it("admits the exact chosen empty human image summary without charging hidden JSON", async () => {
   const { bytes } = await createDocumentFixture("garden", "empty"); let stdout = "";
-  const result = await createDocxInspectionCommandEngine({ limits }).execute({ args: ["images", "list", "-", "--limit", "serializedOutput=10"].map(arg => new TextEncoder().encode(arg)), cwd: "/", filesystem: { async readFile() { throw new Error("undeclared input"); } }, signal: new AbortController().signal, stdin: { async *[Symbol.asyncIterator]() { yield bytes; } }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
+  const result = await createDocxInspectionCommandEngine({ limits }).execute({ args: ["images", "list", "-", "--limit", "serializedOutput=10"].map(arg => new TextEncoder().encode(arg)), cwd: "/", filesystem: streamingFixture({ async readFile() { throw new Error("undeclared input"); } }), signal: new AbortController().signal, stdin: { async *[Symbol.asyncIterator]() { yield bytes; } }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
   expect(result.exitCode).toBe(0); expect(stdout).toBe("Images: 0\n");
 });
 it("runs public image list and get through explicit memfs command input", async () => {

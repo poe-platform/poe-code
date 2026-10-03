@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Document, DocumentBudget, SemanticValidationError, applyStyleModelBatch, createDocxInspectionCommandEngine, readArchive, type DocxBatchOperation } from "../../src/sdk.js";
@@ -46,7 +47,7 @@ for (const strict of [false, true]) for (const route of ["model", "sdk", "cli"] 
       const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
         args: ["batch", "/in.docx", "--ops-json", JSON.stringify({ version: 1, operations }), "--dry-run", "--json"].map(word => new TextEncoder().encode(word)),
         cwd: "/", signal: textContext.signal,
-        filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+        filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
         stdin: { async *[Symbol.asyncIterator]() {} },
         stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
       });

@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, expectTypeOf, it } from "vitest";
 import { getDocxDiscovery, type DocxCapabilitiesData, type DocxSchemaData } from "../../src/discovery.js";
 import { docxOperationSchemas } from "../../../safe-bash-docx-engine/src/operation-schema.js";
@@ -82,11 +83,11 @@ it.each(Object.entries(docxOperationSchemas))(
         args: [command, ...target, "--json"].map((word) => new TextEncoder().encode(word)),
         cwd: "/",
         signal: textContext.signal,
-        filesystem: {
+        filesystem: streamingFixture({
           async readFile() {
             throw new Error("Discovery must not acquire a document.");
           }
-        },
+        }),
         stdin: {
           [Symbol.asyncIterator]() {
             return {

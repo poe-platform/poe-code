@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
@@ -42,7 +43,7 @@ for (const kind of ["docx", "dotx"] as const) for (const strict of [false, true]
       const volume = Volume.fromJSON({ "/out": "", "/err": "", "/input.docx": Buffer.from(input) });
       const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
         args: ["inspect", "/input.docx"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-        filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+        filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} },
         stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
       });
       expect(result.exitCode).toBe(1);
@@ -66,7 +67,7 @@ for (const kind of ["docx", "dotx"] as const) for (const strict of [false, true]
   const volume = Volume.fromJSON({ "/out": "", "/cli": "", "/err": "" });
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["inspect", "/input.docx", "--json"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} },
+    filesystem: streamingFixture({ async readFile() { return input; } }), stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { volume.appendFileSync("/cli", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
   });
   expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);

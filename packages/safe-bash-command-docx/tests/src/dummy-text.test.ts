@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { replacementFixture } from "../../../safe-bash-docx-engine/tests/fixtures/image-replacement.js";
@@ -85,7 +86,7 @@ it("exposes matching CLI JSON, seed validation, schema and capabilities", async 
   for (const [flags, status] of [[["--seed", "1", "--paragraph", "1"], 0], [["--paragraph", "1"], 2], [["--seed", "1"], 2], [["--seed", "1", "--all", "--limit", "matches=0"], 4]] as const) {
     let stdout = "";
     const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["lorem", "set", "report.docx", ...flags, "--dry-run", "--json"].map(x => new TextEncoder().encode(x)), cwd: "/", signal: textContext.signal,
-      filesystem: { async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
+      filesystem: streamingFixture({ async readFile() { return input; } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
     expect(result.exitCode).toBe(status);
     expect(JSON.parse(stdout)).toMatchObject({ version: 1, operation: "lorem.set", ok: status === 0, affected: status === 0 ? 1 : 0 });
   }

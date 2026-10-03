@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { createDocumentArchive } from "../../../safe-bash-docx-engine/src/create.js";
@@ -15,7 +16,7 @@ it("acquires image insertion document input through the declared capability", as
   let reads = 0, stdout = "";
   const result = await createDocxInspectionCommandEngine({ limits }).execute({
     args: ["images", "add", "input.docx", "--file", "pixel.png", "--paragraph", "1", "--dry-run", "--json"].map(value => encoder.encode(value)),
-    cwd: "/work", filesystem: { async readFile() { reads++; throw new Error("declared refusal"); } },
+    cwd: "/work", filesystem: streamingFixture({ async readFile() { reads++; throw new Error("declared refusal"); } }),
     stdin: { [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("implicit stdin"); } }; } },
     stdout: { async write(value) { stdout += new TextDecoder().decode(value); } }, stderr: { async write() {} }, signal
   });
@@ -73,9 +74,9 @@ it("inspects and validates only explicit memfs input without mutation", async ()
   for (const operation of ["inspect", "validate"]) {
     let stdout = "";
     let stderr = "";
-    const result = await engine.execute({ args: [operation, "input.docx", "--json"].map(value => encoder.encode(value)), cwd: "/work", filesystem: {
+    const result = await engine.execute({ args: [operation, "input.docx", "--json"].map(value => encoder.encode(value)), cwd: "/work", filesystem: streamingFixture({
       async readFile(path: string) { reads.push(path); return new Uint8Array(volume.readFileSync(path) as Buffer); }
-    }, stdin: { [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("implicit stdin"); } }; } }, stdout: { async write(value: Uint8Array) { stdout += new TextDecoder().decode(value); } }, stderr: { async write(value: Uint8Array) { stderr += new TextDecoder().decode(value); } }, signal });
+    }), stdin: { [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("implicit stdin"); } }; } }, stdout: { async write(value: Uint8Array) { stdout += new TextDecoder().decode(value); } }, stderr: { async write(value: Uint8Array) { stderr += new TextDecoder().decode(value); } }, signal });
     expect(result.exitCode).toBe(0);
     expect(JSON.parse(stdout)).toMatchObject({ operation, ok: true, affected: 0, errors: [] });
     expect(stderr).toContain("docx:");
@@ -86,7 +87,7 @@ it("inspects and validates only explicit memfs input without mutation", async ()
 it("maps malformed document input to structured document failure", async () => {
   let stdout = "";
   const engine = createDocxInspectionCommandEngine({ limits });
-  const result = await engine.execute({ args: ["inspect", "-", "--json"].map(value => encoder.encode(value)), cwd: "/", filesystem: { async readFile() { throw new Error("unexpected read"); } }, stdin: { async *[Symbol.asyncIterator]() { yield encoder.encode("not an archive"); } }, stdout: { async write(value: Uint8Array) { stdout += new TextDecoder().decode(value); } }, stderr: { async write() {} }, signal });
+  const result = await engine.execute({ args: ["inspect", "-", "--json"].map(value => encoder.encode(value)), cwd: "/", filesystem: streamingFixture({ async readFile() { throw new Error("unexpected read"); } }), stdin: { async *[Symbol.asyncIterator]() { yield encoder.encode("not an archive"); } }, stdout: { async write(value: Uint8Array) { stdout += new TextDecoder().decode(value); } }, stderr: { async write() {} }, signal });
   expect(result.exitCode).toBe(1);
   expect(JSON.parse(stdout)).toMatchObject({ operation: "inspect", ok: false, data: null, affected: 0 });
 });
@@ -100,17 +101,17 @@ it("collects unadmitted document bytes through owned I/O", async () => {
 it("returns source and sink statuses independently of document validity", async () => {
   const bytes = await fixture();
   const engine = createDocxInspectionCommandEngine({ limits });
-  const base = { args: ["inspect", "input.docx", "--json"].map(value => encoder.encode(value)), cwd: "/", filesystem: { async readFile() { return bytes; } }, stdin: { async *[Symbol.asyncIterator]() { yield bytes; } }, stdout: { async write() { throw new Error("output denied"); } }, stderr: { async write() {} }, signal };
+  const base = { args: ["inspect", "input.docx", "--json"].map(value => encoder.encode(value)), cwd: "/", filesystem: streamingFixture({ async readFile() { return bytes; } }), stdin: { async *[Symbol.asyncIterator]() { yield bytes; } }, stdout: { async write() { throw new Error("output denied"); } }, stderr: { async write() {} }, signal };
   expect((await engine.execute(base)).exitCode).toBe(3);
   let stdout = "";
-  expect((await engine.execute({ ...base, filesystem: { async readFile() { throw new Error("input denied"); } }, stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } } })).exitCode).toBe(3);
+  expect((await engine.execute({ ...base, filesystem: streamingFixture({ async readFile() { throw new Error("input denied"); } }), stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } } })).exitCode).toBe(3);
   expect(JSON.parse(stdout).errors[0].code).toBe("source-failure");
 });
 it("honors inspection location selectors without narrowing package counts", async () => {
   const bytes = await fixture();
   const engine = createDocxInspectionCommandEngine({ limits });
   let stdout = "";
-  const result = await engine.execute({ args: ["inspect", "-", "--paragraph", "1", "--json"].map(value => encoder.encode(value)), cwd: "/", filesystem: { async readFile() { throw new Error("unexpected read"); } }, stdin: { async *[Symbol.asyncIterator]() { yield bytes; } }, stdout: { async write(value: Uint8Array) { stdout += new TextDecoder().decode(value); } }, stderr: { async write() {} }, signal });
+  const result = await engine.execute({ args: ["inspect", "-", "--paragraph", "1", "--json"].map(value => encoder.encode(value)), cwd: "/", filesystem: streamingFixture({ async readFile() { throw new Error("unexpected read"); } }), stdin: { async *[Symbol.asyncIterator]() { yield bytes; } }, stdout: { async write(value: Uint8Array) { stdout += new TextDecoder().decode(value); } }, stderr: { async write() {} }, signal });
   expect(result.exitCode).toBe(0);
   expect(JSON.parse(stdout)).toMatchObject({ data: { counts: { paragraphs: 1 } }, locations: [{ kind: "paragraph", positions: { paragraph: 1 } }] });
 });
@@ -119,7 +120,7 @@ it("emits coded warnings on stderr and leaves human summaries bounded", async ()
   let stdout = "";
   let stderr = "";
   const engine = createDocxInspectionCommandEngine({ limits });
-  await engine.execute({ args: ["inspect", "-"].map(value => encoder.encode(value)), cwd: "/", filesystem: { async readFile() { return bytes; } }, stdin: { async *[Symbol.asyncIterator]() { yield bytes; } }, stdout: { async write(value: Uint8Array) { stdout += new TextDecoder().decode(value); } }, stderr: { async write(value: Uint8Array) { stderr += new TextDecoder().decode(value); } }, signal });
+  await engine.execute({ args: ["inspect", "-"].map(value => encoder.encode(value)), cwd: "/", filesystem: streamingFixture({ async readFile() { return bytes; } }), stdin: { async *[Symbol.asyncIterator]() { yield bytes; } }, stdout: { async write(value: Uint8Array) { stdout += new TextDecoder().decode(value); } }, stderr: { async write(value: Uint8Array) { stderr += new TextDecoder().decode(value); } }, signal });
   expect(stdout).not.toContain("Warning:");
   expect(stdout).toContain("signatures verified: not performed");
   expect(stderr).toContain("docx:");
@@ -128,12 +129,12 @@ it("emits coded warnings on stderr and leaves human summaries bounded", async ()
 it("accepts caller limits above the previously configured settings", async () => {
   const bytes = await fixture();
   const engine = createDocxInspectionCommandEngine({ limits });
-  const result = await engine.execute({ args: ["inspect", "input.docx", "--limit", "compressedInput=65537", "--json"].map(value => encoder.encode(value)), cwd: "/", filesystem: { async readFile() { return bytes; } }, stdin: { async *[Symbol.asyncIterator]() { yield new Uint8Array(); } }, stdout: { async write() {} }, stderr: { async write() {} }, signal });
+  const result = await engine.execute({ args: ["inspect", "input.docx", "--limit", "compressedInput=65537", "--json"].map(value => encoder.encode(value)), cwd: "/", filesystem: streamingFixture({ async readFile() { return bytes; } }), stdin: { async *[Symbol.asyncIterator]() { yield new Uint8Array(); } }, stdout: { async write() {} }, stderr: { async write() {} }, signal });
   expect(result.exitCode).toBe(0);
 });
 it("classifies a failed diagnostic sink without masking it as invalid document", async () => {
   const bytes = await fixture();
-  const result = await createDocxInspectionCommandEngine({ limits }).execute({ args: ["inspect", "-"].map(value => encoder.encode(value)), cwd: "/", filesystem: { async readFile() { return bytes; } }, stdin: { async *[Symbol.asyncIterator]() { yield bytes; } }, stdout: { async write() {} }, stderr: { async write() { throw new Error("diagnostic sink denied"); } }, signal });
+  const result = await createDocxInspectionCommandEngine({ limits }).execute({ args: ["inspect", "-"].map(value => encoder.encode(value)), cwd: "/", filesystem: streamingFixture({ async readFile() { return bytes; } }), stdin: { async *[Symbol.asyncIterator]() { yield bytes; } }, stdout: { async write() {} }, stderr: { async write() { throw new Error("diagnostic sink denied"); } }, signal });
   expect(result.exitCode).toBe(3);
 });
 
@@ -145,7 +146,7 @@ it("matches SDK inventory for an invalid table without requiring editing admissi
   let stdout = "";
   const result = await createDocxInspectionCommandEngine({ limits }).execute({
     args: ["inspect", "/input.docx", "--json"].map(value => encoder.encode(value)), cwd: "/",
-    filesystem: { async readFile(path) { expect(path).toBe("/input.docx"); return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    filesystem: streamingFixture({ async readFile(path) { expect(path).toBe("/input.docx"); return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
     stdin: { [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("implicit stdin"); } }; } },
     stdout: { async write(value) { stdout += new TextDecoder().decode(value); } }, stderr: { async write() {} }, signal
   });

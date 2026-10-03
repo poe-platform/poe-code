@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -19,7 +20,7 @@ it(`nested linked TOC permits inner cache and literal bookmark rename while pres
   const context = { ...textContext, encoding: { order: "input" as const, compression: "store" as const }, stdout: sink };
   const cli = async (args: string[]) => api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: args.map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(p) { return new Uint8Array(volume.readFileSync(p) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: sink,
+    filesystem: streamingFixture({ async readFile(p) { return new Uint8Array(volume.readFileSync(p) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout: sink,
     stderr: { async write(b) { volume.appendFileSync("/err", b); } }
   });
   const observe = async (bytes: Uint8Array, result: string, target = "Coast") => {

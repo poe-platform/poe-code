@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
@@ -99,7 +100,7 @@ it("exposes the same resource inventory through CLI JSON and its closed schema",
   let output = "";
   const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["inspect", "-", "--json"].map(encode), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile() { throw new Error("Unexpected file read"); } }, stdin: { async *[Symbol.asyncIterator]() { yield input; } },
+    filesystem: streamingFixture({ async readFile() { throw new Error("Unexpected file read"); } }), stdin: { async *[Symbol.asyncIterator]() { yield input; } },
     stdout: { async write(b) { output += new TextDecoder().decode(b); } }, stderr: { async write() {} }
   });
   expect(result.exitCode).toBe(0);
@@ -115,7 +116,7 @@ it("validates theme tokens before any input read", async () => {
     let reads = 0;
     const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
       args: ["runs", "set", "input.docx", "--paragraph", "1", "--run", "1", ...flag, "--dry-run"].map(encode), cwd: "/", signal: textContext.signal,
-      filesystem: { async readFile() { reads++; return new Uint8Array(); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+      filesystem: streamingFixture({ async readFile() { reads++; return new Uint8Array(); } }), stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: { async write() {} }, stderr: { async write() {} }
     });
     expect(result.exitCode).toBe(2);

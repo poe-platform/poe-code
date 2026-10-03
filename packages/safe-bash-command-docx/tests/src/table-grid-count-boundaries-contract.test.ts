@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -26,7 +27,7 @@ it(`table native count boundaries; strict=${strict}; ${field}; ${raw}; ${route}`
     if (!good) await expect(inspect).rejects.toMatchObject({ code: "invalid-package" });
     else { const details = (await inspect).item.details; expect(details.omitted).toEqual([{ row: 1, before, after }]); expect(details.cells).toMatchObject([{ column: before + 1, columnSpan: span, text: "Owner" }]); expect(details.cells).toHaveLength(1); }
   } else {
-    const result = await api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["tables", "get", "/input", "--table", "1", "--json"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
+    const result = await api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["tables", "get", "/input", "--table", "1", "--json"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
     const json = JSON.parse(volume.readFileSync("/out", "utf8") as string);
     expect(result.exitCode).toBe(good ? 0 : 1);
     if (good) { expect(json.data.item.details.omitted).toEqual([{ row: 1, before, after }]); expect(json.data.item.details.cells).toMatchObject([{ column: before + 1, columnSpan: span }]); }

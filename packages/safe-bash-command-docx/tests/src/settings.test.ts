@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as docx from "../../src/sdk.js";
@@ -26,7 +27,7 @@ it("exposes protection state without password material", async () => {
 
 it("executes settings list through the common command contract", async () => {
   const input = await fixture(), volume = Volume.fromJSON({ "/out": "", "/err": "" });
-  const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["settings", "list", "/input", "--json"].map(value => new TextEncoder().encode(value)), cwd: "/", signal: textContext.signal, filesystem: { async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
+  const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["settings", "list", "/input", "--json"].map(value => new TextEncoder().encode(value)), cwd: "/", signal: textContext.signal, filesystem: streamingFixture({ async readFile() { return input; } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
   expect(result.exitCode).toBe(0);
   const resultJson = JSON.parse(String(volume.readFileSync("/out", "utf8")));
   expect(resultJson.data).toEqual(await docx.inspectDocumentSettings(input, {}, textContext, "resource"));

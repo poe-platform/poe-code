@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -18,7 +19,7 @@ it(`CLI ${mode} uses a read-only VFS without inventing publication capabilities;
   const flags = mode === "read" ? ["--json"] : mode === "dry-run" ? ["--dry-run", "--json"] : mode === "path-reject" ? ["--output", "/destination", "--force", "--json"] : ["--output", "-"];
   const result = await api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["batch", "/input", "--ops-json", JSON.stringify({ version: 1, operations }), ...flags].map(enc), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(memory.readFileSync(path) as Buffer); } },
+    filesystem: { readStream(path) { return streamVolume(memory, path); }, async readFile() { throw new Error("Unexpected whole-file read"); } },
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { memory.appendFileSync("/stdout", bytes); } }, stderr: { async write(bytes) { memory.appendFileSync("/stderr", bytes); } }
   });
   expect(result.exitCode, String(memory.readFileSync("/stderr", "utf8"))).toBe(mode === "path-reject" ? 3 : 0);

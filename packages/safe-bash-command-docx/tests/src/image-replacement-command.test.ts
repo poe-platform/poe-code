@@ -23,10 +23,11 @@ it.each([["PNG", rasterPng(), "image/png"], ["JPG", rasterJpeg(), "image/jpeg"],
   expect(volume.readFileSync("/input.docx")).toEqual(Buffer.from(input));
 });
 it("refuses unbounded image readFile capability before reading replacement bytes", async () => {
-  const input = await embeddedFixture(); let imageReads = 0;
-  const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["images", "replace", "/input.docx", "--image", "1", "--file", "/Map.PNG", "--dry-run", "--json"].map(value => new TextEncoder().encode(value)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { if (path === "/input.docx") return input; imageReads++; return rasterPng(); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} }, stderr: { async write() {} } });
+  const input = await embeddedFixture(); let imageReads = 0, output = "";
+  const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["images", "replace", "-", "--image", "1", "--file", "/Map.PNG", "--dry-run", "--json"].map(value => new TextEncoder().encode(value)), cwd: "/", signal: textContext.signal,
+    filesystem: { async readFile() { imageReads++; return rasterPng(); } }, stdin: { async *[Symbol.asyncIterator]() { yield input; } }, stdout: { async write(bytes) { output += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
   expect(result.exitCode).not.toBe(0); expect(imageReads).toBe(0);
+  expect(JSON.parse(output)).toMatchObject({ ok: false, errors: [{ code: "unsupported-profile" }] });
 });
 it.each([false, true])("refuses coherent SVG alternates before replacement acquisition, supplied fallback=%s", async supplied => {
   const input = await svgPairFixture(), reads: string[] = []; let output = "";

@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { executeImageInsertionCommand } from "../../src/image-insertion-command.js";
@@ -12,7 +13,7 @@ import type { DocxInspectionCommandRequest } from "../../src/inspection-command.
 
 it("rejects unadmitted file publication before reading media", async () => {
   const fs = Volume.fromJSON({ "/image.jpg": "" }); let reads = 0, writes = 0;
-  const request = { cwd: "/", stdin: { async *[Symbol.asyncIterator]() {} }, filesystem: { async readFile(path: string) { reads++; return new Uint8Array(fs.readFileSync(path) as Buffer); } }, stdout: { async write() { writes++; } }, stderr: { async write() {} }, signal: textContext.signal } as unknown as DocxInspectionCommandRequest;
+  const request = { cwd: "/", stdin: { async *[Symbol.asyncIterator]() {} }, filesystem: streamingFixture({ async readFile(path: string) { reads++; return new Uint8Array(fs.readFileSync(path) as Buffer); } }), stdout: { async write() { writes++; } }, stderr: { async write() {} }, signal: textContext.signal } as unknown as DocxInspectionCommandRequest;
   await expect(executeImageInsertionCommand(parseDocxArguments(["images", "add", "/input.docx", "--file", "/image.jpg", "--paragraph", "1", "--output", "/out.docx"].map(value => new TextEncoder().encode(value))), await textFixture(paragraph("Garden")), undefined, request, textContext)).rejects.toThrow("identity");
   expect(reads).toBe(0); expect(writes).toBe(0);
 });
@@ -39,7 +40,7 @@ it("treats an explicit SDK command VFS dash as a literal path rather than stdin"
 
 it("runs the existing SDK byte inputs with an explicit SVG and GIF fallback", async () => {
   const volume = Volume.fromJSON({ "/out": "" }); let reads = 0;
-  const request = { cwd: "/work", signal: textContext.signal, stdin: { async *[Symbol.asyncIterator]() { reads++; yield new Uint8Array(); } }, filesystem: { async readFile() { reads++; throw new Error("Unexpected acquisition"); } }, stdout: { async write(bytes: Uint8Array) { volume.appendFileSync("/out", bytes); } } } as unknown as DocxInspectionCommandRequest;
+  const request = { cwd: "/work", signal: textContext.signal, stdin: { async *[Symbol.asyncIterator]() { reads++; yield new Uint8Array(); } }, filesystem: streamingFixture({ async readFile() { reads++; throw new Error("Unexpected acquisition"); } }), stdout: { async write(bytes: Uint8Array) { volume.appendFileSync("/out", bytes); } } } as unknown as DocxInspectionCommandRequest;
   const invocation = validateDocxInvocation({ operation: "images.add", inputs: ["input.docx"], options: { paragraph: 1, file: svgBinary(), fallback: { kind: "bytes", base64: Buffer.from(rasterGif()).toString("base64") }, output: "-" } });
   await executeImageInsertionCommand(invocation, await textFixture(paragraph("Garden")), undefined, request, textContext);
   expect(reads).toBe(0); const item = (await inspectDocumentImages(new Uint8Array(volume.readFileSync("/out") as Buffer), { operation: "images.get", image: 1 }, textContext)).item;

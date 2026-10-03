@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Document, createDocxInspectionCommandEngine, editDocumentLists } from "../../src/sdk.js";
@@ -43,7 +44,7 @@ for (const strict of [false, true]) for (const route of ["sdk", "cli"] as const)
       const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
         args: ["lists", "add", "/input.docx", "--paragraph", "1", "--kind", "decimal", "--text", "New", "--output", "-"].map(word => new TextEncoder().encode(word)),
         cwd: "/", signal: textContext.signal,
-        filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+        filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
         stdin: { async *[Symbol.asyncIterator]() {} }, stdout,
         stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
       });
@@ -108,7 +109,7 @@ for (const strict of [false, true]) for (const route of ["sdk", "cli"] as const)
     else {
       const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
         args: ["lists", "add", "/in.docx", "--paragraph", "1", "--kind", "decimal", "--text", "New", "--output", "-"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-        filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout,
+        filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout,
         stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
       });
       expect(result.exitCode).not.toBe(0);

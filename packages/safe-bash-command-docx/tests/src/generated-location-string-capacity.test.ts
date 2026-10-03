@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -43,7 +44,7 @@ it(`classifies admitted long main-part metadata; strict=${strict}; route=${route
   } else {
     const result = await api.createDocxInspectionCommandEngine({ limits: context.limits }).execute({
       args: ["text", "/input", "--json"].map(arg => new TextEncoder().encode(arg)), cwd: "/", signal: context.signal,
-      filesystem: { async readFile(path) { return new Uint8Array(memory.readFileSync(path) as Buffer); } },
+      filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(memory.readFileSync(path) as Buffer); } }),
       stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { memory.appendFileSync("/stdout", bytes); } }, stderr: { async write() {} }
     });
     expect(result.exitCode).toBe(length === 4096 ? 0 : 4);

@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Document, Inches, createDocxInspectionCommandEngine } from "../../src/sdk.js";
@@ -47,11 +48,11 @@ it("describes live inline image routes only after SDK and CLI save/reload succee
       args: words.map((word) => new TextEncoder().encode(word)),
       cwd: "/",
       signal: textContext.signal,
-      filesystem: {
+      filesystem: streamingFixture({
         async readFile(path) {
           return new Uint8Array(files.readFileSync(path) as Buffer);
         }
-      },
+      }),
       stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: {
         async write(chunk) {

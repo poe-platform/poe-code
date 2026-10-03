@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -14,6 +15,6 @@ it(`unsafe/malformed/nonnegative reference storage rejects across public paths; 
   if(note)await expect(api.editDocumentNotes(input,{operation:'notes.set',options:{kind:domain,note:1,text:'Denied',output:'-'}},{...textContext,encoding:{order:"input",compression:"store"},stdout})).rejects.toMatchObject({code:'invalid-package'});
   else await expect(api.editDocumentBookmarks(input,{operation:'bookmarks.set',options:{bookmark:1,name:'Estuary',references:'update',output:'-'}},{...textContext,encoding:{order:"input",compression:"store"},stdout})).rejects.toMatchObject({code:'invalid-package'});
   const args=note?['notes','set','/input','--kind',domain,'--note','1','--text','Denied','--dry-run','--json']:['bookmarks','set','/input','--bookmark','1','--name','Estuary','--references','update','--dry-run','--json'];
-  const result=await api.createDocxInspectionCommandEngine({limits:textContext.limits}).execute({args:args.map(s=>new TextEncoder().encode(s)),cwd:'/',signal:textContext.signal,filesystem:{async readFile(p){return new Uint8Array(volume.readFileSync(p) as Buffer);}},stdin:{async *[Symbol.asyncIterator](){}},stdout:{async write(b){volume.appendFileSync('/json',b);}},stderr:{async write(){}}});
+  const result=await api.createDocxInspectionCommandEngine({limits:textContext.limits}).execute({args:args.map(s=>new TextEncoder().encode(s)),cwd:'/',signal:textContext.signal,filesystem:streamingFixture({async readFile(p){return new Uint8Array(volume.readFileSync(p) as Buffer);}}),stdin:{async *[Symbol.asyncIterator](){}},stdout:{async write(b){volume.appendFileSync('/json',b);}},stderr:{async write(){}}});
   expect(result.exitCode).toBe(1); expect(JSON.parse(volume.readFileSync('/json','utf8') as string)).toMatchObject({ok:false,affected:0,data:null,errors:[{code:'invalid-package'}]});expect(volume.readFileSync('/binary')).toHaveLength(0);expect(volume.readFileSync('/input')).toEqual(Buffer.from(input));
 });

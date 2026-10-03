@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -20,7 +21,7 @@ it(`reference storage admits exact safe integer IDs beyond signed 32-bit; strict
     else { expect((await api.inspectDocumentBookmarks(input, {}, textContext)).items[0]!.id).toBe(String(id)); await api.editDocumentBookmarks(input, { operation: "bookmarks.set", options: { bookmark: 1, name: "Estuary", references: "update", output: "-" } }, context); }
   } else {
     const args = note ? ["notes", "set", "/input", "--kind", domain, "--note", "1", "--text", "New é 海", "--output", "-"] : ["bookmarks", "set", "/input", "--bookmark", "1", "--name", "Estuary", "--references", "update", "--output", "-"];
-    const result = await api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: args.map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: context.stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } }); expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
+    const result = await api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: args.map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout: context.stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } }); expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
   }
   const output = new Uint8Array(volume.readFileSync("/out") as Buffer), before = readPackage(input), after = readPackage(output), dirty = note ? `word/${domain}s.xml` : "word/document.xml";
   for (const [name, bytes] of before) if (name !== dirty) expect(after.get(name), name).toEqual(bytes);

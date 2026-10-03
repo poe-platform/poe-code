@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { createDocxInspectionCommandEngine, getDocxDiscovery, parseDocxArguments } from "../../src/sdk.js";
@@ -10,10 +11,10 @@ async function run(args: string[], template?: Uint8Array) {
   let reads = 0;
   const result = await createDocxInspectionCommandEngine({ limits: context.limits }).execute({
     args: args.map(arg => new TextEncoder().encode(arg)), cwd: "/", signal: context.signal,
-    filesystem: { async readFile(path) { reads++; return new Uint8Array(volume.readFileSync(path) as Buffer); }, async lstat(path) {
+    filesystem: streamingFixture({ async readFile(path) { reads++; return new Uint8Array(volume.readFileSync(path) as Buffer); }, async lstat(path) {
       const value = volume.lstatSync(path);
       return { type: "file", size: value.size, mode: value.mode, mtimeMs: value.mtimeMs, ctimeMs: value.ctimeMs, atimeMs: value.atimeMs, ino: value.ino, dev: value.dev, nlink: value.nlink, identityScope: volume };
-    } },
+    } }),
     stdin: { async *[Symbol.asyncIterator]() { yield new Uint8Array(volume.readFileSync("/content") as Buffer); } },
     stdout: { async write(bytes) { volume.appendFileSync("/stdout", bytes); } },
     stderr: { async write(bytes) { volume.appendFileSync("/stderr", bytes); } }

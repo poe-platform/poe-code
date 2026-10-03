@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -26,7 +27,7 @@ it(`${field === "start" && raw === "-2" ? "native signed numbering" : "malformed
   await expect(api.editDocumentNotes(input, {operation: "notes.set", options: {kind, note: 1, text: "Denied", output: "-"}}, {...textContext, encoding: {order: "input", compression: "store"}, stdout: {async write(bytes) {volume.appendFileSync("/binary", bytes);}}})).rejects.toMatchObject({code: "invalid-package"});
   const result = await api.createDocxInspectionCommandEngine({limits: textContext.limits}).execute({
     args: ["notes", "set", "/input", "--kind", kind, "--note", "1", "--text", "Denied", "--dry-run", "--json"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal,
-    filesystem: {async readFile(path) {return new Uint8Array(volume.readFileSync(path) as Buffer);}}, stdin: {async *[Symbol.asyncIterator]() {}}, stdout: {async write(bytes) {volume.appendFileSync("/out", bytes);}}, stderr: {async write() {}}
+    filesystem: streamingFixture({async readFile(path) {return new Uint8Array(volume.readFileSync(path) as Buffer);}}), stdin: {async *[Symbol.asyncIterator]() {}}, stdout: {async write(bytes) {volume.appendFileSync("/out", bytes);}}, stderr: {async write() {}}
   });
   expect(result.exitCode).toBe(1); expect(JSON.parse(volume.readFileSync("/out", "utf8") as string)).toMatchObject({ok: false, affected: 0, data: null, errors: [{code: "invalid-package"}]});
   expect(volume.readFileSync("/binary", "utf8")).toBe(""); expect(volume.readFileSync("/input")).toEqual(Buffer.from(input));

@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Document, DocumentPartView, PackageView, NumberingPart, DocumentXmlEditor, InputTypeError, createDocumentArchive, writeArchive, writeDocumentArchive, applyStyleModelBatch, createDocxInspectionCommandEngine, readDocumentArchive, type DocxBatchOperation } from "../../src/sdk.js";
@@ -51,7 +52,7 @@ for (const kind of ["docx", "dotx"] as const) for (const dialect of ["transition
     } else {
       const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
         args: ["batch", "/input", "--ops-json", JSON.stringify({ version: 1, operations: createOps }), "--output", "-"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-        filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+        filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} },
         stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
       });
       expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
@@ -115,7 +116,7 @@ for (const dialect of ["transitional", "strict"] as const) it(`rejects macro tem
   const volume = Volume.fromJSON({ "/input": Buffer.from(input), "/out": "", "/err": "" });
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["batch", "/input", "--ops-json", JSON.stringify({ version: 1, operations: createOps }), "--output", "-"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+    filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
   });
   expect(result.exitCode).not.toBe(0);
@@ -139,7 +140,7 @@ for (const dialect of ["transitional", "strict"] as const) for (const route of [
   } else {
     const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
       args: ["batch", "/input", "--ops-json", JSON.stringify({ version: 1, operations: readOps }), "--json"].map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-      filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+      filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
     });
     expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);

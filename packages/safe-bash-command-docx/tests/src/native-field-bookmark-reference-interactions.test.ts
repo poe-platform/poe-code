@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { createDocxInspectionCommandEngine, editDocumentBookmarks, inspectDocumentBookmarks, inspectDocumentFields, inspectDocumentLinks, readArchive } from "../../src/sdk.js";
@@ -23,7 +24,7 @@ it.each(["direct", "choice", "fallback", "process"])(
     } else {
       const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
         args: ["bookmarks", "set", "/input", "--bookmark", "1", "--name", "Shore", "--references", "update", "--output", "-"].map(enc), cwd: "/", signal: textContext.signal,
-        filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: sink,
+        filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout: sink,
         stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
       });
       expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);

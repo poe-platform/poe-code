@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { DocumentBudget, createDocxInspectionCommandEngine, extractDocumentText, openDocumentLocations, replaceDocumentText, getDocumentXml } from "../../src/sdk.js";
@@ -9,7 +10,7 @@ it("executes explicit tracked insertion through the existing command engine", as
   const volume = Volume.fromJSON({ "/input": Buffer.from(input), "/out": "" });
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["revisions", "add", "/input", "--kind", "insert", "--text", "Pier", "--paragraph", "1", "--author", metadata.author, "--timestamp", metadata.timestamp, "--output", "-"].map(value => new TextEncoder().encode(value)),
-    cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    cwd: "/", signal: textContext.signal, filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write() {} }
   });
   expect(result.exitCode).toBe(0);

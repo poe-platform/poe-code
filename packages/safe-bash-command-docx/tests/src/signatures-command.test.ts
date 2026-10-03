@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as docx from "../../src/sdk.js";
@@ -8,7 +9,7 @@ async function execute(args: string[]) {
   const volume = Volume.fromJSON({ "/out": "", "/err": "" });
   const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: args.map(value => new TextEncoder().encode(value)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} },
+    filesystem: streamingFixture({ async readFile() { return input; } }), stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } },
     stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
   });

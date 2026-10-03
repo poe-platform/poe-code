@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Document, DocumentXmlEditor, readArchive, writeArchive, inspectDocumentComments, inspectDocumentNotes, editDocumentComments, editDocumentNotes, insertDocumentImage, createDocxInspectionCommandEngine } from "../../src/sdk.js";
@@ -42,7 +43,7 @@ for (const strict of [false, true]) for (const kind of ["comments", "notes"] as 
       const args = action === "read" ? [kind, "list", "/input", "--json"] : [kind, "set", "/input", kind === "comments" ? "--comment" : "--note", "1", "--text", "Updated note", "--output", "-"];
       const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
         args: args.map(word => new TextEncoder().encode(word)), cwd: "/", signal: textContext.signal,
-        filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout,
+        filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout,
         stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
       });
       expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);

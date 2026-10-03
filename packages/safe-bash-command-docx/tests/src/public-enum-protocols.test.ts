@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -156,7 +157,7 @@ it("uses the SDK-backed CLI for enum conversions with pure JSON and no publicati
   const result = await api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["batch", "input.docx", "--ops-json", JSON.stringify(ops), "--json"].map(value => new TextEncoder().encode(value)),
     cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
     stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { volume.appendFileSync("/stdout", bytes); } },
     stderr: { async write(bytes) { volume.appendFileSync("/stderr", bytes); } }

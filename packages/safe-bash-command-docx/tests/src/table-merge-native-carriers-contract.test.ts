@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Document, createDocxInspectionCommandEngine, editDocumentTables, readArchive } from "../../src/sdk.js";
@@ -24,7 +25,7 @@ it.each(["tables.merge", "tables.split", "tables.rows.remove"] as const)(`F20 na
   }
   else {
     const args = Object.entries(options).flatMap(([key, value]) => ["--" + key, String(value)]);
-    const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: [...operation.split("."), "/input", "--table", "1", ...args, "--output", "-"].map(enc), cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
+    const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: [...operation.split("."), "/input", "--table", "1", ...args, "--output", "-"].map(enc), cwd: "/", signal: textContext.signal, filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
     expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(reject ? 1 : 0);
     if (reject) expect(volume.readFileSync("/err", "utf8")).toContain("unsupported-edit");
   }

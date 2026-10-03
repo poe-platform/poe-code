@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { applyStyleModelBatch, createDocxInspectionCommandEngine } from "../../src/sdk.js";
@@ -49,11 +50,11 @@ it.each([0, null, 24, 0.5, -4, -2147483648, 2147483647, -2147483649, 2147483648]
     ),
     cwd: "/",
     signal: textContext.signal,
-    filesystem: {
+    filesystem: streamingFixture({
       async readFile(path) {
         return new Uint8Array(volume.readFileSync(path) as Buffer);
       }
-    },
+    }),
     stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: {
       async write(bytes) {

@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -226,7 +227,7 @@ it("reports valid missing sequence targets through shared CLI JSON and exit stat
   const result = await api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["batch", "input.docx", "--ops-json", JSON.stringify(ops), "--json"].map(value => new TextEncoder().encode(value)),
     cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
     stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { volume.appendFileSync("/stdout", bytes); } },
     stderr: { async write(bytes) { volume.appendFileSync("/stderr", bytes); } }
@@ -245,7 +246,7 @@ it("reports invalid enum values as usage errors through shared CLI JSON", async 
       { operation: "model.enum.section.WD_ORIENTATION.fromValue.call", arguments: { value: 99999 } }
     ] }), "--json"].map(value => new TextEncoder().encode(value)),
     cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} },
+    filesystem: streamingFixture({ async readFile() { return input; } }), stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} }
   });
   expect(result.exitCode).toBe(2);

@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Document, createDocxInspectionCommandEngine, executeDocumentBatch, readArchive } from "../../src/sdk.js";
@@ -16,7 +17,7 @@ it.each(["direct", "choice", "fallback", "process"] as const)(`F20 native model 
   ] };
   if (route === "model") { const doc = await Document(input, textContext), table = doc.tables[0]!; expect(table.cell(0, 0).merge(table.cell(1, 1)).text).toBe("North\nEast\nSouth\nWest"); await doc.save(stdout); }
   else if (route === "sdk") await executeDocumentBatch(input, batch, { output: "-" }, { ...textContext, encoding: { order: "input", compression: "store" }, stdout });
-  else { const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["batch", "/input", "--ops-json", JSON.stringify(batch), "--output", "-"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } }); expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0); }
+  else { const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["batch", "/input", "--ops-json", JSON.stringify(batch), "--output", "-"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } }); expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0); }
   const output = new Uint8Array(volume.readFileSync("/out") as Buffer), table = (await Document(output, textContext)).tables[0]!, owner = table.cell(0, 0);
   expect(owner.text).toBe("North\nEast\nSouth\nWest"); expect(owner.width?.twips).toBe(1800);
   for (const r of [0, 1]) for (const c of [0, 1]) expect(table.cell(r, c)).toBe(owner);

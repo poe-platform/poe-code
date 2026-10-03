@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { createDocxInspectionCommandEngine } from "../../src/inspection-command.js";
@@ -17,7 +18,7 @@ it.each([
   } }).execute({
     args: [expected.resource, "list", "/source.docx", "--json"].map(value => new TextEncoder().encode(value)),
     cwd: "/", signal: new AbortController().signal,
-    filesystem: { async readFile(path) { reads++; return new Uint8Array(volume.readFileSync(path) as Uint8Array); } },
+    filesystem: streamingFixture({ async readFile(path) { reads++; return new Uint8Array(volume.readFileSync(path) as Uint8Array); } }),
     stdin: { [Symbol.asyncIterator]() { return {
       async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("Unexpected stdin"); }
     }; } },
@@ -48,7 +49,7 @@ it("advertises the document admission failures emitted by input capabilities", a
   } }).execute({
     args: ["capabilities", "/source.docx", "--json"].map(value => encoder.encode(value)),
     cwd: "/", signal: new AbortController().signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Uint8Array); } },
+    filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Uint8Array); } }),
     stdin: { [Symbol.asyncIterator]() { return {
       async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("Unexpected stdin acquisition"); }
     }; } },

@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import {
@@ -117,11 +118,11 @@ it("checks input capabilities through explicit memfs without writes or implicit 
   const result = await createDocxInspectionCommandEngine({ limits }).execute({
     args: ["capabilities", "/source.docx", "--json"].map((value) => encoder.encode(value)),
     cwd: "/",
-    filesystem: {
+    filesystem: streamingFixture({
       async readFile(path) {
         return new Uint8Array(volume.readFileSync(path) as Uint8Array);
       }
-    },
+    }),
     stdin: {
       [Symbol.asyncIterator]() {
         return {
@@ -209,12 +210,12 @@ it("shares admitted-byte capability behavior with the public SDK and rejects uns
       encoder.encode(value)
     ),
     cwd: "/",
-    filesystem: {
+    filesystem: streamingFixture({
       async readFile() {
         reads++;
         return bytes;
       }
-    },
+    }),
     stdin: {
       async *[Symbol.asyncIterator]() {
         yield bytes;
@@ -252,12 +253,12 @@ it("preserves capability failure categories and publishes no successful partial 
         ...(mode === "limit" ? ["--limit", "compressedInput=1"] : [])
       ].map((value) => encoder.encode(value)),
       cwd: "/",
-      filesystem: {
+      filesystem: streamingFixture({
         async readFile() {
           if (mode === "io") throw new Error("Private input details");
           return new Uint8Array([3, 5, 7]);
         }
-      },
+      }),
       stdin: {
         async *[Symbol.asyncIterator]() {
           yield new Uint8Array();
@@ -319,11 +320,11 @@ it("bounds the selected capabilities serialization independently of the alternat
       (value) => encoder.encode(value)
     ),
     cwd: "/",
-    filesystem: {
+    filesystem: streamingFixture({
       async readFile(path) {
         return new Uint8Array(volume.readFileSync(path) as Uint8Array);
       }
-    },
+    }),
     stdin: {
       [Symbol.asyncIterator]() {
         return {

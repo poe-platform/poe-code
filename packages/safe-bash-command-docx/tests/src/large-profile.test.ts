@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import { createDocumentArchive, createDocxInspectionCommandEngine, DocumentBudget, documentLimitDefaults, publishDocumentArchive, readDocumentArchive, parseDocumentXml, replaceDocumentText, extractDocumentText, writeArchive, writeDocumentArchive } from "../../src/sdk.js";
@@ -24,7 +25,7 @@ it("honors explicit node settings and operation overrides before memfs edits", a
     if (operationLimit !== undefined) args.push("--limit", `xmlNodes=${operationLimit}`);
     const options = { limits, documentLimits: { xmlNodes: hostNodes } };
     const result = await createDocxInspectionCommandEngine(options).execute({ args: args.map(value => new TextEncoder().encode(value)), cwd: "/", signal,
-      filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+      filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
       stdin: { [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("Undeclared input"); } }; } },
       stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
     return { ...result, body: JSON.parse(stdout) };
@@ -63,7 +64,7 @@ it("reports only explicit XML settings without hidden default ceilings", async (
   let stdout = "";
   const result = await createDocxInspectionCommandEngine({ limits }).execute({
     args: ["capabilities", "--json"].map(value => new TextEncoder().encode(value)), cwd: "/", signal,
-    filesystem: { async readFile() { throw new Error("Discovery must not acquire input"); } },
+    filesystem: streamingFixture({ async readFile() { throw new Error("Discovery must not acquire input"); } }),
     stdin: { async *[Symbol.asyncIterator]() { yield new Uint8Array(); } },
     stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} }
   });

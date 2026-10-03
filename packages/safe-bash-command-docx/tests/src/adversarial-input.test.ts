@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import fs from "node:fs";
 import http from "node:http";
@@ -214,7 +215,7 @@ it.each([
   const bytes = wire(parts(body)).bytes, chunks: Uint8Array[] = [], diagnostics: Uint8Array[] = [];
   const result = await createDocxInspectionCommandEngine({ limits: context.limits }).execute({
     args: ["validate", "-", "--json", ...flags].map(encode), cwd: "/", signal: context.signal,
-    filesystem: { async readFile() { throw new Error("Implicit filesystem read"); } },
+    filesystem: streamingFixture({ async readFile() { throw new Error("Implicit filesystem read"); } }),
     stdin: { async *[Symbol.asyncIterator]() { yield bytes; } },
     stdout: { async write(chunk) { chunks.push(chunk); } }, stderr: { async write(chunk) { diagnostics.push(chunk); } }
   });

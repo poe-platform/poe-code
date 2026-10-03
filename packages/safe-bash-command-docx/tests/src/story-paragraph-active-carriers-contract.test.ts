@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -17,7 +18,7 @@ it(`whole ${kind} assignment retains active paragraph/property carriers; ${varia
   const volume = Volume.fromJSON({ "/input": Buffer.from(input), "/out": "", "/err": "" }), stdout = { async write(b: Uint8Array) { volume.appendFileSync("/out", b); } };
   expect((await api.inspectDocumentStories(input, { operation: `${kind}.list`, options: {} }, textContext)).items.filter(i => i.variant === variant).map(i => [i.text, i.linked])).toEqual([["Old é 海", false], ["Old é 海", true]]);
   if (route === "sdk") expect((await api.editDocumentStories(input, { operation: `${kind}.set`, options: { section: 1, variant, shared: true, text: "New é 海", output: "-" } }, { ...textContext, encoding: { order: "input", compression: "store" }, stdout })).affectedSections).toEqual([1, 2]);
-  else { const result = await api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: [kind, "set", "/input", "--section", "1", "--variant", variant, "--shared", "--text", "New é 海", "--output", "-"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: { async readFile(p) { return new Uint8Array(volume.readFileSync(p) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(b) { volume.appendFileSync("/err", b); } } }); expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0); }
+  else { const result = await api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: [kind, "set", "/input", "--section", "1", "--variant", variant, "--shared", "--text", "New é 海", "--output", "-"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: streamingFixture({ async readFile(p) { return new Uint8Array(volume.readFileSync(p) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(b) { volume.appendFileSync("/err", b); } } }); expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0); }
   const output = new Uint8Array(volume.readFileSync("/out") as Buffer), before = readPackage(input), after = readPackage(output);
   expect([...after.keys()]).toEqual([...before.keys()]);
   for (const [p, bytes] of before) if (p !== "word/story.xml") expect(after.get(p), p).toEqual(bytes);

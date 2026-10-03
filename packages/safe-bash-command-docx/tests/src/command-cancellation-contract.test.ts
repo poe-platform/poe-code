@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { createDocxCommandEngine } from "../../src/command.js";
 
@@ -47,7 +48,7 @@ it.each([["inspect", "stdout"], ["diff", "stdout"], ["inspect", "stderr"]])("ret
   const result = await createDocxInspectionCommandEngine({ limits }).execute({
     args: [operation, "/input.docx", ...(operation === "diff" ? ["/input.docx"] : []), "--json"].map(value => encoder.encode(value)),
     cwd: "/", signal: controller.signal, stdin,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
     stdout: { async write() { if (sink === "stdout") controller.abort(); } }, stderr: { async write() { if (sink === "stderr") controller.abort(); } }
   });
   expect(result.exitCode).toBe(130);

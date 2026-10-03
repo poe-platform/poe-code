@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import type { DocxSchemaData } from "../../src/discovery.js";
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
@@ -48,7 +49,7 @@ it("uses SDK package URI operations through CLI JSON without document publicatio
   const batch = { version: 1, operations: [construct, { operation: `${prefix}.baseURI.get`, receiver, arguments: {} }] };
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["batch", "input.docx", "--ops-json", JSON.stringify(batch), "--json"].map(value => new TextEncoder().encode(value)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(fs.readFileSync(path) as Uint8Array); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+    filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(fs.readFileSync(path) as Uint8Array); } }), stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { fs.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { fs.appendFileSync("/err", bytes); } }
   });
   expect(result.exitCode).toBe(0);

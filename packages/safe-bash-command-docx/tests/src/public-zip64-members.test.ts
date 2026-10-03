@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { createHash } from "node:crypto";
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
@@ -22,7 +23,7 @@ async function runCli(input: Uint8Array, edit = false, actual = false) {
     volume.writeFileSync('/out', await fs.readFile('/out')); volume.writeFileSync('/err', execution.stderr); result = execution;
   } else result = await createDocxInspectionCommandEngine({ limits: context.limits }).execute({
     args: args.map(encode), cwd: "/", signal: context.signal,
-    filesystem: { async readFile(path) { expect(path).toBe("/input.bin"); return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+    filesystem: streamingFixture({ async readFile(path) { expect(path).toBe("/input.bin"); return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
     stdin: { [Symbol.asyncIterator]() { throw new Error("Unexpected input acquisition"); } },
     stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
   });

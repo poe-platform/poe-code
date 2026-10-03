@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
@@ -13,7 +14,7 @@ it(`${route} ${resource} list admission exposes the closed Diagnostic contract`,
   if (route === "engine") {
     const result = await api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
       args: [resource, "list", "/input", "--json"].map(value => new TextEncoder().encode(value)), cwd: "/", signal: textContext.signal,
-      filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+      filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
       stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} },
       stdin: { [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("No stdin authority"); } }; } }
     }); expect(result.exitCode).toBe(1);

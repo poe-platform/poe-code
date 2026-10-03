@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Document, createDocxInspectionCommandEngine, editDocumentTables, readArchive } from "../../src/sdk.js";
@@ -27,7 +28,7 @@ it.each(scenarios)(`F19-F20 span structural ${route} strict=${strict} ${carrier}
   } else {
     const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
       args: [...operation.split("."), "/input", "--table", "1", "--index", String(index), ...(operation === "tables.columns.add" ? ["--width", "250pt"] : []), "--output", "-"].map(enc),
-      cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+      cwd: "/", signal: textContext.signal, filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
       stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
     });
     expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);

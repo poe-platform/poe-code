@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, expectTypeOf, it } from "vitest";
 import { Volume } from "memfs";
 import * as docx from "../../src/sdk.js";
@@ -7,7 +8,7 @@ async function command(bytes: Uint8Array, args: string[]) {
   const volume = Volume.fromJSON({ "/input.docx": Buffer.from(bytes), "/stdout": "" });
   let stderr = "";
   const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: args.map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+    filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { volume.appendFileSync("/stdout", bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
   expect(volume.readFileSync("/input.docx")).toEqual(Buffer.from(bytes));
   return { ...result, stderr, stdout: new Uint8Array(volume.readFileSync("/stdout") as Buffer) };

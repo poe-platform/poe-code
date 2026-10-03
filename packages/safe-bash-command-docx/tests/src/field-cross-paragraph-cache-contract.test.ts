@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -18,7 +19,7 @@ it(`complex ${kind} cached text across ordinary paragraph boundaries retains par
   const input = new Uint8Array(volume.readFileSync('/input') as Buffer), stdout = { async write(b: Uint8Array) { volume.appendFileSync('/out',b); } };
   expect((await api.inspectDocumentFields(input,{},textContext)).items[0]).toMatchObject({kind,form:'complex',instruction,result:'OldSea',update:false,locked:true});
   if(route==='sdk') await api.editDocumentFields(input,{operation:'fields.set',options:{field:1,result:'New é 海',output:'-'}},{...textContext,encoding:{order:'input',compression:'store'},stdout});
-  else {const result=await api.createDocxInspectionCommandEngine({limits:textContext.limits}).execute({args:['fields','set','/input','--field','1','--result','New é 海','--output','-'].map(s=>new TextEncoder().encode(s)),cwd:'/',signal:textContext.signal,filesystem:{async readFile(path){return new Uint8Array(volume.readFileSync(path) as Buffer);}},stdin:{async *[Symbol.asyncIterator](){}},stdout,stderr:{async write(b){volume.appendFileSync('/err',b);}}});expect(result.exitCode,volume.readFileSync('/err','utf8') as string).toBe(0);}
+  else {const result=await api.createDocxInspectionCommandEngine({limits:textContext.limits}).execute({args:['fields','set','/input','--field','1','--result','New é 海','--output','-'].map(s=>new TextEncoder().encode(s)),cwd:'/',signal:textContext.signal,filesystem:streamingFixture({async readFile(path){return new Uint8Array(volume.readFileSync(path) as Buffer);}}),stdin:{async *[Symbol.asyncIterator](){}},stdout,stderr:{async write(b){volume.appendFileSync('/err',b);}}});expect(result.exitCode,volume.readFileSync('/err','utf8') as string).toBe(0);}
   const output=new Uint8Array(volume.readFileSync('/out') as Buffer),after=readPackage(output);
   for(const[name,bytes]of p)expect(after.get(name),name).toEqual(name==='word/document.xml'?new TextEncoder().encode(main.replace('>Old<','>New é 海<').replace('>Sea<','><')):bytes);
   expect((await api.inspectDocumentFields(output,{},textContext)).items[0]).toMatchObject({instruction,result:'New é 海',update:false,locked:true});

@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { createDocxInspectionCommandEngine, editDocumentNotes, inspectDocumentNotes, readArchive } from "../../src/sdk.js";
@@ -18,7 +19,7 @@ for (const route of ["sdk", "cli"] as const) it.each(["direct", "choice", "fallb
     const sink = { async write(bytes: Uint8Array) { volume.appendFileSync("/out", bytes); } };
     const cli = async (args: string[]) => createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
       args: args.map(enc), cwd: "/", signal: textContext.signal,
-      filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: sink,
+      filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout: sink,
       stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
     });
     if (route === "sdk") {

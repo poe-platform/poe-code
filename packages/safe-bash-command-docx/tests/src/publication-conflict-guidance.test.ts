@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { createDocxInspectionCommandEngine } from "../../src/inspection-command.js";
@@ -13,7 +14,7 @@ it.each([false, true])("explains publication conflict recovery without changing 
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["text", "replace", "/input.docx", "--find", "Draft", "--with", "Final", "--all", "--dry-run", "-o", alias ? "/input.docx" : "/existing.docx", ...(alias ? ["--force"] : []), "--json"].map(word => new TextEncoder().encode(word)),
     cwd: "/", signal: new AbortController().signal,
-    filesystem: {
+    filesystem: streamingFixture({
       capabilities: { write: true, atomicFileStaging: true },
       async createStagedFile() { throw new Error("Unexpected staging"); },
       async publishStagedFile() { throw new Error("Unexpected publication"); },
@@ -24,7 +25,7 @@ it.each([false, true])("explains publication conflict recovery without changing 
         return { type: s.isDirectory() ? "directory" : "file", size: s.size, mode: s.mode, mtimeMs: s.mtimeMs, ctimeMs: s.ctimeMs, atimeMs: s.atimeMs, ino: s.ino, dev: s.dev, nlink: s.nlink, identityScope: scope, revision: Math.floor(s.mtimeMs) };
       },
       async realpath(path) { return String(volume.realpathSync(path)); }
-    },
+    }),
     stdin: { [Symbol.asyncIterator]() { throw new Error("Unexpected stdin acquisition"); } },
     stdout: { async write(chunk) { stdout += new TextDecoder().decode(chunk); } },
     stderr: { async write(chunk) { stderr += new TextDecoder().decode(chunk); } }

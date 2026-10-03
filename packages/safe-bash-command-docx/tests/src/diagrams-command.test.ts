@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { paragraph, textFixture, textContext } from "../../../safe-bash-docx-engine/tests/fixtures/text.js";
@@ -11,7 +12,7 @@ it.each([false, true])("pairs public SDK and CLI native diagram and unknown grap
   const input = await diagramFixture({ strict, body: '<w:p><w:r><w:t>Original passage</w:t></w:r>' + diagramCarrier(strict) + '</w:p><w:p>' + diagramCarrier(strict, "urn:original:graphics").replace('id="1"', 'id="2"') + '</w:p>' });
   const volume = Volume.fromJSON({ "/input.docx": Buffer.from(input) }); let stdout = "", stderr = "";
   const result = await createDocxInspectionCommandEngine({ limits: diagramContext.limits }).execute({ args: ["diagrams", "list", "input.docx", "--json"].map(value => new TextEncoder().encode(value)), cwd: "/", signal: diagramContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+    filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
   expect(result.exitCode, stderr).toBe(0);
   const cli = JSON.parse(stdout), sdk = await inspectDocumentDiagrams(input, {}, diagramContext);
@@ -43,7 +44,7 @@ it("reads an empty diagram inventory once without publication or mutation", asyn
   const bytes = await textFixture(paragraph("Original bounded passage")), volume = Volume.fromJSON({ "/input.docx": Buffer.from(bytes) });
   let reads = 0, stdout = "", stderr = "";
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["diagrams", "list", "input.docx", "--json"].map(value => new TextEncoder().encode(value)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { reads++; return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+    filesystem: streamingFixture({ async readFile(path) { reads++; return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
   expect(result.exitCode, stderr).toBe(0); expect(reads).toBe(1);
   expect(JSON.parse(stdout)).toMatchObject({ operation: "diagrams.list", ok: true, data: { items: [] }, affected: 0, locations: [], warnings: [], errors: [] });
@@ -53,6 +54,6 @@ it("reads an empty diagram inventory once without publication or mutation", asyn
 it("rejects scoped diagram selection before capability reads", async () => {
   let reads = 0;
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["diagrams", "list", "input.docx", "--scope", "headers", "--json"].map(value => new TextEncoder().encode(value)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile() { reads++; throw new Error("Poisoned capability"); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} }, stderr: { async write() {} } });
+    filesystem: streamingFixture({ async readFile() { reads++; throw new Error("Poisoned capability"); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} }, stderr: { async write() {} } });
   expect(result.exitCode).toBe(2); expect(reads).toBe(0);
 });

@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
 import { Document, createDocxInspectionCommandEngine, replaceDocumentXmlPart, writeArchive } from "../../src/sdk.js";
@@ -42,7 +43,7 @@ for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const
   } else {
     const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
       args: ["xml", "set", "/input", "--part", "/_rels/.rels", "--file", "/replacement", ...(dryRun ? ["--dry-run"] : ["--output", "-"])].map(encode), cwd: "/", signal: textContext.signal,
-      filesystem: { async readFile(path) { expect(["/input", "/replacement"]).toContain(path); return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+      filesystem: streamingFixture({ async readFile(path) { expect(["/input", "/replacement"]).toContain(path); return new Uint8Array(volume.readFileSync(path) as Buffer); } }),
       stdin: { [Symbol.asyncIterator]() { throw new Error("Unexpected stdin acquisition"); } }, stdout,
       stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
     });

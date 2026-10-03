@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -14,7 +15,7 @@ it(`note whole-text assignment edits active paragraph and retains carrier; stric
   const volume = Volume.fromJSON({ "/input": Buffer.from(input), "/out": "", "/err": "" }), stdout = { async write(bytes: Uint8Array) { volume.appendFileSync("/out", bytes); } };
   expect((await api.inspectDocumentNotes(input, { operation: "notes.get", options: { kind, note: 1 } }, textContext)).items[0]!.text).toBe("Old é 海");
   if (route === "sdk") await api.editDocumentNotes(input, { operation: "notes.set", options: { kind, note: 1, text: "New é 海", output: "-" } }, { ...textContext, encoding: { order: "input", compression: "store" }, stdout });
-  else { const result = await api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["notes", "set", "/input", "--kind", kind, "--note", "1", "--text", "New é 海", "--output", "-"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } }); expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0); }
+  else { const result = await api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["notes", "set", "/input", "--kind", kind, "--note", "1", "--text", "New é 海", "--output", "-"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } }); expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0); }
   const output = new Uint8Array(volume.readFileSync("/out") as Buffer), current = await api.inspectDocumentNotes(output, { operation: "notes.get", options: { kind, note: 1 } }, textContext);
   expect(current.items[0]!.text).toBe("New é 海"); expect(current.items[0]!.references).toHaveLength(1); expect(current.separators).toHaveLength(2);
   const before = readPackage(input), after = readPackage(output); for (const [name, bytes] of before) if (name !== `word/${kind}s.xml`) expect(after.get(name), name).toEqual(bytes);

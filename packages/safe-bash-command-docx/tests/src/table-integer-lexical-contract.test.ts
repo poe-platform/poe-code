@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -15,7 +16,7 @@ it(`table ${field} admits XML integer lexical forms without rewriting storage; s
   const input = await textFixture(`<w:tbl xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:f="urn:original:count" mc:Ignorable="f" mc:ProcessContent="f:pass"><w:tblPr><!--table--><?owner retain?></w:tblPr><w:tblGrid>${'<w:gridCol w:w="1440"/>'.repeat(1 + before + after)}</w:tblGrid><w:tr><w:trPr>${field === "gridSpan" ? "" : property}</w:trPr><w:tc><w:tcPr><w:tcW w:type="dxa" w:w="1440"/>${field === "gridSpan" ? property : ""}</w:tcPr><w:p><w:r><w:t>Original é 海</w:t></w:r></w:p></w:tc></w:tr></w:tbl><w:sectPr/>`, {}, strict);
   const volume = Volume.fromJSON({ "/input": Buffer.from(input), "/out": "", "/err": "" });
   const stdout = { async write(bytes: Uint8Array) { volume.appendFileSync("/out", bytes); } };
-  const cli = async (args: string[]) => api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: args.map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
+  const cli = async (args: string[]) => api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: args.map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal, filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
   const coordinate = before ? "B1" : "A1";
   if (route === "model") {
     const doc = await api.Document(input, textContext), table = doc.tables[0]!;

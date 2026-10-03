@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "../../src/sdk.js";
@@ -22,7 +23,7 @@ it(`stored native note numbering start ${raw} is exact read-only metadata; ${kin
   expect(readPackage(new Uint8Array(volume.readFileSync("/model") as Buffer))).toEqual(readPackage(input));
   const cli = async (args: string[]) => api.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: args.map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(p) { return new Uint8Array(volume.readFileSync(p) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+    filesystem: streamingFixture({ async readFile(p) { return new Uint8Array(volume.readFileSync(p) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(b) { volume.appendFileSync("/out", b); } }, stderr: { async write(b) { volume.appendFileSync("/err", b); } }
   });
   const observe = (data: api.NoteReadData) => {

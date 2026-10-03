@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { createDocxInspectionCommandEngine } from "../../src/inspection-command.js";
@@ -27,11 +28,11 @@ it("inventories inert package bytes through the shared command engine", async ()
     args: ["objects", "list", "input.docx", "--json"].map((s) => new TextEncoder().encode(s)),
     cwd: "/",
     signal: chartContext.signal,
-    filesystem: {
+    filesystem: streamingFixture({
       async readFile(path) {
         return new Uint8Array(volume.readFileSync(path) as Buffer);
       }
-    },
+    }),
     stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: {
       async write(b) {
@@ -176,11 +177,11 @@ it("escapes declared resource types in human inventory output", async () => {
     {
       args: [],
       cwd: "/",
-      filesystem: {
+      filesystem: streamingFixture({
         async readFile() {
           throw new Error("Unexpected capability read");
         }
-      },
+      }),
       signal: chartContext.signal,
       stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: { async write() {} },

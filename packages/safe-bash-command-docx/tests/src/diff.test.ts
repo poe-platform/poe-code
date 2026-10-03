@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
@@ -133,7 +134,7 @@ it("resolves standard QName-valued XML attributes without rewriting arbitrary va
 });
 it("rejects incompatible comparison scope before reading inputs and permits one explicit stdin", async () => {
   let reads = 0, output = "";
-  const request = { cwd: "/", filesystem: { async readFile() { reads++; throw new Error("Must not acquire invalid request"); } }, stdin: { async *[Symbol.asyncIterator]() { yield new Uint8Array(); } }, stdout: { async write(bytes: Uint8Array) { output += decoder.decode(bytes); } }, stderr: { async write() {} }, signal: context.signal };
+  const request = { cwd: "/", filesystem: streamingFixture({ async readFile() { reads++; throw new Error("Must not acquire invalid request"); } }), stdin: { async *[Symbol.asyncIterator]() { yield new Uint8Array(); } }, stdout: { async write(bytes: Uint8Array) { output += decoder.decode(bytes); } }, stderr: { async write() {} }, signal: context.signal };
   const engine = createDocxInspectionCommandEngine({ limits });
   const result = await engine.execute({ ...request, args: ["diff", "left", "right", "--mode", "parts", "--scope", "body", "--json"].map(v => encoder.encode(v)) });
   expect(result.exitCode).toBe(2);

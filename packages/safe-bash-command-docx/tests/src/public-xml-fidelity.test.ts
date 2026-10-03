@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { createHash } from "node:crypto";
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
@@ -22,7 +23,7 @@ async function cli(input: Uint8Array, args: string[], replacement?: Uint8Array, 
   }
   const volume = Volume.fromJSON({ "/input": Buffer.from(input), "/replacement": Buffer.from(replacement ?? []), "/out": "", "/err": "" });
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: args.map(encode), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { expect(["/input", "/replacement"]).toContain(path); return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { [Symbol.asyncIterator]() { throw new Error("Unexpected stdin acquisition"); } },
+    filesystem: streamingFixture({ async readFile(path) { expect(["/input", "/replacement"]).toContain(path); return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { [Symbol.asyncIterator]() { throw new Error("Unexpected stdin acquisition"); } },
     stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } }
   });
   expect(volume.readFileSync("/input")).toEqual(Buffer.from(input));

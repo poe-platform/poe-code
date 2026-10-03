@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
 import { DocumentXmlEditor, createDocxInspectionCommandEngine, editDocumentControlRepeats, readArchive, writeArchive } from "../../src/sdk.js";
@@ -38,7 +39,7 @@ async function exercise(input: Uint8Array, strict: boolean, route: "sdk" | "cli"
     if (native) await expect(work).rejects.toMatchObject({ code: "unsupported-edit", message: "Modern comments cannot be cloned." });
     else expect((await work).changed).toBe(true);
   } else {
-    const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["controls", "repeat", "/input", "--control", "1", "--data-json", '[{"values":[]},{"values":[]}]', "--output", "-"].map(encode), cwd: "/", signal: textContext.signal, filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
+    const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["controls", "repeat", "/input", "--control", "1", "--data-json", '[{"values":[]},{"values":[]}]', "--output", "-"].map(encode), cwd: "/", signal: textContext.signal, filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
     if (native) { expect(result.exitCode).not.toBe(0); expect(volume.readFileSync("/err", "utf8")).toContain("unsupported-edit"); }
     else expect(result.exitCode, volume.readFileSync("/err", "utf8") as string).toBe(0);
   }

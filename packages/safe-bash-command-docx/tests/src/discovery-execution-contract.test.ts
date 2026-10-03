@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Ajv } from "ajv";
@@ -21,11 +22,11 @@ async function execute(input: Uint8Array, words: string[]) {
     args: words.map((word) => new TextEncoder().encode(word)),
     cwd: "/work",
     signal: textContext.signal,
-    filesystem: {
+    filesystem: streamingFixture({
       async readFile(path) {
         return new Uint8Array(volume.readFileSync(path) as Buffer);
       }
-    },
+    }),
     stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: {
       async write(bytes) {

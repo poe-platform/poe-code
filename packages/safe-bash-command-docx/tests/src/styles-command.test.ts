@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { createDocxInspectionCommandEngine, getDocxDiscovery, parseDocxArguments } from "../../src/sdk.js";
@@ -14,7 +15,7 @@ it("lists styles without changing the admitted file and advertises implemented s
   const volume = Volume.fromJSON({ "/work/input.docx": Buffer.from(bytes) });
   let stdout = "", stderr = "";
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["styles", "list", "input.docx", "--json"].map(a => new TextEncoder().encode(a)), cwd: "/work", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+    filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
   expect(result.exitCode).toBe(0);
   expect(JSON.parse(stdout)).toMatchObject({ version: 1, operation: "styles.list", ok: true, affected: 0, data: { styles: [{ id: "Coastal", name: "Coastal" }] } });
@@ -27,7 +28,7 @@ it("lists styles without changing the admitted file and advertises implemented s
 it.each([["--name", ""], ["--name", "Coastal", "--priority", "-1"], ["--name", "Coastal", "--color", "zzzzzz"], ["--name", "Coastal", "--size", "0.1pt"]].map(flags => [flags]))("rejects invalid style settings before input acquisition: %j", async flags => {
   let reads = 0;
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["styles", "set", "input.docx", ...flags, "--bold", "true", "--dry-run", "--json"].map(a => new TextEncoder().encode(a)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile() { reads++; return new Uint8Array(); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} }, stderr: { async write() {} } });
+    filesystem: streamingFixture({ async readFile() { reads++; return new Uint8Array(); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} }, stderr: { async write() {} } });
   expect(result.exitCode).toBe(2);
   expect(reads).toBe(0);
 });
@@ -40,7 +41,7 @@ it("publishes a style edit as pure package stdout and matches the SDK dry-run re
     volume.writeFileSync("/output", "");
     let stderr = "";
     const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["styles", "set", "input.docx", "--name", "Coastal", "--bold", "false", ...flags].map(a => new TextEncoder().encode(a)), cwd: "/work", signal: textContext.signal,
-      filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+      filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: { async write(bytes) { volume.appendFileSync("/output", bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
     expect(stderr).toBe("");
     expect(result.exitCode).toBe(0);
@@ -61,7 +62,7 @@ it("reads document defaults and reports missing style lookup without publishing 
   const execute = async (words: string[]) => {
     let stdout = "";
     const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: [...words, "--json"].map(a => new TextEncoder().encode(a)), cwd: "/work", signal: textContext.signal,
-      filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
+      filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
     return { ...result, report: JSON.parse(stdout) };
   };
   expect(await execute(["styles", "defaults", "get", "input.docx"])).toMatchObject({ exitCode: 0, report: { ok: true, affected: 0, data: { defaults: { run: { bold: true } } } } });
@@ -74,7 +75,7 @@ it("shows direct and inherited style properties in human inspection", async () =
   let stdout = "";
   const volume = Volume.fromJSON({ "/input.docx": Buffer.from(bytes) });
   await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["styles", "get", "input.docx", "--name", "Coastal"].map(a => new TextEncoder().encode(a)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
+    filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
   expect(stdout).toContain('Direct: {"bold":true');
   expect(stdout).toContain('Inherited result: {"bold":true');
 });
@@ -91,7 +92,7 @@ it("creates Title through paragraph heading level zero and advertises the bounde
   const volume = Volume.fromJSON({ "/input.docx": Buffer.from(bytes), "/output": "" });
   let stderr = "";
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["paragraphs", "add", "input.docx", "--level", "0", "--text", "Coastal title", "--output", "-"].map(a => new TextEncoder().encode(a)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { volume.appendFileSync("/output", bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
+    filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { volume.appendFileSync("/output", bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
   expect(result.exitCode).toBe(0);
   expect(stderr).toBe("");
   const document = new Uint8Array(volume.readFileSync("/output") as Buffer);
@@ -105,7 +106,7 @@ it("creates Title through paragraph heading level zero and advertises the bounde
 it("rejects an explicit style together with heading level zero before acquiring input", async () => {
   let reads = 0;
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["paragraphs", "add", "input.docx", "--level", "0", "--style", "Coastal", "--dry-run", "--json"].map(a => new TextEncoder().encode(a)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile() { reads++; return new Uint8Array(); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} }, stderr: { async write() {} } });
+    filesystem: streamingFixture({ async readFile() { reads++; return new Uint8Array(); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} }, stderr: { async write() {} } });
   expect(result.exitCode).toBe(2);
   expect(reads).toBe(0);
 });
@@ -115,7 +116,7 @@ it("keeps human style inspection focused on populated properties", async () => {
   let stdout = "";
   const volume = Volume.fromJSON({ "/input.docx": Buffer.from(bytes) });
   await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["styles", "get", "input.docx", "--name", "Label"].map(a => new TextEncoder().encode(a)), cwd: "/", signal: textContext.signal,
-    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
+    filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }), stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
   expect(stdout).toContain('Direct: {"bold":true}');
   expect(stdout).not.toContain('"italic":null');
 });
@@ -134,10 +135,10 @@ it("accepts built-in Heading1..9 styleId aliases in styles get and styles set", 
     args: ["styles", "set", "input.docx", "--name", "Heading1", "--size", "18pt", "--color", "1B365D", "--dry-run", "--json"].map(a => new TextEncoder().encode(a)),
     cwd: "/",
     signal: textContext.signal,
-    filesystem: {
+    filesystem: streamingFixture({
       async readFile(p) { return new Uint8Array(volume.readFileSync(p) as Buffer); },
       async writeFile(p, data) { volume.writeFileSync(p, Buffer.from(data)); }
-    },
+    }),
     stdin: { async *[Symbol.asyncIterator]() {} },
     stdout: { async write(b) { stdout += new TextDecoder().decode(b); } },
     stderr: { async write() {} }

@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { Volume } from "memfs";
 import { expect, it, vi } from "vitest";
 import * as api from "../../src/sdk.js";
@@ -42,7 +43,7 @@ it(`reports generated location capacity as a resource failure; strict=${strict};
   } else {
     const engine = api.createDocxInspectionCommandEngine({ limits: textContext.limits, documentLimits: { xmlDepth: 16384 } });
     const result = await engine.execute({ args: ["text", "/input", "--json"].map(arg => new TextEncoder().encode(arg)), cwd: "/", signal: ctx.signal,
-      filesystem: { async readFile(path) { return new Uint8Array(memory.readFileSync(path) as Buffer); } },
+      filesystem: streamingFixture({ async readFile(path) { return new Uint8Array(memory.readFileSync(path) as Buffer); } }),
       stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { memory.appendFileSync("/stdout", bytes); } }, stderr: { async write() {} } });
     const envelope = JSON.parse(String(memory.readFileSync("/stdout")));
     expect(result.exitCode).toBe(boundary === "normal" ? 0 : 4);

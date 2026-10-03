@@ -1,3 +1,4 @@
+import { streamVolume } from "../../../safe-bash-docx-engine/tests/fixtures/stream-volume.js";
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
 import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
@@ -51,7 +52,7 @@ for (const strict of [false, true]) for (const encoded of [false, true]) for (co
   } else {
     const command = createDocxInspectionCommandEngine({ limits: textContext.limits });
     const run = (args: string[]) => command.execute({ args: args.map(encode), cwd: "/", signal: textContext.signal,
-      filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } },
+      filesystem: { readStream(path) { return streamVolume(volume, path); }, async readFile() { throw new Error("Unexpected whole-file read"); } },
       stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
     expect((await run(["xml", "get", "/input", "--part", canonical, "--raw"])).exitCode, String(volume.readFileSync("/err"))).toBe(0);
     expect(volume.readFileSync("/out")).toEqual(Buffer.from(original));
@@ -115,7 +116,7 @@ for (const strict of [false, true]) for (const encoded of [false, true]) for (co
       if (route === "cli") {
         volume.writeFileSync("/err", "");
         const result = await engine.execute({ args: ["batch", "/input", "--ops-json", JSON.stringify(batch), "--output", "-"].map(encode), cwd: "/", signal: textContext.signal,
-          filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} },
+          filesystem: { readStream(path) { return streamVolume(volume, path); }, async readFile() { throw new Error("Unexpected whole-file read"); } }, stdin: { async *[Symbol.asyncIterator]() {} },
           stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
         expect(result.exitCode, String(volume.readFileSync("/err"))).toBe(0);
       } else {

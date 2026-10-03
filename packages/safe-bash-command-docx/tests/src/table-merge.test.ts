@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { editDocumentTables, type TableEditRequest } from "../../../safe-bash-docx-engine/src/table-edit.js";
@@ -108,7 +109,7 @@ it("routes direct merge flags through the same SDK with a structured dry-run res
   const bytes = await textFixture(square), volume = Volume.fromJSON({ "/out": "", "/err": "" });
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: ["tables", "merge", "-", "--table", "1", "--from", "A1", "--to", "B2", "--join", "paragraphs", "--dry-run", "--json"].map(s => new TextEncoder().encode(s)),
-    cwd: "/", signal: textContext.signal, filesystem: { async readFile() { throw new Error("Unexpected file read"); } },
+    cwd: "/", signal: textContext.signal, filesystem: streamingFixture({ async readFile() { throw new Error("Unexpected file read"); } }),
     stdin: { async *[Symbol.asyncIterator]() { yield bytes; } }, stdout: { async write(chunk) { volume.appendFileSync("/out", chunk); } }, stderr: { async write(chunk) { volume.appendFileSync("/err", chunk); } }
   });
   expect(result.exitCode).toBe(0);

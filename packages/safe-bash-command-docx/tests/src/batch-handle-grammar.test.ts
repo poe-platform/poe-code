@@ -1,3 +1,4 @@
+import { streamingFixture } from "../fixtures/streaming-filesystem.js";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { expect, it, vi } from "vitest";
 import { createDocxInspectionCommandEngine, validateDocxBatch } from "../../src/sdk.js";
@@ -55,7 +56,7 @@ it.each([
       ),
       cwd: "/work",
       signal: new AbortController().signal,
-      filesystem: { readFile },
+      filesystem: streamingFixture({ readFile }),
       stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: { async write() {} },
       stderr: { async write() {} }
@@ -79,7 +80,7 @@ it.each([{ index: 0 }, { key: "title" }, { index: 0, key: "title" }])(
       ),
       cwd: "/work",
       signal: new AbortController().signal,
-      filesystem: { readFile },
+      filesystem: streamingFixture({ readFile }),
       stdin: { async *[Symbol.asyncIterator]() {} },
       stdout: { async write() {} },
       stderr: { async write() {} }

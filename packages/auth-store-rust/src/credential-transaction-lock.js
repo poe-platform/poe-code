@@ -1,18 +1,22 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 function hasOwnErrorCode(error, code) { return error instanceof Error && Object.hasOwn(error, "code") && error.code === code; }
+function unwrap(result) {
+    if (Object.hasOwn(result, "error")) throw new Error(result.error);
+    return result.value;
+}
 /** Filesystem bakery lock: unique claims allow dead-owner cleanup without deleting a replacement owner's lock. */
-export async function withSecretStoreFileLock(fs, lockDirectory, operation, options = {}) {
+export function createCredentialLockBindings(native) {
+  return async function withSecretStoreFileLock(fs, lockDirectory, operation, options = {}) {
     options = { ...options, signal: options.signal, timeoutMs: options.timeoutMs };
     const timeoutMs = options.timeoutMs ?? Infinity;
-    if (timeoutMs !== Infinity && (!Number.isFinite(timeoutMs) || timeoutMs < 0 || timeoutMs > 2_147_483_647))
-        throw new Error("Invalid secret-store transaction lock timeout");
+    unwrap(native.lockTimeout(typeof timeoutMs === "number" ? timeoutMs : NaN));
     options.signal?.throwIfAborted();
     const deadline = performance.now() + timeoutMs;
     const directory = path.resolve(lockDirectory);
-    await assertLockDirectoryPath(fs, directory);
+    await assertLockDirectoryPath(fs, directory, native);
     await fs.mkdir(directory, { recursive: true, mode: 0o700 });
-    await assertLockDirectoryPath(fs, directory);
+    await assertLockDirectoryPath(fs, directory, native);
     const name = `${process.pid}-${randomUUID()}.claim`;
     const claimPath = path.join(directory, name);
     const temporaryPath = `${claimPath}.tmp`;
@@ -28,7 +32,7 @@ export async function withSecretStoreFileLock(fs, lockDirectory, operation, opti
                 claimed = false;
             throw error;
         }
-        const existing = await readClaims(fs, directory, name);
+        const existing = await readClaims(fs, directory, name, native);
         const ticket = existing.reduce((max, claim) => Math.max(max, claim.ticket ?? 0), 0) + 1;
         if (!Number.isSafeInteger(ticket))
             throw new Error("Secret-store transaction lock ticket overflow");
@@ -45,7 +49,7 @@ export async function withSecretStoreFileLock(fs, lockDirectory, operation, opti
         temporaryCreated = false;
         for (;;) {
             options.signal?.throwIfAborted();
-            const peers = await readClaims(fs, directory, name);
+            const peers = await readClaims(fs, directory, name, native);
             if (!peers.some(peer => peer.ticket === null || peer.ticket < ticket || (peer.ticket === ticket && peer.name < name)))
                 break;
             const remaining = deadline - performance.now();
@@ -80,6 +84,7 @@ export async function withSecretStoreFileLock(fs, lockDirectory, operation, opti
     if ("error" in outcome)
         throw outcome.error;
     return outcome.result;
+  };
 }
 async function assertNoSymbolicLink(fs, target) {
     try {
@@ -91,26 +96,15 @@ async function assertNoSymbolicLink(fs, target) {
             throw error;
     }
 }
-async function assertLockDirectoryPath(fs, directory) {
-    const root = path.parse(directory).root;
-    const segments = directory.slice(root.length).split(path.sep).filter(Boolean);
-    let current = root;
-    for (const [index, segment] of segments.entries()) {
-        current = path.join(current, segment);
-        // Match encrypted credential paths: allow OS root aliases such as macOS /var.
-        if (index > 0 || segments.length === 1)
-            await assertNoSymbolicLink(fs, current);
-    }
+async function assertLockDirectoryPath(fs, directory, native) {
+    for (const current of native.lockProtectedPaths(directory, path.parse(directory).root.length, path.sep.charCodeAt(0)))
+        await assertNoSymbolicLink(fs, current);
 }
-async function readClaims(fs, directory, ownName) {
+async function readClaims(fs, directory, ownName, native) {
     const claims = [];
     for (const name of await fs.readdir(directory)) {
-        if (name === ownName || !name.endsWith(".claim"))
-            continue;
-        const pidText = name.slice(0, name.indexOf("-"));
-        const pid = Number(pidText);
-        if (!Number.isSafeInteger(pid) || pid < 1 || String(pid) !== pidText)
-            throw new Error("Malformed secret-store transaction lock owner");
+        const pid = unwrap(native.lockOwner(name, ownName));
+        if (pid === null) continue;
         const target = path.join(directory, name);
         await assertNoSymbolicLink(fs, target);
         let alive = true;

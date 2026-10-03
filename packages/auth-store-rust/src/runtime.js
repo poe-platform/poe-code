@@ -10,9 +10,10 @@ import { promises as defaultFs } from "node:fs";
 import { homedir, hostname, userInfo } from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
-import { withSecretStoreFileLock } from "./credential-transaction-lock.js";
+import { createCredentialLockBindings } from "./credential-transaction-lock.js";
 // Bundled once alongside each consuming addon; no package import is needed.
 export function createCredentialStoreBindings(native) {
+  const withSecretStoreFileLock = createCredentialLockBindings(native);
   const derivedKeys = new native.NativeDerivedKeyCache();
   const derivations = new Map();
   function ownCode(error, code) {

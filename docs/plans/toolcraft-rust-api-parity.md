@@ -4837,3 +4837,40 @@ The catalog checkpoint is verified on remote main at 92e0361fe0. Main Release
 37101346847 completed successfully with its build passing and stable publication
 skipped. The catalog Release 37102178832 remains pending; no native publication
 is claimed.
+
+### Credential filesystem lock admission checkpoint
+
+The shared Rust credential core now owns timeout admission, canonical positive
+safe-integer claim PID validation, own/non-claim filtering and protected lock-path
+selection. The native adapter injects the same policy into standalone auth-store,
+embedded OAuth and embedded MCP client bindings. Node retains filesystem promises,
+process liveness probes, cancellation objects, JSON host semantics and cleanup.
+Ticket selection and predecessor ordering still remain in the JavaScript adapter;
+this is a partial lock port, not completion of the credential dependency rewrite.
+
+Three Rust tests first failed because the lock module was missing. They now cover
+the timer domain including Infinity, safe-integer PID boundaries and Windows/Unix
+path protection. Three additional native differential tests cover over 1,100 claim names,
+invalid timeout types and abort precedence, root paths, symlinks, lone surrogates
+and observable filesystem callback order against the original lock implementation.
+The original 26 transaction-lock cases remain in the full Toolcraft reference route.
+
+The maintained four-package test route passes: OAuth retains 772 reference cases
+and 114 native checks, the client 445 cases and 83 native checks, and Toolcraft
+6,200 cases across 125 files plus 266 native checks. The credential route was run
+again after adding the differential fixtures and passes all 31 native checks,
+Rust tests and strict types. Both routes finish their root posttest hook. Maintained
+Rust/binding lint and scoped JavaScript lint pass. Thirteen packed own packages
+again pass credential runtime and strict standalone-type verification.
+
+An indicative warmed, alternating seven-round benchmark on Node 22.23.2 ARM64
+(300 acquisitions per round, memfs, uncontended lock with callback result checks)
+measured 118.925/89.314 microseconds native/reference for an empty lock directory
+(1.33 times slower), and 132.609/98.114 microseconds with 32 ignored staging names
+(1.35 times slower). Concurrent build load limits cross-run comparisons. No
+performance or replacement gate passed, and no dependency was added.
+
+The cancellation repair and Node facade are verified on remote main at 4684028a6b
+and 122ef299fd. Their queued release runs were superseded. Descendant Release
+37103492044 completed successfully with its build passing and stable publication
+skipped; no native package publication is claimed.

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Volume, createFsFromVolume } from "memfs";
 import { EncryptedFileStore, KeychainStore } from "../dist/index.js";
-import { withSecretStoreFileLock } from "../dist/credential-transaction-lock.js";
+import { withSecretStoreFileLock } from "./lock-entry.mjs";
 
 for (const backend of ["file", "keychain", "raw"]) {
   for (const cancelOriginal of [true, false]) {

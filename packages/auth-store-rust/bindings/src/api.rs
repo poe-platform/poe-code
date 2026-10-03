@@ -133,6 +133,41 @@ pub fn provider_key(provider: Utf16String) -> Utf16String {
     text.into()
 }
 
+#[napi]
+pub fn lock_timeout(timeout: f64) -> convert::NativeJson {
+    envelope(
+        auth_store_rust::lock::validate_timeout(timeout)
+            .map(|()| Value::Null)
+            .map_err(|message| message.encode_utf16().collect()),
+    )
+}
+
+#[napi]
+pub fn lock_owner(name: Utf16String, own_name: Utf16String) -> convert::NativeJson {
+    envelope(
+        auth_store_rust::lock::owner(&name, &own_name)
+            .map(|pid| pid.map_or(Value::Null, Value::Number))
+            .map_err(|message| message.encode_utf16().collect()),
+    )
+}
+
+#[napi]
+pub fn lock_protected_paths(
+    resolved: Utf16String,
+    root_len: u32,
+    separator: u32,
+) -> Result<Vec<Utf16String>> {
+    if root_len as usize > resolved.len() || separator > 65535 {
+        return Err(napi::Error::from_reason("Invalid credential path"));
+    }
+    Ok(
+        auth_store_rust::lock::protected_paths(&resolved, root_len as usize, separator as u16)
+            .into_iter()
+            .map(Utf16String::from)
+            .collect(),
+    )
+}
+
 use std::cell::RefCell;
 #[napi]
 #[derive(Default)]

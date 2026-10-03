@@ -21,9 +21,11 @@ await store.set("my-secret");
 const secret = await store.get();
 ```
 
-Rust owns document validation, credential path admission, Keychain command/result
-policy, backend selection and migration/rollback plans. Node supplies filesystem,
-process and platform cryptography operations. Existing consumers are unchanged.
+Rust owns document validation, credential and lock path admission, lock timeout
+and owner validation, Keychain command/result policy, backend selection and
+migration/rollback plans. Node supplies filesystem, process and platform cryptography
+operations; lock ticket selection and waiter ordering still run in the adapter.
+Existing consumers are unchanged.
 
 The completed-key cache retains at most 64 entries with least-recently-used eviction.
 Identity keys exceeding 16,384 UTF-16 units bypass caching. Concurrent derivations

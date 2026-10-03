@@ -23,7 +23,7 @@ export default defineConfig({
         }
         if (authStoreSuites.some(suite => importer === path(`../auth-store/src/${suite}.test.ts`))) {
           if (["./index.js", "./encrypted-file-store.js", "./keychain-store.js", "./provider-store.js"].includes(name)) return path("dist/auth-store.js");
-          if (name === "./transaction-lock.js") return path("../auth-store-rust/dist/credential-transaction-lock.js");
+          if (name === "./transaction-lock.js") return path("../auth-store-rust/tests/lock-entry.mjs");
         }
         if (httpSuites.some(suite => importer === path(`../toolcraft/src/${suite}`))) {
           if (name === "./http.js") return path("dist/http.js");

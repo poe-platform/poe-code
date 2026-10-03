@@ -1,31 +1,27 @@
+import { pythonSingleByteCodepages, decodePythonSingleByte, PythonTextDecodeError } from "./python-codepages.js";
 import { normalizeEncoding, pythonCodecAliases } from "./python-codec-aliases.js";
 
 /** Existing CSV text codecs shared with Python-style file consumers. Callers
  * feed bounded chunks; this decoder never owns filesystem or payload storage. */
 const utf8Signature=Uint8Array.of(0xef,0xbb,0xbf);
-export class PythonTextDecodeError extends Error {}
+export { PythonTextDecodeError } from "./python-codepages.js";
 export class PythonTextDecoder {
  readonly encoding:string;
  private readonly decoder:TextDecoder;
+ private readonly codepoints:readonly number[]|undefined;
  private signatureOffset=0;
  private signatureComplete:boolean;
  constructor(encoding:string){
   const name=normalizeEncoding(encoding);
   const canonical=Object.hasOwn(pythonCodecAliases,name)?pythonCodecAliases[name]:undefined;
-  if(canonical===undefined||!['utf-8-sig','utf-8','ascii','iso8859-1'].includes(canonical))throw new RangeError(`unknown encoding: ${encoding}`);
+  if(canonical===undefined||(!['utf-8-sig','utf-8'].includes(canonical)&&!Object.hasOwn(pythonSingleByteCodepages,canonical)))throw new RangeError(`unknown encoding: ${encoding}`);
   this.encoding=canonical;
+  this.codepoints=pythonSingleByteCodepages[canonical];
   this.signatureComplete=canonical!=='utf-8-sig';
   this.decoder=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});
  }
  decode(bytes?:Uint8Array,options?:{stream?:boolean}):string{
-  if(['ascii','iso8859-1'].includes(this.encoding)){
-   let text='';
-   for(const byte of bytes??[]){
-    if(this.encoding==='ascii'&&byte>127)throw new PythonTextDecodeError('Invalid ASCII input');
-    text+=String.fromCharCode(byte);
-   }
-   return text;
-  }
+  if(this.codepoints)return decodePythonSingleByte(bytes??new Uint8Array(),this.codepoints,this.encoding);
   try{
    let offset=0;
    if(!this.signatureComplete){

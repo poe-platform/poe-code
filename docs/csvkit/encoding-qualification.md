@@ -91,3 +91,8 @@ gates requiring committed authority remain incompatible with this deliberately
 uncommitted worktree; no commit, gate weakening or live overlay is authorized.
 No full repository unit success, README publication, staging, commit, push or
 release is claimed.
+
+The existing single-byte mapping tables and strict decode loop are shared through
+`safe-bash-csv-engine/python-codepages`; CSVkit retains its codec descriptor names,
+ordering, encoding and diagnostic behavior. The shared file decoder additionally
+checks every byte of all 24 supported single-byte codecs against CPython 3.9.

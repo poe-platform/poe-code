@@ -5,7 +5,7 @@ import { pythonCodecAliases, normalizeEncoding } from "safe-bash-csv-engine/pyth
 export { normalizeEncoding } from "safe-bash-csv-engine/python-codec-aliases";
 import { decodeFrames } from "./frames.js";
 import { utf8Codec } from "./utf8.js";
-import { dbfCodepages } from './dbf-codepages.js';
+import { dbfCodepages, pythonSingleByteCodepages, decodePythonSingleByte, PythonTextDecodeError } from "safe-bash-csv-engine/python-codepages";
 
 export function resolveCodec(providers: readonly CodecProvider[], encoding: string): { readonly codec: CodecProvider; readonly encoding: string } {
   const name = normalizeEncoding(encoding);
@@ -25,13 +25,6 @@ function decodingError(encoding: string): PythonException {
   return new PythonException("UnicodeDecodeError", `${encoding} decoding failed`);
 }
 
-const cp1252High = [
-  0x20ac, -1, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021,
-  0x02c6, 0x2030, 0x0160, 0x2039, 0x0152, -1, 0x017d, -1,
-  -1, 0x2018, 0x2019, 0x201c, 0x201d, 0x2022, 0x2013, 0x2014,
-  0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, -1, 0x017e, 0x0178
-];
-
 interface EncodingDescriptor {
   readonly name: string;
   readonly width: 1 | 2;
@@ -45,11 +38,11 @@ function createCodec(descriptor: EncodingDescriptor): CodecProvider {
     for await (const frame of decodeFrames(source, signal)) {
       signal.throwIfAborted();
       if (descriptor.width === 1) {
-        let text = "";
-        for (const byte of frame) {
-          const code = descriptor.codepoints![byte]!;
-          if (code < 0) throw decodingError(descriptor.name);
-          text += String.fromCodePoint(code);
+        let text: string;
+        try { text = decodePythonSingleByte(frame, descriptor.codepoints!, descriptor.name); }
+        catch (error) {
+          if (error instanceof PythonTextDecodeError) throw decodingError(descriptor.name);
+          throw error;
         }
         yield text;
       } else {
@@ -131,8 +124,8 @@ export const pythonCodecs: readonly CodecProvider[] = Object.freeze([
     { name: "utf-16", width: 2, byteOrder: "signature" },
     { name: "utf-16-le", width: 2, byteOrder: "little" },
     { name: "utf-16-be", width: 2, byteOrder: "big" },
-    { name: "ascii", width: 1, codepoints: Array.from({ length: 256 }, (_, byte) => byte < 128 ? byte : -1) },
-    { name: "iso8859-1", width: 1, codepoints: Array.from({ length: 256 }, (_, byte) => byte) },
-    { name: "cp1252", width: 1, codepoints: Array.from({ length: 256 }, (_, byte) => byte >= 128 && byte < 160 ? cp1252High[byte - 128]! : byte) }
+    { name: "ascii", width: 1, codepoints: pythonSingleByteCodepages.ascii! },
+    { name: "iso8859-1", width: 1, codepoints: pythonSingleByteCodepages["iso8859-1"]! },
+    { name: "cp1252", width: 1, codepoints: pythonSingleByteCodepages.cp1252! }
   ] satisfies EncodingDescriptor[]).map(createCodec)
 ]);

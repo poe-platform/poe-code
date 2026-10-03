@@ -14,6 +14,14 @@ export async function verifyLlmCollections() {
   });
   if(signatureRows!==1)throw new Error('Incomplete signature did not yield an empty row');
   await globFs.unlink('/signature');
+  for(const [encoding,byte,expected]of [['windows-1252',0x80,'€'],['mac-roman',0x80,'Ä'],['cp437',0x80,'Ç'],['cp1251',0xc0,'А']]){
+    await globFs.writeFile('/legacy',Uint8Array.of(byte));let count=0;
+    await withFileEmbeddingEntries({fs:globFs,directory:'/',signal:new AbortController().signal,encodings:[encoding]},{async *[Symbol.asyncIterator](){yield {path:'/legacy',id:'legacy'};}},async entries=>{
+      for await(const entry of entries){count++;let text='';for await(const bytes of entry.input.bytes)text+=new TextDecoder().decode(bytes);if(text!==expected)throw new Error('Legacy codec changed: '+encoding);}
+    });
+    if(count!==1)throw new Error('Legacy codec row missing: '+encoding);
+  }
+  await globFs.unlink('/legacy');
   await globFs.mkdir('/nested');
   await globFs.writeFile('/first.txt',new TextEncoder().encode('first'));
   await globFs.writeFile('/nested/second.txt',new TextEncoder().encode('second'));

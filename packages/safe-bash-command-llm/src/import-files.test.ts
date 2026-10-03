@@ -96,3 +96,15 @@ test('UTF8-sig incomplete signatures import as empty text instead of being skipp
   assert.equal(count,1);assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['prefix']);
  }
 });
+
+test('single-byte file codecs preserve Python characters, strict errors and staging cleanup',async()=>{
+ const fs=new MemoryFileSystem();
+ for(const [encoding,byte,expected]of [['windows-1252',0x80,'€'],['mac-roman',0x80,'Ä'],['cp437',0x80,'Ç'],['cp1251',0xc0,'А'],['cp1252',0x81,null]] as const){
+  await fs.writeFile('/legacy',Uint8Array.of(byte));const values:string[]=[],warnings:string[]=[];
+  await withFileEmbeddingEntries({fs,directory:'/',signal:new AbortController().signal,encodings:[encoding],undecodable(path){warnings.push(path);}},{async *[Symbol.asyncIterator](){yield {path:'/legacy',id:'legacy'};}},async entries=>{
+   for await(const entry of entries){let text='';for await(const bytes of entry.input.bytes)text+=new TextDecoder().decode(bytes);values.push(text);}
+  });
+  assert.deepEqual(values,expected===null?[]:[expected]);assert.deepEqual(warnings,expected===null?['/legacy']:[]);
+  assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['legacy']);
+ }
+});

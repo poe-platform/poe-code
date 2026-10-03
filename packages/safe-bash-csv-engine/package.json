@@ -30,6 +30,10 @@
     "./python-codec-aliases": {
       "types": "./dist/python-codec-aliases.d.ts",
       "import": "./dist/python-codec-aliases.js"
+    },
+    "./python-codepages": {
+      "types": "./dist/python-codepages.d.ts",
+      "import": "./dist/python-codepages.js"
     }
   },
   "files": [

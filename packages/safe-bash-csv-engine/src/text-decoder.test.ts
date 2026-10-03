@@ -50,3 +50,22 @@ test('Python codec aliases and punctuation retain canonical decoding behavior',(
 test('Python rejects near aliases and inherited object names',()=>{
  for(const name of ['utf8-sig','utf.8','latin.1','constructor','__proto__'])assert.throws(()=>new PythonTextDecoder(name),RangeError);
 });
+
+
+test('single-byte codecs match every byte from the pinned Python 3.9 oracle',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const reference=JSON.parse(await readFile(new URL('./fixtures/single-byte-python39.json',import.meta.url),'utf8')) as {cases:{name:string;canonical:string;values:(string|null)[]}[]};
+ for(const {name,canonical,values}of reference.cases){
+  for(const alias of new Set([name,canonical])){
+   const decoder=new PythonTextDecoder(alias);let accepted='';
+   for(let byte=0;byte<256;byte++){
+    const value=values[byte];
+    if(value===null)assert.throws(()=>decoder.decode(Uint8Array.of(byte),{stream:true}),PythonTextDecodeError,`${alias}:${byte}`);
+    else {assert.equal(decoder.decode(Uint8Array.of(byte),{stream:true}),value,`${alias}:${byte}`);accepted+=value;}
+   }
+   assert.equal(decoder.decode(),'');
+   const bytes=Uint8Array.from(values.flatMap((value,byte)=>value===null?[]:[byte]));
+   assert.equal(new PythonTextDecoder(alias).decode(bytes),accepted,alias);
+  }
+ }
+});

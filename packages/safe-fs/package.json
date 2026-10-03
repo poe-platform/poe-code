@@ -163,6 +163,13 @@
     "./bridge": {
       "types": "./dist/bridge/index.d.ts",
       "import": "./dist/bridge/index.js"
+    },
+    "./storage": {
+      "types": "./dist/storage.d.ts",
+      "workerd": "./dist/storage.js",
+      "browser": "./dist/storage.js",
+      "worker": "./dist/storage.js",
+      "import": "./dist/storage.js"
     }
   },
   "files": [

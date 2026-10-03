@@ -4,6 +4,13 @@ An asynchronous filesystem interface for memory, rooted host directories, S3, an
 
 Under `workerd` and `browser` conditions, the root export includes portable filesystems, `S3FileSystem`, and `MockS3Client`. Supply an S3 transport to use object storage without Node globals.
 
+The `storage` subpath exposes `PagedStorage` and `IntegerTable` for temporary
+working data. Supply `{fs, cwd, env, signal}` and an optional page-cache count
+(default 64 pages of 16 KiB). Scratch data uses retained positioned handles in
+`env.TMPDIR` or `cwd`, with conditional unlink and cleanup through `close()`.
+Providers must support those capabilities; there is no host fallback. Use an
+external backend for large data because memory filesystems retain spilled bytes.
+
 ## Quickstart
 
 Install the standalone package; it does not depend on SafeJS, Safe Bash, or the `poe-code` CLI. These examples use TypeScript in a Node ESM application.

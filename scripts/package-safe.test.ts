@@ -812,12 +812,14 @@ describe("isolated private command consumers", () => {
     const fsManifest = JSON.parse(volume.readFileSync("/repo/packages/safe-fs/package.json", "utf8").toString());
     fsManifest.exports["./core"] = { types: "./dist/core.d.ts", import: "./dist/core.js" };
     fsManifest.exports["./runtime-core"] = fsManifest.exports["./core"];
+    fsManifest.exports["./storage"] = fsManifest.exports["./core"];
     volume.writeFileSync("/repo/packages/safe-fs/package.json", JSON.stringify(fsManifest));
     volume.writeFileSync("/repo/packages/safe-fs/dist/core.js", fs.outputFiles[0]!.contents);
     // The command type fixture models only its external filesystem contracts;
     // complete published declarations are checked by the installed consumer.
     volume.writeFileSync("/repo/packages/safe-fs/dist/core.d.ts", ['errors', 'filesystem', 'io'].map(name => `export * from "./contracts/${name}.js";`).join("\n") + '\nexport { assertPathWithin, isPathWithin, normalizePath, relativePath, resolvePath, validatePath } from "./contracts/virtual-path.js";\nexport { basename, dirname, extname, isAbsolutePath, joinPath, posixPath } from "./contracts/portable-path.js";\nexport { readFileStream } from "./fs/read-file-stream.js";');
-    const declarationQueue = ["contracts/virtual-path.ts", "contracts/portable-path.ts", "contracts/errors.ts", "contracts/filesystem.ts", "contracts/io.ts", "fs/read-file-stream.ts", "platform/browser.ts", "platform/node.ts"], declared = new Set<string>();
+    volume.appendFileSync("/repo/packages/safe-fs/dist/core.d.ts", '\nexport { PagedStorage, IntegerTable } from "./storage.js";\n');
+    const declarationQueue = ["storage.ts", "contracts/virtual-path.ts", "contracts/portable-path.ts", "contracts/errors.ts", "contracts/filesystem.ts", "contracts/io.ts", "fs/read-file-stream.ts", "platform/browser.ts", "platform/node.ts"], declared = new Set<string>();
     while (declarationQueue.length) {
       const relative = declarationQueue.pop()!;
       if (declared.has(relative)) continue;
@@ -2827,4 +2829,57 @@ it("packs DOCX frontend and shared document types behind the existing command ro
   }
   const packed = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8"));
   expect(packed.dependencies).toEqual({});
+});
+
+it("ships filesystem storage as a public portable subpath without private packages", async () => {
+  const { volume, options } = optionalLeftovers();
+  const directory = fileURLToPath(new URL("../packages/safe-fs/", import.meta.url));
+  const manifest = JSON.parse(readFileSync(path.join(directory, "package.json"), "utf8"));
+  manifest.exports = { "./storage": manifest.exports["./storage"] };
+  volume.writeFileSync("/repo/packages/safe-fs/package.json", JSON.stringify(manifest));
+  const copy = (relative: string, owner = "safe-fs"): void => {
+    const source = path.resolve(directory, "..", owner);
+    for (const entry of readdirSync(path.join(source, relative), { withFileTypes: true })) {
+      const child = path.join(relative, entry.name);
+      if (entry.isDirectory()) copy(child, owner);
+      else {
+        const target = path.join("/repo/packages", owner, child);
+        volume.mkdirSync(path.dirname(target), { recursive: true });
+        volume.writeFileSync(target, readFileSync(path.join(source, child)));
+      }
+    }
+  };
+  copy("dist");
+  copy("native");
+  copy("src/native");
+  copy("dist", "xml-ast");
+  volume.writeFileSync("/repo/packages/xml-ast/package.json", readFileSync(path.resolve(directory, "../xml-ast/package.json")));
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const packed = JSON.parse(volume.readFileSync("/output/safe-fs/package.json", "utf8").toString());
+  expect(packed.exports["./storage"].workerd).toBe("./dist/safe-fs/storage.js");
+  expect(Object.keys(packed.dependencies ?? {}).filter(name => name.startsWith("@poe-code/") || name.startsWith("safe-bash"))).toEqual([]);
+  const result = await build({
+    entryPoints: [path.resolve("/output/safe-fs", packed.exports["./storage"].workerd)],
+    bundle: true, write: false, platform: "browser", format: "cjs", metafile: true,
+    plugins: [{ name: "isolated-packed-storage", setup(builder) {
+      builder.onResolve({ filter: /.*/ }, args => {
+        const target = args.path === "#safe-fs-platform"
+          ? path.resolve("/output/safe-fs", packed.imports[args.path].workerd)
+          : path.resolve(args.resolveDir, args.path);
+        if (!target.startsWith("/output/safe-fs/")) throw new Error("Unexpected package dependency: " + args.path);
+        return { path: target, namespace: "packed" };
+      });
+      builder.onLoad({ filter: /.*/, namespace: "packed" }, args => ({
+        contents: volume.readFileSync(args.path, "utf8").toString(), resolveDir: path.dirname(args.path)
+      }));
+    }}]
+  });
+  expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
+  const module = { exports: {} as { PagedStorage: new (context: unknown) => { append(bytes: Uint8Array): Promise<number>; read(position: number, length: number): Promise<Uint8Array>; close(): Promise<void> } } };
+  runInContext(result.outputFiles[0]!.text, createContext({module, exports: module.exports, AbortSignal, AbortController, Uint8Array}));
+  const storage = new module.exports.PagedStorage({fs: {}, cwd: "/", env: {}, signal: new AbortController().signal});
+  try {
+    const position = await storage.append(Uint8Array.of(1, 2, 3));
+    expect([...await storage.read(position, 3)]).toEqual([1, 2, 3]);
+  } finally {await storage.close();}
 });

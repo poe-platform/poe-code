@@ -26,3 +26,5 @@ export type { FileSystemConfig, FileSystemAdapterDescriptor, FileSystemAdapterRe
 export { createPortableFileSystemAdapterRegistry } from "./config.portable.js";
 
 export { readFileStream } from "./fs/read-file-stream.js";
+
+export { PagedStorage, IntegerTable, type PagedStorageContext } from "./storage.js";

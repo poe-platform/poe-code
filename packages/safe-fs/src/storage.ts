@@ -232,7 +232,9 @@ export class IntegerTable {
   /** Ordered replay with a fixed 16-level radix stack (at most 2 KiB of
    * owned node bytes) and 128 output records. Batches avoid alternating sparse
    * index reads with consumer writes on every record. Mutation is not permitted. */
-  async *entries(): AsyncGenerator<readonly [bigint, bigint]> {
+  async *entries(start = 0n, end = 0x10000000000000000n): AsyncGenerator<readonly [bigint, bigint]> {
+    if (start < 0n || start > end || end > 0x10000000000000000n) throw new RangeError("Invalid integer table range");
+    if (start === end) return;
     const revision = this.revision;
     const check = () => { if (revision !== this.revision) throw new Error("Integer table changed during iteration"); };
     for (const [key, entry] of this.cache) if (entry.dirty) {
@@ -250,6 +252,7 @@ export class IntegerTable {
         check(); const value = node.getBigUint64(slot * 8, true);
         if (!value) continue;
         const key = prefix | BigInt(slot) << shift;
+        if (key >= end || key + (1n << shift) <= start) continue;
         if (shift === 0n) yield [key, value - 1n];
         else yield* visit(Number(value), shift - 4n, key);
       }

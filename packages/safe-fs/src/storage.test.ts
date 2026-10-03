@@ -253,3 +253,19 @@ it.each([1, 3])("reuses %i backing buffers across eviction without exposing old 
   } finally {await storage.close();}
   expect(await fs.readdir("/")).toEqual([]);
 });
+
+it("prunes integer-table traversal to a half-open key range", async () => {
+  const bytes = new Uint8Array(2 * 1024 * 1024); let end = 128, reads = 0;
+  const table = new IntegerTable({ allocate(length) { const at = end; end += length; return at; },
+    async read(at, length) { reads++; return bytes.slice(at, at + length); }, async write(at, value) { bytes.set(value, at); } }, 8);
+  for (let sheet = 0; sheet < 50; sheet++) for (let cell = 0; cell < 10; cell++) await table.set(BigInt(sheet) << 24n | BigInt(cell), BigInt(cell));
+  for await (const ignoredEntry of table.entries()) { /* flush all dirty descriptors */ }
+  reads = 0;
+  const values = [];
+  for await (const entry of table.entries(20n << 24n, 21n << 24n)) values.push(entry);
+  expect(values).toEqual(Array.from({ length: 10 }, (_, i) => [20n << 24n | BigInt(i), BigInt(i)]));
+  expect(reads).toBeLessThan(25);
+  expect((await table.entries(5n, 5n).next()).done).toBe(true);
+  await expect(table.entries(-1n, 2n).next()).rejects.toThrow(RangeError);
+  await expect(table.entries(2n, 1n).next()).rejects.toThrow(RangeError);
+});

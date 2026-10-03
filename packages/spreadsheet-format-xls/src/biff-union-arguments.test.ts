@@ -47,3 +47,11 @@ it.each([7, 8] as const)("exports a union SUM operand without a redundant PtgPar
   expect([...writer.compile("=SUM(($A$11,$A$12))", "S", 0, 0).tokens])
     .toEqual([...ref(10), ...ref(11), 0x10, 0x42, 1, 4, 0]);
 });
+
+it.each([2, 3, 4, 5, 7, 8])("preserves a right-nested BIFF%i union as one area", revision => {
+  const ref = (row: number) => [0x24, row, 0, 0, ...(revision >= 8 ? [0] : [])];
+  const formula = translateBiffFormula(new Uint8Array([
+    ...ref(10), ...ref(11), ...ref(12), 0x10, 0x10, 0x21, 75, ...(revision >= 4 ? [0] : [])
+  ]), { revision, codepage: 1252, row: 0, column: 0, names: [], externalSheets: [], limit: 10000 });
+  expect(formula).toBe("=AREAS(($A$11,($A$12,$A$13)))");
+});

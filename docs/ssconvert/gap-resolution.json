@@ -4133,7 +4133,41 @@
         }
       },
       "nativeDistinction": "AREAS counts ungrouped three-member unions as 3 and explicitly grouped inner unions as 2. Existing engine behavior is correct. Native exported double-group XLSX fails its own reimport with All entries in the set must be references (93 stderr bytes); the single-group product spelling passes native readback.",
-      "remaining": "Explicit PtgParen around a SUM union produces native #VALUE! for both reference classes and both FuncVar/AttrSUM encodings; product imports return 0. Eight package SDK/command mismatches remain unresolved and are not counted as passes. Broader BIFF and all 19-family requirements remain open."
+      "remaining": "Explicit PtgParen around a SUM union produces native #VALUE! for both reference classes and both FuncVar/AttrSUM encodings; product imports return 0. Eight package SDK/command mismatches remain unresolved and are not counted as passes. Broader BIFF and all 19-family requirements remain open.",
+      "rightNesting": {
+        "repair": "Flatten only synthesized left union sets. A right union remains one set member, matching native BIFF import and AREAS counts.",
+        "source": {
+          "profile": "Gnumeric 1.12.61 unchanged native source and binary",
+          "sources": {
+            "plugins/excel/ms-formula-read.c": "25cbe0982cc952431c7b10bf7df709e3997d4759cb158f0f6159ba7c6ccd21d5",
+            "src/func.c": "9f04a2f60159c44dae2fb88f99023f755d5eed01e230b5467e427ef834b68082",
+            "src/expr.c": "04338a2d4208df47cbc66b62b62c97586f0dfe550aab7a23d8ee01fc94ee95f5"
+          },
+          "binary": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
+          "behavior": "ms-formula-read.c:1170-1191 extends only left SET operands; keeps right SET operands as one member."
+        },
+        "validation": "Original regression failed by counting three areas instead of two. Six BIFF revision controls and the 2293-test/84-file BIFF cohort pass; owner lint/types pass. Command screenshot inspected: 3,2,3,2.",
+        "publicNative": {
+          "publicCachedXlsxChecks": 16,
+          "nativeReadbackChecks": 48,
+          "checks": 64,
+          "nativeReadbacks": 12,
+          "cases": 4,
+          "inputSha256": "cd73714b43da2dbc3049a51a1c4eeef2abbb48791fd6e199775b497e279179db",
+          "nativeSha256": "1c75ffd3af3e5b98ad7c19bbb7df98b483593f78cee36d7c81083bbe9444eb49",
+          "diagnostics": 0
+        },
+        "build": "Normal root build passed. Subsequent root SDK execution exposed missing canonical stream export; final selected safe-fs build and root bundle pass after repair, followed by all root/package native readbacks.",
+        "publicationRepair": {
+          "verifiedRemoteMain": "ca0eae35c493f80dc51f74ad1f40f09c83b0cce6",
+          "behavior": "Canonical XML publication includes index/stream declarations and bundled saxes/xmlchars, rejects unapproved and duplicated modules, and exposes parseXmlStream through safe-fs/core.",
+          "validation": "Three initial policy failures and one original missing-export test repaired; 677 bundle/policy tests, ESLint, owner build and final root publication pass."
+        }
+      },
+      "groupedAggregateInvestigation": {
+        "nativeText": "With A11:A13=2,3,4: SUM((A11,A12))=5; SUM(((A11,A12)))=#VALUE!; left/right nested sets total 9; SUM((A11:A12)) and SUM(((A11:A12))) outside the data rows return #VALUE!.",
+        "source": "func.c:1832-1903 iterates bare sets and names before scalar evaluation. expr.c:1642 rejects scalar sets. Original PtgParen identity and this evaluator distinction still need preservation; no error substitution is implemented."
+      }
     }
   },
   "cases": [

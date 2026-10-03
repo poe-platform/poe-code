@@ -130,10 +130,10 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       const [operator, precedence] = binaryOperators[token]!, right = pop(), left = pop();
       // RPN fixes the operand tree, even for floating-point + and *.
       // Gnumeric text binds powers to the right and other operators to the left.
-      // Group argument commas, but flatten only our synthesized union groups.
+      // Native BIFF extends left sets but keeps right sets as one member.
       // An original PtgParen resets this marker and retains its own semantics.
       if (token === 16) push("(" + (left.union ? left.text.slice(1, -1) : left.text) + "," +
-        (right.union ? right.text.slice(1, -1) : right.text) + ")", 99, undefined, true);
+        right.text + ")", 99, undefined, true);
       else push(protect(left, precedence + (token === 7 ? 1 : 0)) + operator + protect(right, precedence + 1), precedence);
     } else if (token === 0x12 || token === 0x13) { const value = pop(); push((token === 0x12 ? "+" : "-") + protect(value, 8), 8); }
     else if (token === 0x14) { const value = pop(); push(protect(value, 7) + "%", 7); }

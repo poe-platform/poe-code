@@ -1,3 +1,4 @@
+import {transformStoredCanvas} from "./storage-canvas.js";
 import {resizeStoredImage} from "./storage-resize.js";
 import {normalizeStoredImage} from "./storage-normalize.js";
 import {isStoredPixelOperation, transformStoredPixels, type StoredPixelOperation} from "./storage-pixels.js";
@@ -6,16 +7,17 @@ import type {ImageByteStorage, StoredRgbaImage} from "../codecs/png-storage.js";
 import {defaultRuntime} from "@poe-code/compression";
 import {flipImage, flopImage, rotateImage, applyExifOrientation} from "./transform.js";
 
-export type StoredImageOperation = Extract<ImageAstNode,{kind:"flip"|"flop"|"rotate"|"extract"|"autoOrient"|"normalize"|"resize"}> | StoredPixelOperation;
+export type StoredImageOperation = Extract<ImageAstNode,{kind:"flip"|"flop"|"rotate"|"extract"|"autoOrient"|"normalize"|"resize"|"extend"|"median"|"trim"}> | StoredPixelOperation;
 
 export function isStoredImageOperation(node:ImageAstNode):node is StoredImageOperation {
-  return node.kind==="resize" || node.kind==="normalize" || isStoredPixelOperation(node) || node.kind==="flip" || node.kind==="flop" || node.kind==="extract" || node.kind==="autoOrient" || node.kind==="rotate" && Number.isFinite(node.angle) && node.angle%90===0;
+  return node.kind==="extend" || node.kind==="median" || node.kind==="trim" || node.kind==="resize" || node.kind==="normalize" || isStoredPixelOperation(node) || node.kind==="flip" || node.kind==="flop" || node.kind==="extract" || node.kind==="autoOrient" || node.kind==="rotate" && Number.isFinite(node.angle) && node.angle%90===0;
 }
 
 /** Transforms use bounded chunks or spatial tiles; raster state stays in caller-owned storage. */
 export async function transformStoredImage(image:StoredRgbaImage, storage:ImageByteStorage, operation:StoredImageOperation, signal:AbortSignal):Promise<StoredRgbaImage> {
   signal.throwIfAborted();
   if (!Number.isSafeInteger(image.width) || image.width<=0 || !Number.isSafeInteger(image.height) || image.height<=0 || !Number.isSafeInteger(image.width*image.height*4) || !Number.isSafeInteger(image.position) || image.position<0) throw new RangeError("Invalid stored image dimensions");
+  if(operation.kind==="extend" || operation.kind==="median" || operation.kind==="trim") return transformStoredCanvas(image,storage,operation,signal);
   if(operation.kind==="resize") return resizeStoredImage(image,storage,operation,signal);
   if(operation.kind==="normalize") return normalizeStoredImage(image,storage,operation,signal);
   if(isStoredPixelOperation(operation)) return transformStoredPixels(image,storage,operation,signal);

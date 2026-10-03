@@ -1,3 +1,4 @@
+import {extendedCoordinate,PixelMedian,trimBackground} from "./canvas-math.js";
 import {SRGB_TO_LINEAR_LUT,linearToSrgbByte,srgbToBwByte,srgbToLab,labToSrgb} from "./color.js";
 import {NormalizationHistogram,normalizeRgb} from "./normalize.js";
 import type {
@@ -254,20 +255,10 @@ export function *trimImageSteps(
     b: detectImg.data[2] ?? 0,
     a: detectImg.data[3] ?? 255
   };
-  const refAlpha = ref.a / 255;
-  const refRP = ref.r * refAlpha;
-  const refGP = ref.g * refAlpha;
-  const refBP = ref.b * refAlpha;
-
-  const isBg = (x: number, y: number): boolean => {
-    const idx = (y * img.width + x) * 4;
-    const pa = detectImg.data[idx + 3]!;
-    const pAlpha = pa / 255;
-    const dr = Math.abs(detectImg.data[idx]! * pAlpha - refRP);
-    const dg = Math.abs(detectImg.data[idx + 1]! * pAlpha - refGP);
-    const db = Math.abs(detectImg.data[idx + 2]! * pAlpha - refBP);
-    const da = Math.abs(pa - ref.a);
-    return dr <= threshold && dg <= threshold && db <= threshold && da <= threshold;
+  const matches=trimBackground(ref,threshold);
+  const isBg=(x:number,y:number):boolean=>{
+    const index=(y*img.width+x)*4;
+    return matches(detectImg.data[index]!,detectImg.data[index+1]!,detectImg.data[index+2]!,detectImg.data[index+3]!);
   };
 
   let top = 0;
@@ -403,28 +394,13 @@ export function *extendImageSteps(
   const dstH = img.height + top + bottom;
   const out = new Uint8Array(new ArrayBuffer(dstW * dstH * 4 + dstH), 0, dstW * dstH * 4);
 
-  const mapCoord = (c: number, size: number): number => {
-    if (c >= 0 && c < size) return c;
-    if (spec.extendWith === "copy") {
-      return Math.max(0, Math.min(size - 1, c));
-    }
-    if (spec.extendWith === "repeat") {
-      return ((c % size) + size) % size;
-    }
-    if (spec.extendWith === "mirror") {
-      const period = size * 2;
-      const m = ((c % period) + period) % period;
-      return m < size ? m : period - 1 - m;
-    }
-    return -1;
-  };
 
   for (let y = 0; y < dstH; y++) {
     if (++work % 16384 === 0) yield;
-    const sy = mapCoord(y - top, img.height);
+    const sy = extendedCoordinate(y - top, img.height,spec.extendWith);
     for (let x = 0; x < dstW; x++) {
     if (++work % 16384 === 0) yield;
-      const sx = mapCoord(x - left, img.width);
+      const sx = extendedCoordinate(x - left, img.width,spec.extendWith);
       const dIdx = (y * dstW + x) * 4;
       if (sx < 0 || sy < 0) {
         out[dIdx] = spec.background.r;
@@ -1819,18 +1795,13 @@ export function *medianImageSteps(img: RgbaImage, size = 3): Generator<void, Rgb
   const radius = Math.max(1, Math.floor(size / 2));
   const { width, height, data } = img;
   const out = new Uint8Array(data.length);
-  const windowLen = (radius * 2 + 1) * (radius * 2 + 1);
-  const rWin = new Uint8Array(windowLen);
-  const gWin = new Uint8Array(windowLen);
-  const bWin = new Uint8Array(windowLen);
-  const aWin = new Uint8Array(windowLen);
-  const mid = windowLen >>> 1;
+  const histogram=new PixelMedian();
 
   for (let y = 0; y < height; y++) {
     if (++work % 16384 === 0) yield;
     for (let x = 0; x < width; x++) {
     if (++work % 16384 === 0) yield;
-      let p = 0;
+      histogram.clear();
       for (let ky = -radius; ky <= radius; ky++) {
     if (++work % 16384 === 0) yield;
         const sy = Math.max(0, Math.min(height - 1, y + ky));
@@ -1838,22 +1809,11 @@ export function *medianImageSteps(img: RgbaImage, size = 3): Generator<void, Rgb
     if (++work % 16384 === 0) yield;
           const sx = Math.max(0, Math.min(width - 1, x + kx));
           const sIdx = (sy * width + sx) * 4;
-          rWin[p] = data[sIdx]!;
-          gWin[p] = data[sIdx + 1]!;
-          bWin[p] = data[sIdx + 2]!;
-          aWin[p] = data[sIdx + 3]!;
-          p++;
+          histogram.add(data[sIdx]!,data[sIdx+1]!,data[sIdx+2]!,data[sIdx+3]!);
         }
       }
-      rWin.sort();
-      gWin.sort();
-      bWin.sort();
-      aWin.sort();
-      const dIdx = (y * width + x) * 4;
-      out[dIdx] = rWin[mid]!;
-      out[dIdx + 1] = gWin[mid]!;
-      out[dIdx + 2] = bWin[mid]!;
-      out[dIdx + 3] = aWin[mid]!;
+      const pixel=histogram.pixel(),dIdx=(y*width+x)*4;
+      out[dIdx]=pixel&255;out[dIdx+1]=pixel>>>8&255;out[dIdx+2]=pixel>>>16&255;out[dIdx+3]=pixel>>>24;
     }
   }
   return { ...img, data: out };

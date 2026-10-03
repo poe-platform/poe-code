@@ -114,6 +114,6 @@ export async function tryPngFile(input: string, output: string, options: SharpIn
     if (!complete) throw new FsError("EIO",{path:output,message:"Image publisher returned before consuming output"});
     failed=false;
     const gray=image.space==="b-w" || image.channels===1 || image.channels===2;
-    return {format:"png",width:image.width,height:image.height,channels:gray ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3,premultiplied:Boolean(image.wasPremultiplied),size};
+    return {format:"png",width:image.width,height:image.height,channels:gray ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3,premultiplied:Boolean(image.wasPremultiplied),...(image.trimOffsetLeft===undefined?{}:{trimOffsetLeft:image.trimOffsetLeft}),...(image.trimOffsetTop===undefined?{}:{trimOffsetTop:image.trimOffsetTop}),size};
   } finally {await cleanup();}
 }

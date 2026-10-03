@@ -24,6 +24,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | MCP errors       | Native approval records, exact content blocks, HTTP envelopes and typed protocol errors |
 | Hosted OAuth configuration | Native URL, provider-field, callback-path and production-readiness policies; public HTTP/OAuth entry points pending |
 | Hosted OAuth storage | Native credential/update and transaction policies with the own Rust authorization store; public HTTP/OAuth entry points pending |
+| Hosted OAuth login | Native HTML/CSP assembly, escaped fields, secret-value suppression and expired-connection pages; public HTTP/OAuth entry points pending |
 | Public MCP       | `toolcraft-rust/mcp`: server creation, deferred discovery, tool calls and session-owned streams |
 | MCP handlers     | Native invocation routing, request services, cancellation, approvals, result projection and error reporting |
 | Stack diagnostics | Native framework-frame summaries, nested cause sections and raw stack preservation |

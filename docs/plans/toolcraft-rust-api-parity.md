@@ -4364,3 +4364,38 @@ on write/read and derives a subject HMAC; signing-key generation is outside the
 measurement. No performance/default-swap gate passed. Hosted login rendering,
 request handling, HTTP/OAuth public exports and complete replacement qualification
 remain open.
+
+Hosted storage delivery is independently verified on remote main at 97e8467d1a.
+Its package workflow 37093203015 completed successfully with standalone-bundle
+and publish skipped; this is not new publication evidence. The root Release
+workflow 37093203193 remains pending; these are separate delivery stages.
+
+### Hosted OAuth login rendering checkpoint
+
+Rust now assembles login and expired-connection HTML and content security policy
+as UTF-16, preserving lone surrogates and exact interpolation/coercion order.
+It selects field types, autocomplete and echoed values, and directs the ordered
+escaping operations. Node retains live replaceAll/map/join methods, URL parsing,
+cryptography and template coercion. Cookie names retain the SHA-256 namespace.
+No external dependencies or defaults changed.
+
+Six missing-module failures preceded implementation. Six final differential
+cases cover exact HTML/CSP, password/API-key suppression, Unicode, cookie names,
+URL failures, getters, custom collection methods, arbitrary thrown values,
+Symbol interpolation and reentrant rendering. The maintained unit route passes
+Rust tests, 266 native Node checks, 5,998 reference/parity cases across 108 files,
+declarations and the original CLI type consumer. Maintained Rust/binding lint and
+scoped ESLint pass. A packed consumer verifies the internal renderer, complete
+nonce-normalized HTML/CSP, expiry markup and cookie names.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 300 operations, retaining
+32 results, measured 96.136 microseconds native versus 9.387 microseconds
+JavaScript (10.24 times slower). Each operation renders an email/password form
+with submitted email, an error, a fresh cryptographic nonce and CSP. No performance
+or default-swap gate passed.
+
+Native Chrome accessibility checks verified ordinary, error and expired pages.
+Screenshot verification remains pending: automatic approval review rejected
+whole-window capture because private browser bookmarks/profile metadata remain
+visible, and no tab-scoped browser backend is available. User approval for that
+incidental metadata capture has been requested. This is not completed visual QA.

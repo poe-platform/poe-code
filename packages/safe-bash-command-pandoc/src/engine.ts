@@ -24,6 +24,8 @@ import type {
   WriterCapability
 } from "./types.js";
 
+import {streamDelimitedHtml} from "./stream-delimited.js";
+import type {OutputConversionContext, ConversionSummary} from "./types.js";
 import {LocalTemplate} from "./templates.js";
 
 class Session extends ExecutionContext {
@@ -601,6 +603,30 @@ export async function convert(
   } finally {
     await session.close();
   }
+}
+
+/** Convert to an owned output sink without requiring a returned whole payload.
+ * The backed table path is incremental; other adapters retain their documented
+ * buffering until their streaming implementations are available. */
+export async function convertToOutput(inputs: readonly InputSource[], options: ConversionOptions, context: OutputConversionContext): Promise<ConversionSummary> {
+  if (!context.output || typeof context.output.write !== "function" || typeof context.output.close !== "function" || typeof context.output.abort !== "function")
+    throw new PandocError("E_CAPABILITY", "convert", "An output sink with write, close and abort is required");
+  const registry = createFormatRegistry(undefined, context);
+  const reader = registry.resolve(options.from, "read"), writer = registry.resolve(options.to, "write");
+  const incremental = context.workingFiles && !context.reader && !context.writer
+    && (reader.descriptor.name === "csv" || reader.descriptor.name === "tsv") && writer.descriptor.name === "html5"
+    && Object.keys(options).every(key => ["from", "to", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "fileScope", "sandbox", "failIfWarnings"].includes(key))
+    && Object.entries(context.limits ?? {}).every(([key, value]) => key === "inputBytes" || value === Infinity);
+  if (!incremental) {
+    const result = await convert(inputs, options, context);
+    return {kind: "output", diagnostics: result.diagnostics};
+  }
+  const session = new Session("convert", context);
+  try {
+    session.options(options);
+    await session.call(() => streamDelimitedHtml(inputs, reader.descriptor.name as "csv" | "tsv", session, context.workingFiles!, options));
+    return {kind: "output", diagnostics: session.snapshotDiagnostics()};
+  } finally {await session.close();}
 }
 
 /** Synchronous shortcut probe. The adapter contract requires promises, so decline

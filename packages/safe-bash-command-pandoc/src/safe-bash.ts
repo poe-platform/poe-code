@@ -1,7 +1,7 @@
 import {resolvePath} from "@poe-code/safe-fs/core";
 import { inspectFormats, inspectCommand } from "./inspection.js";
 import { PandocError } from "./errors.js";
-import { convert } from "./engine.js";
+import { convert, convertToOutput } from "./engine.js";
 import type { ConversionContext, ResourceFileSystem } from "./types.js";
 import { resolveConversionArgs } from "./defaults.js";
 import type { CommandInputs } from "./cli.js";
@@ -31,9 +31,9 @@ export interface PandocCommandContext extends FormatInspectionContext, CommandIn
 
 /** Opt-in conversion adapter. File access requires explicit injected callbacks;
  * all conversion and limits belong to the SDK. It never invokes native tools. */
-export function createStandalonePandocCommand(capabilities: Omit<ConversionContext, "output" | "signal" | "resources" | "resourceFiles" | "resourceCwd"> = {}) {
+export function createStandalonePandocCommand(capabilities: Omit<ConversionContext, "output" | "signal" | "resources" | "resourceFiles" | "resourceCwd"> & {readonly workingFiles?: import("./types.js").WorkingStorageOptions} = {}) {
   const configured: typeof capabilities = Object.fromEntries(Object.keys(capabilities)
-    .filter(key => ["reader", "writer", "filters", "limits", "yield"].includes(key))
+    .filter(key => ["reader", "writer", "filters", "limits", "yield", "workingFiles"].includes(key))
     .map(key => [key, capabilities[key as keyof typeof capabilities]]));
   return {
     name: "pandoc",
@@ -42,6 +42,7 @@ export function createStandalonePandocCommand(capabilities: Omit<ConversionConte
       context.signal.throwIfAborted();
       const encoder = new TextEncoder();
       let bytes: Uint8Array;
+      let outputFailure: {reason: unknown} | undefined;
       try {
         const information = inspectCommand(context.args, configured);
         if (information !== undefined) bytes = encoder.encode(information);
@@ -53,19 +54,27 @@ export function createStandalonePandocCommand(capabilities: Omit<ConversionConte
             writeFile: (path, bytes, signal) => context.fs!.writeFile(resolvePath(context.cwd ?? "/", path), bytes, {signal})
           } : context;
           const {options, operands, destination, limits} = await resolveConversionArgs(context.args, files, context.signal, configured);
-          const result = await convert((operands ?? [{chunks: context.stdin}]).map(input => ({...input, ...(input.base === undefined && context.cwd !== undefined ? {base: context.cwd} : {})})), options, {...configured, limits, signal: context.signal,
-            ...(context.fs === undefined ? {} : {resourceFiles: context.fs, resources: {resolve: async (id, base, signal) => context.fs!.readFile(`${base ?? context.cwd ?? "/"}/${id}`, {...(signal === undefined ? {} : {signal})})}}),
-            ...(context.cwd === undefined ? {} : {resourceCwd: context.cwd}),
-            ...(destination === undefined ? {} : {output: {publish: async (bytes: Uint8Array, signal: AbortSignal | undefined) => files.writeFile!(destination, bytes, signal!)}})});
+          const inputs = (operands ?? [{chunks: context.stdin}]).map(input => ({...input, ...(input.base === undefined && context.cwd !== undefined ? {base: context.cwd} : {})}));
+          const conversion = {...configured, limits, signal: context.signal,
+            ...(context.fs === undefined ? {} : {resourceFiles: context.fs, resources: {resolve: async (id: string, base: string | undefined, signal: AbortSignal | undefined) => context.fs!.readFile(`${base ?? context.cwd ?? "/"}/${id}`, {...(signal === undefined ? {} : {signal})})}}),
+            ...(context.cwd === undefined ? {} : {resourceCwd: context.cwd})};
+          const result = destination === undefined
+            ? await convertToOutput(inputs, options, {...conversion,
+              output: {async write(bytes) {
+                try {await context.stdout.write(bytes);} catch (reason) {outputFailure = {reason}; throw reason;}
+              }, async close() {}, async abort() {}}})
+            : await convert(inputs, options, {...conversion, output: {publish: async (bytes: Uint8Array, signal: AbortSignal | undefined) => files.writeFile!(destination, bytes, signal!)}});
           for(const diagnostic of result.diagnostics) {
             await context.stderr.write(encoder.encode(`${diagnostic.code}: ${diagnostic.location ? `${diagnostic.location}: ` : ""}${diagnostic.message}\n`));
             context.signal.throwIfAborted();
           }
+          if (result.kind === "output") return {exitCode: 0};
           bytes = result.kind === "text" ? encoder.encode(result.text) : result.bytes;
           if (destination !== undefined) return {exitCode: 0};
         }
       } catch(error) {
         context.signal.throwIfAborted();
+        if (outputFailure) throw outputFailure.reason;
         if(!(error instanceof PandocError)) throw error;
         // AST messages already include their path; capability messages do not.
         const location = error.location && !error.message.startsWith(`${error.location}:`) ? `${error.location}: ` : "";

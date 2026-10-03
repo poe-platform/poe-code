@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { createMemoryFileSystem } from "poe-code/safe-fs";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import * as core from "../../src/index.js";
 import { latin1Text } from "../../src/byte-encoding.js";
 import { builtInDirectContextExecutors, codeOf, decoder, diagnostic, encoder, output, pathOf, isDefaultCommandOptions, syncCommandEvaluators, registerDefaultExecutor, registerDefaultExecutors, UsageError } from "../../src/commands/internal.js";
@@ -22,6 +22,7 @@ import { portableTrapExtension } from "../../src/shell/trap.js";
 import { executeRead } from "../../src/shell/read-builtin.js";
 import { jobsExtension } from "../../src/shell/extensions/jobs/index.js";
 import { signalName } from "safe-bash-command-timeout/signal";
+import { PagedStorage, IntegerTable } from "safe-bash-io-engine/storage";
 import type * as Host from "../../src/optional-host.js";
 import type * as Extensions from "../../src/shell/extensions.js";
 import type * as Input from "../../src/shell/input.js";
@@ -63,7 +64,7 @@ for (const profile of [
 
 test("optional host preserves canonical helper and type identities", async () => {
   const host = await import("../../src/optional-host.js");
-  const expected = { UsageError, ByteInputBudget, inputRequirements, textOutputRequirements, decoder, diagnostic, encoder, isDefaultCommandOptions, syncCommandEvaluators, registerDefaultExecutor, registerDefaultExecutors, builtInDirectContextExecutors, latin1Text, codeOf, compareCopyIdentity, compareObservedEntries, output, pathOf, EreLedger, EreSyntaxError, EreUnsupportedError, EreProfileLimitError, compileEre, prepareUtf8EreSubject, parseTomlDocument, YqLedger, Decimal, numberText, portableTrapExtension, executeRead, jobsExtension, signalName, utf8ByteLength, utf8Encoder, utf8Decoder, encodeBase64, decodeBase64, compareBytes };
+  const expected = { PagedStorage, IntegerTable, UsageError, ByteInputBudget, inputRequirements, textOutputRequirements, decoder, diagnostic, encoder, isDefaultCommandOptions, syncCommandEvaluators, registerDefaultExecutor, registerDefaultExecutors, builtInDirectContextExecutors, latin1Text, codeOf, compareCopyIdentity, compareObservedEntries, output, pathOf, EreLedger, EreSyntaxError, EreUnsupportedError, EreProfileLimitError, compileEre, prepareUtf8EreSubject, parseTomlDocument, YqLedger, Decimal, numberText, portableTrapExtension, executeRead, jobsExtension, signalName, utf8ByteLength, utf8Encoder, utf8Decoder, encodeBase64, decodeBase64, compareBytes };
   assert.deepEqual(Object.keys(host).sort(), Object.keys(expected).sort());
   for (const name of Object.keys(expected) as (keyof typeof expected)[]) {
     assert.equal(host[name], expected[name], name);

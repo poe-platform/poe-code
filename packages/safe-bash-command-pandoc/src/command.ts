@@ -1,7 +1,7 @@
 import { builtInDirectContextExecutors, syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
 import { evalSyncPandoc } from "./sync.js";
 import {validatePandocOptions} from "./options.js";
-import {convert} from "./engine.js";
+import {convert, convertToOutput} from "./engine.js";
 import {createCiteprocFilterCapability, type CiteprocFilterOptions} from "./citeproc-filters.js";
 import {createJsonFilterCapability} from "./json-filters.js";
 import {createLuaFilterCapability} from "./lua-filters.js";
@@ -81,6 +81,7 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
       return result.exitCode;
     }});
     let stdout: ReturnType<typeof createOutputOperation> | undefined;
+    let outputFailure: {reason: unknown} | undefined;
     try {
       const carrier = getCommandArguments(context);
       const decoder = new TextDecoder("utf-8", {fatal: true});
@@ -220,19 +221,27 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
         mkdir: (path: string, supplied?: {recursive?: boolean}) => owner.acquire(() => context.fs.mkdir(path, {signal, ...(supplied?.recursive === undefined ? {} : {recursive: supplied.recursive})}), () => {}),
         writeFile: (path: string, bytes: Uint8Array, supplied?: {flag?: "wx"}) => owner.acquire(() => writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, {signal, ...(supplied?.flag === undefined ? {} : {flag: supplied.flag})})), () => {})
       };
-      const result = await convert(inputs, parsed.options, {limits: parsed.limits, signal,
-        resourceFiles, resourceCwd: context.cwd, ...(filters === undefined ? {} : {filters})});
+      const conversion = {limits: parsed.limits, signal, resourceFiles, resourceCwd: context.cwd, ...(filters === undefined ? {} : {filters})};
+      const result = destination === undefined
+        ? await convertToOutput(inputs, parsed.options, {...conversion,
+          workingFiles: {fs: context.fs, directory: pathOf(context, context.env.TMPDIR || context.cwd)},
+          output: {async write(bytes) {
+            try {await stdout!.output.write(bytes);} catch (reason) {outputFailure = {reason}; throw reason;}
+          }, close: () => stdout!.close(), abort: reason => stdout!.abort(reason)}})
+        : await convert(inputs, parsed.options, conversion);
       for (const diagnostic of result.diagnostics) await context.stderr.write(new TextEncoder().encode(`${diagnostic.code}: ${diagnostic.message}\n`));
-      const bytes = result.kind === "binary" ? result.bytes : new TextEncoder().encode(result.text);
       signal.throwIfAborted();
-      if (destination !== undefined) await invocation.acquire(() => writeFileOutput(context, bytes, async data => {
-        await context.fs.writeFileConditional!(destination, data, {expected, parent: parent!, signal});
-      }), () => {});
-      else await stdout!.output.write(bytes);
+      if (result.kind !== "output") {
+        const bytes = result.kind === "binary" ? result.bytes : new TextEncoder().encode(result.text);
+        await invocation.acquire(() => writeFileOutput(context, bytes, async data => {
+          await context.fs.writeFileConditional!(destination!, data, {expected, parent: parent!, signal});
+        }), () => {});
+      }
       signal.throwIfAborted();
       return {exitCode: 0};
     } catch (error) {
       context.signal.throwIfAborted();
+      if (outputFailure) throw outputFailure.reason;
       stdout?.signal.throwIfAborted();
       if (!(error instanceof PandocError) && !(error instanceof FsError)) throw error;
       const code = error instanceof PandocError ? error.code : "E_IO";

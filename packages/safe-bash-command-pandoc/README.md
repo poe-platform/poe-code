@@ -145,7 +145,24 @@ optional `source` and `base`. File adapters prefer the caller’s `readStream`
 capability for document operands, defaults, metadata, templates, includes, fonts,
 and local image resources. `CommandInputs.readFile` remains a compatibility
 fallback. File reads are lazy and close on cancellation or budget failure; the
-conversion engine still retains complete document inputs and ASTs in memory.
+`convert` convenience API retains complete document inputs and ASTs in memory.
+
+`convertToOutput(inputs, options, {output, workingFiles})` returns an output summary
+instead of a complete payload. Its unfiltered CSV/TSV → HTML path uses a bounded
+page cache and the caller’s safe-fs backing storage for source data and table
+widths; individual fields can exceed the cache. `workingFiles` supplies `fs`, an
+absolute `directory`, and optional `cacheBytes` (one MiB by default, in 16 KiB
+pages). Use an external filesystem backend for large data: a memory filesystem
+still retains the backing bytes in RAM. No host scratch directory is used.
+
+The backed path supports ASCII conversion and line endings. Additional document
+transformations, finite limits other than `inputBytes`, and other format pairs
+currently use the existing buffered converter. The Safe Bash command uses the
+output-only API for stdout and selects backing storage in the injected filesystem
+at `TMPDIR` or the command directory. `-o` retains conditional atomic publication
+through the buffered converter. Standalone hosts can pass `workingFiles` to
+`createStandalonePandocCommand` explicitly. These remaining buffered paths are
+not yet suitable for files larger than Worker memory.
 
 Conversion-only `filters` is an ordered list of `{kind: "json", path}`,
 `{kind: "lua", path}`, or `{kind: "citeproc"}` requests. Shell equivalents are

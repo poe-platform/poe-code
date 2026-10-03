@@ -245,6 +245,22 @@ export interface StreamingOutputCapability {
   close(signal: AbortSignal | undefined): Promise<void>;
   abort(reason: unknown): Promise<void>;
 }
+/** Caller-authorized backing storage. MemoryFileSystem retains backing bytes in RAM;
+ * use an external safe-fs backend when the data can exceed Worker memory. */
+export interface WorkingStorageOptions {
+  readonly fs: import("@poe-code/safe-fs/core").FileSystem;
+  readonly directory: string;
+  /** Bounded page cache, in multiples of 16384. Defaults to one MiB. */
+  readonly cacheBytes?: number;
+}
+export interface OutputConversionContext extends ConversionContext {
+  readonly output: StreamingOutputCapability;
+  readonly workingFiles?: WorkingStorageOptions;
+}
+export interface ConversionSummary {
+  readonly kind: "output";
+  readonly diagnostics: readonly Diagnostic[];
+}
 export interface ConversionContext {
   readonly filters?: FilterCapability;
   /** Only this configured filesystem may supply/extract local image resources. */

@@ -98,6 +98,10 @@
     "./commands/filesystem-operands": {
       "types": "./dist/commands/filesystem-operands.d.ts",
       "import": "./dist/commands/filesystem-operands.js"
+    },
+    "./storage": {
+      "types": "./dist/storage.d.ts",
+      "import": "./dist/storage.js"
     }
   },
   "files": [

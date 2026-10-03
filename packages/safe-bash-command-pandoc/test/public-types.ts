@@ -48,3 +48,9 @@ const streamedFiles: CommandInputs = {readStream: async function* (_path, signal
   yield Uint8Array.of(65);
 }};
 void resolveConversionArgs(["document.md"], streamedFiles, new AbortController().signal);
+
+import {convertToOutput, type OutputConversionContext, type ConversionSummary} from "safe-bash-command-pandoc";
+declare const outputContext: OutputConversionContext;
+const written: ConversionSummary = await convertToOutput([], {from: "csv", to: "html"}, outputContext);
+const outputKind: "output" = written.kind;
+void outputKind;

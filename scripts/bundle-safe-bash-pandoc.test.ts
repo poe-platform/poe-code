@@ -91,7 +91,7 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
         const scenario = new URL(request.url).pathname.slice(1);
         const vfs = fs.createMemoryFileSystem();
         const encoder = new TextEncoder();
-        if (scenario !== "composed") vfs.readFile = () => {
+        if (scenario !== "composed" && scenario !== "tables") vfs.readFile = () => {
           throw new Error("Document and filter files must stream");
         };
         await vfs.writeFile("/input.md", encoder.encode("**portable**"));
@@ -131,6 +131,43 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
           await execute(pandoc.createPandocCommand(), ["-f", "commonmark", "-t", "html", "-L", "/filter.lua", "/words.md"]);
           return Response.json(outputs);
         }
+        if (scenario === "tables") {
+          await vfs.mkdir("/spill");
+          await vfs.writeFile("/table.csv", encoder.encode("header\\n" + "x".repeat(1100000)));
+          const results = [];
+          for (const mode of ["sdk", "command"]) {
+            let opened = 0, bytesWritten = 0, largestWrite = 0, hash = 2166136261, stderr = "";
+            const supplied = new Proxy(vfs, {get(target, key) {
+              if (key === "readFile") return () => {throw new Error("Whole-file table reads are forbidden");};
+              if (key === "open") return (path, options) => {
+                if (!path.startsWith("/spill/.storage-")) throw new Error("Backing storage escaped the supplied directory");
+                opened++;
+                return target.open(path, options);
+              };
+              const value = Reflect.get(target, key, target);
+              return typeof value === "function" ? value.bind(target) : value;
+            }});
+            const output = {async write(bytes) {
+              bytesWritten += bytes.length;
+              largestWrite = Math.max(largestWrite, bytes.length);
+              for (const byte of bytes) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
+            }, async close() {}, async abort() {}};
+            let exitCode = 0;
+            if (mode === "sdk") await pandoc.convertToOutput([{chunks: supplied.readStream("/table.csv", {chunkSize: 16384})}],
+              {from: "csv", to: "html"}, {workingFiles: {fs: supplied, directory: "/spill", cacheBytes: 16384}, output});
+            else {
+              const result = await pandoc.createPandocCommand().execute({
+                command: "pandoc", args: ["-f", "csv", "-t", "html", "/table.csv"],
+                fs: supplied, cwd: "/", env: {TMPDIR: "/spill"}, signal: new AbortController().signal,
+                stdin: (async function* () {})(), stdout: output,
+                stderr: {async write(bytes) {stderr += new TextDecoder().decode(bytes);}}
+              });
+              exitCode = result.exitCode;
+            }
+            results.push({mode, opened, bytesWritten, largestWrite, hash, exitCode, stderr, remaining: await vfs.readdir("/spill")});
+          }
+          return Response.json(results);
+        }
         let stdout = "", stderr = "";
         const command = pandoc.createPandocCommand(scenario === "budget" ? {limits: {work: 10000}} : {});
         const outcome = await command.execute({
@@ -151,6 +188,19 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
     for (const scenario of ["lua", "sdk"]) {
       const filtered = await runtime.dispatchFetch("https://pandoc.test/" + scenario);
       expect(await filtered.json()).toEqual({exitCode: 0, stdout: "<p><strong>PORTABLE</strong></p>\n", stderr: ""});
+    }
+    const tablesResponse = await runtime.dispatchFetch("https://pandoc.test/tables");
+    const tablesText = await tablesResponse.text();
+    expect(tablesResponse.status, tablesText).toBe(200);
+    const expectedTable = new TextEncoder().encode('<table>\n<colgroup><col></colgroup>\n<thead>\n<tr><th scope="col">header</th></tr>\n</thead>\n<tbody>\n<tr><td>' + "x".repeat(1100000) + '</td></tr>\n</tbody>\n</table>\n');
+    let expectedHash = 2166136261;
+    for (const byte of expectedTable) expectedHash = Math.imul(expectedHash ^ byte, 16777619) >>> 0;
+    const tables = JSON.parse(tablesText) as {mode: string; opened: number; bytesWritten: number; largestWrite: number; hash: number; exitCode: number; stderr: string; remaining: unknown[]}[];
+    expect(tables.map(table => table.mode)).toEqual(["sdk", "command"]);
+    for (const table of tables) {
+      expect(table).toMatchObject({bytesWritten: expectedTable.length, hash: expectedHash, exitCode: 0, stderr: "", remaining: []});
+      expect(table.opened).toBeGreaterThan(0);
+      expect(table.largestWrite).toBeLessThanOrEqual(16384);
     }
     const composedResponse = await runtime.dispatchFetch("https://pandoc.test/composed");
     const composedText = await composedResponse.text();

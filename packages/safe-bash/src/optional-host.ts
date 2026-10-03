@@ -52,3 +52,4 @@ export { executeRead } from "./shell/read-builtin.js";
 export { ByteInputBudget } from "./commands/bytes/input-budget.js";
 export { inputRequirements } from "./commands/portable-requirements.js";
 export { textOutputRequirements } from "safe-bash-io-engine/portable-requirements";
+export { PagedStorage, IntegerTable } from "safe-bash-io-engine/storage";

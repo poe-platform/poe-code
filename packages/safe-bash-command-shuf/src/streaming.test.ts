@@ -14,7 +14,7 @@ for (const args of [["/input"], ["--random-source=/entropy", "/input"], ["-r", "
     const fs: FileSystem = new Proxy(backing, { get(target, property) {
       if (property === "readFile") return () => { throw new Error("whole-file reads are forbidden"); };
       if (property === "open") return async (path: string, options: Parameters<NonNullable<FileSystem["open"]>>[1]) => {
-        assert.ok(path.startsWith("/spill/.shuf-"), path); opens++;
+        assert.ok(path.startsWith("/spill/.storage-"), path); opens++;
         const descriptor = await target.open!(path, options);
         return new Proxy(descriptor, { get(handle, key) {
           if (key === "write") return async (bytes: Uint8Array, position: number | null, controls?: Parameters<typeof descriptor.write>[2]) => {

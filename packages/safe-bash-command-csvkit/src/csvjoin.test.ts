@@ -1,3 +1,5 @@
+import { MemoryFileSystem } from "@poe-code/safe-fs";
+import { createReplayFile } from "./table/storage.js";
 import { test } from "vitest";
 import assert from "node:assert/strict";
 import { execute, run, defaultLimits } from "./engine.js";
@@ -11,10 +13,12 @@ import userReference from "../../../docs/csvkit/csvjoin-user-edge-reference.json
 
 async function invoke(files: Readonly<Record<string, string>>, argv: readonly string[], input = "", overrides: Partial<CsvkitContext> = {}, settings?: Readonly<Record<string, unknown>>) {
   let stdout = ""; let stderr = "";
+  const backing = new MemoryFileSystem();
+  let spills = 0;
   const cleanups: (() => Promise<void>)[] = [];
   const context: CsvkitContext = {
     argv: new OwnedArguments(argv.map(value => new TextEncoder().encode(value)), defaultLimits), cwd: "/",
-    fs: { readFile: async path => { assert.ok(path in files); return new TextEncoder().encode(files[path]); }, writeFile: async () => { throw new Error("unexpected write"); } },
+    fs: { createReplayFile: async ({ signal }) => { spills++; return createReplayFile(backing, "/", signal); }, readFile: async path => { assert.ok(path in files); return new TextEncoder().encode(files[path]); }, writeFile: async () => { throw new Error("unexpected write"); } },
     stdin: (async function* () { yield new TextEncoder().encode(input); })(), stdinIsDefault: false,
     stdout: { write: async bytes => { stdout += new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes); } },
     stderr: { write: async bytes => { stderr += new TextDecoder().decode(bytes); } },
@@ -26,8 +30,9 @@ async function invoke(files: Readonly<Record<string, string>>, argv: readonly st
   };
   try {
     const status = settings ? await run({ command: "csvjoin", settings }, context) : await execute("csvjoin", context);
+    if (status === 0 && stdout.startsWith("k,")) assert.ok(spills > 0, "join must use caller backing storage");
     return { stdout, stderr, status };
-  } finally { await Promise.all(cleanups.map(cleanup => cleanup())); }
+  } finally { await Promise.all(cleanups.map(cleanup => cleanup())); assert.deepEqual(await backing.readdir("/"), []); }
 }
 
 for (const [index, item] of reference.cases.entries()) test(`csvjoin frozen original differential ${index}`, async () => {

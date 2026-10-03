@@ -1,21 +1,9 @@
 import type { Runtime } from "../runtime.js";
-import type { TypedTable, TableValue } from "./types.js";
+import type { TypedTable } from "./types.js";
+import type { ReplayTable } from "./index.js";
 import { Decimal } from "../types/decimal.js";
 import { pythonValueText } from "../csv.js";
 import { CsvkitDiagnostic } from "../errors.js";
-
-function precision(values: readonly TableValue[]): number {
-  let whole = 1; let places = 0;
-  for (const value of values) {
-    if (value === null || typeof value !== "object" || value.kind !== "decimal") continue;
-    const d = Decimal.parse(value.value).normalized();
-    // Agate uses math.isinf(Decimal), which first converts to a binary float.
-    if (d.special || Math.abs(Number(d.toString())) === Infinity) continue;
-    places = Math.max(places, -d.exponent);
-    whole = Math.max(whole, d.coefficient.toString().length + d.exponent);
-  }
-  return Math.min(places, 28 - whole);
-}
 
 function numberText(value: string, places: number, ellipsis: string): string {
   const d = Decimal.parse(value);
@@ -51,7 +39,7 @@ function numberText(value: string, places: number, ellipsis: string): string {
 }
 
 /** Literal Agate 1.14.2 print_table defaults as overridden by CSVLook.main. */
-export async function printTable(runtime: Runtime, table: TypedTable): Promise<void> {
+export async function printTable(runtime: Runtime, table: TypedTable | ReplayTable): Promise<void> {
   const o = runtime.options;
   const maxColumns = o.max_columns === null ? table.headers.length : Number(o.max_columns);
   const width = o.max_column_width === null ? undefined : Number(o.max_column_width);
@@ -69,26 +57,37 @@ export async function printTable(runtime: Runtime, table: TypedTable): Promise<v
   const names = table.headers.slice(0, maxColumns).map(truncate);
   if (maxColumns < table.headers.length) names.push("...");
   const widths = names.map(length);
+  const data = table.rows;
+  const source = (): AsyncIterable<readonly import("./types.js").TableValue[]> => typeof data === "function" ? data() : (async function* () { yield* data; })();
+  const precisions = table.columns.map(() => ({ whole: 1, places: 0 }));
+  for await (const row of source()) for (let index = 0; index < row.length; index++) {
+    const value = row[index];
+    if (index >= maxColumns || value === null || typeof value !== "object" || value.kind !== "decimal") continue;
+    const decimal = Decimal.parse(value.value).normalized();
+    if (decimal.special || Math.abs(Number(decimal.toString())) === Infinity) continue;
+    const state = precisions[index]!;
+    state.places = Math.max(state.places, -decimal.exponent);
+    state.whole = Math.max(state.whole, decimal.coefficient.toString().length + decimal.exponent);
+  }
   const formats = table.columns.map((column, index) => {
     runtime.step();
     if (index >= maxColumns || column.type !== "Number") return undefined;
-    const places = precision(table.rows.map(row => row[index]!));
+    const state = precisions[index]!;
+    const places = Math.min(state.places, 28 - state.whole);
     return { places: Math.min(places, maxPrecision), ellipsis: places > maxPrecision && !o.no_number_ellipsis ? "…" : "" };
   });
-  const rows = table.rows.map(row => {
-    runtime.retain(32 + names.length * 16);
-    const cells: string[] = [];
+  const cells = (row: readonly import("./types.js").TableValue[]): string[] => {
+    const result: string[] = [];
     for (const [j, value] of row.entries()) {
       runtime.step();
       const format = formats[j];
-      let text = j >= maxColumns ? "..." : value === null ? "" : format && typeof value === "object" && value.kind === "decimal" ? numberText(value.value, format.places, format.ellipsis) : pythonValueText(value).replaceAll("\n", "↵");
-      text = truncate(text);
-      widths[j] = Math.max(widths[j]!, length(text));
-      cells.push(text);
+      const text = truncate(j >= maxColumns ? "..." : value === null ? "" : format && typeof value === "object" && value.kind === "decimal" ? numberText(value.value, format.places, format.ellipsis) : pythonValueText(value).replaceAll("\n", "↵"));
+      result.push(text);
       if (j >= maxColumns) break;
     }
-    return cells;
-  });
+    return result;
+  };
+  for await (const row of source()) for (const [j, text] of cells(row).entries()) widths[j] = Math.max(widths[j]!, length(text));
   const writeRow = async (cells: readonly string[]): Promise<void> => {
     const fields = cells.map((cell, j) => {
       runtime.step();
@@ -102,5 +101,5 @@ export async function printTable(runtime: Runtime, table: TypedTable): Promise<v
   };
   await writeRow(names);
   await runtime.write("| " + widths.map(size => { runtime.step(); runtime.retain(size * 2); return "-".repeat(size); }).join(" | ") + " |\n");
-  for (const row of rows) await writeRow(row);
+  for await (const row of source()) await writeRow(cells(row));
 }

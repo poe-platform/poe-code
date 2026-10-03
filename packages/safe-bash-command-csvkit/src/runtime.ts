@@ -1,3 +1,4 @@
+import { RowStorage } from "./table/external.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import type { CsvkitContext, ByteSource } from "./contracts.js";
 import type { MatchFileScope } from "./match-files.js";
@@ -5,6 +6,8 @@ import type { CommandDescriptor } from "./descriptor.js";
 import { readCsvStream, writeCsvRow, type CsvDialect, type CsvRecord, type CsvWriteCell, type CsvCell } from "./csv.js";
 import { CsvkitBlocked, CsvkitDiagnostic, CsvkitCleanupError, CsvkitOutputBudgetError, CsvkitWorkBudgetError } from "./errors.js";
 import { fileException, warningText } from "./diagnostics/index.js";
+import { sniffReplay } from "./io/replay-sniffer.js";
+import { utf8Codec } from "./codecs/utf8.js";
 import { sniff } from "./csv/sniffer.js";
 import { LazyInput, virtualPath, pathExtension } from "./io/index.js";
 import { resolveCodec } from "./codecs/python.js";
@@ -18,6 +21,7 @@ const sharedTextEncoder = new TextEncoder();
 export class Runtime {
   /** Side input/destinations belong to the invocation independently of stdout. */
   sideEffects = false;
+  readonly storage: RowStorage | undefined;
   #input = 0;
   #inflated = 0;
   #codepoints = 0;
@@ -38,6 +42,7 @@ export class Runtime {
   readonly #files = new Set<LazyInput>();
   readonly #abort = (): void => { this.#aborted = true; void this.close().catch(() => {}); };
   constructor(readonly context: Omit<CsvkitContext, "argv">, readonly descriptor: CommandDescriptor, readonly options: Settings, readonly matchFiles?: MatchFileScope) {
+    this.storage = context.fs.createReplayFile ? new RowStorage(() => context.fs.createReplayFile!({ signal: context.signal })) : undefined;
     context.registerCleanup(this.close, "invocation");
     this.#pollSignal = Boolean(
       context.signal &&
@@ -50,7 +55,7 @@ export class Runtime {
   readonly close = (): Promise<void> => {
     this.#closed = true;
     this.context.signal.removeEventListener("abort", this.#abort);
-    return this.#closing ??= Promise.allSettled([...this.#files].map(file => file.close()).concat([...this.#iterators.values()].map(close => close()))).then(results => {
+    return this.#closing ??= Promise.allSettled([...(this.storage ? [this.storage.close()] : []), ...[...this.#files].map(file => file.close()).concat([...this.#iterators.values()].map(close => close()))]).then(results => {
       const failures = results.flatMap(result => result.status === "rejected" ? [result.reason] : []);
       if (failures.length) throw new CsvkitCleanupError(failures, "CSV stream cleanup failed");
     });
@@ -104,8 +109,13 @@ export class Runtime {
           this.#input += next.value.byteLength;
           if (this.#input > this.context.limits.maxInputBytes) throw new CsvkitBlocked("input byte budget exceeded");
         }
-        this.retain(64 + next.value.byteLength);
-        yield Uint8Array.from(next.value);
+        this.retain(64);
+        for (let offset = 0; offset < next.value.length; offset += 16384) {
+          this.step();
+          const chunk = next.value.subarray(offset, offset + 16384);
+          this.retain(chunk.byteLength);
+          yield Uint8Array.from(chunk);
+        }
       }
     } catch (failure) {
       readFailed = true;
@@ -202,8 +212,27 @@ export class Runtime {
     if (limit === -1 || limit > 0) {
       for (let count = 0; count < skipped; count++) if (await file.nextLine(false) === null) break;
       skipped = 0;
-      const sample = await file.sniffSample(limit, this.context.sniffing?.maxSampleCharacters ?? Infinity, this.context.sniffing?.stream);
-      const detected = sniff(sample, this.step);
+      let detected: ReturnType<typeof sniff>;
+      if (limit === -1 && this.storage) {
+        const replay = await this.storage.file<string>();
+        let characters = 0;
+        for await (const chunk of file.chunks()) {
+          for (const ignoredCharacter of chunk) if (++characters > (this.context.sniffing?.maxSampleCharacters ?? Infinity)) throw new CsvkitBlocked("sniff sample character budget exceeded");
+          await replay.write(chunk);
+          await this.checkpoint();
+        }
+        await replay.file.seal();
+        const checkpoint = this.checkpoint.bind(this);
+        const source = async function* () { for await (const chunk of replay.read()) { await checkpoint(); yield chunk; } };
+        detected = await sniffReplay(source, this.storage, this.step);
+        file = new LazyInput(file.name, () => ({ async *[Symbol.asyncIterator]() {} }), { ...utf8Codec, async *decodeStream() { try { yield* source(); } finally { await replay.close(); } } },
+          file.encoding, this.context.signal, () => {}, () => {}, file.borrowed);
+        this.#files.add(file);
+        if (!path || path === "-") this.#stdinText = file;
+      } else {
+        const sample = await file.sniffSample(limit, this.context.sniffing?.maxSampleCharacters ?? Infinity, this.context.sniffing?.stream);
+        detected = sniff(sample, this.step);
+      }
       if (detected) inferred = detected;
       else if (!this.context.sniffing?.suppressWarnings && !this.#sniffWarning) {
         const warning = this.context.sniffing?.warning;

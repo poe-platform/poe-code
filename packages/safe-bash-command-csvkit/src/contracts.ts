@@ -20,6 +20,8 @@ export interface CsvkitWritableFile extends ByteSink { close(): Promise<void> }
 
 /** All paths are virtual. The host binds access to its authorized filesystem. */
 export interface CsvkitFileSystem {
+  /** Caller-authorized retained backing storage for replay and external operations. */
+  createReplayFile?(options: { readonly signal: AbortSignal }): Promise<import("./table/storage.js").ReplayFile>;
   /** Native os.path.exists semantics, including directories and suppressed path OS errors. */
   exists?(path: string, options: { readonly signal: AbortSignal }): Promise<boolean>;
   /** Directory entry names, in provider order; enables dbfread's case-insensitive filename lookup. */

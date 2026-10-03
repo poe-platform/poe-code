@@ -1,7 +1,8 @@
 // Grammar/help derived from csvkit 2.2.0; see LICENSE and docs/csvkit/reference-profile.json.
 import type { CommandDescriptor } from "../descriptor.js";
 import type { Runtime } from "../runtime.js";
-import { readTable, type TableValue } from "../table/index.js";
+import { externalSort } from "../table/external.js";
+import { readReplayTable, type TableValue } from "../table/index.js";
 import { normalizeHeaders } from "../table/headers.js";
 import { match } from "../columns.js";
 import { CsvkitBlocked, CsvkitDiagnostic } from "../errors.js";
@@ -37,7 +38,7 @@ function keyValue(value: TableValue, runtime: Runtime): string | symbol {
   return "datetime:" + aware + ":" + temporalOrder(value.value);
 }
 
-async function combine(runtime: Runtime, left: JoinTable, right: JoinTable, leftKey: number | undefined, rightKey: number | undefined, full: boolean, inner: boolean): Promise<JoinTable> {
+async function bufferedCombine(runtime: Runtime, left: JoinTable, right: JoinTable, leftKey: number | undefined, rightKey: number | undefined, full: boolean, inner: boolean): Promise<JoinTable> {
   // Agate finds the selected Column with sequence.index(), which compares
   // column values rather than names/identity. Empty columns all compare equal.
   let omittedKey = rightKey;
@@ -87,6 +88,86 @@ async function combine(runtime: Runtime, left: JoinTable, right: JoinTable, left
   return { headers, rows };
 }
 
+interface ReplayJoin {
+  readonly headers: readonly string[];
+  rows(): AsyncIterable<readonly TableValue[]>;
+  close(): Promise<void>;
+}
+
+async function combine(runtime: Runtime, left: ReplayJoin, right: ReplayJoin, leftKey: number | undefined, rightKey: number | undefined, full: boolean, inner: boolean): Promise<ReplayJoin> {
+  if (!runtime.storage) {
+    const a = [], b = [];
+    for await (const row of left.rows()) a.push(row);
+    for await (const row of right.rows()) b.push(row);
+    const result = await bufferedCombine(runtime, { headers: left.headers, rows: a }, { headers: right.headers, rows: b }, leftKey, rightKey, full, inner);
+    return { headers: result.headers, async *rows() { yield* result.rows; }, async close() {} };
+  }
+  const storage = runtime.storage;
+  let omittedKey = rightKey;
+  if (!full && rightKey !== undefined) {
+    const equal = Array.from({ length: rightKey }, () => true);
+    for await (const row of right.rows()) for (let index = 0; index < rightKey; index++) {
+      runtime.step();
+      if (equal[index] && row[index] !== row[rightKey] && keyValue(row[index]!, runtime) !== keyValue(row[rightKey]!, runtime)) equal[index] = false;
+    }
+    const first = equal.indexOf(true);
+    if (first >= 0) omittedKey = first;
+  }
+  const included = right.headers.map((_, index) => index).filter(index => full || index !== omittedKey);
+  if (left.headers.length + included.length > runtime.context.limits.maxColumns) throw new CsvkitBlocked("column budget exceeded");
+  const headers = await normalizeHeaders([...left.headers, ...included.map(index => left.headers.includes(right.headers[index]!) ? right.headers[index]! + "2" : right.headers[index]!)], runtime);
+  interface Entry { key: string; index: number; row: readonly TableValue[] }
+  async function* keyed(table: ReplayJoin, keyColumn: number | undefined, side: string): AsyncGenerator<Entry> {
+    let index = 0;
+    for await (const row of table.rows()) {
+      const value = keyColumn === undefined ? "row:" + index : keyValue(row[keyColumn]!, runtime);
+      yield { key: typeof value === "symbol" ? `nan:${side}:${index}` : value, index: index++, row };
+    }
+  }
+  const compare = (a: Entry, b: Entry): number => { runtime.step(); return a.key < b.key ? -1 : a.key > b.key ? 1 : 0; };
+  const sortedLeft = await externalSort(storage, keyed(left, leftKey, "left"), compare, runtime.step);
+  const sortedRight = await externalSort(storage, keyed(right, rightKey, "right"), compare, runtime.step);
+  interface Joined { phase: number; left: number; right: number; row: readonly TableValue[] }
+  let count = 0;
+  function output(a: Entry | undefined, b: Entry | undefined): Joined {
+    runtime.step();
+    if (++count > runtime.context.limits.maxRows) throw new CsvkitBlocked("join result row budget exceeded");
+    return { phase: a ? 0 : 1, left: a?.index ?? 0, right: b?.index ?? 0,
+      row: [...(a?.row ?? left.headers.map(() => null)), ...included.map(index => b?.row[index] ?? null)] };
+  }
+  async function* joined(): AsyncGenerator<Joined> {
+    const a = sortedLeft.read()[Symbol.asyncIterator](), b = sortedRight.read()[Symbol.asyncIterator]();
+    try {
+      let x = await a.next(), y = await b.next();
+      while (!x.done || !y.done) {
+        runtime.step();
+        if (y.done || !x.done && x.value.key < y.value.key) {
+          if (!inner) yield output(x.value, undefined);
+          x = await a.next();
+        } else if (x.done || y.value.key < x.value.key) {
+          if (full) yield output(undefined, y.value);
+          y = await b.next();
+        } else {
+          const key = x.value.key;
+          const group = await storage.file<Entry>();
+          try {
+            do { await group.write(y.value!); y = await b.next(); } while (!y.done && y.value.key === key);
+            await group.file.seal();
+            do {
+              for await (const match of group.read()) yield output(x.value, match);
+              x = await a.next();
+            } while (!x.done && x.value.key === key);
+          } finally { await group.close(); }
+        }
+      }
+    } finally { await a.return?.(); await b.return?.(); }
+  }
+  const result = await externalSort(storage, joined(), (a, b) => a.phase - b.phase || a.left - b.left || a.right - b.right, runtime.step);
+  await sortedLeft.close(); await sortedRight.close();
+  await left.close(); await right.close();
+  return { headers, async *rows() { for await (const entry of result.read()) yield entry.row; }, close: () => result.close() };
+}
+
 async function join(runtime: Runtime): Promise<number> {
   const o = runtime.options;
   const paths = o.input_paths as readonly string[];
@@ -97,9 +178,9 @@ async function join(runtime: Runtime): Promise<number> {
   if ((o.left_join || o.right_join || o.outer_join) && !o.columns) runtime.error("You must provide join column names when performing an outer join.");
   if (o.left_join && o.right_join) runtime.error("It is not valid to specify both a left and a right join.");
   // csvkit deliberately materializes every independently inferred input before joining.
-  const tables: JoinTable[] = [];
+  const tables: ReplayJoin[] = [];
   for (const path of paths) {
-    tables.push(await readTable(runtime, path, undefined, true));
+    tables.push(await readReplayTable(runtime, path, undefined, true));
     // The original closes each parsed input, including its stdin wrapper.
     if (path === "-") await runtime.input(path, true).close();
   }
@@ -110,10 +191,11 @@ async function join(runtime: Runtime): Promise<number> {
   let table = tables[0]!;
   for (let index = 1; index < tables.length; index++) table = await combine(runtime, table, tables[index]!, keys[0], keys[index], !names.length || Boolean(o.outer_join && !o.left_join && !o.right_join), Boolean(names.length && !o.outer_join && !o.left_join && !o.right_join));
   await runtime.row(table.headers);
-  for (const row of table.rows) await runtime.row(row.map(value => {
+  for await (const row of table.rows()) await runtime.row(row.map(value => {
     runtime.step();
     return typeof value === "object" && value?.kind === "datetime" ? { ...value, value: value.value.replace(" ", "T") } : value;
   }));
+  await table.close();
   return 0;
 }
 

@@ -1,3 +1,4 @@
+import { MemoryFileSystem } from "@poe-code/safe-fs";
 import { expect, test, vi } from "vitest";
 import { gzipSync } from "node:zlib";
 import type { CommandContext } from "safe-bash-contracts";
@@ -8,14 +9,17 @@ import { portableLocale } from "./portable-locale.js";
 async function invoke(name: string, input: string | Uint8Array, args: string[], files: Record<string, string | Uint8Array> = {}, options: CsvkitCommandsOptions = {}) {
   let stdout = "", stderr = "";
   const encoder = new TextEncoder();
+  const backing = new MemoryFileSystem();
   const decoder = new TextDecoder();
   const context = {
     command: name, args, cwd: "/", env: {}, signal: new AbortController().signal,
     stdin: (async function* () { yield typeof input === "string" ? encoder.encode(input) : input; })(),
     stdout: { async write(bytes: Uint8Array) { stdout += decoder.decode(bytes, { stream: true }); } },
     stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } },
-    fs: { capabilities: { read: true, streamingRead: true },
-      async stat(path: string) { if (!(path in files)) throw new FsError("ENOENT", { path }); return { type: "file" }; },
+    fs: { capabilities: backing.capabilities,
+      createStagedFile: backing.createStagedFile.bind(backing),
+      openReadFile: backing.openReadFile.bind(backing),
+      async stat(path: string) { if (path === "/") return backing.stat(path); if (!(path in files)) throw new FsError("ENOENT", { path }); return { type: "file" }; },
       async readFile(path: string) { if (!(path in files)) throw new FsError("ENOENT", { path }); const value = files[path]!; return typeof value === "string" ? encoder.encode(value) : value; },
       async writeFile(path: string, bytes: Uint8Array) { files[path] = new Uint8Array(bytes); },
       readStream(path: string) { return (async function* () { const value = files[path]!; yield typeof value === "string" ? encoder.encode(value) : value; })(); }

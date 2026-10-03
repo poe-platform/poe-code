@@ -1,9 +1,9 @@
 // Grammar/help derived from csvkit 2.2.0; see LICENSE and docs/csvkit/reference-profile.json.
 import type { CommandDescriptor } from "../descriptor.js";
-import { deriveSchema, compileCreateTable, identifier, schemaIdentifier } from "../sql/schema.js";
+import { deriveReplaySchema, compileCreateTable, identifier, schemaIdentifier } from "../sql/schema.js";
 import type { Runtime } from "../runtime.js";
 import type { DatabaseCell, DatabaseResult, DatabaseSession, SqlValue } from "../contracts.js";
-import { readTable } from "../table/index.js";
+import { readReplayTable } from "../table/index.js";
 import { CsvkitBlocked, CsvkitDiagnostic } from "../errors.js";
 import { ResourceScope } from "../resources.js";
 import { sqlOptions } from "../sql-options.js";
@@ -785,18 +785,18 @@ async function executeCsvsql(runtime: Runtime): Promise<number> {
       runtime.retain(256 + values.length * 16);
       let closing: Promise<void> | undefined;
       const result = await resources.acquire(() => session!.query(sql, values, {}, context.signal), result => closing ??= result.close());
-      return { columns: result.columns, rows: result.rows, close: () => closing ??= result.close() };
+      return { columns: result.columns, rows: result.rows, close: async () => { await (closing ??= result.close()); resources.forget(result); } };
     };
     for (const [index, path] of paths.entries()) {
       runtime.step();
       const basename = path.slice(path.lastIndexOf('/') + 1), period = basename.lastIndexOf('.');
       const fileName = period > 0 && [...basename.slice(0, period)].some(char => char !== '.') ? basename.slice(0, period) : basename;
       const name = names[index] ?? (!path || path === '-' ? 'stdin' : fileName);
-      const table = await readTable(runtime, path, undefined, true);
-      if (!table.rows.length) continue;
+      const table = await readReplayTable(runtime, path, undefined, true);
+      if (!table.count) continue;
       if (!dialect) throw new CsvkitBlocked('database DDL dialect metadata');
       if (!session) {
-        await runtime.write(compileCreateTable(runtime, deriveSchema(runtime, table, name, dialect, false), dialect).statement.trim() + ';\n');
+        await runtime.write(compileCreateTable(runtime, await deriveReplaySchema(runtime, table, name, dialect, false), dialect).statement.trim() + ';\n');
         continue;
       }
       if (o.before_insert) for (const sql of split(String(o.before_insert))) await (await execute(sql)).close();
@@ -818,35 +818,44 @@ async function executeCsvsql(runtime: Runtime): Promise<number> {
           create = !await resources.acquire(() => session!.hasTable!(name, o.db_schema ? String(o.db_schema) : null, context.signal), async () => {});
           runtime.step();
         }
-        if (create) await (await execute(compileCreateTable(runtime, deriveSchema(runtime, table, name, dialect, true), dialect).statement)).close();
+        if (create) await (await execute(compileCreateTable(runtime, await deriveReplaySchema(runtime, table, name, dialect, true), dialect).statement)).close();
       }
       if (insert) {
         if (o.chunk_size === 0 || o.chunk_size === 0n) throw new CsvkitDiagnostic('ZeroDivisionError: division by zero');
-        const rowCount = BigInt(table.rows.length);
+        const rowCount = BigInt(table.count);
         const chunkSize = o.chunk_size === null ? rowCount : BigInt(o.chunk_size as number | bigint);
         const numerator = rowCount - 1n;
         const batchCount = numerator / chunkSize - (chunkSize < 0n && numerator % chunkSize !== 0n ? 1n : 0n) + 1n;
         const prefixes = (o.prefix as readonly string[]).join(' ');
-        for (let batch = 0n; batch < batchCount; batch++) {
+        const iterator = table.rows()[Symbol.asyncIterator]();
+        try { for (let batch = 0n; batch < batchCount; batch++) {
           runtime.step();
           const bind = dialect.bindValue;
           if (!bind || !(dialect.placeholder || dialect.parameter)) throw new CsvkitBlocked(`database insert driver profile ${dialect.name}`);
           const start = batch * chunkSize;
           const batchEnd = (batch + 1n) * chunkSize;
           const end = batchEnd > rowCount ? rowCount : batchEnd;
-          const rows = table.rows.slice(Number(start), Number(end)).map(row => row.map(value => bind(value)));
-          if (!rows.length) {
-            await (await execute('INSERT ' + (prefixes ? prefixes + ' ' : '') + 'INTO ' + qualified() + ' DEFAULT VALUES')).close();
-            continue;
-          }
           const sql = 'INSERT ' + (prefixes ? prefixes + ' ' : '') + 'INTO ' + qualified() + ' (' + table.headers.map(header => identifier(header, dialect, runtime)).join(', ') + ') VALUES (' + table.headers.map((_, index) => dialect.parameter?.(index) ?? dialect.placeholder!).join(', ') + ')';
-          runtime.retain(rows.length * (32 + table.headers.length * 16));
-          if (session.executeMany) {
-            let closing: Promise<void> | undefined;
-            const result = await resources.acquire(() => session!.executeMany!(sql, rows, context.signal), result => closing ??= result.close());
-            await (closing ??= result.close());
-          } else for (const row of rows) await (await execute(sql, row)).close();
-        }
+          const flush = async (rows: readonly (readonly SqlValue[])[]): Promise<void> => {
+            if (session!.executeMany) {
+              let closing: Promise<void> | undefined;
+              const result = await resources.acquire(() => session!.executeMany!(sql, rows, context.signal), result => closing ??= result.close());
+              await (closing ??= result.close());
+              resources.forget(result);
+            } else for (const row of rows) await (await execute(sql, row)).close();
+          };
+          let rows: SqlValue[][] = [], bytes = 0, written = false;
+          for (let position = start; position < end; position++) {
+            const next = await iterator.next();
+            if (next.done) break;
+            const row = next.value.map(value => bind(value));
+            const size = row.reduce<number>((total, cell) => total + (cell instanceof Uint8Array ? cell.length : typeof cell === "string" ? cell.length * 2 : 64), 64);
+            if (rows.length && (rows.length >= 256 || bytes + size > 256 * 1024)) { await flush(rows); written = true; rows = []; bytes = 0; }
+            rows.push(row); bytes += size;
+          }
+          if (rows.length) await flush(rows);
+          else if (!written) await (await execute('INSERT ' + (prefixes ? prefixes + ' ' : '') + 'INTO ' + qualified() + ' DEFAULT VALUES')).close();
+        } } finally { await iterator.return?.(); }
       }
       if (o.after_insert) for (const sql of split(String(o.after_insert))) await (await execute(sql)).close();
     }

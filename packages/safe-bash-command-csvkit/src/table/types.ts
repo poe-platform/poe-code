@@ -154,40 +154,47 @@ export interface TypedTable {
   readonly rawRows: readonly (readonly (string | null)[])[];
 }
 
-/** Sample only for inference; every row is subsequently cast with the chosen type. */
-export function inferTable(headers: readonly string[], rows: readonly (readonly (string | null)[])[], options: InferenceOptions = {}, step: () => void = () => {}): TypedTable {
-  if (headers.some(name => !name) || new Set(headers).size !== headers.length || !headers.length && rows.length) throw new CsvkitBlocked("Agate duplicate/unnamed column warning provenance");
-  const order = options.limit === 0 ? ["Text" as const] : columnTypeOrder(options);
-  const sample = options.limit ? rows.slice(0, options.limit) : rows;
-  const hypotheses = headers.map(() => new Set(order));
-  // Agate tests every surviving hypothesis in physical row/column order,
-  // then chooses by preference. Accepting one type does not skip other tests.
-  for (const row of sample) {
-    for (const [index, candidates] of hypotheses.entries()) {
-      step();
+/** Inference retains only six hypotheses per column, never input records. */
+export class TableInference {
+  readonly #order: readonly ColumnType[];
+  readonly #hypotheses: Set<ColumnType>[];
+  #observed = 0;
+  constructor(readonly headers: readonly string[], readonly options: InferenceOptions = {}, readonly step: () => void = () => {}) {
+    if (headers.some(name => !name) || new Set(headers).size !== headers.length) throw new CsvkitBlocked("Agate duplicate/unnamed column warning provenance");
+    this.#order = options.limit === 0 ? ["Text"] : columnTypeOrder(options);
+    this.#hypotheses = headers.map(() => new Set(this.#order));
+  }
+  observe(row: readonly (string | null)[]): void {
+    if (!this.headers.length) throw new CsvkitBlocked("Agate duplicate/unnamed column warning provenance");
+    if (this.options.limit !== undefined && this.options.limit >= 0 && this.#observed++ >= this.options.limit) return;
+    for (const [index, candidates] of this.#hypotheses.entries()) {
+      this.step();
       if (candidates.size === 1 || row.length <= index) continue;
       for (const type of candidates) {
-        if (type === "Text") { step(); continue; }
-        try { castValue(type, row[index]!, options, step); }
+        if (type === "Text") { this.step(); continue; }
+        try { castValue(type, row[index]!, this.options, this.step); }
         catch (error) { if (!(error instanceof CastError)) throw error; candidates.delete(type); }
       }
     }
   }
-  const columns = headers.map((name, index): TypedColumn => {
-    for (const type of order) {
-      if (hypotheses[index]!.has(type)) return { name, type };
-    }
-    throw new CsvkitBlocked("no compatible Agate column type");
-  });
-  const typedRows = rows.map((row, rowIndex) => {
-    if (row.length > headers.length) throw new CsvkitDiagnostic(`ValueError: Row ${rowIndex} has ${row.length} values, but Table only has ${headers.length} columns.`);
-    return columns.map((column, index) => {
-      try { return castValue(column.type, row[index] ?? null, options.limit === 0 ? {} : options, step); }
+  columns(): readonly TypedColumn[] {
+    return this.headers.map((name, index) => ({ name, type: this.#order.find(type => this.#hypotheses[index]!.has(type))! }));
+  }
+  cast(row: readonly (string | null)[], rowIndex: number): readonly TableValue[] {
+    if (row.length > this.headers.length) throw new CsvkitDiagnostic(`ValueError: Row ${rowIndex} has ${row.length} values, but Table only has ${this.headers.length} columns.`);
+    return this.columns().map((column, index) => {
+      try { return castValue(column.type, row[index] ?? null, this.options.limit === 0 ? {} : this.options, this.step); }
       catch (error) {
         if (!(error instanceof CastError)) throw error;
         throw new CsvkitDiagnostic(`CastError: ${error.message} Error at row ${rowIndex} column ${column.name}.`);
       }
     });
-  });
-  return { headers, columns, rows: typedRows, rawRows: rows };
+  }
+}
+
+/** Buffering convenience API; streaming callers use TableInference and replay. */
+export function inferTable(headers: readonly string[], rows: readonly (readonly (string | null)[])[], options: InferenceOptions = {}, step: () => void = () => {}): TypedTable {
+  const inference = new TableInference(headers, options, step);
+  for (const row of options.limit && options.limit < 0 ? rows.slice(0, options.limit) : rows) inference.observe(row);
+  return { headers, columns: inference.columns(), rows: rows.map((row, index) => inference.cast(row, index)), rawRows: rows };
 }

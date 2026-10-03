@@ -1,3 +1,5 @@
+import { MemoryFileSystem } from "@poe-code/safe-fs";
+import { createReplayFile } from "./table/storage.js";
 import { test } from "vitest";
 import assert from "node:assert/strict";
 import { execute, run, defaultLimits } from "./engine.js";
@@ -12,10 +14,11 @@ import numericReference from "../../../docs/csvkit/csvlook-user-numeric-referenc
 
 async function invokeLook(input: string, argv: readonly string[], overrides: Partial<CsvkitContext> = {}, settings?: Readonly<Record<string, unknown>>) {
   let stdout = ""; let stderr = "";
+  const backing = new MemoryFileSystem();
   const cleanups: (() => Promise<void>)[] = [];
   const context: CsvkitContext = {
     argv: new OwnedArguments(argv.map(value => new TextEncoder().encode(value)), defaultLimits), cwd: "/",
-    fs: { readFile: async () => { throw new Error("unexpected read"); }, writeFile: async () => { throw new Error("unexpected write"); } },
+    fs: { createReplayFile: ({ signal }) => createReplayFile(backing, "/", signal), readFile: async () => { throw new Error("unexpected read"); }, writeFile: async () => { throw new Error("unexpected write"); } },
     stdin: (async function* () { yield new TextEncoder().encode(input); })(), stdinIsDefault: false,
     stdout: { write: async bytes => { stdout += new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes); } },
     stderr: { write: async bytes => { stderr += new TextDecoder().decode(bytes); } },

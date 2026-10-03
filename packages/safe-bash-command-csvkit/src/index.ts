@@ -52,3 +52,7 @@ export * from "./command.js";
 export type {CsvpyWasiOptions} from './default-csvpy.js';
 
 export * from "./sync.js";
+
+export { createReplayFile, type ReplayFile } from "./table/storage.js";
+export { TableInference } from "./table/types.js";
+export { readReplayTable, type ReplayTable } from "./table/index.js";

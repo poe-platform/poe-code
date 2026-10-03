@@ -92,8 +92,7 @@ export class GeoJsonGenerator {
     return feature;
   }
 
-  collection(rows: readonly (readonly TableValue[])[]): Map<string, JsonValue> {
-    const features: JsonValue[] = [];
+  async collectionMetadata(rows: AsyncIterable<readonly TableValue[]>): Promise<Map<string, JsonValue>> {
     let minLon: JsonValue = null; let minLat: JsonValue = null; let maxLon: JsonValue = null; let maxLat: JsonValue = null;
     const numeric = (value: JsonValue | undefined): number | bigint => {
       if (typeof value === "boolean") return Number(value);
@@ -145,7 +144,7 @@ export class GeoJsonGenerator {
         if (maxLat === null || compare(value[1]!, maxLat, ">")) maxLat = value[1]!;
       } else for (const child of value) coordinates(child);
     };
-    for (const row of rows) {
+    for await (const row of rows) {
       const feature = this.feature(row);
       if (!this.runtime.options.no_bbox) {
         const geometry = feature.get("geometry");
@@ -161,11 +160,10 @@ export class GeoJsonGenerator {
           throw new CsvkitDiagnostic(`TypeError: argument of type '${type}' is not a container or iterable`);
         }
       }
-      features.push(feature);
     }
     const result = new Map<string, JsonValue>([["type", "FeatureCollection"]]);
     if (!this.runtime.options.no_bbox) result.set("bbox", [minLon, minLat, maxLon, maxLat]);
-    result.set("features", features);
+    result.set("features", []);
     if (this.runtime.options.crs) result.set("crs", new Map<string, JsonValue>([["type", "name"], ["properties", new Map([["name", String(this.runtime.options.crs)]])]]));
     return result;
   }

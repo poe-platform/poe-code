@@ -111,24 +111,8 @@ export class LazyInput {
   }
 
   async *#decode(): AsyncGenerator<string> {
-    let chunks: AsyncIterable<string>;
-    if (this.codec.decodeStream) chunks = this.codec.decodeStream(this.#bytes(), this.encoding, this.signal);
-    else {
-      const bytes: Uint8Array[] = [];
-      let size = 0;
-      for await (const chunk of this.#bytes()) {
-        this.signal.throwIfAborted();
-        this.retain(chunk.length);
-        bytes.push(Uint8Array.from(chunk));
-        size += chunk.length;
-      }
-      this.retain(size);
-      const joined = new Uint8Array(size);
-      let offset = 0;
-      for (const chunk of bytes) { joined.set(chunk, offset); offset += chunk.length; }
-      const text = await this.codec.decode(joined, this.encoding, this.signal);
-      chunks = (async function* () { yield text; })();
-    }
+    if (!this.codec.decodeStream) throw new CsvkitBlocked(`codec ${this.encoding} requires a streaming decoder`);
+    const chunks = this.codec.decodeStream(this.#bytes(), this.encoding, this.signal);
     let cr = false;
     for await (const text of chunks) {
       this.signal.throwIfAborted();
@@ -182,6 +166,20 @@ export class LazyInput {
       const sync = this.tryNextLineSync(stripNul);
       if (sync !== undefined) return sync;
       if (this.#cursor > 0) { this.#pending = this.#pending.slice(this.#cursor); this.#cursor = 0; }
+      await this.#fill();
+    }
+  }
+
+  /** Consume decoded text in codec-sized pieces, without physical-line buffering. */
+  async *chunks(): AsyncGenerator<string> {
+    while (true) {
+      this.assertOpen();
+      if (this.#cursor < this.#pending.length) {
+        const text = this.#pending.slice(this.#cursor);
+        this.#pending = ""; this.#cursor = 0; this.#pendingHasNul = false;
+        yield text;
+      }
+      if (this.#done) return;
       await this.#fill();
     }
   }

@@ -4,7 +4,7 @@ import type { Runtime } from "../runtime.js";
 import { CsvkitBlocked, CsvkitDiagnostic } from "../errors.js";
 import { emit, jsonTable, type JsonValue } from "../operations/json-table.js";
 import { GeoJsonGenerator } from "../geojson/index.js";
-import { readTable } from "../table/index.js";
+import { readReplayTable } from "../table/index.js";
 
 async function json(runtime: Runtime): Promise<number> {
   const o = runtime.options;
@@ -22,11 +22,33 @@ async function json(runtime: Runtime): Promise<number> {
   if (geo && indent !== null) runtime.retain(indent * 12);
   if (!raw) {
     if (!geo) return jsonTable(runtime, indent);
-    const table = await readTable(runtime, undefined, undefined, true);
+    const table = await readReplayTable(runtime, undefined, undefined, true);
     const generator = new GeoJsonGenerator(runtime, table.headers, true);
     if (o.streamOutput) {
-      for (const row of table.rows) { await emit(generator.feature(row), runtime, indent); await runtime.write("\n"); }
-    } else await emit(generator.collection(table.rows), runtime, indent);
+      for await (const row of table.rows()) { await emit(generator.feature(row), runtime, indent); await runtime.write("\n"); }
+    } else {
+      const metadata = await generator.collectionMetadata(table.rows());
+      await runtime.write("{");
+      let field = 0;
+      for (const [name, value] of metadata) {
+        if (field++) await runtime.write(indent === null ? ", " : ",");
+        if (indent !== null) await runtime.write("\n" + " ".repeat(indent));
+        await emit(name, runtime, indent, 1); await runtime.write(": ");
+        if (name !== "features") { await emit(value, runtime, indent, 1); continue; }
+        await runtime.write("[");
+        let index = 0;
+        for await (const row of table.rows()) {
+          if (index++) await runtime.write(indent === null ? ", " : ",");
+          if (indent !== null) await runtime.write("\n" + " ".repeat(indent * 2));
+          await emit(generator.feature(row), runtime, indent, 2);
+        }
+        if (index && indent !== null) await runtime.write("\n" + " ".repeat(indent));
+        await runtime.write("]");
+      }
+      if (field && indent !== null) await runtime.write("\n");
+      await runtime.write("}");
+    }
+    await table.close();
     return 0;
   }
   let headers: readonly string[] | undefined;

@@ -3,7 +3,8 @@ import type { CommandDescriptor } from "../descriptor.js";
 import type { Runtime } from "../runtime.js";
 import { printNames, parseColumnIdentifiers } from "../columns.js";
 import { CsvkitBlocked, CsvkitDiagnostic } from "../errors.js";
-import { readTable } from "../table/index.js";
+import { externalSort } from "../table/external.js";
+import { readReplayTable, type TableValue } from "../table/index.js";
 import { temporalOrder } from "../types/temporal.js";
 import { compareDecimals } from "../table/decimal-order.js";
 import { upperText } from "../python-text.js";
@@ -25,26 +26,21 @@ async function sort(runtime: Runtime): Promise<number> {
   const o = runtime.options;
   if (o.names_only) return printNames(runtime);
   if (runtime.context.terminal.stdinIsTTY && !o.input_path) runtime.error("You must provide an input file or piped data.");
-  const table = await readTable(runtime, undefined, undefined, true);
+  const table = await readReplayTable(runtime, undefined, undefined, true);
   const headers = table.headers;
-  runtime.retain(32 + table.rows.length * 8);
-  const rows = [...table.rows];
   const columns = parseColumnIdentifiers(o.columns as string | null, headers, o.zero_based ? 0 : 1, null, runtime.step, true);
-  // Materialize keys once, matching Python sorted(key=...) evaluation.
-  runtime.retain(64 + rows.length * (32 + columns.length * 8));
-  const keyed = rows.map(row => columns.map(index => {
-    runtime.step();
-    const value = row[index]!;
-    const key = o.ignore_case && typeof value === "string" ? upperText(value, runtime.step) : value;
-    if (key !== value && typeof key === "string") runtime.retain(32 + key.length * 2);
-    return key;
-  }));
-  runtime.retain(32 + rows.length * 8);
-  const indices = rows.map((_, index) => index);
-  indices.sort((a, b) => {
+  interface KeyedRow { row: readonly TableValue[]; keys: readonly TableValue[] }
+  async function* keyed(): AsyncGenerator<KeyedRow> {
+    for await (const row of table.rows()) yield { row, keys: columns.map(index => {
+      runtime.step();
+      const value = row[index]!;
+      return o.ignore_case && typeof value === "string" ? upperText(value, runtime.step) : value;
+    }) };
+  }
+  const compare = (a: KeyedRow, b: KeyedRow): number => {
     runtime.step();
     for (let index = 0; index < columns.length; index++) {
-      const x = keyed[a]![index]!; const y = keyed[b]![index]!;
+      const x = a.keys[index]!; const y = b.keys[index]!;
       let order: number;
       if (x === null || y === null) order = x === null ? (y === null ? 0 : 1) : -1;
       else if (typeof x === "string" && typeof y === "string") order = compareText(x, y, runtime);
@@ -63,12 +59,22 @@ async function sort(runtime: Runtime): Promise<number> {
       if (order) return o.reverse ? -order : order;
     }
     return 0;
-  });
+  };
+  let sorted: import("../table/external.js").ReplayRows<KeyedRow>;
+  if (runtime.storage) sorted = await externalSort(runtime.storage, keyed(), compare, runtime.step);
+  else {
+    const rows: KeyedRow[] = [];
+    for await (const row of keyed()) { runtime.retain(64 + columns.length * 16); rows.push(row); }
+    rows.sort(compare);
+    sorted = { async *read() { yield* rows; }, async close() {} };
+  }
   await runtime.row(headers);
-  for (const index of indices) await runtime.row(rows[index]!.map(value => {
+  for await (const { row } of sorted.read()) await runtime.row(row.map(value => {
     runtime.step();
     return typeof value === "object" && value?.kind === "datetime" ? { ...value, value: value.value.replace(" ", "T") } : value;
   }));
+  await sorted.close();
+  await table.close();
   return 0;
 }
 

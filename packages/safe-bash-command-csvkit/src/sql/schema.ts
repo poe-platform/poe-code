@@ -73,7 +73,7 @@ export function schemaIdentifier(name: string, dialect: DatabaseDialectDescripto
   return owner ? identifier(owner, dialect, runtime) : '';
 }
 
-export function deriveSchema(runtime: Pick<Runtime, 'options' | 'step' | 'retain'>, table: SqlTable, name: string, dialect: DatabaseDialectDescriptor, connected: boolean): SqlTableSchema {
+export function deriveSchema(runtime: Pick<Runtime, 'options' | 'step' | 'retain'>, table: SqlTable, name: string, dialect: DatabaseDialectDescriptor, connected: boolean, profile?: readonly { length: number; whole: number; fractional: number; required: boolean }[]): SqlTableSchema {
   const o = runtime.options;
   const unique = o.unique_constraint ? [...new Set(String(o.unique_constraint).split(','))] : [];
   const missing = unique.find(column => !table.headers.includes(column));
@@ -85,8 +85,8 @@ export function deriveSchema(runtime: Pick<Runtime, 'options' | 'step' | 'retain
     let type = typeName(columnType, dialect);
     if (!type) throw new CsvkitBlocked(`typed SQL ${columnType} dialect profile ${dialect.name}`);
     if (dialect.textLength && columnType === 'Text' && !o.no_constraints) {
-      let length = 0;
-      for (const row of table.rows) { runtime.step(); length = Math.max(length, Array.from(pythonValueText(row[column] ?? null)).length); }
+      let length = profile?.[column]?.length ?? 0;
+      for (const row of profile ? [] : table.rows) { runtime.step(); length = Math.max(length, Array.from(pythonValueText(row[column] ?? null)).length); }
       // agate-sql multiplies by Decimal(multiplier), under precision 28.
       // Lengths remain integral, but large products must round before comparison.
       const product = Decimal.parse(String(length)).multiply(Decimal.parse(connected ? String(o.col_len_multiplier) : '1'));
@@ -95,8 +95,8 @@ export function deriveSchema(runtime: Pick<Runtime, 'options' | 'step' | 'retain
       type = dialect.textLengthLimit !== undefined && multiplied > BigInt(dialect.textLengthLimit) ? 'TEXT' : type + `(${multiplied >= minimum ? multiplied : minimum})`;
     }
     if (columnType === 'Number' && dialect.numericPrecision && !o.no_constraints) {
-      let whole = 1, fractional = 0;
-      for (const row of table.rows) {
+      let whole = profile?.[column]?.whole ?? 1, fractional = profile?.[column]?.fractional ?? 0;
+      for (const row of profile ? [] : table.rows) {
         runtime.step();
         const value = row[column];
         if (!value || typeof value !== 'object' || value.kind !== 'decimal') continue;
@@ -110,7 +110,7 @@ export function deriveSchema(runtime: Pick<Runtime, 'options' | 'step' | 'retain
       }
       type += `(${dialect.numericPrecision}, ${Math.min(fractional, 28 - whole)})`;
     }
-    const required = columnType !== 'DateTime' && !o.no_constraints && table.rows.every(row => { runtime.step(); return row[column] !== null; });
+    const required = columnType !== 'DateTime' && !o.no_constraints && (profile?.[column]?.required ?? table.rows.every(row => { runtime.step(); return row[column] !== null; }));
     columns.push(Object.freeze({ name: header, type, required, nullableSuffix: (columnType === 'DateTime' ? dialect.timestampNullable : undefined) ?? dialect.nullable ?? '' }));
     runtime.retain(64 + (header.length + type.length) * 4);
   }
@@ -131,4 +131,28 @@ export function compileCreateTable(runtime: SqlWork, schema: SqlTableSchema, dia
   const statement = '\nCREATE TABLE ' + qualified + ' (\n' + (fields.length ? '\t' + fields.join(', \n\t') + '\n' : '') + ')\n\n';
   runtime.retain(statement.length * 4 + 64);
   return { qualified, statement };
+}
+
+/** One pass over retained rows, with only column summaries kept in memory. */
+export async function deriveReplaySchema(runtime: Runtime, table: import("../table/index.js").ReplayTable, name: string, dialect: DatabaseDialectDescriptor, connected: boolean): Promise<SqlTableSchema> {
+  const profile = table.headers.map(() => ({ length: 0, whole: 1, fractional: 0, required: true }));
+  for await (const row of table.rows()) for (const [index, state] of profile.entries()) {
+    runtime.step();
+    const value = row[index] ?? null;
+    state.required &&= value !== null;
+    const type = table.columns[index]!.type;
+    if (dialect.textLength && type === "Text" && !runtime.options.no_constraints) {
+      let length = 0;
+      for (const ignoredCharacter of pythonValueText(value)) { runtime.step(); length++; }
+      state.length = Math.max(state.length, length);
+    }
+    if (dialect.numericPrecision && type === "Number" && !runtime.options.no_constraints && value && typeof value === "object" && value.kind === "decimal" && Number.isFinite(Number(value.value))) {
+      const decimal = Decimal.parse(value.value).normalized();
+      if (!decimal.special) {
+        state.whole = Math.max(state.whole, decimal.coefficient.toString().length + decimal.exponent);
+        state.fractional = Math.max(state.fractional, -decimal.exponent);
+      }
+    }
+  }
+  return deriveSchema(runtime, { headers: table.headers, columns: table.columns, rows: [], rawRows: [] }, name, dialect, connected, profile);
 }

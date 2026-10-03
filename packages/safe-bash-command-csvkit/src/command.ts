@@ -1,3 +1,4 @@
+import { createReplayFile } from "./table/storage.js";
 import { readFileStream } from "safe-bash-contracts/filesystem";
 import {createCsvpyInterpreter} from "./csvpy-interpreter.js";
 import { utf8Codec } from "./codecs/utf8.js";
@@ -19,28 +20,6 @@ import { writeFileOutput, openFileOutput } from "safe-bash-contracts/filesystem-
 import { FsError, isFsError } from "safe-bash-contracts/errors";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 
-import { evalSyncCsvlook, evalSyncCsvjson, evalSyncCsvsort, evalSyncCsvformat, evalSyncCsvstat, evalSyncIn2csv, evalSyncCsvstack, evalSyncCsvjoin } from "./sync.js";
-import { builtInDirectContextExecutors, syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
-
-function isDefaultCsvkitOptions(options?: CsvkitCommandsOptions): boolean {
-  if (!options) return true;
-  return (
-    options.limits === undefined &&
-    options.codecs === undefined &&
-    options.locale === undefined &&
-    options.clock === undefined &&
-    options.terminal === undefined &&
-    options.compression === undefined &&
-    options.databases === undefined &&
-    options.sqlDialects === undefined &&
-    options.interpreter === undefined &&
-    options.openMatchFile === undefined &&
-    options.sniffing === undefined &&
-    options.columnWarnings === undefined &&
-    options.probeInputOpen === undefined
-  );
-}
-
 /** Portable defaults; hosts may inject codecs, locale, clock and terminal. */
 export interface CsvkitCommandsOptions extends Partial<Pick<CsvkitContext, "codecs" | "locale" | "clock" | "terminal">> {
   readonly compression?: CsvkitContext["compression"];
@@ -53,6 +32,8 @@ export interface CsvkitCommandsOptions extends Partial<Pick<CsvkitContext, "code
   readonly probeInputOpen?: CsvkitContext["probeInputOpen"];
   readonly limits?: CsvkitLimitOptions;
   readonly replace?: boolean;
+  /** Virtual directory on the injected filesystem; defaults to the invocation cwd. */
+  readonly storageDirectory?: string;
 }
 
 export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): readonly CommandDefinition[] {
@@ -113,6 +94,7 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): reado
           return bytes;
         };
         const fsAdapter: CsvkitContext["fs"] = {
+            createReplayFile: settings => createReplayFile(context.fs, virtualPath(context.cwd, options.storageDirectory ?? context.cwd), settings.signal),
             exists: async (path, settings) => {
               try { await context.fs.stat(path, settings); settings.signal.throwIfAborted(); return true; }
               catch (failure) { settings.signal.throwIfAborted(); if (isFsError(failure)) return false; throw failure; }
@@ -287,10 +269,6 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): reado
       return { exitCode: result! };
     }
   })));
-  Object.assign(syncCommandEvaluators, { evalSyncCsvlook, evalSyncCsvjson, evalSyncCsvsort, evalSyncCsvformat, evalSyncCsvstat, evalSyncIn2csv, evalSyncCsvstack, evalSyncCsvjoin });
-  if (isDefaultCsvkitOptions(options)) {
-    for (const definition of definitions) builtInDirectContextExecutors.add(definition.execute);
-  }
   return definitions;
 }
 

@@ -44,6 +44,27 @@ counts WASM function entries and loop iterations. Cancellation terminates the wo
 `terminal.readLine` for interactive input, or retain explicit `createSession` and
 `createTable` bindings for another runtime. Ambient host credentials are never loaded
 implicitly.
+Sorting and joining use stable external merge passes, and inferred tables replay
+rows from caller-owned storage. Formatting, JSON/GeoJSON, display widths, statistics
+and SQL schema generation consume those replay passes. Replay keeps a fixed 64 KiB
+cache per live file, sort runs target 256 KiB, and spill reads/writes are at most
+16 KiB. Working memory also includes the current indivisible record, selected
+columns, and explicitly requested frequency output. Whole-input dialect sniffing
+(`-y -1`) uses replay too; ambiguous quote patterns can require repeated scans.
+
+Shell commands spill through the injected filesystem in the invocation directory;
+set `storageDirectory` to another authorized virtual directory. Large inputs require
+retained staging writes, retained reads and retained cleanup on that backend. Use an
+external backend on Workers: a memory filesystem still retains all spilled bytes
+in RAM. No host temporary directory or private filesystem is created.
+SDK hosts enable the same path with
+`fs.createReplayFile: ({ signal }) => createReplayFile(safeFs, "/scratch", signal)`.
+SDK hosts omitting that capability retain the legacy buffering convenience path;
+`inferTable`, synchronous evaluators and explicitly materialized Python/Agate
+objects are also buffering APIs. They are not selected as automatic shell shortcuts.
+Custom text codecs must implement `decodeStream`; `decode` remains available for
+explicit byte decoding. All bundled text encodings have incremental decoders.
+
 The engine does not fall back to native csvkit processes.
 `csvcut` and `csvformat` accept numeric and null cells from input quoting modes
 2, 4 and 5, preserving Python float serialization and empty null output cells.

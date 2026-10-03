@@ -2,9 +2,9 @@
 import type { CommandDescriptor } from "../descriptor.js";
 import type { Runtime } from "../runtime.js";
 import { printNames, parseColumnIdentifiers } from "../columns.js";
-import { readTable, type TableValue, type ColumnType } from "../table/index.js";
+import { externalSort, type ReplayRows } from "../table/external.js";
+import { readReplayTable, type TableValue, type ColumnType } from "../table/index.js";
 import { Decimal, DecimalTrap } from "../types/decimal.js";
-import { decimalPercentiles, sampleVariance } from "../types/metrics.js";
 import { temporalOrder } from "../types/temporal.js";
 import { pythonValueText, type CsvWriteCell } from "../csv.js";
 import { CsvkitBlocked, CsvkitDiagnostic } from "../errors.js";
@@ -69,11 +69,16 @@ function format(value: TableValue, runtime: Runtime): TableValue {
   return result;
 }
 
-/** Python hashing merges equal Decimals, retains the first spelling, and keeps NaNs distinct. */
-function frequencies(values: readonly TableValue[], runtime: Runtime): Frequency[] {
-  const counts = new Map<string, Frequency>();
-  for (const [index, value] of values.entries()) {
-    runtime.step();
+async function sortValues<T>(runtime: Runtime, source: AsyncIterable<T>, compare: (a: T, b: T) => number): Promise<ReplayRows<T>> {
+  if (runtime.storage) return externalSort(runtime.storage, source, compare, runtime.step);
+  const rows: T[] = [];
+  for await (const value of source) { runtime.retain(128); rows.push(value); }
+  rows.sort(compare);
+  return { async *read() { yield* rows; }, async close() {} };
+}
+
+function frequencyKey(value: TableValue, index: number, runtime: Runtime): string {
+  runtime.step();
     let key: string;
     if (typeof value === "object" && value) {
       if (value.kind === "decimal") {
@@ -85,33 +90,50 @@ function frequencies(values: readonly TableValue[], runtime: Runtime): Frequency
         key = value.kind + ":" + offset + temporalOrder(value.value);
       }
     } else key = typeof value + ":" + value;
-    const existing = counts.get(key);
-    if (existing) existing.count++;
-    else { runtime.retain(96 + key.length * 2); counts.set(key, { value, count: 1 }); }
-  }
-  return [...counts.values()];
+  return key;
 }
 
-function calculate(op: Operation, type: ColumnType, values: readonly TableValue[], distinct: readonly Frequency[], runtime: Runtime): Stat {
-  runtime.retain(64 + values.length * 16);
-  const data = values.filter(value => { runtime.step(); return value !== null; });
-  if (op === "type") return type;
-  if (op === "nulls") return data.length !== values.length;
-  if (op === "nonnulls") return data.length;
-  if (op === "unique") return distinct.length;
-  if (op === "freq") {
-    const count = Number(runtime.options.freq_count || 5);
-    return [...distinct].sort((a, b) => { runtime.step(); return b.count - a.count; }).slice(0, Math.max(0, count));
+async function frequencies(values: () => AsyncIterable<TableValue>, runtime: Runtime): Promise<{ count: number; nonnulls: number; top: readonly Frequency[] }> {
+  let nonnulls = 0;
+  async function* keyed() {
+    let index = 0;
+    for await (const value of values()) { if (value !== null) nonnulls++; yield { key: frequencyKey(value, index, runtime), value, index: index++ }; }
   }
+  const sorted = await sortValues(runtime, keyed(), (a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0);
+  let count = 0;
+  async function* groups() {
+    let current: { key: string; value: TableValue; index: number; count: number } | undefined;
+    for await (const value of sorted.read()) {
+      if (current?.key === value.key) current.count++;
+      else { if (current) { count++; yield current; } current = { ...value, count: 1 }; }
+    }
+    if (current) { count++; yield current; }
+  }
+  const ranked = await sortValues(runtime, groups(), (a, b) => b.count - a.count || a.index - b.index);
+  await sorted.close();
+  const top: Frequency[] = [];
+  const limit = Math.max(0, Number(runtime.options.freq_count || 5));
+  for await (const item of ranked.read()) { if (top.length >= limit) break; top.push({ value: item.value, count: item.count }); }
+  await ranked.close();
+  return { count, nonnulls, top };
+}
+
+async function calculate(op: Operation, type: ColumnType, values: () => AsyncIterable<TableValue>, count: number, nonnulls: number, distinct: { count: number; top: readonly Frequency[] }, runtime: Runtime): Promise<Stat> {
+  const data = async function* () { for await (const value of values()) if (value !== null) yield value; };
+  if (op === "type") return type;
+  if (op === "nulls") return nonnulls !== count;
+  if (op === "nonnulls") return nonnulls;
+  if (op === "unique") return distinct.count;
+  if (op === "freq") return distinct.top;
   try {
     let result: TableValue = null;
     if (op === "len" && type === "Text") {
       let length = 0;
-      for (const value of data) { let size = 0; for (const ignoredChar of String(value)) { runtime.step(); size++; } length = Math.max(length, size); }
+      for await (const value of data()) { let size = 0; for (const ignoredChar of String(value)) { runtime.step(); size++; } length = Math.max(length, size); }
       result = { kind: "decimal", value: String(length) };
     } else if (op === "maxprecision" && type === "Number") {
       let whole = 1; let places = 0;
-      for (const value of data) {
+      for await (const value of data()) {
         runtime.step();
         const spelling = (value as { value: string }).value;
         // Agate checks math.isnan/isinf before normalization, converting to float.
@@ -123,40 +145,57 @@ function calculate(op: Operation, type: ColumnType, values: readonly TableValue[
       }
       return Math.min(places, 28 - whole);
     } else if ((op === "min" || op === "max") && ["Number", "Date", "DateTime", "TimeDelta"].includes(type)) {
-      for (const value of data) if (result === null || (op === "min" ? compare(value, result, runtime) < 0 : compare(value, result, runtime) > 0)) result = value;
+      for await (const value of data()) if (result === null || (op === "min" ? compare(value, result, runtime) < 0 : compare(value, result, runtime) > 0)) result = value;
     } else if ((op === "sum" || op === "mean") && type === "TimeDelta") {
       let total = 0n;
-      for (const value of data) {
+      for await (const value of data()) {
         runtime.step(); total += (value as { microseconds: bigint }).microseconds;
         // datetime.sum traps at each intermediate timedelta addition.
         pythonValueText({ kind: "timedelta", microseconds: total });
       }
-      if (op === "mean" && !data.length) return null;
+      if (op === "mean" && !nonnulls) return null;
       if (op === "mean") {
-        const negative = total < 0n; const absolute = negative ? -total : total; const size = BigInt(data.length);
+        const negative = total < 0n; const absolute = negative ? -total : total; const size = BigInt(nonnulls);
         let quotient = absolute / size; const remainder = absolute % size;
         if (remainder * 2n > size || remainder * 2n === size && quotient % 2n) quotient++;
         total = negative ? -quotient : quotient;
       }
       result = { kind: "timedelta", microseconds: total };
     } else if (type === "Number" && ["sum", "mean", "median", "stdev"].includes(op)) {
-      const numbers = data.map(value => { runtime.step(); return Decimal.parse((value as { value: string }).value); });
       let decimal: Decimal;
       if (op === "median") {
-        runtime.retain(4096 + numbers.length * 16);
-        const median = decimalPercentiles(numbers, runtime.step)[50];
-        if (!median) return null;
-        decimal = median;
-      } else if (op === "stdev") {
-        const variance = sampleVariance(numbers, runtime.step);
-        if (!variance) return null;
-        decimal = sqrt(variance, runtime);
+        const sorted = await sortValues(runtime, data(), (a, b) => Decimal.parse((a as { value: string }).value).compare(Decimal.parse((b as { value: string }).value)));
+        const ranks = Array.from({ length: 99 }, (_, index) => {
+          const rank = nonnulls * ((index + 1) / 100);
+          return [Math.max(1, Math.ceil(rank)) - 1, Math.min(nonnulls, Math.floor(rank + 1)) - 1] as const;
+        });
+        const needed = new Set(ranks.flat());
+        const boundaries = new Map<number, Decimal>();
+        let index = 0;
+        try { for await (const value of sorted.read()) { if (needed.has(index)) boundaries.set(index, Decimal.parse((value as { value: string }).value)); index++; } }
+        finally { await sorted.close(); }
+        if (!nonnulls) return null;
+        let median: Decimal | undefined;
+        // Agate computes every percentile, including failures outside the median.
+        for (const [index, [low, high]] of ranks.entries()) {
+          runtime.step();
+          const first = boundaries.get(low)!, last = boundaries.get(high)!;
+          const value = low === high ? first : first.add(last).divide(Decimal.parse("2"));
+          if (index === 49) median = value;
+        }
+        decimal = median!;
       } else {
         decimal = Decimal.parse("0");
-        for (const number of numbers) { runtime.step(); decimal = decimal.add(number); }
+        for await (const value of data()) { runtime.step(); decimal = decimal.add(Decimal.parse((value as { value: string }).value)); }
         if (op !== "sum") {
-          if (!numbers.length) return null;
-          decimal = decimal.divide(Decimal.parse(String(numbers.length)));
+          if (!nonnulls) return null;
+          decimal = decimal.divide(Decimal.parse(String(nonnulls)));
+        }
+        if (op === "stdev") {
+          const negativeMean = decimal.multiply(Decimal.parse("-1"));
+          let squares = Decimal.parse("0");
+          for await (const value of data()) { runtime.step(); squares = squares.add(Decimal.parse((value as { value: string }).value).add(negativeMean).square()); }
+          decimal = sqrt(squares.divide(Decimal.parse(String(nonnulls - 1))), runtime);
         }
       }
       result = { kind: "decimal", value: decimal.toString() };
@@ -186,15 +225,14 @@ async function statistics(runtime: Runtime): Promise<number> {
     for await (const ignoredRecord of runtime.records()) count++;
     await runtime.write(`${count}\n`); return 0;
   }
-  const table = await readTable(runtime, undefined, undefined, true);
+  const table = await readReplayTable(runtime, undefined, undefined, true);
   const ids = parseColumnIdentifiers(o.columns as string | null, table.headers, o.zero_based ? 0 : 1, undefined, runtime.step, true);
   const stats = new Map<number, Map<Operation, Stat>>();
   for (const id of ids) {
-    runtime.retain(128 + table.rows.length * 32);
-    const values = table.rows.map(row => { runtime.step(); return row[id]!; });
-    const distinct = frequencies(values, runtime);
+    const values = async function* () { for await (const row of table.rows()) { runtime.step(); yield row[id]!; } };
+    const distinct = await frequencies(values, runtime);
     const column = new Map<Operation, Stat>();
-    for (const [op] of requested.length ? requested : operations) { runtime.step(); column.set(op, calculate(op, table.columns[id]!.type, values, distinct, runtime)); }
+    for (const [op] of requested.length ? requested : operations) { runtime.step(); column.set(op, await calculate(op, table.columns[id]!.type, values, table.count, distinct.nonnulls, distinct, runtime)); }
     stats.set(id, column);
     if (requested.length) {
       const op = requested[0]![0]; const stat = column.get(op)!;
@@ -252,7 +290,7 @@ async function statistics(runtime: Runtime): Promise<number> {
       }
       await runtime.write("\n");
     }
-    await runtime.write(`Row count: ${table.rows.length}\n`);
+    await runtime.write(`Row count: ${table.count}\n`);
   }
   return 0;
 }

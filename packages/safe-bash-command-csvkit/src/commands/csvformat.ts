@@ -3,7 +3,7 @@ import type { CommandDescriptor } from "../descriptor.js";
 import type { Runtime } from "../runtime.js";
 import { defaultHeaders } from "../columns.js";
 import { CsvkitDiagnostic } from "../errors.js";
-import { readTable } from "../table/index.js";
+import { readReplayTable } from "../table/index.js";
 import { writeCsvRow, type CsvDialect } from "../csv.js";
 import { inputWriteCell } from "../operations/input-cells.js";
 
@@ -20,9 +20,9 @@ async function format(runtime: Runtime): Promise<number> {
   // Writer validation precedes reading, including empty inputs.
   writeCsvRow([], dialect);
   if (o.out_quoting === 2) {
-    const table = await readTable(runtime, undefined, undefined, true, false, true);
+    const table = await readReplayTable(runtime, undefined, undefined, true, false, true);
     if (!o.skip_header) await runtime.row(table.headers, dialect);
-    for (const row of table.rows) await runtime.row(row, dialect);
+    for await (const row of table.rows()) await runtime.row(row, dialect);
     return 0;
   }
   let first = true;

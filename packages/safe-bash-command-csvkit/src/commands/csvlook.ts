@@ -1,7 +1,7 @@
 // Grammar/help derived from csvkit 2.2.0; see LICENSE and docs/csvkit/reference-profile.json.
 import type { CommandDescriptor } from "../descriptor.js";
 import type { Runtime } from "../runtime.js";
-import { readTable } from "../table/index.js";
+import { readReplayTable } from "../table/index.js";
 import { printTable } from "../table/print.js";
 import { CsvkitDiagnostic, CsvkitBlocked } from "../errors.js";
 import { fileException } from "../diagnostics/index.js";
@@ -27,7 +27,7 @@ async function look(runtime: Runtime): Promise<number> {
       throw fileException(failure, String(o.input_path));
     }
   }
-  const table = await readTable(runtime, undefined, rowLimit, true, Boolean(o.line_numbers));
+  const table = await readReplayTable(runtime, undefined, rowLimit, true, Boolean(o.line_numbers));
   await printTable(runtime, table);
   return 0;
 }

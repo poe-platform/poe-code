@@ -65,6 +65,14 @@ bytes, not RGBA pixels. Image occurrences expire on advancement. Content and dee
 graphics-state stacks use caller-backed staging, released on return or document
 close. Supply external storage for large inputs.
 
+`renderRetainedShading(document, node, settings, storage, options)` renders a
+selected shading through retained reads. It shares the buffered renderer for
+all seven PDF shading types, skips ICC profile payloads and unrelated resources,
+and stages only addressable indexed palette entries. `maxWorkingBytes` and
+`onAllocation` cover selected resource snapshots, mesh geometry and the result
+surface together. Mesh and function snapshots remain resident during rendering;
+this API does not yet provide tile-based or external-memory mesh evaluation.
+
 `doc.attachments()` on a retained document visits embedded name trees,
 catalog/page associated files, and file-attachment annotations in document order.
 Each result exposes `index`, `name`, and `contents()`, which streams decoded

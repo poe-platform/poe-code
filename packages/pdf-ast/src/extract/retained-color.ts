@@ -1,6 +1,6 @@
 import { readBytes } from "@poe-code/safe-fs/contracts";
-import { cosName, cosNumber, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream } from "../ast.js";
-import { convertContentColorSteps, evalShadingFunctionToComponents, evaluateMaskTransfer, resolveMaskParameterSteps, type PdfMaskParameterRequest } from "../content/evaluator.js";
+import { cosArray, cosDict, cosName, cosNumber, cosStream, dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream, type PdfEvaluatedImage } from "../ast.js";
+import { colorComponentCountSteps, renderShadingDictToImage, type PdfEvaluationShadingRequest, convertContentColorSteps, evalShadingFunctionToComponents, evaluateMaskTransfer, resolveMaskParameterSteps, type PdfMaskParameterRequest } from "../content/evaluator.js";
 import { createCalibratedColorSpace } from "../content/calibrated-color.js";
 import { decodePdfStreamChunks } from "../cos/filter-stream.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
@@ -113,10 +113,104 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
       return value;
     } finally { if (ref !== undefined) active.delete(ref); }
   }
+  async function snapshotNumbers(node: PdfCosNode | undefined): Promise<PdfCosNode | undefined> {
+    const value = await resolve(node);
+    if (value?.kind !== "array") return value;
+    const items: PdfCosNode[] = [];
+    for (const item of value.items) {
+      const number = await resolve(item);
+      items.push(number?.kind === "number" ? number : cosNumber(0));
+    }
+    return cosArray(items);
+  }
+  async function snapshotFunction(node: PdfCosNode | undefined, depth = 0): Promise<PdfCosNode | undefined> {
+    if (depth > maxDepth) throw new PdfError("E_LIMIT", "PDF function state depth limit exceeded");
+    const value = await resolve(node);
+    if (value?.kind === "array") {
+      const items: PdfCosNode[] = [];
+      for (const item of value.items) items.push(await snapshotFunction(item, depth + 1) ?? { kind: "null" });
+      return cosArray(items);
+    }
+    const dict = value?.kind === "stream" ? value.dict : value?.kind === "dict" ? value : undefined;
+    if (!dict) return value;
+    const type = await resolve(dictGet(dict, "FunctionType"));
+    const kind = type?.kind === "number" ? type.value : 2;
+    const keys = kind === 0 && value?.kind === "stream" ? ["Domain", "Range", "Size", "BitsPerSample", "Encode", "Decode"]
+      : kind === 3 ? ["Domain", "Range", "Functions", "Bounds", "Encode", "C0", "C1", "N"]
+        : kind === 4 && value?.kind === "stream" ? ["Domain", "Range"] : ["Domain", "Range", "C0", "C1", "N"];
+    const selected = cosDict({ FunctionType: cosNumber(kind) });
+    for (const key of keys) {
+      const item = dictGet(dict, key);
+      if (!item) continue;
+      charge(64);
+      const field = key === "Functions" ? await snapshotFunction(item, depth + 1) : await snapshotNumbers(item);
+      selected.entries.push({ key: cosName(key), value: field ?? { kind: "null" } });
+    }
+    return value?.kind === "stream" && (kind === 0 || kind === 4) ? cosStream(selected, await decode(value)) : selected;
+  }
+  async function snapshotCalibrated(node: PdfCosNode | undefined): Promise<PdfCosNode | undefined> {
+    const value = await resolve(node);
+    const dict = value?.kind === "stream" ? value.dict : value?.kind === "dict" ? value : undefined;
+    if (!dict) return undefined;
+    const selected = cosDict();
+    for (const key of ["WhitePoint", "BlackPoint", "Gamma", "Matrix", "Range"]) {
+      const item = dictGet(dict, key);
+      if (!item) continue;
+      charge(64);
+      selected.entries.push({ key: cosName(key), value: await snapshotNumbers(item) ?? { kind: "null" } });
+    }
+    return selected;
+  }
+  async function snapshotColor(node: PdfCosNode | undefined, depth = 0): Promise<PdfCosNode | undefined> {
+    if (depth > maxDepth) throw new PdfError("E_LIMIT", "PDF color state depth limit exceeded");
+    const value = await resolve(node);
+    if (value?.kind !== "array") return value;
+    const family = await resolve(value.items[0]);
+    if (family?.kind !== "name") return cosArray([]);
+    if (family.decoded === "ICCBased") {
+      const profile = await resolve(value.items[1]);
+      const dict = profile?.kind === "stream" ? profile.dict : profile?.kind === "dict" ? profile : undefined;
+      if (!dict) return cosArray([family, { kind: "null" }]);
+      const entries: PdfCosDict["entries"] = [];
+      for (const key of ["N", "Alternate"]) {
+        const item = dictGet(dict, key);
+        if (!item) continue;
+        charge(64);
+        const resolved = key === "Alternate" ? await snapshotColor(item, depth + 1) : await resolve(item);
+        entries.push({ key: cosName(key), value: resolved ?? { kind: "null" } });
+      }
+      return cosArray([family, { kind: "dict", entries }]);
+    }
+    if (family.decoded === "Indexed" && value.items.length >= 4) {
+      const high = await resolve(value.items[2]);
+      const lookup = await resolve(value.items[3]);
+      if (lookup?.kind !== "stream" && lookup?.kind !== "string") return cosArray([family, { kind: "null" }, high ?? { kind: "null" }, { kind: "null" }]);
+      const base = await snapshotColor(value.items[1], depth + 1);
+      const work = colorComponentCountSteps(true, base);
+      let step = work.next();
+      while (!step.done) {
+        if (step.value.kind !== "resolve") throw new TypeError("Unexpected color component request");
+        step = work.next(await resolve(step.value.node));
+      }
+      const entries = high?.kind === "number" ? Math.max(0, Math.floor(high.value)) + 1 : 256;
+      const requested = entries * step.value;
+      const length = Number.isNaN(requested) ? 0 : requested > Number.MAX_SAFE_INTEGER ? Infinity : requested;
+      let palette = lookup;
+      if (lookup?.kind === "stream") palette = cosStream(await decode(lookup, length));
+      else if (lookup?.kind === "string") { charge(Math.min(length, lookup.bytes.length)); palette = { ...lookup, bytes: lookup.bytes.slice(0, length) }; }
+      return cosArray([family, base ?? { kind: "null" }, high ?? { kind: "null" }, palette ?? { kind: "null" }]);
+    }
+    if ((family.decoded === "Separation" || family.decoded === "DeviceN") && value.items.length >= 4) {
+      return cosArray([family, await snapshot(value.items[1]) ?? { kind: "null" },
+        await snapshotColor(value.items[2], depth + 1) ?? { kind: "null" }, await snapshotFunction(value.items[3]) ?? { kind: "null" }]);
+    }
+    if (["CalGray", "CalRGB", "Lab"].includes(family.decoded)) return cosArray([family, await snapshotCalibrated(value.items[1]) ?? { kind: "null" }]);
+    return cosArray([family]);
+  }
   const context = new ParsedCosDocument({ version: "1.7", bytes: new Uint8Array(), objects: new Map(), revisions: [],
     rootRef: { kind: "ref", objectNumber: 0, generationNumber: 0 }, maxDecompressedBytes: maximum, maxRecursionDepth: maxDepth });
   options.signal?.throwIfAborted();
-  return { resolve, decode, snapshot, charge, context, maxDepth };
+  return { resolve, decode, snapshot, snapshotColor, snapshotFunction, charge, context, maxDepth };
 }
 
 export async function resolveRetainedImageColor(document: PdfRetainedDocument, node: PdfCosNode | undefined,
@@ -187,4 +281,36 @@ async function runRetainedColorProgram<T>(document: PdfRetainedDocument, storage
     }
     return step.value;
   } finally { work.return(undefined as never); }
+}
+
+export type PdfRetainedShadingSettings = Omit<PdfEvaluationShadingRequest, "kind" | "dict" | "stream">;
+
+/** Read only selected shading resources through retained access. Resource
+ * snapshots, mesh geometry and the result surface are admitted to one owner. */
+export async function renderRetainedShading(document: PdfRetainedDocument, node: PdfCosNode,
+  settings: PdfRetainedShadingSettings, storage: PdfIndexStorage, options: PdfRetainedColorOptions = {}): Promise<PdfEvaluatedImage | undefined> {
+  const { resolve, decode, snapshot, snapshotColor, snapshotFunction, charge, context } = createRetainedColorAccess(document, storage, options);
+  const value = await resolve(node);
+  const dict = value?.kind === "stream" ? value.dict : value?.kind === "dict" ? value : undefined;
+  if (!dict) return undefined;
+  const type = await resolve(dictGet(dict, "ShadingType"));
+  const mesh = type?.kind === "number" && [4, 5, 6, 7].includes(type.value);
+  if (!mesh && (type?.kind !== "number" || ![1, 2, 3].includes(type.value) || !dictGet(dict, "Function"))) return undefined;
+  if (mesh && value?.kind !== "stream") return undefined;
+  const selected = cosDict({ ShadingType: type! });
+  const keys = mesh ? ["BitsPerCoordinate", "BitsPerComponent", "BitsPerFlag", "VerticesPerRow", "Decode", "Function", "ColorSpace"]
+    : ["Coords", "Domain", "BBox", "Background", "Matrix", "Extend", "Function", "ColorSpace"];
+  for (const key of keys) {
+    const item = dictGet(dict, key);
+    if (!item) continue;
+    charge(64);
+    const resolved = key === "ColorSpace" ? await snapshotColor(item) : key === "Function" ? await snapshotFunction(item) : await snapshot(item);
+    selected.entries.push({ key: cosName(key), value: resolved ?? { kind: "null" } });
+  }
+  const stream = mesh && value?.kind === "stream" ? cosStream(selected, await decode(value)) : undefined;
+  options.signal?.throwIfAborted();
+  const image = renderShadingDictToImage(context, selected, settings.matrix, settings.bounds, settings.alpha,
+    settings.name, settings.clipRect, stream, settings.blendMode, charge);
+  options.signal?.throwIfAborted();
+  return image;
 }

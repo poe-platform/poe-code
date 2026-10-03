@@ -300,7 +300,7 @@ function runColorProgram<T>(doc: ParsedCosDocument | undefined, work: Generator<
   } finally { work.return(undefined as never); }
 }
 
-function* colorComponentCountSteps(
+export function* colorComponentCountSteps(
   hasDocument: boolean,
   csNode: import("../ast.js").PdfCosNode | undefined,
   activeResources?: PdfCosDict,
@@ -559,7 +559,7 @@ function renderMeshShadingToImage(
   };
 }
 
-function renderShadingDictToImage(
+export function renderShadingDictToImage(
   doc: ParsedCosDocument,
   shDict: PdfCosDict,
   shadingCtm: Matrix6,

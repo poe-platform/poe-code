@@ -6,7 +6,7 @@ import {readRetainedJson} from "./retained-json.js";
 import {PandocError} from "./errors.js";
 import type {BackedJson} from "./backed-json.js";
 import type {ExecutionContext} from "./execution.js";
-import type {ConversionOptions, InputSource, WorkingStorageOptions} from "./types.js";
+import type {ConversionOptions, WorkingStorageOptions} from "./types.js";
 
 /** Preserve the existing JSON filter origin policy. Native URL admission still
  * needs an individual URI value; this is an explicit remaining whole-value
@@ -37,7 +37,7 @@ async function checkImageOrigins(tree: BackedJson, context: ExecutionContext): P
 
 /** Retain each document generation and filter response in caller storage. The
  * previous generation is retired before another filter starts. */
-export async function streamJson(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" = "json"): Promise<void> {
+export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>>>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" = "json"): Promise<void> {
   let document: Awaited<ReturnType<typeof readRetainedJson>> | undefined;
   let failure: {reason: unknown} | undefined;
   const preflight = async (chunks: AsyncIterable<Uint8Array>) => {
@@ -46,7 +46,7 @@ export async function streamJson(input: InputSource, context: ExecutionContext, 
     for await (const bytes of chunks) {length += bytes.length; context.bound("outputBytes", length);}
   };
   try {
-    document = await readRetainedJson(input, context, working);
+    document = await load();
     for (const request of options.filters ?? []) {
       await checkImageOrigins(document.tree, context);
       await preflight(document.chunks());

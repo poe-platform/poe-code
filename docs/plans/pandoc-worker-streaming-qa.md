@@ -32,6 +32,12 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   backing I/O and cleanup. Rendering uses three page caches plus fixed indexes.
   Include long identifiers, many notes, colspan/rowspan geometry and standalone
   output in Worker measurements; these tests alone do not qualify their memory.
+  CSV/TSV now feeds that same retained filter/transform/writer pipeline for multiple
+  inputs, including standalone HTML. Unit cases prohibit input collection and
+  whole-file reads, exercise reused chunks and slow sinks, and inject filter,
+  backing, cancellation, output and retirement errors. The external R2 workerd
+  cohorts include CSV input to JSON, plain and HTML through three filter generations.
+  Finite table budgets with filters still select the compatibility converter.
   Other conversions still require replacing whole-document input acquisition, joined text, document arrays
   and serialized results with retained sources and a paged document representation.
   Preserve diagnostics, source locations, resource identities and byte results.

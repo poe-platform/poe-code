@@ -3,7 +3,8 @@ import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {expect, it} from "vitest";
 
-it.each(["json", "plain", "html5", "transformed-json", "transformed-plain", "transformed-html5"])("streams JSON filter generations through external pages in workerd (%s)", async scenario => {
+it.each(["json", "plain", "html5", "transformed-json", "transformed-plain", "transformed-html5", "csv-json", "csv-plain", "csv-html5"])("streams filter generations through external pages in workerd (%s)", async scenario => {
+  const delimited = scenario.startsWith("csv-");
   const transformed = scenario.startsWith("transformed-");
   const target = scenario.endsWith("html5") ? "html5" : scenario.endsWith("plain") ? "plain" : "json";
   const root = fileURLToPath(new URL("../", import.meta.url));
@@ -38,11 +39,11 @@ it.each(["json", "plain", "html5", "transformed-json", "transformed-plain", "tra
         });
         try {
           await api.convertToOutput([{chunks: (async function* () {
-            yield encoder.encode('{"pandoc-api-version":[1,23,1,2],"meta":{},"blocks":[{"t":"CodeBlock","c":[["",[],[]],"');
+            yield encoder.encode(${JSON.stringify(delimited ? "head\n" : '{"pandoc-api-version":[1,23,1,2],"meta":{},"blocks":[{"t":"CodeBlock","c":[["",[],[]],"')});
             const reused = new Uint8Array(8192);
             for (let i = 0; i < 8; i++) {reused.fill(120); yield reused;}
-            yield encoder.encode(${JSON.stringify(transformed ? '"]},{"t":"RawBlock","c":["html","<!--removed-->"]},{"t":"Header","c":[1,["",[],[]],[{"t":"Str","c":"tail"}]]}]}' : '"]}]}')});
-          })()}], {from: "json", to: ${JSON.stringify(target)}, ${transformed ? "stripComments: true, shiftHeadingLevelBy: -1," : ""} filters: ["one", "two", "three"].map(path => ({kind: "json", path}))}, {
+            yield encoder.encode(${JSON.stringify(delimited ? "" : transformed ? '"]},{"t":"RawBlock","c":["html","<!--removed-->"]},{"t":"Header","c":[1,["",[],[]],[{"t":"Str","c":"tail"}]]}]}' : '"]}]}')});
+          })()}], {from: ${JSON.stringify(delimited ? "csv" : "json")}, to: ${JSON.stringify(target)}, ${transformed ? "stripComments: true, shiftHeadingLevelBy: -1," : ""} filters: ["one", "two", "three"].map(path => ({kind: "json", path}))}, {
             filters, signal: controller.signal, workingFiles: {fs, directory: "/spill", cacheBytes: 16384},
             output: {async write(bytes) {
               if (mode === "output-failure") throw new Error("Destination failed");
@@ -58,7 +59,8 @@ it.each(["json", "plain", "html5", "transformed-json", "transformed-plain", "tra
     `,
   });
   try {
-    const expected = new TextEncoder().encode(target === "html5" ? "<pre><code>" + "y".repeat(65536) + "</code></pre>\n" + (transformed ? "<p>tail</p>\n" : "") : target === "plain" ? "    " + "y".repeat(65536) + (transformed ? "\n\ntail\n" : "\n") : JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "y".repeat(65536)]}, ...(transformed ? [{t: "Para", c: [{t: "Str", c: "tail"}]}] : [])]}) + "\n");
+    const table = delimited ? await (await import("../packages/safe-bash-command-pandoc/dist/index.js")).convert([{bytes: new TextEncoder().encode("head\n" + "y".repeat(65536))}], {from: "csv", to: target}, {}) : undefined;
+    const expected = new TextEncoder().encode(table?.kind === "text" ? table.text : target === "html5" ? "<pre><code>" + "y".repeat(65536) + "</code></pre>\n" + (transformed ? "<p>tail</p>\n" : "") : target === "plain" ? "    " + "y".repeat(65536) + (transformed ? "\n\ntail\n" : "\n") : JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "y".repeat(65536)]}, ...(transformed ? [{t: "Para", c: [{t: "Str", c: "tail"}]}] : [])]}) + "\n");
     let hash = 2166136261;
     for (const byte of expected) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
     for (const mode of ["success", "filter-failure", "filter-cancel", "output-failure"]) {

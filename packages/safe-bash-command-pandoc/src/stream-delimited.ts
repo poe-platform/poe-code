@@ -1,5 +1,6 @@
 import {BackedJson} from "./backed-json.js";
-import {writeRetainedPlain} from "./retained-plain.js";
+import {streamRetainedDocument} from "./stream-retained.js";
+import {backedJsonOrder} from "./backed-json-order.js";
 import {appendDelimitedJson} from "./backed-delimited-json.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {DelimitedParser} from "./delimited-parser.js";
@@ -35,7 +36,7 @@ class DocumentDecoder {
  * no input, field, row, document tree or output grows a resident collection. */
 export async function streamDelimited(
   inputs: readonly InputSource[], format: "csv" | "tsv", target: "html5" | "json" | "plain", context: ExecutionContext,
-  working: WorkingStorageOptions, options: Pick<ConversionOptions, "ascii" | "eol" | "wrap" | "columns" | "lossy" | "rawContent" | "failIfWarnings">
+  working: WorkingStorageOptions, options: ConversionOptions
 ): Promise<void> {
   const cacheBytes = working.cacheBytes ?? 1024 * 1024;
   if (!Number.isSafeInteger(cacheBytes) || cacheBytes < 16384 || cacheBytes % 16384 !== 0)
@@ -95,9 +96,9 @@ export async function streamDelimited(
       await storage.write(position, bytes);
       position += 24 + length;
     }
-    if (nul && target === "html5") throw new PandocError("E_CAPABILITY", "convert", "NUL cannot be represented in HTML", "html5");
+    if (nul && target === "html5" && !options.filters?.length) throw new PandocError("E_CAPABILITY", "convert", "NUL cannot be represented in HTML", "html5");
 
-    if (target === "json" || target === "plain") {
+    if (target !== "html5" || options.filters?.length || options.standalone || options.toc || options.numberSections || options.stripComments || options.shiftHeadingLevelBy) {
       const tree = new BackedJson(storage, units => context.cooperate(units));
       await tree.begin("object");
       await tree.key("pandoc-api-version"); await tree.value([1, 23, 1, 2]);
@@ -112,17 +113,16 @@ export async function streamDelimited(
         position += 24 + length;
       }
       await tree.end(); await tree.end();
-      if (target === "plain") {
-        await writeRetainedPlain(tree, context, working, {from: format, to: "plain", ...options});
-      } else {
-        const ending = new TextEncoder().encode(options.eol === "crlf" ? "\r\n" : "\n");
-        if (Number.isFinite(context.limits.outputBytes)) {
-          let length = ending.length;
-          for await (const bytes of tree.chunks()) {length += bytes.length; context.bound("outputBytes", length);}
-        }
-        for await (const bytes of tree.chunks()) await context.emit(bytes);
-        await context.emit(ending);
-      }
+      await streamRetainedDocument(async () => ({
+        tree,
+        order: await backedJsonOrder(tree, storage, units => context.cooperate(units)),
+        async *chunks(eol) {
+          yield* tree.chunks();
+          yield new TextEncoder().encode(eol === "crlf" ? "\r\n" : "\n");
+        },
+        async close() {try {await storage.close();} finally {release();}}
+      }), context, working, options, target);
+      return;
     } else {
       let output = "";
       let measuring = false;

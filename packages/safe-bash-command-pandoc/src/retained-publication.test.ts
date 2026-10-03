@@ -5,7 +5,7 @@ import {convertToOutput} from "./engine.js";
 import {createFileOutput} from "./file-output.js";
 const encoder = new TextEncoder();
 
-it.each([["json", "json"], ["json", "plain"], ["json", "html"], ["csv", "json"], ["csv", "plain"], ["csv", "html"]]
+it.each([["json", "json"], ["json", "plain"], ["json", "html"], ["csv", "json"], ["csv", "plain"], ["csv", "html"], ["csv", "html5"]]
   .flatMap(([from, to]) => ["failure", "cancel"].map(mode => ({from: from!, to: to!, mode}))))(
   "keeps atomic $from to $to output uncommitted on source retirement $mode", async ({from, to, mode}) => {
     const fs = new MemoryFileSystem(), controller = new AbortController();
@@ -47,7 +47,7 @@ it.each([["json", "json"], ["json", "plain"], ["json", "html"], ["csv", "json"],
     const commit = vi.spyOn(output, "close"), abort = vi.spyOn(output, "abort");
     const text = "x".repeat(65536);
     const bytes = encoder.encode(from === "csv" ? "head\n" + text : JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], text]}]}));
-    await expect(convertToOutput([{bytes}], {from, to}, {signal: controller.signal, workingFiles: {fs, directory: "/spill", cacheBytes: 16384}, output}))
+    await expect(convertToOutput([{bytes}], {from, to, ...(to === "html5" ? {standalone: true} : {})}, {signal: controller.signal, workingFiles: {fs, directory: "/spill", cacheBytes: 16384}, output}))
       .rejects.toMatchObject({code: mode === "cancel" ? "E_CANCELLED" : "E_IO"});
     expect(emitted).toBe(true); expect(cleanupFailures).toBe(1);
     expect(commit).not.toHaveBeenCalled(); expect(abort).toHaveBeenCalledOnce();

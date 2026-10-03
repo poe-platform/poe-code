@@ -25,7 +25,8 @@ import type {
   WriterCapability
 } from "./types.js";
 
-import {streamJson} from "./stream-json.js";
+import {streamRetainedDocument} from "./stream-retained.js";
+import {readRetainedJson} from "./retained-json.js";
 import {streamDelimited} from "./stream-delimited.js";
 import type {OutputConversionContext, ConversionSummary} from "./types.js";
 import {LocalTemplate} from "./templates.js";
@@ -631,14 +632,14 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     try {
       session.options(options);
       const filters = await session.admitFilters(options.filters);
-      await session.call(() => streamJson(inputs[0]!, session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5"));
+      await session.call(() => streamRetainedDocument(() => readRetainedJson(inputs[0]!, session, context.workingFiles!), session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5"));
       return {kind: "output", diagnostics: session.snapshotDiagnostics()};
     } finally {await session.close();}
   }
   const incremental = context.workingFiles && !context.reader && !context.writer
-    && (reader.descriptor.name === "csv" || reader.descriptor.name === "tsv") && ["html5", "json", "plain"].includes(writer.descriptor.name)
-    && Object.keys(options).every(key => ["from", "to", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "fileScope", "sandbox", "failIfWarnings"].includes(key))
-    && Object.entries(context.limits ?? {}).every(([key, value]) => ["inputBytes", "outputBytes", "tableRows", "tableColumns", "tableCells", "tableFieldText"].includes(key) || value === Infinity);
+    && (reader.descriptor.name === "csv" || reader.descriptor.name === "tsv") && ["html5", "json", "plain"].includes(writer.descriptor.name) && streamedFilters
+    && Object.keys(options).every(key => ["from", "to", "filters", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
+    && Object.entries(context.limits ?? {}).every(([key, value]) => (["inputBytes", "outputBytes"].includes(key) || !options.filters?.length && ["tableRows", "tableColumns", "tableCells", "tableFieldText"].includes(key)) || value === Infinity);
   if (!incremental) {
     const result = await convert(inputs, options, context);
     return {kind: "output", diagnostics: result.diagnostics};
@@ -646,7 +647,8 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
   const session = new Session("convert", context);
   try {
     session.options(options);
-    await session.call(() => streamDelimited(inputs, reader.descriptor.name as "csv" | "tsv", writer.descriptor.name as "html5" | "json" | "plain", session, context.workingFiles!, options));
+    const filters = await session.admitFilters(options.filters);
+    await session.call(() => streamDelimited(inputs, reader.descriptor.name as "csv" | "tsv", writer.descriptor.name as "html5" | "json" | "plain", session, context.workingFiles!, {...options, filters}));
     return {kind: "output", diagnostics: session.snapshotDiagnostics()};
   } finally {await session.close();}
 }

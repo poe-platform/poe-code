@@ -148,7 +148,7 @@ fallback. File reads are lazy and close on cancellation or budget failure; the
 `convert` convenience API retains document ASTs and output in memory.
 
 `convertToOutput(inputs, options, {output, workingFiles})` returns an output summary
-instead of a complete payload. Its unfiltered CSV/TSV → HTML, Pandoc JSON and plain text paths use a bounded
+instead of a complete payload. Its CSV/TSV → HTML, Pandoc JSON and plain text paths use a bounded
 page cache and the caller’s safe-fs backing storage for source data and table
 widths; individual fields can exceed the cache. `workingFiles` supplies `fs`, an
 absolute `directory`, and optional `cacheBytes` (one MiB by default, in 16 KiB
@@ -208,9 +208,15 @@ unused members are still CRC-checked. XML parts feed the parser incrementally.
 XML trees and tokens, images, publication metadata and the document AST remain
 materialized in memory.
 
-The backed CSV/TSV paths support line endings (and ASCII conversion for HTML) and finite
+CSV/TSV also feeds the retained filter and writer pipeline, including multiple
+inputs, chained `applyJsonStream` filters, heading/comment transforms and standalone
+HTML options. Filters see all input tables before transforms run. Source retirement
+precedes output commit, including cleanup failure and cancellation.
+
+The unfiltered backed CSV/TSV paths support line endings (and ASCII conversion for HTML) and finite
 `inputBytes`, `outputBytes`, `tableRows`, `tableColumns`, `tableCells`, and
-`tableFieldText` limits. Additional document transformations, other finite limits,
+`tableFieldText` limits. With filters, finite input/output budgets are supported;
+finite table budgets still use the compatibility converter. Additional transformations, other finite limits,
 and other format pairs
 currently use the existing buffered converter. The Safe Bash command uses the
 output-only API for stdout and selects backing storage in the injected filesystem

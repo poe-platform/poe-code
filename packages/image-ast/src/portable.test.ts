@@ -38,7 +38,7 @@ describe("portable image engine", () => {
     expect(distIndex).toContain('"@poe-code/pdf-ast"');
     expect(distIndex).toContain('"pako"');
     // Include the retained JPEG driver while guarding against bundled host/filesystem engines.
-    expect(distIndex.length).toBeLessThan(625_000);
+    expect(distIndex.length).toBeLessThan(630_000);
     expect(distPortable).toContain('from "./index.js"');
     expect(distBrowser).toContain('from "./index.js"');
   });

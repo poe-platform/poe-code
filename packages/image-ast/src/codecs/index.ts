@@ -1,7 +1,7 @@
+import {TextPixels} from "./text-pixels.js";
 import {CreatedPixels} from "./create-pixels.js";
 import {checkLimitInputPixels} from "../limits.js";
 import {
-  parseColor,
   type ImageFormat,
   type ImageMetadata,
   type OutputEncodeOptions,
@@ -36,7 +36,6 @@ import {
   readNetpbmMetadata
 } from "./netpbm.js";
 import {
-  FONT_5X7,
   decodePdfImage,
   decodeSvgImage,
   encodePdfImage,
@@ -67,123 +66,8 @@ export function detectImageFormat(bytes: Uint8Array): ImageFormat {
 }
 
 
-function renderTextInput(spec: NonNullable<SharpInputOptions["text"]>, densityOpt?: number): RgbaImage {
-  if (!spec || typeof spec.text !== "string" || spec.text.length === 0) {
-    throw new Error("Expected a valid string to create an image with text.");
-  }
-  if (spec.height !== undefined && spec.dpi !== undefined) {
-    throw new Error("Expected only one of dpi or height");
-  }
-  const rgba = Boolean(spec.rgba);
-  interface SpanSeg {
-    readonly chars: string;
-    readonly fg: { readonly r: number; readonly g: number; readonly b: number; readonly a: number };
-    readonly bg: { readonly r: number; readonly g: number; readonly b: number; readonly a: number } | undefined;
-  }
-  const segments: SpanSeg[] = [];
-  const remaining = spec.text;
-  const spanRe = /<span([^>]*)>([\s\S]*?)<\/span>/gi;
-  let lastIdx = 0;
-  let match: RegExpExecArray | null;
-  while ((match = spanRe.exec(remaining)) !== null) {
-    if (match.index > lastIdx) {
-      const plain = remaining.slice(lastIdx, match.index).replace(/<[^>]+>/g, "");
-      if (plain.length > 0) {
-        segments.push({ chars: plain, fg: { r: 255, g: 255, b: 255, a: 255 }, bg: undefined });
-      }
-    }
-    const attrs = match[1] ?? "";
-    const inner = (match[2] ?? "").replace(/<[^>]+>/g, "");
-    const fgMatch = /(?:foreground|fgcolor|color)\s*=\s*["']([^"']+)["']/i.exec(attrs);
-    const bgMatch = /(?:background|bgcolor)\s*=\s*["']([^"']+)["']/i.exec(attrs);
-    const fg = fgMatch ? parseColor(fgMatch[1]!, 255) : { r: 255, g: 255, b: 255, a: 255 };
-    const bg = bgMatch ? parseColor(bgMatch[1]!, 255) : undefined;
-    if (inner.length > 0) {
-      segments.push({ chars: inner, fg, bg });
-    }
-    lastIdx = match.index + match[0].length;
-  }
-  if (lastIdx < remaining.length) {
-    const tail = remaining.slice(lastIdx).replace(/<[^>]+>/g, "");
-    if (tail.length > 0) {
-      segments.push({ chars: tail, fg: { r: 255, g: 255, b: 255, a: 255 }, bg: undefined });
-    }
-  }
-  const totalChars = Math.max(1, segments.reduce((acc, s) => acc + s.chars.length, 0));
-  const baseCharW = 6;
-  const baseCharH = 9;
-  const dpi = spec.dpi ?? (spec.height ? Math.max(72, Math.round((spec.height / baseCharH) * 72)) : (densityOpt ?? 72));
-  const scale = Math.max(1, Math.round(dpi / 72));
-  const charW = baseCharW * scale;
-  const charH = baseCharH * scale;
-  const outW = spec.width ?? Math.max(1, totalChars * charW - scale);
-  const outH = spec.height ?? Math.max(1, charH);
-  const autofitDpi = spec.dpi ?? Math.max(72, Math.round((outH / baseCharH) * 72));
-  const data = new Uint8Array(outW * outH * 4);
-  if (!rgba) {
-    for (let i = 0; i < outW * outH; i++) {
-      data[i * 4 + 3] = 255;
-    }
-  }
-  let cursorX = 0;
-  for (const seg of segments) {
-    for (let ci = 0; ci < seg.chars.length; ci++) {
-      const chCode = seg.chars.charCodeAt(ci);
-      if (seg.bg && rgba) {
-        for (let py = 0; py < Math.min(outH, charH); py++) {
-          for (let px = 0; px < charW && cursorX + px < outW; px++) {
-            const idx = (py * outW + (cursorX + px)) * 4;
-            data[idx] = seg.bg.r;
-            data[idx + 1] = seg.bg.g;
-            data[idx + 2] = seg.bg.b;
-            data[idx + 3] = seg.bg.a;
-          }
-        }
-      }
-      if (chCode !== 32) {
-        for (let gy = 1; gy < 8; gy++) {
-          for (let gx = 0; gx < 5; gx++) {
-            const glyphIdx = Math.max(0, Math.min(94, chCode - 32));
-            const bit = (FONT_5X7[glyphIdx * 5 + gx]! & (1 << (gy - 1))) !== 0;
-            if (!bit) continue;
-            for (let sy = 0; sy < scale; sy++) {
-              const py = gy * scale + sy;
-              if (py >= outH) continue;
-              for (let sx = 0; sx < scale; sx++) {
-                const px = cursorX + gx * scale + sx;
-                if (px >= outW) continue;
-                const idx = (py * outW + px) * 4;
-                if (rgba) {
-                  data[idx] = seg.fg.r;
-                  data[idx + 1] = seg.fg.g;
-                  data[idx + 2] = seg.fg.b;
-                  data[idx + 3] = seg.fg.a;
-                } else {
-                  data[idx] = 255;
-                  data[idx + 1] = 255;
-                  data[idx + 2] = 255;
-                  data[idx + 3] = 255;
-                }
-              }
-            }
-          }
-        }
-      }
-      cursorX += charW;
-    }
-  }
-  return {
-    width: outW,
-    height: outH,
-    data,
-    format: "raw",
-    space: rgba ? "srgb" : "b-w",
-    channels: rgba ? 4 : 1,
-    depth: "uchar",
-    density: autofitDpi,
-    hasAlpha: rgba,
-    textAutofitDpi: autofitDpi
-  };
+function renderTextInput(spec:NonNullable<SharpInputOptions["text"]>,density?:number):RgbaImage {
+ const pixels=new TextPixels(spec,density),data=new Uint8Array(pixels.metadata.width*pixels.metadata.height*4);pixels.fill(data);return {...pixels.metadata,data};
 }
 
 export function readImageMetadata(
@@ -191,7 +75,7 @@ export function readImageMetadata(
   options?: SharpInputOptions
 ): ImageMetadata {
   if (options?.text) {
-    const rendered = renderTextInput(options.text, options.density);
+    const rendered = new TextPixels(options.text, options.density).metadata;
     return {
       format: "raw",
       width: rendered.width,

@@ -1,3 +1,4 @@
+import {renderTextToStorage} from "./codecs/text-storage.js";
 import {storedImageDecoder} from "./codecs/stored-decoder.js";
 import {decodeRawResource,createStoredResource} from "./codecs/resource-storage.js";
 import {compareIdentity,compareFileVersion,FsError,type FileSystem} from "@poe-code/safe-fs/contracts";
@@ -8,7 +9,7 @@ export {UnsupportedStoredResource} from "./codecs/unsupported-storage.js";
 /** File resources use the parent's authority and retained version checks. */
 export async function readImageResource(input:Uint8Array|string|undefined,options:SharpInputOptions|undefined,fs:FileSystem,storage:ImageByteStorage,signal:AbortSignal):Promise<StoredRgbaImage> {
  signal.throwIfAborted();
- if(options?.text) throw new UnsupportedStoredResource();
+ if(options?.text) return renderTextToStorage({...options,text:options.text},storage,signal);
  if(options?.create) return createStoredResource(storage,{...options,create:options.create},signal);
  if(input===undefined) throw new UnsupportedStoredResource();
  const decode=(source:ImageByteSource,prefix:Uint8Array)=>{

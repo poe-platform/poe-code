@@ -17,27 +17,27 @@ import {transformStoredImage, isStoredImageOperation} from "./ops/storage.js";
 import type {SharpInputOptions, OutputEncodeOptions, OutputInfo, ImageAstNode} from "./ast.js";
 
 /** Select retained codecs only when the injected filesystem supports safe publication. */
-export async function tryImageFile(input: string, output: string, options: SharpInputOptions, encoding: OutputEncodeOptions, operations: readonly ImageAstNode[] = []): Promise<OutputInfo | undefined> {
-  if (!operations.every(isStoredImageOperation)) return undefined;
+export async function tryImageFile(input: string | undefined, output: string, options: SharpInputOptions, encoding: OutputEncodeOptions, operations: readonly ImageAstNode[] = []): Promise<OutputInfo | undefined> {
+  if (!operations.every(isStoredImageOperation) || (input===undefined && !options.text && !options.create)) return undefined;
   const supplied = options.filesystem;
   const signal = options.signal ?? new AbortController().signal;
   signal.throwIfAborted();
-  if (!supplied?.capabilities || !supplied.openReadFile || !supplied.open || !supplied.removeFileConditional || !supplied.stat || !supplied.lstat) return undefined;
+  if (!supplied?.capabilities || (input!==undefined && !supplied.openReadFile) || !supplied.open || !supplied.removeFileConditional || !supplied.stat || !supplied.lstat) return undefined;
   const fs = supplied as FileSystem;
   const io = {signal};
-  const reading = await fs.capabilitiesFor?.(input, io) ?? fs.capabilities;
+  const reading = input===undefined?undefined:await fs.capabilitiesFor?.(input, io) ?? fs.capabilities;
   const writing = await fs.capabilitiesFor?.(output, io) ?? fs.capabilities;
   signal.throwIfAborted();
   const direct = writing.atomicFilePublication && fs.publishFileConditional;
   const staged = writing.atomicFileStaging && writing.retainedStagingCleanup && writing.retainedStagingWrite && fs.createStagedFile && fs.publishStagedFile && fs.removeStagedFile;
-  if (!reading.retainedRead || (!direct && !staged)) return undefined;
+  if ((reading && !reading.retainedRead) || (!direct && !staged)) return undefined;
   let expected: FileStat | null = null;
   try {expected = {...await fs.lstat(output,io)};}
   catch(error) {if (!isFsError(error) || error.code !== "ENOENT") throw error;}
   // The compatibility API follows symlinks. Keep that behavior until the
   // streaming publisher exposes an equivalent retained resolution capability.
   if (expected && expected.type !== "file") return undefined;
-  const handle = await fs.openReadFile!(input,io);
+  const handle = input===undefined?undefined:await fs.openReadFile!(input,io);
   let handleClosed = false, failed = true;
   let staging: FileStaging | undefined;
   let storage: PagedStorage | undefined;
@@ -52,16 +52,19 @@ export async function tryImageFile(input: string, output: string, options: Sharp
     } else if (staging) {
       try {await fs.removeStagedFile!(staging);} catch(error) {cleanupError??={error};}
     }
-    if (!handleClosed) {handleClosed=true; try {await handle.close();} catch(error) {cleanupError??={error};}}
+    if (handle && !handleClosed) {handleClosed=true; try {await handle.close();} catch(error) {cleanupError??={error};}}
     if (!failed && cleanupError) throw cleanupError.error;
   };
   try {
     signal.throwIfAborted();
-    const initial = {...await handle.stat(io)};
+    let initial:FileStat|undefined;
+    let source:ImageByteSource|undefined,decoder:ReturnType<typeof storedImageDecoder>;
+    if(handle && input!==undefined){
+    initial = {...await handle.stat(io)};
     signal.throwIfAborted();
     if (initial.type !== "file" || !Number.isSafeInteger(initial.size) || initial.size < 0) throw new FsError("EINVAL",{path:input});
     if (compareIdentity(initial,expected ?? undefined) === "same") throw new Error("Cannot use same file for input and output");
-    const source: ImageByteSource = {
+    source = {
       size: initial.size,
       async read(position,length) {
         const result = new Uint8Array(length);
@@ -75,18 +78,21 @@ export async function tryImageFile(input: string, output: string, options: Sharp
         return result;
       }
     };
-    const decoder=storedImageDecoder(await source.read(0,Math.min(54,initial.size),io));
+    decoder=storedImageDecoder(await source.read(0,Math.min(54,initial.size),io));
     if (!decoder) {failed=false; return undefined;}
+    }
     const directory=dirname(output), parent={...await fs.stat(directory,io)};
     signal.throwIfAborted();
     storage=new PagedStorage({fs,cwd:directory,env:{},signal});
-    let image=await decoder(source,storage,signal,options);
+    let image=source&&decoder?await decoder(source,storage,signal,options):await readImageResource(undefined,options,fs,storage,signal);
     const format=encoding.format??image.format;
     if(format!=="png"&&format!=="ppm"&&format!=="pgm"&&format!=="pbm"&&format!=="bmp"&&format!=="tiff"&&format!=="gif"&&format!=="jpeg"&&format!=="webp") {failed=false;return undefined;}
+    if(handle && initial && input!==undefined){
     const final=await handle.stat(io);
     signal.throwIfAborted();
     if (compareIdentity(initial,final)==="distinct" || !compareFileVersion(initial,final)) throw new FsError("EAGAIN",{path:input,message:"Image source changed while decoding"});
     handleClosed=true; await handle.close();
+    }
     const resources={readImage:(input:Uint8Array|string|undefined,resourceOptions:SharpInputOptions|undefined,resourceSignal:AbortSignal)=>readImageResource(input,resourceOptions,fs,storage!,resourceSignal)};
     const gamma=operations.find(node=>node.kind==="gamma");
     const splitGamma=gamma && operations.some(node=>node.kind==="resize" || node.kind==="blur" || node.kind==="sharpen" || node.kind==="convolve" || node.kind==="modulate" || node.kind==="recomb");
@@ -132,6 +138,6 @@ export async function tryImageFile(input: string, output: string, options: Sharp
     if (!complete) throw new FsError("EIO",{path:output,message:"Image publisher returned before consuming output"});
     failed=false;
     const gray=image.space==="b-w" || image.channels===1 || image.channels===2;
-    return {format,width:image.width,height:image.height,channels:format==="webp"?(image.hasAlpha?4:3):format==="tiff"||format==="gif"?4:format==="ppm"||format==="bmp"||format==="jpeg"?3:format==="pgm"||format==="pbm"?1:gray ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3,premultiplied:Boolean(image.wasPremultiplied),...(image.pageHeight===undefined?{}:{pageHeight:image.pageHeight}),...(image.pageHeight!==undefined&&(image.sourcePages??image.pages)!==undefined?{pages:image.sourcePages??image.pages}:{}),...(image.trimOffsetLeft===undefined?{}:{trimOffsetLeft:image.trimOffsetLeft}),...(image.trimOffsetTop===undefined?{}:{trimOffsetTop:image.trimOffsetTop}),size};
+    return {...(image.textAutofitDpi===undefined?{}:{textAutofitDpi:image.textAutofitDpi}),format,width:image.width,height:image.height,channels:format==="webp"?(image.hasAlpha?4:3):format==="tiff"||format==="gif"?4:format==="ppm"||format==="bmp"||format==="jpeg"?3:format==="pgm"||format==="pbm"?1:gray ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3,premultiplied:Boolean(image.wasPremultiplied),...(image.pageHeight===undefined?{}:{pageHeight:image.pageHeight}),...(image.pageHeight!==undefined&&(image.sourcePages??image.pages)!==undefined?{pages:image.sourcePages??image.pages}:{}),...(image.trimOffsetLeft===undefined?{}:{trimOffsetLeft:image.trimOffsetLeft}),...(image.trimOffsetTop===undefined?{}:{trimOffsetTop:image.trimOffsetTop}),size};
   } catch(error) {if(error instanceof UnsupportedStoredResource) {failed=false;return undefined;} throw error;} finally {await cleanup();}
 }

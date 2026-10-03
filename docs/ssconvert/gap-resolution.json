@@ -4572,11 +4572,25 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "encryptedOdfCalc252": {
+      "status": "partial native interoperability qualification; family remains open",
+      "reference": "Unmodified LibreOffice25.2.3.2 520(Build:2), Debian arm64 pinned image a99cfc517144bc59b1978475ec53b46ecabec7e43635402ee5b77cc54cd1b20a; Python UNO pipe-only isolated profile. Explicit abort interaction handler, bounded executions.",
+      "candidate": "Original ASCII exports at5583dd32d7; Unicode/empty/NUL variants and native-file imports at4b420c9b77 using maintained ssconvert workspace build.",
+      "nativeReads": "49 attempts: plain control plus six profiles across ASCII, Unicode and embedded-NUL/empty passwords, each encrypted input with correct and wrong password. AES128/192/256-CBC, Blowfish-CFB64 and AES256-GCM open for all three nonempty password forms. All24wrong-password attempts refuse; CFB8 refuses all4correct-password forms, and the other5profiles refuse empty passwords.",
+      "nativeEdits": "16 successful originals preserve42,7,49,true,Unicode text and SUM(A1:A2); editing A1 to100 then calculateAll yields107. Native XLSX output retains formula and edited values through public reader. Original6readbacks verified through package/root;10variants through current package.",
+      "nativeWrites": "Calc independently writes AES256-GCM/Argon2id files for ASCII,Unicode and embedded-NUL passwords. Current compiled SDK and command open all3 and reject all3wrong passwords; command failure emits zero output bytes. Empty-password native save terminates Calc before producing a completed file; that native-write case remains unverified.",
+      "originalHashes": {
+        "unicode.ods": "09079d6179fa5e30210a3337d78d8e975b5777a49ae7fab472c69db82fc9d574",
+        "nul.ods": "78f4d3794c1419f10ca6bbe5ed79bb99fb73aa7ff27e2ee0acfe2bf297338b0d",
+        "ascii.ods": "b6f6b663205273d58dc07cebf378343b37439ea633c793192b3a6c815eba4b50"
+      },
+      "remaining": "This is semantic cross-read/edit evidence, not a GUI, all-manifest/KDF/tampering/binary-password, command-export parity or registry qualification. Native CFB8 and empty-password refusal are not passes. All19families remain open."
+    },
     "xlsxMissingInlinePayload": {
       "finding": "An XLSX inlineStr cell without an is payload became an empty string and allocated row geometry. Keeping a synthetic blank cell after that correction also introduced a clipboard Cell record absent from native output.",
       "implementation": "Create an inline string only when its payload exists; omit an absent-payload cell when it has no formula or style. Preserve explicit empty strings and dirty formulas with missing caches.",
       "nativeSource": "Unmodified Gnumeric1.12.61 xlsx-read.c xlsx_cell_inline_begin/end and xlsx_cell_end. Four independent fixtures cover missing, empty and populated payloads plus a formula with a missing inline cache.",
-      "validation": "Original missing-payload value/height regression and subsequent clipboard regression failed before repair.591focused XLSX tests and73finalregressions pass; selected19-workspace build,owner lint/types,changed-test ESLint and package test types pass.32compiled package SDK/command exports have no diagnostics.24native workbook/XLSX readbacks plus independent clipboard references match1200row scalars and40cell projections including formula/cache values. Root artifact verification remains pending.",
+      "validation": "Original missing-payload value/height regression and subsequent clipboard regression failed before repair.591focused XLSX tests and73finalregressions pass; selected19-workspace build,owner lint/types,changed-test ESLint and package test types pass.32compiled package SDK/command exports have no diagnostics.24native workbook/XLSX readbacks plus independent clipboard references match1200row scalars and40cell projections including formula/cache values. Delivered 5583dd32d7 root/package regeneration produces64exports; all32 package baseline hashes and32 root/package pairs are exact. Both entrypoints pass1200row and40cell comparisons. Saved root build completes; resumed maintained package lint/types exits0. Current remote main contains the delivery.",
       "visual": "Inspected native/product screenshots identical SHA2566adfcb999fb9384780e9dc68705ee49e6e7cb6e2d029fda59b3de925d5cb7d23, with50pt row geometry. Owned viewers/display stopped.",
       "remaining": "Other empty/styled-cell and ordered cell-value records, broader format qualification and all19families remain open."
     },

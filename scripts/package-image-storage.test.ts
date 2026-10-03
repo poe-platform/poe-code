@@ -68,8 +68,17 @@ it("packs the caller-backed image filesystem API with canonical public storage a
   host.getCurrentDirectory = () => "/";
   const program = ts.createProgram(["/consumer.mts"], compilerOptions, host);
   expect(ts.getPreEmitDiagnostics(program).map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"))).toEqual([]);
-  copy(path.join(root, "node_modules/pako"), "/installed/pako");
-  copy(path.join(root, "node_modules/@noble/hashes"), "/installed/@noble/hashes");
+  const pending = Object.values(manifests).flatMap(manifest => Object.keys(manifest.dependencies ?? {}));
+  const installed = new Set<string>();
+  while (pending.length) {
+    const name = pending.shift()!;
+    if (name.startsWith("@poe-platform/") || installed.has(name)) continue;
+    installed.add(name);
+    const directory = path.join(root, "node_modules", name);
+    const manifest = JSON.parse(readFileSync(path.join(directory, "package.json"), "utf8"));
+    copy(directory, "/installed/" + name);
+    pending.push(...Object.keys(manifest.dependencies ?? {}));
+  }
   write("/consumer.js", 'export {default as sharp, resampleStoredImage} from "@poe-platform/safe-bash/sharp"; export {MemoryFileSystem} from "@poe-platform/safe-fs/core";');
   const select = (value: unknown): string => {
     if (typeof value === "string") return value;
@@ -91,7 +100,13 @@ it("packs the caller-backed image filesystem API with canonical public storage a
           const directory = name.startsWith("@poe-platform/") ? "/output/" + name.split("/")[1] : "/installed/" + name;
           const manifest = JSON.parse(volume.readFileSync(directory + "/package.json", "utf8").toString());
           const route = segments.length ? "./" + segments.join("/") : ".";
-          target = path.resolve(directory, select(manifest.exports[route]));
+          if (manifest.exports !== undefined) target = path.resolve(directory, select(manifest.exports[route]));
+          else {
+            const entry = path.resolve(directory, segments.length ? segments.join("/") : manifest.main ?? "index.js");
+            const resolved = [entry, entry + ".js", path.join(entry, "index.js")].find(filename => volume.existsSync(filename) && volume.statSync(filename).isFile());
+            if (resolved === undefined) throw new Error("Missing installed package entry: " + args.path);
+            target = resolved;
+          }
         }
         return {path: target, namespace: "packed"};
       });

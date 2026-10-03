@@ -5446,3 +5446,42 @@ plain-object throws, including the reference's unknown-parse-error fallback.
 The maintained frontmatter route passes ten native checks, 18 original cases,
 Rust tests, declarations and root posttest; maintained/scoped lint pass.
 This does not close the remaining YAML diagnostic or resource-boundary gaps.
+
+### Public frontmatter subpath checkpoint
+
+The missing toolcraft-rust/frontmatter entry point now reexports the seven public
+functions/classes and five named public types from the own Rust dependency.
+Explicit exports preserve the canonical surface without exposing the dependency's
+implementation-only counter type. The manifest and lockfile add only the already
+existing own frontmatter-rust workspace edge; no third-party package or version
+was added. The public import test failed before implementation.
+
+The maintained two-package route passes Toolcraft's 266 native checks and 6,207
+reference-route cases across 128 files, plus frontmatter's ten native checks and
+18 original cases. Rust tests, public declarations, the original CLI consumer,
+strict dependency types and root posttest pass. Maintained Toolcraft Rust lint,
+scoped JavaScript/TypeScript lint and diff checks pass. Public facade cases cover
+exact namespace/identity, BOM and LF/CRLF/CR fences, duplicate keys, Markdown body
+and UTF-16 preservation, source positions, counter property order, stringify
+output, typed kind errors and entry-point-specific option-error handling.
+
+Two fresh packed own artifacts pass runtime checks with an import guard forbidding
+workspace and canonical-package fallback. The strict packed declaration consumer
+reads 193 sources with skipLibCheck disabled and compiler reads confined to the
+packed consumer and TypeScript standard library. This qualifies the frontmatter
+subpath, not the full Toolcraft artifact or every YAML diagnostic/recovery case.
+
+Seven alternating warmed rounds of 1,000 public parses of a 64-field YAML
+frontmatter document on Node 22.23.2 ARM64 measured reference/native medians of
+477.743/98.055 microseconds (4.87 times faster for this workload). Parsed values
+match before timing and after each round; 28 results are retained. This is a
+workload-specific parsing improvement, not an overall Toolcraft speedup or swap
+qualification. The underlying YAML warnings, complex keys, recovery diagnostics
+and resource limits remain open.
+
+Both prerequisite fixes are verified on remote main: counter descriptors at
+3614227713 and option-error wrapping at 4f2ab53d35. Release 37113109684 for their
+pushed head remains pending, as do bridge Release 37112297042 and configuration
+facade Release 37112770887. No native publication is claimed. JavaScript remains
+the default; process-runner, safe-bash, testing and composition entry points and
+the wider dependency/platform/performance qualification remain unfinished.

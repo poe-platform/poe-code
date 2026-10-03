@@ -371,6 +371,10 @@
     "./config-mutations": {
       "types": "./dist/config-mutations.d.ts",
       "import": "./dist/config-mutations.js"
+    },
+    "./frontmatter": {
+      "types": "./dist/frontmatter.d.ts",
+      "import": "./dist/frontmatter.js"
     }
   },
   "scripts": {
@@ -418,6 +422,7 @@
     "tiny-http-mcp-server-rust": "*",
     "@poe-code/agent-defs-rust": "*",
     "auth-store-rust": "*",
-    "@poe-code/agent-mcp-config-rust": "*"
+    "@poe-code/agent-mcp-config-rust": "*",
+    "@poe-code/frontmatter-rust": "*"
   }
 }

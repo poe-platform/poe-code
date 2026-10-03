@@ -1,0 +1,1 @@
+export {splitFrontmatterBlock, FrontmatterKindError, FrontmatterParseError, isFrontmatterKindError, parseFrontmatter, parseFrontmatterDocument, stringifyFrontmatter} from '@poe-code/frontmatter-rust';

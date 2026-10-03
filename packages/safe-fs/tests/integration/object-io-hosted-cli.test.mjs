@@ -34,3 +34,20 @@ test('hosted command rejects artifact directory symlinks without deployment', as
   await assert.rejects(executeHostedObjectIoQualification({...options,artifactDirectory:'/owned/out/link'}),/symlink/);
   assert.equal(options.calls(),0);
 });
+
+test('hosted command refuses unqualified or substituted hundred-MiB workload metadata before deployment', async () => {
+  const large = { size: 104857600,
+    expectedSequentialSha256: '4cbf988462cc3ba2e10e3aae9f5268546aa79016359fb45be7dd199c073125c0',
+    expectedPositionedSha256: '5838873e1c81b0cddbcdda6a5d43367e38a7e85e6599eaa4384bc23ec2a30545' };
+  for (const largeWorkload of [undefined, { ...large, size: 9437184 }, { ...large, expectedPositionedSha256: large.expectedSequentialSha256 }]) {
+    const options = inputs({ localCases: 17,
+      artifact: 'installed-public-runtime-packages-with-candidate-measurement-fixture',
+      productionHost: false, deployedCloudflare: false,
+      protocol: { size: 9437184,
+        expectedSequentialSha256: 'b8b5dabaa3454f7fa46a97c51cec9ccd118ffc0d61df6e46d845ef200a2fd1bb',
+        expectedPositionedSha256: 'ee98d04569d114da547c22488141b6efe21d77c13a128c2062728dc7e2c3c59f',
+        largeWorkload } });
+    await assert.rejects(executeHostedObjectIoQualification(options), /hundred-MiB/);
+    assert.equal(options.calls(), 0);
+  }
+});

@@ -159,7 +159,7 @@ export default { async fetch(request, env) {
       expiresAt: Number(env.QUALIFICATION_EXPIRES_AT), ...await cleanupObjectIoBucket(env.SCRATCH) });
     if (url.pathname === '/conformance') return Response.json(await conformance(env.SCRATCH));
     const configuration = Object.fromEntries(['size', 'chunkBytes', 'workingPages', 'delayMs', 'callerBytes', 'maxTransferBytes'].map(name => [name, Number(url.searchParams.get(name))]));
-    if (configuration.size !== 9437184 || ![65536, 262144, 1048576].includes(configuration.chunkBytes)
+    if (![9437184, 104857600].includes(configuration.size) || ![65536, 262144, 1048576].includes(configuration.chunkBytes)
       || ![1, 4, 16].includes(configuration.workingPages) || configuration.chunkBytes * configuration.workingPages > 1048576
       || ![0, 5].includes(configuration.delayMs)
       || ![65536, 262144, 1048576].includes(configuration.callerBytes)

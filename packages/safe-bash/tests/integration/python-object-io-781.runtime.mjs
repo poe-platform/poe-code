@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { objectIoCases, largeObjectIoWorkload } from '../../../safe-fs/tests/integration/object-io-workloads.mjs';
 import { createHash } from 'node:crypto';
 import { createReadStream, lstatSync, readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -152,7 +153,7 @@ export { WebAssembly, fetch, location };
       launcherSha256: launcher.mode === 'explicit-tooling-wrapper' ? createHash('sha256').update(readFileSync(launcher.executable)).digest('hex') : workerdBinarySha256 } };
   return { miniflare, runtimeErrors, receipt, requestOptions, async exportQualified(evidence) {
     if (!process.env.SAFE_FS_EXPORT_WORKER_DIR) return;
-    assert.equal(evidence.rows.length, 16);
+    assert.equal(evidence.rows.length, objectIoCases({ size: 9437184, largeWorkload: largeObjectIoWorkload }).length);
     assert.deepEqual(evidence.runtimeErrors, []);
     const directory = resolve(process.env.SAFE_FS_EXPORT_WORKER_DIR);
     assert.ok(directory.startsWith(resolve(root, 'out') + '/'));
@@ -168,7 +169,7 @@ export { WebAssembly, fetch, location };
       productionHost: false, deployedCloudflare: false,
       protocol: { method: 'POST', endpoint: '/object-io-781', bodyBytes: 0,
         bindings: { r2: 'SCRATCH', bearer: 'QUALIFICATION_TOKEN', owner: 'QUALIFICATION_OWNER', expiryEpochMs: 'QUALIFICATION_EXPIRES_AT' },
-        size: 9437184, chunkBytes: [65536, 262144, 1048576], callerBytes: [65536, 262144, 1048576],
+        size: 9437184, largeWorkload: largeObjectIoWorkload, chunkBytes: [65536, 262144, 1048576], callerBytes: [65536, 262144, 1048576],
         maxTransferBytes: [65536, 262144, 1048576], workingPages: [1, 4, 16], maxResidentPageBytes: 1048576,
         delayMs: [0, 5], responseContentType: 'application/x-ndjson',
         responseBody: 'bounded {type:chunk,offset,base64} records (decoded <=65536 bytes), followed by one {type:summary,completed:true,canonicalBytes,phases,...} after canonical EOF and all cleanup',

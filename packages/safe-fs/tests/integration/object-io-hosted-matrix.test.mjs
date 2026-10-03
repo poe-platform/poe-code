@@ -25,21 +25,23 @@ function fixture(changeSummary = () => {}) {
     if (pathname==='/conformance') return Response.json(conformance);
     if (pathname==='/unhandled-errors') return Response.json([]);
     const parameters=new URL('https://synthetic.invalid'+pathname).searchParams;
+    const payload=Buffer.alloc(Number(parameters.get('size')),42);
+    const payloadHash=createHash('sha256').update(payload).digest('hex');
     const callerBytes=Number(parameters.get('callerBytes'));
     const maxTransferBytes=Number(parameters.get('maxTransferBytes'));
     const chunkBytes=Number(parameters.get('chunkBytes'));
     const workingPages=Number(parameters.get('workingPages'));
     const configuration=Object.fromEntries(parameters.entries().map(([name,value]) => [name,Number(value)]));
-    const writes=bytes.length/Math.min(callerBytes,maxTransferBytes);
+    const writes=payload.length/Math.min(callerBytes,maxTransferBytes);
     const phase=counts => ({elapsedMs:0,operations:Object.fromEntries(Object.entries(counts).map(([name,count]) =>
       [name,{count,failed:0,elapsedMs:0}]))});
-    const summary={type:'summary',completed:true,canonicalBytes:bytes.length,exitCode:0,stderr:'',failures:[],
-      ...configuration,denominator:{sequentialBytes:bytes.length,positionedWrites:12,positionedWriteBytes:12,positionedReadBytes:17},
-      stdout:`${hash}\n${hash}\n`,unhandledWorkerErrors:[],independentReadback:{size:bytes.length},
+    const summary={type:'summary',completed:true,canonicalBytes:payload.length,exitCode:0,stderr:'',failures:[],
+      ...configuration,denominator:{sequentialBytes:payload.length,positionedWrites:12,positionedWriteBytes:12,positionedReadBytes:17},
+      stdout:`${payloadHash}\n${payloadHash}\n`,unhandledWorkerErrors:[],independentReadback:{size:payload.length},
       owner:'synthetic-owner',privatePagesAfterCleanup:0,fixtureObjectsAfterCleanup:0,
       maxResidentPageBytes:chunkBytes*workingPages,initialWasmMemoryBytes:31457280,finalWasmMemoryBytes:31457280,
       events:{acquired:2,released:2,created:2,closed:2,activeWrites:0,peakWrites:1,largestChunk:chunkBytes,
-        publications:3,publishedBytes:2*bytes.length,stageReadBytes:bytes.length,stageWriteBytes:bytes.length},
+        publications:3,publishedBytes:2*payload.length,stageReadBytes:payload.length,stageWriteBytes:payload.length},
       phases:{setup:phase({}),runtimeStartup:phase({}),pythonSetup:phase({}),
         sequentialWrite:phase({'syscall.write':writes,'backend.put':writes+1,
           ...(callerBytes<chunkBytes ? {'backend.get':writes} : {})}),
@@ -49,12 +51,12 @@ function fixture(changeSummary = () => {}) {
         positionedPublication:phase({'syscall.close':2,'syscall.read':4,'backend.put':1,'backend.get':1,'backend.list':1,'backend.delete':1}),
         positionedReadback:phase({'syscall.read':writes+1,'backend.get':writes}),
         pythonFinalization:phase({}),executorRetirement:phase({}),independentReadback:phase({'backend.get':1}),
-        canonicalStream:phase({'stream.read':bytes.length/65536+1}),
+        canonicalStream:phase({'stream.read':payload.length/65536+1}),
         fixtureCleanup:phase({'backend.list':2,'backend.delete':3}),complete:phase({})}};
     changeSummary(summary);
     const chunks=[];
-    for (let offset=0;offset<bytes.length;offset+=65536) chunks.push({type:'chunk',offset,
-      base64:bytes.subarray(offset,offset+65536).toString('base64')});
+    for (let offset=0;offset<payload.length;offset+=65536) chunks.push({type:'chunk',offset,
+      base64:payload.subarray(offset,offset+65536).toString('base64')});
     return new Response([...chunks,summary].map(record => JSON.stringify(record)).join('\n')+'\n',
       {headers:{'Content-Type':'application/x-ndjson'}});
   };
@@ -141,4 +143,21 @@ test('hosted matrix rejects final runtime errors', async () => {
   inputs.request=async pathname => pathname==='/unhandled-errors'
     ? Response.json(['late runtime failure']) : original(pathname);
   await assert.rejects(qualifyHostedObjectIoMatrix(inputs));
+});
+
+test('hosted matrix runs the separately qualified large workload with one 64 KiB page', async () => {
+  const inputs = fixture();
+  const largeSize = 2 * bytes.length;
+  const largeHash = createHash('sha256').update(Buffer.alloc(largeSize, 42)).digest('hex');
+  inputs.protocol.largeWorkload = { size: largeSize,
+    expectedSequentialSha256: largeHash, expectedPositionedSha256: largeHash };
+  const result = await qualifyHostedObjectIoMatrix(inputs);
+  assert.equal(result.rows.length, 17);
+  assert.equal(result.rows.at(-1).profile, 'large-64KiB');
+  assert.equal(result.rows.at(-1).size, largeSize);
+  assert.equal(result.rows.at(-1).phases.pythonReadback.operations['syscall.read'].count, largeSize / 65536 + 1);
+  assert.equal(result.rows.at(-1).chunkBytes, 65536);
+  assert.equal(result.rows.at(-1).callerBytes, 65536);
+  assert.equal(result.rows.at(-1).workingPages, 1);
+  assert.equal(result.rows.at(-1).delayMs, 0);
 });

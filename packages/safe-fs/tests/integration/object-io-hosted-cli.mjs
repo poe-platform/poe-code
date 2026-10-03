@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { objectIoCases, largeObjectIoWorkload } from './object-io-workloads.mjs';
 import { randomBytes } from 'node:crypto';
 import * as hostFilesystem from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
@@ -22,7 +23,8 @@ export async function executeHostedObjectIoQualification({
   assert.ok(manifestStat.isFile() && !manifestStat.isSymbolicLink() && manifestStat.size <= 1048576,
     'Local qualification manifest must be a bounded regular file');
   const manifest = JSON.parse(await filesystem.readFile(manifestPath, 'utf8'));
-  assert.equal(manifest.localCases, 16, 'Complete sixteen-case local qualification required');
+  assert.equal(manifest.localCases, objectIoCases({ size: 9437184, largeWorkload: largeObjectIoWorkload }).length,
+    'Complete nine- and hundred-MiB local qualification required');
   assert.equal(manifest.artifact, 'installed-public-runtime-packages-with-candidate-measurement-fixture',
     'Standalone published-runtime local qualification required');
   assert.equal(manifest.productionHost, false, 'Fresh qualification artifact required');
@@ -32,6 +34,7 @@ export async function executeHostedObjectIoQualification({
     'b8b5dabaa3454f7fa46a97c51cec9ccd118ffc0d61df6e46d845ef200a2fd1bb');
   assert.equal(manifest.protocol.expectedPositionedSha256,
     'ee98d04569d114da547c22488141b6efe21d77c13a128c2062728dc7e2c3c59f');
+  assert.deepEqual(manifest.protocol.largeWorkload, largeObjectIoWorkload, 'Pinned hundred-MiB qualification required');
   const artifact = await admitObjectIoArtifacts({ manifest, async readArtifact(name) {
     const path = resolve(directory, name);
     const stat = await filesystem.lstat(path);
@@ -45,7 +48,7 @@ export async function executeHostedObjectIoQualification({
   await filesystem.mkdir(dirname(resolve(receiptPath)), { recursive: true });
   const requestFor = ({ url, token: bearer }) => async pathname => fetch(url + pathname, {
     method: 'POST', headers: { Authorization: `Bearer ${bearer}`, 'Content-Length': '0' },
-    redirect: 'error', signal: AbortSignal.timeout(600000),
+    redirect: 'error', signal: AbortSignal.timeout(1800000),
   });
   let receipt;
   try {

@@ -1,3 +1,4 @@
+import { verifyOriginalInput } from "./original-input.js";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { collectBytes, FsError, getCommandArguments, writeBytes, type CommandDefinition, type FileStat, type VirtualShellPlugin } from "safe-bash-contracts";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
@@ -160,8 +161,7 @@ export function createPptxCommand(options: PptxCommandsOptions = {}): CommandDef
               || original.mode !== destination.mode || original.nlink !== destination.nlink
               || original.mtimeMs !== destination.mtimeMs || original.ctimeMs !== destination.ctimeMs
               || await compareObservedEntries(fs, input!, original, fs, output, destination, { signal }) !== "same") throw new FsError("EAGAIN");
-            const current = await fs.readFile(input!, { maxBytes: publication.originalBytes.length, signal });
-            if (current.length !== publication.originalBytes.length || current.some((byte, index) => byte !== publication.originalBytes[index])) throw new FsError("EAGAIN");
+            await verifyOriginalInput(fs, input!, publication.originalBytes, signal);
             destination = original;
           }
           signal.throwIfAborted();

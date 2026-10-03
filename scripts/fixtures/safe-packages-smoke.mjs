@@ -224,12 +224,17 @@ for (const entry of ["@poe-platform/safe-bash", "@poe-platform/safe-bash/node"])
   const { Shell: EntryShell, agentCommands: commands } = await import(entry);
   for (const boxed of [false, true]) {
     for (const mode of ["disabled", "missing", "unsupported"]) {
-      const backend = createMemoryFileSystem();
-      await backend.writeFile("/note", new TextEncoder().encode("hello\n"));
-      Object.defineProperty(backend, "capabilities", { value: { ...backend.capabilities, streamingRead: mode === "unsupported" ? undefined : false } });
-      backend.readStream = mode === "missing" ? undefined : (path) => ({ [Symbol.asyncIterator]: () => ({
-        async next() { throw new FsError("ENOTSUP", { syscall: "readStream", path }); },
-      }) });
+      const memory = createMemoryFileSystem();
+      await memory.writeFile("/note", new TextEncoder().encode("hello\n"));
+      const backend = new Proxy(memory, { get(target, property) {
+        if (property === "capabilities") return { ...target.capabilities, streamingRead: mode === "unsupported" ? undefined : false };
+        if (property === "readStream") return mode === "missing" ? undefined : (path) => ({ [Symbol.asyncIterator]: () => ({
+          async next() { throw new FsError("ENOTSUP", { syscall: "readStream", path }); },
+        }) });
+        // Retained reads must keep the memory backend's original receiver and methods.
+        const value = Reflect.get(target, property);
+        return typeof value === "function" ? value.bind(target) : value;
+      } });
       const fs = createMountFileSystem({ root: createReadOnlyFileSystem(createMemoryFileSystem()), mounts: {
         "/data": boxed ? createReadOnlyFileSystem(backend) : backend,
         "/scratch": createMemoryFileSystem(),

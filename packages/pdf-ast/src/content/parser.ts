@@ -11,126 +11,20 @@ import {
   type PdfCosNode,
   type PdfCosNumber,
   type PdfCosString,
-  type PdfDictEntry,
   type PdfPathSegment,
   type PdfTextCommand,
 } from "../ast.js";
-import { CosByteLexer, type CosToken, isPdfDelimiter, isPdfWhitespace } from "../cos/lexer.js";
-
-import { PdfError } from "../errors.js";
-import { PDF_KNOWN_COMMANDS, PDF_OPERATOR_ARITIES, PDF_PATH_OPERATORS, PDF_VARIABLE_OPERATORS } from "./operators.js";
+import { parseContentOperators } from "./operator-parser.js";
 
 const PATH_PAINT_OPS = new Set(["S", "s", "f", "F", "f*", "B", "B*", "b", "b*", "n"]);
-
-function parseOperandToken(tok: CosToken, lexer: CosByteLexer): PdfCosNode {
-  switch (tok.kind) {
-    case "null":
-      return { kind: "null", span: tok.span };
-    case "boolean":
-      return { kind: "boolean", value: tok.value, span: tok.span };
-    case "number":
-      return {
-        kind: "number",
-        value: tok.value,
-        isInteger: tok.isInteger,
-        raw: tok.raw,
-        span: tok.span,
-      };
-    case "name":
-      return { kind: "name", decoded: tok.decoded, rawBytes: tok.rawBytes, span: tok.span };
-    case "string":
-      return { kind: "string", encoding: "literal", bytes: tok.bytes, span: tok.span };
-    case "hex-string":
-      return { kind: "string", encoding: "hex", bytes: tok.bytes, span: tok.span };
-    case "array-start": {
-      const items: PdfCosNode[] = [];
-      while (true) {
-        const next = lexer.nextToken();
-        if (!next || next.kind === "array-end") {
-          return { kind: "array", items };
-        }
-        items.push(parseOperandToken(next, lexer));
-      }
-    }
-    case "dict-start": {
-      const entries: PdfDictEntry[] = [];
-      while (true) {
-        const kTok = lexer.nextToken();
-        if (!kTok || kTok.kind === "dict-end") break;
-        if (kTok.kind !== "name") continue;
-        const vTok = lexer.nextToken();
-        if (!vTok || vTok.kind === "dict-end") break;
-        entries.push({
-          key: { kind: "name", decoded: kTok.decoded, rawBytes: kTok.rawBytes },
-          value: parseOperandToken(vTok, lexer),
-        });
-      }
-      return { kind: "dict", entries };
-    }
-    default:
-      return { kind: "null" };
-  }
-}
 
 function numVal(node: PdfCosNode | undefined, fallback = 0): number {
   return node?.kind === "number" ? node.value : fallback;
 }
 
-function computeInlineImageMinBytes(entries: readonly PdfDictEntry[]): number {
-  const getEntry = (shortKey: string, longKey: string): PdfCosNode | undefined =>
-    entries.find(e => e.key.decoded === shortKey || e.key.decoded === longKey)?.value;
-
-  const filterNode = getEntry("F", "Filter");
-  if (filterNode) {
-    if (filterNode.kind === "array" && filterNode.items.length === 0) {
-      // Empty filter array means uncompressed (pypdf #4026)
-    } else {
-      return 0;
-    }
-  }
-  const wNode = getEntry("W", "Width");
-  const hNode = getEntry("H", "Height");
-  const bpcNode = getEntry("BPC", "BitsPerComponent");
-  const csNode = getEntry("CS", "ColorSpace");
-
-  const w = wNode?.kind === "number" ? wNode.value : 0;
-  const h = hNode?.kind === "number" ? hNode.value : 0;
-  if (w <= 0 || h <= 0) return 0;
-
-  const bpc = bpcNode?.kind === "number" ? bpcNode.value : 8;
-  const csName = csNode?.kind === "name" ? csNode.decoded : "DeviceRGB";
-  const channels =
-    csName === "G" || csName === "DeviceGray" || csName === "I" || csName === "Indexed"
-      ? 1
-      : csName === "CMYK" || csName === "DeviceCMYK"
-        ? 4
-        : 3;
-  return h * Math.ceil((w * channels * bpc) / 8);
-}
-
-function looksLikePostEiContentStream(bytes: Uint8Array, posAfterEi: number): boolean {
-  let p = posAfterEi;
-  while (p < bytes.length && isPdfWhitespace(bytes[p]!)) p++;
-  if (p >= bytes.length) return true;
-  const limit = Math.min(bytes.length, p + 16);
-  for (let i = p; i < limit; i++) {
-    const b = bytes[i]!;
-    if (b === 0x28 || b === 0x3c || b === 0x25) break;
-    if (!isPdfWhitespace(b) && (b < 0x20 || b > 0x7e)) {
-      return false;
-    }
-  }
-  return true;
-}
-
 export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
-  const lexer = new CosByteLexer(bytes, 0, bytes.length, Infinity, PDF_KNOWN_COMMANDS);
   const rootNodes: PdfContentNode[] = [];
   const stack: Array<{ target: PdfContentNode[] }> = [{ target: rootNodes }];
-  const operands: PdfCosNode[] = [];
-  const nonProcessedArgs: PdfCosNode[] = [];
-  let previousWasPath = false;
-  let invalidPathCount = 0;
 
   let inText = false;
   let textContinuation = false;
@@ -157,76 +51,10 @@ export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
     }
   };
 
-  while (true) {
-    const tok = lexer.nextToken();
-    if (!tok) break;
-
-    if (tok.kind !== "keyword") {
-      const operand = parseOperandToken(tok, lexer);
-      if (operand.kind !== "null") operands.push(operand);
-      if (operands.length > 33) throw new PdfError("E_PARSE", "Too many arguments");
-      continue;
-    }
-
-    const op = tok.value;
-    const variable = PDF_VARIABLE_OPERATORS.has(op);
-    const count = Object.hasOwn(PDF_OPERATOR_ARITIES, op) ? PDF_OPERATOR_ARITIES[op]! : undefined;
-    if (count === undefined && !variable) continue;
-    const args = operands.splice(0, operands.length);
-    if (!previousWasPath) invalidPathCount = 0;
-    previousWasPath = PDF_PATH_OPERATORS.has(op);
-    if (!variable && count !== undefined) {
-      while (args.length > count) nonProcessedArgs.push(args.shift()!);
-      while (args.length < count && nonProcessedArgs.length > 0) args.unshift(nonProcessedArgs.pop()!);
-      if (args.length < count) {
-        if (previousWasPath && ++invalidPathCount > 10) {
-          throw new PdfError("E_PARSE", `Invalid command ${op}: expected ${count} args, but received ${args.length} args.`);
-        }
-        continue;
-      }
-    }
-
-    if (op === "BI") {
+  for (const { operator: op, operands: args, inlineImage } of parseContentOperators(bytes)) {
+    if (inlineImage) {
       flushInTextCommands();
-      const entries: PdfDictEntry[] = [];
-      while (true) {
-        const kTok = lexer.nextToken();
-        if (!kTok || (kTok.kind === "keyword" && kTok.value === "ID")) break;
-        if (kTok.kind === "name") {
-          const vTok = lexer.nextToken();
-          if (!vTok || (vTok.kind === "keyword" && vTok.value === "ID")) break;
-          entries.push({
-            key: { kind: "name", decoded: kTok.decoded, rawBytes: kTok.rawBytes },
-            value: parseOperandToken(vTok, lexer),
-          });
-        }
-      }
-      if (lexer.pos < bytes.length && bytes[lexer.pos] === 0x0d && lexer.pos + 1 < bytes.length && bytes[lexer.pos + 1] === 0x0a) {
-        lexer.pos += 2;
-      } else if (lexer.pos < bytes.length && isPdfWhitespace(bytes[lexer.pos]!)) {
-        lexer.pos++;
-      }
-      const dataStart = lexer.pos;
-      const minBytes = computeInlineImageMinBytes(entries);
-      let dataEnd = bytes.length;
-      for (let i = dataStart + minBytes; i + 2 < bytes.length; i++) {
-        if (
-          isPdfWhitespace(bytes[i]!) &&
-          bytes[i + 1] === 0x45 && // E
-          bytes[i + 2] === 0x49 && // I
-          (i + 3 >= bytes.length || isPdfWhitespace(bytes[i + 3]!) || isPdfDelimiter(bytes[i + 3]!)) &&
-          looksLikePostEiContentStream(bytes, i + 3)
-        ) {
-          dataEnd = i;
-          lexer.pos = i + 3;
-          break;
-        }
-      }
-      currentTarget().push({
-        kind: "inline-image",
-        dict: { kind: "dict", entries },
-        data: bytes.subarray(dataStart, dataEnd),
-      });
+      currentTarget().push({ kind: "inline-image", dict: inlineImage.dict, data: bytes.subarray(inlineImage.start, inlineImage.end) });
       continue;
     }
 

@@ -18,6 +18,8 @@ export * from "./fonts/standard14.js";
 export * from "./fonts/cmap.js";
 export * from "./fonts/truetype.js";
 export * from "./content/parser.js";
+export { parseContentOperators, type PdfContentOperator } from "./content/operator-parser.js";
+export * from "./content/range-operator-parser.js";
 export * from "./content/serializer.js";
 export * from "./content/evaluator.js";
 export * from "./extract/text.js";

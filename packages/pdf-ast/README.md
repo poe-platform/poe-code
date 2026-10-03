@@ -26,6 +26,33 @@ memory: set `maxTokenBytes` to bound decoded strings and encoded names/numbers.
 `start`, `end`, `knownCommands`, and `signal` control scanning. The caller closes
 the source after use; the lexer does not collect a document or own its handle.
 
+`parseContentRangeOperators(source, storage, options)` yields normalized content
+operators without collecting a page AST. Its recovery rules are shared with
+`parseContentStream` and `parseContentOperators`. Inline images carry a dictionary
+and `start`/`end` ranges in the caller-owned source; stream their payload only when
+needed. Excess operands use a 32-value resident tail and caller-backed immutable
+runs, removed when iteration completes, fails, or returns early. Restored operands
+omit formatting spans rather than exposing offsets into private recovery storage. `maxNodes`,
+`maxDepth`, and `maxTokenBytes` bound active operands; `chunkBytes` and
+`maxStagingBytes` control recovery storage, including simultaneous merge inputs
+and output. Use external storage for large content streams and consume results
+incrementally. For decoded retained pages:
+
+```ts
+const content = await PdfFileSource.fromStream(fs, scratch, page.streamContents());
+try {
+  for await (const op of parseContentRangeOperators(content, { fs, directory: scratch })) {
+    // Process this operator before advancing; image bytes remain in content.
+    if (op.inlineImage) {
+      const { start, end } = op.inlineImage;
+      for await (const bytes of content.stream(start, end - start)) await sink.write(bytes);
+    }
+  }
+} finally {
+  await content.close();
+}
+```
+
 `parseCosRangeObject(source, offset, options)` parses one indirect object at a
 known offset. Stream objects return their dictionary in `value` and a `stream`
 byte span; consume the payload with `source.stream(start, end - start)`. Correct

@@ -1,0 +1,161 @@
+import { describe, expect, it, vi } from "vitest";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import type { FileStat, FileSystem } from "@poe-code/safe-fs/contracts";
+import { PdfFileSource } from "../source.js";
+import { parseContentOperators } from "./operator-parser.js";
+import { parseContentRangeOperators } from "./range-operator-parser.js";
+
+async function fixture(text: string) {
+  const bytes = new TextEncoder().encode(text);
+  const reads = vi.fn(async (at: number, count: number) => bytes.slice(at, at + count));
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const input = { capabilities: { retainedRead: true }, openReadFile: async () => ({
+    stat: async () => ({ type: "file", size: bytes.length }), read: reads, close: async () => {},
+  }) } as unknown as FileSystem;
+  const source = await PdfFileSource.open(input, "/input", { chunkBytes: 16, cacheBytes: 32 });
+  return { bytes, source, reads, storage: { fs, directory: "/scratch" }, async close() {
+    expect(await fs.readdir("/scratch")).toEqual([]); await source.close();
+  } };
+}
+
+// Spilling strips irrelevant formatting spans but preserves operand semantics.
+function semantics(value: unknown): unknown {
+  if (value instanceof Uint8Array) return [...value];
+  if (Array.isArray(value)) return value.map(semantics);
+  if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).filter(([key]) => !["span", "raw", "rawBytes", "encoding"].includes(key)).map(([key, item]) => [key, semantics(item)]));
+  return value;
+}
+
+describe("retained content operators", () => {
+  it.each(["BT /F2 /GS2 gs 5.711 Tf ET", "fff B*Bf* f5 Ts qq /Res1 DoQ", "BI /W 4 /H 1 /CS /G ID a EI EI Q", "BI /W 1 ID abc q Q", "[1 (ab) << /X true >>] TJ"])("shares buffered recovery for %s", async text => {
+    const f = await fixture(text); const actual = [];
+    for await (const operator of parseContentRangeOperators(f.source, f.storage)) actual.push(operator);
+    expect(semantics(actual)).toEqual(semantics([...parseContentOperators(f.bytes)])); await f.close();
+  });
+
+  it("spills and restores excess operands in LIFO order, including after partial pops", async () => {
+    const text = Array.from({ length: 160 }, (_, i) => `/F${i} q `).join("") + "Do ".repeat(70) + "/Latest q " + "Do ".repeat(91);
+    const f = await fixture(text); const actual = [];
+    for await (const operator of parseContentRangeOperators(f.source, f.storage, { chunkBytes: 32 })) actual.push(operator);
+    expect(semantics(actual)).toEqual(semantics([...parseContentOperators(f.bytes)])); await f.close();
+  });
+
+  it("preserves nested operands and binary strings through spill and reload", async () => {
+    const text = "[(a) <00ff> << /X [1 true null] >>] q ".repeat(40) + "TJ ".repeat(40);
+    const f = await fixture(text); const actual = [];
+    for await (const operator of parseContentRangeOperators(f.source, f.storage, { chunkBytes: 32 })) actual.push(operator);
+    expect(semantics(actual)).toEqual(semantics([...parseContentOperators(f.bytes)])); await f.close();
+  });
+
+  it("cleans retained recovery runs when cancellation arrives between pulls", async () => {
+    const f = await fixture("/F q ".repeat(100)); const controller = new AbortController();
+    const iterator = parseContentRangeOperators(f.source, f.storage, { signal: controller.signal });
+    for (let i = 0; i < 40; i++) await iterator.next();
+    expect(await f.storage.fs.readdir("/scratch")).not.toEqual([]);
+    controller.abort(new Error("stop recovery")); await expect(iterator.next()).rejects.toThrow("stop recovery");
+    await f.close();
+  });
+
+  it("does not scan later content before the consumer advances and cleans early return", async () => {
+    const f = await fixture("/F q ".repeat(70) + "q ".repeat(10000));
+    const iterator = parseContentRangeOperators(f.source, f.storage, { chunkBytes: 32 });
+    for (let i = 0; i < 70; i++) await iterator.next();
+    expect(await f.storage.fs.readdir("/scratch")).not.toEqual([]);
+    expect(Math.max(...f.reads.mock.calls.map(([at]) => at))).toBeLessThan(512);
+    await iterator.return(); await f.close();
+  });
+
+  it.each([8192, 131072])("scans %i inline-image bytes using bounded generated reads", async length => {
+    const prefix = new TextEncoder().encode("BI /F /DCT ID "); const suffix = new TextEncoder().encode(" EI Q");
+    const size = prefix.length + length + suffix.length;
+    let peakRead = 0;
+    const fs = { capabilities: { retainedRead: true }, openReadFile: async () => ({
+      stat: async () => ({ type: "file", size }), close: async () => {},
+      read: async (at: number, count: number) => {
+        peakRead = Math.max(peakRead, count);
+        const result = new Uint8Array(Math.min(count, size - at));
+        for (let i = 0; i < result.length; i++) {
+          const position = at + i;
+          result[i] = position < prefix.length ? prefix[position]! : position < prefix.length + length ? 128 : suffix[position - prefix.length - length]!;
+        }
+        return result;
+      },
+    }) } as unknown as FileSystem;
+    const source = await PdfFileSource.open(fs, "/image", { chunkBytes: 4096, cacheBytes: 4096 });
+    // No recovery spill is required; any attempted filesystem staging would fail.
+    const iterator = parseContentRangeOperators(source, { fs, directory: "/scratch" });
+    const image = (await iterator.next()).value!.inlineImage!;
+    expect(image.start).toBe(prefix.length); expect(image.end - image.start).toBe(length);
+    expect((await iterator.next()).value!.operator).toBe("Q"); expect((await iterator.next()).done).toBe(true);
+    expect(peakRead).toBeLessThanOrEqual(4096); await source.close();
+  });
+
+  it("charges staging before writing and cleans up after admission failure", async () => {
+    const f = await fixture("/F q ".repeat(100));
+    await expect(async () => { for await (const ignored of parseContentRangeOperators(f.source, f.storage, { maxStagingBytes: 1 })) void ignored; }).rejects.toThrow("limit");
+    await f.close();
+  });
+
+  it("honors cancellation and operand limits", async () => {
+    const f = await fixture("[1 2 3] TJ");
+    await expect(async () => { for await (const ignored of parseContentRangeOperators(f.source, f.storage, { maxNodes: 2 })) void ignored; }).rejects.toThrow("limit");
+    const controller = new AbortController(); controller.abort(new Error("cancel operators"));
+    await expect(async () => { for await (const ignored of parseContentRangeOperators(f.source, f.storage, { signal: controller.signal })) void ignored; }).rejects.toThrow("cancel operators");
+    await f.close();
+  });
+});
+
+// Only scalar run descriptors persist. Every stored byte is checked on write
+// and regenerated on read, so this oracle cannot hide a payload in a RAM spool.
+function externalStorage() {
+  const scope = {};
+  const record = new Uint8Array(10); record.set([47, 70]); new DataView(record.buffer).setFloat64(2, 2);
+  type Run = { count: number; revision: number; identity: string };
+  const live = new Map<string, Run>();
+  let peakFiles = 0;
+  let outstanding = 0;
+  let peakWrite = 0;
+  const stat = (run: Run): FileStat => ({ type: "file", size: run.count, identityScope: scope, opaqueIdentity: run.identity,
+    revision: run.revision, mode: 0o600, mtimeMs: run.revision, ctimeMs: run.revision, atimeMs: 0 });
+  const fs = {
+    capabilities: { retainedRead: true, retainedStagingWrite: true, retainedStagingCleanup: true },
+    stat: async () => ({ type: "directory", size: 0 }),
+    async createStagedFile(path: string) {
+      const run = { count: 0, revision: 0, identity: path };
+      live.set(path, run); peakFiles = Math.max(peakFiles, live.size);
+      return { file: { path, stat: stat(run) }, cleanup: { remove: async () => { live.delete(path); }, close: async () => {} }, writer: {
+        async write(bytes: Uint8Array) {
+          outstanding += bytes.length; peakWrite = Math.max(peakWrite, outstanding);
+          expect(bytes.buffer.byteLength).toBeLessThanOrEqual(32);
+          await Promise.resolve();
+          for (const byte of bytes) { expect(byte).toBe(record[run.count % record.length]); run.count++; }
+          run.revision++; outstanding -= bytes.length;
+        }, finish: async () => stat(run),
+      } };
+    },
+    async openReadFile(path: string) {
+      const run = live.get(path)!;
+      return { stat: async () => stat(run), close: async () => {}, async read(position: number, length: number) {
+        expect(length).toBeLessThanOrEqual(32);
+        const bytes = new Uint8Array(Math.min(length, run.count - position));
+        for (let at = 0; at < bytes.length; at++) bytes[at] = record[(position + at) % record.length]!;
+        return bytes;
+      } };
+    },
+    readFile() { throw new Error("whole read forbidden"); }, writeFile() { throw new Error("whole write forbidden"); },
+  } as unknown as FileSystem;
+  return { fs, directory: "/authorized", live, get peakFiles() { return peakFiles; }, get peakWrite() { return peakWrite; } };
+}
+
+
+describe("content recovery with generated external storage", () => {
+  it.each([65, 513, 2049])("recovers %i operands without retaining the spill payload", async count => {
+    const f = await fixture("/F q ".repeat(count) + "Do ".repeat(count));
+    const storage = externalStorage(); let recovered = 0;
+    for await (const op of parseContentRangeOperators(f.source, storage, { chunkBytes: 32 })) {
+      if (op.operator === "Do") { expect(op.operands[0]).toMatchObject({ kind: "name", decoded: "F" }); recovered++; }
+    }
+    expect(recovered).toBe(count); expect(storage.peakFiles).toBeLessThanOrEqual(9);
+    expect(storage.peakWrite).toBeLessThanOrEqual(32); expect(storage.live.size).toBe(0); await f.close();
+  });
+});

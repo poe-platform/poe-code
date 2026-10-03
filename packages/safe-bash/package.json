@@ -723,7 +723,8 @@
             "@bjorn3/browser_wasi_shim": "0.4.2",
             "binaryen": "123.0.0",
             "fflate": "0.8.2",
-            "@poe-code/compression": "*"
+            "@poe-code/compression": "*",
+            "safe-bash-csv-engine": "*"
           },
           "portable": true
         },

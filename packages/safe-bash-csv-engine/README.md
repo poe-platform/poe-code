@@ -14,7 +14,14 @@ still count the entire field. Event mode supports
 text quoting modes 0, 1, 3 and 5; numeric conversion modes 2 and 4 use the row API.
 Callbacks must not reenter or dispose the parser.
 
-Profile `utf8-sig-permissive-v1` uses fatal UTF-8-sig decoding, comma/quote defaults, optional tab override, single Unicode-scalar dialect characters, escape, doublequote, initial-space handling and quoting modes 0–5. CR, LF and CRLF count physical lines; quoted cells retain their newline code points. Skipped physical lines precede parser numbering. Blank records are empty arrays, unclosed quoted EOF is accepted, characters after a closing quote become unquoted content, and trailing escape at EOF inserts LF. These are explicit candidate rules, not a certification of every Python 3.9 CSV edge case. NUL is retained in either input transport: csvkit file iteration's NUL stripping is an open deviation. Compression and Sniffer inference are unqualified. This reader does not claim RFC4180 strictness.
+The `safe-bash-csv-engine/sniffer` subpath exposes `sniff(sample, step, profile)`
+for bounded control samples. The default `csvkit` profile preserves the existing
+six-delimiter CPython 3.14 heuristics; `python39` uses unrestricted ASCII
+frequency candidates and the pinned Unicode 13 word classification. The result
+uses Python dialect field names. `decodeSniffUtf8(bytes, signature, signal)`
+preserves UTF-8 `errors=ignore` sampling without changing strict payload decoding.
+
+Profile `utf8-sig-permissive-v1` uses fatal UTF-8-sig decoding, comma/quote defaults, optional tab override, single Unicode-scalar dialect characters, escape, doublequote, initial-space handling and quoting modes 0–5. CR, LF and CRLF count physical lines; quoted cells retain their newline code points. Skipped physical lines precede parser numbering. Blank records are empty arrays, unclosed quoted EOF is accepted, characters after a closing quote become unquoted content, and trailing escape at EOF inserts LF. These are explicit candidate rules, not a certification of every Python 3.9 CSV edge case. NUL is retained in either input transport: csvkit file iteration's NUL stripping is an open deviation. Compression remains unqualified. This reader does not claim RFC4180 strictness.
 
 Closed inclusive ranges and decimal ASCII numeric selectors (with ASCII numeric whitespace) are supported; exact nonnumeric names precede ranges, first duplicate name wins, and names are not trimmed. Open/reversed ranges and non-ASCII numeric syntax are unqualified. Resource limits default to `Infinity`; configure finite limits in the invocation allocation/work ledger as needed. Explicit `Infinity` disables a quota.
 

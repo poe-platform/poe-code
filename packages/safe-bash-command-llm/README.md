@@ -54,7 +54,7 @@ Batch deduplication follows the reference: skip existing IDs whose stored hash
 matches any input in that batch, while allowing the same content under new IDs.
 All batches participate in the surrounding catalog transaction; an error rolls
 it back. Native placeholders share one streamed record rewrite per batch.
-Import explicit CSV/TSV using `llm embed-multi documents data.csv --format csv
+Import CSV/TSV using `llm embed-multi documents data.csv --format csv
 -m MODEL --store` (`-` reads stdin). The first dictionary value is the ID;
 remaining values form the text. Duplicate headers retain their first position
 and last value. `--prefix`, `--prepend`, and `--batch-size` customize imports.
@@ -62,10 +62,11 @@ Each provider-sized batch commits independently, so earlier batches survive a
 later failure. File imports validate once before importing; stdin streams once.
 SDK callers can use `withCsvEmbeddingEntries(options, bytes, async entries =>
 ...)` with `catalog.embedMany`. Options include caller `fs`, `directory`,
-`signal`, SQLite `maxFileBytes`/`maxOpenFiles`, optional `tabs`, `prefix`, and
+`signal`, SQLite `maxFileBytes`/`maxOpenFiles`, optional `tabs`, `autoDetect`, `prefix`, and
 `prepend`. Entries are callback-scoped and must be consumed serially. Payloads
 use retained filesystem spools; header and ID controls retain SQLite's scalar
-byte limits. Format detection, JSON/NL, SQL and directory imports remain incomplete.
+byte limits. Without `--format`, the CLI detects CSV dialects from a bounded
+4096-byte sample using the pinned Python rules. JSON/NL, SQL and directory imports remain incomplete.
 This optional catalog does not store conversation or response history.
 
 To enable collection commands, import `createLlmCollectionCommands` from the same

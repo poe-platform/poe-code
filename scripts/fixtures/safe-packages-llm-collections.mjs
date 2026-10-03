@@ -91,6 +91,12 @@ export async function verifyLlmCollections() {
     const records=neighbors.stdout.trim().split('\n').map(JSON.parse).sort((a,b)=>a.id.localeCompare(b.id));
     if(neighbors.exitCode!==0||JSON.stringify(records.map(row=>[row.id,row.content]))!==JSON.stringify([['new','Hello World'],['None','Only ']].sort((a,b)=>a[0].localeCompare(b[0]))))throw new Error(`CSV import readback failed: ${neighbors.stderr}`);
     await fs.unlink('/input.csv');
+    await fs.writeFile('/auto.tsv',new TextEncoder().encode('id\ttext\none\tvalue\n'));
+    const automatic=await cliShell.exec('llm embed-multi automatic /auto.tsv -m embed --store -d /cli.db');
+    if(automatic.exitCode!==0||automatic.stdout!=='Embedding\n')throw new Error(`Dialect detection failed: ${automatic.stderr}`);
+    const automaticRows=await cliShell.exec('llm similar automatic -c query -d /cli.db');
+    if(automaticRows.exitCode!==0||JSON.parse(automaticRows.stdout).content!=='value')throw new Error('Detected TSV content changed');
+    await fs.unlink('/auto.tsv');
     const deleted=await cliShell.exec('llm collections delete cli -d /cli.db');
     if(deleted.exitCode!==0)throw new Error('Collection CLI delete failed');
   }finally{await cliShell.dispose();}

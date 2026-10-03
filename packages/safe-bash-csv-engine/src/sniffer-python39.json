@@ -1,0 +1,131 @@
+[
+  {
+    "sample": "id,text\n1,hello\n",
+    "result": {
+      "delimiter": ",",
+      "quotechar": "\"",
+      "doublequote": false,
+      "skipinitialspace": false,
+      "quoting": 0,
+      "lineterminator": "\r\n"
+    }
+  },
+  {
+    "sample": "id\ttext\n1\thello\n",
+    "result": {
+      "delimiter": "\t",
+      "quotechar": "\"",
+      "doublequote": false,
+      "skipinitialspace": false,
+      "quoting": 0,
+      "lineterminator": "\r\n"
+    }
+  },
+  {
+    "sample": "id|text\n1|hello\n",
+    "result": {
+      "delimiter": "|",
+      "quotechar": "\"",
+      "doublequote": false,
+      "skipinitialspace": false,
+      "quoting": 0,
+      "lineterminator": "\r\n"
+    }
+  },
+  {
+    "sample": "id=text\n1=hello\n",
+    "result": {
+      "delimiter": "e",
+      "quotechar": "\"",
+      "doublequote": false,
+      "skipinitialspace": false,
+      "quoting": 0,
+      "lineterminator": "\r\n"
+    }
+  },
+  {
+    "sample": "a,b;c\n1,2;3\n",
+    "result": {
+      "delimiter": ",",
+      "quotechar": "\"",
+      "doublequote": false,
+      "skipinitialspace": false,
+      "quoting": 0,
+      "lineterminator": "\r\n"
+    }
+  },
+  {
+    "sample": "\"id\",\"text\"\n\"1\",\"hello\"\n",
+    "result": {
+      "delimiter": ",",
+      "quotechar": "\"",
+      "doublequote": false,
+      "skipinitialspace": false,
+      "quoting": 0,
+      "lineterminator": "\r\n"
+    }
+  },
+  {
+    "sample": "id, text\n1, hello\n",
+    "result": {
+      "delimiter": ",",
+      "quotechar": "\"",
+      "doublequote": false,
+      "skipinitialspace": true,
+      "quoting": 0,
+      "lineterminator": "\r\n"
+    }
+  },
+  {
+    "sample": "a1b\nc1d\n",
+    "result": {
+      "delimiter": "1",
+      "quotechar": "\"",
+      "doublequote": false,
+      "skipinitialspace": false,
+      "quoting": 0,
+      "lineterminator": "\r\n"
+    }
+  },
+  {
+    "sample": "id,text\n1,\"say \"\"hello\"\"\"\n",
+    "result": {
+      "delimiter": ",",
+      "quotechar": "\"",
+      "doublequote": true,
+      "skipinitialspace": false,
+      "quoting": 0,
+      "lineterminator": "\r\n"
+    }
+  },
+  {
+    "sample": "",
+    "result": null
+  },
+  {
+    "sample": "abc\ndef\n",
+    "result": null
+  },
+  {
+    "sample": "a\u1c89\"x\"\u1c89b\n",
+    "result": {
+      "delimiter": "\u1c89",
+      "quotechar": "\"",
+      "doublequote": false,
+      "skipinitialspace": false,
+      "quoting": 0,
+      "lineterminator": "\r\n"
+    }
+  },
+  {
+    "sample": "a\u00e9\"x\"\u00e9b\n",
+    "result": {
+      "delimiter": "\"",
+      "quotechar": "\"",
+      "doublequote": false,
+      "skipinitialspace": false,
+      "quoting": 0,
+      "lineterminator": "\r\n"
+    }
+  }
+]

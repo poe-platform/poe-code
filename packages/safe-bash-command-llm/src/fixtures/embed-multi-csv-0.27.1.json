@@ -155,5 +155,140 @@
     "err": "",
     "calls": [],
     "rows": []
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "id,text\n1,hello\n2,world\n",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello",
+        "world"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "1",
+        "content": "hello"
+      },
+      {
+        "id": "2",
+        "content": "world"
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "id\ttext\n1\thello\n",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "1",
+        "content": "hello"
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "id; text\n1; hello\n",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "1",
+        "content": "hello"
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "'id','text'\n'1','hello'\n",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "1",
+        "content": "hello"
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "id|text\n1|hello\n",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "1",
+        "content": "hello"
+      }
+    ]
   }
 ]

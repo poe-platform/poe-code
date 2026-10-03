@@ -4,21 +4,25 @@ import {createPrivateSqliteStorage,withPrivateSqliteSession,withSqliteStatement}
 import {createLlmSpool} from './retained-spool.js';
 import {embeddingText} from './embed-input.js';
 import type {LlmCollectionBatchEntry} from './collections-batch.js';
+import {sniffCsvInput} from './import-csv-sniff.js';
 
 /** Header order and field ranges live in caller-backed SQLite. Payloads never
  * enter SQLite scalar bindings or accumulate in complete JavaScript rows. */
 export async function withCsvEmbeddingEntries<T>(options:{
  readonly fs:FileSystem;readonly directory:string;readonly signal:AbortSignal;
  readonly maxFileBytes:number;readonly maxOpenFiles:number;
- readonly tabs?:boolean;readonly prefix?:string;readonly prepend?:string;
+ readonly tabs?:boolean;readonly autoDetect?:boolean;readonly prefix?:string;readonly prepend?:string;
 },input:AsyncIterable<Uint8Array>,operation:(entries:AsyncIterable<LlmCollectionBatchEntry>)=>Promise<T>):Promise<T>{
  const {fs,directory,signal}=options;
- const storage=await createPrivateSqliteStorage({...options,maxFiles:options.maxOpenFiles});
- try{return await withPrivateSqliteSession({...options,fs:storage.fs,directory:storage.directory,path:storage.directory+'/fields'},async session=>{
+ const detected=options.autoDetect?await sniffCsvInput(input,signal):undefined;
+ let storage:Awaited<ReturnType<typeof createPrivateSqliteStorage>>|undefined;
+ try{
+  storage=await createPrivateSqliteStorage({...options,maxFiles:options.maxOpenFiles});
+  return await withPrivateSqliteSession({...options,fs:storage.fs,directory:storage.directory,path:storage.directory+'/fields'},async session=>{
   await session.execute('CREATE TABLE headers(name TEXT PRIMARY KEY,first INTEGER UNIQUE,last INTEGER); CREATE TABLE fields(position INTEGER PRIMARY KEY,start INTEGER,end INTEGER)');
   const budget=new CsvBudget({},signal),encoder=new TextEncoder();
   type Event={text:string}|{field:true}|{row:true};let events:Event[]=[];
-  const parser=new CsvParser({tabs:options.tabs??false},budget,{text:text=>events.push({text}),field:()=>events.push({field:true}),row:()=>events.push({row:true})});
+  const parser=new CsvParser(detected?.dialect??{tabs:options.tabs??false},budget,{text:text=>events.push({text}),field:()=>events.push({field:true}),row:()=>events.push({row:true})});
   let header=true,name='',column=0,columns=0,start=0,size=0;
   let spool:Awaited<ReturnType<typeof createLlmSpool>>|undefined;
   const query=async(sql:string,bindings:readonly (string|number)[])=>withSqliteStatement(session.module,{...session,signal,sql},async statement=>{for await(const ignored of statement.rows(bindings,[])){signal.throwIfAborted();}});
@@ -72,10 +76,10 @@ export async function withCsvEmbeddingEntries<T>(options:{
    }
   }
   const entries={async *[Symbol.asyncIterator](){
-   try{for await(const bytes of embeddingText(input,signal))for(let offset=0;offset<bytes.length;offset+=4096){await budget.checkpoint();parser.push(bytes.subarray(offset,offset+4096));yield* drain();}parser.end();yield* drain();}
+   try{for await(const bytes of embeddingText(detected?.bytes??input,signal))for(let offset=0;offset<bytes.length;offset+=4096){await budget.checkpoint();parser.push(bytes.subarray(offset,offset+4096));yield* drain();}parser.end();yield* drain();}
    finally{await spool?.close();}
   }};
   const iterator=entries[Symbol.asyncIterator]();
   try{return await operation({[Symbol.asyncIterator]:()=>iterator});}finally{try{await iterator.return(undefined);}finally{parser.dispose();budget.dispose();}}
- });}finally{await storage.close();}
+ });}finally{try{await storage?.close();}finally{await detected?.close();}}
 }

@@ -10,6 +10,18 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./sniffer": {
+      "types": "./dist/sniffer.d.ts",
+      "import": "./dist/sniffer.js"
+    },
+    "./sniffer-quotes": {
+      "types": "./dist/sniffer-quotes.d.ts",
+      "import": "./dist/sniffer-quotes.js"
+    },
+    "./sniffer-unicode": {
+      "types": "./dist/sniffer-unicode.d.ts",
+      "import": "./dist/sniffer-unicode.js"
     }
   },
   "files": [

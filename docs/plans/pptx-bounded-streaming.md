@@ -94,6 +94,27 @@ admission errors when descriptor retirement fails. A native python-pptx chart
 deck matched independent Python URI/DFS results for 24 parts, 38 resolved edges
 and 24 reachable parts, with no dangling edges or leftover scratch.
 
+`openRetainedCompatibility` now projects the retained XML document through
+markup-compatibility controls. Inherited ignorable/process-content rules, work
+stacks, alternate selections and flattened child lists live in caller pages.
+It preserves first-understood-choice/fallback behavior, opaque extension handling,
+MustUnderstand checks, wrapper restrictions, and filtering of unknown ignorable
+attributes. Opaque expansion can await a caller callback; configuration is
+snapshotted before admission. Closing the view retires its indexes while leaving
+the XML document caller-owned. XML documents now provide checked, document-scoped
+node references/restoration and replayable namespace-prefix resolution for stored
+consumers; foreign node handles remain rejected.
+
+Forty compatibility parity cases compare visible trees and rejection codes with
+the existing implementation. Generated long-prefix controls and 512-level views
+observe real spills and at most 16 KiB outstanding writes while whole-file reads
+are forbidden. Tests cover asynchronous option mutation, cancellation at the final
+expansion callback, expired/foreign handles and preservation of primary errors
+when spilled descriptor cleanup fails. Independent lxml projection agrees on
+nested alternate choices, rebound prefixes, ignored/processed extension content,
+opaque payloads and Unicode attributes. This is read-only compatibility admission;
+mutation guards for preserving alternate representations remain to be migrated.
+
 These layers remain internal and immutable. Presentation semantic checks,
 selection/mutation state and shipped-engine wiring remain required before they
 replace the buffered path.
@@ -110,7 +131,11 @@ retains decompressed members in `readPackage`, copies members in
    output sinks and owned staged publications through both command and engine APIs.
    Keep buffering convenience APIs available without requiring them for Worker use.
 2. Build presentation semantic admission and selection on the retained archive,
-   XML, content-type and relationship graph layers before extraction/publication.
+   XML, compatibility, content-type and relationship graph layers before extraction/publication.
+   Preserve all ten existing validation rules and cumulative XML byte/node limits.
+   Keep root/dialect/status and shape/timing/target indexes in caller storage;
+   process XML documents sequentially rather than retaining a page cache per part.
+   Stream validation issues, with collection restricted to convenience APIs.
    Replace synchronous package-member access on the streaming execution path with
    asynchronous reads and a bounded cache backed by the caller's safe-fs. Migrate
    mutation state, embedded workbooks, archive indexes and serialization too.

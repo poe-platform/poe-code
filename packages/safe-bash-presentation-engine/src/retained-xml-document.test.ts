@@ -167,3 +167,15 @@ it("rejects foreign node capabilities without reading arbitrary records", async 
   await expect(text(a.text({ ...a.root }))).rejects.toMatchObject({ code: "invalid-handle" });
   await a.close(); await b.close();
 });
+it('restores document-scoped node IDs and resolves namespace prefixes after scope restoration', async () => {
+  const fs = createMemoryFileSystem(), doc = await openRetainedXmlDocument(source('<a xmlns:p="one"><b xmlns:p="two"><c/></b><d/></a>'), { workingStorage: { fs, directory: '/' } });
+  const root = await doc.node(doc.reference(doc.root)); expect(doc.reference(root)).toBe(doc.reference(doc.root));
+  const nodes = []; for await (const child of doc.children(root)) nodes.push(child);
+  expect(await text((await doc.resolveNamespace(nodes[0]!, () => source('p')))!) ).toBe('two');
+  expect(await text((await doc.resolveNamespace(nodes[1]!, () => source('p')))!) ).toBe('one');
+  expect(await doc.resolveNamespace(root, () => source('missing'))).toBeUndefined();
+  expect(await text((await doc.resolveNamespace(root, () => source('xml')))!) ).toBe('http://www.w3.org/XML/1998/namespace');
+  await expect(doc.node(doc.reference(doc.root) + 1)).rejects.toMatchObject({ code: 'invalid-handle' });
+  await expect(doc.node(NaN)).rejects.toMatchObject({ code: 'invalid-handle' });
+  const savedId = doc.reference(root); await doc.close(); await expect(doc.node(savedId)).rejects.toMatchObject({ code: 'invalid-handle' }); expect(await fs.readdir('/')).toEqual([]);
+});

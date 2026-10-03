@@ -1,6 +1,6 @@
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { ZipDirectoryIndex } from "@poe-code/office-package/zip";
-import { literal, equal, digest } from "./retained-values.js";
+import { literal, equal, digest, characters as streamCharacters } from "./retained-values.js";
 import type { ByteSource } from "./contracts.js";
 import { OfficeError } from "./errors.js";
 import { openRetainedXml, type XmlRange } from "./retained-xml.js";
@@ -15,6 +15,11 @@ export interface RetainedXmlNode {
 export interface RetainedXmlDocument {
   readonly root: RetainedXmlNode;
   readonly nodeCount: number;
+  /** Stable references are scoped to this document. Foreign handles are rejected. */
+  reference(node: RetainedXmlNode): number;
+  node(id: number): Promise<RetainedXmlNode>;
+  /** The factory must replay the same immutable prefix bytes. */
+  resolveNamespace(node: RetainedXmlNode, prefix: () => ByteSource): Promise<ByteSource | undefined>;
   children(node: RetainedXmlNode): AsyncGenerator<RetainedXmlNode>;
   attributes(node: RetainedXmlNode): AsyncGenerator<RetainedXmlNode>;
   namespace(node: RetainedXmlNode): ByteSource;
@@ -38,6 +43,15 @@ function namePart(point: number): boolean {
   return nameStart(point) || point === 45 || point === 46 || point === 0xb7 || point >= 48 && point <= 57
     || point >= 0x300 && point <= 0x36f || point >= 0x203f && point <= 0x2040;
 }
+export async function validateRetainedLocalName(source: ByteSource): Promise<void> {
+  let first = true;
+  for await (const character of streamCharacters(source)) {
+    if (!(first ? nameStart(character.codePointAt(0)!) : namePart(character.codePointAt(0)!))) invalid();
+    first = false;
+  }
+  if (first) invalid();
+}
+
 // Fixed-size rows keep tree links, namespace scope and collision chains outside
 // the JS heap. Namespace/hash indexes share the same bounded backing cache.
 enum F { Kind, Parent, First, Last, Next, Attrs, LastAttr, PrevAttr, Name, NameLength, Local, LocalLength, Prefix, PrefixLength, Value, ValueLength, Namespace, HashNext, PreviousBinding, Count }
@@ -88,7 +102,9 @@ export async function openRetainedXmlDocument(source: ByteSource, settings: Reta
       if (kind === 6) values[F.PrevAttr] = previous;
       owner[last] = pointer; await save(parent, owner);
     }
-    await save(pointer, values); return pointer;
+    await save(pointer, values);
+    if (kind !== 0) await index.set(`node:${pointer}`, pointer);
+    return pointer;
   }
   async function* characters(value: XmlRange) {
     const decoder = new TextDecoder();
@@ -276,7 +292,32 @@ export async function openRetainedXmlDocument(source: ByteSource, settings: Reta
     }
     if (!root || current !== document) invalid();
     const api: RetainedXmlDocument = {
-      root: await handle(root), nodeCount: count, raw: xml.read, close,
+      root: await handle(root), nodeCount: count, raw: xml.read, close, reference: address,
+      async node(id) {
+        try {
+          check();
+          if (!Number.isSafeInteger(id) || id < 1 || await index.get(`node:${id}`) !== id)
+            throw new OfficeError("invalid-handle", "Unknown XML node identifier.", "parse");
+          return await handle(id);
+        } catch (error) { throw failure(error); }
+      },
+      async resolveNamespace(node, prefix) {
+        try {
+          let pointer = address(node);
+          if (await equal(prefix(), literal("xml"))) return literal(xmlNamespace);
+          while (pointer) {
+            const owner = await row(pointer);
+            for (let attribute = owner[F.Attrs]!; attribute;) {
+              const values = await row(attribute);
+              if (values[F.Namespace] === -2 && await equal(prefix(), xml.read(declaredPrefix(values))))
+                return xml.value(range(values, F.Value), true);
+              attribute = values[F.Next]!;
+            }
+            pointer = owner[F.Parent]!;
+          }
+          return undefined;
+        } catch (error) { throw failure(error); }
+      },
       async *children(node) {
         try { for (let pointer = (await row(address(node)))[F.First]!; pointer;) { yield await handle(pointer); pointer = (await row(pointer))[F.Next]!; } }
         catch (error) { throw failure(error); }

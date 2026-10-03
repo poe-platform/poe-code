@@ -65,8 +65,8 @@ It validates manifest structure, URI syntax, MIME syntax and presentation kinds
 without collecting arbitrary scalar values. The retained relationship-part index
 stores ordered records and exact case-sensitive IDs, streaming identifiers, types
 and targets. Both close semantic XML storage after admission and retire returned
-streams when closed. These indexes do not yet resolve targets or validate the
-presentation graph.
+streams when closed. The relationship-part index admits records independently; the stored graph
+layer below resolves targets across the archive.
 
 Tests compare admission with existing parsers, generate/reuse large scalar chunks,
 observe actual spill writes capped at 16 KiB, consume results slowly, force hash
@@ -75,9 +75,28 @@ comparison now retires both iterators even when one close throws synchronously.
 Independent python-pptx/ElementTree verification covers manifest bindings and
 relationships in a chart deck with an embedded workbook and external hyperlink.
 
-These layers remain internal and immutable. Stored graph validation, presentation
-checks, mutations and shipped-engine wiring remain required before they replace
-the buffered path.
+`openRetainedRelationshipGraph` now connects admitted archive parts and stored
+relationship records. Forward/reverse adjacency lists, exact ID indexes, dangling
+targets and case-insensitive part lookup live in caller pages. Relative targets
+normalize through stored segments and parent links, so long references and deep
+`..` paths do not create an in-memory stack. Traversal uses caller-backed visited
+indexes and frames, retains existing DFS order and cycle behavior, and owns its
+scratch independently of the graph. Graph retirement leaves the archive owned by
+its caller. Missing owners, URI rejection and cumulative byte/part/edge ceilings
+are enforced; dangling edges remain queryable for presentation validation.
+
+Generated 512-part graph coverage forbids whole-file reads, observes actual graph
+and traversal spills with outstanding writes capped at 16 KiB, and consumes output
+slowly. URI parity covers 96 base/reference cases plus a generated deep path.
+Tests also cover exact edge lookup, differently cased dangling targets, early
+iterator retirement, source/cancellation failures and preservation of primary
+admission errors when descriptor retirement fails. A native python-pptx chart
+deck matched independent Python URI/DFS results for 24 parts, 38 resolved edges
+and 24 reachable parts, with no dangling edges or leftover scratch.
+
+These layers remain internal and immutable. Presentation semantic checks,
+selection/mutation state and shipped-engine wiring remain required before they
+replace the buffered path.
 
 This is not an end-to-end bounded-memory implementation or Worker qualification.
 The built-in command engine still collects input, returns complete stdout/stderr, and publishes
@@ -90,8 +109,8 @@ retains decompressed members in `readPackage`, copies members in
 1. Carry caller-owned retained/range sources, explicit spill-storage authorization,
    output sinks and owned staged publications through both command and engine APIs.
    Keep buffering convenience APIs available without requiring them for Worker use.
-2. Connect stored content-type and relationship-part indexes to a caller-backed
-   relationship graph, preserving semantic admission before extraction/publication.
+2. Build presentation semantic admission and selection on the retained archive,
+   XML, content-type and relationship graph layers before extraction/publication.
    Replace synchronous package-member access on the streaming execution path with
    asynchronous reads and a bounded cache backed by the caller's safe-fs. Migrate
    mutation state, embedded workbooks, archive indexes and serialization too.

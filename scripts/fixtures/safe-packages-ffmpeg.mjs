@@ -1,4 +1,5 @@
 import { Shell, standardCommands, createMemoryFileSystem } from "@poe-platform/safe-bash";
+import { ffprobeCommands } from "@poe-platform/safe-bash/commands/ffprobe";
 import { commandRuntimeIdentity } from "@poe-platform/safe-bash/contracts";
 import { createFfmpegCommands, ffmpegCommands, cloudflareWorkerLimits } from "@poe-platform/safe-bash/commands/ffmpeg";
 
@@ -11,6 +12,7 @@ export async function verifyFfmpeg() {
   try {
     const generated = await shell.exec("ffmpeg -f lavfi -i color=c=red:s=16x16:r=2:d=1 -an /clip.mp4");
     if (generated.exitCode !== 0) throw new Error(generated.stderr);
+    shell.use(ffprobeCommands({ replace: true }));
     await fs.writeFile("/probe.sh", new TextEncoder().encode("cat /clip.mp4 | ffprobe -v quiet -show_streams -show_format -of json pipe:0"));
     const result = await shell.exec("sh /probe.sh");
     if (result.exitCode !== 0) throw new Error(result.stderr);

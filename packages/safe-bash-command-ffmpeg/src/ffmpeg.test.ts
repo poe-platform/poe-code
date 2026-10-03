@@ -644,7 +644,8 @@ for (const [extension, flags, codec, sampleRate] of [
     const stream = JSON.parse(probe.stdout).streams[0];
     assert.equal(stream.codec_name, codec);
     assert.equal(Number(stream.sample_rate), sampleRate);
-    assert.equal(Number(stream.duration), 0.1);
+    // Native ffprobe includes the Opus pre-skip in the reported Ogg duration.
+    assert.equal(Number(stream.duration), codec === "opus" ? 0.1065 : 0.1);
   });
 }
 

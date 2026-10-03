@@ -21,6 +21,8 @@ stdin chunks, media files, playlists, image sequences, and subtitles. The portab
 requires no Node builtins and supports browser and Worker runtimes. These commands
 implement the listed AST capabilities, not every native FFmpeg codec or option.
 
+`ffprobe` uses the same audio/video implementation as `@poe-platform/safe-bash/commands/ffprobe`, with default limits of 32 MiB input and 1 MiB output. Pass `limits` to override them.
+
 ## Features
 
 - **Dynamic AST-Driven Format Support**: Pass `asts: [...]` to `ffmpegCommands({ asts })` to dynamically determine which container formats, extensions, demuxers, muxers, and codecs are supported by `ffmpeg` and `ffprobe`.

@@ -7,6 +7,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
     entryPoints: [new URL("./index.ts", import.meta.url).pathname],
     bundle: true, minify: true, platform: "browser", format: "esm", target: "es2022", write: false,
     external: ["safe-bash-contracts", "safe-bash-contracts/*"],
+    alias: { "safe-bash-command-ffprobe": new URL("../../safe-bash-command-ffprobe/src", import.meta.url).pathname },
     metafile: true, logLevel: "silent"
   });
   const text = result.outputFiles[0]!.text;

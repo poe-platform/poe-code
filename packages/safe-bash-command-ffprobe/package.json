@@ -10,6 +10,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./media": {
+      "types": "./dist/media.d.ts",
+      "import": "./dist/media.js"
     }
   },
   "files": [
@@ -26,7 +30,8 @@
   "dependencies": {},
   "devDependencies": {
     "safe-bash-contracts": "*",
-    "@poe-code/audio-ast": "*"
+    "@poe-code/audio-ast": "*",
+    "@poe-code/mp4-ast": "*"
   },
   "sideEffects": false
 }

@@ -1437,7 +1437,8 @@
             "@poe-code/mp4-ast": "*",
             "@poe-code/image-ast": "*",
             "@poe-code/audio-ast": "*",
-            "safe-bash-contracts": "*"
+            "safe-bash-contracts": "*",
+            "safe-bash-command-ffprobe": "*"
           },
           "portable": true
         },
@@ -2055,7 +2056,8 @@
           "dependencies": {},
           "devDependencies": {
             "safe-bash-contracts": "*",
-            "@poe-code/audio-ast": "*"
+            "@poe-code/audio-ast": "*",
+            "@poe-code/mp4-ast": "*"
           },
           "portable": true
         },

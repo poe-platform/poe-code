@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { createSyntheticMp4 } from "@poe-code/mp4-ast";
-import { createFfmpegCommand, createFfprobeCommand } from "./index.js";
+import { encodeWav } from "@poe-code/audio-ast";
+import { createFfmpegCommand, createFfprobeCommand, evalSyncFfprobe } from "./index.js";
 
 const media = createSyntheticMp4({ width: 16, height: 16, frameCount: 1 });
 function fixture(args: string[], files: Record<string, Uint8Array> = { "/in.mp4": media }) {
@@ -117,5 +118,61 @@ for (const command of [createFfmpegCommand, createFfprobeCommand]) {
     assert.equal(result.exitCode, 1);
     assert.deepEqual(f.totals, [playlist.length, playlist.length + media.length, total]);
     assert.ok(f.errors.join("").includes("maxInputBytes"));
+  });
+}
+
+
+it("shares the dedicated ffprobe factory with audio consumers", async () => {
+  const { createFfprobeCommand: canonical } = await import("safe-bash-command-ffprobe");
+  assert.equal(createFfprobeCommand, canonical);
+  const f = fixture(["-show_streams", "-of", "json", "/in.mp4"]);
+  assert.equal((await canonical().execute(f.context)).exitCode, 0);
+  const result = JSON.parse(new TextDecoder().decode(f.output[0]));
+  assert.equal(result.streams[0].codec_type, "video");
+  assert.equal(result.streams[0].width, 16);
+});
+
+
+it("bounds shared probe output before writing", async () => {
+  const f = fixture(["-show_streams", "-of", "json", "/in.mp4"]);
+  assert.equal((await createFfprobeCommand({ limits: { maxOutputBytes: 10 } }).execute(f.context)).exitCode, 1);
+  assert.equal(f.output.length, 0);
+});
+for (const args of [["-unknown", "/in.mp4"], ["/in.mp4", "-of"]]) {
+  it(`rejects invalid shared probe arguments: ${args.join(" ")}`, async () => {
+    const f = fixture(args);
+    assert.equal((await createFfprobeCommand().execute(f.context)).exitCode, 1);
+  });
+}
+
+it("identifies the shared probe in help output", async () => {
+  const f = fixture(["--help"]);
+  assert.equal((await createFfprobeCommand().execute(f.context)).exitCode, 0);
+  assert.match(Buffer.concat(f.output).toString(), /usage: ffprobe /);
+});
+
+
+const audioBytes = encodeWav({ sampleRate: 8000, channels: [new Float64Array(8)] });
+it("keeps synchronous probe output identical to the qualified audio command", async () => {
+  const args = ["-show_streams", "-show_format", "-of", "json", "/in.wav"];
+  const f = fixture(args, { "/in.wav": audioBytes });
+  assert.equal((await createFfprobeCommand().execute(f.context)).exitCode, 0);
+  assert.equal(evalSyncFfprobe(undefined, args, () => audioBytes), Buffer.concat(f.output).toString());
+});
+it("owns streamed bytes before a producer reuses its buffer", async () => {
+  const f = fixture(["-show_streams", "-of", "json", "-"]);
+  const stdin = (async function* () {
+    const chunk = new Uint8Array(audioBytes);
+    yield chunk;
+    chunk.fill(0);
+  })();
+  assert.equal((await createFfprobeCommand().execute({ ...f.context, stdin })).exitCode, 0);
+  assert.equal(JSON.parse(Buffer.concat(f.output).toString()).streams[0].sample_rate, "8000");
+});
+for (const args of [["-of", "garbage", "/in.mp4"], ["-of", "json:garbage=1", "/in.mp4"], ["/in.mp4", "/in.mp4"], ["-i", "/in.mp4", "-i", "/in.mp4"]]) {
+  it(`rejects ambiguous or invalid shared probe arguments: ${args.join(" ")}`, async () => {
+    const f = fixture(args);
+    assert.equal((await createFfprobeCommand().execute(f.context)).exitCode, 1);
+    assert.equal(evalSyncFfprobe(undefined, args, () => media), undefined);
   });
 }

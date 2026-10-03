@@ -2,6 +2,15 @@
 
 Status: Implemented
 
+Check-mode amendment: `sort -c` and `sort -C` charge only the previous and
+incoming completed records. After a successful comparison, the previous record's
+charge is released. A separate ordinal preserves disorder diagnostics. Check
+mode does not retain comparison-cache entries or share completed records with a
+whole input chunk. This supersedes the cumulative check-mode ledger requirements
+below; general sort and merge admission are unchanged. Individual records still
+use the existing contiguous representation and line limit, so this amendment
+does not establish bounded execution for oversized records or Worker qualification.
+
 Implemented Through: `47a8017df1aab4a215fad910aec79364776c1d27`
 
 Purpose: Bound sort's retained record count independently of payload bytes and

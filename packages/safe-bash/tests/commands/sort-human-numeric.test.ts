@@ -8,6 +8,65 @@ import { chunks, fixture, run } from "./helpers.js";
 import { Shell } from "../../src/shell/shell.js";
 import { agentCommands } from "../../src/plugins/index.js";
 
+test("sort check modes release consumed records under a small working budget", async t => {
+  const original = SortRecordBudget.prototype.admit;
+  t.mock.method(SortRecordBudget.prototype, "admit", function (this: SortRecordBudget, length: number) {
+    Object.defineProperty(this, "maxBytes", { value: 24 });
+    original.call(this, length);
+  });
+  for (const flag of ["-c", "-C"]) {
+    const result = await run("sort", [flag, "-n"], {
+      commands: textCommands(),
+      stdin: (async function* () {
+        const reused = new Uint8Array(5);
+        for (let i = 1000; i < 1100; i++) {
+          reused.set(new TextEncoder().encode(`${i}\n`));
+          yield reused;
+        }
+      })(),
+    });
+    assert.equal(result.exitCode, 0, result.stderr);
+  }
+});
+
+test("sort check modes do not cache consumed numeric or lexical records", async t => {
+  const original = Map.prototype.set;
+  let cachedRecords = 0;
+  t.mock.method(Map.prototype, "set", function (this: Map<unknown, unknown>, key: unknown, value: unknown) {
+    if (key instanceof Uint8Array) cachedRecords++;
+    return original.call(this, key, value);
+  });
+  for (const flag of ["-c", "-C"]) {
+    for (const keys of [["-n"], ["-k1,1"], ["-k1,1n"], ["-k1,1", "-k2,2"]]) {
+      const result = await run("sort", [flag, ...keys], { commands: textCommands(), stdin: chunks("1 a\n2 b\n3 c\n", 4) });
+      assert.equal(result.exitCode, 0, result.stderr);
+    }
+  }
+  assert.equal(cachedRecords, 0);
+});
+
+test("sort check modes preserve late disorder ordinals and close the input early", async () => {
+  for (const flag of ["-c", "-C"]) {
+    let closed = false;
+    let advancedPastDisorder = false;
+    const result = await run("sort", [flag, "-n"], {
+      commands: textCommands(),
+      stdin: (async function* () {
+        try {
+          for (let i = 0; i < 100; i++) yield Buffer.from(`${i}\n`);
+          yield Buffer.from("0\n");
+          advancedPastDisorder = true;
+        } finally { closed = true; }
+      })(),
+    });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stderr, flag === "-c" ? "sort: disorder at record 101\n" : "");
+    assert.equal(result.stdout, "");
+    assert.equal(closed, true);
+    assert.equal(advancedPastDisorder, false);
+  }
+});
+
 test("sort human numeric supports short and long options for mixed suffixes", async () => {
   for (const args of [["-h"], ["--human-numeric-sort"]]) {
     const result = await run("sort", args, { stdin: chunks("2G\n345M\n1.2K\n900\n") });

@@ -20,4 +20,9 @@ export class SortRecordBudget {
     this.#records++;
     this.#bytes += bytes;
   }
+
+  release(byteLength: number): void {
+    this.#records--;
+    this.#bytes -= byteLength + 1;
+  }
 }

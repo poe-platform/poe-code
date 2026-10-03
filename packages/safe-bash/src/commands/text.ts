@@ -982,6 +982,7 @@ async function readOwnedSortInput(
 async function collectSortRecords(
   source: ByteSource, delimiter: number, budget: SortRecordBudget, signal: AbortSignal,
   accept: (bytes: Uint8Array) => boolean | void | Promise<boolean | void>,
+  shareChunk = true,
 ): Promise<boolean> {
   const pending = new RecordBuffer(bufferLimit);
   const admit = (length: number): void => {
@@ -993,6 +994,7 @@ async function collectSortRecords(
       let start = 0;
       let ownedChunk: Uint8Array | undefined;
       const canShareChunk =
+        shareChunk &&
         SortRecordBudget.prototype.admit === defaultSortAdmit &&
         Uint8Array === defaultUint8Array &&
         budget.canAdmitChunk(chunk.length);
@@ -1251,7 +1253,7 @@ async function executeSortGeneral(
         preReadChunks = [firstChunk];
       }
       let compareNumeric = async (left: Uint8Array, right: Uint8Array, human: boolean) => compareNumericValues(await parseNumeric(left, work, human), await parseNumeric(right, work, human), work);
-      const isUnkeyedNumericFast = !keys.length && (parsed.flags.has("n") || parsed.flags.has("h")) && !["b", "f", "c", "d", "i"].some(flag => parsed.flags.has(flag));
+      const isUnkeyedNumericFast = !checking && !keys.length && (parsed.flags.has("n") || parsed.flags.has("h")) && !["b", "f", "d", "i"].some(flag => parsed.flags.has(flag));
       const numericValues = isUnkeyedNumericFast ? new Map<Uint8Array, NumericValue>() : undefined;
       let retainedBytes = 0;
       const numericHuman = parsed.flags.has("h");
@@ -1344,7 +1346,7 @@ async function executeSortGeneral(
         }
         return keyCompareGeneralAsync(left, right, checkpoint);
       };
-      const isSingleLexKeyFast = numericKey !== undefined && !["g", "h", "M", "n", "V", "f", "d", "i"].some(flag => numericKeyFlags.has(flag)) && !parsed.flags.has("c");
+      const isSingleLexKeyFast = numericKey !== undefined && !["g", "h", "M", "n", "V", "f", "d", "i"].some(flag => numericKeyFlags.has(flag)) && !checking;
       if (isSingleLexKeyFast) {
         const lexRev = numericKeyFlags.has("r") ? -1 : 1;
         const lexBlanks = numericKeyFlags.has("b");
@@ -1385,7 +1387,7 @@ async function executeSortGeneral(
           return keyCompareLexAsync(left, right, checkpoint, first, second);
         };
       }
-      if (numericKey && (numericKeyFlags.has("n") || numericKeyFlags.has("h")) && !["b", "f", "d", "i"].some(flag => numericKeyFlags.has(flag)) && !parsed.flags.has("c")) {
+      if (numericKey && (numericKeyFlags.has("n") || numericKeyFlags.has("h")) && !["b", "f", "d", "i"].some(flag => numericKeyFlags.has(flag)) && !checking) {
         let keyedNumericValues: Map<Uint8Array, NumericValue> | undefined;
         let retainedKeyBytes = 0;
         const keyHuman = numericKeyFlags.has("h");
@@ -1464,7 +1466,7 @@ async function executeSortGeneral(
       }
       const canMultiKeyFast =
         keys.length >= 2 &&
-        !parsed.flags.has("c") &&
+        !checking &&
         keys.every(k => {
           const f = k.flags.size ? k.flags : parsed.flags;
           return !["g", "M", "V", "f", "d", "i"].some(flag => f.has(flag));
@@ -1562,12 +1564,16 @@ async function executeSortGeneral(
       };
       const records: Uint8Array[] = [];
       const runs: Uint8Array[][] = [];
+      let previousChecked: Uint8Array | undefined;
+      let checkedCount = 0;
       const checkRecordAsync = async (bytes: Uint8Array): Promise<boolean> => {
-        if (records.length && (await compare(records.at(-1)!, bytes) > 0 || parsed.flags.has("u") && await keyCompare(records.at(-1)!, bytes) === 0)) {
-          if (!parsed.flags.has("C")) await diagnostic(context, new PublicDiagnostic(`disorder at record ${records.length + 1}`));
+        checkedCount++;
+        if (previousChecked !== undefined && (await compare(previousChecked, bytes) > 0 || parsed.flags.has("u") && await keyCompare(previousChecked, bytes) === 0)) {
+          if (!parsed.flags.has("C")) await diagnostic(context, new PublicDiagnostic(`disorder at record ${checkedCount}`));
           return false;
         }
-        records.push(bytes);
+        if (previousChecked !== undefined) recordBudget.release(previousChecked.length);
+        previousChecked = bytes;
         return true;
       };
       for (const name of parsed.operands.length ? parsed.operands : ["-"]) {
@@ -1581,7 +1587,7 @@ async function executeSortGeneral(
           const src = preReadChunks
             ? (async function* () { for (const ch of preReadChunks!) yield ch; })()
             : input(context, name);
-          const complete = await collectSortRecords(src, delimiter, recordBudget, context.signal, acceptRecord);
+          const complete = await collectSortRecords(src, delimiter, recordBudget, context.signal, acceptRecord, !checking);
           if (!complete) return { exitCode: 1 };
         } catch (error) { await diagnostic(context, error); return { exitCode: 2 }; }
       }

@@ -1,3 +1,4 @@
+import {webpMetadataSteps} from "./webp-metadata.js";
 import { createByteCodec, defaultRuntime } from "@poe-code/compression";
 import type { SharpInputOptions } from "../ast.js";
 import { checkLimitInputPixels } from "../limits.js";
@@ -125,6 +126,18 @@ class Words {
 }
 
 /** Retained RIFF tags and VP8L data use only caller-owned storage and bounded pages. */
+/** Scan RIFF headers and offset EXIF fields through one owned input page. */
+export async function readWebpMetadataFromSource(source:ImageByteSource,signal:AbortSignal) {
+  signal.throwIfAborted();
+  const reader=new SourceBytes(source,signal,"WebP"),steps=webpMetadataSteps(source.size);let next=steps.next();
+  while(!next.done) {
+    const {position,length}=next.value,bytes=new Uint8Array(length);
+    for(let i=0;i<length;i++)bytes[i]=await reader.at(position+i)??0;
+    next=steps.next(bytes);
+  }
+  signal.throwIfAborted();return next.value;
+}
+
 export async function decodeWebpToStorage(
   source: ImageByteSource,
   storage: ImageByteStorage,
@@ -142,79 +155,7 @@ export async function decodeWebpToStorage(
   };
   const fourcc = async (at: number) =>
     String.fromCharCode(await byte(at), await byte(at + 1), await byte(at + 2), await byte(at + 3));
-  if (source.size < 12 || (await fourcc(0)) !== "RIFF" || (await fourcc(8)) !== "WEBP")
-    throw new Error("Invalid WebP header");
-  let width = 0,
-    height = 0,
-    hasAlpha = false,
-    density = 72,
-    orientation: number | undefined;
-  for (let at = 12; at + 8 <= source.size; ) {
-    const kind = await fourcc(at),
-      length = await number(at + 4, 4),
-      start = at + 8;
-    if (start + length > source.size) break;
-    if (kind === "VP8X" && length >= 10) {
-      hasAlpha = Boolean((await byte(start)) & 16);
-      width = 1 + (await number(start + 4, 3));
-      height = 1 + (await number(start + 7, 3));
-    } else if (kind === "VP8L" && length >= 5 && (await byte(start)) === 47) {
-      const bits = await number(start + 1, 4);
-      width = (bits & 16383) + 1;
-      height = ((bits >>> 14) & 16383) + 1;
-      hasAlpha = Boolean((bits >>> 28) & 1);
-    } else if (
-      kind === "VP8 " &&
-      length >= 10 &&
-      (await byte(start + 3)) === 157 &&
-      (await byte(start + 4)) === 1 &&
-      (await byte(start + 5)) === 42
-    ) {
-      width = (await number(start + 6, 2)) & 16383;
-      height = (await number(start + 8, 2)) & 16383;
-    } else if (kind === "EXIF") {
-      const offset =
-          length >= 6 &&
-          (await fourcc(start)) === "Exif" &&
-          (await byte(start + 4)) === 0 &&
-          (await byte(start + 5)) === 0
-            ? 6
-            : 0,
-        tiff = start + offset,
-        end = start + length;
-      if (tiff + 8 <= end) {
-        const a = await byte(tiff),
-          b = await byte(tiff + 1),
-          le = a === 73 && b === 73;
-        if ((le || (a === 77 && b === 77)) && (await number(tiff + 2, 2, le)) === 42) {
-          const ifd = tiff + (await number(tiff + 4, 4, le));
-          if (ifd + 2 <= end) {
-            const count = await number(ifd, 2, le);
-            let xRes: number | undefined,
-              unit = 2;
-            for (let i = 0; i < count; i++) {
-              const entry = ifd + 2 + i * 12;
-              if (entry + 12 > end) break;
-              const tag = await number(entry, 2, le),
-                type = await number(entry + 2, 2, le),
-                value = await number(entry + 8, 4, le),
-                short = type === 3 ? await number(entry + 8, 2, le) : value;
-              if (tag === 274 && short >= 1 && short <= 8) orientation = short;
-              else if (tag === 296 && (short === 2 || short === 3)) unit = short;
-              else if (tag === 282 && type === 5 && tiff + value + 8 <= end) {
-                const den = await number(tiff + value + 4, 4, le);
-                if (den > 0) xRes = (await number(tiff + value, 4, le)) / den;
-              }
-            }
-            if (xRes !== undefined && xRes > 0)
-              density = Math.round(xRes * (unit === 3 ? 2.54 : 1));
-          }
-        }
-      }
-    }
-    at = start + length + (length & 1);
-  }
-  if (width <= 0 || height <= 0) throw new Error("Invalid WebP dimensions");
+  const {width,height,hasAlpha,density,orientation}=await readWebpMetadataFromSource(source,signal);
   checkLimitInputPixels(width, height, options);
   const size = width * height * 4,
     position = storage.allocate(size);

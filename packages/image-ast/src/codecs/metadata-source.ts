@@ -1,3 +1,5 @@
+import {isWebpBytes} from "./webp.js";
+import {readWebpMetadataFromSource} from "./webp-input-storage.js";
 import type {ImageMetadata,SharpInputOptions} from "../ast.js";
 import type {ImageByteSource} from "./png-storage.js";
 import {readPngMetadataFromSource} from "./png-storage.js";
@@ -22,6 +24,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  const prefix=new Uint8Array(borrowed);let metadata:ImageMetadata;
  if(isPngBytes(prefix))metadata=await readPngMetadataFromSource(source,signal);
  else if(isJpegBytes(prefix))metadata=await readJpegMetadataFromSource(source,signal);
+ else if(isWebpBytes(prefix))metadata=await readWebpMetadataFromSource(source,signal);
  else if(isBmpBytes(prefix))metadata={...readBmpMetadata(prefix),size:source.size};
  else if(isNetpbmBytes(prefix)) {
   const reader=new SourceBytes(source,signal,"Netpbm"),steps=netpbmHeaderSteps(source.size);let next=steps.next();

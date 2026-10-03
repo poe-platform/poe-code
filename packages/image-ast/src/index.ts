@@ -1,3 +1,4 @@
+export {readWebpMetadataFromSource} from "./codecs/webp-input-storage.js";
 export {readImageMetadataFromSource} from "./codecs/metadata-source.js";
 export {readJpegMetadataFromSource} from "./codecs/jpeg-input-storage.js";
 export {computeStoredImageStats} from "./ops/stats-storage.js";

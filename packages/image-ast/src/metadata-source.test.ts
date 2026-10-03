@@ -34,7 +34,7 @@ for(const length of [0,8,23,24,28,29,32,33,45,76,128]) it(`preserves truncated P
  let actual:unknown;try{actual=await readPngMetadataFromSource(source(input),new AbortController().signal);}catch(error){actual=(error as Error).message;}
  expect(actual).toEqual(result);
 });
-for(const format of ["png","jpeg","bmp","ppm","pgm","pbm"] as const) it(`reads file ${format} metadata without whole-file I/O or pixel storage`,async()=>{
+for(const format of ["png","jpeg","webp","bmp","ppm","pgm","pbm"] as const) it(`reads file ${format} metadata without whole-file I/O or pixel storage`,async()=>{
  const fs=new MemoryFileSystem();
  const bytes=await sharp({create:{width:91,height:73,channels:3,background:"red"}}).toFormat(format).toBuffer();
  await fs.writeFile("/image",bytes);
@@ -113,12 +113,16 @@ import {fileURLToPath} from "node:url";
 it("inspects externally retained metadata in Workerd without whole-file or raster allocation",async()=>{
  const segment=(marker:number,data:Uint8Array)=>join([Uint8Array.of(255,marker,(data.length+2)>>>8,(data.length+2)&255),data]);
  const app=new Uint8Array(65533);app.set(buildExifApp1Segment({orientation:8,density:144}));
+ const smallWebp=await sharp({create:{width:17,height:19,channels:4,background:"red"}}).webp().toBuffer();
+ const largeWebp=new Uint8Array(smallWebp.length+8+256*1024);largeWebp.set(smallWebp.subarray(0,12));largeWebp.set([74,85,78,75],12);
+ new DataView(largeWebp.buffer).setUint32(16,256*1024,true);largeWebp.set(smallWebp.subarray(12),20+256*1024);new DataView(largeWebp.buffer).setUint32(4,largeWebp.length-8,true);
  const cases=[
   {bytes:join([png(8,0,true,1).subarray(0,33),makeChunk("tEXt",new Uint8Array(256*1024)),makeChunk("IEND",new Uint8Array())]),options:{}},
   {bytes:join([Uint8Array.of(255,216),segment(0xe1,app),segment(0xe1,app),segment(0xe1,app),segment(0xc2,Uint8Array.of(8,1,3,3,5,3)),Uint8Array.of(255,217)]),options:{}},
   {bytes:new Uint8Array(256*1024),options:{raw:{width:257,height:129,channels:2 as const,depth:"ushort" as const}}},
   {bytes:new TextEncoder().encode("P6\n#"+"x".repeat(256*1024)+"\n17 19\n65535\n"),options:{}},
-  {bytes:await sharp({create:{width:1024,height:64,channels:3,background:"red"}}).bmp().toBuffer(),options:{}}
+  {bytes:await sharp({create:{width:1024,height:64,channels:3,background:"red"}}).bmp().toBuffer(),options:{}},
+  {bytes:largeWebp,options:{}}
  ];
  const expected=await Promise.all(cases.map(sample=>sharp(sample.bytes,sample.options).metadata()));
  const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../../../",import.meta.url)),sourcefile:"metadata-worker.ts",contents:`
@@ -147,7 +151,7 @@ it("inspects externally retained metadata in Workerd without whole-file or raste
    expect(response.status).toBe(200);
    const result=await response.json() as {metadata:unknown;reads:number;closed:number;largestAllocation:number;nodeGlobals:boolean};
    expect(result.metadata).toEqual(expected[id]);expect(result.closed).toBe(1);expect(result.nodeGlobals).toBe(false);
-   expect(result.largestAllocation).toBeLessThanOrEqual(65536);if(id===2)expect(result.reads).toBe(0);else expect(result.reads).toBeGreaterThan(0);
+   expect(result.largestAllocation).toBeLessThanOrEqual(id===5?4096:65536);if(id===2)expect(result.reads).toBe(0);else expect(result.reads).toBeGreaterThan(0);
   }
  } finally {await runtime.dispose();}
 },15000);

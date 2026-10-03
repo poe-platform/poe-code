@@ -1,0 +1,290 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`preserves WebP metadata VP8 /false/false 1`] = `
+{
+  "channels": 3,
+  "density": 72,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": false,
+  "height": 259,
+  "size": 30,
+  "space": "srgb",
+  "width": 773,
+}
+`;
+
+exports[`preserves WebP metadata VP8 /false/true 1`] = `
+{
+  "channels": 3,
+  "density": 144,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": false,
+  "height": 259,
+  "orientation": 8,
+  "size": 122,
+  "space": "srgb",
+  "width": 773,
+}
+`;
+
+exports[`preserves WebP metadata VP8 /true/false 1`] = `
+{
+  "channels": 3,
+  "density": 72,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": false,
+  "height": 259,
+  "size": 30,
+  "space": "srgb",
+  "width": 773,
+}
+`;
+
+exports[`preserves WebP metadata VP8 /true/true 1`] = `
+{
+  "channels": 3,
+  "density": 144,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": false,
+  "height": 259,
+  "orientation": 8,
+  "size": 122,
+  "space": "srgb",
+  "width": 773,
+}
+`;
+
+exports[`preserves WebP metadata VP8L/false/false 1`] = `
+{
+  "channels": 3,
+  "density": 72,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": false,
+  "height": 259,
+  "size": 26,
+  "space": "srgb",
+  "width": 773,
+}
+`;
+
+exports[`preserves WebP metadata VP8L/false/true 1`] = `
+{
+  "channels": 3,
+  "density": 144,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": false,
+  "height": 259,
+  "orientation": 8,
+  "size": 118,
+  "space": "srgb",
+  "width": 773,
+}
+`;
+
+exports[`preserves WebP metadata VP8L/true/false 1`] = `
+{
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": true,
+  "height": 259,
+  "size": 26,
+  "space": "srgb",
+  "width": 773,
+}
+`;
+
+exports[`preserves WebP metadata VP8L/true/true 1`] = `
+{
+  "channels": 4,
+  "density": 144,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": true,
+  "height": 259,
+  "orientation": 8,
+  "size": 118,
+  "space": "srgb",
+  "width": 773,
+}
+`;
+
+exports[`preserves WebP metadata VP8X/false/false 1`] = `
+{
+  "channels": 3,
+  "density": 72,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": false,
+  "height": 259,
+  "size": 30,
+  "space": "srgb",
+  "width": 773,
+}
+`;
+
+exports[`preserves WebP metadata VP8X/false/true 1`] = `
+{
+  "channels": 3,
+  "density": 144,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": false,
+  "height": 259,
+  "orientation": 8,
+  "size": 122,
+  "space": "srgb",
+  "width": 773,
+}
+`;
+
+exports[`preserves WebP metadata VP8X/true/false 1`] = `
+{
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": true,
+  "height": 259,
+  "size": 30,
+  "space": "srgb",
+  "width": 773,
+}
+`;
+
+exports[`preserves WebP metadata VP8X/true/true 1`] = `
+{
+  "channels": 4,
+  "density": 144,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": true,
+  "height": 259,
+  "orientation": 8,
+  "size": 122,
+  "space": "srgb",
+  "width": 773,
+}
+`;
+
+exports[`preserves ordered frame and EXIF overrides 1`] = `
+{
+  "channels": 4,
+  "density": 300,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": true,
+  "height": 19,
+  "orientation": 6,
+  "size": 178,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves truncated WebP metadata 0 1`] = `"Invalid WebP header"`;
+
+exports[`preserves truncated WebP metadata 11 1`] = `"Invalid WebP header"`;
+
+exports[`preserves truncated WebP metadata 12 1`] = `"Invalid WebP dimensions"`;
+
+exports[`preserves truncated WebP metadata 19 1`] = `"Invalid WebP dimensions"`;
+
+exports[`preserves truncated WebP metadata 20 1`] = `"Invalid WebP dimensions"`;
+
+exports[`preserves truncated WebP metadata 24 1`] = `"Invalid WebP dimensions"`;
+
+exports[`preserves truncated WebP metadata 25 1`] = `"Invalid WebP dimensions"`;
+
+exports[`preserves truncated WebP metadata 29 1`] = `"Invalid WebP dimensions"`;
+
+exports[`preserves truncated WebP metadata 30 1`] = `
+{
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": true,
+  "height": 19,
+  "size": 30,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves truncated WebP metadata 31 1`] = `
+{
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": true,
+  "height": 19,
+  "size": 31,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves truncated WebP metadata 32 1`] = `
+{
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": true,
+  "height": 19,
+  "size": 32,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves truncated WebP metadata 33 1`] = `
+{
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": true,
+  "height": 19,
+  "size": 33,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves truncated WebP metadata 34 1`] = `
+{
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": true,
+  "height": 19,
+  "size": 34,
+  "space": "srgb",
+  "width": 17,
+}
+`;
+
+exports[`preserves truncated WebP metadata 35 1`] = `
+{
+  "channels": 4,
+  "density": 72,
+  "depth": "uchar",
+  "format": "webp",
+  "hasAlpha": true,
+  "height": 19,
+  "size": 35,
+  "space": "srgb",
+  "width": 17,
+}
+`;

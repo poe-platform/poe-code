@@ -200,3 +200,5 @@ export {withJsonEmbeddingEntries} from "./import-json.js";
 export {withJsonLinesEmbeddingEntries} from "./import-json-lines.js";
 
 export {withFileEmbeddingEntries,type LlmEmbeddingFile,type LlmFileEmbeddingOptions} from "./import-files.js";
+
+export {withEmbeddingFileGlob} from "./import-glob.js";

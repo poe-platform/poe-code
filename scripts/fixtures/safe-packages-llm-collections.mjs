@@ -1,11 +1,23 @@
 import { MemoryFileSystem } from "@poe-platform/safe-fs/core";
-import { withLlmCollections, createLlmCollectionCommands, withCsvEmbeddingEntries, withJsonEmbeddingEntries, withJsonLinesEmbeddingEntries, withFileEmbeddingEntries } from "@poe-platform/safe-bash/commands/llm/collections";
+import { withLlmCollections, createLlmCollectionCommands, withCsvEmbeddingEntries, withJsonEmbeddingEntries, withJsonLinesEmbeddingEntries, withFileEmbeddingEntries, withEmbeddingFileGlob } from "@poe-platform/safe-bash/commands/llm/collections";
 import { createLlmService, llmCommands } from "@poe-platform/safe-bash/commands/llm";
 import { legacyCollectionDatabases, jsonImportEncodingInputs, jsonImportRejectedInputs } from "./safe-packages-llm-collections-reference.mjs";
 import { Shell } from "@poe-platform/safe-bash/shell";
 import { sqlite3Commands } from "@poe-platform/safe-bash/commands/sqlite3";
 
 export async function verifyLlmCollections() {
+  const globFs=new MemoryFileSystem();
+  await globFs.mkdir('/nested');
+  await globFs.writeFile('/first.txt',new TextEncoder().encode('first'));
+  await globFs.writeFile('/nested/second.txt',new TextEncoder().encode('second'));
+  await globFs.symlink('nested','/alias');
+  const globOptions={fs:globFs,directory:'/',signal:new AbortController().signal,maxFileBytes:1048576,maxOpenFiles:8};
+  const globIds=[];
+  await withEmbeddingFileGlob(globOptions,{directory:'/',pattern:'**/**/*.txt'},files=>withFileEmbeddingEntries(globOptions,files,async entries=>{
+    for await(const entry of entries){let text='';for await(const chunk of entry.input.bytes)text+=new TextDecoder().decode(chunk);globIds.push([entry.id,text]);}
+  }));
+  if(JSON.stringify(globIds)!==JSON.stringify([['first.txt','first'],['nested/second.txt','second']]))throw new Error('Installed Python glob traversal changed');
+  if((await globFs.readdir('/')).length!==3)throw new Error('Installed glob storage leaked');
   const fs = new MemoryFileSystem();
   const options = { fs, path: "/embeddings.db", signal: new AbortController().signal,
     maxFileBytes: 1048576, maxIndexBytes: 1048576, maxOpenFiles: 8,

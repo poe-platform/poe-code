@@ -114,7 +114,8 @@
     "safe-bash-mime-engine": "*",
     "safe-bash-checksum-engine": "*",
     "safe-bash-sqlite-engine": "*",
-    "safe-bash-query-engine": "*"
+    "safe-bash-query-engine": "*",
+    "safe-bash-regex-engine": "*"
   },
   "peerDependencies": {
     "yaml": "2.9.0"

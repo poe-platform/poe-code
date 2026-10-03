@@ -1,0 +1,316 @@
+[
+  {
+    "pattern": "",
+    "error": "ValueError",
+    "message": "Unacceptable pattern: ''"
+  },
+  {
+    "pattern": "*",
+    "matches": [
+      {
+        "path": "link-dir",
+        "directory": true,
+        "symlink": true
+      },
+      {
+        "path": "empty",
+        "directory": true,
+        "symlink": false
+      },
+      {
+        "path": "dangling",
+        "directory": false,
+        "symlink": true
+      },
+      {
+        "path": "link-file",
+        "directory": false,
+        "symlink": true
+      },
+      {
+        "path": "a.txt",
+        "directory": false,
+        "symlink": false
+      },
+      {
+        "path": ".hidden.txt",
+        "directory": false,
+        "symlink": false
+      },
+      {
+        "path": "nested",
+        "directory": true,
+        "symlink": false
+      }
+    ]
+  },
+  {
+    "pattern": ".*",
+    "matches": [
+      {
+        "path": ".hidden.txt",
+        "directory": false,
+        "symlink": false
+      }
+    ]
+  },
+  {
+    "pattern": "**",
+    "matches": [
+      {
+        "path": ".",
+        "directory": true,
+        "symlink": false
+      },
+      {
+        "path": "empty",
+        "directory": true,
+        "symlink": false
+      },
+      {
+        "path": "nested",
+        "directory": true,
+        "symlink": false
+      },
+      {
+        "path": "nested/deep",
+        "directory": true,
+        "symlink": false
+      }
+    ]
+  },
+  {
+    "pattern": "**/*",
+    "matches": [
+      {
+        "path": "link-dir",
+        "directory": true,
+        "symlink": true
+      },
+      {
+        "path": "empty",
+        "directory": true,
+        "symlink": false
+      },
+      {
+        "path": "dangling",
+        "directory": false,
+        "symlink": true
+      },
+      {
+        "path": "link-file",
+        "directory": false,
+        "symlink": true
+      },
+      {
+        "path": "a.txt",
+        "directory": false,
+        "symlink": false
+      },
+      {
+        "path": ".hidden.txt",
+        "directory": false,
+        "symlink": false
+      },
+      {
+        "path": "nested",
+        "directory": true,
+        "symlink": false
+      },
+      {
+        "path": "empty/.keep",
+        "directory": false,
+        "symlink": false
+      },
+      {
+        "path": "nested/deep",
+        "directory": true,
+        "symlink": false
+      },
+      {
+        "path": "nested/a.txt",
+        "directory": false,
+        "symlink": false
+      },
+      {
+        "path": "nested/deep/b.txt",
+        "directory": false,
+        "symlink": false
+      }
+    ]
+  },
+  {
+    "pattern": "**/*.txt",
+    "matches": [
+      {
+        "path": "a.txt",
+        "directory": false,
+        "symlink": false
+      },
+      {
+        "path": ".hidden.txt",
+        "directory": false,
+        "symlink": false
+      },
+      {
+        "path": "nested/a.txt",
+        "directory": false,
+        "symlink": false
+      },
+      {
+        "path": "nested/deep/b.txt",
+        "directory": false,
+        "symlink": false
+      }
+    ]
+  },
+  {
+    "pattern": "**/**/a.txt",
+    "matches": [
+      {
+        "path": "a.txt",
+        "directory": false,
+        "symlink": false
+      },
+      {
+        "path": "nested/a.txt",
+        "directory": false,
+        "symlink": false
+      }
+    ]
+  },
+  {
+    "pattern": "*.txt/",
+    "matches": [
+      {
+        "path": "a.txt",
+        "directory": false,
+        "symlink": false
+      },
+      {
+        "path": ".hidden.txt",
+        "directory": false,
+        "symlink": false
+      }
+    ]
+  },
+  {
+    "pattern": "./*.txt",
+    "matches": [
+      {
+        "path": "a.txt",
+        "directory": false,
+        "symlink": false
+      },
+      {
+        "path": ".hidden.txt",
+        "directory": false,
+        "symlink": false
+      }
+    ]
+  },
+  {
+    "pattern": "nested/../*.txt",
+    "matches": [
+      {
+        "path": "nested/../a.txt",
+        "directory": false,
+        "symlink": false
+      },
+      {
+        "path": "nested/../.hidden.txt",
+        "directory": false,
+        "symlink": false
+      }
+    ]
+  },
+  {
+    "pattern": "link-dir/*.txt",
+    "matches": [
+      {
+        "path": "link-dir/a.txt",
+        "directory": false,
+        "symlink": false
+      }
+    ]
+  },
+  {
+    "pattern": "**/link-dir/*.txt",
+    "matches": [
+      {
+        "path": "link-dir/a.txt",
+        "directory": false,
+        "symlink": false
+      }
+    ]
+  },
+  {
+    "pattern": "link-file",
+    "matches": [
+      {
+        "path": "link-file",
+        "directory": false,
+        "symlink": true
+      }
+    ]
+  },
+  {
+    "pattern": "missing",
+    "matches": []
+  },
+  {
+    "pattern": "/tmp/*",
+    "error": "NotImplementedError",
+    "message": "Non-relative patterns are unsupported"
+  },
+  {
+    "pattern": "a**b",
+    "error": "ValueError",
+    "message": "Invalid pattern: '**' can only be an entire path component"
+  },
+  {
+    "pattern": "**x",
+    "error": "ValueError",
+    "message": "Invalid pattern: '**' can only be an entire path component"
+  },
+  {
+    "pattern": "**/..",
+    "matches": [
+      {
+        "path": "..",
+        "directory": true,
+        "symlink": false
+      },
+      {
+        "path": "empty/..",
+        "directory": true,
+        "symlink": false
+      },
+      {
+        "path": "nested/..",
+        "directory": true,
+        "symlink": false
+      },
+      {
+        "path": "nested/deep/..",
+        "directory": true,
+        "symlink": false
+      }
+    ]
+  },
+  {
+    "pattern": "nested/**/..",
+    "matches": [
+      {
+        "path": "nested/..",
+        "directory": true,
+        "symlink": false
+      },
+      {
+        "path": "nested/deep/..",
+        "directory": true,
+        "symlink": false
+      }
+    ]
+  }
+]

@@ -463,7 +463,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           const dependency = JSON.parse(read(metadataPath, 64 * 1024));
           assert.equal(dependency.name, "@poe-code/office-package", "shared archive dependency identity");
           assert.equal(dependency.version, "0.0.1", "shared archive dependency version");
-          assert.deepEqual(dependency.dependencies, { "@poe-code/compression": "*", pako: "3.0.1" }, "shared archive dependency closure");
+          assert.deepEqual(dependency.dependencies, { "@poe-code/compression": "*" }, "shared archive dependency closure");
           const exports = {
             ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
             "./zip": { types: "./dist/zip.d.ts", import: "./dist/zip.js" },

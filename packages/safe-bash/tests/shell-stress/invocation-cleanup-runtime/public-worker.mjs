@@ -82,7 +82,7 @@ function runtimeResolution(specifier, context, nextResolve) {
     assert.ok(parent, "Dependency import must have an admitted parent");
     emitted(join(snapshot, parent));
     if (fromDependency) {
-      const sharedCompression = (fromDependency.name === "@poe-code/compression" && ["index", "bytes"].some(name => parent === `node_modules/@poe-code/compression/dist/${name}.js`) && dependency.name === "pako" && specifier === "pako" || fromDependency.name === "@poe-code/office-package" && ["compression", "runtime"].some(name => parent === `node_modules/@poe-code/office-package/dist/${name}.js`) && dependency.name === "@poe-code/compression" && specifier === "@poe-code/compression") && target.path === dependency.entries[specifier];
+      const sharedCompression = (fromDependency.name === "@poe-code/compression" && ["index", "bytes"].some(name => parent === `node_modules/@poe-code/compression/dist/${name}.js`) && dependency.name === "pako" && specifier === "pako" || fromDependency.name === "@poe-code/office-package" && ["compression", "runtime", "zip-sync"].some(name => parent === `node_modules/@poe-code/office-package/dist/${name}.js`) && dependency.name === "@poe-code/compression" && specifier === "@poe-code/compression") && target.path === dependency.entries[specifier];
       if (!sharedCompression) {
         assert.ok(fromDependency === dependency, "Dependency runtime must not escape its package");
         assert.ok(specifier.startsWith("./") || specifier.startsWith("../"), "Dependency runtime requires relative internal edges");

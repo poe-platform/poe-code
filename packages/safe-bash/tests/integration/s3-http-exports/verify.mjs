@@ -271,7 +271,7 @@ export function bindPackedConsumer(consumer, packedFiles, peer, declarations, ts
       for (const dependency of dependencies) {
         const prefix = `node_modules/${dependency.name}/`;
         if (local.startsWith(prefix)) {
-          const sharedCompression = (dependency.name === "@poe-code/compression" && ["dist/index.js", "dist/bytes.js"].includes(local.slice(prefix.length)) && specifier === "pako" || dependency.name === "@poe-code/office-package" && ["dist/compression.js", "dist/runtime.js"].includes(local.slice(prefix.length)) && specifier === "@poe-code/compression") && target === dependencyEntries[specifier];
+          const sharedCompression = (dependency.name === "@poe-code/compression" && ["dist/index.js", "dist/bytes.js"].includes(local.slice(prefix.length)) && specifier === "pako" || dependency.name === "@poe-code/office-package" && ["dist/compression.js", "dist/runtime.js", "dist/zip-sync.js"].includes(local.slice(prefix.length)) && specifier === "@poe-code/compression") && target === dependencyEntries[specifier];
           assert.ok(target.startsWith(prefix) || sharedCompression, "Runtime dependency escaped its authenticated package");
         }
       }

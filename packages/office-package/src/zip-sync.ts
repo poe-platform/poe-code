@@ -1,4 +1,4 @@
-import { inflateRaw } from "pako";
+import { ByteCodecError, transformBytes } from "@poe-code/compression";
 
 // Synchronous stored/raw-DEFLATE ZIP access for office document fast paths.
 function crc32Bytes(data: Uint8Array): number {
@@ -112,7 +112,15 @@ export function readZipArchiveEntries(zipBytes: Uint8Array): Map<string, Uint8Ar
     if (method === 0) {
       map.set(name, new Uint8Array(rawData));
     } else if (method === 8) {
-      map.set(name, inflateRaw(rawData));
+      try {
+        map.set(name, transformBytes(rawData, {direction: "decode", format: "raw"}));
+      } catch (error) {
+        // Preserve this byte API's established backend diagnostics.
+        if (error instanceof ByteCodecError) {
+          throw new Error(error.code === "truncated" ? "buffer error" : error.message);
+        }
+        throw error;
+      }
     }
     cdPos += 46 + nameLen + extraLen + commentLen;
   }

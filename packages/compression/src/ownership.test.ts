@@ -5,7 +5,7 @@ import ts from "typescript";
 import { build } from "esbuild";
 
 it("keeps image and PDF codec consumers behind the shared compression contract", () => {
-  for (const file of ["image-ast/src/codecs/png.ts", "image-ast/src/codecs/webp.ts", "image-ast/src/codecs/netpbm.ts", "pdf-ast/src/cos/filters.ts", "safe-bash-pdf-engine/src/png.ts"]) {
+  for (const file of ["image-ast/src/codecs/png.ts", "image-ast/src/codecs/webp.ts", "image-ast/src/codecs/netpbm.ts", "pdf-ast/src/cos/filters.ts", "safe-bash-pdf-engine/src/png.ts", "office-package/src/zip-sync.ts"]) {
     const source = ts.createSourceFile(file, readFileSync(resolve("packages", file), "utf8"), ts.ScriptTarget.Latest);
     const imports = source.statements.filter(ts.isImportDeclaration).map(node => ts.isStringLiteral(node.moduleSpecifier) ? node.moduleSpecifier.text : "");
     expect(imports, file).not.toContain("pako");

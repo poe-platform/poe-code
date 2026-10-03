@@ -35,7 +35,6 @@
     "lint": "eslint src && tsc --noEmit && tsc -p tsconfig.test.json"
   },
   "dependencies": {
-    "pako": "3.0.1",
     "@poe-code/compression": "*"
   },
   "repository": {

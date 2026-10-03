@@ -3330,7 +3330,7 @@ test("published root exposes supported shell SDKs while preserving private works
   assert.equal(source.devDependencies["@poe-code/office-package"], "*");
   const archive = JSON.parse(readFileSync(new URL("../../office-package/package.json", import.meta.url), "utf8"));
   assert.equal(archive.name, "@poe-code/office-package");
-  assert.deepEqual(archive.dependencies, { "@poe-code/compression": "*", pako: "3.0.1" });
+  assert.deepEqual(archive.dependencies, { "@poe-code/compression": "*" });
   const codec = JSON.parse(readFileSync(new URL("../../compression/package.json", import.meta.url), "utf8"));
   assert.equal(codec.private, true);
   assert.deepEqual(codec.dependencies, { pako: "3.0.1" });

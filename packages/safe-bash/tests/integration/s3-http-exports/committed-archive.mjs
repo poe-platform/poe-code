@@ -13,7 +13,7 @@ export const packagePrefix = "packages/safe-bash";
 export const authority = fileURLToPath(new URL("../../../", import.meta.url));
 const sharedName = "@poe-code/office-package";
 const sharedPrefix = "packages/office-package";
-const sharedPaths = Object.freeze(["tsconfig.json", ...["package.json", "tsconfig.json", "LICENSE", "src/index.ts", "src/runtime.ts", "src/compression.ts", "src/zip.ts", "src/zip-sync.ts"].map(path => sharedPrefix + "/" + path)]);
+const sharedPaths = Object.freeze(["tsconfig.json", ...["package.json", "tsconfig.json", "LICENSE", "src/index.ts", "src/runtime.ts", "src/compression.ts", "src/zip.ts", "src/zip-sync.ts", "src/zip-source.ts", "src/zip-index.ts", "src/zip-entry-storage.ts"].map(path => sharedPrefix + "/" + path)]);
 const sharedExports = Object.freeze({
   ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
   "./zip": { types: "./dist/zip.d.ts", import: "./dist/zip.js" },
@@ -22,7 +22,7 @@ const sharedExports = Object.freeze({
 });
 const sharedWorkspaces = [
   { name: "@poe-code/compression", prefix: "packages/compression", paths: ["tsconfig.json", ...["package.json", "tsconfig.json", "LICENSE", "src/index.ts", "src/runtime.ts", "src/bytes.ts"].map(path => "packages/compression/" + path)], exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } }, dependencies: { pako: "3.0.1" } },
-  { name: sharedName, prefix: sharedPrefix, paths: sharedPaths, exports: sharedExports, dependencies: { "@poe-code/compression": "*", pako: "3.0.1" } },
+  { name: sharedName, prefix: sharedPrefix, paths: sharedPaths, exports: sharedExports, dependencies: { "@poe-code/compression": "*" } },
 ];
 const capturedPaths = [...new Set(sharedWorkspaces.flatMap(workspace => workspace.paths))];
 const sharedArtifactBindings = new WeakSet();

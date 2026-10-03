@@ -689,7 +689,7 @@ test("private archive dependency artifacts stage exact authenticated bytes and r
   assert.throws(() => distChecks.assertArchiveDependencyArtifacts(bindings.map(binding => binding === shared ? { ...shared } : binding), fixture.fileSystem), /captured compilation/);
   const files = {
     "node_modules/@poe-platform/safe-bash/package.json": '{"type":"module"}',
-    "node_modules/@poe-platform/safe-bash/dist/index.js": 'export { ecb } from "@noble/ciphers/aes.js"; export { sha256 } from "@noble/hashes/sha2.js"; export { gzip } from "pako"; export { createZipCodec } from "@poe-code/office-package/zip";',
+    "node_modules/@poe-platform/safe-bash/dist/index.js": 'export { ecb } from "@noble/ciphers/aes.js"; export { sha256 } from "@noble/hashes/sha2.js"; export { gzip } from "pako"; export { createZipCodec } from "@poe-code/office-package/zip"; export { readZipArchiveEntries } from "@poe-code/office-package/zip-sync";',
     "node_modules/@poe-platform/safe-bash/dist/fs/s3/http/index.js": "export {};",
     "node_modules/poe-code/package.json": '{"type":"module"}',
     "node_modules/poe-code/index.js": "export {};",
@@ -706,6 +706,8 @@ test("private archive dependency artifacts stage exact authenticated bytes and r
   assert.equal(closure.entries["@noble/hashes/sha2.js"], "node_modules/@noble/hashes/sha2.js");
   assert.equal(closure.entries.pako, "node_modules/pako/dist/pako.mjs");
   assert.equal(closure.entries["@poe-code/office-package/zip"], "node_modules/@poe-code/office-package/dist/zip.js");
+  assert.equal(closure.entries["@poe-code/office-package/zip-sync"], "node_modules/@poe-code/office-package/dist/zip-sync.js");
+  assert.equal(closure.edges["node_modules/@poe-code/office-package/dist/zip-sync.js"]["@poe-code/compression"], "node_modules/@poe-code/compression/dist/index.js");
   assert.equal(closure.edges["node_modules/@poe-code/office-package/dist/compression.js"]["@poe-code/compression"], "node_modules/@poe-code/compression/dist/index.js");
   for (const name of ["index", "bytes"]) assert.equal(closure.edges[`node_modules/@poe-code/compression/dist/${name}.js`].pako, "node_modules/pako/dist/pako.mjs");
   assert.equal(closure.entries["@noble/hashes/argon2.js"], undefined);

@@ -223,11 +223,11 @@ for (const dependency of ["@noble/hashes", "@noble/ciphers", "pako", "@poe-code/
   noHeldReads(owned);
 });
 
-for (const profile of ["dependencies", "devDependencies"]) for (const defect of ["none", "version", "dependency", "export", "link", "source-import", "codec-version", "codec-dependency", "codec-export", "codec-source-import", "codec-link"]) test(`build shared archive declaration admission: ${defect}${profile === "devDependencies" ? " development profile" : ""}`, async () => {
+for (const profile of ["dependencies", "devDependencies"]) for (const defect of ["none", "version", "dependency", "direct-backend", "export", "link", "source-import", "codec-version", "codec-dependency", "codec-export", "codec-source-import", "codec-link"]) test(`build shared archive declaration admission: ${defect}${profile === "devDependencies" ? " development profile" : ""}`, async () => {
   const shared = "node_modules/@poe-code/office-package";
   const metadata = {
     name: "@poe-code/office-package", version: "0.0.1", type: "module",
-    dependencies: { "@poe-code/compression": "*", pako: "3.0.1" },
+    dependencies: { "@poe-code/compression": "*" },
     exports: {
       ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
       "./zip": { types: "./dist/zip.d.ts", import: "./dist/zip.js" },
@@ -273,8 +273,9 @@ for (const profile of ["dependencies", "devDependencies"]) for (const defect of 
   }
   if (defect === "version") metadata.version = "0.0.2";
   if (defect === "dependency") metadata.dependencies.extra = "1.0.0";
+  if (defect === "direct-backend") metadata.dependencies.pako = "3.0.1";
   if (defect === "export") metadata.exports["./zip"].types = "./src/private.d.ts";
-  if (["version", "dependency", "export"].includes(defect)) {
+  if (["version", "dependency", "direct-backend", "export"].includes(defect)) {
     owned.memory.writeFileSync(root + "/" + shared + "/package.json", JSON.stringify(metadata));
     await assert.rejects(owned.run(), /shared archive/);
   } else if (defect === "link") {

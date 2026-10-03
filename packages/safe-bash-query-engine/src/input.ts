@@ -1,3 +1,4 @@
+import { pythonJsonBytes } from './python-json-encoding.js';
 import { utf8ByteLength, utf8Encoder, decodeLatin1, encodeLatin1 } from "./bytes.js";
 import { readBytes, type ByteSource } from "safe-bash-contracts";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -728,7 +729,7 @@ export interface JsonInputOptions {
    * ordinary leaf events. Keys and numeric tokens are bounded controls. Chunks
    * preceding a parse error are provisional; consumers must discard them. */
   readonly stringChunks?: { readonly maxControlBytes: number; readonly containers?: boolean };
-  /** Python 3.9 JSON grammar, one document, strict UTF-8 and preserved escaped surrogates. */
+  /** Python 3.9 JSON grammar, byte encoding detection and preserved escaped surrogates. */
   readonly profile?: "python39";
   readonly stream?: boolean;
   readonly streamErrors?: boolean;
@@ -1058,9 +1059,10 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
   let line = 1;
   let column = 0;
   let nulTail: string | undefined;
-  const iter = (typeof (source as { tryNextSync?: unknown }).tryNextSync === "function"
-    ? (source as unknown as AsyncIterator<Uint8Array>)
-    : readBytes(source, budget.signal)[Symbol.asyncIterator]()) as AsyncIterator<Uint8Array> & {
+  const input = options.profile ? pythonJsonBytes(source, budget) : source;
+  const iter = (typeof (input as { tryNextSync?: unknown }).tryNextSync === "function"
+    ? (input as unknown as AsyncIterator<Uint8Array>)
+    : readBytes(input, budget.signal)[Symbol.asyncIterator]()) as AsyncIterator<Uint8Array> & {
     tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
   };
   let done = false;
@@ -1073,7 +1075,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
       if (rawChunk.byteLength === 0) { const pending = budget.ensureFreshWindow(); if (pending) await pending; }
       const pt = budget.tickSync();
       if (pt) await pt;
-      budget.inputBytes += rawChunk.byteLength;
+      if (!options.profile) budget.inputBytes += rawChunk.byteLength;
       if (budget.inputBytes > budget.maxInputBytesSmi && budget.inputBytes > budget.limits.maxInputBytes) throw new JqLimitError("maxInputBytes");
       let fullText: string | undefined;
       let chunkOffset = 0;

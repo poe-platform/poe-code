@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
+import {Decimal} from './numbers.js';
 import {jsonValues} from './input.js';
 import {Budget,resolveJqLimits} from './limits.js';
 const fixtures=JSON.parse(readFileSync(new URL('./input-python39.json',import.meta.url),'utf8')) as {input:string;valid:boolean;codepoints:number[]|null}[];
@@ -18,7 +19,7 @@ test('optional container events distinguish root and nested types and boundaries
  assert.deepEqual(events,[[[],'[','open'],[[0],'{','open'],[[0,'id'],'{','open'],[[0,'id'],'}','close'],[[0,'body'],'[','open'],[[0,'body'],']','close'],[[0],'}','close'],[[],']','close']]);
 });
 test('Python document profile rejects extra documents, empty input, NUL tails and invalid UTF8',async()=>{
- for(const bytes of [new Uint8Array(),new TextEncoder().encode('{}\n{}\n'),new TextEncoder().encode('1\0'),Uint8Array.of(34,0xff,34)])for(const stream of [false,true]){
+ for(const bytes of [new Uint8Array(),new TextEncoder().encode('{}\n{}\n'),new TextEncoder().encode('1\0\0'),Uint8Array.of(34,0xff,34)])for(const stream of [false,true]){
   const b=new Budget(resolveJqLimits(),new AbortController().signal);
   await assert.rejects(async()=>{for await(const event of jsonValues({async *[Symbol.asyncIterator](){yield bytes;}},b,{stream,profile:'python39'}))void event;});
  }
@@ -37,4 +38,37 @@ test('Python profile retains numeric spelling needed to distinguish integer and 
   if(Array.isArray(event)&&event.length===2){const value=event[1];if(value&&typeof value==='object'&&'text' in value)tokens.push(String(value.text));}
  }
  assert.deepEqual(tokens,['1','1.0','1e0','-0','-0.0','123456789012345678901234567890','NaN','Infinity']);
+});
+
+test('Python JSON byte encoding detection matches pinned reference across arbitrary chunk boundaries',async()=>{
+ const encodings=JSON.parse(readFileSync(new URL('./input-python39-encoding.json',import.meta.url),'utf8')) as {label:string;base64:string;valid:boolean;value?:string|number}[];
+ for(const fixture of encodings)for(const size of [1,3,4096]){
+  const bytes=Uint8Array.from(atob(fixture.base64),c=>c.charCodeAt(0));
+  const b=new Budget(resolveJqLimits(),new AbortController().signal),values:unknown[]=[];
+  const run=async()=>{for await(const value of jsonValues({async *[Symbol.asyncIterator](){for(let i=0;i<bytes.length;i+=size)yield bytes.subarray(i,i+size);}},b,{profile:'python39'}))values.push(value);};
+  if(!fixture.valid)await assert.rejects(run,fixture.label);
+  else{await run();assert.equal(values.length,1);assert.equal(typeof fixture.value==='number'?Number(values[0] instanceof Decimal?values[0].text:values[0]):values[0],fixture.value,fixture.label);assert.equal(b.inputBytes,bytes.length);}
+ }
+});
+
+test('Python byte transcoding charges original bytes and preserves early-return cleanup',async()=>{
+ const bytes=Uint8Array.of(255,254,34,0,0x2d,0x4e,34,0); // UTF-16LE "中"
+ for(const limit of [bytes.length-1,bytes.length]){
+  const b=new Budget(resolveJqLimits({maxInputBytes:limit}),new AbortController().signal);let retired=false;
+  const run=async()=>{for await(const value of jsonValues({async *[Symbol.asyncIterator](){try{yield bytes;}finally{retired=true;}}},b,{profile:'python39'}))assert.equal(value,'中');};
+  if(limit<bytes.length)await assert.rejects(run,/maxInputBytes/);else await run();
+  assert.equal(retired,true);assert.equal(b.inputBytes,bytes.length);
+ }
+ let retired=false;
+ const b=new Budget(resolveJqLimits(),new AbortController().signal);
+ for await(const value of jsonValues({async *[Symbol.asyncIterator](){try{yield new TextEncoder().encode('["first",');assert.fail('read after early return');}finally{retired=true;}}},b,{profile:'python39',stream:true,stringChunks:{maxControlBytes:65536}})){void value;break;}
+ assert.equal(retired,true);
+});
+
+test('Python UTF-32 input streams a large string through bounded text events',async()=>{
+ const b=new Budget(resolveJqLimits({maxInputBytes:Infinity,maxValueBytes:Infinity}),new AbortController().signal);let length=0;
+ const block=new Uint8Array(4096);for(let i=0;i<block.length;i+=4){block[i]=0x42;block[i+1]=0xf6;block[i+2]=1;}
+ const input={async *[Symbol.asyncIterator](){yield Uint8Array.of(255,254,0,0,34,0,0,0);for(let i=0;i<128;i++)yield block;yield Uint8Array.of(34,0,0,0);}};
+ for await(const event of jsonValues(input,b,{profile:'python39',stream:true,stringChunks:{maxControlBytes:65536}}))if(Array.isArray(event)&&event.length===3){assert.equal(typeof event[1],'string');const text=String(event[1]);assert.ok(text.length<=4096);length+=text.length;}
+ assert.equal(length,128*2048);assert.equal(b.inputBytes,128*4096+12);
 });

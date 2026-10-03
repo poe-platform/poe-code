@@ -36,6 +36,10 @@ the caller's backing storage instead of collecting them in memory.
 For Python-compatible imports, `profile: "python39"` admits one JSON document,
 uses Python's numeric grammar (including `NaN` and infinities), rejects malformed
 UTF-8, and preserves escaped lone surrogates for the consuming encoder to handle.
+The byte probe recognizes UTF-8, UTF-16LE/BE and UTF-32LE/BE, with or without
+a BOM. Transcoding uses bounded chunks and charges the original input bytes.
+Raw surrogate code points in encoded input and exact Python decoding diagnostics
+remain unsupported; escaped JSON surrogates retain the behavior described above.
 With `stringChunks.containers: true`, additional `[path, bracket, "open"|"close"]`
 events identify container types and boundaries without constructing their values.
 Numeric values in this profile retain their original token in `Decimal.text`, so

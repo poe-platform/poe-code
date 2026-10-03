@@ -1,0 +1,206 @@
+[
+  {
+    "label": "utf-8",
+    "base64": "ImhlbGxv8J+ZgsOpIg==",
+    "valid": true,
+    "value": "hello\ud83d\ude42\u00e9"
+  },
+  {
+    "label": "utf-8-bom",
+    "base64": "77u/ImhlbGxv8J+ZgsOpIg==",
+    "valid": true,
+    "value": "hello\ud83d\ude42\u00e9"
+  },
+  {
+    "label": "utf-16-le",
+    "base64": "IgBoAGUAbABsAG8APdhC3ukAIgA=",
+    "valid": true,
+    "value": "hello\ud83d\ude42\u00e9"
+  },
+  {
+    "label": "utf-16-le-bom",
+    "base64": "//4iAGgAZQBsAGwAbwA92ELe6QAiAA==",
+    "valid": true,
+    "value": "hello\ud83d\ude42\u00e9"
+  },
+  {
+    "label": "utf-16-be",
+    "base64": "ACIAaABlAGwAbABv2D3eQgDpACI=",
+    "valid": true,
+    "value": "hello\ud83d\ude42\u00e9"
+  },
+  {
+    "label": "utf-16-be-bom",
+    "base64": "/v8AIgBoAGUAbABsAG/YPd5CAOkAIg==",
+    "valid": true,
+    "value": "hello\ud83d\ude42\u00e9"
+  },
+  {
+    "label": "utf-32-le",
+    "base64": "IgAAAGgAAABlAAAAbAAAAGwAAABvAAAAQvYBAOkAAAAiAAAA",
+    "valid": true,
+    "value": "hello\ud83d\ude42\u00e9"
+  },
+  {
+    "label": "utf-32-le-bom",
+    "base64": "//4AACIAAABoAAAAZQAAAGwAAABsAAAAbwAAAEL2AQDpAAAAIgAAAA==",
+    "valid": true,
+    "value": "hello\ud83d\ude42\u00e9"
+  },
+  {
+    "label": "utf-32-be",
+    "base64": "AAAAIgAAAGgAAABlAAAAbAAAAGwAAABvAAH2QgAAAOkAAAAi",
+    "valid": true,
+    "value": "hello\ud83d\ude42\u00e9"
+  },
+  {
+    "label": "utf-32-be-bom",
+    "base64": "AAD+/wAAACIAAABoAAAAZQAAAGwAAABsAAAAbwAB9kIAAADpAAAAIg==",
+    "valid": true,
+    "value": "hello\ud83d\ude42\u00e9"
+  },
+  {
+    "label": "utf-8",
+    "base64": "MQ==",
+    "valid": true,
+    "value": 1
+  },
+  {
+    "label": "utf-8-bom",
+    "base64": "77u/MQ==",
+    "valid": true,
+    "value": 1
+  },
+  {
+    "label": "utf-16-le",
+    "base64": "MQA=",
+    "valid": true,
+    "value": 1
+  },
+  {
+    "label": "utf-16-le-bom",
+    "base64": "//4xAA==",
+    "valid": true,
+    "value": 1
+  },
+  {
+    "label": "utf-16-be",
+    "base64": "ADE=",
+    "valid": true,
+    "value": 1
+  },
+  {
+    "label": "utf-16-be-bom",
+    "base64": "/v8AMQ==",
+    "valid": true,
+    "value": 1
+  },
+  {
+    "label": "utf-32-le",
+    "base64": "MQAAAA==",
+    "valid": true,
+    "value": 1
+  },
+  {
+    "label": "utf-32-le-bom",
+    "base64": "//4AADEAAAA=",
+    "valid": true,
+    "value": 1
+  },
+  {
+    "label": "utf-32-be",
+    "base64": "AAAAMQ==",
+    "valid": true,
+    "value": 1
+  },
+  {
+    "label": "utf-32-be-bom",
+    "base64": "AAD+/wAAADE=",
+    "valid": true,
+    "value": 1
+  },
+  {
+    "label": "utf-8",
+    "base64": "Ingi",
+    "valid": true,
+    "value": "x"
+  },
+  {
+    "label": "utf-8-bom",
+    "base64": "77u/Ingi",
+    "valid": true,
+    "value": "x"
+  },
+  {
+    "label": "utf-16-le",
+    "base64": "IgB4ACIA",
+    "valid": true,
+    "value": "x"
+  },
+  {
+    "label": "utf-16-le-bom",
+    "base64": "//4iAHgAIgA=",
+    "valid": true,
+    "value": "x"
+  },
+  {
+    "label": "utf-16-be",
+    "base64": "ACIAeAAi",
+    "valid": true,
+    "value": "x"
+  },
+  {
+    "label": "utf-16-be-bom",
+    "base64": "/v8AIgB4ACI=",
+    "valid": true,
+    "value": "x"
+  },
+  {
+    "label": "utf-32-le",
+    "base64": "IgAAAHgAAAAiAAAA",
+    "valid": true,
+    "value": "x"
+  },
+  {
+    "label": "utf-32-le-bom",
+    "base64": "//4AACIAAAB4AAAAIgAAAA==",
+    "valid": true,
+    "value": "x"
+  },
+  {
+    "label": "utf-32-be",
+    "base64": "AAAAIgAAAHgAAAAi",
+    "valid": true,
+    "value": "x"
+  },
+  {
+    "label": "utf-32-be-bom",
+    "base64": "AAD+/wAAACIAAAB4AAAAIg==",
+    "valid": true,
+    "value": "x"
+  },
+  {
+    "label": "invalid",
+    "base64": "MQAA",
+    "valid": false,
+    "error": "JSONDecodeError"
+  },
+  {
+    "label": "invalid",
+    "base64": "//4iAHg=",
+    "valid": false,
+    "error": "UnicodeDecodeError"
+  },
+  {
+    "label": "invalid",
+    "base64": "//4AACIAAAB4",
+    "valid": false,
+    "error": "UnicodeDecodeError"
+  },
+  {
+    "label": "invalid",
+    "base64": "//4AAAAAEQA=",
+    "valid": false,
+    "error": "UnicodeDecodeError"
+  }
+]

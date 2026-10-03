@@ -16,6 +16,9 @@ export class LuaJsonBridge {
   constructor(private readonly heap: LuaStorage, private readonly scratch: PagedStorage, private readonly cooperate: (units?: number) => Promise<void>) {
     this.objects = new IntegerTable(scratch, 64);
   }
+  async markObject(value:StoredLuaValue):Promise<void> {
+    if(typeof value==="object" && value.kind==="table") await this.objects.set(BigInt(value.id),1n);
+  }
   private nullKey(): Promise<LuaReference> {
     return this.marker ??= this.heap.string([new TextEncoder().encode("__pandoc_null")]);
   }
@@ -118,6 +121,8 @@ export class LuaJsonBridge {
   }
   async write(value: StoredLuaValue, output: BackedJson): Promise<void> {
     const active = new IntegerTable(this.scratch, 64), marker = await this.nullKey();
+    const key=(text:string)=>this.heap.string([new TextEncoder().encode(text)]);
+    const tagKey=await key("t"),contentKey=await key("c"),metaMap=await key("MetaMap");
     let frame = 0;
     const append = async (value: StoredLuaValue): Promise<void> => {
       await this.cooperate();
@@ -138,6 +143,7 @@ export class LuaJsonBridge {
         await output.begin("literal"); await output.text("null"); await output.end();
         return;
       }
+      if(await this.heap.equal(await this.heap.get(value,tagKey),metaMap)) await this.markObject(await this.heap.get(value,contentKey));
       if (await active.get(BigInt(value.id)) === 1n) fail("Cyclic Lua replacement value");
       let array: boolean | undefined, count = 0, maximum = 0;
       for (let entry = await this.heap.next(value); entry; entry = await this.heap.next(value, entry.key)) {

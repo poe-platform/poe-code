@@ -5,7 +5,7 @@ import type {StoredLuaValue} from "./lua-storage.js";
  * value retained for the boundary adapter instead of materializing its payload
  * into a JavaScript Error message while the VM is executing. */
 export class LuaError extends PandocError {
-  constructor(readonly value: StoredLuaValue,readonly level: number) {
-    super("E_AST","convert","Lua error");
+  constructor(readonly value: StoredLuaValue,readonly level: number,code:"E_AST" | "E_UNSUPPORTED_FEATURE"="E_AST") {
+    super(code,"convert","Lua error");
   }
 }

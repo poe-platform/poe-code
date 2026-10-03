@@ -24,7 +24,7 @@ export class LuaCompiler {
   private readonly folding: LuaFolding;
   private environment: Promise<LuaReference> | undefined;
   private breakName: Promise<LuaReference> | undefined;
-  constructor(private readonly heap: LuaStorage,private readonly program: LuaProgram,private readonly syntax: LuaSyntax) {
+  constructor(private readonly heap: LuaStorage,private readonly program: LuaProgram,private readonly syntax: LuaSyntax,private readonly source?:LuaReference) {
     this.bindings=new LuaBindings(heap,program);
     this.folding=new LuaFolding(heap,syntax);
   }
@@ -444,7 +444,7 @@ export class LuaCompiler {
     const method=node?Boolean(await this.syntax.get(node,"method")):false, count=parameters?await this.syntax.length(parameters):0;
     const vararg=node?Boolean(await this.syntax.get(node,"vararg")):true;
     if(count+Number(method)>200) this.fail("too many local variables (limit is 200)");
-    const prototype=await this.program.create({parameters:count+Number(method),vararg,registers:2});
+    const prototype=await this.program.create({parameters:count+Number(method),vararg,registers:2,...(this.source?{source:this.source}:{})});
     const scope=await this.bindings.enterFunction(prototype,outer), jumps=new LuaJumps(this.heap,this.program,prototype);
     const ctx: FunctionState={prototype,scope,jumps,jumpScope:await jumps.enterBlock(0),constants:await this.heap.table(),integers:await this.heap.table(),registers:2,vararg};
     if(method) await this.bindings.declare(scope,await this.heap.string([new TextEncoder().encode("self")]));

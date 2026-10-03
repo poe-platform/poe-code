@@ -12,3 +12,9 @@ import {stringLibrary} from "../src/lua-string.generated.js";
 it("ships string bytecode matching the maintained library source",()=>{
   expect(stringLibrary).toEqual(compileLuaLibrary(luaStringSource));
 });
+
+import {luaPandocSource} from "../src/lua-pandoc-source.js";
+import {pandocLibrary} from "../src/lua-pandoc.generated.js";
+it("ships Pandoc bytecode matching the maintained library source",()=>{
+  expect(pandocLibrary).toEqual(compileLuaLibrary(luaPandocSource));
+});

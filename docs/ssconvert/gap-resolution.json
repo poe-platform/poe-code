@@ -4572,6 +4572,14 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "xlsxEmptyFormulaRecovery": {
+      "status": "partial; all nineteen families remain open",
+      "reference": "Unmodified Gnumeric 1.12.61 xlsx_cell_expr_begin and xlsx_parse_expr, with seven independent fixtures for missing shared IDs, unknown shared followers, empty/spaces-only expressions and array formulas without a range.",
+      "repair": "Missing shared IDs no longer alias ID 0. Empty expressions become the native ERROR(\"\") formula with exact warning bytes; supplied caches remain until recalculation. Leading-space recovery charges bounded work. Array formulas without ref remain scalar expressions. Other unsupported syntax retains its existing refusal behavior.",
+      "verification": "Five original memory failures repaired. 634 focused tests across 23 files and 44 final controls pass; selected build, owner lint/types and changed-test lint/types pass. Forty-two SDK/command exports match twenty-one route pairs, fourteen native CSV comparisons and exact native warning bytes. Twenty-eight native XLSX/XML readbacks pass. Full root build passes; all forty-two root outputs and native warning comparisons match the package results. After integrating upstream XML streaming and ordered-cell changes, 63 integration tests and the selected build pass; all forty-two regenerated exports remain byte-identical to those root-qualified outputs. Eight directly decoded XLSX outputs retain typed error caches and live ERROR(\"\") formulas, rather than fabricated blank cells.",
+      "visual": "Inspected native and product workbooks with A2 selected: both show the live empty-error formula and quoted error marker. Horizontal scrollbar extent differs; no pixel-identity claim. Owned GUI/display stopped.",
+      "remaining": "Nonempty malformed expressions, broader formula/record preservation and registry qualification remain open."
+    },
     "xlsxSharedDefinitions": {
       "status": "partial; all nineteen families remain open",
       "reference": "Unmodified Gnumeric 1.12.61 shared expression parser, with five independent XLSX fixtures for repeated definitions, follower text, non-top-left masters, absent ranges and followers outside declared ranges.",

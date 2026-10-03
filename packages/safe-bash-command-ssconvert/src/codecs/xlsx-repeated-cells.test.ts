@@ -190,3 +190,22 @@ for (const ref of ['', ' ref="A1:A1"']) {
     } finally { await engine.dispose(); }
   });
 }
+
+for (const [first, last, expression, warning] of [
+  ['<f t="shared" si="0" ref="A1:A2">9</f>', '<f t="shared">7</f>', '=7', false],
+  ['<f t="shared" ref="A1:A2">9</f>', '<f t="shared">7</f>', '=7', false],
+  ['<f t="shared" ref="A1:A2">9</f>', '<f t="shared"/>', '=ERROR("")', true],
+  ['<f t="shared" si="0" ref="A1:A2">9</f>', '<f t="shared" si="1"/>', '=ERROR("")', true],
+  ['<f>9</f>', '<f/>', '=ERROR("")', true],
+  ['<f>9</f>', '<f>   </f>', '=ERROR("")', true],
+  ['<f>9</f>', '<f t="array">7</f>', '=7', false]
+] as const) {
+  it(`recovers native formula identity for ${first} then ${last}`, async () => {
+    const diagnostics: string[] = [];
+    const book = await readXlsx(await input(`<sheetData><row r="1"><c r="A1">${first}<v>9</v></c></row>
+      <row r="2"><c r="A2">${last}<v>42</v></c></row></sheetData>`),
+    { ...context, async diagnostic(event) { diagnostics.push(event.message); } });
+    expect(book.sheets[0]!.cells[1]).toMatchObject({ formula: expression, value: { kind: 'number', value: 42 } });
+    expect(diagnostics).toEqual(warning ? ["S!A2 : At A2: '' Invalid expression"] : []);
+  });
+}

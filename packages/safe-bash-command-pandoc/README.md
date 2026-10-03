@@ -160,8 +160,10 @@ Streamed archives and expanded ZIP members use the bounded page cache and caller
 backing storage; unused members are still CRC-checked. Referenced XML, images,
 archive metadata and the document AST remain materialized in memory.
 
-The backed CSV/TSV path supports ASCII conversion and line endings. Additional document
-transformations, finite limits other than `inputBytes`, and other format pairs
+The backed CSV/TSV path supports ASCII conversion, line endings, and finite
+`inputBytes`, `outputBytes`, `tableRows`, `tableColumns`, `tableCells`, and
+`tableFieldText` limits. Additional document transformations, other finite limits,
+and other format pairs
 currently use the existing buffered converter. The Safe Bash command uses the
 output-only API for stdout and selects backing storage in the injected filesystem
 at `TMPDIR` or the command directory. `-o` streams into the supplied filesystem’s atomic

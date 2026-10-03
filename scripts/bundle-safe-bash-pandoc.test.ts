@@ -164,9 +164,9 @@ it("runs composed Sips, Shuf and streamed Pandoc public bundles in workerd witho
               expected: null, parent: await supplied.stat("/"), maxBytes: Infinity
             }) : output;
             if (mode === "sdk" || mode === "sdk-file") await pandoc.convertToOutput([{chunks: supplied.readStream("/table.csv", {chunkSize: 16384})}],
-              {from: "csv", to: "html"}, {workingFiles: {fs: supplied, directory: "/spill", cacheBytes: 16384}, output: sink});
+              {from: "csv", to: "html"}, {limits: {outputBytes: 1200000, tableRows: 2, tableColumns: 1, tableCells: 2, tableFieldText: 1100000}, workingFiles: {fs: supplied, directory: "/spill", cacheBytes: 16384}, output: sink});
             else {
-              const result = await pandoc.createPandocCommand().execute({
+              const result = await pandoc.createPandocCommand({limits: {outputBytes: 1200000, tableRows: 2, tableColumns: 1, tableCells: 2, tableFieldText: 1100000}}).execute({
                 command: "pandoc", args: ["-f", "csv", "-t", "html", "/table.csv", ...(mode === "command-file" ? ["-o", "/result.html"] : [])],
                 fs: supplied, cwd: "/", env: {TMPDIR: "/spill"}, signal: new AbortController().signal,
                 stdin: (async function* () {})(), stdout: output,

@@ -86,6 +86,7 @@ export async function streamDelimitedHtml(
           throw new PandocError(error.code, "convert", error.message, error.format, `${input.source ?? input.base}:${error.location ?? "1:1"}`);
         throw error;
       }
+      context.charge("tableCells", parser.rows * parser.width);
       view.setFloat64(8, parser.rows, true);
       view.setFloat64(16, parser.width, true);
       await storage.write(position, bytes);
@@ -94,12 +95,15 @@ export async function streamDelimitedHtml(
     if (nul) throw new PandocError("E_CAPABILITY", "convert", "NUL cannot be represented in HTML", "html5");
 
     let output = "";
+    let measuring = false;
+    let outputLength = 0;
     const encoder = new TextEncoder();
     const flush = async () => {
       if (!output) return;
       const bytes = encoder.encode(output);
       output = "";
-      await context.emit(bytes);
+      if (measuring) {outputLength += bytes.length; context.bound("outputBytes", outputLength);}
+      else await context.emit(bytes);
     };
     const add = async (text: string) => {
       for (const char of text) {
@@ -107,55 +111,60 @@ export async function streamDelimitedHtml(
         if (output.length >= 4096) await flush();
       }
     };
-    position = first;
-    for (let index = 0; index < inputs.length; index++) {
-      const bytes = await storage.read(position, 24);
-      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
-      const length = view.getFloat64(0, true), rows = view.getFloat64(8, true), width = view.getFloat64(16, true);
-      if (rows) {
-        await add("<table>\n<colgroup>");
-        for (let column = 0; column < width; column++) {await add("<col>"); await context.cooperate();}
-        await add("</colgroup>\n<thead>\n");
-        let row = 0, column = 0;
-        let opened = false;
-        const open = async () => {
-          if (opened) return;
-          if (!column) await add("<tr>");
-          await add(row ? "<td>" : '<th scope="col">');
-          opened = true;
-        };
-        const field = async () => {
-          await open();
-          await add(row ? "</td>" : "</th>");
-          column++;
-          opened = false;
-        };
-        const parser = new DelimitedParser(format, context, {
-          async text(text) {
+    // A finite output budget must reject before publishing any prefix. Replay
+    // the same renderer into a byte count, retaining only its normal chunk.
+    for (const measurement of Number.isFinite(context.limits.outputBytes) ? [true, false] : [false]) {
+      measuring = measurement;
+      position = first;
+      for (let index = 0; index < inputs.length; index++) {
+        const bytes = await storage.read(position, 24);
+        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+        const length = view.getFloat64(0, true), rows = view.getFloat64(8, true), width = view.getFloat64(16, true);
+        if (rows) {
+          await add("<table>\n<colgroup>");
+          for (let column = 0; column < width; column++) {await add("<col>"); await context.cooperate();}
+          await add("</colgroup>\n<thead>\n");
+          let row = 0, column = 0;
+          let opened = false;
+          const open = async () => {
+            if (opened) return;
+            if (!column) await add("<tr>");
+            await add(row ? "<td>" : '<th scope="col">');
+            opened = true;
+          };
+          const field = async () => {
             await open();
-            let escaped = "";
-            for (const char of text) {
-              escaped += char === "\n" ? "<br>" : char === "&" ? "&amp;" : char === "<" ? "&lt;" : char === ">" ? "&gt;"
-                : options.ascii && char.codePointAt(0)! > 127 ? `&#${char.codePointAt(0)};` : char;
-              if (escaped.length >= 4096) {await add(escaped); escaped = "";}
+            await add(row ? "</td>" : "</th>");
+            column++;
+            opened = false;
+          };
+          const parser = new DelimitedParser(format, context, {
+            async text(text) {
+              await open();
+              let escaped = "";
+              for (const char of text) {
+                escaped += char === "\n" ? "<br>" : char === "&" ? "&amp;" : char === "<" ? "&lt;" : char === ">" ? "&gt;"
+                  : options.ascii && char.codePointAt(0)! > 127 ? `&#${char.codePointAt(0)};` : char;
+                if (escaped.length >= 4096) {await add(escaped); escaped = "";}
+              }
+              if (escaped) await add(escaped);
+            },
+            field,
+            async record() {
+              while (column < width) {await field(); await context.cooperate();}
+              await add("</tr>\n");
+              if (!row) await add("</thead>\n<tbody>\n");
+              row++;
+              column = 0;
             }
-            if (escaped) await add(escaped);
-          },
-          field,
-          async record() {
-            while (column < width) {await field(); await context.cooperate();}
-            await add("</tr>\n");
-            if (!row) await add("</thead>\n<tbody>\n");
-            row++;
-            column = 0;
-          }
-        });
-        await replay(position + 24, length, parser);
-        await add("</tbody>\n</table>\n");
+          });
+          await replay(position + 24, length, parser);
+          await add("</tbody>\n</table>\n");
+        }
+        position += 24 + length;
       }
-      position += 24 + length;
+      await flush();
     }
-    await flush();
     await context.completeOutput();
   } catch (reason) {failure = {reason};}
   try {await storage.close();} catch (reason) {failure ??= {reason};}

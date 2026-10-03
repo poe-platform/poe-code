@@ -618,7 +618,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
   const incremental = context.workingFiles && !context.reader && !context.writer
     && (reader.descriptor.name === "csv" || reader.descriptor.name === "tsv") && writer.descriptor.name === "html5"
     && Object.keys(options).every(key => ["from", "to", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "fileScope", "sandbox", "failIfWarnings"].includes(key))
-    && Object.entries(context.limits ?? {}).every(([key, value]) => key === "inputBytes" || value === Infinity);
+    && Object.entries(context.limits ?? {}).every(([key, value]) => ["inputBytes", "outputBytes", "tableRows", "tableColumns", "tableCells", "tableFieldText"].includes(key) || value === Infinity);
   if (!incremental) {
     const result = await convert(inputs, options, context);
     return {kind: "output", diagnostics: result.diagnostics};

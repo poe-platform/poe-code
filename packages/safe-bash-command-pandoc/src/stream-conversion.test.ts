@@ -189,3 +189,76 @@ it("fails when authorized backing is unavailable without using another filesyste
   expect(write).not.toHaveBeenCalled();
   expect(await fs.readdir("/")).toEqual([]);
 });
+
+it.each([
+  {tableRows: 2}, {tableColumns: 2}, {tableCells: 4}, {tableFieldText: 4}
+])("keeps table budgets on the backed path: %j", async limits => {
+  const input = [{bytes: encoder.encode("a,b\n1,2")}];
+  const options = {from: "csv", to: "html"};
+  const expected = await convert(input, options, {limits});
+  const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("input collector forbidden"));
+  let text = "";
+  try {
+    await convertToOutput(input, options, {
+      limits, workingFiles: {fs: new MemoryFileSystem(), directory: "/"},
+      output: {async write(bytes) {text += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}}
+    });
+    expect(expected).toMatchObject({text});
+    expect(acquire).not.toHaveBeenCalled();
+  } finally {acquire.mockRestore();}
+});
+
+it.each([
+  {tableRows: 1}, {tableColumns: 1}, {tableCells: 3}, {tableFieldText: 0}
+])("rejects excessive table dimensions before publication: %j", async limits => {
+  const write = vi.fn(async () => {});
+  const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("input collector forbidden"));
+  try {
+    await expect(convertToOutput([{bytes: encoder.encode("a,b\n1,2")}], {from: "csv", to: "html"}, {
+      limits, workingFiles: {fs: new MemoryFileSystem(), directory: "/"},
+      output: {write, async close() {}, async abort() {}}
+    })).rejects.toMatchObject({code: "E_LIMIT"});
+    expect(write).not.toHaveBeenCalled();
+    expect(acquire).not.toHaveBeenCalled();
+  } finally {acquire.mockRestore();}
+});
+
+it.each([false, true])("admits exact finite output budgets without collectors (ascii=%s)", async ascii => {
+  const inputs = [{bytes: encoder.encode('a,b\n"✓\n😀<&>",')}, {bytes: encoder.encode("c\nd")}];
+  const options = {from: "csv", to: "html", ascii, eol: "crlf" as const};
+  const expected = await convert(inputs, options, {});
+  if (expected.kind !== "text") throw new Error("expected HTML text");
+  const length = encoder.encode(expected.text).length;
+  const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("input collector forbidden"));
+  try {
+    for (const outputBytes of [length, length - 1]) {
+      let text = "";
+      const write = vi.fn(async (bytes: Uint8Array) => {text += new TextDecoder().decode(bytes);});
+      const result = convertToOutput(inputs, options, {
+        limits: {outputBytes}, workingFiles: {fs: new MemoryFileSystem(), directory: "/"},
+        output: {write, async close() {}, async abort() {}}
+      });
+      if (outputBytes === length) {
+        await result;
+        expect(text).toBe(expected.text);
+      } else {
+        await expect(result).rejects.toMatchObject({code: "E_LIMIT"});
+        expect(write).not.toHaveBeenCalled();
+      }
+    }
+    expect(acquire).not.toHaveBeenCalled();
+  } finally {acquire.mockRestore();}
+});
+
+it("accounts for table cells across all input documents before publishing", async () => {
+  const inputs = ["a\nb", "c\nd"].map(text => ({bytes: encoder.encode(text)}));
+  const options = {from: "csv", to: "html"};
+  const limits = {tableCells: 3};
+  await expect(convert(inputs, options, {limits})).rejects.toMatchObject({code: "E_LIMIT"});
+  const write = vi.fn(async () => {});
+  await expect(convertToOutput(inputs, options, {
+    limits, workingFiles: {fs: new MemoryFileSystem(), directory: "/"},
+    output: {write, async close() {}, async abort() {}}
+  })).rejects.toMatchObject({code: "E_LIMIT"});
+  expect(write).not.toHaveBeenCalled();
+});

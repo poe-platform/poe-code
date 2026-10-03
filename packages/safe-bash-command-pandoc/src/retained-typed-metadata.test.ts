@@ -112,18 +112,18 @@ it("does not charge typed option values as document input bytes", async () => {
   });
   expect(await fs.readdir("/")).toEqual([]);
 });
-it("does not commit output when typed storage retirement fails", async () => {
-  const fs = new MemoryFileSystem(), open = fs.open.bind(fs); let emitted = false, failed = false, live = 0, opened = 0;
+it.each(["admission", "publication"])("does not commit output when typed storage retirement fails during %s", async phase => {
+  const fs = new MemoryFileSystem(), open = fs.open.bind(fs); let emitted = false, failed = false, live = 0;
   vi.spyOn(fs, "open").mockImplementation(async (...args) => {
-    const handle = await open(...args), close = handle.close.bind(handle), typed = opened++ === 0; live++;
+    const handle = await open(...args), close = handle.close.bind(handle); live++;
     vi.spyOn(handle, "close").mockImplementation(async (...args) => {
       try {await close(...args);} finally {live--;}
-      if (typed && emitted && !failed) {failed = true; throw new Error("Retirement failed");}
+      if (emitted === (phase === "publication") && !failed) {failed = true; throw new Error("Retirement failed");}
     }); return handle;
   });
   const close = vi.fn(async () => {}), abort = vi.fn(async () => {});
   await expect(convertToOutput([input], {from: "json", to: "json", metadata: {x: {t: "MetaString", c: "x".repeat(32768)}}}, {
     workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write() {emitted = true;}, close, abort}
   })).rejects.toMatchObject({code: "E_IO", message: "Capability failed"});
-  expect(failed).toBe(true); expect(close).not.toHaveBeenCalled(); expect(abort).toHaveBeenCalledOnce(); expect(live).toBe(0); expect(await fs.readdir("/")).toEqual([]);
+  expect(failed).toBe(true); expect(close).not.toHaveBeenCalled(); expect(abort).toHaveBeenCalledTimes(phase === "publication" ? 1 : 0); expect(live).toBe(0); expect(await fs.readdir("/")).toEqual([]);
 });

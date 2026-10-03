@@ -34,7 +34,7 @@ it.each([["json", "json"], ["csv", "html"], ["json", "odt"]])("retains %s metada
       try {
         await api.convertToOutput([{bytes: encoder.encode(${JSON.stringify(source)})}], {
           from: ${JSON.stringify(from)}, to: ${JSON.stringify(to)}, standalone: ${to !== "json"},
-          metadata: ${to === "odt" ? "undefined" : '{typed: {t: "MetaString", c: "x".repeat(32768)}, nested: {t: "MetaMap", c: {typed: {t: "MetaBool", c: true}}}}'},
+          metadata: ${to === "odt" ? "undefined" : '{title: {t: "MetaString", c: "x".repeat(65536)}, typed: {t: "MetaString", c: "x".repeat(32768)}, nested: {t: "MetaMap", c: {typed: {t: "MetaBool", c: true}}}}'},
           metadataJson: [{title: "x".repeat(65536), nested: {added: "option", keep: false}, gone: "x"}, {gone: null, tag: "last"}],
           metadataFiles: [{chunks: chunks(), source: "/metadata.json"}], filters: [{kind: "json", path: "filter"}]
         }, {
@@ -57,7 +57,7 @@ it.each([["json", "json"], ["csv", "html"], ["json", "odt"]])("retains %s metada
   try {
     const {convert} = await import("../packages/safe-bash-command-pandoc/dist/index.js");
     const expected = await convert([{bytes: new TextEncoder().encode(source)}], {from: from!, to: to!, standalone: to !== "json",
-      metadata: to === "odt" ? undefined : {typed: {t: "MetaString", c: "y".repeat(32768)}, nested: {t: "MetaMap", c: {typed: {t: "MetaBool", c: true}}}},
+      metadata: to === "odt" ? undefined : {title: {t: "MetaString", c: "y".repeat(65536)}, typed: {t: "MetaString", c: "y".repeat(32768)}, nested: {t: "MetaMap", c: {typed: {t: "MetaBool", c: true}}}},
       metadataJson: [{title: "y".repeat(65536), nested: {added: "option", keep: false}, gone: "y"}, {gone: null, tag: "last"}],
       metadataFiles: [{bytes: new TextEncoder().encode(JSON.stringify({title: "y".repeat(65536), nested: {remove: null, added: true}}))}]}, {});
     const bytes = expected.kind === "binary" ? expected.bytes : new TextEncoder().encode(expected.text);

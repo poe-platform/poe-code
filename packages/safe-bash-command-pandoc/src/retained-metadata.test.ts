@@ -214,7 +214,7 @@ it.each([8, 32])("keeps option-layer owners bounded for %i layers", async count 
   expect(JSON.parse(result).meta.last.c).toBe(String(count - 1)); expect(peak).toBeGreaterThan(0); expect(peak).toBeLessThanOrEqual(8);
   expect(writes).toBeGreaterThan(0); expect(largest).toBeLessThanOrEqual(16384); expect(live).toBe(0); expect(await fs.readdir("/")).toEqual([]);
 });
-it.each(["storage-error", "cancel", "sink-error", "retire-error", "success"])("cleans option-layer state on %s", async mode => {
+it.each([false, true].flatMap(typed => ["storage-error", "cancel", "sink-error", "retire-error", "success"].map(mode => ({typed, mode}))))("cleans option-layer state on %j", async ({typed, mode}) => {
   const fs = new MemoryFileSystem(), controller = new AbortController(), open = fs.open.bind(fs); let live = 0, emitted = false, failed = false;
   vi.spyOn(fs, "open").mockImplementation(async (...args) => {
     const handle = await open(...args), close = handle.close.bind(handle), write = handle.write.bind(handle); live++;
@@ -229,7 +229,7 @@ it.each(["storage-error", "cancel", "sink-error", "retire-error", "success"])("c
   });
   const next = vi.fn(async () => ({done: true as const, value: undefined})), close = vi.fn(async () => {}), abort = vi.fn(async () => {});
   const document = mode === "storage-error" || mode === "cancel" ? {chunks: {[Symbol.asyncIterator]() {return {next};}}} : input;
-  const run = convertToOutput([document], {from: "json", to: "json", metadataJson: [{title: "x".repeat(65536)}, {nested: {remove: null, added: true}}]}, {signal: controller.signal, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
+  const run = convertToOutput([document], {from: "json", to: "json", ...(typed ? {metadata: {title: {t: "MetaString" as const, c: "t".repeat(65536)}}} : {}), metadataJson: [{title: "x".repeat(65536)}, {nested: {remove: null, added: true}}]}, {signal: controller.signal, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
     async write(bytes) {expect(bytes.length).toBeLessThanOrEqual(16384); emitted = true; if (mode === "sink-error") throw new Error("Destination failed"); await Promise.resolve();}, close, abort
   }});
   if (mode === "success") {await run; expect(close).toHaveBeenCalledOnce();}
@@ -256,4 +256,83 @@ it("retains CLI metadata assignments after file layers", async () => {
 it("does not interpret extra caller source properties as trusted option storage", async () => {
   const file = {bytes: encoder.encode('{"title":"file"}'), tree: null, root: 0};
   await compare([], {metadataFiles: [file]});
+});
+
+it.each([{to: "json"}, {to: "html", standalone: true}, {from: "csv"}, {to: "plain"}, {to: "gfm"}])("retains typed metadata after file and JSON layers: %j", async extra => {
+  await compare(['{"title":"file","nested":{"remove":null,"file":true}}'], {...extra,
+    metadataJson: [{title: "json", nested: {json: true}}], metadata: {
+      title: {t: "MetaString", c: "typed 😀"},
+      nested: {t: "MetaMap", c: {keep: {t: "MetaBool", c: false}, typed: {t: "MetaList", c: [{t: "MetaString", c: "last"}]}}},
+      blocks: {t: "MetaBlocks", c: [{t: "Para", c: [{t: "Str", c: "metadata body"}]}]}
+    }
+  });
+});
+it("converts only typed AST enum positions, including tables, notes and citations", async () => {
+  const attr = ["", [], []] as const;
+  const para = {t: "Para", c: [{t: "Str", c: "body"}]} as const;
+  const row = (align: "AlignLeft" | "AlignRight" | "AlignCenter" | "AlignDefault") => [attr, [[attr, align, 1, 1, [para]]]] as const;
+  await compare([], {metadata: {
+    literal: {t: "MetaString", c: "AlignLeft"},
+    inline: {t: "MetaInlines", c: [
+      {t: "Quoted", c: ["SingleQuote", [{t: "Str", c: "quote"}]]}, {t: "Math", c: ["DisplayMath", "x"]},
+      {t: "Cite", c: [[{citationId: "id", citationPrefix: [], citationSuffix: [], citationMode: "AuthorInText", citationNoteNum: 0, citationHash: 0}], []]},
+      {t: "Note", c: [para]}
+    ]},
+    block: {t: "MetaBlocks", c: [
+      {t: "OrderedList", c: [[2, "UpperRoman", "TwoParens"], [[para]]]},
+      {t: "Table", c: [attr, [null, []], [["AlignLeft", {t: "ColWidthDefault"}]], [attr, [row("AlignRight")]], [[attr, 0, [row("AlignCenter")], [row("AlignDefault")]]], [attr, [row("AlignLeft")]]]}
+    ]}
+  }});
+});
+
+it.each([
+  {t: "MetaBool", c: 1}, {t: "MetaString", c: NaN}, {t: "MetaString", c: "\ud800"},
+  {t: "MetaInlines", c: [{t: "unknown"}]}, {t: "MetaInlines", c: [{t: "\ud800"}]},
+  {t: "MetaInlines", c: [{t: "Quoted", c: [{t: "SingleQuote"}, []]}]},
+  {t: "MetaList", c: [null]}, {t: "MetaMap", c: {x: null}}, {t: "MetaList", c: new Array(1)},
+  Object.assign(Object.create({inherited: true}), {t: "MetaString", c: "text"})
+])("rejects invalid typed metadata before document acquisition with compatible errors: %j", async value => {
+  const options: ConversionOptions = {from: "json", to: "json", metadata: {x: value} as unknown as NonNullable<ConversionOptions["metadata"]>};
+  const expected = await convert([input], options, {}).catch(error => error);
+  expect(expected).toMatchObject({code: "E_AST"});
+  const next = vi.fn(async () => ({done: true as const, value: undefined})), write = vi.fn(), close = vi.fn();
+  const fs = new MemoryFileSystem();
+  await expect(convertToOutput([{chunks: {[Symbol.asyncIterator]() {return {next};}}}], options, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {write, close, async abort() {}}})).rejects.toMatchObject({code: expected.code, operation: expected.operation, location: expected.location, message: expected.message});
+  expect(next).not.toHaveBeenCalled(); expect(write).not.toHaveBeenCalled(); expect(close).not.toHaveBeenCalled();
+  expect(await fs.readdir("/")).toEqual([]);
+});
+it("does not execute accessors or retain cycles in typed metadata", async () => {
+  const getter = vi.fn(() => "host data");
+  const cycle: Record<string, unknown> = {}; cycle.loop = {t: "MetaMap", c: cycle};
+  const accessor = Object.defineProperty({t: "MetaString"}, "c", {enumerable: true, get: getter});
+  for (const value of [accessor, {t: "MetaMap", c: cycle}]) {
+    const options = {from: "json", to: "json", metadata: {x: value} as unknown as NonNullable<ConversionOptions["metadata"]>};
+    const expected = await convert([input], options, {}).catch(error => error);
+    const fs = new MemoryFileSystem();
+    await expect(convertToOutput([input], options, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write() {}, async close() {}, async abort() {}}})).rejects.toMatchObject({code: "E_AST", location: expected.location, message: expected.message});
+    expect(await fs.readdir("/")).toEqual([]);
+  }
+  expect(getter).not.toHaveBeenCalled();
+});
+
+it("retains deep typed maps and large shared values without mistaking aliases for cycles", async () => {
+  const shared = {t: "MetaString", c: "😀".repeat(18000)} as const;
+  let nested: NonNullable<ConversionOptions["metadata"]>[string] = {t: "MetaMap", c: {["k".repeat(40000)]: shared, alias: shared}};
+  for (let index = 0; index < 60; index++) nested = {t: "MetaMap", c: {child: nested}};
+  await compare([], {metadata: {nested}});
+});
+it.each([
+  null, true, 42, "text", [],
+  {x: {t: "MetaString", c: "\udc00"}},
+  {["\ud800"]: {t: "MetaString", c: "value"}},
+  {x: Object.defineProperty({t: "MetaString"}, "c", {value: "hidden"})},
+  {x: {t: "MetaList", c: Object.assign([], {extra: true})}},
+  {x: {t: "MetaList", c: Object.defineProperty([{t: "MetaBool", c: true}], 0, {enumerable: false})}}
+].map(metadata => ({metadata})))("preserves typed metadata reflection errors: %j", async ({metadata}) => {
+  const options = {from: "json", to: "json", metadata: metadata as unknown as NonNullable<ConversionOptions["metadata"]>};
+  const expected = await convert([input], options, {}).catch(error => error);
+  expect(["E_AST", "E_OPTION"]).toContain(expected.code);
+  const fs = new MemoryFileSystem();
+  await expect(convertToOutput([input], options, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write() {}, async close() {}, async abort() {}}})).rejects.toMatchObject({code: expected.code, location: expected.location, message: expected.message});
+  expect(await fs.readdir("/")).toEqual([]);
 });

@@ -1,8 +1,9 @@
+import {PandocError} from "./errors.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedJson} from "./backed-json.js";
 import {BackedText, type TextRange} from "./backed-text.js";
 import type {ExecutionContext} from "./execution.js";
-import type {MetadataObject, MetadataValue, WorkingStorageOptions} from "./types.js";
+import type {WorkingStorageOptions} from "./types.js";
 
 /** Snapshot the caller-owned JSON option map without cloning its value graph.
  * Reflection needs one immediate Object.keys list and property access needs one
@@ -16,7 +17,7 @@ export class RetainedJsonOptions {
     this.tree = new BackedJson(storage, units => context.cooperate(units));
     this.release = context.onClose(() => this.close());
   }
-  static async acquire(value: MetadataObject | readonly MetadataObject[], context: ExecutionContext, working: WorkingStorageOptions, scratch: PagedStorage, layers = false): Promise<RetainedJsonOptions> {
+  static async acquire(value: object, context: ExecutionContext, working: WorkingStorageOptions, scratch: PagedStorage, layers: boolean | "ast" = false): Promise<RetainedJsonOptions> {
     const result = new RetainedJsonOptions(new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, (working.cacheBytes ?? 1048576) / 16384), context);
     try {await result.snapshot(value, scratch, layers); return result;}
     catch (error) {try {await result.close();} catch { /* Preserve admission failure. */ } throw error;}
@@ -25,7 +26,7 @@ export class RetainedJsonOptions {
     this.closing ??= this.storage.close().finally(this.release);
     return this.closing;
   }
-  private async snapshot(root: MetadataObject | readonly MetadataObject[], scratch: PagedStorage, layers: boolean): Promise<void> {
+  private async snapshot(root: object, scratch: PagedStorage, layers: boolean | "ast"): Promise<void> {
     const context = this.context, tree = this.tree, text = new BackedText(scratch, units => context.cooperate(units));
     const put = async (position: number, fields: readonly number[]) => {
       const bytes = new Uint8Array(fields.length * 8), view = new DataView(bytes.buffer);
@@ -41,23 +42,54 @@ export class RetainedJsonOptions {
       let key = ""; for await (const part of text.chunks({first: first!, last: last!, units: units!} satisfies TextRange)) key += part;
       return key;
     };
+    const ast = layers === "ast";
+    const fail = async (frame: number, key?: string | number, message = "Invalid shape"): Promise<never> => {
+      let path = key === undefined ? "" : typeof key === "number" ? `[${key}]` : `.${key}`;
+      for (let cursor = frame; cursor;) {
+        const [parent, edge] = await get(cursor, 2);
+        if (!parent) break;
+        const fields = await get(parent, 8);
+        path = (fields[6] ? `[${edge}]` : `.${await keyAt(fields[2]!, edge!)}`) + path;
+        cursor = parent;
+      }
+      path = "$.metadata" + path;
+      throw new PandocError("E_AST", "convert", `${path}: ${message}`, undefined, path);
+    };
+    const unicode = async (value: string, frame: number, key?: string | number): Promise<void> => {
+      for (let index = 0; index < value.length; index++) {
+        if (index % 256 === 0) await context.cooperate();
+        const unit = value.charCodeAt(index);
+        if (unit >= 0xd800 && unit <= 0xdbff) {
+          const next = value.charCodeAt(++index);
+          if (!(next >= 0xdc00 && next <= 0xdfff)) await fail(frame, key, "Invalid Unicode");
+        } else if (unit >= 0xdc00 && unit <= 0xdfff) await fail(frame, key, "Invalid Unicode");
+      }
+    };
+    const property = async (value: object, key: string | number, frame: number): Promise<unknown> => {
+      if (!ast) return (value as Record<string | number, unknown>)[key]!;
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor || !("value" in descriptor) || !Array.isArray(value) && !descriptor.enumerable)
+        return fail(frame, key, Array.isArray(value) ? "Accessor or sparse array" : "Invalid shape");
+      return descriptor.value;
+    };
     // Frames: parent, edge index, keys, count, next, metadata depth, array, temporary child link.
-    const enter = async (value: MetadataObject | readonly MetadataValue[], parent: number, edge: number, level: number): Promise<number> => {
+    const enter = async (value: object, parent: number, edge: number, level: number): Promise<number> => {
       context.bound("depth", level);
       const array = Array.isArray(value), position = scratch.allocate(64);
       let keys = 0, count = array ? value.length as number : 0;
       if (!array) {
-        const names = Object.keys(value); count = names.length; keys = scratch.allocate(count * 24);
+        const names = ast ? Object.getOwnPropertyNames(value) : Object.keys(value); count = names.length; keys = scratch.allocate(count * 24);
         for (let index = 0; index < count; index++) {
           const range = await text.from([names[index]!]); await put(keys + index * 24, [range.first, range.last, range.units]);
         }
       }
       await put(position, [parent, edge, keys, count, 0, level, array ? 1 : 0, 0]);
+      if (ast && (Object.getOwnPropertySymbols(value).length || !array && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)) await fail(position);
       await tree.begin(array ? "array" : "object"); return position;
     };
-    const resolve = async (frame: number, candidate?: object): Promise<MetadataObject | readonly MetadataValue[]> => {
-      let value: MetadataObject | readonly MetadataValue[] = root;
-      if (value === candidate) context.fail("E_OPTION", "Invalid JSON metadata value");
+    const resolve = async (frame: number, candidate?: object, candidateKey?: string | number): Promise<object> => {
+      let value: object = root;
+      if (value === candidate) {if (ast) await fail(frame, candidateKey, "Non-JSON or cyclic input"); context.fail("E_OPTION", "Invalid JSON metadata value");}
       let child = 0;
       for (let cursor = frame; cursor;) {
         await context.cooperate();
@@ -70,46 +102,49 @@ export class RetainedJsonOptions {
         const parent = await get(child, 8), next = parent[7]!;
         const edge = (await get(next, 2))[1]!;
         const key = parent[6] ? edge : await keyAt(parent[2]!, edge);
-        value = (value as Record<string | number, MetadataValue>)[key] as MetadataObject | readonly MetadataValue[];
-        if (value === candidate) context.fail("E_OPTION", "Invalid JSON metadata value");
+        value = await property(value, key, child) as object;
+        if (value === candidate) {if (ast) await fail(frame, candidateKey, "Non-JSON or cyclic input"); context.fail("E_OPTION", "Invalid JSON metadata value");}
         child = next;
       }
       return value;
     };
     const rootFrame = await enter(root, 0, 0, 0);
-    let frame = rootFrame, current: MetadataObject | readonly MetadataValue[] = root;
+    let frame = rootFrame, current: object = root;
     while (frame) {
       await context.cooperate();
       const fields = await get(frame, 8), [parent, , keys, count, index, level, array] = fields;
       if (index! >= count!) {
+        if (ast && array && Object.keys(current).length !== count) await fail(frame);
         await tree.end(); frame = parent!;
         if (frame) current = await resolve(frame);
         continue;
       }
       await put(frame + 32, [index! + 1]);
       const key = array ? index! : await keyAt(keys!, index!);
-      const value = (current as Record<string | number, MetadataValue>)[key];
+      if (ast && typeof key === "string") await unicode(key, frame);
+      const value = await property(current, key, frame);
+      if (ast && typeof value === "string") await unicode(value, frame, key);
       if (!array) {
         context.charge("references", 1);
-        if (key === "__proto__" || key === "constructor" || key === "prototype") context.fail("E_OPTION", "Unsafe metadata key");
+        if (key === "__proto__" || key === "constructor" || key === "prototype") {if (ast) await fail(frame, key); context.fail("E_OPTION", "Unsafe metadata key");}
         await tree.key(key as string);
       }
-      if (layers && frame === rootFrame) {
+      if (layers === true && frame === rootFrame) {
         if (value === null || typeof value !== "object" || Array.isArray(value)) context.fail("E_OPTION", "JSON metadata must be an object");
-        await resolve(frame, value as MetadataObject);
-        frame = await enter(value as MetadataObject, frame, index!, 0); current = value as MetadataObject;
+        await resolve(frame, value as object);
+        frame = await enter(value as object, frame, index!, 0); current = value as object;
         continue;
       }
       if (value === null) {
-        if (array) context.fail("E_OPTION", "Null metadata list elements are unsupported");
+        if (array && !ast) context.fail("E_OPTION", "Null metadata list elements are unsupported");
         await tree.value(null); continue;
       }
       context.bound("depth", level! + 1); context.charge("nodes", 1); await context.cooperate();
       if (typeof value === "string" || typeof value === "boolean" || typeof value === "number" && Number.isFinite(value)) await tree.value(value);
       else if (value && typeof value === "object") {
-        await resolve(frame, value);
+        await resolve(frame, value, key);
         frame = await enter(value, frame, index!, level! + (Array.isArray(value) ? 1 : 2)); current = value;
-      } else context.fail("E_OPTION", "Invalid JSON metadata value");
+      } else {if (ast) await fail(frame, key, typeof value === "number" ? "Invalid shape" : "Non-JSON or cyclic input"); context.fail("E_OPTION", "Invalid JSON metadata value");}
     }
   }
   async truthy(node: number): Promise<boolean> {

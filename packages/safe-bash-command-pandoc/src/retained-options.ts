@@ -43,7 +43,7 @@ export class RetainedOptions {
           }, ["inputBytes", "resourceBytes"]);
         }
       }
-      if (options.metadata !== undefined) result.typedMetadata = await retainTypedMetadata(options.metadata, context, working);
+      if (options.metadata !== undefined) result.typedMetadata = await retainTypedMetadata(options.metadata, context, working, storage);
       if (options.metadataJson !== undefined) result.metadata = await RetainedJsonOptions.acquire(options.metadataJson, context, working, storage, true);
       return result;
     } catch (error) {try {await result.close();} catch { /* Preserve acquisition failure. */ } throw error;}

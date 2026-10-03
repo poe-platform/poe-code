@@ -57,10 +57,18 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   Typed `metadata` maps now retain snapshot/schema/enum translation and merge
   after JSON layers for non-RTF/ODT writers. Exercise all enum positions, nested
   maps, shared values, rejected accessors/cycles and retirement failures. Separate
-  the caller graph and immediate property-name enumeration from the three typed
-  caches and shared option cache. R2 scenarios include typed maps and filter
+  the caller graph and immediate property-name enumeration from the typed wire
+  cache and shared option cache. R2 scenarios include typed maps and filter
   ordering. RTF/ODT typed image origins and full memory/CPU qualification remain
   outstanding.
+
+  Typed admission now shares the strict retained option snapshot and retires its
+  source tape before document acquisition, keeping only the translated wire
+  tape and shared scratch. Differential coverage includes deep/shared maps,
+  large keys/values, malformed Unicode, descriptors and cycles. Failure checks
+  cover backing writes, cancellation, destination and owner retirement. SDK
+  input objects, immediate key enumeration and diagnostic paths remain resident
+  API costs; these tests do not establish full memory/CPU qualification.
 
 - Retained JSON and CSV/TSV routes admit finite `work` and `diagnostics` budgets
   through the shared execution context. Exercise both budgets in filtered and

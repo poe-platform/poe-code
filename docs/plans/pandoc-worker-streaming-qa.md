@@ -38,6 +38,13 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   backing, cancellation, output and retirement errors. The external R2 workerd
   cohorts include CSV input to JSON, plain and HTML through three filter generations.
   Finite table budgets with filters still select the compatibility converter.
+  CommonMark/GFM writers now retain continuations, intermediate text, escaping,
+  long code fences, repeated-target indexes and table-span occupancy. Differential
+  tests cover writer bytes, parse-back behavior, projections and diagnostics;
+  generated inputs cover long targets/code runs, 500 nested containers, bounded
+  backing transfers and publication failure cleanup. R2 workerd cohorts include
+  Markdown outputs after chained filters, with JSON and CSV input. Include these
+  paths in the size/concurrency measurements; functional tests alone are insufficient.
   Other conversions still require replacing whole-document input acquisition, joined text, document arrays
   and serialized results with retained sources and a paged document representation.
   Preserve diagnostics, source locations, resource identities and byte results.

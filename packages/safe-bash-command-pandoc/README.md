@@ -189,6 +189,12 @@ existing HTML constructors, URL/attribute policy, raw-content diagnostics,
 normalization and duplicate identifiers stay bounded even for long text. Rendering
 uses three page caches plus fixed small indexes; filter validation still uses up
 to five. The SDK and command select this path with the same options.
+JSON and CSV/TSV → CommonMark/GFM retain writer continuations, intermediate text,
+code fences, link-reference collision indexes and table-span occupancy in caller
+storage. Markdown aliases and extension switches, wrapping, task markers, rich
+tables, loss diagnostics and post-filter transforms preserve the existing writer
+behavior. Long targets, code runs and nesting do not grow resident writer state;
+the document pair and writer use three page caches plus fixed small indexes.
 Multiple JSON inputs, legacy filters, embedded resources, other transformations
 and other finite document budgets continue through the compatibility converter.
 

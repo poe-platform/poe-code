@@ -6,7 +6,7 @@ import type {ConversionOptions} from "./types.js";
 const encoder = new TextEncoder();
 
 it.each(["csv", "tsv"])("retains %s with standalone and transformation options", async from => {
-  for (const to of ["json", "plain", "html5"]) {
+  for (const to of ["json", "plain", "html5", "gfm"]) {
     const inputs = ["name,value\nfirst,\"a\nb\"\n", "key,other\nsecond,😀\n"].map(text => ({bytes: encoder.encode(from === "tsv" ? text.replaceAll(",", "\t") : text)}));
     const options: ConversionOptions = {from, to, stripComments: true, shiftHeadingLevelBy: -1,
       ...(to === "html5" ? {standalone: true, toc: true, numberSections: true, ascii: true} : {})};
@@ -23,11 +23,11 @@ it.each(["csv", "tsv"])("retains %s with standalone and transformation options",
   }
 });
 
-it.each(["json", "plain", "html5"])("retains delimited filter generations before transformations to %s", async to => {
+it.each(["json", "plain", "html5", "gfm"])("retains delimited filter generations before transformations to %s", async to => {
   const inputs = [{bytes: encoder.encode("name,value\nfirst,one\n")}, {bytes: encoder.encode("name,value\nsecond,two\n")}];
   const response = encoder.encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [
     {t: "Header", c: [2, ["", [], []], [{t: "Str", c: "heading"}]]}, {t: "RawBlock", c: ["html", "a<!--hidden-->b"]}]}));
-  const options: ConversionOptions = {from: "csv", to, filters: [{kind: "json", path: "one"}, {kind: "json", path: "two"}], shiftHeadingLevelBy: -1, stripComments: true, rawContent: "retain"};
+  const options: ConversionOptions = {from: "csv", to, filters: [{kind: "json", path: "one"}, {kind: "json", path: "two"}], shiftHeadingLevelBy: -1, stripComments: true, rawContent: "retain", ...(to === "gfm" ? {lossy: true} : {})};
   const expectedRequest = await convert(inputs, {from: "csv", to: "json"}, {});
   const expected = await convert([{bytes: response}], {...options, from: "json", filters: []}, {});
   const fs = new MemoryFileSystem(); let text = "", calls = 0;

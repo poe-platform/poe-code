@@ -1,3 +1,5 @@
+import {writeRetainedMarkdown} from "./retained-markdown.js";
+import {createFormatRegistry} from "./formats.js";
 import {writeRetainedHtml} from "./retained-html.js";
 import {transformRetainedJson} from "./retained-transforms.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
@@ -37,7 +39,7 @@ async function checkImageOrigins(tree: BackedJson, context: ExecutionContext): P
 
 /** Retain each document generation and filter response in caller storage. The
  * previous generation is retired before another filter starts. */
-export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>>>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" = "json"): Promise<void> {
+export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>>>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" = "json"): Promise<void> {
   let document: Awaited<ReturnType<typeof readRetainedJson>> | undefined;
   let failure: {reason: unknown} | undefined;
   const preflight = async (chunks: AsyncIterable<Uint8Array>) => {
@@ -74,7 +76,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       finally {release();}
       if (filterFailure) throw filterFailure.reason;
     }
-    if (target === "plain") await assertRetainedPlainMath(document.tree, document.order, context);
+    if (["plain", "commonmark", "gfm"].includes(target)) await assertRetainedPlainMath(document.tree, document.order, context);
     if (options.shiftHeadingLevelBy || options.stripComments) {
       const next = await transformRetainedJson(document.tree, context, working, options);
       await document.close();
@@ -82,6 +84,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     }
     if (target === "plain") await writeRetainedPlain(document.tree, context, working, options);
     else if (target === "html5") await writeRetainedHtml(document.tree, context, working, options);
+    else if (target === "commonmark" || target === "gfm") await writeRetainedMarkdown(document.tree, context, working, options, createFormatRegistry().resolve(options.to, "write"));
     else {
       await preflight(document.chunks(options.eol));
       for await (const bytes of document.chunks(options.eol)) await context.emit(bytes);

@@ -22,7 +22,7 @@ export function ownedRangeSource(source: RangeSource, signal: AbortSignal, check
         check(); operationSignal.throwIfAborted();
         if (!(bytes instanceof Uint8Array) || !bytes.length || bytes.length > maximum)
           throw new SsconvertError("io", "Invalid or truncated ssconvert source range");
-        return bytes.slice();
+        return new Uint8Array(bytes);
       });
       pending = reading.then(() => undefined, () => undefined);
       return reading;

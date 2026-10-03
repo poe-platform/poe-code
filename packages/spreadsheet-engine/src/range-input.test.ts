@@ -77,8 +77,9 @@ it("probes a range-backed reader without invoking its byte-array probe", async (
   await engine.dispose();
 });
 
-it("owns reused range responses before admitting another read", async () => {
-  const buffer = new Uint8Array(4);
+it.each([false, true])("owns reused range responses before admitting another read (borrowed slice=%s)", async borrowedSlice => {
+  class BorrowedSlice extends Uint8Array { override slice(start?: number, end?: number) { return this.subarray(start, end); } }
+  const buffer = borrowedSlice ? new BorrowedSlice(4) : new Uint8Array(4);
   const engine = createEngine({ codecs: [{ id: "range", description: "range fixture", extensions: [],
     async readSource(source) {
       const [first, second] = await Promise.all([source.read(0, 4), source.read(4, 4)]);

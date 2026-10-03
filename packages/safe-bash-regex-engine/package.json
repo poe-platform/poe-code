@@ -90,6 +90,10 @@
     "./utf8": {
       "types": "./dist/utf8.d.ts",
       "import": "./dist/utf8.js"
+    },
+    "./python-glob": {
+      "types": "./dist/python-glob.d.ts",
+      "import": "./dist/python-glob.js"
     }
   },
   "files": [

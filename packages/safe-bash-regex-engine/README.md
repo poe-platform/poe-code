@@ -17,3 +17,9 @@ Use commands through `@poe-platform/safe-bash` and its existing command exports.
 private workspace is bundled into Safe Bash and is not independently published.
 
 `Pattern` accepts an optional sixth argument, `PatternLimits`, to bound instructions, source length (`maxPatternSource`) and group depth (`maxPatternDepth`) before eager compilation. `TextProgramOptions.maxPatternInstructions` bounds expanded regex instructions during preparation and matching. The same limits apply through `TextProgramOptions` on preparation and matching. Omission or `Infinity` disables each quota; a finite limit includes the final match instruction and applies to reused and eagerly compiled patterns.
+
+`compilePythonGlob` from `safe-bash-regex-engine/python-glob` compiles Python 3.9
+filename patterns with the existing Unicode matcher. Braces and backslashes are
+literal, hidden filenames match ordinary wildcards, and matching spans newlines.
+Pass `PatternLimits` to bound source, program and depth, then use the returned
+pattern with the caller's normal matching budget and cancellation checkpoints.

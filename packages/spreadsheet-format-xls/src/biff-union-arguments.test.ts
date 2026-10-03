@@ -17,9 +17,9 @@ it.each(["fixed", "variable", "custom", "nested", "parenthesized", "attribute"] 
       revision, codepage: 1252, row: 0, column: 0, names: [], externalSheets: [], limit: 10000
     });
     const parsed = parseExpression(formula, { position: { sheet: "S", row: 0, column: 0 } });
-    // One explicit group preserves the value and permits native XLSX readback;
-    // the native writer's doubled group fails even its own reimport.
-    if (kind === "parenthesized") expect(formula).toBe("=AREAS((($A$11,$A$12),$A$13))");
+    // Retain original PtgParen in addition to the set syntax wrapper. Native
+    // XLSX reimport rejects this spelling even after its own export.
+    if (kind === "parenthesized") expect(formula).toBe("=AREAS(((($A$11,$A$12)),$A$13))");
     expect(parsed.ok).toBe(true);
     if (!parsed.ok || parsed.document.root.kind !== "call") throw new Error("Expected imported function call");
     expect(parsed.document.root.args, formula).toHaveLength(1);
@@ -46,6 +46,12 @@ it.each([7, 8] as const)("exports a union SUM operand without a redundant PtgPar
   // PtgParen. Adding PtgParen around the union instead returns #VALUE!.
   expect([...writer.compile("=SUM(($A$11,$A$12))", "S", 0, 0).tokens])
     .toEqual([...ref(10), ...ref(11), 0x10, 0x42, 1, 4, 0]);
+  expect([...writer.compile("=SUM(($A$11,($A$12,$A$13)))", "S", 0, 0).tokens])
+    .toEqual([...ref(10), ...ref(11), ...ref(12), 0x10, 0x10, 0x42, 1, 4, 0]);
+  expect([...writer.compile("=SUM((($A$11,$A$12)))", "S", 0, 0).tokens])
+    .toEqual([...ref(10), ...ref(11), 0x10, 0x15, 0x42, 1, 4, 0]);
+  expect(writer.compile("=AREAS((($A$11,$A$12),$A$13))", "S", 0, 0).diagnostics)
+    .toEqual([expect.objectContaining({ code: "biff-loss-warning", severity: "warning" })]);
 });
 
 it.each([2, 3, 4, 5, 7, 8])("preserves a right-nested BIFF%i union as one area", revision => {
@@ -54,4 +60,12 @@ it.each([2, 3, 4, 5, 7, 8])("preserves a right-nested BIFF%i union as one area",
     ...ref(10), ...ref(11), ...ref(12), 0x10, 0x10, 0x21, 75, ...(revision >= 4 ? [0] : [])
   ]), { revision, codepage: 1252, row: 0, column: 0, names: [], externalSheets: [], limit: 10000 });
   expect(formula).toBe("=AREAS(($A$11,($A$12,$A$13)))");
+});
+
+it.each([2, 3, 4, 5, 7, 8])("retains original BIFF%i grouping around a SUM set", revision => {
+  const ref = (row: number) => [0x24, row, 0, 0, ...(revision >= 8 ? [0] : [])];
+  const formula = translateBiffFormula(new Uint8Array([
+    ...ref(10), ...ref(11), 0x10, 0x15, 0x19, 0x10, 0, ...(revision >= 3 ? [0] : [])
+  ]), { revision, codepage: 1252, row: 0, column: 0, names: [], externalSheets: [], limit: 10000 });
+  expect(formula).toBe("=SUM((($A$11,$A$12)))");
 });

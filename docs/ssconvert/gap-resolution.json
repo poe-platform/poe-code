@@ -4105,75 +4105,41 @@
       "remaining": "This resolves operand-tree reconstruction for the qualified operators and contexts. Other BIFF tokens, label transports, external bindings and wider format qualification remain open; no family is closed."
     },
     "biffUnionArguments": {
-      "repair": "Preserve union operands as one function argument in BIFF imports. Flatten synthesized union groups only; preserve original inner PtgParen grouping. Omit the syntactically required outer union argument group when writing BIFF, whose function token already stores argument count.",
+      "repair": "Distinguish set syntax from original PtgParen. Import adds explicit grouping beyond the union wrapper. Export omits syntactic union wrappers everywhere, retains explicit grouping and warns when a nested left set is flattened. Right-nested sets remain one native area.",
+      "scalarEvaluation": "SUM/PRODUCT distinguish set iteration from explicitly grouped scalar evaluation, including in-range implicit intersection, as delivered in be85b3c4f02704d9f8fc03dbf384cbaec0d5932a. No error substitution or invented function is used.",
+      "source": {
+        "profile": "Gnumeric 1.12.61 unchanged native source and binary",
+        "sources": {
+          "plugins/excel/ms-formula-read.c": "25cbe0982cc952431c7b10bf7df709e3997d4759cb158f0f6159ba7c6ccd21d5",
+          "src/func.c": "9f04a2f60159c44dae2fb88f99023f755d5eed01e230b5467e427ef834b68082",
+          "src/expr.c": "04338a2d4208df47cbc66b62b62c97586f0dfe550aab7a23d8ee01fc94ee95f5",
+          "plugins/excel/ms-formula-write.c": "129e2d69f00182f9458f03698a264c498dca61f566c8d54e3517e6c20e7ef1b7"
+        },
+        "binary": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
+        "behavior": "ms-formula-read.c:1170-1191 extends only left SET operands; keeps right SET operands as one member."
+      },
+      "nativeRules": "ms-formula-read.c:1170-1204 extends only left sets and creates a unary PAREN for PtgParen. ms-formula-write.c:703-735,890-908 emits set operands without redundant parentheses. func.c:1832-1903 iterates bare sets/names before scalar evaluation; expr.c:1642 rejects scalar sets.",
       "validation": {
-        "initialFailures": "Three function-argument regressions, native-readable grouping spelling, and two BIFF writer token controls failed before repair.",
-        "focusedTests": 2570,
-        "testFiles": 88,
-        "checks": "Final normal root build, XLS owner lint/types, command lint/types/public consumers passed. Actual recalculated command screenshot inspected: 2,2,2,3,2,0.",
-        "unionArguments": {
-          "publicCachedXlsxChecks": 24,
-          "nativeReadbackChecks": 72,
-          "checks": 96,
+        "originalFailingTests": 9,
+        "focusedPassingTests": 20,
+        "biffTests": 2299,
+        "biffTestFiles": 84,
+        "checks": "Maintained normal root build and XLS owner lint/source/test types pass. All final compiled root/package SDK and command matrices executed. Actual loss-warning screenshot inspected."
+      },
+      "publicNative": {
+        "import": {
+          "publicCachedXlsxChecks": 32,
+          "nativeReadbackChecks": 96,
+          "checks": 128,
           "nativeReadbacks": 12,
-          "cases": 6,
-          "inputSha256": "be1c540241a7554bb37f7635b6ba49dc1e7476430ebe3adac688667c1c4a54c0",
-          "nativeSha256": "5fabf2cb1beb56d9fca9493fa78c7c112faec9f16a4ea42289c7c4f19972aef2",
-          "diagnostics": 0
+          "cases": 8,
+          "inputSha256": "10f776b6febb5aa06a0ff85b0aafa195bf0bdf6a1423a822b03c2c0ebd9b4578",
+          "nativeSha256": "e45ea0fd2ca10b320227b6a7f8d228d62b4e2e4bc343431566033573de837688",
+          "nativeDiagnostics": 0,
+          "mismatches": 0,
+          "matchedChecks": 128
         },
-        "nestedAreas": {
-          "publicCachedXlsxChecks": 20,
-          "nativeReadbackChecks": 20,
-          "checks": 40,
-          "nativeReadbacks": 4,
-          "cases": 5,
-          "inputSha256": "aab427eaa1a1a4bd25f915a4c72441368f56ac70e8cf37f1e1528370202f88b4",
-          "nativeSha256": "393c4a0bd654ef58e1024cbdec4befa0311dd3b28f4b2d05c35d8240fabe9e90",
-          "diagnostics": 0
-        }
-      },
-      "nativeDistinction": "AREAS counts ungrouped three-member unions as 3 and explicitly grouped inner unions as 2. Existing engine behavior is correct. Native exported double-group XLSX fails its own reimport with All entries in the set must be references (93 stderr bytes); the single-group product spelling passes native readback.",
-      "remaining": "Explicit PtgParen around a SUM union produces native #VALUE! for both reference classes and both FuncVar/AttrSUM encodings; product imports return 0. Eight package SDK/command mismatches remain unresolved and are not counted as passes. Broader BIFF and all 19-family requirements remain open.",
-      "rightNesting": {
-        "repair": "Flatten only synthesized left union sets. A right union remains one set member, matching native BIFF import and AREAS counts.",
-        "source": {
-          "profile": "Gnumeric 1.12.61 unchanged native source and binary",
-          "sources": {
-            "plugins/excel/ms-formula-read.c": "25cbe0982cc952431c7b10bf7df709e3997d4759cb158f0f6159ba7c6ccd21d5",
-            "src/func.c": "9f04a2f60159c44dae2fb88f99023f755d5eed01e230b5467e427ef834b68082",
-            "src/expr.c": "04338a2d4208df47cbc66b62b62c97586f0dfe550aab7a23d8ee01fc94ee95f5"
-          },
-          "binary": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
-          "behavior": "ms-formula-read.c:1170-1191 extends only left SET operands; keeps right SET operands as one member."
-        },
-        "validation": "Original regression failed by counting three areas instead of two. Six BIFF revision controls and the 2293-test/84-file BIFF cohort pass; owner lint/types pass. Command screenshot inspected: 3,2,3,2.",
-        "publicNative": {
-          "publicCachedXlsxChecks": 16,
-          "nativeReadbackChecks": 48,
-          "checks": 64,
-          "nativeReadbacks": 12,
-          "cases": 4,
-          "inputSha256": "cd73714b43da2dbc3049a51a1c4eeef2abbb48791fd6e199775b497e279179db",
-          "nativeSha256": "1c75ffd3af3e5b98ad7c19bbb7df98b483593f78cee36d7c81083bbe9444eb49",
-          "diagnostics": 0
-        },
-        "build": "Normal root build passed. Subsequent root SDK execution exposed missing canonical stream export; final selected safe-fs build and root bundle pass after repair, followed by all root/package native readbacks.",
-        "publicationRepair": {
-          "verifiedRemoteMain": "ca0eae35c493f80dc51f74ad1f40f09c83b0cce6",
-          "behavior": "Canonical XML publication includes index/stream declarations and bundled saxes/xmlchars, rejects unapproved and duplicated modules, and exposes parseXmlStream through safe-fs/core.",
-          "validation": "Three initial policy failures and one original missing-export test repaired; 677 bundle/policy tests, ESLint, owner build and final root publication pass."
-        }
-      },
-      "groupedAggregateInvestigation": {
-        "nativeText": "With A11:A13=2,3,4: SUM((A11,A12))=5; SUM(((A11,A12)))=#VALUE!; left/right nested sets total 9; SUM((A11:A12)) and SUM(((A11:A12))) outside the data rows return #VALUE!.",
-        "source": "func.c:1832-1903 iterates bare sets and names before scalar evaluation. expr.c:1642 rejects scalar sets. Original PtgParen identity and this evaluator distinction still need preservation; no error substitution is implemented."
-      },
-      "groupedAggregateEvaluation": {
-        "repair": "SUM and PRODUCT retain one union wrapper as set syntax. Other explicit argument parentheses use scalar evaluation outside array context, including implicit intersection for grouped ranges.",
-        "native": "Twenty valid SUM/PRODUCT formulas and three data cells. Six error results distinguish extra union grouping and out-of-range scalar intersection; four in-range controls select 2 or 3. Native input conversion has zero diagnostics. Four separately retained nested-set spellings are rejected by the native parser and are not passing evaluation cases.",
-        "validation": "Both original SUM/PRODUCT regressions failed before repair. The 19112-test/142-file formula cohort passes; final memory controls cover twenty cases. Engine lint/source/test types, final test lint/types and normal root build pass. Actual root command screenshot inspected.",
-        "publicXlsx": "All 184 root/package SDK/command cached and native XLSX value comparisons match, without diagnostics.",
-        "allFormatReceipt": {
+        "aggregates": {
           "publicCachedXlsxChecks": 92,
           "nativeReadbackChecks": 276,
           "checks": 368,
@@ -4181,13 +4147,59 @@
           "cases": 23,
           "inputSha256": "be6b4bd2c7f7516e2591a4f4b4790e158d81fed17b759f6e0611d5de48788987",
           "nativeSha256": "c97f4e46a914a448a4d14ace34dc788ae29491afcef7ca770d96582995155b09",
-          "diagnostics": 0,
-          "mismatches": 32,
-          "matchedChecks": 336
+          "nativeDiagnostics": 0,
+          "mismatches": 0,
+          "matchedChecks": 368
         },
-        "remaining": "The all-format receipt contains 32 confirmed BIFF7/BIFF8 export mismatches: four nested SUM/PRODUCT formulas across root/package SDK/command. They are not passes. Native own BIFF export/reimport retains all expected values, proving a product writer defect. The original eight grouped-SUM BIFF import mismatches also remain open. Broader contexts and all19families remain unresolved.",
-        "writerSource": "Gnumeric 1.12.61 plugins/excel/ms-formula-write.c SHA256 129e2d69f00182f9458f03698a264c498dca61f566c8d54e3517e6c20e7ef1b7:703-735 and890-908 use set precedence8 and child association levels1/0. Syntactic set wrappers must remain distinct from explicit PtgParen tokens."
-      }
+        "rightNesting": {
+          "publicCachedXlsxChecks": 16,
+          "nativeReadbackChecks": 48,
+          "checks": 64,
+          "nativeReadbacks": 12,
+          "cases": 4,
+          "inputSha256": "cd73714b43da2dbc3049a51a1c4eeef2abbb48791fd6e199775b497e279179db",
+          "nativeSha256": "1c75ffd3af3e5b98ad7c19bbb7df98b483593f78cee36d7c81083bbe9444eb49",
+          "nativeDiagnostics": 0,
+          "mismatches": 0,
+          "matchedChecks": 64
+        }
+      },
+      "lossDiagnostics": {
+        "code": "biff-loss-warning",
+        "severity": "warning",
+        "message": "BIFF flattens a nested left union set; reference-area structure may change",
+        "validation": "Exactly two warnings per aggregate BIFF export through each root/package SDK/command route; XLSX and the import/right-nesting cohorts have no product diagnostics. Native recalculation has no diagnostics for these three cohorts.",
+        "nativeOwnBiffAreasBefore": [
+          2,
+          2,
+          2,
+          4,
+          1
+        ],
+        "nativeOwnBiffAreasAfter": [
+          3,
+          2,
+          3,
+          4,
+          1
+        ]
+      },
+      "explicitInnerParentheses": {
+        "receipt": {
+          "publicCachedXlsxChecks": 24,
+          "nativeReadbackChecks": 72,
+          "checks": 96,
+          "nativeReadbacks": 12,
+          "cases": 6,
+          "inputSha256": "be1c540241a7554bb37f7635b6ba49dc1e7476430ebe3adac688667c1c4a54c0",
+          "nativeSha256": "5fabf2cb1beb56d9fca9493fa78c7c112faec9f16a4ea42289c7c4f19972aef2",
+          "mismatches": 4,
+          "matchedChecks": 92
+        },
+        "limitation": "Four XLSX native readbacks reject Cases!A5 with exactly the same 93-byte All entries in the set must be references diagnostic as native own export/self-reimport. All eight BIFF7/BIFF8 native readbacks preserve values, and all four cached product XLSX outputs preserve values. The four failures are not passes. Removing the original grouping changes SUM/PRODUCT evaluation and is not an acceptable normalization."
+      },
+      "resolved": "Previously recorded eight grouped-SUM BIFF import mismatches and32 aggregate BIFF export mismatches are repaired. The import, aggregate and right-nesting cohorts total560 matching public/native value comparisons; the original explicit-parenthesis cohort separately has92matches and4native parser failures.",
+      "remaining": "Native XLSX parser limitation, warned nested-left-set structure loss, wider named/reference/array contexts and broader BIFF qualification remain unresolved. All19families remain open; no full support or release claim."
     }
   },
   "cases": [

@@ -137,12 +137,8 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       else push(protect(left, precedence + (token === 7 ? 1 : 0)) + operator + protect(right, precedence + 1), precedence);
     } else if (token === 0x12 || token === 0x13) { const value = pop(); push((token === 0x12 ? "+" : "-") + protect(value, 8), 8); }
     else if (token === 0x14) { const value = pop(); push(protect(value, 7) + "%", 7); }
-    else if (token === 0x15) {
-      const value = pop();
-      // Promote a synthesized union group to an explicit one without adding
-      // another wrapper. Both have the same grouping and reset union folding.
-      push(value.union ? value.text : "(" + value.text + ")");
-    }
+    // Set syntax already has its own wrapper; PtgParen adds semantic grouping.
+    else if (token === 0x15) push("(" + pop().text + ")");
     else if (token === 0x16) push("");
     else if (token === 0x17) {
       const length = data.u8(offset++); let text: string;

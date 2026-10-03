@@ -244,19 +244,25 @@ export class BiffFormulaWriter {
         if (chunks.length > 1) push([21]);
       }
     };
-    const visit = (node: FormulaNode, argument = false): void => {
+    const visit = (node: FormulaNode): void => {
       this.context.signal.throwIfAborted();
       boundary();
       if (node.kind === "literal") literal(node.value);
       else if (node.kind === "omitted") push([22]);
       else if (node.kind === "parentheses") {
         visit(node.child);
-        // Text needs this group to distinguish a union from argument commas;
-        // BIFF already records the argument count. Keep inner/explicit groups.
-        if (!argument || node.child.kind !== "binary" || node.child.op !== "union") push([21]);
+        // One wrapper denotes the set itself. Additional wrappers are genuine
+        // parentheses and must survive, including in aggregate arguments.
+        if (node.child.kind !== "binary" || node.child.op !== "union") push([21]);
       }
       else if (node.kind === "unary") { visit(node.child); push([node.op === "+" ? 18 : node.op === "-" ? 19 : 20]); }
       else if (node.kind === "binary") {
+        // BIFF's union importer extends an existing left set. PtgParen would
+        // change evaluation rather than preserve an ordinary nested set.
+        if (node.op === "union" && node.left.kind === "parentheses" &&
+          node.left.child.kind === "binary" && node.left.child.op === "union")
+          diagnostics.push({ code: "biff-loss-warning", severity: "warning",
+            message: "BIFF flattens a nested left union set; reference-area structure may change" });
         const opcode = operators[node.op]; if (opcode === undefined) throw new SsconvertError("unsupported-feature", `Unsupported Excel operator '${node.op}'`);
         visit(node.left); visit(node.right); push([opcode]);
       } else if (node.kind === "reference") {
@@ -443,7 +449,7 @@ export class BiffFormulaWriter {
         const count = Math.min(node.args.length, spec.max);
         if (node.args.length > spec.max) diagnostics.push({ code: "biff-loss-warning", severity: "warning",
           message: `Too many arguments for function '${node.name}', MS Excel can only handle ${spec.max} not ${node.args.length}` });
-        for (const arg of node.args.slice(0, count)) visit(arg, true);
+        for (const arg of node.args.slice(0, count)) visit(arg);
         for (let i = count; i < spec.min; i++) push([22]);
         if (external || macro) push([0x42, Math.max(count, spec.min) + 1, ...words(255)]);
         else if (spec.min === spec.max) push([0x41, ...words(spec.id)]);

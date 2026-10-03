@@ -1,0 +1,21 @@
+# Bounded overlay Worker QA
+
+This is an agent-executed qualification plan, not a claim of completed Cloudflare measurements. Unit fixtures validate transfer behavior; they do not measure a deployed backend, transport, or Worker memory. Do not report Node heap results as Worker qualification.
+
+## Required environment
+
+Use workerd and a deployed Cloudflare Worker with the same compatibility date, limits and production adapter. Inject caller-authorized external storage for both source and spool. Require atomic rename, exclusive create, retained range reads with stable file/directory identities, bounded stream writes, directory mutation, permissions and timestamps. Stock S3/WebDAV lack the complete overlay contract; Memory and mock stores are explicitly disallowed as external spools. Record adapter revision, transport chunk/queue bounds and isolation assumptions. Never replace missing capabilities with host temporary files or an internal RAM filesystem.
+
+## Execute
+
+1. Run the safe-fs maintained unit route and package typecheck. Reuse `packages/safe-fs/tests/fixtures/bounded-filesystem.ts` and `overlay-bounded.test.ts` for adapter conformance: reject whole-file I/O, assert at most 64 KiB per retained transfer, check sink backpressure, errors, cancellation and staging cleanup. For an actual external adapter, separately instrument persisted bytes and resident transport buffers; mock payload storage must remain zero.
+2. Generate 1, 8, 32 and 128 MiB source files externally using reused 64 KiB chunks. Keep source generation outside the measured isolate. Compute incremental reference digests. Do not lower supported file limits to obtain a passing run.
+3. In fresh and warm isolates execute lower-file chmod/copy-up, copy, overwrite, append, shrink and zero-extension; include reads via retained handles. Verify incremental digests, zero tails, metadata, lower immutability, old-target visibility before publication and complete new-target visibility after publication. Exercise missing/existing targets and exclusive-create collisions.
+4. Measure actual isolate memory with workerd inspector/profiler and Cloudflare's available runtime diagnostics, CPU time from runtime metrics, and monotonic time to the first source read, first sink write, commit and first response byte. Capture baseline and peak memory, including transport queues and external adapter caches. If production peak memory is unavailable, mark that measurement unavailable and do not claim full qualification. Streaming staged publication intentionally delays visible destination bytes until commit; report transfer latency separately from publication latency.
+5. Repeat at concurrency 1, 4 and 8, including a deliberately slow storage sink. Record payload size, concurrency, chunk/queue limits, peak memory, CPU, transfer first-byte latency and commit latency in a table. Expect working memory to depend on concurrency and bounded queues, not total file size. Investigate any payload-proportional growth; measure metadata separately from payload storage.
+6. Abort before acquisition, mid-read, mid-write and immediately before commit. Inject read/write failures and cleanup failures; retry explicit cleanup. Verify source/handle closure, unchanged destination on precommit failure, no visible stage entries and no abandoned owned storage. Race destination replacement and ancestry changes, respecting the backend's advertised isolation boundary. Verify stale retained handles and hardlinks retain their specified identities.
+7. Run meaningful interoperability on Real Node storage separately: copy-up, streamed append, resize, byte digests and cleanup. Label this native interoperability, never Worker memory evidence.
+
+## Evidence and acceptance
+
+Keep temporary logs and profiling captures in `/out` and purge them after recording results in the internal delivery record. Record source revision, commands, backend/version, workload table, instrumentation limitations and any failed case. A Worker backend qualifies only when its security/identity/atomicity checks pass and measured working memory remains bounded across increasing sizes at each concurrency. This plan's existence and deterministic unit results are not a substitute for those measurements.

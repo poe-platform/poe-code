@@ -1,7 +1,7 @@
 import type { FileDescriptor, FileResizeHandle, FileStat, FileSystem, FsOptions, OpenReadFileOptions, OpenResizeFileOptions } from "../../contracts/filesystem.js";
 import { FsError } from "../../contracts/errors.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
-import type { ByteSource } from "../../contracts/io.js";
+import { readBytes } from "../../contracts/io.js";
 import { openRetainedReadFile, openRetainedResizeFile, quotaCapabilities, retainedReadCapabilities, retainedResizeCapabilities } from "../capabilities.js";
 import { admitDirectoryEntries } from "../directory-admission.js";
 import { forwardFileDescriptor, openFileDescriptor } from "../descriptor.js";
@@ -438,11 +438,13 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
     },
     writeStream(path, source, writeOptions) {
       return mutate(async () => {
+        if (fs.capabilities.streamingAppend !== true || !fs.writeStream) throw new FsError("ENOTSUP", { syscall: "writeStream", path });
         const append = writeOptions?.flag === "a" || writeOptions?.flag === "ax";
         if (!append) await fs.writeFile(path, new Uint8Array(), writeOptions);
-        for await (const chunk of source as ByteSource) {
+        else await fs.writeStream(path, (async function* () {})(), writeOptions);
+        for await (const chunk of readBytes(source, writeOptions?.signal)) {
           await assertDelta(path, await existingBytes(fs, path, writeOptions) + chunk.length, writeOptions);
-          await fs.appendFile(path, chunk, writeOptions);
+          await fs.writeStream(path, (async function* () { yield chunk; })(), { ...writeOptions, flag: "a" });
         }
       });
     },
@@ -452,10 +454,10 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
   return new Proxy(Object.create(fs) as FileSystem, {
     get(_target, property) {
       if (property === "publishStagedFileSet" || property === "prepareStagingResolution" || property === "prepareDirectoryAncestry" || property === "publishFileConditional" || property === "removeEntryConditional" || property === "writeFileConditional" || property === "removeFileConditional" || property === "resizeFile" || property === "canonicalizeMissingTarget" || property === "createStagedFile" || property === "publishStagedFile" || property === "removeStagedFile" || property === "prepareDirectory") return undefined;
-      if (property === "capabilities") return quotaCapabilities({ ...retainedResizeCapabilities(fs, retainedReadCapabilities(fs)), ...(typeof fs.open === "function" ? {} : { open: false }) });
+      if (property === "capabilities") return quotaCapabilities({ ...retainedResizeCapabilities(fs, retainedReadCapabilities(fs)), ...(typeof fs.open === "function" ? {} : { open: false }), ...(typeof fs.writeStream === "function" ? {} : { streamingAppend: false }) });
       if (property === "capabilitiesFor") return async (path: string, fsOptions?: FsOptions) => {
         const capabilities = await fs.capabilitiesFor?.(path, fsOptions) ?? fs.capabilities;
-        return quotaCapabilities({ ...retainedResizeCapabilities(fs, retainedReadCapabilities(fs, capabilities)), ...(typeof fs.open === "function" ? {} : { open: false }) });
+        return quotaCapabilities({ ...retainedResizeCapabilities(fs, retainedReadCapabilities(fs, capabilities)), ...(typeof fs.open === "function" ? {} : { open: false }), ...(typeof fs.writeStream === "function" ? {} : { streamingAppend: false }) });
       };
       if (property === "openReadFile") return (path: string, fsOptions: OpenReadFileOptions = {}) => openRetainedReadFile(fs, path, fsOptions);
       const replacement = Reflect.get(mutations, property) as unknown;

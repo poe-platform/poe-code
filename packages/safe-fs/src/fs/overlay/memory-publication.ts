@@ -204,6 +204,12 @@ export class OverlayMemoryPublication {
     };
   }
 
+  replaceContents(source: string, destination: string, guard: () => true): void {
+    const { upper } = this.stores();
+    guard();
+    upper.replaceContents(source, destination);
+  }
+
   async writeFile(path: string, data: Uint8Array, options: ConditionalWriteFileOptions, maxBytes: number, guard?: () => void): Promise<FileStat> {
     const check = this.prepareWrite(path, options);
     check();

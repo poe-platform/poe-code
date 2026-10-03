@@ -146,8 +146,8 @@ export function readOnlyCapabilities(capabilities: FileSystemCapabilities): File
 }
 
 export function quotaCapabilities(capabilities: FileSystemCapabilities): FileSystemCapabilities {
-  const streamingWrite = requireCapabilities(capabilities.write, capabilities.append, !capabilities.readOnly);
-  const streamingAppend = requireCapabilities(capabilities.append, !capabilities.readOnly);
+  const streamingWrite = requireCapabilities(capabilities.write, capabilities.append, capabilities.streamingAppend, !capabilities.readOnly);
+  const streamingAppend = requireCapabilities(capabilities.append, capabilities.streamingAppend, !capabilities.readOnly);
   const { streamingWrite: ignoredWrite, streamingAppend: ignoredAppend, ...rest } = capabilities;
   return Object.freeze({ ...rest, synchronousStagingResolution: false, retainedStagingCleanup: false, retainedStagingWrite: false, atomicStagingAncestry: false, synchronousDirectoryValidation: false, guardedStagingPublication: false, atomicFilePublication: false, descriptorWriteStream: false, atomicResize: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicEntryRemovalReceipt: false, atomicFileStaging: false, atomicDirectoryMetadata: false, trustedOwnedStaging: false,
     ...(streamingWrite === undefined ? {} : { streamingWrite }),

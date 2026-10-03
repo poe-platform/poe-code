@@ -146,8 +146,8 @@ export class OverlayFileSystem implements FileSystem {
       : readable.every((capability) => capability === false) ? false : undefined;
     const retainedRead = streamingRead;
     const streamingWrite = writable && this.#upper.capabilities.streamingWrite === true
-      && this.#upper.capabilities.streamingRead === true
-      && typeof this.#upper.writeStream === "function" && typeof this.#upper.readStream === "function"
+      && retainedReadCapabilities(this.#upper).retainedRead === true
+      && typeof this.#upper.writeStream === "function"
       ? readable.every((capability) => capability === true) ? true : undefined : false;
     const append = !writable || this.#upper.capabilities.append === false ? false
       : this.#upper.capabilities.append === true ? true : undefined;
@@ -169,8 +169,8 @@ export class OverlayFileSystem implements FileSystem {
       ["rename", requireCapabilities(mutation, upper.rename, upper.write)],
       ["copy", requireCapabilities(mutation, upper.write)],
       ["exclusiveCopy", requireCapabilities(mutation, upper.exclusiveCreate)],
-      ["truncate", requireCapabilities(mutation, upper.truncate)],
-      ["streamingAppend", requireCapabilities(mutation, streamingWrite, upper.streamingAppend)],
+      ["truncate", requireCapabilities(mutation, streamingWrite)],
+      ["streamingAppend", requireCapabilities(mutation, streamingWrite)],
       ["randomAccessWrite", requireCapabilities(mutation, upper.randomAccessWrite)],
       ["explicitDirectories", requireCapabilities(upper.explicitDirectories, this.#lower.capabilities.explicitDirectories)],
     ].filter(([, value]) => value !== undefined));
@@ -574,7 +574,7 @@ export class OverlayFileSystem implements FileSystem {
     await this.#upper.utimes(path, stat.atimeMs, stat.mtimeMs, options);
   }
 
-  private async clone(entry: Entry, destination: string, options: FsOptions, streaming = false): Promise<void> {
+  private async clone(entry: Entry, destination: string, options: FsOptions): Promise<void> {
     if (entry.stat.type !== "directory" && ((entry.stat.nlink ?? 1) > 1
       || (entry.backend.capabilities.hardlinks === true && entry.stat.nlink === undefined))) {
       fail("ENOTSUP", entry.path, "copy-up cannot preserve hardlink identity");
@@ -585,17 +585,13 @@ export class OverlayFileSystem implements FileSystem {
       return;
     }
     if (entry.stat.type === "directory") await this.#upper.mkdir(destination, { ...options, mode: entry.stat.mode & 0o7777 });
-    else if (streaming && entry.backend.readStream && entry.backend.capabilities.streamingRead !== false && this.#upper.writeStream) {
+    else {
+      if (this.#upper.capabilities.streamingWrite !== true || !this.#upper.writeStream) fail("ENOTSUP", destination, "copy-up requires a streaming upper");
       this.permission(entry, 4);
       if (entry.stat.size > this.maxBufferBytes) fail("EFBIG", entry.path);
-      const handle = await this.pinRead(entry, options);
-      let failed = true;
-      try {
-        const source = this.bounded(this.handleBytes(handle, options), entry.path, options);
-        await this.streamToUpper(destination, source, { ...options, mode: 0o600, flag: "wx" });
-        failed = false;
-      } finally { await finishCleanup(() => handle.close(), failed); }
-    } else await this.#upper.writeFile(destination, await this.bytes(entry, options), { ...options, mode: 0o600, flag: "wx" });
+      await this.streamToUpper(destination, this.bounded(this.entryBytes(entry, options), entry.path, options),
+        { ...options, mode: 0o600, flag: "wx" });
+    }
     await this.preserve(destination, entry.stat, options);
   }
 
@@ -670,10 +666,10 @@ export class OverlayFileSystem implements FileSystem {
     return location;
   }
 
-  private async replace(location: Location, options: FsOptions, operation: (temporary: string) => Promise<void>, streaming = false, commitGuard?: () => true): Promise<void> {
+  private async replace(location: Location, options: FsOptions, operation: (temporary: string) => Promise<void>, commitGuard?: () => true): Promise<void> {
     await this.parent(location.path, options);
     await this.staged(options, async (temporary) => {
-      if (location.entry) await this.clone(location.entry, temporary, options, streaming);
+      if (location.entry) await this.clone(location.entry, temporary, options);
       await operation(temporary);
       options.signal?.throwIfAborted();
       commitGuard?.();
@@ -924,9 +920,9 @@ export class OverlayFileSystem implements FileSystem {
         }
       }
       await this.cleanGarbage(false);
-      const bytes = await this.bytes(original, options);
+      if (original.stat.size > this.maxBufferBytes) fail("EFBIG", source);
       await this.replace(target, options, async (temporary) => {
-        await this.#upper.writeFile(temporary, bytes, { ...options, mode: original.stat.mode & 0o7777, flag: "w" });
+        await this.streamToUpper(temporary, this.entryBytes(original, options), { ...options, mode: original.stat.mode & 0o7777, flag: "w" });
         if (this.#upper.chmod) await this.#upper.chmod(temporary, original.stat.mode & 0o7777, options);
         else if (((await this.#upper.lstat(temporary, options)).mode & 0o7777) !== (original.stat.mode & 0o7777)) fail("ENOTSUP", destination);
       });
@@ -991,7 +987,7 @@ export class OverlayFileSystem implements FileSystem {
           await this.#upper.chmod!(entry.path, permissions, controls);
         } else {
           await this.replace({ path: entry.path, entry }, controls,
-            temporary => this.#upper.chmod!(temporary, permissions, controls), false, guard);
+            temporary => this.#upper.chmod!(temporary, permissions, controls), guard);
         }
       });
     }
@@ -1012,14 +1008,27 @@ export class OverlayFileSystem implements FileSystem {
       const entry = await this.required(path, options);
       if (entry.stat.type !== "file") fail("EISDIR", path);
       this.permission(entry, 2);
-      await this.replace({ path: entry.path, entry }, options, async (temporary) => {
-        if (this.#upper.truncate) await this.#upper.truncate(temporary, length, options);
-        else {
-          const previous = await this.#upper.readFile(temporary, { ...options, ...(this.maxBufferBytes === Infinity ? {} : { maxBytes: this.maxBufferBytes }) });
-          const bytes = new Uint8Array(length);
-          bytes.set(previous.subarray(0, length));
-          await this.#upper.writeFile(temporary, bytes, options);
-        }
+      if ((entry.stat.nlink ?? 1) > 1 || (entry.backend.capabilities.hardlinks === true && entry.stat.nlink === undefined)) {
+        fail("ENOTSUP", path, "copy-up cannot preserve hardlink identity");
+      }
+      await this.parent(entry.path, options);
+      await this.staged(options, async (temporary) => {
+        const prefix = this.entryBytes(entry, { ...options, endExclusive: length });
+        const source = async function* () {
+          let written = 0;
+          for await (const chunk of prefix) { written += chunk.byteLength; yield chunk; }
+          while (written < length) {
+            options.signal?.throwIfAborted();
+            const zero = new Uint8Array(Math.min(64 * 1024, length - written));
+            written += zero.byteLength;
+            yield zero;
+          }
+        };
+        await this.streamToUpper(temporary, source(), { ...options, mode: 0o600, flag: "wx" });
+        await this.preserve(temporary, entry.stat, options);
+        await this.#upper.utimes!(temporary, entry.stat.atimeMs, Date.now(), options);
+        options.signal?.throwIfAborted();
+        await this.#upper.rename(temporary, entry.path, options);
       });
     });
   }
@@ -1058,7 +1067,7 @@ export class OverlayFileSystem implements FileSystem {
   }
 
   private async streamToUpper(path: string, source: ByteSource, options: WriteFileOptions): Promise<void> {
-    if (!this.#upper.writeStream) fail("ENOTSUP", path);
+    if (!this.#upper.writeStream || this.#upper.capabilities.streamingWrite !== true) fail("ENOTSUP", path);
     const input = readBytes(source, options.signal);
     let failed = false;
     try { await this.#upper.writeStream(path, input, options); }
@@ -1066,37 +1075,67 @@ export class OverlayFileSystem implements FileSystem {
     finally { await finishCleanup(() => input.return(undefined), failed); }
   }
 
+  private async *entryBytes(entry: Entry, options: ReadStreamOptions): AsyncGenerator<Uint8Array> {
+    this.permission(entry, 4);
+    const handle = this.activeStages.has(dirname(entry.path)) && entry.backend === this.#upper
+      ? await openRetainedReadFile(this.#upper, entry.path, options) : await this.pinRead(entry, options);
+    let failed = true;
+    try {
+      if (compareIdentity(await handle.stat(options), entry.stat) !== "same") fail("EAGAIN", entry.path);
+      yield* this.handleBytes(handle, options);
+      failed = false;
+    }
+    finally { await finishCleanup(() => handle.close(), failed); }
+  }
+
   async writeStream(path: string, source: ByteSource, options: WriteFileOptions = {}): Promise<void> {
     options.signal?.throwIfAborted();
     this.writeOptions(path, options);
+    if (this.capabilities.streamingWrite === false) fail("ENOTSUP", path, "streaming requires retained reads and a streaming upper");
     await this.run(options, () => this.writeLocation(path, options));
-    if (this.capabilities.streamingWrite !== false) {
-      await this.staged(options, async (incoming) => {
-        const bounded = this.bounded(source, path, options);
-        await this.streamToUpper(incoming, bounded, { ...options, flag: "wx", mode: 0o600 });
-        const size = (await this.#upper.stat(incoming, options)).size;
-        await this.run(options, async () => {
-          const location = await this.writeLocation(path, options);
-          const append = options.flag === "a" || options.flag === "ax";
-          if (append && (location.entry?.stat.size ?? 0) + size > this.maxBufferBytes) fail("EFBIG", path);
-          if (this.publication.supported() && location.entry?.backend === this.#upper) {
-            const bytes = await this.#upper.readFile(incoming, options);
-            const parent = await this.required(dirname(location.path), options);
-            await this.publication.writeFile(location.path, bytes, {
-              ...options, parent: this.publication.stat(parent.path, parent.stat),
-              expected: this.publication.stat(location.path, location.entry.stat), append,
-            }, this.maxBufferBytes);
-          } else {
-            await this.replace(location, options, async (temporary) => {
-              await this.streamToUpper(temporary, this.#upper.readStream!(incoming, options), { ...options, flag: append ? "a" : "w" });
-            }, true);
+    await this.staged(options, async (incoming) => {
+      await this.streamToUpper(incoming, this.bounded(source, path, options), { ...options, flag: "wx", mode: 0o600 });
+      const incomingEntry = { path: incoming, backend: this.#upper, stat: await this.#upper.lstat(incoming, options) };
+      await this.run(options, async () => {
+        const location = await this.writeLocation(path, options);
+        const append = options.flag === "a" || options.flag === "ax";
+        if (append && (location.entry?.stat.size ?? 0) + incomingEntry.stat.size > this.maxBufferBytes) fail("EFBIG", path);
+        if (this.publication.supported() && location.entry?.backend === this.#upper) {
+          const parent = await this.required(dirname(location.path), options);
+          const controls = { ...options, parent: this.publication.stat(parent.path, parent.stat),
+            expected: this.publication.stat(location.path, location.entry.stat) };
+          const guard = this.publication.prepareWrite(location.path, controls);
+          if (append) {
+            await this.staged(options, async temporary => {
+              const previous = this.entryBytes(location.entry!, options);
+              const added = this.entryBytes(incomingEntry, options);
+              await this.streamToUpper(temporary, (async function* () { yield* previous; yield* added; })(), { ...options, flag: "wx", mode: 0o600 });
+              this.publication.replaceContents(temporary, location.path, guard);
+            });
+          } else this.publication.replaceContents(incoming, location.path, guard);
+        } else {
+          if (location.entry && ((location.entry.stat.nlink ?? 1) > 1
+            || (location.entry.backend.capabilities.hardlinks === true && location.entry.stat.nlink === undefined))) {
+            fail("ENOTSUP", path, "copy-up cannot preserve hardlink identity");
           }
-        });
+          await this.parent(location.path, options);
+          await this.staged(options, async temporary => {
+            const previous = append && location.entry ? this.entryBytes(location.entry, options) : undefined;
+            const added = this.entryBytes(incomingEntry, options);
+            await this.streamToUpper(temporary, (async function* () { if (previous) yield* previous; yield* added; })(),
+              { ...options, flag: "wx", mode: location.entry ? 0o600 : options.mode ?? 0o666 });
+            if (location.entry) {
+              await this.preserve(temporary, location.entry.stat, options);
+              await this.#upper.utimes!(temporary, location.entry.stat.atimeMs, Date.now(), options);
+            }
+            options.signal?.throwIfAborted();
+            await this.#upper.rename(temporary, location.path, options);
+            this.linkMetadata.delete(location.path);
+            this.linkOrigins.delete(location.path);
+          });
+        }
       });
-      return;
-    }
-    const bytes = await collectBytes(source, { ...(this.maxBufferBytes === Infinity ? {} : { maxBytes: this.maxBufferBytes }), ...(options.signal ? { signal: options.signal } : {}) });
-    await this.writeFile(path, bytes, options);
+    });
   }
 }
 

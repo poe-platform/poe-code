@@ -184,8 +184,8 @@ export class S3FileSystem implements FileSystem {
       atomicRenameNoReplace: false,
       rename: this.allowRename && options.transport.capabilities?.conditionalDelete === true
         && (options.transport.capabilities?.conditionalCopy === true || options.transport.capabilities?.conditionalPut === true),
-      streamingAppend: options.transport.capabilities?.streamingWrite === true
-        && options.transport.capabilities?.conditionalPut === true && typeof options.transport.putObjectStream === "function",
+      // Conditional append currently collects the old and incoming bodies.
+      streamingAppend: false,
       randomAccessWrite: false,
       readOnly: options.readOnly ?? false,
       symlinks: false, hardlinks: false, permissions: false,

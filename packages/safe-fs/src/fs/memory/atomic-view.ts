@@ -2,6 +2,7 @@ import type { FileStat, FileSystem } from "../../contracts/filesystem.js";
 
 /** Internal authority: inspections and stock mutations share one JavaScript turn. */
 export interface MemoryAtomicView {
+  replaceContents(source: string, destination: string): void;
   stat(path: string): FileStat | undefined;
   names(path: string): readonly string[];
 }

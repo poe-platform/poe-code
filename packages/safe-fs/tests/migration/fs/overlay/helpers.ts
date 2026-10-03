@@ -1,6 +1,6 @@
 import type { FileSystem } from "../../../../src/contracts/index.js";
 
-export function wrapped(backend: FileSystem, overrides: Partial<FileSystem>): FileSystem {
+export function wrapped(backend: FileSystem, overrides: { [Key in keyof FileSystem]?: FileSystem[Key] | undefined }): FileSystem {
   return new Proxy(backend, {
     get(target, property) {
       if (Object.hasOwn(overrides, property)) return Reflect.get(overrides, property);

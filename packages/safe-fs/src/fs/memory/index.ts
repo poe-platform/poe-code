@@ -785,6 +785,20 @@ export class MemoryFileSystem implements FileSystem {
       }
     }
     return owner.atomicView ??= {
+      replaceContents: (source: string, destination: string) => {
+        const from = this.entry(source, "overlayAtomicView").node;
+        const to = this.entry(destination, "overlayAtomicView").node;
+        if (from?.type !== "file" || to?.type !== "file" || from === to || from.nlink !== 1) this.fail("EINVAL", "overlayAtomicView", destination);
+        this.permission(to, 2, "overlayAtomicView", destination);
+        // Exchange owned storage, preserving destination inode/hardlinks and
+        // retained allocation snapshots. Stage cleanup releases the old contents.
+        const allocation = to.allocation, length = to.byteLength;
+        to.allocation = from.allocation; to.byteLength = from.byteLength;
+        from.allocation = allocation; from.byteLength = length;
+        to.view = undefined; from.view = undefined;
+        to.sourceRef = undefined; from.sourceRef = undefined;
+        this.changed(to); this.changed(from);
+      },
       stat: (path: string) => {
         this.validatePath(path, "overlayAtomicView");
         let node: MemoryNode | undefined = this.root;

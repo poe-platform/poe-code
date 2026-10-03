@@ -1,0 +1,159 @@
+[
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "csv",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "key,title,key,body\nold,Hello,new,World\nfirst,Only\n\nlast,\"a,b\",actual,\"two\nlines\"\n",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "Hello World",
+        "Only "
+      ],
+      [
+        "a,b two\nlines"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "None",
+        "content": "Only "
+      },
+      {
+        "id": "actual",
+        "content": "a,b two\nlines"
+      },
+      {
+        "id": "new",
+        "content": "Hello World"
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "tsv",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db",
+      "--prefix",
+      "p:",
+      "--prepend",
+      "T:"
+    ],
+    "input": "﻿id\ttitle\tbody\r\n1\t\"hello\r\nworld\"\t🙂\r\n2\tempty\t\r\n",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "T:hello\nworld 🙂",
+        "T:empty "
+      ]
+    ],
+    "rows": [
+      {
+        "id": "p:1",
+        "content": "T:hello\nworld 🙂"
+      },
+      {
+        "id": "p:2",
+        "content": "T:empty "
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "csv",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db",
+      "--batch-size",
+      "0"
+    ],
+    "input": "id,text\n1,hello\n2,world\n3,end\n",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "hello",
+        "world"
+      ],
+      [
+        "end"
+      ]
+    ],
+    "rows": [
+      {
+        "id": "1",
+        "content": "hello"
+      },
+      {
+        "id": "2",
+        "content": "world"
+      },
+      {
+        "id": "3",
+        "content": "end"
+      }
+    ]
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "csv",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "id,text\n",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [],
+    "rows": []
+  },
+  {
+    "args": [
+      "docs",
+      "-",
+      "--format",
+      "csv",
+      "-m",
+      "e",
+      "--store",
+      "-d",
+      "/db"
+    ],
+    "input": "",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [],
+    "rows": []
+  }
+]

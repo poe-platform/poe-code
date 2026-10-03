@@ -7,6 +7,7 @@ import type {LlmCollectionCommands} from './collections-command-types.js';
 import {embeddingCommand} from './embed-command.js';
 import {acquireEmbeddingInput} from './embed-source.js';
 import {similarCommand} from './similar-command.js';
+import {embedMultiCommand} from './embed-multi-command.js';
 import type {LlmInputSource,LlmOption} from './types.js';
 
 class EmbeddingCommandError extends Error {}
@@ -26,6 +27,7 @@ export function createLlmCollectionCommands(options:{readonly maxFileBytes:numbe
  return {async execute(invocation){
   const {context,tokens,write,diagnostic,step,maxConfigurationBytes,maxInputBytes,service,admit,command:group}=invocation;
   if(group==='similar')return similarCommand(invocation,{...limits,now});
+  if(group==='embed-multi')return embedMultiCommand(invocation,{...limits,now});
   const encoder=new TextEncoder();
   const emit=async(text:string)=>{for(let offset=0;offset<text.length;){await step();let end=Math.min(offset+4096,text.length);const last=text.charCodeAt(end-1);if(end<text.length&&last>=0xd800&&last<=0xdbff)end--;await write(encoder.encode(text.slice(offset,end)));offset=end;}};
   if(group==='embed')return embeddingCommand(context,service,tokens,write,diagnostic,step,admit,maxConfigurationBytes,async request=>{

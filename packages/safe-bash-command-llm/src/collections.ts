@@ -10,6 +10,7 @@ export type {LlmCollectionSimilarOptions,LlmCollectionSimilarity,LlmCollectionFi
 import {LlmCollectionDoesNotExist} from './collections-errors.js';
 export {LlmCollectionDoesNotExist} from './collections-errors.js';
 export {createLlmCollectionCommands} from './collections-command.js';
+export {withCsvEmbeddingEntries} from './import-csv.js';
 export type {LlmCollectionCommands} from './collections-command-types.js';
 import {sourceBytes} from './request-source.js';
 

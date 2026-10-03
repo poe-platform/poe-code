@@ -1,4 +1,5 @@
 export {transactSqlite} from './sqlite-transaction.js';
+export {createPrivateSqliteStorage} from './sqlite-private.js';
 export {withPrivateSqliteSession, type PrivateSqliteSession} from './sqlite-session.js';
 export {withSqliteStatement, type SqliteStatement, type SqliteBinding, type SqliteColumn} from './sqlite-statement.js';
 export {readSqliteBlob} from './sqlite-blob-read.js';

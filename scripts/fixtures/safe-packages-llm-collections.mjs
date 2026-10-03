@@ -1,5 +1,5 @@
 import { MemoryFileSystem } from "@poe-platform/safe-fs/core";
-import { withLlmCollections, createLlmCollectionCommands } from "@poe-platform/safe-bash/commands/llm/collections";
+import { withLlmCollections, createLlmCollectionCommands, withCsvEmbeddingEntries } from "@poe-platform/safe-bash/commands/llm/collections";
 import { createLlmService, llmCommands } from "@poe-platform/safe-bash/commands/llm";
 import { legacyCollectionDatabases } from "./safe-packages-llm-collections-reference.mjs";
 import { Shell } from "@poe-platform/safe-bash/shell";
@@ -11,6 +11,19 @@ export async function verifyLlmCollections() {
     maxFileBytes: 1048576, maxIndexBytes: 1048576, maxOpenFiles: 8,
     now: () => new Date("2026-10-02T00:00:00Z") };
   const created = await withLlmCollections(options, async catalog => catalog.collection("documents", { model: "embed" }));
+  let importedBytes=0;
+  await withCsvEmbeddingEntries({...options,directory:'/'},{async *[Symbol.asyncIterator](){
+    yield new TextEncoder().encode('id,body\nlarge,"');
+    const chunk=new Uint8Array(4096).fill(120);for(let index=0;index<1024;index++)yield chunk;
+    yield new TextEncoder().encode('"\n');
+  }},async entries=>{
+    for await(const entry of entries){
+      if(entry.id!=='large')throw new Error('Large CSV ID mismatch');
+      for await(const bytes of entry.input.bytes){if(bytes.length>16384)throw new Error('Unbounded CSV field chunk');importedBytes+=bytes.length;}
+      await entry.input.dispose();
+    }
+  });
+  if(importedBytes!==4194304)throw new Error('Large CSV field was truncated');
   if (!created.committed || created.cleanupErrors.length || created.value.model !== "embed") throw new Error("Collection creation failed");
   await withLlmCollections(options, async catalog => {
     const existing = await catalog.collection("documents", { create: false });
@@ -71,6 +84,13 @@ export async function verifyLlmCollections() {
     if(listed.exitCode!==0||JSON.stringify(JSON.parse(listed.stdout))!==JSON.stringify([{name:'cli',model:'embed',num_embeddings:1}]))throw new Error('Collection CLI list failed');
     const similar=await cliShell.exec('llm similar cli -c query -d /cli.db');
     if(similar.exitCode!==0||JSON.parse(similar.stdout).id!=='one'||JSON.parse(similar.stdout).content!=='hello')throw new Error(`Similarity CLI failed: ${similar.stderr}`);
+    await fs.writeFile('/input.csv',new TextEncoder().encode('key,title,key,body\nold,Hello,new,World\nfirst,Only\n'));
+    const imported=await cliShell.exec('llm embed-multi imported /input.csv --format csv -m embed --store -d /cli.db --batch-size 1');
+    if(imported.exitCode!==0||imported.stdout!=='Embedding\n')throw new Error(`CSV import failed: ${imported.stderr}`);
+    const neighbors=await cliShell.exec('llm similar imported -c query -d /cli.db');
+    const records=neighbors.stdout.trim().split('\n').map(JSON.parse).sort((a,b)=>a.id.localeCompare(b.id));
+    if(neighbors.exitCode!==0||JSON.stringify(records.map(row=>[row.id,row.content]))!==JSON.stringify([['new','Hello World'],['None','Only ']].sort((a,b)=>a[0].localeCompare(b[0]))))throw new Error(`CSV import readback failed: ${neighbors.stderr}`);
+    await fs.unlink('/input.csv');
     const deleted=await cliShell.exec('llm collections delete cli -d /cli.db');
     if(deleted.exitCode!==0)throw new Error('Collection CLI delete failed');
   }finally{await cliShell.dispose();}

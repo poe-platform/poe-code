@@ -1507,7 +1507,8 @@
             "@poe-code/safe-fs": "*",
             "safe-bash-mime-engine": "*",
             "safe-bash-checksum-engine": "*",
-            "safe-bash-sqlite-engine": "*"
+            "safe-bash-sqlite-engine": "*",
+            "safe-bash-csv-engine": "*"
           },
           "portable": true,
           "peerDependencies": {

@@ -200,6 +200,12 @@ backpressure to the input iterator; failed or cancelled spooling cleans up
 without replacing the original error. The injected backend must support retained
 staging writes and cleanup. This primitive does not publish output destinations.
 
+`encodePortableBitmapChunks(format, width, height, rgbaChunks, options)` emits
+PPM, PGM or PBM from incremental RGBA input, using a fixed output buffer rather
+than a full image. It preserves grayscale rounding, monochrome row padding and
+white padding for missing samples. `chunkBytes`, `maxOutputBytes` and `signal`
+control chunk size, admission and cancellation; the codec is filesystem-independent.
+
 `PdfStagedOutputs.create(storage, entries, options)` stages named chunk producers
 without keeping their payloads in memory. `entries()` returns names, sizes and
 streaming `contents()` readers after every producer succeeds. Repeated names keep

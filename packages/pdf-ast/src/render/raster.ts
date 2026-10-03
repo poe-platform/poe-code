@@ -1,3 +1,4 @@
+import { encodePortableBitmapSteps } from "./portable-bitmap-stream.js";
 import { getStandardFontOutlines } from "../fonts/standard-outlines.js";
 import { encodeToXmlString, PageViewport } from "../vendor/pdfjs-fonts.mjs";
 import { parseCosDocument, type ParsedCosDocument } from "../cos/parser.js";
@@ -486,38 +487,11 @@ export function *encodeJpegSteps(bitmap: RgbaBitmap, quality = 90): Generator<vo
 }
 
 export function *encodePpmSteps(bitmap: RgbaBitmap): Generator<void, Uint8Array, void> {
-  let work = 0;
-  const w = Math.max(1, bitmap.width);
-  const h = Math.max(1, bitmap.height);
-  const header = new TextEncoder().encode(`P6\n${w} ${h}\n255\n`);
-  const out = new Uint8Array(header.length + w * h * 3);
-  out.set(header, 0);
-  let dst = header.length;
-  for (let i = 0; i < w * h; i++) {
-    if (++work % 16384 === 0) yield;
-    out[dst++] = bitmap.data[i * 4] ?? 255;
-    out[dst++] = bitmap.data[i * 4 + 1] ?? 255;
-    out[dst++] = bitmap.data[i * 4 + 2] ?? 255;
-  }
-  return out;
+  return yield* encodePortableBitmapSteps("ppm", bitmap);
 }
 
 export function *encodePgmSteps(bitmap: RgbaBitmap): Generator<void, Uint8Array, void> {
-  let work = 0;
-  const w = Math.max(1, bitmap.width);
-  const h = Math.max(1, bitmap.height);
-  const header = new TextEncoder().encode(`P5\n${w} ${h}\n255\n`);
-  const out = new Uint8Array(header.length + w * h);
-  out.set(header, 0);
-  let dst = header.length;
-  for (let i = 0; i < w * h; i++) {
-    if (++work % 16384 === 0) yield;
-    const r = bitmap.data[i * 4] ?? 255;
-    const g = bitmap.data[i * 4 + 1] ?? 255;
-    const b = bitmap.data[i * 4 + 2] ?? 255;
-    out[dst++] = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
-  }
-  return out;
+  return yield* encodePortableBitmapSteps("pgm", bitmap);
 }
 
 function *encodePackBitsRowSteps(row: Uint8Array): Generator<void, number[], void> {
@@ -655,37 +629,7 @@ export function *encodeTiffSteps(
 }
 
 export function *encodePbmSteps(bitmap: RgbaBitmap): Generator<void, Uint8Array, void> {
-  let work = 0;
-  const w = Math.max(1, bitmap.width);
-  const h = Math.max(1, bitmap.height);
-  const header = new TextEncoder().encode(`P4\n${w} ${h}\n`);
-  const rowBytes = Math.ceil(w / 8);
-  const out = new Uint8Array(header.length + rowBytes * h);
-  out.set(header, 0);
-  let dst = header.length;
-  for (let y = 0; y < h; y++) {
-    if (++work % 16384 === 0) yield;
-    for (let bx = 0; bx < rowBytes; bx++) {
-    if (++work % 16384 === 0) yield;
-      let byteVal = 0;
-      for (let bit = 0; bit < 8; bit++) {
-    if (++work % 16384 === 0) yield;
-        const x = bx * 8 + bit;
-        if (x < w) {
-          const idx = (y * w + x) * 4;
-          const lum =
-            0.299 * (bitmap.data[idx] ?? 255) +
-            0.587 * (bitmap.data[idx + 1] ?? 255) +
-            0.114 * (bitmap.data[idx + 2] ?? 255);
-          if (lum < 128) {
-            byteVal |= 1 << (7 - bit);
-          }
-        }
-      }
-      out[dst++] = byteVal;
-    }
-  }
-  return out;
+  return yield* encodePortableBitmapSteps("pbm", bitmap);
 }
 
 export function *rotateRgbaBitmapQuarterTurnsSteps(bitmap: RgbaBitmap, degrees: number): Generator<void, RgbaBitmap, void> {

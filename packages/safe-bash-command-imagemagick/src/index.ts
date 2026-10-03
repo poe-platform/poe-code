@@ -14,7 +14,7 @@ import {
   type CommandContext,
   type CommandDefinition
 } from "safe-bash-contracts/command";
-import { readBytes, writeBytes } from "safe-bash-contracts/io";
+import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { transformStoredImage,type StoredRgbaImage, UnsupportedStoredResource, decodeImage, decodePngToCanvas, FONT_5X7, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, modulateImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, tintImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
@@ -4077,7 +4077,17 @@ async function drainIdentifySteps<T>(steps:Generator<IdentifyStep,T,void>,signal
  finally{steps.return(undefined as T);}
 }
 
-function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal, reader?:IdentifyFileReader): Generator<IdentifyStep, ImageMagickCliResult, void> {
+async function writeIdentifyText(sink: ByteSink, text: string, signal?: AbortSignal): Promise<void> {
+    const encoder = new TextEncoder();
+    for (let offset = 0; offset < text.length;) {
+        const bytes = new Uint8Array(4096);
+        // One extra UTF-16 code unit keeps a surrogate pair intact at the slice boundary.
+        const { read, written } = encoder.encodeInto(text.slice(offset, offset + 4097), bytes);
+        await writeBytes(sink, bytes.subarray(0, written), signal);
+        offset += read;
+    }
+}
+function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal, reader?:IdentifyFileReader, output?:Pick<IdentifyFileInput,"stdout"|"stderr">): Generator<IdentifyStep, ImageMagickCliResult, void> {
     const listRes = tryHandleMagickListOption(argv);
     if (listRes) return listRes;
     let cooperativeWork = 63;
@@ -4124,6 +4134,13 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     }
     const outParts: string[] = [];
     const errParts: string[] = [];
+    const flush = function* (): Generator<IdentifyStep, void, void> {
+        for (const [sink, parts] of [[output?.stdout, outParts], [output?.stderr, errParts]] as const) {
+            if (!sink) continue;
+            for (const text of parts) yield { async run() { await writeIdentifyText(sink, text, signal); } };
+            parts.length = 0;
+        }
+    };
     let exitCode = 0;
     for (const inPath of targets) {
         yield;
@@ -4140,6 +4157,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         if (!bytes&&!inspected) {
             errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
             exitCode = 1;
+            yield* flush();
             continue;
         }
         try {
@@ -4175,6 +4193,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             errParts.push(`identify: improper image header '${inPath}': ${(err as Error).message}\n`);
             exitCode = 1;
         }
+        yield* flush();
     }
     return {
         exitCode,
@@ -4185,7 +4204,11 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
 export async function runIdentifyCli(argv: readonly string[], files: Map<string, Uint8Array>|IdentifyFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
     if(files instanceof Map)return drainIdentifySteps(runIdentifyCliSteps(argv,files,stdinBytes,signal),signal);
     const active=signal??new AbortController().signal;
-    return withIdentifyFiles(files,stdinBytes,active,reader=>drainIdentifySteps(runIdentifyCliSteps(argv,new Map(),stdinBytes,active,reader),active));
+    const result = await withIdentifyFiles(files,stdinBytes,active,reader=>drainIdentifySteps(runIdentifyCliSteps(argv,new Map(),stdinBytes,active,reader,files),active));
+    for (const channel of ["stdout", "stderr"] as const) {
+        if (files[channel]) await writeIdentifyText(files[channel]!, result[channel], active);
+    }
+    return { ...result, stdout: files.stdout ? "" : result.stdout, stderr: files.stderr ? "" : result.stderr };
 }
 export function runIdentifyCliSync(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): ImageMagickCliResult {
     const steps = runIdentifyCliSteps(argv, files, stdinBytes, signal);
@@ -6236,7 +6259,7 @@ async function executeVfsMagickTool(
       return {exitCode:result.exitCode};
     }
     if(runner===runIdentifyCli||(runner===runMagickCli&&argv[0]==="identify")){
-      const result=await runIdentifyCli(runner===runMagickCli?argv.slice(1):argv,{filesystem:context.fs,cwd:context.cwd,stdin:context.stdin,inputBudget:{check(total){chargeInput(total-accountedBytes);}}},undefined,invocation.signal);
+      const result=await runIdentifyCli(runner===runMagickCli?argv.slice(1):argv,{filesystem:context.fs,cwd:context.cwd,stdin:context.stdin,stdout:invocation.child(context.stdout).output,stderr:context.stderr,inputBudget:{check(total){chargeInput(total-accountedBytes);}}},undefined,invocation.signal);
       if(result.stderr)await writeBytes(context.stderr,new TextEncoder().encode(result.stderr),invocation.signal);
       if(result.stdout)await writeBytes(invocation.child(context.stdout).output,new TextEncoder().encode(result.stdout),invocation.signal);
       return {exitCode:result.exitCode};

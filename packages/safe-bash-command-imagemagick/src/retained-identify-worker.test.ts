@@ -28,7 +28,7 @@ it.each([false, true])("inspects raster statistics in Workerd with external back
  async createStagedFile(path,name){const file={id:String(++id),size:0},filePath=path+'/'+name;files.set(filePath,file);return {parent:{path:'/',stat:parent},directory:{path,stat:parent},file:{path:filePath,stat:stat(file)},writer:{async write(chunk){if(chunk.length>65536)throw new Error('large write');await env.BACKING.fetch('https://backing/'+file.id+'?position='+file.size,{method:'PUT',body:chunk});file.size+=chunk.length;},async finish(){return stat(file);}},cleanup:{async remove(){files.delete(filePath);removed++;await env.BACKING.fetch('https://backing/'+file.id,{method:'DELETE'});},async close(){}}};},
  readFile(){throw new Error('whole input');},writeFile(){throw new Error('whole output');}};
  const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;maxAllocation=Math.max(maxAllocation,length);if(length>65536)throw new Error('unbounded identify allocation '+length);return Reflect.construct(target,args);}});
- try{const metadata=await runIdentifyCli(['-verbose','/input'],{filesystem:fs,cwd:'/'});const formatted=await runIdentifyCli(['-format','%m %wx%h %b %% %[channels] %[mean] %[opaque] %[bit-depth] %[type] %[standard-deviation] %[fx:p{600,600}.r] %[pixel:p{23,7}] %[hex:p{p{0,0}.r*600,500}]','/input'],{filesystem:fs,cwd:'/'});return Response.json({metadata,formatted,opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
+ try{const metadata=await runIdentifyCli(['-verbose','/input'],{filesystem:fs,cwd:'/'});const formatted=await runIdentifyCli(['-format','%m %wx%h %b %% %[channels] %[mean] %[opaque] %[bit-depth] %[type] %[standard-deviation] %[fx:p{600,600}.r] %[pixel:p{23,7}] %[hex:p{p{0,0}.r*600,500}]','/input'],{filesystem:fs,cwd:'/'});let outputBytes=0,outputChunks=0;const streamedResult=await runIdentifyCli(['-format','x'.repeat(4095)+'😀'+'é😀'.repeat(5000),'/input'],{filesystem:fs,cwd:'/',stdout:{async write(bytes){if(bytes.length>4096)throw new Error('unbounded identify output');outputBytes+=bytes.length;outputChunks++;}}});return Response.json({metadata,formatted,streamedResult,outputBytes,outputChunks,opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
  }};` }, bundle: true, write: false, platform: "browser", conditions: ["workerd"], format: "esm", metafile: true, logLevel: "silent" });
     expect(Object.values(bundle.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
     const backing = new Map<string, Uint8Array>([["/input", bytes]]);
@@ -52,7 +52,7 @@ it.each([false, true])("inspects raster statistics in Workerd with external back
         if (response.status !== 200)
             throw new Error(await response.text());
         const result = await response.json() as {
-            metadata: unknown; formatted: unknown;
+            metadata: unknown; formatted: unknown; streamedResult: unknown; outputBytes: number; outputChunks: number;
             opened: number;
             closed: number;
             removed: number;
@@ -65,7 +65,10 @@ it.each([false, true])("inspects raster statistics in Workerd with external back
         expect(result.formatted).toEqual(expectedFormat);
         expect(result.opened).toBeGreaterThan(1);
         expect(result.closed).toBe(result.opened);
-        expect(result.removed).toBe(result.opened - 2);
+        expect(result.removed).toBe(result.opened - 3);
+        expect(result.streamedResult).toEqual({ exitCode: 0, stdout: "", stderr: "" });
+        expect(result.outputBytes).toBe(new TextEncoder().encode("x".repeat(4095) + "😀" + "é😀".repeat(5000)).length);
+        expect(result.outputChunks).toBeGreaterThan(8);
         expect(result.files).toBe(1);
         expect(result.reads).toBeGreaterThan(8);
         expect(result.maxAllocation).toBeLessThanOrEqual(65536);

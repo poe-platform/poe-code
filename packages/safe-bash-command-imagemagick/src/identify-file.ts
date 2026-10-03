@@ -3,7 +3,11 @@ import { readImageMetadataFromSource, tryPdfMetadata, decodeImageToStorage, comp
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { FsError } from "@poe-code/safe-fs/contracts";
 import { drainCooperativeSteps } from "safe-bash-contracts/yield";
-export type IdentifyFileInput = ImageFileInput;
+import type { ByteSink } from "safe-bash-contracts/io";
+export interface IdentifyFileInput extends ImageFileInput {
+    readonly stdout?: ByteSink;
+    readonly stderr?: ByteSink;
+}
 export type IdentifyInspection = {
     readonly metadata: ImageMetadata;
     readonly size: number;

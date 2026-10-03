@@ -146,6 +146,7 @@ export const canonicalFs = {
   routes: [
     ...canonicalFsRoutes,
     { workspace: "@poe-code/safe-fs/runtime-core", specifier: "poe-code/safe-fs/core" },
+    { workspace: "@poe-code/safe-fs/storage", specifier: "poe-code/safe-fs/core" },
     { workspace: "@poe-code/safe-fs/xml", specifier: "poe-code/safe-fs/core" },
     canonicalXml
   ]

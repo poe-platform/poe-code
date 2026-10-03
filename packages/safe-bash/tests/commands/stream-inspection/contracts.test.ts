@@ -156,7 +156,17 @@ test("VFS fallback passes signal and bounded maxBytes; stream errors retain thei
   const base = createMemoryFileSystem();
   let seenSignal: AbortSignal | undefined, maximum: number | undefined;
   const fs = proxyFs(base, {
-    async readFile(path, options) { seenSignal = options?.signal; maximum = options?.maxBytes; return base.readFile(path, options); },
+    async openReadFile(path, options) {
+      const handle = await base.openReadFile(path, options);
+      return {
+        ...handle,
+        async read(position, maxBytes, readOptions) {
+          seenSignal = readOptions?.signal;
+          maximum ??= maxBytes;
+          return handle.read(position, maxBytes, readOptions);
+        },
+      };
+    },
   });
   const noStream = new Proxy(fs, { get(target, key) { return key === "readStream" ? undefined : Reflect.get(target, key); } });
   const result = await runFixture(fixture("fallback", "tac", ["file"], "", { file: "616263640a" }), { limits: { maxChunkBytes: 8 } }, { fs: noStream });
@@ -202,7 +212,7 @@ test("pending VFS metadata and fallback reads cancel while late host work settle
     const fs = proxyFs(base, operation === "stat" ? {
       stat(_path, options) { signal = options?.signal; started.resolve(); return new Promise((_resolve, reject) => { rejectHost = reject; }); },
     } : {
-      readFile(_path, options) { signal = options?.signal; started.resolve(); return new Promise((_resolve, reject) => { rejectHost = reject; }); },
+      openReadFile(_path, options) { signal = options?.signal; started.resolve(); return new Promise((_resolve, reject) => { rejectHost = reject; }); },
     });
     const fallback = new Proxy(fs, { get(target, key) { return key === "readStream" ? undefined : Reflect.get(target, key); } });
     const running = runFixture(fixture("blocked-vfs", "tac", ["file"], "", { file: "616263640a" }), {}, { fs: fallback, signal: controller.signal });

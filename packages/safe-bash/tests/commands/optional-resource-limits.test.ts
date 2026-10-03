@@ -214,13 +214,15 @@ test("shared buffering and sort record admission have no implicit byte or record
 });
 
 test("shared input and standard cmp omit infinite read bounds on buffered adapters", async () => {
-  const fs = new MemoryFileSystem();
-  await fs.writeFile("/left", Buffer.from("same"));
-  await fs.writeFile("/right", Buffer.from("same"));
-  Object.defineProperty(fs, "readStream", { value: undefined });
-  Object.defineProperty(fs, "openReadFile", { value: undefined });
-  const read = fs.readFile.bind(fs);
-  fs.readFile = (path, options) => { assert.equal(options?.maxBytes, undefined); return read(path, options); };
+  const memory = new MemoryFileSystem();
+  await memory.writeFile("/left", Buffer.from("same"));
+  await memory.writeFile("/right", Buffer.from("same"));
+  const fs = new Proxy(memory, { get(target, key) {
+    if (key === "readStream") return undefined;
+    if (key === "readFile") return () => { throw new Error("whole-file read"); };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
   assert.deepEqual(await run({ name: "cat", async execute(context) {
     for await (const bytes of fileInput(context, "/left")) await context.stdout.write(bytes);
     return { exitCode: 0 };
@@ -340,12 +342,16 @@ test("split accepts an unlimited chunk size for VFS input", async () => {
 });
 
 test("cmp accepts explicit Infinity for streaming and buffered file comparison", async () => {
-  const fs = new MemoryFileSystem();
-  await fs.writeFile("/left", Buffer.from("same"));
-  await fs.writeFile("/right", Buffer.from("same"));
+  const memory = new MemoryFileSystem();
+  await memory.writeFile("/left", Buffer.from("same"));
+  await memory.writeFile("/right", Buffer.from("same"));
   const command = createCmpCommand({ limits: { maxChunkBytes: Infinity, maxFallbackBytes: Infinity } });
-  assert.deepEqual(await run(command, ["/left", "/right"], "", { fs }), { exitCode: 0, stdout: "", stderr: "" });
-  Object.defineProperty(fs, "readStream", { value: undefined });
+  assert.deepEqual(await run(command, ["/left", "/right"], "", { fs: memory }), { exitCode: 0, stdout: "", stderr: "" });
+  const fs = new Proxy(memory, { get(target, key) {
+    if (key === "readStream") return undefined;
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
   assert.deepEqual(await run(command, ["/left", "/right"], "", { fs }), { exitCode: 0, stdout: "", stderr: "" });
 });
 

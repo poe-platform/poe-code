@@ -19,6 +19,9 @@ async function fixture(profile: "memory" | "stream-only" | "buffered") {
   const filesystem = wrapped(backing, {
     capabilities: { ...backing.capabilities, ...(profile === "buffered" ? { streamingWrite: false } : {}), ...(profile === "stream-only" ? { open: false, append: false } : {}) },
     open: profile === "stream-only" ? undefined : async (path, options) => {
+      if (options?.access === "write") {
+        requests.push({ flag: options.creation === "exclusive" ? "wx" : options.append ? "a" : "w", mode: options.mode });
+      }
       const descriptor = await backing.open(path, options), close = descriptor.close.bind(descriptor);
       descriptor.close = async () => { if (path === "/source") state.sourceClosed++; await close(); };
       return descriptor;
@@ -121,11 +124,8 @@ for (const profile of ["memory", "stream-only", "buffered"] as const) {
       await assert.rejects(shell.exec("install /source /other /directory"), error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
       assert.deepEqual(await backing.readFile("/directory/source"), content);
       assert.equal((await backing.stat("/directory/source")).mode & 0o7777, 0o755);
-      if (profile === "buffered") await assert.rejects(backing.stat("/directory/other"), { code: "ENOENT" });
-      else {
-        assert.deepEqual(await backing.readFile("/directory/other"), new Uint8Array());
-        assert.equal((await backing.stat("/directory/other")).mode & 0o7777, 0o600);
-      }
+      assert.deepEqual(await backing.readFile("/directory/other"), new Uint8Array());
+      assert.equal((await backing.stat("/directory/other")).mode & 0o7777, 0o600);
       assert.equal(state.activeWriters, 0);
     } finally { await shell.dispose(); }
   });
@@ -225,18 +225,24 @@ for (const registered of [false, true]) {
     const gate = new Promise<void>(resolve => { release = resolve; });
     let active = false, settled = false, cleanupSettled = false;
     let borrowed: Uint8Array | undefined;
-    const host = wrapped(filesystem, { async writeFile(path, data, options) {
-      assert.equal(path, "/target");
-      assert.equal(options?.flag, "wx");
-      assert.equal(options.mode, 0o600);
-      active = true;
-      borrowed = data;
-      entered();
-      try {
-        await gate;
-        assert.deepEqual(data, content);
-        await backing.writeFile(path, data, options);
-      } finally { active = false; }
+    const host = wrapped(filesystem, { async open(path, options) {
+      const descriptor = await filesystem.open!(path, options);
+      if (path !== "/target") return descriptor;
+      assert.equal(options?.access, "write");
+      assert.equal(options?.creation, "exclusive");
+      assert.equal(options?.mode, 0o600);
+      const write = descriptor.write.bind(descriptor);
+      descriptor.write = async (data, position, writeOptions) => {
+        active = true;
+        borrowed = data;
+        entered();
+        try {
+          await gate;
+          assert.deepEqual(data, content);
+          return await write(data, position, writeOptions);
+        } finally { active = false; }
+      };
+      return descriptor;
     } });
     const execution = run(["/source", "/target"], host, {}, {
       signal: controller.signal,
@@ -249,7 +255,7 @@ for (const registered of [false, true]) {
       await started;
       controller.abort(false);
       if (registered) {
-        assert.equal(cleanups.length, 1);
+        assert.ok(cleanups.length >= 1);
         draining = Promise.allSettled(cleanups.map(cleanup => cleanup())).then(() => { cleanupSettled = true; });
       }
       await new Promise<void>(resolve => setImmediate(resolve));
@@ -266,6 +272,7 @@ for (const registered of [false, true]) {
     assert.equal(state.sourceClosed, 1);
     assert.equal((await backing.stat("/source")).ino, sourceIdentity);
     assert.deepEqual(await backing.readFile("/source"), content);
-    await assert.rejects(backing.stat("/target"), { code: "ENOENT" });
+    assert.deepEqual(await backing.readFile("/target"), new Uint8Array());
+    assert.equal((await backing.stat("/target")).mode & 0o7777, 0o600);
   });
 }

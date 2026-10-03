@@ -86,20 +86,37 @@ for (const option of ["--rawfile", "--slurpfile"]) {
   });
 
   test(`jq ${option} respects per-path streaming capabilities and bounded readFile fallback`, async () => {
-    const fs: FileSystem = new MemoryFileSystem();
-    await fs.writeFile("/data", Buffer.from("1"));
+    const backing = new MemoryFileSystem();
+    await backing.writeFile("/data", Buffer.from("1"));
     const signal = new AbortController().signal;
     const observed: number[] = [];
-    fs.capabilitiesFor = async (path, options) => {
-      assert.equal(path, "/data"); assert.equal(options?.signal, signal);
-      return { ...fs.capabilities, streamingRead: false };
-    };
-    fs.readStream = () => { throw new Error("streaming disabled for path"); };
-    const original = fs.readFile.bind(fs);
-    fs.readFile = async (path, options) => {
-      assert.equal(options?.signal, signal); observed.push(options!.maxBytes!);
-      return original(path, options);
-    };
+    const fs: FileSystem = new Proxy(backing, {
+      get(target, key, receiver) {
+        if (key === "capabilitiesFor") {
+          return async (path: string, options?: { signal?: AbortSignal }) => {
+            assert.equal(path, "/data"); assert.equal(options?.signal, signal);
+            return { ...backing.capabilities, streamingRead: false };
+          };
+        }
+        if (key === "readStream") return () => { throw new Error("streaming disabled for path"); };
+        if (key === "openReadFile") {
+          return async (path: string, options?: { signal?: AbortSignal }) => {
+            assert.equal(options?.signal, signal);
+            const handle = await backing.openReadFile(path, options);
+            return {
+              ...handle,
+              async read(position: number, maxBytes: number, readOptions?: { signal?: AbortSignal }) {
+                assert.equal(readOptions?.signal, signal);
+                if (position === 0) observed.push(maxBytes);
+                return handle.read(position, maxBytes, readOptions);
+              },
+            };
+          };
+        }
+        const value = Reflect.get(target, key, receiver);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
     const result = await run([option, "x", "data", option, "y", "data", "-nc", "[$x,$y]"], unreadable,
       { limits: { maxInputBytes: 64 } }, { fs, signal });
     assert.equal(result.exitCode, 0, result.stderr);

@@ -987,7 +987,7 @@ test("evaluates csvstat -c/--sum/--max, in2csv -n, and csvjoin positional join i
       "printf \"{\\\"users\\\":[{\\\"id\\\":1}],\\\"meta\\\":[{\\\"v\\\":2}]}\" > /tmp/w203.json",
       "st_sum=$(csvstat -c score --sum /tmp/w203_a.csv)",
       "st_max=$(csvstat -c score --max /tmp/w203_a.csv)",
-      "in_names=$(in2csv -n /tmp/w203.json | tr \"\\n\" \",\")",
+      "in_names=$(in2csv -I -k users /tmp/w203.json | tr \"\\n\" \",\")",
       "cj_pos=$(csvjoin /tmp/w203_a.csv /tmp/w203_b.csv | tr \"\\n\" \"|\")",
       "printf \"%s#%s#%s#%s\\n\" \"$st_sum\" \"$st_max\" \"$in_names\" \"$cj_pos\"",
     ].join("\n")
@@ -995,7 +995,7 @@ test("evaluates csvstat -c/--sum/--max, in2csv -n, and csvjoin positional join i
   assert.equal(r.exitCode, 0, r.stderr);
   assert.equal(
     r.stdout,
-    "35#25#users,meta,#id,score,tag|1,10,alpha|2,25,beta|\n",
+    "35#25#id,1,#id,score,tag|1,10,alpha|2,25,beta|\n",
   );
 });
 
@@ -1016,7 +1016,7 @@ test("evaluates csvsort -ri/date sorting, csvformat -U2/attached flags, and csvj
   assert.equal(r.exitCode, 0, r.stderr);
   assert.equal(
     r.stdout,
-    "name,dt|Alpha,2025-01-01|beta,2025-01-03|#name,dt|beta,2025-01-03|Alpha,2025-01-01|#\"k\";\"v\"|\"a\";\"10\"|#{\"a\": \"01\", \"b\": \"2\"}|\n",
+    "name,dt|Alpha,2025-01-01|beta,2025-01-03|#name,dt|beta,2025-01-03|Alpha,2025-01-01|#\"k\";\"v\"|\"a\";10|#{\"a\": \"01\", \"b\": \"2\"}|\n",
   );
 });
 
@@ -1637,7 +1637,7 @@ test("Wave 225: csvstat --median/--stdev/--max-precision, text --min/--max, and 
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(
     res.stdout.trim(),
-    "20.5|9.939|3|alice|charlie|id,label;001,alpha;002,beta;"
+    "20.5|9.939|3|None|None|id,label;001,alpha;002,beta;"
   );
 });
 

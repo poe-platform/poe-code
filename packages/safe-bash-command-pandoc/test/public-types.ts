@@ -37,3 +37,6 @@ const streamedLuaOptions: LuaStreamFilterOptions = {readStream: async function* 
 const streamedLuaFilters = createLuaFilterCapability(streamedLuaOptions);
 void convert([], {...options, filters: [{kind: "lua", path: "filter.lua"}]}, {filters: streamedLuaFilters});
 void pandocCommands({filters: streamedLuaFilters});
+// Existing reader methods retain their original method variance.
+const singleScriptReader: LuaFilterOptions = {readFile: async (_path: "/filter.lua") => new Uint8Array()};
+void createLuaFilterCapability(singleScriptReader);

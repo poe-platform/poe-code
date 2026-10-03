@@ -8,14 +8,14 @@ import type {FilterCapability, Document} from "./types.js";
 
 /** Only trusted scripts: Lua VM allocations are not isolated or metered. */
 export interface LuaFilterOptions {
-  readFile: LuaScriptLoader;
+  readFile(path: string, signal: AbortSignal | undefined): Promise<Uint8Array>;
   /** Sequential source capability; preferred when both readers are supplied. */
   readStream?(path: string, signal: AbortSignal | undefined): AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
 }
 export interface LuaStreamFilterOptions extends Partial<LuaFilterOptions> {
   readStream: NonNullable<LuaFilterOptions["readStream"]>;
 }
-export type LuaScriptLoader = (path: string, signal: AbortSignal | undefined) => Promise<Uint8Array>;
+export type LuaScriptLoader = LuaFilterOptions["readFile"];
 
 /** Each conversion owns a fresh VM without host file, process or module APIs. */
 export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptions | LuaStreamFilterOptions): FilterCapability {

@@ -3331,12 +3331,10 @@ function magickCropArea(img:Pick<RgbaImage,"width"|"height">,geomStr:string,grav
     };
 }
 
-function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    yield;
+function magickExtentLayout(img: Pick<RgbaImage, "width" | "height">, geomStr: string, state: MagickState) {
     const g = parseMagickGeometry(geomStr);
     const targetW = Math.max(1, Math.round(g.width ?? img.width));
     const targetH = Math.max(1, Math.round(g.height ?? img.height));
-    const canvas = (yield* createSolidRgbaImageSteps(targetW, targetH, state.background));
     const offset = resolveGravityOffset(targetW - img.width, targetH - img.height, state.gravity);
     const isEast = state.gravity === "east" || state.gravity === "northeast" || state.gravity === "southeast";
     const isSouth = state.gravity === "south" || state.gravity === "southwest" || state.gravity === "southeast";
@@ -3346,16 +3344,17 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
     const dstY0 = Math.max(0, top);
     const dstX1 = Math.min(targetW, left + img.width);
     const dstY1 = Math.min(targetH, top + img.height);
-    if (dstX1 <= dstX0 || dstY1 <= dstY0) {
-        return canvas;
-    }
-    const subImg = (yield* extractImageSteps(img, {
-        left: dstX0 - left,
-        top: dstY0 - top,
-        width: dstX1 - dstX0,
-        height: dstY1 - dstY0
-    }));
-    return (yield* compositeImageSteps(canvas, [rgbaToCompositeLayer(subImg, dstX0, dstY0, "over")]));
+    return { width: targetW, height: targetH, left: dstX0, top: dstY0, area: dstX1 <= dstX0 || dstY1 <= dstY0 ? undefined : { left: dstX0 - left, top: dstY0 - top, width: dstX1 - dstX0, height: dstY1 - dstY0 } };
+}
+function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    yield;
+    const layout = magickExtentLayout(img, geomStr, state), canvas = yield* createSolidRgbaImageSteps(layout.width, layout.height, state.background);
+    if (!layout.area) return canvas;
+    const subImg = yield* extractImageSteps(img, layout.area);
+    return yield* compositeImageSteps(canvas, [rgbaToCompositeLayer(subImg, layout.left, layout.top, "over")]);
+}
+async function createStoredCanvas(width: number, height: number, color: RgbaColor, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
+    return { ...await decodeImageToStorage({ size: 0, async read() { return new Uint8Array(); } }, backend.storage, signal, { create: { width, height, channels: 4, background: { r: color.r, g: color.g, b: color.b, alpha: color.a / 255 } } }), format: "png" };
 }
 
 function* applyMagickDrawSteps(img: RgbaImage, drawCmd: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -5452,8 +5451,37 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), sigma = Math.max(0.3, geometry.height ?? geometry.width ?? 1);
             const kind = token === "-blur" || token === "-gaussian-blur" ? "blur" : "sharpen";
             transform(() => kind === "blur" ? { kind, sigma } : { kind, sigma, m1: 1, m2: 2 });
-        } else if (!operandsOnly && token === "-border") {
-            const geometry = parseMagickGeometry(tokens[++i] ?? "0x0"), left = Math.max(0, Math.round(geometry.width ?? 0)), top = Math.max(0, Math.round(geometry.height ?? left)), background = state.borderColor;
+        } else if (!operandsOnly && token === "-crop") {
+            const geometry = tokens[++i] ?? "100%", parsed = parseMagickGeometry(geometry), gravity = state.gravity;
+            transform(image => {
+                if (parsed.isSubdivide) {
+                    const columns = Math.max(1, Math.round(parsed.width ?? 1)), rows = Math.max(1, Math.round(parsed.height ?? 1));
+                    const left = Math.min(image.width - 1, Math.round((columns - 1) * image.width / columns)), top = Math.min(image.height - 1, Math.round((rows - 1) * image.height / rows));
+                    return { kind: "extract", left, top, width: image.width - left, height: image.height - top };
+                }
+                const area = magickCropArea(image, geometry, gravity);
+                return area ? { kind: "extract", ...area } : undefined;
+            });
+        } else if (!operandsOnly && token === "-shave") {
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x0"), width = Math.max(0, Math.round(geometry.width ?? 0)), height = Math.max(0, Math.round(geometry.height ?? width));
+            transform(image => { const left = Math.min(Math.floor((image.width - 1) / 2), width), top = Math.min(Math.floor((image.height - 1) / 2), height); return { kind: "extract", left, top, width: Math.max(1, image.width - left * 2), height: Math.max(1, image.height - top * 2) }; });
+        } else if (!operandsOnly && token === "-trim") {
+            const threshold = state.fuzz;
+            transform(() => ({ kind: "trim", threshold }));
+        } else if (!operandsOnly && token === "-median") {
+            const size = Math.max(1, Math.round(Number(tokens[++i] ?? 3)));
+            transform(() => ({ kind: "median", size }));
+        } else if (!operandsOnly && token === "-extent") {
+            const geometry = tokens[++i] ?? "100%", captured = { ...state };
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const layout = magickExtentLayout(image, geometry, captured), canvas = await createStoredCanvas(layout.width, layout.height, captured.background, backend, signal);
+                if (!layout.area) return canvas;
+                const overlay = await transformStoredImage(image, backend.storage, { kind: "extract", ...layout.area }, signal);
+                return transformStoredImage(canvas, backend.storage, { kind: "composite", layers: [{ input: new Uint8Array(), left: layout.left, top: layout.top, blend: "over" }] }, signal, { async readImage() { return overlay; } });
+            });
+        } else if (!operandsOnly && (token === "-border" || token === "-frame")) {
+            const geometry = parseMagickGeometry(tokens[++i] ?? (token === "-frame" ? "4x4" : "0x0")), left = Math.max(0, Math.round(geometry.width ?? (token === "-frame" ? 4 : 0))), top = Math.max(0, Math.round(geometry.height ?? left)), background = state.borderColor;
             transform(() => ({ kind: "extend", left, right: left, top, bottom: top, background, extendWith: "background" }));
         } else {
             if (!operandsOnly && ((token.startsWith("-") && token !== "-") || token.startsWith("+") || token === "(" || token === ")")) return;
@@ -5725,7 +5753,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   image={position,width:state.sizeWidth,height:state.sizeHeight,format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:true};
  }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
   const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(baseToken.slice(baseToken.indexOf(":")+1)||"white"),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
-  image={...await decodeImageToStorage({size:0,async read(){return new Uint8Array();}},backend.storage,signal,{create:{width,height,channels:4,background:{r:color.r,g:color.g,b:color.b,alpha:color.a/255}}}),format:"png"};
+  image=await createStoredCanvas(width,height,color,backend,signal);
  }else if(lower.startsWith("gradient:")||lower.startsWith("radial-gradient:")||lower.startsWith("pattern:")||lower.startsWith("plasma:")){
   const width=Math.max(1,Math.round(state.sizeWidth)),height=Math.max(1,Math.round(state.sizeHeight)),position=backend.storage.allocate(width*height*4);
   const checker=lower.startsWith("pattern:")||lower.startsWith("plasma:"),radial=lower.startsWith("radial-gradient:");

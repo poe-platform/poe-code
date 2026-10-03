@@ -20,11 +20,12 @@ for (const stdout of [false, true])
         expect(bytes.length).toBeGreaterThan(1048576);
         const generated = ["label", "gradient", "radial-gradient", "pattern"].includes(format);
         const operand = format === "label" ? "label:" + "x<&😀".repeat(600) : format === "gradient" || format === "radial-gradient" ? format + ":red-blue" : format === "pattern" ? "pattern:checkerboard" : "/input";
-        const expectedFiles = new Map([["/input", bytes]]), expected = tool === "compare" ? await runCompareCli([operand, operand, "/out.bmp"], expectedFiles) : await runConvertCli(["-size","601x601",operand,"-flip","-gamma","1.4","-colorspace","gray","-modulate","110,90,70","-function","Polynomial","0.5,0.2","-transparent","red","-level","20%,80%,1.3","-negate","-black-threshold","30%","-normalize","-auto-gamma","png:/out.bmp"],expectedFiles);
+        const args = format === "bmp" ? ["-size","601x601",operand,"-flip","-gamma","1.4","-colorspace","gray","-modulate","110,90,70","-function","Polynomial","0.5,0.2","-transparent","red","-level","20%,80%,1.3","-negate","-black-threshold","30%","-normalize","-auto-gamma","-crop","590x590+5+5","-background","#ff00ff80","-gravity","center","-extent","601x601"] : ["-size", "601x601", operand, "-flip", "-gamma", "1.4", "-colorspace", "gray"];
+        const expectedFiles = new Map([["/input", bytes]]), expected = tool === "compare" ? await runCompareCli([operand, operand, "/out.bmp"], expectedFiles) : await runConvertCli([...args, "png:/out.bmp"], expectedFiles);
         const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../../../", import.meta.url)), sourcefile: "pdf-metadata-worker.ts", contents: `
  import {runCompareCli,runConvertCli} from './packages/safe-bash-command-imagemagick/src/index.ts';
  import {FsError} from '@poe-code/safe-fs/contracts';
- export default {async fetch(request,env){const {size,stdout,operand,tool}=await request.json();let outputSize=0;const output={async write(bytes){await env.BACKING.fetch('https://backing/result?position='+outputSize,{method:'PUT',body:bytes});outputSize+=bytes.length;}};let id=0,opened=0,closed=0,removed=0,maxAllocation=0,reads=0;const scope={},files=new Map([['/input',{id:'input',size}]]);
+ export default {async fetch(request,env){const {size,stdout,operand,tool,args}=await request.json();let outputSize=0;const output={async write(bytes){await env.BACKING.fetch('https://backing/result?position='+outputSize,{method:'PUT',body:bytes});outputSize+=bytes.length;}};let id=0,opened=0,closed=0,removed=0,maxAllocation=0,reads=0;const scope={},files=new Map([['/input',{id:'input',size}]]);
  const stat=(file,type='file')=>({type,size:file.size,mode:420,mtimeMs:1,ctimeMs:1,atimeMs:1,identityScope:scope,opaqueIdentity:file.id,opaqueVersion:'1'}),parent=stat({id:'root',size:0},'directory');
  const fs={capabilities:{atomicFilePublication:true,retainedRead:true,retainedStagingWrite:true,retainedStagingCleanup:true},async stat(){return parent;},async capabilitiesFor(){return this.capabilities;},
  async lstat(path){const file=files.get(path);if(!file)throw new FsError('ENOENT');return stat(file);},
@@ -35,7 +36,7 @@ for (const stdout of [false, true])
  async createStagedFile(path,name){const file={id:String(++id),size:0},filePath=path+'/'+name;files.set(filePath,file);return {parent:{path:'/',stat:parent},directory:{path,stat:parent},file:{path:filePath,stat:stat(file)},writer:{async write(chunk){if(chunk.length>65536)throw new Error('large write');await env.BACKING.fetch('https://backing/'+file.id+'?position='+file.size,{method:'PUT',body:chunk});file.size+=chunk.length;},async finish(){return stat(file);}},cleanup:{async remove(){files.delete(filePath);removed++;await env.BACKING.fetch('https://backing/'+file.id,{method:'DELETE'});},async close(){}}};},
  readFile(){throw new Error('whole input');},writeFile(){throw new Error('whole output');}};
  const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;maxAllocation=Math.max(maxAllocation,length);if(length>65536)throw new Error('unbounded compare allocation '+length);return Reflect.construct(target,args);}});
- try{const input={filesystem:fs,cwd:'/',...(stdout?{stdout:output}:{})};const metadata=tool==='compare'?await runCompareCli([operand,operand,stdout?'bmp:-':'/out.bmp'],input):await runConvertCli(["-size","601x601",operand,'-flip','-gamma','1.4','-colorspace','gray','-modulate','110,90,70','-function','Polynomial','0.5,0.2','-transparent','red','-level','20%,80%,1.3','-negate','-black-threshold','30%','-normalize','-auto-gamma',stdout?'png:-':'png:/out.bmp'],input);return Response.json({metadata,opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
+ try{const input={filesystem:fs,cwd:'/',...(stdout?{stdout:output}:{})};const metadata=tool==='compare'?await runCompareCli([operand,operand,stdout?'bmp:-':'/out.bmp'],input):await runConvertCli([...args,stdout?"png:-":"png:/out.bmp"],input);return Response.json({metadata,opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
  }};` }, bundle: true, write: false, platform: "browser", conditions: ["workerd"], format: "esm", metafile: true, logLevel: "silent" });
         expect(Object.values(bundle.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
         const backing = new Map<string, Uint8Array>([["/input", bytes]]);
@@ -55,7 +56,7 @@ for (const stdout of [false, true])
                     return new Response(backing.get(key)!.slice(position, position + Number(url.searchParams.get("length"))));
                 } } });
         try {
-            const response = await runtime.dispatchFetch("https://image/", { method: "POST", body: JSON.stringify({ size: bytes.length, stdout, operand, tool }) });
+            const response = await runtime.dispatchFetch("https://image/", { method: "POST", body: JSON.stringify({ size: bytes.length, stdout, operand, tool, args }) });
             if (response.status !== 200)
                 throw new Error(await response.text());
             const result = await response.json() as {

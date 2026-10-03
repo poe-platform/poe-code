@@ -114,6 +114,7 @@ class JsonParser {
   private reusableInUse = false;
   constructor(private readonly budget: Budget, private readonly stream = false, line = 1, column = 0, private readonly stringChunks?: JsonInputOptions["stringChunks"], private readonly profile?: JsonInputOptions["profile"]) {
     this.line = line; this.column = column;
+    if (profile) this.bom = 3; // The Python byte transcoder already handled the BOM.
   }
   releaseReusable(): void {
     invalidateCachedValueMetrics(this.reusableObj);

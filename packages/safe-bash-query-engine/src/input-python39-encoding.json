@@ -202,5 +202,35 @@
     "base64": "//4AAAAAEQA=",
     "valid": false,
     "error": "UnicodeDecodeError"
+  },
+  {
+    "label": "utf-8-double-bom",
+    "base64": "77u/77u/ImhlbGxvIg==",
+    "valid": false,
+    "error": "JSONDecodeError"
+  },
+  {
+    "label": "utf-16-le-double-bom",
+    "base64": "//7//iIAaABlAGwAbABvACIA",
+    "valid": false,
+    "error": "JSONDecodeError"
+  },
+  {
+    "label": "utf-16-be-double-bom",
+    "base64": "/v/+/wAiAGgAZQBsAGwAbwAi",
+    "valid": false,
+    "error": "JSONDecodeError"
+  },
+  {
+    "label": "utf-32-le-double-bom",
+    "base64": "//4AAP/+AAAiAAAAaAAAAGUAAABsAAAAbAAAAG8AAAAiAAAA",
+    "valid": false,
+    "error": "JSONDecodeError"
+  },
+  {
+    "label": "utf-32-be-double-bom",
+    "base64": "AAD+/wAA/v8AAAAiAAAAaAAAAGUAAABsAAAAbAAAAG8AAAAi",
+    "valid": false,
+    "error": "JSONDecodeError"
   }
 ]

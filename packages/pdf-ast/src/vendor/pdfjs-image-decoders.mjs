@@ -5389,7 +5389,8 @@ const SubbandsGainLog2 = {
   HH: 2
 };
 class JpxImage {
-  constructor(onImageDimensions) {
+  constructor(onImageDimensions, onAllocation) {
+    this.onAllocation = onAllocation;
     this.onImageDimensions = onImageDimensions;
     this.failOnCorruptedImage = false;
   }
@@ -5498,7 +5499,8 @@ class JpxImage {
     if (start < 0 || end > data.length || end - start < 4) {
       throw new JpxError("Truncated codestream");
     }
-    const context = {};
+    const context = { onAllocation: this.onAllocation };
+    context.onAllocation?.(1024);
     let doNotRecover = false;
     try {
       let position = start;
@@ -5515,6 +5517,8 @@ class JpxImage {
         if (code !== 0xff4f && code !== 0xffd9 && code !== 0xff93) {
           if (position + 2 > end) throw new JpxError("Truncated marker length");
           const markerLength = readUint16(data, position);
+          // Marker-derived objects, array slots, and tile-part copies.
+          context.onAllocation?.(512 + markerLength * 128);
           if (markerLength < 2 || position + markerLength > end) {
             throw new JpxError("Truncated marker segment");
           }
@@ -5545,6 +5549,7 @@ class JpxImage {
               throw new JpxError("Invalid SIZ dimensions");
             }
             this.onImageDimensions?.(siz.Xsiz - siz.XOsiz, siz.Ysiz - siz.YOsiz);
+            context.onAllocation?.(componentsCount * 512);
             siz.Csiz = componentsCount;
             const components = [];
             j = position + 38;
@@ -5736,6 +5741,7 @@ class JpxImage {
             context.mainHeader = false;
             if (tile.partIndex === 0) {
               tile.COD = context.COD;
+              context.onAllocation?.((context.COC.length + context.QCC.length) * 16 + 256);
               tile.COC = context.COC.slice(0);
               tile.QCD = context.QCD;
               tile.QCC = context.QCC.slice(0);
@@ -5792,9 +5798,10 @@ function calculateTileGrids(context, components) {
   let tile;
   const numXtiles = Math.ceil((siz.Xsiz - siz.XTOsiz) / siz.XTsiz);
   const numYtiles = Math.ceil((siz.Ysiz - siz.YTOsiz) / siz.YTsiz);
+  context.onAllocation?.(numXtiles * numYtiles * (512 + siz.Csiz * 512));
   for (let q = 0; q < numYtiles; q++) {
     for (let p = 0; p < numXtiles; p++) {
-      tile = {};
+      tile = { onAllocation: context.onAllocation };
       tile.tx0 = Math.max(siz.XTOsiz + p * siz.XTsiz, siz.XOsiz);
       tile.ty0 = Math.max(siz.YTOsiz + q * siz.YTsiz, siz.YOsiz);
       tile.tx1 = Math.min(siz.XTOsiz + (p + 1) * siz.XTsiz, siz.Xsiz);
@@ -5865,6 +5872,7 @@ function buildCodeblocks(context, subband, dimensions) {
   const cbx1 = subband.tbx1 + codeblockWidth - 1 >> xcb_;
   const cby1 = subband.tby1 + codeblockHeight - 1 >> ycb_;
   const precinctParameters = subband.resolution.precinctParameters;
+  context.onAllocation?.(Math.max(0, cbx1 - cbx0) * Math.max(0, cby1 - cby0) * 1024 + precinctParameters.numprecincts * 16);
   const codeblocks = [];
   const precincts = [];
   let i, j, codeblock, precinctNumber;
@@ -5925,6 +5933,7 @@ function buildCodeblocks(context, subband, dimensions) {
   subband.precincts = precincts;
 }
 function createPacket(resolution, precinctNumber, layerNumber) {
+  resolution.onAllocation?.(128);
   const precinctCodeblocks = [];
   const subbands = resolution.subbands;
   for (let i = 0, ii = subbands.length; i < ii; i++) {
@@ -5935,6 +5944,7 @@ function createPacket(resolution, precinctNumber, layerNumber) {
       if (codeblock.precinctNumber !== precinctNumber) {
         continue;
       }
+      resolution.onAllocation?.(16);
       precinctCodeblocks.push(codeblock);
     }
   }
@@ -6031,6 +6041,7 @@ function ResolutionPositionComponentLayerIterator(context) {
     const component = tile.components[c];
     maxDecompositionLevelsCount = Math.max(maxDecompositionLevelsCount, component.codingStyleParameters.decompositionLevelsCount);
   }
+  context.onAllocation?.((maxDecompositionLevelsCount + 1) * 4 + 128);
   const maxNumPrecinctsInLevel = new Int32Array(maxDecompositionLevelsCount + 1);
   for (r = 0; r <= maxDecompositionLevelsCount; ++r) {
     let maxNumPrecincts = 0;
@@ -6172,10 +6183,12 @@ function getPrecinctSizesInImageScale(tile) {
   let minHeight = Number.MAX_VALUE;
   let maxNumWide = 0;
   let maxNumHigh = 0;
+  tile.onAllocation?.(componentsCount * 256 + 128);
   const sizePerComponent = new Array(componentsCount);
   for (let c = 0; c < componentsCount; c++) {
     const component = tile.components[c];
     const decompositionLevelsCount = component.codingStyleParameters.decompositionLevelsCount;
+    tile.onAllocation?.((decompositionLevelsCount + 1) * 128);
     const sizePerResolution = new Array(decompositionLevelsCount + 1);
     let minWidthCurrentComponent = Number.MAX_VALUE;
     let minHeightCurrentComponent = Number.MAX_VALUE;
@@ -6224,11 +6237,12 @@ function buildPackets(context) {
   for (let c = 0; c < componentsCount; c++) {
     const component = tile.components[c];
     const decompositionLevelsCount = component.codingStyleParameters.decompositionLevelsCount;
+    context.onAllocation?.((decompositionLevelsCount + 1) * 2048);
     const resolutions = [];
     const subbands = [];
     for (let r = 0; r <= decompositionLevelsCount; r++) {
       const blocksDimensions = getBlocksDimensions(context, component, r);
-      const resolution = {};
+      const resolution = { onAllocation: context.onAllocation };
       const scale = 1 << decompositionLevelsCount - r;
       resolution.trx0 = Math.ceil(component.tcx0 / scale);
       resolution.try0 = Math.ceil(component.tcy0 / scale);
@@ -6406,8 +6420,8 @@ function parseTilePackets(context, data, offset, dataLength) {
         } else {
           const width = precinct.cbxMax - precinct.cbxMin + 1;
           const height = precinct.cbyMax - precinct.cbyMin + 1;
-          inclusionTree = new InclusionTree(width, height, layerNumber);
-          zeroBitPlanesTree = new TagTree(width, height);
+          inclusionTree = new InclusionTree(width, height, layerNumber, context.onAllocation);
+          zeroBitPlanesTree = new TagTree(width, height, context.onAllocation);
           precinct.inclusionTree = inclusionTree;
           precinct.zeroBitPlanesTree = zeroBitPlanesTree;
           for (let l = 0; l < layerNumber; l++) {
@@ -6457,6 +6471,7 @@ function parseTilePackets(context, data, offset, dataLength) {
       const codingpassesLog2 = log2(codingpasses);
       const bits = (codingpasses < 1 << codingpassesLog2 ? codingpassesLog2 - 1 : codingpassesLog2) + codeblock.Lblock;
       const codedDataLength = readBits(bits);
+      context.onAllocation?.(256);
       queue.push({
         codeblock,
         codingpasses,
@@ -6473,6 +6488,7 @@ function parseTilePackets(context, data, offset, dataLength) {
       if (codeblock.data === undefined) {
         codeblock.data = [];
       }
+      context.onAllocation?.(256);
       codeblock.data.push({
         data,
         start: offset + position,
@@ -6484,7 +6500,7 @@ function parseTilePackets(context, data, offset, dataLength) {
   }
   return position;
 }
-function copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities) {
+function copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, onAllocation) {
   const x0 = subband.tbx0;
   const y0 = subband.tby0;
   const width = subband.tbx1 - subband.tbx0;
@@ -6501,7 +6517,7 @@ function copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta,
     if (codeblock.data === undefined) {
       continue;
     }
-    const bitModel = new BitModel(blockWidth, blockHeight, codeblock.subbandType, codeblock.zeroBitPlanes, mb);
+    const bitModel = new BitModel(blockWidth, blockHeight, codeblock.subbandType, codeblock.zeroBitPlanes, mb, onAllocation);
     let currentCodingpassType = 2;
     const data = codeblock.data;
     let totalLength = 0,
@@ -6512,6 +6528,7 @@ function copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta,
       totalLength += dataItem.end - dataItem.start;
       codingpasses += dataItem.codingpasses;
     }
+    onAllocation?.(totalLength + 256);
     const encodedData = new Uint8Array(totalLength);
     let position = 0;
     for (j = 0, jj = data.length; j < jj; j++) {
@@ -6583,13 +6600,14 @@ function transformTile(context, tile, c) {
   const resetContextProbabilities = codingStyleParameters.resetContextProbabilities;
   const precision = context.components[c].precision;
   const reversible = codingStyleParameters.reversibleTransformation;
-  const transform = reversible ? new ReversibleTransform() : new IrreversibleTransform();
+  const transform = reversible ? new ReversibleTransform(context.onAllocation) : new IrreversibleTransform(context.onAllocation);
   const subbandCoefficients = [];
   let b = 0;
   for (let i = 0; i <= decompositionLevelsCount; i++) {
     const resolution = component.resolutions[i];
     const width = resolution.trx1 - resolution.trx0;
     const height = resolution.try1 - resolution.try0;
+    context.onAllocation?.(width * height * 4 + 256);
     const coefficients = new Float32Array(width * height);
     for (let j = 0, jj = resolution.subbands.length; j < jj; j++) {
       let mu, epsilon;
@@ -6605,7 +6623,7 @@ function transformTile(context, tile, c) {
       const gainLog2 = SubbandsGainLog2[subband.type];
       const delta = reversible ? 1 : 2 ** (precision + gainLog2 - epsilon) * (1 + mu / 2048);
       const mb = guardBits + epsilon - 1;
-      copyCoefficients(coefficients, width, height, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities);
+      copyCoefficients(coefficients, width, height, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, context.onAllocation);
     }
     subbandCoefficients.push({
       width,
@@ -6629,11 +6647,13 @@ function transformComponents(context) {
   const resultImages = [];
   for (let i = 0, ii = context.tiles.length; i < ii; i++) {
     const tile = context.tiles[i];
+    context.onAllocation?.(componentsCount * 256 + 256);
     const transformedTiles = [];
     for (let c = 0; c < componentsCount; c++) {
       transformedTiles[c] = transformTile(context, tile, c);
     }
     const tile0 = transformedTiles[0];
+    context.onAllocation?.(tile0.items.length * componentsCount + 256);
     const out = new Uint8ClampedArray(tile0.items.length * componentsCount);
     const result = {
       left: tile0.left,
@@ -6714,10 +6734,11 @@ function initializeTile(context, tileIndex) {
   tile.codingStyleDefaultParameters = context.currentTile.COD;
 }
 class TagTree {
-  constructor(width, height) {
+  constructor(width, height, onAllocation) {
     const levelsLength = log2(Math.max(width, height)) + 1;
     this.levels = [];
     for (let i = 0; i < levelsLength; i++) {
+      onAllocation?.(width * height * 16 + 256);
       const level = {
         width,
         height,
@@ -6770,14 +6791,16 @@ class TagTree {
   }
 }
 class InclusionTree {
-  constructor(width, height, defaultValue) {
+  constructor(width, height, defaultValue, onAllocation) {
     const levelsLength = log2(Math.max(width, height)) + 1;
     this.levels = [];
     for (let i = 0; i < levelsLength; i++) {
+      onAllocation?.(width * height + 256);
       const items = new Uint8Array(width * height);
       for (let j = 0, jj = items.length; j < jj; j++) {
         items[j] = defaultValue;
       }
+      onAllocation?.(width * height * 16 + 256);
       const level = {
         width,
         height,
@@ -6845,7 +6868,8 @@ class BitModel {
   static LLAndLHContextsLabel = new Uint8Array([0, 5, 8, 0, 3, 7, 8, 0, 4, 7, 8, 0, 0, 0, 0, 0, 1, 6, 8, 0, 3, 7, 8, 0, 4, 7, 8, 0, 0, 0, 0, 0, 2, 6, 8, 0, 3, 7, 8, 0, 4, 7, 8, 0, 0, 0, 0, 0, 2, 6, 8, 0, 3, 7, 8, 0, 4, 7, 8, 0, 0, 0, 0, 0, 2, 6, 8, 0, 3, 7, 8, 0, 4, 7, 8]);
   static HLContextLabel = new Uint8Array([0, 3, 4, 0, 5, 7, 7, 0, 8, 8, 8, 0, 0, 0, 0, 0, 1, 3, 4, 0, 6, 7, 7, 0, 8, 8, 8, 0, 0, 0, 0, 0, 2, 3, 4, 0, 6, 7, 7, 0, 8, 8, 8, 0, 0, 0, 0, 0, 2, 3, 4, 0, 6, 7, 7, 0, 8, 8, 8, 0, 0, 0, 0, 0, 2, 3, 4, 0, 6, 7, 7, 0, 8, 8, 8]);
   static HHContextLabel = new Uint8Array([0, 1, 2, 0, 1, 2, 2, 0, 2, 2, 2, 0, 0, 0, 0, 0, 3, 4, 5, 0, 4, 5, 5, 0, 5, 5, 5, 0, 0, 0, 0, 0, 6, 7, 7, 0, 7, 7, 7, 0, 7, 7, 7, 0, 0, 0, 0, 0, 8, 8, 8, 0, 8, 8, 8, 0, 8, 8, 8, 0, 0, 0, 0, 0, 8, 8, 8, 0, 8, 8, 8, 0, 8, 8, 8]);
-  constructor(width, height, subband, zeroBitPlanes, mb) {
+  constructor(width, height, subband, zeroBitPlanes, mb, onAllocation) {
+    this.onAllocation = onAllocation;
     this.width = width;
     this.height = height;
     let contextLabelTable;
@@ -6858,6 +6882,7 @@ class BitModel {
     }
     this.contextLabelTable = contextLabelTable;
     const coefficientCount = width * height;
+    onAllocation?.(coefficientCount * (4 + (mb > 14 ? 4 : mb > 6 ? 2 : 1)) + 1024);
     this.neighborsSignificance = new Uint8Array(coefficientCount);
     this.coefficentsSign = new Uint8Array(coefficientCount);
     let coefficentsMagnitude;
@@ -6883,6 +6908,7 @@ class BitModel {
     this.decoder = decoder;
   }
   reset() {
+    this.onAllocation?.(19 + 128);
     this.contexts = new Int8Array(19);
     this.contexts[0] = 4 << 1 | 0;
     this.contexts[BitModel.UNIFORM_CONTEXT] = 46 << 1 | 0;
@@ -7126,7 +7152,8 @@ class BitModel {
   }
 }
 class Transform {
-  constructor() {
+  constructor(onAllocation) {
+    this.onAllocation = onAllocation;
     if (this.constructor === Transform) {
       util_unreachable("Cannot initialize Transform.");
     }
@@ -7171,6 +7198,7 @@ class Transform {
     }
     llItems = ll.items = null;
     const bufferPadding = 4;
+    this.onAllocation?.((width + 2 * bufferPadding) * 4 + 128);
     const rowBuffer = new Float32Array(width + 2 * bufferPadding);
     if (width === 1) {
       if ((u0 & 1) !== 0) {
@@ -7189,6 +7217,7 @@ class Transform {
     let numBuffers = 16;
     const colBuffers = [];
     for (i = 0; i < numBuffers; i++) {
+      this.onAllocation?.((height + 2 * bufferPadding) * 4 + 128);
       colBuffers.push(new Float32Array(height + 2 * bufferPadding));
     }
     let b,

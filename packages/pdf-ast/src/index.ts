@@ -49,3 +49,5 @@ export { applyRetainedImageMask, type PdfRetainedImageMask, type PdfImageMaskOpt
 export { resolveRetainedImageColor, type PdfRetainedColorOptions } from "./extract/retained-color.js";
 
 export { PdfRetainedJpeg, type PdfRetainedJpegOptions } from "./extract/retained-jpeg.js";
+
+export { PdfRetainedJpx, type PdfRetainedJpxOptions } from "./extract/retained-jpx.js";

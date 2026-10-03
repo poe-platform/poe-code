@@ -51,6 +51,16 @@ Duplicate names and name-tree cycles use caller-backed indexes; filename equalit
 is exact, including Unicode code units. Returning early or closing the document
 releases traversal staging. Keep the document open while reading contents.
 
+`PdfRetainedJpx.open(source, options)` admits encoded JPEG 2000 input, tile
+grids, codeblocks, tag trees and wavelet buffers before their allocations.
+Its `rows()` iterator assembles owned RGBA rows with tile overlap precedence,
+avoiding additional full sample/RGBA planes. Encoded input and decoded tiles
+remain intrinsic resident state. `maxWorkingBytes` uses conservative cumulative
+allocation charges (not measured heap); caller source caches and resolved color
+state are additional. Set `maxOutputBytes` to bound output, supply `color` for
+resolved PDF color spaces, and call `close()` to release tiles. The source stays
+caller-owned and can close after opening the decoder.
+
 `PdfRetainedJpeg.open(source, options)` admits encoded JPEG input and decoder
 allocations before decoding. `rows()` yields owned RGBA rows without full RGB or
 RGBA planes; `width`, `height` and `components` describe the decoded image.

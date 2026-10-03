@@ -7,7 +7,7 @@ export class Jbig2Image {
   parseChunks(chunks: Array<{ data: Uint8Array; start: number; end: number }>): Uint8Array | undefined;
 }
 export class JpxImage {
-  constructor(onImageDimensions?: (width: number, height: number) => void);
+  constructor(onImageDimensions?: (width: number, height: number) => void, onAllocation?: (bytes: number) => void);
   width: number;
   height: number;
   componentsCount: number;

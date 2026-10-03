@@ -1,3 +1,4 @@
+import { annotationPageNumberSteps, extractPageAnnotationSteps, type PdfAnnotationResult } from "./content/annotations.js";
 import { walkRetainedStructure, type PdfRetainedStructureItem, type PdfStructureSelection } from "./extract/retained-structure.js";
 import { walkRetainedDestinations, walkRetainedUrls, type PdfRetainedDestination, type PdfRetainedUrl, type PdfUrlSelection } from "./extract/retained-links.js";
 import { walkRetainedJavaScripts, type PdfRetainedJavaScript } from "./extract/retained-javascript.js";
@@ -97,6 +98,29 @@ export class PdfRetainedDocument {
       else if (value?.kind === "name") result[entry.key.decoded] = value.decoded;
     }
     return result;
+  }
+
+  /** Resolve the one-based numbering used by annotation destinations. */
+  async annotationPageNumber(reference: PdfCosRef): Promise<number | undefined> {
+    this.assertOpen();
+    const visited = new PdfReferenceSet(this.storage, this.options.maxTraversalStagingBytes, this.options.signal);
+    const work = annotationPageNumberSteps(this.crossReference.rootRef, reference, this.depthLimit);
+    let failed = false;
+    try {
+      let step = work.next();
+      while (!step.done) {
+        this.assertOpen();
+        const request = step.value;
+        if (request.kind === "resolve") {
+          const resolved = await this.lookup(request.node);
+          step = work.next(resolved?.stream && resolved.value.kind === "dict"
+            ? { kind: "stream", dict: resolved.value, rawBytes: new Uint8Array() } : resolved?.value);
+        } else if (request.kind === "visit-page") step = work.next(await visited.add(request.reference.objectNumber));
+        else throw new TypeError("Unexpected annotation page lookup request");
+      }
+      return step.value;
+    } catch (error) { failed = true; throw error; }
+    finally { work.return(undefined); await visited.close().catch(error => { if (!failed) throw error; }); }
   }
 
   pages(): AsyncGenerator<PdfRetainedPage, void, void> {
@@ -296,6 +320,28 @@ export class PdfRetainedPage {
       rotation: normalizedRotation === 90 || normalizedRotation === 180 || normalizedRotation === 270 ? normalizedRotation : 0,
       resources: resources?.kind === "dict" ? resources : cosDict({}),
     };
+  }
+
+  /** Pull one annotation at a time. Destination page lookup uses the document's
+   * caller-backed traversal index, without retaining a document-wide page map. */
+  async *annotations(): AsyncGenerator<import("./ast.js").PdfLinkAnnotation, void, void> {
+    const work = extractPageAnnotationSteps(this.dict, this.document.crossReference.rootRef, this.document.depthLimit);
+    try {
+      let step = work.next();
+      while (!step.done) {
+        const request = step.value;
+        let result: PdfAnnotationResult;
+        if (request.kind === "annotation") yield request.annotation;
+        else if (request.kind === "resolve") {
+          const resolved = await this.document.lookup(request.node);
+          result = resolved?.stream && resolved.value.kind === "dict"
+            ? { kind: "stream", dict: resolved.value, rawBytes: new Uint8Array() } : resolved?.value;
+        }
+        else if (request.kind === "page-number") result = await this.document.annotationPageNumber(request.reference);
+        else throw new TypeError("Unexpected annotation request");
+        step = work.next(result);
+      }
+    } finally { work.return(); }
   }
 
   /** Preserve the buffered page API's newline after each content-array stream. */

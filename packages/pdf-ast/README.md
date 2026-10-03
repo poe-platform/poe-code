@@ -48,6 +48,14 @@ containing owner account for the same allocations; its failures propagate even
 when malformed optional mappings would otherwise be ignored. Input bytes remain
 caller-owned. This accounting does not cover embedded font program parsers.
 
+`page.annotations()` pulls link rectangles, contents, and external or internal
+URIs from a retained page. Named and legacy destinations share the buffered
+page API's interpretation. Destination page traversal uses caller-backed
+storage, closes before yielding a result, and stops when the target is found.
+Annotations are returned individually; callers own any results they collect.
+Individual COS arrays/dictionaries still use the object reader's admitted
+representation.
+
 `doc.fonts({ firstPage, lastPage })` lazily inspects fonts in the selected
 one-based page range, inherited resources, forms, patterns, annotations and
 AcroForm defaults. It reports font names, types, encoding, embedding, Unicode

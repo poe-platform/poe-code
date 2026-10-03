@@ -1,3 +1,4 @@
+import { annotationPageNumberSteps, extractPageAnnotationSteps } from "./annotations.js";
 import { resolvePageFonts, type ResolvedPageFont } from "../fonts/resolve.js";
 import { buildPostScriptJsFunction, DeviceCmykCS, MeshShading, Stream } from "../vendor/pdfjs-fonts.mjs";
 import { decodeInlineImageNodeToRgba, decodeXObjectImageToRgba } from "../extract/images.js";
@@ -2073,134 +2074,30 @@ export function evaluateContentStreamToDisplayList(params: PdfContentEvaluationO
   };
 }
 
-export function extractPageAnnotations(
-  cosDoc: ParsedCosDocument,
-  pageDict: PdfCosDict
-): PdfLinkAnnotation[] {
-  const annotsArr = cosDoc.resolveArray(dictGet(pageDict, "Annots"));
-  if (!annotsArr) return [];
-
-  let pageObjToNum: Map<number, number> | undefined;
-  const getPageObjMap = (): Map<number, number> => {
-    if (pageObjToNum) return pageObjToNum;
-    pageObjToNum = new Map<number, number>();
-    const catalog = cosDoc.resolveDict(cosDoc.rootRef);
-    const pagesNode = catalog ? dictGet(catalog, "Pages") : undefined;
-    let pageIdx = 1;
+export function extractPageAnnotations(cosDoc: ParsedCosDocument, pageDict: PdfCosDict): PdfLinkAnnotation[] {
+  function pageNumber(reference: import("../ast.js").PdfCosRef): number | undefined {
     const visited = new Set<number>();
-    const walkPages = (node: import("../ast.js").PdfCosNode | undefined): void => {
-      if (!node) return;
-      if (node.kind === "ref") {
-        if (visited.has(node.objectNumber)) return;
-        visited.add(node.objectNumber);
-      }
-      const d = cosDoc.resolveDict(node);
-      if (!d) return;
-      const typeName = cosDoc.resolve(dictGet(d, "Type"));
-      const kids = cosDoc.resolveArray(dictGet(d, "Kids"));
-      if (kids && (typeName?.kind !== "name" || typeName.decoded !== "Page")) {
-        for (const k of kids.items) walkPages(k);
-      } else {
-        if (node.kind === "ref") {
-          pageObjToNum!.set(node.objectNumber, pageIdx);
-        }
-        pageIdx++;
-      }
-    };
-    walkPages(pagesNode);
-    return pageObjToNum;
-  };
-
-  const resolveDestToPageNum = (destNode: import("../ast.js").PdfCosNode | undefined, depth = 0): number | undefined => {
-    if (!destNode || depth > 4) return undefined;
-    const resolved = cosDoc.resolve(destNode);
-    if (!resolved) return undefined;
-    if (resolved.kind === "array" && resolved.items.length > 0) {
-      const first = resolved.items[0]!;
-      if (first.kind === "ref") {
-        return getPageObjMap().get(first.objectNumber);
-      }
-      const rFirst = cosDoc.resolve(first);
-      if (rFirst?.kind === "number") {
-        return rFirst.value + 1;
-      }
+    const work = annotationPageNumberSteps(cosDoc.rootRef, reference);
+    let step = work.next();
+    while (!step.done) {
+      const request = step.value;
+      if (request.kind === "resolve") step = work.next(cosDoc.resolve(request.node));
+      else if (request.kind === "visit-page") {
+        const number = request.reference.objectNumber, added = !visited.has(number);
+        visited.add(number); step = work.next(added);
+      } else throw new TypeError("Unexpected annotation page lookup request");
     }
-    if (resolved.kind === "dict") {
-      return resolveDestToPageNum(dictGet(resolved, "D"), depth + 1);
-    }
-    if (resolved.kind === "name" || resolved.kind === "string") {
-      const destName = resolved.kind === "name" ? resolved.decoded : decodePdfString(resolved);
-      const catalog = cosDoc.resolveDict(cosDoc.rootRef);
-      if (catalog) {
-        const destsDict = cosDoc.resolveDict(dictGet(catalog, "Dests"));
-        if (destsDict) {
-          const found = dictGet(destsDict, destName);
-          if (found) return resolveDestToPageNum(found, depth + 1);
-        }
-        const namesDict = cosDoc.resolveDict(dictGet(catalog, "Names"));
-        const destsTree = namesDict ? cosDoc.resolveDict(dictGet(namesDict, "Dests")) : undefined;
-        const searchNameTree = (treeDict: PdfCosDict | undefined): import("../ast.js").PdfCosNode | undefined => {
-          if (!treeDict) return undefined;
-          const namesArr = cosDoc.resolveArray(dictGet(treeDict, "Names"));
-          if (namesArr) {
-            for (let i = 0; i + 1 < namesArr.items.length; i += 2) {
-              const kNode = cosDoc.resolve(namesArr.items[i]);
-              const kStr = kNode?.kind === "string" ? decodePdfString(kNode) : kNode?.kind === "name" ? kNode.decoded : "";
-              if (kStr === destName) return namesArr.items[i + 1];
-            }
-          }
-          const kidsArr = cosDoc.resolveArray(dictGet(treeDict, "Kids"));
-          if (kidsArr) {
-            for (const kid of kidsArr.items) {
-              const res = searchNameTree(cosDoc.resolveDict(kid));
-              if (res) return res;
-            }
-          }
-          return undefined;
-        };
-        const treeFound = searchNameTree(destsTree);
-        if (treeFound) return resolveDestToPageNum(treeFound, depth + 1);
-      }
-    }
-    return undefined;
-  };
-
-  const out: PdfLinkAnnotation[] = [];
-  for (const item of annotsArr.items) {
-    const dict = cosDoc.resolveDict(item);
-    if (!dict) continue;
-    const rectArr = cosDoc.resolveArray(dictGet(dict, "Rect"));
-    if (!rectArr || rectArr.items.length < 4) continue;
-    const r0 = cosDoc.resolve(rectArr.items[0]);
-    const r1 = cosDoc.resolve(rectArr.items[1]);
-    const r2 = cosDoc.resolve(rectArr.items[2]);
-    const r3 = cosDoc.resolve(rectArr.items[3]);
-    const rect: [number, number, number, number] = [
-      r0?.kind === "number" ? r0.value : 0,
-      r1?.kind === "number" ? r1.value : 0,
-      r2?.kind === "number" ? r2.value : 0,
-      r3?.kind === "number" ? r3.value : 0,
-    ];
-    const aDict = cosDoc.resolveDict(dictGet(dict, "A"));
-    let uri: string | undefined;
-    if (aDict) {
-      const uNode = cosDoc.resolve(dictGet(aDict, "URI"));
-      if (uNode?.kind === "string") uri = decodePdfString(uNode);
-      if (!uri) {
-        const sNode = cosDoc.resolve(dictGet(aDict, "S"));
-        if (!sNode || (sNode.kind === "name" && sNode.decoded === "GoTo")) {
-          const targetPage = resolveDestToPageNum(dictGet(aDict, "D"));
-          if (targetPage !== undefined) uri = `#page${targetPage}`;
-        }
-      }
-    }
-    if (!uri) {
-      const targetPage = resolveDestToPageNum(dictGet(dict, "Dest"));
-      if (targetPage !== undefined) uri = `#page${targetPage}`;
-    }
-    const contentsNode = cosDoc.resolve(dictGet(dict, "Contents"));
-    const contents = contentsNode?.kind === "string" ? decodePdfString(contentsNode) : undefined;
-    out.push({ rect, uri, contents });
+    return step.value;
   }
-  return out;
+  const output: PdfLinkAnnotation[] = [];
+  const work = extractPageAnnotationSteps(pageDict, cosDoc.rootRef);
+  let step = work.next();
+  while (!step.done) {
+    const request = step.value;
+    if (request.kind === "annotation") { output.push(request.annotation); step = work.next(); }
+    else if (request.kind === "resolve") step = work.next(cosDoc.resolve(request.node));
+    else if (request.kind === "page-number") step = work.next(pageNumber(request.reference));
+    else throw new TypeError("Unexpected annotation request");
+  }
+  return output;
 }

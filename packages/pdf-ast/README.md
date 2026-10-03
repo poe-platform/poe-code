@@ -35,6 +35,18 @@ range scanning. `maxNodes`, `maxTokenBytes`, and `maxRecursionDepth` bound the
 active structural value; the source remains caller-owned. This low-level API
 returns encoded object data, before document-level decryption or stream decoding.
 
+`PdfObjectIndex.build(entries, { fs, directory }, options)` sorts streamed
+cross-reference entries into caller-backed retained storage. Supply revisions
+newest first: the first entry for an object wins, including free entries. Use
+`get(objectNumber)` for binary lookup, `entries()` for ordered iteration, and
+`close()` to remove owned staging. Compressed entries preserve their object-stream
+number and index. Construction retains one `runEntries` batch and active merge
+caches, with logarithmically many dormant run handles; it never retains every
+entry in a Map. `chunkBytes` (a multiple of 32), `cacheBytes`, `maxEntries`,
+`maxStagingBytes`, and `signal` control I/O and admission. The staging budget
+includes merge inputs and output simultaneously. Choose external injected storage
+for large indexes; a memory filesystem still stores those files in RAM.
+
 For stdin or intermediate data, `PdfFileSource.fromStream(fs, directory, chunks,
 options)` writes bounded chunks into retained staging in the supplied directory.
 It seals the file before reading, verifies its identity and content revision,

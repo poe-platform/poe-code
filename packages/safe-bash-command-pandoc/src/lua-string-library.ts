@@ -5,6 +5,7 @@ import {loadLuaLibrary} from "./lua-library.js";
 import {stringLibrary} from "./lua-string.generated.js";
 import type {LuaProgram} from "./lua-program.js";
 import type {LuaMachine} from "./lua-machine.js";
+import {LuaFormat} from "./lua-format.js";
 import {LuaPack} from "./lua-pack.js";
 import {LuaPattern} from "./lua-pattern.js";
 import {LuaStrings} from "./lua-strings.js";
@@ -31,7 +32,7 @@ export class LuaStringLibrary {
     await this.heap.set(environment,await key("string"),library);
     const prototype=await loadLuaLibrary(stringLibrary,this.heap,program,await key("@string"));
     const closure=await this.heap.closure(prototype,[await this.heap.cell(environment)]);
-    await machine.run(closure,[library,await this.heap.closure(-511,[]),await this.heap.closure(-510,[]),await this.heap.closure(-512,[]),await this.heap.closure(-513,[]),await this.heap.closure(-514,[])]);
+    await machine.run(closure,[library,await this.heap.closure(-511,[]),await this.heap.closure(-510,[]),await this.heap.closure(-512,[]),await this.heap.closure(-513,[]),await this.heap.closure(-514,[]),await this.heap.closure(-530,[]),await this.heap.closure(-531,[])]);
   }
   private async string(value:StoredLuaValue):Promise<LuaReference> {
     return typeof value==="object" && value.kind==="string"?value:this.strings.concat((async function*(){yield value;})());
@@ -41,6 +42,7 @@ export class LuaStringLibrary {
     return value===undefined && fallback!==undefined?fallback:integral(await this.numbers.coerce(value));
   }
   async invoke(prototype:number,args:LuaArguments):Promise<LuaNativeOutput> {
+    if(prototype===-530 || prototype===-531) return new LuaFormat(this.heap,this.cooperate).invoke(prototype,args);
     if(prototype<=-520 && prototype>=-522) return new LuaPack(this.heap,this.cooperate).invoke(["pack","packsize","unpack"][-520-prototype]!,args);
     if(prototype===-512) return [integer(await this.argument(args,0))];
     if(prototype===-513) {

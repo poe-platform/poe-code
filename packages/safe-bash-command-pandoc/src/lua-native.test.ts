@@ -508,3 +508,45 @@ it.each([
   "return string.unpack('s4',string.pack('i4',-1))",
   "return string.packsize('c2147483639')"
 ])("preserves binary format boundary behavior: %s",async source=>{expect(await execute(source,{string:true})).toEqual(native(source));});
+
+it.each([
+  "return string.format('%s:%d:%i:%u:%x:%X:%o','ok',-7,8,-1,255,255,8)",
+  "return string.format('%+05d|%-5d|%.3f|%.2e|%.3g',7,-7,1.25,12.5,1.2345)",
+  "return string.format('%a|%A|%q',1.25,-0.0,1.25)",
+  "return string.format('%q %q %q %q',nil,true,-2147483648,'a'..string.char(0)..'7'..string.char(10,34,92,127))",
+  "return string.format('%q %q %q %q',math.huge,-math.huge,0/0,0.0)",
+  "return string.format('%s:%s:%s:%s',nil,false,7,7.0)",
+  "return string.format('%5s|%.2s|%.0s','é😀','é😀','abc')",
+  "return string.format('hello %% %3c %q',321,true)",
+  "return string.format('%s',setmetatable({}, {__tostring=function() return 'custom' end}))",
+  "return string.format('%#q|%#s',17,string.rep('x',100))",
+  "return string.format('%f|%g|%e',-0.0,0/0,math.huge)"
+])("preserves retained string formatting: %s",async source=>{expect(await execute(source,{string:true})).toEqual(native(source));});
+it.each(["string.format('%d')","string.format('%100d',1)","string.format('%00000d',1)","string.format('%q',{})","string.format('%q',function() end)","string.format('%5a',1)","string.format('%E',1)","string.format('%#s','a')","string.format('%2s','a'..string.char(0))"])("reports retained format errors: %s",async source=>{await expect(execute(source,{string:true})).rejects.toMatchObject({code:"E_AST"});});
+
+it.each([
+  "return string.format('%a %A %q %q',5e-324,1.7976931348623157e308,-0.0,5e-324)",
+  "return string.format('%000d|%-05d|%.0f|%.0e|%.1g',12,12,1.5,1.5,1.5)",
+  "return string.byte(string.format('%.2s','é😀'),1,-1)",
+  "return string.byte(string.format('%.3s',string.char(237,160,128)),1,-1)",
+  "return string.byte(string.format('%2s',string.char(224,128,128)),1,-1)",
+  "return string.format('%s',setmetatable({}, {__tostring=function() return string.format('%04d',7) end}))",
+  "getmetatable('').__tostring=function(s) return '['..s..']' end; return string.format('%s|%q','a','a')"
+])("preserves formatting numeric and byte edges: %s",async source=>{expect(await execute(source,{string:true})).toEqual(native(source));});
+it.each(["string.format('%.0g',1)","string.format('%.1s',string.char(255))","string.format('%--d',1)"])("rejects invalid bounded formatting fields: %s",async source=>{await expect(execute(source,{string:true})).rejects.toMatchObject({code:"E_AST"});});
+it("streams format literals and quoted payloads across chunks",async()=>{
+  const result=await execute("local s,f=host(); local r=string.format(f,s); return #r,string.byte(r,8192),string.byte(r,8193),string.sub(r,-5)",{string:true,native:async heap=>{
+    const input=await heap.string([new TextEncoder().encode('a'.repeat(8191)+'\n7')]),format=await heap.string([new TextEncoder().encode('b'.repeat(8191)+'%q')]);
+    const read=heap.readBytes.bind(heap);
+    vi.spyOn(heap,"readBytes").mockImplementation(async(value,start,count)=>{expect(count).toBeLessThanOrEqual(8192);return read(value,start,count);});
+    return [input,format];
+  }});
+  expect(result).toEqual([{kind:"integer",value:16387},{kind:"integer",value:34},{kind:"integer",value:97},'a\\\n7"']);
+});
+it("validates the full source while formatting bounded string precision",async()=>{
+  await expect(execute("return string.format('%.1s',host())",{string:true,native:async heap=>[await heap.string([new Uint8Array(17000).fill(65),Uint8Array.of(255)])]})).rejects.toMatchObject({code:"E_AST"});
+});
+it("cancels inside format coercion and cleans retained frames",async()=>{
+  const controller=new AbortController();
+  await expect(execute("return string.format('%s',setmetatable({}, {__tostring=function() host(); while true do end end}))",{string:true,signal:controller.signal,native:()=>{setTimeout(()=>controller.abort(),0);return [];}})).rejects.toMatchObject({code:"E_CANCELLED"});
+});

@@ -1,6 +1,6 @@
 /** Iterator captures and progress live in retained Lua cells. */
 export const luaStringSource = `
-local library, str, nextMatch, int, finish, token = ...
+local library, str, nextMatch, int, finish, token, formatToken, formatValue = ...
 local type, error, tostring, select = type, error, tostring, select
 local sub, byte = library.sub, library.byte
 function library.gmatch(subject, pattern)
@@ -59,5 +59,23 @@ function library.gsub(subject,pattern,replacement,maximum)
   end
   append(sub(subject,position+1))
   return finish(pieces,used),count
+end
+function library.format(format,...)
+  format=str(format)
+  local values,n={...},select('#',...)
+  local pieces,count,position,argument={},0,0,0
+  while position < #format do
+    local value,kind
+    position,value,kind=formatToken(format,position)
+    if kind ~= nil then
+      argument=argument+1
+      if argument > n then error('No value for format') end
+      local input=values[argument]
+      if kind == 115 then input=tostring(input) end
+      value=formatValue(value,input)
+    end
+    count=count+1.0;pieces[count]=value
+  end
+  return finish(pieces,count)
 end
 `;

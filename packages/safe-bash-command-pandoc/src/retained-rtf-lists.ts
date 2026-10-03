@@ -19,6 +19,14 @@ export class RetainedRtfLists {
   constructor(private readonly syntax: RetainedRtfSyntax, private readonly storage: PagedStorage, private readonly context: AdapterContext) {
     this.lists = new IntegerTable(storage, 64); this.overrides = new IntegerTable(storage, 64); this.legacyIds = new IntegerTable(storage, 64);
   }
+  /** The existing note reader inherits definitions/overrides but starts a new
+   * legacy-label registry. Inherited negative IDs may be shadowed inside a note. */
+  async fork(): Promise<RetainedRtfLists> {
+    const copy = new RetainedRtfLists(this.syntax, this.storage, this.context);
+    for (const [source, target] of [[this.lists, copy.lists], [this.overrides, copy.overrides]] as const)
+      for await (const [key, value] of source.entries()) {await this.context.cooperate(); await target.set(key, value);}
+    return copy;
+  }
   private parameter(token: Word, min = 0, max = 2147483647): number {
     if (token.parameter === undefined || token.parameter < min || token.parameter > max) rtfError(this.context, `Invalid RTF ${token.name} parameter`, "E_PARSE", token.offset);
     return token.parameter;

@@ -155,7 +155,10 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   the resident token tree and AST. Private document construction now retains
   mutable inline/block arrays, text, list items, table cells/rows and traversal
   continuations. Differential checks preserve formatting, paragraphs, table
-  geometry errors, Unicode and table budgets. Group/field/note execution and
+  geometry errors, Unicode and table budgets. Note definition snapshots use
+  bounded index replay, preserving local legacy IDs. Hyperlink instructions
+  and literal text are retained, including quoting, bookmark targets, scheme
+  admission and late malformed-input errors. Group/field/note execution and
   picture resources still need integration before exposing a retained RTF input
   route. This foundation is not public streaming completion.
   ODT output now retains XML continuations, dynamic list styles, image indexes,

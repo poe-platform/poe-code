@@ -24,6 +24,14 @@ export class RetainedRtfDefinitions {
     this.text = new BackedText(storage, units => context.cooperate(units));
     this.fonts = new IntegerTable(storage, 64); this.colors = new IntegerTable(storage, 64); this.styles = new IntegerTable(storage, 64);
   }
+  /** Notes inherit a snapshot; later declarations in either reader remain local. */
+  async fork(): Promise<RetainedRtfDefinitions> {
+    const copy = new RetainedRtfDefinitions(this.syntax, this.storage, this.context);
+    for (const [source, target] of [[this.fonts, copy.fonts], [this.colors, copy.colors], [this.styles, copy.styles]] as const)
+      for await (const [key, value] of source.entries()) {await this.context.cooperate(); await target.set(key, value);}
+    copy.colorCount = this.colorCount;
+    return copy;
+  }
   private parameter(token: Word, min = 0, max = 2147483647): number {
     if (token.parameter === undefined || token.parameter < min || token.parameter > max) rtfError(this.context, `Invalid RTF ${token.name} parameter`, "E_PARSE", token.offset);
     return token.parameter;

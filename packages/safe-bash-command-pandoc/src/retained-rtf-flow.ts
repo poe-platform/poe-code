@@ -1,4 +1,4 @@
-import {emptyText} from "./backed-text.js";
+import {emptyText, type TextRange} from "./backed-text.js";
 import {rtfError} from "./rtf-syntax.js";
 import {runControls, type RtfState} from "./rtf-profile.js";
 import type {AdapterContext} from "./types.js";
@@ -81,6 +81,17 @@ export class RetainedRtfFlow {
     if (state.size !== undefined) await ast.push(attributes, await ast.value(["font-size", `${state.size / 2}pt`]));
     if (await ast.count(attributes)) wrapped = await ast.value([await ast.tag("Span", await ast.value([["", [], attributes], wrapped]))]);
     for await (const node of ast.children(wrapped)) await this.append(node);
+  }
+  async literalText(state: RtfState): Promise<TextRange> {
+    this.noSurrogate(); await this.flush(state);
+    const result = emptyText();
+    for await (const node of this.ast.children(this.inlines)) {
+      const name = await this.ast.name(node);
+      if (name === "Str") await this.ast.text.append(result, await this.ast.range((await this.ast.content(node))!));
+      else if (name === "Space") await this.ast.text.append(result, await this.ast.text.from([" "]));
+      else rtfError(this.context, "Non-text RTF literal", "E_CAPABILITY");
+    }
+    return result;
   }
   async paragraph(state: RtfState, explicit = false): Promise<void> {
     this.noSurrogate(); await this.flush(state);

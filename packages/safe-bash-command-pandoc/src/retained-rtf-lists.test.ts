@@ -6,7 +6,7 @@ import {RetainedRtfSyntax} from "./retained-rtf-syntax.js";
 import {RetainedRtfLists} from "./retained-rtf-lists.js";
 import {readDocument} from "./index.js";
 const bytes = (source: string) => Uint8Array.from(source, char => char.charCodeAt(0));
-async function fixture(source: string, run: (lists: RetainedRtfLists) => Promise<void>, prepare?: (context: ExecutionContext, fs: MemoryFileSystem) => void) {
+async function fixture(source: string, run: (lists: RetainedRtfLists, syntax: RetainedRtfSyntax) => Promise<void>, prepare?: (context: ExecutionContext, fs: MemoryFileSystem) => void) {
   const fs = new MemoryFileSystem(), context = new ExecutionContext("read", {yield: async () => {}});
   const storage = new PagedStorage({fs, cwd: "/", env: {}, signal: new AbortController().signal}, 1);
   vi.spyOn(fs, "readFile").mockRejectedValue(new Error("Whole file reads forbidden"));
@@ -15,7 +15,7 @@ async function fixture(source: string, run: (lists: RetainedRtfLists) => Promise
     const lists = new RetainedRtfLists(syntax, storage, context);
     prepare?.(context, fs);
     for await (const node of syntax.children(syntax.root)) if ((await syntax.token(node)).kind === "group") await lists.read(node);
-    await run(lists);
+    await run(lists, syntax);
   } finally {await storage.close(); await context.close(); expect(await fs.readdir("/")).toEqual([]);}
 }
 const table = (level: string) => String.raw`{\*\listtable{\list{\listlevel` + level + String.raw`}\listid7}}`;
@@ -88,7 +88,9 @@ it("spills wide catalogs and keeps legacy IDs separate from normal list IDs", as
   await fixture(source, async lists => {
     for (const id of [0, 63, 64, 255]) expect(await lists.resolve(id, 0)).toEqual({start: id + 1, style: "Decimal", delimiter: "Period"});
     for (let start = 1; start <= count; start++) expect(await lists.legacy({start, style: "Decimal", delimiter: "Period"})).toBe(-start);
-    expect(await lists.resolve(-count, 0)).toEqual({start: count, style: "Decimal", delimiter: "Period"});
+    const note = await lists.fork();
+    expect(await note.resolve(count - 1, 0)).toEqual(await lists.resolve(count - 1, 0));
+    expect(await note.resolve(-count, 0)).toEqual({start: count, style: "Decimal", delimiter: "Period"});
     expect(await lists.resolve(0, 0)).toEqual({start: 1, style: "Decimal", delimiter: "Period"});
   });
 });
@@ -105,4 +107,21 @@ it.each(["storage", "cancel"])("cleans retained list state after %s failure", as
       vi.spyOn(context, "cooperate").mockImplementation(async units => {if (++calls === 256) context.fail("E_CANCELLED", "Cancelled lists"); await cooperate(units);});
     }
   })).rejects.toMatchObject(mode === "storage" ? {message: "List storage failed"} : {code: "E_CANCELLED"});
+});
+
+it("isolates note overrides and restarts note-local legacy identities", async () => {
+  const source = String.raw`{\rtf1` + table(String.raw`\levelstartat3`) + override + String.raw`{\footnote{\*\listoverridetable{\listoverride\listid7\listoverridecount1{\lfolevel\levelstartat9}\ls4}}}}`;
+  await fixture(source, async (lists, syntax) => {
+    const parentId = await lists.legacy({start: 1, style: "Decimal", delimiter: "Period"});
+    const note = await lists.fork();
+    const noteId = await note.legacy({start: 5, style: "UpperRoman", delimiter: "TwoParens"});
+    expect(parentId).toBe(-1); expect(noteId).toBe(-1);
+    expect(await lists.resolve(-1, 0)).toEqual({start: 1, style: "Decimal", delimiter: "Period"});
+    expect(await note.resolve(-1, 0)).toEqual({start: 5, style: "UpperRoman", delimiter: "TwoParens"});
+    expect(await note.resolve(2, 0)).toEqual(await lists.resolve(2, 0));
+    let group = 0; for await (const child of syntax.children(syntax.root)) group = child;
+    for await (const child of syntax.children(group)) if ((await syntax.token(child)).kind === "group") await note.read(child);
+    expect(await note.resolve(4, 0)).toEqual({start: 9, style: "Decimal", delimiter: "Period"});
+    expect(await lists.resolve(4, 0)).toBeUndefined();
+  });
 });

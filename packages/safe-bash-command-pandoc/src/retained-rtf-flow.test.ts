@@ -7,11 +7,12 @@ import {RetainedRtfSyntax} from "./retained-rtf-syntax.js";
 import {RetainedRtfDefinitions} from "./retained-rtf-definitions.js";
 import {RetainedRtfLists} from "./retained-rtf-lists.js";
 import {RetainedRtfAst} from "./retained-rtf-ast.js";
+import {retainedRtfHyperlink} from "./retained-rtf-field.js";
 import {RetainedRtfFlow} from "./retained-rtf-flow.js";
 import {initialRtfState, type RtfState} from "./rtf-profile.js";
 import {convert} from "./index.js";
 import type {ConversionContext} from "./types.js";
-async function compare(source: string, run: (flow: RetainedRtfFlow, state: RtfState) => Promise<void>, limits?: ConversionContext["limits"]) {
+async function compare(source: string, run: (flow: RetainedRtfFlow, state: RtfState, context: ExecutionContext) => Promise<void>, limits?: ConversionContext["limits"]) {
   const fs = new MemoryFileSystem(), context = new ExecutionContext("convert", {yield: async () => {}, limits: limits ?? {}});
   const owner = {fs, cwd: "/", env: {}, signal: new AbortController().signal}, storage = new PagedStorage(owner, 1), output = new PagedStorage(owner, 1);
   try {
@@ -21,7 +22,7 @@ async function compare(source: string, run: (flow: RetainedRtfFlow, state: RtfSt
     const ast = new RetainedRtfAst(storage, units => context.cooperate(units)), flow = await RetainedRtfFlow.create(ast, definitions, lists, context);
     let json = "", actualError: unknown;
     try {
-      await run(flow, state); await flow.finish(state);
+      await run(flow, state, context); await flow.finish(state);
       const tree = new BackedJson(output, units => context.cooperate(units)); await ast.write(flow.blocks, tree);
       for await (const bytes of tree.chunks()) json += new TextDecoder().decode(bytes);
     } catch (error) {actualError = error;}
@@ -115,5 +116,17 @@ it("retains long words and many inline boundaries across input chunks", async ()
   const content = "x".repeat(65537) + " a".repeat(128);
   await compare("{\\rtf1 " + content + "}", async flow => {
     for (let offset = 0; offset < content.length; offset += 257) await flow.emit(content.slice(offset, offset + 257));
+  });
+});
+
+it("builds field targets from retained literal text with normalized tabs", async () => {
+  await compare("{\\rtf1{\\field{\\*\\fldinst HYPERLINK \"a\tb\"}{\\fldrslt label}}}", async (flow, state, context) => {
+    const ast = flow.ast;
+    flow.literal = true; flow.inlineOnly = true;
+    await flow.emit('HYPERLINK "a\tb"');
+    const target = await retainedRtfHyperlink(ast.text, await flow.literalText(state), context);
+    flow.inlines = await ast.array(); flow.literal = false; flow.inlineOnly = false;
+    const label = await ast.value([await ast.tag("Str", await ast.value("label"))]);
+    await flow.append(await ast.tag("Link", await ast.value([["", [], []], label, [await ast.string(target), ""]])));
   });
 });

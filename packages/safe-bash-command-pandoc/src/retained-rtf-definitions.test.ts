@@ -95,8 +95,9 @@ it("retains large definition catalogs and traverses deep style ancestry without 
   const source = "{\\rtf1{\\fonttbl" + Array.from({length: count}, (_, id) => `{\\f${id} Font ${id};}`).join("") + "}{\\stylesheet" + Array.from({length: count}, (_, id) => `{\\s${id + 1}${id ? `\\sbasedon${id}` : ""}\\fs${id + 1} Style;}`).join("") + "}}";
   await fixture(source, async (definitions, syntax) => {
     for (const node of await groups(syntax)) await definitions.read(node, {codepage: 1252});
-    expect(await definitions.font(count - 1)).toBeDefined();
-    let index = 0; for await (const token of definitions.controls(count)) expect(token.parameter).toBe(++index);
+    const note = await definitions.fork();
+    expect(await note.font(count - 1)).toEqual(await definitions.font(count - 1));
+    let index = 0; for await (const token of note.controls(count)) expect(token.parameter).toBe(++index);
     expect(index).toBe(count);
   });
 });
@@ -112,5 +113,22 @@ it.each(["storage", "cancel"])("releases backed definitions after %s failure", a
       vi.spyOn(context, "cooperate").mockImplementation(async units => {if (++count === 64) context.fail("E_CANCELLED", "Cancelled definitions"); await cooperate(units);});
     }
     await expect(definitions.read((await groups(syntax))[0]!, {codepage: 1252})).rejects.toMatchObject(mode === "storage" ? {message: "Definition storage failed"} : {code: "E_CANCELLED"});
+  });
+});
+it("isolates note definitions while preserving the inherited snapshot", async () => {
+  await fixture(String.raw`{\rtf1{\fonttbl{\f0 Parent;}}{\colortbl;\red1;}{\stylesheet{\s1\b Root;}}{\fonttbl{\f1 Local;}}{\colortbl;\blue2;}{\stylesheet{\s2\i Child;}}{\fonttbl{\f2 Later;}}}`, async (definitions, syntax) => {
+    const nodes = await groups(syntax), state = {codepage: 1252};
+    for (const node of nodes.slice(0, 3)) await definitions.read(node, state);
+    const note = await definitions.fork();
+    for (const node of nodes.slice(3, 6)) await note.read(node, state);
+    await definitions.read(nodes[6]!, state);
+    expect(await note.font(0)).toEqual(await definitions.font(0));
+    expect(await note.font(1)).toBeDefined(); expect(await definitions.font(1)).toBeUndefined();
+    expect(await note.font(2)).toBeUndefined(); expect(await definitions.font(2)).toBeDefined();
+    expect(await note.color(1)).toBe("#010000"); expect(await note.color(3)).toBe("#000002"); expect(await definitions.color(3)).toBeUndefined();
+    const controls = []; for await (const token of note.controls(1)) controls.push(token.name); for await (const token of note.controls(2)) controls.push(token.name);
+    expect(controls).toEqual(["b", "i"]);
+    await expect(definitions.controls(2).next()).rejects.toMatchObject({message: "Undefined RTF style 2"});
+    await expect(note.read(nodes[0]!, state)).rejects.toMatchObject({message: "Missing or duplicate RTF font id"});
   });
 });

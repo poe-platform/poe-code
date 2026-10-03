@@ -1,3 +1,4 @@
+import { openPackageArchive } from "safe-bash-presentation-engine/retained-package";
 import {
   assessCapabilities,
   declaredFeatureCapabilities,
@@ -195,7 +196,7 @@ import {
   type MutatePresentationSettingsOptions
 } from "safe-bash-presentation-engine/presentation-settings";
 import { getXmlPart, replaceXmlPart } from "safe-bash-presentation-engine/xml-parts";
-import { validatePresentation, type ValidationLimits } from "safe-bash-presentation-engine/validation";
+import { validatePresentation, openRetainedPresentationValidation, type ValidationLimits } from "safe-bash-presentation-engine/validation";
 import { readPackage } from "safe-bash-presentation-engine/package-reader";
 import { resourceContext, type ResourceContext } from "safe-bash-presentation-engine/resource-limits";
 
@@ -4091,11 +4092,30 @@ async function execute(
         ...options.context.relationshipLimits,
         maxEntries: options.context.archiveLimits.maxMembers
       };
-      const bytes = await request.readInput(args.input!, Math.min(options.context.limits.maxBytes, options.context.archiveLimits.maxArchiveBytes));
-      const reader = await readPackage(bytes, { ...options.context, signal: request.signal });
-      const validation = validatePresentation(reader, limits);
-      if (!validation.valid) throw new OfficeError("invalid-opc", "Presentation semantic validation failed.", "index");
-      result = success(operation, validation);
+      const maxBytes = Math.min(options.context.limits.maxBytes, options.context.archiveLimits.maxArchiveBytes);
+      if (request.streaming) {
+        const input = await request.streaming.openInput(args.input!, maxBytes);
+        const context = { ...options.context, signal: request.signal, workingStorage: request.streaming.workingStorage };
+        const archive = await openPackageArchive(input, context);
+        let validation: Awaited<ReturnType<typeof openRetainedPresentationValidation>> | undefined;
+        let failed = false;
+        try {
+          validation = await openRetainedPresentationValidation(archive, context, limits);
+          if (!validation.valid) throw new OfficeError("invalid-opc", "Presentation semantic validation failed.", "index");
+          // Successful validation has no issues; the public result is constant size.
+          result = success(operation, { valid: true, schema: validation.schema, rules: validation.rules, issues: [] });
+        } catch (error) { failed = true; throw error; }
+        finally {
+          const cleanup = await Promise.allSettled([validation?.close(), archive.close()]);
+          if (!failed) for (const outcome of cleanup) if (outcome.status === "rejected") await Promise.reject(outcome.reason);
+        }
+      } else {
+        const bytes = await request.readInput(args.input!, maxBytes);
+        const reader = await readPackage(bytes, { ...options.context, signal: request.signal });
+        const validation = validatePresentation(reader, limits);
+        if (!validation.valid) throw new OfficeError("invalid-opc", "Presentation semantic validation failed.", "index");
+        result = success(operation, validation);
+      }
       human = "Presentation is semantically valid; XML schema validation not checked.\n";
     } else if (args.operation === "help") {
       const usage =
@@ -6857,6 +6877,12 @@ async function execute(
         stderr: json ? new Uint8Array() : message
       };
     }
+  }
+  if (operation === "validate" && request.streaming) {
+    request.signal.throwIfAborted();
+    await (json || result.ok ? request.streaming.stdout : request.streaming.stderr).write(encoded);
+    request.signal.throwIfAborted();
+    return { exitCode, stdout: new Uint8Array(), stderr: new Uint8Array() };
   }
   return {
     exitCode,

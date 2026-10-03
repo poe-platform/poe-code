@@ -1,3 +1,4 @@
+export { openRetainedPresentationValidation, type RetainedPresentationValidation } from "./retained-validation.js";
 import { equationOpaqueElements } from "./equations-compatibility.js";
 import { parseContentTypes, type ContentTypeLimits } from "./content-types.js";
 import { interpretCompatibility, type CompatibilityView } from "./compatibility.js";
@@ -12,53 +13,13 @@ import { parseXmlPart, type XmlElement, type XmlLimits } from "./xml.js";
 import { resourceContext } from "./resource-limits.js";
 
 export interface ValidationLimits extends XmlLimits, ContentTypeLimits, RelationshipLimits {}
-const rules = [
-  "main-part",
-  "content-types",
-  "relationship-targets",
-  "required-structure",
-  "slide-ids",
-  "shape-ids",
-  "master-layouts",
-  "note-associations",
-  "timing-references",
-  "connector-references"
-] as const;
-type Rule = (typeof rules)[number];
+import { rules, dialects, types, type Rule } from "./validation-schema.js";
 export interface SemanticValidation {
   readonly valid: boolean;
   readonly schema: "not-checked";
   readonly rules: readonly Rule[];
   readonly issues: readonly { readonly rule: Rule; readonly part: string }[];
 }
-const dialects = [
-  {
-    p: "http://schemas.openxmlformats.org/presentationml/2006/main",
-    a: "http://schemas.openxmlformats.org/drawingml/2006/main",
-    r: "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-  },
-  {
-    p: "http://purl.oclc.org/ooxml/presentationml/main",
-    a: "http://purl.oclc.org/ooxml/drawingml/main",
-    r: "http://purl.oclc.org/ooxml/officeDocument/relationships"
-  }
-];
-const types = new Map(
-  [
-    ["presentation.main", "presentation"],
-    ["template.main", "presentation"],
-    ["slideshow.main", "presentation"],
-    ["slide", "sld"],
-    ["slideMaster", "sldMaster"],
-    ["slideLayout", "sldLayout"],
-    ["notesSlide", "notes"],
-    ["notesMaster", "notesMaster"],
-    ["handoutMaster", "handoutMaster"]
-  ].map(([type, root]) => [
-    `application/vnd.openxmlformats-officedocument.presentationml.${type}+xml`.toLowerCase(),
-    root!
-  ])
-);
 function attribute(element: XmlElement, name: string, namespace = ""): string | undefined {
   return element.attributes.find(
     (item) => item.name.namespace === namespace && item.name.localName === name

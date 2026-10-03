@@ -23,5 +23,9 @@ ZIP metadata. Always close the archive; the caller still owns the input and sink
 The default working cache is 1 MiB. Large workloads require an external safe-fs
 backend because memory filesystems also keep spilled data in RAM.
 
-This archive API does not yet make the default command or synchronous presentation
-model a bounded-memory execution path; those operations still use buffered APIs.
+The default `pptx validate` command uses retained input, caller-backed semantic
+indexes and output sinks. `openRetainedPresentationValidation` (from the
+`validation` entry point) exposes the same ten semantic rules with streamed
+issues; close the result when finished. XML schema validation is not performed.
+Other default command operations and the synchronous presentation model still
+use buffered APIs.

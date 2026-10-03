@@ -26,7 +26,7 @@ export interface RetainedRelationshipGraph {
   outgoing(owner: string): AsyncGenerator<RetainedRelationshipEdge>;
   incoming(target: string): AsyncGenerator<RetainedRelationshipEdge>;
   dangling(): AsyncGenerator<RetainedRelationshipEdge>;
-  get(owner: string, id: string): Promise<RetainedRelationshipEdge | undefined>;
+  get(owner: string, id: string | (() => ByteSource)): Promise<RetainedRelationshipEdge | undefined>;
   closure(roots: Iterable<string> | AsyncIterable<string>): AsyncGenerator<string>;
   close(): Promise<void>;
 }
@@ -148,8 +148,8 @@ export async function openRetainedRelationshipGraph(archive: Pick<RetainedPackag
         try { check(); for (let pointer = firstEdge; pointer;) { const data = await row(pointer, E.Count); if (data[E.Target] && !(await row(data[E.Target]!, P.Count))[P.Present]) yield await edge(pointer); pointer = data[E.Next]!; } }
         catch (error) { throw failure(error); }
       },
-      async get(input: string, id: string) {
-        try { const pointer = await owner(input), found = await values.find(`edge${pointer}`, () => literal(id)); return found ? await edge(found.start) : undefined; }
+      async get(input: string, id: string | (() => ByteSource)) {
+        try { const pointer = await owner(input), found = await values.find(`edge${pointer}`, typeof id === 'string' ? () => literal(id) : id); return found ? await edge(found.start) : undefined; }
         catch (error) { throw failure(error); }
       },
       async *closure(roots: Iterable<string> | AsyncIterable<string>) {

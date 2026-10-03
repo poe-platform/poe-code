@@ -100,3 +100,69 @@ describe("public semantic validation command", () => {
     expect(request.readInput).not.toHaveBeenCalled();
   });
 });
+
+it.each([false, true])('uses retained input and output sinks for shipped validation (invalid=%s)', async (invalid) => {
+  const { createMemoryFileSystem } = await import('@poe-code/safe-fs');
+  const fs = createMemoryFileSystem(), request = invocation(['validate', '/deck.pptx', '--json'], invalid);
+  const bytes = await request.readInput('/deck.pptx'); request.readInput.mockClear();
+  request.readInput.mockImplementation(async () => { throw new Error('buffered engine input forbidden'); });
+  fs.readFile = async () => { throw new Error('whole-file storage read forbidden'); };
+  const chunks: Uint8Array[] = [], stderr: Uint8Array[] = [];
+  const openInput = vi.fn(async () => ({ size: bytes.length,
+    async read(position: number, maximum: number) { return bytes.slice(position, position + Math.min(maximum, 17)); },
+    async *stream() { throw new Error('retained range source expected'); yield new Uint8Array(); }
+  }));
+  const output = await createPptxCommandEngine(options).execute({ ...request, streaming: {
+    workingStorage: { fs, directory: '/', cacheBytes: 16384 }, openInput,
+    stdout: { async write(chunk) { await Promise.resolve(); chunks.push(chunk.slice()); } },
+    stderr: { async write(chunk) { stderr.push(chunk.slice()); } }
+  } });
+  expect(output.exitCode, chunks.map(chunk => new TextDecoder().decode(chunk)).join('') + new TextDecoder().decode(output.stderr)).toBe(invalid ? 1 : 0);
+  expect(request.readInput).not.toHaveBeenCalled(); expect(openInput).toHaveBeenCalledWith('/deck.pptx', 65536);
+  expect(output.stdout.length + output.stderr.length).toBe(0); expect(stderr).toEqual([]);
+  expect(JSON.parse(chunks.map(chunk => new TextDecoder().decode(chunk)).join(''))).toMatchObject({ operation: 'validate', ok: !invalid });
+  expect(await fs.readdir('/')).toEqual([]);
+});
+
+it.each(['/deck.pptx', '-'])('runs the default adapter through caller-backed storage for %s', async (path) => {
+  const { createMemoryFileSystem } = await import('@poe-code/safe-fs');
+  const { createCommandArguments } = await import('safe-bash-contracts');
+  const { createPptxCommand } = await import('../src/index.js');
+  const owner = createMemoryFileSystem(), overrides: Partial<typeof owner> = {};
+  const fs = new Proxy(owner, { get(target, key) {
+    if (Object.hasOwn(overrides, key)) return Reflect.get(overrides, key);
+    const value = Reflect.get(target, key, target); return typeof value === 'function' ? value.bind(target) : value;
+  } });
+  await fs.mkdir('/scratch');
+  const bytes = storedArchive(Object.entries({ ...files, 'opaque.bin': 'x'.repeat(1100000),
+    '[Content_Types].xml': files['[Content_Types].xml'].replace('</Types>', '<Default Extension="bin" ContentType="application/octet-stream"/></Types>')
+  }).map(([name, text]) => ({ name, bytes: encode(text) })));
+  await fs.writeFile('/deck.pptx', bytes);
+  const open = fs.open!.bind(fs), openRead = fs.openReadFile!.bind(fs); let written = 0, outstanding = 0, peak = 0, handles = 0;
+  overrides.readFile = async () => { throw new Error('whole-file reads forbidden'); };
+  overrides.readStream = () => { throw new Error('buffered input adapter forbidden'); };
+  overrides.openReadFile = async (...args) => {
+    const handle = await openRead(...args); handles++;
+    return { stat: handle.stat.bind(handle), async read(position, maximum, options) { expect(maximum).toBeLessThanOrEqual(16384); return handle.read(position, maximum, options); }, async close() { handles--; await handle.close(); } };
+  };
+  overrides.open = async (...args) => {
+    expect(args[0].startsWith('/scratch/')).toBe(true);
+    const handle = await open(...args); handles++;
+    return new Proxy(handle, { get(target, key) {
+      if (key === 'write') return async (...parameters: Parameters<typeof handle.write>) => {
+        const length = parameters[0].length; written += length; outstanding += length; peak = Math.max(peak, outstanding);
+        try { await Promise.resolve(); return await handle.write(...parameters); } finally { outstanding -= length; }
+      };
+      if (key === 'close') return async (...parameters: Parameters<typeof handle.close>) => { handles--; return handle.close(...parameters); };
+      const value = Reflect.get(target, key, target); return typeof value === 'function' ? value.bind(target) : value;
+    } });
+  };
+  const args = createCommandArguments(['validate', path, '--json']), stdout: Uint8Array[] = [];
+  const result = await createPptxCommand().execute({ command: 'pptx', args: args.args, argumentValues: args, cwd: '/', env: { TMPDIR: '/scratch' }, fs,
+    signal: new AbortController().signal,
+    stdin: (async function* () { const chunk = new Uint8Array(4096); for (let offset = 0; offset < bytes.length; offset += chunk.length) { const length = Math.min(chunk.length, bytes.length - offset); chunk.set(bytes.subarray(offset, offset + length)); yield chunk.subarray(0, length); chunk.fill(255); } })(),
+    stdout: { async write(chunk) { await Promise.resolve(); stdout.push(chunk.slice()); } }, stderr: { async write() { throw new Error('unexpected stderr'); } }
+  });
+  expect(result.exitCode, stdout.map(chunk => new TextDecoder().decode(chunk)).join('')).toBe(0); expect(JSON.parse(stdout.map(chunk => new TextDecoder().decode(chunk)).join(''))).toMatchObject({ ok: true });
+  expect(written).toBeGreaterThan(1024 * 1024); expect(peak).toBeLessThanOrEqual(16384); expect(handles).toBe(0); expect(await fs.readdir('/scratch')).toEqual([]);
+});

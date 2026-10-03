@@ -31,8 +31,8 @@ most 16 KiB per operation into a shared 1 MiB caller-backed page cache, replays
 stdin, checks numeric or opaque identity/version metadata, closes handles, and
 retires snapshots at invocation completion. Tests observe spill writes and cover
 limits, cancellation, changed input and cleanup failure. Exact original comparison
-also accepts retained snapshots without a whole-file fallback. The built-in engine
-has not yet adopted these APIs. Public publication now also accepts byte sources
+also accepts retained snapshots without a whole-file fallback. The built-in validation operation now adopts these APIs; other operations still
+require migration. Public publication now also accepts byte sources
 and retained originals, using owned retained staging, bounded writes, exact
 in-place rechecks, guarded conditional publication and cleanup. Deterministic
 tests cover source failure, cancellation, changed input, force/protected input
@@ -120,22 +120,32 @@ selection/mutation state and shipped-engine wiring remain required before they
 replace the buffered path.
 
 This is not an end-to-end bounded-memory implementation or Worker qualification.
-The built-in command engine still collects input, returns complete stdout/stderr, and publishes
-complete output arrays. `safe-bash-presentation-engine` still collects the archive,
+Except for semantic validation, the built-in command engine still collects input,
+returns complete stdout/stderr, and publishes complete output arrays. `safe-bash-presentation-engine` still collects the archive,
 retains decompressed members in `readPackage`, copies members in
 `writePackageArchive`, and builds embedded chart workbooks in memory.
+
+`openRetainedPresentationValidation` now runs all ten semantic rules with stored
+root/dialect status, duplicate/reference sets, issue indexes and traversal frames.
+Two sequential XML passes keep the number of live document caches fixed. Large
+relationship IDs and integer scalars remain streamed. The shipped `validate`
+operation uses retained adapter input and output sinks; direct buffered engine
+calls retain their convenience behavior. Deterministic tests cover result/order
+parity, resource limits, generated/reused chunks, observed bounded spill writes,
+slow output sinks, default file/stdin invocation, cancellation and error cleanup.
+A native python-pptx deck containing a chart workbook, notes and an external
+hyperlink produced the identical successful result through both engine paths.
+These checks are not runtime Worker memory qualification.
 
 ## Remaining implementation
 
 1. Carry caller-owned retained/range sources, explicit spill-storage authorization,
    output sinks and owned staged publications through both command and engine APIs.
    Keep buffering convenience APIs available without requiring them for Worker use.
-2. Build presentation semantic admission and selection on the retained archive,
+2. Build presentation selection and mutation admission on the retained archive,
    XML, compatibility, content-type and relationship graph layers before extraction/publication.
-   Preserve all ten existing validation rules and cumulative XML byte/node limits.
-   Keep root/dialect/status and shape/timing/target indexes in caller storage;
-   process XML documents sequentially rather than retaining a page cache per part.
-   Stream validation issues, with collection restricted to convenience APIs.
+   Semantic validation is now retained and wired; the remaining operations need
+   the corresponding retained selection and mutation models.
    Replace synchronous package-member access on the streaming execution path with
    asynchronous reads and a bounded cache backed by the caller's safe-fs. Migrate
    mutation state, embedded workbooks, archive indexes and serialization too.

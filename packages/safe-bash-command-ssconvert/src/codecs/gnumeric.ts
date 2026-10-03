@@ -361,7 +361,7 @@ function axisDefaultSize(node: XmlElement | undefined, fallback: number): number
   const size = number(node, "DefaultSizePts", fallback);
   return size > 0 ? size : fallback;
 }
-function axes(sheet: XmlElement, axis: "RowInfo" | "ColInfo", maximum: number, admit: (count: number) => void): { entries: AxisMetadata[]; defaultSize?: number } {
+async function axes(sheet: XmlElement, axis: "RowInfo" | "ColInfo", maximum: number, admit: (count: number) => void, context: CapabilityContext): Promise<{ entries: AxisMetadata[]; defaultSize?: number }> {
   const result = new Map<number, AxisMetadata>();
   let defaultSize: number | undefined;
   const fallback = axis === "RowInfo" ? 12.75 : 48;
@@ -387,7 +387,12 @@ function axes(sheet: XmlElement, axis: "RowInfo" | "ColInfo", maximum: number, a
       const start = number(item, "No", -1), count = number(item, "Count", 1);
       if (!Number.isSafeInteger(start) || !Number.isSafeInteger(count) || start < 0 || count < 1 || count > maximum - start) invalid("invalid axis interval");
       admit(count);
-      const unit = number(item, "Unit", 0);
+      const unit = number(item, "Unit", -1);
+      if (unit <= -1) {
+        const message = "File is most likely corrupted.\nThe problem was detected in xml_sax_colrow.\nThe failed check was: size > -1\n";
+        await context.diagnostic?.({ code: "gnumeric-xml", severity: "warning", message, bytes: new TextEncoder().encode(message) });
+        continue;
+      }
       // Native import updates flags first, rejects nonpositive sizes, then copies
       // the first axis (including its retained size) across the complete interval.
       const sizePoints = attribute(item, "Unit") !== undefined && unit > -1 && unit <= 0
@@ -516,8 +521,8 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
       const address = `${row}:${column}`, previous = addresses.get(address);
       if (previous === undefined) { addresses.set(address, cells.length); cells.push(cell); } else cells[previous] = cell;
     }
-    const rows = axes(node, "RowInfo", size.rows, admitAxes);
-    const columns = axes(node, "ColInfo", size.columns, admitAxes);
+    const rows = await axes(node, "RowInfo", size.rows, admitAxes, context);
+    const columns = await axes(node, "ColInfo", size.columns, admitAxes, context);
     const visibility = attribute(node, "Visibility")?.toLowerCase();
     sheets.push({ id: `s${i + 1}`, name, size, cells,
       visibility: visibility?.includes("very_hidden") || visibility === "very-hidden" ? "very-hidden" : visibility?.includes("hidden") ? "hidden" : "visible",

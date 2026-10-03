@@ -75,6 +75,8 @@ Repeated XML row/column sections and overlapping records apply in file order,
 including changes to sheet defaults. Cells retain dimensions allocated before
 a later default change. Zero-size
 records retain prior or default dimensions while applying their other metadata.
+Records with missing or malformed sizes, or sizes at or below -1, are skipped
+with a corruption warning.
 Nonpositive sheet defaults retain built-in dimensions. Clipboard
 exports preserve collapsed flags and outline depth. Gnumeric workbook
 and clipboard XML store row and column dimensions in points with four significant

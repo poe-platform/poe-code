@@ -2443,8 +2443,10 @@ export class SharpInstance extends Duplex {
         this.outputOptions = { ...this.outputOptions, format: inferred };
       }
       try {
-        if (((this.inputFilePath && !this.fileInputs.has(this.inputFilePath) && !this.inputOptions?.raw && !this.inputOptions?.create && !this.inputOptions?.text) || (!this.inputFilePath && !this.inputBytes && (this.inputOptions?.text || this.inputOptions?.create))) && ["png","ppm","pgm","pbm","bmp","tiff","gif","jpeg","webp"].includes(this.outputOptions.format??"png")) {
-          const streamed = await tryImageFile(this.inputFilePath, fileOut, this.inputOptions!, this.outputOptions, this.nodes);
+        if (!this.joinInputs && (!this.streamIn || this.streamInFinished) && ["png","ppm","pgm","pbm","bmp","tiff","gif","jpeg","webp"].includes(this.outputOptions.format??"png")) {
+          if(this.streamFailure) throw this.streamFailure;
+          const input=this.inputFilePath?(this.fileInputs.get(this.inputFilePath)??this.inputFilePath):this.inputBytes;
+          const streamed = await tryImageFile(input, fileOut, this.inputOptions!, this.outputOptions, this.nodes,this.fileInputs);
           if (streamed) {if (callback) callback(null, streamed); return streamed;}
         }
         await this.waitForStreamInput();

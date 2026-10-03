@@ -47,7 +47,9 @@ gravity, entropy/attention crops, background canvases and image pages.
 PNG/PPM/PGM/PBM/BMP/TIFF/GIF/JPEG/WebP `.toFile()`
 conversions with these operations and `.resize()` use the backed codecs automatically when the
 supplied filesystem supports retained reads, working storage, and atomic
-streaming or retained staged publication. Generated text and color/noise images
+streaming or retained staged publication. Explicit byte inputs, raw files/bytes and
+previously cached files also use this retained output path; cached resource
+snapshots remain valid. Generated text and color/noise images
 use the same retained output path, and text metadata avoids rendering a pixel canvas.
 These input formats also support
 streaming TIFF, GIF, JPEG and WebP output. `encodeGifFromStorage` uses a fixed palette, bounded

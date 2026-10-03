@@ -36,3 +36,4 @@ export * from "./document.js";
 export * from "./retained-document.js";
 export * from "./source.js";
 export * from "./staged-outputs.js";
+export type { PdfRetainedFont, PdfFontSelection } from "./extract/retained-fonts.js";

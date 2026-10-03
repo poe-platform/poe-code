@@ -26,6 +26,13 @@ memory: set `maxTokenBytes` to bound decoded strings and encoded names/numbers.
 `start`, `end`, `knownCommands`, and `signal` control scanning. The caller closes
 the source after use; the lexer does not collect a document or own its handle.
 
+`doc.fonts({ firstPage, lastPage })` lazily inspects fonts in the selected
+one-based page range, inherited resources, forms, patterns, annotations and
+AcroForm defaults. It reports font names, types, encoding, embedding, Unicode
+mapping and indirect references without decoding font programs. Exact duplicate
+tracking uses caller-backed storage; closing the document releases suspended
+font traversals.
+
 `doc.attachments()` on a retained document visits embedded name trees,
 catalog/page associated files, and file-attachment annotations in document order.
 Each result exposes `index`, `name`, and `contents()`, which streams decoded

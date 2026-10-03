@@ -12,7 +12,7 @@ import {
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, type PdfOutputEntry, PdfDocument, dictGet, decodePdfString, parseContentStream, type PdfPage, type PdfCosNode, type PdfCosDict, type ParsedCosDocument } from "@poe-code/pdf-ast";
+import { PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, type PdfOutputEntry, type PdfIndexStorage, type PdfRetainedFont, PdfDocument, dictGet, decodePdfString, parseContentStream, type PdfPage, type PdfCosNode, type PdfCosDict, type ParsedCosDocument } from "@poe-code/pdf-ast";
 
 export interface PdfinfoLimits {
   readonly maxInputBytes: number;
@@ -1247,22 +1247,50 @@ function isSubsetFontTag(fontName: string): boolean {
   return true;
 }
 
-function* runPdffontsCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, {
-    exitCode: number;
-    stdout: string;
-    stderr: string;
-}, void> {
-    let cooperativeWork = 63;
+function formatPdfFont(font: PdfRetainedFont, options: { showLoc: boolean; showLocPs: boolean; showSubst: boolean }): string | undefined {
+  const objectId = font.reference ? `${String(font.reference.objectNumber).padStart(6)} ${String(font.reference.generationNumber).padStart(2)}` : "   [none]";
+  if (options.showSubst) {
+    if (font.embedded) return undefined;
+    let substitute = font.name;
+    if (font.name.startsWith("Helvetica") || font.name.startsWith("Arial")) substitute = "Nimbus Sans";
+    else if (font.name.startsWith("Times")) substitute = "Nimbus Roman";
+    else if (font.name.startsWith("Courier")) substitute = "Nimbus Mono PS";
+    else if (font.name === "Symbol") substitute = "Standard Symbols PS";
+    else if (font.name === "ZapfDingbats") substitute = "D050000L";
+    return `${font.name.slice(0, 36).padEnd(36)} ${objectId} ${substitute.slice(0, 36).padEnd(36)} /usr/share/fonts/type1/urw-base35/${substitute.replaceAll(" ", "")}.t1`;
+  }
+  const location = options.showLoc ? ` ${font.embedded ? "Embedded" : options.showLocPs ? `Substitute (${font.name})` : "Substitute"}` : "";
+  return `${font.name.slice(0, 36).padEnd(36)} ${font.type.padEnd(17)} ${font.encoding.slice(0, 16).padEnd(16)} ${font.embedded ? "yes" : "no "} ${isSubsetFontTag(font.name) ? "yes" : "no "} ${font.unicode ? "yes" : "no "} ${objectId}${location}`;
+}
+
+function fontTableHeader(options: { showSubst: boolean; showLoc: boolean }): string[] {
+    return options.showSubst
+        ? [
+            "name                                 object ID substitute font                      substitute font file",
+            "------------------------------------ --------- ------------------------------------ ------------------------------------"
+        ]
+        : options.showLoc
+            ? [
+                "name                                 type              encoding         emb sub uni object ID location",
+                "------------------------------------ ----------------- ---------------- --- --- --- --------- --------"
+            ]
+            : [
+                "name                                 type              encoding         emb sub uni object ID",
+                "------------------------------------ ----------------- ---------------- --- --- --- ---------"
+            ];
+}
+
+function parsePdffontsArgs(argv: readonly string[]): PdfinfoCliResult | {
+  firstPage: number; lastPage: number; password: string; showLoc: boolean; showLocPs: boolean; showSubst: boolean; inputPath: string;
+} {
     let firstPage = 1;
     let lastPage = 0;
     let password = "";
     let showLoc = false;
     let showLocPs = false;
     let showSubst = false;
-    const positionals: string[] = [];
+    let inputPath: string | undefined;
     for (let i = 0; i < argv.length; i++) {
-        if (++cooperativeWork % 64 === 0)
-            yield;
         const arg = argv[i]!;
         if (arg === "-v" || arg === "--version") {
             return { exitCode: 0, stdout: "pdffonts version 24.08.0\n", stderr: "" };
@@ -1289,12 +1317,23 @@ function* runPdffontsCliSteps(argv: readonly string[], files: Map<string, Uint8A
         else if (arg === "-subst")
             showSubst = true;
         else if (!arg.startsWith("-") || arg === "-")
-            positionals.push(arg);
+            inputPath ??= arg;
     }
-    const inputPath = positionals[0];
     if (!inputPath) {
         return { exitCode: 99, stdout: "", stderr: "Usage: pdffonts [options] <PDF-file>\n" };
     }
+    return { firstPage, lastPage, password, showLoc, showLocPs, showSubst, inputPath };
+}
+
+function* runPdffontsCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, {
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+}, void> {
+    let cooperativeWork = 63;
+    const plan = parsePdffontsArgs(argv);
+    if ("exitCode" in plan) return plan;
+    const { firstPage, lastPage, password, showLoc, showLocPs, showSubst, inputPath } = plan;
     const pdfBytes = files.get(inputPath);
     if (!pdfBytes) {
         return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
@@ -1316,20 +1355,7 @@ function* runPdffontsCliSteps(argv: readonly string[], files: Map<string, Uint8A
         };
     }
     const seenFontKeys = new Set<string>();
-    const rows: string[] = showSubst
-        ? [
-            "name                                 object ID substitute font                      substitute font file",
-            "------------------------------------ --------- ------------------------------------ ------------------------------------"
-        ]
-        : showLoc
-            ? [
-                "name                                 type              encoding         emb sub uni object ID location",
-                "------------------------------------ ----------------- ---------------- --- --- --- --------- --------"
-            ]
-            : [
-                "name                                 type              encoding         emb sub uni object ID",
-                "------------------------------------ ----------------- ---------------- --- --- --- ---------"
-            ];
+    const rows = fontTableHeader({ showSubst, showLoc });
     const collectFontsFromResources = (resDict: PdfCosDict | undefined, visitedForms = new Set<number>()) => {
         if (!resDict)
             return;
@@ -1401,30 +1427,10 @@ function* runPdffontsCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 else if (encNode?.kind === "dict") {
                     encodingLabel = "Custom";
                 }
-                const embStr = hasEmbeddedFile ? "yes" : "no ";
-                const subStr = isSubsetFontTag(fontName) ? "yes" : "no ";
-                const uniStr = dictGet(fontDict, "ToUnicode") ? "yes" : "no ";
-                const objIdStr = rawVal.kind === "ref"
-                    ? `${String(rawVal.objectNumber).padStart(6)} ${String(rawVal.generationNumber).padStart(2)}`
-                    : "   [none]";
-                const locSuffix = showLoc
-                    ? ` ${hasEmbeddedFile ? "Embedded" : showLocPs ? `Substitute (${fontName})` : "Substitute"}`
-          : "";
-        if (showSubst) {
-          if (!hasEmbeddedFile) {
-            let subFontName = fontName;
-            if (fontName.startsWith("Helvetica") || fontName.startsWith("Arial")) subFontName = "Nimbus Sans";
-            else if (fontName.startsWith("Times")) subFontName = "Nimbus Roman";
-            else if (fontName.startsWith("Courier")) subFontName = "Nimbus Mono PS";
-            else if (fontName === "Symbol") subFontName = "Standard Symbols PS";
-            else if (fontName === "ZapfDingbats") subFontName = "D050000L";
-            const subFontFile = `/usr/share/fonts/type1/urw-base35/${subFontName.replaceAll(" ", "")}.t1`;
-                        rows.push(`${fontName.slice(0, 36).padEnd(36)} ${objIdStr} ${subFontName.slice(0, 36).padEnd(36)} ${subFontFile}`);
-                    }
-                }
-                else {
-                    rows.push(`${fontName.slice(0, 36).padEnd(36)} ${fontTypeLabel.padEnd(17)} ${encodingLabel.slice(0, 16).padEnd(16)} ${embStr} ${subStr} ${uniStr} ${objIdStr}${locSuffix}`);
-                }
+                const row = formatPdfFont({ name: fontName, type: fontTypeLabel, encoding: encodingLabel,
+                  embedded: hasEmbeddedFile, unicode: Boolean(dictGet(fontDict, "ToUnicode")), ...(rawVal.kind === "ref" ? { reference: rawVal } : {}),
+                }, { showLoc, showLocPs, showSubst });
+                if (row !== undefined) rows.push(row);
                 if (rawSubtype === "Type3") {
                     collectFontsFromResources(cos.resolveDict(dictGet(fontDict, "Resources")), visitedForms);
                 }
@@ -1776,172 +1782,6 @@ export function runPdfdetachCliSync(argv: readonly string[], files: Map<string, 
 
 
 
-const POPPLER_FILE_TOOL_VALUE_FLAGS = new Set([
-  "-r",
-  "-rx",
-  "-ry",
-  "-scale-to",
-  "-scale-to-x",
-  "-scale-to-y",
-  "-f",
-  "-l",
-  "-x",
-  "-y",
-  "-W",
-  "-H",
-  "-sz",
-  "-sep",
-  "-upw",
-  "-opw",
-  "-aa",
-  "-aaVector",
-  "-thinlinemode",
-  "-jpegopt",
-  "-tiffcompression",
-  "-freetype",
-  "-save",
-  "-savefile",
-  "-o",
-  "-enc",
-  "-antialias",
-  "-icc",
-  "-paper",
-  "-paperw",
-  "-paperh",
-]);
-
-function extractPopplerFileToolPositionals(argv: readonly string[]): string[] {
-  const pos: string[] = [];
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]!;
-    if (arg === "--") {
-        pos.push(...argv.slice(i + 1));
-        break;
-    }
-    if (POPPLER_FILE_TOOL_VALUE_FLAGS.has(arg)) {
-      i++;
-      continue;
-    }
-    if (!arg.startsWith("-") || arg === "-") {
-      pos.push(arg);
-    }
-  }
-  return pos;
-}
-
-async function executePopplerFileTool(
-  context: CommandContext,
-  runner: (
-    argv: readonly string[],
-    files: Map<string, Uint8Array>,
-    signal?: AbortSignal
-  ) => Promise<{ exitCode: number; stdout: string; stderr: string; stdoutBytes?: Uint8Array }>
-): Promise<{ exitCode: number }> {
-  let cooperativeWork = 63;
-  const invocation = createOutputOperation(context, { write: async () => {} });
-  try {
-    const carrier = getCommandArguments(context);
-    const argv = [...carrier.args];
-    const vfsFiles = new Map<string, Uint8Array>();
-    let accountedBytes = 0;
-    const chargeBytes = (delta: number) => {
-      if (delta > 0) {
-        accountedBytes += delta;
-        context.inputBudget?.check(accountedBytes);
-      }
-    };
-
-    let informational = false;
-    for (let i = 0; i < argv.length; i++) {
-      const arg = argv[i]!;
-      if (arg === "--") break;
-      if (POPPLER_FILE_TOOL_VALUE_FLAGS.has(arg)) { i++; continue; }
-      if (["-h", "-help", "--help", "-?", "-v", "--version"].includes(arg)) { informational = true; break; }
-    }
-    const positionals = informational ? [] : extractPopplerFileToolPositionals(argv);
-    if (!informational && runner === runPdfdetachCli) {
-      for (let i = 0; i < argv.length; i++) {
-        const flag = argv[i]!;
-        if (flag === "--") break;
-        if (!POPPLER_FILE_TOOL_VALUE_FLAGS.has(flag)) continue;
-        const value = argv[++i];
-        if (flag !== "-o" || !value || value.endsWith("/")) continue;
-        try {
-          const stat = await context.fs.stat(resolvePath(context.cwd, value), { signal: invocation.signal });
-          if (stat.type === "directory") argv[i] = `${value}/`;
-        } catch (error) {
-          if (!(error instanceof Error) || !("code" in error) || (error.code !== "ENOENT" && error.code !== "ENOTDIR")) throw error;
-        }
-      }
-    }
-    if (positionals[0] === "-") {
-      const chunks: Uint8Array[] = [];
-      let total = 0;
-      for await (const chunk of readBytes(context.stdin, invocation.signal)) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-        chunks.push(chunk);
-        total += chunk.byteLength;
-        chargeBytes(chunk.byteLength);
-      }
-      if (total > 0) {
-        const buf = new Uint8Array(total);
-        let off = 0;
-        for (const c of chunks) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-          buf.set(c, off);
-          off += c.byteLength;
-        }
-        vfsFiles.set("-", buf);
-      }
-    }
-
-    for (const token of new Set(positionals.slice(0, 1))) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-      if (token === "-") continue;
-      try {
-        const bytes = await context.fs.readFile(resolvePath(context.cwd, token), { signal: invocation.signal });
-        chargeBytes(bytes.byteLength);
-        vfsFiles.set(token, bytes);
-      } catch {
-        // Non-existing output file or prefix
-      }
-    }
-
-    context.inputBudget?.check(0);
-    const existingSnap = new Map(vfsFiles);
-    const res = await runner(argv, vfsFiles, invocation.signal);
-    if (res.stderr) {
-      await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
-    }
-    if (res.stdoutBytes) {
-      const stdout = invocation.child(context.stdout);
-      await writeBytes(stdout.output, res.stdoutBytes, invocation.signal);
-    } else if (res.stdout) {
-      const outBytes = new TextEncoder().encode(res.stdout);
-      const stdout = invocation.child(context.stdout);
-      await writeBytes(stdout.output, outBytes, invocation.signal);
-    }
-    for (const [key, val] of vfsFiles.entries()) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-      if (key !== "-" && existingSnap.get(key) !== val) {
-        const abs = resolvePath(context.cwd, key);
-        try {
-          await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
-        } catch (error) {
-          invocation.signal.throwIfAborted();
-          if (!(error instanceof Error) || !("code" in error)) throw error;
-          await writeBytes(context.stderr, new TextEncoder().encode(`I/O Error: ${runner === runPdfdetachCli ? "Error saving embedded file as" : "Couldn't open file"} '${key}'\n`), invocation.signal);
-          return { exitCode: 2 };
-        }
-      }
-    }
-    return { exitCode: res.exitCode };
-  } finally {
-    await invocation.close();
-  }
-}
-
-
 export function createPdffontsCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
   const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
   return Object.freeze({
@@ -1949,17 +1789,23 @@ export function createPdffontsCommand(options: PdfinfoCommandOptions = {}): Comm
     runtimeIdentity: commandRuntimeIdentity,
     description: "List fonts used in a PDF document via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return new InputByteBudget(maxInputBytes).run(context, async context => {
-        return executePopplerFileTool(context, runPdffontsCli);
-      });
+      return executePdffonts(context, { limits: { maxInputBytes } });
     }
   });
 }
 
 export const pdffontsCommand: CommandDefinition = createPdffontsCommand();
 
-/** Execute attachment extraction with caller-owned retained input and staging. */
-export async function executePdfdetach(context: CommandContext, options: PdfinfoCommandOptions = {}): Promise<{ exitCode: number }> {
+interface RetainedCommandOutput {
+  storage: PdfIndexStorage;
+  signal: AbortSignal;
+  emit(text: string): Promise<void>;
+  error(text: string, exitCode: number): Promise<{ exitCode: number }>;
+}
+async function executeRetainedPdf<Plan extends { inputPath: string; password: string }>(
+  context: CommandContext, options: PdfinfoCommandOptions, plan: Plan | PdfinfoCliResult,
+  inspect: (document: PdfRetainedDocument, plan: Plan, output: RetainedCommandOutput) => Promise<{ exitCode: number }>,
+): Promise<{ exitCode: number }> {
   const invocation = createOutputOperation(context, { write: async () => {} });
   const signal = invocation.signal;
   const output = invocation.child(context.stdout).output;
@@ -1969,10 +1815,8 @@ export async function executePdfdetach(context: CommandContext, options: Pdfinfo
   };
   let source: PdfFileSource | undefined;
   let document: PdfRetainedDocument | undefined;
-  let outputs: PdfStagedOutputs | undefined;
   let failed = false;
   try {
-    const plan = parsePdfdetachArgs(getCommandArguments(context).args);
     if ("exitCode" in plan) { if (plan.stdout) await emit(plan.stdout); return await error(plan.stderr, plan.exitCode); }
     const storage = { fs: context.fs, directory: resolvePath(context.cwd, context.env.TMPDIR || "/tmp") };
     const maxInputBytes = Math.min(InputByteBudget.limit(options.limits?.maxInputBytes), context.inputBudget?.maxBytes ?? Infinity);
@@ -2001,51 +1845,81 @@ export async function executePdfdetach(context: CommandContext, options: Pdfinfo
       if (failure instanceof Error && "code" in failure && (failure.code === "E_LIMIT" || failure.code === "E_CAPABILITY")) throw failure;
       return await error(`PDF Error: ${(failure as Error).message}\n`, 1);
     }
-    const doc = document;
-    const listing = plan.listOnly || (!plan.saveNumber && !plan.saveFileName && !plan.saveAll);
-    if (listing) {
-      let count = 0;
-      // Validate all payloads before stdout, preserving buffered-runner errors.
-      for await (const attachment of doc.attachments()) { for await (const ignored of attachment.contents()) { signal.throwIfAborted(); } count++; }
-      await emit(`${count} embedded files\n`);
-      for await (const attachment of doc.attachments()) await emit(`${attachment.index + 1}: ${applyPopplerOutputEncoding(attachment.name, plan.encoding)}\n`);
-      return { exitCode: 0 };
-    }
-    let destination = plan.outputPath;
-    if (destination && !destination.endsWith("/")) {
-      try { if ((await context.fs.stat(resolvePath(context.cwd, destination), { signal })).type === "directory") destination += "/"; }
-      catch (failure) { if (!(failure instanceof Error) || !("code" in failure) || (failure.code !== "ENOENT" && failure.code !== "ENOTDIR")) throw failure; }
-    }
-    let selected = false;
-    const selection = plan;
-    async function* entries(): AsyncGenerator<PdfOutputEntry> {
-      for await (const attachment of doc.attachments()) {
-        const matches = selection.saveNumber > 0 ? attachment.index === selection.saveNumber - 1 : selection.saveFileName ? attachment.name === selection.saveFileName : selection.saveAll;
-        if (!matches) { for await (const ignored of attachment.contents()) { signal.throwIfAborted(); } continue; }
-        selected = true;
-        const explicit = (selection.saveNumber > 0 || selection.saveFileName) && destination && !destination.endsWith("/");
-        const basename = explicit ? "" : attachmentBasename(attachment.name);
-        const name = explicit ? destination : destination ? `${destination.endsWith("/") ? destination.slice(0, -1) : destination}/${basename}` : basename;
-        yield { name, chunks: attachment.contents() };
-      }
-    }
-    outputs = await PdfStagedOutputs.create(storage, entries(), { signal });
-    if (!selected && plan.saveNumber > 0) return await error(`Error: Invalid file index ${plan.saveNumber}\n`, 1);
-    if (!selected && plan.saveFileName) return await error(`Error: Embedded file '${plan.saveFileName}' not found\n`, 1);
-    for await (const entry of outputs.entries()) {
-      try { await publishPdfOutput(context, resolvePath(context.cwd, entry.name), entry.contents(), signal); }
-      catch (failure) {
-        signal.throwIfAborted();
-        if (!(failure instanceof Error) || !("code" in failure)) throw failure;
-        return await error(`I/O Error: Error saving embedded file as '${entry.name}'\n`, 2);
-      }
-    }
-    return { exitCode: 0 };
+    return await inspect(document, plan, { storage, signal, emit, error });
   } catch (failure) { failed = true; throw failure; } finally {
     // Close all acquired resources even if one backend cleanup fails.
-    const results = await Promise.allSettled([outputs?.close(), document?.close(), source?.close(), invocation.close()]);
+    const results = await Promise.allSettled([document?.close(), source?.close(), invocation.close()]);
     if (!failed) await Promise.all(results.map(result => result.status === "rejected" ? Promise.reject(result.reason) : undefined));
   }
+}
+
+/** Execute attachment extraction with caller-owned retained input and staging. */
+export async function executePdfdetach(context: CommandContext, options: PdfinfoCommandOptions = {}): Promise<{ exitCode: number }> {
+  return executeRetainedPdf(context, options, parsePdfdetachArgs(getCommandArguments(context).args), async (doc, plan, { storage, signal, emit, error }) => {
+    let outputs: PdfStagedOutputs | undefined; let failed = false;
+    try {
+      const listing = plan.listOnly || (!plan.saveNumber && !plan.saveFileName && !plan.saveAll);
+      if (listing) {
+        let count = 0;
+        // Validate all payloads before stdout, preserving buffered-runner errors.
+        for await (const attachment of doc.attachments()) { for await (const ignored of attachment.contents()) { signal.throwIfAborted(); } count++; }
+        await emit(`${count} embedded files\n`);
+        for await (const attachment of doc.attachments()) await emit(`${attachment.index + 1}: ${applyPopplerOutputEncoding(attachment.name, plan.encoding)}\n`);
+        return { exitCode: 0 };
+      }
+      let destination = plan.outputPath;
+      if (destination && !destination.endsWith("/")) {
+        try { if ((await context.fs.stat(resolvePath(context.cwd, destination), { signal })).type === "directory") destination += "/"; }
+        catch (failure) { if (!(failure instanceof Error) || !("code" in failure) || (failure.code !== "ENOENT" && failure.code !== "ENOTDIR")) throw failure; }
+      }
+      let selected = false;
+      const selection = plan;
+      async function* entries(): AsyncGenerator<PdfOutputEntry> {
+        for await (const attachment of doc.attachments()) {
+          const matches = selection.saveNumber > 0 ? attachment.index === selection.saveNumber - 1 : selection.saveFileName ? attachment.name === selection.saveFileName : selection.saveAll;
+          if (!matches) { for await (const ignored of attachment.contents()) { signal.throwIfAborted(); } continue; }
+          selected = true;
+          const explicit = (selection.saveNumber > 0 || selection.saveFileName) && destination && !destination.endsWith("/");
+          const basename = explicit ? "" : attachmentBasename(attachment.name);
+          const name = explicit ? destination : destination ? `${destination.endsWith("/") ? destination.slice(0, -1) : destination}/${basename}` : basename;
+          yield { name, chunks: attachment.contents() };
+        }
+      }
+      outputs = await PdfStagedOutputs.create(storage, entries(), { signal });
+      if (!selected && plan.saveNumber > 0) return await error(`Error: Invalid file index ${plan.saveNumber}\n`, 1);
+      if (!selected && plan.saveFileName) return await error(`Error: Embedded file '${plan.saveFileName}' not found\n`, 1);
+      for await (const entry of outputs.entries()) {
+        try { await publishPdfOutput(context, resolvePath(context.cwd, entry.name), entry.contents(), signal); }
+        catch (failure) {
+          signal.throwIfAborted();
+          if (!(failure instanceof Error) || !("code" in failure)) throw failure;
+          return await error(`I/O Error: Error saving embedded file as '${entry.name}'\n`, 2);
+        }
+      }
+      return { exitCode: 0 };
+    } catch (failure) { failed = true; throw failure; } finally {
+      await outputs?.close().catch(failure => { if (!failed) throw failure; });
+    }
+  });
+}
+
+/** Stream font inspection through the same retained engine used by the command. */
+export async function executePdffonts(context: CommandContext, options: PdfinfoCommandOptions = {}): Promise<{ exitCode: number }> {
+  return executeRetainedPdf(context, options, parsePdffontsArgs(getCommandArguments(context).args), async (doc, plan, { emit, error, signal }) => {
+    let count = 0;
+    for await (const ignored of doc.pages()) count++;
+    const endPage = plan.lastPage > 0 ? Math.min(count, plan.lastPage) : count;
+    if (plan.firstPage > count || (plan.lastPage > 0 && plan.firstPage > endPage)) {
+      return error(`Command Line Error: Wrong page range given: the first page (${plan.firstPage}) can not be after the last page (${endPage}).\n`, 99);
+    }
+    await emit(fontTableHeader(plan).join("\n") + "\n");
+    for await (const font of doc.fonts({ firstPage: plan.firstPage, lastPage: endPage })) {
+      await yieldTurn(signal);
+      const row = formatPdfFont(font, plan);
+      if (row !== undefined) await emit(row + "\n");
+    }
+    return { exitCode: 0 };
+  });
 }
 
 async function publishPdfOutput(context: CommandContext, path: string, chunks: AsyncIterable<Uint8Array>, signal: AbortSignal): Promise<void> {

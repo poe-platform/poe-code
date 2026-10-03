@@ -24,7 +24,7 @@ async function execute(command: CommandDefinition, args: string[]) {
     stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
     stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } },
   } as unknown as CommandContext;
-  if (command.name === "pdfdetach") { const fs = createMemoryFileSystem(); await fs.mkdir("/tmp"); context = { ...context, fs }; }
+  if ((command.name === "pdfdetach" || command.name === "pdffonts")) { const fs = createMemoryFileSystem(); await fs.mkdir("/tmp"); context = { ...context, fs }; }
   const result = await command.execute(context);
   return { ...result, reads, stdout, stderr };
 }

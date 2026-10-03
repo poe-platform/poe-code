@@ -5,7 +5,7 @@
 This is a manual execution plan, not a qualification result. The retained
 `PdfFileSource` primitive has deterministic range, ownership, budget, lifecycle,
 and backpressure tests. Retained document traversal, filters, attachment extraction
-and the `pdfdetach` command now use caller-backed sources and staging. Other
+and the `pdfdetach` / `pdffonts` commands now use caller-backed sources and staging. Other
 command adapters, editing/rendering engines and giant structural values still
 need migration before claiming command-level bounded working memory. No actual Worker memory or CPU measurements have yet
 been recorded for this implementation.

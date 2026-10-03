@@ -3,7 +3,7 @@ import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {expect, it} from "vitest";
 
-it.each([["json", "html", false], ["csv", "html", false], ["json", "html", true], ["csv", "html", true]] as const)("retains %s includes to %s with external R2 pages in workerd", async (from, to, template) => {
+it.each([["json", "html", false], ["csv", "html", false], ["json", "html", true], ["csv", "html", true]] as const)("retains %s includes to %s with external R2 pages in workerd (template %s)", async (from, to, template) => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const source = from === "csv" ? "head\nbody" : JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {nested: {t: "MetaMap", c: {keep: {t: "MetaBool", c: true}, remove: {t: "MetaString", c: "old"}}}}, blocks: [{t: "Para", c: [{t: "Str", c: "body"}]}]});
   const bundled = await build({stdin: {resolveDir: root, contents: `
@@ -34,7 +34,8 @@ it.each([["json", "html", false], ["csv", "html", false], ["json", "html", true]
       try {
         await api.convertToOutput([{bytes: encoder.encode(${JSON.stringify(source)})}], {
           from: ${JSON.stringify(from)}, to: ${JSON.stringify(to)}, standalone: true,
-          template: ${template} ? {bytes: encoder.encode("$if(body)$<main>$body$</main>$endif$$for(header-includes)$$header-includes$$endfor$")} : undefined,
+          variables: ${template} ? {rows: Array.from({length: 32}, (_, i) => ["x".repeat(2048), i])} : undefined,
+          template: ${template} ? {bytes: encoder.encode("$if(body)$<main>$body$</main>$endif$$for(header-includes)$$header-includes$$endfor$$for(rows)$$for(rows)$$rows$$endfor$$endfor$")} : undefined,
           includeBeforeBody: [{chunks: chunks()}], includeInHeader: [{bytes: encoder.encode('<meta name="author" content="Writer">')}], includeAfterBody: [{bytes: encoder.encode('<footer>After</footer>')}], filters: [{kind: "json", path: "filter"}]
         }, {
           workingFiles: {fs, directory: "/spill", cacheBytes: 16384}, limits: {outputBytes: 500000}, signal: controller.signal,
@@ -56,7 +57,8 @@ it.each([["json", "html", false], ["csv", "html", false], ["json", "html", true]
   try {
     const {convert} = await import("../packages/safe-bash-command-pandoc/dist/index.js");
     const expected = await convert([{bytes: new TextEncoder().encode(source)}], {from: from!, to: to!, standalone: true,
-      template: template ? {bytes: new TextEncoder().encode("$if(body)$<main>$body$</main>$endif$$for(header-includes)$$header-includes$$endfor$")} : undefined,
+      variables: template ? {rows: Array.from({length: 32}, (_, i) => ["x".repeat(2048), i])} : undefined,
+      template: template ? {bytes: new TextEncoder().encode("$if(body)$<main>$body$</main>$endif$$for(header-includes)$$header-includes$$endfor$$for(rows)$$for(rows)$$rows$$endfor$$endfor$")} : undefined,
       includeBeforeBody: [{bytes: new TextEncoder().encode("<aside>" + "x".repeat(65536) + "</aside>")}], includeInHeader: [{bytes: new TextEncoder().encode('<meta name="author" content="Writer">')}], includeAfterBody: [{bytes: new TextEncoder().encode("<footer>After</footer>")}]}, {});
     const bytes = expected.kind === "binary" ? expected.bytes : new TextEncoder().encode(expected.text);
     let hash = 2166136261; for (const byte of bytes) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
@@ -66,7 +68,7 @@ it.each([["json", "html", false], ["csv", "html", false], ["json", "html", true]
       const result = await response.json() as {error?: {code: string}; largest: number; events: {opened: number; closed: number; writes: number; reads: number; peakHandles: number; largestTransfer: number}};
       expect(result).toMatchObject({remaining: 0, namespace: [], finalized: 1});
       expect(result.events.opened).toBeGreaterThan(0); expect(result.events.closed).toBe(result.events.opened);
-      expect(result.events.peakHandles).toBeLessThanOrEqual(7); expect(result.events.largestTransfer).toBeLessThanOrEqual(16384);
+      expect(result.events.peakHandles).toBeLessThanOrEqual(8); expect(result.events.largestTransfer).toBeLessThanOrEqual(16384);
       if (mode === "success" || mode === "sink-error") expect(result.events.reads).toBeGreaterThan(0);
       expect(result.events.writes).toBeGreaterThan(0); expect(result.largest).toBeLessThanOrEqual(16384);
       if (mode === "success") {

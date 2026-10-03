@@ -13,11 +13,18 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   finite output preflight and retirement before commit. The workerd/R2 include
   scenarios cover JSON/CSV with streamed filters and producer/cancel/sink
   failures. Extend the increasing-size and concurrent-request measurements to
-  these paths. Custom HTML templates without variable maps now retain source,
+  these paths. Custom HTML templates now retain source,
   nested evaluation continuations, body and output in the same cache. Verify
   nested/empty/malformed blocks, dead branches, long names, inherited bindings,
-  newline trimming and source/retirement failures. Variable maps remain on the
-  compatibility path. Error messages containing an invalid expression still
+  newline trimming and source/retirement failures. Variable values, nested loop
+  bindings and admission traversal state are retained with one extra page cache.
+  SDK input maps remain caller-owned resident objects: measure that baseline,
+  the maximum immediate Object.keys enumeration and longest complete lookup
+  key separately from backed conversion state. CLI variable option parsing is
+  still resident. Exercise deep arrays, wide maps, shadowed bindings, zero/false/
+  null truthiness, finite output, validation before document acquisition and
+  cancellation/storage/retirement failures. Workerd/R2 template cases include
+  64 KiB variable payloads with a 16 KiB cache and nested loops. Error messages containing an invalid expression still
   require the complete expression string; full runtime qualification remains
   incomplete.
 

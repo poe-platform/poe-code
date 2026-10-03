@@ -1,3 +1,4 @@
+import type {RetainedVariables} from "./retained-variables.js";
 import type {PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
 import type {ExecutionContext} from "./execution.js";
@@ -53,14 +54,30 @@ export class RetainedTemplate {
   private async prefix(start: number, end: number, value: string): Promise<boolean> {
     return end - start >= value.length && this.equal(start, start + value.length, value);
   }
-  async render(text: BackedText, values: Readonly<Record<string, TextRange>>): Promise<TextRange> {
+  private async equalChunks(start: number, end: number, chunks: AsyncIterable<string>): Promise<boolean> {
+    const expected = this.slice(start, end)[Symbol.asyncIterator]();
+    for await (const chunk of chunks) {
+      const next = await expected.next();
+      if (next.done || next.value !== chunk) return false;
+    }
+    return (await expected.next()).done === true;
+  }
+  async render(text: BackedText, values: Readonly<Record<string, TextRange>>, variables?: RetainedVariables): Promise<TextRange> {
     const context = this.context;
     return text.from((async function* (this: RetainedTemplate) {
       let cursor = 0, end = this.length, depth = 0, stack = 0;
       while (true) {
         if (cursor >= end) {
           if (!stack) break;
-          const bytes = await this.storage.read(stack, 32), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+          const bytes = await this.storage.read(stack, 80), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+          const item = view.getFloat64(64, true), arrayEnd = view.getFloat64(72, true);
+          if (item && arrayEnd) {
+            const next = (await variables!.tree.describe(item)).end;
+            if (next < arrayEnd) {
+              view.setFloat64(64, next, true); await this.storage.write(stack, bytes);
+              cursor = view.getFloat64(32, true); end = view.getFloat64(40, true); continue;
+            }
+          }
           stack = view.getFloat64(0, true); cursor = view.getFloat64(8, true); end = view.getFloat64(16, true); depth = view.getFloat64(24, true);
           continue;
         }
@@ -75,11 +92,27 @@ export class RetainedTemplate {
         if (token === close) {yield "$"; continue;}
         const loop = await this.prefix(token, close, "for(") && await this.char(close - 1) === ")";
         const condition = await this.prefix(token, close, "if(") && await this.char(close - 1) === ")";
-        let value: TextRange | undefined, map = false;
+        let value: TextRange | undefined, map = false, variable = 0;
         const keyStart = loop ? token + 4 : condition ? token + 3 : token;
         const keyEnd = loop || condition ? close - 1 : close;
-        for (const key of Object.keys(values)) if (await this.equal(keyStart, keyEnd, key)) {value = values[key]; break;}
-        if (!value) for (const key of Object.getOwnPropertyNames(Object.prototype)) {
+        for (let scope = stack; scope;) {
+          await context.cooperate();
+          const bytes = await this.storage.read(scope, 80), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+          const item = view.getFloat64(64, true);
+          if (item && await this.equalChunks(keyStart, keyEnd, this.slice(view.getFloat64(48, true), view.getFloat64(56, true)))) {variable = item; break;}
+          scope = view.getFloat64(0, true);
+        }
+        if (!variable) for (const key of Object.keys(values)) if (await this.equal(keyStart, keyEnd, key)) {value = values[key]; break;}
+        if (!variable && !value && variables) {
+          const tree = variables.tree, finish = (await tree.describe(tree.rootPosition)).end;
+          for (let key = tree.rootPosition + 32; key < finish;) {
+            await context.cooperate();
+            const header = await tree.describe(key);
+            if (header.end - key - 32 === (keyEnd - keyStart) * 2 && await this.equalChunks(keyStart, keyEnd, tree.scalarChunks(key))) {variable = header.end; break;}
+            key = (await tree.describe(header.end)).end;
+          }
+        }
+        if (!variable && !value) for (const key of Object.getOwnPropertyNames(Object.prototype)) {
           if (await this.equal(keyStart, keyEnd, key)) {
             const inherited: unknown = values[key];
             map = typeof inherited === "object" && inherited !== null;
@@ -106,12 +139,18 @@ export class RetainedTemplate {
           }
           if (finish < 0) context.fail("E_PARSE", "Unclosed template block");
           if (loop && alternate >= 0) context.fail("E_UNSUPPORTED_FEATURE", "Template loop separators are unsupported");
-          const selectedStart = loop ? value ? cursor : -1 : value?.units || map ? cursor : alternate < 0 ? -1 : alternate + 6;
-          const selectedEnd = !loop && (value?.units || map) && alternate >= 0 ? alternate : finish;
+          const truthy = variable ? await variables!.truthy(variable) : Boolean(value?.units || map);
+          let item = variable, arrayEnd = 0;
+          if (loop && item) {
+            const header = await variables!.tree.describe(item);
+            if (header.kind === "array") {arrayEnd = header.end; item = header.children ? item + 32 : 0;}
+          }
+          const selectedStart = loop ? item || value ? cursor : -1 : truthy ? cursor : alternate < 0 ? -1 : alternate + 6;
+          const selectedEnd = !loop && truthy && alternate >= 0 ? alternate : finish;
           if (selectedStart >= 0) {
             context.bound("depth", depth + 1);
-            const bytes = new Uint8Array(32), view = new DataView(bytes.buffer);
-            [stack, finishEnd, end, depth].forEach((n, i) => view.setFloat64(i * 8, n, true));
+            const bytes = new Uint8Array(80), view = new DataView(bytes.buffer);
+            [stack, finishEnd, end, depth, selectedStart, selectedEnd, keyStart, keyEnd, loop ? item : 0, arrayEnd].forEach((n, i) => view.setFloat64(i * 8, n, true));
             stack = await this.storage.append(bytes); depth++; cursor = selectedStart; end = selectedEnd;
           } else cursor = finishEnd;
         } else {
@@ -126,10 +165,10 @@ export class RetainedTemplate {
             context.fail("E_UNSUPPORTED_FEATURE", `Unsupported template expression: ${expression}`);
           }
           if (map) context.fail("E_UNSUPPORTED_FEATURE", "Template map interpolation is unsupported");
-          if (value) {
+          if (value || variable) {
             const trim = await this.equal(token, close, "body") && await this.char(cursor) === "\n";
             let pending = "";
-            for await (const chunk of text.chunks(value)) {if (pending) yield pending; pending = chunk;}
+            for await (const chunk of variable ? variables!.stringify(variable) : text.chunks(value!)) {if (pending) yield pending; pending = chunk;}
             if (pending) yield trim && pending.endsWith("\n") ? pending.slice(0, -1) : pending;
           }
         }

@@ -1,3 +1,4 @@
+import {RetainedVariables} from "./retained-variables.js";
 import {RetainedTemplate} from "./retained-template.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
@@ -7,6 +8,8 @@ import type {ConversionOptions, WorkingStorageOptions} from "./types.js";
 /** Include text and each replacement generation belong to caller storage.
  * String.replace's replacement tokens are intentional compatibility behavior. */
 export class RetainedIncludes {
+  private variables: RetainedVariables | undefined;
+  standalone = false;
   private template: RetainedTemplate | undefined;
   private readonly text: BackedText;
   private readonly before = emptyText();
@@ -19,13 +22,15 @@ export class RetainedIncludes {
     this.release = context.onClose(() => this.close());
   }
   static async acquire(context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions): Promise<RetainedIncludes | undefined> {
-    if (!options.template && !options.includeInHeader?.length && !options.includeBeforeBody?.length && !options.includeAfterBody?.length) return undefined;
+    if (options.variables === undefined && !options.template && !options.includeInHeader?.length && !options.includeBeforeBody?.length && !options.includeAfterBody?.length) return undefined;
     const pages = (working.cacheBytes ?? 1048576) / 16384;
     if (!Number.isSafeInteger(pages) || pages < 1) context.fail("E_OPTION", "Working storage cacheBytes must be a positive multiple of 16384");
     if (typeof working.directory !== "string" || !working.directory.startsWith("/")) context.fail("E_OPTION", "Working storage requires an absolute caller filesystem directory");
     const storage = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, pages);
     const result = new RetainedIncludes(storage, context);
+    result.standalone = !options.template && (options.standalone === true || Boolean(options.includeInHeader?.length || options.includeBeforeBody?.length || options.includeAfterBody?.length));
     try {
+      if (options.variables !== undefined) result.variables = await RetainedVariables.acquire(options.variables, context, working, storage);
       if (options.template) {result.template = new RetainedTemplate(storage, context); await result.template.acquire(options.template);}
       for (const [sources, target] of [[options.includeInHeader, result.header], [options.includeBeforeBody, result.before], [options.includeAfterBody, result.after]] as const) {
         for (const source of sources ?? []) {
@@ -39,7 +44,13 @@ export class RetainedIncludes {
     } catch (error) {try {await result.close();} catch { /* Preserve acquisition failure. */ } throw error;}
   }
   close(): Promise<void> {
-    this.closing ??= this.storage.close().finally(this.release);
+    this.closing ??= (async () => {
+      let failure: {reason: unknown} | undefined;
+      try {await this.variables?.close();} catch (reason) {failure = {reason};}
+      try {await this.storage.close();} catch (reason) {failure ??= {reason};}
+      finally {this.release();}
+      if (failure) throw failure.reason;
+    })();
     return this.closing;
   }
   private async *slice(value: TextRange, start = 0, end = value.units): AsyncGenerator<string> {
@@ -92,7 +103,7 @@ export class RetainedIncludes {
     if (this.template) {
       const text = this.text, before = this.before, after = this.after, body = value;
       const combined = await text.from((async function* () {yield* text.chunks(before); yield* text.chunks(body); yield* text.chunks(after);})());
-      value = await this.template.render(text, {body: combined, "header-includes": this.header, "include-before": before, "include-after": after});
+      value = await this.template.render(text, {body: combined, "header-includes": this.header, "include-before": before, "include-after": after}, this.variables);
       return () => text.unicodeChunks(value);
     }
     if (!this.before.units && !this.after.units && !this.header.units) return () => this.text.unicodeChunks(value);

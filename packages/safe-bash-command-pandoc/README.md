@@ -176,7 +176,13 @@ HTML `includeInHeader`, `includeBeforeBody`, and `includeAfterBody` inputs also
 stream into caller storage before document acquisition. Include replacement
 generations use one additional page cache, preserve raw text and replacement
 tokens, and retire before output commit. CLI `-H`, `-B`, and `-A` use this same
-path. Custom HTML templates without a `variables` map retain their source, block continuations, body and output in the same caller storage. Template variables still use the compatibility converter.
+path. Custom HTML templates retain their source, block continuations, body and
+output in the same caller storage. Variable values and nested loop bindings use
+one additional page cache. The SDK's `variables` object is already resident at
+entry; admission additionally enumerates one object's keys at a time and reads
+one complete property name. It avoids cloning the value graph and stores its
+traversal state externally. CLI `-V` and `--variable-json` use the same retained
+conversion path; CLI option parsing still constructs the input map.
 JSON filters with `applyJsonStream` also use retained generations: each validated
 response replaces the prior document before the next filter starts. At most five
 page caches coexist (two document pairs and one response spool), independently

@@ -706,13 +706,20 @@ for (const output of ["stream", "buffered"]) for (const scenario of [
         await target.writeStream(...args);
         completedWrites.push("stream");
       };
-      if (key === "writeFile") return async (...args) => {
-        assert.equal(args[0], "/target");
-        assert.equal(args[2]?.flag, "wx");
-        assert.deepEqual(args[1], bytes);
+      if (key === "open") return async (path, options) => {
+        if (options?.access !== "write") return target.open(path, options);
+        assert.equal(path, "/target");
+        assert.equal(options?.creation, "exclusive");
         writes.push("buffered");
-        await target.writeFile(...args);
-        completedWrites.push("buffered");
+        const descriptor = await target.open(path, options);
+        return new Proxy(descriptor, { get(resource, member) {
+          if (member === "close") return async (...closeArgs) => {
+            await resource.close(...closeArgs);
+            completedWrites.push("buffered");
+          };
+          const value = Reflect.get(resource, member, resource);
+          return typeof value === "function" ? value.bind(resource) : value;
+        } });
       };
       if (key === "rm") return async (...args) => {
         assert.equal(args[0], "/target");

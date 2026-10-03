@@ -23,8 +23,12 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   with at most five page caches live during validation. Test long image URIs
   separately: origin admission still materializes one URI. Runtime-owned state
   is not bounded by protocol streaming. Whole-value runtimes currently retain
-  documents. A paged runtime boundary and
-  measurements of unavoidable live runtime state are still required.
+  documents. The internal Lua storage layer retains binary strings, table
+  keys/values, collision indexes and iteration cursors in caller storage. It is
+  not yet connected to the compiler/interpreter: bytecode, constants, closures,
+  call frames, standard libraries and the AST bridge still require integration
+  and runtime qualification. Measurements of unavoidable live runtime state are
+  still required.
 - Exercise citeproc with bibliography and citation counts that grow independently
   of document bytes. Measure its retained processor state separately.
 - External resource extraction now spools payloads when working storage and a

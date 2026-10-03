@@ -22,7 +22,9 @@ records through the caller’s safe-fs. XML encoding, member compression and arc
 output use bounded chunks and backpressure. Worksheet rows use caller-backed
 staging, and row, worksheet and shared-string XML containers stream. Shared-string
 counts, IDs, XML and ordered cell-coordinate indexes use caller-backed storage.
-Style-region blanks are generated during traversal. Workbook cells, individual
+Style-region blanks are generated during traversal. Both editions accept replayable
+scalar cells from CSV/text without building full cell arrays. Formula-bearing
+inputs and global transformations retain the workbook path. Other workbook cells, individual
 strings, style indexes and metadata still reside in memory; an external safe-fs backend is required for staging outside the isolate.
 
 Compose additional format modules explicitly to convert between file types.

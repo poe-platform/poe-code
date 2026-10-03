@@ -18,7 +18,7 @@ style-region blanks from templates. Individual cell strings, style indexes,
 other metadata XML and the workbook model
 are still buffered. ODF decrypted members and wrapped inner
 packages are still buffered.
-Plain text conversions to text or Gnumeric XML/gzip without global evaluation now replay cells from retained input through the exporter; they do not retain a full cell array. Formula-bearing and clock-dependent inputs, transformations, and explicit workbook SDK reads still use the array model. Decoded XML documents and non-text workbooks remain resident. Other built-in input collection, the owned array-based workbook,
+Plain text conversions to text, Gnumeric XML/gzip or either XLSX edition without global evaluation now replay cells from retained input through the exporter; they do not retain a full cell array. Formula-bearing and clock-dependent inputs, transformations, and explicit workbook SDK reads still use the array model. Decoded XML documents and non-text workbooks remain resident. Other built-in input collection, the owned array-based workbook,
 unordered CSV lookup without working storage, large individual fields, and the remaining format codecs still
 need migration before the complete conversion pipeline can pass this plan.
 

@@ -1,3 +1,5 @@
+import type { Codec, WorkbookSource } from "@poe-code/spreadsheet-engine/codecs/types";
+import { ownWorkbookSource } from "@poe-code/spreadsheet-engine/workbook/source";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { foldSheetName } from "@poe-code/spreadsheet-ast/case-fold";
 import { XlsxExternalLinkWriter } from "./external-link-export.js";
@@ -781,8 +783,8 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
   };
 }
 
-export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<import("@poe-code/spreadsheet-engine/codecs/types").Codec["writeStream"]> {
-  return async function* (book, _options, context) {
+export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<Codec["writeStream"]> & NonNullable<Codec["writeWorkbookSource"]> {
+  return async function* (input: Workbook | WorkbookSource, _options, context) {
     let storage: import("@poe-code/spreadsheet-engine/contracts").WorkingStorage | undefined;
     let closed = false, closing: Promise<void> | undefined, failure: { error: unknown } | undefined;
     const close = () => {
@@ -793,7 +795,9 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
     try {
     context.signal.throwIfAborted();
     const { element: xml, stream: xmlStream, charge } = createXlsxXml(context);
-    book = snapshotXlsxWorkbook(book, context, charge);
+    const source = "metadata" in input ? await ownWorkbookSource(input, context.limits, () => context.signal.throwIfAborted()) : undefined;
+    let book = snapshotXlsxWorkbook(source?.metadata ?? input as Workbook, context, charge);
+    const suppliedCells = (sheet: Sheet) => source?.cells(sheet.id) ?? sheet.cells;
     if (book.sheets.length > context.limits.sheets) limit("sheets");
     let admittedCells = 0;
     for (const sheet of book.sheets) { charge(); admittedCells += sheet.cells.length; if (admittedCells > context.limits.cells) limit("cells"); }
@@ -877,13 +881,18 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
     const sharedBuffer = new Uint8Array(16384); let sharedBytes = 0, sharedTotal = 0;
     let sharedReferences = 0, sharedCount = 0;
     let totalCells = 0;
-    for (const sheet of book.sheets) for (const cell of sheet.cells) {
-      charge(); if (++totalCells > context.limits.cells) limit("cells");
-      const value = cell.formula ? cell.cachedResult ?? cell.value : cell.value;
-      if (!cell.formula && value.kind === "string") {
-        const key = JSON.stringify([value.value, cell.richText ?? []]), count = await stringIndex.get(key) ?? 0;
-        if (count < 2) await stringIndex.set(key, count + 1);
+    const sourceCounts = source ? new Map<string, number>() : undefined;
+    for (const sheet of book.sheets) {
+      let count = 0;
+      for await (const cell of suppliedCells(sheet)) {
+        charge(); count++; if (++totalCells > context.limits.cells) limit("cells");
+        const value = cell.formula ? cell.cachedResult ?? cell.value : cell.value;
+        if (!cell.formula && value.kind === "string") {
+          const key = JSON.stringify([value.value, cell.richText ?? []]), count = await stringIndex.get(key) ?? 0;
+          if (count < 2) await stringIndex.set(key, count + 1);
+        }
       }
+      sourceCounts?.set(sheet.id, count);
     }
     if (book.sheets.length > context.limits.sheets) limit("sheets");
     const active = Math.max(0, book.sheets.findIndex(sheet => sheet.id === book.activeSheet));
@@ -902,14 +911,19 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
       for (const [axis, maximum] of [[sheet.rows ?? [], rows], [sheet.columns ?? [], columns]] as const)
         for (const info of axis) if (!Number.isSafeInteger(info.index) || info.index < 0 || info.index >= maximum)
           throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: XLSX axis outside writer sheet limits");
-      for (const cell of sheet.cells) if (!Number.isSafeInteger(cell.row) || !Number.isSafeInteger(cell.column) || cell.row >= rows || cell.column >= columns || cell.row < 0 || cell.column < 0)
-        throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: XLSX cell outside writer sheet limits");
       const addresses = storage ? new IntegerTable(storage, 128) : new Map<bigint, bigint>();
       const coordinate = (row: number, column: number) => BigInt(row) << 14n | BigInt(column);
-      for (let index = 0; index < sheet.cells.length; index++) {
+      let inputCellCount = 0;
+      for await (const cell of suppliedCells(sheet)) {
         context.signal.throwIfAborted();
-        const cell = sheet.cells[index]!; await addresses.set(coordinate(cell.row, cell.column), BigInt(index));
+        if (!Number.isSafeInteger(cell.row) || !Number.isSafeInteger(cell.column) || cell.row >= rows || cell.column >= columns || cell.row < 0 || cell.column < 0)
+          throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: XLSX cell outside writer sheet limits");
+        if (sourceCounts && inputCellCount >= sourceCounts.get(sheet.id)!)
+          throw new SsconvertError("invalid-request", "XLSX source coordinates changed during replay");
+        await addresses.set(coordinate(cell.row, cell.column), BigInt(inputCellCount++));
       }
+      if (sourceCounts && inputCellCount !== sourceCounts.get(sheet.id))
+        throw new SsconvertError("invalid-request", "XLSX source coordinates changed during replay");
       // Regions keep one template each. Their potentially millions of blank cells
       // are reconstructed from indexed coordinates during bounded traversal.
       const styled: Omit<Cell, "row" | "column">[] = [];
@@ -927,7 +941,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
           const count = (r.endRow - r.startRow + 1) * (r.endColumn - r.startColumn + 1);
           if (count > context.limits.cells) limit("styled cells");
           charge(count);
-          const template = BigInt(sheet.cells.length + styled.length);
+          const template = BigInt(inputCellCount + styled.length);
           styled.push({ value: { kind: "blank" }, format: a.Format ?? node.attributes.Format ?? "General", style: { gnumeric: node as unknown as ImportedValue } });
           for (let row = r.startRow; row <= r.endRow; row++) for (let column = r.startColumn; column <= r.endColumn; column++) {
             context.signal.throwIfAborted();
@@ -941,12 +955,22 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
       }
       async function* cells(): AsyncGenerator<Cell> {
         const entries = addresses instanceof Map ? [...addresses].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0) : addresses.entries();
-        for await (const [key, value] of entries) {
-          context.signal.throwIfAborted(); const index = Number(value);
-          yield index < sheet.cells.length ? sheet.cells[index]! : {
-            ...styled[index - sheet.cells.length]!, row: Number(key >> 14n), column: Number(key & 0x3fffn)
-          };
-        }
+        const cursor = source?.cells(sheet.id)[Symbol.asyncIterator](); let read = 0;
+        try {
+          for await (const [key, value] of entries) {
+            context.signal.throwIfAborted(); const index = Number(value);
+            if (index >= inputCellCount) {
+              yield { ...styled[index - inputCellCount]!, row: Number(key >> 14n), column: Number(key & 0x3fffn) };
+            } else if (cursor) {
+              const next = await cursor.next();
+              if (next.done || index !== read++ || coordinate(next.value.row, next.value.column) !== key)
+                throw new SsconvertError("invalid-request", "XLSX source coordinates changed during replay");
+              yield next.value;
+            } else yield sheet.cells[index]!;
+          }
+          if (cursor && !(await cursor.next()).done)
+            throw new SsconvertError("invalid-request", "XLSX source coordinates changed during replay");
+        } finally { await cursor?.return?.(); }
       }
       let endRow = 0, endColumn = 0, startRow = 0, startColumn = columns - 1, cellCount = 0;
       for await (const cell of cells()) {
@@ -1048,7 +1072,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
         tabSelected: index === active ? 1 : undefined };
       for (const [gnm, xlsx, invert] of [["DisplayFormulas", "showFormulas", false], ["HideZero", "showZeros", true], ["HideGrid", "showGridLines", true], ["HideColHeader", "showRowColHeaders", true], ["DisplayOutlines", "showOutlineSymbols", false], ["RTL_Layout", "rightToLeft", false]] as const)
         if (view[gnm] !== undefined) viewAttrs[xlsx] = (invert ? !Number(view[gnm]) : !!Number(view[gnm])) ? 1 : 0;
-      const metadata = await writeXlsxSheetMetadata(sheet, index + 1, xml, context, namespace, exportXlsxFormula.bind(null, book), styles, charge);
+      const metadata = await writeXlsxSheetMetadata(sheet, index + 1, xml, context, namespace, exportXlsxFormula.bind(null, book), styles, charge, source?.cells(sheet.id));
       let cols = "", nextColumn = 0;
       let columnRun: { first: number; last: number; attributes: Attributes } | undefined;
       const appendColumn = (first: number, last: number, attributes: Attributes) => {

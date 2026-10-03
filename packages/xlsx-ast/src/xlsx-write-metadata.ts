@@ -1,5 +1,5 @@
 import type { CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
-import { parseA1, formatA1, type Sheet, type Workbook } from "@poe-code/spreadsheet-ast";
+import { parseA1, formatA1, type Sheet, type Workbook, type Cell } from "@poe-code/spreadsheet-ast";
 import { SsconvertError } from "@poe-code/spreadsheet-engine/contracts";
 import type { createXlsxStyles } from "./xlsx-write-styles.js";
 import { escapeXlsx, metadataNode, writeRichString, type ElementWriter, type MetadataNode } from "@poe-code/spreadsheet-engine/codecs/xlsx-write-support";
@@ -11,7 +11,7 @@ import { readGnumericRichText } from "@poe-code/spreadsheet-engine/codecs/gnumer
 function child(node: MetadataNode | undefined, name: string): MetadataNode | undefined { return node?.children.find(n => n.name === name); }
 export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: ElementWriter, context: CapabilityContext, namespace: string,
   formula: (source: string, sheet: Sheet, row: number, column: number, context: CapabilityContext) => string,
-  styles: ReturnType<typeof createXlsxStyles>, charge: (amount?: number) => void) {
+  styles: ReturnType<typeof createXlsxStyles>, charge: (amount?: number) => void, sourceCells?: AsyncIterable<Cell>) {
   const records = (sheet.unsupportedRecords ?? []).map(record => ({ record, node: metadataNode(record.data, charge) }));
   const settings = await writeXlsxSheetSettings(sheet, records, xml, context, namespace, charge);
   const pi = records.find(r => r.record.kind === "PrintInformation")?.node;
@@ -217,7 +217,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
     await context.diagnostic?.({ code: "xlsx-write-loss", severity: "warning", message: `XLSX writer does not export sheet '${sheet.name}' record '${record.kind}'` });
   }
   // Gnumeric styles may carry imperative metadata; warn instead of losing it silently.
-  for (const cell of regions.length ? [] : sheet.cells) {
+  for await (const cell of regions.length ? [] : sourceCells ?? sheet.cells) {
     const style = metadataNode(cell.style?.gnumeric, charge);
     for (const node of style?.children ?? []) if (["Validation", "Condition", "Conditions", "InputMessage"].includes(node.name)) {
       await context.diagnostic?.({ code: "xlsx-write-loss", severity: "warning", message: `XLSX writer does not export sheet '${sheet.name}' style '${node.name}'` });

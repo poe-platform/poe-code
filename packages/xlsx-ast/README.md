@@ -35,7 +35,8 @@ const engine = createEngine({ codecs: [{
   id: "xlsx", description: "XLSX workbook", extensions: ["xlsx"],
   probeContent: probeXlsx, probeSource: probeXlsx, contentProbe: true,
   read: readXlsx, readSource: readXlsx, write: createXlsxWriter("2008"),
-  writeStream: createXlsxStreamWriter("2008")
+  writeStream: createXlsxStreamWriter("2008"),
+  writeWorkbookSource: createXlsxStreamWriter("2008")
 }] });
 ```
 
@@ -59,7 +60,9 @@ XML containers stream without complete strings. Shared-string counts and IDs
 use a caller-backed index with a fixed header cache; shared-string XML is staged
 as IDs are assigned. Cell coordinates use an ordered caller-backed index;
 row traversal avoids sorted cell copies, and style-region blanks are generated
-from metadata templates. Individual cells/strings, style indexes and other
+from metadata templates. The writer also accepts replayable scalar `WorkbookSource`
+cells, so plain CSV/text conversions can avoid full cell arrays. Formula-bearing
+inputs and global transformations retain the workbook path. Individual cells/strings, style indexes and other
 metadata still use in-memory representations. Hosts without
 working storage and explicit `createXlsxWriter` calls retain buffered output.
 

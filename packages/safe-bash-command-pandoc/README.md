@@ -177,13 +177,20 @@ indentation use caller storage, including long words and nested lists. It preser
 the existing plain writer's constructors, raw-content policy and diagnostics.
 Rendering uses three page caches (the document pair and writer); filter validation
 still uses up to five. Plain text accepts `wrap` and `columns` on these paths.
-JSON → JSON/plain also supports `shiftHeadingLevelBy` and `stripComments` through
+JSON → JSON/plain/HTML also supports `shiftHeadingLevelBy` and `stripComments` through
 caller-backed rewrite jobs and scalar slices. Rewrites run after filters, retain
 both generations only until the old one is retired, and use at most four page
 caches plus fixed small index caches. Metadata remains unchanged by these block
 transformations, matching the convenience converter.
-Multiple JSON inputs, legacy filters, other transformations and other finite
-document budgets continue through the compatibility converter.
+Single-input JSON → HTML retains writer calls, output, heading identifiers,
+footnotes, attributes and table occupancy in caller storage. It supports the
+existing HTML constructors, URL/attribute policy, raw-content diagnostics,
+`standalone`, `toc`, `numberSections`, `ascii` and line endings. Unicode heading
+normalization and duplicate identifiers stay bounded even for long text. Rendering
+uses three page caches plus fixed small indexes; filter validation still uses up
+to five. The SDK and command select this path with the same options.
+Multiple JSON inputs, legacy filters, embedded resources, other transformations
+and other finite document budgets continue through the compatibility converter.
 
 For media extraction, supply `workingFiles` and `resourceFiles.writeStream` to
 spool external resources in caller storage and publish them in 16 KiB chunks.

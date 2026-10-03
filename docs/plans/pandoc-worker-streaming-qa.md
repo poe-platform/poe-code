@@ -25,6 +25,13 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   split comment delimiters, generated long comments, deep nesting, filter ordering,
   unchanged metadata, original math-error paths and backing/sink/cancellation
   failures. Exercise these options in the measurement cohorts below.
+  JSON to HTML now also retains writer continuations, heading/attribute indexes,
+  note queues, table occupancy and text in caller storage. Differential tests cover
+  standalone contents, numbering, Unicode IDs, URL policy, raw diagnostics, table
+  spans and nested notes; generated inputs and 500 nested containers exercise
+  backing I/O and cleanup. Rendering uses three page caches plus fixed indexes.
+  Include long identifiers, many notes, colspan/rowspan geometry and standalone
+  output in Worker measurements; these tests alone do not qualify their memory.
   Other conversions still require replacing whole-document input acquisition, joined text, document arrays
   and serialized results with retained sources and a paged document representation.
   Preserve diagnostics, source locations, resource identities and byte results.

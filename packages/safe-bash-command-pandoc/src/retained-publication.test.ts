@@ -5,7 +5,7 @@ import {convertToOutput} from "./engine.js";
 import {createFileOutput} from "./file-output.js";
 const encoder = new TextEncoder();
 
-it.each([["json", "json"], ["json", "plain"], ["csv", "json"], ["csv", "plain"], ["csv", "html"]]
+it.each([["json", "json"], ["json", "plain"], ["json", "html"], ["csv", "json"], ["csv", "plain"], ["csv", "html"]]
   .flatMap(([from, to]) => ["failure", "cancel"].map(mode => ({from: from!, to: to!, mode}))))(
   "keeps atomic $from to $to output uncommitted on source retirement $mode", async ({from, to, mode}) => {
     const fs = new MemoryFileSystem(), controller = new AbortController();

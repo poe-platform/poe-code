@@ -3,9 +3,9 @@ import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {expect, it} from "vitest";
 
-it.each(["json", "plain", "transformed-json", "transformed-plain"])("streams JSON filter generations through external pages in workerd (%s)", async scenario => {
+it.each(["json", "plain", "html5", "transformed-json", "transformed-plain", "transformed-html5"])("streams JSON filter generations through external pages in workerd (%s)", async scenario => {
   const transformed = scenario.startsWith("transformed-");
-  const target = scenario.endsWith("plain") ? "plain" : "json";
+  const target = scenario.endsWith("html5") ? "html5" : scenario.endsWith("plain") ? "plain" : "json";
   const root = fileURLToPath(new URL("../", import.meta.url));
   const bundled = await build({
     stdin: {resolveDir: root, contents: `
@@ -58,7 +58,7 @@ it.each(["json", "plain", "transformed-json", "transformed-plain"])("streams JSO
     `,
   });
   try {
-    const expected = new TextEncoder().encode(target === "plain" ? "    " + "y".repeat(65536) + (transformed ? "\n\ntail\n" : "\n") : JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "y".repeat(65536)]}, ...(transformed ? [{t: "Para", c: [{t: "Str", c: "tail"}]}] : [])]}) + "\n");
+    const expected = new TextEncoder().encode(target === "html5" ? "<pre><code>" + "y".repeat(65536) + "</code></pre>\n" + (transformed ? "<p>tail</p>\n" : "") : target === "plain" ? "    " + "y".repeat(65536) + (transformed ? "\n\ntail\n" : "\n") : JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "y".repeat(65536)]}, ...(transformed ? [{t: "Para", c: [{t: "Str", c: "tail"}]}] : [])]}) + "\n");
     let hash = 2166136261;
     for (const byte of expected) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
     for (const mode of ["success", "filter-failure", "filter-cancel", "output-failure"]) {

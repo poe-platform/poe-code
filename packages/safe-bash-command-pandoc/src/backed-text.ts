@@ -44,6 +44,44 @@ export class BackedText {
       position = view.getFloat64(0, true);
     }
   }
+  /** Chunk boundaries never split a surrogate pair; unpaired units are retained. */
+  async *unicodeChunks(value: TextRange): AsyncGenerator<string> {
+    let pending = "";
+    for await (const chunk of this.chunks(value)) {
+      const text = pending + chunk, last = text.charCodeAt(text.length - 1);
+      const end = last >= 0xd800 && last <= 0xdbff ? text.length - 1 : text.length;
+      pending = text.slice(end);
+      if (end) yield text.slice(0, end);
+    }
+    if (pending) yield pending;
+  }
+  /** Unicode default lowercase, including final sigma over arbitrarily long
+   * case-ignorable runs. A provisional sigma is patched in caller storage. */
+  async lower(value: TextRange): Promise<TextRange> {
+    const output = emptyText();
+    let buffer = "", cased = false, sigma = 0;
+    const flush = async () => {
+      if (buffer) {await this.append(output, await this.from([buffer])); buffer = "";}
+    };
+    const finalSigma = async () => {
+      const bytes = new Uint8Array(2); new DataView(bytes.buffer).setUint16(0, 0x3c2, true);
+      await this.storage.write(sigma, bytes); sigma = 0;
+    };
+    for await (const chunk of this.unicodeChunks(value)) for (const char of chunk) {
+      const ignorable = /\p{Case_Ignorable}/u.test(char), isCased = /\p{Cased}/u.test(char);
+      if (!ignorable && sigma) {if (!isCased) await finalSigma(); else sigma = 0;}
+      if (char === "Σ" && cased) {
+        await flush();
+        const piece = await this.from(["σ"]);
+        sigma = piece.first + 16; await this.append(output, piece);
+      } else buffer += char.toLowerCase();
+      if (!ignorable) cased = isCased;
+      if (buffer.length >= 4096) await flush();
+    }
+    if (sigma) await finalSigma();
+    await flush();
+    return output;
+  }
   async trimFinalNewline(value: TextRange): Promise<TextRange> {
     const source = this.chunks(value);
     return this.from((async function* () {

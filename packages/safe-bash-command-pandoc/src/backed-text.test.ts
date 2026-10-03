@@ -31,3 +31,19 @@ it("counts Unicode code points for wrapping across chunk edges and retains UTF16
     expect(result).toBe("😀 a\n😀 b\ud800");
   } finally {await storage.close();}
 });
+
+it("lowercases contextual Unicode across spilled case-ignorable runs", async () => {
+  const fs = new MemoryFileSystem();
+  const storage = new PagedStorage({fs, cwd: "/", env: {}, signal: new AbortController().signal}, 1);
+  const text = new BackedText(storage, async () => {});
+  try {
+    const source = "ΟΣ" + "\u0301".repeat(20000) + "! ΟΣ\u0301Α Σ AΣ ΣΣ ΟΣ.İ 😀 \ud800";
+    const value = await text.from((async function* () {for (let offset = 0; offset < source.length; offset += 7) yield source.slice(offset, offset + 7);})());
+    const lower = await text.lower(value);
+    let result = ""; for await (const chunk of text.chunks(lower)) result += chunk;
+    expect(result).toBe(source.toLowerCase());
+    let original = ""; for await (const chunk of text.chunks(value)) original += chunk;
+    expect(original).toBe(source);
+  } finally {await storage.close();}
+  expect(await fs.readdir("/")).toEqual([]);
+});

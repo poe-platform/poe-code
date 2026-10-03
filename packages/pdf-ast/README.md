@@ -213,6 +213,16 @@ try {
 }
 ```
 
+`parseContentRangeEvents(source, storage, options)` applies the shared content
+grammar to a retained source, yielding text, paths and group boundaries without
+collecting a group tree. Inline images borrow `{ source, start, end }` ranges.
+For decoded chunks, `parseContentStreamEvents(page.streamContents(), storage,
+options)` owns the staging source and cleans it on completion, early return,
+cancellation or failure. Consume borrowed image ranges before closing the
+iterator. This seek-dependent parser stages all decoded content before its first
+event; `maxStagingBytes` covers both that content and live operand recovery runs.
+Concurrent cursors and intrinsic path/operand memory require enclosing admission.
+
 `parseCosRangeObject(source, offset, options)` parses one indirect object at a
 known offset. Stream objects return their dictionary in `value` and a `stream`
 byte span; consume the payload with `source.stream(start, end - start)`. Correct

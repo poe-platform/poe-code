@@ -91,3 +91,108 @@ it("forwards borrowed inline-image ranges to the evaluator without another read"
     expect(f.reads.mock.calls.length).toBe(reads);
   } finally { work.return(); await events.return(); await f.close(); }
 });
+
+it.each([false, true])("owns decoded-content staging through borrowed image consumption, cancellation %s", async cancel => {
+  const { parseContentStreamEvents } = await import("./range-events.js");
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const controller = new AbortController();
+  let closed = false;
+  async function* chunks() {
+    try {
+      for (const part of ["q BT /F1 12 Tf ", "(A) Tj ET Q BI /W 1 /H 1 /BPC 8 /CS /G ID ", "a EI"])
+        yield new TextEncoder().encode(part);
+    } finally { closed = true; }
+  }
+  const events = parseContentStreamEvents(chunks(), { fs, directory: "/scratch" }, { chunkBytes: 32, signal: controller.signal });
+  expect(await fs.readdir("/scratch")).toEqual([]);
+  let image;
+  try {
+    for await (const event of events) {
+      if (event.kind !== "inline-image" || event.data instanceof Uint8Array) continue;
+      image = event.data;
+      expect(await image.source.read(image.start, image.end - image.start)).toEqual(new Uint8Array([97]));
+      expect(await fs.readdir("/scratch")).not.toEqual([]);
+      if (cancel) {
+        const failure = new Error("cancel borrowed content"); controller.abort(failure);
+        await expect(events.next()).rejects.toBe(failure);
+      }
+      break;
+    }
+    expect(image).toBeDefined();
+    await expect(image!.source.read(image!.start, 1)).rejects.toThrow();
+    expect(closed).toBe(true);
+    expect(await fs.readdir("/scratch")).toEqual([]);
+  } finally { await events.return(); }
+});
+
+it("cleans partially decoded content and preserves producer errors", async () => {
+  const { parseContentStreamEvents } = await import("./range-events.js");
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const failure = new Error("decoder failed");
+  async function* chunks() { yield new Uint8Array(128); throw failure; }
+  const events = parseContentStreamEvents(chunks(), { fs, directory: "/scratch" }, { chunkBytes: 32 });
+  await expect(events.next()).rejects.toBe(failure);
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("admits decoded content and simultaneous operand spill against one cursor budget", async () => {
+  const { parseContentStreamEvents } = await import("./range-events.js");
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const bytes = new TextEncoder().encode("/F q ".repeat(100));
+  const maximum = bytes.length + 100; let live = 0;
+  const create = fs.createStagedFile!.bind(fs);
+  vi.spyOn(fs, "createStagedFile").mockImplementation(async (...args) => {
+    const staged = await create(...args); let size = 0;
+    return { ...staged, writer: { finish: options => staged.writer!.finish(options), async write(chunk, options) {
+      expect(live + chunk.length).toBeLessThanOrEqual(maximum);
+      await staged.writer!.write(chunk, options); size += chunk.length; live += chunk.length;
+    } }, cleanup: { async remove(options) { await staged.cleanup!.remove(options); live -= size; size = 0; }, close: () => staged.cleanup!.close() } };
+  });
+  const events = parseContentStreamEvents([bytes], { fs, directory: "/scratch" }, { chunkBytes: 32, maxStagingBytes: maximum });
+  await expect(async () => { for await (const ignored of events) void ignored; }).rejects.toThrow("limit");
+  expect(live).toBe(0); expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it.each([8192, 131072])("stages %i decoded image bytes with reusable chunks and scalar external storage", async length => {
+  const { parseContentStreamEvents } = await import("./range-events.js");
+  const prefix = new TextEncoder().encode("BI /F /DCT ID "), suffix = new TextEncoder().encode(" EI");
+  const total = prefix.length + length + suffix.length, chunkBytes = 2048, scope = {};
+  let size = 0, revision = 0, live = false, pending = false, peak = 0, reads = 0;
+  const stat = () => ({ type: "file" as const, size, revision, identityScope: scope, opaqueIdentity: "content" });
+  function fill(bytes: Uint8Array, at: number) {
+    for (let i = 0; i < bytes.length; i++) {
+      const p = at + i; bytes[i] = p < prefix.length ? prefix[p]! : p < prefix.length + length ? 128 : suffix[p - prefix.length - length]!;
+    }
+    return bytes;
+  }
+  const fs = {
+    capabilities: { retainedRead: true, retainedStagingWrite: true, retainedStagingCleanup: true },
+    stat: async () => ({ type: "directory", size: 0 }),
+    async createStagedFile(path: string) {
+      expect(live).toBe(false); live = true;
+      return { file: { path, stat: stat() }, cleanup: { remove: async () => { live = false; }, close: async () => {} }, writer: {
+        async write(bytes: Uint8Array) {
+          expect(pending).toBe(false); pending = true; peak = Math.max(peak, bytes.buffer.byteLength);
+          expect(bytes).toEqual(fill(new Uint8Array(bytes.length), size));
+          await Promise.resolve(); size += bytes.length; revision++; pending = false;
+        }, finish: async () => stat(),
+      } };
+    },
+    async openReadFile() { return { stat: async () => stat(), close: async () => {}, async read(at: number, count: number) {
+      reads++; expect(count).toBeLessThanOrEqual(chunkBytes);
+      return fill(new Uint8Array(Math.min(count, size - at)), at);
+    } }; },
+    readFile() { throw new Error("whole read forbidden"); }, writeFile() { throw new Error("whole write forbidden"); },
+  } as unknown as FileSystem;
+  async function* chunks() {
+    const buffer = new Uint8Array(chunkBytes);
+    for (let at = 0; at < total; at += chunkBytes) { expect(pending).toBe(false); yield fill(buffer.subarray(0, Math.min(chunkBytes, total - at)), at); }
+  }
+  const events = parseContentStreamEvents(chunks(), { fs, directory: "/external" }, { chunkBytes });
+  try {
+    expect((await events.next()).value).toMatchObject({ kind: "inline-image", data: { start: prefix.length, end: prefix.length + length } });
+    expect(size).toBe(total); expect(peak).toBeLessThanOrEqual(chunkBytes);
+    const before = reads; await Promise.resolve(); expect(reads).toBe(before);
+  } finally { await events.return(); }
+  expect(live).toBe(false);
+});

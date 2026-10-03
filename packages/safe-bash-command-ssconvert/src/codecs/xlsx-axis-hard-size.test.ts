@@ -182,3 +182,31 @@ it("retains allocation-time heights for every row in an array formula", async ()
   await expect(readXlsx(bytes, { ...context, limits: { ...context.limits, workbookNodes: 2 } }))
     .rejects.toMatchObject({ code: "resource-limit" });
 });
+
+for (const [payload, value, height] of [
+  ["", { kind: "blank" }, 50],
+  ["<is/>", { kind: "string", value: "" }, 25],
+  ["<is><t>text</t></is>", { kind: "string", value: "text" }, 25]
+] as const) {
+  it(`distinguishes missing inline payload from an empty string: ${payload}`, async () => {
+    const bytes = await input(`<sheetFormatPr defaultRowHeight="25"/><sheetData><row r="1"><c r="A1" t="inlineStr">${payload}</c></row></sheetData><sheetFormatPr defaultRowHeight="50"/>`);
+    const original = await readXlsx(bytes, context);
+    for (const book of [original, await readXlsx(await createXlsxWriter("2008")(original, [], context), context)]) {
+      const sheet = book.sheets[0]!;
+      expect(sheet.cells.find(cell => cell.row === 0 && cell.column === 0)?.value ?? { kind: "blank" }).toEqual(value);
+      expect(sheet.rows?.find(row => row.index === 0)?.sizePoints ?? sheet.view?.defaultRowHeight).toBe(height);
+      const nodes = descendants(parseXml(new TextDecoder().decode(await writeGnumeric(book, [], context))));
+      expect(nodes.filter(node => node.localName === "Cell")).toHaveLength(value.kind === "blank" ? 0 : 1);
+      const clipboard = descendants(parseXml(new TextDecoder().decode(writeClipboardGnumeric(book, sheet,
+        { sheet: sheet.id, startRow: 0, startColumn: 0, endRow: 1, endColumn: 1 }, context))));
+      expect(clipboard.filter(node => node.localName === "Cell")).toHaveLength(value.kind === "blank" ? 0 : 1);
+    }
+  });
+}
+
+it("retains a formula when its inline-string cache payload is missing", async () => {
+  const bytes = await input('<sheetFormatPr defaultRowHeight="25"/><sheetData><row r="1"><c r="A1" t="inlineStr"><f>1+1</f></c></row></sheetData><sheetFormatPr defaultRowHeight="50"/>');
+  const book = await readXlsx(bytes, context);
+  expect(book.sheets[0]!.cells).toMatchObject([{ row: 0, column: 0, formula: "=1+1", value: { kind: "blank" }, formulaDirty: true }]);
+  expect(book.sheets[0]!.rows?.[0]?.sizePoints).toBe(25);
+});

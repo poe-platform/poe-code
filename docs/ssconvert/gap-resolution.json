@@ -4572,6 +4572,14 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "xlsxMissingInlinePayload": {
+      "finding": "An XLSX inlineStr cell without an is payload became an empty string and allocated row geometry. Keeping a synthetic blank cell after that correction also introduced a clipboard Cell record absent from native output.",
+      "implementation": "Create an inline string only when its payload exists; omit an absent-payload cell when it has no formula or style. Preserve explicit empty strings and dirty formulas with missing caches.",
+      "nativeSource": "Unmodified Gnumeric1.12.61 xlsx-read.c xlsx_cell_inline_begin/end and xlsx_cell_end. Four independent fixtures cover missing, empty and populated payloads plus a formula with a missing inline cache.",
+      "validation": "Original missing-payload value/height regression and subsequent clipboard regression failed before repair.591focused XLSX tests and73finalregressions pass; selected19-workspace build,owner lint/types,changed-test ESLint and package test types pass.32compiled package SDK/command exports have no diagnostics.24native workbook/XLSX readbacks plus independent clipboard references match1200row scalars and40cell projections including formula/cache values. Root artifact verification remains pending.",
+      "visual": "Inspected native/product screenshots identical SHA2566adfcb999fb9384780e9dc68705ee49e6e7cb6e2d029fda59b3de925d5cb7d23, with50pt row geometry. Owned viewers/display stopped.",
+      "remaining": "Other empty/styled-cell and ordered cell-value records, broader format qualification and all19families remain open."
+    },
     "xlsxLateRowDefaults": {
       "finding": "Late/repeated XLSX sheetFormatPr records selected the first default and changed the height of rows already allocated by visibility, outlines, values or formulas. Repeated format records also warned of loss during XLSX export.",
       "implementation": "Process worksheet defaults and sheetData sections in document order. Retain allocation-time row heights when they differ from the final default, with automatic HardSize metadata; empty/style-only cells and rejected zero heights do not allocate geometry. Charge cell-created rows and every visited array-formula row; all rows in an array range retain allocation-time heights. Combine repeated sheetFormatPr attributes and children during structured export.",

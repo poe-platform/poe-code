@@ -400,9 +400,11 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
             if (++cellCount > context.limits.cells) limit("cells"); context.signal.throwIfAborted();
             const position = attr(node, "r") ? parseA1(attr(node, "r")!) : { row: rowIndex, column: nextColumn };
             if (!position || position.row >= 1048576 || position.column >= 16384) invalid("invalid cell address"); nextColumn = position.column + 1;
-            const raw = child(node, "v")?.text, type = attr(node, "t");
+            const raw = child(node, "v")?.text, type = attr(node, "t"), inline = child(node, "is");
             let value: CellValue = { kind: "blank" }, richText: readonly RichTextRun[] | undefined;
-            if (type === "inlineStr") { const string = readXlsxString(child(node, "is"), context); value = { kind: "string", value: string.value }; richText = string.richText; }
+            if (type === "inlineStr") {
+              if (inline) { const string = readXlsxString(inline, context); value = { kind: "string", value: string.value }; richText = string.richText; }
+            }
             else if (type === "str" && raw !== undefined) value = { kind: "string", value: decodeXlsxString(raw) };
             else if (raw !== undefined && raw !== "") {
               if (type === "s") {
@@ -454,7 +456,8 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
             }
             if (value.kind !== "blank" || expression !== undefined) allocateRow(position.row);
             if (arrayRange) for (let index = arrayRange.startRow; index <= arrayRange.endRow; index++) allocateRow(index);
-            const hasCache = type === "inlineStr" ? child(node, "is") !== undefined
+            if (type === "inlineStr" && !inline && expression === undefined && style === undefined) continue;
+            const hasCache = type === "inlineStr" ? inline !== undefined
               : raw !== undefined && (raw !== "" || type === "str");
             cells.push({ ...position, value, ...(expression === undefined ? {} : { formula: expression, ...semantics, formulaDirty: !hasCache,
               ...(hasCache ? { cachedResult: value } : {}) }), ...(groupId ? { formulaGroup: groupId } : {}),

@@ -54,7 +54,13 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   regardless of layer count; nine total during file merges with option layers).
   Workerd/R2 scenarios include large option values and overlapping file metadata.
   Measure the resident SDK input map and immediate key enumeration separately.
-  Direct typed `metadata` maps and full memory/CPU qualification remain outstanding.
+  Typed `metadata` maps now retain snapshot/schema/enum translation and merge
+  after JSON layers for non-RTF/ODT writers. Exercise all enum positions, nested
+  maps, shared values, rejected accessors/cycles and retirement failures. Separate
+  the caller graph and immediate property-name enumeration from the three typed
+  caches and shared option cache. R2 scenarios include typed maps and filter
+  ordering. RTF/ODT typed image origins and full memory/CPU qualification remain
+  outstanding.
 
 - Retained JSON and CSV/TSV routes admit finite `work` and `diagnostics` budgets
   through the shared execution context. Exercise both budgets in filtered and

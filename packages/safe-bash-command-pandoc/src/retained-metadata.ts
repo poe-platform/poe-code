@@ -14,7 +14,7 @@ type RetainedDocument = Awaited<ReturnType<typeof readRetainedJson>>;
 /** JSON metadata retains its native last-key-wins/Number semantics. Merge jobs,
  * key identities and each document generation use caller storage, including
  * arbitrarily long keys, strings, lists and nested maps. */
-export async function mergeRetainedMetadata(document: RetainedDocument, input: {source: InputSource} | {tree: BackedJson; root: number}, context: ExecutionContext, working: WorkingStorageOptions): Promise<RetainedDocument> {
+export async function mergeRetainedMetadata(document: RetainedDocument, input: {source: InputSource} | {tree: BackedJson; root: number; typed?: boolean}, context: ExecutionContext, working: WorkingStorageOptions): Promise<RetainedDocument> {
   const owner = {fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal};
   const pages = (working.cacheBytes ?? 1048576) / 16384;
   const raw = "tree" in input ? undefined : new PagedStorage(owner, pages), scratch = new PagedStorage(owner, pages), output = new PagedStorage(owner, pages);
@@ -149,6 +149,16 @@ export async function mergeRetainedMetadata(document: RetainedDocument, input: {
         if (a >= b) continue;
         await push(7, (await overlay.describe(a)).end, b); await push(5, 0, a);
       } else if (op === 5) {
+        if ("tree" in input && input.typed) {
+          const tag = (await overlay.property(b, "t"))!;
+          if (await overlay.smallText(tag, 7) === "MetaMap") {
+            await merged.begin("object"); await merged.key("t"); await merged.value("MetaMap"); await merged.key("c"); await push(2);
+            const oldTag = a ? await source.property(a, "t") : undefined;
+            const left = oldTag !== undefined && await source.smallText(oldTag, 7) === "MetaMap" ? (await source.property(a, "c"))! : 0;
+            await push(3, left, (await overlay.property(b, "c"))!);
+          } else await push(0, b, 1);
+          continue;
+        }
         const header = await overlay.describe(b);
         if (await isNull(b)) option("Null metadata list elements are unsupported");
         await merged.begin("object"); await merged.key("t");

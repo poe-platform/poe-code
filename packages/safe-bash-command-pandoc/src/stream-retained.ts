@@ -78,6 +78,11 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
         await document.close(); document = next;
       }
     }
+    if (includes?.typedMetadata) {
+      const tree = includes.typedMetadata.tree;
+      const next = await mergeRetainedMetadata(document, {tree, root: tree.rootPosition, typed: true}, context, working);
+      await document.close(); document = next;
+    }
     for (const request of options.filters ?? []) {
       if (request.kind === "json") await checkImageOrigins(document.tree, context);
       await preflight(document.chunks());

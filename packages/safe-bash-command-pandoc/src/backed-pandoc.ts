@@ -5,10 +5,10 @@ import {readJsonNumber, JsonNumberError} from "./json-number.js";
 import {PandocError} from "./errors.js";
 
 type Rule = string | {list: Rule} | {tuple: readonly Rule[]} | {record: Readonly<Record<string, Rule>>}
-  | {tag: Readonly<Record<string, Rule | null>>} | {map: Rule} | {nullable: Rule} | {constant: number};
+  | {enumeration: readonly string[]; wire: Rule} | {tag: Readonly<Record<string, Rule | null>>} | {map: Rule} | {nullable: Rule} | {constant: number};
 const list = (rule: Rule): Rule => ({list: rule});
 const tuple = (...rules: readonly Rule[]): Rule => ({tuple: rules});
-const enumeration = (...names: readonly string[]): Rule => ({tag: Object.fromEntries(names.map(name => [name, null]))});
+const enumeration = (...names: readonly string[]): Rule => ({enumeration: names, wire: {tag: Object.fromEntries(names.map(name => [name, null]))}});
 const attr = tuple("string", list("string"), list(tuple("string", "string")));
 const align = enumeration("AlignLeft", "AlignRight", "AlignCenter", "AlignDefault");
 const inlines = list("inline"), blocks = list("block");
@@ -46,8 +46,10 @@ const shapes: Readonly<Record<string, Rule>> = {
 
 /** Validate a retained wire AST without materializing strings, arrays or a
  * depth-dependent JavaScript call stack. Pending schema work and table span
- * occupancy use the caller's paged scratch storage. */
-export async function validateBackedPandoc(tree: BackedJson, scratch: PagedStorage, context: AdapterContext): Promise<void> {
+ * occupancy use the caller's paged scratch storage. With typedEnum, the root
+ * is an SDK metadata map and validated enum-string positions are reported for
+ * translation into wire constructors. */
+export async function validateBackedPandoc(tree: BackedJson, scratch: PagedStorage, context: AdapterContext, typedEnum?: (position: number) => Promise<void>): Promise<void> {
   const rules: Rule[] = [], ids = new Map<Rule, number>();
   let pending = 0;
   const push = async (position: number, rule: Rule, cursor = 0, ordinal = 0): Promise<void> => {
@@ -57,7 +59,7 @@ export async function validateBackedPandoc(tree: BackedJson, scratch: PagedStora
     [pending, position, id, cursor, ordinal].forEach((value, index) => view.setFloat64(index * 8, value, true));
     pending = await scratch.append(bytes);
   };
-  const fail = async (position: number, message = "Invalid shape"): Promise<never> => {
+  const fail = async (position: number, message = "Invalid shape", suffix = ""): Promise<never> => {
     // Only the returned diagnostic owns its path string; successful traversal
     // never retains paths proportional to nesting depth or key length.
     let location = "";
@@ -82,7 +84,8 @@ export async function validateBackedPandoc(tree: BackedJson, scratch: PagedStora
       }
       child = parent;
     }
-    throw new PandocError("E_AST", "read", message, "json", `$${location}`);
+    const path = `${typedEnum ? "$.metadata" : "$"}${location}${suffix}`;
+    throw new PandocError("E_AST", typedEnum ? "convert" : "read", typedEnum ? `${path}: ${message}` : message, typedEnum ? undefined : "json", path);
   };
   const number = async (position: number): Promise<number> => {
     if ((await tree.describe(position)).kind !== "literal") return fail(position);
@@ -148,7 +151,7 @@ export async function validateBackedPandoc(tree: BackedJson, scratch: PagedStora
     }
     await section(await element(await element(position, 5), 1));
   };
-  await push(tree.rootPosition, "document");
+  await push(tree.rootPosition, typedEnum ? {map: "meta"} : "document");
   while (pending) {
     await context.cooperate();
     const bytes = await scratch.read(pending, 40), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
@@ -165,7 +168,7 @@ export async function validateBackedPandoc(tree: BackedJson, scratch: PagedStora
         continue;
       }
       const value = await number(position);
-      if (rule === "width" ? value <= 0 || value > 1 : !Number.isSafeInteger(value) || rule === "positive" && value < 1) await fail(position);
+      if (rule === "width" ? value <= 0 || value > 1 : !Number.isSafeInteger(value) || rule === "positive" && value < 1) await fail(position, typedEnum && rule === "positive" && Number.isSafeInteger(value) ? "Invalid span or level" : "Invalid shape");
       continue;
     }
     if ("constant" in rule) {if (await number(position) !== rule.constant) await fail(position, "Unsupported API version; expected [1,23,1,2]"); continue;}
@@ -173,11 +176,18 @@ export async function validateBackedPandoc(tree: BackedJson, scratch: PagedStora
       if (header.kind !== "literal" || await tree.smallText(position, 4) !== "null") await push(position, rule.nullable);
       continue;
     }
+    if ("enumeration" in rule) {
+      if (typedEnum) {
+        if (header.kind !== "string" || !rule.enumeration.includes(await tree.smallText(position, 32) ?? "")) await fail(position);
+        await typedEnum(position);
+      } else await push(position, rule.wire);
+      continue;
+    }
     if ("tag" in rule) {
       if (header.kind !== "object") await fail(position);
       const tagPosition = await tree.property(position, "t");
       const tag = tagPosition === undefined || (await tree.describe(tagPosition)).kind !== "string" ? undefined : await tree.smallText(tagPosition, 32);
-      if (tag === undefined || !Object.hasOwn(rule.tag, tag)) await fail(position, "Unknown tag");
+      if (tag === undefined || !Object.hasOwn(rule.tag, tag)) await fail(position, "Unknown tag", typedEnum ? ".t" : "");
       const content = await tree.property(position, "c"), shape = rule.tag[tag!];
       if (header.children !== (shape === null ? 2 : 4) || (shape === null ? content !== undefined : content === undefined)) await fail(position);
       if (shape !== null) {
@@ -188,7 +198,7 @@ export async function validateBackedPandoc(tree: BackedJson, scratch: PagedStora
     }
     const object = "record" in rule || "map" in rule;
     if (header.kind !== (object ? "object" : "array")) await fail(position);
-    if ("tuple" in rule && header.children !== rule.tuple.length) await fail(position, "Invalid tuple arity");
+    if ("tuple" in rule && header.children !== rule.tuple.length) await fail(position, typedEnum ? "Invalid shape" : "Invalid tuple arity");
     if ("record" in rule && header.children !== Object.keys(rule.record).length * 2) await fail(position);
     const child = cursor || position + 32;
     if (child >= header.end) continue;

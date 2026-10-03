@@ -1,3 +1,4 @@
+import {retainTypedMetadata} from "./retained-typed-metadata.js";
 import {RetainedJsonOptions} from "./retained-json-options.js";
 import {RetainedTemplate} from "./retained-template.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
@@ -8,6 +9,7 @@ import type {ConversionOptions, WorkingStorageOptions} from "./types.js";
 /** Local option admission, text and replacement generations belong to caller storage.
  * String.replace's replacement tokens are intentional compatibility behavior. */
 export class RetainedOptions {
+  typedMetadata: Awaited<ReturnType<typeof retainTypedMetadata>> | undefined;
   metadata: RetainedJsonOptions | undefined;
   private variables: RetainedJsonOptions | undefined;
   standalone = false;
@@ -23,7 +25,7 @@ export class RetainedOptions {
     this.release = context.onClose(() => this.close());
   }
   static async acquire(context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions): Promise<RetainedOptions | undefined> {
-    if (options.metadataJson === undefined && options.variables === undefined && !options.template && !options.includeInHeader?.length && !options.includeBeforeBody?.length && !options.includeAfterBody?.length) return undefined;
+    if (options.metadata === undefined && options.metadataJson === undefined && options.variables === undefined && !options.template && !options.includeInHeader?.length && !options.includeBeforeBody?.length && !options.includeAfterBody?.length) return undefined;
     const pages = (working.cacheBytes ?? 1048576) / 16384;
     if (!Number.isSafeInteger(pages) || pages < 1) context.fail("E_OPTION", "Working storage cacheBytes must be a positive multiple of 16384");
     if (typeof working.directory !== "string" || !working.directory.startsWith("/")) context.fail("E_OPTION", "Working storage requires an absolute caller filesystem directory");
@@ -41,6 +43,7 @@ export class RetainedOptions {
           }, ["inputBytes", "resourceBytes"]);
         }
       }
+      if (options.metadata !== undefined) result.typedMetadata = await retainTypedMetadata(options.metadata, context, working);
       if (options.metadataJson !== undefined) result.metadata = await RetainedJsonOptions.acquire(options.metadataJson, context, working, storage, true);
       return result;
     } catch (error) {try {await result.close();} catch { /* Preserve acquisition failure. */ } throw error;}
@@ -48,7 +51,8 @@ export class RetainedOptions {
   close(): Promise<void> {
     this.closing ??= (async () => {
       let failure: {reason: unknown} | undefined;
-      try {await this.metadata?.close();} catch (reason) {failure = {reason};}
+      try {await this.typedMetadata?.close();} catch (reason) {failure = {reason};}
+      try {await this.metadata?.close();} catch (reason) {failure ??= {reason};}
       try {await this.variables?.close();} catch (reason) {failure ??= {reason};}
       try {await this.storage.close();} catch (reason) {failure ??= {reason};}
       finally {this.release();}

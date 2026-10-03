@@ -51,6 +51,15 @@ Duplicate names and name-tree cycles use caller-backed indexes; filename equalit
 is exact, including Unicode code units. Returning early or closing the document
 releases traversal staging. Keep the document open while reading contents.
 
+`PdfRetainedJpeg.open(source, options)` admits encoded JPEG input and decoder
+allocations before decoding. `rows()` yields owned RGBA rows without full RGB or
+RGBA planes; `width`, `height` and `components` describe the decoded image.
+`maxWorkingBytes` conservatively charges parse allocations, including metadata,
+and reuses one row-scratch allowance; `maxOutputBytes` admits image dimensions.
+Encoded input and DCT coefficient state remain intrinsic resident allocations.
+The source stays caller-owned and can close after `open()`; call `jpeg.close()`
+to release decoder references. PDF Decode and ColorTransform options are supported.
+
 `resolveRetainedImageColor(document, colorNode, resources, storage, options)`
 resolves only the selected color resource using the buffered engine's color rules.
 ICC profiles supply component metadata without decoding their payload. Indexed

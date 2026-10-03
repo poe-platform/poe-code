@@ -21,10 +21,12 @@ export class JpegImage {
     colorTransform?: number | undefined;
     decodeTransform?: Int32Array | undefined;
     onImageDimensions?: ((width: number, height: number) => void) | undefined;
+    /** Typed buffers and conservative metadata charges, before allocation. */
+    onAllocation?: ((bytes: number) => void) | undefined;
   });
   width: number;
   height: number;
   numComponents: number;
   parse(data: Uint8Array): void;
-  getData(options: { width: number; height: number; forceRGB?: boolean; forceRGBA?: boolean; isSourcePDF?: boolean }): Uint8ClampedArray;
+  getData(options: { width: number; height: number; forceRGB?: boolean; forceRGBA?: boolean; isSourcePDF?: boolean; rowStart?: number; rowCount?: number }): Uint8ClampedArray;
 }

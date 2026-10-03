@@ -4303,7 +4303,8 @@ const dctCos6 = 1567;
 const dctSin6 = 3784;
 const dctSqrt2 = 5793;
 const dctSqrt1d2 = 2896;
-function buildHuffmanTable(codeLengths, values) {
+function buildHuffmanTable(codeLengths, values, onAllocation) {
+  onAllocation?.(256);
   let k = 0,
     i,
     j,
@@ -4327,6 +4328,7 @@ function buildHuffmanTable(codeLengths, values) {
       p.index++;
       code.push(p);
       while (code.length <= i) {
+        onAllocation?.(128);
         code.push(q = {
           children: [],
           index: 0
@@ -4337,6 +4339,7 @@ function buildHuffmanTable(codeLengths, values) {
       k++;
     }
     if (i + 1 < length) {
+      onAllocation?.(128);
       code.push(q = {
         children: [],
         index: 0
@@ -4821,7 +4824,8 @@ function quantizeAndInverse(component, blockBufferOffset, p) {
     blockData[blockBufferOffset + col + 56] = p7;
   }
 }
-function buildComponentData(frame, component) {
+function buildComponentData(frame, component, onAllocation) {
+  onAllocation?.(128);
   const blocksPerLine = component.blocksPerLine;
   const blocksPerColumn = component.blocksPerColumn;
   const computationBuffer = new Int16Array(64);
@@ -4864,8 +4868,10 @@ class JpegImage {
   constructor({
     decodeTransform = null,
     colorTransform = -1,
-    onImageDimensions
+    onImageDimensions,
+    onAllocation
   } = {}) {
+    this.onAllocation = onAllocation;
     this.onImageDimensions = onImageDimensions;
     this._decodeTransform = decodeTransform;
     this._colorTransform = colorTransform;
@@ -4873,6 +4879,8 @@ class JpegImage {
   parse(data, {
     dnlScanLines = null
   } = {}) {
+    const onAllocation = this.onAllocation;
+    onAllocation?.(512);
     function readDataBlock() {
       const length = readUint16(data, offset);
       offset += 2;
@@ -4895,6 +4903,7 @@ class JpegImage {
         const blocksPerLineForMcu = mcusPerLine * component.h;
         const blocksPerColumnForMcu = mcusPerColumn * component.v;
         const blocksBufferSize = 64 * blocksPerColumnForMcu * (blocksPerLineForMcu + 1);
+        onAllocation?.(blocksBufferSize * 2);
         component.blockData = new Int16Array(blocksBufferSize);
         component.blocksPerLine = blocksPerLine;
         component.blocksPerColumn = blocksPerColumn;
@@ -4972,6 +4981,7 @@ class JpegImage {
           let z;
           while (offset < quantizationTablesEnd) {
             const quantizationTableSpec = data[offset++];
+            onAllocation?.(128);
             const tableData = new Uint16Array(64);
             if (quantizationTableSpec >> 4 === 0) {
               for (j = 0; j < 64; j++) {
@@ -5022,6 +5032,7 @@ class JpegImage {
               maxV = v;
             }
             const qId = data[offset + 2];
+            onAllocation?.(128);
             l = frame.components.push({
               h,
               v,
@@ -5041,17 +5052,19 @@ class JpegImage {
           offset += 2;
           for (i = 2; i < huffmanLength;) {
             const huffmanTableSpec = data[offset++];
+            onAllocation?.(16);
             const codeLengths = new Uint8Array(16);
             let codeLengthSum = 0;
             for (j = 0; j < 16; j++, offset++) {
               codeLengthSum += codeLengths[j] = data[offset];
             }
+            onAllocation?.(codeLengthSum);
             const huffmanValues = new Uint8Array(codeLengthSum);
             for (j = 0; j < codeLengthSum; j++, offset++) {
               huffmanValues[j] = data[offset];
             }
             i += 17 + codeLengthSum;
-            (huffmanTableSpec >> 4 === 0 ? huffmanTablesDC : huffmanTablesAC)[huffmanTableSpec & 15] = buildHuffmanTable(codeLengths, huffmanValues);
+            (huffmanTableSpec >> 4 === 0 ? huffmanTablesDC : huffmanTablesAC)[huffmanTableSpec & 15] = buildHuffmanTable(codeLengths, huffmanValues, onAllocation);
           }
           break;
         case 0xffdd:
@@ -5064,6 +5077,7 @@ class JpegImage {
           offset += 2;
           const selectorsCount = data[offset++],
             components = [];
+          onAllocation?.(64 + selectorsCount * 8);
           for (i = 0; i < selectorsCount; i++) {
             const index = data[offset++];
             const componentIndex = frame.componentIds[index];
@@ -5130,9 +5144,10 @@ class JpegImage {
       if (quantizationTable) {
         component.quantizationTable = quantizationTable;
       }
+      onAllocation?.(96);
       this.components.push({
         index: component.index,
-        output: buildComponentData(frame, component),
+        output: buildComponentData(frame, component, onAllocation),
         scaleX: component.h / frame.maxH,
         scaleY: component.v / frame.maxV,
         blocksPerLine: component.blocksPerLine,
@@ -5142,7 +5157,7 @@ class JpegImage {
     this.numComponents = this.components.length;
     return undefined;
   }
-  _getLinearizedBlockData(width, height, isSourcePDF = false) {
+  _getLinearizedBlockData(width, height, isSourcePDF = false, rowStart = 0, rowCount = height) {
     const scaleX = this.width / width,
       scaleY = this.height / height;
     let component, componentScaleX, componentScaleY, blocksPerScanline;
@@ -5151,7 +5166,8 @@ class JpegImage {
     let offset = 0;
     let output;
     const numComponents = this.components.length;
-    const dataLength = width * height * numComponents;
+    const dataLength = width * rowCount * numComponents;
+    this.onAllocation?.(dataLength + width * 4);
     const data = new Uint8ClampedArray(dataLength);
     const xScaleBlockOffset = new Uint32Array(width);
     const mask3LSB = 0xfffffff8;
@@ -5170,7 +5186,7 @@ class JpegImage {
         }
         lastComponentScaleX = componentScaleX;
       }
-      for (y = 0; y < height; y++) {
+      for (y = rowStart; y < rowStart + rowCount; y++) {
         j = 0 | y * componentScaleY;
         index = blocksPerScanline * (j & mask3LSB) | (j & 7) << 3;
         for (x = 0; x < width; x++) {
@@ -5181,6 +5197,7 @@ class JpegImage {
     }
     let transform = this._decodeTransform;
     if (!isSourcePDF && numComponents === 4 && !transform) {
+      this.onAllocation?.(32);
       transform = new Int32Array([-256, 255, -256, 255, -256, 255, -256, 255]);
     }
     if (transform) {
@@ -5304,14 +5321,20 @@ class JpegImage {
     height,
     forceRGBA = false,
     forceRGB = false,
-    isSourcePDF = false
+    isSourcePDF = false,
+    rowStart = 0,
+    rowCount = height
   }) {
+    if (!Number.isSafeInteger(rowStart) || !Number.isSafeInteger(rowCount) || rowStart < 0 || rowCount < 0 || rowStart > height || rowCount > height - rowStart) {
+      throw new JpegError("Invalid JPEG row range");
+    }
     if (this.numComponents > 4) {
       throw new JpegError("Unsupported color mode");
     }
-    const data = this._getLinearizedBlockData(width, height, isSourcePDF);
+    const data = this._getLinearizedBlockData(width, height, isSourcePDF, rowStart, rowCount);
     if (this.numComponents === 1 && (forceRGBA || forceRGB)) {
       const len = data.length * (forceRGBA ? 4 : 3);
+      this.onAllocation?.(len);
       const rgbaData = new Uint8ClampedArray(len);
       let offset = 0;
       if (forceRGBA) {
@@ -5326,6 +5349,7 @@ class JpegImage {
       return rgbaData;
     } else if (this.numComponents === 3 && this._isColorConversionNeeded) {
       if (forceRGBA) {
+        this.onAllocation?.(data.length / 3 * 4);
         const rgbaData = new Uint8ClampedArray(data.length / 3 * 4);
         return this._convertYccToRgba(data, rgbaData);
       }

@@ -65,7 +65,9 @@ sizes, and zero component subsampling before allocation. A 101-byte JP2 prefix
 otherwise exhausts memory in the upstream build. Other adaptations remove the global export
 assignment and unavailable source-map reference, add per-instance dimension
 callbacks to enforce requested image budgets before pixel/region allocation,
-preserve budget errors through JPX recovery, add a generated-code lint
+preserve budget errors through JPX recovery, add JPEG row-window conversion
+and per-instance pre-allocation callbacks for typed buffers and conservative
+metadata accounting, add a generated-code lint
 comment, and provide a local TypeScript declaration for the used API.
 
 Source: https://unpkg.com/pdfjs-dist@4.1.392/image_decoders/pdf.image_decoders.mjs

@@ -49,7 +49,15 @@ export function createStandalonePandocCommand(capabilities: Omit<ConversionConte
         else {
           const files: CommandInputs = context.fs ? {
             ...(context.cwd === undefined ? {} : {cwd: context.cwd}), stdin: context.stdin,
-            ...(context.fs.readStream ? {readStream: (path: string, signal: AbortSignal) => context.fs!.readStream!(resolvePath(context.cwd ?? "/", path), {signal})} : {}),
+            ...(context.fs.readStream ? {readStream: async function* (path: string, signal: AbortSignal, remainingBytes?: number) {
+              try {
+                yield* context.fs!.readStream!(resolvePath(context.cwd ?? "/", path), {signal});
+                return;
+              } catch (error) {
+                if (typeof error !== "object" || error === null || !("code" in error) || (error.code !== "ENOTSUP" && error.code !== "EOPNOTSUPP")) throw error;
+              }
+              yield await files.readFile!(path, signal, remainingBytes);
+            }} : {}),
             readFile: (path, signal, maxBytes) => context.fs!.readFile(resolvePath(context.cwd ?? "/", path), {signal, ...(maxBytes === undefined || maxBytes === Infinity ? {} : {maxBytes})}),
             writeFile: (path, bytes, signal) => context.fs!.writeFile(resolvePath(context.cwd ?? "/", path), bytes, {signal})
           } : context;

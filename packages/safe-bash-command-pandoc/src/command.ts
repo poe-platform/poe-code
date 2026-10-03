@@ -116,13 +116,20 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
           const bound = Math.min(maxBytes, remainingBytes ?? maxBytes);
           let bytes = 0;
           const source = readFileStream(context.fs, pathOf(context, path), {signal, chunkSize: 65536});
-          for await (const chunk of readBytes(source, signal)) {
-            bytes += chunk.byteLength;
-            if (bytes > bound) throw new PandocError("E_LIMIT", "convert", "Input byte limit exceeded");
-            total += chunk.byteLength;
-            context.inputBudget?.check(total);
-            yield chunk;
+          try {
+            for await (const chunk of readBytes(source, signal)) {
+              bytes += chunk.byteLength;
+              if (bytes > bound) throw new PandocError("E_LIMIT", "convert", "Input byte limit exceeded");
+              total += chunk.byteLength;
+              context.inputBudget?.check(total);
+              yield chunk;
+            }
+            return;
+          } catch (error) {
+            const code = typeof error === "object" && error !== null && "code" in error ? error.code : undefined;
+            if (bytes > 0 || (code !== "ENOTSUP" && code !== "EOPNOTSUPP")) throw error;
           }
+          yield await files.readFile(path, signal, remainingBytes);
         },
         // Parsing checks authority without acquiring or opening the destination.
         writeFile: async () => {}

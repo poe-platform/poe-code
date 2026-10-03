@@ -579,10 +579,10 @@ describe("real safe-bash browser kernel", () => {
       "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "lzma", "unlzma", "lzcat", "zstd", "unzstd", "zstdcat", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "install", "tar", "zip", "unzip",
       "paste", "comm", "join", "tac", "expand", "fold", "strings",
       "seq", "nl", "rev", "unexpand", "split",
-      "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq", "xan", "bc", "sponge", "openssl", "ssh", "ssh-keygen", "gpg", "fd", "less", "more", "id", "whoami", "uname", "hostname", "nproc", "yes", "dd", "envsubst", "cal", "ncal", "pathchk", "getconf", "locale", "df", "sqlite3", "yq", "htmlq", "diff3", "exiftool", "unrtf", "mmdc", "op", "ffmpeg", "ffprobe", "soffice", "libreoffice", "pandoc", "ssconvert", "pdfinfo", "pdfunite", "pdfseparate", "pdffonts", "pdfdetach", "pdftotext", "pdftohtml", "pdfimages", "pdftoppm", "pdftocairo", "pdftk", "qpdf", "sips", "magick", "convert", "mogrify", "composite", "montage", "identify", "compare", "wkhtmltopdf", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin", "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "in2csv", "sql2csv", "gh",
+      "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "rgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq", "xan", "bc", "sponge", "openssl", "ssh", "ssh-keygen", "gpg", "fd", "less", "more", "id", "whoami", "uname", "hostname", "nproc", "yes", "dd", "envsubst", "cal", "ncal", "pathchk", "getconf", "locale", "df", "sqlite3", "yq", "htmlq", "diff3", "exiftool", "unrtf", "mmdc", "op", "ffmpeg", "ffprobe", "soffice", "libreoffice", "pandoc", "ssconvert", "pdfinfo", "pdfunite", "pdfseparate", "pdffonts", "pdfdetach", "pdftotext", "pdftohtml", "pdfimages", "pdftoppm", "pdftocairo", "pdftk", "qpdf", "sips", "magick", "convert", "mogrify", "composite", "montage", "identify", "compare", "wkhtmltopdf", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin", "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "in2csv", "sql2csv", "gh",
     ].sort();
-    expect(expected).toHaveLength(189);
-    expect(new Set(expected).size).toBe(189);
+    expect(expected).toHaveLength(190);
+    expect(new Set(expected).size).toBe(190);
     expect(kernel.supportedCommands).toEqual(expected);
   });
 });

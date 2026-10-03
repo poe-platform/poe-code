@@ -176,3 +176,28 @@ it.each(["absent", "unsupported"])("reads documents and Lua filters through reta
   expect(readFile).not.toHaveBeenCalled();
   expect(openReadFile.mock.calls.map(([path]) => path)).toEqual(["/document.md", "/filter.lua"]);
 });
+
+it.each(["command", "standalone"])("falls back to readFile when readStream and openReadFile are unsupported (%s)", async mode => {
+  const backing = new MemoryFileSystem();
+  await backing.writeFile("/document.md", encoder.encode("Hello *fallback*"));
+  const fs = new Proxy(backing, {
+    get(target, key) {
+      if (key === "readStream") return async function* () {yield await Promise.reject(new FsError("ENOTSUP"));};
+      if (key === "openReadFile") return undefined;
+      const value = Reflect.get(target, key);
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  });
+  let output = "";
+  const context = {
+    command: "pandoc", args: ["-f", "commonmark", "-t", "html", "document.md"], cwd: "/", env: {}, fs,
+    signal: new AbortController().signal, stdin: (async function* () {})(),
+    stdout: {async write(bytes: Uint8Array) {output += new TextDecoder().decode(bytes);}},
+    stderr: {async write() {}}
+  };
+  const result = mode === "command"
+    ? await createPandocCommand().execute(context)
+    : await createStandalonePandocCommand().execute(context);
+  expect(result).toEqual({exitCode: 0});
+  expect(output).toContain("<p>Hello <em>fallback</em></p>");
+});

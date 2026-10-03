@@ -416,6 +416,7 @@ test("pandoc omits disabled filesystem read budgets and preserves finite ones", 
     await volume.writeFile("/input.md", new TextEncoder().encode("Hello"));
     const read = volume.readFile.bind(volume);
     const budgets: (number | undefined)[] = [];
+    Object.assign(volume, { readStream: undefined, openReadFile: undefined });
     volume.readFile = async (path, options) => {
       budgets.push(options?.maxBytes);
       assert.notEqual(options?.maxBytes, Infinity);

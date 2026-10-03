@@ -47,6 +47,19 @@ export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptio
         if (hookFailure) throw hookFailure;
         if (status !== lua.LUA_OK) throw new PandocError(script && !reader ? "E_IO" : "E_AST", "convert", lua.lua_tojsstring(state, -1) ?? "Lua filter execution failed");
       };
+      // Resume the VM from instruction hooks so caller cancellation/yield tasks
+      // can run during Lua loops. Keep the same state and stack identities across
+      // resumptions, including the rooted runner and returned callback closures.
+      const run = async (args: number, results: number, script = false): Promise<void> => {
+        const base = lua.lua_gettop(state) - args - 1;
+        let status = lua.lua_resume(state, null, args);
+        while (status === lua.LUA_YIELD) {
+          await context.cooperate(0);
+          status = lua.lua_resume(state, null, 0);
+        }
+        checked(status, script);
+        lua.lua_settop(state, base + results);
+      };
       const push = (value: unknown, depth = 0): void => {
         context.checkpoint(); context.bound("depth", depth);
         if (!lua.lua_checkstack(state, 4)) fail("E_AST", "Lua stack capacity exceeded");
@@ -123,6 +136,9 @@ export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptio
         lua.lua_pushstring(state, to_luastring(context.to.split("+")[0]!.split("-")[0]!)); lua.lua_setglobal(state, to_luastring("FORMAT"));
         lua.lua_sethook(state, () => {
           try {context.checkpoint(100);} catch (error) {hookFailure = error; throw error;}
+          // Native library calls can invoke Lua across a non-yieldable boundary.
+          // Keep their checkpoints without introducing a new Lua runtime error.
+          if (lua.lua_isyieldable(state)) lua.lua_yield(state, 0);
         }, lua.LUA_MASKCOUNT, 100);
         lua.lua_pushjsfunction(state, () => {
           try {context.bound("depth", lua.lua_tonumber(state, 1));} catch (error) {hookFailure = error; throw error;}
@@ -136,7 +152,7 @@ export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptio
         lua.lua_setglobal(state, to_luastring("__pandoc_ast_error"));
         const bootstrap = to_luastring(luaAst);
         checked(lauxlib.luaL_loadbuffer(state, bootstrap, bootstrap.length, to_luastring("pandoc constructors")));
-        checked(lua.lua_pcall(state, 0, 0, 0));
+        await run(0, 0);
         lua.lua_getglobal(state, to_luastring("__pandoc_callbacks"));
         const callbacks = read() as Record<string, boolean>;
         lua.lua_pop(state, 1);
@@ -189,7 +205,7 @@ export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptio
           if (source![0] === 27) fail("E_UNSUPPORTED_FEATURE", "Lua bytecode filters are unsupported");
           checked(lauxlib.luaL_loadbuffer(state, source!, source!.length, to_luastring(request.path)), true);
         }
-        checked(lua.lua_pcall(state, 0, 1, 0), true);
+        await run(0, 1, true);
         const filters: number[] = [];
         const capture = (global = false) => {
           if (!lua.lua_istable(state, -1)) fail("E_UNSUPPORTED_FEATURE", "Expected a Lua filter table");
@@ -221,7 +237,7 @@ export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptio
         push({blocks: document.blocks, meta: inputMeta});
         lua.lua_newtable(state);
         for (let i = 0; i < filters.length; i++) {lua.lua_rawgeti(state, lua.LUA_REGISTRYINDEX, filters[i]!); lua.lua_rawseti(state, -2, i + 1);}
-        checked(lua.lua_pcall(state, 2, 1, 0), true);
+        await run(2, 1, true);
         const result = read() as {blocks: Document["blocks"]; meta: Document["metadata"]};
         await context.cooperate();
         const nextMetadata = share(inputMeta, Array.isArray(result.meta) && !result.meta.length ? {} : result.meta) as Document["metadata"];

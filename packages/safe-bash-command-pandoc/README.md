@@ -305,8 +305,11 @@ buffered reader remains supported for compatibility. Compilation still retains L
 bytecode, constants and the document AST: streaming source does not isolate or bound
 those VM allocations. Streams close after compilation, syntax errors or cancellation.
 It does not expose host filesystem/process libraries. Conversion work limits
-interrupt Lua instructions. Use trusted scripts: VM allocations and library
-calls are not isolated or individually metered. `readStream` takes precedence when
+interrupt Lua instructions. Instruction hooks also suspend execution to deliver
+caller yield checkpoints and timer-driven cancellation during Lua loops. Native
+library calls and their callbacks can defer those suspensions until they return.
+Use trusted scripts: VM allocations and library calls are not isolated or
+individually metered. `readStream` takes precedence when
 both readers are supplied. Both `createLuaFilterCapability({readFile})`
 and `createLuaFilterCapability(loadScript)` accept the same filters. Define global
 callbacks, return one callback table, or return a list of tables to run in order.

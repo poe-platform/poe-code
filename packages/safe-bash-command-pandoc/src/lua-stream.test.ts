@@ -199,3 +199,57 @@ it("yields during a large Lua source chunk so cancellation closes the reader bef
     expect(closed).toHaveBeenCalledOnce();
   } finally {clearTimeout(timer);}
 });
+
+it.each([
+  "while true do end",
+  "function Str(el) while true do end end"
+])("delivers timer cancellation during Lua execution before exhausting the work budget: %s", async source => {
+  const controller = new AbortController(), closed = vi.fn(), publish = vi.fn();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await expect(convert(input, options, {
+      signal: controller.signal, limits: {work: 100000}, output: {publish},
+      filters: createLuaFilterCapability({readStream: async function* () {
+        try {yield encoder.encode(source);}
+        finally {closed(); timer = setTimeout(() => controller.abort(), 0);}
+      }})
+    })).rejects.toMatchObject({code: "E_CANCELLED"});
+    expect(closed).toHaveBeenCalledOnce();
+    expect(publish).not.toHaveBeenCalled();
+  } finally {clearTimeout(timer);}
+});
+
+it("preserves closures and multiple return values across host-controlled VM yields", async () => {
+  const cooperate = vi.fn(async () => {await Promise.resolve();});
+  const source = `
+    local total = 0
+    local function add(i) total = total + i; return total, i end
+    for i = 1, 5000 do local sum, value = add(i); assert(sum == total and value == i) end
+    return {Str = function(el) total = total + 1; el.text = el.text .. tostring(total); return el end}
+  `;
+  await expect(convert(input, options, {yield: cooperate,
+    filters: createLuaFilterCapability({readFile: async () => encoder.encode(source)})
+  })).resolves.toMatchObject({text: "<p>Hello12502501 <em>world12502502</em></p>\n"});
+  expect(cooperate.mock.calls.length).toBeGreaterThan(30);
+});
+
+it("preserves Lua callbacks invoked across native string and table library boundaries", async () => {
+  const source = `
+    local values = {}
+    for i = 200, 1, -1 do values[#values + 1] = i end
+    table.sort(values, function(a, b)
+      local n = 0; for i = 1, 20 do n = n + 1 end
+      assert(n == 20); return a < b
+    end)
+    assert(values[1] == 1 and values[200] == 200)
+    return {Str = function(el)
+      el.text = string.gsub(el.text, "(.)", function(c)
+        local n = 0; for i = 1, 100 do n = n + 1 end
+        assert(n == 100); return string.upper(c)
+      end)
+      return el
+    end}
+  `;
+  await expect(convert(input, options, {filters: createLuaFilterCapability({readFile: async () => encoder.encode(source)})}))
+    .resolves.toMatchObject({text: "<p>HELLO <em>WORLD</em></p>\n"});
+});

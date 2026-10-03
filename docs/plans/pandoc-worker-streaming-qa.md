@@ -30,6 +30,9 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   Preserve diagnostics, source locations, resource identities and byte results.
 - Exercise JSON filter protocol streams and genuine Lua callbacks, including
   document callbacks, arbitrary reordering, long strings, tables and metadata.
+  Check timer-driven cancellation during top-level Lua and callback loops, before
+  a finite work budget expires. VM instruction hooks now suspend and resume the
+  same state; native library callback boundaries still defer those suspensions.
   JSON streaming runtimes use retained protocol responses and document generations,
   with at most five page caches live during validation. Test long image URIs
   separately: origin admission still materializes one URI. Runtime-owned state

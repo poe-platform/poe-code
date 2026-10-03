@@ -111,6 +111,45 @@ it.each(["tables", "json-tables"])("runs composed Sips, Shuf and streamed Pandoc
           }, {filters: pandoc.createLuaFilterCapability({readStream: (path, signal) => vfs.readStream(path, {signal, chunkSize: 131072})})});
           return Response.json({exitCode: 0, stdout: result.text, stderr: ""});
         }
+        if (scenario === "cancel-lua") {
+          const outcomes = [];
+          for (const mode of ["sdk", "command"]) {
+            const controller = new AbortController();
+            let timer;
+            await vfs.writeFile("/filter.lua", encoder.encode("function Str(el) while true do end end"));
+            const readStream = async function* (path, options) {
+              try {yield* vfs.readStream(path, options);}
+              finally {if (path === "/filter.lua") timer = setTimeout(() => controller.abort(), 0);}
+            };
+            try {
+              if (mode === "sdk") {
+                try {
+                  await pandoc.convert([{bytes: encoder.encode("hello")}], {
+                    from: "markdown", to: "html", filters: [{kind: "lua", path: "/filter.lua"}],
+                  }, {signal: controller.signal, limits: {work: 100000},
+                    filters: pandoc.createLuaFilterCapability({readStream: (path, signal) => readStream(path, {signal})})});
+                  outcomes.push({mode, code: "unexpected-success"});
+                } catch (error) {outcomes.push({mode, code: error.code});}
+              } else {
+                let stdout = "", stderr = "";
+                const supplied = new Proxy(vfs, {get(target, key) {
+                  if (key === "readStream") return readStream;
+                  const value = Reflect.get(target, key, target);
+                  return typeof value === "function" ? value.bind(target) : value;
+                }});
+                const result = await pandoc.createPandocCommand({limits: {work: 100000}}).execute({
+                  command: "pandoc", args: ["-f", "markdown", "-t", "html", "-L", "/filter.lua", "/input.md"],
+                  cwd: "/", env: {}, fs: supplied, signal: controller.signal,
+                  stdin: (async function* () {})(),
+                  stdout: {async write(bytes) {stdout += new TextDecoder().decode(bytes);}},
+                  stderr: {async write(bytes) {stderr += new TextDecoder().decode(bytes);}},
+                }).then(result => ({exitCode: result.exitCode}), error => ({aborted: error === controller.signal.reason, name: error.name}));
+                outcomes.push({mode, ...result, stdout, stderr});
+              }
+            } finally {clearTimeout(timer);}
+          }
+          return Response.json(outcomes);
+        }
         if (scenario === "json-numbers") {
           const attr = ["", [], []];
           const document = {"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [{t: "Table", c: [
@@ -232,6 +271,13 @@ it.each(["tables", "json-tables"])("runs composed Sips, Shuf and streamed Pandoc
       const numbers = await runtime.dispatchFetch("https://pandoc.test/json-numbers");
       expect(numbers.status).toBe(200);
       expect(await numbers.json()).toEqual({width: 0.1, rejected: {code: "E_AST", message: "Number exceeds exact integer range or is rounded"}});
+      const cancelled = await runtime.dispatchFetch("https://pandoc.test/cancel-lua");
+      const cancelledText = await cancelled.text();
+      expect(cancelled.status, cancelledText).toBe(200);
+      expect(JSON.parse(cancelledText)).toEqual([
+        {mode: "sdk", code: "E_CANCELLED"},
+        {mode: "command", aborted: true, name: "AbortError", stdout: "", stderr: ""}
+      ]);
       for (const scenario of ["lua", "sdk", "ranges"]) {
         const filtered = await runtime.dispatchFetch("https://pandoc.test/" + scenario);
         expect(await filtered.json()).toEqual({exitCode: 0, stdout: "<p><strong>PORTABLE</strong></p>\n", stderr: ""});

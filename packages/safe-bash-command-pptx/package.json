@@ -26,8 +26,8 @@
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "lint": "eslint src && npm run typecheck",
-    "test": "node --import tsx --test src/*.test.ts && cd ../.. && vitest run packages/safe-bash-command-pptx/tests",
-    "test:unit": "node --import tsx --test src/*.test.ts && cd ../.. && vitest run packages/safe-bash-command-pptx/tests"
+    "test": "cd ../.. && vitest run packages/safe-bash-command-pptx",
+    "test:unit": "cd ../.. && vitest run packages/safe-bash-command-pptx"
   },
   "dependencies": {},
   "devDependencies": {

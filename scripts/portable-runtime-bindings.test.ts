@@ -31,7 +31,7 @@ test.each(directories)('%s binds Buffer locally instead of requiring the host gl
     for (const entry of readdirSync(directory, {withFileTypes: true})) {
       const filename = path.join(directory, entry.name);
       if (entry.isDirectory()) continue;
-      if (!filename.endsWith('.ts') || filename.endsWith('.d.ts') || filename.includes('.test.') || ['fixtures.ts', 'helpers.ts'].includes(entry.name)) continue;
+      if (!filename.endsWith('.ts') || filename.endsWith('.d.ts') || filename.includes('.test.') || filename.includes('.test-') || ['fixtures.ts', 'helpers.ts', 'test-helpers.ts', 'translit-fixtures.ts'].includes(entry.name)) continue;
       const contents = readFileSync(filename, 'utf8');
       if (!contents.includes('Buffer.')) continue;
       const source = ts.createSourceFile(filename, contents, ts.ScriptTarget.Latest, true);

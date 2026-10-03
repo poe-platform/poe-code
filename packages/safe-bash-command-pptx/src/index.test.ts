@@ -1,6 +1,6 @@
 import { shellValueFromBytes } from "safe-bash-contracts/value";
 import assert from "node:assert/strict";
-import test from "node:test";
+import { test } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createPptxCommand, createPptxCommands } from "./index.js";

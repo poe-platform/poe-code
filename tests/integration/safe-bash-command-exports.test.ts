@@ -47,6 +47,37 @@ describe.each(commands)("$name public command contract", ({ name, api }) => {
   }
 
   it("creates a command, its collection, and a matching plugin with required capabilities", async () => {
+    if (name === "safe-bash-command-playwright-cli") {
+      const cli = api.createPlaywrightCli();
+      expect(cli.plugin.setup).toBeTypeOf("function");
+      for (const replace of [undefined, false, true]) {
+        const registry = new CommandRegistry();
+        const register = vi.spyOn(registry, "register");
+        await api.createPlaywrightCli(replace === undefined ? undefined : { replace }).plugin.setup({
+          commands: registry,
+          use: vi.fn(),
+          registerFileSystem: vi.fn()
+        });
+        expect(register.mock.calls.map(([command]) => command.name)).toEqual(["playwright-cli"]);
+        expect(register.mock.calls[0]?.[1]?.replace ?? false).toBe(replace ?? false);
+      }
+      return;
+    }
+    if (name === "safe-bash-command-python") {
+      const collection: readonly CommandDefinition[] = api.createPythonCommands();
+      const plugin: VirtualShellPlugin = api.pythonCommands();
+      expect(collection.map((command) => command.name)).toEqual(["python", "python3"]);
+      const registry = new CommandRegistry();
+      const register = vi.spyOn(registry, "register");
+      await plugin.setup({ commands: registry, use: vi.fn(), registerFileSystem: vi.fn() });
+      expect(register.mock.calls.map(([command]) => command.name)).toEqual(["python", "python3"]);
+      return;
+    }
+    if (name === "safe-bash-command-safejs") {
+      expect(api.createSafeJsCommands).toBeTypeOf("function");
+      expect(api.SafeJsCommandLimitError).toBeTypeOf("function");
+      return;
+    }
     const single: CommandDefinition = api[`create${title}Command`](requiredOptions);
     const collection: readonly CommandDefinition[] = api[`create${title}Commands`](requiredOptions);
     const plugin: VirtualShellPlugin = api[`${pluginName}Commands`](requiredOptions);

@@ -420,6 +420,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "commands/op/index.browser": path.join(root, "packages/safe-bash/src/commands/op/index.ts"),
     "commands/llm/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/index.ts"),
     "commands/llm/providers/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/providers/index.ts"),
+    "commands/llm/collections.browser": path.join(root, "packages/safe-bash/src/commands/llm/collections.ts"),
     "commands/caller/index.browser": path.join(root, "packages/safe-bash/src/commands/caller/index.ts"),
     "core.browser": path.join(root, "packages/safe-bash/src/core.browser.ts"),
     "trap.browser": path.join(root, "packages/safe-bash/src/trap.browser.ts"),
@@ -630,19 +631,29 @@ beforeAll(async () => {
           path: args.path.endsWith("/command") ? "command" : "index", namespace: "evaluated-contracts",
         }));
         builder.onLoad({ filter: /.*/, namespace: "evaluated-contracts" }, args => ({
-          contents: [
+          contents: args.path === "value" ? [
+            `export * from ${JSON.stringify(path.join(root, "packages/safe-bash-contracts/src/value.ts"))};`,
+            "export const shellValueFromBytes = bytes => globalThis.browser.createCommandArguments([bytes]).values[0];",
+            "export const shellValueBytes = value => globalThis.browser.createCommandArguments([value]).bytes(0);",
+          ].join("\n") : [
             `export * from ${JSON.stringify(path.join(root, "packages/safe-bash-contracts/src", args.path + ".ts"))};`,
-            ...["commandRuntimeIdentity", "createCommandArguments", "getCommandArguments", "CommandRegistry"].map(name => `export const ${name} = globalThis.browser.${name};`),
+            ...(["index", "command"].includes(args.path)
+              ? ["commandRuntimeIdentity", "createCommandArguments", "getCommandArguments", "CommandRegistry", "CommandArgumentIdentityError"].map(name => `export const ${name} = globalThis.browser.${name};`)
+              : []),
           ].join("\n"), loader: "js", resolveDir: root,
         }));
         builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/.*)?$/ }, args => {
           const companion = companions.get(args.path);
           if (companion) return { path: companion };
           if (args.path === "@poe-platform/safe-bash/contracts") return { path: "index", namespace: "evaluated-contracts" };
+          if (args.path.startsWith("@poe-platform/safe-bash/contracts/")) {
+            return { path: args.path.slice("@poe-platform/safe-bash/contracts/".length), namespace: "evaluated-contracts" };
+          }
           const entry = manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`];
-          if (!entry.browser) return { path: path.resolve(directory, entry.import) };
+          const rootEntry = path.resolve(directory, manifest.exports["."].browser);
+          if (!entry.browser) return { path: rootEntry, namespace: "evaluated-shell" };
           const target = path.resolve(directory, entry.browser);
-          return artifacts.has(target) ? { path: target, namespace: "evaluated-shell" } : { path: target };
+          return { path: artifacts.has(target) ? target : rootEntry, namespace: "evaluated-shell" };
         });
         builder.onLoad({ filter: /.*/, namespace: "evaluated-shell" }, args => {
           const output = portableBuild.metafile!.outputs[path.relative(root, args.path)];

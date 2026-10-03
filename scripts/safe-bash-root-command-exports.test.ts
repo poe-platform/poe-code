@@ -20,9 +20,17 @@ function exportedNames(file: string, visited = new Set<string>()): Set<string> {
         for (const entry of statement.exportClause.elements) names.add(entry.name.text);
       } else if (statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier)) {
         const specifier = statement.moduleSpecifier.text;
+        const parts = specifier.split("/");
+        const packageName = parts.splice(0, specifier.startsWith("@") ? 2 : 1).join("/");
+        const directory = resolve(root, "packages", packageName.split("/").at(-1)!);
+        const manifestPath = resolve(directory, "package.json");
+        const manifest = !specifier.startsWith(".") && existsSync(manifestPath)
+          ? JSON.parse(readFileSync(manifestPath, "utf8")) : undefined;
+        const entry = manifest?.exports?.[parts.length ? "./" + parts.join("/") : "."];
+        const runtime = typeof entry === "string" ? entry : entry?.import;
         const target = specifier.startsWith(".")
           ? resolve(dirname(file), specifier.endsWith(".js") ? specifier.slice(0, -3) + ".ts" : specifier)
-          : resolve(root, "packages", specifier, "src/index.ts");
+          : resolve(directory, typeof runtime === "string" ? runtime.replace("./dist/", "./src/").replace(".js", ".ts") : "src/index.ts");
         if (existsSync(target)) for (const name of exportedNames(target, visited)) names.add(name);
       }
     } else if (ts.canHaveModifiers(statement) && ts.getModifiers(statement)?.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword)) {
@@ -36,13 +44,25 @@ function exportedNames(file: string, visited = new Set<string>()): Set<string> {
 
 const core = exportedNames(resolve(root, "packages/safe-bash/src/core.ts"));
 const index = exportedNames(resolve(root, "packages/safe-bash/src/index.ts"));
+const playwright = exportedNames(resolve(root, "packages/safe-bash/src/commands/playwright/index.ts"));
 describe("root command API", () => {
   for (const { name: workspace } of commands) {
     const name = workspace.slice("safe-bash-command-".length);
     const title = name.split("-").map(word => word[0]!.toUpperCase() + word.slice(1)).join("");
     const pluginName = title[0]!.toLowerCase() + title.slice(1);
     it(`${name} exposes its public command contract from the root`, () => {
-      for (const symbol of [`${pluginName}Commands`, `create${title}Commands`, `create${title}Command`, `${title}CommandsOptions`]) {
+      if (name === "playwright-cli") {
+        for (const symbol of ["createPlaywrightCli", "PlaywrightCliOptions"]) {
+          expect(playwright.has(symbol), `playwright: ${symbol}`).toBe(true);
+        }
+        return;
+      }
+      const symbols = name === "safejs"
+        ? ["createSafeJsCommands", "safeJsCommands", "SafeJsCommandsOptions", "SafeJsCommandLimitError"]
+        : name === "python"
+          ? ["pythonCommands", "createPythonCommands", "PythonCommandsOptions", "pythonExecutorCommands", "createPythonExecutorCommands"]
+          : [`${pluginName}Commands`, `create${title}Commands`, `create${title}Command`, `${title}CommandsOptions`];
+      for (const symbol of symbols) {
         expect(core.has(symbol), `core: ${symbol}`).toBe(true);
         expect(index.has(symbol), `root: ${symbol}`).toBe(true);
       }

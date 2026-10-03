@@ -7,7 +7,7 @@ it.each(["llm-module", "shell-module", "library-adapter"])(
   "removes unused Python source from an effectful %s import",
   async (name) => {
     const contents = await readFile(
-      new URL(`../packages/safe-bash/src/commands/python/${name}.ts`, import.meta.url),
+      new URL(`../packages/safe-bash-command-python/src/${name}.ts`, import.meta.url),
       "utf8"
     );
     const result = await build({
@@ -23,7 +23,7 @@ it.each(["llm-module", "shell-module", "library-adapter"])(
           }));
           plugin.onLoad({ filter: /.*/, namespace: "python-source" }, () => ({
             contents, loader: "ts",
-            resolveDir: fileURLToPath(new URL("../packages/safe-bash/src/commands/python/", import.meta.url))
+            resolveDir: fileURLToPath(new URL("../packages/safe-bash-command-python/src/", import.meta.url))
           }));
         }
       }]

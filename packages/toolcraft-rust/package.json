@@ -379,11 +379,15 @@
     "./process-runner": {
       "types": "./dist/process-runner.d.ts",
       "import": "./dist/process-runner.js"
+    },
+    "./safe-bash": {
+      "types": "./dist/safe-bash.d.ts",
+      "import": "./dist/safe-bash.js"
     }
   },
   "scripts": {
     "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build && cp src/*.d.ts dist/",
-    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && cp src/*.d.ts dist/ && vitest run --config vitest.reference.config.mjs && tsc --project tsconfig.types.json && node tests/reference-cli-types.mjs && tsc --project tsconfig.dependency-types.json",
+    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && cp src/*.d.ts dist/ && vitest run --config vitest.reference.config.mjs && tsc --project tsconfig.types.json && node tests/reference-cli-types.mjs && node tests/reference-safe-bash-types.mjs && tsc --project tsconfig.dependency-types.json",
     "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
   },
   "devDependencies": {
@@ -428,6 +432,7 @@
     "auth-store-rust": "*",
     "@poe-code/agent-mcp-config-rust": "*",
     "@poe-code/frontmatter-rust": "*",
-    "@poe-code/process-runner-rust": "*"
+    "@poe-code/process-runner-rust": "*",
+    "@poe-platform/safe-bash": "*"
   }
 }

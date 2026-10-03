@@ -10,6 +10,7 @@ const suites = ["stack-trim", "suggest", "runtime-logging", "redaction", "packag
 const cliSuites = readdirSync(path("../toolcraft/src")).filter(name => name.startsWith("cli") && name.endsWith(".test.ts") && name !== "cli-bundle.test.ts");
 const httpSuites = readdirSync(path("../toolcraft/src")).filter(name => name.startsWith("http") && name.endsWith(".test.ts"));
 const mcpSuites = ["mcp-default-descriptors", "mcp-default-metadata", "mcp-default-requiredness", "mcp-discriminator-metadata", "mcp-modern-output-roots", "mcp-notification-lifecycle", "mcp-output-validation", "mcp-request-cancellation", "mcp-runtime-options", "mcp-scope", "mcp-stream-errors", "mcp-proxy-native-transport", "entrypoints-mcp-proxy"];
+const safeBashSuites = ["safe-bash", "safe-bash-capabilities", "safe-bash-capabilities-stress"];
 const authStoreSuites = ["auth-store", "provider-store", "keychain-process", "transaction-lock"];
 
 export default defineConfig({
@@ -18,6 +19,10 @@ export default defineConfig({
       name: "toolcraft-rust-reference",
       enforce: "pre",
       resolveId(name, importer) {
+        if (safeBashSuites.some(suite => importer === path(`../toolcraft/src/${suite}.test.ts`))) {
+          if (["toolcraft/safe-bash", "./safe-bash.js"].includes(name)) return path("dist/safe-bash.js");
+          if (name === "./index.js") return path("tests/definition-entry.mjs");
+        }
         if (name === "auth-store-rust" && [path("dist/auth-store.js"), path("tests/auth-store-subpath-parity.test.ts")].includes(importer)) {
           return path("../auth-store-rust/dist/index.js");
         }
@@ -122,6 +127,8 @@ export default defineConfig({
   ],
   test: {
     include: [
+      ...safeBashSuites.map(suite => path(`../toolcraft/src/${suite}.test.ts`)),
+      path("tests/safe-bash-parity.test.ts"),
       ...httpSuites.map(suite => path(`../toolcraft/src/${suite}`)),
       path("tests/http-public-parity.test.ts"),
       path("tests/core-subpaths-parity.test.ts"),

@@ -17,6 +17,7 @@
     "tests/cli-types.ts",
     "tests/mcp-types.ts",
     "tests/http-types.ts",
-    "tests/core-subpaths-types.ts"
+    "tests/core-subpaths-types.ts",
+    "tests/safe-bash-types.ts"
   ]
 }

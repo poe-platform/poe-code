@@ -5555,3 +5555,69 @@ Node 18/20 checks remain active. It tests existing Toolcraft packaging and does
 not establish native artifact publication. JavaScript remains the default.
 Safe Bash, testing and composition entry points and broader replacement gates
 remain unfinished.
+
+### Native Safe Bash command integration
+
+The missing toolcraft-rust/safe-bash entry point now owns toolcraftDefaults,
+createToolcraftCommandExecutor and toolcraftCommands. Rust controls command/root
+admission, declaration-path discovery, schema-position regex rejection, default
+validation, root selection, aliases, capability overrides, filesystem write flags
+and registration. Its per-invocation output budget retains pending bytes until a
+sink succeeds, including the byte that exceeds the one-MiB limit. Node preserves
+object/array operations, live getters, original callback receivers, promises,
+streams, AbortSignals, filesystem capabilities and arbitrary errors. Execution
+uses the existing native CLI; there is no canonical Toolcraft runtime import.
+The manifest adds only the existing own Safe Bash workspace for public contracts.
+No third-party dependency or default implementation changes.
+
+Missing public-module and Rust-budget tests failed before implementation. All
+three canonical Safe Bash suites now resolve this module, native definitions,
+schema and approval policies. The maintained route passes 269 native checks and
+6,249 reference-route cases across 133 files, plus Rust tests, declarations,
+the original CLI consumer, both original Safe Bash compile-check fixtures,
+strict dependency types and root posttest. Bidirectional public namespace types
+and handler-capability augmentation pass. Maintained Rust and scoped JavaScript/
+TypeScript lint pass. Differential coverage includes root accessor order,
+registration receivers, live service options, default isolation, all schema
+positions, arbitrary throws, cancellation precedence, virtual write flags,
+inherited missing-file codes, captured cwd, live symlink predicates, explicit
+approval revocation, output limits and sink failures. A final failing regression
+also repaired the adapter's captured Array.isArray function: root accessors may
+replace that host operation before the second library-shape check.
+
+Fresh packed runtime checks exercise all three public exports, typed-schema
+commands, configured defaults, aliases, filesystem reads, environment/services,
+streaming, plugin capability forwarding and pre-aborted execution. The import
+guard confines runtime resolution to packed own artifacts, existing Commander
+and Node builtins and rejects canonical Toolcraft/schema/design fallback. Help
+and JSON output match the canonical bytes; an ad hoc CLI screenshot was inspected.
+
+Strict standalone declarations are NOT qualified. The isolated consumer exposed
+remaining canonical type imports through root definitions, schema, CLI and
+human-in-loop declarations. Its raw workspace Safe Bash tarball also retains
+private workspace type imports; that tarball does not exercise the maintained
+Safe Bash publication packager and is not evidence of a released-package defect.
+The next type qualification must remove canonical contract imports and exercise
+actual published Safe Bash contract packaging, rather than add workspace fallback
+or relax the strict consumer. The new module's ordinary compile consumers pass,
+but they do not close this installation gate. Its 128-entry synchronous callback
+guard also remains a resource-parity boundary, not an exact engine stack limit.
+
+Seven alternating warmed rounds of 200 command executions on Node 22.23.2 ARM64
+measured reference/native medians of 63.235/1115.129 microseconds (17.63 times
+slower). The workload parses a numeric flag, applies a configured string default,
+reads an injected environment value and emits JSON through a local async sink;
+it includes invocation fixture construction. Outputs match before timing and
+at the end of every sample; 14 results are retained. Shared-machine load limits
+cross-run comparisons. This establishes no performance improvement or swap
+readiness.
+
+Process capability and facade delivery are verified on remote main at a515d143b7
+and 4b420c9b77. Root Release 37114410087 completed successfully through its queue
+check with actual build, validation and stable publication skipped; package run
+37114409834 remains pending at this checkpoint. The earlier package workflow
+37113411412 completed real standalone bundles on Node 18.18/20/22/24, published
+canonical Toolcraft/schema/OpenAPI and verified installed signatures. That is
+verified JavaScript package publication, not native artifact publication.
+Testing/composition entry points, standalone types, dependency fidelity, portable
+artifacts, resource behavior and performance qualification remain unfinished.

@@ -55,6 +55,7 @@ pub mod package_metadata;
 pub mod redaction;
 pub mod renderer;
 pub mod runtime_policy;
+pub mod safe_bash;
 pub mod schema_members;
 pub mod schema_scope;
 pub mod sdk;

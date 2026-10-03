@@ -36,6 +36,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Configuration mutations | `toolcraft-rust/config-mutations`: merge, prune and transform JSON/TOML/YAML, render templates and manage files through injected filesystems |
 | Frontmatter | `toolcraft-rust/frontmatter`: parse and write YAML metadata while retaining Markdown bodies, source positions and typed errors |
 | Process execution | `toolcraft-rust/process-runner`: host/container runners, streams, cancellation, workspace transfer and deterministic mock runners |
+| Safe Bash | `toolcraft-rust/safe-bash`: in-process commands, aliases, typed defaults, invocation capabilities and bounded synchronous output |
 | Credential stores | `toolcraft-rust/auth-store`: Node encrypted-file and Keychain stores, backend selection and legacy migration |
 | MCP handlers     | Native invocation routing, request services, cancellation, approvals, result projection and error reporting |
 | Stack diagnostics | Native framework-frame summaries, nested cause sections and raw stack preservation |
@@ -240,7 +241,7 @@ are available, with existing Commander still supplying the parser objects.
 Public MCP supports stdin/stdout and SDK transports, including stream notifications
 and cancellation. Public HTTP adds stateful/stateless requests, bearer verification
 and hosted OAuth with PKCE, credential services and canonical listener paths.
-Other subpaths remain incomplete. Native CLI, MCP and HTTP paths are currently
+Other subpaths remain incomplete. Native CLI, MCP, HTTP and Safe Bash paths are currently
 slower than JavaScript.
 The `tiny-mcp-client`, `agent-defs`, `agent-mcp-config` and Node `auth-store` subpaths use own declarations and support
 standalone type resolution through its installed own packages.
@@ -248,3 +249,8 @@ Other declarations still use the existing schema/design/config/MCP/HTTP contract
 complete standalone type packaging and generic stream-factory interchangeability
 remain pending. The migration and replacement
 gates are tracked in the repository's Toolcraft Rust API parity plan.
+
+Safe Bash commands use the native CLI with caller-owned filesystems, streams,
+services, network access and cancellation. Synchronous output is limited to
+1 MiB of pending writes; streaming commands await their output sinks. This
+subpath still shares the root API's incomplete standalone declaration packaging.

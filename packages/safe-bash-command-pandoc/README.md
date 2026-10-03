@@ -164,7 +164,8 @@ table-span occupancy, and numeric metadata-key ordering do not require resident
 document collections. Output preserves constructor bytes and binary64 numeric
 semantics, validates the complete document before publication, and preflights
 finite output budgets. Retained JSON conversions support finite `inputBytes`, `outputBytes`, `work`,
-`diagnostics`, `fonts`, `includes`, `images`, `binaryBytes`, and `layoutWork`,
+`diagnostics`, `fonts`, `includes`, `images`, `binaryBytes`, `layoutWork`, `parts`,
+`compressedBytes`, and `expandedBytes`,
 line endings, and the same non-transforming options as the table path. It uses
 two page caches of at most `cacheBytes` each, plus fixed small index caches.
 JSON `metadataFiles` merge into retained generations before filters. File contents,
@@ -204,8 +205,10 @@ source, parser state, document nodes and real Lua or JSON filters. Embedded pict
 bytes stay in caller storage independently of filter document generations; JSON
 output continues to reject resource sidecars even after a filter removes the images.
 Embedded pictures survive Lua filter generations; JSON filters reject relative
-image targets whose origin cannot be preserved. Finite font-count, include-count, image-count, binary-byte
-and layout-work budgets also retain this path and their existing failures.
+image targets whose origin cannot be preserved. Finite font-count, include-count, image-count, binary-byte,
+layout-work, archive-part, compressed-byte and expanded-byte budgets also retain
+this path and their existing failures. ODT members remain in caller storage while
+document validation precedes package-budget admission.
 HTML image embedding (`embedResources: true` or `--embed-resources`) streams
 image bytes and base64 text through caller storage, including local VFS images
 and pictures retained from RTF. Templates and Lua image origins are preserved.

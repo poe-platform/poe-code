@@ -1,8 +1,7 @@
 import type {prepareRetainedImageResources} from "./retained-image-resources.js";
 import {retainedImageLength} from "./image-dimensions.js";
 import {encodeXML} from "entities";
-import {createZipCodec, type ZipLimits} from "@poe-code/office-package/zip";
-import {createCompressionCodec} from "@poe-code/compression";
+import {RetainedOdtPackage} from "./retained-odt-package.js";
 import {IntegerTable, PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
 import type {BackedJson} from "./backed-json.js";
@@ -45,12 +44,9 @@ export async function writeRetainedOdt(tree: BackedJson, context: ExecutionConte
     }
   };
   try {
-    const limits: ZipLimits = {maxArchiveBytes: context.limits.outputBytes, maxEntryBytes: context.limits.expandedBytes, maxTotalBytes: context.limits.expandedBytes, maxMembers: context.limits.parts, maxPathBytes: context.limits.text, maxDepth: context.limits.depth, maxPaxBytes: context.limits.binaryBytes, maxTextBytes: context.limits.text, chunkSize: 4096};
-    const codec = createZipCodec({compression: createCompressionCodec(), yieldTurn: async () => context.cooperate(), fail: message => {throw new PandocError(message.includes("limit") ? "E_LIMIT" : "E_PARSE", "convert", message, "odt");}}, {rejectDuplicateNames: true, validatePayloads: true, allowStoredCompressionFlags: true});
-    const archive = codec.createStagedWriter(storage, limits, signal), attributes = {modified: new Date("1980-01-01T00:00:00Z"), mode: 0o100644, directory: false, symlink: false, compression: "store" as const};
-    const entry = await codec.makeZipEntry("mimetype", new TextEncoder().encode(odtMime), attributes, limits, signal);
-    entry.localExtra = new Uint8Array(); entry.centralExtra = new Uint8Array(); await archive.add(entry);
+    const archive = new RetainedOdtPackage(storage, context);
     const bytes = async function* (values: Iterable<string | TextRange>) {for (const value of values) {if (typeof value === "string") yield new TextEncoder().encode(value); else for await (const chunk of text.unicodeChunks(value)) yield new TextEncoder().encode(chunk);}};
+    await archive.addSource("mimetype", bytes([odtMime]));
     await push(list((await tree.property(tree.rootPosition, "blocks"))!, "block"));
     while (top) {
       await context.cooperate();
@@ -114,7 +110,7 @@ export async function writeRetainedOdt(tree: BackedJson, context: ExecutionConte
             image = {name: `Pictures/image-${++imageCount}.${extension}`, width, height};
             const payload = new TextEncoder().encode(JSON.stringify(image)), record = new Uint8Array(8+payload.length); new DataView(record.buffer).setFloat64(0,payload.length,true); record.set(payload,8);
             await images.set(key,BigInt(await storage.append(record)));
-            await archive.addSource(image.name, resource.chunks, attributes);
+            await archive.addSource(image.name, resource.chunks);
             await text.append(mediaManifest,await text.from([`<manifest:file-entry manifest:full-path="${image.name}" manifest:media-type="${metadata.mime}"/>`]));
           }
           let widthNode: number | undefined, heightNode: number | undefined;
@@ -160,19 +156,20 @@ export async function writeRetainedOdt(tree: BackedJson, context: ExecutionConte
         else if ((await tree.describe(caption + 32)).kind === "array") await sequence(literal("<text:p>"), list(caption + 32, "inline"), literal("</text:p>"));
       } else fail("Unsupported ODT block: " + tag, "E_UNSUPPORTED_FEATURE");
     }
-    await archive.addSource("content.xml", bytes([`<?xml version="1.0" encoding="UTF-8"?><office:document-content ${odtDocumentNamespaces} office:version="1.3"><office:automatic-styles>`, styles, "</office:automatic-styles><office:body><office:text>", content, "</office:text></office:body></office:document-content>"]), attributes);
-    await archive.addSource("styles.xml", bytes([odtStylesDocument]), attributes);
+    await archive.addSource("content.xml", bytes([`<?xml version="1.0" encoding="UTF-8"?><office:document-content ${odtDocumentNamespaces} office:version="1.3"><office:automatic-styles>`, styles, "</office:automatic-styles><office:body><office:text>", content, "</office:text></office:body></office:document-content>"]));
+    await archive.addSource("styles.xml", bytes([odtStylesDocument]));
     const meta = (await tree.property(tree.rootPosition, "meta"))!, title = await tree.property(meta, "title");
     const titleText = emptyText();
     if (title !== undefined && await tree.smallText((await tree.property(title, "t"))!, 32) === "MetaString") {
       const previous = {...content}; content.first = 0; content.last = 0; content.units = 0;
       await add("<dc:title>"); await escape((await tree.property(title, "c"))!); await add("</dc:title>"); Object.assign(titleText, content); Object.assign(content, previous);
     }
-    await archive.addSource("meta.xml", bytes([`<?xml version="1.0"?><office:document-meta xmlns:office="${ns.office}" xmlns:dc="http://purl.org/dc/elements/1.1/" office:version="1.3"><office:meta>`, titleText, "</office:meta></office:document-meta>"]), attributes);
-    await archive.addSource("META-INF/manifest.xml", bytes([`<?xml version="1.0"?><manifest:manifest xmlns:manifest="${ns.manifest}" manifest:version="1.3"><manifest:file-entry manifest:full-path="/" manifest:media-type="${odtMime}"/>`, mediaManifest, ...["content.xml", "styles.xml", "meta.xml"].map(name => `<manifest:file-entry manifest:full-path="${name}" manifest:media-type="text/xml"/>`), "</manifest:manifest>"]), attributes);
+    await archive.addSource("meta.xml", bytes([`<?xml version="1.0"?><office:document-meta xmlns:office="${ns.office}" xmlns:dc="http://purl.org/dc/elements/1.1/" office:version="1.3"><office:meta>`, titleText, "</office:meta></office:document-meta>"]));
+    await archive.addSource("META-INF/manifest.xml", bytes([`<?xml version="1.0"?><manifest:manifest xmlns:manifest="${ns.manifest}" manifest:version="1.3"><manifest:file-entry manifest:full-path="/" manifest:media-type="${odtMime}"/>`, mediaManifest, ...["content.xml", "styles.xml", "meta.xml"].map(name => `<manifest:file-entry manifest:full-path="${name}" manifest:media-type="text/xml"/>`), "</manifest:manifest>"]));
+    const output = await archive.prepare();
     const diagnostics = context.snapshotDiagnostics();
     if (options.failIfWarnings && diagnostics.length) {const first=diagnostics[0]!; throw new PandocError("E_WARNINGS", "convert", `Warnings rejected: ${first.code}: ${first.message}`, first.format, first.location);}
-    for await (const chunk of archive.finish()) await context.emit(chunk);
+    for await (const chunk of output) await context.emit(chunk);
   } catch (reason) {failure = {reason};}
   try {await storage.close();} catch (reason) {failure ??= {reason};} finally {release();}
   if (failure) throw failure.reason;

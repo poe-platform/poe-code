@@ -60,7 +60,7 @@ remaining values form the text. Duplicate headers and object keys retain their f
 and last value. `--prefix`, `--prepend`, and `--batch-size` customize imports.
 Each provider-sized batch commits independently, so earlier batches survive a
 later failure. File imports validate once before importing. JSON documents stage completely before
-embedding; JSONL parses one physical line at a time, preserving earlier committed
+embedding; JSONL accepts a UTF-8 BOM on each physical line and skips blank byte-whitespace lines, preserving earlier committed
 batches when a later line fails.
 SDK callers can use `withCsvEmbeddingEntries(options, bytes, async entries =>
 ...)` with `catalog.embedMany`, or use `withJsonEmbeddingEntries` and

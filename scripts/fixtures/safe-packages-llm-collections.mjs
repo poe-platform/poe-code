@@ -36,7 +36,7 @@ export async function verifyLlmCollections() {
   }});
   if(jsonBytes!==4194304)throw new Error('Large JSON field was truncated');
   let jsonLineCount=0;
-  await withJsonLinesEmbeddingEntries({...options,directory:'/'},{async *[Symbol.asyncIterator](){yield new TextEncoder().encode('{"id":1,"body":"first"}\n\n{"id":2,"body":"second"}\n');}},async entries=>{for await(const entry of entries){jsonLineCount++;for await(const bytes of entry.input.bytes)if(!bytes.length)throw new Error('Empty JSONL payload chunk');await entry.input.dispose();}});
+  await withJsonLinesEmbeddingEntries({...options,directory:'/'},{async *[Symbol.asyncIterator](){yield new TextEncoder().encode('\ufeff{"id":1,"body":"first"}\n\x0b\x0c\r\n\ufeff{"id":2,"body":"second"}\n');}},async entries=>{for await(const entry of entries){jsonLineCount++;for await(const bytes of entry.input.bytes)if(!bytes.length)throw new Error('Empty JSONL payload chunk');await entry.input.dispose();}});
   if(jsonLineCount!==2)throw new Error('JSONL row count changed');
   if (!created.committed || created.cleanupErrors.length || created.value.model !== "embed") throw new Error("Collection creation failed");
   await withLlmCollections(options, async catalog => {

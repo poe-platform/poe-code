@@ -1,6 +1,6 @@
 import type {FileSystem} from 'safe-bash-contracts';
 import {FsError} from 'safe-bash-contracts';
-import {withEmbeddingJsonDocument,type EmbeddingJsonNode} from './import-json-document.js';
+import {withEmbeddingJsonDocument,type EmbeddingJsonNode,type EmbeddingJsonDocument} from './import-json-document.js';
 import type {LlmCollectionBatchEntry} from './collections-batch.js';
 import {floatText} from './embed-output.js';
 import {isPythonPrintable} from './python-printable.js';
@@ -8,6 +8,12 @@ import {isPythonPrintable} from './python-printable.js';
 export async function withJsonEmbeddingEntries<T>(options:{fs:FileSystem;directory:string;signal:AbortSignal;maxFileBytes:number;maxOpenFiles:number;prefix?:string;prepend?:string},input:AsyncIterable<Uint8Array>,operation:(entries:AsyncIterable<LlmCollectionBatchEntry>)=>Promise<T>):Promise<T>{
  return withEmbeddingJsonDocument(options,input,async document=>{
   if(document.root.type!=='object'&&document.root.type!=='array')throw new TypeError('JSON must be a list or a dictionary');
+  return withEmbeddingJsonRows(options,document,operation);
+ });
+}
+
+/** Borrow rows from an already validated document; JSONL treats its root as one row. */
+export async function withEmbeddingJsonRows<T>(options:Parameters<typeof withJsonEmbeddingEntries>[0],document:EmbeddingJsonDocument,operation:(entries:AsyncIterable<LlmCollectionBatchEntry>)=>Promise<T>,singleRow=false):Promise<T>{
   const encoder=new TextEncoder();
   const floating=(token:string)=>token.includes('.')||token.includes('e')||token.includes('E')||token==='NaN'||token.endsWith('Infinity');
   const string=async(node:EmbeddingJsonNode)=>{let value='';for await(const text of document.text(node)){value+=text;if(value.length>65536)throw new RangeError('Embedding ID exceeds SQLite control byte limit');}if(encoder.encode(value).length>65536)throw new RangeError('Embedding ID exceeds SQLite control byte limit');return value;};
@@ -56,7 +62,7 @@ export async function withJsonEmbeddingEntries<T>(options:{fs:FileSystem;directo
   const entries={async *[Symbol.asyncIterator]():AsyncGenerator<LlmCollectionBatchEntry>{
    let position=-1;
    while(true){
-    const row=document.root.type==='object'?(position<0?document.root:undefined):(await document.child(document.root.id,position))?.node;
+    const row=singleRow||document.root.type==='object'?(position<0?document.root:undefined):(await document.child(document.root.id,position))?.node;
     if(!row)break;
     // Child positions are their first node ID; row IDs are unique array entries.
     position=row.id;
@@ -77,5 +83,4 @@ export async function withJsonEmbeddingEntries<T>(options:{fs:FileSystem;directo
    }
   }};
   const iterator=entries[Symbol.asyncIterator]();try{return await operation({[Symbol.asyncIterator]:()=>iterator});}finally{await iterator.return(undefined);}
- });
 }

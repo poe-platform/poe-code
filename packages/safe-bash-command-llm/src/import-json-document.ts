@@ -7,14 +7,14 @@ import {createLlmSpool} from './retained-spool.js';
 
 type NodeType='object'|'array'|'string'|'number'|'boolean'|'null';
 export interface EmbeddingJsonNode {readonly id:number;readonly type:NodeType;readonly start:number;readonly end:number;readonly token:string;}
-interface Document {
+export interface EmbeddingJsonDocument {
  readonly root:EmbeddingJsonNode;
  child(parent:number,after?:number):Promise<{node:EmbeddingJsonNode;position:number;key:string|number}|undefined>;
  text(node:EmbeddingJsonNode):AsyncIterable<string>;
 }
 /** Validate a complete JSON document before exposing it. Retained UTF-16 payloads
  * preserve escaped lone surrogates until the consuming encoder handles them. */
-export async function withEmbeddingJsonDocument<T>(options:{fs:FileSystem;directory:string;signal:AbortSignal;maxFileBytes:number;maxOpenFiles:number},input:AsyncIterable<Uint8Array>,operation:(document:Document)=>Promise<T>):Promise<T>{
+export async function withEmbeddingJsonDocument<T>(options:{fs:FileSystem;directory:string;signal:AbortSignal;maxFileBytes:number;maxOpenFiles:number},input:AsyncIterable<Uint8Array>,operation:(document:EmbeddingJsonDocument)=>Promise<T>):Promise<T>{
  const {fs,directory,signal}=options;
  const storage=await createPrivateSqliteStorage({...options,maxFiles:options.maxOpenFiles});
  try{return await withPrivateSqliteSession({...options,fs:storage.fs,directory:storage.directory,path:storage.directory+'/json'},async session=>{

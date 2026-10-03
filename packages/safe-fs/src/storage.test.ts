@@ -225,3 +225,31 @@ it("rejects mutation during integer-table traversal and propagates backing failu
   await expect(cursor.next()).rejects.toThrow("changed during iteration");
   fail = true; await expect(table.entries().next()).rejects.toBe(reason);
 });
+
+it.each([1, 3])("reuses %i backing buffers across eviction without exposing old page bytes", async pages => {
+  const fs = new MemoryFileSystem(), original = fs.open.bind(fs);
+  const buffers = new Set<ArrayBufferLike>();
+  vi.spyOn(fs, "open").mockImplementation(async (path, options) => {
+    const handle = await original(path, options);
+    return {
+      capabilities: handle.capabilities,
+      stat: handle.stat.bind(handle), truncate: handle.truncate.bind(handle), sync: handle.sync.bind(handle), close: handle.close.bind(handle),
+      async read(buffer, position, options) {buffers.add(buffer.buffer); return handle.read(buffer, position, options);},
+      async write(buffer, position, options) {buffers.add(buffer.buffer); return handle.write(buffer, position, options);}
+    };
+  });
+  const storage = new PagedStorage({fs, cwd: "/", env: {}, signal: new AbortController().signal}, pages);
+  try {
+    const start = storage.allocate(16384 * 8);
+    for (let index = 0; index < 8; index++) await storage.write(start + index * 16384, Uint8Array.of(index + 1));
+    const owned = await storage.read(start, 128);
+    for (let index = 7; index >= 0; index--) {
+      const expected = new Uint8Array(128); expected[0] = index + 1;
+      expect(await storage.read(start + index * 16384, 128)).toEqual(expected);
+    }
+    expect(owned[0]).toBe(1);
+    expect(owned.subarray(1)).toEqual(new Uint8Array(127));
+    expect(buffers.size).toBe(pages);
+  } finally {await storage.close();}
+  expect(await fs.readdir("/")).toEqual([]);
+});

@@ -105,13 +105,18 @@ export class PagedStorage {
       this.pages.set(number, cached);
       return cached;
     }
+    let reusable: Page | undefined;
     if (this.pages.size === this.maxPages) {
       if (!this.descriptor) await this.spill();
       const [oldNumber, oldPage] = this.pages.entries().next().value!;
       await this.flush(oldNumber, oldPage);
       this.pages.delete(oldNumber);
+      reusable = oldPage;
     }
-    const page: Page = { bytes: new Uint8Array(pageBytes), dirty: false };
+    // Flush owns the bytes until its awaited write completes. Reuse only then;
+    // zero new/unwritten ranges so the previous page cannot leak into them.
+    const page: Page = reusable ?? { bytes: new Uint8Array(pageBytes), dirty: false };
+    if (reusable) page.bytes.fill(0);
     if (number * pageBytes < this.diskLength) {
       let offset = 0;
       while (offset < pageBytes) {

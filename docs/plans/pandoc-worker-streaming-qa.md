@@ -324,3 +324,157 @@ bucket pages after all requests completed. No inspector samples timed out.
 The shared machine was contended, so these wall times do not establish a speedup;
 the page counts demonstrate reduced I/O. Neither these samples nor the change
 establishes a memory plateau or completes the remaining qualification cohorts.
+
+## Real Lua local memory cohorts, 2026-10-03
+
+Source `6da4652796` includes the public retained Lua runtime and enum/traversal
+fixes. Runtime: macOS arm64, Node harness 26.10.0, Miniflare `4.20260708.1`,
+workerd `1.20260708.1`, compatibility date `2026-07-01`, no `nodejs_compat`.
+The shipped public package is bundled with browser/workerd conditions. Each
+request lazily generates one JSON CodeBlock using a reused 8 KiB source chunk.
+The injected source reader supplies genuine Lua:
+`function CodeBlock(el) assert(#el.text==SIZE); return el end`.
+The buffered `apply` capability throws if selected. All payload/scratch pages
+use the injected R2 simulator outside the user isolate; memory safe-fs holds
+only detached namespace receipts. Each individual page cache is fixed at 1 MiB;
+this is not a single shared 1 MiB budget for the complete conversion.
+
+The sink delays each write by 1 ms, counts bytes and computes a rolling 32-bit
+FNV-1a checksum without accumulating output. Independently generated expected
+JSON (including the final newline) gives checksums 370089679, 2806980303,
+2572099279 and 1632575183 for 1, 8, 32 and 128 MiB respectively. A checksum is
+not an exact byte comparison; maintained small-case differential tests provide
+that separate check. Inspector samples target `core:user:` exclusively, with
+250 ms between responses and a 5-second command timeout. Missed samples are
+counted and do not cancel conversion. Values below are independently sampled
+maxima, not RSS, simultaneous totals or guaranteed high-water marks. These
+sequential cases share an isolate and include prior uncollected allocations.
+
+| Payload | Wall ms | First output ms | Baseline used heap bytes | Peak used heap bytes | Peak backing bytes | Peak embedder heap bytes | Samples | Page reads | Page writes |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 MiB | 6179 | 5609 | 29629768 | 65879984 | 51492782 | 1160672 | 23 | 4652 | 2550 |
+| 8 MiB | 25488 | 21907 | 50802676 | 71067260 | 90710364 | 2063392 | 93 | 12102 | 7738 |
+| 32 MiB | 78652 | 59235 | 58175692 | 77778340 | 164012348 | 5287392 | 292 | 41096 | 26124 |
+
+All three runs matched their expected checksum and payload-plus-93-byte length,
+closed all six scratch handles (five simultaneously open), and left no R2 pages
+or namespace entries. Maximum storage transfers were 16 KiB and output chunks
+4 KiB. No inspector commands timed out. These results demonstrate successful
+larger real Lua conversions and cleanup, not Cloudflare memory qualification.
+CPU telemetry and deployed Cloudflare measurements remain unavailable here.
+
+Owning-source SHA-256 values:
+
+```text
+c9b718d70927c0d9f1cca87823bdfcf780e25f05e3782411a3899cb1e3da3468  packages/safe-bash-command-pandoc/src/lua-stream-filter.ts
+0056161e4bdeb0b2e520be935e907ed365b064e447dc184fa84a83b77dc273a9  packages/safe-bash-command-pandoc/src/lua-retained-filter.ts
+0f7735243dca41d931fcb26c4a2948b6ee15cdffc5b03b068c58f2c4522f08df  packages/safe-bash-command-pandoc/src/lua-storage.ts
+c4adc3c436166045a77c74e664d64a482c3613dbb0ee35b45d86a279b64c796b  packages/safe-fs/src/storage.ts
+0cede0da84c31e89d90f2449f49b484ebbe79685e0ea673172dd7452e2a983c0  scripts/pandoc-r2-storage.fixture.mjs
+```
+
+A separate diagnostic cohort requests `HeapProfiler.collectGarbage` before each
+heap sample. It runs in a fresh isolate, with sequential cases and the same
+conversion/sink/cache settings. It overlaps the unforced 128 MiB cohort on the
+shared machine; its wall times are neither isolated benchmarks nor CPU times.
+Each case had one inspector timeout, including the request-completion boundary;
+conversion results were still collected. Post-collection samples can miss live
+state between samples and cannot replace unforced or deployed measurements.
+
+| Payload | Wall ms | First output ms | Peak used heap bytes | Peak backing bytes | Peak embedder heap bytes | Successful samples |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 MiB | 8299 | 7622 | 34136928 | 5619996 | 257936 | 24 |
+| 8 MiB | 25504 | 21610 | 35506172 | 6507948 | 82792 | 86 |
+| 32 MiB | 95400 | 78653 | 36514660 | 6597692 | 129184 | 328 |
+
+All three collected runs matched their expected checksums and lengths, closed
+six handles and removed all backing pages. Page read/write counts and maximum
+transfer/output sizes matched the unforced cases. The low post-collection
+backing values suggest allocation pressure rather than retaining the complete
+payload in this particular Lua cohort. This does not establish a strict memory
+bound: unforced backing peaks already exceed typical Worker memory budgets,
+and no production implementation may rely on an inspector to force collection.
+The remote-backend allocation behavior and deployed runtime pressure response
+still require investigation. The 16 KiB-cache, larger/concurrent post-collection,
+other document shapes, other formats/options and CPU cohorts remain outstanding.
+
+Four concurrent 1 MiB requests in one fresh user isolate, using independent
+namespaces and a shared external R2 bucket, completed in 30,957 ms client wall
+time (per-request 30,747–30,805 ms; first output 30,074–30,186 ms). All four
+matched checksum 370089679 and 1,048,669 output bytes, closed six handles each,
+and emptied their namespaces. Early completions observed peers' bucket pages;
+the last completion observed zero pages. Each request performed 4,652 reads and
+2,550 writes with 16 KiB maximum storage transfers and 4 KiB output chunks.
+Without forced collection, 82 successful samples and zero timeouts measured
+baseline used heap 29,565,660 bytes, peak used heap 69,404,424 bytes, peak backing
+58,711,919 bytes and peak embedder heap 1,031,712 bytes. These are aggregate
+isolate metrics, not per-request memory. This cohort overlapped the larger
+single-request measurement on the host, so wall time is not a throughput claim.
+
+Sixteen concurrent 1 MiB requests, also in a fresh user isolate without forced
+collection, completed in 128,601 ms client wall time. Per-request wall times
+were 127,966–128,334 ms and first-output times 125,853–126,486 ms. All sixteen
+matched the same checksum and length, closed six handles each and emptied their
+namespaces; the last completions observed an empty shared bucket. Per-request
+I/O counts and transfer sizes matched the four-request cohort. Aggregate
+baseline used heap was 29,631,284 bytes; independently sampled peaks were
+73,643,376 used heap, 147,473,956 backing storage and 2,450,272 embedder heap
+bytes. There were 209 successful samples and two inspector timeouts. This run
+also overlapped other host cohorts and is not isolated throughput evidence.
+Successful concurrent completion does not resolve the unforced memory-pressure
+or deployed CPU/subrequest-budget qualification gaps.
+
+The unforced 128 MiB single-request run completed in 397,150 ms (first output
+330,959 ms), with 134,217,821 bytes and expected checksum 1632575183. It closed
+all six handles and left no pages or namespace entries. It performed 172,850
+reads and 100,235 writes, with the same 16 KiB/4 KiB transfer/output maxima.
+Baseline used heap was 29,629,768 bytes. Across 1,456 successful samples and
+three missed samples, independently sampled peaks were 107,144,216 used heap,
+406,118,716 backing storage and 9,672,032 embedder heap bytes. Automatic
+collection reduced backing storage sharply during the run, but this does not
+qualify the transient pressure for a deployed Worker's memory limit.
+
+With each cache reduced to 16 KiB, the 1 MiB case completed in 176,916 ms
+(first output 176,118 ms), matched the expected checksum/length, closed six
+handles and removed all pages. It required 140,110 reads and 57,006 writes.
+Across 149 successful samples and 19 missed samples, peaks were 59,895,932
+used heap, 66,935,305 backing storage and 3,095,072 embedder heap bytes; baseline
+used heap was 29,568,260 bytes. The many missed samples weaken its memory
+observation. Small caches substantially increase backing I/O for real Lua;
+local completion alone does not establish acceptable deployed CPU/subrequest
+costs. This run overlapped other cohorts and later local verification commands.
+
+The 16 KiB-cache 8 MiB case also completed: 315,971 ms wall, 308,306 ms to
+first output, expected checksum/length, all six handles closed and no remaining
+pages. It performed 155,182 reads and 67,014 writes. Baseline used heap was
+65,166,644 bytes; sampled peaks were 84,712,884 used heap, 66,870,914 backing
+and 5,416,352 embedder heap bytes. There were 359 successful samples and twelve
+timeouts. Larger and concurrent 16 KiB-cache cohorts remain unmeasured.
+
+### Page-buffer reuse follow-up
+
+A focused storage regression observed seventeen distinct 16 KiB backing buffers
+for eight sparse pages with a one-page cache. The cache now reuses an evicted
+buffer after its awaited flush, zeroing it before loading a new page. Regression
+coverage checks one- and three-page caches, zero-filled unwritten ranges,
+independent returned bytes, existing partial I/O and cancellation/cleanup.
+This reduces allocation churn without changing cache capacity, backend authority
+or returned-buffer ownership. It does not remove the backend's own allocations.
+Modified storage SHA-256:
+`01c337443c9139174c2ac50b68fa6d3d7beaef5e2fe840208e10910c0e050756`.
+
+The shipped bundle was rebuilt and the unforced 1 MiB-cache Lua cohort rerun.
+These sequential cases overlapped local builds and the smaller-cache measurement;
+wall times cannot support a speedup claim. Output checksums, lengths, six-handle
+cleanup, page counts and transfer sizes exactly matched the earlier cases.
+
+| Payload | Wall ms | First output ms | Baseline used heap bytes | Peak used heap bytes | Peak backing bytes | Peak embedder heap bytes | Samples |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 MiB | 20350 | 19364 | 29568532 | 53259592 | 8219241 | 1289632 | 62 |
+| 8 MiB | 64079 | 58374 | 37225108 | 75513692 | 23458148 | 3224032 | 211 |
+
+No samples timed out. These lower backing peaks are encouraging observations,
+not a general upper bound or isolated attribution of all memory savings.
+Repeat the larger, concurrent and deployed cohorts after this change; the
+pre-change 32/128 MiB and concurrency measurements above must not be presented
+as measurements of the modified cache.

@@ -66,7 +66,12 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   with the existing interpreter; cancellation and error tests verify scratch
   cleanup. Decimal coercion retains 1100 significant digits plus a sticky digit;
   string comparison preserves existing binary collation in bounded chunks.
-  Source-token/compiler state, metamethods, standard libraries and Pandoc
+  Native callbacks now stream arguments/results through these frames. Table
+  delegation, arithmetic, comparisons (including reversed less-than fallback),
+  callable tables and right-associated concatenation resume through backed
+  continuations. Raw base operations preserve protected metatables and arity
+  checks. Test recursive callbacks, cancellation inside metamethods and cleanup.
+  Source-token/compiler state, complete standard libraries and Pandoc
   constructor translation still require integration and runtime qualification. Measurements of unavoidable live runtime
   state are still required.
 - Exercise citeproc with bibliography and citation counts that grow independently

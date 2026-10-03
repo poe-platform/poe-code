@@ -6,7 +6,8 @@ import {ExecutionContext} from "./execution.js";
 import {LuaStorage, type StoredLuaValue} from "./lua-storage.js";
 import {LuaProgram} from "./lua-program.js";
 import {LuaFrames} from "./lua-frames.js";
-import {LuaMachine} from "./lua-machine.js";
+import {LuaBase} from "./lua-base.js";
+import {LuaMachine, type LuaNative} from "./lua-machine.js";
 
 interface CompiledPrototype {
   numparams: number; is_vararg: boolean; maxstacksize: number;
@@ -19,14 +20,23 @@ const integer = (value: number): StoredLuaValue => ({kind: "integer", value});
 // The existing compiler provides authentic Lua 5.3 instruction sequences for
 // these small fixtures. Its resident output is not the production compiler for
 // the retained runtime; production compilation still needs bounded storage.
-async function execute(source: string, args: StoredLuaValue[] = [], signal?: AbortSignal): Promise<(StoredLuaValue | string)[]> {
+async function execute(source: string, args: StoredLuaValue[] = [], signal?: AbortSignal, native: boolean | LuaNative = false): Promise<(StoredLuaValue | string)[]> {
   const fs = new MemoryFileSystem(), context = new ExecutionContext("convert", signal ? {signal} : {});
   const storage = new PagedStorage({fs, cwd: "/", env: {}, signal: signal ?? new AbortController().signal}, 1);
   const cooperate = (units?: number) => context.cooperate(units);
   const heap = new LuaStorage(storage, cooperate), program = new LuaProgram(storage, heap, cooperate);
-  const frames = new LuaFrames(storage, heap, cooperate), machine = new LuaMachine(program, frames, heap, cooperate);
+  const frames = new LuaFrames(storage, heap, cooperate);
+  const base = new LuaBase(heap);
+  const machine = new LuaMachine(program, frames, heap, cooperate, async function* (prototype, args) {
+    if (prototype === -1000 && native) {
+      if (typeof native === "function") yield* native(prototype, args);
+      else for (let i = 0; i < args.count; i++) yield await args.get(i);
+    } else yield* base.invoke(prototype, args);
+  });
   const compiler = runtime as typeof import("fengari"), state = compiler.lauxlib.luaL_newstate();
   try {
+    compiler.lauxlib.luaL_requiref(state, new TextEncoder().encode("_G"), compiler.lualib.luaopen_base, true);
+    compiler.lua.lua_pop(state, 1);
     const bytes = new TextEncoder().encode(source);
     expect(compiler.lauxlib.luaL_loadbuffer(state, bytes, bytes.length, new TextEncoder().encode("fixture"))).toBe(compiler.lua.LUA_OK);
     const internal = state as unknown as {top: number; stack: {value: {p: CompiledPrototype}}[]};
@@ -48,7 +58,14 @@ async function execute(source: string, args: StoredLuaValue[] = [], signal?: Abo
       return prototype;
     };
     const prototype = await retain(internal.stack[internal.top - 1]!.value.p);
-    const closure = await heap.closure(prototype, [await heap.cell(await heap.table())]);
+    const environment = await heap.table();
+    await base.install(environment);
+    if (native) {
+      await heap.set(environment, await heap.string([new TextEncoder().encode("identity")]), await heap.closure(-1000, []));
+      compiler.lua.lua_pushjsfunction(state, state => compiler.lua.lua_gettop(state));
+      compiler.lua.lua_setglobal(state, new TextEncoder().encode("identity"));
+    }
+    const closure = await heap.closure(prototype, [await heap.cell(environment)]);
     const result = await machine.run(closure, args), values: (StoredLuaValue | string)[] = [];
     for (let i = 0; i < result.count; i++) {
       const value = await heap.get(result.values, i);
@@ -155,9 +172,9 @@ it("interrupts actual retained execution and cleans all backing files", async ()
 });
 
 it("concatenates and compares strings across backing chunk boundaries", async () => {
-  expect(await execute(`local a="x"; for i=1,14 do a=a..a end
+  expect(await execute(`local a="x"; for i=1,13 do a=a..a end
     local b=a.."a"; local c=a.."b"; return #a,#b,b<c,c<=b,a==a`))
-    .toEqual([integer(16384),integer(16385),true,false,true]);
+    .toEqual([integer(8192),integer(8193),true,false,true]);
 });
 
 
@@ -181,7 +198,127 @@ it.each(["", " ", "+", ".", "0x", "0x.", "1e", "1e+", "1 2", "1e 2", "--1", "nan
 });
 
 it("coerces long numeric strings without a payload-sized numeric buffer", async () => {
-  await execute(`local zero="0"; for i=1,14 do zero=zero..zero end
+  await execute(`local zero="0"; for i=1,13 do zero=zero..zero end
     local a=zero.."1.5"; local b="0x"..zero.."FFFFFFFF"; local c="1."..zero.."1"
     return a+0,b+0,c+0`);
+});
+
+
+it("streams native arguments and results through Lua calls and tail calls", async () => {
+  expect(await execute(`local function tail(...) return identity(...) end
+    local a,b,c=identity(1,nil,3); return a,b,c,tail(4,nil,false,7)`, [], undefined, true))
+    .toEqual([integer(1),undefined,integer(3),integer(4),undefined,false,integer(7)]);
+});
+
+
+it("exposes raw table operations and protected metatables through native calls", async () => {
+  expect(await execute(`local t={a=1}; local mt={__metatable="locked"}; setmetatable(t,mt)
+    local x=rawset(t,"a",7); local k,v=next(t)
+    return rawget(t,"a"),rawequal(t,x),getmetatable(t),k,v,type(t),type(nil),rawlen({1,2})`))
+    .toEqual([integer(7),true,"locked","a",integer(7),"table","nil",integer(2)]);
+});
+
+it("rejects changes to protected metatables and cleans backing state", async () => {
+  await expect(execute(`local t=setmetatable({}, {__metatable=false}); setmetatable(t,{})`))
+    .rejects.toThrow("protected metatable");
+});
+
+it("resumes table metamethods through backed Lua frames", async () => {
+  expect(await execute(`local target={a=2}; local proxy=setmetatable({}, {
+    __index=function(t,k) return target[k]+1 end,
+    __newindex=function(t,k,v) target[k]=v*2 end,
+    __len=function(t) return 17 end,
+    __call=function(t,a,b) return a+b,9 end})
+    proxy.a=4; local a,b=proxy(3,5); return proxy.a,#proxy,a,b`))
+    .toEqual([integer(9),integer(17),integer(8),integer(9)]);
+});
+
+it("follows table-valued index chains and bypasses them for existing entries", async () => {
+  expect(await execute(`local target={x=3}; local middle=setmetatable({}, {__index=target,__newindex=target})
+    local proxy=setmetatable({a=1}, {__index=middle,__newindex=middle}); proxy.a=7; proxy.x=9
+    return proxy.a,proxy.x,rawget(proxy,"x"),target.x`))
+    .toEqual([integer(7),integer(9),undefined,integer(9)]);
+});
+
+it("rejects cyclic table delegation with the existing chain limit", async () => {
+  await expect(execute(`local a={}; setmetatable(a,{__index=a}); return a.x`)).rejects.toThrow("chain too long");
+});
+
+it("dispatches arithmetic metamethods with original operands and unary duplicates", async () => {
+  expect(await execute(`local mt={
+    __add=function(a,b) return b+10 end, __sub=function(a,b) return b+20 end,
+    __mul=function(a,b) return b+30 end, __mod=function(a,b) return b+40 end,
+    __pow=function(a,b) return b+50 end, __div=function(a,b) return b+60 end,
+    __idiv=function(a,b) return b+70 end, __band=function(a,b) return b+80 end,
+    __bor=function(a,b) return b+90 end, __bxor=function(a,b) return b+100 end,
+    __shl=function(a,b) return b+110 end, __shr=function(a,b) return b+120 end,
+    __unm=function(a,b) return rawequal(a,b) end, __bnot=function(a,b) return rawequal(a,b) end}
+    local a=setmetatable({},mt)
+    return a+1,a-1,a*1,a%1,a^1,a/1,a//1,a&1,a|1,a~1,a<<1,a>>1,-a,~a`))
+    .toEqual([...[11,21,31,41,51,61,71,81,91,101,111,121].map(integer),true,true]);
+});
+
+it("resumes comparison callbacks and reversed less-than fallback for less-or-equal", async () => {
+  expect(await execute(`local mt={__lt=function(a,b) return a.n<b.n end,
+    __eq=function(a,b) return a.n==b.n end}
+    local a=setmetatable({n=1},mt); local b=setmetatable({n=2},mt); local c=setmetatable({n=1},mt)
+    local out=0; if a<b then out=out+1 end; if b<=a then out=100 end
+    if a==c then out=out+10 end
+    return out,a<=c,a<=b,b<a,a~=b,rawequal(a,c)`))
+    .toEqual([integer(11),true,true,false,true,false]);
+});
+
+it("resumes right-associated concatenation around metamethod calls", async () => {
+  expect(await execute(`local mt={__concat=function(a,b)
+      if type(a)=="table" then a=a.n end; if type(b)=="table" then b=b.n end
+      return "("..a..b..")" end}
+    local a=setmetatable({n="a"},mt); local b=setmetatable({n="b"},mt)
+    return "x"..a..b.."y",a..b.."z"..4`))
+    .toEqual(["x(a(by))","(a(bz4))"]);
+});
+
+it.each(["setmetatable({})", "getmetatable()", "rawget({})", "rawset({},1)", "rawequal()", "type()"])
+("preserves missing-argument errors in native base functions: %s", async call => {
+  await expect(execute(`return ${call}`)).rejects.toThrow("Value expected");
+});
+
+it("uses right-operand methods and Lua truthiness for comparison results", async () => {
+  expect(await execute(`local b=setmetatable({}, {__add=function(a,b) return a+4 end,
+    __le=function(a,b) return 0 end, __eq=function(a,b) return false end})
+    return 3+b,{}<=b,b==b,{}==b`)).toEqual([integer(7),true,true,false]);
+});
+
+it("cancels inside a suspended metamethod and removes all backing state", async () => {
+  const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 20);
+  try {
+    await expect(execute(`local t=setmetatable({}, {__index=function() while true do end end}); return t.x`, [], controller.signal))
+      .rejects.toMatchObject({code: "E_CANCELLED"});
+  } finally {clearTimeout(timer);}
+});
+
+
+it("closes an interrupted native result producer and cleans backing files", async () => {
+  const controller = new AbortController();
+  let closed = false;
+  await expect(execute("return identity()", [], controller.signal, async function* () {
+    try {yield undefined; controller.abort(); yield undefined;} finally {closed = true;}
+  })).rejects.toMatchObject({code: "E_CANCELLED"});
+  expect(closed).toBe(true);
+});
+
+
+it("preserves native failure identity and closes its producer", async () => {
+  const failure = new Error("native failure");
+  let closed = false;
+  await expect(execute("return identity()", [], undefined, async function* () {
+    try {yield integer(1); throw failure;} finally {closed = true;}
+  })).rejects.toBe(failure);
+  expect(closed).toBe(true);
+});
+
+
+it("preserves method receivers while index callbacks return Lua functions", async () => {
+  expect(await execute(`local methods={add=function(self,n) return self.x+n end}
+    local proxy=setmetatable({}, {__index=function(t,k) return methods[k] or 8 end})
+    return proxy:add(3)`)).toEqual([integer(11)]);
 });

@@ -1,3 +1,4 @@
+import {LuaMetatables, type LuaCall} from "./lua-metatables.js";
 import {LuaNumbers} from "./lua-numbers.js";
 import {LuaStrings} from "./lua-strings.js";
 import {PandocError} from "./errors.js";
@@ -5,8 +6,10 @@ import type {LuaFrames} from "./lua-frames.js";
 import type {LuaProgram} from "./lua-program.js";
 import type {LuaInteger, LuaReference, LuaStorage, StoredLuaValue} from "./lua-storage.js";
 
+const arithmeticMethods = ["__add", "__sub", "__mul", "__mod", "__pow", "__div", "__idiv", "__band", "__bor", "__bxor", "__shl", "__shr"] as const;
 const integer = (value: number): LuaInteger => ({kind: "integer", value: value | 0});
 const isInteger = (value: StoredLuaValue): value is LuaInteger => typeof value === "object" && value.kind === "integer";
+const concatenable = (value: StoredLuaValue): boolean => typeof value === "number" || typeof value === "object" && (value.kind === "integer" || value.kind === "string");
 const truth = (value: StoredLuaValue): boolean => value !== undefined && value !== false;
 function fail(message: string): never {throw new PandocError("E_AST", "convert", message);}
 function numeric(value: StoredLuaValue): number {
@@ -51,18 +54,23 @@ function arithmetic(op: number, left: StoredLuaValue, right: StoredLuaValue): St
 }
 
 export interface LuaResults {values: LuaReference; count: number}
+export interface LuaArguments {readonly count: number; get(index: number): Promise<StoredLuaValue>}
+/** Negative prototype IDs identify the caller's fixed native library. Arguments
+ * and results stay backed; a native operation must stream variable-sized state. */
+export type LuaNative = (prototype: number, args: LuaArguments) => Iterable<StoredLuaValue> | AsyncIterable<StoredLuaValue>;
 
 /** Internal retained execution core. Calls use linked backing records, including
  * tail-call replacement and captured cells; results retain their nil-slot count.
- * This is not yet selected by public filters. Metamethods,
- * native libraries and bounded source compilation must be integrated before it
- * can replace the supported public interpreter. */
+ * This is not yet selected by public filters. Complete native libraries and
+ * bounded source compilation must be integrated before it can replace the
+ * supported public interpreter. */
 export class LuaMachine {
   private closures: Promise<LuaReference> | undefined;
   private readonly strings: LuaStrings;
   private readonly numbers: LuaNumbers;
+  private readonly metatables: LuaMetatables;
   constructor(private readonly program: LuaProgram, private readonly frames: LuaFrames, private readonly heap: LuaStorage,
-    private readonly cooperate: (units?: number) => Promise<void>) {this.strings = new LuaStrings(heap); this.numbers = new LuaNumbers(heap);}
+    private readonly cooperate: (units?: number) => Promise<void>, private readonly native?: LuaNative) {this.strings = new LuaStrings(heap); this.numbers = new LuaNumbers(heap); this.metatables = new LuaMetatables(heap);}
 
   private function(value: StoredLuaValue): LuaReference {
     if (typeof value !== "object" || value.kind !== "function") fail("Expected Lua function");
@@ -70,12 +78,19 @@ export class LuaMachine {
   }
   private async table(value: StoredLuaValue): Promise<LuaReference> {
     if (typeof value !== "object" || value.kind !== "table") fail("Expected Lua table");
-    if (await this.heap.metatable(value)) throw new PandocError("E_UNSUPPORTED_FEATURE", "convert", "Retained metamethod execution is not integrated");
     return value;
   }
+  private async call(parent: number, call: LuaCall, destination: number, results: number): Promise<number> {
+    const {callee, args} = await this.metatables.callable(call);
+    const frame = await this.frames.push(parent, callee, destination, results);
+    await this.initialize(frame, callee, args);
+    return frame;
+  }
   private async initialize(frame: number, closure: LuaReference, args: Iterable<StoredLuaValue> | AsyncIterable<StoredLuaValue>): Promise<void> {
-    const prototype = await this.program.describe(await this.heap.prototype(closure));
+    const address = await this.heap.prototype(closure);
     await this.frames.arguments(frame, args);
+    if (address < 0) {await this.frames.top(frame, 0); return;}
+    const prototype = await this.program.describe(address);
     for (let i = 0; i < prototype.parameters; i++) await this.frames.set(frame, i, await this.frames.argument(frame, i));
     await this.frames.top(frame, prototype.registers);
   }
@@ -99,8 +114,20 @@ export class LuaMachine {
     await this.initialize(frame, closure, args);
     for (;;) {
       await this.cooperate();
-      const current = await this.frames.read(frame), prototype = await this.heap.prototype(current.closure);
-      const {code} = await this.program.instruction(prototype, current.pc);
+      let current = await this.frames.read(frame);
+      const prototype = await this.heap.prototype(current.closure);
+      let code: number;
+      if (prototype < 0) {
+        if (!this.native) throw new PandocError("E_UNSUPPORTED_FEATURE", "convert", "Native Lua library is not installed");
+        let count = 0;
+        for await (const value of this.native(prototype, {count: current.argumentCount, get: index => this.frames.argument(frame, index)})) {
+          await this.cooperate();
+          await this.frames.set(frame, count++, value);
+        }
+        await this.frames.top(frame, count);
+        current = await this.frames.read(frame);
+        code = 38; // RETURN all streamed results through the ordinary continuation.
+      } else code = (await this.program.instruction(prototype, current.pc)).code;
       const op = code & 63, a = code >>> 6 & 255, b = code >>> 23 & 511, c = code >>> 14 & 511;
       const bx = code >>> 14, sbx = bx - 131071;
       let pc = current.pc + 1;
@@ -121,7 +148,14 @@ export class LuaMachine {
       };
       if (op >= 13 && op <= 24) {
         const left = await rk(b), right = await rk(c);
-        await set(a, arithmetic(op, isInteger(left) ? left : await this.numbers.coerce(left), isInteger(right) ? right : await this.numbers.coerce(right)));
+        try {
+          await set(a, arithmetic(op, isInteger(left) ? left : await this.numbers.coerce(left), isInteger(right) ? right : await this.numbers.coerce(right)));
+        } catch (error) {
+          if (!(error instanceof PandocError) || error.code !== "E_AST") throw error;
+          const call = await this.metatables.binary(left, right, arithmeticMethods[op - 13]!);
+          if (!call) throw error;
+          frame = await this.call(frame, call, a, 1);
+        }
         continue;
       }
       switch (op) {
@@ -131,34 +165,94 @@ export class LuaMachine {
         case 3: await set(a, Boolean(b)); if (c) await this.frames.pc(frame, pc + 1); break;
         case 4: for (let i = a; i <= a + b; i++) await set(i, undefined); break;
         case 5: await set(a, await this.heap.value(await upvalue(b))); break;
-        case 6: await set(a, await this.heap.get(await this.table(await this.heap.value(await upvalue(b))), await rk(c))); break;
-        case 7: await set(a, await this.heap.get(await this.table(await get(b)), await rk(c))); break;
-        case 8: await this.heap.set(await this.table(await this.heap.value(await upvalue(a))), await rk(b), await rk(c)); break;
+        case 6: case 7: {
+          const object = op === 6 ? await this.heap.value(await upvalue(b)) : await get(b);
+          const result = await this.metatables.index(object, await rk(c));
+          if ("call" in result) frame = await this.call(frame, result.call, a, 1);
+          else await set(a, result.value);
+          break;
+        }
+        case 8: case 10: {
+          const object = op === 8 ? await this.heap.value(await upvalue(a)) : await get(a);
+          const call = await this.metatables.assign(object, await rk(b), await rk(c));
+          if (call) frame = await this.call(frame, call, 0, 0);
+          break;
+        }
         case 9: await this.heap.assign(await upvalue(b), await get(a)); break;
-        case 10: await this.heap.set(await this.table(await get(a)), await rk(b), await rk(c)); break;
         case 11: await set(a, await this.heap.table()); break;
         case 12: {
           const object = await get(b); await set(a + 1, object);
-          await set(a, await this.heap.get(await this.table(object), await rk(c))); break;
+          const result = await this.metatables.index(object, await rk(c));
+          if ("call" in result) frame = await this.call(frame, result.call, a, 1);
+          else await set(a, result.value);
+          break;
         }
-        case 25: {const value = await get(b); await set(a, isInteger(value) ? integer(-value.value) : -await this.numbers.coerce(value)); break;}
-        case 26: await set(a, integer(~integral(await this.numbers.coerce(await get(b))))); break;
+        case 25: case 26: {
+          const value = await get(b);
+          try {
+            await set(a, op === 25 ? isInteger(value) ? integer(-value.value) : -await this.numbers.coerce(value)
+              : integer(~integral(await this.numbers.coerce(value))));
+          } catch (error) {
+            if (!(error instanceof PandocError) || error.code !== "E_AST") throw error;
+            const call = await this.metatables.binary(value, value, op === 25 ? "__unm" : "__bnot");
+            if (!call) throw error;
+            frame = await this.call(frame, call, a, 1);
+          }
+          break;
+        }
         case 27: await set(a, !truth(await get(b))); break;
         case 28: {
           const value = await get(b);
-          await set(a, integer(typeof value === "object" && value.kind === "string" ? await this.heap.byteLength(value) : await this.heap.length(await this.table(value))));
+          const method = await this.metatables.method(value, "__len");
+          if (method !== undefined) frame = await this.call(frame, {callee: method, args: [value, value]}, a, 1);
+          else await set(a, integer(typeof value === "object" && value.kind === "string" ? await this.heap.byteLength(value) : await this.heap.length(await this.table(value))));
           break;
         }
-        case 29: await set(a, await this.strings.concat(this.arguments(current.registers, b, c - b + 1))); break;
+        case 29: {
+          let end = current.concatEnd >= 0 ? current.concatEnd : c, suspended = false;
+          while (end > b) {
+            const left = await get(end - 1), right = await get(end);
+            if (concatenable(left) && concatenable(right)) {
+              let start = end - 1;
+              while (start > b && concatenable(await get(start - 1))) start--;
+              await set(start, await this.strings.concat(this.arguments(current.registers, start, end - start + 1)));
+              end = start;
+            } else {
+              const call = await this.metatables.binary(left, right, "__concat");
+              if (!call) fail("Expected Lua string or number for concatenation");
+              await this.frames.concat(frame, end - 1);
+              await this.frames.pc(frame, current.pc);
+              frame = await this.call(frame, call, end - 1, 1);
+              suspended = true; break;
+            }
+          }
+          if (!suspended) {await set(a, await get(b)); await this.frames.concat(frame, -1);}
+          break;
+        }
         case 30: if (a) await this.frames.close(frame, a - 1); await this.frames.pc(frame, pc + sbx); break;
-        case 31: if (Number(await this.heap.equal(await rk(b), await rk(c))) !== a) await this.frames.pc(frame, pc + 1); break;
+        case 31: {
+          const left = await rk(b), right = await rk(c), equal = await this.heap.equal(left, right);
+          const call = !equal && typeof left === "object" && left.kind === "table" && typeof right === "object" && right.kind === "table"
+            ? await this.metatables.binary(left, right, "__eq") : undefined;
+          if (call) frame = await this.call(frame, call, 0, -2 - a);
+          else if (Number(equal) !== a) await this.frames.pc(frame, pc + 1);
+          break;
+        }
         case 32: case 33: {
           const left = await rk(b), right = await rk(c);
           let comparison: boolean;
           if (typeof left === "object" && left.kind === "string" && typeof right === "object" && right.kind === "string") {
             const order = await this.strings.compare(left, right);
             comparison = op === 32 ? order < 0 : order <= 0;
-          } else comparison = op === 32 ? numeric(left) < numeric(right) : numeric(left) <= numeric(right);
+          } else if ((typeof left === "number" || isInteger(left)) && (typeof right === "number" || isInteger(right))) {
+            comparison = op === 32 ? numeric(left) < numeric(right) : numeric(left) <= numeric(right);
+          } else {
+            let call = await this.metatables.binary(left, right, op === 32 ? "__lt" : "__le"), invert = false;
+            if (!call && op === 33) {call = await this.metatables.binary(right, left, "__lt"); invert = true;}
+            if (!call) fail("Cannot compare Lua values");
+            frame = await this.call(frame, call, 0, -2 - a - (invert ? 2 : 0));
+            break;
+          }
           if (Number(comparison) !== a) await this.frames.pc(frame, pc + 1);
           break;
         }
@@ -170,9 +264,9 @@ export class LuaMachine {
           break;
         }
         case 36: case 37: case 41: {
-          const callable = this.function(await get(a));
+          const value = await get(a);
           const count = op === 41 ? 2 : b ? b - 1 : current.top - a - 1;
-          const source = this.arguments(current.registers, a + 1, count);
+          const {callee: callable, args: source} = await this.metatables.callable({callee: value, args: this.arguments(current.registers, a + 1, count)});
           if (op === 37) await this.frames.replace(frame, callable);
           else frame = await this.frames.push(frame, callable, op === 41 ? a + 3 : a, op === 41 ? c : c - 1);
           await this.initialize(frame, callable, source);
@@ -185,11 +279,22 @@ export class LuaMachine {
             for (let i = 0; i < count; i++) await this.heap.set(values, i, await get(a + i));
             return {values, count};
           }
-          const wanted = current.results < 0 ? count : current.results;
-          for (let i = 0; i < wanted; i++) await this.frames.set(current.parent, current.returnBase + i, i < count ? await get(a + i) : undefined);
+          if (current.results < -1) {
+            // -2/-3 compare false/true; -4/-5 negate the result for __le's
+            // reversed __lt fallback. This continuation lives in the frame.
+            const mode = -current.results - 2;
+            const matched = truth(count ? await get(a) : undefined) !== (mode >= 2);
+            if (matched !== Boolean(mode & 1)) {
+              const parent = await this.frames.read(current.parent);
+              await this.frames.pc(current.parent, parent.pc + 1);
+            }
+          } else {
+            const wanted = current.results < 0 ? count : current.results;
+            for (let i = 0; i < wanted; i++) await this.frames.set(current.parent, current.returnBase + i, i < count ? await get(a + i) : undefined);
+          }
           frame = current.parent;
           const parent = await this.frames.read(frame);
-          const top = current.results < 0 ? current.returnBase + count : (await this.program.describe(await this.heap.prototype(parent.closure))).registers;
+          const top = current.results === -1 ? current.returnBase + count : (await this.program.describe(await this.heap.prototype(parent.closure))).registers;
           await this.frames.top(frame, top);
           break;
         }

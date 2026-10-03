@@ -269,3 +269,21 @@ it("prunes integer-table traversal to a half-open key range", async () => {
   await expect(table.entries(-1n, 2n).next()).rejects.toThrow(RangeError);
   await expect(table.entries(2n, 1n).next()).rejects.toThrow(RangeError);
 });
+
+it("coalesces dirty index eviction when callers alternate with other stored data", async () => {
+  const fs = new MemoryFileSystem(), open = fs.open.bind(fs); let written = 0;
+  vi.spyOn(fs, "open").mockImplementation(async (...args) => {
+    const handle = await open(...args), write = handle.write.bind(handle);
+    handle.write = async (bytes, ...args) => { written += bytes.length; return write(bytes, ...args); }; return handle;
+  });
+  const storage = new PagedStorage({ fs, cwd: "/", env: {}, signal: new AbortController().signal }, 1);
+  const other = storage.allocate(16384), table = new IntegerTable(storage, 128);
+  try {
+    for (let row = 0; row < 1000; row++) { await table.set(BigInt(row * 256), BigInt(row)); await storage.read(other, 1); }
+    let rows = 0;
+    for await (const [key, value] of table.entries()) { expect(key).toBe(BigInt(rows * 256)); expect(value).toBe(BigInt(rows++)); }
+    // Fewer than half a 16 KiB physical write per sparse update on average.
+    expect(rows).toBe(1000); expect(written).toBeLessThan(1000 * 8192);
+  } finally { await storage.close(); }
+  expect(await fs.readdir("/")).toEqual([]);
+});

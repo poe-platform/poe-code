@@ -204,7 +204,11 @@ export class IntegerTable {
   private async retain(key: bigint, value: bigint, dirty: boolean): Promise<void> {
     if (this.cache.size === this.maxEntries && !this.cache.has(key)) {
       const [oldKey, old] = this.cache.entries().next().value!;
-      if (old.dirty) await this.persist(oldKey, old.value);
+      // Flush the bounded dirty window together, before the caller touches other
+      // stored data. One dirty leaf per insertion otherwise thrashes a page cache.
+      if (old.dirty) for (const [key, entry] of this.cache) if (entry.dirty) {
+        await this.persist(key, entry.value); entry.dirty = false;
+      }
       this.cache.delete(oldKey);
     }
     this.cache.delete(key);

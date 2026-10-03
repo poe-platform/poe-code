@@ -4914,3 +4914,24 @@ The admission policy checkpoint is verified on remote main at 99ea07cb4e.
 Release 37103665561 is pending behind the active workspace/CLI build in
 37103531071. Publication remains unverified. The completed facade/admission
 checkpoint's temporary output was purged.
+
+### Embedded HTTP client spawn mapping repair
+
+The final credential-consumer audit found a third host-source embedding in
+tiny-http-mcp-server-rust, in addition to standalone OAuth and the client package.
+Its maintained route reproduced ERR_PACKAGE_IMPORT_NOT_DEFINED in two native test
+files: the copied client transport imports #tiny-mcp-spawn, but the HTTP package
+did not declare that internal import. The HTTP manifest now maps Node/default and
+browser/worker/workerd conditions to the already-copied own spawn adapters. No
+runtime dependency was added and the existing host boundary is preserved.
+
+Two fresh packed own packages (HTTP and protocol) pass the public test-token helper
+and native client/server discovery, echo calls and cleanup with package imports
+confined to those packages and Node builtins. Node and --conditions=browser runs
+both verify the expected internal spawn resolution. The browser-condition Node
+check does not qualify a browser-native addon or a browser deployment.
+
+The HTTP maintained route passes all 50 native checks, Rust tests, 443 reference
+cases across 21 files, declarations and root posttest after the separate reference
+scheduling repair below. Its maintained native lint also passes. This expands the
+credential ticket checkpoint's verification to every discovered adapter embedding.

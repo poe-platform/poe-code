@@ -69,5 +69,13 @@
   },
   "dependencies": {
     "mcp-protocol-rust": "*"
+  },
+  "imports": {
+    "#tiny-mcp-spawn": {
+      "workerd": "./dist/client/spawn.browser.js",
+      "browser": "./dist/client/spawn.browser.js",
+      "worker": "./dist/client/spawn.browser.js",
+      "default": "./dist/client/spawn.node.js"
+    }
   }
 }

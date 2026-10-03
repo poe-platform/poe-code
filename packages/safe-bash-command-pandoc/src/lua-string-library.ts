@@ -5,6 +5,7 @@ import {loadLuaLibrary} from "./lua-library.js";
 import {stringLibrary} from "./lua-string.generated.js";
 import type {LuaProgram} from "./lua-program.js";
 import type {LuaMachine} from "./lua-machine.js";
+import {LuaDump} from "./lua-dump.js";
 import {LuaFormat} from "./lua-format.js";
 import {LuaPack} from "./lua-pack.js";
 import {LuaPattern} from "./lua-pattern.js";
@@ -20,10 +21,13 @@ function fail(message:string):never {throw new PandocError("E_AST","convert",mes
  * one 8 KiB input/output chunk at a time. String methods share one metatable. */
 export class LuaStringLibrary {
   private readonly numbers:LuaNumbers;
+  private program:LuaProgram | undefined;
   private readonly strings:LuaStrings;
   constructor(private readonly heap:LuaStorage,private readonly cooperate:(units?:number)=>Promise<void>) {this.numbers=new LuaNumbers(heap);this.strings=new LuaStrings(heap);}
   async install(environment:LuaReference,program:LuaProgram,machine:LuaMachine):Promise<void> {
+    this.program=program;
     const library=await this.heap.table(),key=(name:string)=>this.heap.string([new TextEncoder().encode(name)]);
+    await this.heap.set(library,await key("dump"),await this.heap.closure(-540,[]));
     for(const [i,name] of ["pack","packsize","unpack"].entries()) await this.heap.set(library,await key(name),await this.heap.closure(-520-i,[]));
     for(let i=0;i<names.length;i++) await this.heap.set(library,await key(names[i]!),await this.heap.closure(-500-i,[]));
     const metatable=await this.heap.table();
@@ -42,6 +46,11 @@ export class LuaStringLibrary {
     return value===undefined && fallback!==undefined?fallback:integral(await this.numbers.coerce(value));
   }
   async invoke(prototype:number,args:LuaArguments):Promise<LuaNativeOutput> {
+    if(prototype===-540) {
+      if(!this.program) throw new PandocError("E_AST","convert","String library is not installed");
+      const strip=await args.get(1);
+      return [await new LuaDump(this.heap,this.program).dump(await args.get(0),strip!==undefined && strip!==false)];
+    }
     if(prototype===-530 || prototype===-531) return new LuaFormat(this.heap,this.cooperate).invoke(prototype,args);
     if(prototype<=-520 && prototype>=-522) return new LuaPack(this.heap,this.cooperate).invoke(["pack","packsize","unpack"][-520-prototype]!,args);
     if(prototype===-512) return [integer(await this.argument(args,0))];

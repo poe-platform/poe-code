@@ -550,3 +550,57 @@ it("cancels inside format coercion and cleans retained frames",async()=>{
   const controller=new AbortController();
   await expect(execute("return string.format('%s',setmetatable({}, {__tostring=function() host(); while true do end end}))",{string:true,signal:controller.signal,native:()=>{setTimeout(()=>controller.abort(),0);return [];}})).rejects.toMatchObject({code:"E_CANCELLED"});
 });
+
+it.each([
+  ["function() return 7+9 end",16],
+  ["function() local function add(x) return function(y) return x+y end end; return add(7)(9) end",16],
+  ["function() local t={a=1,b=2};return t.a+t.b end",3],
+  ["function(...) return select('#',...) end",2]
+])("loads retained function dumps in the shipped Lua engine: %s",async(expression,expected)=>{
+  for(const strip of [false,true]) {
+    const result=await execute(`return host(string.dump(${expression},${strip}))`,{string:true,native:async(heap,ignoredPrototype,args)=>{
+      const value=await args.get(0);expect(value).toMatchObject({kind:"string"});
+      const bytes=new Uint8Array(await heap.byteLength(value as import("./lua-storage.js").LuaReference));let offset=0;
+      for await(const chunk of heap.bytes(value as import("./lua-storage.js").LuaReference)){bytes.set(chunk,offset);offset+=chunk.length;}
+      const f=runtime as typeof import("fengari"),state=f.lauxlib.luaL_newstate();
+      try {
+        f.lauxlib.luaL_requiref(state,new TextEncoder().encode('_G'),f.lualib.luaopen_base,true);f.lua.lua_pop(state,1);
+        expect(f.lauxlib.luaL_loadbuffer(state,bytes,bytes.length,new TextEncoder().encode('dump'))).toBe(f.lua.LUA_OK);
+        f.lua.lua_pushnumber(state,7);f.lua.lua_pushnumber(state,9);
+        expect(f.lua.lua_pcall(state,2,1,0)).toBe(f.lua.LUA_OK);
+        return [{kind:"integer",value:f.lua.lua_tointeger(state,-1)}];
+      } finally {f.lua.lua_close(state);}
+    }});
+    expect(result).toEqual([{kind:"integer",value:expected}]);
+  }
+});
+it.each(["string.dump(false)","string.dump(string.len)"])("rejects undumpable Lua values: %s",async source=>{await expect(execute(source,{string:true})).rejects.toMatchObject({code:"E_AST"});});
+
+it("streams dumped constants through bounded chunks",async()=>{
+  const source=`local f=function() return '${'a'.repeat(8193)}' end; host(); local bytes=string.dump(f,true); return #bytes>8193,string.byte(bytes,1,4)`;
+  const result=await execute(source,{string:true,native:async heap=>{
+    const write=heap.string.bind(heap);
+    vi.spyOn(heap,"string").mockImplementation(input=>write((async function*(){for await(const bytes of input){expect(bytes.length).toBeLessThanOrEqual(8192);yield bytes;}})()));
+    return [];
+  }});
+  expect(result).toEqual([true,...[27,76,117,97].map(value=>({kind:"integer",value}))]);
+});
+it("omits instruction debug lines when stripping dumped functions",async()=>{
+  expect(await execute("local f=function(a) return a+1 end; return #string.dump(f,true)<#string.dump(f,false),#string.dump(f,0)==#string.dump(f,true)",{string:true})).toEqual([true,true]);
+});
+it("cancels during dumped constant streaming and cleans caller storage",async()=>{
+  const controller=new AbortController();
+  await expect(execute(`local f=function() return '${'a'.repeat(17003)}' end; host(); return string.dump(f)`,{string:true,signal:controller.signal,native:async heap=>{
+    const read=heap.bytes.bind(heap);
+    vi.spyOn(heap,"bytes").mockImplementation(value=>(async function*(){
+      const large=await heap.byteLength(value)>8192;
+      for await(const chunk of read(value)){yield chunk;if(large)controller.abort();}
+    })());
+    return [];
+  }})).rejects.toMatchObject({code:"E_CANCELLED"});
+});
+
+it("preserves native failures when execution has not been cancelled",async()=>{
+  const error=new Error("fixture native failure");
+  await expect(execute("host()",{native:()=>{throw error;}})).rejects.toBe(error);
+});

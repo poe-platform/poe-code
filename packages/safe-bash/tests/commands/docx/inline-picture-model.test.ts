@@ -4,7 +4,7 @@ import { Volume } from "memfs";
 import { Document } from "../../../../safe-bash-docx-engine/src/index.js";
 import { paragraph, textFixture, textContext } from "../../../../safe-bash-docx-engine/tests/fixtures/text.js";
 import { rasterPng } from "../../../../safe-bash-docx-engine/tests/fixtures/raster.js";
-import { createDocxInspectionCommandEngine } from "../../../../safe-bash-docx-engine/src/inspection-command.js";
+import { createDocxInspectionCommandEngine } from "../../../../safe-bash-command-docx/src/inspection-command.js";
 import { docxCommands } from "../../../src/commands/docx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { agentCommands } from "../../../src/plugins/index.js";

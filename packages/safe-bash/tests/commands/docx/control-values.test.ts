@@ -3,7 +3,7 @@ import test from "node:test";
 import { Volume } from "memfs";
 import { crc32 } from "../../../../office-package/src/index.js";
 import { writeArchive } from "../../../../safe-bash-docx-engine/src/index.js";
-import { createDocxInspectionCommandEngine } from "../../../../safe-bash-docx-engine/src/inspection-command.js";
+import { createDocxInspectionCommandEngine } from "../../../../safe-bash-command-docx/src/inspection-command.js";
 import { textFixture, run, textContext } from "../../../../safe-bash-docx-engine/tests/fixtures/text.js";
 import { docxCommands } from "../../../src/commands/docx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";

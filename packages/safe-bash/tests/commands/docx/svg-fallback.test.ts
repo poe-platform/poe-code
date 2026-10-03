@@ -3,7 +3,7 @@ import test from "node:test";
 import { createHash } from "node:crypto";
 import { paragraph, textFixture, textContext } from "../../../../safe-bash-docx-engine/tests/fixtures/text.js";
 import { rasterPng } from "../../../../safe-bash-docx-engine/tests/fixtures/raster.js";
-import { createDocxInspectionCommandEngine } from "../../../../safe-bash-docx-engine/src/inspection-command.js";
+import { createDocxInspectionCommandEngine } from "../../../../safe-bash-command-docx/src/inspection-command.js";
 import { readArchive } from "../../../../safe-bash-docx-engine/src/archive.js";
 import { docxCommands } from "../../../src/commands/docx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";

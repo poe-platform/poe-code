@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Volume } from "memfs";
 import { createDocumentArchive, openDocumentLocations, parseDocumentXml, writeArchive, type XmlElement } from "../../../../safe-bash-docx-engine/src/index.js";
-import { createDocxInspectionCommandEngine } from "../../../../safe-bash-docx-engine/src/inspection-command.js";
+import { createDocxInspectionCommandEngine } from "../../../../safe-bash-command-docx/src/inspection-command.js";
 import { docxCommands } from "../../../src/commands/docx/index.js";
 import type { FileStat, FileSystem } from "../../../src/contracts/filesystem.js";
 import { FsError } from "../../../src/contracts/errors.js";

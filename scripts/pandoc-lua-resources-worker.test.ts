@@ -20,7 +20,7 @@ it.each(["sdk-rtf","sdk-odt","command-rtf","command-odt"])("preserves Lua image 
       const picture=new Uint8Array([255,216,...segment(219,[0,...Array(64).fill(1)]),...segment(192,[8,0,1,0,1,1,1,0x11,0]),...segment(196,[0,1,...Array(15).fill(0),0,16,1,...Array(15).fill(0),0]),...segment(218,[1,1,0,0,63,0]),0x3f,255,217]);
       const image=url=>({t:'Image',c:[['',[],[]],[],[url,'']]});
       const input=encoder.encode(JSON.stringify({'pandoc-api-version':[1,23,1,2],meta:{},blocks:[{t:'Para',c:[image('a.jpg'),image('b.jpg')]}]}));
-      const script=encoder.encode("local n=0; function Image(el) n=n+1; if n==2 then el.src='a.jpg' end; return el end");
+      const script=encoder.encode("function Image(el) if el.src=='b.jpg' then el.src='a.jpg' end; return el end");
       const files={'/doc/a.jpg':picture,'/cwd/a.jpg':picture,'/filter.lua':script,'/doc/input.json':input};
       for(const [path,bytes] of Object.entries(files))await env.PAGES.put(path,bytes);
       const reads=[];
@@ -33,7 +33,7 @@ it.each(["sdk-rtf","sdk-odt","command-rtf","command-odt"])("preserves Lua image 
       } else {
         const filters=api.createLuaFilterCapability({readStream:(path,signal)=>fs.readStream(path,{signal})});
         filters.apply=async()=>{throw new Error('Resident Lua forbidden');};
-        await api.convertToOutput([{base:'/doc',bytes:input}],{from:'json',to,filters:[{kind:'lua',path:'/filter.lua'}]},{workingFiles:{fs,directory:'/spill',cacheBytes:1048576},resourceFiles:fs,resourceCwd:'/cwd',filters,output});
+        await api.convertToOutput([{base:'/doc',bytes:input}],{from:'json',to,metadata:{nested:{t:'MetaMap',c:{typed:{t:'MetaInlines',c:[image('a.jpg')]}}}},filters:[{kind:'lua',path:'/filter.lua'}]},{workingFiles:{fs,directory:'/spill',cacheBytes:1048576},resourceFiles:fs,resourceCwd:'/cwd',filters,output});
       }
       for(const path of Object.keys(files))await env.PAGES.delete(path);
       return Response.json({reads,length,largest,closed,events,remaining:(await env.PAGES.list({limit:1})).objects.length,namespace:await namespace.readdir('/spill')});

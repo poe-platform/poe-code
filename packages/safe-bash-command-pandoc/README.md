@@ -179,8 +179,9 @@ template variables. Typed SDK `metadata` maps also retain their snapshot,
 schema validation, enum translation and recursive merges after JSON layers.
 Their caller-owned graph, one immediate own-key vector and one property name
 remain admission costs; traversal and table geometry live in storage. They add
-three page caches plus the shared option scratch cache. Typed metadata with
-RTF/ODT output still selects the compatibility path pending image-origin support.
+one wire page cache plus the shared option scratch cache after admission.
+RTF/ODT retain image origins through typed merges and Lua filters: replacement
+images use caller resource settings while unchanged images keep their input base.
 HTML `includeInHeader`, `includeBeforeBody`, and `includeAfterBody` inputs also
 stream into caller storage before document acquisition. Include replacement
 generations use one additional page cache, preserve raw text and replacement

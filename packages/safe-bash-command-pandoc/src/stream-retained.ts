@@ -60,7 +60,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     for await (const bytes of chunks) {length += bytes.length; context.bound("outputBytes", length);}
   };
   try {
-    if((target==="rtf" || target==="odt") && options.filters?.some(request=>request.kind==="lua")) {
+    if((target==="rtf" || target==="odt") && (options.metadata !== undefined || options.filters?.some(request=>request.kind==="lua"))) {
       originStorage=new PagedStorage({fs:working.fs,cwd:working.directory,env:{},signal:context.signal??new AbortController().signal},(working.cacheBytes??1048576)/16384);
       const owned=originStorage;releaseOrigins=context.onClose(()=>owned.close());
       origins=new RetainedOrigins(originStorage,units=>context.cooperate(units));
@@ -81,6 +81,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     if (includes?.typedMetadata) {
       const tree = includes.typedMetadata.tree;
       const next = await mergeRetainedMetadata(document, {tree, root: tree.rootPosition, typed: true}, context, working);
+      await origins?.transfer(document.tree, next.tree, tree);
       await document.close(); document = next;
     }
     for (const request of options.filters ?? []) {
@@ -124,7 +125,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       else await writeRetainedRtf(document.tree, context, working, options, document.order, async node => {
         const image = await resources.image(node);
         return {...await inspectRetainedRtfPicture(image.source, image.storage, context), chunks: image.chunks};
-      });}
+      }, resources.assertReferenced);}
       catch (reason) {writerFailure = {reason};}
       try {await resources.close();} catch (reason) {writerFailure ??= {reason};}
       if (writerFailure) throw writerFailure.reason;

@@ -33,7 +33,7 @@ class RtfTape {
   constructor(private readonly tree: BackedJson, private readonly storage: PagedStorage,
     private readonly context: ExecutionContext, private readonly options: ConversionOptions,
     private readonly order: Awaited<ReturnType<typeof backedJsonOrder>>,
-    private readonly image: (node: number) => Promise<RetainedRtfImage>) {
+    private readonly image: (node: number) => Promise<RetainedRtfImage>, private readonly validateResources?: () => Promise<void>) {
     this.text = new BackedText(storage, units => context.cooperate(units));
     this.fonts = new BackedTextOrder(storage, this.text); this.colors = new BackedTextOrder(storage, this.text);
     this.fontRanks = new IntegerTable(storage, 64); this.colorRanks = new IntegerTable(storage, 64);
@@ -210,6 +210,7 @@ class RtfTape {
       }
     }
     await this.collect(blocks);
+    await this.validateResources?.();
     await this.add("{\\rtf1\\ansi\\ansicpg1252\\uc1{\\fonttbl{\\f0\\fnil ;}");
     let index = 0;
     for await (const font of this.fonts.entries()) {
@@ -403,11 +404,11 @@ class RtfTape {
   }
 }
 
-export async function writeRetainedRtf(tree: BackedJson, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, order: Awaited<ReturnType<typeof backedJsonOrder>>, image: (node: number) => Promise<RetainedRtfImage>): Promise<void> {
+export async function writeRetainedRtf(tree: BackedJson, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, order: Awaited<ReturnType<typeof backedJsonOrder>>, image: (node: number) => Promise<RetainedRtfImage>, validateResources?: () => Promise<void>): Promise<void> {
   const storage = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, (working.cacheBytes ?? 1048576) / 16384);
   const release = context.onClose(() => storage.close()); let failure: {reason: unknown} | undefined;
   try {
-    const writer = new RtfTape(tree, storage, context, options, order, image), result = await writer.render();
+    const writer = new RtfTape(tree, storage, context, options, order, image, validateResources), result = await writer.render();
     const diagnostics = context.snapshotDiagnostics();
     if (options.failIfWarnings && diagnostics.length) {const first = diagnostics[0]!; throw new PandocError("E_WARNINGS", "convert", `Warnings rejected: ${first.code}: ${first.message}`, first.format, first.location);}
     const chunks = async function* () {

@@ -44,7 +44,62 @@ export class RetainedOrigins {
     let target=content+32;for(let index=0;index<2;index++)target=(await tree.describe(target)).end;
     return target;
   }
-  async transfer(before:BackedJson,after:BackedJson):Promise<void> {
+  private async indexKeys(tree: BackedJson, node: number): Promise<IntegerTable> {
+    const keys = new IntegerTable(this.storage, 64), end = (await tree.describe(node)).end;
+    for (let key = node + 32; key < end;) {
+      const value = (await tree.describe(key)).end, hash = await this.hash(tree, key);
+      const bytes = new Uint8Array(24), view = new DataView(bytes.buffer);
+      [Number(await keys.get(hash) ?? 0n), key, value].forEach((item, index) => view.setFloat64(index * 8, item, true));
+      await keys.set(hash, BigInt(await this.storage.append(bytes)));
+      key = (await tree.describe(value)).end;
+    }
+    return keys;
+  }
+  private async lookupKey(tree: BackedJson, keys: IntegerTable, source: BackedJson, key: number): Promise<number | undefined> {
+    let entry = Number(await keys.get(await this.hash(source, key)) ?? 0n);
+    while (entry) {
+      await this.cooperate();
+      const bytes = await this.storage.read(entry, 24), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+      if (await this.equal(tree, view.getFloat64(8, true), source, key)) return view.getFloat64(16, true);
+      entry = view.getFloat64(0, true);
+    }
+    return undefined;
+  }
+  /** Typed option replacements have no parser authority, even when their image
+   * tuples equal the old values. Only recursively merged MetaMaps retain siblings. */
+  private async excludeMetadata(tree: BackedJson, overlay: BackedJson): Promise<void> {
+    let top = 0;
+    const push = async (map: number, overrides: number) => {
+      const bytes = new Uint8Array(24), view = new DataView(bytes.buffer);
+      [top, map, overrides].forEach((value, index) => view.setFloat64(index * 8, value, true));
+      top = await this.storage.append(bytes);
+    };
+    await push((await tree.property(tree.rootPosition, "meta"))!, overlay.rootPosition);
+    while (top) {
+      await this.cooperate();
+      const bytes = await this.storage.read(top, 24), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+      top = view.getFloat64(0, true);
+      const map = view.getFloat64(8, true), overrides = view.getFloat64(16, true), keys = await this.indexKeys(tree, map);
+      const end = (await overlay.describe(overrides)).end;
+      for (let key = overrides + 32; key < end;) {
+        const value = (await overlay.describe(key)).end, target = (await this.lookupKey(tree, keys, overlay, key))!;
+        const tag = (await overlay.property(value, "t"))!;
+        if (await overlay.smallText(tag, 7) === "MetaMap") {
+          await push((await tree.property(target, "c"))!, (await overlay.property(value, "c"))!);
+        } else {
+          const finish = (await tree.describe(target)).end;
+          for (let node = target; node < finish;) {
+            await this.cooperate();
+            const header = await tree.describe(node);
+            if (header.kind === "string") await this.current!.set(BigInt(node), 0n);
+            node = header.kind === "object" || header.kind === "array" ? node + 32 : header.end;
+          }
+        }
+        key = (await overlay.describe(value)).end;
+      }
+    }
+  }
+  async transfer(before:BackedJson,after:BackedJson,metadata?:BackedJson):Promise<void> {
     const next=new IntegerTable(this.storage,64);let top=0;
     const push=async(left:number,right:number)=>{
       await this.cooperate();
@@ -67,26 +122,16 @@ export class RetainedOrigins {
           const oldTitle=(await before.describe(oldTarget+32)).end,newTitle=(await after.describe(newTarget+32)).end;
           if(await this.equal(before,oldTarget+32,after,newTarget+32) && await this.equal(before,oldTitle,after,newTitle))await next.set(BigInt(newTarget+32),1n);
         }
-        const keys=new IntegerTable(this.storage,64);
-        for(let old=left+32;old<a.end;){
-          const oldValue=(await before.describe(old)).end,hash=await this.hash(before,old);
-          const bytes=new Uint8Array(24),view=new DataView(bytes.buffer);
-          [Number(await keys.get(hash)??0n),old,oldValue].forEach((value,index)=>view.setFloat64(index*8,value,true));
-          await keys.set(hash,BigInt(await this.storage.append(bytes)));
-          old=(await before.describe(oldValue)).end;
-        }
-        for(let fresh=right+32;fresh<b.end;){
-          const value=(await after.describe(fresh)).end;
-          let entry=Number(await keys.get(await this.hash(after,fresh))??0n);
-          while(entry){
-            const bytes=await this.storage.read(entry,24),view=new DataView(bytes.buffer,bytes.byteOffset,bytes.length);
-            if(await this.equal(before,view.getFloat64(8,true),after,fresh)){await push(view.getFloat64(16,true),value);break;}
-            entry=view.getFloat64(0,true);
-          }
-          fresh=(await after.describe(value)).end;
+        const keys = await this.indexKeys(before, left);
+        for (let fresh = right + 32; fresh < b.end;) {
+          const value = (await after.describe(fresh)).end;
+          const previous = await this.lookupKey(before, keys, after, fresh);
+          if (previous !== undefined) await push(previous, value);
+          fresh = (await after.describe(value)).end;
         }
       }
     }
     this.current=next;
+    if (metadata) await this.excludeMetadata(after, metadata);
   }
 }

@@ -74,7 +74,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
           const tag = await tree.property(node, "t");
           if (tag !== undefined && await tree.smallText(tag, 5) === "Image") {
             const content = (await tree.property(node, "c"))!, target = await at(content, 2);
-            yield {node, target: target + 32};
+            yield {node, target: target + 32, metadata: rootKey === "meta"};
           }
         }
         if (header.children && header.kind === "array") {node += 32; continue;}
@@ -90,6 +90,11 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
         if (node === root) node = 0;
       }
     }
+  };
+  const resourceIdentity = async (node: number, span: Span): Promise<number> => {
+    let prefix = ""; for await (const chunk of tree.scalarChunks(node)) {prefix = chunk.slice(0, 32); break;}
+    const suffix = dataPrefix(prefix) ? "" : localResourceTarget(await scalar(node), context).suffix;
+    return identities.add(await text.from([String(span.position) + ":", suffix]));
   };
   const dataPrefix = (url: string): number => {
     const comma = url.indexOf(",");
@@ -166,6 +171,17 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
     throw error;
   }
   return {
+    async assertReferenced() {
+      if (!fs || context.resources) return;
+      const used = new IntegerTable(storage, 64);
+      for await (const image of images()) {
+        const record = Number(await targetSpans.get(await targetKey(image.target)) ?? 0n);
+        if (!record) continue;
+        const identity = BigInt(await resourceIdentity(image.target, await load(record)));
+        if (!image.metadata) await used.set(identity, 1n);
+        else if (!await used.get(identity)) throw new PandocError("E_RESOURCE", "convert", "Unreferenced RTF resource; embedded fonts/objects unsupported", "rtf");
+      }
+    },
     async image(node: number) {
       let span: Span;
       const key = await targetKey(node);
@@ -184,9 +200,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
       const source = {size: span.length, read: (position: number, length: number) => storage.read(span.position + position, length)};
       let identity = Number(key);
       if (options.to === "odt" && !context.resources) {
-        let prefix = ""; for await (const chunk of tree.scalarChunks(node)) {prefix = chunk.slice(0,32); break;}
-        const suffix = dataPrefix(prefix) ? "" : localResourceTarget(await scalar(node), context).suffix;
-        identity = await identities.add(await text.from([String(span.position) + ":", suffix]));
+        identity = await resourceIdentity(node, span);
       }
       return {source, storage, identity, chunks: (async function* () {for (let offset = 0; offset < span.length; offset += 16384) yield await source.read(offset, Math.min(16384, span.length - offset));})()};
     },

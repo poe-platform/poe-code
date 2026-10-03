@@ -55,12 +55,14 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   Workerd/R2 scenarios include large option values and overlapping file metadata.
   Measure the resident SDK input map and immediate key enumeration separately.
   Typed `metadata` maps now retain snapshot/schema/enum translation and merge
-  after JSON layers for non-RTF/ODT writers. Exercise all enum positions, nested
+  after JSON layers for all retained writers. Exercise all enum positions, nested
   maps, shared values, rejected accessors/cycles and retirement failures. Separate
   the caller graph and immediate property-name enumeration from the typed wire
   cache and shared option cache. R2 scenarios include typed maps and filter
-  ordering. RTF/ODT typed image origins and full memory/CPU qualification remain
-  outstanding.
+  ordering. RTF/ODT typed merges retain original-image authority and clear it
+  for replaced values, including identical image tuples and replaced lists.
+  Exercise nested maps, shared resource paths, Lua round trips and RTF unused
+  resource rejection. Full memory/CPU qualification remains outstanding.
 
   Typed admission now shares the strict retained option snapshot and retires its
   source tape before document acquisition, keeping only the translated wire

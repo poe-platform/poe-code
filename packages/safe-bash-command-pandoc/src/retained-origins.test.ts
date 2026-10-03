@@ -59,3 +59,21 @@ it("indexes wide object keys without repeatedly scanning their payloads",async()
     expect(reads.mock.calls.length).toBeLessThan(1024);
   }finally{for(const store of stores)await store.close();expect(await fs.readdir("/")).toEqual([]);}
 });
+
+it("clears typed replacements even with identical tuples while retaining deep MetaMap siblings", async () => {
+  const fs = new MemoryFileSystem(), owner = {fs, cwd: "/", env: {}, signal: new AbortController().signal};
+  const stores = Array.from({length: 4}, () => new PagedStorage(owner, 1)), cooperate = async () => {};
+  const before = new BackedJson(stores[0]!, cooperate), after = new BackedJson(stores[1]!, cooperate), overlay = new BackedJson(stores[2]!, cooperate), origins = new RetainedOrigins(stores[3]!, cooperate);
+  const inline = (name: string) => ({t: "MetaInlines", c: [image(name)]});
+  const key = "x".repeat(9000);
+  let meta: Parameters<BackedJson["value"]>[0] = {costarring: inline("keep.jpg"), liquid: inline("replace.jpg"), [key]: inline("long.jpg")};
+  let change: Parameters<BackedJson["value"]>[0] = {liquid: inline("replace.jpg"), [key]: inline("long.jpg")};
+  for (let index = 0; index < 64; index++) {meta = {nested: {t: "MetaMap", c: meta}}; change = {nested: {t: "MetaMap", c: change}};}
+  try {
+    await before.value({meta, blocks: []}); await after.value({meta, blocks: []}); await overlay.value(change);
+    await origins.transfer(before, after, overlay);
+    expect(await targets(after, origins)).toEqual([["keep.jpg", true], ["replace.jpg", false], ["long.jpg", false]]);
+    await origins.transfer(after, after);
+    expect(await targets(after, origins)).toEqual([["keep.jpg", true], ["replace.jpg", false], ["long.jpg", false]]);
+  } finally {for (const store of stores) await store.close(); expect(await fs.readdir("/")).toEqual([]);}
+});

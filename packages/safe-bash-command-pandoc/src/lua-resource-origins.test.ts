@@ -2,7 +2,8 @@ import {expect,it,vi} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {convert,convertToOutput} from "./engine.js";
 import {createLuaFilterCapability} from "./lua-filters.js";
-import type {ResourceFileSystem} from "./types.js";
+import {ExecutionContext} from "./execution.js";
+import type {ConversionOptions, ResourceFileSystem} from "./types.js";
 const encode=(text:string)=>new TextEncoder().encode(text);
 const segment=(marker:number,data:number[])=>[255,marker,(data.length+2)>>>8,(data.length+2)&255,...data];
 const picture=new Uint8Array([255,216,...segment(219,[0,...Array<number>(64).fill(1)]),...segment(192,[8,0,1,0,1,1,1,0x11,0]),...segment(196,[0,1,...Array<number>(15).fill(0),0,16,1,...Array<number>(15).fill(0),0]),...segment(218,[1,1,0,0,63,0]),0x3f,255,217]);
@@ -38,7 +39,7 @@ it.each(["source","cancel","sink"])("retires Lua origin backing on %s failure",a
   host.readStream.mockImplementation(async function*(path){for await(const chunk of original(path)){if(mode==="cancel")controller.abort();yield chunk;if(mode==="source")throw new Error("Resource failed");}});
   const filters=createLuaFilterCapability({readStream:async function*(){yield encode("function Image(el) return el end");}}),close=vi.fn(async()=>{});
   const input={base:"/doc",bytes:encode(JSON.stringify({"pandoc-api-version":[1,23,1,2],meta:{},blocks:[{t:"Para",c:[image("a.jpg")]}]}))};
-  await expect(convertToOutput([input],{from:"json",to:"rtf",filters:[{kind:"lua",path:"/filter.lua"}]},{filters,signal:controller.signal,resourceFiles:host.fs,workingFiles:{fs,directory:"/",cacheBytes:16384},output:{async write(){if(mode==="sink")throw new Error("Sink failed");},close,async abort(){}}})).rejects.toMatchObject({code:mode==="cancel"?"E_CANCELLED":"E_IO"});
+  await expect(convertToOutput([input],{from:"json",to:"rtf",metadata:{title:{t:"MetaString",c:"typed"}},filters:[{kind:"lua",path:"/filter.lua"}]},{filters,signal:controller.signal,resourceFiles:host.fs,workingFiles:{fs,directory:"/",cacheBytes:16384},output:{async write(){if(mode==="sink")throw new Error("Sink failed");},close,async abort(){}}})).rejects.toMatchObject({code:mode==="cancel"?"E_CANCELLED":"E_IO"});
   expect(close).not.toHaveBeenCalled();expect(await fs.readdir("/")).toEqual([]);
 });
 
@@ -53,4 +54,28 @@ it("deduplicates self-contained pictures across inherited and newly created orig
   await convertToOutput([input],options,{filters,resourceFiles:resources().fs,workingFiles:{fs,directory:"/",cacheBytes:16384},output:{async write(bytes){output.push(bytes.slice());},async close(){},async abort(){}}});
   const bytes=Uint8Array.from(output.flatMap(chunk=>[...chunk]));
   expect(bytes.length).toBe(expected.bytes.length);expect(bytes).toEqual(expected.bytes);expect(await fs.readdir("/")).toEqual([]);
+});
+
+for (const to of ["rtf", "odt"]) it.each([{lua: false, shared: false}, {lua: true, shared: false}, {lua: false, shared: true}])("retains typed metadata image authority for "+to+": %j", async ({lua, shared}) => {
+  const inline = (url: string) => ({t: "MetaInlines", c: [image(url)]});
+  const meta = {nested: {t: "MetaMap", c: {keep: inline("b.jpg"), replace: inline("a.jpg")}}, list: {t: "MetaList", c: [inline("b.jpg")]}};
+  const metadata = {nested: {t: "MetaMap", c: {replace: inline("a.jpg"), added: inline("b.jpg")}}, list: {t: "MetaList", c: [inline("b.jpg")]}} as NonNullable<ConversionOptions["metadata"]>;
+  const input = {base: "/doc", source: "source.json", bytes: encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta, blocks: [{t: "Para", c: [image("a.jpg"), image("b.jpg")]}]}))};
+  const options: ConversionOptions = {from: "json", to, lossy: true, metadata, ...(shared ? {resourcePath: ["/doc"]} : {}), ...(lua ? {filters: [{kind: "lua", path: "/filter.lua"}]} : {})};
+  const make = () => createLuaFilterCapability({readStream: async function* () {yield encode("function Image(el) return el end");}});
+  const expectedHost = resources(), expected = await convert([input], options, {resourceFiles: expectedHost.fs, resourceCwd: "/cwd", filters: make()}).catch(error => error);
+  const host = resources(), fs = new MemoryFileSystem(), filters = make(), output: Uint8Array[] = [];
+  vi.spyOn(filters, "apply").mockRejectedValue(new Error("Resident Lua forbidden"));
+  const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));
+  try {
+    const run = convertToOutput([input], options, {resourceFiles: host.fs, resourceCwd: "/cwd", filters, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write(bytes) {output.push(bytes.slice());}, async close() {}, async abort() {}}});
+    if (expected instanceof Error) await expect(run).rejects.toMatchObject({code: (expected as Error & {code: string}).code, message: expected.message});
+    else await run;
+    expect(acquire).not.toHaveBeenCalled();
+  } finally {acquire.mockRestore();}
+  const bytes = Uint8Array.from(output.flatMap(chunk => [...chunk]));
+  if (!(expected instanceof Error)) expect(expected).toMatchObject(to === "rtf" ? {text: new TextDecoder().decode(bytes)} : {bytes});
+  expect(host.readStream.mock.calls.map(call => call[0])).toEqual(expectedHost.readStream.mock.calls.map(call => call[0]));
+  expect(host.readStream.mock.calls.map(call => call[0])).toEqual(expect.arrayContaining(shared ? ["/doc/a.jpg", "/doc/b.jpg"] : ["/doc/a.jpg", "/doc/b.jpg", "/cwd/a.jpg", "/cwd/b.jpg"]));
+  expect(await fs.readdir("/")).toEqual([]);
 });

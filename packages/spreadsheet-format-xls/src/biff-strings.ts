@@ -40,66 +40,116 @@ export function biffDecode(bytes: Uint8Array, codepage: number): string {
   return characters.join("");
 }
 
-/** CONTINUE starts with a width flag only when it interrupts character data. */
-export class BiffStrings {
-  private part = 0;
+type StringValue = { text: string; richText?: readonly RichTextRun[] };
+type StringSteps<T> = Generator<void, T, Binary | undefined>;
+
+/** One active payload; yield only when the next CONTINUE record is needed. */
+class StringDecoder {
+  private data: Binary | undefined;
   private offset = 0;
-  constructor(private readonly parts: readonly Binary[], private readonly context: BiffReadContext,
-    private readonly codepage: number) {}
-  get consumedBytes(): number {
-    return this.parts.slice(0, this.part).reduce((total, part) => total + part.bytes.length, 0) + this.offset;
-  }
-  private advance(): void {
-    while (this.part < this.parts.length && this.offset === this.parts[this.part]!.bytes.length) {
+  private previousBytes = 0;
+  constructor(private readonly context: BiffReadContext, private readonly codepage: number) {}
+  get consumedBytes(): number { return this.previousBytes + this.offset; }
+  private *advance(): StringSteps<void> {
+    if (!this.data) this.data = yield;
+    while (this.data && this.offset === this.data.bytes.length) {
       this.context.signal.throwIfAborted(); this.context.work?.();
-      this.part++; this.offset = 0;
+      this.previousBytes += this.data.bytes.length; this.offset = 0;
+      this.data = undefined; this.data = yield;
     }
-    if (this.part >= this.parts.length) invalidBiff("truncated string/CONTINUE");
+    if (!this.data) invalidBiff("truncated string/CONTINUE");
   }
-  byte(): number {
+  *byte(): StringSteps<number> {
     this.context.signal.throwIfAborted(); this.context.work?.();
-    this.advance(); return this.parts[this.part]!.u8(this.offset++);
+    yield* this.advance(); return this.data!.u8(this.offset++);
   }
-  word(): number { const low = this.byte(); return low + this.byte() * 256; }
-  dword(): number { const low = this.word(); return low + this.word() * 65536; }
-  legacy(length: number): string {
+  *word(): StringSteps<number> { const low = yield* this.byte(); return low + (yield* this.byte()) * 256; }
+  *dword(): StringSteps<number> { const low = yield* this.word(); return low + (yield* this.word()) * 65536; }
+  *legacy(length: number): StringSteps<string> {
     this.admit(length);
-    const bytes = new Uint8Array(length); for (let i = 0; i < length; i++) bytes[i] = this.byte();
+    const bytes = new Uint8Array(length); for (let i = 0; i < length; i++) bytes[i] = yield* this.byte();
     return biffDecode(bytes, this.codepage);
   }
   private admit(length: number): void {
     this.context.signal.throwIfAborted();
     if (length > (this.context.limits.workbookTextBytes ?? this.context.limits.inputBytes))
       throw new SsconvertError("resource-limit", "ssconvert BIFF string limit exceeded");
-    // Covers temporary byte/character arrays, decoded text and rich-run objects.
     this.context.retain?.(length * 16);
   }
-  unicode(length: number): { text: string; richText?: readonly RichTextRun[] } {
+  *unicode(length: number): StringSteps<StringValue> {
     this.admit(length * 3);
-    const flags = this.byte();
+    const flags = yield* this.byte();
     if (flags & 0xf2) invalidBiff("invalid Unicode string flags");
     let wide = !!(flags & 1);
-    const runCount = flags & 8 ? this.word() : 0, extensionLength = flags & 4 ? this.dword() : 0;
+    const runCount = flags & 8 ? yield* this.word() : 0, extensionLength = flags & 4 ? yield* this.dword() : 0;
     this.admit(runCount * 4 + extensionLength);
     const characters: string[] = [];
     for (let i = 0; i < length; i++) {
       this.context.signal.throwIfAborted(); this.context.work?.();
-      if (this.offset === this.parts[this.part]!.bytes.length) {
-        this.advance(); const width = this.byte(); if (width > 1) invalidBiff("invalid CONTINUE string width"); wide = !!width;
+      if (this.offset === this.data!.bytes.length) {
+        yield* this.advance(); const width = yield* this.byte(); if (width > 1) invalidBiff("invalid CONTINUE string width"); wide = !!width;
       }
-      const data = this.parts[this.part]!;
+      const data = this.data!;
       data.check(this.offset, wide ? 2 : 1);
       characters.push(String.fromCharCode(wide ? data.u16(this.offset) : data.u8(this.offset)));
       this.offset += wide ? 2 : 1;
     }
     const runs: { start: number; font: number }[] = [];
     for (let i = 0; i < runCount; i++) {
-      const start = this.word(), font = this.word();
+      const start = yield* this.word(), font = yield* this.word();
       if (start > length || i && start < runs[i - 1]!.start) invalidBiff("invalid rich string run");
       runs.push({ start, font });
     }
-    for (let i = 0; i < extensionLength; i++) this.byte();
+    for (let i = 0; i < extensionLength; i++) yield* this.byte();
     return { text: characters.join(""), ...(runs.length ? { richText: runs.map((run, index) => ({ start: run.start,
       end: runs[index + 1]?.start ?? length, attributes: { "biff-font-index": run.font } })) } : {}) };
   }
+  *shared(): StringSteps<StringValue> { return yield* this.unicode(yield* this.word()); }
+}
+
+/** Buffered convenience shares the decoder with retained record ingestion. */
+export class BiffStrings {
+  private readonly decoder: StringDecoder;
+  private part = 0;
+  constructor(private readonly parts: readonly Binary[], context: BiffReadContext, codepage: number) {
+    this.decoder = new StringDecoder(context, codepage);
+  }
+  get consumedBytes(): number { return this.decoder.consumedBytes; }
+  private run<T>(steps: StringSteps<T>): T {
+    let next = steps.next();
+    while (!next.done) next = steps.next(this.parts[this.part++]);
+    return next.value;
+  }
+  byte(): number { return this.run(this.decoder.byte()); }
+  word(): number { return this.run(this.decoder.word()); }
+  dword(): number { return this.run(this.decoder.dword()); }
+  legacy(length: number): string { return this.run(this.decoder.legacy(length)); }
+  unicode(length: number): StringValue { return this.run(this.decoder.unicode(length)); }
+}
+
+/** Shared strings can span many records, but need only one input payload at a time. */
+export async function* readBiffStrings(parts: AsyncIterable<Binary>, count: number, context: BiffReadContext,
+  codepage: number): AsyncGenerator<StringValue, void> {
+  context.signal.throwIfAborted();
+  const decoder = new StringDecoder(context, codepage), iterator = parts[Symbol.asyncIterator]();
+  let failed = false, failure: unknown;
+  const close = async () => {
+    try { await iterator.return?.(); }
+    catch (cleanup) {
+      if (failed) throw new AggregateError([failure, cleanup], "BIFF string input and cleanup failed");
+      throw cleanup;
+    }
+  };
+  try {
+    for (let index = 0; index < count; index++) {
+      context.signal.throwIfAborted();
+      const steps = decoder.shared(); let next = steps.next();
+      while (!next.done) {
+        context.signal.throwIfAborted(); const part = await iterator.next(); context.signal.throwIfAborted();
+        next = steps.next(part.done ? undefined : part.value);
+      }
+      yield next.value;
+    }
+  } catch (error) { failed = true; failure = error; throw error; }
+  finally { await close(); }
 }

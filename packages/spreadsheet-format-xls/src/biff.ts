@@ -9,7 +9,7 @@ import { encryptBiffStream, createBiffEncryptionHeader, biffEncryptionProfiles, 
 import { encryptBiffXorStreams } from "./biff-xor-write.js";
 import { exportOptionPairs } from "@poe-code/spreadsheet-engine/cli/export-options";
 import { biffFontWidth } from "./biff-font-widths.js";
-import { BiffStrings, biffDecode, biffOverrideCodepage } from "./biff-strings.js";
+import { readBiffStrings, BiffStrings, biffDecode, biffOverrideCodepage } from "./biff-strings.js";
 import { translateBiffFormula, biffErrors, type BiffFormulaContext, type BiffExternalName } from "./biff-formulas.js";
 import { biffExternalPath, biffLegacyExternalPath } from "./biff-external-path.js";
 import { biffFormulaExtras } from "./biff-formula-extras.js";
@@ -285,9 +285,21 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
     }
     if (opcode === 0xfc) {
       const total = data.u32(0), count = data.u32(4); if (count > total || count > context.limits.cells) invalidBiff("invalid SST count");
-      const parts = await stringParts(index, 8); index = parts.next;
-      const cursor = new BiffStrings(parts.parts, context, codepage);
-      for (let i = 0; i < count; i++) { const value = cursor.unicode(cursor.word()); accountText(value.text); sharedStrings.push(value); }
+      if ("get" in records) {
+        const stored = records, start = index;
+        async function* parts() {
+          yield new Binary(data.slice(8, data.bytes.length - 8));
+          for (let at = start + 1; await stored.opcode(at) === 0x3c; at++) yield (await stored.get(at))!.data;
+        }
+        for await (const value of readBiffStrings(parts(), count, context, codepage)) {
+          accountText(value.text); sharedStrings.push(value);
+        }
+        while (await stored.opcode(index + 1) === 0x3c) index++;
+      } else {
+        const parts = await stringParts(index, 8); index = parts.next;
+        const cursor = new BiffStrings(parts.parts, context, codepage);
+        for (let i = 0; i < count; i++) { const value = cursor.unicode(cursor.word()); accountText(value.text); sharedStrings.push(value); }
+      }
       continue;
     }
     if ([0x1e, 0x41e].includes(opcode)) {

@@ -527,7 +527,7 @@ let networkArchiveSource: string;
 beforeAll(async () => {
   filesystemBuild = await build({
     absWorkingDir: root,
-    entryPoints: [path.join(root, "packages/safe-fs/src/core.ts")],
+    stdin: { contents: 'export * from "./packages/safe-fs/src/core.ts"; export * from "./packages/safe-fs/src/fs/s3/index.ts";', resolveDir: root },
     bundle: true, write: false, platform: "browser", conditions: ["workerd", "worker", "browser"],
     format: "cjs", target: "es2022", minify: true,
   });
@@ -673,7 +673,7 @@ beforeAll(async () => {
           }
           return { contents: output.exports.map(name => `export const ${name} = globalThis.browser.${name};`).join("\n"), loader: "js" };
         });
-        builder.onResolve({ filter: /^(?:@poe-code\/safe-fs\/(?:core|runtime-core|storage|fs\/memory|xml|contracts(?:\/(?:errors|object))?)|poe-code\/safe-fs\/core|@poe-platform\/(?:safe-fs(?:\/(?:core|runtime-core))?|safe-js\/fs\/core))$/ }, () => ({ path: "core", namespace: "evaluated-fs" }));
+        builder.onResolve({ filter: /^(?:@poe-code\/safe-fs\/(?:core|runtime-core|storage|fs\/memory|xml|contracts(?:\/(?:errors|object))?)|poe-code\/safe-fs\/core|@poe-platform\/(?:safe-fs(?:\/(?:core|runtime-core|fs\/s3))?|safe-js\/fs\/core))$/ }, () => ({ path: "core", namespace: "evaluated-fs" }));
         builder.onLoad({ filter: /.*/, namespace: "evaluated-fs" }, () => ({
           contents: Object.keys(filesystem).map(name => `export const ${name} = globalThis.canonical.${name};`).join("\n"), loader: "js",
         }));

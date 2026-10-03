@@ -681,7 +681,12 @@
     "safe-bash-command-cp": "*",
     "safe-bash-command-zstd": "*",
     "safe-bash-command-safejs": "*",
-    "safe-bash-presentation-engine": "*"
+    "safe-bash-presentation-engine": "*",
+    "safe-bash-command-wdiff": "*",
+    "safe-bash-command-diffpdf": "*",
+    "safe-bash-command-dot": "*",
+    "safe-bash-command-rsvg-convert": "*",
+    "safe-bash-svg-engine": "*"
   },
   "version": "0.0.0-dev",
   "repository": {
@@ -886,7 +891,17 @@
     "packages/safe-bash-mime-engine/dist",
     "packages/safe-bash-command-unix2dos/dist",
     "packages/safe-bash-command-zstd/dist",
-    "packages/safe-bash-command-cp/dist"
+    "packages/safe-bash-command-cp/dist",
+    "packages/safe-bash-command-wdiff/dist",
+    "packages/safe-bash-command-wdiff/LICENSE",
+    "packages/safe-bash-command-diffpdf/dist",
+    "packages/safe-bash-command-diffpdf/LICENSE",
+    "packages/safe-bash-command-dot/dist",
+    "packages/safe-bash-command-dot/LICENSE",
+    "packages/safe-bash-command-rsvg-convert/dist",
+    "packages/safe-bash-command-rsvg-convert/LICENSE",
+    "packages/safe-bash-svg-engine/dist",
+    "packages/safe-bash-svg-engine/LICENSE"
   ],
   "license": "MIT",
   "imports": {

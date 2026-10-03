@@ -1952,6 +1952,60 @@
             "toolcraft-schema": "*"
           },
           "portable": true
+        },
+        "safe-bash-command-wdiff": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-diffpdf": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "@poe-code/pdf-ast": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-dot": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "@poe-code/graphviz-ast": "*",
+            "safe-bash-svg-engine": "*",
+            "@poe-code/pdf-ast": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-rsvg-convert": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-svg-engine": "*",
+            "@poe-code/pdf-ast": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-svg-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "@poe-code/pdf-ast": "*",
+            "@poe-code/xml-ast": "*",
+            "@poe-code/image-ast": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -3161,6 +3215,30 @@
       "workerd": "./dist/commands/cp/index.js",
       "browser": "./dist/commands/cp/index.js",
       "import": "./dist/commands/cp/index.js"
+    },
+    "./commands/wdiff": {
+      "types": "./dist/commands/wdiff/index.d.ts",
+      "workerd": "./dist/commands/wdiff/index.js",
+      "browser": "./dist/commands/wdiff/index.js",
+      "import": "./dist/commands/wdiff/index.js"
+    },
+    "./commands/diffpdf": {
+      "types": "./dist/commands/diffpdf/index.d.ts",
+      "workerd": "./dist/commands/diffpdf/index.js",
+      "browser": "./dist/commands/diffpdf/index.js",
+      "import": "./dist/commands/diffpdf/index.js"
+    },
+    "./commands/dot": {
+      "types": "./dist/commands/dot/index.d.ts",
+      "workerd": "./dist/commands/dot/index.js",
+      "browser": "./dist/commands/dot/index.js",
+      "import": "./dist/commands/dot/index.js"
+    },
+    "./commands/rsvg-convert": {
+      "types": "./dist/commands/rsvg-convert/index.d.ts",
+      "workerd": "./dist/commands/rsvg-convert/index.js",
+      "browser": "./dist/commands/rsvg-convert/index.js",
+      "import": "./dist/commands/rsvg-convert/index.js"
     }
   },
   "sideEffects": [
@@ -3410,7 +3488,12 @@
     "safe-bash-command-cp": "*",
     "safe-bash-command-safejs": "*",
     "safe-bash-presentation-engine": "*",
-    "@poe-code/image-ast": "*"
+    "@poe-code/image-ast": "*",
+    "safe-bash-command-wdiff": "*",
+    "safe-bash-command-diffpdf": "*",
+    "safe-bash-command-dot": "*",
+    "safe-bash-command-rsvg-convert": "*",
+    "safe-bash-svg-engine": "*"
   },
   "main": "./dist/index.js",
   "imports": {

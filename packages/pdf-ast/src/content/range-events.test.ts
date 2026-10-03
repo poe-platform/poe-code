@@ -2,6 +2,7 @@ import { expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import type { FileSystem } from "@poe-code/safe-fs/contracts";
 import { PdfFileSource } from "../source.js";
+import { PdfStagingStorage } from "../staging-budget.js";
 import { parseContentEvents } from "./parser.js";
 import { parseContentRangeEvents } from "./range-events.js";
 
@@ -188,11 +189,12 @@ it.each([8192, 131072])("stages %i decoded image bytes with reusable chunks and 
     const buffer = new Uint8Array(chunkBytes);
     for (let at = 0; at < total; at += chunkBytes) { expect(pending).toBe(false); yield fill(buffer.subarray(0, Math.min(chunkBytes, total - at)), at); }
   }
-  const events = parseContentStreamEvents(chunks(), { fs, directory: "/external" }, { chunkBytes });
+  const storage = new PdfStagingStorage({ fs, directory: "/external" }, total);
+  const events = parseContentStreamEvents(chunks(), storage, { chunkBytes });
   try {
     expect((await events.next()).value).toMatchObject({ kind: "inline-image", data: { start: prefix.length, end: prefix.length + length } });
     expect(size).toBe(total); expect(peak).toBeLessThanOrEqual(chunkBytes);
     const before = reads; await Promise.resolve(); expect(reads).toBe(before);
   } finally { await events.return(); }
-  expect(live).toBe(false);
+  expect(live).toBe(false); expect(storage.liveBytes).toBe(0);
 });

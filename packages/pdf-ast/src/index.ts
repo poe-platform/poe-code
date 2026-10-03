@@ -70,3 +70,5 @@ export type { PdfRetainedDestination, PdfRetainedUrl, PdfUrlSelection } from "./
 export type { PdfRetainedStructureItem, PdfStructureSelection } from "./extract/retained-structure.js";
 
 export { resolveRetainedFont, type PdfRetainedFontOptions } from "./fonts/retained.js";
+
+export * from "./staging-budget.js";

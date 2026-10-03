@@ -17,6 +17,15 @@ payload read. Sources require retained-read support and never reopen a pathname
 or fall back to whole-file reads. The caller chooses and owns the backend;
 memory-backed safe-fs still stores its files in RAM.
 
+`new PdfStagingStorage({ fs, directory }, maxBytes)` provides one aggregate
+scratch-storage allowance. Pass that same storage instance to document/index,
+content, font, image and output owners, and use `storage.fs` for input staging.
+`liveBytes` includes pending writes and simultaneous merge inputs/outputs;
+capacity returns after successful retained cleanup. Failed or uncertain cleanup
+keeps its charge, so restart the operation only after reconciling backend state.
+This view is for retained regular-file scratch staging, not publication. It does
+not account for resident memory or make a RAM backend suitable for large spills.
+
 `new CosRangeLexer(source, options)` reads COS tokens asynchronously from a
 retained source. Await `nextToken()` or `skipWhitespaceAndComments()`, and set
 `offset` to seek between operations. It uses the buffered lexer's grammar,

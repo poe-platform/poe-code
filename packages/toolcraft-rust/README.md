@@ -63,6 +63,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Numeric validation | Shared Rust bounds and integer checks, live Number predicates and matching SDK diagnostics |
 | SDK arguments    | Native casing, nested validation, defaults, aliases and JSON-schema normalization |
 | SDK              | `toolcraft-rust/sdk`: native member trees, invocation routing, streams and deferred MCP discovery |
+| Core subpaths    | `toolcraft-rust/runtime` and `toolcraft-rust/user-error` share the root command factories and error identities |
 | Runtime wiring   | Reserved service names, injected I/O and approval runtime admission              |
 | Approval plans   | Canonical traversal, JSON admission, cycle rejection and hash verification         |
 | Approval execution | Native gate continuations, persisted tasks, cancellation and detached runner launch |
@@ -71,7 +72,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | HTTP summaries   | REST/GraphQL errors, request IDs, retry hints and redacted error envelopes         |
 | Error reports    | Secret-aware rendering, cause chains, project discovery and confined report writes |
 | Schema conversion | JSON-schema projections, recursive references, composition and upstream metadata |
-| MCP proxies      | Cached discovery, tool renaming, hot native clients and explicit disposal         |
+| MCP proxies      | `toolcraft-rust/mcp-proxy`: cached discovery, tool renaming, hot native clients and explicit disposal |
 | Schemas          | Root DSL exports and `toolcraft-rust/schema`, backed by `toolcraft-schema-rust`     |
 
 ```ts

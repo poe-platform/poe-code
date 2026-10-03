@@ -116,6 +116,7 @@ export default defineConfig({
     include: [
       ...httpSuites.map(suite => path(`../toolcraft/src/${suite}`)),
       path("tests/http-public-parity.test.ts"),
+      path("tests/core-subpaths-parity.test.ts"),
       ...cliSuites.map(suite => path(`../toolcraft/src/${suite}`)),
       path("../toolcraft/src/renderer.test.ts"),
       path("../toolcraft/src/design-subpath-exports.test.ts"),

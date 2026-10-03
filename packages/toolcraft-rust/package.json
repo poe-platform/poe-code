@@ -339,6 +339,18 @@
     "./http/hosted-oauth": {
       "types": "./dist/http-hosted-oauth.d.ts",
       "import": "./dist/http-hosted-oauth.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime.d.ts",
+      "import": "./dist/runtime.js"
+    },
+    "./user-error": {
+      "types": "./dist/user-error.d.ts",
+      "import": "./dist/user-error.js"
+    },
+    "./mcp-proxy": {
+      "types": "./dist/mcp-proxy.d.ts",
+      "import": "./dist/mcp-proxy.js"
     }
   },
   "scripts": {

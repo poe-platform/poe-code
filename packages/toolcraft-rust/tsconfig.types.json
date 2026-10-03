@@ -16,6 +16,7 @@
     "tests/approval-types.ts",
     "tests/cli-types.ts",
     "tests/mcp-types.ts",
-    "tests/http-types.ts"
+    "tests/http-types.ts",
+    "tests/core-subpaths-types.ts"
   ]
 }

@@ -4578,3 +4578,43 @@ standalone types and complete platform/resource/packaging qualification remain o
 The shared-error dependency fix is verified on remote main at a7625be369. Its
 Release 37097600121 remains pending and package workflow 37097600054 is running;
 no new release publication is claimed.
+
+### Core public subpaths checkpoint
+
+The runtime, user-error and mcp-proxy public paths now expose the already-ported
+native implementations. Runtime exports explicitly match the reference namespace
+without the root-only package metadata helpers. Error classes, command factories
+and proxy functions retain their existing identities; no new policy, dependency
+or per-call forwarding function is introduced.
+
+The reference suite initially failed on the missing runtime export, and independent
+Node imports reproduced ERR_PACKAGE_PATH_NOT_EXPORTED for all three paths. Three
+final cases compare export sets, shared identities, command cloning/defaults,
+cross-bundle user errors, proxy cache/refresh policy and empty proxy lifecycle.
+Vitest's transformed namespace order is normalized only in its comparison; the
+packed Node consumer separately checks the exact native ESM namespace order.
+Invalid slash-bearing cache names retain the reference rejection.
+
+The selected maintained build and npm test -- --workspace=toolcraft-rust pass,
+including 6,103 cases across 118 files, 266 native checks, Rust tests, bidirectional
+subpath declaration consumers, the original CLI compile-check and root posttest.
+Maintained Rust/binding lint and scoped ESLint pass. Eleven packed own packages
+verify public namespaces, shared root/error identities, cloning and proxy lifecycle
+with non-Node ESM imports restricted to packed packages and existing Commander.
+Runtime/proxy declarations retain canonical reference types; standalone packaging
+remains open. No new per-call algorithm warrants a separate timing comparison,
+and cold-import costs are not qualified by this checkpoint.
+
+The earlier HTTP checkpoint is independently verified on remote main at 590b9ebb02.
+Its Release 37098144968 and package workflow 37098144780 remain pending. The
+shared-error package workflow 37097600054 remains running. GitHub briefly returned
+a rate-limit error; a subsequent quota read and specific workflow reads recovered.
+No new publication is claimed. HTTP temporary artifacts were purged.
+
+The next dependency export audit found defaultStdioSpawn and
+snapshotHttpTransportHeaders missing from tiny-mcp-client-rust. Its root also
+exposes four additional diagnostic helpers. Resolve those public-surface differences
+before wiring Toolcraft's tiny-mcp-client subpath. Export-name inventories match
+for native agent definitions, agent MCP config, auth store, config mutations,
+frontmatter and process runner; that is inventory evidence, not fresh behavior
+or standalone-type qualification. All broader replacement gates remain open.

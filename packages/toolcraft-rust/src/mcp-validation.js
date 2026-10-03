@@ -1,5 +1,6 @@
 import {createRequire} from "node:module";
-import {formatIssues,isPlainRecord,nativeJsonSchema,unicodeLength,validate} from "toolcraft-schema-rust";
+import {cloneDefaultValue,formatIssues,isPlainRecord,nativeJsonSchema,unicodeLength,validate} from "toolcraft-schema-rust";
+import {ToolError,JSON_RPC_ERROR_CODES} from "tiny-stdio-mcp-server-rust";
 import {UserError,suggest} from "./index.js";
 import {validateAppliedDefault} from "./applied-default.js";
 import {resolveDiscriminatedBranch,validateUnionSchema} from "./branch-validation.js";
@@ -15,7 +16,7 @@ function validator(casing){
   function invoke(operation,args){
     if(depth>=128)throw new RangeError("Maximum call stack size exceeded");
     depth++;
-    try{return callNative(native.sdkValidate,operation,args,host);}
+    try{return callNative(operation.startsWith("result")?native.mcpOutputPolicy:native.sdkValidate,operation,args,host);}
     finally{depth--;}
   }
   const received=value=>invoke("mcpReceived",[value]);
@@ -37,6 +38,19 @@ function validator(casing){
     extras(schema,input,label,errors,output,fields){for(const key of Object.keys(input))invoke("extra",[schema,input,label,errors,output,fields,key]);},
     members(input,label,errors,output,fields){for(const [key,[original,schema]] of fields.entries())invoke("field",[input,label,errors,output,key,original,schema]);},
     value:(...args)=>invoke("value",args),validateObject:(...args)=>invoke("object",args),native:(...args)=>invoke("mcpNative",args),
+    clone:cloneDefaultValue,resultValue:(...args)=>invoke("resultValue",args),resultObject:(...args)=>invoke("resultObject",args),
+    resultArray:(schema,value,label,errors)=>value.map((item,index)=>invoke("resultValue",[schema.item,item,`${label}[${index}]`,errors])),
+    resultRecord:(schema,value,label,errors)=>Object.fromEntries(Object.entries(value).map(([key,item])=>[key,invoke("resultValue",[schema.value,item,`${label}.${key}`,errors])])),
+    resultDiscriminated:(value,schema,resolved)=>({...value,[formatSegment(schema.discriminator,casing)]:resolved.discriminator}),
+    resultUnion:(schema,value,label,errors)=>validateUnionSchema(schema,value,label,errors,(branch,branchErrors)=>invoke("resultObject",[branch,value,label,branchErrors])),
+    expectedKeys:shape=>new Set(Object.keys(shape)),setHas:(set,key)=>set.has(key),wireKeys:expected=>new Set([...expected].map(key=>formatSegment(key,casing))),
+    resultExtras(schema,value,label,errors,expected){for(const key of Object.keys(value))invoke("resultExtra",[schema,label,errors,expected,key]);},
+    resultMembers(shape,value,label,errors,output){for(const [key,raw] of Object.entries(shape))invoke("resultField",[value,label,errors,output,key,raw]);},
+    resultCarry(value,expected,wire,output){for(const key of Object.keys(value))invoke("resultCarryField",[value,expected,wire,output,key]);},
+    unexpectedResult:(errors,field,expected,label)=>errors.push({path:field,message:`Unexpected result field "${field}". Available: ${[...expected].map(key=>label.length===0?key:`${label}.${key}`).sort().join(", ")}.`}),
+    missingResult:(errors,field)=>errors.push({path:field,message:`Missing required result field "${field}".`}),
+    singleResultError(errors){throw new ToolError(JSON_RPC_ERROR_CODES.INTERNAL_ERROR,errors[0]?.message??"Invalid command result.");},
+    multipleResultErrors(errors){const rendered=errors.slice(0,10).map(error=>`  - ${error.path}: ${error.message}`);const remaining=errors.length-rendered.length;if(remaining>0)rendered.push(`  ... and ${remaining} more`);throw new ToolError(JSON_RPC_ERROR_CODES.INTERNAL_ERROR,`${errors.length} result errors:\n${rendered.join("\n")}`);},
     arrayValues:(schema,value,label,errors)=>value.map((item,index)=>invoke("value",[schema.item,item,`${label}[${index}]`,errors])),
     recordValues:(schema,value,label,errors)=>Object.fromEntries(Object.entries(value).map(([key,item])=>[key,invoke("value",[schema.value,item,`${label}.${key}`,errors])])),
     discriminator:resolveDiscriminatedBranch,
@@ -73,3 +87,7 @@ function validator(casing){
 export function validateSchemaValue(schema,value,casing,label,errors){return validator(casing)("value",[schema,value,label,errors]);}
 export function validateObjectSchema(schema,value,casing,label,errors){return validator(casing)("object",[schema,value,label,errors]);}
 export function validateToolArguments(schema,value,casing){return validator(casing)("mcpArguments",[schema,value]);}
+export function serializeResultValue(schema,value,casing,label,errors){return validator(casing)("resultValue",[schema,value,label,errors]);}
+export function serializeResultObject(schema,value,casing,label,errors){return validator(casing)("resultObject",[schema,value,label,errors]);}
+export function validateCommandResult(schema,value,casing){return validator(casing)("resultCommand",[schema,value]);}
+export function throwResultValidationErrors(errors){return validator(undefined)("resultErrors",[errors]);}

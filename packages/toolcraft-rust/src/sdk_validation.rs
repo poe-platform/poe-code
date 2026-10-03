@@ -2,17 +2,21 @@
 //! getters, descriptors, array methods and exceptions retain JavaScript identity.
 use crate::host::Host;
 
-fn yes<H: Host>(host: &mut H, name: &str, args: Vec<H::Value>) -> Result<bool, H::Error> {
+pub(crate) fn yes<H: Host>(
+    host: &mut H,
+    name: &str,
+    args: Vec<H::Value>,
+) -> Result<bool, H::Error> {
     let value = host.call(name, args)?;
     host.is_true(value)
 }
 
-fn kind<H: Host>(host: &mut H, schema: H::Value, name: &str) -> Result<bool, H::Error> {
+pub(crate) fn kind<H: Host>(host: &mut H, schema: H::Value, name: &str) -> Result<bool, H::Error> {
     let value = host.get(schema, "kind")?;
     host.is_kind(value, name)
 }
 
-fn unwrap<H: Host>(host: &mut H, mut schema: H::Value) -> Result<H::Value, H::Error> {
+pub(crate) fn unwrap<H: Host>(host: &mut H, mut schema: H::Value) -> Result<H::Value, H::Error> {
     for _ in 0..16_384 {
         if !kind(host, schema, "optional")? {
             return Ok(schema);
@@ -22,7 +26,7 @@ fn unwrap<H: Host>(host: &mut H, mut schema: H::Value) -> Result<H::Value, H::Er
     host.call("overflow", vec![])
 }
 
-fn field_label<H: Host>(
+pub(crate) fn field_label<H: Host>(
     host: &mut H,
     label: H::Value,
     key: H::Value,
@@ -357,7 +361,7 @@ fn value<H: Host>(
     Ok(value)
 }
 
-fn constraints<H: Host>(
+pub(crate) fn constraints<H: Host>(
     host: &mut H,
     schema: H::Value,
     value: H::Value,

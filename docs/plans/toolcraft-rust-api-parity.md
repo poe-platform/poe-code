@@ -3975,7 +3975,8 @@ stream lifecycle, HTTP/OAuth and complete platform/resource/packaging qualificat
 remain open.
 
 MCP metadata is independently verified on remote main at 614d10938d. Release
-37086389418 is building, and fresh rerun 37086536500 is pending.
+37086389418 completed successfully with release-stable skipped; fresh rerun
+37086536500 was cancelled. No publication or full fresh matrix is claimed.
 
 ### MCP input-validation checkpoint
 
@@ -4013,3 +4014,36 @@ an array, a string constraint and a defaulted numeric field. It is not a
 performance/default-swap gate pass. MCP output serialization/schema conversion,
 tool enumeration, server/stream lifecycle, HTTP/OAuth and full platform/resource/
 standalone-packaging qualification remain open.
+
+MCP input validation is independently verified on remote main at e47f071bc9.
+Release 37086984688 is pending.
+
+### MCP output-validation checkpoint
+
+Rust now projects declared result keys to wire casing, recursively validates
+objects/arrays/records/unions, clones defaults, preserves native JSON-schema
+input identity, rejects missing/unexpected fields and retains admitted extras
+without overwriting declared wire names. Input/output share existing constraint
+helpers and host capabilities. Node preserves live methods, descriptors, callback
+order, arbitrary exceptions and native ToolError constructor identity. The
+existing own tiny-stdio-mcp-server-rust dependency moved from development to
+runtime; no external dependency or default implementation was added.
+
+Nine failing missing-function comparisons preceded implementation. The final
+differential suite extracts actual MCP source and covers snake/camel projection,
+validated defaults, additional/alias/special keys, sparse and overridden maps,
+discriminated/exclusive unions, native-schema-before-optional ordering, getters,
+descriptors, arbitrary thrown values, reentrancy and bounded ToolError diagnostics.
+The metadata/input/output prerequisite suites remain internal; public MCP server
+and wire/stream lifecycle integration are not yet claimed.
+
+Maintained verification passes 266 native Node tests, Rust tests, 5,125 reference/
+parity cases in 85 files, declaration consumers and the original CLI compile-check.
+Rust/binding lint and scoped ESLint pass. A packed consumer uses only packed own
+native dependencies to verify result casing/defaults and shared ToolError identity.
+Five alternating warmed Node 22.23.2 ARM64 rounds of 300 result validations,
+retaining 32 results, measured 258.215 microseconds native versus 4.455 microseconds
+JavaScript (57.96 times slower). The fixture includes nested casing, a default,
+an array and an admitted extra field. No performance/default-swap gate passed.
+Schema projection/enumeration, the public MCP server, HTTP/OAuth and full platform,
+resource and standalone packaging qualification remain open.

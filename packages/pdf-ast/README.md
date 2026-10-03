@@ -7,6 +7,12 @@ Unified first-party PDF AST, parser, lossless editor, extractor, and 2D PNG rast
 `renderDisplayListToBitmapSteps`, encoding `...Steps` functions, and
 `extractDocumentImagesSteps` expose bounded work generators for responsive
 page and pixel processing. Synchronous APIs remain available.
+`renderDisplayListWindowSteps(list, {x, y, width, height}, options)` renders a
+pixel window in the scaled, unrotated media-box grid. Page, group and mask
+surfaces use that window, and image-mask caching is bounded. It preserves the
+full renderer's pixel calculations. Evaluated paths/images and nested layer
+state remain caller-owned or resident; this API alone is not a complete bounded
+file renderer. Its driver handles cropping, rotation and anisotropic resampling.
 
 `PdfFileSource.open(fs, path, options)` provides retained random-access input
 using the caller's safe-fs. `read(position, maxBytes)` returns owned bytes up to

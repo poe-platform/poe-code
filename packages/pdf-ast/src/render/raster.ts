@@ -977,11 +977,11 @@ function paintOperations(displayList: PdfDisplayList): readonly PdfPaintOperatio
 
 // PDF.js _prepareSMaskCanvas/_bakeSMaskCanvas: composite the group's backdrop
 // before converting luminosity, then apply the 256-entry transfer function.
-function *renderSoftMaskSteps(mask: PdfSoftMask, displayList: PdfDisplayList, scale: number): Generator<void, RgbaBitmap, void> {
+function *renderSoftMaskSteps(mask: PdfSoftMask, displayList: PdfDisplayList, scale: number, window?: PdfCropRect): Generator<void, RgbaBitmap, void> {
   let work = 0;
-  const bitmap = (yield* renderDisplayListToBitmapSteps({
+  const bitmap = (yield* renderDisplayListLayerSteps({
     ...displayList, rotation: 0, glyphs: [], paths: [], images: [], operations: mask.operations,
-  }, { scale, transparent: true }));
+  }, { scale, transparent: true }, scale, undefined, window));
   const { data } = bitmap;
   for (let i = 0; i < data.length; i += 4) {
     if (++work % 16384 === 0) yield;
@@ -1034,14 +1034,16 @@ function *renderDisplayListLayerSteps(
   displayList: PdfDisplayList,
   options: RenderToPngOptions,
   scale: number,
-  backdrop?: Uint8Array
+  backdrop?: Uint8Array,
+  window?: PdfCropRect
 ): Generator<void, RgbaBitmap, void> {
   let work = 0;
   const [originX, originY] = displayList.origin ?? [0, 0];
   const pageTop = originY + displayList.height;
-  const toScreen = (x: number, y: number): StrokePoint => [(x - originX) * scale, (pageTop - y) * scale];
-  const width = Math.max(1, Math.round(displayList.width * scale));
-  const height = Math.max(1, Math.round(displayList.height * scale));
+  const offsetX = window?.x ?? 0, offsetY = window?.y ?? 0;
+  const toScreen = (x: number, y: number): StrokePoint => [(x - originX) * scale - offsetX, (pageTop - y) * scale - offsetY];
+  const width = window?.width ?? Math.max(1, Math.round(displayList.width * scale));
+  const height = window?.height ?? Math.max(1, Math.round(displayList.height * scale));
   for (const op of paintOperations(displayList)) {
     if (op.kind === "glyph" && !op.value.outline) {
       getStandardFontOutlines(op.value.fontName);
@@ -1092,12 +1094,12 @@ function *renderDisplayListLayerSteps(
       const group = operation.value;
       const bitmap = (yield* renderDisplayListLayerSteps(
         { ...displayList, operations: group.operations },
-        { ...options, transparent: true }, scale, needsGroupBackdrop(group) ? rgba : undefined
+        { ...options, transparent: true }, scale, needsGroupBackdrop(group) ? rgba : undefined, window
       ));
       for (let i = 3; i < bitmap.data.length; i += 4) { if (++work % 16384 === 0) yield; bitmap.data[i] = Math.round(bitmap.data[i]! * group.alpha); }
       operation = { kind: "image", value: {
         name: "TransparencyGroup", width: bitmap.width, height: bitmap.height, decodedRgba: bitmap.data,
-        matrix: [bitmap.width / scale, 0, 0, bitmap.height / scale, originX, pageTop - bitmap.height / scale],
+        matrix: [bitmap.width / scale, 0, 0, bitmap.height / scale, originX + offsetX / scale, pageTop - (offsetY + bitmap.height) / scale],
         colorSpace: "DeviceRGB", bitsPerComponent: 8, blendMode: group.blendMode, clipRect: group.clipRect,
       } };
     }
@@ -1117,7 +1119,7 @@ function *renderDisplayListLayerSteps(
     const softMask = original.value.softMask;
     if (softMask) {
       if (softMask !== cachedSoftMask) {
-        cachedSoftMaskPixels = (yield* renderSoftMaskSteps(softMask, displayList, scale)).data;
+        cachedSoftMaskPixels = (yield* renderSoftMaskSteps(softMask, displayList, scale, window)).data;
         cachedSoftMask = softMask;
       }
       if (clipMask) {
@@ -1134,11 +1136,12 @@ function *renderDisplayListLayerSteps(
         imageMask = new Uint8Array(width * height).fill(255);
         for (const image of imageClips) {
           if (++work % 16384 === 0) yield;
-          const layer = (yield* renderDisplayListToBitmapSteps({
+          const layer = (yield* renderDisplayListLayerSteps({
             ...displayList, rotation: 0, paths: [], glyphs: [], images: [image], operations: [{ kind: "image", value: image }],
-          }, { scale, transparent: true })).data;
+          }, { scale, transparent: true }, scale, undefined, window)).data;
           for (let px = 0; px < width * height; px++) { if (++work % 16384 === 0) yield; imageMask[px] = Math.round(imageMask[px]! * layer[px * 4 + 3]! / 255); }
         }
+        if (imageClipMasks.size === 4) imageClipMasks.delete(imageClipMasks.keys().next().value!);
         imageClipMasks.set(imageClips, imageMask);
       }
       if (clipMask) {
@@ -1157,16 +1160,16 @@ function *renderDisplayListLayerSteps(
       const path = operation.value;
       if (path.fillColor) {
         const edges = (yield* pathsToEdgesSteps((yield* segmentsToScreenPathsSteps(path.segments, displayList.height, scale, toScreen)), true));
-        const clipScreen: [number, number, number, number] | undefined = path.clipRect ? [(path.clipRect[0] - originX) * scale, (pageTop - path.clipRect[3]) * scale, (path.clipRect[2] - originX) * scale, (pageTop - path.clipRect[1]) * scale] : undefined;
+        const clipScreen: [number, number, number, number] | undefined = path.clipRect ? [(path.clipRect[0] - originX) * scale - offsetX, (pageTop - path.clipRect[3]) * scale - offsetY, (path.clipRect[2] - originX) * scale - offsetX, (pageTop - path.clipRect[1]) * scale - offsetY] : undefined;
         (yield* fillEdgesScanline4x4Steps(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode, clipMask, groupAlpha));
       }
       if (path.strokeColor) {
         const rawSw = path.strokeWidth * scale * (path.strokeMatrix ? Math.hypot(path.strokeMatrix[0], path.strokeMatrix[1]) : 1);
         const strokeAlpha = options.thinLineMode === "shape" && rawSw < 1
           ? (path.strokeAlpha ?? 1) * Math.max(0.25, rawSw) : path.strokeAlpha ?? 1;
-        const edges = (yield* pathsToEdgesSteps((yield* strokeContoursSteps(path, displayList.height, scale, originX, originY)).map(points => ({ points, closed: true }))));
+        const edges = (yield* pathsToEdgesSteps((yield* strokeContoursSteps(path, displayList.height, scale, originX, originY)).map(points => ({ points: window ? points.map(([x, y]) => [x - offsetX, y - offsetY] as StrokePoint) : points, closed: true }))));
         const clipScreen: [number, number, number, number] | undefined = path.clipRect
-          ? [(path.clipRect[0] - originX) * scale, (pageTop - path.clipRect[3]) * scale, (path.clipRect[2] - originX) * scale, (pageTop - path.clipRect[1]) * scale] : undefined;
+          ? [(path.clipRect[0] - originX) * scale - offsetX, (pageTop - path.clipRect[3]) * scale - offsetY, (path.clipRect[2] - originX) * scale - offsetX, (pageTop - path.clipRect[1]) * scale - offsetY] : undefined;
         (yield* fillEdgesScanline4x4Steps(rgba, width, height, edges, path.strokeColor, strokeAlpha, "nonzero", clipScreen,
           original.kind === "glyph" ? aaTxt : aaVec, path.blendMode, clipMask, groupAlpha));
       }
@@ -1178,12 +1181,12 @@ function *renderDisplayListLayerSteps(
       if (Math.abs(det) <= 1e-8) continue;
       const cornersPdfX = [e, a + e, a + c + e, c + e];
       const cornersPdfY = [f, b + f, b + d + f, d + f];
-      const cornersPx = cornersPdfX.map(cx => (cx - originX) * scale);
-      const cornersPy = cornersPdfY.map(cy => (pageTop - cy) * scale);
-      const clipMinPx = img.clipRect ? Math.floor((img.clipRect[0] - originX) * scale) : 0;
-      const clipMaxPx = img.clipRect ? Math.ceil((img.clipRect[2] - originX) * scale) - 1 : width - 1;
-      const clipMinPy = img.clipRect ? Math.floor((pageTop - img.clipRect[3]) * scale) : 0;
-      const clipMaxPy = img.clipRect ? Math.ceil((pageTop - img.clipRect[1]) * scale) - 1 : height - 1;
+      const cornersPx = cornersPdfX.map(cx => (cx - originX) * scale - offsetX);
+      const cornersPy = cornersPdfY.map(cy => (pageTop - cy) * scale - offsetY);
+      const clipMinPx = img.clipRect ? Math.floor((img.clipRect[0] - originX) * scale) - offsetX : 0;
+      const clipMaxPx = img.clipRect ? Math.ceil((img.clipRect[2] - originX) * scale) - offsetX - 1 : width - 1;
+      const clipMinPy = img.clipRect ? Math.floor((pageTop - img.clipRect[3]) * scale) - offsetY : 0;
+      const clipMaxPy = img.clipRect ? Math.ceil((pageTop - img.clipRect[1]) * scale) - offsetY - 1 : height - 1;
       const minPx = Math.max(0, clipMinPx, Math.floor(Math.min(...cornersPx)));
       const maxPx = Math.min(width - 1, clipMaxPx, Math.ceil(Math.max(...cornersPx)) - 1);
       const minPy = Math.max(0, clipMinPy, Math.floor(Math.min(...cornersPy)));
@@ -1206,12 +1209,12 @@ function *renderDisplayListLayerSteps(
 
       for (let py = minPy; py <= maxPy; py++) {
     if (++work % 16384 === 0) yield;
-        const yPdf = pageTop - (py + 0.5) / scale;
+        const yPdf = pageTop - (py + offsetY + 0.5) / scale;
         if (img.clipRect && (yPdf < img.clipRect[1] || yPdf > img.clipRect[3])) continue;
         const dyPdf = yPdf - f;
         for (let px = minPx; px <= maxPx; px++) {
     if (++work % 16384 === 0) yield;
-          const xPdf = originX + (px + 0.5) / scale;
+          const xPdf = originX + (px + offsetX + 0.5) / scale;
           if (img.clipRect && (xPdf < img.clipRect[0] || xPdf > img.clipRect[2])) continue;
           const dxPdf = xPdf - e;
           const u = (d * dxPdf - c * dyPdf) / det;
@@ -1282,6 +1285,20 @@ function *renderDisplayListLayerSteps(
     }
   }
   return { width, height, data: rgba };
+}
+
+export type PdfRasterWindowOptions = Pick<RenderToPngOptions, "scale" | "dpi" | "background" | "transparent" | "antialiasText" | "antialiasVector" | "thinLineMode">;
+
+/** Rasterize a window in the unrotated, scaled media-box pixel grid. Surface and
+ * mask dimensions follow the window; evaluated operations/resources remain owned
+ * by the caller. Crop, rotation and anisotropic resampling belong to the driver. */
+export function *renderDisplayListWindowSteps(displayList: PdfDisplayList, window: PdfCropRect,
+  options: PdfRasterWindowOptions = {}): Generator<void, RgbaBitmap, void> {
+  const scale = options.scale ?? (options.dpi ? options.dpi / 72 : 1.5);
+  const width = Math.max(1, Math.round(displayList.width * scale)), height = Math.max(1, Math.round(displayList.height * scale));
+  if (!Number.isFinite(scale) || scale <= 0 || ![width, height, window.x, window.y, window.width, window.height, window.x + window.width, window.y + window.height, window.width * window.height * 4].every(Number.isSafeInteger)
+    || window.x < 0 || window.y < 0 || window.width <= 0 || window.height <= 0 || window.x + window.width > width || window.y + window.height > height) throw new RangeError("Invalid PDF raster window");
+  return yield* renderDisplayListLayerSteps(displayList, options, scale, undefined, window);
 }
 
 export function *renderDisplayListToBitmapSteps(

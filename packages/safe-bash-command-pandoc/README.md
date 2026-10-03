@@ -163,7 +163,8 @@ caller storage. Strings, nesting state, duplicate-key indexes, schema traversal,
 table-span occupancy, and numeric metadata-key ordering do not require resident
 document collections. Output preserves constructor bytes and binary64 numeric
 semantics, validates the complete document before publication, and preflights
-finite output budgets. This path supports finite `inputBytes`, `outputBytes`, `work`, and `diagnostics`,
+finite output budgets. Retained JSON conversions support finite `inputBytes`, `outputBytes`, `work`,
+`diagnostics`, `fonts`, `includes`, `images`, `binaryBytes`, and `layoutWork`,
 line endings, and the same non-transforming options as the table path. It uses
 two page caches of at most `cacheBytes` each, plus fixed small index caches.
 JSON `metadataFiles` merge into retained generations before filters. File contents,
@@ -203,7 +204,7 @@ source, parser state, document nodes and real Lua or JSON filters. Embedded pict
 bytes stay in caller storage independently of filter document generations; JSON
 output continues to reject resource sidecars even after a filter removes the images.
 Embedded pictures survive Lua filter generations; JSON filters reject relative
-image targets whose origin cannot be preserved. Finite image-count, binary-byte
+image targets whose origin cannot be preserved. Finite font-count, include-count, image-count, binary-byte
 and layout-work budgets also retain this path and their existing failures.
 HTML image embedding (`embedResources: true` or `--embed-resources`) streams
 image bytes and base64 text through caller storage, including local VFS images
@@ -282,7 +283,7 @@ precedes output commit, including cleanup failure and cancellation.
 
 The unfiltered backed CSV/TSV paths support line endings (and ASCII conversion for HTML) and finite
 `inputBytes`, `outputBytes`, `tableRows`, `tableColumns`, `tableCells`, and
-`tableFieldText` limits. With filters, finite input/output, work, and diagnostics budgets are supported;
+`tableFieldText` limits. With filters, finite input/output, work, diagnostics, font and include budgets are supported;
 finite table budgets still use the compatibility converter. Additional transformations, other finite limits,
 and other format pairs
 currently use the existing buffered converter. The Safe Bash command uses the

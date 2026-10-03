@@ -3,16 +3,20 @@ import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {convert, convertToOutput} from "./engine.js";
 import {ExecutionContext} from "./execution.js";
 
-it.each(["images", "binaryBytes", "layoutWork"].flatMap(key => ["plain", "html", "commonmark", "gfm", "rst", "latex", "rtf", "odt", "json"].map(to => ({key, to}))))("keeps RTF to $to retained with a finite $key budget", async ({key, to}) => {
-  const input = {bytes: new TextEncoder().encode(String.raw`{\rtf1{\pict\pngblip\picw1\pich1 89504e470d0a1a0a0000000d49484452000000010000000108000000003a7e9b550000000d494441547801010200fdff008000820081c36e25e00000000049454e44ae426082}text}`)}, fs = new MemoryFileSystem();
+it.each(["json", "rtf"].flatMap(from => ["images", "binaryBytes", "layoutWork"].flatMap(key => ["plain", "html", "commonmark", "gfm", "rst", "latex", "rtf", "odt", "json"].map(to => ({from, key, to})))))
+("keeps $from to $to retained with a finite $key budget", async ({from, key, to}) => {
+  const hex = "89504e470d0a1a0a0000000d49484452000000010000000108000000003a7e9b550000000d494441547801010200fdff008000820081c36e25e00000000049454e44ae426082";
+  const target = "data:image/png;base64," + btoa(String.fromCharCode(...Array.from({length: hex.length / 2}, (_, index) => Number.parseInt(hex.slice(index * 2, index * 2 + 2), 16))));
+  const source = from === "rtf" ? String.raw`{\rtf1{\pict\pngblip\picw1\pich1 ` + hex + "}text}" : JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: [{t: "Image", c: [["", [], []], [], [target, ""]]}]}]});
+  const input = {bytes: new TextEncoder().encode(source)}, fs = new MemoryFileSystem();
   for (const limit of [0, 1, 7, 8, 100000]) {
-    const limits = {[key]: limit}, options = {from: "rtf", to};
-    const expected = await convert([input], options, {limits}).catch(error => error);
-    if (limit === 100000 && to !== "json") expect(expected).not.toBeInstanceOf(Error);
+    const limits = {[key]: limit}, options = {from, to};
+    const expected = await convert([input], options, {limits, resourceFiles: fs}).catch(error => error);
+    if (limit === 100000 && (from === "rtf" ? to !== "json" : !["html", "latex"].includes(to))) expect(expected).not.toBeInstanceOf(Error);
     const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));
     const parts: Uint8Array[] = [];
     try {
-      const result = await convertToOutput([input], options, {limits, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write(bytes) {parts.push(bytes.slice());}, async close() {}, async abort() {}}}).catch(error => error);
+      const result = await convertToOutput([input], options, {limits, resourceFiles: fs, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write(bytes) {parts.push(bytes.slice());}, async close() {}, async abort() {}}}).catch(error => error);
       if (expected instanceof Error) expect(result).toMatchObject({code: (expected as Error & {code: string}).code, message: expected.message});
       else {expect(result).not.toBeInstanceOf(Error); expect(Uint8Array.from(parts.flatMap(part => [...part]))).toEqual(expected.kind === "text" ? new TextEncoder().encode(expected.text) : expected.bytes);}
       expect(acquire).not.toHaveBeenCalled();

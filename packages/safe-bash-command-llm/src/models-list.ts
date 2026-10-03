@@ -78,6 +78,7 @@ export async function listLlmModels(context: CommandContext, service: LlmService
     if (selected.length && !selected.some(value => value === model.id || aliases.includes(value))) continue;
     if (schemas && !model.capabilities?.includes("schema") || tools || asyncModels) continue;
     let output = description + (aliases.length ? ` (aliases: ${aliases.join(", ")})` : "");
+    if (model.outputType) output += `\n  Output type: ${model.outputType}`;
     if (options && Object.keys(model.options ?? {}).length) {
       output += "\n  Options:";
       for (const [name, rule] of Object.entries(model.options!)) {

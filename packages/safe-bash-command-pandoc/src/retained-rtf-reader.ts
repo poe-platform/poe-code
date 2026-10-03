@@ -301,7 +301,7 @@ class RetainedRtfReader {
     await this.flow.append(await this.ast.tag("Image", await this.ast.value([["", [], []], [], [id, ""]])));
   }
   get resourceCount(): number {return this.pictureCount;}
-  async resource(id: string): Promise<{chunks: () => AsyncGenerator<Uint8Array>} | undefined> {
+  async resource(id: string): Promise<{identity: number; chunks: () => AsyncGenerator<Uint8Array>} | undefined> {
     if (!id.startsWith("rtf-picture-") || id.length > 40) return undefined;
     const number = Number(id.slice(12, id.lastIndexOf(".")));
     if (!Number.isSafeInteger(number) || number < 1) return undefined;
@@ -310,7 +310,7 @@ class RetainedRtfReader {
     const position = view.getFloat64(0, true), length = view.getFloat64(8, true), jpeg = view.getFloat64(16, true);
     if (id !== `rtf-picture-${number}.${jpeg ? "jpg" : "png"}`) return undefined;
     const storage = this.storage, context = this.context;
-    return {chunks: async function* () {for (let offset = 0; offset < length; offset += 16384) {await context.cooperate(); yield await storage.read(position + offset, Math.min(16384, length - offset));}}};
+    return {identity: number, chunks: async function* () {for (let offset = 0; offset < length; offset += 16384) {await context.cooperate(); yield await storage.read(position + offset, Math.min(16384, length - offset));}}};
   }
 }
 

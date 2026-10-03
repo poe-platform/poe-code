@@ -198,11 +198,12 @@ response replaces the prior document before the next filter starts. At most five
 page caches coexist (two document pairs and one response spool), independently
 of filter count. Filter image-origin admission currently materializes each URI;
 the trusted runtime's own document state is separate and must be measured.
-Single-input RTF → JSON/plain/HTML/CommonMark/GFM/RST/LaTeX also uses caller-backed
+Single-input RTF → JSON/plain/HTML/CommonMark/GFM/RST/LaTeX/RTF/ODT also uses caller-backed
 source, parser state, document nodes and real Lua or JSON filters. Embedded picture
 bytes stay in caller storage independently of filter document generations; JSON
 output continues to reject resource sidecars even after a filter removes the images.
-RTF → RTF/ODT, embedded HTML and finite structural budgets still use the compatibility path.
+Embedded pictures survive Lua filter generations; JSON filters reject unrepresentable
+resource sidecars. Embedded HTML and finite structural budgets still use the compatibility path.
 Single-input JSON → plain text uses the same retained document and streaming
 JSON filters. Its writer jobs, diagnostic paths, intermediate text, wrapping and
 indentation use caller storage, including long words and nested lists. It preserves

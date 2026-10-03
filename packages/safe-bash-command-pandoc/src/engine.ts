@@ -1,3 +1,4 @@
+import {readRetainedRtfDocument} from "./retained-rtf-document.js";
 import {RetainedOptions} from "./retained-options.js";
 import { normalizeDocumentCooperatively, AstError } from "./ast.js";
 import type { MetaValue } from "./ast-types.js";
@@ -26,7 +27,6 @@ import type {
   WriterCapability
 } from "./types.js";
 
-import {readRetainedRtfDocument} from "./retained-rtf-document.js";
 import {streamRetainedDocument} from "./stream-retained.js";
 import {readRetainedJson} from "./retained-json.js";
 import {streamDelimited} from "./stream-delimited.js";
@@ -626,7 +626,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
   const streamedFilters = options.filters === undefined || Array.isArray(options.filters) && options.filters.every(request =>
     (request?.kind === "json" || request?.kind === "lua") && typeof context.filters?.applyJsonStream === "function");
   const backedDocument = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
-    && (reader.descriptor.name === "json" || reader.descriptor.name === "rtf" && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex"].includes(writer.descriptor.name)) && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
+    && ["json", "rtf"].includes(reader.descriptor.name) && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
     && Object.keys(options).every(key => key === "resourcePath" && ["rtf", "odt"].includes(writer.descriptor.name) || ["from", "to", "filters", "metadata", "metadataFiles", "metadataJson", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
     && Object.entries(context.limits ?? {}).every(([key, value]) => ["inputBytes", "outputBytes", "work", "diagnostics"].includes(key) || value === Infinity);
   if (backedDocument) {
@@ -635,11 +635,21 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
       session.options(options);
       const includes = await session.call(() => RetainedOptions.acquire(session, context.workingFiles!, options));
       const filters = await session.admitFilters(options.filters);
-      await session.call(() => streamRetainedDocument(async () => {
-        if (reader.descriptor.name === "json") return readRetainedJson(inputs[0]!, session, context.workingFiles!);
-        const retainedRtf = await readRetainedRtfDocument(inputs[0]!, session, context.workingFiles!);
-        return {...retainedRtf.document, resourceCount: retainedRtf.resources.count, closeResources: retainedRtf.close};
-      }, session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", inputs[0]!, includes));
+      let reading = false;
+      try {
+        await session.call(() => streamRetainedDocument(async () => {
+          reading = true;
+          if (reader.descriptor.name === "json") {reading = false; return readRetainedJson(inputs[0]!, session, context.workingFiles!);}
+          const retained = await readRetainedRtfDocument(inputs[0]!, session, context.workingFiles!);
+          reading = false; return {...retained.document, resources: retained.resources, closeResources: retained.close};
+        }, session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", inputs[0]!, includes));
+      } catch (error) {
+        if (reading && reader.descriptor.name === "rtf" && error instanceof PandocError && error.code !== "E_IO" && error.code !== "E_CANCELLED") {
+          const name = inputs[0]!.source ?? (error.code === "E_PARSE" ? inputs[0]!.base : undefined);
+          if (name) throw new PandocError(error.code, "convert", error.message, error.format, `${name}:${error.location ?? "1:1"}`);
+        }
+        throw error;
+      }
       return {kind: "output", diagnostics: session.snapshotDiagnostics()};
     } finally {await session.close();}
   }

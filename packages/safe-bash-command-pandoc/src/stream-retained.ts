@@ -1,3 +1,4 @@
+import type {readRetainedRtfDocument} from "./retained-rtf-document.js";
 import type {RetainedOptions} from "./retained-options.js";
 import {mergeRetainedMetadata} from "./retained-metadata.js";
 import {writeRetainedOdt} from "./retained-odt.js";
@@ -49,7 +50,7 @@ async function checkImageOrigins(tree: BackedJson, context: ExecutionContext): P
 
 /** Retain each document generation and filter response in caller storage. The
  * previous generation is retired before another filter starts. */
-export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>> & {resourceCount?: number; closeResources?: () => Promise<void>}>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt" = "json", origin?: ResourceOrigin, includes?: RetainedOptions): Promise<void> {
+export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>> & {resources?: Awaited<ReturnType<typeof readRetainedRtfDocument>>["resources"]; closeResources?: () => Promise<void>}>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt" = "json", origin?: ResourceOrigin, includes?: RetainedOptions): Promise<void> {
   let closeResources: (() => Promise<void>) | undefined;
   let originStorage:PagedStorage | undefined, origins:RetainedOrigins | undefined;
   let releaseOrigins:(()=>void) | undefined;
@@ -67,7 +68,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       origins=new RetainedOrigins(originStorage,units=>context.cooperate(units));
     }
     const loaded = await load();
-    const resourceCount = loaded.resourceCount ?? 0;
+    const inputResources = loaded.resources, resourceCount = inputResources?.count ?? 0;
     closeResources = loaded.closeResources;
     document = loaded;
     for (const file of options.metadataFiles ?? []) {
@@ -89,6 +90,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       await document.close(); document = next;
     }
     for (const request of options.filters ?? []) {
+      if (request.kind === "json" && resourceCount) throw new PandocError("E_UNSUPPORTED_FEATURE", "write", "Pandoc JSON cannot represent resources, language or direction document fields", "json", "$");
       if (request.kind === "json") await checkImageOrigins(document.tree, context);
       await preflight(document.chunks());
       const signal = context.signal ?? new AbortController().signal;
@@ -123,7 +125,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       document = next;
     }
     if (target === "rtf" || target === "odt") {
-      const resources = await prepareRetainedImageResources(document.tree, document.order, context, working, options, origins ? async node=>await origins!.inherited(node)?origin??{}:{} : options.filters?.length ? undefined : origin);
+      const resources = await prepareRetainedImageResources(document.tree, document.order, context, working, options, origins ? async node=>await origins!.inherited(node)?origin??{}:{} : options.filters?.length ? undefined : origin, inputResources);
       let writerFailure: {reason: unknown} | undefined;
       try {if (target === "odt") await writeRetainedOdt(document.tree, context, working, options, resources);
       else await writeRetainedRtf(document.tree, context, working, options, document.order, async node => {

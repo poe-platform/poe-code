@@ -544,3 +544,15 @@ The 16-request aggregate backing peak was 105,199,438 bytes; independently
 sampled heap metrics must not be summed into a simultaneous memory total.
 Cloudflare deployment, runtime CPU/subrequest costs, other document shapes,
 small-cache reruns and resident fallback paths still require qualification.
+
+
+RTF reader qualification must cover long text, wide font/style/list indexes,
+deep formatting/field continuations, tables, notes and large hexadecimal/binary
+pictures. Run each increasing-size and concurrent cohort with externally backed
+working files and record actual isolate memory, CPU and first-output latency.
+Compare all supported retained writer outputs against the compatibility reader,
+including real Lua image deletion/replacement and JSON sidecar rejection.
+`scripts/pandoc-rtf-reader-worker.test.ts` exercises reused input chunks, slow
+sinks and source/cancellation/sink failures with R2 pages under local workerd.
+Transfer and cleanup assertions are conformance evidence, not deployed
+Cloudflare memory or CPU qualification.

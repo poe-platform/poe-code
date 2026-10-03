@@ -687,6 +687,31 @@
       "dependsOn": [
         "build"
       ]
+    },
+    "@poe-code/memory#test:unit": {
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "@poe-code/agent-hook-config#test:unit": {
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "@poe-code/pipeline#test:unit": {
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "@poe-code/ralph#test:unit": {
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "@poe-code/poe-acp-client#test:unit": {
+      "dependsOn": [
+        "build"
+      ]
     }
   }
 }

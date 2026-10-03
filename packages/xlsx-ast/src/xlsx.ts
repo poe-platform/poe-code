@@ -1,5 +1,6 @@
 import { XlsxExternalLinkWriter } from "./external-link-export.js";
 import { resolveExternalLinks } from "./external-links.js";
+import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-stream";
 import { createStoredZipEntries, ZipStorageFailure } from "@poe-code/office-package";
 import { ownedRangeSource } from "@poe-code/spreadsheet-engine/range-input";
 import { createZipCodec, CodecError, type ZipLimits, type ZipEntry, type ZipStreamEntry, type ZipSource } from "@poe-code/office-package";
@@ -809,13 +810,23 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<im
     const modified = new Date(context.clock?.now() ?? Date.UTC(2000, 0, 1));
     async function add(name: string, content: string, type?: string): Promise<void> {
       context.signal.throwIfAborted(); charge(content.length);
-      const length = encoder.encode(declaration + content + "\n").length;
-      if (length > context.limits.outputBytes - plainBytes) limit("output bytes");
       if (members >= bounds.maxMembers) limit("members");
-      plainBytes += length;
-      const entry = await zip.makeZipEntry(name, encoder.encode(declaration + content + "\n"),
-        { modified, mode: 0o644, directory: false, symlink: false, compression: "deflate" }, bounds, context.signal);
-      if (staged) await staged.add(entry); else entries.push(entry);
+      const attributes = { modified, mode: 0o644, directory: false, symlink: false, compression: "deflate" as const };
+      if (staged) {
+        async function* text() { yield declaration; yield content; yield "\n"; }
+        async function* bytes() {
+          for await (const chunk of encodeTextStream(text(), "UTF-8", false, context)) {
+            if (chunk.length > context.limits.outputBytes - plainBytes) limit("output bytes");
+            plainBytes += chunk.length; yield chunk;
+          }
+        }
+        await staged.addSource(name, bytes(), attributes);
+      } else {
+        const bytes = encoder.encode(declaration + content + "\n");
+        if (bytes.length > context.limits.outputBytes - plainBytes) limit("output bytes");
+        plainBytes += bytes.length;
+        entries.push(await zip.makeZipEntry(name, bytes, attributes, bounds, context.signal));
+      }
       members++;
       if (type) types.push({ name, type });
     }

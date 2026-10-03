@@ -18,8 +18,8 @@ try {
 ```
 
 With engine `workingFiles`, both XLSX exporters stage archive members and central
-records through the caller’s safe-fs and emit output with bounded chunks and
-backpressure. Worksheet XML, shared strings and workbook cells still reside in
+records through the caller’s safe-fs. XML encoding, member compression and archive
+output use bounded chunks and backpressure. Worksheet XML, shared strings and workbook cells still reside in
 memory; an external safe-fs backend is required for staging outside the isolate.
 
 Compose additional format modules explicitly to convert between file types.

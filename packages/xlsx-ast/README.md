@@ -49,7 +49,8 @@ the directory and member indexes use caller-backed scratch storage and bounded
 caches. Without that capability the convenience reader retains the directory.
 
 `createXlsxStreamWriter` uses `workingFiles` to stage ZIP member payloads and
-central records in the caller’s safe-fs, then emits bounded output chunks. The
+central records in the caller’s safe-fs. XML encoding and member compression
+consume bounded chunks, followed by bounded archive output. The
 format provider registers this path for both editions. Worksheet XML, shared
 strings and workbook cells still use in-memory representations. Hosts without
 working storage and explicit `createXlsxWriter` calls retain buffered output.

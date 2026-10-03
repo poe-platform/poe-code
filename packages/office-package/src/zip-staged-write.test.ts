@@ -140,3 +140,70 @@ it("does not pull a member after cancellation during header storage", async () =
     modified: new Date("2000-01-01Z"), mode: 0o644, directory: false, symlink: false })).rejects.toBe(reason);
   expect(pulled).toBe(false);
 });
+
+it.each(["store", "deflate", "auto"] as const)("compresses sequential sources into backing storage with %s parity", async compression => {
+  const zip = createZipCodec(undefined, { validatePayloads: true }), backing = storage();
+  const bytes = new TextEncoder().encode("héllo 🦀".repeat(6000)), reused = new Uint8Array(127);
+  const attributes = { modified: new Date("2000-01-01Z"), mode: 0o644, directory: false, symlink: false, compression };
+  const expectedEntry = await zip.makeZipEntry("a.xml", bytes, attributes, limits, signal);
+  const expected = await zip.writeZipArchive({ entries: [expectedEntry], comment: new Uint8Array() }, limits, signal);
+  let closed = false;
+  async function* input() {
+    try { for (let offset = 0; offset < bytes.length; offset += reused.length) {
+      const size = Math.min(reused.length, bytes.length - offset);
+      reused.fill(0); reused.set(bytes.subarray(offset, offset + size)); yield reused.subarray(0, size);
+    } } finally { reused.fill(255); closed = true; }
+  }
+  const writer = zip.createStagedWriter(backing.api, limits, signal);
+  await writer.addSource("a.xml", input(), attributes);
+  const output: Uint8Array[] = [];
+  for await (const chunk of writer.finish()) output.push(chunk.slice());
+  expect(Buffer.concat(output)).toEqual(Buffer.from(expected)); expect(closed).toBe(true);
+  expect(backing.maximum()).toBeLessThanOrEqual(limits.chunkSize);
+});
+
+it("keeps auto compression's stored fallback when deflate exceeds the archive budget", async () => {
+  const zip = createZipCodec(), bytes = new Uint8Array(400000);
+  let state = 12345;
+  for (let i = 0; i < bytes.length; i++) { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; bytes[i] = state >>> 24; }
+  const attributes = { modified: new Date("2000-01-01Z"), mode: 0o644, directory: false, symlink: false, compression: "auto" as const };
+  const entry = await zip.makeZipEntry("a", bytes, attributes, limits, signal);
+  expect(entry.method).toBe(0);
+  const expected = await zip.writeZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal);
+  const writer = zip.createStagedWriter(storage().api, { ...limits, maxArchiveBytes: expected.length }, signal);
+  async function* input() { for (let offset = 0; offset < bytes.length; offset += 127) yield bytes.subarray(offset, offset + 127); }
+  await writer.addSource("a", input(), attributes);
+  const output: Uint8Array[] = [];
+  for await (const chunk of writer.finish()) output.push(chunk);
+  expect(Buffer.concat(output)).toEqual(Buffer.from(expected));
+});
+
+it.each(["store", "deflate", "auto"] as const)("closes raw %s sources and preserves failures", async compression => {
+  for (const mode of ["source", "storage", "cancel", "limit"] as const) {
+    const backing = storage(), controller = new AbortController(), reason = new Error(mode);
+    if (mode === "storage") backing.api.write = async () => { throw reason; };
+    let closed = false;
+    async function* input() {
+      try {
+        yield new Uint8Array(4096).fill(42);
+        if (mode === "source") throw reason;
+        if (mode === "cancel") controller.abort(reason);
+        yield new Uint8Array(4096).fill(43);
+      } finally { closed = true; }
+    }
+    const writer = createZipCodec().createStagedWriter(backing.api, mode === "limit" ? { ...limits, maxEntryBytes: 5000 } : limits, controller.signal);
+    const adding = writer.addSource("a", input(), { modified: new Date("2000-01-01Z"), mode: 0o644, directory: false, symlink: false, compression });
+    if (mode === "limit") await expect(adding).rejects.toThrow(); else await expect(adding).rejects.toBe(reason);
+    expect(closed).toBe(true); await expect(writer.finish().next()).rejects.toThrow();
+  }
+});
+
+it.each(["store", "deflate", "auto"] as const)("preserves empty source encoding with %s", async compression => {
+  const zip = createZipCodec(), attributes = { modified: new Date("2000-01-01Z"), mode: 0o644, directory: false, symlink: false, compression };
+  const entry = await zip.makeZipEntry("empty", new Uint8Array(), attributes, limits, signal);
+  const writer = zip.createStagedWriter(storage().api, limits, signal);
+  await writer.addSource("empty", (async function* () { yield new Uint8Array(); })(), attributes);
+  const output: Uint8Array[] = [];
+  for await (const bytes of writer.finish()) output.push(bytes);
+  expect(Buffer.concat(output)).toEqual(Buffer.from(await zip.writeZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal)));
+});

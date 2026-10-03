@@ -65,8 +65,12 @@ returns owned bounded chunks, and closes the input on cancellation or early retu
 
 `createStagedWriter(storage, limits, signal)` writes member payloads and central
 headers to caller storage instead of retaining an archive-sized byte array.
-Await `writer.add(entry)` for each buffered or streamed compressed member, then
-consume `writer.finish(comment?)` with backpressure. Transfers are capped at
+Await `writer.add(entry)` for each buffered or streamed compressed member, or
+`writer.addSource(name, source, attributes)` for uncompressed byte streams.
+`addSource` computes sizes and CRC while compressing or storing bytes; its
+`compression` option accepts `store`, `deflate`, or `auto`. Auto mode retains its
+raw fallback in caller storage and preserves it when deflate overhead exceeds
+the archive budget. Consume `writer.finish(comment?)` with backpressure. Transfers are capped at
 16 KiB and by `chunkSize`; directory names use an external index when duplicate
 rejection is enabled. Payload validation replays the staged bytes before output.
 The caller must close storage on every outcome, including abandoned output.

@@ -62,6 +62,14 @@ export interface ZipEntry {
   dosDate?: number;
 }
 
+export interface ZipEntryOptions {
+  readonly modified: Date;
+  readonly mode: number;
+  readonly directory: boolean;
+  readonly symlink: boolean;
+  readonly compression?: "auto" | "store" | "deflate";
+}
+
 /** A compressed member supplied by a caller-owned stream (for example a retained VFS range).
  * Metadata and compressedSize describe that exact range. No filesystem is acquired here.
  */
@@ -803,13 +811,7 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
   async function makeZipEntry(
     name: string,
     bytes: Uint8Array,
-    attributes: {
-      modified: Date;
-      mode: number;
-      directory: boolean;
-      symlink: boolean;
-      compression?: "auto" | "store" | "deflate";
-    },
+    attributes: ZipEntryOptions,
     limits: ZipLimits,
     signal: AbortSignal
   ): Promise<ZipEntry> {
@@ -1048,6 +1050,30 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
     const central = new ZipWriteChain(storage, chunkSize, signal, yieldTurn);
     const names = profile.rejectDuplicateNames ? new ZipDirectoryIndex(storage) : undefined;
     let state: "open" | "adding" | "finished" | "failed" = "open", members = 0, total = 0;
+    async function prepare(entry: ZipEntry | ZipStreamEntry) {
+      const item = encodeEntry(entry, limits, local.length), headers = entryHeaders(item);
+      const compressedSize = "compressedSize" in entry ? entry.compressedSize : entry.data.length;
+      number(total + entry.size, limits.maxTotalBytes, "total byte");
+      number(local.length + central.length + headers.local.length + headers.central.length + compressedSize + 22,
+        Math.min(limits.maxArchiveBytes, 0xfffffffe), "archive byte");
+      if (names) {
+        if (await names.get(entry.name) !== undefined) fail("ZIP duplicate member name");
+        await names.set(entry.name, members + 1);
+      }
+      signal.throwIfAborted();
+      return headers;
+    }
+    async function commit(entry: ZipEntry | ZipStreamEntry, payload: ZipWriteChain, headers: ReturnType<typeof entryHeaders>) {
+      if (profile.validatePayloads) {
+        const owned = { ...entry, data: payload.read(), compressedSize: payload.length };
+        for await (const chunk of decodeZipEntry(owned, limits, signal)) { signal.throwIfAborted(); void chunk; }
+      }
+      await local.append([headers.local], headers.local.length);
+      await local.join(payload);
+      await central.append([headers.central], headers.central.length);
+      signal.throwIfAborted();
+      members++; total += entry.size; state = "open";
+    }
     return {
       async add(entry: ZipEntry | ZipStreamEntry): Promise<void> {
         signal.throwIfAborted();
@@ -1056,30 +1082,68 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
         try {
           number(members + 1, Math.min(limits.maxMembers, 65534), "member");
           entry = { ...entry, modified: new Date(entry.modified.getTime()) };
-          const item = encodeEntry(entry, limits, local.length), headers = entryHeaders(item);
+          const headers = await prepare(entry);
           const compressedSize = "compressedSize" in entry ? entry.compressedSize : entry.data.length;
-          number(total + entry.size, limits.maxTotalBytes, "total byte");
-          number(local.length + central.length + headers.local.length + headers.central.length + compressedSize + 22,
-            Math.min(limits.maxArchiveBytes, 0xfffffffe), "archive byte");
-          if (names) {
-            if (await names.get(entry.name) !== undefined) fail("ZIP duplicate member name");
-            await names.set(entry.name, members + 1);
-          }
-          // Store the member independently so validation replays those exact
-          // owned bytes before the archive can be exposed to a destination.
-          signal.throwIfAborted();
           const payload = new ZipWriteChain(storage, chunkSize, signal, yieldTurn);
           const source = entry.data instanceof Uint8Array ? [entry.data] : typeof entry.data === "function" ? entry.data(signal) : entry.data;
           await payload.append(source, compressedSize);
-          if (profile.validatePayloads) {
-            const owned = { ...entry, data: payload.read(), compressedSize };
-            for await (const chunk of decodeZipEntry(owned, limits, signal)) { signal.throwIfAborted(); void chunk; }
+          await commit(entry, payload, headers);
+        } catch (error) { state = "failed"; throw error; }
+      },
+      /** Consume raw bytes once, computing sizes and CRC while compression writes
+       * into caller storage. Auto compression retains its raw alternative there. */
+      async addSource(name: string, source: ByteSource, attributes: ZipEntryOptions): Promise<void> {
+        signal.throwIfAborted();
+        if (state !== "open") fail("ZIP writer is not open");
+        state = "adding";
+        try {
+          number(members + 1, Math.min(limits.maxMembers, 65534), "member");
+          const { compression = "auto", ...supplied } = attributes;
+          if (!["auto", "store", "deflate"].includes(compression)) fail("ZIP unsupported compression choice");
+          const entry: ZipStreamEntry = { ...supplied, modified: new Date(supplied.modified.getTime()), name,
+            size: 0, compressedSize: 0, crc32: 0, method: 0, data: source };
+          entryBounds(entry, limits, limits.maxArchiveBytes, true);
+          const raw = new ZipWriteChain(storage, chunkSize, signal, yieldTurn);
+          const compressed = new ZipWriteChain(storage, chunkSize, signal, yieldTurn);
+          let size = 0, checksum = 0;
+          const deflate = compression === "deflate" || compression === "auto" && !entry.directory && !entry.symlink;
+          async function* input() {
+            for await (const chunk of source) {
+              signal.throwIfAborted();
+              if (!(chunk instanceof Uint8Array)) fail("ZIP invalid source bytes");
+              for (let offset = 0; offset < chunk.length; offset += chunkSize) {
+                signal.throwIfAborted();
+                const bytes = new Uint8Array(chunk.subarray(offset, offset + chunkSize));
+                size += bytes.length;
+                number(size, Math.min(limits.maxEntryBytes, limits.maxTotalBytes - total, 0xfffffffe), "entry byte");
+                checksum = crc32(bytes, checksum);
+                if (compression !== "deflate") await raw.append([bytes], bytes.length);
+                yield bytes;
+                await yieldTurn(signal);
+              }
+              if (!chunk.length) await yieldTurn(signal);
+            }
           }
-          await local.append([headers.local], headers.local.length);
-          await local.join(payload);
-          await central.append([headers.central], headers.central.length);
-          signal.throwIfAborted();
-          members++; total += entry.size; state = "open";
+          let compressedTooLarge = false;
+          if (deflate) {
+            const reader = new CodecReader(input(), signal);
+            try {
+              for await (const bytes of codec(reader, { mode: "deflate-raw", chunkSize }, signal)) {
+                signal.throwIfAborted();
+                if (compression === "auto" && (compressedTooLarge || compressed.length + bytes.length > Math.min(limits.maxArchiveBytes, 0xfffffffe))) {
+                  compressedTooLarge = true;
+                  continue;
+                }
+                number(compressed.length + bytes.length, Math.min(limits.maxArchiveBytes, 0xfffffffe), "compressed byte");
+                await compressed.append([bytes], bytes.length);
+              }
+            } finally { await reader.close(); signal.throwIfAborted(); }
+          } else { for await (const bytes of input()) void bytes; }
+          const useCompressed = deflate && !compressedTooLarge && (compression === "deflate" || size > 0 && compressed.length < size);
+          const payload = useCompressed ? compressed : raw;
+          const finished: ZipStreamEntry = { ...entry, size, compressedSize: payload.length, crc32: checksum, method: useCompressed ? 8 : 0 };
+          const headers = await prepare(finished);
+          await commit(finished, payload, headers);
         } catch (error) { state = "failed"; throw error; }
       },
       async *finish(comment = new Uint8Array()): AsyncGenerator<Uint8Array> {

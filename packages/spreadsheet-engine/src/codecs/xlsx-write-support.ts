@@ -18,7 +18,6 @@ export function escapeXlsx(value: string): string {
 }
 export function createXlsxXml(context: CapabilityContext) {
   let nodes = 0, work = 0;
-  const encoder = new TextEncoder();
   const names = new Set<string>();
   function charge(amount = 1): void {
     context.signal.throwIfAborted();
@@ -55,8 +54,14 @@ export function createXlsxXml(context: CapabilityContext) {
       text += ` ${key}="${escapeXlsx(raw).split("\n").join("&#10;").split("\t").join("&#9;")}"`;
     }
     text += content ? ">" + content + "</" + name + ">" : "/>";
-    if (text.length > context.limits.outputBytes || encoder.encode(text).length > context.limits.outputBytes)
-      throw new SsconvertError("resource-limit", "ssconvert XLSX output bytes limit exceeded");
+    let bytes = 0, characters = 0;
+    if (context.limits.outputBytes !== Infinity) for (const character of text) {
+      if (++characters % 16384 === 0) context.signal.throwIfAborted();
+      const point = character.codePointAt(0)!;
+      bytes += point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4;
+      if (bytes > context.limits.outputBytes)
+        throw new SsconvertError("resource-limit", "ssconvert XLSX output bytes limit exceeded");
+    }
     return text;
   };
   return { element, charge };

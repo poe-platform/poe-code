@@ -7,6 +7,7 @@ export {
   crc32,
   type ZipArchive,
   type ZipEntry,
+  type ZipEntryOptions,
   type ZipStreamEntry,
   type ZipStreamArchive,
   type ZipSource,

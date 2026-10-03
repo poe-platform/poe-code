@@ -25,9 +25,16 @@ it.each(["2006", "2008"] as const)("publishes XLSX %s using caller-backed ZIP re
     environment: { env: {}, locale: "C", timezone: "UTC" }, own() {} });
   try {
     const book = await engine.adoptWorkbook(raw, { signal }), chunks: Uint8Array[] = [];
-    await engine.writeWorkbook(book, { kind: "stream", sink: { async write(bytes) {
-      expect(bytes.length).toBeLessThanOrEqual(16384); await Promise.resolve(); chunks.push(bytes.slice());
-    } } }, { exportType: edition === "2006" ? "Gnumeric_Excel:xlsx" : "Gnumeric_Excel:xlsx2" }, { signal });
+    const encode = TextEncoder.prototype.encode;
+    const encoding = vi.spyOn(TextEncoder.prototype, "encode").mockImplementation(function(this: TextEncoder, text) {
+      expect(text?.length ?? 0).toBeLessThanOrEqual(16384);
+      return encode.call(this, text);
+    });
+    try {
+      await engine.writeWorkbook(book, { kind: "stream", sink: { async write(bytes) {
+        expect(bytes.length).toBeLessThanOrEqual(16384); await Promise.resolve(); chunks.push(bytes.slice());
+      } } }, { exportType: edition === "2006" ? "Gnumeric_Excel:xlsx" : "Gnumeric_Excel:xlsx2" }, { signal });
+    } finally { encoding.mockRestore(); }
     expect(Buffer.concat(chunks)).toEqual(Buffer.from(expected)); expect(chunks.length).toBeGreaterThan(1);
     expect(array).not.toHaveBeenCalled(); expect(written).toBeGreaterThan(0); expect(largestWrite).toBeLessThanOrEqual(16384);
     expect(closed).toBe(1); expect(await fs.readdir("/")).toEqual([]);

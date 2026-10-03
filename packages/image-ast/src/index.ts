@@ -1,6 +1,7 @@
 export * from "./ast.js";
 export * from "./codecs/exif.js";
 export * from "./codecs/png.js";
+export * from "./codecs/png-storage.js";
 export * from "./codecs/jpeg.js";
 export * from "./codecs/webp.js";
 export * from "./codecs/heif.js";

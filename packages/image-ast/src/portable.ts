@@ -1,5 +1,6 @@
 export * from "./ast.js";
 export * from "./codecs/index.js";
+export * from "./codecs/png-storage.js";
 export * from "./ops/resize.js";
 export * from "./ops/transform.js";
 export * from "./sharp.js";

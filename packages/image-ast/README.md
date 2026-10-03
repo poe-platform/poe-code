@@ -11,6 +11,18 @@ pixel operations; `compositeImage` accepts an explicit `readFile` capability.
 Pixel operations also expose `...Steps` generators, such as `resizeImageSteps`,
 for hosts that schedule bounded work between event-loop turns. The synchronous
 functions return the same pixel results.
+`decodePngToStorage(source, storage, signal)` decodes PNGs through reads and writes
+of at most 4 KiB, including wide scanlines and Adam7 interlacing. Supply a
+retained byte-range source and backing storage with `allocate`, `read`, and
+`write`; the returned `position` addresses packed RGBA pixels in that storage.
+`encodePngFromStorage(image, storage, signal)` produces bounded PNG chunks
+under downstream backpressure. The caller owns source and storage cleanup.
+PNG-to-PNG `.toFile()` conversions without pixel operations use these codecs
+automatically when the supplied filesystem supports retained reads, working
+storage, and atomic streaming or retained staged publication.
+Use an external backing provider
+for large images; memory-backed storage still retains the pixels in RAM.
+
 Input pixel limits are disabled by default; set `limitInputPixels` to a positive
 integer to enforce a limit, or `Infinity` to explicitly disable it.
 

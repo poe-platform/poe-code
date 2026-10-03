@@ -1,3 +1,4 @@
+import {checkLimitInputPixels} from "../limits.js";
 import {
   parseColor,
   type ImageFormat,
@@ -44,19 +45,6 @@ import {
   readSvgMetadata
 } from "./svg-pdf.js";
 
-function checkLimitInputPixels(width: number, height: number, options?: SharpInputOptions): void {
-  const limit =
-    options?.limitInputPixels === false ||
-    options?.limitInputPixels === 0 ||
-    (options?.unlimited === true && options?.limitInputPixels === undefined)
-      ? Infinity
-      : typeof options?.limitInputPixels === "number"
-        ? options.limitInputPixels
-        : Infinity;
-  if (width * height > limit) {
-    throw new Error(`Input image exceeds pixel limit (${width}x${height} > ${limit})`);
-  }
-}
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
   if (isPngBytes(bytes)) return "png";

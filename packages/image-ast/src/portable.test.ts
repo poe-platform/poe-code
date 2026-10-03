@@ -26,6 +26,8 @@ describe("portable image engine", () => {
     expect(result.outputFiles[0]!.text).not.toContain('"node:');
     expect(Object.values(result.metafile!.outputs).flatMap(output => Object.entries(output.inputs)).filter(([file, input]) =>
       input.bytesInOutput > 0 && file.includes("/safe-fs/") && file.includes("/fs/")
+      // This contract helper compares opaque receipts; it performs no file I/O.
+      && !["/fs/mount/identity.ts", "/fs/mount/identity.js"].some(suffix => file.endsWith(suffix))
     )).toEqual([]);
   });
   it("externalizes @poe-code/pdf-ast and pako in dist/index.js and re-exports ./index.js from portable/browser entrypoints", async () => {
@@ -39,4 +41,12 @@ describe("portable image engine", () => {
     expect(distPortable).toContain('from "./index.js"');
     expect(distBrowser).toContain('from "./index.js"');
   });
+});
+
+it("keeps filesystem error and storage ownership external in the built image adapter", async () => {
+  const {readFileSync}=await import("node:fs");
+  const built=readFileSync(new URL("../dist/index.js",import.meta.url),"utf8");
+  expect(built.includes('"@poe-code/safe-fs/contracts"')).toBe(true);
+  expect(built.includes('"@poe-code/safe-fs/storage"')).toBe(true);
+  expect(built.includes('class PagedStorage')).toBe(false);
 });

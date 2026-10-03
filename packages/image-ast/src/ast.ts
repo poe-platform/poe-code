@@ -1,3 +1,5 @@
+import type {FileSystem} from "@poe-code/safe-fs/contracts";
+
 export type ImageFormat =
   | "png"
   | "jpeg"
@@ -242,10 +244,8 @@ export interface CompositeLayer {
 
 export interface SharpInputOptions {
   /** Explicit virtual filesystem for path inputs and outputs. */
-  readonly filesystem?: {
-    readFile(path: string): Promise<Uint8Array>;
-    writeFile(path: string, data: Uint8Array): Promise<void>;
-  };
+  readonly filesystem?: Pick<FileSystem, "readFile" | "writeFile"> & Partial<FileSystem>;
+  readonly signal?: AbortSignal;
   readonly density?: number;
   readonly page?: number;
   readonly pages?: number;

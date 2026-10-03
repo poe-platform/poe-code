@@ -6,7 +6,9 @@ import { PdfDocument } from "../document.js";
 import { PdfFileSource } from "../source.js";
 import { openPdfCrossReference } from "./cross-reference.js";
 import { PdfObjectIndex } from "./object-index.js";
-import { PdfObjectReader } from "./object-reader.js";
+import { PdfObjectReader, openPdfObjectReader } from "./object-reader.js";
+import { readFileSync } from "node:fs";
+import { decodeStreamObject } from "./filters.js";
 
 const encode = (s: string) => new TextEncoder().encode(s);
 async function fixture(text: string, entries: PdfXRefEntry[], options = {}) {
@@ -251,6 +253,75 @@ describe("range-backed PDF object reader", () => {
     for (const result of await results) expect(result).toMatchObject({ status: "rejected", reason: failure });
     expect(await f.fs.readdir("/scratch")).toEqual(before);
     await f.close();
+  });
+
+  it.each([3, 6] as const)("authenticates and lazily decodes revision %i encrypted documents", async revision => {
+    const doc = PdfDocument.create(); doc.addPage().drawText("retained encrypted document", { x: 20, y: 30 });
+    const bytes = doc.save({ objectStreams: "generate", encrypt: { userPassword: "secret", revision } });
+    const expected = PdfDocument.load(bytes, { password: "secret" }).cos;
+    const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", bytes);
+    const source = await PdfFileSource.open(fs, "/input", { chunkBytes: 31, cacheBytes: 62 });
+    const opened = await openPdfObjectReader(source, { fs, directory: "/scratch" }, { password: "secret", chunkBytes: 31, cacheBytes: 62 });
+    expect(opened.encryption?.revision).toBe(revision);
+    for (const object of expected.objects.values()) {
+      if (object.value.kind !== "stream") continue;
+      const actual: number[] = [];
+      for await (const chunk of opened.reader.decodeStream(object.objectNumber, object.generationNumber)) { expect(chunk.length).toBeLessThanOrEqual(31); actual.push(...chunk); }
+      expect(new Uint8Array(actual)).toEqual(decodeStreamObject(object.value, Infinity, node => expected.resolve(node)));
+    }
+    const info = await opened.reader.get(opened.crossReference.infoRef!.objectNumber);
+    expect(info?.value).toMatchObject({ kind: "dict" });
+    if (info?.value.kind === "dict") expect(dictGet(info.value, "Producer")).toMatchObject({ bytes: new TextEncoder().encode("@poe-code/pdf-ast") });
+    await opened.close(); expect(await fs.readdir("/scratch")).toEqual([]);
+    expect((await source.read(0, 1))[0]).toBe(37); await source.close();
+  });
+
+  it.each([
+    ["pdfjs-issue6010_1.pdf", "abc"], ["pdfjs-issue6010_2.pdf", "æøå"],
+    ["pdfjs-saslprep-r6.pdf", "SªSL\u00adprep"], ["pypdf-r5-saslprep.pdf", "SaSLprep"],
+  ])("matches buffered decryption of independent fixture %s", async (file, password) => {
+    const bytes = new Uint8Array(readFileSync(new URL(`../fixtures/${file}`, import.meta.url)));
+    const expected = PdfDocument.load(bytes, { password }).cos;
+    const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", bytes);
+    const source = await PdfFileSource.open(fs, "/input");
+    const opened = await openPdfObjectReader(source, { fs, directory: "/scratch" }, { password });
+    for await (const entry of opened.crossReference.index.entries()) {
+      if (entry.type === "free") continue;
+      const object = expected.objects.get(entry.objectNumber);
+      if (object?.value.kind !== "stream") continue;
+      const actual: number[] = [];
+      for await (const chunk of opened.reader.decodeStream(entry.objectNumber, entry.generationNumber ?? 0)) for (const byte of chunk) actual.push(byte);
+      expect(new Uint8Array(actual)).toEqual(decodeStreamObject(object.value, Infinity, node => expected.resolve(node)));
+    }
+    await opened.close(); await source.close(); expect(await fs.readdir("/scratch")).toEqual([]);
+  });
+
+  it("removes the owned index on authentication failure", async () => {
+    const doc = PdfDocument.create(); doc.addPage();
+    const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+    await fs.writeFile("/input", doc.save({ encrypt: { userPassword: "secret", revision: 3 } }));
+    const source = await PdfFileSource.open(fs, "/input");
+    await expect(openPdfObjectReader(source, { fs, directory: "/scratch" }, { password: "wrong" })).rejects.toThrow();
+    expect(await fs.readdir("/scratch")).toEqual([]); await source.close();
+  });
+
+  it("finishes accepted reads before closing its owned index", async () => {
+    const doc = PdfDocument.create(); doc.addPage();
+    const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", doc.save());
+    const source = await PdfFileSource.open(fs, "/input");
+    const opened = await openPdfObjectReader(source, { fs, directory: "/scratch" });
+    const pending = opened.reader.get(opened.crossReference.rootRef.objectNumber);
+    const closing = opened.close();
+    expect((await pending)?.value).toMatchObject({ kind: "dict" });
+    await closing; expect(await fs.readdir("/scratch")).toEqual([]); await source.close();
+  });
+
+  it("cleans discovered indexes when reader configuration is invalid", async () => {
+    const doc = PdfDocument.create(); doc.addPage();
+    const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", doc.save());
+    const source = await PdfFileSource.open(fs, "/input");
+    await expect(openPdfObjectReader(source, { fs, directory: "/scratch" }, { objectStreamCacheEntries: 0 })).rejects.toThrow();
+    expect(await fs.readdir("/scratch")).toEqual([]); await source.close();
   });
 
 });

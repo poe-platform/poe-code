@@ -153,6 +153,9 @@ export class CipherTransformFactory {
   createCipherTransform(number: number, generation: number): {
     decryptString(value: string): string;
     encryptString(value: string): string;
-    createStream(stream: Stream, length: number | null, filter?: Name | null): { getBytes(): Uint8Array };
+    createStream(stream: Stream, length: number | null, filter?: Name | null): {
+      getBytes(): Uint8Array;
+      decrypt(data: Uint8Array, finalize: boolean): Uint8Array;
+    };
   };
 }

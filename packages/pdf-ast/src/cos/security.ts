@@ -1,4 +1,6 @@
-import { drainWork } from "../work.js";
+import { readBytes } from "@poe-code/safe-fs/contracts";
+import { decodePdfStreamChunks, type PdfStreamDecodeOptions, type PdfStreamInput } from "./filter-stream.js";
+import { drainWork, drainWorkAsync } from "../work.js";
 import { CipherTransformFactory, Dict, Name, Stream, PDF17, PDF20, saslPrep } from "../vendor/pdfjs-fonts.mjs";
 import { bytesToString, stringToBytes } from "../bytes.js";
 import {
@@ -241,6 +243,122 @@ export function decryptPdfBuffer(
     return aesCbcDecrypt(objKey.subarray(0, 16), iv, ciphertext, true);
   }
   return rc4Transform(objKey, data);
+}
+
+/** Decrypt strings in one retained object's direct COS value. Stream bytes
+ * remain external; signature contents and security references stay plaintext. */
+export async function decryptPdfObjectStrings(
+  state: PdfEncryptionState, objectNumber: number, generationNumber: number, value: PdfCosNode,
+  options: { streamType?: string; signal?: AbortSignal } = {},
+): Promise<PdfCosNode> {
+  options.signal?.throwIfAborted();
+  if (securityHandlers.get(state)?.plaintextObjects.has(objectNumber) || options.streamType === "XRef" ||
+      (options.streamType === "Metadata" && !state.encryptMetadata)) return value;
+  if (value.kind === "stream") throw new PdfError("E_CAPABILITY", "Retained string decryption requires a stream dictionary, not buffered stream bytes");
+  return drainWorkAsync(transformNodeStringsAndStreamsSteps(value, bytes => decryptPdfBuffer(state, objectNumber, generationNumber, bytes)), options.signal);
+}
+
+export interface PdfStreamDecryptOptions extends PdfStreamDecodeOptions {
+  /** Resolved /Type, for the embedded-file crypt filter. */
+  readonly type?: string;
+  /** Explicit /Crypt filter name; absence selects the default stream filter. */
+  readonly cryptFilter?: string;
+}
+
+/** Decrypt with the authenticated stream cipher, independent of the string
+ * cipher. A bounded aligned block and one input chunk are retained. Output
+ * chunks are owned copies; final AES padding is processed exactly once. */
+export async function* decryptPdfStreamChunks(
+  state: PdfEncryptionState, objectNumber: number, generationNumber: number,
+  input: AsyncIterable<Uint8Array>, options: PdfStreamDecryptOptions = {},
+): AsyncGenerator<Uint8Array, void, void> {
+  const chunkBytes = options.chunkBytes ?? 65536;
+  const maximum = options.maxDecodedBytes ?? Infinity;
+  if (!Number.isSafeInteger(chunkBytes) || chunkBytes <= 0) throw new RangeError("Invalid chunkBytes");
+  if (maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("Invalid maxDecodedBytes");
+  options.signal?.throwIfAborted();
+  const handler = securityHandlers.get(state);
+  if (!handler) throw new PdfError("E_CAPABILITY", "Streaming decryption requires authenticated PDF security state");
+  const source = new Stream(new Uint8Array(0));
+  source.dict = new Dict();
+  if (options.type) source.dict.set("Type", Name.get(options.type));
+  // Use the vendored DecryptStream's stateful cipher callback directly, never
+  // its growing DecodeStream buffer or getBytes(). Aligned blocks also avoid
+  // splitting the initial AES IV in the vendor's synchronous input contract.
+  const decrypt = handler.factory.createCipherTransform(objectNumber, generationNumber)
+    .createStream(source, null, options.cryptFilter === undefined ? null : Name.get(options.cryptFilter)).decrypt;
+  // Match DecryptStream block scheduling, including its damaged-final-block
+  // recovery. This fixed intrinsic state is independent of output chunkBytes.
+  const block = new Uint8Array(512);
+  let used = 0;
+  let total = 0;
+  function* output(final: boolean): Generator<Uint8Array, void, void> {
+    options.signal?.throwIfAborted();
+    const plain = decrypt(block.subarray(0, used), final);
+    if (plain.length > Math.min(maximum, Number.MAX_SAFE_INTEGER) - total) throw new PdfError("E_LIMIT", "PDF decrypted byte limit exceeded");
+    total += plain.length;
+    for (let at = 0; at < plain.length; at += chunkBytes) {
+      options.signal?.throwIfAborted();
+      yield plain.slice(at, at + chunkBytes);
+    }
+    used = 0;
+  }
+  for await (const bytes of readBytes(input, options.signal)) {
+    for (let at = 0; at < bytes.length;) {
+      if (used === block.length) yield* output(false);
+      const length = Math.min(block.length - used, bytes.length - at);
+      block.set(bytes.subarray(at, at + length), used);
+      used += length; at += length;
+    }
+  }
+  if (used) yield* output(true);
+}
+
+/** Decode resolved direct filter parameters, decrypting at each explicit Crypt
+ * position or before the filter chain when using the default stream cipher.
+ * Factories replay retained ciphertext for codecs requiring fallback. */
+export async function* decodePdfEncryptedStreamChunks(
+  state: PdfEncryptionState, objectNumber: number, generationNumber: number,
+  dict: PdfCosDict, input: PdfStreamInput, options: PdfStreamDecodeOptions = {},
+): AsyncGenerator<Uint8Array, void, void> {
+  const type = dictGet(dict, "Type");
+  const typeName = type?.kind === "name" ? type.decoded : undefined;
+  if (typeName === "XRef" || (typeName === "Metadata" && !state.encryptMetadata)) {
+    yield* decodePdfStreamChunks(dict, input, options);
+    return;
+  }
+  const filter = dictGet(dict, "Filter") ?? dictGet(dict, "F");
+  const filters = filter?.kind === "array" ? filter.items : filter ? [filter] : [];
+  const parameters = dictGet(dict, "DecodeParms") ?? dictGet(dict, "DP");
+  const explicit = filters.some(node => node.kind === "name" && node.decoded === "Crypt");
+  const decryptOptions = { ...options, ...(typeName ? { type: typeName } : {}) };
+  if (!explicit) {
+    // Preserve whether input is replayable: a one-shot input must still be
+    // rejected by CCITT rather than silently replayed as an exhausted iterator.
+    const decoded: PdfStreamInput = typeof input === "function"
+      ? () => decryptPdfStreamChunks(state, objectNumber, generationNumber, input(), decryptOptions)
+      : decryptPdfStreamChunks(state, objectNumber, generationNumber, input, decryptOptions);
+    yield* decodePdfStreamChunks(dict, decoded, options);
+    return;
+  }
+  let current: PdfStreamInput = input;
+  for (let index = 0; index < filters.length; index++) {
+    const filter = filters[index]!;
+    if (filter.kind !== "name") throw new PdfError("E_PARSE", "Invalid encrypted stream filter");
+    const parameter = parameters?.kind === "array" ? parameters.items[index] : parameters;
+    const upstream = current;
+    let apply: (chunks: AsyncIterable<Uint8Array>) => AsyncIterable<Uint8Array>;
+    if (filter.decoded === "Crypt") {
+      const name = parameter?.kind === "dict" ? dictGet(parameter, "Name") : undefined;
+      const cryptFilter = name?.kind === "name" ? name.decoded : "Identity";
+      apply = chunks => decryptPdfStreamChunks(state, objectNumber, generationNumber, chunks, { ...decryptOptions, cryptFilter });
+      current = typeof upstream === "function" ? () => apply(upstream()) : apply(upstream);
+    } else {
+      const single = cosDict({ Filter: filter, DecodeParms: parameter });
+      current = typeof upstream === "function" ? () => decodePdfStreamChunks(single, upstream, options) : decodePdfStreamChunks(single, upstream, options);
+    }
+  }
+  yield* (typeof current === "function" ? current() : current);
 }
 
 export function encryptPdfBuffer(

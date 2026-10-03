@@ -95,8 +95,26 @@ decoded bytes share the staging budget, admitted before writes. Parsing defaults
 to 65,536 nodes, 1 MiB per token and depth 100; adjust those intrinsic-value limits
 with `maxNodes`, `maxTokenBytes` and `maxRecursionDepth`. Returned ASTs belong to
 the caller and are not cached. `close()` removes owned staging after accepted
-reads finish, leaving the source and index open. This raw COS reader resolves
-indirect lengths and filter parameters but does not authenticate or decrypt PDFs.
+reads finish, leaving the source and index open. `reader.decodeStream(number,
+generation)` emits decoded payload chunks under consumer backpressure.
+
+`openPdfObjectReader(source, storage, { password, ...options })` discovers the
+xref index and authenticates encrypted documents before lazy loading. It returns
+`{ crossReference, reader, encryption?, close }`; its `close()` owns both the
+reader and index, while the input source stays open. Encryption dictionary
+references share the configured node/depth admission limits. String and stream
+crypt filters, attachment filters, explicit `/Crypt` positions, signature
+contents and plaintext metadata/xref exclusions are preserved. Compressed
+members are decrypted through their container once. The constructor also accepts
+an already authenticated `encryption` state and `encryptionObjectNumber`.
+
+`decryptPdfStreamChunks(state, number, generation, input, options)` uses the
+stream cipher selected by `derivePdfEncryptionKey`, with fixed 512-byte cipher
+input state and owned output chunks. `type` selects attachment semantics;
+`cryptFilter` selects an explicit filter. `decodePdfEncryptedStreamChunks` also
+applies a resolved stream dictionary's filter chain. Both honor cancellation and
+decoded-byte limits; retained-input factories support decoder replay. Cipher
+block scheduling preserves the buffered decoder's truncated AES recovery.
 
 `PdfFileSource.fromStream(fs, directory, chunks,
 options)` writes bounded chunks into retained staging in the supplied directory.

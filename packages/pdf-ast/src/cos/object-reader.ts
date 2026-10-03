@@ -1,13 +1,17 @@
-import { dictGet, type PdfCosDict, type PdfCosNode } from "../ast.js";
+import { dictGet, type PdfCosDict, type PdfCosNode, type PdfEncryptionState } from "../ast.js";
 import { PdfError } from "../errors.js";
 import { PdfFileSource } from "../source.js";
 import { decodePdfStreamChunks, type PdfStreamDecodeOptions } from "./filter-stream.js";
+import { openPdfCrossReference, type PdfCrossReference, type PdfCrossReferenceOptions } from "./cross-reference.js";
+import { decryptPdfObjectStrings, decodePdfEncryptedStreamChunks, derivePdfEncryptionKey } from "./security.js";
 import { CosRangeLexer } from "./lexer.js";
 import type { PdfIndexStorage, PdfObjectIndex } from "./object-index.js";
 import { parseCosRangeObject, parseCosRangeValue, type ParseCosRangeOptions, type PdfRangeObject } from "./range-parser.js";
 
 export interface PdfObjectReaderOptions extends Omit<ParseCosRangeOptions, "resolveLength">, PdfStreamDecodeOptions {
   readonly cacheBytes?: number;
+  readonly encryption?: PdfEncryptionState;
+  readonly encryptionObjectNumber?: number;
   /** Number of retained decoded object streams; defaults to two. */
   readonly objectStreamCacheEntries?: number;
   /** Aggregate decoded object-stream data and header tape bytes. */
@@ -36,7 +40,8 @@ function field(dict: PdfCosDict, key: string): number {
 /** Raw indexed COS access. The source and xref index remain caller-owned.
  * Only decoded object streams are cached; each returned AST belongs to its
  * caller. Calls are serialized to bound parsing/decoder working state. This
- * low-level reader does not authenticate or decrypt encrypted documents. */
+ * low-level constructor accepts authenticated security state; use
+ * openPdfObjectReader to discover xrefs and authenticate a password. */
 export class PdfObjectReader {
   private readonly streams = new Map<number, ObjectStream>();
   private readonly options: PdfObjectReaderOptions;
@@ -59,10 +64,30 @@ export class PdfObjectReader {
 
   get(objectNumber: number, generationNumber = 0): Promise<PdfRangeObject | undefined> {
     integer(objectNumber, "objectNumber"); integer(generationNumber, "generationNumber");
+    return this.enqueue(() => this.load(objectNumber, generationNumber, new Set()));
+  }
+
+  private enqueue<T>(work: () => Promise<T>): Promise<T> {
     if (this.closing) return Promise.reject(new Error("PDF object reader is closed"));
-    const operation = this.pending.then(() => this.load(objectNumber, generationNumber, new Set()));
-    this.pending = operation.catch(() => {});
+    const operation = this.pending.then(work);
+    this.pending = operation.then(() => {}, () => {});
     return operation;
+  }
+
+  /** Decode one retained stream under consumer backpressure. The caller owns
+   * the source and must keep it open until iteration finishes. */
+  async *decodeStream(objectNumber: number, generationNumber = 0): AsyncGenerator<Uint8Array, void, void> {
+    integer(objectNumber, "objectNumber"); integer(generationNumber, "generationNumber");
+    const { object, dict } = await this.enqueue(async () => {
+      const object = await this.load(objectNumber, generationNumber, new Set());
+      if (object?.value.kind !== "dict" || !object.stream) throw new PdfError("E_PARSE", "Expected an indexed PDF stream");
+      return { object, dict: await this.resolveFilters(object.value, new Set([objectNumber])) };
+    });
+    const span = object.stream!;
+    const input = () => this.source.stream(span.start, span.end - span.start, this.options.signal);
+    const security = this.options.encryption;
+    yield* security ? decodePdfEncryptedStreamChunks(security, objectNumber, generationNumber, dict, input, this.options)
+      : decodePdfStreamChunks(dict, input, this.options);
   }
 
   private async load(objectNumber: number, generationNumber: number, active: Set<number>): Promise<PdfRangeObject | undefined> {
@@ -96,6 +121,13 @@ export class PdfObjectReader {
         },
       });
       if (object.objectNumber !== objectNumber || object.generationNumber !== generationNumber) throw new PdfError("E_PARSE", "Indirect object identity does not match xref");
+      if (this.options.encryption && objectNumber !== this.options.encryptionObjectNumber) {
+        let type = object.stream && object.value.kind === "dict" ? dictGet(object.value, "Type") : undefined;
+        if (type?.kind === "ref") type = (await this.load(type.objectNumber, type.generationNumber, active))?.value;
+        const value = await decryptPdfObjectStrings(this.options.encryption, objectNumber, generationNumber, object.value,
+          { ...(type?.kind === "name" ? { streamType: type.decoded } : {}), ...(this.options.signal ? { signal: this.options.signal } : {}) });
+        return { ...object, value };
+      }
       return object;
     } finally { active.delete(objectNumber); }
   }
@@ -138,8 +170,12 @@ export class PdfObjectReader {
     let header: PdfFileSource | undefined;
     try {
       const span = object.stream;
-      data = await PdfFileSource.fromStream(this.storage.fs, this.storage.directory,
-        decodePdfStreamChunks(dict, () => this.source.stream(span.start, span.end - span.start, this.options.signal), { ...this.options, maxDecodedBytes }),
+      const input = () => this.source.stream(span.start, span.end - span.start, this.options.signal);
+      const decodeOptions = { ...this.options, maxDecodedBytes };
+      const decoded = this.options.encryption
+        ? decodePdfEncryptedStreamChunks(this.options.encryption, number, generation, dict, input, decodeOptions)
+        : decodePdfStreamChunks(dict, input, decodeOptions);
+      data = await PdfFileSource.fromStream(this.storage.fs, this.storage.directory, decoded,
         { ...this.options, maxInputBytes: maxDecodedBytes });
       if (first > data.size || (count && first === data.size)) throw new PdfError("E_PARSE", "Invalid object stream /First");
       const source = data;
@@ -198,7 +234,7 @@ export class PdfObjectReader {
       return node;
     };
     const entries = [];
-    for (const entry of dict.entries) entries.push(["Filter", "F", "DecodeParms", "DP"].includes(entry.key.decoded) ? { ...entry, value: await resolve(entry.value, 0) } : entry);
+    for (const entry of dict.entries) entries.push(["Filter", "F", "DecodeParms", "DP", "Type"].includes(entry.key.decoded) ? { ...entry, value: await resolve(entry.value, 0) } : entry);
     return { ...dict, entries };
   }
 
@@ -210,5 +246,77 @@ export class PdfObjectReader {
       if (failure) throw failure.error;
     });
     return this.closing;
+  }
+}
+
+export interface OpenPdfObjectReaderOptions extends Omit<PdfObjectReaderOptions, "encryption" | "encryptionObjectNumber"> {
+  readonly password?: string;
+  readonly xref?: PdfCrossReferenceOptions;
+}
+export interface PdfOpenedObjectReader {
+  readonly crossReference: PdfCrossReference;
+  readonly reader: PdfObjectReader;
+  readonly encryption?: PdfEncryptionState;
+  /** Close the reader and owned xref index. The source remains caller-owned. */
+  close(): Promise<void>;
+}
+
+/** Discover a retained document's index and authenticate its security dictionary
+ * before any encrypted object streams are loaded. Only the intrinsically bounded
+ * encryption dictionary reference graph is retained during authentication. */
+export async function openPdfObjectReader(source: PdfFileSource, storage: PdfIndexStorage,
+  options: OpenPdfObjectReaderOptions = {}): Promise<PdfOpenedObjectReader> {
+  const crossReference = await openPdfCrossReference(source, storage, { maxNodes: 65536, maxTokenBytes: 1048576, maxRecursionDepth: 100, ...options, ...options.xref });
+  let reader: PdfObjectReader | undefined;
+  try {
+    reader = new PdfObjectReader(source, crossReference.index, storage, options);
+    let encryption: PdfEncryptionState | undefined;
+    const encrypt = crossReference.encryptNode;
+    if (encrypt) {
+      const nodes = new Map<string, PdfCosNode>();
+      const key = (node: { objectNumber: number; generationNumber: number }) => `${node.objectNumber}:${node.generationNumber}`;
+      const depthLimit = options.maxRecursionDepth ?? 100;
+      let remaining = options.maxNodes ?? 65536;
+      async function collect(node: PdfCosNode, depth: number): Promise<void> {
+        options.signal?.throwIfAborted();
+        if (--remaining < 0 || depth > depthLimit) throw new PdfError("E_LIMIT", "PDF encryption dictionary limit exceeded");
+        if (node.kind === "ref") {
+          const id = key(node);
+          if (nodes.has(id)) return;
+          const object = await reader!.get(node.objectNumber, node.generationNumber);
+          if (!object || object.stream) throw new PdfError("E_PARSE", "Invalid encryption dictionary reference");
+          nodes.set(id, object.value);
+          await collect(object.value, depth + 1);
+        } else if (node.kind === "dict") {
+          for (const entry of node.entries) await collect(entry.value, depth + 1);
+        } else if (node.kind === "array") {
+          for (const item of node.items) await collect(item, depth + 1);
+        }
+      }
+      await collect(encrypt, 0);
+      const dict = encrypt.kind === "ref" ? nodes.get(key(encrypt)) : encrypt;
+      if (dict?.kind !== "dict") throw new PdfError("E_PARSE", "Missing /Encrypt dictionary object");
+      const id = crossReference.idArray?.items[0];
+      encryption = derivePdfEncryptionKey(dict, id?.kind === "string" ? id.bytes : new Uint8Array(16), options.password ?? "",
+        { resolve: node => node.kind === "ref" ? nodes.get(key(node)) : node, maxRecursionDepth: depthLimit });
+      options.signal?.throwIfAborted();
+      await reader.close();
+      reader = new PdfObjectReader(source, crossReference.index, storage,
+        { ...options, encryption, ...(encrypt.kind === "ref" ? { encryptionObjectNumber: encrypt.objectNumber } : {}) });
+    }
+    const ownedReader = reader;
+    let closing: Promise<void> | undefined;
+    return { crossReference, reader: ownedReader, ...(encryption ? { encryption } : {}), close() {
+      closing ??= (async () => {
+        let failure: { error: unknown } | undefined;
+        try { await ownedReader.close(); } catch (error) { failure = { error }; }
+        try { await crossReference.index.close(); } catch (error) { failure ??= { error }; }
+        if (failure) throw failure.error;
+      })();
+      return closing;
+    } };
+  } catch (error) {
+    for (const close of [() => reader?.close(), () => crossReference.index.close()]) { try { await close(); } catch { /* Preserve authentication/parse failure. */ } }
+    throw error;
   }
 }

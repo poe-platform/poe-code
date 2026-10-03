@@ -99,3 +99,43 @@ it("charges repeated column spans even when they update existing metadata", asyn
   await expect(readXlsx(bytes, { ...context, limits: { ...context.limits, workbookNodes: 1 } }))
     .rejects.toMatchObject({ code: "resource-limit" });
 });
+
+const orderedRowCases = [
+  ["<row r=\"1\" ht=\"25\" customHeight=\"1\" hidden=\"1\" outlineLevel=\"3\" collapsed=\"1\"/><row r=\"1\" ht=\"0\" hidden=\"0\" outlineLevel=\"0\"/>",[[25,1,1,0,0],[12.75,0,0,0,0]]],
+  ["<row r=\"1\" ht=\"25\" customHeight=\"1\" hidden=\"1\" outlineLevel=\"3\" collapsed=\"1\"/><row r=\"1\"/>",[[25,1,1,1,3],[12.75,0,0,0,0]]],
+  ["<row r=\"1\" outlineLevel=\"3\"/><row r=\"1\" hidden=\"1\" outlineLevel=\"0\"/>",[[12.75,0,1,0,0],[12.75,0,0,1,0]]],
+  ["<row r=\"1\" hidden=\"1\" outlineLevel=\"3\"/><row r=\"1\" hidden=\"1\" outlineLevel=\"3\"/>",[[12.75,0,1,0,3],[12.75,0,0,0,0]]],
+  ["<row r=\"1\" ht=\"25\" customHeight=\"1\"/><row r=\"1\" ht=\"-1\" customHeight=\"0\"/>",[[25,1,0,0,0],[12.75,0,0,0,0]]]
+] as const;
+for (const [rows, expected] of orderedRowCases) {
+  it(`preserves native ordered row state for ${rows}`, async () => {
+    const original = await readXlsx(await input(`<sheetData>${rows}</sheetData>`), context);
+    for (const book of [original, await readXlsx(await createXlsxWriter("2008")(original, [], context), context)]) {
+      const axes = descendants(parseXml(new TextDecoder().decode(await writeGnumeric(book, [], context)))).filter(n => n.localName === "RowInfo");
+      const values = Array.from({ length: 2 }, () => [12.75, 0, 0, 0, 0]);
+      for (const axis of axes) {
+        const attrs = Object.fromEntries(axis.attributes.map(a => [a.localName, a.value]));
+        for (let i = Number(attrs.No); i < Math.min(2, Number(attrs.No) + Number(attrs.Count ?? 1)); i++) {
+          values[i] = [Number(attrs.Unit), Number(attrs.HardSize ?? 0), Number(attrs.Hidden ?? 0), Number(attrs.Collapsed ?? 0), Number(attrs.OutlineLevel ?? 0)];
+        }
+      }
+      expect(values).toEqual(expected);
+    }
+  });
+}
+
+it("charges generated row summaries against the metadata budget", async () => {
+  const bytes = await input('<sheetData><row r="1" outlineLevel="3"/><row r="1" hidden="1"/></sheetData>');
+  await expect(readXlsx(bytes, { ...context, limits: { ...context.limits, workbookNodes: 2 } }))
+    .rejects.toMatchObject({ code: "resource-limit" });
+});
+it("charges repeated row records even when they update existing metadata", async () => {
+  const bytes = await input('<sheetData><row r="1"/><row r="1"/></sheetData>');
+  await expect(readXlsx(bytes, { ...context, limits: { ...context.limits, workbookNodes: 1 } }))
+    .rejects.toMatchObject({ code: "resource-limit" });
+});
+it("keeps generated row summaries within the worksheet boundary", async () => {
+  const bytes = await input('<sheetData><row r="1048576" outlineLevel="3"/><row r="1048576" hidden="1" outlineLevel="0"/></sheetData>');
+  const book = await readXlsx(bytes, context);
+  expect(book.sheets[0]!.rows).toEqual([{ index: 1048575, hidden: true, outlineLevel: 0, collapsed: false }]);
+});

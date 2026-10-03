@@ -323,14 +323,35 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       const shared = new Map<string, { expression: string; row: number; column: number; id: string; arrayStringLiterals?: boolean }>();
       const columnStyles = children(child(source, "cols"), "col").filter(node => attr(node, "style") !== undefined)
         .map(node => ({ min: integer(attr(node, "min")) - 1, max: integer(attr(node, "max")) - 1, style: cellStyles[integer(attr(node, "style"))] }));
-      let nextRow = 0;
+      const rowState = new Map<number, AxisMetadata>();
+      let expandedRows = 0, nextRow = 0;
       for (const row of children(child(source, "sheetData"), "row")) {
         const rowIndex = attr(row, "r") === undefined ? nextRow : integer(attr(row, "r")) - 1;
         if (rowIndex < 0 || rowIndex >= 1048576) invalid("invalid row"); nextRow = rowIndex + 1;
         const height = attr(row, "ht") === undefined ? undefined : number(attr(row, "ht"));
-        rows.push({ index: rowIndex, ...(height === undefined || height <= 0 ? {} : { sizePoints: height,
-          style: { gnumeric: gnode("RowInfo", { HardSize: boolean(attr(row, "customHeight")) ? 1 : 0 }) } }),
-          hidden: boolean(attr(row, "hidden")), outlineLevel: integer(attr(row, "outlineLevel")), collapsed: boolean(attr(row, "collapsed")) });
+        if (++expandedRows > (context.limits.workbookNodes ?? Infinity)) limit("row metadata");
+        opc.charge(1);
+        let metadata: AxisMetadata = rowState.get(rowIndex) ?? { index: rowIndex, hidden: false, outlineLevel: 0, collapsed: false };
+        if (height !== undefined && height > 0) metadata = { ...metadata, sizePoints: height,
+          style: { gnumeric: gnode("RowInfo", { HardSize: boolean(attr(row, "customHeight")) ? 1 : 0 }) } };
+        // Unlike columns, native rows change visibility before their outline.
+        if (boolean(attr(row, "hidden")) && !metadata.hidden) {
+          if ((metadata.outlineLevel ?? 0) > 0 && rowIndex < 1048575) {
+            const adjacent = rowState.get(rowIndex + 1);
+            if (!adjacent) {
+              if (++expandedRows > (context.limits.workbookNodes ?? Infinity)) limit("row metadata");
+              opc.charge(1);
+            }
+            if ((metadata.outlineLevel ?? 0) > (adjacent?.outlineLevel ?? 0)) {
+              rowState.set(rowIndex + 1, { ...(adjacent ?? { index: rowIndex + 1 }), collapsed: true });
+            }
+          }
+          metadata = { ...metadata, hidden: true };
+        }
+        const outline = attr(row, "outlineLevel");
+        if (outline !== undefined && integer(outline) >= 0) metadata = { ...metadata,
+          outlineLevel: integer(outline), collapsed: boolean(attr(row, "collapsed")) };
+        rowState.set(rowIndex, metadata);
         let nextColumn = 0;
         for (const node of children(row, "c")) {
           if (++cellCount > context.limits.cells) limit("cells"); context.signal.throwIfAborted();
@@ -392,6 +413,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
             ...(style ?? {}), ...(richText ? { richText } : {}) });
         }
       }
+      for (const metadata of rowState.values()) rows.push(metadata);
       const columnState = new Map<number, AxisMetadata>();
       let expandedColumns = 0;
       for (const node of children(child(source, "cols"), "col")) {
@@ -700,7 +722,7 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
         const importedRow = metadataNode(info?.style?.gnumeric, charge);
         sheetData += xml("row", { r: row + 1, spans: `${startColumn + 1}:${endColumn + 1}`,
           customHeight: info?.sizePoints === undefined || importedRow?.name === "RowInfo" && !Number(importedRow.attributes.HardSize) ? undefined : 1, ht: info?.sizePoints,
-          collapsed: info?.collapsed ? 1 : undefined, hidden: info?.hidden ? 1 : undefined, outlineLevel: info?.outlineLevel || undefined }, content);
+          collapsed: info?.collapsed ? 1 : undefined, hidden: info?.hidden ? 1 : undefined, outlineLevel: info?.outlineLevel || (info?.collapsed ? 0 : undefined) }, content);
       }
       const view = sheet.view?.gnumeric && typeof sheet.view.gnumeric === "object" && !Array.isArray(sheet.view.gnumeric)
         ? sheet.view.gnumeric as Readonly<Record<string, ImportedValue>> : {};

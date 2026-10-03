@@ -11,7 +11,9 @@ sizing survives workbook and clipboard conversions, including best-fit columns.
 Nonpositive row heights and column widths up to four points retain default
 dimensions and their visibility/outline metadata, matching native import.
 Repeated column records preserve earlier accepted widths and outlines; hidden
-groups retain their adjacent collapsed summary markers.
+groups retain their adjacent collapsed summary markers. Repeated row records
+preserve accepted heights and hidden state, while explicit outline resets apply
+in native order. Row summary markers survive XLSX re-export at outline level zero.
 
 ```ts
 import { createEngine } from "@poe-code/spreadsheet-engine";

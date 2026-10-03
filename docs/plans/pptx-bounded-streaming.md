@@ -59,9 +59,25 @@ namespace values and attribute sets, parser admission/node-budget parity, UTF-16
 source-setting ownership, cancellation and IO cleanup. Python ElementTree agreed
 with expanded names, attributes and mixed text on an independent fixture.
 
-This semantic layer is still internal and immutable. Stored content-type and
-relationship indexes, presentation checks, mutations and shipped-engine wiring
-remain required before it replaces the buffered path.
+The internal retained content-type index now stores normalized override/default
+keys, original media types and MIME parameter duplicate indexes in caller pages.
+It validates manifest structure, URI syntax, MIME syntax and presentation kinds
+without collecting arbitrary scalar values. The retained relationship-part index
+stores ordered records and exact case-sensitive IDs, streaming identifiers, types
+and targets. Both close semantic XML storage after admission and retire returned
+streams when closed. These indexes do not yet resolve targets or validate the
+presentation graph.
+
+Tests compare admission with existing parsers, generate/reuse large scalar chunks,
+observe actual spill writes capped at 16 KiB, consume results slowly, force hash
+collisions, and cover limits, cancellation and handle expiry. Shared exact stream
+comparison now retires both iterators even when one close throws synchronously.
+Independent python-pptx/ElementTree verification covers manifest bindings and
+relationships in a chart deck with an embedded workbook and external hyperlink.
+
+These layers remain internal and immutable. Stored graph validation, presentation
+checks, mutations and shipped-engine wiring remain required before they replace
+the buffered path.
 
 This is not an end-to-end bounded-memory implementation or Worker qualification.
 The built-in command engine still collects input, returns complete stdout/stderr, and publishes
@@ -74,8 +90,8 @@ retains decompressed members in `readPackage`, copies members in
 1. Carry caller-owned retained/range sources, explicit spill-storage authorization,
    output sinks and owned staged publications through both command and engine APIs.
    Keep buffering convenience APIs available without requiring them for Worker use.
-2. Build stored content-type and relationship indexes over the retained archive,
-   preserving the existing semantic admission checks before extraction/publication.
+2. Connect stored content-type and relationship-part indexes to a caller-backed
+   relationship graph, preserving semantic admission before extraction/publication.
    Replace synchronous package-member access on the streaming execution path with
    asynchronous reads and a bounded cache backed by the caller's safe-fs. Migrate
    mutation state, embedded workbooks, archive indexes and serialization too.

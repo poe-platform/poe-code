@@ -1,6 +1,6 @@
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { ZipDirectoryIndex } from "@poe-code/office-package/zip";
-import { sha256 } from "@noble/hashes/sha2.js";
+import { literal, equal, digest } from "./retained-values.js";
 import type { ByteSource } from "./contracts.js";
 import { OfficeError } from "./errors.js";
 import { openRetainedXml, type XmlRange } from "./retained-xml.js";
@@ -25,7 +25,6 @@ export interface RetainedXmlDocument {
 
 const xmlNamespace = "http://www.w3.org/XML/1998/namespace";
 const xmlnsNamespace = "http://www.w3.org/2000/xmlns/";
-const encoder = new TextEncoder();
 const whitespace = (value: string) => value === " " || value === "\t" || value === "\r" || value === "\n";
 function invalid(): never { throw new OfficeError("invalid-xml", "Invalid retained XML document.", "parse"); }
 function nameStart(point: number): boolean {
@@ -39,32 +38,6 @@ function namePart(point: number): boolean {
   return nameStart(point) || point === 45 || point === 46 || point === 0xb7 || point >= 48 && point <= 57
     || point >= 0x300 && point <= 0x36f || point >= 0x203f && point <= 0x2040;
 }
-async function* literal(value: string): ByteSource { yield encoder.encode(value); }
-async function equal(left: ByteSource, right: ByteSource): Promise<boolean> {
-  const a = left[Symbol.asyncIterator](), b = right[Symbol.asyncIterator]();
-  let x: Uint8Array = new Uint8Array(), y: Uint8Array = new Uint8Array(), i = 0, j = 0, ae = false, be = false;
-  let failed = false;
-  try {
-    for (;;) {
-      while (i === x.length && !ae) { const next = await a.next(); ae = Boolean(next.done); x = ae ? new Uint8Array() : new Uint8Array(next.value); i = 0; }
-      while (j === y.length && !be) { const next = await b.next(); be = Boolean(next.done); y = be ? new Uint8Array() : new Uint8Array(next.value); j = 0; }
-      if (ae || be) return ae && be;
-      const count = Math.min(x.length - i, y.length - j);
-      for (let n = 0; n < count; n++) if (x[i + n] !== y[j + n]) return false;
-      i += count; j += count;
-    }
-  } catch (error) { failed = true; throw error; }
-  finally {
-    const outcomes = await Promise.allSettled([a.return?.(), b.return?.()]);
-    if (!failed) { const failure = outcomes.find(outcome => outcome.status === "rejected"); if (failure?.status === "rejected") await Promise.reject(failure.reason); }
-  }
-}
-async function digest(...sources: ByteSource[]): Promise<string> {
-  const hash = sha256.create();
-  for (const source of sources) for await (const bytes of source) hash.update(bytes);
-  return Array.from(hash.digest(), byte => byte.toString(16).padStart(2, "0")).join("");
-}
-
 // Fixed-size rows keep tree links, namespace scope and collision chains outside
 // the JS heap. Namespace/hash indexes share the same bounded backing cache.
 enum F { Kind, Parent, First, Last, Next, Attrs, LastAttr, PrevAttr, Name, NameLength, Local, LocalLength, Prefix, PrefixLength, Value, ValueLength, Namespace, HashNext, PreviousBinding, Count }

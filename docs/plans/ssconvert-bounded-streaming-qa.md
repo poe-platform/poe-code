@@ -28,8 +28,9 @@ uses caller-backed key/name indexes and coalesced XML staging; its container
 streams. Generated axis/region metadata, validation and database fragments also
 use coalesced staging; named-expression, label-range and validation containers stream.
 Style, metadata and table bytes share output admission. Individual cell strings,
-retained style definitions and individual metadata subtrees, embedded
-resources, encrypted/decrypted members and wrapped inner packages are still buffered.
+retained style definitions, cell metadata and embedded binary resources, encrypted/decrypted members and wrapped inner packages are still buffered.
+Retained validation/database XML, document metadata and embedded XML documents
+serialize incrementally, with bounded escaped text/attribute fragments and a fixed XML-name cache.
 Plain text conversions to text, Gnumeric XML/gzip, either XLSX edition or either ODF profile without global evaluation now replay cells from retained input through the exporter; they do not retain a full cell array. Formula-bearing and clock-dependent inputs, transformations, and explicit workbook SDK reads still use the array model. Decoded XML documents and non-text workbooks remain resident. Other built-in input collection, the owned array-based workbook,
 unordered CSV lookup without working storage, large individual fields, and the remaining format codecs still
 need migration before the complete conversion pipeline can pass this plan.

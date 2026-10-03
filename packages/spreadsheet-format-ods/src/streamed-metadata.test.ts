@@ -155,3 +155,52 @@ it.each(["strict", "extended"] as const)("preserves %s retained validation and d
     expect(Buffer.concat(chunks)).toEqual(Buffer.from(expected)); expect(await fs.readdir("/")).toEqual([]);
   } finally { spy.mockRestore(); await engine.dispose(); }
 });
+
+it.each(["strict", "extended"] as const)("streams %s retained document and database subtrees without buffered serialization", async profile => {
+  const fs = createMemoryFileSystem(), signal = new AbortController().signal, ns = support.odfNamespaces;
+  const leaf = { name: "user-defined", namespace: ns.meta!, text: "<&🦀".repeat(20000) };
+  const records = [
+    { kind: "document-meta", data: { xml: { name: "document-meta", namespace: ns.office!, children: [{ name: "meta", namespace: ns.office!, children: [leaf] }] } } },
+    { kind: "document-settings", data: { xml: { name: "document-settings", namespace: ns.office!, children: [{ name: "settings", namespace: ns.office!, children: [leaf] }] } } },
+    { kind: "embedded-document", data: { path: "Object 1/content.xml", xml: { name: "document-content", namespace: ns.office!, children: [leaf] } } },
+    { kind: "content-validations", data: { xml: { name: "content-validations", namespace: ns.table!, children: [leaf] } } },
+    { kind: "database-ranges", data: { xml: { name: "database-ranges", namespace: ns.table!, children: Array.from({ length: 1000 }, (_, index) => ({ name: "database-range", namespace: ns.table!, attributes: [{ name: "name", namespace: ns.table!, value: `DB${index}` }] })) } } }
+  ];
+  const raw = { sheets: [{ id: "s", name: "Sheet", cells: [] }], unsupportedRecords: records.map(record => ({
+    ...record, source: "Gnumeric_OpenCalc:openoffice", disposition: "retained" as const
+  })) };
+  const expected = await createOdfWriter(profile)(raw, [], { signal, limits: defaultSsconvertLimits,
+    environment: { env: {}, locale: "C", timezone: "UTC" }, own() {} });
+  const engine = createEngine({ formats: [odsFormat], workingFiles: { fs, directory: "/", cacheBytes: 16384 } });
+  const create = support.createOdfXml;
+  const spy = vi.spyOn(support, "createOdfXml").mockImplementation((...args) => ({ ...create(...args),
+    retained() { throw new Error("buffered retained subtree"); }
+  }));
+  try {
+    const book = await engine.adoptWorkbook(raw, { signal }), chunks: Uint8Array[] = [];
+    await engine.writeWorkbook(book, { kind: "stream", sink: { async write(bytes) {
+      expect(bytes.length).toBeLessThanOrEqual(16384); await Promise.resolve(); chunks.push(bytes.slice());
+    } } }, { exportType: profile === "strict" ? "Gnumeric_OpenCalc:openoffice" : "Gnumeric_OpenCalc:odf" }, { signal });
+    expect(Buffer.concat(chunks)).toEqual(Buffer.from(expected)); expect(await fs.readdir("/")).toEqual([]);
+  } finally { spy.mockRestore(); await engine.dispose(); }
+});
+
+it("captures mutable low-level document metadata before archive staging can change it", async () => {
+  const signal = new AbortController().signal, leaf = { name: "user-defined", namespace: support.odfNamespaces.meta!, text: "original" };
+  const raw = { sheets: [{ id: "s", name: "Sheet", cells: [] }], unsupportedRecords: [{ source: "Gnumeric_OpenCalc:openoffice",
+    disposition: "retained" as const, kind: "document-meta", data: { xml: { name: "document-meta", namespace: support.odfNamespaces.office!,
+      children: [{ name: "meta", namespace: support.odfNamespaces.office!, children: [leaf] }] } }
+  }] };
+  const context = { signal, limits: defaultSsconvertLimits, environment: { env: {}, locale: "C", timezone: "UTC" }, own() {} };
+  const expected = await createOdfWriter("extended")(raw, [], context);
+  const backing = new Uint8Array(1024 * 1024); let end = 1, mutated = false;
+  const actual = await createOdfWriter("extended")(raw, [], { ...context, createWorkingStorage() { return {
+    allocate(length) { const address = end; end += length; expect(end).toBeLessThanOrEqual(backing.length); return address; },
+    async read(address, length) { return backing.slice(address, address + length); },
+    async write(address, bytes) {
+      if (!mutated && bytes[0] === 0x50 && bytes[1] === 0x4b) { leaf.text = "changed"; mutated = true; }
+      backing.set(bytes, address);
+    }, async close() {}
+  }; } });
+  expect(mutated).toBe(true); expect(actual).toEqual(expected);
+});

@@ -1,3 +1,4 @@
+import { snapshotRecords } from "@poe-code/spreadsheet-ast/model";
 import { createOdfXmlTape } from "./odf-xml-tape.js";
 import type { WorkbookSource } from "@poe-code/spreadsheet-engine/codecs/types";
 import { ownWorkbookSource } from "@poe-code/spreadsheet-engine/workbook/source";
@@ -943,6 +944,11 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
     e("table:null-date", { "table:date-value": book.dateSystem === "1904" ? "1904-1-1" : "1899-12-30", "table:value-type": "date" }) +
       e("table:iteration", { "table:status": iteration?.enabled ? "enable" : "disable", "table:steps": iteration?.maximum ?? 100,
         "table:maximum-difference": iteration?.tolerance ?? 0.001 }));
+    // Engine/source metadata is deeply owned. Capture mutable low-level SDK
+    // metadata before incremental serialization can yield to its caller.
+    function captureMetadata<T extends ImportedValue | undefined>(value: T): T {
+      return value !== null && typeof value === "object" && !Object.isFrozen(value) ? snapshotRecords(value, context.limits) : value;
+    }
     const definitions = createOdfStyleDefinitions(book, xml);
     const automatic = createOdfXmlTape(context, storage, admitContentBytes);
     metadataTapes.push(automatic);
@@ -954,8 +960,8 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
       xml.charge(); const v = odfObject(record.data), node = odfObject(v?.xml);
       if (record.source === "Gnumeric_OpenCalc:openoffice" && node) {
         if (record.kind === "content-validations") {
-          for (const child of odfChildren(node)) await validations.append(xml.retained(child));
-        } else if (record.kind === "database-ranges") await databaseRanges.append(xml.retained(node));
+          for (const child of odfChildren(node)) await validations.append(xml.retainedFragments(captureMetadata(child)));
+        } else if (record.kind === "database-ranges") await databaseRanges.append(xml.retainedFragments(captureMetadata(node)));
       }
     }
     async function* tables(): AsyncGenerator<Uint8Array> {
@@ -1304,6 +1310,10 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
     }
     const parts = new Map<string, string | Uint8Array | AsyncIterable<Uint8Array>>(), encoder = new TextEncoder();
     if (wrapped) context.own(() => { for (const bytes of parts.values()) if (bytes instanceof Uint8Array) bytes.fill(0); });
+    function retainedChildren(value: ImportedValue | undefined) {
+      const children = captureMetadata(odfChildren(value));
+      return (async function* () { for (const child of children) yield* xml.retainedFragments(child); })();
+    }
     function part(name: string, value: string | AsyncIterable<Uint8Array>) {
       parts.set(name, typeof value === "string" && (!storage || encryptionProfile) ? encoder.encode(value) : value);
     }
@@ -1334,7 +1344,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
           const root = odfObject(v.xml);
           if (root?.name !== "document-content" && root?.name !== "document-styles")
             throw new SsconvertError("invalid-request", "Invalid OpenDocument embedded document root");
-          part(path, xml.document("office:" + root.name, odfChildren(v.xml).map(n => xml.retained(n)).join("")));
+          part(path, xml.documentStream("office:" + root.name, retainedChildren(v.xml)));
         }
         else if (v.encoding === "hex" && typeof v.bytes === "string") {
           xml.charge(v.bytes.length);
@@ -1345,7 +1355,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
           parts.set(path,bytes);
         }
       } else if (["document-meta", "document-settings"].includes(record.kind) && v.xml) {
-        part(record.kind === "document-meta" ? "meta.xml" : "settings.xml", xml.document("office:" + record.kind, odfChildren(v.xml).map(n => xml.retained(n)).join("")));
+        part(record.kind === "document-meta" ? "meta.xml" : "settings.xml", xml.documentStream("office:" + record.kind, retainedChildren(v.xml)));
       }
     }
     const encryptionParts = encryptionProfile ? new Map<string, Uint8Array>() : undefined;

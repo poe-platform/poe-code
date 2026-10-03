@@ -12,12 +12,16 @@ export function createOdfXmlTape(context: CapabilityContext, storage: WorkingSto
   return {
     get hasContent() { return hasContent; },
     dispose,
-    async append(fragment: string) {
+    async append(fragment: string | Iterable<string>) {
       context.signal.throwIfAborted();
-      if (!fragment) return;
-      hasContent = true;
-      if (!tape) { fragments.push(fragment); return; }
-      for await (const bytes of encodeTextStream((async function* () { yield fragment; })(), "UTF-8", false, context)) {
+      async function* parts() {
+        for (const part of typeof fragment === "string" ? [fragment] : fragment) {
+          context.signal.throwIfAborted();
+          if (part) { hasContent = true; yield part; }
+        }
+      }
+      if (!tape) { for await (const part of parts()) fragments.push(part); return; }
+      for await (const bytes of encodeTextStream(parts(), "UTF-8", false, context)) {
         admit(bytes.length);
         for (let offset = 0; offset < bytes.length;) {
           const take = Math.min(buffer!.length - used, bytes.length - offset);

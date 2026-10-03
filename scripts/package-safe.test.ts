@@ -930,7 +930,7 @@ describe("isolated private command consumers", () => {
   it("admits Shell byte argv through an isolated packed private command graph", async () => {
     const consumer = await build({ stdin: { contents: readFileSync(new URL("./fixtures/safe-packages-private-command.mjs", import.meta.url), "utf8"), resolveDir: "/output" },
       bundle: true, write: false, platform: "browser", format: "cjs", target: "es2022", plugins: [plugin] });
-    const sandbox = createContext({ URL, TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
+    const sandbox = createContext({ URL, atob, btoa, TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
       AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance });
     // Execute fixture top-level await in the Buffer-free isolated realm.
     await runInContext(`(async () => { const module = { exports: {} }; ${consumer.outputFiles[0]!.text}; await module.exports.verification; })()`, sandbox);

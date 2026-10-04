@@ -7,11 +7,14 @@ const styleDefaults: Readonly<Record<string, string | readonly string[]>> = {
   Rotation: "0", Shade: ["0", "1"], Indent: "0", Locked: "1", Hidden: "0", Fore: ["0:0:0", "FFFF:0:0"],
   Back: ["FFFF:FFFF:FFFF", "FFFF:FFFF:0"], PatternColor: "0:0:0", Format: "General"
 };
-const fontDefaults: Readonly<Record<string, string | readonly string[]>> = {Unit: ["8", "10", "14"], Bold: ["0", "1"], Italic: "0", Underline: "0", StrikeThrough: "0", Script: "0"};
+type AttributeRule = string | readonly string[] | ((value: string) => boolean);
+const fontDefaults: Readonly<Record<string, AttributeRule>> = {Unit: value => value.trim() !== "" && Number.isFinite(Number(value)) && Number(value) > 0, Bold: ["0", "1"], Italic: ["0", "1"], Underline: "0", StrikeThrough: "0", Script: "0"};
 
 export interface CellPrintStyle {
   readonly alignment: "general" | "left" | "right" | "center";
+  readonly family: string;
   readonly bold: boolean;
+  readonly italic: boolean;
   readonly size: number;
   readonly foreground: readonly [number, number, number];
   readonly background?: readonly [number, number, number];
@@ -25,7 +28,7 @@ export function cellPrintStyle(style: Readonly<Record<string, ImportedValue>>, t
     if (!value || typeof value !== "object" || Array.isArray(value)) fail();
     return value as Readonly<Record<string, ImportedValue>>;
   };
-  const attributes = (node: Readonly<Record<string, ImportedValue>>, expected: Readonly<Record<string, string | readonly string[]>>, defaults: Readonly<Record<string, string>> = {}) => {
+  const attributes = (node: Readonly<Record<string, ImportedValue>>, expected: Readonly<Record<string, AttributeRule>>, defaults: Readonly<Record<string, string>> = {}) => {
     if (!Array.isArray(node.attributes) || node.attributes.length > Object.keys(expected).length) fail();
     const values: Record<string, string> = Object.create(null);
     for (const value of node.attributes as readonly ImportedValue[]) {
@@ -34,7 +37,7 @@ export function cellPrintStyle(style: Readonly<Record<string, ImportedValue>>, t
       const name = a.name as string, text = a.value as string;
       tick(name.length + text.length);
       const accepted = expected[name];
-      if (!Object.hasOwn(expected, name) || (typeof accepted === "string" ? accepted !== text : !accepted?.includes(text)) || Object.hasOwn(values, name)) fail();
+      if (!Object.hasOwn(expected, name) || (typeof accepted === "function" ? !accepted(text) : typeof accepted === "string" ? accepted !== text : !accepted?.includes(text)) || Object.hasOwn(values, name)) fail();
       values[name] = text;
     }
     for (const name of Object.keys(expected)) {
@@ -59,9 +62,11 @@ export function cellPrintStyle(style: Readonly<Record<string, ImportedValue>>, t
   const defaults: Record<string, string> = biff ? { Format: "General", ...(biff.revision === 7 ? { Indent: "0", ShrinkToFit: "0" } : {}) } : {};
   const effects = attributes(node, styleDefaults, defaults);
   const font = record((node.children as readonly ImportedValue[])[0]);
-  if (font.name !== "Font" || font.namespace !== "http://www.gnumeric.org/v10.dtd" || font.text !== "Sans" || !Array.isArray(font.children) || font.children.length) fail();
+  if (font.name !== "Font" || font.namespace !== "http://www.gnumeric.org/v10.dtd" || typeof font.text !== "string" || !Array.isArray(font.children) || font.children.length) fail();
+  tick((font.text as string).length);
+  if ((font.text as string).trim() === "") fail();
   const selected = attributes(font, fontDefaults);
-  return {alignment: alignments[effects.HAlign as keyof typeof alignments], bold: selected.Bold === "1", size: Number(selected.Unit),
+  return {alignment: alignments[effects.HAlign as keyof typeof alignments], family: font.text as string, bold: selected.Bold === "1", italic: selected.Italic === "1", size: Number(selected.Unit),
     foreground: effects.Fore === "FFFF:0:0" ? [1, 0, 0] : [0, 0, 0],
     ...(effects.Shade === "1" ? {background: effects.Back === "FFFF:FFFF:0" ? [1, 1, 0] as const : [1, 1, 1] as const} : {})};
 }

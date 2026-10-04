@@ -44,16 +44,41 @@ it("paints a blank solid background without requesting unused font bytes", async
     expect(resolve).not.toHaveBeenCalled();
   } finally {rectangle.mockRestore();}
 });
-it("shares a byte budget across separately selected regular and bold fonts", async () => {
+it.each(['Bold="1"', 'Italic="1"', "DejaVu Serif"])("shares a byte budget across separately selected fonts: %s", async variant => {
   const bytes = suppliedDefaultFont().bytes, resolve = vi.fn<FontCapability["resolve"]>(async () => bytes);
-  const book = await fixture([{text: "normal"}, {text: "bold", font: font.replace('Bold="0"', 'Bold="1"')}]);
+  const selected = variant === "DejaVu Serif" ? font.replace(">Sans<", ">DejaVu Serif<") : font.replace(variant.replace("1", "0"), variant);
+  const book = await fixture([{text: "normal"}, {text: "other", font: selected}]);
   await expect(writePdf(book, [], {...context, fonts: {resolve}, limits: {...context.limits, inputBytes: bytes.byteLength * 2 - 1}})).rejects.toThrow("font bytes limit exceeded");
   expect(resolve.mock.calls).toHaveLength(2);
 });
 it("retains explicit refusal for unsupported shading and font decorations before font selection", async () => {
   const resolve = vi.fn<FontCapability["resolve"]>(async () => suppliedDefaultFont().bytes);
   for (const c of [{text: "shade", attributes: attributes.replace('Shade="0"', 'Shade="2"')},
-    {text: "italic", font: font.replace('Italic="0"', 'Italic="1"')}, {text: "underline", font: font.replace('Underline="0"', 'Underline="1"')}])
+    {text: "underline", font: font.replace('Underline="0"', 'Underline="1"')}])
     await expect(writePdf(await fixture([c]), [], {...context, fonts: {resolve}})).rejects.toThrow("styled or merged cells");
+  expect(resolve).not.toHaveBeenCalled();
+});
+it("selects host font families and italic variants independently of fractional sizes", async () => {
+  const bytes = suppliedDefaultFont().bytes, resolve = vi.fn<FontCapability["resolve"]>(async () => bytes);
+  const book = await fixture([
+    {text: "eleven", font: font.replace('Unit="10"', 'Unit="11"')},
+    {text: "fraction", font: font.replace('Unit="10"', 'Unit="11.5"')},
+    {text: "serif", font: font.replace('>Sans<', '>DejaVu Serif<')},
+    {text: "italic", font: font.replace('>Sans<', '>DejaVu Sans Mono<').replace('Italic="0"', 'Italic="1"')},
+    {text: "bold italic", font: font.replace('>Sans<', '>DejaVu Sans Mono<').replace('Italic="0"', 'Italic="1"').replace('Bold="0"', 'Bold="1"')}
+  ]);
+  const {runs} = await pdfText(await writePdf(book, [], {...context, limits: {...context.limits, inputBytes: bytes.byteLength * 4}, fonts: {resolve}}));
+  expect(runs.map(run => run.size)).toEqual([8.25, 8.625, 7.5, 7.5, 7.5]);
+  expect(resolve.mock.calls.map(([request]) => [request.family, request.bold, request.italic])).toEqual([
+    ["Sans", false, false], ["DejaVu Serif", false, false], ["DejaVu Sans Mono", false, true], ["DejaVu Sans Mono", true, true]
+  ]);
+});
+it.each(['>DejaVu Serif<', 'italic'])("requires an explicit host font for %s", async variant => {
+  const selected = variant === "italic" ? font.replace('Italic="0"', 'Italic="1"') : font.replace('>Sans<', variant);
+  await expect(writePdf(await fixture([{text: "text", font: selected}]), [], context)).rejects.toThrow("styled or merged cells");
+});
+it.each(["0", "-1", "NaN", "Infinity", "1e309", ""])("rejects invalid font size %s before host selection", async unit => {
+  const resolve = vi.fn<FontCapability["resolve"]>(async () => suppliedDefaultFont().bytes);
+  await expect(writePdf(await fixture([{text: "text", font: font.replace('Unit="10"', `Unit="${unit}"`)}]), [], {...context, fonts: {resolve}})).rejects.toThrow("styled or merged cells");
   expect(resolve).not.toHaveBeenCalled();
 });

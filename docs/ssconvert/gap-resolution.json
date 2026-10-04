@@ -5145,6 +5145,14 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "pdfHostFontSelection": {
+      "finding": "Style admission restricted font families to Sans, sizes to8/10/14 and italic tofalse although the explicit host font contract already supports family/bold/italic. A combined selection regression failed before the repair.",
+      "implementation": "Pass exact family/bold/italic choices to the host and cache by the whole selection. Positive finite font sizes share selected font bytes; reject malformed sizes before host calls. Existing explicit-font requirement, byte/work accounting, cancellation and unsupported-decoration checks remain.",
+      "validation": "323 print/PDF tests, selected19-workspace build, both owner lints/source/test types and command Node/browser consumers pass. Eight independent OpenPyXL controls produce16 public PDFs and8 native PDFs. Embedded font identities match after removing documented subset-name suffixes; first text x origins match within0.003pt. Five copied native fonts are hash-recorded. CLI/PDF screenshots inspected.",
+      "calibriControl": "The original Calibri11 workbook now converts through SDK/command with explicit host substitution to DejaVuSans. This verifies request handling, not actual Calibri glyph fidelity.",
+      "limits": "Native small-font text extraction inserts additional spaces; exact text receipts retained. No full pixel-parity claim. Other font profiles, decorations, wrapping and wider rendering remain open.",
+      "evidence": "out/ssconvert-continuation-1748/pdf-font-selection"
+    },
     "xlsxBlankHeaderDefaults": {
       "finding": "Omitted XLSX headers/footers inherited Gnumeric sheet/page defaults and printed invented text. Native xlsx-read.c wrap_sheet_new explicitly initializes both to blank.",
       "implementation": "Always materialize normalized XLSX print header/footer defaults, including sheets without print elements; explicit section/opcode text overrides only its corresponding field. Foreign namespaces remain ignored and margin precision unchanged.",

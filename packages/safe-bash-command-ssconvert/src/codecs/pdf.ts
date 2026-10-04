@@ -168,18 +168,19 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
   try {
   const pdf = await PDFDocument.create({ updateMetadata: false });
   pdf.setProducer("ssconvert JavaScript PDF writer");
-  const fonts = new Map<boolean, {font: PDFFont; metrics: Font; bytes: Uint8Array; shaped: boolean; supported: ReadonlySet<number>; ascentRatio: number; descentRatio: number}>();
+  const fonts = new Map<string, {font: PDFFont; metrics: Font; bytes: Uint8Array; shaped: boolean; supported: ReadonlySet<number>; ascentRatio: number; descentRatio: number}>();
   let fontBytes = 0;
   const text = async (page: PDFPage, value: string, x: number, y: number, size = 10, alignment: "left" | "center" | "right" = "left", cellBox?: { width: number; height: number; style: CellPrintStyle; overflow?: (displayWidth: number) => {left: number; right: number} }) => {
     tick(value.length);
     if (!value) return;
-    const bold = cellBox?.style.bold ?? false;
-    let selected = fonts.get(bold);
+    const bold = cellBox?.style.bold ?? false, italic = cellBox?.style.italic ?? false, family = cellBox?.style.family ?? "Sans";
+    const fontKey = JSON.stringify([family, bold, italic]);
+    let selected = fonts.get(fontKey);
     if (!selected) {
       pdf.registerFontkit(fontkit);
       let bytes: Uint8Array;
       if (context.fonts) {
-        const supplied = await context.fonts.resolve(Object.freeze({ family: "Sans", bold, italic: false,
+        const supplied = await context.fonts.resolve(Object.freeze({ family, bold, italic,
           maxBytes: context.limits.inputBytes - fontBytes, signal: context.signal }));
         tick();
         if (supplied === undefined) unsupported("supplied font unavailable");
@@ -198,7 +199,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         const embeddedFont = await pdf.embedFont(bytes, { subset: true });
         selected = {font: embeddedFont, metrics: parsed, bytes, shaped: true, supported: new Set(embeddedFont.getCharacterSet()),
           ascentRatio: parsed.ascent / parsed.unitsPerEm, descentRatio: -parsed.descent / parsed.unitsPerEm};
-        fonts.set(bold, selected);
+        fonts.set(fontKey, selected);
       }
       catch (error) {
         context.signal.throwIfAborted();

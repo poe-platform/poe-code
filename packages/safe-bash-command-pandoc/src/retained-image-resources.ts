@@ -40,12 +40,17 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
     })())));
   };
   const fs = context.context.resourceFiles, readOptions = context.signal ? {signal: context.signal} : {};
-  let search: string[] | undefined;
-  if (options.resourcePath !== undefined) {
-    if (!Array.isArray(options.resourcePath) || !options.resourcePath.length || options.resourcePath.some(path => typeof path !== "string"))
-      context.fail("E_OPTION", "resourcePath requires directories");
-    search = options.resourcePath.map(path => resourceDirectory(path, resourceDirectory(context.context.resourceCwd ?? "/")));
-  }
+  let search: number | undefined, searchCount = 0;
+  const searchRoots = async function* (defaults: readonly string[]) {
+    if (search === undefined) {yield* defaults; return;}
+    for (let index = 0; index < searchCount; index++) {
+      const position = search + index * 24;
+      const bytes = await storage.read(position, 24), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+      let path = "";
+      for await (const chunk of text.chunks({first: view.getFloat64(0, true), last: view.getFloat64(8, true), units: view.getFloat64(16, true)})) path += chunk;
+      yield path;
+    }
+  };
   const scalar = async (node: number): Promise<string> => {
     let value = ""; for await (const chunk of tree.scalarChunks(node)) value += chunk; return value;
   };
@@ -152,6 +157,19 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
     return {position, length};
   };
   try {
+    if (options.resourcePath !== undefined) {
+      if (!Array.isArray(options.resourcePath) || !options.resourcePath.length || options.resourcePath.some(path => typeof path !== "string"))
+        context.fail("E_OPTION", "resourcePath requires directories");
+      const cwd = resourceDirectory(context.context.resourceCwd ?? "/");
+      searchCount = options.resourcePath.length;
+      search = storage.allocate(searchCount * 24);
+      for (let index = 0; index < searchCount; index++) {
+        const range = await text.from([resourceDirectory(options.resourcePath[index]!, cwd)]);
+        const bytes = new Uint8Array(24), view = new DataView(bytes.buffer);
+        view.setFloat64(0, range.first, true); view.setFloat64(8, range.last, true); view.setFloat64(16, range.units, true);
+        await storage.write(search + index * 24, bytes);
+      }
+    }
     if (embedded) for await (const image of images()) {
       const name = await tree.smallText(image.target, embedded.maxIdLength);
       if (name === undefined) continue;
@@ -179,7 +197,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
           if (!await targetSpans.get(key)) await targetSpans.set(key, BigInt(await save(await data(image.target, start))));
         } else {
           await retainedLocalResourceTarget(tree, image.target, context);
-          if (!search) resourceDirectory((await originAt(image.target)).base ?? context.context.resourceCwd ?? "/");
+          if (search === undefined) resourceDirectory((await originAt(image.target)).base ?? context.context.resourceCwd ?? "/");
         }
       }
       // Reader-owned resources remain admitted even when a filter removes their images.
@@ -206,7 +224,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
         const roots = [resourceDirectory(origin.base ?? context.context.resourceCwd ?? "/")];
         if (origin.base && context.context.resourceCwd) {const cwd = resourceDirectory(context.context.resourceCwd); if (!roots.includes(cwd)) roots.push(cwd);}
         let record = 0;
-        for (const root of search ?? roots) {
+        for await (const root of searchRoots(roots)) {
           const path = (root === "/" ? "" : root) + "/" + target.name, key = BigInt(await paths.add(await text.from([path])));
           record = Number(await pathSpans.get(key) ?? 0n); if (record) break;
           const type = await inspectResourcePath(fs, path, context); if (type === undefined) continue;

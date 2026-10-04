@@ -147,3 +147,52 @@ it.each(["odt", "rtf", "html5"].flatMap(to => [1, 3000].map(repeats => ({to, rep
     expect(await backing.readdir("/")).toEqual([]);
   } finally {paths.mockRestore();}
 });
+
+
+it.each(["odt", "rtf", "html5"].flatMap(to => [8, 256].map(count => ({to, count}))))("retains $count search directories for $to without collecting normalized paths", async ({to, count}) => {
+  const resourcePath = Array.from({length: count}, (_, index) => `/missing-${index}//./`);
+  resourcePath.push("/doc//./");
+  const mapped = vi.spyOn(resourcePath, "map").mockImplementation(() => {throw new Error("Resident search-path array forbidden");});
+  const resources = host(), backing = new MemoryFileSystem();
+  const inspect = resources.fs.lstat.bind(resources.fs);
+  let started = false;
+  resources.fs.lstat = async path => {
+    if (!started) {started = true; resourcePath.fill("/replaced");}
+    return inspect(path);
+  };
+  const input = {bytes: new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: [image("p%20x.jpg")]}]}))};
+  const close = vi.fn(async () => {});
+  try {
+    await convertToOutput([input], {from: "json", to, resourcePath, ...(to === "html5" ? {embedResources: true} : {})}, {resourceFiles: resources.fs,
+      workingFiles: {fs: backing, directory: "/", cacheBytes: 16384},
+      output: {async write(bytes) {expect(bytes.length).toBeLessThanOrEqual(16384); await Promise.resolve();}, close, async abort() {}}
+    });
+    expect(mapped).not.toHaveBeenCalled();
+    expect(resources.readStream).toHaveBeenCalledOnce();
+    expect(resources.readStream.mock.calls[0]![0]).toBe("/doc/p x.jpg");
+    expect(resources.readFile).not.toHaveBeenCalled();
+    expect(close).toHaveBeenCalledOnce();
+    expect(await backing.readdir("/")).toEqual([]);
+  } finally {mapped.mockRestore();}
+});
+
+
+it("retires a partially stored search list when admission is cancelled", async () => {
+  const backing = new MemoryFileSystem(), resources = host(), controller = new AbortController();
+  const normalize = resourcePaths.resourceDirectory;
+  const directory = vi.spyOn(resourcePaths, "resourceDirectory").mockImplementation((path, cwd) => {
+    if (path === "/missing-3") controller.abort();
+    return normalize(path, cwd);
+  });
+  const close = vi.fn(async () => {});
+  const input = {bytes: new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: [image("p%20x.jpg")]}]}))};
+  try {
+    await expect(convertToOutput([input], {from: "json", to: "odt", resourcePath: Array.from({length: 8}, (_, index) => `/missing-${index}`)}, {
+      signal: controller.signal, resourceFiles: resources.fs, workingFiles: {fs: backing, directory: "/", cacheBytes: 16384},
+      output: {async write() {}, close, async abort() {}}
+    })).rejects.toMatchObject({code: "E_CANCELLED"});
+    expect(resources.readStream).not.toHaveBeenCalled();
+    expect(close).not.toHaveBeenCalled();
+    expect(await backing.readdir("/")).toEqual([]);
+  } finally {directory.mockRestore();}
+});

@@ -658,6 +658,12 @@ Remaining ownership and exit gates (proposed coordination split):
   and surrogate pairs split across chunks, and derive suffix lengths from raw
   UTF-16 units even when normalization shortens the path. The required normalized
   filesystem path and unfinished component strings remain resident.
+  Grow the explicit resource search list independently of document size. Require
+  its normalized snapshot and index to use caller storage, with one directory
+  resident during lookup. Preserve ordered fallback, preflight validation and
+  the snapshot when caller options change during filesystem reads. Exercise the
+  spilled list with slow sinks, source/sink failures and cancellation in the R2
+  Worker resource matrix; require bounded transfers and empty backing storage.
 - Final exits: run the composed public SDK/command workerd matrix without Node
   compatibility, then the increasing-size and concurrent deployed Cloudflare
   cohorts above. Record actual memory, CPU and first-byte measurements. Local

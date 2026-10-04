@@ -162,11 +162,13 @@ export class ResourceSession {
     return entry;
   }
 
-  configure(options: WriteOptions): void {
+  configure(options: WriteOptions, collectSearch = true): void {
     const cwd = resourceDirectory(this.context.context.resourceCwd ?? "/");
     if (options.resourcePath !== undefined) {
       if (!Array.isArray(options.resourcePath) || !options.resourcePath.length || options.resourcePath.some(p => typeof p !== "string")) this.context.fail("E_OPTION", "resourcePath requires directories");
-      this.search = options.resourcePath.map(p => resourceDirectory(p, cwd));
+      if (collectSearch) this.search = options.resourcePath.map(p => resourceDirectory(p, cwd));
+      // Retained conversions validate here and snapshot into caller storage later.
+      else for (const path of options.resourcePath) resourceDirectory(path, cwd);
     }
     if (options.extractMedia !== undefined) {
       if (typeof options.extractMedia !== "string") this.context.fail("E_OPTION", "extractMedia requires a directory");

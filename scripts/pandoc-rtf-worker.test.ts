@@ -40,11 +40,14 @@ it.each(["png", "jpeg", "progressive"].flatMap(format => ["filesystem", "resolve
       await namespace.mkdir("/spill");
       const {fs, events} = api.createR2PagedFixture(namespace, env.PAGES), controller = new AbortController();
       let length = 0, hash = 2166136261, closed = 0, aborted = 0, returned = 0, pulls = 0, error, largest = 0;
+      const resourcePath = Array.from({length: 64}, (_, index) => "/missing-" + index + "-" + "x".repeat(128));
+      resourcePath.push("/images//./");
+      resourcePath.map = () => {throw new Error("Resident search-path array forbidden");};
       try {
-        await api.convertToOutput([{bytes: new TextEncoder().encode(${JSON.stringify(JSON.stringify(input))})}], {from: "json", to: ${JSON.stringify(to)}, resourcePath: ["/images//./"]}, {
+        await api.convertToOutput([{bytes: new TextEncoder().encode(${JSON.stringify(JSON.stringify(input))})}], {from: "json", to: ${JSON.stringify(to)}, resourcePath}, {
           limits: {references: 2000000, retainedBytes: 32000000}, signal: controller.signal, workingFiles: {fs, directory: "/spill", cacheBytes: 16384},
           ${capability === "resolver" ? "resources" : "resourceFiles"}: {
-            async lstat(path) {return {type: (path === "/" || path === "/images") ? "directory" : "file"};},
+            async lstat(path) {if (path.startsWith("/missing-")) throw Object.assign(new Error("missing"), {code: "ENOENT"}); return {type: (path === "/" || path === "/images") ? "directory" : "file"};},
             async readFile() {throw new Error("Full resource reads forbidden");}, async mkdir() {}, async writeFile() {},
             ${capability === "resolver" ? "resolveStream" : "readStream"}(path) {
               if (mode === "pending-cancel" || mode === "factory-cancel") {

@@ -83,7 +83,7 @@ class Session extends ExecutionContext {
   stripComments = false;
   shiftHeadingLevelBy = 0;
   eol: WriteOptions["eol"];
-  options(options: ReadOptions | WriteOptions | ConversionOptions): void {
+  options(options: ReadOptions | WriteOptions | ConversionOptions, collectResourceSearch = true): void {
     const allowed =
       this.operation === "read" ? ["from"] : this.operation === "write" ? ["to", "wrap", "lossy", "standalone", "metadata", "rawContent"] : ["from", "to", "wrap", "lossy", "standalone", "metadata", "rawContent"];
     if (this.operation === "convert") allowed.push("filters");
@@ -115,7 +115,7 @@ class Session extends ExecutionContext {
       this.columns = options.columns;
       this.shiftHeadingLevelBy = options.shiftHeadingLevelBy ?? 0;
       this.eol = options.eol;
-      this.media.configure(options);
+      this.media.configure(options, collectResourceSearch);
       this.registry.validateOptions(options.to, "write", Object.keys(options).filter(key => !["from", "to", "filters", "yes", "lossy", "stripComments", "shiftHeadingLevelBy", "eol", "failIfWarnings", "metadata", "metadataJson", "metadataFiles", "resourcePath", "extractMedia", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "fileScope", "sandbox", "embedResources"].includes(key) && !(key === "standalone" && options.standalone === false)));
       if (options.yes !== undefined && typeof options.yes !== "boolean") this.fail("E_OPTION", "yes must be boolean");
       this.yes = options.yes === true;
@@ -639,7 +639,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
   if (backedDocument) {
     const session = new Session("convert", context);
     try {
-      session.options(options);
+      session.options(options, false);
       const filters = await session.admitFilters(options.filters);
       const includes = await session.call(() => RetainedOptions.acquire(session, context.workingFiles!, options));
       let reading = false, readerStarted = false, readerInput = 0;
@@ -679,7 +679,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
   }
   const session = new Session("convert", context);
   try {
-    session.options(options);
+    session.options(options, false);
     const filters = await session.admitFilters(options.filters);
     const includes = await session.call(() => RetainedOptions.acquire(session, context.workingFiles!, options));
     let readingSource: string | undefined;

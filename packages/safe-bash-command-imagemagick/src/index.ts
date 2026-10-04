@@ -5057,7 +5057,6 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
     if (!outSpec || argv.some(token => ["--help", "-help", "-h", "--version", "-version", "-list", "--list"].includes(token))) return;
     if (["info:", "txt:", "histogram:"].some(prefix => outSpec.toLowerCase().startsWith(prefix))) return;
     const output = inferOutputFormat(outSpec, "png");
-    if (output.format === "gif" || output.path.includes("%")) return;
     await yieldTurn(signal);
     let state = createDefaultState();
     const tokens = argv.slice(0, -1), scopes: { state: MagickState; end: number }[] = [];
@@ -5167,18 +5166,21 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
                 stack.length = 0; await stack.push(result); return stack;
             }); continue;
         }
+        if (!operandsOnly && ["-delay", "-loop", "-dispose"].includes(token)) { i++; continue; }
+        if (!operandsOnly && (token === "-coalesce" || token === "-deconstruct")) continue;
+        if (!operandsOnly && (token === "+adjoin" || token === "-adjoin")) { state.adjoin = token === "-adjoin"; continue; }
         if (!operandsOnly && token === "-geometry") { state.geometry = tokens[++i] ?? "+0+0"; continue; }
         if (!operandsOnly && token === "+gravity") { state.gravity = "northwest"; continue; }
         if (!operandsOnly && token === "-strip") { state.strip = true; continue; }
         if (!operandsOnly && token === "+repage") continue;
         if (!operandsOnly && token === "-repage") { i++; continue; }
         if (!operandsOnly && (token === "-write" || token === "+write")) {
-            const path = tokens[++i] ?? "", quality = state.quality;
+            const path = tokens[++i] ?? "", quality = state.quality, adjoin = state.adjoin;
             stackStep(async (stack, backend) => {
                 const image = await stack.get(stack.length - 1);
                 if (image && path && path.toLowerCase() !== "null:") {
                     const output = inferOutputFormat(path, image.format);
-                    if (stack.length > 1 && hasSceneOutputPattern(output.path)) {
+                    if (stack.length > 1 && (hasSceneOutputPattern(output.path) || !adjoin)) {
                         for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage((await stack.get(index))!, formatSceneOutputPath(output.path, index), { format: output.format, quality }); }
                     } else await backend.stage(image, output.path, { format: output.format, quality });
                 }
@@ -5352,9 +5354,9 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
     if (scopes.length) state = scopes[0]!.state;
     if (!inputs) return;
     return withCompareFiles(input, stdinBytes, signal, async backend => {
-        let image: StoredRgbaImage | undefined;
+        let image: StoredRgbaImage | undefined, stack = new StoredImageStack(backend.storage, signal);
         try {
-            let stack = new StoredImageStack(backend.storage, signal); const parents: StoredImageStack[] = [];
+            const parents: StoredImageStack[] = [];
             for (const step of steps) {
                 signal.throwIfAborted();
                 if (typeof step !== "function") stack = await step.runStack(stack, backend, parents);
@@ -5371,7 +5373,32 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         }
         if (!image) { await backend.publishPending(); return { exitCode: 1, stdout: "", stderr: `magick: no images defined '${outSpec}'\n` }; }
         await yieldTurn(signal);
-        const stdoutBytes = await backend.publish(image, output.path, { format: output.format, quality: state.quality });
+        if (stack.length > 1 && (hasSceneOutputPattern(output.path) || !state.adjoin)) {
+            for (let index = 0; index < stack.length; index++) {
+                await yieldTurn(signal);
+                await backend.stage((await stack.get(index))!, formatSceneOutputPath(output.path, index), { format: output.format, quality: state.quality });
+            }
+            await backend.publishPending();
+            return { exitCode: 0, stdout: "", stderr: "" };
+        }
+        let pageHeight: number | undefined;
+        if (stack.length > 1 && output.format === "gif") {
+            const first = (await stack.get(0))!, size = first.width * first.height * 4, position = backend.storage.allocate(size * stack.length);
+            for (let index = 0; index < stack.length; index++) {
+                let frame = (await stack.get(index))!;
+                if (frame.width !== first.width || frame.height !== first.height) {
+                    const resize = magickResizeOptions(frame, `${first.width}x${first.height}!`, state.kernel)!;
+                    frame = await transformStoredImage(frame, backend.storage, { kind: "resize", ...resize }, signal);
+                }
+                for (let offset = 0; offset < size; offset += 16384) {
+                    await yieldTurn(signal);
+                    await backend.storage.write(position + index * size + offset, await backend.storage.read(frame.position + offset, Math.min(16384, size - offset)));
+                }
+            }
+            pageHeight = first.height;
+            image = { ...first, position, height: first.height * stack.length, pages: stack.length, pageHeight };
+        }
+        const stdoutBytes = await backend.publish(image, output.path, { format: output.format, quality: state.quality, ...(pageHeight === undefined ? {} : { pageHeight }) });
         return { exitCode: 0, stdout: "", stderr: "", ...(stdoutBytes ? { stdoutBytes } : {}) };
     });
 }

@@ -10177,25 +10177,32 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
   if (cmds.streaming && cmds.depth > cmds.maxDepth) { cmds.onFrameAllocation?.(4096); cmds.maxDepth = cmds.depth; }
   try {
   cmds.onAllocation?.(512);
-  function moveTo(x2, y2) {
+  function* moveTo(x2, y2) {
     if (firstPoint) {
       cmds.add(DrawOPS.lineTo, firstPoint);
     }
     firstPoint = [x2, y2];
     cmds.add(DrawOPS.moveTo, [x2, y2]);
+    if (cmds.streaming) { yield cmds.getPath(); cmds.cmds.length = 0; }
   }
-  function lineTo(x2, y2) {
+  function* lineTo(x2, y2) {
     cmds.add(DrawOPS.lineTo, [x2, y2]);
+    if (cmds.streaming) { yield cmds.getPath(); cmds.cmds.length = 0; }
   }
-  function bezierCurveTo(x1, y1, x2, y2, x3, y3) {
+  function* bezierCurveTo(x1, y1, x2, y2, x3, y3) {
     cmds.add(DrawOPS.curveTo, [x1, y1, x2, y2, x3, y3]);
+    if (cmds.streaming) { yield cmds.getPath(); cmds.cmds.length = 0; }
   }
   const stack = [];
+  function pushOperand(value) {
+    if (cmds.streaming && stack.length + 1 > cmds.maxOperands) { cmds.onFrameAllocation?.(16); cmds.maxOperands = stack.length + 1; }
+    stack.push(value);
+  }
   let x = 0, y = 0;
   let stems = 0;
   let firstPoint = null;
   function* parse(code, depth = 0) {
-    if (cmds.streaming && depth > 10) throw new FormatError('CFF subroutine nesting exceeded');
+    if (cmds.streaming && depth > cmds.maxSubrDepth) { cmds.onFrameAllocation?.(256); cmds.maxSubrDepth = depth; }
     cmds.onAllocation?.(256 + code.length * 16);
     const view = new DataView(code.buffer, code.byteOffset, code.byteLength);
     let i = 0;
@@ -10214,36 +10221,36 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
           break;
         case 4:
           y += stack.pop();
-          moveTo(x, y);
+          yield* moveTo(x, y);
           stackClean = true;
           break;
         case 5:
           while (stack.length > 0) {
             x += stack.shift();
             y += stack.shift();
-            lineTo(x, y);
+            yield* lineTo(x, y);
           }
           break;
         case 6:
           while (stack.length > 0) {
             x += stack.shift();
-            lineTo(x, y);
+            yield* lineTo(x, y);
             if (stack.length === 0) {
               break;
             }
             y += stack.shift();
-            lineTo(x, y);
+            yield* lineTo(x, y);
           }
           break;
         case 7:
           while (stack.length > 0) {
             y += stack.shift();
-            lineTo(x, y);
+            yield* lineTo(x, y);
             if (stack.length === 0) {
               break;
             }
             x += stack.shift();
-            lineTo(x, y);
+            yield* lineTo(x, y);
           }
           break;
         case 8:
@@ -10254,7 +10261,7 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
             yb = ya + stack.shift();
             x = xb + stack.shift();
             y = yb + stack.shift();
-            bezierCurveTo(xa, ya, xb, yb, x, y);
+            yield* bezierCurveTo(xa, ya, xb, yb, x, y);
           }
           break;
         case 10:
@@ -10292,11 +10299,11 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
               xb = xa + stack.shift();
               y1 = y + stack.shift();
               x = xb + stack.shift();
-              bezierCurveTo(xa, y, xb, y1, x, y1);
+              yield* bezierCurveTo(xa, y, xb, y1, x, y1);
               xa = x + stack.shift();
               xb = xa + stack.shift();
               x = xb + stack.shift();
-              bezierCurveTo(xa, y1, xb, y, x, y);
+              yield* bezierCurveTo(xa, y1, xb, y, x, y);
               break;
             case 35:
               xa = x + stack.shift();
@@ -10305,14 +10312,14 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
               yb = ya + stack.shift();
               x = xb + stack.shift();
               y = yb + stack.shift();
-              bezierCurveTo(xa, ya, xb, yb, x, y);
+              yield* bezierCurveTo(xa, ya, xb, yb, x, y);
               xa = x + stack.shift();
               ya = y + stack.shift();
               xb = xa + stack.shift();
               yb = ya + stack.shift();
               x = xb + stack.shift();
               y = yb + stack.shift();
-              bezierCurveTo(xa, ya, xb, yb, x, y);
+              yield* bezierCurveTo(xa, ya, xb, yb, x, y);
               stack.pop();
               break;
             case 36:
@@ -10321,12 +10328,12 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
               xb = xa + stack.shift();
               y2 = y1 + stack.shift();
               x = xb + stack.shift();
-              bezierCurveTo(xa, y1, xb, y2, x, y2);
+              yield* bezierCurveTo(xa, y1, xb, y2, x, y2);
               xa = x + stack.shift();
               xb = xa + stack.shift();
               y3 = y2 + stack.shift();
               x = xb + stack.shift();
-              bezierCurveTo(xa, y2, xb, y3, x, y);
+              yield* bezierCurveTo(xa, y2, xb, y3, x, y);
               break;
             case 37:
               const x0 = x, y0 = y;
@@ -10336,7 +10343,7 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
               yb = ya + stack.shift();
               x = xb + stack.shift();
               y = yb + stack.shift();
-              bezierCurveTo(xa, ya, xb, yb, x, y);
+              yield* bezierCurveTo(xa, ya, xb, yb, x, y);
               xa = x + stack.shift();
               ya = y + stack.shift();
               xb = xa + stack.shift();
@@ -10348,7 +10355,7 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
               } else {
                 y += stack.shift();
               }
-              bezierCurveTo(xa, ya, xb, yb, x, y);
+              yield* bezierCurveTo(xa, ya, xb, yb, x, y);
               break;
             default:
               throw new FormatError(`unknown operator: 12 ${v}`);
@@ -10402,12 +10409,12 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
         case 21:
           y += stack.pop();
           x += stack.pop();
-          moveTo(x, y);
+          yield* moveTo(x, y);
           stackClean = true;
           break;
         case 22:
           x += stack.pop();
-          moveTo(x, y);
+          yield* moveTo(x, y);
           stackClean = true;
           break;
         case 23:
@@ -10422,17 +10429,17 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
             yb = ya + stack.shift();
             x = xb + stack.shift();
             y = yb + stack.shift();
-            bezierCurveTo(xa, ya, xb, yb, x, y);
+            yield* bezierCurveTo(xa, ya, xb, yb, x, y);
           }
           x += stack.shift();
           y += stack.shift();
-          lineTo(x, y);
+          yield* lineTo(x, y);
           break;
         case 25:
           while (stack.length > 6) {
             x += stack.shift();
             y += stack.shift();
-            lineTo(x, y);
+            yield* lineTo(x, y);
           }
           xa = x + stack.shift();
           ya = y + stack.shift();
@@ -10440,7 +10447,7 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
           yb = ya + stack.shift();
           x = xb + stack.shift();
           y = yb + stack.shift();
-          bezierCurveTo(xa, ya, xb, yb, x, y);
+          yield* bezierCurveTo(xa, ya, xb, yb, x, y);
           break;
         case 26:
           if (stack.length % 2) {
@@ -10453,7 +10460,7 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
             yb = ya + stack.shift();
             x = xb;
             y = yb + stack.shift();
-            bezierCurveTo(xa, ya, xb, yb, x, y);
+            yield* bezierCurveTo(xa, ya, xb, yb, x, y);
           }
           break;
         case 27:
@@ -10467,11 +10474,11 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
             yb = ya + stack.shift();
             x = xb + stack.shift();
             y = yb;
-            bezierCurveTo(xa, ya, xb, yb, x, y);
+            yield* bezierCurveTo(xa, ya, xb, yb, x, y);
           }
           break;
         case 28:
-          stack.push(view.getInt16(i));
+          pushOperand(view.getInt16(i));
           i += 2;
           break;
         case 29:
@@ -10489,7 +10496,7 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
             yb = ya + stack.shift();
             x = xb + stack.shift();
             y = yb + (stack.length === 1 ? stack.shift() : 0);
-            bezierCurveTo(xa, ya, xb, yb, x, y);
+            yield* bezierCurveTo(xa, ya, xb, yb, x, y);
             if (stack.length === 0) {
               break;
             }
@@ -10499,7 +10506,7 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
             yb = ya + stack.shift();
             y = yb + stack.shift();
             x = xb + (stack.length === 1 ? stack.shift() : 0);
-            bezierCurveTo(xa, ya, xb, yb, x, y);
+            yield* bezierCurveTo(xa, ya, xb, yb, x, y);
           }
           break;
         case 31:
@@ -10510,7 +10517,7 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
             yb = ya + stack.shift();
             y = yb + stack.shift();
             x = xb + (stack.length === 1 ? stack.shift() : 0);
-            bezierCurveTo(xa, ya, xb, yb, x, y);
+            yield* bezierCurveTo(xa, ya, xb, yb, x, y);
             if (stack.length === 0) {
               break;
             }
@@ -10520,7 +10527,7 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
             yb = ya + stack.shift();
             x = xb + stack.shift();
             y = yb + (stack.length === 1 ? stack.shift() : 0);
-            bezierCurveTo(xa, ya, xb, yb, x, y);
+            yield* bezierCurveTo(xa, ya, xb, yb, x, y);
           }
           break;
         default:
@@ -10528,21 +10535,16 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
             throw new FormatError(`unknown operator: ${v}`);
           }
           if (v < 247) {
-            stack.push(v - 139);
+            pushOperand(v - 139);
           } else if (v < 251) {
-            stack.push((v - 247) * 256 + code[i++] + 108);
+            pushOperand((v - 247) * 256 + code[i++] + 108);
           } else if (v < 255) {
-            stack.push(-(v - 251) * 256 - code[i++] - 108);
+            pushOperand(-(v - 251) * 256 - code[i++] - 108);
           } else {
-            stack.push(view.getInt32(i) / 65536);
+            pushOperand(view.getInt32(i) / 65536);
             i += 4;
           }
           break;
-      }
-      if (cmds.streaming && stack.length > 48) throw new FormatError('CFF operand stack exceeded');
-      if (cmds.streaming && cmds.cmds.length) {
-        yield cmds.getPath();
-        cmds.cmds.length = 0;
       }
       if (stackClean) {
         stack.length = 0;
@@ -10679,6 +10681,8 @@ var Type2Compiled = class extends CompiledFont {
     const cmds = new Commands();
     cmds.streaming = true;
     cmds.maxDepth = 1;
+    cmds.maxSubrDepth = 10;
+    cmds.maxOperands = 48;
     cmds.onFrameAllocation = onAllocation;
     cmds.transform(matrix.slice());
     yield* compileCharString(code, cmds, this, glyphId);

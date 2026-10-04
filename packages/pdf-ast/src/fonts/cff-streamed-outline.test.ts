@@ -67,3 +67,17 @@ it("propagates scratch admission before interpreting the glyph", () => {
       .next()
   ).toThrow(failure);
 });
+
+it("preserves long operand runs accepted by the existing compiler without collecting their drawing output", () => {
+  const code = new Uint8Array(405);
+  code.set([139, 139, 21]); code.fill(140, 3, 403); code.set([5, 14], 403);
+  const renderer = new Type2Compiled({ glyphs: [code] }, [], [1, 0, 0, 1, 0, 0]);
+  const expected = Array.from(renderer.compileGlyph(code, 0));
+  const actual: number[] = []; let admission = 0;
+  for (const chunk of renderer.glyphCommands(code, 0, bytes => { admission += bytes; })) {
+    expect(chunk.length).toBeLessThanOrEqual(7);
+    actual.push(...Array.from(chunk));
+  }
+  expect(actual).toEqual(expected);
+  expect(admission).toBeGreaterThan(16384);
+});

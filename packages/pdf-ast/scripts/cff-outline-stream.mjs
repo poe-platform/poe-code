@@ -8,11 +8,24 @@ export function streamCffOutlines(source) {
   if (start < 0 || end < start) throw new Error("CFF outline source markers changed");
   let parser = source.slice(start, end);
   parser = parser.replace("function compileCharString(", "function* compileCharString(")
-    .replace("  function parse(code) {", "  function* parse(code, depth = 0) {\n    if (cmds.streaming && depth > 10) throw new FormatError('CFF subroutine nesting exceeded');")
+    .replace("  function parse(code) {", "  function* parse(code, depth = 0) {\n    if (cmds.streaming && depth > cmds.maxSubrDepth) { cmds.onFrameAllocation?.(256); cmds.maxSubrDepth = depth; }")
     .replaceAll("parse(subrCode);", "yield* parse(subrCode, depth + 1);")
     .replaceAll("            compileCharString(", "            yield* compileCharString(")
     .replace("  parse(charStringCode);", "  yield* parse(charStringCode);")
-    .replace("      if (stackClean) {", "      if (cmds.streaming && stack.length > 48) throw new FormatError('CFF operand stack exceeded');\n      if (cmds.streaming && cmds.cmds.length) {\n        yield cmds.getPath();\n        cmds.cmds.length = 0;\n      }\n      if (stackClean) {");
+    .replaceAll("stack.push(", "pushOperand(")
+    .replace("  const stack = [];", "  const stack = [];\n  function pushOperand(value) {\n    if (cmds.streaming && stack.length + 1 > cmds.maxOperands) { cmds.onFrameAllocation?.(16); cmds.maxOperands = stack.length + 1; }\n    stack.push(value);\n  }");
+  for (const name of ["moveTo", "lineTo", "bezierCurveTo"]) {
+    const start = parser.indexOf("  function " + name + "("),
+      nextFunction = parser.indexOf("\n  function ", start + 1),
+      end = nextFunction < 0 ? parser.indexOf("\n  const stack", start) : nextFunction;
+    if (start < 0 || end < start) throw new Error("CFF drawing helper changed: " + name);
+    let helper = parser.slice(start, end);
+    const close = helper.lastIndexOf("}");
+    helper = helper.slice(0, close) + "  if (cmds.streaming) { yield cmds.getPath(); cmds.cmds.length = 0; }\n  " + helper.slice(close);
+    helper = helper.replace("function " + name, "function* " + name);
+    parser = parser.slice(0, start) + helper + parser.slice(end);
+    parser = parser.replaceAll("    " + name + "(", "    yield* " + name + "(");
+  }
   // Separate seac invocations have their own operand stack, but share commands.
   const body = parser.indexOf("{\n") + 2, close = parser.lastIndexOf("}");
   parser = parser.slice(0, body) + "  cmds.depth = (cmds.depth ?? 0) + 1;\n  if (cmds.streaming && cmds.depth > cmds.maxDepth) { cmds.onFrameAllocation?.(4096); cmds.maxDepth = cmds.depth; }\n  try {\n" + parser.slice(body, close) + "  } finally { cmds.depth--; }\n" + parser.slice(close);
@@ -32,6 +45,8 @@ export function streamCffOutlines(source) {
     const cmds = new Commands();
     cmds.streaming = true;
     cmds.maxDepth = 1;
+    cmds.maxSubrDepth = 10;
+    cmds.maxOperands = 48;
     cmds.onFrameAllocation = onAllocation;
     cmds.transform(matrix.slice());
     yield* compileCharString(code, cmds, this, glyphId);

@@ -307,7 +307,9 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
       : await collectBytes(source, { maxBytes: limits.maxFileBytes, signal: context.signal });
     source = rawBytes;
     crossLineMatches = matcher.matchBuffer(rawBytes, true);
-    if (args.onlyMatching && args.replacement === undefined && !args.invert && args.mode === "lines") {
+    // Binary input must use the record path so skipping and match notices stay consistent.
+    const textInput = args.nullData || binary === "text" || rawBytes.indexOf(0) === -1;
+    if (textInput && args.onlyMatching && args.replacement === undefined && !args.invert && args.mode === "lines") {
       state.bytesRead = rawBytes.length;
       state.bytesSearched = rawBytes.length;
       const selectedOutput = !args.quiet;

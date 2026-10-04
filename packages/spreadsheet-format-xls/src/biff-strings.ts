@@ -127,6 +127,28 @@ export class BiffStrings {
   unicode(length: number): StringValue { return this.run(this.decoder.unicode(length)); }
 }
 
+/** Borrowed record lookup is lazy; the caller retains ownership of its backing store. */
+export class BiffStringSource {
+  private readonly decoder: StringDecoder;
+  constructor(private readonly nextPart: () => Promise<Binary | undefined>, private readonly context: BiffReadContext, codepage: number) {
+    this.decoder = new StringDecoder(context, codepage);
+  }
+  private async run<T>(steps: StringSteps<T>): Promise<T> {
+    this.context.signal.throwIfAborted();
+    let next = steps.next();
+    while (!next.done) {
+      this.context.signal.throwIfAborted();
+      const part = await this.nextPart();
+      this.context.signal.throwIfAborted();
+      next = steps.next(part);
+    }
+    return next.value;
+  }
+  word(): Promise<number> { return this.run(this.decoder.word()); }
+  legacy(length: number): Promise<string> { return this.run(this.decoder.legacy(length)); }
+  unicode(length: number): Promise<StringValue> { return this.run(this.decoder.unicode(length)); }
+}
+
 /** Shared strings can span many records, but need only one input payload at a time. */
 export async function* readBiffStrings(parts: AsyncIterable<Binary>, count: number, context: BiffReadContext,
   codepage: number): AsyncGenerator<StringValue, void> {

@@ -13,7 +13,7 @@ import { encryptBiffStream, createBiffEncryptionHeader, biffEncryptionProfiles, 
 import { encryptBiffXorStreams } from "./biff-xor-write.js";
 import { exportOptionPairs } from "@poe-code/spreadsheet-engine/cli/export-options";
 import { biffFontWidth } from "./biff-font-widths.js";
-import { readBiffStrings, BiffStrings, biffDecode, biffOverrideCodepage } from "./biff-strings.js";
+import { readBiffStrings, BiffStrings, BiffStringSource, biffDecode, biffOverrideCodepage } from "./biff-strings.js";
 import { translateBiffFormula, biffErrors, type BiffFormulaContext, type BiffExternalName } from "./biff-formulas.js";
 import { biffExternalPath, biffLegacyExternalPath } from "./biff-external-path.js";
 import { biffFormulaExtras } from "./biff-formula-extras.js";
@@ -262,6 +262,19 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
     while ((await biffRecord(records, index + 1))?.opcode === 0x3c) parts.push((await biffRecord(records, ++index))!.data);
     return { parts, next: index };
   };
+  const stringCursor = async (index: number, offset: number, encoding = codepage) => {
+    let next = index;
+    while (("opcode" in records ? await records.opcode(next + 1) : records[next + 1]?.opcode) === 0x3c) {
+      context.signal.throwIfAborted(); next++;
+    }
+    let at = index;
+    const cursor = new BiffStringSource(async () => {
+      if (at > next) return undefined;
+      const first = at === index, data = (await biffRecord(records, at++))!.data;
+      return first ? new Binary(data.slice(offset, data.bytes.length - offset)) : data;
+    }, context, encoding);
+    return { cursor, next };
+  };
   const formulaParts = async (index: number, offset: number, length: number) => {
     const first = (await biffRecord(records, index))!.data;
     let tokens: Uint8Array;
@@ -360,9 +373,9 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
     if ([0x1e, 0x41e].includes(opcode)) {
       const id = ver >= 7 ? data.u16(0) : legacyFormatCount++;
       const offset = ver >= 4 ? 2 : 0, length = ver >= 8 ? data.u16(offset) : data.u8(offset);
-      const start = offset + (ver >= 8 ? 2 : 1), parts = await stringParts(index, start); index = parts.next;
-      const cursor = new BiffStrings(parts.parts, context, codepage);
-      formatTable.set(id, accountText(ver >= 8 ? cursor.unicode(length).text : cursor.legacy(length))); continue;
+      const start = offset + (ver >= 8 ? 2 : 1), parts = await stringCursor(index, start); index = parts.next;
+      const cursor = parts.cursor;
+      formatTable.set(id, accountText(ver >= 8 ? (await cursor.unicode(length)).text : await cursor.legacy(length))); continue;
     }
     if ([0xe0, 0x43, 0x243, 0x443].includes(opcode)) { xfTable.push({ data, revision: ver }); continue; }
     if ([0x31, 0x231].includes(opcode)) {
@@ -392,14 +405,14 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
       let workbook: string | undefined;
       const externalSheets: string[] = [];
       if (kind === "external" && ver >= 8) {
-        const parts = await stringParts(index, 4); index = parts.next;
-        const cursor = new BiffStrings(parts.parts, context, codepage);
-        const path = accountText(cursor.unicode(data.u16(2)).text);
+        const parts = await stringCursor(index, 4); index = parts.next;
+        const cursor = parts.cursor;
+        const path = accountText((await cursor.unicode(data.u16(2))).text);
         // Gnumeric also recognizes the one-character NUL VirtualPath as self.
         if (path === "\0") kind = "local";
         else {
           workbook = biffExternalPath(path);
-          for (let at = 0; at < data.u16(0); at++) externalSheets.push(accountText(cursor.unicode(cursor.word()).text));
+          for (let at = 0; at < data.u16(0); at++) externalSheets.push(accountText((await cursor.unicode(await cursor.word())).text));
         }
       }
       supbooks.push({ kind, names: [], sheets: externalSheets, ...(workbook === undefined ? {} : { workbook }) });
@@ -507,10 +520,11 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
         const string = storedStrings ? await storedStrings.get(data.u32(6)) : sharedStrings[data.u32(6)]; if (!string) invalidBiff("invalid shared string index");
         await addCell(sheet, data, { kind: "string", value: string.text }, string.richText ? { richText: string.richText } : {});
       } else {
-        const length = opcode === 4 ? data.u8(7) : data.u16(6), parts = await stringParts(index, 8); index = parts.next;
+        const length = opcode === 4 ? data.u8(7) : data.u16(6);
         const xf = xfTable[ver === 2 ? data.u8(4) & 63 : data.u16(4)];
         const font = xf ? fontTable[xf.revision >= 5 ? xf.data.u16(0) : xf.data.u8(0)] : undefined;
-        const cursor = new BiffStrings(parts.parts, context, font?.codepage ?? codepage), string = ver >= 8 ? cursor.unicode(length) : { text: cursor.legacy(length) };
+        const parts = await stringCursor(index, 8, font?.codepage ?? codepage); index = parts.next;
+        const string = ver >= 8 ? await parts.cursor.unicode(length) : { text: await parts.cursor.legacy(length) };
         await addCell(sheet, data, { kind: "string", value: accountText(string.text) }, string.richText ? { richText: string.richText } : {});
         if (opcode === 0xd6) await retain(record, sheet.unsupportedRecords);
       }
@@ -586,9 +600,9 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
         const value: CellValue = { kind: "string", value: "" };
         lastFormula.cell = { ...lastFormula.cell, value, cachedResult: value }; lastFormula = undefined; continue;
       }
-      const parts = await stringParts(index, ver === 2 ? 1 : 2); index = parts.next;
-      const cursor = new BiffStrings(parts.parts, context, codepage);
-      const value: CellValue = { kind: "string", value: accountText(ver >= 8 ? cursor.unicode(length).text : cursor.legacy(length)) };
+      const parts = await stringCursor(index, ver === 2 ? 1 : 2); index = parts.next;
+      const cursor = parts.cursor;
+      const value: CellValue = { kind: "string", value: accountText(ver >= 8 ? (await cursor.unicode(length)).text : await cursor.legacy(length)) };
       lastFormula.cell = { ...lastFormula.cell, value, cachedResult: value }; lastFormula = undefined; continue;
     }
     if (opcode === 0xe5) {

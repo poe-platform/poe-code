@@ -294,10 +294,6 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
     for (const part of propertyChunks(value)) { bytes.set(part, at); at += part.length; }
     streams.set(name, bytes);
   }
-  const preserved = await mergeBiffProperties(book, streams, handledMetadata, context, charge, allocate);
-  for (const key of unsupportedKeys) if (!preserved.has(key))
-    await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `Unsupported Excel BIFF document property: ${key}` });
-  if (!staged) return { streams, handledMetadata, async close() {} };
   const sources = new Map<string, BiffPropertySource>();
   const close = async () => {
     const errors: unknown[] = [];
@@ -306,11 +302,16 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
     if (errors.length) throw new AggregateError(errors, "BIFF property sources cleanup failed");
   };
   try {
-    for (const [name, value] of snapshots ? streams : planned) sources.set(name, await stagePropertyBytes(value, context));
+    const preserved = await mergeBiffProperties(book, streams, handledMetadata, context, charge, allocate,
+      staged ? { sources, reserve } : undefined);
+    for (const key of unsupportedKeys) if (!preserved.has(key))
+      await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `Unsupported Excel BIFF document property: ${key}` });
+    if (!staged) return { streams, handledMetadata, async close() {} };
+    for (const [name, value] of snapshots ? streams : planned) if (!sources.has(name)) sources.set(name, await stagePropertyBytes(value, context));
     return { streams: sources, handledMetadata, close };
   } catch (error) {
     try { await close(); } catch (cleanup) { throw new AggregateError([error, cleanup], "BIFF properties cleanup failed"); }
     throw error;
-  } finally { if (snapshots) for (const bytes of streams.values()) bytes.fill(0); }
+  } finally { if (staged && snapshots) for (const bytes of streams.values()) bytes.fill(0); }
 
 }

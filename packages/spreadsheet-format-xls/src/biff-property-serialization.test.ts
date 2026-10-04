@@ -1,3 +1,5 @@
+import { mergeBiffProperties } from './biff-properties-merge.js';
+import type { BiffPropertySource } from './biff-encrypted-properties-write.js';
 import { stagePropertyBytes } from './biff-property-bytes.js';
 import { expect, it, vi } from 'vitest';
 import type { CapabilityContext } from '@poe-code/spreadsheet-engine/contracts';
@@ -78,7 +80,7 @@ it.each([1, 3])('rejects a lazy serialization whose declared size %s disagrees w
   expect(state.closed).toBe(1);
 });
 
-it.each([false, true])('publishes large properties through injected safe-fs with encryption=%s', async encrypted => {
+it.each([[false, false], [true, false], [false, true], [true, true]])('publishes large properties through injected safe-fs with encryption=%s retained=%s', async (encrypted, retained) => {
   const { createMemoryFileSystem } = await import('@poe-code/safe-fs/core');
   const { createEngine } = await import('@poe-code/spreadsheet-engine');
   const { xlsFormat } = await import('./index.js');
@@ -94,14 +96,52 @@ it.each([false, true])('publishes large properties through injected safe-fs with
   });
   const password = { async read() { return 'secret'; } }, entropy = { async read() { return Uint8Array.from({ length: 32 }, (_, i) => i); } };
   const options = encrypted ? ['encryption=rc4-cryptoapi-128-properties'] : [];
-  const expected = await createBiffWriter(8)(book, options, { ...context, password, entropy });
+  const input = retained ? await readBiff(await createBiffWriter(8)(book, [], context), context) : book;
+  const expected = await createBiffWriter(8)(input, options, { ...context, password, entropy });
   const engine = createEngine({ formats: [xlsFormat], password, entropy, workingFiles: { fs, directory: '/', cacheBytes: 16384 } });
   try {
-    const adopted = await engine.adoptWorkbook(book, { signal: context.signal }); let at = 0;
+    const adopted = await engine.adoptWorkbook(input, { signal: context.signal }); let at = 0;
     await engine.writeWorkbook(adopted, { kind: 'stream', sink: { async write(bytes) {
       expect(bytes.length).toBeLessThanOrEqual(16384); expect(bytes.every((byte, i) => byte === expected[at + i])).toBe(true);
       at += bytes.length; await Promise.resolve();
     } } }, { exportType: 'Gnumeric_Excel:excel_biff8', exportOptions: options }, { signal: context.signal });
     expect(at).toBe(expected.length); expect(written).toBeGreaterThan(200000); expect(await fs.readdir('/')).toEqual([]);
   } finally { await engine.dispose(); }
+});
+
+it('stages rebuilt retained properties without allocating complete section or stream output', async () => {
+  const input = await readBiff(await createBiffWriter(8)(book, [], context), context);
+  const expected = { streams: new Map<string, Uint8Array>() }, { ctx, state, cleanups } = fixture();
+  await mergeBiffProperties(input, expected.streams, new Set(), context, () => {}, length => new Uint8Array(length));
+  const sources = new Map<string, BiffPropertySource>(), allocations: number[] = [];
+  try {
+    await mergeBiffProperties(input, new Map(), new Set(), ctx, () => {}, length => {
+      allocations.push(length); return new Uint8Array(length);
+    }, { sources, reserve: length => length });
+    expect(sources.size).toBe(expected.streams.size);
+    const snapshots = input.unsupportedRecords!.filter(record => record.kind === 'ole-properties');
+    expect(allocations.filter(size => size > 16384)).toHaveLength(snapshots.length);
+    for (const [name, source] of sources) {
+      const bytes = expected.streams.get(name)!; expect(source.size).toBe(bytes.length);
+      for (let at = 0; at < source.size;) { const part = await source.read(at, source.size); expect(part).toEqual(bytes.subarray(at, at + part.length)); at += part.length; }
+    }
+  } finally { for (const cleanup of cleanups) await cleanup(); }
+  expect(state.closed).toBe(state.acquired);
+});
+
+it.each(['second-write', 'read', 'abort'])('cleans retained merge output after %s failure', async mode => {
+  const input = await readBiff(await createBiffWriter(8)(book, [], context), context);
+  const { ctx, state, failure, cleanups } = fixture(), controller = new AbortController();
+  const retainedContext = { ...ctx, signal: controller.signal };
+  if (mode === 'read') state.mode = 'read';
+  state.hold = async () => {
+    if (state.acquired === 2) {
+      if (mode === 'second-write') throw failure;
+      if (mode === 'abort') controller.abort(failure);
+    }
+  };
+  await expect(writeBiffProperties(input, retainedContext, true)).rejects.toBe(failure);
+  for (const cleanup of cleanups) await cleanup();
+  expect(state.closed).toBe(state.acquired); expect(state.acquired).toBe(2);
+  expect(state.writes.every(bytes => bytes.every(byte => byte === 0))).toBe(true);
 });

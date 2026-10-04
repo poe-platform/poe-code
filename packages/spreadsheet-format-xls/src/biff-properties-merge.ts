@@ -1,3 +1,5 @@
+import { propertyChunks, stagePropertyBytes, type BiffPropertyBytes } from './biff-property-bytes.js';
+import type { BiffPropertySource } from './biff-encrypted-properties-write.js';
 import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
 import type { ImportedValue, UnsupportedRecord, Workbook } from "@poe-code/spreadsheet-ast";
 import { singleByteTables } from "@poe-code/spreadsheet-engine/encoding/tables";
@@ -13,7 +15,8 @@ interface Snapshot { record: UnsupportedRecord; bytes: Uint8Array; modeled: Impo
 
 /** Rebuild offsets around original opaque spans. Never transcode their codepage. */
 export async function mergeBiffProperties(book: Workbook, streams: Map<string, Uint8Array>, handled: Set<UnsupportedRecord>,
-  context: CapabilityContext, charge: (amount: number) => void, allocate: (length: number) => Uint8Array): Promise<ReadonlySet<string>> {
+  context: CapabilityContext, charge: (amount: number) => void, allocate: (length: number) => Uint8Array,
+  staged?: { sources: Map<string, BiffPropertySource>; reserve: (length: number) => number }): Promise<ReadonlySet<string>> {
   const canonical = (name: string) => ["\u0005SummaryInformation", "\u0005DocumentSummaryInformation"].find(target => target.toUpperCase() === name.toUpperCase());
   const snapshots = new Map<string, Snapshot>(), duplicates = new Set<string>();
   const preserved = new Set<string>();
@@ -198,14 +201,34 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     values.set(id, wide(value, target));
   }
 
-  const encodeSection = (section: Section) => {
+  const reserve = staged?.reserve ?? ((length: number) => {
+    charge(length);
+    if (length > 0xffffffff || length > context.limits.outputBytes)
+      throw new SsconvertError("resource-limit", "ssconvert BIFF property output bytes limit exceeded");
+    return length;
+  });
+  const encodeSection = (section: Section): BiffPropertyBytes => {
     if (!section.values) return section.bytes;
-    const entries = [...section.values], bytes = allocate(8 + entries.length * 8 + entries.reduce((sum, [, value]) => sum + Math.ceil(value.bytes.length / 4) * 4, 0));
-    const view = new DataView(bytes.buffer); view.setUint32(0, bytes.length, true); view.setUint32(4, entries.length, true);
-    let at = 8 + entries.length * 8;
-    entries.forEach(([id, value], i) => { charge(value.bytes.length); view.setUint32(8 + i * 8, id, true); view.setUint32(12 + i * 8, at, true);
-      bytes.set(value.bytes, at); at += Math.ceil(value.bytes.length / 4) * 4; });
-    return bytes;
+    const values = section.values;
+    let length = 8 + values.size * 8;
+    for (const value of values.values()) length += Math.ceil(value.bytes.length / 4) * 4;
+    // Buffered output charges the section size here, as the old allocation did.
+    reserve(length);
+    return { length, *chunks() {
+      const header = new Uint8Array(8), view = new DataView(header.buffer);
+      view.setUint32(0, length, true); view.setUint32(4, values.size, true); yield header;
+      let at = 8 + values.size * 8;
+      for (const [id, value] of values) {
+        charge(value.bytes.length);
+        const entry = new Uint8Array(8), view = new DataView(entry.buffer);
+        view.setUint32(0, id, true); view.setUint32(4, at, true); yield entry;
+        at += Math.ceil(value.bytes.length / 4) * 4;
+      }
+      for (const value of values.values()) {
+        yield* propertyChunks(value.bytes);
+        const padding = (4 - value.bytes.length % 4) % 4; if (padding) yield new Uint8Array(padding);
+      }
+    } };
   };
   for (const name of new Set([...streams.keys(), ...snapshots.keys()])) {
     for (const section of fresh.get(name) ?? []) charge(1 + section.values!.size);
@@ -217,18 +240,29 @@ export async function mergeBiffProperties(book: Workbook, streams: Map<string, U
     }
     const sections = [...old.get(name) ?? [], ...remaining];
     if (!sections.length) { streams.delete(name); continue; }
-    const bodies = sections.map(encodeSection), bytes = allocate(28 + sections.length * 20 + bodies.reduce((sum, body) => sum + body.length, 0));
-    bytes.set((snapshots.get(name)?.bytes ?? streams.get(name)!).subarray(0, 28));
-    const view = new DataView(bytes.buffer); view.setUint32(24, sections.length, true); let at = 28 + sections.length * 20;
-    sections.forEach((section, i) => {
-      charge(1); for (let j = 0; j < 16; j++) bytes[28 + i * 20 + j] = parseInt(section.guid.slice(j * 2, j * 2 + 2), 16);
-      view.setUint32(44 + i * 20, at, true); bytes.set(bodies[i]!, at); at += bodies[i]!.length;
-    });
-    streams.set(name, bytes);
+    const bodies = sections.map(encodeSection), length = 28 + sections.length * 20 + bodies.reduce((sum, body) => sum + body.length, 0);
+    const originalHeader = (snapshots.get(name)?.bytes ?? streams.get(name)!).subarray(0, 28);
+    const output: BiffPropertyBytes = { length, *chunks() {
+      const header = new Uint8Array(originalHeader); new DataView(header.buffer).setUint32(24, sections.length, true); yield header;
+      let at = 28 + sections.length * 20;
+      for (let i = 0; i < sections.length; i++) {
+        charge(1); const entry = new Uint8Array(20), view = new DataView(entry.buffer);
+        for (let j = 0; j < 16; j++) entry[j] = parseInt(sections[i]!.guid.slice(j * 2, j * 2 + 2), 16);
+        view.setUint32(16, at, true); yield entry; at += bodies[i]!.length;
+      }
+      for (const body of bodies) yield* propertyChunks(body);
+    } };
+    if (staged) {
+      reserve(length); staged.sources.set(name, await stagePropertyBytes(output, context));
+    } else {
+      const bytes = allocate(length); let at = 0;
+      for (const part of propertyChunks(output)) { bytes.set(part, at); at += part.length; }
+      streams.set(name, bytes);
+    }
     const snapshot = snapshots.get(name); if (snapshot) handled.add(snapshot.record);
   }
   const exposed = new Set<string>();
-  await readBiffProperties(streams, readContext, accountText, charge, undefined, property => {
+  await readBiffProperties(staged?.sources ?? streams, readContext, accountText, charge, undefined, property => {
     admit(1); if (!Object.hasOwn(book.properties ?? {}, property.key)) exposed.add(property.key);
   });
   for (const key of exposed) await warn(key, "opaque property exposes a field absent from the model");

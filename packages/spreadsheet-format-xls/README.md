@@ -42,6 +42,14 @@ BIFF quantizes it to twentieth-points. Nonrepresentable defaults are rejected.
 Custom row heights use 15-bit twentieth-points; values outside that range are
 rejected unless they inherit the sheet default. Imported fixed and automatic
 row sizing is preserved through the shared row metadata.
+Sheet protection uses `sheet.view.gnumeric.Protected` (`"1"` or `"0"`).
+BIFF8 also preserves boolean permissions in `sheet.view.protectedAllow`: `objects`,
+`scenarios`, `formatCells`, `formatColumns`, `formatRows`, `insertColumns`,
+`insertRows`, `insertHyperlinks`, `deleteColumns`, `deleteRows`, `selectLockedCells`,
+`sort`, `autoFilter`, `pivotTables`, and `selectUnlockedCells`. Unspecified
+permissions use native defaults: selecting cells is allowed; other actions are
+not. BIFF7 reports loss of nondefault permissions. Password hashes and permission
+transport to other formats remain outside this support.
 The formula reader rejects malformed shared formulas containing BIFF live-label
 tokens; ordinary cell and array formulas retain their supported live labels.
 BIFF8 re-export preserves imported external-name cell, area and error definitions,

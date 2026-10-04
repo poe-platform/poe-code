@@ -3,6 +3,7 @@ import { parseA1, type Sheet, type Workbook, type UnsupportedRecord } from "@poe
 import { metadataNode, type MetadataNode } from "@poe-code/spreadsheet-engine/codecs/xlsx-write-support";
 import { BiffOutput, words } from "./biff-write-binary.js";
 import { biffString } from "./biff-write.js";
+import { biffProtectionPermissions } from "./biff-metadata.js";
 import { biffFontWidth } from "./biff-font-widths.js";
 import { writeBiffLabelRanges } from "./biff-label-ranges.js";
 
@@ -137,6 +138,44 @@ export class BiffMetadataWriter {
       throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF default column width");
     output.record(0x55, words(defaultCharacters));
     if (viewFlag(sheet, "Protected")) output.record(0x12, words(1));
+    const allowed = sheet.view?.protectedAllow;
+    if (allowed !== undefined) {
+      if (!allowed || typeof allowed !== "object" || Array.isArray(allowed))
+        throw new SsconvertError("unsupported-feature", "Invalid Excel BIFF sheet protection permission settings");
+      const permissions = allowed as Readonly<Record<string, unknown>>;
+      for (const name in permissions) {
+        this.charge();
+        if (Object.hasOwn(permissions, name) && (!biffProtectionPermissions.some(field => field === name) || typeof permissions[name] !== "boolean"))
+          throw new SsconvertError("unsupported-feature", "Invalid Excel BIFF sheet protection permission: " + name);
+      }
+      let flags = 0;
+      biffProtectionPermissions.forEach((name, bit) => {
+        this.charge();
+        const value = Object.hasOwn(permissions, name) ? permissions[name] : undefined;
+        if (value === true || value === undefined && (name === "selectLockedCells" || name === "selectUnlockedCells")) flags |= 1 << bit;
+      });
+      if (revision === 7) {
+        if (flags !== 0x4400) await this.context.diagnostic?.({ code: "biff-loss-warning", severity: "warning",
+          message: "Excel BIFF7 cannot preserve sheet protection permissions" });
+      } else {
+        const protection = new Uint8Array(23), permissionView = new DataView(protection.buffer);
+        permissionView.setUint16(0, 0x867, true); permissionView.setUint16(12, 2, true);
+        protection[14] = 1; permissionView.setInt32(15, -1, true); permissionView.setUint16(19, flags, true);
+        output.record(0x867, protection);
+        const prefix = Array.from(protection.subarray(0, 19), byte => byte.toString(16).padStart(2, "0")).join("");
+        for (const { record } of this.records.get(sheet)!) {
+          this.charge();
+          const data = record.data as { opcode?: unknown; bytes?: unknown } | undefined;
+          if (record.source !== "biff" || record.kind !== "SHEETPROTECTION" || Array.isArray(data) ||
+            data?.opcode !== 0x867 || typeof data.bytes !== "string" || data.bytes.length !== 46) continue;
+          this.charge(46);
+          const bytes = data.bytes.toLowerCase();
+          if (bytes.slice(0, 38) === prefix && bytes.endsWith("0000") &&
+            [...bytes].every(character => "0123456789abcdef".includes(character)) && Number.parseInt(bytes.slice(40, 42), 16) < 0x80)
+            this.exported.add(record);
+        }
+      }
+    }
     const depth = (records: Sheet["rows"], maximum: number): number => {
       let level = 0;
       for (const record of records ?? []) {

@@ -8,6 +8,9 @@ export function biffNode(name: string, attributes: Readonly<Record<string, Impor
   return { name, namespace: "http://www.gnumeric.org/v10.dtd", attributes: Object.entries(attributes).map(([name, value]) =>
     ({ name, namespace: "", value: String(value) })), text, children };
 }
+export const biffProtectionPermissions = ["objects", "scenarios", "formatCells", "formatColumns", "formatRows",
+  "insertColumns", "insertRows", "insertHyperlinks", "deleteColumns", "deleteRows", "selectLockedCells",
+  "sort", "autoFilter", "pivotTables", "selectUnlockedCells"] as const;
 export const biffMetadataOpcodes = new Set([0x2a, 0x2b, 0x25, 0x225, 0x81, 0x83, 0x84, 0xa1, 0x55, 0x23e, 0x3e,
   0x1d, 0x1a, 0x1b, 0x41, 0xa0, 0x867, 0x1c, 0x1b6]);
 
@@ -67,6 +70,9 @@ function* metadataSteps(length: number, revision: number, codepage: number, cont
     if (opcode === 0x12 || opcode === 0x63) {
       view.gnumeric = { ...(view.gnumeric as Record<string, ImportedValue> | undefined),
         Protected: data.bytes.length < 2 || data.u16(0) === 1 ? "1" : "0" };
+    } else if (opcode === 0x867 && data.bytes.length >= 23) {
+      const flags = data.u16(19);
+      view.protectedAllow = Object.fromEntries(biffProtectionPermissions.map((name, bit) => [name, !!(flags & (1 << bit))]));
     } else if (opcode === 0x5d) {
       lastObject = undefined;
       for (let at = 0; at + 4 <= data.bytes.length;) {

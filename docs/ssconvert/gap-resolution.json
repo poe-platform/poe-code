@@ -3,6 +3,13 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "biffSheetProtectionPermissions": {
+      "scope": "BIFF8 preserves all fifteen canonical view.protectedAllow booleans, including edits. Partial maps use native selection defaults 0x4400; BIFF7 warns for nondefault permissions. Unknown fields and nonboolean values are rejected.",
+      "qualification": "18 failing regressions repaired; 2414 tests across95 files, owner lint/types and selected ssconvert workspace build pass.33 compiled SDK/command exports:66 encoded masks,66 native readback masks,32 native source controls and66 Calc protection comparisons pass. Final outputs byte-identical after diagnostic repair. Screenshot inspected.",
+      "diagnostics": "All33 exports retain13 exact warnings; represented SHEETPROTECTION records no longer cause false loss warnings after edits. Malformed/reserved records retain warnings. Gnumeric stderr empty; Calc javaldx startup warning retained.",
+      "profileDifference": "Pinned Gnumeric XLSX exporter writes internal allow flags directly where OOXML uses deny semantics; independent Calc conversion differs. Source controls retained; no cross-format permission parity claimed.",
+      "remaining": "Passwords, other-format permission transport, GUI enforcement and broader compatibility/qualification remain open. No family closure or release claim."
+    },
     "biffSheetProtectionState": {
       "status": "Editable sheet-protection enabled state preserved; permission/password scope remains open",
       "source": "Gnumeric 1.12.61 ms-excel-read.c:4986-5000 and6767-6768 maps PROTECT/OBJPROTECT to sheet.is_protected. Payloads shorter than two bytes imply true; otherwise only word1 enables protection. SCENPROTECT does not change the sheet enabled state.",

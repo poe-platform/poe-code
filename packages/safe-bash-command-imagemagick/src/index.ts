@@ -3206,10 +3206,16 @@ function blendOverlayInPlace(img: RgbaImage, overlay: RgbaImage, offsetX: number
     detachRgbaBuffer(overlay.data);
 }
 
-function* applyMagickAnnotateSteps(img: RgbaImage, offsetStr: string, text: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    yield;
+function hasAnnotationOffset(value: string): boolean {
+    const digit = (char: string | undefined) => char !== undefined && char >= "0" && char <= "9";
+    if ((value[0] === "+" || value[0] === "-") && digit(value[1])) return true;
+    let i = 0;
+    while (digit(value[i])) i++;
+    return i > 0 && value[i] === "x" && digit(value[i + 1]);
+}
+
+function* annotatePixelSteps(img: Pick<RgbaImage, "width" | "height">, offsetStr: string, text: string, state: MagickState): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const fill = state.fill;
-    if (fill.a <= 0 || text.length === 0) return img;
     const g = parseMagickGeometry(offsetStr);
     const fontSize = Math.max(8, state.pointsize);
     const estW = Math.max(8, Math.ceil(text.length * fontSize * 0.6));
@@ -3224,49 +3230,41 @@ function* applyMagickAnnotateSteps(img: RgbaImage, offsetStr: string, text: stri
     const advanceX = Math.max(glyphW + 1, Math.round(glyphW * 1.2));
     const baseTopY = Math.round(y * scale - glyphH);
     const startX = x * scale;
-    const dst = img.data;
-    const width = img.width;
-    const height = img.height;
     const srcA = fill.a / 255;
-    for (let ci = 0; ci < text.length; ci++) {
-        const ch = text.charCodeAt(ci);
-        if (ch <= 32) continue;
-        const glyphIdx = Math.max(0, Math.min(94, ch - 32));
-        const isDescender = ch === 103 || ch === 106 || ch === 112 || ch === 113 || ch === 121 || ch === 44 || ch === 59;
-        const charTopY = baseTopY + (isDescender ? Math.max(1, Math.round(glyphH / 7)) : 0);
-        const charLeftX = Math.round(startX + ci * advanceX);
-        for (let py = 0; py < glyphH; py++) {
-            const gy = Math.min(6, Math.floor((py * 7) / glyphH));
-            const screenY = charTopY + py;
-            if (screenY < 0 || screenY >= height) continue;
-            for (let px = 0; px < glyphW; px++) {
-                const gx = Math.min(4, Math.floor((px * 5) / glyphW));
-                const colBits = FONT_5X7[glyphIdx * 5 + gx]!;
-                if ((colBits & (1 << gy)) !== 0) {
-                    const screenX = charLeftX + px;
-                    if (screenX >= 0 && screenX < width) {
-                        const dIdx = (screenY * width + screenX) * 4;
-                        if (fill.a === 255) {
-                            dst[dIdx] = fill.r;
-                            dst[dIdx + 1] = fill.g;
-                            dst[dIdx + 2] = fill.b;
-                            dst[dIdx + 3] = 255;
-                        } else {
-                            const dA = dst[dIdx + 3]! / 255;
-                            const outA = srcA + dA * (1 - srcA);
-                            if (outA > 0) {
-                                dst[dIdx] = Math.round((fill.r * srcA + dst[dIdx]! * dA * (1 - srcA)) / outA);
-                                dst[dIdx + 1] = Math.round((fill.g * srcA + dst[dIdx + 1]! * dA * (1 - srcA)) / outA);
-                                dst[dIdx + 2] = Math.round((fill.b * srcA + dst[dIdx + 2]! * dA * (1 - srcA)) / outA);
-                                dst[dIdx + 3] = Math.round(outA * 255);
-                            }
-                        }
-                    }
+    for (let start = 0; start < img.width * img.height; start += 1024) {
+        yield;
+        const count = Math.min(1024, img.width * img.height - start);
+        const bytes = yield { kind: "read", position: start * 4, length: count * 4 };
+        if (!bytes || bytes.length !== count * 4) throw new Error("Truncated annotation pixels");
+        const dst = new Uint8Array(bytes);
+        if (fill.a > 0) for (let i = 0; i < count; i++) {
+            const screenX = (start + i) % img.width, screenY = Math.floor((start + i) / img.width);
+            const ci = Math.floor((screenX - Math.round(startX)) / advanceX);
+            if (ci < 0 || ci >= text.length) continue;
+            const ch = text.charCodeAt(ci);
+            if (ch <= 32) continue;
+            const glyphIdx = Math.max(0, Math.min(94, ch - 32));
+            const isDescender = ch === 103 || ch === 106 || ch === 112 || ch === 113 || ch === 121 || ch === 44 || ch === 59;
+            const charTopY = baseTopY + (isDescender ? Math.max(1, Math.round(glyphH / 7)) : 0);
+            const px = screenX - Math.round(startX + ci * advanceX), py = screenY - charTopY;
+            if (px < 0 || px >= glyphW || py < 0 || py >= glyphH) continue;
+            const gx = Math.min(4, Math.floor(px * 5 / glyphW)), gy = Math.min(6, Math.floor(py * 7 / glyphH));
+            if ((FONT_5X7[glyphIdx * 5 + gx]! & (1 << gy)) === 0) continue;
+            const dIdx = i * 4;
+            if (fill.a === 255) {
+                dst[dIdx] = fill.r; dst[dIdx + 1] = fill.g; dst[dIdx + 2] = fill.b; dst[dIdx + 3] = 255;
+            } else {
+                const dA = dst[dIdx + 3]! / 255, outA = srcA + dA * (1 - srcA);
+                if (outA > 0) {
+                    dst[dIdx] = Math.round((fill.r * srcA + dst[dIdx]! * dA * (1 - srcA)) / outA);
+                    dst[dIdx + 1] = Math.round((fill.g * srcA + dst[dIdx + 1]! * dA * (1 - srcA)) / outA);
+                    dst[dIdx + 2] = Math.round((fill.b * srcA + dst[dIdx + 2]! * dA * (1 - srcA)) / outA);
+                    dst[dIdx + 3] = Math.round(outA * 255);
                 }
             }
         }
+        yield { kind: "write", position: start * 4, data: dst };
     }
-    return img;
 }
 
 function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: MagickState): Generator<void, RgbaImage, void> {
@@ -4657,11 +4655,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-annotate") {
             const offsetOrText = tokens[++i] ?? "+0+0";
-            const hasExplicitOffset = /^[+-]\d/.test(offsetOrText) || /^\d+x\d+/.test(offsetOrText);
+            const hasExplicitOffset = hasAnnotationOffset(offsetOrText);
             const offset = hasExplicitOffset ? offsetOrText : "+0+0";
             const text = hasExplicitOffset ? (tokens[++i] ?? "") : offsetOrText;
             stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickAnnotateSteps(im, offset, text, state, signal));
+                return (yield* applyMagickRasterSteps(im, annotatePixelSteps(im, offset, text, state), signal));
             });
         }
         else if (t === "+clone" || t === "-clone") {
@@ -5100,7 +5098,11 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         if (!operandsOnly && token === "-strip") { state.strip = true; continue; }
         if (!operandsOnly && token === "+repage") continue;
         if (!operandsOnly && token === "-repage") { i++; continue; }
-        if (!operandsOnly && token === "-fx") {
+        if (!operandsOnly && token === "-annotate") {
+            const offsetOrText = tokens[++i] ?? "+0+0", explicit = hasAnnotationOffset(offsetOrText);
+            const offset = explicit ? offsetOrText : "+0+0", text = explicit ? (tokens[++i] ?? "") : offsetOrText, settings = { ...state };
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, annotatePixelSteps(image, offset, text, settings), signal) : undefined);
+        } else if (!operandsOnly && token === "-fx") {
             const expression = tokens[++i] ?? "u", channels = state.channels;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, magickFxPixelSteps([image], expression, channels), signal) : undefined);
         } else if (!operandsOnly && token === "-vignette") {
@@ -5336,7 +5338,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, { target: 
         }
         else if (t === "-annotate") {
             const a1 = argv[++i] ?? "+0+0";
-            if (/^[+-]\d/.test(a1) || /^\d+x\d+/.test(a1)) {
+            if (hasAnnotationOffset(a1)) {
                 opTokens.push("-annotate", a1, argv[++i] ?? "");
             }
             else {

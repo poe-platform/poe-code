@@ -20,7 +20,8 @@ export function renderPrintFormula(book: Workbook, sheet: Sheet, cell: Pick<Cell
     maximumDepth: context.limits.formulaDepth, onWork: tick});
   if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: PDF formula expression syntax");
   const native = sheet.view?.gnumeric;
-  const r1c1 = native && typeof native === "object" && !Array.isArray(native) &&
+  const r1c1 = sheet.view?.referenceMode === "R1C1" || sheet.view?.referenceMode !== "A1" &&
+    native && typeof native === "object" && !Array.isArray(native) &&
     (native as Readonly<Record<string, unknown>>).ExprConvention === "gnumeric:R1C1";
   const grammar = {...gnumericGrammar, address: r1c1 ? "r1c1" as const : "a1" as const, quoteSheetName: quoteNativeSheet};
   const position = parsed.document.position;

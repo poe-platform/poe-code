@@ -228,3 +228,16 @@ it.each([
     {...sheet, id: "t", name: "T", cells: []}]};
   expect((await pdfText(await writePdf(book, [], context))).runs[0]!.text).toBe(expected);
 });
+
+
+it.each([
+  ["R1C1", undefined, "=R[-1]C[-1]"],
+  ["R1C1", "gnumeric:A1", "=R[-1]C[-1]"],
+  ["A1", "gnumeric:R1C1", "=A1"]
+])("prints normalized reference mode %s before retained convention %s", async (referenceMode, ExprConvention, expected) => {
+  const original = await fixture("GNM_HALIGN_GENERAL"), sheet = original.sheets[0]!;
+  const book = {...original, sheets: [{...sheet, view: {...sheet.view, displayFormulas: true,
+    referenceMode, ...(ExprConvention ? {gnumeric: {ExprConvention}} : {})},
+    cells: [{...sheet.cells[0]!, row: 1, column: 1, formula: "=A1"}]}]};
+  expect((await pdfText(await writePdf(book, [], context))).runs[0]!.text).toBe(expected);
+});

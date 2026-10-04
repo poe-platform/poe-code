@@ -876,6 +876,8 @@ async function* gnumericChunks(book: Workbook, context: CapabilityContext, sourc
           DisplayFormulas: 0, HideZero: 0, HideGrid: 0, HideColHeader: 0, HideRowHeader: 0, DisplayOutlines: 1, OutlineSymbolsBelow: 1, OutlineSymbolsRight: 1
         };
         if (view) for (const [key, val] of Object.entries(view)) if (typeof val === "string" && gnumericAttributes.Sheet?.includes(key)) attrs[key] = val;
+        if (sheet.view?.referenceMode === "A1" || sheet.view?.referenceMode === "R1C1")
+          attrs.ExprConvention = "gnumeric:" + sheet.view.referenceMode;
         attrs.Visibility = sheet.visibility === "very-hidden" ? "GNM_SHEET_VISIBILITY_VERY_HIDDEN" : sheet.visibility === "hidden" ? "GNM_SHEET_VISIBILITY_HIDDEN" : "GNM_SHEET_VISIBILITY_VISIBLE";
         const extent = { row: 0, column: 0 };
         for await (const cell of source ? source.cells(sheet.id) : sheet.cells) {

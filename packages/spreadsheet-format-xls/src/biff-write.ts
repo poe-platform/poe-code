@@ -207,7 +207,11 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
   for (const sheet of book.sheets) {
     offsets.push(output.length); output.record(0x809, bof(revision, 16));
     output.record(0xd, words(book.calculationMode === "manual" ? 0 : 1)); output.record(0xc, words(book.iteration?.maximum ?? 100));
-    output.record(0xf, words(1)); output.record(0x11, words(book.iteration?.enabled ? 1 : 0));
+    const nativeView = sheet.view?.gnumeric;
+    const r1c1 = sheet.view?.referenceMode === "R1C1" || sheet.view?.referenceMode !== "A1" &&
+      nativeView && typeof nativeView === "object" && !Array.isArray(nativeView) &&
+      (nativeView as Readonly<Record<string, unknown>>).ExprConvention === "gnumeric:R1C1";
+    output.record(0xf, words(r1c1 ? 0 : 1)); output.record(0x11, words(book.iteration?.enabled ? 1 : 0));
     const tolerance = new Uint8Array(8); new DataView(tolerance.buffer).setFloat64(0, book.iteration?.tolerance ?? 0.001, true); output.record(0x10, tolerance);
     if (revision === 7) legacyLinks(output, formulaWriter, context);
     output.record(0x5f, words(1)); output.record(0x82, words(1));

@@ -54,7 +54,7 @@ test("diff/patch omitted quotas are unlimited and explicit settings are independ
 test("diff handles more than the former line quota, including buffered fallback", async () => {
   const text = "a\n".repeat(50_001);
   for (const options of [{}, { maxFiles: 2 }, { maxLines: 10 }]) {
-    const fs = new MemoryFileSystem();
+    const fs = await filesystem();
     await fs.writeFile("/left", Buffer.from(text + "a\n"));
     await fs.writeFile("/right", Buffer.from(text + "b\n"));
     const view = new Proxy(fs, { get(target, key) {

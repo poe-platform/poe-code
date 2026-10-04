@@ -144,3 +144,27 @@ it.each([false,true].flatMap(asynchronous=>[false,true].map(cleanupFails=>({asyn
   expect(write).not.toHaveBeenCalled();
   expect(await fs.readdir("/")).toEqual([]);
 });
+
+it("encodes long Lua source names with bounded scratch and intact Unicode",async()=>{
+  const path="@"+"x".repeat(4094)+"😀"+"y".repeat(4096)+"tail.lua";
+  const expected="..."+new TextDecoder().decode(encoder.encode(path).slice(-57))+":1: boom";
+  const fs=new MemoryFileSystem(),context=new ExecutionContext("convert",{workingFiles:{fs,directory:"/",cacheBytes:16384}});
+  const readStream=vi.fn(async function*(){yield encoder.encode("error('boom')");});
+  const capability=createLuaFilterCapability({readStream});
+  const encode=TextEncoder.prototype.encode,sourceChunks:Uint8Array[]=[];
+  let sourceStarted=false,sourceEnded=false;
+  const bounded=vi.spyOn(TextEncoder.prototype,"encode").mockImplementation(function(this:TextEncoder,text=""){
+    if(text.length>4096)throw new Error("Unbounded UTF-8 source name allocation");
+    const bytes=encode.call(this,text);
+    if(text.startsWith("@xxx"))sourceStarted=true;
+    if(sourceStarted && !sourceEnded)sourceChunks.push(bytes);
+    if(text.endsWith("tail.lua"))sourceEnded=true;
+    return bytes;
+  });
+  try {
+    await expect(capability.applyJsonStream!({stdin:(async function*(){yield encoder.encode(JSON.stringify(document));})(),stdout:{write:vi.fn()},signal:new AbortController().signal},{kind:"lua",path},Object.assign(context,{to:"json"}))).rejects.toMatchObject({code:"E_AST",message:expected});
+    expect(readStream).toHaveBeenCalledWith(path,expect.anything());
+    const decoder=new TextDecoder("utf-8",{fatal:true});
+    expect(sourceChunks.map(bytes=>decoder.decode(bytes,{stream:true})).join("")+decoder.decode()).toBe(path);
+  } finally {bounded.mockRestore();await context.close();expect(await fs.readdir("/")).toEqual([]);}
+});

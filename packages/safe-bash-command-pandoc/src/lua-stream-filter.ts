@@ -63,10 +63,11 @@ export async function applyLuaStream(load:LuaScriptLoader | LuaFilterOptions | L
         }
       }
     })();
-    try {await applyRetainedLuaFilter(input,output,source,scratch,context,context.to,request.path,typeof load==="function",!streamed);}
+    const heap=new LuaStorage(scratch,cooperate);
+    try {await applyRetainedLuaFilter(input,output,source,scratch,heap,context,context.to,request.path,typeof load==="function",!streamed);}
     catch(error) {
       if(!(error instanceof LuaError))throw error;
-      const heap=new LuaStorage(scratch,cooperate),value=error.value;
+      const value=error.value;
       const message=(async function*(){
         if(error.source && error.line!==undefined) {
           const size=await heap.byteLength(error.source),head=await heap.readBytes(error.source,0,Math.min(size,61));

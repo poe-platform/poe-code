@@ -23,10 +23,19 @@ import {pandocLibrary} from "./lua-pandoc.generated.js";
 
 /** The caller owns all three stores and their lifetime, including retained
  * error payloads. The public stream adapter renders errors before closing them. */
-export async function applyRetainedLuaFilter(input:BackedJson,output:BackedJson,source:AsyncIterable<Uint8Array> | Iterable<Uint8Array>,storage:PagedStorage,context:AdapterContext,to:string,path:string,legacyErrors=false,sourceAdmitted=false):Promise<void> {
-  const cooperate=(units?:number)=>context.cooperate(units),heap=new LuaStorage(storage,cooperate),program=new LuaProgram(storage,heap,cooperate);
+export async function applyRetainedLuaFilter(input:BackedJson,output:BackedJson,source:AsyncIterable<Uint8Array> | Iterable<Uint8Array>,storage:PagedStorage,heap:LuaStorage,context:AdapterContext,to:string,path:string,legacyErrors=false,sourceAdmitted=false):Promise<void> {
+  const cooperate=(units?:number)=>context.cooperate(units),program=new LuaProgram(storage,heap,cooperate);
   const base=new LuaBase(heap),math=new LuaMath(heap),utf8=new LuaUtf8(heap),table=new LuaTable(heap),strings=new LuaStringLibrary(heap,cooperate),numbers=new LuaNumbers(heap);
-  const environment=await heap.table(),key=(text:string)=>heap.string([new TextEncoder().encode(text)]);
+  const environment=await heap.table(),key=(text:string)=>heap.string((function*(){
+    const encoder=new TextEncoder();
+    for(let offset=0;offset<text.length;) {
+      let end=Math.min(offset+4096,text.length);
+      const last=text.charCodeAt(end-1);
+      if(end<text.length && last>=0xd800 && last<=0xdbff)end--;
+      yield encoder.encode(text.slice(offset,end));
+      offset=end;
+    }
+  })());
   let callbackError:PandocError | undefined;
   const script=async<T>(operation:()=>Promise<T>):Promise<T>=>{
     try{return await operation();}

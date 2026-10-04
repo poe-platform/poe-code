@@ -3,6 +3,7 @@ import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedJson} from "./backed-json.js";
 import {ExecutionContext} from "./execution.js";
+import {LuaStorage} from "./lua-storage.js";
 import {applyRetainedLuaFilter} from "./lua-retained-filter.js";
 
 const document={"pandoc-api-version":[1,23,1],meta:{},blocks:[{t:"Para",c:[{t:"Str",c:"hello"}]}]};
@@ -13,7 +14,7 @@ async function apply(source:string | AsyncIterable<Uint8Array>,signal?:AbortSign
   const cooperate=(units?:number)=>context.cooperate(units),input=new BackedJson(stores[0]!,cooperate),output=new BackedJson(stores[1]!,cooperate);
   try {
     await input.value(document);setup?.(context);
-    await applyRetainedLuaFilter(input,output,(typeof source==="string"?(async function*(){yield new TextEncoder().encode(source);})():source),stores[2]!,context,"html","/filter.lua");
+    await applyRetainedLuaFilter(input,output,(typeof source==="string"?(async function*(){yield new TextEncoder().encode(source);})():source),stores[2]!,new LuaStorage(stores[2]!,cooperate),context,"html","/filter.lua");
     let text="";for await(const chunk of output.chunks())text+=new TextDecoder().decode(chunk);
     return JSON.parse(text);
   } finally {for(const store of stores)await store.close();await context.close();expect(await fs.readdir("/")).toEqual([]);}

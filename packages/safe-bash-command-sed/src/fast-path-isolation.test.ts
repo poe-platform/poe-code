@@ -60,6 +60,26 @@ for (const mode of ["range", "sync", "async"] as const) test(`pair substitutions
   }
 });
 
+for (const mode of ["range", "sync", "async"] as const) test(`warm pair output survives unrelated sed output: ${mode}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/big.txt", bytes("alpha_beta_gamma\n".repeat(100)));
+  await fs.writeFile("/other.txt", bytes("CORRUPTED_PREFIX_FROM_OTHER_SED\n"));
+  const command = createSedCommand();
+  const args = ["s/^alpha/ALPHA/; s/beta/BETA/", "/big.txt"];
+  const expected = "ALPHA_BETA_gamma\n".repeat(100);
+  for (let invocation = 0; invocation < 2; invocation++) {
+    const result = await run(command, fs, args, mode);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  }
+  const unrelated = await run(command, fs, ["s/OTHER/GENERAL/", "/other.txt"], mode);
+  assert.equal(unrelated.exitCode, 0, unrelated.stderr);
+  assert.equal(unrelated.stdout, "CORRUPTED_PREFIX_FROM_GENERAL_SED\n");
+  const replay = await run(command, fs, args, mode);
+  assert.equal(replay.exitCode, 0, replay.stderr);
+  assert.equal(replay.stdout, expected);
+});
+
 for (const content of [
   "foo mid baz end\n".repeat(40) + "foo mid baz baz end\n",
   ("foo " + "m".repeat(1000) + " baz end\n").repeat(66),

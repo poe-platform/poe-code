@@ -1,15 +1,17 @@
+import { StoredPathWriter } from "./stored-path.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import { PdfFileSource } from "../source.js";
 import { parseContentSteps, type PdfContentEvent, type PdfContentParseResult } from "./parser.js";
 import { parseContentRangeOperators, type ParseContentRangeOptions } from "./range-operator-parser.js";
 
 /** Pull shared grammar events from caller-owned content storage. Inline images
- * borrow source ranges instead of collecting their payloads. Operand values and
- * individual paths still follow the shared parser's materialization rules. */
+ * borrow source ranges instead of collecting their payloads. With pathStorage,
+ * path segments use caller-backed blocks that remain live until painting ends. */
 export async function* parseContentRangeEvents(source: PdfFileSource, storage: PdfIndexStorage,
   options: ParseContentRangeOptions = {}): AsyncGenerator<PdfContentEvent, void, void> {
   const operators = parseContentRangeOperators(source, storage, options);
-  const work = parseContentSteps();
+  let path = options.pathStorage ? new StoredPathWriter(options.pathStorage, options.signal) : undefined;
+  const work = parseContentSteps({storedPaths:!!path});
   let failed = false;
   try {
     let step = work.next();
@@ -18,6 +20,8 @@ export async function* parseContentRangeEvents(source: PdfFileSource, storage: P
       let result: PdfContentParseResult;
       const request = step.value;
       switch (request.kind) {
+        case "path-segment": await path!.append(request.segment); break;
+        case "finish-path": result = await path!.finish(); path = new StoredPathWriter(options.pathStorage!, options.signal); break;
         case "operator": { const next = await operators.next(); result = next.done ? undefined : next.value; break; }
         case "inline-image": result = { kind: "range", source, start: request.start, end: request.end }; break;
         case "event": yield request.event; break;

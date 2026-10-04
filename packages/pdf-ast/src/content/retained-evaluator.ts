@@ -10,7 +10,8 @@ import { resolveRetainedFont } from "../fonts/retained.js";
 import type { ResolvedPageFont } from "../fonts/resolve.js";
 import type { PdfRetainedDocument } from "../retained-document.js";
 import { PdfStagingStorage } from "../staging-budget.js";
-import { evaluateContentSteps, type PdfContentEvaluationOptions, type PdfEvaluationContentSource, type PdfEvaluationOperation, type PdfEvaluationResult } from "./evaluator.js";
+import { StoredPathWriter, readStoredPath } from "./stored-path.js";
+import { evaluateContentSteps, transformPathSegment, type PdfContentEvaluationOptions, type PdfEvaluationContentSource, type PdfEvaluationOperation, type PdfEvaluationResult } from "./evaluator.js";
 import type { PdfContentEvent } from "./parser.js";
 import { parseContentStreamEvents } from "./range-events.js";
 import type { ParseContentRangeOptions } from "./range-operator-parser.js";
@@ -19,7 +20,7 @@ export interface PdfRetainedEvaluationOptions extends ParseContentRangeOptions {
   /** Conservative cumulative resource admission for this traversal. Path and
    * composite capture arrays and object-reader caches have separate ownership. */
   readonly maxResourceBytes?: number;
-  /** Optional caller-owned pixel backing; remains live while operations are used. */
+  /** Optional caller-owned image and path backing; remains live while operations are used. */
   readonly imageStorage?: import("../ast.js").PdfPixelStorage;
   readonly onAllocation?: (bytes: number) => void;
   readonly maxImageBytes?: number;
@@ -30,8 +31,8 @@ export interface PdfRetainedContentEvents { readonly events: AsyncIterable<PdfCo
 export type PdfRetainedEvaluationParameters = Omit<PdfContentEvaluationOptions, "nodes" | "cosDoc" | "onShadingAllocation">;
 
 /** Drive shared evaluation using retained input and caller-backed staging.
- * Paint operations are pulled on demand. Composite captures, individual paths,
- * and admitted raster results still use the shared in-memory representation. */
+ * Paint operations are pulled on demand. With imageStorage, paths and images
+ * use caller backing. Composite captures retain their in-memory representation. */
 export async function* evaluateRetainedContentSteps(document: PdfRetainedDocument, content: AsyncIterable<Uint8Array> | Iterable<Uint8Array> | PdfRetainedContentEvents,
   params: PdfRetainedEvaluationParameters, storage: PdfIndexStorage, options: PdfRetainedEvaluationOptions = {}): AsyncGenerator<PdfEvaluationOperation, void, void> {
   const maximum = options.maxResourceBytes ?? Infinity, chunkBytes = options.chunkBytes ?? 4096, maxCachedFonts = options.maxCachedFonts ?? 16;
@@ -65,7 +66,7 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
   }
   function cursor(chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>) {
     charge(chunkBytes * 5);
-    return parseContentStreamEvents(chunks, shared, { ...options, chunkBytes });
+    return parseContentStreamEvents(chunks, shared, { ...options, chunkBytes, ...(options.imageStorage ? {pathStorage:options.imageStorage} : {}) });
   }
   async function decodeImage(image: Pick<PdfRetainedImage, "dict" | "resources" | "contents">,
     fillColor: { r: number; g: number; b: number; alpha: number } | undefined): Promise<DecodedDisplayImage | (Omit<DecodedDisplayImage, "rgba"> & {readonly storedRgba: import("../ast.js").PdfStoredPixels})> {
@@ -112,6 +113,15 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
       signal?.throwIfAborted();
       const request = step.value; let reply: PdfEvaluationResult;
       switch (request.kind) {
+        case "transform-path": {
+          const writer = new StoredPathWriter(request.path.storage, signal);
+          let last: import("../ast.js").PdfPathSegment | undefined;
+          for await (const segment of readStoredPath(request.path, signal)) {
+            for (const transformed of transformPathSegment(segment, request.matrix)) { await writer.append(transformed); last = transformed; }
+          }
+          if (request.close && last && last.kind !== "close" && last.kind !== "rect") await writer.append({kind:"close"});
+          reply = await writer.finish(); break;
+        }
         case "node": {
           const source = request.source;
           let selected = source ? nested.get(source) : input;

@@ -12,6 +12,7 @@ import {
   type PdfCosNumber,
   type PdfCosString,
   type PdfPathSegment,
+  type PdfStoredPath,
   type PdfTextCommand,
 } from "../ast.js";
 import type { PdfFileSource } from "../source.js";
@@ -37,14 +38,16 @@ export type PdfContentEvent = PdfBufferedContentEvent
   | { readonly kind: "inline-image"; readonly dict: PdfCosDict; readonly data: PdfContentRange };
 export type PdfContentParseRequest = { readonly kind: "operator" }
   | { readonly kind: "inline-image"; readonly start: number; readonly end: number }
+  | { readonly kind: "path-segment"; readonly segment: PdfPathSegment }
+  | { readonly kind: "finish-path" }
   | { readonly kind: "event"; readonly event: PdfContentEvent };
-export type PdfContentParseResult = PdfContentOperator | Uint8Array | PdfContentRange | undefined;
+export type PdfContentParseResult = PdfContentOperator | Uint8Array | PdfContentRange | PdfStoredPath | undefined;
 type ParseWork = Generator<PdfContentParseRequest, void, PdfContentParseResult>;
 
 /** Shared grammar with caller-supplied operators and inline-image bytes or ranges. Group
  * boundaries are events; text is emitted incrementally unless a buffered caller
  * explicitly requests the original text-object grouping. */
-export function* parseContentSteps(options: { readonly splitText?: boolean } = {}): ParseWork {
+export function* parseContentSteps(options: { readonly splitText?: boolean; readonly storedPaths?: boolean } = {}): ParseWork {
   const splitText = options.splitText ?? true;
   function* emit(event: PdfContentEvent): ParseWork { yield { kind: "event", event }; }
 
@@ -52,6 +55,10 @@ export function* parseContentSteps(options: { readonly splitText?: boolean } = {
   let textContinuation = false;
   let currentTextCommands: PdfTextCommand[] = [];
   let currentPathSegments: PdfPathSegment[] = [];
+  function* append(segment: PdfPathSegment): ParseWork {
+    if (options.storedPaths) yield {kind:"path-segment", segment};
+    else currentPathSegments.push(segment);
+  }
   let pendingClip: "W" | "W*" | undefined;
   let curPathX = 0;
   let curPathY = 0;
@@ -252,7 +259,7 @@ export function* parseContentSteps(options: { readonly splitText?: boolean } = {
     if (op === "m") {
       const mx = numVal(args[0]);
       const my = numVal(args[1]);
-      currentPathSegments.push({ kind: "move", x: mx, y: my });
+      yield* append({ kind: "move", x: mx, y: my });
       curPathX = mx;
       curPathY = my;
       subpathStartX = mx;
@@ -262,7 +269,7 @@ export function* parseContentSteps(options: { readonly splitText?: boolean } = {
     if (op === "l") {
       const lx = numVal(args[0]);
       const ly = numVal(args[1]);
-      currentPathSegments.push({ kind: "line", x: lx, y: ly });
+      yield* append({ kind: "line", x: lx, y: ly });
       curPathX = lx;
       curPathY = ly;
       continue;
@@ -270,7 +277,7 @@ export function* parseContentSteps(options: { readonly splitText?: boolean } = {
     if (op === "c") {
       const x = numVal(args[4]);
       const y = numVal(args[5]);
-      currentPathSegments.push({
+      yield* append({
         kind: "cubic",
         x1: numVal(args[0]),
         y1: numVal(args[1]),
@@ -286,7 +293,7 @@ export function* parseContentSteps(options: { readonly splitText?: boolean } = {
     if (op === "v") {
       const x = numVal(args[2]);
       const y = numVal(args[3]);
-      currentPathSegments.push({
+      yield* append({
         kind: "cubic",
         x1: curPathX,
         y1: curPathY,
@@ -302,7 +309,7 @@ export function* parseContentSteps(options: { readonly splitText?: boolean } = {
     if (op === "y") {
       const x = numVal(args[2]);
       const y = numVal(args[3]);
-      currentPathSegments.push({
+      yield* append({
         kind: "cubic",
         x1: numVal(args[0]),
         y1: numVal(args[1]),
@@ -316,7 +323,7 @@ export function* parseContentSteps(options: { readonly splitText?: boolean } = {
       continue;
     }
     if (op === "h") {
-      currentPathSegments.push({ kind: "close" });
+      yield* append({ kind: "close" });
       curPathX = subpathStartX;
       curPathY = subpathStartY;
       continue;
@@ -324,7 +331,7 @@ export function* parseContentSteps(options: { readonly splitText?: boolean } = {
     if (op === "re") {
       const rx = numVal(args[0]);
       const ry = numVal(args[1]);
-      currentPathSegments.push({
+      yield* append({
         kind: "rect",
         x: rx,
         y: ry,
@@ -342,9 +349,12 @@ export function* parseContentSteps(options: { readonly splitText?: boolean } = {
       continue;
     }
     if (PATH_PAINT_OPS.has(op)) {
+      const stored = options.storedPaths ? yield {kind:"finish-path"} : undefined;
+      if (options.storedPaths && (!stored || !("kind" in stored) || stored.kind !== "stored-path")) throw new TypeError("Expected stored PDF path");
       yield* emit({
         kind: "path-op",
         segments: currentPathSegments,
+        ...(stored && "kind" in stored && stored.kind === "stored-path" ? {storedSegments:stored} : {}),
         paint: op as "S" | "s" | "f" | "F" | "f*" | "B" | "B*" | "b" | "b*" | "n",
         clip: pendingClip,
       });

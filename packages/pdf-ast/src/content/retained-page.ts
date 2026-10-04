@@ -34,7 +34,7 @@ export async function prepareRetainedPageContent(document: PdfRetainedDocument, 
     const reference = identities.get(stream);
     const chunks = reference ? document.objects.decodeStream(reference.objectNumber, reference.generationNumber)
       : decodePdfStreamChunks(stream.dict, async function* () { yield stream.rawBytes; }, { chunkBytes, ...(options.signal ? { signal: options.signal } : {}) });
-    return parseContentStreamEvents(chunks, storage, options);
+    return parseContentStreamEvents(chunks, storage, { ...options, ...(options.imageStorage ? {pathStorage:options.imageStorage} : {}) });
   }
   async function* appearances(outputResources: PdfCosDict, emit: boolean): AsyncGenerator<PdfContentEvent, void, void> {
     const work = preparePageAppearanceSteps(page.dict, pageResources, outputResources, options.hideAnnotations, options.onAllocation);
@@ -67,7 +67,7 @@ export async function prepareRetainedPageContent(document: PdfRetainedDocument, 
   for await (const ignored of appearances(resources, false)) { void ignored; }
   async function* events(): AsyncGenerator<PdfContentEvent, void, void> {
     options.onAllocation?.(chunkBytes * 5);
-    yield* parseContentStreamEvents(page.streamContents(), storage, options);
+    yield* parseContentStreamEvents(page.streamContents(), storage, { ...options, ...(options.imageStorage ? {pathStorage:options.imageStorage} : {}) });
     // Keep the prepass resources intact: an earlier appearance may use a resource
     // introduced by a later one, matching the buffered merged-resource behavior.
     options.onAllocation?.(64);

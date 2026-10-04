@@ -7,6 +7,7 @@ import { PdfOperandStack } from "./operand-stack.js";
 import { PDF_KNOWN_COMMANDS } from "./operators.js";
 
 export interface ParseContentRangeOptions {
+  readonly pathStorage?: import("../ast.js").PdfPixelStorage;
   readonly chunkBytes?: number;
   readonly maxStagingBytes?: number;
   readonly maxNodes?: number;

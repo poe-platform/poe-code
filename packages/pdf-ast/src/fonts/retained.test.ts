@@ -90,7 +90,7 @@ it("supplies a retained font to evaluation without a buffered document", async (
       if (step.value.kind === "node") { const next = nodes.next(); step = work.next(next.done ? undefined : next.value); }
       else if (step.value.kind === "font") step = work.next(await resolveRetainedFont(f.doc, { fs: f.fs, directory: "/scratch" }, step.value.resources, step.value.name, { maxWorkingBytes: 8 * 1024 * 1024, chunkBytes: 64 }));
       else if (step.value.kind === "resolve" || step.value.kind === "catalog") step = work.next({ kind: "resolved", node: (await f.doc.lookup(step.value.kind === "catalog" ? f.doc.crossReference.rootRef : step.value.node))?.value });
-      else if ((step.value.kind === "close-content" || step.value.kind === "image" || step.value.kind === "mask-parameters" || step.value.kind === "color" || step.value.kind === "inline-image" || step.value.kind === "shading")) throw new Error("Unexpected nested content");
+      else if ((step.value.kind === "transform-path" || step.value.kind === "close-content" || step.value.kind === "image" || step.value.kind === "mask-parameters" || step.value.kind === "color" || step.value.kind === "inline-image" || step.value.kind === "shading")) throw new Error("Unexpected nested content");
       else { if (step.value.operation.kind === "glyph") glyphs.push(step.value.operation.value); step = work.next(); }
     }
     expect(glyphs).toHaveLength(1); expect(glyphs[0]).toMatchObject({ unicode: "Ω", fontName: "Helvetica" });

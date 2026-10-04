@@ -1,3 +1,4 @@
+import { readStoredPath } from "../content/stored-path.js";
 import { prepareRetainedImageSampler } from "./retained-image-sampling.js";
 import { createTiffHeader, encodePackBitsRowSteps } from "./tiff-stream.js";
 import { jpegEncodingProgram } from "./jpeg-stream.js";
@@ -8,7 +9,7 @@ import { encodeToXmlString, PageViewport } from "../vendor/pdfjs-fonts.mjs";
 import { parseCosDocument, type ParsedCosDocument } from "../cos/parser.js";
 import { PdfPage } from "../canvas.js";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
-import type { PdfClipPath, PdfDisplayList, PdfPaintGroup, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage, PdfSoftMask } from "../ast.js";
+import type { PdfStoredPath, PdfClipPath, PdfDisplayList, PdfPaintGroup, PdfPaintOperation, PdfPathSegment, PdfRgbColor, PdfPlacedGlyph, PdfEvaluatedPath, PdfEvaluatedImage, PdfSoftMask } from "../ast.js";
 import { applyPredictor, decodeFlate, encodeFlate, encodeLzw } from "../cos/filters.js";
 import { flattenCubic, flattenCubicPoints } from "./cubic.js";
 import { downscaleImage, sampleImageLinear } from "./image-sampling.js";
@@ -604,14 +605,38 @@ interface Edge {
   y1: number;
 }
 
+/** Suspend only at bounded path batches; the async raster driver supplies I/O. */
+function* pathSegments(segments: readonly PdfPathSegment[], stored: PdfStoredPath | undefined, input: RasterImageInput | undefined): Generator<PdfPathSegment | undefined> {
+  if (!stored) { yield* segments; return; }
+  if (!input) throw new Error("Stored PDF paths require the asynchronous raster driver");
+  const source = readStoredPath(stored, input.signal);
+  let remaining = stored.count;
+  while (remaining > 0) {
+    const batch: PdfPathSegment[] = [];
+    const count = Math.min(64, remaining);
+    input.pathRequest = async () => {
+      for (let i = 0; i < count; i++) {
+        const next = await source.next();
+        if (next.done) throw new Error("Incomplete stored PDF path");
+        batch.push(next.value);
+      }
+    };
+    yield;
+    yield* batch;
+    remaining -= count;
+  }
+}
+
 function *segmentsToScreenPathsSteps(segments: readonly PdfPathSegment[], pageHeight: number, scale: number,
-  toScreen = (x: number, y: number): StrokePoint => [x * scale, (pageHeight - y) * scale]
+  toScreen = (x: number, y: number): StrokePoint => [x * scale, (pageHeight - y) * scale],
+  stored?: PdfStoredPath, input?: RasterImageInput
 ): Generator<void, StrokeSubpath[], void> {
   let work = 0;
   const paths: StrokeSubpath[] = [];
   let points: StrokePoint[] = [];
   let current: StrokePoint = [0, 0];
-  for (const segment of segments) {
+  for (const segment of pathSegments(segments, stored, input)) {
+      if (!segment) { yield; continue; }
     if (++work % 16384 === 0) yield;
     if (segment.kind === "move") {
       if (points.length) paths.push({ points, closed: false });
@@ -649,12 +674,13 @@ function *segmentsToScreenPathsSteps(segments: readonly PdfPathSegment[], pageHe
 
 /** Replayable fill geometry. Only the current segment and cubic subdivision
  * stack are resident; each scanline can traverse edges without a path copy. */
-function screenFillEdges(segments: readonly PdfPathSegment[], toScreen: (x: number, y: number) => StrokePoint): Iterable<Edge> {
+function screenFillEdges(segments: readonly PdfPathSegment[], toScreen: (x: number, y: number) => StrokePoint, stored?: PdfStoredPath, input?: RasterImageInput): Iterable<Edge | undefined> {
   return { *[Symbol.iterator]() {
     let current: StrokePoint = [0, 0], first: StrokePoint | undefined;
     let points = 0;
     function edge(a: StrokePoint, b: StrokePoint): Edge {return {x0:a[0], y0:a[1], x1:b[0], y1:b[1]};}
-    for (const segment of segments) {
+    for (const segment of pathSegments(segments, stored, input)) {
+      if (!segment) { yield; continue; }
       if (segment.kind === "move" || segment.kind === "rect") {
         if (first && points > 1) yield edge(current, first);
         current = toScreen(segment.x, segment.y); first = current; points = 1;
@@ -722,7 +748,7 @@ function prepareStroke(path: PdfEvaluatedPath, scale: number) {
   return { matrix, width, dashArray, dashPhase };
 }
 
-function *strokeContoursSteps(path: PdfEvaluatedPath, pageHeight: number, scale: number, originX = 0, originY = 0, offsetX = 0, offsetY = 0): Generator<void, Iterable<StrokePoint | undefined>, void> {
+function *strokeContoursSteps(path: PdfEvaluatedPath, pageHeight: number, scale: number, originX = 0, originY = 0, offsetX = 0, offsetY = 0, images?: RasterImageInput): Generator<void, Iterable<StrokePoint | undefined>, void> {
   const stroke = prepareStroke(path, scale);
   if (!stroke) return [];
   const inverse = inverseStrokeMatrix(stroke.matrix);
@@ -739,7 +765,7 @@ function *strokeContoursSteps(path: PdfEvaluatedPath, pageHeight: number, scale:
     (a * x / strokeScale + c * y / strokeScale + e - originX) * scale - offsetX,
     (pageHeight + originY - b * x / strokeScale - d * y / strokeScale - f) * scale - offsetY,
   ];
-  const paths = yield* segmentsToScreenPathsSteps(path.segments, pageHeight, scale, project);
+  const paths = yield* segmentsToScreenPathsSteps(path.segments, pageHeight, scale, project, path.storedSegments, images);
   const dash = stroke.dashArray?.map(value => Math.max(0, value * strokeScale));
   return { *[Symbol.iterator]() {
     for (const point of strokeOutlinePoints(paths, stroke.width * strokeScale, path.lineCap ?? 0, path.lineJoin ?? 0, path.miterLimit ?? 10, dash, stroke.dashPhase * strokeScale)) {
@@ -769,12 +795,13 @@ const SUB_OFFSETS_4X4 = [0.125, 0.375, 0.625, 0.875] as const;
  * First count crossings strictly left of each sample; then replay exact ties
  * in original edge order to preserve inclusive interval endpoints. Scratch is
  * local to this render and proportional to the row, never to path complexity. */
-function* computeSubScanlineCountsSteps(edges: Iterable<Edge>, scanY: number,
+function* computeSubScanlineCountsSteps(edges: Iterable<Edge | undefined>, scanY: number,
   fillRule: "nonzero" | "evenodd", deltas: Float64Array, winding: Float64Array, rowCounts: Uint8Array): Generator<void, void, void> {
   const samples = winding.length;
   deltas.fill(0);
   let work = 0;
   for (const edge of edges) {
+    if (!edge) { yield; continue; }
     if (++work % 16384 === 0) yield;
     if (!((edge.y0 <= scanY && edge.y1 > scanY) || (edge.y1 <= scanY && edge.y0 > scanY))) continue;
     const x = edge.x0 + ((scanY - edge.y0) / (edge.y1 - edge.y0)) * (edge.x1 - edge.x0);
@@ -787,6 +814,7 @@ function* computeSubScanlineCountsSteps(edges: Iterable<Edge>, scanY: number,
     if (fillRule === "evenodd" ? value % 2 !== 0 : value !== 0) rowCounts[index >>> 2] = rowCounts[index >>> 2]! + 1;
   }
   for (const edge of edges) {
+    if (!edge) { yield; continue; }
     if (++work % 16384 === 0) yield;
     if (!((edge.y0 <= scanY && edge.y1 > scanY) || (edge.y1 <= scanY && edge.y0 > scanY))) continue;
     const x = edge.x0 + ((scanY - edge.y0) / (edge.y1 - edge.y0)) * (edge.x1 - edge.x0);
@@ -802,7 +830,7 @@ function *fillEdgesScanline4x4Steps(
   rgba: Uint8Array,
   width: number,
   height: number,
-  edges: Iterable<Edge>,
+  edges: Iterable<Edge | undefined>,
   color: PdfRgbColor,
   alpha = 1,
   fillRule: "nonzero" | "evenodd" = "nonzero",
@@ -816,6 +844,7 @@ function *fillEdgesScanline4x4Steps(
   let minY = Infinity;
   let maxY = -Infinity;
   for (const e of edges) {
+    if (!e) { yield; continue; }
     if (++work % 16384 === 0) yield;
     if (e.y0 < minY) minY = e.y0;
     if (e.y1 < minY) minY = e.y1;
@@ -852,7 +881,7 @@ function *fillMaskScanline4x4Steps(
   mask: Uint8Array,
   width: number,
   height: number,
-  edges: Iterable<Edge>,
+  edges: Iterable<Edge | undefined>,
   fillRule: "nonzero" | "evenodd" = "nonzero",
   intersect = false
 ): Generator<void, void, void> {
@@ -860,6 +889,7 @@ function *fillMaskScanline4x4Steps(
   let minY = Infinity;
   let maxY = -Infinity;
   for (const e of edges) {
+    if (!e) { yield; continue; }
     if (++work % 16384 === 0) yield;
     if (e.y0 < minY) minY = e.y0;
     if (e.y1 < minY) minY = e.y1;
@@ -993,6 +1023,8 @@ function containsBackdropGroup(operations: readonly PdfPaintOperation[]): boolea
 
 type RetainedImageSampler = Awaited<ReturnType<typeof prepareRetainedImageSampler>>;
 interface RasterImageInput {
+  signal?: AbortSignal | undefined;
+  pathRequest?: (() => Promise<void>) | undefined;
   request?: {kind:"prepare";image:PdfEvaluatedImage;widthScale:number;heightScale:number} | {kind:"sample";sampler:RetainedImageSampler;u:number;v:number;smooth:boolean;out:Float64Array} | undefined;
   sampler?: RetainedImageSampler | undefined;
 }
@@ -1100,7 +1132,7 @@ function *renderDisplayListLayerSteps(
       for (const clip of clips) {
         if (++work % 16384 === 0) yield;
         const { segments, fillRule } = "segments" in clip ? clip : { segments: clip, fillRule: "nonzero" as const };
-        (yield* fillMaskScanline4x4Steps(clipMask, width, height, screenFillEdges(segments, toScreen), fillRule, !firstClip));
+        (yield* fillMaskScanline4x4Steps(clipMask, width, height, screenFillEdges(segments, toScreen, "segments" in clip ? clip.storedSegments : undefined, images), fillRule, !firstClip));
         firstClip = false;
       }
       cachedClips = clips;
@@ -1148,7 +1180,7 @@ function *renderDisplayListLayerSteps(
     if (operation.kind === "path") {
       const path = operation.value;
       if (path.fillColor) {
-        const edges = screenFillEdges(path.segments, toScreen);
+        const edges = screenFillEdges(path.segments, toScreen, path.storedSegments, images);
         const clipScreen: [number, number, number, number] | undefined = path.clipRect ? [(path.clipRect[0] - originX) * scale - offsetX, (pageTop - path.clipRect[3]) * scale - offsetY, (path.clipRect[2] - originX) * scale - offsetX, (pageTop - path.clipRect[1]) * scale - offsetY] : undefined;
         (yield* fillEdgesScanline4x4Steps(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, (original.kind === "glyph" ? aaTxt : aaVec), path.blendMode, clipMask, groupAlpha));
       }
@@ -1156,7 +1188,7 @@ function *renderDisplayListLayerSteps(
         const rawSw = path.strokeWidth * scale * (path.strokeMatrix ? Math.hypot(path.strokeMatrix[0], path.strokeMatrix[1]) : 1);
         const strokeAlpha = options.thinLineMode === "shape" && rawSw < 1
           ? (path.strokeAlpha ?? 1) * Math.max(0.25, rawSw) : path.strokeAlpha ?? 1;
-        const edges = strokeEdges(yield* strokeContoursSteps(path, displayList.height, scale, originX, originY, offsetX, offsetY));
+        const edges = strokeEdges(yield* strokeContoursSteps(path, displayList.height, scale, originX, originY, offsetX, offsetY, images));
         const clipScreen: [number, number, number, number] | undefined = path.clipRect
           ? [(path.clipRect[0] - originX) * scale - offsetX, (pageTop - path.clipRect[3]) * scale - offsetY, (path.clipRect[2] - originX) * scale - offsetX, (pageTop - path.clipRect[1]) * scale - offsetY] : undefined;
         (yield* fillEdgesScanline4x4Steps(rgba, width, height, edges, path.strokeColor, strokeAlpha, "nonzero", clipScreen,
@@ -1329,7 +1361,7 @@ export async function renderOperationStreamWindow(page: Pick<PdfDisplayList, "wi
     if (hasCompositingEffects([operation])) { input.compositing = true; break; }
   }
   const list: PdfDisplayList = { ...page, pageIndex: 0, rotation: 0, glyphs: [], paths: [], images: [], annotations: [], operations: [] };
-  const images: RasterImageInput = {};
+  const images: RasterImageInput = {signal};
   const source = cursor(), work = renderDisplayListLayerSteps(list, options, scale, undefined, window, input, images);
   let failed = false, ticks = 0, samples = 0;
   try {
@@ -1337,6 +1369,7 @@ export async function renderOperationStreamWindow(page: Pick<PdfDisplayList, "wi
     while (!step.done) {
       signal?.throwIfAborted();
       if (input.requested) { input.requested = false; input.next = await source.next(); }
+      if (images.pathRequest) { const request = images.pathRequest; images.pathRequest = undefined; await request(); }
       let sampled = false;
       if (images.request) {
         const request = images.request; images.request = undefined;
@@ -1572,6 +1605,7 @@ export function *renderDisplayListToSvgSteps(
       for (const clip of clips) {
         const { segments, fillRule } = "segments" in clip ? clip : { segments: clip, fillRule: "nonzero" as const };
         const id = `text-clip-${clipId++}`;
+        if ("segments" in clip && clip.storedSegments) throw new Error("Stored PDF paths require the asynchronous raster driver");
         const path = `<path d="${svgPathData(segments, displayList.height)}" clip-rule="${fillRule}"/>`;
         parts.push(`<defs><clipPath id="${id}" clipPathUnits="userSpaceOnUse">${path}</clipPath></defs><g clip-path="url(#${id})">`);
       }
@@ -1592,6 +1626,7 @@ export function *renderDisplayListToSvgSteps(
         const matrix = prepared && (prepared.matrix[0] !== 1 || prepared.matrix[1] !== 0 || prepared.matrix[2] !== 0 || prepared.matrix[3] !== 1)
           ? prepared.matrix : undefined;
         const inverse = matrix ? inverseStrokeMatrix(matrix) : undefined;
+        if (p.storedSegments) throw new Error("Stored PDF paths require the asynchronous raster driver");
         const pathData = svgPathData(p.segments, inverse ? 0 : displayList.height, inverse);
         const transformAttr = inverse && matrix
           ? ` transform="matrix(${matrix[0]} ${-matrix[1]} ${-matrix[2]} ${matrix[3]} ${matrix[4]} ${displayList.height - matrix[5]})"` : "";

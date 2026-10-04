@@ -160,9 +160,19 @@ export type PdfPathSegment =
   | { readonly kind: "rect"; readonly x: number; readonly y: number; readonly width: number; readonly height: number }
   | { readonly kind: "close" };
 
+/** Caller-owned linked path blocks. The backing remains live while consumers replay it. */
+export interface PdfStoredPath {
+  readonly kind: "stored-path";
+  readonly storage: PdfPixelStorage;
+  readonly position: number;
+  readonly count: number;
+  readonly bounds: readonly [number, number, number, number];
+}
+
 /** A clipping intersection. Bare segment arrays retain nonzero semantics. */
 export type PdfClipPath = readonly PdfPathSegment[] | {
   readonly segments: readonly PdfPathSegment[];
+  readonly storedSegments?: PdfStoredPath | undefined;
   readonly fillRule: "nonzero" | "evenodd";
 };
 
@@ -180,6 +190,7 @@ export type PdfContentNode =
   | {
       readonly kind: "path-op";
       readonly segments: PdfPathSegment[];
+      readonly storedSegments?: PdfStoredPath | undefined;
       readonly paint: "S" | "s" | "f" | "F" | "f*" | "B" | "B*" | "b" | "b*" | "n";
       readonly clip?: "W" | "W*" | undefined;
     }
@@ -225,6 +236,7 @@ export interface PdfPlacedGlyph {
 
 export interface PdfEvaluatedPath {
   readonly segments: readonly PdfPathSegment[];
+  readonly storedSegments?: PdfStoredPath | undefined;
   readonly strokeColor?: PdfRgbColor | undefined;
   readonly strokeAlpha?: number | undefined;
   readonly fillColor?: PdfRgbColor | undefined;

@@ -23,11 +23,15 @@ paths, decoded resources and nested captures still retain their existing memory
 ownership.
 
 Pass `imageStorage` to retained page evaluation to keep decoded image pixels in
-caller-owned random-access backing. `renderOperationStreamWindow` reads these
+caller-owned random-access backing. Parser and evaluated path segments also use
+fixed-size blocks in that backing; fill, clipping and pattern bounds replay
+without collecting segment arrays. `renderOperationStreamWindow` reads these
 pixels with a fixed range cache and stages downsampling levels in that same
 backing, preserving the buffered sampling math. Keep the backing alive until
-painting finishes, then close it. Codec/color state, paths, shading and nested
-captures retain their own memory requirements.
+painting finishes, then close it. Stroke input/dash expansion, codec/color state
+and nested captures retain their own memory requirements. Stored geometry is
+for the asynchronous raster driver; buffered display-list/SVG APIs retain their
+existing synchronous representation.
 
 `await renderRetainedPagePixels(page, storage, options)` returns
 `{ width, height, pixels }` with row-major RGBA chunks. It replays retained page

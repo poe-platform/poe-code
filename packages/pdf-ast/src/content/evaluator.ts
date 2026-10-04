@@ -15,6 +15,7 @@ import {
   type PdfEvaluatedPath,
   type PdfLinkAnnotation,
   type PdfPathSegment,
+  type PdfStoredPath,
   type PdfPlacedGlyph,
   type PdfPaintOperation,
   type PdfRgbColor,
@@ -938,7 +939,55 @@ export interface PdfEvaluationShadingRequest {
   readonly blendMode: string | undefined;
 }
 
+/** Shared affine path transformation, including reflected rectangle winding. */
+export function transformPathSegment(seg: PdfPathSegment, matrix: Matrix6): PdfPathSegment[] {
+  const hasRotOrShear = Math.abs(matrix[1]) > 1e-6 || Math.abs(matrix[2]) > 1e-6;
+  const transformedSegments: PdfPathSegment[] = [];
+
+  if (seg.kind === "move") {
+    const [x, y] = transformPoint(matrix, seg.x, seg.y);
+    transformedSegments.push({ kind: "move", x, y });
+  } else if (seg.kind === "line") {
+    const [x, y] = transformPoint(matrix, seg.x, seg.y);
+    transformedSegments.push({ kind: "line", x, y });
+  } else if (seg.kind === "cubic") {
+    const [x1, y1] = transformPoint(matrix, seg.x1, seg.y1);
+    const [x2, y2] = transformPoint(matrix, seg.x2, seg.y2);
+    const [x, y] = transformPoint(matrix, seg.x, seg.y);
+    transformedSegments.push({ kind: "cubic", x1, y1, x2, y2, x, y });
+  } else if (seg.kind === "rect") {
+    if (hasRotOrShear || seg.width * matrix[0] < 0 || seg.height * matrix[3] < 0) {
+      const [p0x, p0y] = transformPoint(matrix, seg.x, seg.y);
+      const [p1x, p1y] = transformPoint(matrix, seg.x + seg.width, seg.y);
+      const [p2x, p2y] = transformPoint(matrix, seg.x + seg.width, seg.y + seg.height);
+      const [p3x, p3y] = transformPoint(matrix, seg.x, seg.y + seg.height);
+      transformedSegments.push(
+        { kind: "move", x: p0x, y: p0y },
+        { kind: "line", x: p1x, y: p1y },
+        { kind: "line", x: p2x, y: p2y },
+        { kind: "line", x: p3x, y: p3y },
+        { kind: "close" }
+      );
+    } else {
+      const [x0, y0] = transformPoint(matrix, seg.x, seg.y);
+      const [x1, y1] = transformPoint(matrix, seg.x + seg.width, seg.y + seg.height);
+      transformedSegments.push({
+        kind: "rect",
+        x: Math.min(x0, x1),
+        y: Math.min(y0, y1),
+        width: Math.abs(x1 - x0),
+        height: Math.abs(y1 - y0),
+      });
+    }
+  } else {
+    transformedSegments.push(seg);
+  }
+
+  return transformedSegments;
+}
+
 export type PdfEvaluationRequest = PdfEvaluationShadingRequest | PdfEvaluationOperation | { readonly kind: "node"; readonly source?: PdfEvaluationContentSource }
+  | { readonly kind: "transform-path"; readonly path: PdfStoredPath; readonly matrix: Matrix6; readonly close: boolean }
   | { readonly kind: "font"; readonly name: string; readonly resources: PdfCosDict | undefined }
   | { readonly kind: "resolve"; readonly node: PdfCosNode }
   | { readonly kind: "catalog" }
@@ -947,7 +996,7 @@ export type PdfEvaluationRequest = PdfEvaluationShadingRequest | PdfEvaluationOp
   | { readonly kind: "color"; readonly name: string; readonly components: readonly number[]; readonly resources: PdfCosDict | undefined }
   | { readonly kind: "inline-image"; readonly dict: PdfCosDict; readonly data: Uint8Array | PdfContentRange; readonly resources: PdfCosDict | undefined; readonly fillColor: Parameters<typeof decodeInlineImageNodeToRgba>[4] }
   | { readonly kind: "image"; readonly stream: PdfCosStream; readonly resources: PdfCosDict | undefined; readonly fillColor: Parameters<typeof decodeXObjectImageToRgba>[3] };
-export type PdfEvaluationResult = PdfContentEvent | ResolvedPageFont
+export type PdfEvaluationResult = PdfStoredPath | PdfContentEvent | ResolvedPageFont
   | { readonly kind: "shading"; readonly image: PdfEvaluatedImage | undefined }
   | { readonly kind: "color"; readonly value: readonly [number, number, number] }
   | { readonly kind: "resolved"; readonly node: PdfCosNode | undefined }
@@ -1304,7 +1353,8 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     activeFonts: FontScope,
     depth: number,
     mcid?: number,
-    actualText?: string
+    actualText?: string,
+    storedSegments?: PdfStoredPath
   ): EvaluationWork<boolean> {
     const st = curState();
     if (!st.fillPatternName || !resources) return false;
@@ -1334,6 +1384,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       if (segment.kind === "cubic") { include(segment.x1, segment.y1); include(segment.x2, segment.y2); }
       if (segment.kind === "rect") include(segment.x + segment.width, segment.y + segment.height);
     }
+    if (storedSegments) [x0, y0, x1, y1] = storedSegments.bounds;
     const [originX, originY] = params.origin ?? [0, 0];
     const clip = st.clipRect ?? [originX, originY, originX + params.width, originY + params.height];
     const bounds: [number, number, number, number] = [Math.max(x0, clip[0]!), Math.max(y0, clip[1]!), Math.min(x1, clip[2]!), Math.min(y1, clip[3]!)];
@@ -1342,7 +1393,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     // containing stream's initial matrix, independently of the text matrix.
     const matrix = multiplyMatrices((yield* nums("Matrix", [1, 0, 0, 1, 0, 0])) as Matrix6, st.initialCtm);
     const type = yield* resolveEvaluationNode(dictGet(dict, "PatternType"));
-    stateStack.push({ ...st, clipRect: bounds, clipPaths: [...(st.clipPaths ?? []), { segments, fillRule }] });
+    stateStack.push({ ...st, clipRect: bounds, clipPaths: [...(st.clipPaths ?? []), { segments, fillRule, ...(storedSegments ? {storedSegments} : {}) }] });
     try {
       if (type?.kind === "number" && type.value === 2) {
         const shading = yield* resolveEvaluationNode(dictGet(dict, "Shading"));
@@ -1539,7 +1590,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       const node = initialNode ?? (next ? (next.done ? undefined : next.value) : yield { kind: "node", ...(source ? { source } : {}) });
       initialNode = undefined;
       if (!node) break;
-      if (!("kind" in node)) throw new TypeError("Expected a PDF content event");
+      if (!("kind" in node) || node.kind === "stored-path") throw new TypeError("Expected a PDF content event");
       if (node.kind === "end-group") {
         const parent = groups.pop();
         if (parent) {
@@ -1580,60 +1631,24 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
 
         case "path-op": {
           const st = curState();
-          const hasRotOrShear = Math.abs(st.ctm[1]) > 1e-6 || Math.abs(st.ctm[2]) > 1e-6;
+          let storedSegments: PdfStoredPath | undefined;
           const transformedSegments: PdfPathSegment[] = [];
-          for (const seg of node.segments) {
-            if (seg.kind === "move") {
-              const [x, y] = transformPoint(st.ctm, seg.x, seg.y);
-              transformedSegments.push({ kind: "move", x, y });
-            } else if (seg.kind === "line") {
-              const [x, y] = transformPoint(st.ctm, seg.x, seg.y);
-              transformedSegments.push({ kind: "line", x, y });
-            } else if (seg.kind === "cubic") {
-              const [x1, y1] = transformPoint(st.ctm, seg.x1, seg.y1);
-              const [x2, y2] = transformPoint(st.ctm, seg.x2, seg.y2);
-              const [x, y] = transformPoint(st.ctm, seg.x, seg.y);
-              transformedSegments.push({ kind: "cubic", x1, y1, x2, y2, x, y });
-            } else if (seg.kind === "rect") {
-              if (hasRotOrShear || seg.width * st.ctm[0] < 0 || seg.height * st.ctm[3] < 0) {
-                const [p0x, p0y] = transformPoint(st.ctm, seg.x, seg.y);
-                const [p1x, p1y] = transformPoint(st.ctm, seg.x + seg.width, seg.y);
-                const [p2x, p2y] = transformPoint(st.ctm, seg.x + seg.width, seg.y + seg.height);
-                const [p3x, p3y] = transformPoint(st.ctm, seg.x, seg.y + seg.height);
-                transformedSegments.push(
-                  { kind: "move", x: p0x, y: p0y },
-                  { kind: "line", x: p1x, y: p1y },
-                  { kind: "line", x: p2x, y: p2y },
-                  { kind: "line", x: p3x, y: p3y },
-                  { kind: "close" }
-                );
-              } else {
-                const [x0, y0] = transformPoint(st.ctm, seg.x, seg.y);
-                const [x1, y1] = transformPoint(st.ctm, seg.x + seg.width, seg.y + seg.height);
-                transformedSegments.push({
-                  kind: "rect",
-                  x: Math.min(x0, x1),
-                  y: Math.min(y0, y1),
-                  width: Math.abs(x1 - x0),
-                  height: Math.abs(y1 - y0),
-                });
-              }
-            } else {
-              transformedSegments.push(seg);
-            }
-          }
-
-          if (["s", "b", "b*"].includes(node.paint) && transformedSegments.length > 0) {
-            const lastSeg = transformedSegments[transformedSegments.length - 1]!;
-            if (lastSeg.kind !== "close" && lastSeg.kind !== "rect") {
-              transformedSegments.push({ kind: "close" });
-            }
+          const close = ["s", "b", "b*"].includes(node.paint);
+          if (node.storedSegments) {
+            const reply = yield {kind:"transform-path",path:node.storedSegments,matrix:st.ctm,close};
+            if (!reply || !("kind" in reply) || reply.kind !== "stored-path") throw new TypeError("Expected transformed PDF path");
+            storedSegments = reply;
+          } else {
+            for (const segment of node.segments) for (const transformed of transformPathSegment(segment, st.ctm)) transformedSegments.push(transformed);
+            const last = transformedSegments[transformedSegments.length - 1];
+            if (close && last && last.kind !== "close" && last.kind !== "rect") transformedSegments.push({kind:"close"});
           }
 
           const applyClip = () => {
             if (!node.clip) return;
             st.clipPaths = [...(st.clipPaths ?? []), {
               segments: transformedSegments,
+              ...(storedSegments ? {storedSegments} : {}),
               fillRule: node.clip === "W*" ? "evenodd" : "nonzero",
             }];
             let cMinX = Infinity, cMinY = Infinity, cMaxX = -Infinity, cMaxY = -Infinity;
@@ -1655,6 +1670,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                 cMaxY = Math.max(cMaxY, s.y + s.height);
               }
             }
+            if (storedSegments) [cMinX, cMinY, cMaxX, cMaxY] = storedSegments.bounds;
             if (Number.isFinite(cMinX) && Number.isFinite(cMinY)) {
               st.clipRect = st.clipRect
                 ? [
@@ -1676,7 +1692,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           const isFill = ["f", "F", "f*", "B", "B*", "b", "b*"].includes(node.paint);
           const isStroke = ["S", "s", "B", "B*", "b", "b*"].includes(node.paint);
           const evaluatedFillPattern = isFill && (yield* paintPattern(transformedSegments,
-            node.paint.includes("*") ? "evenodd" : "nonzero", activeResources, activeFonts, depth, mcid, actualText));
+            node.paint.includes("*") ? "evenodd" : "nonzero", activeResources, activeFonts, depth, mcid, actualText, storedSegments));
           if (evaluatedFillPattern && !isStroke) {
             applyClip();
             break;
@@ -1684,6 +1700,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           const fillRule = node.paint.includes("*") ? "evenodd" : "nonzero";
           yield* emit({ kind: "path", value: {
             segments: transformedSegments,
+              ...(storedSegments ? {storedSegments} : {}),
             fillColor: isFill && !evaluatedFillPattern ? st.fillColor : undefined,
             fillAlpha: isFill && !evaluatedFillPattern ? st.fillAlpha : undefined,
             strokeColor: isStroke ? st.strokeColor : undefined,
@@ -1793,7 +1810,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                   const fm: Matrix6 = font.fontMatrix ?? [0.001, 0, 0, 0.001, 0, 0];
                   const source = { stream: procNode };
                   const firstOp = yield { kind: "node", source };
-                  if (firstOp && (!("kind" in firstOp) || (firstOp.kind === "resolved" || firstOp.kind === "decoded-image" || firstOp.kind === "mask-parameters" || firstOp.kind === "color" || firstOp.kind === "shading"))) throw new TypeError("Expected Type3 content event");
+                  if (firstOp && (!("kind" in firstOp) || (firstOp.kind === "stored-path" || firstOp.kind === "resolved" || firstOp.kind === "decoded-image" || firstOp.kind === "mask-parameters" || firstOp.kind === "color" || firstOp.kind === "shading"))) throw new TypeError("Expected Type3 content event");
                   if (!font.widths.has(item.charCode)) {
                     if (
                       firstOp?.kind === "state-op" &&
@@ -2023,6 +2040,8 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
+      } else if (step.value.kind === "transform-path") {
+        throw new PdfError("E_CAPABILITY", "Stored PDF paths require an asynchronous source driver");
       } else if (step.value.kind === "shading") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF shading requires a source driver");
         const request = step.value;

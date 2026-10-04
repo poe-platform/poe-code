@@ -214,9 +214,12 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       tick();
     }
     const {font, metrics, supported, ascentRatio, descentRatio} = selected;
-    if (cellBox && (value.includes("\n") || value.includes("\r"))) unsupported("default-style text layout");
-    const shapedValue = cellBox ? normalizeFontText(value, supported, tick) : value;
-    for (const scalar of shapedValue) if (!supported.has(scalar.codePointAt(0)!)) unsupported("font coverage");
+    const paragraphs = cellBox ? value.split("\r\n").join("\n").split("\r").join("\n").split("\n") : [value];
+    const shapedLines = paragraphs.map(line => cellBox ? normalizeFontText(line, supported, tick) : line);
+    for (const line of shapedLines) for (const scalar of line) {
+      tick();
+      if (!supported.has(scalar.codePointAt(0)!)) unsupported("font coverage");
+    }
     let baseline = page.getHeight() - y - size;
     let width = cellBox ? 0 : font.widthOfTextAtSize(value, size);
     if (cellBox) {
@@ -230,20 +233,30 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           unsupported("supplied font parsing");
         }
       }
-      const ascent = ascentRatio * size, height = ascent + descentRatio * size;
-      const glyphs: {x: number; y: number}[] = [];
+      const ascent = ascentRatio * size, lineHeight = ascent + descentRatio * size;
+      const height = lineHeight * shapedLines.length;
+      const lines = shapedLines.map(shapedValue => {
+        const glyphs: {x: number; y: number}[] = [];
+        let width = 0, displayWidth = 0;
+        // Pango's unhinted print profile rounds advances and offsets in display pixels.
+        const run = shapedValue ? shaper.shape(metrics, shapedValue) : undefined;
+        for (const position of run?.positions ?? []) {
+          tick();
+          const advance = position.xAdvance * cellBox.style.size / metrics.unitsPerEm;
+          if (!Number.isFinite(advance) || advance < 0 || !Number.isFinite(position.xOffset) || !Number.isFinite(position.yOffset) || position.yAdvance !== 0) unsupported("supplied font advances");
+          glyphs.push({x: width + Math.round(position.xOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale,
+            // Pango rounds its downward y offset before the PDF coordinate inversion.
+            y: -Math.round(-position.yOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale});
+          width += Math.round(advance) * printDisplayScale;
+          displayWidth += Math.round(advance / printDisplayScale) * printDisplayScale;
+        }
+        return {shapedValue, run, glyphs, width, displayWidth};
+      });
       let displayWidth = 0;
-      // Pango's unhinted print profile rounds advances and offsets in display pixels.
-      const run = shaper.shape(metrics, shapedValue);
-      for (const position of run.positions) {
+      for (const line of lines) {
         tick();
-        const advance = position.xAdvance * cellBox.style.size / metrics.unitsPerEm;
-        if (!Number.isFinite(advance) || advance < 0 || !Number.isFinite(position.xOffset) || !Number.isFinite(position.yOffset) || position.yAdvance !== 0) unsupported("supplied font advances");
-        glyphs.push({x: width + Math.round(position.xOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale,
-          // Pango rounds its downward y offset before the PDF coordinate inversion.
-          y: -Math.round(-position.yOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale});
-        width += Math.round(advance) * printDisplayScale;
-        displayWidth += Math.round(advance / printDisplayScale) * printDisplayScale;
+        width = Math.max(width, line.width);
+        displayWidth = Math.max(displayWidth, line.displayWidth);
       }
       let indent = 0, displayIndent = 0;
       if (cellBox.style.indent && alignment !== "center") {
@@ -267,7 +280,9 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         indent = Math.min(65535, Math.round(cellBox.style.indent * Math.floor((digitWidth * 1024 + 5) / 10) / 1024)) * printDisplayScale;
         displayIndent = Math.min(65535, Math.round(cellBox.style.indent * Math.floor((displayDigitWidth * 1024 + 5) / 10) / 1024)) * printDisplayScale;
       }
+      const wraps = cellBox.style.verticalAlignment === "justify" || cellBox.style.verticalAlignment === "distributed";
       const overflows = width + indent > cellBox.width - 5;
+      if (wraps && overflows) unsupported("wrapped text layout");
       if (overflows && cellBox.overflow === undefined || !Number.isFinite(height)) unsupported("default-style text layout");
       const overflow = cellBox.overflow?.(displayWidth + displayIndent);
       const clipLeft = x + 4 - (overflow?.left ?? 0);
@@ -280,18 +295,12 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       }
       // Native print layout removes the 1pt grid, then applies the scaled top margin.
       const verticalSpace = Math.max(0, cellBox.height - 1 - height);
-      const verticalOffset = cellBox.style.verticalAlignment === "top" ? 0 : verticalSpace / (cellBox.style.verticalAlignment === "center" ? 2 : 1);
+      const verticalOffset = (cellBox.style.verticalAlignment === "top" || cellBox.style.verticalAlignment === "justify") ? 0 : verticalSpace / (cellBox.style.verticalAlignment === "center" || cellBox.style.verticalAlignment === "distributed" ? 2 : 1);
       baseline = page.getHeight() - y - printDisplayScale - verticalOffset - ascent;
       x -= alignment === "left" ? -indent : alignment === "center" ? width / 2 : width + indent;
-      // pdf-lib encodes through the public layout method synchronously. Give
-      // its subset encoder the exact run whose positions we just painted.
-      const layout = metrics.layout;
-      let encoded: string;
-      try {
-        metrics.layout = () => run;
-        encoded = font.encodeText(shapedValue).asString();
-      } finally { metrics.layout = layout; }
-      if (encoded.length !== glyphs.length * 4) unsupported("supplied font glyph mapping");
+      const lineSpacing = cellBox.style.verticalAlignment === "justify" && lines.length > 1 ?
+        Math.floor(verticalSpace / printDisplayScale * 1024 / (lines.length - 1)) / 1024 * printDisplayScale : 0;
+      const blockX = x, firstBaseline = baseline;
       const resource = page.node.newFontDictionary(font.name, font.ref);
       // Positioned marks can be reordered by text extractors; retain the logical cell string.
       page.pushOperators(pushGraphicsState());
@@ -302,48 +311,67 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       if (overflows || height > cellBox.height - 1) page.pushOperators(
         pdfRectangle(clipLeft, page.getHeight() - y - cellBox.height, clipWidth, cellBox.height), clip(), endPath());
       page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
-        [PDFName.of("Span"), pdf.context.obj({ActualText: PDFHexString.fromText(value)}).toString()]),
-      beginText(), setFontAndSize(resource, size), setFillingRgbColor(...cellBox.style.foreground));
-      for (const [index, glyph] of glyphs.entries()) {
-        tick();
-        page.pushOperators(setTextMatrix(1, 0, 0, 1, x + glyph.x, baseline + glyph.y), showText(PDFHexString.of(encoded.slice(index * 4, index * 4 + 4))));
+        [PDFName.of("Span"), pdf.context.obj({ActualText: PDFHexString.fromText(value)}).toString()]));
+      for (const [lineIndex, line] of lines.entries()) {
+        const {run, glyphs, shapedValue} = line;
+        if (!run) continue;
+        // Pango hints centered lines to whole display pixels when layout and
+        // line widths are integral; an implicit wrapping width need not be.
+        const centeredOffset = (width - line.width) / 2;
+        x = blockX + (alignment === "left" ? 0 : alignment === "right" ? width - line.width :
+          wraps && !Number.isInteger((cellBox.width - 5) / printDisplayScale) ? centeredOffset :
+            Math.round(centeredOffset / printDisplayScale) * printDisplayScale);
+        baseline = firstBaseline - lineIndex * (lineHeight + lineSpacing);
+        // Encode the same shaped run that supplies the positioned glyphs.
+        const layout = metrics.layout;
+        let encoded: string;
+        try {
+          metrics.layout = () => run;
+          encoded = font.encodeText(shapedValue).asString();
+        } finally { metrics.layout = layout; }
+        if (encoded.length !== glyphs.length * 4) unsupported("supplied font glyph mapping");
+        page.pushOperators(beginText(), setFontAndSize(resource, size), setFillingRgbColor(...cellBox.style.foreground));
+        for (const [index, glyph] of glyphs.entries()) {
+          tick();
+          page.pushOperators(setTextMatrix(1, 0, 0, 1, x + glyph.x, baseline + glyph.y), showText(PDFHexString.of(encoded.slice(index * 4, index * 4 + 4))));
+        }
+        page.pushOperators(endText());
+        if (cellBox.style.underline || cellBox.style.strikeThrough) {
+          // Pango uses font underline metrics and the union of positioned ink bounds.
+          const scale = size / metrics.unitsPerEm;
+          const thickness = metrics.underlineThickness ? metrics.underlineThickness * scale : printDisplayScale;
+          const position = metrics.underlinePosition ? metrics.underlinePosition * scale : -printDisplayScale;
+          let inkLeft = Infinity, inkRight = -Infinity, inkBottom = Infinity;
+          for (const [index, glyph] of run.glyphs.entries()) {
+            tick();
+            const box = glyph.bbox, origin = glyphs[index]!;
+            if (!Number.isFinite(box.minX)) continue; // Spaces have no ink.
+            inkLeft = Math.min(inkLeft, origin.x + box.minX * scale);
+            inkRight = Math.max(inkRight, origin.x + box.maxX * scale);
+            inkBottom = Math.min(inkBottom, origin.y + box.minY * scale);
+          }
+          const low = cellBox.style.underline === 3;
+          const lineY = baseline + (low ? Math.min(0, inkBottom) - 2 * thickness : position - thickness);
+          if (low) page.pushOperators(pdfRectangle(clipLeft, page.getHeight() - y - cellBox.height,
+            clipWidth, cellBox.height), clip(), endPath());
+          for (let decoration = 0; decoration < (cellBox.style.underline === 0 ? 0 : cellBox.style.underline === 2 || cellBox.style.underline === 4 ? 2 : 1); decoration++) {
+            tick();
+            page.drawRectangle({x: x + Math.min(0, inkLeft), y: lineY - decoration * 2 * thickness,
+              width: Math.max(line.width, Number.isFinite(inkRight - inkLeft) ? inkRight - inkLeft : 0),
+              height: thickness, color: rgb(...cellBox.style.foreground)});
+          }
+          if (cellBox.style.strikeThrough && Number.isFinite(inkRight - inkLeft)) {
+            // Fontkit decodes these standard OS/2 fields, but omits them from its declaration.
+            const os2 = metrics["OS/2"] as {yStrikeoutSize?: number; yStrikeoutPosition?: number} | undefined;
+            const strikeThickness = os2?.yStrikeoutSize ? os2.yStrikeoutSize * scale : printDisplayScale;
+            const strikePosition = os2?.yStrikeoutPosition ? os2.yStrikeoutPosition * scale : ascent / 2;
+            tick();
+            page.drawRectangle({x: x + inkLeft, y: baseline + strikePosition - strikeThickness,
+              width: inkRight - inkLeft, height: strikeThickness, color: rgb(...cellBox.style.foreground)});
+          }
+        }
       }
-      page.pushOperators(endText(), PDFOperator.of(PDFOperatorNames.EndMarkedContent));
-      if (cellBox.style.underline || cellBox.style.strikeThrough) {
-        // Pango uses font underline metrics and the union of positioned ink bounds.
-        const scale = size / metrics.unitsPerEm;
-        const thickness = metrics.underlineThickness ? metrics.underlineThickness * scale : printDisplayScale;
-        const position = metrics.underlinePosition ? metrics.underlinePosition * scale : -printDisplayScale;
-        let inkLeft = Infinity, inkRight = -Infinity, inkBottom = Infinity;
-        for (const [index, glyph] of run.glyphs.entries()) {
-          tick();
-          const box = glyph.bbox, origin = glyphs[index]!;
-          if (!Number.isFinite(box.minX)) continue; // Spaces have no ink.
-          inkLeft = Math.min(inkLeft, origin.x + box.minX * scale);
-          inkRight = Math.max(inkRight, origin.x + box.maxX * scale);
-          inkBottom = Math.min(inkBottom, origin.y + box.minY * scale);
-        }
-        const low = cellBox.style.underline === 3;
-        const lineY = baseline + (low ? Math.min(0, inkBottom) - 2 * thickness : position - thickness);
-        if (low) page.pushOperators(pdfRectangle(clipLeft, page.getHeight() - y - cellBox.height,
-          clipWidth, cellBox.height), clip(), endPath());
-        for (let line = 0; line < (cellBox.style.underline === 0 ? 0 : cellBox.style.underline === 2 || cellBox.style.underline === 4 ? 2 : 1); line++) {
-          tick();
-          page.drawRectangle({x: x + Math.min(0, inkLeft), y: lineY - line * 2 * thickness,
-            width: Math.max(width, Number.isFinite(inkRight - inkLeft) ? inkRight - inkLeft : 0),
-            height: thickness, color: rgb(...cellBox.style.foreground)});
-        }
-        if (cellBox.style.strikeThrough && Number.isFinite(inkRight - inkLeft)) {
-          // Fontkit decodes these standard OS/2 fields, but omits them from its declaration.
-          const os2 = metrics["OS/2"] as {yStrikeoutSize?: number; yStrikeoutPosition?: number} | undefined;
-          const strikeThickness = os2?.yStrikeoutSize ? os2.yStrikeoutSize * scale : printDisplayScale;
-          const strikePosition = os2?.yStrikeoutPosition ? os2.yStrikeoutPosition * scale : ascent / 2;
-          tick();
-          page.drawRectangle({x: x + inkLeft, y: baseline + strikePosition - strikeThickness,
-            width: inkRight - inkLeft, height: strikeThickness, color: rgb(...cellBox.style.foreground)});
-        }
-      }
-      page.pushOperators(popGraphicsState());
+      page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent), popGraphicsState());
       return;
     }
     page.drawText(value, { x: x - (alignment === "left" ? 0 : width / (alignment === "center" ? 2 : 1)), y: baseline, size, font });

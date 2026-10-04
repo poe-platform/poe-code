@@ -2,7 +2,7 @@ import {SsconvertError} from "../../contracts.js";
 import type {ImportedValue} from "@poe-code/spreadsheet-ast";
 
 const alignments = {GNM_HALIGN_GENERAL: "general", GNM_HALIGN_LEFT: "left", GNM_HALIGN_RIGHT: "right", GNM_HALIGN_CENTER: "center"} as const;
-const verticalAlignments = {GNM_VALIGN_TOP: "top", GNM_VALIGN_BOTTOM: "bottom", GNM_VALIGN_CENTER: "center", GNM_VALIGN_JUSTIFY: "top", GNM_VALIGN_DISTRIBUTED: "center"} as const;
+const verticalAlignments = {GNM_VALIGN_TOP: "top", GNM_VALIGN_BOTTOM: "bottom", GNM_VALIGN_CENTER: "center", GNM_VALIGN_JUSTIFY: "justify", GNM_VALIGN_DISTRIBUTED: "distributed"} as const;
 type AttributeRule = string | readonly string[] | ((value: string) => boolean);
 function validColor(value: string): boolean {
   const parts = value.split(":");
@@ -22,7 +22,7 @@ const fontDefaults: Readonly<Record<string, AttributeRule>> = {Unit: value => va
 
 export interface CellPrintStyle {
   readonly alignment: "general" | "left" | "right" | "center";
-  readonly verticalAlignment: "top" | "bottom" | "center";
+  readonly verticalAlignment: "top" | "bottom" | "center" | "justify" | "distributed";
   readonly family: string;
   readonly bold: boolean;
   readonly italic: boolean;

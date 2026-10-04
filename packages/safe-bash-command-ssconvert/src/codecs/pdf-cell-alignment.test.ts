@@ -11,8 +11,8 @@ const context: CapabilityContext = {signal: new AbortController().signal, own() 
   environment: {env: {}, locale: "C", timezone: "UTC"}, formatting: createFormattingCapability(),
   fonts: {async resolve() {return suppliedDefaultFont().bytes;}},
   limits: {inputBytes: 1000000, outputBytes: 4000000, workbookWork: 6000000, cells: 10000, sheets: 4, operations: 100}};
-async function fixture(alignment: string, unit = 10, width = 72) {
-  return readGnumeric(new TextEncoder().encode(`<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Version Epoch="1" Major="12" Minor="61" Full="1.12.61"/><g:SheetNameIndex><g:SheetName g:Cols="256" g:Rows="65536">S</g:SheetName></g:SheetNameIndex><g:Sheets><g:Sheet><g:Name>S</g:Name><g:PrintInformation><g:paper>na_letter</g:paper><g:Margins><g:top Points="72"/><g:bottom Points="72"/><g:left Points="72"/><g:right Points="72"/></g:Margins><g:Header Left="" Middle="" Right=""/><g:Footer Left="" Middle="" Right=""/></g:PrintInformation><g:Styles><g:StyleRegion startRow="0" endRow="3" startCol="0" endCol="0"><g:Style HAlign="${alignment}" VAlign="GNM_VALIGN_BOTTOM" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General"><g:Font Unit="${unit}" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</g:Font></g:Style></g:StyleRegion></g:Styles><g:Cols DefaultSizePts="${width}"><g:ColInfo No="0" Unit="${width}" HardSize="1"/></g:Cols><g:Rows DefaultSizePts="20"><g:RowInfo No="0" Unit="20" HardSize="1" Count="4"/></g:Rows><g:Cells><g:Cell Row="0" Col="0" ValueType="60">alpha</g:Cell><g:Cell Row="1" Col="0" ValueType="40">-12.5</g:Cell><g:Cell Row="2" Col="0" ValueType="20">TRUE</g:Cell><g:Cell Row="3" Col="0" ValueType="50">#DIV/0!</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>`), context);
+async function fixture(alignment: string, unit = 10, width = 72, vertical = "BOTTOM", height = 20) {
+  return readGnumeric(new TextEncoder().encode(`<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Version Epoch="1" Major="12" Minor="61" Full="1.12.61"/><g:SheetNameIndex><g:SheetName g:Cols="256" g:Rows="65536">S</g:SheetName></g:SheetNameIndex><g:Sheets><g:Sheet><g:Name>S</g:Name><g:PrintInformation><g:paper>na_letter</g:paper><g:Margins><g:top Points="72"/><g:bottom Points="72"/><g:left Points="72"/><g:right Points="72"/></g:Margins><g:Header Left="" Middle="" Right=""/><g:Footer Left="" Middle="" Right=""/></g:PrintInformation><g:Styles><g:StyleRegion startRow="0" endRow="3" startCol="0" endCol="0"><g:Style HAlign="${alignment}" VAlign="GNM_VALIGN_${vertical}" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General"><g:Font Unit="${unit}" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</g:Font></g:Style></g:StyleRegion></g:Styles><g:Cols DefaultSizePts="${width}"><g:ColInfo No="0" Unit="${width}" HardSize="1"/></g:Cols><g:Rows DefaultSizePts="${height}"><g:RowInfo No="0" Unit="${height}" HardSize="1" Count="4"/></g:Rows><g:Cells><g:Cell Row="0" Col="0" ValueType="60">alpha</g:Cell><g:Cell Row="1" Col="0" ValueType="40">-12.5</g:Cell><g:Cell Row="2" Col="0" ValueType="20">TRUE</g:Cell><g:Cell Row="3" Col="0" ValueType="50">#DIV/0!</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>`), context);
 }
 it.each([
   ["GNM_HALIGN_GENERAL", [76.75, 121.25, 101.25, 94.5]],
@@ -100,4 +100,44 @@ it("renders implicit defaults identically to the materialized native default sty
   const expected = await pdfText(await writePdf(explicit, [], context));
   const actual = await pdfText(await writePdf(implicit, [], context));
   expect(actual.runs).toEqual(expected.runs);
+});
+
+it.each(["\n", "\r", "\r\n"])("prints explicit %j line breaks without requiring control glyphs", async separator => {
+  const book = await fixture("GNM_HALIGN_RIGHT"), sheet = book.sheets[0]!;
+  const cells = [{...sheet.cells[0]!, value: {kind: "string" as const, value: `alpha${separator}ab`}}];
+  const {runs} = await pdfText(await writePdf({...book, sheets: [{...sheet, cells}]}, [], context));
+  expect(runs.map(run => run.text)).toEqual(["alpha", "ab"]);
+  expect(runs[0]!.glyphs[0]!.x).toBe(121.25);
+  expect(runs[1]!.glyphs[0]!.x).toBe(134.75);
+  expect(runs[0]!.glyphs[0]!.y - runs[1]!.glyphs[0]!.y).toBeCloseTo(9.9, 6);
+});
+
+it("retains blank and trailing lines in the text block", async () => {
+  const book = await fixture("GNM_HALIGN_LEFT"), sheet = book.sheets[0]!;
+  const cells = [{...sheet.cells[0]!, value: {kind: "string" as const, value: "alpha\n\nab\n"}}];
+  const {runs} = await pdfText(await writePdf({...book, sheets: [{...sheet, cells}]}, [], context));
+  expect(runs.map(run => run.text)).toEqual(["alpha", "ab"]);
+  expect(runs[0]!.glyphs[0]!.y - runs[1]!.glyphs[0]!.y).toBeCloseTo(19.8, 6);
+});
+
+
+it.each([
+  ["TOP", 711.6, 701.7], ["CENTER", 698, 688.1], ["BOTTOM", 684.4, 674.5],
+  ["JUSTIFY", 711.6, 674.5], ["DISTRIBUTED", 698, 688.1]
+] as const)("positions multiline %s text with native block spacing", async (vertical, first, second) => {
+  const book = await fixture("GNM_HALIGN_LEFT", 10, 72, vertical, 48), sheet = book.sheets[0]!;
+  const cells = [{...sheet.cells[0]!, value: {kind: "string" as const, value: "alpha\nab"}}];
+  const {runs} = await pdfText(await writePdf({...book, sheets: [{...sheet, cells}]}, [], context));
+  expect(runs[0]!.glyphs[0]!.y).toBeCloseTo(first, 3);
+  expect(runs[1]!.glyphs[0]!.y).toBeCloseTo(second, 3);
+});
+it("rounds centered paragraph offsets to native display pixels", async () => {
+  const book = await fixture("GNM_HALIGN_CENTER", 8), sheet = book.sheets[0]!;
+  const cells = [{...sheet.cells[0]!, value: {kind: "string" as const, value: "alpha\nab"}}];
+  const {runs} = await pdfText(await writePdf({...book, sheets: [{...sheet, cells}]}, [], context));
+  expect(runs[1]!.glyphs[0]!.x - runs[0]!.glyphs[0]!.x).toBe(6);
+});
+it.each(["JUSTIFY", "DISTRIBUTED"])("refuses automatic wrapping implied by %s", async vertical => {
+  const book = await fixture("GNM_HALIGN_LEFT", 10, 12, vertical);
+  await expect(writePdf(book, [], context)).rejects.toThrow("wrapped text layout");
 });

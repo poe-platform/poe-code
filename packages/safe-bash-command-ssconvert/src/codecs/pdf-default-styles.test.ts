@@ -34,9 +34,9 @@ it("refuses unknown font effects and borders without publishing a style approxim
   for (const child of [font+'<g:StyleBorder/>', font.replace('Underline="0"', 'Underline="5"')])
     await expect(writePdf(await fixture("h", attributes, child), [], context)).rejects.toThrow("styled or merged cells");
 });
-it("refuses styled multiline text", async () => {
-  for (const value of ["line&#10;next"])
-    await expect(writePdf(await fixture("h", attributes, font, value), [], context)).rejects.toThrow("PDF default-style text layout");
+it("prints styled multiline text", async () => {
+  const {runs} = await pdfText(await writePdf(await fixture("h", attributes, font, "line&#10;next"), [], context));
+  expect(runs.map(run => run.text)).toEqual(["line", "next0", "line", "next1", "line", "next2", "line", "next3"]);
 });
 
 it("rejects foreign namespaces,duplicate attributes and unsupported style owners", async () => {

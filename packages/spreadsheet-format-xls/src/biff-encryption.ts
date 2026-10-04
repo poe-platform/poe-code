@@ -1,5 +1,5 @@
 import { biffRecord, type BiffRecords } from "./biff-record-storage.js";
-import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
+import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 import { Binary, invalidBiff } from "./biff-binary.js";
 import { decryptBiffPropertyContainer, encryptedBiffPropertyStream } from "./biff-encrypted-properties.js";
 import { md5, sha1 } from "@noble/hashes/legacy.js";
@@ -46,7 +46,7 @@ export function rc4Stream(key: Uint8Array, length: number, context: CapabilityCo
 
 /** Decode admitted XOR/RC4 profiles; optional secret acquisition is explicit host authority. */
 export async function decryptBiffRecords(records: BiffRecords, revision: number, context: CapabilityContext,
-  streams?: ReadonlyMap<string, Uint8Array>): Promise<ReadonlyMap<string, Uint8Array> | undefined> {
+  streams?: ReadonlyMap<string, Uint8Array>, propertySources?: ReadonlyMap<string, RangeSource>): Promise<ReadonlyMap<string, Uint8Array> | undefined> {
   let array: Uint8Array | undefined, base: Uint8Array | undefined, work = 0;
   let block = -1, stream: Uint8Array | undefined;
   let cryptoapi = false, keyBits = 128;
@@ -126,7 +126,25 @@ export async function decryptBiffRecords(records: BiffRecords, revision: number,
             if (flags !== data.u32(14) || data.u32(18) !== 0) invalidBiff("invalid CryptoAPI header fields");
             if ((flags & 0x34) !== 4 || data.u32(22) !== 0x6801 || data.u32(26) !== 0x8004 || data.u32(34) !== 1)
               throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted Excel workbook method");
-            if (!(flags & 8)) properties = encryptedBiffPropertyStream(streams, context, admit);
+            if (!(flags & 8)) {
+              // CryptoAPI preflight still inspects plaintext placeholders before a
+              // password request. Its encrypted property-container path is buffered.
+              const inspected = new Map(streams);
+              for (const [name, source] of propertySources ?? []) {
+                context.signal.throwIfAborted();
+                if (!Number.isSafeInteger(source.size) || source.size < 0 || source.size > context.limits.inputBytes)
+                  invalidBiff("invalid property source size");
+                const bytes = new Uint8Array(source.size);
+                for (let at = 0; at < bytes.length;) {
+                  const count = Math.min(16384, bytes.length - at), part = await source.read(at, count, { signal: context.signal });
+                  context.signal.throwIfAborted();
+                  if (!part.length || part.length > count) invalidBiff("truncated binary data");
+                  bytes.set(part, at); at += part.length;
+                }
+                inspected.set(name, bytes);
+              }
+              properties = encryptedBiffPropertyStream(inspected, context, admit);
+            }
             keyBits = data.u32(30) || 40;
             if (keyBits < 40 || keyBits > 128 || keyBits % 8)
               throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted Excel workbook key size");

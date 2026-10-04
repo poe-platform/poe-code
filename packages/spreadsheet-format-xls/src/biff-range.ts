@@ -8,7 +8,7 @@ const workbookStreams = ["Workbook", "WORKBOOK", "workbook", "Book", "BOOK", "bo
 
 /** Keep the explicit buffered BIFF API separate from retained file ingestion. */
 interface BiffRangeInput {
-  found: boolean; streamSize: number; records: BiffRecords; close(): Promise<void>; streams?: ReadonlyMap<string, Uint8Array>;
+  found: boolean; streamSize: number; records: BiffRecords; close(): Promise<void>; streams?: ReadonlyMap<string, Uint8Array>; propertySources?: ReadonlyMap<string, RangeSource>;
 }
 export async function readBiffRange(input: RangeSource, context: CapabilityContext, probe = false): Promise<BiffRangeInput> {
   let recordStore: BiffRecordStore | undefined, keepOpen = false, failed = false, failure: unknown;
@@ -44,6 +44,7 @@ export async function readBiffRange(input: RangeSource, context: CapabilityConte
   const load = async (): Promise<BiffRangeInput> => {
     const head = await exact(source, 0, Math.min(8, size));
     let workbook: RangeSource | undefined = source, streams: Map<string, Uint8Array> | undefined;
+    const propertySources = new Map<string, RangeSource>();
     if (isCfb(head)) {
       container = await readCfbRanges(source, context); check();
       workbook = workbookStreams.map(name => container!.streams.get(name)).find(value => value !== undefined);
@@ -77,11 +78,17 @@ export async function readBiffRange(input: RangeSource, context: CapabilityConte
         // Only these ancillary payloads are interpreted by the existing reader.
         // Keep other names for its name/work admission, without copying ignored streams.
         const needed = ["ENCRYPTION", "\u0005SUMMARYINFORMATION", "\u0005DOCUMENTSUMMARYINFORMATION"].includes(name.toUpperCase());
-        streams.set(name, needed ? await exact(stream, 0, stream.size) : new Uint8Array());
+        if (needed && name.toUpperCase() !== "ENCRYPTION" && recordStore) {
+          propertySources.set(name, { size: stream.size, async read(at, count, options) {
+            try { return await stream.read(at, count, options); }
+            catch (error) { if (error instanceof CfbBackendFailure) throw error.cause; throw error; }
+          } });
+          streams.set(name, new Uint8Array());
+        } else streams.set(name, needed ? await exact(stream, 0, stream.size) : new Uint8Array());
       }
     }
     keepOpen = recordStore !== undefined;
-    return { found: true, streamSize: workbook.size, records, close: cleanup, ...(streams ? { streams } : {}) };
+    return { found: true, streamSize: workbook.size, records, close: cleanup, ...(streams ? { streams } : {}), ...(propertySources.size ? { propertySources } : {}) };
   };
   let result: BiffRangeInput | undefined;
   try { result = await load(); }

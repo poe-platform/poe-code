@@ -183,6 +183,7 @@ export async function readBiff(borrowed: Uint8Array | RangeSource, context: Capa
   context.signal.throwIfAborted();
   let close: (() => Promise<void>) | undefined;
   let streamSize: number, records: BiffRecords, streams: ReadonlyMap<string, Uint8Array> | undefined;
+  let propertySources: ReadonlyMap<string, RangeSource> | undefined;
   if (borrowed instanceof Uint8Array) {
     if (borrowed.length > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert input bytes limit exceeded");
     const bytes = new Uint8Array(borrowed);
@@ -190,9 +191,9 @@ export async function readBiff(borrowed: Uint8Array | RangeSource, context: Capa
     const stream = streams ? workbookStreams.map(name => streams!.get(name)).find(value => value !== undefined) : bytes;
     if (!stream) throw new SsconvertError("io", "E No Workbook or Book streams found.");
     records = readBiffRecords(stream, context); streamSize = stream.length;
-  } else ({ records, streams, streamSize, close } = await readBiffRange(borrowed, context));
+  } else ({ records, streams, streamSize, close, propertySources } = await readBiffRange(borrowed, context));
   let failed = false, failure: unknown, result: Workbook | undefined;
-  try { result = await readBiffContents(records, streamSize, streams, context, encoding); }
+  try { result = await readBiffContents(records, streamSize, streams, context, encoding, undefined, propertySources); }
   catch (error) { failed = true; failure = error; }
   try { await close?.(); }
   catch (cleanup) { if (failed) throw new AggregateError([failure, cleanup], "BIFF read and cleanup failed"); throw cleanup; }
@@ -213,7 +214,7 @@ export async function readBiffWorkbookSource(input: RangeSource, context: Capabi
       let closed = false;
       context.own(() => { closed = true; });
       const source = { store: createBiffCellSource(context), readers: new Map<string, () => AsyncIterable<Cell>>(), axes: new Map<string, BiffSourceAxes>() };
-      const metadata = await readBiffContents(loaded.records, loaded.streamSize, loaded.streams, context, encoding, source);
+      const metadata = await readBiffContents(loaded.records, loaded.streamSize, loaded.streams, context, encoding, source, loaded.propertySources);
       result = { metadata, cells(sheet) {
         context.signal.throwIfAborted();
         const read = source.readers.get(sheet);
@@ -248,13 +249,13 @@ async function* replayBiffRows(rows: BiffSourceAxes["rows"], defaultHeight: numb
       yield { ...row, style: { gnumeric: node("RowInfo", { HardSize: hardSize ? 1 : 0 }) } };
   }
 }
-async function readBiffContents(records: BiffRecords, streamSize: number, streams: ReadonlyMap<string, Uint8Array> | undefined, context: CapabilityContext, encoding?: string, source?: { store: ReturnType<typeof createBiffCellSource>; readers: Map<string, () => AsyncIterable<Cell>>; axes: Map<string, BiffSourceAxes> }): Promise<Workbook> {
+async function readBiffContents(records: BiffRecords, streamSize: number, streams: ReadonlyMap<string, Uint8Array> | undefined, context: CapabilityContext, encoding?: string, source?: { store: ReturnType<typeof createBiffCellSource>; readers: Map<string, () => AsyncIterable<Cell>>; axes: Map<string, BiffSourceAxes> }, propertySources?: ReadonlyMap<string, RangeSource>): Promise<Workbook> {
   const selection = "get" in records ? createBiffRecordSelections(records, context) : undefined;
   const firstRecord = await biffRecord(records, 0);
   if (!firstRecord || !bofOpcodes.has(firstRecord.opcode)) invalidBiff("missing BOF");
   const override = biffOverrideCodepage(encoding);
   let codepage = override ?? 1252, ver = revision(firstRecord), dateSystem: "1900" | "1904" = "1900";
-  const decryptedProperties = await decryptBiffRecords(records, ver, context, streams);
+  const decryptedProperties = await decryptBiffRecords(records, ver, context, streams, propertySources);
   let calculationMode: "automatic" | "manual" = "automatic", maximum = 100, tolerance = 0.001, iterationEnabled = false;
   let automaticLabelLookup = false;
   let cellCount = 0, textBytes = 0, metadataBytes = 0, formulaWork = 0;
@@ -1004,7 +1005,7 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
       ...(sheet.labelRanges.length ? { labelRanges: sheet.labelRanges } : {}),
       ...(sheet.unsupportedRecords.length ? { unsupportedRecords: sheet.unsupportedRecords } : {}) });
   }
-  const propertyStreams = decryptedProperties ?? streams;
+  const propertyStreams = decryptedProperties ?? propertySources ?? streams;
   for (const [name, bytes] of decryptedProperties ?? []) {
     if (["\u0005SUMMARYINFORMATION", "\u0005DOCUMENTSUMMARYINFORMATION"].includes(name.toUpperCase())) continue;
     accountFormulaWork(bytes.length * 2); metadataBytes += bytes.length * 2;

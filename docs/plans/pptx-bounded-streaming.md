@@ -286,6 +286,30 @@ all four raw/pretty/JSON formats. Interrupted full package suites were not count
 as completed verification. Other extraction, richer text views, mutations and
 embedded workbooks remain buffered; no runtime Worker qualification is claimed.
 
+The shared Office XML layer now provides `stageRetainedXmlEdits` for mutation
+consumers. It admits the source, consumes ordered disjoint UTF-8 span replacements
+without retaining an edit collection, and stages the result in caller pages.
+Original encoding, BOM, declaration, CRLF and untouched markup are preserved;
+split-character edits, invalid replacements and malformed results are rejected.
+Both source and final document undergo namespace/XML admission, and encoded byte,
+node and depth ceilings apply before output is exposed. Its staged byte source
+can feed retained archive rewriting without whole-part arrays. The borrowed
+lexical view expires at return; owned output remains replayable until closed.
+Tests generate reused source/replacement buffers, observe real caller-storage
+spills and at most 16 KiB outstanding writes, process 512 streamed edits, and
+exercise cancellation, source/edit/replacement/storage/sink failures, cleanup
+failures, output ownership and no-op bytes in UTF-8/UTF-16LE/UTF-16BE. Verification
+passed 35 Office XML tests, 167 retained-engine tests, scoped lint/typechecks and
+the maintained presentation-engine build closure. A native python-pptx chart deck
+reopened a streamed text-span rewrite with the expected edit, unchanged embedded
+workbook and every unrelated part, valid ZIP CRCs and clean caller storage.
+This is a shared mutation primitive, not migrated PPTX command behavior: consumers
+still need their format-specific intent/result checks and guarded publication.
+Next, migrate slide label/visibility changes and then slide ordering against the
+retained selection/index and archive rewrite APIs, retaining signature, macro,
+protection and compatibility guards before using this editor. Broader text,
+extraction and workbook command migration remains as listed below.
+
 ## Remaining implementation
 
 1. Carry caller-owned retained/range sources, explicit spill-storage authorization,

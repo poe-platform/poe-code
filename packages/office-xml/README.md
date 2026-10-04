@@ -6,6 +6,7 @@ Index XML documents without retaining their payloads, names, or tree in the Java
 | --- | --- |
 | `openRetainedXmlDocument` | Traverse indexed nodes, attributes, namespaces, and text streams. |
 | `openRetainedXml` | Read bounded lexical ranges for a format-specific parser. |
+| `stageRetainedXmlEdits` | Validate and stage ordered XML edits while preserving encoding and BOM. |
 
 ```ts
 const document = await openRetainedXmlDocument(source, {
@@ -20,3 +21,13 @@ try {
 ```
 
 Working storage always belongs to the caller. Use an external backend when large files must spill outside Worker memory. Limits remain unlimited unless explicitly supplied; cancellation, malformed XML, namespace validation, owned output chunks, and cleanup retain the Office diagnostic contract. The lexical API requires its consumer to validate document semantics.
+
+`stageRetainedXmlEdits(source, edits, context)` admits the original XML, passes a
+borrowed lexical view to an async edit factory, and validates the edited document
+before returning any output. Each edit supplies an original UTF-8 `range` and a
+UTF-8 replacement stream. Ranges must be ordered, disjoint, and aligned to complete
+characters; edits can insert, delete, or replace markup and text. The lexical view
+expires when staging finishes. The returned result exposes `byteLength`, replayable
+`bytes()`, `write(sink)`, and `close()`; close it after publication. Source and sink
+ownership remain with the caller. Format-specific consumers must still enforce
+presentation/workbook semantics and protected-source publication policies.

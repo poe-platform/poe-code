@@ -6,7 +6,19 @@
       "ES2023"
     ],
     "noEmit": true,
-    "rootDir": "../.."
+    "rootDir": "../..",
+    "baseUrl": ".",
+    "paths": {
+      "@poe-platform/safe-bash": ["../safe-bash/src/index.ts"],
+      "@poe-platform/safe-bash/commands/*": ["../safe-bash/src/commands/*/index.ts"],
+      "@poe-platform/safe-bash/devices": ["../safe-bash/src/fs/devices/index.ts"],
+      "@poe-platform/safe-bash/arrays": ["../safe-bash/src/shell/extensions/arrays/index.ts"],
+      "@poe-platform/safe-bash/jobs": ["../safe-bash/src/shell/extensions/jobs/index.ts"],
+      "@poe-platform/safe-bash/mapfile": ["../safe-bash/src/shell/extensions/mapfile/index.ts"],
+      "@poe-platform/safe-bash/read": ["../safe-bash/src/shell/extensions/read/index.ts"],
+      "@poe-platform/safe-bash/trap": ["../safe-bash/src/shell/extensions/trap/index.ts"],
+      "@poe-platform/safe-bash/install": ["../safe-bash/src/commands/install/index.ts"]
+    }
   },
   "include": [
     "src/**/*.ts"

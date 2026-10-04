@@ -27,7 +27,9 @@ import { createDeviceFileSystem } from "@poe-platform/safe-bash/devices";
 import { arraysExtension } from "@poe-platform/safe-bash/arrays";
 import { jobsExtension } from "@poe-platform/safe-bash/jobs";
 import { mapfileExtension } from "@poe-platform/safe-bash/mapfile";
+import { installCommands } from "@poe-platform/safe-bash/install";
 import { readExtension } from "@poe-platform/safe-bash/read";
+import { trapExtension } from "@poe-platform/safe-bash/trap";
 import {
   BenchmarkRecorder,
   measureSingleExec,
@@ -195,6 +197,7 @@ export class SafeBashE2EHarness {
               mapfileExtension(),
               arraysExtension(),
               jobsExtension(),
+              trapExtension(),
             ],
           }
         : {}),
@@ -228,6 +231,7 @@ export class SafeBashE2EHarness {
         .use(csvkitCommands({ replace: true, locale: { profile: "C", timezone: "UTC", formatNumber: (val, _prof, _fmt, grouping) => { const n = Number(val); const fixed = Number.isFinite(n) ? n.toFixed(3) : String(val); if (!grouping) return fixed; const [intPart, decPart] = fixed.split("."); const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ","); return decPart !== undefined ? grouped + "." + decPart : grouped; } } }))
         .use(diff3Commands({ replace: true }))
         .use(htmlqCommands({ replace: true }))
+        .use(installCommands({ replace: true }))
         .use(sb.bzip2Commands({ replace: true }))
         .use(sb.sha512sumCommands({ replace: true }))
         .use(imagemagickCommands({ replace: true }))

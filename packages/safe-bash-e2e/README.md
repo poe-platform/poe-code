@@ -4,7 +4,7 @@ End-to-end integration, chaos, and performance benchmark suite for `@poe-platfor
 
 ## What This Package Covers
 
-1. **28 End-to-End Integration Suites (544 Scenarios)**:
+1. **32 End-to-End Integration Suites (624 Scenarios)**:
    - `shell-grammar-expansion.test.ts` — POSIX & Bash grammar, parameter expansions, indexed/associative arrays, functions, traps, arithmetic, `read`/`mapfile`, background jobs.
    - `pipelines-redirections-streams.test.ts` — Multi-stage pipelines, `PIPESTATUS`, FD duplication, heredocs, `/dev/null` & `/dev/zero`, `tee`, `sponge`, `split`, `paste`, `join`, `comm`, `diff`, `patch`.
    - `search-find-xargs-refactor.test.ts` — `rg`, `grep`, `find`, `fd`, `xargs`, `locate` across realistic multi-package TypeScript + Rust monorepo trees.
@@ -15,7 +15,7 @@ End-to-end integration, chaos, and performance benchmark suite for `@poe-platfor
    - `vfs-isolation-mounts-overlays.test.ts` — `OverlayFileSystem` copy-on-write, `MountFileSystem`, `ReadOnlyFileSystem`, symlinks, hardlinks, `chmod`, `umask`, `stat`, `du`, `df`, `tree`, `pathchk`, `mktemp`.
    - `math-system-utilities.test.ts` — `bc -l`, `expr`, `factor`, `seq`, `numfmt`, `envsubst`, `iconv`, `dos2unix`/`unix2dos`, `cal`, `date`, `timeout`, `getopt`, `id`, `uname`, `env`.
    - `budgets-cancellation-chaos.test.ts` — `ShellLimits` enforcement, `AbortSignal` cancellation, VFS byte quotas (`ENOSPC`), fork-bomb/expansion-bomb defense, and adversarial filename safety.
-   - `benchmark-suite.test.ts` — Verification of the 18 end-to-end benchmark workloads and multi-run comparison report generator.
+   - `benchmark-suite.test.ts` — Verification of the 20 end-to-end benchmark workloads and multi-run comparison report generator.
    - `diff-patch-merge-workflows.test.ts` — `diff`, `diff3`, `patch`, `comm`, `cmp`, and 3-way merge conflict resolution workflows.
    - `csv-data-science-csvkit-mlr.test.ts` — `csvcut`, `csvgrep`, `csvstat`, `csvsort`, `csvjoin`, `csvstack`, `csvsql`, `csvjson`, `in2csv`, `sql2csv`, `xan`, and `mlr`.
    - `html-xml-web-scraping.test.ts` — `htmlq`, `html-to-markdown`, `xmllint`, `xpath`, and `xq` scraping and structured extraction pipelines.
@@ -33,10 +33,14 @@ End-to-end integration, chaos, and performance benchmark suite for `@poe-platfor
    - `sqlite3-advanced-sql-window-cte-triggers.test.ts` — Window functions (`ROW_NUMBER`, `RANK`, `DENSE_RANK`, `NTILE`, `LAG`, `LEAD`, `FIRST_VALUE`, `NTH_VALUE`), recursive CTEs, triggers, `ON CONFLICT` upserts, `RETURNING`, savepoints, `ALTER TABLE`, `FILTER (WHERE ...)`, JSON1 (`json_each`, `json_tree`, `json_patch`), and `UNION`/`INTERSECT`/`EXCEPT`.
    - `awk-sed-advanced-programming.test.ts` — Recursive `awk` functions, multi-dimensional arrays, two-file joins, `getline`, paragraph mode, dynamic output redirections, and `sed` hold space (`h`/`H`/`g`/`G`/`x`), multi-line (`N`/`P`/`D`), and branching (`:label`, `b`, `t`).
    - `jq-yq-xq-complex-queries.test.ts` — Custom `jq` `def` functions, `reduce`/`foreach`, `walk()`, paths, `try`/`catch`, `label`/`break`, `@base64`/`@uri`/`@csv`/`@html`, regex builtins, ISO-8601 dates, `yq` multi-doc YAML & TOML pipelines, and `xq` XML extraction.
+   - `apply-patch-xan-tabular-workflows.test.ts` — Atomic `apply_patch` multi-file add/update/move/delete envelopes, path traversal & non-atomic filesystem rejection, and high-speed `xan` (`headers`, `count`, `select -e/-f`, `slice -s/-l/-e/-i/-I/-S/-E/-B`).
+   - `coreutils-filesystem-printf-formatting.test.ts` — `printf` numeric/float/escape/quoting conversions, `numfmt` SI/IEC/IEC-i scaling & delimited column formatting, `shuf`, `truncate`, `install -d/-D/-m/-C/--backup=numbered`, `cp`, `mv`, `ln -sr`, `touch`, `readlink`, `realpath`, `stat`, `chmod`, `ls`, `du`, and `find -printf`.
+   - `binary-inspection-encoding-crypto-streams.test.ts` — `xxd` (`-p`, `-r`, `-i`, `-b`), `od`, `hexdump`/`hd`, `dd` (`conv=ucase,swab,notrunc,block,unblock,ebcdic,ascii`), `base64`/`base32`, `sha256sum`/`sha512sum`/`sha384sum`/`md5sum`/`cksum -c`, `cmp`, `strings`, `file` magic classification, `iconv`, `dos2unix`/`unix2dos`, `tac`/`rev`/`nl`/`expand`/`unexpand`/`fold`, `split`/`csplit`, `fmt`/`column`/`tsort`, `expr`/`bc`/`factor`, and `getopt`/`envsubst`.
+   - `shell-traps-jobs-arrays-read-mapfile.test.ts` — `trap` (`EXIT`, `ERR` with `set -E`, `RETURN` with `set -T`, `DEBUG` with `shopt -s extdebug`, `trap -p`), background jobs (`&`, `$!`, `wait`, `kill`), `read`, `mapfile`/`readarray`, indexed & associative arrays, parameter expansions (`${var@Q}`, `${var@E}`), `getopts`, and `select` menus.
 
 2. **Performance Benchmarking & Multi-Run Comparison (`benchmarks/`)**:
    - High-resolution per-exec metrics (`durationMs`, `cpuUserUs`, `cpuSystemUs`, `heapDeltaBytes`, `stdoutBytes`).
-   - 18 multi-iteration E2E benchmark workloads (`p50`, `p95`, `p99`, `mean`, `stddev`, `opsPerSec`, geometric mean).
+   - 20 multi-iteration E2E benchmark workloads (`p50`, `p95`, `p99`, `mean`, `stddev`, `opsPerSec`, geometric mean).
    - Stored baselines across optimization profiles (`ts-baseline-warm-memory-fastpath`, `ts-baseline-overlay-cow-fs`, `ts-baseline-strict-budgets-mount-dev`) and side-by-side comparison tables in `benchmarks/COMPARISON_REPORT.md`.
 
 ## Commands

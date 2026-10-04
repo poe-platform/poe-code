@@ -393,6 +393,43 @@ export async function runStandardBenchmarkSuite(
       },
       { category: "agent-workflow", warmup, iterations },
     );
+
+    // 19. High-Speed Tabular & Coreutils Formatting (xan + numfmt + truncate + stat)
+    await recorder.measureScenario(
+      "tabular-xan-numfmt-truncate-pipeline",
+      async () => {
+        const res = await h.exec(
+          [
+            "xan select 'order_id,region,amount' /workspace/data/sales.csv | xan slice -s 0 -l 25 > /tmp/xan_slice.csv",
+            "xan count /tmp/xan_slice.csv",
+            "numfmt -d, --header=1 --field=3 --to=si < /tmp/xan_slice.csv | head -n 5",
+            "install -D -m 640 /tmp/xan_slice.csv /tmp/staged/xan_slice.csv && stat -c '%a:%s' /tmp/staged/xan_slice.csv",
+          ].join("\n"),
+        );
+        assert.equal(res.exitCode, 0);
+        return res.stdout.length;
+      },
+      { category: "tabular-coreutils", warmup, iterations },
+    );
+
+    // 20. Binary Stream Inspection & Cryptographic Verification (dd + xxd + od + sha256sum)
+    await recorder.measureScenario(
+      "binary-xxd-dd-od-sha256-pipeline",
+      async () => {
+        const res = await h.exec(
+          [
+            "printf 'FWIMG_HEADER_0123456789ABCDEF\n' > /tmp/fw.bin",
+            "dd if=/tmp/fw.bin bs=1 skip=6 count=10 conv=lcase status=none > /tmp/fw_slice.bin",
+            "xxd -p /tmp/fw.bin | xxd -r -p > /tmp/fw_roundtrip.bin",
+            "od -An -tx1 -N 8 /tmp/fw_roundtrip.bin",
+            "sha256sum /tmp/fw.bin /tmp/fw_roundtrip.bin",
+          ].join("\n"),
+        );
+        assert.equal(res.exitCode, 0);
+        return res.stdout.length;
+      },
+      { category: "binary-crypto", warmup, iterations },
+    );
   } finally {
     await h.dispose();
   }

@@ -231,7 +231,7 @@ it.each(["workspace", "root", "undeclared-root"])("admits only declared portable
     version: commandManifest.version, dependencies: {}, devDependencies: commandManifest.devDependencies, portable: true,
   });
   expect(commandManifest.files).toEqual(["dist", "LICENSE"]);
-  expect(commandManifest.scripts.test).toBe("node --import tsx --test src/*.test.ts");
+  expect(commandManifest.scripts.test).toBe("node --import tsx --test --test-concurrency=1 src/*.test.ts");
   const adapter = ts.createSourceFile("ffmpeg.ts", readFileSync(new URL("../packages/safe-bash/src/commands/ffmpeg/index.ts", import.meta.url), "utf8"), ts.ScriptTarget.Latest);
   expect(adapter.statements.some(statement => ts.isExportDeclaration(statement)
     && statement.exportClause === undefined && statement.moduleSpecifier

@@ -32,7 +32,7 @@ for (const [index, glyphs] of cases.entries()) it(`retains raw word/line/block g
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
 
-it.each([32768, 131072])("stores a %i-character word with scalar external payload backing", async length => {
+it.each([32768, 131072].flatMap(length => [false, true].map(stored => ({ length, stored }))))("stores a $length-character word with scalar external payload backing (stored=$stored)", async ({ length, stored }) => {
   const header = new Uint8Array(192), textStart = 72, textEnd = textStart + length * 2;
   let size = 0, opens = 0, closes = 0, pending = 0, peak = 0;
   const meta = (position: number) => position >= 8 && position < 72 ? position - 8 : position >= textEnd && position < textEnd + 128 ? 64 + position - textEnd : -1;
@@ -51,7 +51,13 @@ it.each([32768, 131072])("stores a %i-character word with scalar external payloa
     },
     readFile() { throw new Error("whole read forbidden"); }, writeFile() { throw new Error("whole write forbidden"); },
   } as unknown as import("@poe-code/safe-fs/contracts").FileSystem;
-  async function* glyphs() { for (let at = 0; at < length; at += 32) yield glyph("a".repeat(32), at * 5, 80, { advanceWidth: 160 }); }
+  async function* glyphs() {
+    if (stored) yield { ...glyph("x", 0, 80), storedActualText: { position: 0, byteLength: length, storage: {
+      allocate() { throw new Error("read-only"); }, async write() { throw new Error("read-only"); },
+      async read(_at: number, count: number) { expect(count).toBeLessThanOrEqual(4096); return new Uint8Array(count).fill(97); }
+    } } };
+    else for (let at = 0; at < length; at += 32) yield glyph("a".repeat(32), at * 5, 80, { advanceWidth: 160 });
+  }
   const table = await PdfRawTextIndex.create(glyphs(), { fs, directory: "/external" });
   try {
     let chars = 0, words = 0;
@@ -142,4 +148,92 @@ it.each(["build", "read"])("cancels a large single word during %s", async phase 
     })()).rejects.toBe(reason);
   } finally { clearTimeout(timer); await table?.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+
+it.each(["replacement", " ", "\t", "", "• item", "a".repeat(8192)])("streams caller-backed ActualText with normal run grouping (%#. test)", async replacement => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const bytes = new TextEncoder().encode("\ufeff" + replacement);
+  const storage = {
+    allocate() { throw new Error("source is read-only"); },
+    async write() { throw new Error("source is read-only"); },
+    async read(at: number, length: number) { expect(length).toBeLessThanOrEqual(4096); return bytes.slice(at, at + length); }
+  };
+  const input = [
+    { ...glyph("x", 0, 80, { mcid: 1 }), storedActualText: { storage, position: 0, byteLength: bytes.length } },
+    glyph("y", 5, 80, { actualText: replacement, mcid: 1 }),
+    glyph("z", 10, 80)
+  ];
+  const expected = await PdfRawTextIndex.create(input.map(g => ({ ...g, actualText: "storedActualText" in g ? replacement : g.actualText })), { fs, directory: "/scratch" });
+  const actual = await PdfRawTextIndex.create(input, { fs, directory: "/scratch" });
+  async function collect(table: PdfRawTextIndex) {
+    const result = [];
+    for await (const block of table.blocks()) for await (const line of block.lines()) for await (const word of line.words()) {
+      let text = ""; for await (const part of word.text()) text += part;
+      result.push({ text, bbox: word.bbox, kind: block.kind, baseline: line.baselineY });
+    }
+    return result;
+  }
+  try { expect(await collect(actual)).toEqual(await collect(expected)); }
+  finally { await actual.close(); await expected.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+
+it.each(["failure", "cancel", "budget"])("cleans up stored ActualText on %s", async mode => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const controller = new AbortController(), reason = new Error("source unavailable"); let closed = false, reads = 0;
+  const storage = { allocate() { throw reason; }, async write() { throw reason; }, async read() {
+    reads++; if (mode === "cancel") controller.abort(reason); throw reason;
+  } };
+  async function* input() { try { yield { ...glyph("x", 0, 80), storedActualText: { storage, position: 0, byteLength: 100000 } }; yield glyph("z", 5, 80); } finally { closed = true; } }
+  const work = PdfRawTextIndex.create(input(), { fs, directory: "/scratch" }, { signal: controller.signal, ...(mode === "budget" ? { maxWorkingBytes: 81920 } : {}) });
+  if (mode === "budget") { await expect(work).rejects.toThrow("working byte limit"); expect(reads).toBe(0); }
+  else { await expect(work).rejects.toBe(reason); expect(reads).toBe(1); }
+  expect(closed).toBe(true); expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("compares different stored encodings by decoded content with borrowed byte buffers", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const replacement = "😀abc".repeat(1000);
+  const utf8 = new TextEncoder().encode("\ufeff" + replacement), utf16 = new Uint8Array(2 + replacement.length * 2);
+  utf16.set([254, 255]); const view = new DataView(utf16.buffer);
+  for (let i = 0; i < replacement.length; i++) view.setUint16(2 + i * 2, replacement.charCodeAt(i));
+  const borrowed = new Uint8Array(4096);
+  const storage = { allocate() { throw new Error("read-only"); }, async write() { throw new Error("read-only"); }, async read(at: number, length: number) {
+    const bytes = at >= 100000 ? utf16 : utf8, offset = at >= 100000 ? at - 100000 : at;
+    borrowed.fill(0); borrowed.set(bytes.subarray(offset, offset + length)); return borrowed.subarray(0, length);
+  } };
+  const table = await PdfRawTextIndex.create([
+    { ...glyph("x", 0, 80), storedActualText: { storage, position: 0, byteLength: utf8.length } },
+    { ...glyph("y", 5, 80), storedActualText: { storage, position: 100000, byteLength: utf16.length } }
+  ], { fs, directory: "/scratch" });
+  try {
+    let text = "", words = 0;
+    for await (const block of table.blocks()) for await (const line of block.lines()) for await (const word of line.words()) {
+      words++; expect(word.bbox).toEqual([0, 80, 10, 90]); for await (const part of word.text()) text += part;
+    }
+    expect(words).toBe(1); expect(text).toBe(replacement);
+  } finally { await table.close(); }
+});
+
+
+it.each([["a", "ab", 1, "aab"], ["ab", "a", 1, "aba"], ["same", "same", 2, "samesame"]] as const)("keeps distinct replacement runs (%#)", async (left, right, mcid, expected) => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const stored = (text: string) => {
+    const bytes = new TextEncoder().encode(text);
+    return { position: 0, byteLength: bytes.length, storage: {
+      allocate() { throw new Error("read-only"); }, async write() { throw new Error("read-only"); },
+      async read(at: number, length: number) { return bytes.slice(at, at + length); }
+    } };
+  };
+  const table = await PdfRawTextIndex.create([
+    { ...glyph("x", 0, 80, { mcid: 1 }), storedActualText: stored(left) },
+    { ...glyph("y", 5, 80, { mcid }), storedActualText: stored(right) }
+  ], { fs, directory: "/scratch" });
+  try {
+    let text = "";
+    for await (const block of table.blocks()) for await (const line of block.lines()) for await (const word of line.words()) for await (const part of word.text()) text += part;
+    expect(text).toBe(expected);
+  } finally { await table.close(); }
 });

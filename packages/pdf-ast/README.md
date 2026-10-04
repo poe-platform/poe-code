@@ -145,10 +145,15 @@ and rendering allocations still belong to the evaluator described above.
 
 `page.indexRawText(storage, options)` retains raw-order blocks, lines, words and
 geometry on caller storage. `PdfRawTextIndex.create(glyphs, storage, options)`
-accepts an existing glyph stream. Traverse `blocks()`, `lines()`, `words()` and
+accepts an existing glyph stream, including `PdfRawTextGlyph` values with a
+`storedActualText` byte range on caller-owned storage. Stored replacements decode
+in bounded chunks and adjacent equal replacements collapse by decoded content,
+even across different encodings. An explicit `actualText` string takes precedence.
+Keep replacement storage alive until index creation finishes. Traverse `blocks()`, `lines()`, `words()` and
 chunked `word.text()` without collecting arrays; close the index after all
 borrowed iterators finish. The index uses four 16 KiB cache pages and admits
-80 KiB of fixed byte buffers with `maxWorkingBytes`; caller glyph strings and
+80 KiB of fixed byte buffers with `maxWorkingBytes` (128 KiB for stored
+replacement decoding); caller glyph strings and
 evaluator resources are separate. `maxStorageBytes` bounds page-rounded backing
 allocation, with optional word, line and block limits. Traversals and large
 individual strings yield to cancellation. Logical/layout ordering is not provided.

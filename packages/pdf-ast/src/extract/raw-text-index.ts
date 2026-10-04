@@ -1,14 +1,50 @@
 import { PagedStorage } from "@poe-code/safe-fs/storage";
-import type { PdfPlacedGlyph, PdfRect } from "../ast.js";
+import { decodeStoredPdfString, type PdfPlacedGlyph, type PdfRect, type PdfStoredBytes } from "../ast.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import { PdfError } from "../errors.js";
-import { glyphDirection, mergeBBox, PdfTextGlyphNormalizer } from "./text-glyphs.js";
+import { glyphDirection, mergeBBox } from "./text-glyphs.js";
 import type { ExtractTextOptions } from "./text.js";
+
+/** Retained extraction may borrow replacement text from caller-owned storage.
+ * An explicit actualText string takes precedence. Keep storage alive until create completes. */
+export interface PdfRawTextGlyph extends PdfPlacedGlyph {
+  readonly storedActualText?: PdfStoredBytes;
+}
+
+async function* glyphText(glyph: PdfRawTextGlyph, signal: AbortSignal): AsyncGenerator<string, void, void> {
+  if (glyph.actualText === undefined && glyph.storedActualText) {
+    yield* decodeStoredPdfString(glyph.storedActualText, signal);
+  } else {
+    const text = glyph.actualText ?? glyph.unicode;
+    for (let at = 0; at < text.length; at += 2048) {
+      if (at && at % 65536 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+      signal.throwIfAborted(); yield text.slice(at, at + 2048);
+    }
+  }
+}
+
+async function sameReplacement(a: PdfRawTextGlyph, b: PdfRawTextGlyph, signal: AbortSignal): Promise<boolean> {
+  if (b.actualText === undefined && !b.storedActualText) return false;
+  if (a.actualText !== undefined && b.actualText !== undefined) return a.actualText === b.actualText;
+  const left = glyphText(a, signal), right = glyphText(b, signal);
+  let x = "", y = "", i = 0, j = 0, leftDone = false, rightDone = false;
+  try {
+    for (;;) {
+      if (i === x.length && !leftDone) { const next = await left.next(); leftDone = !!next.done; x = next.value ?? ""; i = 0; }
+      if (j === y.length && !rightDone) { const next = await right.next(); rightDone = !!next.done; y = next.value ?? ""; j = 0; }
+      if (leftDone || rightDone) return leftDone && rightDone;
+      const count = Math.min(x.length - i, y.length - j);
+      if (x.slice(i, i + count) !== y.slice(j, j + count)) return false;
+      i += count; j += count;
+    }
+  } finally { await left.return(); await right.return(); }
+}
 
 export interface PdfRawTextIndexOptions extends Pick<ExtractTextOptions, "discardDiagonal" | "clipText"> {
   /** Page-rounded high-water allocation, including records and UTF-16 text. */
   readonly maxStorageBytes?: number;
-  /** Fixed byte buffers; caller-owned glyph strings are not included. */
+  /** Fixed scratch: 81920 bytes for string inputs, 131072 when decoding stored
+   * replacements. Caller-owned glyph strings are not included. */
   readonly maxWorkingBytes?: number;
   readonly maxWords?: number;
   readonly maxLines?: number;
@@ -52,7 +88,7 @@ export class PdfRawTextIndex {
     this.signal = options.signal ?? new AbortController().signal;
     this.backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal: this.signal }, 4);
   }
-  static async create(glyphs: AsyncIterable<PdfPlacedGlyph> | Iterable<PdfPlacedGlyph>, storage: PdfIndexStorage,
+  static async create(glyphs: AsyncIterable<PdfRawTextGlyph> | Iterable<PdfRawTextGlyph>, storage: PdfIndexStorage,
     options: PdfRawTextIndexOptions = {}): Promise<PdfRawTextIndex> {
     for (const value of [options.maxStorageBytes, options.maxWorkingBytes, options.maxWords, options.maxLines, options.maxBlocks]) maximum(value);
     if (maximum(options.maxWorkingBytes) < 81920) throw new PdfError("E_LIMIT", "PDF text index working byte limit exceeded");
@@ -86,7 +122,7 @@ export class PdfRawTextIndex {
       await this.backing.write(position, this.textBuffer.subarray(0, count * 2)); at += count;
     }
   }
-  private async build(input: AsyncIterable<PdfPlacedGlyph> | Iterable<PdfPlacedGlyph>) {
+  private async build(input: AsyncIterable<PdfRawTextGlyph> | Iterable<PdfRawTextGlyph>) {
     type Box = [number, number, number, number];
     type Line = { direction: ReturnType<typeof glyphDirection>; referenceSize: number; baseline: number; firstWord: number; lastWord: number; count: number; bbox?: Box; fontSize: number; prefix: string; prefixStarted: boolean };
     type Block = { kind: number; firstLine: number; count: number; bbox: Box };
@@ -119,41 +155,69 @@ export class PdfRawTextIndex {
       else { block!.count++; block!.bbox = mergeBBox(block!.bbox, line.bbox!); }
       previousLine = { bbox: line.bbox!, baseline: line.baseline, fontSize: line.fontSize }; line = undefined;
     };
-    const accept = async (glyph: PdfPlacedGlyph) => {
+    const accept = async (glyph: PdfRawTextGlyph) => {
       this.assertOpen();
-      const direction = glyphDirection(glyph);
-      if (line && !(line.direction.ux * direction.ux + line.direction.uy * direction.uy > 0.85 && Math.abs(direction.normal - line.direction.normal) <= Math.max(line.referenceSize, glyph.fontSize) * 0.45)) await flushLine();
-      line ??= { direction, referenceSize: glyph.fontSize, baseline: glyph.baselineY, firstWord: 0, lastWord: 0, count: 0, fontSize: 12, prefix: "", prefixStarted: false };
-      if (glyph.unicode === " " || glyph.unicode === "\t") { await flushWord(); return; }
-      if (previousGlyph && direction.along - (previousGlyph.along + previousGlyph.advance) > Math.max(previousGlyph.fontSize, glyph.fontSize) * 0.22) await flushWord();
-      const observe = (text: string) => {
-        if (line!.prefix.length >= 2) return; const part = line!.prefixStarted ? text : text.trimStart();
-        if (part.length) { line!.prefixStarted = true; line!.prefix += part.slice(0, 2 - line!.prefix.length); }
-      };
-      if (!word) {
-        if (wordCount >= maximum(this.options.maxWords)) throw new PdfError("E_LIMIT", "PDF text word limit exceeded");
-        const position = this.allocate(64); word = { position, start: position + 64, units: 0, bbox: [...glyph.bbox], fontSize: glyph.fontSize }; wordCount++;
-        if (line.count) observe(" ");
+      if (this.options.discardDiagonal) {
+        const direction = glyphDirection(glyph);
+        if (Math.abs(direction.ux) > 0.1 && Math.abs(direction.uy) > 0.1) return;
       }
-      observe(glyph.unicode); await this.appendText(glyph.unicode); word.units += glyph.unicode.length; word.bbox = mergeBBox(word.bbox, glyph.bbox);
-      previousGlyph = { along: direction.along, advance: glyph.advanceWidth, fontSize: glyph.fontSize };
+      if (this.options.clipText && glyph.clipRect) {
+        const x = (glyph.bbox[0] + glyph.bbox[2]) / 2, y = (glyph.bbox[1] + glyph.bbox[3]) / 2;
+        if (x < glyph.clipRect[0] || x > glyph.clipRect[2] || y < glyph.clipRect[1] || y > glyph.clipRect[3]) return;
+      }
+      const text = glyphText(glyph, this.signal);
+      try {
+        let part = await text.next(); if (part.done) return;
+        const possibleSpace = part.value === " " || part.value === "\t";
+        const next = possibleSpace ? await text.next() : undefined;
+        const direction = glyphDirection(glyph);
+        if (line && !(line.direction.ux * direction.ux + line.direction.uy * direction.uy > 0.85 && Math.abs(direction.normal - line.direction.normal) <= Math.max(line.referenceSize, glyph.fontSize) * 0.45)) await flushLine();
+        line ??= { direction, referenceSize: glyph.fontSize, baseline: glyph.baselineY, firstWord: 0, lastWord: 0, count: 0, fontSize: 12, prefix: "", prefixStarted: false };
+        if (possibleSpace && next?.done) { await flushWord(); return; }
+        if (previousGlyph && direction.along - (previousGlyph.along + previousGlyph.advance) > Math.max(previousGlyph.fontSize, glyph.fontSize) * 0.22) await flushWord();
+        const observe = (text: string) => {
+          if (line!.prefix.length >= 2) return; const part = line!.prefixStarted ? text : text.trimStart();
+          if (part.length) { line!.prefixStarted = true; line!.prefix += part.slice(0, 2 - line!.prefix.length); }
+        };
+        if (!word) {
+          if (wordCount >= maximum(this.options.maxWords)) throw new PdfError("E_LIMIT", "PDF text word limit exceeded");
+          const position = this.allocate(64); word = { position, start: position + 64, units: 0, bbox: [...glyph.bbox], fontSize: glyph.fontSize }; wordCount++;
+          if (line.count) observe(" ");
+        }
+        let lookahead = next;
+        while (!part.done) {
+          observe(part.value); await this.appendText(part.value); word.units += part.value.length;
+          part = lookahead ?? await text.next(); lookahead = undefined;
+        }
+        word.bbox = mergeBBox(word.bbox, glyph.bbox);
+        previousGlyph = { along: direction.along, advance: glyph.advanceWidth, fontSize: glyph.fontSize };
+      } finally { await text.return(); }
     };
-    const normalizer = new PdfTextGlyphNormalizer(this.options), iterator = Symbol.asyncIterator in input ? input[Symbol.asyncIterator]() : input[Symbol.iterator]();
+    let pending: PdfRawTextGlyph | undefined;
+    const iterator = Symbol.asyncIterator in input ? input[Symbol.asyncIterator]() : input[Symbol.iterator]();
     let complete = false, failed = false;
     try {
       while (true) {
         this.assertOpen(); if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0)); this.signal.throwIfAborted();
         const next = await iterator.next(); if (next.done) { complete = true; break; }
         const glyph = next.value;
+        if (glyph.actualText === undefined && glyph.storedActualText && maximum(this.options.maxWorkingBytes) < 131072) throw new PdfError("E_LIMIT", "PDF text index working byte limit exceeded");
         // Paint captures/outlines are irrelevant to text grouping. Do not retain
         // them with ActualText's one pending normalized glyph.
-        const projected: PdfPlacedGlyph = { charCode: glyph.charCode, unicode: glyph.unicode, bbox: [...glyph.bbox], baselineY: glyph.baselineY,
+        const projected: PdfRawTextGlyph = { charCode: glyph.charCode, unicode: glyph.unicode, bbox: [...glyph.bbox], baselineY: glyph.baselineY,
           advanceWidth: glyph.advanceWidth, matrix: [...glyph.matrix], fontSize: glyph.fontSize, fontName: "", color: { r: 0, g: 0, b: 0 },
-          ...(glyph.actualText !== undefined ? { actualText: glyph.actualText } : {}), ...(glyph.mcid !== undefined ? { mcid: glyph.mcid } : {}),
+          ...(glyph.actualText !== undefined ? { actualText: glyph.actualText } : {}), ...(glyph.storedActualText ? { storedActualText: { ...glyph.storedActualText } } : {}), ...(glyph.mcid !== undefined ? { mcid: glyph.mcid } : {}),
           ...(glyph.clipRect ? { clipRect: [...glyph.clipRect] } : {}) };
-        for (const normalized of normalizer.push(projected)) await accept(normalized);
+        if (pending && pending.mcid === projected.mcid && await sameReplacement(pending, projected, this.signal)) {
+          pending = { ...pending, bbox: mergeBBox(pending.bbox, projected.bbox), advanceWidth: pending.advanceWidth + projected.advanceWidth };
+        } else {
+          if (pending) await accept(pending);
+          pending = undefined;
+          if (projected.actualText !== undefined || projected.storedActualText) pending = projected;
+          else await accept(projected);
+        }
       }
-      for (const glyph of normalizer.finish()) await accept(glyph);
+      if (pending) await accept(pending);
       await flushLine(); await flushBlock();
     } catch (error) { failed = true; throw error; }
     finally { if (!complete) try { await iterator.return?.(); } catch (error) { if (!failed) await Promise.reject(error); } }

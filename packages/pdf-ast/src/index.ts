@@ -88,7 +88,7 @@ export { PdfMutableObjectStore, type PdfMutableObjectStoreOptions } from "./cos/
 
 export { createRetainedPageCopy, type PdfRetainedPageCopy, copyRetainedPageChunks, copyRetainedPagesChunks, type CopyRetainedPageOptions, type PdfRetainedPageSelection, type PdfRetainedPageIndices } from "./edit/retained-page-copy.js";
 
-export { PdfRawTextIndex, type PdfRawTextIndexOptions, type PdfStoredTextWord, type PdfStoredTextLine, type PdfStoredTextBlock } from "./extract/raw-text-index.js";
+export { PdfRawTextIndex, type PdfRawTextGlyph, type PdfRawTextIndexOptions, type PdfStoredTextWord, type PdfStoredTextLine, type PdfStoredTextBlock } from "./extract/raw-text-index.js";
 
 export { retainedCosObjects, type PdfRetainedObjectsOptions } from "./cos/retained-objects.js";
 

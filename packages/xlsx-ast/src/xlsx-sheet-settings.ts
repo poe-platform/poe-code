@@ -65,7 +65,7 @@ function header(node: MetadataNode | undefined, fallback: string, charge: (amoun
 /** Preserve native settings, applying only changes to their normalized model. */
 export async function writeXlsxSheetSettings(sheet: Sheet,
   records: readonly { readonly record: UnsupportedRecord; readonly node: MetadataNode | undefined }[],
-  xml: ElementWriter, context: CapabilityContext, namespace: string, charge: (amount?: number) => void) {
+  xml: ElementWriter, context: CapabilityContext, namespace: string, charge: (amount?: number) => void, axisOutline?: { rows: number; columns: number }) {
   const handled = new Set<UnsupportedRecord>(), raw = new Map<string, MetadataNode>();
   for (const { record, node } of records) {
     charge();
@@ -123,8 +123,8 @@ export async function writeXlsxSheetSettings(sheet: Sheet,
   baseline.push(node("sheetFormatPr", { defaultColWidth: originalWidth === undefined ? undefined : originalWidth / xlsxColumnWidthPoints,
     defaultRowHeight: originalHeight ?? 12.75, outlineLevelRow: format?.outlineLevelRow, outlineLevelCol: format?.outlineLevelCol }));
   current.push(node("sheetFormatPr", { defaultColWidth: typeof sheet.view?.defaultColumnWidth === "number" || originalWidth !== undefined || !format ? defaultColumnWidth / xlsxColumnWidthPoints : undefined,
-    defaultRowHeight, outlineLevelRow: sheet.rows?.reduce((maximum, row) => { charge(); return Math.max(maximum, row.outlineLevel ?? 0); }, 0) || undefined,
-    outlineLevelCol: sheet.columns?.reduce((maximum, column) => { charge(); return Math.max(maximum, column.outlineLevel ?? 0); }, 0) || undefined }));
+    defaultRowHeight, outlineLevelRow: (axisOutline?.rows ?? sheet.rows?.reduce((maximum, row) => { charge(); return Math.max(maximum, row.outlineLevel ?? 0); }, 0)) || undefined,
+    outlineLevelCol: (axisOutline?.columns ?? sheet.columns?.reduce((maximum, column) => { charge(); return Math.max(maximum, column.outlineLevel ?? 0); }, 0)) || undefined }));
   const view = sheet.view?.gnumeric && typeof sheet.view.gnumeric === "object" && !Array.isArray(sheet.view.gnumeric) ? sheet.view.gnumeric as Readonly<Record<string, ImportedValue>> : {};
   const allowed = sheet.view?.protectedAllow;
   const passwordHash = sheet.view?.protectedPasswordHash;

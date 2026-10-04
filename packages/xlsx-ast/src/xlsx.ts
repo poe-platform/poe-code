@@ -1,3 +1,4 @@
+import { createAxisStorage } from "@poe-code/spreadsheet-engine/workbook/axis-storage";
 import { createXlsxCellStorage } from "./cell-storage.js";
 import { createWorksheetIndexes, type XlsxSharedFormula } from "./worksheet-indexes.js";
 import { createWorksheetStorage } from "./worksheet-storage.js";
@@ -5,7 +6,7 @@ import { createSharedStringStorage } from "./shared-string-storage.js";
 import { writeXlsxTheme } from "./xlsx-theme.js";
 import { writeXlsxWorkbookProtection } from "./xlsx-workbook-protection.js";
 import type { Codec, WorkbookSource } from "@poe-code/spreadsheet-engine/codecs/types";
-import { ownWorkbookSource, materializeSourceAxes } from "@poe-code/spreadsheet-engine/workbook/source";
+import { ownWorkbookSource } from "@poe-code/spreadsheet-engine/workbook/source";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { foldSheetName } from "@poe-code/spreadsheet-ast/case-fold";
 import { XlsxExternalLinkWriter } from "./external-link-export.js";
@@ -924,16 +925,17 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
 export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<Codec["writeStream"]> & NonNullable<Codec["writeWorkbookSource"]> {
   return async function* (input: Workbook | WorkbookSource, _options, context) {
     let storage: import("@poe-code/spreadsheet-engine/contracts").WorkingStorage | undefined;
+    let axes: ReturnType<typeof createAxisStorage> | undefined;
     let closed = false, closing: Promise<void> | undefined, failure: { error: unknown } | undefined;
     const close = () => {
       closed = true;
-      return closing ??= Promise.resolve().then(async () => { await storage?.close(); });
+      return closing ??= Promise.resolve().then(async () => { await axes?.close(); await storage?.close(); });
     };
     context.own(close);
     try {
     context.signal.throwIfAborted();
     const { element: xml, stream: xmlStream, charge } = createXlsxXml(context);
-    const source = "metadata" in input ? await materializeSourceAxes(await ownWorkbookSource(input, context.limits, () => context.signal.throwIfAborted(), context.createWorkingStorage?.bind(context)), context.limits, () => context.signal.throwIfAborted()) : undefined;
+    const source = "metadata" in input ? await ownWorkbookSource(input, context.limits, () => context.signal.throwIfAborted(), context.createWorkingStorage?.bind(context)) : undefined;
     let book = snapshotXlsxWorkbook(source?.metadata ?? input as Workbook, context, charge);
     const suppliedCells = (sheet: Sheet) => source?.cells(sheet.id) ?? sheet.cells;
     if (book.sheets.length > context.limits.sheets) limit("sheets");
@@ -969,6 +971,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<Co
     if (closed) throw new SsconvertError("invalid-request", "XLSX writer is closed");
     storage = context.createWorkingStorage?.();
     if (closed) throw new SsconvertError("invalid-request", "XLSX writer is closed");
+    axes = createAxisStorage(storage, context.signal);
     const staged = storage ? zip.createStagedWriter(storage, bounds, context.signal) : undefined;
     let members = 0;
     const entries: ZipEntry[] = [], types: { name: string; type: string }[] = [
@@ -1050,9 +1053,15 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<Co
       };
       for (const r of sheet.merges ?? []) validateRange(r);
       for (const group of sheet.formulaGroups ?? []) validateRange(group.range);
-      for (const [axis, maximum] of [[sheet.rows ?? [], rows], [sheet.columns ?? [], columns]] as const)
-        for (const info of axis) if (!Number.isSafeInteger(info.index) || info.index < 0 || info.index >= maximum)
-          throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: XLSX axis outside writer sheet limits");
+      const rowInfo = axes.axis(), columnInfo = axes.axis();
+      for (const [kind, maximum, target] of [["rows", rows, rowInfo], ["columns", columns, columnInfo]] as const) {
+        for await (const info of source?.axes ? source.axes(sheet.id, kind) : sheet[kind] ?? []) {
+          if (!Number.isSafeInteger(info.index) || info.index < 0 || info.index >= maximum)
+            throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: XLSX axis outside writer sheet limits");
+          // Extent and outline scans retain their original per-axis work charges.
+          charge(2); await target.add(info);
+        }
+      }
       const addresses = storage ? new IntegerTable(storage, 128) : new Map<bigint, bigint>();
       const coordinate = (row: number, column: number) => BigInt(row) << 14n | BigInt(column);
       let inputCellCount = 0;
@@ -1120,20 +1129,19 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<Co
         endRow = Math.max(endRow, cell.row); endColumn = Math.max(endColumn, cell.column); startColumn = Math.min(startColumn, cell.column);
       }
       for (const merge of sheet.merges ?? []) { endRow = Math.max(endRow, merge.endRow); endColumn = Math.max(endColumn, merge.endColumn); startRow = Math.min(startRow, merge.startRow); startColumn = Math.min(startColumn, merge.startColumn); }
-      for (const row of sheet.rows ?? []) { charge(); endRow = Math.max(endRow, row.index); }
-      for (const column of sheet.columns ?? []) { charge(); endColumn = Math.max(endColumn, column.index); }
+      endRow = Math.max(endRow, rowInfo.maximum);
+      endColumn = Math.max(endColumn, columnInfo.maximum);
       if (!cellCount && !sheet.merges?.length) startColumn = 0;
       const rangeText = (r: Range) => formatA1(r.startRow, r.startColumn) + (r.startRow === r.endRow && r.startColumn === r.endColumn ? "" : ":" + formatA1(r.endRow, r.endColumn));
       const dimension = rangeText({ startRow, startColumn, endRow, endColumn });
-      const rowInfo = new Map((sheet.rows ?? []).map(r => [r.index, r]));
       async function* rowXml() {
-        const rowKeys = [...rowInfo.keys()].filter(row => row <= endRow).sort((a, b) => a - b);
-        const cursor = cells(); let next = await cursor.next(), axis = 0;
+        const cursor = cells(), axisCursor = rowInfo.values();
         try {
-          while (!next.done || axis < rowKeys.length) {
-            const row = Math.min(next.done ? Infinity : next.value.row, rowKeys[axis] ?? Infinity);
-            if (rowKeys[axis] === row) axis++;
-            const info = rowInfo.get(row);
+          let next = await cursor.next(), nextAxis = await axisCursor.next();
+          while (!next.done || !nextAxis.done) {
+            const row = Math.min(next.done ? Infinity : next.value.row, nextAxis.done ? Infinity : nextAxis.value.index);
+            const info = !nextAxis.done && nextAxis.value.index === row ? nextAxis.value : undefined;
+            if (info) nextAxis = await axisCursor.next();
             async function* content() {
               while (!next.done && next.value.row === row) {
                 const cell = next.value;
@@ -1186,7 +1194,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<Co
               customHeight: info?.sizePoints === undefined || importedRow?.name === "RowInfo" && !Number(importedRow.attributes.HardSize) ? undefined : 1, ht: info?.sizePoints,
               collapsed: info?.collapsed ? 1 : undefined, hidden: info?.hidden ? 1 : undefined, outlineLevel: info?.outlineLevel || (info?.collapsed ? 0 : undefined) }, content());
           }
-        } finally { await cursor.return(undefined); }
+        } finally { await Promise.all([cursor.return(undefined), axisCursor.return(undefined)]); }
       }
       // Serialize rows before metadata to preserve style/shared-string registration
       // order. Only bounded encoded pieces stay resident while the tape is written.
@@ -1214,7 +1222,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<Co
         tabSelected: index === active ? 1 : undefined };
       for (const [gnm, xlsx, invert] of [["DisplayFormulas", "showFormulas", false], ["HideZero", "showZeros", true], ["HideGrid", "showGridLines", true], ["HideColHeader", "showRowColHeaders", true], ["DisplayOutlines", "showOutlineSymbols", false], ["RTL_Layout", "rightToLeft", false]] as const)
         if (view[gnm] !== undefined) viewAttrs[xlsx] = (invert ? !Number(view[gnm]) : !!Number(view[gnm])) ? 1 : 0;
-      const metadata = await writeXlsxSheetMetadata(sheet, index + 1, xml, context, namespace, exportXlsxFormula.bind(null, book), styles, charge, source?.cells(sheet.id));
+      const metadata = await writeXlsxSheetMetadata(sheet, index + 1, xml, context, namespace, exportXlsxFormula.bind(null, book), styles, charge, source?.cells(sheet.id), { rows: rowInfo.outline, columns: columnInfo.outline });
       let cols = "", nextColumn = 0;
       let columnRun: { first: number; last: number; attributes: Attributes } | undefined;
       const appendColumn = (first: number, last: number, attributes: Attributes) => {
@@ -1228,7 +1236,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<Co
           columnRun = { first, last, attributes };
         }
       };
-      for (const c of [...sheet.columns ?? []].sort((a, b) => a.index - b.index)) {
+      for await (const c of columnInfo.values()) {
         const importedColumn = metadataNode(c.style?.gnumeric, charge);
         if (c.index > nextColumn) appendColumn(nextColumn + 1, c.index, { style: columnDefaultStyle, width: metadata.defaultColumnWidth / xlsxColumnWidthPoints });
         appendColumn(c.index + 1, c.index + 1, {

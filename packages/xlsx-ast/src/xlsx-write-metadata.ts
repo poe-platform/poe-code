@@ -11,9 +11,9 @@ import { readGnumericRichText } from "@poe-code/spreadsheet-engine/codecs/gnumer
 function child(node: MetadataNode | undefined, name: string): MetadataNode | undefined { return node?.children.find(n => n.name === name); }
 export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: ElementWriter, context: CapabilityContext, namespace: string,
   formula: (source: string, sheet: Sheet, row: number, column: number, context: CapabilityContext) => string,
-  styles: ReturnType<typeof createXlsxStyles>, charge: (amount?: number) => void, sourceCells?: AsyncIterable<Cell>) {
+  styles: ReturnType<typeof createXlsxStyles>, charge: (amount?: number) => void, sourceCells?: AsyncIterable<Cell>, axisOutline?: { rows: number; columns: number }) {
   const records = (sheet.unsupportedRecords ?? []).map(record => ({ record, node: metadataNode(record.data, charge) }));
-  const settings = await writeXlsxSheetSettings(sheet, records, xml, context, namespace, charge);
+  const settings = await writeXlsxSheetSettings(sheet, records, xml, context, namespace, charge, axisOutline);
   const pi = records.find(r => r.record.kind === "PrintInformation")?.node;
   let print = settings.print;
   let filters = "", rules = "", conditionalRules = "";

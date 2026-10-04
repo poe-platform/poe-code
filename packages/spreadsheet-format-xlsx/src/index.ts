@@ -30,6 +30,7 @@ export const xlsxFormat: FormatProvider = {
 {
       "id": "xlsx",
       "direction": "write",
+      sourceAxes: true,
       write: async (book, options, context) => (await import("./xlsx.js")).createXlsxWriter("2006")(book, options, context),
       writeStream: async function* (book, options, context) { yield* (await import("./xlsx.js")).createXlsxStreamWriter("2006")(book, options, context); },
       writeWorkbookSource: async function* (source, options, context) { yield* (await import("./xlsx.js")).createXlsxStreamWriter("2006")(source, options, context); },
@@ -45,6 +46,7 @@ export const xlsxFormat: FormatProvider = {
 {
       "id": "xlsx2",
       "direction": "write",
+      sourceAxes: true,
       write: async (book, options, context) => (await import("./xlsx.js")).createXlsxWriter("2008")(book, options, context),
       writeStream: async function* (book, options, context) { yield* (await import("./xlsx.js")).createXlsxStreamWriter("2008")(book, options, context); },
       writeWorkbookSource: async function* (source, options, context) { yield* (await import("./xlsx.js")).createXlsxStreamWriter("2008")(source, options, context); },

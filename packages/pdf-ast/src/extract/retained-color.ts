@@ -10,7 +10,7 @@ import { ParsedCosDocument } from "../cos/parser.js";
 import { PdfError } from "../errors.js";
 import type { PdfRetainedDocument } from "../retained-document.js";
 import { PdfFileSource } from "../source.js";
-import { imageColorSpaceProgram, type ResolvedColorSpace } from "./images.js";
+import { decodeSamplesToRgbaAsync, imageColorSpaceProgram, type ResolvedColorSpace } from "./images.js";
 
 export interface PdfRetainedColorOptions {
   /** Admission for retained color metadata, palette/function bytes and palette
@@ -19,6 +19,8 @@ export interface PdfRetainedColorOptions {
   /** Compose conservative color admission with a containing image owner. */
   readonly onAllocation?: (bytes: number) => void;
   readonly maxStagingBytes?: number;
+  /** Admit persistent function bytes to a containing resource owner. */
+  readonly onStaging?: (bytes:number)=>void;
   readonly maxNodes?: number;
   readonly maxDepth?: number;
   readonly chunkBytes?: number;
@@ -50,6 +52,7 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
     const backing=functionBacking,position=backing.allocate(0);let size=0;
     for await(const chunk of readBytes(contents(stream),options.signal)){
       if(chunk.length>maxStaging-functionBytes)throw new PdfError("E_LIMIT","PDF function staging byte limit exceeded");
+      options.onStaging?.(chunk.length);
       for(let at=0;at<chunk.length;at+=chunkBytes){
         options.signal?.throwIfAborted();const bytes=chunk.subarray(at,at+chunkBytes);
         await backing.write(backing.allocate(bytes.length),bytes);size+=bytes.length;functionBytes+=bytes.length;
@@ -235,12 +238,26 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
   const context = new ParsedCosDocument({ version: "1.7", bytes: new Uint8Array(), objects: new Map(), revisions: [],
     rootRef: { kind: "ref", objectNumber: 0, generationNumber: 0 }, maxDecompressedBytes: maximum, maxRecursionDepth: maxDepth });
   options.signal?.throwIfAborted();
-  return { resolve, decode, contents, snapshot, snapshotColor, snapshotFunction, charge, context, maxDepth, functionSources, async close(){await functionBacking?.close();} };
+  return { resolve, decode, contents, snapshot, snapshotColor, snapshotFunction, charge, context, maxDepth, functionSources, storedFunctions, async close(){await functionBacking?.close();} };
 }
 
 export async function resolveRetainedImageColor(document: PdfRetainedDocument, node: PdfCosNode | undefined,
   resources: PdfCosDict | undefined, storage: PdfIndexStorage, options: PdfRetainedColorOptions = {}): Promise<ResolvedColorSpace> {
-  const { resolve, decode, snapshot, charge, context, maxDepth } = createRetainedColorAccess(document, storage, options);
+  const access=createRetainedColorAccess(document,storage,options);
+  return resolveImageColor(access,node,resources,options);
+}
+
+/** Keeps range-backed tint resources alive until the image owner closes. */
+export async function openRetainedImageColor(document: PdfRetainedDocument, node: PdfCosNode | undefined,
+  resources: PdfCosDict | undefined, storage: PdfIndexStorage, options: PdfRetainedColorOptions = {}) {
+  const access=createRetainedColorAccess(document,storage,options,true);
+  try {return {color:await resolveImageColor(access,node,resources,options),close:access.close};}
+  catch(error){await access.close().catch(()=>{});throw error;}
+}
+
+async function resolveImageColor(access:ReturnType<typeof createRetainedColorAccess>,node:PdfCosNode|undefined,
+  resources:PdfCosDict|undefined,options:PdfRetainedColorOptions):Promise<ResolvedColorSpace>{
+  const {resolve,decode,snapshot,snapshotFunction,charge,context,maxDepth,functionSources}=access;
   const work = imageColorSpaceProgram(node, resources, maxDepth);
   try {
     let step = work.next();
@@ -259,7 +276,8 @@ export async function resolveRetainedImageColor(document: PdfRetainedDocument, n
           break;
         }
         case "calibrated": result = createCalibratedColorSpace(context, request.family, await snapshot(request.parameters)); break;
-        case "tint": result = { doc: context, node: await snapshot(request.node) }; break;
+        case "tint": result = { doc: context, node: await snapshotFunction(request.node), sources:access.storedFunctions?functionSources:undefined }; break;
+        case "samples": result = await decodeSamplesToRgbaAsync([request.samples,request.width,1,8,request.color],options.signal); break;
         case "admit": charge(request.bytes); break;
       }
       step = work.next(result);

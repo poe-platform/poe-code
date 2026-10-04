@@ -5,7 +5,7 @@ import { PdfError } from "../errors.js";
 import type { PdfRetainedDocument } from "../retained-document.js";
 import { PdfFileSource } from "../source.js";
 import type { ResolvedColorSpace } from "./images.js";
-import { resolveRetainedImageColor } from "./retained-color.js";
+import { openRetainedImageColor } from "./retained-color.js";
 import type { PdfRetainedImage } from "./retained-images.js";
 import { PdfRetainedJpeg } from "./retained-jpeg.js";
 import { PdfRetainedJpx } from "./retained-jpx.js";
@@ -63,6 +63,8 @@ export class PdfRetainedDecodedImage {
     if ((maxDepth !== Infinity && (!Number.isSafeInteger(maxDepth) || maxDepth < 0)) || !Number.isSafeInteger(chunkBytes) || chunkBytes <= 0) throw new RangeError("Invalid image decoder limits");
     if (depth > maxDepth) throw new PdfError("E_LIMIT", "PDF image mask depth limit exceeded");
     const { signal } = options; signal?.throwIfAborted(); const sources = new Set<PdfFileSource>(); let owned = 0;
+    let colorStaged=0;
+    let colorOwner:Awaited<ReturnType<typeof openRetainedImageColor>>|undefined;
     let codec: PdfRetainedJpeg | PdfRetainedJpx | PdfRetainedJbig2 | undefined;
     function charge(bytes: number) {
       if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > workingLimit - budget.working) throw new PdfError("E_LIMIT", "PDF image working byte limit exceeded");
@@ -74,7 +76,7 @@ export class PdfRetainedDecodedImage {
       budget.staged -= source.size; budget.working -= chunkBytes * 4; owned -= chunkBytes * 4; await source.close();
     }
     async function cleanup() {
-      codec?.close(); codec = undefined; const results = await Promise.allSettled([...sources].map(release)); budget.working -= owned; owned = 0;
+      codec?.close(); codec = undefined; const results = await Promise.allSettled([...sources].map(release).concat(colorOwner?[colorOwner.close()]:[])); colorOwner=undefined; budget.staged-=colorStaged; colorStaged=0; budget.working -= owned; owned = 0;
       for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
     }
     async function stage(input: AsyncIterable<Uint8Array>) {
@@ -125,8 +127,9 @@ export class PdfRetainedDecodedImage {
         masks.push({ source, width: child.width, height: child.height, mode: key === "SMask" ? "soft" : "explicit", ...(matte ? { matte } : {}) });
       }
       const colorNode = dictGet(dict, "ColorSpace") ?? dictGet(dict, "CS");
-      let color: ResolvedColorSpace = stencil ? { colorSpace: "gray", components: 1 } : await resolveRetainedImageColor(document, colorNode, image.resources, storage,
-        { maxWorkingBytes: workingLimit - budget.working, maxStagingBytes: stagingLimit - budget.staged, chunkBytes, onAllocation: charge, ...(signal ? { signal } : {}) });
+      if(!stencil)colorOwner = await openRetainedImageColor(document, colorNode, image.resources, storage,
+        { maxWorkingBytes: workingLimit - budget.working, maxStagingBytes: stagingLimit - budget.staged, chunkBytes, onAllocation: charge, onStaging(bytes){if(bytes>stagingLimit-budget.staged)throw new PdfError("E_LIMIT","PDF image staging byte limit exceeded");budget.staged+=bytes;colorStaged+=bytes;}, ...(signal ? { signal } : {}) });
+      let color:ResolvedColorSpace=colorOwner?.color??{colorSpace:"gray",components:1};
       const raw = await stage(image.contents({ raw: true }));
       let samples = raw;
       let nativeSource: PdfFileSource | undefined, globals: PdfFileSource | undefined;

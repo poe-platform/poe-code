@@ -284,6 +284,9 @@ stream. Calibrated and tint-function state survives document closure; function
 streams use caller-backed staging before admitted materialization.
 `maxWorkingBytes`, `maxNodes`, `maxDepth` and `maxStagingBytes` bound that state;
 object-reader/parser and I/O caches are additional memory.
+The retained image decoder instead uses `openRetainedImageColor`: sampled tint
+tables stay in caller storage until the image closes. Row conversion and indexed
+palettes share asynchronous sample evaluation, including JPEG 2000 tint rows.
 
 `convertRetainedContentColor(document, colorNode, name, components, resources,
 storage, options)` converts vector paint colors with the same calculations as
@@ -597,8 +600,8 @@ row-sized crossing scratch; scratch is local to each render. Stroke outlines
 and their projected raster edges also stream. Retained parser paths, stroke
 points, dash expansion and geometric clip lists use caller backing. Sampled
 functions for vector colors, masks and shading use range reads from caller storage.
-Image tint snapshots, PostScript programs and individual operation metadata still
-have separate memory ownership.
+Image tint rows also read sampled tables from caller storage. PostScript programs
+and individual operation metadata still have separate memory ownership.
 
 Text, paths, and stencil images preserve shading and tiling pattern fills in
 bitmap and SVG output, including uncolored tiles and transformed Forms.

@@ -1,4 +1,3 @@
-import { drainWork } from "../work.js";
 import { applyImageMaskPixel } from "./mask-pixel.js";
 import { pdfImageCodec } from "../cos/filter-stream.js";
 import { assertDecodedByteBudget } from "../cos/limits.js";
@@ -16,7 +15,7 @@ import {
 } from "../ast.js";
 import { multiplyMatrices } from "../content/evaluator.js";
 import { parseContentStream } from "../content/parser.js";
-import { evalShadingFunctionToComponents } from "../content/evaluator.js";
+import { evalShadingFunctionToComponents, evalShadingFunctionSteps, type PdfFunctionSource } from "../content/evaluator.js";
 import { decodePdfFilter } from "../cos/filters.js";
 import { ParsedCosDocument } from "../cos/parser.js";
 import type { RgbaBitmap } from "../render/raster.js";
@@ -153,6 +152,7 @@ export interface ResolvedColorSpace {
   readonly separationAltSpace?: "rgb" | "gray" | "cmyk" | undefined;
   readonly tintFunctionDoc?: ParsedCosDocument | undefined;
   readonly tintFunctionNode?: PdfCosNode | undefined;
+  readonly tintFunctionSources?: WeakMap<PdfCosStream, PdfFunctionSource> | undefined;
   readonly calibrated?: CalibratedColorSpace | undefined;
   readonly alternateCalibrated?: CalibratedColorSpace | undefined;
 }
@@ -162,7 +162,8 @@ export type PdfImageColorRequest =
   | { kind: "palette"; node: PdfCosStream | Extract<PdfCosNode, { kind: "string" }>; maxBytes: number }
   | { kind: "calibrated"; family: "CalGray" | "CalRGB" | "Lab"; parameters: PdfCosNode | undefined }
   | { kind: "tint"; node: PdfCosNode | undefined }
-  | { kind: "admit"; bytes: number };
+  | { kind: "admit"; bytes: number }
+  | { kind: "samples"; samples: Uint8Array; width: number; color: ResolvedColorSpace };
 
 function *resolveColorSpaceInfoSteps(doc: ParsedCosDocument, node: PdfCosNode | undefined,
   resources: PdfCosDict | undefined): Generator<void, ResolvedColorSpace, void> {
@@ -178,6 +179,7 @@ function *resolveColorSpaceInfoSteps(doc: ParsedCosDocument, node: PdfCosNode | 
         case "palette": result = request.node.kind === "stream" ? doc.decodeStream(request.node) : request.node.bytes; break;
         case "calibrated": result = createCalibratedColorSpace(doc, request.family, request.parameters); break;
         case "tint": result = { doc, node: request.node }; break;
+        case "samples": result = yield* decodeSamplesToRgbaSteps(request.samples, request.width, 1, 8, request.color); break;
       }
       step = work.next(result);
     }
@@ -240,7 +242,7 @@ export function *imageColorSpaceProgram(
       ) {
         const numEntries = Math.max(1, Math.min(hival + 1, Math.floor(palette.length / Math.max(1, baseInfo.components))));
         yield { kind: "admit", bytes: numEntries * 7 + (baseInfo.isSeparation || baseInfo.isDeviceN ? baseInfo.components * 8 : 0) };
-        const rgbaPal = drainWork(decodeSamplesToRgbaSteps(palette, numEntries, 1, 8, baseInfo));
+        const rgbaPal = (yield {kind:"samples",samples:palette,width:numEntries,color:baseInfo}) as Uint8Array;
         const rgbPal = new Uint8Array(numEntries * 3);
         for (let idx = 0; idx < numEntries; idx++) {
     if (++work % 16384 === 0) yield;
@@ -286,7 +288,7 @@ export function *imageColorSpaceProgram(
       const altInfo = (yield* imageColorSpaceProgram(resolved.items[2], resourcesDict, maxDepth, depth + 1));
       const altSpace: "rgb" | "gray" | "cmyk" =
         altInfo.colorSpace === "cmyk" ? "cmyk" : altInfo.colorSpace === "gray" ? "gray" : "rgb";
-      const tint = (yield { kind: "tint", node: resolved.items[3] }) as { doc: ParsedCosDocument; node: PdfCosNode | undefined };
+      const tint = (yield { kind: "tint", node: resolved.items[3] }) as { doc: ParsedCosDocument; node: PdfCosNode | undefined; sources?: WeakMap<PdfCosStream,PdfFunctionSource> };
       return {
         colorSpace: altSpace,
         colorSpaceLabel: isDevN ? "devn" : "sep",
@@ -297,6 +299,7 @@ export function *imageColorSpaceProgram(
         alternateCalibrated: altInfo.calibrated,
         tintFunctionDoc: tint.doc,
         tintFunctionNode: tint.node,
+        tintFunctionSources: tint.sources,
       };
     }
   }
@@ -511,7 +514,42 @@ function remapUnitSampleWithDecode(
   return Math.max(0, Math.min(1, dMin + unitVal * (dMax - dMin)));
 }
 
-export function *decodeSamplesToRgbaSteps(
+/** Synchronous convenience driver; retained resources require the async driver. */
+export function* decodeSamplesToRgbaSteps(...args: Parameters<typeof decodeSamplesToRgbaProgram>): Generator<void,Uint8Array,void> {
+  const work=decodeSamplesToRgbaProgram(...args),color=args[4];
+  try {
+    let step=work.next();
+    while(!step.done){
+      if(step.value){
+        if(color.tintFunctionSources)throw new PdfError("E_CAPABILITY","Retained tint functions require asynchronous sample conversion");
+        step=work.next(evalShadingFunctionToComponents(color.tintFunctionDoc!,color.tintFunctionNode,step.value));
+      }else {yield;step=work.next();}
+    }
+    return step.value;
+  }finally{work.return(new Uint8Array());}
+}
+
+/** Convert one owned row while resolving tint samples through explicit sources. */
+export async function decodeSamplesToRgbaAsync(args: Parameters<typeof decodeSamplesToRgbaProgram>, signal?: AbortSignal): Promise<Uint8Array> {
+  const work=decodeSamplesToRgbaProgram(...args),color=args[4];let turns=0;
+  try {
+    let step=work.next();
+    while(!step.done){
+      signal?.throwIfAborted();
+      if(++turns%(step.value?16384:64)===0){await new Promise<void>(resolve=>setTimeout(resolve,0));signal?.throwIfAborted();}
+      let result:number[]|undefined;
+      if(step.value){
+        const tint=evalShadingFunctionSteps(color.tintFunctionDoc!,color.tintFunctionNode,step.value,color.tintFunctionSources);
+        try {let next=tint.next();while(!next.done){signal?.throwIfAborted();next=tint.next(await next.value.source.read(next.value.position,next.value.length,signal));}result=next.value;}
+        finally{tint.return([]);}
+      }
+      step=work.next(result);
+    }
+    signal?.throwIfAborted();return step.value;
+  }finally{work.return(new Uint8Array());}
+}
+
+function *decodeSamplesToRgbaProgram(
   rawSamples: Uint8Array,
   width: number,
   height: number,
@@ -519,7 +557,7 @@ export function *decodeSamplesToRgbaSteps(
   csInfo: ResolvedColorSpace,
   alphaSamples?: Uint8Array,
   decodePairs?: ReadonlyArray<readonly [number, number]>
-): Generator<void, Uint8Array, void> {
+): Generator<number[]|undefined, Uint8Array, number[]|undefined> {
   let work = 0;
   const rgba = new Uint8Array(width * height * 4);
   const pixelCount = width * height;
@@ -536,11 +574,7 @@ export function *decodeSamplesToRgbaSteps(
         const sRaw = (rawSamples[(p * numCh + ch) * step] ?? 0) / 255;
         chVals.push(remapUnitSampleWithDecode(sRaw, ch, decodePairs));
       }
-      const outComps = evalShadingFunctionToComponents(
-        csInfo.tintFunctionDoc!,
-        csInfo.tintFunctionNode,
-        chVals
-      );
+      const outComps = (yield chVals)!;
       if (csInfo.alternateCalibrated) {
         rgba.set(csInfo.alternateCalibrated.getRgb(outComps, 0), p * 4);
       } else if (alt === "cmyk") {

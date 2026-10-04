@@ -233,3 +233,26 @@ it.each(["error", "abort"])("cleans spilled sampled tables after a late %s", asy
     expect(await f.storage.fs.readdir("/scratch")).toEqual(before);
   } finally { await f.close(); }
 });
+
+it.each([false,true])("decodes image tint tables through retained ranges (indexed=%s)",async indexed=>{
+ const {PdfRetainedDecodedImage}=await import("./retained-decoded-image.js");
+ const f=await fixture(),count=131072,lookup=f.doc.lookup.bind(f.doc);
+ vi.spyOn(f.doc,"lookup").mockImplementation(async node=>{const result=await lookup(node);if(node?.kind==="ref"&&node.objectNumber===f.sampled.objectNumber&&result?.value.kind==="dict")dictSet(result.value,"Size",cosArray([cosNumber(count)]));return result;});
+ vi.spyOn(f.doc.objects,"decodeStream").mockImplementation(async function*(){for(let at=0;at<count*3;at+=4096)yield new Uint8Array(Math.min(4096,count*3-at)).fill(128);});
+ const tint=cosArray([cosName("Separation"),cosName("Spot"),cosName("DeviceRGB"),f.sampled]);
+ const color=indexed?cosArray([cosName("Indexed"),tint,cosNumber(1),cosHexString(new Uint8Array([0,255]))]):tint;
+ const input={dict:cosDict({Width:cosNumber(2),Height:cosNumber(1),BitsPerComponent:cosNumber(8),ColorSpace:color}),resources:f.resources,async *contents(){yield new Uint8Array([0,indexed?1:255]);}};
+ try{
+  const owner=await PdfRetainedDecodedImage.open(f.doc,input,f.storage,{onAllocation(bytes){if(bytes>65536)throw Error("whole tint allocation "+bytes);}});
+  try{const rows=[];for await(const row of owner.rows())rows.push([...row]);expect(rows).toEqual([[128,128,128,255,128,128,128,255]]);}finally{await owner.close();}
+ }finally{await f.close();}
+});
+
+it("shares image staging admission with live tint resources",async()=>{
+ const {PdfRetainedDecodedImage}=await import("./retained-decoded-image.js");const f=await fixture();
+ const input={dict:cosDict({Width:cosNumber(2),Height:cosNumber(1),BitsPerComponent:cosNumber(8),ColorSpace:cosName("Sampled")}),resources:f.resources,async *contents(){yield new Uint8Array([0,255]);}};
+ try{
+  await expect(PdfRetainedDecodedImage.open(f.doc,input,f.storage,{maxStagingBytes:7})).rejects.toThrow("staging byte limit");
+  const owner=await PdfRetainedDecodedImage.open(f.doc,input,f.storage,{maxStagingBytes:8});await owner.close();
+ }finally{await f.close();}
+});

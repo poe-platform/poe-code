@@ -6,7 +6,8 @@ import {fileURLToPath} from "node:url";
 it("uses bounded external backing for growing sampled color and shading tables in Workerd",async()=>{
  const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../../../../",import.meta.url)),sourcefile:"sampled-worker.ts",contents:`
  import {convertRetainedContentColor,resolveRetainedMaskParameters,renderRetainedShading} from './packages/pdf-ast/src/extract/retained-color.ts';
- import {cosDict,cosNumber,cosName,cosArray,cosRef,cosStream} from './packages/pdf-ast/src/ast.ts';
+ import {PdfRetainedDecodedImage} from './packages/pdf-ast/src/extract/retained-decoded-image.ts';
+ import {cosHexString,cosDict,cosNumber,cosName,cosArray,cosRef,cosStream} from './packages/pdf-ast/src/ast.ts';
  export default {async fetch(request,env){
  const {count,mode}=await request.json();let handles=0,closed=0,writes=0,reads=0,peak=0,produced=0;
  let stageId=0,stageOpened=0,stageClosed=0;const scope={},files=new Map();
@@ -29,6 +30,12 @@ it("uses bounded external backing for growing sampled color and shading tables i
   const storage={fs,directory:'/'};let values;
   if(mode==='tint')values=await convertRetainedContentColor(document,cosArray([cosName('Separation'),cosName('Spot'),cosName('DeviceRGB'),reference]),'Spot',[0.5],undefined,storage);
   else if(mode==='mask'){const result=await resolveRetainedMaskParameters(document,cosDict({TR:reference}),cosStream(cosDict(),new Uint8Array()),undefined,storage);values=[result.transferMap[0],result.transferMap[128],result.transferMap[255]];}
+  else if(mode==='image'||mode==='palette'){
+   const tint=cosArray([cosName('Separation'),cosName('Spot'),cosName('DeviceRGB'),reference]);
+   const color=mode==='palette'?cosArray([cosName('Indexed'),tint,cosNumber(1),cosHexString(new Uint8Array([0,255]))]):tint;
+   const owner=await PdfRetainedDecodedImage.open(document,{dict:cosDict({Width:cosNumber(2),Height:cosNumber(1),BitsPerComponent:cosNumber(8),ColorSpace:color}),async *contents(){yield new Uint8Array([0,mode==='palette'?1:255]);}},storage);
+   try{values=[];for await(const row of owner.rows())values.push(...row);}finally{await owner.close();}
+  }
   else {const result=await renderRetainedShading(document,mesh?cosRef(2):shading,{matrix:[1,0,0,1,0,0],bounds:[0,0,4,4],alpha:1,name:'test'},storage);values=Array.from(result.decodedRgba);}
   return Response.json({values,stageOpened,stageClosed,files:files.size,handles,closed,writes,reads,peak,produced,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});
  }finally{globalThis.Uint8Array=Native;}
@@ -41,7 +48,7 @@ it("uses bounded external backing for growing sampled color and shading tables i
   if(request.method==="PUT"){const chunk=new Uint8Array(await request.arrayBuffer()),old=backing.get(key)??new Uint8Array(),next=new Uint8Array(Math.max(old.length,at+chunk.length));next.set(old);next.set(chunk,at);backing.set(key,next);return new Response();}
   return new Response(backing.get(key)?.slice(at,at+Number(url.searchParams.get("length"))));
  }}});
- try{for(const count of [65536,131072])for(const mode of ["tint","mask","1","2","3","4","5","6","7"]){
+ try{for(const count of [65536,131072])for(const mode of ["tint","mask","image","palette","1","2","3","4","5","6","7"]){
   const response=await runtime.dispatchFetch("https://sample/",{method:"POST",body:JSON.stringify({count,mode})});if(response.status!==200)throw Error(mode+": "+await response.text());
   const result=await response.json() as {values:number[];stageOpened:number;stageClosed:number;files:number;handles:number;closed:number;writes:number;reads:number;peak:number;produced:number;nodeGlobals:boolean};
   if(mode==="tint")expect(result.values).toEqual([128/255,128/255,128/255]);

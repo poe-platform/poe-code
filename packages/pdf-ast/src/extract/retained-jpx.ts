@@ -1,8 +1,7 @@
 import { PdfError } from "../errors.js";
 import type { PdfFileSource } from "../source.js";
 import { JpxImage } from "../vendor/pdfjs-image-decoders.mjs";
-import { drainWorkAsync } from "../work.js";
-import { decodeSamplesToRgbaSteps, type ResolvedColorSpace } from "./images.js";
+import { decodeSamplesToRgbaAsync, type ResolvedColorSpace } from "./images.js";
 
 export interface PdfRetainedJpxOptions {
   /** Conservative cumulative encoded/decoder admission plus one sample and RGBA
@@ -74,7 +73,7 @@ export class PdfRetainedJpx {
         const start = (y - tile.top) * tile.width * this.components;
         samples.set(tile.items.subarray(start, start + tile.width * this.components), tile.left * this.components);
       }
-      yield await drainWorkAsync(decodeSamplesToRgbaSteps(samples, this.width, 1, 8, this.color), this.signal);
+      yield await decodeSamplesToRgbaAsync([samples, this.width, 1, 8, this.color], this.signal);
     }
   }
   close(): void { this.tiles = undefined; }

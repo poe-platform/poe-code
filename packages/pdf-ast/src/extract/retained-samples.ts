@@ -1,7 +1,6 @@
 import { PdfError } from "../errors.js";
 import type { PdfFileSource } from "../source.js";
-import { drainWorkAsync } from "../work.js";
-import { decodeSamplesToRgbaSteps, type ResolvedColorSpace } from "./images.js";
+import { decodeSamplesToRgbaAsync, type ResolvedColorSpace } from "./images.js";
 
 export interface PdfSampleRowOptions {
   /** Bounds owned sample/alpha rows, the RGBA row, tint-channel scratch, and one temporary range read.
@@ -64,6 +63,6 @@ export async function* decodeRetainedSampleRows(source: PdfFileSource, width: nu
     options.signal?.throwIfAborted();
     const samples = await row(source, y * rowBytes, rowBytes);
     const alphaRow = alpha ? await row(alpha, y * width, width) : undefined;
-    yield await drainWorkAsync(decodeSamplesToRgbaSteps(samples, width, 1, bpc, color, alphaRow, options.decode), options.signal);
+    yield await decodeSamplesToRgbaAsync([samples, width, 1, bpc, color, alphaRow, options.decode], options.signal);
   }
 }

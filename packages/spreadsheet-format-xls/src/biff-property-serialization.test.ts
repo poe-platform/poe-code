@@ -1,3 +1,4 @@
+import * as mergeProperties from './biff-properties-merge.js';
 import { mergeBiffProperties } from './biff-properties-merge.js';
 import type { BiffPropertySource } from './biff-encrypted-properties-write.js';
 import { stagePropertyBytes } from './biff-property-bytes.js';
@@ -11,11 +12,11 @@ function fixture() {
   const cleanups: (() => void | Promise<void>)[] = [], state = { closed: 0, acquired: 0, mode: '', pending: 0, writes: [] as Uint8Array[], hold: undefined as (() => Promise<void>) | undefined }, failure = new Error('backing failure');
   const ctx: CapabilityContext = { ...context, own(fn) { cleanups.push(fn); }, createWorkingStorage() {
     state.acquired++; if (state.mode === 'acquire') throw failure;
-    const data = new Uint8Array(2e6), borrowed = new Uint8Array(16384); let end = 23;
+    const ordinal = state.acquired, data = new Uint8Array(2e6), borrowed = new Uint8Array(16384); let end = 23;
     return { allocate(length) { if (state.mode === 'allocate') throw failure; const at = end; end += length; return at; }, async write(at, bytes) {
       expect(bytes.length).toBeLessThanOrEqual(16384); expect(++state.pending).toBe(1);
       try { state.writes.push(bytes); await state.hold?.(); if (state.mode === 'write') throw failure; data.set(bytes, at); } finally { state.pending--; }
-    }, async read(at, length) { expect(length).toBeLessThanOrEqual(16384); if (state.mode === 'read') throw failure;
+    }, async read(at, length) { expect(length).toBeLessThanOrEqual(16384); if (state.mode === 'read' || state.mode === 'output-read' && ordinal > 2) throw failure;
       borrowed.set(data.subarray(at, at + length)); return borrowed.subarray(0, length); },
     async close() { expect(state.pending).toBe(0); state.closed++; } };
   } };
@@ -109,7 +110,7 @@ it.each([[false, false], [true, false], [false, true], [true, true]])('publishes
   } finally { await engine.dispose(); }
 });
 
-it('stages rebuilt retained properties without allocating complete section or stream output', async () => {
+it('merges retained properties without allocating complete snapshot, section or stream bytes', async () => {
   const input = await readBiff(await createBiffWriter(8)(book, [], context), context);
   const expected = { streams: new Map<string, Uint8Array>() }, { ctx, state, cleanups } = fixture();
   await mergeBiffProperties(input, expected.streams, new Set(), context, () => {}, length => new Uint8Array(length));
@@ -119,8 +120,7 @@ it('stages rebuilt retained properties without allocating complete section or st
       allocations.push(length); return new Uint8Array(length);
     }, { sources, reserve: length => length });
     expect(sources.size).toBe(expected.streams.size);
-    const snapshots = input.unsupportedRecords!.filter(record => record.kind === 'ole-properties');
-    expect(allocations.filter(size => size > 16384)).toHaveLength(snapshots.length);
+    expect(allocations.filter(size => size > 16384)).toHaveLength(0);
     for (const [name, source] of sources) {
       const bytes = expected.streams.get(name)!; expect(source.size).toBe(bytes.length);
       for (let at = 0; at < source.size;) { const part = await source.read(at, source.size); expect(part).toEqual(bytes.subarray(at, at + part.length)); at += part.length; }
@@ -129,19 +129,44 @@ it('stages rebuilt retained properties without allocating complete section or st
   expect(state.closed).toBe(state.acquired);
 });
 
-it.each(['second-write', 'read', 'abort'])('cleans retained merge output after %s failure', async mode => {
+it.each(['second-write', 'output-write', 'read', 'output-read', 'abort'])('cleans retained merge output after %s failure', async mode => {
   const input = await readBiff(await createBiffWriter(8)(book, [], context), context);
   const { ctx, state, failure, cleanups } = fixture(), controller = new AbortController();
   const retainedContext = { ...ctx, signal: controller.signal };
-  if (mode === 'read') state.mode = 'read';
+  if (mode === 'read' || mode === 'output-read') state.mode = mode;
   state.hold = async () => {
-    if (state.acquired === 2) {
-      if (mode === 'second-write') throw failure;
+    if (state.acquired === (mode === 'second-write' ? 2 : 4)) {
+      if (mode === 'second-write' || mode === 'output-write') throw failure;
       if (mode === 'abort') controller.abort(failure);
     }
   };
   await expect(writeBiffProperties(input, retainedContext, true)).rejects.toBe(failure);
   for (const cleanup of cleanups) await cleanup();
-  expect(state.closed).toBe(state.acquired); expect(state.acquired).toBe(2);
+  expect(state.closed).toBe(state.acquired); expect(state.acquired).toBe(mode === 'second-write' || mode === 'read' ? 2 : 4);
   expect(state.writes.every(bytes => bytes.every(byte => byte === 0))).toBe(true);
+});
+
+it('keeps freshly serialized merge inputs in caller storage', async () => {
+  const input = await readBiff(await createBiffWriter(8)(book, [], context), context);
+  const { ctx, state, cleanups } = fixture(), merge = mergeProperties.mergeBiffProperties;
+  const spy = vi.spyOn(mergeProperties, 'mergeBiffProperties').mockImplementation(async (...args) => {
+    expect(args[1].size).toBeGreaterThan(0);
+    for (const source of args[1].values()) expect(source).not.toBeInstanceOf(Uint8Array);
+    return merge(...args);
+  });
+  try { const result = await writeBiffProperties(input, ctx, true); await result.close(); }
+  finally { spy.mockRestore(); for (const cleanup of cleanups) await cleanup(); }
+  expect(state.closed).toBe(state.acquired);
+});
+
+it.each(['odd', 'invalid-tail'])('rejects %s snapshot hex before opening output storage', async mode => {
+  const input = await readBiff(await createBiffWriter(8)(book, [], context), context);
+  const snapshot = input.unsupportedRecords!.find(record => record.kind === 'ole-properties')!;
+  const data = snapshot.data as { bytes: string; stream: string };
+  const corrupted = { ...input, unsupportedRecords: [{ ...snapshot, data: { ...data,
+    bytes: data.bytes.slice(0, -1) + (mode === 'odd' ? '' : 'g') } }] };
+  const { ctx, state } = fixture();
+  await expect(mergeBiffProperties(corrupted, new Map(), new Set(), ctx, () => {}, length => new Uint8Array(length),
+    { sources: new Map(), reserve: length => length })).rejects.toThrow('invalid retained property bytes');
+  expect(state.acquired).toBe(0);
 });

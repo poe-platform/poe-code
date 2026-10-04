@@ -284,34 +284,42 @@ export async function writeBiffProperties(book: Workbook, context: CapabilityCon
       for (const guid of present) yield* propertyChunks(encoded.get(guid)!);
     } });
   }
-  // Opaque snapshot merging still needs random byte-array access. Keep it explicit
-  // until that reader and its codepage/identity logic migrate to retained ranges.
   const snapshots = (book.unsupportedRecords ?? []).some(record =>
     record.source === "biff" && record.kind === "ole-properties" && record.disposition === "retained");
-  const streams = new Map<string, Uint8Array>();
-  if (!staged || snapshots) for (const [name, value] of planned) {
-    const bytes = new Uint8Array(value.length); let at = 0;
-    for (const part of propertyChunks(value)) { bytes.set(part, at); at += part.length; }
-    streams.set(name, bytes);
-  }
+  const streams = new Map<string, Uint8Array | BiffPropertySource>(), inputs: BiffPropertySource[] = [];
   const sources = new Map<string, BiffPropertySource>();
   const close = async () => {
     const errors: unknown[] = [];
-    for (const source of sources.values()) try { await source.close(); } catch (error) { errors.push(error); }
+    for (const source of [...sources.values(), ...inputs]) try { await source.close(); } catch (error) { errors.push(error); }
     if (errors.length === 1) throw errors[0];
     if (errors.length) throw new AggregateError(errors, "BIFF property sources cleanup failed");
   };
   try {
+    if (!staged || snapshots) for (const [name, value] of planned) {
+      if (staged) {
+        const source = await stagePropertyBytes(value, context); inputs.push(source); streams.set(name, source);
+      } else {
+        const bytes = new Uint8Array(value.length); let at = 0;
+        for (const part of propertyChunks(value)) { bytes.set(part, at); at += part.length; }
+        streams.set(name, bytes);
+      }
+    }
     const preserved = await mergeBiffProperties(book, streams, handledMetadata, context, charge, allocate,
       staged ? { sources, reserve } : undefined);
     for (const key of unsupportedKeys) if (!preserved.has(key))
       await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `Unsupported Excel BIFF document property: ${key}` });
     if (!staged) return { streams, handledMetadata, async close() {} };
-    for (const [name, value] of snapshots ? streams : planned) if (!sources.has(name)) sources.set(name, await stagePropertyBytes(value, context));
+    for (const [name, value] of snapshots ? streams : planned) if (!sources.has(name)) {
+      const bytes = 'size' in value ? { length: value.size, async *chunks() {
+        for (let at = 0; at < value.size;) { const part = await value.read(at, Math.min(16384, value.size - at)); at += part.length; yield part; }
+      } } : value;
+      sources.set(name, await stagePropertyBytes(bytes, context));
+    }
+    for (const input of inputs) await input.close();
     return { streams: sources, handledMetadata, close };
   } catch (error) {
     try { await close(); } catch (cleanup) { throw new AggregateError([error, cleanup], "BIFF properties cleanup failed"); }
     throw error;
-  } finally { if (staged && snapshots) for (const bytes of streams.values()) bytes.fill(0); }
+  } finally { if (staged && snapshots) for (const bytes of streams.values()) if (bytes instanceof Uint8Array) bytes.fill(0); }
 
 }

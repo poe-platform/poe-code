@@ -164,7 +164,7 @@ it("exports interpreted comments, print settings and sheet protection", async ()
     "xl/comments.xml": `<comments xmlns="${ss}"><authors><author>Ada  </author></authors><commentList><comment ref="B2" authorId="0"><text><t>original note</t></text></comment></commentList></comments>` }), context);
   const output = new TextDecoder().decode(await writeGnumeric(book, [], context));
   expect(output).toContain('Protected="1"');
-  expect(output).toContain(`<gnm:top Points="${0.3 * 72}" PrefUnit="mm"/>`);
+  expect(output).toContain('<gnm:top Points="21.6" PrefUnit="mm"/>');
   expect(output).toContain('<gnm:Scale type="percentage" percentage="75"/>');
   expect(output).toContain('<gnm:orientation>landscape</gnm:orientation>');
   expect(output).toContain('<gnm:Header Left="Header &amp;[PAGE]" Middle="" Right=""/>');
@@ -174,7 +174,11 @@ it("exports interpreted comments, print settings and sheet protection", async ()
 });
 it("preserves full precision for imported print points", async () => {
   const book = await readXlsx(await fixture(parts('<sheetData/><pageMargins top="0.123456"/>')), context);
-  expect(new TextDecoder().decode(await writeGnumeric(book, [], context))).toContain(`Points="${0.123456 * 72}"`);
+  const print = book.sheets[0]!.unsupportedRecords!.find(record => record.kind === "PrintInformation")!;
+  expect(print.data).toMatchObject({ children: [{ name: "Margins", children: [{ name: "top", attributes: expect.arrayContaining([{ name: "Points", namespace: "", value: String(0.123456 * 72) }]) }] }] });
+  const before = structuredClone(book);
+  expect(new TextDecoder().decode(await writeGnumeric(book, [], context))).toContain('Points="8.889"');
+  expect(book).toEqual(before);
 });
 it("imports row sizing, source column width conversion and measured view effects", async () => {
   const book = await readXlsx(await fixture(parts('<sheetViews><sheetView zoomScale="125" showGridLines="0" showFormulas="1" showZeros="0" showRowColHeaders="0" topLeftCell="C3"><pane state="frozen" xSplit="1" ySplit="2" topLeftCell="D4"/></sheetView></sheetViews><cols><col min="2" max="3" width="18.5703125" customWidth="1" hidden="1" outlineLevel="2" collapsed="1"/></cols><sheetData><row r="3" ht="22" customHeight="1" hidden="1"/></sheetData>')), context);

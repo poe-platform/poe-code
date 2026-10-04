@@ -1,6 +1,6 @@
 import { md5, sha1 } from "@noble/hashes/legacy.js";
 import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
-import { rc4Stream } from "./biff-encryption.js";
+import { createRc4Cipher } from "./biff-encryption.js";
 import { prepareBiffPropertyContainer } from "./biff-encrypted-properties-write.js";
 
 export type BiffEncryptionProfile = { readonly algorithm: "xor" } | { readonly algorithm: "rc4" } |
@@ -84,11 +84,15 @@ export async function encryptBiffStream(bytes: Uint8Array | BiffRc4Source, conte
   let stream: Uint8Array | undefined, verifierHash: Uint8Array | undefined;
   const material = new Uint8Array(cryptoapi ? 16 + password.length : 336), prefix = cryptoapi ? 20 : 5;
   const keyInput = new Uint8Array(prefix + 4);
-  const keyStream = (block: number, length: number): Uint8Array => {
+  const blockCipher = (block: number) => {
     keyInput.set(base!.subarray(0, prefix)); new DataView(keyInput.buffer).setUint32(prefix, block, true);
     const digest = hash(keyInput), key = cryptoapi ? new Uint8Array(keyBits === 40 ? 16 : keyBits / 8) : digest;
     if (cryptoapi) key.set(digest.subarray(0, keyBits / 8));
-    try { return rc4Stream(key, length, context); } finally { key.fill(0); digest.fill(0); }
+    try { return createRc4Cipher(key, context); } finally { key.fill(0); digest.fill(0); }
+  };
+  const keyStream = (block: number, length: number): Uint8Array => {
+    const bytes = new Uint8Array(length), cipher = blockCipher(block);
+    try { cipher.xor(bytes); return bytes; } finally { cipher.close(); }
   };
   try {
     let borrowed: Uint8Array | undefined;
@@ -107,7 +111,7 @@ export async function encryptBiffStream(bytes: Uint8Array | BiffRc4Source, conte
     base = hash(material); verifierHash = hash(entropy.subarray(16)); stream = keyStream(0, 16 + hashLength);
     if (!(bytes instanceof Uint8Array)) {
       await encryptSource(source!, cryptoapi, entropy, verifierHash, stream, keyStream, context);
-      return encryptProperties?.(keyStream);
+      return encryptProperties?.(keyStream, blockCipher);
     }
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     const pass = 4 + view.getUint16(2, true);
@@ -135,7 +139,7 @@ export async function encryptBiffStream(bytes: Uint8Array | BiffRc4Source, conte
       }
       at = end;
     }
-    return encryptProperties?.(keyStream);
+    return encryptProperties?.(keyStream, blockCipher);
   } finally {
     password.fill(0); entropy?.fill(0); initial?.fill(0); base?.fill(0); material.fill(0);
     keyInput.fill(0); stream?.fill(0); verifierHash?.fill(0);

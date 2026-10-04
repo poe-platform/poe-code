@@ -4,26 +4,44 @@ import { Binary, invalidBiff } from "./biff-binary.js";
 import { decryptBiffPropertyContainer, encryptedBiffPropertyStream } from "./biff-encrypted-properties.js";
 import { md5, sha1 } from "@noble/hashes/legacy.js";
 
-/** MS-OFFCRYPTO legacy interoperability only; RC4 provides no authentication. */
-export function rc4Stream(key: Uint8Array, length: number, context: CapabilityContext): Uint8Array {
+export interface BiffRc4Cipher {
+  /** Transform an owned window in place, continuing the current RC4 stream. */
+  xor(bytes: Uint8Array): void;
+  close(): void;
+}
+
+/** MS-OFFCRYPTO legacy interoperability only; RC4 provides no authentication.
+ * The caller closes each stream before releasing its key lifetime. Only the
+ * 256-byte permutation survives between windows; the supplied key is borrowed. */
+export function createRc4Cipher(key: Uint8Array, context: CapabilityContext): BiffRc4Cipher {
   const state = Uint8Array.from({ length: 256 }, (_, index) => index);
   let j = 0;
   for (let i = 0; i < 256; i++) {
     j = (j + state[i]! + key[i % key.length]!) & 255;
     [state[i], state[j]] = [state[j]!, state[i]!];
   }
-  const result = new Uint8Array(length);
-  let i = 0; j = 0;
-  try {
-    for (let at = 0; at < length; at++) {
-      if ((at & 255) === 0) context.signal.throwIfAborted();
-      i = (i + 1) & 255; j = (j + state[i]!) & 255;
-      [state[i], state[j]] = [state[j]!, state[i]!];
-      result[at] = state[(state[i]! + state[j]!) & 255]!;
-    }
-    return result;
-  } catch (error) { result.fill(0); throw error; }
-  finally { state.fill(0); }
+  let i = 0, closed = false; j = 0;
+  const close = () => { closed = true; state.fill(0); i = 0; j = 0; };
+  return {
+    xor(bytes) {
+      if (closed) throw new SsconvertError("invalid-request", "BIFF RC4 cipher is closed");
+      try {
+        for (let at = 0; at < bytes.length; at++) {
+          if ((at & 255) === 0) context.signal.throwIfAborted();
+          i = (i + 1) & 255; j = (j + state[i]!) & 255;
+          [state[i], state[j]] = [state[j]!, state[i]!];
+          bytes[at] = bytes[at]! ^ state[(state[i]! + state[j]!) & 255]!;
+        }
+      } catch (error) { bytes.fill(0); close(); throw error; }
+    },
+    close
+  };
+}
+
+/** Buffering convenience for the bounded record blocks and legacy readers. */
+export function rc4Stream(key: Uint8Array, length: number, context: CapabilityContext): Uint8Array {
+  const result = new Uint8Array(length), cipher = createRc4Cipher(key, context);
+  try { cipher.xor(result); return result; } finally { cipher.close(); }
 }
 
 /** Decode admitted XOR/RC4 profiles; optional secret acquisition is explicit host authority. */

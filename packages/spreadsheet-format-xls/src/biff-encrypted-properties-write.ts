@@ -1,3 +1,4 @@
+import type { BiffRc4Cipher } from "./biff-encryption.js";
 import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
 import type { ImportedValue, UnsupportedRecord, Workbook } from "@poe-code/spreadsheet-ast";
 
@@ -57,7 +58,8 @@ export function appendBiffAncillaryStreams(book: Workbook, streams: Map<string, 
  * Admit before password acquisition; serialize only while the export key exists.
  * Payload block IDs start at zero. Header and table restart block zero separately. */
 export function prepareBiffPropertyContainer(streams: ReadonlyMap<string, Uint8Array>, context: CapabilityContext,
-  charge: (amount: number) => void): (keyStream: (block: number, length: number) => Uint8Array) => Uint8Array {
+  charge: (amount: number) => void): (keyStream: (block: number, length: number) => Uint8Array,
+    createCipher?: (block: number) => BiffRc4Cipher) => Uint8Array {
   context.signal.throwIfAborted();
   if (streams.size > 65536 || streams.size > (context.limits.workbookNodes ?? context.limits.outputBytes))
     throw new SsconvertError("resource-limit", "ssconvert encrypted BIFF property node limit exceeded");
@@ -85,11 +87,22 @@ export function prepareBiffPropertyContainer(streams: ReadonlyMap<string, Uint8A
     context.signal.throwIfAborted();
     if (closed) throw new SsconvertError("invalid-request", "Encrypted BIFF property writer disposed");
   };
-  return keyStream => {
+  return (keyStream, createCipher) => {
     check(); output = new Uint8Array(size);
     const view = new DataView(output.buffer);
     const encrypt = (at: number, length: number, block: number) => {
-      check(); const key = keyStream(block, length);
+      check();
+      if (createCipher) {
+        const cipher = createCipher(block);
+        try {
+          check();
+          for (let offset = 0; offset < length; offset += 16384) {
+            cipher.xor(output!.subarray(at + offset, at + Math.min(length, offset + 16384))); check();
+          }
+        } finally { cipher.close(); }
+        return;
+      }
+      const key = keyStream(block, length);
       try {
         check();
         for (let i = 0; i < length; i++) { if (!(i % 1024)) check(); output![at + i] = output![at + i]! ^ key[i]!; }

@@ -19,7 +19,7 @@ import { objectRectangle } from "../objects/layout.js";
 import { graphBackground } from "../rendering/images/scene.js";
 import { layoutPrintPages } from "../rendering/print/layout.js";
 import { renderPrintHeaderFooter } from "../rendering/print/header-footer.js";
-import { splitPrintLines, fillPrintNewlines } from "@poe-code/spreadsheet-engine/rendering/print/text-lines";
+import { splitPrintLines, fillPrintNewlines, fillPrintParagraphs } from "@poe-code/spreadsheet-engine/rendering/print/text-lines";
 import { renderPrintFormula } from "@poe-code/spreadsheet-engine/rendering/print/formula-text";
 import { createPrintSpans } from "@poe-code/spreadsheet-engine/rendering/print/text-span";
 import { cellPrintStyle, type CellPrintStyle } from "../rendering/print/cell-style.js";
@@ -344,6 +344,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         const runs: ReturnType<typeof shaper.shape>[] = [];
         // Native Fill itemization separates paragraph boundaries and tabs.
         // Tabs use shared stops across the entire repeated line.
+        const rtlParagraphs = singleParagraph && !vectorFill && shapedValue.includes("\u2029") && shaper.shape(metrics, shapedValue).direction === "rtl";
         const chunks = singleParagraph ? shapedValue.split("\t") : [shapedValue];
         for (const [index, chunk] of chunks.entries()) {
           tick();
@@ -351,11 +352,13 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
             width = (Math.floor(width / tabWidth) + 1) * tabWidth;
             displayWidth = (Math.floor(displayWidth / displayTabWidth) + 1) * displayTabWidth;
           }
-          const parts = singleParagraph ? chunk.split("\u2029").flatMap(part => ["\u2028", "\r"].reduce(
+          const parts = singleParagraph ? fillPrintParagraphs(chunk, rtlParagraphs, tick).flatMap(part => ["\u2028", "\r"].reduce(
             (parts, separator) => parts.flatMap(part => part.split(separator).flatMap((piece, index) => index ? [separator, piece] : [piece])), [part])) : [chunk];
           for (const part of parts) {
             tick();
-            if (!part) continue;
+            // Repeated edge separators can leave a copy separator alone.
+            // It has no paint or advance and must not imply an LTR text run.
+            if (!part || rtlParagraphs && part.split("\u200b").join("") === "") continue;
             if ((part === "\u2028" || part === "\r") && separator) {
               markers.push({x: width, carriageReturn: part === "\r"});
               width += separator.width;
@@ -376,7 +379,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
             }
           }
         }
-        if (runs.length > 1 && runs.some(run => run.direction === "rtl")) unsupported("bidirectional fill layout");
+        if (runs.length > 1 && runs.some(run => run.direction === "rtl") && !(rtlParagraphs && runs.every(run => run.direction === "rtl"))) unsupported("bidirectional fill layout");
         const run = runs.length < 2 ? runs[0] : Object.create(runs[0]!, {
           glyphs: {value: runs.flatMap(run => run.glyphs)}, positions: {value: runs.flatMap(run => run.positions)}
         }) as NonNullable<typeof runs[0]>;

@@ -23,3 +23,10 @@ export function fillPrintNewlines(value: string, rtl: boolean, tick: (amount?: n
   tick(value.length);
   return value.split("\n").join(rtl ? "↪" : "↩");
 }
+
+/** Keep shaping boundaries while painting single-direction Fill paragraphs in visual order. */
+export function fillPrintParagraphs(value: string, rtl: boolean, tick: (amount?: number) => void): string[] {
+  tick(value.length);
+  const parts = value.split("\u2029");
+  return rtl ? parts.reverse() : parts;
+}

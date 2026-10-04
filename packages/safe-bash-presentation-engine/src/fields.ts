@@ -22,6 +22,10 @@ export interface MutateFieldsOptions extends ReadPresentationTextOptions, FieldU
   readonly allowEmpty?: boolean;
 }
 const kinds = { "slide-number": "slidenum", date: "datetime", footer: "footer", header: "header" };
+export const fieldTypeKinds: Readonly<Record<string, FieldKind>> = Object.freeze(Object.fromEntries([
+  ...Object.entries(kinds).map(([kind, type]) => [type, kind as FieldKind]),
+  ...Array.from({ length: 13 }, (_, index) => [`datetime${index + 1}`, 'date' as const])
+]));
 function invalid(message = "Invalid field update policy."): never {
   throw new OfficeError("invalid-value", message, "usage");
 }
@@ -105,19 +109,7 @@ export function readField(document: XmlPart, node: XmlElement) {
   const attr = (key: string) =>
     node.attributes.find((a) => !a.name.namespace && a.name.localName === key)?.value ?? null;
   const fieldType = attr("type");
-  const kind: FieldKind | null =
-    fieldType === "slidenum"
-      ? "slide-number"
-      : fieldType !== null &&
-          ["datetime", ...Array.from({ length: 13 }, (_, i) => `datetime${i + 1}`)].includes(
-            fieldType
-          )
-        ? "date"
-        : fieldType === "footer"
-          ? "footer"
-          : fieldType === "header"
-            ? "header"
-            : null;
+  const kind = fieldType !== null && Object.hasOwn(fieldTypeKinds, fieldType) ? fieldTypeKinds[fieldType]! : null;
   let cachedText = "";
   for (const child of node.children.filter(
     (n) => n.name.namespace === node.name.namespace && n.name.localName === "t"

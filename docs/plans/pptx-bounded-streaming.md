@@ -120,7 +120,7 @@ state and the remaining shipped-engine wiring are still required before they
 replace the buffered paths.
 
 This is not an end-to-end bounded-memory implementation or Worker qualification.
-Except for semantic validation, inspection and structural text extraction, the built-in command engine still collects input,
+Except for semantic validation, inspection, structural text and field extraction, the built-in command engine still collects input,
 returns complete stdout/stderr, and publishes complete output arrays. `safe-bash-presentation-engine` still collects the archive,
 retains decompressed members in `readPackage`, copies members in
 `writePackageArchive`, and builds embedded chart workbooks in memory.
@@ -252,6 +252,22 @@ tests and 1,103 command tests, scoped lint/typechecking and maintained builds. A
 native python-pptx 1.0.2 deck matched complete buffered/retained human and JSON
 bytes and native text across two slides, nested groups, table cells, paragraphs,
 soft breaks and Unicode. This is not Worker qualification.
+
+The shipped `fields list/get` operations now reuse retained text admission and
+caller-backed response staging. Field count, paragraph/inline coordinates, IDs,
+types and caches live in stored rows or scalar ranges. Original field caches
+remain distinct from compatibility-projected text, preserving mixed namespace
+filtering and direct original-child semantics. Human and JSON responses match
+the buffered commands, including missing/ambiguous selection diagnostics.
+Verification passed 6,407 engine and 1,124 command tests, scoped lint/typechecking
+and the maintained command workspace build. Tests cover all date field kinds,
+Strict documents, table cells, mixed namespaces, compatibility branches, long
+IDs/types/caches, reused input buffers, actual caller-storage spills with at most
+16 KiB outstanding writes, limits, cancellation and sink/storage failure cleanup.
+A native python-pptx/lxml fixture independently confirmed field metadata and
+inline coordinates, with exact retained/buffered response parity and clean storage.
+Richer text views, other extraction, mutations and embedded workbooks remain
+buffered. No runtime Worker memory qualification is claimed.
 
 ## Remaining implementation
 

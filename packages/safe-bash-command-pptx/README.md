@@ -29,8 +29,9 @@ The adapter writes bounded chunks to owned staging, rechecks in-place input,
 and publishes conditionally. Errors and cancellation retire staging without
 publishing partial output; dry-run does not consume the output source.
 
-The built-in `validate`, `inspect` and `text get` operations use retained input
-and caller-backed indexes. Inspection and text extraction stage complete responses before writing
+The built-in `validate`, `inspect`, `text get`, `fields list` and `fields get`
+operations use retained input and caller-backed indexes. Inspection, text and field
+extraction stage complete responses before writing
 stdout, so admission and output-limit failures expose no partial result. Other
 operations still use buffered document models during their streaming migration.
 

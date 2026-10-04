@@ -11,6 +11,7 @@ import { RetainedValues, literal, equal, folded, characters } from './retained-v
 import type { XmlRange } from './retained-xml.js';
 import { dialects } from './validation-schema.js';
 import { resourceContext } from './resource-limits.js';
+import { fieldTypeKinds, type FieldKind } from './fields.js';
 import { SelectionError } from './selectors.js';
 import { validateTextReadingOptions, type ReadPresentationTextOptions, type TextSegment } from './text-reading.js';
 
@@ -30,7 +31,19 @@ export interface RetainedTextSegment {
   readonly paragraphs: AsyncIterable<RetainedTextParagraph>;
   readonly cell?: TextSegment['cell'];
 }
+export interface RetainedField {
+  readonly location: Location;
+  readonly paragraph: number;
+  readonly inline: number;
+  readonly coordinateSystem: 'zero-based';
+  readonly kind: FieldKind | null;
+  readonly fieldId: (() => ByteSource) | null;
+  readonly fieldType: (() => ByteSource) | null;
+  cachedText(): ByteSource;
+}
 export interface RetainedPresentationText {
+  readonly fieldCount: number;
+  fields(): AsyncGenerator<RetainedField>;
   text(): ByteSource;
   segments(): AsyncGenerator<RetainedTextSegment>;
   close(): Promise<void>;
@@ -39,7 +52,7 @@ export interface RetainedPresentationText {
 // grows with the document. Text/attribute scalars live in caller-backed pages.
 enum B { Next, Owner, OwnerLength, Id, Paragraphs, LastParagraph, Row, Column, Count }
 enum P { Next, Inlines, LastInline, Index, Count }
-enum I { Next, Kind, Text, TextLength, FieldId, FieldIdLength, FieldType, FieldTypeLength, Count }
+enum I { Next, Kind, Text, TextLength, FieldId, FieldIdLength, FieldType, FieldTypeLength, FieldIndex, FieldText, FieldTextLength, Count }
 
 export async function openRetainedText(
   archive: Pick<RetainedPackageArchive, 'parts' | 'has' | 'read' | 'byteLength'>,
@@ -54,7 +67,7 @@ export async function openRetainedText(
   const index = await openRetainedPresentationIndex(archive, fingerprint, { ...context, workingStorage: working });
   const pages = new PagedStorage({ fs: working.fs, cwd: working.directory, env: {}, signal }, (working.cacheBytes ?? 1024 * 1024) / 16384);
   const traversal = new PagedStorage({ fs: working.fs, cwd: working.directory, env: {}, signal }, (working.cacheBytes ?? 1024 * 1024) / 16384);
-  let closed = false, closing: Promise<void> | undefined, firstBody = 0, lastBody = 0, firstOwner = 0, lastOwner = 0;
+  let closed = false, closing: Promise<void> | undefined, firstBody = 0, lastBody = 0, firstOwner = 0, lastOwner = 0, fieldCount = 0;
   const check = () => { if (closed) throw new OfficeError('invalid-handle', 'Text is closed.', 'select'); if (signal.aborted) throw new OfficeError('cancelled', 'Operation cancelled.', 'select'); };
   const failure = (error: unknown) => error instanceof OfficeError ? error : new OfficeError(signal.aborted ? 'cancelled' : 'io-failure', 'Text storage operation failed.', 'select');
   const close = () => { closed = true; return closing ??= (async () => { const outcomes = await Promise.allSettled([index.close(), traversal.close(), pages.close()]); for (const outcome of outcomes) if (outcome.status === 'rejected') throw outcome.reason; })(); };
@@ -145,14 +158,23 @@ export async function openRetainedText(
         async function body(node: RetainedXmlNode, id: number, cellRow = -1, cellColumn = -1) {
           const bodyPointer = pages.allocate(B.Count * 8), bodyRow = [0, ownerPart.start, ownerPart.length, id, 0, 0, cellRow, cellColumn]; let paragraphIndex = 0;
           for await (const paragraph of children(node, 'p', drawing)) {
-            const paragraphPointer = pages.allocate(P.Count * 8), paragraphRow = [0, 0, 0, paragraphIndex++];
+            const paragraphPointer = pages.allocate(P.Count * 8), paragraphRow = [0, 0, 0, paragraphIndex++]; let fieldInline = 0;
             for await (const inline of view!.children(paragraph)) {
               const kind = await is(inline, 'br', drawing) ? 1 : await is(inline, 'r', drawing) ? 0 : await is(inline, 'fld', drawing) ? 2 : -1;
               if (kind < 0) continue;
               async function* text(): ByteSource { if (kind === 1) yield* literal('\v'); else for await (const node of children(inline, 't', drawing)) yield* rawCharacters(node); }
               const value = await values.store(text()), fieldId = kind === 2 ? await attribute(inline, 'id') : undefined, fieldType = kind === 2 ? await attribute(inline, 'type') : undefined;
               const identifier = fieldId ? await values.store(document.text(fieldId)) : { start: -1, length: 0 }, type = fieldType ? await values.store(document.text(fieldType)) : { start: -1, length: 0 };
-              const pointer = pages.allocate(I.Count * 8); await write(pointer, [0, kind, value.start, value.length, identifier.start, identifier.length, type.start, type.length]);
+              const matchingNamespace = await equal(document.namespace(inline), document.namespace(paragraph));
+              const fieldIndex = matchingNamespace ? fieldInline++ : -1;
+              // Field inspection reads direct original t children, whereas text
+              // extraction reads projected compatibility children. Keep both.
+              async function* fieldText(): ByteSource {
+                for await (const node of document.children(inline)) if (await is(node, 't', drawing) && await equal(document.namespace(node), document.namespace(inline))) yield* rawCharacters(node);
+              }
+              const cached = kind === 2 && fieldIndex >= 0 ? await values.store(fieldText()) : { start: 0, length: 0 };
+              if (kind === 2 && fieldIndex >= 0) fieldCount++;
+              const pointer = pages.allocate(I.Count * 8); await write(pointer, [0, kind, value.start, value.length, identifier.start, identifier.length, type.start, type.length, fieldIndex, cached.start, cached.length]);
               if (paragraphRow[P.LastInline]) await write(paragraphRow[P.LastInline]!, [pointer]); else paragraphRow[P.Inlines] = pointer; paragraphRow[P.LastInline] = pointer;
             }
             await write(paragraphPointer, paragraphRow);
@@ -203,7 +225,21 @@ export async function openRetainedText(
       try { for await (const body of rows(firstBody, B.Count)) yield { location: { fingerprint, scope, owner: await name(range(body, B.Owner)), objectId: String(body[B.Id]), coordinateSystem: 'identity' }, text: () => bodyText(body[B.Paragraphs]!), paragraphs: paragraphs(body[B.Paragraphs]!), ...(body[B.Row]! < 0 ? {} : { cell: { coordinateSystem: 'zero-based', row: body[B.Row]!, column: body[B.Column]! } }) }; }
       catch (error) { throw failure(error); }
     }
-    return Object.freeze({ close, segments, async *text() { let separator = false; for await (const segment of segments()) { if (separator) yield* literal('\n'); separator = true; yield* segment.text(); } } });
+    async function* fields(): AsyncGenerator<RetainedField> {
+      try {
+        for await (const body of rows(firstBody, B.Count)) {
+          const location: Location = { fingerprint, scope, owner: await name(range(body, B.Owner)), objectId: String(body[B.Id]), coordinateSystem: 'identity' };
+          for await (const paragraph of rows(body[B.Paragraphs]!, P.Count)) for await (const inline of rows(paragraph[P.Inlines]!, I.Count)) if (inline[I.Kind] === 2 && inline[I.FieldIndex]! >= 0) {
+            const fieldType = inline[I.FieldType] === -1 ? null : () => values.read(range(inline, I.FieldType));
+            let kind: FieldKind | null = null;
+            if (fieldType) for (const [type, candidate] of Object.entries(fieldTypeKinds)) if (await equal(fieldType(), literal(type))) { kind = candidate; break; }
+            yield { location, paragraph: paragraph[P.Index]!, inline: inline[I.FieldIndex]!, coordinateSystem: 'zero-based', kind,
+              fieldId: inline[I.FieldId] === -1 ? null : () => values.read(range(inline, I.FieldId)), fieldType, cachedText: () => values.read(range(inline, I.FieldText)) };
+          }
+        }
+      } catch (error) { throw failure(error); }
+    }
+    return Object.freeze({ close, segments, fields, fieldCount, async *text() { let separator = false; for await (const segment of segments()) { if (separator) yield* literal('\n'); separator = true; yield* segment.text(); } } });
   } catch (error) { await close().catch(() => {}); throw failure(error); }
 }
 
@@ -213,16 +249,34 @@ export async function stageRetainedText(
   fingerprint: string,
   options: ReadPresentationTextOptions,
   settings: RetainedPackageContext,
-  output: { readonly json: boolean; readonly maxOutputBytes: number }
+  output: { readonly json: boolean; readonly maxOutputBytes: number; readonly operation?: 'text.get' | 'fields.list' | 'fields.get' }
 ): Promise<StagedOutput> {
-  const format = { ...output }, text = await openRetainedText(archive, fingerprint, options, settings);
+  const format = { ...output }, operation = format.operation ?? 'text.get';
+  if (!['text.get', 'fields.list', 'fields.get'].includes(operation)) throw new OfficeError('invalid-value', 'Invalid retained text operation.', 'usage');
+  const text = await openRetainedText(archive, fingerprint, options, settings), fields = operation !== 'text.get';
   let staged: StagedOutput | undefined;
-  async function* locations() { for await (const segment of text.segments()) yield segment.location; }
+  async function* locations() { for await (const item of fields ? text.fields() : text.segments()) yield item.location; }
+  async function* items() {
+    for await (const field of text.fields()) yield {
+      location: field.location, kind: field.kind ?? 'unknown', name: field.fieldId,
+      fields: [
+        { name: 'fieldType', value: field.fieldType === null ? { type: 'null', value: null } : { type: 'string', value: field.fieldType } },
+        { name: 'cachedText', value: { type: 'string', value: field.cachedText } },
+        { name: 'paragraph', value: { type: 'number', value: field.paragraph } },
+        { name: 'inline', value: { type: 'number', value: field.inline } },
+        { name: 'coordinateSystem', value: { type: 'string', value: 'zero-based' } }
+      ]
+    };
+  }
   async function* render(): ByteSource {
     if (format.json) {
-      yield* streamJson({ version: 1, operation: 'text.get', ok: true, data: { text: text.text, order: 'structural', segments: text.segments() }, warnings: [], errors: [], affected: 0, locations: locations() }); yield* literal('\n');
-    } else yield* text.text();
+      yield* streamJson({ version: 1, operation, ok: true, data: fields ? { items: items() } : { text: text.text, order: 'structural', segments: text.segments() }, warnings: [], errors: [], affected: 0, locations: locations() }); yield* literal('\n');
+    } else if (fields) yield* streamJson(text.fields());
+    else yield* text.text();
   }
-  try { staged = await stageRetainedOutput(render(), settings, format.maxOutputBytes); await text.close(); return staged; }
+  try {
+    if (operation === 'fields.get' && text.fieldCount !== 1) throw new SelectionError(text.fieldCount ? 'ambiguous-selection' : 'missing-selection');
+    staged = await stageRetainedOutput(render(), settings, format.maxOutputBytes); await text.close(); return staged;
+  }
   catch (error) { await Promise.allSettled([text.close(), staged?.close()]); throw error; }
 }

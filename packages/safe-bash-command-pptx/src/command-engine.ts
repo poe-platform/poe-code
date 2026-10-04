@@ -4089,7 +4089,7 @@ async function execute(
     output.json = args.json;
     output.operation = args.operation;
     const operation = args.operation;
-    if ((args.operation === "inspect" || args.operation === "text.get") && request.streaming) {
+    if ((args.operation === "inspect" || args.operation === "text.get" || args.operation === "fields.list" || args.operation === "fields.get") && request.streaming) {
       if (args.token) decodeSelectionToken(args.token);
       const input = await request.streaming.openInput(args.input!, Math.min(options.context.limits.maxBytes, options.context.archiveLimits.maxArchiveBytes));
       const hash = sha256.create();
@@ -4099,12 +4099,12 @@ async function execute(
       const archive = await openPackageArchive(input, context); let failed = false;
       try {
         const scope = args.token ? decodeSelectionToken(args.token).scope : args.scope;
-        stagedOutput = args.operation === "text.get"
+        stagedOutput = args.operation !== "inspect"
           ? await stageRetainedText(archive, fingerprint, {
             ...(scope === undefined ? {} : { scope: scope as TextScope }),
             ...(args.token ? { select: { token: args.token } } : args.slide === undefined ? {} : { select: { kind: "slide", position: { coordinateSystem: "one-based", value: args.slide } } }),
             ...(args.shape === undefined ? {} : { shape: args.shape })
-          }, context, { json: args.json, maxOutputBytes: options.maxOutputBytes })
+          }, context, { json: args.json, maxOutputBytes: options.maxOutputBytes, operation: args.operation })
           : await stageRetainedInspection(archive, fingerprint, {
           ...(args.token === undefined ? {} : { token: args.token }), ...(args.slide === undefined ? {} : { slide: args.slide }),
           ...(args.shape === undefined ? {} : { shape: args.shape }), ...(args.part === undefined ? {} : { part: args.part }),

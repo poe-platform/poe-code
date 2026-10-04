@@ -35,6 +35,9 @@ caller-owned. `pptx text get` uses the same admission and stores text bodies,
 paragraphs, inlines and traversal state in caller storage. `openRetainedText`
 (from `retained-text`) exposes replayable text streams and segment/paragraph/inline
 iterators; consume each nested iterator before advancing its parent. Close the
-result after reading. `stageRetainedText` provides the staged command formats.
+result after reading. Its `fields()` iterator streams field IDs, types and cached
+text; `fieldCount` supports exact-selection checks. `stageRetainedText` provides
+the staged `text.get`, `fields.list` and `fields.get` command formats, preserving
+original field caches independently of compatibility-projected text.
 Other default operations and the synchronous presentation model still use buffered
 APIs.

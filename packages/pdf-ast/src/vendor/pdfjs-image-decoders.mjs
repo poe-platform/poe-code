@@ -2971,7 +2971,14 @@ class StoredJbigIndex {
 function* jbigDictionaryGet(index, key) {
   return index instanceof StoredJbigIndex ? yield* index.get(key) : index?.[key];
 }
+class JbigSourceList {
+  constructor(data, start, length, width) { this.data = data; this.start = start; this.length = length; this.width = width; }
+}
 function* jbigListGet(list, index) {
+  if (list instanceof JbigSourceList) {
+    if (!Number.isInteger(index) || index < 0 || index >= list.length) return undefined;
+    return yield* jbigReadUint(list.data, list.start + index * list.width, list.width);
+  }
   if (list.parts) return yield* jbigListGet(index < list.parts[0].length ? list.parts[0] : list.parts[1],
     index < list.parts[0].length ? index : index - list.parts[0].length);
   if (list instanceof StoredJbigList) return yield* list.get(index);
@@ -3369,7 +3376,7 @@ function* decodeHalftoneRegion(mmr, patterns, template, regionWidth, regionHeigh
   }
   return regionBitmap;
 }
-function* readSegmentHeader(data, start, onAllocation) {
+function* readSegmentHeader(data, start, onAllocation, stored) {
   onAllocation?.(4096);
   const segmentHeader = {};
   segmentHeader.number = (yield* jbigReadUint(data, start, 4));
@@ -3386,16 +3393,17 @@ function* readSegmentHeader(data, start, onAllocation) {
   let referredToCount = referredFlags >> 5 & 7;
   const retainBits = [referredFlags & 31];
   let position = start + 6;
-  if (referredFlags === 7) {
+  if (referredToCount === 7) {
     referredToCount = (yield* jbigReadUint(data, position - 1, 4)) & 0x1fffffff;
     position += 3;
-    onAllocation?.(Math.ceil(referredToCount / 8) * 16);
-    let bytes = referredToCount + 7 >> 3;
-    retainBits[0] = (yield {source: data, position: position++});
-    while (--bytes > 0) {
-      retainBits.push((yield {source: data, position: position++}));
+    const bytes = Math.ceil((referredToCount + 1) / 8);
+    if (stored) position += bytes; // Retention flags are not consumed by this visitor.
+    else {
+      onAllocation?.(bytes * 16);
+      retainBits.length = 0;
+      for (let i = 0; i < bytes; i++) retainBits.push((yield {source: data, position: position++}));
     }
-  } else if (referredFlags === 5 || referredFlags === 6) {
+  } else if (referredToCount === 5 || referredToCount === 6) {
     throw new Jbig2Error("invalid referred-to flags");
   }
   segmentHeader.retainBits = retainBits;
@@ -3405,10 +3413,12 @@ function* readSegmentHeader(data, start, onAllocation) {
   } else if (segmentHeader.number <= 65536) {
     referredToSegmentNumberSize = 2;
   }
-  onAllocation?.(referredToCount * 16);
-  const referredTo = [];
+  if (!stored) onAllocation?.(referredToCount * 16);
+  const referencesEnd = position + referredToCount * referredToSegmentNumberSize;
+  if (referencesEnd + (pageAssociationFieldSize ? 4 : 1) + 4 > data.length) throw new Jbig2Error("truncated segment header");
+  const referredTo = stored ? new JbigSourceList(data, position, referredToCount, referredToSegmentNumberSize) : [];
   let i, ii;
-  for (i = 0; i < referredToCount; i++) {
+  for (i = 0; !stored && i < referredToCount; i++) {
     let number;
     if (referredToSegmentNumberSize === 1) {
       number = (yield {source: data, position: position});
@@ -3420,6 +3430,7 @@ function* readSegmentHeader(data, start, onAllocation) {
     referredTo.push(number);
     position += referredToSegmentNumberSize;
   }
+  position = referencesEnd;
   segmentHeader.referredTo = referredTo;
   if (!pageAssociationFieldSize) {
     segmentHeader.pageAssociation = (yield {source: data, position: position++});
@@ -3717,7 +3728,7 @@ function* processStoredSegments(fileHeader, data, start, end, visitor) {
   if (fileHeader.randomAccess) {
     while (payload < end) {
       currentBytes = 0;
-      const header = yield* readSegmentHeader(data, payload, admit);
+      const header = yield* readSegmentHeader(data, payload, admit, true);
       payload = header.headerEnd;
       if (header.type === 51) break;
     }
@@ -3725,7 +3736,7 @@ function* processStoredSegments(fileHeader, data, start, end, visitor) {
   const headersEnd = fileHeader.randomAccess ? payload : end;
   while (start < headersEnd) {
     currentBytes = 0;
-    const header = yield* readSegmentHeader(data, start, admit);
+    const header = yield* readSegmentHeader(data, start, admit, true);
     const position = fileHeader.randomAccess ? payload : header.headerEnd;
     const segmentEnd = position + header.length;
     yield* processSegment({header, data, start: position, end: segmentEnd}, visitor);
@@ -3909,9 +3920,10 @@ class SimpleSegmentVisitor {
       this.symbols = symbols = this.storedBitmap ? new StoredJbigIndex() : {};
     }
     let capacity = 0;
-    if (this.storedBitmap) for (const id of referredSegments) capacity += (yield* jbigDictionaryGet(symbols, id))?.length ?? 0;
+    if (this.storedBitmap) for (let i = 0; i < referredSegments.length; i++) capacity += (yield* jbigDictionaryGet(symbols, yield* jbigListGet(referredSegments, i)))?.length ?? 0;
     const inputSymbols = this.storedBitmap ? yield* StoredJbigList.create(capacity, JbigSymbolFields) : [];
-    for (const referredSegment of referredSegments) {
+    for (let i = 0; i < referredSegments.length; i++) {
+      const referredSegment = yield* jbigListGet(referredSegments, i);
       const referredSymbols = yield* jbigDictionaryGet(symbols, referredSegment);
       if (referredSymbols) {
         if (!this.storedBitmap) this.onAllocation?.(referredSymbols.length * 16 + 128);
@@ -3928,9 +3940,10 @@ class SimpleSegmentVisitor {
     let huffmanTables, huffmanInput;
     const symbols = this.symbols;
     let capacity = 0;
-    if (this.storedBitmap) for (const id of referredSegments) capacity += (yield* jbigDictionaryGet(symbols, id))?.length ?? 0;
+    if (this.storedBitmap) for (let i = 0; i < referredSegments.length; i++) capacity += (yield* jbigDictionaryGet(symbols, yield* jbigListGet(referredSegments, i)))?.length ?? 0;
     const inputSymbols = this.storedBitmap ? yield* StoredJbigList.create(capacity, JbigSymbolFields) : [];
-    for (const referredSegment of referredSegments) {
+    for (let i = 0; i < referredSegments.length; i++) {
+      const referredSegment = yield* jbigListGet(referredSegments, i);
       const referredSymbols = yield* jbigDictionaryGet(symbols, referredSegment);
       if (referredSymbols) {
         if (!this.storedBitmap) admit?.(referredSymbols.length * 16 + 128);
@@ -3960,7 +3973,7 @@ class SimpleSegmentVisitor {
     else patterns[currentSegment] = decoded;
   }
   *onImmediateHalftoneRegion(region, referredSegments, data, start, end) {
-    const patterns = yield* jbigDictionaryGet(this.patterns, referredSegments[0]);
+    const patterns = yield* jbigDictionaryGet(this.patterns, yield* jbigListGet(referredSegments, 0));
     const regionInfo = region.info, admit = this.regionAllocation();
     const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, admit);
     const bitmap = (yield* decodeHalftoneRegion(region.mmr, patterns, region.template, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.enableSkip, region.combinationOperator, region.gridWidth, region.gridHeight, region.gridOffsetX, region.gridOffsetY, region.gridVectorX, region.gridVectorY, decodingContext, this.storedBitmap));
@@ -4275,7 +4288,7 @@ class Reader {
 function* getCustomHuffmanTable(index, referredTo, customTables) {
   let currentIndex = 0;
   for (let i = 0, ii = referredTo.length; i < ii; i++) {
-    const table = yield* jbigDictionaryGet(customTables, referredTo[i]);
+    const table = yield* jbigDictionaryGet(customTables, yield* jbigListGet(referredTo, i));
     if (table) {
       if (index === currentIndex) {
         return table;

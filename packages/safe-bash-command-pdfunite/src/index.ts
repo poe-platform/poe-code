@@ -1,7 +1,5 @@
-import { resolvePath } from "safe-bash-contracts/path";
+import { executeRetainedUnite, pdfuniteUsage as usage } from "./retained.js";
 import { drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
-import { InputByteBudget, writeBytes } from "safe-bash-contracts/io";
-import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from "safe-bash-contracts/command";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
@@ -25,7 +23,6 @@ function resolveLimits(options: PdfuniteCommandsOptions): PdfuniteLimits {
   }
   return limits;
 }
-const usage = "Usage: pdfunite [options] <PDF-sourcefile-1>..<PDF-sourcefile-n> <PDF-destfile>\n";
 
 function copyDocumentMetadata(srcDoc: PdfDocument, dstDoc: PdfDocument): void {
   const meta = srcDoc.getMetadata();
@@ -354,54 +351,12 @@ export function createPdfuniteCommand(options: PdfuniteCommandsOptions = {}): Co
     name: "pdfunite",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Merge multiple PDF documents into a single PDF via @poe-code/pdf-ast",
-    execute(context: CommandContext) {
-      return new InputByteBudget(limits.maxInputBytes).run(context, async context => {
-        const operation = createOutputOperation(context, { write: async () => {} });
-        try {
-          const argv = [...getCommandArguments(context).args];
-          const paths: string[] = [];
-          let informational = false;
-          for (let i = 0; i < argv.length; i++) {
-            const arg = argv[i]!;
-            if (arg === "--") { paths.push(...argv.slice(i + 1)); break; }
-            
-            if (["-h", "-help", "--help", "-?", "-v", "--version"].includes(arg)) informational = true;
-            if (!arg.startsWith("-")) paths.push(arg);
-          }
-          const files = new Map<string, Uint8Array>();
-          let inputBytes = 0;
-          if (!informational) for (const path of new Set(paths.slice(0, -1))) {
-            let bytes: Uint8Array;
-            try { bytes = await context.fs.readFile(resolvePath(context.cwd, path), { signal: operation.signal }); }
-            catch (error) {
-              operation.signal.throwIfAborted();
-              if (!(error instanceof Error) || !("code" in error)) throw error;
-              continue;
-            }
-            inputBytes += bytes.byteLength;
-            context.inputBudget?.check(inputBytes);
-            if (inputBytes > limits.maxInputBytes) throw new RangeError("Input byte limit exceeded");
-            files.set(path, bytes);
-          }
-          const before = new Map(files);
-          const result = await runPdfuniteCli(argv, files, operation.signal, { limits });
-          if (result.stderr) await writeBytes(context.stderr, new TextEncoder().encode(result.stderr), operation.signal);
-          if (result.stdout) await writeBytes(operation.child(context.stdout).output, new TextEncoder().encode(result.stdout), operation.signal);
-          if (result.exitCode !== 0) return { exitCode: result.exitCode };
-          for (const [path, bytes] of files) {
-            if (before.get(path) === bytes) continue;
-            try {
-              await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(context.cwd, path), data, { signal: operation.signal }));
-            } catch (error) {
-              operation.signal.throwIfAborted();
-              if (!(error instanceof Error) || !("code" in error)) throw error;
-              await writeBytes(context.stderr, new TextEncoder().encode(`I/O Error: Couldn't open file '${path}'\n`), operation.signal);
-              return { exitCode: 255 };
-            }
-          }
-          return { exitCode: 0 };
-        } finally { await operation.close(); }
-      });
+    async execute(context: CommandContext) {
+      const operation = createOutputOperation(context, { write: async () => {} });
+      let failed = false;
+      try { return await executeRetainedUnite(context, getCommandArguments(context).args, limits, operation.signal); }
+      catch (error) { failed = true; throw error; }
+      finally { await operation.close().catch(error => { if (!failed) throw error; }); }
     }
   });
 }

@@ -1,3 +1,4 @@
+import { attachmentChunks, QpdfMissingAttachment } from "./attachments.js";
 import { copyQpdfSelections, QpdfMissingInput } from "./selection.js";
 import { xrefDisplayParts } from "./xref-display.js";
 import { pageDisplayParts } from "./page-display.js";
@@ -13,6 +14,8 @@ import type { QpdfLimits } from "./index.js";
 export interface RetainedQpdfOptions {
   inputFile: string | undefined;
   emptyInput: boolean;
+  listAttachments: boolean;
+  showAttachmentKey: string | undefined;
   collateCount: number | undefined;
   pageSpecs: readonly { file: string; password?: string; range: string }[];
   outputFile: string | undefined;
@@ -44,6 +47,17 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
   const storage = { fs: context.fs, directory: resolvePath(context.cwd, context.env.TMPDIR || "/tmp") };
   const inputs = new Map<string, PdfFileSource | undefined>();
   let source: PdfFileSource | undefined, document: PdfRetainedDocument | undefined, intermediate: PdfFileSource | undefined, output: PdfFileSource | undefined, failed = false;
+  async function publishInspection(chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>): Promise<void> {
+    async function* admitted() {
+      let total = 0;
+      for await (const bytes of chunks) {
+        if (bytes.length > limits.maxOutputBytes - total) throw new RangeError("Output byte limit exceeded");
+        total += bytes.length; yield bytes;
+      }
+    }
+    output = await PdfFileSource.fromStream(context.fs, storage.directory, admitted(), { signal, maxInputBytes: limits.maxOutputBytes });
+    for await (const bytes of output.stream(0, output.size, signal)) await writeBytes(context.stdout, bytes, signal);
+  }
   try {
     await context.fs.mkdir(storage.directory, { recursive: true, signal });
     const maximum = Math.min(limits.maxInputBytes, context.inputBudget?.maxBytes ?? Infinity);
@@ -106,7 +120,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
       return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
     }
-    if (options.check || options.showNpages || options.showEncryption || options.showObject || options.showPages || options.showXref) {
+    if (options.check || options.showNpages || options.showEncryption || options.showObject || options.showPages || options.showXref || options.listAttachments || options.showAttachmentKey !== undefined) {
       let count = 0, linearized = false, highest = 0, inlineCount = 0;
       let inlinePage: PdfCosNode | undefined, selectedValue: PdfCosNode | undefined, selectedLength: number | undefined;
       try {
@@ -139,15 +153,12 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
           function* parts() { yield* displayNodeParts(selectedValue ?? inlinePage); if (selectedLength !== undefined) yield `\nstream\n...(${selectedLength} bytes)...\nendstream`; yield "\n"; }
           chunks = encodeDisplayParts(parts(), signal);
         }
-        async function* admitted() {
-          let total = 0;
-          for await (const bytes of chunks) {
-            if (bytes.length > limits.maxOutputBytes - total) throw new RangeError("Output byte limit exceeded");
-            total += bytes.length; yield bytes;
-          }
-        }
-        output = await PdfFileSource.fromStream(context.fs, storage.directory, admitted(), { signal, maxInputBytes: limits.maxOutputBytes });
-        for await (const bytes of output.stream(0, output.size, signal)) await writeBytes(context.stdout, bytes, signal);
+        await publishInspection(chunks);
+        return { exitCode: 0 };
+      }
+      if (!options.check && !options.showNpages && !options.showEncryption && (options.listAttachments || options.showAttachmentKey !== undefined)) {
+        const chunks = attachmentChunks(document, storage, options.showAttachmentKey, signal);
+        await publishInspection(chunks);
         return { exitCode: 0 };
       }
       const encryption = document.encryption;
@@ -183,7 +194,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       }
     }
     return { exitCode: 0 };
-  } catch (error) { failed = true; if (error instanceof QpdfMissingInput) return await diagnostic(error.message); throw error; }
+  } catch (error) { failed = true; if (error instanceof QpdfMissingInput || error instanceof QpdfMissingAttachment) return await diagnostic(error.message); throw error; }
   finally {
     const results = await Promise.allSettled([document?.close(), ...[...new Set([...inputs.values(), source, intermediate, output])].map(input => input?.close())]);
     if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);

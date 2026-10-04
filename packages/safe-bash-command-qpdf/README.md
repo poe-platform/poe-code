@@ -54,7 +54,10 @@ through caller-backed object and page indexes, preserving repair and password
 diagnostics without collecting input payloads. `--is-encrypted` and
 `--requires-password` scan retained input in bounded chunks and validate supplied
 passwords through caller-backed object storage. Page listings with `--with-images`
-keep nested-form traversal state in caller storage.
+keep nested-form traversal state in caller storage. `--list-attachments` and
+`--show-attachment` use caller-backed name traversal and key indexes, decoding
+attachment payloads sequentially and validating all attachments before publishing
+stdout. Binary extraction preserves the original bytes.
 
 `--show-object` emits object syntax in bounded chunks. Combine it with
 `--raw-stream-data` or `--filtered-stream-data` for binary stream output. The

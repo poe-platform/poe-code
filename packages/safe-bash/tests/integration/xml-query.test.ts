@@ -5,10 +5,10 @@ import * as api from "../../src/index.js";
 import { MockS3Client, S3FileSystem } from "@poe-code/safe-fs";
 import { createXmlCommands, createXmllintCommands, xmlCommands, type XmlQueryLimits } from "../../src/commands/xml/index.js";
 
-for (const [name, xml, diagnostic] of [
-  ["empty children", "<r>" + "<a/>".repeat(10_000) + "</r>", "resource limit"],
-  ["depth", "<a>".repeat(65) + "</a>".repeat(65), "resource limit"],
-  ["content", "<r>" + "<!--x-->".repeat(10_000) + "</r>", "content node limit"],
+for (const [name, xml] of [
+  ["empty children", "<r>" + "<a/>".repeat(10_000) + "</r>"],
+  ["depth", "<a>".repeat(65) + "</a>".repeat(65)],
+  ["content", "<r>" + "<!--x-->".repeat(10_000) + "</r>"],
 ] as const) test(`xmllint --noout bounds configured parsed ${name} independently of output`, async () => {
   const shell = new api.Shell({ fs: api.createMemoryFileSystem(), limits: api.cloudflareWorkerLimits })
     .use(xmlCommands({ limits: { maxOutputBytes: 1024, maxNodes: 10_000, maxDepth: 64 } }));
@@ -16,7 +16,7 @@ for (const [name, xml, diagnostic] of [
     const result = await shell.exec("xmllint --noout", { stdin: Buffer.from(xml) });
     assert.equal(result.exitCode, 5, result.stderr);
     assert.equal(result.stdout, "");
-    assert.ok(result.stderr.includes(diagnostic), result.stderr);
+    assert.equal(result.stderr, "xmllint: XML resource limit exceeded\n");
   } finally { await shell.dispose(); }
 });
 
@@ -52,7 +52,7 @@ for (const [command, xml, limits, status, diagnostic] of [
   ["xq -r .a", "<a>long</a>", { maxOutputBytes: 2 }, 5, "maxOutputBytes"],
   ["xq .a", "<a/>", { maxSourceBytes: 1 }, 5, "maxSourceBytes"],
   ["xq '.r.i[]'", "<r><i>1</i><i>2</i></r>", { maxResults: 1 }, 5, "maxResults"],
-  ["xq .", "<a><broken></a>", {}, 1, "mismatched"],
+  ["xq .", "<a><broken></a>", {}, 1, "Invalid XML: 1:15: unexpected close tag."],
   ["xq .", "<!DOCTYPE a><a/>", {}, 1, "DTD"],
   ["xq -e .a", "<a/>", {}, 1, ""],
   ["xq '/a'", "<a/>", {}, 3, ""],

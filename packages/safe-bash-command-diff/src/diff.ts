@@ -337,11 +337,18 @@ async function runStored(context: CommandContext, budget: Budget, storage: Paged
       } else if (options.reportSame) await append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
       continue;
     }
+    const canIndex = async (path: string, stat: { type: string } | undefined) => {
+      if (!stat || stat.type === "file") return true;
+      if (pair.nested || !streamType(stat.type) || !context.fs.readStream) return false;
+      const capabilities = await host(context, async () =>
+        await context.fs.capabilitiesFor?.(pathOf(context, path), { signal: context.signal }) ?? context.fs.capabilities);
+      return capabilities.streamingRead !== false;
+    };
     if (!options.ignoreBlank && options.ignorePatterns.length === 0 && !options.functions.length
-      && (!leftStat || leftStat.type === "file") && (!rightStat || rightStat.type === "file")) {
+      && await canIndex(left, leftStat) && await canIndex(right, rightStat)) {
       const result = await indexedDiff(budget, options, left, right, pair.nested, appendBytes, {
-        left: !leftStat ? undefined : isStdin(left) ? "-" : pathOf(context, left),
-        right: !rightStat ? undefined : isStdin(right) ? "-" : pathOf(context, right),
+        left: !leftStat ? undefined : isStdin(left) ? "-" : streamType(leftStat.type) ? { stream: pathOf(context, left) } : pathOf(context, left),
+        right: !rightStat ? undefined : isStdin(right) ? "-" : streamType(rightStat.type) ? { stream: pathOf(context, right) } : pathOf(context, right),
       }, stdinDocument);
       different ||= result.different;
       trouble ||= result.trouble;

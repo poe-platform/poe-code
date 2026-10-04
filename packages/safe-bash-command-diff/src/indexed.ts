@@ -9,6 +9,8 @@ import { colorText, quoteDiffArgument, quoteDiffName } from "./diff-output.js";
 
 export interface StdinDocument { document?: IndexedDocument; loading?: Promise<void> }
 
+type DocumentSource = string | { stream: string } | undefined;
+
 type Append = (bytes: Uint8Array) => Promise<void>;
 const encoder = new TextEncoder();
 
@@ -99,14 +101,14 @@ async function line(document: IndexedDocument, position: number, prefix: string,
 }
 
 export async function indexedDiff(budget: Budget, options: DiffFlags, left: string, right: string, nested: boolean, append: Append,
-  sources: { left: string | undefined; right: string | undefined }, stdin: StdinDocument): Promise<{ different: boolean; trouble: boolean }> {
+  sources: { left: DocumentSource; right: DocumentSource }, stdin: StdinDocument): Promise<{ different: boolean; trouble: boolean }> {
   let trouble = false;
-  const acquire = (source: string | undefined) => source === "-" ? stdin.document ??= new IndexedDocument(budget) : new IndexedDocument(budget);
+  const acquire = (source: DocumentSource) => source === "-" ? stdin.document ??= new IndexedDocument(budget) : new IndexedDocument(budget);
   const rawOld = acquire(sources.left), rawNext = acquire(sources.right);
   let old = rawOld, next = rawNext;
-  const load = async (document: IndexedDocument, source: string | undefined) => {
+  const load = async (document: IndexedDocument, source: DocumentSource) => {
     if (source === undefined) return;
-    const input = source === "-" ? budget.stdinSource() : budget.diffSource(source);
+    const input = source === "-" ? budget.stdinSource() : typeof source === "string" ? budget.diffSource(source) : budget.streamSource(source.stream);
     if (source === "-") await (stdin.loading ??= document.load(input));
     else await document.load(input);
   };

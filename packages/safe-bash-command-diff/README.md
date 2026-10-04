@@ -11,7 +11,8 @@ output and explicit resource limits.
   including binary files and arbitrarily long lines.
 - Normal, unified, context, RCS, conditional, ed and side-by-side output uses
   bounded document, line-index and LCS caches backed by your filesystem, including
-  stdin, whitespace/case normalization and display transformations.
+  stdin, streaming FIFO/character operands, whitespace/case normalization and
+  display transformations.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
@@ -49,5 +50,5 @@ retain spilled data in RAM. The backend must support positioned reads/writes,
 exclusive creation, and conditional removal. Paginated output is staged in caller
 storage and emitted in bounded blocks after formatting succeeds; its single-column
 formatter also emits bounded chunks within long lines.
-Ignored-line and function-heading options, directory metadata, special-file
-operands still have buffered paths; this is not a general bounded-memory guarantee for every diff option.
+Ignored-line and function-heading options, directory metadata, and special-file
+backends without streaming reads still have buffered paths; this is not a general bounded-memory guarantee for every diff option.

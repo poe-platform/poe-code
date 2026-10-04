@@ -5,8 +5,10 @@ exact `diff --brief` regular-file payload comparison plus indexed normal, unifie
 context, RCS, conditional, ed and side-by-side output (including stdin and
 missing-file operands, normalization, display transformations and brief stdin).
 Indexed documents, line indexes, LCS cells, edit groups and output use caller-backed
-page caches. Ignored lines, function headings, special-file operands, directory
-metadata, patch, apply-patch and diff3 still need migration. Pagination uses
+page caches. Streaming FIFO and character operands use the same staged indexes;
+non-streaming backends retain a buffered compatibility path. Ignored lines,
+function headings, directory metadata, patch, apply-patch and diff3 still need
+migration. Pagination uses
 caller-backed output pages, bounded sink writes and incremental single-column
 line rendering. Other pr layouts are outside this coverage. Do not infer
 qualification of unmigrated paths from these tests.

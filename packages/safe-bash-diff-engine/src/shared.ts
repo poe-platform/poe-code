@@ -1,5 +1,5 @@
 import {
-collectBytes,isFsError,readBytes,
+collectBytes,FsError,isFsError,readBytes,
 type ByteSource,type CommandContext,type CommandDefinition,type FileStat,
 } from "safe-bash-contracts";
 import { PublicDiagnostic,publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
@@ -188,6 +188,22 @@ export class Budget {
       if (!sameIdentity(after, stat) || after.size !== stat.size || after.revision !== stat.revision)
         throw new ToolError("diff input changed while reading");
     } finally { await handle.close(); }
+  }
+
+  /** Sequential special-file admission without using its stat size as an EOF. */
+  async *streamSource(path: string): ByteSource {
+    const { fs, signal } = this.context;
+    if (!fs.readStream) throw new ToolError("diff stream input requires streaming reads");
+    const remaining = Math.min(this.limits.maxInputBytes, this.context.inputBudget?.maxBytes ?? Infinity) - this.inputBytes;
+    let admitted = 0;
+    for await (const chunk of this.chunks(fs.readStream(path, { signal, chunkSize: 16384 }))) {
+      admitted += chunk.length;
+      if (admitted > remaining) throw new FsError("EFBIG", { syscall: "collectBytes", message: "output exceeds maxBytes" });
+      for (let offset = 0; offset < chunk.length; offset += 16384) {
+        signal.throwIfAborted();
+        yield new Uint8Array(chunk.subarray(offset, offset + 16384));
+      }
+    }
   }
 
   /** Sequential stdin admission with owned bounded blocks for safe-fs staging. */

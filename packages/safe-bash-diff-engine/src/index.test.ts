@@ -4,7 +4,7 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { toByteSource } from "safe-bash-contracts";
 import { Budget, ToolError, inspect } from "./shared.js";
 
-for (const mode of ["stdin", "stream", "buffer", "retained"] as const) test(`input budget accounts cumulatively for ${mode} reads`, async () => {
+for (const mode of ["stdin", "stream", "buffer", "retained", "sequential"] as const) test(`input budget accounts cumulatively for ${mode} reads`, async () => {
  const fs = createMemoryFileSystem();
  await fs.writeFile("/file", new TextEncoder().encode("abc"));
  const totals: number[] = [];
@@ -18,7 +18,10 @@ for (const mode of ["stdin", "stream", "buffer", "retained"] as const) test(`inp
   stdout: { async write() {} }, stderr: { async write() {} }, signal: new AbortController().signal,
   inputBudget: { maxBytes: Infinity, check(total) { totals.push(total); } },
  }, {});
- if (mode === "retained") {
+ if (mode === "sequential") {
+  for await (const bytes of budget.streamSource("/file")) assert.equal(bytes.length, 3);
+  for await (const bytes of budget.streamSource("/file")) assert.equal(bytes.length, 3);
+ } else if (mode === "retained") {
   await inspect(budget, "/file");
   await budget.readDiff("/file");
   await budget.readDiff("/file");

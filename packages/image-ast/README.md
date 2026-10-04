@@ -24,6 +24,10 @@ functions return the same pixel results.
 decoder and supports raw or generated inputs. It shares the source and backing
 contracts of the format-specific codecs. `encodeStoredImage(image, storage, signal,
 options)` streams the corresponding output and returns final output information.
+`tryImageFile` can publish a retained input with `encoded: {source, info}` to copy an
+existing encoded snapshot exactly, without re-encoding pixels. Its idempotent
+`close()` retires that input before atomic publication; enclosing operations may
+keep ownership of shared backing for other pending outputs.
 File adapters can use `withImageSource(input, filesystem, signal, callback)` to scope
 retained reads, source-version validation and handle cleanup to a supplied filesystem.
 `decodePngToStorage(source, storage, signal)` decodes PNGs through reads and writes

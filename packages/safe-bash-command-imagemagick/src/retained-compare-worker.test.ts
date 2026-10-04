@@ -5,9 +5,9 @@ import { Miniflare } from "miniflare";
 import { fileURLToPath } from "node:url";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { runCompareCli, runConvertCli, runMogrifyCli } from "./index.js";
-for (const tool of ["compare", "convert", "mogrify"] as const)
-for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : tool === "mogrify" ? ["bmp"] : ["bmp", "gradient", "radial-gradient", "pattern", "tile", "pdf"]) as ("bmp" | "svg" | "label" | "gradient" | "radial-gradient" | "pattern" | "tile" | "pdf")[])
-for (const stdout of tool === "mogrify" ? [false] : [false, true])
+for (const tool of ["compare", "convert", "mogrify", "convert-write"] as const)
+for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : (tool === "mogrify" || tool === "convert-write") ? ["bmp"] : ["bmp", "gradient", "radial-gradient", "pattern", "tile", "pdf"]) as ("bmp" | "svg" | "label" | "gradient" | "radial-gradient" | "pattern" | "tile" | "pdf")[])
+for (const stdout of (tool === "mogrify" || tool === "convert-write") ? [false] : [false, true])
     it(`runs ${tool} in Workerd, input=${format}, stdout=${stdout}`, async () => {
         const pixels = new Uint8Array(601 * 601 * 4);
         let state = 1234567;
@@ -27,6 +27,7 @@ for (const stdout of tool === "mogrify" ? [false] : [false, true])
         const generated = ["label", "gradient", "radial-gradient", "pattern", "tile"].includes(format);
         const operand = format === "label" ? "label:" + "x<&😀".repeat(600) : format === "gradient" || format === "radial-gradient" ? format + ":red-blue" : format === "pattern" ? "pattern:checkerboard" : format === "tile" ? "tile:rose:" : "/input";
         const args = format === "bmp" ? ["-size","601x601",operand,"-flip","-gamma","1.4","-colorspace","gray","-modulate","110,90,70","-function","Polynomial","0.5,0.2","-transparent","red","-level","20%,80%,1.3","-negate","-black-threshold","30%","-normalize","-auto-gamma","-crop","590x590+5+5","-background","#ff00ff80","-gravity","center","-extent","601x601","-alpha","shape","-color-matrix","0,1,0 0,0,1 1,0,0","-splice","3x2+4+5","-chop","2x3+5+4","-roll","+103-77","-emboss","1","-morphology","Open","3x5","-statistic","median","3x5","-shear","3x2","-distort","SRT","1.1,13","-vignette","0x2","-shadow","75x0.5-2+3","-fx","(u+p{w-1-i,h-1-j})/2","-fill","#12345680","-annotate","+3+4","Hello gjpqy","-draw","rectangle 1,2 11,12 circle 15,17 20,21 point 3,4 line 1,2 23,27","-fill","#65432180","-fuzz","100%","-floodfill","+0+0","-remap","pattern:checkerboard"] : ["-size", "601x601", operand, "-flip", "-gamma", "1.4", "-colorspace", "gray"];
+        if (tool === "convert-write") args.push("-write", "/middle.bmp", "-negate");
         const expectedFiles = new Map([["/input", bytes]]), expected = tool === "compare" ? await runCompareCli([operand, operand, "/out.bmp"], expectedFiles) : tool === "mogrify" ? await runMogrifyCli(["-format", "png", ...args.slice(3), operand], expectedFiles) : await runConvertCli([...args, "png:/out.bmp"], expectedFiles);
         const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../../../", import.meta.url)), sourcefile: "pdf-metadata-worker.ts", contents: `
  import {runCompareCli,runConvertCli,runMogrifyCli} from './packages/safe-bash-command-imagemagick/src/index.ts';
@@ -35,7 +36,7 @@ for (const stdout of tool === "mogrify" ? [false] : [false, true])
  const stat=(file,type='file')=>({type,size:file.size,mode:420,mtimeMs:1,ctimeMs:1,atimeMs:1,identityScope:scope,opaqueIdentity:file.id,opaqueVersion:'1'}),parent=stat({id:'root',size:0},'directory');
  const fs={capabilities:{atomicFilePublication:true,retainedRead:true,retainedStagingWrite:true,retainedStagingCleanup:true},async stat(path){return files.has(path)?stat(files.get(path)):parent;},async capabilitiesFor(){return this.capabilities;},
  async lstat(path){const file=files.get(path);if(!file)throw new FsError('ENOENT');return stat(file);},
- async publishFileConditional(path,source){for await(const bytes of source)await output.write(bytes);const file={id:'result',size:outputSize};files.set(path,file);return stat(file);},
+ async publishFileConditional(path,source){const id=path==='/middle.bmp'?'middle':'result';let size=0;for await(const bytes of source){await env.BACKING.fetch('https://backing/'+id+'?position='+size,{method:'PUT',body:bytes});size+=bytes.length;}if(id==='result')outputSize=size;const file={id,size};files.set(path,file);return stat(file);},
  async removeFileConditional(path){files.delete(path);removed++;},
  async open(path){const file={id:String(++id),size:0};files.set(path,file);opened++;return {capabilities:{positionedRead:true,positionedWrite:true},async stat(){return stat(file);},async write(bytes,position){if(bytes.length>16384)throw new Error('large scratch write');await env.BACKING.fetch('https://backing/'+file.id+'?position='+position,{method:'PUT',body:bytes});file.size=Math.max(file.size,position+bytes.length);return bytes.length;},async read(bytes,position){reads++;const response=await env.BACKING.fetch('https://backing/'+file.id+'?position='+position+'&length='+bytes.length);bytes.set(new Uint8Array(await response.arrayBuffer()));return bytes.length;},async close(){closed++;await env.BACKING.fetch('https://backing/'+file.id,{method:'DELETE'});}};},
  async openReadFile(path){const file=files.get(path);if(!file)throw new Error('missing retained source');opened++;return {async stat(){return stat(file);},async read(position,length){if(length>65536)throw new Error('large request');reads++;const response=await env.BACKING.fetch('https://backing/'+file.id+'?position='+position+'&length='+length);return new Uint8Array(await response.arrayBuffer());},async close(){closed++;}};},
@@ -91,11 +92,16 @@ for (const stdout of tool === "mogrify" ? [false] : [false, true])
             expect(result.opened).toBeGreaterThan(generated ? 0 : 1);
             expect(result.closed).toBe(result.opened);
             expect(result.removed).toBe(result.opened - (generated ? 0 : tool === "compare" ? 2 : 1));
-            expect(result.files).toBe(stdout ? 1 : 2);
+            expect(result.files).toBe(tool === "convert-write" ? 3 : stdout ? 1 : 2);
             expect(result.reads).toBeGreaterThan(8);
             expect(result.maxAllocation).toBeLessThanOrEqual(65536);
             expect(result.nodeGlobals).toBe(false);
-            expect(await (await backing.fetch("https://backing/")).json()).toEqual(["/input", "/result"]);
+            expect(await (await backing.fetch("https://backing/")).json()).toEqual(tool === "convert-write" ? ["/input", "/middle", "/result"] : ["/input", "/result"]);
+            if (tool === "convert-write") {
+                const middle = new Uint8Array(await (await backing.fetch("https://backing/middle")).arrayBuffer());
+                expect(middle.length).toBeGreaterThan(1048576);
+                expect(decodeImage(middle)).toEqual(decodeImage(expectedFiles.get("/middle.bmp")!));
+            }
             expect(decodeImage(new Uint8Array(await (await backing.fetch("https://backing/result")).arrayBuffer()))).toEqual(decodeImage(expectedFiles.get(tool === "mogrify" ? "input.png" : "/out.bmp")!));
         }
         finally {

@@ -5085,7 +5085,16 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         if (!operandsOnly && token === "-strip") { state.strip = true; continue; }
         if (!operandsOnly && token === "+repage") continue;
         if (!operandsOnly && token === "-repage") { i++; continue; }
-        if (!operandsOnly && (token === "-dither" || token === "+dither")) {
+        if (!operandsOnly && (token === "-write" || token === "+write")) {
+            const path = tokens[++i] ?? "", quality = state.quality;
+            steps.push(async (image, backend) => {
+                if (image && path && path.toLowerCase() !== "null:") {
+                    const output = inferOutputFormat(path, image.format);
+                    await backend.stage(image, output.path, { format: output.format, quality });
+                }
+                return image;
+            });
+        } else if (!operandsOnly && (token === "-dither" || token === "+dither")) {
             state.dither = token === "-dither" ? (tokens[++i] ?? "floydsteinberg").toLowerCase() !== "none" : false;
         } else if (!operandsOnly && token === "-remap") {
             const palette = tokens[++i] ?? "", settings = { ...state };
@@ -5234,6 +5243,7 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         catch (error) {
             signal.throwIfAborted();
             if (error instanceof CompareInputFailure) throw error.reason;
+            await backend.publishPending();
             return { exitCode: 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` };
         }
         if (!image) return { exitCode: 1, stdout: "", stderr: `magick: no images defined '${outSpec}'\n` };

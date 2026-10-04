@@ -1,3 +1,4 @@
+import { EncodedSnapshots } from "./encoded-snapshots.js";
 import { decodeFileImage } from "./image-raster.js";
 import { readImageMetadataFromSource, tryPdfMetadata, readImageMetadata, decodeImage, encodeStoredImage, tryImageFile, UnsupportedStoredResource, type ImageMetadata, type SharpInputOptions, type StoredRgbaImage, type RgbaImage, type ImageByteSource, type OutputEncodeOptions } from "@poe-code/image-ast/portable";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
@@ -16,6 +17,8 @@ export interface CompareFileSession {
     readonly storage: PagedStorage;
     load(path: string, options: (metadata: ImageMetadata | undefined) => SharpInputOptions): Promise<StoredRgbaImage | undefined>;
     retain(image: RgbaImage): Promise<StoredRgbaImage>;
+    stage(image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions): Promise<void>;
+    publishPending(): Promise<void>;
     publish(image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions): Promise<Uint8Array | undefined>;
 }
 export class CompareInputFailure extends Error {
@@ -24,6 +27,7 @@ export class CompareInputFailure extends Error {
 export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal, run: (session: CompareFileSession) => Promise<T>): Promise<T> {
     const { filesystem: fs, cwd, stdout, registerCleanup } = input, context = { signal, ...(registerCleanup ? { registerCleanup } : {}) }, io = { signal };
     const storage = new PagedStorage({ fs, cwd, env: {}, signal });
+    const snapshots = new EncodedSnapshots(storage, signal);
     let failed = true;
     const materialize = async (source: ImageByteSource) => { const bytes = new Uint8Array(source.size); for (let offset = 0; offset < source.size; offset += 16384) {
         signal.throwIfAborted();
@@ -48,11 +52,50 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
             return typeof value === "function" ? value.bind(target) : value;
         } });
     try {
-        const result = await withImageInputs(input, stdinBytes, signal, async (read) => run({ storage, retain,
+        const result = await withImageInputs(input, stdinBytes, signal, async (read) => {
+        const publishImage = async (image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions, snapshot?: NonNullable<import("@poe-code/image-ast/portable").StoredImageFileInput["encoded"]>, retire = true): Promise<Uint8Array | undefined> => {
+                if (path !== "-" || snapshot) {
+                    const output = resolvePath(cwd, path), info = await tryImageFile({ image, storage, ...(snapshot ? { encoded: snapshot } : {}), async close() { if (retire) { await storage.close(); await read.close(); } } }, output, { filesystem: budgetedFs, workingDirectory: cwd, signal }, encoding);
+                    if (info)
+                        return;
+                }
+                const encoded = encodeStoredImage(image, storage, signal, encoding), chunks: Uint8Array[] = [];
+                let size = 0;
+                try {
+                    for await (const chunk of encoded) {
+                        if (path === "-" && !snapshot && stdout)
+                            await writeBytes(stdout, chunk, signal);
+                        else {
+                            chunks.push(chunk);
+                            size += chunk.length;
+                        }
+                    }
+                }
+                finally {
+                    await encoded.return(undefined);
+                }
+                if (path === "-" && !snapshot && stdout)
+                    return;
+                const bytes = new Uint8Array(size);
+                let offset = 0;
+                for (const chunk of chunks) {
+                    bytes.set(chunk, offset);
+                    offset += chunk.length;
+                }
+                if (path === "-" && !snapshot)
+                    return bytes;
+                await writeFileOutput(context, bytes, admitted => fs.writeFile(resolvePath(cwd, path), admitted, io));
+            };
+        const publishPending = async () => {
+            let index = 0;
+            for (const [path, snapshot] of snapshots) await publishImage(snapshot.image, path, snapshot.encoding, snapshot.encoded, ++index === snapshots.size);
+            snapshots.clear();
+        };
+        return run({ storage, retain,
             async load(path, options) {
                 let entered = false, completed = false;
                 try {
-                    return await read(path, async (source) => {
+                    const consume = async (source: ImageByteSource) => {
                         entered = true;
                         const checked: ImageByteSource = { size: source.size, async read(position, length) { try {
                                 return await source.read(position, length, io);
@@ -91,7 +134,9 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                             completed = true;
                             return image;
                         }
-                    });
+                    };
+                    const snapshot = path === "-" ? undefined : snapshots.get(path);
+                    return snapshot ? await consume(snapshot.encoded.source) : await read(path, consume);
                 }
                 catch (error) {
                     signal.throwIfAborted();
@@ -104,40 +149,18 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                     throw error;
                 }
             },
+            stage: snapshots.stage.bind(snapshots),
+            publishPending,
             async publish(image, path, encoding) {
-                if (path !== "-") {
-                    const output = resolvePath(cwd, path), info = await tryImageFile({ image, storage, async close() { await storage.close(); await read.close(); } }, output, { filesystem: budgetedFs, workingDirectory: cwd, signal }, encoding);
-                    if (info)
-                        return;
-                }
-                const encoded = encodeStoredImage(image, storage, signal, encoding), chunks: Uint8Array[] = [];
-                let size = 0;
-                try {
-                    for await (const chunk of encoded) {
-                        if (path === "-" && stdout)
-                            await writeBytes(stdout, chunk, signal);
-                        else {
-                            chunks.push(chunk);
-                            size += chunk.length;
-                        }
-                    }
-                }
-                finally {
-                    await encoded.return(undefined);
-                }
-                if (path === "-" && stdout)
-                    return;
-                const bytes = new Uint8Array(size);
-                let offset = 0;
-                for (const chunk of chunks) {
-                    bytes.set(chunk, offset);
-                    offset += chunk.length;
-                }
-                if (path === "-")
-                    return bytes;
-                await writeFileOutput(context, bytes, admitted => fs.writeFile(resolvePath(cwd, path), admitted, io));
+                if (!snapshots.size) return publishImage(image, path, encoding);
+                let bytes: Uint8Array | undefined;
+                if (path === "-") bytes = await publishImage(image, path, encoding);
+                else await snapshots.stage(image, path, encoding);
+                await publishPending();
+                return bytes;
             }
-        }));
+        });
+        });
         failed = false;
         return result;
     }

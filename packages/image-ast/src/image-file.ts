@@ -15,7 +15,9 @@ import type {SharpInputOptions, OutputEncodeOptions, OutputInfo, ImageAstNode} f
 export interface StoredImageFileInput {
   readonly image: StoredRgbaImage;
   readonly storage: ImageByteStorage;
-  /** Retire caller backing before atomic publication; must be idempotent. */
+  /** Optional already encoded snapshot, retained in caller backing. */
+  readonly encoded?: { readonly source: ImageByteSource; readonly info: OutputInfo };
+  /** Retire this input before publication; enclosing operations may own shared backing. Must be idempotent. */
   close(): Promise<void>;
 }
 
@@ -118,9 +120,21 @@ export async function tryImageFile(input: ImageResourceInput | StoredImageFileIn
     const backing=storage;
     let complete=false,info:OutputInfo|undefined;
     stream=(async function* () {
-      const encoded=encodeStoredImage(image,backing,signal,{...encoding,format});
-      try {while(true){const next=await encoded.next();if(next.done){info=next.value;break;}yield next.value;}}
-      finally {await encoded.return(undefined);}
+      if (retained?.encoded) {
+        const {source}=retained.encoded;
+        for(let position=0;position<source.size;position+=16384){
+          signal.throwIfAborted();
+          const length=Math.min(16384,source.size-position),bytes=await source.read(position,length,io);
+          if(bytes.length!==length)throw new FsError("EIO",{path:output,message:"Truncated encoded image snapshot"});
+          signal.throwIfAborted();
+          yield new Uint8Array(bytes);
+        }
+        info=retained.encoded.info;
+      } else {
+        const encoded=encodeStoredImage(image,backing,signal,{...encoding,format});
+        try {while(true){const next=await encoded.next();if(next.done){info=next.value;break;}yield next.value;}}
+        finally {await encoded.return(undefined);}
+      }
       await closeStorage!();
       complete=true;
     })();

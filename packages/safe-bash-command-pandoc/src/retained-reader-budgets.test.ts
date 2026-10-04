@@ -2,13 +2,16 @@ import {expect, it, vi} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {convert, convertToOutput} from "./engine.js";
 import {ExecutionContext} from "./execution.js";
-import type {ConversionOptions, FilterCapability} from "./types.js";
+import {createJsonFilterCapability} from "./json-filters.js";
+import type {ConversionOptions} from "./types.js";
 
 const encoder = new TextEncoder();
-const filters: FilterCapability = {
-  async apply(document) {return document;},
-  async applyJsonStream({stdin, stdout}) {for await (const bytes of stdin) await stdout.write(bytes);}
-};
+const filters = createJsonFilterCapability({
+  async runStream({stdin, stdout}) {
+    for await (const bytes of stdin) await stdout.write(bytes);
+    return 0;
+  }
+});
 
 it.each(["csv", "tsv", "json", "rtf"].flatMap(from => ["tableRows", "tableColumns", "tableFieldText", "tableCells", "attributes", "depth", "nodes", "text"].flatMap(key =>
   ["json", "plain", "html", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].map(to => ({from, key, to})))))

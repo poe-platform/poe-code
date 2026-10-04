@@ -33,8 +33,9 @@ to that backing with fixed caches for forward and reverse joins. Clip lists use
 persistent fixed-size pages, preserving graphics-state snapshots and clip order;
 text clipping streams glyph outlines into the same backing. Transparency-group
 and soft-mask captures replay caller-backed operation records, retaining one
-operation’s metadata at a time. Individual codec/color/font metadata and nested
-graphics state retain their own memory requirements. Stored geometry is
+operation’s metadata at a time. Nested graphics and marked-content frames also
+use linked caller-backed records, with only the active state resident. Individual
+codec/color/font and operation metadata retain their own memory requirements. Stored geometry is
 for the asynchronous raster driver; buffered display-list/SVG APIs retain their
 existing synchronous representation.
 
@@ -46,8 +47,8 @@ full-page pixel allocation. Consume `pixels` directly or pass it to
 `encodeRetainedPng`; stopping consumption cleans the temporary pixels. Use an
 external backend for large pages. `tileSize` defaults to 128 and `chunkBytes` to
 65536. `maxPixelWorkingBytes` admits driver scratch, excluding rasterizer window
-surfaces and evaluator resources; nested graphics state and individual decoded
-resources still need bounded ownership. Rendering repeats page evaluation per
+surfaces and evaluator resources; individual decoded resources and metadata
+still need bounded ownership. Rendering repeats page evaluation per
 tile and uses seekable staging before yielding the first output chunk.
 
 `PdfFileSource.open(fs, path, options)` provides retained random-access input

@@ -114,6 +114,8 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
       signal?.throwIfAborted();
       const request = step.value; let reply: PdfEvaluationResult;
       switch (request.kind) {
+        case "frame-push": await request.stack.push(request.frame); break;
+        case "frame-pop": reply={kind:"frame",value:await request.stack.pop()}; break;
         case "capture-append": await request.writer.append(request.operation); break;
         case "append-clip": reply = await appendStoredClip(request.storage,request.previous,request.clip,signal); break;
         case "path-append": for (const segment of request.segments) { signal?.throwIfAborted(); await request.writer.append(segment); } break;

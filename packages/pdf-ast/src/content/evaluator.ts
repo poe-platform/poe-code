@@ -1,3 +1,4 @@
+import { StoredMetadataStack } from "./stored-record.js";
 import { StoredOperationsWriter } from "./stored-operations.js";
 import { StoredPathWriter } from "./stored-path.js";
 import { annotationPageNumberSteps, extractPageAnnotationSteps } from "./annotations.js";
@@ -67,7 +68,7 @@ interface GraphicsState {
   lineJoin: 0 | 1 | 2;
   miterLimit: number;
   fontName: string;
-  fontOverride?: ResolvedPageFont | undefined;
+  fontOverride?: PdfCosDict | undefined;
   fontSize: number;
   charSpace: number;
   wordSpace: number;
@@ -991,7 +992,10 @@ export function transformPathSegment(seg: PdfPathSegment, matrix: Matrix6): PdfP
   return transformedSegments;
 }
 
-export type PdfEvaluationRequest = {readonly kind:"capture-append";readonly writer:StoredOperationsWriter;readonly operation:PdfPaintOperation} | PdfEvaluationShadingRequest | PdfEvaluationOperation | { readonly kind: "node"; readonly source?: PdfEvaluationContentSource }
+interface EvaluationFrame {pushed:boolean;hidden:boolean;mcid:number|undefined;actualText:string|undefined;savedState?:GraphicsState}
+
+export type PdfEvaluationRequest = {readonly kind:"frame-push";readonly stack:StoredMetadataStack<EvaluationFrame>;readonly frame:EvaluationFrame}
+  | {readonly kind:"frame-pop";readonly stack:StoredMetadataStack<EvaluationFrame>} | {readonly kind:"capture-append";readonly writer:StoredOperationsWriter;readonly operation:PdfPaintOperation} | PdfEvaluationShadingRequest | PdfEvaluationOperation | { readonly kind: "node"; readonly source?: PdfEvaluationContentSource }
   | { readonly kind: "append-clip"; readonly storage: PdfPixelStorage; readonly previous: PdfStoredClipPaths | undefined; readonly clip: PdfClipPath }
   | { readonly kind: "path-append"; readonly writer: StoredPathWriter; readonly segments: readonly PdfPathSegment[] }
   | { readonly kind: "path-finish"; readonly writer: StoredPathWriter }
@@ -1004,7 +1008,7 @@ export type PdfEvaluationRequest = {readonly kind:"capture-append";readonly writ
   | { readonly kind: "color"; readonly name: string; readonly components: readonly number[]; readonly resources: PdfCosDict | undefined }
   | { readonly kind: "inline-image"; readonly dict: PdfCosDict; readonly data: Uint8Array | PdfContentRange; readonly resources: PdfCosDict | undefined; readonly fillColor: Parameters<typeof decodeInlineImageNodeToRgba>[4] }
   | { readonly kind: "image"; readonly stream: PdfCosStream; readonly resources: PdfCosDict | undefined; readonly fillColor: Parameters<typeof decodeXObjectImageToRgba>[3] };
-export type PdfEvaluationResult = PdfStoredClipPaths | PdfStoredPath | PdfContentEvent | ResolvedPageFont
+export type PdfEvaluationResult = {readonly kind:"frame";readonly value:EvaluationFrame|undefined} | PdfStoredClipPaths | PdfStoredPath | PdfContentEvent | ResolvedPageFont
   | { readonly kind: "shading"; readonly image: PdfEvaluatedImage | undefined }
   | { readonly kind: "color"; readonly value: readonly [number, number, number] }
   | { readonly kind: "resolved"; readonly node: PdfCosNode | undefined }
@@ -1313,7 +1317,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           const fSizeNode = yield* resolveEvaluationNode(fontArr.items[1]);
           if (fSizeNode?.kind === "number") st.fontSize = fSizeNode.value;
           const gsFontKey = `__ExtGS_Font_${ops[0].decoded}`;
-          const resolvedGsFont = yield* selectedFont([{
+          const gsFontResources: PdfCosDict = {
             kind: "dict",
             entries: [
               {
@@ -1329,9 +1333,10 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                 },
               },
             ],
-          }], gsFontKey);
+          };
+          const resolvedGsFont = yield* selectedFont([gsFontResources], gsFontKey);
           if (resolvedGsFont) {
-            st.fontOverride = resolvedGsFont;
+            st.fontOverride = gsFontResources;
             st.fontName = gsFontKey;
           }
         }
@@ -1601,7 +1606,18 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     depth = 0,
     initialNode?: PdfContentEvent
   ): EvaluationWork {
-    const groups: Array<{ pushed: boolean; hidden: boolean; mcid: number | undefined; actualText: string | undefined }> = [];
+    const groups: EvaluationFrame[] = [];
+    const storedGroups = params.geometryStorage ? new StoredMetadataStack<EvaluationFrame>(params.geometryStorage,params.geometrySignal) : undefined;
+    function* popGroup():EvaluationWork<EvaluationFrame|undefined>{
+      if(!storedGroups)return groups.pop();
+      const reply=yield {kind:"frame-pop",stack:storedGroups};
+      if(!reply||!("kind" in reply)||reply.kind!=="frame")throw new TypeError("Expected stored evaluation frame");
+      return reply.value;
+    }
+    function restoreGroup(parent:EvaluationFrame):void{
+      if(parent.savedState)stateStack[stateStack.length-1]=parent.savedState;
+      else if(parent.pushed)stateStack.pop();
+    }
     let hidden = false;
     const source = nodes && "stream" in nodes ? nodes : undefined;
     const iterator = nodes && !("stream" in nodes) ? nodes[Symbol.iterator]() : undefined;
@@ -1613,19 +1629,23 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       const node = initialNode ?? (next ? (next.done ? undefined : next.value) : yield { kind: "node", ...(source ? { source } : {}) });
       initialNode = undefined;
       if (!node) break;
-      if (!("kind" in node) || (node.kind === "stored-path" || node.kind === "stored-clips")) throw new TypeError("Expected a PDF content event");
+      if (!("kind" in node) || (node.kind === "frame" || node.kind === "stored-path" || node.kind === "stored-clips")) throw new TypeError("Expected a PDF content event");
       if (node.kind === "end-group") {
-        const parent = groups.pop();
+        const parent = yield* popGroup();
         if (parent) {
-          if (parent.pushed) stateStack.pop();
+          restoreGroup(parent);
           ({ hidden, mcid, actualText } = parent);
         }
         continue;
       }
       if (node.kind === "begin-group") {
         const pushed = !hidden && node.group.kind === "graphics-group";
-        groups.push({ pushed, hidden, mcid, actualText });
-        if (pushed) stateStack.push({ ...curState(), ctm: [...curState().ctm] as Matrix6 });
+        const frame:EvaluationFrame={pushed,hidden,mcid,actualText,...(storedGroups&&pushed?{savedState:curState()}: {})};
+        if(storedGroups)yield {kind:"frame-push",stack:storedGroups,frame};else groups.push(frame);
+        if (pushed) {
+          const next={...curState(),ctm:[...curState().ctm] as Matrix6};
+          if(storedGroups)stateStack[stateStack.length-1]=next;else stateStack.push(next);
+        }
         else if (!hidden && node.group.kind === "marked-content") {
           const context = yield* markedContext(node.group, mcid, actualText, activeResources);
           if (context) ({ mcid, actualText } = context);
@@ -1816,7 +1836,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           let tlm: Matrix6 = activeTlm;
 
           function* emitTokenBytes(bytes: Uint8Array): EvaluationWork {
-            const font = st.fontOverride ?? (yield* selectedFont(activeFonts, st.fontName));
+            const font = yield* selectedFont(st.fontOverride ? [st.fontOverride] : activeFonts, st.fontName);
             const decoded = decodeTokenGlyphs(bytes, font);
             const scaleH = st.horizScale / 100;
             for (const item of decoded) {
@@ -1834,7 +1854,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                   const fm: Matrix6 = font.fontMatrix ?? [0.001, 0, 0, 0.001, 0, 0];
                   const source = { stream: procNode };
                   const firstOp = yield { kind: "node", source };
-                  if (firstOp && (!("kind" in firstOp) || (firstOp.kind === "stored-clips" || firstOp.kind === "stored-path" || firstOp.kind === "resolved" || firstOp.kind === "decoded-image" || firstOp.kind === "mask-parameters" || firstOp.kind === "color" || firstOp.kind === "shading"))) throw new TypeError("Expected Type3 content event");
+                  if (firstOp && (!("kind" in firstOp) || (firstOp.kind === "frame" || firstOp.kind === "stored-clips" || firstOp.kind === "stored-path" || firstOp.kind === "resolved" || firstOp.kind === "decoded-image" || firstOp.kind === "mask-parameters" || firstOp.kind === "color" || firstOp.kind === "shading"))) throw new TypeError("Expected Type3 content event");
                   if (!font.widths.has(item.charCode)) {
                     if (
                       firstOp?.kind === "state-op" &&
@@ -2041,7 +2061,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     }
     } catch (error) { failed = true; throw error; }
     finally {
-      while (groups.length) if (groups.pop()!.pushed) stateStack.pop();
+      while (storedGroups ? storedGroups.length : groups.length) { const parent=yield* popGroup(); if(parent)restoreGroup(parent); }
       if (!exhausted) closeEvaluationIterators([iterator], failed);
     }
   };
@@ -2074,7 +2094,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
-      } else if ((step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
+      } else if ((step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
         throw new PdfError("E_CAPABILITY", "Stored PDF paths require an asynchronous source driver");
       } else if (step.value.kind === "shading") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF shading requires a source driver");

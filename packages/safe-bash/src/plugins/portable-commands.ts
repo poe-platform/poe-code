@@ -19,9 +19,10 @@ export function createPortableAgentCommands(hasCommand?: (name: string) => boole
     ...createUnrtfCommands(),
     ...createMmdcCommands(),
     ...createOpCommands(),
+    ...createOptionalCommands({ families: ["ffmpeg", "soffice"] }),
     createPandocCommand({}, hasCommand),
     ...createOptionalCommands({ families: [
-      "ffmpeg", "soffice", "ssconvert", "pdfinfo", "pdftotext",
+      "ssconvert", "pdfinfo", "pdftotext",
       "pdfimages", "pdftoppm", "pdftk", "qpdf", "sips", "imagemagick",
       "wkhtmltopdf", "csvkit",
     ] }),

@@ -3,6 +3,11 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "xlsxBiffProtectionDiagnostics": {
+      "scope": "XLSX export recognizes canonical BIFF PROTECT words0/1 and23-byte SHEETPROTECTION records when portable protection settings represent their semantics, including intentional edits. Unknown bit15, reserved/prefix bytes, malformed hex, missing settings and other sources retain warnings.",
+      "qualification": "Five original failing tests repaired;203 owner tests across19 files, selected ssconvert build and owner lint/types pass.33 compiled SDK/command/edited exports assert exactly22 warnings and are byte-identical to outputs independently qualified in xlsxSheetProtectionPermissions. CLI screenshot inspected.",
+      "remaining": "OBJPROTECT, SCENPROTECT, passwords and other metadata diagnostics remain open. Prior Gnumeric permission-polarity difference remains. No broader family or release closure."
+    },
     "xlsxSheetProtectionPermissions": {
       "scope": "Both XLSX editions map canonical view.protectedAllow booleans to inverse OOXML deny flags. Imports use OOXML defaults; exports validate fields and preserve original-value edits in either direction. Partial maps use selection-only allow defaults.",
       "qualification": "30 original memory regressions repaired.2615 affected cohort tests plus one added boundary test pass; selected ssconvert build and owner lint/source/test types pass.33 compiled SDK/command/edited exports:990 encoded permission comparisons,495 comparisons against independent Calc conversions and33 actual Calc readbacks pass.16 independent Calc imports add240 permission comparisons. Screenshot inspected.",

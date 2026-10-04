@@ -115,12 +115,28 @@ export async function writeXlsxSheetSettings(sheet: Sheet,
   current.push(node("sheetFormatPr", { defaultColWidth: typeof sheet.view?.defaultColumnWidth === "number" || originalWidth !== undefined || !format ? defaultColumnWidth / xlsxColumnWidthPoints : undefined,
     defaultRowHeight, outlineLevelRow: sheet.rows?.reduce((maximum, row) => { charge(); return Math.max(maximum, row.outlineLevel ?? 0); }, 0) || undefined,
     outlineLevelCol: sheet.columns?.reduce((maximum, column) => { charge(); return Math.max(maximum, column.outlineLevel ?? 0); }, 0) || undefined }));
+  const view = sheet.view?.gnumeric && typeof sheet.view.gnumeric === "object" && !Array.isArray(sheet.view.gnumeric) ? sheet.view.gnumeric as Readonly<Record<string, ImportedValue>> : {};
+  const allowed = sheet.view?.protectedAllow;
   // Recognize BIFF records fully represented by editable portable settings.
   // Unknown flag values, zero heights and malformed payloads still need warnings.
   for (const { record } of records) {
     charge();
     if (record.source !== "biff" || !record.data || typeof record.data !== "object" || Array.isArray(record.data)) continue;
     const data = record.data as Readonly<Record<string, ImportedValue>>;
+    if (record.kind === "PROTECT") {
+      if (data.opcode === 0x12 && (data.bytes === "0000" || data.bytes === "0100") &&
+        (view.Protected === "0" || view.Protected === "1")) handled.add(record);
+      continue;
+    }
+    if (record.kind === "SHEETPROTECTION") {
+      if (allowed === undefined || data.opcode !== 0x867 || typeof data.bytes !== "string" || data.bytes.length !== 46) continue;
+      charge(46);
+      const bytes = data.bytes.toLowerCase();
+      if (bytes.startsWith("670800000000000000000000020001ffffffff") && bytes.endsWith("0000") &&
+        [...bytes].every(character => "0123456789abcdef".includes(character)) && Number.parseInt(bytes.slice(40, 42), 16) < 0x80)
+        handled.add(record);
+      continue;
+    }
     if (Object.hasOwn(biffPrintFlags, record.kind)) {
       const [opcode, field] = biffPrintFlags[record.kind]!;
       const value = child(currentPrint, field)?.attributes.value;
@@ -152,12 +168,10 @@ export async function writeXlsxSheetSettings(sheet: Sheet,
     const height = Number.parseInt(bytes.slice(at, at + 2), 16) + 256 * Number.parseInt(bytes.slice(at + 2, at + 4), 16);
     if (height > 0 && (!legacy || height < 0x8000)) handled.add(record);
   }
-  const view = sheet.view?.gnumeric && typeof sheet.view.gnumeric === "object" && !Array.isArray(sheet.view.gnumeric) ? sheet.view.gnumeric as Readonly<Record<string, ImportedValue>> : {};
   const protectedValue = raw.get("sheetProtection")?.attributes.sheet;
   const originalProtection = protectedValue === "1" || protectedValue === "true" ? 1 : undefined;
   const protection = { formatCells: 0, formatColumns: 0, formatRows: 0, insertColumns: 0, insertRows: 0, insertHyperlinks: 0,
     deleteColumns: 0, deleteRows: 0, selectLockedCells: 1, sort: 0, autoFilter: 0, pivotTables: 0, selectUnlockedCells: 1 };
-  const allowed = sheet.view?.protectedAllow;
   const permissions: Record<string, number> = { ...protection };
   if (allowed !== undefined) {
     if (!allowed || typeof allowed !== "object" || Array.isArray(allowed))

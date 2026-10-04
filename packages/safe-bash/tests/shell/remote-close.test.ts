@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { fileURLToPath } from "node:url";
-import { readFileSync } from "node:fs";
-import { build } from "esbuild";
+import { bundleProbe } from "./bundle-probe.js";
 import { runRemoteCloseChild } from "./remote-close-child.js";
 
 const probes = new Map<string, Promise<string>>();
@@ -32,30 +30,13 @@ for (const scenario of [
   "first-read-webdav-body-acquired", "first-read-curl-body-acquired", "first-read-required-destinations",
 ]) {
   test(`hard-deadline pipeline close: ${scenario}`, async context => {
-    const entry = fileURLToPath(new URL(scenario.startsWith("first-read-") ? "./first-read-probe.ts" : "./remote-close-probe.ts", import.meta.url));
-    let prepared = probes.get(entry);
+    const entry = new URL(scenario.startsWith("first-read-") ? "./first-read-probe.ts" : "./remote-close-probe.ts", import.meta.url);
+    const target = "es2022";
+    const key = JSON.stringify([entry.href, target]);
+    let prepared = probes.get(key);
     if (prepared === undefined) {
-      const privateWorkspaces = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8")).poeCode.integration.privateWorkspaces;
-      // Keep every contracts subpath on the same source runtime as this Shell.
-      const sourceAliases = {
-        "safe-bash-contracts": fileURLToPath(new URL("../../../safe-bash-contracts/src", import.meta.url)),
-        "@poe-code/safe-fs": fileURLToPath(new URL("../../../safe-fs/src", import.meta.url)),
-      };
-      prepared = build({ entryPoints: [entry], bundle: true, packages: "external", platform: "node",
-        alias: {
-          ...Object.fromEntries(Object.keys(privateWorkspaces).filter(name => !Object.hasOwn(sourceAliases, name)).flatMap(name => {
-            const directory = name.startsWith("@") ? name.split("/")[1]! : name;
-            const root = new URL(`../../../${directory}/`, import.meta.url);
-            const manifest = JSON.parse(readFileSync(new URL("package.json", root), "utf8"));
-            return Object.entries(manifest.exports as Record<string, string | {import: string}>).map(([route, target]) => [
-              route === "." ? name : name + route.slice(1),
-              fileURLToPath(new URL(typeof target === "string" ? target : target.import, root)),
-            ]);
-          })),
-          ...sourceAliases,
-        },
-        format: "esm", target: "es2022", write: false, minify: true, keepNames: true }).then(result => result.outputFiles[0]!.text);
-      probes.set(entry, prepared);
+      prepared = bundleProbe(entry, target);
+      probes.set(key, prepared);
     }
     const result = await runRemoteCloseChild(["--unhandled-rejections=strict", "--input-type=module", "-", scenario], await prepared);
     const { pid, status, signal, timedOut, oversized, residual, residualAtClose, closeElapsedMs, elapsedMs, stdout, stderr } = result;

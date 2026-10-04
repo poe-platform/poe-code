@@ -7,8 +7,9 @@ const table = 'urn:oasis:names:tc:opendocument:xmlns:table:1.0';
 const context: CapabilityContext = { limits: defaultSsconvertLimits, signal: new AbortController().signal,
   environment: { env: {}, locale: 'C', timezone: 'UTC' }, own() {} };
 
-it('replays exact canonical mixed content and nested staged groups with borrowed windows', async () => {
-  const xml = `<table:table xmlns:table="${table}">before<!--comment--><table:table-row-group>` +
+it.each([false, true])('replays exact mixed content with sibling groups: %s', async siblingGroups => {
+  const grouped = `<table:table xmlns:table="${table}">` + Array.from({ length: 300 }, (_, i) => `<table:table-row-group>before<table:table-header-rows><table:table-rows><table:table-row><table:table-cell>${i}</table:table-cell></table:table-row></table:table-rows></table:table-header-rows>tail</table:table-row-group>`).join('') + 'after</table:table>';
+  const xml = siblingGroups ? grouped : `<table:table xmlns:table="${table}">before<!--comment--><table:table-row-group>` +
     Array.from({ length: 300 }, (_, i) => `x<table:table-row><table:table-cell>${i}😀</table:table-cell></table:table-row>`).join('') +
     '</table:table-row-group><![CDATA[middle]]><?pi data?><table:table-row><table:table-cell>last</table:table-cell></table:table-row>after</table:table>';
   const expected = await parseXmlStream([xml]);

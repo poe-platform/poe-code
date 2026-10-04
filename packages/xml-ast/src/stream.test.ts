@@ -150,3 +150,20 @@ it('captures preceding sibling content at selection time within one parser windo
   expect(root.children).toEqual([]); expect(root.text).toBe('after');
   expect(root.content).toEqual([{ kind: 'text', text: 'after' }]);
 });
+
+it.each([1, 512])('streams nested selections in closing order with %i-unit chunks', async size => {
+  const seen: [string, string, string][] = [];
+  const root = await parseXmlStream(chunks('<root>start<group>before<row/>between<group>inner<row/>end</group>tail</group>finish</root>', size), { streamElements: {
+    includeNested: true,
+    captureBefore: true,
+    matches: (_node, _parent, depth) => depth > 1,
+    async consume(node, parent, before = []) {
+      await Promise.resolve();
+      expect(node.children).toEqual([]);
+      seen.push([node.localName, before.map(item => item.kind === 'element' ? item.name : item.text).join(''), node.text]);
+      expect(parent.children).toEqual([]);
+    }
+  } });
+  expect(seen).toEqual([['row', 'before', ''], ['row', 'inner', ''], ['group', 'between', 'end'], ['group', 'start', 'tail']]);
+  expect(root.children).toEqual([]); expect(root.text).toBe('finish');
+});

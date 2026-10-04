@@ -96,7 +96,8 @@ export function createOdfXmlStorage(context: CapabilityContext, tableNamespaces:
   }
   const streamElements: NonNullable<XmlStreamLimits['streamElements']> = {
     captureBefore: true,
-    matches(element, parent) { return element.localName === 'table-row' && tableNamespaces.includes(element.namespace)
+    includeNested: true,
+    matches(element, parent) { return ['table-row', 'table-row-group', 'table-header-rows', 'table-rows'].includes(element.localName) && tableNamespaces.includes(element.namespace)
       && !!parent && tableNamespaces.includes(parent.namespace) && ['table', 'table-row-group', 'table-header-rows', 'table-rows'].includes(parent.localName); },
     async consume(element, parent, before = []) { await append(parent, [...before, element]); }
   };

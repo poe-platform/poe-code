@@ -6,11 +6,13 @@ export interface XmlStreamLimits extends XmlLimits {
   /** Validate the full document but return only its root name, without a retained tree. */
   readonly retainTree?: boolean;
   /** Detach selected non-root subtrees and await their consumer before parsing
-   * the next 512-unit window. Nested matches belong to the selected ancestor. */
+   * the next 512-unit window. By default nested matches belong to the selected ancestor. */
   readonly streamElements?: {
     /** Also detach preceding sibling content when selecting a subtree, before
      * the parser advances. The final trailing content remains in the parent. */
     readonly captureBefore?: boolean;
+    /** Detach nested matches too, consuming descendants before their ancestors. */
+    readonly includeNested?: boolean;
     readonly matches: (element: XmlName, parent: XmlName | undefined, depth: number) => boolean;
     readonly consume: (element: XmlElement, parent: XmlElement, before?: readonly XmlContent[]) => void | Promise<void>;
   };
@@ -36,7 +38,7 @@ export async function parseXmlStream(
   const retainContent = limits.retainContent !== false, tree = limits.retainTree !== false, retain = tree && retainContent;
   const streaming = limits.streamElements;
   if (streaming && !retain) throw new TypeError("XML subtree streaming requires retained content and tree mode");
-  let selectedDepth = 0;
+  let selectedCount = 0;
   const completed: { element: XmlElement; parent: XmlElement; before: readonly XmlContent[] }[] = [];
   const stack: { element: XmlElement; namespaces: Map<string, string>; selected: boolean; before: readonly XmlContent[] }[] = [];
   const prolog: XmlContent[] = [], epilog: XmlContent[] = [];
@@ -71,11 +73,11 @@ export async function parseXmlStream(
     for (const attr of attrs) charge("maxTextLength", attr.value.length);
     const name = { name: tag.name, namespace: tag.uri, localName: tag.local };
     limits.onElement?.(name, parent?.element, stack.length + 1);
-    const selected = !selectedDepth && !!streaming?.matches(name, parent?.element, stack.length + 1);
+    const selected = (!selectedCount || streaming?.includeNested === true) && !!streaming?.matches(name, parent?.element, stack.length + 1);
     if (selected && !parent) throw new TypeError("XML subtree streaming cannot select the root");
     let before: readonly XmlContent[] = [];
     if (selected) {
-      selectedDepth = stack.length + 1;
+      selectedCount++;
       if (streaming?.captureBefore) {
         before = (parent!.element.content as XmlContent[]).splice(0);
         parent!.element.children.length = 0;
@@ -95,7 +97,7 @@ export async function parseXmlStream(
   });
   parser.on("closetag", () => {
     const frame = stack.pop()!;
-    if (frame.selected) { completed.push({ element: frame.element, parent: stack.at(-1)!.element, before: frame.before }); selectedDepth = 0; }
+    if (frame.selected) { completed.push({ element: frame.element, parent: stack.at(-1)!.element, before: frame.before }); selectedCount--; }
   });
   async function drain() {
     for (const entry of completed) { await checkpoint?.(0); await streaming!.consume(entry.element, entry.parent, entry.before); }

@@ -5,6 +5,44 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { agentCommands } from "../../src/core.js";
 
+test("find counts follow middle filenames across tenants and in-place renames", async context => {
+  const tenants = [];
+  for (const middleExtension of ["ts", "txt"]) {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work/sub", { recursive: true });
+    for (let index = 0; index < 32; index++) {
+      const extension = index === 0 || index === 31 ? "ts" : middleExtension;
+      await fs.writeFile(`/work/sub/f${String(index).padStart(2, "0")}.${extension}`, new Uint8Array());
+    }
+    const shell = new Shell({ fs }).use(standardCommands());
+    context.after(() => shell.dispose());
+    tenants.push({ fs, shell });
+  }
+  const command = 'find /work/sub -name "*.ts" | wc -l';
+  for (const [tenant, expected] of [[0, 32], [1, 2], [0, 32], [1, 2]] as const) {
+    for (let run = 0; run < 3; run++) {
+      const result = await tenants[tenant]!.shell.exec(command);
+      assert.equal(result.stdout, `${expected}\n`);
+      assert.deepEqual(result.stdoutBytes, new TextEncoder().encode(`${expected}\n`));
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    }
+  }
+  const { fs, shell } = tenants[0]!;
+  for (const [from, to, expected] of [["ts", "txt", 2], ["txt", "ts", 32]] as const) {
+    for (let index = 1; index < 31; index++) {
+      const stem = `/work/sub/f${String(index).padStart(2, "0")}`;
+      await fs.rename(`${stem}.${from}`, `${stem}.${to}`);
+    }
+    for (let run = 0; run < 3; run++) {
+      const result = await shell.exec(command);
+      assert.equal(result.stdout, `${expected}\n`);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    }
+  }
+});
+
 test("alternating tenants never replay another filesystem's pipeline output", async () => {
   const tenants = await Promise.all(["ALPHA", "BRAVO"].map(async secret => {
     const fs = new MemoryFileSystem();

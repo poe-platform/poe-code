@@ -28,7 +28,7 @@ records are combined on export. Repeated cell coordinates update one cell in sou
 explicit empty payloads remain empty strings. Print margins retain full point
 precision during import and cross-format conversion. Print copy counts survive
 XLSX and BIFF transport and edits through `PrintInformation` `copies` metadata.
-Fill patterns preserve stored colors, including inactive fills, and use native Excel fallbacks for Gnumeric patterns19–24. Invalid pattern values are rejected.
+Fill patterns preserve stored colors, including inactive fills, and use native Excel fallbacks for Gnumeric patterns19–24. Invalid pattern values are rejected. Conditional fills retain both colors and absent properties without inventing defaults.
 Sheet permissions use `view.protectedAllow`: boolean `objects`, `scenarios`,
 `formatCells`, `formatColumns`, `formatRows`, `insertColumns`, `insertRows`,
 `insertHyperlinks`, `deleteColumns`, `deleteRows`, `selectLockedCells`, `sort`,

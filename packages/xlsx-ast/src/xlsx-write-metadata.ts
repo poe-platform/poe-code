@@ -192,7 +192,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
         await context.diagnostic?.({ code: "xlsx-write-loss", severity: "warning", message: `XLSX writer does not export sheet '${sheet.name}' conditional operator '${op}'` }); continue;
       }
       const operators = ["between", "notBetween", "equal", "notEqual", "greaterThan", "lessThan", "greaterThanOrEqual", "lessThanOrEqual"];
-      const missing = Object.keys(overlay.attributes).filter(key => !["Back", "Shade", "Fore"].includes(key));
+      const missing = Object.keys(overlay.attributes).filter(key => !["Back", "PatternColor", "Shade", "Fore"].includes(key));
       for (const node of overlay.children) {
         if (node.name !== "Font") missing.push(node.name);
         else for (const key of Object.keys(node.attributes)) if (!["Bold", "Italic", "Unit"].includes(key)) missing.push("Font." + key);

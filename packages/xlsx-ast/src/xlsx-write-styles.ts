@@ -77,7 +77,12 @@ export function createXlsxStyles(xml: ElementWriter, edition: "2006" | "2008", n
       xml("cellStyles", { count: 1 }, xml("cellStyle", { name: "Normal", xfId: 0, builtinId: 0 })) +
       (dxfs.length ? xml("dxfs", { count: dxfs.length }, dxfs.map(node => {
         const a = node.attributes; let content = "";
-        if (a.Back !== undefined || a.Shade !== undefined) content += xml("fill", {}, xml("patternFill", { patternType: fillPattern(Number(a.Shade ?? 1)) }, xml(Number(a.Shade ?? 1) === 1 ? "bgColor" : "fgColor", { rgb: rgb(a.Back, "FFFFFFFF") })));
+        if (a.Back !== undefined || a.PatternColor !== undefined || a.Shade !== undefined) {
+          const invert = Number(a.Shade) === 1, foreground = invert ? a.PatternColor : a.Back, background = invert ? a.Back : a.PatternColor;
+          content += xml("fill", {}, xml("patternFill", { patternType: a.Shade === undefined ? undefined : fillPattern(Number(a.Shade)) },
+            (foreground === undefined ? "" : xml("fgColor", { rgb: rgb(foreground, "FFFFFFFF") })) +
+            (background === undefined ? "" : xml("bgColor", { rgb: rgb(background, "FF000000") }))));
+        }
         const font = node.children.find(n => n.name === "Font"), fa = font?.attributes ?? {};
         if (font || a.Fore !== undefined) content += xml("font", {}, (font?.text ? xml("name", { val: encodeXlsxString(font.text) }) : "") +
           (fa.Bold === undefined ? "" : xml("b", { val: Number(fa.Bold) })) + (fa.Italic === undefined ? "" : xml("i", { val: Number(fa.Italic) })) +

@@ -3,6 +3,12 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "xlsxDifferentialFillColors": {
+      "finding": "Differential XLSX fill export dropped PatternColor, fabricated solid/white defaults for absent fields, and emitted a loss warning for pattern colors.",
+      "repair": "Emit only present fill properties, retain both colors, invert roles only for explicit shade1, and admit PatternColor as represented metadata. Other unsupported differential fields still warn.",
+      "verification": "Six original sparse/color regressions failed before repair;367 owner/integration tests,selected build and owner lint/types pass. Eleven independent native conditional styles across two editions match132 pattern/foreground/background fields in four compiled SDK/command outputs using OpenPyXL3.1.5. Product diagnostics empty; native default-style warning retained.",
+      "remaining": "Differential-style import, rendering and wider style/format qualification remain open; no family closure."
+    },
     "xlsxFillPatternFallback": {
       "finding": "XLSX exported shades19–24 as solid, dropped inactive shade0 colors, and used solid-fill differential color roles for fallback patterns.",
       "repair": "Use native pattern fallbacks for all valid shades0–24; reject invalid shades; preserve inactive colors and native differential background polarity. Regular foreground/background roles were confirmed unchanged against pinned source.",

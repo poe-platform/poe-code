@@ -5883,7 +5883,7 @@ class JpxImage {
             tile = context.currentTile;
             if (tile.partIndex === 0) {
               initializeTile(context, tile.index);
-              buildPackets(context);
+              yield* buildPackets(context);
             }
             length = tile.dataEnd - position;
             (yield* parseTilePackets(context, data, position, length));
@@ -5994,7 +5994,7 @@ function buildPrecincts(context, resolution, dimensions) {
     precinctHeightInSubband
   };
 }
-function buildCodeblocks(context, subband, dimensions) {
+function* buildCodeblocks(context, subband, dimensions) {
   const xcb_ = dimensions.xcb_;
   const ycb_ = dimensions.ycb_;
   const codeblockWidth = 1 << xcb_;
@@ -6004,8 +6004,10 @@ function buildCodeblocks(context, subband, dimensions) {
   const cbx1 = subband.tbx1 + codeblockWidth - 1 >> xcb_;
   const cby1 = subband.tby1 + codeblockHeight - 1 >> ycb_;
   const precinctParameters = subband.resolution.precinctParameters;
-  context.onAllocation?.(Math.max(0, cbx1 - cbx0) * Math.max(0, cby1 - cby0) * 1024 + precinctParameters.numprecincts * 16);
-  const codeblocks = [];
+  const count = Math.max(0, cbx1 - cbx0) * Math.max(0, cby1 - cby0);
+  context.onAllocation?.((context.storedPlanes ? 1024 : count * 1024) + precinctParameters.numprecincts * 16);
+  const codeblocks = context.storedPlanes
+    ? {length: 0, records: yield* jpxVectorAllocate(count * 18, 8, true)} : [];
   const precincts = [];
   let i, j, codeblock, precinctNumber;
   for (j = cby0; j < cby1; j++) {
@@ -6031,7 +6033,14 @@ function buildCodeblocks(context, subband, dimensions) {
       if (codeblock.tbx1_ <= codeblock.tbx0_ || codeblock.tby1_ <= codeblock.tby0_) {
         continue;
       }
-      codeblocks.push(codeblock);
+      if (context.storedPlanes) {
+        codeblock.record = codeblocks.records;
+        codeblock.recordIndex = codeblocks.length++;
+        for (let field = 0; field < jpxCodeblockGeometry.length; field++) {
+          yield* jpxVectorWrite(codeblock.record, codeblock.recordIndex * 18 + field, codeblock[jpxCodeblockGeometry[field]]);
+        }
+        yield* writeJpxCodeblock(codeblock);
+      } else codeblocks.push(codeblock);
       let precinct = precincts[precinctNumber];
       if (precinct !== undefined) {
         if (i < precinct.cbxMin) {
@@ -6064,21 +6073,56 @@ function buildCodeblocks(context, subband, dimensions) {
   subband.codeblocks = codeblocks;
   subband.precincts = precincts;
 }
+const jpxCodeblockGeometry = ["cbx", "cby", "tbx0_", "tby0_", "tbx1_", "tby1_", "precinctNumber"];
+function* writeJpxCodeblock(block) {
+  if (!block.record) return;
+  const data = block.data;
+  const values = [block.Lblock, block.included === undefined ? 0 : 1,
+    block.zeroBitPlanes ?? NaN, data ? 1 : 0, data?.head ? data.head.position + 1 : 0,
+    data?.tail ? data.tail.position + 1 : 0, data?.used ?? 0, data?.length ?? 0,
+    data?.sourceLength ?? 0, data?.totalLength ?? 0, data?.codingpasses ?? 0];
+  for (let field = 0; field < values.length; field++) {
+    yield* jpxVectorWrite(block.record, block.recordIndex * 18 + 7 + field, values[field]);
+  }
+}
+function* readJpxCodeblock(subband, index) {
+  const blocks = subband.codeblocks;
+  if (!blocks.records) return blocks[index];
+  const block = {record: blocks.records, recordIndex: index, subbandType: subband.type};
+  const values = [];
+  for (let field = 0; field < 18; field++) values.push(yield* jpxVectorRead(blocks.records, index * 18 + field));
+  for (let field = 0; field < jpxCodeblockGeometry.length; field++) block[jpxCodeblockGeometry[field]] = values[field];
+  block.precinct = subband.precincts[block.precinctNumber];
+  block.Lblock = values[7];
+  if (values[8]) block.included = true;
+  if (!Number.isNaN(values[9])) block.zeroBitPlanes = values[9];
+  if (values[10]) {
+    const data = block.data = createJpxRecords(2);
+    const vector = position => ({position: position - 1, length: 1 + data.capacity * 2, bytesPerElement: 8, integer: false});
+    if (values[11]) data.head = vector(values[11]);
+    if (values[12]) data.tail = vector(values[12]);
+    data.used = values[13]; data.length = values[14]; data.sourceLength = values[15];
+    data.totalLength = values[16]; data.codingpasses = values[17];
+  }
+  return block;
+}
 function createPacket(resolution, precinctNumber, layerNumber) {
   if (resolution.packetAdmission === undefined) {
     resolution.onAllocation?.(128);
     resolution.packetAdmission = 128;
   }
-  return {
-    layerNumber,
-    *codeblocks() {
-      for (const subband of resolution.subbands) {
-        for (const codeblock of subband.codeblocks) {
-          if (codeblock.precinctNumber === precinctNumber) yield codeblock;
-        }
-      }
+  return {layerNumber, resolution, precinctNumber};
+}
+function* nextJpxPacketCodeblock(packet, cursor) {
+  while (cursor.subband < packet.resolution.subbands.length) {
+    const subband = packet.resolution.subbands[cursor.subband];
+    while (cursor.index < subband.codeblocks.length) {
+      const block = yield* readJpxCodeblock(subband, cursor.index++);
+      if (block.precinctNumber === packet.precinctNumber) return block;
     }
-  };
+    cursor.subband++;
+    cursor.index = 0;
+  }
 }
 function LayerResolutionComponentPositionIterator(context) {
   const siz = context.SIZ;
@@ -6356,7 +6400,7 @@ function getPrecinctSizesInImageScale(tile) {
     maxNumHigh
   };
 }
-function buildPackets(context) {
+function* buildPackets(context) {
   const siz = context.SIZ;
   const tileIndex = context.currentTile.index;
   const tile = context.tiles[tileIndex];
@@ -6387,7 +6431,7 @@ function buildPackets(context) {
         subband.tbx1 = Math.ceil(component.tcx1 / scale);
         subband.tby1 = Math.ceil(component.tcy1 / scale);
         subband.resolution = resolution;
-        buildCodeblocks(context, subband, blocksDimensions);
+        yield* buildCodeblocks(context, subband, blocksDimensions);
         subbands.push(subband);
         resolution.subbands = [subband];
       } else {
@@ -6400,7 +6444,7 @@ function buildPackets(context) {
         subband.tbx1 = Math.ceil(component.tcx1 / bscale - 0.5);
         subband.tby1 = Math.ceil(component.tcy1 / bscale);
         subband.resolution = resolution;
-        buildCodeblocks(context, subband, blocksDimensions);
+        yield* buildCodeblocks(context, subband, blocksDimensions);
         subbands.push(subband);
         resolutionSubbands.push(subband);
         subband = {};
@@ -6410,7 +6454,7 @@ function buildPackets(context) {
         subband.tbx1 = Math.ceil(component.tcx1 / bscale);
         subband.tby1 = Math.ceil(component.tcy1 / bscale - 0.5);
         subband.resolution = resolution;
-        buildCodeblocks(context, subband, blocksDimensions);
+        yield* buildCodeblocks(context, subband, blocksDimensions);
         subbands.push(subband);
         resolutionSubbands.push(subband);
         subband = {};
@@ -6420,7 +6464,7 @@ function buildPackets(context) {
         subband.tbx1 = Math.ceil(component.tcx1 / bscale - 0.5);
         subband.tby1 = Math.ceil(component.tcy1 / bscale - 0.5);
         subband.resolution = resolution;
-        buildCodeblocks(context, subband, blocksDimensions);
+        yield* buildCodeblocks(context, subband, blocksDimensions);
         subbands.push(subband);
         resolutionSubbands.push(subband);
         resolution.subbands = resolutionSubbands;
@@ -6538,8 +6582,8 @@ function* parseTilePackets(context, data, offset, dataLength) {
       queue.used = queue.length = 0;
     } else queue = [];
     let codeblock, codeblockIndex = 0;
-    for (const current of packet.codeblocks()) {
-      codeblock = current;
+    const packetCursor = {subband: 0, index: 0};
+    while ((codeblock = yield* nextJpxPacketCodeblock(packet, packetCursor))) {
       const index = codeblockIndex++;
       let precinct = codeblock.precinct;
       const codeblockColumn = codeblock.cbx - precinct.cbxMin;
@@ -6610,6 +6654,7 @@ function* parseTilePackets(context, data, offset, dataLength) {
       const codingpassesLog2 = log2(codingpasses);
       const bits = (codingpasses < 1 << codingpassesLog2 ? codingpassesLog2 - 1 : codingpassesLog2) + codeblock.Lblock;
       const codedDataLength = (yield* readBits(bits));
+      yield* writeJpxCodeblock(codeblock);
       if (context.storedPlanes) {
         yield* appendJpxRecord(queue, [index, codingpasses, codedDataLength]);
       } else {
@@ -6624,14 +6669,15 @@ function* parseTilePackets(context, data, offset, dataLength) {
     if (ephMarkerUsed) {
       (yield* skipMarkerIfEqual(0x92));
     }
-    const queueCursor = {}, codeblocks = packet.codeblocks();
+    const queueCursor = {}, codeblocks = {subband: 0, index: 0};
     let ordinal = -1;
     for (let i = 0; i < queue.length; i++) {
       const [index, codingpasses, dataLength] = context.storedPlanes
         ? yield* readJpxRecord(queue, i, queueCursor) : queue[i];
-      while (ordinal < index) { codeblock = codeblocks.next().value; ordinal++; }
+      while (ordinal < index) { codeblock = yield* nextJpxPacketCodeblock(packet, codeblocks); ordinal++; }
       yield* appendJpxSegment(codeblock, data, offset + position,
         offset + position + dataLength, codingpasses, context);
+      yield* writeJpxCodeblock(codeblock);
       position += dataLength;
     }
   }
@@ -6688,7 +6734,7 @@ function* appendJpxSegment(codeblock, data, start, end, codingpasses, context) {
   }
   let list = codeblock.data;
   if (!list) {
-    context.onAllocation?.(256);
+    // The list descriptor is part of the admitted transient codeblock record.
     codeblock.data = list = createJpxRecords(2);
     list.sourceLength = data.length;
     list.totalLength = list.codingpasses = 0;
@@ -6703,7 +6749,7 @@ function* readJpxSegment(list, index, cursor) {
   const [start, end] = yield* readJpxRecord(list, index, cursor);
   return {data: {length: list.sourceLength}, start, end};
 }
-function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, onAllocation, stored) {
+function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, onAllocation, stored, admission) {
   const x0 = subband.tbx0;
   const y0 = subband.tby0;
   const width = subband.tbx1 - subband.tbx0;
@@ -6711,7 +6757,7 @@ function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta
   const right = subband.type.charAt(0) === "H" ? 1 : 0;
   const bottom = subband.type.charAt(1) === "H" ? levelWidth : 0;
   for (let i = 0, ii = codeblocks.length; i < ii; ++i) {
-    const codeblock = codeblocks[i];
+    const codeblock = yield* readJpxCodeblock(subband, i);
     const blockWidth = codeblock.tbx1_ - codeblock.tbx0_;
     const blockHeight = codeblock.tby1_ - codeblock.tby0_;
     if (blockWidth === 0 || blockHeight === 0) {
@@ -6720,8 +6766,12 @@ function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta
     if (codeblock.data === undefined) {
       continue;
     }
+    if (stored && !admission.codeblockScratch) {
+      onAllocation?.(1280);
+      admission.codeblockScratch = true;
+    }
     const bitModel = new BitModel();
-    yield* bitModel.initialize(blockWidth, blockHeight, codeblock.subbandType, codeblock.zeroBitPlanes, mb, onAllocation, stored);
+    yield* bitModel.initialize(blockWidth, blockHeight, codeblock.subbandType, codeblock.zeroBitPlanes, mb, stored ? undefined : onAllocation, stored);
     let currentCodingpassType = 2;
     const data = codeblock.data;
     let totalLength = data.totalLength ?? 0,
@@ -6732,7 +6782,7 @@ function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta
       totalLength += dataItem.end - dataItem.start;
       codingpasses += dataItem.codingpasses;
     }
-    onAllocation?.(256);
+    if (!stored) onAllocation?.(256);
     // Arithmetic offsets address the concatenation, including its zero-filled
     // truncated tail. Walk existing segments without copying compressed bytes.
     let segment = 0, logicalStart = 0, first = 0, count = 0;
@@ -6848,7 +6898,7 @@ function* transformTile(context, tile, c) {
       const gainLog2 = SubbandsGainLog2[subband.type];
       const delta = reversible ? 1 : 2 ** (precision + gainLog2 - epsilon) * (1 + mu / 2048);
       const mb = guardBits + epsilon - 1;
-      (yield* copyCoefficients(coefficients, width, height, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, context.onAllocation, context.storedPlanes));
+      (yield* copyCoefficients(coefficients, width, height, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, context.onAllocation, context.storedPlanes, context));
     }
     subbandCoefficients.push({
       width,

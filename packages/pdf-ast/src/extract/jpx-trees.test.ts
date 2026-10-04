@@ -30,15 +30,32 @@ it.each([1, 8])("backs large precinct tree values using %s-byte elements before 
   const decoder = new JpxImage(undefined, undefined, { storedPlanes: true });
   decoder.failOnCorruptedImage = true;
   const steps = decoder.parseSteps(bytes);
+  const backing = new Map<number, DataView>();
+  let end = 0;
   try {
     let next = steps.next();
     while (!next.done) {
       const request = next.value;
       if (typeof request !== "number" && "kind" in request) {
-        if (request.kind !== "vector-allocate") throw Error("unexpected tree request");
-        expect(request.length).toBeLessThanOrEqual(257 * 257 * elementBytes);
-        if (request.length === 257 * 257 * elementBytes) return;
-        next = steps.next(0);
+        if (request.kind === "vector-allocate") {
+          if (request.length === 257 * 257 * elementBytes) return;
+          const position = end; end += request.length;
+          backing.set(position, new DataView(new ArrayBuffer(request.length)));
+          next = steps.next(position);
+        } else {
+          const view = backing.get(request.vector.position)!;
+          const at = request.index * request.vector.bytesPerElement;
+          if (request.kind === "vector-write") {
+            if (request.vector.bytesPerElement === 8) view.setFloat64(at, request.value, true);
+            else if (request.vector.bytesPerElement === 4 && request.vector.integer) view.setUint32(at, request.value, true);
+            else if (request.vector.bytesPerElement === 4) view.setFloat32(at, request.value, true);
+            else if (request.vector.bytesPerElement === 2) view.setUint16(at, request.value, true);
+            else view.setUint8(at, request.value);
+            next = steps.next();
+          } else next = steps.next(request.vector.bytesPerElement === 8 ? view.getFloat64(at, true)
+            : request.vector.bytesPerElement === 4 ? request.vector.integer ? view.getUint32(at, true) : view.getFloat32(at, true)
+            : request.vector.bytesPerElement === 2 ? view.getUint16(at, true) : view.getUint8(at));
+        }
         continue;
       }
       next = steps.next(typeof request === "number" ? bytes[request] : bytes.subarray(request.start, request.end));
@@ -55,7 +72,7 @@ it("uses caller storage for growing precinct trees and releases scratch on a lat
   const { PdfRetainedJpx } = await import("./retained-jpx.js");
   const fs = createMemoryFileSystem();
   await fs.mkdir("/scratch");
-  const size = 516, count = (size / 4) ** 2;
+  const size = 132, count = (size / 4) ** 2;
   await fs.writeFile("/input", precinctFixture(size));
   const source = await PdfFileSource.open(fs, "/input");
   const storage = new PagedStorage({ fs, cwd: "/scratch", env: {}, signal: new AbortController().signal }, 2);

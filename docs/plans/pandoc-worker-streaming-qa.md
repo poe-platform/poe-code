@@ -72,11 +72,11 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   input objects, immediate key enumeration and diagnostic paths remain resident
   API costs; these tests do not establish full memory/CPU qualification.
 
-- Retained JSON and CSV/TSV routes admit finite `work` and `diagnostics` budgets
-  through the shared execution context. Exercise both budgets in filtered and
-  unfiltered cohorts, including exhaustion before publication. Other finite
-  document budgets still require separate retained accounting; these checks do
-  not establish qualification for those fallback paths.
+- Retained JSON/RTF/CSV/TSV routes admit finite document budgets through the shared
+  execution context, including `references` and `retainedBytes` with metadata,
+  filters, templates and image resources. Exercise allocation boundaries and
+  exhaustion before publication in filtered and unfiltered cohorts. Native quota
+  parity and local workerd/R2 checks do not establish deployed memory/CPU bounds.
 
 - Trace each format reader, converter, writer and resource engine, including
   Markdown reference resolution, HTML/XML trees, DOCX/EPUB archives, PDF layout,
@@ -241,8 +241,9 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   maps, key indexes and comparison frames use one extra page cache in caller storage.
   Verify unchanged versus replaced/reordered targets, same-URL different-directory
   caching, long/colliding metadata keys, chained generations and comment/heading
-  rewrites. Other readers, finite structural-budget fallbacks and buffered apply still use the
-  resident runtime. Preserve their
+  rewrites. Finite reference/byte quotas remain caller-backed for these pairs, including
+  metadata, templates and image embedding. Other readers, multiple-input JSON/RTF
+  conversions and buffered apply still use the resident runtime. Preserve their
   behavior while replacing those paths. `onError` delivers retained error bytes
   before scratch closes; the command consumes them with backpressure. Without
   that callback, SDK errors explicitly collect Error.message for compatibility.

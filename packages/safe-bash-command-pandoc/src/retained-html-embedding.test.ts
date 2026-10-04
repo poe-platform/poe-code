@@ -11,7 +11,7 @@ async function parity(from: "json" | "rtf" | "csv" | "tsv", size = 8, script?: s
   const input = {bytes: encoder.encode(source), base: "/docs"};
   const options = {from, to: "html", embedResources: true, ...(script ? {filters: [{kind: "lua" as const, path: "/filter.lua"}]} : {}), ...(template ? {template: {bytes: encoder.encode("<custom>$body$</custom>")}} : {})};
   const filters = script ? {filters: createLuaFilterCapability({readStream: () => [encoder.encode(script)]})} : {};
-  const capabilities = {...filters, ...(files ? {resourceFiles: fs, resourceCwd: "/wrong"} : {})};
+  const capabilities = {limits: {retainedBytes: 32000000}, ...filters, ...(files ? {resourceFiles: fs, resourceCwd: "/wrong"} : {})};
   const expected = await convert([input], options, capabilities).catch(error => error);
   vi.spyOn(fs, "readFile").mockRejectedValue(new Error("Whole file read forbidden"));
   const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));

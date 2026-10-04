@@ -178,7 +178,7 @@ JSON/RTF/CSV/TSV → JSON/plain/HTML/RST/CommonMark/GFM/LaTeX/RTF/ODT also suppo
 line endings, heading shifts and HTML-comment removal, plus supported standalone,
 ASCII, contents, numbering, wrapping and raw-content options, metadata overrides
 and JSON metadata files, streamed JSON/Lua filters, and HTML templates/includes
-with variables (JSON/RTF accept one input). CSV/TSV retain
+with variables and image resource search/embedding (JSON/RTF accept one input). CSV/TSV retain
 multiple operands, ragged rows and literal cell text with native acquisition, decoder
 and cell-construction quota order. RTF retains token, font, run and picture quota
 charges, including binary picture payloads. Plain output includes wrapping, indentation
@@ -190,8 +190,8 @@ PNG/JPEG resources, search paths and collision-safe resource names. ODT includes
 XML escaping, nested blocks, image resources and archive output. Acquisition, decoding, parsing, AST
 normalization and output encoding keep their existing cumulative quota charges
 while document data lives in caller storage. Output sink writes preserve native
-4096-byte accounting and failures. Other retained-byte-limited combinations still
-use the compatibility path.
+4096-byte accounting and failures. Other reader/writer pairs, multiple-input JSON/RTF
+conversions and citeproc still use the compatibility path.
 JSON `metadataFiles` merge into retained generations before filters. File contents,
 merge keys, duplicate-key indexes and recursive map/list work stay in caller
 storage; null deletion, last-key-wins JSON parsing and native number conversion

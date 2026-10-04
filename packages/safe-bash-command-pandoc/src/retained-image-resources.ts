@@ -112,12 +112,13 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
     const comma = url.indexOf(",");
     return comma >= 0 && ["data:image/png;base64", "data:image/jpg;base64", "data:image/jpeg;base64"].includes(url.slice(0, comma).toLowerCase()) ? comma + 1 : 0;
   };
-  const admitEmbedded = async (): Promise<void> => {
+  const admitEmbedded = async (): Promise<number> => {
     context.charge("references", 1);
     const name = Number.isFinite(context.limits.retainedBytes) ? await allocateName("resource") : "";
     if (Number.isFinite(context.limits.retainedBytes)) context.charge("retainedBytes", name.length * 2 + 64);
     context.charge("references", 1);
     if (Number.isFinite(context.limits.retainedBytes)) context.charge("retainedBytes", name.length * 2 + 64);
+    return name.length;
   };
   const data = async (node: number, start: number): Promise<Span> => {
     const position = storage.allocate(0); let length = 0, skip = start, group = "", ended = false, buffer = new Uint8Array(4096), used = 0;
@@ -179,7 +180,8 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
       // Reader-owned resources remain admitted even when a filter removes their images.
       if (Number.isFinite(context.limits.references) || Number.isFinite(context.limits.retainedBytes)) {
         for (let index = 0; index < (embedded?.count ?? 0); index++) {
-          await admitEmbedded();
+          const units = await admitEmbedded(), record = await resourceSpans.get(BigInt(index + 1));
+          if (record) await encodedNameLengths.set(record, BigInt(units));
           await context.cooperate();
         }
         for await (const image of images()) {
@@ -187,7 +189,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
           if (await inputSpans.get(key)) continue;
           const record = await targetSpans.get(key);
           if (record && !await admittedReferences.get(record)) {
-            await admitEmbedded();
+            await encodedNameLengths.set(record, BigInt(await admitEmbedded()));
             await admittedReferences.set(record, 1n);
           }
         }
@@ -268,6 +270,19 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
       const record = Number(await inputSpans.get(key) ?? (!context.resources ? await targetSpans.get(key) : undefined) ?? 0n);
       if (!record) return undefined;
       const span = await load(record);
+      if (Number.isFinite(context.limits.retainedBytes)) {
+        const mapped = await encodedNameLengths.get(BigInt(record));
+        let units = Number(mapped ?? 0n);
+        if (mapped === undefined) for await (const chunk of tree.scalarChunks(node)) units += chunk.length;
+        else if (!await inputSpans.get(key)) {
+          let prefix = ""; for await (const chunk of tree.scalarChunks(node)) {prefix = chunk.slice(0, 32); break;}
+          if (!dataPrefix(prefix)) {
+            const suffix = localResourceTarget(await scalar(node), context).suffix;
+            for (const char of suffix) units += " \"<>`".includes(char) ? encodeURIComponent(char).length : char.length;
+          }
+        }
+        context.charge("retainedBytes", units * 2);
+      }
       return (async function* () {
         for (let offset = 0; offset < span.length; offset += 16384) {
           await context.cooperate(); yield await storage.read(span.position + offset, Math.min(16384, span.length - offset));

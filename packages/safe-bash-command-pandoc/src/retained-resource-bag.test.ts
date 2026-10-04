@@ -37,10 +37,14 @@ it("reads one retained resource once across distinct image origins", async () =>
 });
 
 
-it.each([4097, 65537])("does not reread or recopy a %i-unit target on repeated lookup", async units => {
+it.each(["resolver", "filesystem"].flatMap(capability => [4097, 65537].map(units => ({capability, units}))))("does not reread or recopy a $units-unit $capability target on repeated lookup", async ({capability, units}) => {
   const fs = new MemoryFileSystem(), resolveSource = vi.fn(async function* () {yield Uint8Array.of(1, 2, 3);});
-  const context = new ExecutionContext("convert", {resources: {resolveSource}}), working = {fs, directory: "/", cacheBytes: 16384};
-  const id = "x".repeat(units), image = {t: "Image", c: [["", [], []], [], [id, ""]]};
+  const resourceFiles = {
+    async lstat(path: string): Promise<{type: "file" | "directory"}> {return {type: path === "/" ? "directory" : "file"};},
+    readStream: resolveSource, async mkdir() {}, async writeFile() {}
+  };
+  const context = new ExecutionContext("convert", capability === "resolver" ? {resources: {resolveSource}} : {resourceFiles}), working = {fs, directory: "/", cacheBytes: 16384};
+  const id = capability === "resolver" ? "x".repeat(units) : "p?" + "x".repeat(units - 2), image = {t: "Image", c: [["", [], []], [], [id, ""]]};
   const document = await readRetainedJson({bytes: new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: [image, image]}]}))}, context, working);
   try {
     const targets: number[] = [];

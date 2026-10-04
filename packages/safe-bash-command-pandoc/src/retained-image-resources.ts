@@ -29,7 +29,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
   const targets = new BackedTextSet(storage, text), paths = new BackedTextSet(storage, text), targetSpans = new IntegerTable(storage, 64), pathSpans = new IntegerTable(storage, 64);
   const admittedReferences = new IntegerTable(storage, 64), publishedReferences = new IntegerTable(storage, 64);
   const inputSpans = new IntegerTable(storage, 64), inputIdentities = new IntegerTable(storage, 64), resourceSpans = new IntegerTable(storage, 64);
-  const nodeTargets = new IntegerTable(storage, 64);
+  const nodeTargets = new IntegerTable(storage, 64), nodeResources = new IntegerTable(storage, 64);
   const originAt=(node:number)=>typeof origin==="function"?origin(node):Promise.resolve(origin);
   const targetKey=async(node:number):Promise<bigint>=>{
     const cached = await nodeTargets.get(BigInt(node));
@@ -115,13 +115,18 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
     }
   };
   const resourceIdentity = async (node: number, span: Span): Promise<number> => {
+    // Admission fixes each node's byte span before budgets or writers consume it.
+    const cached = await nodeResources.get(BigInt(node));
+    if (cached !== undefined) return Number(cached);
     let prefix = ""; for await (const chunk of tree.scalarChunks(node)) {prefix = chunk.slice(0, 32); break;}
     const embedded = dataPrefix(prefix);
     if (!embedded) await retainedLocalResourceTarget(tree, node, context);
-    return identities.add(await text.from((async function* () {
+    const identity = await identities.add(await text.from((async function* () {
       yield String(span.position) + ":";
       if (!embedded) yield* retainedResourceSuffix(tree, node);
     })()));
+    await nodeResources.set(BigInt(node), BigInt(identity));
+    return identity;
   };
   const dataPrefix = (url: string): number => {
     const comma = url.indexOf(",");

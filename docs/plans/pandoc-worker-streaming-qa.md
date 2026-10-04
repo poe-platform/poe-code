@@ -683,5 +683,9 @@ Repeat resource lookups for the same retained document nodes after the first
 admission, with large identifiers and distinct nodes sharing the same identifier.
 Require stable identities, no repeated identifier scalar reads, no growth in the
 resource backing store, and unchanged resolver deduplication. The node-to-identity
-index must itself use caller storage. Repeat origin-separation and finite-budget
+index must itself use caller storage. Apply the same invariant to filesystem
+resource identities with long query/fragment suffixes; keep different fragments
+distinct while reusing the same admitted file bytes. Both target and resource
+identity caches are scoped to the immutable admitted document. Repeat
+origin-separation and finite-budget
 checks along with the Worker resource matrix.

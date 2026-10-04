@@ -37,7 +37,8 @@ async function header(source: PdfFileSource, signal?: AbortSignal): Promise<stri
   return head.slice(start + 5, start + 8);
 }
 
-async function latestOffset(source: PdfFileSource, options: PdfCrossReferenceOptions): Promise<number> {
+/** Locate the final startxref pointer with bounded reverse reads. */
+export async function findPdfStartXref(source: PdfFileSource, options: PdfCrossReferenceOptions = {}): Promise<number> {
   let end = source.size;
   let suffix: Uint8Array = new Uint8Array(0);
   let turns = 0;
@@ -86,7 +87,7 @@ export async function openPdfCrossReference(source: PdfFileSource, storage: PdfI
   if (maxRevisions !== Infinity && (!Number.isSafeInteger(maxRevisions) || maxRevisions < 0)) throw new RangeError("Invalid maxRevisions");
   options.signal?.throwIfAborted();
   const version = await header(source, options.signal);
-  const xrefOffset = await latestOffset(source, options);
+  const xrefOffset = await findPdfStartXref(source, options);
   const indexOptions = { ...options.index, ...(options.signal ? { signal: options.signal } : {}) };
   let visited: PdfObjectIndex | undefined;
   let revision: PdfObjectIndex | undefined;

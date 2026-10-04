@@ -1,3 +1,4 @@
+import { xrefDisplayParts } from "./xref-display.js";
 import { pageDisplayParts } from "./page-display.js";
 import { displayNodeParts, encodeDisplayParts } from "./display.js";
 import { PdfError, PdfFileSource, PdfRetainedDocument, saveRetainedDocumentChunks, retainedCosObjects, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
@@ -18,6 +19,7 @@ export interface RetainedQpdfOptions {
   check: boolean;
   showNpages: boolean;
   showPages: boolean;
+  showXref: boolean;
   withImages: boolean;
   showEncryption: boolean;
   isEncrypted: boolean;
@@ -75,7 +77,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
       return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
     }
-    if (options.check || options.showNpages || options.showEncryption || options.showObject || options.showPages) {
+    if (options.check || options.showNpages || options.showEncryption || options.showObject || options.showPages || options.showXref) {
       let count = 0, linearized = false, highest = 0, inlineCount = 0;
       let inlinePage: PdfCosNode | undefined, selectedValue: PdfCosNode | undefined, selectedLength: number | undefined;
       try {
@@ -94,11 +96,14 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
         return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
       }
-      if (!options.check && (options.showPages || (options.showObject && !options.showNpages && !options.showEncryption))) {
+      if (!options.check && (options.showPages || ((options.showObject || options.showXref) && !options.showNpages && !options.showEncryption))) {
         const number = options.showObject?.objNum ?? NaN, entry = Number.isSafeInteger(number) && number >= 0 ? await document.crossReference.index.get(number, signal) : undefined, generation = entry?.generationNumber ?? 0;
         let chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
         if (options.showPages) {
           const parts = pageDisplayParts(document, storage, highest, options.withImages, signal);
+          chunks = (async function* () { for await (const part of parts) yield* encodeDisplayParts([part], signal); })();
+        } else if (options.showXref) {
+          const parts = xrefDisplayParts(document, source, storage, highest, signal);
           chunks = (async function* () { for await (const part of parts) yield* encodeDisplayParts([part], signal); })();
         } else if (selectedLength !== undefined && (options.rawStreamData || options.filteredStreamData)) chunks = document.objects.decodeStream(number, generation, { raw: !options.filteredStreamData });
         else {

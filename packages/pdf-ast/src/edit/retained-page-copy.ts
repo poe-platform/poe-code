@@ -1,3 +1,4 @@
+import { PdfMergeAttachments } from "./retained-merge-attachments.js";
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
 import { cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, dictSet, type PdfCosNode, type PdfCosDict } from "../ast.js";
 import { PdfMutableObjectStore } from "../cos/mutable-object-store.js";
@@ -10,6 +11,8 @@ import { PdfError } from "../errors.js";
 import type { PdfRetainedDocument } from "../retained-document.js";
 
 export interface CopyRetainedPageOptions {
+  /** Merge all source embedded files; the first occurrence of each name wins. */
+  readonly includeAttachments?: boolean;
   readonly maxObjects?: number;
   readonly maxPages?: number;
   readonly maxOutputBytes?: number;
@@ -40,6 +43,7 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
   const signal = options.signal ?? new AbortController().signal, maximumDepth = options.maxRecursionDepth ?? Infinity;
   if (maximumDepth !== Infinity && (!Number.isSafeInteger(maximumDepth) || maximumDepth < 1)) throw new RangeError("Invalid PDF copy depth");
   const store = new PdfMutableObjectStore(storage, options), lists = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
+  const attachments = options.includeAttachments ? new PdfMergeAttachments(storage, signal) : undefined;
   const catalog = cosDict({ Type: cosName("Catalog"), Pages: cosRef(2) });
   type ReferenceList = { first: number; last: number; count: number };
   const pages: ReferenceList = { first: 0, last: 0, count: 0 }, formFields: ReferenceList = { first: 0, last: 0, count: 0 };
@@ -236,11 +240,13 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
   try {
     await store.allocate(catalog); await store.allocate(cosDict({ Type: cosName("Pages"), Count: cosNumber(0), Kids: cosArray([]) }));
     await store.allocate(cosDict({ Producer: cosString("@poe-code/pdf-ast") }));
-    for await (const source of sources) { await checkpoint(); await append(source.document, source.indices); }
+    for await (const source of sources) { await checkpoint(); await attachments?.append(source.document); await append(source.document, source.indices); }
+    const attachmentNames = await attachments?.finish(store, catalog);
     await store.set({ objectNumber: 1, generationNumber: 0, value: catalog });
     const pageTree = cosDict({ Type: cosName("Pages"), Count: cosNumber(pageCount), Kids: cosArray([]) });
     async function* objects() {
       for await (const object of store.outputObjects()) {
+        if (object.objectNumber === attachmentNames?.objectNumber) { yield attachmentNames; continue; }
         if (object.objectNumber !== 2 && object.objectNumber !== formRef?.objectNumber) { yield object; continue; }
         const dict = object.objectNumber === 2 ? pageTree : (await store.get(object.objectNumber))!.value as PdfCosDict;
         const field = object.objectNumber === 2 ? "Kids" : "Fields", values = object.objectNumber === 2 ? pages : formFields;
@@ -250,7 +256,7 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
     }
     yield* serializeRetainedCosDocumentChunks({ ...options, objects: objects(), rootRef: cosRef(1), infoRef: cosRef(3), signal }, storage);
   } catch (error) { failed = true; throw error; }
-  finally { const results = await Promise.allSettled([store.close(), lists.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
+  finally { const results = await Promise.allSettled([store.close(), lists.close(), attachments?.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
 }
 
 export { copyRetainedPagesChunks as copyRetainedPageChunks };

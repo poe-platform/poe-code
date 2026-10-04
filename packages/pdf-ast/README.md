@@ -760,6 +760,10 @@ To combine sources, pass a synchronous or asynchronous iterable of
 Each source is fully copied before the iterable resumes, so a source generator
 can close that document and its input before opening the next. Metadata comes
 from the first source; forms accumulate with the ordinary page-copy behavior.
+With `includeAttachments: true`, all source embedded files are merged; the first
+occurrence of each filename wins. Attachment payloads are recompressed in bounded
+chunks and staged before their source closes; the destination name tree streams
+from caller-backed records.
 Page and form reference lists remain on caller storage. Source-specific indexes
 close after each source, and `maxPages` applies across the whole operation.
 Each source page tree is scanned once. Supply `maxPages`, `maxObjects`,

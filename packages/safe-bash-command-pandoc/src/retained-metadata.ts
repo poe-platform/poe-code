@@ -59,7 +59,7 @@ export async function mergeRetainedMetadata(document: RetainedDocument, input: {
       let parseError: {offset: number} | undefined;
       try {await parseBackedJson(decoded(), overlay, scratch, cooperate, (offset, _message, tokenOffset) => {
         parseError = {offset: tokenOffset ?? offset}; throw new PandocError("E_PARSE", "convert", "Invalid JSON metadata", "json");
-      }, undefined, true);} catch (error) {
+      }, undefined, true, Number.isFinite(context.limits.depth) ? (depth, container) => {if (container) context.bound("depth", depth);} : undefined);} catch (error) {
         if (!parseError) throw error;
         let line = 1, column = 1, offset = 0;
         for await (const text of decoded()) {
@@ -97,18 +97,19 @@ export async function mergeRetainedMetadata(document: RetainedDocument, input: {
       if (["__proto__", "constructor", "prototype"].includes(await overlay.smallText(key, 11) ?? "")) option("Unsafe metadata key");
     };
     const isNull = async (node: number) => (await overlay.describe(node)).kind === "literal" && await overlay.smallText(node, 4) === "null";
-    let top = 0;
+    let top = 0, jobDepth = 0;
     // Jobs: copy, siblings, end, map, old keys, metadata value, new keys, list.
-    const push = async (op: number, a = 0, b = 0, c = 0) => {
-      const bytes = new Uint8Array(40), view = new DataView(bytes.buffer);
-      [top, op, a, b, c].forEach((value, index) => view.setFloat64(index * 8, value, true));
+    const push = async (op: number, a = 0, b = 0, c = 0, depth = jobDepth) => {
+      const bytes = new Uint8Array(48), view = new DataView(bytes.buffer);
+      [top, op, a, b, c, depth].forEach((value, index) => view.setFloat64(index * 8, value, true));
       top = await scratch.append(bytes);
     };
     await push(3, (await source.property(source.rootPosition, "meta"))!, overlayRoot);
     while (top) {
       await cooperate();
-      const bytes = await scratch.read(top, 40), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+      const bytes = await scratch.read(top, 48), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
       top = view.getFloat64(0, true);
+      jobDepth = view.getFloat64(40, true);
       const op = view.getFloat64(8, true), a = view.getFloat64(16, true), b = view.getFloat64(24, true), c = view.getFloat64(32, true);
       if (op === 2) {await merged.end(); continue;}
       if (op === 0 || op === 1) {
@@ -119,6 +120,7 @@ export async function mergeRetainedMetadata(document: RetainedDocument, input: {
         if (header.kind === "object" || header.kind === "array") {await push(2); if (header.end > a + 32) await push(1, a + 32, b, header.end);}
         else {for await (const chunk of tree.scalarChunks(a)) await merged.text(chunk); await merged.end();}
       } else if (op === 3) {
+        if (!("tree" in input && input.typed)) context.bound("depth", jobDepth);
         await merged.begin("object"); await push(2);
         const right = await overlay.describe(b);
         if (right.children) await push(6, b + 32, right.end);
@@ -132,7 +134,7 @@ export async function mergeRetainedMetadata(document: RetainedDocument, input: {
           await used.set(BigInt(id), 1n);
           await unsafe(Number((await first.get(BigInt(id)))!));
           if (await isNull(replacement)) continue;
-          await push(5, value, replacement);
+          await push(5, value, replacement, 0, jobDepth + 1);
         } else await push(0, value);
         await push(0, a);
       } else if (op === 6) {
@@ -144,10 +146,10 @@ export async function mergeRetainedMetadata(document: RetainedDocument, input: {
         await unsafe(a);
         const value = Number((await values.get(id))!);
         if (await isNull(value)) continue;
-        await push(5, 0, value); await push(0, a, 1);
+        await push(5, 0, value, 0, jobDepth + 1); await push(0, a, 1);
       } else if (op === 7) {
         if (a >= b) continue;
-        await push(7, (await overlay.describe(a)).end, b); await push(5, 0, a);
+        await push(7, (await overlay.describe(a)).end, b); await push(5, 0, a, 0, jobDepth + 1);
       } else if (op === 5) {
         if ("tree" in input && input.typed) {
           const tag = (await overlay.property(b, "t"))!;
@@ -161,12 +163,13 @@ export async function mergeRetainedMetadata(document: RetainedDocument, input: {
         }
         const header = await overlay.describe(b);
         if (await isNull(b)) option("Null metadata list elements are unsupported");
+        context.bound("depth", jobDepth);
         await merged.begin("object"); await merged.key("t");
         if (header.kind === "object") {
           await merged.value("MetaMap"); await merged.key("c"); await push(2);
           const tag = a ? await source.property(a, "t") : undefined;
           const left = tag !== undefined && await source.smallText(tag, 7) === "MetaMap" ? (await source.property(a, "c"))! : 0;
-          await push(3, left, b);
+          await push(3, left, b, 0, jobDepth + (left ? 0 : 1));
         } else if (header.kind === "array") {
           await merged.value("MetaList"); await merged.key("c"); await merged.begin("array"); await push(2); await push(2);
           if (header.children) await push(7, b + 32, header.end);

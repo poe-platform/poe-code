@@ -30,15 +30,16 @@ export async function retainedPath(tree: BackedJson, position: number, metadataO
 
 /** Visit values in JS property order, using tape parent links rather than a
  * resident depth-dependent stack. Exit events support contextual translation. */
-export async function* retainedValues(tree: BackedJson, order: Order, root: number, scalar?: (position: number) => Promise<boolean>): AsyncGenerator<{position: number; exit: boolean; key: number}> {
-  let position = root, exit = false, key = 0;
+export async function* retainedValues(tree: BackedJson, order: Order, root: number, scalar?: (position: number) => Promise<boolean>): AsyncGenerator<{position: number; exit: boolean; key: number; depth: number}> {
+  let position = root, exit = false, key = 0, depth = 0;
   while (position) {
     const header = await tree.describe(position);
-    yield {position, exit, key};
+    yield {position, exit, key, depth};
     key = 0;
     if (!exit && header.children && !await scalar?.(position)) {
       key = header.kind === "object" ? await order.first(position) : 0;
       position = key ? (await tree.describe(key)).end : position + 32;
+      depth++;
       continue;
     }
     if (!exit) {exit = true; continue;}
@@ -46,7 +47,7 @@ export async function* retainedValues(tree: BackedJson, order: Order, root: numb
     const parent = await tree.describe(header.parent);
     const next = parent.kind === "object" ? await order.next(position, header.parent) : header.end < parent.end ? header.end : 0;
     if (next) {key = parent.kind === "object" ? next : 0; position = key ? (await tree.describe(key)).end : next; exit = false;}
-    else {position = header.parent; exit = true;}
+    else {position = header.parent; exit = true; depth--;}
   }
 }
 

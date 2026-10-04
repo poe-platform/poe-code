@@ -75,7 +75,7 @@ export class RetainedJsonOptions {
     };
     // Frames: parent, edge index, keys, count, next, metadata depth, array, temporary child link.
     const enter = async (value: object, parent: number, edge: number, level: number): Promise<number> => {
-      context.bound("depth", level);
+      if (!ast) context.bound("depth", level);
       const array = Array.isArray(value), position = scratch.allocate(64);
       let keys = 0, count = array ? value.length as number : 0;
       if (!array) {
@@ -85,8 +85,9 @@ export class RetainedJsonOptions {
         }
       }
       await put(position, [parent, edge, keys, count, 0, level, array ? 1 : 0, 0]);
+      if (ast && level > context.limits.depth) await fail(position, undefined, "AST budget exceeded", "E_LIMIT");
       if (ast && (Object.getOwnPropertySymbols(value).length || !array && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)) await fail(position);
-      if (ast && array && (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes))) {
+      if (ast && array && (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth))) {
         // Normalization inspects every own array descriptor before recognizing
         // cell tuples, so accessors and sparse slots precede the budget charge.
         for (let i = 0; i < count; i++) {await property(value, i, position); await context.cooperate();}
@@ -132,7 +133,8 @@ export class RetainedJsonOptions {
       }
       return value;
     };
-    const rootFrame = await enter(root, 0, 0, 0);
+    if (ast && context.limits.depth < 1) throw new PandocError("E_LIMIT", "convert", "$: AST budget exceeded", undefined, "$");
+    const rootFrame = await enter(root, 0, 0, ast ? 1 : 0);
     let frame = rootFrame, current: object = root;
     while (frame) {
       await context.cooperate();
@@ -145,6 +147,7 @@ export class RetainedJsonOptions {
       }
       await put(frame + 32, [index! + 1]);
       const key = array ? index! : await keyAt(keys!, index!);
+      if (ast && level! + 1 > context.limits.depth) await fail(frame, typeof key === "string" ? undefined : key, "AST budget exceeded", "E_LIMIT");
       if (ast && typeof key === "string") await unicode(key, frame);
       const value = await property(current, key, frame);
       if (ast && typeof value === "string") await unicode(value, frame, key);
@@ -163,11 +166,11 @@ export class RetainedJsonOptions {
         if (array && !ast) context.fail("E_OPTION", "Null metadata list elements are unsupported");
         await tree.value(null); continue;
       }
-      context.bound("depth", level! + 1); context.charge("nodes", 1); await context.cooperate();
+      if (!ast) context.bound("depth", level! + 1); context.charge("nodes", 1); await context.cooperate();
       if (typeof value === "string" || typeof value === "boolean" || typeof value === "number" && Number.isFinite(value)) await tree.value(value);
       else if (value && typeof value === "object") {
         await resolve(frame, value, key);
-        frame = await enter(value, frame, index!, level! + (Array.isArray(value) ? 1 : 2)); current = value;
+        frame = await enter(value, frame, index!, level! + (ast || Array.isArray(value) ? 1 : 2)); current = value;
       } else {if (ast) await fail(frame, key, typeof value === "number" ? "Invalid shape" : "Non-JSON or cyclic input"); context.fail("E_OPTION", "Invalid JSON metadata value");}
     }
   }

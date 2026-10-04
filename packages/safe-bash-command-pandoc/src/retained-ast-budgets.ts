@@ -6,11 +6,13 @@ import {readJsonNumber, JsonNumberError} from "./json-number.js";
 import {PandocError} from "./errors.js";
 import {retainedPath, retainedValues} from "./retained-wire.js";
 
+const wireEnums = new Set(["AlignDefault", "AlignLeft", "AlignRight", "AlignCenter", "SingleQuote", "DoubleQuote", "InlineMath", "DisplayMath", "AuthorInText", "SuppressAuthor", "NormalCitation", "DefaultStyle", "Example", "Decimal", "LowerRoman", "UpperRoman", "LowerAlpha", "UpperAlpha", "DefaultDelim", "Period", "OneParen", "TwoParens"]);
+
 /** Reserve normalized attributes and cell spans in document order without collecting tables.
  * When translation positions are supplied, also perform the scalar checks that
  * precede schema validation in the buffered normalizer. */
 export async function reserveRetainedAstBudgets(tree: BackedJson, order: Awaited<ReturnType<typeof backedJsonOrder>>, context: ExecutionContext, metadataOnly = false, enums?: IntegerTable): Promise<void> {
-  if (!Number.isFinite(context.limits.tableCells) && !Number.isFinite(context.limits.attributes)) return;
+  if (!Number.isFinite(context.limits.tableCells) && !Number.isFinite(context.limits.attributes) && !Number.isFinite(context.limits.depth)) return;
   let cells = 0, attributes = 0;
   const fail = async (position: number, message: string, code: "E_AST" | "E_LIMIT" = "E_AST"): Promise<never> => {
     const path = await retainedPath(tree, position, metadataOnly);
@@ -26,17 +28,30 @@ export async function reserveRetainedAstBudgets(tree: BackedJson, order: Awaited
     }
     if (high) await fail(location, "Invalid Unicode");
   };
+  const translated = async (position: number): Promise<number> => {
+    if (enums) return Number(await enums.get(BigInt(position)) ?? 0n);
+    // Already schema-validated generations have enum constructors only at their
+    // contextual positions. Collapse these for normalized depth accounting.
+    const header = await tree.describe(position);
+    if (header.kind !== "object" || header.children !== 2) return 0;
+    const tag = await tree.property(position, "t");
+    if (tag === undefined) return 0;
+    const name = await tree.smallText(tag, 32);
+    return wireEnums.has(name ?? "") ? tag : 0;
+  };
+  if (context.limits.depth < 1) await fail(tree.rootPosition, "AST budget exceeded", "E_LIMIT");
   const roots = metadataOnly ? [tree.rootPosition] : [(await tree.property(tree.rootPosition, "blocks"))!, (await tree.property(tree.rootPosition, "meta"))!];
-  for (const root of roots) for await (const {position: node, exit, key} of retainedValues(tree, order, root, async position => !!await enums?.get(BigInt(position)))) {
+  for (const root of roots) for await (const {position: node, exit, key, depth} of retainedValues(tree, order, root, async position => !!await translated(position))) {
     if (exit) continue;
     await context.cooperate();
-    const header = await tree.describe(node), translated = Number(await enums?.get(BigInt(node)) ?? 0n);
+    const header = await tree.describe(node), enumPosition = await translated(node);
+    if (depth + 1 > context.limits.depth) await fail(key ? header.parent : node, "AST budget exceeded", "E_LIMIT");
     if (enums) {
       if (key) {
         await string(key, header.parent);
         if (["__proto__", "constructor", "prototype"].includes(await tree.smallText(key, 11) ?? "")) await fail(node, "Invalid shape");
       }
-      if (translated || header.kind === "string") await string(translated || node, node);
+      if (enumPosition || header.kind === "string") await string(enumPosition || node, node);
     }
     if (header.kind === "array" && header.children === 3 && Number.isFinite(context.limits.attributes)) {
       const first = await tree.describe(node + 32), second = await tree.describe(first.end), third = await tree.describe(second.end);

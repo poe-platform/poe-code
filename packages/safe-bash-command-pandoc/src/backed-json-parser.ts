@@ -49,8 +49,10 @@ type NumberState = "start" | "minus" | "zero" | "int" | "dot" | "frac" | "exp" |
 export async function parseBackedJson(
   chunks: AsyncIterable<string>, tree: BackedJson, index: PagedStorage,
   cooperate: (units?: number) => Promise<void>, error: (offset: number, message: string, tokenOffset?: number) => never,
-  validateNumber?: (node: number, offset: number) => Promise<void>, allowDuplicateKeys = false
+  validateNumber?: (node: number, offset: number) => Promise<void>, allowDuplicateKeys = false, checkDepth?: (depth: number, container?: boolean) => void
 ): Promise<void> {
+  let depth = 0;
+  checkDepth?.(depth);
   const keys = new Keys(index, tree, cooperate);
   let mode: Mode = "value", token: "string" | "number" | "keyword" | undefined;
   let position = 0, offset = 0, work = 0, buffer = "", tokenOffset = 0;
@@ -66,6 +68,7 @@ export async function parseBackedJson(
   };
   const end = async (): Promise<Mode> => {
     await flush();
+    if (!token) depth--;
     position = await tree.end();
     token = undefined;
     return position ? "separator" : "done";
@@ -162,6 +165,7 @@ export async function parseBackedJson(
         if (mode === "colon") {
           if (char !== ":") error(offset, "Expected JSON colon");
           mode = "value";
+          checkDepth?.(depth);
           continue;
         }
         if (mode === "arrayFirst") {
@@ -180,7 +184,10 @@ export async function parseBackedJson(
           token = "string"; tokenOffset = offset;
           continue;
         }
+        checkDepth?.(depth);
         if (char === "{" || char === "[") {
+          depth++;
+          checkDepth?.(depth, true);
           position = await tree.begin(char === "{" ? "object" : "array");
           mode = char === "{" ? "keyFirst" : "arrayFirst";
         } else if (char === '"') {position = await tree.begin("string"); token = "string"; tokenOffset = offset;}

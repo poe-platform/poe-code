@@ -74,11 +74,11 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
         if (!(error instanceof JsonNumberError)) throw error;
         throw new PandocError("E_AST", "read", error.message, "json", `$@${offset}`);
       }
-    });
+    }, false, chargeInput && Number.isFinite(context.limits.depth) ? (depth, container) => {if (!container) context.bound("depth", depth);} : undefined);
     const order = await backedJsonOrder(tree, scratch, units => context.cooperate(units));
     if (chargeAst) {
       try {
-        const enums = (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes)) ? await validateRetainedWire(tree, order, scratch, context) : undefined;
+        const enums = (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth)) ? await validateRetainedWire(tree, order, scratch, context) : undefined;
         await reserveRetainedAstBudgets(tree, order, context, false, enums);
       }
       catch (error) {
@@ -87,7 +87,7 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
         throw error;
       }
     }
-    await validateBackedPandoc(tree, scratch, context, undefined, chargeAst && (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes)));
+    await validateBackedPandoc(tree, scratch, context, undefined, chargeAst && (Number.isFinite(context.limits.tableCells) || Number.isFinite(context.limits.attributes) || Number.isFinite(context.limits.depth)));
     const meta = (await tree.property(tree.rootPosition, "meta"))!, blocks = (await tree.property(tree.rootPosition, "blocks"))!;
     const encoder = new TextEncoder();
     const output = async function* (eol?: "lf" | "crlf" | "native") {

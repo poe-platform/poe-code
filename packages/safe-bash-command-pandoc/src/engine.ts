@@ -627,7 +627,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     (request?.kind === "json" || request?.kind === "lua") && typeof context.filters?.applyJsonStream === "function");
   const retainedLimits = Object.entries(context.limits ?? {}).every(([key, value]) => [
     "inputBytes", "outputBytes", "work", "diagnostics", "fonts", "includes", "images", "binaryBytes", "layoutWork",
-    "parts", "compressedBytes", "expandedBytes", "resources", "resourceBytes", "tableRows", "tableColumns", "tableFieldText", "tableCells", "attributes",
+    "parts", "compressedBytes", "expandedBytes", "resources", "resourceBytes", "tableRows", "tableColumns", "tableFieldText", "tableCells", "attributes", "depth",
     // These format-specific budgets have no consumers in the retained format pairs.
     "glyphs", "pages", "objects", "xmlDepth", "xmlNodes", "macros", "directives", "entities", "entityBytes", "yamlAliases"
   ].includes(key) || value === Infinity);
@@ -650,7 +650,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
           reading = false; return {...retained.document, resources: retained.resources, closeResources: retained.close};
         }, session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", inputs[0]!, includes));
       } catch (error) {
-        if (reading && reader.descriptor.name === "json" && error instanceof PandocError && error.code === "E_LIMIT" && ["tableCells:", "attributes:"].some(prefix => error.message.startsWith(prefix)) && inputs[0]!.source)
+        if (reading && reader.descriptor.name === "json" && error instanceof PandocError && error.code === "E_LIMIT" && ["tableCells:", "attributes:", "depth:"].some(prefix => error.message.startsWith(prefix)) && inputs[0]!.source)
           throw new PandocError(error.code, "convert", error.message, error.format, `${inputs[0]!.source}:${error.location ?? "1:1"}`);
         if (reading && reader.descriptor.name === "rtf" && error instanceof PandocError && error.code !== "E_IO" && error.code !== "E_CANCELLED") {
           const name = inputs[0]!.source ?? (error.code === "E_PARSE" ? inputs[0]!.base : undefined);

@@ -10,7 +10,7 @@ const table: Block = {t: "Table", c: [["", [], []], [null, []], [["AlignDefault"
 ]]], [["", [], []], []]]};
 const filters: FilterCapability = {async apply(document) {return document;}, async applyJsonStream({stdin, stdout}) {for await (const bytes of stdin) await stdout.write(bytes);}};
 
-async function compare(source: string, options: ConversionOptions, limits: {tableCells?: number; attributes?: number}) {
+async function compare(source: string, options: ConversionOptions, limits: {tableCells?: number; attributes?: number; depth?: number}) {
   const input = {bytes: encoder.encode(source), source: "/document.json"};
   const expected = await convert([input], options, {limits, filters}).catch(error => error);
   const fs = new MemoryFileSystem(), chunks: Uint8Array[] = [], close = vi.fn(async () => {});
@@ -97,4 +97,49 @@ it.each(["unicode", "span", "unknown"])("preserves attribute budget error preced
 it.each(["csv", "tsv"])("retains direct %s HTML output with generated attribute budgets", async from => {
   for (const source of ["", "head", from === "csv" ? "a,b\nc" : "a\tb\nc"])
     for (const attributes of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12]) await compare(source, {from, to: "html"}, {attributes});
+});
+
+
+it.each(["nested", "unicode", "unknown", "invalid-value", "empty"])("preserves JSON depth admission and error order: %s", async kind => {
+  let block: unknown = {t: "Para", c: [{t: "Str", c: kind === "unicode" ? "\ud800" : "text"}]};
+  for (let i = 0; i < 4; i++) block = {t: "BlockQuote", c: [block]};
+  const document = {"pandoc-api-version": [1,23,1,2], meta: {}, blocks: kind === "empty" ? [] : [kind === "unknown" ? {t: "Unknown"} : block]};
+  const source = kind === "invalid-value" ? '{"pandoc-api-version":[1,23,1,2],"meta":{},"blocks":[[[?]]]}' : JSON.stringify(document);
+  for (const depth of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 20]) await compare(source, {from: "json", to: "plain"}, {depth});
+});
+
+it.each(["file", "json", "variables"])("preserves depth admission for %s metadata", async mode => {
+  const source = '{"pandoc-api-version":[1,23,1,2],"meta":{},"blocks":[]}';
+  const value = {a: {b: {c: {d: {e: {f: "value"}}}}}};
+  const options: ConversionOptions = {from: "json", to: "plain", ...(mode === "file" ? {metadataFiles: [{bytes: encoder.encode(JSON.stringify(value)), source: "/meta.json"}]} : mode === "json" ? {metadataJson: [value]} : {variables: value})};
+  for (const depth of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 20]) await compare(source, options, {depth});
+});
+
+
+it.each(["csv", "tsv"])("retains %s depth checks before direct output", async from => {
+  for (const source of ["", " ", "head", from === "csv" ? "a,b\nc" : "a\tb\nc"])
+    for (const depth of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]) await compare(source, {from, to: "html"}, {depth});
+});
+
+it.each([
+  String.raw`{\rtf1 {\b {\i nested}} text}`,
+  String.raw`{\rtf1 text{\footnote nested note}}`,
+  String.raw`{\rtf1{\pict\pngblip\picw1\pich1 89504e470d0a1a0a0000000d49484452000000010000000108000000003a7e9b550000000d494441547801010200fdff008000820081c36e25e00000000049454e44ae426082}}`
+])("preserves RTF syntax and normalized depth for %s", async source => {
+  for (const depth of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16]) await compare(source, {from: "rtf", to: "plain", filters: [{kind: "lua", path: "identity"}]}, {depth});
+});
+
+it.each(["csv", "json", "rtf"])("preserves combined structural budget order for %s", async from => {
+  const wire = await writeDocument({blocks: [table], metadata: {}, resources: []}, {to: "json"}, {});
+  if (wire.kind !== "text") throw new Error("Expected JSON");
+  const source = from === "csv" ? "a,b\nc,d" : from === "json" ? wire.text : String.raw`{\rtf1\trowd\cellx100\cellx200 a\cell b\cell\row}`;
+  for (const limits of [{depth: 2, attributes: 0, tableCells: 100}, {depth: 8, attributes: 100, tableCells: 0}, {depth: 12, attributes: 0, tableCells: 100}, {depth: 20, attributes: 100, tableCells: 100}])
+    await compare(source, {from, to: "plain"}, limits);
+});
+
+it.each(["sparse", "accessor"])("checks typed array %s descriptors before child depth", async kind => {
+  const values = new Array<import("./ast-types.js").MetaValue>(1);
+  if (kind === "accessor") Object.defineProperty(values, "0", {enumerable: true, get() {throw new Error("Accessor must not run");}});
+  const source = '{"pandoc-api-version":[1,23,1,2],"meta":{},"blocks":[]}';
+  await compare(source, {from: "json", to: "plain", metadata: {value: {t: "MetaList", c: values}}}, {depth: 3});
 });

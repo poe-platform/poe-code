@@ -1,3 +1,4 @@
+import {reserveRetainedAstBudgets} from "./retained-ast-budgets.js";
 import type {RetainedOptions} from "./retained-options.js";
 import {BackedJson} from "./backed-json.js";
 import {streamRetainedDocument} from "./stream-retained.js";
@@ -92,29 +93,45 @@ export async function streamDelimited(
           throw new PandocError(error.code, "convert", error.message, error.format, `${input.source ?? input.base}:${error.location ?? "1:1"}`);
         throw error;
       }
-      for (let cell = 0; cell < parser.rows * parser.width; cell++) {context.charge("tableCells", 1); await context.cooperate();}
-      if (parser.rows && Number.isFinite(context.limits.attributes)) {
-        // CSV/TSV emit only empty attribute tuples. Reserve them in the same
-        // order as AST normalization, deriving paths only when a bound fails.
-        let attributes = 0;
-        const reserve = async (path: () => string): Promise<void> => {
-          if (++attributes > context.limits.attributes) {
-            const location = "$.blocks[0].c" + path();
-            throw new PandocError("E_LIMIT", "convert", `${location}: AST budget exceeded`, undefined, location);
+      if (Number.isFinite(context.limits.depth)) {
+        // Depth can fail inside the generated cell structure before later
+        // attribute/span charges. Replay that normalization in caller storage.
+        const pages = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, cacheBytes / 16384);
+        const retire = context.onClose(() => pages.close());
+        try {
+          const tree = new BackedJson(pages, units => context.cooperate(units));
+          await tree.begin("object");
+          await tree.key("meta"); await tree.value({});
+          await tree.key("blocks"); await tree.begin("array");
+          if (parser.rows) await appendDelimitedJson(tree, parser.width, events => replay(position + 24, length, new DelimitedParser(format, context, events)));
+          await tree.end(); await tree.end();
+          await reserveRetainedAstBudgets(tree, await backedJsonOrder(tree, pages, units => context.cooperate(units)), context);
+        } finally {try {await pages.close();} finally {retire();}}
+      } else {
+        for (let cell = 0; cell < parser.rows * parser.width; cell++) {context.charge("tableCells", 1); await context.cooperate();}
+        if (parser.rows && Number.isFinite(context.limits.attributes)) {
+          // CSV/TSV emit only empty attribute tuples. Reserve them in the same
+          // order as AST normalization, deriving paths only when a bound fails.
+          let attributes = 0;
+          const reserve = async (path: () => string): Promise<void> => {
+            if (++attributes > context.limits.attributes) {
+              const location = "$.blocks[0].c" + path();
+              throw new PandocError("E_LIMIT", "convert", `${location}: AST budget exceeded`, undefined, location);
+            }
+            context.charge("attributes", 1);
+            await context.cooperate();
+          };
+          await reserve(() => "[0]");
+          await reserve(() => "[3][0]");
+          for (let row = 0; row < parser.rows; row++) {
+            if (row === 1) await reserve(() => "[4][0][0]");
+            const path = () => row ? `[4][0][3][${row - 1}]` : "[3][1][0]";
+            await reserve(() => path() + "[0]");
+            for (let column = 0; column < parser.width; column++) await reserve(() => path() + `[1][${column}][0]`);
           }
-          context.charge("attributes", 1);
-          await context.cooperate();
-        };
-        await reserve(() => "[0]");
-        await reserve(() => "[3][0]");
-        for (let row = 0; row < parser.rows; row++) {
-          if (row === 1) await reserve(() => "[4][0][0]");
-          const path = () => row ? `[4][0][3][${row - 1}]` : "[3][1][0]";
-          await reserve(() => path() + "[0]");
-          for (let column = 0; column < parser.width; column++) await reserve(() => path() + `[1][${column}][0]`);
+          if (parser.rows === 1) await reserve(() => "[4][0][0]");
+          await reserve(() => "[5][0]");
         }
-        if (parser.rows === 1) await reserve(() => "[4][0][0]");
-        await reserve(() => "[5][0]");
       }
       view.setFloat64(8, parser.rows, true);
       view.setFloat64(16, parser.width, true);

@@ -1,5 +1,5 @@
 import {expect, it} from "vitest";
-import {fillPrintNewlines, fillPrintParagraphs} from "./text-lines.js";
+import {fillPrintNewlines, fillPrintItems} from "./text-lines.js";
 
 it.each([
   ["ab\ncd", false, "ab↩cd"],
@@ -17,17 +17,23 @@ it("charges Fill text work before allocating replacements", () => {
   expect(() => fillPrintNewlines("ab\ncd", false, () => {throw reason;})).toThrow(reason);
 });
 
-
 it.each([
   ["ab\u2029cd", false, ["ab", "cd"]],
   ["אב\u2029גד", true, ["גד", "אב"]],
   ["אב\u2029\u2029גד", true, ["גד", "", "אב"]],
   ["\u2029אב\u2029", true, ["", "אב", ""]]
 ] as const)("orders single-direction Fill paragraphs for painting: %s", (value, rtl, expected) => {
-  expect(fillPrintParagraphs(value, rtl, () => {})).toEqual(expected);
+  expect(fillPrintItems(value, rtl, () => {})).toEqual(expected);
 });
 
 it("checks cancellation before splitting Fill paragraphs", () => {
   const reason = new Error("cancelled");
-  expect(() => fillPrintParagraphs("אב\u2029גד", true, () => {throw reason;})).toThrow(reason);
+  expect(() => fillPrintItems("אב\u2029גד", true, () => {throw reason;})).toThrow(reason);
+});
+
+it.each([
+  ["ab\u2029c\rd\u2028e", false, ["ab", "c", "\r", "d", "\u2028", "e"]],
+  ["אב\u2029ג\rד\u2028ה", true, ["ה", "\u2028", "ד", "\r", "ג", "אב"]]
+] as const)("retains control markers when ordering Fill items: %s", (value, rtl, expected) => {
+  expect(fillPrintItems(value, rtl, () => {})).toEqual(expected);
 });

@@ -4749,9 +4749,9 @@
     {
       "id": "rendering-font-print-fidelity",
       "status": "open",
-      "currentFinding": "Qualified borders/junctions, blank styles, merges, rotations, Fill controls, transparency and pure RTL newline/paragraph placement are delivered. Pure RTL tabs now match the retained native stops/order cohort, and default tabs preserve the native minimum one-space gap. Complete mixed-direction/control itemization, rich text/fonts, decoration/merged multipage, print-span and chart profiles. Existing passed rendering controls need not be restarted. See checkpoint20261004 for next acceptance and blockers.",
+      "currentFinding": "Qualified borders/junctions, blank styles, merges, rotations, Fill controls, transparency and pure RTL newline/paragraph placement are delivered. Pure RTL tabs now match the retained native stops/order cohort, and default tabs preserve the native minimum one-space gap. Pure RTL combined paragraph/tab/CR/U+2028 itemization is now qualified. Complete mixed-direction/control itemization, rich text/fonts, decoration/merged multipage, print-span and chart profiles. Existing passed rendering controls need not be restarted. See checkpoint20261004 for next acceptance and blockers.",
       "checkpoint20261004": {
-        "qualified": "Qualified borders/junctions, blank styles, merges, rotations, Fill controls, transparency and pure RTL newline/paragraph placement are delivered. Pure RTL tabs now match the retained native stops/order cohort, and default tabs preserve the native minimum one-space gap.",
+        "qualified": "Qualified borders/junctions, blank styles, merges, rotations, Fill controls, transparency and pure RTL newline/paragraph placement are delivered. Pure RTL tabs now match the retained native stops/order cohort, and default tabs preserve the native minimum one-space gap. Pure RTL combined paragraph/tab/CR/U+2028 itemization is now qualified.",
         "evidence": [
           "#/pdfSharedBorders",
           "#/pdfBlankStyleRegions",
@@ -4762,9 +4762,10 @@
           "#/pdfTransparentTextExtraction",
           "#/pdfRotatedRtlFill",
           "#/pdfRtlFillParagraphs",
-          "#/pdfRtlFillTabs"
+          "#/pdfRtlFillTabs",
+          "#/pdfRtlFillCombinedItems"
         ],
-        "nextAcceptance": "Match native glyph order, tab stops and marker placement for RTL tabs combined with U+2029, CR or U+2028 before relaxing combined-itemization guards; preserve exact text/copy counts and screenshots.",
+        "nextAcceptance": "Match native glyph order and tab stops for Hebrew/Latin tab runs in both base directions (אב followed by tab and ab; ab followed by tab and אב), including repetition and rotation, before relaxing the remaining mixed-direction guard.",
         "closureGate": "Complete mixed-direction/control itemization, rich text/fonts, decoration/merged multipage, print-span and chart profiles. Existing passed rendering controls need not be restarted.",
         "qualificationBlockers": []
       }
@@ -6303,5 +6304,11 @@
     "implementation": "Default eight-space tab stops leave at least one space after preceding text. Mirror pure RTL tab-run boxes inside the measured line while preserving already-shaped glyph order and shared stops across copies. Mixed-direction and combined paragraph/control-marker tab layouts retain their guards.",
     "validation": "New tab-layout test module failed before implementation; seven tab geometry/cancellation tests pass. 479 focused tests, selected build and engine/command lint/source/test/public-consumer types pass. Sixteen native inputs produce64 SDK/command XML/PDF outputs, with32 text/copy-count/XML comparisons and32 raster pairs matching within one pixel at144dpi. Includes the four retained RTL-tab acceptance controls, four paragraph regression controls, RTL edge/double/unequal tabs and LTR near-stop cases. Eight mixed-direction SDK/command guard checks remain rejected; screenshots inspected.",
     "remaining": "All19families remain open. Next bounded rendering acceptance: native glyph order, stops and marker placement for RTL tabs combined with U+2029, CR or U+2028 before relaxing those guards. General mixed-direction, rich-text and wider rendering qualification remains incomplete."
+  },
+  "pdfRtlFillCombinedItems": {
+    "status": "Pure RTL combined Fill itemization verified; broader rendering remains open",
+    "implementation": "Use one direction-aware item sequence for paragraph boundaries, CR boxes and U+2028 markers within each tab run. Move marker origins with glyph origins when mirroring RTL tab-run boxes. Preserve invisible copy separators without inventing an LTR run; mixed-direction run guards remain.",
+    "validation": "Compiled public combined-paragraph fixture and seven item-order/cancellation checks failed before implementation. 481 focused tests, selected build and engine/command lint/source/test/public-consumer types pass. Fifteen native inputs produce60 SDK/command XML/PDF outputs;30 text/copy-count/XML comparisons and30 raster pairs agree within one pixel at144dpi. Controls cover0/+45/-45degrees,10/14pt, paragraph-plus-tab, CR/U+2028-plus-tab, multiple markers, no-tab neighbors and empty edge boundaries. Eight mixed-direction public guard checks remain rejected; screenshots inspected. CR fixtures use XML character references to avoid newline normalization.",
+    "remaining": "All19families remain open. Next bounded rendering acceptance: native glyph order and tab stops for mixed Hebrew/Latin tab runs in both base directions before relaxing the remaining bidirectional guard. Rich-text/fonts and wider rendering profiles remain incomplete."
   }
 }

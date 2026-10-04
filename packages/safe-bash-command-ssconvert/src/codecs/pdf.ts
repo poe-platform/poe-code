@@ -20,7 +20,7 @@ import { graphBackground } from "../rendering/images/scene.js";
 import { layoutPrintPages } from "../rendering/print/layout.js";
 import { renderPrintHeaderFooter } from "../rendering/print/header-footer.js";
 import { nextPrintTabStop, mirrorPrintTabRuns } from "@poe-code/spreadsheet-engine/rendering/print/tab-layout";
-import { splitPrintLines, fillPrintNewlines, fillPrintParagraphs } from "@poe-code/spreadsheet-engine/rendering/print/text-lines";
+import { splitPrintLines, fillPrintNewlines, fillPrintItems } from "@poe-code/spreadsheet-engine/rendering/print/text-lines";
 import { renderPrintFormula } from "@poe-code/spreadsheet-engine/rendering/print/formula-text";
 import { createPrintSpans } from "@poe-code/spreadsheet-engine/rendering/print/text-span";
 import { cellPrintStyle, type CellPrintStyle } from "../rendering/print/cell-style.js";
@@ -345,8 +345,9 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         const runs: ReturnType<typeof shaper.shape>[] = [];
         // Native Fill itemization separates paragraph boundaries and tabs.
         // Tabs use shared stops across the entire repeated line.
-        const rtlParagraphs = singleParagraph && !vectorFill && shapedValue.includes("\u2029") && shaper.shape(metrics, shapedValue).direction === "rtl";
-        const rtlTabs = tabbedFill && !separatorFill && !shapedValue.includes("\u2029") && shaper.shape(metrics, shapedValue).direction === "rtl";
+        const rtlFill = singleParagraph && shaper.shape(metrics, shapedValue).direction === "rtl";
+        const rtlTabs = rtlFill && tabbedFill;
+        const tabPositions: {x: number}[] = [];
         const tabRuns: {start: number; end: number; first: number; last: number}[] = [];
         const chunks = singleParagraph ? shapedValue.split("\t") : [shapedValue];
         for (const [index, chunk] of chunks.entries()) {
@@ -355,16 +356,17 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
             width = nextPrintTabStop(width, tabWidth);
             displayWidth = nextPrintTabStop(displayWidth, displayTabWidth);
           }
-          const start = width, first = glyphs.length;
-          const parts = singleParagraph ? fillPrintParagraphs(chunk, rtlParagraphs, tick).flatMap(part => ["\u2028", "\r"].reduce(
-            (parts, separator) => parts.flatMap(part => part.split(separator).flatMap((piece, index) => index ? [separator, piece] : [piece])), [part])) : [chunk];
+          const start = width, first = tabPositions.length;
+          const parts = singleParagraph ? fillPrintItems(chunk, rtlFill, tick) : [chunk];
           for (const part of parts) {
             tick();
             // Repeated edge separators can leave a copy separator alone.
             // It has no paint or advance and must not imply an LTR text run.
-            if (!part || rtlParagraphs && part.split("\u200b").join("") === "") continue;
+            if (!part || rtlFill && part.split("\u200b").join("") === "") continue;
             if ((part === "\u2028" || part === "\r") && separator) {
-              markers.push({x: width, carriageReturn: part === "\r"});
+              const marker = {x: width, carriageReturn: part === "\r"};
+              markers.push(marker);
+              if (rtlTabs) tabPositions.push(marker);
               width += separator.width;
               displayWidth += separator.displayWidth;
               continue;
@@ -375,17 +377,19 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
               tick();
               const advance = position.xAdvance * cellBox.style.size / metrics.unitsPerEm;
               if (!Number.isFinite(advance) || advance < 0 || !Number.isFinite(position.xOffset) || !Number.isFinite(position.yOffset) || position.yAdvance !== 0) unsupported("supplied font advances");
-              glyphs.push({x: width + Math.round(position.xOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale,
-                y: -Math.round(-position.yOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale});
+              const glyph = {x: width + Math.round(position.xOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale,
+                y: -Math.round(-position.yOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale};
+              glyphs.push(glyph);
+              if (rtlTabs) tabPositions.push(glyph);
               advances.push(Math.round(advance));
               width += Math.round(advance) * printDisplayScale;
               displayWidth += Math.round(advance / printDisplayScale) * printDisplayScale;
             }
           }
-          if (rtlTabs) tabRuns.push({start, end: width, first, last: glyphs.length});
+          if (rtlTabs) tabRuns.push({start, end: width, first, last: tabPositions.length});
         }
-        if (rtlTabs) mirrorPrintTabRuns(glyphs, tabRuns, width, tick);
-        if (runs.length > 1 && runs.some(run => run.direction === "rtl") && !((rtlParagraphs || rtlTabs) && runs.every(run => run.direction === "rtl"))) unsupported("bidirectional fill layout");
+        if (rtlTabs) mirrorPrintTabRuns(tabPositions, tabRuns, width, tick);
+        if (runs.length > 1 && runs.some(run => run.direction === "rtl") && !(rtlFill && runs.every(run => run.direction === "rtl"))) unsupported("bidirectional fill layout");
         const run = runs.length < 2 ? runs[0] : Object.create(runs[0]!, {
           glyphs: {value: runs.flatMap(run => run.glyphs)}, positions: {value: runs.flatMap(run => run.positions)}
         }) as NonNullable<typeof runs[0]>;

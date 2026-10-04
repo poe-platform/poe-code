@@ -24,9 +24,10 @@ export function fillPrintNewlines(value: string, rtl: boolean, tick: (amount?: n
   return value.split("\n").join(rtl ? "↪" : "↩");
 }
 
-/** Keep shaping boundaries while painting single-direction Fill paragraphs in visual order. */
-export function fillPrintParagraphs(value: string, rtl: boolean, tick: (amount?: number) => void): string[] {
+/** Keep shaping boundaries and control markers in single-direction Fill visual order. */
+export function fillPrintItems(value: string, rtl: boolean, tick: (amount?: number) => void): string[] {
   tick(value.length);
-  const parts = value.split("\u2029");
+  const parts = value.split("\u2029").flatMap(part => ["\u2028", "\r"].reduce(
+    (parts, separator) => parts.flatMap(part => part.split(separator).flatMap((piece, index) => index ? [separator, piece] : [piece])), [part]));
   return rtl ? parts.reverse() : parts;
 }

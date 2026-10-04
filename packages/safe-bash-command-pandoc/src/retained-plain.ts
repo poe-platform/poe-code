@@ -1,3 +1,4 @@
+import {reserveRetainedOutput} from "./retained-output-budgets.js";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
 import type {backedJsonOrder} from "./backed-json-order.js";
@@ -308,13 +309,7 @@ export async function writeRetainedPlain(tree: BackedJson, context: ExecutionCon
       const first = diagnostics[0]!;
       throw new PandocError("E_WARNINGS", "convert", `Warnings rejected: ${first.code}: ${first.message}`, first.format, first.location);
     }
-    if (options.eol === "crlf" && Number.isFinite(context.limits.references)) {
-      let units = 0;
-      for await (const chunk of writer.text.unicodeChunks(result)) for (const char of chunk) {
-        units += char === "\n" ? 2 : char.length;
-        context.bound("outputBytes", units); context.charge("references", 1);
-      }
-    }
+    await reserveRetainedOutput(() => writer.text.unicodeChunks(result), context, options.eol);
     const chunks = async function* () {
       const encoder = new TextEncoder(); let pending = "";
       for await (const chunk of writer.text.chunks(result)) {
@@ -326,16 +321,8 @@ export async function writeRetainedPlain(tree: BackedJson, context: ExecutionCon
       }
       if (pending) yield encoder.encode(pending);
     };
-    if (Number.isFinite(context.limits.outputBytes)) {
-      let length = 0;
-      if (Number.isFinite(context.limits.references)) {
-        for await (const chunk of writer.text.unicodeChunks(result)) for (const char of chunk) {
-          if (options.eol === "crlf" && char === "\n") context.bound("outputBytes", ++length);
-          const code = char.codePointAt(0)!;
-          length += code < 0x80 ? 1 : code < 0x800 ? 2 : code < 0x10000 ? 3 : 4;
-          context.bound("outputBytes", length);
-        }
-      } else for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}
+    if (Number.isFinite(context.limits.outputBytes) && !Number.isFinite(context.limits.references)) {
+      let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}
     }
     for await (const bytes of chunks()) await context.emit(bytes);
   } catch (reason) {failure = {reason};}

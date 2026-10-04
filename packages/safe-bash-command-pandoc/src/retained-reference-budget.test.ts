@@ -29,7 +29,7 @@ it.each(["empty", "text", "metadata", "long", "unicode", "table"])("retains JSON
   }
 });
 
-it.each(["success", "producer", "storage", "cancel", "sink"].flatMap(mode => ["json", "rtf", "csv", "tsv"].flatMap(from => ["json", "plain"].map(to => ({mode, from, to})))))("bounds $from-to-$to reference-limited input transfers and cleans up on $mode", async ({mode, from, to}) => {
+it.each(["success", "producer", "storage", "cancel", "sink"].flatMap(mode => ["json", "rtf", "csv", "tsv"].flatMap(from => ["json", "plain", "html5"].map(to => ({mode, from, to})))))("bounds $from-to-$to reference-limited input transfers and cleans up on $mode", async ({mode, from, to}) => {
   const fs = new MemoryFileSystem(), controller = new AbortController();
   const bytes = new TextEncoder().encode(from === "rtf" ? String.raw`{\rtf1 ` + "x".repeat(100000) + "}" : from === "csv" || from === "tsv" ? "x".repeat(100000) : JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: [{t: "Str", c: "x".repeat(100000)}]}]}));
   const closed = vi.fn(), close = vi.fn(async () => {}), abort = vi.fn(async () => {});

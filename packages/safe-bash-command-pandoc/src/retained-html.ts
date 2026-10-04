@@ -1,3 +1,4 @@
+import {reserveRetainedOutput} from "./retained-output-budgets.js";
 import type {RetainedOptions} from "./retained-options.js";
 import {IntegerTable, PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
@@ -23,6 +24,7 @@ const alignment: Record<string, string> = {AlignLeft: "left", AlignRight: "right
 class HtmlTape {
   readonly text: BackedText;
   private output = emptyText();
+  private extractingText = false;
   private top = 0;
   private readonly reserved: BackedTextSet;
   private readonly headings: BackedTextSet;
@@ -89,6 +91,10 @@ class HtmlTape {
   private async tag(node: number): Promise<string> {return (await this.tree.smallText((await this.tree.property(node, "t"))!, 32))!;}
   private async number(node: number): Promise<number> {return readJsonNumber(this.tree.scalarChunks(node), units => this.context.cooperate(units));}
   private async add(value: string | TextRange): Promise<void> {
+    if (!this.extractingText && Number.isFinite(this.context.limits.references)) {
+      this.context.bound("outputBytes", this.output.units + (typeof value === "string" ? value.length : value.units));
+      this.context.charge("references", 1);
+    }
     await this.text.append(this.output, await this.text.from(typeof value === "string" ? [value] : this.text.chunks(value)));
   }
   private async map(value: TextRange, change: (char: string) => string): Promise<TextRange> {
@@ -104,15 +110,25 @@ class HtmlTape {
   }
   private async escape(value: string | TextRange, attribute = false): Promise<void> {
     const range = typeof value === "string" ? await this.text.from([value]) : value;
-    const escaped = await this.map(range, char => {
+    const escape = (char: string) => {
       if (char === "\0") throw new PandocError("E_CAPABILITY", "convert", "NUL cannot be represented in HTML", "html5");
       if (this.options.ascii && char.codePointAt(0)! > 127) return `&#${char.codePointAt(0)};`;
       return char === "&" ? "&amp;" : char === "<" ? "&lt;" : char === ">" ? "&gt;" : char === "\r" ? "&#13;" : attribute && char === '"' ? "&quot;" : char;
-    });
-    await this.add(escaped);
+    };
+    if (Number.isFinite(this.context.limits.references)) {
+      let fragment = "";
+      for await (const chunk of this.text.unicodeChunks(range)) for (const char of chunk) {
+        fragment += escape(char);
+        if (fragment.length >= 256) {await this.add(fragment); fragment = "";}
+      }
+      if (fragment) await this.add(fragment);
+    } else await this.add(await this.map(range, escape));
   }
   private async attribute(key: string | TextRange, value: string | TextRange): Promise<void> {
-    await this.add(" "); await this.add(key); await this.add('="'); await this.escape(value, true); await this.add('"');
+    const prefix = await this.text.from([" "]);
+    await this.text.append(prefix, await this.text.from(typeof key === "string" ? [key] : this.text.chunks(key)));
+    await this.text.append(prefix, await this.text.from(['="']));
+    await this.add(prefix); await this.escape(value, true); await this.add('"');
   }
   private async matches(node: number, value: string): Promise<boolean> {return await this.tree.smallText(node, value.length) === value;}
   private async includes(node: number, value: string): Promise<boolean> {
@@ -169,10 +185,10 @@ class HtmlTape {
     await used.add(id); await this.reserved.add(id); return id;
   }
   private async plain(node: number): Promise<TextRange> {
-    const previous = this.output, stop = this.top;
-    this.output = emptyText();
-    await this.push(this.list(node, 0, "plainInline")); await this.run(stop);
-    const result = this.output; this.output = previous; return result;
+    const previous = this.output, stop = this.top, extracting = this.extractingText;
+    this.output = emptyText(); this.extractingText = true;
+    try {await this.push(this.list(node, 0, "plainInline")); await this.run(stop); return this.output;}
+    finally {this.output = previous; this.extractingText = extracting;}
   }
   private async section(node: number): Promise<Section> {
     const c = (await this.tree.property(node, "c"))!, attrs = await this.at(c, 1), idNode = await this.at(attrs, 0);
@@ -222,7 +238,7 @@ class HtmlTape {
       await this.context.cooperate();
       const frame = await this.read<{parent: number; job: Job}>(this.top); this.top = frame.parent;
       const job = frame.job;
-      if (job.op === "literal") {await this.add(job.value!); continue;}
+      if (job.op === "literal") {if (job.value) await this.add(job.value); continue;}
       if (job.op === "list") {
         const cursor = job.cursor ?? job.node + 32, end = (await this.tree.describe(job.node)).end, index = job.index ?? 0;
         if (cursor < end) {
@@ -322,8 +338,9 @@ class HtmlTape {
           await this.add("<code"); await this.attrs(await this.at(content!, 0)); await this.add(">"); await this.escape(await this.scalar(await this.at(content!, 1))); await this.add("</code>");
         } else if (tag === "Math") {
           const inline = await this.tag(await this.at(content!, 0)) === "InlineMath";
-          await this.add(`<span class="math ${inline ? "inline" : "display"}">`); await this.escape(inline ? "\\(" : "\\[");
-          await this.escape(await this.scalar(await this.at(content!, 1))); await this.escape(inline ? "\\)" : "\\]"); await this.add("</span>");
+          await this.add(`<span class="math ${inline ? "inline" : "display"}">`); const math = await this.text.from([inline ? "\\(" : "\\["]);
+          await this.text.append(math, await this.scalar(await this.at(content!, 1)));
+          await this.text.append(math, await this.text.from([inline ? "\\)" : "\\]"])); await this.escape(math); await this.add("</span>");
         } else if (tag === "RawInline") await this.raw(content!, job.path);
         else if (tag === "Span") {
           const task = await this.task(content!);
@@ -342,6 +359,7 @@ class HtmlTape {
           if (!image) await this.sequence(this.list(label.node, label.path, "inline"), this.literal("</a>"));
         } else if (tag === "Note") {
           const index = ++this.noteCount, id = await this.unique(await this.text.from([`fn${index}`])), ref = await this.unique(await this.text.from([`fnref${index}`]));
+          if (Number.isFinite(this.context.limits.references)) this.context.charge("references", 1);
           await this.notes.set(BigInt(index), BigInt(await this.record({node: content!, path: cp, id, ref})));
           await this.add("<a"); const href = await this.text.from(["#"]); await this.text.append(href, await this.text.from(this.text.chunks(id)));
           await this.attribute("href", href); await this.attribute("id", ref); await this.add(` class="footnote-ref" role="doc-noteref"><sup>${index}</sup></a>`);
@@ -445,6 +463,7 @@ class HtmlTape {
         const tag = await this.tree.property(position, "t");
         if (tag !== undefined && await this.tree.smallText(tag, 6) === "Header") {
           const section = await this.record(await this.section(position));
+          if (Number.isFinite(this.context.limits.references)) this.context.charge("references", 1);
           await this.sections.set(BigInt(this.sectionCount++), BigInt(section)); await this.sectionByNode.set(BigInt(position), BigInt(section));
         }
       }
@@ -490,11 +509,12 @@ export async function writeRetainedHtml(tree: BackedJson, context: ExecutionCont
       throw new PandocError("E_WARNINGS", "convert", `Warnings rejected: ${first.code}: ${first.message}`, first.format, first.location);
     }
     const included = includes ? await includes.render(writer.text.unicodeChunks(result)) : undefined;
+    await reserveRetainedOutput(included ?? (() => writer.text.unicodeChunks(result)), context, options.eol);
     const chunks = async function* () {
       const encoder = new TextEncoder();
       for await (const chunk of included ? included() : writer.text.unicodeChunks(result)) yield encoder.encode(options.eol === "crlf" ? chunk.split("\n").join("\r\n") : chunk);
     };
-    if (Number.isFinite(context.limits.outputBytes)) {
+    if (Number.isFinite(context.limits.outputBytes) && !Number.isFinite(context.limits.references)) {
       let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}
     }
     for await (const bytes of chunks()) await context.emit(bytes);

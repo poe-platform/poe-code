@@ -47,11 +47,12 @@ for (const mode of [1, 5]) {
     ["dot components", "/.".repeat(256), "/.".repeat(257)],
     ["removed components", "/a/..".repeat(128), "/a/..".repeat(128) + "/."],
   ]) {
-    test(`mode ${mode} inclusive raw ${label} bounds precede requests`, async () => {
+    test(`mode ${mode} configured inclusive raw ${label} bounds precede requests`, async () => {
       const { filesystem, requests } = fixture();
-      await filesystem.access(accepted!, mode);
+      const options = { pathLimits: { maxPathBytes: 65_536, maxPathComponents: 256 } };
+      await filesystem.access(accepted!, mode, options);
       const before = requests.length;
-      await assert.rejects(filesystem.access(rejected!, mode), errno("ENAMETOOLONG"));
+      await assert.rejects(filesystem.access(rejected!, mode, options), errno("ENAMETOOLONG"));
       assert.equal(requests.length, before);
     });
   }
@@ -71,8 +72,8 @@ for (const mode of [1, 5]) {
   });
 }
 
-for (const mode of [0, 4]) {
-  test(`mode ${mode} does not inherit the X-bearing raw-path caps`, async () => {
+for (const mode of [0, 1, 4, 5]) {
+  test(`mode ${mode} admits long paths when no path limits are configured`, async () => {
     const { filesystem } = fixture();
     await filesystem.access("/".repeat(65537), mode);
     await filesystem.access("/.".repeat(257), mode);

@@ -137,13 +137,13 @@ retains `ENOTDIR`. Write-containing modes2/3/6/7 remain `ENOTSUP` without metada
 requests. A readonly wrapper still delegates navigation and rejects its write
 modes with `EROFS`; its existing local rejection precedence is unchanged.
 
-Modes1/5 alone have private raw-input limits of65,536 UTF8 bytes and256 nonempty
-slash-separated components, inclusive. The incremental check runs before path
-normalization, splitting or requests. Slashes count as bytes; repeated slashes
-do not add components; `.` and `..` count before normalization. Exceeding either
+Path limits are opt-in for stat, access and writes through the operation's
+`pathLimits: { maxPathBytes, maxPathComponents }` options. Both default to
+`Infinity`. The incremental check runs before path normalization, splitting or
+requests. Slashes count as UTF8 bytes; repeated slashes do not add components;
+`.` and `..` count before normalization. Exceeding either configured inclusive
 limit gives `ENAMETOOLONG`. Existing invalid-path, required-property, unknown-type,
-denial, href confinement and redirect rules remain in force. Modes0/4 do not
-inherit these new path limits. There is no new public option or capability.
+denial, href confinement and redirect rules remain in force.
 
 Validate mode0..7 before checking caller cancellation. A valid preaborted direct
 call returns typed `ECANCELED` without transport work, including write modes;
@@ -156,10 +156,12 @@ work preemption. Readonly write rejection occurs before provider delegation.
 An ordinary directory mode1 call sends one Depth0 request, or two with the
 existing exact trailing-slash canonicalization; mode5 then adds one Depth1
 request. An ENOENT stat may probe ancestors to distinguish a non-directory parent.
-The256-component bound permits at most256 logical metadata probes, each allowing
-one slash retry, on that failure path. Existing XML/entry/request-time limits
-remain per-response/per-request, **not an aggregate deadline or total-byte cap**.
-Caller cancellation bounds the whole operation. No mutation, lock, permission
+Setting `maxPathComponents: 256` permits at most256 logical metadata probes, each
+allowing one slash retry, on that failure path. Configured XML/entry limits remain
+per response; ancestor probes within stat or write preflight share the configured
+timeout. Mode5's subsequent listing has a separate request deadline. These limits
+do not establish a total-byte cap. Caller cancellation bounds the whole operation.
+No mutation, lock, permission
 cache, ACL-property request or network-authorization expansion is introduced.
 
 Paths are virtual POSIX-style paths relative to the configured collection;

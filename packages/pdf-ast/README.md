@@ -174,6 +174,11 @@ PostScript source, instructions and nested parser frames also use caller backing
 execution uses the native calculator arithmetic with a separate fixed stack per
 evaluation. Selected resource metadata remains resident.
 
+`doc.formFields()` streams field summaries containing `name`, `type` and `value`.
+It preserves hierarchical names, inherited values, widget grouping and repeated
+fields while keeping traversal state on caller storage. Returning early or
+closing the document releases its field traversal.
+
 `doc.attachments()` on a retained document visits embedded name trees,
 catalog/page associated files, and file-attachment annotations in document order.
 Each result exposes `index`, `name`, and `contents()`, which streams decoded

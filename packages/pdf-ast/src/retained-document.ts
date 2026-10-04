@@ -1,3 +1,4 @@
+import { walkRetainedFormFields, type PdfRetainedFormField } from "./extract/retained-form-fields.js";
 import { openStoredPdfObjectReader, type OpenStoredPdfOptions } from "./cos/stored-object-reader.js";
 import type { PdfMutableObjectStore } from "./cos/mutable-object-store.js";
 import { PdfRawTextIndex, type PdfRawTextIndexOptions } from "./extract/raw-text-index.js";
@@ -240,6 +241,19 @@ export class PdfRetainedDocument {
       try {
         yield* walkRetainedJavaScripts(doc, doc.storage, { maxDepth: doc.depthLimit,
           ...(doc.options.chunkBytes === undefined ? {} : { chunkBytes: doc.options.chunkBytes }),
+          ...(doc.options.maxTraversalStagingBytes === undefined ? {} : { maxStagingBytes: doc.options.maxTraversalStagingBytes }),
+          ...(doc.options.signal ? { signal: doc.options.signal } : {}),
+        });
+      } finally { doc.walks.delete(work); }
+    }
+    const work = visit(this); return work;
+  }
+
+  formFields(): AsyncGenerator<PdfRetainedFormField, void, void> {
+    async function* visit(doc: PdfRetainedDocument): AsyncGenerator<PdfRetainedFormField, void, void> {
+      doc.assertOpen(); doc.walks.add(work);
+      try {
+        yield* walkRetainedFormFields(doc, doc.storage, { maxDepth: doc.depthLimit,
           ...(doc.options.maxTraversalStagingBytes === undefined ? {} : { maxStagingBytes: doc.options.maxTraversalStagingBytes }),
           ...(doc.options.signal ? { signal: doc.options.signal } : {}),
         });

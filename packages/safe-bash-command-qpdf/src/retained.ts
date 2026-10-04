@@ -13,6 +13,7 @@ import type { QpdfLimits } from "./index.js";
 export interface RetainedQpdfOptions {
   inputFile: string | undefined;
   emptyInput: boolean;
+  collateCount: number | undefined;
   pageSpecs: readonly { file: string; password?: string; range: string }[];
   outputFile: string | undefined;
   password: string | undefined;

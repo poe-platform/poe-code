@@ -46,7 +46,8 @@ options currently continue through the buffered compatibility engine. `--pages`
 selections and ordinary merges use lazy ranges and process source documents
 sequentially, including `--empty`, per-source passwords, stdin and repeated
 sources. Inactive inputs release range caches while retaining their acquired
-identity. Collated merges still use the compatibility engine.
+identity. `--collate` interleaves lazy page batches with only one source document
+active at a time; batch boundaries preserve independent resource copies.
 
 `--check`, `--show-pages`, `--show-xref`, `--show-npages` and `--show-encryption` inspect retained inputs
 through caller-backed object and page indexes, preserving repair and password

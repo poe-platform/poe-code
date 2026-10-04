@@ -5,7 +5,7 @@ import { PdfDocument, cosStream, cosString, dictSet } from "@poe-code/pdf-ast";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
-for (const mode of ["plain", "encrypted", "source-password", "stdin", "source-stdin", "empty", "empty-no-pages", "none", "duplicate", "stdout", "replace", "remove", "remove-large", "decrypt"]) it(`copies ${mode} page selections through retained storage with exact bytes`, async () => {
+for (const mode of ["plain", "encrypted", "source-password", "stdin", "source-stdin", "empty", "empty-no-pages", "none", "duplicate", "stdout", "replace", "remove", "remove-large", "decrypt", "collate", "collate-two", "collate-large", "collate-single", "collate-empty"]) it(`copies ${mode} page selections through retained storage with exact bytes`, async () => {
   const base = PdfDocument.create(), other = PdfDocument.create();
   for (let i = 0; i < 3; i++) base.addPage([100 + i * 10, 200]).drawText(`Base ${i + 1}`, { x: 10, y: 20 });
   for (let i = 0; i < 2; i++) other.addPage([200 + i * 10, 300]).drawText(`Other ${i + 1}`, { x: 10, y: 20 });
@@ -18,10 +18,10 @@ for (const mode of ["plain", "encrypted", "source-password", "stdin", "source-st
   const extra = other.save(mode === "source-password" ? { encrypt: { userPassword: "other", ownerPassword: "owner" } } : {});
   const mainName = mode === "stdin" ? "-" : "in.pdf", otherName = mode === "source-stdin" ? "-" : "other.pdf";
   const target = mode === "stdout" ? "-" : mode === "replace" ? mainName : "out.pdf";
-  const args = [...(encrypted ? ["--password=reader"] : []), ...(mode.startsWith("empty") ? ["--empty"] : [mainName]),
+  const args = [...(mode.startsWith("collate") ? [`--collate=${mode === "collate-two" ? 2 : mode === "collate-large" ? 100000000 : 1}`] : []), ...(encrypted ? ["--password=reader"] : []), ...(mode.startsWith("empty") ? ["--empty"] : [mainName]),
     ...(mode === "replace" ? ["--replace-input"] : []), ...(mode.startsWith("remove") ? ["--remove-info", "--remove-metadata"] : []), ...(mode === "decrypt" ? ["--decrypt"] : []),
-    ...(mode === "empty-no-pages" ? [] : ["--pages", ...(mode === "empty" ? [] : [".", mode === "none" ? "1-z,x1-z" : "3-1,x2"]),
-      ...(mode === "none" ? [] : [otherName, ...(mode === "source-password" ? ["--password=other"] : []), "1-z"]), ...(mode === "duplicate" ? [".", "2,2"] : []), "--"]),
+    ...(mode === "empty-no-pages" ? [] : ["--pages", ...(mode === "empty" ? [] : [".", mode === "none" || mode === "collate-empty" ? "1-z,x1-z" : mode.startsWith("collate") ? "3-1,1" : "3-1,x2"]),
+      ...(mode === "none" || mode === "collate-single" ? [] : [otherName, ...(mode === "source-password" ? ["--password=other"] : []), "1-z"]), ...(mode === "duplicate" ? [".", "2,2"] : []), "--"]),
     ...(mode === "replace" ? [] : [target])];
   const files = new Map([[mainName, input], [otherName, extra]]), expected = await runQpdfCli(args, files);
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input); await fs.writeFile("/other.pdf", extra);
@@ -38,11 +38,11 @@ for (const mode of ["plain", "encrypted", "source-password", "stdin", "source-st
   assert.deepEqual(await fs.readdir("/scratch"), []); assert.equal((await fs.readdir("/")).some(entry => entry.name.startsWith(".pdf-")), false);
 });
 
-for (const mode of ["read", "cancel", "budget", "identity"]) it(`preserves retained merge inputs and publication during ${mode}`, async () => {
+for (const collate of [false, true]) for (const mode of ["read", "cancel", "budget", "identity"]) it(`preserves retained ${collate ? "collated " : ""}merge inputs and publication during ${mode}`, async () => {
   const first = PdfDocument.create(), second = PdfDocument.create(), replacement = PdfDocument.create();
   first.addPage([100, 200]); second.addPage([300, 400]); replacement.addPage([500, 600]);
   const input = first.save(), extra = second.save(), previous = new Uint8Array([9]);
-  const args = ["in.pdf", "--pages", ".", "1", "other.pdf", "1", ".", "1", "--", "out.pdf"], files = new Map([["in.pdf", input], ["other.pdf", extra]]);
+  const args = [...(collate ? ["--collate=1"] : []), "in.pdf", "--pages", ".", "1", "other.pdf", "1", ".", "1", "--", "out.pdf"], files = new Map([["in.pdf", input], ["other.pdf", extra]]);
   if (mode === "identity") await runQpdfCli(args, files);
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input); await fs.writeFile("/other.pdf", extra); await fs.writeFile("/replacement.pdf", replacement.save()); await fs.writeFile("/out.pdf", previous);
   const controller = new AbortController(), reason = new Error("injected merge read failure"); let opened = 0, closed = 0, reads = 0, replaced = false;

@@ -475,7 +475,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       // Positioned marks can be reordered by text extractors; retain the logical cell string.
       page.pushOperators(pushGraphicsState());
       if (cellBox.style.foregroundAlpha !== 1) {
-        const alpha = page.node.newExtGState("CellAlpha", pdf.context.obj({Type: "ExtGState", ca: cellBox.style.foregroundAlpha}));
+        const alpha = page.node.newExtGState("CellAlpha", pdf.context.obj({Type: "ExtGState", ca: cellBox.style.foregroundAlpha, CA: cellBox.style.foregroundAlpha}));
         page.pushOperators(setGraphicsState(alpha));
       }
       if (!rotation && (overflows || height > cellBox.height - 1)) page.pushOperators(

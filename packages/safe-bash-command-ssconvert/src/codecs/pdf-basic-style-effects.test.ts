@@ -381,3 +381,25 @@ it("retains strike-through ink for a Fill line containing only a return marker",
     expect(rectangle.mock.calls[0]![0]!.width).toBeGreaterThan(0);
   } finally {rectangle.mockRestore();}
 });
+it.each([['8000', 128 / 255], ['0000', 0], ['00ff', 0]])("applies foreground alpha %s to CR box strokes and restores opaque neighbors", async (alpha, opacity) => {
+  const fill = attributes.replace('HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"');
+  const book = await fixture([{text: "a&#13;b", attributes: fill.replace('Fore="0:0:0"', `Fore="FFFF:0:0:${alpha}"`)}, {text: "a&#13;b", attributes: fill}]);
+  const {pdf} = await pdfText(await writePdf(book, [], {...context, fonts: {async resolve() {return suppliedDefaultFont().bytes;}}}));
+  const page = pdf.getPage(0), resources = page.node.Resources()!.lookup(PDFName.of("ExtGState"), PDFDict);
+  const content = (page.node.Contents() as PDFArray).asArray().map(ref => new TextDecoder().decode(decodePDFRawStream(pdf.context.lookup(ref) as PDFRawStream).decode())).join("\n");
+  let strokeAlpha = 1;
+  const stack: number[] = [], strokes: number[] = [];
+  for (const line of content.split("\n")) {
+    if (line === "q") stack.push(strokeAlpha);
+    else if (line === "Q") strokeAlpha = stack.pop()!;
+    else if (line.endsWith(" gs")) {
+      const state = resources.lookup(PDFName.of(line.split(" ")[0]!.slice(1)), PDFDict);
+      const alpha = state.lookup(PDFName.of("CA"));
+      if (alpha instanceof PDFNumber) strokeAlpha = alpha.asNumber();
+    } else if (line === "S") strokes.push(strokeAlpha);
+  }
+  expect(strokes.length).toBeGreaterThan(0);
+  expect(strokes.length % 2).toBe(0);
+  expect(strokes.slice(0, strokes.length / 2)).toEqual(Array(strokes.length / 2).fill(opacity));
+  expect(strokes.slice(strokes.length / 2)).toEqual(Array(strokes.length / 2).fill(1));
+});

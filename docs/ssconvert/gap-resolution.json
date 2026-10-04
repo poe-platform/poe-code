@@ -6046,5 +6046,11 @@
     "nativeBinary": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
     "source": "Native pkg-config reports Pango1.56.3; pangocairo-render.c defines its 1.5-padding frame inset and three-padding digit origin.",
     "remaining": "Bidirectional Fill and broader rich-text/font/Unicode/decorations/merged multipage qualification;all19families remain open."
+  },
+  "pdfFillCarriageReturnAlpha": {
+    "status": "Focused CR-box opacity profile verified; broader rendering remains open",
+    "implementation": "Apply cell foreground alpha to PDF stroke state as well as fill state,so CR-box outlines match the digits and cell opacity. Existing graphics-state scopes restore opaque neighboring cells.",
+    "validation": "Three memory regressions reproduced incorrect opaque outlines for partial and zero alpha.458 PDF tests,selected build and command lint/source/test/public-consumer types pass.12 native inputs produce48 SDK/command XML/PDF outputs;24 effective fill/stroke-alpha comparisons pass.12 native/public zero-alpha raster checks are entirely white. Partial-alpha straight and rotated decorated screenshots match.",
+    "remaining": "All19families remain open;this verifies control-box paint opacity,not full rendering or invisible-text extraction qualification."
   }
 }

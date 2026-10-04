@@ -1,3 +1,4 @@
+import { shadowPixelSteps, vignettePixelSteps } from "./effects-kernel.js";
 import { warpPixelSteps, type WarpPlan } from "./warp-kernel.js";
 import { morphologyPixelSteps } from "./morphology-kernel.js";
 import { convolvePixelSteps, type ConvolveRequest } from "./convolve-kernel.js";
@@ -2184,69 +2185,15 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     return { end: i, background: state.background, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha">) => magickWarpPlan(image, token, spec, args) };
 }
 
-function* applyMagickShadowSteps(img: RgbaImage, geomStr: string, shadowColor: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    let cooperativeWork = 0;
-    const g = parseMagickGeometry(geomStr);
-    const opacity = Math.max(0, Math.min(100, g.width ?? 80)) / 100;
-    const sigma = Math.max(0.5, g.height ?? 3);
+function magickShadowLayout(image: Pick<RgbaImage, "width" | "height">, geometry: string) {
+    const g = parseMagickGeometry(geometry), opacity = Math.max(0, Math.min(100, g.width ?? 80)) / 100, sigma = Math.max(0.5, g.height ?? 3);
     const pad = Math.max(2, Math.ceil(sigma * 2) + Math.max(Math.abs(g.x), Math.abs(g.y)));
-    const outW = img.width + pad * 2;
-    const outH = img.height + pad * 2;
-    const data = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
-    const offX = pad + Math.round(g.x);
-    const offY = pad + Math.round(g.y);
-    for (let y = 0; y < img.height; y++) {
-        if (++cooperativeWork % 65536 === 0)
-            yield;
-        for (let x = 0; x < img.width; x++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            const dx = x + offX;
-            const dy = y + offY;
-            if (dx < 0 || dy < 0 || dx >= outW || dy >= outH)
-                continue;
-            const srcA = img.data[(y * img.width + x) * 4 + 3]!;
-            const dstIdx = (dy * outW + dx) * 4;
-            data[dstIdx] = shadowColor.r;
-            data[dstIdx + 1] = shadowColor.g;
-            data[dstIdx + 2] = shadowColor.b;
-            data[dstIdx + 3] = clampByteVal(srcA * opacity);
-        }
-    }
-    const shadowBase: RgbaImage = {
-        ...img,
-        width: outW,
-        height: outH,
-        data,
-        hasAlpha: true
-    };
-    return (yield* blurImageSteps(shadowBase, sigma));
+    return { width: image.width + pad * 2, height: image.height + pad * 2, hasAlpha: true, offsetX: pad + Math.round(g.x), offsetY: pad + Math.round(g.y), opacity, sigma };
 }
-
-function* applyMagickVignetteSteps(img: RgbaImage, _geomStr: string, bg: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    let cooperativeWork = 0;
-    const w = img.width;
-    const h = img.height;
-    const out = new Uint8Array(img.data);
-    const cx = (w - 1) / 2;
-    const cy = (h - 1) / 2;
-    for (let y = 0; y < h; y++) {
-        if (++cooperativeWork % 65536 === 0)
-            yield;
-        for (let x = 0; x < w; x++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
-            const nx = (x - cx) / Math.max(1, cx);
-            const ny = (y - cy) / Math.max(1, cy);
-            const d = Math.hypot(nx, ny);
-            const t = Math.max(0, Math.min(1, (d - 0.65) / 0.55));
-            const idx = (y * w + x) * 4;
-            out[idx] = clampByteVal(out[idx]! * (1 - t) + bg.r * t);
-            out[idx + 1] = clampByteVal(out[idx + 1]! * (1 - t) + bg.g * t);
-            out[idx + 2] = clampByteVal(out[idx + 2]! * (1 - t) + bg.b * t);
-        }
-    }
-    return { ...img, data: out };
+function* applyMagickShadowSteps(image: RgbaImage, geometry: string, color: RgbaColor, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    const layout = magickShadowLayout(image, geometry);
+    const base = yield* applyMagickRasterSteps(image, shadowPixelSteps(image, layout, color), signal, layout);
+    return yield* blurImageSteps(base, layout.sigma);
 }
 
 function* applyMagickSepiaToneSteps(img: RgbaImage, threshStr: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -4425,9 +4372,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-vignette") {
-            const geom = tokens[++i] ?? "0x2";
+            i++;
             stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickVignetteSteps(im, geom, state.background, signal));
+                return yield* applyMagickRasterSteps(im, vignettePixelSteps(im, state.background), signal);
             });
         }
         else if (t === "-dither" || t === "+dither") {
@@ -5149,7 +5096,18 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         if (!operandsOnly && token === "-strip") { state.strip = true; continue; }
         if (!operandsOnly && token === "+repage") continue;
         if (!operandsOnly && token === "-repage") { i++; continue; }
-        if (!operandsOnly && (token === "-morphology" || token === "-statistic")) {
+        if (!operandsOnly && token === "-vignette") {
+            i++;
+            const background = state.background;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, vignettePixelSteps(image, background), signal) : undefined);
+        } else if (!operandsOnly && token === "-shadow") {
+            const geometry = tokens[++i] ?? "80x3+5+5", background = state.background;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const layout = magickShadowLayout(image, geometry), base = await transformStoredMagickRaster(image, backend, shadowPixelSteps(image, layout, background), signal, layout);
+                return transformStoredImage(base, backend.storage, { kind: "blur", sigma: layout.sigma }, signal);
+            });
+        } else if (!operandsOnly && (token === "-morphology" || token === "-statistic")) {
             const method = (tokens[++i] ?? (token === "-morphology" ? "dilate" : "median")).toLowerCase();
             let spec = "";
             if (token === "-statistic") spec = tokens[++i] ?? "3x3";

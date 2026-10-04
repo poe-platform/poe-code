@@ -40,6 +40,8 @@ after(() => mock.restoreAll());
 function fixture(engineContext = context) {
   const volume = Volume.fromJSON({ "/work": null });
   const fs: FileSystem = new MemoryFileSystem();
+  // The memfs adapter implements streaming reads, not retained memory handles.
+  fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false });
   const identityScope = {};
   fs.stat = async (path) => {
     try {

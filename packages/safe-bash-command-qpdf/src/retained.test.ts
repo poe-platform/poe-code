@@ -5,13 +5,13 @@ import { createCommandArguments } from "safe-bash-contracts";
 import { PdfDocument } from "@poe-code/pdf-ast";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
-for (const mode of ["ordinary", "replace", "stdout", "stdin", "encrypted", "decrypt", "decrypt-plain", "repaired", "object-streams", "linearized", "linearized-stdout", "linearized-rotate"]) it(`rewrites ${mode} through retained input and atomic streamed output`, async () => {
+for (const mode of ["ordinary", "replace", "stdout", "stdin", "encrypted", "decrypt", "decrypt-plain", "repaired", "object-streams", "linearized", "linearized-stdout", "linearized-rotate", "generate-objects"]) it(`rewrites ${mode} through retained input and atomic streamed output`, async () => {
   const doc = PdfDocument.create(); doc.setTitle("Retained rewrite"); for (let i = 0; i < 4; i++) doc.addPage().drawText(`Page ${i}`, { x: 20, y: 30 });
   if (mode.startsWith("decrypt")) doc.setVersion("1.4");
   let input = doc.save(mode === "encrypted" || mode === "decrypt" ? { encrypt: { userPassword: "reader", ownerPassword: "owner" } } : mode === "object-streams" ? { objectStreams: "generate" } : mode.startsWith("linearized") ? { linearize: true } : {});
   if (mode === "repaired") { const end = Buffer.from(input).lastIndexOf("startxref"); input = new Uint8Array(Buffer.concat([input.subarray(0, end), Buffer.from("startxref\n0\n%%EOF\n")])); }
   const inputName = mode === "stdin" ? "-" : "in.pdf", outputName = mode === "replace" ? "in.pdf" : mode.endsWith("stdout") ? "-" : "out.pdf";
-  const args = mode === "replace" ? ["--replace-input", inputName] : [inputName, outputName]; if (mode === "encrypted" || mode === "decrypt") args.unshift("--password=reader"); if (mode.startsWith("decrypt")) args.unshift("--decrypt"); if (mode === "linearized-rotate") args.unshift("--rotate=+90:1-z");
+  const args = mode === "replace" ? ["--replace-input", inputName] : [inputName, outputName]; if (mode === "encrypted" || mode === "decrypt") args.unshift("--password=reader"); if (mode.startsWith("decrypt")) args.unshift("--decrypt"); if (mode === "linearized-rotate") args.unshift("--rotate=+90:1-z"); if (mode === "generate-objects") args.unshift("--object-streams=generate");
   const files = new Map([[inputName, input]]), expected = await runQpdfCli(args, files);
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input);
   let published = 0; const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];

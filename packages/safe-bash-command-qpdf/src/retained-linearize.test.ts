@@ -5,7 +5,7 @@ import { createCommandArguments } from "safe-bash-contracts";
 import { cosArray, cosDict, cosName, cosNumber, cosString, dictGet, dictSet, PdfDocument, serializeCosDocument } from "@poe-code/pdf-ast";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
-for (const mode of ["ordinary", "existing", "encrypted", "decrypt", "empty", "stdout", "replace", "selection", "split", "rotations", "removals", "inline", "identifier", "split-selection"]) it(`linearizes ${mode} through retained input and output`, async () => {
+for (const layout of [["--linearize"], ["--object-streams=generate"], ["--linearize", "--object-streams=generate"]]) for (const mode of ["ordinary", "existing", "encrypted", "decrypt", "empty", "stdout", "replace", "selection", "split", "rotations", "removals", "inline", "identifier", "split-selection"]) it(`writes ${mode} (${layout.join(" ")}) through retained input and output`, async () => {
   const doc = PdfDocument.create(); doc.setTitle("Linearized output");
   for (let i = 0; i < 3; i++) doc.addPage().drawText(`Page ${i}`, { x: 20, y: 30 });
   const encrypted = mode === "encrypted" || mode === "decrypt";
@@ -19,7 +19,7 @@ for (const mode of ["ordinary", "existing", "encrypted", "decrypt", "empty", "st
     input = serializeCosDocument({ objects: [...doc.cos.objects.values()], rootRef: doc.cos.rootRef, infoRef: doc.cos.infoRef, idArray: cosArray([cosString("first"), cosString("second")]) });
   }
   const destination = mode === "stdout" ? "-" : mode === "replace" ? "in.pdf" : "out.pdf";
-  const args = ["--linearize", ...(mode === "empty" ? ["--empty"] : ["in.pdf"]), ...(mode === "replace" ? ["--replace-input"] : [destination])];
+  const args = [...layout, ...(mode === "empty" ? ["--empty"] : ["in.pdf"]), ...(mode === "replace" ? ["--replace-input"] : [destination])];
   if (encrypted) args.push("--password=reader");
   if (mode === "decrypt") args.push("--decrypt");
   if ((mode === "selection" || mode === "split-selection")) args.push("--pages", ".", "3,1,2", "--");

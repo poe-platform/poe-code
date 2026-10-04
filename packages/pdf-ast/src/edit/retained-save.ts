@@ -1,3 +1,4 @@
+import { serializeRetainedObjectStreams } from "../cos/retained-object-streams.js";
 import { serializeLinearizedRetainedChunks } from "../cos/retained-linearization.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { cosArray, cosDict, cosName, cosNumber, cosRef, dictDelete, dictGet, dictSet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
@@ -20,6 +21,7 @@ export interface RetainedPageRotation {
 
 export interface SaveRetainedDocumentOptions {
   readonly linearize?: boolean;
+  readonly objectStreams?: "generate" | "disable" | "preserve";
   /** Ordered edits; duplicate page selections apply cumulatively. */
   readonly rotations?: Iterable<RetainedPageRotation> | AsyncIterable<RetainedPageRotation>;
   /** Defaults to the retained input version. */
@@ -170,14 +172,18 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
       }
     }
     const ref = document.crossReference;
-    const configured = { ...options, rootRef: ref.rootRef, infoRef, idArray: options.omitId ? undefined : ref.idArray, version: options.version ?? ref.version, signal };
-    if (mayLinearize) yield* serializeLinearizedRetainedChunks(objects, storage, configured, output, async number => {
-      const object = await objects.get(number);
-      if (!object || number !== pagesRef?.objectNumber) return object;
-      let length = 0; for await (const bytes of pageTree(pagesDict!, pagesRef!)) length += bytes.length;
-      return { objectNumber: number, generationNumber: object.generationNumber, body: { length, chunks: pageTree(pagesDict!, pagesRef!) } };
-    });
-    else yield* serializeRetainedCosDocumentChunks({ ...configured, objects: output() }, storage);
+    const configured = { ...options, rootRef: ref.rootRef, infoRef, idArray: options.omitId ? undefined : ref.idArray, version: options.objectStreams === "generate" && Number.parseFloat(options.version ?? ref.version) < 1.5 ? "1.5" : options.version ?? ref.version, signal };
+    async function* ordinary() {
+      if (mayLinearize) yield* serializeLinearizedRetainedChunks(objects, storage, configured, output, async number => {
+        const object = await objects.get(number);
+        if (!object || number !== pagesRef?.objectNumber) return object;
+        let length = 0; for await (const bytes of pageTree(pagesDict!, pagesRef!)) length += bytes.length;
+        return { objectNumber: number, generationNumber: object.generationNumber, body: { length, chunks: pageTree(pagesDict!, pagesRef!) } };
+      });
+      else yield* serializeRetainedCosDocumentChunks({ ...configured, objects: output() }, storage);
+    }
+    if (options.objectStreams === "generate") yield* serializeRetainedObjectStreams(objects, storage, configured, output, ordinary);
+    else yield* ordinary();
   } catch (error) { failed = true; throw error; }
   finally { const results = await Promise.allSettled([objects.close(), pages.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
 }

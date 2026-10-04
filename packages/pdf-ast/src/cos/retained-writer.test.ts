@@ -125,3 +125,13 @@ it("indexes provided physical order and rejects duplicate identities", async () 
   await expect((async () => { for await (const ignored of serializeRetainedCosDocumentChunks({ objects: [objects[0]!, objects[0]!], rootRef: cosRef(3), objectOrder: "provided" }, storage)) void ignored; })()).rejects.toThrow("Duplicate");
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+
+it.each(["duplicate", "index", "objects", "identity"])("cleans compressed xref backing after %s rejection", async mode => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  async function* entries() { yield { objectNumber: mode === "duplicate" ? 1 : 2, objectStreamNumber: mode === "identity" ? 0 : 1, index: 0 }; }
+  const output = serializeRetainedCosDocumentChunks({ objects: [{ objectNumber: 1, generationNumber: 0, value: cosDict({}) }], rootRef: cosRef(1),
+    compressedObjects: { xrefObjectNumber: 3, entries: entries() }, ...(mode === "index" ? { maxIndexBytes: 48 } : mode === "objects" ? { maxObjects: 2 } : {}) }, { fs, directory: "/scratch" });
+  await expect((async () => { for await (const ignored of output) void ignored; })()).rejects.toThrow(mode === "duplicate" ? "Duplicate" : mode === "identity" ? "Invalid" : "limit");
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

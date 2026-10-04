@@ -816,7 +816,11 @@ Use `version` to override the output PDF version and `omitId: true` to omit the
 original trailer identifier; both are preserved by default. Existing linearization
 dictionaries retain the ordinary writer layout; `linearize: true` also enables
 that layout for ordinary inputs. Linearized output stages on caller storage so
-its fixed-width offsets can be patched before any output is yielded. `removeInfo` keeps an
+its fixed-width offsets can be patched before any output is yielded.
+Use `objectStreams: "generate"` to pack eligible objects and emit compressed
+cross-reference entries. Membership, payloads and indexes use caller storage;
+compression runs incrementally and upgrades older output versions to PDF 1.5.
+`removeInfo` keeps an
 existing modification date and removes the catalog metadata link;
 `removeMetadata`, `removeStructure`, `removeAcroform` and `removePageLabels`
 remove the corresponding document entries while preserving other objects.

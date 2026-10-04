@@ -1,5 +1,6 @@
+import { stageDeflatedPdf } from "./deflate-staging.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
-import { cosDict, cosNumber, cosName, type PdfCosNode } from "../ast.js";
+import { cosArray, cosDict, cosNumber, cosName, type PdfCosNode } from "../ast.js";
 import { PdfError } from "../errors.js";
 import type { PdfIndexStorage } from "./object-index.js";
 import { serializeCosNodeChunks, type SerializeCosOptions } from "./writer.js";
@@ -30,6 +31,11 @@ export function pdfOutputStreamDictionary(value: PdfCosNode, length: number) {
 }
 export interface SerializeRetainedCosOptions extends Pick<SerializeCosOptions, "rootRef" | "infoRef" | "encryptRef" | "idArray" | "version" | "maxObjects" | "maxOutputBytes" | "maxRecursionDepth"> {
   /** Object numbers are ascending unless objectOrder is provided. */
+  /** Emit a compressed cross-reference stream after the supplied direct objects. */
+  readonly compressedObjects?: {
+    readonly xrefObjectNumber: number;
+    readonly entries: AsyncIterable<{ objectNumber: number; objectStreamNumber: number; index: number }>;
+  };
   readonly objectOrder?: "ascending" | "provided";
   /** Layout hooks run while caller staging remains writable. */
   readonly onObjectWritten?: (number: number, start: number, end: number) => void | Promise<void>;
@@ -123,6 +129,51 @@ export async function* serializeRetainedCosDocumentChunks(options: SerializeReta
       } else yield* node(object.value);
       yield* emit(encoder.encode("\nendobj\n\n"));
       await options.onObjectWritten?.(number, objectStart, offset);
+    }
+    if (options.compressedObjects) {
+      const { xrefObjectNumber, entries } = options.compressedObjects;
+      if (!Number.isSafeInteger(xrefObjectNumber) || xrefObjectNumber <= lastObject) throw new PdfError("E_PARSE", "Invalid PDF cross-reference stream identity");
+      if (xrefObjectNumber > maxObjects) throw new PdfError("E_LIMIT", "PDF largest object number exceeds limit");
+      const required = (xrefObjectNumber + 1) * 16;
+      if (!Number.isSafeInteger(required) || required > maxIndex) throw new PdfError("E_LIMIT", "PDF cross-reference storage limit exceeded");
+      if (required > reserved) offsets.allocate(required - reserved);
+      for await (const entry of entries) {
+        signal.throwIfAborted();
+        if (!Number.isSafeInteger(entry.objectNumber) || entry.objectNumber < 1 || entry.objectNumber >= xrefObjectNumber ||
+          !Number.isSafeInteger(entry.objectStreamNumber) || entry.objectStreamNumber < 1 || entry.objectStreamNumber >= xrefObjectNumber ||
+          !Number.isSafeInteger(entry.index) || entry.index < 0) throw new PdfError("E_PARSE", "Invalid compressed PDF identity");
+        const previous = await offsets.read(base + entry.objectNumber * 16, 8);
+        if (new DataView(previous.buffer, previous.byteOffset, previous.length).getFloat64(0)) throw new PdfError("E_PARSE", "Duplicate PDF output identity");
+        const bytes = new Uint8Array(16), view = new DataView(bytes.buffer); view.setFloat64(0, -entry.objectStreamNumber); view.setFloat64(8, entry.index);
+        await offsets.write(base + entry.objectNumber * 16, bytes);
+        if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+      }
+      const xrefOffset = offset, size = xrefObjectNumber + 1;
+      async function* rawEntries() {
+        let buffer = new Uint8Array(14336), used = 0;
+        for (let number = 0; number < size; number++) {
+          signal.throwIfAborted(); if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+          const record = await offsets.read(base + number * 16, 16), view = new DataView(record.buffer, record.byteOffset, record.length);
+          const position = number === xrefObjectNumber ? xrefOffset : view.getFloat64(0), generation = view.getFloat64(8);
+          const type = position < 0 ? 2 : position ? 1 : 0, first = Math.abs(position), second = position ? generation : 65535;
+          buffer[used++] = type; buffer[used++] = first >>> 24; buffer[used++] = first >>> 16; buffer[used++] = first >>> 8; buffer[used++] = first;
+          buffer[used++] = second >>> 8; buffer[used++] = second;
+          if (used === buffer.length) { yield buffer; buffer = new Uint8Array(14336); used = 0; }
+        }
+        if (used) yield buffer.subarray(0, used);
+      }
+      const compressed = await stageDeflatedPdf(rawEntries(), storage, signal, maxOutput - offset);
+      let compressionFailed = false;
+      try {
+        yield* emit(encoder.encode(`${xrefObjectNumber} 0 obj\n`));
+        yield* node(cosDict({ Type: cosName("XRef"), Size: cosNumber(size), W: cosArray([cosNumber(1), cosNumber(4), cosNumber(2)]), Root: options.rootRef, Info: options.infoRef, ID: options.idArray, Filter: cosName("FlateDecode"), Length: cosNumber(compressed.size) }));
+        yield* emit(encoder.encode("\nstream\n"));
+        for await (const bytes of compressed.stream(0, compressed.size, signal)) yield* emit(bytes);
+        yield* emit(encoder.encode(`\nendstream\nendobj\n\nstartxref\n${xrefOffset}\n%%EOF`));
+        await options.onComplete?.(offset, xrefOffset);
+      } catch (error) { compressionFailed = true; throw error; }
+      finally { await compressed.close().catch(error => { if (!compressionFailed) throw error; }); }
+      return;
     }
     const xrefOffset = offset, size = lastObject + 1;
     yield* emit(encoder.encode(`xref\n0 ${size}\n0000000000 65535 f \n`));

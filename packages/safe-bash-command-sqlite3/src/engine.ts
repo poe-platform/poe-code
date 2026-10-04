@@ -4135,9 +4135,9 @@ export class SqliteDatabase {
         d += 1;
       } else if (t.value === ")") {
         d -= 1;
-      } else if (d === 0 && t.value.toUpperCase() === "UNION") {
+      } else if (d === 0 && t.type === "word" && t.value.toUpperCase() === "UNION") {
         unionIdx = i;
-        unionAll = bodyTokens[i + 1]?.value.toUpperCase() === "ALL";
+        unionAll = bodyTokens[i + 1]?.type === "word" && bodyTokens[i + 1]?.value.toUpperCase() === "ALL";
         break;
       }
     }
@@ -4244,11 +4244,11 @@ export class SqliteDatabase {
         d += 1;
       } else if (t.value === ")") {
         d -= 1;
-      } else if (d === 0) {
+      } else if (d === 0 && t.type === "word") {
         const u = t.value.toUpperCase();
         if (u === "UNION" || u === "INTERSECT" || u === "EXCEPT") {
           segments.push({ op: pendingOp, tokens: tokens.slice(start, i) });
-          if (u === "UNION" && tokens[i + 1]?.value.toUpperCase() === "ALL") {
+          if (u === "UNION" && tokens[i + 1]?.type === "word" && tokens[i + 1]?.value.toUpperCase() === "ALL") {
             pendingOp = "UNION ALL";
             i += 1;
           } else {
@@ -4274,10 +4274,10 @@ export class SqliteDatabase {
         d += 1;
       } else if (t.value === ")") {
         d -= 1;
-      } else if (d === 0) {
+      } else if (d === 0 && t.type === "word") {
         const u = t.value.toUpperCase();
         if (
-          (u === "ORDER" && lastSegTokens[i + 1]?.value.toUpperCase() === "BY") ||
+          (u === "ORDER" && lastSegTokens[i + 1]?.type === "word" && lastSegTokens[i + 1]?.value.toUpperCase() === "BY") ||
           u === "LIMIT"
         ) {
           orderLimitStart = i;
@@ -4987,7 +4987,7 @@ export class SqliteDatabase {
         } else if (t.value === ")") {
           d -= 1;
         } else if (d === 0) {
-          const u = t.value.toUpperCase();
+          const u = t.type === "word" ? t.value.toUpperCase() : "";
           if (
             t.value === "," ||
             u === "JOIN" ||
@@ -5010,7 +5010,7 @@ export class SqliteDatabase {
     };
 
     const consumeCondition = (): { onTokens?: Token[]; usingCols?: string[] } => {
-      if (fromTokens[i]?.value.toUpperCase() === "ON") {
+      if (fromTokens[i]?.type === "word" && fromTokens[i]?.value.toUpperCase() === "ON") {
         i += 1;
         const onToks: Token[] = [];
         let d = 0;
@@ -5021,7 +5021,7 @@ export class SqliteDatabase {
           } else if (t.value === ")") {
             d -= 1;
           } else if (d === 0) {
-            const u = t.value.toUpperCase();
+            const u = t.type === "word" ? t.value.toUpperCase() : "";
             if (
               t.value === "," ||
               u === "JOIN" ||
@@ -5040,7 +5040,7 @@ export class SqliteDatabase {
         }
         return { onTokens: onToks };
       }
-      if (fromTokens[i]?.value.toUpperCase() === "USING") {
+      if (fromTokens[i]?.type === "word" && fromTokens[i]?.value.toUpperCase() === "USING") {
         i += 1;
         const usingCols: string[] = [];
         if (fromTokens[i]?.value === "(") {
@@ -5071,7 +5071,7 @@ export class SqliteDatabase {
       } else {
         while (i < fromTokens.length) {
           yield;
-          const u = fromTokens[i]!.value.toUpperCase();
+          const u = fromTokens[i]!.type === "word" ? fromTokens[i]!.value.toUpperCase() : "";
           if (u === "NATURAL") {
             natural = true;
             i += 1;

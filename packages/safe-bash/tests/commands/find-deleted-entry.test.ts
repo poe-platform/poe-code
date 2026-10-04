@@ -48,3 +48,25 @@ for (const deletedName of ["a.txt", "b.txt", "c.txt"]) {
   });
 }
 }
+
+for (const operation of ["rm /dir/a.txt /dir/c.txt", "mv /dir/a.txt /dir/c.txt /moved/"]) {
+  test(`find ignores multiple vacated entries after ${operation}`, async () => {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs }).use(standardCommands());
+    try {
+      const setup = await shell.exec(`mkdir /dir /moved && touch /dir/a.txt /dir/b.txt /dir/c.txt && ${operation}`);
+      assert.equal(setup.exitCode, 0, setup.stderr);
+      for (const expression of ["-type f", "-name '*'", "-iname '*'"]) {
+        const expected = expression === "-type f" ? "/dir/b.txt\n" : "/dir\n/dir/b.txt\n";
+        const result = await shell.exec(`find /dir ${expression}`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, expected);
+        assert.equal(result.stderr, "");
+        const count = await shell.exec(`find /dir ${expression} | wc -l`);
+        assert.equal(count.exitCode, 0, count.stderr);
+        assert.equal(count.stdout.trim(), expression === "-type f" ? "1" : "2");
+        assert.equal(count.stderr, "");
+      }
+    } finally { await shell.dispose(); }
+  });
+}

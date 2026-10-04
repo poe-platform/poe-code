@@ -5950,5 +5950,20 @@
       "nativeBinary": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82"
     },
     "remaining": "Shared-edge resolution and junction geometry,blank style regions,rotation,rich text and broader rendering/profile acceptance remain open."
+  },
+  "pdfBlankStyleRegions": {
+    "status": "Retained Gnumeric blank-cell paint qualified; all19 families remain open",
+    "implementation": "Projects retained replacing style regions into existing PDF page bounds without allocating workbook cells or extending print extents. Honors resolved legacy overlays, unallocated merged corners, hidden axes, None/replacing resets, diagonal strokes and row-major translucent background overlaps. Text extraction order remains unchanged. Blank font/format/alignment fields do not affect paint.",
+    "validation": {
+      "originalFailures": 5,
+      "tests": 414,
+      "nativeInputs": 12,
+      "publicOutputs": 48,
+      "nativePublicTextComparisons": 24,
+      "nativePublicBackgroundComparisons": 24,
+      "checks": "Selected workspace build,engine/command lint and source/test/public-consumer types,native/public screenshots including transparency. Independently decoded fill colors and bounds agree within0.002pt."
+    },
+    "nativeBinary": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
+    "remaining": "Shared-edge borders and junction geometry,other retained style transports,rotation,rich text and full rendering/profile acceptance remain open."
   }
 }

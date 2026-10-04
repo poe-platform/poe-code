@@ -1,3 +1,4 @@
+import {createPrintBlankStyles} from "@poe-code/spreadsheet-engine/rendering/print/blank-styles";
 import {printDiagonalBorders} from "@poe-code/spreadsheet-engine/rendering/print/diagonal-borders";
 import {createPrintMerges} from "@poe-code/spreadsheet-engine/rendering/print/merges";
 import {justifyPrintLine} from "@poe-code/spreadsheet-engine/rendering/print/justify-line";
@@ -566,6 +567,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       hiddenColumns: ReadonlySet<number>;
       cells: readonly Sheet["cells"][number][];
       mergedCells: ReadonlyMap<Sheet["cells"][number], Range>;
+      blankCells: ReturnType<typeof createPrintBlankStyles>;
     }[] = [];
     let pageCount = 0, nextPageNumber = 1;
     for (const sheet of book.sheets) {
@@ -576,6 +578,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       if (sheet.cells.some(cell => cell.richText)) unsupported("styled or merged cells");
       const mergeRows = createPrintMerges(sheet.merges ?? [], tick);
       const mergedCells = new Map<Sheet["cells"][number], Range>();
+      const blankCells = createPrintBlankStyles(sheet, mergeRows, tick);
       const cells = sheet.cells.filter(cell => {
         const merge = mergeRows(cell.row).find(range => {tick(); return range.startColumn <= cell.column && range.endColumn >= cell.column;});
         if (!merge) return true;
@@ -652,9 +655,9 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       nextPageNumber = startPage + layout.pages.length;
       pageCount += layout.pages.length;
       if (!Number.isSafeInteger(pageCount)) throw new SsconvertError("resource-limit", "ssconvert PDF page count limit exceeded");
-      printedSheets.push({ sheet, print, positions, objects, layout, hiddenRows, hiddenColumns, cells: emptyArea ? cells.filter(cell => {tick(); return !hiddenRows.has(cell.row);}) : cells, mergedCells });
+      printedSheets.push({ sheet, print, positions, objects, layout, hiddenRows, hiddenColumns, cells: emptyArea ? cells.filter(cell => {tick(); return !hiddenRows.has(cell.row);}) : cells, mergedCells, blankCells });
     }
-    for (const { sheet, print, positions, objects, layout, hiddenRows, hiddenColumns, cells, mergedCells } of printedSheets) {
+    for (const { sheet, print, positions, objects, layout, hiddenRows, hiddenColumns, cells, mergedCells, blankCells } of printedSheets) {
       const textSpan = createPrintSpans({...sheet, cells}, positions.column, tick);
       const showFormulas = sheetViewFlag(sheet, "displayFormulas"), hideZero = sheetViewFlag(sheet, "hideZero");
       for (const geometry of layout.pages) {
@@ -677,9 +680,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           page.getHeight() - geometry.originY - (pageLastRow.start + pageLastRow.size - pageRow.start),
           pageLastColumn.start + pageLastColumn.size - pageColumn.start + 0.2,
           pageLastRow.start + pageLastRow.size - pageRow.start + 0.2), clip(), endPath()];
-        const paintedCells = cells.flatMap(cell => {
+        const paintedCells = [...cells.map(cell => ({cell, merge: mergedCells.get(cell)})), ...blankCells(geometry.area)].flatMap(({cell, merge}) => {
           tick();
-          const merge = mergedCells.get(cell);
           const range = merge ?? {startRow: cell.row, endRow: cell.row, startColumn: cell.column, endColumn: cell.column};
           if (range.endRow < geometry.area.startRow || range.startRow > geometry.area.endRow || range.endColumn < geometry.area.startColumn || range.startColumn > geometry.area.endColumn || !merge && hiddenRows.has(cell.row) || hiddenColumns.has(cell.column)) return [];
           const firstColumn = positions.column(range.startColumn), lastColumn = positions.column(range.endColumn);
@@ -693,7 +695,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
             y: geometry.originY + firstRow.start - pageRow.start}];
         });
         // Paint all cell backgrounds before any spanning text.
-        for (const {merge, width, height, style, x, y} of paintedCells) {
+        const backgrounds = [...paintedCells].sort((a, b) => {tick(); return a.cell.row - b.cell.row || a.cell.column - b.cell.column;});
+        for (const {merge, width, height, style, x, y} of backgrounds) {
           tick();
           if (!style.background) continue;
           if (merge) page.pushOperators(...mergedClip);

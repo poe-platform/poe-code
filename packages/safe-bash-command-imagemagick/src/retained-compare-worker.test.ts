@@ -1,14 +1,48 @@
+import { deepStrictEqual } from "node:assert";
 import { PdfDocument } from "@poe-code/pdf-ast";
-import { expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
 import { fileURLToPath } from "node:url";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { runCompareCli, runConvertCli, runMogrifyCli, runCompositeCli, runMontageCli } from "./index.js";
+
+// Every case executes the same worker module in a fresh, isolated runtime.
+let workerScript: string;
+beforeAll(async () => {
+    const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../../../", import.meta.url)), sourcefile: "pdf-metadata-worker.ts", contents: `
+ import {runCompareCli,runConvertCli,runMogrifyCli,runCompositeCli,runMontageCli} from './packages/safe-bash-command-imagemagick/src/index.ts';
+ import {FsError} from '@poe-code/safe-fs/contracts';
+ export default {async fetch(request,env){const {size,stdout,operand,tool,args}=await request.json();let outputSize=0;const output={async write(bytes){await env.BACKING.fetch('https://backing/result?position='+outputSize,{method:'PUT',body:bytes});outputSize+=bytes.length;}};let id=0,opened=0,closed=0,removed=0,maxAllocation=0,reads=0;const scope={},files=new Map([['/input',{id:'input',size}]]);
+ const stat=(file,type='file')=>({type,size:file.size,mode:420,mtimeMs:1,ctimeMs:1,atimeMs:1,identityScope:scope,opaqueIdentity:file.id,opaqueVersion:'1'}),parent=stat({id:'root',size:0},'directory');
+ const fs={capabilities:{atomicFilePublication:true,retainedRead:true,retainedStagingWrite:true,retainedStagingCleanup:true},async stat(path){return files.has(path)?stat(files.get(path)):parent;},async capabilitiesFor(){return this.capabilities;},
+ async lstat(path){const file=files.get(path);if(!file)throw new FsError('ENOENT');return stat(file);},
+ async publishFileConditional(path,source){const id=path==='/middle.bmp'?'middle':'result';let size=0;for await(const bytes of source){await env.BACKING.fetch('https://backing/'+id+'?position='+size,{method:'PUT',body:bytes});size+=bytes.length;}if(id==='result')outputSize=size;const file={id,size};files.set(path,file);return stat(file);},
+ async removeFileConditional(path){files.delete(path);removed++;},
+ async open(path){const file={id:String(++id),size:0};files.set(path,file);opened++;return {capabilities:{positionedRead:true,positionedWrite:true},async stat(){return stat(file);},async write(bytes,position){if(bytes.length>16384)throw new Error('large scratch write');await env.BACKING.fetch('https://backing/'+file.id+'?position='+position,{method:'PUT',body:bytes});file.size=Math.max(file.size,position+bytes.length);return bytes.length;},async read(bytes,position){reads++;const response=await env.BACKING.fetch('https://backing/'+file.id+'?position='+position+'&length='+bytes.length);bytes.set(new Uint8Array(await response.arrayBuffer()));return bytes.length;},async close(){closed++;await env.BACKING.fetch('https://backing/'+file.id,{method:'DELETE'});}};},
+ async openReadFile(path){const file=files.get(path);if(!file)throw new Error('missing retained source');opened++;return {async stat(){return stat(file);},async read(position,length){if(length>65536)throw new Error('large request');reads++;const response=await env.BACKING.fetch('https://backing/'+file.id+'?position='+position+'&length='+length);return new Uint8Array(await response.arrayBuffer());},async close(){closed++;}};},
+ async createStagedFile(path,name){const file={id:String(++id),size:0},filePath=path+'/'+name;files.set(filePath,file);return {parent:{path:'/',stat:parent},directory:{path,stat:parent},file:{path:filePath,stat:stat(file)},writer:{async write(chunk){if(chunk.length>65536)throw new Error('large write');await env.BACKING.fetch('https://backing/'+file.id+'?position='+file.size,{method:'PUT',body:chunk});file.size+=chunk.length;},async finish(){return stat(file);}},cleanup:{async remove(){files.delete(filePath);removed++;await env.BACKING.fetch('https://backing/'+file.id,{method:'DELETE'});},async close(){}}};},
+ readFile(){throw new Error('whole input');},writeFile(){throw new Error('whole output');}};
+ const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;maxAllocation=Math.max(maxAllocation,length);if(length>65536)throw new Error('unbounded compare allocation '+length);return Reflect.construct(target,args);}});
+ try{const input={filesystem:fs,cwd:'/',...(stdout?{stdout:output}:{})};const metadata=tool==='montage'?await runMontageCli([...args,stdout?'png:-':'png:/out.bmp'],input):tool==='composite'?await runCompositeCli([...args,stdout?'png:-':'png:/out.bmp'],input):tool==='compare'?await runCompareCli([operand,operand,stdout?'bmp:-':'/out.bmp'],input):tool==='mogrify'?await runMogrifyCli(["-format","png",...args.slice(3),operand],input):await runConvertCli([...args,tool==='convert-text'?(stdout?"txt:-":"txt:/out.bmp"):tool==='convert-animation'?"gif:/out.bmp":stdout?"png:-":"png:/out.bmp"],input);return Response.json({metadata,opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
+ }};` }, bundle: true, write: false, platform: "browser", conditions: ["workerd"], format: "esm", metafile: true, logLevel: "silent" });
+    expect(Object.values(bundle.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
+    workerScript = bundle.outputFiles[0]!.text;
+});
+
 for (const tool of ["compare", "convert", "mogrify", "convert-write", "convert-stack", "convert-animation", "convert-text", "composite", "montage", "convert-sequence", "convert-malformed"] as const)
 for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : (tool === "mogrify" || tool === "convert-write" || tool === "convert-stack" || tool === "convert-animation" || tool === "convert-text" || tool === "composite" || tool === "montage" || tool === "convert-sequence" || tool === "convert-malformed") ? ["bmp"] : ["bmp", "gradient", "radial-gradient", "pattern", "tile", "pdf"]) as ("bmp" | "svg" | "label" | "gradient" | "radial-gradient" | "pattern" | "tile" | "pdf")[])
-for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool === "convert-stack" || tool === "convert-animation") ? [false] : [false, true])
-    it(`runs ${tool} in Workerd, input=${format}, stdout=${stdout}`, async () => {
+describe(`${tool}, input=${format}`, () => {
+    let fixture: {
+        bytes: Uint8Array;
+        generated: boolean;
+        operand: string;
+        args: string[];
+        expectedFiles: Map<string, Uint8Array>;
+        expected: Awaited<ReturnType<typeof runConvertCli>>;
+    };
+    // File and stdout cases share immutable input and the buffered oracle.
+    beforeAll(async () => {
         const pixels = new Uint8Array(601 * 601 * 4);
         let state = 1234567;
         for (let i = 0; i < pixels.length; i++) {
@@ -37,25 +71,14 @@ for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool ===
         if (tool === "convert-sequence") args.splice(0, args.length, operand, "+clone", "-flop", "-evaluate-sequence", "Median", "+clone", "-negate", "-clut", "-separate", "-combine", "+clone", "-morph", "1", "-append", "-raise", "3", "-transpose", "-transverse", "-layers", "merge", "-tile", "2x3", "-deskew", "40%");
         if (tool === "convert-malformed") args.splice(0, args.length, operand);
         const expectedFiles = new Map([["/input", bytes]]), expected = tool === "montage" ? await runMontageCli([...args, "png:/out.bmp"], expectedFiles) : tool === "composite" ? await runCompositeCli([...args, "png:/out.bmp"], expectedFiles) : tool === "compare" ? await runCompareCli([operand, operand, "/out.bmp"], expectedFiles) : tool === "mogrify" ? await runMogrifyCli(["-format", "png", ...args.slice(3), operand], expectedFiles) : await runConvertCli([...args, tool === "convert-text" ? "txt:/out.bmp" : tool === "convert-animation" ? "gif:/out.bmp" : "png:/out.bmp"], expectedFiles);
-        const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../../../", import.meta.url)), sourcefile: "pdf-metadata-worker.ts", contents: `
- import {runCompareCli,runConvertCli,runMogrifyCli,runCompositeCli,runMontageCli} from './packages/safe-bash-command-imagemagick/src/index.ts';
- import {FsError} from '@poe-code/safe-fs/contracts';
- export default {async fetch(request,env){const {size,stdout,operand,tool,args}=await request.json();let outputSize=0;const output={async write(bytes){await env.BACKING.fetch('https://backing/result?position='+outputSize,{method:'PUT',body:bytes});outputSize+=bytes.length;}};let id=0,opened=0,closed=0,removed=0,maxAllocation=0,reads=0;const scope={},files=new Map([['/input',{id:'input',size}]]);
- const stat=(file,type='file')=>({type,size:file.size,mode:420,mtimeMs:1,ctimeMs:1,atimeMs:1,identityScope:scope,opaqueIdentity:file.id,opaqueVersion:'1'}),parent=stat({id:'root',size:0},'directory');
- const fs={capabilities:{atomicFilePublication:true,retainedRead:true,retainedStagingWrite:true,retainedStagingCleanup:true},async stat(path){return files.has(path)?stat(files.get(path)):parent;},async capabilitiesFor(){return this.capabilities;},
- async lstat(path){const file=files.get(path);if(!file)throw new FsError('ENOENT');return stat(file);},
- async publishFileConditional(path,source){const id=path==='/middle.bmp'?'middle':'result';let size=0;for await(const bytes of source){await env.BACKING.fetch('https://backing/'+id+'?position='+size,{method:'PUT',body:bytes});size+=bytes.length;}if(id==='result')outputSize=size;const file={id,size};files.set(path,file);return stat(file);},
- async removeFileConditional(path){files.delete(path);removed++;},
- async open(path){const file={id:String(++id),size:0};files.set(path,file);opened++;return {capabilities:{positionedRead:true,positionedWrite:true},async stat(){return stat(file);},async write(bytes,position){if(bytes.length>16384)throw new Error('large scratch write');await env.BACKING.fetch('https://backing/'+file.id+'?position='+position,{method:'PUT',body:bytes});file.size=Math.max(file.size,position+bytes.length);return bytes.length;},async read(bytes,position){reads++;const response=await env.BACKING.fetch('https://backing/'+file.id+'?position='+position+'&length='+bytes.length);bytes.set(new Uint8Array(await response.arrayBuffer()));return bytes.length;},async close(){closed++;await env.BACKING.fetch('https://backing/'+file.id,{method:'DELETE'});}};},
- async openReadFile(path){const file=files.get(path);if(!file)throw new Error('missing retained source');opened++;return {async stat(){return stat(file);},async read(position,length){if(length>65536)throw new Error('large request');reads++;const response=await env.BACKING.fetch('https://backing/'+file.id+'?position='+position+'&length='+length);return new Uint8Array(await response.arrayBuffer());},async close(){closed++;}};},
- async createStagedFile(path,name){const file={id:String(++id),size:0},filePath=path+'/'+name;files.set(filePath,file);return {parent:{path:'/',stat:parent},directory:{path,stat:parent},file:{path:filePath,stat:stat(file)},writer:{async write(chunk){if(chunk.length>65536)throw new Error('large write');await env.BACKING.fetch('https://backing/'+file.id+'?position='+file.size,{method:'PUT',body:chunk});file.size+=chunk.length;},async finish(){return stat(file);}},cleanup:{async remove(){files.delete(filePath);removed++;await env.BACKING.fetch('https://backing/'+file.id,{method:'DELETE'});},async close(){}}};},
- readFile(){throw new Error('whole input');},writeFile(){throw new Error('whole output');}};
- const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;maxAllocation=Math.max(maxAllocation,length);if(length>65536)throw new Error('unbounded compare allocation '+length);return Reflect.construct(target,args);}});
- try{const input={filesystem:fs,cwd:'/',...(stdout?{stdout:output}:{})};const metadata=tool==='montage'?await runMontageCli([...args,stdout?'png:-':'png:/out.bmp'],input):tool==='composite'?await runCompositeCli([...args,stdout?'png:-':'png:/out.bmp'],input):tool==='compare'?await runCompareCli([operand,operand,stdout?'bmp:-':'/out.bmp'],input):tool==='mogrify'?await runMogrifyCli(["-format","png",...args.slice(3),operand],input):await runConvertCli([...args,tool==='convert-text'?(stdout?"txt:-":"txt:/out.bmp"):tool==='convert-animation'?"gif:/out.bmp":stdout?"png:-":"png:/out.bmp"],input);return Response.json({metadata,opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
- }};` }, bundle: true, write: false, platform: "browser", conditions: ["workerd"], format: "esm", metafile: true, logLevel: "silent" });
-        expect(Object.values(bundle.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
+        fixture = { bytes, generated, operand, args, expectedFiles, expected };
+    });
+
+for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool === "convert-stack" || tool === "convert-animation") ? [false] : [false, true])
+    it(`runs ${tool} in Workerd, input=${format}, stdout=${stdout}`, async () => {
+        const { bytes, generated, operand, args, expectedFiles, expected } = fixture;
         const runtime = new Miniflare({ cf: false, workers: [
-    { name: "image", modules: true, compatibilityDate: "2026-07-01", script: bundle.outputFiles[0]!.text, serviceBindings: { BACKING: "backing" } },
+    { name: "image", modules: true, compatibilityDate: "2026-07-01", script: workerScript, serviceBindings: { BACKING: "backing" } },
     { name: "backing", modules: true, compatibilityDate: "2026-07-01", script: `
       const files = new Map();
       export default { async fetch(request) {
@@ -109,14 +132,15 @@ for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool ===
             if (tool === "convert-write") {
                 const middle = new Uint8Array(await (await backing.fetch("https://backing/middle")).arrayBuffer());
                 expect(middle.length).toBeGreaterThan(1048576);
-                expect(decodeImage(middle)).toEqual(decodeImage(expectedFiles.get("/middle.bmp")!));
+                deepStrictEqual(decodeImage(middle), decodeImage(expectedFiles.get("/middle.bmp")!));
             }
             const actual = new Uint8Array(await (await backing.fetch("https://backing/result")).arrayBuffer()), expectedBytes = expectedFiles.get(tool === "mogrify" ? "input.png" : "/out.bmp")!;
-            if (tool === "convert-text") { expect(actual.length).toBeGreaterThan(65536); expect(actual).toEqual(expectedBytes); }
-            else expect(decodeImage(actual)).toEqual(decodeImage(expectedBytes));
-            if (tool === "convert-animation") expect(decodeImage(actual, { page: 1 })).toEqual(decodeImage(expectedBytes, { page: 1 }));
+            if (tool === "convert-text") { expect(actual.length).toBeGreaterThan(65536); deepStrictEqual(actual, expectedBytes); }
+            else deepStrictEqual(decodeImage(actual), decodeImage(expectedBytes));
+            if (tool === "convert-animation") deepStrictEqual(decodeImage(actual, { page: 1 }), decodeImage(expectedBytes, { page: 1 }));
         }
         finally {
             await runtime.dispose();
         }
     });
+});

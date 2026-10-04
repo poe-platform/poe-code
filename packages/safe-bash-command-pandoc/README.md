@@ -194,10 +194,10 @@ while document data lives in caller storage. Output sink writes preserve native
 the compatibility path. JSON/RTF reject multiple operands before reading input. Zero-input SDK conversions
 also use caller storage for the retained writers above, including filter responses
 and metadata, regardless of the selected reader.
-Single-input MediaWiki also uses these retained writers, including finite byte
+Single-input and joined-input MediaWiki also uses these retained writers, including finite byte
 and reference quotas, JSON/Lua filters, templates and metadata. Source spans,
 paragraphs, code blocks, tables, lists and nested inline continuations use caller
-storage. Multiple MediaWiki operands still use the compatibility converter.
+storage. Multiple MediaWiki operands with file scope still use the compatibility converter.
 JSON `metadataFiles` merge into retained generations before filters. File contents,
 merge keys, duplicate-key indexes and recursive map/list work stay in caller
 storage; null deletion, last-key-wins JSON parsing and native number conversion

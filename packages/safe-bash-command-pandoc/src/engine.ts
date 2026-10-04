@@ -632,7 +632,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     // These format-specific budgets have no consumers in the retained format pairs.
     "glyphs", "pages", "objects", "xmlDepth", "xmlNodes", "macros", "directives", "entities", "entityBytes", "yamlAliases"
   ].includes(key) || value === Infinity || (key === "references" || key === "retainedBytes") && (inputs.length === 0 || ["json", "rtf", "csv", "tsv", "mediawiki"].includes(reader.descriptor.name)) && ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name));
-  const backedDocument = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
+  const backedDocument = context.workingFiles && !context.reader && !context.writer && (inputs.length === 1 || inputs.length > 1 && reader.descriptor.name === "mediawiki" && !options.fileScope)
     && ["json", "rtf", "mediawiki"].includes(reader.descriptor.name) && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
     && Object.keys(options).every(key => (key === "resourcePath" && (["rtf", "odt"].includes(writer.descriptor.name) || writer.descriptor.name === "html5" && options.embedResources) || key === "embedResources" && writer.descriptor.name === "html5") || ["from", "to", "filters", "metadata", "metadataFiles", "metadataJson", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
     && retainedLimits;
@@ -645,10 +645,10 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
       let reading = false, readerStarted = false;
       try {
         await session.call(() => streamRetainedDocument(async () => {
-          if (Number.isFinite(session.limits.references)) session.charge("references", 1);
+          if (reader.descriptor.name !== "mediawiki" && Number.isFinite(session.limits.references)) session.charge("references", 1);
           reading = true;
           if (reader.descriptor.name === "json") {const retained = await readRetainedJson(inputs[0]!, session, context.workingFiles!, true, true, () => {readerStarted = true;}); reading = false; return retained;}
-          if (reader.descriptor.name === "mediawiki") {const retained = await readRetainedMediawiki(inputs[0]!, session, context.workingFiles!, options.fileScope, () => {readerStarted = true;}); reading = false; return retained;}
+          if (reader.descriptor.name === "mediawiki") {const retained = await readRetainedMediawiki(inputs, session, context.workingFiles!, options.fileScope, () => {readerStarted = true;}); reading = false; return retained;}
           const retained = await readRetainedRtfDocument(inputs[0]!, session, context.workingFiles!, () => {readerStarted = true;});
           reading = false; return {...retained.document, resources: retained.resources, closeResources: retained.close};
         }, session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", inputs[0]!, includes));

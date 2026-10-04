@@ -8,7 +8,7 @@ import type {ExecutionContext} from "./execution.js";
 import type {InputSource, WorkingStorageOptions} from "./types.js";
 
 /** MediaWiki source, parser continuations and document nodes stay in caller storage. */
-export async function readRetainedMediawiki(input: InputSource, context: ExecutionContext, working: WorkingStorageOptions, fileScope = false, onReaderStarted?: () => void) {
+export async function readRetainedMediawiki(inputs: readonly InputSource[], context: ExecutionContext, working: WorkingStorageOptions, fileScope = false, onReaderStarted?: () => void) {
   const cache = working.cacheBytes ?? 1048576;
   if (!Number.isSafeInteger(cache) || cache < 16384 || cache % 16384) context.fail("E_OPTION", "Working storage cacheBytes must be a positive multiple of 16384");
   if (typeof working.directory !== "string" || !working.directory.startsWith("/")) context.fail("E_OPTION", "Working storage requires an absolute caller filesystem directory");
@@ -20,16 +20,6 @@ export async function readRetainedMediawiki(input: InputSource, context: Executi
   const release = context.onClose(close);
   try {
     const text = new RetainedSourceText(source, units => context.cooperate(units));
-    await context.decodeUtf8To(retainInput("bytes" in input ? [input.bytes] : input.chunks, context, records, ["inputBytes"], true), async chunk => {await text.append([chunk]);}, [], false);
-    context.charge("retainedBytes", text.length * 2);
-    if (!fileScope) {
-      context.charge("retainedBytes", text.length * 2 + 2);
-      if (await text.unit(text.length - 1) !== "\n") await text.append(["\n"]);
-      context.charge("retainedBytes", text.length * 2);
-      context.charge("retainedBytes", text.length * 3);
-    }
-    onReaderStarted?.();
-    const sourceEnd = text.length;
     const put = async (values: readonly number[]) => {
       const bytes = new Uint8Array(values.length * 8), view = new DataView(bytes.buffer);
       values.forEach((value, index) => view.setFloat64(index * 8, value, true));
@@ -39,8 +29,37 @@ export async function readRetainedMediawiki(input: InputSource, context: Executi
       const bytes = await records.read(position, count * 8), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
       return Array.from({length: count}, (_, index) => view.getFloat64(index * 8, true));
     };
-    const lineStart = records.allocate(0); let lineCount = 0, start = 0, cursor = 0;
-    for await (const chunk of text.chunks({start: 0, end: sourceEnd})) for (const char of chunk.split("")) {
+    let first = -1, previous = -1;
+    for (const input of inputs) {
+      context.charge("references", 1);
+      const start = text.length;
+      await context.decodeUtf8To(retainInput("bytes" in input ? [input.bytes] : input.chunks, context, records, ["inputBytes"], true), async chunk => {await text.append([chunk]);}, [], false);
+      context.charge("retainedBytes", (text.length - start) * 2);
+      const position = await put([start, text.length, -1]);
+      if (previous >= 0) {
+        const next = new Uint8Array(8); new DataView(next.buffer).setFloat64(0, position, true);
+        await records.write(previous + 16, next);
+      } else first = position;
+      previous = position;
+    }
+    let sourceStart = 0;
+    if (!fileScope) {
+      sourceStart = text.length;
+      for (let position = first; position >= 0;) {
+        const [start, end, next] = await get(position, 3);
+        if (position !== first) {context.charge("retainedBytes", 2); await text.append(["\n"]);}
+        context.charge("retainedBytes", (end! - start!) * 2 + 2);
+        await text.append(text.chunks({start: start!, end: end!}));
+        if (end === start || await text.unit(end! - 1) !== "\n") await text.append(["\n"]);
+        position = next!;
+      }
+      context.charge("retainedBytes", (text.length - sourceStart) * 2);
+      context.charge("retainedBytes", (text.length - sourceStart) * 3);
+    }
+    onReaderStarted?.();
+    const sourceEnd = text.length;
+    const lineStart = records.allocate(0); let lineCount = 0, start = sourceStart, cursor = sourceStart;
+    for await (const chunk of text.chunks({start: sourceStart, end: sourceEnd})) for (const char of chunk.split("")) {
       if (char === "\n") {await put([start, cursor]); start = cursor + 1; lineCount++;} cursor++;
     }
     await put([start, sourceEnd]); lineCount++;

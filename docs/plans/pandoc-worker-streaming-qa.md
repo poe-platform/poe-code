@@ -7,6 +7,15 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
 
 ## Coverage to complete
 
+- Supplying `resourcePath` now preserves the retained route for all supported
+  text writers, including non-embedding HTML and empty input. Compare output,
+  diagnostics and finite byte/reference budgets with the buffered API; reject
+  invalid directories before pulling input and verify cancellation/sink cleanup.
+  The public reference Worker matrix supplies 64 search directories to SDK and
+  command conversions, forbids whole-file reads, and rejects resident directory
+  array copies in the SDK. Run the increasing-size/concurrency measurements below
+  with these options too; local workerd parity alone is not deployed qualification.
+
 - Single-input, joined-input and file-scope MediaWiki now retain UTF-16 source spans, line indexes, inline
   continuations and AST nodes in caller storage. Compare long paragraphs, code
   blocks, wide tables, many list items and nested markup with the compatibility

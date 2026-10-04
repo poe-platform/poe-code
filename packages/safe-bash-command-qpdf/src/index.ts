@@ -1,3 +1,5 @@
+import { parseQpdfPageRange } from "./page-range.js";
+export { parseQpdfPageRange, iterateQpdfPageRange } from "./page-range.js";
 import { displayNodeParts } from "./display.js";
 import { executeRetainedQpdf } from "./retained.js";
 import { dirname, resolvePath } from "safe-bash-contracts/path";
@@ -123,82 +125,6 @@ export interface QpdfCliResult {
   readonly stderr: string;
 }
 
-function parseSingleTokenPageNumber(tok: string, totalPages: number): number {
-  const trimmed = tok.trim();
-  if (trimmed === "z") return totalPages;
-  if (trimmed.startsWith("r")) {
-    const rev = Number.parseInt(trimmed.slice(1), 10);
-    if (!Number.isFinite(rev) || rev < 1 || rev > totalPages) {
-      throw new Error(`Invalid reverse page number '${tok}'`);
-    }
-    return totalPages - rev + 1;
-  }
-  const num = Number.parseInt(trimmed, 10);
-  if (!Number.isFinite(num) || num < 1 || num > totalPages) {
-    throw new Error(`Page number '${tok}' out of bounds (1..${totalPages})`);
-  }
-  return num;
-}
-
-export function parseQpdfPageRange(rangeSpec: string, totalPages: number): number[] {
-  const spec = rangeSpec.trim();
-
-  const expandSubRange = (rawPart: string): { pages: number[]; trailingGroupParity?: "odd" | "even" | undefined } => {
-    let part = rawPart.trim();
-    let partParity: "odd" | "even" | undefined;
-    if (part.endsWith(":odd")) {
-      partParity = "odd";
-      part = part.slice(0, -4);
-    } else if (part.endsWith(":even")) {
-      partParity = "even";
-      part = part.slice(0, -5);
-    }
-    if (part.includes("-")) {
-      const [startStr, endStr] = part.split("-", 2);
-      const start = parseSingleTokenPageNumber(startStr ?? "1", totalPages);
-      const end = parseSingleTokenPageNumber(endStr ?? "z", totalPages);
-      let out: number[] = [];
-      if (start <= end) {
-        for (let p = start; p <= end; p++) out.push(p);
-      } else {
-        for (let p = start; p >= end; p--) out.push(p);
-      }
-      if (partParity === "odd") {
-        out = out.filter((_, idx) => idx % 2 === 0);
-      } else if (partParity === "even") {
-        out = out.filter((_, idx) => idx % 2 === 1);
-      }
-      return { pages: out };
-    }
-    return {
-      pages: [parseSingleTokenPageNumber(part, totalPages)],
-      trailingGroupParity: partParity,
-    };
-  };
-
-  let pages: number[] = [];
-  let parity: "odd" | "even" | undefined;
-  const parts = spec.split(",").filter((s) => s.length > 0);
-  for (const part of parts) {
-    if (part.startsWith("x")) {
-      const excluded = new Set(expandSubRange(part.slice(1)).pages);
-      pages = pages.filter((p) => !excluded.has(p));
-    } else {
-      const expanded = expandSubRange(part);
-      pages.push(...expanded.pages);
-      if (expanded.trailingGroupParity) {
-        parity = expanded.trailingGroupParity;
-      }
-    }
-  }
-
-  if (parity === "odd") {
-    pages = pages.filter((_, idx) => idx % 2 === 0);
-  } else if (parity === "even") {
-    pages = pages.filter((_, idx) => idx % 2 === 1);
-  }
-  return pages;
-}
 
 
 function cosNodeToJson(node: PdfCosNode | undefined): unknown {

@@ -32,6 +32,8 @@ The workspace entrypoint exports `qpdfCommands()` for plugin registration,
 `createQpdfCommands()` for the command collection, and
 `createQpdfCommand()` for a single command. Each accepts an optional
 `QpdfCommandsOptions` object; existing factory names remain available.
+`iterateQpdfPageRange(spec, pageCount)` yields selected page numbers on demand;
+`parseQpdfPageRange` remains available when you need an array.
 
 Missing output parent directories are created recursively. Attachment and raw/filtered stream output preserves binary bytes. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.
 

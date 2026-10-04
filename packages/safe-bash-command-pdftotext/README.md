@@ -38,13 +38,15 @@ The workspace entrypoint exports `pdftotextCommands()` for plugin registration,
 
 Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `PdftotextLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops yield to timers and cancellation, including Workers with frozen clocks.
 
-Plain `pdftotext -raw` uses retained reads and caller-backed staging for input,
+`pdftotext -raw` uses retained reads and caller-backed staging for input,
 line formatting and output. It supports page ranges, passwords, encodings,
 line endings, crop regions, `-cropbox`, `-clip`, `-nodiag`, `-urls` and `-htmlmeta`; file publication is atomic. Scratch lives in
 `TMPDIR` (or `/tmp`) on the supplied filesystem. Use an external backend for
 large spills. URL appendices search staged page text and deduplicate links on
 caller storage. Crop selection stages whole words and preserves their original
-paragraph grouping. Bounding-box/TSV formats and other
+paragraph grouping. `-raw -tsv` streams its page rows with the same retained
+input, content evaluation, encoding and publication path. Bounding-box formats,
+non-raw TSV and other
 text modes still use the buffered path; page evaluation also retains admitted
 rendering resources.
 

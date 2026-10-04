@@ -18,6 +18,7 @@ interface RawTextPlan {
   readonly lastPageExplicit: boolean;
   readonly quiet: boolean;
   readonly htmlmeta: boolean;
+  readonly tsv: boolean;
   readonly urls: boolean;
   readonly invalidEolWarning: boolean;
   readonly nopgbrk: boolean;
@@ -116,11 +117,20 @@ export async function executeRetainedRawText(context: CommandContext, plan: RawT
     if (first > pageCount || first > last) return await error(`Command Line Error: Wrong page range given: the first page (${first}) can not be after the last page (${last}).\n`, 99);
     const retained = document;
     async function* text() {
+      if (plan.tsv) yield encoder.encode("level\tpage_num\tpar_num\tblock_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n");
       for await (const page of retained.pages()) {
         await yieldTurn(signal);
         if (page.index + 1 < first) continue;
         if (page.index + 1 > last) break;
-        const crop = await rawCrop(retained, page, plan);
+        const geometry = await rawGeometry(retained, page, plan);
+        if (plan.tsv) {
+          // Raw TSV has page rows only, but still evaluate content so retained
+          // reads, decoding, validation and cancellation follow extraction.
+          for await (const ignored of page.evaluateSteps(storage, { signal })) { void ignored; }
+          yield encoder.encode(`1\t${page.index + 1}\t0\t0\t0\t0\t0.000000\t0.000000\t${geometry!.width.toFixed(6)}\t${geometry!.height.toFixed(6)}\t-1\t###PAGE###\n`);
+          continue;
+        }
+        const crop = geometry?.crop;
         const raw = page.streamRawText(storage, { ...(crop ? { crop } : {}), rejoinHyphens: false, discardDiagonal: plan.nodiag, clipText: plan.clip, signal });
         if (!plan.urls) yield* raw;
         else {
@@ -146,8 +156,8 @@ export async function executeRetainedRawText(context: CommandContext, plan: RawT
       }
     }
     const formatted = plan.htmlmeta
-      ? streamTextHtml(encodePopplerChunks(text(), "UTF-8", plan.eol), await document.info()) : text();
-    result = await PdfFileSource.fromStream(storage.fs, directory, encodePopplerChunks(formatted, plan.encoding, plan.htmlmeta ? "unix" : plan.eol), { signal });
+      ? streamTextHtml(encodePopplerChunks(text(), "UTF-8", plan.tsv ? "unix" : plan.eol), await document.info()) : text();
+    result = await PdfFileSource.fromStream(storage.fs, directory, encodePopplerChunks(formatted, plan.encoding, plan.htmlmeta || plan.tsv ? "unix" : plan.eol), { signal });
     if (warning) await writeBytes(context.stderr, encoder.encode(warning), signal);
     if (outputPath === "-") {
       for await (const bytes of result.stream(0, result.size, signal)) await writeBytes(stdout, bytes, signal);
@@ -180,7 +190,7 @@ async function containsText(source: PdfFileSource, needle: string, signal: Abort
   return (overlap + decoder.decode()).includes(needle);
 }
 
-async function rawCrop(document: PdfRetainedDocument, page: PdfRetainedPage, plan: RawTextPlan): Promise<readonly [number, number, number, number] | undefined> {
+async function rawGeometry(document: PdfRetainedDocument, page: PdfRetainedPage, plan: RawTextPlan): Promise<{ crop?: readonly [number, number, number, number]; width: number; height: number } | undefined> {
   let box: number[] | undefined;
   if (plan.cropbox) {
     let current: PdfCosDict | undefined = page.dict, depth = 0; const visited = new Set<number>();
@@ -195,12 +205,14 @@ async function rawCrop(document: PdfRetainedDocument, page: PdfRetainedPage, pla
       const value = (await document.lookup(parent))?.value; current = value?.kind === "dict" ? value : undefined;
     }
   }
-  if (!box && plan.cropX === undefined && plan.cropY === undefined && plan.cropW === undefined && plan.cropH === undefined) return undefined;
+  const cropping = box !== undefined || plan.cropX !== undefined || plan.cropY !== undefined || plan.cropW !== undefined || plan.cropH !== undefined;
+  if (!cropping && !plan.tsv) return undefined;
   const { mediaBox } = await page.attributes(), width = Math.abs(mediaBox[2] - mediaBox[0]), height = Math.abs(mediaBox[3] - mediaBox[1]), scale = plan.resolution / 72;
   const x0 = box ? Math.min(box[0]!, box[2]!) : 0, y0 = box ? Math.min(box[1]!, box[3]!) : 0;
   const x1 = box ? Math.max(box[0]!, box[2]!) : width, y1 = box ? Math.max(box[1]!, box[3]!) : height;
   const minX = x0 + (plan.cropX ?? 0) / scale, minTop = height - y1 + (plan.cropY ?? 0) / scale;
   const maxX = plan.cropW !== undefined && plan.cropW > 0 ? minX + plan.cropW / scale : x1;
   const maxTop = plan.cropH !== undefined && plan.cropH > 0 ? minTop + plan.cropH / scale : height - y0;
-  return [minX, height - maxTop, maxX, height - minTop];
+  return { ...(cropping ? { crop: [minX, height - maxTop, maxX, height - minTop] as const } : {}),
+    width: box ? Math.max(1, x1 - x0) : width, height: box ? Math.max(1, y1 - y0) : height };
 }

@@ -829,7 +829,7 @@ export async function runPdftotextCli(argv: readonly string[], files: ReadonlyMa
 }
 
 function usesRetainedRaw(parsed: ParsedArgs): boolean {
-  return !parsed.error && !parsed.listenc && !parsed.version && !parsed.help && parsed.raw && !parsed.bbox && !parsed.tsv;
+  return !parsed.error && !parsed.listenc && !parsed.version && !parsed.help && parsed.raw && !parsed.bbox;
 }
 
 export async function pdftotext(context: CommandContext): Promise<{ exitCode: number }> {

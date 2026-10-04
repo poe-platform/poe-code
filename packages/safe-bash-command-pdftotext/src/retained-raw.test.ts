@@ -184,3 +184,14 @@ for (const flags of [["-x", "40", "-W", "30"], ["-y", "690", "-H", "35"], ["-r",
     assert.deepEqual(f.counts(), { wholeReads: 0, payloadWrites: 0, published: 1 }); await f.clean();
   });
 }
+
+for (const encoding of ["UTF-8", "UCS-2", "Latin1"]) for (const flags of [[], ["-htmlmeta", "-eol", "dos"], ["-cropbox", "-r", "144", "-eol", "mac"]]) {
+  test(`retained raw TSV preserves page rows and encoding: ${encoding} ${flags.join(" ")}`, async () => {
+    const doc = PdfDocument.load(pdf()); doc.setTitle("TSV <pages>");
+    dictSet(doc.getPage(0).dict, "CropBox", cosArray([30, 60, 150, 115].map(value => cosNumber(value))));
+    const input = doc.save(), args = ["-raw", "-tsv", "-enc", encoding, ...flags, "-", "output.txt"], expected = await runPdftotextCli(args, new Map(), input);
+    const f = await fixture(input, args, true); assert.equal((await createPdftotextCommand().execute(f.context)).exitCode, expected.exitCode);
+    assert.deepEqual(await f.fs.readFile("/output.txt"), encoded(expected.output, encoding));
+    assert.deepEqual(f.counts(), { wholeReads: 0, payloadWrites: 0, published: 1 }); await f.clean();
+  });
+}

@@ -52,8 +52,9 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
   const useEmpty = options.emptyInput && !options.isEncrypted && !options.requiresPassword;
   const storage = { fs: context.fs, directory: resolvePath(context.cwd, context.env.TMPDIR || "/tmp") };
   const inputs = new Map<string, PdfFileSource | undefined>();
-  let source: PdfFileSource | undefined, document: PdfRetainedDocument | undefined, intermediate: PdfFileSource | undefined, output: PdfFileSource | undefined, failed = false;
+  let source: PdfFileSource | undefined, document: PdfRetainedDocument | undefined, output: PdfFileSource | undefined, failed = false;
   let splitOutputs: PdfStagedOutputs | undefined;
+  let selectionGraph: Awaited<ReturnType<typeof copyQpdfSelections>> | undefined;
   let editedGraph: Awaited<ReturnType<typeof editRetainedDocument>> | undefined;
   async function publishInspection(chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>): Promise<void> {
     async function* admitted() {
@@ -186,10 +187,8 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       return { exitCode: 0 };
     }
     if (options.pageSpecs.length) {
-      const selected = copyQpdfSelections(document, source, inputs, storage, options, signal);
-      try { intermediate = await PdfFileSource.fromStream(context.fs, storage.directory, selected, { signal }); }
-      finally { await selected.return(undefined); }
-      document = await PdfRetainedDocument.open(intermediate, storage, { signal, recovery: "repair" });
+      selectionGraph = await copyQpdfSelections(document, source, inputs, storage, options, signal);
+      document = await selectionGraph.openDocument();
     }
     const destination = options.replaceInput ? inputName : options.outputFile;
     if (!destination) return await diagnostic("qpdf: an output file is required\n");
@@ -249,7 +248,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
     return { exitCode: 0 };
   } catch (error) { failed = true; if (error instanceof QpdfMissingInput || error instanceof QpdfMissingAttachment) return await diagnostic(error.message); throw error; }
   finally {
-    const results = await Promise.allSettled([splitOutputs?.close(), editedGraph?.close(), document?.close(), ...[...new Set([...inputs.values(), source, intermediate, output])].map(input => input?.close())]);
+    const results = await Promise.allSettled([splitOutputs?.close(), editedGraph?.close(), document?.close(), selectionGraph?.close(), ...[...new Set([...inputs.values(), source, output])].map(input => input?.close())]);
     if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
   }
 }

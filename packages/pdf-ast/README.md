@@ -823,6 +823,11 @@ It preserves unsaved stream dictionaries and logical page identities across edit
 `PdfRetainedDocument.openStore(store, storage, { rootRef, infoRef })` reads an
 existing `PdfMutableObjectStore`; the caller keeps ownership of that store.
 
+`createRetainedPageCopy(document, indices, storage, options)` owns a copied graph
+on caller storage. Use `openDocument()` to compose more retained operations or
+`chunks()` for PDF output, then `close()` to release its backing. Stream length
+references survive composition until the final save.
+
 `copyRetainedPagesChunks(document, indices, storage, options)` emits a standalone
 PDF for a synchronous or asynchronous iterable of zero-based page indices.
 Use `pageRotation(document, index)` to override a source rotation before

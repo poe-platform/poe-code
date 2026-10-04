@@ -178,3 +178,22 @@ it.each(["direct", "indirect", "inherited"])("overrides %s source rotation befor
   } finally { await retained.close(); await source.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("composes page copies through an unsaved retained graph", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { createRetainedPageCopy } = await import("./retained-page-copy.js");
+  const bytes = new Uint8Array(readFileSync(new URL("../fixtures/qpdf-shared-images.pdf", import.meta.url)));
+  const buffered = PdfDocument.load(bytes), first = PdfDocument.create(), expected = PdfDocument.create();
+  first.copyPagesFrom(buffered, [2, 0, 2]); expected.copyPagesFrom(first, [2, 0]);
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", bytes);
+  const storage = { fs, directory: "/scratch" }, source = await PdfFileSource.open(fs, "/input"), document = await PdfRetainedDocument.open(source, storage);
+  const copy = await createRetainedPageCopy(document, [2, 0, 2], storage, { metadata: {} });
+  try {
+    const graph = await copy.openDocument(), chunks = [];
+    for await (const bytes of copyRetainedPagesChunks(graph, [2, 0], storage, { metadata: {} })) chunks.push(bytes);
+    expect(new Uint8Array(Buffer.concat(chunks))).toEqual(expected.save());
+    const saved = []; for await (const bytes of copy.chunks()) saved.push(bytes);
+    expect(new Uint8Array(Buffer.concat(saved))).toEqual(first.save());
+  } finally { await copy.close(); await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

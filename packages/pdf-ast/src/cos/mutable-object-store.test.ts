@@ -121,3 +121,29 @@ it("replays a captured stream snapshot after replacing its object", async () => 
   } finally { await store.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("stores serialized structural values without materializing their members", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const store = new PdfMutableObjectStore({ fs, directory: "/scratch" }, { maxNodes: 1 });
+  const encoder = new TextEncoder(), count = 40000;
+  async function* chunks() { yield encoder.encode("[ "); const value = encoder.encode("1 "); for (let i = 0; i < count; i++) yield value; yield encoder.encode("]"); }
+  try {
+    await store.setSerializedValue({ objectNumber: 1, generationNumber: 0, body: { length: 3 + 2 * count, chunks: chunks() } });
+    await expect(store.get(1)).rejects.toThrow();
+    const objects = store.outputObjects(), first = await objects.next(); expect(first.done).toBe(false);
+    let length = 0; for await (const bytes of first.value!.body.chunks) { expect(bytes.length).toBeLessThanOrEqual(16384); length += bytes.length; }
+    expect(length).toBe(3 + 2 * count); await objects.return();
+  } finally { await store.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("admits serialized values before consumption and leaves failed replacements uncommitted", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const store = new PdfMutableObjectStore({ fs, directory: "/scratch" }, { maxStagingBytes: 8192 });
+  try {
+    await store.set({ objectNumber: 1, generationNumber: 0, value: cosNumber(7) }); let consumed = false;
+    await expect(store.setSerializedValue({ objectNumber: 1, generationNumber: 0, body: { length: 8192, chunks: (async function* () { consumed = true; yield new Uint8Array(8192); })() } })).rejects.toThrow();
+    expect(consumed).toBe(false);
+    await expect(store.setSerializedValue({ objectNumber: 1, generationNumber: 0, body: { length: 2, chunks: [Uint8Array.of(49)] } })).rejects.toThrow("Incomplete");
+    expect((await store.get(1))!.value).toMatchObject({ kind: "number", value: 7 });
+  } finally { await store.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

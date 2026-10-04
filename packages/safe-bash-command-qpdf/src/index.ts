@@ -2497,8 +2497,7 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
     const parsed = parseQpdfArguments(argv);
     if (parsed.options) {
       const defaults = parseQpdfArguments([]).options!;
-      const splitGraphEdits = parsed.options.splitPagesGroup !== undefined && parsed.options.pageSpecs.length > 0;
-      const retained = !splitGraphEdits && Object.entries(parsed.options).every(([key, value]) => {
+      const retained = Object.entries(parsed.options).every(([key, value]) => {
         if (["inputFile", "outputFile", "password", "replaceInput", "warningExit0", "decrypt", "check", "showNpages", "showEncryption", "showObject", "rawStreamData", "filteredStreamData", "isEncrypted", "requiresPassword", "showPages", "withImages", "showXref", "removeInfo", "removeMetadata", "removeStructure", "removeAcroform", "removePageLabels", "emptyInput", "pageSpecs", "collateCount", "listAttachments", "showAttachmentKey", "showLinearization", "rotateSpecs", "splitPagesGroup"].includes(key)) return true;
         if (key === "normalizeContentFlag" && value === false) return true;
         if (key === "objectStreamsMode" && value === "disable") return true;

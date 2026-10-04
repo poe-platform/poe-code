@@ -60,6 +60,39 @@ export class PdfMutableObjectStore {
     return this.operation(async () => { const number = this.highest + 1; await this.save({ objectNumber: number, generationNumber: 0, value }); return cosRef(number); });
   }
   set(object: PdfRetainedOutputObject): Promise<void> { return this.operation(() => this.save(object)); }
+  /** Accept a caller-serialized COS value (not a stream body). Values are
+   * parsed only on get(); output replay stays bounded even for wide arrays.
+   * The caller owns syntax validity, as with PdfSerializedOutputObject. */
+  setSerializedValue(object: PdfSerializedOutputObject): Promise<void> {
+    return this.operation(async () => {
+      const number = object.objectNumber, generation = object.generationNumber, length = object.body.length;
+      if (!Number.isSafeInteger(number) || number < 1 || !Number.isSafeInteger(generation) || generation < 0 || generation > 65535) throw new RangeError("Invalid PDF object identity");
+      if (number > this.maxObjects) throw new PdfError("E_LIMIT", "PDF mutable object limit exceeded");
+      if (!Number.isSafeInteger(length) || length < 0) throw new RangeError("Invalid serialized PDF value length");
+      if (length + 64 > this.maxBytes - this.reserved) throw new PdfError("E_LIMIT", "PDF mutable backing byte limit exceeded");
+      const recordAt = this.reserve(64), valueAt = this.reserve(length);
+      const buffer = new Uint8Array(Math.min(16384, length)); let written = 0, consumed = 0, buffered = 0, work = 0, turns = 0;
+      for await (const bytes of object.body.chunks) {
+        this.signal.throwIfAborted(); if (bytes.length > length - consumed) throw new PdfError("E_PARSE", "Excess serialized PDF value bytes");
+        for (let at = 0; at < bytes.length;) {
+          const take = Math.min(buffer.length - buffered, bytes.length - at);
+          buffer.set(bytes.subarray(at, at + take), buffered); buffered += take; at += take;
+          if (buffered === buffer.length) {
+            await this.backing.write(valueAt + written, buffer); written += buffered; buffered = 0;
+            if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+          }
+        }
+        consumed += bytes.length;
+        if (++turns % 1024 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+      }
+      if (consumed !== length) throw new PdfError("E_PARSE", "Incomplete serialized PDF value bytes");
+      if (buffered) await this.backing.write(valueAt + written, buffer.subarray(0, buffered));
+      const record = new Uint8Array(64), view = new DataView(record.buffer);
+      [generation, valueAt, length, 0, 0, 0, valueAt, length].forEach((value, i) => view.setFloat64(i * 8, value));
+      await this.backing.write(recordAt, record); this.signal.throwIfAborted();
+      await this.index.set(BigInt(number), BigInt(recordAt)); this.highest = Math.max(this.highest, number);
+    });
+  }
   private async save(object: PdfRetainedOutputObject): Promise<void> {
     const number = object.objectNumber, generation = object.generationNumber;
     if (!Number.isSafeInteger(number) || number < 1 || !Number.isSafeInteger(generation) || generation < 0 || generation > 65535) throw new RangeError("Invalid PDF object identity");

@@ -6,7 +6,7 @@ import { PdfDocument, serializeCosDocument, cosStream, cosString, dictSet } from
 import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
-for (const mode of ["single", "group", "padded", "escaped", "stdin", "encrypted", "rotate", "selection", "collision", "empty", "dash", "large-group", "discard-unused", "fixture", "fixture-rotate", "remove-info", "remove-metadata", "remove-structure", "remove-acroform", "remove-page-labels", "fixture-remove-info", "root-info", "page-info-rotate"]) it(`${mode === "selection" ? "preserves compatibility for" : "streams"} ${mode} split pages with exact bytes`, async () => {
+for (const mode of ["single", "group", "padded", "escaped", "stdin", "encrypted", "rotate", "selection", "collision", "empty", "dash", "large-group", "discard-unused", "fixture", "fixture-rotate", "remove-info", "remove-metadata", "remove-structure", "remove-acroform", "remove-page-labels", "fixture-remove-info", "root-info", "page-info-rotate", "fixture-selection", "selection-rotate", "selection-remove-info", "collate-split"]) it(`streams ${mode} split pages with exact bytes`, async () => {
   const doc = PdfDocument.create(); for (let index = 0; index < 5; index++) doc.addPage([100 + index * 10, 200]).drawText(`Page ${index + 1}`, { x: 10, y: 20 });
   doc.setTitle("Title"); doc.setAuthor("Author"); doc.setSubject("Subject"); doc.setKeywords("Keywords");
   dictSet(doc.cos.resolveDict(doc.cos.infoRef)!, "Creator", cosString("Not copied"));
@@ -16,12 +16,13 @@ for (const mode of ["single", "group", "padded", "escaped", "stdin", "encrypted"
   const input = mode === "root-info" || mode === "page-info-rotate" ? serializeCosDocument({ objects: [...doc.cos.objects.values()], rootRef: doc.cos.rootRef, infoRef: doc.cos.infoRef }) : mode.startsWith("fixture") ? new Uint8Array(readFileSync(new URL("../../pdf-ast/src/fixtures/qpdf-shared-images.pdf", import.meta.url))) : doc.save(mode === "encrypted" ? { encrypt: { userPassword: "reader", ownerPassword: "owner" } } : {});
   const name = mode === "stdin" ? "-" : mode === "collision" ? "out-2.pdf" : "in.pdf";
   const target = mode === "padded" ? "out-%03d.pdf" : mode === "escaped" ? "out-%%-%d-%d.pdf" : mode === "collision" ? "out-%d.pdf" : mode === "dash" ? "-" : "out.pdf";
+  const selected = mode.includes("selection") || mode === "collate-split";
   const args = [...(mode === "encrypted" ? ["--password=reader"] : []), ...(mode === "empty" ? ["--empty"] : [name]),
-    `--split-pages=${mode === "group" || mode.startsWith("fixture") ? 2 : mode === "large-group" ? 100000000 : 1}`, ...((mode === "rotate" || mode === "fixture-rotate" || mode === "page-info-rotate") ? ["--rotate=+90:1-z"] : []), ...((mode === "root-info" || mode === "page-info-rotate") ? ["--remove-info"] : []), ...(mode.includes("remove-") ? [`--${mode.replace("fixture-", "")}`] : []), ...(mode === "selection" ? ["--pages", ".", "5-1", "--"] : []), target];
+    `--split-pages=${mode === "group" || mode.startsWith("fixture") ? 2 : mode === "large-group" ? 100000000 : 1}`, ...((mode === "rotate" || mode === "fixture-rotate" || mode === "page-info-rotate" || mode === "selection-rotate") ? ["--rotate=+90:1-z"] : []), ...((mode === "root-info" || mode === "page-info-rotate") ? ["--remove-info"] : []), ...(mode.includes("remove-") ? [`--${mode.replace("fixture-", "").replace("selection-", "")}`] : []), ...(mode === "collate-split" ? ["--collate", "--pages", ".", "1-z", ".", "z-1", "--"] : selected ? ["--pages", ".", "z-1", "--"] : []), target];
   const files = new Map([[name, input]]), expected = await runQpdfCli(args, files);
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); if (name !== "-") await fs.writeFile(`/${name}`, input);
   const guarded = new Proxy(fs, { get(owner, key) {
-    if (mode !== "selection" && (key === "readFile" || key === "writeFile")) return () => { throw new Error("Whole-file split I/O forbidden"); };
+    if (key === "readFile" || key === "writeFile") return () => { throw new Error("Whole-file split I/O forbidden"); };
     const value = Reflect.get(owner, key); return typeof value === "function" ? value.bind(owner) : value;
   } });
   const stderr: Uint8Array[] = [], carrier = createCommandArguments(args);

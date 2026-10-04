@@ -10,7 +10,7 @@ import { serializeCosNodeChunks } from "../cos/writer.js";
 import { serializeRetainedCosDocumentChunks } from "../cos/retained-writer.js";
 import { PdfFileSource } from "../source.js";
 import { PdfError } from "../errors.js";
-import type { PdfRetainedDocument } from "../retained-document.js";
+import { PdfRetainedDocument } from "../retained-document.js";
 
 export interface CopyRetainedPageOptions {
   /** Override a source page's rotation before cloning its indirect values.
@@ -42,15 +42,22 @@ export interface PdfRetainedPageSelection {
     add(index: number): void | Promise<void>;
   };
 }
+export interface PdfRetainedPageCopy {
+  /** Lazily open the unsaved copied graph for another retained operation. */
+  openDocument(): Promise<PdfRetainedDocument>;
+  chunks(): AsyncGenerator<Uint8Array, void, void>;
+  close(): Promise<void>;
+}
+
 /** Consume each source completely before requesting the next. Callers may close
  * a yielded source when their source iterator resumes. Page/form lists and
  * source identities use caller backing; source dictionaries remain admitted
  * structural values. Metadata comes from the first source. */
-export function copyRetainedPagesChunks(document: PdfRetainedDocument, indices: PdfRetainedPageIndices, storage: PdfIndexStorage, options?: CopyRetainedPageOptions): AsyncGenerator<Uint8Array, void, void>;
-export function copyRetainedPagesChunks(sources: Iterable<PdfRetainedPageSelection> | AsyncIterable<PdfRetainedPageSelection>, storage: PdfIndexStorage, options?: CopyRetainedPageOptions): AsyncGenerator<Uint8Array, void, void>;
-export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iterable<PdfRetainedPageSelection> | AsyncIterable<PdfRetainedPageSelection>,
+export function createRetainedPageCopy(document: PdfRetainedDocument, indices: PdfRetainedPageIndices, storage: PdfIndexStorage, options?: CopyRetainedPageOptions): Promise<PdfRetainedPageCopy>;
+export function createRetainedPageCopy(sources: Iterable<PdfRetainedPageSelection> | AsyncIterable<PdfRetainedPageSelection>, storage: PdfIndexStorage, options?: CopyRetainedPageOptions): Promise<PdfRetainedPageCopy>;
+export async function createRetainedPageCopy(input: PdfRetainedDocument | Iterable<PdfRetainedPageSelection> | AsyncIterable<PdfRetainedPageSelection>,
   indicesOrStorage: PdfRetainedPageIndices | PdfIndexStorage, storageOrOptions?: PdfIndexStorage | CopyRetainedPageOptions,
-  singleOptions: CopyRetainedPageOptions = {}): AsyncGenerator<Uint8Array, void, void> {
+  singleOptions: CopyRetainedPageOptions = {}): Promise<PdfRetainedPageCopy> {
   const single = "pages" in input;
   const storage = (single ? storageOrOptions : indicesOrStorage) as PdfIndexStorage;
   const options = single ? singleOptions : (storageOrOptions as CopyRetainedPageOptions | undefined) ?? {};
@@ -67,7 +74,15 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
   const catalog = cosDict({ Type: cosName("Catalog"), Pages: cosRef(2) });
   type ReferenceList = { first: number; last: number; count: number };
   const pages: ReferenceList = { first: 0, last: 0, count: 0 }, formFields: ReferenceList = { first: 0, last: 0, count: 0 };
-  let failed = false, work = 0, pageCount = 0, copiedMetadata = options.metadata !== undefined, formRef: ReturnType<typeof cosRef> | undefined;
+  let work = 0, pageCount = 0, copiedMetadata = options.metadata !== undefined, formRef: ReturnType<typeof cosRef> | undefined;
+  let opened: Promise<PdfRetainedDocument> | undefined, closing: Promise<void> | undefined;
+  function close(): Promise<void> {
+    return closing ??= (async () => {
+      const closed = await Promise.allSettled([opened?.then(document => document.close())]);
+      const resources = await Promise.allSettled([store.close(), lists.close(), attachments?.close(), labels?.close(), outlines?.close()]);
+      for (const result of [...closed, ...resources]) if (result.status === "rejected") throw result.reason;
+    })();
+  }
   function information(metadata: Readonly<Record<string, string>> = {}) {
     const info = cosDict({ Producer: cosString("@poe-code/pdf-ast") });
     for (const key of ["Title", "Author", "Subject", "Keywords", "Creator", "Producer"]) if (metadata[key]) dictSet(info, key, cosString(metadata[key]!));
@@ -285,20 +300,37 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
     const pageLabels = await labels?.finish(store, catalog);
     await store.set({ objectNumber: 1, generationNumber: 0, value: catalog });
     const pageTree = cosDict({ Type: cosName("Pages"), Count: cosNumber(pageCount), Kids: cosArray([]) });
-    async function* objects() {
-      for await (const object of store.outputObjects()) {
-        if (object.objectNumber === pageLabels?.objectNumber) { yield pageLabels; continue; }
-        if (object.objectNumber === attachmentNames?.objectNumber) { yield attachmentNames; continue; }
-        if (object.objectNumber !== 2 && object.objectNumber !== formRef?.objectNumber) { yield object; continue; }
-        const dict = object.objectNumber === 2 ? pageTree : (await store.get(object.objectNumber))!.value as PdfCosDict;
-        const field = object.objectNumber === 2 ? "Kids" : "Fields", values = object.objectNumber === 2 ? pages : formFields;
-        let length = 0; for await (const bytes of dictionary(dict, field, values)) length += bytes.length;
-        yield { objectNumber: object.objectNumber, generationNumber: 0, body: { length, chunks: dictionary(dict, field, values) } };
-      }
+    if (pageLabels) await store.setSerializedValue(pageLabels);
+    if (attachmentNames) await store.setSerializedValue(attachmentNames);
+    async function saveList(number: number, dict: PdfCosDict, field: string, values: ReferenceList) {
+      let length = 0; for await (const bytes of dictionary(dict, field, values)) length += bytes.length;
+      await store.setSerializedValue({ objectNumber: number, generationNumber: 0, body: { length, chunks: dictionary(dict, field, values) } });
     }
-    yield* serializeRetainedCosDocumentChunks({ ...options, objects: objects(), rootRef: cosRef(1), infoRef: cosRef(3), signal }, storage);
-  } catch (error) { failed = true; throw error; }
-  finally { const results = await Promise.allSettled([store.close(), lists.close(), attachments?.close(), labels?.close(), outlines?.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
+    await saveList(2, pageTree, "Kids", pages);
+    if (formRef) await saveList(formRef.objectNumber, (await store.get(formRef.objectNumber))!.value as PdfCosDict, "Fields", formFields);
+    return {
+      openDocument() {
+        if (closing) return Promise.reject(new PdfError("E_CAPABILITY", "Retained page copy is closed"));
+        return opened ??= PdfRetainedDocument.openStore(store, storage, { rootRef: cosRef(1), infoRef: cosRef(3), pageReferences: () => references(pages), maxPages, maxRecursionDepth: maximumDepth, signal });
+      },
+      chunks() { return serializeRetainedCosDocumentChunks({ ...options, objects: store.outputObjects(), rootRef: cosRef(1), infoRef: cosRef(3), signal }, storage); },
+      close,
+    };
+  } catch (error) { await close().catch(() => {}); throw error; }
+}
+
+export function copyRetainedPagesChunks(document: PdfRetainedDocument, indices: PdfRetainedPageIndices, storage: PdfIndexStorage, options?: CopyRetainedPageOptions): AsyncGenerator<Uint8Array, void, void>;
+export function copyRetainedPagesChunks(sources: Iterable<PdfRetainedPageSelection> | AsyncIterable<PdfRetainedPageSelection>, storage: PdfIndexStorage, options?: CopyRetainedPageOptions): AsyncGenerator<Uint8Array, void, void>;
+export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iterable<PdfRetainedPageSelection> | AsyncIterable<PdfRetainedPageSelection>,
+  indicesOrStorage: PdfRetainedPageIndices | PdfIndexStorage, storageOrOptions?: PdfIndexStorage | CopyRetainedPageOptions,
+  singleOptions: CopyRetainedPageOptions = {}): AsyncGenerator<Uint8Array, void, void> {
+  const copy = "pages" in input
+    ? await createRetainedPageCopy(input, indicesOrStorage as PdfRetainedPageIndices, storageOrOptions as PdfIndexStorage, singleOptions)
+    : await createRetainedPageCopy(input, indicesOrStorage as PdfIndexStorage, storageOrOptions as CopyRetainedPageOptions | undefined);
+  let failed = false;
+  try { yield* copy.chunks(); }
+  catch (error) { failed = true; throw error; }
+  finally { await copy.close().catch(error => { if (!failed) throw error; }); }
 }
 
 export { copyRetainedPagesChunks as copyRetainedPageChunks };

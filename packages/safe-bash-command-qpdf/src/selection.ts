@@ -1,5 +1,5 @@
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
-import { PdfRetainedDocument, copyRetainedPagesChunks, retainedCosObjects, decodePdfString, dictGet, type PdfFileSource, type PdfIndexStorage, type PdfRetainedPageSelection } from "@poe-code/pdf-ast";
+import { PdfRetainedDocument, createRetainedPageCopy, type PdfRetainedPageCopy, retainedCosObjects, decodePdfString, dictGet, type PdfFileSource, type PdfIndexStorage, type PdfRetainedPageSelection } from "@poe-code/pdf-ast";
 import { iterateQpdfPageRange } from "./page-range.js";
 import type { RetainedQpdfOptions } from "./retained.js";
 
@@ -17,8 +17,8 @@ async function validate(document: PdfRetainedDocument, storage: PdfIndexStorage,
 
 /** Consume source documents sequentially. Inactive inputs keep their acquired
  * handles, but release range caches and all document/index/decoder ownership. */
-export async function* copyQpdfSelections(base: PdfRetainedDocument, source: PdfFileSource, inputs: ReadonlyMap<string, PdfFileSource | undefined>,
-  storage: PdfIndexStorage, options: RetainedQpdfOptions, signal: AbortSignal): AsyncGenerator<Uint8Array, void, void> {
+export async function copyQpdfSelections(base: PdfRetainedDocument, source: PdfFileSource, inputs: ReadonlyMap<string, PdfFileSource | undefined>,
+  storage: PdfIndexStorage, options: RetainedQpdfOptions, signal: AbortSignal): Promise<PdfRetainedPageCopy> {
   await validate(base, storage, signal);
   const metadata: Record<string, string> = {};
   if (!options.emptyInput) {
@@ -52,7 +52,7 @@ export async function* copyQpdfSelections(base: PdfRetainedDocument, source: Pdf
   }
   const selected = options.collateCount !== undefined && options.pageSpecs.length > 1
     ? collatedSelections(inputs, storage, options, signal) : selections();
-  yield* copyRetainedPagesChunks(selected, storage, { metadata, signal });
+  return createRetainedPageCopy(selected, storage, { metadata, signal });
 }
 
 /** Keep only range cursors between batches. Reopening uses the acquired file

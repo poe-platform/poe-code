@@ -51,7 +51,7 @@ async function checkImageOrigins(tree: BackedJson, context: ExecutionContext): P
 
 /** Retain each document generation and filter response in caller storage. The
  * previous generation is retired before another filter starts. */
-export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>> & {resources?: Awaited<ReturnType<typeof readRetainedRtfDocument>>["resources"]; closeResources?: () => Promise<void>}>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt" = "json", origin?: ResourceOrigin, includes?: RetainedOptions): Promise<void> {
+export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnType<typeof readRetainedJson>> & {referencesAggregated?: boolean; resources?: Awaited<ReturnType<typeof readRetainedRtfDocument>>["resources"]; closeResources?: () => Promise<void>}>, context: ExecutionContext, working: WorkingStorageOptions, options: ConversionOptions, target: "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt" = "json", origin?: ResourceOrigin, includes?: RetainedOptions): Promise<void> {
   let closeResources: (() => Promise<void>) | undefined;
   let originStorage:PagedStorage | undefined, origins:RetainedOrigins | undefined;
   let releaseOrigins:(()=>void) | undefined;
@@ -72,7 +72,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     const inputResources = loaded.resources, resourceCount = inputResources?.count ?? 0;
     closeResources = loaded.closeResources;
     document = loaded;
-    if (Number.isFinite(context.limits.references)) {
+    if (!loaded.referencesAggregated && Number.isFinite(context.limits.references)) {
       const blocks = (await document.tree.property(document.tree.rootPosition, "blocks"))!;
       const metadata = (await document.tree.property(document.tree.rootPosition, "meta"))!;
       context.charge("references", (await document.tree.describe(blocks)).children + resourceCount);

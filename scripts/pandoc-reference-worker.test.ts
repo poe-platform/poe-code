@@ -3,7 +3,7 @@ import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {expect, it} from "vitest";
 
-it.each(["sdk", "command"].flatMap(mode => ["json", "rtf"].map(from => ({mode, from}))))("retains finite $from reference budgets through the public $mode in workerd", async ({mode, from}) => {
+it.each(["sdk", "command"].flatMap(mode => ["json", "rtf", "csv", "tsv"].map(from => ({mode, from}))))("retains finite $from reference budgets through the public $mode in workerd", async ({mode, from}) => {
   const bundle = await build({stdin: {resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export {convertToOutput} from "./packages/safe-bash-command-pandoc/dist/index.js";
     export {createPandocCommand} from "./packages/safe-bash-command-pandoc/dist/command.js";
@@ -18,7 +18,7 @@ it.each(["sdk", "command"].flatMap(mode => ["json", "rtf"].map(from => ({mode, f
       const {fs: backing, events} = api.createR2PagedFixture(namespace, env.PAGES);
       const value = 'x'.repeat(${mode === 'command' ? 600000 : 17000});
       const json = JSON.stringify({'pandoc-api-version': [1,23,1,2], meta: {}, blocks: [{t: 'Para', c: [{t: 'Str', c: value}]}]});
-      const from = ${JSON.stringify(from)}, input = from === 'rtf' ? '{' + String.fromCharCode(92) + 'rtf1 ' + value + '}' : json;
+      const from = ${JSON.stringify(from)}, input = from === 'rtf' ? '{' + String.fromCharCode(92) + 'rtf1 ' + value + '}' : from === 'json' ? json : value;
       await env.PAGES.put('/input.json', input);
       const fs = new Proxy(backing, {get(target, key) {
         if (key === 'readFile') return async () => {throw new Error('Whole file forbidden');};
@@ -35,7 +35,8 @@ it.each(["sdk", "command"].flatMap(mode => ["json", "rtf"].map(from => ({mode, f
         if (result.exitCode !== 0) throw new Error('Command failed'); closed++;
       }
       await env.PAGES.delete('/input.json');
-      return Response.json({matches: text === json + '\\n', largest, closed, events, remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir('/spill')});
+      const matches = from === 'json' || from === 'rtf' ? text === json + '\\n' : JSON.parse(text).blocks[0].c[3][1][0][1][0][4][0].c[0].c === value;
+      return Response.json({matches, largest, closed, events, remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir('/spill')});
     }};
   `});
   try {

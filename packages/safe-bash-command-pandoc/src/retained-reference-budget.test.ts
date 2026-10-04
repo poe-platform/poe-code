@@ -29,9 +29,9 @@ it.each(["empty", "text", "metadata", "long", "unicode", "table"])("retains JSON
   }
 });
 
-it.each(["success", "producer", "storage", "cancel", "sink"].flatMap(mode => ["json", "rtf"].map(from => ({mode, from}))))("bounds $from reference-limited input transfers and cleans up on $mode", async ({mode, from}) => {
+it.each(["success", "producer", "storage", "cancel", "sink"].flatMap(mode => ["json", "rtf", "csv", "tsv"].map(from => ({mode, from}))))("bounds $from reference-limited input transfers and cleans up on $mode", async ({mode, from}) => {
   const fs = new MemoryFileSystem(), controller = new AbortController();
-  const bytes = new TextEncoder().encode(from === "rtf" ? String.raw`{\rtf1 ` + "x".repeat(100000) + "}" : JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: [{t: "Str", c: "x".repeat(100000)}]}]}));
+  const bytes = new TextEncoder().encode(from === "rtf" ? String.raw`{\rtf1 ` + "x".repeat(100000) + "}" : from === "csv" || from === "tsv" ? "x".repeat(100000) : JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: [{t: "Str", c: "x".repeat(100000)}]}]}));
   const closed = vi.fn(), close = vi.fn(async () => {}), abort = vi.fn(async () => {});
   let live = 0, writes = 0;
   const open = fs.open.bind(fs);

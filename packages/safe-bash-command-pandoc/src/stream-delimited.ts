@@ -40,6 +40,7 @@ export async function streamDelimited(
   inputs: readonly InputSource[], format: "csv" | "tsv", target: "html5" | "json" | "plain" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", context: ExecutionContext,
   working: WorkingStorageOptions, options: ConversionOptions, includes?: RetainedOptions, readingInput?: (source?: string) => void
 ): Promise<void> {
+  const references = Number.isFinite(context.limits.references);
   const cacheBytes = working.cacheBytes ?? 1024 * 1024;
   if (!Number.isSafeInteger(cacheBytes) || cacheBytes < 16384 || cacheBytes % 16384 !== 0)
     context.fail("E_OPTION", "Working storage cacheBytes must be a positive multiple of 16384");
@@ -58,10 +59,15 @@ export async function streamDelimited(
       await reserveRetainedAstBudgets(tree, await backedJsonOrder(tree, storage, units => context.cooperate(units)), context, undefined, true);
     }
     for (const input of inputs) {
+      if (references) context.charge("references", 1);
       const header = storage.allocate(24);
       let length = 0;
-      const decoder = Number.isFinite(context.limits.text) ? undefined : new DocumentDecoder(async () => {});
+      const decoder = Number.isFinite(context.limits.text) || references ? undefined : new DocumentDecoder(async () => {});
       await context.consume("bytes" in input ? [input.bytes] : input.chunks, async bytes => {
+        if (references) {
+          const blocks = Math.ceil((length + bytes.length) / 4096) - Math.ceil(length / 4096);
+          for (let index = 0; index < blocks; index++) context.charge("references", 1);
+        }
         for (let offset = 0; offset < bytes.length; offset += 16384) {
           const chunk = bytes.subarray(offset, offset + 16384);
           await storage.append(chunk);
@@ -101,21 +107,34 @@ export async function streamDelimited(
           throw new PandocError(error.code, "convert", error.message, error.format, `${input.source ?? input.base}:${error.location ?? "1:1"}`);
         throw error;
       }
-      if (Number.isFinite(context.limits.nodes)) {
-        let nodes = 1, word = false, nonempty = false;
-        const node = () => context.bound("nodes", ++nodes);
+      if (Number.isFinite(context.limits.nodes) || references) {
+        let nodes = 1, word = false, nonempty = false, cell = false, fields = 0;
+        const beginCell = () => {if (!cell) {if (references) context.charge("references", 1); cell = true;}};
+        const node = () => {context.bound("nodes", ++nodes); if (references) context.charge("references", 1);};
         await replay(position + 24, length, new DelimitedParser(format, context, {
           async text(text) {
+            beginCell();
             for (const char of text) {
               if (char === " " || char === "\n") {if (word) node(); node(); word = false;}
               else word = true;
               nonempty = true;
             }
           },
-          async field() {if (word) node(); if (nonempty) node(); word = false; nonempty = false;}
-        }));
+          async field() {
+            beginCell(); if (word) node(); if (nonempty) context.bound("nodes", ++nodes);
+            word = false; nonempty = false; cell = false; fields++;
+          },
+          async record() {
+            if (references) {
+              for (let column = fields; column < parser.width; column++) context.charge("references", 1);
+              context.charge("references", 1);
+            }
+            fields = 0;
+          }
+        }, false));
+        if (references && parser.rows) context.charge("references", parser.width);
       }
-      if (Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes) || Number.isFinite(context.limits.text)) {
+      if (Number.isFinite(context.limits.depth) || Number.isFinite(context.limits.nodes) || Number.isFinite(context.limits.text) || references) {
         // Depth can fail inside the generated cell structure before later
         // attribute/span charges. Replay that normalization in caller storage.
         const pages = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, cacheBytes / 16384);
@@ -125,7 +144,7 @@ export async function streamDelimited(
           await tree.begin("object");
           await tree.key("meta"); await tree.value({});
           await tree.key("blocks"); await tree.begin("array");
-          if (parser.rows) await appendDelimitedJson(tree, parser.width, events => replay(position + 24, length, new DelimitedParser(format, context, events)));
+          if (parser.rows) await appendDelimitedJson(tree, parser.width, events => replay(position + 24, length, new DelimitedParser(format, context, events, false)));
           await tree.end(); await tree.end();
           await reserveRetainedAstBudgets(tree, await backedJsonOrder(tree, pages, units => context.cooperate(units)), context);
         } finally {try {await pages.close();} finally {retire();}}
@@ -155,6 +174,8 @@ export async function streamDelimited(
           await reserve(() => "[5][0]");
         }
       }
+      readingInput?.();
+      if (references && parser.rows) context.charge("references", 1);
       view.setFloat64(8, parser.rows, true);
       view.setFloat64(16, parser.width, true);
       await storage.write(position, bytes);
@@ -174,12 +195,12 @@ export async function streamDelimited(
         const bytes = await storage.read(position, 24);
         const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
         const length = view.getFloat64(0, true), rows = view.getFloat64(8, true), width = view.getFloat64(16, true);
-        if (rows) await appendDelimitedJson(tree, width, events => replay(position + 24, length, new DelimitedParser(format, context, events)));
+        if (rows) await appendDelimitedJson(tree, width, events => replay(position + 24, length, new DelimitedParser(format, context, events, false)));
         position += 24 + length;
       }
       await tree.end(); await tree.end();
       await streamRetainedDocument(async () => ({
-        normalizedUsage: {nodes: 0, text: 0}, tree,
+        referencesAggregated: true, normalizedUsage: {nodes: 0, text: 0}, tree,
         order: await backedJsonOrder(tree, storage, units => context.cooperate(units)),
         async *chunks(eol) {
           yield* tree.chunks();

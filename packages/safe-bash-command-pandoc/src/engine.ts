@@ -630,7 +630,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     "parts", "compressedBytes", "expandedBytes", "resources", "resourceBytes", "tableRows", "tableColumns", "tableFieldText", "tableCells", "attributes", "depth", "nodes", "text",
     // These format-specific budgets have no consumers in the retained format pairs.
     "glyphs", "pages", "objects", "xmlDepth", "xmlNodes", "macros", "directives", "entities", "entityBytes", "yamlAliases"
-  ].includes(key) || value === Infinity || key === "references" && ["json", "rtf"].includes(reader.descriptor.name) && writer.descriptor.name === "json"
+  ].includes(key) || value === Infinity || key === "references" && ["json", "rtf", "csv", "tsv"].includes(reader.descriptor.name) && writer.descriptor.name === "json"
     && Object.keys(options).every(option => ["from", "to", "lossy", "yes", "sandbox", "fileScope", "failIfWarnings"].includes(option)));
   const backedDocument = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
     && ["json", "rtf"].includes(reader.descriptor.name) && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters

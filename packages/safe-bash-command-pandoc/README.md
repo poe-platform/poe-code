@@ -169,10 +169,11 @@ finite output budgets. Retained JSON conversions support finite `inputBytes`, `o
 `tableColumns`, `tableFieldText`, `tableCells`, `attributes`, `depth`, `nodes`, and `text`,
 line endings, and the same non-transforming options as the table path. It uses
 two page caches of at most `cacheBytes` each, plus fixed small index caches.
-JSON/RTF → JSON without filters, metadata overrides or writer transformations also
+JSON/RTF/CSV/TSV → JSON without filters, metadata overrides or writer transformations also
 retains finite `references` limits through both SDK and command, including input-block, decoded-fragment, parser-edge and table-span
 accounting with the same limit diagnostics. RTF syntax and font-literal references
-are counted in native decoding order. Other reference-limited combinations
+are counted in native decoding order. CSV/TSV table replays charge references
+once, preserving ragged-row padding and input aggregation order. Other reference-limited combinations
 still use the compatibility path.
 JSON `metadataFiles` merge into retained generations before filters. File contents,
 merge keys, duplicate-key indexes and recursive map/list work stay in caller

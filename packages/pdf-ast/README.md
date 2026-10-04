@@ -713,3 +713,12 @@ older snapshots remain valid until `close()`. The 64 KiB byte cache and bounded
 index caches do not grow with object count. Backing is append-only until close,
 so `maxStagingBytes` includes superseded values; parser limits govern individual
 COS values. Close the store on every outcome.
+
+`copyRetainedPageChunks(document, pageIndex, storage, options)` emits a standalone
+PDF for one zero-based page, preserving its resources, forms, optional content
+and document metadata. Source identity maps and target object bodies use caller
+backing; encoded stream payloads are copied in chunks. Supply `maxObjects`,
+`maxOutputBytes`, `maxRecursionDepth`, `chunkBytes` and `signal` as needed.
+Individual COS arrays and dictionaries still materialize under parser limits.
+Consume or return the iterator to release scratch storage, and stage output
+before publishing it atomically.

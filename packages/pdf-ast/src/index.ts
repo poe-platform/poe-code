@@ -82,3 +82,5 @@ export { streamRawTextChunks, type PdfRawTextOptions } from "./extract/raw-text-
 export { serializeRetainedCosDocumentChunks, type SerializeRetainedCosOptions, type PdfRetainedOutputObject } from "./cos/retained-writer.js";
 
 export { PdfMutableObjectStore, type PdfMutableObjectStoreOptions } from "./cos/mutable-object-store.js";
+
+export { copyRetainedPageChunks, type CopyRetainedPageOptions } from "./edit/retained-page-copy.js";

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { setImmediate as turn } from "node:timers/promises";
-import { agentCommands } from "../../src/plugins/index.js";
+import { standardCommands } from "../../src/commands/index.js";
 import { createNodeHttpTransport } from "../../src/commands/network/transport.js";
 import { networkCommands } from "../../src/commands/network/public.js";
 import { createOutputOperation, pipeBytes } from "../../src/contracts/index.js";
@@ -127,7 +127,9 @@ try {
     url = `http://127.0.0.1:${address.port}/dav/input`;
   }
 
-  instance = new Shell({ fs }).use(agentCommands());
+  // The process deadline includes startup; load the production stream commands
+  // exercised here without the unrelated agent command families.
+  instance = new Shell({ fs }).use(standardCommands());
   if (scenario === "first-read-curl-body" || scenario === "first-read-curl-headers"
     || scenario === "first-read-curl-body-acquired" || scenario === "first-read-required-destinations") {
     assert.ok(url);

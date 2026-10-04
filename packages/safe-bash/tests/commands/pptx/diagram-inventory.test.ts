@@ -8,6 +8,7 @@ import { inspectZip } from "../../../../safe-bash-presentation-engine/tests/zip-
 import { parseXmlPart } from "../../../../safe-bash-presentation-engine/src/xml.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import type { FileSystem } from "../../../src/contracts/index.js";
 import { Shell } from "../../../src/shell/index.js";
 
 const context = {
@@ -65,7 +66,9 @@ function diagramDeck(mode: "complete" | "missing" | "fallback") {
 
 function setup(bytes: Uint8Array) {
   const volume = Volume.fromJSON({ "/work/deck.pptx": Buffer.from(bytes) });
-  const fs = new MemoryFileSystem();
+  const fs: FileSystem = new MemoryFileSystem();
+  // The memfs adapter implements streaming reads, not retained memory handles.
+  fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false });
   fs.readStream = async function* (path, options) {
     options?.signal?.throwIfAborted();
     yield new Uint8Array(volume.readFileSync(path) as Buffer);

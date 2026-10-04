@@ -6,6 +6,7 @@ import { createPptxCommandEngine } from "safe-bash-pptx-engine";
 import { storedArchive } from "../../../../safe-bash-presentation-engine/tests/fixtures/archive.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import type { FileSystem } from "../../../src/contracts/index.js";
 import { Shell } from "../../../src/shell/index.js";
 
 const context = {
@@ -59,7 +60,9 @@ for (const shuffled of [false, true]) {
   test(`pptx CLI inventories both master graphs and slide-local counts with ${shuffled ? "shuffled" : "original"} package entries`, async () => {
     const volume = Volume.fromJSON({ "/work": null });
     volume.writeFileSync("/work/deck.pptx", inventoryDeck(shuffled));
-    const fs = new MemoryFileSystem();
+    const fs: FileSystem = new MemoryFileSystem();
+    // The memfs adapter implements streaming reads, not retained memory handles.
+    fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false });
     fs.readStream = async function* (path, options) {
       options?.signal?.throwIfAborted();
       yield new Uint8Array(volume.readFileSync(path) as Buffer);

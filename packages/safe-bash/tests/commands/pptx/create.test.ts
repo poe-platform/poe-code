@@ -104,6 +104,8 @@ after(() => mock.restoreAll());
 function fixture(engineContext: PptxCommandEngineOptions["context"] = context) {
   const volume = Volume.fromJSON({ "/work": null });
   const fs: FileSystem = new MemoryFileSystem();
+  // The memfs adapter implements streaming reads, not retained memory handles.
+  fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false });
   const identityScope = {};
   fs.stat = async (path) => {
     try {
@@ -897,7 +899,7 @@ for (const mode of ["existing", "dry-run", "unsupported", "race", "symlink"] as 
     const { shell, fs, volume } = fixture();
     volume.writeFileSync("/work/deck.pptx", "existing bytes");
     if (mode === "unsupported")
-      fs.capabilitiesFor = async () => ({ ...fs.capabilities, atomicFileMutation: false });
+      fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false, atomicFileMutation: false });
     if (mode === "race")
       fs.writeFileConditional = async () => {
         throw new FsError("EAGAIN");

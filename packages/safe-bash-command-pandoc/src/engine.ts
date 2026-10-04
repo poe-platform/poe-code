@@ -630,8 +630,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     "parts", "compressedBytes", "expandedBytes", "resources", "resourceBytes", "tableRows", "tableColumns", "tableFieldText", "tableCells", "attributes", "depth", "nodes", "text",
     // These format-specific budgets have no consumers in the retained format pairs.
     "glyphs", "pages", "objects", "xmlDepth", "xmlNodes", "macros", "directives", "entities", "entityBytes", "yamlAliases"
-  ].includes(key) || value === Infinity || key === "references" && ["json", "rtf", "csv", "tsv"].includes(reader.descriptor.name) && ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name)
-    && !Object.hasOwn(options, "resourcePath") && !Object.hasOwn(options, "embedResources"));
+  ].includes(key) || value === Infinity || key === "references" && ["json", "rtf", "csv", "tsv"].includes(reader.descriptor.name) && ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name));
   const backedDocument = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
     && ["json", "rtf"].includes(reader.descriptor.name) && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
     && Object.keys(options).every(key => (key === "resourcePath" && (["rtf", "odt"].includes(writer.descriptor.name) || writer.descriptor.name === "html5" && options.embedResources) || key === "embedResources" && writer.descriptor.name === "html5") || ["from", "to", "filters", "metadata", "metadataFiles", "metadataJson", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))

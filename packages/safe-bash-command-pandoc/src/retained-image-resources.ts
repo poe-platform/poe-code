@@ -17,6 +17,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
   const release = context.onClose(() => storage.close()), text = new BackedText(storage, units => context.cooperate(units));
   const identities = new BackedTextSet(storage, text);
   const targets = new BackedTextSet(storage, text), paths = new BackedTextSet(storage, text), targetSpans = new IntegerTable(storage, 64), pathSpans = new IntegerTable(storage, 64);
+  const admittedReferences = new IntegerTable(storage, 64), publishedReferences = new IntegerTable(storage, 64);
   const inputSpans = new IntegerTable(storage, 64), inputIdentities = new IntegerTable(storage, 64), resourceSpans = new IntegerTable(storage, 64);
   const originAt=(node:number)=>typeof origin==="function"?origin(node):Promise.resolve(origin);
   const targetKey=async(node:number):Promise<bigint>=>{
@@ -121,9 +122,9 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
     if (used) {await storage.append(buffer.subarray(0, used)); length += used;}
     context.charge("resources", 1); context.charge("resourceBytes", length, false); return {position, length};
   };
-  const acquire = async (producer: Iterable<Uint8Array> | AsyncIterable<Uint8Array>, chargeBytes = true): Promise<Span> => {
+  const acquire = async (producer: Iterable<Uint8Array> | AsyncIterable<Uint8Array>, chargeBytes = true, chargeReferences = false): Promise<Span> => {
     const position = storage.allocate(0); let length = 0;
-    await context.consume(producer, async bytes => {await storage.append(bytes); length += bytes.length;}, chargeBytes ? ["resourceBytes"] : []);
+    await context.consume(producer, async bytes => {if (chargeReferences) context.charge("references", 1); await storage.append(bytes); length += bytes.length;}, chargeBytes ? ["resourceBytes"] : []);
     return {position, length};
   };
   try {
@@ -157,6 +158,22 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
           if (!search) resourceDirectory((await originAt(image.target)).base ?? context.context.resourceCwd ?? "/");
         }
       }
+      // Reader-owned resources remain admitted even when a filter removes their images.
+      if (Number.isFinite(context.limits.references)) {
+        for (let index = 0; index < (embedded?.count ?? 0); index++) {
+          context.charge("references", 1); context.charge("references", 1);
+          await context.cooperate();
+        }
+        for await (const image of images()) {
+          const key = await targetKey(image.target);
+          if (await inputSpans.get(key)) continue;
+          const record = await targetSpans.get(key);
+          if (record && !await admittedReferences.get(record)) {
+            context.charge("references", 1); context.charge("references", 1);
+            await admittedReferences.set(record, 1n);
+          }
+        }
+      }
       for await (const image of images()) {
         const id = await targetKey(image.target);
         if (await inputSpans.get(id) || await targetSpans.get(id)) continue;
@@ -176,13 +193,19 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
             try {yield await fs.readFile!(path, {...readOptions, ...(maxBytes === Infinity ? {} : {maxBytes})});}
             catch (error) {if (typeof error === "object" && error !== null && "code" in error && error.code === "EFBIG") context.fail("E_LIMIT", "resourceBytes: VFS bounded read refused"); throw error;}
           })();
-          record = await save(await acquire(producer)); await pathSpans.set(key, BigInt(record)); break;
+          record = await save(await acquire(producer, true, true)); context.charge("references", 1); await pathSpans.set(key, BigInt(record)); break;
         }
         if (!record) {
           const at = await location(image.node,origin);
           if (!options.lossy) throw new PandocError("E_RESOURCE", "convert", "Missing image resource: " + url, undefined, at);
           context.report({code: "W_RESOURCE_MISSING", operation: "convert", message: "Missing image resource: " + url, location: at});
-        } else await targetSpans.set(id, BigInt(record));
+        } else {
+          await targetSpans.set(id, BigInt(record));
+          if (Number.isFinite(context.limits.references)) {
+            const identity = BigInt(await resourceIdentity(image.target, await load(record)));
+            if (!await publishedReferences.get(identity)) {context.charge("references", 1); await publishedReferences.set(identity, 1n);}
+          }
+        }
       }
     }
   } catch (error) {

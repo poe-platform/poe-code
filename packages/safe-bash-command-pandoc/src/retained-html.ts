@@ -348,9 +348,9 @@ class HtmlTape {
           else {const inner = await child(1); await this.add("<span"); await this.attrs(await this.at(content!, 0)); await this.add(">"); await this.sequence(this.list(inner.node, inner.path, "inline"), this.literal("</span>"));}
         } else if (tag === "Link" || tag === "Image") {
           const image = tag === "Image", target = await this.at(content!, 2), attrs = await this.at(content!, 0), label = await child(1);
-          let url = await this.url(await this.scalar(target + 32));
+          const source = image && this.resource ? await this.resource(target + 32) : undefined;
+          const url = source ? await this.embeddedUrl(source) : await this.url(await this.scalar(target + 32));
           const title = await this.scalar(await this.at(target, 1));
-          if (image && this.resource) {const source = await this.resource(target + 32); if (source) url = await this.embeddedUrl(source);}
           await this.add(image ? "<img" : "<a"); await this.attribute(image ? "src" : "href", url);
           if (image) await this.attribute("alt", await this.plain(label.node));
           if (title.units) await this.attribute("title", title);

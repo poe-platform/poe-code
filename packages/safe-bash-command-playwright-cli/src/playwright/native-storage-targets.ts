@@ -37,13 +37,28 @@ export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorage
     let navigationLoaderId: unknown;
     let navigationReplied = false;
     let unqualifiedLoaded = false;
+    let targetOriginReady = false;
     const loadedLoaders = new Set<string>();
     const removed = new Promise<void>((resolve, reject) => { resolveDestroyed = resolve; rejectRemoved = reject; });
     void removed.catch(() => {});
     const loaded = new Promise<void>((resolve, reject) => { resolveLoaded = resolve; rejectLoaded = reject; });
     void loaded.catch(() => {});
-    const pending = new Set<Promise<unknown>>();
     let eventFailure: unknown;
+    const completePreparation = () => {
+      if (targetOriginReady && navigationReplied && (typeof navigationLoaderId === 'string' ? loadedLoaders.has(navigationLoaderId) : navigationLoaderId === undefined && unqualifiedLoaded)) resolveLoaded();
+    };
+    const observeTargetInfo = (info: { targetId?: unknown; browserContextId?: unknown; url?: unknown } | undefined) => {
+      if (!info || !targetId || info.targetId !== targetId) return;
+      if (info.browserContextId !== browserContextId) { eventFailure = new Error('Native storage target identity mismatch'); rejectLoaded(eventFailure); return; }
+      if (info.url !== 'about:blank' && info.url !== url) { eventFailure = new Error('Native storage target origin mismatch'); rejectLoaded(eventFailure); return; }
+      // Target metadata is owned by the browser; renderer load events do not
+      // establish that its URL has caught up with the committed navigation.
+      if (info.url === url) {
+        targetOriginReady = true;
+        completePreparation();
+      }
+    };
+    const pending = new Set<Promise<unknown>>();
     const unsubscribe = control.subscribe(event => {
       if (event.method === 'Inspector.detached' && event.sessionId === undefined) {
         controlFailure ??= new Error('Native storage control disconnected');
@@ -57,14 +72,15 @@ export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorage
         resolveDestroyed();
         rejectLoaded(new Error('Native storage target closed'));
       }
+      if (event.method === 'Target.targetInfoChanged') observeTargetInfo(event.params?.targetInfo as { targetId?: unknown; browserContextId?: unknown; url?: unknown } | undefined);
       if (!sessionId || event.sessionId !== sessionId) return;
       if (event.method === 'Page.loadEventFired') {
         unqualifiedLoaded = true;
-        if (navigationReplied && navigationLoaderId === undefined) resolveLoaded();
+        completePreparation();
       }
       if (event.method === 'Page.lifecycleEvent' && event.params?.name === 'load' && typeof event.params.loaderId === 'string') {
         loadedLoaders.add(event.params.loaderId);
-        if (event.params.loaderId === navigationLoaderId) resolveLoaded();
+        completePreparation();
       }
       if (event.method !== 'Fetch.requestPaused') return;
       const operation = Promise.resolve().then(async () => {
@@ -117,8 +133,9 @@ export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorage
       if (typeof attached.sessionId !== 'string' || !attached.sessionId) throw new Error('Invalid native storage control session');
       sessionId = attached.sessionId;
       const { targetInfo } = await control.send('Target.getTargetInfo', {}, sessionId);
-      const identity = targetInfo as { targetId?: unknown; browserContextId?: unknown } | undefined;
+      const identity = targetInfo as { targetId?: unknown; browserContextId?: unknown; url?: unknown } | undefined;
       if (identity?.targetId !== targetId || identity.browserContextId !== browserContextId) throw new Error('Native storage target identity mismatch');
+      observeTargetInfo(identity);
       signal.throwIfAborted();
       await control.send('Emulation.setScriptExecutionDisabled', { value: true }, sessionId);
       await control.send('Page.enable', {}, sessionId);
@@ -131,7 +148,7 @@ export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorage
         if (navigation.errorText) throw new Error('Native storage synthetic navigation failed');
         navigationLoaderId = navigation.loaderId;
         navigationReplied = true;
-        if (typeof navigationLoaderId === 'string' ? loadedLoaders.has(navigationLoaderId) : navigationLoaderId === undefined && unqualifiedLoaded) resolveLoaded();
+        completePreparation();
         await withDeadline(loaded, timeoutMs, 'Native storage navigation load timed out');
       } catch (error) { navigationReadFailed = true; throw error; }
       await Promise.all(pending);

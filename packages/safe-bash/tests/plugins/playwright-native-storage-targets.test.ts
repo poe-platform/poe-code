@@ -17,7 +17,7 @@ test('private storage target uses isolated synthetic navigation and joins destru
       calls.push([method, params, session]);
       if (method === 'Target.createTarget') return { targetId: 'hidden' };
       if (method === 'Target.attachToTarget') return { sessionId: 'control' };
-      if (method === 'Target.getTargetInfo') return { targetInfo: { targetId: 'hidden', browserContextId: 'owned' } };
+      if (method === 'Target.getTargetInfo') return { targetInfo: { targetId: 'hidden', browserContextId: 'owned', url: 'https://storage.example/' } };
       if (method === 'Page.navigate') emit({ method: 'Fetch.requestPaused', sessionId: 'control', params: { requestId: 'request', resourceType: 'Document', request: { url: 'https://storage.example/' } } });
       if (method === 'Fetch.fulfillRequest') emit({ method: 'Page.loadEventFired', sessionId: 'control', params: {} });
       if (method === 'Target.closeTarget') { emit({ method: 'Target.targetDestroyed', params: { targetId: 'hidden' } }); return { success: true }; }
@@ -43,7 +43,7 @@ test('detachment during owned target retirement joins destruction without issuin
     calls.push(method);
     if (method === 'Target.createTarget') return { targetId: 'hidden' };
     if (method === 'Target.attachToTarget') return { sessionId: 'control' };
-    if (method === 'Target.getTargetInfo') return { targetInfo: { targetId: 'hidden', browserContextId: 'owned' } };
+    if (method === 'Target.getTargetInfo') return { targetInfo: { targetId: 'hidden', browserContextId: 'owned', url: 'https://storage.example/' } };
     if (method === 'Page.navigate') emit({ method: 'Page.loadEventFired', sessionId: 'control' });
     if (method === 'Target.closeTarget') return { success: true };
     if (method === 'Target.detachFromTarget') throw new Error('Session with given id not found.');
@@ -73,7 +73,7 @@ function storageControlFixture(options: { load?: boolean; staleLoad?: boolean; n
       calls.push(method);
       if (method === 'Target.createTarget') return { targetId: 'hidden' };
       if (method === 'Target.attachToTarget') return { sessionId: 'control' };
-      if (method === 'Target.getTargetInfo') return { targetInfo: { targetId: 'hidden', browserContextId: 'owned' } };
+      if (method === 'Target.getTargetInfo') return { targetInfo: { targetId: 'hidden', browserContextId: 'owned', url: 'https://storage.example/' } };
       if (method === 'Page.enable' && options.staleLoad) {
         emit({ method: 'Page.loadEventFired', sessionId: 'control' });
         emit({ method: 'Page.lifecycleEvent', sessionId: 'control', params: { name: 'load', loaderId: 'blank-loader' } });

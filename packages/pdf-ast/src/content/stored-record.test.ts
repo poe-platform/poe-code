@@ -1,0 +1,118 @@
+import { expect, it } from "vitest";
+import type { PdfPixelStorage } from "../ast.js";
+import { readStoredRecord, writeStoredRecord } from "./stored-record.js";
+
+function backing(capacity: number) {
+  const data = new Uint8Array(capacity);
+  let end = 0;
+  const storage: PdfPixelStorage = {
+    allocate(length) {
+      if (end + length > capacity) throw new Error("Expanded capture payload");
+      const position = end;
+      end += length;
+      return position;
+    },
+    async read(position, length) {
+      expect(length).toBeLessThanOrEqual(4096);
+      return data.slice(position, position + length);
+    },
+    async write(position, bytes) {
+      expect(bytes.length).toBeLessThanOrEqual(4096);
+      data.set(bytes, position);
+    }
+  };
+  return storage;
+}
+
+it.each(["bytes", "string"])("stores large %s without JSON expansion", async (kind) => {
+  const payload =
+    kind === "bytes" ? new Uint8Array(65536).fill(255) : "\0\ud800\uffff".repeat(16384);
+  const storage = backing(
+    (typeof payload === "string" ? payload.length * 2 : payload.length) + 256
+  );
+  const position = await writeStoredRecord(storage, { payload }, 42);
+  expect(await readStoredRecord(storage, position)).toEqual({ value: { payload }, next: 42 });
+});
+
+it("preserves numbers, byte ownership, storage authority and ordinary marker-shaped dictionaries", async () => {
+  const storage = backing(4096);
+  const input = {
+    storage,
+    bytes: new Uint8Array([0, 128, 255]),
+    numbers: [NaN, Infinity, -Infinity, -0],
+    dictionary: { $pdfBytes: [1, 2], $pdfNumber: "12" },
+    omitted: undefined,
+    array: [undefined, null, true, false],
+    text: "\ufeffa\ud800\udfff",
+    nested: { empty: [] }
+  };
+  const position = await writeStoredRecord(storage, input);
+  const { value } = await readStoredRecord<typeof input>(storage, position);
+  expect(value).toEqual({ ...input, array: [null, null, true, false] });
+  expect(value.storage).toBe(storage);
+  expect(value.bytes).not.toBe(input.bytes);
+  expect(Object.hasOwn(value, "omitted")).toBe(false);
+  await expect(writeStoredRecord(storage, { storage: backing(1) })).rejects.toThrow(
+    "share caller backing"
+  );
+});
+
+it("propagates backing failures and cancellation", async () => {
+  const storage = backing(32768),
+    controller = new AbortController();
+  const failure = new Error("backend offline");
+  await expect(
+    writeStoredRecord(
+      {
+        ...storage,
+        write: async () => {
+          throw failure;
+        }
+      },
+      1
+    )
+  ).rejects.toBe(failure);
+  const position = await writeStoredRecord(storage, "a".repeat(8192));
+  await expect(
+    readStoredRecord(
+      {
+        ...storage,
+        read: async () => {
+          throw failure;
+        }
+      },
+      position
+    )
+  ).rejects.toBe(failure);
+  const read = storage.read;
+  storage.read = async (...args) => {
+    const bytes = await read(...args);
+    controller.abort(failure);
+    return bytes;
+  };
+  await expect(readStoredRecord(storage, position, controller.signal)).rejects.toBe(failure);
+});
+
+it("round trips own prototype-named keys without changing the decoded prototype", async () => {
+  const storage = backing(1024),
+    input = Object.create(null) as Record<string, unknown>;
+  input.__proto__ = { ordinary: true };
+  Object.defineProperty(input, "constructor", { value: "ordinary", enumerable: true });
+  const position = await writeStoredRecord(storage, input);
+  const { value } = await readStoredRecord<Record<string, unknown>>(storage, position);
+  expect(Object.getPrototypeOf(value)).toBe(Object.prototype);
+  expect(Object.hasOwn(value, "__proto__")).toBe(true);
+  expect(value.__proto__).toEqual({ ordinary: true });
+  expect(value.constructor).toBe("ordinary");
+});
+
+it("rejects cycles and truncated backing records", async () => {
+  const storage = backing(1024),
+    cycle: unknown[] = [];
+  cycle.push(cycle);
+  await expect(writeStoredRecord(storage, cycle)).rejects.toThrow("Cyclic");
+  const position = await writeStoredRecord(storage, { data: new Uint8Array([1, 2, 3]) });
+  const read = storage.read;
+  storage.read = async (...args) => (await read(...args)).subarray(1);
+  await expect(readStoredRecord(storage, position)).rejects.toThrow("Incomplete capture header");
+});

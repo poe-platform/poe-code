@@ -1,0 +1,137 @@
+import { parseXmlStream, type XmlContent, type XmlElement } from "@poe-code/safe-fs/core";
+import { PagedStorage, type PagedStorageContext } from "@poe-code/safe-fs/storage";
+import { XmlBudget } from "./limits.js";
+
+// Fixed-size links are separate from the variable-size node metadata. Pointers
+// are safe integer byte offsets; zero is the absent-link sentinel.
+const headerBytes = 40;
+const parentField = 0, nextField = 8, firstField = 16, lastField = 24, sizeField = 32;
+
+type Metadata = Exclude<XmlContent, XmlElement> | {
+  kind: "element"; name: string; localName: string; namespace: string;
+  attributes: XmlElement["attributes"]; namespaces: [string, string][]; declaration?: string;
+};
+
+/** XML node state in the caller's paged filesystem storage. Metadata is loaded
+ * one node at a time; XML tokens and parser ancestry still have their own cost. */
+export class StoredXmlDocument {
+  private rootReference = 0;
+  private documentReference = 0;
+  private readonly storage: PagedStorage;
+  private closing: Promise<void> | undefined;
+
+  private constructor(context: PagedStorageContext, readonly budget: XmlBudget, pages: number) {
+    this.storage = new PagedStorage(context, pages);
+  }
+
+  get root(): number { return this.rootReference; }
+  get document(): number { return this.documentReference; }
+
+  static async parse(source: AsyncIterable<string> | Iterable<string>, context: PagedStorageContext & { readonly registerCleanup?: (cleanup: () => Promise<void>) => void },
+    budget: XmlBudget, pages = 64): Promise<StoredXmlDocument> {
+    const document = new StoredXmlDocument(context, budget, pages);
+    try {
+      context.registerCleanup?.(document.close.bind(document));
+      document.documentReference = await document.storage.append(new Uint8Array(headerBytes));
+      let parent = document.documentReference;
+      await parseXmlStream(source, {
+        ...budget.limits, maxContentNodes: budget.limits.maxNodes, expectedEncoding: "UTF-8", retainTree: false,
+        events: async event => {
+          if (event.type === "close") { parent = await document.field(parent, parentField); return; }
+          let metadata: Metadata;
+          if (event.type === "content") metadata = event.content;
+          else {
+            const element = event.element;
+            metadata = { kind: "element", name: element.name, localName: element.localName, namespace: element.namespace,
+              attributes: element.attributes, namespaces: [...element.namespaces],
+              ...(element.declaration === undefined ? {} : { declaration: element.declaration }) };
+          }
+          const reference = await document.append(parent, metadata);
+          if (event.type === "open") {
+            if (!document.rootReference) document.rootReference = reference;
+            parent = reference;
+          }
+        }
+      }, units => budget.tick(units));
+      return document;
+    } catch (error) {
+      try { await document.close(); }
+      catch { /* Preserve the original parser, source or cancellation failure. */ }
+      throw error;
+    }
+  }
+
+  private async field(reference: number, offset: number): Promise<number> {
+    const bytes = await this.storage.read(reference + offset, 8);
+    return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getFloat64(0, true);
+  }
+
+  private async set(reference: number, offset: number, value: number): Promise<void> {
+    const bytes = new Uint8Array(8);
+    new DataView(bytes.buffer).setFloat64(0, value, true);
+    await this.storage.write(reference + offset, bytes);
+  }
+
+  private async append(parent: number, metadata: Metadata): Promise<number> {
+    const source = JSON.stringify(metadata);
+    const encoder = new TextEncoder();
+    // Encode in fixed windows instead of allocating another full-node byte copy.
+    let size = 0, scanned = 0;
+    for (const character of source) {
+      const point = character.codePointAt(0)!;
+      size += point <= 0x7f ? 1 : point <= 0x7ff ? 2 : point <= 0xffff ? 3 : 4;
+      if (++scanned === 4096) { const checkpoint = this.budget.tick(scanned); if (checkpoint) await checkpoint; scanned = 0; }
+    }
+    const reference = this.storage.allocate(headerBytes + size);
+    const header = new Uint8Array(headerBytes), view = new DataView(header.buffer);
+    view.setFloat64(parentField, parent, true);
+    view.setFloat64(sizeField, size, true);
+    await this.storage.write(reference, header);
+    let at = reference + headerBytes;
+    for (let offset = 0; offset < source.length;) {
+      let end = Math.min(source.length, offset + 4096);
+      const last = source.charCodeAt(end - 1);
+      if (end < source.length && last >= 0xd800 && last <= 0xdbff) end--;
+      const bytes = encoder.encode(source.slice(offset, end));
+      await this.storage.write(at, bytes);
+      at += bytes.length; offset = end;
+      const checkpoint = this.budget.tick(bytes.length); if (checkpoint) await checkpoint;
+    }
+    const last = await this.field(parent, lastField);
+    if (last) await this.set(last, nextField, reference);
+    else await this.set(parent, firstField, reference);
+    await this.set(parent, lastField, reference);
+    return reference;
+  }
+
+  async node(reference: number): Promise<XmlContent> {
+    const size = await this.field(reference, sizeField);
+    const decoder = new TextDecoder();
+    const parts: string[] = [];
+    for (let offset = 0; offset < size; offset += 16384) {
+      const bytes = await this.storage.read(reference + headerBytes + offset, Math.min(16384, size - offset));
+      parts.push(decoder.decode(bytes, { stream: true }));
+      const checkpoint = this.budget.tick(bytes.length); if (checkpoint) await checkpoint;
+    }
+    parts.push(decoder.decode());
+    const metadata = JSON.parse(parts.join("")) as Metadata;
+    return metadata.kind === "element"
+      ? { ...metadata, namespaces: new Map(metadata.namespaces), children: [], content: [], text: "" }
+      : metadata;
+  }
+
+  async *children(reference: number): AsyncGenerator<number> {
+    let child = await this.field(reference, firstField);
+    while (child) {
+      const checkpoint = this.budget.tick(); if (checkpoint) await checkpoint;
+      yield child;
+      child = await this.field(child, nextField);
+    }
+  }
+
+  close(): Promise<void> {
+    this.rootReference = 0;
+    this.documentReference = 0;
+    return this.closing ??= this.storage.close();
+  }
+}

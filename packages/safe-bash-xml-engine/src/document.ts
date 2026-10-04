@@ -1,5 +1,6 @@
 import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
 import { escape } from "./evaluate.js";
+import { StoredXmlDocument } from "./stored-document.js";
 import { XmlBudget, XmlQueryError } from "./limits.js";
 
 export type DocumentMode = "format" | "c14n" | "exc-c14n";
@@ -83,158 +84,158 @@ async function attributes(
 }
 
 export async function* serializeDocument(
-  root: XmlElement,
+  source: XmlElement | StoredXmlDocument,
   mode: DocumentMode,
   budget: XmlBudget,
   format = mode === "format"
 ): AsyncGenerator<string> {
+  type Reference = XmlContent | number;
+  const stored = source instanceof StoredXmlDocument ? source : undefined;
+  const rootReference: Reference = stored ? stored.root : source as XmlElement;
+  const load = async (reference: Reference): Promise<XmlContent> =>
+    typeof reference === "number" ? stored!.node(reference) : reference;
+  async function* children(reference: Reference): AsyncGenerator<Reference> {
+    if (typeof reference === "number") yield* stored!.children(reference);
+    else if (reference.kind === "element") yield* reference.content;
+  }
+  const root = await load(rootReference) as XmlElement;
   const canonical = mode !== "format";
   const escaping = { canonical, ascii: !canonical && !root.declaration?.includes("encoding") };
   if (canonical) {
-    const elements = [root];
-    while (elements.length) {
-      const element = elements.pop()!;
-      { const _p = budget.tick(); if (_p) await _p; }
+    // Iterators retain only the active ancestry, never an array of all siblings.
+    const pending: AsyncIterator<Reference>[] = [(async function* () { yield rootReference; })()];
+    while (pending.length) {
+      const next = await pending.at(-1)!.next();
+      if (next.done) { pending.pop(); continue; }
+      const element = await load(next.value);
+      if (element.kind !== "element") continue;
+      { const p = budget.tick(); if (p) await p; }
       for (const [prefix, uri] of element.namespaces) {
-        { const _p = budget.tick(prefix.length + uri.length + 1); if (_p) await _p; }
+        { const p = budget.tick(uri.length + prefix.length + 1); if (p) await p; }
         if (!uri) continue;
         const colon = uri.indexOf(":");
-        let absolute =
-          colon > 0 && "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(uri[0]!);
+        let absolute = colon > 0 && "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(uri[0]!);
         for (let index = 1; index < colon; index++) {
-          if (
-            !"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+.-".includes(
-              uri[index]!
-            )
-          )
-            absolute = false;
+          if (!"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+.-".includes(uri[index]!)) absolute = false;
         }
         if (!absolute) throw new XmlQueryError("Failed to canonicalize: relative namespace URI", 6);
       }
-      for (const child of element.children) {
-        { const _p = budget.tick(); if (_p) await _p; }
-        elements.push(child);
-      }
+      pending.push(children(next.value));
     }
   } else yield declaration(root.declaration);
   interface Frame {
-    content: XmlContent | string;
+    content: Reference | string;
     depth: number;
     namespaces: ReadonlyMap<string, string>;
     preserveSpace: boolean;
   }
   const namespaces = new Map<string, string>([["xml", xml]]);
-  const pending: Frame[] = [];
-  for (let index = (root.epilog?.length ?? 0) - 1; index >= 0; index--) {
-    const content = root.epilog![index]!;
-    { const _p = budget.tick(); if (_p) await _p; }
-    if (content.kind === "text") continue;
-    if (!canonical) pending.push({ content: "\n", depth: 0, namespaces, preserveSpace: false });
-    pending.push({ content, depth: 0, namespaces, preserveSpace: false });
-    if (canonical) pending.push({ content: "\n", depth: 0, namespaces, preserveSpace: false });
-  }
-  if (!canonical) pending.push({ content: "\n", depth: 0, namespaces, preserveSpace: false });
-  pending.push({ content: root, depth: 0, namespaces, preserveSpace: false });
-  for (let index = (root.prolog?.length ?? 0) - 1; index >= 0; index--) {
-    const content = root.prolog![index]!;
-    { const _p = budget.tick(); if (_p) await _p; }
-    if (content.kind === "text") continue;
-    pending.push({ content: "\n", depth: 0, namespaces, preserveSpace: false });
-    pending.push({ content, depth: 0, namespaces, preserveSpace: false });
-  }
-  while (pending.length) {
-    { const _p = budget.tick(); if (_p) await _p; }
-    const frame = pending.pop()!;
-    const current = frame.content;
-    if (typeof current === "string") {
-      yield current;
-      continue;
+  async function* siblings(): AsyncGenerator<Reference> {
+    if (stored) yield* stored.children(stored.document);
+    else {
+      yield* root.prolog ?? [];
+      yield rootReference;
+      yield* root.epilog ?? [];
     }
+  }
+  async function* documentFrames(): AsyncGenerator<Frame> {
+    const frame = { depth: 0, namespaces, preserveSpace: false };
+    let after = false;
+    for await (const reference of siblings()) {
+      { const p = budget.tick(); if (p) await p; }
+      if (reference === rootReference) {
+        yield { ...frame, content: reference };
+        after = true;
+        if (!canonical) yield { ...frame, content: "\n" };
+      } else {
+        const content = await load(reference);
+        if (content.kind === "text") continue;
+        if (after && canonical) yield { ...frame, content: "\n" };
+        yield { ...frame, content: reference };
+        if (!after || !canonical) yield { ...frame, content: "\n" };
+      }
+    }
+  }
+  async function* selectedChildren(reference: Reference, preserveSpace: boolean): AsyncGenerator<{ reference: Reference; mixed: boolean }> {
+    let mixed = false, count = 0;
+    const iterator = children(reference);
+    let current = await iterator.next();
+    try {
+      while (!current.done) {
+        const next = await iterator.next();
+        const child = await load(current.value);
+        { const p = budget.tick(); if (p) await p; }
+        let skip = false;
+        if (child.kind === "text") {
+          let blank = true;
+          for (const character of child.text) {
+            { const p = budget.tick(); if (p) await p; }
+            if (!" \t\n\r".includes(character)) blank = false;
+          }
+          skip = format && !preserveSpace && !mixed && blank && (count > 0 || !next.done);
+          if (!skip) mixed = true;
+        } else if (child.kind === "cdata") mixed = true;
+        if (!skip) { count++; yield { reference: current.value, mixed }; }
+        current = next;
+      }
+    } finally { await iterator.return(undefined); }
+  }
+  const pending: AsyncIterator<Frame>[] = [documentFrames()];
+  while (pending.length) {
+    { const p = budget.tick(); if (p) await p; }
+    const next = await pending.at(-1)!.next();
+    if (next.done) { pending.pop(); continue; }
+    const frame = next.value;
+    if (typeof frame.content === "string") { yield frame.content; continue; }
+    const reference = frame.content;
+    const current = await load(reference);
     if (current.kind === "element") {
       let preserveSpace = frame.preserveSpace;
       for (const attribute of current.attributes) {
-        { const _p = budget.tick(); if (_p) await _p; }
+        { const p = budget.tick(); if (p) await p; }
         if (attribute.namespace === xml && attribute.localName === "space") {
           if (attribute.value === "preserve") preserveSpace = true;
           else if (attribute.value === "default") preserveSpace = false;
         }
       }
-      const content: XmlContent[] = [];
-      let mixed = false;
-      for (let index = 0; index < current.content.length; index++) {
-        const child = current.content[index]!;
-        { const _p = budget.tick(); if (_p) await _p; }
-        if (child.kind === "text") {
-          let blank = true;
-          for (const character of child.text) {
-            { const _p = budget.tick(); if (_p) await _p; }
-            if (!" \t\n\r".includes(character)) blank = false;
-          }
-          // libxml's formatting parser removes blanks before markup and after
-          // an already parsed child, while preserving text-only leaf content.
-          if (
-            format &&
-            !preserveSpace &&
-            !mixed &&
-            blank &&
-            (content.length > 0 || index + 1 < current.content.length)
-          )
-            continue;
-          mixed = true;
-        } else if (child.kind === "cdata") mixed = true;
-        content.push(child);
-      }
+      let count = 0, mixed = false;
+      for await (const child of selectedChildren(reference, preserveSpace)) { count++; mixed = child.mixed; }
       const ordered = canonical ? await attributes(current, frame.namespaces, budget, mode === "exc-c14n") : [];
       if (!canonical) {
-        for (const namespace of [true, false])
-          for (const attribute of current.attributes) {
-            { const _p = budget.tick(); if (_p) await _p; }
-            if ((attribute.namespace === xmlns) === namespace) ordered.push(attribute);
-          }
+        for (const namespace of [true, false]) for (const attribute of current.attributes) {
+          { const p = budget.tick(); if (p) await p; }
+          if ((attribute.namespace === xmlns) === namespace) ordered.push(attribute);
+        }
       }
       yield `<${current.name}`;
       for (const attribute of ordered) {
-        { const _p = budget.tick(); if (_p) await _p; }
+        { const p = budget.tick(); if (p) await p; }
         yield ` ${attribute.name}="`;
         yield* escape(attribute.value, true, budget, escaping);
         yield '"';
       }
-      if (!content.length && !canonical) {
-        yield "/>";
-        continue;
-      }
+      if (!count && !canonical) { yield "/>"; continue; }
       yield ">";
-      const indent = !canonical && format && !mixed && content.length > 0;
+      const indent = !canonical && format && !mixed && count > 0;
       const childNamespaces = new Map(frame.namespaces);
       if (canonical) for (const attribute of ordered) {
         if (attribute.namespace === xmlns) childNamespaces.set(attribute.localName, attribute.value);
       }
       const childFrame = { depth: frame.depth + 1, namespaces: childNamespaces, preserveSpace };
-      pending.push({
-        ...frame,
-        content: `${indent ? "\n" + "  ".repeat(frame.depth) : ""}</${current.name}>`
-      });
-      for (let index = content.length - 1; index >= 0; index--) {
-        { const _p = budget.tick(); if (_p) await _p; }
-        pending.push({ ...childFrame, content: content[index]! });
-        if (indent) pending.push({ ...childFrame, content: "\n" + "  ".repeat(childFrame.depth) });
-      }
+      pending.push((async function* (): AsyncGenerator<Frame> {
+        for await (const child of selectedChildren(reference, preserveSpace)) {
+          if (indent) yield { ...childFrame, content: "\n" + "  ".repeat(childFrame.depth) };
+          yield { ...childFrame, content: child.reference };
+        }
+        yield { ...frame, content: `${indent ? "\n" + "  ".repeat(frame.depth) : ""}</${current.name}>` };
+      })());
     } else if (current.kind === "text" || (current.kind === "cdata" && canonical))
       yield* escape(current.text, false, budget, escaping);
-    else if (current.kind === "cdata") {
-      yield "<![CDATA[";
-      yield current.text;
-      yield "]]>";
-    } else if (current.kind === "comment") {
-      yield "<!--";
-      yield current.text;
-      yield "-->";
-    } else if (current.kind === "processing-instruction") {
+    else if (current.kind === "cdata") { yield "<![CDATA["; yield current.text; yield "]]>"; }
+    else if (current.kind === "comment") { yield "<!--"; yield current.text; yield "-->"; }
+    else if (current.kind === "processing-instruction") {
       yield `<?${current.target}`;
-      if (current.text) {
-        yield " ";
-        yield current.text;
-      }
+      if (current.text) { yield " "; yield current.text; }
       yield "?>";
     }
   }

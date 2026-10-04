@@ -523,4 +523,4 @@ export function parseXml(input: string, limits: XmlLimits = {}): XmlElement {
   return result.value;
 }
 
-export { parseXmlStream, type XmlStreamLimits } from "./stream.js";
+export { parseXmlStream, type XmlStreamLimits, type XmlStreamEvent } from "./stream.js";

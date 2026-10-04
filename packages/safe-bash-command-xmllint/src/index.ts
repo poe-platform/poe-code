@@ -11,6 +11,7 @@ import {
   type CommandDefinition,
   type VirtualShellPlugin
 } from "safe-bash-contracts";
+import { StoredXmlDocument } from "safe-bash-xml-engine/stored-document";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
 import { prepareDocument, encodeOutput, outputEncoding } from "./output.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -148,10 +149,15 @@ async function executeDocument(
   file: string | undefined
 ): Promise<{ exitCode: number }> {
   let outputFailed = false;
+  let stored: StoredXmlDocument | undefined;
+  let completed = false;
   try {
     const recoveryMessages = new Set<string>();
     let parsedRoot: XmlElement;
-    if (options.recover) {
+    if (!options.query && !options.noout && !options.recover && !options.noblanks && !options.nocdata && options.encoding === undefined) {
+      stored = await StoredXmlDocument.parse(readXmlChunks(context, file, budget, runtime), context, budget);
+      parsedRoot = await stored.node(stored.root) as XmlElement;
+    } else if (options.recover) {
       const source = await readXmlInput(context, file, budget, runtime);
       const parser = parseXmlSteps(source, {
         recover: (message: string) => { recoveryMessages.add(message); },
@@ -258,7 +264,7 @@ async function executeDocument(
     if (options.query === undefined) {
       if (!options.noout && options.mode !== undefined) {
         for await (const part of serializeDocument(
-          root,
+          stored ?? root,
           options.mode,
           budget,
           options.format
@@ -266,12 +272,14 @@ async function executeDocument(
           await write(part);
       }
       await finish();
+      completed = true;
       return { exitCode: 0 };
     }
     if (options.query.expression) {
       await write(await evaluateScalar(options.query, root, budget));
       await write("\n");
       await finish();
+      completed = true;
       return { exitCode: 0 };
     }
     const nodes = await evaluate(options.query, root, budget);
@@ -296,9 +304,12 @@ async function executeDocument(
     }
     if (pendingText.length > 0) await write(pendingText);
     await finish();
+    completed = true;
     return { exitCode: 0 };
   } catch (error) {
     return reportError(context, runtime, error, outputFailed);
+  } finally {
+    if (stored) await stored.close().catch(error => { if (completed) throw error; });
   }
 }
 

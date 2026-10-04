@@ -2,9 +2,17 @@ import { SaxesParser } from "saxes/saxes.js";
 import { XmlLimitError } from "./errors.js";
 import type { XmlContent, XmlElement, XmlLimits, XmlName } from "./index.js";
 
+export type XmlStreamEvent =
+  | { readonly type: "open" | "close"; readonly element: XmlElement; readonly parent: XmlElement | undefined }
+  | { readonly type: "content"; readonly content: Exclude<XmlContent, XmlElement>; readonly parent: XmlElement | undefined };
+
 export interface XmlStreamLimits extends XmlLimits {
   /** Validate the full document but return only its root name, without a retained tree. */
   readonly retainTree?: boolean;
+  /** Ordered node events, awaited after each parser window. Requires retainTree:
+   * false; elements carry metadata without child/content arrays. Individual XML
+   * tokens remain resident until the underlying parser completes them. */
+  readonly events?: (event: XmlStreamEvent) => void | Promise<void>;
   /** Detach selected non-root subtrees and await their consumer before parsing
    * the next 512-unit window. By default nested matches belong to the selected ancestor. */
   readonly streamElements?: {
@@ -36,6 +44,10 @@ export async function parseXmlStream(
   }
   function charge(key: keyof typeof counters, value = 1) { counters[key] += value; bound(key, counters[key]); }
   const retainContent = limits.retainContent !== false, tree = limits.retainTree !== false, retain = tree && retainContent;
+  const events = limits.events;
+  if (events && tree) throw new TypeError("XML events require retainTree: false");
+  const describe = retain || !!events;
+  const queued: XmlStreamEvent[] = [];
   const streaming = limits.streamElements;
   if (streaming && !retain) throw new TypeError("XML subtree streaming requires retained content and tree mode");
   let selectedCount = 0;
@@ -47,7 +59,7 @@ export async function parseXmlStream(
   const parser = new SaxesParser({ xmlns: true, defaultXMLVersion: "1.0", forceXMLVersion: true });
   parser.on("error", error => { throw new SyntaxError(`Invalid XML: ${error.message}`); });
   parser.on("doctype", () => { throw new SyntaxError("Invalid XML: DTD and entity declarations are forbidden"); });
-  let prefix = "", capturing = retain;
+  let prefix = "", capturing = describe;
   parser.on("xmldecl", value => {
     const encoding = value.encoding?.toUpperCase();
     if (value.version !== "1.0" || encoding !== undefined &&
@@ -55,7 +67,7 @@ export async function parseXmlStream(
        limits.expectedEncoding !== undefined && encoding !== limits.expectedEncoding &&
        !(encoding === "UTF-16" && ["UTF-16LE", "UTF-16BE"].includes(limits.expectedEncoding))))
       throw new SyntaxError("Invalid XML: unsupported XML declaration");
-    if (retain) declaration = prefix.slice(0, prefix.indexOf("?>") + 2);
+    if (describe) declaration = prefix.slice(0, prefix.indexOf("?>") + 2);
     prefix = ""; capturing = false;
   });
   parser.on("opentag", tag => {
@@ -84,29 +96,34 @@ export async function parseXmlStream(
         parent!.element.text = '';
       }
     }
-    charge("maxContentNodes", 1 + (retainContent ? attrs.length : 0));
+    charge("maxContentNodes", 1 + (retainContent || events ? attrs.length : 0));
     const element: XmlElement = { kind: "element", ...name, children: [], content: [], text: "",
-      attributes: retain ? attrs.map(attr => ({ name: attr.name, localName: attr.local, namespace: attr.uri, value: attr.value })) : [],
-      namespaces: retain ? namespaces : emptyNamespaces,
-      ...(!root && retain ? { prolog, epilog, ...(declaration === undefined ? {} : { declaration }) } : {}) };
+      attributes: describe ? attrs.map(attr => ({ name: attr.name, localName: attr.local, namespace: attr.uri, value: attr.value })) : [],
+      namespaces: describe ? namespaces : emptyNamespaces,
+      ...(!root && describe ? { prolog, epilog, ...(declaration === undefined ? {} : { declaration }) } : {}) };
     if (parent && tree && !selected) {
       parent.element.children.push(element);
       if (retain) (parent.element.content as XmlContent[]).push(element);
     } else if (!parent) root = element;
     stack.push({ element, namespaces, selected, before });
+    if (events) queued.push({ type: "open", element, parent: parent?.element });
   });
   parser.on("closetag", () => {
     const frame = stack.pop()!;
+    if (events) queued.push({ type: "close", element: frame.element, parent: stack.at(-1)?.element });
     if (frame.selected) { completed.push({ element: frame.element, parent: stack.at(-1)!.element, before: frame.before }); selectedCount--; }
   });
   async function drain() {
     for (const entry of completed) { await checkpoint?.(0); await streaming!.consume(entry.element, entry.parent, entry.before); }
     completed.length = 0;
+    for (const event of queued) { await checkpoint?.(0); await events!(event); }
+    queued.length = 0;
   }
   function append(content: Exclude<XmlContent, XmlElement>) {
     charge("maxTextLength", content.text.length);
     charge("maxContentNodes");
     const parent = stack.at(-1)?.element;
+    if (events) queued.push({ type: "content", content, parent });
     if (tree && parent && (content.kind === "text" || content.kind === "cdata")) parent.text += content.text;
     if (retain) (parent ? parent.content as XmlContent[] : root ? epilog : prolog).push(content);
   }
@@ -133,13 +150,13 @@ export async function parseXmlStream(
     for (let i = 0; i < text.length; i += 512) {
       await checkpoint?.(0);
       write(text.slice(i, i + 512));
-      if (completed.length) await drain();
+      if (completed.length || queued.length) await drain();
       await checkpoint?.(Math.min(512, text.length - i));
     }
   }
   await checkpoint?.(0);
   parser.close();
-  if (completed.length) await drain();
+  if (completed.length || queued.length) await drain();
   if (!root) throw new SyntaxError("Invalid XML: incomplete document");
   return root;
 }

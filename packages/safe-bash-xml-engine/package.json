@@ -38,6 +38,10 @@
     "./query": {
       "types": "./dist/query.d.ts",
       "import": "./dist/query.js"
+    },
+    "./stored-document": {
+      "types": "./dist/stored-document.d.ts",
+      "import": "./dist/stored-document.js"
     }
   },
   "files": [

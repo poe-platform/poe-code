@@ -35,3 +35,10 @@ For validation or root-name detection, pass `retainTree: false` to `parseXmlStre
 Use `streamElements: { matches, consume }` to process selected complete subtrees asynchronously. Matching non-root elements are detached from their parent; nested matches remain inside the selected ancestor. `consume(element, parent, before?)` runs in source order and is awaited before the next 512-unit parse window. The producer closes on consumer failure. This mode requires normal tree/content retention and retains each selected subtree until consumption; individual large subtrees and XML tokens still need their own storage strategy.
 
 Set `streamElements.captureBefore: true` to detach preceding sibling content when each subtree is selected and receive it as `before`. This preserves text, CDATA, comments and sibling order even when multiple subtrees share one parse window. The remaining trailing content stays in the parent. Store both `before` and the subtree when you need to reconstruct the original mixed content.
+
+`parseXmlStream` also accepts `events` with `retainTree: false` to consume ordered
+open, content and close events without constructing a document tree. Each parser
+window awaits the consumer before advancing. Event elements contain names,
+attributes and namespace metadata; individual XML tokens and open ancestry still
+remain resident. This mode lets a caller own document storage independently of
+the codec. Consumer failures propagate unchanged and close the input iterator.

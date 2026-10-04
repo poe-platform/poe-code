@@ -13,6 +13,11 @@ it requires no separate installation and has no external runtime dependency.
 The input decoder exposes an incremental string stream for XML parsers; callers
 that explicitly need a complete string can use its buffering convenience API.
 Incremental decoding preserves borrowed input bytes and consumer backpressure.
+For formatting and canonicalization, the stored document model writes node metadata
+and sibling links into the caller's safe-fs page store. Serialization walks sibling
+links incrementally instead of collecting them in an array. The default cache is
+1 MiB; XML tokens and active ancestry remain in memory. Use an external filesystem
+backend for large workloads, since a memory backend retains its backing bytes in RAM.
 
 XML input also respects the shell execution input-byte limit for stdin and files.
 XPath scalar expressions and predicates support unary negation, addition, and subtraction.

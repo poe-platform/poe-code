@@ -27,6 +27,18 @@ backpressure, cancellation and malformed input; they do not measure Worker memor
    multi-document input and malformed-input diagnostics against the supported native
    yq profile. Verify in-place failures do not publish partial documents.
 
+## XML paged-formatting qualification
+
+Repeat the input-size and concurrency measurements for `xmllint --format`,
+`--c14n` and `--exc-c14n`, using generated repeated sibling elements, comments
+before/after the root, namespace declarations and mixed content. Confirm spill
+writes use only the injected external safe-fs, read/write windows stay at or below
+16 KiB, and scratch descriptors close after success, sink failure and cancellation.
+Compare output with native xmllint. Record the fixed page-cache cost separately
+from the largest token and active ancestry: those costs still grow with token size
+and nesting depth. Also measure startup/first-byte latency; formatting validates
+the document before publishing output.
+
 ## Remaining qualification scope
 
 Repeat with increasing *single-document* sizes, eval-all joins, YAML anchors/edits,

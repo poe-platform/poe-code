@@ -912,6 +912,13 @@ It preserves unsaved stream dictionaries, trailer identifiers and logical page
 identities across edits. Set `flattenRotation: true` to bake page rotation into
 streamed content and transform explicit page boxes and annotation rectangles.
 Content sharing is preserved through caller-backed reference counts.
+Set `flattenAnnotations: "all"`, `"print"`, or `"screen"` to flatten annotation
+appearances or fallback field/annotation text into page content. Links and
+popups survive; visibility flags follow the selected mode. Appearance matrices,
+resource collisions, text isolation and shared content identities are preserved.
+Appearance bytes, rename records, survivor indexes and text serialization use
+caller storage. Annotation flattening runs after rotation flattening and before
+inline-image conversion and resource pruning.
 Set `removeUnreferencedResources: true` to prune unused page resources while
 following names in content, annotation appearances, forms, and patterns. Name
 tokens and transitive membership use caller-backed storage.

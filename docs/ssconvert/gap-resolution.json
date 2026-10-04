@@ -3,6 +3,11 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "biffToXlsxWorkbookProtection": {
+      "scope": "BIFF workbook PROTECT/WINDOWPROTECT/PASSWORD records translate to XLSX workbookProtection in both editions, preserving later-record edits and short presence-only PROTECT. Zero verifier removes password metadata. Existing XLSX records take precedence; malformed and unrepresented records still warn.",
+      "verification": "Two original failures reproduced.225 owner tests plus the added zero-verifier control pass; selected build and owner lint/source/test types pass.44 compiled SDK/command exports match132 encoded attributes and132 independent OpenPyXL3.1.5 values, with16 exact unrelated diagnostics per export. CLI screenshot inspected.",
+      "limits": "OpenPyXL profile and wheel hashes are recorded under xlsxWorkbookProtectionMetadata. Existing Calc workbookProtection import failure remains; these are independent-reader checks, not new native application passes. Reverse transport, enforcement, modern algorithms and all broader families remain open."
+    },
     "biffWorkbookProtection": {
       "scope": "BIFF7/8 preserve workbook WINDOWPROTECT, PROTECT and PASSWORD payloads, including retained-record edits, later-record precedence and native presence-only PROTECT. Worksheet protection remains separate; malformed records still warn.",
       "qualification": "Seven original failing tests repaired;2434 affected tests, selected build and owner lint/types pass.19 compiled SDK/command/edited exports preserve57 raw fields and12 exact unrelated warnings each. Screenshot inspected.",

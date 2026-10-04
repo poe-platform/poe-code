@@ -40,7 +40,9 @@ with a legacy verifier edit is rejected. This metadata is separate from file enc
 Workbook structure, window and revision protection attributes also survive XLSX
 roundtrips and edits through the retained `workbookProtection` metadata record.
 Password algorithm fields are preserved opaquely; unknown attributes, children and
-duplicate records still report loss warnings.
+duplicate records still report loss warnings. BIFF workbook structure/window flags
+and legacy password verifiers also convert to XLSX protection metadata; a zero
+verifier clears the password. This preserves settings without password enforcement.
 Self-contained DrawingML themes retain their colors, fonts and effect metadata
 through XLSX roundtrips and edits. Themes requiring uncopied relationships or
 foreign namespace content still report a loss warning.

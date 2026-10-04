@@ -37,3 +37,29 @@ it("keeps warnings for unrepresented workbook protection fields and duplicate re
     expect(diagnostics, mutation).toHaveLength(1);
   }
 });
+
+for (const edition of ["2006", "2008"] as const) it(`${edition} transports BIFF workbook protection flags and legacy verifier`, async () => {
+  for (const bytes of ["", "ff", "0100", "0000", "0200"]) {
+    const diagnostics: string[] = [];
+    const records: UnsupportedRecord[] = ([["PROTECT", 0x12, bytes], ["WINDOWPROTECT", 0x19, "0100"], ["PASSWORD", 0x13, "3412"]] as const).map(([kind, opcode, value]) =>
+      ({ source: "biff", kind: String(kind), disposition: "retained", data: { opcode, bytes: value } }));
+    const output = await readXlsx(await createXlsxWriter(edition)({ sheets: [{ id: "s", name: "Data", cells: [] }], unsupportedRecords: records }, [],
+      { ...context, diagnostic: async item => { diagnostics.push(item.message); } }), context);
+    const protection = output.unsupportedRecords?.find(item => item.kind === "workbookProtection");
+    expect(metadataNode(protection?.data)?.attributes).toEqual({ lockStructure: bytes.length < 4 || bytes === "0100" ? "1" : "0", lockWindows: "1", workbookPassword: "1234" });
+    expect(diagnostics).toEqual([]);
+  }
+});
+it("retains malformed BIFF workbook protection warnings", async () => {
+  const diagnostics: string[] = [];
+  await createXlsxWriter("2006")({ sheets: [{ id: "s", name: "Data", cells: [] }], unsupportedRecords: [
+    { source: "biff", kind: "PROTECT", disposition: "retained", data: { opcode: 0x12, bytes: "zzzz" } },
+    { source: "biff", kind: "PASSWORD", disposition: "retained", data: { opcode: 0x13, bytes: "000001" } }
+  ] }, [], { ...context, diagnostic: async item => { diagnostics.push(item.message); } });
+  expect(diagnostics).toHaveLength(2);
+});
+it("uses later BIFF workbook records and clears a zero password verifier", async () => {
+  const records: UnsupportedRecord[] = ["3412", "0000"].map(bytes => ({ source: "biff", kind: "PASSWORD", disposition: "retained", data: { opcode: 0x13, bytes } }));
+  const output = await readXlsx(await createXlsxWriter("2006")({ sheets: [{ id: "s", name: "Data", cells: [] }], unsupportedRecords: records }, [], context), context);
+  expect(metadataNode(output.unsupportedRecords?.find(item => item.kind === "workbookProtection")?.data)?.attributes).toEqual({});
+});

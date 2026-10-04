@@ -25,5 +25,29 @@ export function writeXlsxWorkbookProtection(book: Workbook, xml: ElementWriter, 
     content = xml("workbookProtection", attributes);
     if (complete) handled.add(record);
   }
+  if (!content) {
+    const attributes: Record<string, string> = {};
+    const biffFields: Readonly<Record<string, readonly [number, string]>> = {
+      PROTECT: [0x12, "lockStructure"], WINDOWPROTECT: [0x19, "lockWindows"], PASSWORD: [0x13, "workbookPassword"]
+    };
+    for (const record of book.unsupportedRecords ?? []) {
+      charge();
+      if (record.source !== "biff" || !Object.hasOwn(biffFields, record.kind)) continue;
+      const [opcode, name] = biffFields[record.kind]!;
+      const data = record.data as { opcode?: unknown; bytes?: unknown } | undefined;
+      if (Array.isArray(data) || data?.opcode !== opcode || typeof data.bytes !== "string") continue;
+      const bytes = data.bytes;
+      if (opcode === 0x12 ? bytes.length > 4 || bytes.length % 2 !== 0 : bytes.length !== 4) continue;
+      charge(bytes.length);
+      if (![...bytes].every(character => "0123456789abcdefABCDEF".includes(character))) continue;
+      const value = bytes.length < 4 ? 1 : Number.parseInt(bytes.slice(2) + bytes.slice(0, 2), 16);
+      if (opcode === 0x13) {
+        if (value) attributes[name] = value.toString(16).toUpperCase().padStart(4, "0");
+        else delete attributes[name];
+      } else attributes[name] = value === 1 ? "1" : "0";
+      handled.add(record);
+    }
+    if (handled.size) content = xml("workbookProtection", attributes);
+  }
   return { content, handled };
 }

@@ -14,8 +14,8 @@ const wireEnums = new Set(["AlignDefault", "AlignLeft", "AlignRight", "AlignCent
  * When translation positions are supplied, also perform the scalar checks that
  * precede schema validation in the buffered normalizer. */
 export async function reserveRetainedAstBudgets(tree: BackedJson, order: Awaited<ReturnType<typeof backedJsonOrder>>, context: ExecutionContext, enums?: IntegerTable, aggregate = false): Promise<RetainedAstUsage> {
-  if (!Number.isFinite(context.limits.tableCells) && !Number.isFinite(context.limits.attributes) && !Number.isFinite(context.limits.depth) && !Number.isFinite(context.limits.nodes) && !Number.isFinite(context.limits.text)) return {nodes: 0, text: 0};
-  let cells = 0, attributes = 0, nodes = 0, text = 0;
+  if (!Number.isFinite(context.limits.tableCells) && !Number.isFinite(context.limits.attributes) && !Number.isFinite(context.limits.depth) && !Number.isFinite(context.limits.nodes) && !Number.isFinite(context.limits.text) && !Number.isFinite(context.limits.references)) return {nodes: 0, text: 0};
+  let cells = 0, references = 0, attributes = 0, nodes = 0, text = 0;
   const fail = async (position: number, message: string, code: "E_AST" | "E_LIMIT" = "E_AST"): Promise<never> => {
     const path = await retainedPath(tree, position);
     throw new PandocError(code, "convert", `${path}: ${message}`, undefined, path);
@@ -108,6 +108,9 @@ export async function reserveRetainedAstBudgets(tree: BackedJson, order: Awaited
       cells += span;
       if (!Number.isSafeInteger(cells) || cells > context.limits.tableCells) await fail(node, "AST budget exceeded", "E_LIMIT");
       if (!aggregate) context.charge("tableCells", span);
+      references += span;
+      if (!Number.isSafeInteger(references) || references > context.limits.references) await fail(node, "AST budget exceeded", "E_LIMIT");
+      if (!aggregate) context.charge("references", span);
     }
   }
   await nodeBudget(tree.rootPosition); // resources property name

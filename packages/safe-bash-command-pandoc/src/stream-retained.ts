@@ -72,6 +72,12 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     const inputResources = loaded.resources, resourceCount = inputResources?.count ?? 0;
     closeResources = loaded.closeResources;
     document = loaded;
+    if (Number.isFinite(context.limits.references)) {
+      const blocks = (await document.tree.property(document.tree.rootPosition, "blocks"))!;
+      const metadata = (await document.tree.property(document.tree.rootPosition, "meta"))!;
+      context.charge("references", (await document.tree.describe(blocks)).children + resourceCount);
+      for (let index = 0, count = (await document.tree.describe(metadata)).children / 2; index < count; index++) context.charge("references", 1);
+    }
     let metadataChanged = false;
     for (const file of options.metadataFiles ?? []) {
       const next = await mergeRetainedMetadata(document, {source: file}, context, working);

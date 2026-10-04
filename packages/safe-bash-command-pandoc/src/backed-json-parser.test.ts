@@ -5,11 +5,12 @@ import {ExecutionContext} from "./execution.js";
 import {BackedJson} from "./backed-json.js";
 import {parseBackedJson} from "./backed-json-parser.js";
 import {parseStrictJson} from "./strict-json.js";
+import {PandocError} from "./errors.js";
 import {readJsonNumber} from "./json-number.js";
 
-async function parse(input: string, chunkSize = 7, signal = new AbortController().signal, numbers = false, nodeLimit = Infinity): Promise<string> {
+async function parse(input: string, chunkSize = 7, signal = new AbortController().signal, numbers = false, nodeLimit = Infinity, referenceLimit = Infinity): Promise<string> {
   const fs = new MemoryFileSystem();
-  const context = new ExecutionContext("convert", {signal, limits: {nodes: nodeLimit}});
+  const context = new ExecutionContext("convert", {signal, limits: {nodes: nodeLimit, references: referenceLimit}});
   let nodes = 0;
   const storage = new PagedStorage({fs, cwd: "/", env: {}, signal}, 1);
   const index = new PagedStorage({fs, cwd: "/", env: {}, signal}, 1);
@@ -23,7 +24,7 @@ async function parse(input: string, chunkSize = 7, signal = new AbortController(
         if (!(error instanceof RangeError)) throw error;
         throw new Error(`${offset}: ${error.message}`);
       }
-    } : undefined, false, undefined, (_kind, complete) => {if (!complete) context.bound("nodes", ++nodes);});
+    } : undefined, false, undefined, (_kind, complete) => {if (!complete) context.bound("nodes", ++nodes);}, () => context.charge("references", 1));
     let result = "";
     for await (const bytes of tree.chunks()) {
       expect(bytes.length).toBeLessThanOrEqual(16384);
@@ -105,5 +106,18 @@ it.each(["", " ", "[", "[ ", "[1,", "[1, ", '{"a":', '{"a": ', '{"a":1,', '{"a":
     if (expected instanceof Error && "code" in expected && expected.code === "E_LIMIT") expect(actual).toMatchObject({code: "E_LIMIT", message: expected.message});
     else if (expected instanceof Error) {expect(actual).toBeInstanceOf(Error); expect(actual.code).not.toBe("E_LIMIT");}
     else expect(actual).not.toBeInstanceOf(Error);
+  }
+});
+
+it.each(["[]", "{}", "[", "[ ", "[1,", "[1, ", "[1,]", "[[]]", '{"x":', '{"x": ', '{"x":1,"x":2}', '{"x" 1}', '"\\u12"', '"\\x"', JSON.stringify({x: "a".repeat(4097), empty: "", nested: [true, null]})])
+("preserves reference-limit precedence across split parser tokens: %s", async input => {
+  for (let references = 0; references < 12; references++) {
+    const context = new ExecutionContext("convert", {limits: {references}});
+    const expected = await parseStrictJson(input, context, () => {throw new Error("syntax");}).catch(error => error);
+    await context.close();
+    const actual = await parse(input, 1, undefined, false, Infinity, references).catch(error => error);
+    if (expected instanceof PandocError && expected.code === "E_LIMIT") expect(actual).toMatchObject({code: expected.code, message: expected.message});
+    else if (expected instanceof Error) {expect(actual).toBeInstanceOf(Error); expect(actual.code).not.toBe("E_LIMIT");}
+    else {expect(actual).not.toBeInstanceOf(Error); expect(JSON.parse(actual)).toEqual(expected);}
   }
 });

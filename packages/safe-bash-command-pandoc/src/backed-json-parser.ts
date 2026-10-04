@@ -49,9 +49,9 @@ type NumberState = "start" | "minus" | "zero" | "int" | "dot" | "frac" | "exp" |
 export async function parseBackedJson(
   chunks: AsyncIterable<string>, tree: BackedJson, index: PagedStorage,
   cooperate: (units?: number) => Promise<void>, error: (offset: number, message: string, tokenOffset?: number) => never,
-  validateNumber?: (node: number, offset: number) => Promise<void>, allowDuplicateKeys = false, checkDepth?: (depth: number, container?: boolean) => void, node?: (kind: "object" | "array" | "key" | "scalar", complete?: boolean) => void
+  validateNumber?: (node: number, offset: number) => Promise<void>, allowDuplicateKeys = false, checkDepth?: (depth: number, container?: boolean) => void, node?: (kind: "object" | "array" | "key" | "scalar", complete?: boolean) => void, reference?: () => void
 ): Promise<void> {
-  let depth = 0, valueAtEof = true;
+  let depth = 0, valueAtEof = true, edgePending = false, stringUnits = 0;
   checkDepth?.(depth);
   const keys = new Keys(index, tree, cooperate);
   let mode: Mode = "value", token: "string" | "number" | "keyword" | undefined;
@@ -62,6 +62,7 @@ export async function parseBackedJson(
   const digit = (char: string) => char >= "0" && char <= "9";
   const flush = async () => {if (buffer) {await tree.text(buffer); buffer = "";}};
   const add = (char: string) => {
+    if (token === "string" && stringUnits++ % 2048 === 0) reference?.();
     buffer += char;
     if (isKey) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619) >>> 0;
     return buffer.length >= 4096;
@@ -71,7 +72,7 @@ export async function parseBackedJson(
     if (token) node?.(isKey ? "key" : "scalar", true);
     if (!token) depth--;
     position = await tree.end();
-    token = undefined;
+    token = undefined; stringUnits = 0;
     return position ? "separator" : "done";
   };
   const endNumber = async (): Promise<Mode> => {
@@ -154,24 +155,26 @@ export async function parseBackedJson(
           if (keywordIndex === keyword.length) mode = await end();
           continue;
         }
+        if (edgePending) {reference?.(); edgePending = false;}
         if (char === " " || char === "\t" || char === "\r" || char === "\n") {if (mode === "value") valueAtEof = true; continue;}
         if (mode === "done") error(offset, "Unexpected trailing JSON");
         if (mode === "separator") {
           const parent = await tree.describe(position);
           if (char === (parent.kind === "array" ? "]" : "}")) mode = await end();
-          else if (char === ",") {mode = parent.kind === "array" ? "value" : "key"; valueAtEof = false;}
+          else if (char === ",") {mode = parent.kind === "array" ? "value" : "key"; valueAtEof = false; edgePending = parent.kind === "array";}
           else error(offset, "Expected JSON comma");
           continue;
         }
         if (mode === "colon") {
           if (char !== ":") error(offset, "Expected JSON colon");
           mode = "value"; valueAtEof = true;
+          reference?.();
           checkDepth?.(depth);
           continue;
         }
         if (mode === "arrayFirst") {
           if (char === "]") {mode = await end(); continue;}
-          mode = "value";
+          mode = "value"; reference?.();
         }
         if (mode === "keyFirst" && char === "}") {mode = await end(); continue;}
         if (mode === "keyFirst" || mode === "key") {

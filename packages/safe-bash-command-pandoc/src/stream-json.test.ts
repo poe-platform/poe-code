@@ -213,3 +213,43 @@ it("preserves AST diagnostics for a forbidden metadata key after a valid value",
   expect(write).not.toHaveBeenCalled();
   expect(await fs.readdir("/")).toEqual([]);
 });
+
+for (const limits of [{}, {references: 1000000}, {retainedBytes: 1000000}]) {
+  it(`closes a JSON input whose iterator factory cancels conversion (${JSON.stringify(limits)})`, async () => {
+    const fs = new MemoryFileSystem();
+    const controller = new AbortController();
+    const next = vi.fn(async () => ({done: true as const, value: undefined}));
+    const returned = vi.fn(async () => ({done: true as const, value: undefined}));
+    const write = vi.fn(async () => {}), close = vi.fn(async () => {});
+    const chunks = {
+      [Symbol.asyncIterator]() {
+        controller.abort();
+        return {next, return: returned};
+      }
+    };
+    await expect(convertToOutput([{chunks}], {from: "json", to: "json"}, {
+      signal: controller.signal, limits,
+      workingFiles: {fs, directory: "/", cacheBytes: 16384},
+      output: {write, close, async abort() {}}
+    })).rejects.toMatchObject({code: "E_CANCELLED"});
+    expect(next).not.toHaveBeenCalled();
+    expect(returned).toHaveBeenCalledOnce();
+    expect(write).not.toHaveBeenCalled();
+    expect(close).not.toHaveBeenCalled();
+    expect(await fs.readdir("/")).toEqual([]);
+  });
+}
+
+it("normalizes a throwing JSON iterator factory and closes its backing storage", async () => {
+  const fs = new MemoryFileSystem();
+  const write = vi.fn(async () => {}), close = vi.fn(async () => {});
+  const factory = vi.fn((): AsyncIterator<Uint8Array> => {throw new Error("source unavailable");});
+  await expect(convertToOutput([{chunks: {[Symbol.asyncIterator]: factory}}], {from: "json", to: "json"}, {
+    workingFiles: {fs, directory: "/", cacheBytes: 16384},
+    output: {write, close, async abort() {}}
+  })).rejects.toMatchObject({code: "E_IO"});
+  expect(factory).toHaveBeenCalledOnce();
+  expect(write).not.toHaveBeenCalled();
+  expect(close).not.toHaveBeenCalled();
+  expect(await fs.readdir("/")).toEqual([]);
+});

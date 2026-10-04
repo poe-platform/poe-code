@@ -97,6 +97,9 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   Markdown reference resolution, HTML/XML trees, DOCX/EPUB archives, PDF layout,
   presentation and spreadsheet conversion. Record the tested commit and hashes
   of the owning source files with each run.
+- For retained JSON input, abort inside the iterator factory before its first pull.
+  Verify zero pulls, exactly one iterator return, no output commit and no remaining
+  backing files; repeat with finite references and retained-byte budgets.
 - Single-input JSON to JSON now uses retained syntax, schema tasks,
   table occupancy, numeric key ordering and output. Test its fixed cache sizes
   independently of input bytes and document nesting. JSON and CSV/TSV to plain

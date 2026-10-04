@@ -24,10 +24,13 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
   const cleanup = context.onClose(async () => {try {await storage.close();} finally {await scratch.close();}});
   const tree = new BackedJson(storage, units => context.cooperate(units));
   const chunks = "bytes" in input ? [input.bytes] : input.chunks;
-  const source = Symbol.asyncIterator in chunks ? chunks[Symbol.asyncIterator]() : chunks[Symbol.iterator]();
+  let source: AsyncIterator<Uint8Array> | Iterator<Uint8Array> | undefined = undefined;
   let sourceDone = false;
-  const closeSource = async () => {if (!sourceDone) {sourceDone = true; await source.return?.();}};
+  const closeSource = async () => {if (!sourceDone) {sourceDone = true; await source?.return?.();}};
+  // Register before invoking a host factory: it may abort while creating an
+  // owned iterator, and onClose rejects registration after cancellation.
   const releaseSource = context.onClose(closeSource);
+  source = Symbol.asyncIterator in chunks ? chunks[Symbol.asyncIterator]() : chunks[Symbol.iterator]();
   const text = (async function* () {
     const decoder = new TextDecoder("utf-8", {fatal: true});
     let cr = false;
@@ -42,7 +45,7 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
       return text;
     };
     while (true) {
-      const part = await context.call(async () => source.next());
+      const part = await context.call(async () => source!.next());
       if (part.done) {sourceDone = true; break;}
       if (!(part.value instanceof Uint8Array)) context.fail("E_IO", "Producer must yield bytes");
       if (chargeInput) context.charge("inputBytes", part.value.byteLength);
@@ -75,7 +78,7 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
     const references = chargeInput && (Number.isFinite(context.limits.references) || retained);
     const bytes = async function* () {
       while (true) {
-        const part = await context.call(async () => source.next());
+        const part = await context.call(async () => source!.next());
         if (part.done) {sourceDone = true; return;}
         yield part.value;
       }

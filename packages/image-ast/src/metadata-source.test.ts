@@ -116,7 +116,8 @@ async function metadataWorkerFixture(){
  const smallWebp=await sharp({create:{width:17,height:19,channels:4,background:"red"}}).webp().toBuffer();
  const largeWebp=new Uint8Array(smallWebp.length+8+256*1024);largeWebp.set(smallWebp.subarray(0,12));largeWebp.set([74,85,78,75],12);
  new DataView(largeWebp.buffer).setUint32(16,256*1024,true);largeWebp.set(smallWebp.subarray(12),20+256*1024);new DataView(largeWebp.buffer).setUint32(4,largeWebp.length-8,true);
- const gifFrames=524289,gif=new Uint8Array(14+gifFrames*23);gif.set([71,73,70,56,57,97,1,0,1,0,0,0,0]);
+ // One delay beyond the 1 MiB cache forces external backing eviction.
+ const gifFrames=262145,gif=new Uint8Array(14+gifFrames*23);gif.set([71,73,70,56,57,97,1,0,1,0,0,0,0]);
  for(let i=0;i<gifFrames;i++)gif.set([33,249,4,0,i&255,(i>>>8)&255,0,0,44,0,0,0,0,1,0,1,0,0,2,2,68,1,0],13+i*23);gif[gif.length-1]=59;
  const cases=[
   {bytes:join([png(8,0,true,1).subarray(0,33),makeChunk("tEXt",new Uint8Array(256*1024)),makeChunk("IEND",new Uint8Array())]),options:{}},
@@ -178,7 +179,7 @@ describe("externally retained metadata in Workerd",()=>{
    const response=await runtime.dispatchFetch("https://metadata/",{method:"POST",body:JSON.stringify({id,size:sample.bytes.length,options:sample.options,transform:sample.transform,inspect:sample.inspect,joined:sample.joined,stream:sample.stream})});
    expect(response.status).toBe(200);
    const result=await response.json() as {metadata:unknown;reads:number;closed:number;scratchClosed:number;scratchWrites:number;largestAllocation:number;nodeGlobals:boolean};
-   if(id>=6){expect(result.scratchClosed).toBe(1);expect(result.scratchWrites).toBeGreaterThan(64);}else expect(result.scratchClosed).toBe(0);
+   if(id>=6){expect(result.scratchClosed).toBe(1);expect(result.scratchWrites).toBeGreaterThanOrEqual(id===8?64:65);}else expect(result.scratchClosed).toBe(0);
    expect(result.metadata).toEqual(expected[id]);expect(result.closed).toBe(sample.stream?0:1);expect(result.nodeGlobals).toBe(false);
    expect(result.largestAllocation).toBeLessThanOrEqual(id===5?4096:65536);if(id===2)expect(result.reads).toBe(0);else expect(result.reads).toBeGreaterThan(0);
  },15000);

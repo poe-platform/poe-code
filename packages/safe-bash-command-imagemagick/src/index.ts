@@ -1,3 +1,4 @@
+import { floodfillStoredImage } from "./floodfill.js";
 import { shadowPixelSteps, vignettePixelSteps } from "./effects-kernel.js";
 import { warpPixelSteps, type WarpPlan } from "./warp-kernel.js";
 import { morphologyPixelSteps } from "./morphology-kernel.js";
@@ -5083,7 +5084,22 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         if (!operandsOnly && token === "-strip") { state.strip = true; continue; }
         if (!operandsOnly && token === "+repage") continue;
         if (!operandsOnly && token === "-repage") { i++; continue; }
-        if (!operandsOnly && token === "-draw") {
+        if (!operandsOnly && token === "-floodfill") {
+            const geometry = parseMagickGeometry(tokens[++i] ?? "+0+0"), candidate = tokens[i + 1], replacement = state.fill, fuzz = state.fuzz;
+            let target: RgbaColor | undefined;
+            if (candidate && !candidate.startsWith("-") && !candidate.startsWith("+")) {
+                let file = false;
+                try { file = (await input.filesystem.stat(resolvePath(input.cwd, candidate), { signal })).type === "file"; }
+                catch (error) { if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM"].includes(error.code)) throw error; }
+                if (!file) { try { target = parseColor(candidate); i++; } catch { /* Optional color omitted. */ } }
+            }
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const x = Math.max(0, Math.min(image.width - 1, Math.round(geometry.x || geometry.width || 0)));
+                const y = Math.max(0, Math.min(image.height - 1, Math.round(geometry.y || geometry.height || 0)));
+                return floodfillStoredImage(image, backend.storage, x, y, target, replacement, fuzz, signal);
+            });
+        } else if (!operandsOnly && token === "-draw") {
             const drawing = tokens[++i] ?? "", settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;

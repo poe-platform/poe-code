@@ -116,8 +116,8 @@
     "test": "cd ../.. && vitest run packages/toolcraft/src",
     "test:unit": "cd ../.. && vitest run packages/toolcraft/src",
     "lint": "cd ../.. && eslint packages/toolcraft/src --ext ts && tsc -p packages/toolcraft/tsconfig.json --noEmit",
-    "prepack": "\"$npm_node_execpath\" \"$npm_execpath\" --prefix ../.. run build:workspaces -- --workspace=\"$npm_package_name\" >&2 && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . toolcraft-schema toolcraft-design @poe-code/frontmatter @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/user-error @poe-code/process-runner mcp-oauth-server tiny-http-mcp-server tiny-mcp-client tiny-stdio-mcp-server auth-store jose fast-string-width fast-wrap-ansi ignore jsonc-parser sisteransi smol-toml yaml @poe-code/safe-fs @poe-code/xml-ast @noble/hashes @poe-code/terminal-text",
-    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-schema toolcraft-design @poe-code/frontmatter @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/user-error @poe-code/process-runner mcp-oauth-server tiny-http-mcp-server tiny-mcp-client tiny-stdio-mcp-server auth-store jose fast-string-width fast-wrap-ansi ignore jsonc-parser sisteransi smol-toml yaml @poe-code/safe-fs @poe-code/xml-ast @noble/hashes @poe-code/terminal-text"
+    "prepack": "\"$npm_node_execpath\" \"$npm_execpath\" --prefix ../.. run build:workspaces -- --workspace=\"$npm_package_name\" >&2 && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . toolcraft-schema toolcraft-design @poe-code/frontmatter @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/user-error @poe-code/process-runner mcp-oauth-server tiny-http-mcp-server tiny-mcp-client tiny-stdio-mcp-server auth-store jose fast-string-width fast-wrap-ansi ignore jsonc-parser sisteransi smol-toml yaml @poe-code/safe-fs @poe-code/xml-ast @noble/hashes @poe-code/terminal-text saxes",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-schema toolcraft-design @poe-code/frontmatter @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/user-error @poe-code/process-runner mcp-oauth-server tiny-http-mcp-server tiny-mcp-client tiny-stdio-mcp-server auth-store jose fast-string-width fast-wrap-ansi ignore jsonc-parser sisteransi smol-toml yaml @poe-code/safe-fs @poe-code/xml-ast @noble/hashes @poe-code/terminal-text saxes"
   },
   "dependencies": {
     "commander": "^13.1.0",
@@ -129,7 +129,8 @@
     "sisteransi": "^1.0.5",
     "smol-toml": "^1.3.0",
     "yaml": "^2.8.2",
-    "@noble/hashes": "2.4.0"
+    "@noble/hashes": "2.4.0",
+    "saxes": "6.0.0"
   },
   "files": [
     "LICENSE",
@@ -172,7 +173,8 @@
     "@poe-code/safe-fs",
     "@poe-code/xml-ast",
     "@noble/hashes",
-    "@poe-code/terminal-text"
+    "@poe-code/terminal-text",
+    "saxes"
   ],
   "optionalDependencies": {
     "toolcraft-schema": "*",

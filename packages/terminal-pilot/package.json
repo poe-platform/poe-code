@@ -24,8 +24,8 @@
   },
   "scripts": {
     "build": "tsc --emitDeclarationOnly && node scripts/build.mjs",
-    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/agent-skill-config @poe-code/agent-defs @poe-code/config-mutations @poe-code/user-error toolcraft-design @poe-code/frontmatter fast-string-width fast-wrap-ansi jsonc-parser sisteransi smol-toml yaml @poe-code/safe-fs @poe-code/xml-ast @noble/hashes @poe-code/terminal-text",
-    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/agent-skill-config @poe-code/agent-defs @poe-code/config-mutations @poe-code/user-error toolcraft-design @poe-code/frontmatter fast-string-width fast-wrap-ansi jsonc-parser sisteransi smol-toml yaml @poe-code/safe-fs @poe-code/xml-ast @noble/hashes @poe-code/terminal-text",
+    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/agent-skill-config @poe-code/agent-defs @poe-code/config-mutations @poe-code/user-error toolcraft-design @poe-code/frontmatter fast-string-width fast-wrap-ansi jsonc-parser sisteransi smol-toml yaml @poe-code/safe-fs @poe-code/xml-ast @noble/hashes @poe-code/terminal-text saxes",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/agent-skill-config @poe-code/agent-defs @poe-code/config-mutations @poe-code/user-error toolcraft-design @poe-code/frontmatter fast-string-width fast-wrap-ansi jsonc-parser sisteransi smol-toml yaml @poe-code/safe-fs @poe-code/xml-ast @noble/hashes @poe-code/terminal-text saxes",
     "pretest": "node -e \"const fs=require('node:fs'); if (!fs.existsSync('dist/cli.js') || !fs.existsSync('dist/commands/index.d.ts')) process.exit(1)\" || npm run build",
     "test": "cd ../.. && vitest run packages/terminal-pilot/src/ --pool=forks",
     "pretest:unit": "node -e \"const fs=require('node:fs'); if (!fs.existsSync('dist/cli.js') || !fs.existsSync('dist/commands/index.d.ts')) process.exit(1)\" || npm run build",
@@ -69,7 +69,8 @@
     "terminal-png": "^0.1.0",
     "toolcraft": "^0.0.51",
     "yaml": "^2.8.2",
-    "@noble/hashes": "2.4.0"
+    "@noble/hashes": "2.4.0",
+    "saxes": "6.0.0"
   },
   "bundleDependencies": [
     "@poe-code/agent-skill-config",
@@ -87,7 +88,8 @@
     "@poe-code/safe-fs",
     "@poe-code/xml-ast",
     "@noble/hashes",
-    "@poe-code/terminal-text"
+    "@poe-code/terminal-text",
+    "saxes"
   ],
   "optionalDependencies": {
     "@poe-code/agent-defs": "*",

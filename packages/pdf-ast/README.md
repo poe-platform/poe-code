@@ -629,8 +629,12 @@ whose non-isolated groups need this backdrop; other pages keep Forms as vectors.
 The viewer background stays outside page blend calculations in bitmap and SVG.
 
 `resolveRetainedFont(document, storage, resources, name, options)` resolves one
-font through retained object reads. Decoded font streams stage in caller storage;
-intrinsic parser buffers are admitted before allocation. `maxWorkingBytes`,
+font through retained object reads. With `resourceStorage`, TrueType programs,
+name offsets and glyph point scratch use caller backing. Table and character
+lookups read bounded ranges; simple and compound glyph segments stream into
+caller-backed paths, including patterned fills and text clips. Glyph scratch is
+reused after iteration, and cancellation and backend errors retain their identity.
+CFF and Type 1 programs still admit their intrinsic parser buffers before allocation. `maxWorkingBytes`,
 `maxStagingBytes`, `onAllocation` and cancellation apply to this font operation.
 The returned font belongs to the caller; this does not account for the document's
 separate parser/decoder state or qualify aggregate Worker memory usage.

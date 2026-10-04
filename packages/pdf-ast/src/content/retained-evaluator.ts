@@ -119,7 +119,7 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
         case "frame-pop": reply={kind:"frame",value:await request.stack.pop()}; break;
         case "capture-append": await request.writer.append(request.operation); break;
         case "append-clip": reply = await appendStoredClip(request.storage,request.previous,request.clip,signal); break;
-        case "path-append": for (const segment of request.segments) { signal?.throwIfAborted(); await request.writer.append(segment); } break;
+        case "path-append": if(request.storedSegments)for await(const segment of readStoredPath(request.storedSegments,signal))await request.writer.append(segment); for (const segment of request.segments) { signal?.throwIfAborted(); await request.writer.append(segment); } break;
         case "path-finish": reply = await request.writer.finish(); break;
         case "transform-path": {
           const writer = new StoredPathWriter(request.path.storage, signal);
@@ -146,6 +146,12 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
         case "resolve": case "catalog": reply = { kind: "resolved", node: await resolve(request.kind === "catalog" ? document.crossReference.rootRef : request.node) }; break;
         case "cmap-lookup": {const value=await request.map.lookup(request.code);reply={kind:"resolved",node:typeof value==="number"?cosNumber(value):typeof value==="string"?cosName(value):undefined};break;}
         case "cmap-character": {const value=await request.map.readCharCode(request.bytes,request.offset);reply={kind:"resolved",node:cosArray([cosNumber(value.charcode),cosNumber(value.length)])};break;}
+        case "truetype-number": reply={kind:"resolved",node:cosNumber(request.operation==="id"?await request.font.getGlyphId(request.code):await request.font.getAdvanceWidthUnits(request.code))};break;
+        case "truetype-path": {
+          const writer=new StoredPathWriter(request.storage,signal);
+          for await(const segment of request.font.glyphSegments(request.glyphId))await writer.append(segment);
+          reply=await writer.finish();break;
+        }
         case "cid-gid": reply={kind:"resolved",node:cosNumber(await readStoredCidGlyph(request.map,request.code,signal))};break;
         case "font": {
           const index = fonts.findIndex(entry => entry.resources === request.resources && entry.name === request.name);

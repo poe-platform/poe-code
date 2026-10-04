@@ -1,3 +1,4 @@
+import type { StoredTrueTypeFont } from "../fonts/stored-truetype.js";
 import type {StoredCMap} from "../fonts/stored-cmap.js";
 import { sampledVertices } from "./sampled-vertices.js";
 import { StoredMetadataStack } from "./stored-record.js";
@@ -1027,10 +1028,12 @@ export function transformPathSegment(seg: PdfPathSegment, matrix: Matrix6): PdfP
 
 interface EvaluationFrame {pushed:boolean;hidden:boolean;mcid:number|undefined;actualText:string|undefined;savedState?:GraphicsState}
 
-export type PdfEvaluationRequest = {readonly kind:"cmap-lookup";readonly map:StoredCMap;readonly code:number} | {readonly kind:"cmap-character";readonly map:StoredCMap;readonly bytes:Uint8Array;readonly offset:number} | {readonly kind:"cid-gid";readonly map:import("../fonts/stored-cid-map.js").StoredCidMap;readonly code:number} | {readonly kind:"frame-push";readonly stack:StoredMetadataStack<EvaluationFrame>;readonly frame:EvaluationFrame}
+export type PdfEvaluationRequest = {readonly kind:"truetype-number";readonly font:StoredTrueTypeFont;readonly operation:"id"|"width";readonly code:number}
+  | {readonly kind:"truetype-path";readonly font:StoredTrueTypeFont;readonly glyphId:number;readonly storage:PdfPixelStorage}
+  | {readonly kind:"cmap-lookup";readonly map:StoredCMap;readonly code:number} | {readonly kind:"cmap-character";readonly map:StoredCMap;readonly bytes:Uint8Array;readonly offset:number} | {readonly kind:"cid-gid";readonly map:import("../fonts/stored-cid-map.js").StoredCidMap;readonly code:number} | {readonly kind:"frame-push";readonly stack:StoredMetadataStack<EvaluationFrame>;readonly frame:EvaluationFrame}
   | {readonly kind:"frame-pop";readonly stack:StoredMetadataStack<EvaluationFrame>} | {readonly kind:"capture-append";readonly writer:StoredOperationsWriter;readonly operation:PdfPaintOperation} | PdfEvaluationShadingRequest | PdfEvaluationOperation | { readonly kind: "node"; readonly source?: PdfEvaluationContentSource }
   | { readonly kind: "append-clip"; readonly storage: PdfPixelStorage; readonly previous: PdfStoredClipPaths | undefined; readonly clip: PdfClipPath }
-  | { readonly kind: "path-append"; readonly writer: StoredPathWriter; readonly segments: readonly PdfPathSegment[] }
+  | { readonly kind: "path-append"; readonly writer: StoredPathWriter; readonly segments: readonly PdfPathSegment[]; readonly storedSegments?: PdfStoredPath }
   | { readonly kind: "path-finish"; readonly writer: StoredPathWriter }
   | { readonly kind: "transform-path"; readonly path: PdfStoredPath; readonly matrix: Matrix6; readonly close: boolean }
   | { readonly kind: "font"; readonly name: string; readonly resources: PdfCosDict | undefined }
@@ -1945,9 +1948,9 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                     evaluatedType3 = true;
                   } else if (firstOp) yield { kind: "close-content", source };
                 }
-              } else if ((font?.embeddedTrueType || font?.embeddedCff || font?.standardOutlines) && st.textRenderMode !== 3) {
+              } else if ((font?.embeddedTrueType || font?.storedTrueType || font?.embeddedCff || font?.standardOutlines) && st.textRenderMode !== 3) {
                 const cp = item.unicode ? item.unicode.codePointAt(0) : undefined;
-                const cidFont = font.subtype === "Type0" && font.embeddedTrueType;
+                const cidFont = font.subtype === "Type0" && (font.embeddedTrueType ?? font.storedTrueType);
                 if (cidFont || font.simpleToGid) evaluatedType3 = true; // An empty mapped glyph must not fall back to standard text.
                 const glyphCode = item.cid ?? item.charCode;
                 let glyphId = font.cidToGid ? font.cidToGid[glyphCode] ?? 0 : glyphCode;
@@ -1958,8 +1961,29 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                 }
                 const simpleGid = font.simpleToGid?.get(item.charCode) ?? 0;
                 let glyphOutline: PdfPathSegment[] = [];
-                if (cidFont) {
-                  glyphOutline = cidFont.getGlyphOutlineByGid(glyphId);
+                let storedGlyph: PdfStoredPath | undefined;
+                if (font.storedTrueType) {
+                  const retained=font.storedTrueType;
+                  const number=function*(operation:"id"|"width",code:number):EvaluationWork<number>{
+                    const reply=yield {kind:"truetype-number",font:retained,operation,code};
+                    if(!reply||!("kind" in reply)||reply.kind!=="resolved"||reply.node?.kind!=="number")throw new TypeError("Expected TrueType glyph number");
+                    return reply.node.value;
+                  };
+                  const selected=cidFont?glyphId:font.simpleToGid?simpleGid:cp!==undefined?yield* number("id",cp):item.charCode;
+                  if(!params.geometryStorage)throw new PdfError("E_CAPABILITY","Stored TrueType glyph requires caller geometry storage");
+                  const read=function*(gid:number):EvaluationWork<PdfStoredPath>{
+                    const reply=yield {kind:"truetype-path",font:retained,glyphId:gid,storage:params.geometryStorage!};
+                    if(!reply||!("kind" in reply)||reply.kind!=="stored-path")throw new TypeError("Expected stored TrueType glyph");
+                    return reply;
+                  };
+                  storedGlyph=yield* read(selected);
+                  if(!storedGlyph.count&&!cidFont&&!font.simpleToGid)storedGlyph=yield* read(item.charCode);
+                  if(!font.widths.has(item.charCode)&&!cidFont){
+                    if(font.simpleToGid)advance1000=(yield* number("width",simpleGid))*1000/retained.unitsPerEm;
+                    else if(cp!==undefined)advance1000=Math.round((yield* number("width",selected))*1000/retained.unitsPerEm);
+                  }
+                } else if (cidFont && font.embeddedTrueType) {
+                  glyphOutline = font.embeddedTrueType.getGlyphOutlineByGid(glyphId);
                 } else if (font.simpleToGid && font.embeddedTrueType) {
                   glyphOutline = font.embeddedTrueType.getGlyphOutlineByGid(simpleGid);
                 } else if (font.embeddedCff) {
@@ -1976,12 +2000,18 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                     : cp !== undefined ? font.embeddedTrueType.getAdvanceWidth1000(cp) : undefined;
                   if (ttAdv !== undefined) advance1000 = ttAdv;
                 }
-                if (glyphOutline.length > 0) {
+                if (glyphOutline.length > 0 || storedGlyph?.count) {
                   const textSpaceMatrix = multiplyMatrices(
                     [st.fontSize * scaleH, 0, 0, st.fontSize, 0, st.rise],
                     totalMatrix
                   );
                   const transformedGlyphSegs: PdfPathSegment[] = [];
+                  let transformedStoredGlyph: PdfStoredPath | undefined;
+                  if(storedGlyph){
+                    const reply=yield {kind:"transform-path",path:storedGlyph,matrix:textSpaceMatrix,close:false};
+                    if(!reply||!("kind" in reply)||reply.kind!=="stored-path")throw new TypeError("Expected transformed TrueType glyph");
+                    transformedStoredGlyph=reply;
+                  }
                   for (const seg of glyphOutline) {
                     if (seg.kind === "move") {
                       const [gx, gy] = transformPoint(textSpaceMatrix, seg.x, seg.y);
@@ -2001,15 +2031,16 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                   if (st.textRenderMode >= 4 && st.textRenderMode <= 7) {
                     if (params.geometryStorage) {
                       pendingStoredTextClip ??= new StoredPathWriter(params.geometryStorage, params.geometrySignal);
-                      yield {kind:"path-append",writer:pendingStoredTextClip,segments:transformedGlyphSegs};
+                      yield {kind:"path-append",writer:pendingStoredTextClip,segments:transformedGlyphSegs,...(transformedStoredGlyph?{storedSegments:transformedStoredGlyph}:{})};
                     } else pendingTextClip.push(...transformedGlyphSegs);
                   }
                   const isFillGlyph = st.textRenderMode === 0 || st.textRenderMode === 2 || st.textRenderMode === 4 || st.textRenderMode === 6;
                   const isStrokeGlyph = st.textRenderMode === 1 || st.textRenderMode === 2 || st.textRenderMode === 5 || st.textRenderMode === 6;
                   const patterned = isFillGlyph && (yield* paintPattern(transformedGlyphSegs, "nonzero",
-                    activeResources, activeFonts, depth, mcid, actualText));
+                    activeResources, activeFonts, depth, mcid, actualText, transformedStoredGlyph));
                   const paint: PdfEvaluatedPath = {
                     segments: transformedGlyphSegs,
+                    ...(transformedStoredGlyph?{storedSegments:transformedStoredGlyph}:{}),
                     fillColor: isFillGlyph && !patterned ? st.fillColor : undefined,
                     fillAlpha: isFillGlyph && !patterned ? st.fillAlpha : undefined,
                     strokeColor: isStrokeGlyph ? st.strokeColor : undefined,
@@ -2159,7 +2190,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
-      } else if ((step.value.kind === "cmap-lookup" || step.value.kind === "cmap-character" || step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
+      } else if ((step.value.kind === "cmap-lookup" || step.value.kind === "cmap-character" || step.value.kind === "truetype-number" || step.value.kind === "truetype-path" || step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
         throw new PdfError("E_CAPABILITY", "Stored PDF paths require an asynchronous source driver");
       } else if (step.value.kind === "shading") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF shading requires a source driver");

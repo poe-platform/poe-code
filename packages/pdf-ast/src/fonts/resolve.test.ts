@@ -29,7 +29,7 @@ it("preserves optional ToUnicode recovery when the asynchronous decoder fails", 
   const steps = resolvePageFontsSteps(doc.cos.rootRef, resources); let step = steps.next(); let decoded = false;
   while (!step.done) {
     if (step.value.kind === "decode") { decoded = true; step = steps.throw(new Error("malformed optional map")); }
-    else { const value: FontResolutionResult = doc.cos.resolve(step.value.node); step = steps.next(value); }
+    else { if(step.value.kind==="truetype-map")throw new Error("Unexpected retained font"); const value: FontResolutionResult = doc.cos.resolve(step.value.node); step = steps.next(value); }
   }
   expect(decoded).toBe(true); expect(step.value.get("F1")!.cmap).toBeUndefined();
   expect(step.value.get("F1")!.baseFont).toBe("Helvetica");
@@ -45,7 +45,7 @@ it("admits unicode expansion to the containing font owner before allocating", ()
   } });
   expect(() => {
     let step = steps.next();
-    while (!step.done) step = steps.next(step.value.kind === "resolve" ? doc.cos.resolve(step.value.node) : doc.cos.decodeStream(step.value.stream));
+    while (!step.done) step = steps.next(step.value.kind === "resolve" ? doc.cos.resolve(step.value.node) : (step.value.kind==="decode"?doc.cos.decodeStream(step.value.stream):undefined));
   }).toThrow(failure);
   expect(rejected).toBe(true);
 });
@@ -62,7 +62,7 @@ it("rejects CID width endpoints that cannot advance by one", () => {
   });
   try {
     const steps = resolvePageFontsSteps(doc.cos.rootRef, resources); let step = steps.next();
-    while (!step.done) step = steps.next(step.value.kind === "resolve" ? doc.cos.resolve(step.value.node) : doc.cos.decodeStream(step.value.stream));
+    while (!step.done) step = steps.next(step.value.kind === "resolve" ? doc.cos.resolve(step.value.node) : (step.value.kind==="decode"?doc.cos.decodeStream(step.value.stream):undefined));
   } catch (error) { failure = error; }
   finally { spy.mockRestore(); }
   expect(failure).toMatchObject({ code: "E_LIMIT" });
@@ -84,7 +84,7 @@ it("retains compact CID width ranges without allocating per-CID entries", () => 
     if (admitted > outlineBytes + 40000) throw new Error("widths expanded beyond compact budget");
   } });
   let step = steps.next();
-  while (!step.done) step = steps.next(step.value.kind === "resolve" ? doc.cos.resolve(step.value.node) : doc.cos.decodeStream(step.value.stream));
+  while (!step.done) step = steps.next(step.value.kind === "resolve" ? doc.cos.resolve(step.value.node) : (step.value.kind==="decode"?doc.cos.decodeStream(step.value.stream):undefined));
   const widths = step.value.get("F1")!.widths;
   expect([0, 63, 64, 65, 66, 67, 65535, 65536].map(code => widths.get(code))).toEqual([500, 500, 900, 900, 800, 500, 500, undefined]);
   expect(widths.get(65.5)).toBeUndefined();

@@ -1,3 +1,4 @@
+import type { StoredTrueTypeFont } from "./stored-truetype.js";
 import type {StoredCMap} from "./stored-cmap.js";
 import type { StoredCidMap } from "./stored-cid-map.js";
 import { FontWidths } from "./widths.js";
@@ -13,8 +14,8 @@ import { parseCharacterCMap, parseToUnicodeCMap, type ParsedToUnicodeCMap } from
 import { parseTrueTypeFont, type ParsedTrueTypeFont } from "./truetype.js";
 import { buildFontEncodingDifferencesMap, buildFontEncodingGlyphNamesMap, normalizeStandard14FontName, STANDARD_14_FONTS } from "./standard14.js";
 type Matrix6 = [number, number, number, number, number, number];
-export type FontResolutionRequest = { kind: "resolve"; node: PdfCosNode | undefined } | { kind: "decode"; stream: PdfCosStream; purpose?: "cid-map" | "unicode-cmap" | "encoding-cmap" };
-export type FontResolutionResult = PdfCosNode | Uint8Array | StoredCidMap | StoredCMap | ParsedToUnicodeCMap | CMap | undefined;
+export type FontResolutionRequest = {kind:"truetype-map";font:StoredTrueTypeFont;code?:number;name?:string} | { kind: "resolve"; node: PdfCosNode | undefined } | { kind: "decode"; stream: PdfCosStream; purpose?: "cid-map" | "unicode-cmap" | "encoding-cmap" | "truetype" };
+export type FontResolutionResult = StoredTrueTypeFont | PdfCosNode | Uint8Array | StoredCidMap | StoredCMap | ParsedToUnicodeCMap | CMap | undefined;
 function* resolve(node: PdfCosNode | undefined): Generator<FontResolutionRequest, PdfCosNode | undefined, FontResolutionResult> {
   const value = yield { kind: "resolve", node };
   if (value && !("kind" in value)) throw new TypeError("Font lookup returned stream bytes instead of a COS value");
@@ -48,6 +49,7 @@ export interface ResolvedPageFont {
   readonly charProcs?: PdfCosDict | undefined;
   readonly fontResources?: PdfCosDict | undefined;
   readonly embeddedCff?: EmbeddedCffFont | undefined;
+  readonly storedTrueType?: StoredTrueTypeFont | undefined;
   readonly embeddedTrueType?: ParsedTrueTypeFont | undefined;
   readonly cidToGid?: Uint16Array | undefined;
   readonly storedCidToGid?: StoredCidMap | undefined;
@@ -196,6 +198,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
             }
         }
         let embeddedCff: EmbeddedCffFont | undefined;
+        let storedTrueType: StoredTrueTypeFont | undefined;
         let embeddedTrueType: ParsedTrueTypeFont | undefined;
         let simpleToGid: Map<number, number> | undefined;
         const fDescDirect = (yield* resolveDict(dictGet(fObj, "FontDescriptor")));
@@ -241,8 +244,27 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                     embeddedCff = parseEmbeddedCffFont((yield* decodeStream(program)), baseEncoding?.kind === "name" ? baseEncoding.decoded : undefined, glyphNames, allocationOptions);
                 }
                 else {
-                    embeddedTrueType = parseTrueTypeFont((yield* decodeStream(program)), allocationOptions);
-                    if (subtype !== "Type0" && embeddedTrueType.isSymbolicCmap) {
+                    const decoded = yield {kind:"decode",stream:program,purpose:"truetype"};
+                    if(decoded && "glyphSegments" in decoded) storedTrueType=decoded;
+                    else if(decoded instanceof Uint8Array) embeddedTrueType=parseTrueTypeFont(decoded,allocationOptions);
+                    else throw new TypeError("Font decoder did not return a TrueType font");
+                    if(storedTrueType && subtype!=="Type0" && (storedTrueType.isSymbolicCmap || !storedTrueType.hasCmap)) {
+                        simpleToGid=new Map();
+                        const encoding=baseEncoding?.kind==="name"?getEncoding(baseEncoding.decoded):undefined;
+                        for(let code=0;code<256;code++) {
+                            let result:FontResolutionResult;
+                            if(storedTrueType.isSymbolicCmap) {
+                                result=yield {kind:"truetype-map",font:storedTrueType,code:0xf000+code};
+                                if(result && "kind" in result && result.kind==="number" && result.value===0)result=yield {kind:"truetype-map",font:storedTrueType,code};
+                            } else {
+                                const name=glyphNames.get(code)||encoding?.[code];if(!name)continue;
+                                result=yield {kind:"truetype-map",font:storedTrueType,name};
+                            }
+                            if(!result || !("kind" in result) || result.kind!=="number")throw new TypeError("Expected TrueType glyph ID");
+                            if(result.value>0)simpleToGid.set(code,result.value);
+                        }
+                    }
+                    if (subtype !== "Type0" && embeddedTrueType?.isSymbolicCmap) {
                         // PDF.js maps Windows Symbol (3,0) entries by encoded byte,
                         // clearing the high byte only for the special F000–F0FF range.
                         simpleToGid = new Map();
@@ -252,7 +274,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                                 simpleToGid.set(code, gid);
                         }
                     }
-                    else if (subtype !== "Type0" && !embeddedTrueType.hasCmap) {
+                    else if (subtype !== "Type0" && embeddedTrueType && !embeddedTrueType.hasCmap) {
                         // PDF.js recovers missing mappings from BaseEncoding/Differences
                         // and post names. ToUnicode describes text, not glyph selection.
                         simpleToGid = new Map();
@@ -271,7 +293,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                 }
             }
         }
-        const standardOutlines = !embeddedTrueType && !embeddedCff && subtype !== "Type3" ? getStandardFontOutlines(baseFont, options.onAllocation ? allocationOptions : {}) : undefined;
+        const standardOutlines = !embeddedTrueType && !storedTrueType && !embeddedCff && subtype !== "Type3" ? getStandardFontOutlines(baseFont, options.onAllocation ? allocationOptions : {}) : undefined;
         for (const [code, unicode] of standardOutlines?.defaultUnicode ?? []) {
             if (!differences.has(code))
                 differences.set(code, unicode);
@@ -302,6 +324,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
             charProcs,
             fontResources,
             embeddedTrueType,
+            storedTrueType,
             cidToGid,
             storedCidToGid,
             simpleToGid,
@@ -318,7 +341,7 @@ export function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDi
   let step = steps.next();
   while (!step.done) {
     let value: FontResolutionResult;
-    try { value = step.value.kind === "resolve" ? doc.resolve(step.value.node) : doc.decodeStream(step.value.stream); }
+    try { if(step.value.kind==="truetype-map")throw new TypeError("Stored font requires asynchronous evaluation"); value = step.value.kind === "resolve" ? doc.resolve(step.value.node) : doc.decodeStream(step.value.stream); }
     catch (error) { step = steps.throw(error); continue; }
     step = steps.next(value);
   }

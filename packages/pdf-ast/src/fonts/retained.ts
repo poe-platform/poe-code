@@ -1,3 +1,5 @@
+import { parseStoredTrueTypeFont } from "./stored-truetype.js";
+import { cosNumber } from "../ast.js";
 import {parseStoredCMap} from "./stored-cmap.js";
 import {CosRangeLexer} from "../cos/lexer.js";
 import {parseCharacterCMapSteps,parseToUnicodeCMapSteps} from "./cmap.js";
@@ -18,8 +20,8 @@ export interface PdfRetainedFontOptions extends PdfFontAllocationOptions {
 }
 
 /** Resolve one font without loading the document or unrelated font programs.
- * Decoded font streams use caller storage until their intrinsic parser buffers
- * can be admitted. The caller owns the returned font and its allocation ledger. */
+ * TrueType programs and glyph scratch retain caller resource backing; CFF and
+ * Type 1 parser buffers are admitted separately. The caller owns font lifetime. */
 export async function resolveRetainedFont(document: PdfRetainedDocument, storage: PdfIndexStorage,
   resources: PdfCosDict | undefined, name: string, options: PdfRetainedFontOptions = {}): Promise<ResolvedPageFont | undefined> {
   const chunkBytes = options.chunkBytes ?? 65536;
@@ -47,6 +49,8 @@ export async function resolveRetainedFont(document: PdfRetainedDocument, storage
           const stream: PdfCosStream = { kind: "stream", dict: retained.value, rawBytes: new Uint8Array() };
           identities.set(stream, retained.reference); value = stream;
         }
+      } else if(step.value.kind==="truetype-map") {
+        value=cosNumber(step.value.name!==undefined?await step.value.font.findGlyphName(step.value.name):await step.value.font.getGlyphId(step.value.code!));
       } else {
         const reference = identities.get(step.value.stream);
         if (!reference) throw new PdfError("E_CAPABILITY", "Font stream is not backed by the retained document");
@@ -86,6 +90,12 @@ export async function resolveRetainedFont(document: PdfRetainedDocument, storage
             }
             finally{program.return(undefined as never);}
           }else{
+            if(step.value.purpose==="truetype" && options.resourceStorage){
+              const backing=options.resourceStorage,position=backing.allocate(staged.size);let offset=0;
+              for await(const bytes of staged.stream(0,staged.size,signal)){await backing.write(position+offset,bytes,signal?{signal}:undefined);offset+=bytes.length;}
+              const font=await parseStoredTrueTypeFont({storage:backing,position,byteLength:staged.size},{onAllocation:bytes=>allocation.admit(bytes),...(signal?{signal}:{})});
+              if(font){step=steps.next(font);continue;}
+            }
             allocation.admit(staged.size);
             value = new Uint8Array(staged.size);
             let offset = 0;

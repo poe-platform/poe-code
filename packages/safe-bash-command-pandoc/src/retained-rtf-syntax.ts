@@ -9,7 +9,7 @@ type Token = {offset: number} & (
   | {kind: "symbol"; name: string}
   | {kind: "hex"; byte: number}
   | {kind: "text"}
-  | {kind: "binary"}
+  | {kind: "binary"; length: number}
 );
 const kinds = ["group", "word", "symbol", "hex", "text", "binary"] as const;
 const letter = (byte: number) => byte >= 65 && byte <= 90 || byte >= 97 && byte <= 122;
@@ -41,12 +41,16 @@ export class RetainedRtfSyntax {
       await context.call(async () => {
         result.start = result.source.allocate(0);
         await context.consume("bytes" in input ? [input.bytes] : input.chunks, async chunk => {
-          if (Number.isFinite(context.limits.references)) {
+          if (Number.isFinite(context.limits.references) || Number.isFinite(context.limits.retainedBytes)) {
             const blocks = Math.ceil((result.length + chunk.length) / 4096) - Math.ceil(result.length / 4096);
-            for (let index = 0; index < blocks; index++) context.charge("references", 1);
+            for (let index = 0; index < blocks; index++) {
+              context.charge("retainedBytes", Math.min(4096, context.limits.inputBytes - (Math.ceil(result.length / 4096) + index) * 4096));
+              context.charge("references", 1);
+            }
           }
           await result.source.append(chunk); result.length += chunk.length;
         }, ["inputBytes"]);
+        context.charge("retainedBytes", result.length);
         onInputAcquired?.();
         await result.parse();
       });
@@ -76,7 +80,8 @@ export class RetainedRtfSyntax {
   async token(node: number): Promise<Token> {
     await this.context.cooperate();
     const fields = await this.fields(node), kind = kinds[fields[0]!]!, offset = fields[1]!;
-    if (kind === "group" || kind === "text" || kind === "binary") return {kind, offset};
+    if (kind === "binary") return {kind, offset, length: fields[3]!};
+    if (kind === "group" || kind === "text") return {kind, offset};
     if (kind === "hex") return {kind, offset, byte: fields[4]!};
     const bytes = await this.source.read(this.start + fields[2]!, fields[3]!);
     let name = ""; for (const byte of bytes) name += String.fromCharCode(byte);
@@ -111,7 +116,7 @@ export class RetainedRtfSyntax {
       return window[position - windowStart]!;
     };
     const add = async (kind: typeof kinds[number], offset: number, start = 0, length = 0, parameter = NaN): Promise<number> => {
-      context.charge("references", 1);
+      context.charge("references", 1); context.charge("retainedBytes", 64);
       const node = this.tape.allocate(72), parent = await this.fields(group);
       await this.put(node, [kinds.indexOf(kind), offset, start, length, parameter, group, 0, 0, 0]);
       if (parent[7]) await this.put(parent[7]! + 64, [node]); else await this.put(group + 48, [node]);

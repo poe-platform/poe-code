@@ -174,10 +174,11 @@ retain finite `references` limits through SDK and command. This includes support
 writer options, metadata, streamed JSON/Lua filters, templates/includes and image
 resource search/embedding. Input acquisition, decoding, parser edges, table spans,
 resource deduplication and output checks preserve native budget diagnostics.
-JSON/CSV/TSV → JSON/plain/HTML/RST/CommonMark/GFM/LaTeX/RTF/ODT also supports finite `retainedBytes` with LF/native/CRLF
-line endings and non-transforming options (JSON accepts one input). CSV/TSV retain
+JSON/RTF/CSV/TSV → JSON/plain/HTML/RST/CommonMark/GFM/LaTeX/RTF/ODT also supports finite `retainedBytes` with LF/native/CRLF
+line endings and non-transforming options (JSON/RTF accept one input). CSV/TSV retain
 multiple operands, ragged rows and literal cell text with native acquisition, decoder
-and cell-construction quota order. Plain output includes wrapping, indentation
+and cell-construction quota order. RTF retains token, font, run and picture quota
+charges, including binary picture payloads. Plain output includes wrapping, indentation
 and explicit raw-source policies. HTML supports standalone output, contents,
 numbering, ASCII escaping and source metadata. CommonMark includes wrapping and
 reference links; GFM includes nested cell and caption projections. LaTeX includes

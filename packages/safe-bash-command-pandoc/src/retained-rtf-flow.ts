@@ -30,7 +30,7 @@ export class RetainedRtfFlow {
     flow.cells = await ast.array(); flow.cellBlocks = await ast.array(); flow.empty = await ast.value(["", [], []]);
     return flow;
   }
-  async emit(text: string): Promise<void> {await this.ast.text.append(this.run, await this.ast.text.from([text]));}
+  async emit(text: string): Promise<void> {this.context.charge("retainedBytes", text.length * 2); await this.ast.text.append(this.run, await this.ast.text.from([text]));}
   noSurrogate(): void {if (this.high !== undefined) rtfError(this.context, "Unpaired RTF Unicode surrogate", "E_ENCODING");}
   async unicode(code: number): Promise<void> {
     this.context.charge("text", 1);
@@ -46,8 +46,10 @@ export class RetainedRtfFlow {
   async append(node: RtfValue): Promise<void> {
     const last = await this.ast.edge(this.inlines, true);
     if (last && await this.ast.name(last) === "Str" && await this.ast.name(node) === "Str") {
-      await this.ast.appendText((await this.ast.content(last))!, await this.ast.range((await this.ast.content(node))!));
-    } else {this.context.charge("references", 1); await this.ast.push(this.inlines, node);}
+      const left = (await this.ast.content(last))!, right = await this.ast.range((await this.ast.content(node))!);
+      this.context.charge("retainedBytes", ((await this.ast.range(left)).units + right.units) * 2);
+      await this.ast.appendText(left, right);
+    } else {this.context.charge("references", 1); this.context.charge("retainedBytes", 32); await this.ast.push(this.inlines, node);}
   }
   async flush(state: RtfState): Promise<void> {
     if (!this.run.units) return;

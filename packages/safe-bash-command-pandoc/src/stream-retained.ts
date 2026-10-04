@@ -88,7 +88,10 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       context.charge("references", (await document.tree.describe(blocks)).children + resourceCount);
       for (let index = 0, count = (await document.tree.describe(metadata)).children / 2; index < count; index++) context.charge("references", 1);
     }
-    if (Number.isFinite(context.limits.retainedBytes)) await reserveRetainedAstBudgets(document.tree, document.order, context, undefined, true);
+    if (Number.isFinite(context.limits.retainedBytes)) {
+      const usage = await reserveRetainedAstBudgets(document.tree, document.order, context, undefined, true);
+      await inputResources?.reserve(usage, true);
+    }
     let metadataChanged = false;
     for (const file of options.metadataFiles ?? []) {
       const next = await mergeRetainedMetadata(document, {source: file}, context, working);

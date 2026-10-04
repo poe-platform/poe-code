@@ -156,7 +156,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
         let record = await resourceSpans.get(identity);
         if (!record) {
           // Reader normalization already charged these owned resource bytes.
-          record = BigInt(await save(await acquire(supplied.chunks(), false)));
+          record = BigInt(await save(await acquire(supplied.chunks(), false, false, false)));
           await resourceSpans.set(identity, record);
         }
         await inputSpans.set(key, record); await inputIdentities.set(key, identity);

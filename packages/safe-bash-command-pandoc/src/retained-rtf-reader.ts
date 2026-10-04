@@ -259,7 +259,6 @@ class RetainedRtfReader {
     const position = this.storage.allocate(0), buffer = new Uint8Array(16384), prefix = new Uint8Array(8);
     let length = 0, used = 0, first = true;
     const byte = async (value: number) => {
-      this.context.bound("resourceBytes", length + 1);
       if (length < prefix.length) prefix[length] = value;
       length++; buffer[used++] = value;
       if (used === buffer.length) {await this.storage.append(buffer); used = 0;}
@@ -277,6 +276,8 @@ class RetainedRtfReader {
         else rtfError(this.context, `Unsupported RTF picture control ${token.name}`, "E_CAPABILITY", token.offset);
       } else if (token.kind === "binary") {
         if (nibble !== undefined) rtfError(this.context, "Binary picture follows incomplete hex byte");
+        this.context.bound("resourceBytes", length + token.length);
+        this.context.charge("retainedBytes", token.length * 8);
         for await (const chunk of this.syntax.chunks(node)) for (const value of chunk) {await byte(value); this.context.checkpoint(); if (length % 256 === 0) await this.context.cooperate(0);}
       } else if (token.kind === "text") {
         for await (const chunk of this.syntax.chunks(node)) for (const value of chunk) {
@@ -285,7 +286,7 @@ class RetainedRtfReader {
           const digit = hexDigit(value);
           if (digit < 0) rtfError(this.context, "Malformed RTF picture hex", "E_PARSE", token.offset);
           if (nibble === undefined) nibble = digit;
-          else {this.context.charge("binaryBytes", 1); await byte(nibble * 16 + digit); nibble = undefined;}
+          else {this.context.charge("binaryBytes", 1); this.context.bound("resourceBytes", length + 1); this.context.charge("retainedBytes", 8); await byte(nibble * 16 + digit); nibble = undefined;}
           if (length % 256 === 0) await this.context.cooperate(0);
         }
       } else rtfError(this.context, "Unsupported RTF picture data", "E_CAPABILITY", token.offset);
@@ -295,6 +296,7 @@ class RetainedRtfReader {
     if (width !== undefined && height !== undefined) this.context.bound("layoutWork", width * height);
     const signature = encoding === "png" ? [137, 80, 78, 71, 13, 10, 26, 10] : [255, 216];
     if (length < signature.length || !signature.every((value, index) => prefix[index] === value)) rtfError(this.context, "Invalid RTF picture signature");
+    this.context.charge("retainedBytes", length);
     if (used) await this.storage.append(buffer.subarray(0, used));
     const record = new Uint8Array(24), view = new DataView(record.buffer);
     [position, length, Number(encoding === "jpeg")].forEach((value, index) => view.setFloat64(index * 8, value, true));
@@ -303,18 +305,19 @@ class RetainedRtfReader {
     await this.flow.append(await this.ast.tag("Image", await this.ast.value([["", [], []], [], [id, ""]])));
   }
   /** Match document-normalization charges using backed lengths, without reading payloads. */
-  async reserveResources(usage?: RetainedAstUsage): Promise<void> {
+  async reserveResources(usage?: RetainedAstUsage, aggregate = false): Promise<void> {
     let total = 0, nodes = usage?.nodes, text = usage?.text;
     const node = (path: string, count = 1, reserve = true) => {
       if (nodes === undefined) return;
       if (nodes + count > this.context.limits.nodes) throw new PandocError("E_LIMIT", "convert", `${path}: AST budget exceeded`, undefined, path);
-      if (reserve) {nodes += count; this.context.charge("nodes", count);}
+      if (reserve) {nodes += count; if (!aggregate) this.context.charge("nodes", count);}
     };
     const string = (path: string, length: number) => {
       if (text === undefined) return;
       text += length;
       if (text > this.context.limits.text) throw new PandocError("E_LIMIT", "convert", `${path}: AST budget exceeded`, undefined, path);
-      this.context.charge("text", length);
+      if (!aggregate) this.context.charge("text", length);
+      this.context.charge("retainedBytes", length * 2);
     };
     node("$.resources", this.pictureCount, false);
     for (let index = 1; index <= this.pictureCount; index++) {
@@ -330,8 +333,9 @@ class RetainedRtfReader {
         const path = `$.resources[${index - 1}].bytes`;
         throw new PandocError("E_LIMIT", "convert", `${path}: AST budget exceeded`, undefined, path);
       }
-      this.context.charge("resourceBytes", length);
-      this.context.charge("resources", 1);
+      if (!aggregate) this.context.charge("resourceBytes", length);
+      this.context.charge("retainedBytes", length);
+      if (!aggregate) this.context.charge("resources", 1);
       await this.context.cooperate();
     }
   }

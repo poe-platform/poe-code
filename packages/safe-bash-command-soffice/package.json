@@ -37,7 +37,8 @@
   "devDependencies": {
     "@poe-code/pdf-ast": "*",
     "safe-bash-contracts": "*",
-    "@poe-code/safe-fs": "*"
+    "@poe-code/safe-fs": "*",
+    "@poe-code/image-ast": "*"
   },
   "sideEffects": false
 }

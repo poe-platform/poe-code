@@ -49,11 +49,11 @@ shares the command's file authority, budgets and output lifecycle. Plain-text, R
 then streams UTF-8 output with backpressure. It admits cumulative input/output limits
 before publishing stdout and cleans up backing on cancellation or sink failure.
 Plain-text and Markdown HTML/DOCX/PDF output, Markdown-to-text, plain-text copies, and
-RTF-to-text/HTML/DOCX/PDF and OpenDocument-to-text/HTML/DOCX/PDF conversion, plus DOCX-to-text/HTML/DOCX, XLSX/CSV-to-text/HTML/DOCX/PDF/CSV/XLSX and plain-text/Markdown-to-CSV/XLSX, also retain intermediates in caller
+RTF-to-text/HTML/DOCX/PDF and OpenDocument-to-text/HTML/DOCX/PDF conversion, plus DOCX-to-text/HTML/DOCX/PDF, XLSX/CSV-to-text/HTML/DOCX/PDF/CSV/XLSX and plain-text/Markdown-to-CSV/XLSX, also retain intermediates in caller
 storage and publish output through guarded staging. Existing file identity, hard links,
 symlinks and permissions are preserved. Later input operands can reuse earlier generated
 outputs. Text PDF conversion retains word wrapping and page content in caller storage,
-including page-range and PDF-version filters. Large inputs require an external safe-fs backend; other conversion routes and
+including page-range and PDF-version filters. DOCX PDF images keep encoded media and decoded PNG pixels in caller storage, preserving JPEG colors and PNG transparency. Large inputs require an external safe-fs backend; other conversion routes and
 filesystems without the required retained capabilities still use buffered adapters.
 
 For direct TypeScript conversion, use `await runSofficeCli(args, files, cwd,

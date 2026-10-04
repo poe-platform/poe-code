@@ -1,5 +1,6 @@
+import { retainPdfImage } from "./retained-pdf-image.js";
 import { resolvePath } from "@poe-code/safe-fs/core";
-import { cosArray, cosDict, cosName, cosNumber, cosRef, cosString, encodeWinAnsiBytes, serializeCosNodeBytes, serializeRetainedCosDocumentChunks, type PdfRetainedOutputObject, type PdfSerializedOutputObject } from "@poe-code/pdf-ast";
+import { cosDict, cosName, cosNumber, cosRef, cosString, encodeWinAnsiBytes, serializeCosNodeBytes, serializeRetainedCosDocumentChunks, type PdfRetainedOutputObject, type PdfSerializedOutputObject } from "@poe-code/pdf-ast";
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import type { RetainedTextBlocks, RetainedTextSnapshot } from "./retained-blocks.js";
@@ -35,14 +36,29 @@ async function* readChain(storage: PagedStorage, first: number, signal: AbortSig
 export async function retainTextPdf(storage: PagedStorage, text: RetainedTextBlocks, snapshot: RetainedTextSnapshot,
   title: string, context: RetainedSofficeContext, filterOptions?: string): Promise<{ size: number; read(): AsyncGenerator<Uint8Array> }> {
   const { signal } = context, encoder = new TextEncoder(), words = new IntegerTable(storage), pages = new IntegerTable(storage);
+  const images = new IntegerTable(storage), pageImages = new IntegerTable(storage);
+  let imageCount = 0, pageImageFirst = 0;
   let page = new ByteChain(storage, signal), pageCount = 0, y = 720;
   const append = (value: string) => page.append(encoder.encode(value));
   const finishPage = async () => {
+    await pageImages.set(BigInt(pageCount * 2), BigInt(pageImageFirst)); await pageImages.set(BigInt(pageCount * 2 + 1), BigInt(imageCount - pageImageFirst)); pageImageFirst = imageCount;
     await pages.set(BigInt(pageCount * 2), BigInt(page.first)); await pages.set(BigInt(pageCount * 2 + 1), BigInt(page.size)); pageCount++;
     page = new ByteChain(storage, signal); y = 720;
   };
   for (let block = 0; block < snapshot.count; block++) {
     signal.throwIfAborted();
+    const image = await text.image?.(snapshot, block);
+    if (image) {
+      const retained = await retainPdfImage(storage, image, signal);
+      if (retained) {
+        if (y - (image.height + 12) < 54) await finishPage();
+        const values = [retained.width, retained.height, retained.components, Number(retained.jpeg), retained.position, retained.size, retained.alpha];
+        for (const [offset, value] of values.entries()) await images.set(BigInt(imageCount * 7 + offset), BigInt(value));
+        await append(`q\n${image.width} 0 0 ${image.height} 54 ${y - image.height} cm\n/Image${imageCount} Do\nQ\n`);
+        imageCount++; y -= image.height + 12;
+      }
+      continue;
+    }
     const table = await text.table?.(snapshot, block);
     if (table) {
       const width = 504 / table.columns;
@@ -149,8 +165,25 @@ export async function retainTextPdf(storage: PagedStorage, text: RetainedTextBlo
     yield object(3, cosDict({ Producer: cosString("@poe-code/pdf-ast"), ...(!copied ? { Title: cosString(title), Creator: cosString("LibreOffice 24.8 (@poe-code/pdf-ast)") } : {}) }));
     for (const [index, name] of ["Helvetica", "Helvetica-Bold"].entries()) yield object(4 + index, cosDict({ Type: cosName("Font"), Subtype: cosName("Type1"), BaseFont: cosName(name), Encoding: cosName("WinAnsiEncoding") }));
     for (let index = 0; index < outputPages; index++) {
-      yield object(6 + index * 2, cosDict({ Type: cosName("Page"), Parent: cosRef(2), MediaBox: cosArray([0, 0, 612, 792].map(value => cosNumber(value))), Resources: cosDict({ Font: cosDict({ Body: cosRef(4), Heading: cosRef(5) }) }), Contents: cosRef(7 + index * 2) }));
+      const first = Number(await pageImages.get(BigInt((firstPage + index) * 2))), count = Number(await pageImages.get(BigInt((firstPage + index) * 2 + 1)));
+      async function* pageBody() {
+        yield encoder.encode(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /Body 4 0 R /Heading 5 0 R >> /XObject << `);
+        for (let image = first; image < first + count; image++) yield encoder.encode(`/Image${image} ${6 + outputPages * 2 + image * 2} 0 R `);
+        yield encoder.encode(`>> >> /Contents ${7 + index * 2} 0 R >>`);
+      }
+      let length = 0; for await (const bytes of pageBody()) length += bytes.length;
+      yield {objectNumber: 6 + index * 2, generationNumber: 0, body: {length, chunks: pageBody()}};
       yield { ...object(7 + index * 2, cosDict({})), stream: { length: Number(await pages.get(BigInt((firstPage + index) * 2 + 1))), chunks: readChain(storage, Number(await pages.get(BigInt((firstPage + index) * 2))), signal) } };
+    }
+    async function* read(position: number, size: number) {
+      for (let offset = 0; offset < size; offset += 16384) { signal.throwIfAborted(); yield new Uint8Array(await storage.read(position + offset, Math.min(16384, size - offset))); }
+    }
+    for (let index = 0; index < imageCount; index++) {
+      const get = async (offset: number) => Number(await images.get(BigInt(index * 7 + offset)));
+      const width = await get(0), height = await get(1), components = await get(2), jpeg = await get(3), position = await get(4), size = await get(5), alpha = await get(6), number = 6 + outputPages * 2 + index * 2;
+      const common = {Type: cosName("XObject"), Subtype: cosName("Image"), Width: cosNumber(width), Height: cosNumber(height), BitsPerComponent: cosNumber(8)};
+      yield {...object(number, cosDict({...common, ColorSpace: cosName(components === 1 ? "DeviceGray" : components === 4 ? "DeviceCMYK" : "DeviceRGB"), ...(jpeg ? {Filter: cosName("DCTDecode")} : {}), ...(alpha ? {SMask: cosRef(number + 1)} : {})})), stream: {length: size, chunks: read(position, size)}};
+      if (alpha) yield {...object(number + 1, cosDict({...common, ColorSpace: cosName("DeviceGray")})), stream: {length: width * height, chunks: read(alpha, width * height)}};
     }
   }
   const output = new ByteChain(storage, signal);

@@ -1,5 +1,5 @@
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
-import type { RetainedTextSnapshot, RetainedTextBlocks, RetainedTable } from "./retained-blocks.js";
+import type { RetainedTextSnapshot, RetainedTextBlocks, RetainedTable, RetainedImage } from "./retained-blocks.js";
 import type { SofficeSnapshot } from "./retained-input.js";
 
 /** Document structure contains only scalar handles into the caller's backing. */
@@ -19,6 +19,17 @@ export class RetainedOfficeBlocks implements RetainedTextBlocks {
   snapshot(): RetainedTextSnapshot { return { firstPage: 0, firstBlock: 0, count: this.count }; }
   async paragraph(span: SofficeSnapshot, heading: boolean): Promise<void> {
     await this.record(heading ? 1 : 0, span.position, span.size, 0);
+  }
+  async addImage(span: SofficeSnapshot, width: number, height: number): Promise<void> {
+    const pointer = this.storage.allocate(32), bytes = new Uint8Array(32), view = new DataView(bytes.buffer);
+    for (const [index, value] of [span.position, span.size, width, height].entries()) view.setFloat64(index * 8, value);
+    await this.storage.write(pointer, bytes); await this.record(3, pointer, 0, 0);
+  }
+  async image(snapshot: RetainedTextSnapshot, index: number): Promise<RetainedImage | undefined> {
+    const block = (snapshot.firstBlock + index) * 4;
+    if (await this.blocks.get(BigInt(block)) !== 3n) return undefined;
+    const bytes = await this.storage.read(Number(await this.blocks.get(BigInt(block + 1))), 32), view = new DataView(bytes.buffer, bytes.byteOffset, 32);
+    return {position: view.getFloat64(0), size: view.getFloat64(8), width: view.getFloat64(16), height: view.getFloat64(24)};
   }
   beginTable(): void { this.tableFirst = this.rowCount; this.columns = 0; }
   async cell(span: SofficeSnapshot): Promise<void> {

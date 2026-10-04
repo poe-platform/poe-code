@@ -1,3 +1,4 @@
+import type { RetainedOfficeBlocks } from "./retained-office-blocks.js";
 import { retainLower } from "./retained-lower.js";
 import { escapeHtmlText } from "./html.js";
 import { docxDocumentPrefix, docxDocumentSuffix } from "./docx-parts.js";
@@ -125,7 +126,7 @@ class SpanMap {
 }
 
 /** DOCX text extraction retains archive names, relationships, tokens and output. */
-export async function retainDocxText(storage: PagedStorage, source: SofficeSnapshot, context: RetainedSofficeContext, separator = "\n", markup?: { readonly format: "html" | "docx"; readonly title: string }): Promise<SofficeSnapshot> {
+export async function retainDocxText(storage: PagedStorage, source: SofficeSnapshot, context: RetainedSofficeContext, separator = "\n", markup?: { readonly format: "html" | "docx"; readonly title: string }, documentBlocks?: RetainedOfficeBlocks): Promise<SofficeSnapshot> {
   const { signal } = context, encoder = new TextEncoder(), names = new SpanMap(storage, signal), relationships = new SpanMap(storage, signal);
   const retain = async (source: AsyncIterable<Uint8Array>): Promise<SofficeSnapshot> => {
     const position = storage.allocate(0); let size = 0;
@@ -153,17 +154,17 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
   const codec = createZipCodec(), limits = resolveOfficeResources({ archiveLimits: { chunkSize: 16384 } }).archiveLimits;
   await codec.readZipArchive({ size: source.size, read: (offset, maximum) => storage.read(source.position + offset, Math.min(16384, maximum, source.size - offset)) }, limits, signal, {
     storage, async onEntry(entry) {
-      const selected = entry.name === "word/document.xml" || entry.name === "word/_rels/document.xml.rels" || !!markup && entry.name === "word/styles.xml";
+      const selected = !!documentBlocks || entry.name === "word/document.xml" || entry.name === "word/_rels/document.xml.rels" || !!markup && entry.name === "word/styles.xml";
       const position = storage.allocate(0); let size = 0;
       for await (const bytes of codec.decodeZipEntry(entry, limits, signal)) if (selected) { await storage.append(bytes); size += bytes.length; }
       const span = { position, size };
       if (entry.name === "word/document.xml") document = span;
       if (entry.name === "word/styles.xml") styles = span;
       if (entry.name === "word/_rels/document.xml.rels") rels = span;
-      await names.set(await literal(entry.name), { position: 0, size: 0 });
+      await names.set(await literal(entry.name), span);
     }
   });
-  if (!document && !markup) return { position: 0, size: 0 };
+  if (!document && !markup && !documentBlocks) return { position: 0, size: 0 };
   if (rels && document) {
     const xml = await open(rels);
     let failed = true;
@@ -198,6 +199,7 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
     })());
   };
   const addBlock = async (span: SofficeSnapshot, heading = false, image = false) => {
+    if (documentBlocks) { if (!image) await documentBlocks.paragraph(span, heading); return; }
     if (!markup) { if (blocks++) await output.add(gap); await output.add(span); return; }
     if (html && image) return;
     await output.add(await literal(html ? heading ? "<h1>" : "<p>" : "<w:p>" + (heading ? '<w:pPr><w:pStyle w:val="Heading1"/></w:pPr>' : "") + "<w:r><w:t>"));
@@ -246,7 +248,7 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
   };
   let failed = true;
   try {
-    if (markup && document && styles) {
+    if ((markup || documentBlocks) && document && styles) {
       const owner = await open(styles); let styleFailed = true;
       try {
         for await (const style of owner.elements(0, owner.count, ["style"])) {
@@ -263,7 +265,7 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
       } finally { await owner.xml.close().catch(error => { if (!styleFailed) throw error; }); }
     }
     const heading = async (block: Element) => {
-      if (!markup) return false;
+      if (!markup && !documentBlocks) return false;
       const style = await attributeIn(xml, block, "pstyle", true);
       if (style) {
         const key = await retainLower(storage, xml.xml.read(style), signal), kind = await classify(key);
@@ -275,10 +277,11 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
     for await (const block of xml.elements(0, xml.count, ["p", "tbl"])) {
       if (await xml.name(block.name) === "tbl") {
         const table = new RetainedSpans(storage, signal); let rows = 0;
+        documentBlocks?.beginTable();
         for await (const row of xml.elements(block.open + 1, block.end, ["tr"])) {
           let cells = 0;
           for await (const cell of xml.elements(row.open + 1, row.end, ["tc"])) {
-            if (markup) {
+            if (documentBlocks) { await documentBlocks.cell(await text(cell)); cells++; } else if (markup) {
               if (!cells) {
                 if (!rows) await table.add(await literal(html ? "<table>\n" : "<w:tbl>"));
                 rows++; await table.add(await literal(html ? "  <tr>" : "<w:tr>"));
@@ -291,8 +294,10 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
               await table.add(await text(cell));
             }
           }
+          if (documentBlocks) await documentBlocks.endRow();
           if (markup && cells) await table.add(await literal(html ? "</tr>\n" : "</w:tr>"));
         }
+        if (documentBlocks) await documentBlocks.endTable();
         if (rows) {
           if (markup) { await table.add(await literal(html ? "</table>\n" : "</w:tbl>")); await output.add(await table.finish()); }
           else await addBlock(await table.finish());
@@ -309,7 +314,21 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
               if (reference) break;
             }
           }
-          if (reference) { const target = await relationships.get(await retain(xml.xml.read(reference))); if (target && await names.get(target)) await addBlock({ position: 0, size: 0 }, false, true); }
+          if (reference) {
+            const target = await relationships.get(await retain(xml.xml.read(reference))), media = target ? await names.get(target) : undefined;
+            if (media && documentBlocks) {
+              let width = 432, height = 226.8;
+              for await (const extent of xml.elements(drawing.open + 1, drawing.end, ["extent", "ext"], true, true)) {
+                const cx = await xml.attribute(extent, "cx"), cy = await xml.attribute(extent, "cy");
+                if (!cx?.length || !cy?.length) continue;
+                const number = async (range: XmlRange) => { let value = 0; for await (const bytes of xml.xml.read(range)) for (const byte of bytes) { if (byte < 48 || byte > 57) return undefined; value = value * 10 + byte - 48; } return value; };
+                const x = await number(cx), y = await number(cy); if (x === undefined || y === undefined) continue;
+                width = Math.max(24, x / 12700); height = Math.max(24, y / 12700); break;
+              }
+              if (width > 504) { height *= 504 / width; width = 504; }
+              await documentBlocks.addImage(media, width, height);
+            } else if (media) await addBlock({ position: 0, size: 0 }, false, true);
+          }
         }
       }
     }

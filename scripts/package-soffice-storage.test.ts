@@ -190,12 +190,12 @@ it("packs the retained Soffice file SDK with canonical filesystem types and no p
     const bytes = await fs.readFile("/input." + format);
     expect(new TextDecoder().decode(format === "xlsx" ? readZipArchiveEntries(bytes).get("xl/worksheets/sheet1.xml") : bytes)).toContain("Packed document");
   }
-  for (const format of ["html", "docx"]) {
+  for (const format of ["html", "docx", "pdf"]) {
     const converted = await runSofficeFileCli(["--convert-to", format, "/input.docx"], {filesystem,
       stdout: {async write() {}}, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
     expect(converted.exitCode).toBe(0);
     const bytes = await fs.readFile("/input." + format);
-    expect(new TextDecoder().decode(format === "docx" ? readZipArchiveEntries(bytes).get("word/document.xml") : bytes)).toContain("Packed document");
+    expect(new TextDecoder().decode(format === "docx" ? readZipArchiveEntries(bytes).get("word/document.xml") : bytes)).toContain(format === "pdf" ? "%PDF-1.7" : "Packed document");
   }
   let docxText = "";
   const docxCat = await runSofficeFileCli(["--cat", "/input.docx"], {filesystem,

@@ -40,6 +40,10 @@ exporters. Formula/name identity maps, decoded expressions and individual array/
 values, final workbook metadata/styles, stream names and interpreted property/encryption
 payloads still remain resident; this
 does not yet provide bounded memory for the complete conversion.
+BIFF7/8/DSF exports emit the CFB container in chunks of at most 16 KiB,
+with allocation tables generated from stream extents and consumer backpressure.
+BIFF record streams, workbook/style/string registries and encryption/property
+payloads are still buffered before container emission.
 Worksheet password verifiers survive BIFF7/8 conversion and edits through
 `view.protectedPasswordHash`, an integer from 0 to 65535; zero clears the verifier.
 This retains the legacy protection hash, without verifying passwords or encrypting

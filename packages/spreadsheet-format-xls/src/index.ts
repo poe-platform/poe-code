@@ -47,6 +47,7 @@ export const xlsFormat: FormatProvider = {
     {
       "id": "excel_biff8",
       write: async (...args) => (await import("./biff.js")).createBiffWriter(8)(...args),
+      writeStream: async function* (...args) { yield* (await import("./biff.js")).createBiffStreamWriter(8)(...args); },
       labelRanges: true,
       exportOptionRules: { encryption: { kind: "enum", values: biffEncryptionValues } },
       "direction": "write",
@@ -63,6 +64,7 @@ export const xlsFormat: FormatProvider = {
     {
       "id": "excel_biff7",
       write: async (...args) => (await import("./biff.js")).createBiffWriter(7)(...args),
+      writeStream: async function* (...args) { yield* (await import("./biff.js")).createBiffStreamWriter(7)(...args); },
       labelRanges: true,
       exportOptionRules: { encryption: { kind: "enum", values: biffLegacyEncryptionOptions } },
       "direction": "write",
@@ -78,6 +80,7 @@ export const xlsFormat: FormatProvider = {
     {
       "id": "excel_dsf",
       write: async (...args) => (await import("./biff.js")).createBiffWriter("dsf")(...args),
+      writeStream: async function* (...args) { yield* (await import("./biff.js")).createBiffStreamWriter("dsf")(...args); },
       labelRanges: true,
       exportOptionRules: { encryption: { kind: "enum", values: biffLegacyEncryptionOptions } },
       "direction": "write",

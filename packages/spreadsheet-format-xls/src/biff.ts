@@ -23,7 +23,7 @@ import { readBiffLabelRanges } from "./biff-label-ranges.js";
 import { BiffNameBindings } from "./biff-name-bindings.js";
 import { biffOpcodes } from "./biff-source.js";
 import { biffNode as node, biffMetadataOpcodes, readBiffMetadata, readBiffMetadataSource } from "./biff-metadata.js";
-import { writeCfb } from "./biff-write-binary.js";
+import { writeCfbSource } from "./cfb-write-source.js";
 import { writeBiffStream } from "./biff-write.js";
 import { readBiffProperties, biffPropertyFormats } from "./biff-properties.js";
 import { writeBiffProperties } from "./biff-properties-write.js";
@@ -31,7 +31,18 @@ import { appendBiffAncillaryStreams } from "./biff-encrypted-properties-write.js
 import type { Codec } from "@poe-code/spreadsheet-engine/codecs/types";
 
 export function createBiffWriter(profile: 7 | 8 | "dsf"): NonNullable<Codec["write"]> {
+  const stream = createBiffStreamWriter(profile);
   return async (book, options, context) => {
+    const parts: Uint8Array[] = []; let length = 0;
+    for await (const part of stream(book, options, context)) { parts.push(part); length += part.length; }
+    const bytes = new Uint8Array(length); let at = 0;
+    for (const part of parts) { bytes.set(part, at); at += part.length; }
+    return bytes;
+  };
+}
+
+export function createBiffStreamWriter(profile: 7 | 8 | "dsf"): NonNullable<Codec["writeStream"]> {
+  return async function* (book, options, context) {
     context.signal.throwIfAborted();
     let encrypted: BiffEncryptionProfile | undefined;
     for (const text of options) for (const [key, value] of exportOptionPairs(text)) if (key === "encryption") {
@@ -64,7 +75,9 @@ export function createBiffWriter(profile: 7 | 8 | "dsf"): NonNullable<Codec["wri
         for (let i = 0; i < 16; i++) placeholder[28 + i] = parseInt(biffPropertyFormats.document.slice(i * 2, i * 2 + 2), 16);
         streams.set("\u0005DocumentSummaryInformation", placeholder);
       } else for (const [name, bytes] of propertyStreams) streams.set(name, bytes);
-      return writeCfb(streams, context);
+      yield* writeCfbSource(new Map([...streams].map(([name, bytes]) => [name, {
+        size: bytes.length, async read(at: number, count: number) { return bytes.subarray(at, at + count); }
+      }])), context);
     } finally {
       if (encrypted) {
         for (const stream of streams.values()) stream.fill(0);

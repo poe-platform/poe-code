@@ -149,6 +149,22 @@ all 2 slide, 27 part and 83 object records, including Unicode, groups and notes.
 This is record admission only: it does not replace full inventory/style inspection
 or wire the remaining shipped operations to retained selection yet.
 
+`openRetainedPackageInventory` now admits package-level metadata into caller
+storage: sorted parts/media with streamed hashes, ordered relationships, distinct
+master/layout/theme targets, and unsupported diagnostics. Arbitrary MIME values,
+relationship IDs and targets remain replayable streams. A stable external merge
+sort stores UTF-16 ordering keys and list links in the same bounded page cache;
+readers cannot observe an unfinished or failed sort. Metadata indexes retire the
+temporary relationship/content-type stores before returning.
+
+Parity tests cover exact buffered metadata ordering and values, Unicode ordering,
+long shared-prefix keys, reused source buffers, actual spill writes capped at
+16 KiB, slow consumers, cancellation and source/storage failure cleanup. Independent
+python-pptx verification matched sizes and SHA-256 hashes for all 25 parts in a
+two-slide deck with an embedded chart workbook. This is package metadata only:
+slide inheritance/visibility, handout references, diagrams and text styles still
+need retained inventory admission, followed by shipped-operation integration.
+
 ## Remaining implementation
 
 1. Carry caller-owned retained/range sources, explicit spill-storage authorization,

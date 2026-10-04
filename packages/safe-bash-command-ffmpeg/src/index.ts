@@ -200,7 +200,8 @@ function* lavfiSteps(
     const freq = parseFloat(kv.frequency ?? kv.f ?? "440") || 440;
     const duration =
       durationOverride ?? (parseFloat(kv.duration ?? kv.d ?? "1") || 1);
-    const channels = (kv.channel_layout ?? kv.cl) === "mono" ? 1 : 2;
+    const layout = kv.channel_layout ?? kv.cl;
+    const channels = layout === "mono" || layout === undefined && filterName === "sine" ? 1 : 2;
     const totalSamples = Math.max(1024, Math.round(duration * sampleRate));
     budget.checkDuration(duration);
 

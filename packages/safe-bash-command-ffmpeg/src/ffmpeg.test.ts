@@ -665,3 +665,14 @@ it("escapes tag separators, quotes and newlines like native ffprobe", async () =
     assert.equal(result.stdout, output, format);
   }
 });
+
+it("matches native sine mono and anullsrc stereo channel defaults", async () => {
+  for (const [source, channels] of [["sine", 1], ["anullsrc", 2]] as const) {
+    const vfs = createTestVfs();
+    const result = await runCmd(createFfmpegCommand(), ["-f", "lavfi", "-i", `${source}=sample_rate=16000:duration=0.01`, "/tone.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const track = parseWav(vfs.store.get("/tone.wav")!).tracks[0]!;
+    assert.equal(track.codecDescriptions[0]!.channels, channels);
+    assert.equal(track.codecDescriptions[0]!.sampleRate, 16000);
+  }
+});

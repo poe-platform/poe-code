@@ -111,7 +111,7 @@ it.each([['8000', 128 / 255], ['0000', 0], ['00ff', 0]])("applies native alpha %
   const rectangle = vi.spyOn(PDFPage.prototype, "drawRectangle");
   try {
     const {pdf, runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve}}));
-    expect(runs.map(run => run.text)).toEqual(["alpha", "opaque"]);
+    expect(runs.map(run => run.text)).toEqual(opacity === 0 ? ["opaque"] : ["alpha", "opaque"]);
     expect(rectangle).toHaveBeenCalledWith(expect.objectContaining({color: rgb(0, 0, 1), opacity}));
     const page = pdf.getPage(0), resources = page.node.Resources()!.lookup(PDFName.of("ExtGState"), PDFDict);
     expect(resources.entries().map(([,ref]) => pdf.context.lookup(ref, PDFDict).lookup(PDFName.of("ca"), PDFNumber).asNumber())).toContain(opacity);
@@ -120,12 +120,15 @@ it.each([['8000', 128 / 255], ['0000', 0], ['00ff', 0]])("applies native alpha %
     const textPrefixes = operations.split("BT");
     const firstPrefix = textPrefixes[0]!.slice(textPrefixes[0]!.lastIndexOf("\nq\n"));
     const alphaOperator = firstPrefix.split("\n").find(line => line.endsWith(" gs"))!;
-    expect(alphaOperator).toBeDefined();
-    const selected = resources.lookup(PDFName.of(alphaOperator.split(" ")[0]!.slice(1)), PDFDict);
-    expect(selected.lookup(PDFName.of("ca"), PDFNumber).asNumber()).toBe(opacity);
+    if (opacity === 0) expect(alphaOperator).toBeUndefined();
+    else {
+      expect(alphaOperator).toBeDefined();
+      const selected = resources.lookup(PDFName.of(alphaOperator.split(" ")[0]!.slice(1)), PDFDict);
+      expect(selected.lookup(PDFName.of("ca"), PDFNumber).asNumber()).toBe(opacity);
+    }
     expect(textPrefixes[1]!.slice(textPrefixes[1]!.lastIndexOf("\nq\n"))).not.toContain(" gs");
     const textStates = operations.split("BT").slice(1).map(part => part.slice(part.indexOf("ET") + 2).trimStart().startsWith("EMC\nQ"));
-    expect(textStates).toEqual([true, true]);
+    expect(textStates).toEqual(opacity === 0 ? [true] : [true, true]);
   } finally {rectangle.mockRestore();}
 });
 
@@ -385,7 +388,7 @@ it.each([['8000', 128 / 255], ['0000', 0], ['00ff', 0]])("applies foreground alp
   const fill = attributes.replace('HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"');
   const book = await fixture([{text: "a&#13;b", attributes: fill.replace('Fore="0:0:0"', `Fore="FFFF:0:0:${alpha}"`)}, {text: "a&#13;b", attributes: fill}]);
   const {pdf} = await pdfText(await writePdf(book, [], {...context, fonts: {async resolve() {return suppliedDefaultFont().bytes;}}}));
-  const page = pdf.getPage(0), resources = page.node.Resources()!.lookup(PDFName.of("ExtGState"), PDFDict);
+  const page = pdf.getPage(0), resources = page.node.Resources()!.lookup(PDFName.of("ExtGState"));
   const content = (page.node.Contents() as PDFArray).asArray().map(ref => new TextDecoder().decode(decodePDFRawStream(pdf.context.lookup(ref) as PDFRawStream).decode())).join("\n");
   let strokeAlpha = 1;
   const stack: number[] = [], strokes: number[] = [];
@@ -393,13 +396,30 @@ it.each([['8000', 128 / 255], ['0000', 0], ['00ff', 0]])("applies foreground alp
     if (line === "q") stack.push(strokeAlpha);
     else if (line === "Q") strokeAlpha = stack.pop()!;
     else if (line.endsWith(" gs")) {
-      const state = resources.lookup(PDFName.of(line.split(" ")[0]!.slice(1)), PDFDict);
+      expect(resources).toBeInstanceOf(PDFDict);
+      const state = (resources as PDFDict).lookup(PDFName.of(line.split(" ")[0]!.slice(1)), PDFDict);
       const alpha = state.lookup(PDFName.of("CA"));
       if (alpha instanceof PDFNumber) strokeAlpha = alpha.asNumber();
     } else if (line === "S") strokes.push(strokeAlpha);
   }
   expect(strokes.length).toBeGreaterThan(0);
-  expect(strokes.length % 2).toBe(0);
-  expect(strokes.slice(0, strokes.length / 2)).toEqual(Array(strokes.length / 2).fill(opacity));
-  expect(strokes.slice(strokes.length / 2)).toEqual(Array(strokes.length / 2).fill(1));
+  if (opacity === 0) expect(strokes).toEqual(Array(strokes.length).fill(1));
+  else {
+    expect(strokes.length % 2).toBe(0);
+    expect(strokes.slice(0, strokes.length / 2)).toEqual(Array(strokes.length / 2).fill(opacity));
+    expect(strokes.slice(strokes.length / 2)).toEqual(Array(strokes.length / 2).fill(1));
+  }
+});
+it.each([
+  ["ordinary", "invisible", "GNM_HALIGN_GENERAL", "0"],
+  ["rotated", "invisible", "GNM_HALIGN_GENERAL", "45"],
+  ["control boxes", "a&#13;b", "GNM_HALIGN_FILL", "0"],
+  ["return markers", "a\u2028b", "GNM_HALIGN_FILL", "45"]
+])("omits fully transparent %s from extracted PDF text while preserving workbook data", async (_label, text, alignment, rotation) => {
+  const invisible = attributes.replace('Fore="0:0:0"', 'Fore="FFFF:0:0:0000"').replace('HAlign="GNM_HALIGN_GENERAL"', `HAlign="${alignment}"`).replace('Rotation="0"', `Rotation="${rotation}"`);
+  const book = await fixture([{text, attributes: invisible}, {text: "visible"}]);
+  const before = structuredClone(book);
+  const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {async resolve() {return suppliedDefaultFont().bytes;}}}));
+  expect(runs.map(run => run.text)).toEqual(["visible"]);
+  expect(book).toEqual(before);
 });

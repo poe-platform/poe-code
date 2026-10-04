@@ -470,6 +470,9 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         Math.floor(verticalSpace / printDisplayScale * 1024 / (lines.length - 1)) / 1024 * printDisplayScale : 0;
       const rotated = fillLayout?.origins ?? (rotation ? rotatedPrintLayout({angle: rotation, ...(wraps ? {layoutWidth: wrapWidth} : {}), widths: lines.map(line => line.width), ascent, lineHeight,
         width: cellBox.width, height: cellBox.height, indent, bordered, alignment, vertical: cellBox.style.verticalAlignment}, tick).origins : undefined);
+      // Cairo emits no paint or extractable glyphs at zero foreground alpha.
+      // Keep the layout calculations above so spans and neighboring cells agree.
+      if (cellBox.style.foregroundAlpha === 0) return;
       const blockX = x, firstBaseline = baseline;
       const resource = page.node.newFontDictionary(font.name, font.ref);
       // Positioned marks can be reordered by text extractors; retain the logical cell string.

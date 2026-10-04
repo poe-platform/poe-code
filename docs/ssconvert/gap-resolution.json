@@ -6052,5 +6052,11 @@
     "implementation": "Apply cell foreground alpha to PDF stroke state as well as fill state,so CR-box outlines match the digits and cell opacity. Existing graphics-state scopes restore opaque neighboring cells.",
     "validation": "Three memory regressions reproduced incorrect opaque outlines for partial and zero alpha.458 PDF tests,selected build and command lint/source/test/public-consumer types pass.12 native inputs produce48 SDK/command XML/PDF outputs;24 effective fill/stroke-alpha comparisons pass.12 native/public zero-alpha raster checks are entirely white. Partial-alpha straight and rotated decorated screenshots match.",
     "remaining": "All19families remain open;this verifies control-box paint opacity,not full rendering or invisible-text extraction qualification."
+  },
+  "pdfTransparentTextExtraction": {
+    "status": "Focused zero-foreground-alpha extraction profile verified; broader rendering remains open",
+    "implementation": "Omit cell text and control-marker paint at zero foreground alpha after layout calculations. Retain original workbook text,cell backgrounds and neighboring placement. Partial-alpha text remains extractable.",
+    "validation": "Four memory regressions reproduced extraction of invisible ordinary,rotated,CR-box and U+2028 text.462 PDF tests,selected build and command lint/source/test/public-consumer types pass.16 independent native inputs produce64 compiled SDK/command XML/PDF outputs;32 zero-alpha extraction/nonwhitespace-character/common-word-position comparisons and32 XML preservation comparisons pass. Background and visible-neighbor screenshots match,including partial-alpha multiline control.",
+    "remaining": "All19families remain open;full rich-text,font,Unicode,merged multipage and other rendering qualification remains incomplete."
   }
 }

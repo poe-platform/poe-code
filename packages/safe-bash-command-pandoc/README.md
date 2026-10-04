@@ -190,8 +190,8 @@ PNG/JPEG resources, search paths and collision-safe resource names. ODT includes
 XML escaping, nested blocks, image resources and archive output. Acquisition, decoding, parsing, AST
 normalization and output encoding keep their existing cumulative quota charges
 while document data lives in caller storage. Output sink writes preserve native
-4096-byte accounting and failures. Other reader/writer pairs, multiple-input JSON/RTF
-conversions and citeproc still use the compatibility path.
+4096-byte accounting and failures. Other reader/writer pairs and citeproc still use
+the compatibility path. JSON/RTF reject multiple operands before reading input.
 JSON `metadataFiles` merge into retained generations before filters. File contents,
 merge keys, duplicate-key indexes and recursive map/list work stay in caller
 storage; null deletion, last-key-wins JSON parsing and native number conversion

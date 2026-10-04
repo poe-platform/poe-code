@@ -242,8 +242,9 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   Verify unchanged versus replaced/reordered targets, same-URL different-directory
   caching, long/colliding metadata keys, chained generations and comment/heading
   rewrites. Finite reference/byte quotas remain caller-backed for these pairs, including
-  metadata, templates and image embedding. Other readers, multiple-input JSON/RTF
-  conversions and buffered apply still use the resident runtime. Preserve their
+  metadata, templates and image embedding. JSON/RTF reject multiple operands before
+  acquisition; this is an existing unsupported operation, not a buffering path.
+  Other readers and buffered apply still use the resident runtime. Preserve their
   behavior while replacing those paths. `onError` delivers retained error bytes
   before scratch closes; the command consumes them with backpressure. Without
   that callback, SDK errors explicitly collect Error.message for compatibility.

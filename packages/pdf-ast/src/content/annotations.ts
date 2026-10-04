@@ -1,3 +1,4 @@
+import { PdfArrayCursor } from "./array-cursor.js";
 import { PdfError } from "../errors.js";
 import { decodePdfString, dictGet, type PdfCosArray, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfStoredItems, type PdfLinkAnnotation } from "../ast.js";
 
@@ -22,27 +23,16 @@ function* resolveArray(node: PdfCosNode | undefined, arrayKey?: string): Annotat
 }
 /** Visit backed children without collecting the list; a match stops source reads. */
 function* visitChildren<T>(array: PdfCosArray, visit: (node: PdfCosNode) => AnnotationWork<T | undefined>): AnnotationWork<T | undefined> {
-  const stored = array.storedItems;
-  const length = stored?.length ?? array.items.length;
-  if (!Number.isSafeInteger(length) || length < 0) throw new RangeError("Invalid stored array length");
-  let position = stored?.position ?? -1;
-  for (let i = 0; i < length; i++) {
-    let node = array.items[i];
-    if (stored) {
-      const result = yield {kind:"array-item",items:stored,position};
-      if (!result || typeof result !== "object" || result.kind !== "array" || result.items[0]?.kind !== "number" || !result.items[1]) throw new TypeError("Expected a PDF array record");
-      position = result.items[0].value;
-      node = result.items[1];
-    }
-    const found = yield* visit(node!);
+  const cursor = new PdfArrayCursor(array);
+  for (let step = yield* cursor.next(); !step.done; step = yield* cursor.next()) {
+    const found = yield* visit(step.value);
     if (found !== undefined) return found;
   }
-  if (stored && position !== -1) throw new Error("Invalid stored array terminator");
   return undefined;
 }
 /** Shared annotation semantics; drivers own object reads and destination page traversal. */
 export function* extractPageAnnotationSteps(pageDict: PdfCosDict, root: PdfCosRef | undefined, maxDepth = Infinity): AnnotationWork {
-  const annotsArr = (yield* resolveArray(dictGet(pageDict, "Annots")));
+  const annotsArr = (yield* resolveArray(dictGet(pageDict, "Annots"), "Annots"));
   if (!annotsArr) return;
 
   function* resolveDestToPageNum(destNode: PdfCosNode | undefined, depth = 0): AnnotationWork<number | undefined> {
@@ -107,7 +97,9 @@ export function* extractPageAnnotationSteps(pageDict: PdfCosDict, root: PdfCosRe
     return undefined;
   }
 
-  for (const item of annotsArr.items) {
+  const annotations = new PdfArrayCursor(annotsArr);
+  for (let step = yield* annotations.next(); !step.done; step = yield* annotations.next()) {
+    const item = step.value;
     const dict = (yield* resolveDict(item));
     if (!dict) continue;
     const rectArr = (yield* resolveArray(dictGet(dict, "Rect")));

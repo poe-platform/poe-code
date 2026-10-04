@@ -1,3 +1,4 @@
+import { PdfArrayCursor } from "./content/array-cursor.js";
 import { readStoredItems, readStoredRecord } from "./content/stored-record.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import type { ValueArrayStorage } from "./cos/value-parser.js";
@@ -504,13 +505,22 @@ export class PdfRetainedPage {
 
   /** Preserve the buffered page API's newline after each content-array stream. */
   async *streamContents(): AsyncGenerator<Uint8Array, void, void> {
-    const content = await this.document.lookup(dictGet(this.dict, "Contents"));
+    const content = await this.document.lookup(dictGet(this.dict, "Contents"), undefined, ["Contents"]);
     if (content?.stream && content.reference) yield* this.document.objects.decodeStream(content.reference.objectNumber, content.reference.generationNumber);
-    else if (content?.value.kind === "array") for (const item of content.value.items) {
-      const stream = await this.document.lookup(item);
-      if (!stream?.stream || !stream.reference) continue;
-      yield* this.document.objects.decodeStream(stream.reference.objectNumber, stream.reference.generationNumber);
-      yield new Uint8Array([10]);
+    else if (content?.value.kind === "array") {
+      const cursor = new PdfArrayCursor(content.value);
+      let turns = 0;
+      while (true) {
+        if (++turns % 256 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+        const work = cursor.next();
+        let step = work.next();
+        while (!step.done) step = work.next(await this.document.readArrayItem(step.value.items, step.value.position));
+        if (step.value.done) break;
+        const stream = await this.document.lookup(step.value.value);
+        if (!stream?.stream || !stream.reference) continue;
+        yield* this.document.objects.decodeStream(stream.reference.objectNumber, stream.reference.generationNumber);
+        yield new Uint8Array([10]);
+      }
     }
   }
 }

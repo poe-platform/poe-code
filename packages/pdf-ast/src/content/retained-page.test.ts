@@ -1,12 +1,13 @@
+import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { renderOperationStreamWindow, renderDisplayListToBitmap } from "../render/raster.js";
 import { expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { cosArray, cosDict, cosName, cosNumber, cosStream, cosString, dictSet } from "../ast.js";
+import { cosArray, cosDict, cosName, cosNumber, cosStream, cosString, dictGet, dictSet } from "../ast.js";
 import { PdfDocument } from "../document.js";
 import { PdfRetainedDocument } from "../retained-document.js";
 import { PdfFileSource } from "../source.js";
 
-async function fixture(hideAnnotations = false) {
+async function fixture(hideAnnotations = false, backed?: "inline" | "indirect") {
   const original = PdfDocument.create(); const page = original.addPage();
   const numbers = (values: number[]) => cosArray(values.map(value => cosNumber(value)));
   dictSet(page.pageDict, "MediaBox", numbers([-10, -20, 190, 280])); dictSet(page.pageDict, "Rotate", cosNumber(90));
@@ -21,6 +22,7 @@ async function fixture(hideAnnotations = false) {
     }), new TextEncoder().encode("0 0 10 10 re f"))) }) }),
   ]));
   dictSet(page.pageDict, "Contents", original.cos.allocateObject(cosStream(new TextEncoder().encode("BT /Ap 12 Tf (base) Tj ET"))));
+  if(backed==="indirect")dictSet(page.pageDict,"Annots",original.cos.allocateObject(dictGet(page.pageDict,"Annots")!));
   const expected = page.evaluateDisplayList({ hideAnnotations });
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", original.save());
   const readFile = vi.fn(async () => { throw new Error("whole reads forbidden"); });
@@ -28,9 +30,10 @@ async function fixture(hideAnnotations = false) {
     if (key === "readFile") return readFile; const value = Reflect.get(fs, key); return typeof value === "function" ? value.bind(fs) : value;
   } });
   const source = await PdfFileSource.open(guarded, "/input", { chunkBytes: 32, cacheBytes: 64 });
-  const storage = { fs: guarded, directory: "/scratch" }; const document = await PdfRetainedDocument.open(source, storage);
+  const storage = { fs: guarded, directory: "/scratch" }; const backing=backed?new PagedStorage({fs,cwd:"/scratch",env:{},signal:new AbortController().signal},2):undefined;
+  const document = await PdfRetainedDocument.open(source, storage, backing?{valueArrays:{arrayStorage:backing,storedArrayKeys:["Annots"]}}:{});
   const retained = (await document.pages().next()).value!;
-  return { expected, document, retained, storage, readFile, async close() { await document.close(); await source.close(); expect(await fs.readdir("/scratch")).toEqual([]); } };
+  return { expected, document, retained, storage, readFile, async close() { await document.close(); await source.close(); await backing?.close(); expect(await fs.readdir("/scratch")).toEqual([]); } };
 }
 it.each([false, true])("evaluates complete retained pages with appearance resources and widget text (hide=%s)", async hideAnnotations => {
   const f = await fixture(hideAnnotations); const operations = [];
@@ -97,4 +100,10 @@ it("paints retained page operations directly with annotation parity and caller-o
  };
  const actual = await renderOperationStreamWindow(page, operations, {x:0,y:0,width:expected.width,height:expected.height}, {scale:0.25});
  expect(actual).toEqual(expected); expect(f.readFile).not.toHaveBeenCalled(); await f.close();
+});
+
+for(const backed of ["inline","indirect"] as const)it.each([false,true])(`preserves ${backed} backed annotation appearances (hide=%s)`,async hide=>{
+ const f=await fixture(hide,backed);
+ try{const operations=[];for await(const event of f.retained.evaluateSteps(f.storage,{hideAnnotations:hide,chunkBytes:32}))if(!event.captured)operations.push(event.operation);expect(operations).toEqual(f.expected.operations);}
+ finally{await f.close();}
 });

@@ -1,14 +1,15 @@
+import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { describe, expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import type { FileSystem } from "@poe-code/safe-fs/contracts";
-import { cosArray, cosDict, cosName, cosNumber, cosRef, cosStream, dictSet, type PdfIndirectObject } from "./ast.js";
+import { cosArray, cosDict, cosName, cosNumber, cosRef, cosStream, dictGet, dictSet, type PdfIndirectObject } from "./ast.js";
 import { PdfDocument } from "./document.js";
 import { PdfFileSource } from "./source.js";
 import { serializeCosDocument } from "./cos/writer.js";
-import { PdfRetainedDocument } from "./retained-document.js";
+import { PdfRetainedDocument, type PdfRetainedDocumentOptions } from "./retained-document.js";
 const text = (s: string) => new TextEncoder().encode(s);
 
-async function fixture(bytes: Uint8Array, options = {}) {
+async function fixture(bytes: Uint8Array, options: PdfRetainedDocumentOptions & {backedArrays?:readonly string[]} = {}) {
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
   const reads = vi.fn(async (position: number, length: number) => bytes.slice(position, position + length));
   const readFile = vi.fn(async () => { throw new Error("full read forbidden"); });
@@ -16,8 +17,9 @@ async function fixture(bytes: Uint8Array, options = {}) {
     stat: async () => ({ type: "file", size: bytes.length }), read: reads, close: async () => {},
   }) } as unknown as FileSystem;
   const source = await PdfFileSource.open(input, "/input", { chunkBytes: 64, cacheBytes: 128 });
-  const doc = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { chunkBytes: 64, cacheBytes: 128, ...options });
-  return { fs, source, reads, readFile, doc, async close() { await doc.close(); expect(await fs.readdir("/scratch")).toEqual([]); expect((await source.read(0, 1))[0]).toBe(37); await source.close(); } };
+  const backing=options.backedArrays?new PagedStorage({fs,cwd:"/scratch",env:{},signal:options.signal??new AbortController().signal},2):undefined;
+  const doc = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { chunkBytes: 64, cacheBytes: 128, ...options, ...(backing?{valueArrays:{arrayStorage:backing,storedArrayKeys:options.backedArrays!}}:{}) });
+  return { fs, source, reads, readFile, doc, backing, async close() { await doc.close(); await backing?.close(); expect(await fs.readdir("/scratch")).toEqual([]); expect((await source.read(0, 1))[0]).toBe(37); await source.close(); } };
 }
 function inheritedPdf(malformed = false) {
   return serializeCosDocument({ rootRef: cosRef(1), objects: [
@@ -184,4 +186,32 @@ it("backs inline font tables before page attributes reach font resolution", asyn
     expect(widths.items).toHaveLength(0);expect(widths.storedItems?.length).toBe(2048);
     await pages.return();
   } finally {await f.close();}
+});
+
+it.each([false,true])("streams backed content lists in source order with separators (indirect=%s)",async indirect=>{
+ const original=PdfDocument.load(inheritedPdf());
+ if(indirect){const page=original.getPage(0);dictSet(page.pageDict,"Contents",original.cos.allocateObject(dictGet(page.pageDict,"Contents")!));}
+ const bytes=serializeCosDocument({rootRef:original.cos.rootRef,objects:[...original.cos.objects.values()]});
+ const f=await fixture(bytes,{backedArrays:["Contents"]});
+ try{
+  const page=(await f.doc.pages().next()).value!;
+  const list=await f.doc.lookup(dictGet(page.dict,"Contents"),undefined,["Contents"]);
+  expect(list?.value).toMatchObject({kind:"array",items:[],storedItems:{length:2}});
+  expect(new TextDecoder().decode(await contents(page))).toBe("BT /F1 12 Tf \n(Retained) Tj ET\n");
+ }finally{await f.close();}
+});
+
+it("does not decode later backed content entries after consumer return",async()=>{
+ const f=await fixture(inheritedPdf(),{backedArrays:["Contents"]});
+ try{
+  const page=(await f.doc.pages().next()).value!,decode=vi.spyOn(f.doc.objects,"decodeStream"),stream=page.streamContents();
+  expect((await stream.next()).done).toBe(false);await stream.return();expect(decode).toHaveBeenCalledTimes(1);
+ }finally{await f.close();}
+});
+it.each([false,true])("preserves content-list backing failure and cancellation (cancel=%s)",async cancel=>{
+ const controller=new AbortController(),failure=new Error("content record failure"),f=await fixture(inheritedPdf(),{backedArrays:["Contents"],signal:controller.signal});
+ const page=(await f.doc.pages().next()).value!;
+ const read=vi.spyOn(f.backing!,"read").mockImplementation(async()=>{if(cancel){controller.abort(failure);return new Uint8Array(8);}throw failure;});
+ try{await expect(page.streamContents().next()).rejects.toBe(failure);}
+ finally{read.mockRestore();await f.close();}
 });

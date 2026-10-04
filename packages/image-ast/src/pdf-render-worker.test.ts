@@ -3,13 +3,16 @@ import {expect,it} from "vitest";
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {fileURLToPath} from "node:url";
-import {PdfDocument,cosArray,cosNumber,dictGet,dictSet} from "@poe-code/pdf-ast";
+import {PdfDocument,cosArray,cosDict,cosStream,cosNumber,dictGet,dictSet} from "@poe-code/pdf-ast";
 import sharp,{decodeImage} from "./index.js";
 
-it.each([32,128])("renders PDF pixels with %i backed page references in Workerd",async count=>{
+it.each([32,128])("renders PDF pixels with %i backed page, content and annotation references in Workerd",async count=>{
  // Keep the complete RGBA plane above 64 KiB while requiring only five raster tiles.
  const pixels=new Uint8Array(257*64*4);let state=1234567;for(let i=0;i<pixels.length;i++){state^=state<<13;state^=state>>>17;state^=state<<5;pixels[i]=state&255;}
  const pdf=await sharp(pixels,{raw:{width:257,height:64,channels:4}}).toFormat("pdf").toBuffer();const document=PdfDocument.load(pdf),catalog=document.cos.resolveDict(document.cos.rootRef)!,pages=document.cos.resolveDict(dictGet(catalog,"Pages"))!,page=document.getPage(0).pageRef;
+ const pageDict=document.getPage(0).pageDict,content=dictGet(pageDict,"Contents")!,empty=document.cos.allocateObject(cosStream(new TextEncoder().encode("q Q"))),hidden=document.cos.allocateObject(cosDict({F:cosNumber(2)}));
+ dictSet(pageDict,"Contents",cosArray([...Array.from({length:count},()=>empty),content]));
+ dictSet(pageDict,"Annots",cosArray(Array.from({length:count},()=>hidden)));
  dictSet(pages,"Kids",cosArray(Array.from({length:count},()=>page)));dictSet(pages,"Count",cosNumber(count));
  const saved=serializeCosDocument({rootRef:document.cos.rootRef,objects:[...document.cos.objects.values()]}),bytes=new Uint8Array(saved.length+200000).fill(32);bytes.set(saved);
  const expected=decodeImage(bytes);const expectedSum=expected.data.reduce((sum,value,index)=>(sum+value*(index%65521+1))%1000000007,0);

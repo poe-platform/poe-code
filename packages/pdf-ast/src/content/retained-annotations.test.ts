@@ -3,13 +3,13 @@ import { serializeCosDocument } from "../cos/writer.js";
 import { expect, it, vi } from "vitest";
 import type { FileSystem } from "@poe-code/safe-fs/contracts";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { cosArray, cosDict, cosName, cosNumber, cosString, dictSet } from "../ast.js";
+import { cosArray, cosDict, cosName, cosNumber, cosString, dictGet, dictSet } from "../ast.js";
 import { PdfDocument } from "../document.js";
 import { PdfRetainedDocument } from "../retained-document.js";
 import { PdfFileSource } from "../source.js";
 import { extractPageAnnotations } from "./evaluator.js";
 
-async function fixture(options: { backedKids?: "inline" | "indirect"; malformed?: boolean; cycle?: boolean; malformedTree?: boolean; extraPages?: number; signal?: AbortSignal; maxTraversalStagingBytes?: number } = {}) {
+async function fixture(options: { backedAnnots?: "inline" | "indirect"; backedKids?: "inline" | "indirect"; malformed?: boolean; cycle?: boolean; malformedTree?: boolean; extraPages?: number; signal?: AbortSignal; maxTraversalStagingBytes?: number } = {}) {
   const original = PdfDocument.create(); const first = original.addPage();
   for (let i = 0; i < (options.extraPages ?? 0); i++) original.addPage();
   const second = original.addPage();
@@ -46,6 +46,10 @@ async function fixture(options: { backedKids?: "inline" | "indirect"; malformed?
       if (kids?.value.kind === "array") dictSet(object.value,"Kids",original.cos.allocateObject(kids.value));
     }
   }
+  if(options.backedAnnots==="indirect"){
+    const annots=first.pageDict.entries.find(entry=>entry.key.decoded==="Annots")!.value;
+    dictSet(first.pageDict,"Annots",original.cos.allocateObject(annots));
+  }
   const expected = options.cycle ? undefined : extractPageAnnotations(original.cos, first.pageDict);
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); 
   const bytes = serializeCosDocument({ rootRef: original.cos.rootRef, objects: [...original.cos.objects.values()] });
@@ -55,8 +59,8 @@ async function fixture(options: { backedKids?: "inline" | "indirect"; malformed?
     read: async (position: number, length: number) => bytes.slice(position, position + length), close: async () => {},
   }) } as unknown as FileSystem;
   const source = await PdfFileSource.open(input, "/input", { chunkBytes: 32, cacheBytes: 64 });
-  const backing = options.backedKids ? new PagedStorage({fs,cwd:"/scratch",env:{},signal:options.signal ?? new AbortController().signal},2) : undefined;
-  const document = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { ...(backing ? {valueArrays:{arrayStorage:backing,storedArrayKeys:["Kids"]}} : {}), ...(options.signal ? { signal: options.signal } : {}), ...(options.maxTraversalStagingBytes !== undefined ? { maxTraversalStagingBytes: options.maxTraversalStagingBytes } : {}) });
+  const backing = (options.backedKids||options.backedAnnots) ? new PagedStorage({fs,cwd:"/scratch",env:{},signal:options.signal ?? new AbortController().signal},2) : undefined;
+  const document = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { ...(backing ? {valueArrays:{arrayStorage:backing,storedArrayKeys:[...(options.backedKids?["Kids"]:[]),...(options.backedAnnots?["Annots"]:[])]}} : {}), ...(options.signal ? { signal: options.signal } : {}), ...(options.maxTraversalStagingBytes !== undefined ? { maxTraversalStagingBytes: options.maxTraversalStagingBytes } : {}) });
   const page = (await document.pages().next()).value!;
   return { document, page, expected, fs, readFile, second, backing, async close() {
     await document.close(); await source.close(); await backing?.close(); expect(await fs.readdir("/scratch")).toEqual([]);
@@ -178,4 +182,14 @@ it("preserves backed page-list read errors and caller cancellation",async()=>{
   try{await expect(f.document.annotationPageNumber(f.second.pageRef)).rejects.toBe(failure);}
   finally{read.mockRestore();await f.close();}
  }
+});
+
+it.each(["inline","indirect"] as const)("extracts annotations from %s caller-backed lists",async backedAnnots=>{
+ const f=await fixture({backedAnnots});
+ try{
+  const list=await f.document.lookup(dictGet(f.page.dict,"Annots"),undefined,["Annots"]);
+  expect(list?.value).toMatchObject({kind:"array",items:[],storedItems:{length:6}});
+  const annotations=[];for await(const item of f.page.annotations())annotations.push(item);expect(annotations).toEqual(f.expected);
+ }
+ finally{await f.close();}
 });

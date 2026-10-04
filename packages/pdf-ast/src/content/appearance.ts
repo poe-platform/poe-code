@@ -1,3 +1,4 @@
+import { PdfArrayCursor } from "./array-cursor.js";
 import { cosDict, cosNumber, cosString, decodePdfString, dictGet, dictSet, type PdfContentNode, type PdfCosArray, type PdfCosDict, type PdfCosNode, type PdfCosStream } from "../ast.js";
 import { optionalContentVisibilitySteps } from "./evaluator.js";
 
@@ -18,8 +19,8 @@ function* resolveNode(node: PdfCosNode | undefined, arrayPathPrefix?: readonly s
 function* resolveDict(node: PdfCosNode | undefined, arrayPathPrefix?: readonly string[]): AppearanceWork<PdfCosDict | undefined> {
   const value = yield* resolveNode(node, arrayPathPrefix); return value?.kind === "dict" ? value : undefined;
 }
-function* resolveArray(node: PdfCosNode | undefined): AppearanceWork<PdfCosArray | undefined> {
-  const value = yield* resolveNode(node); return value?.kind === "array" ? value : undefined;
+function* resolveArray(node: PdfCosNode | undefined, arrayPathPrefix?: readonly string[]): AppearanceWork<PdfCosArray | undefined> {
+  const value = yield* resolveNode(node, arrayPathPrefix); return value?.kind === "array" ? value : undefined;
 }
 function* visible(node: PdfCosNode | undefined): AppearanceWork<boolean> {
   const work = optionalContentVisibilitySteps(node);
@@ -50,9 +51,11 @@ export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCo
     }
   }
 
-  const annotsArr = (yield* resolveArray(dictGet(pageDict, "Annots")));
-  if (!hideAnnotations && annotsArr && annotsArr.items.length > 0) {
-    for (const item of annotsArr.items) {
+  const annotsArr = (yield* resolveArray(dictGet(pageDict, "Annots"), ["Annots"]));
+  if (!hideAnnotations && annotsArr) {
+    const annotations = new PdfArrayCursor(annotsArr);
+    for (let step = yield* annotations.next(); !step.done; step = yield* annotations.next()) {
+      const item = step.value;
       const annotDict = (yield* resolveDict(item));
       if (!annotDict) continue;
       const fNode = (yield* resolveNode(dictGet(annotDict, "F")));

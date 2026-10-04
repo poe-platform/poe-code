@@ -19,10 +19,10 @@ import { createFontShaper } from "../rendering/print/font-shaping.js";
 
 // Native default display DPI for the admitted materialized Gnumeric style profile.
 const printDisplayScale = 72 / 96;
-function displaysFormulas(sheet: Sheet): boolean {
+function sheetViewFlag(sheet: Sheet, name: "displayFormulas" | "hideZero"): boolean {
   const retained = sheet.view?.gnumeric;
-  return Boolean(Number(sheet.view?.displayFormulas ?? (retained && typeof retained === "object" && !Array.isArray(retained)
-    ? (retained as Readonly<Record<string, unknown>>).DisplayFormulas ?? 0 : 0)));
+  return Boolean(Number(sheet.view?.[name] ?? (retained && typeof retained === "object" && !Array.isArray(retained)
+    ? (retained as Readonly<Record<string, unknown>>)[name.charAt(0).toUpperCase() + name.slice(1)] ?? 0 : 0)));
 }
 function normalizePdfCellStyle(cell: Workbook["sheets"][number]["cells"][number]): NonNullable<Workbook["sheets"][number]["cells"][number]["style"]> | undefined {
   const style = cell.style;
@@ -364,7 +364,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     const fallback = typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48;
     const maxWidthByCol = new Map<number, number>();
     for (const cell of sheet.cells) {
-      const raw = displaysFormulas(sheet) && cell.formula ? cell.formula : cell.displayedText ?? (cell.value.kind === "blank" ? "" : cell.value.kind === "boolean" ? (cell.value.value ? "TRUE" : "FALSE") : String(cell.value.value));
+      const raw = sheetViewFlag(sheet, "displayFormulas") && cell.formula ? cell.formula : cell.displayedText ?? (cell.value.kind === "blank" ? "" : cell.value.kind === "boolean" ? (cell.value.value ? "TRUE" : "FALSE") : String(cell.value.value));
       if (!raw || raw.includes("\n") || raw.includes("\r")) continue;
       const needed = Math.max(fallback, raw.length * 6 + 14);
       const prev = maxWidthByCol.get(cell.column) ?? fallback;
@@ -383,7 +383,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       for (const entry of entries ?? []) { tick(); if (entry.index < index) start += (entry.hidden ? 0 : entry.sizePoints ?? fallback) - fallback; if (entry.index === index) size = entry.hidden ? 0 : entry.sizePoints ?? fallback; }
       return { start: start * scale, size: size * scale };
     };
-    return { column: axis(effectiveColumns(sheet), typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48, displaysFormulas(sheet) ? 2 : 1), row: axis(sheet.rows, typeof sheet.view?.defaultRowHeight === "number" ? sheet.view.defaultRowHeight : 12.75) };
+    return { column: axis(effectiveColumns(sheet), typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48, sheetViewFlag(sheet, "displayFormulas") ? 2 : 1), row: axis(sheet.rows, typeof sheet.view?.defaultRowHeight === "number" ? sheet.view.defaultRowHeight : 12.75) };
   };
   const drawObject = async (page: PDFPage, object: SheetObject, x: number, y: number, width: number, height: number) => {
     tick();
@@ -505,7 +505,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       const layout = layoutPrintPages({ area, startPage, defaultRowPoints: typeof sheet.view?.defaultRowHeight === "number" ? sheet.view.defaultRowHeight : 12.75,
         defaultColumnPoints: typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48,
         ...(sheet.rows ? { rows: sheet.rows } : {}), ...(effectiveColumns(sheet) ? { columns: effectiveColumns(sheet)! } : {}),
-        paper: { widthPoints: paper[0], heightPoints: paper[1] }, margins: print.margins, displayFormulas: displaysFormulas(sheet),
+        paper: { widthPoints: paper[0], heightPoints: paper[1] }, margins: print.margins, displayFormulas: sheetViewFlag(sheet, "displayFormulas"),
         rowBreaks: print.rowBreaks, columnBreaks: print.columnBreaks,
         orientation: settings.orientation ?? print.orientation, scale: settings.scale ?? print.scale, centerHorizontally: print.centerHorizontally,
         centerVertically: print.centerVertically, acrossThenDown: print.acrossThenDown }, context);
@@ -517,7 +517,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     }
     for (const { sheet, print, positions, objects, layout } of printedSheets) {
       const textSpan = createPrintSpans(sheet, positions.column, tick);
-      const showFormulas = displaysFormulas(sheet);
+      const showFormulas = sheetViewFlag(sheet, "displayFormulas"), hideZero = sheetViewFlag(sheet, "hideZero");
       for (const geometry of layout.pages) {
         tick();
         const page = pdf.addPage([layout.widthPoints, layout.heightPoints]);
@@ -550,6 +550,9 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           tick();
           if (cell.row < geometry.area.startRow || cell.row > geometry.area.endRow || cell.column < geometry.area.startColumn || cell.column > geometry.area.endColumn || sheet.rows?.some(row => row.index === cell.row && row.hidden) || sheet.columns?.some(column => column.index === cell.column && column.hidden)) continue;
           const formula = showFormulas ? cell.formula : undefined;
+          // gnm_cell_is_zero includes booleans and a strict 64-epsilon numeric tolerance.
+          if (!formula && hideZero && (cell.value.kind === "number" ? Math.abs(cell.value.value) < 64 * Number.EPSILON :
+            cell.value.kind === "boolean" && !cell.value.value)) continue;
           const value = formula ?? (cell.style || context.formatting ? await formatting.format(cell.value, cell.format ?? "General", context, {unicodeMinus: cell.value.kind === "number"}) : cell.displayedText ?? (cell.value.kind === "blank" ? "" : cell.value.kind === "boolean" ? cell.value.value ? "TRUE" : "FALSE" : String(cell.value.value)));
           tick();
           const x = geometry.originX + positions.column(cell.column).start - positions.column(geometry.area.startColumn).start;

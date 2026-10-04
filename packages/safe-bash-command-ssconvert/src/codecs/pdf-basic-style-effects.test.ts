@@ -238,3 +238,29 @@ it.each(["gnumeric", "normalized"])("prints formulas with general-left alignment
   expect(runs[0]!.glyphs[0]!.x).toBe(196.75);
   expect(book).toEqual(before);
 });
+
+it.each(["gnumeric", "normalized"])("hides native near-zero numbers and FALSE with %s metadata while retaining text and fills", async kind => {
+  const threshold = 64 * Number.EPSILON;
+  const cases = [{text: "0", type: "40", attributes: attributes.replace('Shade="0"', 'Shade="1"')},
+    {text: "-0", type: "40"}, {text: "FALSE", type: "20"}, {text: "0", type: "60"}, {text: "TRUE", type: "20"},
+    ...[threshold * (1 - Number.EPSILON / 2), threshold, threshold * (1 + Number.EPSILON),
+      -threshold * (1 - Number.EPSILON / 2), -threshold, -threshold * (1 + Number.EPSILON)].map(value => ({text: String(value), type: "40"}))];
+  const original = await fixture(cases), sheet = original.sheets[0]!;
+  const book = {...original, sheets: [{...sheet, columns: [{index: 0, sizePoints: 180}], view: {...sheet.view,
+    ...(kind === "gnumeric" ? {gnumeric: {...sheet.view?.gnumeric as object, HideZero: "1"}} : {hideZero: true})}}]};
+  const before = structuredClone(book), rectangle = vi.spyOn(PDFPage.prototype, "drawRectangle");
+  try {
+    const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve: async () => suppliedDefaultFont().bytes}}));
+    expect(runs.map(run => run.text).slice(0, 2)).toEqual(["0", "TRUE"]);
+    expect(runs.map(run => run.glyphs[0]!.y)).toEqual([3, 4, 6, 7, 9, 10].map(row => 720 - (row + 1) * 20 + 2.5));
+    expect(rectangle).toHaveBeenCalledTimes(1);
+    expect(book).toEqual(before);
+  } finally {rectangle.mockRestore();}
+});
+it("displays a zero-valued formula when both formula display and zero hiding are enabled", async () => {
+  const original = await fixture([{text: "0", type: "40"}]), sheet = original.sheets[0]!;
+  const book = {...original, sheets: [{...sheet, view: {...sheet.view, gnumeric: {...sheet.view?.gnumeric as object, HideZero: "1", DisplayFormulas: "1"}},
+    cells: [{...sheet.cells[0]!, formula: "=0"}]}]};
+  const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve: async () => suppliedDefaultFont().bytes}}));
+  expect(runs.map(run => run.text)).toEqual(["=0"]);
+});

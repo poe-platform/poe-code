@@ -105,7 +105,9 @@ fonts refuse without substitution. With no binding, the packaged JetBrains Mono
 font remains the default. PDF export uses JavaScript fontkit shaping when the runtime
 cannot compile WebAssembly (including Cloudflare Workers). Font bytes and character-map work are bounded before parsing.
 Formula-display mode prints formula text with doubled column widths, including
-those widths when centering and fitting pages.
+those widths when centering and fitting pages. Zero hiding follows the native
+numeric tolerance and hides FALSE, while retaining cell fills, text zeros and
+displayed formulas.
 PDF export retains styled cells' logical text for copying and extraction,
 including combining marks whose glyph positions differ from their text order.
 Styled Latin, Greek and Cyrillic text uses font-supported canonical composition;

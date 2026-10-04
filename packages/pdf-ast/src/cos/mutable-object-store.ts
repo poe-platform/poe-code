@@ -6,6 +6,9 @@ import { pdfOutputStreamDictionary, type PdfSerializedOutputObject, type PdfReta
 import { parseCosRangeValue, type ParseCosRangeOptions } from "./range-parser.js";
 import { serializeCosNodeChunks } from "./writer.js";
 
+// Outside the safe integer range used by backing offsets; valid in IntegerTable.
+const DELETED_OBJECT = 0xfffffffffffffffen;
+
 export interface PdfMutableObjectStoreOptions extends Pick<ParseCosRangeOptions, "maxNodes" | "maxTokenBytes" | "maxRecursionDepth" | "signal"> {
   readonly maxObjects?: number;
   /** Append-only backing, including superseded values and index nodes. */
@@ -61,6 +64,19 @@ export class PdfMutableObjectStore {
     return this.operation(async () => { const number = this.highest + 1; await this.save({ objectNumber: number, generationNumber: 0, value }); return cosRef(number); });
   }
   set(object: PdfRetainedOutputObject): Promise<void> { return this.operation(() => this.save(object)); }
+  /** Remove an identity without parsing or copying its payload. Existing read
+   * snapshots remain valid until close; fresh traversals omit deleted objects.
+   * Allocated identities are never reused automatically. */
+  delete(number: number): Promise<boolean> {
+    return this.operation(async () => {
+      if (!Number.isSafeInteger(number) || number < 1) throw new RangeError("Invalid PDF object number");
+      const position = await this.index.get(BigInt(number));
+      if (position === undefined || position === DELETED_OBJECT) return false;
+      this.signal.throwIfAborted();
+      await this.index.set(BigInt(number), DELETED_OBJECT);
+      return true;
+    });
+  }
   /** Accept a caller-serialized COS value (not a stream body). Values are
    * parsed only on get(); output replay stays bounded even for wide arrays.
    * The caller owns syntax validity, as with PdfSerializedOutputObject. */
@@ -135,7 +151,7 @@ export class PdfMutableObjectStore {
   get(number: number): Promise<PdfRetainedOutputObject | undefined> {
     return this.operation(async () => {
       if (!Number.isSafeInteger(number) || number < 1) throw new RangeError("Invalid PDF object number");
-      const at = await this.index.get(BigInt(number)); return at === undefined ? undefined : this.load(number, Number(at));
+      const at = await this.index.get(BigInt(number)); return at === undefined || at === DELETED_OBJECT ? undefined : this.load(number, Number(at));
     });
   }
   private async load(number: number, at: number): Promise<PdfRetainedOutputObject> {
@@ -173,15 +189,21 @@ export class PdfMutableObjectStore {
     await this.pending; this.signal.throwIfAborted();
     let work = 0;
     for await (const [number, position] of this.index.entries()) {
-      this.signal.throwIfAborted();
       if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+      this.signal.throwIfAborted();
+      if (position === DELETED_OBJECT) continue;
       const bytes = await this.backing.read(Number(position), 8);
       yield { objectNumber: Number(number), generationNumber: new DataView(bytes.buffer, bytes.byteOffset, bytes.length).getFloat64(0) };
     }
   }
   async *objects(): AsyncGenerator<PdfRetainedOutputObject, void, void> {
     await this.pending; this.signal.throwIfAborted();
-    for await (const [number, position] of this.index.entries()) { this.signal.throwIfAborted(); yield await this.load(Number(number), Number(position)); }
+    let work = 0;
+    for await (const [number, position] of this.index.entries()) {
+      if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+      this.signal.throwIfAborted();
+      if (position !== DELETED_OBJECT) yield await this.load(Number(number), Number(position));
+    }
   }
   /** Replay owned serialization directly, without parsing value trees. Returned
    * bodies borrow this store and retain their snapshot across replacements. */
@@ -198,6 +220,7 @@ export class PdfMutableObjectStore {
     for await (const [number, position] of this.index.entries()) {
       if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
       this.signal.throwIfAborted();
+      if (position === DELETED_OBJECT) continue;
       const bytes = await backing.read(Number(position), 64), record = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
       const generation = record.getFloat64(0), streamAt = record.getFloat64(24), streamLength = record.getFloat64(32), hasStream = record.getFloat64(40);
       const valueAt = record.getFloat64(48), valueLength = record.getFloat64(56);

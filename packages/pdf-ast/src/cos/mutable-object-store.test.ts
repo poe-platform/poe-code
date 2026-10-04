@@ -161,3 +161,111 @@ it("records completed decoding without marking a replacement of the same identit
   } finally { await store.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("deletes live identities without reading their values and never reuses an allocated identity", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const store = new PdfMutableObjectStore({ fs, directory: "/scratch" }, { maxNodes: 1 });
+  try {
+    await store.set({ objectNumber: 7, generationNumber: 2, value: cosDict({ A: cosNumber(1), B: cosNumber(2) }) });
+    await expect(store.get(7)).rejects.toThrow();
+    expect(await store.delete(7)).toBe(true);
+    expect(await store.get(7)).toBeUndefined();
+    expect(await store.delete(7)).toBe(false);
+    expect(await store.delete(1000000)).toBe(false);
+    expect((await store.allocate()).objectNumber).toBe(8);
+    const identities = []; for await (const identity of store.identities()) identities.push(identity);
+    expect(identities).toEqual([{ objectNumber: 8, generationNumber: 0 }]);
+    const objects = []; for await (const object of store.objects()) objects.push(object.objectNumber);
+    expect(objects).toEqual([8]);
+    const output = []; for await (const object of store.outputObjects()) output.push(object.objectNumber);
+    expect(output).toEqual([8]);
+  } finally { await store.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("keeps stream and serialized snapshots readable across deletion and reinsertion", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const store = new PdfMutableObjectStore({ fs, directory: "/scratch" });
+  try {
+    await store.set({ objectNumber: 3, generationNumber: 2, value: cosDict({}), stream: { length: 3, chunks: [Uint8Array.of(1, 2, 3)] } });
+    const before = (await store.get(3))!, outputs = store.outputObjects(), serialized = (await outputs.next()).value!;
+    await outputs.return();
+    expect(await store.delete(3)).toBe(true);
+    await store.markDecoded(before);
+    await store.set({ objectNumber: 3, generationNumber: 4, value: cosDict({}), stream: { length: 2, chunks: [Uint8Array.of(8, 9)] } });
+    await store.markDecoded(before); expect((await store.get(3))!.stream!.decoded).toBe(false);
+    const bytes = []; for await (const chunk of before.stream!.chunks) bytes.push(...chunk);
+    expect(bytes).toEqual([1, 2, 3]);
+    const saved = []; for await (const chunk of serialized.body.chunks) saved.push(chunk);
+    expect(Buffer.concat(saved).toString("latin1")).toContain("\nstream\n\x01\x02\x03\nendstream");
+    expect((await store.get(3))!.generationNumber).toBe(4);
+  } finally { await store.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("queues deletion after an outstanding stream replacement", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const store = new PdfMutableObjectStore({ fs, directory: "/scratch" });
+  let release!: () => void; const gate = new Promise<void>(resolve => { release = resolve; });
+  try {
+    const replacing = store.set({ objectNumber: 1, generationNumber: 0, value: cosDict({}), stream: { length: 1, chunks: (async function* () { await gate; yield Uint8Array.of(4); })() } });
+    const deleting = store.delete(1), reading = store.get(1); release();
+    await replacing; expect(await deleting).toBe(true); expect(await reading).toBeUndefined();
+  } finally { release(); await store.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+for (const method of ["objects", "identities", "outputObjects"] as const) it(`cancels ${method} traversal of deleted identities`, async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const controller = new AbortController(), reason = new Error("cancel deleted traversal");
+  const store = new PdfMutableObjectStore({ fs, directory: "/scratch" }, { signal: controller.signal });
+  try {
+    for (let i = 1; i <= 64; i++) { await store.set({ objectNumber: i, generationNumber: 0, value: cosNumber(i) }); await store.delete(i); }
+    const timer = setTimeout(() => controller.abort(reason), 0);
+    try { await expect(store[method]().next()).rejects.toBe(reason); } finally { clearTimeout(timer); }
+  } finally { await store.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("validates deletion identities and preserves cancellation", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const controller = new AbortController();
+  const store = new PdfMutableObjectStore({ fs, directory: "/scratch" }, { signal: controller.signal });
+  try {
+    for (const number of [0, -1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) await expect(store.delete(number)).rejects.toThrow(RangeError);
+    const reason = new Error("cancel deletion"); controller.abort(reason); await expect(store.delete(1)).rejects.toBe(reason);
+  } finally { await store.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("persists deletion markers beyond the identity cache and restores sparse objects", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const store = new PdfMutableObjectStore({ fs, directory: "/scratch" });
+  try {
+    // IntegerTable retains at most 4096 identities. Both live and deleted keys
+    // below must be replayed from caller backing after cache eviction.
+    for (let i = 1; i <= 4100; i++) { await store.set({ objectNumber: i, generationNumber: 0, value: cosNumber(i) }); await store.delete(i); }
+    for (const number of [1, 2048, 4100]) expect(await store.get(number)).toBeUndefined();
+    await store.set({ objectNumber: 1, generationNumber: 3, value: cosString("restored") });
+    const identities = []; for await (const identity of store.identities()) identities.push(identity);
+    expect(identities).toEqual([{ objectNumber: 1, generationNumber: 3 }]);
+    expect((await store.allocate()).objectNumber).toBe(4101);
+  } finally { await store.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("serializes deletion holes exactly like a document containing only surviving objects", async () => {
+  const { serializeRetainedCosDocumentChunks } = await import("./retained-writer.js");
+  const { cosArray, cosName, cosRef } = await import("../ast.js");
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const storage = { fs, directory: "/scratch" }, store = new PdfMutableObjectStore(storage);
+  const survivors = [
+    { objectNumber: 1, generationNumber: 0, value: cosDict({ Type: cosName("Catalog"), Pages: cosRef(3) }) },
+    { objectNumber: 3, generationNumber: 0, value: cosDict({ Type: cosName("Pages"), Kids: cosArray([]), Count: cosNumber(0) }) }
+  ];
+  async function collect(input: AsyncIterable<Uint8Array>) { const chunks = []; for await (const bytes of input) { expect(bytes.buffer.byteLength).toBeLessThanOrEqual(16384); await Promise.resolve(); chunks.push(bytes); } return Buffer.concat(chunks); }
+  try {
+    for (const object of survivors) await store.set(object);
+    await store.set({ objectNumber: 2, generationNumber: 5, value: cosString("removed") });
+    await store.set({ objectNumber: 4, generationNumber: 0, value: cosString("removed highest") });
+    await store.delete(2); await store.delete(4);
+    const expected = await collect(serializeRetainedCosDocumentChunks({ objects: survivors, rootRef: cosRef(1), chunkBytes: 16384 }, storage));
+    const actual = await collect(serializeRetainedCosDocumentChunks({ objects: store.outputObjects(), rootRef: cosRef(1), chunkBytes: 16384 }, storage));
+    expect(actual).toEqual(expected);
+  } finally { await store.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

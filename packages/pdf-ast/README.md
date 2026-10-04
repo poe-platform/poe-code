@@ -53,6 +53,11 @@ surfaces and evaluator resources; individual decoded resources and metadata
 still need bounded ownership. Rendering repeats page evaluation per
 tile and uses seekable staging before yielding the first output chunk.
 
+`PdfMutableObjectStore.delete(objectNumber)` removes a staged object without
+loading its value or stream. Fresh reads and output iterators omit it; previously
+returned snapshots remain readable until the store closes. Deleting an absent
+object returns `false`, and later allocation does not reuse deleted identities.
+
 `editRetainedDocument(input, storage, { generateAppearances: true })` regenerates
 form appearances using caller-backed traversal and streamed text operators. It
 preserves text, choice, button, password and comb fields, including existing

@@ -210,7 +210,12 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   chunks and no recursive decoding. Fixed-size UTF-8 decoding rejects malformed
   byte sequences, unpaired surrogates and forbidden decoded characters even after
   encountering Unicode or punycode. Valid Unicode and punycode hostnames (including
-  their percent-encoded forms) still use native whole-value validation. Runtime-owned state
+  their percent-encoded forms) still use native whole-value validation. Preserve
+  whole-host admission when replacing this fallback: large Unicode hosts can be
+  rejected even when the corresponding ASCII host is accepted, and a nonempty
+  file host made entirely of ignored IDNA characters differs from an empty host.
+  Per-code-point ASCII normalization alone does not preserve these behaviors.
+  Runtime-owned state
   is not bounded by protocol streaming. Whole-value runtimes currently retain
   documents. The internal Lua storage layer retains binary strings, table
   keys/values, collision indexes, iteration cursors, metatables, closure identities

@@ -194,3 +194,16 @@ it("matches native UTF-8 host decoding across byte-buffer and surrogate boundari
     }
   } finally {await context.close();}
 });
+
+
+it("preserves whole-host IDNA admission for Unicode that maps to ASCII", async () => {
+  const {retainedImageOriginAllowed} = await import("./retained-image-origin.js");
+  const {ExecutionContext} = await import("./execution.js");
+  const context = new ExecutionContext("convert", {});
+  try {
+    for (const scheme of ["https", "file"]) for (const length of [1, 1000, 10000]) for (const unit of ["Ａ", "%EF%BC%A1", "K", "ﬀ", "\u00ad", "\ufeff", "０", "Ａ。"]) {
+      const host = unit.repeat(length), value = `${scheme}://${host}/image`;
+      expect(await retainedImageOriginAllowed(async function* () {for (let i = 0; i < value.length; i += 127) yield value.slice(i, i + 127);}, context), `${scheme} ${unit} length=${length}`).toBe(URL.canParse(value));
+    }
+  } finally {await context.close();}
+});

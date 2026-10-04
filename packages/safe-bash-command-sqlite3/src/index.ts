@@ -1,3 +1,5 @@
+import { CsvRows } from "./csv-rows.js";
+import { retainInput } from "./retained-input.js";
 import { readFileStream } from "safe-bash-contracts/filesystem";
 import { stagedScriptLines } from "./script-lines.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -159,7 +161,6 @@ function setOutputMode(state: CliSessionState, mode: string, argument?: string):
 }
 
 const textEncoder = new TextEncoder();
-const textDecoder = new TextDecoder("utf-8", { fatal: false });
 
 async function vfsExists(fs: CommandContext["fs"], path: string): Promise<boolean> {
   try {
@@ -523,65 +524,7 @@ function formatQueryResult(res: QueryResultSet, state: CliSessionState): string 
 }
 
 function parseCsvContent(content: string, separator: string): string[][] {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let cur = "";
-  let inQuotes = false;
-  let i = 0;
-
-  while (i < content.length) {
-    const ch = content[i]!;
-    if (inQuotes) {
-      if (ch === '"') {
-        if (content[i + 1] === '"') {
-          cur += '"';
-          i += 2;
-          continue;
-        }
-        inQuotes = false;
-        i += 1;
-        continue;
-      }
-      cur += ch;
-      i += 1;
-      continue;
-    }
-
-    if (ch === '"' && cur.length === 0) {
-      inQuotes = true;
-      i += 1;
-      continue;
-    }
-    if (content.startsWith(separator, i)) {
-      row.push(cur);
-      cur = "";
-      i += separator.length;
-      continue;
-    }
-    if (ch === "\r" && content[i + 1] === "\n") {
-      row.push(cur);
-      rows.push(row);
-      row = [];
-      cur = "";
-      i += 2;
-      continue;
-    }
-    if (ch === "\n") {
-      row.push(cur);
-      rows.push(row);
-      row = [];
-      cur = "";
-      i += 1;
-      continue;
-    }
-    cur += ch;
-    i += 1;
-  }
-  if (cur.length > 0 || row.length > 0) {
-    row.push(cur);
-    rows.push(row);
-  }
-  return rows;
+  return [...new CsvRows(separator).push(content, true)];
 }
 
 function splitDotCommandArgs(line: string): string[] {
@@ -1257,55 +1200,81 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         const fileArg = parts[pIdx] ?? "";
         const tableArg = parts[pIdx + 1] ?? "";
         const filePath = resolveVfsPath(context.cwd, fileArg);
-        const content = textDecoder.decode(await readInputFile(filePath));
-        const sep = csvOverride ? "," : state.colSeparator;
-        const parsedRows = parseCsvContent(content, sep).slice(skipRows);
-        if (parsedRows.length === 0) {
-          return;
-        }
-        let tbl = db.findTable ? db.findTable(tableArg) : undefined;
-        let dataRows = parsedRows;
-        let colCount = tbl ? tbl.columns.length : (parsedRows[0]?.length ?? 0);
-        let tableExists = Boolean(tbl);
-        if (!tableExists && !db.findTable) {
-          const checkRes = await execSingleStmt(
-            `SELECT name FROM sqlite_master WHERE type='table' AND lower(name)=lower('${tableArg.replace(/'/g, "''")}');`
-          );
-          if ((checkRes?.rows.length ?? 0) > 0) {
-            tableExists = true;
-            const colRes = await execSingleStmt(`SELECT * FROM "${tableArg.replace(/"/g, '""')}" LIMIT 0;`);
-            if (colRes && colRes.columns.length > 0) {
-              colCount = colRes.columns.length;
+        enforceLimit("maxInputBytes", inputBytes + (await context.fs.stat(filePath)).size);
+        const input = await retainInput(readFileStream(context.fs, filePath, { signal: context.signal, chunkSize: 16384 }), context, accountScript);
+        let failed = false;
+        try {
+          const sep = csvOverride ? "," : state.colSeparator;
+          const rows = async function* (): AsyncGenerator<string[]> {
+            const parser = new CsvRows(sep);
+            for await (const text of input.text()) yield* parser.push(text);
+            yield* parser.push("", true);
+          };
+          skipRows = Math.trunc(skipRows);
+          if (skipRows < 0) {
+            let count = 0;
+            for await (const row of rows()) { void row; context.signal.throwIfAborted(); count++; }
+            skipRows = Math.max(0, count + skipRows);
+          }
+          const selected = async function* (): AsyncGenerator<string[]> {
+            let index = 0;
+            for await (const row of rows()) {
+              context.signal.throwIfAborted();
+              if (index++ >= skipRows) yield row;
+            }
+          };
+          const records = selected();
+          const first = await records.next().finally(() => records.return(undefined));
+          if (first.done) return;
+          let tbl = db.findTable ? db.findTable(tableArg) : undefined;
+          let colCount = tbl ? tbl.columns.length : first.value.length;
+          let tableExists = Boolean(tbl);
+          if (!tableExists && !db.findTable) {
+            const checkRes = await execSingleStmt(
+              `SELECT name FROM sqlite_master WHERE type='table' AND lower(name)=lower('${tableArg.replace(/'/g, "''")}');`
+            );
+            if ((checkRes?.rows.length ?? 0) > 0) {
+              tableExists = true;
+              const colRes = await execSingleStmt(`SELECT * FROM "${tableArg.replace(/"/g, '""')}" LIMIT 0;`);
+              if (colRes && colRes.columns.length > 0) {
+                colCount = colRes.columns.length;
+              }
             }
           }
-        }
-        if (!tableExists) {
-          const headerCols = parsedRows[0]!;
-          colCount = headerCols.length;
-          dataRows = parsedRows.slice(1);
-          const createSql = `CREATE TABLE "${tableArg}"(${headerCols.map((c) => `"${c}" TEXT`).join(", ")})`;
-          await execSingleStmt(createSql);
-          tbl = db.findTable ? db.findTable(tableArg) : undefined;
-        }
-        const targetTableName = tbl ? tbl.name : tableArg;
-        if (typeof (db as SqliteDatabase).bulkImportRows === "function" && (db as SqliteDatabase).bulkImportRows(targetTableName, dataRows)) {
+          if (!tableExists) {
+            const headerCols = first.value;
+            colCount = headerCols.length;
+            const createSql = `CREATE TABLE "${tableArg}"(${headerCols.map((c) => `"${c}" TEXT`).join(", ")})`;
+            await execSingleStmt(createSql);
+            tbl = db.findTable ? db.findTable(tableArg) : undefined;
+          }
+          const targetTableName = tbl ? tbl.name : tableArg;
+          const dataRows = async function* (): AsyncGenerator<string[]> {
+            let header = !tableExists;
+            for await (const row of selected()) {
+              if (header) { header = false; continue; }
+              yield row;
+            }
+          };
+          if (db instanceof SqliteDatabase && await db.bulkImportRowsAsync(targetTableName, dataRows(), context.signal)) {
+            state.dirty = true;
+          } else {
+            const batchValues: string[] = [];
+            for await (const r of dataRows()) {
+              if (r.length === 1 && r[0] === "" && colCount > 1) continue;
+              const valsSql = Array.from({ length: colCount }, (_, cIdx) => `'${(r[cIdx] ?? "").replaceAll("'", "''")}'`).join(", ");
+              batchValues.push(`(${valsSql})`);
+              if (batchValues.length === 500) {
+                await execSingleStmt(`INSERT INTO "${targetTableName}" VALUES ${batchValues.join(", ")}`);
+                batchValues.length = 0;
+              }
+            }
+            if (batchValues.length) await execSingleStmt(`INSERT INTO "${targetTableName}" VALUES ${batchValues.join(", ")}`);
+          }
           state.dirty = true;
-        } else {
-          const batchValues: string[] = [];
-          for (const r of dataRows) {
-            if (r.length === 1 && r[0] === "" && colCount > 1) {
-              continue;
-            }
-            const valsSql = Array.from({ length: colCount }, (_, cIdx) => `'${(r[cIdx] ?? "").replace(/'/g, "''")}'`).join(", ");
-            batchValues.push(`(${valsSql})`);
-          }
-          for (let b = 0; b < batchValues.length; b += 500) {
-            const chunk = batchValues.slice(b, b + 500);
-            await execSingleStmt(`INSERT INTO "${targetTableName}" VALUES ${chunk.join(", ")}`);
-          }
-        }
-        state.dirty = true;
-        return;
+          return;
+        } catch (error) { failed = true; throw error; }
+        finally { await input.close().catch(error => { if (!failed) throw error; }); }
       }
 
       if (cmd === ".read") {

@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { runSynchronously, runCooperatively, stepMap, stepFlatMap, stepFilter, stepSort, stepReduce, type SqlSteps, type StepResult } from "./execution.js";
 import {
   type SqlValue,
@@ -1915,49 +1916,66 @@ export class SqliteDatabase {
     });
   }
 
-  public bulkImportRows(tableName: string, rows: readonly (readonly string[])[]): boolean {
+  private prepareBulkImport(tableName: string) {
     const tbl = this.findTable(tableName);
-    if (!tbl) return false;
+    if (!tbl) return undefined;
     const lowerTbl = tbl.name.toLowerCase();
     const hasTriggers = Array.from(this.triggers.values()).some((tr) => tr.tableName.toLowerCase() === lowerTbl);
     const hasComplexCols = tbl.columns.some(
       (c) => Boolean(c.checkExpr || c.generatedExpr || (c.primaryKey && c.type.toUpperCase() === "INTEGER" && !tbl.withoutRowId && tbl.primaryKeyCols.length === 1))
     );
     if (this.foreignKeys || hasTriggers || hasComplexCols) {
-      return false;
+      return undefined;
     }
-    const cols = tbl.columns;
-    const colCount = cols.length;
+    const cols = tbl.columns, colCount = cols.length;
     let inserted = 0;
-    for (let i = 0; i < rows.length; i++) {
-      const r = rows[i]!;
-      if (r.length === 1 && r[0] === "" && colCount > 1) continue;
-      const data: Record<string, SqlValue> = {};
-      for (let cIdx = 0; cIdx < colCount; cIdx++) {
-        const col = cols[cIdx]!;
-        const raw = r[cIdx] ?? "";
-        const val = applyColumnAffinity(raw, col.type, tbl.strict);
-        if (col.notNull && (val === null || val === undefined)) {
-          return false;
+    return {
+      insert: function* (this: SqliteDatabase, r: readonly string[]): SqlSteps<boolean> {
+        if (r.length === 1 && r[0] === "" && colCount > 1) return true;
+        const data: Record<string, SqlValue> = {};
+        for (let cIdx = 0; cIdx < colCount; cIdx++) {
+          const col = cols[cIdx]!;
+          const raw = r[cIdx] ?? "";
+          const val = applyColumnAffinity(raw, col.type, tbl.strict);
+          if (col.notNull && (val === null || val === undefined)) {
+            return false;
+          }
+          data[col.name] = val;
         }
-        data[col.name] = val;
-      }
-      const rowid = tbl.nextRowId;
-      const candidate: TableRow = { rowid, data };
-      const conflict = runSynchronously(this.checkConstraintsAndConflicts(tbl, candidate));
-      if (conflict) {
-        throw new Error(`UNIQUE constraint failed: ${tbl.name}`);
-      }
-      this.checkRowCount(tbl.rows.length + 1);
-      tbl.rows.push(candidate);
-      tbl.nextRowId = rowid + 1;
-      if (rowid > tbl.maxAutoInc) tbl.maxAutoInc = rowid;
-      this.lastInsertRowid = rowid;
-      inserted++;
+        const rowid = tbl.nextRowId;
+        const candidate: TableRow = { rowid, data };
+        const conflict = yield* this.checkConstraintsAndConflicts(tbl, candidate);
+        if (conflict) {
+          throw new Error(`UNIQUE constraint failed: ${tbl.name}`);
+        }
+        this.checkRowCount(tbl.rows.length + 1);
+        tbl.rows.push(candidate);
+        tbl.nextRowId = rowid + 1;
+        if (rowid > tbl.maxAutoInc) tbl.maxAutoInc = rowid;
+        this.lastInsertRowid = rowid;
+        inserted++; return true;
+      }.bind(this),
+      finish: () => { this.lastChanges = inserted; this.totalChanges += inserted; }
+    };
+  }
+
+  public bulkImportRows(tableName: string, rows: readonly (readonly string[])[]): boolean {
+    const plan = this.prepareBulkImport(tableName);
+    if (!plan) return false;
+    for (const row of rows) if (!runSynchronously(plan.insert(row))) return false;
+    plan.finish(); return true;
+  }
+
+  public async bulkImportRowsAsync(tableName: string, rows: AsyncIterable<readonly string[]>, signal: AbortSignal): Promise<boolean> {
+    const plan = this.prepareBulkImport(tableName);
+    if (!plan) return false;
+    let work = 0;
+    for await (const row of rows) {
+      if (++work % 512 === 0) await yieldTurn(signal);
+      signal.throwIfAborted();
+      if (!await runCooperatively(plan.insert(row), signal)) return false;
     }
-    this.lastChanges = inserted;
-    this.totalChanges += inserted;
-    return true;
+    signal.throwIfAborted(); plan.finish(); return true;
   }
 
   public findTable(name: string): TableDef | undefined {

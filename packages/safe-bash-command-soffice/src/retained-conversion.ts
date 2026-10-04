@@ -1,3 +1,4 @@
+import { retainPptxText } from "./retained-pptx.js";
 import { retainDocxText } from "./retained-docx-text.js";
 import { retainSpreadsheetConversion } from "./retained-spreadsheet-conversion.js";
 import { retainXlsxText } from "./retained-xlsx.js";
@@ -31,12 +32,13 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
   const format = (colon < 0 ? convertSpec : convertSpec.slice(0, colon)).toLowerCase();
   const explicitFilter = colon < 0 ? "" : convertSpec.slice(colon + 1, nextColon < 0 ? undefined : nextColon);
   const structured = [".pdf", ".docx", ".odt", ".ods", ".odp", ".xlsx", ".pptx", ".html", ".htm", ".csv"];
+  const pptxConversion = (input: string) => input.toLowerCase().endsWith(".pptx") && format !== "pdf";
   const docxConversion = (input: string) => input.toLowerCase().endsWith(".docx");
   const plainTableConversion = (input: string) => ![...structured, ".rtf"].some(extension => input.toLowerCase().endsWith(extension)) && ["csv", "xlsx"].includes(format);
   const openDocumentConversion = (input: string) => [".odt", ".ods", ".odp"].some(extension => input.toLowerCase().endsWith(extension)) &&
     !(input.toLowerCase().endsWith(".ods") && ["csv", "xlsx"].includes(format));
   const spreadsheetTextConversion = (input: string) => input.toLowerCase().endsWith(".xlsx") && !["pdf", "html", "docx", "xlsx", "csv"].includes(format);
-  if (!inputs.every(input => docxConversion(input) || plainTableConversion(input) || openDocumentConversion(input) || [".xlsx", ".csv"].some(extension => input.toLowerCase().endsWith(extension)) ? true : input.toLowerCase().endsWith(".ods") && (format === "csv" || format === "xlsx") ? true :
+  if (!inputs.every(input => pptxConversion(input) || docxConversion(input) || plainTableConversion(input) || openDocumentConversion(input) || [".xlsx", ".csv"].some(extension => input.toLowerCase().endsWith(extension)) ? true : input.toLowerCase().endsWith(".ods") && (format === "csv" || format === "xlsx") ? true :
     input.toLowerCase().endsWith(".rtf") ? true :
     !structured.some(extension => input.toLowerCase().endsWith(extension)) && !["xlsx", "csv"].includes(format))) return undefined;
   return withSofficeInputs(inputs, context, limits, async (storage, sources) => {
@@ -59,10 +61,10 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
           signal.throwIfAborted(); stderr = `Error: conversion failed: ${error instanceof Error ? error.message : String(error)}\n`;
           messages.length = 0; break;
         }
-      } else if (docxConversion(input) || openDocumentConversion(input) || spreadsheetTextConversion(input)) {
+      } else if (pptxConversion(input) || docxConversion(input) || openDocumentConversion(input) || spreadsheetTextConversion(input)) {
         const document = format === "pdf" ? new RetainedOfficeBlocks(storage, signal) : undefined;
         let text: SofficeSnapshot;
-        try { text = docxConversion(input) ? await retainDocxText(storage, source, context, "\n\n", format === "html" || format === "docx" ? { format, title: stem } : undefined, document) : spreadsheetTextConversion(input) ? await retainXlsxText(storage, source, context) : await retainOdtText(storage, source, context, document ? { blocks: document } : format === "docx" ? { docx: true } : format === "html" ? { htmlTitle: stem } : { paragraphSeparator: "\n\n" }); }
+        try { text = pptxConversion(input) ? await retainPptxText(storage, source, context, { format, title: stem }) : docxConversion(input) ? await retainDocxText(storage, source, context, "\n\n", format === "html" || format === "docx" ? { format, title: stem } : undefined, document) : spreadsheetTextConversion(input) ? await retainXlsxText(storage, source, context) : await retainOdtText(storage, source, context, document ? { blocks: document } : format === "docx" ? { docx: true } : format === "html" ? { htmlTitle: stem } : { paragraphSeparator: "\n\n" }); }
         catch (error) {
           signal.throwIfAborted();
           stderr = `Error: conversion failed: ${error instanceof Error ? error.message : String(error)}\n`;

@@ -1,129 +1,15 @@
+import { OfficeXml, SpanMap, type OfficeElement } from "./retained-office-xml.js";
 import type { RetainedOfficeBlocks } from "./retained-office-blocks.js";
 import { retainLower } from "./retained-lower.js";
 import { escapeHtmlText } from "./html.js";
 import { docxDocumentPrefix, docxDocumentSuffix } from "./docx-parts.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
+import { type PagedStorage } from "@poe-code/safe-fs/storage";
 import { createZipCodec } from "@poe-code/office-package/zip";
-import { openRetainedXml, resolveOfficeResources, type RetainedXml, type XmlRange } from "@poe-code/office-xml";
+import { openRetainedXml, resolveOfficeResources, type XmlRange } from "@poe-code/office-xml";
 import { RetainedSpans } from "./retained-spans.js";
 import { retainXmlText } from "./retained-xml-text.js";
 import type { RetainedSofficeContext, SofficeSnapshot } from "./retained-input.js";
-
-type Element = { name: XmlRange; first: number; open: number; end: number; body: XmlRange };
-const kinds = ["text", "start-name", "attribute-name", "attribute-value", "start-end", "end-name", "comment", "cdata", "instruction"];
-
-/** A replayable lexical index preserves the permissive legacy element selection. */
-class DocxXml {
-  private readonly index: IntegerTable;
-  count = 0;
-  private work = 0;
-  constructor(readonly xml: RetainedXml, storage: PagedStorage, private readonly signal: AbortSignal) { this.index = new IntegerTable(storage); }
-  async retain(): Promise<void> {
-    for await (const token of this.xml.tokens()) {
-      for (const [field, value] of [kinds.indexOf(token.kind), token.range.start, token.range.length, token.empty ? 1 : 0].entries())
-        await this.index.set(BigInt(this.count * 4 + field), BigInt(value));
-      this.count++; if (this.count % 256 === 0) await yieldTurn(this.signal);
-    }
-  }
-  async token(index: number) {
-    this.signal.throwIfAborted(); if (++this.work % 256 === 0) await yieldTurn(this.signal);
-    return { kind: kinds[Number(await this.index.get(BigInt(index * 4)))], range: { start: Number(await this.index.get(BigInt(index * 4 + 1))), length: Number(await this.index.get(BigInt(index * 4 + 2))) }, empty: await this.index.get(BigInt(index * 4 + 3)) === 1n };
-  }
-  async name(range: XmlRange): Promise<string> {
-    let local = "", colon = false;
-    for await (const bytes of this.xml.read(range)) for (const byte of bytes) {
-      if (byte === 58) { if (colon) return ""; colon = true; local = ""; }
-      else if (byte === 95 || byte === 45 || byte >= 48 && byte <= 57 || byte >= 65 && byte <= 90 || byte >= 97 && byte <= 122) {
-        if (local.length <= 32) local += String.fromCharCode(byte);
-      } else return "";
-    }
-    return local.length <= 32 ? local : "";
-  }
-  async equal(a: XmlRange, b: XmlRange): Promise<boolean> {
-    if (a.length !== b.length) return false;
-    for (let at = 0; at < a.length; at += 16384) {
-      let left = new Uint8Array();
-      for await (const bytes of this.xml.read({ start: a.start + at, length: Math.min(16384, a.length - at) })) left = new Uint8Array(bytes);
-      for await (const bytes of this.xml.read({ start: b.start + at, length: left.length })) if (bytes.some((byte, index) => byte !== left[index])) return false;
-    }
-    return true;
-  }
-  async *elements(first: number, end: number, names: readonly string[], empty = false, openOnly = false, insensitive = false): AsyncGenerator<Element> {
-    for (let index = first; index < end; index++) {
-      const token = await this.token(index);
-      if (token.kind !== "start-name") continue;
-      const local = await this.name(token.range);
-      if (!names.includes(insensitive ? local.toLowerCase() : local)) continue;
-      const start = index;
-      while (++index < end && (await this.token(index)).kind !== "start-end") { /* Attributes belong to this opening tag. */ }
-      if (index >= end) return;
-      const open = index, opening = await this.token(open);
-      if (opening.empty || openOnly) {
-        if (empty) yield { name: token.range, first: start, open, end: open, body: { start: opening.range.start, length: 0 } };
-        continue;
-      }
-      let close = open + 1;
-      for (; close < end; close++) {
-        const candidate = await this.token(close);
-        if (candidate.kind === "end-name" && await this.equal(token.range, candidate.range)) break;
-      }
-      if (close < end) {
-        const closing = await this.token(close);
-        yield { name: token.range, first: start, open, end: close, body: { start: opening.range.start, length: closing.range.start - 2 - opening.range.start } };
-        index = close;
-      }
-    }
-  }
-  async attribute(element: Element, wanted: string, insensitive = false): Promise<XmlRange | undefined> {
-    let name = "";
-    for (let index = element.first + 1; index < element.open; index++) {
-      const token = await this.token(index);
-      if (token.kind === "attribute-name") name = await this.name(token.range);
-      else if (token.kind === "attribute-value" && (insensitive ? name.toLowerCase() : name) === wanted) {
-        for await (const bytes of this.xml.read({ start: token.range.start - 1, length: 1 })) if (bytes[0] === 34) return token.range;
-      }
-    }
-    return undefined;
-  }
-}
-
-/** Hash collision chains retain full keys in caller storage, never in a JS map. */
-class SpanMap {
-  private readonly buckets: IntegerTable;
-  private readonly records: IntegerTable;
-  private count = 0;
-  constructor(private readonly storage: PagedStorage, private readonly signal: AbortSignal) { this.buckets = new IntegerTable(storage); this.records = new IntegerTable(storage); }
-  private async hash(key: SofficeSnapshot): Promise<bigint> {
-    let hash = 2166136261;
-    for (let at = 0; at < key.size; at += 16384) {
-      this.signal.throwIfAborted();
-      for (const byte of await this.storage.read(key.position + at, Math.min(16384, key.size - at))) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
-    }
-    return BigInt(hash);
-  }
-  async set(key: SofficeSnapshot, value: SofficeSnapshot): Promise<void> {
-    const hash = await this.hash(key), next = await this.buckets.get(hash) ?? 0n, row = this.count++;
-    for (const [field, number] of [key.position, key.size, value.position, value.size].entries()) await this.records.set(BigInt(row * 5 + field), BigInt(number));
-    await this.records.set(BigInt(row * 5 + 4), next); await this.buckets.set(hash, BigInt(row + 1));
-  }
-  async get(key: SofficeSnapshot): Promise<SofficeSnapshot | undefined> {
-    let next = await this.buckets.get(await this.hash(key)) ?? 0n;
-    while (next) {
-      const row = (next - 1n) * 5n, position = Number(await this.records.get(row)), size = Number(await this.records.get(row + 1n));
-      let equal = size === key.size;
-      for (let at = 0; equal && at < size; at += 16384) {
-        this.signal.throwIfAborted();
-        const left = new Uint8Array(await this.storage.read(position + at, Math.min(16384, size - at)));
-        const right = await this.storage.read(key.position + at, left.length);
-        equal = left.every((byte, index) => byte === right[index]);
-      }
-      if (equal) return { position: Number(await this.records.get(row + 2n)), size: Number(await this.records.get(row + 3n)) };
-      next = await this.records.get(row + 4n) ?? 0n;
-    }
-    return undefined;
-  }
-}
 
 /** DOCX text extraction retains archive names, relationships, tokens and output. */
 export async function retainDocxText(storage: PagedStorage, source: SofficeSnapshot, context: RetainedSofficeContext, separator = "\n", markup?: { readonly format: "html" | "docx"; readonly title: string }, documentBlocks?: RetainedOfficeBlocks): Promise<SofficeSnapshot> {
@@ -147,7 +33,7 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
   }
   const open = async (span: SofficeSnapshot) => {
     const xml = await openRetainedXml(read(span), { signal, workingStorage: { fs: context.fs, directory: context.cwd } });
-    const indexed = new DocxXml(xml, storage, signal);
+    const indexed = new OfficeXml(xml, storage, signal);
     try { await indexed.retain(); return indexed; } catch (error) { await xml.close().catch(() => {}); throw error; }
   };
   let document: SofficeSnapshot | undefined, rels: SofficeSnapshot | undefined, styles: SofficeSnapshot | undefined;
@@ -206,7 +92,7 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
     await output.add(await escaped(span));
     await output.add(await literal(html ? heading ? "</h1>\n" : "</p>\n" : "</w:t></w:r></w:p>"));
   };
-  const text = async (element: Element): Promise<SofficeSnapshot> => {
+  const text = async (element: OfficeElement): Promise<SofficeSnapshot> => {
     const runs = new RetainedSpans(storage, signal);
     for await (const run of xml.elements(element.open + 1, element.end, ["t", "tab", "br", "cr"], true)) {
       const name = await xml.name(run.name);
@@ -229,13 +115,13 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
     }
     return { heading: prefix.startsWith("heading"), title: span.size === 5 && prefix === "title", subtitle: span.size === 8 && prefix === "subtitle", normal: span.size === 6 && prefix === "normal", section };
   };
-  const attributeIn = async (owner: DocxXml, element: Element, tag: string, insensitive = false) => {
+  const attributeIn = async (owner: OfficeXml, element: OfficeElement, tag: string, insensitive = false) => {
     for await (const child of owner.elements(element.open + 1, element.end, [tag], true, true, insensitive)) {
       const range = await owner.attribute(child, "val", insensitive); if (range?.length) return range;
     }
     return undefined;
   };
-  const fontSize = async (owner: DocxXml, element: Element, insensitive = false) => {
+  const fontSize = async (owner: OfficeXml, element: OfficeElement, insensitive = false) => {
     for await (const child of owner.elements(element.open + 1, element.end, ["sz"], true, true, insensitive)) {
       const range = await owner.attribute(child, "val", insensitive); if (!range?.length) continue;
       let value = 0, valid = true;
@@ -264,7 +150,7 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
         styleFailed = false;
       } finally { await owner.xml.close().catch(error => { if (!styleFailed) throw error; }); }
     }
-    const heading = async (block: Element) => {
+    const heading = async (block: OfficeElement) => {
       if (!markup && !documentBlocks) return false;
       const style = await attributeIn(xml, block, "pstyle", true);
       if (style) {

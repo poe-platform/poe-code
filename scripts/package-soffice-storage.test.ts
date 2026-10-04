@@ -197,6 +197,13 @@ it("packs the retained Soffice file SDK with canonical filesystem types and no p
     const bytes = await fs.readFile("/input." + format);
     expect(new TextDecoder().decode(format === "docx" ? readZipArchiveEntries(bytes).get("word/document.xml") : bytes)).toContain(format === "pdf" ? "%PDF-1.7" : "Packed document");
   }
+  await fs.writeFile("/slides.pptx", createStoredZipArchive({"ppt/slides/slide1.xml": new TextEncoder().encode("<p:sp><a:p><a:t>Packed slides</a:t></a:p></p:sp>")}));
+  for (const format of ["txt", "html", "docx"]) {
+    const result = await runSofficeFileCli(["--convert-to", format, "/slides.pptx"], {filesystem, stdout: {async write() {}}, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
+    expect(result.exitCode).toBe(0);
+    const bytes = await fs.readFile("/slides." + format);
+    expect(new TextDecoder().decode(format === "docx" ? readZipArchiveEntries(bytes).get("word/document.xml") : bytes)).toContain("Packed slides");
+  }
   let docxText = "";
   const docxCat = await runSofficeFileCli(["--cat", "/input.docx"], {filesystem,
     stdout: {async write(bytes) {docxText += new TextDecoder().decode(bytes);}}, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
@@ -205,5 +212,5 @@ it("packs the retained Soffice file SDK with canonical filesystem types and no p
     stdout: {async write() {}}, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
   expect(docxTextConversion.exitCode).toBe(0);
   expect(new TextDecoder().decode(await fs.readFile("/input.txt"))).toContain("Caller-backed text");
-  expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["book.csv", "book.docx", "book.html", "book.pdf", "book.txt", "book.xlsx", "input.csv", "input.docx", "input.html", "input.md", "input.pdf", "input.txt", "input.xlsx", "office.docx", "office.html", "office.odt", "office.pdf"]);
+  expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["book.csv", "book.docx", "book.html", "book.pdf", "book.txt", "book.xlsx", "input.csv", "input.docx", "input.html", "input.md", "input.pdf", "input.txt", "input.xlsx", "office.docx", "office.html", "office.odt", "office.pdf", "slides.docx", "slides.html", "slides.pptx", "slides.txt"]);
 });

@@ -1,3 +1,4 @@
+import {PdfValueStorage} from "./pdf-value-storage.js";
 import {PagedStorage} from "@poe-code/safe-fs/storage";
 import {checkLimitInputPixels} from "./limits.js";
 import {PdfFileSource,PdfRetainedDocument,PdfError,renderRetainedPagePixels,type PdfRetainedPage} from "@poe-code/pdf-ast";
@@ -22,7 +23,7 @@ async function openPdfImage(source:ImageByteSource,fs:FileSystem,directory:strin
  const chunks=(async function*(){for(let position=0;position<size;position+=16384){signal.throwIfAborted();const length=Math.min(16384,size-position),bytes=await source.read(position,length,{signal});signal.throwIfAborted();if(!(bytes instanceof Uint8Array)||bytes.length!==length)throw new Error("Truncated PDF image source");yield bytes;}})();
  const retained=await PdfFileSource.fromStream(fs,directory,chunks,{signal,chunkBytes:16384,cacheBytes:65536});
  let document:PdfRetainedDocument|undefined;
- const owned=storage?undefined:new PagedStorage({fs,cwd:directory,env:{},signal},4);
+ const owned=storage?undefined:capabilities.open!==false&&capabilities.randomAccessWrite!==false&&fs.open&&fs.removeFileConditional?new PagedStorage({fs,cwd:directory,env:{},signal},4):new PdfValueStorage(fs,directory,signal);
  const values=storage??owned!;
  const cleanup=async()=>{let failure:{error:unknown}|undefined;try{await document?.close();}catch(error){failure={error};}try{await retained.close();}catch(error){failure??={error};}try{await owned?.close();}catch(error){failure??={error};}if(failure)throw failure.error;};
  try{

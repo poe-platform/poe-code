@@ -119,3 +119,22 @@ it.each(["success","write","cancel"])("owns resource backing for metadata-only P
  finally{spy.mockRestore();}
  expect(await fs.readdir("/")).toEqual([]);
 });
+
+
+it.each([false,true])("spills PDF metadata values without read/write authority, unsupported methods=%s",async methods=>{
+ const {cosDict,cosString,dictSet}=await import("@poe-code/pdf-ast");
+ const document=PdfDocument.create(),page=document.addPage([17,11]);
+ dictSet(page.pageDict,"Resources",cosDict({Properties:cosDict({Replacement:cosDict({ActualText:cosString("replacement".repeat(16384))})})}));
+ const bytes=document.save(),fs=new MemoryFileSystem();await fs.writeFile("/input.pdf",bytes);
+ let staged=0,forbidden=0;
+ const filesystem=new Proxy(fs,{get(target,key){
+  if(key==="open"||key==="removeFileConditional")return methods?()=>{forbidden++;throw new Error("read/write authority forbidden");}:undefined;
+  if(key==="capabilitiesFor")return async()=>({open:false,randomAccessWrite:false,retainedRead:true,retainedStagingWrite:true,retainedStagingCleanup:true});
+  if(key==="readFile"||key==="writeFile")return ()=>{throw new Error("whole-file access forbidden");};
+  if(key==="createStagedFile")return async(...args:Parameters<typeof fs.createStagedFile>)=>{staged++;return fs.createStagedFile(...args);};
+  const value=Reflect.get(target,key,target);return typeof value==="function"?value.bind(target):value;
+ }});
+ expect(await sharp("/input.pdf",{filesystem}).metadata()).toMatchObject({width:17,height:11});
+ expect(forbidden).toBe(0);expect(staged).toBeGreaterThan(4);
+ expect((await fs.readdir("/")).map(entry=>entry.name)).toEqual(["input.pdf"]);
+});

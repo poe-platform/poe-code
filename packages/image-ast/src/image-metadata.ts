@@ -20,8 +20,11 @@ export async function tryInspectImageMetadata<T>(input:ImageResourceInput,option
  const signal=options.signal??new AbortController().signal;signal.throwIfAborted();
  const supplied=options.filesystem;if(!supplied?.capabilities || (typeof input==="string"&&!supplied.openReadFile))return undefined;
  if(!joined&&(options.text || options.create)&&!operations.length)return {value:await consume(readImageMetadata(undefined,options))};
- const storage=supplied.open && supplied.removeFileConditional && supplied.stat
-  ?new PagedStorage({fs:supplied as FileSystem,cwd:options.workingDirectory??(typeof input==="string"?dirname(input):"."),env:{},signal}):undefined;
+ const directory=options.workingDirectory??(typeof input==="string"?dirname(input):".");
+ const capabilities=await (supplied as FileSystem).capabilitiesFor?.(directory,{signal,create:true})??supplied.capabilities;
+ signal.throwIfAborted();
+ const storage=capabilities.open!==false && capabilities.randomAccessWrite!==false && supplied.open && supplied.removeFileConditional && supplied.stat
+  ?new PagedStorage({fs:supplied as FileSystem,cwd:directory,env:{},signal}):undefined;
  let failure:{error:unknown}|undefined,result:{value:T}|undefined,consumed=false;
  try {
   const inspect=async(source?:ImageByteSource):Promise<RetainedImageMetadata>=>{

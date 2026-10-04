@@ -120,7 +120,7 @@ in caller storage, available through `storedDelay.length` and asynchronous `stor
 also available individually. TIFF inspection uses the optional caller backing storage
 to preserve full decode validation with bounded memory. File `.metadata()` for these formats
 uses retained reads and caller-backed transforms, including source version checks
-and handle cleanup. PDF metadata uses caller-backed input and indexes without rasterizing pages; `tryPdfMetadata` backs selected source resource values in supplied storage, or owns a four-page cache on the injected filesystem when storage is omitted. PDF decoding uses its supplied pixel storage for these values; the same adapter serves Sips and identify queries. Raw metadata needs only the retained file size. These reads do
+and handle cleanup. PDF metadata uses caller-backed input and indexes without rasterizing pages; `tryPdfMetadata` backs selected source resource values in supplied storage, or owns a four-page cache on the injected filesystem when storage is omitted. Backends with only retained staging and reads use immutable merged page runs, preserving their existing filesystem authority and bounded caches. PDF decoding uses its supplied pixel storage for these values; the same adapter serves Sips and identify queries. Raw metadata needs only the retained file size. These reads do
 not implicitly cache the file for later operations. Use `await image.inspectMetadata(async metadata => { /* read metadata.storedDelay here */ })`
 with the injected filesystem to keep lazy metadata resources scoped to your callback.
 `.metadata()` preserves its explicit delay-array convenience result. Explicit buffer outputs keep

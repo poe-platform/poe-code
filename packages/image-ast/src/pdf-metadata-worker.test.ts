@@ -2,11 +2,16 @@ import {expect,it} from "vitest";
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {fileURLToPath} from "node:url";
+import {PdfDocument,cosDict,cosString,dictGet,dictSet} from "@poe-code/pdf-ast";
 import sharp from "./index.js";
 
-it("inspects PDF metadata in Workerd with external input and index backing",async()=>{
+it.each([0,8192,32768])("inspects PDF metadata with %i replacement repetitions in Workerd using staging-only backing",async repetitions=>{
  const pixels=new Uint8Array(257*257*4);let state=1234567;for(let i=0;i<pixels.length;i++){state^=state<<13;state^=state>>>17;state^=state<<5;pixels[i]=state&255;}
- const bytes=await sharp(pixels,{raw:{width:257,height:257,channels:4}}).toFormat("pdf").toBuffer();expect(bytes.length).toBeGreaterThan(131072);
+ const encoded=await sharp(pixels,{raw:{width:257,height:257,channels:4}}).toFormat("pdf").toBuffer();
+ const document=PdfDocument.load(encoded),page=document.getPage(0).pageDict,resources=dictGet(page,"Resources");
+ expect(resources?.kind).toBe("dict");
+ if(repetitions&&resources?.kind==="dict")dictSet(resources,"Properties",cosDict({Replacement:cosDict({ActualText:cosString("replacement".repeat(repetitions))})}));
+ const bytes=document.save();expect(bytes.length).toBeGreaterThan(131072);
  const expected=await sharp(bytes).metadata();
  const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../../../",import.meta.url)),sourcefile:"pdf-metadata-worker.ts",contents:`
  import sharp from './packages/image-ast/src/index.ts';

@@ -202,8 +202,9 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   JSON streaming runtimes use retained protocol responses and document generations,
   with at most five page caches live during validation. Test long image URIs
   separately: origin admission now scans absolute paths, relative references and
-  non-authority opaque URLs in bounded chunks. Special schemes and authorities
-  still materialize one URI for native URL validation. Runtime-owned state
+  opaque URLs in bounded chunks. Authority URLs, including file URLs, replay only
+  the host/port into native validation; credentials, paths, queries and fragments
+  stay out of the resident string. Large host/port values remain a boundary. Runtime-owned state
   is not bounded by protocol streaming. Whole-value runtimes currently retain
   documents. The internal Lua storage layer retains binary strings, table
   keys/values, collision indexes, iteration cursors, metatables, closure identities

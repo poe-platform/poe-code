@@ -3,7 +3,7 @@ import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {convertToOutput} from "./engine.js";
 import {createJsonFilterCapability} from "./json-filters.js";
 
-it.each(["data:", "custom:", "custom: ", "relative-"])("does not materialize long JSON-filter image admission for %s", async prefix => {
+it.each(["data:", "custom:", "custom: ", "relative-", "https://example.test/", "custom://example.test/?", "file:/", "file://example.test/"])("does not materialize long JSON-filter image admission for %s", async prefix => {
   const url = prefix + "x".repeat(20000), fs = new MemoryFileSystem();
   const input = {bytes: new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: [{t: "Image", c: [["", [], []], [], [url, ""]]}]}]}))};
   const options = {from: "json", to: "json", filters: [{kind: "json" as const, path: "/filter"}]};
@@ -50,5 +50,37 @@ it("charges all URI chunks before accepting or rejecting and preserves cancellat
   const controller = new AbortController(), context = new ExecutionContext("convert", {signal: controller.signal});
   try {
     await expect(retainedImageOriginAllowed(async function* () {yield "data:"; controller.abort(); yield "payload";}, context)).rejects.toMatchObject({code: "E_CANCELLED"});
+  } finally {await context.close();}
+});
+
+it.each(["https", "custom"])("does not retain long %s credentials for origin admission", async scheme => {
+  const {retainedImageOriginAllowed} = await import("./retained-image-origin.js");
+  const {ExecutionContext} = await import("./execution.js");
+  const context = new ExecutionContext("convert", {}), value = scheme + "://" + "user:password@".repeat(2000) + "example.test/path";
+  const native = URL.canParse.bind(URL), parse = vi.spyOn(URL, "canParse").mockImplementation((value, base) => {
+    if (String(value).length > 64) throw new Error("Whole credentials forbidden");
+    return native(value, base);
+  });
+  try {expect(await retainedImageOriginAllowed(async function* () {for (let i = 0; i < value.length; i += 64) yield value.slice(i, i + 64);}, context)).toBe(true);}
+  finally {parse.mockRestore(); await context.close();}
+});
+
+it("matches authority parsing for credentials, ports, IPv6 and malformed delimiters", async () => {
+  const {retainedImageOriginAllowed} = await import("./retained-image-origin.js");
+  const {ExecutionContext} = await import("./execution.js");
+  const context = new ExecutionContext("convert", {});
+  const authorities = ["", "user@", "@host", "a:b:c@host", "user@user@host", "[::1]", "[::1]:65535", "[::1]:65536", "host:", "host:bad", "host:00080", "host:0x80", "host\0", "host ", "[bad]", "host%2f", "xn--bcher-kva.test", "bücher.test", "0xffffffff", "1.2.3.999", "127.1", "a\\b", "@", "[x]@host"];
+  let seed = 1770;
+  const tokens = ["@", ":", " ", "\t", "\r", "\0", "[", "]", "80", "a", "%00", "%2f", "\\", "/", "?", "#"];
+  for (let i = 0; i < 1000; i++) {
+    let value = "";
+    for (let j = 0; j < 8; j++) {seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; value += tokens[(seed >>> 16) % tokens.length];}
+    authorities.push(value);
+  }
+  try {
+    for (const scheme of ["http", "https", "ftp", "ws", "wss", "custom", "file"]) for (const host of authorities) for (const suffix of ["", "/path", "?q", "#fragment"]) {
+      const value = scheme + "://" + host + suffix;
+      expect(await retainedImageOriginAllowed(async function* () {for (let i = 0; i < value.length; i += 3) yield value.slice(i, i + 3);}, context), JSON.stringify(value)).toBe(URL.canParse(value));
+    }
   } finally {await context.close();}
 });

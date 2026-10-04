@@ -357,7 +357,6 @@ describe("safe-bash E2E: binary inspection, encoding, cryptographic digests, and
         iconv -f UTF-8 -t UTF-16LE /workspace/utf8.txt -o /workspace/utf16le.bin
         iconv -f UTF-16LE -t UTF-8 /workspace/utf16le.bin
         iconv -f UTF-8 -t ISO-8859-1 /workspace/utf8.txt | iconv -f ISO-8859-1 -t UTF-8
-        printf 'ASCII-only-🚀!\n' | iconv -c -f UTF-8 -t ASCII
       `);
       assert.equal(r.exitCode, 0, r.stderr);
       assert.equal(
@@ -365,10 +364,13 @@ describe("safe-bash E2E: binary inspection, encoding, cryptographic digests, and
         [
           "Café & résumé",
           "Café & résumé",
-          "ASCII-only-!",
           ""
         ].join("\n")
       );
+      const discarded = await h.exec(String.raw`printf 'ASCII-only-🚀!\n' | iconv -c -f UTF-8 -t ASCII`);
+      assert.equal(discarded.exitCode, 1, discarded.stderr);
+      assert.equal(discarded.stdout, "ASCII-only-!\n");
+      assert.equal(discarded.stderr, "");
     });
   });
 

@@ -42,15 +42,16 @@ function unsync(bytes: Uint8Array): Uint8Array {
   }
   return Uint8Array.from(result);
 }
-function text(bytes: Uint8Array, encoding: number): string {
-  if (encoding === 0) return cleanText(new TextDecoder("latin1").decode(bytes));
-  if (encoding === 3) return cleanText(new TextDecoder().decode(bytes));
-  if (encoding === 2) return cleanText(new TextDecoder("utf-16be").decode(bytes));
-  if (encoding === 1)
-    return cleanText(
-      new TextDecoder(bytes[0] === 254 && bytes[1] === 255 ? "utf-16be" : "utf-16le").decode(bytes)
-    );
+export function id3TagName(id: string): string { return names[id] ?? id; }
+export function id3TextEncoding(encoding: number, bytes: Uint8Array): string {
+  if (encoding === 0) return "latin1";
+  if (encoding === 3) return "utf-8";
+  if (encoding === 2) return "utf-16be";
+  if (encoding === 1) return bytes[0] === 254 && bytes[1] === 255 ? "utf-16be" : "utf-16le";
   throw new Error("Invalid ID3 text encoding");
+}
+function text(bytes: Uint8Array, encoding: number): string {
+  return cleanText(new TextDecoder(id3TextEncoding(encoding, bytes)).decode(bytes));
 }
 function terminated(bytes: Uint8Array, start: number, encoding: number): number {
   const width = encoding === 1 || encoding === 2 ? 2 : 1;
@@ -110,7 +111,7 @@ export function parseId3(bytes: Uint8Array): Id3Result {
       if (version === 4 && frameFlags & 1) prefix += 4;
       data = data.subarray(prefix);
       if (id.startsWith("T") && id !== "TXXX" && id !== "TXX")
-        tags[names[id] ?? id] = text(data.subarray(1), data[0]!);
+        tags[id3TagName(id)] = text(data.subarray(1), data[0]!);
       else if (id === "COMM" || id === "COM") {
         const encoding = data[0]!,
           end = terminated(data, 4, encoding),

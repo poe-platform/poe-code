@@ -70,7 +70,7 @@ export async function compileFindExpression(context: CommandContext, execute: Co
         return expression;
       }
       if (token === "(") {
-        const inner = disjunction();
+        const inner = listExpression();
         if (args[offset++] !== ")") throw new UsageError("missing ')'");
         return inner;
       }
@@ -254,10 +254,14 @@ export async function compileFindExpression(context: CommandContext, execute: Co
         };
         if (debugTree) trees.set(predicate, `OR(${trees.get(left)}, ${trees.get(right)})`);
       }
+      return predicate;
+    };
+    const listExpression = (): Expression => {
+      let predicate = disjunction();
       while (args[offset] === ",") {
         offset++;
         const left = predicate;
-        const right = conjunction();
+        const right = disjunction();
         predicate = entry => {
           const l = left(entry);
           return typeof l === "boolean" ? right(entry) : l.then(() => right(entry));
@@ -266,7 +270,7 @@ export async function compileFindExpression(context: CommandContext, execute: Co
       }
       return predicate;
     };
-    const evaluate: Expression = args.length ? disjunction() : () => true;
+    const evaluate: Expression = args.length ? listExpression() : () => true;
     if (offset !== args.length) throw new UsageError(`unexpected expression '${args[offset]}'`);
     for (const prepare of formats) await prepare();
     if (deletes && prunes && !explicitDepth) throw new PublicDiagnostic("-delete implies -depth; -prune is ineffective unless -depth is explicitly supplied");

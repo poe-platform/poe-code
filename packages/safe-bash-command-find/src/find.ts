@@ -513,7 +513,7 @@ export function evalSyncFind(
       const token = args[offset++];
       if (token === undefined) throw new Error("eof");
       if (token === "(") {
-        const inner = disjunction();
+        const inner = listExpression();
         if (args[offset++] !== ")") throw new Error("unclosed");
         return inner;
       }
@@ -712,10 +712,14 @@ export function evalSyncFind(
         const right = conjunction();
         pred = entry => left(entry) || right(entry);
       }
+      return pred;
+    };
+    const listExpression = (): SyncExpr => {
+      let pred = disjunction();
       while (args[offset] === ",") {
         offset++;
         const left = pred;
-        const right = conjunction();
+        const right = disjunction();
         pred = entry => {
           left(entry);
           return right(entry);
@@ -724,7 +728,7 @@ export function evalSyncFind(
       return pred;
     };
 
-    const evaluate: SyncExpr = args.length ? disjunction() : () => true;
+    const evaluate: SyncExpr = args.length ? listExpression() : () => true;
     if (offset !== args.length) return undefined;
 
     let visitedNodes = 0;

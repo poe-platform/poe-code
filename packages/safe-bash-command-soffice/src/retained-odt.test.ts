@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { createStoredZipArchive, runSofficeCli, runSofficeFileCli } from "./index.js";
+import { createStoredZipArchive, readZipArchiveEntries, runSofficeCli, runSofficeFileCli } from "./index.js";
 
 const encode = (text: string) => new TextEncoder().encode(text);
 const fixtures = [
@@ -84,7 +84,7 @@ for (const mode of ["output-limit", "cancel", "sink", "malformed"] as const) it(
   assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["input.odt"]);
 });
 
-for (const extension of ["odt", "ods", "odp"]) for (const format of ["txt", "md"]) it(`retains ${extension} to ${format} conversion with table and paragraph spacing`, async () => {
+for (const extension of ["odt", "ods", "odp"]) for (const format of ["txt", "md", "html", "docx"]) it(`retains ${extension} to ${format} conversion with table and paragraph spacing`, async () => {
   const fs = new MemoryFileSystem(), path = `/input.${extension}`;
   const xml = '<office><text:h>Title</text:h><text:p>Body &amp; text</text:p><table:table><table:table-row><table:table-cell>A</table:table-cell><table:table-cell>B</table:table-cell></table:table-row><table:table-row><table:table-cell>C</table:table-cell></table:table-row></table:table><text:p>End</text:p></office>';
   const bytes = createStoredZipArchive({ "content.xml": encode(xml) }), files = new Map([[path, bytes]]);
@@ -100,7 +100,9 @@ for (const extension of ["odt", "ods", "odp"]) for (const format of ["txt", "md"
     stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
     stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
   assert.deepEqual({ ...actual, stdout, stderr }, expected);
-  assert.deepEqual(await fs.readFile(`/input.${format}`), files.get(`/input.${format}`));
+  const output = await fs.readFile(`/input.${format}`), expectedOutput = files.get(`/input.${format}`)!;
+  assert.deepEqual(format === "docx" ? readZipArchiveEntries(output) : output,
+    format === "docx" ? readZipArchiveEntries(expectedOutput) : expectedOutput);
   assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), [`input.${extension}`, `input.${format}`].sort());
 });
 
@@ -128,4 +130,53 @@ for (const inputs of [["/bad.odt", "/missing"], ["/missing", "/bad.odt"]]) it(`p
     stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
   assert.deepEqual({ ...actual, stdout, stderr }, expected);
   assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["bad.odt"]);
+});
+
+for (const format of ["html", "docx"]) for (const [index, xml] of [...fixtures, "", undefined].entries()) it(`retains ${format} escaping, title and empty-document behavior (${index})`, async () => {
+  const fs = new MemoryFileSystem(), path = "/input<&.odt", output = `/input<&.${format}`;
+  const bytes = createStoredZipArchive(xml === undefined ? {} : { "content.xml": encode(xml) });
+  await fs.writeFile(path, bytes);
+  const files = new Map([[path, bytes]]), args = ["--convert-to", format, path];
+  const expected = await runSofficeCli(args, files);
+  const filesystem = new Proxy(fs, { get(target, key) {
+    if (key === "readFile" || key === "writeFile") return () => { throw new Error("whole-file I/O forbidden"); };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  let stdout = "", stderr = "";
+  const actual = await runSofficeFileCli(args, { filesystem,
+    stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
+  assert.deepEqual({ ...actual, stdout, stderr }, expected);
+  assert.deepEqual(format === "docx" ? readZipArchiveEntries(await fs.readFile(output)) : await fs.readFile(output),
+    format === "docx" ? readZipArchiveEntries(files.get(output)!) : files.get(output));
+  assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), [`input<&.${format}`, "input<&.odt"].sort());
+});
+
+for (const format of ["html", "docx"]) it(`keeps large escaped ${format} and table metadata contiguous while caller caches spill`, async () => {
+  const fs = new MemoryFileSystem();
+  const paragraph = "a".repeat(1100000) + '🙂 < & " '.repeat(500);
+  const xml = '<office><text:h>Heading</text:h><text:p>' + paragraph.replaceAll("&", "&amp;").replaceAll("<", "&lt;") + '</text:p><table:table>' + '<table:table-row><table:table-cell>A B</table:table-cell><table:table-cell>C</table:table-cell></table:table-row>'.repeat(1500) + '</table:table><text:p>End</text:p></office>';
+  const bytes = createStoredZipArchive({ "content.xml": encode(xml) }), files = new Map([["/input.odt", bytes]]);
+  await fs.writeFile("/input.odt", bytes);
+  const args = ["--convert-to", format, "/input.odt"], expected = await runSofficeCli(args, files);
+  let largest = 0;
+  const filesystem = new Proxy(fs, { get(target, key) {
+    if (key === "readFile" || key === "writeFile") return () => { throw new Error("whole-file I/O forbidden"); };
+    if (key === "createStagedFile") return async (...args: Parameters<typeof fs.createStagedFile>) => {
+      const stage = await fs.createStagedFile(...args);
+      return { ...stage, writer: { async write(bytes: Uint8Array, options?: { signal?: AbortSignal }) {
+        largest = Math.max(largest, bytes.length); await stage.writer!.write(bytes, options);
+      }, finish: stage.writer!.finish.bind(stage.writer) } };
+    };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const actual = await runSofficeFileCli(args, { filesystem,
+    stdout: { async write() {} }, stderr: { async write(bytes) { assert.fail(new TextDecoder().decode(bytes)); } } });
+  assert.equal(actual.exitCode, expected.exitCode);
+  const output = await fs.readFile(`/input.${format}`), expectedOutput = files.get(`/input.${format}`)!;
+  assert.deepEqual(format === "docx" ? readZipArchiveEntries(output) : output, format === "docx" ? readZipArchiveEntries(expectedOutput) : expectedOutput);
+  assert.ok(largest > 0 && largest <= 16384);
+  assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), [`input.${format}`, "input.odt"].sort());
 });

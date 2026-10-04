@@ -151,5 +151,13 @@ it("packs the retained Soffice file SDK with canonical filesystem types and no p
     stdout: {async write(bytes) {output += new TextDecoder().decode(bytes);}},
     stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
   expect(extracted.exitCode).toBe(0); expect(output).toBe("Packed & retained\n");
-  expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["input.docx", "input.html", "input.md", "input.pdf", "office.odt"]);
+  const converted = await runSofficeFileCli(["--convert-to", "html", "/office.odt"], {filesystem,
+    stdout: {async write() {}}, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
+  expect(converted.exitCode).toBe(0);
+  expect(new TextDecoder().decode(await fs.readFile("/office.html"))).toContain("<p>Packed &amp; retained</p>");
+  const docx = await runSofficeFileCli(["--convert-to", "docx", "/office.odt"], {filesystem,
+    stdout: {async write() {}}, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
+  expect(docx.exitCode).toBe(0);
+  expect(new TextDecoder().decode(readZipArchiveEntries(await fs.readFile("/office.docx")).get("word/document.xml"))).toContain("<w:t>Packed &amp; retained</w:t>");
+  expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["input.docx", "input.html", "input.md", "input.pdf", "office.docx", "office.html", "office.odt"]);
 });

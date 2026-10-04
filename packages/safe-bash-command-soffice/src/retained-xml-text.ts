@@ -35,7 +35,8 @@ export async function retainXmlText(storage: PagedStorage, source: AsyncIterable
 
 async function replace(storage: PagedStorage, source: SofficeSnapshot, prefix: string, replacement: string | number, signal: AbortSignal): Promise<SofficeSnapshot> {
   const position = storage.allocate(0), encoder = new TextEncoder();
-  let size = 0, pageStart = -1, page = new Uint8Array();
+  const buffer = new Uint8Array(16384);
+  let used = 0, size = 0, pageStart = -1, page = new Uint8Array();
   const byte = async (at: number): Promise<number> => {
     if (at >= source.size) return -1;
     if (at < pageStart || at >= pageStart + page.length) {
@@ -45,7 +46,14 @@ async function replace(storage: PagedStorage, source: SofficeSnapshot, prefix: s
     }
     return page[at - pageStart]!;
   };
-  const write = async (bytes: Uint8Array) => { await storage.append(bytes); size += bytes.length; };
+  const write = async (bytes: Uint8Array) => {
+    for (let offset = 0; offset < bytes.length;) {
+      const length = Math.min(buffer.length - used, bytes.length - offset);
+      buffer.set(bytes.subarray(offset, offset + length), used);
+      offset += length; used += length; size += length;
+      if (used === buffer.length) { await storage.append(buffer); used = 0; }
+    }
+  };
   for (let at = 0; at < source.size;) {
     if (await byte(at) !== 38) {
       const amp = page.indexOf(38, at - pageStart), end = amp < 0 ? page.length : amp;
@@ -79,5 +87,6 @@ async function replace(storage: PagedStorage, source: SofficeSnapshot, prefix: s
       }
     }
   }
+  if (used) await storage.append(buffer.subarray(0, used));
   return { position, size };
 }

@@ -2,7 +2,7 @@ import { retainOdtText } from "./retained-odt.js";
 import { convertOdsStream } from "./spreadsheet.js";
 import { retainTextPdf } from "./retained-pdf.js";
 import { RetainedPlainText } from "./retained-plain.js";
-import { retainTextDocx } from "./retained-docx.js";
+import { retainTextDocx, retainDocxXml } from "./retained-docx.js";
 import { resolvePath } from "@poe-code/safe-fs/core";
 import { FsError, type FileStaging } from "@poe-code/safe-fs/contracts";
 import { writeBytes, type ByteSink } from "safe-bash-contracts/io";
@@ -27,9 +27,9 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
   const format = (colon < 0 ? convertSpec : convertSpec.slice(0, colon)).toLowerCase();
   const filter = (colon < 0 ? "" : convertSpec.slice(colon + 1, nextColon < 0 ? undefined : nextColon)) || (format === "csv" ? "Text - txt - csv (StarCalc)" : format === "pdf" ? "writer_pdf_Export" : `${format}_Export`);
   const structured = [".pdf", ".docx", ".odt", ".ods", ".odp", ".xlsx", ".pptx", ".html", ".htm", ".csv"];
-  const openDocumentText = (input: string) => [".odt", ".ods", ".odp"].some(extension => input.toLowerCase().endsWith(extension)) &&
-    !["pdf", "html", "docx"].includes(format) && !(input.toLowerCase().endsWith(".ods") && ["csv", "xlsx"].includes(format));
-  if (!inputs.every(input => openDocumentText(input) ? true : input.toLowerCase().endsWith(".ods") && (format === "csv" || format === "xlsx") ? true :
+  const openDocumentConversion = (input: string) => [".odt", ".ods", ".odp"].some(extension => input.toLowerCase().endsWith(extension)) &&
+    format !== "pdf" && !(input.toLowerCase().endsWith(".ods") && ["csv", "xlsx"].includes(format));
+  if (!inputs.every(input => openDocumentConversion(input) ? true : input.toLowerCase().endsWith(".ods") && (format === "csv" || format === "xlsx") ? true :
     input.toLowerCase().endsWith(".rtf") ? true :
     !structured.some(extension => input.toLowerCase().endsWith(extension)) && !["xlsx", "csv"].includes(format))) return undefined;
   return withSofficeInputs(inputs, context, limits, async (storage, sources) => {
@@ -46,21 +46,37 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
       const stem = dot >= 0 && dot < basename.length - 1 ? basename.slice(0, dot) : basename;
       const path = resolvePath(cwd, outdir, `${stem}.${format}`);
       let output = source;
-      if (openDocumentText(input)) {
+      if (openDocumentConversion(input)) {
         let text: SofficeSnapshot;
-        try { text = await retainOdtText(storage, source, context, "\n\n"); }
+        try { text = await retainOdtText(storage, source, context, format === "docx" ? { docx: true } : format === "html" ? { htmlTitle: stem } : { paragraphSeparator: "\n\n" }); }
         catch (error) {
           signal.throwIfAborted();
           stderr = `Error: conversion failed: ${error instanceof Error ? error.message : String(error)}\n`;
           messages.length = 0; break;
         }
-        const position = storage.allocate(text.size + 1);
-        for (let offset = 0; offset < text.size; offset += 16384) {
-          signal.throwIfAborted();
-          await storage.write(position + offset, new Uint8Array(await storage.read(text.position + offset, Math.min(16384, text.size - offset))));
+        if (format === "docx") {
+          const archive = await retainDocxXml(storage, (async function* () {
+            for (let offset = 0; offset < text.size; offset += 16384) {
+              signal.throwIfAborted();
+              yield new Uint8Array(await storage.read(text.position + offset, Math.min(16384, text.size - offset)));
+            }
+          })(), signal);
+          const position = storage.allocate(archive.size);
+          let written = 0;
+          for await (const bytes of archive.read()) {
+            signal.throwIfAborted(); await storage.write(position + written, bytes); written += bytes.length;
+          }
+          output = { position, size: archive.size };
+        } else if (format === "html") output = text;
+        else {
+          const position = storage.allocate(text.size + 1);
+          for (let offset = 0; offset < text.size; offset += 16384) {
+            signal.throwIfAborted();
+            await storage.write(position + offset, new Uint8Array(await storage.read(text.position + offset, Math.min(16384, text.size - offset))));
+          }
+          await storage.write(position + text.size, Uint8Array.of(10));
+          output = { position, size: text.size + 1 };
         }
-        await storage.write(position + text.size, Uint8Array.of(10));
-        output = { position, size: text.size + 1 };
       } else if (input.toLowerCase().endsWith(".ods") && (format === "csv" || format === "xlsx")) {
         const position = storage.allocate(0);
         let size = 0;

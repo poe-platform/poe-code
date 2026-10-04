@@ -5,16 +5,9 @@ import { docxMetadata, docxDocumentPrefix, docxDocumentSuffix } from "./docx-par
 
 /** XML and ZIP records remain in the same caller-owned backing as their text. */
 export async function retainTextDocx(storage: PagedStorage, text: RetainedTextBlocks, snapshot: RetainedTextSnapshot, signal: AbortSignal): Promise<ZipSealedArchive> {
-  const writer = createZipCodec(undefined, { utcDates: true }).createStagedWriter(storage, {
-    maxArchiveBytes: Infinity, maxEntryBytes: Infinity, maxTotalBytes: Infinity, maxMembers: Infinity,
-    maxPathBytes: Infinity, maxDepth: Infinity, maxPaxBytes: Infinity, maxTextBytes: Infinity, chunkSize: 16384
-  }, signal);
-  const attributes = { modified: new Date("1980-01-01T00:00:00Z"), mode: 0o100644, directory: false, symlink: false, compression: "store" as const };
   const encoder = new TextEncoder();
-  for (const [name, content] of Object.entries(docxMetadata))
-    await writer.addSource(name, (async function* () { yield encoder.encode(content); })(), attributes);
   const escape = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-  await writer.addSource("word/document.xml", (async function* () {
+  return retainDocxXml(storage, (async function* () {
     yield encoder.encode(docxDocumentPrefix);
     for (let block = 0; block < snapshot.count; block++) {
       signal.throwIfAborted();
@@ -24,6 +17,19 @@ export async function retainTextDocx(storage: PagedStorage, text: RetainedTextBl
       yield encoder.encode(escape(decoder.decode()) + "</w:t></w:r></w:p>");
     }
     yield encoder.encode(docxDocumentSuffix);
-  })(), attributes);
+  })(), signal);
+}
+
+/** Package a bounded document XML stream with the standard DOCX metadata. */
+export async function retainDocxXml(storage: PagedStorage, source: AsyncIterable<Uint8Array>, signal: AbortSignal): Promise<ZipSealedArchive> {
+  const writer = createZipCodec(undefined, { utcDates: true }).createStagedWriter(storage, {
+    maxArchiveBytes: Infinity, maxEntryBytes: Infinity, maxTotalBytes: Infinity, maxMembers: Infinity,
+    maxPathBytes: Infinity, maxDepth: Infinity, maxPaxBytes: Infinity, maxTextBytes: Infinity, chunkSize: 16384
+  }, signal);
+  const attributes = { modified: new Date("1980-01-01T00:00:00Z"), mode: 0o100644, directory: false, symlink: false, compression: "store" as const };
+  const encoder = new TextEncoder();
+  for (const [name, content] of Object.entries(docxMetadata))
+    await writer.addSource(name, (async function* () { yield encoder.encode(content); })(), attributes);
+  await writer.addSource("word/document.xml", source, attributes);
   return writer.seal();
 }

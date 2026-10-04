@@ -5,7 +5,7 @@ import { expect, it } from "vitest";
 import { PdfDocument, type PdfContentNode } from "@poe-code/pdf-ast";
 import { createStoredZipArchive, readZipArchiveEntries } from "safe-bash-command-soffice";
 
-it.each(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command", "docx-cancel", "plain-sdk", "plain-command", "plain-cancel", "docx-plain-sdk", "docx-plain-command", "pdf-sdk", "pdf-command", "pdf-cancel", "pdf-plain-sdk", "odt-sdk", "odt-command", "odt-cancel"])("publishes Soffice conversion through external Worker staging (%s)", async mode => {
+it.each(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command", "docx-cancel", "plain-sdk", "plain-command", "plain-cancel", "docx-plain-sdk", "docx-plain-command", "pdf-sdk", "pdf-command", "pdf-cancel", "pdf-plain-sdk", "odt-sdk", "odt-command", "odt-cancel", "odt-html-sdk", "odt-html-command", "odt-html-cancel", "odt-docx-sdk", "odt-docx-command", "odt-docx-cancel"])("publishes Soffice conversion through external Worker staging (%s)", async mode => {
   const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export * as soffice from "safe-bash-command-soffice";
     export { createCommandArguments } from "safe-bash-contracts/command";
@@ -16,7 +16,7 @@ it.each(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command",
   const runtime = new Miniflare({ modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], script: `
     const api=(()=>{const module={exports:{}};${bundle.outputFiles[0]!.text};return module.exports;})();
     export default {async fetch(request,env){
-      const mode=new URL(request.url).pathname.slice(1),copy=mode==='copy',odt=mode.startsWith('odt-'),plain=mode.includes('plain'),docx=mode.startsWith('docx'),pdf=mode.startsWith('pdf'),cancel=mode.endsWith('cancel'),namespace=new api.MemoryFileSystem();
+      const mode=new URL(request.url).pathname.slice(1),copy=mode==='copy',odt=mode.startsWith('odt-'),odtHtml=mode.startsWith('odt-html-'),plain=mode.includes('plain'),docx=mode.includes('docx'),pdf=mode.startsWith('pdf'),cancel=mode.endsWith('cancel'),namespace=new api.MemoryFileSystem();
       await namespace.mkdir('/spill');await namespace.mkdir('/out');
       const {fs:backing,events}=api.createR2PagedFixture(namespace,env.PAGES);
       const controller=new AbortController(),reason=new Error('cancelled'),stages=new WeakMap();
@@ -50,7 +50,7 @@ it.each(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command",
       }});
       const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;largestAllocation=Math.max(largestAllocation,length);if(length>65536)throw new Error('Unbounded allocation');return Reflect.construct(target,args);}});
       const stdout={async write(bytes){if(bytes.length>65536)throw new Error('Oversized status');}},stderr={async write(bytes){throw new Error(new TextDecoder().decode(bytes));}};
-      const args=['--convert-to',copy||odt?'txt':docx?'docx':pdf?'pdf':'html','--outdir','/out',copy||plain?'/input.txt':odt?'/input.odt':'/input.rtf'];let result,cancelled=false;
+      const args=['--convert-to',copy||odt&&!odtHtml&&!docx?'txt':docx?'docx':pdf?'pdf':'html','--outdir','/out',copy||plain?'/input.txt':odt?'/input.odt':'/input.rtf'];let result,cancelled=false;
       try{
         if(mode.endsWith('command'))result=await api.soffice.createSofficeCommand().execute({command:'soffice',...api.createCommandArguments(args),cwd:'/spill',env:{},fs,signal:controller.signal,stdout,stderr,stdin:(async function*(){})()});
         else result=await api.soffice.runSofficeFileCli(args,{filesystem:fs,cwd:'/spill',signal:controller.signal,stdout,stderr});
@@ -69,12 +69,12 @@ it.each(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command",
   ` });
   try {
     const payload = "a".repeat(1100000), source = mode === "copy" ? payload : mode.includes("plain") ? "# " + payload + "\n" : "{\\rtf1 " + payload + "\\par }";
-    const bucket = await runtime.getR2Bucket("PAGES"); await bucket.put("input", mode.startsWith("odt-") ? createStoredZipArchive({ "content.xml": new TextEncoder().encode("<office><text:p>" + payload + "</text:p></office>") }) : new TextEncoder().encode(source));
+    const bucket = await runtime.getR2Bucket("PAGES"); await bucket.put("input", mode.startsWith("odt-") ? createStoredZipArchive({ "content.xml": new TextEncoder().encode("<office><text:" + (mode.startsWith("odt-html-") ? "h" : "p") + ">" + payload + "</text:" + (mode.startsWith("odt-html-") ? "h" : "p") + "></office>") }) : new TextEncoder().encode(source));
     const response = await runtime.dispatchFetch("https://soffice.test/" + mode); expect(response.status).toBe(200);
     const result = await response.json() as { publication?: { prefix: string; count: number }; result?: { exitCode: number }; cancelled: boolean; length: number; hash: number; created: number; removed: number; closed: number; largestWrite: number; inputClosed: number; largestAllocation: number; events: { opened: number; closed: number; reads: number; writes: number; largestTransfer: number }; remaining: number; scratch: unknown[]; outputs: { name: string }[]; hostGlobals: string[] };
     expect(result.cancelled).toBe(mode.endsWith("cancel"));
     if (mode.endsWith("cancel")) { expect(result.outputs).toEqual([]); expect(result.length).toBe(0); }
-    else if (mode.startsWith("docx") || mode.startsWith("pdf")) {
+    else if (mode.includes("docx") || mode.startsWith("pdf")) {
       expect(result.result?.exitCode).toBe(0);
       expect(result.outputs.map(entry => entry.name)).toEqual([mode.startsWith("pdf") ? "input.pdf" : "input.docx"]);
       const parts: Uint8Array[] = [];
@@ -106,11 +106,11 @@ it.each(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command",
       expect((await bucket.list()).objects).toEqual([]);
     }
     else {
-      const expected = mode === "copy" ? payload : mode.startsWith("odt-") ? payload + "\n" : '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>input</title></head><body>\n<h1>' + payload + '</h1>\n</body></html>\n';
+      const expected = mode === "copy" ? payload : mode.startsWith("odt-") && !mode.startsWith("odt-html-") ? payload + "\n" : '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>input</title></head><body>\n<h1>' + payload + '</h1>\n</body></html>\n';
       const bytes = new TextEncoder().encode(expected); let hash = 2166136261;
       for (const byte of bytes) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
       expect(result.result?.exitCode).toBe(0); expect(result.length).toBe(bytes.length); expect(result.hash).toBe(hash);
-      expect(result.outputs.map(entry => entry.name)).toEqual([mode === "copy" || mode.startsWith("odt-") ? "input.txt" : "input.html"]);
+      expect(result.outputs.map(entry => entry.name)).toEqual([mode === "copy" || mode.startsWith("odt-") && !mode.startsWith("odt-html-") ? "input.txt" : "input.html"]);
     }
     expect(result.created).toBe(1); expect(result.removed).toBe(1); expect(result.closed).toBe(1);
     expect(result.inputClosed).toBe(1); expect(result.largestWrite).toBeLessThanOrEqual(16384); expect(result.largestAllocation).toBeLessThanOrEqual(65536);

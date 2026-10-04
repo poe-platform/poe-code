@@ -5,7 +5,7 @@ import { expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { decodeJpxToRgba } from "./images.js";
 
-it.each(["wavelet", "bit-model", "codeblock-input", "segments", "codeblocks", "precincts", "tiles"])(
+it.each(["wavelet", "bit-model", "codeblock-input", "segments", "codeblocks", "precincts", "tiles", "resolutions"])(
   "decodes growing JPEG 2000 %s state in Workerd using external storage",
   async (profile) => {
     const images = new Map<number, { bytes: Uint8Array; sum: number }>();
@@ -125,6 +125,19 @@ it.each(["wavelet", "bit-model", "codeblock-input", "segments", "codeblocks", "p
         }
         tiled.set([255,217], tiled.length - 2); bytes = tiled;
       }
+      if (profile === "resolutions") {
+        const levels=height===129?12:20,parts:Uint8Array[]=[original.slice(0,2)];
+        for(let at=2;at<original.length;){
+          const marker=(original[at]!<<8)|original[at+1]!;
+          if(marker===0xff90){const part=original.slice(at,at+14),packets=new Uint8Array(6*(levels+1));packets.fill(224,0,3);packets.fill(192,3*(levels+1),3*(levels+1)+3);new DataView(part.buffer).setUint32(6,14+packets.length);parts.push(part,packets,new Uint8Array([255,217]));break;}
+          const size=new DataView(original.buffer).getUint16(at+2),part=original.slice(at,at+2+size),view=new DataView(part.buffer);
+          if(marker===0xff51)for(const offset of [6,10,22,26])view.setUint32(offset,1);
+          if(marker===0xff52){part[9]=levels;view.setUint16(6,2);}
+          if(marker===0xff5c){const qcd=new Uint8Array(6+levels*3);qcd.set([255,92]);new DataView(qcd.buffer).setUint16(2,qcd.length-2);qcd[4]=64;qcd.fill(64,5);parts.push(qcd);}else parts.push(part);
+          at+=2+size;
+        }
+        bytes=new Uint8Array(parts.reduce((n,part)=>n+part.length,0));let at=0;for(const part of parts){bytes.set(part,at);at+=part.length;}
+      }
       const expected = decodeJpxToRgba(bytes);
       images.set(height, {
         bytes,
@@ -143,7 +156,7 @@ it.each(["wavelet", "bit-model", "codeblock-input", "segments", "codeblocks", "p
  import {PagedStorage} from '@poe-code/safe-fs/storage';
  export default {async fetch(request,env){const {height,length}=await request.json();let writes=0,reads=0,opened=0,closed=0,peak=0,inputBytes=0;
  const fs={async stat(){return {type:'directory',size:0};},async removeFileConditional(){},async open(){opened++;return {capabilities:{positionedRead:true,positionedWrite:true},async stat(){return {type:'file',size:0};},async write(bytes,position){if(bytes.length>16384)throw Error('large write');writes++;await env.BACKING.fetch('https://backing/coeff?at='+position,{method:'PUT',body:bytes});return bytes.length;},async read(bytes,position){if(bytes.length>16384)throw Error('large read');reads++;bytes.set(new Uint8Array(await(await env.BACKING.fetch('https://backing/coeff?at='+position+'&length='+bytes.length)).arrayBuffer()));return bytes.length;},async close(){closed++;await env.BACKING.fetch('https://backing/coeff',{method:'DELETE'});}};}};
- const storage=new PagedStorage({fs,cwd:'/',env:{},signal:new AbortController().signal},2),originals=new Map();
+ const storage=new PagedStorage({fs,cwd:'/',env:{},signal:new AbortController().signal},${profile === 'resolutions' ? 1 : 2}),originals=new Map();
  for(const name of ['Uint8Array','Uint8ClampedArray','Int16Array','Uint16Array','Int32Array','Uint32Array','Float32Array','Float64Array']){const Native=globalThis[name];originals.set(name,Native);globalThis[name]=new Proxy(Native,{construct(target,args){const bytes=typeof args[0]==='number'?args[0]*target.BYTES_PER_ELEMENT:args[0]?.byteLength??(args[0]?.length??0)*target.BYTES_PER_ELEMENT;peak=Math.max(peak,bytes);if(bytes>65536)throw Error('whole JPX plane '+bytes);return Reflect.construct(target,args);}});}
  try{const source={size:length,chunkBytes:4096,async read(at,length){inputBytes+=length;if(length>4096)throw Error('whole input');return new Uint8Array(await(await env.BACKING.fetch('https://backing/input?height='+height+'&at='+at+'&length='+length)).arrayBuffer());}};
  const image=await PdfRetainedJpx.open(source,{coefficientStorage:storage,maxWorkingBytes:1048576});let sum=0,index=0;try{for await(const row of image.rows())for(const value of row)sum=(sum+value*(index++%65521+1))%1000000007;}finally{image.close();await storage.close();}
@@ -212,7 +225,7 @@ it.each(["wavelet", "bit-model", "codeblock-input", "segments", "codeblocks", "p
           nodeGlobals: boolean;
         };
         expect(result.sum).toBe(input.sum);
-        if (profile === "codeblocks" || profile === "precincts" || profile === "tiles") expect(result.decoderBytes).toBeLessThanOrEqual(131072);
+        if (profile === "codeblocks" || profile === "precincts" || profile === "tiles" || profile === "resolutions") expect(result.decoderBytes).toBeLessThanOrEqual(131072);
         if (profile === "segments") {
           if (previousDecoderBytes !== undefined) expect(result.decoderBytes).toBe(previousDecoderBytes);
           previousDecoderBytes = result.decoderBytes;

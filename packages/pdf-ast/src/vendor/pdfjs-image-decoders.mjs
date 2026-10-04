@@ -6394,7 +6394,7 @@ function* buildCodeblocks(context, subband, dimensions) {
   const cby1 = subband.tby1 + codeblockHeight - 1 >> ycb_;
   const precinctParameters = subband.resolution.precinctParameters;
   const count = Math.max(0, cbx1 - cbx0) * Math.max(0, cby1 - cby0);
-  context.onAllocation?.((context.storedPlanes ? 2048 : count * 1024 + precinctParameters.numprecincts * 16));
+  if (!context.storedPlanes) context.onAllocation?.(count * 1024 + precinctParameters.numprecincts * 16);
   const codeblocks = context.storedPlanes
     ? {length: 0, records: yield* jpxVectorAllocate(count * 18, 8, true)} : [];
   const precincts = context.storedPlanes
@@ -6551,7 +6551,7 @@ function* nextJpxPacketCodeblock(packet, cursor) {
     cursor.index = 0;
   }
 }
-function LayerResolutionComponentPositionIterator(context) {
+function* LayerResolutionComponentPositionIterator(context) {
   const siz = context.SIZ;
   const tileIndex = context.currentTile.index;
   const tile = context.tiles[tileIndex];
@@ -6565,7 +6565,7 @@ function LayerResolutionComponentPositionIterator(context) {
     r = 0,
     i = 0,
     k = 0;
-  this.nextPacket = function JpxImage_nextPacket() {
+  return {nextPacket: function* JpxImage_nextPacket() {
     for (; l < layersCount; l++) {
       for (; r <= maxDecompositionLevelsCount; r++) {
         for (; i < componentsCount; i++) {
@@ -6573,7 +6573,7 @@ function LayerResolutionComponentPositionIterator(context) {
           if (r > component.codingStyleParameters.decompositionLevelsCount) {
             continue;
           }
-          const resolution = component.resolutions[r];
+          const resolution = (yield* readJpxResolution(component.resolutions, r));
           const numprecincts = resolution.precinctParameters.numprecincts;
           for (; k < numprecincts;) {
             const packet = createPacket(resolution, k, l);
@@ -6587,9 +6587,9 @@ function LayerResolutionComponentPositionIterator(context) {
       r = 0;
     }
     throw new JpxError("Out of packets");
-  };
+  }};
 }
-function ResolutionLayerComponentPositionIterator(context) {
+function* ResolutionLayerComponentPositionIterator(context) {
   const siz = context.SIZ;
   const tileIndex = context.currentTile.index;
   const tile = context.tiles[tileIndex];
@@ -6603,7 +6603,7 @@ function ResolutionLayerComponentPositionIterator(context) {
     l = 0,
     i = 0,
     k = 0;
-  this.nextPacket = function JpxImage_nextPacket() {
+  return {nextPacket: function* JpxImage_nextPacket() {
     for (; r <= maxDecompositionLevelsCount; r++) {
       for (; l < layersCount; l++) {
         for (; i < componentsCount; i++) {
@@ -6611,7 +6611,7 @@ function ResolutionLayerComponentPositionIterator(context) {
           if (r > component.codingStyleParameters.decompositionLevelsCount) {
             continue;
           }
-          const resolution = component.resolutions[r];
+          const resolution = (yield* readJpxResolution(component.resolutions, r));
           const numprecincts = resolution.precinctParameters.numprecincts;
           for (; k < numprecincts;) {
             const packet = createPacket(resolution, k, l);
@@ -6625,9 +6625,9 @@ function ResolutionLayerComponentPositionIterator(context) {
       l = 0;
     }
     throw new JpxError("Out of packets");
-  };
+  }};
 }
-function ResolutionPositionComponentLayerIterator(context) {
+function* ResolutionPositionComponentLayerIterator(context) {
   const siz = context.SIZ;
   const tileIndex = context.currentTile.index;
   const tile = context.tiles[tileIndex];
@@ -6646,7 +6646,7 @@ function ResolutionPositionComponentLayerIterator(context) {
     for (c = 0; c < componentsCount; ++c) {
       const resolutions = tile.components[c].resolutions;
       if (r < resolutions.length) {
-        maxNumPrecincts = Math.max(maxNumPrecincts, resolutions[r].precinctParameters.numprecincts);
+        maxNumPrecincts = Math.max(maxNumPrecincts, (yield* readJpxResolution(resolutions, r)).precinctParameters.numprecincts);
       }
     }
     maxNumPrecinctsInLevel[r] = maxNumPrecincts;
@@ -6655,7 +6655,7 @@ function ResolutionPositionComponentLayerIterator(context) {
   r = 0;
   c = 0;
   p = 0;
-  this.nextPacket = function JpxImage_nextPacket() {
+  return {nextPacket: function* JpxImage_nextPacket() {
     for (; r <= maxDecompositionLevelsCount; r++) {
       for (; p < maxNumPrecinctsInLevel[r]; p++) {
         for (; c < componentsCount; c++) {
@@ -6663,7 +6663,7 @@ function ResolutionPositionComponentLayerIterator(context) {
           if (r > component.codingStyleParameters.decompositionLevelsCount) {
             continue;
           }
-          const resolution = component.resolutions[r];
+          const resolution = (yield* readJpxResolution(component.resolutions, r));
           const numprecincts = resolution.precinctParameters.numprecincts;
           if (p >= numprecincts) {
             continue;
@@ -6680,30 +6680,31 @@ function ResolutionPositionComponentLayerIterator(context) {
       p = 0;
     }
     throw new JpxError("Out of packets");
-  };
+  }};
 }
-function PositionComponentResolutionLayerIterator(context) {
+function* PositionComponentResolutionLayerIterator(context) {
   const siz = context.SIZ;
   const tileIndex = context.currentTile.index;
   const tile = context.tiles[tileIndex];
   const layersCount = tile.codingStyleDefaultParameters.layersCount;
   const componentsCount = siz.Csiz;
-  const precinctsSizes = getPrecinctSizesInImageScale(tile);
+  const precinctsSizes = yield* getPrecinctSizesInImageScale(tile);
   const precinctsIterationSizes = precinctsSizes;
   let l = 0,
     r = 0,
     c = 0,
     px = 0,
     py = 0;
-  this.nextPacket = function JpxImage_nextPacket() {
+  return {nextPacket: function* JpxImage_nextPacket() {
     for (; py < precinctsIterationSizes.maxNumHigh; py++) {
       for (; px < precinctsIterationSizes.maxNumWide; px++) {
         for (; c < componentsCount; c++) {
           const component = tile.components[c];
           const decompositionLevelsCount = component.codingStyleParameters.decompositionLevelsCount;
           for (; r <= decompositionLevelsCount; r++) {
-            const resolution = component.resolutions[r];
-            const sizeInImageScale = precinctsSizes.components[c].resolutions[r];
+            const resolution = (yield* readJpxResolution(component.resolutions, r));
+            const scale = 1 << (decompositionLevelsCount - r);
+            const sizeInImageScale = {width: scale * resolution.precinctParameters.precinctWidth, height: scale * resolution.precinctParameters.precinctHeight};
             const k = getPrecinctIndexIfExist(px, py, sizeInImageScale, precinctsIterationSizes, resolution);
             if (k === null) {
               continue;
@@ -6722,21 +6723,21 @@ function PositionComponentResolutionLayerIterator(context) {
       px = 0;
     }
     throw new JpxError("Out of packets");
-  };
+  }};
 }
-function ComponentPositionResolutionLayerIterator(context) {
+function* ComponentPositionResolutionLayerIterator(context) {
   const siz = context.SIZ;
   const tileIndex = context.currentTile.index;
   const tile = context.tiles[tileIndex];
   const layersCount = tile.codingStyleDefaultParameters.layersCount;
   const componentsCount = siz.Csiz;
-  const precinctsSizes = getPrecinctSizesInImageScale(tile);
+  const precinctsSizes = yield* getPrecinctSizesInImageScale(tile);
   let l = 0,
     r = 0,
     c = 0,
     px = 0,
     py = 0;
-  this.nextPacket = function JpxImage_nextPacket() {
+  return {nextPacket: function* JpxImage_nextPacket() {
     for (; c < componentsCount; ++c) {
       const component = tile.components[c];
       const precinctsIterationSizes = precinctsSizes.components[c];
@@ -6744,8 +6745,9 @@ function ComponentPositionResolutionLayerIterator(context) {
       for (; py < precinctsIterationSizes.maxNumHigh; py++) {
         for (; px < precinctsIterationSizes.maxNumWide; px++) {
           for (; r <= decompositionLevelsCount; r++) {
-            const resolution = component.resolutions[r];
-            const sizeInImageScale = precinctsIterationSizes.resolutions[r];
+            const resolution = (yield* readJpxResolution(component.resolutions, r));
+            const scale = 1 << (decompositionLevelsCount - r);
+            const sizeInImageScale = {width: scale * resolution.precinctParameters.precinctWidth, height: scale * resolution.precinctParameters.precinctHeight};
             const k = getPrecinctIndexIfExist(px, py, sizeInImageScale, precinctsIterationSizes, resolution);
             if (k === null) {
               continue;
@@ -6764,7 +6766,7 @@ function ComponentPositionResolutionLayerIterator(context) {
       py = 0;
     }
     throw new JpxError("Out of packets");
-  };
+  }};
 }
 function getPrecinctIndexIfExist(pxIndex, pyIndex, sizeInImageScale, precinctIterationSizes, resolution) {
   const posX = pxIndex * precinctIterationSizes.minWidth;
@@ -6775,7 +6777,7 @@ function getPrecinctIndexIfExist(pxIndex, pyIndex, sizeInImageScale, precinctIte
   const startPrecinctRowIndex = posY / sizeInImageScale.width * resolution.precinctParameters.numprecinctswide;
   return posX / sizeInImageScale.height + startPrecinctRowIndex;
 }
-function getPrecinctSizesInImageScale(tile) {
+function* getPrecinctSizesInImageScale(tile) {
   const componentsCount = tile.components.length;
   let minWidth = Number.MAX_VALUE;
   let minHeight = Number.MAX_VALUE;
@@ -6786,25 +6788,20 @@ function getPrecinctSizesInImageScale(tile) {
   for (let c = 0; c < componentsCount; c++) {
     const component = tile.components[c];
     const decompositionLevelsCount = component.codingStyleParameters.decompositionLevelsCount;
-    tile.onAllocation?.((decompositionLevelsCount + 1) * 128);
-    const sizePerResolution = new Array(decompositionLevelsCount + 1);
+
     let minWidthCurrentComponent = Number.MAX_VALUE;
     let minHeightCurrentComponent = Number.MAX_VALUE;
     let maxNumWideCurrentComponent = 0;
     let maxNumHighCurrentComponent = 0;
     let scale = 1;
     for (let r = decompositionLevelsCount; r >= 0; --r) {
-      const resolution = component.resolutions[r];
+      const resolution = (yield* readJpxResolution(component.resolutions, r));
       const widthCurrentResolution = scale * resolution.precinctParameters.precinctWidth;
       const heightCurrentResolution = scale * resolution.precinctParameters.precinctHeight;
       minWidthCurrentComponent = Math.min(minWidthCurrentComponent, widthCurrentResolution);
       minHeightCurrentComponent = Math.min(minHeightCurrentComponent, heightCurrentResolution);
       maxNumWideCurrentComponent = Math.max(maxNumWideCurrentComponent, resolution.precinctParameters.numprecinctswide);
       maxNumHighCurrentComponent = Math.max(maxNumHighCurrentComponent, resolution.precinctParameters.numprecinctshigh);
-      sizePerResolution[r] = {
-        width: widthCurrentResolution,
-        height: heightCurrentResolution
-      };
       scale <<= 1;
     }
     minWidth = Math.min(minWidth, minWidthCurrentComponent);
@@ -6812,7 +6809,6 @@ function getPrecinctSizesInImageScale(tile) {
     maxNumWide = Math.max(maxNumWide, maxNumWideCurrentComponent);
     maxNumHigh = Math.max(maxNumHigh, maxNumHighCurrentComponent);
     sizePerComponent[c] = {
-      resolutions: sizePerResolution,
       minWidth: minWidthCurrentComponent,
       minHeight: minHeightCurrentComponent,
       maxNumWide: maxNumWideCurrentComponent,
@@ -6827,6 +6823,44 @@ function getPrecinctSizesInImageScale(tile) {
     maxNumHigh
   };
 }
+const jpxResolutionFields = ["trx0", "try0", "trx1", "try1", "resLevel"];
+const jpxPrecinctFields = ["precinctWidth", "precinctHeight", "numprecinctswide", "numprecinctshigh", "numprecincts", "precinctWidthInSubband", "precinctHeightInSubband"];
+const jpxSubbandFields = ["tbx0", "tby0", "tbx1", "tby1"];
+const jpxBlockFields = ["codeblockWidth", "codeblockHeight", "numcodeblockwide", "numcodeblockhigh"];
+const jpxSubbandTypes = ["LL", "HL", "LH", "HH"];
+function* writeJpxResolution(collection, resolution) {
+  const values = jpxResolutionFields.map(field => resolution[field]);
+  values.push(...jpxPrecinctFields.map(field => resolution.precinctParameters[field]), resolution.subbands.length);
+  for (const band of resolution.subbands) values.push(jpxSubbandTypes.indexOf(band.type),
+    ...jpxSubbandFields.map(field => band[field]), ...jpxBlockFields.map(field => band.codeblockParameters[field]),
+    band.codeblocks.length, band.codeblocks.records.position, band.codeblocks.records.length,
+    band.precincts.records.position, band.precincts.records.length);
+  for (let i = 0; i < values.length; i++) yield* jpxVectorWrite(collection.records, resolution.resLevel * 55 + i, values[i]);
+}
+function* readJpxResolution(collection, index) {
+  if (!collection.records) return collection[index];
+  const context = collection.context;
+  const cache = context.cachedResolutions ??= [];
+  const found = cache.findIndex(entry => entry.collection === collection && entry.index === index);
+  if (found >= 0) {const entry = cache.splice(found, 1)[0]; cache.push(entry); return entry.value;}
+  const entry = cache.length === 4 ? cache.shift() : {trees: [{treeAdmission: 0}, {treeAdmission: 0}, {treeAdmission: 0}]};
+  let offset = index * 55;
+  const read = function* () { return yield* jpxVectorRead(collection.records, offset++); };
+  const resolution = {onAllocation: context.onAllocation, packetAdmission: 128, precinctParameters: {}, subbands: []};
+  for (const field of jpxResolutionFields) resolution[field] = yield* read();
+  for (const field of jpxPrecinctFields) resolution.precinctParameters[field] = yield* read();
+  const count = yield* read();
+  for (let i = 0; i < count; i++) {
+    const band = {type: jpxSubbandTypes[yield* read()], resolution, codeblockParameters: {}};
+    for (const field of jpxSubbandFields) band[field] = yield* read();
+    for (const field of jpxBlockFields) band.codeblockParameters[field] = yield* read();
+    band.codeblocks = {length: yield* read(), records: {position: yield* read(), length: yield* read(), bytesPerElement: 8, integer: false}};
+    band.precincts = {records: {position: yield* read(), length: yield* read(), bytesPerElement: 8, integer: false}, admission: entry.trees[i]};
+    resolution.subbands.push(band);
+  }
+  Object.assign(entry, {collection, index, value: resolution}); cache.push(entry);
+  return resolution;
+}
 function* buildPackets(context) {
   const siz = context.SIZ;
   const tileIndex = context.currentTile.index;
@@ -6835,8 +6869,11 @@ function* buildPackets(context) {
   for (let c = 0; c < componentsCount; c++) {
     const component = tile.components[c];
     const decompositionLevelsCount = component.codingStyleParameters.decompositionLevelsCount;
-    context.onAllocation?.((decompositionLevelsCount + 1) * 2048);
-    const resolutions = [];
+    if (context.storedPlanes) {
+      if (!context.resolutionAdmission) {context.onAllocation?.(16384); context.resolutionAdmission = true;}
+    } else context.onAllocation?.((decompositionLevelsCount + 1) * 2048);
+    const resolutions = context.storedPlanes ? {length: decompositionLevelsCount + 1, context,
+      records: yield* jpxVectorAllocate((decompositionLevelsCount + 1) * 55, 8, true)} : [];
     const subbands = [];
     for (let r = 0; r <= decompositionLevelsCount; r++) {
       const blocksDimensions = getBlocksDimensions(context, component, r);
@@ -6848,7 +6885,6 @@ function* buildPackets(context) {
       resolution.try1 = Math.ceil(component.tcy1 / scale);
       resolution.resLevel = r;
       buildPrecincts(context, resolution, blocksDimensions);
-      resolutions.push(resolution);
       let subband;
       if (r === 0) {
         subband = {};
@@ -6859,7 +6895,7 @@ function* buildPackets(context) {
         subband.tby1 = Math.ceil(component.tcy1 / scale);
         subband.resolution = resolution;
         yield* buildCodeblocks(context, subband, blocksDimensions);
-        subbands.push(subband);
+        if (!context.storedPlanes) subbands.push(subband);
         resolution.subbands = [subband];
       } else {
         const bscale = 1 << decompositionLevelsCount - r + 1;
@@ -6872,7 +6908,7 @@ function* buildPackets(context) {
         subband.tby1 = Math.ceil(component.tcy1 / bscale);
         subband.resolution = resolution;
         yield* buildCodeblocks(context, subband, blocksDimensions);
-        subbands.push(subband);
+        if (!context.storedPlanes) subbands.push(subband);
         resolutionSubbands.push(subband);
         subband = {};
         subband.type = "LH";
@@ -6882,7 +6918,7 @@ function* buildPackets(context) {
         subband.tby1 = Math.ceil(component.tcy1 / bscale - 0.5);
         subband.resolution = resolution;
         yield* buildCodeblocks(context, subband, blocksDimensions);
-        subbands.push(subband);
+        if (!context.storedPlanes) subbands.push(subband);
         resolutionSubbands.push(subband);
         subband = {};
         subband.type = "HH";
@@ -6892,10 +6928,12 @@ function* buildPackets(context) {
         subband.tby1 = Math.ceil(component.tcy1 / bscale - 0.5);
         subband.resolution = resolution;
         yield* buildCodeblocks(context, subband, blocksDimensions);
-        subbands.push(subband);
+        if (!context.storedPlanes) subbands.push(subband);
         resolutionSubbands.push(subband);
         resolution.subbands = resolutionSubbands;
       }
+      if (context.storedPlanes) yield* writeJpxResolution(resolutions, resolution);
+      else resolutions.push(resolution);
     }
     component.resolutions = resolutions;
     component.subbands = subbands;
@@ -6903,19 +6941,19 @@ function* buildPackets(context) {
   const progressionOrder = tile.codingStyleDefaultParameters.progressionOrder;
   switch (progressionOrder) {
     case 0:
-      tile.packetsIterator = new LayerResolutionComponentPositionIterator(context);
+      tile.packetsIterator = yield* LayerResolutionComponentPositionIterator(context);
       break;
     case 1:
-      tile.packetsIterator = new ResolutionLayerComponentPositionIterator(context);
+      tile.packetsIterator = yield* ResolutionLayerComponentPositionIterator(context);
       break;
     case 2:
-      tile.packetsIterator = new ResolutionPositionComponentLayerIterator(context);
+      tile.packetsIterator = yield* ResolutionPositionComponentLayerIterator(context);
       break;
     case 3:
-      tile.packetsIterator = new PositionComponentResolutionLayerIterator(context);
+      tile.packetsIterator = yield* PositionComponentResolutionLayerIterator(context);
       break;
     case 4:
-      tile.packetsIterator = new ComponentPositionResolutionLayerIterator(context);
+      tile.packetsIterator = yield* ComponentPositionResolutionLayerIterator(context);
       break;
     default:
       throw new JpxError(`Unsupported progression order ${progressionOrder}`);
@@ -6993,7 +7031,7 @@ function* parseTilePackets(context, data, offset, dataLength) {
     if (sopMarkerUsed && (yield* skipMarkerIfEqual(0x91))) {
       skipBytes(4);
     }
-    const packet = packetsIterator.nextPacket();
+    const packet = yield* packetsIterator.nextPacket();
     if (!(yield* readBits(1))) {
       continue;
     }
@@ -7031,10 +7069,11 @@ function* parseTilePackets(context, data, offset, dataLength) {
           let treeAllocation = context.onAllocation;
           if (precinct.collection) {
             const admission = (log2(Math.max(width, height)) + 1) * 768;
-            const collection = precinct.collection;
-            if (admission > collection.treeAdmission) {
-              context.onAllocation?.(admission - collection.treeAdmission);
-              collection.treeAdmission = admission;
+            // Cache slots retain scratch peaks after their resolution is evicted.
+            const budget = precinct.collection.admission ?? precinct.collection;
+            if (admission > budget.treeAdmission) {
+              context.onAllocation?.(admission - budget.treeAdmission);
+              budget.treeAdmission = admission;
             }
             treeAllocation = undefined;
           }
@@ -7313,14 +7352,21 @@ function* transformTile(context, tile, c) {
   const resetContextProbabilities = codingStyleParameters.resetContextProbabilities;
   const precision = context.components[c].precision;
   const reversible = codingStyleParameters.reversibleTransformation;
-  const transform = reversible ? new ReversibleTransform(context.onAllocation, context.storedPlanes) : new IrreversibleTransform(context.onAllocation, context.storedPlanes);
+  let scratchBytes = 0;
+  const admit = context.storedPlanes ? bytes => {
+    scratchBytes += bytes;
+    const peak = context.waveletScratch ?? 0;
+    if (scratchBytes > peak) {context.onAllocation?.(scratchBytes - peak); context.waveletScratch = scratchBytes;}
+  } : context.onAllocation;
+  const transform = reversible ? new ReversibleTransform(admit, context.storedPlanes) : new IrreversibleTransform(admit, context.storedPlanes);
   const subbandCoefficients = [];
-  let b = 0;
+  let b = 0, result;
   for (let i = 0; i <= decompositionLevelsCount; i++) {
-    const resolution = component.resolutions[i];
+    const resolution = (yield* readJpxResolution(component.resolutions, i));
     const width = resolution.trx1 - resolution.trx0;
     const height = resolution.try1 - resolution.try0;
-    context.onAllocation?.(context.storedPlanes ? 256 : width * height * 4 + 256);
+    scratchBytes = 0;
+    admit?.(context.storedPlanes ? 256 : width * height * 4 + 256);
     const coefficients = (yield* jpxVectorAllocate(width * height,4,context.storedPlanes));
     for (let j = 0, jj = resolution.subbands.length; j < jj; j++) {
       let mu, epsilon;
@@ -7338,13 +7384,11 @@ function* transformTile(context, tile, c) {
       const mb = guardBits + epsilon - 1;
       (yield* copyCoefficients(coefficients, width, height, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, context.onAllocation, context.storedPlanes, context));
     }
-    subbandCoefficients.push({
-      width,
-      height,
-      items: coefficients
-    });
+    const next = {width, height, items: coefficients};
+    if (context.storedPlanes) result = i === 0 ? next : yield* transform.iterate(result, next, component.tcx0, component.tcy0);
+    else subbandCoefficients.push(next);
   }
-  const result = (yield* transform.calculate(subbandCoefficients,component.tcx0,component.tcy0));
+  if (!context.storedPlanes) result = yield* transform.calculate(subbandCoefficients,component.tcx0,component.tcy0);
   return {
     left: component.tcx0,
     top: component.tcy0,

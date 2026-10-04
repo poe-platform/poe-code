@@ -4,7 +4,7 @@ import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {expect,it} from "vitest";
 
-it.each(["sdk","command"])("shares external VFS across Sips, Shuf and Lua Pandoc in workerd (%s)",async mode=>{
+it.each(["sdk","command"].flatMap(mode=>["none","sink","cancel"].map(fault=>({mode,fault}))))("shares external VFS across Sips, Shuf and Lua Pandoc in workerd ($mode, $fault)",async ({mode,fault})=>{
   const builtins=new Set(builtinModules.flatMap(name=>[name,`node:${name}`]));
   const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../",import.meta.url)),contents:`
     export * as pandoc from "safe-bash-command-pandoc";
@@ -23,7 +23,7 @@ it.each(["sdk","command"])("shares external VFS across Sips, Shuf and Lua Pandoc
   const runtime=new Miniflare({modules:true,compatibilityDate:"2026-07-01",cf:false,r2Buckets:["PAGES"],script:`
     const api=(()=>{const module={exports:{}};${bundle.outputFiles[0]!.text};return module.exports;})();
     export default {async fetch(request,env){
-      const mode=new URL(request.url).pathname.slice(1),encoder=new TextEncoder(),decoder=new TextDecoder();
+      const [mode,fault]=new URL(request.url).pathname.slice(1).split('/'),encoder=new TextEncoder(),decoder=new TextDecoder();
       const namespace=new api.MemoryFileSystem();await namespace.mkdir('/spill');
       const segment=(marker,data)=>[255,marker,(data.length+2)>>>8,(data.length+2)&255,...data];
       const image=new Uint8Array([255,216,...segment(219,[0,...Array(64).fill(1)]),...segment(192,[8,0,1,0,1,1,1,0x11,0]),...segment(196,[0,1,...Array(15).fill(0),0,16,1,...Array(15).fill(0),0]),...segment(218,[1,1,0,0,63,0]),0x3f,255,217]);
@@ -49,6 +49,7 @@ it.each(["sdk","command"])("shares external VFS across Sips, Shuf and Lua Pandoc
           },close(){return closing??=(async()=>{await receipt.close();closed.push(path);})();}};
       };
       const fs=new Proxy(backing,{get(target,key){
+        if(key==='readFile')return async()=>{throw new Error('Whole-file read forbidden');};
         if(key==='openReadFile')return openRead;
         if(key==='readStream')return async function*(path,options){const handle=await openRead(path,options);try{let position=0;for(;;){const bytes=await handle.read(position,16384,options);if(!bytes.length)return;position+=bytes.length;yield bytes;}}finally{await handle.close();}};
         if(key==='stat')return async(path,options)=>{const stat=await namespace.stat(path,options);const object=await env.PAGES.head(path);return object?{...stat,size:object.size}:stat;};
@@ -71,31 +72,40 @@ it.each(["sdk","command"])("shares external VFS across Sips, Shuf and Lua Pandoc
         }catch(error){await writer.abort(error);throw error;}
       })();
       const input=(async function*(){const reader=pipe.readable.getReader();try{for(;;){const part=await reader.read();if(part.done)return;yield part.value;}}finally{await reader.cancel();reader.releaseLock();}})();
-      let length=0,largest=0,output='';
-      const sink={async write(bytes){await scheduler.wait(1);length+=bytes.length;largest=Math.max(largest,bytes.length);output+=decoder.decode(bytes);},async close(){},async abort(){}};
+      let length=0,largest=0,output='',writes=0,committed=0,aborted=0;
+      const sink={async write(bytes){writes++;await scheduler.wait(1);if(fault==='sink')throw new Error('composed sink failure');length+=bytes.length;largest=Math.max(largest,bytes.length);output+=decoder.decode(bytes);if(fault==='cancel')controller.abort(new Error('composed cancellation'));},async close(){committed++;},async abort(){aborted++;}};
       const convert=(async()=>{
         if(mode==='sdk'){
           const filters=api.pandoc.createLuaFilterCapability({readStream:(path,signal)=>fs.readStream(path,{signal})});
           filters.apply=async()=>{throw new Error('Resident filter forbidden');};
-          await api.pandoc.convertToOutput([{chunks:input}],{from:'json',to:'rtf',filters:[{kind:'lua',path:'/filter.lua'}]},{filters,workingFiles:{fs,directory:'/spill',cacheBytes:1048576},resourceFiles:fs,resourceCwd:'/spill',output:sink});
+          await api.pandoc.convertToOutput([{chunks:input}],{from:'json',to:'rtf',filters:[{kind:'lua',path:'/filter.lua'}]},{filters,signal:controller.signal,workingFiles:{fs,directory:'/spill',cacheBytes:1048576},resourceFiles:fs,resourceCwd:'/spill',output:sink});
         }else if((await api.createPandocCommand().execute(commandContext('pandoc',['-fjson','-trtf','-L','/filter.lua'],sink,input))).exitCode!==0)throw new Error('Pandoc failed');
       })();
-      await Promise.all([shuffle,convert]);
+      const outcomes=await Promise.allSettled([shuffle,convert]);
+      if(outcomes[0].status!=='fulfilled')throw outcomes[0].reason;
+      const failure=outcomes[1].status==='rejected'?{message:outcomes[1].reason.message,code:outcomes[1].reason.code??null}:null;
+      if(fault==='none'&&failure)throw new Error(failure.message);
       for(const path of Object.keys(files)){await env.PAGES.delete(path);await namespace.unlink(path);}
-      return Response.json({hostGlobals:[typeof process,typeof require,typeof Buffer],properties,length,largest,peakPending,hasSelectedDocument:['ALPHA','BETA','GAMMA'].filter(word=>output.includes(word)).length===1,hasImage:output.includes('\\\\jpegblip'),reads,opened,closed,largestRead,events,
+      return Response.json({failure,writes,committed,aborted,hostGlobals:[typeof process,typeof require,typeof Buffer],properties,length,largest,peakPending,hasSelectedDocument:['ALPHA','BETA','GAMMA'].filter(word=>output.includes(word)).length===1,hasImage:output.includes('\\\\jpegblip'),reads,opened,closed,largestRead,events,
         remaining:(await env.PAGES.list({limit:1})).objects.length,namespace:await namespace.readdir('/spill')});
     }};
   `});
   try {
-    const response=await runtime.dispatchFetch('https://composed.test/'+mode);
+    const response=await runtime.dispatchFetch('https://composed.test/'+mode+'/'+fault);
     expect(response.status,response.status===200?undefined:await response.text()).toBe(200);
-    const result=await response.json() as {properties:string;length:number;largest:number;reads:string[];opened:string[];closed:string[];largestRead:number;events:{opened:number;closed:number;writes:number}};
-    expect(result).toMatchObject({hostGlobals:["undefined","undefined","undefined"],remaining:0,namespace:[],peakPending:1,hasSelectedDocument:true,hasImage:true});
+    const result=await response.json() as {failure:{message:string;code:string|null}|null;writes:number;committed:number;aborted:number;properties:string;length:number;largest:number;reads:string[];opened:string[];closed:string[];largestRead:number;events:{opened:number;closed:number;writes:number}};
+    expect(result).toMatchObject({hostGlobals:["undefined","undefined","undefined"],remaining:0,namespace:[],peakPending:1});
+    if(fault==='none')expect(result).toMatchObject({failure:null,hasSelectedDocument:true,hasImage:true});
+    else {
+      expect(result.writes).toBe(1);
+      if(mode==='sdk')expect(result).toMatchObject({failure:{code:fault==='sink'?'E_IO':'E_CANCELLED'},committed:0,aborted:1});
+      else expect(result.failure?.message).toBe(fault==='sink'?'composed sink failure':'composed cancellation');
+    }
     expect(result.properties).toContain('pixelWidth: 1');expect(result.properties).toContain('pixelHeight: 1');
     expect(new Set(result.reads)).toEqual(new Set(['/spill/image.jpg','/documents.jsonl','/filter.lua']));
     expect(result.opened.slice().sort()).toEqual(result.closed.slice().sort());
     expect(result.opened.filter(path=>path==='/spill/image.jpg').length).toBeGreaterThanOrEqual(2);
-    expect(result.largestRead).toBeLessThanOrEqual(16384);expect(result.largest).toBeLessThanOrEqual(16384);expect(result.length).toBeGreaterThan(100);
+    expect(result.largestRead).toBeLessThanOrEqual(16384);expect(result.largest).toBeLessThanOrEqual(16384);if(fault==='none')expect(result.length).toBeGreaterThan(100);else if(fault==='cancel')expect(result.length).toBeGreaterThan(0);else expect(result.length).toBe(0);
     expect(result.events.opened).toBeGreaterThan(0);expect(result.events.closed).toBe(result.events.opened);expect(result.events.writes).toBeGreaterThan(0);
   }finally{await runtime.dispose();}
 },60000);

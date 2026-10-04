@@ -23,6 +23,11 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   document into Lua-filtered Pandoc, which reads the same image through the same
   supplied filesystem. SDK and command paths prohibit whole-file reads, enforce
   pipe backpressure and verify source/scratch closure and empty backing storage.
+  Both modes also inject sink failure and cancellation after the first output
+  write, assert the expected error and no later writes, and verify closure and
+  empty backing storage. SDK checks require abort without commit. Cancellation
+  may leave already-delivered stdout bytes; it does not promise rollback of an
+  external sink. These cases explicitly reject whole-file reads.
   This functional cohort does not qualify Sips mutations, all format pairs, or
   memory/CPU plateaus. Extend its size, concurrency and failure cohorts below.
   Retained Lua translates wire enums to the established string API and back;

@@ -105,7 +105,11 @@ Arrays expose `storedItems` with empty `items`; iterate their elements with
 retained `lookup` also accept `arrayStorage`, `storedArrayKeys`, `storedArrayPaths`, and
 `storeRootArray` to back selected arrays without collecting their elements. Set
 `valueArrays` when opening a retained document to apply these options to page
-lookups too, including inline font resources. Selected keys also apply when an
+lookups too, including inline font resources. Set `containerStorage` to that same
+backing to spill deep suspended parser frames; a fixed window of 32 shallow
+frames avoids repeated writes for ordinary dictionaries. Each frame retains
+only the key suffix needed by `storedArrayPaths`. Completed ordinary values
+still follow the selected array/string backing policy. Selected keys also apply when an
 indirect array lookup carries that key context. Optional-content visibility can
 consume backed `ON`, `OFF`, and `OCGs` arrays; membership queries use at most two
 caller-backed indexes rather than resident layer sets, including annotation appearances. `storedArrayPaths` matches a suffix

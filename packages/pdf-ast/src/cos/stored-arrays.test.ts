@@ -76,7 +76,7 @@ it("backs graphics-state dash paths without changing unrelated D arrays", async 
     async read(at: number, n: number) { return data.subarray(at, at + n); },
     async write(at: number, bytes: Uint8Array) { expect(bytes.length).toBeLessThanOrEqual(4096); data.set(bytes, at); } };
   const source = { size: input.length, chunkBytes: 64, async read(at: number, n: number) { return input.subarray(at, at + n); } };
-  const { value } = await parseCosRangeValue(source, 0, { arrayStorage: storage, storedArrayPaths: [["ExtGState", "*", "D"]] });
+  const { value } = await parseCosRangeValue(source, 0, { containerStorage: storage, arrayStorage: storage, storedArrayPaths: [["ExtGState", "*", "D"]] });
   function get(node: PdfCosNode | undefined, key: string) { if (node?.kind !== "dict") throw Error("Expected dictionary"); return dictGet(node, key); }
   const dash = get(get(get(get(value, "Resources"), "ExtGState"), "Dashes"), "D");
   if (dash?.kind !== "array") throw Error("Expected dash array");
@@ -125,4 +125,62 @@ it("preserves source string backing failures through recovery and cancellation",
   await expect(scan.next()).rejects.toBe(failure);
   const controller = new AbortController();
   await expect(parseCosRangeValue(source, input.indexOf(40), { stringStorage: { ...storage, async write() { controller.abort(failure); } }, storeRootString: true, signal: controller.signal })).rejects.toBe(failure);
+});
+
+it("keeps deep source array parser frames in caller backing", async () => {
+  const depth=512,input=new TextEncoder().encode("[".repeat(depth)+"7"+"]".repeat(depth));
+  const bytes=new Uint8Array(4_000_000);let end=0;
+  const storage={allocate(n:number){const at=end;end+=n;return at;},async read(at:number,n:number){return bytes.subarray(at,at+n);},async write(at:number,data:Uint8Array){bytes.set(data,at);}};
+  const source={size:input.length,chunkBytes:64,async read(at:number,n:number){return input.subarray(at,at+n);}};
+  const push=Array.prototype.push;let peak=0;
+  Array.prototype.push=function<T>(this:T[],...values:T[]){const result=push.apply(this,values);peak=Math.max(peak,this.length);return result;};
+  let value:PdfCosNode|undefined;
+  try{({value}=await parseCosRangeValue(source,0,{arrayStorage:storage,storeRootArray:true,maxRecursionDepth:Infinity,containerStorage:storage}));expect(peak).toBeLessThanOrEqual(64);}
+  finally{Array.prototype.push=push;}
+  for(let i=0;i<depth;i++){
+    if(value?.kind!=="array"||!value.storedItems)throw Error("Expected backed nested array");
+    expect(value.items).toEqual([]);expect(value.storedItems.length).toBe(1);
+    const step=await readStoredItems<PdfCosNode>(value.storedItems).next();
+    value=step.done?undefined:step.value;
+  }
+  expect(value).toMatchObject({kind:"number",value:7});
+});
+
+
+it.each(["push","pop"] as const)("preserves caller parser-frame %s failures through recovery", async operation => {
+  const {scanCosRangeObjects}=await import("./range-repair.js");
+  const {PdfError}=await import("../errors.js");
+  const input=new TextEncoder().encode("1 0 obj "+"[".repeat(40)+"7"+"]".repeat(40)+" endobj");
+  const source={size:input.length,chunkBytes:64,async read(at:number,n:number){return input.subarray(at,at+n);}};
+  const failure=new PdfError("E_PARSE","frame backing failed"),bytes=new Uint8Array(4096);let end=0;
+  const storage={allocate(n:number){const at=end;end+=n;return at;},async read(at:number,n:number){if(operation==="pop")throw failure;return bytes.subarray(at,at+n);},async write(at:number,data:Uint8Array){if(operation==="push")throw failure;bytes.set(data,at);}};
+  const scan=scanCosRangeObjects(source as import("../source.js").PdfFileSource,{containerStorage:storage});
+  await expect(scan.next()).rejects.toBe(failure);
+});
+
+it("cancels deep parser-frame writes without taking backing ownership", async () => {
+  const input=new TextEncoder().encode("[".repeat(512)+"1"+"]".repeat(512));
+  const source={size:input.length,chunkBytes:64,async read(at:number,n:number){return input.subarray(at,at+n);}};
+  const bytes=new Uint8Array(1_000_000);let end=0,writes=0;
+  const storage={allocate(n:number){const at=end;end+=n;return at;},async read(at:number,n:number){return bytes.subarray(at,at+n);},async write(at:number,data:Uint8Array){writes++;bytes.set(data,at);}};
+  const controller=new AbortController(),failure=new Error("cancel parser frames"),timer=setTimeout(()=>controller.abort(failure),0);
+  try{await expect(parseCosRangeValue(source,0,{containerStorage:storage,arrayStorage:storage,storeRootArray:true,maxRecursionDepth:Infinity,signal:controller.signal})).rejects.toBe(failure);expect(writes).toBeGreaterThan(0);}
+  finally{clearTimeout(timer);}
+  const parsed=await parseCosRangeValue({size:3,chunkBytes:64,async read(){return new TextEncoder().encode("[1]");}},0,{containerStorage:storage});
+  expect(parsed.value).toMatchObject({kind:"array",items:[{value:1}]});
+});
+
+
+it("restores partial dictionaries and path selection through backed frames", async () => {
+  const input=new TextEncoder().encode("<< /Before 1 /Next ".repeat(40)+"<< /ExtGState << /Dash << /D [[2 3] 0] >> >> >>"+" /After 2 >>".repeat(40));
+  const bytes=new Uint8Array(1_000_000);let end=0;
+  const storage={allocate(n:number){const at=end;end+=n;return at;},async read(at:number,n:number){return bytes.subarray(at,at+n);},async write(at:number,data:Uint8Array){bytes.set(data,at);}};
+  const source={size:input.length,chunkBytes:64,async read(at:number,n:number){return input.subarray(at,at+n);}};
+  let {value}=await parseCosRangeValue(source,0,{arrayStorage:storage,containerStorage:storage,maxRecursionDepth:Infinity,storedArrayPaths:[["ExtGState","*","D"]]});
+  for(let i=0;i<40;i++){
+    if(value?.kind!=="dict")throw Error("Expected dictionary");
+    expect(dictGet(value,"Before")).toMatchObject({value:1});expect(dictGet(value,"After")).toMatchObject({value:2});value=dictGet(value,"Next");
+  }
+  for(const key of ["ExtGState","Dash","D"]){if(value?.kind!=="dict")throw Error("Expected resource dictionary");value=dictGet(value,key);}
+  expect(value).toMatchObject({kind:"array",items:[],storedItems:{length:2}});
 });

@@ -3,8 +3,8 @@ import { dictGet, type ByteSpan, type PdfCosNode, type PdfCosRef } from "../ast.
 import { PdfError } from "../errors.js";
 import type { PdfFileSource } from "../source.js";
 import { CosRangeLexer, isPdfDelimiter, isPdfWhitespace } from "./lexer.js";
-import { appendStoredRecord } from "../content/stored-record.js";
-import { parseValueSteps, type ValueArrayStorage } from "./value-parser.js";
+import { StoredMetadataStack, appendStoredRecord } from "../content/stored-record.js";
+import { parseValueSteps, type ValueArrayStorage, type ValueContainer } from "./value-parser.js";
 
 export interface ParseCosRangeOptions extends ValueArrayStorage {
   /** @internal Distinguish caller storage failures from recoverable PDF syntax. */
@@ -100,6 +100,7 @@ async function resolveStreamLength(entry: PdfCosNode | undefined, options: Parse
 async function readValue(lexer: CosRangeLexer, depth: number, nodes: number, options: ParseCosRangeOptions): Promise<PdfCosNode | undefined> {
   const { signal } = options;
   const work = parseValueSteps(lexer, depth, options.recovery === "repair", nodes, options);
+  const containers = options.containerStorage ? new StoredMetadataStack<ValueContainer>(options.containerStorage,signal) : undefined;
   let value: PdfCosNode | undefined;
   let turns = 0;
   try {
@@ -112,6 +113,11 @@ async function readValue(lexer: CosRangeLexer, depth: number, nodes: number, opt
         try { position = await appendStoredRecord(options.arrayStorage!, request.node, request.previous, signal); }
         catch (error) { options.onBackingError?.(error); throw error; }
         step = work.next(position);
+      } else if(request && request !== "token" && (request.kind === "container-push" || request.kind === "container-pop")) {
+        let container: ValueContainer | undefined;
+        try {if(request.kind === "container-push") await containers!.push(request.container); else container=await containers!.pop();}
+        catch(error){options.onBackingError?.(error);throw error;}
+        step=work.next(container);
       } else step = request === undefined ? work.next() : work.next(request === "token" ? await lexer.nextToken() : request);
       if (++turns % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
     }

@@ -1,3 +1,4 @@
+import type { BiffRecordOutput } from "./biff-staged-output.js";
 import { gnumericFillPatterns } from "./biff-fill-patterns.js";
 import { SsconvertError, type CapabilityContext, type Diagnostic } from "@poe-code/spreadsheet-engine/contracts";
 import type { Cell, ImportedValue } from "@poe-code/spreadsheet-ast";
@@ -37,6 +38,12 @@ export class BiffStyles {
       throw new SsconvertError("resource-limit", "ssconvert BIFF style work limit exceeded");
   }
   serialize(output: BiffOutput, revision: 7 | 8): void {
+    for (const [opcode, payload] of this.records(revision)) output.record(opcode, payload);
+  }
+  async serializeSource(output: BiffRecordOutput, revision: 7 | 8): Promise<void> {
+    for (const [opcode, payload] of this.records(revision)) await output.record(opcode, payload);
+  }
+  private *records(revision: 7 | 8): Generator<readonly [number, Uint8Array]> {
     const fonts: Uint8Array[] = [], fontIds = new Map<string, number>(), palette: string[] = [], formats = new Map<string, number>();
     const lostColors = new Map<string, number>();
     const color = (value: string | undefined, fallback: number): number => {
@@ -108,12 +115,12 @@ export class BiffStyles {
       }
       xfs.push(xf);
     }
-    for (const font of fonts) output.record(0x31, font);
-    for (const [format, id] of formats) { const text = biffString(format, revision, this.context, revision === 8 ? 2 : 1), bytes = new Uint8Array(2 + text.length); bytes.set(words(id)); bytes.set(text, 2); output.record(0x41e, bytes); }
-    for (let i = 0; i < 15; i++) { const xf = new Uint8Array(xfs[0]!); new DataView(xf.buffer).setUint16(4, 0xfff5, true); output.record(0xe0, xf); }
-    for (const xf of xfs) output.record(0xe0, xf);
-    output.record(0x293, words(0x8000, 0xff00));
+    for (const font of fonts) yield [0x31, font];
+    for (const [format, id] of formats) { const text = biffString(format, revision, this.context, revision === 8 ? 2 : 1), bytes = new Uint8Array(2 + text.length); bytes.set(words(id)); bytes.set(text, 2); yield [0x41e, bytes]; }
+    for (let i = 0; i < 15; i++) { const xf = new Uint8Array(xfs[0]!); new DataView(xf.buffer).setUint16(4, 0xfff5, true); yield [0xe0, xf]; }
+    for (const xf of xfs) yield [0xe0, xf];
+    yield [0x293, words(0x8000, 0xff00)];
     if (palette.length) { const bytes = new Uint8Array(2 + palette.length * 4); bytes.set(words(palette.length));
-      palette.forEach((rgb, i) => { for (let j = 0; j < 3; j++) bytes[2 + i * 4 + j] = parseInt(rgb.slice(j * 2, j * 2 + 2), 16); }); output.record(0x92, bytes); }
+      palette.forEach((rgb, i) => { for (let j = 0; j < 3; j++) bytes[2 + i * 4 + j] = parseInt(rgb.slice(j * 2, j * 2 + 2), 16); }); yield [0x92, bytes]; }
   }
 }

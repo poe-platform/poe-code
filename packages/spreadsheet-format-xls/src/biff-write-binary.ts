@@ -20,34 +20,7 @@ export class BiffOutput {
   continuedRecord(opcode: number, payload: Uint8Array, boundaries?: readonly number[],
     strings: readonly { start: number; end: number }[] = []): number {
     const at = this.length;
-    let offset = 0, next = 0, stringIndex = 0;
-    do {
-      while (strings[stringIndex] && strings[stringIndex]!.end <= offset) stringIndex++;
-      const continuedString = strings[stringIndex] && strings[stringIndex]!.start < offset;
-      const prefix = continuedString ? 1 : 0;
-      const maximum = Math.min(payload.length, offset + this.maximumRecord - prefix);
-      let end = maximum;
-      if (boundaries && maximum < payload.length) {
-        end = offset;
-        while (next < boundaries.length && boundaries[next]! <= maximum) end = boundaries[next++]!;
-        let candidate = stringIndex;
-        while (strings[candidate] && strings[candidate]!.end <= maximum) candidate++;
-        const string = strings[candidate];
-        if (string && string.end - string.start + 4 > this.maximumRecord &&
-          string.start < maximum && maximum < string.end) {
-          const characterEnd = maximum - (maximum - string.start) % 2;
-          if (characterEnd > string.start) end = Math.max(end, characterEnd);
-        }
-        if (end <= offset) throw new SsconvertError("unsupported-feature", "Excel BIFF formula token is too large");
-      }
-      let part = payload.subarray(offset, end);
-      if (prefix) {
-        const continued = new Uint8Array(part.length + 1); continued[0] = 1;
-        continued.set(part, 1); part = continued;
-      }
-      this.record(offset === 0 ? opcode : 0x3c, part);
-      offset = end;
-    } while (offset < payload.length);
+    for (const [code, part] of biffContinuedParts(opcode, payload, this.maximumRecord, boundaries, strings)) this.record(code, part);
     return at;
   }
   finish(): Uint8Array {
@@ -74,4 +47,36 @@ export function writeCfb(streams: ReadonlyMap<string, Uint8Array>, context: Capa
     bytes.set(part.bytes, at); at += part.bytes.length;
   }
   return bytes;
+}
+
+export function* biffContinuedParts(opcode: number, payload: Uint8Array, maximumRecord: number,
+  boundaries?: readonly number[], strings: readonly { start: number; end: number }[] = []): Generator<readonly [number, Uint8Array]> {
+  let offset = 0, next = 0, stringIndex = 0;
+  do {
+    while (strings[stringIndex] && strings[stringIndex]!.end <= offset) stringIndex++;
+    const continuedString = strings[stringIndex] && strings[stringIndex]!.start < offset;
+    const prefix = continuedString ? 1 : 0;
+    const maximum = Math.min(payload.length, offset + maximumRecord - prefix);
+    let end = maximum;
+    if (boundaries && maximum < payload.length) {
+      end = offset;
+      while (next < boundaries.length && boundaries[next]! <= maximum) end = boundaries[next++]!;
+      let candidate = stringIndex;
+      while (strings[candidate] && strings[candidate]!.end <= maximum) candidate++;
+      const string = strings[candidate];
+      if (string && string.end - string.start + 4 > maximumRecord &&
+        string.start < maximum && maximum < string.end) {
+        const characterEnd = maximum - (maximum - string.start) % 2;
+        if (characterEnd > string.start) end = Math.max(end, characterEnd);
+      }
+      if (end <= offset) throw new SsconvertError("unsupported-feature", "Excel BIFF formula token is too large");
+    }
+    let part = payload.subarray(offset, end);
+    if (prefix) {
+      const continued = new Uint8Array(part.length + 1); continued[0] = 1;
+      continued.set(part, 1); part = continued;
+    }
+    yield [offset === 0 ? opcode : 0x3c, part];
+    offset = end;
+  } while (offset < payload.length);
 }

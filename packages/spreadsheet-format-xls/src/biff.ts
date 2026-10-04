@@ -1,3 +1,4 @@
+import { BiffStagedOutput } from "./biff-staged-output.js";
 import { createBiffCatalogs } from "./biff-catalogs.js";
 import { biffFillPatterns } from "./biff-fill-patterns.js";
 import { createBiffCellSource } from "./biff-cell-source.js";
@@ -52,19 +53,42 @@ export function createBiffStreamWriter(profile: 7 | 8 | "dsf"): NonNullable<Code
     const properties = await writeBiffProperties(book, context);
     const propertyStreams = new Map(properties.streams), handledMetadata = new Set(properties.handledMetadata);
     const streams = new Map<string, Uint8Array>();
+    const staged = new Map<string, BiffStagedOutput>();
+    let failed = false, failure: unknown;
+    async function closeOutputs(): Promise<void> {
+      const errors: unknown[] = [];
+      for (const output of staged.values()) try { await output.close(); } catch (error) { errors.push(error); }
+      if (encrypted) {
+        for (const stream of streams.values()) stream.fill(0);
+        for (const stream of propertyStreams.values()) stream.fill(0);
+      }
+      if (errors.length) {
+        if (failed) errors.unshift(failure);
+        if (errors.length === 1) throw errors[0];
+        throw new AggregateError(errors, "BIFF output cleanup failed");
+      }
+    }
     try {
       if (encrypted?.algorithm === "rc4-cryptoapi" && encrypted.encryptedProperties)
         appendBiffAncillaryStreams(book, propertyStreams, handledMetadata, context);
       const source = handledMetadata.size ? { ...book,
         unsupportedRecords: (book.unsupportedRecords ?? []).filter(record => !handledMetadata.has(record)) } : book;
-      if (profile === 7 || profile === "dsf") streams.set("Book", await writeBiffStream(source, 7, profile === "dsf", context,
-        encrypted ? createBiffEncryptionHeader(encrypted, 7) : undefined));
-      if (profile === 8 || profile === "dsf") {
-        const stream = await writeBiffStream(source, 8, profile === "dsf", context, encrypted ? createBiffEncryptionHeader(encrypted) : undefined);
-        streams.set("Workbook", stream);
-        if (encrypted && encrypted.algorithm !== "xor") {
-          const container = await encryptBiffStream(stream, context, encrypted, propertyStreams);
-          if (container) streams.set("encryption", container);
+      if (!encrypted && context.createWorkingStorage) {
+        for (const revision of profile === "dsf" ? [7, 8] as const : [profile]) {
+          const output = new BiffStagedOutput(context, revision === 8 ? 8224 : 2080);
+          staged.set(revision === 7 ? "Book" : "Workbook", output);
+          await writeBiffStream(source, revision, profile === "dsf", context, undefined, output);
+        }
+      } else {
+        if (profile === 7 || profile === "dsf") streams.set("Book", await writeBiffStream(source, 7, profile === "dsf", context,
+          encrypted ? createBiffEncryptionHeader(encrypted, 7) : undefined));
+        if (profile === 8 || profile === "dsf") {
+          const stream = await writeBiffStream(source, 8, profile === "dsf", context, encrypted ? createBiffEncryptionHeader(encrypted) : undefined);
+          streams.set("Workbook", stream);
+          if (encrypted && encrypted.algorithm !== "xor") {
+            const container = await encryptBiffStream(stream, context, encrypted, propertyStreams);
+            if (container) streams.set("encryption", container);
+          }
         }
       }
       if (encrypted?.algorithm === "xor") await encryptBiffXorStreams([...streams.values()], profile === 7 ? 7 : 8, context);
@@ -75,15 +99,13 @@ export function createBiffStreamWriter(profile: 7 | 8 | "dsf"): NonNullable<Code
         for (let i = 0; i < 16; i++) placeholder[28 + i] = parseInt(biffPropertyFormats.document.slice(i * 2, i * 2 + 2), 16);
         streams.set("\u0005DocumentSummaryInformation", placeholder);
       } else for (const [name, bytes] of propertyStreams) streams.set(name, bytes);
-      yield* writeCfbSource(new Map([...streams].map(([name, bytes]) => [name, {
-        size: bytes.length, async read(at: number, count: number) { return bytes.subarray(at, at + count); }
-      }])), context);
-    } finally {
-      if (encrypted) {
-        for (const stream of streams.values()) stream.fill(0);
-        for (const stream of propertyStreams.values()) stream.fill(0);
-      }
-    }
+      const ranges = new Map<string, RangeSource>(staged);
+      for (const [name, bytes] of streams) ranges.set(name, {
+        size: bytes.length, async read(at, count) { return bytes.subarray(at, at + count); }
+      });
+      yield* writeCfbSource(ranges, context);
+    } catch (error) { failed = true; failure = error; throw error; }
+    finally { await closeOutputs(); }
   };
 }
 

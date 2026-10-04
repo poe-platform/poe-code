@@ -1,7 +1,8 @@
-import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
+import { type BiffRecordOutput } from "./biff-staged-output.js";
+import { SsconvertError, type CapabilityContext, type RangeSource } from "@poe-code/spreadsheet-engine/contracts";
 import { parseA1, type Sheet, type Workbook, type UnsupportedRecord } from "@poe-code/spreadsheet-ast";
 import { metadataNode, type MetadataNode } from "@poe-code/spreadsheet-engine/codecs/xlsx-write-support";
-import { BiffOutput, words } from "./biff-write-binary.js";
+import { words } from "./biff-write-binary.js";
 import { biffString } from "./biff-write.js";
 import { biffProtectionPermissions } from "./biff-metadata.js";
 import { biffFontWidth } from "./biff-font-widths.js";
@@ -57,15 +58,65 @@ export class BiffMetadataWriter {
       this.comments.set(sheet, admitted);
     }
   }
-  async loss(bytes: Uint8Array, sheet?: Sheet): Promise<void> {
-    const emitted = new Map<number, Set<string>>(), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    for (let at = 0; at + 4 <= bytes.length;) {
-      this.charge(); const opcode = view.getUint16(at, true), length = view.getUint16(at + 2, true);
-      const encoded = Array.from(bytes.subarray(at + 4, at + 4 + length), b => b.toString(16).padStart(2, "0")).join("");
-      const values = emitted.get(opcode) ?? new Set<string>(); values.add(encoded); emitted.set(opcode, values); at += length + 4;
-    }
+  async loss(source: Uint8Array | RangeSource, sheet?: Sheet, start = 0,
+    end = source instanceof Uint8Array ? source.length : source.size): Promise<void> {
     const records: readonly UnsupportedRecord[] = sheet ? sheet.unsupportedRecords ?? [] : this.book.unsupportedRecords ?? [];
+    const wanted = new Map<number, Set<string>>(), emitted = new Map<number, Set<string>>();
+    const margins = new Map<number, Map<number, Set<string>>>(), seenMargins = new Map<number, Map<number, Set<string>>>();
+    const fields: Readonly<Record<string, readonly [number, number]>> = { left: [0x26, 0], right: [0x27, 0], top: [0x28, 0], bottom: [0x29, 0], header: [0xa1, 16], footer: [0xa1, 24] };
+    const hex = (bytes: Uint8Array) => Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
+    const margin = (name: string, value: string) => {
+      if (!Object.hasOwn(fields, name) || !value.trim() || !Number.isFinite(Number(value)) || Number(value) < 0) return undefined;
+      const [opcode, offset] = fields[name]!, bytes = new Uint8Array(8);
+      new DataView(bytes.buffer).setFloat64(0, Number(value), true);
+      return { opcode, offset, encoded: hex(bytes) };
+    };
+    const want = (opcode: number, encoded: string) => {
+      const values = wanted.get(opcode) ?? new Set<string>(); values.add(encoded); wanted.set(opcode, values);
+    };
     const printFlags: Readonly<Record<string, number>> = { headings: 0x2a, gridLines: 0x2b, horizontalCentered: 0x83, verticalCentered: 0x84 };
+    for (const record of records) {
+      if (record.source === "biff" && record.data && typeof record.data === "object" && !Array.isArray(record.data)) {
+        const data = record.data as Readonly<Record<string, unknown>>;
+        if (typeof data.opcode === "number" && typeof data.bytes === "string") want(data.opcode, data.bytes);
+      }
+      if (record.kind === "printOptions") for (const opcode of Object.values(printFlags)) { want(opcode, "0000"); want(opcode, "0100"); }
+      if (record.kind === "pageMargins") {
+        const node = sheet ? this.records.get(sheet)?.find(r => r.record === record)?.node : undefined;
+        for (const [name, value] of Object.entries(node?.attributes ?? {})) {
+          const field = margin(name, value); if (!field) continue;
+          const offsets = margins.get(field.opcode) ?? new Map<number, Set<string>>(), values = offsets.get(field.offset) ?? new Set<string>();
+          values.add(field.encoded); offsets.set(field.offset, values); margins.set(field.opcode, offsets);
+        }
+      }
+    }
+    const read = async (position: number, length: number) => {
+      if (source instanceof Uint8Array) return source.subarray(position, position + length);
+      const bytes = new Uint8Array(length);
+      for (let at = 0; at < length;) {
+        this.context.signal.throwIfAborted();
+        const part = await source.read(position + at, Math.min(16384, length - at)); this.context.signal.throwIfAborted();
+        if (!part.length || part.length > Math.min(16384, length - at)) throw new SsconvertError("io", "Truncated BIFF output metadata");
+        bytes.set(part, at); at += part.length;
+      }
+      return bytes;
+    };
+    for (let at = start; at + 4 <= end;) {
+      this.charge(); const header = await read(at, 4), view = new DataView(header.buffer, header.byteOffset, 4);
+      const opcode = view.getUint16(0, true), length = view.getUint16(2, true);
+      if (wanted.has(opcode) || margins.has(opcode)) {
+        const bytes = await read(at + 4, Math.min(length, end - at - 4)), encoded = hex(bytes);
+        if (wanted.get(opcode)?.has(encoded)) { const values = emitted.get(opcode) ?? new Set<string>(); values.add(encoded); emitted.set(opcode, values); }
+        for (const [offset, wantedValues] of margins.get(opcode) ?? []) {
+          const value = encoded.slice(offset * 2, offset * 2 + 16);
+          if (wantedValues.has(value)) {
+            const offsets = seenMargins.get(opcode) ?? new Map<number, Set<string>>(), values = offsets.get(offset) ?? new Set<string>();
+            values.add(value); offsets.set(offset, values); seenMargins.set(opcode, offsets);
+          }
+        }
+      }
+      at += length + 4;
+    }
     for (const record of records) {
       this.charge();
       if (this.exported.has(record)) continue;
@@ -81,18 +132,14 @@ export class BiffMetadataWriter {
           emitted.get(printFlags[name]!)?.has(value === "1" || value === "true" ? "0100" : "0000"))) continue;
       if (record.kind === "pageMargins" && node?.namespace === "http://schemas.openxmlformats.org/spreadsheetml/2006/main" &&
         !node.text.trim() && !node.children.length && Object.entries(node.attributes).every(([name, value]) => {
-          const fields: Readonly<Record<string, readonly [number, number]>> = { left: [0x26, 0], right: [0x27, 0], top: [0x28, 0], bottom: [0x29, 0], header: [0xa1, 16], footer: [0xa1, 24] };
-          if (!Object.hasOwn(fields, name) || !value.trim() || !Number.isFinite(Number(value)) || Number(value) < 0) return false;
-          const [opcode, offset] = fields[name]!, bytes = new Uint8Array(8);
-          new DataView(bytes.buffer).setFloat64(0, Number(value), true);
-          const encoded = Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
-          return [...emitted.get(opcode) ?? []].some(payload => payload.slice(offset * 2, offset * 2 + 16) === encoded);
+          const field = margin(name, value);
+          return !!field && !!seenMargins.get(field.opcode)?.get(field.offset)?.has(field.encoded);
         })) continue;
       if (record.kind === "Objects" && node?.children.every(n => ["CellComment", "GnmCellComment"].includes(n.name))) continue;
       await this.context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `Unsupported Excel BIFF export metadata: ${record.kind}` });
     }
   }
-  workbookProtection(output: BiffOutput): void {
+  async workbookProtection(output: BiffRecordOutput): Promise<void> {
     const fields: Readonly<Record<string, number>> = { WINDOWPROTECT: 0x19, PROTECT: 0x12, PASSWORD: 0x13 };
     const values = new Map(Object.values(fields).map(opcode => [opcode, words(0)]));
     for (const record of this.book.unsupportedRecords ?? []) {
@@ -127,18 +174,18 @@ export class BiffMetadataWriter {
       values.set(opcode, Uint8Array.from({ length: bytes.length / 2 }, (_, index) => Number.parseInt(bytes.slice(index * 2, index * 2 + 2), 16)));
       this.exported.add(record);
     }
-    for (const [opcode, bytes] of values) output.record(opcode, bytes);
+    for (const [opcode, bytes] of values) await output.record(opcode, bytes);
   }
-  global(output: BiffOutput): void {
+  async global(output: BiffRecordOutput): Promise<void> {
     const groups = this.book.sheets.filter(sheet => this.comments.get(sheet)!.length);
     if (!groups.length) return;
     const counts = groups.map(sheet => this.comments.get(sheet)!.length + 1), last = groups.length * 1024 + counts.at(-1)!;
     const dgg = concat(dwords(last, groups.length + 1, counts.reduce((sum, count) => sum + count, 0), groups.length),
       ...counts.map((count, i) => dwords(i + 1, count)));
-    output.record(0xeb, escher(0xf000, 0, 15, escher(0xf006, 0, 0, dgg)));
+    await output.record(0xeb, escher(0xf000, 0, 15, escher(0xf006, 0, 0, dgg)));
   }
-  async view(output: BiffOutput, sheet: Sheet, revision: 7 | 8, active: boolean): Promise<void> {
-    writeBiffLabelRanges(sheet, revision, output, amount => this.charge(amount));
+  async view(output: BiffRecordOutput, sheet: Sheet, revision: 7 | 8, active: boolean): Promise<void> {
+    await writeBiffLabelRanges(sheet, revision, output, amount => this.charge(amount));
     const layouts = this.records.get(sheet)!.filter(r => r.record.kind === "SheetLayout");
     const layout = layouts[0]?.node, freeze = layout?.children.find(n => n.name === "FreezePanes");
     const position = (source: string) => {
@@ -163,32 +210,32 @@ export class BiffMetadataWriter {
       (!hideColumns || !hideRows ? 4 : 0) | (viewFlag(sheet, "HideZero") ? 0 : 0x10) |
       (viewFlag(sheet, "RTL_Layout") ? 0x40 : 0) | (viewFlag(sheet, "DisplayOutlines", true) ? 0x80 : 0);
     const row = y ? origin.row : scroll.row, column = x ? origin.column : scroll.column;
-    output.record(0x23e, revision === 8 ? words(flags, row, column, 64, 0, 0, zoom, zoom, 0) :
+    await output.record(0x23e, revision === 8 ? words(flags, row, column, 64, 0, 0, zoom, zoom, 0) :
       words(flags, row, column, 64, 0));
-    output.record(0xa0, words(zoom, 100));
-    if (frozen) output.record(0x41, words(x, y, scroll.row, scroll.column, x ? y ? 0 : 1 : 2));
+    await output.record(0xa0, words(zoom, 100));
+    if (frozen) await output.record(0x41, words(x, y, scroll.row, scroll.column, x ? y ? 0 : 1 : 2));
     if (layouts.length === 1 && layout && !layout.text && Object.keys(layout.attributes).every(key => key === "TopLeft") &&
       layout.children.length <= 1 && layout.children.every(node => node === freeze && !node.text && !node.children.length &&
         Object.keys(node.attributes).every(key => key === "FrozenTopLeft" || key === "UnfrozenTopLeft"))) this.exported.add(layouts[0]!.record);
   }
-  async sheet(output: BiffOutput, sheet: Sheet, revision: 7 | 8): Promise<void> {
+  async sheet(output: BiffRecordOutput, sheet: Sheet, revision: 7 | 8): Promise<void> {
     const [unit, baseline, step] = biffFontWidth(this.defaultFont.name), fontScale = this.defaultFont.points / 10;
     const defaultHeight = Number(sheet.view?.defaultRowHeight ?? 12.75);
     const heightTwips = Math.floor(defaultHeight * 20 + 1e-6);
     if (!Number.isFinite(defaultHeight) || heightTwips < 1 || heightTwips > 65535)
       throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF default row height");
-    output.record(0x225, words(0, heightTwips));
+    await output.record(0x225, words(0, heightTwips));
     const defaultWidth = Number(sheet.view?.defaultColumnWidth ?? 48);
     const defaultCharacters = Math.round(defaultWidth * (96 / 72) / (fontScale * unit));
     if (!Number.isFinite(defaultWidth) || defaultWidth < 0 || defaultCharacters > 65535)
       throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF default column width");
-    output.record(0x55, words(defaultCharacters));
-    if (viewFlag(sheet, "Protected")) output.record(0x12, words(1));
+    await output.record(0x55, words(defaultCharacters));
+    if (viewFlag(sheet, "Protected")) await output.record(0x12, words(1));
     const passwordHash = sheet.view?.protectedPasswordHash;
     if (passwordHash !== undefined) {
       if (typeof passwordHash !== "number" || !Number.isInteger(passwordHash) || passwordHash < 0 || passwordHash > 0xffff)
         throw new SsconvertError("unsupported-feature", "Invalid Excel BIFF sheet password hash");
-      output.record(0x13, words(passwordHash));
+      await output.record(0x13, words(passwordHash));
       for (const { record } of this.records.get(sheet)!) {
         this.charge();
         const data = record.data as { opcode?: unknown; bytes?: unknown } | undefined;
@@ -220,7 +267,7 @@ export class BiffMetadataWriter {
         const protection = new Uint8Array(23), permissionView = new DataView(protection.buffer);
         permissionView.setUint16(0, 0x867, true); permissionView.setUint16(12, 2, true);
         protection[14] = 1; permissionView.setInt32(15, -1, true); permissionView.setUint16(19, flags, true);
-        output.record(0x867, protection);
+        await output.record(0x867, protection);
         const prefix = Array.from(protection.subarray(0, 19), byte => byte.toString(16).padStart(2, "0")).join("");
         for (const { record } of this.records.get(sheet)!) {
           this.charge();
@@ -244,7 +291,7 @@ export class BiffMetadataWriter {
       return level ? level + 1 : 0;
     };
     const rowDepth = depth(sheet.rows, this.maxRows), columnDepth = depth(sheet.columns, 256);
-    output.record(0x80, words(rowDepth ? 5 + 12 * rowDepth : 0, columnDepth ? 5 + 12 * columnDepth : 0, rowDepth, columnDepth));
+    await output.record(0x80, words(rowDepth ? 5 + 12 * rowDepth : 0, columnDepth ? 5 + 12 * columnDepth : 0, rowDepth, columnDepth));
     const records = this.records.get(sheet)!, print = records.find(r => r.record.kind === "PrintInformation")?.node;
     for (const { record } of records) {
       if (record.source !== "biff") continue;
@@ -254,14 +301,14 @@ export class BiffMetadataWriter {
     }
     const child = (name: string) => print?.children.find(n => n.name === name);
     const flag = (name: string) => Number(child(name)?.attributes.value ?? 0);
-    output.record(0x81, words(1 | (viewFlag(sheet, "OutlineSymbolsBelow", true) ? 0x40 : 0) |
+    await output.record(0x81, words(1 | (viewFlag(sheet, "OutlineSymbolsBelow", true) ? 0x40 : 0) |
       (viewFlag(sheet, "OutlineSymbolsRight", true) ? 0x80 : 0) | (viewFlag(sheet, "DisplayOutlines", true) ? 0x400 : 0) |
       (["fit", "size_fit"].includes(child("Scale")?.attributes.type ?? "") ? 0x100 : 0)));
-    output.record(0x2a, words(flag("titles"))); output.record(0x2b, words(flag("grid")));
-    output.record(0x83, words(flag("hcenter"))); output.record(0x84, words(flag("vcenter")));
+    await output.record(0x2a, words(flag("titles"))); await output.record(0x2b, words(flag("grid")));
+    await output.record(0x83, words(flag("hcenter"))); await output.record(0x84, words(flag("vcenter")));
     for (const [name, opcode, fallback] of [["left", 0x26, 72], ["right", 0x27, 72], ["top", 0x28, 120], ["bottom", 0x29, 120]] as const) {
       const bytes = new Uint8Array(8); new DataView(bytes.buffer).setFloat64(0,
-        Number(child("Margins")?.children.find(n => n.name === name)?.attributes.Points ?? fallback) / 72, true); output.record(opcode, bytes);
+        Number(child("Margins")?.children.find(n => n.name === name)?.attributes.Points ?? fallback) / 72, true); await output.record(opcode, bytes);
     }
     const setup = new Uint8Array(34), view = new DataView(setup.buffer), scale = child("Scale")?.attributes;
     view.setUint16(0, ({ na_letter: 1, na_legal: 5, iso_a3: 8, iso_a4: 9, iso_a5: 11 } as Record<string, number>)[child("paper")?.text ?? "iso_a4"] ?? 9, true);
@@ -289,7 +336,7 @@ export class BiffMetadataWriter {
       (revision === 8 ? (placement === "GNM_PRINT_COMMENTS_AT_END" ? 0x200 : 0) | errorMode << 10 : 0), true);
     view.setUint16(12, 600, true); view.setUint16(14, 600, true);
     view.setFloat64(16, Number(child("Margins")?.children.find(n => n.name === "header")?.attributes.Points ?? 72) / 72, true);
-    view.setFloat64(24, Number(child("Margins")?.children.find(n => n.name === "footer")?.attributes.Points ?? 72) / 72, true); view.setUint16(32, copies, true); output.record(0xa1, setup);
+    view.setFloat64(24, Number(child("Margins")?.children.find(n => n.name === "footer")?.attributes.Points ?? 72) / 72, true); view.setUint16(32, copies, true); await output.record(0xa1, setup);
     const substitutions: Readonly<Record<string, string>> = { PAGE: "P", PAGES: "N", DATE: "D", TIME: "T", FILE: "F", TAB: "A", PATH: "Z" };
     for (const [name, opcode, fallback] of [["Header", 0x14, "&C&A"], ["Footer", 0x15, "&CPage &P"]] as const) {
       const node = child(name); let text = node ? "" : fallback;
@@ -302,13 +349,13 @@ export class BiffMetadataWriter {
           text += source[at] === "&" ? "&&" : source[at];
         }
       }
-      output.record(opcode, biffString(text, revision, this.context, revision === 8 ? 2 : 1));
+      await output.record(opcode, biffString(text, revision, this.context, revision === 8 ? 2 : 1));
     }
     for (const [name, opcode] of [["hPageBreaks", 0x1b], ["vPageBreaks", 0x1a]] as const) {
       const step = revision === 8 ? 6 : 2;
       const maximum = Math.floor((output.maximumRecord - 4) / step);
       const breaks = (child(name)?.children.filter(n => n.name === "break" && n.attributes.type !== "auto") ?? []).slice(0, maximum);
-      if (breaks.length) output.record(opcode, words(breaks.length, ...breaks.flatMap(n => revision === 8 ? [Number(n.attributes.pos), 0, name === "hPageBreaks" ? 256 : 65536] : [Number(n.attributes.pos)])));
+      if (breaks.length) await output.record(opcode, words(breaks.length, ...breaks.flatMap(n => revision === 8 ? [Number(n.attributes.pos), 0, name === "hPageBreaks" ? 256 : 65536] : [Number(n.attributes.pos)])));
     }
     for (const row of sheet.rows ?? []) if (row.index < this.maxRows) {
       const height = row.sizePoints ?? defaultHeight, twips = Math.floor(height * 20 + 1e-6);
@@ -316,16 +363,16 @@ export class BiffMetadataWriter {
         throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF row height");
       const imported = metadataNode(row.style?.gnumeric, amount => this.charge(amount));
       const hardSize = imported ? imported.attributes.HardSize === "1" : true;
-      output.record(0x208, words(row.index, 0, 256, twips > 32767 ? 0x8000 : twips, 0, 0,
+      await output.record(0x208, words(row.index, 0, 256, twips > 32767 ? 0x8000 : twips, 0, 0,
         0x100 | (hardSize ? 0x40 : 0) | (row.hidden ? 32 : 0) | (row.collapsed ? 16 : 0) | Math.min(row.outlineLevel ?? 0, 7), 15));
     }
-    for (const column of sheet.columns ?? []) if (column.index < 256) output.record(0x7d,
+    for (const column of sheet.columns ?? []) if (column.index < 256) await output.record(0x7d,
       words(column.index, column.index, Math.round(((column.sizePoints ?? defaultWidth) / (fontScale * 72 / 96) - 8 * unit) * step + baseline), 15,
         (column.hidden ? 1 : 0) | (column.collapsed ? 0x1000 : 0) | Math.min(column.outlineLevel ?? 0, 7) << 8, 0));
-    if (revision === 7) this.legacyComments(output, sheet);
-    else this.drawComments(output, sheet);
+    if (revision === 7) await this.legacyComments(output, sheet);
+    else await this.drawComments(output, sheet);
   }
-  async links(output: BiffOutput, sheet: Sheet, revision: 7 | 8): Promise<void> {
+  async links(output: BiffRecordOutput, sheet: Sheet, revision: 7 | 8): Promise<void> {
     if (revision === 8) for (const cell of sheet.cells) {
       if (cell.row >= this.maxRows || cell.column >= 256) continue;
       const node = metadataNode(cell.style?.gnumeric, amount => this.charge(amount)), link = node?.children.find(n => n.name === "HyperLink");
@@ -334,25 +381,25 @@ export class BiffMetadataWriter {
       const range = words(cell.row, cell.row, cell.column, cell.column);
       const guid = new Uint8Array([0xd0, 0xc9, 0xea, 0x79, 0xf9, 0xba, 0xce, 0x11, 0x8c, 0x82, 0, 0xaa, 0, 0x4b, 0xa9, 0x0b]);
       const type = link.attributes.type;
-      if (type === "GnmHLinkCurWB") output.record(0x1b8, concat(range, guid, dwords(2, 8, target.length / 2 + 1), target, zero));
+      if (type === "GnmHLinkCurWB") await output.record(0x1b8, concat(range, guid, dwords(2, 8, target.length / 2 + 1), target, zero));
       else if (type === "GnmHLinkURL" || type === "GnmHLinkEMail") {
         const moniker = new Uint8Array(guid); moniker[0] = 0xe0;
-        output.record(0x1b8, concat(range, guid, dwords(2, 3), moniker, dwords(target.length + 2), target, zero));
+        await output.record(0x1b8, concat(range, guid, dwords(2, 3), moniker, dwords(target.length + 2), target, zero));
       } else { await this.context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `Unsupported Excel BIFF hyperlink type: ${type}` }); continue; }
-      if (link.attributes.tip !== undefined) output.record(0x800, concat(words(0x800), range,
+      if (link.attributes.tip !== undefined) await output.record(0x800, concat(words(0x800), range,
         biffString(link.attributes.tip, 8, this.context).subarray(3), zero));
     }
   }
-  private legacyComments(output: BiffOutput, sheet: Sheet): void {
+  private async legacyComments(output: BiffRecordOutput, sheet: Sheet): Promise<void> {
     for (const comment of this.comments.get(sheet)!) {
       this.charge(); const pos = parseA1(comment.attributes.ObjectBound?.split(":")[0] ?? "A1");
       if (!pos || pos.row >= this.maxRows || pos.column >= 256) continue;
       const text = biffString(comment.attributes.Text ?? "", 7, this.context).subarray(2);
-      for (let at = 0; at < text.length; at += 2048) output.record(0x1c,
+      for (let at = 0; at < text.length; at += 2048) await output.record(0x1c,
         concat(words(at ? 0xffff : pos.row, at ? 0 : pos.column, at ? Math.min(2048, text.length - at) : text.length), text.subarray(at, at + 2048)));
     }
   }
-  private drawComments(output: BiffOutput, sheet: Sheet): void {
+  private async drawComments(output: BiffRecordOutput, sheet: Sheet): Promise<void> {
     const comments = this.comments.get(sheet)!; if (!comments.length) return;
     const group = this.book.sheets.filter(s => this.comments.get(s)!.length).indexOf(sheet) + 1, base = group * 1024;
     const shapes = comments.map((comment, index) => {
@@ -367,16 +414,16 @@ export class BiffMetadataWriter {
     const dg = escher(0xf008, group, 0, dwords(shapes.length + 1, base + shapes.length));
     const containers = concat(words(15, 0xf002), dwords(dg.length + 8 + root.length + shapeBytes), dg,
       words(15, 0xf003), dwords(root.length + shapeBytes), root);
-    shapes.forEach(({ comment, pos, shape }, index) => {
-      this.charge(); output.record(0xec, index ? shape : concat(containers, shape));
+    for (const [index, { comment, pos, shape }] of shapes.entries()) {
+      this.charge(); await output.record(0xec, index ? shape : concat(containers, shape));
       const common = new Uint8Array(22); common.set(words(0x15, 18, 25, index + 1, 0x4011));
-      const note = new Uint8Array(26); note.set(words(0xd, 22)); output.record(0x5d, concat(common, note, words(0, 0)));
-      output.record(0xec, escher(0xf00d, 0, 0, new Uint8Array()));
+      const note = new Uint8Array(26); note.set(words(0xd, 22)); await output.record(0x5d, concat(common, note, words(0, 0)));
+      await output.record(0xec, escher(0xf00d, 0, 0, new Uint8Array()));
       const text = biffString(comment.attributes.Text || " ", 8, this.context), txo = new Uint8Array(18); txo.set(words(0x212));
-      new DataView(txo.buffer).setUint16(10, (text.length - 3) / 2, true); new DataView(txo.buffer).setUint16(12, 16, true); output.record(0x1b6, txo);
-      for (let at = 3; at < text.length; at += 8222) output.record(0x3c, concat(new Uint8Array([1]), text.subarray(at, at + 8222)));
-      const runs = new Uint8Array(16); new DataView(runs.buffer).setUint16(8, (text.length - 3) / 2, true); output.record(0x3c, runs);
-      output.record(0x1c, concat(words(pos.row, pos.column, 0, index + 1), biffString(comment.attributes.Author ?? "", 8, this.context), new Uint8Array([0])));
-    });
+      new DataView(txo.buffer).setUint16(10, (text.length - 3) / 2, true); new DataView(txo.buffer).setUint16(12, 16, true); await output.record(0x1b6, txo);
+      for (let at = 3; at < text.length; at += 8222) await output.record(0x3c, concat(new Uint8Array([1]), text.subarray(at, at + 8222)));
+      const runs = new Uint8Array(16); new DataView(runs.buffer).setUint16(8, (text.length - 3) / 2, true); await output.record(0x3c, runs);
+      await output.record(0x1c, concat(words(pos.row, pos.column, 0, index + 1), biffString(comment.attributes.Author ?? "", 8, this.context), new Uint8Array([0])));
+    }
   }
 }

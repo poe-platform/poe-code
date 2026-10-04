@@ -1,7 +1,7 @@
+import { type BiffRecordOutput } from "./biff-staged-output.js";
 import { SsconvertError } from "@poe-code/spreadsheet-engine/contracts";
 import { DEFAULT_SHEET_SIZE, type LabelRange, type Range, type Sheet } from "@poe-code/spreadsheet-ast";
 import { Binary, invalidBiff } from "./biff-binary.js";
-import type { BiffOutput } from "./biff-write-binary.js";
 
 // Calc xicontent.cxx constructs pairs from label rectangles. This codec binds
 // the inferred data endpoints to its BIFF8 sheet size, not Calc's larger grid.
@@ -38,7 +38,7 @@ export function readBiffLabelRanges(parts: readonly Binary[], charge: (amount: n
   return pairs;
 }
 
-export function writeBiffLabelRanges(sheet: Sheet, revision: 7 | 8, output: BiffOutput, charge: (amount: number) => void): void {
+export async function writeBiffLabelRanges(sheet: Sheet, revision: 7 | 8, output: BiffRecordOutput, charge: (amount: number) => void): Promise<void> {
   const pairs = sheet.labelRanges ?? [];
   if (!pairs.length) return;
   if (revision !== 8) throw new SsconvertError("unsupported-feature", "Excel BIFF7 cannot encode label ranges");
@@ -60,15 +60,15 @@ export function writeBiffLabelRanges(sheet: Sheet, revision: 7 | 8, output: Biff
   }
   // Keep each Ref8U intact; CONTINUE has no string-width byte.
   let payload = new Uint8Array(output.maximumRecord), offset = 0, opcode = 0x15f;
-  const reserve = (length: number) => {
-    if (offset + length > payload.length) { output.record(opcode, payload.subarray(0, offset)); opcode = 0x3c; payload = new Uint8Array(output.maximumRecord); offset = 0; }
+  const reserve = async (length: number) => {
+    if (offset + length > payload.length) { await output.record(opcode, payload.subarray(0, offset)); opcode = 0x3c; payload = new Uint8Array(output.maximumRecord); offset = 0; }
   };
   const word = (value: number) => {
     payload[offset++] = value & 255; payload[offset++] = value >> 8;
   };
   for (const ranges of [rows, columns]) {
-    reserve(2); word(ranges.length);
-    for (const range of ranges) { charge(1); reserve(8); word(range.startRow); word(range.endRow); word(range.startColumn); word(range.endColumn); }
+    await reserve(2); word(ranges.length);
+    for (const range of ranges) { charge(1); await reserve(8); word(range.startRow); word(range.endRow); word(range.startColumn); word(range.endColumn); }
   }
-  output.record(opcode, payload.subarray(0, offset));
+  await output.record(opcode, payload.subarray(0, offset));
 }

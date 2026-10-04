@@ -42,8 +42,11 @@ payloads still remain resident; this
 does not yet provide bounded memory for the complete conversion.
 BIFF7/8/DSF exports emit the CFB container in chunks of at most 16 KiB,
 with allocation tables generated from stream extents and consumer backpressure.
-BIFF record streams, workbook/style/string registries and encryption/property
-payloads are still buffered before container emission.
+With `workingFiles`, unencrypted BIFF record streams stage in caller storage;
+sheet offsets are patched there before range-backed container emission. Metadata
+loss checks scan record headers and retain only requested metadata matches.
+Workbook/style/string/formula collections and encryption/property payloads remain
+resident; encrypted record streams still use the buffering path.
 Worksheet password verifiers survive BIFF7/8 conversion and edits through
 `view.protectedPasswordHash`, an integer from 0 to 65535; zero clears the verifier.
 This retains the legacy protection hash, without verifying passwords or encrypting

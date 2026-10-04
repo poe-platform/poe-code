@@ -3,7 +3,33 @@ import { subscribeAbort } from "safe-bash-contracts";
 import { bytesFrom, utf8ByteLength } from "safe-bash-byte-engine";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { collectBytes, readBytes, writeBytes, type ByteSource, type CommandContext, type FileStat } from "safe-bash-contracts";
+import { collectBytes, InputByteBudget, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandResult, type FileStat, type FileSystem } from "safe-bash-contracts";
+
+const archiveInputs = new WeakMap<FileSystem, { fs: FileSystem; budget: InputByteBudget }>();
+
+/** Keep generated scratch IO separate from cumulative external input admission. */
+export function withArchiveInputByteBudget(execute: (context: CommandContext) => Promise<CommandResult>): (context: CommandContext) => Promise<CommandResult> {
+  return context => {
+    if (!context.inputBudget) return execute(context);
+    const budget = new InputByteBudget(Infinity, context.inputBudget);
+    return budget.run(context, async limited => {
+      archiveInputs.set(limited.fs, { fs: context.fs, budget });
+      try { return await execute(limited); }
+      finally { archiveInputs.delete(limited.fs); }
+    });
+  };
+}
+
+/** Only invocation-owned scratch and version-checked retained ranges use this view. */
+export function archiveStorageContext(context: CommandContext): CommandContext {
+  const input = archiveInputs.get(context.fs);
+  return input ? { ...context, fs: input.fs } : context;
+}
+
+/** Admit a retained archive once; its version and range bounds remain checked on reads. */
+export function admitArchiveInput(context: CommandContext, size: number): void {
+  archiveInputs.get(context.fs)?.budget.charge(size);
+}
 
 export interface ArchiveLimits {
   readonly maxArchiveBytes: number;

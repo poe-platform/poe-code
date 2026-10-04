@@ -3,7 +3,7 @@ import { readFileStream } from "safe-bash-contracts/filesystem";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { collectBytes,readBytes,type ByteSource,type CommandContext,type FileReadHandle,type FileStaging,type FileStat } from "safe-bash-contracts";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
-import { checkPath,fail,hasIdentity as hasPosixIdentity,sameIdentity as samePosixIdentity,type ArchiveLimits } from "safe-bash-io-engine/commands/archive/internal";
+import { admitArchiveInput,archiveStorageContext,checkPath,fail,hasIdentity as hasPosixIdentity,sameIdentity as samePosixIdentity,type ArchiveLimits } from "safe-bash-io-engine/commands/archive/internal";
 
 export function hasZipIdentity(stat: FileStat): boolean {
   return hasPosixIdentity(stat) || ((typeof stat.identityScope === "object" && stat.identityScope !== null || typeof stat.identityScope === "symbol")
@@ -377,16 +377,40 @@ export async function openZipSource(scope: Pick<ZipScope, "context" | "limits" |
     const canonical = await scope.operation(() => fs.realpath(path, { signal }));
     const stat = await scope.operation(() => fs.stat(path, { signal }));
     if (stat.type !== "file" || !Number.isSafeInteger(stat.size) || stat.size < 0 || stat.size > maximum) fail("ZIP invalid archive input");
+    const scratch = await scope.operation(() => fs.capabilitiesFor?.(scope.context.cwd, { signal }) ?? fs.capabilities);
+    const canSpool = fs.openReadFile && fs.createStagedFile && scratch.retainedRead === true
+      && scratch.retainedStagingWrite === true && scratch.retainedStagingCleanup === true;
     const input = (async function* (): ByteSource {
       let size = 0;
       for await (const chunk of readFileStream(fs, path, { signal, chunkSize: scope.limits.chunkSize })) {
-        if (chunk.length > stat.size - size) fail("ZIP archive changed while reading");
+        if (chunk.length > maximum - size) fail("archive byte limit exceeded");
         size += chunk.length;
         yield chunk;
       }
       const current = await fs.stat(path, { signal });
       if (size !== stat.size || !unchangedZipSource(stat, current) || canonical !== await fs.realpath(path, { signal })) fail("ZIP archive changed while reading");
     })();
+    if (!canSpool) {
+      const chunks: Uint8Array[] = [];
+      let size = 0;
+      for await (const chunk of readBytes(input, signal)) {
+        if (chunk.length > scope.limits.maxBufferedFileBytes - size) fail("ZIP buffered file byte limit exceeded");
+        if (chunk.buffer.byteLength > scope.limits.maxInputMemoryBytes - size - chunk.length) fail("ZIP input memory budget exceeded");
+        size += chunk.length;
+        if (chunk.length) chunks.push(Uint8Array.from(chunk));
+      }
+      if (size > scope.limits.maxInputMemoryBytes - size) fail("ZIP input memory budget exceeded");
+      let bytes: Uint8Array | undefined = new Uint8Array(size);
+      let offset = 0;
+      for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+      chunks.length = 0;
+      return { stat, source: { size, async read(offset, length) {
+        signal.throwIfAborted();
+        if (!bytes) fail("ZIP buffered archive is closed");
+        if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(length) || offset < 0 || length < 0 || offset > size || length > size - offset) fail("ZIP invalid archive range");
+        return bytes.slice(offset, offset + length);
+      } }, async close() { bytes = undefined; } };
+    }
     const spool = await spoolZipSource(scope, scope.context.cwd, input, maximum);
     return { source: spool.source, stat, close: spool.close };
   }
@@ -394,15 +418,18 @@ export async function openZipSource(scope: Pick<ZipScope, "context" | "limits" |
     await scope.operation(async () => {
       const capabilities = await fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities;
       if (!fs.openReadFile || capabilities.retainedRead !== true) fail("ZIP range input requires retained reads");
-      handle = await fs.openReadFile(path, { signal });
+      handle = await archiveStorageContext(scope.context).fs.openReadFile!(path, { signal });
     });
     const stat = await scope.operation(() => handle!.stat({ signal }));
     if (stat.type !== "file" || !hasZipIdentity(stat) || !Number.isSafeInteger(stat.size) || stat.size < 0 || stat.size > maximum) fail("ZIP invalid retained archive");
+    admitArchiveInput(scope.context, stat.size);
     const source = { size: stat.size, async read(offset: number, length: number): Promise<Uint8Array> {
       return scope.operation(async () => {
         if (closed) fail("ZIP retained archive is closed");
+        if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(length) || offset < 0 || length < 0 || offset > stat.size || length > stat.size - offset) fail("ZIP invalid archive range");
         if (!unchangedZipSource(stat, await handle!.stat({ signal }))) fail("ZIP archive changed while reading");
         const bytes = await handle!.read(offset, length, { signal });
+        if (bytes.length > length) fail("ZIP invalid archive range");
         if (!unchangedZipSource(stat, await handle!.stat({ signal }))) fail("ZIP archive changed while reading");
         return bytes;
       });
@@ -433,12 +460,13 @@ function retainSpool(context: CommandContext, cleanup: () => Promise<void>): () 
 
 /** Fully consume and validate a stream before exposing its owned staging object. */
 export async function spoolZipSource(scope: Pick<ZipScope, "context" | "limits" | "operation">, parentPath: string, source: ByteSource, maximum: number): Promise<{ source: ZipReadSource; stat: FileStat; path: string; close(): Promise<void> }> {
+  const context = archiveStorageContext(scope.context);
   const controller = new AbortController();
   const signal = AbortSignal.any([scope.context.signal, controller.signal]);
-  const fs = scope.context.fs;
+  const fs = context.fs;
   const admitted = new Set<Promise<unknown>>();
   const owned = {
-    context: { ...scope.context, signal }, limits: scope.limits,
+    context: { ...context, signal }, limits: scope.limits,
     async operation<Value>(action: () => Value | PromiseLike<Value>): Promise<Value> {
       signal.throwIfAborted();
       const pending = scope.operation(action);

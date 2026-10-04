@@ -1,5 +1,5 @@
 import { compareIdentity } from "@poe-code/safe-fs/contracts";
-import { withInputByteBudget } from "safe-bash-contracts";
+import { withArchiveInputByteBudget } from "safe-bash-io-engine/commands/archive/internal";
 
 import { ungzip as gunzipSync } from "pako";
 import { createArchive,manifest } from "./create.js";
@@ -21,7 +21,7 @@ export type { ArchiveCommandsOptions,ArchiveLimits,ArchiveCommandsOptions as Tar
 
 export function createTarCommand(options: ArchiveCommandsOptions = {}): CommandDefinition {
   const configured = settings(options);
-  const def: CommandDefinition = { name: "tar", description: "Stream USTAR/PAX archives through the virtual filesystem", execute: withInputByteBudget(async (original) => {
+  const def: CommandDefinition = { name: "tar", description: "Stream USTAR/PAX archives through the virtual filesystem", execute: withArchiveInputByteBudget(async (original) => {
     const limits = invocationLimits(configured, original);
     original.signal.throwIfAborted();
     const controller = new AbortController();

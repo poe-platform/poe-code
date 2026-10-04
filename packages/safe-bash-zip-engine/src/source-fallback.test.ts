@@ -3,7 +3,7 @@ import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { collectBytes, toByteSource, type CommandContext, type FileSystem } from "safe-bash-contracts";
 import { settings } from "safe-bash-io-engine/commands/archive/internal";
-import { publishZip, ZipScope } from "./zip/safety.js";
+import { openZipSource, publishZip, ZipScope } from "./zip/safety.js";
 
 for (const missing of ["handle", "identity", "capability", "stream"]) {
   test(`ZIP checks fallback bytes when missing ${missing}`, async () => {
@@ -87,4 +87,61 @@ for (const failure of ["source", "race", "limit"]) test(`ZIP exclusive publicati
     if (failure === "race") assert.deepEqual(await fs.readFile("/out.zip"), new Uint8Array([42]));
     else await assert.rejects(fs.stat("/out.zip"), { code: "ENOENT" });
   } finally { await scope.close(); }
+});
+
+for (const mutation of ["growth", "shrink", "mtime", "canonical"]) {
+  test(`ZIP buffered archive rejects pathname source ${mutation}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/a", Uint8Array.of(1, 2, 3));
+    let consumed = false;
+    const view = new Proxy(fs, { get(target, key) {
+      if (key === "openReadFile" || key === "capabilitiesFor") return undefined;
+      if (key === "capabilities") return { ...target.capabilities, retainedRead: false };
+      if (key === "realpath") return async (path: string) => consumed && mutation === "canonical" ? "/other" : fs.realpath(path);
+      if (key === "readStream") return async function* () {
+        yield new Uint8Array(mutation === "growth" ? 4 : mutation === "shrink" ? 2 : 3);
+        consumed = true;
+        if (mutation === "mtime") await fs.utimes!("/a", 0, 1000);
+      };
+      const value: unknown = Reflect.get(target, key);
+      return typeof value === "function" ? value.bind(target) : value;
+    } });
+    const scope = new ZipScope(context(view), settings({}));
+    try { await assert.rejects(openZipSource(scope, "/a"), /archive changed/); }
+    finally { await scope.close(); }
+    assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["a"]);
+  });
+}
+
+test("ZIP buffered archive owns reused chunks and enforces independent memory and file limits", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/a", new Uint8Array(4));
+  const view = new Proxy(fs, { get(target, key) {
+    if (key === "openReadFile" || key === "capabilitiesFor") return undefined;
+    if (key === "capabilities") return { ...target.capabilities, retainedRead: false };
+    if (key === "readStream") return async function* () {
+      const slab = new Uint8Array(2).fill(1);
+      yield slab;
+      slab.fill(2);
+      yield slab;
+      slab.fill(9);
+    };
+    const value: unknown = Reflect.get(target, key);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  for (const limits of [{ maxBufferedFileBytes: 3 }, { maxInputMemoryBytes: 7 }, { maxInputMemoryBytes: 8 }]) {
+    const scope = new ZipScope(context(view), settings({ limits }));
+    try {
+      if (limits.maxInputMemoryBytes !== 8) await assert.rejects(openZipSource(scope, "/a"), /(?:buffered file byte limit|memory budget)/);
+      else {
+        const input = await openZipSource(scope, "/a");
+        assert.deepEqual(await input.source.read(0, 4), Uint8Array.of(1, 1, 2, 2));
+        for (const [offset, length] of [[-1, 1], [0, -1], [5, 0], [0, 5], [0.5, 1], [0, Infinity]]) {
+          await assert.rejects(input.source.read(offset!, length!), /invalid archive range/);
+        }
+        await input.close();
+        await assert.rejects(input.source.read(0, 1), /closed/);
+      }
+    } finally { await scope.close(); }
+  }
 });

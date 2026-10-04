@@ -148,6 +148,11 @@ test("shell input budget covers archive source files and cumulative creation inp
     assert.equal((await shell.exec("tar -tf -", { stdin: tar, limits: { maxInputBytes: tar.length } })).exitCode, 0);
     await assert.rejects(shell.exec("tar -tf -", { stdin: tar, limits: { maxInputBytes: tar.length - 1 } }), { name: "ShellLimitError", limit: "maxInputBytes" });
     assert.equal((await shell.exec("unzip -l input.zip", { limits: { maxInputBytes: zip.length } })).exitCode, 0);
+    const extracted = await shell.exec("unzip -p input.zip a", { limits: { maxInputBytes: zip.length } });
+    assert.equal(extracted.exitCode, 0, extracted.stderr);
+    assert.equal(extracted.stdout, "AAAAAAAA");
+    assert.equal((await shell.exec("unzip -l -", { stdin: zip, limits: { maxInputBytes: zip.length } })).exitCode, 0);
+    await assert.rejects(shell.exec("unzip -l -", { stdin: zip, limits: { maxInputBytes: zip.length - 1 } }), { name: "ShellLimitError", limit: "maxInputBytes" });
     assert.equal((await shell.exec("zip -q - -", { stdin: new Uint8Array(8) })).exitCode, 0);
     await assert.rejects(shell.exec("zip -q - -", { stdin: new Uint8Array(9) }), { name: "ShellLimitError", limit: "maxInputBytes" });
     assert.deepEqual(await fs.readFile("/a"), new Uint8Array(8).fill(65));

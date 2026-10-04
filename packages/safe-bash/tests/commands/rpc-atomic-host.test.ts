@@ -47,6 +47,9 @@ async function rpcAdapter(backend: FileSystem, before?: (method: string, args: u
     return result === undefined ? undefined : decode(encode(result), false);
   };
   const fs = new Proxy(backend, { get(target, method) {
+    // JSON RPC carries pathname observations, not staged writer/cleanup handles.
+    if (method === "capabilities") return { ...target.capabilities, retainedStagingWrite: false, retainedStagingCleanup: false };
+    if (method === "capabilitiesFor") return undefined;
     if (method === "openReadFile") return async (...args: Parameters<NonNullable<FileSystem["openReadFile"]>>): Promise<FileReadHandle> => {
       const id = await request("openReadFile", args);
       let closing: Promise<void> | undefined;

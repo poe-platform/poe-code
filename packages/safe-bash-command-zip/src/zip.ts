@@ -1,6 +1,6 @@
 import { ZipStateList, ZipStateMap } from "./state.js";
 import { createZipScratchFactory } from "safe-bash-zip-engine/zip/scratch";
-import { withInputByteBudget } from "safe-bash-contracts";
+import { withArchiveInputByteBudget } from "safe-bash-io-engine/commands/archive/internal";
 import { collectBytes,dirname,getCommandArguments,writeBytes,type ByteSource,type CommandDefinition,type FileStat } from "safe-bash-contracts";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { escapeText } from "safe-bash-contracts/escaping";
@@ -1245,7 +1245,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
 
 export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandDefinition {
   const configured = settings(options);
-  return { name: "zip", description: "Create or update bounded ZIP archives in the virtual filesystem", execute: withInputByteBudget(async (original) => {
+  return { name: "zip", description: "Create or update bounded ZIP archives in the virtual filesystem", execute: withArchiveInputByteBudget(async (original) => {
     const limits = invocationLimits(configured, original);
     original.signal.throwIfAborted();
     const scope = new ZipScope(original, limits);

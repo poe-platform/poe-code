@@ -11,6 +11,8 @@ async function streamingArchive(t: TestContext, size: number, actualSize = size,
   await memory.writeFile("/input.zip", new Uint8Array());
   const observed = { opened: 0, bytes: 0, closed: 0 };
   const fs: FileSystem = new Proxy(memory, { get(target, key) {
+    if (key === "openReadFile" || key === "capabilitiesFor") return undefined;
+    if (key === "capabilities") return { ...target.capabilities, retainedRead: false };
     if (key === "stat" || key === "lstat") return async (...args: Parameters<FileSystem["stat"]>) => {
       const stat = await target[key](...args);
       return args[0] === "/input.zip" ? { ...stat, size } : stat;
@@ -189,7 +191,13 @@ test("an independent archive ceiling preserves the registered stream chunk size"
   const requested: (number | undefined)[] = [];
   const read = fs.readStream!.bind(fs);
   fs.readStream = (path, options) => { requested.push(options?.chunkSize); return read(path, options); };
-  const shell = new Shell({ fs, limits: { commandLimits: { archive: { maxArchiveBytes: 1024 } } } })
+  const streaming = new Proxy(fs, { get(target, key) {
+    if (key === "openReadFile" || key === "capabilitiesFor") return undefined;
+    if (key === "capabilities") return { ...target.capabilities, retainedRead: false };
+    const member = Reflect.get(target, key);
+    return typeof member === "function" ? member.bind(target) : member;
+  } });
+  const shell = new Shell({ fs: streaming, limits: { commandLimits: { archive: { maxArchiveBytes: 1024 } } } })
     .use(archiveCommands({ limits: { chunkSize: 256 * 1024 } }));
   t.after(() => shell.dispose());
   assert.match((await shell.exec("unzip -t /input.zip")).stderr, /missing end record/);

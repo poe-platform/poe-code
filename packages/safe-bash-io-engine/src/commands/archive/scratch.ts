@@ -1,7 +1,7 @@
 import { compareFileVersion, compareIdentity } from "@poe-code/safe-fs/contracts";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import type { CommandContext, FileReadHandle, FileStaging } from "safe-bash-contracts";
-import { checkPath, fail, type ArchiveLimits } from "./internal.js";
+import { archiveStorageContext, checkPath, fail, type ArchiveLimits } from "./internal.js";
 import type { ArchiveMetadataFactory, ArchiveMetadataSpool, ArchiveReadSource } from "./metadata-types.js";
 
 export interface ArchiveScratchScope {
@@ -14,13 +14,14 @@ let serial = 0;
 
 /** One invocation owner retains only currently active immutable scratch runs. */
 export function createArchiveScratchFactory(scope: ArchiveScratchScope, parentPath: string): ArchiveMetadataFactory & { close(): Promise<void>; initialize(): Promise<void>; ownsPath(path: string): boolean } {
+  const context = archiveStorageContext(scope.context);
   const controller = new AbortController();
-  const factorySignal = AbortSignal.any([scope.context.signal, controller.signal]);
+  const factorySignal = AbortSignal.any([context.signal, controller.signal]);
   const active = new Set<() => Promise<void>>();
   const ownedPaths = new Set<string>();
   let namespace: FileStaging | undefined;
   let initializing: Promise<void> | undefined;
-  const removeNamespace = retainFileSystemCleanup(scope.context.fs, async view => {
+  const removeNamespace = retainFileSystemCleanup(context.fs, async view => {
     if (namespace?.cleanup) await namespace.cleanup.remove();
     else if (namespace) await view.removeStagedFile!(namespace);
     if (namespace) ownedPaths.delete(namespace.directory.path);
@@ -29,7 +30,7 @@ export function createArchiveScratchFactory(scope: ArchiveScratchScope, parentPa
   const initialize = (): Promise<void> => {
     if (!initializing) initializing = (async () => {
       factorySignal.throwIfAborted();
-      const { fs } = scope.context;
+      const { fs } = context;
       const parent = await fs.stat(parentPath, { signal: factorySignal });
       const capabilities = await fs.capabilitiesFor?.(parentPath, { signal: factorySignal }) ?? fs.capabilities;
       if (!fs.createStagedFile || !fs.openReadFile || capabilities.retainedRead !== true
@@ -67,11 +68,11 @@ export function createArchiveScratchFactory(scope: ArchiveScratchScope, parentPa
     }
     return closing;
   };
-  scope.context.registerCleanup?.(close);
+  context.registerCleanup?.(close);
   const create = async (): Promise<ArchiveMetadataSpool> => {
     await initialize();
     factorySignal.throwIfAborted();
-    const { fs } = scope.context;
+    const { fs } = context;
     const runController = new AbortController();
     const signal = AbortSignal.any([factorySignal, runController.signal]);
     let staging: FileStaging | undefined;

@@ -1,7 +1,7 @@
 import { createZipScratchFactory } from "safe-bash-zip-engine/zip/scratch";
 import { ZipMetadataMap } from "safe-bash-zip-engine/zip/metadata";
 import { hasZipIdentity, spoolZipSource } from "safe-bash-zip-engine/zip/safety";
-import { withInputByteBudget } from "safe-bash-contracts";
+import { withArchiveInputByteBudget } from "safe-bash-io-engine/commands/archive/internal";
 import { Extraction } from "./unzip/safety.js";
 import { collectBytes,dirname,readBytes,resolvePath,writeBytes,type CommandContext,type CommandDefinition,type FileStat } from "safe-bash-contracts";
 import { PublicDiagnostic,publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
@@ -58,7 +58,7 @@ async function comment(bytes: Uint8Array, budget: Budget): Promise<void> {
 
 export function createUnzipCommand(options: ArchiveCommandsOptions = {}): CommandDefinition {
   const configured = settings(options);
-  return { name: "unzip", description: "List, stream or safely extract ZIP archives in the virtual filesystem", execute: withInputByteBudget(async (original) => {
+  return { name: "unzip", description: "List, stream or safely extract ZIP archives in the virtual filesystem", execute: withArchiveInputByteBudget(async (original) => {
     const limits = invocationLimits(configured, original);
     original.signal.throwIfAborted();
     const controller = new AbortController();

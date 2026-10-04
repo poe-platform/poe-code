@@ -16,6 +16,23 @@ outer2() { local v=L2; outer1; echo "o2:\${v-UNSET}"; }
 outer2_double() { local v=L2; local_o1() { local v=L1; inner2; echo "o1_d:\${v-UNSET}"; }; local_o1; echo "o2_d:\${v-UNSET}"; }
 same_scope; outer2; outer2_double; echo "global:\${v-UNSET}"
 `, "same:UNSET\no1:L2\no2:L2\no1_d:GLOBAL\no2_d:GLOBAL\nglobal:GLOBAL\n"],
+  ["unset observes each restored caller binding", `
+v=global
+f1() { local v=from_f1; f2; printf "in_f1=%s " "\${v-UNSET}"; }
+f2() { local v=from_f2; f3; printf "in_f2=%s " "\${v-UNSET}"; }
+f3() {
+  unset v; printf "in_f3_after_1=%s " "\${v-UNSET}"
+  unset v; printf "in_f3_after_2=%s " "\${v-UNSET}"
+}
+f1; printf 'global=%s\\n' "\${v-UNSET}"
+`, "in_f3_after_1=from_f1 in_f3_after_2=global in_f2=global in_f1=global global=global\n"],
+  ["upvar writes through the removed caller local", String.raw`
+v=global
+upvar() { unset -v "$1" && eval "$1=\$2"; }
+produce() { local v=temporary; upvar v 'two words'; printf 'producer=%s\n' "$v"; }
+caller() { local v=caller; produce; printf 'caller=%s\n' "$v"; }
+caller; printf 'global=%s\n' "$v"
+`, "producer=two words\ncaller=two words\nglobal=global\n"],
   ["exec descriptors", "exec 3>/f; echo hi >&3; exec 3>&-; cat /f", "hi\n"],
   ["unset enclosing array", 'v=(global second); inner() { unset v; }; outer() { local -a v=(local); inner; echo "${v[*]}"; }; outer; echo "${v[*]}"', "global second\nglobal second\n"],
   ["unset enclosing attributes", 'declare -i v=7; inner() { unset v; }; outer() { local v=local; inner; v=2+3; echo "$v"; }; outer; echo "$v"', "5\n5\n"],

@@ -205,6 +205,15 @@ It preserves hierarchical names, inherited values, widget grouping and repeated
 fields while keeping traversal state on caller storage. Returning early or
 closing the document releases its field traversal.
 
+`replaceRetainedPdfName(chunks, oldName, newName, storage, options)` streams
+literal resource-name replacement with owned output chunks and caller-backed
+prefix matching. It preserves the legacy editor's matching inside strings and
+comments; it is not a PDF tokenizer. `chunkBytes`, `maxOutputBytes`, and `signal`
+control output and cancellation. Input chunks and the two name strings are
+borrowed; long-name prefix state spills through the supplied storage. Use an
+external filesystem backend for large workloads. Completing, returning, or
+failing the iterator releases its scratch storage.
+
 `doc.attachments()` on a retained document visits embedded name trees,
 catalog/page associated files, and file-attachment annotations in document order.
 Each result exposes `index`, `name`, and `contents()`, which streams decoded

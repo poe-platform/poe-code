@@ -100,3 +100,5 @@ export { copyRetainedAttachments } from "./edit/retained-attachment-copies.js";
 
 export { retainedObjectOrder } from "./cos/retained-object-order.js";
 export { encryptRetainedPdfChunks } from "./cos/retained-encryption.js";
+
+export { replaceRetainedPdfName } from "./edit/retained-name-replacement.js";

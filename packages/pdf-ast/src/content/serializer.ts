@@ -1,5 +1,10 @@
 import { formatPdfNumber, type PdfContentNode, type PdfCosNode, type PdfPathSegment, type PdfTextCommand } from "../ast.js";
-import { serializeCosNodeBytes } from "../cos/writer.js";
+import { PagedStorage } from "@poe-code/safe-fs/storage";
+import type { PdfIndexStorage } from "../cos/object-index.js";
+import type { PdfContentEvent } from "./parser.js";
+import { readStoredItems, StoredMetadataStack } from "./stored-record.js";
+import { readStoredPath } from "./stored-path.js";
+import { serializeCosNodeChunks, serializeCosNodeBytes } from "../cos/writer.js";
 import { bytesToString, stringToBytes } from "../bytes.js";
 
 function fmtNum(n: number): string {
@@ -147,4 +152,118 @@ export function serializeContentNodesToLines(
 
 export function serializeContentAst(nodes: readonly PdfContentNode[]): Uint8Array {
   return stringToBytes(serializeContentNodesToLines(nodes).join("\n"));
+}
+
+/** Serialize flattened parser events with caller-backed group state. Borrowed
+ * paths, strings and image ranges are consumed before advancing their owner. */
+export async function* serializeContentEventChunks(events: AsyncIterable<PdfContentEvent> | Iterable<PdfContentEvent>, storage: PdfIndexStorage,
+  options: { chunkBytes?: number; maxOutputBytes?: number; signal?: AbortSignal } = {}): AsyncGenerator<Uint8Array> {
+  const chunkBytes = options.chunkBytes ?? 16384, maximum = options.maxOutputBytes ?? Infinity;
+  if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1) throw new RangeError("Invalid content chunk size");
+  if (maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("Invalid content output limit");
+  const signal = options.signal ?? new AbortController().signal;
+  signal.throwIfAborted();
+  const backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
+  const groups = new StoredMetadataStack<"graphics-group" | "marked-content">(backing, signal);
+  let openText = false, firstLine = true, failed = false;
+  function* line() { if (!firstLine) yield "\n"; firstLine = false; }
+  function* closeText() { if (openText) { yield* line(); yield "ET"; openText = false; } }
+  async function* cos(node: PdfCosNode): AsyncGenerator<string | Uint8Array> {
+    signal.throwIfAborted();
+    if (node.kind === "string" && node.storedBytes) {
+      const source = node.storedBytes; yield node.format === "hex" ? "<" : "(";
+      for (let at = 0; at < source.byteLength; at += 4096) {
+        signal.throwIfAborted(); const length = Math.min(4096, source.byteLength - at);
+        const bytes = await source.storage.read(source.position + at, length, { signal });
+        if (bytes.length !== length) throw new Error("Incomplete stored PDF string");
+        const { storedBytes: ignored, ...plain } = node;
+        const encoded = serializeCosNodeBytes({ ...plain, bytes });
+        yield encoded.subarray(1, encoded.length - 1);
+      }
+      yield node.format === "hex" ? ">" : ")";
+    } else if (node.kind === "array") {
+      yield "[ "; for await (const item of node.storedItems ? readStoredItems<PdfCosNode>(node.storedItems, signal) : node.items) { yield* cos(item); yield " "; } yield "]";
+    } else if (node.kind === "dict") {
+      yield "<<\n"; for (const entry of node.entries) { yield* cos(entry.key); yield " "; yield* cos(entry.value); yield "\n"; } yield ">>";
+    } else yield* serializeCosNodeChunks(node, { chunkBytes, signal });
+  }
+  async function* command(command: PdfTextCommand): AsyncGenerator<string | Uint8Array> {
+    if (command.kind === "show-text") { yield* cos(command.token); yield " Tj"; }
+    else if (command.kind === "show-text-array") {
+      yield "["; let first = true;
+      for await (const item of command.storedItems ? readStoredItems<PdfCosNode>(command.storedItems, signal) : command.items) { if (item.kind !== "string" && item.kind !== "number") continue; if (!first) yield " "; first = false; yield* cos(item); }
+      yield "] TJ";
+    } else if (command.kind === "state-op") {
+      for (const operand of command.operands) { yield* cos(operand); yield " "; } yield command.operator;
+    } else yield serializeTextCommand(command);
+  }
+  async function* endGroup(): AsyncGenerator<string | Uint8Array> {
+    const group = await groups.pop(); if (!group) return;
+    if (group === "graphics-group") yield* closeText();
+    yield* line(); yield group === "graphics-group" ? "Q" : "EMC";
+  }
+  async function* eventParts(event: PdfContentEvent): AsyncGenerator<string | Uint8Array> {
+    switch (event.kind) {
+      case "begin-group": {
+        const group = event.group;
+        if (group.kind === "graphics-group") { yield* closeText(); yield* line(); yield "q"; }
+        else {
+          yield* line(); yield `/${group.tag}`;
+          if (group.properties !== undefined) { yield " "; if (typeof group.properties === "string") yield `/${group.properties}`; else yield* cos(group.properties); yield " BDC"; }
+          else yield " BMC";
+        }
+        await groups.push(group.kind); break;
+      }
+      case "end-group": yield* endGroup(); break;
+      case "graphics-group": case "marked-content": {
+        yield* eventParts({ kind: "begin-group", group: event });
+        for (const child of event.kind === "graphics-group" ? event.ops : event.children) yield* eventParts(child);
+        yield* endGroup(); break;
+      }
+      case "text-object":
+        if (!event.continuation) { yield* closeText(); yield* line(); yield "BT"; openText = true; }
+        else if (!openText) { yield* line(); yield "BT"; openText = true; }
+        for (const item of event.commands) { yield* line(); yield* command(item); }
+        if (event.end) yield* closeText();
+        break;
+      case "path-op":
+        yield* closeText();
+        for await (const segment of event.storedSegments ? readStoredPath(event.storedSegments, signal) : event.segments) { yield* line(); yield serializePathSegment(segment); }
+        if (event.clip) { yield* line(); yield event.clip; }
+        yield* line(); yield event.paint; break;
+      case "inline-image":
+        yield* closeText(); yield* line(); yield "BI ";
+        for (let i = 0; i < event.dict.entries.length; i++) {
+          if (i) yield " "; const entry = event.dict.entries[i]!; yield `/${entry.key.decoded} `; yield* cos(entry.value);
+        }
+        yield " ID"; yield* line();
+        if (event.data instanceof Uint8Array) yield event.data;
+        else yield* event.data.source.stream(event.data.start, event.data.end - event.data.start, signal);
+        yield* line(); yield "EI"; break;
+      case "xobject": yield* closeText(); yield* line(); yield `/${event.name} Do`; break;
+      case "state-op":
+        yield* closeText(); yield* line(); yield* command(event); break;
+    }
+  }
+  async function* parts(): AsyncGenerator<string | Uint8Array> {
+    for await (const event of events) { signal.throwIfAborted(); yield* eventParts(event); }
+    while (groups.length) yield* endGroup();
+    yield* closeText();
+  }
+  try {
+    let buffer = new Uint8Array(chunkBytes), used = 0, total = 0, work = 0;
+    for await (const part of parts()) {
+      signal.throwIfAborted(); if (part.length > maximum - total) throw new Error("PDF content output limit exceeded"); total += part.length;
+      for (let at = 0; at < part.length;) {
+        const take = Math.min(chunkBytes - used, part.length - at);
+        if (typeof part === "string") for (let i = 0; i < take; i++) buffer[used + i] = part.charCodeAt(at + i) & 255;
+        else buffer.set(part.subarray(at, at + take), used);
+        used += take; at += take;
+        if (used === chunkBytes) { yield buffer; buffer = new Uint8Array(chunkBytes); used = 0; }
+      }
+      if (++work % 512 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); signal.throwIfAborted(); }
+    }
+    if (used) yield buffer.subarray(0, used);
+  } catch (error) { failed = true; throw error; }
+  finally { await backing.close().catch(error => { if (!failed) throw error; }); }
 }

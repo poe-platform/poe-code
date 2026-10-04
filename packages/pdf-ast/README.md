@@ -397,6 +397,14 @@ iterator. This seek-dependent parser stages all decoded content before its first
 event; `maxStagingBytes` covers both that content and live operand recovery runs.
 Concurrent cursors and intrinsic path/operand memory require enclosing admission.
 
+`serializeContentEventChunks(events, storage, { chunkBytes, maxOutputBytes, signal })`
+serializes those events with the same bytes as `serializeContentAst`. It consumes
+borrowed image ranges and stored strings, text arrays and paths before advancing the event cursor,
+uses four 16 KiB caller-backed cache pages for group state, and emits owned output
+chunks on demand. Early return, cancellation and errors close the event cursor
+and group backing. Input operand dictionaries/arrays retain their parser's memory
+requirements; use an external storage backend for large content.
+
 `parseCosRangeObject(source, offset, options)` parses one indirect object at a
 known offset. Stream objects return their dictionary in `value` and a `stream`
 byte span; consume the payload with `source.stream(start, end - start)`. Correct

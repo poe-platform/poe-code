@@ -43,12 +43,21 @@ class Keys {
 type Mode = "value" | "arrayFirst" | "keyFirst" | "key" | "colon" | "separator" | "done";
 type NumberState = "start" | "minus" | "zero" | "int" | "dot" | "frac" | "exp" | "expSign" | "expDigits";
 
+export interface JsonSyntaxContext {
+  readonly mode: Mode;
+  readonly token: "string" | "number" | "keyword" | undefined;
+  readonly number: NumberState;
+  readonly escape: boolean;
+  readonly hex: number;
+  readonly container: "array" | "object" | undefined;
+}
+
 /** JSON syntax and duplicate-key validation over streamed UTF-16 fragments.
  * Numeric spellings stay on tape; format-specific range/rounding validation is
  * separate. Both nesting state and the key index live in caller storage. */
 export async function parseBackedJson(
   chunks: AsyncIterable<string>, tree: BackedJson, index: PagedStorage,
-  cooperate: (units?: number) => Promise<void>, error: (offset: number, message: string, tokenOffset?: number) => never,
+  cooperate: (units?: number) => Promise<void>, onError: (offset: number, message: string, tokenOffset?: number, context?: JsonSyntaxContext) => never,
   validateNumber?: (node: number, offset: number) => Promise<void>, allowDuplicateKeys = false, checkDepth?: (depth: number, container?: boolean) => void, node?: (kind: "object" | "array" | "key" | "scalar", complete?: boolean) => void, reference?: () => void, retained?: (bytes: number) => void
 ): Promise<void> {
   let depth = 0, valueAtEof = true, edgePending = false, stringUnits = 0;
@@ -60,6 +69,8 @@ export async function parseBackedJson(
   let isKey = false, keyParent = 0, keyPosition = 0, keyOffset = 0, hash = 0;
   let escape = false, hex = 0, code = 0, keyword = "", keywordIndex = 0;
   let number: NumberState = "start", numberOffset = 0;
+  let container: "array" | "object" | undefined;
+  const error = (at: number, message: string, start?: number): never => onError(at, message, start, { mode, token, number, escape, hex, container });
   const digit = (char: string) => char >= "0" && char <= "9";
   const flush = async () => {if (buffer) {await tree.text(buffer); buffer = "";}};
   const add = (char: string) => {
@@ -163,6 +174,7 @@ export async function parseBackedJson(
         if (mode === "done") error(offset, "Unexpected trailing JSON");
         if (mode === "separator") {
           const parent = await tree.describe(position);
+          container = parent.kind === "array" ? "array" : "object";
           if (char === (parent.kind === "array" ? "]" : "}")) mode = await end();
           else if (char === ",") {mode = parent.kind === "array" ? "value" : "key"; valueAtEof = false; edgePending = parent.kind === "array";}
           else error(offset, "Expected JSON comma");
@@ -212,6 +224,7 @@ export async function parseBackedJson(
   }
   if (!token && mode === "value" && valueAtEof) node?.("scalar");
   if (token === "number") mode = await endNumber();
+  if (!token && mode === "separator") container = (await tree.describe(position)).kind === "array" ? "array" : "object";
   if (token || mode !== "done") error(offset, !token && mode === "separator" ? "Expected JSON comma" : "Incomplete JSON value", token ? tokenOffset : undefined);
   if (work) await cooperate(work);
 }

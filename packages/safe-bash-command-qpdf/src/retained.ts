@@ -1,3 +1,4 @@
+import { applyJsonInput } from "./json-input.js";
 import { createQpdfJson, type QpdfJsonOptions } from "./json.js";
 import { parseQpdfPageLabels } from "./page-labels.js";
 import { splitPageOutputs } from "./split.js";
@@ -8,7 +9,7 @@ import { copyQpdfSelections, QpdfMissingInput } from "./selection.js";
 import { xrefDisplayParts } from "./xref-display.js";
 import { pageDisplayParts } from "./page-display.js";
 import { displayNodeParts, encodeDisplayParts } from "./display.js";
-import { encryptRetainedPdfChunks, copyRetainedAttachments, editRetainedDocument, PdfDuplicateAttachment, PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, saveRetainedDocumentChunks, retainedCosObjects, serializeRetainedCosDocumentChunks, cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
+import { QpdfJsonDocument, encryptRetainedPdfChunks, copyRetainedAttachments, editRetainedDocument, PdfDuplicateAttachment, PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, saveRetainedDocumentChunks, retainedCosObjects, serializeRetainedCosDocumentChunks, cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
 import { writeBytes } from "safe-bash-contracts/io";
@@ -17,6 +18,8 @@ import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import type { QpdfLimits } from "./index.js";
 
 export interface RetainedQpdfOptions extends QpdfJsonOptions {
+  jsonInput: boolean;
+  updateFromJsonFiles: readonly string[];
   stampSpecs: readonly { file: string; mode: "overlay" | "underlay"; fromRange: string; toRange: string; repeatRange?: string; password?: string }[];
   copyAttachmentsSpecs: readonly { file: string; prefix: string; password?: string }[];
   encryptConfig: { userPassword: string; ownerPassword: string; print: boolean; modify: boolean; copy: boolean; addNotes: boolean } | undefined;
@@ -72,6 +75,8 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
   const storage = { fs: context.fs, directory: resolvePath(context.cwd, context.env.TMPDIR || "/tmp") };
   const inputs = new Map<string, PdfFileSource | undefined>();
   let source: PdfFileSource | undefined, document: PdfRetainedDocument | undefined, output: PdfFileSource | undefined, failed = false;
+  const rebuilt: PdfFileSource[] = [];
+  let jsonDocument: QpdfJsonDocument | undefined;
   let splitOutputs: PdfStagedOutputs | undefined;
   let jsonOutput: Awaited<ReturnType<typeof createQpdfJson>> | undefined;
   let selectionGraph: Awaited<ReturnType<typeof copyQpdfSelections>> | undefined;
@@ -90,20 +95,33 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
   try {
     await context.fs.mkdir(storage.directory, { recursive: true, signal });
     const maximum = Math.min(limits.maxInputBytes, context.inputBudget?.maxBytes ?? Infinity);
-    // Acquire identities and admit sizes without reading every input payload.
-    for (const candidate of new Set([inputName, ...options.pageSpecs.map(spec => spec.file), ...options.addAttachmentSpecs.map(spec => spec.file), ...options.copyAttachmentsSpecs.map(spec => spec.file), ...options.stampSpecs.map(spec => spec.file)])) {
-      signal.throwIfAborted(); if (!candidate || candidate === "." || candidate === "-") continue;
+    const acquire = async (candidate: string): Promise<PdfFileSource | undefined> => {
+      if (inputs.has(candidate)) return inputs.get(candidate);
       let acquired: PdfFileSource;
       try { acquired = await PdfFileSource.open(context.fs, resolvePath(context.cwd, candidate), { signal, maxInputBytes: maximum - inputBytes }); }
       catch (error) {
         signal.throwIfAborted();
         if ((error instanceof Error && "code" in error && ["ENOENT", "ENOTDIR", "EACCES", "EISDIR"].includes(String(error.code))) ||
-            (error instanceof PdfError && error.message === "PDF source must be a regular file")) { inputs.set(candidate, undefined); continue; }
+            (error instanceof PdfError && error.message === "PDF source must be a regular file")) { inputs.set(candidate, undefined); return undefined; }
         throw error;
       }
       inputs.set(candidate, acquired); inputBytes += acquired.size; context.inputBudget?.check(inputBytes);
+      return acquired;
+    };
+    const reconstruct = async () => {
+      const next = await PdfFileSource.fromStream(context.fs, storage.directory, jsonDocument!.chunks(), { signal });
+      rebuilt.push(next);
+      await document?.close(); document = undefined;
+      source = next;
+      document = await PdfRetainedDocument.open(next, storage, { signal, recovery: "strict" });
+      await jsonDocument!.close(); jsonDocument = undefined;
+    };
+    // Acquire identities and admit sizes without reading every input payload.
+    for (const candidate of new Set([inputName, ...options.updateFromJsonFiles, ...options.pageSpecs.map(spec => spec.file), ...options.addAttachmentSpecs.map(spec => spec.file), ...options.copyAttachmentsSpecs.map(spec => spec.file), ...options.stampSpecs.map(spec => spec.file)])) {
+      signal.throwIfAborted(); if (!candidate || candidate === "." || candidate === "-") continue;
+      await acquire(candidate);
     }
-    if (inputName === "-" || [...options.pageSpecs, ...options.addAttachmentSpecs, ...options.copyAttachmentsSpecs, ...options.stampSpecs].some(spec => spec.file === "-")) {
+    if (inputName === "-" || options.updateFromJsonFiles.includes("-") || [...options.pageSpecs, ...options.addAttachmentSpecs, ...options.copyAttachmentsSpecs, ...options.stampSpecs].some(spec => spec.file === "-")) {
       const acquired = await PdfFileSource.fromStream(context.fs, storage.directory, context.stdin, { signal, maxInputBytes: maximum - inputBytes });
       inputs.set("-", acquired); inputBytes += acquired.size; context.inputBudget?.check(inputBytes);
     }
@@ -112,6 +130,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       source = await PdfFileSource.fromStream(context.fs, storage.directory, serializeRetainedCosDocumentChunks({
         objects: objects.map((value, index) => ({ objectNumber: index + 1, generationNumber: 0, value })), rootRef: cosRef(1), infoRef: cosRef(3), signal,
       }, storage), { signal });
+      rebuilt.push(source);
     } else {
       if (!inputName) return await diagnostic("qpdf: an input file is required\n");
       source = inputs.get(inputName);
@@ -143,11 +162,36 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         throw error;
       }
     }
+    if (options.jsonInput && !useEmpty) {
+      jsonDocument = new QpdfJsonDocument(storage, { signal });
+      try {
+        await applyJsonInput(jsonDocument, source, { dataFile: acquire }, signal);
+        await reconstruct();
+      } catch (error) {
+        signal.throwIfAborted();
+        if (error instanceof RangeError || (error instanceof PdfError && error.code === "E_LIMIT") || error instanceof FsError) throw error;
+        return await diagnostic(`qpdf: ${inputName}: ${error instanceof Error ? error.message : String(error)}\n`);
+      }
+    }
     try {
-      document = await PdfRetainedDocument.open(source, storage, { signal, recovery: "repair", ...(options.password === undefined ? {} : { password: options.password }) });
+      document ??= await PdfRetainedDocument.open(source, storage, { signal, recovery: "repair", ...(options.password === undefined ? {} : { password: options.password }) });
     } catch (error) {
       signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
       return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
+    }
+    if (options.updateFromJsonFiles.length) {
+      jsonDocument = await QpdfJsonDocument.fromDocument(document, source, storage, { signal });
+      for (const path of options.updateFromJsonFiles) {
+        const update = inputs.get(path);
+        if (!update) return await diagnostic(`qpdf: cannot open ${path}\n`);
+        try { await applyJsonInput(jsonDocument, update, { dataFile: acquire }, signal); }
+        catch (error) {
+          signal.throwIfAborted();
+          if (error instanceof RangeError || (error instanceof PdfError && error.code === "E_LIMIT") || error instanceof FsError) throw error;
+          return await diagnostic(`qpdf: ${path}: ${error instanceof Error ? error.message : String(error)}\n`);
+        }
+      }
+      await reconstruct();
     }
     if (options.showLinearization || options.check || options.showNpages || options.showEncryption || options.showObject || options.showPages || options.showXref || options.listAttachments || options.showAttachmentKey !== undefined) {
       let count = 0, linearized = false, highest = 0, inlineCount = 0;
@@ -378,7 +422,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
     }
     if (error instanceof PdfDuplicateAttachment) return await diagnostic(`qpdf: duplicate attachment key ${error.key}\n`); if (error instanceof QpdfMissingInput || error instanceof QpdfMissingAttachment) return await diagnostic(error.message); throw error; }
   finally {
-    const results = await Promise.allSettled([jsonOutput?.close(), splitOutputs?.close(), editedGraph?.close(), document?.close(), selectionGraph?.close(), ...[...new Set([...inputs.values(), source, output])].map(input => input?.close())]);
+    const results = await Promise.allSettled([jsonDocument?.close(), jsonOutput?.close(), splitOutputs?.close(), editedGraph?.close(), document?.close(), selectionGraph?.close(), ...[...new Set([...inputs.values(), ...rebuilt, source, output])].map(input => input?.close())]);
     if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
   }
 }

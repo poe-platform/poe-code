@@ -41,8 +41,7 @@ Ordinary rewrites, `--decrypt`, and removal of info, metadata, structure, forms 
 page labels, plus `--rotate`, `--overlay`, `--underlay` and `--flatten-annotations` page edits, use retained random-access input and caller-backed output staging,
 including stdin/stdout, password-protected input and `--replace-input`. File
 publication requires retained atomic staging from the injected filesystem; scratch
-storage uses `TMPDIR`. Use an external backend for large files. Other transformation
-options currently continue through the buffered compatibility engine. `--pages`
+storage uses `TMPDIR`. Use an external backend for large files. `--pages`
 selections and ordinary merges use lazy ranges and process source documents
 sequentially, including `--empty`, per-source passwords, stdin and repeated
 sources. Inactive inputs release range caches while retaining their acquired
@@ -72,7 +71,11 @@ stdout. Binary extraction preserves the original bytes.
 outline and attachment traversal. `--json-object`, `--json-key=pages`, inline
 base64 and `--json-stream-data=file` preserve the compatibility JSON format.
 JSON and decoded stream files are staged before publication; stdout and file
-writes remain bounded and honor output limits and cancellation.
+writes remain bounded and honor output limits and cancellation. `--json-input`
+and `--update-from-json` parse incrementally into caller-backed object indexes,
+including inline base64, external stream datafiles, stdin and repeated updates.
+Reconstruction finishes before inspection, transformation or publication; invalid
+JSON preserves native parser diagnostics using a bounded input window.
 
 `--show-object` emits object syntax in bounded chunks. Combine it with
 `--raw-stream-data` or `--filtered-stream-data` for binary stream output. The

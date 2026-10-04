@@ -1,4 +1,4 @@
-import { BackedJson, indexJsonObjects, parseBackedJson } from "@poe-code/json-ast";
+import { BackedJson, indexJsonObjects, parseBackedJson, type JsonSyntaxContext } from "@poe-code/json-ast";
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
 import { cosRef, dictGet, type PdfCosRef } from "../ast.js";
 import { PdfError } from "../errors.js";
@@ -15,7 +15,7 @@ export interface ApplyQpdfJsonOptions {
   /** The caller retains ownership of datafile handles. */
   readonly dataFile?: (path: string) => Promise<PdfFileSource | undefined>;
   readonly maxInputBytes?: number;
-  readonly syntaxError?: (offset: number, message: string, tokenOffset?: number) => never;
+  readonly syntaxError?: (offset: number, message: string, tokenOffset?: number, context?: JsonSyntaxContext) => never;
 }
 
 /** A mutable JSON-import document backed only by the caller filesystem. Apply

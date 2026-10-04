@@ -15,6 +15,13 @@ it.each([
   ["&Cone&Lleft&Ctwo", { Left: "left", Middle: "two", Right: "" }],
   ["&Lone&L", { Left: "", Middle: "", Right: "" }],
   ["&L&&L&C&P&N&Rright", { Left: "&L", Middle: "&[PAGE]&[PAGES]", Right: "right" }],
+  ["a\0bc", { Left: "a", Middle: "", Right: "" }],
+  ["&Ctail\0&P", { Left: "", Middle: "tail", Right: "" }],
+  ["a&\0bc", { Left: "a", Middle: "", Right: "" }],
+  ["a&Bc", { Left: "ac", Middle: "", Right: "" }],
+  ["&Bbold&B&", { Left: "bold", Middle: "", Right: "" }],
+  ["&P&N&D&T&F&A&Z", { Left: "&[PAGE]&[PAGES]&[DATE]&[TIME]&[FILE]&[TAB]&[PATH]", Middle: "", Right: "" }],
+  ["&b&Q&0tail", { Left: "tail", Middle: "", Right: "" }],
   ["", { Left: "", Middle: "", Right: "" }]
 ] as const)("preserves native header/footer sections in %s", (text, expected) => {
   for (const revision of [2, 3, 4, 5, 7, 8]) {

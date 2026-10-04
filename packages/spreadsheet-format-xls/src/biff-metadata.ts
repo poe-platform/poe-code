@@ -17,13 +17,15 @@ function header(text: string): Readonly<Record<string, string>> {
   let side = "Left";
   for (let i = 0; i < text.length; i++) {
     const character = text[i]!;
-    if (character !== "&" || i + 1 >= text.length) { values[side] += character; continue; }
-    const token = text[++i]!;
+    if (character === "\0") break;
+    if (character !== "&") { values[side] += character; continue; }
+    const token = text[++i];
+    if (token === undefined || token === "\0") break;
     if (["L", "C", "R"].includes(token)) {
       side = token === "L" ? "Left" : token === "R" ? "Right" : "Middle";
       values[side] = "";
     }
-    else values[side] += substitutions[token] ?? (token === "&" ? "&" : "&" + token);
+    else values[side] += substitutions[token] ?? (token === "&" ? "&" : "");
   }
   return values;
 }

@@ -3,6 +3,19 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "biffHeaderControls": {
+      "status": "Native header/footer control-code and NUL semantics repaired; broader format family remains open",
+      "source": "Gnumeric 1.12.61 ms-excel-util.c:752-833 consumes unrecognized ASCII ampersand controls, drops a trailing ampersand and stops at the first NUL. Original HEADER/FOOTER records and their loss diagnostics remain retained.",
+      "sourceSha256": "64b2c7bb115e9eda9385c29ea9ccb64d11f69413653a371f077426a483155d66",
+      "inputSha256": {
+        "header-controls": "14dbdb30650eb27c1c1c455fb876bd317a8c07b20a234db409ec50beaab459f3",
+        "header-nul": "16b0a2e800bfd51a00c5312c7cfb820b838ec73a7b30aca8703f2bc23aa6f5ab"
+      },
+      "reproduction": "Same-size BIFF text mutations produce ac/bold from a&Bc and &Bbold&B&, and a/tail from a-NUL-bc and &Ctail-NUL-&P. Native conversions exit zero with no diagnostics. Six original memory regressions fail before the repair; known fields and escaped ampersands remain controls.",
+      "verification": "2386 affected tests, owner lint/types and full maintained build pass. Sixteen root/package SDK/command XLSX/BIFF8 exports match 192 native section attributes and 64 Calc header/footer strings. Eight BIFF7 controls refuse automatic label lookup with zero output. Exact21 XLSX and12 BIFF8 warnings retained. Command screenshot inspected.",
+      "profileDifferences": "Calc reads the original unprefixed controls as centered ac/bold. For embedded NUL it reads centered a?bc and tail?&P instead of Gnumeric termination. Normalized explicit exports are read consistently; this does not establish original-source Calc parity or style preservation.",
+      "limits": "Header/footer styling and wider grammar remain unqualified. Calc emits its exact javaldx startup warning. No full-workbook equality, rendering or family closure claim."
+    },
     "biffHeaderSections": {
       "status": "BIFF header/footer section parsing and explicit center export repaired; broader format family remains open",
       "source": "Pinned Gnumeric 1.12.61 ms-excel-util.c:752-833 starts in Left and replaces repeated sections. Same-size BIFF HEADER/FOOTER mutations isolate unprefixed text and repeated left markers.",

@@ -33,6 +33,7 @@ export class CFFParser {
 export class CFFCompiler { constructor(cff: CffFont); compile(): number[]; }
 export class Type2Compiled {
   constructor(info: Record<string, unknown>, cmap: Array<{ start: number; end: number; idDelta: number }>, fontMatrix: number[]);
+  glyphCommands(code: Uint8Array, glyphId: number, onAllocation?: (bytes: number) => void): Generator<ArrayLike<number>>;
   compileGlyph(code: Uint8Array, glyphId: number, onAllocation?: (bytes: number) => void): ArrayLike<number>;
 }
 export function getGlyphsUnicode(): Record<string, number>;

@@ -1029,7 +1029,7 @@ export function transformPathSegment(seg: PdfPathSegment, matrix: Matrix6): PdfP
 interface EvaluationFrame {pushed:boolean;hidden:boolean;mcid:number|undefined;actualText:string|undefined;savedState?:GraphicsState}
 
 export type PdfEvaluationRequest = {readonly kind:"truetype-number";readonly font:StoredTrueTypeFont;readonly operation:"id"|"width";readonly code:number}
-  | {readonly kind:"truetype-path";readonly font:StoredTrueTypeFont;readonly glyphId:number;readonly storage:PdfPixelStorage}
+  | {readonly kind:"truetype-path";readonly font:{glyphSegments(code:number):AsyncIterable<PdfPathSegment>|Iterable<PdfPathSegment>};readonly glyphId:number;readonly storage:PdfPixelStorage}
   | {readonly kind:"cmap-lookup";readonly map:StoredCMap;readonly code:number} | {readonly kind:"cmap-character";readonly map:StoredCMap;readonly bytes:Uint8Array;readonly offset:number} | {readonly kind:"cid-gid";readonly map:import("../fonts/stored-cid-map.js").StoredCidMap;readonly code:number} | {readonly kind:"frame-push";readonly stack:StoredMetadataStack<EvaluationFrame>;readonly frame:EvaluationFrame}
   | {readonly kind:"frame-pop";readonly stack:StoredMetadataStack<EvaluationFrame>} | {readonly kind:"capture-append";readonly writer:StoredOperationsWriter;readonly operation:PdfPaintOperation} | PdfEvaluationShadingRequest | PdfEvaluationOperation | { readonly kind: "node"; readonly source?: PdfEvaluationContentSource }
   | { readonly kind: "append-clip"; readonly storage: PdfPixelStorage; readonly previous: PdfStoredClipPaths | undefined; readonly clip: PdfClipPath }
@@ -1987,7 +1987,11 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                 } else if (font.simpleToGid && font.embeddedTrueType) {
                   glyphOutline = font.embeddedTrueType.getGlyphOutlineByGid(simpleGid);
                 } else if (font.embeddedCff) {
-                  glyphOutline = font.embeddedCff.getGlyphOutline(glyphCode);
+                  if (params.geometryStorage) {
+                    const reply = yield { kind: "truetype-path", font: font.embeddedCff, glyphId: glyphCode, storage: params.geometryStorage };
+                    if (!reply || !("kind" in reply) || reply.kind !== "stored-path") throw new TypeError("Expected stored CFF glyph");
+                    storedGlyph = reply;
+                  } else glyphOutline = font.embeddedCff.getGlyphOutline(glyphCode);
                 } else if (cp !== undefined) {
                   glyphOutline = (font.embeddedTrueType ?? font.standardOutlines!).getGlyphOutline(cp);
                 }
@@ -2009,7 +2013,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                   let transformedStoredGlyph: PdfStoredPath | undefined;
                   if(storedGlyph){
                     const reply=yield {kind:"transform-path",path:storedGlyph,matrix:textSpaceMatrix,close:false};
-                    if(!reply||!("kind" in reply)||reply.kind!=="stored-path")throw new TypeError("Expected transformed TrueType glyph");
+                    if(!reply||!("kind" in reply)||reply.kind!=="stored-path")throw new TypeError("Expected transformed font glyph");
                     transformedStoredGlyph=reply;
                   }
                   for (const seg of glyphOutline) {

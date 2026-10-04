@@ -10172,7 +10172,10 @@ function lookupCmap(ranges, unicode) {
     glyphId: gid
   };
 }
-function compileCharString(charStringCode, cmds, font, glyphId) {
+function* compileCharString(charStringCode, cmds, font, glyphId) {
+  cmds.depth = (cmds.depth ?? 0) + 1;
+  if (cmds.streaming && cmds.depth > cmds.maxDepth) { cmds.onFrameAllocation?.(4096); cmds.maxDepth = cmds.depth; }
+  try {
   cmds.onAllocation?.(512);
   function moveTo(x2, y2) {
     if (firstPoint) {
@@ -10191,7 +10194,8 @@ function compileCharString(charStringCode, cmds, font, glyphId) {
   let x = 0, y = 0;
   let stems = 0;
   let firstPoint = null;
-  function parse(code) {
+  function* parse(code, depth = 0) {
+    if (cmds.streaming && depth > 10) throw new FormatError('CFF subroutine nesting exceeded');
     cmds.onAllocation?.(256 + code.length * 16);
     const view = new DataView(code.buffer, code.byteOffset, code.byteLength);
     let i = 0;
@@ -10275,7 +10279,7 @@ function compileCharString(charStringCode, cmds, font, glyphId) {
             subrCode = font.subrs[n + font.subrsBias];
           }
           if (subrCode) {
-            parse(subrCode);
+            yield* parse(subrCode, depth + 1);
           }
           break;
         case 11:
@@ -10362,7 +10366,7 @@ function compileCharString(charStringCode, cmds, font, glyphId) {
               font.cmap,
               String.fromCharCode(font.glyphNameMap[StandardEncoding[achar]])
             );
-            compileCharString(
+            yield* compileCharString(
               font.glyphs[cmap.glyphId],
               cmds,
               font,
@@ -10373,7 +10377,7 @@ function compileCharString(charStringCode, cmds, font, glyphId) {
               font.cmap,
               String.fromCharCode(font.glyphNameMap[StandardEncoding[bchar]])
             );
-            compileCharString(
+            yield* compileCharString(
               font.glyphs[cmap.glyphId],
               cmds,
               font,
@@ -10474,7 +10478,7 @@ function compileCharString(charStringCode, cmds, font, glyphId) {
           n = stack.pop() + font.gsubrsBias;
           subrCode = font.gsubrs[n];
           if (subrCode) {
-            parse(subrCode);
+            yield* parse(subrCode, depth + 1);
           }
           break;
         case 30:
@@ -10535,12 +10539,18 @@ function compileCharString(charStringCode, cmds, font, glyphId) {
           }
           break;
       }
+      if (cmds.streaming && stack.length > 48) throw new FormatError('CFF operand stack exceeded');
+      if (cmds.streaming && cmds.cmds.length) {
+        yield cmds.getPath();
+        cmds.cmds.length = 0;
+      }
       if (stackClean) {
         stack.length = 0;
       }
     }
   }
-  parse(charStringCode);
+  yield* parse(charStringCode);
+  } finally { cmds.depth--; }
 }
 var Commands = class {
   constructor(onAllocation) {
@@ -10657,8 +10667,26 @@ var Type2Compiled = class extends CompiledFont {
     this.fdSelect = cffInfo.fdSelect;
     this.fdArray = cffInfo.fdArray;
   }
+  *glyphCommands(code, glyphId, onAllocation) {
+    onAllocation?.(16384);
+    if (!code?.length || code[0] === 14) return;
+    let matrix = this.fontMatrix;
+    if (this.isCFFCIDFont) {
+      const index = this.fdSelect.getFDIndex(glyphId);
+      if (index >= 0 && index < this.fdArray.length) matrix = this.fdArray[index].getByName("FontMatrix") || FONT_IDENTITY_MATRIX;
+    }
+    assert(isNumberArray(matrix, 6), "Expected a valid fontMatrix.");
+    const cmds = new Commands();
+    cmds.streaming = true;
+    cmds.maxDepth = 1;
+    cmds.onFrameAllocation = onAllocation;
+    cmds.transform(matrix.slice());
+    yield* compileCharString(code, cmds, this, glyphId);
+    cmds.add(DrawOPS.closePath);
+    yield cmds.getPath();
+  }
   compileGlyphImpl(code, cmds, glyphId) {
-    compileCharString(code, cmds, this, glyphId);
+    for (const ignored of compileCharString(code, cmds, this, glyphId)) { /* synchronous collector */ }
   }
 };
 

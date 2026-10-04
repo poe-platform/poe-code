@@ -35,4 +35,5 @@ it.each([{ matrix: undefined }, { matrix: [2, 0, 0, 3, 10, 20] }])("normalizes C
   expect(second.y).toBeCloseTo(matrix ? 0.02 : 0);
   // A second renderer must not apply the parent transform twice.
   expect(createCffGlyphRenderer(cff)(0)).toEqual(path);
+  expect([...createCffGlyphRenderer(cff).segments(0)]).toEqual(path);
 });

@@ -1,3 +1,4 @@
+import { streamCffOutlines } from "./cff-outline-stream.mjs";
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -213,7 +214,7 @@ const result = await build({
           if (!source.includes(before)) throw new Error("PDF.js outline allocation source marker changed: " + before);
           source = source.replace(before, after);
         }
-        return { contents: source + "\nexport { Type2Compiled };\n", loader: "js" };
+        return { contents: streamCffOutlines(source) + "\nexport { Type2Compiled };\n", loader: "js" };
       });
     },
   }],

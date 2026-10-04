@@ -41,6 +41,7 @@ it("resolves the base and accent glyphs in a CFF seac composition", async () => 
   cff.charStrings.objects[gid] = Uint8Array.of(139, 139, 204, 247, 86, 14);
   const render = createCffGlyphRenderer(cff);
   expect(render(gid).length).toBeGreaterThan(render(cff.charset.charset.indexOf("A")).length);
+  expect([...render.segments(gid)]).toEqual(render(gid));
 });
 
 it("paints CID outlines without relying on Unicode mappings", () => {

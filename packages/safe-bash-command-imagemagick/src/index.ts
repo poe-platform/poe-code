@@ -1,3 +1,4 @@
+import { remapStoredImage } from "./remap.js";
 import { floodfillStoredImage } from "./floodfill.js";
 import { shadowPixelSteps, vignettePixelSteps } from "./effects-kernel.js";
 import { warpPixelSteps, type WarpPlan } from "./warp-kernel.js";
@@ -5084,7 +5085,16 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         if (!operandsOnly && token === "-strip") { state.strip = true; continue; }
         if (!operandsOnly && token === "+repage") continue;
         if (!operandsOnly && token === "-repage") { i++; continue; }
-        if (!operandsOnly && token === "-floodfill") {
+        if (!operandsOnly && (token === "-dither" || token === "+dither")) {
+            state.dither = token === "-dither" ? (tokens[++i] ?? "floydsteinberg").toLowerCase() !== "none" : false;
+        } else if (!operandsOnly && token === "-remap") {
+            const palette = tokens[++i] ?? "", settings = { ...state };
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const colors = await parseStoredCompareInput(palette, settings, backend, signal);
+                return colors ? remapStoredImage(image, colors, backend.storage, settings.dither, signal) : image;
+            });
+        } else if (!operandsOnly && token === "-floodfill") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "+0+0"), candidate = tokens[i + 1], replacement = state.fill, fuzz = state.fuzz;
             let target: RgbaColor | undefined;
             if (candidate && !candidate.startsWith("-") && !candidate.startsWith("+")) {

@@ -325,23 +325,25 @@ test("find printf batches large raw formats without altering bytes or retaining 
 });
 
 for (const deletedType of ["file", "directory"] as const) {
-  test(`find count shortcut skips deleted ${deletedType} slots`, async () => {
+  for (const predicate of ["-name", "-iname"]) {
+  test(`find ${predicate} count shortcut skips multiple deleted ${deletedType} slots`, async () => {
     const fs = createMemoryFileSystem();
     await fs.mkdir("/dir");
     await fs.writeFile("/dir/a.txt", new Uint8Array());
-    if (deletedType === "file") {
-      await fs.writeFile("/dir/deleted", new Uint8Array());
-      await fs.unlink("/dir/deleted");
-    } else {
-      await fs.mkdir("/dir/deleted");
-      await fs.rmdir("/dir/deleted");
+    for (const path of ["/dir/deleted", "/dir/also-deleted"]) {
+      if (deletedType === "file") await fs.writeFile(path, new Uint8Array());
+      else await fs.mkdir(path);
     }
     await fs.writeFile("/dir/c.txt", new Uint8Array());
+    for (const path of ["/dir/deleted", "/dir/also-deleted"]) {
+      if (deletedType === "file") await fs.unlink(path);
+      else await fs.rmdir(path);
+    }
     registerRuntimeBackingFileSystem(fs, fs, () => {});
     let counted = false;
     const result = await createFindCommand().execute({
       ...{ _hasInfiniteFsOpsLimit: true },
-      command: "find", args: ["/dir", "-name", "*"], cwd: "/", env: {}, fs,
+      command: "find", args: ["/dir", predicate, "*"], cwd: "/", env: {}, fs,
       stdin: toByteSource(""), signal: new AbortController().signal,
       stdout: {
         lineCountOnly: 0,
@@ -358,4 +360,5 @@ for (const deletedType of ["file", "directory"] as const) {
     assert.equal(result.exitCode, 0);
     assert.equal(counted, true);
   });
+  }
 }

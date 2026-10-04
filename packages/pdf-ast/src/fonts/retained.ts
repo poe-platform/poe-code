@@ -1,5 +1,6 @@
-import { readStoredRecord } from "../content/stored-record.js";
-import { cosArray } from "../ast.js";
+import { StoredFontEncoding } from "./stored-encoding.js";
+import { readStoredItems, readStoredRecord } from "../content/stored-record.js";
+import { cosArray, cosName } from "../ast.js";
 import { parseStoredType1Font } from "./stored-type1.js";
 import { parseStoredCffFont } from "./stored-cff.js";
 import { parseStoredTrueTypeFont } from "./stored-truetype.js";
@@ -45,7 +46,7 @@ export async function resolveRetainedFont(document: PdfRetainedDocument, storage
       if (++requests % 32 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); signal?.throwIfAborted(); }
       let value: FontResolutionResult;
       if (step.value.kind === "resolve") {
-        const retained = await document.lookup(step.value.node, options.resourceStorage ? {arrayStorage:options.resourceStorage,storedArrayKeys:["Widths","W"],storeRootArray:step.value.storeRootArray ?? false} : {});
+        const retained = await document.lookup(step.value.node, options.resourceStorage ? {arrayStorage:options.resourceStorage,storedArrayKeys:["Widths","W","Differences"],storeRootArray:step.value.storeRootArray ?? false} : {});
         value = retained?.value;
         if (retained?.stream) {
           if (retained.value.kind !== "dict" || !retained.reference) throw new PdfError("E_PARSE", "Font stream has no retained identity");
@@ -53,6 +54,11 @@ export async function resolveRetainedFont(document: PdfRetainedDocument, storage
           const stream: PdfCosStream = { kind: "stream", dict: retained.value, rawBytes: new Uint8Array() };
           identities.set(stream, retained.reference); value = stream;
         }
+      } else if(step.value.kind==="font-encoding") {
+        const array=step.value.array;
+        value=await StoredFontEncoding.create(()=>array.storedItems?readStoredItems<import("../ast.js").PdfCosNode>(array.storedItems,signal):array.items,options.resourceStorage!,{onAllocation:bytes=>allocation.admit(bytes),...(signal?{signal}:{})});
+      } else if(step.value.kind==="font-label") {
+        const label=await step.value.lookup(step.value.code);value=label===undefined?undefined:cosName(label);
       } else if(step.value.kind==="array-item") {
         const record = await readStoredRecord<import("../ast.js").PdfCosNode>(step.value.items.storage, step.value.position, signal);
         value = cosArray([record.value, cosNumber(record.next)]);
@@ -104,11 +110,11 @@ export async function resolveRetainedFont(document: PdfRetainedDocument, storage
               const backing=options.resourceStorage,position=backing.allocate(staged.size);let offset=0;
               for await(const bytes of staged.stream(0,staged.size,signal)){await backing.write(position+offset,bytes,signal?{signal}:undefined);offset+=bytes.length;}
               if(step.value.purpose==="type1"){
-                value=await parseStoredType1Font({storage:backing,position,byteLength:staged.size},step.value.type1Properties!,{onAllocation:bytes=>allocation.admit(bytes),...(signal?{signal}:{})});
+                value=await parseStoredType1Font({storage:backing,position,byteLength:staged.size},step.value.type1Properties!,{...(step.value.storedEncoding?{glyphName:step.value.storedEncoding.glyphName}:{}),onAllocation:bytes=>allocation.admit(bytes),...(signal?{signal}:{})});
                 step=steps.next(value);continue;
               }
               if(step.value.purpose==="cff"){
-                value=await parseStoredCffFont({storage:backing,position,byteLength:staged.size},step.value.encodingName,step.value.differences??new Map(),{onAllocation:bytes=>allocation.admit(bytes),...(signal?{signal}:{})});
+                value=await parseStoredCffFont({storage:backing,position,byteLength:staged.size},step.value.encodingName,step.value.storedEncoding?{get:step.value.storedEncoding.glyphName}:step.value.differences??new Map(),{onAllocation:bytes=>allocation.admit(bytes),...(signal?{signal}:{})});
                 step=steps.next(value);continue;
               }
               const font=await parseStoredTrueTypeFont({storage:backing,position,byteLength:staged.size},{onAllocation:bytes=>allocation.admit(bytes),...(signal?{signal}:{})});

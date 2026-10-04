@@ -26,7 +26,7 @@ export interface StoredCffFont {
 export async function parseStoredCffFont(
   source: StoredCidMap,
   encodingName: string | undefined,
-  differences: ReadonlyMap<number, string>,
+  differences: {get(code:number):string|undefined|Promise<string|undefined>},
   options: Pick<PdfFontAllocationOptions, "onAllocation"> & { signal?: AbortSignal } = {}
 ): Promise<StoredCffFont> {
   const { storage } = source,
@@ -55,7 +55,7 @@ export async function parseStoredCffFont(
   )!;
   const requested = new Set<string>();
   for (let code = 0; code < 256; code++) {
-    const name = differences.get(code) ?? encoding?.[code];
+    const name = (await differences.get(code)) ?? encoding?.[code];
     if (name !== undefined) requested.add(name);
   }
   const byName = new Map<string, number>(),
@@ -167,7 +167,7 @@ export async function parseStoredCffFont(
     unicodeByCode = new Map<number, string>();
   if (!cff.isCID)
     for (let code = 0; code < 256; code++) {
-      const name = differences.get(code) ?? encoding?.[code];
+      const name = (await differences.get(code)) ?? encoding?.[code];
       const glyph = name === undefined ? internalEncoding.get(code) : byName.get(name);
       if (glyph === undefined) continue;
       glyphIds.set(code, glyph);

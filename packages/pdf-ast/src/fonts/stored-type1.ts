@@ -18,7 +18,7 @@ import type { PdfFontAllocationOptions } from "./memory.js";
 export async function parseStoredType1Font(
   source: StoredCidMap,
   properties: Type1Properties,
-  options: Pick<PdfFontAllocationOptions, "onAllocation"> & { signal?: AbortSignal } = {}
+  options: Pick<PdfFontAllocationOptions, "onAllocation"> & { signal?: AbortSignal; glyphName?:(code:number)=>Promise<string|undefined> } = {}
 ) {
   const { storage } = source,
     { signal } = options;
@@ -60,6 +60,7 @@ export async function parseStoredType1Font(
   async function mapped(code: number): Promise<number> {
     if (cache.has(code)) return cache.get(code)!;
     let gid = 0;
+    const explicitName = composite ? undefined : options.glyphName ? await options.glyphName(code) : differences?.get(code);
     if (composite)
       gid =
         code === -1
@@ -67,8 +68,8 @@ export async function parseStoredType1Font(
           : Number.isInteger(code) && code >= 0 && code <= 0xffffffff
             ? await composite.lookup(code)
             : 0;
-    else if (differences?.has(code)) {
-      const name = differences.get(code)!;
+    else if (explicitName !== undefined) {
+      const name = explicitName;
       gid = await names.find(name);
       if (gid < 0) gid = await names.find(recoverGlyphName(name, getGlyphsUnicode()));
     } else if (!properties.isInternalFont) {

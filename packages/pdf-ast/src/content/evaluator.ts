@@ -1144,6 +1144,11 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
       return reply.node?.kind==="number"?reply.node.value:reply.node?.kind==="name"?reply.node.decoded:undefined;
     }
     function* difference(code:number):EvaluationWork<string|undefined>{
+      if(font?.storedEncoding){
+        const reply=yield {kind:"font-unicode",lookup:font.storedEncoding.unicode,code};
+        if(!reply||!("kind" in reply)||reply.kind!=="resolved")throw new TypeError("Expected font encoding label");
+        if(reply.node?.kind==="name")return reply.node.decoded;
+      }
       if(font?.differences.has(code))return font.differences.get(code);
       const embedded=font?.embeddedCff;
       if(embedded && "storedCff" in embedded && embedded.getUnicode){
@@ -1982,7 +1987,13 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
               let evaluatedType3 = false;
               let glyphPaint: PdfEvaluatedPath | undefined;
               if (font?.subtype === "Type3" && font.charProcs && depth < 8) {
-                const gName = font.glyphNames.get(item.charCode) ?? item.unicode;
+                let explicitName=font.glyphNames.get(item.charCode);
+                if(font.storedEncoding){
+                  const reply=yield {kind:"font-unicode",lookup:font.storedEncoding.glyphName,code:item.charCode};
+                  if(!reply||!("kind" in reply)||reply.kind!=="resolved")throw new TypeError("Expected Type3 glyph name");
+                  explicitName=reply.node?.kind==="name"?reply.node.decoded:undefined;
+                }
+                const gName = explicitName ?? item.unicode;
                 const procNode = gName ? yield* resolveEvaluationNode(dictGet(font.charProcs, gName)) : undefined;
                 if (procNode?.kind === "stream") {
                   const fm: Matrix6 = font.fontMatrix ?? [0.001, 0, 0, 0.001, 0, 0];

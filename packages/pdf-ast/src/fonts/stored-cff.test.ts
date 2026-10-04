@@ -3,7 +3,7 @@ import { STANDARD_FONT_CFF_BASE64 } from "./standard-font-data.js";
 import { parseEmbeddedCffFont } from "./cff.js";
 import { parseStoredCffFont } from "./stored-cff.js";
 
-it("matches native encoded glyph outlines using source-backed validation and execution", async () => {
+it.each([false,true])("matches native encoded glyph outlines with asynchronous remapping=%s", async remap => {
   for (const [name, encoded] of Object.entries(STANDARD_FONT_CFF_BASE64)) {
     const bytes = Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0)),
       data = new Uint8Array(16 * 1024 * 1024);
@@ -25,11 +25,12 @@ it("matches native encoded glyph outlines using source-backed validation and exe
         data.set(value, at);
       }
     };
-    const native = parseEmbeddedCffFont(bytes, "WinAnsiEncoding", new Map());
+    const differences = new Map<number,string>(remap ? [[65,"B"],[66,"fi"]] : []);
+    const native = parseEmbeddedCffFont(bytes, "WinAnsiEncoding", differences);
     const backed = await parseStoredCffFont(
       { storage, position: 0, byteLength: bytes.length },
       "WinAnsiEncoding",
-      new Map()
+      {async get(code){return differences.get(code);}}
     );
     expect(backed.unicodeByCode, name).toEqual(native.unicodeByCode);
     for (const code of [0, 32, 65, 66, 97, 198, 233]) {

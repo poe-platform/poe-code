@@ -89,7 +89,11 @@ retained `lookup` also accept `arrayStorage`, `storedArrayKeys`, and
 `valueArrays` when opening a retained document to apply these options to page
 lookups too, including inline font resources.
 Retained font resolution uses these options for direct and indirect width tables
-when `resourceStorage` is supplied, including encrypted objects. Retained evaluation reads
+when `resourceStorage` is supplied, including encrypted objects. `/Differences`
+uses caller-backed declaration maps as well: retained fonts expose asynchronous
+`storedEncoding.unicode(code)` and `storedEncoding.glyphName(code)` lookups;
+buffered fonts retain their resident `differences` and `glyphNames` maps.
+Individual glyph-name strings still have token-sized memory requirements. Retained evaluation reads
 text and TJ elements incrementally, including multibyte character boundaries.
 Keep the backing alive while using these tokens, arrays or events.
 

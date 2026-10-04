@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { cosArray, cosDict, cosName, cosStream, dictSet } from "../ast.js";
+import { cosArray, cosDict, cosName, cosNumber, cosStream, dictSet } from "../ast.js";
 import { PdfDocument } from "../document.js";
 import { PdfRetainedDocument } from "../retained-document.js";
 import { PdfFileSource } from "../source.js";
@@ -8,7 +8,7 @@ import { evaluateContentStreamSteps } from "./evaluator.js";
 import { evaluateRetainedContentSteps } from "./retained-evaluator.js";
 import { parseContentEvents } from "./parser.js";
 
-it.each(["simple", "cid-even", "cid-odd", "cmap", "unicode", "array"])(
+it.each(["simple", "cid-even", "cid-odd", "cmap", "unicode", "array", "differences"])(
   "preserves growing %s text across backed read boundaries",
   async (mode) => {
     const original = PdfDocument.create(),
@@ -17,11 +17,12 @@ it.each(["simple", "cid-even", "cid-odd", "cmap", "unicode", "array"])(
       "4 begincodespacerange <20> <7f> <8000> <80ff> <810000> <81ffff> <82000000> <82ffffff> endcodespacerange 4 beginbfchar <41> <0041> <8001> <00660069> <810002> <0042> <82000003> <0043> endbfchar"
     );
     const cmap = original.cos.allocateObject(cosStream(mapping));
-    const simple = mode === "simple" || mode === "array";
+    const simple = mode === "simple" || mode === "array" || mode === "differences";
     const font = cosDict({
       Type: cosName("Font"),
       Subtype: cosName(simple ? "Type1" : "Type0"),
       BaseFont: cosName("Helvetica"),
+      ...(mode === "differences" ? {Encoding:cosDict({Differences:cosArray([cosNumber(65),cosName("fi"),cosName("A"),cosNumber(90),...Array.from({length:1024},()=>cosName("B"))])})} : {}),
       ...(simple
         ? {}
         : { DescendantFonts: cosArray([cosDict({ Subtype: cosName("CIDFontType2") })]) }),

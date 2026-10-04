@@ -403,52 +403,47 @@ function parseHexNumericGlyphName(name: string): number | undefined {
   return parseStrictHexChunk(rest);
 }
 
+/** Numeric glyph-name recovery needs a complete declaration scan, but only
+ * these aggregate predicates need to remain resident. */
+export class FontEncodingPolicy {
+  private starts = false;
+  private glyphs = false;
+  private admitted = true;
+  private decimal = true;
+  private hexadecimal = true;
+  observe(item: PdfCosNode): void {
+    if (item.kind === "number") {
+      this.starts = true;
+      this.admitted &&= Number.isInteger(item.value) && item.value >= 0 && item.value <= 5;
+    } else if (item.kind === "name") {
+      this.glyphs = true;
+      this.decimal &&= parseDecimalNumericGlyphName(item.decoded) !== undefined;
+      this.hexadecimal &&= parseHexNumericGlyphName(item.decoded) !== undefined;
+    }
+  }
+  unicode(name: string): string | undefined {
+    if (this.starts && this.glyphs && this.admitted && (this.decimal || this.hexadecimal)) {
+      const parsed = this.decimal ? parseDecimalNumericGlyphName(name) : parseHexNumericGlyphName(name);
+      return parsed !== undefined && parsed > 0 && parsed <= 0x10ffff && (parsed < 0xd800 || parsed > 0xdfff) ? String.fromCodePoint(parsed) : "";
+    }
+    return resolveGlyphNameOptional(name);
+  }
+}
+
 export function buildFontEncodingDifferencesMap(encodingNode: PdfCosNode | undefined): Map<number, string> {
   const diffs = new Map<number, string>();
   if (!encodingNode || encodingNode.kind !== "dict") return diffs;
-  const diffArray = dictGet(encodingNode as PdfCosDict, "Differences");
-  if (diffArray?.kind !== "array") return diffs;
-  const items = (diffArray as PdfCosArray).items;
-  const sequenceStarts: number[] = [];
-  const glyphEntries: Array<{ code: number; name: string }> = [];
-  let currentCode = 0;
-  for (const item of items) {
-    if (item.kind === "number") {
-      currentCode = item.value;
-      sequenceStarts.push(item.value);
-    } else if (item.kind === "name") {
-      glyphEntries.push({ code: currentCode, name: item.decoded });
-      currentCode++;
-    }
-  }
-
-  const startsAdmitted =
-    sequenceStarts.length > 0 &&
-    glyphEntries.length > 0 &&
-    sequenceStarts.every((s) => Number.isInteger(s) && s >= 0 && s <= 5);
-
-  if (startsAdmitted) {
-    const allDecimal = glyphEntries.every((e) => parseDecimalNumericGlyphName(e.name) !== undefined);
-    const allHex = !allDecimal && glyphEntries.every((e) => parseHexNumericGlyphName(e.name) !== undefined);
-    if (allDecimal || allHex) {
-      for (const entry of glyphEntries) {
-        const parsed = allDecimal
-          ? parseDecimalNumericGlyphName(entry.name)
-          : parseHexNumericGlyphName(entry.name);
-        if (parsed !== undefined && parsed > 0 && parsed <= 0x10ffff && (parsed < 0xd800 || parsed > 0xdfff)) {
-          diffs.set(entry.code, String.fromCodePoint(parsed));
-        } else {
-          diffs.set(entry.code, "");
-        }
-      }
-      return diffs;
-    }
-  }
-
-  for (const entry of glyphEntries) {
-    const u = resolveGlyphNameOptional(entry.name);
-    if (u !== undefined) {
-      diffs.set(entry.code, u);
+  const array = dictGet(encodingNode, "Differences");
+  if (array?.kind !== "array") return diffs;
+  const policy = new FontEncodingPolicy();
+  for (const item of array.items) policy.observe(item);
+  let code = 0;
+  for (const item of array.items) {
+    if (item.kind === "number") code = item.value;
+    else if (item.kind === "name") {
+      const unicode = policy.unicode(item.decoded);
+      if (unicode !== undefined) diffs.set(code, unicode);
+      code++;
     }
   }
   return diffs;

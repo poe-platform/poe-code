@@ -29,7 +29,7 @@ it("preserves optional ToUnicode recovery when the asynchronous decoder fails", 
   const steps = resolvePageFontsSteps(doc.cos.rootRef, resources); let step = steps.next(); let decoded = false;
   while (!step.done) {
     if (step.value.kind === "decode") { decoded = true; step = steps.throw(new Error("malformed optional map")); }
-    else { if(step.value.kind==="array-item" || step.value.kind==="truetype-map" || step.value.kind==="font-width-set")throw new Error("Unexpected retained font"); const value: FontResolutionResult = doc.cos.resolve(step.value.node); step = steps.next(value); }
+    else { if(step.value.kind==="font-encoding" || step.value.kind==="font-label" || step.value.kind==="array-item" || step.value.kind==="truetype-map" || step.value.kind==="font-width-set")throw new Error("Unexpected retained font"); const value: FontResolutionResult = doc.cos.resolve(step.value.node); step = steps.next(value); }
   }
   expect(decoded).toBe(true); expect(step.value.get("F1")!.cmap).toBeUndefined();
   expect(step.value.get("F1")!.baseFont).toBe("Helvetica");

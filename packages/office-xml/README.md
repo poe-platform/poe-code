@@ -4,7 +4,7 @@ Index XML documents without retaining their payloads, names, or tree in the Java
 
 | API | Use |
 | --- | --- |
-| `openRetainedXmlDocument` | Traverse indexed nodes, attributes, namespaces, and text streams. |
+| `openRetainedXmlDocument` | Traverse indexed nodes, attributes, namespaces, text and exact markup streams. |
 | `openRetainedXml` | Read bounded lexical ranges for a format-specific parser. |
 | `stageRetainedXmlEdits` | Validate and stage ordered XML edits while preserving encoding and BOM. |
 
@@ -31,3 +31,12 @@ expires when staging finishes. The returned result exposes `byteLength`, replaya
 `bytes()`, `write(sink)`, and `close()`; close it after publication. Source and sink
 ownership remain with the caller. Format-specific consumers must still enforce
 presentation/workbook semantics and protected-source publication policies.
+
+For format-specific mutation guards, `elements(root)` walks elements in document
+order (including `root`) using stored links rather than an additional traversal
+stack. `markup(element)` streams the original decoded UTF-8 element, preserving
+quotes, entities and line endings. `shell(element)` removes only its direct
+element children while retaining text, comments, CDATA and instructions. These
+streams do not inject inherited namespace declarations; `declarations(element)`
+exposes local `xmlns` attributes in source order, and `resolveNamespace` resolves
+inherited bindings. All node handles and streams expire when the document closes.

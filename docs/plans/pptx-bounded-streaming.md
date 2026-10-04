@@ -342,6 +342,38 @@ passed. No Worker runtime memory
 qualification is claimed. Slide ordering and other mutations, richer reads,
 extraction and embedded workbook migration remain.
 
+## Retained XML replacement comparison primitives
+
+The shared retained document index now stores element end offsets and exposes
+`markup(element)`, `shell(element)`, `declarations(element)` and `elements(root)`.
+Markup is the exact decoded UTF-8 source, without namespace injection or line
+ending/quote/entity normalization. Shells remove direct element children only;
+text, comments, CDATA and instructions stay byte-identical. The element iterator
+uses existing parent/child/sibling links and includes its selected root. Local
+namespace declaration attributes are available separately from normal attributes.
+All APIs retain handle ownership, cancellation and diagnostic semantics.
+The slide mutation protection/compatibility guard now uses the shared iterator,
+removing its redundant caller-backed traversal stack.
+
+Verification: 656 shared XML and retained presentation tests passed, including
+13 new cases; the strengthened reused-buffer digest cases passed separately.
+Generated deep/wide XML forces real caller spills with outstanding writes capped
+at 16 KiB. Tests cover UTF-8/UTF-16LE/UTF-16BE, raw mixed content, namespace scope,
+expired/foreign handles, cancellation and storage errors. Maintained XML and
+presentation build closures plus scoped lint/typechecks passed. Native lxml
+matched namespaces and traversal across all three encodings, while source markup
+and child-free shells matched exact expected bytes; scratch storage was empty.
+
+Next use these APIs to replace `validateXmlPartReplacement` and
+`validateXmlViewReplacement` with retained validation. Preserve both supported
+paths: same element structure with guarded attribute/text changes, and validated
+child reorder/removal in drawing trees and text paragraphs. The latter compares
+standalone namespace context, fixed children and movable subtrees; do not silently
+limit `xml set` to same-structure edits. Package-wide signature/macro/protection
+and relationship guards, XML aggregate limits, candidate semantic validation,
+selection, retained replacement input and streamed publication must all remain.
+Default `xml set` is still buffered pending that complete integration.
+
 ## Remaining implementation
 
 1. Carry caller-owned retained/range sources, explicit spill-storage authorization,

@@ -87,13 +87,9 @@ export async function openRetainedSlideSettings(archive: Archive, fingerprint: s
     }
     const presentation = await openRetainedXmlDocument(archive.read(index.records.main), resources); let failed = false;
     try {
-      let stack = pages.allocate(16); await write(stack, [0, presentation.reference(presentation.root)]);
-      while (stack) {
-        const frame = await row(stack, 2); stack = frame[0]!; const node = await presentation.node(frame[1]!);
-        if (node.kind !== 'element') continue;
+      for await (const node of presentation.elements(presentation.root)) {
         if (await equal(presentation.namespace(node), literal('http://schemas.openxmlformats.org/markup-compatibility/2006'))) unsupported('Conditional presentation structure cannot be changed.');
         if (await equal(presentation.raw(node.localName), literal('modifyVerifier')) && await equal(presentation.namespace(node), presentation.namespace(presentation.root))) unsupported('Protected presentations cannot be changed.');
-        for await (const child of presentation.children(node)) { const pointer = pages.allocate(16); await write(pointer, [stack, presentation.reference(child)]); stack = pointer; }
       }
     } catch (error) { failed = true; throw error; } finally { try { await presentation.close(); } catch (error) { if (!failed) await Promise.reject(error); } }
     for await (const target of entries()) {

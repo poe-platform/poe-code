@@ -22,6 +22,14 @@ export interface RetainedXmlDocument {
   resolveNamespace(node: RetainedXmlNode, prefix: () => ByteSource): Promise<ByteSource | undefined>;
   children(node: RetainedXmlNode): AsyncGenerator<RetainedXmlNode>;
   attributes(node: RetainedXmlNode): AsyncGenerator<RetainedXmlNode>;
+  /** Local xmlns attributes, in source order. */
+  declarations(node: RetainedXmlNode): AsyncGenerator<RetainedXmlNode>;
+  /** Element-only document order, including the selected root, without a heap stack. */
+  elements(node: RetainedXmlNode): AsyncGenerator<RetainedXmlNode>;
+  /** Exact decoded UTF-8 source markup; neither standalone namespace injection nor normalization. */
+  markup(node: RetainedXmlNode): ByteSource;
+  /** Source markup with direct element children removed; retains text, comments and instructions. */
+  shell(node: RetainedXmlNode): ByteSource;
   namespace(node: RetainedXmlNode): ByteSource;
   text(node: RetainedXmlNode): ByteSource;
   raw(range: XmlRange): ByteSource;
@@ -54,7 +62,7 @@ export async function validateRetainedLocalName(source: ByteSource): Promise<voi
 
 // Fixed-size rows keep tree links, namespace scope and collision chains outside
 // the JS heap. Namespace/hash indexes share the same bounded backing cache.
-enum F { Kind, Parent, First, Last, Next, Attrs, LastAttr, PrevAttr, Name, NameLength, Local, LocalLength, Prefix, PrefixLength, Value, ValueLength, Namespace, HashNext, PreviousBinding, Count }
+enum F { Kind, Parent, First, Last, Next, Attrs, LastAttr, PrevAttr, Name, NameLength, Local, LocalLength, Prefix, PrefixLength, Value, ValueLength, Namespace, HashNext, PreviousBinding, End, Count }
 const kinds = ["document", "element", "text", "cdata", "comment", "instruction", "attribute"] as const;
 
 export async function openRetainedXmlDocument(source: ByteSource, settings: RetainedPackageContext): Promise<RetainedXmlDocument> {
@@ -273,9 +281,15 @@ export async function openRetainedXmlDocument(source: ByteSource, settings: Reta
         for await (const bytes of xml.value(token.range, true)) void bytes;
       } else if (token.kind === "start-end") {
         await openElement(current);
-        if (token.empty) { current = await closeElement(current); depth--; }
+        if (token.empty) {
+          const values = await row(current); values[F.End] = token.range.start; await save(current, values);
+          current = await closeElement(current); depth--;
+        }
       } else if (token.kind === "end-name") {
         if (current === document || !await equal(xml.read(token.range), xml.read(range(await row(current), F.Name)))) invalid();
+        const values = await row(current); let end = token.range.start + token.range.length;
+        outer: for await (const bytes of xml.read({ start: end, length: xml.byteLength - end })) for (const byte of bytes) { end++; if (byte === 62) break outer; }
+        values[F.End] = end; await save(current, values);
         current = await closeElement(current); depth--;
       } else {
         if (token.kind === "text") {
@@ -291,6 +305,11 @@ export async function openRetainedXmlDocument(source: ByteSource, settings: Reta
       }
     }
     if (!root || current !== document) invalid();
+    async function element(node: RetainedXmlNode) {
+      const pointer = address(node), values = await row(pointer);
+      if (values[F.Kind] !== 1) throw new OfficeError("invalid-handle", "An XML element is required.", "parse");
+      return { pointer, values };
+    }
     const api: RetainedXmlDocument = {
       root: await handle(root), nodeCount: count, raw: xml.read, close, reference: address,
       async node(id) {
@@ -325,6 +344,44 @@ export async function openRetainedXmlDocument(source: ByteSource, settings: Reta
       async *attributes(node) {
         try { for (let pointer = (await row(address(node)))[F.Attrs]!; pointer;) { const values = await row(pointer); if (values[F.Namespace] !== -2) yield await handle(pointer); pointer = values[F.Next]!; } }
         catch (error) { throw failure(error); }
+      },
+      async *declarations(node) {
+        try {
+          const { values } = await element(node);
+          for (let pointer = values[F.Attrs]!; pointer;) { const attribute = await row(pointer); if (attribute[F.Namespace] === -2) yield await handle(pointer); pointer = attribute[F.Next]!; }
+          check();
+        } catch (error) { throw failure(error); }
+      },
+      async *elements(node) {
+        try {
+          const { pointer: base, values: original } = await element(node); yield node;
+          let pointer = original[F.First]!;
+          while (pointer) {
+            let values = await row(pointer);
+            if (values[F.Kind] === 1) yield await handle(pointer);
+            if (values[F.First]) { pointer = values[F.First]!; continue; }
+            while (!values[F.Next] && values[F.Parent] !== base) { pointer = values[F.Parent]!; values = await row(pointer); }
+            pointer = values[F.Next]!;
+          }
+          check();
+        } catch (error) { throw failure(error); }
+      },
+      async *markup(node) {
+        try {
+          const { values } = await element(node), start = values[F.Name]! - 1;
+          yield* xml.read({ start, length: values[F.End]! - start }); check();
+        } catch (error) { throw failure(error); }
+      },
+      async *shell(node) {
+        try {
+          const { values } = await element(node); let start = values[F.Name]! - 1;
+          for (let pointer = values[F.First]!; pointer;) {
+            const child = await row(pointer);
+            if (child[F.Kind] === 1) { yield* xml.read({ start, length: child[F.Name]! - 1 - start }); start = child[F.End]!; }
+            pointer = child[F.Next]!;
+          }
+          yield* xml.read({ start, length: values[F.End]! - start }); check();
+        } catch (error) { throw failure(error); }
       },
       async *namespace(node) { try { yield* namespaceValue((await row(address(node)))[F.Namespace]!); } catch (error) { throw failure(error); } },
       async *text(node) {

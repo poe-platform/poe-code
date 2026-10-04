@@ -1,15 +1,17 @@
 import type {ExecutionContext} from "./execution.js";
 
 /** Classify paths and URLs without an authority using bounded state. Authorities
- * replay only their host/port into native validation, including file URLs. */
+ * scan ports and opaque hosts; only special-scheme IDNA hostnames still require
+ * whole-value native validation. IPv6 literals fit a format-bounded buffer. */
 export async function retainedImageOriginAllowed(chunks: () => AsyncIterable<string>, context: ExecutionContext): Promise<boolean> {
   let state: "leading" | "scheme" | "body" | "slash" | "fileFirst" | "fileSecond" | "slashes" | "authority" | "authorityEnd" | "accept" | "reject" = "leading";
-  let scheme = "", first = true, special = false, offset = 0, hostStart = 0, hostEnd = -1, credentials = false;
+  let scheme = "", first = true, special = false, offset = 0, trimEnd = 0, hostStart = 0, hostEnd = -1, credentials = false;
   for await (const part of chunks()) {
     // Preserve the old whole-value admission charge, including rejected values.
     context.charge("retainedBytes", part.length * 2);
     for (const char of part) {
       const position = offset; offset += char.length;
+      if (char.charCodeAt(0) > 32) trimEnd = offset;
       if (first) {first = false; if (char === "/") state = "accept";}
       if (state === "accept" || state === "reject" || state === "authorityEnd") continue;
       if (char === "\t" || char === "\r" || char === "\n") continue;
@@ -47,14 +49,35 @@ export async function retainedImageOriginAllowed(chunks: () => AsyncIterable<str
     await context.cooperate(0);
   }
   if (state === "authority" || state === "authorityEnd" || state === "slashes") {
-    const finish = hostEnd < 0 ? offset : hostEnd;
-    let authority = "", position = 0;
+    const finish = hostEnd < 0 ? trimEnd : hostEnd;
+    let authority = "", position = 0, bracket = false, portStarted = false, portDigits = false, port = 0, hostSeen = false, ipv6 = false;
     for await (const part of chunks()) {
       const end = position + part.length;
-      if (end > hostStart && position < finish) authority += part.slice(Math.max(0, hostStart - position), Math.min(part.length, finish - position));
+      if (end > hostStart && position < finish) for (const char of part.slice(Math.max(0, hostStart - position), Math.min(part.length, finish - position))) {
+        if (char === "\t" || char === "\r" || char === "\n") continue;
+        if (portStarted) {
+          if (scheme === "file" || char < "0" || char > "9") return false;
+          port = port * 10 + char.charCodeAt(0) - 48; portDigits = true;
+          if (port > 65535) return false;
+        } else if (char === ":" && !bracket) {portStarted = true; authority += ":";}
+        else {
+          if (!hostSeen) {hostSeen = true; ipv6 = char === "[";}
+          if (!special && !ipv6) {
+            if (char === "\0" || " #/:<>?@[\\]^|".includes(char)) return false;
+            authority = "x";
+          } else {
+            authority += char;
+            // Eight 16-bit groups, or six groups and an IPv4 tail, fit in 47
+            // characters including brackets. Longer literals cannot be IPv6.
+            if (ipv6 && authority.length > 47) return false;
+          }
+          if (char === "[") bracket = true; else if (char === "]") bracket = false;
+        }
+      }
       position = end; await context.cooperate(0);
       if (position >= finish) break;
     }
+    if (portDigits) authority += String(port);
     return URL.canParse(`${special ? scheme : "x"}://${credentials ? "x@" : ""}${authority}${hostEnd < 0 ? "" : "/"}`);
   }
   return state === "accept" || state === "body" || state === "slash" || state === "fileFirst" || state === "fileSecond";

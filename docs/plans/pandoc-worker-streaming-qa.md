@@ -204,7 +204,8 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   separately: origin admission now scans absolute paths, relative references and
   opaque URLs in bounded chunks. Authority URLs, including file URLs, replay only
   the host/port into native validation; credentials, paths, queries and fragments
-  stay out of the resident string. Large host/port values remain a boundary. Runtime-owned state
+  stay out of the resident string. Ports use bounded numeric parsing; opaque hosts stream and IPv6 literals use a
+  format-bounded buffer. Special-scheme IDNA hostnames remain a boundary. Runtime-owned state
   is not bounded by protocol streaming. Whole-value runtimes currently retain
   documents. The internal Lua storage layer retains binary strings, table
   keys/values, collision indexes, iteration cursors, metatables, closure identities

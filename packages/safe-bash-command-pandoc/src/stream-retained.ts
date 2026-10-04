@@ -26,7 +26,7 @@ import type {ExecutionContext} from "./execution.js";
 import type {ConversionOptions, WorkingStorageOptions} from "./types.js";
 
 /** Preserve JSON-filter origin admission without materializing ordinary paths
- * or opaque URLs. Host/port validation remains a native whole-value boundary. */
+ * or opaque URLs. Special-scheme IDNA hostnames remain a native whole-value boundary. */
 async function checkImageOrigins(tree: BackedJson, context: ExecutionContext): Promise<void> {
   const end = (await tree.describe(tree.rootPosition)).end;
   for (let position = tree.rootPosition; position < end;) {

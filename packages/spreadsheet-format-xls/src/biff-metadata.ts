@@ -49,7 +49,7 @@ function* metadataSteps(length: number, revision: number, codepage: number, cont
   const margins: Record<string, number> = { top: 120, bottom: 120, left: 72, right: 72, header: 72, footer: 72 };
   let scale: Record<string, ImportedValue> = { type: "percentage", percentage: 100 }, orientation = "portrait", paper = "iso_a4", order = "d_then_r";
   let fitToPage = false, fitColumns = 1, fitRows = 1;
-  let headerText = "&A", footerText = "Page &P", commentPlacement = "GNM_PRINT_COMMENTS_NONE", errorDisplay = "GNM_PRINT_ERRORS_AS_DISPLAYED";
+  let headerText = "&C&A", footerText = "&CPage &P", commentPlacement = "GNM_PRINT_COMMENTS_NONE", errorDisplay = "GNM_PRINT_ERRORS_AS_DISPLAYED";
   const objects: ImportedValue[] = [], breaks: ImportedValue[] = [], view: Record<string, ImportedValue> = {};
   let active = false, hasPrint = false;
   let window: { row: number; column: number; frozen: boolean } | undefined;

@@ -3,6 +3,14 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "biffMissingHeaderDefaults": {
+      "status": "Centered defaults restored for absent HEADER/FOOTER records; broader scope remains open",
+      "source": "Gnumeric 1.12.61 src/print-info.c:395-408 supplies centered tab-name and page-number defaults. Explicit unprefixed BIFF text remains left-aligned; missing records are a separate case.",
+      "inputSha256": "7811158128364b977007c0d3203317a323db6b2170a6b869b470a2b75f8f01f2",
+      "reproduction": "Four original HEADER/FOOTER opcodes replaced by standalone CONTINUE records without changing lengths or CFB offsets. Native import ignores these records and yields centered defaults with zero diagnostics. The memory test failed before explicit center markers were added to the importer defaults.",
+      "verification": "2387 affected tests, owner lint/types and maintained selected ssconvert workspace build pass. Scoped SDK and command XLSX/BIFF8 exports match 48 native section attributes. Actual command screenshot inspected.",
+      "limits": "Exact25 XLSX and16 BIFF8 warnings include standalone CONTINUE interpretation/export diagnostics; they are retained, not suppressed. BIFF7 refuses automatic labels without output. This selected-workspace check does not claim fresh root/release verification or format-family closure."
+    },
     "biffHeaderControls": {
       "status": "Native header/footer control-code and NUL semantics repaired; broader format family remains open",
       "source": "Gnumeric 1.12.61 ms-excel-util.c:752-833 consumes unrecognized ASCII ampersand controls, drops a trailing ampersand and stops at the first NUL. Original HEADER/FOOTER records and their loss diagnostics remain retained.",

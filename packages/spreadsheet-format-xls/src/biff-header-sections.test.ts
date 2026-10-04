@@ -47,3 +47,12 @@ it.each([7, 8] as const)("keeps default and explicit center alignment in BIFF%i 
     expect(print.children.find(node => node.name === "Footer")!.attributes).toEqual({ Left: "", Middle: "Page &[PAGE]", Right: "" });
   }
 });
+
+it("keeps native centered defaults when header and footer records are absent", () => {
+  for (const revision of [2, 3, 4, 5, 7, 8]) {
+    const result = readBiffMetadata([{ opcode: 0x2b, offset: 0, data: new Binary(new Uint8Array([0, 0])) }], revision, 1252, context);
+    const print = metadataNode(result.records.find(record => record.kind === "PrintInformation")!.data)!;
+    expect(print.children.find(node => node.name === "Header")!.attributes).toEqual({ Left: "", Middle: "&[TAB]", Right: "" });
+    expect(print.children.find(node => node.name === "Footer")!.attributes).toEqual({ Left: "", Middle: "Page &[PAGE]", Right: "" });
+  }
+});

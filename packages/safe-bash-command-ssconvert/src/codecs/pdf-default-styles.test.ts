@@ -27,7 +27,7 @@ it("requires explicit fonts for materialized Sans styles", async () => {
   const {fonts: ignoredFonts, ...withoutFonts} = context;
   await expect(writePdf(await fixture(), [], withoutFonts)).rejects.toThrow("styled or merged cells");
 });
-it.each([['WrapText="0"', 'WrapText="1"'], ['HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"']])("retains refusal for unsupported materialized style %s", async (before, after) => {
+it.each([['HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"']])("retains refusal for unsupported materialized style %s", async (before, after) => {
   await expect(writePdf(await fixture("h", attributes.replace(before, after)), [], context)).rejects.toThrow("styled or merged cells");
 });
 it("refuses unknown font effects and borders without publishing a style approximation", async () => {

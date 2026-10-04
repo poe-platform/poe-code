@@ -295,3 +295,12 @@ it("retains custom formatting authority during numeric layout", async () => {
   expect(runs[0]!.text).toBe("custom");
   expect(format).toHaveBeenCalledTimes(1);
 });
+
+it("wraps cell words while preserving the stored string", async () => {
+  const original = await fixture([{text: "alpha beta gamma delta", attributes: attributes.replace('WrapText="0"', 'WrapText="1"')}]);
+  const book = {...original, sheets: original.sheets.map(sheet => ({...sheet, columns: [], rows: [], view: {...sheet.view, defaultColumnWidth: 36, defaultRowHeight: 60}}))};
+  const before = structuredClone(book);
+  const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {async resolve() {return suppliedDefaultFont().bytes;}}}));
+  expect(runs.map(run => run.text)).toEqual(["alpha", "beta", "gamma", "delta"]);
+  expect(book).toEqual(before);
+});

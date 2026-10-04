@@ -60,3 +60,21 @@ or, at your option, version 3. The official archive SHA-256 is
 the source file SHA-256 is
 `6da5b2923db95cf4c35fa493e26c35f88075cdf7520ae3f0d39b0c50233edc97`.
 The helper uses caller-supplied font measurement, locale and work accounting.
+
+Automatic wrapping follows Gnumeric 1.12.61 `src/cell-draw.c`
+(`cell_calc_layout`) and its Pango WORD_CHAR layout policy. Unicode break
+opportunities come from the MIT-licensed `linebreak` dependency; grapheme and
+word segmentation use the host Intl implementation. Qualification includes
+explicit and vertical-alignment wrapping, indentation, discretionary hyphens
+and caller-budgeted candidate measurements.
+
+Automatic hyphen eligibility follows Pango 1.56.3 `pango/break.c`,
+copyright 1999 Red Hat Software, under LGPL-2.0-or-later.
+Official archive SHA-256:
+`2606252bc25cd8d24e1b7f7e92c3a272b37acd6734347b73b47a482834ba2491`;
+`break.c` SHA-256:
+`3b08d6764e18b63860e94d1cb0194eabfac3a9cfaa4e3da668bec38bffa5679c`.
+The compact script ranges derive from Unicode16 `Scripts.txt` at
+https://www.unicode.org/Public/16.0.0/ucd/Scripts.txt (SHA-256
+`9e88f0a677df47311106340be8ede2ecdacd9c1c931831218d2be6d5508e0039`),
+under Unicode License V3 retained in `hyphen-scripts.ts`.

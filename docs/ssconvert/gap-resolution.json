@@ -5853,6 +5853,20 @@
     "coverage": "Original source-order inputs plus widths25/48/72/150, positive/negative/zero/tiny/large-exponent values, Sans and mono,8/14pt,bold,zoom0.75/1/1.5.",
     "remaining": "General precision is qualified for these measured fonts and inputs. Wider rendering, historical DPI adjustment and full family acceptance remain open."
   },
+  "pdfAutomaticWrapping": {
+    "status": "Targeted automatic wrapping repair; all19 families remain open",
+    "implementation": "Strings and displayed formulas honor WrapText and implicit vertical-alignment wrapping. Unicode word opportunities fall back to grapheme boundaries with measured Pango-style discretionary hyphens. Numeric cells ignore wrapping. Bounded candidate shaping preserves original workbook text and native PDF extraction of break controls.",
+    "validation": {
+      "tests": 390,
+      "nativeInputs": 54,
+      "publicPDFComparisons": 108,
+      "publicOutputs": 216,
+      "checks": "selected workspace build,engine/command lint/types,clean-install lockfile dry run,PDF screenshots",
+      "coverage": "explicit and implicit wrapping,left/center/right,top/center/bottom/justify/distributed,indentation,spaces/nonbreaking spaces,combining marks,blank lines,soft hyphens,word joiners,zero-width breaks,punctuation,digits and displayed formulas"
+    },
+    "source": "Authenticated Gnumeric1.12.61 cell_calc_layout,Pango1.56.3 break.c and Unicode16 Scripts.txt; attribution and hashes in print/NOTICE.md. Unicode line opportunities use MIT linebreak1.1.0; host Intl supplies word/grapheme segmentation.",
+    "remaining": "Wider scripts,bidi,rotated/merged/rich cells,format effects and complete rendering/profile acceptance remain open."
+  },
   "history": {
     "commit": "27b9a96cbea652668a98d9af6502717c86cbfa1d",
     "note": "Bulky historical evidence and journals were removed at the user's request. Required fixture/provenance files remain. Historical results do not establish current-candidate completion."

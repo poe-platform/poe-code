@@ -137,9 +137,12 @@ it("rounds centered paragraph offsets to native display pixels", async () => {
   const {runs} = await pdfText(await writePdf({...book, sheets: [{...sheet, cells}]}, [], context));
   expect(runs[1]!.glyphs[0]!.x - runs[0]!.glyphs[0]!.x).toBe(6);
 });
-it.each(["JUSTIFY", "DISTRIBUTED"])("refuses automatic wrapping implied by %s", async vertical => {
-  const book = await fixture("GNM_HALIGN_LEFT", 10, 12, vertical);
-  await expect(writePdf(book, [], context)).rejects.toThrow("wrapped text layout");
+it.each(["JUSTIFY", "DISTRIBUTED"])("wraps strings when implied by %s", async vertical => {
+  const original = await fixture("GNM_HALIGN_LEFT", 10, 12, vertical), sheet = original.sheets[0]!;
+  const book = {...original, sheets: [{...sheet, cells: [sheet.cells[0]!]}]};
+  const {runs} = await pdfText(await writePdf(book, [], context));
+  expect(runs.map(run => run.text.split("‐").join("")).join("")).toBe("alpha");
+  expect(runs.length).toBeGreaterThan(1);
 });
 
 it.each(["array", "shared"] as const)("marks only %s formula groups in formula-display mode", async kind => {

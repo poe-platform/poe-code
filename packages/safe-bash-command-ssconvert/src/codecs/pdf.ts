@@ -1,3 +1,4 @@
+import {wrapPrintLine} from "@poe-code/spreadsheet-engine/rendering/print/wrap-lines";
 import { PDFDocument, PDFHexString, PDFName, PDFOperator, PDFOperatorNames, rgb, pushGraphicsState, popGraphicsState, concatTransformationMatrix, rectangle as pdfRectangle, clip, endPath, drawObject as drawPdfObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, setGraphicsState, type PDFPage, type PDFFont } from "pdf-lib";
 import fontkit, {type Font} from "@pdf-lib/fontkit";
 import { admitTrueTypeFont, suppliedDefaultFont, serializePdf, decodePng, PdfError } from "safe-bash-pdf-engine";
@@ -219,7 +220,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     }
     return selected;
   };
-  const text = async (page: PDFPage, value: string, x: number, y: number, size = 10, alignment: "left" | "center" | "right" = "left", cellBox?: { width: number; height: number; style: CellPrintStyle; generalNumber?: number; zoom?: number; overflow?: (displayWidth: number) => {left: number; right: number} }) => {
+  const text = async (page: PDFPage, value: string, x: number, y: number, size = 10, alignment: "left" | "center" | "right" = "left", cellBox?: { width: number; height: number; style: CellPrintStyle; generalNumber?: number; zoom?: number; wrap?: boolean; overflow?: (displayWidth: number) => {left: number; right: number} }) => {
     tick(value.length);
     if (!value) return;
     const bold = cellBox?.style.bold ?? false, italic = cellBox?.style.italic ?? false, family = cellBox?.style.family ?? "Sans";
@@ -262,8 +263,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         }
       }
       const ascent = ascentRatio * size, lineHeight = ascent + descentRatio * size;
-      const height = lineHeight * shapedLines.length;
-      const lines = shapedLines.map(shapedValue => {
+      const shapeLine = (shapedValue: string) => {
         const glyphs: {x: number; y: number}[] = [];
         let width = 0, displayWidth = 0;
         // Pango's unhinted print profile rounds advances and offsets in display pixels.
@@ -279,13 +279,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           displayWidth += Math.round(advance / printDisplayScale) * printDisplayScale;
         }
         return {shapedValue, run, glyphs, width, displayWidth};
-      });
-      let displayWidth = 0;
-      for (const line of lines) {
-        tick();
-        width = Math.max(width, line.width);
-        displayWidth = Math.max(displayWidth, line.displayWidth);
-      }
+      };
       let indent = 0, displayIndent = 0;
       if (cellBox.style.indent && alignment !== "center") {
         // GOFont averages the individually measured digits, with a one-pixel minimum.
@@ -308,10 +302,25 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         indent = Math.min(65535, Math.round(cellBox.style.indent * Math.floor((digitWidth * 1024 + 5) / 10) / 1024)) * printDisplayScale;
         displayIndent = Math.min(65535, Math.round(cellBox.style.indent * Math.floor((displayDigitWidth * 1024 + 5) / 10) / 1024)) * printDisplayScale;
       }
-      const wraps = cellBox.style.verticalAlignment === "justify" || cellBox.style.verticalAlignment === "distributed";
+      const wraps = cellBox.wrap === true;
+      const lines = (wraps ? paragraphs.flatMap(line => wrapPrintLine(line, Math.max(0, cellBox.width - 5 - indent),
+        candidate => shapeLine(normalizeFontText(candidate, supported, tick)).width, tick)) : shapedLines.map(text => ({text, hyphen: false})))
+        .map(line => {
+          if (line.hyphen && !supported.has(0x2010)) unsupported("font coverage");
+          const paintText = line.hyphen && line.text.endsWith("­") ? line.text.slice(0, -1) : line.text;
+          const shaped = normalizeFontText(paintText + (line.hyphen ? "‐" : ""), supported, tick);
+          const logicalText = line.text.split("​").join("").split("⁠").join("");
+          return {...shapeLine(shaped), logicalText, marked: line.hyphen || shaped !== logicalText};
+        });
+      const height = lineHeight * lines.length;
+      let displayWidth = 0;
+      for (const line of lines) {
+        tick();
+        width = Math.max(width, line.width);
+        displayWidth = Math.max(displayWidth, line.displayWidth);
+      }
       const overflows = width + indent > cellBox.width - 5;
-      if (wraps && overflows) unsupported("wrapped text layout");
-      if (overflows && cellBox.overflow === undefined && cellBox.generalNumber === undefined || !Number.isFinite(height)) unsupported("default-style text layout");
+      if (overflows && !wraps && cellBox.overflow === undefined && cellBox.generalNumber === undefined || !Number.isFinite(height)) unsupported("default-style text layout");
       const overflow = cellBox.overflow?.(displayWidth + displayIndent);
       const clipLeft = x + 4 - (overflow?.left ?? 0);
       const clipWidth = Math.max(0, cellBox.width + (overflow?.left ?? 0) + (overflow?.right ?? 0) - 4);
@@ -338,11 +347,13 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       }
       if (overflows || height > cellBox.height - 1) page.pushOperators(
         pdfRectangle(clipLeft, page.getHeight() - y - cellBox.height, clipWidth, cellBox.height), clip(), endPath());
-      page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
+      if (!wraps) page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
         [PDFName.of("Span"), pdf.context.obj({ActualText: PDFHexString.fromText(value)}).toString()]));
       for (const [lineIndex, line] of lines.entries()) {
         const {run, glyphs, shapedValue} = line;
         if (!run) continue;
+        if (wraps && line.marked) page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
+          [PDFName.of("Span"), pdf.context.obj({ActualText: PDFHexString.fromText(line.logicalText)}).toString()]));
         // Pango hints centered lines to whole display pixels when layout and
         // line widths are integral; an implicit wrapping width need not be.
         const centeredOffset = (width - line.width) / 2;
@@ -364,6 +375,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           page.pushOperators(setTextMatrix(1, 0, shear, 1, x + glyph.x, baseline + glyph.y), showText(PDFHexString.of(encoded.slice(index * 4, index * 4 + 4))));
         }
         page.pushOperators(endText());
+        if (wraps && line.marked) page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent));
         if (cellBox.style.underline || cellBox.style.strikeThrough) {
           // Pango uses font underline metrics and the union of positioned ink bounds.
           const scale = size / metrics.unitsPerEm;
@@ -399,7 +411,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           }
         }
       }
-      page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent), popGraphicsState());
+      if (!wraps) page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent));
+      page.pushOperators(popGraphicsState());
       return;
     }
     page.drawText(value, { x: x - (alignment === "left" ? 0 : width / (alignment === "center" ? 2 : 1)), y: baseline, size, font });
@@ -646,7 +659,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           const width = positions.column(cell.column).size, height = positions.row(cell.row).size;
           const alignment = style.alignment === "general" ? formula ? "left" : cell.value.kind === "number" ? "right" :
             cell.value.kind === "boolean" || cell.value.kind === "error" ? "center" : "left" : style.alignment;
-          const overflow = formula || cell.value.kind === "string" ? (displayWidth: number) => {
+          const wrap = Boolean(formula || cell.value.kind === "string") && (style.wrap === true || style.verticalAlignment === "justify" || style.verticalAlignment === "distributed");
+          const overflow = !wrap && (formula || cell.value.kind === "string") ? (displayWidth: number) => {
             const required = alignment === "center" ? width + Math.max(0, (displayWidth - width + 5 * printDisplayScale) / 2) : Infinity;
             return {
               left: alignment === "left" ? 0 : textSpan(cell, x - geometry.originX + width, "left", required) - width,
@@ -655,7 +669,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
             };
           } : undefined;
           await text(page, value, x, y, style.size * printDisplayScale, alignment,
-            {width, height, style,
+            {width, height, style, wrap,
               ...(generalNumber === undefined ? {} : {generalNumber, zoom: Number(sheet.view?.zoom ?? 1)}),
               ...(overflow === undefined ? {} : {overflow})});
         }

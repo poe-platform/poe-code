@@ -61,7 +61,8 @@
   "dependencies": {
     "@poe-code/spreadsheet-ast": "*",
     "@poe-code/safe-fs": "*",
-    "@poe-code/image-ast": "*"
+    "@poe-code/image-ast": "*",
+    "linebreak": "^1.1.0"
   },
   "poeCode": {
     "safeLibraryExports": {

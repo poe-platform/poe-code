@@ -15,7 +15,7 @@ function colorChannels(value: string): readonly [number, number, number, number]
 }
 // Native transports ShrinkToFit but does not apply it when rendering cells.
 const styleDefaults: Readonly<Record<string, AttributeRule>> = {
-  HAlign: Object.keys(alignments), VAlign: Object.keys(verticalAlignments), WrapText: "0", ShrinkToFit: ["0", "1"],
+  HAlign: Object.keys(alignments), VAlign: Object.keys(verticalAlignments), WrapText: ["0", "1"], ShrinkToFit: ["0", "1"],
   Rotation: "0", Shade: ["0", "1"], Indent: value => value.trim() !== "" && Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 2147483647, Locked: ["0", "1"], Hidden: ["0", "1"], Fore: validColor,
   Back: validColor, PatternColor: validColor, Format: "General"
 };
@@ -25,6 +25,7 @@ export interface CellPrintStyle {
   readonly alignment: "general" | "left" | "right" | "center";
   readonly verticalAlignment: "top" | "bottom" | "center" | "justify" | "distributed";
   readonly family: string;
+  readonly wrap?: boolean;
   readonly bold: boolean;
   readonly italic: boolean;
   readonly size: number;
@@ -102,7 +103,7 @@ export function cellPrintStyle(style: Readonly<Record<string, ImportedValue>> | 
     selected = attributes(font, fontDefaults, biff ? {} : fontValues);
   } else if (biff) fail();
   const foreground = colorChannels(effects.Fore!), background = colorChannels(effects.Back!);
-  return {alignment: alignments[effects.HAlign as keyof typeof alignments], verticalAlignment: verticalAlignments[effects.VAlign as keyof typeof verticalAlignments], family, bold: selected.Bold === "1", italic: selected.Italic === "1", size: Number(selected.Unit), underline: Number(selected.Underline), indent: Number(effects.Indent), strikeThrough: selected.StrikeThrough === "1",
+  return {...(effects.WrapText === "1" ? {wrap: true} : {}), alignment: alignments[effects.HAlign as keyof typeof alignments], verticalAlignment: verticalAlignments[effects.VAlign as keyof typeof verticalAlignments], family, bold: selected.Bold === "1", italic: selected.Italic === "1", size: Number(selected.Unit), underline: Number(selected.Underline), indent: Number(effects.Indent), strikeThrough: selected.StrikeThrough === "1",
     foreground: [foreground[0], foreground[1], foreground[2]], foregroundAlpha: foreground[3],
     ...(effects.Shade === "1" ? {background: [background[0], background[1], background[2]] as const, backgroundAlpha: background[3]} : {})};
 }

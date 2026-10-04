@@ -122,7 +122,7 @@ font-metric indentation, top/center/bottom vertical placement, justified line sp
 (distributed uses center), host-selected families with regular, bold or
 italic faces, positive finite sizes including fractional points, underline and
 strikethrough, and RGB/RGBA text and solid backgrounds, including transparency.
-Oversized text is clipped at row boundaries. Font selections
+Wrapped strings and displayed formulas use Unicode word boundaries with grapheme fallback and discretionary hyphens; numeric cells ignore wrapping and General numbers reduce precision to fit. Oversized text is clipped at row boundaries. Font selections
 share one invocation byte budget. This profile uses the captured native 96-DPI
 scale and print insets, so size 10 paints at 7.5 points. Cell alignment, fit and glyph placement
 use shaped advances and offsets. Exact native rendering remains unqualified. Other styles,

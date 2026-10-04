@@ -761,6 +761,10 @@ To combine sources, pass a synchronous or asynchronous iterable of
 Each source is fully copied before the iterable resumes, so a source generator
 can close that document and its input before opening the next. Metadata comes
 from the first source; forms accumulate with the ordinary page-copy behavior.
+With `includeOutlines: true`, full-document selections flatten source outlines,
+preserving titles and destinations with source offsets and first-page fallbacks.
+Traversal frames, outline records and page-reference indexes use caller storage.
+
 With `includePageLabels: true`, full-document selections retain source page labels
 offset by the preceding copied pages. Label records and the final number tree use
 caller storage and streamed output.
@@ -771,7 +775,8 @@ chunks and staged before their source closes; the destination name tree streams
 from caller-backed records.
 Page and form reference lists remain on caller storage. Source-specific indexes
 close after each source, and `maxPages` applies across the whole operation.
-Each source page tree is scanned once. Supply `maxPages`, `maxObjects`,
+Page copying scans each source page tree once; outline destination resolution
+may build an additional caller-backed page index. Supply `maxPages`, `maxObjects`,
 `maxOutputBytes`, `maxRecursionDepth`, `chunkBytes` and `signal` as needed.
 Individual COS arrays and dictionaries still materialize under parser limits.
 Consume or return the iterator to release scratch storage, and stage output

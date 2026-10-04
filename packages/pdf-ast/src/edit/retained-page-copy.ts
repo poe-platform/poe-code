@@ -1,3 +1,4 @@
+import { PdfMergeOutlines } from "./retained-merge-outlines.js";
 import { PdfMergeLabels } from "./retained-merge-labels.js";
 import { PdfMergeAttachments } from "./retained-merge-attachments.js";
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
@@ -16,6 +17,8 @@ export interface CopyRetainedPageOptions {
   readonly includeAttachments?: boolean;
   /** Merge source page labels, offset by preceding copied pages; use with full-document selections. */
   readonly includePageLabels?: boolean;
+  /** Flatten source outlines with full-document selection offsets and first-page fallback. */
+  readonly includeOutlines?: boolean;
   readonly maxObjects?: number;
   readonly maxPages?: number;
   readonly maxOutputBytes?: number;
@@ -48,6 +51,8 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
   const store = new PdfMutableObjectStore(storage, options), lists = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
   const attachments = options.includeAttachments ? new PdfMergeAttachments(storage, signal) : undefined;
   const labels = options.includePageLabels ? new PdfMergeLabels(storage, signal, maximumDepth) : undefined;
+  const outlines = options.includeOutlines ? new PdfMergeOutlines(storage, signal, maximumDepth) : undefined;
+  const pageReferences = outlines ? new IntegerTable(lists, 64) : undefined;
   const catalog = cosDict({ Type: cosName("Catalog"), Pages: cosRef(2) });
   type ReferenceList = { first: number; last: number; count: number };
   const pages: ReferenceList = { first: 0, last: 0, count: 0 }, formFields: ReferenceList = { first: 0, last: 0, count: 0 };
@@ -59,6 +64,7 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
   async function appendReference(list: ReferenceList, number: number) {
     const position = lists.allocate(16), bytes = new Uint8Array(16); new DataView(bytes.buffer).setFloat64(8, number); await lists.write(position, bytes);
     if (list.last) { const link = new Uint8Array(8); new DataView(link.buffer).setFloat64(0, position); await lists.write(list.last, link); }
+    if (list === pages) await pageReferences?.set(BigInt(list.count), BigInt(number));
     list.first ||= position; list.last = position; list.count++;
   }
   async function* references(list: ReferenceList) {
@@ -244,7 +250,8 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
   try {
     await store.allocate(catalog); await store.allocate(cosDict({ Type: cosName("Pages"), Count: cosNumber(0), Kids: cosArray([]) }));
     await store.allocate(cosDict({ Producer: cosString("@poe-code/pdf-ast") }));
-    for await (const source of sources) { await checkpoint(); await attachments?.append(source.document); await labels?.append(source.document, pageCount); await append(source.document, source.indices); }
+    for await (const source of sources) { await checkpoint(); await attachments?.append(source.document); await labels?.append(source.document, pageCount); await outlines?.append(source.document, pageCount); await append(source.document, source.indices); }
+    await outlines?.finish(store, catalog, pageCount, async index => cosRef(Number(await pageReferences!.get(BigInt(index)))));
     const attachmentNames = await attachments?.finish(store, catalog);
     const pageLabels = await labels?.finish(store, catalog);
     await store.set({ objectNumber: 1, generationNumber: 0, value: catalog });
@@ -262,7 +269,7 @@ export async function* copyRetainedPagesChunks(input: PdfRetainedDocument | Iter
     }
     yield* serializeRetainedCosDocumentChunks({ ...options, objects: objects(), rootRef: cosRef(1), infoRef: cosRef(3), signal }, storage);
   } catch (error) { failed = true; throw error; }
-  finally { const results = await Promise.allSettled([store.close(), lists.close(), attachments?.close(), labels?.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
+  finally { const results = await Promise.allSettled([store.close(), lists.close(), attachments?.close(), labels?.close(), outlines?.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
 }
 
 export { copyRetainedPagesChunks as copyRetainedPageChunks };

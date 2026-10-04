@@ -51,3 +51,12 @@ and 2007–2024 Morten Welinder (GPL version 2 or 3). Source SHA-256 values:
 and `05e313c36412e6572203fd2f4194487ac939cf63f984d21d8c30bdecfe1713f3`,
 respectively. Alpha channels use the same high-byte conversion, and the PDF
 painter scopes text opacity to each cell.
+
+Width-aware General numeric formatting follows GOffice 0.10.61
+`goffice/utils/go-format.c` (`go_render_general`), copyright 2003–2005
+Jody Goldberg and 2005–2023 Morten Welinder, licensed under GPL version 2
+or, at your option, version 3. The official archive SHA-256 is
+`558597fd9ca59b93ff562750218d1e7ea8ec3c8d0ed6a5cc096aa715ef909a15`;
+the source file SHA-256 is
+`6da5b2923db95cf4c35fa493e26c35f88075cdf7520ae3f0d39b0c50233edc97`.
+The helper uses caller-supplied font measurement, locale and work accounting.

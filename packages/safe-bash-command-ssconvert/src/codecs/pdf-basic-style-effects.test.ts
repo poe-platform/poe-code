@@ -2,6 +2,7 @@ import {expect, it, vi} from "vitest";
 import {PDFPage, PDFName, PDFDict, PDFNumber, PDFArray, PDFRawStream, decodePDFRawStream, rgb} from "pdf-lib";
 import {suppliedDefaultFont} from "safe-bash-pdf-engine";
 import type {CapabilityContext, FontCapability} from "../contracts.js";
+import {createFormattingCapability} from "@poe-code/spreadsheet-engine/formatting";
 import {readGnumeric} from "./gnumeric.js";
 import {writePdf} from "./pdf.js";
 import {pdfText} from "./pdf-text.test-support.js";
@@ -275,4 +276,22 @@ it.each(["short", "a long string that exceeds its cell", "12.5"])("prints retain
   expect(actual.runs).toEqual(expected.runs);
   expect(actual.runs[0]!.size).toBe(7.5);
   expect(flagged).toEqual(before);
+});
+
+it.each([undefined, createFormattingCapability()])("formats General numbers to column width without changing the stored value", async formatting => {
+  const original = await fixture([{text: "123456789012345", type: "40"}]);
+  const book = {...original, sheets: original.sheets.map(sheet => ({...sheet, columns: [], view: {...sheet.view, defaultColumnWidth: 48}}))};
+  const before = structuredClone(book);
+  const {runs} = await pdfText(await writePdf(book, [], {...context, ...(formatting ? {formatting} : {}), fonts: {async resolve() {return suppliedDefaultFont().bytes;}}}));
+  expect(runs[0]!.text).toBe("1.23457E+14");
+  expect(book).toEqual(before);
+});
+
+it("retains custom formatting authority during numeric layout", async () => {
+  const book = await fixture([{text: "123456789012345", type: "40"}]);
+  const format = vi.fn(async () => "custom");
+  const {runs} = await pdfText(await writePdf(book, [], {...context, formatting: {format},
+    fonts: {async resolve() {return suppliedDefaultFont().bytes;}}}));
+  expect(runs[0]!.text).toBe("custom");
+  expect(format).toHaveBeenCalledTimes(1);
 });

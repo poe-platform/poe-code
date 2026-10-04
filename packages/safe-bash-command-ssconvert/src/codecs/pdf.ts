@@ -177,10 +177,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
   pdf.setProducer("ssconvert JavaScript PDF writer");
   const fonts = new Map<string, {font: PDFFont; metrics: Font; shear: number; bytes: Uint8Array; shaped: boolean; supported: ReadonlySet<number>; ascentRatio: number; descentRatio: number}>();
   let fontBytes = 0;
-  const text = async (page: PDFPage, value: string, x: number, y: number, size = 10, alignment: "left" | "center" | "right" = "left", cellBox?: { width: number; height: number; style: CellPrintStyle; overflow?: (displayWidth: number) => {left: number; right: number} }) => {
-    tick(value.length);
-    if (!value) return;
-    const bold = cellBox?.style.bold ?? false, italic = cellBox?.style.italic ?? false, family = cellBox?.style.family ?? "Sans";
+  const selectFont = async (family: string, bold: boolean, italic: boolean) => {
     const fontKey = JSON.stringify([family, bold, italic]);
     let selected = fonts.get(fontKey);
     if (!selected) {
@@ -220,7 +217,31 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       }
       tick();
     }
+    return selected;
+  };
+  const text = async (page: PDFPage, value: string, x: number, y: number, size = 10, alignment: "left" | "center" | "right" = "left", cellBox?: { width: number; height: number; style: CellPrintStyle; generalNumber?: number; zoom?: number; overflow?: (displayWidth: number) => {left: number; right: number} }) => {
+    tick(value.length);
+    if (!value) return;
+    const bold = cellBox?.style.bold ?? false, italic = cellBox?.style.italic ?? false, family = cellBox?.style.family ?? "Sans";
+    const selected = await selectFont(family, bold, italic);
     const {font, metrics, shear, supported, ascentRatio, descentRatio} = selected;
+    if (cellBox?.generalNumber !== undefined) {
+      const defaultFont = await selectFont("Sans", false, false);
+      // Screen row height is rounded ascent + descent, plus the one-pixel grid.
+      const pixelScale = (Math.ceil(defaultFont.ascentRatio * 10 / printDisplayScale) +
+        Math.ceil(defaultFont.descentRatio * 10 / printDisplayScale) + 1) / 12.75;
+      const available = Math.max(0, Math.floor(cellBox.width * pixelScale * (cellBox.zoom ?? 1) + 0.5) - 5);
+      const measure = (text: string) => {
+        let width = 0;
+        for (const position of shaper.shape(metrics, text).positions) {
+          tick();
+          width += Math.round(position.xAdvance * cellBox.style.size / metrics.unitsPerEm);
+        }
+        return width;
+      };
+      value = await formatting.format({kind: "number", value: cellBox.generalNumber}, "General", context,
+        {unicodeMinus: true, generalLayout: {width: available, measure}});
+    }
     const paragraphs = cellBox ? splitPrintLines(value, tick) : [value];
     const shapedLines = paragraphs.map(line => cellBox ? normalizeFontText(line, supported, tick) : line);
     for (const line of shapedLines) for (const scalar of line) {
@@ -290,7 +311,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       const wraps = cellBox.style.verticalAlignment === "justify" || cellBox.style.verticalAlignment === "distributed";
       const overflows = width + indent > cellBox.width - 5;
       if (wraps && overflows) unsupported("wrapped text layout");
-      if (overflows && cellBox.overflow === undefined || !Number.isFinite(height)) unsupported("default-style text layout");
+      if (overflows && cellBox.overflow === undefined && cellBox.generalNumber === undefined || !Number.isFinite(height)) unsupported("default-style text layout");
       const overflow = cellBox.overflow?.(displayWidth + displayIndent);
       const clipLeft = x + 4 - (overflow?.left ?? 0);
       const clipWidth = Math.max(0, cellBox.width + (overflow?.left ?? 0) + (overflow?.right ?? 0) - 4);
@@ -613,7 +634,9 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           // gnm_cell_is_zero includes booleans and a strict 64-epsilon numeric tolerance.
           if (!formula && hideZero && (cell.value.kind === "number" ? Math.abs(cell.value.value) < 64 * Number.EPSILON :
             cell.value.kind === "boolean" && !cell.value.value)) continue;
-          const value = formula ?? (cell.displayedText !== undefined && !cell.style && !context.formatting ? cell.displayedText :
+          const generalNumber = !formula && cell.value.kind === "number" && (cell.format === undefined || cell.format === "General") &&
+            (context.formatting !== undefined || cell.displayedText === undefined) ? cell.value.value : undefined;
+          const value = generalNumber !== undefined ? String(generalNumber) : formula ?? (cell.displayedText !== undefined && !cell.style && !context.formatting ? cell.displayedText :
             await formatting.format(cell.value, cell.format ?? "General", context, {unicodeMinus: cell.value.kind === "number"}));
           tick();
           const x = geometry.originX + positions.column(cell.column).start - positions.column(geometry.area.startColumn).start;
@@ -632,7 +655,9 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
             };
           } : undefined;
           await text(page, value, x, y, style.size * printDisplayScale, alignment,
-            {width, height, style, ...(overflow === undefined ? {} : {overflow})});
+            {width, height, style,
+              ...(generalNumber === undefined ? {} : {generalNumber, zoom: Number(sheet.view?.zoom ?? 1)}),
+              ...(overflow === undefined ? {} : {overflow})});
         }
         for (const { object, rectangle } of objects) {
           tick();

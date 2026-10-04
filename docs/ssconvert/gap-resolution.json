@@ -5838,6 +5838,21 @@
       "limits": "Patched interpreter results diagnose the reference defect and are not replacement goldens or native qualification. The remaining differences still need semantic resolution. Production defaults and all original expectations remain unchanged; no family closure or release claim."
     }
   },
+  "pdfGeneralWidth": {
+    "status": "Targeted numeric layout repair; all 19 families remain open",
+    "defect": "Eight retained public PDF conversions refused General numeric values that native shortened to scientific notation. Screen column width, print font measurements and printed clipping are distinct.",
+    "implementation": "Bounded native General precision selection with measured digits, decimal and exponent widths. The formatting capability receives optional layout measurement; custom formatters retain authority and are called once. Text exports and stored values remain unchanged.",
+    "validation": {
+      "tests": "651 PDF/formatting cases plus190 final controls including ASCII-minus regression",
+      "nativeInputs": 64,
+      "publicPDFComparisons": 128,
+      "publicOutputs": 256,
+      "checks": "selected workspace build, engine and command lint/types including public consumers; native/product PDF screenshots inspected",
+      "source": "GOffice0.10.61 go_render_general; archive558597fd9ca59b93ff562750218d1e7ea8ec3c8d0ed6a5cc096aa715ef909a15"
+    },
+    "coverage": "Original source-order inputs plus widths25/48/72/150, positive/negative/zero/tiny/large-exponent values, Sans and mono,8/14pt,bold,zoom0.75/1/1.5.",
+    "remaining": "General precision is qualified for these measured fonts and inputs. Wider rendering, historical DPI adjustment and full family acceptance remain open."
+  },
   "history": {
     "commit": "27b9a96cbea652668a98d9af6502717c86cbfa1d",
     "note": "Bulky historical evidence and journals were removed at the user's request. Required fixture/provenance files remain. Historical results do not establish current-candidate completion."

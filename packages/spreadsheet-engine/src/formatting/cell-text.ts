@@ -4,6 +4,7 @@ import { cellValueFormat } from "../workbook/value-format.js";
 import type { FormattingCapability, FormatOptions, TextFormatMode } from "../formatting.js";
 import { formatText, type FormatHost } from "./number-format.js";
 import { parseFormatSections, selectFormatSection } from "./sections.js";
+import { formatGeneralNumber } from "../rendering/print/general-number.js";
 import { scanFormat } from "./numeric.js";
 import { formattingLocale, localizedValueText } from "./locale.js";
 
@@ -29,13 +30,17 @@ function formatHost(context: CapabilityContext, options: FormatOptions): FormatH
     } };
 }
 
-/** Stateless, explicit-locale, unlimited-width GOffice string formatter. */
+/** Stateless, explicit-locale GOffice string formatter; unlimited width unless requested. */
 export function createFormattingCapability(): FormattingCapability {
   return Object.freeze({ async format(value: CellValue, pattern: string, context: CapabilityContext, options: FormatOptions = {}) {
     context.signal.throwIfAborted();
     admitPattern(pattern, context);
-    const result = formatText(value, pattern, formatHost(context, options));
-    return checkedText(result.kind === "error" && options.unicodeMinus ? "" : localizedValueText(result, formattingLocale(context.environment.locale)), context);
+    const host = formatHost(context, options);
+    const result = formatText(value, pattern, host);
+    let text = result.kind === "error" && options.unicodeMinus ? "" : localizedValueText(result, formattingLocale(context.environment.locale));
+    if (value.kind === "number" && pattern === "General" && options.generalLayout)
+      text = formatGeneralNumber(value.value, text, options.generalLayout.width, options.generalLayout.measure, context.environment.locale, host.tick, options.unicodeMinus ?? false);
+    return checkedText(text, context);
   } });
 }
 const formatting = createFormattingCapability();

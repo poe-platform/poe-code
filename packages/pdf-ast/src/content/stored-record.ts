@@ -16,12 +16,12 @@ const enum Tag {
 
 /** Walk twice (size, then write), retaining only nesting state and one byte chunk.
  * In particular, byte strings never become JSON number arrays or escaped text. */
-function* encode(
+function* encodeParts(
   value: unknown,
   storage: PdfPixelStorage,
-  key = "",
-  ancestors = new WeakSet<object>()
-): Generator<Uint8Array> {
+  key: string,
+  ancestors: WeakSet<object>
+): Generator<Uint8Array | { value: unknown; key: string }, void, void> {
   if (key === "storage") {
     if (value !== storage) throw new TypeError("Captured resources must share caller backing");
     yield Uint8Array.of(Tag.Storage);
@@ -83,7 +83,7 @@ function* encode(
   ancestors.add(value);
   try {
     if (Array.isArray(value)) {
-      for (const item of value) yield* encode(item, storage, "", ancestors);
+      for (const item of value) yield { value: item, key: "" };
     } else {
       yield Uint8Array.of(Tag.Object);
       for (const name in value) {
@@ -94,13 +94,30 @@ function* encode(
           (item === undefined || typeof item === "function" || typeof item === "symbol")
         )
           continue;
-        yield* encode(name, storage);
-        yield* encode(item, storage, name, ancestors);
+        yield { value: name, key: "" };
+        yield { value: item, key: name };
       }
       yield Uint8Array.of(Tag.End);
     }
   } finally {
     ancestors.delete(value);
+  }
+}
+
+/** Visit each part once instead of forwarding every chunk through all ancestor
+ * generators. Container iterators retain traversal state, not copies. */
+function* encode(value: unknown, storage: PdfPixelStorage): Generator<Uint8Array> {
+  const ancestors = new WeakSet<object>();
+  const frames = [encodeParts(value, storage, "", ancestors)];
+  try {
+    while (frames.length) {
+      const step = frames[frames.length - 1]!.next();
+      if (step.done) { frames.pop(); continue; }
+      if (step.value instanceof Uint8Array) yield step.value;
+      else frames.push(encodeParts(step.value.value, storage, step.value.key, ancestors));
+    }
+  } finally {
+    while (frames.length) frames.pop()!.return();
   }
 }
 

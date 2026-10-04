@@ -149,3 +149,27 @@ it.each(["measure", "write", "read", "items"])("allows timer cancellation during
     await expect(work.then(() => "completed")).rejects.toBe(failure);
   } finally { clearTimeout(timer); }
 });
+
+
+it("round trips deeply nested captures with iterative traversal", async () => {
+  const depth = 8192, storage = backing(depth * 32);
+  let input: unknown = 42;
+  for (let i = 0; i < depth; i++) input = i % 2 ? { child: input } : [input];
+  const position = await writeStoredRecord(storage, input);
+  let { value } = await readStoredRecord<unknown>(storage, position);
+  for (let i = depth - 1; i >= 0; i--) value = i % 2
+    ? (value as { child: unknown }).child : (value as unknown[])[0];
+  expect(value).toBe(42);
+});
+
+
+it("allows shared children while rejecting back-edges during iterative capture", async () => {
+  const storage = backing(4096), child = { bytes: new Uint8Array([1, 2, 3]) };
+  const value = { first: child, second: [child, child] };
+  const position = await writeStoredRecord(storage, value);
+  expect((await readStoredRecord(storage, position)).value).toEqual(value);
+  const cycle: unknown[] = [child]; cycle.push({ parent: cycle });
+  await expect(writeStoredRecord(storage, cycle)).rejects.toThrow("Cyclic capture value");
+  const after = await writeStoredRecord(storage, child);
+  expect((await readStoredRecord(storage, after)).value).toEqual(child);
+});

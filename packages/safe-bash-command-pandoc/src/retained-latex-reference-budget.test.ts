@@ -23,20 +23,22 @@ const fixtures: Block[][] = [
   [{t: "Table", c: [attr, [null, []], [], [attr, [[attr, []]]], [[attr, 0, [], [[attr, []]]]], [attr, [[attr, []]]]]}],
   [para({t: "RawInline", c: ["html", ""]}), {t: "RawBlock", c: ["latex", "raw\n"]}]
 ];
-it.each(fixtures.map((blocks, index) => ({blocks, index})))("retains LaTeX reference thresholds for fixture $index", async ({blocks}) => {
-  const wire = await writeDocument({blocks, metadata: {}, resources: []}, {to: "json"}, {});
-  if (wire.kind !== "text") throw new Error("Expected JSON");
-  for (const options of [{}, {standalone: true}, {eol: "crlf"}] as Partial<ConversionOptions>[]) {
+it.for(fixtures.flatMap((blocks, index) => ([{}, {standalone: true}, {eol: "crlf"}] as Partial<ConversionOptions>[]).map((options, profile) => ({blocks, index, options, profile}))))("retains LaTeX reference thresholds for fixture $index, profile $profile", ({blocks, options}, {signal, onTestFinished}) => {
+  const pending = (async () => {
+    const wire = await writeDocument({blocks, metadata: {}, resources: []}, {to: "json"}, {signal});
+    if (wire.kind !== "text") throw new Error("Expected JSON");
     const conversion = {from: "json", to: "latex", lossy: true, ...options} as ConversionOptions;
     const input = {bytes: new TextEncoder().encode(wire.text), source: "/input.json"};
     for (let references = 0; ; references++) {
+      signal.throwIfAborted();
       expect(references).toBeLessThan(4096);
       const limits = {references};
-      const expected = await convert([input], conversion, {limits}).catch(error => error);
+      const expected = await convert([input], conversion, {signal, limits}).catch(error => error);
+      signal.throwIfAborted();
       const fs = new MemoryFileSystem(); let text = "";
       const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));
       try {
-        const actual = await convertToOutput([input], conversion, {limits, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
+        const actual = await convertToOutput([input], conversion, {signal, limits, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
           async write(bytes) {text += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}
         }}).catch(error => error);
         expect(acquire.mock.calls.length, JSON.stringify({references, options})).toBe(0);
@@ -48,7 +50,10 @@ it.each(fixtures.map((blocks, index) => ({blocks, index})))("retains LaTeX refer
       expect(await fs.readdir("/")).toEqual([]);
       if (!(expected instanceof Error) || !expected.message.startsWith("references:")) break;
     }
-  }
+  })();
+  // A timed-out conversion must retire its prototype spies before the next case.
+  onTestFinished(async () => {await pending.catch(() => {});});
+  return pending;
 });
 
 it.each(["json", "rtf", "csv", "tsv"].flatMap(from => [undefined, 0, 5, 20].map(outputBytes => ({from, outputBytes}))))
@@ -95,10 +100,10 @@ it.each(fixtures.map((blocks, index) => ({blocks, index})))("preserves LaTeX exp
   }
 });
 
-it.each(fixtures.map((blocks, index) => ({blocks, index})))("retains LaTeX byte thresholds for fixture $index", async ({blocks}) => {
-  const wire = await writeDocument({blocks, metadata: {}, resources: []}, {to: "json"}, {});
-  if (wire.kind !== "text") throw new Error("Expected JSON");
-  for (const outputBytes of [undefined, 0, 256]) for (const writerOptions of [{}, {standalone: true}, {eol: "crlf"}] as Partial<ConversionOptions>[]) {
+it.for(fixtures.flatMap((blocks, index) => [undefined, 0, 256].flatMap(outputBytes => ([{}, {standalone: true}, {eol: "crlf"}] as Partial<ConversionOptions>[]).map((writerOptions, profile) => ({blocks, index, outputBytes, writerOptions, profile})))))("retains LaTeX byte thresholds for fixture $index, profile $profile, output cap $outputBytes", ({blocks, outputBytes, writerOptions}, {signal, onTestFinished}) => {
+  const pending = (async () => {
+    const wire = await writeDocument({blocks, metadata: {}, resources: []}, {to: "json"}, {signal});
+    if (wire.kind !== "text") throw new Error("Expected JSON");
     const options = {from: "json", to: "latex", lossy: true, ...writerOptions} as ConversionOptions;
     const input = {bytes: new TextEncoder().encode(wire.text), source: "/input.json"};
     const boundaries = new Set<number>([0, 1, 1000000]), original = ExecutionContext.prototype.charge;
@@ -107,16 +112,18 @@ it.each(fixtures.map((blocks, index) => ({blocks, index})))("retains LaTeX byte 
       if (args[0] === "retainedBytes") {const used = 1000000 - this.remaining("retainedBytes"); if (Number.isFinite(used)) {boundaries.add(used); boundaries.add(used - 1);}}
       return result;
     });
-    try {await convert([input], options, {limits: {retainedBytes: 1000000, ...(outputBytes === undefined ? {} : {outputBytes})}, output: {async write() {}, async close() {}, async abort() {}}}).catch(error => {expect(["E_LIMIT", "E_UNSUPPORTED_FEATURE", "E_CAPABILITY"]).toContain(error.code);});}
+    try {await convert([input], options, {signal, limits: {retainedBytes: 1000000, ...(outputBytes === undefined ? {} : {outputBytes})}, output: {async write() {}, async close() {}, async abort() {}}}).catch(error => {expect(["E_LIMIT", "E_UNSUPPORTED_FEATURE", "E_CAPABILITY"]).toContain(error.code);});}
     finally {trace.mockRestore();}
     const values = [...boundaries].filter(value => value >= 0).sort((a,b) => a-b);
     for (const retainedBytes of values.filter((_, index) => index % Math.ceil(values.length / 24) === 0 || index >= values.length - 32)) {
+      signal.throwIfAborted();
       const expectedBytes: number[] = [], actualBytes: number[] = [], fs = new MemoryFileSystem();
       const sink = (bytes: number[]) => ({async write(chunk: Uint8Array) {bytes.push(...chunk);}, async close() {}, async abort() {}});
-      const expected = await convert([input], options, {limits: {retainedBytes, ...(outputBytes === undefined ? {} : {outputBytes})}, output: sink(expectedBytes)}).catch(error => error);
+      const expected = await convert([input], options, {signal, limits: {retainedBytes, ...(outputBytes === undefined ? {} : {outputBytes})}, output: sink(expectedBytes)}).catch(error => error);
+      signal.throwIfAborted();
       const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));
       try {
-        const actual = await convertToOutput([input], options, {limits: {retainedBytes, ...(outputBytes === undefined ? {} : {outputBytes})}, workingFiles: {fs, directory: "/"}, output: sink(actualBytes)}).catch(error => error);
+        const actual = await convertToOutput([input], options, {signal, limits: {retainedBytes, ...(outputBytes === undefined ? {} : {outputBytes})}, workingFiles: {fs, directory: "/"}, output: sink(actualBytes)}).catch(error => error);
         expect(acquire.mock.calls.length).toBe(0);
         if (expected instanceof Error) expect(actual, JSON.stringify({retainedBytes, writerOptions})).toMatchObject({code: (expected as {code?: string}).code, message: expected.message, location: (expected as {location?: string}).location});
         else {expect(actual).not.toBeInstanceOf(Error); expect(actual.diagnostics).toEqual(expected.diagnostics);}
@@ -124,5 +131,8 @@ it.each(fixtures.map((blocks, index) => ({blocks, index})))("retains LaTeX byte 
       } finally {acquire.mockRestore();}
       expect(await fs.readdir("/")).toEqual([]);
     }
-  }
+  })();
+  // A timed-out conversion must retire its prototype spies before the next case.
+  onTestFinished(async () => {await pending.catch(() => {});});
+  return pending;
 });

@@ -1,11 +1,28 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import * as sb from "../../safe-bash/src/index.js";
+export { sb };
 import { csvcutCommands } from "../../safe-bash/src/commands/csvcut/index.js";
 import { csvgrepCommands } from "../../safe-bash/src/commands/csvgrep/index.js";
 import { csvkitCommands } from "../../safe-bash/src/commands/csvkit/index.js";
 import { diff3Commands } from "../../safe-bash/src/commands/diff3/index.js";
+import { exiftoolCommands } from "../../safe-bash/src/commands/exiftool/index.js";
 import { htmlqCommands } from "../../safe-bash/src/commands/htmlq/index.js";
+import { imagemagickCommands } from "../../safe-bash/src/commands/imagemagick/index.js";
+import { mmdcCommands } from "../../safe-bash/src/commands/mmdc/index.js";
+import { pdfimagesCommands } from "../../safe-bash/src/commands/pdfimages/index.js";
+import { pdfinfoCommands } from "../../safe-bash/src/commands/pdfinfo/index.js";
+import { pdftkCommands } from "../../safe-bash/src/commands/pdftk/index.js";
+import { pdftoppmCommands } from "../../safe-bash/src/commands/pdftoppm/index.js";
+import { pdftotextCommands } from "../../safe-bash/src/commands/pdftotext/index.js";
+import { qpdfCommands } from "../../safe-bash/src/commands/qpdf/index.js";
+import { sipsCommands } from "../../safe-bash/src/commands/sips/index.js";
+import { unrtfCommands } from "../../safe-bash/src/commands/unrtf/index.js";
+import { pdfAstWkhtmltopdfCommands } from "../../safe-bash/src/commands/wkhtmltopdf/index.js";
+import { ffmpegCommands } from "../../safe-bash/src/commands/ffmpeg/index.js";
+import { sofficeCommands } from "../../safe-bash/src/commands/soffice/index.js";
+import { xanCommands } from "../../safe-bash/src/commands/xan/index.js";
+import { createXzCommands } from "../../safe-bash/src/commands/xz/index.js";
 import { createDeviceFileSystem } from "../../safe-bash/src/fs/devices/index.js";
 import { arraysExtension } from "../../safe-bash/src/shell/extensions/arrays/index.js";
 import { jobsExtension } from "../../safe-bash/src/shell/extensions/jobs/index.js";
@@ -208,9 +225,34 @@ export class SafeBashE2EHarness {
         .use(sb.yqCommands())
         .use(csvcutCommands())
         .use(csvgrepCommands())
-        .use(csvkitCommands({ replace: true }))
+        .use(csvkitCommands({ replace: true, locale: { profile: "C", timezone: "UTC", formatNumber: (val, _prof, _fmt, grouping) => { const n = Number(val); const fixed = Number.isFinite(n) ? n.toFixed(3) : String(val); if (!grouping) return fixed; const [intPart, decPart] = fixed.split("."); const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ","); return decPart !== undefined ? grouped + "." + decPart : grouped; } } }))
         .use(diff3Commands())
-        .use(htmlqCommands());
+        .use(htmlqCommands())
+        .use(sb.bzip2Commands({ replace: true }))
+        .use(sb.sha512sumCommands({ replace: true }))
+        .use(imagemagickCommands({ replace: true }))
+        .use(sipsCommands({ replace: true }))
+        .use(pdfimagesCommands({ replace: true }))
+        .use(pdftoppmCommands({ replace: true }))
+        .use(unrtfCommands({ replace: true }))
+        .use(exiftoolCommands({ replace: true }))
+        .use(mmdcCommands({ replace: true }))
+        .use(pdfAstWkhtmltopdfCommands({ replace: true }))
+        .use(pdfinfoCommands({ replace: true }))
+        .use(pdftotextCommands({ replace: true }))
+        .use(pdftkCommands({ replace: true }))
+        .use(qpdfCommands({ replace: true }))
+        .use(xanCommands({ replace: true }))
+        .use(sofficeCommands({ replace: true }))
+        .use(ffmpegCommands({ replace: true }))
+        .use({
+          name: "xz-commands",
+          setup(host) {
+            for (const xzCmd of createXzCommands()) {
+              host.commands.register(xzCmd, { replace: true });
+            }
+          },
+        });
     }
 
     for (const plugin of options.plugins ?? []) {

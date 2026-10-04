@@ -280,6 +280,119 @@ export async function runStandardBenchmarkSuite(
       },
       { category: "lifecycle", warmup, iterations },
     );
+
+    // 13. Diff, Patch & 3-Way Merge (diff -u + patch + diff3 -m + comm)
+    await recorder.measureScenario(
+      "diff-patch-diff3-merge",
+      async () => {
+        const res = await h.exec(
+          [
+            "mkdir -p /tmp/dp_bench",
+            "printf 'a\\nb\\nc\\nd\\ne\\n' > /tmp/dp_bench/base.txt",
+            "printf 'a\\nB_OURS\\nc\\nd\\ne\\n' > /tmp/dp_bench/ours.txt",
+            "printf 'a\\nb\\nc\\nD_THEIRS\\ne\\n' > /tmp/dp_bench/theirs.txt",
+            "diff -u /tmp/dp_bench/base.txt /tmp/dp_bench/ours.txt > /tmp/dp_bench/ours.patch || true",
+            "cp /tmp/dp_bench/base.txt /tmp/dp_bench/patched.txt",
+            "patch /tmp/dp_bench/patched.txt < /tmp/dp_bench/ours.patch >/dev/null",
+            "diff3 -m /tmp/dp_bench/ours.txt /tmp/dp_bench/base.txt /tmp/dp_bench/theirs.txt",
+          ].join("\n"),
+        );
+        assert.equal(res.exitCode, 0);
+        return res.stdout.length;
+      },
+      { category: "diff-patch", warmup, iterations },
+    );
+
+    // 14. CSV Data Science (csvgrep + csvsort + csvcut + xan groupby)
+    await recorder.measureScenario(
+      "csvkit-xan-data-science",
+      async () => {
+        const res = await h.exec(
+          [
+            "csvgrep -c status -m completed /workspace/data/orders.csv | csvsort -c quantity -r | csvcut -c order_id,customer_id,quantity",
+            "xan slice -s 0 -l 4 /workspace/data/orders.csv | xan select order_id,status,quantity",
+          ].join("\n"),
+        );
+        assert.equal(res.exitCode, 0);
+        return res.stdout.length;
+      },
+      { category: "csv-analytics", warmup, iterations },
+    );
+
+    // 15. HTML & XML Web Scraping (htmlq + html-to-markdown + xmllint)
+    await recorder.measureScenario(
+      "htmlq-xmllint-web-scraping",
+      async () => {
+        const res = await h.exec(
+          [
+            "printf '<html><body><main><h1>Docs</h1><a href=\"/api\">API</a><p class=\"lead\">Fast shell</p></main></body></html>' > /tmp/page.html",
+            "htmlq --text 'main p.lead' -f /tmp/page.html",
+            "htmlq --attribute href 'a' -f /tmp/page.html",
+            "html-to-markdown /tmp/page.html",
+          ].join("\n"),
+        );
+        assert.equal(res.exitCode, 0);
+        return res.stdout.length;
+      },
+      { category: "web-scraping", warmup, iterations },
+    );
+
+    // 16. Session State Persistence & JSON Snapshot Round-Trip
+    await recorder.measureScenario(
+      "session-state-json-roundtrip",
+      async () => {
+        const s1 = h.shell.createSession();
+        const r1 = await s1.exec(
+          "export SERVICE=auth; declare -a PORTS=(8080 8443); greet() { echo \"$SERVICE:${PORTS[1]}\"; }; greet",
+        );
+        assert.equal(r1.exitCode, 0);
+        const rawJson = JSON.stringify(s1.state);
+        const s2 = h.shell.createSession(JSON.parse(rawJson));
+        const r2 = await s2.exec("greet");
+        assert.equal(r2.exitCode, 0);
+        assert.equal(r2.stdout, "auth:8443\n");
+        return rawJson.length;
+      },
+      { category: "session-state", warmup, iterations },
+    );
+
+    // 17. Document & Diagram Rendering (mmdc Mermaid -> SVG + xmllint XPath)
+    await recorder.measureScenario(
+      "document-mermaid-svg-pipeline",
+      async () => {
+        const res = await h.exec(
+          [
+            "printf 'graph LR\\n  Client --> Gateway\\n  Gateway --> Worker\\n' > /tmp/arch.mmd",
+            "mmdc -i /tmp/arch.mmd -o - > /tmp/arch.svg",
+            "wc -c < /tmp/arch.svg",
+          ].join("\n"),
+        );
+        assert.equal(res.exitCode, 0);
+        return res.stdout.length;
+      },
+      { category: "document-media", warmup, iterations },
+    );
+
+    // 18. End-to-End Agent Refactor & Release Pipeline
+    await recorder.measureScenario(
+      "agent-refactor-release-pipeline",
+      async () => {
+        const res = await h.exec(
+          [
+            "rm -rf /tmp/agent_bench && cp -r /workspace/packages /tmp/agent_bench",
+            "rg -l 'normalizeToken' /tmp/agent_bench | sort > /tmp/agent_bench/targets.txt",
+            "set -euo pipefail",
+            "while IFS= read -r f; do sed 's/normalizeToken/sanitizeToken/g' \"$f\" | sponge \"$f\"; done < /tmp/agent_bench/targets.txt",
+            "diff -ru /workspace/packages /tmp/agent_bench > /tmp/agent_bench/changes.patch || true",
+            "tar -czf /tmp/agent_bench/bundle.tar.gz -C /tmp/agent_bench core cli",
+            "sha256sum /tmp/agent_bench/bundle.tar.gz",
+          ].join("\n"),
+        );
+        assert.equal(res.exitCode, 0);
+        return res.stdout.length;
+      },
+      { category: "agent-workflow", warmup, iterations },
+    );
   } finally {
     await h.dispose();
   }

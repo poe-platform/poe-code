@@ -19,6 +19,7 @@ import type { QpdfLimits } from "./index.js";
 export interface RetainedQpdfOptions extends QpdfJsonOptions {
   copyAttachmentsSpecs: readonly { file: string; prefix: string; password?: string }[];
   encryptConfig: { userPassword: string; ownerPassword: string; print: boolean; modify: boolean; copy: boolean; addNotes: boolean } | undefined;
+  removeUnreferencedResources: "no" | "yes" | "auto";
   flattenRotation: boolean;
   removeAttachmentKeys: readonly string[];
   addAttachmentSpecs: readonly { file: string; key: string; filename: string; description?: string; replace?: boolean }[];
@@ -269,8 +270,8 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         yield { ...spec, length: input.size, chunks: input.stream(0, input.size, signal) };
       }
     }
-    if (options.flattenRotation || options.copyAttachmentsSpecs.length || options.addAttachmentSpecs.length || options.removeAttachmentKeys.length || options.linearize || options.pageLabelSpecs.length > 0 || (options.splitPagesGroup !== undefined && (removeInfo || removeMetadata || removeStructure || removeAcroform || removePageLabels))) {
-      editedGraph = await editRetainedDocument(document, storage, { flattenRotation: options.flattenRotation, ...(options.copyAttachmentsSpecs.length ? { attachmentCopies: attachmentCopies() } : {}), ...(options.removeAttachmentKeys.length ? { removeAttachments: options.removeAttachmentKeys } : {}), ...(options.addAttachmentSpecs.length ? { attachments: attachments() } : {}), ...(options.pageLabelSpecs.length ? { pageLabels: parseQpdfPageLabels(options.pageLabelSpecs) } : {}), linearize: options.linearize, removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations(), signal });
+    if (options.removeUnreferencedResources !== "no" || options.flattenRotation || options.copyAttachmentsSpecs.length || options.addAttachmentSpecs.length || options.removeAttachmentKeys.length || options.linearize || options.pageLabelSpecs.length > 0 || (options.splitPagesGroup !== undefined && (removeInfo || removeMetadata || removeStructure || removeAcroform || removePageLabels))) {
+      editedGraph = await editRetainedDocument(document, storage, { removeUnreferencedResources: options.removeUnreferencedResources !== "no", flattenRotation: options.flattenRotation, ...(options.copyAttachmentsSpecs.length ? { attachmentCopies: attachmentCopies() } : {}), ...(options.removeAttachmentKeys.length ? { removeAttachments: options.removeAttachmentKeys } : {}), ...(options.addAttachmentSpecs.length ? { attachments: attachments() } : {}), ...(options.pageLabelSpecs.length ? { pageLabels: parseQpdfPageLabels(options.pageLabelSpecs) } : {}), linearize: options.linearize, removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations(), signal });
     }
     if (!destination) return await diagnostic("qpdf: an output file is required\n");
     if (!options.replaceInput && inputName !== "-" && destination === inputName) return await diagnostic("qpdf: output file may not be the same as the input file (use --replace-input)\n");

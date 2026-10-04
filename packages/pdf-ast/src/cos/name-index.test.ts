@@ -91,3 +91,33 @@ describe("name membership on generated external storage", () => {
     await names.close(); expect(storage.live.size).toBe(0);
   });
 });
+
+it("interns streamed UTF-16 units without retaining an entire token", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const names = new PdfNameIndex({ fs, directory: "/scratch" });
+  try {
+    const expected = await names.intern("name\ud800");
+    expect(await names.intern((async function* () { for (const unit of [110, 97, 109, 101, 0xd800]) yield unit; })())).toEqual({ index: expected.index, added: false });
+    const long = await names.intern((async function* () { for (let i = 0; i < 256; i++) yield 65; })());
+    expect(await names.intern("A".repeat(256))).toEqual({ index: long.index, added: false });
+  } finally { await names.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+for (const mode of ["invalid", "cancel", "source-error"]) it(`closes a streamed name iterator after ${mode}`, async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const controller = new AbortController(), reason = new Error("streamed name failure");
+  const names = new PdfNameIndex({ fs, directory: "/scratch" }, Infinity, controller.signal);
+  let closed = false;
+  async function* units() {
+    try {
+      for (let i = 0; i < 40; i++) yield 65;
+      if (mode === "cancel") controller.abort(reason);
+      if (mode === "source-error") throw reason;
+      yield mode === "invalid" ? 65536 : 66;
+    } finally { closed = true; }
+  }
+  try { await expect(names.intern(units())).rejects.toThrow(mode === "invalid" ? "Invalid PDF name code unit" : reason.message); }
+  finally { await names.close(); }
+  expect(closed).toBe(true); expect(await fs.readdir("/scratch")).toEqual([]);
+});

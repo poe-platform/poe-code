@@ -857,6 +857,9 @@ It preserves unsaved stream dictionaries, trailer identifiers and logical page
 identities across edits. Set `flattenRotation: true` to bake page rotation into
 streamed content and transform explicit page boxes and annotation rectangles.
 Content sharing is preserved through caller-backed reference counts.
+Set `removeUnreferencedResources: true` to prune unused page resources while
+following names in content, annotation appearances, forms, and patterns. Name
+tokens and transitive membership use caller-backed storage.
 Set `linearize: true` to append a linearization marker
 for subsequent saving; this preserves existing markers and is also the behavior
 of qpdf `--linearize`. Pass `pageLabels` as an iterable or async iterable of

@@ -1,3 +1,4 @@
+import { pruneRetainedResources } from "./retained-resource-pruning.js";
 import { flattenRetainedRotations } from "./retained-flatten-rotation.js";
 import { editRetainedAttachments, type RetainedAttachmentInput } from "./retained-attachment-edits.js";
 export { PdfDuplicateAttachment, type RetainedAttachmentInput } from "./retained-attachment-edits.js";
@@ -12,7 +13,7 @@ import { PdfRetainedDocument, PdfRetainedPage } from "../retained-document.js";
 import { PdfError } from "../errors.js";
 import type { SaveRetainedDocumentOptions } from "./retained-save.js";
 
-export type EditRetainedDocumentOptions = Pick<SaveRetainedDocumentOptions, "linearize" | "rotations" | "removeInfo" | "removeMetadata" | "removeStructure" | "removeAcroform" | "removePageLabels" | "maxObjects" | "maxPages" | "maxRecursionDepth" | "signal"> & { readonly flattenRotation?: boolean; readonly pageLabels?: Iterable<RetainedPageLabel> | AsyncIterable<RetainedPageLabel>; readonly removeAttachments?: Iterable<string> | AsyncIterable<string>; readonly attachmentCopies?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput>; readonly attachments?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput> };
+export type EditRetainedDocumentOptions = Pick<SaveRetainedDocumentOptions, "linearize" | "rotations" | "removeInfo" | "removeMetadata" | "removeStructure" | "removeAcroform" | "removePageLabels" | "maxObjects" | "maxPages" | "maxRecursionDepth" | "signal"> & { readonly flattenRotation?: boolean; readonly removeUnreferencedResources?: boolean; readonly pageLabels?: Iterable<RetainedPageLabel> | AsyncIterable<RetainedPageLabel>; readonly removeAttachments?: Iterable<string> | AsyncIterable<string>; readonly attachmentCopies?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput>; readonly attachments?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput> };
 
 /** Own an editable graph and logical page index on caller storage. This applies
  * edits without the stream dictionary normalization performed by PDF saving.
@@ -58,6 +59,7 @@ export async function editRetainedDocument(source: PdfRetainedDocument, storage:
       dictSet(object.value, "Rotate", cosNumber(((current + edit.degrees) % 360 + 360) % 360)); await store.set(object);
     }
     if (options.flattenRotation) { await flattenRetainedRotations(document, store, storage, signal); addedObjects = true; }
+    if (options.removeUnreferencedResources) await pruneRetainedResources(document, store, storage, signal);
     async function removeRoot(keys: readonly string[]) {
       const found = await document!.lookup(source.crossReference.rootRef);
       if (found?.value.kind !== "dict" || found.stream || !found.reference) return;

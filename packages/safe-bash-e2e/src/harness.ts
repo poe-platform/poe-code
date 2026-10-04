@@ -1,33 +1,33 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import * as sb from "../../safe-bash/src/index.js";
+import * as sb from "@poe-platform/safe-bash";
 export { sb };
-import { csvcutCommands } from "../../safe-bash/src/commands/csvcut/index.js";
-import { csvgrepCommands } from "../../safe-bash/src/commands/csvgrep/index.js";
-import { csvkitCommands } from "../../safe-bash/src/commands/csvkit/index.js";
-import { diff3Commands } from "../../safe-bash/src/commands/diff3/index.js";
-import { exiftoolCommands } from "../../safe-bash/src/commands/exiftool/index.js";
-import { htmlqCommands } from "../../safe-bash/src/commands/htmlq/index.js";
-import { imagemagickCommands } from "../../safe-bash/src/commands/imagemagick/index.js";
-import { mmdcCommands } from "../../safe-bash/src/commands/mmdc/index.js";
-import { pdfimagesCommands } from "../../safe-bash/src/commands/pdfimages/index.js";
-import { pdfinfoCommands } from "../../safe-bash/src/commands/pdfinfo/index.js";
-import { pdftkCommands } from "../../safe-bash/src/commands/pdftk/index.js";
-import { pdftoppmCommands } from "../../safe-bash/src/commands/pdftoppm/index.js";
-import { pdftotextCommands } from "../../safe-bash/src/commands/pdftotext/index.js";
-import { qpdfCommands } from "../../safe-bash/src/commands/qpdf/index.js";
-import { sipsCommands } from "../../safe-bash/src/commands/sips/index.js";
-import { unrtfCommands } from "../../safe-bash/src/commands/unrtf/index.js";
-import { pdfAstWkhtmltopdfCommands } from "../../safe-bash/src/commands/wkhtmltopdf/index.js";
-import { ffmpegCommands } from "../../safe-bash/src/commands/ffmpeg/index.js";
-import { sofficeCommands } from "../../safe-bash/src/commands/soffice/index.js";
-import { xanCommands } from "../../safe-bash/src/commands/xan/index.js";
-import { createXzCommands } from "../../safe-bash/src/commands/xz/index.js";
-import { createDeviceFileSystem } from "../../safe-bash/src/fs/devices/index.js";
-import { arraysExtension } from "../../safe-bash/src/shell/extensions/arrays/index.js";
-import { jobsExtension } from "../../safe-bash/src/shell/extensions/jobs/index.js";
-import { mapfileExtension } from "../../safe-bash/src/shell/extensions/mapfile/index.js";
-import { readExtension } from "../../safe-bash/src/shell/extensions/read/index.js";
+import { csvcutCommands } from "@poe-platform/safe-bash/commands/csvcut";
+import { csvgrepCommands } from "@poe-platform/safe-bash/commands/csvgrep";
+import { csvkitCommands } from "@poe-platform/safe-bash/commands/csvkit";
+import { diff3Commands } from "@poe-platform/safe-bash/commands/diff3";
+import { exiftoolCommands } from "@poe-platform/safe-bash/commands/exiftool";
+import { htmlqCommands } from "@poe-platform/safe-bash/commands/htmlq";
+import { imagemagickCommands } from "@poe-platform/safe-bash/commands/imagemagick";
+import { mmdcCommands } from "@poe-platform/safe-bash/commands/mmdc";
+import { pdfimagesCommands } from "@poe-platform/safe-bash/commands/pdfimages";
+import { pdfinfoCommands } from "@poe-platform/safe-bash/commands/pdfinfo";
+import { pdftkCommands } from "@poe-platform/safe-bash/commands/pdftk";
+import { pdftoppmCommands } from "@poe-platform/safe-bash/commands/pdftoppm";
+import { pdftotextCommands } from "@poe-platform/safe-bash/commands/pdftotext";
+import { qpdfCommands } from "@poe-platform/safe-bash/commands/qpdf";
+import { sipsCommands } from "@poe-platform/safe-bash/commands/sips";
+import { unrtfCommands } from "@poe-platform/safe-bash/commands/unrtf";
+import { pdfAstWkhtmltopdfCommands } from "@poe-platform/safe-bash/commands/wkhtmltopdf";
+import { ffmpegCommands } from "@poe-platform/safe-bash/commands/ffmpeg";
+import { sofficeCommands } from "@poe-platform/safe-bash/commands/soffice";
+import { xanCommands } from "@poe-platform/safe-bash/commands/xan";
+import { createXzCommands } from "@poe-platform/safe-bash/commands/xz";
+import { createDeviceFileSystem } from "@poe-platform/safe-bash/devices";
+import { arraysExtension } from "@poe-platform/safe-bash/arrays";
+import { jobsExtension } from "@poe-platform/safe-bash/jobs";
+import { mapfileExtension } from "@poe-platform/safe-bash/mapfile";
+import { readExtension } from "@poe-platform/safe-bash/read";
 import {
   BenchmarkRecorder,
   measureSingleExec,
@@ -204,30 +204,30 @@ export class SafeBashE2EHarness {
 
     if (options.includeExtendedCommands !== false) {
       shell
-        .use(sb.bcCommands())
-        .use(sb.calCommands())
-        .use(sb.ddCommands())
-        .use(sb.dfCommands())
-        .use(sb.envsubstCommands())
-        .use(sb.fdCommands())
-        .use(sb.getconfCommands())
-        .use(sb.hostnameCommands())
-        .use(sb.idCommands())
-        .use(sb.lessCommands())
-        .use(sb.localeCommands())
-        .use(sb.nprocCommands())
-        .use(sb.pathchkCommands())
-        .use(sb.spongeCommands())
-        .use(sb.sqlite3Commands())
-        .use(sb.unameCommands())
-        .use(sb.whoamiCommands())
-        .use(sb.yesCommands())
-        .use(sb.yqCommands())
-        .use(csvcutCommands())
-        .use(csvgrepCommands())
+        .use(sb.bcCommands({ replace: true }))
+        .use(sb.calCommands({ replace: true }))
+        .use(sb.ddCommands({ replace: true }))
+        .use(sb.dfCommands({ replace: true }))
+        .use(sb.envsubstCommands({ replace: true }))
+        .use(sb.fdCommands({ replace: true }))
+        .use(sb.getconfCommands({ replace: true }))
+        .use(sb.hostnameCommands({ replace: true }))
+        .use(sb.idCommands({ replace: true }))
+        .use(sb.lessCommands({ replace: true }))
+        .use(sb.localeCommands({ replace: true }))
+        .use(sb.nprocCommands({ replace: true }))
+        .use(sb.pathchkCommands({ replace: true }))
+        .use(sb.spongeCommands({ replace: true }))
+        .use(sb.sqlite3Commands({ replace: true }))
+        .use(sb.unameCommands({ replace: true }))
+        .use(sb.whoamiCommands({ replace: true }))
+        .use(sb.yesCommands({ replace: true }))
+        .use(sb.yqCommands({ replace: true }))
+        .use(csvcutCommands({ replace: true }))
+        .use(csvgrepCommands({ replace: true }))
         .use(csvkitCommands({ replace: true, locale: { profile: "C", timezone: "UTC", formatNumber: (val, _prof, _fmt, grouping) => { const n = Number(val); const fixed = Number.isFinite(n) ? n.toFixed(3) : String(val); if (!grouping) return fixed; const [intPart, decPart] = fixed.split("."); const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ","); return decPart !== undefined ? grouped + "." + decPart : grouped; } } }))
-        .use(diff3Commands())
-        .use(htmlqCommands())
+        .use(diff3Commands({ replace: true }))
+        .use(htmlqCommands({ replace: true }))
         .use(sb.bzip2Commands({ replace: true }))
         .use(sb.sha512sumCommands({ replace: true }))
         .use(imagemagickCommands({ replace: true }))

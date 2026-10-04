@@ -733,7 +733,8 @@
     "safe-bash-command-rgrep": "*",
     "safe-bash-command-ast-grep": "*",
     "@poe-code/ts-ast": "*",
-    "@poe-code/compression": "*"
+    "@poe-code/compression": "*",
+    "safe-bash-command-sort": "*"
   },
   "version": "0.0.0-dev",
   "repository": {

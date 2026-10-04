@@ -1,0 +1,52 @@
+{
+  "name": "safe-bash-command-sort",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
+      "import": "./dist/index.js"
+    },
+    "./index": {
+      "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
+      "import": "./dist/index.js"
+    },
+    "./work": {
+      "types": "./dist/work.d.ts",
+      "workerd": "./dist/work.js",
+      "browser": "./dist/work.js",
+      "import": "./dist/work.js"
+    },
+    "./sort-admission": {
+      "types": "./dist/sort-admission.d.ts",
+      "workerd": "./dist/sort-admission.js",
+      "browser": "./dist/sort-admission.js",
+      "import": "./dist/sort-admission.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "safe-bash-io-engine": "*",
+    "@poe-code/safe-fs": "*"
+  }
+}

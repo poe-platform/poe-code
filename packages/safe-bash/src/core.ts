@@ -225,3 +225,5 @@ export { createFfprobeCommands, ffprobeCommands, type FfprobeCommandsOptions, ty
 export { createSoxCommand, createSoxCommands, soxCommands, type SoxCommandsOptions, type SoxLimits } from "./commands/sox/index.js";
 export { createSoxiCommand, createSoxiCommands, soxiCommands, type SoxiCommandsOptions, type SoxiLimits } from "./commands/soxi/index.js";
 export { createAudioCommand, createAudioCommands, audioCommands, type AudioCommandsOptions } from "./commands/audio/index.js";
+
+export { createSortCommand, createSortCommands, sortCommands, defaultSortLimits, type SortCommandsOptions, type SortLimits } from "./commands/sort/index.js";

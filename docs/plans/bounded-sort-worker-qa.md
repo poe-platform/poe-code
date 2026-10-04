@@ -1,8 +1,11 @@
 # Bounded sort Worker qualification
 
-Status: pending implementation and execution. This plan is not qualification
-evidence. The incremental `-c`/`-C` change retains one preceding contiguous record;
-general sort, merge and oversized-record storage still require implementation.
+Status: execution pending; this plan is not qualification evidence. Check modes
+retain one preceding record; merge uses bounded fan-in, and general sort spills
+runs through injected safe-fs. Oversized byte/key/numeric records use paged
+storage. Exact host locale comparisons still materialize whole strings and are
+not bounded. Do not qualify locale sorting until that limitation is resolved.
+Node unit tests establish deterministic I/O and lifecycle behavior only.
 
 ## Setup
 

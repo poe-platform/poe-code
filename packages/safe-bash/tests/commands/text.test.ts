@@ -17,6 +17,33 @@ function sortProbe(args: readonly string[], stdin: string, signal: AbortSignal, 
   return { context, stdout, stderr };
 }
 
+test("sort merge publishes before pulling the next record and awaits its sink", async () => {
+  const probe = sortProbe(["-m"], "", new AbortController().signal, await fixture());
+  let writes = 0;
+  let closed = false;
+  const stdin = (async function* () {
+    const reused = new Uint8Array(2);
+    try {
+      for (let i = 0; i < 9; i++) {
+        assert.equal(writes, i, "merge must await publication before advancing its source");
+        reused[0] = 48 + i; reused[1] = 10;
+        yield reused;
+      }
+    } finally { closed = true; reused.fill(255); }
+  })();
+  const stdout = { async write(bytes: Uint8Array) {
+    const owned = new Uint8Array(bytes);
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.deepEqual(bytes, owned);
+    probe.stdout.push(owned);
+    writes += [...bytes].filter(byte => byte === 10).length;
+  } };
+  const result = await textCommands().find(command => command.name === "sort")!.execute({ ...probe.context, stdin, stdout });
+  assert.equal(result.exitCode, 0, Buffer.concat(probe.stderr).toString());
+  assert.equal(Buffer.concat(probe.stdout).toString(), "0\n1\n2\n3\n4\n5\n6\n7\n8\n");
+  assert.equal(closed, true);
+});
+
 test("uniq keeps the original iterator when synchronous input is unavailable", async () => {
   for (const synchronousProbe of [false, true]) {
     const probe = sortProbe([], "", new AbortController().signal, await fixture());
@@ -139,37 +166,25 @@ test("sort yields queued cancellation before output for every comparison path", 
   }
 });
 
-test("sort checkpoints continue after numeric descriptors are fully warmed", async testContext => {
-  const stdin = Array.from({ length: 256 }, (_, index) => String(index * 73 % 256).padStart(4, "0")).join("\n") + "\n";
+test("sort numeric comparisons remain cancellable after input is fully ingested", async () => {
+  const text = Array.from({ length: 256 }, (_, index) => String(index * 73 % 256).padStart(4, "0")).join("\n") + "\n";
   for (const args of [["-n"], ["-k1,1n"]]) {
     for (const reason of [false, null]) {
       const controller = new AbortController();
-      const probe = sortProbe(args, stdin, controller.signal, await fixture());
-      const cachedRecords = new Set<Uint8Array>();
-      let insertions = 0;
-      const set = Map.prototype.set;
-      const cache = testContext.mock.method(Map.prototype, "set", function(this: Map<unknown, unknown>, key: unknown, value: unknown) {
-        if (key instanceof Uint8Array && value !== null && typeof value === "object" && "whole" in value && "fraction" in value && "suffixRank" in value) {
-          cachedRecords.add(key);
-          insertions++;
-        }
-        return set.call(this, key, value);
-      });
-      let warmed = false;
+      const probe = sortProbe(args, text, controller.signal, await fixture());
+      let ingested = false, interrupted = false;
+      const stdin = (async function* () {
+        yield new TextEncoder().encode(text);
+        ingested = true;
+      })();
       registerYieldCheckpoint(controller.signal, () => {
-        if (cachedRecords.size === 256) {
-          warmed = true;
-          queueMicrotask(() => controller.abort(reason));
-        }
+        if (ingested) { interrupted = true; queueMicrotask(() => controller.abort(reason)); }
       });
-      try {
-        await assert.rejects(Promise.resolve(textCommands().find(command => command.name === "sort")!.execute(probe.context)), failure => failure === reason);
-        assert.equal(warmed, true);
-        assert.equal(cachedRecords.size, 256);
-        assert.equal(insertions, 256);
-        assert.equal(probe.stdout.length, 0);
-        assert.equal(probe.stderr.length, 0);
-      } finally { cache.mock.restore(); }
+      await assert.rejects(Promise.resolve(textCommands().find(command => command.name === "sort")!.execute({ ...probe.context, stdin })), failure => failure === reason);
+      assert.equal(ingested, true);
+      assert.equal(interrupted, true);
+      assert.equal(probe.stdout.length, 0);
+      assert.equal(probe.stderr.length, 0);
     }
   }
 });

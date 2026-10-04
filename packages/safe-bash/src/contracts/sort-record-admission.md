@@ -2,14 +2,18 @@
 
 Status: Implemented
 
-Check-mode amendment: `sort -c` and `sort -C` charge only the previous and
-incoming completed records. After a successful comparison, the previous record's
-charge is released. A separate ordinal preserves disorder diagnostics. Check
-mode does not retain comparison-cache entries or share completed records with a
-whole input chunk. This supersedes the cumulative check-mode ledger requirements
-below; general sort and merge admission are unchanged. Individual records still
-use the existing contiguous representation and line limit, so this amendment
-does not establish bounded execution for oversized records or Worker qualification.
+Current amendment: the command owner is `safe-bash-command-sort`. Completed
+records are admitted before copying the known final payload. Input caps are
+configured separately (`maxInputBytes`, `maxRecords`, unlimited by default).
+`memoryBytes` controls batch/page accounting, not accepted input size. Consumed
+record charges are released: check holds lookbehind, merge holds source heads,
+and general sort writes bounded batches to injected safe-fs runs. Oversized
+records use paged storage; locale comparisons alone retain the whole-string
+host-collator fallback. No Worker qualification is claimed.
+
+The remainder records the historical admission contract and its evidence, not
+the current fixed input limits or storage representation. The current amendment
+supersedes those limits, cumulative ledgers, vectors and contiguous-record rules.
 
 Implemented Through: `47a8017df1aab4a215fad910aec79364776c1d27`
 

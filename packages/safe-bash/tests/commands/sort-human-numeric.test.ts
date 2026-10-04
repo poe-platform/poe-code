@@ -342,33 +342,18 @@ for (const args of [["-h"], ["-n"], ["-k", "1,1"], ["-k", "1,1h"], ["-k", "1,1n"
   });
 }
 
-test("sort human numeric warmed descriptors keep yielding without replacing cached keys", async testContext => {
-  const stdin = Array.from({ length: 128 }, (_, index) => `${String(index * 73 % 128).padStart(3, "0")}K`).join("\n") + "\n";
+test("sort human numeric comparisons remain cancellable after input is fully ingested", async () => {
+  const text = Array.from({ length: 128 }, (_, index) => `${String(index * 73 % 128).padStart(3, "0")}K`).join("\n") + "\n";
   for (const args of [["-h"], ["-k1,1h"]]) {
     const controller = new AbortController();
-    const reason = new Error("cancel warmed human keys");
-    const cachedRecords = new Set<Uint8Array>();
-    let insertions = 0;
-    const set = Map.prototype.set;
-    const cache = testContext.mock.method(Map.prototype, "set", function(this: Map<unknown, unknown>, key: unknown, value: unknown) {
-      if (key instanceof Uint8Array && value !== null && typeof value === "object" && "whole" in value && "fraction" in value && "suffixRank" in value) {
-        cachedRecords.add(key);
-        insertions++;
-      }
-      return set.call(this, key, value);
-    });
-    let warmed = false;
+    const reason = new Error("cancel human numeric comparisons");
+    let ingested = false, interrupted = false;
+    const stdin = (async function* () { yield new TextEncoder().encode(text); ingested = true; })();
     registerYieldCheckpoint(controller.signal, () => {
-      if (cachedRecords.size === 128) {
-        warmed = true;
-        queueMicrotask(() => controller.abort(reason));
-      }
+      if (ingested) { interrupted = true; queueMicrotask(() => controller.abort(reason)); }
     });
-    try {
-      await assert.rejects(run("sort", args, { stdin, signal: controller.signal }), failure => failure === reason);
-      assert.equal(warmed, true);
-      assert.equal(cachedRecords.size, 128);
-      assert.equal(insertions, 128);
-    } finally { cache.mock.restore(); }
+    await assert.rejects(run("sort", args, { stdin, signal: controller.signal }), failure => failure === reason);
+    assert.equal(ingested, true);
+    assert.equal(interrupted, true);
   }
 });

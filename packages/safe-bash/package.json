@@ -2145,6 +2145,16 @@
             "@lezer/css": "^1.3.0"
           },
           "portable": true
+        },
+        "safe-bash-command-sort": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-io-engine": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -3456,6 +3466,12 @@
       "workerd": "./dist/commands/ast-grep/index.js",
       "browser": "./dist/commands/ast-grep/index.js",
       "import": "./dist/commands/ast-grep/index.js"
+    },
+    "./commands/sort": {
+      "types": "./dist/commands/sort/index.d.ts",
+      "workerd": "./dist/commands/sort/index.js",
+      "browser": "./dist/commands/sort/index.js",
+      "import": "./dist/commands/sort/index.js"
     }
   },
   "sideEffects": [
@@ -3721,7 +3737,8 @@
     "@poe-code/audio-ast": "*",
     "safe-bash-command-rgrep": "*",
     "safe-bash-command-ast-grep": "*",
-    "@poe-code/ts-ast": "*"
+    "@poe-code/ts-ast": "*",
+    "safe-bash-command-sort": "*"
   },
   "main": "./dist/index.js",
   "imports": {

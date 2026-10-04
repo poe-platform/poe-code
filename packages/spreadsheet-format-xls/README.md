@@ -28,14 +28,16 @@ demand. Decrypted replacements use fixed staging blocks, with transient plaintex
 erased after staging. String CONTINUE payloads decode one record at a time.
 Pending formulas and name records retain source coordinates rather than payload
 arrays. Translation loads one format-bounded token stream and replays auxiliary
-arrays, cached areas and label records on demand, including both name-binding passes.
+arrays, cached areas and label records on demand, including both name-binding passes. Font, number-format and XF catalogs share a
+fixed index cache and caller backing. XF entries own their fixed-width style fields;
+font metrics and styles replay on demand.
 Decoded shared text and rich runs use caller storage with fixed descriptor and
 payload windows for lookup. Scalar imports can replay ordered cells from caller
 storage into streaming exporters, preserving cell styles and metadata. Formula
 workbooks and global transformations keep the workbook path. Scalar row lookup
 and insertion order also use caller storage, with rows and columns replayed to source
 exporters. Formula/name identity maps, decoded expressions and individual array/label
-values, workbook/style state, stream names and interpreted property/encryption
+values, final workbook metadata/styles, stream names and interpreted property/encryption
 payloads still remain resident; this
 does not yet provide bounded memory for the complete conversion.
 Worksheet password verifiers survive BIFF7/8 conversion and edits through

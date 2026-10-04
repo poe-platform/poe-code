@@ -1,3 +1,4 @@
+import { createBiffCatalogs } from "./biff-catalogs.js";
 import { biffFillPatterns } from "./biff-fill-patterns.js";
 import { createBiffCellSource } from "./biff-cell-source.js";
 import type { WorkbookSource } from "@poe-code/spreadsheet-engine/codecs/types";
@@ -108,7 +109,6 @@ interface PendingSheet {
     expression?: string; keyRow: number; keyColumn: number }[];
 }
 interface BoundSheet { offset: number; name: string; visibility: PendingSheet["visibility"]; type: number; }
-interface Font { name: string; attributes: Record<string, number>; color: number; codepage: number; }
 
 function revision(record: BiffRecord): number {
   record.data.check(0, 4);
@@ -214,13 +214,14 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
   const legacyExternalSheets: (string | null | undefined)[] = [];
   const legacyExternalLinks = new Map<number, LegacyExternalLink>();
   const supbooks: { kind: "local" | "addin" | "external"; names: PendingExternalName[]; workbook?: string; sheets: string[] }[] = [], externalReferences: { book: number; first: number; last: number }[] = [];
-  const fontTable: Font[] = [], xfTable: { data: Binary; revision: number }[] = [], palette = [...defaultPalette];
-  const columnMetrics = () => {
-    const xf = xfTable[0], font = xf && fontTable[xf.revision >= 5 ? xf.data.u16(0) : xf.data.u8(0)];
+  const { fonts: fontTable, xfs: xfTable, formats: formatTable } = createBiffCatalogs(context);
+  const palette = [...defaultPalette];
+  const columnMetrics = async () => {
+    const xf = await xfTable.get(0), data = xf && new Binary(Uint8Array.from(xf.bytes));
+    const font = data && await fontTable.get(xf!.revision >= 5 ? data.u16(0) : data.u8(0));
     const [unit, baseline, step] = biffFontWidth(font?.name ?? "Arial");
     return { unit, baseline, step, scale: (font?.attributes.Unit ?? 10) / 10 };
   };
-  const formatTable = new Map<number, string>(Object.entries(formats).map(([id, code]) => [Number(id), code]));
   const sharedStrings: { text: string; richText?: readonly RichTextRun[] }[] = [];
   const storedStrings = "get" in records ? createBiffSharedStrings(context) : undefined;
   const scopes: { type: number; sheet?: PendingSheet; revision: number }[] = [];
@@ -396,18 +397,22 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
       const offset = ver >= 4 ? 2 : 0, length = ver >= 8 ? data.u16(offset) : data.u8(offset);
       const start = offset + (ver >= 8 ? 2 : 1), parts = await stringCursor(index, start); index = parts.next;
       const cursor = parts.cursor;
-      formatTable.set(id, accountText(ver >= 8 ? (await cursor.unicode(length)).text : await cursor.legacy(length))); continue;
+      await formatTable.set(id, accountText(ver >= 8 ? (await cursor.unicode(length)).text : await cursor.legacy(length))); continue;
     }
-    if ([0xe0, 0x43, 0x243, 0x443].includes(opcode)) { xfTable.push({ data, revision: ver }); continue; }
+    if ([0xe0, 0x43, 0x243, 0x443].includes(opcode)) {
+      // BIFF2-8 style interpretation uses at most the first 20 bytes. Keep short
+      // records short so validation still happens at the original lookup point.
+      await xfTable.append({ bytes: Array.from(data.bytes.subarray(0, 20)), revision: ver }); continue;
+    }
     if ([0x31, 0x231].includes(opcode)) {
       const flags = data.u16(2), modern = ver >= 5, start = modern ? 15 : ver >= 3 ? 7 : 5;
       const length = data.u8(start - 1), cursor = new BiffStrings([new Binary(data.slice(start, data.bytes.length - start))], context, codepage);
-      if (fontTable.length === 4) fontTable.push(fontTable[0]!);
+      if (fontTable.count === 4) await fontTable.append((await fontTable.get(0))!);
       const charset = modern ? data.u8(12) : 1;
       const fontCodepages: Readonly<Record<number, number>> = { 0: override ?? 1252, 1: 1252, 255: 1252, 77: 10000,
         128: 932, 129: 949, 130: 1361, 134: 936, 136: 950, 161: 1253, 162: 1254, 163: 1258, 177: 1255,
         178: 1256, 186: 1257, 204: 1251, 222: 874, 238: 1250 };
-      fontTable.push({ name: accountText(ver >= 8 ? cursor.unicode(length).text : cursor.legacy(length)),
+      await fontTable.append({ name: accountText(ver >= 8 ? cursor.unicode(length).text : cursor.legacy(length)),
         color: ver >= 3 ? data.u16(4) : 0x7fff,
         codepage: fontCodepages[charset] ?? 1252,
         attributes: { Unit: data.u16(0) / 20, Bold: modern ? data.u16(6) >= 700 ? 1 : 0 : flags & 1 ? 1 : 0,
@@ -543,8 +548,9 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
         await addCell(sheet, data, { kind: "string", value: string.text }, string.richText ? { richText: string.richText } : {});
       } else {
         const length = opcode === 4 ? data.u8(7) : data.u16(6);
-        const xf = xfTable[ver === 2 ? data.u8(4) & 63 : data.u16(4)];
-        const font = xf ? fontTable[xf.revision >= 5 ? xf.data.u16(0) : xf.data.u8(0)] : undefined;
+        const xf = await xfTable.get(ver === 2 ? data.u8(4) & 63 : data.u16(4));
+        const xfData = xf && new Binary(Uint8Array.from(xf.bytes));
+        const font = xfData ? await fontTable.get(xf!.revision >= 5 ? xfData.u16(0) : xfData.u8(0)) : undefined;
         const parts = await stringCursor(index, 8, font?.codepage ?? codepage); index = parts.next;
         const string = ver >= 8 ? await parts.cursor.unicode(length) : { text: await parts.cursor.legacy(length) };
         await addCell(sheet, data, { kind: "string", value: accountText(string.text) }, string.richText ? { richText: string.richText } : {});
@@ -655,14 +661,14 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
       await retain(record, sheet.unsupportedRecords, false); continue;
     }
     if (opcode === 0x55) {
-      const { unit, scale } = columnMetrics();
+      const { unit, scale } = await columnMetrics();
       sheet.view.defaultColumnWidth = data.u16(0) * unit * scale * 72 / 96;
       await retain(record, sheet.unsupportedRecords, false); continue;
     }
     if (opcode === 0x7d) {
       const first = data.u16(0), last = data.u16(2), flags = data.u16(8);
       if (last < first || last > 256) invalidBiff("invalid column range");
-      const { unit, baseline, step, scale } = columnMetrics();
+      const { unit, baseline, step, scale } = await columnMetrics();
       const width = (8 * unit + (data.u16(4) - baseline) / step) * (scale * 72 / 96);
       for (let column = first; column <= Math.min(last, 255); column++) await sheet.columns.push({ index: column,
         sizePoints: width <= 0 ? Number(sheet.view.defaultColumnWidth ?? 48) : Math.max(4, width), hidden: width <= 0 || !!(flags & 1), outlineLevel: flags >> 8 & 7, collapsed: !!(flags & 0x1000) }); continue;
@@ -833,12 +839,14 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
       index < 8 ? defaultPalette[index] ?? "000000" : palette[index - 8] ?? "000000";
     return [0, 2, 4].map(at => { const byte = rgb.slice(at, at + 2); return byte === "00" ? "0" : (byte + byte).toUpperCase(); }).join(":");
   };
-  const style = (index: number): { format?: string; style?: Readonly<Record<string, ImportedValue>> } => {
-    const xf = xfTable[index]; if (!xf) return {};
-    const data = xf.data;
+  const style = async (index: number): Promise<{ format?: string; style?: Readonly<Record<string, ImportedValue>> }> => {
+    const xf = await xfTable.get(index); if (!xf) return {};
+    const data = new Binary(Uint8Array.from(xf.bytes));
     const legacy = xf.revision < 5;
     data.check(0, legacy ? xf.revision >= 3 ? 12 : 4 : xf.revision >= 8 ? 20 : 16);
-    const font = fontTable[legacy ? data.u8(0) : data.u16(0)], format = formatTable.get(legacy ? xf.revision >= 3 ? data.u8(1) : data.u8(2) & 63 : data.u16(2)) ?? "General";
+    const font = await fontTable.get(legacy ? data.u8(0) : data.u16(0));
+    const formatId = legacy ? xf.revision >= 3 ? data.u8(1) : data.u8(2) & 63 : data.u16(2);
+    const format = await formatTable.get(formatId) ?? formats[formatId] ?? "General";
     const flags = legacy ? xf.revision >= 3 ? data.u8(2) : data.u8(1) >> 6 : data.u16(4), alignment = data.u8(legacy ? xf.revision >= 3 ? 4 : 3 : 6);
     const attrs: Record<string, ImportedValue> = { Locked: flags & 1 ? 1 : 0, Hidden: flags & 2 ? 1 : 0, WrapText: alignment & 8 ? 1 : 0,
       HAlign: ["GNM_HALIGN_GENERAL", "GNM_HALIGN_LEFT", "GNM_HALIGN_CENTER", "GNM_HALIGN_RIGHT", "GNM_HALIGN_FILL", "GNM_HALIGN_JUSTIFY", "GNM_HALIGN_CENTER_ACROSS_SELECTION", "GNM_HALIGN_DISTRIBUTED"][alignment & 7]!,
@@ -930,7 +938,7 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
             await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: error.message });
           }
         }
-        yield { ...cell, ...style(pending.xf) };
+        yield { ...cell, ...await style(pending.xf) };
       }
     }
     if (source) source.readers.set(sheet.id, renderCells);
@@ -958,7 +966,7 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
     await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `BIFF encrypted ancillary stream ${name} retained without interpretation` });
   }
   const properties = propertyStreams ? await readBiffProperties(propertyStreams, context, accountText, accountFormulaWork, unsupported) : {};
-  const defaultStyle = style(0).style?.gnumeric;
+  const defaultStyle = (await style(0)).style?.gnumeric;
   return { sheets: resultSheets, dateSystem, calculationMode, automaticLabelLookup, iteration: { enabled: iterationEnabled, maximum, tolerance },
     ...(defaultStyle === undefined ? {} : { view: { defaultStyle } }),
     ...(Object.keys(properties).length ? { properties } : {}),

@@ -1,3 +1,4 @@
+import { retainTextPdf } from "./retained-pdf.js";
 import { RetainedPlainText } from "./retained-plain.js";
 import { retainTextDocx } from "./retained-docx.js";
 import { resolvePath } from "@poe-code/safe-fs/core";
@@ -22,10 +23,10 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
   if (!capabilities.atomicFileStaging || !capabilities.retainedStagingWrite || !capabilities.retainedStagingCleanup || !capabilities.atomicStagingAncestry || !capabilities.atomicStagedFileMutation || !capabilities.synchronousFollowedStagingResolution || !capabilities.guardedStagingPublication) return undefined;
   const colon = convertSpec.indexOf(":"), nextColon = colon < 0 ? -1 : convertSpec.indexOf(":", colon + 1);
   const format = (colon < 0 ? convertSpec : convertSpec.slice(0, colon)).toLowerCase();
-  const filter = (colon < 0 ? "" : convertSpec.slice(colon + 1, nextColon < 0 ? undefined : nextColon)) || (format === "csv" ? "Text - txt - csv (StarCalc)" : `${format}_Export`);
+  const filter = (colon < 0 ? "" : convertSpec.slice(colon + 1, nextColon < 0 ? undefined : nextColon)) || (format === "csv" ? "Text - txt - csv (StarCalc)" : format === "pdf" ? "writer_pdf_Export" : `${format}_Export`);
   const structured = [".pdf", ".docx", ".odt", ".ods", ".odp", ".xlsx", ".pptx", ".html", ".htm", ".csv"];
-  if (!inputs.every(input => input.toLowerCase().endsWith(".rtf") ? format !== "pdf" :
-    !structured.some(extension => input.toLowerCase().endsWith(extension)) && !["pdf", "xlsx", "csv"].includes(format))) return undefined;
+  if (!inputs.every(input => input.toLowerCase().endsWith(".rtf") ? true :
+    !structured.some(extension => input.toLowerCase().endsWith(extension)) && !["xlsx", "csv"].includes(format))) return undefined;
   return withSofficeInputs(inputs, context, limits, async (storage, sources) => {
     const original = new Map(sources), pending = new Map<string, SofficeSnapshot>(), messages: string[] = [];
     const rtf = new RetainedRtfText(storage, signal), plain = new RetainedPlainText(storage, signal);
@@ -40,7 +41,7 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
       const stem = dot >= 0 && dot < basename.length - 1 ? basename.slice(0, dot) : basename;
       const path = resolvePath(cwd, outdir, `${stem}.${format}`);
       let output = source;
-      if (input.toLowerCase().endsWith(".rtf") || input.toLowerCase().endsWith(".md") || format === "html" || format === "docx") {
+      if (input.toLowerCase().endsWith(".rtf") || input.toLowerCase().endsWith(".md") || format === "html" || format === "docx" || format === "pdf") {
         const rich = input.toLowerCase().endsWith(".rtf"), text = rich ? rtf : plain, parsed = rich ? parsedRtf : parsedPlain;
         let retained = parsed.get(source);
         if (!retained) { retained = await text.retain(source.position, source.size); parsed.set(source, retained); }
@@ -58,7 +59,7 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
         }
         // Metadata reads may allocate in the same backing store. Reserve the
         // complete encoded range first so publication and later inputs are contiguous.
-        const archive = format === "docx" ? await retainTextDocx(storage, text, snapshot, signal) : undefined;
+        const archive = format === "docx" ? await retainTextDocx(storage, text, snapshot, signal) : format === "pdf" ? await retainTextPdf(storage, text, snapshot, stem, context, nextColon < 0 ? undefined : convertSpec.slice(nextColon + 1)) : undefined;
         const outputChunks = archive ? () => archive.read() : chunks;
         let size = archive?.size ?? 0;
         if (!archive) for await (const bytes of outputChunks()) {

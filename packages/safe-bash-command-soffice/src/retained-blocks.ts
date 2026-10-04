@@ -3,5 +3,5 @@ export interface RetainedTextSnapshot { readonly firstPage: number; readonly fir
 
 export interface RetainedTextBlocks {
   isHeading(snapshot: RetainedTextSnapshot, index: number): Promise<boolean>;
-  streamBlock(snapshot: RetainedTextSnapshot, index: number): AsyncIterable<Uint8Array>;
+  streamBlock(snapshot: RetainedTextSnapshot, index: number, range?: { readonly start: number; readonly length: number }): AsyncIterable<Uint8Array>;
 }

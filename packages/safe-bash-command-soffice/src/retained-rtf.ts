@@ -70,10 +70,11 @@ export class RetainedRtfText {
       yield* this.streamBlock(snapshot, index);
     }
   }
-  async *streamBlock(snapshot: RetainedTextSnapshot, index: number): AsyncGenerator<Uint8Array> {
+  async *streamBlock(snapshot: RetainedTextSnapshot, index: number, range?: { readonly start: number; readonly length: number }): AsyncGenerator<Uint8Array> {
     const { storage, signal, pages, blocks } = this, block = snapshot.firstBlock + index;
-    const end = Number(await blocks.get(BigInt(block * 2 + 1)));
-    for (let offset = Number(await blocks.get(BigInt(block * 2))); offset < end;) {
+    const first = Number(await blocks.get(BigInt(block * 2))) + (range?.start ?? 0);
+    const end = Math.min(Number(await blocks.get(BigInt(block * 2 + 1))), first + (range?.length ?? Infinity));
+    for (let offset = first; offset < end;) {
       signal.throwIfAborted();
       const at = Number(await pages.get(BigInt(snapshot.firstPage + Math.floor(offset / 4096))));
       const size = Math.min(4096 - offset % 4096, end - offset);

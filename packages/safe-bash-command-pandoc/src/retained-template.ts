@@ -1,3 +1,4 @@
+import {retainInput} from "./retained-input.js";
 import type {RetainedJsonOptions} from "./retained-json-options.js";
 import type {PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
@@ -15,11 +16,13 @@ export class RetainedTemplate {
   async acquire(source: InputSource): Promise<void> {
     this.context.charge("includes", 1);
     this.start = this.storage.allocate(0);
-    await this.context.decodeUtf8To("bytes" in source ? [source.bytes] : source.chunks, async chunk => {
+    const references = Number.isFinite(this.context.limits.references), chunks = "bytes" in source ? [source.bytes] : source.chunks;
+    await this.context.decodeUtf8To(references ? retainInput(chunks, this.context, this.storage, ["inputBytes", "resourceBytes"]) : chunks, async chunk => {
+      if (!this.length) this.start = this.storage.allocate(0);
       const bytes = new Uint8Array(chunk.length * 2), view = new DataView(bytes.buffer);
       for (let i = 0; i < chunk.length; i++) view.setUint16(i * 2, chunk.charCodeAt(i), true);
       await this.storage.append(bytes); this.length += chunk.length;
-    }, ["inputBytes", "resourceBytes"]);
+    }, references ? [] : ["inputBytes", "resourceBytes"]);
   }
   private async char(position: number): Promise<string> {
     if (position >= this.length) return "";
@@ -65,16 +68,18 @@ export class RetainedTemplate {
   async render(text: BackedText, values: Readonly<Record<string, TextRange>>, variables?: RetainedJsonOptions): Promise<TextRange> {
     const context = this.context;
     return text.from((async function* (this: RetainedTemplate) {
-      let cursor = 0, end = this.length, depth = 0, stack = 0;
+      let cursor = 0, end = this.length, depth = 0, stack = 0, length = 0;
+      const append = (units: number) => {length += units; context.bound("outputBytes", length);};
       while (true) {
         if (cursor >= end) {
           if (!stack) break;
-          const bytes = await this.storage.read(stack, 80), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+          const bytes = await this.storage.read(stack, 88), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
           const item = view.getFloat64(64, true), arrayEnd = view.getFloat64(72, true);
+          length += view.getFloat64(80, true); context.bound("outputBytes", length);
           if (item && arrayEnd) {
             const next = (await variables!.tree.describe(item)).end;
             if (next < arrayEnd) {
-              view.setFloat64(64, next, true); await this.storage.write(stack, bytes);
+              view.setFloat64(64, next, true); view.setFloat64(80, length, true); await this.storage.write(stack, bytes); length = 0;
               cursor = view.getFloat64(32, true); end = view.getFloat64(40, true); continue;
             }
           }
@@ -83,13 +88,13 @@ export class RetainedTemplate {
         }
         await context.cooperate();
         const open = await this.find(cursor, end);
-        if (open < 0) {yield* this.slice(cursor, end); cursor = end; continue;}
-        yield* this.slice(cursor, open);
+        if (open < 0) {append(end - cursor); yield* this.slice(cursor, end); cursor = end; continue;}
+        append(open - cursor); yield* this.slice(cursor, open);
         const close = await this.find(open + 1, end);
         if (close < 0) context.fail("E_PARSE", "Unclosed template interpolation");
         const token = open + 1;
         cursor = close + 1;
-        if (token === close) {yield "$"; continue;}
+        if (token === close) {append(1); yield "$"; continue;}
         const loop = await this.prefix(token, close, "for(") && await this.char(close - 1) === ")";
         const condition = await this.prefix(token, close, "if(") && await this.char(close - 1) === ")";
         let value: TextRange | undefined, map = false, variable = 0;
@@ -97,7 +102,7 @@ export class RetainedTemplate {
         const keyEnd = loop || condition ? close - 1 : close;
         for (let scope = stack; scope;) {
           await context.cooperate();
-          const bytes = await this.storage.read(scope, 80), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+          const bytes = await this.storage.read(scope, 88), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
           const item = view.getFloat64(64, true);
           if (item && await this.equalChunks(keyStart, keyEnd, this.slice(view.getFloat64(48, true), view.getFloat64(56, true)))) {variable = item; break;}
           scope = view.getFloat64(0, true);
@@ -149,9 +154,9 @@ export class RetainedTemplate {
           const selectedEnd = !loop && truthy && alternate >= 0 ? alternate : finish;
           if (selectedStart >= 0) {
             context.bound("depth", depth + 1);
-            const bytes = new Uint8Array(80), view = new DataView(bytes.buffer);
-            [stack, finishEnd, end, depth, selectedStart, selectedEnd, keyStart, keyEnd, loop ? item : 0, arrayEnd].forEach((n, i) => view.setFloat64(i * 8, n, true));
-            stack = await this.storage.append(bytes); depth++; cursor = selectedStart; end = selectedEnd;
+            const bytes = new Uint8Array(88), view = new DataView(bytes.buffer);
+            [stack, finishEnd, end, depth, selectedStart, selectedEnd, keyStart, keyEnd, loop ? item : 0, arrayEnd, length].forEach((n, i) => view.setFloat64(i * 8, n, true));
+            stack = await this.storage.append(bytes); length = 0; depth++; cursor = selectedStart; end = selectedEnd;
           } else cursor = finishEnd;
         } else {
           let invalid = false;
@@ -167,8 +172,12 @@ export class RetainedTemplate {
           if (map) context.fail("E_UNSUPPORTED_FEATURE", "Template map interpolation is unsupported");
           if (value || variable) {
             const trim = await this.equal(token, close, "body") && await this.char(cursor) === "\n";
+            const projected = variable ? await text.from(variables!.stringify(variable)) : value!;
+            let last = "";
+            for await (const chunk of text.chunks(projected)) last = chunk;
+            append(projected.units - (trim && last.endsWith("\n") ? 1 : 0));
             let pending = "";
-            for await (const chunk of variable ? variables!.stringify(variable) : text.chunks(value!)) {if (pending) yield pending; pending = chunk;}
+            for await (const chunk of text.chunks(projected)) {if (pending) yield pending; pending = chunk;}
             if (pending) yield trim && pending.endsWith("\n") ? pending.slice(0, -1) : pending;
           }
         }

@@ -1,3 +1,4 @@
+import {retainInput} from "./retained-input.js";
 import {retainTypedMetadata} from "./retained-typed-metadata.js";
 import {RetainedJsonOptions} from "./retained-json-options.js";
 import {RetainedTemplate} from "./retained-template.js";
@@ -38,9 +39,10 @@ export class RetainedOptions {
       for (const [sources, target] of [[options.includeInHeader, result.header], [options.includeBeforeBody, result.before], [options.includeAfterBody, result.after]] as const) {
         for (const source of sources ?? []) {
           context.charge("includes", 1);
-          await context.decodeUtf8To("bytes" in source ? [source.bytes] : source.chunks, async chunk => {
+          const references = Number.isFinite(context.limits.references), chunks = "bytes" in source ? [source.bytes] : source.chunks;
+          await context.decodeUtf8To(references ? retainInput(chunks, context, storage, ["inputBytes", "resourceBytes"]) : chunks, async chunk => {
             await result.text.append(target, await result.text.from([chunk]));
-          }, ["inputBytes", "resourceBytes"]);
+          }, references ? [] : ["inputBytes", "resourceBytes"]);
         }
       }
       if (options.metadata !== undefined) result.typedMetadata = await retainTypedMetadata(options.metadata, context, working, storage);

@@ -1,3 +1,4 @@
+import {retainInput} from "./retained-input.js";
 import {validateRetainedWire} from "./retained-wire.js";
 import {reserveRetainedAstBudgets, type RetainedAstUsage} from "./retained-ast-budgets.js";
 import {retainedUtf8} from "./retained-utf8.js";
@@ -78,19 +79,7 @@ export async function readRetainedJson(input: InputSource, context: ExecutionCon
         yield part.value;
       }
     };
-    const acquired = async function* () {
-      const start = scratch.allocate(0); let length = 0;
-      await context.consume(bytes(), async part => {
-        // Match input acquisition's fixed blocks independently of producer
-        // chunk boundaries, while retaining bytes only in caller storage.
-        const count = Math.ceil((length + part.length) / 4096) - Math.ceil(length / 4096);
-        for (let index = 0; index < count; index++) context.charge("references", 1);
-        await scratch.append(part); length += part.length;
-      }, ["inputBytes"]);
-      for (let offset = 0; offset < length; offset += 16384)
-        yield await scratch.read(start + offset, Math.min(16384, length - offset));
-    };
-    const parsedText = decodeInput && (Number.isFinite(context.limits.text) || Number.isFinite(context.limits.references)) ? retainedUtf8(references ? acquired() : bytes(), context, scratch, chargeInput && !references ? ["inputBytes"] : [], onInputDecoded) : text;
+    const parsedText = decodeInput && (Number.isFinite(context.limits.text) || Number.isFinite(context.limits.references)) ? retainedUtf8(references ? retainInput(bytes(), context, scratch, ["inputBytes"]) : bytes(), context, scratch, chargeInput && !references ? ["inputBytes"] : [], onInputDecoded) : text;
     await parseBackedJson(parsedText, tree, scratch, units => context.cooperate(units), (offset, message) => {
       throw new PandocError("E_AST", "read", message, "json", `$@${offset}`);
     }, async (node, offset) => {

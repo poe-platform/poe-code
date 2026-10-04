@@ -81,12 +81,27 @@ for (const [args, stdout] of [
  assert.deepEqual(await run(args), { exitCode: 0, stdout, stderr: '' });
 });
 
-test('slice last works with default unbounded limits and checks explicit bounds', async () => {
- assert.deepEqual(await run(['slice', '-L', '1']), { exitCode: 0, stdout: 'name,score\ncarol,2\n', stderr: '' });
- assert.equal((await run(['slice', '-L', '0'])).stdout, 'name,score\n');
- assert.equal((await run(['slice', '-L', '4'])).stdout, 'name,score\nbob,2\nalice,10\ncarol,2\n');
- assert.equal((await run(['slice', '-L', '2'], undefined, { maxLastRows: 1 })).exitCode, 1);
- assert.equal((await run(['slice', '-L', '18446744073709551615'])).exitCode, 1);
+for (const flag of ['-L', '--last']) test(`slice ${flag} honors unbounded and finite row limits`, async () => {
+ const all = 'name,score\nbob,2\nalice,10\ncarol,2\n';
+ for (const limits of [{}, { maxLastRows: Infinity }]) {
+  for (const [count, stdout] of [
+   ['0', 'name,score\n'],
+   ['2', 'name,score\nalice,10\ncarol,2\n'],
+   ['4', all],
+   [String(Number.MAX_SAFE_INTEGER), all],
+  ]) assert.deepEqual(await run(['slice', flag, count!], undefined, limits), { exitCode: 0, stdout, stderr: '' });
+  for (const count of ['9007199254740992', '18446744073709551615']) {
+   assert.deepEqual(await run(['slice', flag, count], undefined, limits), {
+    exitCode: 1, stdout: '', stderr: 'xan slice: maxLastRows limit exceeded\n',
+   });
+  }
+ }
+ assert.deepEqual(await run(['slice', flag, '2'], undefined, { maxLastRows: 2 }), {
+  exitCode: 0, stdout: 'name,score\nalice,10\ncarol,2\n', stderr: '',
+ });
+ assert.deepEqual(await run(['slice', flag, '3'], undefined, { maxLastRows: 2 }), {
+  exitCode: 1, stdout: '', stderr: 'xan slice: maxLastRows limit exceeded\n',
+ });
 });
 
 for (const [args, expected] of [

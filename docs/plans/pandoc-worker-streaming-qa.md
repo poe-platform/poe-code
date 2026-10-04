@@ -648,7 +648,11 @@ Remaining ownership and exit gates (proposed coordination split):
   Grow path depth and component width independently. Resource directory and URI
   normalization must avoid whole-path component arrays and decoded-character
   arrays while preserving parent traversal rejection, one-pass percent decoding
-  and tilde rules. The required final filesystem path string remains resident.
+  and tilde rules. Ancestor inspection, embedded-key validation, basename
+  selection and extraction URL encoding must likewise avoid component arrays.
+  Verify root-first inspection, immediate rejection of symlink/non-directory
+  ancestors, literal percent signs in media keys and no writes after rejection.
+  The required final filesystem path string remains resident.
 - Final exits: run the composed public SDK/command workerd matrix without Node
   compatibility, then the increasing-size and concurrent deployed Cloudflare
   cohorts above. Record actual memory, CPU and first-byte measurements. Local

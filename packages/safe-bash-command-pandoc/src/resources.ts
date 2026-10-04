@@ -19,6 +19,24 @@ function* pathComponents(path: string): Generator<string> {
   }
 }
 
+function hasControlCharacter(value: string): boolean {
+  for (let index = 0; index < value.length; index++) {
+    const unit = value.charCodeAt(index);
+    if (unit < 32 || unit === 127) return true;
+  }
+  return false;
+}
+
+function encodeResourcePath(path: string): string {
+  let result = "", first = true;
+  for (const part of pathComponents(path)) {
+    if (!first) result += "/";
+    result += encodeURIComponent(part);
+    first = false;
+  }
+  return result;
+}
+
 /** VFS path spelling, deliberately independent of URI decoding. */
 export function resourceDirectory(path: string, cwd = "/"): string {
   if (!path || path.includes("\\") || path.includes(":") || path.includes("\0") || path.startsWith("~"))
@@ -42,12 +60,8 @@ export function localResourceTarget(url: string, context: ExecutionContext): {na
     context.checkpoint();
     let decoded: string;
     try {decoded = decodeURIComponent(component);} catch {return context.fail("E_CAPABILITY", "Invalid image URI escape");}
-    if (decoded.includes("/") || decoded.includes("\\") || decoded.includes(":"))
+    if (decoded.includes("/") || decoded.includes("\\") || decoded.includes(":") || hasControlCharacter(decoded))
       context.fail("E_CAPABILITY", "Invalid image resource component");
-    for (let index = 0; index < decoded.length; index++) {
-      const unit = decoded.charCodeAt(index);
-      if (unit < 32 || unit === 127) context.fail("E_CAPABILITY", "Invalid image resource component");
-    }
     if (!decoded || decoded === ".") continue;
     if (decoded === "..") {
       if (!name) context.fail("E_CAPABILITY", "Image resource escapes its search directory");
@@ -60,26 +74,31 @@ export function localResourceTarget(url: string, context: ExecutionContext): {na
 
 function mediaKeyBasename(key: string, context: ExecutionContext): string {
   // Media keys are literal names, not percent-encoded URIs.
-  if (!key || key.startsWith("/") || key.startsWith("~") || key.includes("\\") || key.includes(":") || key.split("/").some(p => !p || p === "." || p === "..") || [...key].some(ch => ch.charCodeAt(0) < 32 || ch.charCodeAt(0) === 127)) context.fail("E_CAPABILITY", "Unsafe embedded resource key");
-  return key.split("/").at(-1)!;
+  if (!key || key.startsWith("/") || key.startsWith("~") || key.includes("\\") || key.includes(":") || hasControlCharacter(key))
+    context.fail("E_CAPABILITY", "Unsafe embedded resource key");
+  for (const part of pathComponents(key)) {
+    if (!part || part === "." || part === "..") context.fail("E_CAPABILITY", "Unsafe embedded resource key");
+  }
+  return key.slice(key.lastIndexOf("/") + 1);
 }
 
 export async function inspectResourcePath(fs: ResourceFileSystem, path: string, context: ExecutionContext): Promise<string | undefined> {
-  let current = "";
-  let type: string | undefined;
-  const parts = path.split("/").filter(Boolean);
-  for (let i = 0; i <= parts.length; i++) {
-    current = i === 0 ? "/" : (current === "/" ? "" : current) + "/" + parts[i - 1]!;
+  let current = "/";
+  const components = pathComponents(path);
+  for (;;) {
     context.checkpoint();
-    type = (await context.call(async () => {
+    const type = (await context.call(async () => {
       try {return await fs.lstat(current, context.signal ? {signal: context.signal} : {});}
       catch (error) {if (missing(error)) return undefined; throw error;}
     }))?.type;
     if (type === undefined) return undefined;
     if (type === "symlink") context.fail("E_CAPABILITY", "Symlink image and extraction paths are unsupported");
-    if (i < parts.length && type !== "directory") context.fail("E_IO", "Resource ancestor is not a directory");
+    let next = components.next();
+    while (!next.done && !next.value) next = components.next();
+    if (next.done) return type;
+    if (type !== "directory") context.fail("E_IO", "Resource ancestor is not a directory");
+    current = (current === "/" ? "" : current) + "/" + next.value;
   }
-  return type;
 }
 
 type ResourceData = {bytes: Uint8Array} | {position: number; length: number};
@@ -178,7 +197,7 @@ export class ResourceSession {
       const entry = this.allocate(this.destination === undefined ? "resource" : mediaKeyBasename(key, ctx), {bytes});
       embeddedEntries.set(key, entry);
       if (embedImages) {
-        const id = entry.path.split("/").map(encodeURIComponent).join("/");
+        const id = encodeResourcePath(entry.path);
         ctx.charge("references", 1);
         ctx.charge("retainedBytes", id.length * 2 + 64);
         imageResources.set(id, bytes);
@@ -252,7 +271,7 @@ export class ResourceSession {
             for (const chunk of chunks) {bytes.set(chunk, offset); offset += chunk.length; await ctx.cooperate();}
             data = {bytes};
           }
-          entry = this.allocate(target.name.split("/").at(-1)!, data);
+          entry = this.allocate(target.name.slice(target.name.lastIndexOf("/") + 1), data);
           this.bag.set(key, entry);
           break;
         }
@@ -261,7 +280,7 @@ export class ResourceSession {
           ctx.report({code: "W_RESOURCE_MISSING", operation: ctx.operation, message: `Missing image resource: ${url}`, location});
           return image;
         }
-        const outputUrl = entry.path.split("/").map(encodeURIComponent).join("/") + target.suffix;
+        const outputUrl = encodeResourcePath(entry.path) + target.suffix;
         if (embedImages && !imageResources.has(outputUrl)) {
           ctx.charge("references", 1);
           ctx.charge("retainedBytes", outputUrl.length * 2 + 64);

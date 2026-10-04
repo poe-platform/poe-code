@@ -1,6 +1,8 @@
 import {expect, it, vi} from "vitest";
 import {ExecutionContext} from "./execution.js";
-import {localResourceTarget, resourceDirectory} from "./resources.js";
+import {writeDocument} from "./engine.js";
+import type {ResourceFileSystem} from "./types.js";
+import {inspectResourcePath, localResourceTarget, resourceDirectory} from "./resources.js";
 
 it.each([32, 8192])("normalizes %i path components without a whole-path split", count => {
   const input = "a/../".repeat(count) + "folder/p%20x.png";
@@ -56,4 +58,46 @@ it.each([
 });
 it.each([["../x", "/a"], ["x", "/a/../b"]])("rejects parent directory traversal for %s under %s", (input, cwd) => {
   expect(() => resourceDirectory(input, cwd)).toThrow(expect.objectContaining({code: "E_OPTION"}));
+});
+
+
+it("inspects ancestors in order without collecting the complete path", async () => {
+  const path = "/" + "folder/".repeat(512) + "file";
+  const context = new ExecutionContext("convert", {});
+  let inspected = 0;
+  const fs: ResourceFileSystem = {
+    async lstat(current) {
+      expect(current).toBe(inspected === 0 ? "/" : inspected <= 512 ? "/" + "folder/".repeat(inspected).slice(0, -1) : path);
+      inspected++;
+      return {type: current === path ? "file" : "directory"};
+    }, async mkdir() {}, async writeFile() {}
+  };
+  const original = String.prototype.split;
+  const split = vi.spyOn(String.prototype, "split").mockImplementation(function(this: string, ...args: Parameters<typeof original>) {
+    if (this === path) throw new Error("Whole-path component array forbidden");
+    return original.apply(this, args);
+  });
+  try {expect(await inspectResourcePath(fs, path, context)).toBe("file"); expect(inspected).toBe(514);}
+  finally {split.mockRestore(); await context.close();}
+});
+
+it("extracts literal media keys and encodes destinations without path arrays", async () => {
+  const id = "folder/".repeat(512) + "p%20.png", destination = "/" + "deep/".repeat(128) + "output x";
+  const path = destination + "/p%20.png", bytes = Uint8Array.of(1, 2, 3);
+  const writeFile = vi.fn(async (_path: string, _bytes: Uint8Array) => {});
+  const fs: ResourceFileSystem = {
+    async lstat(current) {if (current === "/") return {type: "directory"}; throw Object.assign(new Error("missing"), {code: "ENOENT"});},
+    async mkdir() {}, writeFile
+  };
+  const original = String.prototype.split;
+  const split = vi.spyOn(String.prototype, "split").mockImplementation(function(this: string, ...args: Parameters<typeof original>) {
+    if (this === id || this === destination || this === path) throw new Error("Whole-path component array forbidden");
+    return original.apply(this, args);
+  });
+  try {
+    const result = await writeDocument({blocks: [{t: "Para", c: [{t: "Image", c: [["", [], []], [], [id, ""]]}]}], metadata: {}, resources: [{id, bytes}]}, {to: "html", extractMedia: destination}, {resourceFiles: fs});
+    expect(result).toMatchObject({text: expect.stringContaining(destination.replace("output x", "output%20x") + "/p%2520.png")});
+    expect(writeFile).toHaveBeenCalledOnce();
+    expect(writeFile.mock.calls[0]).toEqual([path, bytes, expect.anything()]);
+  } finally {split.mockRestore();}
 });

@@ -72,7 +72,7 @@ it("extracts admitted embedded media even when it has no image reference", async
   expect(host.volume.readFileSync("/media/orphan.png", "utf8")).toBe("orphan");
   expect(host.readStream).not.toHaveBeenCalled();
 });
-it.each(["dir/.", "dir/", "../secret", "dir/../secret"])("rejects unsafe embedded extraction key %s", async id => {
+it.each(["dir/.", "dir/", "../secret", "dir/../secret", "/root", "~home", "dir//name", "name\0.png", "dir\\name", "name:part"])("rejects unsafe embedded extraction key %s", async id => {
   const host = files({});
   const doc = {blocks: [{t: "Para" as const, c: [{t: "Image" as const, c: [["", [], []], [], [id, ""]] as const}]}], metadata: {}, resources: [{id, bytes: encode("x")}]};
   await expect(writeDocument(doc, {to: "html", extractMedia: "/media"}, {resourceFiles: host.fs})).rejects.toMatchObject({code: "E_CAPABILITY"});

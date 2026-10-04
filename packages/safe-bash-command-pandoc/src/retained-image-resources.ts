@@ -225,7 +225,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
           if (Number.isFinite(context.limits.retainedBytes)) context.charge("retainedBytes", span.length);
           record = await save(span); context.charge("references", 1);
           if (Number.isFinite(context.limits.retainedBytes)) {
-            const name = await allocateName(target.name.split("/").at(-1)!);
+            const name = await allocateName(target.name.slice(target.name.lastIndexOf("/") + 1));
             context.charge("retainedBytes", name.length * 2 + 64);
             await encodedNameLengths.set(BigInt(record), BigInt(encodeURIComponent(name).length));
           }

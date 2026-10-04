@@ -5,7 +5,7 @@ import type { PdfFileSource } from "../source.js";
 import { Jbig2Image } from "../vendor/pdfjs-image-decoders.mjs";
 
 export interface PdfRetainedJbig2Options {
-  /** Caller-owned packed page backing. Symbol and region state is still admitted separately. */
+  /** Caller-owned packed page and text-region backing. Symbol/pattern state is admitted separately. */
   readonly bitmapStorage?: PdfPixelStorage;
   readonly globals?: PdfFileSource | undefined;
   /** Conservative fixed input-cache and cumulative decoder state, plus one RGBA
@@ -75,10 +75,10 @@ export class PdfRetainedJbig2 {
     for (let i = 0; i < signature.length; i++) if (await read(0, i) !== signature[i]) {standalone = false; break;}
     if (options.bitmapStorage) charge(4096 * 4 + 1024);
     const decoder = new Jbig2Image(dimensions, charge, {storedBitmap: options.bitmapStorage !== undefined});
-    let page: {position: number; bytes: Uint8Array; dirty: boolean} | undefined;
+    const pages: {position: number; bytes: Uint8Array; dirty: boolean}[] = [];
     const selected = options.signal ? {signal: options.signal} : undefined;
-    async function flush() {
-      if (page?.dirty) {await options.bitmapStorage!.write(page.position, page.bytes, selected); page.dirty = false;}
+    async function flush(selectedPages = pages) {
+      for (const page of selectedPages) if (page.dirty) {await options.bitmapStorage!.write(page.position, page.bytes, selected); page.dirty = false;}
     }
     const chunks = options.globals ? [{data: inputs[1]!.data, start: 0, end: inputs[1]!.data.length}] : [];
     chunks.push({data: inputs[0]!.data, start: 0, end: source.size});
@@ -92,7 +92,7 @@ export class PdfRetainedJbig2 {
         if ("kind" in request) {
           const storage = options.bitmapStorage!;
           if (request.kind === "bitmap-allocate") {
-            await flush(); page = undefined;
+            await flush(); pages.length = 0;
             const {length, fill} = request;
             if (!Number.isSafeInteger(length) || length < 0) throw new PdfError("E_LIMIT", "Invalid JBIG2 bitmap size");
             const position = storage.allocate(length);
@@ -105,21 +105,28 @@ export class PdfRetainedJbig2 {
             }
             step = program.next(position);
           } else {
-            const {bitmap, offset, mask, operator} = request;
+            const {bitmap, offset} = request;
+            let value: number | undefined;
             if (Number.isInteger(offset) && offset >= 0 && offset < bitmap.length) {
               const start = Math.floor(offset / 4096) * 4096, position = bitmap.position + start;
-              if (page?.position !== position) {
-                await flush();
+              const index = pages.findIndex(page => page.position === position);
+              let page = index >= 0 ? pages.splice(index, 1)[0] : undefined;
+              if (!page) {
+                if (pages.length === 2) await flush([pages.shift()!]);
                 const length = Math.min(4096, bitmap.length - start), bytes = await storage.read(position, length, selected);
                 options.signal?.throwIfAborted();
                 if (bytes.length !== length) throw new PdfError("E_PARSE", "Incomplete JBIG2 bitmap read");
                 page = {position, bytes: bytes.slice(), dirty: false};
               }
+              pages.push(page);
               const at = offset - start;
-              page.bytes[at] = operator === "or" ? page.bytes[at]! | mask : page.bytes[at]! ^ mask;
-              page.dirty = true;
+              value = page.bytes[at];
+              if (request.kind === "bitmap-update") {
+                page.bytes[at] = request.operator === "or" ? value! | request.mask : value! ^ request.mask;
+                page.dirty = true;
+              }
             }
-            step = program.next();
+            step = program.next(value);
           }
           continue;
         }

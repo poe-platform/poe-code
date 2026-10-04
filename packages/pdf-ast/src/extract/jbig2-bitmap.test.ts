@@ -90,3 +90,28 @@ it.each([0,1,2,3].flatMap(template=>[false,true].map(prediction=>({template,pred
   }expect(y).toBe(520);}finally{image.close();}
  }finally{await storage.close();await source.close();expect(await fs.readdir("/scratch")).toEqual([]);}
 });
+
+it.each([false,true].flatMap(transposed=>[0,2].flatMap(operator=>[0,1].map(fill=>({transposed,operator,fill})))))("backs text symbol placement with transposed=$transposed, operator=$operator, fill=$fill",async ({transposed,operator,fill})=>{
+ const bytes=new Uint8Array(readFileSync(new URL("../fixtures/jbig2-symbols.0000",import.meta.url))),
+  globals=new Uint8Array(readFileSync(new URL("../fixtures/jbig2-symbols.sym",import.meta.url))),view=new DataView(bytes.buffer);
+ view.setUint32(11,80);view.setUint32(15,520);view.setUint32(42,61);view.setUint32(46,513);view.setUint32(50,3);view.setUint32(54,4);
+ view.setUint16(59,(transposed?64:0)|(operator<<7)|(fill<<9));
+ const expected=new Jbig2Image().parseChunks([{data:globals,start:0,end:globals.length},{data:bytes,start:0,end:bytes.length}])!;
+ const fs=createMemoryFileSystem();await fs.mkdir("/scratch");await fs.writeFile("/input",bytes);await fs.writeFile("/globals",globals);
+ const source=await PdfFileSource.open(fs,"/input"),globalSource=await PdfFileSource.open(fs,"/globals"),storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal:new AbortController().signal},2);
+ const borrowed=new Uint8Array(4096);
+ try{
+  const image=await PdfRetainedJbig2.open(source,80,520,{globals:globalSource,bitmapStorage:{
+   allocate:storage.allocate.bind(storage),write:storage.write.bind(storage),async read(at,length,options){
+    options?.signal?.throwIfAborted();expect(length).toBeLessThanOrEqual(4096);borrowed.set(await storage.read(at,length));return borrowed.subarray(0,length);
+   }
+  }});
+  try{let y=0;for await(const row of image.rows()){
+   for(let x=0;x<80;x++){
+    const value=expected[y*10+(x>>3)]!>>(7-(x&7))&1?0:255;
+    if(row[x*4]!==value)throw Error(`text mismatch at ${x},${y}`);
+   }
+   y++;
+  }expect(y).toBe(520);}finally{image.close();}
+ }finally{await storage.close();await source.close();await globalSource.close();expect(await fs.readdir("/scratch")).toEqual([]);}
+});

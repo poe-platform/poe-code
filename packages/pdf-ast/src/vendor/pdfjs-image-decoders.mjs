@@ -2979,15 +2979,17 @@ function* decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbol
   }
   return exportedSymbols;
 }
-function* decodeTextRegion(huffman, refinement, width, height, defaultPixelValue, numberOfSymbolInstances, stripSize, inputSymbols, symbolCodeLength, transposed, dsOffset, referenceCorner, combinationOperator, huffmanTables, refinementTemplateIndex, refinementAt, decodingContext, logStripSize, huffmanInput) {
+function* decodeTextRegion(huffman, refinement, width, height, defaultPixelValue, numberOfSymbolInstances, stripSize, inputSymbols, symbolCodeLength, transposed, dsOffset, referenceCorner, combinationOperator, huffmanTables, refinementTemplateIndex, refinementAt, decodingContext, logStripSize, huffmanInput, stored) {
   decodingContext.onImageDimensions?.(width, height);
-  decodingContext.onAllocation?.((width + 256) * (height + 1) + 4096);
+  decodingContext.onAllocation?.(stored ? 512 : (width + 256) * (height + 1) + 4096);
   if (huffman && refinement) {
     throw new Jbig2Error("refinement with Huffman is not supported");
   }
-  const bitmap = [];
+  const rowSize = Math.ceil(width / 8), length = rowSize * height;
+  const bitmap = stored ? {width, height, rowSize, length,
+    position: yield {kind: "bitmap-allocate", length, fill: defaultPixelValue ? 255 : 0}} : [];
   let i, row;
-  for (i = 0; i < height; i++) {
+  for (i = 0; !stored && i < height; i++) {
     row = new Uint8Array(width);
     if (defaultPixelValue) {
       for (let j = 0; j < width; j++) {
@@ -3041,51 +3043,22 @@ function* decodeTextRegion(huffman, refinement, width, height, defaultPixelValue
       }
       const offsetT = t - (referenceCorner & 1 ? 0 : symbolHeight - 1);
       const offsetS = currentS - (referenceCorner & 2 ? symbolWidth - 1 : 0);
-      let s2, t2, symbolRow;
-      if (transposed) {
-        for (s2 = 0; s2 < symbolHeight; s2++) {
-          row = bitmap[offsetS + s2];
-          if (!row) {
-            continue;
-          }
-          symbolRow = symbolBitmap[s2];
-          const maxWidth = Math.min(width - offsetT, symbolWidth);
-          switch (combinationOperator) {
-            case 0:
-              for (t2 = 0; t2 < maxWidth; t2++) {
-                row[offsetT + t2] |= symbolRow[t2];
-              }
-              break;
-            case 2:
-              for (t2 = 0; t2 < maxWidth; t2++) {
-                row[offsetT + t2] ^= symbolRow[t2];
-              }
-              break;
-            default:
-              throw new Jbig2Error(`operator ${combinationOperator} is not supported`);
-          }
-        }
-      } else {
-        for (t2 = 0; t2 < symbolHeight; t2++) {
-          row = bitmap[offsetT + t2];
-          if (!row) {
-            continue;
-          }
-          symbolRow = symbolBitmap[t2];
-          switch (combinationOperator) {
-            case 0:
-              for (s2 = 0; s2 < symbolWidth; s2++) {
-                row[offsetS + s2] |= symbolRow[s2];
-              }
-              break;
-            case 2:
-              for (s2 = 0; s2 < symbolWidth; s2++) {
-                row[offsetS + s2] ^= symbolRow[s2];
-              }
-              break;
-            default:
-              throw new Jbig2Error(`operator ${combinationOperator} is not supported`);
-          }
+      const left = transposed ? offsetT : offsetS, top = transposed ? offsetS : offsetT;
+      const maxWidth = transposed ? Math.min(width - left, symbolWidth) : symbolWidth;
+      for (let y = 0; y < symbolHeight; y++) {
+        const destY = top + y;
+        row = stored ? (destY >= 0 && destY < height ? bitmap : undefined) : bitmap[destY];
+        if (!row) continue;
+        if (combinationOperator !== 0 && combinationOperator !== 2)
+          throw new Jbig2Error(`operator ${combinationOperator} is not supported`);
+        const symbolRow = symbolBitmap[y];
+        for (let x = 0; x < maxWidth; x++) {
+          const destX = left + x;
+          if (stored) {
+            if (destX >= 0 && destX < width && symbolRow[x])
+              yield {kind: "bitmap-update", bitmap, offset: destY * rowSize + (destX >> 3), mask: 128 >> (destX & 7), operator: combinationOperator === 0 ? "or" : "xor"};
+          } else if (combinationOperator === 0) row[destX] |= symbolRow[x];
+          else row[destX] ^= symbolRow[x];
         }
       }
       i++;
@@ -3684,14 +3657,16 @@ class SimpleSegmentVisitor {
     const buffer = this.buffer;
     const mask0 = 128 >> (regionInfo.x & 7);
     let offset0 = regionInfo.y * rowSize + (regionInfo.x >> 3);
-    let i, j, mask, offset;
+    let i, j, mask, offset, byte;
     switch (combinationOperator) {
       case 0:
         for (i = 0; i < height; i++) {
           mask = mask0;
           offset = offset0;
           for (j = 0; j < width; j++) {
-            if (bitmap[i][j]) {
+            if (bitmap.position !== undefined && (j & 7) === 0)
+              byte = yield {kind: "bitmap-read", bitmap, offset: i * bitmap.rowSize + (j >> 3)};
+            if (bitmap.position !== undefined ? (byte >> (7 - (j & 7))) & 1 : bitmap[i][j]) {
               if (this.storedBitmap) yield {kind: "bitmap-update", bitmap: buffer, offset, mask, operator: "or"};
               else buffer[offset] |= mask;
             }
@@ -3709,7 +3684,9 @@ class SimpleSegmentVisitor {
           mask = mask0;
           offset = offset0;
           for (j = 0; j < width; j++) {
-            if (bitmap[i][j]) {
+            if (bitmap.position !== undefined && (j & 7) === 0)
+              byte = yield {kind: "bitmap-read", bitmap, offset: i * bitmap.rowSize + (j >> 3)};
+            if (bitmap.position !== undefined ? (byte >> (7 - (j & 7))) & 1 : bitmap[i][j]) {
               if (this.storedBitmap) yield {kind: "bitmap-update", bitmap: buffer, offset, mask, operator: "xor"};
               else buffer[offset] ^= mask;
             }
@@ -3792,7 +3769,7 @@ class SimpleSegmentVisitor {
       huffmanTables = (yield* getTextRegionHuffmanTables(region, referredSegments, this.customTables, inputSymbols.length, huffmanInput, this.onAllocation));
     }
     const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
-    const bitmap = (yield* decodeTextRegion(region.huffman, region.refinement, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.numberOfSymbolInstances, region.stripSize, inputSymbols, symbolCodeLength, region.transposed, region.dsOffset, region.referenceCorner, region.combinationOperator, huffmanTables, region.refinementTemplate, region.refinementAt, decodingContext, region.logStripSize, huffmanInput));
+    const bitmap = (yield* decodeTextRegion(region.huffman, region.refinement, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.numberOfSymbolInstances, region.stripSize, inputSymbols, symbolCodeLength, region.transposed, region.dsOffset, region.referenceCorner, region.combinationOperator, huffmanTables, region.refinementTemplate, region.refinementAt, decodingContext, region.logStripSize, huffmanInput, this.storedBitmap));
     (yield* this.drawBitmap(regionInfo, bitmap));
   }
   *onImmediateLosslessTextRegion() {

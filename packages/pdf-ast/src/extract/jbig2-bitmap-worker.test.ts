@@ -5,7 +5,7 @@ import {Miniflare} from "miniflare";
 import {expect,it} from "vitest";
 import {decodeJbig2ToRgba} from "./images.js";
 
-it.each(["page", "region", "arithmetic", "segments", "random segments", "repeated regions"])("keeps growing JBIG2 %s state in external caller storage in Workerd",async profile=>{
+it.each(["page", "region", "arithmetic", "segments", "random segments", "repeated regions", "text region"])("keeps growing JBIG2 %s state in external caller storage in Workerd",async profile=>{
  const inputs=new Map<number,{bytes:Uint8Array;sum:number}>();
  for(const height of profile === "arithmetic" ? [129,513] : (profile.includes("segments") || profile === "repeated regions") ? [17,129] : [8193,32769]){
   let bytes=new Uint8Array(readFileSync(new URL("../fixtures/jbig2-generic-stream.bin",import.meta.url)));
@@ -24,6 +24,11 @@ it.each(["page", "region", "arithmetic", "segments", "random segments", "repeate
    const view=new DataView(region.buffer);view.setUint32(30,1);region[34]=38;region[36]=1;
    view.setUint32(37,26+8192);view.setUint32(41,64);view.setUint32(45,height);
    region.set([3,255,253,255,2,254,254,254],59);region.set([255,172],region.length-2);bytes=region;
+  }
+  if(profile === "text region") {
+   const region=new Uint8Array(30+11+23+16);region.set(bytes.subarray(0,30));
+   const view=new DataView(region.buffer);view.setUint32(30,1);region[34]=6;region[36]=1;
+   view.setUint32(37,39);view.setUint32(41,64);view.setUint32(45,height);view.setUint16(58,512);bytes=region;
   }
   new DataView(bytes.buffer).setUint32(15,height);
   if(profile.includes("segments")) {

@@ -28,8 +28,11 @@ try {
 
 Retained range input avoids a complete compressed-archive copy. With engine
 `workingFiles`, directory and member indexes spill through the caller's safe-fs
-using a shared bounded page cache. Decoded XML, decrypted members and the workbook
-model are still retained; this is not yet a fully bounded conversion pipeline.
+using a shared bounded page cache. Scalar imports stage cells and row/column
+metadata in caller storage and replay them to source-capable exporters. Formula
+and named-expression inputs retain normal workbook preparation. Decoded XML,
+decrypted members and formula workbooks remain resident; this is not yet a fully
+bounded conversion pipeline.
 Both exporters use working storage for compressed ZIP members and central records,
 with incremental UTF-8 encoding, compression and archive output for unencrypted
 XML members. XML byte-limit checks count bytes without encoding full containers. Buffered `createOdfWriter` calls

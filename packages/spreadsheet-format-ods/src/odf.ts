@@ -1,3 +1,4 @@
+import { createOdfSource } from "./odf-source.js";
 import { createAxisStorage } from "@poe-code/spreadsheet-engine/workbook/axis-storage";
 import { snapshotRecords } from "@poe-code/spreadsheet-ast/model";
 import { createOdfXmlTape } from "./odf-xml-tape.js";
@@ -429,7 +430,13 @@ async function formula(source: string, legacy: boolean, position: { sheet: strin
   return serializeExpression(parsed.document, relativeSheets ? internalOdfGrammar : { ...gnumericGrammar, quoteSheetName: quoteNativeSheet }, false, true);
 }
 
-export async function readOdf(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<Workbook> {
+export function readOdfWorkbookSource(bytes: RangeSource, context: CapabilityContext): Promise<Workbook | WorkbookSource | undefined> {
+  if (!context.createWorkingStorage) return Promise.resolve(undefined);
+  return readOdf(bytes, context, true);
+}
+export function readOdf(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<Workbook>;
+export function readOdf(bytes: Uint8Array | RangeSource, context: CapabilityContext, sourceMode: true): Promise<Workbook | WorkbookSource | undefined>;
+export async function readOdf(bytes: Uint8Array | RangeSource, context: CapabilityContext, sourceMode = false): Promise<Workbook | WorkbookSource | undefined> {
   let close: (() => Promise<void>) | undefined;
   try {
     const pkg = await openPackage(bytes, context);
@@ -452,6 +459,17 @@ export async function readOdf(bytes: Uint8Array | RangeSource, context: Capabili
         || manifest.children.some(entry => entry.children.some(child => child.localName === "encryption-data")))) invalid("invalid inner package manifest");
     }
     const raw = await pkg.document("content.xml");
+    // Formula preparation still requires the complete workbook. Select that
+    // path before recognition, reusing this package/password and emitting each
+    // diagnostic only once.
+    function requiresWorkbook(node: XmlElement): boolean {
+      pkg.charge();
+      return node.attributes.some(attribute => attribute.localName === "formula")
+        || ["named-expression", "named-range"].includes(node.localName)
+        || node.children.some(requiresWorkbook);
+    }
+    if (sourceMode && requiresWorkbook(raw)) sourceMode = false;
+    const stored = sourceMode ? createOdfSource(context) : undefined;
     const preparseRoot = await recognize(raw, legacy ? "ooo1_content_dtd" : "opendoc_content_dtd", context, pkg.charge);
     const styleRoots = [preparseRoot];
     if (await pkg.entries.has("styles.xml")) styleRoots.unshift(await recognize(await pkg.document("styles.xml"), "styles_dtd", context, pkg.charge));
@@ -519,6 +537,8 @@ export async function readOdf(bytes: Uint8Array | RangeSource, context: Capabili
       const name = declaredSheetNames[index]!;
       if (sheetNames.has(name)) invalid("duplicate sheet name"); sheetNames.add(name);
       const id = name, cells: Cell[] = [], rows: AxisMetadata[] = [], columns: AxisMetadata[] = [], merges: Range[] = [], groups: FormulaGroup[] = [], records: UnsupportedRecord[] = [];
+      const sourceAxes = stored ? { ordinal: index, rows: stored.axes.axis(), columns: stored.axes.axis() } : undefined;
+      if (sourceAxes) stored!.sheets.set(id, sourceAxes);
       let row = 0, column = 0, maxRow = 0, maxColumn = 0;
       const columnDefaults: { start: number; end: number; name: string }[] = [];
       const sheetStyle = styles.resolve(attr(node, "style-name"), "table");
@@ -544,8 +564,10 @@ export async function readOdf(bytes: Uint8Array | RangeSource, context: Capabili
             for (let i = 0; i < count; i++) {
               pkg.charge(); metadata++;
               if (i > 0 && i % 1024 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); pkg.charge(); }
-              (axis === "row" ? rows : columns).push({ index: start + i, ...(size === undefined ? {} : { sizePoints: size }),
-                ...(hidden ? { hidden } : {}), ...(level ? { outlineLevel: level } : {}), ...(axisStyle ? { style: axisStyle.style } : {}) });
+              const record = { index: start + i, ...(size === undefined ? {} : { sizePoints: size }),
+                ...(hidden ? { hidden } : {}), ...(level ? { outlineLevel: level } : {}), ...(axisStyle ? { style: axisStyle.style } : {}) };
+              if (sourceAxes) await (axis === "row" ? sourceAxes.rows : sourceAxes.columns).add(record);
+              else (axis === "row" ? rows : columns).push(record);
             }
           }
           if (axis === "column") {
@@ -612,11 +634,12 @@ export async function readOdf(bytes: Uint8Array | RangeSource, context: Capabili
                 if ((r * repeat + col) > 0 && (r * repeat + col) % 1024 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); pkg.charge(); }
                 const repeatedStyleName = attr(c, "style-name") ?? defaultStyle ?? columnDefaults.find(d => cellColumn + col >= d.start && cellColumn + col < d.end)?.name;
                 const repeatedStyle = col === 0 ? cellStyle : styles.resolve(repeatedStyleName) ?? styles.defaultCell;
-                cells.push({ row: row + r, column: cellColumn + col, value: value ?? { kind: "blank" },
+                const cell: Cell = { row: row + r, column: cellColumn + col, value: value ?? { kind: "blank" },
                   ...(first && expression ? { formula: expression, formulaDirty: true,
                     ...(value === undefined ? {} : { cachedResult: value }) } : {}),
                   ...(richText?.length ? { richText } : {}),
-                  ...(repeatedStyle?.format ? { format: repeatedStyle.format } : {}), ...(repeatedStyle ? { style: repeatedStyle.style } : {}) });
+                  ...(repeatedStyle?.format ? { format: repeatedStyle.format } : {}), ...(repeatedStyle ? { style: repeatedStyle.style } : {}) };
+                if (stored) await stored.cells.append(index, cell); else cells.push(cell);
               }
               maxRow = Math.max(maxRow, row + count); maxColumn = Math.max(maxColumn, cellColumn + repeat);
             } else if (cellStyle) retain(c, { row, column: cellColumn, rows: count, columns: repeat, styleName: styleName ?? "" });
@@ -672,8 +695,8 @@ export async function readOdf(bytes: Uint8Array | RangeSource, context: Capabili
       }
       function extent(value: number, minimum: number, maximum: number) { let size = minimum; while (size < value && size < maximum) size *= 2; return Math.min(size, maximum); }
       sheets.push({ id, name, cells: cells.sort((a, b) => a.row - b.row || a.column - b.column),
-        size: { rows: extent(Math.max(maxRow, (rows.at(-1)?.index ?? -1) + 1), DEFAULT_SHEET_SIZE.rows, MAX_SHEET_SIZE.rows),
-          columns: extent(Math.max(maxColumn, (columns.at(-1)?.index ?? -1) + 1), DEFAULT_SHEET_SIZE.columns, MAX_SHEET_SIZE.columns) },
+        size: { rows: extent(Math.max(maxRow, (sourceAxes?.rows.maximum ?? rows.at(-1)?.index ?? -1) + 1), DEFAULT_SHEET_SIZE.rows, MAX_SHEET_SIZE.rows),
+          columns: extent(Math.max(maxColumn, (sourceAxes?.columns.maximum ?? columns.at(-1)?.index ?? -1) + 1), DEFAULT_SHEET_SIZE.columns, MAX_SHEET_SIZE.columns) },
         ...(sheetStyle?.display === "false" ? { visibility: "hidden" } : {}), rows, columns, merges, formulaGroups: groups, unsupportedRecords: records });
       if (sheetStyle) sheets[sheets.length - 1] = { ...sheets[sheets.length - 1]!, view: { odf: sheetStyle.style.odf ?? null, gnumeric: viewAttributes } };
     }
@@ -714,6 +737,7 @@ export async function readOdf(bytes: Uint8Array | RangeSource, context: Capabili
       automaticLabelLookup: lookup !== "false", calculationMode: "automatic", unsupportedRecords,
       ...(iteration ? { iteration: { enabled: attr(iteration, "status") === "enable", maximum: iterationMaximum,
         tolerance: Number(attr(iteration, "maximum-difference") ?? "0.001") } } : {}) };
+    if (stored) return stored.workbook(book);
     for (const sheet of book.sheets) cellIndexes.set(sheet.id, new Map(sheet.cells.map((cell, index) => {
       pkg.charge(); return [`${cell.row}:${cell.column}`, index];
     })));

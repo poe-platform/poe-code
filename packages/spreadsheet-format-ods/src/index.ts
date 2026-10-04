@@ -16,6 +16,7 @@ export const odsFormat: FormatProvider = {
       "id": "openoffice",
       "direction": "read",
       probeSource: async (...args) => (await import("./odf.js")).probeOdf(...args),
+      readWorkbookSource: async (source, context) => (await import("./odf.js")).readOdfWorkbookSource(source, context),
       readSource: async (source, context) => (await import("./odf.js")).readOdf(source, context),
       read: async (bytes, context) => (await import("./odf.js")).readOdf(bytes, context),
       probeContent: async (...args) => (await import("./odf.js")).probeOdf(...args),

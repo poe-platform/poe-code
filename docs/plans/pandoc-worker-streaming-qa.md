@@ -113,6 +113,12 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
 - For retained JSON input, abort inside the iterator factory before its first pull.
   Verify zero pulls, exactly one iterator return, no output commit and no remaining
   backing files; repeat with finite references and retained-byte budgets.
+- EPUB archive input must enroll iterator cleanup before a host factory can
+  cancel. `scripts/pandoc-epub-worker.test.ts` exercises the public output SDK in
+  workerd with synchronous/asynchronous factories and failing cleanup. Require
+  cancellation to win, zero pulls/writes, one return, no output lifecycle calls,
+  and no scratch or R2 objects. This verifies producer ownership only: EPUB XML,
+  chapter ASTs and media resources still require bounded retained intermediates.
 - Single-input JSON to JSON now uses retained syntax, schema tasks,
   table occupancy, numeric key ordering and output. Test its fixed cache sizes
   independently of input bytes and document nesting. JSON and CSV/TSV to plain

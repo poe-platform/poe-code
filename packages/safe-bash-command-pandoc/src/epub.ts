@@ -72,12 +72,15 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
       const position = storage.allocate(0);
       let size = 0;
       const chunks = "chunks" in input ? input.chunks : [input.bytes];
-      const iterator = Symbol.asyncIterator in chunks ? chunks[Symbol.asyncIterator]() : chunks[Symbol.iterator]();
+      let iterator: AsyncIterator<Uint8Array> | Iterator<Uint8Array> | undefined;
       let done = false;
-      const cleanup = async () => {if (!done) {done = true; await iterator.return?.();}};
+      const cleanup = async () => {if (!done) {done = true; await iterator?.return?.();}};
+      // A host factory may cancel while creating the producer. Enroll cleanup
+      // first so the returned iterator is owned even if the next checkpoint fails.
       const unregister = ctx.onClose?.(cleanup);
       let inputFailure: {reason: unknown} | undefined;
       try {
+      iterator = Symbol.asyncIterator in chunks ? chunks[Symbol.asyncIterator]() : chunks[Symbol.iterator]();
       while (!done) {
         ctx.checkpoint();
         const next = await iterator.next();

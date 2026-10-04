@@ -213,3 +213,15 @@ it("avoids a complete XML source copy for an SDK-backed chapter containing many 
     expect(await fs.readdir("/")).toEqual([]);
   } finally {read.mockRestore();}
 });
+
+it.each(["async", "sync"].flatMap(kind => [false, true].map(cleanupFails => ({kind, cleanupFails}))))
+("closes the EPUB $kind iterator when its factory cancels, cleanupFails=$cleanupFails", async ({kind, cleanupFails}) => {
+  const fs = new MemoryFileSystem(), controller = new AbortController();
+  const next = vi.fn(() => ({done: false as const, value: new Uint8Array(32768)}));
+  const close = vi.fn(() => {if (cleanupFails) throw new Error("Cleanup failed"); return {done: true as const, value: undefined};});
+  const chunks = kind === "async" ? {[Symbol.asyncIterator]() {controller.abort(); return {next: async () => next(), return: async () => close()};}}
+    : {[Symbol.iterator]() {controller.abort(); return {next, return: close};}};
+  await expect(readDocument({chunks}, {from: "epub"}, {signal: controller.signal, workingFiles: {fs, directory: "/", cacheBytes: 16384}})).rejects.toMatchObject({code: "E_CANCELLED"});
+  expect(next).not.toHaveBeenCalled(); expect(close).toHaveBeenCalledOnce();
+  expect(await fs.readdir("/")).toEqual([]);
+});

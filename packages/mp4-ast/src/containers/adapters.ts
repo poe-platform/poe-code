@@ -389,7 +389,7 @@ export function isWavSignature(bytes: Uint8Array): boolean {
   );
 }
 
-export function parseWav(bytes: Uint8Array): MediaDocument {
+export function parseWav(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
   if (!isWavSignature(bytes)) {
     throw new Error("Invalid WAV file: missing RIFF WAVE signature");
   }
@@ -419,25 +419,29 @@ export function parseWav(bytes: Uint8Array): MediaDocument {
 
   const bytesPerFrame = Math.max(1, channels * (bitsPerSample >>> 3));
   const totalPcmSamples = Math.floor(pcmData.byteLength / bytesPerFrame);
-  const channelData = Array.from({ length: channels }, () => new Float32Array(totalPcmSamples));
-  const pcmView = new DataView(pcmData.buffer, pcmData.byteOffset, pcmData.byteLength);
+  let decodedAudio: MediaAudioData | undefined;
+  if (options.decodeAudio !== false) {
+    const channelData = Array.from({ length: channels }, () => new Float32Array(totalPcmSamples));
+    const pcmView = new DataView(pcmData.buffer, pcmData.byteOffset, pcmData.byteLength);
 
-  for (let i = 0; i < totalPcmSamples; i++) {
-    for (let ch = 0; ch < channels; ch++) {
-      const byteOff = (i * channels + ch) * (bitsPerSample >>> 3);
-      if (formatTag === 3 && bitsPerSample === 32 && byteOff + 4 <= pcmData.byteLength) {
-        channelData[ch]![i] = pcmView.getFloat32(byteOff, true);
-      } else if (bitsPerSample === 24 && byteOff + 3 <= pcmData.byteLength) {
-        const value = pcmData[byteOff]! | (pcmData[byteOff + 1]! << 8) | (pcmData[byteOff + 2]! << 16);
-        channelData[ch]![i] = (value << 8 >> 8) / 8388608;
-      } else if (bitsPerSample === 32 && byteOff + 4 <= pcmData.byteLength) {
-        channelData[ch]![i] = pcmView.getInt32(byteOff, true) / 2147483648;
-      } else if (bitsPerSample === 16 && byteOff + 2 <= pcmData.byteLength) {
-        channelData[ch]![i] = pcmView.getInt16(byteOff, true) / 32768;
-      } else if (bitsPerSample === 8 && byteOff < pcmData.byteLength) {
-        channelData[ch]![i] = (pcmData[byteOff]! - 128) / 128;
+    for (let i = 0; i < totalPcmSamples; i++) {
+      for (let ch = 0; ch < channels; ch++) {
+        const byteOff = (i * channels + ch) * (bitsPerSample >>> 3);
+        if (formatTag === 3 && bitsPerSample === 32 && byteOff + 4 <= pcmData.byteLength) {
+          channelData[ch]![i] = pcmView.getFloat32(byteOff, true);
+        } else if (bitsPerSample === 24 && byteOff + 3 <= pcmData.byteLength) {
+          const value = pcmData[byteOff]! | (pcmData[byteOff + 1]! << 8) | (pcmData[byteOff + 2]! << 16);
+          channelData[ch]![i] = (value << 8 >> 8) / 8388608;
+        } else if (bitsPerSample === 32 && byteOff + 4 <= pcmData.byteLength) {
+          channelData[ch]![i] = pcmView.getInt32(byteOff, true) / 2147483648;
+        } else if (bitsPerSample === 16 && byteOff + 2 <= pcmData.byteLength) {
+          channelData[ch]![i] = pcmView.getInt16(byteOff, true) / 32768;
+        } else if (bitsPerSample === 8 && byteOff < pcmData.byteLength) {
+          channelData[ch]![i] = (pcmData[byteOff]! - 128) / 128;
+        }
       }
     }
+    decodedAudio = { sampleRate, channels, channelData };
   }
 
   const samples: MediaSample[] = [];
@@ -483,7 +487,7 @@ export function parseWav(bytes: Uint8Array): MediaDocument {
           }
         ],
         samples,
-        decodedAudio: { sampleRate, channels, channelData }
+        ...(decodedAudio ? { decodedAudio } : {})
       }
     ],
     metadata: {},
@@ -554,14 +558,14 @@ export function wavAst(): MediaAstPlugin {
       if (filename && filename.toLowerCase().endsWith(".wav")) return isWavSignature(bytes);
       return false;
     },
-    parse(bytes) {
-      return parseWav(bytes);
+    parse(bytes, options) {
+      return parseWav(bytes, options);
     },
     serialize(doc) {
       return serializeWav(doc);
     },
     probe(bytes, options) {
-      const doc = parseWav(bytes);
+      const doc = parseWav(bytes, { ...options, decodeAudio: false });
       return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.wav", {
         ...options,
         formatName: "wav",

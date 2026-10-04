@@ -4,6 +4,8 @@ Portable multimedia container and bitstream AST engine for MP4 (`ISOBMFF`), Quic
 
 For cooperative hosts, `muxMp4Steps` and `sliceMp4Steps` return generators that pause between track/sample batches. Yield to your host event loop and check cancellation before resuming; their final values match the synchronous APIs.
 
+WAV probing skips decoded PCM channel arrays. Use `wavAst().parse(bytes, { decodeAudio: false })` or `parseWav(bytes, { decodeAudio: false })` to retain encoded samples without decoding audio; parsing decodes audio by default. These byte-buffer APIs still retain the input and sample metadata.
+
 ## Features
 
 - **Lossless MP4 / Multi-Container Merging (`concatMp4`)**: Concatenates multiple videos at the sample/packet level without pixel re-encoding, automatically handling multi-entry `stsd` codec tables (`sample_description_index = 1, 2, ...`) and aligning video/audio durations at segment boundaries. Decoded audio is concatenated at the first segment’s sample rate and channel count, using linear resampling, mono duplication, and averaging when downmixing to mono. Alignment gaps contain silence; mixing encoded and decoded segments in one audio track requires decoding all segments first.

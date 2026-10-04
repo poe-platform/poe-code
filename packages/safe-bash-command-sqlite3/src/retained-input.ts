@@ -15,14 +15,19 @@ export async function retainInput(source: ByteSource, context: CommandContext, a
       }
     }
     context.signal.throwIfAborted();
+    async function* bytes(): AsyncGenerator<Uint8Array> {
+      for (let offset = 0; offset < size; offset += 16384) {
+        context.signal.throwIfAborted();
+        yield await storage.read(start + offset, Math.min(16384, size - offset));
+      }
+      context.signal.throwIfAborted();
+    }
     return {
+      size, bytes,
       async *text(): AsyncGenerator<string> {
         const decoder = new TextDecoder();
-        for (let offset = 0; offset < size; offset += 16384) {
-          context.signal.throwIfAborted();
-          yield decoder.decode(await storage.read(start + offset, Math.min(16384, size - offset)), { stream: true });
-        }
-        context.signal.throwIfAborted(); yield decoder.decode();
+        for await (const chunk of bytes()) yield decoder.decode(chunk, {stream: true});
+        yield decoder.decode();
       },
       close: () => storage.close()
     };

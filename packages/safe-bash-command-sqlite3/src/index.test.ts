@@ -28,8 +28,11 @@ async function runSqlite3(
 
   const stdout = createBytePipe();
   const stderr = createBytePipe();
+  const output = collectBytes(stdout.readable, { maxBytes: Infinity });
+  const errors = collectBytes(stderr.readable, { maxBytes: Infinity });
   const cmd = createSqlite3Command(options);
-  const res = await cmd.execute({
+  let res;
+  try { res = await cmd.execute({
     command: "sqlite3",
     args: createCommandArguments(args).args,
     stdin: stdin.readable,
@@ -39,19 +42,12 @@ async function runSqlite3(
     cwd: "/",
     env: {},
     signal
-  });
-  await stdout.close();
-  await stderr.close();
-
-  const outChunks: Uint8Array[] = [];
-  for await (const c of stdout.readable) outChunks.push(c);
-  const errChunks: Uint8Array[] = [];
-  for await (const c of stderr.readable) errChunks.push(c);
-
+  }); } finally { await stdout.close(); await stderr.close(); }
+  const [outBytes, errBytes] = await Promise.all([output, errors]);
   return {
     code: res.exitCode,
-    stdout: Buffer.concat(outChunks).toString("utf8"),
-    stderr: Buffer.concat(errChunks).toString("utf8")
+    stdout: Buffer.from(outBytes).toString("utf8"),
+    stderr: Buffer.from(errBytes).toString("utf8")
   };
 }
 

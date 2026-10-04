@@ -1,3 +1,4 @@
+import {encodeOutput, formatSqlQuote, publishSqliteOutput, sqlQuoteParts} from "./stream-output.js";
 import { CsvRows } from "./csv-rows.js";
 import { retainInput } from "./retained-input.js";
 import { readFileStream } from "safe-bash-contracts/filesystem";
@@ -7,6 +8,7 @@ import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   commandRuntimeIdentity,
   writeText,
+  writeBytes,
   type CommandContext,
   type CommandDefinition,
   type CommandResult,
@@ -181,29 +183,6 @@ function resolveVfsPath(cwd: string, p: string): string {
   return `${cwd === "/" ? "" : cwd}/${p}`;
 }
 
-function formatSqlQuote(v: SqlValue): string {
-  if (v === null || v === undefined) {
-    return "NULL";
-  }
-  if (typeof v === "bigint") {
-    return v.toString();
-  }
-  if (v instanceof Number) {
-    const n = v.valueOf();
-    return Number.isFinite(n) && Number.isInteger(n) ? `${n}.0` : String(n);
-  }
-  if (typeof v === "number") {
-    return String(v);
-  }
-  if (typeof v === "string" || v instanceof String) {
-    return `'${String(v).replace(/'/g, "''")}'`;
-  }
-  let hex = "";
-  for (const b of v) {
-    hex += b.toString(16).toUpperCase().padStart(2, "0");
-  }
-  return `X'${hex}'`;
-}
 
 function coerceInjectedSqlValue(v: unknown): SqlValue {
   if (v === null || v === undefined) {
@@ -901,24 +880,21 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       return { exitCode: 1 };
     }
 
-    const emitOutput = async (text: string) => {
-      if (!text) {
-        return;
-      }
-      if (state.onceFile) {
-        countOutput(textEncoder.encode(text).byteLength);
-        const target = resolveVfsPath(context.cwd, state.onceFile);
-        state.onceFile = null;
-        await writeFileOutput(context, textEncoder.encode(text), data => context.fs.writeFile(target, data, { signal: context.signal }));
-        return;
-      }
-      if (state.outputFile && state.outputFile !== "stdout") {
-        countOutput(textEncoder.encode(text).byteLength);
-        const target = resolveVfsPath(context.cwd, state.outputFile);
-        await writeFileOutput(context, textEncoder.encode(text), data => context.fs.appendFile(target, data, { signal: context.signal }));
-        return;
-      }
-      await writeStdout(text);
+    const emitOutput = async (text: string | AsyncIterable<string>) => {
+      if (text === "") return;
+      const retained = await retainInput(encodeOutput(typeof text === "string" ? [text] : text), context, countOutput);
+      let failed = false;
+      try {
+        if (!retained.size) return;
+        if (state.onceFile) {
+          const target = resolveVfsPath(context.cwd, state.onceFile);
+          state.onceFile = null;
+          await publishSqliteOutput(context, target, retained.bytes());
+        } else if (state.outputFile && state.outputFile !== "stdout") {
+          await publishSqliteOutput(context, resolveVfsPath(context.cwd, state.outputFile), retained.bytes(), true);
+        } else for await (const bytes of retained.bytes()) await writeBytes(context.stdout, bytes, context.signal);
+      } catch (error) { failed = true; throw error; }
+      finally { await retained.close().catch(error => { if (!failed) throw error; }); }
     };
 
     const executeDotCommand = async (line: string): Promise<void> => {
@@ -1006,7 +982,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         state.outputFile = target === "stdout" ? null : target;
         if (state.outputFile) {
           const abs = resolveVfsPath(context.cwd, state.outputFile);
-          await writeFileOutput(context, new Uint8Array(0), data => context.fs.writeFile(abs, data, { signal: context.signal }));
+          await publishSqliteOutput(context, abs, (async function* () {})());
         }
         return;
       }
@@ -1124,59 +1100,69 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
 
       if (cmd === ".dump") {
         const pattern = parts[1];
-        const dumpLines: string[] = ["PRAGMA foreign_keys=OFF;", "BEGIN TRANSACTION;"];
-        if (db.tables) {
-          for (const tbl of db.tables.values()) {
-            if (pattern && !matchGlob(tbl.name.toLowerCase(), pattern.toLowerCase()) && tbl.name.toLowerCase() !== pattern.toLowerCase()) {
-              continue;
-            }
-            dumpLines.push(`${tbl.sql.replace(/;*\s*$/, "")};`);
-            for (const r of tbl.rows) {
-              const vals = tbl.columns.map((c) => formatSqlQuote(r.data[c.name] ?? null)).join(",");
-              dumpLines.push(`INSERT INTO ${tbl.name} VALUES(${vals});`);
-            }
-          }
-          for (const idx of db.indexes?.values() ?? []) {
-            if (!pattern || idx.tableName.toLowerCase() === pattern.toLowerCase()) {
-              dumpLines.push(`${idx.sql.replace(/;*\s*$/, "")};`);
-            }
-          }
-          for (const v of db.views?.values() ?? []) {
-            if (!pattern || v.name.toLowerCase() === pattern.toLowerCase()) {
-              dumpLines.push(`${v.sql.replace(/;*\s*$/, "")};`);
-            }
-          }
-          for (const tr of db.triggers?.values() ?? []) {
-            if (!pattern || tr.tableName.toLowerCase() === pattern.toLowerCase()) {
-              dumpLines.push(`${tr.sql.replace(/;*\s*$/, "")};`);
-            }
-          }
-        } else {
-          const masterRes = await execSingleStmt(
-            "SELECT type, name, tbl_name, sql FROM sqlite_master WHERE sql IS NOT NULL AND name NOT LIKE 'sqlite_%';"
-          );
-          for (const row of masterRes?.rows ?? []) {
-            const type = String(row[0] ?? "");
-            const name = String(row[1] ?? "");
-            const tblName = String(row[2] ?? "");
-            const sql = String(row[3] ?? "");
-            if (type === "table") {
-              if (pattern && !matchGlob(name.toLowerCase(), pattern.toLowerCase()) && name.toLowerCase() !== pattern.toLowerCase()) {
+        async function* dump(): AsyncGenerator<string> {
+          yield "PRAGMA foreign_keys=OFF;\nBEGIN TRANSACTION;\n";
+          if (db.tables) {
+            for (const tbl of db.tables.values()) {
+              if (pattern && !matchGlob(tbl.name.toLowerCase(), pattern.toLowerCase()) && tbl.name.toLowerCase() !== pattern.toLowerCase()) {
                 continue;
               }
-              dumpLines.push(`${sql.replace(/;*\s*$/, "")};`);
-              const rowsRes = await execSingleStmt(`SELECT * FROM "${name.replace(/"/g, '""')}";`);
-              for (const r of rowsRes?.rows ?? []) {
-                const vals = r.map((v) => formatSqlQuote(v ?? null)).join(",");
-                dumpLines.push(`INSERT INTO ${name} VALUES(${vals});`);
+              yield `${tbl.sql.replace(/;*\s*$/, "")};` + "\n";
+              for (const r of tbl.rows) {
+                yield `INSERT INTO ${tbl.name} VALUES(`;
+                for (let column = 0; column < tbl.columns.length; column++) {
+                  if (column) yield ",";
+                  yield* sqlQuoteParts(r.data[tbl.columns[column]!.name] ?? null);
+                }
+                yield ");\n";
               }
-            } else if (!pattern || tblName.toLowerCase() === pattern.toLowerCase() || name.toLowerCase() === pattern.toLowerCase()) {
-              dumpLines.push(`${sql.replace(/;*\s*$/, "")};`);
+            }
+            for (const idx of db.indexes?.values() ?? []) {
+              if (!pattern || idx.tableName.toLowerCase() === pattern.toLowerCase()) {
+                yield `${idx.sql.replace(/;*\s*$/, "")};` + "\n";
+              }
+            }
+            for (const v of db.views?.values() ?? []) {
+              if (!pattern || v.name.toLowerCase() === pattern.toLowerCase()) {
+                yield `${v.sql.replace(/;*\s*$/, "")};` + "\n";
+              }
+            }
+            for (const tr of db.triggers?.values() ?? []) {
+              if (!pattern || tr.tableName.toLowerCase() === pattern.toLowerCase()) {
+                yield `${tr.sql.replace(/;*\s*$/, "")};` + "\n";
+              }
+            }
+          } else {
+            const masterRes = await execSingleStmt(
+              "SELECT type, name, tbl_name, sql FROM sqlite_master WHERE sql IS NOT NULL AND name NOT LIKE 'sqlite_%';"
+            );
+            for (const row of masterRes?.rows ?? []) {
+              const type = String(row[0] ?? "");
+              const name = String(row[1] ?? "");
+              const tblName = String(row[2] ?? "");
+              const sql = String(row[3] ?? "");
+              if (type === "table") {
+                if (pattern && !matchGlob(name.toLowerCase(), pattern.toLowerCase()) && name.toLowerCase() !== pattern.toLowerCase()) {
+                  continue;
+                }
+                yield `${sql.replace(/;*\s*$/, "")};` + "\n";
+                const rowsRes = await execSingleStmt(`SELECT * FROM "${name.replace(/"/g, '""')}";`);
+                for (const r of rowsRes?.rows ?? []) {
+                  yield `INSERT INTO ${name} VALUES(`;
+                  for (let column = 0; column < r.length; column++) {
+                    if (column) yield ",";
+                    yield* sqlQuoteParts(r[column] ?? null);
+                  }
+                  yield ");\n";
+                }
+              } else if (!pattern || tblName.toLowerCase() === pattern.toLowerCase() || name.toLowerCase() === pattern.toLowerCase()) {
+                yield `${sql.replace(/;*\s*$/, "")};` + "\n";
+              }
             }
           }
+          yield "COMMIT;\n";
         }
-        dumpLines.push("COMMIT;");
-        await emitOutput(`${dumpLines.join("\n")}\n`);
+        await emitOutput(dump());
         return;
       }
 

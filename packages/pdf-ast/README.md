@@ -268,17 +268,17 @@ state are additional. Set `maxOutputBytes` to bound output, supply `color` for
 resolved PDF color spaces, and call `close()` to release tiles. The source stays
 caller-owned and can close after opening the decoder.
 
-`PdfRetainedJpeg.open(source, options)` admits encoded JPEG input and decoder
-allocations before decoding. `rows()` yields owned RGBA rows without full RGB or
+`PdfRetainedJpeg.open(source, options)` reads encoded JPEG ranges through a fixed
+cache and admits decoder allocations before decoding. `rows()` yields owned RGBA rows without full RGB or
 RGBA planes; `width`, `height` and `components` describe the decoded image.
 `maxWorkingBytes` conservatively charges parse allocations, including metadata,
 and reuses one row-scratch allowance; `maxOutputBytes` admits image dimensions.
-Encoded input and DCT coefficient state remain intrinsic resident allocations.
+DCT coefficient state remains resident; encoded input does not.
 The source stays caller-owned and can close after `open()`; call `jpeg.close()`
 to release decoder references. PDF Decode and ColorTransform options are supported.
 
 JPEG, JPEG 2000 and JBIG2 options also accept `onDecoderAllocation(bytes)`
-to admit encoded input and intrinsic decoder state to a containing owner before
+to admit input scratch and intrinsic decoder state to a containing owner before
 allocation. Their `decoderBytes` total matches these admissions. Row scratch is
 separate, and the containing owner controls release of its reservations. Retained
 image decoding uses this hook for its shared image/mask working allowance.

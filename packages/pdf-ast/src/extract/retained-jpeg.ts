@@ -4,10 +4,10 @@ import { JpegImage } from "../vendor/pdfjs-image-decoders.mjs";
 import type { JpegDecodeOptions } from "./images.js";
 
 export interface PdfRetainedJpegOptions extends JpegDecodeOptions {
-  /** Conservative encoded-input and decoder allocation admission, plus one
+  /** Conservative input-cache and decoder allocation admission, plus one
    * output row. The caller-owned source cache is additional memory. */
   readonly maxWorkingBytes?: number;
-  /** Admit intrinsic encoded/decoder allocations to a containing owner before
+  /** Admit input-cache and intrinsic decoder allocations to a containing owner before
    * allocation. Row scratch is separate; the owner releases admitted state. */
   readonly onDecoderAllocation?: (bytes: number) => void;
   readonly maxOutputBytes?: number;
@@ -18,7 +18,7 @@ function limit(value: number | undefined, name: string) {
   if (!Number.isSafeInteger(value) || value < 0) throw new RangeError(`Invalid ${name}`);
   return value;
 }
-/** JPEG retains its admitted encoded input and DCT decoder state, but converts
+/** JPEG reads encoded ranges and retains admitted DCT decoder state, but converts
  * pixels one row at a time. The source stays caller-owned and may close after
  * open() completes. close() releases the owner's decoder references. */
 export class PdfRetainedJpeg {
@@ -37,10 +37,22 @@ export class PdfRetainedJpeg {
       if (parsing) options.onDecoderAllocation?.(bytes);
       allocated += bytes;
     }
-    options.signal?.throwIfAborted(); charge(source.size);
-    charge(Math.min(source.size, source.chunkBytes));
-    const bytes = new Uint8Array(source.size); let offset = 0;
-    for await (const chunk of source.stream(0, source.size, options.signal)) { bytes.set(chunk, offset); offset += chunk.length; }
+    options.signal?.throwIfAborted();
+    const chunkBytes=Math.min(source.size,source.chunkBytes);
+    // Previous cache, live backend result, and detached replacement can overlap.
+    charge(chunkBytes*3);
+    let cache=new Uint8Array(),cacheStart=-1,metadataBytes=0;
+    async function refill(position:number){
+      options.signal?.throwIfAborted();cacheStart=Math.floor(position/source.chunkBytes)*source.chunkBytes;
+      const length=Math.min(source.chunkBytes,source.size-cacheStart),bytes=await source.read(cacheStart,length,options.signal);
+      if(bytes.length!==length)throw new PdfError("E_PARSE","Incomplete JPEG source read");
+      cache=new Uint8Array(bytes);options.signal?.throwIfAborted();
+    }
+    async function byteAt(position:number):Promise<number|undefined>{
+      if(position<0||position>=source.size)return undefined;
+      if(position<cacheStart||position>=cacheStart+cache.length)await refill(position);
+      return cache[position-cacheStart];
+    }
     let decodeTransform: Int32Array | undefined;
     if (options.decode) {
       charge(options.decode.length * 8); decodeTransform = new Int32Array(options.decode.length * 2);
@@ -54,12 +66,26 @@ export class PdfRetainedJpeg {
         if (!Number.isSafeInteger(width * height) || width * height > Math.floor(outputMaximum / 4)) throw new PdfError("E_LIMIT", "JPEG output byte limit exceeded");
       },
     });
-    let start = 0;
-    while (start + 1 < bytes.length && !(bytes[start] === 255 && bytes[start + 1] === 216)) {
-      if (start > 0 && start % 65536 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); options.signal?.throwIfAborted(); }
+    let start=0;
+    while(start+1<source.size&&!((await byteAt(start))===255&&(await byteAt(start+1))===216)){
+      if(start>0&&start%65536===0){await new Promise<void>(resolve=>setTimeout(resolve,0));options.signal?.throwIfAborted();}
       start++;
     }
-    options.signal?.throwIfAborted(); decoder.parse(bytes.subarray(start));
+    const length=source.size-start,program=decoder.parseSteps({length});let step=program.next(),requests=0;
+    try{while(!step.done){options.signal?.throwIfAborted();if(++requests%65536===0){await new Promise<void>(resolve=>setTimeout(resolve,0));options.signal?.throwIfAborted();}
+      const request=step.value;
+      if(typeof request==="number"){
+        const position=start+request;
+        if(request<0||request>=length)step=program.next(undefined);
+        else{if(position<cacheStart||position>=cacheStart+cache.length)await refill(position);step=program.next(cache[position-cacheStart]);}
+      }else{
+        const low=request.start<0?Math.max(length+request.start,0):Math.min(request.start,length),high=request.end<0?Math.max(length+request.end,0):Math.min(request.end,length),count=Math.max(0,high-low);
+        if(count>metadataBytes){charge((count-metadataBytes)*2);metadataBytes=count;}
+        const bytes=new Uint8Array(count);let copied=0;
+        while(copied<count){const position=start+low+copied;if(position<cacheStart||position>=cacheStart+cache.length)await refill(position);const take=Math.min(count-copied,cacheStart+cache.length-position);bytes.set(cache.subarray(position-cacheStart,position-cacheStart+take),copied);copied+=take;}
+        step=program.next(bytes);
+      }
+    }}finally{program.return();}
     const { width, height, numComponents: components } = decoder;
     if (![1, 3, 4].includes(components)) throw new PdfError("E_CAPABILITY", "Unsupported JPEG component count");
     const base = allocated; parsing = false;

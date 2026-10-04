@@ -28,5 +28,6 @@ export class JpegImage {
   height: number;
   numComponents: number;
   parse(data: Uint8Array): void;
+  parseSteps(data: {readonly length: number}): Generator<number | {start: number; end: number}, void, number | Uint8Array | undefined>;
   getData(options: { width: number; height: number; forceRGB?: boolean; forceRGBA?: boolean; isSourcePDF?: boolean; rowStart?: number; rowCount?: number }): Uint8ClampedArray;
 }

@@ -15,9 +15,9 @@ it.each(["jpeg-L-0-0-17", "jpeg-L-1-0-17", "jpeg-RGB-0-0-17", "jpeg-RGB-1-0-17",
   expect(jpeg.width).toBe(expected.width); expect(jpeg.height).toBe(expected.height); expect(actual).toEqual([...expected.data]);
   jpeg.close(); await expect(jpeg.rows().next()).rejects.toThrow("closed");
 });
-it("admits encoded input before reads and output dimensions before coefficient buffers", async () => {
+it("admits fixed input scratch before reads and output dimensions before coefficient buffers", async () => {
   const input = await source(fixture("jpeg-RGB-0-0-17")); const read = vi.spyOn(input, "read");
-  await expect(PdfRetainedJpeg.open(input, { maxWorkingBytes: input.size - 1 })).rejects.toThrow("limit"); expect(read).not.toHaveBeenCalled();
+  await expect(PdfRetainedJpeg.open(input, { maxWorkingBytes: 1 })).rejects.toThrow("limit"); expect(read).not.toHaveBeenCalled();
   await expect(PdfRetainedJpeg.open(input, { maxOutputBytes: 1 })).rejects.toThrow("limit");
   await input.close();
 });
@@ -87,10 +87,28 @@ it("admits decoder allocations to the containing owner before reads and preserve
 });
 
 
-it("admits the live retained-read result alongside encoded JPEG input before reading", async () => {
+it("admits old/new range caches and the live retained-read result before reading", async () => {
   const input = await source(fixture("jpeg-RGB-0-0-17")); const read = vi.spyOn(input, "read");
   try {
-    await expect(PdfRetainedJpeg.open(input, { maxWorkingBytes: input.size + input.chunkBytes - 1 })).rejects.toThrow("limit");
+    await expect(PdfRetainedJpeg.open(input, { maxWorkingBytes: input.chunkBytes * 3 - 1 })).rejects.toThrow("limit");
     expect(read).not.toHaveBeenCalled();
   } finally { await input.close(); }
+});
+
+it.each([131072,524288])('decodes a generated %i-byte prefix without admitting the encoded payload',async prefix=>{
+ const bytes=fixture('jpeg-RGB-1-0-17'),expected=decodeJpegToRgba(bytes);let peak=0,reads=0;
+ const input={size:prefix+bytes.length,chunkBytes:512,async read(position:number,length:number){reads++;if(length>512)throw Error('whole encoded read');const result=new Uint8Array(length);for(let i=0;i<length;i++)result[i]=bytes[position+i-prefix]??0;return result;},async *stream(){for(let at=0;at<this.size;at+=512)yield await this.read(at,Math.min(512,this.size-at));}} as PdfFileSource;
+ const jpeg=await PdfRetainedJpeg.open(input,{onDecoderAllocation(length){peak=Math.max(peak,length);if(length>65536)throw Error('whole encoded allocation');}}),rows=[];
+ for await(const row of jpeg.rows())rows.push(...row);expect(rows).toEqual([...expected.data]);expect(peak).toBeLessThanOrEqual(65536);expect(reads).toBeGreaterThan(1);jpeg.close();
+});
+
+it.each([131072,524288])('skips malformed comment padding across %i bytes with bounded range reads',async padding=>{
+ const original=fixture('jpeg-RGB-0-0-17'),bytes=new Uint8Array(original.length+padding+4);bytes.set([255,216,255,254,0,4]);bytes.set(original.subarray(2),padding+6);
+ const input=await source(bytes),expected=decodeJpegToRgba(original);let peak=0;
+ try{const image=await PdfRetainedJpeg.open(input,{onDecoderAllocation(length){peak=Math.max(peak,length);if(length>65536)throw Error('whole metadata');}}),actual=[];for await(const row of image.rows())actual.push(...row);expect(actual).toEqual([...expected.data]);expect(peak).toBeLessThanOrEqual(65536);image.close();}finally{await input.close();}
+});
+it.each(['read','cancel'])('preserves JPEG source %s failure identity',async mode=>{
+ const original=await source(fixture('jpeg-RGB-0-0-17')),failure=new Error('range failed'),controller=new AbortController(),read=original.read.bind(original);let reads=0;
+ vi.spyOn(original,'read').mockImplementation(async(...args)=>{if(++reads===2){if(mode==='cancel')controller.abort(failure);else throw failure;}return read(...args);});
+ try{await expect(PdfRetainedJpeg.open(original,{signal:controller.signal})).rejects.toBe(failure);}finally{await original.close();}
 });

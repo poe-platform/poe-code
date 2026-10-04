@@ -4389,273 +4389,278 @@ function buildHuffmanTable(codeLengths, values, onAllocation) {
 function getBlockBufferOffset(component, row, col) {
   return 64 * ((component.blocksPerLine + 1) * row + col);
 }
-function decodeScan(data, offset, frame, components, resetInterval, spectralStart, spectralEnd, successivePrev, successive, parseDNLMarker = false) {
-  const mcusPerLine = frame.mcusPerLine;
-  const progressive = frame.progressive;
-  const startOffset = offset;
-  let bitsData = 0,
-    bitsCount = 0;
-  function readBit() {
-    if (bitsCount > 0) {
-      bitsCount--;
-      return bitsData >> bitsCount & 1;
-    }
-    bitsData = data[offset++];
-    if (bitsData === 0xff) {
-      const nextByte = data[offset++];
-      if (nextByte) {
-        if (nextByte === 0xdc && parseDNLMarker) {
-          offset += 2;
-          const scanLines = readUint16(data, offset);
-          offset += 2;
-          if (scanLines > 0 && scanLines !== frame.scanLines) {
-            throw new DNLMarkerError("Found DNL marker (0xFFDC) while parsing scan data", scanLines);
-          }
-        } else if (nextByte === 0xd9) {
-          if (parseDNLMarker) {
-            const maybeScanLines = blockRow * (frame.precision === 8 ? 8 : 0);
-            if (maybeScanLines > 0 && Math.round(frame.scanLines / maybeScanLines) >= 5) {
-              throw new DNLMarkerError("Found EOI marker (0xFFD9) while parsing scan data, " + "possibly caused by incorrect `scanLines` parameter", maybeScanLines);
-            }
-          }
-          throw new EOIMarkerError("Found EOI marker (0xFFD9) while parsing scan data");
+function* readJpegUint16(offset) { return ((yield offset) << 8) | (yield offset + 1); }
+function* decodeScan(data, offset, frame, components, resetInterval, spectralStart, spectralEnd, successivePrev, successive, parseDNLMarker = false) {
+    const mcusPerLine = frame.mcusPerLine;
+    const progressive = frame.progressive;
+    const startOffset = offset;
+    let bitsData = 0, bitsCount = 0;
+    function* readBit() {
+        if (bitsCount > 0) {
+            bitsCount--;
+            return bitsData >> bitsCount & 1;
         }
-        throw new JpegError(`unexpected marker ${(bitsData << 8 | nextByte).toString(16)}`);
-      }
-    }
-    bitsCount = 7;
-    return bitsData >>> 7;
-  }
-  function decodeHuffman(tree) {
-    let node = tree;
-    while (true) {
-      node = node[readBit()];
-      switch (typeof node) {
-        case "number":
-          return node;
-        case "object":
-          continue;
-      }
-      throw new JpegError("invalid huffman sequence");
-    }
-  }
-  function receive(length) {
-    let n = 0;
-    while (length > 0) {
-      n = n << 1 | readBit();
-      length--;
-    }
-    return n;
-  }
-  function receiveAndExtend(length) {
-    if (length === 1) {
-      return readBit() === 1 ? 1 : -1;
-    }
-    const n = receive(length);
-    if (n >= 1 << length - 1) {
-      return n;
-    }
-    return n + (-1 << length) + 1;
-  }
-  function decodeBaseline(component, blockOffset) {
-    const t = decodeHuffman(component.huffmanTableDC);
-    const diff = t === 0 ? 0 : receiveAndExtend(t);
-    component.blockData[blockOffset] = component.pred += diff;
-    let k = 1;
-    while (k < 64) {
-      const rs = decodeHuffman(component.huffmanTableAC);
-      const s = rs & 15,
-        r = rs >> 4;
-      if (s === 0) {
-        if (r < 15) {
-          break;
-        }
-        k += 16;
-        continue;
-      }
-      k += r;
-      const z = dctZigZag[k];
-      component.blockData[blockOffset + z] = receiveAndExtend(s);
-      k++;
-    }
-  }
-  function decodeDCFirst(component, blockOffset) {
-    const t = decodeHuffman(component.huffmanTableDC);
-    const diff = t === 0 ? 0 : receiveAndExtend(t) << successive;
-    component.blockData[blockOffset] = component.pred += diff;
-  }
-  function decodeDCSuccessive(component, blockOffset) {
-    component.blockData[blockOffset] |= readBit() << successive;
-  }
-  let eobrun = 0;
-  function decodeACFirst(component, blockOffset) {
-    if (eobrun > 0) {
-      eobrun--;
-      return;
-    }
-    let k = spectralStart;
-    const e = spectralEnd;
-    while (k <= e) {
-      const rs = decodeHuffman(component.huffmanTableAC);
-      const s = rs & 15,
-        r = rs >> 4;
-      if (s === 0) {
-        if (r < 15) {
-          eobrun = receive(r) + (1 << r) - 1;
-          break;
-        }
-        k += 16;
-        continue;
-      }
-      k += r;
-      const z = dctZigZag[k];
-      component.blockData[blockOffset + z] = receiveAndExtend(s) * (1 << successive);
-      k++;
-    }
-  }
-  let successiveACState = 0,
-    successiveACNextValue;
-  function decodeACSuccessive(component, blockOffset) {
-    let k = spectralStart;
-    const e = spectralEnd;
-    let r = 0;
-    let s;
-    let rs;
-    while (k <= e) {
-      const offsetZ = blockOffset + dctZigZag[k];
-      const sign = component.blockData[offsetZ] < 0 ? -1 : 1;
-      switch (successiveACState) {
-        case 0:
-          rs = decodeHuffman(component.huffmanTableAC);
-          s = rs & 15;
-          r = rs >> 4;
-          if (s === 0) {
-            if (r < 15) {
-              eobrun = receive(r) + (1 << r);
-              successiveACState = 4;
-            } else {
-              r = 16;
-              successiveACState = 1;
+        bitsData = (yield offset++);
+        if (bitsData === 0xff) {
+            const nextByte = (yield offset++);
+            if (nextByte) {
+                if (nextByte === 0xdc && parseDNLMarker) {
+                    offset += 2;
+                    const scanLines = (yield* readJpegUint16(offset));
+                    offset += 2;
+                    if (scanLines > 0 && scanLines !== frame.scanLines) {
+                        throw new DNLMarkerError("Found DNL marker (0xFFDC) while parsing scan data", scanLines);
+                    }
+                }
+                else if (nextByte === 0xd9) {
+                    if (parseDNLMarker) {
+                        const maybeScanLines = blockRow * (frame.precision === 8 ? 8 : 0);
+                        if (maybeScanLines > 0 && Math.round(frame.scanLines / maybeScanLines) >= 5) {
+                            throw new DNLMarkerError("Found EOI marker (0xFFD9) while parsing scan data, " + "possibly caused by incorrect `scanLines` parameter", maybeScanLines);
+                        }
+                    }
+                    throw new EOIMarkerError("Found EOI marker (0xFFD9) while parsing scan data");
+                }
+                throw new JpegError(`unexpected marker ${(bitsData << 8 | nextByte).toString(16)}`);
             }
-          } else {
-            if (s !== 1) {
-              throw new JpegError("invalid ACn encoding");
-            }
-            successiveACNextValue = receiveAndExtend(s);
-            successiveACState = r ? 2 : 3;
-          }
-          continue;
-        case 1:
-        case 2:
-          if (component.blockData[offsetZ]) {
-            component.blockData[offsetZ] += sign * (readBit() << successive);
-          } else {
-            r--;
-            if (r === 0) {
-              successiveACState = successiveACState === 2 ? 3 : 0;
-            }
-          }
-          break;
-        case 3:
-          if (component.blockData[offsetZ]) {
-            component.blockData[offsetZ] += sign * (readBit() << successive);
-          } else {
-            component.blockData[offsetZ] = successiveACNextValue << successive;
-            successiveACState = 0;
-          }
-          break;
-        case 4:
-          if (component.blockData[offsetZ]) {
-            component.blockData[offsetZ] += sign * (readBit() << successive);
-          }
-          break;
-      }
-      k++;
-    }
-    if (successiveACState === 4) {
-      eobrun--;
-      if (eobrun === 0) {
-        successiveACState = 0;
-      }
-    }
-  }
-  let blockRow = 0;
-  function decodeMcu(component, decode, mcu, row, col) {
-    const mcuRow = mcu / mcusPerLine | 0;
-    const mcuCol = mcu % mcusPerLine;
-    blockRow = mcuRow * component.v + row;
-    const blockCol = mcuCol * component.h + col;
-    const blockOffset = getBlockBufferOffset(component, blockRow, blockCol);
-    decode(component, blockOffset);
-  }
-  function decodeBlock(component, decode, mcu) {
-    blockRow = mcu / component.blocksPerLine | 0;
-    const blockCol = mcu % component.blocksPerLine;
-    const blockOffset = getBlockBufferOffset(component, blockRow, blockCol);
-    decode(component, blockOffset);
-  }
-  const componentsLength = components.length;
-  let component, i, j, k, n;
-  let decodeFn;
-  if (progressive) {
-    if (spectralStart === 0) {
-      decodeFn = successivePrev === 0 ? decodeDCFirst : decodeDCSuccessive;
-    } else {
-      decodeFn = successivePrev === 0 ? decodeACFirst : decodeACSuccessive;
-    }
-  } else {
-    decodeFn = decodeBaseline;
-  }
-  let mcu = 0,
-    fileMarker;
-  const mcuExpected = componentsLength === 1 ? components[0].blocksPerLine * components[0].blocksPerColumn : mcusPerLine * frame.mcusPerColumn;
-  let h, v;
-  while (mcu <= mcuExpected) {
-    const mcuToRead = resetInterval ? Math.min(mcuExpected - mcu, resetInterval) : mcuExpected;
-    if (mcuToRead > 0) {
-      for (i = 0; i < componentsLength; i++) {
-        components[i].pred = 0;
-      }
-      eobrun = 0;
-      if (componentsLength === 1) {
-        component = components[0];
-        for (n = 0; n < mcuToRead; n++) {
-          decodeBlock(component, decodeFn, mcu);
-          mcu++;
         }
-      } else {
-        for (n = 0; n < mcuToRead; n++) {
-          for (i = 0; i < componentsLength; i++) {
-            component = components[i];
-            h = component.h;
-            v = component.v;
-            for (j = 0; j < v; j++) {
-              for (k = 0; k < h; k++) {
-                decodeMcu(component, decodeFn, mcu, j, k);
-              }
+        bitsCount = 7;
+        return bitsData >>> 7;
+    }
+    function* decodeHuffman(tree) {
+        let node = tree;
+        while (true) {
+            node = node[(yield* readBit())];
+            switch (typeof node) {
+                case "number":
+                    return node;
+                case "object":
+                    continue;
             }
-          }
-          mcu++;
+            throw new JpegError("invalid huffman sequence");
         }
-      }
     }
-    bitsCount = 0;
-    fileMarker = findNextFileMarker(data, offset);
-    if (!fileMarker) {
-      break;
+    function* receive(length) {
+        let n = 0;
+        while (length > 0) {
+            n = n << 1 | (yield* readBit());
+            length--;
+        }
+        return n;
     }
-    if (fileMarker.invalid) {
-      const partialMsg = mcuToRead > 0 ? "unexpected" : "excessive";
-      util_warn(`decodeScan - ${partialMsg} MCU data, current marker is: ${fileMarker.invalid}`);
-      offset = fileMarker.offset;
+    function* receiveAndExtend(length) {
+        if (length === 1) {
+            return (yield* readBit()) === 1 ? 1 : -1;
+        }
+        const n = (yield* receive(length));
+        if (n >= 1 << length - 1) {
+            return n;
+        }
+        return n + (-1 << length) + 1;
     }
-    if (fileMarker.marker >= 0xffd0 && fileMarker.marker <= 0xffd7) {
-      offset += 2;
-    } else {
-      break;
+    function* decodeBaseline(component, blockOffset) {
+        const t = (yield* decodeHuffman(component.huffmanTableDC));
+        const diff = t === 0 ? 0 : (yield* receiveAndExtend(t));
+        component.blockData[blockOffset] = component.pred += diff;
+        let k = 1;
+        while (k < 64) {
+            const rs = (yield* decodeHuffman(component.huffmanTableAC));
+            const s = rs & 15, r = rs >> 4;
+            if (s === 0) {
+                if (r < 15) {
+                    break;
+                }
+                k += 16;
+                continue;
+            }
+            k += r;
+            const z = dctZigZag[k];
+            component.blockData[blockOffset + z] = (yield* receiveAndExtend(s));
+            k++;
+        }
     }
-  }
-  return offset - startOffset;
+    function* decodeDCFirst(component, blockOffset) {
+        const t = (yield* decodeHuffman(component.huffmanTableDC));
+        const diff = t === 0 ? 0 : (yield* receiveAndExtend(t)) << successive;
+        component.blockData[blockOffset] = component.pred += diff;
+    }
+    function* decodeDCSuccessive(component, blockOffset) {
+        component.blockData[blockOffset] |= (yield* readBit()) << successive;
+    }
+    let eobrun = 0;
+    function* decodeACFirst(component, blockOffset) {
+        if (eobrun > 0) {
+            eobrun--;
+            return;
+        }
+        let k = spectralStart;
+        const e = spectralEnd;
+        while (k <= e) {
+            const rs = (yield* decodeHuffman(component.huffmanTableAC));
+            const s = rs & 15, r = rs >> 4;
+            if (s === 0) {
+                if (r < 15) {
+                    eobrun = (yield* receive(r)) + (1 << r) - 1;
+                    break;
+                }
+                k += 16;
+                continue;
+            }
+            k += r;
+            const z = dctZigZag[k];
+            component.blockData[blockOffset + z] = (yield* receiveAndExtend(s)) * (1 << successive);
+            k++;
+        }
+    }
+    let successiveACState = 0, successiveACNextValue;
+    function* decodeACSuccessive(component, blockOffset) {
+        let k = spectralStart;
+        const e = spectralEnd;
+        let r = 0;
+        let s;
+        let rs;
+        while (k <= e) {
+            const offsetZ = blockOffset + dctZigZag[k];
+            const sign = component.blockData[offsetZ] < 0 ? -1 : 1;
+            switch (successiveACState) {
+                case 0:
+                    rs = (yield* decodeHuffman(component.huffmanTableAC));
+                    s = rs & 15;
+                    r = rs >> 4;
+                    if (s === 0) {
+                        if (r < 15) {
+                            eobrun = (yield* receive(r)) + (1 << r);
+                            successiveACState = 4;
+                        }
+                        else {
+                            r = 16;
+                            successiveACState = 1;
+                        }
+                    }
+                    else {
+                        if (s !== 1) {
+                            throw new JpegError("invalid ACn encoding");
+                        }
+                        successiveACNextValue = (yield* receiveAndExtend(s));
+                        successiveACState = r ? 2 : 3;
+                    }
+                    continue;
+                case 1:
+                case 2:
+                    if (component.blockData[offsetZ]) {
+                        component.blockData[offsetZ] += sign * ((yield* readBit()) << successive);
+                    }
+                    else {
+                        r--;
+                        if (r === 0) {
+                            successiveACState = successiveACState === 2 ? 3 : 0;
+                        }
+                    }
+                    break;
+                case 3:
+                    if (component.blockData[offsetZ]) {
+                        component.blockData[offsetZ] += sign * ((yield* readBit()) << successive);
+                    }
+                    else {
+                        component.blockData[offsetZ] = successiveACNextValue << successive;
+                        successiveACState = 0;
+                    }
+                    break;
+                case 4:
+                    if (component.blockData[offsetZ]) {
+                        component.blockData[offsetZ] += sign * ((yield* readBit()) << successive);
+                    }
+                    break;
+            }
+            k++;
+        }
+        if (successiveACState === 4) {
+            eobrun--;
+            if (eobrun === 0) {
+                successiveACState = 0;
+            }
+        }
+    }
+    let blockRow = 0;
+    function* decodeMcu(component, decode, mcu, row, col) {
+        const mcuRow = mcu / mcusPerLine | 0;
+        const mcuCol = mcu % mcusPerLine;
+        blockRow = mcuRow * component.v + row;
+        const blockCol = mcuCol * component.h + col;
+        const blockOffset = getBlockBufferOffset(component, blockRow, blockCol);
+        (yield* decode(component, blockOffset));
+    }
+    function* decodeBlock(component, decode, mcu) {
+        blockRow = mcu / component.blocksPerLine | 0;
+        const blockCol = mcu % component.blocksPerLine;
+        const blockOffset = getBlockBufferOffset(component, blockRow, blockCol);
+        (yield* decode(component, blockOffset));
+    }
+    const componentsLength = components.length;
+    let component, i, j, k, n;
+    let decodeFn;
+    if (progressive) {
+        if (spectralStart === 0) {
+            decodeFn = successivePrev === 0 ? decodeDCFirst : decodeDCSuccessive;
+        }
+        else {
+            decodeFn = successivePrev === 0 ? decodeACFirst : decodeACSuccessive;
+        }
+    }
+    else {
+        decodeFn = decodeBaseline;
+    }
+    let mcu = 0, fileMarker;
+    const mcuExpected = componentsLength === 1 ? components[0].blocksPerLine * components[0].blocksPerColumn : mcusPerLine * frame.mcusPerColumn;
+    let h, v;
+    while (mcu <= mcuExpected) {
+        const mcuToRead = resetInterval ? Math.min(mcuExpected - mcu, resetInterval) : mcuExpected;
+        if (mcuToRead > 0) {
+            for (i = 0; i < componentsLength; i++) {
+                components[i].pred = 0;
+            }
+            eobrun = 0;
+            if (componentsLength === 1) {
+                component = components[0];
+                for (n = 0; n < mcuToRead; n++) {
+                    (yield* decodeBlock(component, decodeFn, mcu));
+                    mcu++;
+                }
+            }
+            else {
+                for (n = 0; n < mcuToRead; n++) {
+                    for (i = 0; i < componentsLength; i++) {
+                        component = components[i];
+                        h = component.h;
+                        v = component.v;
+                        for (j = 0; j < v; j++) {
+                            for (k = 0; k < h; k++) {
+                                (yield* decodeMcu(component, decodeFn, mcu, j, k));
+                            }
+                        }
+                    }
+                    mcu++;
+                }
+            }
+        }
+        bitsCount = 0;
+        fileMarker = (yield* findNextFileMarker(data, offset));
+        if (!fileMarker) {
+            break;
+        }
+        if (fileMarker.invalid) {
+            const partialMsg = mcuToRead > 0 ? "unexpected" : "excessive";
+            util_warn(`decodeScan - ${partialMsg} MCU data, current marker is: ${fileMarker.invalid}`);
+            offset = fileMarker.offset;
+        }
+        if (fileMarker.marker >= 0xffd0 && fileMarker.marker <= 0xffd7) {
+            offset += 2;
+        }
+        else {
+            break;
+        }
+    }
+    return offset - startOffset;
 }
 function quantizeAndInverse(component, blockBufferOffset, p) {
   const qt = component.quantizationTable,
@@ -4873,32 +4878,32 @@ function buildComponentData(frame, component, onAllocation) {
   }
   return component.blockData;
 }
-function findNextFileMarker(data, currentPos, startPos = currentPos) {
-  const maxPos = data.length - 1;
-  let newPos = startPos < currentPos ? startPos : currentPos;
-  if (currentPos >= maxPos) {
-    return null;
-  }
-  const currentMarker = readUint16(data, currentPos);
-  if (currentMarker >= 0xffc0 && currentMarker <= 0xfffe) {
-    return {
-      invalid: null,
-      marker: currentMarker,
-      offset: currentPos
-    };
-  }
-  let newMarker = readUint16(data, newPos);
-  while (!(newMarker >= 0xffc0 && newMarker <= 0xfffe)) {
-    if (++newPos >= maxPos) {
-      return null;
+function* findNextFileMarker(data, currentPos, startPos = currentPos) {
+    const maxPos = data.length - 1;
+    let newPos = startPos < currentPos ? startPos : currentPos;
+    if (currentPos >= maxPos) {
+        return null;
     }
-    newMarker = readUint16(data, newPos);
-  }
-  return {
-    invalid: currentMarker.toString(16),
-    marker: newMarker,
-    offset: newPos
-  };
+    const currentMarker = (yield* readJpegUint16(currentPos));
+    if (currentMarker >= 0xffc0 && currentMarker <= 0xfffe) {
+        return {
+            invalid: null,
+            marker: currentMarker,
+            offset: currentPos
+        };
+    }
+    let newMarker = (yield* readJpegUint16(newPos));
+    while (!(newMarker >= 0xffc0 && newMarker <= 0xfffe)) {
+        if (++newPos >= maxPos) {
+            return null;
+        }
+        newMarker = (yield* readJpegUint16(newPos));
+    }
+    return {
+        invalid: currentMarker.toString(16),
+        marker: newMarker,
+        offset: newPos
+    };
 }
 class JpegImage {
   constructor({
@@ -4912,40 +4917,49 @@ class JpegImage {
     this._decodeTransform = decodeTransform;
     this._colorTransform = colorTransform;
   }
-  parse(data, {
-    dnlScanLines = null
-  } = {}) {
+  parse(data, options) {
+    const program = this.parseSteps(data, options);
+    let step = program.next();
+    while (!step.done) {
+      const request = step.value;
+      step = program.next(typeof request === "number" ? data[request] : data.subarray(request.start, request.end));
+    }
+    return step.value;
+  }
+  *parseSteps(data, { dnlScanLines = null } = {}) {
     const onAllocation = this.onAllocation;
     onAllocation?.(512);
-    function readDataBlock() {
-      const length = readUint16(data, offset);
-      offset += 2;
-      let endOffset = offset + length - 2;
-      const fileMarker = findNextFileMarker(data, endOffset, offset);
-      if (fileMarker?.invalid) {
-        util_warn("readDataBlock - incorrect length, current marker is: " + fileMarker.invalid);
-        endOffset = fileMarker.offset;
-      }
-      const array = data.subarray(offset, endOffset);
-      offset += array.length;
-      return array;
+    function* readDataBlock(marker) {
+        const length = (yield* readJpegUint16(offset));
+        offset += 2;
+        let endOffset = offset + length - 2;
+        const fileMarker = (yield* findNextFileMarker(data, endOffset, offset));
+        if (fileMarker?.invalid) {
+            util_warn("readDataBlock - incorrect length, current marker is: " + fileMarker.invalid);
+            endOffset = fileMarker.offset;
+        }
+        // Only JFIF's bounded thumbnail and Adobe's header are consumed.
+        // Malformed marker recovery may span arbitrary padding; skip that tail.
+        const array = (yield { start: offset, end: Math.min(endOffset, offset + (marker === 0xffe0 ? 14 + 3 * 255 * 255 : marker === 0xffee ? 12 : 0)) });
+        offset += Math.max(0, Math.min(data.length, endOffset) - Math.min(data.length, offset));
+        return array;
     }
     function prepareComponents(frame) {
-      const mcusPerLine = Math.ceil(frame.samplesPerLine / 8 / frame.maxH);
-      const mcusPerColumn = Math.ceil(frame.scanLines / 8 / frame.maxV);
-      for (const component of frame.components) {
-        const blocksPerLine = Math.ceil(Math.ceil(frame.samplesPerLine / 8) * component.h / frame.maxH);
-        const blocksPerColumn = Math.ceil(Math.ceil(frame.scanLines / 8) * component.v / frame.maxV);
-        const blocksPerLineForMcu = mcusPerLine * component.h;
-        const blocksPerColumnForMcu = mcusPerColumn * component.v;
-        const blocksBufferSize = 64 * blocksPerColumnForMcu * (blocksPerLineForMcu + 1);
-        onAllocation?.(blocksBufferSize * 2);
-        component.blockData = new Int16Array(blocksBufferSize);
-        component.blocksPerLine = blocksPerLine;
-        component.blocksPerColumn = blocksPerColumn;
-      }
-      frame.mcusPerLine = mcusPerLine;
-      frame.mcusPerColumn = mcusPerColumn;
+        const mcusPerLine = Math.ceil(frame.samplesPerLine / 8 / frame.maxH);
+        const mcusPerColumn = Math.ceil(frame.scanLines / 8 / frame.maxV);
+        for (const component of frame.components) {
+            const blocksPerLine = Math.ceil(Math.ceil(frame.samplesPerLine / 8) * component.h / frame.maxH);
+            const blocksPerColumn = Math.ceil(Math.ceil(frame.scanLines / 8) * component.v / frame.maxV);
+            const blocksPerLineForMcu = mcusPerLine * component.h;
+            const blocksPerColumnForMcu = mcusPerColumn * component.v;
+            const blocksBufferSize = 64 * blocksPerColumnForMcu * (blocksPerLineForMcu + 1);
+            onAllocation?.(blocksBufferSize * 2);
+            component.blockData = new Int16Array(blocksBufferSize);
+            component.blocksPerLine = blocksPerLine;
+            component.blocksPerColumn = blocksPerColumn;
+        }
+        frame.mcusPerLine = mcusPerLine;
+        frame.mcusPerColumn = mcusPerColumn;
     }
     let offset = 0;
     let jfif = null;
@@ -4953,222 +4967,221 @@ class JpegImage {
     let frame, resetInterval;
     let numSOSMarkers = 0;
     const quantizationTables = [];
-    const huffmanTablesAC = [],
-      huffmanTablesDC = [];
-    let fileMarker = readUint16(data, offset);
+    const huffmanTablesAC = [], huffmanTablesDC = [];
+    let fileMarker = (yield* readJpegUint16(offset));
     offset += 2;
     if (fileMarker !== 0xffd8) {
-      throw new JpegError("SOI not found");
+        throw new JpegError("SOI not found");
     }
-    fileMarker = readUint16(data, offset);
+    fileMarker = (yield* readJpegUint16(offset));
     offset += 2;
     markerLoop: while (fileMarker !== 0xffd9) {
-      let i, j, l;
-      switch (fileMarker) {
-        case 0xffe0:
-        case 0xffe1:
-        case 0xffe2:
-        case 0xffe3:
-        case 0xffe4:
-        case 0xffe5:
-        case 0xffe6:
-        case 0xffe7:
-        case 0xffe8:
-        case 0xffe9:
-        case 0xffea:
-        case 0xffeb:
-        case 0xffec:
-        case 0xffed:
-        case 0xffee:
-        case 0xffef:
-        case 0xfffe:
-          const appData = readDataBlock();
-          if (fileMarker === 0xffe0) {
-            if (appData[0] === 0x4a && appData[1] === 0x46 && appData[2] === 0x49 && appData[3] === 0x46 && appData[4] === 0) {
-              jfif = {
-                version: {
-                  major: appData[5],
-                  minor: appData[6]
-                },
-                densityUnits: appData[7],
-                xDensity: appData[8] << 8 | appData[9],
-                yDensity: appData[10] << 8 | appData[11],
-                thumbWidth: appData[12],
-                thumbHeight: appData[13],
-                thumbData: appData.subarray(14, 14 + 3 * appData[12] * appData[13])
-              };
-            }
-          }
-          if (fileMarker === 0xffee) {
-            if (appData[0] === 0x41 && appData[1] === 0x64 && appData[2] === 0x6f && appData[3] === 0x62 && appData[4] === 0x65) {
-              adobe = {
-                version: appData[5] << 8 | appData[6],
-                flags0: appData[7] << 8 | appData[8],
-                flags1: appData[9] << 8 | appData[10],
-                transformCode: appData[11]
-              };
-            }
-          }
-          break;
-        case 0xffdb:
-          const quantizationTablesLength = readUint16(data, offset);
-          offset += 2;
-          const quantizationTablesEnd = quantizationTablesLength + offset - 2;
-          let z;
-          while (offset < quantizationTablesEnd) {
-            const quantizationTableSpec = data[offset++];
-            onAllocation?.(128);
-            const tableData = new Uint16Array(64);
-            if (quantizationTableSpec >> 4 === 0) {
-              for (j = 0; j < 64; j++) {
-                z = dctZigZag[j];
-                tableData[z] = data[offset++];
-              }
-            } else if (quantizationTableSpec >> 4 === 1) {
-              for (j = 0; j < 64; j++) {
-                z = dctZigZag[j];
-                tableData[z] = readUint16(data, offset);
+        let i, j, l;
+        switch (fileMarker) {
+            case 0xffe0:
+            case 0xffe1:
+            case 0xffe2:
+            case 0xffe3:
+            case 0xffe4:
+            case 0xffe5:
+            case 0xffe6:
+            case 0xffe7:
+            case 0xffe8:
+            case 0xffe9:
+            case 0xffea:
+            case 0xffeb:
+            case 0xffec:
+            case 0xffed:
+            case 0xffee:
+            case 0xffef:
+            case 0xfffe:
+                const appData = (yield* readDataBlock(fileMarker));
+                if (fileMarker === 0xffe0) {
+                    if (appData[0] === 0x4a && appData[1] === 0x46 && appData[2] === 0x49 && appData[3] === 0x46 && appData[4] === 0) {
+                        jfif = {
+                            version: {
+                                major: appData[5],
+                                minor: appData[6]
+                            },
+                            densityUnits: appData[7],
+                            xDensity: appData[8] << 8 | appData[9],
+                            yDensity: appData[10] << 8 | appData[11],
+                            thumbWidth: appData[12],
+                            thumbHeight: appData[13],
+                            thumbData: appData.subarray(14, 14 + 3 * appData[12] * appData[13])
+                        };
+                    }
+                }
+                if (fileMarker === 0xffee) {
+                    if (appData[0] === 0x41 && appData[1] === 0x64 && appData[2] === 0x6f && appData[3] === 0x62 && appData[4] === 0x65) {
+                        adobe = {
+                            version: appData[5] << 8 | appData[6],
+                            flags0: appData[7] << 8 | appData[8],
+                            flags1: appData[9] << 8 | appData[10],
+                            transformCode: appData[11]
+                        };
+                    }
+                }
+                break;
+            case 0xffdb:
+                const quantizationTablesLength = (yield* readJpegUint16(offset));
                 offset += 2;
-              }
-            } else {
-              throw new JpegError("DQT - invalid table spec");
-            }
-            quantizationTables[quantizationTableSpec & 15] = tableData;
-          }
-          break;
-        case 0xffc0:
-        case 0xffc1:
-        case 0xffc2:
-          if (frame) {
-            throw new JpegError("Only single frame JPEGs supported");
-          }
-          offset += 2;
-          frame = {};
-          frame.extended = fileMarker === 0xffc1;
-          frame.progressive = fileMarker === 0xffc2;
-          frame.precision = data[offset++];
-          const sofScanLines = readUint16(data, offset);
-          offset += 2;
-          frame.scanLines = dnlScanLines || sofScanLines;
-          frame.samplesPerLine = readUint16(data, offset);
-          offset += 2;
-          frame.components = [];
-          frame.componentIds = {};
-          const componentsCount = data[offset++];
-          let maxH = 0,
-            maxV = 0;
-          for (i = 0; i < componentsCount; i++) {
-            const componentId = data[offset];
-            const h = data[offset + 1] >> 4;
-            const v = data[offset + 1] & 15;
-            if (maxH < h) {
-              maxH = h;
-            }
-            if (maxV < v) {
-              maxV = v;
-            }
-            const qId = data[offset + 2];
-            onAllocation?.(128);
-            l = frame.components.push({
-              h,
-              v,
-              quantizationId: qId,
-              quantizationTable: null
-            });
-            frame.componentIds[componentId] = l - 1;
-            offset += 3;
-          }
-          frame.maxH = maxH;
-          frame.maxV = maxV;
-          this.onImageDimensions?.(frame.samplesPerLine, frame.scanLines);
-          prepareComponents(frame);
-          break;
-        case 0xffc4:
-          const huffmanLength = readUint16(data, offset);
-          offset += 2;
-          for (i = 2; i < huffmanLength;) {
-            const huffmanTableSpec = data[offset++];
-            onAllocation?.(16);
-            const codeLengths = new Uint8Array(16);
-            let codeLengthSum = 0;
-            for (j = 0; j < 16; j++, offset++) {
-              codeLengthSum += codeLengths[j] = data[offset];
-            }
-            onAllocation?.(codeLengthSum);
-            const huffmanValues = new Uint8Array(codeLengthSum);
-            for (j = 0; j < codeLengthSum; j++, offset++) {
-              huffmanValues[j] = data[offset];
-            }
-            i += 17 + codeLengthSum;
-            (huffmanTableSpec >> 4 === 0 ? huffmanTablesDC : huffmanTablesAC)[huffmanTableSpec & 15] = buildHuffmanTable(codeLengths, huffmanValues, onAllocation);
-          }
-          break;
-        case 0xffdd:
-          offset += 2;
-          resetInterval = readUint16(data, offset);
-          offset += 2;
-          break;
-        case 0xffda:
-          const parseDNLMarker = ++numSOSMarkers === 1 && !dnlScanLines;
-          offset += 2;
-          const selectorsCount = data[offset++],
-            components = [];
-          onAllocation?.(64 + selectorsCount * 8);
-          for (i = 0; i < selectorsCount; i++) {
-            const index = data[offset++];
-            const componentIndex = frame.componentIds[index];
-            const component = frame.components[componentIndex];
-            component.index = index;
-            const tableSpec = data[offset++];
-            component.huffmanTableDC = huffmanTablesDC[tableSpec >> 4];
-            component.huffmanTableAC = huffmanTablesAC[tableSpec & 15];
-            components.push(component);
-          }
-          const spectralStart = data[offset++],
-            spectralEnd = data[offset++],
-            successiveApproximation = data[offset++];
-          try {
-            const processed = decodeScan(data, offset, frame, components, resetInterval, spectralStart, spectralEnd, successiveApproximation >> 4, successiveApproximation & 15, parseDNLMarker);
-            offset += processed;
-          } catch (ex) {
-            if (ex instanceof DNLMarkerError) {
-              util_warn(`${ex.message} -- attempting to re-parse the JPEG image.`);
-              return this.parse(data, {
-                dnlScanLines: ex.scanLines
-              });
-            } else if (ex instanceof EOIMarkerError) {
-              util_warn(`${ex.message} -- ignoring the rest of the image data.`);
-              break markerLoop;
-            }
-            throw ex;
-          }
-          break;
-        case 0xffdc:
-          offset += 4;
-          break;
-        case 0xffff:
-          if (data[offset] !== 0xff) {
-            offset--;
-          }
-          break;
-        default:
-          const nextFileMarker = findNextFileMarker(data, offset - 2, offset - 3);
-          if (nextFileMarker?.invalid) {
-            util_warn("JpegImage.parse - unexpected data, current marker is: " + nextFileMarker.invalid);
-            offset = nextFileMarker.offset;
-            break;
-          }
-          if (!nextFileMarker || offset >= data.length - 1) {
-            util_warn("JpegImage.parse - reached the end of the image data " + "without finding an EOI marker (0xFFD9).");
-            break markerLoop;
-          }
-          throw new JpegError("JpegImage.parse - unknown marker: " + fileMarker.toString(16));
-      }
-      fileMarker = readUint16(data, offset);
-      offset += 2;
+                const quantizationTablesEnd = quantizationTablesLength + offset - 2;
+                let z;
+                while (offset < quantizationTablesEnd) {
+                    const quantizationTableSpec = (yield offset++);
+                    onAllocation?.(128);
+                    const tableData = new Uint16Array(64);
+                    if (quantizationTableSpec >> 4 === 0) {
+                        for (j = 0; j < 64; j++) {
+                            z = dctZigZag[j];
+                            tableData[z] = (yield offset++);
+                        }
+                    }
+                    else if (quantizationTableSpec >> 4 === 1) {
+                        for (j = 0; j < 64; j++) {
+                            z = dctZigZag[j];
+                            tableData[z] = (yield* readJpegUint16(offset));
+                            offset += 2;
+                        }
+                    }
+                    else {
+                        throw new JpegError("DQT - invalid table spec");
+                    }
+                    quantizationTables[quantizationTableSpec & 15] = tableData;
+                }
+                break;
+            case 0xffc0:
+            case 0xffc1:
+            case 0xffc2:
+                if (frame) {
+                    throw new JpegError("Only single frame JPEGs supported");
+                }
+                offset += 2;
+                frame = {};
+                frame.extended = fileMarker === 0xffc1;
+                frame.progressive = fileMarker === 0xffc2;
+                frame.precision = (yield offset++);
+                const sofScanLines = (yield* readJpegUint16(offset));
+                offset += 2;
+                frame.scanLines = dnlScanLines || sofScanLines;
+                frame.samplesPerLine = (yield* readJpegUint16(offset));
+                offset += 2;
+                frame.components = [];
+                frame.componentIds = {};
+                const componentsCount = (yield offset++);
+                let maxH = 0, maxV = 0;
+                for (i = 0; i < componentsCount; i++) {
+                    const componentId = (yield offset);
+                    const h = (yield offset + 1) >> 4;
+                    const v = (yield offset + 1) & 15;
+                    if (maxH < h) {
+                        maxH = h;
+                    }
+                    if (maxV < v) {
+                        maxV = v;
+                    }
+                    const qId = (yield offset + 2);
+                    onAllocation?.(128);
+                    l = frame.components.push({
+                        h,
+                        v,
+                        quantizationId: qId,
+                        quantizationTable: null
+                    });
+                    frame.componentIds[componentId] = l - 1;
+                    offset += 3;
+                }
+                frame.maxH = maxH;
+                frame.maxV = maxV;
+                this.onImageDimensions?.(frame.samplesPerLine, frame.scanLines);
+                prepareComponents(frame);
+                break;
+            case 0xffc4:
+                const huffmanLength = (yield* readJpegUint16(offset));
+                offset += 2;
+                for (i = 2; i < huffmanLength;) {
+                    const huffmanTableSpec = (yield offset++);
+                    onAllocation?.(16);
+                    const codeLengths = new Uint8Array(16);
+                    let codeLengthSum = 0;
+                    for (j = 0; j < 16; j++, offset++) {
+                        codeLengthSum += codeLengths[j] = (yield offset);
+                    }
+                    onAllocation?.(codeLengthSum);
+                    const huffmanValues = new Uint8Array(codeLengthSum);
+                    for (j = 0; j < codeLengthSum; j++, offset++) {
+                        huffmanValues[j] = (yield offset);
+                    }
+                    i += 17 + codeLengthSum;
+                    (huffmanTableSpec >> 4 === 0 ? huffmanTablesDC : huffmanTablesAC)[huffmanTableSpec & 15] = buildHuffmanTable(codeLengths, huffmanValues, onAllocation);
+                }
+                break;
+            case 0xffdd:
+                offset += 2;
+                resetInterval = (yield* readJpegUint16(offset));
+                offset += 2;
+                break;
+            case 0xffda:
+                const parseDNLMarker = ++numSOSMarkers === 1 && !dnlScanLines;
+                offset += 2;
+                const selectorsCount = (yield offset++), components = [];
+                onAllocation?.(64 + selectorsCount * 8);
+                for (i = 0; i < selectorsCount; i++) {
+                    const index = (yield offset++);
+                    const componentIndex = frame.componentIds[index];
+                    const component = frame.components[componentIndex];
+                    component.index = index;
+                    const tableSpec = (yield offset++);
+                    component.huffmanTableDC = huffmanTablesDC[tableSpec >> 4];
+                    component.huffmanTableAC = huffmanTablesAC[tableSpec & 15];
+                    components.push(component);
+                }
+                const spectralStart = (yield offset++), spectralEnd = (yield offset++), successiveApproximation = (yield offset++);
+                try {
+                    const processed = (yield* decodeScan(data, offset, frame, components, resetInterval, spectralStart, spectralEnd, successiveApproximation >> 4, successiveApproximation & 15, parseDNLMarker));
+                    offset += processed;
+                }
+                catch (ex) {
+                    if (ex instanceof DNLMarkerError) {
+                        util_warn(`${ex.message} -- attempting to re-parse the JPEG image.`);
+                        return (yield* this.parseSteps(data, {
+                            dnlScanLines: ex.scanLines
+                        }));
+                    }
+                    else if (ex instanceof EOIMarkerError) {
+                        util_warn(`${ex.message} -- ignoring the rest of the image data.`);
+                        break markerLoop;
+                    }
+                    throw ex;
+                }
+                break;
+            case 0xffdc:
+                offset += 4;
+                break;
+            case 0xffff:
+                if ((yield offset) !== 0xff) {
+                    offset--;
+                }
+                break;
+            default:
+                const nextFileMarker = (yield* findNextFileMarker(data, offset - 2, offset - 3));
+                if (nextFileMarker?.invalid) {
+                    util_warn("JpegImage.parse - unexpected data, current marker is: " + nextFileMarker.invalid);
+                    offset = nextFileMarker.offset;
+                    break;
+                }
+                if (!nextFileMarker || offset >= data.length - 1) {
+                    util_warn("JpegImage.parse - reached the end of the image data " + "without finding an EOI marker (0xFFD9).");
+                    break markerLoop;
+                }
+                throw new JpegError("JpegImage.parse - unknown marker: " + fileMarker.toString(16));
+        }
+        fileMarker = (yield* readJpegUint16(offset));
+        offset += 2;
     }
     if (!frame) {
-      throw new JpegError("JpegImage.parse - no frame data found.");
+        throw new JpegError("JpegImage.parse - no frame data found.");
     }
     this.width = frame.samplesPerLine;
     this.height = frame.scanLines;
@@ -5176,23 +5189,23 @@ class JpegImage {
     this.adobe = adobe;
     this.components = [];
     for (const component of frame.components) {
-      const quantizationTable = quantizationTables[component.quantizationId];
-      if (quantizationTable) {
-        component.quantizationTable = quantizationTable;
-      }
-      onAllocation?.(96);
-      this.components.push({
-        index: component.index,
-        output: buildComponentData(frame, component, onAllocation),
-        scaleX: component.h / frame.maxH,
-        scaleY: component.v / frame.maxV,
-        blocksPerLine: component.blocksPerLine,
-        blocksPerColumn: component.blocksPerColumn
-      });
+        const quantizationTable = quantizationTables[component.quantizationId];
+        if (quantizationTable) {
+            component.quantizationTable = quantizationTable;
+        }
+        onAllocation?.(96);
+        this.components.push({
+            index: component.index,
+            output: buildComponentData(frame, component, onAllocation),
+            scaleX: component.h / frame.maxH,
+            scaleY: component.v / frame.maxV,
+            blocksPerLine: component.blocksPerLine,
+            blocksPerColumn: component.blocksPerColumn
+        });
     }
     this.numComponents = this.components.length;
     return undefined;
-  }
+}
   _getLinearizedBlockData(width, height, isSourcePDF = false, rowStart = 0, rowCount = height) {
     const scaleX = this.width / width,
       scaleY = this.height / height;

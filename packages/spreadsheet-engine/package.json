@@ -62,7 +62,8 @@
     "@poe-code/spreadsheet-ast": "*",
     "@poe-code/safe-fs": "*",
     "@poe-code/image-ast": "*",
-    "linebreak": "^1.1.0"
+    "linebreak": "^1.1.0",
+    "bidi-js": "1.1.0"
   },
   "poeCode": {
     "safeLibraryExports": {

@@ -1,3 +1,4 @@
+import {printBidiRuns} from "@poe-code/spreadsheet-engine/rendering/print/bidi-runs";
 import {rotatedPrintLayout} from "@poe-code/spreadsheet-engine/rendering/print/rotated-text";
 import {printSharedBorders} from "@poe-code/spreadsheet-engine/rendering/print/shared-borders";
 import {printBorderStrokes} from "@poe-code/spreadsheet-engine/rendering/print/diagonal-borders";
@@ -347,6 +348,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         // Tabs use shared stops across the entire repeated line.
         const rtlFill = singleParagraph && shaper.shape(metrics, shapedValue).direction === "rtl";
         const rtlTabs = rtlFill && tabbedFill;
+        const bidiTabs = tabbedFill && !["\r", "\u2028", "\u2029"].some(control => shapedValue.includes(control));
         const tabPositions: {x: number}[] = [];
         const tabRuns: {start: number; end: number; first: number; last: number}[] = [];
         const chunks = singleParagraph ? shapedValue.split("\t") : [shapedValue];
@@ -371,25 +373,29 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
               displayWidth += separator.displayWidth;
               continue;
             }
-            const run = shaper.shape(metrics, part);
-            runs.push(run);
-            for (const position of run.positions) {
-              tick();
-              const advance = position.xAdvance * cellBox.style.size / metrics.unitsPerEm;
-              if (!Number.isFinite(advance) || advance < 0 || !Number.isFinite(position.xOffset) || !Number.isFinite(position.yOffset) || position.yAdvance !== 0) unsupported("supplied font advances");
-              const glyph = {x: width + Math.round(position.xOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale,
-                y: -Math.round(-position.yOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale};
-              glyphs.push(glyph);
-              if (rtlTabs) tabPositions.push(glyph);
-              advances.push(Math.round(advance));
-              width += Math.round(advance) * printDisplayScale;
-              displayWidth += Math.round(advance / printDisplayScale) * printDisplayScale;
+            const items = bidiTabs ? printBidiRuns(part, rtlFill ? "rtl" : "ltr", tick) : [{text: part}];
+            for (const item of items) {
+              const run = shaper.shape(metrics, item.text);
+              if ("direction" in item && run.direction !== item.direction) unsupported("bidirectional shaping direction");
+              runs.push(run);
+              for (const position of run.positions) {
+                tick();
+                const advance = position.xAdvance * cellBox.style.size / metrics.unitsPerEm;
+                if (!Number.isFinite(advance) || advance < 0 || !Number.isFinite(position.xOffset) || !Number.isFinite(position.yOffset) || position.yAdvance !== 0) unsupported("supplied font advances");
+                const glyph = {x: width + Math.round(position.xOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale,
+                  y: -Math.round(-position.yOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale};
+                glyphs.push(glyph);
+                if (rtlTabs) tabPositions.push(glyph);
+                advances.push(Math.round(advance));
+                width += Math.round(advance) * printDisplayScale;
+                displayWidth += Math.round(advance / printDisplayScale) * printDisplayScale;
+              }
             }
           }
           if (rtlTabs) tabRuns.push({start, end: width, first, last: tabPositions.length});
         }
         if (rtlTabs) mirrorPrintTabRuns(tabPositions, tabRuns, width, tick);
-        if (runs.length > 1 && runs.some(run => run.direction === "rtl") && !(rtlFill && runs.every(run => run.direction === "rtl"))) unsupported("bidirectional fill layout");
+        if (!bidiTabs && runs.length > 1 && runs.some(run => run.direction === "rtl") && !(rtlFill && runs.every(run => run.direction === "rtl"))) unsupported("bidirectional fill layout");
         const run = runs.length < 2 ? runs[0] : Object.create(runs[0]!, {
           glyphs: {value: runs.flatMap(run => run.glyphs)}, positions: {value: runs.flatMap(run => run.positions)}
         }) as NonNullable<typeof runs[0]>;

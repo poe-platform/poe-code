@@ -164,6 +164,8 @@ no invalid plaintext publication. Describe unauthenticated legacy formats honest
 All functions preserve namespace replacement and absent-plugin behavior. Never
 remove difficult numeric inputs or relax exact comparisons to obtain a pass.
 
+Mixed Hebrew/Latin tabbed Fill now matches the bounded native cohort in both base directions, with repetition and ±45° rotation (ledger `pdfMixedFillTabs`). Next rendering acceptance is mixed paragraph/control boundaries; all 19 family gates remain open.
+
 ## 4. Interfaces and test plan
 
 Use existing `createEngine`, `readWorkbook`, `writeWorkbook`, `convert` and

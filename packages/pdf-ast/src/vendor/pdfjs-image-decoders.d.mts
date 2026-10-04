@@ -1,7 +1,7 @@
 /** Public API of the vendored PDF.js 4.1.392 standalone decoder build. */
 export interface Jbig2Source { readonly length: number }
 export interface Jbig2StoredBitmap {readonly position: number; readonly length: number}
-export type Jbig2ReadRequest = {readonly source: Jbig2Source; readonly position: number} | {kind: "bitmap-allocate"; length: number; fill: number} | {kind: "bitmap-read"; bitmap: Jbig2StoredBitmap; offset: number} | {kind: "bitmap-update"; bitmap: Jbig2StoredBitmap; offset: number; mask: number; operator: "or" | "xor"};
+export type Jbig2ReadRequest = {readonly source: Jbig2Source; readonly position: number} | {kind: "bitmap-allocate"; length: number; fill: number} | {kind: "number-read"; buffer: Jbig2StoredBitmap; offset: number} | {kind: "number-write"; buffer: Jbig2StoredBitmap; offset: number; value: number} | {kind: "bitmap-read"; bitmap: Jbig2StoredBitmap; offset: number} | {kind: "bitmap-update"; bitmap: Jbig2StoredBitmap; offset: number; mask: number; operator: "or" | "xor"};
 export class Jbig2Image {
   constructor(onImageDimensions?: (width: number, height: number) => void, onAllocation?: (bytes: number) => void, options?: {storedBitmap?: boolean});
   width: number;

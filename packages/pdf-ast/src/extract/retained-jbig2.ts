@@ -105,7 +105,10 @@ export class PdfRetainedJbig2 {
             }
             step = program.next(position);
           } else {
-            const {bitmap, offset} = request;
+            const bitmap = "bitmap" in request ? request.bitmap : request.buffer, offset = request.offset;
+            const numeric = request.kind === "number-read" || request.kind === "number-write";
+            if (numeric && (!Number.isSafeInteger(offset) || offset < 0 || offset % 8 !== 0 || offset + 8 > bitmap.length))
+              throw new PdfError("E_PARSE", "Invalid JBIG2 table offset");
             let value: number | undefined;
             if (Number.isInteger(offset) && offset >= 0 && offset < bitmap.length) {
               const start = Math.floor(offset / 4096) * 4096, position = bitmap.position + start;
@@ -121,7 +124,11 @@ export class PdfRetainedJbig2 {
               pages.push(page);
               const at = offset - start;
               value = page.bytes[at];
-              if (request.kind === "bitmap-update") {
+              if (request.kind === "number-read" || request.kind === "number-write") {
+                const view = new DataView(page.bytes.buffer, page.bytes.byteOffset, page.bytes.byteLength);
+                if (request.kind === "number-read") value = view.getFloat64(at, true);
+                else {view.setFloat64(at, request.value, true); page.dirty = true;}
+              } else if (request.kind === "bitmap-update") {
                 page.bytes[at] = request.operator === "or" ? value! | request.mask : value! ^ request.mask;
                 page.dirty = true;
               }

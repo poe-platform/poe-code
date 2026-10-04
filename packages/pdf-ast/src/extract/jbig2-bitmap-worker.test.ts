@@ -5,9 +5,9 @@ import {Miniflare} from "miniflare";
 import {expect,it} from "vitest";
 import {decodeJbig2ToRgba} from "./images.js";
 
-it.each(["page", "region", "arithmetic", "segments", "random segments", "repeated regions", "text region", "halftone", "patterns", "repeated text", "repeated halftone", "symbols", "MMR symbols", "refinement symbols", "adaptive refinement symbols"])("keeps growing JBIG2 %s state in external caller storage in Workerd",async profile=>{
+it.each(["page", "region", "arithmetic", "segments", "random segments", "repeated regions", "text region", "halftone", "patterns", "repeated text", "repeated halftone", "symbols", "MMR symbols", "refinement symbols", "adaptive refinement symbols", "dictionary tables"])("keeps growing JBIG2 %s state in external caller storage in Workerd",async profile=>{
  const inputs=new Map<number,{bytes:Uint8Array;sum:number}>();
- for(const height of profile === "adaptive refinement symbols" ? [129,520] : profile === "patterns" ? [129,255] : profile === "arithmetic" ? [129,513] : (profile.includes("segments") || profile.startsWith("repeated")) ? [17,129] : [8193,32769]){
+ for(const height of profile === "dictionary tables" ? [1024,4096] : profile === "adaptive refinement symbols" ? [129,520] : profile === "patterns" ? [129,255] : profile === "arithmetic" ? [129,513] : (profile.includes("segments") || profile.startsWith("repeated")) ? [17,129] : [8193,32769]){
   let bytes=new Uint8Array(readFileSync(new URL("../fixtures/jbig2-generic-stream.bin",import.meta.url)));
   if(profile === "region") {
    // One vertical-zero MMR code per all-white row, with a complete region
@@ -71,6 +71,18 @@ it.each(["page", "region", "arithmetic", "segments", "random segments", "repeate
    }
   }
 
+  if(profile === "dictionary tables") {
+   const pack=(bits:string)=>{const bytes=new Uint8Array(Math.ceil(bits.length/8));for(let i=0;i<bits.length;i++)if(bits[i]==="1")bytes[i>>3]!|=128>>(i&7);return bytes;};
+   const parts:Uint8Array[]=[];
+   // Sixty-four narrow glyphs per height class keep every decoded row at 64 pixels.
+   for(let h=1;h<=height/64;h++)parts.push(pack("0"+"10"+"0".repeat(63)+"111111"+"00000"),new Uint8Array(h*8).fill(85));
+   parts.push(pack("110"+(height-1-272).toString(2).padStart(16,"0")+"00001"));
+   const length=10+parts.reduce((sum,part)=>sum+part.length,0),start=41+length,input=new Uint8Array(start+51);input.set(bytes.subarray(0,30));const view=new DataView(input.buffer);
+   view.setUint32(30,1);input[36]=1;view.setUint32(37,length);view.setUint16(41,1);view.setUint32(43,1);view.setUint32(47,height);
+   let at=51;for(const part of parts){input.set(part,at);at+=part.length;}
+   view.setUint32(start,2);input[start+4]=6;input[start+5]=32;input[start+6]=1;input[start+7]=1;view.setUint32(start+8,39);
+   view.setUint32(start+12,64);view.setUint32(start+16,height);view.setUint16(start+29,16);view.setUint32(start+31,1);bytes=input;
+  }
   new DataView(bytes.buffer).setUint32(15,height);
   if(profile.includes("segments")) {
    const records:Uint8Array[]=[];
@@ -88,7 +100,7 @@ it.each(["page", "region", "arithmetic", "segments", "random segments", "repeate
    for(let n=0;n<height;n++){input.set(region,start+n*region.length);new DataView(input.buffer).setUint32(start+n*region.length,n+2);}bytes=input;
   }
   const expected=decodeJbig2ToRgba(bytes,64,height);
-  if(profile.includes("symbols"))expect(expected.some(value=>value!==255)).toBe(true);
+  if(profile.includes("symbols") || profile === "dictionary tables")expect(expected.some(value=>value!==255)).toBe(true);
   inputs.set(height,{bytes,sum:expected.reduce((sum,value,index)=>(sum+value*(index%65521+1))%1000000007,0)});
  }
  const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../../../../",import.meta.url)),contents:`
@@ -99,7 +111,7 @@ it.each(["page", "region", "arithmetic", "segments", "random segments", "repeate
  const storage=new PagedStorage({fs,cwd:'/',env:{},signal:new AbortController().signal},2);
  for(const name of ['Int8Array','Uint8Array','Uint8ClampedArray','Uint16Array','Uint32Array']){const Native=globalThis[name];originals.set(name,Native);globalThis[name]=new Proxy(Native,{construct(target,args){const bytes=typeof args[0]==='number'?args[0]*target.BYTES_PER_ELEMENT:args[0]?.byteLength??(args[0]?.length??0)*target.BYTES_PER_ELEMENT;peak=Math.max(peak,bytes);if(bytes>65536)throw Error('resident bitmap '+bytes);return Reflect.construct(target,args);}});}
  try{const source={size:length,chunkBytes:128,async read(at,length){if(length>128)throw Error('whole input');return new Uint8Array(await(await env.INPUT.fetch('https://input/?height='+height+'&at='+at+'&length='+length)).arrayBuffer());}};
- const image=await PdfRetainedJbig2.open(source,64,height,{bitmapStorage:storage,maxWorkingBytes:${profile.includes("refinement") ? 1048576 : profile.includes("symbols") ? 524288 : 262144}});let sum=0,index=0;try{for await(const row of image.rows())for(const value of row)sum=(sum+value*(index++%65521+1))%1000000007;}finally{image.close();await storage.close();}
+ const image=await PdfRetainedJbig2.open(source,64,height,{bitmapStorage:storage,maxWorkingBytes:${profile.includes("refinement") ? 1048576 : (profile.includes("symbols") || profile === "dictionary tables") ? 524288 : 262144}});let sum=0,index=0;try{for await(const row of image.rows())for(const value of row)sum=(sum+value*(index++%65521+1))%1000000007;}finally{image.close();await storage.close();}
  return Response.json({sum,peak,opened,closed,decoderBytes:image.decoderBytes,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});
  }finally{await storage.close();for(const [name,Native]of originals)globalThis[name]=Native;}}};`},bundle:true,write:false,platform:"browser",conditions:["workerd"],format:"esm",metafile:true,logLevel:"silent"});
  expect(Object.values(bundle.metafile!.outputs).flatMap(output=>output.imports)).toEqual([]);

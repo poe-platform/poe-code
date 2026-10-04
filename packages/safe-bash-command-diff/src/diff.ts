@@ -10,7 +10,7 @@ import { basename,createCommandArguments,isFsError,writeBytes,type CommandContex
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
 import { Budget,ToolError,definition,host,inspect,sameIdentity,type DiffPatchOptions } from "safe-bash-diff-engine/shared";
-import { byteLength,concatBytes,decodeBytes,encodeBytes } from "safe-bash-io-engine/byte-encoding";
+import { byteLength,decodeBytes,encodeBytes } from "safe-bash-io-engine/byte-encoding";
 import { pathOf } from "safe-bash-io-engine/internal";
 import { Pattern } from "safe-bash-regex-engine/text/regex";
 
@@ -442,13 +442,26 @@ async function runStored(context: CommandContext, budget: Budget, storage: Paged
   if (options.paginate && outputSize) {
     const title = ["diff", ...context.args].join(" ");
     const argumentValues = createCommandArguments(["-f", "-h", title]);
-    const pages: Uint8Array[] = [];
-    const result = await createPrCommand({ limits: { maxInputBytes: budget.limits.maxOutputBytes, maxOutputBytes: budget.limits.maxOutputBytes, maxWork: Math.max(1, budget.remainingWork) } }).execute({
-      ...context, command: "pr", args: argumentValues.args, argumentValues, stdin: output,
-      stdout: { async write(chunk) { pages.push(chunk.slice()); } },
-    });
-    if (result.exitCode) return 2;
-    await writeBytes(context.stdout, concatBytes(pages), context.signal);
+    const pages = new PagedStorage(context, 16);
+    context.registerCleanup?.(() => pages.close());
+    let pageBytes = 0;
+    try {
+      const result = await createPrCommand({ limits: { maxInputBytes: budget.limits.maxOutputBytes, maxOutputBytes: budget.limits.maxOutputBytes, maxWork: Math.max(1, budget.remainingWork) } }).execute({
+        ...context, command: "pr", args: argumentValues.args, argumentValues, stdin: output,
+        stdout: { async write(chunk) {
+          for (let offset = 0; offset < chunk.length; offset += 16384) {
+            context.signal.throwIfAborted();
+            await pages.append(chunk.subarray(offset, offset + 16384));
+          }
+          pageBytes += chunk.length;
+        } },
+      });
+      if (result.exitCode) return 2;
+      for (let position = 0; position < pageBytes; position += 16384) {
+        const bytes = await pages.read(8 + position, Math.min(16384, pageBytes - position));
+        await writeBytes(context.stdout, bytes, context.signal);
+      }
+    } finally { await pages.close(); }
   } else for await (const bytes of output) await writeBytes(context.stdout, bytes, context.signal);
   return trouble ? 2 : different ? 1 : 0;
 }

@@ -53,6 +53,22 @@ const syncAssignmentCases = [
   ["quoted star for words retain one joined field", 'arr=([9]=tail [2]="first value" [5]=""); IFS=:; n=0; for x in "${arr[*]}"; do n=$((n+1)); printf "<%s>" "$x"; done; printf " count=%s\\n" "$n"', "<first value::tail> count=1\n"],
 ] as const;
 
+for (const pipefail of [false, true]) {
+  test(`uniq preserves early consumer closure status (pipefail=${pipefail})`, async context => {
+    const shell = new Shell({ fs: createMemoryFileSystem() });
+    for (const command of [...basicCommands(), ...streamCommands(), ...textCommands()]) shell.register(command);
+    context.after(() => shell.dispose());
+    const result = await shell.exec([
+      `set ${pipefail ? "-o" : "+o"} pipefail`,
+      'printf "z\\na\\nz\\nb\\n" | sort | uniq | head -n1',
+      'printf "%s|%s\\n" "$?" "${PIPESTATUS[*]}"',
+    ].join("; "));
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `a\n${pipefail ? 141 : 0}|0 0 141 0\n`);
+  });
+}
+
 for (const [name, source, expected] of syncAssignmentCases) {
   for (const limits of [{}, { maxExpansionBytes: 65536 }]) {
     test(`sync assignment preserves effects: ${name}, limits ${JSON.stringify(limits)}`, async context => {

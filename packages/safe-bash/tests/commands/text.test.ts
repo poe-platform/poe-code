@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { textCommands } from "../../src/commands/text.js";
-import { toByteSource, type CommandContext, type FileSystem } from "../../src/contracts/index.js";
+import { FsError, toByteSource, type CommandContext, type FileSystem } from "../../src/contracts/index.js";
 import { registerYieldCheckpoint, scheduleTurn } from "../../src/contracts/yield.js";
 import { createStandardCommands } from "../../src/commands/index.js";
 import { chunks, fixture, run } from "./helpers.js";
@@ -16,6 +16,56 @@ function sortProbe(args: readonly string[], stdin: string, signal: AbortSignal, 
   };
   return { context, stdout, stderr };
 }
+
+test("uniq reports only its own closed stdout as a silent broken pipe", async () => {
+  const command = textCommands().find(command => command.name === "uniq")!;
+  for (const mode of ["closed", "provider", "distinct", "cancelled", "other-closure"] as const) {
+    const caller = new AbortController();
+    const consumer = new AbortController();
+    const closure = new FsError(mode === "other-closure" ? "EIO" : "EPIPE");
+    const providerFailure = new FsError("EPIPE", { message: "provider failure" });
+    const cancellation = new Error("caller cancellation");
+    const probe = sortProbe(["--"], "a\nb\nc\n", caller.signal, await fixture());
+    const stdout = {
+      ownedOutput: { consumerClosed: consumer.signal, async write() { assert.fail("ordinary writes must retain their shell ownership"); } },
+      async write(bytes: Uint8Array) {
+        probe.stdout.push(new Uint8Array(bytes));
+        if (mode !== "provider") consumer.abort(closure);
+        if (mode === "cancelled") caller.abort(cancellation);
+        if (mode === "provider" || mode === "distinct") throw providerFailure;
+      },
+    };
+    const pending = command.execute({ ...probe.context, command: "uniq", stdout });
+    if (mode === "cancelled") {
+      await assert.rejects(pending, error => error === cancellation);
+      assert.equal(Buffer.concat(probe.stderr).toString(), "");
+    } else {
+      const result = await pending;
+      assert.equal(result.exitCode, mode === "closed" ? 141 : 1, mode);
+      assert.equal(Buffer.concat(probe.stderr).toString(), mode === "closed" ? "" : `uniq: ${(mode === "other-closure" ? closure : providerFailure).message}\n`, mode);
+    }
+    assert.equal(Buffer.concat(probe.stdout).toString(), "a\nb\n", mode);
+  }
+});
+
+test("uniq preserves file-output errors when stdout is already closed", async () => {
+  const consumer = new AbortController();
+  const failure = new FsError("EPIPE", { message: "file output failure" });
+  consumer.abort(failure);
+  const fs = await fixture();
+  Object.defineProperty(fs, "writeStream", { value: undefined });
+  fs.writeFile = async () => { throw failure; };
+  const probe = sortProbe(["-", "out.txt"], "a\na\nb\n", new AbortController().signal, fs);
+  const result = await textCommands().find(command => command.name === "uniq")!.execute({
+    ...probe.context, command: "uniq",
+    stdout: {
+      async write() { assert.fail("file output must not write to stdout"); },
+      ownedOutput: { consumerClosed: consumer.signal, async write() { assert.fail("file output must not write to owned stdout"); } },
+    },
+  });
+  assert.equal(result.exitCode, 1);
+  assert.equal(Buffer.concat(probe.stderr).toString(), `uniq: ${failure.message}\n`);
+});
 
 test("sort merge publishes before pulling the next record and awaits its sink", async () => {
   const probe = sortProbe(["-m"], "", new AbortController().signal, await fixture());

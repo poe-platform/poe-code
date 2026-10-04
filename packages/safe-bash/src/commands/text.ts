@@ -692,7 +692,14 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
     while (flushChunks.length) yield flushChunks.shift()!;
     if (outUsed > 0) yield outBuf.subarray(0, outUsed);
   })();
-  await emitRecords(context, records, parsed.operands[1]);
+  try {
+    await emitRecords(context, records, parsed.operands[1]);
+  } catch (error) {
+    context.signal.throwIfAborted();
+    const consumer = parsed.operands[1] === undefined ? context.stdout.ownedOutput?.consumerClosed : undefined;
+    if (consumer?.aborted && consumer.reason === error && error instanceof FsError && error.code === "EPIPE") return { exitCode: 141 };
+    throw error;
+  }
   return { exitCode: 0 };
 }
 

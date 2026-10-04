@@ -15,7 +15,7 @@ export interface CompareFileInput extends ImageFileInput {
 }
 export interface CompareFileSession {
     readonly storage: PagedStorage;
-    load(path: string, options: (metadata: ImageMetadata | undefined) => SharpInputOptions): Promise<StoredRgbaImage | undefined>;
+    load(path: string, options: (metadata: ImageMetadata | undefined) => SharpInputOptions | Iterable<SharpInputOptions>, visit?: (image: StoredRgbaImage, options: SharpInputOptions, metadata: ImageMetadata | undefined, byteLength: number) => Promise<void>): Promise<StoredRgbaImage | undefined>;
     retain(image: RgbaImage): Promise<StoredRgbaImage>;
     stage(image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions): Promise<void>;
     publishPending(): Promise<void>;
@@ -88,11 +88,11 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
             };
         const publishPending = async () => {
             let index = 0;
-            for (const [path, snapshot] of snapshots) await publishImage(snapshot.image, path, snapshot.encoding, snapshot.encoded, ++index === snapshots.size);
+            for await (const [path, snapshot] of snapshots) await publishImage(snapshot.image, path, snapshot.encoding, snapshot.encoded, ++index === snapshots.size);
             snapshots.clear();
         };
         return run({ storage, retain,
-            async load(path, options) {
+            async load(path, options, visit) {
                 let entered = false, completed = false;
                 try {
                     const consume = async (source: ImageByteSource) => {
@@ -114,28 +114,41 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                                 metadata = await tryPdfMetadata(checked, fs, cwd, signal, {}) ?? undefined;
                             }
                         }
-                        const configured = options(metadata);
+                        const configurations = () => {
+                            const requested = options(metadata);
+                            return (Symbol.iterator in requested ? requested : [requested])[Symbol.iterator]();
+                        };
+                        let iterator = configurations(), processed = 0, last: StoredRgbaImage | undefined;
                         try {
-                            const image = await decodeFileImage(checked, storage, fs, cwd, signal, configured);
-                            completed = true;
-                            return image;
-                        }
-                        catch (error) {
-                            if (!(error instanceof UnsupportedStoredResource))
-                                throw error;
-                            bytes = await materialize(checked);
-                            if (!metadata) {
+                            let next = iterator.next();
+                            while (!next.done) {
+                                await yieldTurn(signal);
+                                let configured = next.value, image: StoredRgbaImage;
                                 try {
-                                    metadata = readImageMetadata(bytes);
+                                    image = bytes ? await retain(decodeImage(bytes, configured)) : await decodeFileImage(checked, storage, fs, cwd, signal, configured);
+                                } catch (error) {
+                                    if (!(error instanceof UnsupportedStoredResource)) throw error;
+                                    bytes ??= await materialize(checked);
+                                    if (!metadata) {
+                                        try { metadata = readImageMetadata(bytes); } catch { /* Decoder supplies the established diagnostic. */ }
+                                        if (metadata) {
+                                            iterator.return?.(); iterator = configurations();
+                                            for (let skipped = 0; skipped <= processed; skipped++) next = iterator.next();
+                                            if (next.done) break;
+                                            configured = next.value;
+                                        }
+                                    }
+                                    image = await retain(decodeImage(bytes, configured));
                                 }
-                                catch { /* Decoder supplies the established diagnostic. */ }
+                                await visit?.(image, configured, metadata, checked.size);
+                                last = image; processed++; next = iterator.next();
                             }
-                            const image = await retain(decodeImage(bytes, options(metadata)));
                             completed = true;
-                            return image;
-                        }
+                            return last;
+                        } finally { iterator.return?.(); }
+
                     };
-                    const snapshot = path === "-" ? undefined : snapshots.get(path);
+                    const snapshot = path === "-" ? undefined : await snapshots.get(path);
                     return snapshot ? await consume(snapshot.encoded.source) : await read(path, consume);
                 }
                 catch (error) {

@@ -1,3 +1,4 @@
+import { StoredImageStack, magickInput, type MagickFormatContext } from "./stored-stack.js";
 import { remapStoredImage } from "./remap.js";
 import { floodfillStoredImage } from "./floodfill.js";
 import { shadowPixelSteps, vignettePixelSteps } from "./effects-kernel.js";
@@ -835,17 +836,6 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
     return { ...img, data: out };
 }
 
-// Image transforms spread this private metadata along with the pixel image.
-const magickInput = Symbol("magickInput");
-interface MagickFormatContext {
-  filePath?: string;
-  byteLen?: number;
-  originalWidth?: number;
-  originalHeight?: number;
-  sceneIdx?: number;
-  sceneCount?: number;
-  quality?: number;
-}
 type MagickImage = RgbaImage & { [magickInput]?: MagickFormatContext };
 
 function* magickPixelPropertiesSteps<Step=never>(
@@ -1332,6 +1322,15 @@ function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, s
     return out;
 }
 
+function hasSceneOutputPattern(path: string): boolean {
+    for (let index = 0; index < path.length; index++) if (path[index] === "%") {
+        let end = index + 1;
+        while (path[end] !== undefined && path[end]! >= "0" && path[end]! <= "9") end++;
+        if (path[end] === "d") return true;
+    }
+    return false;
+}
+
 function formatSceneOutputPath(pattern: string, index: number): string {
   const padMatch = /%0(\d+)d/.exec(pattern);
   if (padMatch) {
@@ -1600,8 +1599,10 @@ function* applyMagickClutSteps(baseImg: RgbaImage, lutImg: RgbaImage, channels: 
 }
 
 type FxImage = Omit<RgbaImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"data16">>;
+interface FxStack { readonly length: number; get(index: number): FxImage | undefined; indexOf(image: FxImage): number; reset?(): void }
+class FxFrameDemand {}
 interface FxEvalContext {
-  readonly stack: readonly FxImage[];
+  readonly stack: FxStack | readonly FxImage[];
   readonly sample?: typeof sampleFxImage;
   readonly x: number;
   readonly y: number;
@@ -2013,7 +2014,7 @@ function compileSingleFxExpr(src: string): (ctx: FxEvalContext) => number {
         const rawIdx = imgIndex ? Math.round(imgIndex(ctx)) : name === "v" ? 1 : 0;
         const len = Math.max(1, ctx.stack.length);
         const targetIdx = rawIdx < 0 ? ((rawIdx % len) + len) % len : rawIdx;
-        const targetImg = ctx.stack[targetIdx] ?? ctx.stack[0];
+        const targetImg = "get" in ctx.stack ? ctx.stack.get(targetIdx) ?? ctx.stack.get(0) : ctx.stack[targetIdx] ?? ctx.stack[0];
         if (propName === "w") return targetImg?.width ?? ctx.w;
         if (propName === "h") return targetImg?.height ?? ctx.h;
 
@@ -2042,8 +2043,9 @@ function compileSingleFxExpr(src: string): (ctx: FxEvalContext) => number {
   return parseTernary();
 }
 
-function* magickFxPixelSteps(stack: readonly FxImage[], expression: string, channels: MagickState["channels"]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const base = stack[0]!, evaluate = compileFxExpression(expression), mask = [channels.r, channels.g, channels.b, channels.a];
+function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: string, channels: MagickState["channels"]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const stack: FxStack = "get" in input ? input : { length: input.length, get: index => input[index], indexOf: image => input.indexOf(image) };
+    const base = stack.get(0)!, evaluate = compileFxExpression(expression), mask = [channels.r, channels.g, channels.b, channels.a];
     const samples = new Map<string, number>(), sample = new Uint8Array(4), vars = new Map<string, number>();
     const samplePixel: typeof sampleFxImage = (target, x, y, channel) => {
         if (!target) return 0;
@@ -2061,6 +2063,7 @@ function* magickFxPixelSteps(stack: readonly FxImage[], expression: string, chan
         const data = new Uint8Array(bytes);
         for (let i = 0; i < count; i++) {
             const position = (start + i) * 4, offset = i * 4;
+            stack.reset?.();
             samples.clear();
             samples.set("0:" + position, data[offset]! | data[offset + 1]! << 8 | data[offset + 2]! << 16 | data[offset + 3]! << 24);
             for (let ch = 0; ch < 4; ch++) {
@@ -2071,6 +2074,7 @@ function* magickFxPixelSteps(stack: readonly FxImage[], expression: string, chan
                     vars.clear();
                     try { data[offset + ch] = clampByteVal(evaluate(context) * 255); break; }
                     catch (error) {
+                        if (error instanceof FxFrameDemand) { yield; continue; }
                         if (!(error instanceof FxPixelDemand)) throw error;
                         const value = yield { kind: "read", image: error.image, position: error.position, length: 4 };
                         if (!value || value.length !== 4) throw new Error("Truncated expression pixels");
@@ -3753,32 +3757,32 @@ export function runIdentifyCliSync(argv: readonly string[], files: Map<string, U
     return next.value;
 }
 
-function parseMagickIndexSpec(spec: string, length: number): number[] {
-  if (length <= 0) return [];
+function* parseMagickIndexSpec(spec: string, length: number): Generator<number> {
+  if (length <= 0) return;
   const resolve = (n: number): number =>
     n < 0 ? Math.max(0, length + n) : Math.min(Math.max(0, n), length - 1);
-  const out: number[] = [];
   for (const part of spec.split(",")) {
     const trimmed = part.trim();
     if (!trimmed) continue;
-    const rangeMatch = /^(-?\d+)-(-?\d+)$/.exec(trimmed);
+    const separator = trimmed.indexOf("-", 1);
+    const integer = (value: string) => { const digits = value.startsWith("-") ? value.slice(1) : value; return digits.length > 0 && Array.from(digits).every(c => c >= "0" && c <= "9"); };
+    const rangeMatch = separator > 0 && integer(trimmed.slice(0, separator)) && integer(trimmed.slice(separator + 1)) ? [trimmed, trimmed.slice(0, separator), trimmed.slice(separator + 1)] : undefined;
     if (rangeMatch) {
       const s = resolve(parseInt(rangeMatch[1]!, 10));
       const e = resolve(parseInt(rangeMatch[2]!, 10));
       if (s <= e) {
-        for (let k = s; k <= e; k++) out.push(k);
+        for (let k = s; k <= e; k++) yield k;
       } else {
-        for (let k = s; k >= e; k--) out.push(k);
+        for (let k = s; k >= e; k--) yield k;
       }
     } else {
       const num = parseInt(trimmed, 10);
       if (!Number.isNaN(num)) {
         const idx = num < 0 ? length + num : num;
-        if (idx >= 0 && idx < length) out.push(idx);
+        if (idx >= 0 && idx < length) yield idx;
       }
     }
   }
-  return out;
 }
 
 type MagickHistogram = Float64Array[];
@@ -4677,11 +4681,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
             }
             const sourcePool = stack.length > 0 ? stack : parentStack;
-            const indices = parseMagickIndexSpec(idxSpec, sourcePool.length);
+            const sourceLength = sourcePool.length;
             for (let k = 0; k < count; k++) {
                 if (++cooperativeWork % 65536 === 0)
                     yield;
-                for (const idx of indices) {
+                for (const idx of parseMagickIndexSpec(idxSpec, sourceLength)) {
                     if (++cooperativeWork % 65536 === 0)
                         yield;
                     const chosen = sourcePool[idx];
@@ -4937,16 +4941,16 @@ function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         };
     }
 }
-async function transformStoredMagickRaster(image: StoredRgbaImage, backend: CompareFileSession, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal: AbortSignal, dimensions: Pick<StoredRgbaImage, "width" | "height" | "hasAlpha"> = image, sources: readonly StoredRgbaImage[] = [image]): Promise<StoredRgbaImage> {
+async function transformStoredMagickRaster(image: StoredRgbaImage, backend: CompareFileSession, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal: AbortSignal, dimensions: Pick<StoredRgbaImage, "width" | "height" | "hasAlpha"> = image, sources: readonly StoredRgbaImage[] | ((index: number) => Promise<StoredRgbaImage>) = [image], checkpoint?: () => Promise<void>): Promise<StoredRgbaImage> {
     const position = backend.storage.allocate(dimensions.width * dimensions.height * 4), cache = new Map<string, Uint8Array>();
     let next = steps.next();
     while (!next.done) {
         signal.throwIfAborted();
         const request = next.value;
-        if (!request) { await yieldTurn(signal); next = steps.next(); }
+        if (!request) { await yieldTurn(signal); await checkpoint?.(); next = steps.next(); }
         else if (request.kind === "write") { await backend.storage.write(position + request.position, request.data); next = steps.next(); }
         else {
-            const source = sources[request.image ?? 0]!;
+            const source = typeof sources === "function" ? await sources(request.image ?? 0) : sources[request.image ?? 0]!;
             if (request.length !== 4) { next = steps.next(await backend.storage.read(source.position + request.position, request.length)); continue; }
             const sourceSize = source.width * source.height * 4, page = Math.floor(request.position / 4096) * 4096, key = (request.image ?? 0) + ":" + page;
             let bytes = cache.get(key);
@@ -5026,6 +5030,27 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     return { ...image, position, width, height, ...(token === "-splice" ? { hasAlpha: true } : {}) };
 }
 
+async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal, left: number, top: number, mode: string, args?: string, generic = false, inPlace = false): Promise<StoredRgbaImage> {
+    const position = inPlace ? base.position : backend.storage.allocate(base.width * base.height * 4);
+    for (let start = 0; !inPlace && start < base.width * base.height * 4; start += 16384) {
+        await yieldTurn(signal); await backend.storage.write(position + start, await backend.storage.read(base.position + start, Math.min(16384, base.width * base.height * 4 - start)));
+    }
+    for (let y = Math.max(0, top); y < Math.min(base.height, top + overlay.height); y++) {
+        for (let x = Math.max(0, left); x < Math.min(base.width, left + overlay.width); x += 4096) {
+            await yieldTurn(signal);
+            const count = Math.min(4096, Math.min(base.width, left + overlay.width) - x), destination = (y * base.width + x) * 4;
+            const dst: RgbaImage = { ...base, width: count, height: 1, data: new Uint8Array(await backend.storage.read(position + destination, count * 4)) };
+            const src: RgbaImage = { ...overlay, width: count, height: 1, data: new Uint8Array(await backend.storage.read(overlay.position + ((y - top) * overlay.width + x - left) * 4, count * 4)) };
+            let result = dst;
+            if (generic) result = await drainSteps(compositeImageSteps(dst, [rgbaToCompositeLayer(src, 0, 0, mode as MagickState["compose"])]), signal);
+            else if (mode.toLowerCase() === "over") await drainSteps(blitOverRgbaInPlaceSteps(dst, src, 0, 0), signal);
+            else result = await drainSteps(applyMagickCompositeLayerSteps(dst, src, mode, 0, 0, args, signal), signal);
+            await backend.storage.write(position + destination, result.data);
+        }
+    }
+    return { ...base, position };
+}
+
 async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult | undefined> {
     if (!input.filesystem.capabilities || !input.filesystem.open || !input.filesystem.removeFileConditional) return;
     const outSpec = argv.at(-1);
@@ -5034,10 +5059,13 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
     const output = inferOutputFormat(outSpec, "png");
     if (output.format === "gif" || output.path.includes("%")) return;
     await yieldTurn(signal);
-    const state = createDefaultState(), tokens = argv.slice(0, -1);
+    let state = createDefaultState();
+    const tokens = argv.slice(0, -1), scopes: { state: MagickState; end: number }[] = [];
     type Operation = Parameters<typeof transformStoredImage>[2];
-    type Step = (image: StoredRgbaImage | undefined, backend: CompareFileSession) => Promise<StoredRgbaImage | undefined>;
+    type StackStep = (stack: StoredImageStack, backend: CompareFileSession, parents: StoredImageStack[]) => Promise<StoredImageStack>;
+    type Step = ((image: StoredRgbaImage | undefined, backend: CompareFileSession) => Promise<StoredRgbaImage | undefined>) | { runStack: StackStep };
     const steps: Step[] = [];
+    const stackStep = (runStack: StackStep) => { steps.push({ runStack }); };
     let inputs = 0, operandsOnly = false;
     const transform = (operation: (image: StoredRgbaImage) => Operation | undefined) => {
         steps.push(async (image, backend) => { if (!image) return; const node = operation(image); return node ? transformStoredImage(image, backend.storage, node, signal) : image; });
@@ -5048,6 +5076,38 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         const token = tokens[i]!;
         if (token === "") continue;
         if (!operandsOnly && token === "--") { operandsOnly = true; continue; }
+        if (!operandsOnly && token === "(") {
+            let depth = 1, end = i + 1;
+            for (; end < tokens.length; end++) { if (tokens[end] === "(") depth++; else if (tokens[end] === ")" && --depth === 0) break; }
+            scopes.push({ state, end }); state = { ...state };
+            stackStep(async (stack, backend, parents) => { parents.push(stack); return new StoredImageStack(backend.storage, signal, stack); });
+            continue;
+        }
+        if (scopes.at(-1)?.end === i) {
+            state = scopes.pop()!.state; operandsOnly = false;
+            stackStep(async (stack, _backend, parents) => { const parent = parents.pop()!; for (let n = 0; n < stack.length; n++) await parent.push((await stack.get(n))!); return parent; });
+            continue;
+        }
+        if (!operandsOnly && ["+clone", "-clone", "+duplicate", "-duplicate", "+delete", "-delete", "+swap", "-swap", "-reverse", "+insert", "-insert"].includes(token)) {
+            let spec = "-1", count = 1;
+            if (["-clone", "-delete", "-swap", "-insert"].includes(token)) spec = tokens[++i] ?? (token === "-swap" ? "-2,-1" : token === "-insert" ? "0" : "-1");
+            if (token === "-duplicate" && tokens[i + 1]?.[0] && tokens[i + 1]![0]! >= "0" && tokens[i + 1]![0]! <= "9") {
+                const value = tokens[++i]!, comma = value.indexOf(","); count = Math.max(0, parseInt(value, 10)); spec = comma < 0 ? "-1" : value.slice(comma + 1) || "-1";
+            }
+            stackStep(async (stack, _backend, parents) => {
+                if (token.endsWith("clone") || token.endsWith("duplicate")) {
+                    const source = stack.length ? stack : parents.at(-1) ?? stack, length = source.length;
+                    for (let repeat = 0; repeat < count; repeat++) for (const index of parseMagickIndexSpec(spec, length)) { await yieldTurn(signal); await stack.push((await source.get(index))!); }
+                } else if (token.endsWith("delete")) await stack.remove(parseMagickIndexSpec(spec, stack.length));
+                else if (token === "-reverse") { for (let n = 0; n < Math.floor(stack.length / 2); n++) { await yieldTurn(signal); await stack.swap(n, stack.length - 1 - n); } }
+                else if (token.endsWith("insert")) {
+                    const raw = token === "+insert" ? 0 : Number(spec), target = raw < 0 ? Math.max(0, stack.length + raw) : Math.min(stack.length - 1, Math.max(0, raw));
+                    for (let n = stack.length - 1; n > target; n--) { await yieldTurn(signal); await stack.swap(n, n - 1); }
+                } else { const values = (token === "+swap" ? "-2,-1" : spec).split(",").map(Number); const a = values[0] ?? -2, b = values[1] ?? -1; await stack.swap(a < 0 ? stack.length + a : a, b < 0 ? stack.length + b : b); }
+                return stack;
+            });
+            continue;
+        }
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
         if (setting !== undefined) { i = setting; continue; }
         const warpOperation = operandsOnly ? undefined : parseMagickWarpOperation(tokens, state, i);
@@ -5081,18 +5141,48 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
             });
             continue;
         }
+        if (!operandsOnly && ["-append", "+append", "-flatten", "-mosaic", "-composite"].includes(token)) {
+            const settings = { ...state };
+            stackStep(async (stack, backend) => {
+                if (!stack.length || (token === "-composite" && stack.length < 2)) return stack;
+                let result: StoredRgbaImage;
+                if (token === "-composite") {
+                    const base = (await stack.get(0))!; let overlay = (await stack.get(1))!, gx = 0, gy = 0;
+                    if (settings.geometry) { const geometry = parseMagickGeometry(settings.geometry); gx = geometry.x; gy = geometry.y; const resize = magickResizeOptions(overlay, settings.geometry, settings.kernel); if (resize) overlay = await transformStoredImage(overlay, backend.storage, { kind: "resize", ...resize }, signal); }
+                    const offset = gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, gx, gy, settings.gravity);
+                    result = await compositeStoredMagick(base, overlay, backend, signal, offset.x, offset.y, settings.composeRaw, settings.composeArgs);
+                    await stack.remove([1]); await stack.set(0, result); return stack;
+                }
+                const append = token.endsWith("append"), vertical = token === "-append";
+                if (append && stack.length === 1) return stack;
+                let width = 0, height = 0;
+                for (let n = 0; n < stack.length; n++) { await yieldTurn(signal); const frame = (await stack.get(n))!; width = append && !vertical ? width + frame.width : Math.max(width, frame.width); height = append && vertical ? height + frame.height : Math.max(height, frame.height); }
+                result = await createStoredCanvas(width, height, settings.background, backend, signal);
+                let cursor = 0;
+                for (let n = 0; n < stack.length; n++) {
+                    const frame = (await stack.get(n))!, offset = resolveGravityOffset(vertical ? width - frame.width : 0, vertical ? 0 : height - frame.height, settings.gravity);
+                    result = await compositeStoredMagick(result, frame, backend, signal, append ? vertical ? offset.left : cursor : 0, append ? vertical ? cursor : offset.top : 0, append ? "over" : settings.compose, undefined, !append, true);
+                    cursor += vertical ? frame.height : frame.width;
+                }
+                stack.length = 0; await stack.push(result); return stack;
+            }); continue;
+        }
+        if (!operandsOnly && token === "-geometry") { state.geometry = tokens[++i] ?? "+0+0"; continue; }
         if (!operandsOnly && token === "+gravity") { state.gravity = "northwest"; continue; }
         if (!operandsOnly && token === "-strip") { state.strip = true; continue; }
         if (!operandsOnly && token === "+repage") continue;
         if (!operandsOnly && token === "-repage") { i++; continue; }
         if (!operandsOnly && (token === "-write" || token === "+write")) {
             const path = tokens[++i] ?? "", quality = state.quality;
-            steps.push(async (image, backend) => {
+            stackStep(async (stack, backend) => {
+                const image = await stack.get(stack.length - 1);
                 if (image && path && path.toLowerCase() !== "null:") {
                     const output = inferOutputFormat(path, image.format);
-                    await backend.stage(image, output.path, { format: output.format, quality });
+                    if (stack.length > 1 && hasSceneOutputPattern(output.path)) {
+                        for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); await backend.stage((await stack.get(index))!, formatSceneOutputPath(output.path, index), { format: output.format, quality }); }
+                    } else await backend.stage(image, output.path, { format: output.format, quality });
                 }
-                return image;
+                return stack;
             });
         } else if (!operandsOnly && (token === "-dither" || token === "+dither")) {
             state.dither = token === "-dither" ? (tokens[++i] ?? "floydsteinberg").toLowerCase() !== "none" : false;
@@ -5138,7 +5228,22 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, annotatePixelSteps(image, offset, text, settings), signal) : undefined);
         } else if (!operandsOnly && token === "-fx") {
             const expression = tokens[++i] ?? "u", channels = state.channels;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, magickFxPixelSteps([image], expression, channels), signal) : undefined);
+            stackStep(async (stack, backend) => {
+                const base = await stack.get(0); if (!base) return stack;
+                const frames = new Map<number, StoredRgbaImage>([[0, base]]), indices = new WeakMap<FxImage, number>(); indices.set(base, 0);
+                let demanded: number | undefined;
+                const source: FxStack = {
+                    length: stack.length,
+                    get(index) { if (index < 0 || index >= stack.length || !Number.isInteger(index)) return; const frame = frames.get(index); if (!frame) { demanded = index; throw new FxFrameDemand(); } return frame; },
+                    indexOf(image) { return indices.get(image) ?? -1; },
+                    // Metadata retained during replay is bounded by expression references, not the number of input frames.
+                    reset() { if (frames.size > 32) { frames.clear(); frames.set(0, base); } }
+                };
+                const result = await transformStoredMagickRaster(base, backend, magickFxPixelSteps(source, expression, channels), signal, base, async index => (await stack.get(index))!, async () => {
+                    if (demanded === undefined) return; const index = demanded; demanded = undefined; const frame = (await stack.get(index))!; frames.set(index, frame); indices.set(frame, index);
+                });
+                stack.length = 0; await stack.push(result); return stack;
+            });
         } else if (!operandsOnly && token === "-vignette") {
             i++;
             const background = state.background;
@@ -5227,26 +5332,45 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
             transform(() => ({ kind: "extend", left, right: left, top, bottom: top, background, extendWith: "background" }));
         } else {
             if (!operandsOnly && ((token.startsWith("-") && token !== "-") || token.startsWith("+") || token === "(" || token === ")")) return;
-            if (++inputs > 1) return;
-            const captured = { ...state }, maxDecodeDimension = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
-            steps.push(async (_image, backend) => parseStoredCompareInput(token, captured, backend, signal, { lastPage: true, ...(maxDecodeDimension === undefined ? {} : { maxDecodeDimension }) }));
+            inputs++;
+            const captured = { ...state }, literal = operandsOnly, maxDecodeDimension = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
+            stackStep(async (stack, backend) => {
+                const base = stack.length === 1 ? await stack.get(0) : undefined, lower = token.toLowerCase();
+                const merge = !literal && (lower.startsWith("label:") || lower.startsWith("caption:")) && base && captured.hasSize && base.width === captured.sizeWidth && base.height === captured.sizeHeight && Object.values(captured.background).every(value => value === 255);
+                const settings = merge ? { ...captured, background: { r: 0, g: 0, b: 0, a: 0 } } : captured;
+                await parseStoredCompareInput(token, settings, backend, signal, { visit: async image => {
+                    if (merge) await stack.set(0, await compositeStoredMagick(base, image, backend, signal, 0, 0, "over"));
+                    else await stack.push(image);
+                }, ...(maxDecodeDimension === undefined ? {} : { maxDecodeDimension }) }); return stack;
+            });
         }
     }
     } catch (error) {
         signal.throwIfAborted();
         return { exitCode: 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` };
     }
+    if (scopes.length) state = scopes[0]!.state;
     if (!inputs) return;
     return withCompareFiles(input, stdinBytes, signal, async backend => {
         let image: StoredRgbaImage | undefined;
-        try { for (const step of steps) { signal.throwIfAborted(); image = await step(image, backend); } }
+        try {
+            let stack = new StoredImageStack(backend.storage, signal); const parents: StoredImageStack[] = [];
+            for (const step of steps) {
+                signal.throwIfAborted();
+                if (typeof step !== "function") stack = await step.runStack(stack, backend, parents);
+                else for (let n = 0; n < stack.length; n++) { const result = await step(await stack.get(n), backend); if (result) await stack.set(n, result); }
+            }
+            while (parents.length) { const parent = parents.pop()!; for (let n = 0; n < stack.length; n++) await parent.push((await stack.get(n))!); stack = parent; }
+            image = await stack.get(stack.length - 1);
+        }
         catch (error) {
             signal.throwIfAborted();
             if (error instanceof CompareInputFailure) throw error.reason;
             await backend.publishPending();
             return { exitCode: 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` };
         }
-        if (!image) return { exitCode: 1, stdout: "", stderr: `magick: no images defined '${outSpec}'\n` };
+        if (!image) { await backend.publishPending(); return { exitCode: 1, stdout: "", stderr: `magick: no images defined '${outSpec}'\n` }; }
+        await yieldTurn(signal);
         const stdoutBytes = await backend.publish(image, output.path, { format: output.format, quality: state.quality });
         return { exitCode: 0, stdout: "", stderr: "", ...(stdoutBytes ? { stdoutBytes } : {}) };
     });
@@ -5505,25 +5629,15 @@ export function runCompositeCliSync(argv: readonly string[], files: Map<string, 
 }
 
 
-async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{lastPage?:boolean;maxDecodeDimension?:number}={}):Promise<StoredRgbaImage|undefined>{
+async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{lastPage?:boolean;maxDecodeDimension?:number;visit?:(image:StoredRgbaImage)=>Promise<void>}={}):Promise<StoredRgbaImage|undefined>{
  const {baseToken,pageSpec,inlineGeom}=parseInputToken(token),lower=baseToken.toLowerCase();let image:StoredRgbaImage|undefined;
  if(lower.startsWith("tile:")){
-  const pattern=await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{lastPage:readOptions.lastPage===true});if(!pattern)return;
-  const width=state.sizeWidth,height=state.sizeHeight,position=backend.storage.allocate(width*height*4);
-  let cachedPosition=-1,cached:Uint8Array=new Uint8Array();
-  for(let start=0;start<width*height;start+=4096){
-   if(start%262144===0)await yieldTurn(signal);
-   const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4);
-   for(let offset=0;offset<count;){
-    const x=(start+offset)%width,y=Math.floor((start+offset)/width),px=x%pattern.width,py=y%pattern.height,blockX=Math.floor(px/4096)*4096;
-    const sourcePosition=pattern.position+(py*pattern.width+blockX)*4;
-    if(cachedPosition!==sourcePosition){cached=await backend.storage.read(sourcePosition,Math.min(4096,pattern.width-blockX)*4);cachedPosition=sourcePosition;}
-    const sourceOffset=px-blockX,take=Math.min(count-offset,width-x,pattern.width-px,cached.length/4-sourceOffset);
-    bytes.set(cached.subarray(sourceOffset*4,(sourceOffset+take)*4),offset*4);offset+=take;
-   }
-   await backend.storage.write(position+start*4,bytes);
+  if(readOptions.visit){
+   await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{visit:async pattern=>{image=await finish(await tile(pattern));await readOptions.visit!(image);}});
+   return image;
   }
-  image={position,width,height,format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:true};
+  const pattern=await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{lastPage:readOptions.lastPage===true});if(!pattern)return;
+  image=await tile(pattern);
  }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
   const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(baseToken.slice(baseToken.indexOf(":")+1)||"white"),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
   image=await createStoredCanvas(width,height,color,backend,signal);
@@ -5550,11 +5664,37 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   if(generated)image=await backend.retain(generated);
   else{
    let path=baseToken;const colon=path.indexOf(":");if(colon>0&&extToImageFormat(path.slice(0,colon)))path=path.slice(colon+1);
+   if(readOptions.visit){
+    await backend.load(path,function*(metadata){const total=metadata?.pages&&metadata.pages>1?metadata.pages:1;const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;for(const page of selectedInputPages(pageSpec,total))yield {density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},async(frame,configured,metadata,byteLength)=>{image=await finish(Object.assign(frame,{[magickInput]:{filePath:path,byteLen:byteLength,originalWidth:metadata?.width??frame.width,originalHeight:metadata?.height??frame.height,sceneIdx:configured.page??0}}));await readOptions.visit!(image);});
+    return image;
+   }
    image=await backend.load(path,metadata=>{const total=metadata?.pages&&metadata.pages>1?metadata.pages:1,pages=selectedInputPages(pageSpec,total);let page=pages.next().value??0;if(readOptions.lastPage){for(const selected of pages)page=selected;}pages.return(undefined);const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;return {density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};});
   }
  }
- if(image&&inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area)image=await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal);}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await transformStoredImage(image,backend.storage,{kind:"resize",...resize},signal);}}
+ if(image){image=await finish(image);await readOptions.visit?.(image);}
  return image;
+ async function tile(pattern:StoredRgbaImage):Promise<StoredRgbaImage>{
+  const width=state.sizeWidth,height=state.sizeHeight,position=backend.storage.allocate(width*height*4);
+  let cachedPosition=-1,cached:Uint8Array=new Uint8Array();
+  for(let start=0;start<width*height;start+=4096){
+   if(start%262144===0)await yieldTurn(signal);
+   const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4);
+   for(let offset=0;offset<count;){
+    const x=(start+offset)%width,y=Math.floor((start+offset)/width),px=x%pattern.width,py=y%pattern.height,blockX=Math.floor(px/4096)*4096;
+    const sourcePosition=pattern.position+(py*pattern.width+blockX)*4;
+    if(cachedPosition!==sourcePosition){cached=await backend.storage.read(sourcePosition,Math.min(4096,pattern.width-blockX)*4);cachedPosition=sourcePosition;}
+    const sourceOffset=px-blockX,take=Math.min(count-offset,width-x,pattern.width-px,cached.length/4-sourceOffset);
+    bytes.set(cached.subarray(sourceOffset*4,(sourceOffset+take)*4),offset*4);offset+=take;
+   }
+   await backend.storage.write(position+start*4,bytes);
+  }
+  return {position,width,height,format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:true};
+
+ }
+ async function finish(image:StoredRgbaImage):Promise<StoredRgbaImage>{
+ if(inlineGeom){const geometry=parseMagickGeometry(inlineGeom);if(geometry.hasOffset){const area=magickCropArea(image,inlineGeom,"northwest");if(area)image=await transformStoredImage(image,backend.storage,{kind:"extract",...area},signal);}else{const resize=magickResizeOptions(image,inlineGeom,state.kernel);if(resize)image=await transformStoredImage(image,backend.storage,{kind:"resize",...resize},signal);}}
+ return image;
+ }
 }
 
 function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal,backend?:CompareFileSession): Generator<IdentifyStep, ImageMagickCliResult, void> {

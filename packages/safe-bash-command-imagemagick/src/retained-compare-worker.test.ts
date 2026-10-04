@@ -5,9 +5,9 @@ import { Miniflare } from "miniflare";
 import { fileURLToPath } from "node:url";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { runCompareCli, runConvertCli, runMogrifyCli } from "./index.js";
-for (const tool of ["compare", "convert", "mogrify", "convert-write"] as const)
-for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : (tool === "mogrify" || tool === "convert-write") ? ["bmp"] : ["bmp", "gradient", "radial-gradient", "pattern", "tile", "pdf"]) as ("bmp" | "svg" | "label" | "gradient" | "radial-gradient" | "pattern" | "tile" | "pdf")[])
-for (const stdout of (tool === "mogrify" || tool === "convert-write") ? [false] : [false, true])
+for (const tool of ["compare", "convert", "mogrify", "convert-write", "convert-stack"] as const)
+for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : (tool === "mogrify" || tool === "convert-write" || tool === "convert-stack") ? ["bmp"] : ["bmp", "gradient", "radial-gradient", "pattern", "tile", "pdf"]) as ("bmp" | "svg" | "label" | "gradient" | "radial-gradient" | "pattern" | "tile" | "pdf")[])
+for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool === "convert-stack") ? [false] : [false, true])
     it(`runs ${tool} in Workerd, input=${format}, stdout=${stdout}`, async () => {
         const pixels = new Uint8Array(601 * 601 * 4);
         let state = 1234567;
@@ -28,6 +28,7 @@ for (const stdout of (tool === "mogrify" || tool === "convert-write") ? [false] 
         const operand = format === "label" ? "label:" + "x<&😀".repeat(600) : format === "gradient" || format === "radial-gradient" ? format + ":red-blue" : format === "pattern" ? "pattern:checkerboard" : format === "tile" ? "tile:rose:" : "/input";
         const args = format === "bmp" ? ["-size","601x601",operand,"-flip","-gamma","1.4","-colorspace","gray","-modulate","110,90,70","-function","Polynomial","0.5,0.2","-transparent","red","-level","20%,80%,1.3","-negate","-black-threshold","30%","-normalize","-auto-gamma","-crop","590x590+5+5","-background","#ff00ff80","-gravity","center","-extent","601x601","-alpha","shape","-color-matrix","0,1,0 0,0,1 1,0,0","-splice","3x2+4+5","-chop","2x3+5+4","-roll","+103-77","-emboss","1","-morphology","Open","3x5","-statistic","median","3x5","-shear","3x2","-distort","SRT","1.1,13","-vignette","0x2","-shadow","75x0.5-2+3","-fx","(u+p{w-1-i,h-1-j})/2","-fill","#12345680","-annotate","+3+4","Hello gjpqy","-draw","rectangle 1,2 11,12 circle 15,17 20,21 point 3,4 line 1,2 23,27","-fill","#65432180","-fuzz","100%","-floodfill","+0+0","-remap","pattern:checkerboard"] : ["-size", "601x601", operand, "-flip", "-gamma", "1.4", "-colorspace", "gray"];
         if (tool === "convert-write") args.push("-write", "/middle.bmp", "-negate");
+        if (tool === "convert-stack") args.splice(0, args.length, "-size", "601x601", operand, "-duplicate", "40", "-reverse", "-delete", "1-39", "(", "+clone", "-negate", ")", "-swap", "0,2", "-fx", "(u+v)/2", "+clone", "-append");
         const expectedFiles = new Map([["/input", bytes]]), expected = tool === "compare" ? await runCompareCli([operand, operand, "/out.bmp"], expectedFiles) : tool === "mogrify" ? await runMogrifyCli(["-format", "png", ...args.slice(3), operand], expectedFiles) : await runConvertCli([...args, "png:/out.bmp"], expectedFiles);
         const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../../../", import.meta.url)), sourcefile: "pdf-metadata-worker.ts", contents: `
  import {runCompareCli,runConvertCli,runMogrifyCli} from './packages/safe-bash-command-imagemagick/src/index.ts';

@@ -1,6 +1,7 @@
 import { parseXmlSteps, type XmlElement } from "@poe-code/safe-fs/xml";
 import { createGnumericCellStorage, type GnumericChildren, type GnumericNode } from "./gnumeric-cell-storage.js";
 import { readGnumericDocument, GnumericSourceFailure } from "./gnumeric-input.js";
+import { createGnumericValueStorage } from "./gnumeric-value-storage.js";
 import type { WorkbookSource } from "./types.js";
 import { orderedCells } from "@poe-code/spreadsheet-engine/workbook/ordered-cells";
 import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-stream";
@@ -316,7 +317,14 @@ async function axes(sheet: XmlElement, axis: "RowInfo" | "ColInfo", maximum: num
   return { entries: [...result.values()].sort((a, b) => a.index - b.index), ...(defaultSize === undefined ? {} : { defaultSize }) };
 }
 
-export async function readGnumeric(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<Workbook> {
+export async function readGnumericWorkbookSource(source: RangeSource, context: CapabilityContext): Promise<WorkbookSource | undefined> {
+  if (!context.createWorkingStorage) return undefined;
+  return readGnumeric(source, context, true);
+}
+
+export function readGnumeric(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<Workbook>;
+export function readGnumeric(bytes: Uint8Array | RangeSource, context: CapabilityContext, sourceMode: true): Promise<WorkbookSource | undefined>;
+export async function readGnumeric(bytes: Uint8Array | RangeSource, context: CapabilityContext, sourceMode = false): Promise<Workbook | WorkbookSource | undefined> {
   let stored: ReturnType<typeof createGnumericCellStorage> | undefined;
   const root = await readGnumericDocument(bytes, context, () => {
     try {
@@ -326,6 +334,18 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
   }).catch(error => { if (error instanceof GnumericSourceFailure) throw error.cause; throw error; });
   const nodes: GnumericChildren = stored?.children ?? function* (parent) { for (const node of parent?.children ?? []) yield { key: node, node }; };
   if (root.localName !== "Workbook" || !namespaces.has(root.namespace)) invalid("unsupported workbook namespace");
+  // Decline before diagnostics or formula binding so the ordinary reader can
+  // preserve evaluation and diagnostic ordering without emitting them twice.
+  if (sourceMode) for (const sheet of children(child(root, "Sheets"), "Sheet")) {
+    for await (const { node } of nodes(child(sheet, "Cells"))) {
+      context.signal.throwIfAborted();
+      if (node.localName !== "Cell" || !namespaces.has(node.namespace)) continue;
+      const text = child(node, "Content")?.text ?? node.text;
+      if (attribute(node, "ExprID") !== undefined || text.startsWith("=") &&
+        (attribute(node, "ValueType") === undefined || attribute(node, "Value") !== undefined)) return undefined;
+    }
+  }
+  const values = sourceMode ? createGnumericValueStorage(context) : undefined;
   await warnUnknown(root, context, nodes);
   const index = children(child(root, "SheetNameIndex"), "SheetName");
   const dataSheets = children(child(root, "Sheets"), "Sheet");
@@ -431,8 +451,11 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
       const cell: Cell = { row, column, value: stored, ...(formula ? { formula, ...semantics, formulaDirty: true, ...(cached !== undefined ? { cachedResult: stored } : {}) } : {}),
         ...(group ? { formulaGroup: group } : {}), ...(format ? { format } : {}), ...(runs ? { richText: runs } : {}),
         ...(style || valueFormat ? { style: { ...(style ? { gnumeric: style } : {}), ...(valueFormat ? { gnumericValueFormat: valueFormat } : {}) } } : {}) };
-      const address = `${row}:${column}`, previous = addresses.get(address);
-      if (previous === undefined) { addresses.set(address, cells.length); cells.push(cell); } else cells[previous] = cell;
+      if (values) await values.append(i, cell);
+      else {
+        const address = `${row}:${column}`, previous = addresses.get(address);
+        if (previous === undefined) { addresses.set(address, cells.length); cells.push(cell); } else cells[previous] = cell;
+      }
     }
     const rows = await axes(node, "RowInfo", size.rows, admitAxes, context, nodes);
     const columns = await axes(node, "ColInfo", size.columns, admitAxes, context, nodes);
@@ -478,11 +501,17 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
     (section.localName === "Sheets" && namespaces.has(section.namespace) ? children(section, "Sheet").flatMap(sheet =>
       children(sheet, "Names").flatMap(group => declarations.get(group) ?? [])) : []));
   const resolvedNames = await rejectGnumericNameCycles({ sheets, names: allNames }, declarationOrder, context, tick);
-  return { sheets, ...(sheets[selected] ? { activeSheet: sheets[selected]!.id } : {}), names: resolvedNames, properties: metadata(root),
+  const book: Workbook = { sheets, ...(sheets[selected] ? { activeSheet: sheets[selected]!.id } : {}), names: resolvedNames, properties: metadata(root),
     dateSystem,
     calculationMode: manualRecalc ? "manual" : "automatic", iteration,
     unsupportedRecords: root.children.filter(n => namespaces.has(n.namespace) && ["Attributes", "Geometry"].includes(n.localName) ||
       n.localName === "document-meta" && n.namespace === "urn:oasis:names:tc:opendocument:xmlns:office:1.0" || n.localName === "GODoc" && !n.namespace).map(retained) };
+  if (!values) return book;
+  return { metadata: book, cells(sheet: string) {
+    const index = sheets.findIndex(value => value.id === sheet);
+    if (index < 0) throw new SsconvertError("invalid-request", "Unknown Gnumeric sheet");
+    return values.cells(index);
+  } };
 }
 
 function escape(text: string): string {

@@ -38,7 +38,7 @@ The workspace entrypoint exports `qpdfCommands()` for plugin registration,
 Missing output parent directories are created recursively. Attachment and raw/filtered stream output preserves binary bytes. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.
 
 Ordinary rewrites, `--decrypt`, and removal of info, metadata, structure, forms or
-page labels, plus `--rotate` page edits, use retained random-access input and caller-backed output staging,
+page labels, plus `--rotate`, `--overlay` and `--underlay` page edits, use retained random-access input and caller-backed output staging,
 including stdin/stdout, password-protected input and `--replace-input`. File
 publication requires retained atomic staging from the injected filesystem; scratch
 storage uses `TMPDIR`. Use an external backend for large files. Other transformation

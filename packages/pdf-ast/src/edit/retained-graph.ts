@@ -1,3 +1,5 @@
+import { stampRetainedPages, type RetainedStampInput } from "./retained-stamps.js";
+export type { RetainedStampInput } from "./retained-stamps.js";
 import { externalizeRetainedInlineImages, type RetainedInlineImageOptions } from "./retained-inline-images.js";
 export type { RetainedInlineImageOptions } from "./retained-inline-images.js";
 import { pruneRetainedResources } from "./retained-resource-pruning.js";
@@ -15,12 +17,12 @@ import { PdfRetainedDocument, PdfRetainedPage } from "../retained-document.js";
 import { PdfError } from "../errors.js";
 import type { SaveRetainedDocumentOptions } from "./retained-save.js";
 
-export type EditRetainedDocumentOptions = Pick<SaveRetainedDocumentOptions, "linearize" | "rotations" | "removeInfo" | "removeMetadata" | "removeStructure" | "removeAcroform" | "removePageLabels" | "maxObjects" | "maxPages" | "maxRecursionDepth" | "signal"> & { readonly flattenRotation?: boolean; readonly externalizeInlineImages?: RetainedInlineImageOptions; readonly removeUnreferencedResources?: boolean; readonly pageLabels?: Iterable<RetainedPageLabel> | AsyncIterable<RetainedPageLabel>; readonly removeAttachments?: Iterable<string> | AsyncIterable<string>; readonly attachmentCopies?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput>; readonly attachments?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput> };
+export type EditRetainedDocumentOptions = Pick<SaveRetainedDocumentOptions, "linearize" | "rotations" | "removeInfo" | "removeMetadata" | "removeStructure" | "removeAcroform" | "removePageLabels" | "maxObjects" | "maxPages" | "maxRecursionDepth" | "signal"> & { readonly stamps?: Iterable<RetainedStampInput> | AsyncIterable<RetainedStampInput>; readonly flattenRotation?: boolean; readonly externalizeInlineImages?: RetainedInlineImageOptions; readonly removeUnreferencedResources?: boolean; readonly pageLabels?: Iterable<RetainedPageLabel> | AsyncIterable<RetainedPageLabel>; readonly removeAttachments?: Iterable<string> | AsyncIterable<string>; readonly attachmentCopies?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput>; readonly attachments?: Iterable<RetainedAttachmentInput> | AsyncIterable<RetainedAttachmentInput> };
 
 /** Own an editable graph and logical page index on caller storage. This applies
  * edits without the stream dictionary normalization performed by PDF saving.
  * Close the result after all readers/copies have finished; the input is borrowed. */
-export async function editRetainedDocument(source: PdfRetainedDocument, storage: PdfIndexStorage, options: EditRetainedDocumentOptions = {}): Promise<{ document: PdfRetainedDocument; close(): Promise<void> }> {
+export async function editRetainedDocument(source: PdfRetainedDocument, storage: PdfIndexStorage, options: EditRetainedDocumentOptions = {}): Promise<{ document: PdfRetainedDocument; pageCount: number; getPage(index: number): Promise<PdfRetainedPage>; close(): Promise<void> }> {
   if (options.maxPages !== undefined && options.maxPages !== Infinity && (!Number.isSafeInteger(options.maxPages) || options.maxPages < 0)) throw new RangeError("Invalid page limit");
   if (options.maxRecursionDepth !== undefined && options.maxRecursionDepth !== Infinity && (!Number.isSafeInteger(options.maxRecursionDepth) || options.maxRecursionDepth < 1)) throw new RangeError("Invalid edit depth");
   const signal = options.signal ?? new AbortController().signal;
@@ -38,6 +40,13 @@ export async function editRetainedDocument(source: PdfRetainedDocument, storage:
   async function reference(index: number): Promise<PdfCosRef> {
     const bytes = await pages.read(base + index * 16, 16), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
     return cosRef(view.getFloat64(0), view.getFloat64(8));
+  }
+  async function getPage(index: number): Promise<PdfRetainedPage> {
+    signal.throwIfAborted();
+    if (!Number.isSafeInteger(index) || index < 0 || index >= count) throw new RangeError("Page index out of bounds");
+    const ref = await reference(index), object = await store.get(ref.objectNumber);
+    if (object?.value.kind !== "dict") throw new PdfError("E_PARSE", "Expected a stored page dictionary");
+    return new PdfRetainedPage(document!, index, object.value, ref);
   }
   async function* pageReferences() { for (let index = 0; index < count; index++) { signal.throwIfAborted(); yield await reference(index); } }
   try {
@@ -59,6 +68,7 @@ export async function editRetainedDocument(source: PdfRetainedDocument, storage:
       const current = edit.relative ? (await new PdfRetainedPage(document, edit.pageIndex, object.value, ref).attributes()).rotation : 0;
       dictSet(object.value, "Rotate", cosNumber(((current + edit.degrees) % 360 + 360) % 360)); await store.set(object);
     }
+    if (options.stamps) { await stampRetainedPages(document, store, storage, getPage, options.stamps, signal); addedObjects = true; }
     if (options.flattenRotation) { await flattenRetainedRotations(document, store, storage, signal); addedObjects = true; }
     if (options.externalizeInlineImages) { await externalizeRetainedInlineImages(document, store, storage, options.externalizeInlineImages, signal); addedObjects = true; }
     if (options.removeUnreferencedResources) await pruneRetainedResources(document, store, storage, signal);
@@ -111,6 +121,6 @@ export async function editRetainedDocument(source: PdfRetainedDocument, storage:
       await document.close();
       document = await PdfRetainedDocument.openStore(store, storage, { ...configured, ...(infoRef ? { infoRef } : {}) });
     }
-    return { document, close };
+    return { document, pageCount: count, getPage, close };
   } catch (error) { await close().catch(() => {}); throw error; }
 }

@@ -895,6 +895,14 @@ ordered relative edits accumulate without collecting the selection.
 `editRetainedDocument(document, storage, options)` applies ordered rotations and
 information/metadata/structure/form/label removals to a caller-backed editable
 graph. Use its `document` for subsequent copies and close the result when done.
+The result exposes `pageCount` and `getPage(index)` for bounded indexed access
+without retaining a page array. Pass `stamps` as an iterable of
+`{ source, mode: "overlay" | "underlay", pages }`, where `source` is a retained
+document and `pages` yields zero-based `{ sourceIndex, targetIndex }` pairs.
+Keep each source open until its stamp is consumed. Stamps preserve pair order
+and duplicates, scale/center content to the target page, align rotations and
+rename conflicting resources. Content, page indexes and clone identities use
+caller storage; stamps run after rotation edits and before rotation flattening.
 It preserves unsaved stream dictionaries, trailer identifiers and logical page
 identities across edits. Set `flattenRotation: true` to bake page rotation into
 streamed content and transform explicit page boxes and annotation rectangles.

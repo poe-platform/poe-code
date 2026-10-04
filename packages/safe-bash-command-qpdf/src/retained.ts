@@ -17,6 +17,7 @@ import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import type { QpdfLimits } from "./index.js";
 
 export interface RetainedQpdfOptions extends QpdfJsonOptions {
+  stampSpecs: readonly { file: string; mode: "overlay" | "underlay"; fromRange: string; toRange: string; repeatRange?: string; password?: string }[];
   copyAttachmentsSpecs: readonly { file: string; prefix: string; password?: string }[];
   encryptConfig: { userPassword: string; ownerPassword: string; print: boolean; modify: boolean; copy: boolean; addNotes: boolean } | undefined;
   removeUnreferencedResources: "no" | "yes" | "auto";
@@ -88,7 +89,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
     await context.fs.mkdir(storage.directory, { recursive: true, signal });
     const maximum = Math.min(limits.maxInputBytes, context.inputBudget?.maxBytes ?? Infinity);
     // Acquire identities and admit sizes without reading every input payload.
-    for (const candidate of new Set([inputName, ...options.pageSpecs.map(spec => spec.file), ...options.addAttachmentSpecs.map(spec => spec.file), ...options.copyAttachmentsSpecs.map(spec => spec.file)])) {
+    for (const candidate of new Set([inputName, ...options.pageSpecs.map(spec => spec.file), ...options.addAttachmentSpecs.map(spec => spec.file), ...options.copyAttachmentsSpecs.map(spec => spec.file), ...options.stampSpecs.map(spec => spec.file)])) {
       signal.throwIfAborted(); if (!candidate || candidate === "." || candidate === "-") continue;
       let acquired: PdfFileSource;
       try { acquired = await PdfFileSource.open(context.fs, resolvePath(context.cwd, candidate), { signal, maxInputBytes: maximum - inputBytes }); }
@@ -100,7 +101,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       }
       inputs.set(candidate, acquired); inputBytes += acquired.size; context.inputBudget?.check(inputBytes);
     }
-    if (inputName === "-" || [...options.pageSpecs, ...options.addAttachmentSpecs, ...options.copyAttachmentsSpecs].some(spec => spec.file === "-")) {
+    if (inputName === "-" || [...options.pageSpecs, ...options.addAttachmentSpecs, ...options.copyAttachmentsSpecs, ...options.stampSpecs].some(spec => spec.file === "-")) {
       const acquired = await PdfFileSource.fromStream(context.fs, storage.directory, context.stdin, { signal, maxInputBytes: maximum - inputBytes });
       inputs.set("-", acquired); inputBytes += acquired.size; context.inputBudget?.check(inputBytes);
     }
@@ -266,14 +267,54 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         finally { await copied.close().catch(error => { if (!failed) throw error; }); }
       }
     }
+    async function* stamps() {
+      let targetCount = 0; for await (const ignored of document!.pages()) { void ignored; targetCount++; }
+      for (const spec of options.stampSpecs) {
+        const input = inputs.get(spec.file); if (!input) throw new QpdfMissingInput(spec.file);
+        const password = spec.password ?? options.password;
+        const source = await PdfRetainedDocument.open(input, storage, { signal, recovery: "repair", ...(password === undefined ? {} : { password }) });
+        let failed = false;
+        try {
+          let sourceCount = 0; for await (const ignored of source.pages()) { void ignored; sourceCount++; }
+          // The buffered command validates every range before applying stamps,
+          // including unused repeat ranges and empty source selections.
+          for (const [range, count] of [[spec.fromRange, sourceCount], [spec.toRange, targetCount], [spec.repeatRange || spec.fromRange, sourceCount]] as const) {
+            const validation = iterateQpdfPageRange(range, count); try { validation.next(); } finally { validation.return(); }
+          }
+          function* pages() {
+            const from = iterateQpdfPageRange(spec.fromRange, sourceCount);
+            let next = from.next(); if (next.done) return;
+            let repeat: Generator<number, void, void> | undefined;
+            try {
+              for (const target of iterateQpdfPageRange(spec.toRange, targetCount)) {
+                if (next.done) {
+                  repeat ??= iterateQpdfPageRange(spec.repeatRange || spec.fromRange, sourceCount);
+                  next = repeat.next();
+                  if (next.done) { repeat = iterateQpdfPageRange(spec.repeatRange || spec.fromRange, sourceCount); next = repeat.next(); }
+                  if (next.done) break;
+                }
+                yield { targetIndex: target - 1, sourceIndex: next.value - 1 };
+                next = repeat ? repeat.next() : from.next();
+              }
+            } finally { from.return(); repeat?.return(); }
+          }
+          yield { source, mode: spec.mode, pages: pages() };
+        } catch (error) { failed = true; throw error; }
+        finally {
+          const closed = await Promise.allSettled([source.close()]);
+          const cleared = await Promise.allSettled([input.releaseCache()]);
+          if (!failed) for (const result of [...closed, ...cleared]) if (result.status === "rejected") await Promise.reject(result.reason);
+        }
+      }
+    }
     async function* attachments() {
       for (const spec of options.addAttachmentSpecs) {
         const input = inputs.get(spec.file); if (!input) throw new QpdfMissingInput(`attachment ${spec.file}`);
         yield { ...spec, length: input.size, chunks: input.stream(0, input.size, signal) };
       }
     }
-    if (options.externalizeInlineImages || options.removeUnreferencedResources !== "no" || options.flattenRotation || options.copyAttachmentsSpecs.length || options.addAttachmentSpecs.length || options.removeAttachmentKeys.length || options.linearize || options.pageLabelSpecs.length > 0 || (options.splitPagesGroup !== undefined && (removeInfo || removeMetadata || removeStructure || removeAcroform || removePageLabels))) {
-      editedGraph = await editRetainedDocument(document, storage, { ...(options.externalizeInlineImages ? { externalizeInlineImages: { minBytes: options.iiMinBytes, compress: options.streamDataMode !== "uncompress" } } : {}), removeUnreferencedResources: options.removeUnreferencedResources !== "no", flattenRotation: options.flattenRotation, ...(options.copyAttachmentsSpecs.length ? { attachmentCopies: attachmentCopies() } : {}), ...(options.removeAttachmentKeys.length ? { removeAttachments: options.removeAttachmentKeys } : {}), ...(options.addAttachmentSpecs.length ? { attachments: attachments() } : {}), ...(options.pageLabelSpecs.length ? { pageLabels: parseQpdfPageLabels(options.pageLabelSpecs) } : {}), linearize: options.linearize, removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations(), signal });
+    if (options.stampSpecs.length || options.externalizeInlineImages || options.removeUnreferencedResources !== "no" || options.flattenRotation || options.copyAttachmentsSpecs.length || options.addAttachmentSpecs.length || options.removeAttachmentKeys.length || options.linearize || options.pageLabelSpecs.length > 0 || (options.splitPagesGroup !== undefined && (removeInfo || removeMetadata || removeStructure || removeAcroform || removePageLabels))) {
+      editedGraph = await editRetainedDocument(document, storage, { ...(options.stampSpecs.length ? { stamps: stamps() } : {}), ...(options.externalizeInlineImages ? { externalizeInlineImages: { minBytes: options.iiMinBytes, compress: options.streamDataMode !== "uncompress" } } : {}), removeUnreferencedResources: options.removeUnreferencedResources !== "no", flattenRotation: options.flattenRotation, ...(options.copyAttachmentsSpecs.length ? { attachmentCopies: attachmentCopies() } : {}), ...(options.removeAttachmentKeys.length ? { removeAttachments: options.removeAttachmentKeys } : {}), ...(options.addAttachmentSpecs.length ? { attachments: attachments() } : {}), ...(options.pageLabelSpecs.length ? { pageLabels: parseQpdfPageLabels(options.pageLabelSpecs) } : {}), linearize: options.linearize, removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations(), signal });
     }
     if (!destination) return await diagnostic("qpdf: an output file is required\n");
     if (!options.replaceInput && inputName !== "-" && destination === inputName) return await diagnostic("qpdf: output file may not be the same as the input file (use --replace-input)\n");

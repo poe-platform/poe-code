@@ -110,3 +110,21 @@ for (const field of ["attachments", "attachmentCopies"] as const) it.each(["shor
   } finally { await document.close(); await source.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("indexes editable pages without keeping page dictionaries and rejects invalid indexes", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const storage = { fs, directory: "/scratch" };
+  const input = PdfDocument.create(); for (let index = 0; index < 4; index++) input.addPage([100 + index, 200]);
+  await fs.writeFile("/input", input.save());
+  const source = await PdfFileSource.open(fs, "/input"), document = await PdfRetainedDocument.open(source, storage);
+  const edited = await editRetainedDocument(document, storage, { rotations: [{ pageIndex: 2, degrees: 90 }] });
+  try {
+    expect(edited.pageCount).toBe(4);
+    for (const index of [3, 0, 2, 1, 2]) {
+      const page = await edited.getPage(index), attributes = await page.attributes();
+      expect(page.index).toBe(index); expect(attributes.mediaBox).toEqual([0, 0, 100 + index, 200]);
+      expect(attributes.rotation).toBe(index === 2 ? 90 : 0);
+    }
+    for (const index of [-1, 4, Infinity, NaN, 0.5]) await expect(edited.getPage(index)).rejects.toThrow("Page index out of bounds");
+  } finally { await edited.close(); await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

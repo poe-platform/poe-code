@@ -17,7 +17,7 @@ const styleDefaults: Readonly<Record<string, AttributeRule>> = {
   Rotation: "0", Shade: ["0", "1"], Indent: "0", Locked: "1", Hidden: "0", Fore: validColor,
   Back: validColor, PatternColor: validColor, Format: "General"
 };
-const fontDefaults: Readonly<Record<string, AttributeRule>> = {Unit: value => value.trim() !== "" && Number.isFinite(Number(value)) && Number(value) > 0, Bold: ["0", "1"], Italic: ["0", "1"], Underline: "0", StrikeThrough: "0", Script: "0"};
+const fontDefaults: Readonly<Record<string, AttributeRule>> = {Unit: value => value.trim() !== "" && Number.isFinite(Number(value)) && Number(value) > 0, Bold: ["0", "1"], Italic: ["0", "1"], Underline: ["0", "1", "2", "3", "4"], StrikeThrough: "0", Script: "0"};
 
 export interface CellPrintStyle {
   readonly alignment: "general" | "left" | "right" | "center";
@@ -25,6 +25,7 @@ export interface CellPrintStyle {
   readonly bold: boolean;
   readonly italic: boolean;
   readonly size: number;
+  readonly underline: number;
   readonly foreground: readonly [number, number, number];
   readonly foregroundAlpha: number;
   readonly backgroundAlpha?: number;
@@ -78,7 +79,7 @@ export function cellPrintStyle(style: Readonly<Record<string, ImportedValue>>, t
   if ((font.text as string).trim() === "") fail();
   const selected = attributes(font, fontDefaults);
   const foreground = colorChannels(effects.Fore!), background = colorChannels(effects.Back!);
-  return {alignment: alignments[effects.HAlign as keyof typeof alignments], family: font.text as string, bold: selected.Bold === "1", italic: selected.Italic === "1", size: Number(selected.Unit),
+  return {alignment: alignments[effects.HAlign as keyof typeof alignments], family: font.text as string, bold: selected.Bold === "1", italic: selected.Italic === "1", size: Number(selected.Unit), underline: Number(selected.Underline),
     foreground: [foreground[0], foreground[1], foreground[2]], foregroundAlpha: foreground[3],
     ...(effects.Shade === "1" ? {background: [background[0], background[1], background[2]] as const, backgroundAlpha: background[3]} : {})};
 }

@@ -31,7 +31,7 @@ it.each([['WrapText="0"', 'WrapText="1"'], ['HAlign="GNM_HALIGN_GENERAL"', 'HAli
   await expect(writePdf(await fixture("h", attributes.replace(before, after)), [], context)).rejects.toThrow("styled or merged cells");
 });
 it("refuses unknown font effects and borders without publishing a style approximation", async () => {
-  for (const child of [font+'<g:StyleBorder/>', font.replace('Underline="0"', 'Underline="1"')])
+  for (const child of [font+'<g:StyleBorder/>', font.replace('Underline="0"', 'Underline="5"')])
     await expect(writePdf(await fixture("h", attributes, child), [], context)).rejects.toThrow("styled or merged cells");
 });
 it("refuses styled multiline text", async () => {

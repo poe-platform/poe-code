@@ -277,7 +277,33 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         tick();
         page.pushOperators(setTextMatrix(1, 0, 0, 1, x + glyph.x, baseline + glyph.y), showText(PDFHexString.of(encoded.slice(index * 4, index * 4 + 4))));
       }
-      page.pushOperators(endText(), PDFOperator.of(PDFOperatorNames.EndMarkedContent), popGraphicsState());
+      page.pushOperators(endText(), PDFOperator.of(PDFOperatorNames.EndMarkedContent));
+      if (cellBox.style.underline) {
+        // Pango uses font underline metrics and the union of positioned ink bounds.
+        const scale = size / metrics.unitsPerEm;
+        const thickness = metrics.underlineThickness ? metrics.underlineThickness * scale : printDisplayScale;
+        const position = metrics.underlinePosition ? metrics.underlinePosition * scale : -printDisplayScale;
+        let inkLeft = Infinity, inkRight = -Infinity, inkBottom = Infinity;
+        for (const [index, glyph] of run.glyphs.entries()) {
+          tick();
+          const box = glyph.bbox, origin = glyphs[index]!;
+          if (!Number.isFinite(box.minX)) continue; // Spaces have no ink.
+          inkLeft = Math.min(inkLeft, origin.x + box.minX * scale);
+          inkRight = Math.max(inkRight, origin.x + box.maxX * scale);
+          inkBottom = Math.min(inkBottom, origin.y + box.minY * scale);
+        }
+        const low = cellBox.style.underline === 3;
+        const lineY = baseline + (low ? Math.min(0, inkBottom) - 2 * thickness : position - thickness);
+        if (low) page.pushOperators(pdfRectangle(clipLeft, page.getHeight() - y - cellBox.height,
+          clipWidth, cellBox.height), clip(), endPath());
+        for (let line = 0; line < (cellBox.style.underline === 2 || cellBox.style.underline === 4 ? 2 : 1); line++) {
+          tick();
+          page.drawRectangle({x: x + Math.min(0, inkLeft), y: lineY - line * 2 * thickness,
+            width: Math.max(width, Number.isFinite(inkRight - inkLeft) ? inkRight - inkLeft : 0),
+            height: thickness, color: rgb(...cellBox.style.foreground)});
+        }
+      }
+      page.pushOperators(popGraphicsState());
       return;
     }
     page.drawText(value, { x: x - (alignment === "left" ? 0 : width / (alignment === "center" ? 2 : 1)), y: baseline, size, font });

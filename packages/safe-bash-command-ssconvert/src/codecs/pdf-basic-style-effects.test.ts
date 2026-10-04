@@ -54,7 +54,7 @@ it.each(['Bold="1"', 'Italic="1"', "DejaVu Serif"])("shares a byte budget across
 it("retains explicit refusal for unsupported shading and font decorations before font selection", async () => {
   const resolve = vi.fn<FontCapability["resolve"]>(async () => suppliedDefaultFont().bytes);
   for (const c of [{text: "shade", attributes: attributes.replace('Shade="0"', 'Shade="2"')},
-    {text: "underline", font: font.replace('Underline="0"', 'Underline="1"')}])
+    {text: "underline", font: font.replace('Underline="0"', 'Underline="5"')}])
     await expect(writePdf(await fixture([c]), [], {...context, fonts: {resolve}})).rejects.toThrow("styled or merged cells");
   expect(resolve).not.toHaveBeenCalled();
 });
@@ -124,5 +124,23 @@ it.each([['8000', 128 / 255], ['0000', 0], ['00ff', 0]])("applies native alpha %
     expect(textPrefixes[1]!.slice(textPrefixes[1]!.lastIndexOf("\nq\n"))).not.toContain(" gs");
     const textStates = operations.split("BT").slice(1).map(part => part.slice(part.indexOf("ET") + 2).trimStart().startsWith("EMC\nQ"));
     expect(textStates).toEqual([true, true]);
+  } finally {rectangle.mockRestore();}
+});
+
+it.each([1, 2, 3, 4])("paints native underline %i without decorating adjacent cells", async underline => {
+  const rectangle = vi.spyOn(PDFPage.prototype, "drawRectangle");
+  try {
+    const book = await fixture([{text: "jAy pq", font: font.replace('Underline="0"', `Underline="${underline}"`)}, {text: "Neighbor"}]);
+    const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve: async () => suppliedDefaultFont().bytes}}));
+    expect(runs.map(run => run.text)).toEqual(["jAy pq", "Neighbor"]);
+    const lines = rectangle.mock.calls.map(([options]) => options!);
+    expect(lines).toHaveLength(underline === 2 || underline === 4 ? 2 : 1);
+    expect(lines[0]).toEqual(expect.objectContaining({color: rgb(0, 0, 0), height: expect.any(Number), width: expect.any(Number)}));
+    // Supplied JetBrains Mono: 1000 units/em, underline -155/50, ink descender -180.
+    expect(lines[0]!.height).toBe(0.375);
+    expect(lines[0]!.width).toBe(27);
+    expect(lines[0]!.x).toBe(runs[0]!.glyphs[0]!.x);
+    expect(lines[0]!.y).toBeCloseTo(runs[0]!.glyphs[0]!.y - (underline === 3 ? 2.1 : 1.5375), 8);
+    if (lines.length === 2) expect(Math.abs(lines[0]!.y! - lines[1]!.y!)).toBeCloseTo(2 * lines[0]!.height!, 8);
   } finally {rectangle.mockRestore();}
 });

@@ -28,7 +28,7 @@ for (const revision of [7, 8] as const) {
     expect(() => cellPrintStyle({ ...style, biff: { xf: 15, revision, effect: "unknown" } }, () => {})).toThrow("styled or merged cells");
     expect(() => cellPrintStyle({ ...style, unknown: true }, () => {})).toThrow("styled or merged cells");
     const gnumeric = style.gnumeric as Record<string, ImportedValue>;
-    const children = (gnumeric.children as Record<string, ImportedValue>[]).map(node => ({ ...node, attributes: (node.attributes as Record<string, ImportedValue>[]).map(a => a.name === "Underline" ? { ...a, value: "1" } : a) }));
+    const children = (gnumeric.children as Record<string, ImportedValue>[]).map(node => ({ ...node, attributes: (node.attributes as Record<string, ImportedValue>[]).map(a => a.name === "Underline" ? { ...a, value: "5" } : a) }));
     expect(() => cellPrintStyle({ ...style, gnumeric: { ...gnumeric, children } }, () => {})).toThrow("styled or merged cells");
   });
 }

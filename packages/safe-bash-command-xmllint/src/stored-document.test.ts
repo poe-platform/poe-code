@@ -4,7 +4,7 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createXmllintCommand } from "./index.js";
 
-for (const args of [[], ["--noblanks"], ["--encode", "UTF-16"], ["--xpath", "count(//x)"], ["--xpath", "//x[last()]"]])
+for (const args of [[], ["--nocdata"], ["--noblanks", "--xpath", "count(//x)"], ["--noblanks"], ["--encode", "UTF-16"], ["--xpath", "count(//x)"], ["--xpath", "//x[last()]"]])
 for (const cancel of [false, true]) test(`XML formatting uses injected paged storage and retires it (${args.join(" ")}, cancel=${cancel})`, async () => {
   const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error("sink stopped");
   let opened = 0, closed = 0, written = 0, output = 0, outstanding = 0;

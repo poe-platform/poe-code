@@ -175,7 +175,7 @@ export async function* serializeDocument(
         let skip = false;
         if (child.kind === "text") {
           let blank = true;
-          for (const character of child.text) {
+          for await (const part of typeof current.value === "number" ? stored!.text(current.value) : [child.text]) for (const character of part) {
             { const p = budget.tick(); if (p) await p; }
             if (!" \t\n\r".includes(character)) blank = false;
           }
@@ -238,9 +238,10 @@ export async function* serializeDocument(
         }
         yield { ...frame, content: `${indent ? "\n" + "  ".repeat(frame.depth) : ""}</${current.name}>` };
       })());
-    } else if (current.kind === "text" || (current.kind === "cdata" && canonical))
-      yield* escape(current.text, false, budget, escaping);
-    else if (current.kind === "cdata") { yield "<![CDATA["; yield current.text; yield "]]>"; }
+    } else if (current.kind === "text" || (current.kind === "cdata" && canonical)) {
+      for await (const part of typeof reference === "number" ? stored!.text(reference) : [current.text])
+        yield* escape(part, false, budget, escaping);
+    } else if (current.kind === "cdata") { yield "<![CDATA["; yield current.text; yield "]]>"; }
     else if (current.kind === "comment") { yield "<!--"; yield current.text; yield "-->"; }
     else if (current.kind === "processing-instruction") {
       yield `<?${current.target}`;

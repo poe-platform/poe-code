@@ -4,8 +4,9 @@ import { XmlBudget } from "./limits.js";
 
 // Fixed-size links are separate from the variable-size node metadata. Pointers
 // are safe integer byte offsets; zero is the absent-link sentinel.
-const headerBytes = 56;
-const parentField = 0, nextField = 8, firstField = 16, lastField = 24, sizeField = 32, firstAttributeField = 40, lastAttributeField = 48;
+const headerBytes = 72;
+const parentField = 0, nextField = 8, firstField = 16, lastField = 24, sizeField = 32, firstAttributeField = 40, lastAttributeField = 48, flagsField = 56, fragmentField = 64;
+const textFlag = 1, preserveSpaceFlag = 2;
 
 export type StoredXmlAttribute = { kind: "attribute"; value: XmlAttribute };
 type Metadata = StoredXmlAttribute | Exclude<XmlContent, XmlElement> | {
@@ -122,9 +123,78 @@ export class StoredXmlDocument {
     }
     parts.push(decoder.decode());
     const metadata = JSON.parse(parts.join("")) as Metadata;
+    if (metadata.kind === "cdata" && (await this.field(reference, flagsField) & textFlag))
+      return { kind: "text", text: metadata.text };
     return metadata.kind === "element"
       ? { ...metadata, namespaces: new Map(metadata.namespaces), children: [], content: [], text: "" }
       : metadata;
+  }
+
+  /** Logical text may span many original parser tokens after CDATA conversion.
+   * Replay their bodies without making a concatenated node value. */
+  async *text(reference: number): AsyncGenerator<string> {
+    let fragment = reference;
+    while (fragment) {
+      const node = await this.node(fragment);
+      if (node.kind !== "text" && node.kind !== "cdata") throw new TypeError("Expected XML text node");
+      yield node.text;
+      fragment = await this.field(fragment, fragmentField);
+    }
+  }
+
+  /** Apply tree transformations by changing stored links. Whitespace inheritance
+   * lives on each parent record; merged text remains a chain of token bodies. */
+  async transform(options: { noblanks?: boolean; nocdata?: boolean }): Promise<void> {
+    if (!options.noblanks && !options.nocdata) return;
+    for await (const event of this.walk(this.root)) {
+      if (event.closing) continue;
+      const element = await this.node(event.reference);
+      if (element.kind !== "element") continue;
+      let preserve = (await this.field(await this.parent(event.reference), flagsField) & preserveSpaceFlag) !== 0;
+      for (const attribute of element.attributes) {
+        if (attribute.namespace === "http://www.w3.org/XML/1998/namespace" && attribute.localName === "space")
+          preserve = attribute.value === "preserve";
+      }
+      await this.set(event.reference, flagsField, preserve ? preserveSpaceFlag : 0);
+      let current = await this.field(event.reference, firstField), previous = 0, mixed = false;
+      while (current) {
+        let child = await this.node(current);
+        let next = await this.field(current, nextField);
+        if (options.nocdata && (child.kind === "text" || child.kind === "cdata")) {
+          await this.set(current, flagsField, textFlag);
+          let tail = current;
+          for (let fragment = await this.field(tail, fragmentField); fragment; fragment = await this.field(tail, fragmentField)) tail = fragment;
+          while (next) {
+            const adjacent = await this.node(next);
+            if (adjacent.kind !== "text" && adjacent.kind !== "cdata") break;
+            await this.set(tail, fragmentField, next);
+            tail = next;
+            next = await this.field(next, nextField);
+            for (let fragment = await this.field(tail, fragmentField); fragment; fragment = await this.field(tail, fragmentField)) tail = fragment;
+          }
+          await this.set(current, nextField, next);
+          if (!next) await this.set(event.reference, lastField, current);
+          child = { kind: "text", text: child.text };
+        }
+        let skip = false;
+        if (child.kind === "text") {
+          if (options.noblanks && !preserve && !mixed && (previous !== 0 || next !== 0)) {
+            skip = true;
+            for await (const part of this.text(current)) for (const character of part) {
+              const checkpoint = this.budget.tick(); if (checkpoint) await checkpoint;
+              if (!" \t\r\n".includes(character)) skip = false;
+            }
+          }
+          if (!skip) mixed = true;
+        } else if (child.kind === "cdata") mixed = true;
+        if (skip) {
+          if (previous) await this.set(previous, nextField, next);
+          else await this.set(event.reference, firstField, next);
+          if (!next) await this.set(event.reference, lastField, previous);
+        } else previous = current;
+        current = next;
+      }
+    }
   }
 
   async *children(reference: number, attributes = false): AsyncGenerator<number> {

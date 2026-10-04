@@ -215,7 +215,7 @@ export async function* stringValue(
     for await (const event of document.walk(node.kind === "document" ? document.root : reference)) {
       if (event.closing) continue;
       const value = await document.node(event.reference);
-      if (value.kind === "text" || value.kind === "cdata") yield value.text;
+      if (value.kind === "text" || value.kind === "cdata") yield* document.text(event.reference);
     }
     return;
   }
@@ -234,7 +234,7 @@ export async function* stringValue(
 
 export function serializeSimpleSync(node: Node, budget: XmlBudget): string | undefined {
   if (
-    node.kind === "text" &&
+    !node.stored && node.kind === "text" &&
     node.value.text.length > 0 &&
     node.value.text.length < 4096 &&
     !/[&<>"\n\r\t\uD800-\uDFFF]/.test(node.value.text)
@@ -246,7 +246,7 @@ export function serializeSimpleSync(node: Node, budget: XmlBudget): string | und
 }
 
 export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<string> {
-  if (node.kind === "text" && node.value.text.length > 0 && node.value.text.length < 4096 && !/[&<>"\n\r\t\uD800-\uDFFF]/.test(node.value.text)) {
+  if (!node.stored && node.kind === "text" && node.value.text.length > 0 && node.value.text.length < 4096 && !/[&<>"\n\r\t\uD800-\uDFFF]/.test(node.value.text)) {
     { const _p = budget.tick(1 + node.value.text.length); if (_p) await _p; }
     yield node.value.text;
     return;
@@ -275,7 +275,9 @@ export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<
         }
         yield hasChildren ? ">" : "/>";
       } else if (!event.closing && value.kind !== "attribute") {
-        yield* serialize({ kind: value.kind, value }, budget);
+        if (value.kind === "text") {
+          for await (const part of document.text(event.reference)) yield* escape(part, false, budget);
+        } else yield* serialize({ kind: value.kind, value }, budget);
       }
     }
     if (node.kind === "document") yield "\n";

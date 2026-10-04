@@ -48,8 +48,10 @@ selection writes separately from parser writes, check document order and duplica
 removal against native xmllint, and interrupt requests during selection replay.
 Use a slow sink for large node-set output and verify only bounded output chunks are
 outstanding. Distinguish node-count growth from individual string-value growth:
-string functions still materialize individual values, and XPath with transformation
-flags still uses the tree path.
+string functions still materialize individual values. Repeat with `--nocdata` and
+`--noblanks`, especially many adjacent small CDATA tokens forming one large logical
+text node. Verify `count(text())`, whitespace inheritance and byte output against
+native xmllint without a concatenated value in the formatting/selection path.
 
 ## Remaining qualification scope
 

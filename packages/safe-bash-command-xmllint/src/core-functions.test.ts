@@ -284,3 +284,21 @@ test("format preserves inline descendants of mixed content", async () => {
   const result = await run(["--noblanks", "--format"], input);
   assert.equal(result.output, '<?xml version="1.0"?>\n<r xml:space="preserve"> <a xml:space="default"><b/></a> </r>\n');
 });
+
+for (const mode of [[], ["--format"], ["--c14n"], ["--exc-c14n"], ["--xpath", "/r/text()"], ["--xpath", "count(//text())"], ["--xpath", "string(/r)"]]) {
+  test(`stored CDATA transforms preserve tree semantics (${mode.join(" ")})`, async () => {
+    for (const flags of [["--nocdata"], ["--nocdata", "--noblanks"]]) for (const input of [
+      '<r><![CDATA[ ]]><![CDATA[x]]><a/> tail<![CDATA[é😀]]></r>',
+      '<r><![CDATA[ ]]><![CDATA[ ]]><a/> </r>',
+      '<r><![CDATA[ ]]><![CDATA[ ]]></r>',
+      '<r> <a/> <![CDATA[x]]> <b/> </r>',
+      '<r xml:space="preserve"> <a xml:space="default"> <![CDATA[ ]]><b/> </a> </r>',
+    ]) {
+      const actual = await run([...flags, ...mode], input);
+      const expected = await run(["--recover", ...flags, ...mode], input);
+      assert.equal(actual.exitCode, expected.exitCode, input);
+      assert.equal(actual.output, expected.output, input);
+      assert.equal(actual.errors, expected.errors, input);
+    }
+  });
+}

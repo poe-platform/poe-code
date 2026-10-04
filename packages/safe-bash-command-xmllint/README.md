@@ -34,8 +34,9 @@ tree. Formatting and canonicalization, including `--noblanks` and `--encode`, ke
 page cache and spill through the supplied filesystem under `TMPDIR` or the working
 directory. Large workloads need an external filesystem backend; a memory filesystem
 still stores spilled bytes in RAM. Ordinary XPath uses stored nodes and paged
-selection sets for predicates and unions. `--nocdata`, XPath with `--noblanks`, and
-`--recover` still retain a tree; recovery also buffers the source. XPath string
+selection sets for predicates and unions. `--nocdata` and `--noblanks` transform
+stored nodes for formatting and XPath; adjacent text fragments remain backed by
+the filesystem. `--recover` still retains a tree and buffers the source. XPath string
 functions still materialize individual string values. Individual XML tokens and
 active ancestry also remain resident, so this is not yet a bounded-memory guarantee
 for arbitrary documents or queries. Files are

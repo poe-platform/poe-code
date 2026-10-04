@@ -3,6 +3,12 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "xlsxSelfContainedThemes": {
+      "scope": "Both XLSX editions preserve self-contained DrawingML theme metadata, its content type and workbook relationship, including edits. Iterative serialization charges existing work/output limits. Themes with unretained relationship attributes, foreign namespaces or namespace overrides remain warned and unexported; duplicate themes retain a loss warning. No external resource fetching or broader rendering claim.",
+      "qualification": "Three original failing tests and one subsequent namespace-override regression repaired;222 owner tests, selected ssconvert build and owner lint/types pass. Nine compiled SDK/command/edited exports preserve612 complete theme nodes exactly and validate relationship/content-type wiring, with zero diagnostics. CLI screenshot inspected.",
+      "native": "Calc25.2.3.2 preserves all15 selected name/color/font fields in five independently mutated native-generated controls. All27 selected fields from nine actual output readbacks match those controls. Only hexadecimal color letter case normalizes. Exact javaldx startup warning retained.",
+      "remaining": "Themes requiring relationships/foreign extensions, cross-format theme transport, full visual rendering and broader19-family qualification remain open. No family or release closure."
+    },
     "xlsxWorkbookProtectionMetadata": {
       "scope": "Both XLSX editions recognize and retain workbookProtection records and emit their15 declared attributes in schema order. Retained metadata supports edits. Password algorithm fields remain opaque; unknown attributes/children/namespaces and duplicate records retain loss warnings. This does not implement password enforcement or cross-format workbook protection.",
       "qualification": "Three original failures repaired;219 owner tests, selected ssconvert workspace build and owner lint/types pass.17 compiled SDK/command/edited exports preserve85 explicit attributes and schema ordering, with exactly one unrelated theme warning each. Independently pinned OpenPyXL reads all17 exports and matches255 protection attribute values against nine controls. Screenshot inspected.",

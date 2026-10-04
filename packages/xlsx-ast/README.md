@@ -41,6 +41,9 @@ Workbook structure, window and revision protection attributes also survive XLSX
 roundtrips and edits through the retained `workbookProtection` metadata record.
 Password algorithm fields are preserved opaquely; unknown attributes, children and
 duplicate records still report loss warnings.
+Self-contained DrawingML themes retain their colors, fonts and effect metadata
+through XLSX roundtrips and edits. Themes requiring uncopied relationships or
+foreign namespace content still report a loss warning.
 
 ```ts
 import { createEngine } from "@poe-code/spreadsheet-engine";

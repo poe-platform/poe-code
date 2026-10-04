@@ -1,3 +1,4 @@
+import { writeXlsxTheme } from "./xlsx-theme.js";
 import { writeXlsxWorkbookProtection } from "./xlsx-workbook-protection.js";
 import type { Codec, WorkbookSource } from "@poe-code/spreadsheet-engine/codecs/types";
 import { ownWorkbookSource } from "@poe-code/spreadsheet-engine/workbook/source";
@@ -1169,6 +1170,11 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<Co
     }
     await add("xl/styles.xml", styles.serialize(), "application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml");
     workbookRelations.push({ id: `rId${workbookRelations.length + 1}`, type: relationships + "/styles", target: "styles.xml" });
+    const theme = writeXlsxTheme(book, xml, charge);
+    if (theme) {
+      await add("xl/theme/theme1.xml", theme.content, "application/vnd.openxmlformats-officedocument.theme+xml");
+      workbookRelations.push({ id: `rId${workbookRelations.length + 1}`, type: relationships + "/theme", target: "theme/theme1.xml" });
+    }
     const properties = writeXlsxProperties(book, xml);
     const protection = writeXlsxWorkbookProtection(book, xml, charge);
     await add("docProps/app.xml", properties.app, "application/vnd.openxmlformats-officedocument.extended-properties+xml");
@@ -1249,7 +1255,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<Co
       { id: "rId4", type: relationships + "/custom-properties", target: "docProps/custom.xml" }
     ]));
     for (const record of book.unsupportedRecords ?? []) {
-      if (protection.handled.has(record)) continue;
+      if (protection.handled.has(record) || record === theme?.record) continue;
       const node = metadataNode(record.data, charge);
       const office = "urn:oasis:names:tc:opendocument:xmlns:office:1.0", meta = "urn:oasis:names:tc:opendocument:xmlns:meta:1.0";
       if (record.kind === "document-meta" && node?.namespace === office && node.children.length === 1 &&

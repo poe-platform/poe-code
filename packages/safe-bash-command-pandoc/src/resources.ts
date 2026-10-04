@@ -205,22 +205,25 @@ export class ResourceSession {
           const chunks: Uint8Array[] = [];
           let length = 0;
           const readOptions = ctx.signal ? {signal: ctx.signal} : {};
-          const producer = fs.readStream ? await ctx.call(async () => fs.readStream!(key, readOptions)) : (async function* () {
-            if (!fs.readFile) ctx.fail("E_CAPABILITY", "VFS requires explicit resource reads");
-            let bytes: Uint8Array;
-            const maxBytes = ctx.remaining("resourceBytes");
-            try {bytes = await fs.readFile!(key, {...readOptions, ...(maxBytes === Infinity ? {} : {maxBytes})});}
-            catch (error) {
-              if (typeof error === "object" && error !== null && "code" in error && error.code === "EFBIG") ctx.fail("E_LIMIT", "resourceBytes: VFS bounded read refused");
-              throw error;
-            }
-            yield bytes;
-          })();
-          await ctx.consume(producer, async bytes => {
-            if (backed) await this.storage!.append(bytes);
-            else {ctx.charge("references", 1); chunks.push(bytes);}
-            length += bytes.length;
-          }, ["resourceBytes"]);
+          await ctx.call(async () => {
+            // Keep factory creation and source enrollment in one capability call.
+            const producer = fs.readStream ? fs.readStream(key, readOptions) : (async function* () {
+              if (!fs.readFile) ctx.fail("E_CAPABILITY", "VFS requires explicit resource reads");
+              let bytes: Uint8Array;
+              const maxBytes = ctx.remaining("resourceBytes");
+              try {bytes = await fs.readFile!(key, {...readOptions, ...(maxBytes === Infinity ? {} : {maxBytes})});}
+              catch (error) {
+                if (typeof error === "object" && error !== null && "code" in error && error.code === "EFBIG") ctx.fail("E_LIMIT", "resourceBytes: VFS bounded read refused");
+                throw error;
+              }
+              yield bytes;
+            })();
+            await ctx.consume(producer, async bytes => {
+              if (backed) await this.storage!.append(bytes);
+              else {ctx.charge("references", 1); chunks.push(bytes);}
+              length += bytes.length;
+            }, ["resourceBytes"]);
+          });
           let data: ResourceData;
           if (backed) data = {position, length};
           else {

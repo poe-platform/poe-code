@@ -141,9 +141,9 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
     if (Number.isFinite(context.limits.retainedBytes)) context.charge("retainedBytes", length);
     return {position, length};
   };
-  const acquire = async (producer: Iterable<Uint8Array> | AsyncIterable<Uint8Array>, chargeBytes = true, chargeReferences = false, retain = true): Promise<Span> => {
+  const acquire = async (produce: () => Iterable<Uint8Array> | AsyncIterable<Uint8Array>, chargeBytes = true, chargeReferences = false, retain = true): Promise<Span> => {
     const position = storage.allocate(0); let length = 0;
-    await context.consume(producer, async bytes => {if (chargeReferences) context.charge("references", 1); await storage.append(bytes); length += bytes.length;}, chargeBytes ? ["resourceBytes"] : [], retain);
+    await context.consume(produce(), async bytes => {if (chargeReferences) context.charge("references", 1); await storage.append(bytes); length += bytes.length;}, chargeBytes ? ["resourceBytes"] : [], retain);
     return {position, length};
   };
   try {
@@ -157,7 +157,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
         let record = await resourceSpans.get(identity);
         if (!record) {
           // Reader normalization already charged these owned resource bytes.
-          record = BigInt(await save(await acquire(supplied.chunks(), false, false, false)));
+          record = BigInt(await save(await acquire(() => supplied.chunks(), false, false, false)));
           await resourceSpans.set(identity, record);
         }
         await inputSpans.set(key, record); await inputIdentities.set(key, identity);
@@ -207,13 +207,16 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
           const type = await inspectResourcePath(fs, path, context); if (type === undefined) continue;
           if (type !== "file") context.fail("E_CAPABILITY", "Image resource is not a regular file");
           context.charge("resources", 1);
-          const producer = fs.readStream ? await context.call(async () => fs.readStream!(path, readOptions)) : (async function* () {
-            if (!fs.readFile) context.fail("E_CAPABILITY", "VFS requires explicit resource reads");
-            const maxBytes = context.remaining("resourceBytes");
-            try {yield await fs.readFile!(path, {...readOptions, ...(maxBytes === Infinity ? {} : {maxBytes})});}
-            catch (error) {if (typeof error === "object" && error !== null && "code" in error && error.code === "EFBIG") context.fail("E_LIMIT", "resourceBytes: VFS bounded read refused"); throw error;}
-          })();
-          const span = await acquire(producer, true, true);
+          const span = await context.call(async () => {
+            // Enroll the returned source before a post-call cancellation check.
+            const produce = () => fs.readStream ? fs.readStream(path, readOptions) : (async function* () {
+              if (!fs.readFile) context.fail("E_CAPABILITY", "VFS requires explicit resource reads");
+              const maxBytes = context.remaining("resourceBytes");
+              try {yield await fs.readFile!(path, {...readOptions, ...(maxBytes === Infinity ? {} : {maxBytes})});}
+              catch (error) {if (typeof error === "object" && error !== null && "code" in error && error.code === "EFBIG") context.fail("E_LIMIT", "resourceBytes: VFS bounded read refused"); throw error;}
+            })();
+            return await acquire(produce, true, true);
+          });
           if (Number.isFinite(context.limits.retainedBytes)) context.charge("retainedBytes", span.length);
           record = await save(span); context.charge("references", 1);
           if (Number.isFinite(context.limits.retainedBytes)) {
@@ -309,7 +312,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
           if (!(bytes instanceof Uint8Array)) throw new PandocError("E_RESOURCE", "convert", "Invalid resource bytes", options.to);
           // ODT charges its image bytes in the writer; resolver admission is already charged.
           if (options.to !== "odt") context.charge("resources", 1);
-          span = await acquire([bytes], options.to !== "odt", false, false);
+          span = await acquire(() => [bytes], options.to !== "odt", false, false);
         }
         if (options.to === "odt") await targetSpans.set(key, BigInt(await save(span)));
       } else {

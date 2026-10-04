@@ -97,6 +97,10 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   Markdown reference resolution, HTML/XML trees, DOCX/EPUB archives, PDF layout,
   presentation and spreadsheet conversion. Record the tested commit and hashes
   of the owning source files with each run.
+- Abort inside filesystem image stream factories for retained RTF/ODT and media
+  extraction. Require zero pulls, one return, no publication and no leftover pages.
+  Also verify pending-pull cancellation and synchronous factory failure; the R2
+  image matrix applies cancellation cases to both filesystem and custom resolvers.
 - For retained JSON input, abort inside the iterator factory before its first pull.
   Verify zero pulls, exactly one iterator return, no output commit and no remaining
   backing files; repeat with finite references and retained-byte budgets.

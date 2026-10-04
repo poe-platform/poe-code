@@ -78,7 +78,7 @@ it.each(["png", "jpeg", "progressive"].flatMap(format => ["filesystem", "resolve
     const expectedBytes = expected.kind === "text" ? new TextEncoder().encode(expected.text) : expected.bytes;
     let expectedHash = 2166136261;
     for (const byte of expectedBytes) expectedHash = Math.imul(expectedHash ^ byte, 16777619) >>> 0;
-    for (const mode of ["success", "source-failure", "cancel", "sink-failure", ...(capability === "resolver" ? ["pending-cancel", "factory-cancel"] : [])]) {
+    for (const mode of ["success", "source-failure", "cancel", "sink-failure", "pending-cancel", "factory-cancel"]) {
       const result = await (await runtime.dispatchFetch("https://pandoc.test/" + mode)).json() as {length: number; hash: number; error?: {code: string}; largest: number; events: {opened: number; closed: number; largestTransfer: number}};
       expect(result).toMatchObject({remaining: 0, namespace: []});
       if (mode === "pending-cancel" || mode === "factory-cancel") expect(result).toMatchObject({returned: 1, pulls: mode === "pending-cancel" ? 1 : 0});

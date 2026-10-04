@@ -27,7 +27,7 @@ async function openPdfImage(source:ImageByteSource,fs:FileSystem,directory:strin
  const values=storage??owned!;
  const cleanup=async()=>{let failure:{error:unknown}|undefined;try{await document?.close();}catch(error){failure={error};}try{await retained.close();}catch(error){failure??={error};}try{await owned?.close();}catch(error){failure??={error};}if(failure)throw failure.error;};
  try{
-  document=await PdfRetainedDocument.open(retained,{fs,directory},{signal,recovery:"repair",chunkBytes:16384,maxNodes:Infinity,maxTokenBytes:Infinity,maxRecursionDepth:Infinity,maxPageTreeDepth:Infinity,xref:{arrayStorage:values,storedArrayKeys:["Index"]},valueArrays:{containerStorage:values,stringStorage:values,storedStringKeys:["ActualText"],arrayStorage:values,storedArrayKeys:["Contents","Annots","Kids","Widths","W","Differences","ON","OFF","OCGs"],storedArrayPaths:[["ExtGState","*","D"]]}});
+  document=await PdfRetainedDocument.open(retained,{fs,directory},{signal,recovery:"repair",compactNumbers:true,chunkBytes:16384,maxNodes:Infinity,maxTokenBytes:Infinity,maxRecursionDepth:Infinity,maxPageTreeDepth:Infinity,xref:{arrayStorage:values,storedArrayKeys:["Index"]},valueArrays:{containerStorage:values,stringStorage:values,storedStringKeys:["ActualText"],arrayStorage:values,storedArrayKeys:["Contents","Annots","Kids","Widths","W","Differences","ON","OFF","OCGs"],storedArrayPaths:[["ExtGState","*","D"]]}});
   let pages=0,selected:PdfRetainedPage|undefined;
   for await(const page of document.pages()){pages++;if(page.index<=Math.max(0,settings.page??0))selected=page;}
   if(!selected)throw new PdfError("E_CAPABILITY","Page index out of bounds: 0");
@@ -48,7 +48,7 @@ export async function tryPdfDecode(source:ImageByteSource,storage:ImageByteStora
  const settings={...options};const owner=await openPdfImage(source,fs,directory,signal,settings,storage);if(!owner)return undefined;
  let failed=false;
  try{
-  const rendered=await renderRetainedPagePixels(owner.page,{fs,directory},{signal,scale:(settings.density??72)/72,imageStorage:storage,retainActualText:true,chunkBytes:4096,tileSize:64});
+  const rendered=await renderRetainedPagePixels(owner.page,{fs,directory},{signal,scale:(settings.density??72)/72,imageStorage:storage,retainActualText:true,compactNumbers:true,chunkBytes:4096,tileSize:64});
   const {width,height}=rendered,length=width*height*4;checkLimitInputPixels(width,height,settings);
   const position=storage.allocate(length);
   if(!Number.isSafeInteger(position)||position<0||!Number.isSafeInteger(position+length))throw new RangeError("Invalid PDF image backing allocation");

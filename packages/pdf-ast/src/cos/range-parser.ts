@@ -7,6 +7,8 @@ import { StoredMetadataStack, appendStoredRecord } from "../content/stored-recor
 import { parseValueSteps, type ValueArrayStorage, type ValueContainer } from "./value-parser.js";
 
 export interface ParseCosRangeOptions extends ValueArrayStorage {
+  /** Bound numeric spelling scratch; long raw spellings become equivalent canonical numbers. */
+  readonly compactNumbers?: boolean;
   /** @internal Distinguish caller storage failures from recoverable PDF syntax. */
   readonly onBackingError?: (error: unknown) => void;
   /** Exclusive direct-value boundary, used for object-stream members. */
@@ -132,7 +134,7 @@ export async function parseCosRangeValue(source: Pick<PdfFileSource, "size" | "c
   const depth = limit(options.maxRecursionDepth, "maxRecursionDepth");
   const nodes = limit(options.maxNodes, "maxNodes");
   const maxTokenBytes = limit(options.maxTokenBytes, "maxTokenBytes");
-  const lexer = new CosRangeLexer(source, { ...(options.onBackingError ? { onBackingError: options.onBackingError } : {}), start: offset, ...(options.end === undefined ? {} : { end: options.end }), maxTokenBytes, ...(options.signal ? { signal: options.signal } : {}) });
+  const lexer = new CosRangeLexer(source, { compactNumbers: options.compactNumbers ?? false, ...(options.onBackingError ? { onBackingError: options.onBackingError } : {}), start: offset, ...(options.end === undefined ? {} : { end: options.end }), maxTokenBytes, ...(options.signal ? { signal: options.signal } : {}) });
   return { value: await readValue(lexer, depth, nodes, options), offset: lexer.offset };
 }
 
@@ -145,7 +147,7 @@ export async function parseCosRangeObject(source: PdfFileSource, offset: number,
   const tokenBytes = limit(options.maxTokenBytes, "maxTokenBytes");
   const { signal } = options;
   signal?.throwIfAborted();
-  const lexer = new CosRangeLexer(source, { ...(options.onBackingError ? { onBackingError: options.onBackingError } : {}), start: offset, maxTokenBytes: tokenBytes, ...(signal ? { signal } : {}) });
+  const lexer = new CosRangeLexer(source, { compactNumbers: options.compactNumbers ?? false, ...(options.onBackingError ? { onBackingError: options.onBackingError } : {}), start: offset, maxTokenBytes: tokenBytes, ...(signal ? { signal } : {}) });
   const object = await lexer.nextToken();
   const generation = await lexer.nextToken();
   const keyword = await lexer.nextToken();

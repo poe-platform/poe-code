@@ -84,7 +84,7 @@ export async function* readCosXrefRevision(source: PdfFileSource, offset: number
   const { signal } = options;
   signal?.throwIfAborted();
   if (!Number.isSafeInteger(offset) || offset < 0 || offset >= source.size) throw new PdfError("E_PARSE", `Invalid xref offset: ${offset}`);
-  const lexer = new CosRangeLexer(source, { start: offset, ...(signal ? { signal } : {}), ...(options.maxTokenBytes === undefined ? {} : { maxTokenBytes: options.maxTokenBytes }) });
+  const lexer = new CosRangeLexer(source, { compactNumbers: options.compactNumbers ?? false, start: offset, ...(signal ? { signal } : {}), ...(options.maxTokenBytes === undefined ? {} : { maxTokenBytes: options.maxTokenBytes }) });
   const first = await lexer.nextToken();
   let admitted = 0;
   const admit = (count: number) => {

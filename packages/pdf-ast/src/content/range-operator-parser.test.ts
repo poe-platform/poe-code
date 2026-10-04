@@ -236,3 +236,15 @@ it("keeps dash operands in caller backing instead of expanding them", async () =
     }
   } finally { await f.close(); }
 });
+
+it("keeps long numeric operand spellings bounded in compact mode",async()=>{
+ const f=await fixture("0".repeat(4096)+"7.0 w");
+ try{
+  const iterator=parseContentRangeOperators(f.source,f.storage,{compactNumbers:true});
+  const step=await iterator.next();expect(step.done).toBe(false);
+  if(step.done)throw new Error("Missing operator");
+  expect(step.value.operator).toBe("w");expect(step.value.operands[0]).toMatchObject({kind:"number",value:7,isInteger:false});
+  const node=step.value.operands[0]!;expect(node.kind==="number"?node.raw!.length:Infinity).toBeLessThanOrEqual(2048);
+  await iterator.return();
+ }finally{await f.close();}
+});

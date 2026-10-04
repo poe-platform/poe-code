@@ -2,6 +2,7 @@
  * Copyright 2017 Mozilla Foundation. Licensed under Apache-2.0.
  * See licenses/PDFJS-APACHE-2.0.txt and THIRD_PARTY_NOTICES.md.
  */
+import { CompactPdfNumber } from "./compact-number.js";
 import {
   formatPdfNumber,
   type ByteSpan,
@@ -142,7 +143,8 @@ class CosLexerState {
     maxTokenBytes = Infinity,
     readonly knownCommands?: ReadonlySet<string>,
     private readonly onTokenAllocation?: (bytes: number) => void,
-    public stringMode: StringMode = "buffer"
+    public stringMode: StringMode = "buffer",
+    private readonly compactNumbers = false
   ) {
     this.window = bytes;
     this.pos = start;
@@ -272,9 +274,11 @@ class CosLexerState {
 
   private *readNumber(): LexWork<CosToken> {
     const start = this.pos;
+    const compact = this.compactNumbers ? new CompactPdfNumber() : undefined;
+    if(compact)this.onTokenAllocation?.(16384);
     const advance = (character?: number) => {
-      this.onTokenAllocation?.(32);
-      if (character !== undefined) normalized += String.fromCharCode(character);
+      if(!compact)this.onTokenAllocation?.(32);
+      if (character !== undefined) {if(compact)compact.append(character);else normalized += String.fromCharCode(character);}
       this.pos++;
       if (this.pos - start > this.maxTokenBytes) {
         throw new PdfError("E_LIMIT", "PDF token exceeds maximum byte length");
@@ -345,6 +349,7 @@ class CosLexerState {
         }
       }
     }
+    if(compact)normalized=compact.spelling;
     const value = Number(normalized);
     if (!Number.isFinite(value)) {
       throw new PdfError("E_CAPABILITY", `Non-finite PDF number: ${normalized}`);
@@ -352,7 +357,8 @@ class CosLexerState {
     return {
       kind: "number",
       value,
-      raw: exponent ? formatPdfNumber(value) : normalized,
+      raw: exponent ? formatPdfNumber(value) : compact?.shortened
+        ? `${Object.is(value,-0)?"-0":formatPdfNumber(value)}${decimal && Number.isInteger(value)?".0":""}` : normalized,
       isInteger: Number.isInteger(value) && !decimal && !exponent,
       span: { start, end: this.pos }
     };
@@ -550,6 +556,8 @@ export class CosByteLexer extends CosLexerState {
 }
 
 export interface CosRangeLexerOptions {
+  /** Canonicalize number spellings longer than 2048 characters with bounded scratch. */
+  readonly compactNumbers?: boolean;
   readonly onBackingError?: (error: unknown) => void;
   /** Decoded string payloads use caller-owned backing instead of token arrays. */
   readonly stringStorage?: PdfPixelStorage;
@@ -600,7 +608,8 @@ export class CosRangeLexer {
       maximum,
       options.knownCommands,
       options.onTokenAllocation,
-      options.stringStorage ? "count" : "buffer"
+      options.stringStorage ? "count" : "buffer",
+      options.compactNumbers
     );
     this.onBackingError = options.onBackingError;
     this.onTokenAllocation = options.onTokenAllocation;

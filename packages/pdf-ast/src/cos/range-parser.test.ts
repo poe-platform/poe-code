@@ -177,3 +177,14 @@ describe("range-backed COS objects", () => {
   });
 
 });
+
+
+it("preserves direct-value numeric classification when compacting long source spellings",async()=>{
+ const {file}=fromText("1 0 obj ["+"0".repeat(4096)+"7.0 -"+"0".repeat(4096)+"0 1e"+"0".repeat(4096)+"0] endobj"),source=await file.open();
+ try{
+  const object=await parseCosRangeObject(source,0,{compactNumbers:true});
+  expect(object.value.kind).toBe("array");if(object.value.kind!=="array")throw new Error("Missing array");
+  expect(object.value.items).toMatchObject([{kind:"number",value:7,isInteger:false},{kind:"number",value:-0,isInteger:true},{kind:"number",value:1,isInteger:true}]);
+  for(const node of object.value.items)if(node.kind==="number")expect(node.raw.length).toBeLessThanOrEqual(2048);
+ }finally{await source.close();}
+});

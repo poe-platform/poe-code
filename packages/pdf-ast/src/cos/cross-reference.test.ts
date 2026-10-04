@@ -157,3 +157,17 @@ describe("retained document cross-reference index", () => {
   });
 
 });
+
+it("keeps numeric spellings bounded through startxref, table rows and trailer parsing",async()=>{
+ const {CosRangeLexer}=await import("./lexer.js"),number=(value:number)=>"0".repeat(8192)+value;
+ const body="%PDF-1.7\n1 0 obj << /Type /Catalog >> endobj\n";
+ const f=await fixture(text(body+`xref\n${number(0)} ${number(2)}\n${number(0)} ${number(65535)} f\n${number(9)} ${number(0)} n\ntrailer << /Root 1 0 R /Size ${number(2)} >>\nstartxref\n${number(body.length)}\n%%EOF`),4096);
+ const next=CosRangeLexer.prototype.nextToken;let longest=0;
+ const spy=vi.spyOn(CosRangeLexer.prototype,"nextToken").mockImplementation(async function(this:InstanceType<typeof CosRangeLexer>){const token=await next.call(this);if(token?.kind==="number")longest=Math.max(longest,token.raw.length);return token;});
+ let opened:Awaited<ReturnType<typeof openPdfCrossReference>>|undefined;
+ try{
+  opened=await openPdfCrossReference(f.source,f.storage,{compactNumbers:true});
+  expect(opened.xrefOffset).toBe(body.length);expect(await opened.index.get(1)).toMatchObject({offset:9});
+  expect(longest).toBeLessThanOrEqual(2048);
+ }finally{spy.mockRestore();await opened?.index.close();await f.source.close();expect(await f.storage.fs.readdir("/scratch")).toEqual([]);}
+});

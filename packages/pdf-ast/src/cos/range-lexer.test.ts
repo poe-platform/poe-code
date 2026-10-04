@@ -174,3 +174,55 @@ it("does not admit skipped comments as resident token storage",async()=>{
  const file=backend(131072,i=>i%4096===0?37:i%4096===4095?10:120,4096),source=await PdfFileSource.open(file.fs,'/input',{chunkBytes:4096,cacheBytes:4096}),admit=vi.fn();
  try{expect(await new CosRangeLexer(source,{onTokenAllocation:admit}).nextToken()).toBeUndefined();expect(admit).not.toHaveBeenCalled();}finally{await source.close();}
 });
+
+it("bounds numeric spelling scratch for retained tokens without limiting their length",async()=>{
+ const length=131072;let admitted=0;
+ const source={size:length+1,chunkBytes:4096,async read(position:number,count:number){return Uint8Array.from({length:count},(_,i)=>position+i===length?55:48);}};
+ const lexer=new CosRangeLexer(source,{compactNumbers:true,onTokenAllocation:bytes=>{admitted+=bytes;}});
+ const token=await lexer.nextToken();
+ expect(token).toMatchObject({kind:"number",value:7,isInteger:true,span:{start:0,end:length+1}});
+ expect(token?.kind==="number"?token.raw.length:Infinity).toBeLessThanOrEqual(2048);
+ expect(admitted).toBeLessThanOrEqual(32768);
+});
+
+
+it("preserves binary64 rounding, underflow, exponent repair and grammar with bounded number spellings",async()=>{
+ const halfway="1.00000000000000011102230246251565404236316680908203125";
+ const subnormal="0."+(5n**1075n).toString().padStart(1075,"0");
+ const samples=["--7","-.7","-\r\n7","205--.5","1E+8","-.5e2","-0", "+.0",
+  "0".repeat(4096)+"17", "-"+"0".repeat(4096)+".0", "0."+"0".repeat(4096)+"7e4097",
+  "7"+"0".repeat(4096)+"e-4096", "1e-"+"9".repeat(4096), "0e"+"9".repeat(4096),
+  halfway+"0".repeat(4096),halfway+"0".repeat(4096)+"1",
+  subnormal+"0".repeat(4096),subnormal+"0".repeat(4096)+"1",
+  "1.7976931348623157"+"0".repeat(4096)+"e308"];
+ for(let i=0;i<32;i++){
+  let digits="";let state=i+1;
+  for(let at=0;at<3072;at++){state=(Math.imul(state,1664525)+1013904223)>>>0;digits+=String(state%10);}
+  samples.push((i%2?"-":"")+digits+"e-"+(2800+i*10));
+ }
+ for(const spelling of samples){
+  const bytes=new TextEncoder().encode(spelling+" ET"),source={size:bytes.length,chunkBytes:4096,async read(at:number,n:number){return bytes.subarray(at,at+n);}};
+  const buffered=new CosByteLexer(bytes),retained=new CosRangeLexer(source,{compactNumbers:true});
+  const expected=buffered.nextToken(),actual=await retained.nextToken();
+  expect(actual?.kind).toBe("number");expect(expected?.kind).toBe("number");
+  if(actual?.kind!=="number"||expected?.kind!=="number")throw new Error("Missing number");
+  expect(actual.value).toBe(expected.value);expect(actual.isInteger).toBe(expected.isInteger);expect(actual.span).toEqual(expected.span);
+  expect(actual.raw.length).toBeLessThanOrEqual(2048);
+  expect(await retained.nextToken()).toEqual(buffered.nextToken());
+ }
+});
+
+it("preserves number errors, admission, backing failures and cancellation in compact mode",async()=>{
+ for(const spelling of ["1"+"0".repeat(4096),"1e"+"9".repeat(4096),"-.x"]){
+  const bytes=new TextEncoder().encode(spelling),source={size:bytes.length,chunkBytes:4096,async read(at:number,n:number){return bytes.subarray(at,at+n);}};
+  let code:unknown;try{new CosByteLexer(bytes).nextToken();}catch(error){code=(error as {code:unknown}).code;}
+  await expect(new CosRangeLexer(source,{compactNumbers:true}).nextToken()).rejects.toMatchObject({code});
+ }
+ const source={size:131072,chunkBytes:4096,async read(_at:number,n:number){return new Uint8Array(n).fill(48);}};
+ await expect(new CosRangeLexer(source,{compactNumbers:true,maxTokenBytes:4096}).nextToken()).rejects.toMatchObject({code:"E_LIMIT"});
+ const reason=new Error("backing failure");
+ await expect(new CosRangeLexer({...source,async read(){throw reason;}},{compactNumbers:true}).nextToken()).rejects.toBe(reason);
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(reason),0);
+ try{await expect(new CosRangeLexer({...source,size:4096*1024},{compactNumbers:true,signal:controller.signal}).nextToken()).rejects.toBe(reason);}
+ finally{clearTimeout(timer);}
+});

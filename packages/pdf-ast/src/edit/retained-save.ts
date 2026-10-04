@@ -23,6 +23,8 @@ export interface SaveRetainedDocumentOptions {
   readonly linearize?: boolean;
   /** Retained snapshots keep their encoded streams; normalization prevents packing. */
   readonly normalizeContent?: boolean;
+  /** Decode and rewrite every stream using caller-backed staging. */
+  readonly streamMode?: "preserve" | "compress" | "uncompress";
   readonly objectStreams?: "generate" | "disable" | "preserve";
   /** Ordered edits; duplicate page selections apply cumulatively. */
   readonly rotations?: Iterable<RetainedPageRotation> | AsyncIterable<RetainedPageRotation>;
@@ -111,7 +113,7 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
     if (object.stream) { yield encoder.encode("\nstream\n"); yield* object.stream.chunks; yield encoder.encode("\nendstream"); }
   }
   try {
-    for await (const object of retainedCosObjects(document, storage, { ...(options.normalizeContent ? { normalizeContent: true } : {}), ...(options.maxObjects === undefined ? {} : { maxObjects: options.maxObjects }), ...(options.maxOutputBytes === undefined ? {} : { maxStreamBytes: options.maxOutputBytes }), signal })) {
+    for await (const object of retainedCosObjects(document, storage, { ...(options.streamMode ? { streamMode: options.streamMode } : {}), ...(options.normalizeContent ? { normalizeContent: true } : {}), ...(options.maxObjects === undefined ? {} : { maxObjects: options.maxObjects }), ...(options.maxOutputBytes === undefined ? {} : { maxStreamBytes: options.maxOutputBytes }), signal })) {
       if (!object.stream && object.value.kind === "dict" && dictGet(object.value, "Linearized") !== undefined) mayLinearize = true;
       await objects.set(object);
     }

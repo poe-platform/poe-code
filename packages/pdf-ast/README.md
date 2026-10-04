@@ -902,7 +902,9 @@ remain available through the existing serializer.
 object, including unreachable objects, in identity order for rewriting or editing.
 Pass it to `serializeRetainedCosDocumentChunks` with the document's root, info,
 ID and version fields. Encoded payloads stream directly; decrypted payloads use
-caller backing to establish their output length. Consume each object's stream
+caller backing to establish their output length. `streamMode: "compress"` or
+`"uncompress"` decodes and rewrites each payload through caller staging; the same
+option is available on `saveRetainedDocumentChunks`. Consume each object's stream
 before advancing and keep the source/document open until iteration ends.
 `maxObjects`, `maxStreamBytes` and `signal` govern admission and cancellation.
 This low-level COS path preserves the graph; it does not flatten page trees or

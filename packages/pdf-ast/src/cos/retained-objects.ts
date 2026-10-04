@@ -1,4 +1,5 @@
-import { cosNumber, dictSet } from "../ast.js";
+import { stageDeflatedPdf } from "./deflate-staging.js";
+import { cosName, cosNumber, dictSet } from "../ast.js";
 import { decryptedPdfStreamDictionary } from "./security.js";
 import { PdfError } from "../errors.js";
 import type { PdfRetainedDocument } from "../retained-document.js";
@@ -8,6 +9,7 @@ import type { PdfRetainedOutputObject } from "./retained-writer.js";
 
 export interface PdfRetainedObjectsOptions {
   readonly normalizeContent?: boolean;
+  readonly streamMode?: "preserve" | "compress" | "uncompress";
   /** Number of live indirect objects admitted before parsing their values. */
   readonly maxObjects?: number;
   /** Encoded output payload bytes per stream, after decryption. */
@@ -38,6 +40,21 @@ export async function* retainedCosObjects(document: PdfRetainedDocument, storage
     if (!object) throw new PdfError("E_PARSE", "Missing indexed PDF object");
     const identity = { objectNumber: entry.objectNumber, generationNumber, value: object.value };
     if (!object.stream) { yield identity; continue; }
+    if (options.streamMode && options.streamMode !== "preserve" && object.value.kind === "dict") {
+      const activeSignal = signal ?? new AbortController().signal;
+      const input = document.objects.decodeStream(entry.objectNumber, generationNumber);
+      const staged = options.streamMode === "compress" ? await stageDeflatedPdf(input, storage, activeSignal, maxStreamBytes)
+        : await PdfFileSource.fromStream(storage.fs, storage.directory, input, { signal: activeSignal, maxInputBytes: maxStreamBytes });
+      let failed = false;
+      try {
+        const value = { ...object.value, entries: object.value.entries.filter(item => item.key.decoded !== "Filter" && item.key.decoded !== "DecodeParms") };
+        if (options.streamMode === "compress") dictSet(value, "Filter", cosName("FlateDecode"));
+        dictSet(value, "Length", cosNumber(staged.size));
+        yield { ...identity, value, stream: { decoded: true, length: staged.size, chunks: staged.stream(0, staged.size, activeSignal) } };
+      } catch (error) { failed = true; throw error; }
+      finally { await staged.close().catch(error => { if (!failed) throw error; }); }
+      continue;
+    }
     if (options.normalizeContent && object.decoded && object.value.kind === "dict") {
       const decoded = await PdfFileSource.fromStream(storage.fs, storage.directory, document.objects.decodeStream(entry.objectNumber, generationNumber), { ...(signal ? { signal } : {}), maxInputBytes: maxStreamBytes });
       let failed = false;

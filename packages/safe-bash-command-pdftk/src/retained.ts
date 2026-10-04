@@ -1,7 +1,8 @@
+import { retainedOutput } from "./retained-output.js";
 import { retainedUnpack } from "./retained-unpack.js";
 import { retainedFdf } from "./retained-fdf.js";
 import { retainedFieldReport } from "./retained-fields.js";
-import { PdfError, PdfFileSource, PdfRetainedDocument, retainedCosObjects } from "@poe-code/pdf-ast";
+import { PdfError, PdfFileSource, PdfRetainedDocument, retainedCosObjects, type PdfCosArray } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
 import { writeBytes } from "safe-bash-contracts/io";
@@ -12,6 +13,12 @@ import { retainedInspectionReport } from "./retained-inspection.js";
 
 export async function executeRetainedPdftk(context: CommandContext, options: PdftkArguments): Promise<{ exitCode: number }> {
   const signal = context.signal, storage = { fs: context.fs, directory: resolvePath(context.cwd, context.env.TMPDIR || "/tmp") };
+  const handles = new Map<string, PdftkArguments["inputs"][number]>();
+  for (const input of options.inputs) { handles.set(input.handle, input); if (!handles.has("")) handles.set("", input); }
+  const primary = options.inputs[0]!;
+  let idInput = handles.values().next().value!;
+  if (options.keepFinalId) for (const input of handles.values()) idInput = input;
+  let selectedId: PdfCosArray | undefined;
   const inputs = new Map<string, PdfFileSource | undefined>();
   let document: PdfRetainedDocument | undefined, output: PdfFileSource | undefined, total = 0, failed = false;
   const diagnostic = async (message: string) => { await writeBytes(context.stderr, new TextEncoder().encode(message), signal); return { exitCode: 1 }; };
@@ -39,6 +46,7 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
       const source = inputs.get(input.file); if (!source) return await diagnostic(`Error: Unable to find file '${input.file}'\n`);
       try {
         document = await PdfRetainedDocument.open(source, storage, { signal, recovery: "strict", ...(input.password ? { password: input.password } : {}) });
+        if (input === idInput) selectedId = document.crossReference.idArray;
         for await (const object of retainedCosObjects(document, storage, { signal })) if (object.stream) for await (const ignored of object.stream.chunks) void ignored;
         for await (const ignored of document.pages()) void ignored;
       } catch (error) {
@@ -48,7 +56,6 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
       }
       await document.close(); document = undefined; await source.releaseCache();
     }
-    const primary = options.inputs[0]!;
     document = await PdfRetainedDocument.open(inputs.get(primary.file)!, storage, { signal, recovery: "strict", ...(primary.password ? { password: primary.password } : {}) });
     if (options.operation === "unpack_files") {
       for await (const file of retainedUnpack(document, storage, options.outputTarget ?? ".", inputs.keys(), signal)) {
@@ -60,7 +67,7 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
       }
       return { exitCode: 0 };
     }
-    output = await PdfFileSource.fromStream(context.fs, storage.directory, (options.operation === "generate_fdf" ? retainedFdf(document, storage, signal) : options.operation === "dump_data_fields" || options.operation === "dump_data_fields_utf8" ? retainedFieldReport(document, options.operation.endsWith("_utf8"), signal) : retainedInspectionReport(document, storage, options.operation.endsWith("_utf8"), signal, options.operation === "dump_data" || options.operation === "dump_data_utf8" ? "document" : "annotations")), { signal });
+    output = await PdfFileSource.fromStream(context.fs, storage.directory, (options.operation === "output" ? retainedOutput(document, storage, options, selectedId, signal) : options.operation === "generate_fdf" ? retainedFdf(document, storage, signal) : options.operation === "dump_data_fields" || options.operation === "dump_data_fields_utf8" ? retainedFieldReport(document, options.operation.endsWith("_utf8"), signal) : retainedInspectionReport(document, storage, options.operation.endsWith("_utf8"), signal, options.operation === "dump_data" || options.operation === "dump_data_utf8" ? "document" : "annotations")), { signal });
     const destination = options.outputTarget;
     if (!destination || destination === "-") for await (const bytes of output.stream(0, output.size, signal)) await writeBytes(context.stdout, bytes, signal);
     else {

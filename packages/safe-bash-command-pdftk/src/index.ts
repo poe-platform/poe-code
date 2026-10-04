@@ -1880,15 +1880,15 @@ export function runPdftkCliSync(argv: readonly string[], files: Map<string, Uint
     return next.value;
 }
 
-async function executePdftk(context: CommandContext): Promise<{ exitCode: number }> {
+async function executePdftk(context: CommandContext, retainedContext: CommandContext = context): Promise<{ exitCode: number }> {
   let cooperativeWork = 63;
   const invocation = createOutputOperation(context, { write: async () => {} });
   try {
     const carrier = getCommandArguments(context);
     const argv = [...carrier.args];
     const parsed = await drainSteps(parsePdftkArgumentsSteps(argv), invocation.signal);
-    if (parsed.options && ["dump_data", "dump_data_utf8", "dump_data_annots", "dump_data_annots_utf8", "dump_data_fields", "dump_data_fields_utf8", "generate_fdf", "unpack_files"].includes(parsed.options.operation)) {
-      return await executeRetainedPdftk({ ...context, signal: invocation.signal, stdout: invocation.child(context.stdout).output }, parsed.options);
+    if (parsed.options && ((parsed.options.operation === "output" && !parsed.options.shouldFlatten) || ["dump_data", "dump_data_utf8", "dump_data_annots", "dump_data_annots_utf8", "dump_data_fields", "dump_data_fields_utf8", "generate_fdf", "unpack_files"].includes(parsed.options.operation))) {
+      return await executeRetainedPdftk({ ...retainedContext, signal: invocation.signal, stdout: invocation.child(context.stdout).output }, parsed.options);
     }
     const vfsFiles = new Map<string, Uint8Array>();
     let accountedBytes = 0;
@@ -1993,7 +1993,9 @@ export function createPdftkCommand(options: PdftkCommandOptions = {}): CommandDe
     runtimeIdentity: commandRuntimeIdentity,
     description: "Manipulate PDF documents, fill/flatten AcroForms, and assemble pages via @poe-code/pdf-ast",
     execute(context: CommandContext) {
-      return new InputByteBudget(maxInputBytes).run(context, executePdftk);
+      // Retained sources account unique input sizes before reads; replaying ranges
+      // and caller staging must not charge the source budget again.
+      return new InputByteBudget(maxInputBytes).run(context, limited => executePdftk(limited, { ...context, inputBudget: limited.inputBudget! }));
     },
   });
 }

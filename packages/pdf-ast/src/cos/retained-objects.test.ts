@@ -1,3 +1,4 @@
+import { createByteCodec } from "@poe-code/compression";
 import { expect, it } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PdfDocument } from "../document.js";
@@ -75,7 +76,7 @@ it("cancels raw payload iteration cooperatively and closes the producer", async 
   expect(pulled).toBeLessThan(10000); expect(closed).toBe(true);
 });
 
-it.each([65536, 262144])("stages %i decrypted bytes with bounded writes and releases early-return backing", async length => {
+it.each([65536, 262144].flatMap(length => (["preserve", "compress", "uncompress"] as const).map(streamMode => ({ length, streamMode } as const))))("stages $length bytes in $streamMode mode with bounded writes and releases early-return backing", async ({ length, streamMode }) => {
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); let outstanding = 0, peak = 0, writes = 0, closed = false, pulled = 0;
   const guarded = new Proxy(fs, { get(owner, key) {
     if (key === "readFile" || key === "writeFile") return () => { throw new Error("whole file operation forbidden"); };
@@ -92,16 +93,16 @@ it.each([65536, 262144])("stages %i decrypted bytes with bounded writes and rele
     async get() { return { value: cosDict({}), stream: { start: 0, end: length + 32 } }; },
     async *decodeStream() { try { const bytes = new Uint8Array(1024); for (let at = 0; at < length; at += bytes.length) { bytes.fill(at / bytes.length % 251); yield bytes; } } finally { closed = true; } },
   } } as unknown as PdfRetainedDocument;
-  const objects = retainedCosObjects(document, { fs: guarded, directory: "/scratch" });
+  const objects = retainedCosObjects(document, { fs: guarded, directory: "/scratch" }, { streamMode });
   try {
-    const first = await objects.next(); if (first.done) throw new Error("missing object"); expect(first.value.stream!.length).toBe(length);
-    let read = 0; for await (const bytes of first.value.stream!.chunks) { for (const byte of bytes) if (byte !== Math.floor(read++ / 1024) % 251) throw new Error("Decrypted bytes changed"); await Promise.resolve(); }
+    const first = await objects.next(); if (first.done) throw new Error("missing object"); if (streamMode !== "compress") expect(first.value.stream!.length).toBe(length);
+    let read = 0; const payload = streamMode === "compress" ? inflateChunks(first.value.stream!.chunks) : first.value.stream!.chunks; for await (const bytes of payload) { for (const byte of bytes) if (byte !== Math.floor(read++ / 1024) % 251) throw new Error("Decrypted bytes changed"); await Promise.resolve(); }
     expect(read).toBe(length); expect(writes).toBeGreaterThan(0); expect(peak).toBeLessThanOrEqual(65536); expect(pulled).toBe(0); expect(closed).toBe(true);
   } finally { await objects.return(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
 
-it.each(["producer", "write", "cancel"])("cleans staged objects and preserves %s failure", async mode => {
+it.each(["producer", "write", "cancel"].flatMap(mode => (["preserve", "compress", "uncompress"] as const).map(streamMode => ({ mode, streamMode } as const))))("cleans staged objects and preserves $mode failure in $streamMode mode", async ({ mode, streamMode }) => {
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const controller = new AbortController(), reason = new Error("rewrite failure"); let closed = false;
   const guarded = new Proxy(fs, { get(owner, key) {
     if (key === "createStagedFile" && mode === "write") return async (...args: Parameters<NonNullable<typeof fs.createStagedFile>>) => {
@@ -113,7 +114,13 @@ it.each(["producer", "write", "cancel"])("cleans staged objects and preserves %s
     async get() { return { value: cosDict({}), stream: { start: 0, end: 1 } }; },
     async *decodeStream() { try { yield Uint8Array.of(1); if (mode === "producer") throw reason; if (mode === "cancel") controller.abort(reason); yield Uint8Array.of(2); } finally { closed = true; } },
   } } as unknown as PdfRetainedDocument;
-  const objects = retainedCosObjects(document, { fs: guarded, directory: "/scratch" }, { signal: controller.signal });
+  const objects = retainedCosObjects(document, { fs: guarded, directory: "/scratch" }, { signal: controller.signal, streamMode });
   try { await expect(objects.next()).rejects.toBe(reason); } finally { await objects.return(); }
   expect(closed).toBe(true); expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+async function* inflateChunks(chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>) {
+  const codec = createByteCodec({ direction: "decode", format: "zlib", chunkSize: 4096 });
+  try { for await (const chunk of chunks) yield* codec.push(chunk); }
+  finally { codec.close(); }
+}

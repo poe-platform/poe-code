@@ -12,7 +12,7 @@ export interface StdinDocument { document?: IndexedDocument; loading?: Promise<v
 type Append = (bytes: Uint8Array) => Promise<void>;
 const encoder = new TextEncoder();
 
-/** LCS cells and edit groups live in caller storage; only scalar cursors stay in RAM. */
+/** LCS cells and edit groups live in caller storage with bounded row windows in RAM. */
 async function buildGroups(old: IndexedDocument, next: IndexedDocument, matrix: PagedStorage, groups: PagedStorage, budget: Budget, admitLines = true): Promise<number> {
   let prefix = 0, suffix = 0, count = 0;
   while (prefix < Math.min(old.length, next.length) && await old.equal(prefix, next, prefix)) prefix++;
@@ -28,16 +28,25 @@ async function buildGroups(old: IndexedDocument, next: IndexedDocument, matrix: 
     const bytes = await matrix.read(base + (row * width + column) * 4, 4);
     return new DataView(bytes.buffer, bytes.byteOffset, 4).getUint32(0, true);
   };
-  const cell = new Uint8Array(4), view = new DataView(cell.buffer);
+  // Retain two bounded row windows; the complete matrix stays in caller storage.
+  const rowBytes = new Uint8Array(16 * 1024 - 4), rowView = new DataView(rowBytes.buffer);
   for (let row = oldCount - 1; row >= 0 && newCount; row--) {
-    for (let column = newCount - 1; column >= 0; column--) {
-      budget.step();
-      const value = await old.equal(prefix + row, next, prefix + column)
-        ? 1 + await get(row + 1, column + 1) : Math.max(await get(row + 1, column), await get(row, column + 1));
-      view.setUint32(0, value, true);
-      await matrix.write(base + (row * width + column) * 4, cell);
-      const checkpoint = budget.checkpoint();
-      if (checkpoint) await checkpoint;
+    let right = 0;
+    for (let end = newCount; end > 0;) {
+      const start = Math.max(0, end - rowBytes.length / 4);
+      const belowBytes = await matrix.read(base + ((row + 1) * width + start) * 4, (end - start + 1) * 4);
+      const below = new DataView(belowBytes.buffer, belowBytes.byteOffset, belowBytes.byteLength);
+      for (let column = end - 1; column >= start; column--) {
+        const offset = (column - start) * 4;
+        // equal charges the cell comparison, including compared payload bytes.
+        right = await old.equal(prefix + row, next, prefix + column)
+          ? 1 + below.getUint32(offset + 4, true) : Math.max(below.getUint32(offset, true), right);
+        rowView.setUint32(offset, right, true);
+        const checkpoint = budget.checkpoint();
+        if (checkpoint) await checkpoint;
+      }
+      await matrix.write(base + (row * width + start) * 4, rowBytes.subarray(0, (end - start) * 4));
+      end = start;
     }
   }
   let row = 0, column = 0;

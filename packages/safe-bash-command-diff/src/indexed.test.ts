@@ -58,6 +58,25 @@ test("indexed hunks preserve buffered output across deterministic edit patterns"
   }
 });
 
+for (const count of [4094, 4095, 4096]) test(`indexed matrix preserves alignment across row windows: ${count}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/left", new TextEncoder().encode("old-start\nanchor\nold-end\n"));
+  await fs.writeFile("/right", new TextEncoder().encode("new-start\n" + "added\n".repeat(count - 3) + "anchor\nnew-end\n"));
+  const execute = async (buffered: boolean) => {
+    const chunks: Uint8Array[] = [];
+    let error = "";
+    const result = await createDiffCommand().execute({
+      command: "diff", args: [...(buffered ? ["-I", "^NEVER$"] : []), "-U1", "/left", "/right"], cwd: "/", env: {}, fs,
+      signal: new AbortController().signal, stdin: toByteSource(""),
+      stdout: { async write(bytes) { chunks.push(bytes.slice()); } },
+      stderr: { async write(bytes) { error += new TextDecoder().decode(bytes); } },
+    });
+    assert.equal(result.exitCode, 1, error);
+    return Buffer.concat(chunks).toString();
+  };
+  assert.equal(await execute(false), await execute(true));
+});
+
 for (const failure of ["none", "write", "cancel"] as const) test(`generated long-line diff uses bounded caller IO and cleanup: ${failure}`, async t => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/left", new Uint8Array());

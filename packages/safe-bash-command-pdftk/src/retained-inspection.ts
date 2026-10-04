@@ -1,8 +1,8 @@
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
-import { PdfMutableObjectStore, decodePdfString, dictGet, type PdfCosNode, type PdfCosDict, type PdfIndexStorage, type PdfRetainedDocument } from "@poe-code/pdf-ast";
+import { PdfMutableObjectStore, PdfNameIndex, cosArray, cosNumber, decodePdfString, dictGet, type PdfCosNode, type PdfCosDict, type PdfIndexStorage, type PdfRetainedDocument } from "@poe-code/pdf-ast";
 
-/** PDFtk's annotation report, with traversal state and page numbering on caller storage. */
-export async function* retainedAnnotationReport(document: PdfRetainedDocument, storage: PdfIndexStorage, utf8: boolean, signal: AbortSignal): AsyncGenerator<Uint8Array> {
+/** PDFtk inspection reports with caller-backed traversal, deduplication and page lookup. */
+export async function* retainedInspectionReport(document: PdfRetainedDocument, storage: PdfIndexStorage, utf8: boolean, signal: AbortSignal, kind: "annotations" | "document"): AsyncGenerator<Uint8Array> {
   const backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4), pages = new IntegerTable(backing, 64);
   let pageCount = 0, work = 0, failed = false;
   const encoder = new TextEncoder();
@@ -17,20 +17,28 @@ export async function* retainedAnnotationReport(document: PdfRetainedDocument, s
     }
     yield encoder.encode(part + "\n");
   }
-  async function* walk(start: PdfCosNode | undefined, key: "Kids" | "Next"): AsyncGenerator<PdfCosDict> {
+  async function* walk(start: PdfCosNode | undefined, key: "Kids" | "Next" | "Outlines"): AsyncGenerator<{ dict: PdfCosDict; level: number }> {
     if (!start) return;
     const stack = new PdfMutableObjectStore(storage, { signal }), seen = new IntegerTable(backing, 64);
     let pending = 0, failed = false;
-    const push = async (value: PdfCosNode) => { await checkpoint(); await stack.set({ objectNumber: ++pending, generationNumber: 0, value }); };
+    const push = async (value: PdfCosNode, level = 1) => { await checkpoint(); await stack.set({ objectNumber: ++pending, generationNumber: 0, value: cosArray([value, cosNumber(level)]) }); };
     try {
       await push(start);
       while (pending) {
-        await checkpoint(); const raw = (await stack.get(pending--))!.value;
+        await checkpoint(); const frame = (await stack.get(pending--))!.value;
+        if (frame.kind !== "array") continue;
+        const raw = frame.items[0]!, levelNode = frame.items[1]!, level = levelNode.kind === "number" ? levelNode.value : 1;
         if (raw.kind === "ref") { if (await seen.get(BigInt(raw.objectNumber))) continue; await seen.set(BigInt(raw.objectNumber), 1n); }
         const value = await resolve(raw);
-        if (value?.kind === "array" && key === "Next") { for (let i = value.items.length - 1; i >= 0; i--) await push(value.items[i]!); continue; }
+        if (value?.kind === "array" && key === "Next") { for (let i = value.items.length - 1; i >= 0; i--) await push(value.items[i]!, level); continue; }
         if (value?.kind !== "dict") continue;
-        yield value;
+        yield { dict: value, level };
+        if (key === "Outlines") {
+          const next = dictGet(value, "Next"), first = dictGet(value, "First");
+          if (next) await push(next, level);
+          if (first) await push(first, level + 1);
+          continue;
+        }
         const child = dictGet(value, key);
         if (key === "Next") { if (child) await push(child); }
         else {
@@ -52,7 +60,7 @@ export async function* retainedAnnotationReport(document: PdfRetainedDocument, s
         const legacy = await resolve(dictGet(root, "Dests")); if (legacy?.kind === "dict") target = dictGet(legacy, name);
         if (!target) {
           const names = await resolve(dictGet(root, "Names"));
-          if (names?.kind === "dict") for await (const branch of walk(dictGet(names, "Dests"), "Kids")) {
+          if (names?.kind === "dict") for await (const { dict: branch } of walk(dictGet(names, "Dests"), "Kids")) {
             const pairs = await resolve(dictGet(branch, "Names"));
             if (pairs?.kind === "array") for (let i = 0; i + 1 < pairs.items.length; i += 2) {
               const key = await resolve(pairs.items[i]);
@@ -91,6 +99,25 @@ export async function* retainedAnnotationReport(document: PdfRetainedDocument, s
       pageCount++;
       if (page.reference && !await pages.get(BigInt(page.reference.objectNumber))) await pages.set(BigInt(page.reference.objectNumber), BigInt(page.index + 1));
     }
+    if (kind === "document") {
+      const emitted = new PdfNameIndex(storage, Infinity, signal);
+      let failed = false;
+      try {
+        const info = await resolve(document.crossReference.infoRef);
+        if (info?.kind === "dict") {
+          for (const key of ["Title", "Author", "Subject", "Keywords", "Creator", "Producer"]) {
+            const node = await resolve(dictGet(info, key));
+            const value = node?.kind === "string" ? decodePdfString(node) : node?.kind === "name" ? node.decoded : "";
+            if (value) { await emitted.intern(key); yield* line("", "InfoBegin"); yield* line("InfoKey: ", key, true); yield* line("InfoValue: ", value, true); }
+          }
+          for (const entry of info.entries) {
+            const node = await resolve(entry.value), value = node?.kind === "string" ? decodePdfString(node) : "";
+            if (value && (await emitted.intern(entry.key.decoded)).added) { yield* line("", "InfoBegin"); yield* line("InfoKey: ", entry.key.decoded, true); yield* line("InfoValue: ", value, true); }
+          }
+        }
+      } catch (error) { failed = true; throw error; }
+      finally { await emitted.close().catch(error => { if (!failed) throw error; }); }
+    }
     for (let i = 0; i < 2; i++) {
       const id = await resolve(document.crossReference.idArray?.items[i]);
       if (id?.kind !== "string") yield* line(`PdfID${i}: `, "00000000000000000000000000000000");
@@ -101,6 +128,51 @@ export async function* retainedAnnotationReport(document: PdfRetainedDocument, s
       }
     }
     yield* line("NumberOfPages: ", pageCount);
+    if (kind === "document") {
+      const catalog = await resolve(document.crossReference.rootRef);
+      const outlines = catalog?.kind === "dict" ? await resolve(dictGet(catalog, "Outlines")) : undefined;
+      if (outlines?.kind === "dict") for await (const { dict, level } of walk(dictGet(outlines, "First"), "Outlines")) {
+        const titleNode = await resolve(dictGet(dict, "Title"));
+        const title = titleNode?.kind === "string" ? decodePdfString(titleNode) : titleNode?.kind === "name" ? titleNode.decoded : "";
+        const index = await destinationIndex(dictGet(dict, "Dest") ?? dictGet(dict, "A"));
+        if (title) { yield* line("", "BookmarkBegin"); yield* line("BookmarkTitle: ", title, true); yield* line("BookmarkLevel: ", level); yield* line("BookmarkPageNumber: ", index === undefined ? 1 : index + 1); }
+      }
+      async function rectangle(raw: PdfCosNode | undefined, strict: boolean): Promise<number[] | undefined> {
+        const node = await resolve(raw); if (node?.kind !== "array" || node.items.length < 4) return;
+        const result: number[] = [];
+        for (const item of node.items.slice(0, 4)) { const number = await resolve(item); if (strict && number?.kind !== "number") return; result.push(number?.kind === "number" ? number.value : 0); }
+        return result;
+      }
+      for await (const page of document.pages()) {
+        let media: PdfCosNode | undefined, rotate: PdfCosNode | undefined, hasMedia = false, hasRotate = false;
+        for await (const parent of document.pageAncestors(page.dict)) {
+          if (!hasMedia && dictGet(parent, "MediaBox")) { hasMedia = true; media = dictGet(parent, "MediaBox"); }
+          if (!hasRotate && dictGet(parent, "Rotate")) { hasRotate = true; rotate = dictGet(parent, "Rotate"); }
+          if (hasMedia && hasRotate) break;
+        }
+        const box = await rectangle(media, true) ?? [0, 0, 612, 792], width = Math.abs(box[2]! - box[0]!), height = Math.abs(box[3]! - box[1]!);
+        const rotation = await resolve(rotate), norm = rotation?.kind === "number" ? ((rotation.value % 360) + 360) % 360 : 0;
+        const direct = await rectangle(dictGet(page.dict, "MediaBox"), false) ?? [0, 0, width, height];
+        yield* line("", "PageMediaBegin"); yield* line("PageMediaNumber: ", page.index + 1);
+        yield* line("PageMediaRotation: ", norm === 90 || norm === 180 || norm === 270 ? norm : 0);
+        yield* line("PageMediaRect: ", direct.join(" ")); yield* line("PageMediaDimensions: ", `${width} ${height}`);
+        const crop = await rectangle(dictGet(page.dict, "CropBox"), false);
+        if (crop) { yield* line("PageMediaCropBox: ", crop.join(" ")); yield* line("PageMediaCropRect: ", crop.join(" ")); }
+      }
+      const styles: Record<string, string> = { D: "DecimalArabicNumerals", R: "UppercaseRomanNumerals", r: "LowercaseRomanNumerals", A: "UppercaseLetters", a: "LowercaseLetters" };
+      if (catalog?.kind === "dict") for await (const { dict } of walk(dictGet(catalog, "PageLabels"), "Kids")) {
+        const pairs = await resolve(dictGet(dict, "Nums")); if (pairs?.kind !== "array") continue;
+        for (let i = 0; i + 1 < pairs.items.length; i += 2) {
+          const number = await resolve(pairs.items[i]), label = await resolve(pairs.items[i + 1]);
+          if (number?.kind !== "number" || label?.kind !== "dict") continue;
+          const start = await resolve(dictGet(label, "St")), prefix = await resolve(dictGet(label, "P")), style = await resolve(dictGet(label, "S"));
+          yield* line("", "PageLabelBegin"); yield* line("PageLabelNewIndex: ", Math.max(1, number.value + 1)); yield* line("PageLabelStart: ", start?.kind === "number" ? start.value : 1);
+          if (prefix?.kind === "string" && decodePdfString(prefix)) yield* line("PageLabelPrefix: ", decodePdfString(prefix), true);
+          yield* line("PageLabelNumStyle: ", style?.kind === "name" ? styles[style.decoded] ?? "NoNumber" : "NoNumber");
+        }
+      }
+      return;
+    }
     for await (const page of document.pages()) {
       const annotations = await resolve(dictGet(page.dict, "Annots")); if (annotations?.kind !== "array") continue;
       for (const item of annotations.items) {
@@ -117,7 +189,7 @@ export async function* retainedAnnotationReport(document: PdfRetainedDocument, s
         yield* stringField(annotation, "M", "AnnotModificationDate: ");
         const flags = await resolve(dictGet(annotation, "F")); yield* line("AnnotFlags: ", flags?.kind === "number" ? flags.value : 0); yield* line("AnnotPageNumber: ", page.index + 1);
         const action = dictGet(annotation, "A");
-        if (action) for await (const dict of walk(action, "Next")) {
+        if (action) for await (const { dict } of walk(action, "Next")) {
           const type = await resolve(dictGet(dict, "S")); if (type?.kind === "name" && type.decoded) yield* line("AnnotActionType: ", type.decoded);
           yield* stringField(dict, "URI", "AnnotActionURI: ");
           const dest = dictGet(dict, "D"), text = await destinationText(dest); if (text) yield* line("AnnotActionDest: ", text, true);

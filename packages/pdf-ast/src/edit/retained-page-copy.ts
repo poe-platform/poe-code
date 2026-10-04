@@ -147,7 +147,7 @@ export async function* copyRetainedPageChunks(document: PdfRetainedDocument, pag
     await store.set({ objectNumber: pageRef.objectNumber, generationNumber: 0, value: page });
     await store.set({ objectNumber: 1, generationNumber: 0, value: catalog });
     await store.set({ objectNumber: 2, generationNumber: 0, value: cosDict({ Type: cosName("Pages"), Count: cosNumber(1), Kids: cosArray([pageRef]) }) });
-    yield* serializeRetainedCosDocumentChunks({ ...options, objects: store.objects(), rootRef: cosRef(1), infoRef: cosRef(3), signal }, storage);
+    yield* serializeRetainedCosDocumentChunks({ ...options, objects: store.outputObjects(), rootRef: cosRef(1), infoRef: cosRef(3), signal }, storage);
   } catch (error) { failed = true; throw error; }
   finally { const results = await Promise.allSettled([store.close(), backing.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
 }

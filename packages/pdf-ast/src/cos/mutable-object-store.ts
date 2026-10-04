@@ -2,7 +2,7 @@ import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
 import { cosRef, type PdfCosNode, type PdfCosRef } from "../ast.js";
 import { PdfError } from "../errors.js";
 import type { PdfIndexStorage } from "./object-index.js";
-import type { PdfRetainedOutputObject } from "./retained-writer.js";
+import { pdfOutputStreamDictionary, type PdfSerializedOutputObject, type PdfRetainedOutputObject } from "./retained-writer.js";
 import { parseCosRangeValue, type ParseCosRangeOptions } from "./range-parser.js";
 import { serializeCosNodeChunks } from "./writer.js";
 
@@ -68,8 +68,8 @@ export class PdfMutableObjectStore {
     const length = object.stream?.length ?? 0;
     if (!Number.isSafeInteger(length) || length < 0) throw new RangeError("Invalid PDF stream length");
     // Admit the declared payload before traversing or consuming it.
-    if (length + 48 > this.maxBytes - this.reserved) throw new PdfError("E_LIMIT", "PDF mutable backing byte limit exceeded");
-    const recordAt = this.reserve(48), valueAt = this.reserve(0); let valueLength = 0, work = 0;
+    if (length + 64 > this.maxBytes - this.reserved) throw new PdfError("E_LIMIT", "PDF mutable backing byte limit exceeded");
+    const recordAt = this.reserve(64), valueAt = this.reserve(0); let valueLength = 0, work = 0;
     for (const bytes of serializeCosNodeChunks(object.value, { chunkBytes: 16384, maxRecursionDepth: this.options.maxRecursionDepth ?? Infinity, signal: this.signal })) {
       const at = this.reserve(bytes.length); await this.backing.write(at, bytes); valueLength += bytes.length;
       if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
@@ -85,8 +85,16 @@ export class PdfMutableObjectStore {
       written += bytes.length;
     }
     if (written !== length) throw new PdfError("E_PARSE", "Incomplete mutable PDF stream bytes");
-    const record = new Uint8Array(48), view = new DataView(record.buffer);
-    [generation, valueAt, valueLength, streamAt, length, object.stream ? 1 : 0].forEach((value, i) => view.setFloat64(i * 8, value));
+    let outputValueAt = valueAt, outputValueLength = valueLength;
+    if (object.stream) {
+      outputValueAt = this.reserve(0); outputValueLength = 0;
+      for (const bytes of serializeCosNodeChunks(pdfOutputStreamDictionary(object.value, length), { chunkBytes: 16384, maxRecursionDepth: this.options.maxRecursionDepth ?? Infinity, signal: this.signal })) {
+        await this.backing.write(this.reserve(bytes.length), bytes); outputValueLength += bytes.length;
+        if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+      }
+    }
+    const record = new Uint8Array(64), view = new DataView(record.buffer);
+    [generation, valueAt, valueLength, streamAt, length, object.stream ? 1 : 0, outputValueAt, outputValueLength].forEach((value, i) => view.setFloat64(i * 8, value));
     await this.backing.write(recordAt, record); this.signal.throwIfAborted();
     await this.index.set(BigInt(number), BigInt(recordAt)); this.highest = Math.max(this.highest, number);
   }
@@ -97,7 +105,7 @@ export class PdfMutableObjectStore {
     });
   }
   private async load(number: number, at: number): Promise<PdfRetainedOutputObject> {
-    const bytes = await this.backing.read(at, 48), record = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+    const bytes = await this.backing.read(at, 64), record = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
     const generation = record.getFloat64(0), valueAt = record.getFloat64(8), valueLength = record.getFloat64(16), streamAt = record.getFloat64(24), length = record.getFloat64(32), hasStream = record.getFloat64(40);
     const backing = this.backing, signal = this.signal;
     const source = { size: valueLength, chunkBytes: 16384, read: async (position: number, count: number, callerSignal?: AbortSignal) => {
@@ -118,6 +126,33 @@ export class PdfMutableObjectStore {
   async *objects(): AsyncGenerator<PdfRetainedOutputObject, void, void> {
     await this.pending; this.signal.throwIfAborted();
     for await (const [number, position] of this.index.entries()) { this.signal.throwIfAborted(); yield await this.load(Number(number), Number(position)); }
+  }
+  /** Replay owned serialization directly, without parsing value trees. Returned
+   * bodies borrow this store and retain their snapshot across replacements. */
+  async *outputObjects(): AsyncGenerator<PdfSerializedOutputObject, void, void> {
+    await this.pending; this.signal.throwIfAborted();
+    const backing = this.backing, signal = this.signal;
+    async function* range(at: number, length: number) {
+      for (let offset = 0, work = 0; offset < length; offset += 16384) {
+        if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+        signal.throwIfAborted(); yield await backing.read(at + offset, Math.min(16384, length - offset));
+      }
+    }
+    let work = 0;
+    for await (const [number, position] of this.index.entries()) {
+      if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+      this.signal.throwIfAborted();
+      const bytes = await backing.read(Number(position), 64), record = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+      const generation = record.getFloat64(0), streamAt = record.getFloat64(24), streamLength = record.getFloat64(32), hasStream = record.getFloat64(40);
+      const valueAt = record.getFloat64(48), valueLength = record.getFloat64(56);
+      async function* chunks() {
+        yield* range(valueAt, valueLength);
+        if (hasStream) {
+          yield new TextEncoder().encode("\nstream\n"); yield* range(streamAt, streamLength); yield new TextEncoder().encode("\nendstream");
+        }
+      }
+      yield { objectNumber: Number(number), generationNumber: generation, body: { length: valueLength + (hasStream ? streamLength + 18 : 0), chunks: chunks() } };
+    }
   }
   close(): Promise<void> {
     this.controller.abort(new PdfError("E_CANCELLED", "Mutable PDF store closed"));

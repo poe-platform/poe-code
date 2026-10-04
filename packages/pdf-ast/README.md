@@ -718,6 +718,9 @@ For cooperative hosts, `PdfDocument.loadSteps`, `doc.saveSteps`, and `doc.copyPa
 `serializeRetainedCosDocumentChunks(options, storage)` writes ordinary PDFs from
 objects in increasing object-number order. Supply `{ value: dictionary, stream:
 { length, chunks } }` to emit encoded stream bytes without buffering the payload.
+Already serialized bodies may instead supply `{ body: { length, chunks } }`;
+these exclude `obj`/`endobj`. Their producer owns COS syntax and stream encoding,
+while the writer checks exact length, output admission and cancellation.
 Cross-reference offsets use a 64 KiB cache backed by the supplied safe-fs; use an
 external backend for large indexes. The caller owns stream encoding/encryption
 and atomic publication. `maxIndexBytes`, `maxObjects` and `maxOutputBytes` admit
@@ -726,8 +729,11 @@ remain available through the existing serializer.
 
 `PdfMutableObjectStore` holds edited objects and encoded stream chunks on the
 caller filesystem. Reserve references with `allocate()`, replace values with
-`set()`, resolve owned snapshots with `get()`, and pass ordered `objects()` to the
-retained writer. A replacement becomes visible after all payload bytes arrive;
+`set()`, resolve owned snapshots with `get()`, and pass ordered `outputObjects()`
+to the retained writer. Output bodies replay staged syntax in 16 KiB chunks
+without reconstructing arrays, dictionaries or strings. Stream dictionaries
+have a separate staged output form with the corrected length; `get()` preserves
+the accepted value. Use `objects()` only when parsed values are needed. A replacement becomes visible after all payload bytes arrive;
 older snapshots remain valid until `close()`. The 64 KiB byte cache and bounded
 index caches do not grow with object count. Backing is append-only until close,
 so `maxStagingBytes` includes superseded values; parser limits govern individual

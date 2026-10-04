@@ -77,10 +77,38 @@ it.each([4097, 8193])("writes %i objects with scalar external xref backing and f
     },
     readFile() { throw new Error("whole read"); }, writeFile() { throw new Error("whole write"); },
   } as unknown as import("@poe-code/safe-fs/contracts").FileSystem;
-  async function* objects() { for (let number = 1; number <= count; number++) yield { objectNumber: number, generationNumber: 0, value: { kind: "null" as const } }; }
+  async function* objects() { for (let number = 1; number <= count; number++) yield { objectNumber: number, generationNumber: 0, ...(number % 2 ? { value: { kind: "null" as const } } : { body: { length: 4, chunks: [new TextEncoder().encode("null")] } }) }; }
   let total = 0;
   for await (const bytes of serializeRetainedCosDocumentChunks({ objects: objects(), rootRef: cosRef(1), chunkBytes: 64 }, { fs, directory: "/external" })) {
     expect(bytes.buffer.byteLength).toBeLessThanOrEqual(64); total += bytes.length; await Promise.resolve();
   }
   expect(total).toBeGreaterThan(count * 20); expect(opens).toBe(1); expect(closes).toBe(1); expect(peak).toBeLessThanOrEqual(16384);
+});
+
+it.each(["short", "long", "limit", "cancel", "failure"])("owns serialized body cleanup after %s", async mode => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const controller = new AbortController(), reason = new Error("body failed"); let closed = false, pulled = false;
+  async function* chunks() {
+    try {
+      pulled = true;
+      if (mode === "failure") throw reason;
+      if (mode === "cancel") controller.abort(reason);
+      yield new Uint8Array(mode === "short" ? 3 : mode === "long" ? 5 : 4);
+    } finally { closed = true; }
+  }
+  const objects = [{ objectNumber: 1, generationNumber: 0, body: { length: 4, chunks: chunks() } }];
+  await expect((async () => { for await (const ignored of serializeRetainedCosDocumentChunks({ objects, rootRef: cosRef(1), signal: controller.signal,
+    ...(mode === "limit" ? { maxOutputBytes: 31 } : {}) }, { fs, directory: "/scratch" })) void ignored; })()).rejects.toThrow();
+  expect(pulled).toBe(mode !== "limit"); expect(closed).toBe(mode !== "limit"); expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("yields to timer cancellation while splitting one large serialized body chunk", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const controller = new AbortController(), reason = new Error("cancel body"); let closed = false;
+  async function* chunks() { try { yield new Uint8Array(1024 * 1024); } finally { closed = true; } }
+  const timer = setTimeout(() => controller.abort(reason), 0);
+  try {
+    await expect((async () => { for await (const ignored of serializeRetainedCosDocumentChunks({ objects: [{ objectNumber: 1, generationNumber: 0, body: { length: 1024 * 1024, chunks: chunks() } }],
+      rootRef: cosRef(1), chunkBytes: 1024, signal: controller.signal }, { fs, directory: "/scratch" })) void ignored; })()).rejects.toBe(reason);
+  } finally { clearTimeout(timer); }
+  expect(closed).toBe(true); expect(await fs.readdir("/scratch")).toEqual([]);
 });

@@ -72,3 +72,41 @@ it("preserves explicit hexadecimal string serialization through replacement snap
   finally { await store.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("serializes stored structural values and stream dictionaries without reparsing them", async () => {
+  const { serializeRetainedCosDocumentChunks } = await import("./retained-writer.js");
+  const { cosArray, cosRef } = await import("../ast.js");
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch");
+  const storage = { fs, directory: "/scratch" }, store = new PdfMutableObjectStore(storage, { maxNodes: 1 });
+  const objects = [
+    { objectNumber: 1, generationNumber: 0, value: cosArray(Array.from({ length: 40000 }, (_, i) => cosNumber(i))) },
+    { objectNumber: 2, generationNumber: 3, value: cosDict({ Length: cosNumber(99), Names: cosArray([cosString("a"), cosString("b")]) }), stream: { length: 3, chunks: [Uint8Array.of(1, 2, 3)] } },
+  ];
+  async function collect(input: AsyncIterable<Uint8Array>) { const chunks = []; for await (const bytes of input) { expect(bytes.length).toBeLessThanOrEqual(16384); chunks.push(bytes); } return Buffer.concat(chunks); }
+  try {
+    for (const object of objects) await store.set(object);
+    await expect(store.get(1)).rejects.toThrow();
+    const expected = await collect(serializeRetainedCosDocumentChunks({ objects, rootRef: cosRef(1), chunkBytes: 16384 }, storage));
+    const actual = await collect(serializeRetainedCosDocumentChunks({ objects: store.outputObjects(), rootRef: cosRef(1), chunkBytes: 16384 }, storage));
+    expect(actual).toEqual(expected);
+  } finally { await store.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("preserves output snapshots and cancels traversal of many small records", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const controller = new AbortController(), reason = new Error("cancel output traversal");
+  const store = new PdfMutableObjectStore({ fs, directory: "/scratch" }, { signal: controller.signal });
+  try {
+    await store.allocate(cosString("before"));
+    const iterator = store.outputObjects(), saved = (await iterator.next()).value!;
+    await iterator.return(); await store.set({ objectNumber: 1, generationNumber: 0, value: cosString("after") });
+    const chunks = []; for await (const chunk of saved.body.chunks) chunks.push(chunk);
+    expect(Buffer.concat(chunks).toString()).toBe("(before)");
+    for (let i = 0; i < 1000; i++) await store.allocate(cosNumber(i));
+    const timer = setTimeout(() => controller.abort(reason), 0); let visited = 0;
+    try { await expect((async () => { for await (const ignored of store.outputObjects()) { void ignored; visited++; } })()).rejects.toBe(reason); }
+    finally { clearTimeout(timer); }
+    expect(visited).toBeLessThan(1001);
+  } finally { await store.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

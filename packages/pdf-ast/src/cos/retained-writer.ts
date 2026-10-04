@@ -11,9 +11,26 @@ export interface PdfRetainedOutputObject {
   /** Encoded bytes for a dictionary stream. Length must be known before output. */
   readonly stream?: { readonly length: number; readonly chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array> };
 }
+/** Pre-serialized object body (without obj/endobj). The producer owns COS
+ * syntax and stream encoding; the writer validates identity and byte length. */
+export interface PdfSerializedOutputObject {
+  readonly objectNumber: number;
+  readonly generationNumber: number;
+  readonly body: { readonly length: number; readonly chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array> };
+}
+export function pdfOutputStreamDictionary(value: PdfCosNode, length: number) {
+  if (value.kind !== "dict" || !Number.isSafeInteger(length) || length < 0) throw new PdfError("E_PARSE", "Invalid streamed PDF object");
+  let hasLength = false;
+  const dict = { ...value, entries: value.entries.map(entry => {
+    if (entry.key.decoded !== "Length") return entry;
+    hasLength = true; return { ...entry, value: cosNumber(length) };
+  }) };
+  if (!hasLength) dict.entries.push({ key: cosName("Length"), value: cosNumber(length) });
+  return dict;
+}
 export interface SerializeRetainedCosOptions extends Pick<SerializeCosOptions, "rootRef" | "infoRef" | "encryptRef" | "idArray" | "version" | "maxObjects" | "maxOutputBytes" | "maxRecursionDepth"> {
   /** Strictly increasing object numbers, with each body released before the next. */
-  readonly objects: AsyncIterable<PdfRetainedOutputObject> | Iterable<PdfRetainedOutputObject>;
+  readonly objects: AsyncIterable<PdfRetainedOutputObject | PdfSerializedOutputObject> | Iterable<PdfRetainedOutputObject | PdfSerializedOutputObject>;
   readonly chunkBytes?: number;
   /** Cross-reference address space admitted before reserving backing slots. */
   readonly maxIndexBytes?: number;
@@ -59,21 +76,35 @@ export async function* serializeRetainedCosDocumentChunks(options: SerializeReta
       const record = new Uint8Array(16), view = new DataView(record.buffer); view.setFloat64(0, offset); view.setFloat64(8, generation);
       await offsets.write(base + number * 16, record);
       yield* emit(encoder.encode(`${number} ${generation} obj\n`));
-      if (object.stream) {
+      if ("body" in object) {
+        const { length, chunks } = object.body;
+        if (!Number.isSafeInteger(length) || length < 0) throw new PdfError("E_PARSE", "Invalid serialized PDF body length");
+        if (length > maxOutput - offset) throw new PdfError("E_LIMIT", "PDF output byte limit exceeded");
+        let written = 0;
+        for await (const bytes of chunks) {
+          signal.throwIfAborted(); if (bytes.length > length - written) throw new PdfError("E_PARSE", "Excess serialized PDF body bytes");
+          written += bytes.length;
+          for (const chunk of emit(bytes)) {
+            yield chunk;
+            if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+          }
+          if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+        }
+        if (written !== length) throw new PdfError("E_PARSE", "Incomplete serialized PDF body bytes");
+      } else if (object.stream) {
         const { length, chunks } = object.stream;
         if (object.value.kind !== "dict" || !Number.isSafeInteger(length) || length < 0) throw new PdfError("E_PARSE", "Invalid streamed PDF object");
         if (length > maxOutput - offset) throw new PdfError("E_LIMIT", "PDF output byte limit exceeded");
-        let hasLength = false;
-        const dict = { ...object.value, entries: object.value.entries.map(entry => {
-          if (entry.key.decoded !== "Length") return entry;
-          hasLength = true; return { ...entry, value: cosNumber(length) };
-        }) };
-        if (!hasLength) dict.entries.push({ key: cosName("Length"), value: cosNumber(length) });
+        const dict = pdfOutputStreamDictionary(object.value, length);
         yield* node(dict); yield* emit(encoder.encode("\nstream\n"));
         let written = 0;
         for await (const bytes of chunks) {
           signal.throwIfAborted(); if (bytes.length > length - written) throw new PdfError("E_PARSE", "Excess PDF stream bytes");
-          written += bytes.length; yield* emit(bytes);
+          written += bytes.length;
+          for (const chunk of emit(bytes)) {
+            yield chunk;
+            if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+          }
           if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
         }
         if (written !== length) throw new PdfError("E_PARSE", "Incomplete PDF stream bytes");

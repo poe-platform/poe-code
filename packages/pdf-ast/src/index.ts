@@ -79,7 +79,7 @@ export type { PdfRetainedPageEvaluationOptions } from "./content/retained-page.j
 
 export { streamRawTextChunks, type PdfRawTextOptions } from "./extract/raw-text-stream.js";
 
-export { serializeRetainedCosDocumentChunks, type SerializeRetainedCosOptions, type PdfRetainedOutputObject } from "./cos/retained-writer.js";
+export { serializeRetainedCosDocumentChunks, type SerializeRetainedCosOptions, type PdfRetainedOutputObject, type PdfSerializedOutputObject } from "./cos/retained-writer.js";
 
 export { PdfMutableObjectStore, type PdfMutableObjectStoreOptions } from "./cos/mutable-object-store.js";
 

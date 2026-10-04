@@ -130,7 +130,7 @@ it("packs the retained Soffice file SDK with canonical filesystem types and no p
     }}]});
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
   const module = {exports: {} as {createStoredZipArchive: typeof import("../packages/safe-bash-command-soffice/src/index.js").createStoredZipArchive; runSofficeFileCli: typeof import("../packages/safe-bash-command-soffice/src/index.js").runSofficeFileCli; readZipArchiveEntries: typeof import("../packages/safe-bash-command-soffice/src/index.js").readZipArchiveEntries; MemoryFileSystem: typeof import("../packages/safe-fs/src/core.js").MemoryFileSystem}};
-  runInContext(result.outputFiles[0]!.text, createContext({module, exports: module.exports, Uint8Array, ArrayBuffer, TextEncoder, TextDecoder, AbortSignal, AbortController, structuredClone, ReadableStream, WritableStream, TransformStream, queueMicrotask, setTimeout, clearTimeout, crypto: globalThis.crypto}));
+  runInContext("(function(module, exports) {\n" + result.outputFiles[0]!.text + "\n})(module, module.exports);", createContext({module, exports: module.exports, Uint8Array, ArrayBuffer, TextEncoder, TextDecoder, AbortSignal, AbortController, structuredClone, ReadableStream, WritableStream, TransformStream, queueMicrotask, setTimeout, clearTimeout, crypto: globalThis.crypto}));
   const {runSofficeFileCli, createStoredZipArchive, readZipArchiveEntries, MemoryFileSystem} = module.exports;
   const fs = new MemoryFileSystem();
   await fs.writeFile("/input.md", new TextEncoder().encode("# Packed document\nCaller-backed text"));

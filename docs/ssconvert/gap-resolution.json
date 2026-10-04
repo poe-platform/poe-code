@@ -3,6 +3,12 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "firstPageEnable": {
+      "scope": "Preserve stored first-page numbers independently of use_first_page_number. BIFF4 is implicitly manual; BIFF5+ uses SETUP bit0x80. Both XLSX editions preserve the disabled stored number. PDF honors enable state independent of metadata order and accepts native automatic sentinel -1, print copies without page duplication and no-comments metadata.",
+      "verification": "14 initial format failures and eight initial PDF metadata failures, plus no-comments and automatic-sentinel regressions. 2847 combined tests and final focused print checks pass, selected build and three owner lint/types pass. 24 public BIFF exports verify48 encoded fields and24 Calc25.2.3.2 readbacks;72 XLSX exports verify144 OpenPyXL3.1.5 fields. All96 export diagnostic sequences match exactly.20 public PDFs independently verify one page each;12 page-number headers match. Rendered page65535 inspected.",
+      "nativeDifferences": "Calc original XLSX control clamps enabled65535 to9999; its BIFF importer retains65535. Disabled numbering remains automatic. Gnumeric1.12.61 ignores SETUP bit0x80; earlier raw-word parity did not establish enable-bit semantics.",
+      "remaining": "12 BIFF PDF sources still refuse unqualified styles, retained as failures rather than passes. Other print styles, XML/ODF transport and all broader families remain open."
+    },
     "printCopyCounts": {
       "scope": "Read/export/edit print copies through shared PrintInformation copies metadata. BIFF7/8 SETUP uses the unsigned16-bit count; XLSX uses unsigned32-bit counts. Reject nonrepresentable outputs. Native invalid-data SETUP continues to ignore copies.",
       "verification": "Ten original failures repaired;2736 combined format/print tests, added imported-edit regressions, selected build and both owner lint/types pass.16 public BIFF exports match direct pinned native counts and all16 native re-exports.48 public XLSX exports across both editions and XLSX/nativeBIFF7/nativeBIFF8 sources match96 independent OpenPyXL copy-count/creator fields. All64 export diagnostics asserted exactly. Screenshot inspected.",
@@ -18,7 +24,7 @@
     "biffFirstPageNumber": {
       "scope": "Read valid SETUP starting-page words into first_page_number and preserve them through BIFF7/8 output. Invalid-data SETUP does not override an earlier valid page. Reject fractional, nonfinite and out-of-range values instead of wrapping; native automatic sentinel -1 retains its legacy word representation.",
       "verification": "Five original failures repaired;2450 affected tests, selected build and owner lint/source/test types pass. Four independent OpenPyXL controls produce16 SDK/command BIFF7/8 exports. All16 starting-page words match direct pinned Gnumeric conversions; all16 native BIFF re-exports preserve the values. Exact five source/native warnings and five product warnings retained; screenshot inspected.",
-      "nativeLimits": "Pinned excel_read_SETUP reads offset4 only when flags&4 is clear, ignoring0x80; native writer also does not set0x80. Current change follows those measured semantics. Native XML omits this field, so empty XML results are not counted as passes. Cross-application enable-flag semantics, automatic sentinel behavior, actual printed pages, XML/other transports and broader requirements remain open."
+      "nativeLimits": "Pinned Gnumeric ignores SETUP bit0x80 and omits the field in XML. Earlier delivery established only stored-word parity; firstPageEnable records subsequent independent enable-bit qualification and remaining limits."
     },
     "xlsxMarginPointPrecision": {
       "finding": "XLSX margin import rounded inch-to-point conversions to four decimal places before any downstream writer. Four memory tests and96 of144 direct native BIFF field comparisons reproduced the precision loss.",

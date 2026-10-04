@@ -84,7 +84,12 @@ export async function writeXlsxSheetSettings(sheet: Sheet,
   const originalPrint = metadataNode(readXlsxMetadata(node("worksheet", {}, [...raw.values()])).find(record => record.kind === "PrintInformation")?.data, charge);
   const currentPrint = records.find(record => record.record.kind === "PrintInformation")?.node ?? originalPrint;
   function printNodes(pi: MetadataNode | undefined) {
-    const firstPage = child(pi, "first_page_number")?.attributes.value;
+    const firstPage = child(pi, "first_page_number")?.attributes.value, manualStart = child(pi, "use_first_page_number")?.attributes.value;
+    if (manualStart !== undefined && !["0", "1", "false", "true"].includes(manualStart))
+      throw new SsconvertError("unsupported-feature", "Invalid XLSX first page enable flag");
+    const useFirstPage = manualStart === undefined ? firstPage !== undefined && Number(firstPage) >= 0 : manualStart === "1" || manualStart === "true";
+    if (firstPage !== undefined && (!Number.isInteger(Number(firstPage)) || Number(firstPage) < -1 || Number(firstPage) > 0xffffffff || useFirstPage && Number(firstPage) < 0))
+      throw new SsconvertError("unsupported-feature", "Invalid XLSX first page number");
     const copies = child(pi, "copies")?.attributes.value;
     if (copies !== undefined && (!Number.isInteger(Number(copies)) || Number(copies) < 0 || Number(copies) > 0xffffffff))
       throw new SsconvertError("unsupported-feature", "Invalid XLSX print copies");
@@ -104,7 +109,7 @@ export async function writeXlsxSheetSettings(sheet: Sheet,
         draft: Number(child(pi, "draft")?.attributes.value ?? 0), errors: errors[child(pi, "errors")?.attributes.PrintErrorsAs ?? ""] ?? "displayed",
         fitToHeight: fitToPage ? Number(scale?.attributes.rows ?? 0) : 0, fitToWidth: fitToPage ? Number(scale?.attributes.cols ?? 0) : 0,
         orientation: child(pi, "orientation")?.text ?? "portrait", pageOrder: child(pi, "order")?.text === "r_then_d" ? "overThenDown" : "downThenOver",
-        paperSize: child(pi, "paper")?.text === "na_letter" ? 1 : 9, scale: Number(scale?.attributes.percentage ?? 100), firstPageNumber: firstPage, useFirstPageNumber: firstPage === undefined ? 0 : 1
+        paperSize: child(pi, "paper")?.text === "na_letter" ? 1 : 9, scale: Number(scale?.attributes.percentage ?? 100), firstPageNumber: Number(firstPage) < 0 ? undefined : firstPage, useFirstPageNumber: useFirstPage ? 1 : 0
       }), node("headerFooter", {}, [node("oddHeader", {}, [], encodeXlsxString(header(child(pi, "Header"), "&C&A", charge))), node("oddFooter", {}, [], encodeXlsxString(header(child(pi, "Footer"), "&CPage &P", charge)))])];
     return values;
   }

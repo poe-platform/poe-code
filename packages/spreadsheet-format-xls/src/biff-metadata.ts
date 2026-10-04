@@ -131,6 +131,7 @@ function* metadataSteps(length: number, revision: number, codepage: number, cont
       if (!(flags & 4)) {
         paper = ({ 1: "na_letter", 5: "na_legal", 8: "iso_a3", 9: "iso_a4", 11: "iso_a5" } as Record<number, string>)[data.u16(0)] ?? `biff-paper-${data.u16(0)}`;
         print.first_page_number = data.u16(4);
+        print.use_first_page_number = revision <= 4 || flags & 0x80 ? 1 : 0;
         const percentage = data.u16(2); scale = { type: "percentage", percentage: percentage >= 1 && percentage <= 1000 ? percentage : 100 };
       }
       if (revision > 4) { if (!(flags & 4)) print.copies = data.u16(32);

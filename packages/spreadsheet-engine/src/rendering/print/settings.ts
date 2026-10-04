@@ -51,6 +51,10 @@ export function sheetPrintSettings(sheet: Sheet, context: CapabilityContext) {
     if (retained.kind !== "PrintInformation") continue;
     const root = project(retained.data);
     if (!root || root.name !== "PrintInformation") return unsupported("settings representation");
+    const manualStart = root.children.find(node => { tick(); return node.name === "use_first_page_number"; })?.attributes.value;
+    if (manualStart !== undefined && !["0", "1", "false", "true"].includes(manualStart)) unsupported("invalid first page enable flag");
+    const useFirstPage = manualStart === undefined || manualStart === "1" || manualStart === "true";
+    if (!useFirstPage) firstPageNumber = undefined;
     for (const node of root.children) {
       tick();
       const a = node.attributes;
@@ -68,8 +72,14 @@ export function sheetPrintSettings(sheet: Sheet, context: CapabilityContext) {
           else if (margin.name === "header") headerPoints = value;
           else if (margin.name === "footer") footerPoints = value;
         }
+      } else if (node.name === "copies") {
+        const copies = number("value", 1);
+        if (!Number.isInteger(copies) || copies < 0 || copies > 0xffffffff) unsupported("invalid print copies");
+        // Copy counts configure printing; native PDF export emits each page once.
       } else if (node.name === "first_page_number") {
+        if (!useFirstPage) continue;
         const value = number("value", 0);
+        if (value === -1 && manualStart === undefined) { firstPageNumber = undefined; continue; }
         if (!Number.isInteger(value) || value < 0 || value > 0xffffffff) unsupported("invalid first page number");
         firstPageNumber = value;
       } else if (node.name === "paper") paper = node.text;
@@ -113,10 +123,10 @@ export function sheetPrintSettings(sheet: Sheet, context: CapabilityContext) {
         if (node.name === "hPageBreaks") rowBreaks = breaks;
         else columnBreaks = breaks;
       } else if (node.name === "comments") {
-        if (a.placement && a.placement !== "GNM_PRINT_COMMENTS_IN_PLACE") unsupported("comments");
+        if (a.placement && !["GNM_PRINT_COMMENTS_IN_PLACE", "GNM_PRINT_COMMENTS_NONE"].includes(a.placement)) unsupported("comments");
       } else if (node.name === "errors") {
         if (a.PrintErrorsAs && a.PrintErrorsAs !== "GNM_PRINT_ERRORS_AS_DISPLAYED") unsupported("errors");
-      } else if (!["PrintUnit", "print_range", "print-to-uri"].includes(node.name)) unsupported(node.name);
+      } else if (!["PrintUnit", "print_range", "print-to-uri", "use_first_page_number"].includes(node.name)) unsupported(node.name);
     }
   }
   return { firstPageNumber, rowBreaks, columnBreaks, margins, headerPoints, footerPoints, header, footer, paper, orientation, scale, centerHorizontally, centerVertically, acrossThenDown, doNotPrint };

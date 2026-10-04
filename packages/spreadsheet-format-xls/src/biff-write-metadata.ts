@@ -268,8 +268,12 @@ export class BiffMetadataWriter {
     const copies = Number(child("copies")?.attributes.value ?? 1);
     if (!Number.isInteger(copies) || copies < 0 || copies > 65535)
       throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF print copies");
-    const firstPage = Number(child("first_page_number")?.attributes.value ?? 1);
-    if (!Number.isInteger(firstPage) || firstPage < -1 || firstPage > 65535)
+    const firstPageSetting = child("first_page_number")?.attributes.value;
+    const firstPage = Number(firstPageSetting ?? 1), manualStart = child("use_first_page_number")?.attributes.value;
+    if (manualStart !== undefined && !["0", "1", "false", "true"].includes(manualStart))
+      throw new SsconvertError("unsupported-feature", "Invalid Excel BIFF first page enable flag");
+    const useFirstPage = manualStart === undefined ? firstPageSetting !== undefined && firstPage >= 0 : manualStart === "1" || manualStart === "true";
+    if (!Number.isInteger(firstPage) || firstPage < -1 || firstPage > 65535 || useFirstPage && firstPage < 0)
       throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF first page number");
     view.setUint16(2, Number(scale?.percentage ?? 100), true); view.setUint16(4, firstPage, true);
     view.setUint16(6, Number(scale?.cols ?? 1), true); view.setUint16(8, Number(scale?.rows ?? 1), true);
@@ -280,7 +284,7 @@ export class BiffMetadataWriter {
       message: "Excel BIFF7 cannot print comments at the end; using in-place comments" });
     if (revision === 7 && errorMode) await this.context.diagnostic?.({ code: "biff-loss-warning", severity: "warning",
       message: "Excel BIFF7 cannot change printed error values; using displayed errors" });
-    view.setUint16(10, (child("orientation")?.text === "landscape" ? 0 : 2) | (child("order")?.text === "r_then_d" ? 1 : 0) | (flag("monochrome") ? 8 : 0) | (flag("draft") ? 16 : 0) |
+    view.setUint16(10, (useFirstPage ? 0x80 : 0) | (child("orientation")?.text === "landscape" ? 0 : 2) | (child("order")?.text === "r_then_d" ? 1 : 0) | (flag("monochrome") ? 8 : 0) | (flag("draft") ? 16 : 0) |
       (["GNM_PRINT_COMMENTS_IN_PLACE", "GNM_PRINT_COMMENTS_AT_END"].includes(placement ?? "") ? 0x20 : 0) |
       (revision === 8 ? (placement === "GNM_PRINT_COMMENTS_AT_END" ? 0x200 : 0) | errorMode << 10 : 0), true);
     view.setUint16(12, 600, true); view.setUint16(14, 600, true);

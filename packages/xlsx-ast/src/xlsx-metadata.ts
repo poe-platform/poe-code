@@ -66,7 +66,9 @@ export function readXlsxMetadata(sheet: SourceNode): readonly UnsupportedRecord[
         print.push(gnode("copies", { value: copies }));
       }
       const useFirstPage = attribute(setup, "useFirstPageNumber");
-      if (useFirstPage === "1" || useFirstPage === "true") {
+      const enabled = useFirstPage === "1" || useFirstPage === "true";
+      print.push(gnode("use_first_page_number", { value: enabled ? 1 : 0 }));
+      if (enabled || attribute(setup, "firstPageNumber") !== undefined) {
         const firstPage = numeric(attribute(setup, "firstPageNumber"), 1);
         if (!Number.isInteger(firstPage) || firstPage < 0 || firstPage > 0xffffffff) throw new SsconvertError("io", "E Invalid XLSX: invalid first page number");
         print.push(gnode("first_page_number", { value: firstPage }));

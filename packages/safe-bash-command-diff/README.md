@@ -47,6 +47,7 @@ spill through retained handles in your filesystem under `TMPDIR` (or the working
 directory); use external storage for large workloads, since memory filesystems
 retain spilled data in RAM. The backend must support positioned reads/writes,
 exclusive creation, and conditional removal. Paginated output is staged in caller
-storage and emitted in bounded blocks after formatting succeeds.
+storage and emitted in bounded blocks after formatting succeeds; its single-column
+formatter also emits bounded chunks within long lines.
 Ignored-line and function-heading options, directory metadata, special-file
-operands, and the pagination formatter still have buffered paths; this is not a general bounded-memory guarantee for every diff option.
+operands still have buffered paths; this is not a general bounded-memory guarantee for every diff option.

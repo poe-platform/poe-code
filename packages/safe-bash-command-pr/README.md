@@ -16,7 +16,9 @@ The module also exports `createPrCommand`, its command-list factory, and typed o
 Use `-t` to omit headers, `-2` for two columns, `-m` to merge input files,
 and `-l`/`-w` to set page length and width. Input and output stay in the virtual
 filesystem and byte streams. Supported locales are `C`, `POSIX`, `C.UTF-8` and `C.utf8`;
-header dates use UTC.
+header dates use UTC. The default single-column formatter emits bounded chunks
+within long input lines and waits for the output sink. Column balancing and
+custom layout padding still need their own memory budgets.
 
 Set `limits` on `prCommands` to bound columns, page width, buffered bytes,
 output bytes and work, for example `{ limits: { maxColumns: 64,

@@ -3,6 +3,7 @@ import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { toByteSource, type FileSystem } from "safe-bash-contracts";
 import { createPrCommand } from "safe-bash-command-pr";
+import { Budget as PrBudget } from "safe-bash-command-pr/internal";
 import { createDiffCommand } from "./index.js";
 
 for (const failure of ["none", "storage", "sink", "cancel"] as const) test(`pagination stages through caller storage: ${failure}`, async () => {
@@ -84,4 +85,27 @@ test("pagination preserves formatter bytes and the diff exit status", async t =>
   assert.equal(actual, expected);
   assert.ok(actual.includes("Page 1"));
   assert.ok(actual.endsWith("\f"));
+});
+
+
+test("pagination keeps the transitive formatter bounded for long lines", async t => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/empty", new Uint8Array());
+  let resident = 0, peak = 0, total = 0;
+  const retain = PrBudget.prototype.retain;
+  t.mock.method(PrBudget.prototype, "retain", function (this: PrBudget, amount: number) {
+    retain.call(this, amount);
+    resident += amount; peak = Math.max(peak, resident);
+  });
+  const chunk = new Uint8Array(16384).fill(120);
+  const stdin = { async *[Symbol.asyncIterator]() { for (let index = 0; index < 8; index++) yield chunk; } };
+  const result = await createDiffCommand().execute({
+    command: "diff", args: ["-l", "/empty", "-"], cwd: "/", env: {}, fs,
+    stdin, signal: new AbortController().signal,
+    stdout: { async write(bytes) { assert.ok(bytes.length <= 16384); total += bytes.length; } },
+    stderr: { async write() { assert.fail("unexpected diagnostic"); } },
+  });
+  assert.equal(result.exitCode, 1);
+  assert.ok(total > 8 * 16384);
+  assert.ok(peak > 0 && peak <= 131072, `formatter retained ${peak} bytes`);
 });

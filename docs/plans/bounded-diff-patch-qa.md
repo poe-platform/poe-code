@@ -6,10 +6,10 @@ context, RCS, conditional, ed and side-by-side output (including stdin and
 missing-file operands, normalization, display transformations and brief stdin).
 Indexed documents, line indexes, LCS cells, edit groups and output use caller-backed
 page caches. Ignored lines, function headings, special-file operands, directory
-metadata, the transitive pagination formatter, patch, apply-patch and diff3 still
-need migration. The pagination output collector now uses caller-backed pages and
-bounded sink writes; this does not qualify the formatter's per-line buffers. Do not
-infer qualification of those paths from migrated tests.
+metadata, patch, apply-patch and diff3 still need migration. Pagination uses
+caller-backed output pages, bounded sink writes and incremental single-column
+line rendering. Other pr layouts are outside this coverage. Do not infer
+qualification of unmigrated paths from these tests.
 
 ## Runtime and storage
 

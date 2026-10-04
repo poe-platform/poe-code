@@ -205,7 +205,7 @@ export class Formatter {
       if (r < 0) { this.close(column); return; }
     }
   }
-  private async restSlow(column: Column, firstPending: Promise<number>): Promise<void> {
+  private async restSlow(column: Column, firstPending: number | Promise<number>): Promise<void> {
     const firstByte = await firstPending;
     if (firstByte === 10) return;
     if (firstByte === 12) { await this.feed(column); if (this.options.keepFF) this.printFeed = true; return; }
@@ -277,6 +277,10 @@ export class Formatter {
       if (r0 === 10) return;
       for (let i = 0; i < clump.length; i++) this.character(clump[i]!);
       for (;;) {
+        if (!this.storing && this.rendered.length >= 8192) {
+          const pending = this.flushSyncOrAsync();
+          if (pending) return pending.then(() => this.readRemainderSlow(column, column.reader.get()));
+        }
         const rn = column.reader.get();
         if (typeof rn !== "number") return this.readRemainderSlow(column, rn);
         if (rn === 10) return;
@@ -293,7 +297,7 @@ export class Formatter {
     }
     return this.readSlow(column, date, name, r0);
   }
-  private async readRemainderSlow(column: Column, firstPending: Promise<number>): Promise<void> {
+  private async readRemainderSlow(column: Column, firstPending: number | Promise<number>): Promise<void> {
     let byte = await firstPending;
     for (;;) {
       if (byte === 10) return;
@@ -303,6 +307,7 @@ export class Formatter {
       const clump = this.clump(byte);
       if (this.options.truncate && this.inputPosition > this.columnWidth) { this.inputPosition = previous; await this.rest(column); return; }
       for (let i = 0; i < clump.length; i++) this.character(clump[i]!);
+      if (!this.storing && this.rendered.length >= 8192) await this.flush();
       const rn = column.reader.get();
       byte = typeof rn === "number" ? rn : await rn;
     }
@@ -356,6 +361,7 @@ export class Formatter {
       clump = this.clump(byte);
       if (this.options.truncate && this.inputPosition > this.columnWidth) { this.inputPosition = previous; await this.rest(column); return; }
       for (const character of clump) this.character(character);
+      if (!this.storing && this.rendered.length >= 8192) await this.flush();
     }
   }
   private ready(): boolean {

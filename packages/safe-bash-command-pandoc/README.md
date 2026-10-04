@@ -287,13 +287,18 @@ next pull, so producers may reuse their buffers. Cancellation calls the producer
 `return()` directly, even with a pending pull or cancellation during stream creation.
 Pending destination writes also release the conversion wait on cancellation or context
 closure, without accepting another chunk.
-Resolvers should honor `signal` while waiting for data. `resolveStream` takes precedence
-when both methods are supplied; a stream-only provider also works with buffered
-convenience APIs, which collect its bytes when required by an adapter. Explicit
+Resolvers should honor `signal` while waiting for data. For large identifiers,
+provide `resources.resolveSource(id, base, signal)` instead: `id.length` counts
+UTF-16 code units and `id.chunks()` replays the identifier in chunks of at most
+4096 units without collecting it. Chunk boundaries may split surrogate pairs;
+consume the identifier before the returned byte stream finishes.
+Retained writers prefer `resolveSource`, then `resolveStream`, then `resolve`.
+Source-only and stream-only providers also work with buffered convenience APIs,
+which collect their bytes when required by an adapter. Explicit
 byte-only `resolve` and `readFile` capabilities remain buffering boundaries.
 For filesystem resources, image query strings and fragments stay in caller storage
 through identity and budget accounting, including embedded HTML output. Filesystem
-paths, diagnostic messages and custom resolver IDs still materialize; this does not
+paths, diagnostic messages and legacy string resolver IDs still materialize; this does not
 qualify all resource handling or conversion formats for bounded Worker memory.
 Malformed base64 image data reports `E_RESOURCE` consistently across both paths.
 

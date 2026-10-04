@@ -324,15 +324,15 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
       if (supplied) span = await load(supplied);
       else if (context.resources && cached) span = await load(cached);
       else if (context.resources) {
-        const id = await scalar(node);
-        if (context.context.resources?.resolveStream) {
+        if (context.context.resources?.resolveSource || context.context.resources?.resolveStream) {
+          const id = {length: ((await tree.describe(node)).end - node - 32) / 2, chunks: () => tree.scalarChunks(node)};
           const position = storage.allocate(0);
           const length = await context.consumeResource(id, undefined, async bytes => {await storage.append(bytes);});
           // Match byte-resolver admission followed by writer-owned admission.
           if (options.to !== "odt") {context.charge("resources", 1); context.charge("resourceBytes", length);}
           span = {position, length};
         } else {
-          const bytes = await context.resources.resolve(id, undefined, context.signal);
+          const bytes = await context.resources.resolve(await scalar(node), undefined, context.signal);
           if (!(bytes instanceof Uint8Array)) throw new PandocError("E_RESOURCE", "convert", "Invalid resource bytes", options.to);
           // ODT charges its image bytes in the writer; resolver admission is already charged.
           if (options.to !== "odt") context.charge("resources", 1);

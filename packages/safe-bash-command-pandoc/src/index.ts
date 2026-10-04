@@ -32,6 +32,8 @@ export type {
   Resource,
   ResourceCapability,
   StreamingResourceCapability,
+  SourceResourceCapability,
+  ResourceIdentifier,
   ResourceFileSystem,
   SerializedDocument,
   WriteOptions,

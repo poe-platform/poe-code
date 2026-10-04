@@ -6,7 +6,8 @@ import type {
   Diagnostic,
   DiagnosticCode,
   Limits,
-  Operation
+  Operation,
+  ResourceIdentifier
 } from "./types.js";
 
 /** Resource budgets are opt-in. No ambient environment settings. */
@@ -402,15 +403,26 @@ export class ExecutionContext implements AdapterContext {
   }
 
   /** Consume a custom resource directly into the caller-owned destination. */
-  async consumeResource(id: string, base: string | undefined, accept: (bytes: Uint8Array) => Promise<void>): Promise<number> {
+  async consumeResource(id: string | ResourceIdentifier, base: string | undefined, accept: (bytes: Uint8Array) => Promise<void>): Promise<number> {
     this.checkpoint(); this.charge("resources", 1);
     const source = this.context.resources;
-    if (!source?.resolveStream) this.fail("E_CAPABILITY", "Streaming resource resolver required");
+    if (!source?.resolveStream && !source?.resolveSource) this.fail("E_CAPABILITY", "Streaming resource resolver required");
     let length = 0;
     await this.call(async () => {
       // Preserve the producer's iterator directly: an async-generator delegation
       // would queue return() behind an unresolved next() during cancellation.
-      const chunks = source.resolveStream!(id, base, this.signal);
+      let chunks: AsyncIterable<Uint8Array>;
+      if (source.resolveSource) {
+        const identifier: ResourceIdentifier = typeof id === "string" ? {
+          length: id.length,
+          async *chunks() {for (let offset = 0; offset < id.length; offset += 4096) yield id.slice(offset, offset + 4096);}
+        } : id;
+        chunks = source.resolveSource(identifier, base, this.signal);
+      } else {
+        let value = typeof id === "string" ? id : "";
+        if (typeof id !== "string") for await (const chunk of id.chunks()) value += chunk;
+        chunks = source.resolveStream!(value, base, this.signal);
+      }
       await this.consume(chunks, async bytes => {await accept(bytes); length += bytes.length;}, ["resourceBytes"]);
     });
     return length;

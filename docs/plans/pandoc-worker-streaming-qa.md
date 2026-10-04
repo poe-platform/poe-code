@@ -668,3 +668,12 @@ Remaining ownership and exit gates (proposed coordination split):
   compatibility, then the increasing-size and concurrent deployed Cloudflare
   cohorts above. Record actual memory, CPU and first-byte measurements. Local
   workerd transfer checks alone do not satisfy deployment qualification.
+
+
+For custom identifier-source resolvers, increase opaque identifier size separately
+from image size. Require replay through `resolveSource` without invoking legacy
+string resolvers, with chunks no larger than 4096 UTF-16 units and exact Unicode
+content across surrogate boundaries. Verify source-only buffered SDK compatibility
+and retained RTF/ODT parity, producer ownership and pending/factory cancellation.
+Run those cases on R2-backed workerd along with filesystem and string resolver
+cases; deployed memory/CPU/first-byte qualification remains a separate gate.

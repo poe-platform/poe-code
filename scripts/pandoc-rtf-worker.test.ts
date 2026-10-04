@@ -24,9 +24,9 @@ function jpeg(progressive = false): Uint8Array {
     ...(progressive ? [...segment(218,[1,1,0,0,0,0]),0x7f,...segment(218,[1,1,0,1,63,0]),0x7f] : [...segment(218, [1,1,0,0,63,0]), 0x3f]),255,217]);
 }
 
-it.each(["png", "jpeg", "progressive"].flatMap(format => ["filesystem", "resolver"].flatMap(capability => ["rtf", "odt"].map(to => ({format, capability, to})))))("retains streamed $format pictures from $capability into $to in R2 under workerd", async ({format, capability, to}) => {
+it.each(["png", "jpeg", "progressive"].flatMap(format => ["filesystem", "resolver", "source"].flatMap(capability => ["rtf", "odt"].map(to => ({format, capability, to})))))("retains streamed $format pictures from $capability into $to in R2 under workerd", async ({format, capability, to}) => {
   const bytes = format === "png" ? png() : jpeg(format === "progressive");
-  const input = {"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "x".repeat(65536)]}, {t: "Para", c: [{t: "Image", c: [["",[],[]], [], [capability === "filesystem" ? "unused/../".repeat(64) + "picture?" + "query%20😀".repeat(4096) + "#fragment" : "picture", ""]]}]}]};
+  const input = {"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "x".repeat(65536)]}, {t: "Para", c: [{t: "Image", c: [["",[],[]], [], [capability === "filesystem" ? "unused/../".repeat(64) + "picture?" + "query%20😀".repeat(4096) + "#fragment" : capability === "source" ? "picture?" + "query%20😀".repeat(4096) : "picture", ""]]}]}]};
   const root = fileURLToPath(new URL("../", import.meta.url));
   const bundled = await build({stdin: {resolveDir: root, contents: `
     export {convertToOutput} from "./packages/safe-bash-command-pandoc/dist/index.js";
@@ -46,10 +46,10 @@ it.each(["png", "jpeg", "progressive"].flatMap(format => ["filesystem", "resolve
       try {
         await api.convertToOutput([{bytes: new TextEncoder().encode(${JSON.stringify(JSON.stringify(input))})}], {from: "json", to: ${JSON.stringify(to)}, resourcePath}, {
           limits: {references: 2000000, retainedBytes: 32000000}, signal: controller.signal, workingFiles: {fs, directory: "/spill", cacheBytes: 16384},
-          ${capability === "resolver" ? "resources" : "resourceFiles"}: {
+          ${capability !== "filesystem" ? "resources" : "resourceFiles"}: {
             async lstat(path) {if (path.startsWith("/missing-")) throw Object.assign(new Error("missing"), {code: "ENOENT"}); return {type: (path === "/" || path === "/images") ? "directory" : "file"};},
             async readFile() {throw new Error("Full resource reads forbidden");}, async mkdir() {}, async writeFile() {},
-            ${capability === "resolver" ? "resolveStream" : "readStream"}(path) {
+            ${capability === "source" ? "resolveSource" : capability === "resolver" ? "resolveStream" : "readStream"}(path) {
               if (mode === "pending-cancel" || mode === "factory-cancel") {
                 let releasePull;
                 if (mode === "factory-cancel") controller.abort();
@@ -59,7 +59,11 @@ it.each(["png", "jpeg", "progressive"].flatMap(format => ["filesystem", "resolve
                 };}};
               }
               return (async function* () {
-              if (path !== ${JSON.stringify(capability === "resolver" ? "picture" : "/images/picture")}) throw new Error("Wrong resource search root");
+              ${capability === "source" ? `for (let pass = 0; pass < 2; pass++) {
+                let units = 0;
+                for await (const chunk of path.chunks()) {if (chunk.length > 4096) throw new Error("Identifier chunk exceeded bound"); units += chunk.length;}
+                if (units !== path.length || units !== ${("picture?" + "query%20😀".repeat(4096)).length}) throw new Error("Wrong identifier length");
+              }` : `if (path !== ${JSON.stringify(capability === "resolver" ? "picture" : "/images/picture")}) throw new Error("Wrong resource search root");`}
               const bytes = new Uint8Array(${JSON.stringify([...bytes])}), reused = new Uint8Array(7);
               for (let offset = 0; offset < bytes.length; offset += 7) {
                 if (offset > 7 && mode === "source-failure") throw new Error("Resource failed");

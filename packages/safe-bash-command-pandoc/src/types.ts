@@ -226,9 +226,22 @@ export interface AdapterContext {
   /** Strictly advancing cursor for pagination and other iterative layouts. */
   progress(id: string, cursor: number): void;
 }
+/** Replayable UTF-16 identifier. Valid until the resolver's byte stream finishes.
+ * Chunks contain at most 4096 code units and may split a surrogate pair. */
+export interface ResourceIdentifier {
+  readonly length: number;
+  chunks(): AsyncIterable<string>;
+}
+/** Custom resolver that accepts a caller-backed identifier without collecting it. */
+export interface SourceResourceCapability {
+  resolveSource(id: ResourceIdentifier, base: string | undefined, signal: AbortSignal | undefined): AsyncIterable<Uint8Array>;
+  resolveStream?: StreamingResourceCapability["resolveStream"];
+  resolve?: ResourceCapability["resolve"];
+}
 /** Custom resource source for retained conversions. Yielded chunks are borrowed
  * until the next pull; conversion awaits storage before advancing the producer. */
 export interface StreamingResourceCapability {
+  resolveSource?: SourceResourceCapability["resolveSource"];
   resolveStream(
     id: string,
     base: string | undefined,
@@ -238,7 +251,9 @@ export interface StreamingResourceCapability {
   resolve?: ResourceCapability["resolve"];
 }
 export interface ResourceCapability {
-  /** Preferred by retained image writers when supplied. */
+  /** Preferred by retained image writers; keeps identifiers in caller storage. */
+  resolveSource?: SourceResourceCapability["resolveSource"];
+  /** Streaming byte fallback when resolveSource is absent. */
   resolveStream?: StreamingResourceCapability["resolveStream"];
   resolve(
     id: string,
@@ -295,7 +310,7 @@ export interface ConversionContext {
   readonly resourceCwd?: string;
   readonly reader?: ReaderCapability;
   readonly writer?: WriterCapability;
-  readonly resources?: ResourceCapability | StreamingResourceCapability;
+  readonly resources?: ResourceCapability | StreamingResourceCapability | SourceResourceCapability;
   readonly output?: OutputCapability | StreamingOutputCapability;
   readonly limits?: Partial<Limits>;
   readonly signal?: AbortSignal;

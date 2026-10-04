@@ -83,3 +83,13 @@ const streamingResources: StreamingResourceCapability = {async *resolveStream(_i
 const bothResources: ResourceCapability = {async resolve() {return new Uint8Array();}, resolveStream: streamingResources.resolveStream};
 void convert([], options, {resources: streamingResources});
 void convertToOutput([], options, {resources: bothResources, output: {async write() {}, async close() {}, async abort() {}}});
+
+
+import {type SourceResourceCapability, type ResourceIdentifier} from "safe-bash-command-pandoc";
+const sourceResources: SourceResourceCapability = {async *resolveSource(id: ResourceIdentifier, _base, signal) {
+  for await (const chunk of id.chunks()) {signal?.throwIfAborted(); void chunk;}
+  void id.length;
+  yield new Uint8Array();
+}};
+void convert([], options, {resources: sourceResources});
+void convertToOutput([], options, {resources: sourceResources, output: {async write() {}, async close() {}, async abort() {}}});

@@ -1,5 +1,6 @@
 import {expect, it, vi} from "vitest";
 import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
+import type {ResourceIdentifier} from "./types.js";
 import {convert, convertToOutput} from "./engine.js";
 
 const picture = Uint8Array.from(atob("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAADUlEQVR4AQECAP3/AIAAggCBw24l4AAAAABJRU5ErkJggg=="), c => c.charCodeAt(0));
@@ -20,17 +21,21 @@ it.each(["rtf", "odt"])("streams a custom image resolver into retained %s output
   expect(await fs.readdir("/")).toEqual([]);
 });
 
-it.each(["rtf", "odt"])("supports a stream-only resolver with buffered and retained %s APIs", async to => {
-  const resources = {async *resolveStream() {yield picture.subarray(0, 20); yield picture.subarray(20);}};
+it.each(["rtf", "odt"].flatMap(to => ["stream", "source"].map(capability => ({to, capability}))))("supports a $capability-only resolver with buffered and retained $to APIs", async ({to, capability}) => {
+  const produce = async function* (id: string | ResourceIdentifier) {
+    if (typeof id !== "string") {let value = ""; for await (const chunk of id.chunks()) value += chunk; expect(value).toBe("remote:picture");}
+    yield picture.subarray(0, 20); yield picture.subarray(20);
+  };
+  const resources = capability === "source" ? {resolveSource: produce} : {resolveStream: produce};
   const options = {from: "json", to}, expected = await convert([input], options, {resources}), fs = new MemoryFileSystem(), parts: Uint8Array[] = [];
   await convertToOutput([input], options, {resources, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {async write(bytes) {parts.push(bytes.slice());}, async close() {}, async abort() {}}});
   expect(Uint8Array.from(parts.flatMap(bytes => [...bytes]))).toEqual(expected.kind === "text" ? new TextEncoder().encode(expected.text) : expected.bytes);
   expect(await fs.readdir("/")).toEqual([]);
 });
 
-it.each(["rtf", "odt"].flatMap(to => ["source", "cancel", "invalid", "limit", "storage", "sink"].map(mode => ({to, mode}))))("cleans up a $to custom stream after $mode failure", async ({to, mode}) => {
+it.each(["rtf", "odt"].flatMap(to => ["stream", "identifier"].flatMap(capability => ["source", "cancel", "invalid", "limit", "storage", "sink"].map(mode => ({to, mode, capability})))))("cleans up a $to custom $capability stream after $mode failure", async ({to, mode, capability}) => {
   const fs = new MemoryFileSystem(), controller = new AbortController(); let finalized = 0, failStorage = false;
-  const resources = {async *resolveStream(_id: string, _base: string | undefined, signal: AbortSignal | undefined) {
+  const produce = async function* (_id: string | ResourceIdentifier, _base: string | undefined, signal: AbortSignal | undefined) {
     expect(signal).toBe(controller.signal);
     try {
       yield picture.subarray(0, 7);
@@ -40,7 +45,8 @@ it.each(["rtf", "odt"].flatMap(to => ["source", "cancel", "invalid", "limit", "s
       if (mode === "storage") {failStorage = true; yield new Uint8Array(65536);}
       yield picture.subarray(7);
     } finally {finalized++;}
-  }};
+  };
+  const resources = capability === "identifier" ? {resolveSource: produce} : {resolveStream: produce};
   const close = vi.fn(async () => {}), abort = vi.fn(async () => {}), write = vi.fn(async () => {if (mode === "sink") throw new Error("Sink failed");});
   if (mode === "storage") {
     const open = fs.open.bind(fs);
@@ -124,4 +130,33 @@ it("normalizes synchronous resolver factory failure", async () => {
   const context = new ExecutionContext("convert", {resources: {resolveStream() {throw new Error("Factory failed");}}});
   try {await expect(context.consumeResource("picture", undefined, async () => {})).rejects.toMatchObject({code: "E_IO", operation: "convert"});}
   finally {await context.close();}
+});
+
+
+it.each(["rtf", "odt"])("passes replayable identifier chunks to a retained %s resolver", async to => {
+  const id = "opaque:" + "a😀%20".repeat(10000);
+  const source = {bytes: new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: [{t: "Image", c: [["", [], []], [], [id, ""]]}]}]}))};
+  const expected = await convert([source], {from: "json", to}, {resources: {async resolve() {return picture;}}});
+  const fs = new MemoryFileSystem(), output: Uint8Array[] = [];
+  const resolve = vi.fn(async () => {throw new Error("Whole identifier resolver forbidden");});
+  const resolveStream = vi.fn((): AsyncIterable<Uint8Array> => {throw new Error("Whole identifier stream resolver forbidden");});
+  const resolveSource = vi.fn(async function* (source: {length: number; chunks(): AsyncIterable<string>}) {
+    expect(source.length).toBe(id.length);
+    for (let pass = 0; pass < 2; pass++) {
+      let offset = 0;
+      for await (const chunk of source.chunks()) {
+        expect(chunk.length).toBeLessThanOrEqual(4096);
+        expect(chunk).toBe(id.slice(offset, offset + chunk.length));
+        offset += chunk.length;
+      }
+      expect(offset).toBe(id.length);
+    }
+    yield picture;
+  });
+  await convertToOutput([source], {from: "json", to}, {resources: {resolve, resolveStream, resolveSource}, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {
+    async write(bytes) {expect(bytes.length).toBeLessThanOrEqual(16384); await Promise.resolve(); output.push(bytes.slice());}, async close() {}, async abort() {}
+  }});
+  expect(resolveSource).toHaveBeenCalledOnce(); expect(resolve).not.toHaveBeenCalled(); expect(resolveStream).not.toHaveBeenCalled();
+  expect(Uint8Array.from(output.flatMap(bytes => [...bytes]))).toEqual(expected.kind === "text" ? new TextEncoder().encode(expected.text) : expected.bytes);
+  expect(await fs.readdir("/")).toEqual([]);
 });

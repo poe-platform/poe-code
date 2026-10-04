@@ -55,7 +55,7 @@ it("matches native URL admission across preprocessing, schemes, authorities and 
 it("charges all URI chunks before accepting or rejecting and preserves cancellation", async () => {
   const {retainedImageOriginAllowed} = await import("./retained-image-origin.js");
   const {ExecutionContext} = await import("./execution.js");
-  for (const prefix of ["/", "data:", "relative", "http://x/"]) {
+  for (const prefix of ["/", "data:", "relative", "http://x/", "file://user@é/"]) {
     const context = new ExecutionContext("convert", {limits: {retainedBytes: 100}});
     try {
       await expect(retainedImageOriginAllowed(async function* () {yield prefix; yield "x".repeat(100);}, context)).rejects.toMatchObject({code: "E_LIMIT", message: `retainedBytes: ${prefix.length * 2 + 200} exceeds 100`});
@@ -221,5 +221,24 @@ it("preserves whole-host IDNA admission for Unicode that maps to ASCII", async (
       const host = unit.repeat(length), value = `${scheme}://${host}/image`;
       expect(await retainedImageOriginAllowed(async function* () {for (let i = 0; i < value.length; i += 127) yield value.slice(i, i + 127);}, context), `${scheme} ${unit} length=${length}`).toBe(URL.canParse(value));
     }
+  } finally {await context.close();}
+});
+
+it.each(["", "user", "user:password", "first@second"])("rejects file credentials %s before collecting a Unicode hostname", async credentials => {
+  const {retainedImageOriginAllowed} = await import("./retained-image-origin.js");
+  const {ExecutionContext} = await import("./execution.js");
+  const value = `file://${credentials}@${"é".repeat(10000)}/image`;
+  expect(() => new URL(value)).toThrow();
+  const context = new ExecutionContext("convert", {});
+  let read = 0;
+  const chunks = vi.fn(async function* () {
+    for (let offset = 0; offset < value.length; offset += 127) {
+      const part = value.slice(offset, offset + 127); read += part.length; yield part;
+    }
+  });
+  try {
+    expect(await retainedImageOriginAllowed(chunks, context)).toBe(false);
+    expect(chunks).toHaveBeenCalledOnce();
+    expect(read).toBe(value.length);
   } finally {await context.close();}
 });

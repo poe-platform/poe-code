@@ -50,6 +50,9 @@ export async function retainedImageOriginAllowed(chunks: () => AsyncIterable<str
     await context.cooperate(0);
   }
   if (state === "authority" || state === "authorityEnd" || state === "slashes") {
+    // File URLs cannot contain credentials, regardless of IDNA normalization.
+    // Finish the first pass above so rejected input retains its admission charges.
+    if (scheme === "file" && credentials) return false;
     const finish = hostEnd < 0 ? trimEnd : hostEnd;
     const ascii = new AsciiUrlHost(); let hostnameEnd = finish, nativeHost = false;
     let authority = "", position = 0, bracket = false, portStarted = false, portDigits = false, port = 0, hostSeen = false, ipv6 = false;

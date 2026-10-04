@@ -20173,13 +20173,14 @@ var Lexer = class _Lexer {
     this._numberPattern.lastIndex = this.pos;
     const match = this._numberPattern.exec(this.data);
     if (!match) {
+      this.pos++;
       return new Token(TOKEN.number, 0);
     }
+    this.pos = this._numberPattern.lastIndex;
     const number = parseFloat(match[0]);
     if (!Number.isFinite(number)) {
       return new Token(TOKEN.number, 0);
     }
-    this.pos = this._numberPattern.lastIndex;
     return new Token(TOKEN.number, number);
   }
   _getOperator() {
@@ -21743,15 +21744,14 @@ var PsJsCompiler = class {
   }
 };
 var PSStackBasedInterpreter = class {
-  // Safe: JS is single-threaded.
-  static #stack = new Float64Array(100);
-  static #sp = 0;
-  static #push(v) {
+  #stack = new Float64Array(100);
+  #sp = 0;
+  #push(v) {
     if (this.#sp < this.#stack.length) {
       this.#stack[this.#sp++] = v;
     }
   }
-  static #execOp(op) {
+  #execOp(op) {
     const stack = this.#stack;
     switch (op) {
       case TOKEN.true:
@@ -21953,7 +21953,7 @@ var PSStackBasedInterpreter = class {
       }
     }
   }
-  static #execBlock(instructions) {
+  #execBlock(instructions) {
     for (const instr of instructions) {
       switch (instr.type) {
         case PS_NODE.number:
@@ -21983,19 +21983,28 @@ var PSStackBasedInterpreter = class {
    * @param {number[]} range   – flat [min0,max0, …]
    * @returns {Function}  – `(src, srcOffset, dest, destOffset) => void`
    */
+  push(value) { this.#push(value); }
+  execute(op) { this.#execOp(op); }
+  pop() { return this.#stack[--this.#sp]; }
+  result(range) {
+    const count=range.length>>1,base=this.#sp-count,output=[];
+    for(let i=0;i<count;i++)output.push(MathClamp(base+i>=0?this.#stack[base+i]:0,range[i*2],range[i*2+1]));
+    return output;
+  }
   static build(program, domain, range) {
+    const machine = new PSStackBasedInterpreter();
     const nIn = domain.length >> 1;
     const nOut = range.length >> 1;
     const { instructions } = program.body;
     return (src, srcOffset, dest, destOffset) => {
-      this.#sp = 0;
+      machine.#sp = 0;
       for (let i = 0; i < nIn; i++) {
-        this.#push(src[srcOffset + i]);
+        machine.#push(src[srcOffset + i]);
       }
-      this.#execBlock(instructions);
-      const base = this.#sp - nOut;
+      machine.#execBlock(instructions);
+      const base = machine.#sp - nOut;
       for (let i = 0; i < nOut; i++) {
-        const v = base + i >= 0 ? this.#stack[base + i] : 0;
+        const v = base + i >= 0 ? machine.#stack[base + i] : 0;
         dest[destOffset + i] = MathClamp(v, range[i * 2], range[i * 2 + 1]);
       }
     };
@@ -22776,6 +22785,8 @@ var MeshPatchDecoder = class {
   }
 };
 export {
+  PSStackBasedInterpreter,
+  TOKEN as PostScriptToken,
   MeshPatchDecoder,
   MeshStreamReader,
   CFFCompiler,

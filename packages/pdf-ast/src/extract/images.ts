@@ -540,7 +540,7 @@ export async function decodeSamplesToRgbaAsync(args: Parameters<typeof decodeSam
       let result:number[]|undefined;
       if(step.value){
         const tint=evalShadingFunctionSteps(color.tintFunctionDoc!,color.tintFunctionNode,step.value,color.tintFunctionSources);
-        try {let next=tint.next();while(!next.done){signal?.throwIfAborted();next=tint.next(await next.value.source.read(next.value.position,next.value.length,signal));}result=next.value;}
+        try {let next=tint.next();while(!next.done){signal?.throwIfAborted();if(++turns%4096===0){await new Promise<void>(resolve=>setTimeout(resolve,0));signal?.throwIfAborted();}next=tint.next(await next.value.source.read(next.value.position,next.value.length,signal));}result=next.value;}
         finally{tint.return([]);}
       }
       step=work.next(result);

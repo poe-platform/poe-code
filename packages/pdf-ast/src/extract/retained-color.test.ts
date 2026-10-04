@@ -256,3 +256,10 @@ it("shares image staging admission with live tint resources",async()=>{
   const owner=await PdfRetainedDecodedImage.open(f.doc,input,f.storage,{maxStagingBytes:8});await owner.close();
  }finally{await f.close();}
 });
+
+it("evaluates growing PostScript programs without materializing their source or syntax tree",async()=>{
+ const {convertRetainedContentColor}=await import("./retained-color.js");const f=await fixture(),lookup=f.doc.lookup.bind(f.doc);
+ vi.spyOn(f.doc,"lookup").mockImplementation(async node=>{const result=await lookup(node);if(node?.kind==="ref"&&node.objectNumber===f.sampled.objectNumber&&result?.value.kind==="dict")dictSet(result.value,"FunctionType",cosNumber(4));return result;});
+ vi.spyOn(f.doc.objects,"decodeStream").mockImplementation(async function*(){const encode=new TextEncoder();yield encode.encode('{ pop ');const block=encode.encode('1 pop '.repeat(1024));for(let i=0;i<32;i++)yield block;yield encode.encode('0.5 dup dup }');});
+ try{expect(await convertRetainedContentColor(f.doc,cosName("Sampled"),"Sampled",[0.5],f.resources,f.storage,{onAllocation(bytes){if(bytes>65536)throw Error("whole PostScript allocation "+bytes);}})).toEqual([0.5,0.5,0.5]);}finally{await f.close();}
+});

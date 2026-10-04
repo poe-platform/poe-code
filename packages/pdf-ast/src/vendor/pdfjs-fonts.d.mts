@@ -180,3 +180,11 @@ export class MeshPatchDecoder {
   decode(type: 6 | 7, reader: Pick<MeshStreamReader,"readCoordinate"|"readComponents">, flag: number): MeshPatch;
   static vertices(patch: MeshPatch, bounds: number[]): {positions: Float32Array; colors: Uint8Array; vertexCount: number};
 }
+
+export const PostScriptToken: Readonly<Record<string,number>>;
+export class PSStackBasedInterpreter {
+  push(value:number):void;
+  execute(op:number):void;
+  pop():number;
+  result(range:readonly number[]):number[];
+}

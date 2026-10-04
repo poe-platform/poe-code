@@ -91,3 +91,15 @@ describe("PDF.js calculator function reference vectors", () => {
     expect(evalShadingFunctionToComponents(doc.cos, fn, 0.4)).toEqual([0.2]);
   });
 });
+
+
+it.each(vectors)("retains native calculator results through stored instructions: %s",async(source,domain,range,input,expected)=>{
+ const {createMemoryFileSystem}=await import("@poe-code/safe-fs"),{PagedStorage}=await import("@poe-code/safe-fs/storage");
+ const {compileStoredPostScript}=await import("./stored-postscript.js"),{evalShadingFunctionSteps}=await import("./evaluator.js");
+ const fs=createMemoryFileSystem(),storage=new PagedStorage({fs,cwd:"/",env:{},signal:new AbortController().signal},2),stream=calculator(source,domain,range);
+ try{
+  const compiled=await compileStoredPostScript({size:stream.rawBytes.length,async read(at,length){return stream.rawBytes.slice(at,at+length);}},storage,()=>{});
+  const work=evalShadingFunctionSteps(doc.cos,stream,input,new WeakMap([[stream,compiled]]));let step=work.next();while(!step.done)step=work.next(await step.value.source.read(step.value.position,step.value.length));
+  expect(step.value).toHaveLength(expected.length);step.value.forEach((value,index)=>expect(value).toBeCloseTo(expected[index]!,9));
+ }finally{await storage.close();}
+});

@@ -1,3 +1,4 @@
+import { compileStoredPostScript } from "../content/stored-postscript.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { renderRetainedMesh } from "./retained-mesh.js";
 import { readBytes } from "@poe-code/safe-fs/contracts";
@@ -59,7 +60,16 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
       }
     }
     const result=cosStream(dict,new Uint8Array());
-    functionSources.set(result,{size,async read(at,length,signal){options.signal?.throwIfAborted();signal?.throwIfAborted();return backing.read(position+at,Math.min(length,Math.max(0,size-at)));}});
+    let source:PdfFunctionSource={size,async read(at,length,signal){options.signal?.throwIfAborted();signal?.throwIfAborted();return backing.read(position+at,Math.min(length,Math.max(0,size-at)));}};
+    const type=dictGet(dict,"FunctionType");
+    if(type?.kind==="number"&&type.value===4){
+      charge(16384);
+      source=await compileStoredPostScript(source,backing,bytes=>{
+        if(bytes>maxStaging-functionBytes)throw new PdfError("E_LIMIT","PDF function staging byte limit exceeded");
+        options.onStaging?.(bytes);functionBytes+=bytes;
+      },options.signal);
+    }
+    functionSources.set(result,source);
     return result;
   }
   const streams = new WeakMap<PdfCosStream, PdfCosRef>();
@@ -173,7 +183,7 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
       const field = key === "Functions" ? await snapshotFunction(item, depth + 1) : await snapshotNumbers(item);
       selected.entries.push({ key: cosName(key), value: field ?? { kind: "null" } });
     }
-    if(value?.kind === "stream" && kind===0 && storedFunctions)return storeFunction(value,selected);
+    if(value?.kind === "stream" && (kind===0||kind===4) && storedFunctions)return storeFunction(value,selected);
     return value?.kind === "stream" && (kind === 0 || kind === 4) ? cosStream(selected, await decode(value)) : selected;
   }
   async function snapshotCalibrated(node: PdfCosNode | undefined): Promise<PdfCosNode | undefined> {
@@ -303,9 +313,10 @@ export async function resolveRetainedMaskParameters(document: PdfRetainedDocumen
 }
 
 async function runFunctionSteps<T>(work:Generator<PdfFunctionReadRequest,T,Uint8Array>,signal?:AbortSignal):Promise<T>{
+  let turns=0;
   try{
     let step=work.next();
-    while(!step.done){signal?.throwIfAborted();const request=step.value;const bytes=await request.source.read(request.position,request.length,signal);signal?.throwIfAborted();step=work.next(bytes);}
+    while(!step.done){signal?.throwIfAborted();if(++turns%4096===0){await new Promise<void>(resolve=>setTimeout(resolve,0));signal?.throwIfAborted();}const request=step.value;const bytes=await request.source.read(request.position,request.length,signal);signal?.throwIfAborted();step=work.next(bytes);}
     signal?.throwIfAborted();return step.value;
   }finally{work.return(undefined as never);}
 }

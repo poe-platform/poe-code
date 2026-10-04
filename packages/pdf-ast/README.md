@@ -163,7 +163,9 @@ and stages only addressable indexed palette entries. `maxWorkingBytes` and
 `onAllocation` cover selected resource snapshots, mesh geometry and the result
 surface together. Mesh records and sampled function tables use caller-authorized
 backing with fixed caches. Sample interpolation visits vertices incrementally;
-PostScript programs and selected resource metadata remain resident.
+PostScript source, instructions and nested parser frames also use caller backing;
+execution uses the native calculator arithmetic with a separate fixed stack per
+evaluation. Selected resource metadata remains resident.
 
 `doc.attachments()` on a retained document visits embedded name trees,
 catalog/page associated files, and file-attachment annotations in document order.
@@ -600,8 +602,9 @@ row-sized crossing scratch; scratch is local to each render. Stroke outlines
 and their projected raster edges also stream. Retained parser paths, stroke
 points, dash expansion and geometric clip lists use caller backing. Sampled
 functions for vector colors, masks and shading use range reads from caller storage.
-Image tint rows also read sampled tables from caller storage. PostScript programs
-and individual operation metadata still have separate memory ownership.
+Image tint rows also read sampled tables from caller storage. PostScript
+instructions replay from storage without collecting a syntax tree. Individual
+operation and font metadata still have separate memory ownership.
 
 Text, paths, and stencil images preserve shading and tiling pattern fills in
 bitmap and SVG output, including uncolored tiles and transformed Forms.

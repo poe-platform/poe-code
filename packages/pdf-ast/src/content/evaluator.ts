@@ -4,7 +4,7 @@ import { StoredOperationsWriter } from "./stored-operations.js";
 import { StoredPathWriter } from "./stored-path.js";
 import { annotationPageNumberSteps, extractPageAnnotationSteps } from "./annotations.js";
 import { resolvePageFonts, type ResolvedPageFont } from "../fonts/resolve.js";
-import { buildPostScriptJsFunction, DeviceCmykCS, MeshShading, Stream } from "../vendor/pdfjs-fonts.mjs";
+import { PSStackBasedInterpreter, buildPostScriptJsFunction, DeviceCmykCS, MeshShading, Stream } from "../vendor/pdfjs-fonts.mjs";
 import { decodeInlineImageNodeToRgba, decodeXObjectImageToRgba } from "../extract/images.js";
 import {
   decodePdfString,
@@ -99,6 +99,7 @@ const postScriptFunctions = new WeakMap<PdfCosStream, {
 
 export interface PdfFunctionSource {
   readonly size:number;
+  readonly format?: "postscript";
   read(position:number,length:number,signal?:AbortSignal):Promise<Uint8Array>;
 }
 export interface PdfFunctionReadRequest {readonly source:PdfFunctionSource;readonly position:number;readonly length:number}
@@ -197,6 +198,21 @@ export function* evalShadingFunctionSteps(
       const d1 = dom[i * 2 + 1] ?? 1;
       return Math.max(d0, Math.min(d1, v));
     });
+    const stored=sources?.get(resolved);
+    if(stored?.format==="postscript"){
+      const machine=new PSStackBasedInterpreter();
+      for(let i=0;i<dom.length>>1;i++)machine.push(clampedInputs[i]!);
+      let position=0;
+      while(position>=0){
+        const bytes=yield {source:stored,position,length:32};
+        const instruction=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
+        const kind=instruction.getFloat64(0,true),next=instruction.getFloat64(8,true),value=instruction.getFloat64(16,true),target=instruction.getFloat64(24,true);
+        if(kind===1)machine.push(value);
+        else if(kind===2)machine.execute(value);
+        position=kind===4||kind===3&&machine.pop()===0?target:next;
+      }
+      return machine.result(range);
+    }
     const source = bytesToString(doc.decodeStream(resolved));
     let cached = postScriptFunctions.get(resolved);
     if (!cached || cached.source !== source ||

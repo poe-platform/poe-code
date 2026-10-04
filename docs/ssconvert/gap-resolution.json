@@ -4607,17 +4607,18 @@
       "status": "open",
       "currentFinding": "Source-derived signed years, astronomical eras and clock-limit TimeClip repair are delivered. Authenticated activated Linux captures match final compiled and installed root/scoped SDK/Shell at d492e1ddd5 for all 92 cases across five zones, including BCE/year zero, rollover/leap day, DST and both clock extrema. The installed Node, Chrome page/Worker and workerd profiles also match. Broader signatures/coercion, locales, arrays/errors, other native runtime profiles and registry qualification remain open.",
       "checkpoint20261004": {
-        "qualified": "The 92-case five-zone activated cohort matches compiled and installed runtime profiles, including BCE, DST and clock extrema.",
+        "qualified": "The 92-case five-zone activated cohort matches compiled and installed runtime profiles, including BCE, DST and clock extrema. Zero-argument registration and rejection of extra scalar/error/reference/array/multiple arguments now match the activated native sample in C and C.UTF-8 locales through compiled SDK/command for both product Perl profiles.",
         "evidence": [
           "#/reference/perlDateEra",
           "#/reference/clockExtrema",
-          "#/reference/perlActivatedLinux"
+          "#/reference/perlActivatedLinux",
+          "#/perlDateArgumentLocale"
         ],
-        "nextAcceptance": "Qualify untested argument signatures, coercions, arrays/errors and locale-sensitive cases in the activated reference and installed SDK/Shell.",
+        "nextAcceptance": "Qualify the retained zero-argument/date and argument-rejection cohorts through current installed root/scoped artifacts. Wider declared locale/runtime profiles remain separate; there is no supported PERL_DATE argument-coercion signature.",
         "closureGate": "Complete remaining signature/locale/runtime and registry qualification; keep already-passing date cohorts as receipts.",
         "qualificationBlockers": [],
         "remainingAcceptance": [
-          "Untested signatures/coercions, arrays/errors and locale-sensitive cases using injected-clock and activated reference controls.",
+          "Zero-argument signature and scalar/error/reference/array/multiple-argument rejection are qualified in C/C.UTF-8. Complete remaining declared locale/runtime profiles; do not invent supported argument coercions.",
           "Current installed SDK/Shell and remaining runtime profiles; reuse the qualified 92-case five-zone date cohort."
         ]
       }
@@ -6498,6 +6499,26 @@
       "external-plain.db": "9f9d8bfc341be8afd37907b863bcd6f05e0cd79634737c3d5aa9eac65c6a0d01",
       "external-encrypted.db": "bc0130c013616fbd978a9fa6d979cfbdf61430130873dd781221a37349aba1cf",
       "native-results.json": "1adc6a346437b0b576193df31e66ef5a93daedc08225fba8b86972c2b47364ec"
+    }
+  },
+  "perlDateArgumentLocale": {
+    "status": "Bounded argument/locale gate verified; containing installed artifacts and broader declared profiles remain open",
+    "runtimeChanges": false,
+    "candidate": "d175921e386abb67dafa934fc9215dedaf278b64",
+    "native": {
+      "sampleSha256": "73bfafc72fe65a516eed8708395738a0fbfc11f607321a08bddd456ca572fe71",
+      "loaderSha256": "075083fc92eefd13f83e5da28aaac4f7bc0aca6116f6328ce65aa8289fc7a794",
+      "binarySha256": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
+      "activation": "Saved Perl plugins copied to task-owned /out/perl-date-current/plugins and selected via process-scoped GNUMERIC_PLUGIN_PATH. Only copied libtool libdir relocation metadata changed; binary/sample bytes unchanged. Literal optional-perl-samples environment plus C/C.UTF-8 LC_ALL/LANG. Initial absent-loader outcomes were setup failures, not function comparisons; original installed/stashed plugins unchanged."
+    },
+    "controls": "10 formulas: PERL_DATE(), seven extra-argument forms (number, text, boolean, division error, cell reference, array, two arguments), conditional use and LEN. Native C and C.UTF-8 runs return date20261004, seven #N/A values, date20261004 and length8; exit0 and no stderr. Product injects UTC noon of the observed native date; no new clock-boundary claim.",
+    "public": "Two locales x2 product profiles(5.34.1/5.40.1) x2 compiled SDK/command routes:80 exact native-matching formula results with zero diagnostics. Signature is empty; arguments are rejected rather than coerced. Maintained selected workspace build and106 timezone/Perl profile regression tests pass.",
+    "remaining": "Current installed root/scoped consumers and broader declared locale/runtime profiles. Retain earlier92 date-boundary captures; do not restart them or claim a new boundary/native5.34 qualification from these observations.",
+    "hashes": {
+      "input.gnumeric": "ed0c18c992baa2aec6eeb23eea3e15fa0c91fcad5b27fe58d433c500c7a1bc08",
+      "formulas.json": "175d33c9a05268726f38e56a83404927644b3f5949f2b2a405587a5bd9da6ccf",
+      "native-results.json": "516255630ff0da57082f4a18bf2aa5c1810c9fb35f5cda1ad14656b423dd085b",
+      "public-results.json": "0c76d0a9446a55b5257fd24b0e0dd8eb90017e960d27e19b0e299b8121968629"
     }
   }
 }

@@ -107,11 +107,20 @@ it.each(["inline","map","state","both"])("backs %s graphics-state dashes before 
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
 
-it("keeps inline ActualText backed during Sips rasterization without changing pixels",async()=>{
- const {cosDict,cosName,PdfRetainedPage}=await import("@poe-code/pdf-ast");
+it.each(["inline", "named", "map", "property", "value", "chain"])("keeps %s ActualText backed during Sips rasterization without changing pixels",async mode=>{
+ const {cosDict,cosName,cosString,PdfRetainedPage}=await import("@poe-code/pdf-ast");
  const doc=PdfDocument.create(),page=doc.addPage([24,16]);
  dictSet(page.pageDict,"Resources",cosDict({Font:cosDict({F:cosDict({Subtype:cosName("Type1"),BaseFont:cosName("Helvetica")})})}));
- page.setRawContentStream(`/Span << /ActualText (${"replacement".repeat(8192)}) >> BDC BT /F 10 Tf 1 5 Td (A) Tj ET EMC`);
+ const replacement="replacement".repeat(8192),text=cosString(replacement);
+ const value=mode==="value"||mode==="chain"?doc.cos.allocateObject(text):text;
+ const property=cosDict({ActualText:mode==="chain"?doc.cos.allocateObject(value):value});
+ const properties=cosDict({Replacement:mode==="property"?doc.cos.allocateObject(property):property});
+ if(mode!=="inline"){
+  const resources=page.pageDict.entries.find(entry=>entry.key.decoded==="Resources")!.value;
+  if(resources.kind!=="dict")throw Error("Expected resources");
+  dictSet(resources,"Properties",mode==="map"?doc.cos.allocateObject(properties):properties);
+ }
+ page.setRawContentStream(`/Span ${mode==="inline"?`<< /ActualText (${replacement}) >>`:"/Replacement"} BDC BT /F 10 Tf 1 5 Td (A) Tj ET EMC`);
  const bytes=doc.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
  const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4);
  const evaluate=PdfRetainedPage.prototype.evaluateSteps;let seen=0;

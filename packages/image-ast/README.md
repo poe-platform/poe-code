@@ -75,7 +75,7 @@ SVG metadata uses bounded header ranges through `readSvgMetadataFromSource(sourc
 including long dimension tokens. `decodeSvgSourceToStorage(source, storage, signal, options)`
 reads SVG syntax in bounded ranges and stores path points, text, nested transforms,
 and raster pages in caller backing. File inputs and composite resources use this path
-automatically. PDF file rendering uses caller-backed input, images and page tiles through `tryPdfDecode`; the same path serves composite resources and transformed metadata. PDF paths, shading and nested captures still have the shared engine’s memory requirements.
+automatically. PDF file rendering uses caller-backed input, images and page tiles through `tryPdfDecode`; the same path serves composite resources and transformed metadata. Inline and named PDF replacement text stays in that backing, including indirect property maps and string references. PDF paths, shading and nested captures still have the shared engine’s memory requirements.
 Combined resize/blur/sharpen/convolution stages share premultiplied alpha and gamma handling.
 `resizeStoredImage(image, storage, options, signal)` supports all resize fits,
 gravity, entropy/attention crops, background canvases and image pages.
@@ -120,7 +120,7 @@ in caller storage, available through `storedDelay.length` and asynchronous `stor
 also available individually. TIFF inspection uses the optional caller backing storage
 to preserve full decode validation with bounded memory. File `.metadata()` for these formats
 uses retained reads and caller-backed transforms, including source version checks
-and handle cleanup. PDF metadata uses caller-backed input and indexes without rasterizing pages; optional `tryPdfMetadata` storage also backs inline font-width tables, and PDF decoding uses its supplied pixel storage for those tables; the same adapter serves Sips and identify queries. Raw metadata needs only the retained file size. These reads do
+and handle cleanup. PDF metadata uses caller-backed input and indexes without rasterizing pages; `tryPdfMetadata` backs selected source resource values in supplied storage, or owns a four-page cache on the injected filesystem when storage is omitted. PDF decoding uses its supplied pixel storage for these values; the same adapter serves Sips and identify queries. Raw metadata needs only the retained file size. These reads do
 not implicitly cache the file for later operations. Use `await image.inspectMetadata(async metadata => { /* read metadata.storedDelay here */ })`
 with the injected filesystem to keep lazy metadata resources scoped to your callback.
 `.metadata()` preserves its explicit delay-array convenience result. Explicit buffer outputs keep

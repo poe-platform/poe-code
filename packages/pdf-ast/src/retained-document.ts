@@ -104,7 +104,8 @@ export class PdfRetainedDocument {
   /** Resolve a bounded reference chain, retaining the final stream's identity. */
   async lookup(node: PdfCosNode | undefined, arrays: ValueArrayStorage = this.options.valueArrays ?? {}, arrayPathPrefix?: readonly string[]): Promise<PdfRetainedValue | undefined> {
     this.assertOpen();
-    if (arrayPathPrefix) arrays = { ...arrays, arrayPathPrefix };
+    if (arrayPathPrefix) arrays = { ...arrays, arrayPathPrefix,
+      ...(arrayPathPrefix.length && arrays.storedStringKeys?.includes(arrayPathPrefix[arrayPathPrefix.length - 1]!) ? { storeRootString: true } : {}) };
     let reference: PdfCosRef | undefined;
     const visited = new Set<number>();
     const maximum = this.options.maxRecursionDepth ?? 100;

@@ -168,7 +168,11 @@ borrow that backing. Direct raw-text formatting also accepts stored replacements
 additional decoder scratch admitted before reading them. `page.streamRawText()`
 retains inline ActualText automatically and owns its temporary backing until the
 iterator closes. Synchronous extraction requires string replacements and rejects
-stored-only replacements explicitly.
+stored-only replacements explicitly. To retain named `/Properties` replacement
+strings before page traversal, open the document with
+`valueArrays: { stringStorage: backing, storedStringKeys: ["ActualText"] }`.
+Named-property evaluation preserves this selection through indirect string chains;
+keep this caller-owned backing alive through evaluation and extraction.
 Traverse `blocks()`, `lines()`, `words()` and
 chunked `word.text()` without collecting arrays; close the index after all
 borrowed iterators finish. The index uses four 16 KiB cache pages and admits
@@ -973,7 +977,8 @@ strings keep their buffered representation. Retained object readers accept these
 options through `valueArrays`; keep the backing alive while consuming descriptors
 with `decodeStoredPdfString`. Authenticated object-string decryption uses bounded
 cipher blocks and the string crypt filter, including when the stream filter differs.
-These options do not automatically select named page replacement-text resources.
+Default retained documents keep source strings buffered; select replacement-text
+keys at document open time to cover inline and indirect named resources.
 `PdfRetainedDocument.openStore(store, storage, { rootRef, infoRef })` reads an
 existing `PdfMutableObjectStore`; the caller keeps ownership of that store.
 Use `externalizeInlineImages: { minBytes: 1024, compress: true }` to move inline

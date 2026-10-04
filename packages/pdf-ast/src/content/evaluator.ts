@@ -1748,7 +1748,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
         }
         if (propDict) {
           if (resolvedActualText === undefined) {
-            const at = yield* resolveEvaluationNode(dictGet(propDict, "ActualText"));
+            const at = yield* resolveEvaluationNode(dictGet(propDict, "ActualText"), false, ["ActualText"]);
             if (at?.kind === "string") resolvedActualText = at.storedBytes ?? decodePdfString(at);
           }
           if (resolvedMcid === undefined) {

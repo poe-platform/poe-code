@@ -1,4 +1,4 @@
-import {expect,it} from "vitest";
+import {expect,it,vi} from "vitest";
 import {PdfDocument} from "@poe-code/pdf-ast";
 import {MemoryFileSystem} from "@poe-code/safe-fs/core";
 import sharp from "./index.js";
@@ -78,4 +78,44 @@ for(const nested of [false,true])it(`preserves existing PDF structural admission
  else{for(let i=2;i<depth;i++)objects.push(`${i} 0 obj << /Type /Pages /Kids [${i+1} 0 R] /Count 1 >> endobj`);objects.push(`${depth} 0 obj << /Type /Page /MediaBox [0 0 17 11] >> endobj`);}
  const bytes=new TextEncoder().encode('%PDF-1.7\n'+objects.join('\n')+'\ntrailer << /Root 1 0 R >>\n%%EOF'),fs=new MemoryFileSystem();await fs.writeFile('/input.pdf',bytes);
  expect(await sharp('/input.pdf',{filesystem:fs}).metadata()).toEqual(await sharp(bytes).metadata());
+});
+
+
+it.each(["success","write","cancel"])("owns resource backing for metadata-only PDF inspection on %s",async phase=>{
+ const {cosDict,cosString,dictSet,dictGet,PdfRetainedDocument}=await import("@poe-code/pdf-ast");
+ const document=PdfDocument.create(),page=document.addPage([17,11]);
+ dictSet(page.pageDict,"Resources",cosDict({Properties:cosDict({Replacement:cosDict({ActualText:cosString("replacement".repeat(8192))})})}));
+ const bytes=document.save(),fs=new MemoryFileSystem();let seen=0,opened=0,closed=0;
+ const controller=new AbortController(),failure=new Error("resource backing failed");
+ const filesystem=new Proxy(fs,{get(target,key){
+  if(key==="open")return async(...args:Parameters<typeof fs.open>)=>{
+   const descriptor=await fs.open(...args);opened++;
+   return new Proxy(descriptor,{get(handle,method){
+    if(method==="close")return async()=>{closed++;await handle.close();};
+    if(method==="write"&&phase!=="success")return async()=>{if(phase==="cancel")controller.abort(failure);throw failure;};
+    const value=Reflect.get(handle,method,handle);return typeof value==="function"?value.bind(handle):value;
+   }});
+  };
+  const value=Reflect.get(target,key,target);return typeof value==="function"?value.bind(target):value;
+ }});
+ const lookup=PdfRetainedDocument.prototype.lookup;
+ const spy=vi.spyOn(PdfRetainedDocument.prototype,"lookup").mockImplementation(async function(...args){
+  const result=await lookup.apply(this,args);
+  if(result?.value.kind==="dict"){
+   const resources=dictGet(result.value,"Resources");
+   const properties=resources?.kind==="dict"?dictGet(resources,"Properties"):undefined;
+   const replacement=properties?.kind==="dict"?dictGet(properties,"Replacement"):undefined;
+   const text=replacement?.kind==="dict"?dictGet(replacement,"ActualText"):undefined;
+   if(text?.kind==="string"){seen++;expect(text.bytes.length).toBe(0);expect(text.storedBytes?.byteLength).toBeGreaterThan(65536);}
+  }
+  return result;
+ });
+ try{
+  const result=tryPdfMetadata({size:bytes.length,async read(at,n){return bytes.subarray(at,at+n);}},filesystem,"/",controller.signal,{});
+  if(phase==="success"){expect(await result).toMatchObject({width:17,height:11});expect(seen).toBeGreaterThan(0);}
+  else await expect(result).rejects.toBe(failure);
+  expect(opened).toBeGreaterThan(0);expect(closed).toBe(opened);
+ }
+ finally{spy.mockRestore();}
+ expect(await fs.readdir("/")).toEqual([]);
 });

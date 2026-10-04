@@ -5965,5 +5965,17 @@
     },
     "nativeBinary": "d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82",
     "remaining": "Shared-edge borders and junction geometry,other retained style transports,rotation,rich text and full rendering/profile acceptance remain open."
+  },
+  "pdfSharedBorderJunctions": {
+    "status": "Junction primitive qualified; public shared borders remain unsupported and all19 families remain open",
+    "implementation": "Source-derived printBorderRow computes native single/double shared-edge endpoint margins,odd-width half-point offsets and terminal-column double-line asymmetry from resolved row border arrays. Stroke widths/dashes are shared with existing diagonal rendering.",
+    "validation": {
+      "tests": 13,
+      "nativeInputs": 68,
+      "nativeJunctionComparisons": 68,
+      "currentPublicRefusals": 136,
+      "checks": "Native decoded stroke coordinates and colors match exactly across all13styles on4sides,4box styles with/without merges and8neighbor conflicts. Public SDK/command still refuse shared borders; primitive qualification is not exporter support."
+    },
+    "remaining": "Connect style-region/actual-cell ownership resolution,visible-row handling,merge/span suppression and PDF paint order;qualify public SDK/command,screenshots and wider profiles."
   }
 }

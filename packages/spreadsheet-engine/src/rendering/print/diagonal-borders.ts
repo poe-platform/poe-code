@@ -1,7 +1,7 @@
 import type {CellPrintBorder} from "./cell-style.js";
 
 // Gnumeric style-border.c uses unscaled point widths and dash lengths for print.
-const strokes = [
+export const printBorderStrokes = [
   {width: 0}, {width: 1}, {width: 2}, {width: 1, dash: [3, 1]},
   {width: 1, dash: [2, 2]}, {width: 3}, {width: 1}, {width: 1, dash: [1, 1]},
   {width: 2, dash: [9, 3], phase: 9}, {width: 1, dash: [8, 3, 3, 3]},
@@ -12,7 +12,7 @@ const strokes = [
 export function printDiagonalBorders(borders: readonly CellPrintBorder[], width: number, height: number, tick: () => void) {
   return [...borders].sort((a, b) => a.side === b.side ? 0 : a.side === "Rev-Diagonal" ? -1 : 1).flatMap(border => {
     tick();
-    const stroke = strokes[border.style]!;
+    const stroke = printBorderStrokes[border.style]!;
     const reverse = border.side === "Rev-Diagonal";
     const lines = border.style === 6 ? reverse ?
       [[1.5, 3, width - 2, height - 0.5], [3, 1.5, width - 0.5, height - 2]] :

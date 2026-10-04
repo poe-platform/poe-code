@@ -41,6 +41,28 @@ test("count cache distinguishes middle bytes and filesystem tenants", async () =
   }
 });
 
+test("directory counts distinguish cat and cut across repeated searches", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/a.txt", bytes("cat\ncat\n"));
+  await fs.writeFile("/work/b.txt", bytes("dog\n"));
+  const command = createRgCommand();
+  for (const pattern of ["cat", "cut", "cut", "cat"]) {
+    const result = await run(command, fs, ["-c", pattern, "/work"]);
+    assert.equal(result.exitCode, pattern === "cat" ? 0 : 1);
+    assert.equal(result.stdout, pattern === "cat" ? "/work/a.txt:2\n" : "");
+    assert.equal(result.stderr, "");
+  }
+
+  await fs.writeFile("/work/a.txt", bytes("cat\ncat\ncut\n"));
+  for (const pattern of ["cat", "cut", "cat"]) {
+    const result = await run(command, fs, ["-c", pattern, "/work"]);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, `/work/a.txt:${pattern === "cat" ? 2 : 1}\n`);
+    assert.equal(result.stderr, "");
+  }
+});
+
 test("repeated 64-file counts honor maxFiles and charge reads", async () => {
   const fs = createMemoryFileSystem();
   for (let d = 0; d < 8; d++) {

@@ -85,3 +85,44 @@ it.each([4,10].flatMap(version => [
     expect(attributes).not.toHaveProperty("Fit");
   }
 });
+
+it.each([3,4,5])("preserves inherited empty-range styles across modern XML export from v%i", async version => {
+  const original = await readGnumeric(fixture(version, '<gnm:Style Fore="0:0:FFFF"><gnm:Font Italic="1"/></gnm:Style>'), context);
+  const expected = original.sheets[0]!.cells.map(cell => cellPrintStyle(cell.style, () => {}));
+  const empty = {...original, sheets: original.sheets.map(sheet => ({...sheet, cells: []}))};
+  const reopened = await readGnumeric(await writeGnumeric(empty, [], context), context);
+  const populated = {...reopened, sheets: reopened.sheets.map(sheet => ({...sheet, cells: original.sheets[0]!.cells.map(({row,column,value}) => ({row,column,value}))}))};
+  const result = await readGnumeric(await writeGnumeric(populated, [], context), context);
+  expect(result.sheets[0]!.cells.map(cell => cellPrintStyle(cell.style, () => {}))).toEqual(expected);
+});
+
+it.each([3,5])("preserves intersecting and disjoint empty style rectangles with base extent %i", async extent => {
+  const regions = [
+    [0,0,extent,extent,'Shade="1" Back="FFFF:0:0"'],
+    [1,1,3,3,'Fore="0:0:FFFF"'],
+    [2,0,2,5,'HAlign="GNM_HALIGN_RIGHT"'],
+    [0,2,5,2,'Back="0:FFFF:0"'],
+    [4,4,5,5,'HAlign="GNM_HALIGN_CENTER"']
+  ].map(([r,c,er,ec,attrs]) => `<gnm:StyleRegion startRow="${r}" startCol="${c}" endRow="${er}" endCol="${ec}"><gnm:Style ${attrs}/></gnm:StyleRegion>`).join("");
+  const cells = Array.from({length: 36}, (_, i) => `<gnm:Cell Row="${Math.floor(i / 6)}" Col="${i % 6}" ValueType="60">x</gnm:Cell>`).join("");
+  const source = `<gnm:Workbook xmlns:gnm="http://www.gnome.org/gnumeric/v4"><gnm:Sheets><gnm:Sheet><gnm:Name>S</gnm:Name><gnm:Styles>${regions}</gnm:Styles><gnm:Cells>${cells}</gnm:Cells></gnm:Sheet></gnm:Sheets></gnm:Workbook>`;
+  const original = await readGnumeric(new TextEncoder().encode(source), context);
+  const empty = {...original, sheets: original.sheets.map(sheet => ({...sheet, cells: []}))};
+  const reopened = await readGnumeric(await writeGnumeric(empty, [], context), context);
+  const populated = {...reopened, sheets: reopened.sheets.map(sheet => ({...sheet, cells: original.sheets[0]!.cells.map(({row,column,value}) => ({row,column,value}))}))};
+  const result = await readGnumeric(await writeGnumeric(populated, [], context), context);
+  expect(result.sheets[0]!.cells.map(cell => cellPrintStyle(cell.style, () => {})))
+    .toEqual(original.sheets[0]!.cells.map(cell => cellPrintStyle(cell.style, () => {})));
+});
+
+it("keeps full-sheet empty style ranges compact under a zero-cell budget", async () => {
+  const input = new TextDecoder().decode(fixture(4, '<gnm:Style Fore="0:0:FFFF"/>'))
+    .replaceAll('endRow="0"', 'endRow="65535"').replaceAll('endCol="1"', 'endCol="255"');
+  const original = await readGnumeric(new TextEncoder().encode(input), context);
+  const empty = {...original, sheets: original.sheets.map(sheet => ({...sheet, cells: []}))};
+  const reopened = await readGnumeric(await writeGnumeric(empty, [], context),
+    {...context, limits: {...context.limits, cells: 0, workbookWork: 5000}});
+  expect(reopened.sheets[0]!.cells).toEqual([]);
+  const styles = reopened.sheets[0]!.unsupportedRecords!.find(record => record.kind === "Styles")!;
+  expect((styles.data as {children: unknown[]}).children).toHaveLength(2);
+});

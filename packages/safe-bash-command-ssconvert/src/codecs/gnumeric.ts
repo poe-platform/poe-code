@@ -16,7 +16,7 @@ import { gnumericGrammar } from "../formulas/conventions.js";
 import { quoteFormulaString } from "../formulas/serialization.js";
 import { gnumericFormulaNodes } from "./gnumeric-formula-nodes.js";
 import { rewriteReferences } from "../formulas/rewriting.js";
-import { applyGnumericStyle, normalizeGnumericStyle } from "./gnumeric-style-regions.js";
+import { applyGnumericStyle, normalizeGnumericStyle, resolveGnumericStyleRegions } from "./gnumeric-style-regions.js";
 import { gnumericNumber } from "./gnumeric-number.js";
 import { readGnumericRichText, writeGnumericRichText } from "./gnumeric-rich-text.js";
 import { objectKinds } from "../objects/registry.js";
@@ -444,6 +444,9 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
       const style = child(region, "Style");
       return {region, style: style ? normalizeGnumericStyle(style, tick) : undefined};
     });
+    const savedStyles = version >= 3 && version <= 5
+      ? resolveGnumericStyleRegions(styles.map(entry => ({...entry, bounds: xmlRange(entry.region)})), tick)
+      : styles.map(({region, style}) => style ? {...region, children: [style], content: [style]} : region);
     const groups: NonNullable<Sheet["formulaGroups"]>[number][] = [];
     const cells: Cell[] = []; const addresses = new Map<string, number>();
     for await (const { key, node: item } of nodes(child(node, "Cells"))) {
@@ -512,7 +515,8 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
       view: { gnumeric: Object.fromEntries(node.attributes.filter(a => !a.namespace && gnumericAttributes.Sheet?.includes(a.localName)).map(a => [a.localName, a.value])), zoom: Number(child(node, "Zoom")?.text ?? 1),
         ...(columns.defaultSize === undefined ? {} : { defaultColumnWidth: columns.defaultSize }),
         ...(rows.defaultSize === undefined ? {} : { defaultRowHeight: rows.defaultSize }) },
-      unsupportedRecords: node.children.filter(n => namespaces.has(n.namespace) && ["PrintInformation", "Styles", "Cols", "Rows", "Selections", "Objects", "SheetLayout", "Filters", "Solver", "Scenarios"].includes(n.localName)).map(retained) });
+      unsupportedRecords: node.children.filter(n => namespaces.has(n.namespace) && ["PrintInformation", "Styles", "Cols", "Rows", "Selections", "Objects", "SheetLayout", "Filters", "Solver", "Scenarios"].includes(n.localName)).map(n => retained(n.localName === "Styles"
+        ? {...n, children: savedStyles, content: savedStyles} : n)) });
   }
   const selected = number(child(root, "UIData"), "SelectedTab", 0);
   const declarations = new Map<XmlElement, NamedExpression[]>();

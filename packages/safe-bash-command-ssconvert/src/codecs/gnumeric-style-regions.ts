@@ -1,3 +1,4 @@
+import type {Range} from "../workbook.js";
 import type {XmlElement, XmlAttribute} from "@poe-code/safe-fs/xml";
 
 /** XML v3-v5 applies only specified style fields, including individual font fields. */
@@ -82,4 +83,49 @@ export function normalizeGnumericStyle(style: XmlElement, tick: () => void): Xml
     return {...font, text: "", attributes, content: font.children};
   });
   return {...style, attributes: [...attributes.values()], children, content: [...(style.text ? [{kind: "text" as const, text: style.text}] : []), ...children]};
+}
+
+/** Resolve legacy partial overlays without enumerating cells in styled ranges. */
+export function resolveGnumericStyleRegions(regions: readonly {region: XmlElement; style: XmlElement | undefined; bounds: Range}[], tick: () => void): XmlElement[] {
+  type Region = {region: XmlElement; style: XmlElement; bounds: Range};
+  let resolved: Region[] = [];
+  const intersection = (a: Range, b: Range): Range | undefined => {
+    tick();
+    const bounds = {startRow: Math.max(a.startRow, b.startRow), endRow: Math.min(a.endRow, b.endRow),
+      startColumn: Math.max(a.startColumn, b.startColumn), endColumn: Math.min(a.endColumn, b.endColumn)};
+    return bounds.startRow <= bounds.endRow && bounds.startColumn <= bounds.endColumn ? bounds : undefined;
+  };
+  const outside = (a: Range, cut: Range): Range[] => {
+    const parts: Range[] = [];
+    if (a.startRow < cut.startRow) parts.push({...a, endRow: cut.startRow - 1});
+    if (a.endRow > cut.endRow) parts.push({...a, startRow: cut.endRow + 1});
+    if (a.startColumn < cut.startColumn) parts.push({...a, startRow: cut.startRow, endRow: cut.endRow, endColumn: cut.startColumn - 1});
+    if (a.endColumn > cut.endColumn) parts.push({...a, startRow: cut.startRow, endRow: cut.endRow, startColumn: cut.endColumn + 1});
+    return parts;
+  };
+  for (const patch of regions) {
+    tick();
+    if (!patch.style) continue;
+    const next: Region[] = [];
+    let uncovered = [patch.bounds];
+    for (const prior of resolved) {
+      const overlap = intersection(prior.bounds, patch.bounds);
+      if (!overlap) {next.push(prior); continue;}
+      for (const bounds of outside(prior.bounds, overlap)) {tick(); next.push({...prior, bounds});}
+      next.push({...patch, style: applyGnumericStyle(prior.style, patch.style, tick), bounds: overlap});
+      uncovered = uncovered.flatMap(bounds => {
+        const cut = intersection(bounds, overlap);
+        return cut ? outside(bounds, cut) : [bounds];
+      });
+    }
+    for (const bounds of uncovered) {tick(); next.push({...patch, style: patch.style, bounds});}
+    resolved = next;
+  }
+  return resolved.map(({region, style, bounds}) => {
+    tick();
+    const attributes = Object.entries({startRow: bounds.startRow, endRow: bounds.endRow,
+      startCol: bounds.startColumn, endCol: bounds.endColumn})
+      .map(([name, value]) => ({name, localName: name, namespace: "", value: String(value)}));
+    return {...region, attributes, children: [style], text: "", content: [style]};
+  });
 }

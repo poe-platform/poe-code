@@ -128,6 +128,19 @@ test("rg empty replacement matches advance by bytes within UTF-8 input", async (
   );
 });
 
+for (const [input, expected] of [
+  ["hello\n  foo\nbar\n", "2:3:8:foo\n3:3:8:bar\n"],
+  ["é\n🦊foo\nbar\n", "2:5:7:foo\n3:5:7:bar\n"],
+  ["hello\n  foo\nbar\n xfoo\nbar", "2:3:8:foo\n3:3:8:bar\n4:3:18:foo\n5:3:18:bar\n"],
+] as const) {
+  for (const byteOffset of ["-b", "--byte-offset"]) {
+    test(`rg multiline only-matching keeps line-relative columns and absolute byte offsets: ${byteOffset} ${JSON.stringify(input)}`, async () => {
+      assert.deepEqual(await replace(["-U", "-o", "-n", byteOffset, "--column", "foo\\nbar"], input),
+        { stdout: expected, stderr: "", exitCode: 0 });
+    });
+  }
+}
+
 const multilineInput = "line1 foo\n  bar line2\nline3\n";
 for (const [flags, expected] of [
   [["-U", "-r", "REPL"], "line1 REPL line2\n"],

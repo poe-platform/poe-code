@@ -5,12 +5,12 @@ import {createContext, runInContext} from "node:vm";
 import {createFsFromVolume, Volume} from "memfs";
 import {build} from "esbuild";
 import ts from "typescript";
-import {expect, it} from "vitest";
+import {beforeAll, expect, it} from "vitest";
 import {packageSafeLibraries} from "./package-safe.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 
-it("packs the retained Soffice file SDK with canonical filesystem types and no private runtime imports", async () => {
+async function createPackedSofficeFixture() {
   const volume = new Volume();
   const write = (filename: string, bytes: string | Uint8Array) => {
     volume.mkdirSync(path.dirname(filename), {recursive: true});
@@ -67,9 +67,19 @@ it("packs the retained Soffice file SDK with canonical filesystem types and no p
   }
   await packageSafeLibraries({rootDir: "/repo", outDir: "/output", version: "0.1.0", files: createFsFromVolume(volume).promises, bundle: async () => ({outputFiles: []})});
   const manifests = Object.fromEntries(["safe-fs", "safe-bash"].map(name => [name, JSON.parse(volume.readFileSync(`/output/${name}/package.json`, "utf8").toString())]));
-  for (const manifest of Object.values(manifests)) expect(Object.keys(manifest.dependencies)).not.toContain("@poe-code/safe-fs");
   volume.mkdirSync("/node_modules/@poe-platform", {recursive: true});
   for (const name of ["safe-fs", "safe-bash"]) volume.symlinkSync(`/output/${name}`, `/node_modules/@poe-platform/${name}`);
+  return {volume, write, copy, manifests};
+}
+
+let fixture: Awaited<ReturnType<typeof createPackedSofficeFixture>>;
+beforeAll(async () => {
+  fixture = await createPackedSofficeFixture();
+});
+
+it("packs the retained Soffice SDK with canonical filesystem types for an isolated consumer", () => {
+  const {volume, write, manifests} = fixture;
+  for (const manifest of Object.values(manifests)) expect(Object.keys(manifest.dependencies)).not.toContain("@poe-code/safe-fs");
   write("/consumer.mts", 'import {runSofficeFileCli} from "@poe-platform/safe-bash/commands/soffice"; import type {FileSystem} from "@poe-platform/safe-fs/contracts"; import {createEngine} from "@poe-platform/safe-bash/ssconvert/core"; createEngine().transcode({input: {kind: "stream", source: []}, destination: {kind: "stream", sink: {async write(bytes: Uint8Array) {}}}, exportType: "csv"}, {signal: new AbortController().signal}); declare const filesystem: FileSystem; runSofficeFileCli(["--cat", "/input.txt"], {filesystem, stdout: {async write(bytes: Uint8Array) {}}, stderr: {async write(bytes: Uint8Array) {}}});');
   const compilerOptions: ts.CompilerOptions = {strict: true, noEmit: true, types: [], target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.NodeNext, moduleResolution: ts.ModuleResolutionKind.NodeNext, customConditions: ["workerd"]};
   const host = ts.createCompilerHost(compilerOptions);
@@ -84,6 +94,10 @@ it("packs the retained Soffice file SDK with canonical filesystem types and no p
   host.getCurrentDirectory = () => "/";
   const program = ts.createProgram(["/consumer.mts"], compilerOptions, host);
   expect(ts.getPreEmitDiagnostics(program).map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"))).toEqual([]);
+});
+
+it("runs retained Soffice conversions from a portable bundle with no private runtime imports", async () => {
+  const {volume, write, copy, manifests} = fixture;
   const pending = Object.values(manifests).flatMap(manifest => Object.keys(manifest.dependencies ?? {}));
   const installed = new Set<string>();
   while (pending.length) {

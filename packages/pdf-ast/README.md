@@ -153,8 +153,10 @@ Forms, Type3 glyphs, fonts, images, masks and shading share caller-backed stagin
 returning or failing closes every content cursor. `maxStagingBytes` covers their
 combined live scratch files, and `maxResourceBytes` conservatively admits
 resource allocations across the traversal. The font cache retains at most
-`maxCachedFonts` entries (16 by default). Paths, composite captures, and raster
-results remain resident; this is not yet an externally backed display list.
+`maxCachedFonts` entries (16 by default). With `imageStorage`, paths, captures,
+and CID-to-glyph tables use the caller-owned backing. CID lookup reads only the
+selected byte pair, including odd trailing bytes. Font programs and individual
+resource metadata still have separate resident ownership.
 
 `renderRetainedShading(document, node, settings, storage, options)` renders a
 selected shading through retained reads. It shares the buffered renderer for

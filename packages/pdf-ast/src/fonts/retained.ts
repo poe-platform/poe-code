@@ -1,4 +1,4 @@
-import type { PdfCosDict, PdfCosRef, PdfCosStream } from "../ast.js";
+import type { PdfCosDict, PdfCosRef, PdfCosStream, PdfPixelStorage } from "../ast.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import { PdfError } from "../errors.js";
 import type { PdfRetainedDocument } from "../retained-document.js";
@@ -7,6 +7,8 @@ import { PdfFontAllocation, type PdfFontAllocationOptions } from "./memory.js";
 import { resolvePageFontsSteps, type FontResolutionResult, type ResolvedPageFont } from "./resolve.js";
 
 export interface PdfRetainedFontOptions extends PdfFontAllocationOptions {
+  /** Caller-owned resource backing, retained for the returned font lifetime. */
+  readonly resourceStorage?: PdfPixelStorage;
   readonly maxStagingBytes?: number;
   readonly chunkBytes?: number;
   readonly signal?: AbortSignal;
@@ -57,10 +59,17 @@ export async function resolveRetainedFont(document: PdfRetainedDocument, storage
           staged = await PdfFileSource.fromStream(storage.fs, storage.directory,
             decoded(),
             { chunkBytes, cacheBytes: chunkBytes, maxInputBytes: maxStagingBytes, ...(signal ? { signal } : {}) });
-          allocation.admit(staged.size);
-          value = new Uint8Array(staged.size);
-          let offset = 0;
-          for await (const bytes of staged.stream(0, staged.size, signal)) { value.set(bytes, offset); offset += bytes.length; }
+          if(step.value.purpose==="cid-map"&&options.resourceStorage){
+            allocation.admit(64);
+            const storage=options.resourceStorage,position=storage.allocate(staged.size);let offset=0;
+            for await(const bytes of staged.stream(0,staged.size,signal)){await storage.write(position+offset,bytes,signal?{signal}:undefined);offset+=bytes.length;}
+            value={storage,position,byteLength:staged.size};
+          }else{
+            allocation.admit(staged.size);
+            value = new Uint8Array(staged.size);
+            let offset = 0;
+            for await (const bytes of staged.stream(0, staged.size, signal)) { value.set(bytes, offset); offset += bytes.length; }
+          }
         } catch (error) {
           failed = true;
           if (malformed && error === malformed) { step = steps.throw(error); continue; }

@@ -1,3 +1,4 @@
+import type { StoredCidMap } from "./stored-cid-map.js";
 import { FontWidths } from "./widths.js";
 import { PdfFontAllocation, type PdfFontAllocationOptions } from "./memory.js";
 import { getEncoding, type CMap } from "../vendor/pdfjs-fonts.mjs";
@@ -11,11 +12,11 @@ import { parseCharacterCMap, parseToUnicodeCMap, type ParsedToUnicodeCMap } from
 import { parseTrueTypeFont, type ParsedTrueTypeFont } from "./truetype.js";
 import { buildFontEncodingDifferencesMap, buildFontEncodingGlyphNamesMap, normalizeStandard14FontName, STANDARD_14_FONTS } from "./standard14.js";
 type Matrix6 = [number, number, number, number, number, number];
-export type FontResolutionRequest = { kind: "resolve"; node: PdfCosNode | undefined } | { kind: "decode"; stream: PdfCosStream };
-export type FontResolutionResult = PdfCosNode | Uint8Array | undefined;
+export type FontResolutionRequest = { kind: "resolve"; node: PdfCosNode | undefined } | { kind: "decode"; stream: PdfCosStream; purpose?: "cid-map" };
+export type FontResolutionResult = PdfCosNode | Uint8Array | StoredCidMap | undefined;
 function* resolve(node: PdfCosNode | undefined): Generator<FontResolutionRequest, PdfCosNode | undefined, FontResolutionResult> {
   const value = yield { kind: "resolve", node };
-  if (value instanceof Uint8Array) throw new TypeError("Font lookup returned stream bytes instead of a COS value");
+  if (value && !("kind" in value)) throw new TypeError("Font lookup returned stream bytes instead of a COS value");
   return value;
 }
 function* resolveDict(node: PdfCosNode | undefined): Generator<FontResolutionRequest, PdfCosDict | undefined, FontResolutionResult> {
@@ -46,6 +47,7 @@ export interface ResolvedPageFont {
   readonly embeddedCff?: EmbeddedCffFont | undefined;
   readonly embeddedTrueType?: ParsedTrueTypeFont | undefined;
   readonly cidToGid?: Uint16Array | undefined;
+  readonly storedCidToGid?: StoredCidMap | undefined;
   readonly simpleToGid?: ReadonlyMap<number, number> | undefined;
   readonly standardOutlines?: StandardFontOutlines | undefined;
 }
@@ -193,15 +195,19 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
         const cidDictForTt = descArrForTt && descArrForTt.items[0] ? (yield* resolveDict(descArrForTt.items[0])) : undefined;
         const fDesc = fDescDirect ?? (cidDictForTt ? (yield* resolveDict(dictGet(cidDictForTt, "FontDescriptor"))) : undefined);
         let cidToGid: Uint16Array | undefined;
+        let storedCidToGid: StoredCidMap | undefined;
         const cidMap = cidDictForTt ? (yield* resolve(dictGet(cidDictForTt, "CIDToGIDMap"))) : undefined;
         if (cidMap?.kind === "stream") {
             // PDF.js readCidToGidMap reads big-endian pairs; a trailing high byte
             // gets a zero low byte. Retain explicit zero entries and stream extent.
-            const bytes = (yield* decodeStream(cidMap));
+            const bytes = yield {kind:"decode",stream:cidMap,purpose:"cid-map"};
+            if(bytes && "storage" in bytes)storedCidToGid=bytes;
+            else if(bytes instanceof Uint8Array){
             allocation.admit(Math.ceil(bytes.length / 2) * 2);
             cidToGid = new Uint16Array(Math.ceil(bytes.length / 2));
             for (let i = 0; i < bytes.length; i += 2)
                 cidToGid[i / 2] = (bytes[i]! << 8) | (bytes[i + 1] ?? 0);
+            }else throw new TypeError("Font decoder did not return CID map bytes");
         }
         if (fDesc) {
             const type1Program = (yield* resolve(dictGet(fDesc, "FontFile")));
@@ -278,6 +284,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
             fontResources,
             embeddedTrueType,
             cidToGid,
+            storedCidToGid,
             simpleToGid,
             embeddedCff,
             standardOutlines,

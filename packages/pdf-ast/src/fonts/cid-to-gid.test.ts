@@ -70,7 +70,7 @@ function triangleFont(notdef = false, withCmap = true, options: Parameters<typeo
   return parseTrueTypeFont(u8, options);
 }
 
-function evaluate(cid: number, mapping: PdfCosNode | undefined, options: { unicode?: string; notdef?: boolean; encoding?: string; mappedCid?: number; byteLength?: number; withCmap?: boolean } = {}) {
+function evaluate(cid: number, mapping: PdfCosNode | undefined, options: { unicode?: string; notdef?: boolean; encoding?: string; mappedCid?: number; byteLength?: number; withCmap?: boolean; onDocument?:(doc:PdfDocument)=>void } = {}) {
   const { unicode = "Z", notdef = false, encoding, mappedCid = cid, byteLength = 2, withCmap = true } = options;
   const doc = PdfDocument.create();
   const page = doc.addPage([200, 100]);
@@ -88,6 +88,7 @@ function evaluate(cid: number, mapping: PdfCosNode | undefined, options: { unico
   dictSet(descendant, "W", cosArray([cosNumber(mappedCid), cosArray([cosNumber(900)])]));
   dictSet(page.pageDict, "Resources", cosDict({ Font: cosDict({ F1: reference }) }));
   page.setRawContentStream(`BT /F1 100 Tf 10 10 Td <${cid.toString(16).padStart(byteLength * 2, "0")}> Tj ET`);
+  options.onDocument?.(doc);
   return PdfDocument.load(doc.save()).getPage(0).evaluateDisplayList();
 }
 
@@ -240,4 +241,18 @@ it("rejects compact declarations of giant TrueType point arrays before decoding"
   const failure = new Error("point array exceeds containing budget");
   const font = parseTrueTypeFont(bytes, { onAllocation(size) { if (size > 100000) throw failure; } });
   expect(() => font.getGlyphOutlineByGid(1)).toThrow(failure);
+});
+
+
+it("renders a distant CID through caller-backed map ranges without materializing the map",async()=>{
+ const {createMemoryFileSystem}=await import("@poe-code/safe-fs"),{PagedStorage}=await import("@poe-code/safe-fs/storage");
+ const {PdfFileSource}=await import("../source.js"),{PdfRetainedDocument}=await import("../retained-document.js"),{renderOperationStreamWindow}=await import("../render/raster.js");
+ const mapping=new Uint8Array(131073);mapping[80001]=1;mapping[131072]=1;let input!:Uint8Array;
+ const expected=evaluate(40000,cosStream(mapping),{onDocument(doc){input=doc.save();}}),bitmap=renderDisplayListToBitmap(expected,{scale:0.5});
+ const fs=createMemoryFileSystem();await fs.mkdir("/scratch");await fs.writeFile("/input",input);
+ const storage={fs,directory:"/scratch"},source=await PdfFileSource.open(fs,"/input"),doc=await PdfRetainedDocument.open(source,storage),page=(await doc.pages().next()).value!,backing=new PagedStorage({fs,cwd:"/scratch",env:{},signal:new AbortController().signal},2);
+ try{
+  const operations=async function*(){for await(const event of page.evaluateSteps(storage,{imageStorage:backing,onAllocation(bytes){if(bytes>65536)throw Error("whole CID map allocation "+bytes);}}))if(!event.captured)yield event.operation;};
+  expect(await renderOperationStreamWindow(expected,operations,{x:0,y:0,width:bitmap.width,height:bitmap.height},{scale:0.5})).toEqual(bitmap);
+ }finally{await backing.close();await doc.close();await source.close();expect(await fs.readdir("/scratch")).toEqual([]);}
 });

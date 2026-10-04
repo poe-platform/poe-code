@@ -1026,7 +1026,7 @@ export function transformPathSegment(seg: PdfPathSegment, matrix: Matrix6): PdfP
 
 interface EvaluationFrame {pushed:boolean;hidden:boolean;mcid:number|undefined;actualText:string|undefined;savedState?:GraphicsState}
 
-export type PdfEvaluationRequest = {readonly kind:"frame-push";readonly stack:StoredMetadataStack<EvaluationFrame>;readonly frame:EvaluationFrame}
+export type PdfEvaluationRequest = {readonly kind:"cid-gid";readonly map:import("../fonts/stored-cid-map.js").StoredCidMap;readonly code:number} | {readonly kind:"frame-push";readonly stack:StoredMetadataStack<EvaluationFrame>;readonly frame:EvaluationFrame}
   | {readonly kind:"frame-pop";readonly stack:StoredMetadataStack<EvaluationFrame>} | {readonly kind:"capture-append";readonly writer:StoredOperationsWriter;readonly operation:PdfPaintOperation} | PdfEvaluationShadingRequest | PdfEvaluationOperation | { readonly kind: "node"; readonly source?: PdfEvaluationContentSource }
   | { readonly kind: "append-clip"; readonly storage: PdfPixelStorage; readonly previous: PdfStoredClipPaths | undefined; readonly clip: PdfClipPath }
   | { readonly kind: "path-append"; readonly writer: StoredPathWriter; readonly segments: readonly PdfPathSegment[] }
@@ -1922,7 +1922,12 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                 const cidFont = font.subtype === "Type0" && font.embeddedTrueType;
                 if (cidFont || font.simpleToGid) evaluatedType3 = true; // An empty mapped glyph must not fall back to standard text.
                 const glyphCode = item.cid ?? item.charCode;
-                const glyphId = font.cidToGid ? font.cidToGid[glyphCode] ?? 0 : glyphCode;
+                let glyphId = font.cidToGid ? font.cidToGid[glyphCode] ?? 0 : glyphCode;
+                if(font.storedCidToGid){
+                  const result=yield {kind:"cid-gid",map:font.storedCidToGid,code:glyphCode};
+                  if(!result||!("kind" in result)||result.kind!=="resolved"||result.node?.kind!=="number")throw new TypeError("Expected a resolved CID glyph number");
+                  glyphId=result.node.value;
+                }
                 const simpleGid = font.simpleToGid?.get(item.charCode) ?? 0;
                 let glyphOutline: PdfPathSegment[] = [];
                 if (cidFont) {
@@ -2126,7 +2131,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
-      } else if ((step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
+      } else if ((step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
         throw new PdfError("E_CAPABILITY", "Stored PDF paths require an asynchronous source driver");
       } else if (step.value.kind === "shading") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF shading requires a source driver");

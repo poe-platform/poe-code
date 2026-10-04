@@ -278,7 +278,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         page.pushOperators(setTextMatrix(1, 0, 0, 1, x + glyph.x, baseline + glyph.y), showText(PDFHexString.of(encoded.slice(index * 4, index * 4 + 4))));
       }
       page.pushOperators(endText(), PDFOperator.of(PDFOperatorNames.EndMarkedContent));
-      if (cellBox.style.underline) {
+      if (cellBox.style.underline || cellBox.style.strikeThrough) {
         // Pango uses font underline metrics and the union of positioned ink bounds.
         const scale = size / metrics.unitsPerEm;
         const thickness = metrics.underlineThickness ? metrics.underlineThickness * scale : printDisplayScale;
@@ -296,11 +296,20 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         const lineY = baseline + (low ? Math.min(0, inkBottom) - 2 * thickness : position - thickness);
         if (low) page.pushOperators(pdfRectangle(clipLeft, page.getHeight() - y - cellBox.height,
           clipWidth, cellBox.height), clip(), endPath());
-        for (let line = 0; line < (cellBox.style.underline === 2 || cellBox.style.underline === 4 ? 2 : 1); line++) {
+        for (let line = 0; line < (cellBox.style.underline === 0 ? 0 : cellBox.style.underline === 2 || cellBox.style.underline === 4 ? 2 : 1); line++) {
           tick();
           page.drawRectangle({x: x + Math.min(0, inkLeft), y: lineY - line * 2 * thickness,
             width: Math.max(width, Number.isFinite(inkRight - inkLeft) ? inkRight - inkLeft : 0),
             height: thickness, color: rgb(...cellBox.style.foreground)});
+        }
+        if (cellBox.style.strikeThrough && Number.isFinite(inkRight - inkLeft)) {
+          // Fontkit decodes these standard OS/2 fields, but omits them from its declaration.
+          const os2 = metrics["OS/2"] as {yStrikeoutSize?: number; yStrikeoutPosition?: number} | undefined;
+          const strikeThickness = os2?.yStrikeoutSize ? os2.yStrikeoutSize * scale : printDisplayScale;
+          const strikePosition = os2?.yStrikeoutPosition ? os2.yStrikeoutPosition * scale : ascent / 2;
+          tick();
+          page.drawRectangle({x: x + inkLeft, y: baseline + strikePosition - strikeThickness,
+            width: inkRight - inkLeft, height: strikeThickness, color: rgb(...cellBox.style.foreground)});
         }
       }
       page.pushOperators(popGraphicsState());

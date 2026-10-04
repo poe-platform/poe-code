@@ -54,7 +54,8 @@ it.each(['Bold="1"', 'Italic="1"', "DejaVu Serif"])("shares a byte budget across
 it("retains explicit refusal for unsupported shading and font decorations before font selection", async () => {
   const resolve = vi.fn<FontCapability["resolve"]>(async () => suppliedDefaultFont().bytes);
   for (const c of [{text: "shade", attributes: attributes.replace('Shade="0"', 'Shade="2"')},
-    {text: "underline", font: font.replace('Underline="0"', 'Underline="5"')}])
+    {text: "underline", font: font.replace('Underline="0"', 'Underline="5"')},
+    {text: "strike", font: font.replace('StrikeThrough="0"', 'StrikeThrough="2"')}])
     await expect(writePdf(await fixture([c]), [], {...context, fonts: {resolve}})).rejects.toThrow("styled or merged cells");
   expect(resolve).not.toHaveBeenCalled();
 });
@@ -142,5 +143,30 @@ it.each([1, 2, 3, 4])("paints native underline %i without decorating adjacent ce
     expect(lines[0]!.x).toBe(runs[0]!.glyphs[0]!.x);
     expect(lines[0]!.y).toBeCloseTo(runs[0]!.glyphs[0]!.y - (underline === 3 ? 2.1 : 1.5375), 8);
     if (lines.length === 2) expect(Math.abs(lines[0]!.y! - lines[1]!.y!)).toBeCloseTo(2 * lines[0]!.height!, 8);
+  } finally {rectangle.mockRestore();}
+});
+
+it.each([0, 1, 2, 3, 4])("combines strikethrough with underline %i using independent ink bounds", async underline => {
+  const rectangle = vi.spyOn(PDFPage.prototype, "drawRectangle");
+  try {
+    const book = await fixture([{text: "jAy pq", font: font.replace('StrikeThrough="0"', 'StrikeThrough="1"').replace('Underline="0"', `Underline="${underline}"`)}, {text: "Neighbor"}]);
+    const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve: async () => suppliedDefaultFont().bytes}}));
+    expect(runs.map(run => run.text)).toEqual(["jAy pq", "Neighbor"]);
+    const lines = rectangle.mock.calls.map(([options]) => options!);
+    expect(lines).toHaveLength(underline === 0 ? 1 : underline === 2 || underline === 4 ? 3 : 2);
+    const strike = lines.at(-1)!;
+    expect(strike.height).toBeGreaterThan(0);
+    expect(strike.y).toBeGreaterThan(runs[0]!.glyphs[0]!.y);
+    expect(strike.x).toBeGreaterThan(runs[0]!.glyphs[0]!.x);
+    expect(strike.width).toBeLessThan(27);
+  } finally {rectangle.mockRestore();}
+});
+
+it("does not draw nonfinite strikethrough rectangles for inkless spaces", async () => {
+  const rectangle = vi.spyOn(PDFPage.prototype, "drawRectangle");
+  try {
+    const book = await fixture([{text: "   ", font: font.replace('StrikeThrough="0"', 'StrikeThrough="1"')}]);
+    await writePdf(book, [], {...context, fonts: {resolve: async () => suppliedDefaultFont().bytes}});
+    expect(rectangle).not.toHaveBeenCalled();
   } finally {rectangle.mockRestore();}
 });

@@ -6,6 +6,10 @@ import type { CosToken } from "./lexer.js";
 // is represented. The container/reference grammar is shared by both I/O paths.
 export interface ValueArrayStorage {
   readonly arrayStorage?: PdfPixelStorage;
+  /** Select decoded source strings without changing other string consumers. */
+  readonly stringStorage?: PdfPixelStorage;
+  readonly storedStringKeys?: readonly string[];
+  readonly storeRootString?: boolean;
   readonly storedArrayKeys?: readonly string[];
   /** Match a suffix of enclosing dictionary keys; '*' matches one key.
    * Array boundaries do not match dictionary path segments. */
@@ -16,7 +20,7 @@ export interface ValueArrayStorage {
 }
 export type ValueWork<T> = Generator<void | "token" | PdfCosDict | {kind: "array-append"; node: PdfCosNode; previous: number}, T, CosToken | PdfCosNode | number | undefined>;
 
-export function* parseValueSteps(lexer: { offset: number }, maxDepth: number, repair = false, maxNodes = Infinity, options: ValueArrayStorage = {}): ValueWork<PdfCosNode | undefined> {
+export function* parseValueSteps(lexer: { offset: number; setStringStorage?: (storage: PdfPixelStorage | undefined) => void }, maxDepth: number, repair = false, maxNodes = Infinity, options: ValueArrayStorage = {}): ValueWork<PdfCosNode | undefined> {
   yield;
   let work = 0;
   let nodes = 0;
@@ -50,8 +54,9 @@ export function* parseValueSteps(lexer: { offset: number }, maxDepth: number, re
   while (true) {
     if (++work % 16 === 0) yield;
 
-    const tok = (yield "token") as CosToken | undefined;
     const parent = stack.at(-1);
+    lexer.setStringStorage?.(options.stringStorage && ((parent?.kind === "dict" && parent.key && options.storedStringKeys?.includes(parent.key.decoded)) || (!parent && options.storeRootString)) ? options.stringStorage : undefined);
+    const tok = (yield "token") as CosToken | undefined;
     if (!tok) {
       if (!parent) return undefined;
       throw new PdfError("E_PARSE", parent.kind === "array" ? "Unterminated PDF array" : "Unterminated PDF dictionary");
@@ -147,9 +152,9 @@ function* parseLeafFromToken(tok: CosToken, lexer: { offset: number }): ValueWor
     case "name":
       return { kind: "name", rawBytes: tok.rawBytes, decoded: tok.decoded, span: tok.span };
     case "string":
-      return { kind: "string", encoding: "literal", bytes: tok.bytes, span: tok.span };
+      return { kind: "string", encoding: "literal", bytes: tok.bytes, ...(tok.storedBytes ? { storedBytes: tok.storedBytes } : {}), span: tok.span };
     case "hex-string":
-      return { kind: "string", encoding: "hex", bytes: tok.bytes, span: tok.span };
+      return { kind: "string", encoding: "hex", bytes: tok.bytes, ...(tok.storedBytes ? { storedBytes: tok.storedBytes } : {}), span: tok.span };
     default:
       throw new PdfError("E_PARSE", `Unexpected PDF token: ${tok.kind}`);
   }

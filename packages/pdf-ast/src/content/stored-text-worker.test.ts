@@ -3,7 +3,7 @@ import { build } from "esbuild";
 import { Miniflare } from "miniflare";
 import { fileURLToPath } from "node:url";
 
-it.each(["token", "array", "actual"])(
+it.each(["token", "source", "array", "actual"])(
   "evaluates growing %s text with external backing and bounded Worker reads",
   async (mode) => {
     const bundle = await build({
@@ -11,6 +11,8 @@ it.each(["token", "array", "actual"])(
         resolveDir: fileURLToPath(new URL("../../../../", import.meta.url)),
         sourcefile: "stored-text-worker.ts",
         contents: `
+import {parseCosRangeValue} from './packages/pdf-ast/src/cos/range-parser.ts';
+import {dictGet} from './packages/pdf-ast/src/ast.ts';
 import {CosRangeLexer} from './packages/pdf-ast/src/cos/lexer.ts';
 import {parseContentRangeEvents} from './packages/pdf-ast/src/content/range-events.ts';
 import {readStoredRecord} from './packages/pdf-ast/src/content/stored-record.ts';
@@ -20,7 +22,13 @@ export default {async fetch(request,env){
  const {count,mode}=await request.json();let end=0,admission=0,reads=0,writes=0;
  const storage={allocate(n){const at=end;end+=n;return at;},async read(at,n){if(n>4096)throw Error('large read');reads++;return new Uint8Array(await(await env.BACKING.fetch('https://backing/?at='+at+'&length='+n)).arrayBuffer());},async write(at,bytes){if(bytes.length>4096)throw Error('large write');writes++;await env.BACKING.fetch('https://backing/?at='+at,{method:'PUT',body:bytes});}};
  let token,nodes,peakItems=0;
- if(mode==='token'){
+ if(mode==='source'){
+ const prefix='<< /Title (ordinary) /ActualText (',suffix=') >>';
+ const source={size:prefix.length+count+suffix.length,chunkBytes:256,async read(at,n){const bytes=new Uint8Array(n);for(let i=0;i<n;i++){const p=at+i-prefix.length;bytes[i]=p<0?prefix.charCodeAt(at+i):p<count?65:suffix.charCodeAt(p-count);}return bytes;}};
+ const {value}=await parseCosRangeValue(source,0,{stringStorage:storage,storedStringKeys:['ActualText']});
+ token=dictGet(value,'ActualText');if(token.bytes.length||token.storedBytes.byteLength!==count)throw Error('resident source string');
+ if(dictGet(value,'Title').bytes.length!==8)throw Error('changed ordinary string');
+ }else if(mode==='token'){
  const source={size:count+2,chunkBytes:256,async read(at,n){const bytes=new Uint8Array(n);for(let i=0;i<n;i++){const p=at+i;bytes[i]=p===0?40:p===count+1?41:65;}return bytes;}};
  const lexer=new CosRangeLexer(source,{stringStorage:storage,onTokenAllocation(n){admission+=n;if(admission>16384)throw Error('growing token scratch');}});
  token=await lexer.nextToken();if(token.bytes.length)throw Error('resident token');

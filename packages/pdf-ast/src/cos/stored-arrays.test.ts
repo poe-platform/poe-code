@@ -87,3 +87,42 @@ it("backs graphics-state dash paths without changing unrelated D arrays", async 
   expect(get(value, "D")).toMatchObject({ kind: "array", items: [{ value: 7 }, { value: 6 }] });
   expect(get(get(get(value, "Other"), "Dashes"), "D")).toMatchObject({ kind: "array", items: [{ value: 5 }, { value: 4 }] });
 });
+
+
+it("selectively backs source strings while preserving ordinary string consumers", async () => {
+  const input = new TextEncoder().encode("<< /ActualText (" + "abc".repeat(8192) + ") /Title (ordinary) /Nested << /ActualText <4142> >> >>");
+  const data = new Uint8Array(65536); let end = 0;
+  const storage = { allocate(n: number) { const at = end; end += n; return at; },
+    async read(at: number, n: number) { return data.subarray(at, at + n); },
+    async write(at: number, bytes: Uint8Array) { expect(bytes.length).toBeLessThanOrEqual(4096); data.set(bytes, at); } };
+  const source = { size: input.length, chunkBytes: 64, async read(at: number, n: number) { return input.subarray(at, at + n); } };
+  const { value } = await parseCosRangeValue(source, 0, { stringStorage: storage, storedStringKeys: ["ActualText"] });
+  if (value?.kind !== "dict") throw Error("Expected dictionary");
+  const replacement = dictGet(value, "ActualText"), title = dictGet(value, "Title"), nested = dictGet(value, "Nested");
+  expect(replacement).toMatchObject({ kind: "string", bytes: new Uint8Array(), storedBytes: { storage, byteLength: 24576 } });
+  expect(title).toMatchObject({ kind: "string", bytes: new TextEncoder().encode("ordinary") });
+  expect(nested?.kind === "dict" && dictGet(nested, "ActualText")).toMatchObject({ kind: "string", bytes: new Uint8Array(), storedBytes: { byteLength: 2 } });
+  const { decodeStoredPdfString } = await import("../ast.js");
+  let text = "";
+  if (replacement?.kind !== "string" || !replacement.storedBytes) throw Error("Expected stored replacement");
+  for await (const chunk of decodeStoredPdfString(replacement.storedBytes)) text += chunk;
+  expect(text).toBe("abc".repeat(8192));
+  const direct = await parseCosRangeValue(source, input.indexOf(40), { stringStorage: storage, storeRootString: true });
+  expect(direct.value).toMatchObject({ kind: "string", bytes: new Uint8Array(), storedBytes: { byteLength: 24576 } });
+  const buffered = await parseCosRangeValue(source, 0);
+  expect(buffered.value?.kind === "dict" && dictGet(buffered.value, "ActualText")).toMatchObject({ kind: "string", bytes: new TextEncoder().encode(text) });
+});
+
+
+it("preserves source string backing failures through recovery and cancellation", async () => {
+  const { scanCosRangeObjects } = await import("./range-repair.js");
+  const { PdfError } = await import("../errors.js");
+  const input = new TextEncoder().encode("1 0 obj << /ActualText (replacement) >> endobj");
+  const source = { size: input.length, chunkBytes: 64, async read(at: number, n: number) { return input.subarray(at, at + n); } };
+  const failure = new PdfError("E_PARSE", "external string write failed");
+  const storage = { allocate() { return 0; }, async read() { return new Uint8Array(); }, async write() { throw failure; } };
+  const scan = scanCosRangeObjects(source as import("../source.js").PdfFileSource, { stringStorage: storage, storedStringKeys: ["ActualText"] });
+  await expect(scan.next()).rejects.toBe(failure);
+  const controller = new AbortController();
+  await expect(parseCosRangeValue(source, input.indexOf(40), { stringStorage: { ...storage, async write() { controller.abort(failure); } }, storeRootString: true, signal: controller.signal })).rejects.toBe(failure);
+});

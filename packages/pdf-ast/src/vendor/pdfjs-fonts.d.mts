@@ -162,6 +162,8 @@ export class CipherTransformFactory {
   readonly encryptMetadata: boolean;
   readonly algorithm: number;
   createCipherTransform(number: number, generation: number): {
+    readonly stringFilterName: Name | null;
+    resolveCipher(filter: Name | null): new () => { decryptBlock(data: Uint8Array, finalize: boolean): Uint8Array };
     decryptString(value: string): string;
     encryptString(value: string): string;
     createStream(stream: Stream, length: number | null, filter?: Name | null): {

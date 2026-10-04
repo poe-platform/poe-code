@@ -142,7 +142,7 @@ class CosLexerState {
     maxTokenBytes = Infinity,
     readonly knownCommands?: ReadonlySet<string>,
     private readonly onTokenAllocation?: (bytes: number) => void,
-    private readonly stringMode: StringMode = "buffer"
+    public stringMode: StringMode = "buffer"
   ) {
     this.window = bytes;
     this.pos = start;
@@ -550,6 +550,7 @@ export class CosByteLexer extends CosLexerState {
 }
 
 export interface CosRangeLexerOptions {
+  readonly onBackingError?: (error: unknown) => void;
   /** Decoded string payloads use caller-owned backing instead of token arrays. */
   readonly stringStorage?: PdfPixelStorage;
   /** Admit incremental token scratch and returned byte/string storage before growth. */
@@ -569,7 +570,10 @@ export class CosRangeLexer {
   private readonly state: CosLexerState;
   private active = false;
   private readonly signal: AbortSignal | undefined;
-  private readonly stringStorage: PdfPixelStorage | undefined;
+  private stringStorage: PdfPixelStorage | undefined;
+  private storageAdmitted = false;
+  private readonly onTokenAllocation: ((bytes: number) => void) | undefined;
+  private readonly onBackingError: ((error: unknown) => void) | undefined;
 
   constructor(
     private readonly source: Pick<PdfFileSource, "size" | "chunkBytes" | "read">,
@@ -598,9 +602,18 @@ export class CosRangeLexer {
       options.onTokenAllocation,
       options.stringStorage ? "count" : "buffer"
     );
-    this.stringStorage = options.stringStorage;
-    if (this.stringStorage) options.onTokenAllocation?.(16384);
+    this.onBackingError = options.onBackingError;
+    this.onTokenAllocation = options.onTokenAllocation;
+    this.setStringStorage(options.stringStorage);
     this.signal = options.signal;
+  }
+
+  /** Select backing before the next token; other token kinds remain unchanged. */
+  setStringStorage(storage: PdfPixelStorage | undefined): void {
+    if (this.active) throw new Error("PDF lexer operation is pending");
+    if (storage && !this.storageAdmitted) { this.onTokenAllocation?.(16384); this.storageAdmitted = true; }
+    this.stringStorage = storage;
+    this.state.stringMode = storage ? "count" : "buffer";
   }
 
   get offset(): number {
@@ -650,8 +663,10 @@ export class CosRangeLexer {
         storage = this.stringStorage;
       if (!storage || !token || (token.kind !== "string" && token.kind !== "hex-string"))
         return token;
-      const length = token.byteLength!,
-        position = storage.allocate(length);
+      const length = token.byteLength!;
+      let position: number;
+      try { position = storage.allocate(length); }
+      catch (error) { this.onBackingError?.(error); throw error; }
       if (
         !Number.isSafeInteger(position) ||
         position < 0 ||
@@ -673,11 +688,9 @@ export class CosRangeLexer {
         // that prefix even when its raw closing parenthesis remains unmatched.
         const count = Math.min(bytes.length, length - written);
         if (count) {
-          await storage.write(
-            position + written,
-            bytes.slice(0, count),
-            this.signal ? { signal: this.signal } : undefined
-          );
+          try {
+            await storage.write(position + written, bytes.slice(0, count), this.signal ? { signal: this.signal } : undefined);
+          } catch (error) { this.onBackingError?.(error); throw error; }
           written += count;
         }
       });

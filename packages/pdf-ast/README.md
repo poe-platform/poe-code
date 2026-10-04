@@ -967,6 +967,13 @@ graph after saving or copying it.
 with the same password, revision, and permission options as buffered encryption.
 Stream payloads use fixed-size cipher blocks and caller-provided backing.
 The caller keeps ownership of the source and supplies the backing filesystem.
+Range COS parsing can retain selected string values with `stringStorage` and
+`storedStringKeys` (or `storeRootString` for an indirect string value). Other
+strings keep their buffered representation. Retained object readers accept these
+options through `valueArrays`; keep the backing alive while consuming descriptors
+with `decodeStoredPdfString`. Authenticated object-string decryption uses bounded
+cipher blocks and the string crypt filter, including when the stream filter differs.
+These options do not automatically select named page replacement-text resources.
 `PdfRetainedDocument.openStore(store, storage, { rootRef, infoRef })` reads an
 existing `PdfMutableObjectStore`; the caller keeps ownership of that store.
 Use `externalizeInlineImages: { minBytes: 1024, compress: true }` to move inline

@@ -263,6 +263,32 @@ export async function decryptPdfObjectStrings(
   async function transform(node: PdfCosNode): Promise<PdfCosNode> {
     options.signal?.throwIfAborted();
     if (++turns % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+    if (node.kind === "string" && node.storedBytes) {
+      const handler = securityHandlers.get(state);
+      if (!handler) throw new PdfError("E_CAPABILITY", "Stored string decryption requires authenticated PDF security state");
+      const transform = handler.factory.createCipherTransform(objectNumber, generationNumber);
+      const Cipher = transform.resolveCipher(transform.stringFilterName), cipher = new Cipher();
+      const { storage, position, byteLength } = node.storedBytes;
+      const output = storage.allocate(byteLength);
+      if (!Number.isSafeInteger(output) || output < 0 || !Number.isSafeInteger(output + byteLength)) throw new RangeError("Invalid stored PDF string allocation");
+      let written = 0;
+      for (let at = 0; at < byteLength; at += 512) {
+        options.signal?.throwIfAborted();
+        const length = Math.min(512, byteLength - at);
+        const bytes = await storage.read(position + at, length, options.signal ? { signal: options.signal } : undefined);
+        options.signal?.throwIfAborted();
+        if (bytes.length !== length) throw new PdfError("E_PARSE", "Incomplete stored encrypted PDF string");
+        // Own the input before either the cipher or the next storage operation
+        // can reuse it. Match DecryptStream's aligned block scheduling.
+        const plain = cipher.decryptBlock(bytes.slice(), at + length === byteLength);
+        if (plain.length > byteLength - written) throw new PdfError("E_PARSE", "Invalid stored decrypted PDF string length");
+        await storage.write(output + written, plain.slice(), options.signal ? { signal: options.signal } : undefined);
+        written += plain.length;
+        if ((at / 512 + 1) % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+      }
+      options.signal?.throwIfAborted();
+      return { ...node, bytes: new Uint8Array(), storedBytes: { storage, position: output, byteLength: written } };
+    }
     if (node.kind === "array") {
       if (node.storedItems) {
         let position = -1, tail = -1;

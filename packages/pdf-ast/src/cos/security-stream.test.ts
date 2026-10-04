@@ -142,3 +142,35 @@ it("raw recovery reaches the final Crypt while preserving admission and plaintex
   const metadata = state("AESV3", { EncryptMetadata: { kind: "boolean", value: false } });
   expect(await collect(decodePdfEncryptedStreamChunks(metadata, 2, 0, cosDict({ Type: cosName("Metadata"), Filter: cosName("Unsupported") }), () => chunks(plain), { raw: true, chunkBytes: 31 }))).toEqual(plain);
 });
+
+
+it.each(["RC4", "AESV2", "AESV3"] as const)("decrypts caller-backed strings with the %s string cipher", async kind => {
+  const { decryptPdfObjectStrings } = await import("./security.js");
+  const security = state(kind, kind === "RC4" ? {} : { StmF: cosName("Identity") });
+  const plain = new TextEncoder().encode("backed text ".repeat(2048)), ciphertext = encryptPdfBuffer(security, 15, 3, plain);
+  const data = new Uint8Array(ciphertext.length * 2 + 1024); data.set(ciphertext); let end = ciphertext.length;
+  const storage = { allocate(n: number) { const at = end; end += n; return at; },
+    async read(at: number, n: number) { expect(n).toBeLessThanOrEqual(512); return data.subarray(at, at + n); },
+    async write(at: number, bytes: Uint8Array) { expect(bytes.length).toBeLessThanOrEqual(512); data.set(bytes, at); } };
+  const node = await decryptPdfObjectStrings(security, 15, 3, { kind: "string", encoding: "hex", bytes: new Uint8Array(), storedBytes: {storage, position: 0, byteLength: ciphertext.length} });
+  if (node.kind !== "string" || !node.storedBytes) throw Error("Expected stored string");
+  expect(node.storedBytes.byteLength).toBe(plain.length);
+  expect(data.subarray(node.storedBytes.position, node.storedBytes.position + node.storedBytes.byteLength)).toEqual(plain);
+  expect(data.subarray(0, ciphertext.length)).toEqual(ciphertext);
+});
+
+
+it.each(["AESV2", "AESV3"] as const)("preserves %s stored-string recovery and cancellation", async kind => {
+  const { decryptPdfObjectStrings, decryptPdfBuffer } = await import("./security.js");
+  const security = state(kind), ciphertext = encryptPdfBuffer(security, 7, 0, new Uint8Array(1024).fill(77));
+  for (const length of [0, 1, 15, 16, 17, 511, 512, 513, ciphertext.length - 1, ciphertext.length]) {
+    const input = ciphertext.slice(0, length), data = new Uint8Array(length * 2 + 512); data.set(input);
+    const storage = { allocate() { return length; }, async read(at: number, n: number) { return data.subarray(at, at + n); }, async write(at: number, bytes: Uint8Array) { data.set(bytes, at); } };
+    const result = await decryptPdfObjectStrings(security, 7, 0, {kind: "string", encoding: "hex", bytes: new Uint8Array(), storedBytes: {storage, position: 0, byteLength: length}});
+    if (result.kind !== "string" || !result.storedBytes) throw Error("Expected stored string");
+    expect(data.slice(result.storedBytes.position, result.storedBytes.position + result.storedBytes.byteLength)).toEqual(decryptPdfBuffer(security, 7, 0, input));
+  }
+  const controller = new AbortController(), failure = new Error("cancelled string read");
+  const storage = { allocate() { return 0; }, async read(at: number, n: number) { controller.abort(failure); return ciphertext.subarray(at, at + n); }, async write() { throw Error("write after cancellation"); } };
+  await expect(decryptPdfObjectStrings(security, 7, 0, {kind: "string", encoding: "hex", bytes: new Uint8Array(), storedBytes: {storage, position: 0, byteLength: ciphertext.length}}, {signal: controller.signal})).rejects.toBe(failure);
+});

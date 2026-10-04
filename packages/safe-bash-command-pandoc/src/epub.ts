@@ -8,6 +8,7 @@ import type { Attr, Block, Inline, MetaValue } from "./ast-types.js";
 import type { AdapterContext, Document, Input, StreamingInput, ReaderCapability, Resource } from "./types.js";
 
 interface ManifestItem {
+  ordinal: number;
   id: string;
   part: string;
   media: string;
@@ -235,20 +236,30 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
       if (!id || !href || manifest.has(id)) fail(packagePart, "Invalid or duplicate EPUB manifest ID");
       const target = resolve(href, packagePart, ctx);
       if (target.fragment || admitted.has(target.part)) fail(packagePart, "Ambiguous EPUB manifest part identity");
-      const item: ManifestItem = {id, part: target.part, media: a(n, "media-type"), properties: tokens(a(n, "properties")), fallback: a(n, "fallback"), overlay: a(n, "media-overlay")};
+      const item: ManifestItem = {ordinal: manifest.size, id, part: target.part, media: a(n, "media-type"), properties: tokens(a(n, "properties")), fallback: a(n, "fallback"), overlay: a(n, "media-overlay")};
       if (item.properties.includes("rendition:layout-pre-paginated")) fail(item.part, "Fixed-layout EPUB spine is unsupported");
       if (item.media === "text/css") warn(item.part, "Unsupported EPUB CSS styling/layout loss");
       if (item.overlay || item.media === "application/smil+xml") warn(item.part, "Unsupported EPUB media overlay synchronization loss");
       manifest.set(id, item); admitted.set(item.part, item);
     }
-    // Validate the declarative fallback graph once; no recursive loader.
+    // One epoch mark per manifest entry, reused across traversals. Caller-backed
+    // reads avoid retaining a path-sized Set for each fallback chain. Keep the
+    // original traversal order and depth/work checks, including error precedence.
+    const visits = storage?.allocate(manifest.size * 8);
     for (const item of manifest.values()) {
-      const seen = new Set<string>();
-      let current: ManifestItem | undefined = item;
+      const seen = storage ? undefined : new Set<string>();
+      let current: ManifestItem | undefined = item, depth = 0;
       while (current?.fallback) {
-        ctx.checkpoint(); ctx.bound("depth", seen.size + 1);
-        if (seen.has(current.id)) fail(current.part, "Recursive EPUB fallback dependency");
-        seen.add(current.id);
+        ctx.checkpoint(); ctx.bound("depth", ++depth);
+        if (storage) {
+          const position = visits! + current.ordinal * 8, bytes = await storage.read(position, 8);
+          const mark = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+          if (mark.getFloat64(0, true) === item.ordinal + 1) fail(current.part, "Recursive EPUB fallback dependency");
+          mark.setFloat64(0, item.ordinal + 1, true); await storage.write(position, bytes);
+        } else {
+          if (seen!.has(current.id)) fail(current.part, "Recursive EPUB fallback dependency");
+          seen!.add(current.id);
+        }
         const next: ManifestItem | undefined = manifest.get(current.fallback);
         if (!next) fail(current.part, "Missing EPUB fallback item");
         current = next;

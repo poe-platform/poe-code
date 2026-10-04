@@ -130,6 +130,14 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
   Worker fixture covers a 2048-pair redundant path through SDK and command;
   unit cases also reject encoded separators/controls and malformed escapes.
   Normalized archive-key strings and the EPUB DOM/AST remain resident boundaries.
+  Fallback-graph membership now uses one eight-byte epoch mark per manifest
+  entry in caller storage, reusing the records across traversals. Grow chain size
+  independently; compare success, cycles, missing targets and finite depth errors
+  against the buffered reader. Inject cancellation/storage failure during marking
+  and require empty scratch. The public SDK/command Worker fixture forbids a
+  resident fallback-ID Set across a 96-entry chain. Manifest objects, XML trees
+  and chapter ASTs still need retained representations; this is not whole-reader
+  qualification and does not change the graph's existing traversal complexity.
 - Single-input JSON to JSON now uses retained syntax, schema tasks,
   table occupancy, numeric key ordering and output. Test its fixed cache sizes
   independently of input bytes and document nesting. JSON and CSV/TSV to plain

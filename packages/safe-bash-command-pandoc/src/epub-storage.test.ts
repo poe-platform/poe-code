@@ -9,11 +9,11 @@ import {createPandocCommand} from "./command.js";
 const encoder = new TextEncoder();
 const zip = createZipCodec({compression: createCompressionCodec(), yieldTurn: async () => {}, fail(message) {throw new Error(message);}});
 const zipLimits = {maxArchiveBytes: 8 * 1024 * 1024, maxEntryBytes: 8 * 1024 * 1024, maxTotalBytes: 8 * 1024 * 1024, maxMembers: 20, maxPathBytes: 1024, maxDepth: 16, maxPaxBytes: 1024, maxTextBytes: 1024, chunkSize: 4096};
-async function publication(size = 256 * 1024, content = "<p>Streamed book.</p>", mimetype = encoder.encode("application/epub+zip")) {
+async function publication(size = 256 * 1024, content = "<p>Streamed book.</p>", mimetype = encoder.encode("application/epub+zip"), extraManifest = "") {
   const files = {
     mimetype,
     "META-INF/container.xml": encoder.encode('<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="package.opf" media-type="application/oebps-package+xml"/></rootfiles></container>'),
-    "package.opf": encoder.encode('<package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Stored book</dc:title></metadata><manifest><item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"/></manifest><spine><itemref idref="chapter"/></spine></package>'),
+    "package.opf": encoder.encode('<package xmlns="http://www.idpf.org/2007/opf" version="3.0"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>Stored book</dc:title></metadata><manifest>' + extraManifest + '<item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"/></manifest><spine><itemref idref="chapter"/></spine></package>'),
     "chapter.xhtml": encoder.encode(`<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Chapter</title></head><body>${content}</body></html>`),
     "unused.bin": new Uint8Array(size).fill(91)
   };
@@ -258,5 +258,48 @@ it("preserves the retained-byte quota before rejecting an oversized EPUB mimetyp
   await expect(readDocument({chunks: (async function* () {yield bytes;})()}, {from: "epub"}, {
     workingFiles: {fs, directory: "/", cacheBytes: 16384}, limits: {retainedBytes: 32768}, yield: async () => {}
   })).rejects.toMatchObject({code: "E_LIMIT", message: expect.stringContaining("retainedBytes")});
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+
+it.each([8, 96].flatMap(count => ["valid", "cycle", "missing", "depth"].map(mode => ({count, mode}))))
+("keeps $count-item EPUB fallback membership in caller storage: $mode", async ({count, mode}) => {
+  const manifest = Array.from({length: count}, (_, index) => `<item id="fallback-id-${index}" href="unused-${index}.bin" media-type="application/octet-stream" fallback="${index + 1 < count ? `fallback-id-${index + 1}` : mode === "cycle" ? "fallback-id-0" : mode === "missing" ? "absent" : "chapter"}"/>`).join("");
+  const bytes = await publication(32768, "<p>Book.</p>", encoder.encode("application/epub+zip"), manifest);
+  const limits = mode === "depth" ? {depth: count - 1} : {};
+  const expected = await convert([{bytes}], {from: "epub", to: "plain"}, {limits}).catch(error => error);
+  const fs = new MemoryFileSystem(), original = Set.prototype.add;
+  const membership = vi.spyOn(Set.prototype, "add").mockImplementation(function(this: Set<unknown>, value: unknown) {
+    if (typeof value === "string" && value.startsWith("fallback-id-")) throw new Error("Resident fallback membership forbidden");
+    return original.call(this, value);
+  });
+  try {
+    const actual = await convert([{chunks: (async function* () {for (let offset = 0; offset < bytes.length; offset += 997) yield bytes.subarray(offset, offset + 997);})()}], {from: "epub", to: "plain"}, {
+      limits, workingFiles: {fs, directory: "/", cacheBytes: 16384}, yield: async () => {}
+    }).catch(error => error);
+    if (expected instanceof Error) expect(actual).toMatchObject({code: (expected as Error & {code: string}).code, message: expected.message});
+    else expect(actual).toEqual(expected);
+  } finally {membership.mockRestore();}
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it.each(["cancel", "storage"])("cleans EPUB fallback backing after %s failure", async mode => {
+  const manifest = '<item id="fallback-id-0" href="unused.bin" media-type="application/octet-stream" fallback="chapter"/>';
+  const bytes = await publication(32768, "<p>Book.</p>", encoder.encode("application/epub+zip"), manifest);
+  const fs = new MemoryFileSystem(), controller = new AbortController(), original = PagedStorage.prototype.write;
+  let marks = 0;
+  const write = vi.spyOn(PagedStorage.prototype, "write").mockImplementation(async function(this: PagedStorage, position, bytes) {
+    if (bytes.length === 8) {
+      marks++;
+      if (mode === "cancel") controller.abort(); else throw new Error("Fallback storage failed");
+    }
+    return original.call(this, position, bytes);
+  });
+  try {
+    await expect(readDocument({chunks: (async function* () {yield bytes;})()}, {from: "epub"}, {
+      signal: controller.signal, workingFiles: {fs, directory: "/", cacheBytes: 16384}, yield: async () => {}
+    })).rejects.toMatchObject({code: mode === "cancel" ? "E_CANCELLED" : "E_IO"});
+    expect(marks).toBe(1);
+  } finally {write.mockRestore();}
   expect(await fs.readdir("/")).toEqual([]);
 });

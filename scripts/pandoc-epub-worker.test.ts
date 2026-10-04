@@ -93,7 +93,7 @@ it.each([16385, 262145])("rejects a %i-byte EPUB mimetype without a whole-member
   } finally {await runtime.dispose();}
 }, 60000);
 
-it.each(["sdk", "command"])("resolves long EPUB chapter URIs without component arrays through the public %s in workerd", async mode => {
+it.each(["sdk", "command"])("retains EPUB fallback membership and resolves long chapter URIs through the public %s in workerd", async mode => {
   const bundle = await build({stdin: {resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export {convertToOutput} from "./packages/safe-bash-command-pandoc/dist/index.js";
     export {createPandocCommand} from "./packages/safe-bash-command-pandoc/dist/command.js";
@@ -115,6 +115,8 @@ it.each(["sdk", "command"])("resolves long EPUB chapter URIs without component a
         'chapter.xhtml': '<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Book</title></head><body><p id="book"><a href="' + 'unused/../'.repeat(2048) + 'chapter.xhtml#book">Book.</a></p></body></html>',
         'unused.bin': 'x'.repeat(32768)
       };
+      const fallbacks = Array.from({length: 96}, (_, index) => '<item id="fallback-id-' + index + '" href="unused-' + index + '.bin" media-type="application/octet-stream" fallback="' + (index < 95 ? 'fallback-id-' + (index + 1) : 'chapter') + '"/>').join('');
+      files['package.opf'] = files['package.opf'].replace('<manifest>', '<manifest>' + fallbacks);
       const entries = [];
       for (const [name, value] of Object.entries(files)) entries.push(await zip.makeZipEntry(name, new TextEncoder().encode(value), {modified: new Date('1980-01-01T00:00:00Z'), mode: 0o100644, directory: false, symlink: false, compression: 'store'}, limits, signal));
       await env.PAGES.put('/input.epub', await zip.writeZipArchive({entries, comment: new Uint8Array()}, limits, signal));
@@ -125,6 +127,8 @@ it.each(["sdk", "command"])("resolves long EPUB chapter URIs without component a
         if (key === 'readStream') return async function* (path) {const object = await env.PAGES.get(path); yield* object.body;};
         const value = Reflect.get(target, key); return typeof value === 'function' ? value.bind(target) : value;
       }});
+      const originalAdd = Set.prototype.add;
+      Set.prototype.add = function(value) {if (typeof value === 'string' && value.startsWith('fallback-id-')) throw new Error('Resident fallback membership forbidden'); return originalAdd.call(this, value);};
       const originalSplit = String.prototype.split;
       String.prototype.split = function(...args) {if (String(this).includes('unused/../')) throw new Error('Whole URI component array forbidden'); return originalSplit.apply(this, args);};
       let output = '', errors = '', result;
@@ -134,7 +138,7 @@ it.each(["sdk", "command"])("resolves long EPUB chapter URIs without component a
         else {
           result = await api.createPandocCommand().execute({command: 'pandoc', args: ['-f', 'epub', '-t', 'plain', '/input.epub'], cwd: '/', env: {TMPDIR: '/spill'}, fs, signal, stdin: (async function* () {})(), stdout, stderr: {async write(bytes) {errors += new TextDecoder().decode(bytes);}}});
         }
-      } finally {String.prototype.split = originalSplit;}
+      } finally {String.prototype.split = originalSplit; Set.prototype.add = originalAdd;}
       await env.PAGES.delete('/input.epub');
       return Response.json({output, errors, exitCode: result?.exitCode ?? 0, events,
         remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir('/spill')});

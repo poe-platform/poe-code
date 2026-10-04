@@ -679,6 +679,9 @@ function emitRecord(value: ImportedValue | undefined, depth: number, writer: Xml
     if (Array.isArray(node.attributes)) for (const a of node.attributes) { const attr = object(a);
       if (attr && typeof attr.name === "string" && typeof attr.namespace === "string" && typeof attr.value === "string") attrs[qualify(attr.name, attr.namespace)] = attr.value;
     }
+    if (stack.length === 2 && stack[0]!.name === "gnm:PrintInformation" && stack[1]!.name === "gnm:Margins" &&
+      node.namespace === namespace && ["top", "bottom", "left", "right", "header", "footer"].includes(node.name) && attrs.Points !== undefined &&
+      Number.isFinite(Number(attrs.Points))) attrs.Points = gnumericNumber(Number(attrs.Points), false, 4);
     ancestors.add(node);
     stack.push({ node, depth, name, attrs, children: Array.isArray(node.children) ? node.children : [], next: 0, parts: [] });
   };

@@ -3,6 +3,12 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "xmlPrintMarginFormatting": {
+      "finding": "XML print margins emitted full internal binary64 values instead of native four-significant-digit strings. Two original regressions reproduced the boundary mismatch.",
+      "repair": "Format only current-namespace PrintInformation/Margins point fields during XML serialization; preserve model precision and foreign/unrelated metadata.",
+      "verification": "1257 combined XLSX/XML tests plus310 final owner/print tests pass;selected build and owner lint/types pass. Six independent XLSX controls produce12 SDK/command XML outputs matching72 native margin strings exactly with zero product diagnostics. Native workbookProtection warning retained. Command screenshot inspected.",
+      "remaining": "Broader format/rendering qualification and all19 families remain open."
+    },
     "biffFillPatternMapping": {
       "finding": "BIFF wire pattern indexes were treated as shared Gnumeric Shade indexes even though16 of19 entries differ. Independent import/export tests initially reproduced115 failures. A native control additionally proved shade25 is invalid in the workbook model despite an unreachable export-table entry.",
       "repair": "Map BIFF3/4/7/8 patterns0–18 to the shared model, derive the inverse for BIFF7/8 output, and use the six native fallbacks for shades19–24. Select solid-fill color polarity from the emitted pattern, including shade24 fallback. Refuse invalid/nonintegral/nonfinite output shades;retain the rejected native shade25 fixture.",

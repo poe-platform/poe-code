@@ -3,6 +3,12 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "biffSolidFillColors": {
+      "finding": "The overflow filled-cell control exposed a matching reader/writer mistake: BIFF solid fills reverse foreground/background roles, but both product paths omitted the swap. Native read.c excel_get_style_from_xf and write.c style mapping explicitly swap for fill pattern1.",
+      "repair": "Normalize BIFF3/4/7/8 solid fills to the shared Back/PatternColor attributes and reverse them only for BIFF7/8 wire output. Non-solid color ordering remains unchanged.",
+      "verification": "Six original wire-field failures repaired, including independent legacy BIFF3/4 records and distinct read/write tests; eight non-solid controls pass. Selected build and format-owner lint/types pass; 2470 BIFF tests and491 format/PDF tests pass.24 compiled BIFF exports and44 public PDF exports succeed.12 pinned native PDFs reproduce the original six controls; both solid-fill PDF rasters now have exact yellow color bounds matching the product. Six decoded fields from two independently generated native BIFF inputs match. Native/product and CLI screenshots inspected.",
+      "remaining": "Original black-versus-yellow evidence retained under pdfLeftTextSpans; this repair resolves that control. Other fill patterns, palette/color profiles, exact glyph/raster fidelity and all broader requirements remain open."
+    },
     "pdfLeftTextSpans": {
       "finding": "The original narrow-column BIFF page-control fixture advanced from style refusal to text-layout refusal. A memory-only long-text test reproduced the remaining failure. Native cellspan.c/print-cell.c permit left-aligned text to span empty columns and clip at occupied columns.",
       "repair": "Index occupied visible cells per row, including blank formula results, and locate the next blocker by binary search with caller work accounting. Left-aligned strings can overflow to the available print edge; clip the text at the blocker. Paint cell backgrounds before spanning text. Other alignment/number overflow and multiline height limitations remain explicit.",

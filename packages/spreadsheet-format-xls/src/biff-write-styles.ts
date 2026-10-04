@@ -82,7 +82,8 @@ export class BiffStyles {
       const horizontal = ["GENERAL", "LEFT", "CENTER", "RIGHT", "FILL", "JUSTIFY", "CENTER_ACROSS_SELECTION", "DISTRIBUTED"].indexOf((attrs.HAlign ?? "GNM_HALIGN_GENERAL").slice(11));
       const vertical = ["TOP", "CENTER", "BOTTOM", "JUSTIFY", "DISTRIBUTED"].indexOf((attrs.VAlign ?? "GNM_VALIGN_BOTTOM").slice(11));
       xf[6] = Math.max(0, horizontal) | (Number(attrs.WrapText) ? 8 : 0) | Math.max(0, vertical) << 4;
-      const rotation = Number(attrs.Rotation ?? 0), fill = color(attrs.PatternColor, 64) | color(attrs.Back, 65) << 7;
+      const rotation = Number(attrs.Rotation ?? 0), pattern = color(attrs.PatternColor, 64), background = color(attrs.Back, 65);
+      const fill = Number(attrs.Shade) === 1 ? background | pattern << 7 : pattern | background << 7;
       const edges = style.node?.children.find(n => n.name === "StyleBorder")?.children ?? [];
       const edge = (name: string) => { const n = edges.find(e => e.name === name); return { style: Number(n?.attributes.Style ?? 0), color: color(n?.attributes.Color, 64) }; };
       const left = edge("Left"), right = edge("Right"), top = edge("Top"), bottom = edge("Bottom");

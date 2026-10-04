@@ -794,6 +794,8 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
       attrs.PatternColor = color(remap(fill >> 6 & 31)); attrs.Back = color(remap(fill >> 11 & 31)); attrs.Shade = fill & 63;
       attrs.VAlign = xf.revision >= 4 ? ["GNM_VALIGN_TOP", "GNM_VALIGN_CENTER", "GNM_VALIGN_BOTTOM"][alignment >> 4 & 3] ?? "GNM_VALIGN_BOTTOM" : "GNM_VALIGN_BOTTOM";
     }
+    // Solid fills reverse the XF foreground/background interpretation.
+    if (attrs.Shade === 1) [attrs.Back, attrs.PatternColor] = [attrs.PatternColor!, attrs.Back!];
     const borders: ImportedValue[] = [];
     if (xf.revision >= 8) {
       const edges = data.u16(10), sideColors = data.u16(12), rest = data.u32(14);

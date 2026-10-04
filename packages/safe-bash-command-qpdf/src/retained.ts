@@ -1,3 +1,4 @@
+import { linearizationParts } from "./linearization.js";
 import { attachmentChunks, QpdfMissingAttachment } from "./attachments.js";
 import { copyQpdfSelections, QpdfMissingInput } from "./selection.js";
 import { xrefDisplayParts } from "./xref-display.js";
@@ -15,6 +16,7 @@ export interface RetainedQpdfOptions {
   inputFile: string | undefined;
   emptyInput: boolean;
   listAttachments: boolean;
+  showLinearization: boolean;
   showAttachmentKey: string | undefined;
   collateCount: number | undefined;
   pageSpecs: readonly { file: string; password?: string; range: string }[];
@@ -120,7 +122,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
       return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
     }
-    if (options.check || options.showNpages || options.showEncryption || options.showObject || options.showPages || options.showXref || options.listAttachments || options.showAttachmentKey !== undefined) {
+    if (options.showLinearization || options.check || options.showNpages || options.showEncryption || options.showObject || options.showPages || options.showXref || options.listAttachments || options.showAttachmentKey !== undefined) {
       let count = 0, linearized = false, highest = 0, inlineCount = 0;
       let inlinePage: PdfCosNode | undefined, selectedValue: PdfCosNode | undefined, selectedLength: number | undefined;
       try {
@@ -138,6 +140,11 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       } catch (error) {
         signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
         return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
+      }
+      if (options.showLinearization) {
+        const parts = linearizationParts(document, source, storage, inputName, count, signal);
+        await publishInspection((async function* () { for await (const part of parts) yield* encodeDisplayParts([part], signal); })());
+        return { exitCode: 0 };
       }
       if (!options.check && (options.showPages || ((options.showObject || options.showXref) && !options.showNpages && !options.showEncryption))) {
         const number = options.showObject?.objNum ?? NaN, entry = Number.isSafeInteger(number) && number >= 0 ? await document.crossReference.index.get(number, signal) : undefined, generation = entry?.generationNumber ?? 0;

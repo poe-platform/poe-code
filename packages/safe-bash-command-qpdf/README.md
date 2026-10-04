@@ -49,7 +49,8 @@ sources. Inactive inputs release range caches while retaining their acquired
 identity. `--collate` interleaves lazy page batches with only one source document
 active at a time; batch boundaries preserve independent resource copies.
 
-`--check`, `--show-pages`, `--show-xref`, `--show-npages` and `--show-encryption` inspect retained inputs
+`--show-linearization` and `--check-linearization` preserve revision and repair
+ordering through caller-backed traversal. `--check`, `--show-pages`, `--show-xref`, `--show-npages` and `--show-encryption` inspect retained inputs
 through caller-backed object and page indexes, preserving repair and password
 diagnostics without collecting input payloads. `--is-encrypted` and
 `--requires-password` scan retained input in bounded chunks and validate supplied

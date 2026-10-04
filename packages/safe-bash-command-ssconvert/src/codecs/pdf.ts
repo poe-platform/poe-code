@@ -258,12 +258,13 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       tick(value.length);
     }
     const singleParagraph = cellBox?.style.alignment === "fill";
+    const tabbedFill = singleParagraph && value.includes("\t");
     if (singleParagraph && (value.includes("\r") || value.includes("\u2028"))) unsupported("fill control-character layout");
     const paragraphs = cellBox && !singleParagraph ? splitPrintLines(value, tick) : [{text: value, forced: false}];
     const shapedLines = paragraphs.map(line => cellBox ? normalizeFontText(line.text, supported, tick) : line.text);
     for (const line of shapedLines) for (const scalar of line) {
       tick();
-      if (!(singleParagraph && scalar === "\u2029") && !supported.has(scalar.codePointAt(0)!)) unsupported("font coverage");
+      if (!(singleParagraph && (scalar === "\u2029" || scalar === "\t")) && !supported.has(scalar.codePointAt(0)!)) unsupported("font coverage");
     }
     let baseline = page.getHeight() - y - size;
     let width = cellBox ? 0 : font.widthOfTextAtSize(value, size);
@@ -279,30 +280,53 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         }
       }
       const ascent = ascentRatio * size, lineHeight = ascent + descentRatio * size;
+      let tabWidth = 0, displayTabWidth = 0;
+      if (tabbedFill) {
+        if (!supported.has(32)) unsupported("font coverage");
+        for (const position of shaper.shape(metrics, " ").positions) {
+          tick();
+          const advance = position.xAdvance * cellBox.style.size / metrics.unitsPerEm;
+          tabWidth += Math.round(advance) * printDisplayScale * 8;
+          displayTabWidth += Math.round(advance / printDisplayScale) * printDisplayScale * 8;
+        }
+        if (!(tabWidth > 0) || !Number.isFinite(tabWidth) || !(displayTabWidth > 0) || !Number.isFinite(displayTabWidth)) unsupported("supplied font advances");
+      }
       const shapeLine = (shapedValue: string) => {
         const glyphs: {x: number; y: number}[] = [];
         let width = 0, displayWidth = 0;
         const advances: number[] = [];
-        // Pango's unhinted print profile rounds advances and offsets in display pixels.
-        // Native single-paragraph itemization separates U+2029 runs. Shape each
-        // run independently so kerning and ligatures cannot cross the separator.
-        const parts = singleParagraph ? shapedValue.split("\u2029") : [shapedValue];
-        const runs = parts.filter(Boolean).map(part => {tick(); return shaper.shape(metrics, part);});
+        const runs: ReturnType<typeof shaper.shape>[] = [];
+        // Native Fill itemization separates paragraph boundaries and tabs.
+        // Tabs use shared stops across the entire repeated line.
+        const chunks = singleParagraph ? shapedValue.split("\t") : [shapedValue];
+        for (const [index, chunk] of chunks.entries()) {
+          tick();
+          if (index > 0) {
+            width = (Math.floor(width / tabWidth) + 1) * tabWidth;
+            displayWidth = (Math.floor(displayWidth / displayTabWidth) + 1) * displayTabWidth;
+          }
+          const parts = singleParagraph ? chunk.split("\u2029") : [chunk];
+          for (const part of parts) {
+            tick();
+            if (!part) continue;
+            const run = shaper.shape(metrics, part);
+            runs.push(run);
+            for (const position of run.positions) {
+              tick();
+              const advance = position.xAdvance * cellBox.style.size / metrics.unitsPerEm;
+              if (!Number.isFinite(advance) || advance < 0 || !Number.isFinite(position.xOffset) || !Number.isFinite(position.yOffset) || position.yAdvance !== 0) unsupported("supplied font advances");
+              glyphs.push({x: width + Math.round(position.xOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale,
+                y: -Math.round(-position.yOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale});
+              advances.push(Math.round(advance));
+              width += Math.round(advance) * printDisplayScale;
+              displayWidth += Math.round(advance / printDisplayScale) * printDisplayScale;
+            }
+          }
+        }
         if (runs.length > 1 && runs.some(run => run.direction === "rtl")) unsupported("bidirectional fill layout");
         const run = runs.length < 2 ? runs[0] : Object.create(runs[0]!, {
           glyphs: {value: runs.flatMap(run => run.glyphs)}, positions: {value: runs.flatMap(run => run.positions)}
         }) as NonNullable<typeof runs[0]>;
-        for (const position of run?.positions ?? []) {
-          tick();
-          const advance = position.xAdvance * cellBox.style.size / metrics.unitsPerEm;
-          if (!Number.isFinite(advance) || advance < 0 || !Number.isFinite(position.xOffset) || !Number.isFinite(position.yOffset) || position.yAdvance !== 0) unsupported("supplied font advances");
-          glyphs.push({x: width + Math.round(position.xOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale,
-            // Pango rounds its downward y offset before the PDF coordinate inversion.
-            y: -Math.round(-position.yOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale});
-          advances.push(Math.round(advance));
-          width += Math.round(advance) * printDisplayScale;
-          displayWidth += Math.round(advance / printDisplayScale) * printDisplayScale;
-        }
         return {shapedValue, run, glyphs, width, displayWidth, advances};
       };
       let indent = 0, displayIndent = 0;
@@ -398,7 +422,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       }
       if (!rotation && (overflows || height > cellBox.height - 1)) page.pushOperators(
         pdfRectangle(clipLeft, page.getHeight() - y - cellBox.height, clipWidth, cellBox.height), clip(), endPath());
-      if (!wraps && !rotation) page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
+      if (!wraps && !rotation && !tabbedFill) page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
         [PDFName.of("Span"), pdf.context.obj({ActualText: PDFHexString.fromText(value)}).toString()]));
       for (const [lineIndex, line] of lines.entries()) {
         const {run, glyphs, shapedValue} = line;
@@ -415,7 +439,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           page.pushOperators(pushGraphicsState(), concatTransformationMatrix(Math.cos(angle), Math.sin(angle), -Math.sin(angle), Math.cos(angle), cellX + 2.5 + origin.x, page.getHeight() - cellY - origin.y));
           x = 0; baseline = 0;
         }
-        if ((wraps || rotation) && line.marked) page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
+        if ((wraps || rotation) && line.marked && !tabbedFill) page.pushOperators(PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
           [PDFName.of("Span"), pdf.context.obj({ActualText: PDFHexString.fromText(line.logicalText)}).toString()]));
         // Encode the same shaped run that supplies the positioned glyphs.
         const layout = metrics.layout;
@@ -428,10 +452,20 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         page.pushOperators(beginText(), setFontAndSize(resource, size), setFillingRgbColor(...cellBox.style.foreground));
         for (const [index, glyph] of glyphs.entries()) {
           tick();
+          const points = run.glyphs[index]!.codePoints;
+          if (tabbedFill && !rotation && overflows) {
+            // Cairo omits wholly clipped glyphs; emitting them would expose
+            // invisible tab overflow to PDF text extractors.
+            const box = run.glyphs[index]!.bbox, scale = size / metrics.unitsPerEm;
+            const left = x + glyph.x + (box.minX + Math.min(shear * box.minY, shear * box.maxY)) * scale;
+            const right = x + glyph.x + (box.maxX + Math.max(shear * box.minY, shear * box.maxY)) * scale;
+            if (left >= clipLeft + clipWidth || right <= clipLeft) continue;
+          }
+          if (tabbedFill && points.length > 0 && points.every(point => point === 0x200b) && run.positions[index]!.xAdvance === 0) continue;
           page.pushOperators(setTextMatrix(1, 0, shear, 1, x + glyph.x, baseline + glyph.y), showText(PDFHexString.of(encoded.slice(index * 4, index * 4 + 4))));
         }
         page.pushOperators(endText());
-        if ((wraps || rotation) && line.marked) page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent));
+        if ((wraps || rotation) && line.marked && !tabbedFill) page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent));
         if (cellBox.style.underline || cellBox.style.strikeThrough) {
           // Pango uses font underline metrics and the union of positioned ink bounds.
           const scale = size / metrics.unitsPerEm;
@@ -468,7 +502,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         }
         if (rotated) page.pushOperators(popGraphicsState());
       }
-      if (!wraps && !rotation) page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent));
+      if (!wraps && !rotation && !tabbedFill) page.pushOperators(PDFOperator.of(PDFOperatorNames.EndMarkedContent));
       page.pushOperators(popGraphicsState());
       return;
     }

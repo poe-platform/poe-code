@@ -6024,5 +6024,11 @@
     "implementation": "Treat U+2029 as a zero-width itemization boundary in single-paragraph Fill. Shape neighboring segments independently so cross-boundary ligatures and kerning do not change repetition counts; preserve workbook text.",
     "validation": "Original memory fixture failed with unsupported Fill control-character layout.447 PDF tests plus82 final focused tests,selected build and command lint/source/test/public-consumer types pass.10 native inputs produce40 compiled SDK/command outputs;20 character/copy-count comparisons match.10 unrotated first-word origins agree within0.0017pt;10 rotated transformation origins agree within0.01pt. Rotated AV screenshot inspected.",
     "remaining": "U+2028 native vector control glyph,CR control boxes,tabs,and broader rich-text/font/Unicode/decorations/merged multipage qualification;all19families open."
+  },
+  "pdfFillTabs": {
+    "status": "Focused Fill tab profile verified; broader rendering remains open",
+    "implementation": "Advance Fill tabs to shared eight-space stops across repeated copies. Shape tab-separated runs independently, retain leading/trailing tab widths and omit wholly clipped horizontal glyphs from extracted PDF text.",
+    "validation": "Two original failures reproduced.449 PDF tests, selected workspace build and command lint/source/test/public-consumer types pass.40 independent native inputs produce160 SDK/command XML/PDF outputs;80 character comparisons and common-word position comparisons pass within0.013pt. Native/public screenshots checked for repeated, leading, rotated and clipped tabs.",
+    "remaining": "U+2028 vector control glyphs,CR control boxes and broader rich-text/font/Unicode/decorations/merged multipage qualification;all19families remain open."
   }
 }

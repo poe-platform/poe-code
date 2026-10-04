@@ -341,3 +341,18 @@ it("keeps paragraph separators inside one Fill line without joining glyph cluste
   expect(runs[0]!.text.split("\u200b").join("")).toBe("ab".repeat(7));
   expect(book).toEqual(before);
 });
+it("keeps Fill tabs aligned to shared stops across repeated copies", async () => {
+  const original = await fixture([{text: "a\tb", attributes: attributes.replace('HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"')}]);
+  const book = {...original, sheets: original.sheets.map(sheet => ({...sheet, columns: [], view: {...sheet.view, defaultColumnWidth: 144}}))};
+  const before = structuredClone(book);
+  const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {async resolve() {return suppliedDefaultFont().bytes;}}}));
+  const glyphs = runs[0]!.glyphs.filter(glyph => glyph.text === "a" || glyph.text === "b");
+  expect(glyphs.map(glyph => glyph.text).join("")).toBe("ababab");
+  expect(glyphs.map(glyph => glyph.x)).toEqual([76.75, 112.75, 117.25, 148.75, 153.25, 184.75]);
+  expect(book).toEqual(before);
+});
+it("omits fully clipped glyphs after a Fill tab from PDF text", async () => {
+  const book = await fixture([{text: "abcdefgh\tb", font: font.replace('Unit="10"', 'Unit="14"'), attributes: attributes.replace('HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"')}]);
+  const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {async resolve() {return suppliedDefaultFont().bytes;}}}));
+  expect(runs.map(run => run.text).join("")).toBe("abcdefgh");
+});

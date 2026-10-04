@@ -248,7 +248,75 @@ export function createRecordSnapshot(limits: WorkbookLimits) {
 export function snapshotRecords<T>(records: T, limits: WorkbookLimits): T {
   return createRecordSnapshot(limits)(records);
 }
-export function snapshotWorkbook(book: Workbook, limits: WorkbookLimits): Workbook {
+/** Validate already-owned cells without copying unrelated sheet metadata.
+ * Charge metadata work into the same budget before admitting streamed cells. */
+export function createCellValidator(limits: WorkbookLimits, onWork?: (amount: number) => void) {
+  const { textLimit, workLimit } = ownershipBudgets(limits);
+  let work = 0;
+  const charge = (amount = 1) => {
+    if (!Number.isSafeInteger(amount) || amount < 0) invalid("Invalid workbook work charge");
+    if (amount > workLimit - work) throw new SsconvertError("resource-limit", "ssconvert workbook work limit exceeded");
+    work += amount; onWork?.(amount);
+  };
+  return {
+    charge,
+    validate(cell: Cell, size: SheetSize, admitAddress?: () => void) {
+      checkRecord(cell, ["richText"], ["style"]);
+      index(cell.row, size.rows);
+      index(cell.column, size.columns);
+      admitAddress?.();
+      for (const value of [cell.formula, cell.format, cell.displayedText, cell.formulaGroup])
+        optionalType(value, "string", "Invalid cell text");
+      optionalType(cell.formulaDirty, "boolean", "Invalid formula dirty state");
+      optionalType(cell.arrayStringLiterals, "boolean", "Invalid formula array string semantics");
+      for (const value of [
+        cell.value,
+        ...(cell.cachedResult === undefined ? [] : [cell.cachedResult])
+      ]) {
+        if (value === null || typeof value !== "object") invalid("Invalid cell value");
+        if (!["blank", "string", "byte-string", "number", "boolean", "error"].includes(value.kind))
+          invalid("Invalid cell value");
+        if (
+          value.kind !== "blank" &&
+          typeof value.value !==
+            { string: "string", "byte-string": "string", number: "number", boolean: "boolean", error: "string" }[value.kind]
+        )
+          invalid("Invalid cell value");
+        if (value.kind === "byte-string" && byteStringValue(decodeByteString(value.value, charge), charge, textLimit).kind !== "byte-string")
+          invalid("Valid UTF-8 must use an ordinary string value");
+        if (value.kind === "number") optionalType(value.format, "string", "Invalid number value format");
+      }
+      const boundaries = new Set<number>();
+      for (const run of cell.richText ?? []) {
+        checkRecord(run);
+        checkRecord(run.attributes);
+        if (
+          cell.value.kind !== "string" ||
+          !Number.isSafeInteger(run.start) ||
+          !Number.isSafeInteger(run.end) ||
+          run.start < 0 ||
+          run.end < run.start
+        )
+          invalid("Invalid rich text range");
+        boundaries.add(run.start);
+        boundaries.add(run.end);
+      }
+      if (cell.value.kind === "string" && boundaries.size) {
+        let offset = 0;
+        boundaries.delete(0);
+        for (const character of cell.value.value) {
+          const point = character.codePointAt(0)!;
+          offset += point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4;
+          boundaries.delete(offset);
+          if (!boundaries.size) break;
+        }
+        if (boundaries.size) invalid("Invalid rich text range");
+      }
+    }
+  };
+}
+
+export function snapshotWorkbook(book: Workbook, limits: WorkbookLimits, onWork?: (amount: number) => void): Workbook {
   const budgets = ownershipBudgets(limits);
   // Count populated storage before copying, never enumerate the sheet grid.
   let sheetCount = 0,
@@ -267,12 +335,7 @@ export function snapshotWorkbook(book: Workbook, limits: WorkbookLimits): Workbo
     }
   }
   const owned = snapshotRecords(book, limits);
-  const { workLimit } = budgets;
-  let relationshipWork = 0;
-  const tick = () => {
-    if (++relationshipWork > workLimit)
-      throw new SsconvertError("resource-limit", "ssconvert workbook work limit exceeded");
-  };
+  const validation = createCellValidator(limits, onWork), tick = validation.charge;
   checkRecord(
     owned,
     ["names", "dependencies", "unsupportedRecords"],
@@ -308,61 +371,11 @@ export function snapshotWorkbook(book: Workbook, limits: WorkbookLimits): Workbo
     )
       invalid("Invalid sheet visibility");
     const addresses = new Set<string>();
-    for (const cell of sheet.cells) {
-      checkRecord(cell, ["richText"], ["style"]);
-      index(cell.row, size.rows);
-      index(cell.column, size.columns);
+    for (const cell of sheet.cells) validation.validate(cell, size, () => {
       const key = `${cell.row}:${cell.column}`;
       if (addresses.has(key)) invalid("Duplicate cell address");
       addresses.add(key);
-      for (const value of [cell.formula, cell.format, cell.displayedText, cell.formulaGroup])
-        optionalType(value, "string", "Invalid cell text");
-      optionalType(cell.formulaDirty, "boolean", "Invalid formula dirty state");
-      optionalType(cell.arrayStringLiterals, "boolean", "Invalid formula array string semantics");
-      for (const value of [
-        cell.value,
-        ...(cell.cachedResult === undefined ? [] : [cell.cachedResult])
-      ]) {
-        if (value === null || typeof value !== "object") invalid("Invalid cell value");
-        if (!["blank", "string", "byte-string", "number", "boolean", "error"].includes(value.kind))
-          invalid("Invalid cell value");
-        if (
-          value.kind !== "blank" &&
-          typeof value.value !==
-            { string: "string", "byte-string": "string", number: "number", boolean: "boolean", error: "string" }[value.kind]
-        )
-          invalid("Invalid cell value");
-        if (value.kind === "byte-string" && byteStringValue(decodeByteString(value.value, tick), tick, budgets.textLimit).kind !== "byte-string")
-          invalid("Valid UTF-8 must use an ordinary string value");
-        if (value.kind === "number") optionalType(value.format, "string", "Invalid number value format");
-      }
-      const boundaries = new Set<number>();
-      for (const run of cell.richText ?? []) {
-        checkRecord(run);
-        checkRecord(run.attributes);
-        if (
-          cell.value.kind !== "string" ||
-          !Number.isSafeInteger(run.start) ||
-          !Number.isSafeInteger(run.end) ||
-          run.start < 0 ||
-          run.end < run.start
-        )
-          invalid("Invalid rich text range");
-        boundaries.add(run.start);
-        boundaries.add(run.end);
-      }
-      if (cell.value.kind === "string" && boundaries.size) {
-        let offset = 0;
-        boundaries.delete(0);
-        for (const character of cell.value.value) {
-          const point = character.codePointAt(0)!;
-          offset += point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4;
-          boundaries.delete(offset);
-          if (!boundaries.size) break;
-        }
-        if (boundaries.size) invalid("Invalid rich text range");
-      }
-    }
+    });
     for (const [records, maximum] of [
       [sheet.rows ?? [], size.rows],
       [sheet.columns ?? [], size.columns]
@@ -389,8 +402,7 @@ export function snapshotWorkbook(book: Workbook, limits: WorkbookLimits): Workbo
       const range = merges[i]!;
       checkRange(range, size);
       for (let previous = 0; previous < i; previous++) {
-        if (++relationshipWork > workLimit)
-          throw new SsconvertError("resource-limit", "ssconvert workbook work limit exceeded");
+        tick();
         const other = merges[previous]!;
         if (
           range.startRow <= other.endRow &&

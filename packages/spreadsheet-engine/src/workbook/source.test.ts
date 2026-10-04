@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { snapshotWorkbook, type Cell, type Workbook } from "@poe-code/spreadsheet-ast";
 import { defaultSsconvertLimits } from "../engine.js";
 import { ownWorkbookSource } from "./source.js";
@@ -65,4 +65,82 @@ it("keeps byte-string export work admission aggregate before opening output", as
     importType: "source", exportType: "source", destination: { kind: "resource", uri: "/output" } },
   { signal: new AbortController().signal })).rejects.toThrow("byte-string export work limit");
   expect(opened).toBe(false); await engine.dispose();
+});
+
+it("does not copy the whole sheet metadata for each streamed cell", async () => {
+  const count = 160;
+  const metadata: Workbook = { sheets: [{ id: "s", name: "Data", cells: [], rows: Array.from({ length: count }, (_, index) => ({ index, sizePoints: 17 })) }] };
+  const original = Object.getOwnPropertyDescriptor;
+  let axesCopied = 0;
+  const spy = vi.spyOn(Object, "getOwnPropertyDescriptor").mockImplementation((object, key) => {
+    if (key === "index" && original(object, "sizePoints")?.value === 17) axesCopied++;
+    return original(object, key);
+  });
+  try {
+    const source = await ownWorkbookSource({ metadata, async *cells() {
+      for (let row = 0; row < count; row++) yield { row, column: 0, value: { kind: "number", value: row } };
+    } }, defaultSsconvertLimits, () => {});
+    let seen = 0; for await (const cell of source.cells("s")) { expect(cell.row).toBe(seen++); }
+    expect(seen).toBe(count); expect(axesCopied).toBeLessThanOrEqual(count * 4);
+  } finally { spy.mockRestore(); }
+});
+
+it("shares byte-string and metadata work admission across all source cells", async () => {
+  const metadata: Workbook = { sheets: [{ id: "s", name: "Data", cells: [], merges: [
+    { startRow: 10, endRow: 10, startColumn: 0, endColumn: 1 },
+    { startRow: 11, endRow: 11, startColumn: 0, endColumn: 1 }
+  ] }] };
+  const values: Cell[] = [0, 1].map(row => ({ row, column: 0, value: { kind: "byte-string", value: "ff" } }));
+  for (let workbookWork = 0; workbookWork < 16; workbookWork++) {
+    const limits = { ...defaultSsconvertLimits, workbookWork };
+    let expected: string | undefined;
+    try { snapshotWorkbook({ ...metadata, sheets: [{ ...metadata.sheets[0]!, cells: values }] }, limits); }
+    catch (error) { expected = (error as Error).message; }
+    const supplied = { metadata, async *cells() { yield* values; } };
+    if (expected) await expect(ownWorkbookSource(supplied, limits, () => {}), "work=" + workbookWork).rejects.toThrow(expected);
+    else {
+      const source = await ownWorkbookSource(supplied, limits, () => {}), actual = [];
+      for await (const cell of source.cells("s")) actual.push(cell);
+      expect(actual).toEqual(values);
+    }
+  }
+});
+
+
+it("aggregates byte-string work across sheets and closes rejected producers", async () => {
+  const sheets = ["first", "second"].map(id => ({ id, name: id, cells: [] }));
+  const value: Cell = { row: 0, column: 0, value: { kind: "byte-string", value: "ff" },
+    cachedResult: { kind: "byte-string", value: "fe" } };
+  for (let workbookWork = 0; workbookWork < 20; workbookWork++) {
+    const limits = { ...defaultSsconvertLimits, workbookWork };
+    let expected: string | undefined, started = 0, closed = 0;
+    try { snapshotWorkbook({ sheets: sheets.map(sheet => ({ ...sheet, cells: [value] })) }, limits); }
+    catch (error) { expected = (error as Error).message; }
+    const supplied = { metadata: { sheets }, async *cells() {
+      started++;
+      try { yield value; } finally { closed++; }
+    } };
+    if (expected) await expect(ownWorkbookSource(supplied, limits, () => {})).rejects.toThrow(expected);
+    else {
+      const owned = await ownWorkbookSource(supplied, limits, () => {});
+      for (const sheet of sheets) {
+        const values = []; for await (const cell of owned.cells(sheet.id)) values.push(cell);
+        expect(values).toEqual([value]);
+      }
+    }
+    expect(closed).toBe(started);
+  }
+});
+
+it("rechecks the work budget and closes a changed replay producer", async () => {
+  let pass = 0, closed = 0;
+  const owned = await ownWorkbookSource({ metadata, async *cells() {
+    pass++;
+    try {
+      yield { row: 0, column: 0, value: { kind: "byte-string", value: pass === 1 ? "ff" : "ffffffff" } };
+    } finally { closed++; }
+  } }, { ...defaultSsconvertLimits, workbookWork: 4 }, () => {});
+  const iterator = owned.cells("s")[Symbol.asyncIterator]();
+  await expect(iterator.next()).rejects.toThrow("work limit exceeded");
+  expect(closed).toBe(2);
 });

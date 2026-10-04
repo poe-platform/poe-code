@@ -1,3 +1,4 @@
+import { PdfRawTextIndex, type PdfRawTextIndexOptions } from "./extract/raw-text-index.js";
 import { streamRawTextChunks, type PdfRawTextOptions } from "./extract/raw-text-stream.js";
 import { prepareRetainedPageContent, type PdfRetainedPageEvaluationOptions } from "./content/retained-page.js";
 import { evaluateRetainedContentSteps } from "./content/retained-evaluator.js";
@@ -359,6 +360,16 @@ export class PdfRetainedPage {
       }
     }
     yield* streamRawTextChunks(glyphs(), shared, options);
+  }
+
+  /** Index raw-order text geometry and strings on caller storage. The caller
+   * closes the returned index after consuming its block/line/word iterators. */
+  async indexRawText(storage: PdfIndexStorage, options: PdfRetainedPageEvaluationOptions & PdfRawTextIndexOptions = {}): Promise<PdfRawTextIndex> {
+    const shared = new PdfStagingStorage(storage, options.maxStagingBytes), operations = this.evaluateSteps(shared, options);
+    async function* glyphs() {
+      for await (const event of operations) if (!event.insideSoftMask && event.operation.kind === "glyph") yield event.operation.value;
+    }
+    return PdfRawTextIndex.create(glyphs(), shared, options);
   }
 
   /** Pull one annotation at a time. Destination page lookup uses the document's

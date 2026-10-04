@@ -45,9 +45,10 @@ line endings, crop regions, `-cropbox`, `-clip`, `-nodiag`, `-urls` and `-htmlme
 large spills. URL appendices search staged page text and deduplicate links on
 caller storage. Crop selection stages whole words and preserves their original
 paragraph grouping. `-raw -tsv` streams its page rows with the same retained
-input, content evaluation, encoding and publication path. Bounding-box formats,
-non-raw TSV and other
-text modes still use the buffered path; page evaluation also retains admitted
+input, content evaluation, encoding and publication path. `-raw -bbox` and
+`-raw -bbox-layout` keep word text and block/line geometry in caller-backed
+records and stream XHTML, including crop selection. Non-raw text modes still
+use the buffered path; page evaluation also retains admitted
 rendering resources.
 
 The `pdftotext -enc Latin1` option writes ISO-8859-1 bytes; `-enc UCS-2` writes big-endian 16-bit code units with a BOM. File output and stdout use the same encoding.

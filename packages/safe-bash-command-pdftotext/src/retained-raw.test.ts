@@ -195,3 +195,15 @@ for (const encoding of ["UTF-8", "UCS-2", "Latin1"]) for (const flags of [[], ["
     assert.deepEqual(f.counts(), { wholeReads: 0, payloadWrites: 0, published: 1 }); await f.clean();
   });
 }
+
+for (const mode of ["-bbox", "-bbox-layout"]) for (const flags of [[], ["-r", "144", "-cropbox", "-x", "5", "-W", "30"], ["-htmlmeta", "-eol", "dos", "-tsv"], ["-q", "-enc", "UCS-2"]]) {
+  test(`retained raw bounding boxes preserve markup and diagnostics: ${mode} ${flags.join(" ")}`, async () => {
+    const doc = PdfDocument.load(pdf()); doc.setTitle("Bounds <page>");
+    dictSet(doc.getPage(0).dict, "CropBox", cosArray([30, 60, 150, 115].map(value => cosNumber(value))));
+    const input = doc.save(), args = ["-raw", mode, ...flags, "input.pdf", "output.txt"], expected = await runPdftotextCli(args, new Map([["input.pdf", input]]));
+    const f = await fixture(input, args); assert.equal((await createPdftotextCommand().execute(f.context)).exitCode, expected.exitCode);
+    assert.deepEqual(await f.fs.readFile("/output.txt"), encoded(expected.output, flags.includes("UCS-2") ? "UCS-2" : "UTF-8"));
+    assert.equal(new TextDecoder().decode(joined(f.stderr)), expected.stderr);
+    assert.deepEqual(f.counts(), { wholeReads: 0, payloadWrites: 0, published: 1 }); await f.clean();
+  });
+}

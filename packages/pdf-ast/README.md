@@ -101,6 +101,16 @@ to the current line and preserving original paragraph boundaries. `chunkBytes` b
 `maxWorkingBytes` admits formatter scratch before input is pulled. Page resource
 and rendering allocations still belong to the evaluator described above.
 
+`page.indexRawText(storage, options)` retains raw-order blocks, lines, words and
+geometry on caller storage. `PdfRawTextIndex.create(glyphs, storage, options)`
+accepts an existing glyph stream. Traverse `blocks()`, `lines()`, `words()` and
+chunked `word.text()` without collecting arrays; close the index after all
+borrowed iterators finish. The index uses four 16 KiB cache pages and admits
+80 KiB of fixed byte buffers with `maxWorkingBytes`; caller glyph strings and
+evaluator resources are separate. `maxStorageBytes` bounds page-rounded backing
+allocation, with optional word, line and block limits. Traversals and large
+individual strings yield to cancellation. Logical/layout ordering is not provided.
+
 `page.annotations()` pulls link rectangles, contents, and external or internal
 URIs from a retained page. Named and legacy destinations share the buffered
 page API's interpretation. Destination page traversal uses caller-backed

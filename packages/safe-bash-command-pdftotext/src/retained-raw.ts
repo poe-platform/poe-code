@@ -1,4 +1,5 @@
-import { streamTextHtml } from "./text-markup.js";
+import { streamRawBboxPage, type RawTextGeometry } from "./retained-bbox.js";
+import { streamTextHtml, streamTextHtmlStart } from "./text-markup.js";
 import { PdfError, PdfNameIndex, PdfFileSource, PdfRetainedDocument, PdfStagingStorage, dictGet, type PdfRetainedPage, type PdfCosDict } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
@@ -19,6 +20,8 @@ interface RawTextPlan {
   readonly quiet: boolean;
   readonly htmlmeta: boolean;
   readonly tsv: boolean;
+  readonly bbox: boolean;
+  readonly bboxLayout: boolean;
   readonly urls: boolean;
   readonly invalidEolWarning: boolean;
   readonly nopgbrk: boolean;
@@ -115,14 +118,20 @@ export async function executeRetainedRawText(context: CommandContext, plan: RawT
     const first = Math.max(1, plan.firstPage);
     const last = !plan.lastPageExplicit || plan.lastPage === 0 || plan.lastPage > pageCount ? pageCount : plan.lastPage;
     if (first > pageCount || first > last) return await error(`Command Line Error: Wrong page range given: the first page (${first}) can not be after the last page (${last}).\n`, 99);
-    const retained = document;
+    const retained = document; let emptyPageWarning = false;
     async function* text() {
-      if (plan.tsv) yield encoder.encode("level\tpage_num\tpar_num\tblock_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n");
+      if (plan.bbox) yield* streamTextHtmlStart(await retained.info(), "doc");
+      else if (plan.tsv) yield encoder.encode("level\tpage_num\tpar_num\tblock_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n");
       for await (const page of retained.pages()) {
         await yieldTurn(signal);
         if (page.index + 1 < first) continue;
         if (page.index + 1 > last) break;
         const geometry = await rawGeometry(retained, page, plan);
+        if (plan.bbox) {
+          const hasWords = yield* streamRawBboxPage(page, storage, geometry!, { ...plan, signal });
+          if (!hasWords && !plan.bboxLayout && !plan.quiet) emptyPageWarning = true;
+          continue;
+        }
         if (plan.tsv) {
           // Raw TSV has page rows only, but still evaluate content so retained
           // reads, decoding, validation and cancellation follow extraction.
@@ -154,11 +163,12 @@ export async function executeRetainedRawText(context: CommandContext, plan: RawT
         }
         if (!plan.nopgbrk) yield new Uint8Array([12]);
       }
+      if (plan.bbox) yield encoder.encode("</doc>\n</body>\n</html>\n");
     }
-    const formatted = plan.htmlmeta
+    const formatted = plan.htmlmeta && !plan.bbox
       ? streamTextHtml(encodePopplerChunks(text(), "UTF-8", plan.tsv ? "unix" : plan.eol), await document.info()) : text();
-    result = await PdfFileSource.fromStream(storage.fs, directory, encodePopplerChunks(formatted, plan.encoding, plan.htmlmeta || plan.tsv ? "unix" : plan.eol), { signal });
-    if (warning) await writeBytes(context.stderr, encoder.encode(warning), signal);
+    result = await PdfFileSource.fromStream(storage.fs, directory, encodePopplerChunks(formatted, plan.encoding, plan.htmlmeta || plan.tsv || plan.bbox ? "unix" : plan.eol), { signal });
+    if (warning || emptyPageWarning) await writeBytes(context.stderr, encoder.encode(warning + (emptyPageWarning ? "no word list\n" : "")), signal);
     if (outputPath === "-") {
       for await (const bytes of result.stream(0, result.size, signal)) await writeBytes(stdout, bytes, signal);
     } else {
@@ -190,7 +200,7 @@ async function containsText(source: PdfFileSource, needle: string, signal: Abort
   return (overlap + decoder.decode()).includes(needle);
 }
 
-async function rawGeometry(document: PdfRetainedDocument, page: PdfRetainedPage, plan: RawTextPlan): Promise<{ crop?: readonly [number, number, number, number]; width: number; height: number } | undefined> {
+async function rawGeometry(document: PdfRetainedDocument, page: PdfRetainedPage, plan: RawTextPlan): Promise<RawTextGeometry | undefined> {
   let box: number[] | undefined;
   if (plan.cropbox) {
     let current: PdfCosDict | undefined = page.dict, depth = 0; const visited = new Set<number>();
@@ -206,7 +216,7 @@ async function rawGeometry(document: PdfRetainedDocument, page: PdfRetainedPage,
     }
   }
   const cropping = box !== undefined || plan.cropX !== undefined || plan.cropY !== undefined || plan.cropW !== undefined || plan.cropH !== undefined;
-  if (!cropping && !plan.tsv) return undefined;
+  if (!cropping && !plan.tsv && !plan.bbox) return undefined;
   const { mediaBox } = await page.attributes(), width = Math.abs(mediaBox[2] - mediaBox[0]), height = Math.abs(mediaBox[3] - mediaBox[1]), scale = plan.resolution / 72;
   const x0 = box ? Math.min(box[0]!, box[2]!) : 0, y0 = box ? Math.min(box[1]!, box[3]!) : 0;
   const x1 = box ? Math.max(box[0]!, box[2]!) : width, y1 = box ? Math.max(box[1]!, box[3]!) : height;
@@ -214,5 +224,6 @@ async function rawGeometry(document: PdfRetainedDocument, page: PdfRetainedPage,
   const maxX = plan.cropW !== undefined && plan.cropW > 0 ? minX + plan.cropW / scale : x1;
   const maxTop = plan.cropH !== undefined && plan.cropH > 0 ? minTop + plan.cropH / scale : height - y0;
   return { ...(cropping ? { crop: [minX, height - maxTop, maxX, height - minTop] as const } : {}),
+    offsetX: box ? x0 : 0, offsetY: box ? y0 : 0,
     width: box ? Math.max(1, x1 - x0) : width, height: box ? Math.max(1, y1 - y0) : height };
 }

@@ -34,6 +34,40 @@ test("alternating tenants never replay another filesystem's pipeline output", as
   }
 });
 
+for (const stages of ["sort | wc -c", "sort | cat | wc -c"]) {
+  for (const changePipeline of [false, true]) {
+    test(`pipeline byte counts follow distinct sources and ASTs (${stages}, change=${changePipeline})`, async context => {
+      const encoder = new TextEncoder();
+      const shells = await Promise.all([
+        "alpha:1\n".repeat(200),
+        "alpha:1\n".repeat(50) + "beta:2\n".repeat(150),
+      ].map(async content => {
+        const fs = new MemoryFileSystem();
+        await fs.writeFile("/data.txt", encoder.encode(content));
+        const shell = new Shell({ fs }).use(agentCommands());
+        context.after(() => shell.dispose());
+        return shell;
+      }));
+      const first = `grep alpha /data.txt | ${stages}`;
+      const next = changePipeline ? `grep beta /data.txt | ${stages}` : first;
+      // Keep each filesystem and its original file alive throughout A-B-A.
+      // Changing the pipeline must not associate an earlier source with newer output.
+      for (const [tenant, command, expected] of [
+        [0, first, "1600\n"],
+        [1, next, changePipeline ? "1050\n" : "400\n"],
+        [0, next, changePipeline ? "0\n" : "1600\n"],
+        [0, next, changePipeline ? "0\n" : "1600\n"],
+      ] as const) {
+        const result = await shells[tenant]!.exec(command);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, expected);
+        assert.deepEqual(result.stdoutBytes, encoder.encode(expected));
+      }
+    });
+  }
+}
+
 test("pipeline output follows A-B-A source buffer reuse", async context => {
   const fs = new MemoryFileSystem();
   const shell = new Shell({ fs }).use(standardCommands());

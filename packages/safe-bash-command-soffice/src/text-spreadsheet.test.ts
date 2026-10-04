@@ -49,10 +49,10 @@ test("text XLSX output is readable by the spreadsheet engine", async () => {
   } finally { await engine.dispose(); }
 });
 
-test("XLSX output preserves columns beyond Z", async () => {
-  const columns = Array.from({ length: 28 }, (_, index) => `column ${index + 1}`);
+for (const run of [runSofficeCliSync, runSofficeCli]) test(`XLSX output preserves columns through AAA (${run.name})`, async () => {
+  const columns = Array.from({ length: 703 }, (_, index) => `column ${index + 1}`);
   const files = new Map([["/wide.txt", new TextEncoder().encode(columns.join("\t"))]]);
-  const result = await runSofficeCli(["--convert-to", "xlsx", "/wide.txt"], files);
+  const result = await run(["--convert-to", "xlsx", "/wide.txt"], files);
   assert.equal(result.exitCode, 0, result.stderr);
   const engine = createEngine({ formats: [xlsxFormat] });
   try {

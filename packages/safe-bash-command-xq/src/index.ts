@@ -2,9 +2,9 @@ import { builtInDirectContextExecutors } from "safe-bash-io-engine/internal";
 import type { XmlElement } from "@poe-code/safe-fs/core";
 import type { CommandDefinition } from "safe-bash-contracts";
 import { resolveXmlQueryLimits, type XmlCommandsOptions } from "safe-bash-xml-engine/limits";
-import { parseXmlSteps, XmlLimitError } from "@poe-code/safe-fs/core";
+import { parseXmlStream, parseXmlSteps, XmlLimitError } from "@poe-code/safe-fs/core";
 import { getCommandArguments, toByteSource, type CommandContext } from "safe-bash-contracts";
-import { readXmlInput } from "safe-bash-xml-engine/io";
+import { readXmlChunks } from "safe-bash-xml-engine/io";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
@@ -49,22 +49,13 @@ async function executeXq(
     // Only XML conversion errors are translated; jq owns its sink failures.
     return executeJq(context, jqLimits, async (bytes) => {
       try {
-        const source = await readXmlInput({ ...context, stdin: bytes }, undefined, budget, runtime);
-        const parser = parseXmlSteps(source, {
+        const source = readXmlChunks({ ...context, stdin: bytes }, undefined, budget, runtime);
+        const root = await parseXmlStream(source, {
           ...limits,
           maxContentNodes: limits.maxNodes,
           expectedEncoding: "UTF-8"
-        });
-        let parsed = parser.next();
-        try {
-          while (!parsed.done) {
-            await budget.tick(parsed.value);
-            parsed = parser.next();
-          }
-        } finally {
-          if (!parsed.done) parser.return(undefined as never);
-        }
-        const value = await xmlToJson(parsed.value, budget);
+        }, units => budget.tick(units));
+        const value = await xmlToJson(root, budget);
         conversionBudget.value(value);
         return toByteSource(
           (await stringify(

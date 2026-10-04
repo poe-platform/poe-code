@@ -20,12 +20,12 @@ export interface XmlCommandRuntime {
   ) => Promise<void>;
 }
 
-export async function readXmlInput(
+export async function* readXmlChunks(
   context: CommandContext,
   file: string | undefined,
   budget: XmlBudget,
   runtime: XmlCommandRuntime
-): Promise<string> {
+): AsyncGenerator<string> {
   const remainingBytes = Math.max(0, Math.min(
     budget.limits.maxInputBytes,
     context.inputBudget?.maxBytes ?? Infinity
@@ -37,8 +37,11 @@ export async function readXmlInput(
       chunkSize: Math.max(1, Math.min(65536, remainingBytes)),
     });
   }
-  const parts: string[] = [];
   const decoder = new TextDecoder("utf-8", { fatal: true });
+  const decode = (bytes?: Uint8Array) => {
+    try { return bytes ? decoder.decode(bytes, { stream: true }) : decoder.decode(); }
+    catch { throw new XmlQueryError("XML input must be UTF-8", 1); }
+  };
   let chunksSinceYield = 0;
   for await (const chunk of readBytes(source, context.signal)) {
     const checkpoint = budget.tick();
@@ -58,17 +61,20 @@ export async function readXmlInput(
     // Decode before requesting another chunk; a producer may reuse its backing bytes.
     for (let offset = 0; offset < chunk.length; offset += 4096) {
       await budget.tick(Math.min(4096, chunk.length - offset));
-      try {
-        parts.push(decoder.decode(chunk.subarray(offset, offset + 4096), { stream: true }));
-      } catch {
-        throw new XmlQueryError("XML input must be UTF-8", 1);
-      }
+      yield decode(chunk.subarray(offset, offset + 4096));
     }
   }
-  try {
-    parts.push(decoder.decode());
-  } catch {
-    throw new XmlQueryError("XML input must be UTF-8", 1);
-  }
+  yield decode();
+}
+
+/** Buffering convenience API for callers that explicitly require complete text. */
+export async function readXmlInput(
+  context: CommandContext,
+  file: string | undefined,
+  budget: XmlBudget,
+  runtime: XmlCommandRuntime
+): Promise<string> {
+  const parts: string[] = [];
+  for await (const part of readXmlChunks(context, file, budget, runtime)) parts.push(part);
   return parts.join("");
 }

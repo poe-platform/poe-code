@@ -10,6 +10,10 @@ Access XML functionality through `@poe-platform/safe-bash/commands/xml` and its
 `xmlCommands` plugin. This private engine is bundled into the public package;
 it requires no separate installation and has no external runtime dependency.
 
+The input decoder exposes an incremental string stream for XML parsers; callers
+that explicitly need a complete string can use its buffering convenience API.
+Incremental decoding preserves borrowed input bytes and consumer backpressure.
+
 XML input also respects the shell execution input-byte limit for stdin and files.
 XPath scalar expressions and predicates support unary negation, addition, and subtraction.
 XPath supports the built-in `xml:` prefix (for example, `/root/@xml:lang`).

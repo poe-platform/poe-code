@@ -18,7 +18,9 @@ Also available: `createXqCommand`, `createXqCommands`, and typed options and lim
 `xq` converts XML elements, attributes (`@name`), repeated children, and text
 (`#text`) to JSON, then applies a jq filter. It supports stdin, virtual files,
 `-r`, `-c`, `--arg`, and filter files (`-f`). DTDs and XML output are unsupported;
-filters and filenames must be valid, lossless UTF-8.
+filters and filenames must be valid, lossless UTF-8. XML input is decoded and
+parsed incrementally, so parser limits can stop further reads immediately. The
+XML tree and converted JSON value still remain in memory for query execution.
 
 Pass `limits` to bound input/output bytes, filter bytes, XML depth/nodes/attributes,
 query steps, and results. Limits are opt-in; omitted limits retain the existing

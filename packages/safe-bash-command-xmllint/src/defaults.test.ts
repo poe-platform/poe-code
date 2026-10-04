@@ -48,7 +48,10 @@ test("portable runtime cancels a pending VFS read", { timeout: 200 }, async () =
     command: "xmllint", ...createCommandArguments(["--noout", "/input.xml"]), cwd: "/", env: {},
     signal: controller.signal, stdin: toByteSource(""),
     stdout: { async write() {} }, stderr: { async write() {} },
-    fs: { capabilities: {}, async readFile() { controller.abort(failure); return new Promise<Uint8Array>(() => {}); } } as unknown as CommandContext["fs"]
+    fs: { capabilities: { retainedRead: true }, async openReadFile() { return {
+      async read() { controller.abort(failure); return new Promise<Uint8Array>(() => {}); },
+      async close() {}
+    }; } } as unknown as CommandContext["fs"]
   };
   await assert.rejects(Promise.resolve(createXmllintCommand().execute(context)), failure);
 });

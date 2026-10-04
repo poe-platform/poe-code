@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { toByteSource, type CommandContext } from "safe-bash-contracts";
-import { readXmlInput, type XmlCommandRuntime } from "./io.js";
+import { readXmlChunks, readXmlInput, type XmlCommandRuntime } from "./io.js";
 import { XmlBudget, resolveXmlQueryLimits } from "./limits.js";
 
 const runtime: XmlCommandRuntime = {
@@ -93,3 +93,48 @@ for (const [commandMaximum, hostMaximum, used, expected] of [
     assert.equal(await readXmlInput(context, "/input.xml", budget, runtime), "");
   });
 }
+
+
+test("XML incremental decoding preserves reused UTF-8 bytes and waits for its consumer", async () => {
+  const encoded = new TextEncoder().encode("<r>é😀</r>");
+  let consumed = 0, closed = false;
+  const context = {
+    signal: new AbortController().signal,
+    stdin: { async *[Symbol.asyncIterator]() {
+      const reused = new Uint8Array(1);
+      try {
+        for (let index = 0; index < encoded.length; index++) {
+          assert.equal(consumed, index, "reader advanced while decoded output was outstanding");
+          reused[0] = encoded[index]!;
+          yield reused;
+        }
+      } finally { closed = true; }
+    } }
+  } as unknown as CommandContext;
+  const budget = new XmlBudget(resolveXmlQueryLimits(), context.signal, runtime.yieldTurn);
+  let text = "";
+  for await (const part of readXmlChunks(context, undefined, budget, runtime)) {
+    await Promise.resolve();
+    text += part;
+    consumed++;
+  }
+  assert.equal(text, "<r>é😀</r>");
+  assert.equal(budget.inputBytes, encoded.length);
+  assert.equal(closed, true);
+});
+
+for (const failure of [new Error("consumer failed"), null, false]) test(`XML decoder preserves consumer failure ${String(failure)}`, async () => {
+  let closed = false;
+  const context = {
+    signal: new AbortController().signal,
+    stdin: { async *[Symbol.asyncIterator]() {
+      try { yield new TextEncoder().encode("<r/>"); }
+      finally { closed = true; }
+    } }
+  } as unknown as CommandContext;
+  const budget = new XmlBudget(resolveXmlQueryLimits(), context.signal, runtime.yieldTurn);
+  const reader = readXmlChunks(context, undefined, budget, runtime);
+  assert.equal((await reader.next()).value, "<r/>");
+  await assert.rejects(reader.throw(failure), error => error === failure);
+  assert.equal(closed, true);
+});

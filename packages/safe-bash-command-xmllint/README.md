@@ -28,7 +28,11 @@ or serialization, `--nocdata` to serialize CDATA as escaped text, and `--output 
 the virtual filesystem. `--recover` repairs truncated elements, mismatched end
 tags, and undeclared entities, reporting repairs on stderr. `--encode ENCODING`
 selects UTF-8, UTF-16 (including LE/BE), US-ASCII, or ISO-8859-1 output. Inputs come
-from stdin or one or more files in the configured virtual filesystem. Files are
+from stdin or one or more files in the configured virtual filesystem. Normal input
+is decoded and parsed incrementally. `--noout` without XPath discards the document
+tree; formatting and queries retain it, and `--recover` still buffers the source.
+Individual XML tokens remain resident, so incremental input alone does not bound
+memory for arbitrary documents or queries. Files are
 processed in order; malformed files report an error while later files continue.
 XPath output remains enabled with `--noout` or `--format`. When writing multiple
 documents with `--output`, each document replaces the destination. XML limits

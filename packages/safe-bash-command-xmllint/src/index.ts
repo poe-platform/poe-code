@@ -1,8 +1,8 @@
 import { builtInDirectContextExecutors } from "safe-bash-io-engine/internal";
 import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
 import { createXqCommand } from "safe-bash-command-xq";
-import { readXmlInput, type XmlCommandRuntime } from "safe-bash-xml-engine/io";
-import { parseXmlSteps, XmlLimitError } from "@poe-code/safe-fs/core";
+import { readXmlChunks, readXmlInput, type XmlCommandRuntime } from "safe-bash-xml-engine/io";
+import { parseXmlStream, parseXmlSteps, XmlLimitError } from "@poe-code/safe-fs/core";
 import {
   FsError,
   getCommandArguments,
@@ -149,27 +149,38 @@ async function executeDocument(
 ): Promise<{ exitCode: number }> {
   let outputFailed = false;
   try {
-    const source = await readXmlInput(context, file, budget, runtime);
     const recoveryMessages = new Set<string>();
-    const parser = parseXmlSteps(source, {
-      ...(options.recover ? { recover: (message: string) => { recoveryMessages.add(message); } } : {}),
-      ...limits,
-      maxContentNodes: limits.maxNodes,
-      expectedEncoding: "UTF-8"
-    });
-    let parsed = parser.next();
-    try {
-      while (!parsed.done) {
-        const p = budget.tick(parsed.value);
-        if (p) await p;
-        parsed = parser.next();
+    let parsedRoot: XmlElement;
+    if (options.recover) {
+      const source = await readXmlInput(context, file, budget, runtime);
+      const parser = parseXmlSteps(source, {
+        recover: (message: string) => { recoveryMessages.add(message); },
+        ...limits,
+        maxContentNodes: limits.maxNodes,
+        expectedEncoding: "UTF-8"
+      });
+      let parsed = parser.next();
+      try {
+        while (!parsed.done) {
+          const p = budget.tick(parsed.value);
+          if (p) await p;
+          parsed = parser.next();
+        }
+      } finally {
+        if (!parsed.done) parser.return(undefined as never);
       }
-    } finally {
-      if (!parsed.done) parser.return(undefined as never);
+      parsedRoot = parsed.value;
+    } else {
+      parsedRoot = await parseXmlStream(readXmlChunks(context, file, budget, runtime), {
+        ...limits,
+        maxContentNodes: limits.maxNodes,
+        expectedEncoding: "UTF-8",
+        retainTree: !(options.noout && options.query === undefined)
+      }, units => budget.tick(units));
     }
     for (const message of recoveryMessages)
       await runtime.writeDiagnostic(context.stderr, `xmllint: ${message} (recovered)\n`, context.signal);
-    const root = await prepareDocument(parsed.value, options.noblanks ?? false, options.encoding, budget, options.nocdata ?? false);
+    const root = await prepareDocument(parsedRoot, options.noblanks ?? false, options.encoding, budget, options.nocdata ?? false);
     const documentOutputStart = budget.outputBytes;
     const fileChunks: Uint8Array[] = [];
     const sink = options.output === undefined || options.query !== undefined ? context.stdout : {

@@ -2913,6 +2913,56 @@ class StoredJbigList {
     this.length++;
   }
 }
+// Four radix levels bound lookup state independently of the segment count.
+// Zero denotes an absent child; stored positions are represented as position + 1.
+class StoredJbigIndex {
+  *find(key, create) {
+    if (!this.root) {
+      if (!create) return;
+      this.root = {length: 2048, position: yield {kind: "bitmap-allocate", length: 2048, fill: 0}};
+    }
+    let buffer = this.root;
+    for (let shift = 24; shift >= 0; shift -= 8) {
+      const offset = ((key >>> shift) & 255) * 8;
+      if (shift === 0) return {buffer, offset};
+      let child = yield {kind: "number-read", buffer, offset};
+      if (!child) {
+        if (!create) return;
+        child = 1 + (yield {kind: "bitmap-allocate", length: 2048, fill: 0});
+        yield {kind: "number-write", buffer, offset, value: child};
+      }
+      buffer = {length: 2048, position: child - 1};
+    }
+  }
+  *get(key) {
+    const slot = yield* this.find(key, false);
+    if (!slot) return;
+    const position = yield {kind: "number-read", ...slot};
+    if (!position) return;
+    const record = new StoredJbigList(9, undefined, {length: 72, position: position - 1});
+    record.length = 9;
+    if ((yield* record.get(0)) === 0) {
+      const list = new StoredJbigList(yield* record.get(2), JbigSymbolFields,
+        {position: yield* record.get(3), length: yield* record.get(4)});
+      list.length = yield* record.get(1);
+      return list;
+    }
+    return {width: yield* record.get(1), height: yield* record.get(2), length: yield* record.get(3),
+      bitmap: {position: yield* record.get(4), length: yield* record.get(5), rowSize: yield* record.get(6),
+        width: yield* record.get(7), height: yield* record.get(8)}};
+  }
+  *set(key, value) {
+    const record = yield* StoredJbigList.create(9);
+    const fields = value instanceof StoredJbigList ? [0, value.length, value.capacity, value.buffer.position, value.buffer.length]
+      : [1, value.width, value.height, value.length, value.bitmap.position, value.bitmap.length, value.bitmap.rowSize, value.bitmap.width, value.bitmap.height];
+    for (const field of fields) yield* record.push(field);
+    const slot = yield* this.find(key, true);
+    yield {kind: "number-write", ...slot, value: record.buffer.position + 1};
+  }
+}
+function* jbigDictionaryGet(index, key) {
+  return index instanceof StoredJbigIndex ? yield* index.get(key) : index?.[key];
+}
 function* jbigListGet(list, index) {
   if (list.parts) return yield* jbigListGet(index < list.parts[0].length ? list.parts[0] : list.parts[1],
     index < list.parts[0].length ? index : index - list.parts[0].length);
@@ -3202,7 +3252,7 @@ function* decodePatternDictionary(mmr, patternWidth, patternHeight, maxPatternIn
     }
   }
   const collectiveWidth = (maxPatternIndex + 1) * patternWidth;
-  if (stored && patternHeight > 0) {
+  if (stored) {
     decodingContext.onAllocation?.(4096);
     const bitmap = yield* createStoredJbigBitmap(collectiveWidth, patternHeight);
     yield* decodeBitmap(mmr, collectiveWidth, patternHeight, template, false, null, at, decodingContext, storeJbigRow.bind(null, bitmap));
@@ -3740,8 +3790,8 @@ class SimpleSegmentVisitor {
   constructor(onImageDimensions, onAllocation, storedBitmap) { this.onImageDimensions = onImageDimensions; this.onAllocation = onAllocation; this.storedBitmap = storedBitmap; }
   regionAllocation() {
     if (!this.storedBitmap) return this.onAllocation;
-    // Region-local contexts, tables and row windows are released after painting.
-    // Persistent dictionaries and page state retain their separate admission.
+    // Dictionary/region contexts, tables and row windows are released after use.
+    // Persistent caller-backed records and page state have separate ownership.
     let regionBytes = 0;
     return bytes => {
       regionBytes += bytes;
@@ -3848,28 +3898,32 @@ class SimpleSegmentVisitor {
     }
     let symbols = this.symbols;
     if (!symbols) {
-      this.symbols = symbols = {};
+      this.symbols = symbols = this.storedBitmap ? new StoredJbigIndex() : {};
     }
-    const capacity = this.storedBitmap ? referredSegments.reduce((sum, id) => sum + (symbols?.[id]?.length ?? 0), 0) : 0;
+    let capacity = 0;
+    if (this.storedBitmap) for (const id of referredSegments) capacity += (yield* jbigDictionaryGet(symbols, id))?.length ?? 0;
     const inputSymbols = this.storedBitmap ? yield* StoredJbigList.create(capacity, JbigSymbolFields) : [];
     for (const referredSegment of referredSegments) {
-      const referredSymbols = symbols[referredSegment];
+      const referredSymbols = yield* jbigDictionaryGet(symbols, referredSegment);
       if (referredSymbols) {
         if (!this.storedBitmap) this.onAllocation?.(referredSymbols.length * 16 + 128);
         for (let i = 0; i < referredSymbols.length; i++) yield* jbigListPush(inputSymbols, yield* jbigListGet(referredSymbols, i));
       }
     }
-    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation, this.storedBitmap);
-    symbols[currentSegment] = (yield* decodeSymbolDictionary(dictionary.huffman, dictionary.refinement, inputSymbols, dictionary.numberOfNewSymbols, dictionary.numberOfExportedSymbols, huffmanTables, dictionary.template, dictionary.at, dictionary.refinementTemplate, dictionary.refinementAt, decodingContext, huffmanInput));
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.regionAllocation(), this.storedBitmap);
+    const decoded = (yield* decodeSymbolDictionary(dictionary.huffman, dictionary.refinement, inputSymbols, dictionary.numberOfNewSymbols, dictionary.numberOfExportedSymbols, huffmanTables, dictionary.template, dictionary.at, dictionary.refinementTemplate, dictionary.refinementAt, decodingContext, huffmanInput));
+    if (this.storedBitmap) yield* symbols.set(currentSegment, decoded);
+    else symbols[currentSegment] = decoded;
   }
   *onImmediateTextRegion(region, referredSegments, data, start, end) {
     const regionInfo = region.info, admit = this.regionAllocation();
     let huffmanTables, huffmanInput;
     const symbols = this.symbols;
-    const capacity = this.storedBitmap ? referredSegments.reduce((sum, id) => sum + (symbols?.[id]?.length ?? 0), 0) : 0;
+    let capacity = 0;
+    if (this.storedBitmap) for (const id of referredSegments) capacity += (yield* jbigDictionaryGet(symbols, id))?.length ?? 0;
     const inputSymbols = this.storedBitmap ? yield* StoredJbigList.create(capacity, JbigSymbolFields) : [];
     for (const referredSegment of referredSegments) {
-      const referredSymbols = symbols[referredSegment];
+      const referredSymbols = yield* jbigDictionaryGet(symbols, referredSegment);
       if (referredSymbols) {
         if (!this.storedBitmap) admit?.(referredSymbols.length * 16 + 128);
         for (let i = 0; i < referredSymbols.length; i++) yield* jbigListPush(inputSymbols, yield* jbigListGet(referredSymbols, i));
@@ -3890,13 +3944,15 @@ class SimpleSegmentVisitor {
   *onPatternDictionary(dictionary, currentSegment, data, start, end) {
     let patterns = this.patterns;
     if (!patterns) {
-      this.patterns = patterns = {};
+      this.patterns = patterns = this.storedBitmap ? new StoredJbigIndex() : {};
     }
-    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
-    patterns[currentSegment] = (yield* decodePatternDictionary(dictionary.mmr, dictionary.patternWidth, dictionary.patternHeight, dictionary.maxPatternIndex, dictionary.template, decodingContext, this.storedBitmap));
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.regionAllocation());
+    const decoded = (yield* decodePatternDictionary(dictionary.mmr, dictionary.patternWidth, dictionary.patternHeight, dictionary.maxPatternIndex, dictionary.template, decodingContext, this.storedBitmap));
+    if (this.storedBitmap) yield* patterns.set(currentSegment, decoded);
+    else patterns[currentSegment] = decoded;
   }
   *onImmediateHalftoneRegion(region, referredSegments, data, start, end) {
-    const patterns = this.patterns[referredSegments[0]];
+    const patterns = yield* jbigDictionaryGet(this.patterns, referredSegments[0]);
     const regionInfo = region.info, admit = this.regionAllocation();
     const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, admit);
     const bitmap = (yield* decodeHalftoneRegion(region.mmr, patterns, region.template, regionInfo.width, regionInfo.height, region.defaultPixelValue, region.enableSkip, region.combinationOperator, region.gridWidth, region.gridHeight, region.gridOffsetX, region.gridOffsetY, region.gridVectorX, region.gridVectorY, decodingContext, this.storedBitmap));

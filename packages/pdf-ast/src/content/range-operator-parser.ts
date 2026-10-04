@@ -8,6 +8,8 @@ import { PdfOperandStack } from "./operand-stack.js";
 import { PDF_KNOWN_COMMANDS } from "./operators.js";
 
 export interface ParseContentRangeOptions {
+  /** Preserve inline ActualText bytes on pathStorage for retained consumers. */
+  readonly retainActualText?: boolean;
   readonly pathStorage?: import("../ast.js").PdfPixelStorage;
   readonly chunkBytes?: number;
   readonly maxStagingBytes?: number;
@@ -35,7 +37,7 @@ export async function* parseContentRangeOperators(source: PdfFileSource, storage
   const backedStack = options.pathStorage ? new StoredMetadataStack<PdfCosNode>(options.pathStorage, signal) : undefined;
   const operands = backedStack ?? stack;
   // Non-text consumers still require their normal COS value representation.
-  async function materialize(node: PdfCosNode): Promise<PdfCosNode> {
+  async function materialize(node: PdfCosNode, retainActualText = false): Promise<PdfCosNode> {
     if (node.kind === "string" && node.storedBytes) {
       const { storedBytes, ...value } = node;
       const bytes = new Uint8Array(storedBytes.byteLength);
@@ -56,7 +58,7 @@ export async function* parseContentRangeOperators(source: PdfFileSource, storage
     }
     if (node.kind === "dict") {
       const entries = [];
-      for (const entry of node.entries) entries.push({ ...entry, value: await materialize(entry.value) });
+      for (const entry of node.entries) entries.push({ ...entry, value: retainActualText && entry.key.decoded === "ActualText" && entry.value.kind === "string" ? entry.value : await materialize(entry.value) });
       return { ...node, entries };
     }
     return node;
@@ -93,7 +95,7 @@ export async function* parseContentRangeOperators(source: PdfFileSource, storage
           const value = request.value;
           if (options.pathStorage && !["Tj", "TJ", "'", '"', "d"].includes(value.operator)) {
             const operands: PdfCosNode[] = [];
-            for (const node of value.operands) operands.push(await materialize(node));
+            for (const [index, node] of value.operands.entries()) operands.push(await materialize(node, !!options.retainActualText && value.operator === "BDC" && index === 1));
             const inlineImage = value.inlineImage ? { ...value.inlineImage, dict: await materialize(value.inlineImage.dict) as typeof value.inlineImage.dict } : undefined;
             yield { ...value, operands, ...(inlineImage ? { inlineImage } : {}) };
           } else yield value;

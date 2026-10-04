@@ -13,6 +13,7 @@ import {
   dictGet,
   type PdfClipPath,
   type PdfStoredClipPaths,
+  type PdfStoredBytes,
   type PdfPixelStorage,
   type PdfContentNode,
   type PdfCosDict,
@@ -1028,7 +1029,7 @@ export function transformPathSegment(seg: PdfPathSegment, matrix: Matrix6): PdfP
   return transformedSegments;
 }
 
-interface EvaluationFrame {pushed:boolean;hidden:boolean;mcid:number|undefined;actualText:string|undefined;savedState?:GraphicsState}
+interface EvaluationFrame {pushed:boolean;hidden:boolean;mcid:number|undefined;actualText:string|PdfStoredBytes|undefined;savedState?:GraphicsState}
 
 export type PdfEvaluationRequest = { readonly kind: "dash-array"; readonly array: import("../ast.js").PdfCosArray; readonly storage: PdfPixelStorage; readonly resolveReferences?: boolean } | { readonly kind: "array-item"; readonly items: import("../ast.js").PdfStoredItems; readonly position: number } | { readonly kind: "string-bytes"; readonly value: import("../ast.js").PdfStoredBytes; readonly offset: number; readonly length: number } | {readonly kind:"font-width";readonly widths:import("../fonts/stored-widths.js").StoredFontWidths;readonly code:number}
   | {readonly kind:"font-unicode";readonly lookup:(code:number)=>Promise<string|undefined>;readonly code:number}
@@ -1541,7 +1542,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     activeFonts: FontScope,
     depth: number,
     mcid?: number,
-    actualText?: string,
+    actualText?: string | PdfStoredBytes,
     storedSegments?: PdfStoredPath
   ): EvaluationWork<boolean> {
     const st = curState();
@@ -1641,7 +1642,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     activeFonts: FontScope,
     depth: number,
     mcid?: number,
-    actualText?: string,
+    actualText?: string | PdfStoredBytes,
     maskGroup = false
   ): EvaluationWork {
     const st = curState();
@@ -1729,10 +1730,10 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
   };
 
   function* markedContext(node: Extract<PdfContentNode, { kind: "marked-content" }>,
-    mcid: number | undefined, actualText: string | undefined, activeResources: PdfCosDict | undefined
-  ): EvaluationWork<{ mcid: number | undefined; actualText: string | undefined } | undefined> {
+    mcid: number | undefined, actualText: string | PdfStoredBytes | undefined, activeResources: PdfCosDict | undefined
+  ): EvaluationWork<{ mcid: number | undefined; actualText: string | PdfStoredBytes | undefined } | undefined> {
     let resolvedMcid = node.mcid;
-    let resolvedActualText = node.actualText;
+    let resolvedActualText: string | PdfStoredBytes | undefined = node.actualText ?? node.storedActualText;
     if (typeof node.properties === "string" && activeResources) {
       const propsMap = yield* resolveEvaluationDict(dictGet(activeResources, "Properties"));
       const propRefOrNode = propsMap ? dictGet(propsMap, node.properties) : undefined;
@@ -1748,7 +1749,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
         if (propDict) {
           if (resolvedActualText === undefined) {
             const at = yield* resolveEvaluationNode(dictGet(propDict, "ActualText"));
-            if (at?.kind === "string") resolvedActualText = decodePdfString(at);
+            if (at?.kind === "string") resolvedActualText = at.storedBytes ?? decodePdfString(at);
           }
           if (resolvedMcid === undefined) {
             const mc = yield* resolveEvaluationNode(dictGet(propDict, "MCID"));
@@ -1763,7 +1764,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
   function* walkNodes(
     nodes: Iterable<PdfContentEvent> | PdfEvaluationContentSource | undefined,
     mcid?: number,
-    actualText?: string,
+    actualText?: string | PdfStoredBytes,
     activeResources: PdfCosDict | undefined = params.resourcesDict,
     activeFonts: FontScope = fonts,
     depth = 0,
@@ -2192,7 +2193,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                 ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
                 ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
                 mcid,
-                actualText,
+                ...(typeof actualText === "string" ? { actualText } : actualText ? { storedActualText: actualText } : {}),
               } });
               tm = multiplyMatrices([1, 0, 0, 1, advUser, 0], tm);
             }

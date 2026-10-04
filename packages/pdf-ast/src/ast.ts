@@ -196,6 +196,7 @@ export type PdfContentNode =
       readonly tag: string;
       readonly properties?: PdfCosDict | string | undefined;
       readonly actualText?: string | undefined;
+  readonly storedActualText?: PdfStoredBytes | undefined;
       readonly mcid?: number | undefined;
       readonly children: PdfContentNode[];
     }
@@ -250,6 +251,7 @@ export interface PdfPlacedGlyph {
   readonly renderMode?: number | undefined;
   readonly mcid?: number | undefined;
   readonly actualText?: string | undefined;
+  readonly storedActualText?: PdfStoredBytes | undefined;
   readonly blendMode?: string | undefined;
   readonly clipPaths?: readonly PdfClipPath[] | undefined;
   readonly storedClipPaths?: PdfStoredClipPaths | undefined;

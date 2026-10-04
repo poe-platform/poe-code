@@ -6,6 +6,7 @@ import {
   decodePdfString,
   dictGet,
   type PdfContentNode,
+  type PdfStoredBytes,
   type PdfCosArray,
   type PdfCosDict,
   type PdfCosNode,
@@ -112,11 +113,12 @@ export function* parseContentSteps(options: { readonly splitText?: boolean; read
       const propNode = args[1];
       let properties: PdfCosDict | string | undefined;
       let actualText: string | undefined;
+      let storedActualText: PdfStoredBytes | undefined;
       let mcid: number | undefined;
       if (propNode?.kind === "dict") {
         properties = propNode;
         const at = dictGet(propNode, "ActualText");
-        if (at?.kind === "string") actualText = decodePdfString(at);
+        if (at?.kind === "string") { if (at.storedBytes) storedActualText = at.storedBytes; else actualText = decodePdfString(at); }
         const mc = dictGet(propNode, "MCID");
         if (mc?.kind === "number") mcid = mc.value;
       } else if (propNode?.kind === "name") {
@@ -127,6 +129,7 @@ export function* parseContentSteps(options: { readonly splitText?: boolean; read
         tag,
         properties,
         actualText,
+        ...(storedActualText ? { storedActualText } : {}),
         mcid,
         children: [],
       };

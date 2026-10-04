@@ -155,7 +155,13 @@ accepts an existing glyph stream, including `PdfRawTextGlyph` values with a
 `storedActualText` byte range on caller-owned storage. Stored replacements decode
 in bounded chunks and adjacent equal replacements collapse by decoded content,
 even across different encodings. An explicit `actualText` string takes precedence.
-Keep replacement storage alive until index creation finishes. Traverse `blocks()`, `lines()`, `words()` and
+Keep replacement storage alive until index creation finishes. `page.indexRawText()`
+automatically retains inline ActualText in its supplied filesystem and cleans up
+that temporary backing after index creation. For low-level evaluation, use
+`retainActualText: true` with `pathStorage` or `imageStorage`; returned glyphs
+borrow that backing. Synchronous extraction and the direct raw-text formatter
+require string replacements and reject stored-only replacements explicitly.
+Traverse `blocks()`, `lines()`, `words()` and
 chunked `word.text()` without collecting arrays; close the index after all
 borrowed iterators finish. The index uses four 16 KiB cache pages and admits
 80 KiB of fixed byte buffers with `maxWorkingBytes` (128 KiB for stored

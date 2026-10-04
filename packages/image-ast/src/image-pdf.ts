@@ -44,7 +44,7 @@ export async function tryPdfDecode(source:ImageByteSource,storage:ImageByteStora
  const settings={...options};const owner=await openPdfImage(source,fs,directory,signal,settings,storage);if(!owner)return undefined;
  let failed=false;
  try{
-  const rendered=await renderRetainedPagePixels(owner.page,{fs,directory},{signal,scale:(settings.density??72)/72,imageStorage:storage,chunkBytes:4096,tileSize:64});
+  const rendered=await renderRetainedPagePixels(owner.page,{fs,directory},{signal,scale:(settings.density??72)/72,imageStorage:storage,retainActualText:true,chunkBytes:4096,tileSize:64});
   const {width,height}=rendered,length=width*height*4;checkLimitInputPixels(width,height,settings);
   const position=storage.allocate(length);
   if(!Number.isSafeInteger(position)||position<0||!Number.isSafeInteger(position+length))throw new RangeError("Invalid PDF image backing allocation");

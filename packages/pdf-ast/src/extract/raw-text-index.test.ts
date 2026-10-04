@@ -237,3 +237,18 @@ it.each([["a", "ab", 1, "aab"], ["ab", "a", 1, "aba"], ["same", "same", 2, "same
     expect(text).toBe(expected);
   } finally { await table.close(); }
 });
+
+
+it("reads a shared stored replacement once for a long glyph run", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); let reads = 0;
+  const storedActualText = { position: 0, byteLength: 100000, storage: {
+    allocate() { throw new Error("read-only"); }, async write() { throw new Error("read-only"); },
+    async read(_at: number, length: number) { reads++; return new Uint8Array(length).fill(65); }
+  } };
+  const table = await PdfRawTextIndex.create(Array.from({ length: 100 }, (_, x) => ({ ...glyph("x", x * 5, 80), storedActualText: { ...storedActualText } })), { fs, directory: "/scratch" });
+  try {
+    let length = 0;
+    for await (const block of table.blocks()) for await (const line of block.lines()) for await (const word of line.words()) for await (const part of word.text()) length += part.length;
+    expect(length).toBe(100000); expect(reads).toBe(Math.ceil(100000 / 4096));
+  } finally { await table.close(); }
+});

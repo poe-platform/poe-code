@@ -51,6 +51,7 @@ export class PdfTextGlyphNormalizer {
     return true;
   }
   *push(g: PdfPlacedGlyph): Generator<PdfPlacedGlyph, void, void> {
+    if (g.actualText === undefined && g.storedActualText) throw new TypeError("Stored ActualText requires PdfRawTextIndex");
     const previous = this.pending;
     if (previous && g.actualText === previous.actualText && g.mcid === previous.mcid) {
       this.pending = { ...previous, bbox: mergeBBox(previous.bbox, g.bbox), advanceWidth: previous.advanceWidth + g.advanceWidth };

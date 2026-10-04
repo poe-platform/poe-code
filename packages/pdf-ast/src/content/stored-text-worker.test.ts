@@ -3,7 +3,7 @@ import { build } from "esbuild";
 import { Miniflare } from "miniflare";
 import { fileURLToPath } from "node:url";
 
-it.each(["token", "array"])(
+it.each(["token", "array", "actual"])(
   "evaluates growing %s text with external backing and bounded Worker reads",
   async (mode) => {
     const bundle = await build({
@@ -24,9 +24,9 @@ export default {async fetch(request,env){
  const lexer=new CosRangeLexer(source,{stringStorage:storage,onTokenAllocation(n){admission+=n;if(admission>16384)throw Error('growing token scratch');}});
  token=await lexer.nextToken();if(token.bytes.length)throw Error('resident token');
  }else{
- const prefix='BT /F 10 Tf [',pattern='(A) -1 ',suffix='] TJ ET';
+ const prefix=mode==='actual'?'/Span << /ActualText (':'BT /F 10 Tf [',pattern=mode==='actual'?'A':'(A) -1 ',suffix=mode==='actual'?') >> BDC BT /F 10 Tf (A) Tj ET EMC':'] TJ ET';
  const source={size:prefix.length+pattern.length*count+suffix.length,chunkBytes:256,async read(at,n){const bytes=new Uint8Array(n);for(let i=0;i<n;i++){const p=at+i-prefix.length;bytes[i]=p<0?prefix.charCodeAt(at+i):p<pattern.length*count?pattern.charCodeAt(p%pattern.length):suffix.charCodeAt(p-pattern.length*count);}return bytes;}};
- nodes=parseContentRangeEvents(source,{fs:{},directory:'/'},{pathStorage:storage});
+ nodes=parseContentRangeEvents(source,{fs:{},directory:'/'},{pathStorage:storage,retainActualText:mode==='actual'});
  }
  const work=evaluateContentSteps({pageIndex:0,width:612,height:792});let sent=false,glyphs=0,step=work.next();
  while(!step.done){const r=step.value;let reply;
@@ -35,7 +35,7 @@ export default {async fetch(request,env){
   else if(r.kind==='font')reply=undefined;
   else if(r.kind==='catalog')reply={kind:'resolved',node:undefined};
   else if(r.kind==='string-bytes')reply={kind:'resolved',node:{kind:'string',bytes:await storage.read(r.value.position+r.offset,r.length)}};
-  else if('operation' in r){if(r.operation.kind==='glyph')glyphs++;}
+  else if('operation' in r){if(r.operation.kind==='glyph'){glyphs++;if(mode==='actual'&&(r.operation.value.actualText!==undefined||r.operation.value.storedActualText?.byteLength!==count))throw Error('expanded ActualText');}}
   else throw Error('unexpected '+r.kind);
   step=work.next(reply);
  }
@@ -72,7 +72,7 @@ export default {async fetch(request,env){
     try {
       let previousReads = 0,
         previousWrites = 0;
-      for (const count of mode === "token" ? [8192, 65536] : [128, 512]) {
+      for (const count of mode === "array" ? [128, 512] : [8192, 65536]) {
         const response = await runtime.dispatchFetch("https://worker/", {
           method: "POST",
           body: JSON.stringify({ count, mode })
@@ -88,9 +88,9 @@ export default {async fetch(request,env){
         };
         if (mode === "token") expect(result.admission).toBe(16384);
         else expect(result.peakItems).toBe(0);
-        expect(result.glyphs).toBe(count);
+        expect(result.glyphs).toBe(mode === "actual" ? 1 : count);
         expect(result.node).toBe(false);
-        expect(result.reads).toBeGreaterThan(previousReads);
+        if (mode !== "actual") expect(result.reads).toBeGreaterThan(previousReads);
         expect(result.writes).toBeGreaterThan(previousWrites);
         previousReads = result.reads;
         previousWrites = result.writes;

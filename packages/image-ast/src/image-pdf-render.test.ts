@@ -106,3 +106,24 @@ it.each(["inline","map","state","both"])("backs %s graphics-state dashes before 
  }finally{spy.mockRestore();await storage.close();}
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("keeps inline ActualText backed during Sips rasterization without changing pixels",async()=>{
+ const {cosDict,cosName,PdfRetainedPage}=await import("@poe-code/pdf-ast");
+ const doc=PdfDocument.create(),page=doc.addPage([24,16]);
+ dictSet(page.pageDict,"Resources",cosDict({Font:cosDict({F:cosDict({Subtype:cosName("Type1"),BaseFont:cosName("Helvetica")})})}));
+ page.setRawContentStream(`/Span << /ActualText (${"replacement".repeat(8192)}) >> BDC BT /F 10 Tf 1 5 Td (A) Tj ET EMC`);
+ const bytes=doc.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
+ const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4);
+ const evaluate=PdfRetainedPage.prototype.evaluateSteps;let seen=0;
+ const spy=vi.spyOn(PdfRetainedPage.prototype,"evaluateSteps").mockImplementation(async function*(...args){
+  for await(const event of evaluate.apply(this,args)){
+   if(event.operation.kind==="glyph"){seen++;expect(typeof event.operation.value.actualText).toBe("undefined");expect(event.operation.value.storedActualText?.storage).toBe(storage);}
+   yield event;
+  }
+ });
+ try{
+  const image=await tryPdfDecode({size:bytes.length,async read(at,length){return bytes.subarray(at,at+length);}},storage,fs,"/scratch",signal);
+  expect(await storage.read(image!.position,image!.width*image!.height*4)).toEqual(expected.data);expect(seen).toBeGreaterThan(0);
+ }finally{spy.mockRestore();await storage.close();}
+ expect(await fs.readdir("/scratch")).toEqual([]);
+});

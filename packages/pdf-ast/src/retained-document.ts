@@ -1,3 +1,4 @@
+import { PagedStorage } from "@poe-code/safe-fs/storage";
 import type { ValueArrayStorage } from "./cos/value-parser.js";
 import { PdfMergeOutlines } from "./edit/retained-merge-outlines.js";
 import { walkRetainedPageLabels, type PdfRetainedPageLabel } from "./extract/retained-page-labels.js";
@@ -439,11 +440,22 @@ export class PdfRetainedPage {
   /** Index raw-order text geometry and strings on caller storage. The caller
    * closes the returned index after consuming its block/line/word iterators. */
   async indexRawText(storage: PdfIndexStorage, options: PdfRetainedPageEvaluationOptions & PdfRawTextIndexOptions = {}): Promise<PdfRawTextIndex> {
-    const shared = new PdfStagingStorage(storage, options.maxStagingBytes), operations = this.evaluateSteps(shared, options);
+    const shared = new PdfStagingStorage(storage, options.maxStagingBytes);
+    const owned = options.imageStorage || options.pathStorage ? undefined : new PagedStorage({ fs: shared.fs, cwd: shared.directory, env: {}, signal: options.signal ?? new AbortController().signal }, 4);
+    const operations = this.evaluateSteps(shared, { ...options, ...(owned ? { pathStorage: owned } : {}), retainActualText: true });
     async function* glyphs() {
       for await (const event of operations) if (!event.insideSoftMask && event.operation.kind === "glyph") yield event.operation.value;
     }
-    return PdfRawTextIndex.create(glyphs(), shared, options);
+    let index: PdfRawTextIndex | undefined;
+    try {
+      index = await PdfRawTextIndex.create(glyphs(), shared, options);
+      await owned?.close();
+      return index;
+    } catch (error) {
+      await index?.close().catch(() => {});
+      await owned?.close().catch(() => {});
+      throw error;
+    }
   }
 
   /** Pull one annotation at a time. Destination page lookup uses the document's

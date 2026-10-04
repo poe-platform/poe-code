@@ -1,5 +1,5 @@
 import { PagedStorage } from "@poe-code/safe-fs/storage";
-import { decodeStoredPdfString, type PdfPlacedGlyph, type PdfRect, type PdfStoredBytes } from "../ast.js";
+import { decodeStoredPdfString, type PdfPlacedGlyph, type PdfRect } from "../ast.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import { PdfError } from "../errors.js";
 import { glyphDirection, mergeBBox } from "./text-glyphs.js";
@@ -7,9 +7,7 @@ import type { ExtractTextOptions } from "./text.js";
 
 /** Retained extraction may borrow replacement text from caller-owned storage.
  * An explicit actualText string takes precedence. Keep storage alive until create completes. */
-export interface PdfRawTextGlyph extends PdfPlacedGlyph {
-  readonly storedActualText?: PdfStoredBytes;
-}
+export type PdfRawTextGlyph = PdfPlacedGlyph;
 
 async function* glyphText(glyph: PdfRawTextGlyph, signal: AbortSignal): AsyncGenerator<string, void, void> {
   if (glyph.actualText === undefined && glyph.storedActualText) {
@@ -26,6 +24,9 @@ async function* glyphText(glyph: PdfRawTextGlyph, signal: AbortSignal): AsyncGen
 async function sameReplacement(a: PdfRawTextGlyph, b: PdfRawTextGlyph, signal: AbortSignal): Promise<boolean> {
   if (b.actualText === undefined && !b.storedActualText) return false;
   if (a.actualText !== undefined && b.actualText !== undefined) return a.actualText === b.actualText;
+  const first = a.storedActualText, second = b.storedActualText;
+  if (a.actualText === undefined && b.actualText === undefined && first && second
+    && first.storage === second.storage && first.position === second.position && first.byteLength === second.byteLength) return true;
   const left = glyphText(a, signal), right = glyphText(b, signal);
   let x = "", y = "", i = 0, j = 0, leftDone = false, rightDone = false;
   try {

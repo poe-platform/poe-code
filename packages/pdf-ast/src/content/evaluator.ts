@@ -1,3 +1,4 @@
+import type {StoredCMap} from "../fonts/stored-cmap.js";
 import { sampledVertices } from "./sampled-vertices.js";
 import { StoredMetadataStack } from "./stored-record.js";
 import { StoredOperationsWriter } from "./stored-operations.js";
@@ -1026,7 +1027,7 @@ export function transformPathSegment(seg: PdfPathSegment, matrix: Matrix6): PdfP
 
 interface EvaluationFrame {pushed:boolean;hidden:boolean;mcid:number|undefined;actualText:string|undefined;savedState?:GraphicsState}
 
-export type PdfEvaluationRequest = {readonly kind:"cid-gid";readonly map:import("../fonts/stored-cid-map.js").StoredCidMap;readonly code:number} | {readonly kind:"frame-push";readonly stack:StoredMetadataStack<EvaluationFrame>;readonly frame:EvaluationFrame}
+export type PdfEvaluationRequest = {readonly kind:"cmap-lookup";readonly map:StoredCMap;readonly code:number} | {readonly kind:"cmap-character";readonly map:StoredCMap;readonly bytes:Uint8Array;readonly offset:number} | {readonly kind:"cid-gid";readonly map:import("../fonts/stored-cid-map.js").StoredCidMap;readonly code:number} | {readonly kind:"frame-push";readonly stack:StoredMetadataStack<EvaluationFrame>;readonly frame:EvaluationFrame}
   | {readonly kind:"frame-pop";readonly stack:StoredMetadataStack<EvaluationFrame>} | {readonly kind:"capture-append";readonly writer:StoredOperationsWriter;readonly operation:PdfPaintOperation} | PdfEvaluationShadingRequest | PdfEvaluationOperation | { readonly kind: "node"; readonly source?: PdfEvaluationContentSource }
   | { readonly kind: "append-clip"; readonly storage: PdfPixelStorage; readonly previous: PdfStoredClipPaths | undefined; readonly clip: PdfClipPath }
   | { readonly kind: "path-append"; readonly writer: StoredPathWriter; readonly segments: readonly PdfPathSegment[] }
@@ -1120,7 +1121,31 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
   function* decodeTokenGlyphs(
     bytes: Uint8Array,
     font: ResolvedPageFont | undefined
-  ): Generator<{ charCode: number; cid?: number; isSpace: boolean; unicode: string; advance1000: number }, void, void> {
+  ): Generator<{ charCode: number; cid?: number; isSpace: boolean; unicode: string; advance1000: number } | PdfEvaluationRequest, void, PdfEvaluationResult> {
+    function* lookup(map:StoredCMap,code:number):EvaluationWork<number|string|undefined>{
+      const reply=yield {kind:"cmap-lookup",map,code};
+      if(!reply||!("kind" in reply)||reply.kind!=="resolved")throw new TypeError("Expected CMap value");
+      return reply.node?.kind==="number"?reply.node.value:reply.node?.kind==="name"?reply.node.decoded:undefined;
+    }
+    if(font?.storedEncodingCMap||font?.storedCMap){
+      for(let offset=0;offset<bytes.length;){
+        let code=bytes[offset]!,length=1;
+        const encoding=font.storedEncodingCMap;
+        const characterMap=encoding??(font.isTwoByteCid?font.storedCMap:undefined);
+        if(characterMap){const reply=yield {kind:"cmap-character",map:characterMap,bytes,offset};
+          if(!reply||!("kind" in reply)||reply.kind!=="resolved"||reply.node?.kind!=="array")throw new TypeError("Expected CMap character");
+          const [c,l]=reply.node.items;if(c?.kind!=="number"||l?.kind!=="number")throw new TypeError("Expected CMap code and length");code=c.value;length=l.value;
+        }else if(font.encodingCMap){const result={charcode:0,length:0};font.encodingCMap.readCharCode({charCodeAt:(at:number)=>bytes[at]??NaN},offset,result);code=result.charcode;length=result.length;}
+        if(offset+length>bytes.length)break;
+        const encoded=encoding?yield* lookup(encoding,code):font.encodingCMap?.lookup(code);
+        const hasEncoding=!!(encoding||font.encodingCMap),cid=hasEncoding?(typeof encoded==="number"?encoded:0):code;
+        const mapped=font.storedCMap?yield* lookup(font.storedCMap,code):font.cmap?.map.get(code);
+        const fallback=hasEncoding?(font.differences.get(cid)??(cid>=0x20&&cid<=0x10ffff?String.fromCodePoint(cid):"")):font.isTwoByteCid?(code>=0x20&&code<=0x10ffff?String.fromCodePoint(code):""):(font.differences.get(code)??decodeWinAnsiByte(code));
+        yield {charCode:code,...(hasEncoding?{cid}:{}),isSpace:hasEncoding?length===1&&bytes[offset]===0x20:!font.isTwoByteCid&&code===0x20,unicode:typeof mapped==="string"?mapped:fallback,advance1000:font.widths.get(cid)??font.defaultWidth};
+        offset+=length;
+      }
+      return;
+    }
     if (font?.encodingCMap) {
       const encoding = font.encodingCMap;
       for (const { charCode, isSpace } of iterateCMapCharacters(encoding, bytes)) {
@@ -1871,7 +1896,10 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             const font = yield* selectedFont(st.fontOverride ? [st.fontOverride] : activeFonts, st.fontName);
             const decoded = decodeTokenGlyphs(bytes, font);
             const scaleH = st.horizScale / 100;
-            for (const item of decoded) {
+            let decodedStep=decoded.next();
+            while(!decodedStep.done){
+              if(!("charCode" in decodedStep.value)){decodedStep=decoded.next(yield decodedStep.value);continue;}
+              const item=decodedStep.value;decodedStep=decoded.next();
               if (st.textRenderMode >= 4 && st.textRenderMode <= 7) hasTextClip = true;
               const totalMatrix = multiplyMatrices(tm, st.ctm);
               const [px, py] = [totalMatrix[4], totalMatrix[5] + st.rise];
@@ -2131,7 +2159,7 @@ export function* evaluateContentStreamSteps(params: PdfContentEvaluationOptions)
           else exhausted = true;
         }
         step = work.next(next.done ? undefined : next.value);
-      } else if ((step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
+      } else if ((step.value.kind === "cmap-lookup" || step.value.kind === "cmap-character" || step.value.kind === "cid-gid" || step.value.kind === "frame-push" || step.value.kind === "frame-pop" || step.value.kind === "capture-append" || step.value.kind === "transform-path" || step.value.kind === "append-clip" || step.value.kind === "path-append" || step.value.kind === "path-finish")) {
         throw new PdfError("E_CAPABILITY", "Stored PDF paths require an asynchronous source driver");
       } else if (step.value.kind === "shading") {
         if (!params.cosDoc) throw new PdfError("E_CAPABILITY", "PDF shading requires a source driver");

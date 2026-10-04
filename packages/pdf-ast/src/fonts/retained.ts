@@ -1,3 +1,4 @@
+import {parseStoredCMap} from "./stored-cmap.js";
 import {CosRangeLexer} from "../cos/lexer.js";
 import {parseCharacterCMapSteps,parseToUnicodeCMapSteps} from "./cmap.js";
 import type { PdfCosDict, PdfCosRef, PdfCosStream, PdfPixelStorage } from "../ast.js";
@@ -68,9 +69,16 @@ export async function resolveRetainedFont(document: PdfRetainedDocument, storage
             value={storage,position,byteLength:staged.size};
           }else if(step.value.purpose==="unicode-cmap"||step.value.purpose==="encoding-cmap"){
             const input=staged;let readFailure:{reason:unknown}|undefined;
+            const backing=options.resourceStorage;
+            const mapStorage:PdfPixelStorage|undefined=backing?{
+              allocate(length){try{return backing.allocate(length);}catch(reason){readFailure={reason};throw reason;}},
+              async read(position,length,selected){try{return await backing.read(position,length,selected);}catch(reason){readFailure={reason};throw reason;}},
+              async write(position,bytes,selected){try{await backing.write(position,bytes,selected);}catch(reason){readFailure={reason};throw reason;}},
+            }:undefined;
             const lexer=new CosRangeLexer({size:input.size,chunkBytes:input.chunkBytes,async read(position,length,selected){try{return await input.read(position,length,selected);}catch(reason){readFailure={reason};throw reason;}}},{onTokenAllocation:bytes=>allocation.admit(bytes),...(signal?{signal}:{})});
             const program=step.value.purpose==="unicode-cmap"?parseToUnicodeCMapSteps({onAllocation:bytes=>allocation.admit(bytes)}):parseCharacterCMapSteps({onAllocation:bytes=>allocation.admit(bytes)});
-            try{let parsed=program.next(),tokens=0;while(!parsed.done){signal?.throwIfAborted();if(++tokens%256===0){await new Promise<void>(resolve=>setTimeout(resolve,0));signal?.throwIfAborted();}parsed=program.next(await lexer.nextToken());}value=parsed.value;}
+            try{if(mapStorage)value=await parseStoredCMap(()=>lexer.nextToken(),mapStorage,{unicode:step.value.purpose==="unicode-cmap",onAllocation:bytes=>allocation.admit(bytes),...(signal?{signal}:{})});
+            else {let parsed=program.next(),tokens=0;while(!parsed.done){signal?.throwIfAborted();if(++tokens%256===0){await new Promise<void>(resolve=>setTimeout(resolve,0));signal?.throwIfAborted();}parsed=program.next(await lexer.nextToken());}value=parsed.value;}}
             catch(error){
               signal?.throwIfAborted();allocation.rethrowAllocationFailure(error);
               if(readFailure&&Object.is(readFailure.reason,error))throw error;

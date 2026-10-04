@@ -1,3 +1,4 @@
+import type {StoredCMap} from "./stored-cmap.js";
 import type { StoredCidMap } from "./stored-cid-map.js";
 import { FontWidths } from "./widths.js";
 import { PdfFontAllocation, type PdfFontAllocationOptions } from "./memory.js";
@@ -13,7 +14,7 @@ import { parseTrueTypeFont, type ParsedTrueTypeFont } from "./truetype.js";
 import { buildFontEncodingDifferencesMap, buildFontEncodingGlyphNamesMap, normalizeStandard14FontName, STANDARD_14_FONTS } from "./standard14.js";
 type Matrix6 = [number, number, number, number, number, number];
 export type FontResolutionRequest = { kind: "resolve"; node: PdfCosNode | undefined } | { kind: "decode"; stream: PdfCosStream; purpose?: "cid-map" | "unicode-cmap" | "encoding-cmap" };
-export type FontResolutionResult = PdfCosNode | Uint8Array | StoredCidMap | ParsedToUnicodeCMap | CMap | undefined;
+export type FontResolutionResult = PdfCosNode | Uint8Array | StoredCidMap | StoredCMap | ParsedToUnicodeCMap | CMap | undefined;
 function* resolve(node: PdfCosNode | undefined): Generator<FontResolutionRequest, PdfCosNode | undefined, FontResolutionResult> {
   const value = yield { kind: "resolve", node };
   if (value && !("kind" in value)) throw new TypeError("Font lookup returned stream bytes instead of a COS value");
@@ -36,6 +37,8 @@ export interface ResolvedPageFont {
   readonly subtype: string;
   readonly isTwoByteCid: boolean;
   readonly cmap?: ParsedToUnicodeCMap | undefined;
+  readonly storedCMap?: StoredCMap | undefined;
+  readonly storedEncodingCMap?: StoredCMap | undefined;
   readonly encodingCMap?: CMap | undefined;
   readonly differences: ReadonlyMap<number, string>;
   readonly glyphNames: ReadonlyMap<number, string>;
@@ -77,11 +80,13 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
         const baseFontNode = (yield* resolve(dictGet(fObj, "BaseFont")));
         const baseFont = baseFontNode?.kind === "name" ? baseFontNode.decoded : "Helvetica";
         let cmap: ParsedToUnicodeCMap | undefined;
+        let storedCMap: StoredCMap | undefined;
         const toUniNode = (yield* resolve(dictGet(fObj, "ToUnicode")));
         if (toUniNode?.kind === "stream") {
             try {
                 const value=yield {kind:"decode",stream:toUniNode,purpose:"unicode-cmap"};
                 if(value instanceof Uint8Array)cmap=parseToUnicodeCMap(value,allocationOptions);
+                else if(value&&"storedCMap" in value)storedCMap=value;
                 else if(value&&"iterateBytes" in value)cmap=value;
                 else throw new TypeError("Font decoder did not return a Unicode CMap");
             }
@@ -204,7 +209,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
             // PDF.js readCidToGidMap reads big-endian pairs; a trailing high byte
             // gets a zero low byte. Retain explicit zero entries and stream extent.
             const bytes = yield {kind:"decode",stream:cidMap,purpose:"cid-map"};
-            if(bytes && "storage" in bytes)storedCidToGid=bytes;
+            if(bytes && "byteLength" in bytes && "storage" in bytes)storedCidToGid=bytes;
             else if(bytes instanceof Uint8Array){
             allocation.admit(Math.ceil(bytes.length / 2) * 2);
             cidToGid = new Uint16Array(Math.ceil(bytes.length / 2));
@@ -272,9 +277,11 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                 differences.set(code, unicode);
         }
         let encodingCMap:CMap|undefined;
+        let storedEncodingCMap:StoredCMap|undefined;
         if(subtype==="Type0"&&encNode?.kind==="stream"){
           const value=yield {kind:"decode",stream:encNode,purpose:"encoding-cmap"};
           if(value instanceof Uint8Array)encodingCMap=parseCharacterCMap(value,allocationOptions);
+          else if(value&&"storedCMap" in value)storedEncodingCMap=value;
           else if(value&&"lookup" in value)encodingCMap=value;
           else throw new TypeError("Font decoder did not return an encoding CMap");
         }
@@ -285,6 +292,8 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
             isTwoByteCid,
             cmap,
             encodingCMap,
+            storedCMap,
+            storedEncodingCMap,
             differences,
             glyphNames,
             widths,

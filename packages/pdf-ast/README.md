@@ -652,6 +652,10 @@ expanding ranges into per-character Maps. Ordered ranges use binary search;
 overlapping ranges retain their existing last-match behavior.
 Embedded Type0 Encoding CMaps resolve
 source character codes to CIDs before width and TrueType/CFF glyph selection.
+Retained evaluation with caller resource storage keeps Unicode and Encoding CMap
+ranges in fixed-depth backed trees and streams destination arrays into that same
+storage. Mapping overrides, variable-width codes, and Unicode recovery match the
+buffered APIs; range size does not expand resident mapping tables.
 OpenType CFF tables use the same PDF.js outline renderer. Its path cache retains
 at most 256 KiB of conservatively sized outlines; evicted outlines are rebuilt
 on demand. Outline compilation and conversion report allocations to the

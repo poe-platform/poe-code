@@ -1,6 +1,6 @@
 import { readStoredCidGlyph } from "../fonts/stored-cid-map.js";
 import { appendStoredClip } from "./stored-clips.js";
-import { cosNumber, cosDict, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream } from "../ast.js";
+import { cosNumber, cosName, cosArray, cosDict, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream } from "../ast.js";
 import { decodePdfStreamChunks, type PdfStreamDecodeOptions } from "../cos/filter-stream.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import { PdfError } from "../errors.js";
@@ -144,12 +144,14 @@ export async function* evaluateRetainedContentSteps(document: PdfRetainedDocumen
           await selected?.return(); break;
         }
         case "resolve": case "catalog": reply = { kind: "resolved", node: await resolve(request.kind === "catalog" ? document.crossReference.rootRef : request.node) }; break;
+        case "cmap-lookup": {const value=await request.map.lookup(request.code);reply={kind:"resolved",node:typeof value==="number"?cosNumber(value):typeof value==="string"?cosName(value):undefined};break;}
+        case "cmap-character": {const value=await request.map.readCharCode(request.bytes,request.offset);reply={kind:"resolved",node:cosArray([cosNumber(value.charcode),cosNumber(value.length)])};break;}
         case "cid-gid": reply={kind:"resolved",node:cosNumber(await readStoredCidGlyph(request.map,request.code,signal))};break;
         case "font": {
           const index = fonts.findIndex(entry => entry.resources === request.resources && entry.name === request.name);
           if (index >= 0) { const entry = fonts.splice(index, 1)[0]!; fonts.push(entry); reply = entry.font; }
           else {
-            reply = await resolveRetainedFont(document, shared, request.resources, request.name, {...resourceOptions,...(options.imageStorage?{resourceStorage:options.imageStorage}:{})});
+            reply = await resolveRetainedFont(document, shared, request.resources, request.name, {...resourceOptions,...((options.imageStorage??options.pathStorage)?{resourceStorage:options.imageStorage??options.pathStorage}:{})});
             if (maxCachedFonts) { charge(128); if (fonts.length >= maxCachedFonts) fonts.shift(); fonts.push({ resources: request.resources, name: request.name, font: reply }); }
           }
           break;

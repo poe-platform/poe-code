@@ -35,7 +35,7 @@ it.each(["AllOn", "AnyOn", "AllOff", "AnyOff"])("evaluates retained marked prope
       else if (request.kind === "font") step = work.next(undefined);
       else if (request.kind === "resolve" || request.kind === "catalog") {
         step = work.next({ kind: "resolved", node: (await doc.lookup(request.kind === "catalog" ? doc.crossReference.rootRef : request.node))?.value });
-      } else if ((request.kind === "cid-gid" || request.kind === "frame-push" || request.kind === "frame-pop" || request.kind === "capture-append" || request.kind === "append-clip" || request.kind === "path-append" || request.kind === "path-finish" || request.kind === "transform-path" || request.kind === "close-content" || request.kind === "image" || request.kind === "mask-parameters" || request.kind === "color" || request.kind === "inline-image" || request.kind === "shading")) throw new Error("Unexpected nested content");
+      } else if ((request.kind === "cmap-lookup" || request.kind === "cmap-character" || request.kind === "cid-gid" || request.kind === "frame-push" || request.kind === "frame-pop" || request.kind === "capture-append" || request.kind === "append-clip" || request.kind === "path-append" || request.kind === "path-finish" || request.kind === "transform-path" || request.kind === "close-content" || request.kind === "image" || request.kind === "mask-parameters" || request.kind === "color" || request.kind === "inline-image" || request.kind === "shading")) throw new Error("Unexpected nested content");
       else { actualOperations.push(request); step = work.next(); }
     }
     expect(actualOperations).toEqual(expected);

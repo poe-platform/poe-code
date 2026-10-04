@@ -225,6 +225,7 @@ export function createCiteprocFilterCapability(options: CiteprocFilterOptions = 
       await collect(upgradedBlocks, 0);
       if (!citations.length) return originalDocument;
       const { default: CSL } = await import("citeproc");
+      context.checkpoint(0);
       document = { ...document, blocks: upgradedBlocks };
       const metadataRefs = document.metadata.references ? metaValueToCsl(document.metadata.references) : undefined;
       const loadedBibRefs: Record<string, unknown>[] = [];
@@ -232,7 +233,9 @@ export function createCiteprocFilterCapability(options: CiteprocFilterOptions = 
         const bibVal = metaValueToCsl(document.metadata.bibliography);
         const bibPaths = Array.isArray(bibVal) ? bibVal.map(String) : typeof bibVal === "string" ? [bibVal] : [];
         for (const bibPath of bibPaths) {
-          const bytes = await options.readFile(bibPath);
+          context.checkpoint(0);
+          const bytes = await options.readFile(bibPath, context.signal);
+          context.checkpoint(0);
           const text = new TextDecoder().decode(bytes).trim();
           if (bibPath.endsWith(".json") || text.startsWith("[") || text.startsWith("{")) {
             const parsed = JSON.parse(text);
@@ -246,7 +249,12 @@ export function createCiteprocFilterCapability(options: CiteprocFilterOptions = 
       let activeStyle = style;
       if (!options.style && document.metadata.csl && options.readFile) {
         const cslPath = String(metaValueToCsl(document.metadata.csl));
-        if (cslPath) activeStyle = new TextDecoder().decode(await options.readFile(cslPath));
+        if (cslPath) {
+          context.checkpoint(0);
+          const bytes = await options.readFile(cslPath, context.signal);
+          context.checkpoint(0);
+          activeStyle = new TextDecoder().decode(bytes);
+        }
       }
       const rawRefs = options.references ?? (Array.isArray(metadataRefs) ? metadataRefs : loadedBibRefs);
       const serialized = JSON.stringify(rawRefs);

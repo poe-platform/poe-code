@@ -118,3 +118,30 @@ it("processes citation-free and metadata-supplied citation documents with defaul
   expect(withMeta.text).toContain("(Doe, 2020)");
   expect(withMeta.text).toContain("<em>A real book</em>");
 });
+
+it("passes the conversion signal to injected bibliography and style readers", async () => {
+  const controller = new AbortController();
+  const ast = JSON.parse(new TextDecoder().decode(input()));
+  ast.meta = {bibliography: {t: "MetaString", c: "/refs.json"}, csl: {t: "MetaString", c: "/style.csl"}};
+  const readFile = vi.fn(async (path: string, signal?: AbortSignal) => {
+    expect(signal).toBe(controller.signal);
+    return new TextEncoder().encode(path === "/refs.json" ? JSON.stringify(references) : style);
+  });
+  const result = await convert([{bytes: new TextEncoder().encode(JSON.stringify(ast))}], options, {
+    signal: controller.signal, filters: createCiteprocFilterCapability({locale, readFile})
+  });
+  expect(result).toMatchObject({text: expect.stringContaining("(Doe, 2020)")});
+  expect(readFile.mock.calls.map(([path]) => path)).toEqual(["/refs.json", "/style.csl"]);
+});
+
+it("stops bibliography acquisition after a cancelled reader settles", async () => {
+  const controller = new AbortController();
+  const document: Document = {
+    blocks: [{t: "Para", c: [{t: "Cite", c: [[{citationId: "doe", citationPrefix: [], citationSuffix: [], citationMode: "NormalCitation", citationNoteNum: 0, citationHash: 0}], []]}]}],
+    metadata: {bibliography: {t: "MetaList", c: [{t: "MetaString", c: "/first.json"}, {t: "MetaString", c: "/second.json"}]}, csl: {t: "MetaString", c: "/style.csl"}}, resources: []
+  };
+  const readFile = vi.fn(async () => {controller.abort(); return new TextEncoder().encode(JSON.stringify(references));});
+  await expect(createCiteprocFilterCapability({locale, readFile}).apply(document, {kind: "citeproc"},
+    Object.assign(createExecutionContext("convert", {signal: controller.signal}), {to: "html"}))).rejects.toMatchObject({code: "E_CANCELLED"});
+  expect(readFile).toHaveBeenCalledTimes(1);
+});

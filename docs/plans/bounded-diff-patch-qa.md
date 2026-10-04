@@ -7,9 +7,10 @@ missing-file operands, normalization, display transformations and brief stdin).
 Indexed documents, line indexes, LCS cells, edit groups and output use caller-backed
 page caches. Streaming FIFO and character operands use the same staged indexes;
 non-streaming backends retain a buffered compatibility path. Ignored lines,
-function headings, directory metadata, patch, apply-patch and diff3 still need
-migration. Pagination uses
-caller-backed output pages, bounded sink writes and incremental single-column
+function headings, directory metadata, patch and diff3 still need migration.
+Apply-patch target snapshots, matching and replacements use caller-backed indexes
+and retained staged publication; patch parsing and per-file plan metadata remain
+buffered. Pagination uses caller-backed output pages, bounded sink writes and incremental single-column
 line rendering. Other pr layouts are outside this coverage. Do not infer
 qualification of unmigrated paths from these tests.
 

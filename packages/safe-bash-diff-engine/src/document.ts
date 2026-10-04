@@ -1,6 +1,10 @@
 import { PagedStorage } from "@poe-code/safe-fs/storage";
-import { readBytes, type ByteSource } from "safe-bash-contracts";
-import { Budget } from "./shared.js";
+import { readBytes, type ByteSource, type CommandContext } from "safe-bash-contracts";
+export interface DocumentBudget {
+  readonly context: CommandContext;
+  step(amount?: number): void;
+  checkpoint(): void | Promise<void>;
+}
 
 /** Drain every admitted cleanup before reporting any resource failure. */
 export async function closeDocumentResources(resources: readonly { close(): Promise<void> }[]): Promise<void> {
@@ -25,7 +29,7 @@ export class IndexedDocument {
   private closing: Promise<void> | undefined;
   private loaded = false;
 
-  constructor(readonly budget: Budget, pages = 16) {
+  constructor(readonly budget: DocumentBudget, pages = 16) {
     this.data = new PagedStorage(budget.context, pages);
     this.index = new PagedStorage(budget.context, pages);
     budget.context.registerCleanup?.(() => this.close());

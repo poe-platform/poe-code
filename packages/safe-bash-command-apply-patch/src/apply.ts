@@ -1,15 +1,16 @@
 import { bytesFrom } from "safe-bash-byte-engine";
 import {
   createOutputOperation, dirname, readBytes, writeBytes,
-  type CommandContext, type FileStat, type FileSystem,
+  type ByteSource, type CommandContext, type FileReadHandle, type FileStaging, type FileStat, type FileSystem,
 } from "safe-bash-contracts";
 import { settings, type ApplyPatchLimits } from "./options.js";
 import { parse, type PatchFile } from "./parser.js";
-import { contents } from "./matcher.js";
+import { storedContents } from "./stored-matcher.js";
+import { IndexedDocument, closeDocumentResources } from "safe-bash-diff-engine/document";
 import { diagnostic, FileFailure, PatchError, Work } from "./shared.js";
 
-interface Snapshot { readonly path: string; readonly stat: FileStat; bytes?: Uint8Array; }
-interface Plan { readonly file: PatchFile; readonly original?: Snapshot; readonly output?: Uint8Array; }
+interface Snapshot { readonly path: string; readonly stat: FileStat; document?: IndexedDocument; }
+interface Plan { readonly file: PatchFile; readonly original?: Snapshot; readonly output?: IndexedDocument; }
 
 function identity(stat: FileStat): boolean {
   return (typeof stat.identityScope === "symbol" || (typeof stat.identityScope === "object" && stat.identityScope !== null))
@@ -27,6 +28,7 @@ class Invocation {
   private ordinal: number | undefined;
   private fs: FileSystem;
   private inputBytes = 0;
+  private readonly documents = new Set<IndexedDocument>();
 
   constructor(readonly context: CommandContext, limits: ApplyPatchLimits) {
     this.work = new Work(context, limits);
@@ -35,12 +37,13 @@ class Invocation {
 
   private async confine(files: readonly PatchFile[]): Promise<void> {
     if (!this.fs.confineExtraction) throw new PatchError("filesystem does not support race-safe patch mutations");
-    if (!this.fs.writeFileConditional || !this.fs.removeFileConditional) throw new PatchError("filesystem does not support conditional patch mutations");
+    if (!this.fs.createStagedFile || !this.fs.publishStagedFile || !this.fs.removeFileConditional) throw new PatchError("filesystem does not support streamed conditional patch mutations");
     const roots = new Set<string>();
     for (const file of files) for (const path of [file.path, file.destination]) {
       if (!path) continue;
       const capabilities = await this.work.fs(path, async () => await this.fs.capabilitiesFor?.(path, { signal: this.context.signal }) ?? this.fs.capabilities);
-      if (capabilities.atomicFileMutation !== true) throw new PatchError("filesystem does not support atomic conditional patch mutations");
+      if (capabilities.atomicFileMutation !== true || capabilities.retainedStagingWrite !== true
+        || capabilities.retainedStagingCleanup !== true || capabilities.atomicStagedFileMutation !== true) throw new PatchError("filesystem does not support atomic conditional patch mutations");
       let parent = dirname(path);
       while (!await this.inspect(parent, false)) {
         await this.work.charge(1);
@@ -128,14 +131,44 @@ class Invocation {
     }
   }
 
-  private async read(path: string): Promise<Uint8Array> {
-    const maximum = Math.min(this.work.limits.maxFileBytes, this.work.remaining("maxReadBytes"), (this.context.inputBudget?.maxBytes ?? Infinity) - this.inputBytes);
-    const bytes = await this.work.fs(path, () => this.fs.readFile(path, { signal: this.context.signal, ...(Number.isFinite(maximum) ? { maxBytes: maximum } : {})}));
-    if (!(bytes instanceof Uint8Array)) throw new TypeError("FileSystem.readFile must return Uint8Array");
-    if (bytes.length > maximum) throw new PatchError("target read byte limit exceeded");
-    this.context.inputBudget?.check(this.inputBytes += bytes.length);
-    this.work.count("maxReadBytes", bytes.length);
-    return this.work.copy(bytes);
+  private async *source(snapshot: Snapshot): ByteSource {
+    const { path, stat: expected } = snapshot;
+    const { work, context } = this;
+    const fs = context.fs;
+    const maximum = Math.min(work.limits.maxFileBytes, work.remaining("maxReadBytes"), (context.inputBudget?.maxBytes ?? Infinity) - this.inputBytes);
+    const capabilities = await work.fs(path, async () => await fs.capabilitiesFor?.(path, { signal: context.signal }) ?? fs.capabilities);
+    if (capabilities.retainedRead !== true || !fs.openReadFile) throw new PatchError("target requires identity-checked retained reads");
+    let handle: FileReadHandle | undefined;
+    const same = (actual: FileStat) => actual.type === "file" && relation(actual, expected) === "same"
+      && actual.size === expected.size && actual.revision === expected.revision
+      && actual.mode === expected.mode && actual.mtimeMs === expected.mtimeMs && actual.ctimeMs === expected.ctimeMs;
+    try {
+      await work.fs(path, async () => { handle = await fs.openReadFile!(path, { signal: context.signal }); });
+      const stat = await work.fs(path, () => handle!.stat({ signal: context.signal }));
+      if (!same(stat)) throw new PatchError(`target changed since preflight: ${path}`);
+      if (stat.size > maximum) throw new PatchError("target read byte limit exceeded");
+      let position = 0;
+      while (position < stat.size) {
+        const length = Math.min(16384, stat.size - position);
+        const bytes = await work.fs(path, () => handle!.read(position, length, { signal: context.signal }));
+        if (!bytes.length || bytes.length > length) throw new PatchError(`target changed while reading: ${path}`);
+        context.inputBudget?.check(this.inputBytes += bytes.length);
+        work.count("maxReadBytes", bytes.length);
+        position += bytes.length;
+        yield await work.copy(bytes);
+      }
+      if (!same(await work.fs(path, () => handle!.stat({ signal: context.signal })))) throw new PatchError(`target changed while reading: ${path}`);
+    } finally { await handle?.close(); }
+  }
+
+  private async equal(left: IndexedDocument, right: IndexedDocument): Promise<boolean> {
+    if (left === right) return true;
+    if (left.size !== right.size) return false;
+    for (let position = 0; position < left.size; position += 16384) {
+      const length = Math.min(16384, left.size - position);
+      if (!await this.work.equal(await left.data.read(8 + position, length), await right.data.read(8 + position, length))) return false;
+    }
+    return true;
   }
 
   private async prepare(files: readonly PatchFile[]): Promise<Plan[]> {
@@ -170,11 +203,17 @@ class Invocation {
       await this.writable(file.kind === "delete" || file.destination ? dirname(file.path) : file.path);
       if (file.destination) await this.writable(file.destination);
     }
-    for (const snapshot of snapshots) snapshot.bytes = await this.read(snapshot.path);
+    for (const snapshot of snapshots) {
+      const document = new IndexedDocument(this.work);
+      this.documents.add(document);
+      await this.work.fs(snapshot.path, () => document.load(this.source(snapshot)));
+      snapshot.document = document;
+    }
     const plans: Plan[] = [];
     for (const file of files) {
       const original = byPath.get(file.path);
-      const output = await contents(file, original?.bytes, this.work);
+      const output = await this.work.fs(file.path, () => storedContents(file, original?.document, this.work));
+      if (output) this.documents.add(output);
       plans.push({ file, ...(original ? { original } : {}), ...(output ? { output } : {}) });
     }
     return plans;
@@ -187,7 +226,12 @@ class Invocation {
       || stat.mtimeMs !== before.mtimeMs || stat.ctimeMs !== before.ctimeMs || relation(stat, before) === "distinct") {
       throw new PatchError(`target changed since preflight: ${snapshot.path}`);
     }
-    if (!await this.work.equal(await this.read(snapshot.path), snapshot.bytes!)) throw new PatchError(`target bytes changed since preflight: ${snapshot.path}`);
+    let position = 0;
+    for await (const bytes of this.source(snapshot)) {
+      const before = await snapshot.document!.data.read(8 + position, bytes.length);
+      if (!await this.work.equal(bytes, before)) throw new PatchError(`target bytes changed since preflight: ${snapshot.path}`);
+      position += bytes.length;
+    }
   }
 
   private async parents(path: string): Promise<FileStat> {
@@ -208,6 +252,27 @@ class Invocation {
     return parent;
   }
 
+  private async write(path: string, output: IndexedDocument, parent: FileStat, expected: FileStat | undefined): Promise<void> {
+    let staging: FileStaging | undefined;
+    const signal = this.context.signal;
+    try {
+      await this.work.fs(path, async () => {
+        staging = await this.fs.createStagedFile!(`${dirname(path) === "/" ? "" : dirname(path)}/.apply-patch-${globalThis.crypto.randomUUID()}`, "file",
+          { type: "file", data: new Uint8Array() }, { parent, retainCleanup: true, signal, ...(expected ? { atimeMs: expected.atimeMs } : {}) });
+      });
+      if (!staging?.writer || !staging.cleanup) throw new PatchError("filesystem does not support retained staging writes");
+      for await (const bytes of output.range(0, output.size)) await this.work.fs(path, () => staging!.writer!.write(bytes, { signal }));
+      const stat = await this.work.fs(path, () => staging!.writer!.finish({ signal }));
+      const sealed = { ...staging, file: { ...staging.file, stat } };
+      await this.work.fs(path, () => this.fs.publishStagedFile!(sealed, path, {
+        parent, destination: expected ?? null, ...(expected ? { preserveIdentity: true } : {}), signal,
+      }));
+    } finally {
+      if (staging?.cleanup) await staging.cleanup.remove();
+      else if (staging) await this.fs.removeStagedFile?.(staging);
+    }
+  }
+
   private async publish(plans: readonly Plan[]): Promise<void> {
     for (let index = 0; index < plans.length; index++) {
       this.ordinal = index + 1;
@@ -219,12 +284,12 @@ class Invocation {
       } else if (file.destination) {
         if (await this.inspect(file.destination, false)) throw new PatchError(`Move destination appeared: ${file.destination}`);
         const parent = await this.parents(file.destination);
-        await this.work.fs(file.destination, () => this.fs.writeFileConditional!(file.destination!, output!, { signal: this.context.signal, parent, expected: null }));
+        await this.write(file.destination, output!, parent, undefined);
         await this.unchanged(original!);
         await this.work.fs(file.path, () => this.fs.removeFileConditional!(file.path, { signal: this.context.signal, parent: this.initial.get(dirname(file.path))!, expected: original!.stat }));
-      } else if (!original || !await this.work.equal(original.bytes!, output!)) {
+      } else if (!original || !await this.equal(original.document!, output!)) {
         const parent = await this.parents(file.path);
-        await this.work.fs(file.path, () => this.fs.writeFileConditional!(file.path, output!, { signal: this.context.signal, parent, expected: original?.stat ?? null }));
+        await this.write(file.path, output!, parent, original?.stat);
       }
     }
   }
@@ -265,7 +330,10 @@ class Invocation {
         }
       } finally { await operation.close(); }
       return { exitCode: 0 };
-    } finally { work.close(); }
+    } finally {
+      try { await closeDocumentResources([...this.documents]); }
+      finally { work.close(); }
+    }
   }
 }
 

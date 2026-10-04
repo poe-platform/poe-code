@@ -56,7 +56,7 @@ export class Work {
   async checkpoint(): Promise<void> {
     this.check();
     if (this.units >= this.nextYield) {
-      this.nextYield += 4096;
+      this.nextYield = this.units + 4096;
       try { await yieldTurn(this.context.signal); }
       catch (error) { this.context.signal.throwIfAborted(); throw error; }
       this.check();

@@ -22,18 +22,22 @@ async function records(text: string, work: Work): Promise<RecordLine[]> {
   return result;
 }
 
-async function normalized(text: string, pass: number, work: Work): Promise<string> {
+export function normalizedCharacter(character: string): string {
+  if ("‐‑‒–—―−".includes(character)) return "-";
+  if ("‘’‚‛".includes(character)) return "'";
+  if ("“”„‟".includes(character)) return '"';
+  if ("\u00a0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000".includes(character)) return " ";
+  return character;
+}
+
+export async function normalized(text: string, pass: number, work: Work): Promise<string> {
   await work.charge(text.length);
   const trimmed = pass === 1 ? text.trimEnd() : text.trim();
   if (pass < 3) return trimmed;
   let result = "";
   for (const character of trimmed) {
     work.step();
-    if ("‐‑‒–—―−".includes(character)) result += "-";
-    else if ("‘’‚‛".includes(character)) result += "'";
-    else if ("“”„‟".includes(character)) result += '"';
-    else if ("\u00a0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000".includes(character)) result += " ";
-    else result += character;
+    result += normalizedCharacter(character);
     if (work.due) await work.checkpoint();
   }
   return result;

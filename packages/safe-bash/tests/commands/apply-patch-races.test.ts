@@ -25,7 +25,8 @@ for (const [name, patch, method] of [
         if (property === "confineExtraction") return async (roots: readonly string[]) => wrap(await backing.confineExtraction!(roots));
         if (typeof value !== "function") return value;
         return async (...args: unknown[]) => {
-          if ((property === method || property === (method === "writeFile" ? "writeFileConditional" : method === "rm" ? "removeFileConditional" : method)) && typeof args[0] === "string" && args[0].startsWith("/work/sub/") && !swapped) {
+          const path = property === "publishStagedFile" ? args[1] : args[0];
+          if ((property === method || property === (method === "writeFile" ? "publishStagedFile" : method === "rm" ? "removeFileConditional" : method)) && typeof path === "string" && path.startsWith("/work/sub/") && !swapped) {
             swapped = true;
             await backing.rename("/work/sub", "/work/retired");
             await backing.symlink("/private", "/work/sub");
@@ -96,7 +97,7 @@ test("apply_patch refuses a replaced destination identity at publication", async
     if (key === "confineExtraction") return async (roots: readonly string[]) => wrap(await backing.confineExtraction!(roots));
     if (typeof value !== "function") return value;
     return async (...args: unknown[]) => {
-      if ((key === "writeFile" || key === "writeFileConditional") && args[0] === "/work/target" && !swapped) {
+      if (key === "publishStagedFile" && args[1] === "/work/target" && !swapped) {
         swapped = true;
         await backing.rm("/work/target");
         await backing.link("/private/target", "/work/target");
@@ -110,5 +111,24 @@ test("apply_patch refuses a replaced destination identity at publication", async
     assert.equal(swapped, true);
     assert.notEqual(result.exitCode, 0);
     assert.equal(Buffer.from(await backing.readFile("/private/target")).toString(), "old\n");
+  } finally { await shell.dispose(); }
+});
+
+test("apply_patch substitutions use retained staged publication on the default memory backend", async t => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/target", Buffer.from("old\n"));
+  const staged = fs.createStagedFile.bind(fs);
+  let publications = 0;
+  t.mock.method(fs, "createStagedFile", async (...args: Parameters<typeof fs.createStagedFile>) => {
+    publications++;
+    return staged(...args);
+  });
+  const shell = new Shell({ fs }).register(createApplyPatchCommand());
+  try {
+    const result = await shell.exec("result=$(apply_patch <<'PATCH'\n*** Begin Patch\n*** Update File: /target\n@@\n-old\n+new\n*** End Patch\nPATCH\n)");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(publications, 1);
+    assert.equal(Buffer.from(await fs.readFile("/target")).toString(), "new\n");
+    assert.equal(result.stdout, "");
   } finally { await shell.dispose(); }
 });

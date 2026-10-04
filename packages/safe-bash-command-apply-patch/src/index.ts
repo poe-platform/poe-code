@@ -1,5 +1,5 @@
 import type { CommandContext, CommandDefinition, VirtualShellPlugin } from "safe-bash-contracts";
-import { builtInDirectContextExecutors, isDefaultCommandOptions, decoder, encoder, syncCommandEvaluators } from "safe-bash-io-engine/internal";
+import { builtInDirectContextExecutors, isDefaultCommandOptions, encoder } from "safe-bash-io-engine/internal";
 import { execute } from "./apply.js";
 import { settings, type ApplyPatchCommandsOptions } from "./options.js";
 
@@ -170,7 +170,7 @@ export function evalSyncApplyPatch(
   return "Success. Updated the following files:\n" + actions.map(a => a.summary).join("");
 }
 
-syncCommandEvaluators.evalSyncApplyPatch = evalSyncApplyPatch;
+// The synchronous helper remains opt-in; command execution uses retained sources.
 
 export function createApplyPatchCommand(options: ApplyPatchCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);

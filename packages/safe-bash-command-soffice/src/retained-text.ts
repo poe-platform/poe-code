@@ -1,3 +1,4 @@
+import { retainXlsxText } from "./retained-xlsx.js";
 import { retainOdtText } from "./retained-odt.js";
 import { RetainedRtfText } from "./retained-rtf.js";
 import type { RetainedTextSnapshot } from "./retained-blocks.js";
@@ -21,8 +22,8 @@ export async function catRetainedText(inputs: readonly string[], context: Retain
       if (!source) return { exitCode: 1, stdout: "", stderr: `Error: source file could not be loaded: ${input}\n` };
       if (input.toLowerCase().endsWith(".rtf") && !richText.has(path)) {
         richText.set(path, await rtf.retain(source.position, source.size));
-      } else if ([".odt", ".ods", ".odp"].some(extension => input.toLowerCase().endsWith(extension)) && !documents.has(path)) {
-        try { documents.set(path, await retainOdtText(storage, source, context)); }
+      } else if ([".odt", ".ods", ".odp", ".xlsx"].some(extension => input.toLowerCase().endsWith(extension)) && !documents.has(path)) {
+        try { documents.set(path, await (input.toLowerCase().endsWith(".xlsx") ? retainXlsxText : retainOdtText)(storage, source, context)); }
         catch (error) {
           signal.throwIfAborted();
           return { exitCode: 1, stdout: "", stderr: `Error: conversion failed: ${error instanceof Error ? error.message : String(error)}\n` };

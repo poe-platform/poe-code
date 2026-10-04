@@ -163,5 +163,17 @@ it("packs the retained Soffice file SDK with canonical filesystem types and no p
     stdout: {async write() {}}, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
   expect(pdf.exitCode).toBe(0);
   expect(new TextDecoder().decode((await fs.readFile("/office.pdf")).subarray(0, 8))).toBe("%PDF-1.7");
-  expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["input.docx", "input.html", "input.md", "input.pdf", "office.docx", "office.html", "office.odt", "office.pdf"]);
+  await fs.writeFile("/book.xlsx", createStoredZipArchive({
+    "xl/worksheets/sheet1.xml": new TextEncoder().encode('<worksheet><row><c t="s"><v>0</v></c></row></worksheet>'),
+    "xl/sharedStrings.xml": new TextEncoder().encode("<sst><si><t>Packed spreadsheet</t></si></sst>")
+  }));
+  let sheetText = "";
+  const sheet = await runSofficeFileCli(["--cat", "/book.xlsx"], {filesystem,
+    stdout: {async write(bytes) {sheetText += new TextDecoder().decode(bytes);}}, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
+  expect(sheet.exitCode).toBe(0); expect(sheetText).toBe("Packed spreadsheet\n");
+  const sheetConversion = await runSofficeFileCli(["--convert-to", "txt", "/book.xlsx"], {filesystem,
+    stdout: {async write() {}}, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
+  expect(sheetConversion.exitCode).toBe(0);
+  expect(new TextDecoder().decode(await fs.readFile("/book.txt"))).toBe("Packed spreadsheet\n");
+  expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["book.txt", "book.xlsx", "input.docx", "input.html", "input.md", "input.pdf", "office.docx", "office.html", "office.odt", "office.pdf"]);
 });

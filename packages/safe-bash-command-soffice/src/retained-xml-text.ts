@@ -3,10 +3,11 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import type { SofficeSnapshot } from "./retained-input.js";
 
 /** Preserve Writer's trim-before-entity-expansion behavior without retaining a text value. */
-export async function retainXmlText(storage: PagedStorage, source: AsyncIterable<Uint8Array>, signal: AbortSignal): Promise<SofficeSnapshot> {
+export async function retainXmlText(storage: PagedStorage, source: AsyncIterable<Uint8Array>, signal: AbortSignal, trim = true): Promise<SofficeSnapshot> {
   const position = storage.allocate(0), decoder = new TextDecoder("utf-8", { ignoreBOM: true });
   let size = 0, first = -1, last = 0, offset = 0, entities = false;
   const inspect = (text: string) => {
+    if (!trim) { entities ||= text.includes("&"); return; }
     for (const character of text) {
       const point = character.codePointAt(0)!;
       const length = point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4;
@@ -24,7 +25,7 @@ export async function retainXmlText(storage: PagedStorage, source: AsyncIterable
     }
   }
   inspect(decoder.decode());
-  let result = { position: position + (first < 0 ? size : first), size: first < 0 ? 0 : last - first };
+  let result = trim ? { position: position + (first < 0 ? size : first), size: first < 0 ? 0 : last - first } : { position, size };
   if (!entities || !result.size) return result;
   // Compatibility requires separate passes: a numeric reference may introduce
   // a decimal reference, and ampersands expand after the other named entities.

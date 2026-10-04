@@ -191,7 +191,9 @@ XML escaping, nested blocks, image resources and archive output. Acquisition, de
 normalization and output encoding keep their existing cumulative quota charges
 while document data lives in caller storage. Output sink writes preserve native
 4096-byte accounting and failures. Other reader/writer pairs and citeproc still use
-the compatibility path. JSON/RTF reject multiple operands before reading input.
+the compatibility path. JSON/RTF reject multiple operands before reading input. Zero-input SDK conversions
+also use caller storage for the retained writers above, including filter responses
+and metadata, regardless of the selected reader.
 JSON `metadataFiles` merge into retained generations before filters. File contents,
 merge keys, duplicate-key indexes and recursive map/list work stay in caller
 storage; null deletion, last-key-wins JSON parsing and native number conversion

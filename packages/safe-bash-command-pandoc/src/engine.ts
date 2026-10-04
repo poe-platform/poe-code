@@ -630,7 +630,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     "parts", "compressedBytes", "expandedBytes", "resources", "resourceBytes", "tableRows", "tableColumns", "tableFieldText", "tableCells", "attributes", "depth", "nodes", "text",
     // These format-specific budgets have no consumers in the retained format pairs.
     "glyphs", "pages", "objects", "xmlDepth", "xmlNodes", "macros", "directives", "entities", "entityBytes", "yamlAliases"
-  ].includes(key) || value === Infinity || (key === "references" || key === "retainedBytes") && ["json", "rtf", "csv", "tsv"].includes(reader.descriptor.name) && ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name));
+  ].includes(key) || value === Infinity || (key === "references" || key === "retainedBytes") && (inputs.length === 0 || ["json", "rtf", "csv", "tsv"].includes(reader.descriptor.name)) && ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name));
   const backedDocument = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
     && ["json", "rtf"].includes(reader.descriptor.name) && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
     && Object.keys(options).every(key => (key === "resourcePath" && (["rtf", "odt"].includes(writer.descriptor.name) || writer.descriptor.name === "html5" && options.embedResources) || key === "embedResources" && writer.descriptor.name === "html5") || ["from", "to", "filters", "metadata", "metadataFiles", "metadataJson", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
@@ -662,8 +662,9 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
       return {kind: "output", diagnostics: session.snapshotDiagnostics(!(["plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name) && Number.isFinite(session.limits.retainedBytes)))};
     } finally {await session.close();}
   }
+  // With no operands no reader runs; reuse the empty retained document pipeline.
   const incremental = context.workingFiles && !context.reader && !context.writer
-    && (reader.descriptor.name === "csv" || reader.descriptor.name === "tsv") && ["html5", "json", "plain", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
+    && (inputs.length === 0 || reader.descriptor.name === "csv" || reader.descriptor.name === "tsv") && ["html5", "json", "plain", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
     && Object.keys(options).every(key => (key === "resourcePath" && (["rtf", "odt"].includes(writer.descriptor.name) || writer.descriptor.name === "html5" && options.embedResources) || key === "embedResources" && writer.descriptor.name === "html5") || ["from", "to", "filters", "metadata", "metadataFiles", "metadataJson", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
     && retainedLimits;
   if (!incremental) {
@@ -677,7 +678,7 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     const includes = await session.call(() => RetainedOptions.acquire(session, context.workingFiles!, options));
     let readingSource: string | undefined;
     try {
-      await session.call(() => streamDelimited(inputs, reader.descriptor.name as "csv" | "tsv", writer.descriptor.name as "html5" | "json" | "plain" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", session, context.workingFiles!, {...options, filters}, includes, source => {readingSource = source;}));
+      await session.call(() => streamDelimited(inputs, reader.descriptor.name === "tsv" ? "tsv" : "csv", writer.descriptor.name as "html5" | "json" | "plain" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", session, context.workingFiles!, {...options, filters}, includes, source => {readingSource = source;}));
     } catch (error) {
       if (readingSource && error instanceof PandocError && error.code === "E_LIMIT")
         throw new PandocError(error.code, "convert", error.message, error.format, `${readingSource}:${error.location ?? "1:1"}`);

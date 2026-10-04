@@ -820,6 +820,9 @@ its fixed-width offsets can be patched before any output is yielded.
 Use `objectStreams: "generate"` to pack eligible objects and emit compressed
 cross-reference entries. Membership, payloads and indexes use caller storage;
 compression runs incrementally and upgrades older output versions to PDF 1.5.
+`normalizeContent: true` suppresses object-stream packing, as in the ordinary
+writer. Retained objects preserve encoded stream snapshots; this option does
+not force decoding streams that have not been edited.
 `removeInfo` keeps an
 existing modification date and removes the catalog metadata link;
 `removeMetadata`, `removeStructure`, `removeAcroform` and `removePageLabels`

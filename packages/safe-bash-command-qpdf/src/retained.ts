@@ -29,6 +29,9 @@ export interface RetainedQpdfOptions {
   replaceInput: boolean;
   decrypt: boolean;
   linearize: boolean;
+  qdf: boolean;
+  normalizeContentFlag: boolean | undefined;
+  streamDataMode: "compress" | "uncompress" | "preserve";
   objectStreamsMode: "generate" | "disable" | "preserve";
   removeInfo: boolean;
   removeMetadata: boolean;
@@ -237,7 +240,8 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       }
       return { exitCode: 0 };
     }
-    const producer = saveRetainedDocumentChunks(editedGraph?.document ?? document, storage, { ...(editedGraph ? {} : { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations() }), signal, objectStreams: options.decrypt && document.encryption ? "preserve" : options.objectStreamsMode, maxOutputBytes: limits.maxOutputBytes, ...(options.decrypt && document.encryption ? { version: "1.7", omitId: true } : {}) });
+    const normalizeContent = options.normalizeContentFlag ?? (options.qdf || options.streamDataMode === "uncompress");
+    const producer = saveRetainedDocumentChunks(editedGraph?.document ?? document, storage, { ...(editedGraph ? {} : { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations() }), signal, normalizeContent, objectStreams: options.decrypt && document.encryption ? "preserve" : options.objectStreamsMode, maxOutputBytes: limits.maxOutputBytes, ...(options.decrypt && document.encryption ? { version: "1.7", omitId: true } : {}) });
     try { output = await PdfFileSource.fromStream(context.fs, storage.directory, producer, { signal, maxInputBytes: limits.maxOutputBytes }); }
     finally { await producer.return(undefined); }
     if (destination === "-") { for await (const bytes of output.stream(0, output.size, signal)) await writeBytes(context.stdout, bytes, signal); }

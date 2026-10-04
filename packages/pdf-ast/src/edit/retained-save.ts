@@ -21,6 +21,8 @@ export interface RetainedPageRotation {
 
 export interface SaveRetainedDocumentOptions {
   readonly linearize?: boolean;
+  /** Retained snapshots keep their encoded streams; normalization prevents packing. */
+  readonly normalizeContent?: boolean;
   readonly objectStreams?: "generate" | "disable" | "preserve";
   /** Ordered edits; duplicate page selections apply cumulatively. */
   readonly rotations?: Iterable<RetainedPageRotation> | AsyncIterable<RetainedPageRotation>;
@@ -182,7 +184,7 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
       });
       else yield* serializeRetainedCosDocumentChunks({ ...configured, objects: output() }, storage);
     }
-    if (options.objectStreams === "generate") yield* serializeRetainedObjectStreams(objects, storage, configured, output, ordinary);
+    if (options.objectStreams === "generate" && !options.normalizeContent) yield* serializeRetainedObjectStreams(objects, storage, configured, output, ordinary);
     else yield* ordinary();
   } catch (error) { failed = true; throw error; }
   finally { const results = await Promise.allSettled([objects.close(), pages.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }

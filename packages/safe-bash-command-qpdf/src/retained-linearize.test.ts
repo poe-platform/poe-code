@@ -5,7 +5,7 @@ import { createCommandArguments } from "safe-bash-contracts";
 import { cosArray, cosDict, cosName, cosNumber, cosString, dictGet, dictSet, PdfDocument, serializeCosDocument } from "@poe-code/pdf-ast";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
-for (const layout of [["--linearize"], ["--object-streams=generate"], ["--linearize", "--object-streams=generate"]]) for (const mode of ["ordinary", "existing", "encrypted", "decrypt", "empty", "stdout", "replace", "selection", "split", "rotations", "removals", "inline", "identifier", "split-selection"]) it(`writes ${mode} (${layout.join(" ")}) through retained input and output`, async () => {
+for (const layout of [["--qdf"], ["--normalize-content=y"], ["--stream-data=uncompress"], ["--compress-streams=y"], ["--object-streams=generate", "--qdf"], ["--object-streams=generate", "--qdf", "--normalize-content=n"], ["--linearize"], ["--object-streams=generate"], ["--linearize", "--object-streams=generate"]]) for (const mode of ["ordinary", "existing", "encrypted", "decrypt", "empty", "stdout", "replace", "selection", "split", "rotations", "removals", "inline", "identifier", "split-selection"]) it(`writes ${mode} (${layout.join(" ")}) through retained input and output`, async () => {
   const doc = PdfDocument.create(); doc.setTitle("Linearized output");
   for (let i = 0; i < 3; i++) doc.addPage().drawText(`Page ${i}`, { x: 20, y: 30 });
   const encrypted = mode === "encrypted" || mode === "decrypt";

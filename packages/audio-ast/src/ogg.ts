@@ -2,10 +2,11 @@ import { Reader, ascii, join } from "./binary.js";
 import { parseComments, parsePicture } from "./vorbis.js";
 import type { AudioAst, AudioNode, AudioStream, AudioTags, AudioPicture } from "./types.js";
 
-export function oggCrc(bytes: Uint8Array): number {
-  let crc = 0;
+/** Incremental Ogg CRC; pageOffset preserves the checksum-field zeroing rule. */
+export function oggCrc(bytes: Uint8Array, crc = 0, pageOffset = 0): number {
   for (let i = 0; i < bytes.length; i++) {
-    crc ^= (i >= 22 && i < 26 ? 0 : bytes[i]!) << 24;
+    const offset = pageOffset + i;
+    crc ^= (offset >= 22 && offset < 26 ? 0 : bytes[i]!) << 24;
     for (let bit = 0; bit < 8; bit++) crc = (crc << 1) ^ (crc & 0x80000000 ? 0x04c11db7 : 0);
   }
   return crc >>> 0;

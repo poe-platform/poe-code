@@ -170,3 +170,18 @@ it("does not draw nonfinite strikethrough rectangles for inkless spaces", async 
     expect(rectangle).not.toHaveBeenCalled();
   } finally {rectangle.mockRestore();}
 });
+
+it.each(["TOP", "CENTER", "JUSTIFY", "DISTRIBUTED"])("uses native single-line vertical alignment %s", async alignment => {
+  const book = await fixture([{text: "text", attributes: attributes.replace('GNM_VALIGN_BOTTOM', `GNM_VALIGN_${alignment}`)}, {text: "Neighbor"}]);
+  const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve: async () => suppliedDefaultFont().bytes}}));
+  // JetBrains Mono ascent 1020, descent -300, at 7.5pt; 20pt row minus 1pt grid.
+  const offset = alignment === "CENTER" || alignment === "DISTRIBUTED" ? 4.55 : 0;
+  expect(runs[0]!.glyphs[0]!.y).toBeCloseTo(720 - 0.75 - offset - 7.65, 8);
+  expect(runs[1]!.glyphs[0]!.y).toBeCloseTo(720 - 40 + 0.25 + 2.25, 8);
+});
+
+it.each(["TOP", "CENTER", "BOTTOM"])("clamps negative vertical spacing for %s", async alignment => {
+  const book = await fixture([{text: "x", attributes: attributes.replace('GNM_VALIGN_BOTTOM', `GNM_VALIGN_${alignment}`), font: font.replace('Unit="10"', 'Unit="19.5"')}]);
+  const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve: async () => suppliedDefaultFont().bytes}}));
+  expect(runs[0]!.glyphs[0]!.y).toBeCloseTo(720 - 0.75 - 19.5 * 0.75 * 1.02, 8);
+});

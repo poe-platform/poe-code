@@ -251,7 +251,10 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         // Native spanning centers are passed in points, then scaled by the painter.
         x += 2.5 + (printDisplayScale - 1) * (cellBox.width / 2 + overflow.left);
       }
-      baseline = page.getHeight() - y - cellBox.height + (1 - printDisplayScale) + height - ascent;
+      // Native print layout removes the 1pt grid, then applies the scaled top margin.
+      const verticalSpace = Math.max(0, cellBox.height - 1 - height);
+      const verticalOffset = cellBox.style.verticalAlignment === "top" ? 0 : verticalSpace / (cellBox.style.verticalAlignment === "center" ? 2 : 1);
+      baseline = page.getHeight() - y - printDisplayScale - verticalOffset - ascent;
       x -= alignment === "left" ? 0 : width / (alignment === "center" ? 2 : 1);
       // pdf-lib encodes through the public layout method synchronously. Give
       // its subset encoder the exact run whose positions we just painted.

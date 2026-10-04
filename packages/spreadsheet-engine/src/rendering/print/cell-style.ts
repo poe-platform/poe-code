@@ -2,6 +2,7 @@ import {SsconvertError} from "../../contracts.js";
 import type {ImportedValue} from "@poe-code/spreadsheet-ast";
 
 const alignments = {GNM_HALIGN_GENERAL: "general", GNM_HALIGN_LEFT: "left", GNM_HALIGN_RIGHT: "right", GNM_HALIGN_CENTER: "center"} as const;
+const verticalAlignments = {GNM_VALIGN_TOP: "top", GNM_VALIGN_BOTTOM: "bottom", GNM_VALIGN_CENTER: "center", GNM_VALIGN_JUSTIFY: "top", GNM_VALIGN_DISTRIBUTED: "center"} as const;
 type AttributeRule = string | readonly string[] | ((value: string) => boolean);
 function validColor(value: string): boolean {
   const parts = value.split(":");
@@ -13,7 +14,7 @@ function colorChannels(value: string): readonly [number, number, number, number]
   return [parts[0]!, parts[1]!, parts[2]!, parts[3] ?? 1];
 }
 const styleDefaults: Readonly<Record<string, AttributeRule>> = {
-  HAlign: Object.keys(alignments), VAlign: "GNM_VALIGN_BOTTOM", WrapText: "0", ShrinkToFit: "0",
+  HAlign: Object.keys(alignments), VAlign: Object.keys(verticalAlignments), WrapText: "0", ShrinkToFit: "0",
   Rotation: "0", Shade: ["0", "1"], Indent: "0", Locked: "1", Hidden: "0", Fore: validColor,
   Back: validColor, PatternColor: validColor, Format: "General"
 };
@@ -21,6 +22,7 @@ const fontDefaults: Readonly<Record<string, AttributeRule>> = {Unit: value => va
 
 export interface CellPrintStyle {
   readonly alignment: "general" | "left" | "right" | "center";
+  readonly verticalAlignment: "top" | "bottom" | "center";
   readonly family: string;
   readonly bold: boolean;
   readonly italic: boolean;
@@ -80,7 +82,7 @@ export function cellPrintStyle(style: Readonly<Record<string, ImportedValue>>, t
   if ((font.text as string).trim() === "") fail();
   const selected = attributes(font, fontDefaults);
   const foreground = colorChannels(effects.Fore!), background = colorChannels(effects.Back!);
-  return {alignment: alignments[effects.HAlign as keyof typeof alignments], family: font.text as string, bold: selected.Bold === "1", italic: selected.Italic === "1", size: Number(selected.Unit), underline: Number(selected.Underline), strikeThrough: selected.StrikeThrough === "1",
+  return {alignment: alignments[effects.HAlign as keyof typeof alignments], verticalAlignment: verticalAlignments[effects.VAlign as keyof typeof verticalAlignments], family: font.text as string, bold: selected.Bold === "1", italic: selected.Italic === "1", size: Number(selected.Unit), underline: Number(selected.Underline), strikeThrough: selected.StrikeThrough === "1",
     foreground: [foreground[0], foreground[1], foreground[2]], foregroundAlpha: foreground[3],
     ...(effects.Shade === "1" ? {background: [background[0], background[1], background[2]] as const, backgroundAlpha: background[3]} : {})};
 }

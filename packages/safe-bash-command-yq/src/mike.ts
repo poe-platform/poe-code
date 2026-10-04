@@ -100,7 +100,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
         // Computed nodes have yq's default output origin, while projections keep their source origin.
         const origin = candidate.isDerived ? { fileIndex: 0, documentIndex: 0 } : candidate.document;
         const separator = !splitProgram && previous && (previous.fileIndex !== origin.fileIndex || previous.documentIndex !== origin.documentIndex) && output === "yaml" && !options.noDoc ? "---\n" : "";
-        let encoded = options.debugNodeInfo ? await encodeNodeInfo(candidate, yaml, work) : output !== "yaml" && output !== "json" ? await encodeFormat(candidate, output, yaml, work) : await encodeNative(candidate, { format: output, indent: options.indent, unwrap: options.unwrap ?? output === "yaml", compactSequence: options.compactSequence, prettyPrint: options.prettyPrint, preserveDocumentStart: options.headerPreprocess && !options.noDoc }, yaml, work);
+        let encoded = options.debugNodeInfo ? await encodeNodeInfo(candidate, yaml, work) : output !== "yaml" && output !== "json" ? await encodeFormat(candidate, output, yaml, work) : await encodeNative(candidate, { format: output, indent: options.indent, unwrap: options.unwrap ?? output === "yaml", compactSequence: options.compactSequence, prettyPrint: options.prettyPrint, preserveDocumentStart: options.headerPreprocess && !options.noDoc && !separator }, yaml, work);
         if (options.verbose) await writeVerbose(`Selected node from ${candidate.document.filename || "stdin"}, document ${candidate.document.documentIndex}: ${await encodeNodeInfo(candidate, yaml, work)}`, work);
         if (options.nulOutput) {
           if (encoded.endsWith("\r\n")) encoded = encoded.slice(0, -2);

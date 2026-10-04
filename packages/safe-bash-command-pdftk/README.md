@@ -2,7 +2,7 @@
 
 `createPdftkCommand(options?)` creates one command, `createPdftkCommands(options?)` returns the command family, and `pdftkCommands(options?)` registers it as a shell plugin. `PdftkCommandsOptions` describes configuration; all three factories accept no arguments.
 
-Zero-dependency `pdftk` (PDF Toolkit) CLI for `@poe-platform/safe-bash` powered by `@poe-code/pdf-ast`. Assemble multi-handle page ranges, inspect and fill AcroForm fields from FDF/XFDF, flatten annotations into page content, burst documents, and apply backgrounds or stamps in memory.
+Zero-dependency `pdftk` (PDF Toolkit) CLI for `@poe-platform/safe-bash` powered by `@poe-code/pdf-ast`. Assemble multi-handle page ranges, inspect and fill AcroForm fields from FDF/XFDF, flatten annotations into page content, burst documents, and apply backgrounds or stamps inside your virtual filesystem. Annotation inspection uses retained random-access inputs and stages report output through the caller's filesystem, including stdin, encrypted inputs and atomic file publication. Scratch storage uses `TMPDIR`; use an external backend for large files. Other operations retain their compatibility execution path.
 
 ## Features
 
@@ -11,6 +11,7 @@ Zero-dependency `pdftk` (PDF Toolkit) CLI for `@poe-platform/safe-bash` powered 
 | `cat` / `shuffle` | Multi-handle page assembly (`A=a.pdf B=b.pdf cat A1-2 B1east A3-end`) |
 | `dump_data` / `dump_data_utf8` / `update_info` / `update_info_utf8` | Inspect and update PDF metadata (`InfoBegin`), hierarchical bookmarks (`BookmarkBegin`), and page labels (`PageLabelBegin`) |
 | `dump_data_fields` / `dump_data_fields_utf8` / `generate_fdf` | Inspect AcroForm fields (`FieldType`, `FieldName`, `FieldValue`, `FieldStateOption`) or export FDF |
+| `dump_data_annots` / `dump_data_annots_utf8` | Stream annotation reports, action chains and destinations using caller-backed traversal |
 | `fill_form <fdf\|xfdf>` + `flatten` | Fill AcroForm fields and bake appearances into static page content |
 | `burst` | Split PDF into individual pages (`page_%04d.pdf`) and `doc_data.txt` |
 | `rotate` / `background` / `multibackground` / `stamp` / `multistamp` | Page rotation and single-page or multi-page watermark/stamp composition |

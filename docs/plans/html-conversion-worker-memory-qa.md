@@ -3,16 +3,16 @@
 ## Scope and prerequisites
 
 This is a manual QA plan, not a qualification result. The command now uses the
-awaited parser event sink to write fixed-size document records into caller-backed
-storage. Markdown text uses immutable balanced ropes in the same storage; code
+storage-backed incremental parser to write unfinished tags, attribute indexes,
+open-element frames and fixed-size document records into caller-backed storage.
+Markdown text uses immutable balanced ropes in the same storage; code
 fences, ragged-table widths and output staging no longer require whole output
 strings or arrays of every table row. The cache is 256 KiB and spills via the
 injected safe-fs retained descriptor in `TMPDIR`, falling back to the command
 working directory. A memory backend still retains backing bytes in RAM.
 
-Before qualification, finish the remaining input-size-dependent state: unfinished
-tags/attributes and open-element names in the parser, recursive traversal
-continuations in the renderer, and URL attribute validation. The existing URL
+Before qualification, finish the remaining input-size-dependent state:
+renderer traversal continuations and URL attribute validation. The existing URL
 policy still materializes a destination attribute before validation. Do not
 characterize the current command as fully bounded. Preserve output/error ordering,
 retained file identity, cleanup and cancellation while migrating these paths;

@@ -10,6 +10,7 @@ import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { StoredRenderer } from "./stored-render.js";
 import { TextStore } from "./stored-text.js";
 import { StoredTree } from "./stored-tree.js";
+import { StoredParser } from "./stored-parser.js";
 import type { HtmlToMarkdownLimits } from "./options.js";
 
 export type { HtmlToMarkdownCommandsOptions, HtmlToMarkdownLimits } from "./options.js";
@@ -43,7 +44,7 @@ export function createHtmlToMarkdownCommand(options: HtmlToMarkdownCommandsOptio
           storage = new PagedStorage(work, 16);
           const text = new TextStore(storage, characters => { budget.work(characters); return budget.checkpoint(); });
           const tree = new StoredTree(storage, text), root = await tree.create("root");
-          await inputs.document(name, tree.sink(root));
+          await inputs.document(name, new StoredParser(budget, storage, tree, root));
           const markdown = await new StoredRenderer(tree, budget).document(root);
           if (markdown) {
             if (written) await budget.emit("\n");

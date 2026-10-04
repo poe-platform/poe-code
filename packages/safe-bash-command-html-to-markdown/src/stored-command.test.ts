@@ -56,3 +56,19 @@ for (const outcome of ["failure", "abort"] as const) test(`spilling ${outcome} p
   }
   assert.equal(closed, 1); assert.deepEqual(await fs.readdir("/"), []);
 });
+
+test("command spills an unfinished attribute before reading its closing bytes", async () => {
+  const fs = new MemoryFileSystem(), open = fs.open.bind(fs);
+  let opened = 0;
+  fs.open = async (path, options) => { opened++; return open(path, options); };
+  const chunk = new TextEncoder().encode("x".repeat(4096));
+  const source = { async *[Symbol.asyncIterator]() {
+    yield new TextEncoder().encode('<p title="');
+    for (let index = 0; index < 64; index++) yield chunk;
+    assert.ok(opened > 0, "unfinished attributes must already be in caller backing");
+    yield new TextEncoder().encode('">ok</p>');
+  } };
+  const result = await convert(source, {}, { fs });
+  assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, "ok\n");
+  assert.deepEqual(await fs.readdir("/"), []);
+});

@@ -61,9 +61,9 @@ export class Inputs {
     return cursor;
   }
 
-  async document(name: string, sink?: HtmlEventSink): Promise<HtmlNode> {
+  async document(name: string, consumer?: HtmlEventSink | Pick<Parser, "feed" | "finish">): Promise<HtmlNode> {
     const cursor = this.open(name), decoder = new TextDecoder("utf-8", { fatal: true });
-    const parser = new Parser(this.budget, sink);
+    const parser = typeof consumer === "object" ? consumer : new Parser(this.budget, consumer);
     for await (const chunk of readBytes(cursor, this.context.signal)) {
       this.budget.add("input", chunk.byteLength);
       this.budget.work(Math.max(1, chunk.byteLength));

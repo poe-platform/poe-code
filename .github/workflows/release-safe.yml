@@ -65,10 +65,13 @@ jobs:
             echo "Commit $GITHUB_SHA is not an ancestor of origin/main." >&2
             exit 1
           fi
-          publication_ref=refs/heads/safe-publication
-          remote_head=$(git ls-remote --heads origin "$publication_ref" | cut -f1)
-          if [ -n "$remote_head" ]; then
+          # The record branch contains no source tree or workflow files.
+          publication_ref=refs/heads/safe-publication-record
+          record_head=$(git ls-remote --heads origin "$publication_ref" | cut -f1)
+          if [ -n "$record_head" ]; then
             git fetch --filter=blob:none origin "$publication_ref"
+            remote_head=$(git show FETCH_HEAD:source-sha)
+            git cat-file -e "$remote_head^{commit}"
             if [ "$remote_head" = "$GITHUB_SHA" ] || git merge-base --is-ancestor "$GITHUB_SHA" "$remote_head"; then
               echo "::notice::Safe-bash publication already completed at or beyond $GITHUB_SHA ($remote_head); skipping."
               echo "Safe-bash publication already completed at or beyond $GITHUB_SHA ($remote_head); skipping." >> "$GITHUB_STEP_SUMMARY"
@@ -271,13 +274,30 @@ jobs:
       - name: Publish Safe Bash with provenance
         if: steps.queue-check.outputs.publish == 'true'
         run: npm publish "$RUNNER_TEMP/safe-npm/safe-bash" --provenance --access public
-      - name: Record safe-publication ref
+      - name: Record completed publication
         if: steps.queue-check.outputs.publish == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
+          # Keep publication metadata on an independent history: pushing source commits
+          # can require workflows permission, which GITHUB_TOKEN cannot grant.
           gh auth setup-git
-          git push origin "$GITHUB_SHA:refs/heads/safe-publication" --force-with-lease || true
+          publication_ref=refs/heads/safe-publication-record
+          record_head=$(git ls-remote --heads origin "$publication_ref" | cut -f1)
+          commit_args=(-m "Record safe package publication from $GITHUB_SHA")
+          if [ -n "$record_head" ]; then
+            git fetch --filter=blob:none origin "$publication_ref"
+            commit_args+=(-p "$(git rev-parse FETCH_HEAD)")
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          blob=$(printf '%s\n' "$GITHUB_SHA" | git hash-object -w --stdin)
+          tree=$(printf '100644 blob %s\tsource-sha\n' "$blob" | git mktree)
+          commit=$(git commit-tree "$tree" "${commit_args[@]}")
+          git push origin "$commit:$publication_ref"
+          printf 'Recorded completed safe package uploads from %s in %s\n' "$GITHUB_SHA" "$commit" >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
   verify-publication:
     needs: publish
     if: needs.publish.outputs.published == 'true'

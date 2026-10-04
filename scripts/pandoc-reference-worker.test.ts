@@ -22,6 +22,9 @@ cases.push(...modes.map(mode => ({mode, from: "json", to: "json", ...ordinary, m
 cases.push(...modes.map(mode => ({mode, from: "json", to: "html5", ...ordinary, template: true, byteQuota: true})));
 for (const option of ["filter", "lua"] as const)
   cases.push(...modes.map(mode => ({mode, from: "json", to: "json", ...ordinary, [option]: true, byteQuota: true})));
+cases.push(...modes.map(mode => ({mode, from: "mediawiki", to: "plain", ...ordinary, byteQuota: true})));
+for (const option of ["filter", "lua"] as const)
+  cases.push(...modes.map(mode => ({mode, from: "mediawiki", to: "plain", ...ordinary, [option]: true, byteQuota: true})));
 it.each(cases)("retains finite $from-to-$to reference budgets through the public $mode in workerd with transforms=$transform metadata=$metadata filter=$filter lua=$lua template=$template crlf=$crlf writerOptions=$writerOptions byteQuota=$byteQuota", async ({mode, from, to, transform, metadata, filter, lua, template, crlf, writerOptions, byteQuota}) => {
   const bundle = await build({stdin: {resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export {convertToOutput, createJsonFilterCapability, createLuaFilterCapability} from "./packages/safe-bash-command-pandoc/dist/index.js";

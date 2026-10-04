@@ -7,6 +7,14 @@ are recorded below; Cloudflare and CPU measurements remain outstanding.
 
 ## Coverage to complete
 
+- Single-input MediaWiki now retains UTF-16 source spans, line indexes, inline
+  continuations and AST nodes in caller storage. Compare long paragraphs, code
+  blocks, wide tables, many list items and nested markup with the compatibility
+  reader, including finite quotas, source locations and failure cleanup. The
+  public reference Worker matrix covers SDK/command with no filter, JSON and
+  Lua filters. Multiple operands remain resident; add their joined/file-scope
+  semantics and per-source image origins before claiming full reader coverage.
+
 - Composed workerd coverage in `scripts/pandoc-composed-worker.test.ts` builds
   the shipped Sips, Shuf and Pandoc exports with explicit Node-import rejection
   and no source aliases. Sips inspects an R2-backed image; Shuf streams a sampled

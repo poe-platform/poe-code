@@ -1,3 +1,4 @@
+import {readRetainedMediawiki} from "./retained-mediawiki.js";
 import {readRetainedRtfDocument} from "./retained-rtf-document.js";
 import {RetainedOptions} from "./retained-options.js";
 import { normalizeDocumentCooperatively, AstError } from "./ast.js";
@@ -630,9 +631,9 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
     "parts", "compressedBytes", "expandedBytes", "resources", "resourceBytes", "tableRows", "tableColumns", "tableFieldText", "tableCells", "attributes", "depth", "nodes", "text",
     // These format-specific budgets have no consumers in the retained format pairs.
     "glyphs", "pages", "objects", "xmlDepth", "xmlNodes", "macros", "directives", "entities", "entityBytes", "yamlAliases"
-  ].includes(key) || value === Infinity || (key === "references" || key === "retainedBytes") && (inputs.length === 0 || ["json", "rtf", "csv", "tsv"].includes(reader.descriptor.name)) && ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name));
+  ].includes(key) || value === Infinity || (key === "references" || key === "retainedBytes") && (inputs.length === 0 || ["json", "rtf", "csv", "tsv", "mediawiki"].includes(reader.descriptor.name)) && ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf", "odt"].includes(writer.descriptor.name));
   const backedDocument = context.workingFiles && !context.reader && !context.writer && inputs.length === 1
-    && ["json", "rtf"].includes(reader.descriptor.name) && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
+    && ["json", "rtf", "mediawiki"].includes(reader.descriptor.name) && ["json", "plain", "html5", "commonmark", "gfm", "rst", "latex", "rtf", "odt"].includes(writer.descriptor.name) && streamedFilters
     && Object.keys(options).every(key => (key === "resourcePath" && (["rtf", "odt"].includes(writer.descriptor.name) || writer.descriptor.name === "html5" && options.embedResources) || key === "embedResources" && writer.descriptor.name === "html5") || ["from", "to", "filters", "metadata", "metadataFiles", "metadataJson", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "ascii", "eol", "lossy", "yes", "rawContent", "wrap", "columns", "standalone", "numberSections", "toc", "stripComments", "shiftHeadingLevelBy", "fileScope", "sandbox", "failIfWarnings"].includes(key))
     && retainedLimits;
   if (backedDocument) {
@@ -647,12 +648,17 @@ export async function convertToOutput(inputs: readonly InputSource[], options: C
           if (Number.isFinite(session.limits.references)) session.charge("references", 1);
           reading = true;
           if (reader.descriptor.name === "json") {const retained = await readRetainedJson(inputs[0]!, session, context.workingFiles!, true, true, () => {readerStarted = true;}); reading = false; return retained;}
+          if (reader.descriptor.name === "mediawiki") {const retained = await readRetainedMediawiki(inputs[0]!, session, context.workingFiles!, options.fileScope, () => {readerStarted = true;}); reading = false; return retained;}
           const retained = await readRetainedRtfDocument(inputs[0]!, session, context.workingFiles!, () => {readerStarted = true;});
           reading = false; return {...retained.document, resources: retained.resources, closeResources: retained.close};
         }, session, context.workingFiles!, {...options, filters}, writer.descriptor.name as "json" | "plain" | "html5" | "commonmark" | "gfm" | "rst" | "latex" | "rtf" | "odt", inputs[0]!, includes));
       } catch (error) {
         if (reading && reader.descriptor.name === "json" && error instanceof PandocError && error.code === "E_LIMIT" && (["tableCells:", "attributes:", "depth:", "nodes:"].some(prefix => error.message.startsWith(prefix)) || readerStarted && ["text:", "references:", "retainedBytes:"].some(prefix => error.message.startsWith(prefix))) && inputs[0]!.source)
           throw new PandocError(error.code, "convert", error.message, error.format, `${inputs[0]!.source}:${error.location ?? "1:1"}`);
+        if (reading && readerStarted && reader.descriptor.name === "mediawiki" && error instanceof PandocError && error.code !== "E_IO" && error.code !== "E_CANCELLED") {
+          const source = inputs[0]!.source ?? (options.fileScope ? undefined : "input[0]");
+          if (source) throw new PandocError(error.code, "convert", error.message, error.format, `${source}:${error.location ?? "1:1"}`);
+        }
         if (reading && readerStarted && reader.descriptor.name === "rtf" && error instanceof PandocError && error.code !== "E_IO" && error.code !== "E_CANCELLED") {
           const name = inputs[0]!.source ?? (error.code === "E_PARSE" ? inputs[0]!.base : undefined);
           if (name) throw new PandocError(error.code, "convert", error.message, error.format, `${name}:${error.location ?? "1:1"}`);

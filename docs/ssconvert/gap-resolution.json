@@ -4545,13 +4545,14 @@
     {
       "id": "encrypted-odf",
       "status": "open",
-      "currentFinding": "AES-CBC, Blowfish CFB8/CFB64 and LibreOffice Argon2id/AES-GCM imports and explicit encrypted exports are implemented. LibreOffice 26.8 opens qualified AES, CFB64 and modern ASCII/Unicode-password exports. Independent crypto and SDK checks also pass modern empty passwords, which the native loader refuses. Broader algorithm/application/platform qualification and containing publication remain open.",
+      "currentFinding": "AES-CBC, Blowfish CFB8/CFB64 and LibreOffice Argon2id/AES-GCM imports and explicit encrypted exports are implemented. LibreOffice 26.8 opens qualified AES, CFB64 and modern ASCII/Unicode-password exports. Independent crypto and SDK checks also pass modern empty passwords, which the native loader refuses. Broader algorithm/application/platform qualification and containing publication remain open. Fresh command exports for all six retained encryption algorithms independently decrypt to exact plaintext.36 public manifest/KDF/ciphertext/wrong-password controls refuse with zero output and correct password admission; native Calc results retain the known CFB8 limitation.",
       "checkpoint20261004": {
-        "qualified": "Scoped AES-CBC, CFB64 and Argon2id/GCM native cross-read/edit controls pass, including Unicode and embedded-NUL passwords.",
+        "qualified": "Scoped AES-CBC, CFB64 and Argon2id/GCM native cross-read/edit controls pass, including Unicode and embedded-NUL passwords. Fresh command exports for all six retained encryption algorithms independently decrypt to exact plaintext.36 public manifest/KDF/ciphertext/wrong-password controls refuse with zero output and correct password admission; native Calc results retain the known CFB8 limitation.",
         "evidence": [
-          "#/currentQualification20261002/encryptedOdfCalc252"
+          "#/currentQualification20261002/encryptedOdfCalc252",
+          "#/encryptedOdfCommandParity"
         ],
-        "nextAcceptance": "Run command-export parity for the six retained algorithm profiles and add manifest/KDF/tampering controls; assert independent values/formulas and no output on authentication failure.",
+        "nextAcceptance": "The six-profile command-export checkpoint is complete. Continue the existing encrypted-paradox companion-file/version export-route gate. ODF broader password/tampering/application and installed-artifact closure remains open; do not reclassify known Calc CFB8/empty-password limitations as passes.",
         "closureGate": "Complete applicable algorithm/password/tampering, application and installed-artifact profiles.",
         "qualificationBlockers": [
           "Native CFB8 and empty-password reads refuse; empty-password native save did not complete."
@@ -6341,5 +6342,22 @@
     "validation": "Compiled command export reproduced HEADER/FOOTER loss warnings; two memory-only regression rows failed before repair.379 focused tests, selected workspace build and format-package lint/source/test types pass.54 compiled command exports cover plaintext,XOR,RC4 and12CryptoAPI sizes with/without property encryption, each with/without title/custom Note. Pinned Apache POI5.4.1 independently opens all54, verifies Unicode text,boolean,value and formula identity, and recalculates SUM49to107 after an edit.27 metadata outputs retain title/Note.52POI wrong-password attempts refuse;52public-command wrong-password attempts refuse with zero output. Native source/command PDF screenshots are byte-identical and inspected.",
     "references": "Apache POI5.4.1 with7saved SHA256-verified Maven jars; OpenJDK25.0.2. Native print comparison uses pinned Gnumeric1.12.61. Existing Calc refusal/property-loss findings remain unchanged and are not counted as passes.",
     "remaining": "All19families remain open. Next existing family gate: encrypted-odf command exports for six retained profiles, manifest/KDF/tampering and zero-output checks. BIFF version/password/ancillary-stream and public installed artifacts remain open."
+  },
+  "encryptedOdfCommandParity": {
+    "status": "Six-profile encrypted-ODF command-export checkpoint verified; family remains open",
+    "runtimeChanges": false,
+    "candidate": "6e7cb5da069f70cef9889b05e55fa66186873ecb,compiled maintained command workspace build",
+    "profiles": [
+      "odf12-aes128-cbc",
+      "odf12-aes192-cbc",
+      "odf12-aes256-cbc",
+      "odf12-blowfish-cfb8",
+      "odf12-blowfish-cfb64",
+      "libreoffice-aes256-gcm"
+    ],
+    "validation": "Seven command exports including plaintext pass SDK readback. PyCryptodome3.23.0 and argon2-cffi25.1.0 independently derive/decrypt all six encrypted outputs, verify checksums or GCM tags, inflate members and compare exact plaintext with the plain command export.36 public failure controls cover corrupted ciphertext,zero/excessive KDF,missing algorithm,duplicate encrypted declaration and wrong passwords for every profile;all refuse with zero output and expected password-callback admission.257 scoped encryption tests and selected workspace build pass.",
+    "native": "LibreOffice25.2.3.2:13correct/wrong-password observations match expected outcomes. Five encrypted profiles plus plaintext open,preserve values/text/formulas,and recalculate SUM49to107 after an edit;all six wrong passwords refuse. Six native-edited XLSX files pass current public readback. Plain/AES128native PDF screenshots are byte-identical and inspected;owned isolated Calc session terminated.",
+    "limitations": "Calc still refuses CFB8 with the correct password; its existing empty-password limitation is unchanged. Legacy CBC/CFB prefix checksums are not full authentication. No runtime defect reproduced in this finite checkpoint.",
+    "remaining": "All19families remain open. Next existing gate: encrypted-paradox companion-file and wider version profiles through both public export routes. ODF password/tampering/application and installed-artifact closure remains open."
   }
 }

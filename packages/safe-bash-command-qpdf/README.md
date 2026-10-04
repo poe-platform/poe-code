@@ -41,11 +41,12 @@ publication requires retained atomic staging from the injected filesystem; scrat
 storage uses `TMPDIR`. Use an external backend for large files. Transformation
 options currently continue through the buffered compatibility engine.
 
-`--check`, `--show-npages` and `--show-encryption` also inspect retained inputs
+`--check`, `--show-pages`, `--show-npages` and `--show-encryption` inspect retained inputs
 through caller-backed object and page indexes, preserving repair and password
 diagnostics without collecting input payloads. `--is-encrypted` and
 `--requires-password` scan retained input in bounded chunks and validate supplied
-passwords through caller-backed object storage.
+passwords through caller-backed object storage. Page listings with `--with-images`
+keep nested-form traversal state in caller storage.
 
 `--show-object` emits object syntax in bounded chunks. Combine it with
 `--raw-stream-data` or `--filtered-stream-data` for binary stream output. The

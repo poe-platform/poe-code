@@ -1,3 +1,4 @@
+import { pageDisplayParts } from "./page-display.js";
 import { displayNodeParts, encodeDisplayParts } from "./display.js";
 import { PdfError, PdfFileSource, PdfRetainedDocument, saveRetainedDocumentChunks, retainedCosObjects, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
@@ -16,6 +17,8 @@ export interface RetainedQpdfOptions {
   warningExit0: boolean;
   check: boolean;
   showNpages: boolean;
+  showPages: boolean;
+  withImages: boolean;
   showEncryption: boolean;
   isEncrypted: boolean;
   requiresPassword: boolean;
@@ -72,8 +75,8 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
       return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
     }
-    if (options.check || options.showNpages || options.showEncryption || options.showObject) {
-      let count = 0, linearized = false, highest = 0;
+    if (options.check || options.showNpages || options.showEncryption || options.showObject || options.showPages) {
+      let count = 0, linearized = false, highest = 0, inlineCount = 0;
       let inlinePage: PdfCosNode | undefined, selectedValue: PdfCosNode | undefined, selectedLength: number | undefined;
       try {
         for await (const object of retainedCosObjects(document, storage, { signal })) {
@@ -85,16 +88,19 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         }
         for await (const page of document.pages()) {
           count++;
-          if (!page.reference && ++highest === options.showObject?.objNum) inlinePage = page.dict;
+          if (!page.reference && highest + ++inlineCount === options.showObject?.objNum) inlinePage = page.dict;
         }
       } catch (error) {
         signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
         return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
       }
-      if (options.showObject && !options.check && !options.showNpages && !options.showEncryption) {
-        const number = options.showObject.objNum, entry = Number.isSafeInteger(number) && number >= 0 ? await document.crossReference.index.get(number, signal) : undefined, generation = entry?.generationNumber ?? 0;
+      if (!options.check && (options.showPages || (options.showObject && !options.showNpages && !options.showEncryption))) {
+        const number = options.showObject?.objNum ?? NaN, entry = Number.isSafeInteger(number) && number >= 0 ? await document.crossReference.index.get(number, signal) : undefined, generation = entry?.generationNumber ?? 0;
         let chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
-        if (selectedLength !== undefined && (options.rawStreamData || options.filteredStreamData)) chunks = document.objects.decodeStream(number, generation, { raw: !options.filteredStreamData });
+        if (options.showPages) {
+          const parts = pageDisplayParts(document, storage, highest, options.withImages, signal);
+          chunks = (async function* () { for await (const part of parts) yield* encodeDisplayParts([part], signal); })();
+        } else if (selectedLength !== undefined && (options.rawStreamData || options.filteredStreamData)) chunks = document.objects.decodeStream(number, generation, { raw: !options.filteredStreamData });
         else {
           function* parts() { yield* displayNodeParts(selectedValue ?? inlinePage); if (selectedLength !== undefined) yield `\nstream\n...(${selectedLength} bytes)...\nendstream`; yield "\n"; }
           chunks = encodeDisplayParts(parts(), signal);

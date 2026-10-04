@@ -19,8 +19,10 @@ it.each(["json", "rtf"])("runs shipped %s Lua SDK with caller R2 pages and no No
       const {fs,events}=api.createR2PagedFixture(namespace,env.PAGES),encoder=new TextEncoder();
       const command=new URL(request.url).pathname==='/command';
       const failure=new URL(request.url).pathname==='/error',borrowed=new URL(request.url).pathname==='/borrowed';
+      const sourceError=new URL(request.url).pathname==='/source-error';
+      const sourcePath=sourceError?'@'+'x'.repeat(20000)+'tail.lua':'/filter.lua';
       const cancelled=new URL(request.url).pathname==='/cancelled',controller=new AbortController();
-      let text="",length=0,largest=0,errorBytes=0,delivered,code,closed=0,reused=false,pulls=0,readerClosed=0;
+      let text="",length=0,largest=0,errorBytes=0,errorText="",delivered,code,closed=0,reused=false,pulls=0,readerClosed=0;
       const cancelledReader={readStream(){
         controller.abort();
         return {[Symbol.asyncIterator](){return {
@@ -28,7 +30,7 @@ it.each(["json", "rtf"])("runs shipped %s Lua SDK with caller R2 pages and no No
           async return(){readerClosed++;throw new Error('Reader cleanup failed');}
         };}};
       }};
-      const filters=api.createLuaFilterCapability({...cancelled?cancelledReader:borrowed?{readFile(){const source=encoder.encode("function Str(el) return pandoc.Str(string.upper(el.text)) end");queueMicrotask(()=>queueMicrotask(()=>{source.fill(0);reused=true;}));return Promise.resolve(source);}}:{readStream:async function*(){yield encoder.encode(failure?"error(string.rep('x',17003),0)":"function Str(el) return pandoc.Str(string.upper(el.text)) end");}},async onError(error,message){delivered=error;for await(const bytes of message){errorBytes+=bytes.length;largest=Math.max(largest,bytes.length);}}});
+      const filters=api.createLuaFilterCapability({...cancelled?cancelledReader:borrowed?{readFile(){const source=encoder.encode("function Str(el) return pandoc.Str(string.upper(el.text)) end");queueMicrotask(()=>queueMicrotask(()=>{source.fill(0);reused=true;}));return Promise.resolve(source);}}:{readStream:async function*(path){if(path!==sourcePath)throw new Error('Reader path changed');yield encoder.encode(sourceError?"error('boom')":failure?"error(string.rep('x',17003),0)":"function Str(el) return pandoc.Str(string.upper(el.text)) end");}},async onError(error,message){delivered=error;for await(const bytes of message){errorBytes+=bytes.length;if(sourceError)errorText+=new TextDecoder().decode(bytes);largest=Math.max(largest,bytes.length);}}});
       filters.apply=async()=>{throw new Error('Resident Lua forbidden');};
       if(command) {
         await namespace.writeFile('/filter.lua',new Uint8Array());
@@ -37,17 +39,17 @@ it.each(["json", "rtf"])("runs shipped %s Lua SDK with caller R2 pages and no No
         const result=await api.createPandocCommand().execute({command:'pandoc',args:['-f${from}','-tplain','-L','/filter.lua'],cwd:'/',env:{TMPDIR:'/spill'},fs:supplied,signal:new AbortController().signal,stdin:(async function*(){yield encoder.encode(${JSON.stringify(input)});})(),stdout:{async write(bytes){text+=new TextDecoder().decode(bytes);length+=bytes.length;largest=Math.max(largest,bytes.length);}},stderr:{async write(bytes){throw new Error(new TextDecoder().decode(bytes));}}});
         if(result.exitCode!==0)throw new Error('Command failed');closed++;
         await env.PAGES.delete('source');
-      } else try {await api.convertToOutput([{bytes:encoder.encode(${JSON.stringify(input)})}],{from:'${from}',to:'plain',filters:[{kind:'lua',path:'/filter.lua'}]},{signal:controller.signal,workingFiles:{fs,directory:'/spill',cacheBytes:1048576},filters,output:{async write(bytes){length+=bytes.length;largest=Math.max(largest,bytes.length);text+=new TextDecoder().decode(bytes);},async close(){closed++;},async abort(){}}});}
+      } else try {await api.convertToOutput([{bytes:encoder.encode(${JSON.stringify(input)})}],{from:'${from}',to:'plain',filters:[{kind:'lua',path:sourcePath}]},{signal:controller.signal,workingFiles:{fs,directory:'/spill',cacheBytes:1048576},filters,output:{async write(bytes){length+=bytes.length;largest=Math.max(largest,bytes.length);text+=new TextDecoder().decode(bytes);},async close(){closed++;},async abort(){}}});}
       catch(error){code=error.code;if(!(cancelled && code==='E_CANCELLED') && error!==delivered)throw error;}
-      return Response.json({text,length,largest,errorBytes,code,closed,reused,pulls,readerClosed,events,remaining:(await env.PAGES.list({limit:1})).objects.length,namespace:await namespace.readdir('/spill')});
+      return Response.json({text,length,largest,errorBytes,errorText,code,closed,reused,pulls,readerClosed,events,remaining:(await env.PAGES.list({limit:1})).objects.length,namespace:await namespace.readdir('/spill')});
     }};
   `});
   try {
-    for(const mode of ['success','error','command','borrowed','cancelled']) {
+    for(const mode of ['success','error','command','borrowed','cancelled','source-error']) {
       const response=await runtime.dispatchFetch('https://lua.test/'+mode);
       expect(response.status, response.status===200 ? undefined : await response.text()).toBe(200);
       const result=await response.json() as {events:{opened:number;closed:number;reads:number;writes:number};largest:number};
-      expect(result).toMatchObject({remaining:0,namespace:[],reused:mode==='borrowed',pulls:0,readerClosed:mode==='cancelled'?1:0,...(mode==='cancelled'?{length:0,closed:0,errorBytes:0,code:'E_CANCELLED'}:mode!=='error'?{text:"HELLO\n",length:6,closed:1,errorBytes:0}:{length:0,closed:0,errorBytes:17003,code:'E_AST'})});
+      expect(result).toMatchObject({remaining:0,namespace:[],reused:mode==='borrowed',pulls:0,readerClosed:mode==='cancelled'?1:0,...(mode==='source-error'?{length:0,closed:0,errorBytes:68,errorText:'...'+'x'.repeat(49)+'tail.lua:1: boom',code:'E_AST'}:mode==='cancelled'?{length:0,closed:0,errorBytes:0,code:'E_CANCELLED'}:mode!=='error'?{text:"HELLO\n",length:6,closed:1,errorBytes:0}:{length:0,closed:0,errorBytes:17003,code:'E_AST'})});
       expect(result.events.opened).toBeGreaterThan(0);expect(result.events.closed).toBe(result.events.opened);
       expect(result.events.reads).toBeGreaterThan(0);expect(result.events.writes).toBeGreaterThan(0);expect(result.largest).toBeLessThanOrEqual(8192);
     }

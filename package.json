@@ -1082,7 +1082,8 @@
     "minimatch": "^10.2.6",
     "@peculiar/x509": "2.1.0",
     "reflect-metadata": "0.2.2",
-    "linebreak": "^1.1.0"
+    "linebreak": "^1.1.0",
+    "bidi-js": "1.1.0"
   },
   "description": "CLI tool to configure Poe API for developer workflows.",
   "packageManager": "npm@10.9.2",

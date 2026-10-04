@@ -296,7 +296,10 @@ async function writeParadoxTable(book: Workbook, context: CapabilityContext): Pr
             raw[index] = i % 2 ? (raw[index]! & 240) | nibble : (raw[index]! & 15) | (nibble << 4);
           }
         } else if (field.type === 12 || field.type === 14) {
-          const blob = new TextEncoder().encode(text);
+          // Native PX_put_data_blob receives strlen(fieldstr), before checking
+          // inline capacity or requiring an external memo companion.
+          const nul = text.indexOf("\0");
+          const blob = new TextEncoder().encode(nul < 0 ? text : text.slice(0, nul));
           if (blob.length > raw.length - 10) { await warning("Paradox database has no blob file."); await warning(`Field ${column + 1} in row ${row + 1} could not be written.`); }
           else { raw.set(blob); data.setUint32(raw.length - 6, blob.length, true); }
         }

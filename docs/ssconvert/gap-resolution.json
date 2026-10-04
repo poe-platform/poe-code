@@ -4584,9 +4584,10 @@
       "status": "open",
       "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1–256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained.",
       "checkpoint20261004": {
-        "qualified": "On-file-key import, explicit password export, native reopen and bounded cleanup/block-index controls are delivered. Inline UTF-8 memos now preserve Unicode, BOM and NUL-terminated text in plaintext/encrypted tables; compiled SDK and command roundtrips preserve separate CP1252 alpha fields without companion access.",
+        "qualified": "On-file-key import, explicit password export, native reopen and bounded cleanup/block-index controls are delivered. Inline UTF-8 memos now preserve Unicode, BOM and NUL-terminated text in plaintext/encrypted tables; compiled SDK and command roundtrips preserve separate CP1252 alpha fields without companion access. Memo M/F export now applies native NUL termination before inline-capacity checks, preserving fitting prefixes without false missing-companion warnings.",
         "evidence": [
-          "#/paradoxInlineMemoUtf8"
+          "#/paradoxInlineMemoUtf8",
+          "#/paradoxMemoNulCapacity"
         ],
         "nextAcceptance": "Qualify companion-file and wider version profiles through both public export routes, preserving records/schema and exact diagnostics after native reopen.",
         "closureGate": "Close companion/version, cleanup and final installed-artifact qualification without claiming authenticated encryption.",
@@ -6444,5 +6445,13 @@
     "reproduction": "Two memory-only plaintext/encrypted roundtrips corrupted café 漢 😀 into Latin-1 mojibake before the decoder repair.",
     "verification": "91 focused Paradox/database tests, changed-file ESLint, test type-check and maintained selected workspace build pass. Six memo controls cover Unicode, preserved BOM and existing NUL termination. Four compiled SDK/command export-and-command-readback routes retain exact Unicode memo and CP1252 alpha values, read only the table/input and leave a companion sentinel untouched. Maintained terminal screenshot inspected: accented text is correct; the screenshot font lacks CJK/emoji glyphs, so exact byte assertions provide their verification.",
     "limitations": "Native inline memo allocation has a retained unterminated-string defect; source validation and bounded product roundtrips are not a new native memo parity pass. No external companion capability or wider version profile is newly qualified."
+  },
+  "paradoxMemoNulCapacity": {
+    "status": "NUL-boundary memo export defect fixed; companion/version family gate remains open",
+    "source": "Authenticated Gnumeric 1.12.61 plugins/paradox/paradox.c SHA256 70933d8b124417e65edfdc5f9b06cd8e711d4bbf9ea26794d4709ee9b91530c6 lines 555-559 pass strlen(value) to PX_put_data_blob for memo and formatted-memo fields.",
+    "reproduction": "Four original plaintext/encrypted M/F cases falsely emitted missing-blob-file and field-not-written warnings when a fitting UTF-8 prefix was followed by NUL and a long suffix.",
+    "implementation": "Truncate at the first NUL before UTF-8 encoding and inline byte-capacity admission. Truly oversized prefixes retain both existing diagnostics.",
+    "verification": "95 focused tests pass after four initial regression failures. Changed-file ESLint, test type-check and maintained ssconvert workspace build pass. Sixteen compiled exports across SDK/command, plaintext/encrypted and M/F produce eight byte-exact prefix/suffix pairs; no companion reads/writes or warnings. All M outputs read back café.",
+    "remaining": "External companion capability, wider version/native reopen and installed-artifact gates remain open. Formatted-memo import remains the existing unsupported-field behavior; byte-exact export does not claim F import support. Native inline-memo allocation limitation remains unchanged."
   }
 }

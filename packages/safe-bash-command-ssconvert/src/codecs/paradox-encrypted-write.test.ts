@@ -213,3 +213,26 @@ it.each([
   expect(imported.sheets[0]!.cells.find(cell => cell.row === 1)?.value)
     .toEqual({ kind: "string", value: expected });
 });
+
+// Gnumeric passes strlen(fieldstr) to PX_put_data_blob for M and F fields.
+// Bytes after NUL must not turn an inline value into a missing-companion loss.
+it.each([
+  [false, "M"], [true, "M"], [false, "F"], [true, "F"]
+] as const)("bounds memo export at NUL with encryption=%s and type=%s", async (encrypted, type) => {
+  const book = (text: string): Workbook => ({ sheets: [{ id: "m", name: "Memo", cells: [
+    { row: 0, column: 0, value: { kind: "string", value: `Memo,${type},15` } },
+    { row: 1, column: 0, value: { kind: "string", value: text } }
+  ] }] });
+  const messages: string[] = [], host = bindings();
+  const output = await writeParadox(book("café\0" + "ignored".repeat(20)), encrypted ? options : [],
+    { ...host.context, async diagnostic(d) { messages.push(d.message); } });
+  expect(messages).toEqual([]);
+  const expected = await writeParadox(book("café"), encrypted ? options : [], bindings().context);
+  expect(output).toEqual(expected);
+  messages.length = 0;
+  await writeParadox(book("caféx"), encrypted ? options : [],
+    { ...bindings().context, async diagnostic(d) { messages.push(d.message); } });
+  expect(messages).toEqual([
+    "Paradox database has no blob file.", "Field 1 in row 2 could not be written."
+  ]);
+});

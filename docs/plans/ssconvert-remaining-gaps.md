@@ -180,6 +180,9 @@ Paradox inline memo UTF-8 corruption is repaired (`paradoxInlineMemoUtf8`):
 plaintext/encrypted SDK and command routes preserve Unicode and do not access
 companions. The companion/version gate remains next; native unterminated memo
 allocation remains a reference limitation, not a parity pass.
+Memo M/F export also honors the native NUL boundary before testing inline
+capacity (`paradoxMemoNulCapacity`), removing false companion-loss warnings
+while retaining true overflow diagnostics. This does not qualify external blobs.
 
 ## 4. Interfaces and test plan
 

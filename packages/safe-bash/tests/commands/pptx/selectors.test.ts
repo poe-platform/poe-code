@@ -40,6 +40,8 @@ function fixture(register = true) {
   volume.writeFileSync("/work/\uFEFFdeck.pptx", deck(true));
   volume.writeFileSync("/work/inspect.sh", "pptx inspect deck.pptx --slide 2 --json\n");
   const fs: FileSystem = new MemoryFileSystem();
+  // The memfs adapter implements streaming reads, not retained memory handles.
+  fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false });
   const identityScope = {};
   fs.stat = async path => {
     try {

@@ -12,6 +12,9 @@ it.each([32,128])("renders PDF pixels with %i backed page, content and annotatio
  const pageDict=document.getPage(0).pageDict,content=dictGet(pageDict,"Contents")!,empty=document.cos.allocateObject(cosStream(new TextEncoder().encode("q Q"))),hidden=document.cos.allocateObject(cosDict({F:cosNumber(2)}));
  dictSet(pageDict,"Contents",cosArray([...Array.from({length:count},()=>empty),content]));
  dictSet(pageDict,"Annots",cosArray(Array.from({length:count},()=>hidden)));
+ let ancestor=dictGet(pageDict,"Parent")!;
+ for(let i=0;i<count;i++)ancestor=document.cos.allocateObject(cosDict({Parent:ancestor}));
+ dictSet(pageDict,"Parent",ancestor);
  let branch=page;
  for(let i=0;i<count;i++)branch=document.cos.allocateObject(cosDict({Type:cosName("Pages"),Kids:cosArray([branch,page]),Count:cosNumber(2)}));
  dictSet(pages,"Kids",cosArray([branch,...Array.from({length:count},()=>page)]));dictSet(pages,"Count",cosNumber(count));
@@ -25,6 +28,7 @@ it.each([32,128])("renders PDF pixels with %i backed page, content and annotatio
  async openReadFile(path){const file=files.get(path);if(!file)throw new Error('missing retained source');opened++;return {async stat(){return stat(file);},async read(position,length){if(length>65536)throw new Error('large request');reads++;const response=await env.BACKING.fetch('https://backing/'+file.id+'?position='+position+'&length='+length);return new Uint8Array(await response.arrayBuffer());},async close(){closed++;}};},
  async createStagedFile(path,name){const file={id:String(++id),size:0},filePath=path+'/'+name;files.set(filePath,file);return {parent:{path:'/',stat:parent},directory:{path,stat:parent},file:{path:filePath,stat:stat(file)},writer:{async write(chunk){if(chunk.length>65536)throw new Error('large write');await env.BACKING.fetch('https://backing/'+file.id+'?position='+file.size,{method:'PUT',body:chunk});file.size+=chunk.length;},async finish(){return stat(file);}},cleanup:{async remove(){files.delete(filePath);removed++;await env.BACKING.fetch('https://backing/'+file.id,{method:'DELETE'});},async close(){}}};},
  readFile(){throw new Error('whole input');},writeFile(){throw new Error('whole output');}};
+ const add=Set.prototype.add;let maxSet=0;Set.prototype.add=function(value){const result=add.call(this,value);maxSet=Math.max(maxSet,this.size);return result;};
  const push=Array.prototype.push;Array.prototype.push=function(...values){const result=push.apply(this,values);if(this.length>64&&values.some(value=>value?.kind==='ref'))throw Error('resident page reference list');return result;};
  const generatorPrototype=Object.getPrototypeOf(Object.getPrototypeOf((async function*(){})())),next=generatorPrototype.next;let activePulls=0,maxPulls=0;
  generatorPrototype.next=function(...args){maxPulls=Math.max(maxPulls,++activePulls);return next.apply(this,args).finally(()=>{activePulls--;});};
@@ -33,7 +37,7 @@ it.each([32,128])("renders PDF pixels with %i backed page, content and annotatio
  const input=await fs.openReadFile('/input');let image;try{image=await tryPdfDecode({size,read:input.read},storage,fs,'/',new AbortController().signal);}finally{await input.close();}
  let sum=0;for(let offset=0;offset<image.width*image.height*4;offset+=4096){const bytes=await storage.read(image.position+offset,Math.min(4096,image.width*image.height*4-offset));for(let i=0;i<bytes.length;i++)sum=(sum+bytes[i]*((offset+i)%65521+1))%1000000007;}
  await env.BACKING.fetch('https://backing/pixels',{method:'DELETE'});
- return Response.json({metadata:{width:image.width,height:image.height,sum},opened,closed,removed,files:files.size,reads,maxAllocation,maxPulls,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;Array.prototype.push=push;generatorPrototype.next=next;}
+ return Response.json({metadata:{width:image.width,height:image.height,sum},opened,closed,removed,files:files.size,reads,maxAllocation,maxPulls,maxSet,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;Array.prototype.push=push;generatorPrototype.next=next;Set.prototype.add=add;}
  }};`},bundle:true,write:false,platform:"browser",conditions:["workerd"],format:"esm",metafile:true,logLevel:"silent"});
  expect(Object.values(bundle.metafile!.outputs).flatMap(output=>output.imports)).toEqual([]);
  const runtime=new Miniflare({workers:[{name:"image",modules:true,compatibilityDate:"2026-07-01",cf:false,script:bundle.outputFiles[0]!.text,serviceBindings:{BACKING:"backing"}},
@@ -46,7 +50,7 @@ it.each([32,128])("renders PDF pixels with %i backed page, content and annotatio
  }}`}]});
  try{const backing=await runtime.getWorker("backing");
  await backing.fetch("https://backing/input?position=0",{method:"PUT",body:bytes});
- const response=await runtime.dispatchFetch("https://image/",{method:"POST",body:JSON.stringify({size:bytes.length})});if(response.status!==200)throw new Error(await response.text());const result=await response.json() as {metadata:unknown;opened:number;closed:number;removed:number;files:number;reads:number;maxAllocation:number;maxPulls:number;nodeGlobals:boolean};
- expect(result.metadata).toEqual({width:expected.width,height:expected.height,sum:expectedSum});expect(result.opened).toBeGreaterThan(2);expect(result.closed).toBe(result.opened);expect(result.removed).toBeGreaterThan(0);expect(result.files).toBe(1);expect(result.reads).toBeGreaterThan(8);expect(result.maxAllocation).toBeLessThanOrEqual(65536);expect(result.maxPulls).toBeLessThan(64);expect(result.nodeGlobals).toBe(false);expect(await(await backing.fetch("https://backing/status")).json()).toEqual(["/input"]);
+ const response=await runtime.dispatchFetch("https://image/",{method:"POST",body:JSON.stringify({size:bytes.length})});if(response.status!==200)throw new Error(await response.text());const result=await response.json() as {metadata:unknown;opened:number;closed:number;removed:number;files:number;reads:number;maxAllocation:number;maxPulls:number;maxSet:number;nodeGlobals:boolean};
+ expect(result.metadata).toEqual({width:expected.width,height:expected.height,sum:expectedSum});expect(result.opened).toBeGreaterThan(2);expect(result.closed).toBe(result.opened);expect(result.removed).toBeGreaterThan(0);expect(result.files).toBe(1);expect(result.reads).toBeGreaterThan(8);expect(result.maxAllocation).toBeLessThanOrEqual(65536);expect(result.maxPulls).toBeLessThan(64);expect(result.maxSet).toBeLessThanOrEqual(64);expect(result.nodeGlobals).toBe(false);expect(await(await backing.fetch("https://backing/status")).json()).toEqual(["/input"]);
  }finally{await runtime.dispose();}
 },15000);

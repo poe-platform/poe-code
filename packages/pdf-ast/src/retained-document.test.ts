@@ -242,3 +242,61 @@ it.each([false,true])("preserves pending page-cursor read failure and cancellati
  try{await expect(pages.next()).rejects.toBe(failure);}
  finally{read.mockRestore();await pages.return();await f.close();}
 });
+
+function referenceChainPdf(indirect: boolean, depth = 256) {
+  const objects: PdfIndirectObject[] = [
+    { objectNumber: 1, generationNumber: 0, value: cosDict({ Type: cosName("Catalog"), Pages: cosRef(2) }) },
+    { objectNumber: 2, generationNumber: 0, value: cosDict({ Type: cosName("Page"), ...(indirect ? { MediaBox: cosRef(3) } : { Parent: cosRef(3) }) }) },
+  ];
+  for (let i = 3; i < depth + 3; i++) objects.push({ objectNumber: i, generationNumber: 0,
+    value: indirect ? cosRef(i + 1) : cosDict({ Parent: cosRef(i + 1) }) });
+  const box = cosArray([0, 0, 123, 456].map(value => cosNumber(value)));
+  objects.push({ objectNumber: depth + 3, generationNumber: 0, value: indirect ? box : cosDict({ MediaBox: box, Parent: cosRef(3) }) });
+  return serializeCosDocument({ rootRef: cosRef(1), objects });
+}
+
+it.each([false, true])("bounds reference membership for deep %s inheritance chains", async indirect => {
+  const f = await fixture(referenceChainPdf(indirect), { maxRecursionDepth: 1024, maxPageTreeDepth: 1024, trackReads: false });
+  const pages = f.doc.pages(), page = (await pages.next()).value!;
+  const before = await f.fs.readdir("/scratch");
+  const original = Set.prototype.add;
+  let peak = 0;
+  Set.prototype.add = function<T>(this: Set<T>, value: T) { const result = original.call(this, value); peak = Math.max(peak, this.size); return result; };
+  try {
+    expect((await page.attributes()).mediaBox).toEqual([0, 0, 123, 456]);
+    expect(peak).toBeLessThanOrEqual(64);
+  } finally { Set.prototype.add = original; }
+  expect(await f.fs.readdir("/scratch")).toEqual(before);
+  await pages.return(); await f.close();
+});
+
+
+it.each([false, true])("cleans backed membership after inheritance storage failure (indirect=%s)", async indirect => {
+  const f = await fixture(referenceChainPdf(indirect), { maxRecursionDepth: 1024, maxPageTreeDepth: 1024 });
+  const pages = f.doc.pages(), page = (await pages.next()).value!;
+  const before = await f.fs.readdir("/scratch"), failure = new Error("membership write failed");
+  const create = vi.spyOn(f.fs, "createStagedFile").mockRejectedValue(failure);
+  try { await expect(page.attributes()).rejects.toBe(failure); }
+  finally { create.mockRestore(); }
+  expect(await f.fs.readdir("/scratch")).toEqual(before);
+  await pages.return(); await f.close();
+});
+
+it.each([false, true])("allows timer cancellation of long inheritance (indirect=%s)", async indirect => {
+  const controller = new AbortController();
+  const f = await fixture(referenceChainPdf(indirect), { maxRecursionDepth: 1024, maxPageTreeDepth: 1024, signal: controller.signal });
+  const pages = f.doc.pages(), page = (await pages.next()).value!, failure = new Error("cancel inheritance");
+  const timer = setTimeout(() => controller.abort(failure), 0);
+  try { await expect(page.attributes()).rejects.toBe(failure); }
+  finally { clearTimeout(timer); }
+  await pages.return(); await f.close();
+});
+
+it("preserves reference cycle and depth errors with backed membership", async () => {
+  const f = await fixture(referenceChainPdf(true), { maxRecursionDepth: 70 });
+  await expect(f.doc.lookup(cosRef(3))).rejects.toThrow("reference depth limit");
+  const object = (await f.doc.objects.get(3))!;
+  const get = vi.spyOn(f.doc.objects, "get").mockResolvedValue({ ...object, value: cosRef(3) });
+  await expect(f.doc.lookup(cosRef(3))).rejects.toThrow("Circular PDF indirect reference");
+  get.mockRestore(); await f.close();
+});

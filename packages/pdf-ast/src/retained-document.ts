@@ -110,18 +110,48 @@ export class PdfRetainedDocument {
       ...(arrayPathPrefix.length && arrays.storedArrayKeys?.includes(arrayPathPrefix[arrayPathPrefix.length - 1]!) ? { storeRootArray: true } : {}),
       ...(arrayPathPrefix.length && arrays.storedStringKeys?.includes(arrayPathPrefix[arrayPathPrefix.length - 1]!) ? { storeRootString: true } : {}) };
     let reference: PdfCosRef | undefined;
-    const visited = new Set<number>();
+    const visited = new PdfReferenceSet(this.storage, this.options.maxTraversalStagingBytes, this.options.signal);
     const maximum = this.options.maxRecursionDepth ?? 100;
-    while (node?.kind === "ref") {
-      if (visited.size >= maximum) throw new PdfError("E_LIMIT", "PDF reference depth limit exceeded");
-      if (visited.has(node.objectNumber)) throw new PdfError("E_PARSE", "Circular PDF indirect reference");
-      visited.add(node.objectNumber); reference = node;
-      const object = await this.objects.get(node.objectNumber, node.generationNumber, arrays);
-      this.assertOpen();
-      if (object?.stream) return { value: object.value, reference, stream: object.stream };
-      node = object?.value;
+    let depth = 0, failed = false;
+    try {
+      while (node?.kind === "ref") {
+        if (depth >= maximum) throw new PdfError("E_LIMIT", "PDF reference depth limit exceeded");
+        if (!await visited.add(node.objectNumber)) throw new PdfError("E_PARSE", "Circular PDF indirect reference");
+        if (++depth % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+        this.assertOpen();
+        reference = node;
+        const object = await this.objects.get(node.objectNumber, node.generationNumber, arrays);
+        this.assertOpen();
+        if (object?.stream) return { value: object.value, reference, stream: object.stream };
+        node = object?.value;
+      }
+      return node ? { value: node, ...(reference ? { reference } : {}) } : undefined;
+    } catch (error) { failed = true; throw error; }
+    finally { await visited.close().catch(error => { if (!failed) throw error; }); }
+  }
+
+  /** Visit page dictionaries in inheritance order using caller-backed cycle state. */
+  pageAncestors(first: PdfCosDict): AsyncGenerator<PdfCosDict, void, void> {
+    async function* visit(doc: PdfRetainedDocument): AsyncGenerator<PdfCosDict, void, void> {
+      doc.assertOpen(); doc.walks.add(work);
+      const visited = new PdfReferenceSet(doc.storage, doc.options.maxTraversalStagingBytes, doc.options.signal);
+      let current: PdfCosDict | undefined = first, depth = 0, failed = false;
+      try {
+        while (current) {
+          if (depth++ > doc.depthLimit) throw new PdfError("E_LIMIT", "PDF inherited page depth limit exceeded");
+          if (depth % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
+          doc.assertOpen();
+          yield current;
+          doc.assertOpen();
+          const parent = dictGet(current, "Parent");
+          if (parent?.kind === "ref" && !await visited.add(parent.objectNumber)) break;
+          const resolved = (await doc.lookup(parent))?.value;
+          current = resolved?.kind === "dict" ? resolved : undefined;
+        }
+      } catch (error) { failed = true; throw error; }
+      finally { doc.walks.delete(work); await visited.close().catch(error => { if (!failed) throw error; }); }
     }
-    return node ? { value: node, ...(reference ? { reference } : {}) } : undefined;
+    const work = visit(this); return work;
   }
 
   /** Read one caller-backed array record with document cancellation and ownership. */
@@ -398,11 +428,7 @@ export class PdfRetainedPage {
     const values = new Map<string, PdfCosNode | undefined>();
     const boxes = new Map<string, PdfRect>();
     const keys = ["MediaBox", "CropBox", "BleedBox", "TrimBox", "ArtBox", "Rotate", "Resources"];
-    let current: PdfCosDict | undefined = this.dict;
-    const visited = new Set<number>();
-    let depth = 0;
-    while (current) {
-      if (depth++ > this.document.depthLimit) throw new PdfError("E_LIMIT", "PDF inherited page depth limit exceeded");
+    for await (const current of this.document.pageAncestors(this.dict)) {
       for (const key of keys) {
         const entry = dictGet(current, key);
         if (values.has(key) || !entry) continue;
@@ -415,10 +441,6 @@ export class PdfRetainedPage {
         values.set(key, value);
       }
       if (values.size === keys.length) break;
-      const parent = dictGet(current, "Parent");
-      if (parent?.kind === "ref") { if (visited.has(parent.objectNumber)) break; visited.add(parent.objectNumber); }
-      const resolved = (await this.document.lookup(parent))?.value;
-      current = resolved?.kind === "dict" ? resolved : undefined;
     }
     async function box(node: PdfCosNode | undefined, document: PdfRetainedDocument): Promise<PdfRect | undefined> {
       if (node?.kind !== "array" || node.items.length < 4) return undefined;

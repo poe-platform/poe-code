@@ -137,6 +137,11 @@ containing owner account for the same allocations; its failures propagate even
 when malformed optional mappings would otherwise be ignored. Input bytes remain
 caller-owned. This accounting does not cover embedded font program parsers.
 
+Retained `lookup` and `page.attributes()` keep reference-cycle membership in
+bounded caches backed by the supplied index storage. `doc.pageAncestors(dict)`
+visits page dictionaries in inheritance order with the same cancellation, depth
+limits and owned scratch cleanup; returning early releases its traversal index.
+
 `page.evaluateSteps(storage, options)` pulls complete retained-page paint
 operations, including annotation appearances and widget fallback text.
 `hideAnnotations` matches the buffered page option. A resource prepass preserves

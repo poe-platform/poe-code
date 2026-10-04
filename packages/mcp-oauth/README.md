@@ -69,11 +69,15 @@ tokens and `OAuthError` diagnostics are private; redact them at user boundaries.
 Revocation uses RFC 7009 form authentication, accepts empty success bodies, and
 never clears host credentials or retries a request. It shares token-operation
 authentication and has a 30-second deadline and a 1 MiB response limit.
-Registration accepts a host-approved `registrationEndpoint`, `redirectUri`, optional
+Registration accepts a host-approved `registrationEndpoint`, either `redirectUri` or `redirectUris`, optional
 `metadata` and `tokenEndpointAuthMethod`, plus the policy-checked fetch. It reuses
 the native client registration path without consent or persistence; it bounds the
 request to 64 KiB and response to 1 MiB with a 30-second deadline, and never
-retries. Bind and store the returned registration privately before starting consent.
+retries. `redirectUris` accepts one to 32 distinct HTTPS or HTTP loopback callbacks,
+preserving their exact spelling and order. Empty lists, duplicates, invalid redirects,
+and supplying both forms fail before network access. Hosts serving multiple callback
+origins should register all of them together and validate the exact returned set.
+Bind and store the returned registration privately before starting consent.
 
 ## Configuration
 

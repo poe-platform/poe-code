@@ -5,23 +5,43 @@ import { readOAuthJsonObjectResponse } from "./token-endpoint.js";
 import { normalizeOAuthTokenEndpointAuthMethod } from "./token-auth-method.js";
 import type { OAuthClientMetadata, OAuthClientRegistration, OAuthMetadataFetch, OAuthTokenEndpointAuthMethod } from "./types.js";
 
-export interface RegisterOAuthClientOptions {
+export type RegisterOAuthClientOptions = {
   /** Discovered endpoint approved by the host's network and issuer policy. */
   registrationEndpoint: string;
-  redirectUri: string;
   metadata?: OAuthClientMetadata;
   tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
   fetch: OAuthMetadataFetch;
   signal?: AbortSignal;
-}
+} & (
+  | { redirectUri: string; redirectUris?: never }
+  | {
+      redirectUri?: never;
+      /** One to 32 distinct redirects, transmitted exactly as supplied. */
+      redirectUris: readonly string[];
+    }
+);
 
 /** RFC 7591 registration only: no consent, persistence, or automatic retries.
  * The host owns issuer/redirect binding and private persistence of the returned registration.
  */
 export async function registerOAuthClient(input: RegisterOAuthClientOptions): Promise<OAuthClientRegistration> {
-  if (new URL(input.redirectUri).protocol === "https:") validateHostedOAuthRedirect(input.redirectUri);
-  else loopbackTarget({ redirectUri: input.redirectUri });
-  const body = JSON.stringify(buildClientRegistrationBody(input.metadata, input.redirectUri,
+  if (input.redirectUri !== undefined && input.redirectUris !== undefined)
+    throw new Error("Specify either redirectUri or redirectUris, not both");
+  const redirects = input.redirectUris === undefined ? [input.redirectUri] : input.redirectUris;
+  if (!Array.isArray(redirects) || redirects.length === 0 || redirects.length > 32)
+    throw new Error("OAuth registration requires one to 32 redirect URIs");
+  const redirectUris: string[] = [];
+  const seen = new Set<string>();
+  for (const redirectUri of redirects) {
+    if (typeof redirectUri !== "string" || redirectUri.length === 0)
+      throw new Error("Invalid OAuth registration redirect URI");
+    if (seen.has(redirectUri)) throw new Error("Duplicate OAuth registration redirect URI");
+    if (new URL(redirectUri).protocol === "https:") validateHostedOAuthRedirect(redirectUri);
+    else loopbackTarget({ redirectUri });
+    seen.add(redirectUri);
+    redirectUris.push(redirectUri);
+  }
+  const body = JSON.stringify(buildClientRegistrationBody(input.metadata, redirectUris,
     normalizeOAuthTokenEndpointAuthMethod(input.tokenEndpointAuthMethod) ?? "none"));
   if (new TextEncoder().encode(body).byteLength > 65_536) throw new Error("OAuth registration request is too large");
   input.signal?.throwIfAborted();
@@ -40,11 +60,11 @@ function getOwnString(input: OAuthClientMetadata, key: keyof OAuthClientMetadata
 
 function buildClientRegistrationBody(
   metadata: OAuthClientMetadata | undefined,
-  redirectUri: string,
+  redirectUris: readonly string[],
   tokenEndpointAuthMethod: string
 ): Record<string, unknown> {
   const body: Record<string, unknown> = {
-    redirect_uris: [redirectUri],
+    redirect_uris: redirectUris,
     grant_types: ["authorization_code", "refresh_token"],
     response_types: ["code"],
     token_endpoint_auth_method: tokenEndpointAuthMethod

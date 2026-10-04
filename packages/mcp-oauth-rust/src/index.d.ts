@@ -390,12 +390,18 @@ export declare function revokeOAuthToken(input: {
   signal?: AbortSignal;
 }): Promise<void>;
 
-export interface RegisterOAuthClientOptions {
+export type RegisterOAuthClientOptions = {
   registrationEndpoint: string;
-  redirectUri: string;
   metadata?: OAuthClientMetadata;
   tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
   fetch: OAuthMetadataFetch;
   signal?: AbortSignal;
-}
+} & (
+  | { redirectUri: string; redirectUris?: never }
+  | {
+      redirectUri?: never;
+      /** One to 32 distinct redirects, transmitted exactly as supplied. */
+      redirectUris: readonly string[];
+    }
+);
 export declare function registerOAuthClient(input: RegisterOAuthClientOptions): Promise<OAuthClientRegistration>;

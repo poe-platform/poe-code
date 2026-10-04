@@ -153,3 +153,14 @@ it.each(["array", "shared"] as const)("marks only %s formula groups in formula-d
   const values = {...book, sheets: book.sheets.map(sheet => ({...sheet, view: {...sheet.view, displayFormulas: false}}))};
   expect((await pdfText(await writePdf(values, [], context))).runs.map(run => run.text)).toEqual(["3", "3", "3", "3"]);
 });
+
+it.each([
+  ["=1 + 2 * 3", "=1+2*3"], ["=sUm(1,2)", "=sum(1,2)"], ["=((1+2))", "=((1+2))"],
+  ["=+1", "=+1"], ["= a1 + $b$2", "=A1+$B$2"], ["=1.00+1e3", "=1+1000"],
+  ["=MY.Unknown(1,2)", "=MY.Unknown(1,2)"], ["=1e-9", "=1E-09"], ["=S!A2", "=S!A2"], ["={1e-9,-1e-8}", "={1E-09,-1E-08}"], ['="a b" & "c"', '="a b"&"c"']
+])("prints native expression spelling for %s", async (formula, expected) => {
+  const original = await fixture("GNM_HALIGN_GENERAL"), sheet = original.sheets[0]!;
+  const book = {...original, sheets: [{...sheet, view: {...sheet.view, displayFormulas: true},
+    cells: [{...sheet.cells[0]!, formula, value: {kind: "number" as const, value: 0}}]}]};
+  expect((await pdfText(await writePdf(book, [], context))).runs[0]!.text).toBe(expected);
+});

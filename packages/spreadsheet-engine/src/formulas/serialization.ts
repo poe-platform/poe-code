@@ -109,6 +109,9 @@ export function serializeLabelReference(node: Extract<FormulaNode, { kind: "refe
 /** Serialize the tree, retaining explicit grouping even across different precedences. */
 export function serializeExpression(document: FormulaDocument, grammar = document.grammar, preserveSource = true, canonical = false,
   options: { readonly relativeSheets?: "preserve" | "fixed";
+    /** Target-specific numeric constant and function spellings. */
+    readonly numberLiteral?: (value: number) => string;
+    readonly functionName?: (name: string, spelling: string) => string;
     /** Package-specific external-link spellings, after link identity registration. */
     readonly externalReference?: (node: Extract<FormulaNode, { kind: "reference" }>) => string;
     readonly externalName?: (node: Extract<FormulaNode, { kind: "name" }>) => string;
@@ -134,7 +137,7 @@ export function serializeExpression(document: FormulaDocument, grammar = documen
     switch (value.kind) {
       case "literal": return value.value.kind === "blank" ? "" : value.value.kind === "string" ? quoteFormulaString(value.value.value, '"', grammar) :
         value.value.kind === "error" && grammar.quotedErrors && !["#NAME?", "#REF!", "#VALUE!", "#NUM!", "#DIV/0!", "#N/A", "#NULL!"].includes(value.value.value) ? "#" + quoteFormulaString(value.value.value, '"', grammar) :
-        value.value.kind === "boolean" ? (value.value.value ? "TRUE" : "FALSE") + (grammar.booleanFunctions ? "()" : "") : String(value.value.value);
+        value.value.kind === "boolean" ? (value.value.value ? "TRUE" : "FALSE") + (grammar.booleanFunctions ? "()" : "") : value.value.kind === "number" && options.numberLiteral ? options.numberLiteral(value.value.value) : String(value.value.value);
       case "omitted": return "";
       case "reference": return value.first.workbook !== undefined && value.first.workbook !== "" && !value.label && options.externalReference ? options.externalReference(value) : value.label ? grammar.quotedLabels === "openformula" && options.quotedLabel
         ? quoteFormulaString(options.quotedLabel(value), "'", grammar) : serializeLabelReference(value, grammar, position) : serializeReference(
@@ -179,7 +182,7 @@ export function serializeExpression(document: FormulaDocument, grammar = documen
         const text = left + operator + emit(value.right, labels && value.op === "^" && !grammar.leftAssociativePower ? precedence - 1 : precedence);
         return precedence <= parentPrecedence ? "(" + text + ")" : text;
       }
-      case "array": return "{" + value.rows.map(row => row.map(child => child.kind === "unary" && child.child.kind === "literal" && child.child.value.kind === "number" ? child.op + String(child.child.value.value) : emit(child)).join(grammar.arrayColumn)).join(grammar.arrayRow) + "}";
+      case "array": return "{" + value.rows.map(row => row.map(child => child.kind === "unary" && child.child.kind === "literal" && child.child.value.kind === "number" ? child.op + (options.numberLiteral?.(child.child.value.value) ?? String(child.child.value.value)) : emit(child)).join(grammar.arrayColumn)).join(grammar.arrayRow) + "}";
       // Unknown function spelling is data and survives conversion without execution.
       case "call": {
         if (grammar.id === "odf" && value.args.length === 2 && ["R.DCHISQ","R.PCHISQ","R.QCHISQ"].includes(value.name))
@@ -214,7 +217,7 @@ export function serializeExpression(document: FormulaDocument, grammar = documen
         }
         const nativeName = canonical && grammar.id === "gnumeric" && (Object.hasOwn(numericFunctionDescriptors, value.name) || Object.hasOwn(dateFinanceFunctionDescriptors, value.name) || Object.hasOwn(statisticsFunctionDescriptors,value.name))
           ? value.name.toLowerCase() : value.name;
-        return (grammar.functionExportAliases?.[value.name] ?? (grammar === document.grammar && !canonical ? value.spelling : nativeName)) + "(" + value.args.map(child => emit(child)).join(grammar.arguments) + ")";
+        return (options.functionName?.(value.name, value.spelling) ?? grammar.functionExportAliases?.[value.name] ?? (grammar === document.grammar && !canonical ? value.spelling : nativeName)) + "(" + value.args.map(child => emit(child)).join(grammar.arguments) + ")";
       }
     }
   }

@@ -11,6 +11,7 @@ import { objectRectangle } from "../objects/layout.js";
 import { graphBackground } from "../rendering/images/scene.js";
 import { layoutPrintPages } from "../rendering/print/layout.js";
 import { renderPrintHeaderFooter } from "../rendering/print/header-footer.js";
+import { renderPrintFormula } from "@poe-code/spreadsheet-engine/rendering/print/formula-text";
 import { createPrintSpans } from "@poe-code/spreadsheet-engine/rendering/print/text-span";
 import { cellPrintStyle, type CellPrintStyle } from "../rendering/print/cell-style.js";
 import { sheetPrintSettings } from "../rendering/print/settings.js";
@@ -376,7 +377,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     }
     page.drawText(value, { x: x - (alignment === "left" ? 0 : width / (alignment === "center" ? 2 : 1)), y: baseline, size, font });
   };
-  const arrayFormulaText = new WeakMap<Sheet["cells"][number], string>();
+  const printedFormulaText = new WeakMap<Sheet["cells"][number], string>();
   const effectiveColumns = (sheet: Sheet): readonly AxisMetadata[] | undefined => {
     if (sheet.columns?.length || sheet.view?.defaultColumnWidth !== undefined) return sheet.columns;
     const isDelimited = /\.(?:csv|tsv)$/i.test(sheet.name) || /\.(?:csv|tsv)$/i.test(context.inputFilename ?? "");
@@ -393,7 +394,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     const fallback = typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48;
     const maxWidthByCol = new Map<number, number>();
     for (const cell of sheet.cells) {
-      const raw = sheetViewFlag(sheet, "displayFormulas") && cell.formula ? arrayFormulaText.get(cell) ?? cell.formula : cell.displayedText ?? (cell.value.kind === "blank" ? "" : cell.value.kind === "boolean" ? (cell.value.value ? "TRUE" : "FALSE") : String(cell.value.value));
+      const raw = sheetViewFlag(sheet, "displayFormulas") && cell.formula ? printedFormulaText.get(cell) ?? cell.formula : cell.displayedText ?? (cell.value.kind === "blank" ? "" : cell.value.kind === "boolean" ? (cell.value.value ? "TRUE" : "FALSE") : String(cell.value.value));
       if (!raw || raw.includes("\n") || raw.includes("\r")) continue;
       const needed = Math.max(fallback, raw.length * 6 + 14);
       const prev = maxWidthByCol.get(cell.column) ?? fallback;
@@ -507,9 +508,10 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         if (group.kind === "array") arrayGroups.add(group.id);
       }
       for (const cell of sheet.cells) {
-        if (cell.formula && cell.formulaGroup && arrayGroups.has(cell.formulaGroup)) {
-          tick(cell.formula.length);
-          arrayFormulaText.set(cell, "{" + cell.formula + "}");
+        if (sheetViewFlag(sheet, "displayFormulas")) {
+          const formula = renderPrintFormula(book, sheet, cell, context, tick);
+          if (formula !== undefined) printedFormulaText.set(cell,
+            cell.formulaGroup && arrayGroups.has(cell.formulaGroup) ? "{" + formula + "}" : formula);
         }
         const normalizedStyle = normalizePdfCellStyle(cell);
         if (normalizedStyle) {
@@ -587,7 +589,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         for (const cell of sheet.cells) {
           tick();
           if (cell.row < geometry.area.startRow || cell.row > geometry.area.endRow || cell.column < geometry.area.startColumn || cell.column > geometry.area.endColumn || sheet.rows?.some(row => row.index === cell.row && row.hidden) || sheet.columns?.some(column => column.index === cell.column && column.hidden)) continue;
-          const formula = showFormulas ? arrayFormulaText.get(cell) ?? cell.formula : undefined;
+          const formula = showFormulas ? printedFormulaText.get(cell) ?? cell.formula : undefined;
           // gnm_cell_is_zero includes booleans and a strict 64-epsilon numeric tolerance.
           if (!formula && hideZero && (cell.value.kind === "number" ? Math.abs(cell.value.value) < 64 * Number.EPSILON :
             cell.value.kind === "boolean" && !cell.value.value)) continue;

@@ -105,7 +105,8 @@ fonts refuse without substitution. With no binding, the packaged JetBrains Mono
 font remains the default. Cells without explicit styles use native default sizes
 and alignment. PDF export uses JavaScript fontkit shaping when the runtime
 cannot compile WebAssembly (including Cloudflare Workers). Font bytes and character-map work are bounded before parsing.
-Formula-display mode prints formula text with doubled column widths, including
+Formula-display mode prints parsed expressions with native number spelling and
+known function names, preserving unknown function spelling. It doubles column widths, including
 those widths when centering and fitting pages. Array formulas use `{=…}` in every
 member cell; shared formulas keep ordinary formula spelling. Zero hiding follows the native
 numeric tolerance and hides FALSE, while retaining cell fills, text zeros and

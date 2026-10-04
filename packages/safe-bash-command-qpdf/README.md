@@ -48,6 +48,10 @@ sequentially, including `--empty`, per-source passwords, stdin and repeated
 sources. Inactive inputs release range caches while retaining their acquired
 identity. `--collate` interleaves lazy page batches with only one source document
 active at a time; batch boundaries preserve independent resource copies.
+`--split-pages` stages grouped results and their names on caller storage before
+atomic file publication, including filename patterns and rotations. Combined
+splitting with page selections or graph-removal options currently uses the
+compatibility engine.
 
 `--show-linearization` and `--check-linearization` preserve revision and repair
 ordering through caller-backed traversal. `--check`, `--show-pages`, `--show-xref`, `--show-npages` and `--show-encryption` inspect retained inputs

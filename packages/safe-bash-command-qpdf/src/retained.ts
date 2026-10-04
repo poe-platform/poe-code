@@ -1,3 +1,4 @@
+import { splitPageOutputs } from "./split.js";
 import { iterateQpdfPageRange } from "./page-range.js";
 import { linearizationParts } from "./linearization.js";
 import { attachmentChunks, QpdfMissingAttachment } from "./attachments.js";
@@ -5,7 +6,7 @@ import { copyQpdfSelections, QpdfMissingInput } from "./selection.js";
 import { xrefDisplayParts } from "./xref-display.js";
 import { pageDisplayParts } from "./page-display.js";
 import { displayNodeParts, encodeDisplayParts } from "./display.js";
-import { PdfError, PdfFileSource, PdfRetainedDocument, saveRetainedDocumentChunks, retainedCosObjects, serializeRetainedCosDocumentChunks, cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
+import { PdfError, PdfFileSource, PdfRetainedDocument, PdfStagedOutputs, saveRetainedDocumentChunks, retainedCosObjects, serializeRetainedCosDocumentChunks, cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, type PdfCosNode } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
 import { writeBytes } from "safe-bash-contracts/io";
@@ -16,6 +17,7 @@ import type { QpdfLimits } from "./index.js";
 export interface RetainedQpdfOptions {
   inputFile: string | undefined;
   emptyInput: boolean;
+  splitPagesGroup: number | undefined;
   rotateSpecs: readonly { range: string; angle: number; relative: boolean; sign: number }[];
   listAttachments: boolean;
   showLinearization: boolean;
@@ -51,6 +53,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
   const storage = { fs: context.fs, directory: resolvePath(context.cwd, context.env.TMPDIR || "/tmp") };
   const inputs = new Map<string, PdfFileSource | undefined>();
   let source: PdfFileSource | undefined, document: PdfRetainedDocument | undefined, intermediate: PdfFileSource | undefined, output: PdfFileSource | undefined, failed = false;
+  let splitOutputs: PdfStagedOutputs | undefined;
   async function publishInspection(chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>): Promise<void> {
     async function* admitted() {
       let total = 0;
@@ -198,6 +201,37 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         yield { pageIndex: number - 1, degrees: edit.angle * (edit.relative ? edit.sign : 1), relative: edit.relative };
       }
     }
+    if (options.splitPagesGroup !== undefined) {
+      for await (const object of retainedCosObjects(document, storage, { signal })) {
+        if (object.stream) for await (const ignored of object.stream.chunks) void ignored;
+      }
+      const parts = splitPageOutputs(document, storage, destination, options.splitPagesGroup, options.rotateSpecs, signal);
+      async function* entries() {
+        // Preserve original Map insertion order when a split filename replaces
+        // an input. Empty seed entries are discarded after staging.
+        for (const [name, input] of inputs) if (input) yield { name, chunks: [] };
+        let total = 0;
+        for await (const part of parts) {
+          async function* admitted() {
+            for await (const bytes of part.chunks) {
+              if (bytes.length > limits.maxOutputBytes - total) throw new RangeError("Output byte limit exceeded");
+              total += bytes.length; yield bytes;
+            }
+          }
+          yield { name: part.name, chunks: admitted() };
+        }
+      }
+      splitOutputs = await PdfStagedOutputs.create(storage, entries(), { signal, maxNameChars: Infinity });
+      for await (const entry of splitOutputs.entries()) {
+        if (!entry.size) continue;
+        try { const path = resolvePath(context.cwd, entry.name); await context.fs.mkdir(resolvePath(path, ".."), { recursive: true, signal }); await publish(context, path, entry.contents(), signal); }
+        catch (error) {
+          signal.throwIfAborted(); if (!(error instanceof Error) || !("code" in error)) throw error;
+          return await diagnostic(`qpdf: open ${entry.name}: ${error.code === "ENOENT" ? "No such file or directory" : error.code}\n`);
+        }
+      }
+      return { exitCode: 0 };
+    }
     const producer = saveRetainedDocumentChunks(document, storage, { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, signal, maxOutputBytes: limits.maxOutputBytes, rotations: rotations(), ...(options.decrypt && document.encryption ? { version: "1.7", omitId: true } : {}) });
     try { output = await PdfFileSource.fromStream(context.fs, storage.directory, producer, { signal, maxInputBytes: limits.maxOutputBytes }); }
     finally { await producer.return(undefined); }
@@ -212,7 +246,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
     return { exitCode: 0 };
   } catch (error) { failed = true; if (error instanceof QpdfMissingInput || error instanceof QpdfMissingAttachment) return await diagnostic(error.message); throw error; }
   finally {
-    const results = await Promise.allSettled([document?.close(), ...[...new Set([...inputs.values(), source, intermediate, output])].map(input => input?.close())]);
+    const results = await Promise.allSettled([splitOutputs?.close(), document?.close(), ...[...new Set([...inputs.values(), source, intermediate, output])].map(input => input?.close())]);
     if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason);
   }
 }

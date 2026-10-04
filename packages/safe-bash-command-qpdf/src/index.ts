@@ -1,3 +1,4 @@
+import { formatSplitName } from "./split.js";
 import { parseQpdfPageRange } from "./page-range.js";
 export { parseQpdfPageRange, iterateQpdfPageRange } from "./page-range.js";
 import { displayNodeParts } from "./display.js";
@@ -2360,47 +2361,7 @@ function* executeQpdfCli(
   // Split pages if requested (--split-pages[=n])
   if (splitPagesGroup !== undefined) {
     const total = workingDoc.getPageCount();
-    const padLen = String(total).length;
-    const baseStem = finalTarget.toLowerCase().endsWith(".pdf") ? finalTarget.slice(0, -4) : finalTarget;
     const wMeta = workingDoc.getMetadata();
-    const formatSplitSpec = (tmpl: string, sNum: number, eNum: number): string | undefined => {
-      let out = "";
-      let replaced = false;
-      for (let i = 0; i < tmpl.length; i++) {
-        if (tmpl[i] !== "%") {
-          out += tmpl[i]!;
-          continue;
-        }
-        if (tmpl[i + 1] === "%") {
-          out += "%";
-          i++;
-          continue;
-        }
-        if (!replaced) {
-          let j = i + 1;
-          let zeroPad = false;
-          if (tmpl[j] === "0") {
-            zeroPad = true;
-            j++;
-          }
-          let wStr = "";
-          while (j < tmpl.length && tmpl[j]! >= "0" && tmpl[j]! <= "9") {
-            wStr += tmpl[j]!;
-            j++;
-          }
-          if (tmpl[j] === "d") {
-            const width = wStr ? Number.parseInt(wStr, 10) : padLen;
-            const fmtN = (n: number) => (zeroPad || !wStr ? String(n).padStart(width, "0") : String(n));
-            out += splitPagesGroup === 1 ? fmtN(sNum) : `${fmtN(sNum)}-${fmtN(eNum)}`;
-            replaced = true;
-            i = j;
-            continue;
-          }
-        }
-        out += "%";
-      }
-      return replaced ? out : undefined;
-    };
     for (let startIdx = 0; startIdx < total; startIdx += splitPagesGroup) {
       yield;
       const endIdx = Math.min(total - 1, startIdx + splitPagesGroup - 1);
@@ -2412,11 +2373,7 @@ function* executeQpdfCli(
       const indices: number[] = [];
       for (let k = startIdx; k <= endIdx; k++) indices.push(k);
       (yield* subDoc.copyPagesFromSteps(workingDoc, indices));
-      const sPad = String(startIdx + 1).padStart(padLen, "0");
-      const ePad = String(endIdx + 1).padStart(padLen, "0");
-      const suffix = splitPagesGroup === 1 ? sPad : `${sPad}-${ePad}`;
-      const formattedSpec = formatSplitSpec(finalTarget, startIdx + 1, endIdx + 1);
-      const splitName = formattedSpec ?? `${baseStem}-${suffix}.pdf`;
+      const splitName = formatSplitName(finalTarget, total, splitPagesGroup, startIdx + 1, endIdx + 1);
       files.set(splitName, (yield* subDoc.saveSteps({ normalizeContent: qdf })));
     }
     return { exitCode: 0, stdout: "", stderr: "" };
@@ -2506,8 +2463,9 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
     const parsed = parseQpdfArguments(argv);
     if (parsed.options) {
       const defaults = parseQpdfArguments([]).options!;
-      const retained = Object.entries(parsed.options).every(([key, value]) => {
-        if (["inputFile", "outputFile", "password", "replaceInput", "warningExit0", "decrypt", "check", "showNpages", "showEncryption", "showObject", "rawStreamData", "filteredStreamData", "isEncrypted", "requiresPassword", "showPages", "withImages", "showXref", "removeInfo", "removeMetadata", "removeStructure", "removeAcroform", "removePageLabels", "emptyInput", "pageSpecs", "collateCount", "listAttachments", "showAttachmentKey", "showLinearization", "rotateSpecs"].includes(key)) return true;
+      const splitGraphEdits = parsed.options.splitPagesGroup !== undefined && [parsed.options.pageSpecs.length > 0, parsed.options.removeInfo, parsed.options.removeMetadata, parsed.options.removeStructure, parsed.options.removeAcroform, parsed.options.removePageLabels].some(Boolean);
+      const retained = !splitGraphEdits && Object.entries(parsed.options).every(([key, value]) => {
+        if (["inputFile", "outputFile", "password", "replaceInput", "warningExit0", "decrypt", "check", "showNpages", "showEncryption", "showObject", "rawStreamData", "filteredStreamData", "isEncrypted", "requiresPassword", "showPages", "withImages", "showXref", "removeInfo", "removeMetadata", "removeStructure", "removeAcroform", "removePageLabels", "emptyInput", "pageSpecs", "collateCount", "listAttachments", "showAttachmentKey", "showLinearization", "rotateSpecs", "splitPagesGroup"].includes(key)) return true;
         if (key === "normalizeContentFlag" && value === false) return true;
         if (key === "objectStreamsMode" && value === "disable") return true;
         const baseline = defaults[key as keyof typeof defaults];

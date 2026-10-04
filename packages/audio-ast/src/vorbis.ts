@@ -107,8 +107,12 @@ export function pictureBase64(picture: AudioPicture): string {
 export function addVorbisComment(tags: AudioTags, value: string): void {
   const split = value.indexOf("=");
   if (split > 0) {
-    const key = value.slice(0, split).toUpperCase(),
-      name = names[key] ?? key;
+    const name = normalizeVorbisCommentKey(value.slice(0, split));
     tags[name] = tags[name] ? `${tags[name]}\n${value.slice(split + 1)}` : value.slice(split + 1);
   }
+}
+
+export function normalizeVorbisCommentKey(value: string): string {
+  const key = value.toUpperCase();
+  return names[key] ?? key;
 }

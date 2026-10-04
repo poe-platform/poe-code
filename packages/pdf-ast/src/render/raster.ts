@@ -627,19 +627,18 @@ function* pathSegments(segments: readonly PdfPathSegment[], stored: PdfStoredPat
   }
 }
 
-function *segmentsToScreenPathsSteps(segments: readonly PdfPathSegment[], pageHeight: number, scale: number,
+function *projectStrokeSubpaths(segments: readonly PdfPathSegment[], pageHeight: number, scale: number,
   toScreen = (x: number, y: number): StrokePoint => [x * scale, (pageHeight - y) * scale],
   stored?: PdfStoredPath, input?: RasterImageInput
-): Generator<void, StrokeSubpath[], void> {
+): Generator<StrokeSubpath | null, void, void> {
   let work = 0;
-  const paths: StrokeSubpath[] = [];
   let points: StrokePoint[] = [];
   let current: StrokePoint = [0, 0];
   for (const segment of pathSegments(segments, stored, input)) {
-      if (!segment) { yield; continue; }
-    if (++work % 16384 === 0) yield;
+    if (!segment) { yield null; continue; }
+    if (++work % 16384 === 0) yield null;
     if (segment.kind === "move") {
-      if (points.length) paths.push({ points, closed: false });
+      if (points.length) yield { points, closed: false };
       current = toScreen(segment.x, segment.y);
       points = [current];
     } else if (segment.kind === "line") {
@@ -651,25 +650,24 @@ function *segmentsToScreenPathsSteps(segments: readonly PdfPathSegment[], pageHe
       const a = toScreen(segment.x1, segment.y1), b = toScreen(segment.x2, segment.y2);
       const end = toScreen(segment.x, segment.y);
       const curve = flattenCubic(current[0], current[1], a[0], a[1], b[0], b[1], end[0], end[1]);
-      for (let i = 1; i < curve.length; i++) { if (++work % 16384 === 0) yield; points.push(curve[i]!); }
+      for (let i = 1; i < curve.length; i++) { if (++work % 16384 === 0) yield null; points.push(curve[i]!); }
       current = end;
     } else if (segment.kind === "close") {
       if (points.length) {
-        paths.push({ points, closed: true });
+        yield { points, closed: true };
         current = points[0]!;
         points = [];
       }
     } else if (segment.kind === "rect") {
-      if (points.length) paths.push({ points, closed: false });
+      if (points.length) yield { points, closed: false };
       const first = toScreen(segment.x, segment.y);
-      paths.push({ points: [first, toScreen(segment.x + segment.width, segment.y),
-        toScreen(segment.x + segment.width, segment.y + segment.height), toScreen(segment.x, segment.y + segment.height)], closed: true });
+      yield { points: [first, toScreen(segment.x + segment.width, segment.y),
+        toScreen(segment.x + segment.width, segment.y + segment.height), toScreen(segment.x, segment.y + segment.height)], closed: true };
       current = first;
       points = [];
     }
   }
-  if (points.length) paths.push({ points, closed: false });
-  return paths;
+  if (points.length) yield { points, closed: false };
 }
 
 /** Replayable fill geometry. Only the current segment and cubic subdivision
@@ -748,7 +746,7 @@ function prepareStroke(path: PdfEvaluatedPath, scale: number) {
   return { matrix, width, dashArray, dashPhase };
 }
 
-function *strokeContoursSteps(path: PdfEvaluatedPath, pageHeight: number, scale: number, originX = 0, originY = 0, offsetX = 0, offsetY = 0, images?: RasterImageInput): Generator<void, Iterable<StrokePoint | undefined>, void> {
+function strokeContourPoints(path: PdfEvaluatedPath, pageHeight: number, scale: number, originX = 0, originY = 0, offsetX = 0, offsetY = 0, images?: RasterImageInput): Iterable<StrokePoint | undefined | null> {
   const stroke = prepareStroke(path, scale);
   if (!stroke) return [];
   const inverse = inverseStrokeMatrix(stroke.matrix);
@@ -765,19 +763,20 @@ function *strokeContoursSteps(path: PdfEvaluatedPath, pageHeight: number, scale:
     (a * x / strokeScale + c * y / strokeScale + e - originX) * scale - offsetX,
     (pageHeight + originY - b * x / strokeScale - d * y / strokeScale - f) * scale - offsetY,
   ];
-  const paths = yield* segmentsToScreenPathsSteps(path.segments, pageHeight, scale, project, path.storedSegments, images);
+  const paths = { [Symbol.iterator]: () => projectStrokeSubpaths(path.segments, pageHeight, scale, project, path.storedSegments, images) };
   const dash = stroke.dashArray?.map(value => Math.max(0, value * strokeScale));
   return { *[Symbol.iterator]() {
     for (const point of strokeOutlinePoints(paths, stroke.width * strokeScale, path.lineCap ?? 0, path.lineJoin ?? 0, path.miterLimit ?? 10, dash, stroke.dashPhase * strokeScale)) {
-      yield point ? toScreen(point) : undefined;
+      yield point ? toScreen(point) : point;
     }
   }};
 }
 
-function strokeEdges(contours: Iterable<StrokePoint | undefined>): Iterable<Edge> {
+function strokeEdges(contours: Iterable<StrokePoint | undefined | null>): Iterable<Edge | undefined> {
   return { *[Symbol.iterator]() {
     let first: StrokePoint | undefined, previous: StrokePoint | undefined, count = 0;
     for (const point of contours) {
+      if (point === null) { yield; continue; }
       if (point) {
         if (previous) yield {x0:previous[0], y0:previous[1], x1:point[0], y1:point[1]};
         else first = point;
@@ -1188,7 +1187,7 @@ function *renderDisplayListLayerSteps(
         const rawSw = path.strokeWidth * scale * (path.strokeMatrix ? Math.hypot(path.strokeMatrix[0], path.strokeMatrix[1]) : 1);
         const strokeAlpha = options.thinLineMode === "shape" && rawSw < 1
           ? (path.strokeAlpha ?? 1) * Math.max(0.25, rawSw) : path.strokeAlpha ?? 1;
-        const edges = strokeEdges(yield* strokeContoursSteps(path, displayList.height, scale, originX, originY, offsetX, offsetY, images));
+        const edges = strokeEdges(strokeContourPoints(path, displayList.height, scale, originX, originY, offsetX, offsetY, images));
         const clipScreen: [number, number, number, number] | undefined = path.clipRect
           ? [(path.clipRect[0] - originX) * scale - offsetX, (pageTop - path.clipRect[3]) * scale - offsetY, (path.clipRect[2] - originX) * scale - offsetX, (pageTop - path.clipRect[1]) * scale - offsetY] : undefined;
         (yield* fillEdgesScanline4x4Steps(rgba, width, height, edges, path.strokeColor, strokeAlpha, "nonzero", clipScreen,
@@ -1829,11 +1828,10 @@ function strokeContours(
   originX = 0,
   originY = 0
 ): StrokePoint[][] {
-  const steps = strokeContoursSteps(path, pageHeight, scale, originX, originY);
-  let next = steps.next();
-  while (!next.done) next = steps.next();
+  const points = strokeContourPoints(path, pageHeight, scale, originX, originY);
   const contours: StrokePoint[][] = []; let contour: StrokePoint[] = [];
-  for (const point of next.value) {
+  for (const point of points) {
+    if (point === null) continue;
     if (point) contour.push(point);
     else {contours.push(contour); contour = [];}
   }

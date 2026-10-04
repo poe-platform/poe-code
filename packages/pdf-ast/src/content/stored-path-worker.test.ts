@@ -10,7 +10,7 @@ it("parses, evaluates and clips growing paths in a Worker using external backing
  import {evaluateRetainedContentSteps} from './packages/pdf-ast/src/content/retained-evaluator.ts';
  import {renderOperationStreamWindow} from './packages/pdf-ast/src/render/raster.ts';
  export default {async fetch(request,env){
- const count=Number(new URL(request.url).searchParams.get('count')),body='0 0 4 4 re ',tail='W n 0 0 4 4 re f',size=body.length*count+tail.length;
+ const count=Number(new URL(request.url).searchParams.get('count')),stroke=new URL(request.url).searchParams.has('stroke'),body='0 0 4 4 re ',tail=stroke?'8 w S':'W n 0 0 4 4 re f',size=body.length*count+tail.length;
  let end=0,peak=0,reads=0;
  const storage={allocate(length){const at=end;end+=length;return at;},async write(position,bytes){await env.BACKING.fetch('https://backing/?at='+position,{method:'PUT',body:bytes});},async read(position,length){reads++;return new Uint8Array(await(await env.BACKING.fetch('https://backing/?at='+position+'&length='+length)).arrayBuffer());}};
  const fs={capabilities:{retainedRead:true},async openReadFile(){return {async stat(){return {type:'file',size};},async read(at,length){const bytes=new Uint8Array(Math.min(length,size-at));for(let i=0;i<bytes.length;i++){const p=at+i;bytes[i]=(p<body.length*count?body[p%body.length]:tail[p-body.length*count]).charCodeAt(0);}return bytes;},async close(){}};}};
@@ -33,9 +33,9 @@ it("parses, evaluates and clips growing paths in a Worker using external backing
   if(request.method==="PUT"){backing.set(new Uint8Array(await request.arrayBuffer()),at);return new Response();}
   return new Response(backing.slice(at,at+Number(url.searchParams.get("length"))));
  }}});
- try{for(const count of [256,2048]){
+ try{for(const count of [256,2048])for(const stroke of [false,true]){
   backing=new Uint8Array(2**20);
-  const response=await runtime.dispatchFetch("https://verify/?count="+count);if(response.status!==200)throw Error(await response.text());
+  const response=await runtime.dispatchFetch("https://verify/?count="+count+(stroke?"&stroke":""));if(response.status!==200)throw Error(await response.text());
   const result=await response.json() as {pixels:number[];peak:number;reads:number;bytes:number;nodeGlobals:boolean};
   expect(result.pixels).toEqual([0,0,0,255]);expect(result.peak).toBeLessThanOrEqual(8192);expect(result.reads).toBeGreaterThan(8);expect(result.bytes).toBeGreaterThan(count*56);expect(result.nodeGlobals).toBe(false);
  }}finally{await runtime.dispose();}

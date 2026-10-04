@@ -92,12 +92,13 @@ function dashSubpath(path: StrokeSubpath, pattern: readonly number[], phase: num
 }
 
 /** Generate AGG stroke points in device coordinates; undefined ends a contour.
+ * Null suspends work while a replayable subpath source supplies caller-backed input.
  * Generated outlines are streamed. Dash expansion and input point normalization
  * retain their own ownership and vertex admission. */
 export function* strokeOutlinePoints(
-  paths: readonly StrokeSubpath[], width: number, cap: 0 | 1 | 2,
+  paths: Iterable<StrokeSubpath | null>, width: number, cap: 0 | 1 | 2,
   join: 0 | 1 | 2, miterLimit: number, dashArray: readonly number[] = [], dashPhase = 0
-): Generator<StrokePoint | undefined, void, void> {
+): Generator<StrokePoint | undefined | null, void, void> {
   const half = width / 2;
   const pattern = dashArray.length % 2 ? [...dashArray, ...dashArray] : dashArray;
   let count = 0;
@@ -174,6 +175,7 @@ export function* strokeOutlinePoints(
     yield* add(point[0] + dx2, point[1] - dy2);
   };
   for (const path of paths) {
+    if (path === null) { yield null; continue; }
     for (const subpath of pattern.length ? dashSubpath(path, pattern, dashPhase) : [path]) {
       const points: StrokePoint[] = [];
       for (const point of subpath.points) {

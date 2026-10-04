@@ -37,10 +37,10 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
     let embedded=false;
     for await(const chunk of tree.scalarChunks(node)){embedded=dataPrefix(chunk.slice(0,32))!==0;break;}
     const base=context.resources || embedded?undefined:(await originAt(node)).base;
-    const identity = BigInt(await targets.add(await text.from((async function*(){
+    const identity = BigInt(await targets.intern(async function*(){
       yield base===undefined?"-:":String(base.length)+":"+base;
       yield* tree.scalarChunks(node);
-    })())));
+    }));
     await nodeTargets.set(BigInt(node), identity);
     return identity;
   };
@@ -121,10 +121,10 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
     let prefix = ""; for await (const chunk of tree.scalarChunks(node)) {prefix = chunk.slice(0, 32); break;}
     const embedded = dataPrefix(prefix);
     if (!embedded) await retainedLocalResourceTarget(tree, node, context);
-    const identity = await identities.add(await text.from((async function* () {
+    const identity = await identities.intern(async function* () {
       yield String(span.position) + ":";
       if (!embedded) yield* retainedResourceSuffix(tree, node);
-    })()));
+    });
     await nodeResources.set(BigInt(node), BigInt(identity));
     return identity;
   };

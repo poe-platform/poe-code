@@ -56,7 +56,10 @@ it.each(["resolver", "filesystem"].flatMap(capability => [4097, 65537].map(units
     expect(targets).toHaveLength(2);
     const resources = await prepareRetainedImageResources(document.tree, document.order, context, working, {from: "json", to: "odt"});
     try {
-      const first = await resources.image(targets[0]!), second = await resources.image(targets[1]!);
+      const first = await resources.image(targets[0]!), beforeDuplicate = first.storage.allocate(0);
+      const second = await resources.image(targets[1]!);
+      // New node-index records are bounded; an existing identifier needs no text copy.
+      expect(first.storage.allocate(0) - beforeDuplicate).toBeLessThanOrEqual(8192);
       expect(first.identity).toBe(second.identity);
       const extent = first.storage.allocate(0), chunks = vi.spyOn(document.tree, "scalarChunks");
       for (let repeat = 0; repeat < 4; repeat++) for (const target of targets) {

@@ -689,3 +689,11 @@ distinct while reusing the same admitted file bytes. Both target and resource
 identity caches are scoped to the immutable admitted document. Repeat
 origin-separation and finite-budget
 checks along with the Worker resource matrix.
+
+
+For distinct image nodes with equal long identifiers, verify that the backed
+text index compares replayable chunks before allocating text. Duplicate keys
+must grow only bounded node-index records, not another identifier copy. Include
+empty identifiers at the index layer, split surrogate pairs, equal-length hash
+collisions, producer failures and early iterator closure. Repeat filesystem and
+custom-resolver output, origin, budget and Worker cleanup checks.

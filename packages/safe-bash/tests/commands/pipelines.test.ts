@@ -40,6 +40,39 @@ for (const [command, stdin, expected] of [
   });
 }
 
+for (const [description, files] of [
+  ["nested directories", { "/dir/nested/a.ts": "x\n", "/dir/b.ts": "y\n" }],
+  ["unsorted entries", { "/dir/z.ts": "x\n", "/dir/a.ts": "y\n" }],
+] as const) {
+  test(`find pipelines retain asynchronous stage contexts with ${description}`, async t => {
+    const shell = new Shell({ fs: await fixture(files) }).use(standardCommands());
+    t.after(() => shell.dispose());
+    for (const source of [
+      'find /dir -name "*.ts" | wc -l',
+      'find /dir -name "*.ts" | sort | wc -l',
+      'printf ignored | find /dir -name "*.ts" | wc -l',
+    ]) {
+      const result = await shell.exec(source, { signal: AbortSignal.timeout(1000) });
+      assert.equal(result.stdout, "2\n", source);
+      assert.equal(result.stderr, "", source);
+      assert.equal(result.exitCode, 0, source);
+    }
+  });
+}
+
+for (const [prefix, status] of [["", 0], ["set -o pipefail; ", 1], ["! ", 1], ["set -o pipefail; ! ", 0]] as const) {
+  test(`find pipeline failure preserves diagnostics and downstream stages: ${prefix || "default"}`, async t => {
+    const shell = new Shell({ fs: await fixture() }).use(standardCommands());
+    t.after(() => shell.dispose());
+    const result = await shell.exec(`${prefix}find /missing -name "*.ts" | sort | wc -l`, {
+      signal: AbortSignal.timeout(1000),
+    });
+    assert.equal(result.stdout, "0\n");
+    assert.ok(result.stderr.includes("/missing"));
+    assert.equal(result.exitCode, status);
+  });
+}
+
 test("standard tools compose in a filtering, transforming, sorting and tee pipeline", async () => {
   const fs = await fixture();
   const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands());

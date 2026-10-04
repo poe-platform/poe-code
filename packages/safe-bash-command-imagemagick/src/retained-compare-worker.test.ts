@@ -1,3 +1,4 @@
+import { PdfDocument } from "@poe-code/pdf-ast";
 import { expect, it } from "vitest";
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
@@ -5,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { runCompareCli, runConvertCli } from "./index.js";
 for (const tool of ["compare", "convert"] as const)
-for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : ["bmp", "gradient", "radial-gradient", "pattern", "tile"]) as ("bmp" | "svg" | "label" | "gradient" | "radial-gradient" | "pattern" | "tile")[])
+for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : ["bmp", "gradient", "radial-gradient", "pattern", "tile", "pdf"]) as ("bmp" | "svg" | "label" | "gradient" | "radial-gradient" | "pattern" | "tile" | "pdf")[])
 for (const stdout of [false, true])
     it(`runs ${tool} in Workerd, input=${format}, stdout=${stdout}`, async () => {
         const pixels = new Uint8Array(601 * 601 * 4);
@@ -16,7 +17,12 @@ for (const stdout of [false, true])
             state ^= state << 5;
             pixels[i] = state & 255;
         }
-        const bytes = format === "svg" ? new TextEncoder().encode('<svg width="601" height="601">' + " ".repeat(1048576) + '<rect width="601" height="601" fill="red"/><circle cx="300" cy="300" r="70" fill="blue"/></svg>') : await sharp(pixels, { raw: { width: 601, height: 601, channels: 4 } }).toFormat("bmp").toBuffer();
+        let bytes = format === "svg" ? new TextEncoder().encode('<svg width="601" height="601">' + " ".repeat(1048576) + '<rect width="601" height="601" fill="red"/><circle cx="300" cy="300" r="70" fill="blue"/></svg>') : await sharp(pixels, { raw: { width: 601, height: 601, channels: 4 } }).toFormat("bmp").toBuffer();
+        if (format === "pdf") {
+            const doc = PdfDocument.create(), png = await sharp(pixels, { raw: { width: 601, height: 601, channels: 4 } }).png().toBuffer();
+            doc.addPage([73, 59]).drawImage(doc.embedPng(png), { x: 0, y: 0, width: 73, height: 59 });
+            bytes = doc.save();
+        }
         expect(bytes.length).toBeGreaterThan(1048576);
         const generated = ["label", "gradient", "radial-gradient", "pattern", "tile"].includes(format);
         const operand = format === "label" ? "label:" + "x<&😀".repeat(600) : format === "gradient" || format === "radial-gradient" ? format + ":red-blue" : format === "pattern" ? "pattern:checkerboard" : format === "tile" ? "tile:rose:" : "/input";
@@ -39,23 +45,35 @@ for (const stdout of [false, true])
  try{const input={filesystem:fs,cwd:'/',...(stdout?{stdout:output}:{})};const metadata=tool==='compare'?await runCompareCli([operand,operand,stdout?'bmp:-':'/out.bmp'],input):await runConvertCli([...args,stdout?"png:-":"png:/out.bmp"],input);return Response.json({metadata,opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
  }};` }, bundle: true, write: false, platform: "browser", conditions: ["workerd"], format: "esm", metafile: true, logLevel: "silent" });
         expect(Object.values(bundle.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
-        const backing = new Map<string, Uint8Array>([["/input", bytes]]);
-        const runtime = new Miniflare({ modules: true, compatibilityDate: "2026-07-01", cf: false, script: bundle.outputFiles[0]!.text, serviceBindings: { BACKING: async (request: Request) => {
-                    const url = new URL(request.url), key = url.pathname, position = Number(url.searchParams.get("position"));
-                    if (request.method === "DELETE") {
-                        backing.delete(key);
-                        return new Response();
-                    }
-                    if (request.method === "PUT") {
-                        const chunk = new Uint8Array(await request.arrayBuffer()), old = backing.get(key) ?? new Uint8Array(), next = new Uint8Array(Math.max(old.length, position + chunk.length));
-                        next.set(old);
-                        next.set(chunk, position);
-                        backing.set(key, next);
-                        return new Response();
-                    }
-                    return new Response(backing.get(key)!.slice(position, position + Number(url.searchParams.get("length"))));
-                } } });
+        const runtime = new Miniflare({ cf: false, workers: [
+    { name: "image", modules: true, compatibilityDate: "2026-07-01", script: bundle.outputFiles[0]!.text, serviceBindings: { BACKING: "backing" } },
+    { name: "backing", modules: true, compatibilityDate: "2026-07-01", script: `
+      const files = new Map();
+      export default { async fetch(request) {
+        const url = new URL(request.url), key = url.pathname, position = Number(url.searchParams.get('position'));
+        if (key === '/') return Response.json([...files.keys()].sort());
+        if (request.method === 'DELETE') { files.delete(key); return new Response(); }
+        if (request.method === 'PUT') {
+          const chunk = new Uint8Array(await request.arrayBuffer()), file = files.get(key) ?? { size: 0, pages: new Map() };
+          for (let offset = 0; offset < chunk.length;) {
+            const index = Math.floor((position + offset) / 16384), within = (position + offset) % 16384, count = Math.min(chunk.length - offset, 16384 - within);
+            let page = file.pages.get(index); if (!page) { page = new Uint8Array(16384); file.pages.set(index, page); }
+            page.set(chunk.subarray(offset, offset + count), within); offset += count;
+          }
+          file.size = Math.max(file.size, position + chunk.length); files.set(key, file); return new Response();
+        }
+        const file = files.get(key), length = url.searchParams.has('length') ? Number(url.searchParams.get('length')) : file.size - position;
+        const bytes = new Uint8Array(Math.max(0, Math.min(length, file.size - position)));
+        for (let offset = 0; offset < bytes.length;) {
+          const index = Math.floor((position + offset) / 16384), within = (position + offset) % 16384, count = Math.min(bytes.length - offset, 16384 - within), page = file.pages.get(index);
+          if (page) bytes.set(page.subarray(within, within + count), offset); offset += count;
+        }
+        return new Response(bytes);
+      } };` }
+] });
         try {
+            const backing = await runtime.getWorker("backing");
+            await backing.fetch("https://backing/input", { method: "PUT", body: bytes });
             const response = await runtime.dispatchFetch("https://image/", { method: "POST", body: JSON.stringify({ size: bytes.length, stdout, operand, tool, args }) });
             if (response.status !== 200)
                 throw new Error(await response.text());
@@ -77,8 +95,8 @@ for (const stdout of [false, true])
             expect(result.reads).toBeGreaterThan(8);
             expect(result.maxAllocation).toBeLessThanOrEqual(65536);
             expect(result.nodeGlobals).toBe(false);
-            expect([...backing.keys()].sort()).toEqual(["/input", "/result"]);
-            expect(decodeImage(backing.get("/result")!)).toEqual(decodeImage(expectedFiles.get("/out.bmp")!));
+            expect(await (await backing.fetch("https://backing/")).json()).toEqual(["/input", "/result"]);
+            expect(decodeImage(new Uint8Array(await (await backing.fetch("https://backing/result")).arrayBuffer()))).toEqual(decodeImage(expectedFiles.get("/out.bmp")!));
         }
         finally {
             await runtime.dispose();

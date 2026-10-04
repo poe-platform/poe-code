@@ -1,4 +1,5 @@
-import { decodeImageToStorage, readImageMetadataFromSource, tryPdfMetadata, readImageMetadata, decodeImage, encodeStoredImage, tryImageFile, UnsupportedStoredResource, type ImageMetadata, type SharpInputOptions, type StoredRgbaImage, type RgbaImage, type ImageByteSource, type OutputEncodeOptions } from "@poe-code/image-ast/portable";
+import { decodeFileImage } from "./image-raster.js";
+import { readImageMetadataFromSource, tryPdfMetadata, readImageMetadata, decodeImage, encodeStoredImage, tryImageFile, UnsupportedStoredResource, type ImageMetadata, type SharpInputOptions, type StoredRgbaImage, type RgbaImage, type ImageByteSource, type OutputEncodeOptions } from "@poe-code/image-ast/portable";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { FsError, type FileSystem } from "@poe-code/safe-fs/contracts";
 import { resolvePath } from "safe-bash-contracts/path";
@@ -72,7 +73,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                         }
                         const configured = options(metadata);
                         try {
-                            const image = await decodeImageToStorage(checked, storage, signal, configured);
+                            const image = await decodeFileImage(checked, storage, fs, cwd, signal, configured);
                             completed = true;
                             return image;
                         }

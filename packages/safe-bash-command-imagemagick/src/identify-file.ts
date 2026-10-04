@@ -1,5 +1,6 @@
+import { decodeFileImage } from "./image-raster.js";
 import { withImageInputs, type ImageFileInput } from "./image-input.js";
-import { readImageMetadataFromSource, tryPdfMetadata, decodeImageToStorage, computeStoredImageStats, readImageMetadata, decodeImage, computeImageStatsSteps, UnsupportedStoredResource, type ImageMetadata, type ImageStats, type ImageByteSource, type StoredRgbaImage, type ImageByteStorage } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, tryPdfMetadata, computeStoredImageStats, readImageMetadata, decodeImage, computeImageStatsSteps, UnsupportedStoredResource, type ImageMetadata, type ImageStats, type ImageByteSource, type StoredRgbaImage, type ImageByteStorage } from "@poe-code/image-ast/portable";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { FsError } from "@poe-code/safe-fs/contracts";
 import { drainCooperativeSteps } from "safe-bash-contracts/yield";
@@ -58,8 +59,8 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                                     metadata = pdf;
                                 }
                                 if (custom)
-                                    return { metadata, size: source.size, formatted: await custom(metadata, source.size, async () => ({ image: await decodeImageToStorage(checked, storage, signal, options), storage })) };
-                                const stats = verbose ? await computeStoredImageStats(await decodeImageToStorage(checked, storage, signal, options), storage, signal) : undefined;
+                                    return { metadata, size: source.size, formatted: await custom(metadata, source.size, async () => ({ image: await decodeFileImage(checked, storage, fs, cwd, signal, options), storage })) };
+                                const stats = verbose ? await computeStoredImageStats(await decodeFileImage(checked, storage, fs, cwd, signal, options), storage, signal) : undefined;
                                 return { metadata, size: source.size, ...(stats ? { stats } : {}) };
                             }
                             catch (error) {

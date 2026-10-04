@@ -506,6 +506,7 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
 
     const vfs = createMemoryFileSystem();
     await vfs.mkdir("/work", { recursive: true });
+    await vfs.mkdir("/tmp");
     await vfs.writeFile("/work/f1.pdf", doc1.save());
     await vfs.writeFile("/work/f2.pdf", doc2.save());
     await vfs.writeFile(
@@ -532,8 +533,9 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
         "pdfimages -png -print-filenames /work/merged.pdf /work/ext_img",
       ].join(" && ")
     );
-    assert.equal(pipeline.exitCode, 0);
+    assert.equal(pipeline.exitCode, 0, pipeline.stderr);
     assert.equal(pipeline.stdout.trim(), "/work/ext_img-000.png");
+    assert.deepEqual(await vfs.readdir("/tmp"), []);
 
     const dumpMergedFields = await shell.exec("pdftk /work/merged.pdf dump_data_fields_utf8");
     assert.match(dumpMergedFields.stdout, /FieldName: first_name/);
@@ -1505,6 +1507,7 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
 
     const vfs = createMemoryFileSystem();
     await vfs.mkdir("/work", { recursive: true });
+    await vfs.mkdir("/tmp");
     await vfs.writeFile("/work/multi.pdf", doc.save());
     await vfs.writeFile(
       "/work/labels.txt",
@@ -1537,6 +1540,7 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
     assert.equal(res.exitCode, 0, res.stderr);
     assert.ok(res.stdout.includes("/work/ext-000.jb2e"));
     assert.ok(res.stdout.includes("/work/ext-000.jb2g"));
+    assert.deepEqual(await vfs.readdir("/tmp"), []);
     assert.deepEqual(await vfs.readFile("/work/ext-000.jb2e"), new Uint8Array(page));
     assert.deepEqual(await vfs.readFile("/work/ext-000.jb2g"), new Uint8Array(globals));
     assert.ok(res.stdout.includes("PageLabelPrefix: Sec&#231;-"));

@@ -35,12 +35,7 @@ export function parseComments(bytes: Uint8Array): {
     const value = new TextDecoder().decode(r.slice(offset, size));
     offset += size;
     comments.push(value);
-    const split = value.indexOf("=");
-    if (split > 0) {
-      const key = value.slice(0, split).toUpperCase(),
-        name = names[key] ?? key;
-      tags[name] = tags[name] ? `${tags[name]}\n${value.slice(split + 1)}` : value.slice(split + 1);
-    }
+    addVorbisComment(tags, value);
   }
   return { tags, vendor, comments, size: offset };
 }
@@ -106,4 +101,14 @@ export function pictureBase64(picture: AudioPicture): string {
   for (let i = 0; i < bytes.length; i += 8192)
     binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
   return btoa(binary);
+}
+
+/** Preserve normalization and duplicate joining for decoded Vorbis comments. */
+export function addVorbisComment(tags: AudioTags, value: string): void {
+  const split = value.indexOf("=");
+  if (split > 0) {
+    const key = value.slice(0, split).toUpperCase(),
+      name = names[key] ?? key;
+    tags[name] = tags[name] ? `${tags[name]}\n${value.slice(split + 1)}` : value.slice(split + 1);
+  }
 }

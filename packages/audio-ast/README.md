@@ -6,6 +6,7 @@ Inspect audio containers, edit their metadata, and process PCM samples in JavaSc
 | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `parseAudio(bytes)`                                  | WAV, MP3, FLAC, Ogg Vorbis/Opus, and M4A audio AST with byte spans, metadata, pictures, and stream timing |
 | `probeWavSource({ size, read }, { signal })` | Strict WAV stream metadata through caller-owned retained reads; skips samples and AST nodes |
+| `probeFlacSource({ size, read }, { signal, onComment })` | Strict FLAC metadata validation with bounded ranges; skips frames, pictures and seek-point models |
 | `probeAudio(bytes)`                                  | Format, stream, duration, bitrate, and normalized tags                                                    |
 | `writeAudioMetadata(bytesOrAst, tags, { pictures })` | Merge tags and preserve encoded audio; regenerate container sizes, MP4 chunk offsets, and Ogg checksums   |
 | `decodePcm(bytesOrAst)`                              | Decode integer and IEEE float WAV to planar `Float64Array` channels                                       |
@@ -38,3 +39,5 @@ Compressed formats support inspection and metadata editing; decoding and encodin
 `parseAudio(bytes, { maxAtomDepth })` and `probeAudio(bytes, { maxAtomDepth })` optionally bound MP4 atom nesting. The default is `Infinity`.
 
 `probeWavSource` preserves RIFF bounds, extensible PCM validation, multiple data chunks and normalized INFO tags. Reads are at most 16 KiB; the caller owns source identity and lifetime. `onTag({ key, offset, length })` can consume INFO source spans without reading or materializing tag values. Without this callback, tag strings remain materialized metadata and their total size affects memory.
+
+`probeFlacSource` validates the same STREAMINFO, comment, picture and seek-table structures as the resident parser. Supply `onComment({ block, offset, length })` to receive raw UTF-8 comment spans without reading or retaining vendor, comment, picture or encoded-audio payloads. Duplicate comments join within one block; later blocks replace matching tags, so retain the block identity when indexing spans. Callbacks may precede a later validation failure; publish their output only after probing succeeds. Without the callback, the explicit convenience mode collects normalized tags with incremental UTF-8 decoding and at most 16 KiB reads. The caller owns the source and its lifetime.

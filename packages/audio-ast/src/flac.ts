@@ -35,21 +35,8 @@ export function parseFlac(bytes: Uint8Array): AudioAst {
     if (type === 0) {
       if (stream || offset !== 4 || size !== 34)
         throw new Error("FLAC requires first unique STREAMINFO");
-      const packed = block.u64(10),
-        sampleRate = Number(packed >> 44n),
-        channels = Number((packed >> 41n) & 7n) + 1,
-        bitsPerSample = Number((packed >> 36n) & 31n) + 1,
-        samples = Number(packed & 0xfffffffffn);
-      const seconds = duration(samples, sampleRate);
-      stream = {
-        codec: "flac",
-        sampleRate,
-        channels,
-        bitsPerSample,
-        samples,
-        duration: seconds,
-        bitrate: seconds ? (bytes.length * 8) / seconds : 0
-      };
+      stream = flacStream(block, bytes.length);
+      const { sampleRate, channels, bitsPerSample, samples } = stream;
       node.fields = {
         minBlockSize: block.u16(0),
         maxBlockSize: block.u16(2),
@@ -98,4 +85,12 @@ export function parseFlac(bytes: Uint8Array): AudioAst {
     duration: stream.duration,
     bitrate: stream.bitrate
   };
+}
+
+/** Shared strict STREAMINFO timing for resident and range probes. */
+export function flacStream(block: Reader, byteLength: number): AudioStream {
+  const packed = block.u64(10), sampleRate = Number(packed >> 44n),
+    channels = Number((packed >> 41n) & 7n) + 1, bitsPerSample = Number((packed >> 36n) & 31n) + 1,
+    samples = Number(packed & 0xfffffffffn), seconds = duration(samples, sampleRate);
+  return { codec: "flac", sampleRate, channels, bitsPerSample, samples, duration: seconds, bitrate: seconds ? byteLength * 8 / seconds : 0 };
 }

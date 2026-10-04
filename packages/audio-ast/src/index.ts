@@ -1,3 +1,4 @@
+export { probeFlacSource, type FlacCommentSpan } from "./flac-source.js";
 export { probeWavSource, type AudioProbeSource, type WavTagSpan } from "./wav-source.js";
 export * from "./types.js";
 export { decodePcm, encodeWav } from "./wav.js";

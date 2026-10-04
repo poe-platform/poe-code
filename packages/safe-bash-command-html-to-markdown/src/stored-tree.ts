@@ -1,5 +1,6 @@
 import type { PagedStorage } from "@poe-code/safe-fs/storage";
 import { blockTags, type HtmlEventSink } from "./parser.js";
+import { StoredStack } from "./stored-stack.js";
 import type { TextStore } from "./stored-text.js";
 
 const tags = ["unknown", "root", "text", ...blockTags, "em", "i", "strong", "b", "del", "s", "a", "img", "code", "br", "td", "th", "tr", "thead", "tbody", "tfoot"];
@@ -11,6 +12,22 @@ export interface StoredNode extends Record<Field, number> { readonly id: number;
  * parent offset; ancestors and arbitrarily wide child lists live in storage. */
 export class StoredTree {
   constructor(private readonly storage: Pick<PagedStorage, "append" | "read" | "write">, readonly text: TextStore) {}
+
+  stack(width: number): StoredStack { return new StoredStack(this.storage, width); }
+
+  /** Child-entry continuations live in storage, including for shared subtrees. */
+  async *walk(parent: number, descend: (node: StoredNode) => boolean, reverse = false): AsyncGenerator<StoredNode> {
+    const pending = this.stack(1);
+    let entry = (await this.read(parent))[reverse ? "last" : "first"];
+    while (entry) {
+      const bytes = await this.storage.read(entry, 24), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      const node = await this.read(view.getFloat64(0, true)), next = view.getFloat64(reverse ? 8 : 16, true);
+      yield node;
+      const nested = descend(node) ? node[reverse ? "last" : "first"] : 0;
+      if (nested) { if (next) await pending.push(next); entry = nested; }
+      else entry = next || (await pending.pop())?.[0] || 0;
+    }
+  }
 
   async create(tag: string, values: Partial<Record<Field, number>> = {}): Promise<number> {
     const bytes = new Uint8Array(96), view = new DataView(bytes.buffer);
@@ -43,6 +60,11 @@ export class StoredTree {
       await this.storage.write(node.last + 16, bytes.subarray(0, 8));
     }
     await this.patch(parent, { first: node.first || entry, last: entry });
+  }
+
+  async entry(position: number): Promise<{ child: number; previous: number; next: number }> {
+    const bytes = await this.storage.read(position, 24), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    return { child: view.getFloat64(0, true), previous: view.getFloat64(8, true), next: view.getFloat64(16, true) };
   }
 
   async *children(parent: number, reverse = false): AsyncGenerator<number> {

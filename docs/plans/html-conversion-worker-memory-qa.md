@@ -7,12 +7,13 @@ storage-backed incremental parser to write unfinished tags, attribute indexes,
 open-element frames and fixed-size document records into caller-backed storage.
 Markdown text uses immutable balanced ropes in the same storage; code
 fences, ragged-table widths and output staging no longer require whole output
-strings or arrays of every table row. The cache is 256 KiB and spills via the
+strings or arrays of every table row. Traversal, normalization and formatting
+continuations use fixed-width records in the same storage, including pending
+list items and table cells. The cache is 256 KiB and spills via the
 injected safe-fs retained descriptor in `TMPDIR`, falling back to the command
 working directory. A memory backend still retains backing bytes in RAM.
 
-Before qualification, finish the remaining input-size-dependent state:
-renderer traversal continuations and URL attribute validation. The existing URL
+Before qualification, finish URL attribute validation. The existing URL
 policy still materializes a destination attribute before validation. Do not
 characterize the current command as fully bounded. Preserve output/error ordering,
 retained file identity, cleanup and cancellation while migrating these paths;
@@ -27,6 +28,14 @@ before mutation. Migration must preserve HTML5 recovery, selector behavior and
 original-source serialization. It cannot reuse the Markdown subset parser.
 
 ## Deterministic prerequisites
+
+Depth regressions instrument outstanding child iterators and render calls. At
+128 nested elements the old paths retained 129–131 iterators or 129 render calls;
+the stored interpreter uses one render call and at most five child iterators in
+these cases. Nested emphasis/list/table output is compared with the legacy
+renderer. Generated input also injects failure and cancellation into renderer
+spill writes and checks primary errors and once-only descriptor cleanup. These
+are deterministic Node tests, not Worker memory measurements.
 
 - Generate input from repeated/reused chunks rather than retaining fixtures
   proportional to input size. Exercise a single large input chunk too.

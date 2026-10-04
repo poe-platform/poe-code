@@ -72,3 +72,33 @@ test("command spills an unfinished attribute before reading its closing bytes", 
   assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, "ok\n");
   assert.deepEqual(await fs.readdir("/"), []);
 });
+
+for (const outcome of ["failure", "abort"] as const) test(`renderer continuation spill ${outcome} cleans up and preserves the primary reason`, async () => {
+  const fs = new MemoryFileSystem(), open = fs.open.bind(fs), controller = new AbortController();
+  const reason = new Error("render backing interrupted");
+  let parsed = false, closed = 0, observed: unknown;
+  fs.open = async (path, options) => {
+    const fd = await open(path, options);
+    return { ...fd, capabilities: fd.capabilities, stat: fd.stat.bind(fd), read: fd.read.bind(fd), truncate: fd.truncate.bind(fd), sync: fd.sync.bind(fd),
+      async write(bytes, position, options) {
+        if (parsed) { if (outcome === "abort") controller.abort(reason); throw reason; }
+        return fd.write(bytes, position, options);
+      },
+      async close(options) { closed++; return fd.close(options); },
+    };
+  };
+  const encoder = new TextEncoder(), opening = encoder.encode("<div>"), closing = encoder.encode("</div>");
+  const source = { async *[Symbol.asyncIterator]() {
+    for (let index = 0; index < 256; index++) yield opening;
+    yield encoder.encode("ok");
+    for (let index = 0; index < 256; index++) yield closing;
+    parsed = true;
+  } };
+  const invocation = convert(source, {}, { fs, signal: controller.signal, onInternalError(error) { observed = error; } });
+  if (outcome === "abort") await assert.rejects(invocation, error => error === reason);
+  else {
+    const result = await invocation;
+    assert.equal(result.exitCode, 1); assert.equal(result.stdout, ""); assert.equal(observed, reason);
+  }
+  assert.equal(parsed, true); assert.equal(closed, 1); assert.deepEqual(await fs.readdir("/"), []);
+});

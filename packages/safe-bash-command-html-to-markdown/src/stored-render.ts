@@ -8,6 +8,10 @@ import type { StoredTree, StoredNode } from "./stored-tree.js";
 const format = (tag: string): string | undefined => tag === "em" || tag === "i" ? "em" : tag === "strong" || tag === "b" ? "strong" : tag === "del" || tag === "s" ? "del" : undefined;
 const atoms = new Set(["a", "img", "code", "br"]);
 
+enum RenderTask { children, childNext, childDone, node, formatted, listNext, listDone, tableRowScan, tableCellScan, tableExtra, tableOutput, tableCell, tableCellDone }
+const frameFields = ["kind", "id", "maximum", "entry", "result", "rows", "rowCursor", "width", "cells", "first", "header", "flags", "ordinal", "phase"] as const;
+type RenderFrame = Record<typeof frameFields[number], number>;
+
 export class StoredRenderer {
   private readonly text;
   constructor(private readonly tree: StoredTree, private readonly budget: Budget) { this.text = tree.text; }
@@ -41,82 +45,87 @@ export class StoredRenderer {
   }
 
   private async hasRawContent(parent: number): Promise<boolean> {
-    for await (const child of this.tree.children(parent)) {
+    for await (const node of this.tree.walk(parent, node => node.tag !== "text" && node.tag !== "br")) {
       await this.work();
-      const node = await this.tree.read(child);
-      if (node.tag === "text" ? Boolean(node.text) : node.tag === "br" || await this.hasRawContent(child)) return true;
+      if (node.tag === "text" ? Boolean(node.text) : node.tag === "br") return true;
     }
     return false;
   }
 
   private async normalized(id: number): Promise<number> {
-    const node = await this.tree.read(id);
-    if (node.normalized) return node.normalized;
-    const result = await this.tree.create(node.tag, { ...node, first: 0, last: 0, normalized: 0 });
-    const append = async (target: number, child: number): Promise<void> => {
-      await this.work();
-      const entry = await this.tree.read(child), style = format(entry.tag);
-      const last = (await this.tree.children(target, true).next()).value as number | undefined;
-      if (style && last && format((await this.tree.read(last)).tag) === style) {
-        for await (const nested of this.tree.children(child)) await append(last, nested);
-      } else await this.tree.append(target, style ? await this.tree.copy(entry) : child);
+    // Normalize, finalize, visit, append and resume-style jobs replace recursive
+    // calls. Each job contains only node offsets; pending jobs use caller storage.
+    const pending = this.tree.stack(4);
+    const normalize = 0, finalize = 1, visit = 2, append = 3, styleReady = 4;
+    const children = async (kind: number, parent: number, target: number, owner: number): Promise<void> => {
+      for await (const child of this.tree.children(parent, true)) { await this.work(); await pending.push(kind, child, target, owner); }
     };
-    const visit = async (id: number): Promise<void> => {
+    await pending.push(normalize, id, 0, 0);
+    for (let job = await pending.pop(); job; job = await pending.pop()) {
       await this.work();
-      const child = await this.tree.read(id);
-      if (child.tag === "text" && !child.text) return;
-      if (child.tag === "code" && !await this.hasRawContent(id)) return;
-      if (child.tag === "a" || child.tag === "img") {
-        if (!await this.url(child)) {
-          if (child.tag === "a") for await (const nested of this.tree.children(id)) await visit(nested);
-          else if (child.alt) await append(result, await this.tree.create("text", { text: child.alt }));
-          return;
-        }
-      }
-      const style = format(child.tag);
-      if (child.tag !== "text" && !blockTags.has(child.tag) && !atoms.has(child.tag)) {
-        if (!style || style === format(node.tag)) {
-          for await (const nested of this.tree.children(id)) await visit(nested);
-          return;
-        }
-        const children = await this.normalized(id);
-        if (!(await this.tree.read(children)).first) return;
-        if (await this.onlyWhitespace(children)) {
-          for await (const nested of this.tree.children(children)) await append(result, nested);
-        } else {
-          const copy = await this.tree.copy(await this.tree.read(children));
+      const [kind, source, target, owner] = job as [number, number, number, number];
+      const node = await this.tree.read(source);
+      if (kind === normalize) {
+        if (node.normalized) continue;
+        const result = await this.tree.create(node.tag, { ...node, first: 0, last: 0, normalized: 0 });
+        await pending.push(finalize, source, result, 0);
+        await children(visit, source, result, source);
+      } else if (kind === finalize) await this.tree.patch(source, { normalized: target });
+      else if (kind === append) {
+        const style = format(node.tag);
+        let last: number | undefined;
+        for await (const child of this.tree.children(target, true)) { last = child; break; }
+        if (style && last && format((await this.tree.read(last)).tag) === style) await children(append, source, last, 0);
+        else await this.tree.append(target, style ? await this.tree.copy(node) : source);
+      } else if (kind === styleReady) {
+        const normalized = node.normalized;
+        if (!(await this.tree.read(normalized)).first) continue;
+        if (await this.onlyWhitespace(normalized)) await children(append, normalized, target, 0);
+        else {
+          const copy = await this.tree.copy(await this.tree.read(normalized));
           await this.tree.patch(copy, { normalized: copy });
-          await append(result, copy);
+          await pending.push(append, copy, target, 0);
         }
-      } else await append(result, id);
-    };
-    for await (const child of this.tree.children(id)) await visit(child);
-    await this.tree.patch(id, { normalized: result });
-    return result;
+      } else {
+        if (node.tag === "text" && !node.text) continue;
+        if (node.tag === "code" && !await this.hasRawContent(source)) continue;
+        if (node.tag === "a" || node.tag === "img") {
+          if (!await this.url(node)) {
+            if (node.tag === "a") await children(visit, source, target, owner);
+            else if (node.alt) await pending.push(append, await this.tree.create("text", { text: node.alt }), target, 0);
+            continue;
+          }
+        }
+        const style = format(node.tag);
+        if (node.tag !== "text" && !blockTags.has(node.tag) && !atoms.has(node.tag)) {
+          if (!style || style === format((await this.tree.read(owner)).tag)) await children(visit, source, target, owner);
+          else {
+            await pending.push(styleReady, source, target, 0);
+            await pending.push(normalize, source, 0, 0);
+          }
+        } else await pending.push(append, source, target, 0);
+      }
+    }
+    return (await this.tree.read(id)).normalized;
   }
 
   private async punctuationBoundary(id: number | undefined, ending: boolean): Promise<boolean> {
     if (!id || !format((await this.tree.read(id)).tag)) return false;
-    const edge = async (parent: number): Promise<string | undefined> => {
-      for await (const child of this.tree.children(parent, ending)) {
-        await this.work();
-        const node = await this.tree.read(child);
-        if (node.tag === "text") {
-          if (node.text) {
-            const length = (await this.text.info(node.text)).length;
-            const root = await this.text.slice(node.text, ending ? Math.max(0, length - 2) : 0, ending ? length : 2);
-            let text = "";
-            for await (const chunk of this.text.chunks(root)) text += chunk;
-            return ending ? Array.from(text).at(-1) : String.fromCodePoint(text.codePointAt(0)!);
-          }
-        } else if (node.tag === "br" || blockTags.has(node.tag)) return " ";
-        else if (format(node.tag) || atoms.has(node.tag)) return "*";
-        else { const nested = await edge(child); if (nested !== undefined) return nested; }
+    for await (const node of this.tree.walk(id, node => node.tag !== "text" && node.tag !== "br" && !blockTags.has(node.tag) && !format(node.tag) && !atoms.has(node.tag), ending)) {
+      await this.work();
+      if (node.tag === "text") {
+        if (!node.text) continue;
+        const length = (await this.text.info(node.text)).length;
+        const root = await this.text.slice(node.text, ending ? Math.max(0, length - 2) : 0, ending ? length : 2);
+        let text = "";
+        for await (const chunk of this.text.chunks(root)) text += chunk;
+        const character = ending ? Array.from(text).at(-1)! : String.fromCodePoint(text.codePointAt(0)!);
+        return /[\p{P}\p{S}]/u.test(character);
       }
-      return undefined;
-    };
-    const character = await edge(id);
-    return character !== undefined && /[\p{P}\p{S}]/u.test(character);
+      if (node.tag === "br" || blockTags.has(node.tag)) return false;
+      if (format(node.tag) || atoms.has(node.tag)) return true;
+    }
+    return false;
   }
 
   private async escape(root: number, maximum: number, edges: readonly [boolean, boolean] = [false, false], digit = false): Promise<number> {
@@ -140,47 +149,169 @@ export class StoredRenderer {
   }
 
   async children(id: number, maximum = this.budget.limits.maxOutputBytes - this.budget.output): Promise<number> {
-    const node = await this.tree.read(id), normalized = await this.normalized(id), result = this.builder(maximum);
-    const iterator = this.tree.children(normalized)[Symbol.asyncIterator]();
-    let beforePrevious: StoredNode | undefined, previous: StoredNode | undefined;
-    const window: StoredNode[] = [];
-    for (let index = 0; index < 3; index++) {
-      const next = await iterator.next();
-      if (!next.done) window.push(await this.tree.read(next.value));
-    }
-    while (window.length) {
-      const child = window[0]!, following = window[1];
+    const pending = this.tree.stack(frameFields.length);
+    const push = (frame: Partial<RenderFrame>): Promise<void> => pending.push(...frameFields.map(key => frame[key] ?? 0));
+    const resume = async (frame: RenderFrame): Promise<StoredBuilder> => {
+      const result = this.builder(frame.maximum); await result.restore(frame.result); return result;
+    };
+    const sibling = async (entry: number): Promise<StoredNode | undefined> => entry ? this.tree.read((await this.tree.entry(entry)).child) : undefined;
+    let value = 0;
+    await push({ kind: RenderTask.children, id, maximum });
+    for (let record = await pending.pop(); record; record = await pending.pop()) {
       await this.work();
-      const alternate = format(node.tag) === "em" || format(previous?.tag ?? "") === "em" || format(following?.tag ?? "") === "em";
-      const preceding = previous?.tag === "text" ? await this.text.at(previous.text, -1) : undefined;
-      const previousAlternate = format(node.tag) === "em" || format(child.tag) === "em" || format(beforePrevious?.tag ?? "") === "em";
-      const nextAlternate = format(node.tag) === "em" || format(child.tag) === "em" || format(window[2]?.tag ?? "") === "em";
-      const edges: readonly [boolean, boolean] = [
-        format(previous?.tag ?? "") === "strong" && previousAlternate || await this.punctuationBoundary(previous?.id, true),
-        format(following?.tag ?? "") === "strong" && nextAlternate || await this.punctuationBoundary(following?.id, false),
-      ];
-      const block = blockTags.has(child.tag);
-      if (block) await result.separate();
-      let rendered = await this.node(child, maximum, edges, alternate, preceding !== undefined && preceding >= "0" && preceding <= "9");
-      if (child.tag === "text" && result.blockBoundary && (!result.empty || node.tag === "root" || blockTags.has(node.tag)) && await this.text.at(rendered, 0) === " ") rendered = await this.text.slice(rendered, 1);
-      if (child.tag !== "br" && result.trailingSpace && await this.text.at(rendered, 0) === " ") rendered = await this.text.slice(rendered, 1);
-      await result.append(rendered);
-      if (block) await result.separate();
-      beforePrevious = previous; previous = child; window.shift();
-      const next = await iterator.next();
-      if (!next.done) window.push(await this.tree.read(next.value));
+      const frame = Object.fromEntries(frameFields.map((key, index) => [key, record![index]!])) as RenderFrame;
+      const { kind, maximum } = frame;
+      if (kind === RenderTask.children) {
+        const normalized = await this.normalized(frame.id);
+        await push({ ...frame, kind: RenderTask.childNext, entry: (await this.tree.read(normalized)).first });
+      } else if (kind === RenderTask.childNext) {
+        const result = await resume(frame);
+        if (!frame.entry) { value = await result.finish(); continue; }
+        const entry = await this.tree.entry(frame.entry), child = await this.tree.read(entry.child), owner = await this.tree.read(frame.id);
+        const previous = await sibling(entry.previous), following = await sibling(entry.next);
+        const beforePrevious = entry.previous ? await sibling((await this.tree.entry(entry.previous)).previous) : undefined;
+        const afterFollowing = entry.next ? await sibling((await this.tree.entry(entry.next)).next) : undefined;
+        const alternate = format(owner.tag) === "em" || format(previous?.tag ?? "") === "em" || format(following?.tag ?? "") === "em";
+        const preceding = previous?.tag === "text" ? await this.text.at(previous.text, -1) : undefined;
+        const previousAlternate = format(owner.tag) === "em" || format(child.tag) === "em" || format(beforePrevious?.tag ?? "") === "em";
+        const nextAlternate = format(owner.tag) === "em" || format(child.tag) === "em" || format(afterFollowing?.tag ?? "") === "em";
+        const left = format(previous?.tag ?? "") === "strong" && previousAlternate || await this.punctuationBoundary(previous?.id, true);
+        const right = format(following?.tag ?? "") === "strong" && nextAlternate || await this.punctuationBoundary(following?.id, false);
+        if (blockTags.has(child.tag)) await result.separate();
+        await push({ ...frame, kind: RenderTask.childDone, result: await result.snapshot() });
+        await push({ kind: RenderTask.node, id: child.id, maximum, flags: Number(left) + 2 * Number(right) + 4 * Number(alternate) + 8 * Number(preceding !== undefined && preceding >= "0" && preceding <= "9") });
+      } else if (kind === RenderTask.childDone) {
+        const result = await resume(frame), entry = await this.tree.entry(frame.entry), child = await this.tree.read(entry.child), owner = await this.tree.read(frame.id);
+        if (child.tag === "text" && result.blockBoundary && (!result.empty || owner.tag === "root" || blockTags.has(owner.tag)) && await this.text.at(value, 0) === " ") value = await this.text.slice(value, 1);
+        if (child.tag !== "br" && result.trailingSpace && await this.text.at(value, 0) === " ") value = await this.text.slice(value, 1);
+        await result.append(value);
+        if (blockTags.has(child.tag)) await result.separate();
+        await push({ ...frame, kind: RenderTask.childNext, entry: entry.next, result: await result.snapshot() });
+      } else if (kind === RenderTask.node) {
+        const node = await this.tree.read(frame.id);
+        if (["text", "br", "hr", "pre", "code"].includes(node.tag)) value = await this.formatted(node, maximum, 0, frame.flags);
+        else if (node.tag === "ul" || node.tag === "ol") {
+          const start = (await this.text.info(node.start)).length <= 9 ? await this.attribute(node.start) : "";
+          await push({ ...frame, kind: RenderTask.listNext, entry: node.first, ordinal: /^\d{1,9}$/u.test(start) ? Math.max(1, Number(start)) : 1 });
+        } else if (node.tag === "table") {
+          const rows = await this.tree.create("root");
+          for await (const row of this.rows(node.id)) await this.tree.append(rows, row);
+          await push({ ...frame, kind: RenderTask.tableRowScan, rows, rowCursor: (await this.tree.read(rows)).first });
+        } else {
+          await push({ ...frame, kind: RenderTask.formatted });
+          await push({ kind: RenderTask.children, id: frame.id, maximum });
+        }
+      } else if (kind === RenderTask.formatted) value = await this.formatted(await this.tree.read(frame.id), maximum, value, frame.flags);
+      else if (kind === RenderTask.listNext) {
+        const result = await resume(frame);
+        if (!frame.entry) {
+          const root = await result.finish();
+          value = await this.text.at(root, -1) === "\n" ? await this.text.slice(root, 0, (await this.text.info(root)).length - 1) : root;
+          continue;
+        }
+        const child = await sibling(frame.entry);
+        await push({ ...frame, kind: RenderTask.listDone });
+        await push({ kind: child!.tag === "li" ? RenderTask.children : RenderTask.node, id: child!.id, maximum });
+      } else if (kind === RenderTask.listDone) {
+        const result = await resume(frame), entry = await this.tree.entry(frame.entry), child = await this.tree.read(entry.child);
+        const content = await this.text.trim(value);
+        if (child.tag === "li") {
+          const marker = (await this.tree.read(frame.id)).tag === "ol" ? `${frame.ordinal++}. ` : "- ";
+          this.budget.check(marker.length, maximum, "list indentation");
+          await result.append(await this.indented(content, " ".repeat(marker.length), marker, maximum));
+          await result.write("\n");
+        } else if (content) { await result.append(content); await result.write("\n"); }
+        await push({ ...frame, kind: RenderTask.listNext, entry: entry.next, result: await result.snapshot() });
+      } else if (kind === RenderTask.tableRowScan) {
+        if (!frame.rowCursor) {
+          const extra = await resume(frame), loose = await this.text.trim(await extra.finish()), result = this.builder(maximum);
+          if (loose) { await result.append(loose); await result.separate(); }
+          if (!frame.first) { value = await result.finish(); continue; }
+          await push({ ...frame, kind: RenderTask.tableOutput, result: await result.snapshot(), rowCursor: (await this.tree.read(frame.rows)).first, phase: 0 });
+          continue;
+        }
+        const entry = await this.tree.entry(frame.rowCursor), row = await this.tree.read(entry.child);
+        if (row.tag === "text") {
+          const extra = await resume(frame); await extra.append(await this.escape(await this.text.normalize(row.text, "space"), maximum));
+          await push({ ...frame, rowCursor: entry.next, result: await extra.snapshot() });
+        } else await push({ ...frame, kind: RenderTask.tableCellScan, entry: row.first, cells: 0, flags: 0 });
+      } else if (kind === RenderTask.tableCellScan) {
+        if (!frame.entry) {
+          const row = await this.tree.entry(frame.rowCursor);
+          await push({ ...frame, kind: RenderTask.tableRowScan, rowCursor: row.next, width: Math.max(frame.width, frame.cells), first: frame.first || (frame.cells ? row.child : 0), header: frame.first ? frame.header : frame.cells ? frame.flags : 0 });
+          continue;
+        }
+        const entry = await this.tree.entry(frame.entry), cell = await this.tree.read(entry.child);
+        if (cell.tag === "td" || cell.tag === "th") {
+          this.budget.add("cells");
+          await push({ ...frame, entry: entry.next, cells: frame.cells + 1, flags: frame.flags || Number(cell.tag === "th") });
+        } else {
+          await push({ ...frame, kind: RenderTask.tableExtra, entry: entry.next });
+          await push({ kind: RenderTask.node, id: cell.id, maximum });
+        }
+      } else if (kind === RenderTask.tableExtra) {
+        const extra = await resume(frame), content = await this.text.trim(value);
+        if (content) { await extra.append(content); await extra.write(" "); }
+        await push({ ...frame, kind: RenderTask.tableCellScan, result: await extra.snapshot() });
+      } else if (kind === RenderTask.tableOutput) {
+        const result = this.builder(maximum); await result.restore(frame.phase ? value : frame.result);
+        if (frame.phase === 1) {
+          await result.write("|");
+          for (let index = 0; index < frame.width; index++) { await this.work(); await result.write(" --- |"); }
+          await result.write("\n");
+        }
+        let row = frame.phase === 0 && frame.header ? frame.first : 0;
+        if (frame.phase) {
+          while (frame.rowCursor) {
+            const entry = await this.tree.entry(frame.rowCursor); frame.rowCursor = entry.next;
+            if (entry.child === frame.first && frame.header) continue;
+            const candidate = await this.tree.read(entry.child);
+            if (candidate.tag !== "tr") continue;
+            for await (const child of this.tree.children(candidate.id)) {
+              const tag = (await this.tree.read(child)).tag;
+              if (tag === "td" || tag === "th") { row = candidate.id; break; }
+            }
+            if (row) break;
+          }
+          if (!row) {
+            const root = await result.finish(); value = await this.text.slice(root, 0, (await this.text.info(root)).length - 1); continue;
+          }
+        }
+        await push({ ...frame, phase: frame.phase ? 2 : 1 });
+        await result.write("| ");
+        await push({ ...frame, kind: RenderTask.tableCell, entry: row ? (await this.tree.read(row)).first : 0, cells: 0, result: await result.snapshot() });
+      } else if (kind === RenderTask.tableCell) {
+        const result = await resume(frame);
+        if (!frame.entry) {
+          this.budget.add("cells", frame.width - frame.cells);
+          for (let index = frame.cells; index < frame.width; index++) if (index) await result.write(" | ");
+          await result.write(" |\n"); value = await result.snapshot(); continue;
+        }
+        const entry = await this.tree.entry(frame.entry), cell = await this.tree.read(entry.child);
+        if (cell.tag !== "td" && cell.tag !== "th") { await push({ ...frame, entry: entry.next }); continue; }
+        if (frame.cells) await result.write(" | ");
+        await push({ ...frame, kind: RenderTask.tableCellDone, entry: entry.next, cells: frame.cells + 1, result: await result.snapshot() });
+        await push({ kind: RenderTask.children, id: cell.id, maximum: Math.min(maximum, this.budget.limits.maxTableCellBytes) });
+      } else if (kind === RenderTask.tableCellDone) {
+        const result = await resume(frame), content = await this.text.trim(await this.text.normalize(value, "space")), escaped = this.builder(this.budget.limits.maxTableCellBytes);
+        let backslashes = 0;
+        for await (const character of this.text.characters(content)) {
+          await escaped.write(character === "|" && backslashes % 2 === 0 ? "\\|" : character);
+          backslashes = character === "\\" ? backslashes + 1 : 0;
+        }
+        await result.append(await escaped.finish());
+        await push({ ...frame, kind: RenderTask.tableCell, result: await result.snapshot() });
+      }
     }
-    return result.finish();
+    return value;
   }
 
   private async raw(id: number, maximum: number): Promise<number> {
     const result = this.builder(maximum);
-    for await (const child of this.tree.children(id)) {
+    for await (const node of this.tree.walk(id, node => node.tag !== "text" && node.tag !== "br")) {
       await this.work();
-      const node = await this.tree.read(child);
       if (node.tag === "text") await result.append(node.text);
       else if (node.tag === "br") await result.write("\n");
-      else await result.append(await this.raw(child, maximum));
     }
     return result.finish();
   }
@@ -218,88 +349,17 @@ export class StoredRenderer {
     return result.finish();
   }
 
-  private async list(node: StoredNode, maximum: number): Promise<number> {
-    const result = this.builder(maximum), start = (await this.text.info(node.start)).length <= 9 ? await this.attribute(node.start) : "";
-    let ordinal = /^\d{1,9}$/u.test(start) ? Math.max(1, Number(start)) : 1;
-    for await (const id of this.tree.children(node.id)) {
-      await this.work();
-      const child = await this.tree.read(id);
-      if (child.tag !== "li") {
-        const extra = await this.text.trim(await this.node(child, maximum));
-        if (extra) { await result.append(extra); await result.write("\n"); }
-      } else {
-        const content = await this.text.trim(await this.children(id, maximum)), marker = node.tag === "ol" ? `${ordinal++}. ` : "- ";
-        this.budget.check(marker.length, maximum, "list indentation");
-        await result.append(await this.indented(content, " ".repeat(marker.length), marker, maximum));
-        await result.write("\n");
-      }
-    }
-    const root = await result.finish();
-    return await this.text.at(root, -1) === "\n" ? this.text.slice(root, 0, (await this.text.info(root)).length - 1) : root;
-  }
-
   private async *rows(id: number): AsyncGenerator<number> {
     const node = await this.tree.read(id);
-    if (node.tag === "tr" || node.tag === "text") yield id;
-    else for await (const child of this.tree.children(id)) yield* this.rows(child);
-  }
-
-  private async table(node: StoredNode, maximum: number): Promise<number> {
-    const extra = this.builder(maximum), result = this.builder(maximum);
-    let width = 0, first = 0, header = false;
-    for await (const id of this.rows(node.id)) {
+    if (node.tag === "tr" || node.tag === "text") { yield id; return; }
+    for await (const child of this.tree.walk(id, node => node.tag !== "tr" && node.tag !== "text")) {
       await this.work();
-      const row = await this.tree.read(id);
-      if (row.tag === "text") { await extra.append(await this.escape(await this.text.normalize(row.text, "space"), maximum)); continue; }
-      let cells = 0, heading = false;
-      for await (const child of this.tree.children(id)) {
-        const entry = await this.tree.read(child);
-        if (entry.tag === "td" || entry.tag === "th") { cells++; this.budget.add("cells"); heading ||= entry.tag === "th"; }
-        else { const text = await this.text.trim(await this.node(entry, maximum)); if (text) { await extra.append(text); await extra.write(" "); } }
-      }
-      if (cells && !first) { first = id; header = heading; }
-      width = Math.max(width, cells);
+      if (child.tag === "tr" || child.tag === "text") yield child.id;
     }
-    const loose = await this.text.trim(await extra.finish());
-    if (loose) { await result.append(loose); await result.separate(); }
-    if (!first) return result.finish();
-    const renderRow = async (row: number): Promise<void> => {
-      await result.write("| ");
-      let index = 0;
-      if (row) for await (const child of this.tree.children(row)) {
-        const cell = await this.tree.read(child);
-        if (cell.tag !== "td" && cell.tag !== "th") continue;
-        if (index++) await result.write(" | ");
-        const content = await this.text.trim(await this.text.normalize(await this.children(child, Math.min(maximum, this.budget.limits.maxTableCellBytes)), "space"));
-        const escaped = this.builder(this.budget.limits.maxTableCellBytes);
-        let backslashes = 0;
-        for await (const character of this.text.characters(content)) {
-          await escaped.write(character === "|" && backslashes % 2 === 0 ? "\\|" : character);
-          backslashes = character === "\\" ? backslashes + 1 : 0;
-        }
-        await result.append(await escaped.finish());
-      }
-      this.budget.add("cells", width - index);
-      for (; index < width; index++) if (index) await result.write(" | ");
-      await result.write(" |\n");
-    };
-    await renderRow(header ? first : 0);
-    await result.write("|");
-    for (let index = 0; index < width; index++) { await this.work(); await result.write(" --- |"); }
-    await result.write("\n");
-    for await (const id of this.rows(node.id)) {
-      if (id === first && header) continue;
-      const row = await this.tree.read(id);
-      if (row.tag !== "tr") continue;
-      let cells = false;
-      for await (const child of this.tree.children(id)) { const tag = (await this.tree.read(child)).tag; if (tag === "td" || tag === "th") { cells = true; break; } }
-      if (cells) await renderRow(id);
-    }
-    const root = await result.finish();
-    return this.text.slice(root, 0, (await this.text.info(root)).length - 1);
   }
 
-  private async node(node: StoredNode, maximum: number, edges: readonly [boolean, boolean] = [false, false], alternateStrong = false, precedingDigit = false): Promise<number> {
+  private async formatted(node: StoredNode, maximum: number, content: number, flags: number): Promise<number> {
+    const edges: readonly [boolean, boolean] = [Boolean(flags & 1), Boolean(flags & 2)], alternateStrong = Boolean(flags & 4), precedingDigit = Boolean(flags & 8);
     if (node.tag === "text") return this.escape(await this.text.normalize(node.text, "space"), maximum, edges, precedingDigit);
     if (node.tag === "br") return this.text.from("  \n");
     if (node.tag === "hr") return this.text.from("---");
@@ -324,9 +384,6 @@ export class StoredRenderer {
       }
       return result.finish();
     }
-    if (node.tag === "ul" || node.tag === "ol") return this.list(node, maximum);
-    if (node.tag === "table") return this.table(node, maximum);
-    const content = await this.children(node.id, maximum);
     if (/^h[1-6]$/u.test(node.tag)) {
       await result.write("#".repeat(Number(node.tag[1])) + " "); await result.append(await this.text.trim(await this.text.normalize(content, "space")));
     } else if (format(node.tag)) {

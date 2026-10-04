@@ -35,6 +35,13 @@ export class StoredBuilder {
   async separate(): Promise<void> {
     if (!this.empty) await this.write(this.tail.endsWith("\n\n") ? "" : this.tail.endsWith("\n") ? "\n" : "\n\n");
   }
+  /** Suspend/resume without charging already-appended output a second time. */
+  snapshot(): Promise<number> { return this.builder.finish(); }
+  async restore(root: number): Promise<void> {
+    await this.builder.append(root);
+    this.size = (await this.text.info(root)).bytes;
+    this.tail = ((await this.text.at(root, -2)) ?? "") + ((await this.text.at(root, -1)) ?? "");
+  }
   async finish(): Promise<number> {
     this.budget.work(this.size);
     return this.builder.finish();

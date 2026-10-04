@@ -174,10 +174,12 @@ retain finite `references` limits through SDK and command. This includes support
 writer options, metadata, streamed JSON/Lua filters, templates/includes and image
 resource search/embedding. Input acquisition, decoding, parser edges, table spans,
 resource deduplication and output checks preserve native budget diagnostics.
-Single-input JSON → JSON/plain/HTML/RST also supports finite `retainedBytes` with LF/native/CRLF
+Single-input JSON → JSON/plain/HTML/RST/CommonMark also supports finite `retainedBytes` with LF/native/CRLF
 line endings and non-transforming options. Plain output includes wrapping, indentation
 and explicit raw-source policies. HTML supports standalone output, contents,
-numbering, ASCII escaping and source metadata. Acquisition, decoding, parsing, AST
+numbering, ASCII escaping and source metadata. CommonMark includes wrapping and
+reference links; pipe-table extensions still use the compatibility path with finite
+byte quotas. Acquisition, decoding, parsing, AST
 normalization and output encoding keep their existing cumulative quota charges
 while document data lives in caller storage. Output sink writes preserve native
 4096-byte accounting and failures. Other retained-byte-limited combinations still

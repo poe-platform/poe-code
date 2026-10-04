@@ -1,4 +1,4 @@
-import {reserveRetainedOutput} from "./retained-output-budgets.js";
+import {emitRetainedOutput, reserveRetainedOutput} from "./retained-output-budgets.js";
 import {IntegerTable, PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
 import type {BackedJson} from "./backed-json.js";
@@ -68,8 +68,12 @@ class MarkdownTape {
   private async tag(node: number): Promise<string> {return (await this.tree.smallText((await this.tree.property(node, "t"))!, 32))!;}
   private async scalar(node: number): Promise<TextRange> {return this.text.from(this.tree.scalarChunks(node));}
   private async literal(value: string): Promise<TextRange> {return this.text.from([value]);}
+  private reserve(units: number): void {
+    if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) this.context.bound("outputBytes", units);
+    if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", units * 2);
+  }
   private async join(...values: TextRange[]): Promise<TextRange> {
-    if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", values.reduce((length, value) => length + value.units, 0));
+    this.reserve(values.reduce((length, value) => length + value.units, 0));
     const result = emptyText(); for (const value of values) await this.text.append(result, value); return result;
   }
   private async attrs(node: number, path: number, table = false): Promise<void> {
@@ -90,7 +94,7 @@ class MarkdownTape {
     return {first, last, run: max, nonspace, lastBreak};
   }
   private async escape(value: TextRange, target = false, prose = false, start = true, finish = true, digitsBefore = false, cell = false): Promise<TextRange> {
-    if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", value.units * 6);
+    this.reserve(value.units * 6);
     let leading = 0, trailing = 0, length = 0, seen = false;
     for await (const chunk of this.text.chunks(value)) for (const c of chunk) {
       const char = cell && "\r\n\t".includes(c) ? " " : c;
@@ -99,7 +103,7 @@ class MarkdownTape {
     }
     if (!start) leading = 0;
     if (!finish) trailing = length;
-    const source = this.text.chunks(value), autolink = this.selection.extensions.autolink_bare_uris;
+    const source = this.text.chunks(value), autolink = this.selection.extensions.autolink_bare_uris, context = this.context;
     return this.text.from((async function* () {
       let output = "", index = 0, previous = "", digits = true;
       for await (const chunk of source) for (let i = 0; i < chunk.length; i++) {
@@ -107,7 +111,9 @@ class MarkdownTape {
         if (prose && char === " " && index >= leading && index < trailing) output += char;
         else if (prose && autolink && (char === "@" || char === "." && previous.toLowerCase() === "www")) output += `\\${char}`;
         else if (prose && "-+.)".includes(char)) output += (start && index === 0 && char !== ")" || (char === "." || char === ")") && (digitsBefore || start && index > 0) && digits) ? `\\${char}` : char;
-        else if (char !== "\r") output += char === "\n" ? "&#10;" : char === " " ? "&#32;" : !target && char === "\t" ? "&#9;" : (target ? '\\<>"&' : "\\`*_{}[]<>|!#~&:").includes(char) ? `\\${char}` : char;
+        else {if (prose && Number.isFinite(context.limits.retainedBytes)) {context.bound("outputBytes", 6); context.charge("retainedBytes", 12);}
+          if (char !== "\r") output += char === "\n" ? "&#10;" : char === " " ? "&#32;" : !target && char === "\t" ? "&#9;" : (target ? '\\<>"&' : "\\`*_{}[]<>|!#~&:").includes(char) ? `\\${char}` : char;
+        }
         previous = (previous + char).slice(-3); digits &&= char >= "0" && char <= "9"; index++;
         if (output.length >= 4096) {yield output; output = "";}
       }
@@ -129,9 +135,9 @@ class MarkdownTape {
     })());
   }
   private async indent(value: TextRange, first: string, rest: string): Promise<TextRange> {
-    if (Number.isFinite(this.context.limits.references)) {
+    if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) {
       let lines = 1; for await (const chunk of this.text.chunks(value)) for (const char of chunk) if (char === "\n") lines++;
-      this.context.bound("outputBytes", value.units + first.length + (lines - 1) * rest.length);
+      this.reserve(value.units + first.length + (lines - 1) * rest.length);
     }
     const source = this.text.chunks(value);
     return this.text.from((async function* () {
@@ -146,9 +152,9 @@ class MarkdownTape {
     })());
   }
   private async target(node: number, add = false): Promise<number> {
-    if (add && Number.isFinite(this.context.limits.references)) {
+    if (add && (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes))) {
       const url = await this.scalar(node + 32), title = await this.scalar(await this.at(node, 1));
-      this.context.bound("outputBytes", (url.units + title.units) * 6 + 8);
+      this.reserve((url.units + title.units) * 6 + 8);
     }
     let hash = 2166136261;
     for await (const chunk of this.tree.chunks(node)) for (const byte of chunk) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
@@ -162,6 +168,12 @@ class MarkdownTape {
     }
     if (!add) return 0;
     if (Number.isFinite(this.context.limits.references)) this.context.charge("references", 1);
+    if (Number.isFinite(this.context.limits.retainedBytes)) {
+      let units = 7; // Brackets, comma and the two string delimiters.
+      for (const value of [await this.scalar(node + 32), await this.scalar(await this.at(node, 1))])
+        for await (const chunk of this.text.unicodeChunks(value)) for (const char of chunk) units += JSON.stringify(char).length - 2;
+      this.reserve(units);
+    }
     const position = this.storage.allocate(40);
     for (const [index, value] of [first, 0, node, 1, ++this.targetCount].entries()) await this.put(position + index * 8, value);
     await this.buckets.set(bucket, BigInt(position));
@@ -245,7 +257,7 @@ class MarkdownTape {
         }
         if (child) {if (job.index && job.sep) await this.addProjection(job.sep.length); job.stage = 1; await this.push(job); await this.push(child);} else {
           result = job.text!;
-          if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", result.units);
+          this.reserve(result.units);
         }
         continue;
       }
@@ -268,20 +280,26 @@ class MarkdownTape {
         if (begin < job.end!) {job.stage = 1; await this.push(job); await this.push(this.list(job.node, job.path, "inline", {begin, stop: job.cursor, task: job.task && begin === job.node + 32}));}
         else {
           result = job.text!;
-          if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", result.units);
+          this.reserve(result.units);
         }
         continue;
       }
       if (job.op === "item") {
         const mark = job.number === undefined ? job.first! : `${job.number + job.index!}${job.delimiter}`;
-        if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", mark.length + 1);
+        this.reserve(mark.length + 1);
         await this.push({op: "post", node: 0, path: job.path, mode: "indent", first: mark + " ", rest: " ".repeat(mark.length + 1)});
         await this.push(this.list(job.node, job.path, "block", {task: true})); continue;
       }
       if (job.op === "link") {
         const target = await this.at(job.node, 2), reference = await this.target(target);
-        if (reference && await this.pointer(reference + 24) > 1) result = await this.join(await this.literal(job.first!), result, await this.literal(`][${await this.pointer(reference + 32)}]`));
-        else {
+        if (reference && await this.pointer(reference + 24) > 1) {
+          if (Number.isFinite(this.context.limits.retainedBytes)) {
+            await this.escape(await this.scalar(target + 32), true);
+            const title = await this.scalar(await this.at(target, 1));
+            if (title.units) await this.join(await this.literal(' "'), await this.escape(title, true), await this.literal('"'));
+          }
+          result = await this.join(await this.literal(job.first!), result, await this.literal(`][${await this.pointer(reference + 32)}]`));
+        } else {
           const url = await this.escape(await this.scalar(target + 32), true), title = await this.scalar(await this.at(target, 1));
           result = await this.join(await this.literal(job.first!), result, await this.literal("](<"), url, await this.literal(">"), title.units ? await this.join(await this.literal(' "'), await this.escape(title, true), await this.literal('"')) : emptyText(), await this.literal(")"));
         }
@@ -296,7 +314,7 @@ class MarkdownTape {
             let loss = false; for await (const chunk of this.text.chunks(value)) if ([...chunk].some(char => "\r\n\t".includes(char))) loss = true;
             if (loss) {
               await this.loss(job.path, "Flattened cell text line boundaries", true, true);
-              if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", value.units);
+              this.reserve(value.units);
             }
           }
           result = await this.escape(value, false, true, job.start, job.finish, job.digits, job.cell); continue;
@@ -317,9 +335,9 @@ class MarkdownTape {
             let loss = false; for await (const chunk of this.text.chunks(info)) for (const char of chunk) if ("\r\n` ".includes(char)) loss = true;
             if (loss) await this.loss(job.path, "code language");
           }
-          if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", original.units * 2);
+          this.reserve(original.units * 2);
           const value = await this.code(original, tag === "CodeBlock", job.cell), details = await this.inspect(value), size = Math.max(tag === "CodeBlock" ? 3 : 1, details.run + 1);
-          if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", value.units + size * 2 + (tag === "CodeBlock" ? info.units : 0) + 2);
+          this.reserve(value.units + size * 2 + (tag === "CodeBlock" ? info.units : 0) + 2);
           if (tag === "CodeBlock") result = await this.join(await this.repeat("`", size), info, await this.literal("\n"), value, await this.literal(details.last === "\n" ? "" : "\n"), await this.repeat("`", size));
           else {const padding = details.first === "`" || details.last === "`" || details.first === " " && details.last === " " && details.nonspace ? " " : ""; result = await this.join(await this.repeat("`", size), await this.literal(padding), value, await this.literal(padding), await this.repeat("`", size));}
           continue;
@@ -385,7 +403,7 @@ class MarkdownTape {
       await this.text.append(definitions, await this.join(await this.literal(`[${await this.pointer(record + 32)}]: <`), await this.escape(await this.scalar(target + 32), true), await this.literal(">"), title.units ? await this.join(await this.literal(' "'), await this.escape(title, true), await this.literal('"')) : emptyText()));
     }
     if (definitionCount) {
-      if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", definitions.units);
+      this.reserve(definitions.units);
       result = await this.join(result, await this.literal("\n\n"), definitions);
     }
     if (result.units && (await this.inspect(result)).last !== "\n") result = await this.join(result, await this.literal("\n"));
@@ -609,8 +627,8 @@ export async function writeRetainedMarkdown(tree: BackedJson, context: Execution
       const encoder = new TextEncoder();
       for await (const part of writer.text.unicodeChunks(result)) yield encoder.encode(options.eol === "crlf" ? part.split("\n").join("\r\n") : part);
     };
-    if (Number.isFinite(context.limits.outputBytes) && !Number.isFinite(context.limits.references)) {let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}}
-    for await (const bytes of chunks()) await context.emit(bytes);
+    if (Number.isFinite(context.limits.outputBytes) && !Number.isFinite(context.limits.references) && !Number.isFinite(context.limits.retainedBytes)) {let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}}
+    await emitRetainedOutput(chunks(), context);
   } catch (reason) {failure = {reason};}
   try {await storage.close();} catch (reason) {failure ??= {reason};} finally {release();}
   if (failure) throw failure.reason;

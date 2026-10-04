@@ -29,15 +29,20 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
   const targets = new BackedTextSet(storage, text), paths = new BackedTextSet(storage, text), targetSpans = new IntegerTable(storage, 64), pathSpans = new IntegerTable(storage, 64);
   const admittedReferences = new IntegerTable(storage, 64), publishedReferences = new IntegerTable(storage, 64);
   const inputSpans = new IntegerTable(storage, 64), inputIdentities = new IntegerTable(storage, 64), resourceSpans = new IntegerTable(storage, 64);
+  const nodeTargets = new IntegerTable(storage, 64);
   const originAt=(node:number)=>typeof origin==="function"?origin(node):Promise.resolve(origin);
   const targetKey=async(node:number):Promise<bigint>=>{
+    const cached = await nodeTargets.get(BigInt(node));
+    if (cached !== undefined) return cached;
     let embedded=false;
     for await(const chunk of tree.scalarChunks(node)){embedded=dataPrefix(chunk.slice(0,32))!==0;break;}
     const base=context.resources || embedded?undefined:(await originAt(node)).base;
-    return BigInt(await targets.add(await text.from((async function*(){
+    const identity = BigInt(await targets.add(await text.from((async function*(){
       yield base===undefined?"-:":String(base.length)+":"+base;
       yield* tree.scalarChunks(node);
     })())));
+    await nodeTargets.set(BigInt(node), identity);
+    return identity;
   };
   const fs = context.context.resourceFiles, readOptions = context.signal ? {signal: context.signal} : {};
   let search: number | undefined, searchCount = 0;

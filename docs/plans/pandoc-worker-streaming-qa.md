@@ -677,3 +677,11 @@ content across surrogate boundaries. Verify source-only buffered SDK compatibili
 and retained RTF/ODT parity, producer ownership and pending/factory cancellation.
 Run those cases on R2-backed workerd along with filesystem and string resolver
 cases; deployed memory/CPU/first-byte qualification remains a separate gate.
+
+
+Repeat resource lookups for the same retained document nodes after the first
+admission, with large identifiers and distinct nodes sharing the same identifier.
+Require stable identities, no repeated identifier scalar reads, no growth in the
+resource backing store, and unchanged resolver deduplication. The node-to-identity
+index must itself use caller storage. Repeat origin-separation and finite-budget
+checks along with the Worker resource matrix.

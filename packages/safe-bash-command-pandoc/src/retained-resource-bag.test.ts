@@ -35,3 +35,33 @@ it("reads one retained resource once across distinct image origins", async () =>
     finally {await resources.close();}
   } finally {await document.close(); await context.close(); expect(await fs.readdir("/")).toEqual([]);}
 });
+
+
+it.each([4097, 65537])("does not reread or recopy a %i-unit target on repeated lookup", async units => {
+  const fs = new MemoryFileSystem(), resolveSource = vi.fn(async function* () {yield Uint8Array.of(1, 2, 3);});
+  const context = new ExecutionContext("convert", {resources: {resolveSource}}), working = {fs, directory: "/", cacheBytes: 16384};
+  const id = "x".repeat(units), image = {t: "Image", c: [["", [], []], [], [id, ""]]};
+  const document = await readRetainedJson({bytes: new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: [image, image]}]}))}, context, working);
+  try {
+    const targets: number[] = [];
+    for (let node = document.tree.rootPosition, end = (await document.tree.describe(node)).end; node < end;) {
+      const header = await document.tree.describe(node);
+      if (header.kind === "string" && header.end - node - 32 === units * 2) targets.push(node);
+      node = header.kind === "array" || header.kind === "object" ? node + 32 : header.end;
+    }
+    expect(targets).toHaveLength(2);
+    const resources = await prepareRetainedImageResources(document.tree, document.order, context, working, {from: "json", to: "odt"});
+    try {
+      const first = await resources.image(targets[0]!), second = await resources.image(targets[1]!);
+      expect(first.identity).toBe(second.identity);
+      const extent = first.storage.allocate(0), chunks = vi.spyOn(document.tree, "scalarChunks");
+      for (let repeat = 0; repeat < 4; repeat++) for (const target of targets) {
+        expect((await resources.image(target)).identity).toBe(first.identity);
+        expect(first.storage.allocate(0)).toBe(extent);
+      }
+      expect(chunks).not.toHaveBeenCalled();
+      expect(resolveSource).toHaveBeenCalledOnce();
+      chunks.mockRestore();
+    } finally {await resources.close();}
+  } finally {await document.close(); await context.close(); expect(await fs.readdir("/")).toEqual([]);}
+});

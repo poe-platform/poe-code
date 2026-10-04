@@ -16,6 +16,15 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
   const storage = new PagedStorage({fs: working.fs, cwd: working.directory, env: {}, signal: context.signal ?? new AbortController().signal}, (working.cacheBytes ?? 1048576) / 16384);
   const release = context.onClose(() => storage.close()), text = new BackedText(storage, units => context.cooperate(units));
   const identities = new BackedTextSet(storage, text);
+  const allocatedNames = new BackedTextSet(storage, text), encodedNameLengths = new IntegerTable(storage, 64);
+  const allocateName = async (base: string): Promise<string> => {
+    let name = base; const dot = base.lastIndexOf(".");
+    for (let index = 2; await allocatedNames.has(await text.from([name])); index++) {
+      name = dot > 0 ? base.slice(0, dot) + "-" + index + base.slice(dot) : base + "-" + index;
+      await context.cooperate();
+    }
+    await allocatedNames.add(await text.from([name])); return name;
+  };
   const targets = new BackedTextSet(storage, text), paths = new BackedTextSet(storage, text), targetSpans = new IntegerTable(storage, 64), pathSpans = new IntegerTable(storage, 64);
   const admittedReferences = new IntegerTable(storage, 64), publishedReferences = new IntegerTable(storage, 64);
   const inputSpans = new IntegerTable(storage, 64), inputIdentities = new IntegerTable(storage, 64), resourceSpans = new IntegerTable(storage, 64);
@@ -103,6 +112,13 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
     const comma = url.indexOf(",");
     return comma >= 0 && ["data:image/png;base64", "data:image/jpg;base64", "data:image/jpeg;base64"].includes(url.slice(0, comma).toLowerCase()) ? comma + 1 : 0;
   };
+  const admitEmbedded = async (): Promise<void> => {
+    context.charge("references", 1);
+    const name = Number.isFinite(context.limits.retainedBytes) ? await allocateName("resource") : "";
+    if (Number.isFinite(context.limits.retainedBytes)) context.charge("retainedBytes", name.length * 2 + 64);
+    context.charge("references", 1);
+    if (Number.isFinite(context.limits.retainedBytes)) context.charge("retainedBytes", name.length * 2 + 64);
+  };
   const data = async (node: number, start: number): Promise<Span> => {
     const position = storage.allocate(0); let length = 0, skip = start, group = "", ended = false, buffer = new Uint8Array(4096), used = 0;
     for await (const chunk of tree.scalarChunks(node)) for (const char of chunk) {
@@ -120,11 +136,13 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
     }
     if (group) {let bytes: string; try {bytes = atob(group);} catch {context.fail("E_RESOURCE", "Invalid base64 image resource");} for (const byte of bytes) {buffer[used++] = byte.charCodeAt(0); if (used === buffer.length) {await storage.append(buffer); length += used; buffer = new Uint8Array(4096); used = 0;}}}
     if (used) {await storage.append(buffer.subarray(0, used)); length += used;}
-    context.charge("resources", 1); context.charge("resourceBytes", length, false); return {position, length};
+    context.charge("resources", 1); context.charge("resourceBytes", length, false);
+    if (Number.isFinite(context.limits.retainedBytes)) context.charge("retainedBytes", length);
+    return {position, length};
   };
-  const acquire = async (producer: Iterable<Uint8Array> | AsyncIterable<Uint8Array>, chargeBytes = true, chargeReferences = false): Promise<Span> => {
+  const acquire = async (producer: Iterable<Uint8Array> | AsyncIterable<Uint8Array>, chargeBytes = true, chargeReferences = false, retain = true): Promise<Span> => {
     const position = storage.allocate(0); let length = 0;
-    await context.consume(producer, async bytes => {if (chargeReferences) context.charge("references", 1); await storage.append(bytes); length += bytes.length;}, chargeBytes ? ["resourceBytes"] : []);
+    await context.consume(producer, async bytes => {if (chargeReferences) context.charge("references", 1); await storage.append(bytes); length += bytes.length;}, chargeBytes ? ["resourceBytes"] : [], retain);
     return {position, length};
   };
   try {
@@ -159,9 +177,9 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
         }
       }
       // Reader-owned resources remain admitted even when a filter removes their images.
-      if (Number.isFinite(context.limits.references)) {
+      if (Number.isFinite(context.limits.references) || Number.isFinite(context.limits.retainedBytes)) {
         for (let index = 0; index < (embedded?.count ?? 0); index++) {
-          context.charge("references", 1); context.charge("references", 1);
+          await admitEmbedded();
           await context.cooperate();
         }
         for await (const image of images()) {
@@ -169,7 +187,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
           if (await inputSpans.get(key)) continue;
           const record = await targetSpans.get(key);
           if (record && !await admittedReferences.get(record)) {
-            context.charge("references", 1); context.charge("references", 1);
+            await admitEmbedded();
             await admittedReferences.set(record, 1n);
           }
         }
@@ -193,7 +211,15 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
             try {yield await fs.readFile!(path, {...readOptions, ...(maxBytes === Infinity ? {} : {maxBytes})});}
             catch (error) {if (typeof error === "object" && error !== null && "code" in error && error.code === "EFBIG") context.fail("E_LIMIT", "resourceBytes: VFS bounded read refused"); throw error;}
           })();
-          record = await save(await acquire(producer, true, true)); context.charge("references", 1); await pathSpans.set(key, BigInt(record)); break;
+          const span = await acquire(producer, true, true);
+          if (Number.isFinite(context.limits.retainedBytes)) context.charge("retainedBytes", span.length);
+          record = await save(span); context.charge("references", 1);
+          if (Number.isFinite(context.limits.retainedBytes)) {
+            const name = await allocateName(target.name.split("/").at(-1)!);
+            context.charge("retainedBytes", name.length * 2 + 64);
+            await encodedNameLengths.set(BigInt(record), BigInt(encodeURIComponent(name).length));
+          }
+          await pathSpans.set(key, BigInt(record)); break;
         }
         if (!record) {
           const at = await location(image.node,origin);
@@ -201,9 +227,13 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
           context.report({code: "W_RESOURCE_MISSING", operation: "convert", message: "Missing image resource: " + url, location: at});
         } else {
           await targetSpans.set(id, BigInt(record));
-          if (Number.isFinite(context.limits.references)) {
+          if (Number.isFinite(context.limits.references) || Number.isFinite(context.limits.retainedBytes)) {
             const identity = BigInt(await resourceIdentity(image.target, await load(record)));
-            if (!await publishedReferences.get(identity)) {context.charge("references", 1); await publishedReferences.set(identity, 1n);}
+            if (!await publishedReferences.get(identity)) {
+              context.charge("references", 1);
+              if (Number.isFinite(context.limits.retainedBytes)) context.charge("retainedBytes", (Number(await encodedNameLengths.get(BigInt(record))) + target.suffix.length) * 2 + 64);
+              await publishedReferences.set(identity, 1n);
+            }
           }
         }
       }
@@ -256,7 +286,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
         if (!(bytes instanceof Uint8Array)) throw new PandocError("E_RESOURCE", "convert", "Invalid resource bytes", options.to);
         // ODT charges its image bytes in the writer; resolver admission is already charged.
         if (options.to !== "odt") context.charge("resources", 1);
-        span = await acquire([bytes], options.to !== "odt");
+        span = await acquire([bytes], options.to !== "odt", false, false);
         if (options.to === "odt") await targetSpans.set(key, BigInt(await save(span)));
       } else {
         const record = Number(await targetSpans.get(key) ?? 0n);

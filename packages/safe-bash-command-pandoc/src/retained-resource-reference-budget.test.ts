@@ -54,3 +54,37 @@ it.each(["html5", "rtf", "odt"].flatMap(to => ["file", "data", "search", "intrin
   expect(success).toBe(true);
   }
 });
+
+it.each(["file", "data", "png", "collision", "search", "resolver"])("retains RTF %s resource byte budgets", async kind => {
+  const fs = new MemoryFileSystem(); await fs.mkdir("/spill"); await fs.mkdir("/images"); await fs.mkdir("/other");
+  const bytes = kind === "png" ? Uint8Array.from(atob("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAADUlEQVR4AQECAP3/AIAAggCBw24l4AAAAABJRU5ErkJggg=="), c => c.charCodeAt(0)) : picture;
+  await fs.writeFile("/images/p x.jpg", bytes); await fs.writeFile("/other/p x.jpg", bytes);
+  const urls = kind === "data" ? Array<string>(2).fill("data:image/jpeg;base64," + btoa(String.fromCharCode(...bytes))) : kind === "collision" ? ["images/p%20x.jpg?one", "other/p%20x.jpg", "images/p%20x.jpg#two"] : ["p%20x.jpg?one", "p%20x.jpg#two", "p%20x.jpg?one"];
+  const input = {base: kind === "collision" ? "/" : "/images", bytes: new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: urls.map(image)}]}))};
+  const resources = kind === "resolver" ? {async resolve() {return bytes;}} : undefined;
+  const options = {from: "json", to: "rtf", ...(kind === "search" ? {resourcePath: ["/missing", "/images"]} : {})}, boundaries = new Set<number>([0, 1000000]), original = ExecutionContext.prototype.charge;
+  const trace = vi.spyOn(ExecutionContext.prototype, "charge").mockImplementation(function(this: ExecutionContext, ...args) {
+    const result = original.apply(this, args);
+    if (["retainedBytes", "expandedBytes", "binaryBytes"].includes(args[0])) {const used = 1000000-this.remaining("retainedBytes"); boundaries.add(used); boundaries.add(used-1);}
+    return result;
+  });
+  try {await convert([input], options, {resourceFiles: fs, ...(resources ? {resources} : {}), limits: {retainedBytes: 1000000}, output: {async write() {}, async close() {}, async abort() {}}});}
+  finally {trace.mockRestore();}
+  const values = [...boundaries].filter(value => value >= 0).sort((a,b) => a-b);
+  for (const retainedBytes of values.filter((_, index) => index % Math.ceil(values.length/48) === 0 || index >= values.length-64)) {
+    const expectedBytes: number[] = [], actualBytes: number[] = [];
+    const sink = (bytes: number[]) => ({async write(chunk: Uint8Array) {bytes.push(...chunk);}, async close() {}, async abort() {}});
+    const capabilities = {resourceFiles: fs, ...(resources ? {resources} : {}), limits: {retainedBytes}};
+    const expected = await convert([input], options, {...capabilities, output: sink(expectedBytes)}).catch(error => error);
+    const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));
+    const readFile = vi.spyOn(fs, "readFile").mockRejectedValue(new Error("Whole file forbidden"));
+    try {
+      const actual = await convertToOutput([input], options, {...capabilities, workingFiles: {fs, directory: "/spill"}, output: sink(actualBytes)}).catch(error => error);
+      expect(acquire).not.toHaveBeenCalled(); expect(readFile).not.toHaveBeenCalled();
+      if (expected instanceof Error) expect(actual, String(retainedBytes)).toMatchObject({code: (expected as {code?: string}).code, message: expected.message, location: (expected as {location?: string}).location});
+      else {expect(actual).not.toBeInstanceOf(Error); expect(actual.diagnostics).toEqual(expected.diagnostics);}
+      expect(actualBytes).toEqual(expectedBytes);
+    } finally {acquire.mockRestore(); readFile.mockRestore();}
+    expect(await fs.readdir("/spill")).toEqual([]);
+  }
+});

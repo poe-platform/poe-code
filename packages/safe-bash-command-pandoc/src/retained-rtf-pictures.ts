@@ -19,7 +19,7 @@ export async function inspectRetainedRtfPicture(source: ImageByteSource, storage
     if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width < 1 || height < 1 || width > 32767 || height > 32767) invalid("Picture dimensions outside RTF profile");
     context.charge("images", 1); context.charge("expandedBytes", width * height * 4); context.charge("layoutWork", width * height);
   };
-  context.charge("binaryBytes", source.size, false);
+  context.charge("binaryBytes", source.size, Number.isFinite(context.limits.retainedBytes));
   const prefix = await read(0, Math.min(8, source.size));
   if (prefix.length === 8 && [137,80,78,71,13,10,26,10].every((value, index) => prefix[index] === value)) {
     let offset = 8, width = 0, height = 0, channels = 0, ended = false, seenData = false, dataClosed = false, compressed = 0;
@@ -57,7 +57,8 @@ export async function inspectRetainedRtfPicture(source: ImageByteSource, storage
     }
     if (!ended || !compressed) invalid("Missing PNG image data/end");
     const stride = width * channels + 1, expected = stride * height;
-    context.charge("expandedBytes", expected, false);
+    context.charge("expandedBytes", expected, Number.isFinite(context.limits.retainedBytes));
+    if (Number.isFinite(context.limits.retainedBytes)) {context.charge("retainedBytes", compressed); context.charge("retainedBytes", expected + 65536);}
     const data = (async function* () {
       for (let offset = 8; offset < source.size;) {
         const header = await read(offset, 8), length = new DataView(header.buffer).getUint32(0);
@@ -137,7 +138,8 @@ export async function inspectRetainedRtfPicture(source: ImageByteSource, storage
     }
     if (!width || !scanned || offset !== source.size || (await read(source.size - 1, 1))[0] !== 217) invalid("Incomplete JPEG");
     const memory = 65536 + Math.ceil(width / 8) * Math.ceil(height / 8) * 64 * 64;
-    context.charge("expandedBytes", memory, false); context.checkpoint(width * height);
+    if (Number.isFinite(context.limits.retainedBytes)) context.charge("retainedBytes", memory);
+    context.charge("expandedBytes", memory, Number.isFinite(context.limits.retainedBytes)); context.checkpoint(width * height);
     try {
       const {decodeJpegToStorage} = await import("@poe-code/image-ast");
       const decoded = await decodeJpegToStorage({size: source.size, read}, {

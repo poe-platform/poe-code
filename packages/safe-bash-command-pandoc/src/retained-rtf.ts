@@ -1,4 +1,4 @@
-import {reserveRetainedOutput} from "./retained-output-budgets.js";
+import {emitRetainedOutput, reserveRetainedOutput} from "./retained-output-budgets.js";
 import type {backedJsonOrder} from "./backed-json-order.js";
 import {IntegerTable, PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
@@ -89,8 +89,9 @@ class RtfTape {
     return (await this.tree.describe(node + 32)).end > node + 64 || !!await this.count(await this.at(node, 1)) || !!await this.count(await this.at(node, 2));
   }
   private async add(value: string | TextRange, account = true): Promise<void> {
-    if (account && Number.isFinite(this.context.limits.references)) {
+    if (account && (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes))) {
       this.context.bound("outputBytes", this.output.units + (typeof value === "string" ? value.length : value.units));
+      if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", (typeof value === "string" ? value.length : value.units) * 2);
       this.context.charge("references", 1);
     }
     await this.text.append(this.output, await this.text.from(typeof value === "string" ? [value] : this.text.chunks(value)));
@@ -104,8 +105,9 @@ class RtfTape {
   private async escaped(value: TextRange): Promise<void> {
     let buffer = "", cr = false;
     const append = (text: string): void => {
-      if (Number.isFinite(this.context.limits.references)) {
+      if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) {
         this.context.bound("outputBytes", this.output.units + buffer.length + text.length);
+        if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", text.length * 2);
         this.context.charge("references", 1);
       }
       buffer += text;
@@ -328,12 +330,14 @@ class RtfTape {
           if (await this.present(content! + 32) || (await this.tree.describe(await this.at(target, 1))).end > await this.at(target, 1) + 32) this.fail("RTF picture attributes/titles unsupported");
           const picture = await this.image(target + 32);
           const header = "{\\pict\\" + picture.encoding + "blip\\picw" + picture.width + "\\pich" + picture.height + "\\picwgoal" + picture.width * 15 + "\\pichgoal" + picture.height * 15 + " ";
-          if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", this.output.units + picture.size * 2 + header.length + 1);
+          if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) this.context.bound("outputBytes", this.output.units + picture.size * 2 + header.length + 1);
           await this.add(header);
           let buffer = "";
           for await (const bytes of picture.chunks) for (const byte of bytes) {
-            if (Number.isFinite(this.context.limits.references)) {
-              this.context.bound("outputBytes", this.output.units + buffer.length + 2); this.context.charge("references", 1);
+            if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) {
+              this.context.bound("outputBytes", this.output.units + buffer.length + 2);
+              if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", 4);
+              this.context.charge("references", 1);
             }
             buffer += byte.toString(16).padStart(2, "0");
             if (buffer.length >= 4096) {await this.add(buffer, false); buffer = "";}
@@ -369,7 +373,9 @@ class RtfTape {
       if (tag === "Table") {await this.push({op: "table", node: content!, path: 0, state}); continue;}
       this.fail("Unsupported RTF block: " + tag);
     }
-    await this.add("}\n"); return this.output;
+    await this.add("}\n");
+    if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", this.output.units * 2);
+    return this.output;
   }
   private async table(job: Job): Promise<void> {
     if (job.op === "quoteEnd") {await this.escaped(await this.text.from([job.value!])); return;}
@@ -440,8 +446,8 @@ export async function writeRetainedRtf(tree: BackedJson, context: ExecutionConte
       const encoder = new TextEncoder();
       for await (const part of writer.text.unicodeChunks(result)) yield encoder.encode(options.eol === "crlf" ? part.split("\n").join("\r\n") : part);
     };
-    if (Number.isFinite(context.limits.outputBytes) && !Number.isFinite(context.limits.references)) {let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}}
-    for await (const bytes of chunks()) await context.emit(bytes);
+    if (Number.isFinite(context.limits.outputBytes) && !Number.isFinite(context.limits.references) && !Number.isFinite(context.limits.retainedBytes)) {let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}}
+    await emitRetainedOutput(chunks(), context);
   } catch (reason) {failure = {reason};}
   try {await storage.close();} catch (reason) {failure ??= {reason};} finally {release();}
   if (failure) throw failure.reason;

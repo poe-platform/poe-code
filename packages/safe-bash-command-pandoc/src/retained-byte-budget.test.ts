@@ -3,19 +3,19 @@ import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {convert, convertToOutput} from "./engine.js";
 import {ExecutionContext} from "./execution.js";
 
-it.each(["empty", "text", "unicode", "long", "invalid"].flatMap(kind => ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex"].flatMap(to => ["lf", "crlf"].map(eol => ({kind, to, eol: eol as "lf" | "crlf"}))))) ("retains JSON-to-$to byte budgets for $kind with $eol", async ({kind, to, eol}) => {
+it.each(["empty", "text", "unicode", "long", "invalid"].flatMap(kind => ["json", "plain", "html5", "rst", "commonmark", "gfm", "latex", "rtf"].flatMap(to => ["lf", "crlf"].map(eol => ({kind, to, eol: eol as "lf" | "crlf"}))))) ("retains JSON-to-$to byte budgets for $kind with $eol", async ({kind, to, eol}) => {
   const text = JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: ["html5", "latex"].includes(to) ? {title: {t: "MetaInlines", c: [{t: "Strong", c: [{t: "Str", c: "Title 😀"}]}]}} : {}, blocks: kind === "empty" ? [] : [{t: "Para", c: [{t: "Str", c: kind === "long" ? "😀".repeat(5000) : kind === "unicode" ? "😀é" : "hello"}]}]});
   const bytes = new TextEncoder().encode(kind === "invalid" ? text.slice(0, -3) : text);
   const input = {source: "/input.json", chunks: [bytes.subarray(0, 17), bytes.subarray(17)]};
   const options = {from: "json", to, eol, ...(["html5", "latex"].includes(to) ? {standalone: true} : {}), lossy: eol === "lf"};
-  const boundaries = new Set<number>([0, 1, 1000000]);
+  const boundaries = new Set<number>([0, 1, 2000000]);
   const original = ExecutionContext.prototype.charge;
   const trace = vi.spyOn(ExecutionContext.prototype, "charge").mockImplementation(function(this: ExecutionContext, ...args) {
     const result = original.apply(this, args);
-    if (args[0] === "retainedBytes") {const used = 1000000 - this.remaining("retainedBytes"); if (Number.isFinite(used)) {boundaries.add(used); boundaries.add(used - 1);}}
+    if (args[0] === "retainedBytes") {const used = 2000000 - this.remaining("retainedBytes"); if (Number.isFinite(used)) {boundaries.add(used); boundaries.add(used - 1);}}
     return result;
   });
-  try {await convert([input], options, {limits: {retainedBytes: 1000000}, output: {async write() {}, async close() {}, async abort() {}}}).catch(() => {});}
+  try {await convert([input], options, {limits: {retainedBytes: 2000000}, output: {async write() {}, async close() {}, async abort() {}}}).catch(() => {});}
   finally {trace.mockRestore();}
   // Cover allocation/phase boundaries and representative positions within long strings.
   const limits = [...boundaries].filter(value => value >= 0).sort((a,b) => a-b);
@@ -24,7 +24,7 @@ it.each(["empty", "text", "unicode", "long", "invalid"].flatMap(kind => ["json",
     const expectedBytes: number[] = [], actualBytes: number[] = [];
     const sink = (bytes: number[]) => ({async write(chunk: Uint8Array) {bytes.push(...chunk);}, async close() {}, async abort() {}});
     const expected = await convert([input], options, {limits: {retainedBytes}, output: sink(expectedBytes)}).catch(error => error);
-    if (retainedBytes === 1000000 && kind !== "invalid") expect(expected).not.toBeInstanceOf(Error);
+    if (retainedBytes === 2000000 && kind !== "invalid") expect(expected).not.toBeInstanceOf(Error);
     const fs = new MemoryFileSystem();
     const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));
     try {

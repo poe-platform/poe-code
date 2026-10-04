@@ -5,6 +5,53 @@ import { toByteSource, type FileSystem } from "safe-bash-contracts";
 import { Budget } from "./shared.js";
 import { IndexedDocument, closeDocumentResources } from "./document.js";
 
+test("repeated short-line comparisons reuse bounded bytes without skipping work charges", async t => {
+  const controller = new AbortController();
+  const budget = new Budget({ command: "diff", args: [], cwd: "/", env: {}, fs: createMemoryFileSystem(),
+    signal: controller.signal, stdin: toByteSource(""), stdout: { async write() {} }, stderr: { async write() {} },
+  }, { maxWork: 100_000 });
+  const left = new IndexedDocument(budget), right = new IndexedDocument(budget);
+  try {
+    const text = "same\n".repeat(513) + "x".repeat(128) + "\n";
+    await left.load(toByteSource(text)); await right.load(toByteSource(text));
+    const leftRead = t.mock.method(left.data, "read"), rightRead = t.mock.method(right.data, "read");
+    const before = budget.remainingWork;
+    assert.equal(await left.equal(0, right, 0), true);
+    const after = budget.remainingWork;
+    assert.equal(await left.equal(0, right, 0), true);
+    assert.equal(before - after, after - budget.remainingWork);
+    assert.equal(leftRead.mock.callCount(), 1);
+    assert.equal(rightRead.mock.callCount(), 1);
+    for (let position = 1; position < 513; position++) assert.equal(await left.equal(position, right, position), true);
+    const reads = leftRead.mock.callCount();
+    assert.equal(await left.equal(0, right, 0), true);
+    assert.equal(leftRead.mock.callCount(), reads + 1, "evicted lines must be loaded again");
+    const longReads = leftRead.mock.callCount();
+    assert.equal(await left.equal(513, right, 513), true);
+    assert.equal(await left.equal(513, right, 513), true);
+    assert.equal(leftRead.mock.callCount(), longReads + 2, "long lines must not grow the cache");
+    const reason = new Error("cancel cached comparison");
+    controller.abort(reason);
+    await assert.rejects(left.equal(0, right, 0), error => error === reason);
+  } finally { await closeDocumentResources([left, right]); }
+});
+
+test("cached short lines still compare exact bytes when line hashes collide", async t => {
+  const budget = new Budget({ command: "diff", args: [], cwd: "/", env: {}, fs: createMemoryFileSystem(),
+    signal: new AbortController().signal, stdin: toByteSource(""), stdout: { async write() {} }, stderr: { async write() {} },
+  }, {});
+  const document = new IndexedDocument(budget);
+  try {
+    await document.load(toByteSource("alpha\nbravo\n"));
+    const line = document.line.bind(document);
+    t.mock.method(document, "line", async (position: number) => ({ ...await line(position), hash: 7 }));
+    assert.equal(await document.equal(0, document, 1), false);
+    assert.equal(await document.equal(0, document, 1), false);
+    assert.equal(await document.equal(0, document, 0), true);
+    assert.equal(await document.equal(1, document, 1), true);
+  } finally { await document.close(); }
+});
+
 for (const longLine of [false, true]) test(`document spills bytes and line indexes through caller storage: longLine=${longLine}`, async () => {
   const fs = createMemoryFileSystem();
   let opened = 0, closed = 0, written = 0, inFlight = 0, peak = 0;

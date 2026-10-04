@@ -16,6 +16,8 @@ export class IndexedDocument {
   readonly data: PagedStorage;
   private readonly index: PagedStorage;
   private readonly cache = new Map<number, DocumentLine>();
+  // Bound retained comparison payloads to 64 KiB, plus 512 line records.
+  private readonly comparisons = new Map<number, { line: DocumentLine; bytes: Uint8Array }>();
   size = 0;
   length = 0;
   binary = false;
@@ -86,19 +88,28 @@ export class IndexedDocument {
   }
 
   async equal(position: number, other: IndexedDocument, otherPosition: number): Promise<boolean> {
-    const left = await this.line(position), right = await other.line(otherPosition);
+    const cachedLeft = this.comparisons.get(position), cachedRight = other.comparisons.get(otherPosition);
+    const left = cachedLeft?.line ?? await this.line(position), right = cachedRight?.line ?? await other.line(otherPosition);
     this.budget.step();
     if (left.end - left.start !== right.end - right.start || left.hash !== right.hash) return false;
     for (let offset = 0; offset < left.end - left.start; offset += 16384) {
       const count = Math.min(16384, left.end - left.start - offset);
-      const a = await this.data.read(8 + left.start + offset, count);
-      const b = await other.data.read(8 + right.start + offset, count);
+      const a = cachedLeft?.bytes ?? await this.data.read(8 + left.start + offset, count);
+      const b = cachedRight?.bytes ?? await other.data.read(8 + right.start + offset, count);
+      if (!cachedLeft && left.end - left.start <= 128) this.retainComparison(position, left, a);
+      if (!cachedRight && right.end - right.start <= 128) other.retainComparison(otherPosition, right, b);
       this.budget.step(count);
       for (let i = 0; i < count; i++) if (a[i] !== b[i]) return false;
       const checkpoint = this.budget.checkpoint();
       if (checkpoint) await checkpoint;
     }
     return true;
+  }
+
+  private retainComparison(position: number, line: DocumentLine, bytes: Uint8Array): void {
+    if (this.comparisons.has(position)) return;
+    if (this.comparisons.size === 512) this.comparisons.delete(this.comparisons.keys().next().value!);
+    this.comparisons.set(position, { line, bytes });
   }
 
   async *range(start: number, end: number): ByteSource {
@@ -115,6 +126,7 @@ export class IndexedDocument {
   close(): Promise<void> {
     return this.closing ??= (async () => {
       this.cache.clear();
+      this.comparisons.clear();
       await closeDocumentResources([this.data, this.index]);
     })();
   }

@@ -1,4 +1,4 @@
-import { ownWorkbookSource, materializeSourceAxes } from "@poe-code/spreadsheet-engine/workbook/source";
+import { ownWorkbookSource } from "@poe-code/spreadsheet-engine/workbook/source";
 import { parseXmlSteps, type XmlElement } from "@poe-code/safe-fs/xml";
 import { createGnumericCellStorage, type GnumericChildren, type GnumericNode } from "./gnumeric-cell-storage.js";
 import { readGnumericDocument, GnumericSourceFailure } from "./gnumeric-input.js";
@@ -936,8 +936,8 @@ async function* gnumericChunks(book: Workbook, context: CapabilityContext, sourc
           }
           yield* writer.container("gnm:Styles", {}, regions(), 3, true);
           for (const [kind, info, entries] of [["Cols", "ColInfo", sheet.columns], ["Rows", "RowInfo", sheet.rows]] as const) {
-            const source = object(sheet.unsupportedRecords?.find(r => r.kind === kind && r.source === "Gnumeric_XmlIO:sax")?.data);
-            const axisAttrs = Object.fromEntries((Array.isArray(source?.attributes) ? source.attributes : []).flatMap(a => {
+            const retained = object(sheet.unsupportedRecords?.find(r => r.kind === kind && r.source === "Gnumeric_XmlIO:sax")?.data);
+            const axisAttrs = Object.fromEntries((Array.isArray(retained?.attributes) ? retained.attributes : []).flatMap(a => {
               const attr = object(a);
               if (!attr || typeof attr.name !== "string" || typeof attr.value !== "string") return [];
               validateRecordName(attr.name);
@@ -946,8 +946,9 @@ async function* gnumericChunks(book: Workbook, context: CapabilityContext, sourc
             const defaultSize = sheet.view?.[kind === "Cols" ? "defaultColumnWidth" : "defaultRowHeight"];
             if (defaultSize !== undefined) axisAttrs.DefaultSizePts = axisSizeXml(defaultSize);
             else if (axisAttrs.DefaultSizePts !== undefined) axisAttrs.DefaultSizePts = axisSizeXml(Number(axisAttrs.DefaultSizePts));
-            function* axes(): Generator<string> {
-              for (const axis of entries ?? []) {
+            async function* axes(): AsyncGenerator<string> {
+              for await (const axis of source?.axes ? source.axes(sheet.id, kind === "Cols" ? "columns" : "rows") : entries ?? []) {
+                context.signal.throwIfAborted();
                 if (axis.sizePoints === undefined && !axis.hidden && !axis.collapsed && !axis.outlineLevel) continue;
                 const original = object(axis.style?.gnumeric);
                 const attrs = Object.fromEntries((Array.isArray(original?.attributes) ? original.attributes : []).flatMap(a => {
@@ -1016,9 +1017,8 @@ async function* gnumericChunks(book: Workbook, context: CapabilityContext, sourc
 
 
 export async function* writeGnumericStream(book: Workbook | WorkbookSource, _options: readonly string[], context: CapabilityContext): AsyncGenerator<Uint8Array> {
-  if ("metadata" in book && book.axes) book = await materializeSourceAxes(
-    await ownWorkbookSource(book, context.limits, () => context.signal.throwIfAborted(), context.createWorkingStorage?.bind(context)), context.limits,
-    () => context.signal.throwIfAborted());
+  if ("metadata" in book && book.axes) book = await ownWorkbookSource(
+    book, context.limits, () => context.signal.throwIfAborted(), context.createWorkingStorage?.bind(context));
   yield* encodeTextStream("metadata" in book ? gnumericChunks(book.metadata, context, book) : gnumericChunks(book, context), "UTF-8", false, context);
 }
 

@@ -702,6 +702,8 @@ A successful fallback returns normally. Caller cancellation preserves the origin
 signal reason. Only phase/category/reason/status/failures are safe diagnostic
 fields; messages can contain private provider details.
 
+Pass `expectedIssuer: policy.issuer` to `discoverOAuthMetadata` to probe only that exact advertised authorization server. An absent pin fails before authorization-server probes; duplicate pins are tried once. The same pin is enforced for cached results. Without a pin, discovery retains multi-server fallback.
+
 Discovery is required and must enforce host issuer trust and network policy.
 The API additionally checks resource/issuer binding, HTTPS endpoints, authorization
 code support and S256 PKCE. Completion uses the required injected fetch policy and

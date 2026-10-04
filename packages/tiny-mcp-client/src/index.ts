@@ -116,3 +116,5 @@ export { StdioTransport, defaultStdioSpawn } from "./stdio-transport.js";
 export type { StdioSpawn, StdioTransportOptions } from "./stdio-transport.js";
 
 export type { OAuthMetadataFailure, OAuthMetadataFailureCategory, OAuthMetadataFailureReason } from "./oauth-discovery.js";
+
+export type { OAuthMetadataLookupOptions, OAuthMetadataDiscoveryOptions } from "./oauth-discovery.js";

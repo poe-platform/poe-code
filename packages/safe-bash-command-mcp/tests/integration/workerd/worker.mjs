@@ -1,10 +1,29 @@
-import { fetchRemoteMcpSchema, createRemoteMcpCommands, mcpCommands, createMcpCommands, createMcpCommand, initRemoteMcpConfiguration, importRemoteMcpAuthentication, resetRemoteMcpAuthentication } from 'safe-bash-command-mcp/remote';
+import { discoverOAuthMetadata, refreshAccessToken, fetchRemoteMcpSchema, createRemoteMcpCommands, mcpCommands, createMcpCommands, createMcpCommand, initRemoteMcpConfiguration, importRemoteMcpAuthentication, resetRemoteMcpAuthentication } from 'safe-bash-command-mcp/remote';
 import { createCommandArguments, toByteSource } from '@poe-platform/safe-bash/contracts';
 
 function check(value, message) { if (!value) throw new Error(message); }
 
 export default {
   async test() {
+    const issuer = 'https://auth.example';
+    let requests = 0;
+    const fetch = async (input, init) => {
+      check(++requests <= 8, 'OAuth request budget exhausted');
+      const url = new URL(input);
+      if (url.pathname.includes('oauth-protected-resource')) return Response.json({ resource: 'https://resource.example',
+        authorization_servers: ['https://foreign.example/as', issuer, 'https://other.example/as'] });
+      check(url.origin === issuer, 'foreign issuer probe');
+      if (url.pathname.includes('oauth-authorization-server')) return Response.json({ issuer,
+        authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`,
+        response_types_supported: ['code'], code_challenge_methods_supported: ['S256'] });
+      check(init.method === 'POST', 'refresh must POST');
+      return Response.json({ access_token: 'synthetic', token_type: 'Bearer' });
+    };
+    const discovery = await discoverOAuthMetadata('https://resource.example', { fetch, expectedIssuer: issuer });
+    await refreshAccessToken({ tokenEndpoint: discovery.authorizationServerMetadata.token_endpoint,
+      clientId: 'synthetic', refreshToken: 'synthetic', resource: 'https://resource.example', fetch, now: () => 1_800_000_000_000 });
+    check(requests === 3, 'pinned discovery plus refresh must take three requests');
+
     check(createMcpCommand().name === 'mcp', 'default management factory missing');
     check(createMcpCommands().length === 1, 'management list factory missing');
     const registered = new Map();

@@ -203,3 +203,55 @@ it("retains ODS input and CSV output larger than the adapter cache", async () =>
   assert.ok(reads > 0 && reads <= 16384); assert.ok(writes > 0 && writes <= 16384);
   assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), ["source.csv", "source.ods"]);
 });
+
+for (const format of ['csv', 'xlsx'] as const) it(`does not retain all scalar ODS cells while exporting ${format}`, async () => {
+  const source = createStoredZipArchive({'content.xml': encode(`<office:document-content
+    xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
+    xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"><office:body><office:spreadsheet><table:table table:name="Data">
+    <table:table-row table:number-rows-repeated="200"><table:table-cell office:value-type="string"><text:p>record</text:p></table:table-cell></table:table-row>
+    </table:table></office:spreadsheet></office:body></office:document-content>`) });
+  const filesystem = new MemoryFileSystem(); await filesystem.writeFile('/records.ods', source);
+  const push = Array.prototype.push;
+  Array.prototype.push = function (...items) {
+    if (this.length >= 64 && items.some(item => item && typeof item === 'object' && 'row' in item && 'column' in item && 'value' in item))
+      throw new Error('whole worksheet cell array forbidden');
+    return push.apply(this, items);
+  };
+  try {
+    const result = await runSofficeFileCli(['--convert-to', format, '/records.ods'], {filesystem,
+      stdout: {async write() {}}, stderr: {async write(bytes) {assert.fail(decode(bytes));}}});
+    assert.equal(result.exitCode, 0);
+  } finally {Array.prototype.push = push;}
+  const bytes = await filesystem.readFile(`/records.${format}`);
+  if (format === 'csv') assert.equal(decode(bytes), 'record\n'.repeat(200));
+  else {
+    const engine = createEngine({formats: [xlsxFormat]});
+    try {
+      const book = await engine.readWorkbook({kind: 'stream', filename: 'records.xlsx', source: [bytes]}, {}, {signal: new AbortController().signal});
+      assert.equal(book.sheets[0]!.cells.length, 200);
+      assert.deepEqual({...book.sheets[0]!.cells.at(-1)?.value}, {kind: 'string', value: 'record'});
+    } finally {await engine.dispose();}
+  }
+});
+
+for (const format of ['csv', 'xlsx'] as const) it(`preserves ODS cached formula results when transcoding to ${format}`, async () => {
+  const source = createStoredZipArchive({'content.xml': encode(`<office:document-content
+    xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
+    xmlns:of="urn:oasis:names:tc:opendocument:xmlns:of:1.2"><office:body><office:spreadsheet><table:table table:name="Data">
+    <table:table-row><table:table-cell table:formula="of:=1+1" office:value-type="float" office:value="7"/></table:table-row>
+    </table:table></office:spreadsheet></office:body></office:document-content>`) });
+  const filesystem = new MemoryFileSystem(); await filesystem.writeFile('/cached.ods', source);
+  const result = await runSofficeFileCli(['--convert-to', format, '/cached.ods'], {filesystem,
+    stdout: {async write() {}}, stderr: {async write(bytes) {assert.fail(decode(bytes));}}});
+  assert.equal(result.exitCode, 0);
+  const bytes = await filesystem.readFile(`/cached.${format}`);
+  if (format === 'csv') assert.equal(decode(bytes), '7\n');
+  else {
+    const engine = createEngine({formats: [xlsxFormat]});
+    try {
+      const book = await engine.readWorkbook({kind: 'stream', filename: 'cached.xlsx', source: [bytes]}, {}, {signal: new AbortController().signal});
+      const cell = book.sheets[0]!.cells[0]!;
+      assert.equal(cell.formula, '=1+1'); assert.deepEqual({...cell.value}, {kind: 'number', value: 7});
+    } finally {await engine.dispose();}
+  }
+});

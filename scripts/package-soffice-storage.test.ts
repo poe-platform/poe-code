@@ -70,7 +70,7 @@ it("packs the retained Soffice file SDK with canonical filesystem types and no p
   for (const manifest of Object.values(manifests)) expect(Object.keys(manifest.dependencies)).not.toContain("@poe-code/safe-fs");
   volume.mkdirSync("/node_modules/@poe-platform", {recursive: true});
   for (const name of ["safe-fs", "safe-bash"]) volume.symlinkSync(`/output/${name}`, `/node_modules/@poe-platform/${name}`);
-  write("/consumer.mts", 'import {runSofficeFileCli} from "@poe-platform/safe-bash/commands/soffice"; import type {FileSystem} from "@poe-platform/safe-fs/contracts"; declare const filesystem: FileSystem; runSofficeFileCli(["--cat", "/input.txt"], {filesystem, stdout: {async write(bytes: Uint8Array) {}}, stderr: {async write(bytes: Uint8Array) {}}});');
+  write("/consumer.mts", 'import {runSofficeFileCli} from "@poe-platform/safe-bash/commands/soffice"; import type {FileSystem} from "@poe-platform/safe-fs/contracts"; import {createEngine} from "@poe-platform/safe-bash/ssconvert/core"; createEngine().transcode({input: {kind: "stream", source: []}, destination: {kind: "stream", sink: {async write(bytes: Uint8Array) {}}}, exportType: "csv"}, {signal: new AbortController().signal}); declare const filesystem: FileSystem; runSofficeFileCli(["--cat", "/input.txt"], {filesystem, stdout: {async write(bytes: Uint8Array) {}}, stderr: {async write(bytes: Uint8Array) {}}});');
   const compilerOptions: ts.CompilerOptions = {strict: true, noEmit: true, types: [], target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.NodeNext, moduleResolution: ts.ModuleResolutionKind.NodeNext, customConditions: ["workerd"]};
   const host = ts.createCompilerHost(compilerOptions);
   // Only TypeScript standard libraries may escape the published in-memory installation.
@@ -212,5 +212,15 @@ it("packs the retained Soffice file SDK with canonical filesystem types and no p
     stdout: {async write() {}}, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
   expect(docxTextConversion.exitCode).toBe(0);
   expect(new TextDecoder().decode(await fs.readFile("/input.txt"))).toContain("Caller-backed text");
-  expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["book.csv", "book.docx", "book.html", "book.pdf", "book.txt", "book.xlsx", "input.csv", "input.docx", "input.html", "input.md", "input.pdf", "input.txt", "input.xlsx", "office.docx", "office.html", "office.odt", "office.pdf", "slides.docx", "slides.html", "slides.pdf", "slides.pptx", "slides.txt"]);
+  await fs.writeFile("/scalar.ods", createStoredZipArchive({"content.xml": new TextEncoder().encode(
+    '<office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"><office:body><office:spreadsheet><table:table table:name="Data"><table:table-row table:number-rows-repeated="100"><table:table-cell office:value-type="string"><text:p>Packed ODS</text:p></table:table-cell></table:table-row></table:table></office:spreadsheet></office:body></office:document-content>')}));
+  for (const format of ["csv", "xlsx"]) {
+    const result = await runSofficeFileCli(["--convert-to", format, "/scalar.ods"], {filesystem,
+      stdout: {async write() {}}, stderr: {async write(bytes) {throw new Error(new TextDecoder().decode(bytes));}}});
+    expect(result.exitCode).toBe(0);
+    const bytes = await fs.readFile("/scalar." + format);
+    if (format === "csv") expect(new TextDecoder().decode(bytes)).toBe('"Packed ODS"\n'.repeat(100));
+    else expect(new TextDecoder().decode(readZipArchiveEntries(bytes).get("xl/sharedStrings.xml"))).toContain("Packed ODS");
+  }
+  expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(["book.csv", "book.docx", "book.html", "book.pdf", "book.txt", "book.xlsx", "input.csv", "input.docx", "input.html", "input.md", "input.pdf", "input.txt", "input.xlsx", "office.docx", "office.html", "office.odt", "office.pdf", "scalar.csv", "scalar.ods", "scalar.xlsx", "slides.docx", "slides.html", "slides.pdf", "slides.pptx", "slides.txt"]);
 });

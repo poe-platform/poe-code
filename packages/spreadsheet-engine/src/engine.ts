@@ -765,6 +765,24 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
         );
       });
     },
+    async transcode(suppliedRequest, operation) {
+      if (disposed) throw new SsconvertError("invalid-request", "ssconvert engine is disposed");
+      operation.signal.throwIfAborted();
+      bounded(suppliedRequest.exportOptions?.length ?? 0, config.limits.operations, "export options");
+      const request = Object.freeze({ ...suppliedRequest,
+        input: Object.freeze({ ...suppliedRequest.input }),
+        destination: Object.freeze({ ...suppliedRequest.destination }),
+        exportOptions: Object.freeze([...(suppliedRequest.exportOptions ?? [])]) });
+      return session(operation, async context => {
+        const codec = exporter(request.destination, request.exportType);
+        const imported = await read(request.input, request.importType, request.importEncoding,
+          context, config.limits.inputBytes, config.limits, !!codec.writeWorkbookSource);
+        const source = imported.source && !codec.sourceAxes
+          ? await materializeSourceAxes(imported.source, context.limits, () => check(context)) : imported.source;
+        return write(source?.metadata ?? imported.book, request.destination, request.exportType,
+          request.exportOptions, context, imported.bytes, undefined, config.limits.outputBytes, undefined, source);
+      });
+    },
     async convert(suppliedRequest, operation) {
       if (disposed) throw new SsconvertError("invalid-request", "ssconvert engine is disposed");
       operation.signal.throwIfAborted();

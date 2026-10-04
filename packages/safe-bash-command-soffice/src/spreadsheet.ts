@@ -37,10 +37,9 @@ export async function convertOdsStream(input: Input, destination: Destination, t
   const operation = { signal };
   let failed = true;
   try {
-    const book = await engine.readWorkbook(input, {}, operation);
     const csv = starCalcCsvOptions(filterOptions);
     const quotedOption = (value: string) => "'" + value.split("\\").join("\\\\").split("'").join("\\'") + "'";
-    await engine.writeWorkbook(book, destination, {
+    await engine.transcode({ input, destination,
       exportType: target === "csv" ? "Gnumeric_stf:stf_assistant" : "Gnumeric_Excel:xlsx2",
       ...(target === "csv" ? { exportOptions: [
         "separator=" + quotedOption(csv.separator), "quote=" + quotedOption(csv.quote),

@@ -209,6 +209,15 @@ export type Input =
 export type Destination =
   | { readonly kind: "stream"; readonly sink: ByteSink }
   | { readonly kind: "resource"; readonly uri: string };
+/** Import and export unchanged values, without formula evaluation or conversion transforms. */
+export interface TranscodeRequest {
+  readonly input: Input;
+  readonly destination: Destination;
+  readonly importType?: string;
+  readonly importEncoding?: string;
+  readonly exportType: string;
+  readonly exportOptions?: readonly string[];
+}
 export interface ConversionRequest {
   readonly input: Input;
   /** Omission requires an explicit exporter with an extension; inferred from input URI. */
@@ -268,6 +277,7 @@ export interface Engine {
     options: { readonly exportType: string; readonly exportOptions?: readonly string[] },
     operation: Operation
   ): Promise<OperationResult>;
+  transcode(request: TranscodeRequest, operation: Operation): Promise<OperationResult>;
   convert(request: ConversionRequest, operation: Operation): Promise<OperationResult>;
   merge(request: MergeRequest, operation: Operation): Promise<OperationResult>;
   exportGraphs(

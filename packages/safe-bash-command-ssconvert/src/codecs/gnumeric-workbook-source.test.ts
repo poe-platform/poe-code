@@ -9,9 +9,9 @@ const context: CapabilityContext = { signal: new AbortController().signal, own()
   environment: { env: {}, locale: "C", timezone: "UTC" } };
 const xml = (cells: string) => '<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Sheets><g:Sheet><g:Name>Data</g:Name><g:Cells>' + cells + '</g:Cells></g:Sheet></g:Sheets></g:Workbook>';
 
-it.each([false, true])('replays scalar Gnumeric cells without a resident cell array, gzip=%s', async gzip => {
+it.each([false, true])('replays scalar Gnumeric cells and axes without resident arrays, gzip=%s', async gzip => {
   const text = xml(Array.from({ length: 300 }, (_, i) => `<g:Cell Row="${299 - i}" Col="0" ValueType="40">${i}</g:Cell>`).join('') +
-    '<g:Cell Row="2" Col="0" ValueType="40">-0</g:Cell><g:Cell Row="1" Col="2" ValueType="60" ValueFormat="@[bold=0:1]">😀</g:Cell>');
+    '<g:Cell Row="2" Col="0" ValueType="40">-0</g:Cell><g:Cell Row="1" Col="2" ValueType="60" ValueFormat="@[bold=0:1]">😀</g:Cell>').replace('</g:Cells>', '</g:Cells><g:Rows DefaultSizePts="20"/><g:Cols DefaultSizePts="60"/>');
   const bytes = gzip ? new Uint8Array(gzipSync(text)) : new TextEncoder().encode(text);
   const expected = await gnumeric.readGnumeric(bytes, context);
   const fs = createMemoryFileSystem(), borrowed = new Uint8Array(257);
@@ -24,13 +24,19 @@ it.each([false, true])('replays scalar Gnumeric cells without a resident cell ar
         return set.call(this, key, value);
       };
       Array.prototype.push = function(this: unknown[], ...items: unknown[]) {
-        if (items.some(item => item && typeof item === 'object' && 'row' in item && 'column' in item && 'value' in item)) throw new Error('resident workbook cells');
+        if (items.some(item => item && typeof item === 'object' && ('row' in item && 'column' in item && 'value' in item || 'index' in item && 'sizePoints' in item))) throw new Error('resident workbook records');
         return push.apply(this, items);
       };
       try { captured = await gnumeric.readGnumericWorkbookSource(source, ctx); }
       finally { Array.prototype.push = push; Map.prototype.set = set; }
       expect(captured).toBeDefined();
-      expect(captured!.metadata).toEqual({ ...expected, sheets: expected.sheets.map(sheet => ({ ...sheet, cells: [] })) });
+      expect(captured!.metadata).toEqual({ ...expected, sheets: expected.sheets.map(sheet => ({ ...sheet, cells: [], rows: [], columns: [] })) });
+      for (let pass = 0; pass < 2; pass++) for (const kind of ["rows", "columns"] as const) {
+        const records = []; for await (const axis of captured!.axes!("s1", kind)) records.push(axis);
+        expect(records).toEqual(expected.sheets[0]![kind]);
+        Object.assign(records[0]!, { sizePoints: 999 });
+      }
+      expect(() => captured!.axes!("missing", "rows")).toThrow("Unknown Gnumeric axis");
       const sorted = [...expected.sheets[0]!.cells].sort((a, b) => a.row - b.row || a.column - b.column);
       for (let pass = 0; pass < 2; pass++) {
         const actual = []; for await (const cell of captured!.cells('s1')) actual.push(cell);
@@ -45,6 +51,7 @@ it.each([false, true])('replays scalar Gnumeric cells without a resident cell ar
   } } }, { importType: 'fixture' }, { signal: context.signal }); }
   finally { await engine.dispose(); }
   await expect(captured!.cells('s1')[Symbol.asyncIterator]().next()).rejects.toThrow();
+  await expect(captured!.axes!('s1', 'rows')[Symbol.asyncIterator]().next()).rejects.toThrow();
   expect(await fs.readdir('/')).toEqual([]);
 });
 
@@ -121,8 +128,12 @@ it('preserves styled multi-sheet metadata, sparse coordinates and literal equals
   const bytes = new TextEncoder().encode(text), expected = await gnumeric.readGnumeric(bytes, context), fs = createMemoryFileSystem();
   const engine = createEngine({ workingFiles: { fs, directory: '/', cacheBytes: 16384 }, codecs: [{ id: 'fixture', description: 'fixture', extensions: [], async readSource(source, ctx) {
     const replay = (await gnumeric.readGnumericWorkbookSource(source, ctx))!;
-    expect(replay.metadata).toEqual({ ...expected, sheets: expected.sheets.map(sheet => ({ ...sheet, cells: [] })) });
+    expect(replay.metadata).toEqual({ ...expected, sheets: expected.sheets.map(sheet => ({ ...sheet, cells: [], rows: [], columns: [] })) });
     for (const sheet of expected.sheets) {
+      for (const kind of ["rows", "columns"] as const) {
+        const records = []; for await (const axis of replay.axes!(sheet.id, kind)) records.push(axis);
+        expect(records).toEqual(sheet[kind]);
+      }
       const cells = []; for await (const cell of replay.cells(sheet.id)) cells.push(cell);
       expect(cells).toEqual([...sheet.cells].sort((a, b) => a.row - b.row || a.column - b.column));
     }
@@ -171,11 +182,57 @@ it.each([
   const expected = await gnumeric.readGnumeric(bytes, { ...context, async diagnostic(event) { expectedDiagnostics.push(event); } });
   const fs = createMemoryFileSystem(), engine = createEngine({ workingFiles: { fs, directory: '/', cacheBytes: 16384 }, codecs: [{ id: 'fixture', description: 'fixture', extensions: [], async readSource(source, ctx) {
     const replay = await gnumeric.readGnumericWorkbookSource(source, { ...ctx, async diagnostic(event) { actualDiagnostics.push(event); } });
-    expect(replay!.metadata).toEqual({ ...expected, sheets: expected.sheets.map(sheet => ({ ...sheet, cells: [] })) });
+    expect(replay!.metadata).toEqual({ ...expected, sheets: expected.sheets.map(sheet => ({ ...sheet, cells: [], rows: [], columns: [] })) });
+      for (const kind of ["rows", "columns"] as const) {
+        const records = []; for await (const axis of replay!.axes!("s1", kind)) records.push(axis);
+        expect(records).toEqual(expected.sheets[0]![kind]);
+      }
     return replay!.metadata;
   } }] });
   try { await engine.readWorkbook({ kind: 'range', source: { size: bytes.length, async read(position, count) { return bytes.subarray(position, position + count); } } }, { importType: 'fixture' }, { signal: context.signal }); }
   finally { await engine.dispose(); }
   expect(actualDiagnostics).toEqual(expectedDiagnostics);
   expect(await fs.readdir('/')).toEqual([]);
+});
+
+
+it.each(["read", "cancel", "early-return"])("retires stored source axes after %s", async mode => {
+  const bytes = new TextEncoder().encode(xml('<g:Cell Row="0" Col="0" ValueType="40">1</g:Cell>')
+    .replace('</g:Cells>', '</g:Cells><g:Rows DefaultSizePts="20"><g:RowInfo No="1" Count="300" Unit="25"/></g:Rows>'));
+  const fs = createMemoryFileSystem(), controller = new AbortController(), failure = new Error("axis backing failed");
+  let replaying = false, reads = 0;
+  const borrowed = new Uint8Array(16384);
+  const engine = createEngine({ workingFiles: { fs, directory: "/", cacheBytes: 16384 }, codecs: [{
+    id: "fixture", description: "fixture", extensions: [], async readSource(source, ctx) {
+      const replay = (await gnumeric.readGnumericWorkbookSource(source, { ...ctx, createWorkingStorage() {
+        const storage = ctx.createWorkingStorage!();
+        return { ...storage, async read(position, count) {
+          expect(count).toBeLessThanOrEqual(16384);
+          if (replaying) {
+            reads++;
+            if (mode === "read") throw failure;
+            if (mode === "cancel") controller.abort(failure);
+          }
+          const chunk = await storage.read(position, count); borrowed.set(chunk); return borrowed.subarray(0, chunk.length);
+        }, async write(position, chunk) {
+          expect(chunk.length).toBeLessThanOrEqual(16384); await storage.write(position, chunk);
+        } };
+      } }))!;
+      replaying = true;
+      const axes = replay.axes!("s1", "rows")[Symbol.asyncIterator]();
+      if (mode === "early-return") {
+        expect((await axes.next()).value).toEqual({ index: 0, sizePoints: 12.75 });
+        const paused = reads; await axes.return!(); expect(reads).toBe(paused);
+      } else await expect(axes.next()).rejects.toBe(failure);
+      expect(reads).toBeGreaterThan(0);
+      // The abort is already asserted above; avoid another engine admission.
+      if (mode === "cancel") throw failure;
+      return replay.metadata;
+    }
+  }] });
+  const operation = engine.readWorkbook({ kind: "range", source: { size: bytes.length,
+    async read(position, count) { return bytes.subarray(position, position + count); } } }, { importType: "fixture" }, { signal: controller.signal });
+  try { if (mode === "cancel") await expect(operation).rejects.toBe(failure); else await operation; }
+  finally { await engine.dispose(); }
+  expect(await fs.readdir("/")).toEqual([]);
 });

@@ -282,7 +282,17 @@ function axisDefaultSize(node: XmlElement | undefined, fallback: number): number
   const size = number(node, "DefaultSizePts", fallback);
   return size > 0 ? size : fallback;
 }
-async function axes(sheet: XmlElement, axis: "RowInfo" | "ColInfo", maximum: number, admit: (count: number) => void, context: CapabilityContext, nodes: GnumericChildren, values?: ReturnType<typeof createGnumericValueStorage>): Promise<{ entries: AxisMetadata[]; defaultSize?: number }> {
+interface StoredGnumericAxes {
+  store: ReturnType<ReturnType<typeof createGnumericValueStorage>["axis"]>;
+  defaultSize: number;
+}
+
+async function* replayGnumericAxes(axes: StoredGnumericAxes): AsyncGenerator<AxisMetadata> {
+  for await (const { metadata, implicit } of axes.store.values())
+    if (!implicit || metadata.sizePoints !== axes.defaultSize) yield metadata;
+}
+
+async function axes(sheet: XmlElement, axis: "RowInfo" | "ColInfo", maximum: number, admit: (count: number) => void, context: CapabilityContext, nodes: GnumericChildren, values?: ReturnType<typeof createGnumericValueStorage>, sourceMode = false): Promise<{ entries: AxisMetadata[]; defaultSize?: number; stored?: StoredGnumericAxes }> {
   const stored = values?.axis();
   const result = new Map<number, AxisMetadata>();
   let defaultSize: number | undefined;
@@ -333,9 +343,9 @@ async function axes(sheet: XmlElement, axis: "RowInfo" | "ColInfo", maximum: num
   }
   if (stored) {
     const entries: AxisMetadata[] = [];
-    for await (const { metadata, implicit } of stored.values())
-      if (!implicit || metadata.sizePoints !== (defaultSize ?? fallback)) entries.push(metadata);
-    return { entries, ...(defaultSize === undefined ? {} : { defaultSize }) };
+    const replay = { store: stored, defaultSize: defaultSize ?? fallback };
+    if (!sourceMode) for await (const metadata of replayGnumericAxes(replay)) entries.push(metadata);
+    return { entries, stored: replay, ...(defaultSize === undefined ? {} : { defaultSize }) };
   }
   // Native writers omit allocated axes which still match the final default.
   for (const index of implicit) if (result.get(index)?.sizePoints === (defaultSize ?? fallback)) result.delete(index);
@@ -423,6 +433,7 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
   const tick = () => { context.signal.throwIfAborted(); if (++work > (context.limits.workbookWork ?? context.limits.inputBytes + context.limits.cells * 32)) limit("XML relationship work"); };
   const boundNames = await bindCellNames(root, context, tick, nodes, values);
   const sheets: Sheet[] = [];
+  const sheetAxes: { rows: StoredGnumericAxes; columns: StoredGnumericAxes }[] = [];
   for (const [i, node] of sheetNodes.entries()) {
     context.signal.throwIfAborted();
     const name = sheetName(node) ?? index[i]?.text ?? `Sheet${i + 1}`;
@@ -488,8 +499,9 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
         if (previous === undefined) { addresses.set(address, cells.length); cells.push(cell); } else cells[previous] = cell;
       }
     }
-    const rows = await axes(node, "RowInfo", size.rows, admitAxes, context, nodes, values);
-    const columns = await axes(node, "ColInfo", size.columns, admitAxes, context, nodes, values);
+    const rows = await axes(node, "RowInfo", size.rows, admitAxes, context, nodes, values, sourceMode);
+    const columns = await axes(node, "ColInfo", size.columns, admitAxes, context, nodes, values, sourceMode);
+    if (sourceMode && rows.stored && columns.stored) sheetAxes.push({ rows: rows.stored, columns: columns.stored });
     const visibility = attribute(node, "Visibility")?.toLowerCase();
     sheets.push({ id: `s${i + 1}`, name, size, cells,
       visibility: visibility?.includes("very_hidden") || visibility === "very-hidden" ? "very-hidden" : visibility?.includes("hidden") ? "hidden" : "visible",
@@ -539,7 +551,11 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
     unsupportedRecords: root.children.filter(n => namespaces.has(n.namespace) && ["Attributes", "Geometry"].includes(n.localName) ||
       n.localName === "document-meta" && n.namespace === "urn:oasis:names:tc:opendocument:xmlns:office:1.0" || n.localName === "GODoc" && !n.namespace).map(retained) };
   if (!sourceMode || !values) return book;
-  return { metadata: book, cells(sheet: string) {
+  return { metadata: book, axes(sheet: string, kind: "rows" | "columns") {
+    const index = sheets.findIndex(value => value.id === sheet);
+    if (index < 0 || kind !== "rows" && kind !== "columns") throw new SsconvertError("invalid-request", "Unknown Gnumeric axis");
+    return replayGnumericAxes(sheetAxes[index]![kind]);
+  }, cells(sheet: string) {
     const index = sheets.findIndex(value => value.id === sheet);
     if (index < 0) throw new SsconvertError("invalid-request", "Unknown Gnumeric sheet");
     return values.cells(index);

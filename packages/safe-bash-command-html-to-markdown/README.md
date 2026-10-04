@@ -14,7 +14,7 @@ await shell.dispose();
 
 The module also exports `createHtmlToMarkdownCommand`, its command-list factory, and typed options and limits.
 
-`maxInputBytes` bounds cumulative source bytes. `maxWorkUnits` bounds processing across decoding, parsing, attribute handling and rendering, so its cost can exceed the input size. Discarded comments use constant parser storage while remaining subject to input, token-count and work limits. The command still retains its document tree and rendered Markdown; streaming I/O alone does not make large-document conversion use bounded working memory.
+`maxInputBytes` bounds cumulative source bytes. `maxWorkUnits` bounds processing across decoding, parsing, attribute handling and rendering, so its cost can exceed the input size. Discarded comments use constant parser storage while remaining subject to input, token-count and work limits. Document records and rendered text use a 256 KiB page cache and spill through the supplied filesystem. Spill files use `TMPDIR` (or the command working directory) and require retained positioned read/write handles and conditional removal. A memory filesystem still stores spilled data in RAM. Unfinished tokens, open tags, recursive traversal and URL validation can still grow; this is not yet a complete bounded-memory Worker qualification.
 
 Pass VFS filenames or `-` for shared stdin; `--` ends option parsing. The converter
 supports headings, paragraphs, emphasis, links, images, lists, quotes, code and

@@ -6,7 +6,10 @@ import { escapeText } from "safe-bash-contracts/escaping";
 import { Budget } from "./budget.js";
 import { Inputs } from "./input.js";
 import { argumentsFor, HtmlUsageError, settings, type HtmlToMarkdownCommandsOptions } from "./options.js";
-import { Renderer } from "./render.js";
+import { PagedStorage } from "@poe-code/safe-fs/storage";
+import { StoredRenderer } from "./stored-render.js";
+import { TextStore } from "./stored-text.js";
+import { StoredTree } from "./stored-tree.js";
 import type { HtmlToMarkdownLimits } from "./options.js";
 
 export type { HtmlToMarkdownCommandsOptions, HtmlToMarkdownLimits } from "./options.js";
@@ -23,6 +26,7 @@ export function createHtmlToMarkdownCommand(options: HtmlToMarkdownCommandsOptio
     }
     let operation: OutputOperation | undefined;
     let inputs: Inputs | undefined, failed = false;
+    let storage: PagedStorage | undefined;
     let rejected = false, failure: unknown;
     let result = { exitCode: 0 };
     try {
@@ -33,13 +37,21 @@ export function createHtmlToMarkdownCommand(options: HtmlToMarkdownCommandsOptio
       if (parsed.info !== undefined) await budget.emit(parsed.info);
       else {
         inputs = new Inputs(work, budget);
-        const renderer = new Renderer(budget);
+        work.registerCleanup?.(() => storage?.close());
         let written = false;
         for (const name of parsed.files) {
-          const markdown = await renderer.document(await inputs.document(name));
-          if (!markdown) continue;
-          if (written) await budget.emit("\n");
-          await budget.emit(markdown); written = true;
+          storage = new PagedStorage(work, 16);
+          const text = new TextStore(storage, characters => { budget.work(characters); return budget.checkpoint(); });
+          const tree = new StoredTree(storage, text), root = await tree.create("root");
+          await inputs.document(name, tree.sink(root));
+          const markdown = await new StoredRenderer(tree, budget).document(root);
+          if (markdown) {
+            if (written) await budget.emit("\n");
+            budget.check((await text.info(markdown)).bytes, limits.maxOutputBytes - budget.output, "output");
+            for await (const chunk of text.chunks(markdown)) await budget.emit(chunk);
+            written = true;
+          }
+          await storage.close(); storage = undefined;
         }
       }
     } catch (error) {
@@ -62,7 +74,7 @@ export function createHtmlToMarkdownCommand(options: HtmlToMarkdownCommandsOptio
         rejected = true; failure = error;
       }
     }
-    for (const cleanup of [inputs?.close, operation?.close]) {
+    for (const cleanup of [inputs?.close, () => storage?.close(), operation?.close]) {
       try { await cleanup?.(); }
       catch (error) { if (!failed && !rejected) { rejected = true; failure = error; } }
     }

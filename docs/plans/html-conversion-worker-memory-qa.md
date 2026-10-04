@@ -2,17 +2,21 @@
 
 ## Scope and prerequisites
 
-This is a manual QA plan, not a qualification result. The Markdown parser has
-an optional awaited event sink that avoids retaining completed nodes. The
-command still uses the tree renderer. Its open-element stack and unfinished tag
-storage can grow with depth and token size. Do not describe the command as
-bounded or this parser change as completing the storage migration.
+This is a manual QA plan, not a qualification result. The command now uses the
+awaited parser event sink to write fixed-size document records into caller-backed
+storage. Markdown text uses immutable balanced ropes in the same storage; code
+fences, ragged-table widths and output staging no longer require whole output
+strings or arrays of every table row. The cache is 256 KiB and spills via the
+injected safe-fs retained descriptor in `TMPDIR`, falling back to the command
+working directory. A memory backend still retains backing bytes in RAM.
 
-Before qualification, connect the event parser to a writer using caller-authorized
-safe-fs storage for global formatting context, including code fences, table
-widths, inline normalization and output staging. Preserve output/error ordering,
-retained file identity, cleanup and cancellation. Test adversarial depth and
-attribute size as well as long flat documents; do not lower accepted limits.
+Before qualification, finish the remaining input-size-dependent state: unfinished
+tags/attributes and open-element names in the parser, recursive traversal
+continuations in the renderer, and URL attribute validation. The existing URL
+policy still materializes a destination attribute before validation. Do not
+characterize the current command as fully bounded. Preserve output/error ordering,
+retained file identity, cleanup and cancellation while migrating these paths;
+exercise adversarial depth and attribute size without lowering accepted limits.
 
 The separate htmlq owner is `packages/safe-bash-command-htmlq`: `command.ts`
 passes injected filesystem streams to `projectHtmlq` in `behavior.ts`, which

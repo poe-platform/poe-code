@@ -51,7 +51,7 @@ export async function retainedImageOriginAllowed(chunks: () => AsyncIterable<str
   }
   if (state === "authority" || state === "authorityEnd" || state === "slashes") {
     const finish = hostEnd < 0 ? trimEnd : hostEnd;
-    const ascii = new AsciiUrlHost(); let hostnameEnd = finish;
+    const ascii = new AsciiUrlHost(); let hostnameEnd = finish, nativeHost = false;
     let authority = "", position = 0, bracket = false, portStarted = false, portDigits = false, port = 0, hostSeen = false, ipv6 = false;
     for await (const part of chunks()) {
       const end = position + part.length;
@@ -87,6 +87,7 @@ export async function retainedImageOriginAllowed(chunks: () => AsyncIterable<str
       if (valid === false && !(scheme === "file" && ascii.windowsDrive && !portStarted)) return false;
       if (scheme === "file" && ascii.windowsDrive && !portStarted) authority = ascii.windowsDrive;
       else if (valid === undefined) {
+        nativeHost = true;
         position = 0;
         for await (const part of chunks()) {
           const end = position + part.length;
@@ -101,7 +102,13 @@ export async function retainedImageOriginAllowed(chunks: () => AsyncIterable<str
     }
     if (portStarted) authority += ":";
     if (portDigits) authority += String(port);
-    return URL.canParse(`${special ? scheme : "x"}://${credentials ? "x@" : ""}${authority}${hostEnd < 0 ? "" : "/"}`);
+    const target = `${special ? scheme : "x"}://${credentials ? "x@" : ""}${authority}${hostEnd < 0 ? "" : "/"}`;
+    if (nativeHost) {
+      // Node 22's optimized canParse mishandles mixed Latin-1/percent-encoded
+      // hosts. The constructor keeps native IDNA and raw file-drive rules.
+      try {new URL(target); return true;} catch {return false;}
+    }
+    return URL.canParse(target);
   }
   return state === "accept" || state === "body" || state === "slash" || state === "fileFirst" || state === "fileSecond";
 }

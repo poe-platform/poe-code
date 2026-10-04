@@ -3,6 +3,20 @@ import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {convertToOutput} from "./engine.js";
 import {createJsonFilterCapability} from "./json-filters.js";
 
+it("admits mixed Unicode and escaped ASCII host labels after URL parser warmup", async () => {
+  const {retainedImageOriginAllowed} = await import("./retained-image-origin.js");
+  const {ExecutionContext} = await import("./execution.js");
+  const context = new ExecutionContext("convert", {});
+  try {
+    // Node 22's optimized canParse rejects some Latin-1 percent-encoded hosts.
+    // The constructor follows the same URL grammar without that fast-path bug.
+    for (let i = 0; i < 100000; i++) URL.canParse("http://example.test/");
+    const result = await retainedImageOriginAllowed(async function* () {yield "http://é%61/image";}, context);
+    expect(new URL("http://é%61/image").hostname).toBe("xn--a-9fa");
+    expect(result).toBe(true);
+  } finally {await context.close();}
+});
+
 it.each(["data:", "custom:", "custom: ", "relative-", "https://example.test/", "custom://example.test/?", "file:/", "file://example.test/"])("does not materialize long JSON-filter image admission for %s", async prefix => {
   const url = prefix + "x".repeat(20000), fs = new MemoryFileSystem();
   const input = {bytes: new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: [{t: "Image", c: [["", [], []], [], [url, ""]]}]}]}))};
@@ -158,7 +172,9 @@ it("preserves native encoded-host admission and raw file-drive rules", async () 
   try {
     for (const scheme of ["http", "file", "custom"]) for (const host of hosts) for (const size of [1, 2, 7]) {
       const value = `${scheme}://${host}/image`;
-      expect(await retainedImageOriginAllowed(async function* () {for (let i = 0; i < value.length; i += size) yield value.slice(i, i + size);}, context), value).toBe(URL.canParse(value));
+      let expected = true;
+      try {new URL(value);} catch {expected = false;}
+      expect(await retainedImageOriginAllowed(async function* () {for (let i = 0; i < value.length; i += size) yield value.slice(i, i + size);}, context), value).toBe(expected);
     }
   } finally {await context.close();}
 });

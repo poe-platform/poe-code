@@ -9,6 +9,22 @@ import ts from "typescript";
 import { build, transformSync, type BuildOptions, type Plugin } from "esbuild";
 import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifiers } from "./package-safe.mjs";
 
+it("resolves emitted presentation inspection types without checkout aliases", () => {
+  const filename = fileURLToPath(new URL("../packages/safe-bash-presentation-engine/dist/retained-inspection.d.ts", import.meta.url));
+  const specifiers: string[] = [];
+  rewriteModuleSpecifiers(filename, readFileSync(filename, "utf8"), specifier => {
+    specifiers.push(specifier);
+    return specifier;
+  });
+  expect(specifiers.length).toBeGreaterThan(0);
+  for (const specifier of specifiers) {
+    const resolution = ts.resolveModuleName(specifier, filename, {
+      module: ts.ModuleKind.NodeNext, moduleResolution: ts.ModuleResolutionKind.NodeNext,
+    }, ts.sys);
+    expect(resolution.resolvedModule, specifier).toBeDefined();
+  }
+});
+
 it("packages isolated root SafeJS exports from canonical workspace artifacts", async () => {
   const { volume, options } = optionalLeftovers();
   const root = JSON.parse(volume.readFileSync("/repo/package.json", "utf8") as string);

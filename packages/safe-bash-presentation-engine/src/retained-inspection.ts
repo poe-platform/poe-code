@@ -94,7 +94,7 @@ export async function openRetainedPresentationIndex(
     async function* diagrams() { for await (const diagram of metadata.diagrams()) yield { part: diagram.part, kind: diagram.kind, owners: strings(diagram.owners()), dependencies: strings(diagram.dependencies()), missing: strings(diagram.missing()), semanticEditing: false }; }
     async function* relationships() { for await (const edge of metadata.relationships()) yield { id: edge.id, type: edge.type, target: edge.target, external: edge.external, owner: edge.owner, targetPart: edge.targetPart }; }
     const inventory = {
-      slides: slides.slides(), diagrams: diagrams(), textStyles: { [rawJson]: () => stagedValues.read(styleRows) },
+      slides: slides.slides(), diagrams: diagrams(), textStyles: { [rawJson]: (): ByteSource => stagedValues.read(styleRows) },
       masters: strings(metadata.targets('slideMaster')), handoutMasters: slides.handoutMasters(), layouts: strings(metadata.targets('slideLayout')), themes: strings(metadata.targets('theme')),
       parts: parts(false), media: parts(true), relationships: relationships(), unsupported: metadata.unsupported(),
       features: { structure: true, slideVisibility: true, effectiveFormatting: false, mediaMetadata: false, editing: false },

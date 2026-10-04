@@ -17,8 +17,11 @@ Destination security checks and escaping now stream over stored text. Paths,
 credentials, arbitrarily long ASCII labels and zero-padded ports do not enter
 native URL parsing as full payloads. Percent-decoded host bytes use a bounded
 UTF-8 window and caller storage. Before qualification, finish the remaining
-Unicode/punycode hostname validation: its native IDNA path still materializes
-the hostname. Do not
+Unicode/punycode label validation: hostnames are now assembled in caller
+storage, but the native IDNA path still materializes individual labels of
+unbounded length. Label validation preserves the platform’s whole-domain Unicode
+mode, and numeric-host checks run over the mapped domain. Do not impose DNS
+wire-size limits: the native URL parser accepts longer labels. Do not
 characterize the current command as fully bounded. Preserve output/error ordering,
 retained file identity, cleanup and cancellation while migrating these paths;
 exercise adversarial depth and attribute size without lowering accepted limits.

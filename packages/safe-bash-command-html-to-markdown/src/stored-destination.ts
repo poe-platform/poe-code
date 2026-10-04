@@ -7,7 +7,7 @@ const digit = (character: string): boolean => character >= "0" && character <= "
 
 /** The URL standard permits arbitrary ASCII label lengths. Validate domains and
  * IPv4 numbers with fixed state instead of handing such labels to native URL. */
-async function asciiHost(text: TextStore, root: number, budget: Budget): Promise<boolean | undefined> {
+async function asciiHost(text: TextStore, root: number, budget: Budget, validatePunycode = true): Promise<boolean | undefined> {
   interface Part { valid: boolean; decimal: boolean; value: number }
   const parts: Part[] = [];
   let count = 0, length = 0, prefix = "", radix = 10, valid = true, decimal = true, value = 0;
@@ -25,7 +25,7 @@ async function asciiHost(text: TextStore, root: number, budget: Budget): Promise
     if (code <= 32 || code === 127 || "#%/:<>?@[\\]^|".includes(character)) return false;
     if (character === ".") { finish(); continue; }
     if (prefix.length < 4) prefix += character.toLowerCase();
-    if (prefix === "xn--") return undefined;
+    if (validatePunycode && prefix === "xn--") return undefined;
     decimal &&= digit(character);
     if (length === 0 && character === "0") radix = 8;
     if (length === 1 && prefix === "0x") radix = 16;
@@ -80,19 +80,72 @@ async function decodeHost(text: TextStore, root: number, budget: Budget): Promis
   return result.finish();
 }
 
+/** IDNA is label-local. Keep the assembled ASCII domain in caller storage;
+ * the final IPv4 decision must still see all labels, after Unicode mappings. */
+async function idnaHost(text: TextStore, root: number, budget: Budget): Promise<number> {
+  const domain = text.builder();
+  // Native implementations can use a stricter IDNA path when any input label
+  // contains Unicode. Preserve that whole-domain mode even for ASCII A-labels.
+  let unicode = false;
+  for await (const character of text.characters(root)) {
+    budget.work(character.length);
+    const checkpoint = budget.checkpoint(); if (checkpoint) await checkpoint;
+    if (character.codePointAt(0)! > 127) { unicode = true; break; }
+  }
+  const suffix = unicode ? "é" : "invalid", mappedSuffix = unicode ? ".xn--9ca" : ".invalid";
+  let label = text.builder(), native = false, prefix = "";
+  const finish = async (): Promise<boolean> => {
+    const value = await label.finish();
+    if (native) {
+      // An arbitrarily long individual IDNA label remains a native allocation.
+      // Do not cap it: URL parsing accepts labels beyond DNS wire-size limits.
+      let input = "";
+      for await (const chunk of text.chunks(value)) {
+        budget.work(chunk.length); input += chunk;
+        const checkpoint = budget.checkpoint(); if (checkpoint) await checkpoint;
+      }
+      let mapped: string;
+      try {
+        const hostname = new URL(`http://${input}.${suffix}/`).hostname;
+        if (!hostname.endsWith(mappedSuffix)) return false;
+        mapped = hostname.slice(0, -mappedSuffix.length);
+      } catch { return false; }
+      await domain.write(mapped);
+    } else await domain.append(value);
+    label = text.builder(); native = false; prefix = "";
+    return true;
+  };
+  for await (const character of text.characters(root)) {
+    budget.work(character.length);
+    const checkpoint = budget.checkpoint(); if (checkpoint) await checkpoint;
+    const code = character.codePointAt(0)!;
+    if (code <= 32 || code === 127 || "#%/:<>?@[\\]^|".includes(character)) return 0;
+    if (character === "." || character === "。" || character === "．" || character === "｡") {
+      if (!await finish()) return 0;
+      await domain.write(".");
+    } else {
+      if (prefix.length < 4) prefix += character.toLowerCase();
+      native ||= code > 127 || prefix === "xn--";
+      await label.write(character);
+    }
+  }
+  return await finish() ? domain.finish() : 0;
+}
+
 async function hostname(text: TextStore, root: number, budget: Budget): Promise<boolean> {
   if (!root) return false;
   const first = await text.at(root, 0);
-  if (first !== "[") {
-    if (await text.includes(root, "%")) { root = await decodeHost(text, root, budget); if (!root) return false; }
-    const ascii = await asciiHost(text, root, budget);
-    if (ascii !== undefined) return ascii;
-  } else if ((await text.info(root)).length > 47) return false; // Longest IPv6 address including brackets.
-  // Unicode/punycode hostname validation still delegates IDNA to
-  // the platform. Only this hostname is materialized, never userinfo or a path.
-  let host = "";
-  for await (const chunk of text.chunks(root)) { budget.work(chunk.length); host += chunk; const checkpoint = budget.checkpoint(); if (checkpoint) await checkpoint; }
-  try { return Boolean(new URL(`http://${host}/`).hostname); } catch { return false; }
+  if (first === "[") {
+    if ((await text.info(root)).length > 47) return false; // Longest IPv6 address including brackets.
+    let host = "";
+    for await (const chunk of text.chunks(root)) host += chunk;
+    try { return Boolean(new URL(`http://${host}/`).hostname); } catch { return false; }
+  }
+  if (await text.includes(root, "%")) { root = await decodeHost(text, root, budget); if (!root) return false; }
+  const ascii = await asciiHost(text, root, budget);
+  if (ascii !== undefined) return ascii;
+  const mapped = await idnaHost(text, root, budget);
+  return mapped !== 0 && await asciiHost(text, mapped, budget, false) === true;
 }
 
 /** Strip credentials and scan ports without retaining them. Their spelling is

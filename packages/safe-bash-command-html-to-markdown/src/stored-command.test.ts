@@ -130,3 +130,22 @@ for (const [name, prefix, repeated, suffix] of [
   assert.equal(outputBytes, 8 + prefix.length + repeated.length * 16384 + suffix.length);
   assert.ok(nativeMaximum <= 128, `native URL parser retained ${nativeMaximum} characters`);
 });
+
+for (const label of ["é", "xn--bcher-kva"]) test(`many ${label} hostname labels do not form one native payload`, async t => {
+  const NativeURL = globalThis.URL;
+  let maximum = 0, bytes = 0;
+  globalThis.URL = class extends NativeURL {
+    constructor(input: string | URL, base?: string | URL) { maximum = Math.max(maximum, String(input).length); super(input, base); }
+  };
+  t.after(() => { globalThis.URL = NativeURL; });
+  const encoder = new TextEncoder(), chunk = encoder.encode((label + ".").repeat(64));
+  const source = { async *[Symbol.asyncIterator]() {
+    yield encoder.encode('<a href="https://');
+    for (let index = 0; index < 8; index++) yield chunk;
+    yield encoder.encode('example/">x</a>');
+  } };
+  const result = await convert(source, {}, { stdout: { async write(value) { bytes += value.length; } } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(bytes, 8 + 8 + chunk.length * 8 + 8);
+  assert.ok(maximum <= 128, `native parser retained ${maximum} characters`);
+});

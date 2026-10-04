@@ -59,3 +59,17 @@ test("streamed destination validation yields and preserves caller cancellation",
     await assert.rejects(storedDestination(text, root, false, new Budget({ ...context, signal: controller.signal }, settings({}))), error => error === reason);
   } finally { clearTimeout(timer); await storage.close(); }
 });
+
+test("label-wise IDNA preserves mapped dots, ignored labels, bidi and numeric endings", async () => {
+  const context = (await convert("")).context, storage = new PagedStorage(context, 1), text = new TextStore(storage);
+  const labels = ["é".repeat(128), new URL("http://" + "é".repeat(128)).hostname, "é", "e\u0301", "1é", "-é", "א", "1א", "אa", "א1", "א١1", "क्\u200dष", "a\u200c", "\u0301a", "a\u0340", "\u00ad", "\u200b", "\ufeff", "Ａ", "１２３", "０ｘ７ｆ", "a。b", "a．b", "a｡b", "xn--bcher-kva", "xn--abc-", "xn--", "xn--a", "xn--a-ecp", "㏇", "a﹒b"];
+  try {
+    for (const label of labels) for (const suffix of ["", ".", ".example", ".א", ".１２３", ".\u00ad", "。example", ".1.2.3", ".%C3%A9", ".%61"]) {
+      const value = `http://${label}${suffix}/`, expected = await destination(value, false, new Budget(context, settings({})));
+      const root = await storedDestination(text, await text.from(value), false, new Budget(context, settings({})));
+      let actual = "";
+      for await (const chunk of text.chunks(root)) actual += chunk;
+      assert.equal(root ? actual : undefined, expected, value);
+    }
+  } finally { await storage.close(); }
+});

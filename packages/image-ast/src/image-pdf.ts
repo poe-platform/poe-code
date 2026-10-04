@@ -7,7 +7,7 @@ import {UnsupportedStoredResource} from "./codecs/unsupported-storage.js";
 import type {ImageMetadata,SharpInputOptions} from "./ast.js";
 
 /** File adapter: PDF indexes and encoded input remain in caller-authorized backing. */
-async function openPdfImage(source:ImageByteSource,fs:FileSystem,directory:string,signal:AbortSignal,options:SharpInputOptions){
+async function openPdfImage(source:ImageByteSource,fs:FileSystem,directory:string,signal:AbortSignal,options:SharpInputOptions,storage?:ImageByteStorage){
  signal.throwIfAborted();const settings={...options},size=source.size;
  if(settings.raw)return undefined;
  if(!Number.isSafeInteger(size)||size<0)throw new RangeError("Invalid PDF image source size");
@@ -23,7 +23,7 @@ async function openPdfImage(source:ImageByteSource,fs:FileSystem,directory:strin
  let document:PdfRetainedDocument|undefined;
  const cleanup=async()=>{let failure:{error:unknown}|undefined;try{await document?.close();}catch(error){failure={error};}try{await retained.close();}catch(error){failure??={error};}if(failure)throw failure.error;};
  try{
-  document=await PdfRetainedDocument.open(retained,{fs,directory},{signal,recovery:"repair",chunkBytes:16384,maxNodes:Infinity,maxTokenBytes:Infinity,maxRecursionDepth:Infinity,maxPageTreeDepth:Infinity});
+  document=await PdfRetainedDocument.open(retained,{fs,directory},{signal,recovery:"repair",chunkBytes:16384,maxNodes:Infinity,maxTokenBytes:Infinity,maxRecursionDepth:Infinity,maxPageTreeDepth:Infinity,...(storage?{valueArrays:{arrayStorage:storage,storedArrayKeys:["Widths","W"]}}:{})});
   let pages=0,selected:PdfRetainedPage|undefined;
   for await(const page of document.pages()){pages++;if(page.index<=Math.max(0,settings.page??0))selected=page;}
   if(!selected)throw new PdfError("E_CAPABILITY","Page index out of bounds: 0");
@@ -33,15 +33,15 @@ async function openPdfImage(source:ImageByteSource,fs:FileSystem,directory:strin
  }catch(error){await cleanup().catch(()=>{});throw error;}
 }
 
-export async function tryPdfMetadata(source:ImageByteSource,fs:FileSystem,directory:string,signal:AbortSignal,options:SharpInputOptions):Promise<ImageMetadata|undefined>{
- const owner=await openPdfImage(source,fs,directory,signal,options);if(!owner)return undefined;
+export async function tryPdfMetadata(source:ImageByteSource,fs:FileSystem,directory:string,signal:AbortSignal,options:SharpInputOptions,storage?:ImageByteStorage):Promise<ImageMetadata|undefined>{
+ const owner=await openPdfImage(source,fs,directory,signal,options,storage);if(!owner)return undefined;
  await owner.close();return owner.metadata;
 }
 
 /** File-oriented PDF adapter. Syntax, decoded images, tiles and final pixels all
  * use caller-authorized backing; no encoded-file or page bitmap is collected. */
 export async function tryPdfDecode(source:ImageByteSource,storage:ImageByteStorage,fs:FileSystem,directory:string,signal:AbortSignal,options:SharpInputOptions={}):Promise<StoredRgbaImage|undefined>{
- const settings={...options};const owner=await openPdfImage(source,fs,directory,signal,settings);if(!owner)return undefined;
+ const settings={...options};const owner=await openPdfImage(source,fs,directory,signal,settings,storage);if(!owner)return undefined;
  let failed=false;
  try{
   const rendered=await renderRetainedPagePixels(owner.page,{fs,directory},{signal,scale:(settings.density??72)/72,imageStorage:storage,chunkBytes:4096,tileSize:64});

@@ -166,3 +166,22 @@ describe("retained document pages", () => {
   });
 
 });
+
+it("backs inline font tables before page attributes reach font resolution", async () => {
+  const original = PdfDocument.create(), page = original.addPage();
+  dictSet(page.pageDict,"Resources",cosDict({Font:cosDict({F:cosDict({Subtype:cosName("Type1"),Widths:cosArray(Array.from({length:2048},()=>cosNumber(500)))})})}));
+  const data = new Uint8Array(2_000_000); let end=0;
+  const backing = {allocate(n:number){const at=end;end+=n;return at;},async read(at:number,n:number){return data.subarray(at,at+n);},async write(at:number,bytes:Uint8Array){data.set(bytes,at);}};
+  const f = await fixture(original.save(),{valueArrays:{arrayStorage:backing,storedArrayKeys:["Widths","W"]}});
+  try {
+    const pages=f.doc.pages(), page=(await pages.next()).value!;
+    const attributes=await page.attributes();
+    const {dictGet}=await import("./ast.js");
+    const fonts=dictGet(attributes.resources,"Font");
+    if(fonts?.kind!=="dict")throw Error("font dictionary expected");
+    const font=dictGet(fonts,"F");if(font?.kind!=="dict")throw Error("font expected");
+    const widths=dictGet(font,"Widths");if(widths?.kind!=="array")throw Error("widths expected");
+    expect(widths.items).toHaveLength(0);expect(widths.storedItems?.length).toBe(2048);
+    await pages.return();
+  } finally {await f.close();}
+});

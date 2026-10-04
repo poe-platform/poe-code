@@ -85,7 +85,9 @@ uses this backing for text and array elements when `pathStorage` is supplied.
 Arrays expose `storedItems` with empty `items`; iterate their elements with
 `readStoredItems<PdfCosNode>(array.storedItems, signal)`. Source COS parsing and
 retained `lookup` also accept `arrayStorage`, `storedArrayKeys`, and
-`storeRootArray` to back selected arrays without collecting their elements.
+`storeRootArray` to back selected arrays without collecting their elements. Set
+`valueArrays` when opening a retained document to apply these options to page
+lookups too, including inline font resources.
 Retained font resolution uses these options for direct and indirect width tables
 when `resourceStorage` is supplied, including encrypted objects. Retained evaluation reads
 text and TJ elements incrementally, including multibyte character boundaries.

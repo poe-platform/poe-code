@@ -101,7 +101,7 @@ export class PdfRetainedDocument {
   }
 
   /** Resolve a bounded reference chain, retaining the final stream's identity. */
-  async lookup(node: PdfCosNode | undefined, arrays: ValueArrayStorage = {}): Promise<PdfRetainedValue | undefined> {
+  async lookup(node: PdfCosNode | undefined, arrays: ValueArrayStorage = this.options.valueArrays ?? {}): Promise<PdfRetainedValue | undefined> {
     this.assertOpen();
     let reference: PdfCosRef | undefined;
     const visited = new Set<number>();

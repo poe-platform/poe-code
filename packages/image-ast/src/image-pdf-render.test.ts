@@ -47,3 +47,24 @@ it.each(["write","cancel"])("cleans PDF scratch after pixel %s failure",async ph
  finally{await storage.close();}
  expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it("backs inline font widths before decoding or inspecting PDF images",async()=>{
+ const {cosArray,cosDict,cosName,cosStream,PdfRetainedDocument}=await import("@poe-code/pdf-ast");
+ const {tryPdfMetadata}=await import("./image-pdf.js");
+ const original=PdfDocument.create(),page=original.addPage([32,24]);
+ dictSet(page.pageDict,"Resources",cosDict({Font:cosDict({F:cosDict({Subtype:cosName("Type1"),BaseFont:cosName("Helvetica"),FirstChar:cosNumber(0),Widths:cosArray(Array.from({length:2048},()=>cosNumber(500)))})})}));
+ dictSet(page.pageDict,"Contents",original.cos.allocateObject(cosStream(new TextEncoder().encode("BT /F 12 Tf 2 8 Td (A) Tj ET"))));
+ const bytes=original.save(),expected=decodeImage(bytes),fs=createMemoryFileSystem();await fs.mkdir("/scratch");
+ const signal=new AbortController().signal,storage=new PagedStorage({fs,cwd:"/scratch",env:{},signal},4);
+ const source={size:bytes.length,async read(at:number,n:number){return bytes.subarray(at,at+n);}};
+ const open=vi.spyOn(PdfRetainedDocument,"open");
+ try{
+  const metadata=await tryPdfMetadata(source,fs,"/scratch",signal,{},storage);
+  expect(metadata).toMatchObject({width:32,height:24});
+  const image=await tryPdfDecode(source,storage,fs,"/scratch",signal);
+  const actual=await storage.read(image!.position,image!.width*image!.height*4);
+  expect(actual).toEqual(expected.data);
+  for(const call of open.mock.calls)expect(call[2]?.valueArrays?.arrayStorage).toBe(storage);
+ }finally{open.mockRestore();await storage.close();}
+ expect(await fs.readdir("/scratch")).toEqual([]);
+});

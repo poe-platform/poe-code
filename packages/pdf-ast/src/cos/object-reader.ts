@@ -13,6 +13,9 @@ import { PdfObjectIndex, type PdfIndexStorage } from "./object-index.js";
 import { parseCosRangeObject, parseCosRangeValue, type ParseCosRangeOptions, type PdfRangeObject } from "./range-parser.js";
 
 export interface PdfObjectReaderOptions extends Omit<ParseCosRangeOptions, "resolveLength" | keyof ValueArrayStorage | "onBackingError">, PdfStreamDecodeOptions {
+  /** Default backing for selected structural arrays in explicit object lookups.
+   * Cross-reference bootstrap and stream filter dictionaries remain independent. */
+  readonly valueArrays?: ValueArrayStorage;
   readonly cacheBytes?: number;
   readonly encryption?: PdfEncryptionState;
   readonly encryptionObjectNumber?: number;
@@ -67,7 +70,7 @@ export class PdfObjectReader {
       ...options, chunkBytes, cacheBytes };
   }
 
-  get(objectNumber: number, generationNumber = 0, arrays: ValueArrayStorage = {}): Promise<PdfRangeObject | undefined> {
+  get(objectNumber: number, generationNumber = 0, arrays: ValueArrayStorage = this.options.valueArrays ?? {}): Promise<PdfRangeObject | undefined> {
     integer(objectNumber, "objectNumber"); integer(generationNumber, "generationNumber");
     return this.enqueue(() => this.load(objectNumber, generationNumber, new Set(), arrays));
   }

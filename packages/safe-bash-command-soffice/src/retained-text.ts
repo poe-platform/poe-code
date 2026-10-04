@@ -1,3 +1,4 @@
+import { RetainedRtfText, type RetainedRtfSnapshot } from "./retained-rtf.js";
 import { readFileStream, resolvePath } from "@poe-code/safe-fs/core";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import type { FileSystem } from "@poe-code/safe-fs/contracts";
@@ -48,9 +49,19 @@ export async function catRetainedText(inputs: readonly string[], context: {
       failed = false;
       return { exitCode: 1, stdout: "", stderr: `Error: source file could not be loaded: ${input}\n` };
     }
+    const rtf = new RetainedRtfText(storage, signal), richText = new Map<string, RetainedRtfSnapshot>();
+    for (const input of inputs) if (input.toLowerCase().endsWith(".rtf")) {
+      const path = resolvePath(cwd, input);
+      if (!richText.has(path)) {
+        const source = sources.get(path)!;
+        richText.set(path, await rtf.retain(source.position, source.size));
+      }
+    }
     async function* output(): AsyncGenerator<Uint8Array> {
       const encoder = new TextEncoder();
       for (const input of inputs) {
+        const retained = input.toLowerCase().endsWith(".rtf") ? richText.get(resolvePath(cwd, input)) : undefined;
+        if (retained) { yield* rtf.stream(retained); yield Uint8Array.of(10); continue; }
         const source = sources.get(resolvePath(cwd, input))!, decoder = new TextDecoder();
         for (let offset = 0; offset < source.size; offset += 16384) {
           await checkpoint();

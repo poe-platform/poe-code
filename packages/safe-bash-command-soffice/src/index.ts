@@ -1,3 +1,4 @@
+import { rtfTextSteps } from "./rtf-text.js";
 import { catRetainedText } from "./retained-text.js";
 import type { FileSystem } from "@poe-code/safe-fs/contracts";
 import type { ByteSink } from "safe-bash-contracts/io";
@@ -762,52 +763,16 @@ function parseOdtBlocks(zipBytes: Uint8Array): DocBlock[] {
 }
 
 function parseRtfBlocks(rtfBytes: Uint8Array): DocBlock[] {
-  const raw = new TextDecoder("latin1").decode(rtfBytes);
-  const groups: boolean[] = [];
-  let hidden = false;
-  let cleaned = "";
-  const isLetter = (char: string) =>
-    (char >= "a" && char <= "z") || (char >= "A" && char <= "Z");
-  for (let i = 0; i < raw.length;) {
-    const char = raw[i++]!;
-    if (char === "{") {
-      groups.push(hidden);
-    } else if (char === "}") {
-      hidden = groups.pop() ?? false;
-    } else if (char === "\\") {
-      const symbol = raw[i++] ?? "";
-      if (symbol === "*") {
-        hidden = true;
-      } else if (symbol === "\\" || symbol === "{" || symbol === "}") {
-        if (!hidden) cleaned += symbol;
-      } else if (symbol === "'") {
-        const hex = raw.slice(i, i + 2);
-        if (!hidden && hex.length === 2 && [...hex].every(ch => "0123456789abcdef".includes(ch.toLowerCase()))) {
-          cleaned += new TextDecoder("windows-1252").decode(new Uint8Array([Number.parseInt(hex, 16)]));
-        }
-        i += 2;
-      } else if (isLetter(symbol)) {
-        const start = i - 1;
-        while (i < raw.length && isLetter(raw[i]!)) i++;
-        const word = raw.slice(start, i);
-        const parameterStart = i;
-        if (raw[i] === "-") i++;
-        while (i < raw.length && raw[i]! >= "0" && raw[i]! <= "9") i++;
-        const parameter = Number(raw.slice(parameterStart, i));
-        // Only a space delimits a control word; generated paragraph breaks are data.
-        if (raw[i] === " ") i++;
-        if (["fonttbl", "colortbl", "stylesheet", "info", "pict", "object"].includes(word)) hidden = true;
-        if (word === "bin" && Number.isSafeInteger(parameter) && parameter > 0) {
-          i += parameter;
-        } else if (!hidden) {
-          if (word === "par" || word === "line") cleaned += "\n";
-          else if (word === "tab") cleaned += "\t";
-        }
-      } else if (!hidden && symbol === "~") {
-        cleaned += "\u00a0";
-      }
-    } else if (!hidden && char !== "\r" && char !== "\n") {
-      cleaned += char;
+  const groups: number[] = [], steps = rtfTextSteps(rtfBytes.length);
+  let cleaned = "", next = steps.next();
+  while (!next.done) {
+    const step = next.value;
+    if (step.kind === "read") next = steps.next(rtfBytes[step.position]);
+    else if (step.kind === "group-read") next = steps.next(groups[step.index]);
+    else {
+      if (step.kind === "group-write") groups[step.index] = step.value;
+      else cleaned += step.value;
+      next = steps.next();
     }
   }
   const lines = cleaned.split("\n").map(line => line.trim()).filter(line => line.length > 0);
@@ -1298,7 +1263,7 @@ export async function runSofficeFileCli(argv: readonly string[], options: Soffic
 
     const vfsFiles = new Map<string, Uint8Array>();
     const parsed = parseSofficeArguments(argv, context.cwd);
-    const structured = [".pdf", ".docx", ".odt", ".ods", ".odp", ".xlsx", ".pptx", ".html", ".htm", ".rtf"];
+    const structured = [".pdf", ".docx", ".odt", ".ods", ".odp", ".xlsx", ".pptx", ".html", ".htm"];
     if ((context.fs.readStream || context.fs.openReadFile) && !("exitCode" in parsed) && parsed.catMode && !parsed.convertSpec && parsed.inputs.length &&
         parsed.inputs.every(path => !structured.some(extension => path.toLowerCase().endsWith(extension)))) {
       const stdout = invocation.child(context.stdout);

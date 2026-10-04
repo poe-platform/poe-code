@@ -22,7 +22,7 @@ export to real XLSX workbooks or CSV with StarCalc filter options. Markdown alig
 rows and prose outside tables are omitted; multiple tables are concatenated in source
 order into one worksheet. HTML without tables exports visible blocks as one column.
 
-RTF input omits nested metadata groups and preserves paragraph breaks, line breaks, tabs, and escaped text.
+RTF input omits nested metadata groups and preserves paragraph breaks, line breaks, tabs, and escaped text. `--cat` keeps group state and trimmed paragraphs in caller backing, including arbitrarily long paragraphs and deep nested groups.
 
 CSV input preserves quoted commas, escaped quotes, and embedded newlines. ODS-to-XLSX conversion preserves typed cells, sheet names and column positions; ODS-to-CSV exports the active worksheet and preserves explicit line breaks. These routes use the shared spreadsheet engine and independently selectable format modules. `-convert-to` and `-outdir` are accepted alongside their double-dash forms, including `=value`. Compatibility options `--infilter`, `--pidfile`, and `--language` consume their values but do not configure conversion. PPTX and ODP presentations also export to HTML and DOCX with headings and paragraphs. `--cat` extracts readable text from XLSX and PPTX archives; CSV remains source text. Malformed ZIP inputs return an error diagnostic.
 
@@ -44,7 +44,7 @@ The workspace entrypoint exports `sofficeCommands()` for plugin registration,
 `SofficeCommandsOptions` object; existing factory names remain available.
 
 `runSofficeFileCli(args, { filesystem, stdout, stderr, cwd, signal, limits })`
-shares the command's file authority, budgets and output lifecycle. Plain-text `--cat`
+shares the command's file authority, budgets and output lifecycle. Plain-text and RTF `--cat`
 (including CSV and Markdown source text) snapshots inputs in caller-backed storage,
 then streams UTF-8 output with backpressure. It admits cumulative input/output limits
 before publishing stdout and cleans up backing on cancellation or sink failure.

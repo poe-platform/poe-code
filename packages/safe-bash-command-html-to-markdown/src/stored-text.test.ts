@@ -102,3 +102,11 @@ test("stored text preserves BOM characters at every leaf boundary", async () => 
   assert.equal(await text.at(root, 0), "\ufeff");
   assert.equal(await text.at(root, 2048), "\ufeff");
 }));
+
+test("stored scalar offsets distinguish UTF-16 width across rope leaves", () => fixture(async text => {
+  const value = "a😀𐀀é".repeat(1024), root = await text.from(value);
+  assert.equal((await text.info(root)).points, 4096);
+  for (const index of [0, 1, 2, 3, 4, 2047, 2048, 4095, 4096]) {
+    assert.equal(await text.pointOffset(root, index), [...value].slice(0, index).join("").length);
+  }
+}));

@@ -16,15 +16,18 @@ working directory. A memory backend still retains backing bytes in RAM.
 Destination security checks and escaping now stream over stored text. Paths,
 credentials, arbitrarily long ASCII labels and zero-padded ports do not enter
 native URL parsing as full payloads. Percent-decoded host bytes use a bounded
-UTF-8 window and caller storage. Before qualification, finish the remaining
-Unicode/punycode label validation: hostnames are now assembled in caller
-storage, but the native IDNA path still materializes individual labels of
-unbounded length. Label validation preserves the platform’s whole-domain Unicode
-mode, and numeric-host checks run over the mapped domain. Do not impose DNS
-wire-size limits: the native URL parser accepts longer labels. Do not
-characterize the current command as fully bounded. Preserve output/error ordering,
-retained file identity, cleanup and cancellation while migrating these paths;
-exercise adversarial depth and attribute size without lowering accepted limits.
+UTF-8 window and caller storage. Individual IDNA labels over 256 UTF-16 units
+now use stored Unicode mapping, canonical normalization and RFC 3492 codecs.
+Normalization retains at most 255 canonical-class buckets, each with a bounded
+2048-unit text window; native normalization sees only scalar-sized inputs and
+pairs. Scalar-rank metadata makes punycode insertion use stored rope offsets.
+Fixed Unicode tables and 256-entry scalar caches do not grow with input size.
+Constant-size native probes preserve Unicode-version admission, Ada ContextJ
+behavior, older bidi-start rules and ASCII-only A-label compatibility. Do not
+impose DNS wire-size limits: the native URL parser accepts longer labels.
+Preserve output/error ordering, retained file identity, cleanup and cancellation
+while qualifying these paths; exercise adversarial depth and attribute size
+without lowering accepted limits. Deterministic tests are not Worker measurements.
 
 The separate htmlq owner is `packages/safe-bash-command-htmlq`: `command.ts`
 passes injected filesystem streams to `projectHtmlq` in `behavior.ts`, which

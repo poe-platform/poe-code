@@ -1,3 +1,4 @@
+import { storedIdnaLabel } from "./stored-idna.js";
 import type { Budget } from "./budget.js";
 import { StoredBuilder } from "./stored-builder.js";
 import type { TextStore } from "./stored-text.js";
@@ -97,8 +98,13 @@ async function idnaHost(text: TextStore, root: number, budget: Budget): Promise<
   const finish = async (): Promise<boolean> => {
     const value = await label.finish();
     if (native) {
-      // An arbitrarily long individual IDNA label remains a native allocation.
-      // Do not cap it: URL parsing accepts labels beyond DNS wire-size limits.
+      if ((await text.info(value)).length > 256) {
+        const mapped = await storedIdnaLabel(text, value, unicode, budget);
+        if (mapped === undefined) return false;
+        await domain.append(mapped);
+        label = text.builder(); native = false; prefix = "";
+        return true;
+      }
       let input = "";
       for await (const chunk of text.chunks(value)) {
         budget.work(chunk.length); input += chunk;

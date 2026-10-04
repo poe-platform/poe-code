@@ -73,3 +73,25 @@ test("label-wise IDNA preserves mapped dots, ignored labels, bidi and numeric en
     }
   } finally { await storage.close(); }
 });
+
+test("individual Unicode and punycode labels use bounded native inputs", async t => {
+  const NativeURL = globalThis.URL;
+  const labels = ["é".repeat(1024), "a" + "\u0315\u0300".repeat(128), "א".repeat(1024)];
+  const values = labels.flatMap(label => [`http://${label}.example/`, `http://${new NativeURL(`http://${label}/`).hostname}.example/`]);
+  const context = (await convert("")).context, storage = new PagedStorage(context, 16), text = new TextStore(storage);
+  const expected = await Promise.all(values.map(value => destination(value, false, new Budget(context, settings({})))));
+  let maximum = 0;
+  globalThis.URL = class extends NativeURL {
+    constructor(input: string | URL, base?: string | URL) { maximum = Math.max(maximum, String(input).length); super(input, base); }
+  };
+  t.after(() => { globalThis.URL = NativeURL; });
+  try {
+    for (const [index, value] of values.entries()) {
+      const root = await storedDestination(text, await text.from(value), false, new Budget(context, settings({})));
+      let actual = "";
+      for await (const chunk of text.chunks(root)) actual += chunk;
+      assert.equal(root ? actual : undefined, expected[index]);
+    }
+    assert.ok(maximum <= 512, `native parser retained ${maximum} characters`);
+  } finally { await storage.close(); }
+});

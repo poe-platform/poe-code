@@ -107,6 +107,8 @@ for (const [name, prefix, repeated, suffix] of [
   ["path", "https://example.test/", "x", ""],
   ["credentials", "https://", "x", "@example.test/"],
   ["ASCII hostname", "https://", "a", "/"],
+  ["Unicode hostname", "https://", "é", "/"],
+  ["punycode hostname in a Unicode domain", "https://xn--9ca", "a", ".é/"],
   ["percent-encoded ASCII hostname", "https://", "%61", "/"],
   ["zero-padded port", "https://example.test:", "0", "80/"],
 ] as const) test(`large URL ${name} never enters native parsing as a whole payload`, async t => {
@@ -127,7 +129,7 @@ for (const [name, prefix, repeated, suffix] of [
   } };
   const result = await convert(source, {}, { stdout: { async write(bytes) { outputBytes += bytes.length; assert.ok(bytes.length <= 8192); } } });
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(outputBytes, 8 + prefix.length + repeated.length * 16384 + suffix.length);
+  assert.equal(outputBytes, 8 + encoder.encode(prefix).length + encoder.encode(repeated).length * 16384 + encoder.encode(suffix).length);
   assert.ok(nativeMaximum <= 128, `native URL parser retained ${nativeMaximum} characters`);
 });
 

@@ -79,6 +79,8 @@
     "dist",
     "LICENSE"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "tr46": "7.0.0"
+  },
   "private": true
 }

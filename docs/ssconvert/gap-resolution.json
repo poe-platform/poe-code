@@ -5170,15 +5170,18 @@
         "243d6d3d402340d252f802c1e6c4ad77a404cd2e",
         "4f4c0b2ce181a49b5fe4ea6728bcb48e19f590fa",
         "d1ce7009f00e7ee0d072ce5eff3c1d5a19bfe166",
-        "1a1af21d9839f6771a5e4e9d62b4c785aa211e08"
+        "1a1af21d9839f6771a5e4e9d62b4c785aa211e08",
+        "0df3f79bf4556ed002741046a9a7983e2a63bcea",
+        "b93202f070a71db060a1ed7d250294224064cf7f",
+        "51a6b8d30b40e00a6b6952383357f28ab618f1f7"
       ],
       "profile": "gnumeric-1.12.61-optional-python-glossary; native binary SHA256 d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82; explicit DejaVu font controls",
       "styles": "Native underline values0-4, OS/2 strike metrics, top/center/bottom placement, font-metric indentation, protection flags and row clipping are implemented. Unstyled cells now use the same default shaping path as materialized styles.",
-      "multiline": "LF,CR and CRLF preserve blank/trailing lines and logical extraction text. Each line has its own shaping, native centered pixel rounding and decorations. Justify spreads lines; distributed centers the block. Widths requiring implicit automatic wrapping still refuse.",
-      "formulaViews": "Formula mode doubles column geometry, including fit/centering. Zero hiding uses the strict64-epsilon native tolerance and preserves displayed formulas. Array member cells use {=...}. Parsed expression output normalizes numbers, known function names, references and sheet quoting while retaining explicit grouping and unknown function spelling.",
-      "currentChecks": "882 focused formula/print/PDF tests plus40 final spelling regressions; selected19-workspace build, engine and command lint/source/test types and Node/browser consumer types pass.",
-      "independentControls": "Implicit defaults:12 public PDFs/6 native controls, max text-origin difference0.0017pt. Multiline:50 public PDFs/25 native controls, max0.0017pt. Array views:14 public PDFs/7 native controls, max0.003pt. Canonical formulas:62 public PDFs/31 native controls, max0.003pt. Screenshots inspected for each repair; these are profile comparisons, not global pixel parity.",
-      "remaining": "Automatic wrapping, Unicode paragraph separators/full bidi, shrink/rotation, rich text/merges, patterned fills/borders, chart/object fidelity, R1C1 conventions and complete live-name/label/optional-function rendering remain unqualified. All19 families stay open; containing release publication is not asserted."
+      "multiline": "LF, CR, CRLF, U+2028 and U+2029 preserve native blank/trailing paragraph semantics and logical extraction text. Trailing U+2028 does not add a line; U+2028 adjacent to a paragraph delimiter merges into that boundary. Each line has its own shaping, native centered pixel rounding and decorations. Justify spreads lines; distributed centers the block. Widths requiring implicit automatic wrapping still refuse.",
+      "formulaViews": "Formula mode doubles column geometry, including fit/centering. Zero hiding uses the strict64-epsilon native tolerance and preserves displayed formulas. Array member cells use {=...}. Parsed expression output normalizes numbers, known function names, references and sheet quoting while retaining explicit grouping and unknown function spelling. Retained Gnumeric R1C1 views use relative/absolute addresses and array-corner anchors. Identical cell endpoints collapse in A1/R1C1; A1 whole-axis references retain both endpoints.",
+      "currentChecks": "1311 focused formula/print/BIFF/Gnumeric/PDF/legacy tests pass for the latest A1 range repair; selected workspace build, engine and command lint/source/test types and Node/browser consumer types pass.",
+      "independentControls": "Implicit defaults:12 public PDFs/6 native controls, max text-origin difference0.0017pt. Multiline:50 public PDFs/25 native controls, max0.0017pt. Array views:14 public PDFs/7 native controls, max0.003pt. Canonical formulas:62 public PDFs/31 native controls, max0.003pt. Screenshots inspected for each repair; these are profile comparisons, not global pixel parity. Unicode boundaries:44 public PDFs/22 native controls; R1C1:36/18; A1 ranges:16/8. Maximum text-origin difference for each cohort is below0.0017pt. Screenshots inspected. Native NEL remains a visible missing glyph and VT/FF XML inputs are rejected; these negative controls are not supported line breaks.",
+      "remaining": "Automatic wrapping, full bidi, shrink/rotation, rich text/merges, patterned fills/borders, chart/object fidelity, explicit full-sheet range compaction, BIFF/XLSX R1C1-view transport and complete live-name/label/optional-function rendering remain unqualified. All19 families stay open; containing release publication is not asserted."
     },
     "pdfAlphaColors": {
       "finding": "Three alpha controls originally refused styled/merged cells. Native XML color parsing and print_cell_gtk carry8-bit alpha into Cairo.",

@@ -33,3 +33,34 @@ it.each(cases)("retains remaining $to writer options", async ({to, writerOptions
     expect(await fs.readdir("/")).toEqual([]);
   }
 });
+
+it.each(cases)("retains byte quotas with $to writer options", async ({to, writerOptions}) => {
+  const input = {source: "/input.json", bytes: new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {title: {t: "MetaString", c: "Title 😀"}}, blocks: [
+    {t: "Header", c: [2, ["heading", [], []], [{t: "Str", c: "Heading é"}]]},
+    {t: "Para", c: [{t: "Str", c: "😀é body one two three four five"}, {t: "Space"}, {t: "Link", c: [["", [], []], [{t: "Str", c: "link"}], ["https://example.test", to === "rtf" ? "" : "title"]]}]}
+  ]}))};
+  const options = {from: "json", to, lossy: true, ...writerOptions}, ceiling = 2000000;
+  const boundaries = new Set<number>([0, ceiling]), original = ExecutionContext.prototype.charge;
+  const sink = (bytes: number[]) => ({async write(chunk: Uint8Array) {bytes.push(...chunk);}, async close() {}, async abort() {}});
+  const trace = vi.spyOn(ExecutionContext.prototype, "charge").mockImplementation(function(this: ExecutionContext, ...args) {
+    const result = original.apply(this, args);
+    if (args[0] === "retainedBytes") {const used = ceiling - this.remaining("retainedBytes"); boundaries.add(used); boundaries.add(used - 1);}
+    return result;
+  });
+  try {await convert([input], options, {limits: {retainedBytes: ceiling}, output: sink([])});}
+  finally {trace.mockRestore();}
+  const values = [...boundaries].filter(value => value >= 0).sort((a,b) => a-b);
+  for (const retainedBytes of values.filter((_, index) => index % Math.ceil(values.length / 48) === 0 || index >= values.length - 32)) {
+    const fs = new MemoryFileSystem(), expectedBytes: number[] = [], actualBytes: number[] = [];
+    const expected = await convert([input], options, {limits: {retainedBytes}, output: sink(expectedBytes)}).catch(error => error);
+    const acquire = vi.spyOn(ExecutionContext.prototype, "acquire").mockRejectedValue(new Error("Whole input forbidden"));
+    try {
+      const actual = await convertToOutput([input], options, {limits: {retainedBytes}, workingFiles: {fs, directory: "/"}, output: sink(actualBytes)}).catch(error => error);
+      expect(acquire, String(retainedBytes)).not.toHaveBeenCalled();
+      if (expected instanceof Error) expect(actual, String(retainedBytes)).toMatchObject({code: (expected as {code?: string}).code, message: expected.message, location: (expected as {location?: string}).location});
+      else {expect(actual, String(retainedBytes)).not.toBeInstanceOf(Error); expect(actual.diagnostics).toEqual(expected.diagnostics);}
+      expect(actualBytes).toEqual(expectedBytes);
+    } finally {acquire.mockRestore();}
+    expect(await fs.readdir("/")).toEqual([]);
+  }
+});

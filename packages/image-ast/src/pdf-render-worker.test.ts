@@ -5,8 +5,9 @@ import {fileURLToPath} from "node:url";
 import sharp,{decodeImage} from "./index.js";
 
 it("renders PDF pixels in Workerd with external input, index and pixel backing",async()=>{
- const pixels=new Uint8Array(129*129*4);let state=1234567;for(let i=0;i<pixels.length;i++){state^=state<<13;state^=state>>>17;state^=state<<5;pixels[i]=state&255;}
- const pdf=await sharp(pixels,{raw:{width:129,height:129,channels:4}}).toFormat("pdf").toBuffer();const bytes=new Uint8Array(pdf.length+200000).fill(32);bytes.set(pdf);
+ // Keep the complete RGBA plane above 64 KiB while requiring only five raster tiles.
+ const pixels=new Uint8Array(257*64*4);let state=1234567;for(let i=0;i<pixels.length;i++){state^=state<<13;state^=state>>>17;state^=state<<5;pixels[i]=state&255;}
+ const pdf=await sharp(pixels,{raw:{width:257,height:64,channels:4}}).toFormat("pdf").toBuffer();const bytes=new Uint8Array(pdf.length+200000).fill(32);bytes.set(pdf);
  const expected=decodeImage(bytes);const expectedSum=expected.data.reduce((sum,value,index)=>(sum+value*(index%65521+1))%1000000007,0);
  const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../../../",import.meta.url)),sourcefile:"pdf-metadata-worker.ts",contents:`
  import {tryPdfDecode} from './packages/image-ast/src/index.ts';
@@ -24,12 +25,12 @@ it("renders PDF pixels in Workerd with external input, index and pixel backing",
  return Response.json({metadata:{width:image.width,height:image.height,sum},opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
  }};`},bundle:true,write:false,platform:"browser",conditions:["workerd"],format:"esm",metafile:true,logLevel:"silent"});
  expect(Object.values(bundle.metafile!.outputs).flatMap(output=>output.imports)).toEqual([]);
- const backing=new Map<string,Uint8Array>([["/input",bytes]]);
+ const backing=new Map<string,{bytes:Uint8Array;size:number}>([["/input",{bytes,size:bytes.length}]]);
  const runtime=new Miniflare({modules:true,compatibilityDate:"2026-07-01",cf:false,script:bundle.outputFiles[0]!.text,serviceBindings:{BACKING:async(request:Request)=>{
   const url=new URL(request.url),key=url.pathname,position=Number(url.searchParams.get("position"));
   if(request.method==="DELETE"){backing.delete(key);return new Response();}
-  if(request.method==="PUT"){const chunk=new Uint8Array(await request.arrayBuffer()),old=backing.get(key)??new Uint8Array(),next=new Uint8Array(Math.max(old.length,position+chunk.length));next.set(old);next.set(chunk,position);backing.set(key,next);return new Response();}
-  return new Response(backing.get(key)!.slice(position,position+Number(url.searchParams.get("length"))));
+  if(request.method==="PUT"){const chunk=new Uint8Array(await request.arrayBuffer()),end=position+chunk.length;let file=backing.get(key);if(!file||end>file.bytes.length){const next=new Uint8Array(Math.max(end,(file?.bytes.length??2048)*2));if(file)next.set(file.bytes);file={bytes:next,size:file?.size??0};backing.set(key,file);}file.bytes.set(chunk,position);file.size=Math.max(file.size,end);return new Response();}
+  return new Response(backing.get(key)!.bytes.slice(position,Math.min(backing.get(key)!.size,position+Number(url.searchParams.get("length")))));
  }}});
  try{const response=await runtime.dispatchFetch("https://image/",{method:"POST",body:JSON.stringify({size:bytes.length})});if(response.status!==200)throw new Error(await response.text());const result=await response.json() as {metadata:unknown;opened:number;closed:number;removed:number;files:number;reads:number;maxAllocation:number;nodeGlobals:boolean};
  expect(result.metadata).toEqual({width:expected.width,height:expected.height,sum:expectedSum});expect(result.opened).toBeGreaterThan(2);expect(result.closed).toBe(result.opened);expect(result.removed).toBeGreaterThan(0);expect(result.files).toBe(1);expect(result.reads).toBeGreaterThan(8);expect(result.maxAllocation).toBeLessThanOrEqual(65536);expect(result.nodeGlobals).toBe(false);expect([...backing.keys()]).toEqual(["/input"]);

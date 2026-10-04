@@ -2,21 +2,24 @@ import { PdfArrayCursor, type PdfArrayCursorState } from "./array-cursor.js";
 import { PdfError } from "../errors.js";
 import { decodePdfString, dictGet, type PdfCosArray, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfStoredItems, type PdfLinkAnnotation } from "../ast.js";
 
-export interface PdfAnnotationPageFrame { readonly kind: "annotation-page-frame"; readonly cursor: PdfArrayCursorState; readonly depth: number }
+export interface PdfAnnotationFrame { readonly kind: "annotation-frame"; readonly cursor: PdfArrayCursorState; readonly depth: number; readonly identity?: number }
 
 export type PdfAnnotationRequest = { readonly kind: "resolve"; readonly node: PdfCosNode; readonly arrayKey?: string }
   | { readonly kind: "array-item"; readonly items: PdfStoredItems; readonly position: number }
-  | { readonly kind: "push-page-frame"; readonly frame: PdfAnnotationPageFrame }
-  | { readonly kind: "pop-page-frame" }
+  | { readonly kind: "push-traversal-frame"; readonly frame: PdfAnnotationFrame }
+  | { readonly kind: "pop-traversal-frame" }
   | { readonly kind: "visit-page"; readonly reference: PdfCosRef }
+  | { readonly kind: "named-destination"; readonly node: PdfCosNode | undefined; readonly name: string }
+  | { readonly kind: "enter-name-node"; readonly node: PdfCosNode }
+  | { readonly kind: "leave-name-node"; readonly identity: number }
   | { readonly kind: "page-number"; readonly reference: PdfCosRef }
   | { readonly kind: "annotation"; readonly annotation: PdfLinkAnnotation };
-export type PdfAnnotationResult = PdfCosNode | PdfAnnotationPageFrame | number | boolean | undefined;
+export type PdfAnnotationResult = PdfCosNode | PdfAnnotationFrame | number | boolean | undefined;
 type AnnotationWork<T = void> = Generator<PdfAnnotationRequest, T, PdfAnnotationResult>;
 function* resolveNode(node: PdfCosNode | undefined, arrayKey?: string): AnnotationWork<PdfCosNode | undefined> {
   if (!node) return undefined;
   const result = yield { kind: "resolve", node, ...(arrayKey ? {arrayKey} : {}) };
-  if (typeof result === "number" || typeof result === "boolean" || result?.kind === "annotation-page-frame") throw new TypeError("Expected a PDF annotation object");
+  if (typeof result === "number" || typeof result === "boolean" || result?.kind === "annotation-frame") throw new TypeError("Expected a PDF annotation object");
   return result;
 }
 function* resolveDict(node: PdfCosNode | undefined): AnnotationWork<PdfCosDict | undefined> {
@@ -25,17 +28,8 @@ function* resolveDict(node: PdfCosNode | undefined): AnnotationWork<PdfCosDict |
 function* resolveArray(node: PdfCosNode | undefined, arrayKey?: string): AnnotationWork<PdfCosArray | undefined> {
   const result = yield* resolveNode(node, arrayKey); return result?.kind === "array" ? result : undefined;
 }
-/** Visit backed children without collecting the list; a match stops source reads. */
-function* visitChildren<T>(array: PdfCosArray, visit: (node: PdfCosNode) => AnnotationWork<T | undefined>): AnnotationWork<T | undefined> {
-  const cursor = new PdfArrayCursor(array);
-  for (let step = yield* cursor.next(); !step.done; step = yield* cursor.next()) {
-    const found = yield* visit(step.value);
-    if (found !== undefined) return found;
-  }
-  return undefined;
-}
 /** Shared annotation semantics; drivers own object reads and destination page traversal. */
-export function* extractPageAnnotationSteps(pageDict: PdfCosDict, root: PdfCosRef | undefined, maxDepth = Infinity): AnnotationWork {
+export function* extractPageAnnotationSteps(pageDict: PdfCosDict, root: PdfCosRef | undefined): AnnotationWork {
   const annotsArr = (yield* resolveArray(dictGet(pageDict, "Annots"), "Annots"));
   if (!annotsArr) return;
 
@@ -68,33 +62,8 @@ export function* extractPageAnnotationSteps(pageDict: PdfCosDict, root: PdfCosRe
         }
         const namesDict = (yield* resolveDict(dictGet(catalog, "Names")));
         const destsTree = namesDict ? dictGet(namesDict, "Dests") : undefined;
-        const active = new Set<PdfCosNode | string>();
-        function* searchNameTree(node: PdfCosNode | undefined, depth = 0): AnnotationWork<PdfCosNode | undefined> {
-          if (!node) return undefined;
-          if (depth > maxDepth) throw new PdfError("E_LIMIT", "PDF annotation name-tree depth limit exceeded");
-          const identity = node.kind === "ref" ? `${node.objectNumber}:${node.generationNumber}` : node;
-          if (active.has(identity)) return undefined;
-          active.add(identity);
-          try {
-            const treeDict = yield* resolveDict(node);
-            if (!treeDict) return undefined;
-            const namesArr = (yield* resolveArray(dictGet(treeDict, "Names")));
-            if (namesArr) {
-              for (let i = 0; i + 1 < namesArr.items.length; i += 2) {
-                const kNode = (yield* resolveNode(namesArr.items[i]));
-                const kStr = kNode?.kind === "string" ? decodePdfString(kNode) : kNode?.kind === "name" ? kNode.decoded : "";
-                if (kStr === destName) return namesArr.items[i + 1];
-              }
-            }
-            const kidsArr = (yield* resolveArray(dictGet(treeDict, "Kids"), "Kids"));
-            if (kidsArr) {
-              const found = yield* visitChildren(kidsArr, kid => searchNameTree(kid, depth + 1));
-              if (found) return found;
-            }
-            return undefined;
-          } finally { active.delete(identity); }
-        }
-        const treeFound = (yield* searchNameTree(destsTree));
+        const treeFound = yield {kind:"named-destination",node:destsTree,name:destName};
+        if (typeof treeFound === "number" || typeof treeFound === "boolean" || treeFound?.kind === "annotation-frame") throw new TypeError("Expected a named destination object");
         if (treeFound) return (yield* resolveDestToPageNum(treeFound, depth + 1));
       }
     }
@@ -151,9 +120,9 @@ export function* annotationPageNumberSteps(root: PdfCosRef | undefined, referenc
   while (true) {
     if (!node) {
       if (!cursor) {
-        const frame = yield {kind:"pop-page-frame"};
+        const frame = yield {kind:"pop-traversal-frame"};
         if (frame === undefined) return undefined;
-        if (typeof frame !== "object" || frame.kind !== "annotation-page-frame") throw new TypeError("Expected an annotation page frame");
+        if (typeof frame !== "object" || frame.kind !== "annotation-frame") throw new TypeError("Expected an annotation page frame");
         cursor = new PdfArrayCursor(frame.cursor.array, frame.cursor); cursorDepth = frame.depth;
       }
       const step = yield* cursor.next();
@@ -169,11 +138,51 @@ export function* annotationPageNumberSteps(root: PdfCosRef | undefined, referenc
     const type = yield* resolveNode(dictGet(dict, "Type"));
     const kids = yield* resolveArray(dictGet(dict, "Kids"), "Kids");
     if (kids && (type?.kind !== "name" || type.decoded !== "Page")) {
-      if (cursor) yield {kind:"push-page-frame",frame:{kind:"annotation-page-frame",cursor:cursor.snapshot(),depth:cursorDepth}};
+      if (cursor) yield {kind:"push-traversal-frame",frame:{kind:"annotation-frame",cursor:cursor.snapshot(),depth:cursorDepth}};
       cursor = new PdfArrayCursor(kids); cursorDepth = depth + 1;
     } else {
       index++;
       if (current.kind === "ref" && current.objectNumber === reference.objectNumber) return index;
     }
+  }
+}
+
+
+/** Search in source order. Drivers own active identities and suspended cursors. */
+export function* annotationNameDestinationSteps(first: PdfCosNode | undefined, name: string, maxDepth = Infinity): AnnotationWork<PdfCosNode | undefined> {
+  let node = first, depth = 0, cursor: PdfArrayCursor | undefined, cursorDepth = 0, identity: number | undefined;
+  while (true) {
+    if (!node) {
+      if (!cursor) {
+        const frame = yield {kind:"pop-traversal-frame"};
+        if (frame === undefined) return undefined;
+        if (typeof frame !== "object" || frame.kind !== "annotation-frame" || frame.identity === undefined) throw new TypeError("Expected an annotation name frame");
+        cursor = new PdfArrayCursor(frame.cursor.array, frame.cursor); cursorDepth = frame.depth; identity = frame.identity;
+      }
+      const step = yield* cursor.next();
+      if (step.done) { yield {kind:"leave-name-node",identity:identity!}; cursor = undefined; continue; }
+      node = step.value; depth = cursorDepth;
+      if (!node) continue;
+    }
+    const current = node; node = undefined;
+    if (depth > maxDepth) throw new PdfError("E_LIMIT", "PDF annotation name-tree depth limit exceeded");
+    const entered = yield {kind:"enter-name-node",node:current};
+    if (entered === undefined) continue;
+    if (typeof entered !== "number") throw new TypeError("Expected an annotation node identity");
+    const dict = yield* resolveDict(current);
+    if (dict) {
+      const names = yield* resolveArray(dictGet(dict,"Names"));
+      if (names) for(let i=0;i+1<names.items.length;i+=2) {
+        const key = yield* resolveNode(names.items[i]);
+        const decoded = key?.kind === "string" ? decodePdfString(key) : key?.kind === "name" ? key.decoded : "";
+        if (decoded === name) return names.items[i+1];
+      }
+      const kids = yield* resolveArray(dictGet(dict,"Kids"),"Kids");
+      if (kids) {
+        if (cursor) yield {kind:"push-traversal-frame",frame:{kind:"annotation-frame",cursor:cursor.snapshot(),depth:cursorDepth,identity:identity!}};
+        cursor = new PdfArrayCursor(kids); cursorDepth = depth + 1; identity = entered; continue;
+      }
+    }
+    yield {kind:"leave-name-node",identity:entered};
   }
 }

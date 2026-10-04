@@ -1,7 +1,7 @@
 import { walkRetainedFormFieldDetails, type PdfRetainedFormFieldDetails } from "./extract/retained-form-field-details.js";
 import { PdfArrayCursor } from "./content/array-cursor.js";
 import { StoredMetadataStack, readStoredRecord } from "./content/stored-record.js";
-import { PagedStorage } from "@poe-code/safe-fs/storage";
+import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
 import type { ValueArrayStorage } from "./cos/value-parser.js";
 import { PdfMergeOutlines } from "./edit/retained-merge-outlines.js";
 import { walkRetainedPageLabels, type PdfRetainedPageLabel } from "./extract/retained-page-labels.js";
@@ -13,7 +13,7 @@ import { streamRawTextChunks, type PdfRawTextOptions } from "./extract/raw-text-
 import { prepareRetainedPageContent, type PdfRetainedPageEvaluationOptions } from "./content/retained-page.js";
 import { evaluateRetainedContentSteps } from "./content/retained-evaluator.js";
 import { PdfStagingStorage } from "./staging-budget.js";
-import { annotationPageNumberSteps, extractPageAnnotationSteps, type PdfAnnotationResult, type PdfAnnotationPageFrame } from "./content/annotations.js";
+import { annotationNameDestinationSteps, annotationPageNumberSteps, extractPageAnnotationSteps, type PdfAnnotationResult, type PdfAnnotationFrame } from "./content/annotations.js";
 import { walkRetainedStructure, type PdfRetainedStructureItem, type PdfStructureSelection } from "./extract/retained-structure.js";
 import { walkRetainedDestinations, walkRetainedUrls, type PdfRetainedDestination, type PdfRetainedUrl, type PdfUrlSelection } from "./extract/retained-links.js";
 import { walkRetainedJavaScripts, type PdfRetainedJavaScript } from "./extract/retained-javascript.js";
@@ -24,6 +24,7 @@ import { cosArray, cosNumber, cosDict, decodePdfString, dictGet, type ByteSpan, 
 import { PdfError } from "./errors.js";
 import { openPdfObjectReader, type OpenPdfObjectReaderOptions, type PdfOpenedObjectReader } from "./cos/object-reader.js";
 import type { PdfIndexStorage } from "./cos/object-index.js";
+import { PdfNameIndex } from "./cos/name-index.js";
 import { PdfReferenceSet } from "./cos/reference-set.js";
 import type { PdfFileSource } from "./source.js";
 
@@ -179,7 +180,7 @@ export class PdfRetainedDocument {
     this.assertOpen();
     const visited = new PdfReferenceSet(this.storage, this.options.maxTraversalStagingBytes, this.options.signal);
     const backing = this.options.valueArrays?.storedArrayKeys?.includes("Kids") ? this.options.valueArrays.arrayStorage : undefined;
-    const frames = backing ? new StoredMetadataStack<PdfAnnotationPageFrame>(backing, this.options.signal) : [] as PdfAnnotationPageFrame[];
+    const frames = backing ? new StoredMetadataStack<PdfAnnotationFrame>(backing, this.options.signal) : [] as PdfAnnotationFrame[];
     const work = annotationPageNumberSteps(this.crossReference.rootRef, reference, this.depthLimit);
     let failed = false;
     try {
@@ -194,14 +195,93 @@ export class PdfRetainedDocument {
             ? { kind: "stream", dict: resolved.value, rawBytes: new Uint8Array() } : resolved?.value);
         } else if (request.kind === "array-item") {
           step = work.next(await this.readArrayItem(request.items, request.position));
-        } else if (request.kind === "push-page-frame") { await frames.push(request.frame); step = work.next(); }
-        else if (request.kind === "pop-page-frame") step = work.next(await frames.pop());
+        } else if (request.kind === "push-traversal-frame") { await frames.push(request.frame); step = work.next(); }
+        else if (request.kind === "pop-traversal-frame") step = work.next(await frames.pop());
         else if (request.kind === "visit-page") step = work.next(await visited.add(request.reference.objectNumber));
         else throw new TypeError("Unexpected annotation page lookup request");
       }
       return step.value;
     } catch (error) { failed = true; throw error; }
     finally { work.return(undefined); await visited.close().catch(error => { if (!failed) throw error; }); }
+  }
+
+  /** Resolve a named annotation destination with caller-backed path state. */
+  async annotationNamedDestination(node: PdfCosNode | undefined, name: string): Promise<PdfCosNode | undefined> {
+    this.assertOpen();
+    const storage = new PdfStagingStorage(this.storage, this.options.maxTraversalStagingBytes);
+    let names: PdfNameIndex | undefined;
+    const flags = this.options.valueArrays?.arrayStorage;
+    const pending: Array<{at:number;length:number}> = [];
+    const signal = this.options.signal;
+    async function initialize() {
+      while(pending.length) {
+        const {at,length}=pending.shift()!; signal?.throwIfAborted();
+        await flags!.write(at,new Uint8Array(length),signal?{signal}:undefined); signal?.throwIfAborted();
+      }
+    }
+    const indexStorage = flags ? {
+      allocate(length:number) {const at=flags.allocate(length);pending.push({at,length});return at;},
+      async read(at:number,length:number) {await initialize();signal?.throwIfAborted();const bytes=await flags.read(at,length,signal?{signal}:undefined);signal?.throwIfAborted();return bytes.slice();},
+      async write(at:number,bytes:Uint8Array) {await initialize();signal?.throwIfAborted();await flags.write(at,bytes,signal?{signal}:undefined);signal?.throwIfAborted();}
+    } : undefined;
+    const references = indexStorage ? new IntegerTable(indexStorage,64) : undefined;
+    const unusualReferences = indexStorage ? new IntegerTable(indexStorage,64) : undefined;
+    const backing = this.options.valueArrays?.storedArrayKeys?.includes("Kids") ? flags : undefined;
+    const frames = backing ? new StoredMetadataStack<PdfAnnotationFrame>(backing,this.options.signal) : [] as PdfAnnotationFrame[];
+    const buffered = new Map<PdfCosNode|string,number>(), active = new Set<number>();
+    const direct = new WeakMap<PdfCosNode,number>(); let failed = false;
+    const work = annotationNameDestinationSteps(node,name,this.depthLimit);
+    try {
+      let step = work.next(), turns = 0;
+      while(!step.done) {
+        if (++turns % 256 === 0) await new Promise<void>(resolve=>setTimeout(resolve,0));
+        this.assertOpen(); const request = step.value;
+        let result: PdfAnnotationResult;
+        if (request.kind === "resolve") {
+          const resolved = await this.lookup(request.node,undefined,request.arrayKey?[request.arrayKey]:undefined);
+          result = resolved?.stream && resolved.value.kind === "dict" ? {kind:"stream",dict:resolved.value,rawBytes:new Uint8Array()} : resolved?.value;
+        } else if (request.kind === "array-item") result = await this.readArrayItem(request.items,request.position);
+        else if (request.kind === "push-traversal-frame") await frames.push(request.frame);
+        else if (request.kind === "pop-traversal-frame") result = await frames.pop();
+        else if (request.kind === "enter-name-node") {
+          const node = request.node;
+          if (!flags) {
+            const key = node.kind === "ref" ? `${node.objectNumber}:${node.generationNumber}` : node;
+            let id=buffered.get(key); if(id===undefined){id=buffered.size;buffered.set(key,id);}
+            if(!active.has(id)){active.add(id);result=id;}
+            step=work.next(result);continue;
+          }
+          let id = node.kind === "ref" ? undefined : direct.get(node);
+          if (node.kind === "ref") {
+            // Standard PDF references fit a lossless 64-bit pair. Keep unusual
+            // numeric identities supported through the exact string index.
+            const packed = Number.isSafeInteger(node.objectNumber) && node.objectNumber >= 0 && node.objectNumber <= 0xffffffffffff
+              && Number.isInteger(node.generationNumber) && node.generationNumber >= 0 && node.generationNumber <= 0xffff;
+            let key: bigint;
+            const table = packed ? references! : unusualReferences!;
+            if (packed) key = BigInt(node.objectNumber) << 16n | BigInt(node.generationNumber);
+            else {
+              names ??= new PdfNameIndex(storage,Infinity,this.options.signal);
+              key = BigInt((await names.intern(`${node.objectNumber}:${node.generationNumber}`)).index);
+            }
+            const found = await table.get(key);
+            if (found !== undefined) id = Number(found);
+            else { id = flags.allocate(1); await flags.write(id,Uint8Array.of(0),signal?{signal}:undefined); await table.set(key,BigInt(id)); }
+          } else if (id === undefined) {
+            id = flags.allocate(1); await flags.write(id,Uint8Array.of(0),signal?{signal}:undefined); direct.set(node,id);
+          }
+          if ((await flags.read(id!,1,signal?{signal}:undefined))[0] === 0) { await flags.write(id!,Uint8Array.of(1),signal?{signal}:undefined); result = id; }
+        } else if (request.kind === "leave-name-node") { if(flags) await flags.write(request.identity,Uint8Array.of(0),signal?{signal}:undefined); else active.delete(request.identity); }
+        else throw new TypeError("Unexpected annotation name lookup request");
+        step = work.next(result);
+      }
+      return step.value;
+    } catch(error) {failed = true; throw error;}
+    finally {
+      work.return(undefined);
+      const results = await Promise.allSettled([names?.close()]);
+      if(!failed) for(const result of results) if(result.status === "rejected") await Promise.reject(result.reason);
+    }
   }
 
   pages(): AsyncGenerator<PdfRetainedPage, void, void> {
@@ -549,7 +629,7 @@ export class PdfRetainedPage {
   /** Pull one annotation at a time. Destination page lookup uses the document's
    * caller-backed traversal index, without retaining a document-wide page map. */
   async *annotations(): AsyncGenerator<import("./ast.js").PdfLinkAnnotation, void, void> {
-    const work = extractPageAnnotationSteps(this.dict, this.document.crossReference.rootRef, this.document.depthLimit);
+    const work = extractPageAnnotationSteps(this.dict, this.document.crossReference.rootRef);
     try {
       let step = work.next(), turns = 0;
       while (!step.done) {
@@ -566,6 +646,7 @@ export class PdfRetainedPage {
           result = await this.document.readArrayItem(request.items, request.position);
         }
         else if (request.kind === "page-number") result = await this.document.annotationPageNumber(request.reference);
+        else if (request.kind === "named-destination") result = await this.document.annotationNamedDestination(request.node,request.name);
         else throw new TypeError("Unexpected annotation request");
         step = work.next(result);
       }

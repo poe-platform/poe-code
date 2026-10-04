@@ -196,6 +196,8 @@ page API's interpretation. Destination page traversal uses caller-backed
 storage, closes its membership index before yielding a result, and stops when
 the target is found. With caller-backed `Kids`, pending destination traversal
 cursors also stay in that backing instead of retaining recursive generators.
+Named-destination search uses the same cursor backing and a caller-backed active
+identity index; cycles skip only the active branch, preserving later siblings.
 Annotations are returned individually; callers own any results they collect.
 Individual COS arrays/dictionaries still use the object reader's admitted
 representation.

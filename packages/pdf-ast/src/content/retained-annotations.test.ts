@@ -3,13 +3,13 @@ import { serializeCosDocument } from "../cos/writer.js";
 import { expect, it, vi } from "vitest";
 import type { FileSystem } from "@poe-code/safe-fs/contracts";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { cosArray, cosDict, cosName, cosNumber, cosString, dictGet, dictSet } from "../ast.js";
+import { cosArray, cosDict, cosName, cosNumber, cosRef, cosString, dictGet, dictSet } from "../ast.js";
 import { PdfDocument } from "../document.js";
 import { PdfRetainedDocument } from "../retained-document.js";
 import { PdfFileSource } from "../source.js";
 import { extractPageAnnotations } from "./evaluator.js";
 
-async function fixture(options: { backedAnnots?: "inline" | "indirect"; backedKids?: "inline" | "indirect"; malformed?: boolean; cycle?: boolean; malformedTree?: boolean; extraPages?: number; signal?: AbortSignal; maxTraversalStagingBytes?: number } = {}) {
+async function fixture(options: { nameTreeDepth?: number; backedAnnots?: "inline" | "indirect"; backedKids?: "inline" | "indirect"; malformed?: boolean; cycle?: boolean; malformedTree?: boolean; extraPages?: number; signal?: AbortSignal; maxTraversalStagingBytes?: number } = {}) {
   const original = PdfDocument.create(); const first = original.addPage();
   for (let i = 0; i < (options.extraPages ?? 0); i++) original.addPage();
   const second = original.addPage();
@@ -40,6 +40,11 @@ async function fixture(options: { backedAnnots?: "inline" | "indirect"; backedKi
     const pages = original.cos.resolveDict(catalog.entries.find(entry => entry.key.decoded === "Pages")?.value)!;
     dictSet(pages, "Kids", cosArray([first.pageRef, original.cos.allocateObject(cosDict({})), second.pageRef]));
   }
+  if (options.nameTreeDepth) {
+    let tree = original.cos.allocateObject(cosDict({ Names: cosArray([cosString("named"), destination]) }));
+    for(let i=0;i<options.nameTreeDepth;i++) tree=original.cos.allocateObject(cosDict({Kids:cosArray([cosDict({}),tree])}));
+    dictSet(catalog,"Names",cosDict({Dests:tree}));
+  }
   if (options.backedKids === "indirect") {
     for (const object of original.cos.objects.values()) if (object.value.kind === "dict") {
       const kids = object.value.entries.find(entry => entry.key.decoded === "Kids");
@@ -60,9 +65,9 @@ async function fixture(options: { backedAnnots?: "inline" | "indirect"; backedKi
   }) } as unknown as FileSystem;
   const source = await PdfFileSource.open(input, "/input", { chunkBytes: 32, cacheBytes: 64 });
   const backing = (options.backedKids||options.backedAnnots) ? new PagedStorage({fs,cwd:"/scratch",env:{},signal:options.signal ?? new AbortController().signal},2) : undefined;
-  const document = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { ...(backing ? {valueArrays:{arrayStorage:backing,storedArrayKeys:[...(options.backedKids?["Kids"]:[]),...(options.backedAnnots?["Annots"]:[])]}} : {}), ...(options.signal ? { signal: options.signal } : {}), ...(options.maxTraversalStagingBytes !== undefined ? { maxTraversalStagingBytes: options.maxTraversalStagingBytes } : {}) });
+  const document = await PdfRetainedDocument.open(source, { fs, directory: "/scratch" }, { ...(options.nameTreeDepth ? {maxPageTreeDepth:Infinity} : {}), ...(backing ? {valueArrays:{arrayStorage:backing,storedArrayKeys:[...(options.backedKids?["Kids"]:[]),...(options.backedAnnots?["Annots"]:[])]}} : {}), ...(options.signal ? { signal: options.signal } : {}), ...(options.maxTraversalStagingBytes !== undefined ? { maxTraversalStagingBytes: options.maxTraversalStagingBytes } : {}) });
   const page = (await document.pages().next()).value!;
-  return { document, page, expected, fs, readFile, second, backing, async close() {
+  return { document, page, expected, fs, readFile, second, backing, namedRoot:dictGet(original.cos.resolveDict(dictGet(catalog,"Names"))!,"Dests"), async close() {
     await document.close(); await source.close(); await backing?.close(); expect(await fs.readdir("/scratch")).toEqual([]);
   } };
 }
@@ -192,4 +197,55 @@ it.each(["inline","indirect"] as const)("extracts annotations from %s caller-bac
   const annotations=[];for await(const item of f.page.annotations())annotations.push(item);expect(annotations).toEqual(f.expected);
  }
  finally{await f.close();}
+});
+
+
+it("bounds generator and identity state in a deep named destination tree", async () => {
+  const f = await fixture({backedKids:"inline",nameTreeDepth:256});
+  const prototype=Object.getPrototypeOf(Object.getPrototypeOf((function*(){})())),next=prototype.next;
+  const add=Set.prototype.add;let active=0,peak=0,peakSet=0;
+  prototype.next=function(...args:unknown[]){peak=Math.max(peak,++active);try{return next.apply(this,args);}finally{active--;}};
+  Set.prototype.add=function<T>(this:Set<T>,value:T){const result=add.call(this,value);peakSet=Math.max(peakSet,this.size);return result;};
+  try{const annotations=[];for await(const annotation of f.page.annotations())annotations.push(annotation);expect(annotations).toEqual(f.expected);expect(peak).toBeLessThan(32);expect(peakSet).toBeLessThanOrEqual(64);}
+  finally{prototype.next=next;Set.prototype.add=add;await f.close();}
+});
+
+
+it("cleans named destination indexes after misses and backing failure", async () => {
+  const f=await fixture({backedKids:"inline",nameTreeDepth:128});
+  try {
+    const before=await f.fs.readdir("/scratch");
+    expect(await f.document.annotationNamedDestination(f.namedRoot,"missing")).toBeUndefined();
+    expect(await f.document.annotationNamedDestination(f.namedRoot,"named")).toMatchObject({kind:"array"});
+    expect(await f.fs.readdir("/scratch")).toEqual(before);
+    const failure=new Error("name backing failed"),create=vi.spyOn(f.backing!,"write").mockRejectedValue(failure);
+    try{await expect(f.document.annotationNamedDestination(f.namedRoot,"named")).rejects.toBe(failure);}
+    finally{create.mockRestore();}
+    expect(await f.fs.readdir("/scratch")).toEqual(before);
+  }finally{await f.close();}
+});
+
+it("cancels named destination traversal and cleans its owned indexes", async () => {
+  const controller=new AbortController(),f=await fixture({backedKids:"inline",nameTreeDepth:128,signal:controller.signal});
+  const failure=new Error("cancel named destination"),timer=setTimeout(()=>controller.abort(failure),0);
+  try{await expect(f.document.annotationNamedDestination(f.namedRoot,"named")).rejects.toBe(failure);}
+  finally{clearTimeout(timer);await f.close();}
+});
+
+
+it("revisits completed name branches and preserves unusual reference identities", async () => {
+  const f=await fixture({backedKids:"inline",nameTreeDepth:1});
+  try {
+    const lookup=vi.spyOn(f.document,"lookup");
+    expect(await f.document.annotationNamedDestination(cosDict({Kids:cosArray([f.namedRoot!,f.namedRoot!])}),"absent")).toBeUndefined();
+    expect(lookup.mock.calls.filter(([node])=>node?.kind==="ref"&&f.namedRoot?.kind==="ref"&&node.objectNumber===f.namedRoot.objectNumber)).toHaveLength(2);
+    lookup.mockRestore();
+    const first=cosRef(2**49,70000),second=cosRef(2**49,70001),target=cosArray([cosNumber(7)]);
+    const original=f.document.lookup.bind(f.document);
+    const read=vi.spyOn(f.document,"lookup").mockImplementation(async(node,...args)=>node?.kind==="ref"&&node.objectNumber===first.objectNumber
+      ? {value:node.generationNumber===first.generationNumber?cosDict({Kids:cosArray([first])}):cosDict({Names:cosArray([cosString("target"),target])})}
+      : original(node,...args));
+    try{expect(await f.document.annotationNamedDestination(cosDict({Kids:cosArray([first,second])}),"target")).toEqual(target);}
+    finally{read.mockRestore();}
+  }finally{await f.close();}
 });

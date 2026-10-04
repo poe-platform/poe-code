@@ -4,7 +4,7 @@ import { sampledVertices } from "./sampled-vertices.js";
 import { StoredMetadataStack } from "./stored-record.js";
 import { StoredOperationsWriter } from "./stored-operations.js";
 import { StoredPathWriter } from "./stored-path.js";
-import { annotationPageNumberSteps, extractPageAnnotationSteps, type PdfAnnotationPageFrame } from "./annotations.js";
+import { annotationNameDestinationSteps, annotationPageNumberSteps, extractPageAnnotationSteps, type PdfAnnotationFrame } from "./annotations.js";
 import { resolvePageFonts, type ResolvedPageFont } from "../fonts/resolve.js";
 import { PSStackBasedInterpreter, buildPostScriptJsFunction, DeviceCmykCS, MeshShading, Stream } from "../vendor/pdfjs-fonts.mjs";
 import { decodeInlineImageNodeToRgba, decodeXObjectImageToRgba } from "../extract/images.js";
@@ -2400,18 +2400,35 @@ export function evaluateContentStreamToDisplayList(params: PdfContentEvaluationO
 export function extractPageAnnotations(cosDoc: ParsedCosDocument, pageDict: PdfCosDict): PdfLinkAnnotation[] {
   function pageNumber(reference: import("../ast.js").PdfCosRef): number | undefined {
     const visited = new Set<number>();
-    const frames: PdfAnnotationPageFrame[] = [];
+    const frames: PdfAnnotationFrame[] = [];
     const work = annotationPageNumberSteps(cosDoc.rootRef, reference);
     let step = work.next();
     while (!step.done) {
       const request = step.value;
       if (request.kind === "resolve") step = work.next(cosDoc.resolve(request.node));
-      else if (request.kind === "push-page-frame") { frames.push(request.frame); step = work.next(); }
-      else if (request.kind === "pop-page-frame") step = work.next(frames.pop());
+      else if (request.kind === "push-traversal-frame") { frames.push(request.frame); step = work.next(); }
+      else if (request.kind === "pop-traversal-frame") step = work.next(frames.pop());
       else if (request.kind === "visit-page") {
         const number = request.reference.objectNumber, added = !visited.has(number);
         visited.add(number); step = work.next(added);
       } else throw new TypeError("Unexpected annotation page lookup request");
+    }
+    return step.value;
+  }
+  function namedDestination(node: PdfCosNode | undefined, name: string): PdfCosNode | undefined {
+    const identities = new Map<PdfCosNode | string, number>(), active = new Set<number>(), frames: PdfAnnotationFrame[] = [];
+    const work = annotationNameDestinationSteps(node,name); let step = work.next();
+    while (!step.done) {
+      const request = step.value;
+      if (request.kind === "resolve") step = work.next(cosDoc.resolve(request.node));
+      else if (request.kind === "push-traversal-frame") { frames.push(request.frame); step = work.next(); }
+      else if (request.kind === "pop-traversal-frame") step = work.next(frames.pop());
+      else if (request.kind === "enter-name-node") {
+        const node = request.node, key = node.kind === "ref" ? `${node.objectNumber}:${node.generationNumber}` : node;
+        let id = identities.get(key); if(id === undefined) {id = identities.size; identities.set(key,id);}
+        if(active.has(id)) step = work.next(); else {active.add(id); step = work.next(id);}
+      } else if (request.kind === "leave-name-node") { active.delete(request.identity); step = work.next(); }
+      else throw new TypeError("Unexpected annotation name lookup request");
     }
     return step.value;
   }
@@ -2423,6 +2440,7 @@ export function extractPageAnnotations(cosDoc: ParsedCosDocument, pageDict: PdfC
     if (request.kind === "annotation") { output.push(request.annotation); step = work.next(); }
     else if (request.kind === "resolve") step = work.next(cosDoc.resolve(request.node));
     else if (request.kind === "page-number") step = work.next(pageNumber(request.reference));
+    else if (request.kind === "named-destination") step = work.next(namedDestination(request.node, request.name));
     else throw new TypeError("Unexpected annotation request");
   }
   return output;

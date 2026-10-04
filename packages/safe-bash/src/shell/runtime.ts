@@ -9350,36 +9350,34 @@ export class Runtime {
         const pairs: string[] = [];
         for (const idx of [...binding.values.keys()].sort((l, r) => l - r)) {
           const k = binding.associative ? binding.keys.get(binding.keyByIndex.get(idx)!)!.text.value : String(idx);
-          const v = shellValueText(binding.getValue(idx) ?? "");
-          pairs.push(`[${binding.associative ? JSON.stringify(k) : k}]=${JSON.stringify(v)}`);
+          const v = binding.getValue(idx) ?? "";
+          const qk = binding.associative ? shellValueText(await this.transformValue(k, "Q", state, io, true)) : k;
+          pairs.push(`[${qk}]=${shellValueText(await this.transformValue(v, "Q", state, io, true))}`);
         }
         return `declare -${flags || "a"} ${name}=(${pairs.join(" ")})`;
       }
       const rawVal = state.variables[name];
-      if (flags) return rawVal === undefined ? `declare -${flags} ${name}` : `declare -${flags} ${name}=${JSON.stringify(rawVal)}`;
-      if (rawVal === undefined) return "";
-      const quoted = shellValueText(await this.transformValue(rawVal, "Q", state, io));
-      return `${name}=${quoted}`;
+      if (rawVal === undefined) return flags ? `declare -${flags} ${name}` : "";
+      const quoted = shellValueText(await this.transformValue(stateMonitor(state)?.values.get(name, rawVal) ?? rawVal, "Q", state, io));
+      return `${flags ? `declare -${flags} ` : ""}${name}=${quoted}`;
     }
-    const selector = getArraySelector(part);
     if (binding) {
       const pairs: string[] = [];
       for (const idx of [...binding.values.keys()].sort((l, r) => l - r)) {
         const k = binding.associative ? binding.keys.get(binding.keyByIndex.get(idx)!)!.text.value : String(idx);
-        const v = shellValueText(binding.getValue(idx) ?? "");
+        const v = binding.getValue(idx) ?? "";
         if (part.transform === "K") {
           const qk = binding.associative ? shellValueText(await this.transformValue(k, "Q", state, io)) : k;
-          pairs.push(`${qk} ${JSON.stringify(v)}`);
-        } else pairs.push(k, v);
+          pairs.push(`${qk} ${shellValueText(await this.transformValue(v, "Q", state, io, true))}`);
+        } else pairs.push(k, shellValueText(v));
       }
       return pairs.join(" ");
     }
     const rawVal = this.variable(state, name);
     if (rawVal === undefined) return "";
-    if (selector?.kind === "members") return part.transform === "K" ? `0 ${JSON.stringify(rawVal)}` : `0 ${rawVal}`;
-    return part.transform === "K" ? this.transformValue(rawVal, "Q", state, io) : rawVal;
+    return part.transform === "K" ? this.transformValue(stateMonitor(state)?.values.get(name, rawVal) ?? rawVal, "Q", state, io) : rawVal;
   }
-  private async transformValue(value: ShellValue, operator: NonNullable<Extract<WordPart, { kind: "variable" }>["transform"]>, state: State, io: IO): Promise<ShellValue> {
+  private async transformValue(value: ShellValue, operator: NonNullable<Extract<WordPart, { kind: "variable" }>["transform"]>, state: State, io: IO, doubleQuoted = false): Promise<ShellValue> {
     if (operator === "u" || operator === "U" || operator === "L") {
       const text = shellValueText(value);
       if (operator === "U") return text.toUpperCase();
@@ -9404,6 +9402,7 @@ export class Runtime {
     const allocation = io[valueScope] ?? this.budget.values.scope();
     try {
       return await transformParameter(value, operator === "E" ? "E" : "Q", {
+        doubleQuoted,
         maximumBytes: this.budget.limits.maxExpansionBytes, byteLocale: byteLocale(state.variables), allocation, work: { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 8 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") }, });
     } finally { if (!io[valueScope]) allocation.close(); }
   }

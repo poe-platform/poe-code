@@ -94,7 +94,7 @@ test("indirect array element and special parameter expansion and @a/@A/@K/@u/@U/
 
     const r4 = await shell.exec('declare -i n=42; s=hElLo; arr=(u v); printf "%s,%s,%s,%s,%s,%s\\n" "${n@a}" "${n@A}" "${s@u}" "${s@U}" "${s@L}" "${arr[@]@K}"');
     assert.equal(r4.exitCode, 0, r4.stderr);
-    assert.equal(r4.stdout, 'i,declare -i n="42",HElLo,HELLO,hello,0 "u" 1 "v"\n');
+    assert.equal(r4.stdout, 'i,declare -i n=\'42\',HElLo,HELLO,hello,0 "u" 1 "v"\n');
   } finally {
     await shell.dispose();
   }

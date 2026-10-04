@@ -2,6 +2,7 @@ import { shellValueByteLength, shellValueBytes, shellValueFromBytes, type ShellV
 import { scanString, stringCheckpoint, type StringWork } from "./string-operations.js";
 
 interface TransformOptions {
+  readonly doubleQuoted?: boolean;
   readonly maximumBytes: number;
   readonly byteLocale: boolean;
   readonly work: StringWork;
@@ -61,7 +62,8 @@ export async function transformParameter(value: ShellValue, operator: "Q" | "E",
   const scan = async (): Promise<void> => {
     size = 0;
     if (operator === "Q") {
-      ascii(ansi ? "$'" : "'");
+      const doubleQuoted = !ansi && options.doubleQuoted;
+      ascii(ansi ? "$'" : doubleQuoted ? '"' : "'");
       for (let offset = 0; offset < input.length;) {
         const pending = stringCheckpoint(work);
         if (pending) await pending;
@@ -70,12 +72,13 @@ export async function transformParameter(value: ShellValue, operator: "Q" | "E",
         if (ansi && !printable) {
           if (unit.size === 1 && controlEscapes[input[offset]!] !== undefined) { emit(92); emit(controlEscapes[input[offset]!]!); }
           else for (let index = 0; index < unit.size; index++) ascii("\\" + input[offset + index]!.toString(8).padStart(3, "0"));
-        } else if (unit.point === 39) ascii(ansi ? "\\'" : "'\\''");
+        } else if (doubleQuoted && (unit.point === 34 || unit.point === 36 || unit.point === 92 || unit.point === 96)) { emit(92); emit(unit.point); }
+        else if (!doubleQuoted && unit.point === 39) ascii(ansi ? "\\'" : "'\\''");
         else if (ansi && unit.point === 92) ascii("\\\\");
         else for (let index = 0; index < unit.size; index++) emit(input[offset + index]!);
         offset += unit.size;
       }
-      emit(39);
+      emit(doubleQuoted ? 34 : 39);
       return;
     }
     for (let offset = 0; offset < input.length;) {

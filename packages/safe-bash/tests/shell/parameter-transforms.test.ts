@@ -11,6 +11,13 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
 
 const cases: readonly [string, string[]][] = [
+  [String.raw`export value='$(echo injected) $HOME ` + "`echo injected`" + String.raw` "quoted" \ slash'; dump="${"$"}{value@A}"; unset value; eval "$dump"; args "$value"`, ['$(echo injected) $HOME `echo injected` "quoted" \\ slash']],
+  [String.raw`export value=$'line1\nline2\t\r'; dump="${"$"}{value@A}"; unset value; eval "$dump"; args "$value"`, ["line1\nline2\t\r"]],
+  [String.raw`arr=([2]='$(echo injected) $HOME' [5]=$'line1\nline2\t\r' [8]=''); dump="${"$"}{arr[@]@A}"; unset arr; eval "$dump"; args "${"$"}{arr[2]}" "${"$"}{arr[5]}" "${"$"}{arr[8]}"`, ['$(echo injected) $HOME', "line1\nline2\t\r", ""]],
+  [String.raw`declare -A arr; key=$'$(echo injected)\nkey'; arr[$key]=$'value\t$(echo injected)'; dump="${"$"}{arr[@]@A}"; unset arr; eval "$dump"; args "${"$"}{arr[$key]}"`, ["value\t$(echo injected)"]],
+  [String.raw`arr=('$(echo injected) $HOME' $'line1\nline2'); dump="${"$"}{arr[@]@K}"; eval "args $dump"`, ["0", '$(echo injected) $HOME', "1", "line1\nline2"]],
+  [String.raw`value='$(echo injected)'; dump="${"$"}{value[@]@K}"; eval "args $dump"`, ['$(echo injected)']],
+  [String.raw`declare -A arr; key=$'$(echo injected)\nkey'; arr[$key]=$'value\t$(echo injected)'; dump="${"$"}{arr[@]@K}"; eval "args $dump"`, ["$(echo injected)\nkey", "value\t$(echo injected)"]],
   ['declare -A map; map[foo]=hELLo; args "${map[foo]^}" "${map[foo]^^}" "${map[foo],}" "${map[foo],,}" "${map[foo]@Q}"', ["HELLo", "HELLO", "hELLo", "hello", "'hELLo'"]],
   ["declare -A map; map[1]='a\\nb'; args \"${map[1]^^}\" \"${map[1]@Q}\" \"${map[1]@E}\"", [String.raw`A\NB`, String.raw`'a\nb'`, "a\nb"]],
   ['declare -A map; map[first]=hello; args "${map[0]@Q}" "${map[0]@E}" "${map[0]^^}"', ["", "", ""]],
@@ -56,6 +63,20 @@ const cases: readonly [string, string[]][] = [
   ['values=(); args "${values[@]@Q}${values[*]@E}"', []],
   ["values=('\\0'); args \"${values[@]@E}\"", [""]],
 ];
+
+for (const operator of ["A", "K"]) test(`array @${operator} quotes printable shell metacharacters`, async () => {
+  const payload = '$(echo injected) $HOME `echo injected` "double" \'single\' \\ backslash';
+  const { shell } = setup({ env: { PAYLOAD: payload } });
+  try {
+    const source = operator === "A"
+      ? 'declare -A arr; arr[$PAYLOAD]="$PAYLOAD"; dump="${arr[@]@A}"; unset arr; eval "$dump"; args "${arr[$PAYLOAD]}"'
+      : 'declare -A arr; arr[$PAYLOAD]="$PAYLOAD"; dump="${arr[@]@K}"; eval "args $dump"';
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(JSON.parse(result.stdout), operator === "A" ? [payload] : [payload, payload]);
+  } finally { await shell.dispose(); }
+});
 for (const [source, expected] of cases) test(`GNU Bash 5.2.37 parameter transforms: ${source}`, async () => {
   const { shell } = setup({ env: { LC_ALL: "C.UTF-8" } });
   try {
@@ -68,6 +89,9 @@ for (const [source, expected] of cases) test(`GNU Bash 5.2.37 parameter transfor
 
 for (const [source, expected] of [
   ["value=$'a\\377B'; rawargs \"${value^^}\" \"${value,,}\"", ["41ff42", "61ff62"]],
+  ["export value=$'a\\377B'; dump=\"${value@A}\"; unset value; eval \"$dump\"; rawargs \"$value\"", ["61ff42"]],
+  ["arr=($'a\\377B'); dump=\"${arr[@]@A}\"; unset arr; eval \"$dump\"; rawargs \"${arr[0]}\"", ["61ff42"]],
+  ["arr=($'a\\377B'); dump=\"${arr[@]@K}\"; eval \"rawargs $dump\"", ["30", "61ff42"]],
   ["value=$'\\377\\001\\n'; rawargs \"${value@Q}\"", [Buffer.from(String.raw`$'\377\001\n'`).toString("hex")]],
   ["value='\\377z'; rawargs \"${value@E}\"", ["ff7a"]],
   ["value='\\U00110000'; rawargs \"${value@E}\"", ["f4908080"]],

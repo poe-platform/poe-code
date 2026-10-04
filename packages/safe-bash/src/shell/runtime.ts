@@ -9387,14 +9387,27 @@ export class Runtime {
       return first.toUpperCase() + text.slice(first.length);
     }
     if (operator === "P") {
-      const text = shellValueText(value)
-        .replace(/\\n/gu, "\n")
-        .replace(/\\r/gu, "\r")
-        .replace(/\\t/gu, "\t")
-        .replace(/\\[eE]/gu, "\x1b")
-        .replace(/\\a/gu, "\x07")
-        .replace(/\\\$/gu, "$")
-        .replace(/\\\\/gu, "\\");
+      const source = shellValueText(value);
+      let text = "";
+      for (let index = 0; index < source.length; index++) {
+        const character = source[index]!;
+        if (character !== "\\" || index + 1 === source.length) {
+          text += character;
+          continue;
+        }
+        const escaped = source[++index]!;
+        // Decode each prompt escape once. Keep dollar quoting for the
+        // subsequent expansion parser so escaped substitutions stay literal.
+        switch (escaped) {
+          case "n": text += "\n"; break;
+          case "r": text += "\r"; break;
+          case "t": text += "\t"; break;
+          case "e": case "E": text += "\x1b"; break;
+          case "a": text += "\x07"; break;
+          case "\\": text += "\\"; break;
+          default: text += "\\" + escaped;
+        }
+      }
       const word = parseArithmeticExpansion(text, this.budget.parsing, byteLocale(state.variables), state.depth + (io.parameterDepth ?? 0), io.diagnosticLine ?? 1, state.extensions?.syntax, !!state.extglob);
       const fields = await this.valueWord(word, state, this.parameterOperandIO(word, state, io), false, false, true);
       return concatShellValues(fields, io[valueScope]);

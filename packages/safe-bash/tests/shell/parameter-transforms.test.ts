@@ -18,6 +18,13 @@ const cases: readonly [string, string[]][] = [
   [String.raw`arr=('$(echo injected) $HOME' $'line1\nline2'); dump="${"$"}{arr[@]@K}"; eval "args $dump"`, ["0", '$(echo injected) $HOME', "1", "line1\nline2"]],
   [String.raw`value='$(echo injected)'; dump="${"$"}{value[@]@K}"; eval "args $dump"`, ['$(echo injected)']],
   [String.raw`declare -A arr; key=$'$(echo injected)\nkey'; arr[$key]=$'value\t$(echo injected)'; dump="${"$"}{arr[@]@K}"; eval "args $dump"`, ["$(echo injected)\nkey", "value\t$(echo injected)"]],
+  [String.raw`SECRET=leaked; value='\$SECRET'; args "` + '${value@P}"', ["$SECRET"]],
+  [String.raw`value='\$(echo PWNED)'; args "` + '${value@P}"', ["$(echo PWNED)"]],
+  [String.raw`value='\$((1 + 2))'; args "` + '${value@P}"', ["$((1 + 2))"]],
+  [String.raw`value='\\n|\\t|\\r|\\a|\\e|\\E'; args "` + '${value@P}"', [String.raw`\n|\t|\r|\a|\e|\E`]],
+  [String.raw`SECRET=leaked; value='\\$SECRET'; args "` + '${value@P}"', ["$SECRET"]],
+  [String.raw`value='a\nb\rc\ad\ee\E'; args "` + '${value@P}"', ["a\nb\rc\x07d\x1be\x1b"]],
+  [String.raw`SECRET=expanded; value='$SECRET:$(say command):$((1 + 2))'; args "` + '${value@P}"', ["expanded:command:3"]],
   ['declare -A map; map[foo]=hELLo; args "${map[foo]^}" "${map[foo]^^}" "${map[foo],}" "${map[foo],,}" "${map[foo]@Q}"', ["HELLo", "HELLO", "hELLo", "hello", "'hELLo'"]],
   ["declare -A map; map[1]='a\\nb'; args \"${map[1]^^}\" \"${map[1]@Q}\" \"${map[1]@E}\"", [String.raw`A\NB`, String.raw`'a\nb'`, "a\nb"]],
   ['declare -A map; map[first]=hello; args "${map[0]@Q}" "${map[0]@E}" "${map[0]^^}"', ["", "", ""]],
@@ -108,6 +115,19 @@ for (const [source, expected] of [
     const result = await shell.exec(source);
     assert.equal(result.stderr, "");
     assert.deepEqual(JSON.parse(result.stdout), expected);
+  } finally { await shell.dispose(); }
+});
+
+test("prompt transforms never execute escaped command substitutions", async () => {
+  const { shell } = setup();
+  let calls = 0;
+  shell.register({ name: "probe", execute() { calls++; return { exitCode: 0 }; } });
+  try {
+    const result = await shell.exec(String.raw`value='\$(probe)'; args "` + '${value@P}"');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(JSON.parse(result.stdout), ["$(probe)"]);
+    assert.equal(calls, 0);
   } finally { await shell.dispose(); }
 });
 

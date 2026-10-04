@@ -1,3 +1,4 @@
+import { pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHistogram, encodeText } from "./text-output.js";
 import { StoredImageStack, magickInput, type MagickFormatContext } from "./stored-stack.js";
 import { remapStoredImage } from "./remap.js";
 import { floodfillStoredImage } from "./floodfill.js";
@@ -1061,7 +1062,6 @@ function* formatTxtEnumerationSteps(img: RgbaImage): Generator<void, string, voi
     const lines: string[] = [
         `# ImageMagick pixel enumeration: ${img.width},${img.height},255,srgba`
     ];
-    const hex = (n: number) => n.toString(16).toUpperCase().padStart(2, "0");
     for (let y = 0; y < img.height; y++) {
         if (++work % 16384 === 0)
             yield;
@@ -1073,7 +1073,7 @@ function* formatTxtEnumerationSteps(img: RgbaImage): Generator<void, string, voi
             const g = img.data[idx + 1]!;
             const b = img.data[idx + 2]!;
             const a = img.data[idx + 3]!;
-            lines.push(`${x},${y}: (${r},${g},${b},${a})  #${hex(r)}${hex(g)}${hex(b)}${a < 255 ? hex(a) : ""}  srgba(${r},${g},${b},${(a / 255).toFixed(3)})`);
+            lines.push(pixelEnumerationLine(x, y, r, g, b, a));
         }
     }
     return lines.join("\n") + "\n";
@@ -1088,15 +1088,11 @@ function* formatHistogramOutputSteps(img: RgbaImage): Generator<void, string, vo
         const key = ((img.data[i]! << 24) | (img.data[i + 1]! << 16) | (img.data[i + 2]! << 8) | img.data[i + 3]!) >>> 0;
         counts.set(key, (counts.get(key) ?? 0) + 1);
     }
-    const hex = (n: number) => n.toString(16).toUpperCase().padStart(2, "0");
     const lines: string[] = [];
     for (const [key, cnt] of counts.entries()) {
         if (++work % 16384 === 0)
             yield;
-        const r = (key >>> 24) & 0xff;
-        const g = (key >>> 16) & 0xff;
-        const b = (key >>> 8) & 0xff;
-        lines.push(`  ${cnt}: (${r},${g},${b}) #${hex(r)}${hex(g)}${hex(b)} srgb(${r},${g},${b})`);
+        lines.push(histogramLine(key, cnt));
     }
     return lines.join("\n") + "\n";
 }
@@ -5055,7 +5051,6 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
     if (!input.filesystem.capabilities || !input.filesystem.open || !input.filesystem.removeFileConditional) return;
     const outSpec = argv.at(-1);
     if (!outSpec || argv.some(token => ["--help", "-help", "-h", "--version", "-version", "-list", "--list"].includes(token))) return;
-    if (["info:", "txt:", "histogram:"].some(prefix => outSpec.toLowerCase().startsWith(prefix))) return;
     const output = inferOutputFormat(outSpec, "png");
     await yieldTurn(signal);
     let state = createDefaultState();
@@ -5166,6 +5161,7 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
                 stack.length = 0; await stack.push(result); return stack;
             }); continue;
         }
+        if (!operandsOnly && token === "-format") { state.formatStr = tokens[++i] ?? ""; continue; }
         if (!operandsOnly && ["-delay", "-loop", "-dispose"].includes(token)) { i++; continue; }
         if (!operandsOnly && (token === "-coalesce" || token === "-deconstruct")) continue;
         if (!operandsOnly && (token === "+adjoin" || token === "-adjoin")) { state.adjoin = token === "-adjoin"; continue; }
@@ -5373,6 +5369,32 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         }
         if (!image) { await backend.publishPending(); return { exitCode: 1, stdout: "", stderr: `magick: no images defined '${outSpec}'\n` }; }
         await yieldTurn(signal);
+        const lower = outSpec.toLowerCase(), info = lower === "info:" || lower === "info:-";
+        if (info || lower.startsWith("txt:") || lower.startsWith("histogram:")) {
+            async function* information(): AsyncGenerator<string> {
+                let last = "";
+                for (let index = 0; index < stack.length; index++) {
+                    await yieldTurn(signal);
+                    const frame = (await stack.get(index))!;
+                    if (index && !state.formatStr) yield "\n";
+                    const text = state.formatStr ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], sceneIdx: index, sceneCount: stack.length, quality: state.quality }, async () => ({ image: frame, storage: backend.storage }), signal) : `${frame.width}x${frame.height} sRGB 8-bit`;
+                    if (text) last = text.at(-1)!;
+                    yield text;
+                }
+                if (last !== "\n") yield "\n";
+            }
+            const parts = info ? information() : lower.startsWith("txt:") ? storedPixelEnumeration(image, backend.storage, signal) : storedHistogram(image, backend.storage, signal);
+            const chunks = encodeText(parts, signal), target = lower.startsWith("txt:") ? outSpec.slice(4) : "-";
+            if (target && target !== "-") {
+                await backend.publishText(image, target, chunks);
+                return { exitCode: 0, stdout: "", stderr: "" };
+            }
+            let stdout = "";
+            if (input.stdout) for await (const chunk of chunks) await writeBytes(input.stdout, chunk, signal);
+            else for await (const part of parts) { signal.throwIfAborted(); stdout += part; }
+            await backend.publishPending();
+            return { exitCode: 0, stdout, stderr: "" };
+        }
         if (stack.length > 1 && (hasSceneOutputPattern(output.path) || !state.adjoin)) {
             for (let index = 0; index < stack.length; index++) {
                 await yieldTurn(signal);

@@ -5,8 +5,8 @@ import { Miniflare } from "miniflare";
 import { fileURLToPath } from "node:url";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { runCompareCli, runConvertCli, runMogrifyCli } from "./index.js";
-for (const tool of ["compare", "convert", "mogrify", "convert-write", "convert-stack", "convert-animation"] as const)
-for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : (tool === "mogrify" || tool === "convert-write" || tool === "convert-stack" || tool === "convert-animation") ? ["bmp"] : ["bmp", "gradient", "radial-gradient", "pattern", "tile", "pdf"]) as ("bmp" | "svg" | "label" | "gradient" | "radial-gradient" | "pattern" | "tile" | "pdf")[])
+for (const tool of ["compare", "convert", "mogrify", "convert-write", "convert-stack", "convert-animation", "convert-text"] as const)
+for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : (tool === "mogrify" || tool === "convert-write" || tool === "convert-stack" || tool === "convert-animation" || tool === "convert-text") ? ["bmp"] : ["bmp", "gradient", "radial-gradient", "pattern", "tile", "pdf"]) as ("bmp" | "svg" | "label" | "gradient" | "radial-gradient" | "pattern" | "tile" | "pdf")[])
 for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool === "convert-stack" || tool === "convert-animation") ? [false] : [false, true])
     it(`runs ${tool} in Workerd, input=${format}, stdout=${stdout}`, async () => {
         const pixels = new Uint8Array(601 * 601 * 4);
@@ -30,7 +30,8 @@ for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool ===
         if (tool === "convert-write") args.push("-write", "/middle.bmp", "-negate");
         if (tool === "convert-stack") args.splice(0, args.length, "-size", "601x601", operand, "-duplicate", "40", "-reverse", "-delete", "1-39", "(", "+clone", "-negate", ")", "-swap", "0,2", "-fx", "(u+v)/2", "+clone", "-append");
         if (tool === "convert-animation") args.splice(0, args.length, operand, "+clone", "-flop");
-        const expectedFiles = new Map([["/input", bytes]]), expected = tool === "compare" ? await runCompareCli([operand, operand, "/out.bmp"], expectedFiles) : tool === "mogrify" ? await runMogrifyCli(["-format", "png", ...args.slice(3), operand], expectedFiles) : await runConvertCli([...args, tool === "convert-animation" ? "gif:/out.bmp" : "png:/out.bmp"], expectedFiles);
+        if (tool === "convert-text") args.splice(0, args.length, operand, "-resize", "129x131!");
+        const expectedFiles = new Map([["/input", bytes]]), expected = tool === "compare" ? await runCompareCli([operand, operand, "/out.bmp"], expectedFiles) : tool === "mogrify" ? await runMogrifyCli(["-format", "png", ...args.slice(3), operand], expectedFiles) : await runConvertCli([...args, tool === "convert-text" ? "txt:/out.bmp" : tool === "convert-animation" ? "gif:/out.bmp" : "png:/out.bmp"], expectedFiles);
         const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../../../", import.meta.url)), sourcefile: "pdf-metadata-worker.ts", contents: `
  import {runCompareCli,runConvertCli,runMogrifyCli} from './packages/safe-bash-command-imagemagick/src/index.ts';
  import {FsError} from '@poe-code/safe-fs/contracts';
@@ -45,7 +46,7 @@ for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool ===
  async createStagedFile(path,name){const file={id:String(++id),size:0},filePath=path+'/'+name;files.set(filePath,file);return {parent:{path:'/',stat:parent},directory:{path,stat:parent},file:{path:filePath,stat:stat(file)},writer:{async write(chunk){if(chunk.length>65536)throw new Error('large write');await env.BACKING.fetch('https://backing/'+file.id+'?position='+file.size,{method:'PUT',body:chunk});file.size+=chunk.length;},async finish(){return stat(file);}},cleanup:{async remove(){files.delete(filePath);removed++;await env.BACKING.fetch('https://backing/'+file.id,{method:'DELETE'});},async close(){}}};},
  readFile(){throw new Error('whole input');},writeFile(){throw new Error('whole output');}};
  const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;maxAllocation=Math.max(maxAllocation,length);if(length>65536)throw new Error('unbounded compare allocation '+length);return Reflect.construct(target,args);}});
- try{const input={filesystem:fs,cwd:'/',...(stdout?{stdout:output}:{})};const metadata=tool==='compare'?await runCompareCli([operand,operand,stdout?'bmp:-':'/out.bmp'],input):tool==='mogrify'?await runMogrifyCli(["-format","png",...args.slice(3),operand],input):await runConvertCli([...args,tool==='convert-animation'?"gif:/out.bmp":stdout?"png:-":"png:/out.bmp"],input);return Response.json({metadata,opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
+ try{const input={filesystem:fs,cwd:'/',...(stdout?{stdout:output}:{})};const metadata=tool==='compare'?await runCompareCli([operand,operand,stdout?'bmp:-':'/out.bmp'],input):tool==='mogrify'?await runMogrifyCli(["-format","png",...args.slice(3),operand],input):await runConvertCli([...args,tool==='convert-text'?(stdout?"txt:-":"txt:/out.bmp"):tool==='convert-animation'?"gif:/out.bmp":stdout?"png:-":"png:/out.bmp"],input);return Response.json({metadata,opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
  }};` }, bundle: true, write: false, platform: "browser", conditions: ["workerd"], format: "esm", metafile: true, logLevel: "silent" });
         expect(Object.values(bundle.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
         const runtime = new Miniflare({ cf: false, workers: [
@@ -105,7 +106,8 @@ for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool ===
                 expect(decodeImage(middle)).toEqual(decodeImage(expectedFiles.get("/middle.bmp")!));
             }
             const actual = new Uint8Array(await (await backing.fetch("https://backing/result")).arrayBuffer()), expectedBytes = expectedFiles.get(tool === "mogrify" ? "input.png" : "/out.bmp")!;
-            expect(decodeImage(actual)).toEqual(decodeImage(expectedBytes));
+            if (tool === "convert-text") { expect(actual.length).toBeGreaterThan(65536); expect(actual).toEqual(expectedBytes); }
+            else expect(decodeImage(actual)).toEqual(decodeImage(expectedBytes));
             if (tool === "convert-animation") expect(decodeImage(actual, { page: 1 })).toEqual(decodeImage(expectedBytes, { page: 1 }));
         }
         finally {

@@ -32,8 +32,8 @@ export class EncodedSnapshots {
         this.buckets = new IntegerTable(storage, 128); this.order = new IntegerTable(storage, 128);
         this.images = new StoredImageStack(storage, signal);
     }
-    async stage(image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions): Promise<void> {
-        const firstPage = this.nextPage, page = new Uint8Array(4096), encoder = encodeStoredImage(image, this.storage, this.signal, encoding);
+    async stage(image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions, source?: AsyncGenerator<Uint8Array, Snapshot["encoded"]["info"] | undefined>): Promise<void> {
+        const firstPage = this.nextPage, page = new Uint8Array(4096), encoder = source ?? encodeStoredImage(image, this.storage, this.signal, encoding);
         let used = 0, size = 0;
         const retain = async () => {
             const position = this.storage.allocate(used);

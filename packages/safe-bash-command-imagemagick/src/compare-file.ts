@@ -19,6 +19,7 @@ export interface CompareFileSession {
     retain(image: RgbaImage): Promise<StoredRgbaImage>;
     stage(image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions): Promise<void>;
     publishPending(): Promise<void>;
+    publishText(image: StoredRgbaImage, path: string, chunks: AsyncIterable<Uint8Array>): Promise<void>;
     publish(image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions): Promise<Uint8Array | undefined>;
 }
 export class CompareInputFailure extends Error {
@@ -59,7 +60,12 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                     if (info)
                         return;
                 }
-                const encoded = encodeStoredImage(image, storage, signal, encoding), chunks: Uint8Array[] = [];
+                const encoded = snapshot ? (async function* () {
+                    for (let position = 0; position < snapshot.source.size; position += 16384) {
+                        await yieldTurn(signal);
+                        yield new Uint8Array(await snapshot.source.read(position, Math.min(16384, snapshot.source.size - position), io));
+                    }
+                })() : encodeStoredImage(image, storage, signal, encoding), chunks: Uint8Array[] = [];
                 let size = 0;
                 try {
                     for await (const chunk of encoded) {
@@ -164,6 +170,15 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
             },
             stage: snapshots.stage.bind(snapshots),
             publishPending,
+            async publishText(image, path, chunks) {
+                const encoded = (async function* () {
+                    let size = 0;
+                    for await (const chunk of chunks) { size += chunk.length; yield chunk; }
+                    return { format: "txt", width: image.width, height: image.height, channels: image.channels, premultiplied: false, size };
+                })();
+                await snapshots.stage(image, path, { format: "raw" }, encoded);
+                await publishPending();
+            },
             async publish(image, path, encoding) {
                 if (!snapshots.size) return publishImage(image, path, encoding);
                 let bytes: Uint8Array | undefined;

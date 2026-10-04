@@ -3,6 +3,12 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "xlsxMarginPointPrecision": {
+      "finding": "XLSX margin import rounded inch-to-point conversions to four decimal places before any downstream writer. Four memory tests and96 of144 direct native BIFF field comparisons reproduced the precision loss.",
+      "repair": "Retain full binary64 point values in neutral PrintInformation instead of formatting them prematurely. Zero and ordinary decimal controls remain unchanged.",
+      "verification": "276 owner/print/metadata tests, selected build and owner lint/source/test types pass. Six independent OpenPyXL3.1.5 inputs produce24 SDK/command BIFF7/8 exports; all144 margin fields now exactly match pinned Gnumeric direct XLSX-to-BIFF output. Exact native workbookProtection warning retained for all12 reference conversions. Product diagnostics retain raw inch-to-point binary64 differences; no tolerance or warning suppression added. Screenshot inspected.",
+      "remaining": "Wider margin profiles, XML/ODF/rendering transport and all broader compatibility/qualification remain open. No family/release closure."
+    },
     "xlsxBiffMarginDiagnostics": {
       "scope": "Suppress XLSX pageMargins loss warnings only when each supported source attribute exactly matches the emitted BIFF float64 field, including header/footer SETUP offsets. Changed, malformed, unknown and unrepresented metadata still warn.",
       "verification": "Six original failures repaired;2444 affected tests, selected build and owner lint/types pass.32 compiled SDK/command exports remain byte-identical to independently qualified BIFF7/8 outputs while retaining exactly three unrelated warnings. All192 margin points in their pinned Gnumeric readbacks match independent OpenPyXL controls. CLI screenshot inspected.",

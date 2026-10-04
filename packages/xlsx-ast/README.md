@@ -25,7 +25,8 @@ in native order. Row summary markers survive XLSX re-export at outline level zer
 Late worksheet defaults preserve heights already allocated by values, formulas,
 visibility or outlines; empty rows use the final default. Repeated default-format
 records are combined on export. Repeated cell coordinates update one cell in source order: blank records preserve prior values, explicit empty strings replace them, and value-only updates retain live formulas. Uncached replacement formulas retain the previous cached value and rich text while remaining dirty until recalculation. Missing inline-string payloads stay blank;
-explicit empty payloads remain empty strings.
+explicit empty payloads remain empty strings. Print margins retain full point
+precision during import and cross-format conversion.
 Sheet permissions use `view.protectedAllow`: boolean `objects`, `scenarios`,
 `formatCells`, `formatColumns`, `formatRows`, `insertColumns`, `insertRows`,
 `insertHyperlinks`, `deleteColumns`, `deleteRows`, `selectLockedCells`, `sort`,

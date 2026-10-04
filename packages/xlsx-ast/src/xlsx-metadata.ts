@@ -1,7 +1,6 @@
 import type { XmlElement } from "@poe-code/safe-fs/xml";
 import { parseA1, formatA1, type ImportedValue, type UnsupportedRecord } from "@poe-code/spreadsheet-ast";
 import { SsconvertError, type CapabilityContext } from "@poe-code/spreadsheet-engine/contracts";
-import { gnumericNumber } from "@poe-code/spreadsheet-engine/codecs/gnumeric-number";
 import { decodeXlsxString } from "@poe-code/spreadsheet-engine/codecs/xlsx-strings";
 import type { MetadataNode } from "@poe-code/spreadsheet-engine/codecs/xlsx-write-support";
 import { readXlsxString } from "./xlsx-styles.js";
@@ -57,7 +56,7 @@ export function readXlsxMetadata(sheet: SourceNode): readonly UnsupportedRecord[
     }
     if (margins) print.push(gnode("Margins", {}, ["top", "bottom", "left", "right", "header", "footer"].flatMap(name => {
       const value = attribute(margins, name);
-      return value === undefined ? [] : [gnode(name, { Points: gnumericNumber(numeric(value, 0) * 72, false, 4), PrefUnit: "mm" })];
+      return value === undefined ? [] : [gnode(name, { Points: numeric(value, 0) * 72, PrefUnit: "mm" })];
     })));
     if (setup) {
       const useFirstPage = attribute(setup, "useFirstPageNumber");

@@ -28,6 +28,7 @@ whitespace and Unicode normalization. Publication uses retained staging writes a
 atomic conditional replacement, preserving existing file identity and hardlinks.
 Backends need retained reads, retained staging cleanup/writes, atomic staged file
 mutation and confined mutations. Large workloads need external backing storage;
-a memory filesystem keeps spilled data in RAM. File paths, hunk/line descriptors
-and per-file planning metadata still buffer in memory, so this is not yet a
-complete bounded-memory guarantee for arbitrary line, hunk or file counts.
+a memory filesystem keeps spilled data in RAM. Line, anchor and hunk descriptors
+share a bounded page cache; matching replays them without collecting a pattern
+array. File paths and per-file planning metadata still buffer in memory, so this
+is not yet a complete bounded-memory guarantee for arbitrary file counts.

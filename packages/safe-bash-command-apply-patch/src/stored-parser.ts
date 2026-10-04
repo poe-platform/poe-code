@@ -1,10 +1,11 @@
 import type { IndexedDocument } from "safe-bash-diff-engine/document";
-import { parseRecords, type PatchFile } from "./parser.js";
+import { parseRecords, type ParsedFile } from "./parser.js";
 import { textChunks, trimStored, type StoredText } from "./stored-text.js";
+import type { PatchMetadata } from "./metadata.js";
 import { PatchError, type Work } from "./shared.js";
 
 /** Parse grammar from short prefixes; payloads remain ranges in caller storage. */
-export async function parseDocument(document: IndexedDocument, work: Work): Promise<PatchFile<StoredText>[]> {
+export async function parseDocument(document: IndexedDocument, work: Work, metadata: PatchMetadata): Promise<ParsedFile<StoredText>[]> {
   await work.utf8(work.cwd, work.limits.maxPathBytes, 2);
   if (!work.cwd.startsWith("/") || work.cwd.includes("\0")) throw new PatchError("cwd must be an absolute virtual path", 2);
   if (document.binary) throw new PatchError("NUL bytes are unsupported", 2);
@@ -29,5 +30,5 @@ export async function parseDocument(document: IndexedDocument, work: Work): Prom
       for await (const chunk of textChunks(value)) result += chunk;
       return result;
     } };
-  } }, work);
+  } }, work, metadata);
 }

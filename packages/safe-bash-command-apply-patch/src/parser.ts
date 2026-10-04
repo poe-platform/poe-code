@@ -13,6 +13,22 @@ export interface PatchFile<T = string> {
   readonly hunks: Hunk<T>[];
 }
 
+export interface StoredItems<T> extends AsyncIterable<T> {
+  readonly length: number;
+  push(value: T): Promise<void>;
+}
+export type PatchItems<T> = T[] | StoredItems<T>;
+export interface ParsedHunk<T> { readonly anchors: PatchItems<T>; readonly lines: PatchItems<ChangeLine<T>>; eof: boolean }
+export interface ParsedFile<T> extends Omit<PatchFile<T>, "added" | "hunks"> {
+  readonly added: PatchItems<T>;
+  readonly hunks: PatchItems<ParsedHunk<T>>;
+}
+export interface PatchCollections<T> {
+  texts(): PatchItems<T>;
+  lines(): PatchItems<ChangeLine<T>>;
+  hunks(): PatchItems<ParsedHunk<T>>;
+}
+
 async function patchLines(text: string, work: Work): Promise<string[]> {
   const lines: string[] = [];
   let start = 0;
@@ -65,7 +81,7 @@ export async function parse(text: string, work: Work): Promise<PatchFile[]> {
   return parseRecords({ length: lines.length, async get(index) {
     const line = lines[index]!;
     return { prefix: line.slice(0, 32), size: line.length, slice: offset => line.slice(offset), async read(offset) { return work.slice(line, offset); } };
-  } }, work);
+  } }, work) as Promise<PatchFile[]>;
 }
 
 export interface PatchRecord<T> {
@@ -75,9 +91,9 @@ export interface PatchRecord<T> {
   read(offset: number): Promise<string>;
 }
 
-export async function parseRecords<T>(lines: { readonly length: number; get(index: number): Promise<PatchRecord<T>> }, work: Work): Promise<PatchFile<T>[]> {
+export async function parseRecords<T>(lines: { readonly length: number; get(index: number): Promise<PatchRecord<T>> }, work: Work, collections?: PatchCollections<T>): Promise<ParsedFile<T>[]> {
   if (!lines.length || (await lines.get(0)).prefix !== "*** Begin Patch" || (await lines.get(lines.length - 1)).prefix !== "*** End Patch") throw new PatchError("expected Begin Patch and End Patch envelope", 2);
-  const files: PatchFile<T>[] = [];
+  const files: ParsedFile<T>[] = [];
   let index = 1;
   while (index < lines.length - 1) {
     work.count("maxFiles", 1);
@@ -95,9 +111,9 @@ export async function parseRecords<T>(lines: { readonly length: number; get(inde
       destinationLabel = await (await lines.get(index++)).read(13);
       destination = await targetPath(destinationLabel, work);
     }
-    const added: T[] = [];
-    const hunks: Hunk<T>[] = [];
-    let current: Hunk<T> | undefined;
+    const added = collections?.texts() ?? [];
+    const hunks = collections?.hunks() ?? [];
+    let current: ParsedHunk<T> | undefined;
     let finished = false;
     while (index < lines.length - 1) {
       const line = await lines.get(index);
@@ -105,7 +121,7 @@ export async function parseRecords<T>(lines: { readonly length: number; get(inde
       if (line.prefix.startsWith("*** Add File: ") || line.prefix.startsWith("*** Delete File: ") || line.prefix.startsWith("*** Update File: ")) break;
       if (kind === "add") {
         if (!line.prefix.startsWith("+")) throw new PatchError(`invalid Add body at patch line ${index + 1}`, 2);
-        added.push(line.slice(1));
+        await added.push(line.slice(1));
       } else if (kind === "delete") throw new PatchError("Delete cannot have a body", 2);
       else if (finished) throw new PatchError("EOF must terminate the file's last hunk", 2);
       else if (line.prefix === "@@" || line.prefix.startsWith("@@ ")) {
@@ -114,10 +130,10 @@ export async function parseRecords<T>(lines: { readonly length: number; get(inde
           if (!named || current.anchors.length === 0) throw new PatchError("empty update hunk", 2);
         } else {
           work.count("maxHunks", 1);
-          current = { anchors: [], lines: [], eof: false };
-          hunks.push(current);
+          if (current) await hunks.push(current);
+          current = { anchors: collections?.texts() ?? [], lines: collections?.lines() ?? [], eof: false };
         }
-        if (named) current.anchors.push(line.slice(3));
+        if (named) await current.anchors.push(line.slice(3));
       } else if (line.prefix === "*** End of File") {
         if (!current?.lines.length) throw new PatchError("EOF requires a nonempty hunk", 2);
         current.eof = true;
@@ -127,13 +143,13 @@ export async function parseRecords<T>(lines: { readonly length: number; get(inde
         if (prefix !== " " && prefix !== "+" && prefix !== "-") throw new PatchError(`invalid hunk line ${index + 1}`, 2);
         if (!current) {
           work.count("maxHunks", 1);
-          current = { anchors: [], lines: [], eof: false };
-          hunks.push(current);
+          current = { anchors: collections?.texts() ?? [], lines: collections?.lines() ?? [], eof: false };
         }
-        current.lines.push({ kind: prefix, text: line.slice(1) });
+        await current.lines.push({ kind: prefix, text: line.slice(1) });
       }
       index++;
     }
+    if (current) await hunks.push(current);
     if (kind === "update" && (hunks.length === 0 ? destination === undefined : !current?.lines.length)) throw new PatchError("Update requires a nonempty hunk", 2);
     files.push({ kind, path, label, added, hunks, ...(destination === undefined ? {} : { destination, destinationLabel: destinationLabel! }) });
   }

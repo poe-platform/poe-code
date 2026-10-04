@@ -4,7 +4,8 @@ import {
   type ByteSource, type CommandContext, type FileReadHandle, type FileStaging, type FileStat, type FileSystem,
 } from "safe-bash-contracts";
 import { settings, type ApplyPatchLimits } from "./options.js";
-import type { PatchFile as ParsedFile } from "./parser.js";
+import type { ParsedFile } from "./parser.js";
+import { PatchMetadata } from "./metadata.js";
 import { parseDocument } from "./stored-parser.js";
 import type { StoredText } from "./stored-text.js";
 import { storedContents } from "./stored-matcher.js";
@@ -32,7 +33,7 @@ class Invocation {
   private ordinal: number | undefined;
   private fs: FileSystem;
   private inputBytes = 0;
-  private readonly documents = new Set<IndexedDocument>();
+  private readonly documents = new Set<{ close(): Promise<void> }>();
 
   constructor(readonly context: CommandContext, limits: ApplyPatchLimits) {
     this.work = new Work(context, limits);
@@ -310,7 +311,10 @@ class Invocation {
     let summary: Uint8Array;
     try {
       try {
-        const files = await parseDocument(await this.input(), work);
+        const input = await this.input();
+        const metadata = new PatchMetadata(input, work);
+        this.documents.add(metadata);
+        const files = await parseDocument(input, work, metadata);
         await this.confine(files);
         const plans = await this.prepare(files);
         const lines = ["Success. Updated the following files:\n"];

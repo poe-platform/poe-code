@@ -4,6 +4,7 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { toByteSource, type CommandContext } from "safe-bash-contracts";
 import { IndexedDocument } from "safe-bash-diff-engine/document";
 import { parse } from "./parser.js";
+import { PatchMetadata } from "./metadata.js";
 import { parseDocument } from "./stored-parser.js";
 import { textChunks, equalText, type StoredText } from "./stored-text.js";
 import { Work } from "./shared.js";
@@ -32,26 +33,33 @@ for (const ending of ["\n", "\r\n"]) test(`stored parser preserves grammar and t
     const input = value.split("\n").join(ending);
     const work = new Work(context(), settings({}));
     const document = new IndexedDocument(work);
+    const metadata = new PatchMetadata(document, work);
     try {
       await document.load(toByteSource(input));
       const attempt = async (stored: boolean) => {
         try {
-          const files = stored ? await parseDocument(document, work) : await parse(input, work);
+          const files = stored ? await parseDocument(document, work, metadata) : await parse(input, work);
           const read = async (value: string | StoredText) => {
             if (typeof value === "string") return value;
             let text = ""; for await (const chunk of textChunks(value)) text += chunk; return text;
           };
-          return await Promise.all(files.map(async file => ({ ...file,
-            added: await Promise.all(file.added.map(read)),
-            hunks: await Promise.all(file.hunks.map(async hunk => ({ ...hunk,
-              anchors: await Promise.all(hunk.anchors.map(read)),
-              lines: await Promise.all(hunk.lines.map(async line => ({ ...line, text: await read(line.text) }))),
-            }))),
-          })));
+          const result = [];
+          for (const file of files) {
+            const added = [], hunks = [];
+            for await (const value of file.added) added.push(await read(value));
+            for await (const hunk of file.hunks) {
+              const anchors = [], lines = [];
+              for await (const value of hunk.anchors) anchors.push(await read(value));
+              for await (const line of hunk.lines) lines.push({ ...line, text: await read(line.text) });
+              hunks.push({ ...hunk, anchors, lines });
+            }
+            result.push({ ...file, added, hunks });
+          }
+          return result;
         } catch (error) { return { message: (error as Error).message }; }
       };
       assert.deepEqual(await attempt(true), await attempt(false), input);
-    } finally { await document.close(); work.close(); }
+    } finally { await metadata.close(); await document.close(); work.close(); }
   }
 });
 

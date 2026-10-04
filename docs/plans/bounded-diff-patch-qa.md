@@ -10,8 +10,9 @@ non-streaming backends retain a buffered compatibility path. Ignored lines,
 function headings, directory metadata, patch and diff3 still need migration.
 Apply-patch payload parsing, target snapshots, matching and replacements use
 caller-backed indexes and retained staged publication. Patch lines remain byte
-ranges during grammar parsing and normalized matching. File paths, hunk/line
-descriptors and per-file plan metadata remain buffered. Pagination uses caller-backed output pages, bounded sink writes and incremental single-column
+ranges during grammar parsing and normalized matching. Line, anchor and hunk
+descriptors share one caller-backed page cache and matching iterates stored
+patterns. File paths and per-file plan metadata remain buffered. Pagination uses caller-backed output pages, bounded sink writes and incremental single-column
 line rendering. Other pr layouts are outside this coverage. Do not infer
 qualification of unmigrated paths from these tests.
 

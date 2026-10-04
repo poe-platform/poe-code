@@ -16,8 +16,9 @@ export async function ownWorkbookSource(source: WorkbookSource, limits: RuntimeL
   const readCells = source.cells.bind(source);
   if (metadata.detachedSheets?.length || metadata.sheets.some(sheet => sheet.cells.length))
     throw new SsconvertError("invalid-request", "Workbook source metadata must have empty cell arrays");
-  const copy = createRecordSnapshot(limits);
-  copy(metadata);
+  const metadataSnapshot = createRecordSnapshot(limits);
+  metadataSnapshot(metadata);
+  const copy = metadataSnapshot.fork();
   let count = 0;
   function validate(cell: Cell, sheet: (typeof metadata.sheets)[number], validation: ReturnType<typeof createCellValidator>, previous?: Cell) {
     check();
@@ -41,8 +42,7 @@ export async function ownWorkbookSource(source: WorkbookSource, limits: RuntimeL
   return Object.freeze({ metadata, async *cells(id: string) {
     const sheet = metadata.sheets.find(sheet => sheet.id === id);
     if (!sheet) throw new SsconvertError("invalid-request", "Unknown workbook source sheet");
-    const copy = createRecordSnapshot(limits);
-    copy(metadata);
+    const copy = metadataSnapshot.fork();
     const validation = createCellValidator(limits); validation.charge(metadataWork);
     let previous: Cell | undefined, index = 0;
     for await (const supplied of readCells(id)) {

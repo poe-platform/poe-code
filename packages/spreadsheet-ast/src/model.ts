@@ -181,68 +181,81 @@ function ownershipBudgets(limits: WorkbookLimits) {
 /** Successive copies share node/text budgets without retaining prior records.
  * Depth is relative to the containing document when copying streamed children.
  * Only JSON-like owned data is admitted; no prototypes, accessors or capabilities. */
-export function createRecordSnapshot(limits: WorkbookLimits) {
-  let nodes = 0,
-    textBytes = 0;
+export interface RecordSnapshot {
+  <T>(records: T, depth?: number): T;
+  /** Copy the current admission counters without retaining previously copied data. */
+  fork(): RecordSnapshot;
+}
+
+export function createRecordSnapshot(limits: WorkbookLimits): RecordSnapshot {
   const { nodeLimit, textLimit, depthLimit } = ownershipBudgets(limits);
-  const ancestors = new Set<object>();
-  function copy(value: unknown, depth = 0): unknown {
-    if (depth > depthLimit)
-      throw new SsconvertError("resource-limit", "ssconvert workbook depth limit exceeded");
-    if (++nodes > nodeLimit)
-      throw new SsconvertError("resource-limit", "ssconvert workbook nodes limit exceeded");
-    if (typeof value === "string") {
-      for (const character of value) {
-        const point = character.codePointAt(0)!;
-        textBytes += point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4;
-        if (textBytes > textLimit)
-          throw new SsconvertError("resource-limit", "ssconvert workbook text limit exceeded");
+  function create(nodes: number, textBytes: number): RecordSnapshot {
+    const ancestors = new Set<object>();
+    function copy(value: unknown, depth = 0): unknown {
+      if (depth > depthLimit)
+        throw new SsconvertError("resource-limit", "ssconvert workbook depth limit exceeded");
+      if (++nodes > nodeLimit)
+        throw new SsconvertError("resource-limit", "ssconvert workbook nodes limit exceeded");
+      if (typeof value === "string") {
+        for (const character of value) {
+          const point = character.codePointAt(0)!;
+          textBytes += point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4;
+          if (textBytes > textLimit)
+            throw new SsconvertError("resource-limit", "ssconvert workbook text limit exceeded");
+        }
+        return value;
       }
-      return value;
+      if (value === null || typeof value === "boolean") return value;
+      if (typeof value === "number") {
+        if (!Number.isFinite(value)) invalid("Nonfinite workbook number");
+        return value;
+      }
+      if (typeof value !== "object" || value === undefined) invalid("Unsupported workbook data");
+      if (ancestors.has(value)) invalid("Cyclic workbook data");
+      if (
+        !Array.isArray(value) &&
+        Object.getPrototypeOf(value) !== Object.prototype &&
+        Object.getPrototypeOf(value) !== null
+      )
+        invalid("Unsupported workbook prototype");
+      if (Object.getOwnPropertySymbols(value).length) invalid("Unsupported workbook symbol");
+      ancestors.add(value);
+      const result: Record<string, unknown> | unknown[] = Array.isArray(value)
+        ? []
+        : (Object.create(null) as Record<string, unknown>);
+      if (Array.isArray(value) && value.length > nodeLimit - nodes)
+        throw new SsconvertError("resource-limit", "ssconvert workbook nodes limit exceeded");
+      const keys = Object.getOwnPropertyNames(value);
+      if (keys.length - (Array.isArray(value) ? 1 : 0) > nodeLimit - nodes)
+        throw new SsconvertError("resource-limit", "ssconvert workbook nodes limit exceeded");
+      let arrayOffset = 0;
+      for (const key of keys) {
+        if (Array.isArray(value) && key === "length") continue;
+        const descriptor = Object.getOwnPropertyDescriptor(value, key);
+        if (!descriptor) continue;
+        if (Array.isArray(value) && key !== String(arrayOffset++)) invalid("Invalid workbook array");
+        if (!Object.hasOwn(descriptor, "value")) invalid("Unsupported workbook accessor");
+        if (Array.isArray(value) && descriptor.value === undefined) invalid("Invalid workbook array");
+        copy(key, depth + 1);
+        if (descriptor.value !== undefined)
+          Object.defineProperty(result, key, {
+            value: copy(descriptor.value, depth + 1),
+            enumerable: true
+          });
+      }
+      if (Array.isArray(value) && arrayOffset !== value.length) invalid("Invalid workbook array");
+      ancestors.delete(value);
+      return Object.freeze(result);
     }
-    if (value === null || typeof value === "boolean") return value;
-    if (typeof value === "number") {
-      if (!Number.isFinite(value)) invalid("Nonfinite workbook number");
-      return value;
-    }
-    if (typeof value !== "object" || value === undefined) invalid("Unsupported workbook data");
-    if (ancestors.has(value)) invalid("Cyclic workbook data");
-    if (
-      !Array.isArray(value) &&
-      Object.getPrototypeOf(value) !== Object.prototype &&
-      Object.getPrototypeOf(value) !== null
-    )
-      invalid("Unsupported workbook prototype");
-    if (Object.getOwnPropertySymbols(value).length) invalid("Unsupported workbook symbol");
-    ancestors.add(value);
-    const result: Record<string, unknown> | unknown[] = Array.isArray(value)
-      ? []
-      : (Object.create(null) as Record<string, unknown>);
-    if (Array.isArray(value) && value.length > nodeLimit - nodes)
-      throw new SsconvertError("resource-limit", "ssconvert workbook nodes limit exceeded");
-    const keys = Object.getOwnPropertyNames(value);
-    if (keys.length - (Array.isArray(value) ? 1 : 0) > nodeLimit - nodes)
-      throw new SsconvertError("resource-limit", "ssconvert workbook nodes limit exceeded");
-    let arrayOffset = 0;
-    for (const key of keys) {
-      if (Array.isArray(value) && key === "length") continue;
-      const descriptor = Object.getOwnPropertyDescriptor(value, key);
-      if (!descriptor) continue;
-      if (Array.isArray(value) && key !== String(arrayOffset++)) invalid("Invalid workbook array");
-      if (!Object.hasOwn(descriptor, "value")) invalid("Unsupported workbook accessor");
-      if (Array.isArray(value) && descriptor.value === undefined) invalid("Invalid workbook array");
-      copy(key, depth + 1);
-      if (descriptor.value !== undefined)
-        Object.defineProperty(result, key, {
-          value: copy(descriptor.value, depth + 1),
-          enumerable: true
-        });
-    }
-    if (Array.isArray(value) && arrayOffset !== value.length) invalid("Invalid workbook array");
-    ancestors.delete(value);
-    return Object.freeze(result);
+    return Object.freeze(Object.assign(
+      <T>(records: T, depth = 0): T => copy(records, depth) as T,
+      { fork(): RecordSnapshot {
+        if (ancestors.size) invalid("Cannot fork an active workbook snapshot");
+        return create(nodes, textBytes);
+      } }
+    ));
   }
-  return <T>(records: T, depth = 0): T => copy(records, depth) as T;
+  return create(0, 0);
 }
 
 export function snapshotRecords<T>(records: T, limits: WorkbookLimits): T {

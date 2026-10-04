@@ -67,7 +67,7 @@ it("keeps byte-string export work admission aggregate before opening output", as
   expect(opened).toBe(false); await engine.dispose();
 });
 
-it("does not copy the whole sheet metadata for each streamed cell", async () => {
+it("does not copy the whole sheet metadata for each streamed cell or replay", async () => {
   const count = 160;
   const metadata: Workbook = { sheets: [{ id: "s", name: "Data", cells: [], rows: Array.from({ length: count }, (_, index) => ({ index, sizePoints: 17 })) }] };
   const original = Object.getOwnPropertyDescriptor;
@@ -80,8 +80,11 @@ it("does not copy the whole sheet metadata for each streamed cell", async () => 
     const source = await ownWorkbookSource({ metadata, async *cells() {
       for (let row = 0; row < count; row++) yield { row, column: 0, value: { kind: "number", value: row } };
     } }, defaultSsconvertLimits, () => {});
-    let seen = 0; for await (const cell of source.cells("s")) { expect(cell.row).toBe(seen++); }
-    expect(seen).toBe(count); expect(axesCopied).toBeLessThanOrEqual(count * 4);
+    for (let replay = 0; replay < 8; replay++) {
+      let seen = 0; for await (const cell of source.cells("s")) { expect(cell.row).toBe(seen++); }
+      expect(seen).toBe(count);
+    }
+    expect(axesCopied).toBeLessThanOrEqual(count * 2);
   } finally { spy.mockRestore(); }
 });
 

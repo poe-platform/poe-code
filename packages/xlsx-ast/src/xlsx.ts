@@ -434,19 +434,19 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       const shared = indexes?.shared ?? new Map<string, XlsxSharedFormula>();
       const columnStyles = children(child(source, "cols"), "col").filter(node => attr(node, "style") !== undefined)
         .map(node => ({ min: integer(attr(node, "min")) - 1, max: integer(attr(node, "max")) - 1, style: cellStyles[integer(attr(node, "style"))] }));
-      const rowState = new Map<number, AxisMetadata>();
-      const allocatedRowHeights = new Map<number, number>();
+      const rowState = indexes?.rows ?? new Map<number, AxisMetadata>();
+      const allocatedRowHeights = indexes?.heights ?? new Map<number, number>();
       const dimensions: Record<string, ImportedValue> = {};
       let defaultRowHeight = 12.75;
       let expandedRows = 0, nextRow = 0;
-      function allocateRow(index: number) {
+      async function allocateRow(index: number) {
         opc.charge(1);
-        if (allocatedRowHeights.has(index)) return;
-        if (!rowState.has(index)) {
+        if ((await allocatedRowHeights.get(index)) !== undefined) return;
+        if ((await rowState.get(index)) === undefined) {
           if (++expandedRows > (context.limits.workbookNodes ?? Infinity)) limit("row metadata");
-          rowState.set(index, { index });
+          await rowState.set(index, { index });
         }
-        allocatedRowHeights.set(index, defaultRowHeight);
+        await allocatedRowHeights.set(index, defaultRowHeight);
       }
       for (const section of source.children) {
         if (!spreadsheetNamespaces.has(section.namespace)) continue;
@@ -465,22 +465,22 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
           const height = attr(row, "ht") === undefined ? undefined : number(attr(row, "ht"));
           if (++expandedRows > (context.limits.workbookNodes ?? Infinity)) limit("row metadata");
           opc.charge(1);
-          let metadata: AxisMetadata = rowState.get(rowIndex) ?? { index: rowIndex, hidden: false, outlineLevel: 0, collapsed: false };
+          let metadata: AxisMetadata = await rowState.get(rowIndex) ?? { index: rowIndex, hidden: false, outlineLevel: 0, collapsed: false };
           if (height !== undefined && height > 0) metadata = { ...metadata, sizePoints: height,
             style: { gnumeric: gnode("RowInfo", { HardSize: boolean(attr(row, "customHeight")) ? 1 : 0 }) } };
-          if (!allocatedRowHeights.has(rowIndex) && (height !== undefined && height > 0 || boolean(attr(row, "hidden")) ||
-            attr(row, "outlineLevel") !== undefined && integer(attr(row, "outlineLevel")) >= 0)) allocatedRowHeights.set(rowIndex, defaultRowHeight);
+          if ((await allocatedRowHeights.get(rowIndex)) === undefined && (height !== undefined && height > 0 || boolean(attr(row, "hidden")) ||
+            attr(row, "outlineLevel") !== undefined && integer(attr(row, "outlineLevel")) >= 0)) await allocatedRowHeights.set(rowIndex, defaultRowHeight);
           // Unlike columns, native rows change visibility before their outline.
           if (boolean(attr(row, "hidden")) && !metadata.hidden) {
             if ((metadata.outlineLevel ?? 0) > 0 && rowIndex < 1048575) {
-              const adjacent = rowState.get(rowIndex + 1);
+              const adjacent = await rowState.get(rowIndex + 1);
               if (!adjacent) {
                 if (++expandedRows > (context.limits.workbookNodes ?? Infinity)) limit("row metadata");
                 opc.charge(1);
               }
               if ((metadata.outlineLevel ?? 0) > (adjacent?.outlineLevel ?? 0)) {
-                rowState.set(rowIndex + 1, { ...(adjacent ?? { index: rowIndex + 1 }), collapsed: true });
-                if (!allocatedRowHeights.has(rowIndex + 1)) allocatedRowHeights.set(rowIndex + 1, defaultRowHeight);
+                await rowState.set(rowIndex + 1, { ...(adjacent ?? { index: rowIndex + 1 }), collapsed: true });
+                if ((await allocatedRowHeights.get(rowIndex + 1)) === undefined) await allocatedRowHeights.set(rowIndex + 1, defaultRowHeight);
               }
             }
             metadata = { ...metadata, hidden: true };
@@ -488,7 +488,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
           const outline = attr(row, "outlineLevel");
           if (outline !== undefined && integer(outline) >= 0) metadata = { ...metadata,
             outlineLevel: integer(outline), collapsed: boolean(attr(row, "collapsed")) };
-          rowState.set(rowIndex, metadata);
+          await rowState.set(rowIndex, metadata);
           let nextColumn = 0;
           for (const node of children(row, "c")) {
             if (++cellCount > context.limits.cells) limit("cells"); context.signal.throwIfAborted();
@@ -562,7 +562,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
                 }
               }
             }
-            if (value.kind !== "blank" || expression !== undefined) allocateRow(position.row);
+            if (value.kind !== "blank" || expression !== undefined) await allocateRow(position.row);
             if (expression !== undefined) {
               opc.charge(arrayGroups.size * 4);
               const arrays = [...arrayGroups.values()];
@@ -604,7 +604,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
                 }
               }
             }
-            if (arrayRange) for (let index = arrayRange.startRow; index <= arrayRange.endRow; index++) allocateRow(index);
+            if (arrayRange) for (let index = arrayRange.startRow; index <= arrayRange.endRow; index++) await allocateRow(index);
             if (type === "inlineStr" && !inline && !f && expression === undefined && style === undefined) continue;
             const hasCache = type === "inlineStr" ? inline !== undefined
               : raw !== undefined && (raw !== "" || type === "str");
@@ -658,12 +658,12 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
           }
         }
       }
-      for (const metadata of rowState.values()) {
-        const allocatedHeight = allocatedRowHeights.get(metadata.index);
+      for await (const metadata of rowState.values()) {
+        const allocatedHeight = await allocatedRowHeights.get(metadata.index);
         rows.push(metadata.sizePoints === undefined && allocatedHeight !== undefined && allocatedHeight !== defaultRowHeight
           ? { ...metadata, sizePoints: allocatedHeight, style: { gnumeric: gnode("RowInfo", { HardSize: 0 }) } } : metadata);
       }
-      const columnState = new Map<number, AxisMetadata>();
+      const columnState = indexes?.columns ?? new Map<number, AxisMetadata>();
       let expandedColumns = 0;
       for (const node of children(child(source, "cols"), "col")) {
         const min = integer(attr(node, "min")), max = integer(attr(node, "max"));
@@ -678,8 +678,8 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
           HardSize: boolean(attr(node, "customWidth")) && !boolean(attr(node, "bestFit")) ? 1 : 0 }) };
         const outlineLevel = integer(attr(node, "outlineLevel"));
         for (let index = min - 1; index < max; index++) {
-          const previous = columnState.get(index) ?? { index, hidden: false, outlineLevel: 0, collapsed: false };
-          columnState.set(index, { ...previous,
+          const previous = await columnState.get(index) ?? { index, hidden: false, outlineLevel: 0, collapsed: false };
+          await columnState.set(index, { ...previous,
             ...(outlineLevel > 0 ? { outlineLevel, collapsed: boolean(attr(node, "collapsed")) } : {}),
             ...(style === undefined ? {} : { sizePoints: sizePoints!, style }) });
         }
@@ -689,25 +689,25 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
           opc.charge(count);
           let changed = false, previousOutline = 0;
           for (let index = min - 1; index < max; index++) {
-            const column = columnState.get(index)!;
+            const column = (await columnState.get(index))!;
             const collapsed = changed && previousOutline > (column.outlineLevel ?? 0) ? false : column.collapsed ?? false;
             changed = !column.hidden;
             if (changed) previousOutline = column.outlineLevel ?? 0;
-            columnState.set(index, { ...column, hidden: true, collapsed });
+            await columnState.set(index, { ...column, hidden: true, collapsed });
           }
           if (changed && max < 16384 && previousOutline > 0) {
-            const adjacent = columnState.get(max);
+            const adjacent = await columnState.get(max);
             if (!adjacent) {
               if (expandedColumns >= (context.limits.workbookNodes ?? Infinity)) limit("column metadata");
               expandedColumns++; opc.charge(1);
             }
             if (previousOutline > (adjacent?.outlineLevel ?? 0)) {
-              columnState.set(max, { ...(adjacent ?? { index: max }), collapsed: true });
+              await columnState.set(max, { ...(adjacent ?? { index: max }), collapsed: true });
             }
           }
         }
       }
-      columns.push(...columnState.values());
+      for await (const column of columnState.values()) columns.push(column);
       const records: UnsupportedRecord[] = [];
       const hyperlinkRegions: ImportedValue[] = [];
       for (const link of children(child(source, "hyperlinks"), "hyperlink")) {

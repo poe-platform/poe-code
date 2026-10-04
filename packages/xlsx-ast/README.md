@@ -72,7 +72,8 @@ compressed archive. XML decoding and parsing consume member chunks directly,
 including UTF-8 and both UTF-16 byte orders, without full decoded byte/string
 copies. Keep the source open until the operation settles. With engine `workingFiles`,
 the directory and member indexes, shared strings, worksheet row XML, duplicate-cell
-positions and shared-formula definitions use
+positions, shared-formula definitions, row/column metadata and captured default
+heights use
 caller-backed scratch storage with bounded transfer windows and caches. Rows
 replay through schema recognition and cell decoding in source order. Parts also
 used as opaque metadata preserve that role's original XML. Individual rows,

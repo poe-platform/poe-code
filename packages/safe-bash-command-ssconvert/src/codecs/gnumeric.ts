@@ -16,6 +16,7 @@ import { gnumericGrammar } from "../formulas/conventions.js";
 import { quoteFormulaString } from "../formulas/serialization.js";
 import { gnumericFormulaNodes } from "./gnumeric-formula-nodes.js";
 import { rewriteReferences } from "../formulas/rewriting.js";
+import { applyGnumericStyle } from "./gnumeric-style-regions.js";
 import { gnumericNumber } from "./gnumeric-number.js";
 import { readGnumericRichText, writeGnumericRichText } from "./gnumeric-rich-text.js";
 import { objectKinds } from "../objects/registry.js";
@@ -461,13 +462,14 @@ export async function readGnumeric(bytes: Uint8Array | RangeSource, context: Cap
       if (id && formula && !original) await shared.set(id, { formula, row, column, sheet: name, ...semantics });
       const stored = formula ? cached === undefined ? { kind: "blank" } as const : value(type, cached) : value(type, text);
       const valueFormat = attribute(item, "ValueFormat"); const runs = readGnumericRichText(valueFormat);
-      let style: ImportedValue | undefined; let format = runs ? undefined : valueFormat;
+      let style: ImportedValue | undefined; let styleNode: XmlElement | undefined; let format = runs ? undefined : valueFormat;
       for (const region of styles) {
         tick();
         const bounds = xmlRange(region); if (row < bounds.startRow || row > bounds.endRow || column < bounds.startColumn || column > bounds.endColumn) continue;
         const s = child(region, "Style");
         if (s) {
-          style = record(s);
+          styleNode = styleNode && version >= 3 && version <= 5 ? applyGnumericStyle(styleNode, s, tick) : s;
+          style = record(styleNode);
           // XML v3-v5 applies partial regions; modern regions replace with defaults.
           format = attribute(s, "Format") ?? (version >= 6 || version <= 2 ? runs ? undefined : valueFormat : format);
         }

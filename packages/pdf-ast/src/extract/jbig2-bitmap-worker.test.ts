@@ -5,7 +5,7 @@ import {Miniflare} from "miniflare";
 import {expect,it} from "vitest";
 import {decodeJbig2ToRgba} from "./images.js";
 
-it.each(["page", "region", "arithmetic", "segments", "random segments", "repeated regions", "text region", "halftone", "patterns", "repeated text", "repeated halftone"])("keeps growing JBIG2 %s state in external caller storage in Workerd",async profile=>{
+it.each(["page", "region", "arithmetic", "segments", "random segments", "repeated regions", "text region", "halftone", "patterns", "repeated text", "repeated halftone", "symbols", "MMR symbols"])("keeps growing JBIG2 %s state in external caller storage in Workerd",async profile=>{
  const inputs=new Map<number,{bytes:Uint8Array;sum:number}>();
  for(const height of profile === "patterns" ? [129,255] : profile === "arithmetic" ? [129,513] : (profile.includes("segments") || profile.startsWith("repeated")) ? [17,129] : [8193,32769]){
   let bytes=new Uint8Array(readFileSync(new URL("../fixtures/jbig2-generic-stream.bin",import.meta.url)));
@@ -46,6 +46,22 @@ it.each(["page", "region", "arithmetic", "segments", "random segments", "repeate
    // White single-row MMR gray plane followed by end-of-block.
    input.set([128,8,0,128],226);bytes=input;
   }
+  if(profile.includes("symbols")) {
+   // Export only the second symbol, whose shared pixels begin inside a byte.
+   let pixels=new Uint8Array(height).fill(180),widths="1110000"+"110",sizeBits="00000";
+   if(profile === "MMR symbols") {
+    const bits="0010001110101"+"111".repeat(height-1);pixels=new Uint8Array(Math.ceil(bits.length/8));
+    for(let i=0;i<bits.length;i++)if(bits[i]==="1")pixels[i>>3]!|=128>>(i&7);
+    widths="10"+"110";sizeBits="110"+(pixels.length-272).toString(2).padStart(16,"0");
+   }
+   const bits="11111"+(height-76).toString(2).padStart(32,"0")+widths+"111111"+sizeBits;
+   const header=new Uint8Array(Math.ceil(bits.length/8));for(let i=0;i<bits.length;i++)if(bits[i]==="1")header[i>>3]!|=128>>(i&7);
+   const start=53+header.length+pixels.length,input=new Uint8Array(start+51);input.set(bytes.subarray(0,30));const view=new DataView(input.buffer);
+   view.setUint32(30,1);input[36]=1;view.setUint32(37,12+header.length+pixels.length);view.setUint16(41,1);view.setUint32(43,1);view.setUint32(47,2);
+   input.set(header,51);input.set(pixels,51+header.length);input.set([8,64],51+header.length+pixels.length);
+   view.setUint32(start,2);input[start+4]=6;input[start+5]=32;input[start+6]=1;input[start+7]=1;view.setUint32(start+8,39);
+   view.setUint32(start+12,64);view.setUint32(start+16,height);view.setUint16(start+29,16);view.setUint32(start+31,1);bytes=input;
+  }
   new DataView(bytes.buffer).setUint32(15,height);
   if(profile.includes("segments")) {
    const records:Uint8Array[]=[];
@@ -63,6 +79,7 @@ it.each(["page", "region", "arithmetic", "segments", "random segments", "repeate
    for(let n=0;n<height;n++){input.set(region,start+n*region.length);new DataView(input.buffer).setUint32(start+n*region.length,n+2);}bytes=input;
   }
   const expected=decodeJbig2ToRgba(bytes,64,height);
+  if(profile.includes("symbols"))expect(expected.some(value=>value!==255)).toBe(true);
   inputs.set(height,{bytes,sum:expected.reduce((sum,value,index)=>(sum+value*(index%65521+1))%1000000007,0)});
  }
  const bundle=await build({stdin:{resolveDir:fileURLToPath(new URL("../../../../",import.meta.url)),contents:`
@@ -73,7 +90,7 @@ it.each(["page", "region", "arithmetic", "segments", "random segments", "repeate
  const storage=new PagedStorage({fs,cwd:'/',env:{},signal:new AbortController().signal},2);
  for(const name of ['Int8Array','Uint8Array','Uint8ClampedArray','Uint16Array','Uint32Array']){const Native=globalThis[name];originals.set(name,Native);globalThis[name]=new Proxy(Native,{construct(target,args){const bytes=typeof args[0]==='number'?args[0]*target.BYTES_PER_ELEMENT:args[0]?.byteLength??(args[0]?.length??0)*target.BYTES_PER_ELEMENT;peak=Math.max(peak,bytes);if(bytes>65536)throw Error('resident bitmap '+bytes);return Reflect.construct(target,args);}});}
  try{const source={size:length,chunkBytes:128,async read(at,length){if(length>128)throw Error('whole input');return new Uint8Array(await(await env.INPUT.fetch('https://input/?height='+height+'&at='+at+'&length='+length)).arrayBuffer());}};
- const image=await PdfRetainedJbig2.open(source,64,height,{bitmapStorage:storage,maxWorkingBytes:262144});let sum=0,index=0;try{for await(const row of image.rows())for(const value of row)sum=(sum+value*(index++%65521+1))%1000000007;}finally{image.close();await storage.close();}
+ const image=await PdfRetainedJbig2.open(source,64,height,{bitmapStorage:storage,maxWorkingBytes:${profile.includes("symbols") ? 524288 : 262144}});let sum=0,index=0;try{for await(const row of image.rows())for(const value of row)sum=(sum+value*(index++%65521+1))%1000000007;}finally{image.close();await storage.close();}
  return Response.json({sum,peak,opened,closed,decoderBytes:image.decoderBytes,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});
  }finally{await storage.close();for(const [name,Native]of originals)globalThis[name]=Native;}}};`},bundle:true,write:false,platform:"browser",conditions:["workerd"],format:"esm",metafile:true,logLevel:"silent"});
  expect(Object.values(bundle.metafile!.outputs).flatMap(output=>output.imports)).toEqual([]);

@@ -2394,7 +2394,8 @@ class ContextCache {
   }
 }
 class DecodingContext {
-  constructor(data, start, end, onImageDimensions, onAllocation) {
+  constructor(data, start, end, onImageDimensions, onAllocation, storedBitmap) {
+    this.storedBitmap = storedBitmap;
     this.onAllocation = onAllocation;
     onAllocation?.(1024);
     this.onImageDimensions = onImageDimensions;
@@ -2816,8 +2817,8 @@ function* decodeRefinement(width, height, templateIndex, referenceBitmap, offset
     referenceTemplateX[k] = referenceTemplate[k].x;
     referenceTemplateY[k] = referenceTemplate[k].y;
   }
-  const referenceWidth = referenceBitmap[0].length;
-  const referenceHeight = referenceBitmap.length;
+  const referenceWidth = referenceBitmap.width ?? referenceBitmap[0].length;
+  const referenceHeight = referenceBitmap.height ?? referenceBitmap.length;
   const pseudoPixelContext = RefinementReusedContexts[templateIndex];
   const bitmap = [];
   const decoder = (yield* decodingContext.getDecoder());
@@ -2851,7 +2852,7 @@ function* decodeRefinement(width, height, templateIndex, referenceBitmap, offset
         if (i0 < 0 || i0 >= referenceHeight || j0 < 0 || j0 >= referenceWidth) {
           contextLabel <<= 1;
         } else {
-          contextLabel = contextLabel << 1 | referenceBitmap[i0][j0];
+          contextLabel = contextLabel << 1 | (yield* jbigBitmapPixel(referenceBitmap, j0, i0));
         }
       }
       const pixel = (yield* jbigArithmetic(decoder, decoder.readBitSteps(contexts, contextLabel)));
@@ -2917,16 +2918,20 @@ function* decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbol
       const bitmapSize = (yield* huffmanTables.tableBitmapSize.decode(huffmanInput));
       huffmanInput.byteAlign();
       let collectiveBitmap;
+      if (decodingContext.storedBitmap) decodingContext.onAllocation?.(512);
+      const stored = decodingContext.storedBitmap ? yield* createStoredJbigBitmap(totalWidth, currentHeight) : undefined;
+      const onRow = stored ? storeJbigRow.bind(null, stored) : undefined;
       if (bitmapSize === 0) {
-        collectiveBitmap = (yield* readUncompressedBitmap(huffmanInput, totalWidth, currentHeight, decodingContext.onAllocation));
+        collectiveBitmap = (yield* readUncompressedBitmap(huffmanInput, totalWidth, currentHeight, decodingContext.onAllocation, onRow));
       } else {
         const originalEnd = huffmanInput.end;
         const bitmapEnd = huffmanInput.position + bitmapSize;
         huffmanInput.end = bitmapEnd;
-        collectiveBitmap = (yield* decodeMMRBitmap(huffmanInput, totalWidth, currentHeight, false, decodingContext.onAllocation));
+        collectiveBitmap = (yield* decodeMMRBitmap(huffmanInput, totalWidth, currentHeight, false, decodingContext.onAllocation, onRow));
         huffmanInput.end = originalEnd;
         huffmanInput.position = bitmapEnd;
       }
+      if (stored) collectiveBitmap = stored;
       const numberOfSymbolsDecoded = symbolWidths.length;
       if (firstSymbol === numberOfSymbolsDecoded - 1) {
         decodingContext.onAllocation?.(128);
@@ -2941,9 +2946,9 @@ function* decodeSymbolDictionary(huffman, refinement, symbols, numberOfNewSymbol
         for (i = firstSymbol; i < numberOfSymbolsDecoded; i++) {
           bitmapWidth = symbolWidths[i];
           xMax = xMin + bitmapWidth;
-          decodingContext.onAllocation?.(currentHeight * 256 + 128);
-          symbolBitmap = [];
-          for (y = 0; y < currentHeight; y++) {
+          decodingContext.onAllocation?.(stored ? 256 : currentHeight * 256 + 128);
+          symbolBitmap = stored ? {...stored, width: bitmapWidth, xOffset: xMin} : [];
+          if (!stored) for (y = 0; y < currentHeight; y++) {
             symbolBitmap.push(collectiveBitmap[y].subarray(xMin, xMax));
           }
           decodingContext.onAllocation?.(128);
@@ -3032,8 +3037,8 @@ function* decodeTextRegion(huffman, refinement, width, height, defaultPixelValue
       const symbolId = huffman ? (yield* huffmanTables.symbolIDTable.decode(huffmanInput)) : (yield* decodeIAID(contextCache, decoder, symbolCodeLength));
       const applyRefinement = refinement && (huffman ? (yield* huffmanInput.readBit()) : (yield* decodeInteger(contextCache, "IARI", decoder)));
       let symbolBitmap = inputSymbols[symbolId];
-      let symbolWidth = symbolBitmap[0].length;
-      let symbolHeight = symbolBitmap.length;
+      let symbolWidth = symbolBitmap.width ?? symbolBitmap[0].length;
+      let symbolHeight = symbolBitmap.height ?? symbolBitmap.length;
       if (applyRefinement) {
         const rdw = (yield* decodeInteger(contextCache, "IARDW", decoder));
         const rdh = (yield* decodeInteger(contextCache, "IARDH", decoder));
@@ -3065,14 +3070,14 @@ function* decodeTextRegion(huffman, refinement, width, height, defaultPixelValue
         if (!row) continue;
         if (combinationOperator !== 0 && combinationOperator !== 2)
           throw new Jbig2Error(`operator ${combinationOperator} is not supported`);
-        const symbolRow = symbolBitmap[y];
         for (let x = 0; x < maxWidth; x++) {
           const destX = left + x;
+          const pixel = yield* jbigBitmapPixel(symbolBitmap, x, y);
           if (stored) {
-            if (destX >= 0 && destX < width && symbolRow[x])
+            if (destX >= 0 && destX < width && pixel)
               yield {kind: "bitmap-update", bitmap, offset: destY * rowSize + (destX >> 3), mask: 128 >> (destX & 7), operator: combinationOperator === 0 ? "or" : "xor"};
-          } else if (combinationOperator === 0) row[destX] |= symbolRow[x];
-          else row[destX] ^= symbolRow[x];
+          } else if (combinationOperator === 0) row[destX] |= pixel;
+          else row[destX] ^= pixel;
         }
       }
       i++;
@@ -3762,7 +3767,7 @@ class SimpleSegmentVisitor {
         for (const symbol of referredSymbols) inputSymbols.push(symbol);
       }
     }
-    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation);
+    const decodingContext = new DecodingContext(data, start, end, this.onImageDimensions, this.onAllocation, this.storedBitmap);
     symbols[currentSegment] = (yield* decodeSymbolDictionary(dictionary.huffman, dictionary.refinement, inputSymbols, dictionary.numberOfNewSymbols, dictionary.numberOfExportedSymbols, huffmanTables, dictionary.template, dictionary.at, dictionary.refinementTemplate, dictionary.refinementAt, decodingContext, huffmanInput));
   }
   *onImmediateTextRegion(region, referredSegments, data, start, end) {
@@ -4213,16 +4218,18 @@ function getSymbolDictionaryHuffmanTables(dictionary, referredTo, customTables) 
     tableAggregateInstances
   };
 }
-function* readUncompressedBitmap(reader, width, height, onAllocation) {
-  onAllocation?.((width + 256) * height + 128);
+function* readUncompressedBitmap(reader, width, height, onAllocation, onRow) {
+  onAllocation?.((width + 256) * (onRow ? 1 : height) + 128);
   const bitmap = [];
+  const scratch = onRow ? new Uint8Array(width) : undefined;
   for (let y = 0; y < height; y++) {
-    const row = new Uint8Array(width);
-    bitmap.push(row);
+    const row = scratch ?? new Uint8Array(width);
+    if (!onRow) bitmap.push(row);
     for (let x = 0; x < width; x++) {
       row[x] = (yield* reader.readBit());
     }
     reader.byteAlign();
+    if (onRow) yield* onRow(row, y);
   }
   return bitmap;
 }

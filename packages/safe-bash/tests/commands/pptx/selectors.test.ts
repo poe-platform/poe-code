@@ -120,7 +120,7 @@ test("pptx adapter publishes atomically and refuses alias, stale and unavailable
       };
       fs.compareEntry = async () => "unknown";
     }
-    if (scenario === "unsupported") fs.capabilitiesFor = async () => ({ ...fs.capabilities, atomicFileMutation: false });
+    if (scenario === "unsupported") fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false, atomicFileMutation: false });
     if (scenario === "race") fs.writeFileConditional = async () => { throw new FsError("EAGAIN"); };
     let failure: unknown;
     shell.use(pptxCommands({ engine: { async execute(request) {
@@ -156,9 +156,9 @@ test("pptx XML commands read original bytes and validate before virtual file pub
     volume.writeFileSync("/work/deck.pptx", original);
     volume.writeFileSync("/work/change.xml", scenario === "invalid" ? "<broken>" : changedXml);
     if (["invalid", "unsupported", "exists", "force"].includes(scenario)) volume.writeFileSync("/work/out.pptx", "keep");
-    if (scenario === "unsupported") fs.capabilitiesFor = async () => ({ ...fs.capabilities, atomicFileMutation: false });
-    if (["dry-readonly", "readonly"].includes(scenario)) fs.capabilitiesFor = async () => ({ ...fs.capabilities, readOnly: true });
-    if (["dry-write-disabled", "write-disabled"].includes(scenario)) fs.capabilitiesFor = async () => ({ ...fs.capabilities, write: false });
+    if (scenario === "unsupported") fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false, atomicFileMutation: false });
+    if (["dry-readonly", "readonly"].includes(scenario)) fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false, readOnly: true });
+    if (["dry-write-disabled", "write-disabled"].includes(scenario)) fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false, write: false });
     if (scenario === "race") fs.writeFileConditional = async () => { throw new FsError("EAGAIN"); };
     const read = await shell.exec("pptx xml get deck.pptx --part /show.xml --scope presentation");
     assert.equal(read.exitCode, 0, read.stderr);
@@ -243,7 +243,7 @@ test("pptx reads a streaming-only file using path-specific capabilities", async 
   fs.capabilitiesFor = async (path, options) => {
     assert.equal(options?.signal?.aborted, false);
     queried.push(path);
-    return { ...fs.capabilities, read: false, streamingRead: true };
+    return { ...fs.capabilities, retainedRead: false, read: false, streamingRead: true };
   };
   fs.readFile = async () => { assert.fail("buffered reads are unavailable"); };
   const result = await shell.exec("pptx inspect deck.pptx --slide 1 --json");
@@ -255,7 +255,7 @@ test("pptx reads a streaming-only file using path-specific capabilities", async 
 test("pptx refuses unavailable file reads before accessing content", async () => {
   const { shell, fs } = fixture();
   let reads = 0;
-  fs.capabilitiesFor = async () => ({ ...fs.capabilities, read: false, streamingRead: false });
+  fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false, read: false, streamingRead: false });
   fs.readFile = async () => { reads++; return deck(); };
   fs.readStream = async function* () { reads++; yield deck(); };
   const result = await shell.exec("pptx inspect deck.pptx --json");
@@ -267,7 +267,7 @@ test("pptx refuses unavailable file reads before accessing content", async () =>
 
 test("pptx reads buffered files without entering a disabled stream", async () => {
   const { shell, fs } = fixture();
-  fs.capabilitiesFor = async () => ({ ...fs.capabilities, streamingRead: false });
+  fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false, streamingRead: false });
   fs.readStream = () => { assert.fail("streaming reads are unavailable"); };
   const result = await shell.exec("pptx inspect deck.pptx --slide 2 --json");
   assert.equal(result.exitCode, 0, result.stderr);
@@ -331,7 +331,7 @@ test("pptx accepts quoted Unicode paths and byte pipelines in a virtual script",
 test("pptx bounds streaming and buffered file inputs independently of provider enforcement", async () => {
   for (const streamingRead of [false, true]) {
     const { shell, fs } = fixture();
-    fs.capabilitiesFor = async () => ({ ...fs.capabilities, streamingRead });
+    fs.capabilitiesFor = async () => ({ ...fs.capabilities, retainedRead: false, streamingRead });
     fs.readFile = async () => new Uint8Array(65537);
     fs.readStream = async function* () { yield new Uint8Array(65537); };
     const result = await shell.exec("pptx inspect deck.pptx --json");

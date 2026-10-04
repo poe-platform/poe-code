@@ -120,7 +120,7 @@ state and the remaining shipped-engine wiring are still required before they
 replace the buffered paths.
 
 This is not an end-to-end bounded-memory implementation or Worker qualification.
-Except for semantic validation, the built-in command engine still collects input,
+Except for semantic validation and inspection, the built-in command engine still collects input,
 returns complete stdout/stderr, and publishes complete output arrays. `safe-bash-presentation-engine` still collects the archive,
 retains decompressed members in `readPackage`, copies members in
 `writePackageArchive`, and builds embedded chart workbooks in memory.
@@ -218,6 +218,22 @@ wiring, theme-override relationship admission, compatibility checks for addition
 style parts, and streamed inventory serialization still need integration into
 the shipped engine. This is not end-to-end completion or Worker qualification.
 
+The shipped `inspect` operation now composes retained selection, slide/package
+inventory and per-slide styles, including theme overrides and compatibility
+admission. Complete JSON/human responses stage through caller storage before
+stdout; output limits fail before publication. Lookup and output stores are
+separate so nested reads/index writes cannot interleave contiguous value writes.
+Default retained, stream-only, buffered-only convenience and stdin inputs remain
+supported. Stream-only snapshots copy reused chunks in at most 16 KiB writes,
+check available identity metadata and never retry a partially consumed stream
+through readFile. Tests cover byte parity, Unicode escaping, actual spills,
+slow sinks, cancellation, limits and storage errors. Verification passed 6,373
+engine tests, 1,081 command tests, the 45 shell selector tests, scoped lint and
+typechecks. A native python-pptx 1.0.2 deck produced byte-identical buffered and
+retained inspection, including explicit Arial/21pt text style and clean storage.
+Extraction, mutations and
+workbooks remain buffered; no runtime Worker qualification is claimed.
+
 ## Remaining implementation
 
 1. Carry caller-owned retained/range sources, explicit spill-storage authorization,
@@ -226,8 +242,8 @@ the shipped engine. This is not end-to-end completion or Worker qualification.
 2. Build presentation selection and mutation admission on the retained archive,
    XML, compatibility, content-type and relationship graph layers before extraction/publication.
    Semantic validation is retained and wired, and selection records/queries are
-   retained. Full inventory/style admission and the mutation models remain, as
-   does their integration into the other shipped operations.
+   retained. Inspection now composes the inventory/style layers. Mutation models
+   and integration into the other shipped operations remain.
    Replace synchronous package-member access on the streaming execution path with
    asynchronous reads and a bounded cache backed by the caller's safe-fs. Migrate
    mutation state, embedded workbooks, archive indexes and serialization too.

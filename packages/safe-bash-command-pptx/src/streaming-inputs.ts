@@ -97,47 +97,82 @@ export function createPptxInputSession(context: CommandContext, snapshots: Map<s
           } else {
             const capabilities = await fs.capabilitiesFor?.(resolved, { signal }) ?? fs.capabilities;
             check();
-            if (!fs.openReadFile || capabilities.retainedRead !== true) throw new FsError("ENOTSUP");
-            const entry = await fs.lstat(resolved, { signal });
-            check();
-            const handle = await fs.openReadFile(resolved, { signal });
-            let failure: { error: unknown } | undefined;
-            let observed: FileStat | undefined;
-            let captured: PptxRetainedInput | undefined;
-            try {
-              check(); observed = await handle.stat({ signal }); check();
-              if (observed.type !== "file" || !Number.isSafeInteger(observed.size) || observed.size < 0) throw new FsError("EINVAL");
-              if ((observed.revision === undefined && (typeof observed.opaqueVersion !== "string" || !observed.opaqueVersion.length)) || !sameRetainedIdentity(observed, observed)) throw new FsError("ENOTSUP");
-              if (observed.size > maxBytes) throw new FsError("EFBIG");
-              const start = storage.allocate(observed.size);
-              for (let offset = 0; offset < observed.size;) {
+            if (!fs.openReadFile || capabilities.retainedRead !== true) {
+              // Preserve stream-only and buffered convenience backends. A real
+              // stream is copied straight into caller pages, never collected.
+              let entry: FileStat | undefined;
+              try { entry = await fs.lstat(resolved, { signal }); } catch { check(); }
+              const start = storage.allocate(0); let size = 0, streamed = false;
+              const consume = async (chunks: ByteSource) => {
+                for await (const chunk of chunks) {
+                  check(); if (!(chunk instanceof Uint8Array)) throw new FsError("EIO");
+                  if (chunk.length > maxBytes - size || !Number.isSafeInteger(size + chunk.length)) throw new FsError("EFBIG");
+                  for (let offset = 0; offset < chunk.length; offset += 16384) {
+                    check(); const owned = new Uint8Array(chunk.subarray(offset, offset + 16384));
+                    await storage.append(owned); size += owned.length;
+                  }
+                }
                 check();
-                const maximum = Math.min(16384, observed.size - offset);
-                const chunk = await handle.read(offset, maximum, { signal });
-                check();
-                if (!(chunk instanceof Uint8Array) || chunk.length > maximum) throw new FsError("EIO");
-                if (!chunk.length) throw new FsError("EAGAIN");
-                await storage.write(start + offset, new Uint8Array(chunk));
-                offset += chunk.length;
+              };
+              if (fs.readStream && capabilities.streamingRead !== false) {
+                try { await consume(fs.readStream(resolved, { signal, chunkSize: 16384 })); streamed = true; }
+                catch (error) { check(); if (size || !(error instanceof FsError) || error.code !== "ENOTSUP") throw error; }
               }
-              const extra = await handle.read(observed.size, 1, { signal });
+              if (!streamed) {
+                if (capabilities.read === false) throw new FsError("ENOTSUP");
+                const bytes = await fs.readFile(resolved, { maxBytes, signal }); check();
+                await consume((async function* () { yield bytes; })());
+              }
+              if (entry) {
+                const after = await fs.lstat(resolved, { signal }); check();
+                if (sameRetainedIdentity(entry, entry) && (!sameRetainedIdentity(entry, after) || entry.revision !== after.revision
+                  || entry.opaqueVersion !== after.opaqueVersion || entry.size !== after.size || entry.mode !== after.mode
+                  || entry.nlink !== after.nlink || entry.mtimeMs !== after.mtimeMs || entry.ctimeMs !== after.ctimeMs)) throw new FsError("EAGAIN");
+                if (!snapshots.has(resolved)) snapshots.set(resolved, entry);
+              }
+              retained = source(start, size);
+            } else {
+              const entry = await fs.lstat(resolved, { signal });
               check();
-              if (!(extra instanceof Uint8Array)) throw new FsError("EIO");
-              if (extra.length) throw new FsError("EAGAIN");
-              const after = await handle.stat({ signal });
+              const handle = await fs.openReadFile(resolved, { signal });
+              let failure: { error: unknown } | undefined;
+              let observed: FileStat | undefined;
+              let captured: PptxRetainedInput | undefined;
+              try {
+                check(); observed = await handle.stat({ signal }); check();
+                if (observed.type !== "file" || !Number.isSafeInteger(observed.size) || observed.size < 0) throw new FsError("EINVAL");
+                if ((observed.revision === undefined && (typeof observed.opaqueVersion !== "string" || !observed.opaqueVersion.length)) || !sameRetainedIdentity(observed, observed)) throw new FsError("ENOTSUP");
+                if (observed.size > maxBytes) throw new FsError("EFBIG");
+                const start = storage.allocate(observed.size);
+                for (let offset = 0; offset < observed.size;) {
+                  check();
+                  const maximum = Math.min(16384, observed.size - offset);
+                  const chunk = await handle.read(offset, maximum, { signal });
+                  check();
+                  if (!(chunk instanceof Uint8Array) || chunk.length > maximum) throw new FsError("EIO");
+                  if (!chunk.length) throw new FsError("EAGAIN");
+                  await storage.write(start + offset, new Uint8Array(chunk));
+                  offset += chunk.length;
+                }
+                const extra = await handle.read(observed.size, 1, { signal });
+                check();
+                if (!(extra instanceof Uint8Array)) throw new FsError("EIO");
+                if (extra.length) throw new FsError("EAGAIN");
+                const after = await handle.stat({ signal });
+                check();
+                if (!sameRetainedIdentity(observed, after) || observed.revision !== after.revision
+                  || observed.opaqueVersion !== after.opaqueVersion
+                  || observed.size !== after.size || observed.mode !== after.mode || observed.nlink !== after.nlink
+                  || observed.mtimeMs !== after.mtimeMs || observed.ctimeMs !== after.ctimeMs) throw new FsError("EAGAIN");
+                captured = source(start, observed.size);
+              } catch (error) { failure = { error }; }
+              try { await handle.close(); } catch (error) { failure ??= { error }; }
               check();
-              if (!sameRetainedIdentity(observed, after) || observed.revision !== after.revision
-                || observed.opaqueVersion !== after.opaqueVersion
-                || observed.size !== after.size || observed.mode !== after.mode || observed.nlink !== after.nlink
-                || observed.mtimeMs !== after.mtimeMs || observed.ctimeMs !== after.ctimeMs) throw new FsError("EAGAIN");
-              captured = source(start, observed.size);
-            } catch (error) { failure = { error }; }
-            try { await handle.close(); } catch (error) { failure ??= { error }; }
-            check();
-            if (failure) throw failure.error;
-            retained = captured!;
-            if (!snapshots.has(resolved)) snapshots.set(resolved, entry);
-            identities.set(resolved, observed!);
+              if (failure) throw failure.error;
+              retained = captured!;
+              if (!snapshots.has(resolved)) snapshots.set(resolved, entry);
+              identities.set(resolved, observed!);
+            }
           }
           sources.set(resolved, retained);
           return retained;

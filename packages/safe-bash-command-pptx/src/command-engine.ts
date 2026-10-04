@@ -1,3 +1,4 @@
+import { stageRetainedInspection, type StagedInspection } from "safe-bash-presentation-engine/retained-inspection";
 import { openPackageArchive } from "safe-bash-presentation-engine/retained-package";
 import {
   assessCapabilities,
@@ -4041,6 +4042,7 @@ async function execute(
   const output = { json: false, operation: "help" };
   let result: OfficeResult<unknown>;
   let exitCode = 0;
+  let stagedInspection: StagedInspection | undefined;
   let human: string | undefined;
   let binary: Uint8Array | undefined;
   let publication: PptxPublicationRequest | undefined;
@@ -4086,7 +4088,27 @@ async function execute(
     output.json = args.json;
     output.operation = args.operation;
     const operation = args.operation;
-    if (args.operation === "validate") {
+    if (args.operation === "inspect" && request.streaming) {
+      if (args.token) decodeSelectionToken(args.token);
+      const input = await request.streaming.openInput(args.input!, Math.min(options.context.limits.maxBytes, options.context.archiveLimits.maxArchiveBytes));
+      const hash = sha256.create();
+      for await (const bytes of input.stream()) { request.signal.throwIfAborted(); hash.update(bytes); }
+      const fingerprint = Array.from(hash.digest(), byte => byte.toString(16).padStart(2, "0")).join("");
+      const context = { ...options.context, signal: request.signal, workingStorage: request.streaming.workingStorage };
+      const archive = await openPackageArchive(input, context); let failed = false;
+      try {
+        stagedInspection = await stageRetainedInspection(archive, fingerprint, {
+          ...(args.token === undefined ? {} : { token: args.token }), ...(args.slide === undefined ? {} : { slide: args.slide }),
+          ...(args.shape === undefined ? {} : { shape: args.shape }), ...(args.part === undefined ? {} : { part: args.part }),
+          ...(args.scope === undefined ? {} : { scope: args.scope }), ...(args.all === undefined ? {} : { all: args.all })
+        }, context, { json: args.json, maxOutputBytes: options.maxOutputBytes });
+      } catch (error) {
+        failed = true;
+        if (error instanceof OfficeError && error.code === "resource-limit" && error.phase === "publish") return outputLimitFailure(operation, args.json);
+        throw error;
+      } finally { try { await archive.close(); } catch (error) { if (!failed) await Promise.reject(error); } }
+      result = success(operation, null);
+    } else if (args.operation === "validate") {
       const limits = options.context.validationLimits ?? {
         ...options.context.xmlLimits,
         ...options.context.relationshipLimits,
@@ -6665,6 +6687,7 @@ async function execute(
       }
     }
   } catch (error) {
+    await stagedInspection?.close().catch(() => {}); stagedInspection = undefined;
     if (request.signal.aborted)
       return { exitCode: 130, stdout: new Uint8Array(), stderr: new Uint8Array() };
     const office = error instanceof OfficeError ? error : undefined;
@@ -6714,6 +6737,13 @@ async function execute(
       locations: []
     };
     human = `pptx: ${diagnostic.code}: ${diagnostic.message}\n`;
+  }
+  if (stagedInspection) {
+    let failed = false;
+    try { await stagedInspection.write(request.streaming!.stdout); }
+    catch (error) { failed = true; throw error; }
+    finally { try { await stagedInspection.close(); } catch (error) { if (!failed) await Promise.reject(error); } }
+    return { exitCode: 0, stdout: new Uint8Array(), stderr: new Uint8Array() };
   }
   const { json, operation } = output;
   const encoded =

@@ -17,7 +17,9 @@ Pass `engine` to use a custom document engine. Custom engines receive
 `stdout` and `stderr` sinks, and `workingStorage` for retained archive operations.
 Snapshots use the caller's filesystem, spill through a bounded cache into
 `TMPDIR` (or the current directory), and expire when execution finishes. File
-inputs require retained-read support and verifiable identity/version metadata;
+inputs use retained reads with verifiable identity/version metadata when available,
+or copy streaming reads incrementally. Buffered-only backends retain a readFile
+convenience fallback;
 `-` snapshots stdin for replay. Memory-backed filesystems keep spilled data in
 memory, so large inputs need an external storage backend.
 
@@ -27,9 +29,10 @@ The adapter writes bounded chunks to owned staging, rechecks in-place input,
 and publishes conditionally. Errors and cancellation retire staging without
 publishing partial output; dry-run does not consume the output source.
 
-The built-in engine still uses buffered document operations during its streaming
-migration. The custom streaming interface alone does not make those operations
-bounded-memory.
+The built-in `validate` and `inspect` operations use retained input and
+caller-backed indexes. Inspection stages the complete response before writing
+stdout, so admission and output-limit failures expose no partial result. Other
+operations still use buffered document models during their streaming migration.
 
 The command owns PowerPoint argument parsing, schemas, discovery and execution.
 Shared presentation and byte operations remain internal engine APIs bundled with

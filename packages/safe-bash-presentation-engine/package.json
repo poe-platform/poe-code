@@ -366,6 +366,10 @@
     "./retained-package": {
       "types": "./dist/retained-package.d.ts",
       "import": "./dist/retained-package.js"
+    },
+    "./retained-inspection": {
+      "types": "./dist/retained-inspection.d.ts",
+      "import": "./dist/retained-inspection.js"
     }
   },
   "files": [

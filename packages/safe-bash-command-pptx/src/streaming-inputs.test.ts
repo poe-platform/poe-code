@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
-import { createCommandArguments, toByteSource } from "safe-bash-contracts";
+import { createCommandArguments, toByteSource, FsError } from "safe-bash-contracts";
 import { createPptxCommand, type PptxCommandEngine, type PptxRetainedInput } from "./index.js";
 
 it("provides caller-backed retained inputs and output sinks without whole-file reads", async () => {
@@ -166,4 +166,66 @@ for (const changed of [false, true]) it(`admits opaque retained identities and d
     stdout: { async write() {} }, stderr: { async write() {} } }));
   if (changed) await expect(run).rejects.toMatchObject({ code: "stale-input" });
   else expect((await run).exitCode).toBe(0);
+});
+
+for (const mode of ["success", "unsupported", "late-unsupported", "changed", "limit", "cancel"] as const) it(`snapshots stream-only inputs with bounded caller storage: ${mode}`, async () => {
+  const owner = createMemoryFileSystem(), controller = new AbortController();
+  await owner.mkdir("/scratch");
+  await owner.writeFile("/deck", new Uint8Array([9]));
+  const reason = new Error("cancel stream");
+  let buffered = 0, ended = false, spillBytes = 0;
+  const fs = new Proxy(owner, { get(target, key) {
+    if (key === "capabilitiesFor") return async () => ({ ...owner.capabilities, retainedRead: false });
+    if (key === "readFile") return async () => { buffered++; return new Uint8Array([9]); };
+    if (key === "readStream") return async function* () {
+      const chunk = new Uint8Array(65536);
+      try {
+        if (mode === "unsupported") throw new FsError("ENOTSUP");
+        for (let n = 0; n < 24; n++) {
+          chunk.fill(n); yield chunk;
+          if (mode === "late-unsupported") throw new FsError("ENOTSUP");
+          if (mode === "cancel") controller.abort(reason);
+        }
+        if (mode === "changed") await owner.writeFile("/deck", new Uint8Array([8]));
+      } finally { ended = true; }
+    };
+    if (key === "open") return async (...args: Parameters<NonNullable<FileSystem["open"]>>) => {
+      expect(args[0].startsWith("/scratch/.storage-")).toBe(true);
+      const handle = await owner.open!(...args);
+      return new Proxy(handle, { get(descriptor, property) {
+        if (property === "write") return async (...parameters: Parameters<typeof handle.write>) => {
+          expect(parameters[0].length).toBeLessThanOrEqual(16384);
+          spillBytes += parameters[0].length; return handle.write(...parameters);
+        };
+        const value = Reflect.get(descriptor, property, descriptor);
+        return typeof value === "function" ? value.bind(descriptor) : value;
+      } });
+    };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const engine: PptxCommandEngine = { async execute(request) {
+    const input = await request.streaming.openInput("deck", mode === "limit" ? 1 : Infinity);
+    if (mode === "success") {
+      expect(input.size).toBe(24 * 65536);
+      let offset = 0;
+      for await (const chunk of input.stream()) {
+        expect(chunk.length).toBeLessThanOrEqual(16384);
+        expect(chunk.every(byte => byte === Math.floor(offset / 65536))).toBe(true);
+        offset += chunk.length;
+      }
+    } else expect(await input.read(0, 1, { signal: request.signal })).toEqual(new Uint8Array([9]));
+    return { exitCode: 0 };
+  } };
+  const args = createCommandArguments([]);
+  const run = Promise.resolve(createPptxCommand({ engine }).execute({ command: "pptx", args: args.args, argumentValues: args,
+    cwd: "/", env: { TMPDIR: "/scratch" }, fs, stdin: toByteSource(""), signal: controller.signal,
+    stdout: { async write() {} }, stderr: { async write() {} } }));
+  if (mode === "cancel") await expect(run).rejects.toBe(reason);
+  else if (mode === "success" || mode === "unsupported") expect((await run).exitCode).toBe(0);
+  else await expect(run).rejects.toMatchObject({ code: mode === "limit" ? "resource-limit" : mode === "changed" ? "stale-input" : "io-failure" });
+  expect(buffered).toBe(mode === "unsupported" ? 1 : 0);
+  expect(ended).toBe(true);
+  if (mode === "success") expect(spillBytes).toBeGreaterThan(1024 * 1024);
+  expect(await owner.readdir("/scratch")).toEqual([]);
 });

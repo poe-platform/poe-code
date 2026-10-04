@@ -30,7 +30,7 @@ it("packs the caller-backed image filesystem API with canonical public storage a
     write(`/repo/packages/${name}/README.md`, `# ${name}\n`);
     for (const extension of ["js", "d.ts"]) write(`/repo/packages/${name}/dist/index.${extension}`, "export {};\n");
   }
-  for (const name of ["safe-fs", "xml-ast", "image-ast", "pdf-ast"]) {
+  for (const name of ["safe-fs", "xml-ast", "json-ast", "image-ast", "pdf-ast"]) {
     const directory = path.join(root, "packages", name);
     const manifest = JSON.parse(readFileSync(path.join(directory, "package.json"), "utf8"));
     if (name === "safe-fs") manifest.exports = Object.fromEntries(["./contracts", "./storage", "./core", "./xml"].map(route => [route, manifest.exports[route]]));

@@ -156,6 +156,47 @@ export function decodeSelectionToken(token: string): Location {
   return Object.freeze(location);
 }
 
+/** Shared synchronous query admission; the predicate only inspects bounded record metadata. */
+export function prepareSelectionQuery(query: SelectionQuery, fingerprint: string): {
+  readonly matches: (record: Omit<SelectionRecord, "name">) => boolean;
+  readonly name: string | undefined;
+  readonly all: boolean;
+} {
+  if (!query || typeof query !== "object" || Array.isArray(query) ||
+      Object.keys(query).some(key => !["kind", "scope", "owner", "position", "id", "name", "part", "token", "all"].includes(key)) ||
+      query.kind !== undefined && !["slide", "part", "object"].includes(query.kind)) throw new SelectionError("invalid-selection");
+  const kind = query.kind;
+  if (query.token !== undefined) {
+    if (typeof query.token !== "string" || Object.keys(query).some(key => !["kind", "token"].includes(key))) throw new SelectionError("invalid-selection");
+    const token = query.token, location = decodeSelectionToken(token);
+    if (location.fingerprint !== fingerprint) throw new SelectionError("stale-selection");
+    return { matches: item => (!kind || item.kind === kind) && item.token === token, name: undefined, all: false };
+  }
+  if (!kind || query.scope !== undefined && !scopes.includes(query.scope) || query.all !== undefined && typeof query.all !== "boolean") throw new SelectionError("invalid-selection");
+  for (const key of ["owner", "id", "name", "part"] as const)
+    if (query[key] !== undefined && (typeof query[key] !== "string" || key !== "name" && !query[key])) throw new SelectionError("invalid-selection");
+  if ([query.position, query.id, query.name, query.part].filter(value => value !== undefined).length > 1 ||
+      kind === "slide" && query.scope !== undefined && query.scope !== "slides" || kind === "object" && !query.owner ||
+      kind !== "part" && query.part !== undefined) throw new SelectionError("invalid-selection");
+  let owner: string | undefined, part: string | undefined, position: number | undefined;
+  try {
+    if (query.owner !== undefined) owner = asciiKey(partName(query.owner, false));
+    if (query.part !== undefined) part = asciiKey(partName(query.part, false));
+  } catch { throw new SelectionError("invalid-selection"); }
+  if (query.position !== undefined) {
+    const value = query.position;
+    if (!value || typeof value !== "object" || Object.keys(value).length !== 2 ||
+        !["one-based", "zero-based"].includes(value.coordinateSystem) || !Number.isSafeInteger(value.value) ||
+        value.value < (value.coordinateSystem === "one-based" ? 1 : 0)) throw new SelectionError("invalid-selection");
+    position = value.value + (value.coordinateSystem === "zero-based" ? 1 : 0);
+  }
+  const scope = query.scope ?? "slides", id = query.id;
+  return { name: query.name, all: query.all ?? false,
+    matches: item => item.kind === kind && item.scope === scope && (owner === undefined || asciiKey(item.location.owner) === owner) &&
+      (part === undefined || asciiKey(item.part) === part) && (position === undefined || item.position === position) && (id === undefined || item.id === id)
+  };
+}
+
 export async function readSelectionIndex(
   input: BinaryInput,
   settings: ResourceContext = {}
@@ -400,94 +441,10 @@ export function buildSelectionIndex(
     parts: Object.freeze(parts),
     objects: Object.freeze(objects),
     select(query: SelectionQuery): readonly SelectionRecord[] {
-      if (
-        !query ||
-        typeof query !== "object" ||
-        Array.isArray(query) ||
-        Object.keys(query).some(
-          (key) =>
-            !["kind", "scope", "owner", "position", "id", "name", "part", "token", "all"].includes(
-              key
-            )
-        ) ||
-        (query.kind !== undefined && !["slide", "part", "object"].includes(query.kind))
-      )
-        throw new SelectionError("invalid-selection");
-      let selected = query.kind ? records.filter((item) => item.kind === query.kind) : records;
-      if (query.token !== undefined) {
-        if (
-          typeof query.token !== "string" ||
-          Object.keys(query).some((key) => !["kind", "token"].includes(key))
-        )
-          throw new SelectionError("invalid-selection");
-        const location = decodeSelectionToken(query.token);
-        if (location.fingerprint !== fingerprint) throw new SelectionError("stale-selection");
-        selected = selected.filter((item) => item.token === query.token);
-      } else {
-        if (
-          !query.kind ||
-          (query.scope !== undefined && !scopes.includes(query.scope)) ||
-          (query.all !== undefined && typeof query.all !== "boolean")
-        )
-          throw new SelectionError("invalid-selection");
-        for (const key of ["owner", "id", "name", "part"] as const)
-          if (
-            query[key] !== undefined &&
-            (typeof query[key] !== "string" || (key !== "name" && !query[key]))
-          )
-            throw new SelectionError("invalid-selection");
-        if (
-          [query.position, query.id, query.name, query.part].filter((value) => value !== undefined)
-            .length > 1
-        )
-          throw new SelectionError("invalid-selection");
-        if (query.kind === "slide" && query.scope !== undefined && query.scope !== "slides")
-          throw new SelectionError("invalid-selection");
-        if (query.kind === "object" && !query.owner) throw new SelectionError("invalid-selection");
-        if (query.kind !== "part" && query.part !== undefined)
-          throw new SelectionError("invalid-selection");
-        selected = selected.filter((item) => item.scope === (query.scope ?? "slides"));
-        if (query.owner !== undefined) {
-          let owner: string;
-          try {
-            owner = asciiKey(partName(query.owner, false));
-          } catch {
-            throw new SelectionError("invalid-selection");
-          }
-          selected = selected.filter((item) => asciiKey(item.location.owner) === owner);
-        }
-        if (query.id !== undefined) selected = selected.filter((item) => item.id === query.id);
-        if (query.name !== undefined)
-          selected = selected.filter((item) => item.name === query.name);
-        if (query.part !== undefined) {
-          let part: string;
-          try {
-            part = asciiKey(partName(query.part, false));
-          } catch {
-            throw new SelectionError("invalid-selection");
-          }
-          selected = selected.filter((item) => asciiKey(item.part) === part);
-        }
-        if (query.position !== undefined) {
-          const position = query.position;
-          if (
-            !position ||
-            typeof position !== "object" ||
-            Object.keys(position).length !== 2 ||
-            !["one-based", "zero-based"].includes(position.coordinateSystem) ||
-            !Number.isSafeInteger(position.value) ||
-            position.value < (position.coordinateSystem === "one-based" ? 1 : 0)
-          )
-            throw new SelectionError("invalid-selection");
-          selected = selected.filter(
-            (item) =>
-              item.position ===
-              position.value + (position.coordinateSystem === "zero-based" ? 1 : 0)
-          );
-        }
-      }
+      const prepared = prepareSelectionQuery(query, fingerprint);
+      const selected = records.filter(item => prepared.matches(item) && (prepared.name === undefined || item.name === prepared.name));
       if (!selected.length) throw new SelectionError("missing-selection");
-      if (selected.length > 1 && !query.all)
+      if (selected.length > 1 && !prepared.all)
         throw new SelectionError(
           "ambiguous-selection",
           Object.freeze(selected.slice(0, 20).map((item) => item.location))

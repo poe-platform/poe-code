@@ -115,9 +115,9 @@ nested alternate choices, rebound prefixes, ignored/processed extension content,
 opaque payloads and Unicode attributes. This is read-only compatibility admission;
 mutation guards for preserving alternate representations remain to be migrated.
 
-These layers remain internal and immutable. Presentation semantic checks,
-selection/mutation state and shipped-engine wiring remain required before they
-replace the buffered path.
+These layers remain internal and immutable. Inventory/style admission, mutation
+state and the remaining shipped-engine wiring are still required before they
+replace the buffered paths.
 
 This is not an end-to-end bounded-memory implementation or Worker qualification.
 Except for semantic validation, the built-in command engine still collects input,
@@ -137,6 +137,18 @@ A native python-pptx deck containing a chart workbook, notes and an external
 hyperlink produced the identical successful result through both engine paths.
 These checks are not runtime Worker memory qualification.
 
+`openRetainedSelectionRecords` now retains slide, part and drawing records,
+scopes, duplicate-ID indexes and nested-group traversal frames in caller storage.
+Names remain replayable byte streams; bounded record metadata and selection tokens
+match the buffered index. Both paths share query admission. Retained selection
+checks missing/ambiguous/stale queries before yielding and preserves the existing
+20-candidate diagnostic cap. Tests cover nested order, normalized IDs, long reused
+name chunks, actual spill writes, bounded outstanding IO, expired names, query
+snapshots and cancellation/read-error cleanup. A native python-pptx deck matched
+all 2 slide, 27 part and 83 object records, including Unicode, groups and notes.
+This is record admission only: it does not replace full inventory/style inspection
+or wire the remaining shipped operations to retained selection yet.
+
 ## Remaining implementation
 
 1. Carry caller-owned retained/range sources, explicit spill-storage authorization,
@@ -144,8 +156,9 @@ These checks are not runtime Worker memory qualification.
    Keep buffering convenience APIs available without requiring them for Worker use.
 2. Build presentation selection and mutation admission on the retained archive,
    XML, compatibility, content-type and relationship graph layers before extraction/publication.
-   Semantic validation is now retained and wired; the remaining operations need
-   the corresponding retained selection and mutation models.
+   Semantic validation is retained and wired, and selection records/queries are
+   retained. Full inventory/style admission and the mutation models remain, as
+   does their integration into the other shipped operations.
    Replace synchronous package-member access on the streaming execution path with
    asynchronous reads and a bounded cache backed by the caller's safe-fs. Migrate
    mutation state, embedded workbooks, archive indexes and serialization too.

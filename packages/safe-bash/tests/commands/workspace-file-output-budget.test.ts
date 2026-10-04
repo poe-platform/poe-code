@@ -81,6 +81,8 @@ for (const [name, create, args, input = ""] of cases) {
   test(`${name} charges file output once and rejects writes beyond the shared budget`, async () => {
     async function run(limit: number) {
       const fs = createMemoryFileSystem();
+      // PDF commands use caller-provided scratch storage, separate from output.
+      await fs.mkdir("/tmp");
       for (const [path, bytes] of Object.entries(fixtures)) await fs.writeFile(path, bytes);
       if (name === "mmdc publish" || name === "mmdc fallback") Object.defineProperty(fs, "writeFileConditional", { value: undefined });
       if (name === "mmdc fallback") Object.defineProperty(fs, "publishFileConditional", { value: undefined });
@@ -88,11 +90,38 @@ for (const [name, create, args, input = ""] of cases) {
       for (const method of ["writeFile", "appendFile", "writeFileConditional"] as const) {
         const original = fs[method]?.bind(fs);
         if (!original) continue;
-        Object.defineProperty(fs, method, { value: async (path: string, bytes: Uint8Array, options: never) => {
-          written += bytes.length;
-          return original(path, bytes, options);
+        Object.defineProperty(fs, method, { configurable: true, value: async (path: string, bytes: Uint8Array, options: never) => {
+          const result = await original(path, bytes, options);
+          if (!path.startsWith("/tmp/")) written += bytes.length;
+          return result;
         } });
       }
+      const open = fs.open.bind(fs);
+      Object.defineProperty(fs, "open", { configurable: true, value: async (...args: Parameters<typeof fs.open>) => {
+        const handle = await open(...args);
+        if (args[0].startsWith("/tmp/")) return handle;
+        return new Proxy(handle, { get(target, key) {
+          if (key === "write") return async (...args: Parameters<typeof handle.write>) => {
+            const count = await handle.write(...args); written += count; return count;
+          };
+          const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
+        } });
+      } });
+      const stage = fs.createStagedFile.bind(fs);
+      Object.defineProperty(fs, "createStagedFile", { configurable: true, value: async (...args: Parameters<typeof fs.createStagedFile>) => {
+        const staged = await stage(...args);
+        if (args[0].startsWith("/tmp/")) return staged;
+        if (args[2].type === "file") written += args[2].data.length;
+        const writer = staged.writer;
+        if (!writer) return staged;
+        return { ...staged, writer: { ...writer, async write(...args: Parameters<typeof writer.write>) {
+          await writer.write(...args); written += args[0].length;
+        } } };
+      } });
+      const stream = fs.writeStream.bind(fs);
+      Object.defineProperty(fs, "writeStream", { configurable: true, value: async (path: string, source: Parameters<typeof fs.writeStream>[1], options: Parameters<typeof fs.writeStream>[2]) => {
+        await stream(path, (async function* () { for await (const bytes of source) { yield bytes; if (!path.startsWith("/tmp/")) written += bytes.length; } })(), options);
+      } });
       const errors: string[] = [];
       const carrier = createCommandArguments(args);
       const context: CommandContext = {
@@ -107,7 +136,11 @@ for (const [name, create, args, input = ""] of cases) {
         if (bytes.length > limit - charged) throw new Error("bound file-output budget exceeded");
         charged += bytes.length;
         await sink.write(bytes);
-      } }));
+      } }), async (bytes, write) => {
+        attempts++;
+        if (bytes.length > limit - charged) throw new Error("bound file-output budget exceeded");
+        const count = await write(); charged += count; return count;
+      });
       let exitCode: number | undefined;
       try { exitCode = (await create().execute(context)).exitCode; }
       catch (error) { errors.push(String(error)); }
@@ -116,7 +149,7 @@ for (const [name, create, args, input = ""] of cases) {
     const success = await run(Infinity);
     assert.equal(success.exitCode, 0, success.errors);
     assert.ok(success.charged > 0, "file output must reach the bound budget");
-    if (name !== "mmdc publish") assert.equal(success.charged, success.written, "each output byte is charged once");
+    assert.equal(success.charged, success.written, "each output byte is charged once");
     if (name === "sponge append" || name === "sponge overwrite") {
       assert.equal(new TextDecoder().decode(await success.fs.readFile("/out")), name === "sponge append" ? "oldé🌊" : "é🌊");
       assert.equal(success.charged, 6, "existing file content must not consume the append budget");
@@ -151,7 +184,8 @@ for (const source of ["yq -i '.a = 2' /input", "yq --split-exp '\"out\"' '.a = 2
         if (maxOutputBytes === 4) {
           await assert.rejects(shell.exec(source), error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
           assert.equal(new TextDecoder().decode(await fs.readFile("/input")), "a: 1\n");
-          await assert.rejects(fs.readFile("/out.yml"));
+          if (source.includes("-i ")) await assert.rejects(fs.readFile("/out.yml"));
+          else assert.equal((await fs.readFile("/out.yml")).length, 0, "denied split output must stay empty");
         } else {
           const result = await shell.exec(source);
           assert.equal(result.exitCode, 0, result.stderr);

@@ -1,6 +1,6 @@
 // Output failure statuses: qpdf 12.4.2, pdftk-java 3.3.3, Poppler 26.09.0.
-import { it, assert } from "vitest";
-import { Volume } from "memfs";
+import { it, assert, expect } from "vitest";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { PdfDocument, cosArray, cosDict, cosName, cosString, cosStream, dictSet } from "@poe-code/pdf-ast";
 import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
 import { createPdftkCommand } from "./index.js";
@@ -15,12 +15,12 @@ function fixture(name = "payload.txt") {
   return doc.save();
 }
 
-async function execute(command: ReturnType<typeof createPdftkCommand>, args: string[], missing = false, attachment = "payload.txt") {
-  const volume = new Volume();
-  volume.mkdirSync("/work");
-  volume.writeFileSync("/work/in.pdf", fixture(attachment));
-  volume.writeFileSync("/work/-in.pdf", fixture(attachment));
-  for (const name of ["out.pdf", "out.html", "out", "out-%d.pdf", "cat", "1", "output"]) volume.writeFileSync(`/work/${name}`, new Uint8Array(10000));
+async function execute(command: ReturnType<typeof createPdftkCommand>, args: string[], attachment = "payload.txt") {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/in.pdf", fixture(attachment));
+  await fs.writeFile("/work/-in.pdf", fixture(attachment));
+  for (const name of ["out.pdf", "out.html", "out", "out-%d.pdf", "cat", "1", "output"]) await fs.writeFile(`/work/${name}`, new Uint8Array(10000));
   const reads: string[] = [], errors: Uint8Array[] = [];
   const carrier = createCommandArguments(args);
   const context = {
@@ -28,15 +28,14 @@ async function execute(command: ReturnType<typeof createPdftkCommand>, args: str
     signal: new AbortController().signal, registerCleanup() {},
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} },
     stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } },
-    fs: {
-      async readFile(path: string) { reads.push(path); return new Uint8Array(volume.readFileSync(path) as Uint8Array); },
-      async mkdir(path: string) { volume.mkdirSync(path, { recursive: true }); },
-      async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); }
-    }
+    fs: new Proxy(fs, { get(owner, key) {
+      if (key === "readFile") return async (...args: Parameters<typeof fs.readFile>) => { reads.push(args[0]); return fs.readFile(...args); };
+      if (key === "openReadFile") return async (...args: Parameters<NonNullable<typeof fs.openReadFile>>) => { reads.push(args[0]); return fs.openReadFile!(...args); };
+      const value = Reflect.get(owner, key); return typeof value === "function" ? value.bind(owner) : value;
+    } })
   } as unknown as CommandContext;
-  if (!missing && command.name === "pdfdetach") { volume.unlinkSync("/work/out"); volume.mkdirSync("/work/out"); }
   const result = await command.execute(context);
-  return { result, reads, volume, stderr: errors.map(bytes => new TextDecoder().decode(bytes)).join("") };
+  return { result, reads, fs, stderr: errors.map(bytes => new TextDecoder().decode(bytes)).join("") };
 }
 
 it("Pdftk reads only input operands", async () => {
@@ -46,19 +45,19 @@ it("Pdftk reads only input operands", async () => {
 });
 
 it("Pdftk reports missing output parents without creating directories", async () => {
-  const { result, volume, stderr } = await execute(createPdftkCommand(), ["in.pdf", "cat", "1", "output", "/missing/out.pdf"], true);
+  const { result, fs, stderr } = await execute(createPdftkCommand(), ["in.pdf", "cat", "1", "output", "/missing/out.pdf"]);
   assert.equal(result.exitCode, 1);
   assert.ok(stderr.length > 0);
-  assert.equal(volume.existsSync("/missing"), false);
+  await expect(fs.stat("/missing")).rejects.toMatchObject({ code: "ENOENT" });
 });
 
 for (const name of ["../escaped.txt", "/escaped.txt", "nested/payload.txt", "nested\\payload.txt"]) {
   it(`contains attachment ${name} in the chosen directory`, async () => {
-    const { result, volume, stderr } = await execute(createPdftkCommand(), ["in.pdf", "unpack_files", "output", "/work"], false, name);
+    const { result, fs, stderr } = await execute(createPdftkCommand(), ["in.pdf", "unpack_files", "output", "/work"], name);
     assert.equal(result.exitCode, 0, stderr);
     const basename = name.split("/").at(-1)!.split("\\").at(-1)!;
-    assert.equal(volume.readFileSync(`/work/${basename}`, "utf8"), "payload");
-    assert.equal(volume.existsSync("/escaped.txt"), false);
+    assert.equal(new TextDecoder().decode(await fs.readFile(`/work/${basename}`)), "payload");
+    await expect(fs.stat("/escaped.txt")).rejects.toMatchObject({ code: "ENOENT" });
   });
 }
 

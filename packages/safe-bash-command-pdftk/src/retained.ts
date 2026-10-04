@@ -1,3 +1,4 @@
+import { retainedUnpack } from "./retained-unpack.js";
 import { retainedFdf } from "./retained-fdf.js";
 import { retainedFieldReport } from "./retained-fields.js";
 import { PdfError, PdfFileSource, PdfRetainedDocument, retainedCosObjects } from "@poe-code/pdf-ast";
@@ -49,11 +50,21 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
     }
     const primary = options.inputs[0]!;
     document = await PdfRetainedDocument.open(inputs.get(primary.file)!, storage, { signal, recovery: "strict", ...(primary.password ? { password: primary.password } : {}) });
+    if (options.operation === "unpack_files") {
+      for await (const file of retainedUnpack(document, storage, options.outputTarget ?? ".", inputs.keys(), signal)) {
+        try { await publish(context, resolvePath(context.cwd, file.path), file.chunks); }
+        catch (error) {
+          signal.throwIfAborted(); if (!(error instanceof Error) || !("code" in error)) throw error;
+          return await diagnostic(`Error: Failed to open output file '${file.path}': ${error.code}.\n`);
+        }
+      }
+      return { exitCode: 0 };
+    }
     output = await PdfFileSource.fromStream(context.fs, storage.directory, (options.operation === "generate_fdf" ? retainedFdf(document, storage, signal) : options.operation === "dump_data_fields" || options.operation === "dump_data_fields_utf8" ? retainedFieldReport(document, options.operation.endsWith("_utf8"), signal) : retainedInspectionReport(document, storage, options.operation.endsWith("_utf8"), signal, options.operation === "dump_data" || options.operation === "dump_data_utf8" ? "document" : "annotations")), { signal });
     const destination = options.outputTarget;
     if (!destination || destination === "-") for await (const bytes of output.stream(0, output.size, signal)) await writeBytes(context.stdout, bytes, signal);
     else {
-      try { await publish(context, resolvePath(context.cwd, destination), output); }
+      try { await publish(context, resolvePath(context.cwd, destination), output.stream(0, output.size, signal)); }
       catch (error) {
         signal.throwIfAborted(); if (!(error instanceof Error) || !("code" in error)) throw error;
         return await diagnostic(`Error: Failed to open output file '${destination}': ${error.code}.\n`);
@@ -67,7 +78,7 @@ export async function executeRetainedPdftk(context: CommandContext, options: Pdf
   }
 }
 
-async function publish(context: CommandContext, path: string, source: PdfFileSource): Promise<void> {
+async function publish(context: CommandContext, path: string, chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>): Promise<void> {
   const fs = context.fs, signal = context.signal;
   const capabilities = await fs.capabilitiesFor?.(path, { signal, create: true, stagingAncestry: true }) ?? fs.capabilities;
   if (!capabilities.atomicFileStaging || !capabilities.retainedStagingWrite || !capabilities.retainedStagingCleanup || !capabilities.atomicStagingAncestry || !fs.prepareStagingResolution || !fs.createStagedFile || !fs.publishStagedFile) throw new FsError("ENOTSUP", { path, message: "PDF output requires retained atomic staging" });
@@ -76,7 +87,7 @@ async function publish(context: CommandContext, path: string, source: PdfFileSou
   let failed = false;
   try {
     if (!staging.writer || !staging.cleanup) throw new FsError("ENOTSUP", { path, message: "PDF backend omitted retained staging handles" });
-    for await (const bytes of source.stream(0, source.size, signal)) await writeFileOutput(context, bytes, data => staging.writer!.write(data, { signal }));
+    for await (const bytes of chunks) await writeFileOutput(context, bytes, data => staging.writer!.write(data, { signal }));
     const stat = await staging.writer.finish({ signal });
     await fs.publishStagedFile({ ...staging, file: { ...staging.file, stat } }, resolution.path, { parent: resolution.parent, destination: resolution.destination, ancestors: resolution.ancestors, commitGuard: resolution.validate, signal });
   } catch (error) { failed = true; throw error; }

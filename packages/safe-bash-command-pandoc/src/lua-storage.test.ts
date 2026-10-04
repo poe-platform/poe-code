@@ -257,3 +257,50 @@ it.each(["end","chunk"])("normalizes cancellation after a string source returns 
   } finally {await storage.close();await context.close();}
   expect(await fs.readdir("/")).toEqual([]);
 });
+
+it("keeps small table namespaces local in backing storage", async () => {
+  const fs = new MemoryFileSystem(), context = new ExecutionContext("convert", {});
+  const storage = new PagedStorage({fs, cwd: "/", env: {}, signal: new AbortController().signal}, 64);
+  const allocate = vi.spyOn(storage, "allocate"), heap = new LuaStorage(storage, units => context.cooperate(units));
+  try {
+    const tables = [];
+    for (let index = 0; index < 256; index++) {
+      const table = await heap.table(); tables.push(table);
+      await heap.set(table, 1, index);
+    }
+    for (let index = 0; index < tables.length; index++) expect(await heap.get(tables[index]!, 1)).toBe(index);
+    expect(allocate.mock.calls.reduce((bytes, [length]) => bytes + length, 0)).toBeLessThanOrEqual(384 * 1024);
+  } finally {await storage.close(); await context.close();}
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it("keeps full table identity when storage offsets share their low bits", async () => {
+  const fs = new MemoryFileSystem(), context = new ExecutionContext("convert", {});
+  const storage = new PagedStorage({fs, cwd: "/", env: {}, signal: new AbortController().signal}, 64);
+  const heap = new LuaStorage(storage, units => context.cooperate(units));
+  try {
+    const first = await heap.table();
+    storage.allocate(0x100000000 - 24);
+    const second = await heap.table();
+    expect(second.id - first.id).toBe(0x100000000);
+    await heap.set(first, 1, true);
+    await heap.set(second, 1, 2);
+    expect(await heap.get(first, 1)).toBe(true);
+    expect(await heap.get(second, 1)).toBe(2);
+    await heap.set(first, 1, undefined);
+    expect(await heap.get(first, 1)).toBeUndefined();
+    expect(await heap.get(second, 1)).toBe(2);
+    expect(await heap.next(first)).toBeUndefined();
+    expect(await heap.next(second)).toEqual({key: 1, value: 2});
+    await heap.set(second, 1, 3);
+    await heap.set(first, 1, false);
+    expect(await heap.get(first, 1)).toBe(false);
+    expect(await heap.get(second, 1)).toBe(3);
+    expect(await heap.next(first)).toEqual({key: 1, value: false});
+    expect(await heap.next(second)).toEqual({key: 1, value: 3});
+    await heap.set(second, 1, undefined);
+    expect(await heap.get(first, 1)).toBe(false);
+    expect(await heap.next(second)).toBeUndefined();
+  } finally {await storage.close(); await context.close();}
+  expect(await fs.readdir("/")).toEqual([]);
+});

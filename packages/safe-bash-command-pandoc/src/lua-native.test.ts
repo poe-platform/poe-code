@@ -347,8 +347,7 @@ it("cancels while producing repeated string bytes and cleans up storage",async()
   const controller=new AbortController();
   await expect(execute("return string.rep(host(),40000)",{string:true,signal:controller.signal,native:async heap=>{
     const value=await heap.string([Uint8Array.of(65)]),read=heap.readBytes.bind(heap);
-    let scheduled=false;
-    vi.spyOn(heap,"readBytes").mockImplementation(async(...args)=>{const result=await read(...args);if(!scheduled){scheduled=true;setTimeout(()=>controller.abort(),0);}return result;});
+    vi.spyOn(heap,"readBytes").mockImplementationOnce(async(...args)=>{const result=await read(...args);controller.abort();return result;});
     return [value];
   }})).rejects.toMatchObject({code:"E_CANCELLED"});
 });

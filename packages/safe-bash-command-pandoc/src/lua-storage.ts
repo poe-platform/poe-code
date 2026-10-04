@@ -207,7 +207,10 @@ export class LuaStorage {
     const digest = typeof key === "object" && key.kind === "string"
       ? (await this.fields(key.id + 24, 1))[0]!
       : hash(encode(typeof key === "number" && key === 0 ? 0 : key));
-    return BigInt(hash(encode(table))) << 32n | BigInt(digest);
+    // Keep nearby table namespaces on shared radix paths. Hashing their offsets
+    // scatters tiny tables over the index; find() still checks full owner IDs
+    // when offsets separated by 4 GiB share the low 32 bits.
+    return BigInt(table.id % 0x100000000) << 32n | BigInt(digest);
   }
   private async find(table: LuaReference, key: StoredLuaValue, bucket: bigint): Promise<number> {
     let position = Number(await this.buckets.get(bucket) ?? 0n);

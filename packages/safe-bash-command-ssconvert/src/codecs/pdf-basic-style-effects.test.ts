@@ -196,3 +196,24 @@ it.each(["TOP", "CENTER", "BOTTOM"])("clips oversized text to its own row with %
   expect(operations).toContain("76 700 464 20 re\nW\nn");
   expect(operations).toContain("EMC\nQ\nq");
 });
+
+it.each(["LEFT", "RIGHT", "CENTER", "GENERAL"])("uses selected font digit widths for %s indentation", async alignment => {
+  const styled = attributes.replace('GNM_HALIGN_GENERAL', `GNM_HALIGN_${alignment}`);
+  const book = await fixture([0, 1, 3].map(indent => ({text: "x", attributes: styled.replace('Indent="0"', `Indent="${indent}"`)})));
+  const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve: async () => suppliedDefaultFont().bytes}}));
+  const direction = alignment === "RIGHT" ? -1 : alignment === "CENTER" ? 0 : 1;
+  expect(runs[1]!.glyphs[0]!.x - runs[0]!.glyphs[0]!.x).toBeCloseTo(direction * 4.5, 8);
+  expect(runs[2]!.glyphs[0]!.x - runs[0]!.glyphs[0]!.x).toBeCloseTo(direction * 13.5, 8);
+});
+
+it.each(["-1", "1.5", "NaN", "Infinity", "2147483648", ""])("rejects invalid indent %s before requesting font bytes", async indent => {
+  const resolve = vi.fn<FontCapability["resolve"]>(async () => suppliedDefaultFont().bytes);
+  const book = await fixture([{text: "x", attributes: attributes.replace('Indent="0"', `Indent="${indent}"`)}]);
+  await expect(writePdf(book, [], {...context, fonts: {resolve}})).rejects.toThrow("styled or merged cells");
+  expect(resolve).not.toHaveBeenCalled();
+});
+it("indents general-aligned numbers from the right", async () => {
+  const book = await fixture([0, 3].map(indent => ({text: "42", type: "40", attributes: attributes.replace('Indent="0"', `Indent="${indent}"`)})));
+  const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve: async () => suppliedDefaultFont().bytes}}));
+  expect(runs[1]!.glyphs[0]!.x - runs[0]!.glyphs[0]!.x).toBe(-13.5);
+});

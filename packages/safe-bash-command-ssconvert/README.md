@@ -109,9 +109,12 @@ including combining marks whose glyph positions differ from their text order.
 Styled Latin, Greek and Cyrillic text uses font-supported canonical composition;
 missing intermediate or final glyphs retain the supported decomposition.
 With explicit fonts, it also admits fully materialized Gnumeric styles for blank cells
-and single-line values that fit the selected font and cell: General or explicit
-left/right/center alignment, host-selected families with regular, bold or italic faces,
-positive finite sizes including fractional points, RGB/RGBA text and solid backgrounds, including transparency. Font selections
+and single-line values: General or explicit left/right/center alignment,
+font-metric indentation, top/center/bottom vertical placement (single-line justify
+uses top and distributed uses center), host-selected families with regular, bold or
+italic faces, positive finite sizes including fractional points, underline and
+strikethrough, and RGB/RGBA text and solid backgrounds, including transparency.
+Oversized text is clipped at row boundaries. Font selections
 share one invocation byte budget. This profile uses the captured native 96-DPI
 scale and print insets, so size 10 paints at 7.5 points. Cell alignment, fit and glyph placement
 use shaped advances and offsets. Exact native rendering remains unqualified. Other styles,

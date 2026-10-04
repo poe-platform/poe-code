@@ -240,9 +240,31 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         width += Math.round(advance) * printDisplayScale;
         displayWidth += Math.round(advance / printDisplayScale) * printDisplayScale;
       }
-      const overflows = width > cellBox.width - 5;
+      let indent = 0, displayIndent = 0;
+      if (cellBox.style.indent && alignment !== "center") {
+        // GOFont averages the individually measured digits, with a one-pixel minimum.
+        let digitWidth = 0, displayDigitWidth = 0;
+        for (const digit of "0123456789") {
+          tick();
+          if (!supported.has(digit.codePointAt(0)!)) unsupported("font coverage");
+          const digits = shaper.shape(metrics, digit);
+          let advance = 0, displayAdvance = 0;
+          for (const position of digits.positions) {
+            tick();
+            const amount = position.xAdvance * cellBox.style.size / metrics.unitsPerEm;
+            if (!Number.isFinite(amount) || amount < 0) unsupported("supplied font advances");
+            advance += Math.round(amount);
+            displayAdvance += Math.round(amount / printDisplayScale);
+          }
+          digitWidth += Math.max(1, advance);
+          displayDigitWidth += Math.max(1, displayAdvance);
+        }
+        indent = Math.min(65535, Math.round(cellBox.style.indent * Math.floor((digitWidth * 1024 + 5) / 10) / 1024)) * printDisplayScale;
+        displayIndent = Math.min(65535, Math.round(cellBox.style.indent * Math.floor((displayDigitWidth * 1024 + 5) / 10) / 1024)) * printDisplayScale;
+      }
+      const overflows = width + indent > cellBox.width - 5;
       if (overflows && cellBox.overflow === undefined || !Number.isFinite(height)) unsupported("default-style text layout");
-      const overflow = cellBox.overflow?.(displayWidth);
+      const overflow = cellBox.overflow?.(displayWidth + displayIndent);
       const clipLeft = x + 4 - (overflow?.left ?? 0);
       const clipWidth = Math.max(0, cellBox.width + (overflow?.left ?? 0) + (overflow?.right ?? 0) - 4);
       // print_page_cells adds 2pt;the cell painter adds half a grid plus its scaled 3px text margin.
@@ -255,7 +277,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       const verticalSpace = Math.max(0, cellBox.height - 1 - height);
       const verticalOffset = cellBox.style.verticalAlignment === "top" ? 0 : verticalSpace / (cellBox.style.verticalAlignment === "center" ? 2 : 1);
       baseline = page.getHeight() - y - printDisplayScale - verticalOffset - ascent;
-      x -= alignment === "left" ? 0 : width / (alignment === "center" ? 2 : 1);
+      x -= alignment === "left" ? -indent : alignment === "center" ? width / 2 : width + indent;
       // pdf-lib encodes through the public layout method synchronously. Give
       // its subset encoder the exact run whose positions we just painted.
       const layout = metrics.layout;

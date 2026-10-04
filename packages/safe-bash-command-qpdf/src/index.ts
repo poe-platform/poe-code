@@ -1,4 +1,4 @@
-import { executeRetainedRewrite } from "./retained.js";
+import { executeRetainedQpdf } from "./retained.js";
 import { dirname, resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -2607,13 +2607,13 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
     if (parsed.options) {
       const defaults = parseQpdfArguments([]).options!;
       const retained = Object.entries(parsed.options).every(([key, value]) => {
-        if (["inputFile", "outputFile", "password", "replaceInput", "warningExit0", "decrypt"].includes(key)) return true;
+        if (["inputFile", "outputFile", "password", "replaceInput", "warningExit0", "decrypt", "check", "showNpages", "showEncryption"].includes(key)) return true;
         if (key === "normalizeContentFlag" && value === false) return true;
         if (key === "objectStreamsMode" && value === "disable") return true;
         const baseline = defaults[key as keyof typeof defaults];
         return Array.isArray(value) ? value.length === 0 : value === baseline;
       });
-      if (retained) return await executeRetainedRewrite({ ...context, stdout: invocation.child(context.stdout).output }, parsed.options, limits, invocation.signal, accountedBytes);
+      if (retained) return await executeRetainedQpdf({ ...context, stdout: invocation.child(context.stdout).output }, parsed.options, limits, invocation.signal, accountedBytes);
     }
     const inputs = parsed.options ? [
       parsed.options.inputFile,

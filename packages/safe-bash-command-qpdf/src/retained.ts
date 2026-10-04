@@ -1,4 +1,4 @@
-import { PdfError, PdfFileSource, PdfRetainedDocument, saveRetainedDocumentChunks } from "@poe-code/pdf-ast";
+import { PdfError, PdfFileSource, PdfRetainedDocument, saveRetainedDocumentChunks, retainedCosObjects, dictGet } from "@poe-code/pdf-ast";
 import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
 import { writeBytes } from "safe-bash-contracts/io";
@@ -6,20 +6,23 @@ import { resolvePath } from "safe-bash-contracts/path";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import type { QpdfLimits } from "./index.js";
 
-export interface RetainedRewriteOptions {
+export interface RetainedQpdfOptions {
   inputFile: string | undefined;
   outputFile: string | undefined;
   password: string | undefined;
   replaceInput: boolean;
   decrypt: boolean;
   warningExit0: boolean;
+  check: boolean;
+  showNpages: boolean;
+  showEncryption: boolean;
 }
-export async function executeRetainedRewrite(context: CommandContext, options: RetainedRewriteOptions, limits: QpdfLimits, signal: AbortSignal, inputBytes = 0): Promise<{ exitCode: number }> {
+export async function executeRetainedQpdf(context: CommandContext, options: RetainedQpdfOptions, limits: QpdfLimits, signal: AbortSignal, inputBytes = 0): Promise<{ exitCode: number }> {
   const diagnostic = async (message: string) => { await writeBytes(context.stderr, new TextEncoder().encode(message), signal); return { exitCode: 2 }; };
   const inputName = options.inputFile;
   if (!inputName) return diagnostic("qpdf: an input file is required\n");
   const storage = { fs: context.fs, directory: resolvePath(context.cwd, context.env.TMPDIR || "/tmp") };
-  let source: PdfFileSource | undefined, document: PdfRetainedDocument | undefined, output: PdfFileSource | undefined, failed = false, repaired = false;
+  let source: PdfFileSource | undefined, document: PdfRetainedDocument | undefined, output: PdfFileSource | undefined, failed = false;
   try {
     await context.fs.mkdir(storage.directory, { recursive: true, signal });
     const maximum = Math.min(limits.maxInputBytes, context.inputBudget?.maxBytes ?? Infinity) - inputBytes;
@@ -31,13 +34,35 @@ export async function executeRetainedRewrite(context: CommandContext, options: R
       if (error instanceof Error && "code" in error && ["ENOENT", "ENOTDIR", "EACCES", "EISDIR"].includes(String(error.code))) return await diagnostic(`qpdf: cannot open ${inputName}\n`);
       throw error;
     }
-    const openOptions = { signal, ...(options.password === undefined ? {} : { password: options.password }) };
     try {
-      try { document = await PdfRetainedDocument.open(source, storage, openOptions); }
-      catch (error) { signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error; document = await PdfRetainedDocument.open(source, storage, { ...openOptions, recovery: "repair" }); repaired = true; }
+      document = await PdfRetainedDocument.open(source, storage, { signal, recovery: "repair", ...(options.password === undefined ? {} : { password: options.password }) });
     } catch (error) {
       signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
       return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
+    }
+    if (options.check || options.showNpages || options.showEncryption) {
+      let count = 0, linearized = false;
+      try {
+        for await (const object of retainedCosObjects(document, storage, { signal })) {
+          if (!object.stream && object.value.kind === "dict" && dictGet(object.value, "Linearized") !== undefined) linearized = true;
+          // Loading a buffered document authenticates every encrypted stream.
+          if (object.stream) for await (const ignored of object.stream.chunks) void ignored;
+        }
+        for await (const ignored of document.pages()) { void ignored; count++; }
+      } catch (error) {
+        signal.throwIfAborted(); if (!(error instanceof PdfError) || error.code === "E_LIMIT" || (error.code === "E_CAPABILITY" && error.message !== "Invalid PDF password")) throw error;
+        return await diagnostic(`qpdf: ${inputName}: ${error.message}\n`);
+      }
+      const encryption = document.encryption;
+      const message = options.check
+        ? `checking ${inputName}\nPDF Version: ${document.crossReference.version}\nFile is ${encryption ? "encrypted" : "not encrypted"}\nFile is ${count === 0 ? "empty" : linearized ? "linearized" : "not linearized"}\nNo syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n`
+        : options.showNpages ? `${count}\n`
+        : encryption ? `R = ${encryption.revision}\nV = ${encryption.version}\nLength = ${encryption.keyLengthBits}\nprint: ${encryption.permissions.print ? "allowed" : "not allowed"}\nmodify: ${encryption.permissions.modify ? "allowed" : "not allowed"}\nextract for accessibility: ${encryption.permissions.copy ? "allowed" : "not allowed"}\n`
+        : "File is not encrypted\n";
+      const bytes = new TextEncoder().encode(message);
+      if (bytes.length > limits.maxOutputBytes) throw new RangeError("Output byte limit exceeded");
+      await writeBytes(context.stdout, bytes, signal);
+      return { exitCode: 0 };
     }
     const destination = options.replaceInput ? inputName : options.outputFile;
     if (!destination) return await diagnostic("qpdf: an output file is required\n");
@@ -53,7 +78,7 @@ export async function executeRetainedRewrite(context: CommandContext, options: R
         return await diagnostic(`qpdf: open ${destination}: ${error.code === "ENOENT" ? "No such file or directory" : error.code}\n`);
       }
     }
-    return { exitCode: repaired && !options.warningExit0 ? 3 : 0 };
+    return { exitCode: 0 };
   } catch (error) { failed = true; throw error; }
   finally {
     const results = await Promise.allSettled([document?.close(), source?.close(), output?.close()]);

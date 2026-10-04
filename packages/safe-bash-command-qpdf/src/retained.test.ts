@@ -5,10 +5,11 @@ import { createCommandArguments } from "safe-bash-contracts";
 import { PdfDocument } from "@poe-code/pdf-ast";
 import { createQpdfCommand, runQpdfCli } from "./index.js";
 
-for (const mode of ["ordinary", "replace", "stdout", "stdin", "encrypted", "decrypt", "decrypt-plain", "object-streams"]) it(`rewrites ${mode} through retained input and atomic streamed output`, async () => {
+for (const mode of ["ordinary", "replace", "stdout", "stdin", "encrypted", "decrypt", "decrypt-plain", "repaired", "object-streams"]) it(`rewrites ${mode} through retained input and atomic streamed output`, async () => {
   const doc = PdfDocument.create(); doc.setTitle("Retained rewrite"); for (let i = 0; i < 4; i++) doc.addPage().drawText(`Page ${i}`, { x: 20, y: 30 });
   if (mode.startsWith("decrypt")) doc.setVersion("1.4");
-  const input = doc.save(mode === "encrypted" || mode === "decrypt" ? { encrypt: { userPassword: "reader", ownerPassword: "owner" } } : mode === "object-streams" ? { objectStreams: "generate" } : {});
+  let input = doc.save(mode === "encrypted" || mode === "decrypt" ? { encrypt: { userPassword: "reader", ownerPassword: "owner" } } : mode === "object-streams" ? { objectStreams: "generate" } : {});
+  if (mode === "repaired") { const end = Buffer.from(input).lastIndexOf("startxref"); input = new Uint8Array(Buffer.concat([input.subarray(0, end), Buffer.from("startxref\n0\n%%EOF\n")])); }
   const inputName = mode === "stdin" ? "-" : "in.pdf", outputName = mode === "replace" ? "in.pdf" : mode === "stdout" ? "-" : "out.pdf";
   const args = mode === "replace" ? ["--replace-input", inputName] : [inputName, outputName]; if (mode === "encrypted" || mode === "decrypt") args.unshift("--password=reader"); if (mode.startsWith("decrypt")) args.unshift("--decrypt");
   const files = new Map([[inputName, input]]), expected = await runQpdfCli(args, files);

@@ -40,3 +40,7 @@ including stdin/stdout, password-protected input and `--replace-input`. File
 publication requires retained atomic staging from the injected filesystem; scratch
 storage uses `TMPDIR`. Use an external backend for large files. Transformation
 options currently continue through the buffered compatibility engine.
+
+`--check`, `--show-npages` and `--show-encryption` also inspect retained inputs
+through caller-backed object and page indexes, preserving repair and password
+diagnostics without collecting input payloads.

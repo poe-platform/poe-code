@@ -103,6 +103,9 @@ export default {async fetch(request,env){
           widths: {}
         });
         expect(result.segments).toBe(native.getGlyphOutline(65)!.length);
+        expect(result.last).toEqual({
+          kind: "line", x: Math.fround((mode === "outlines" ? count : 1) * 0.001), y: 0
+        });
         expect(result.last).toEqual(
           native
             .getGlyphOutline(65)!

@@ -84,7 +84,8 @@ Fixture provenance and independent reference pixels are documented in
 `src/vendor/pdfjs-fonts.mjs` bundles PDF.js CFF parsing/compilation, Type 2 path
 compilation, encodings, Adobe glyph names, and standard-font metrics from revision
 `91041fb94d6744bc2a5bccd9aad28d617faa8195` (Mozilla Foundation, Apache-2.0).
-The only source adaptation exports the internal `Type2Compiled` class; local
+Source adaptations export the internal `Type2Compiled` class and retain Float32
+path coordinates on every runtime, including those supporting Float16; local
 code converts its path commands to PDF AST segments without evaluating generated
 JavaScript. `src/fonts/pdfjs-cff.test.ts` ports eight cases from
 `test/unit/cff_parser_spec.js` to Vitest, retaining the Adobe CFF specification

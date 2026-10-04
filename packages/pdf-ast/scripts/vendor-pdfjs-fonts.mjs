@@ -201,6 +201,9 @@ const result = await build({
       });
       builder.onLoad({ filter: /font_renderer\.js$/ }, args => {
         let source = readFileSync(args.path, "utf8");
+        // AST geometry must have the same precision on Node and Workers;
+        // upstream's optional Float16Array path storage changes coordinates.
+        source = source.replaceAll("new Float16Array(", "new Float32Array(");
         const patches = [
           ["class Commands {", "class Commands {\n  constructor(onAllocation) { this.onAllocation = onAllocation; }"],
           ["  add(cmd, args) {", "  add(cmd, args) {\n    this.onAllocation?.(64 + (args?.length ?? 0) * 16);"],

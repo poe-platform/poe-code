@@ -10764,7 +10764,7 @@ var Commands = class {
   getPath() {
     this.onAllocation?.(this.cmds.length * 4);
     if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL") || FeatureTest.isFloat16ArraySupported) {
-      return new Float16Array(this.cmds);
+      return new Float32Array(this.cmds);
     }
     return new Float32Array(this.cmds);
   }
@@ -10782,7 +10782,7 @@ var CompiledFont = class _CompiledFont {
     return shadow(
       this,
       "NOOP",
-      typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL") || FeatureTest.isFloat16ArraySupported ? new Float16Array(0) : new Float32Array(0)
+      typeof PDFJSDev !== "undefined" && PDFJSDev.test("MOZCENTRAL") || FeatureTest.isFloat16ArraySupported ? new Float32Array(0) : new Float32Array(0)
     );
   }
   getPath(unicode) {

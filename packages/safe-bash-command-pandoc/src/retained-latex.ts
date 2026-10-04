@@ -1,4 +1,4 @@
-import {reserveRetainedOutput} from "./retained-output-budgets.js";
+import {emitRetainedOutput, reserveRetainedOutput} from "./retained-output-budgets.js";
 import type {backedJsonOrder} from "./backed-json-order.js";
 import {IntegerTable, PagedStorage} from "safe-bash-io-engine/storage";
 import {BackedText, emptyText, type TextRange} from "./backed-text.js";
@@ -81,8 +81,9 @@ class LatexTape {
     const bytes = new Uint8Array(8); new DataView(bytes.buffer).setFloat64(0, value, true); await this.storage.write(position, bytes);
   }
   private async add(value: string | TextRange, label = false, account = true): Promise<void> {
-    if (account && Number.isFinite(this.context.limits.references)) {
+    if (account && (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes))) {
       this.context.bound("outputBytes", this.output.units + (typeof value === "string" ? value.length : value.units));
+      if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", (typeof value === "string" ? value.length : value.units) * 2);
       this.context.charge("references", 1);
     }
     await this.text.append(this.output, await this.text.from(typeof value === "string" ? [value] : this.text.chunks(value)));
@@ -109,11 +110,14 @@ class LatexTape {
     let buffer = "";
     for await (const chunk of this.text.unicodeChunks(value)) for (const char of chunk) {
       if (char.charCodeAt(0) < 32 && !["\n", "\r", "\t"].includes(char) || char.charCodeAt(0) === 127) await this.fail("Unrepresentable LaTeX control character");
+      const start = buffer.length;
       if (code && "\\{}#$%&_~^".includes(char)) buffer += `\\char"${char.codePointAt(0)!.toString(16).toUpperCase()}{}`;
       else if (code && (char === " " || char === "\t")) buffer += char === " " ? "\\ " : "\\ \\ \\ \\ ";
       else buffer += ({"#": "\\#", "$": "\\$", "%": "\\%", "&": "\\&", "_": "\\_", "{": "\\{", "}": "\\}", "~": "\\textasciitilde{}", "^": "\\textasciicircum{}", "\\": "\\textbackslash{}", "\r": " ", "\n": " ", "\t": " "} as Record<string, string>)[char] ?? char;
-      if (Number.isFinite(this.context.limits.references)) {
-        this.context.bound("outputBytes", this.output.units + buffer.length); this.context.charge("references", 1);
+      if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) {
+        this.context.bound("outputBytes", this.output.units + buffer.length);
+        if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", (buffer.length - start) * 2);
+        this.context.charge("references", 1);
       }
       if (buffer.length >= 4096) {await this.add(buffer, false, false); buffer = "";}
     }
@@ -143,9 +147,12 @@ class LatexTape {
     if (colon && !["http", "https", "mailto", "tel"].includes(scheme.toLowerCase())) await this.fail("Unsupported URI scheme", path);
     let buffer = "";
     for await (const chunk of this.text.unicodeChunks(value)) for (const char of chunk) {
+      const start = buffer.length;
       buffer += ({"%": "\\%", "#": "\\#", "&": "\\&", "_": "\\_"} as Record<string, string>)[char] ?? (" ~^\"<>`".includes(char) ? encodeURIComponent(char).split("%").join("\\%") : char);
-      if (Number.isFinite(this.context.limits.references)) {
-        this.context.bound("outputBytes", this.output.units + buffer.length); this.context.charge("references", 1);
+      if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) {
+        this.context.bound("outputBytes", this.output.units + buffer.length);
+        if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", (buffer.length - start) * 2);
+        this.context.charge("references", 1);
       }
       if (buffer.length >= 4096) {await this.add(buffer, false, false); buffer = "";}
     }
@@ -246,6 +253,7 @@ class LatexTape {
           }
           if (buffer) await this.text.append(label, await this.text.from([buffer]));
           if (count > 1) await this.text.append(label, await this.text.from(["-dup-" + count]));
+          if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", label.units * 2);
           if (Number.isFinite(this.context.limits.references)) this.context.charge("references", 1);
           const record = BigInt(await this.record(label)); await this.labels.set(BigInt(job.node), record);
           if (count === 1) await this.targets.set(identity, record);
@@ -433,6 +441,7 @@ class LatexTape {
       if (tag === "Table") {await this.push({op: "table", node: content!, path: job.path}); continue;}
       throw new Error("Unknown LaTeX constructor " + tag);
     }
+    if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", this.output.units * 2);
     const source = this.text.chunks(this.output);
     const result = await this.text.from((async function* () {
       let newlines = 0;
@@ -447,7 +456,8 @@ class LatexTape {
       }
       yield "\n";
     })());
-    if (Number.isFinite(this.context.limits.references)) this.context.bound("outputBytes", result.units);
+    if (Number.isFinite(this.context.limits.references) || Number.isFinite(this.context.limits.retainedBytes)) this.context.bound("outputBytes", result.units);
+    if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", result.units * 2);
     return result;
   }
   private column(align: string, fraction: number): string {
@@ -489,6 +499,7 @@ class LatexTape {
     }
     if (job.op === "repeatHead") {
       const replay = this.replay!; this.replay = undefined;
+      if (Number.isFinite(this.context.limits.retainedBytes)) this.context.charge("retainedBytes", replay.units * 2);
       await this.add("\\endfirsthead\n"); await this.add(replay); await this.add("\\endhead\n"); await this.add("\\endfoot\n");
       const foot = await this.at(job.node, 5), cp = await this.path(job.path, ".c");
       if (await this.present(foot + 32)) await this.loss("Dropped unsupported table foot attributes", await this.path(cp, "[5][0]"));
@@ -563,8 +574,8 @@ export async function writeRetainedLatex(tree: BackedJson, context: ExecutionCon
       const encoder = new TextEncoder();
       for await (const part of writer.text.unicodeChunks(result)) yield encoder.encode(options.eol === "crlf" ? part.split("\n").join("\r\n") : part);
     };
-    if (Number.isFinite(context.limits.outputBytes) && !Number.isFinite(context.limits.references)) {let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}}
-    for await (const bytes of chunks()) await context.emit(bytes);
+    if (Number.isFinite(context.limits.outputBytes) && !Number.isFinite(context.limits.references) && !Number.isFinite(context.limits.retainedBytes)) {let length = 0; for await (const bytes of chunks()) {length += bytes.length; context.bound("outputBytes", length);}}
+    await emitRetainedOutput(chunks(), context);
   } catch (reason) {failure = {reason};}
   try {await storage.close();} catch (reason) {failure ??= {reason};} finally {release();}
   if (failure) throw failure.reason;

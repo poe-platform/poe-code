@@ -211,3 +211,35 @@ for (const [update, next] of [
   assert.equal(await run.instance.runSyncOrAsync(), 0);
   assert.equal(run.stdout(), `5001 ${next} 5001\n`);
 });
+
+for (const [expression, expected] of [
+  ["-1", "-1"],
+  ["1.5", "1.5"],
+  ['"' + "a".repeat(300) + '"', "a".repeat(300)],
+  ['tolower("ABC")', "abc"],
+]) test(`record print evaluates arguments once around ${expression}`, async () => {
+  const run = await runtime(`{ x = 0; print ++x, ${expression}, ++x; print x }`);
+  assert.equal(await run.instance.runSyncOrAsync(), 0);
+  assert.equal(run.stdout(), `1 ${expected} 2\n2\n`.repeat(2));
+});
+
+for (const format of ['"%d %s %d\\n"', 'tolower("%d %s %d\\n")']) {
+  test(`record printf evaluates arguments once with format ${format}`, async () => {
+    const run = await runtime(`{ x = 0; printf ${format}, ++x, tolower("ABC"), ++x; print x }`);
+    assert.equal(await run.instance.runSyncOrAsync(), 0);
+    assert.equal(run.stdout(), "1 abc 2\n2\n".repeat(2));
+  });
+}
+
+for (const statement of [
+  'print ++x, fact(5), gcd(5, 12), ++x',
+  'printf "%d %d %d %d\\n", ++x, fact(5), gcd(5, 12), ++x',
+]) test(`record output preserves recursive call frames: ${statement}`, async () => {
+  const run = await runtime(`
+    function fact(n) { calls++; return n <= 1 ? 1 : n * fact(n - 1) }
+    function gcd(a, b, t) { calls++; while (b != 0) { t = b; b = a % b; a = t } return a }
+    { x = 0; calls = 0; ${statement}; print x, calls }
+  `);
+  assert.equal(await run.instance.runSyncOrAsync(), 0);
+  assert.equal(run.stdout(), "1 120 1 2\n2 6\n".repeat(2));
+});

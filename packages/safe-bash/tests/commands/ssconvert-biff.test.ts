@@ -45,7 +45,7 @@ test("BIFF import shares actual virtual command/SDK bytes, replay and memfs effe
     const sdk = await engine.convert({ input: { kind: "stream", filename: "input.xls", source: [source] },
       exportType: "Gnumeric_XmlIO:sax:0", destination: { kind: "stream", sink: { async write(bytes) { chunks.push(new Uint8Array(bytes)); } } } }, { signal });
     assert.equal(sdk.exitCode, 0); assert.deepEqual(sdk.diagnostics, []);
-    assert.deepEqual(new Uint8Array(volume.readFileSync("/round.xml") as Uint8Array), chunks[0]);
+    assert.deepEqual(new Uint8Array(volume.readFileSync("/round.xml") as Uint8Array), new Uint8Array(Buffer.concat(chunks)));
     for (const profile of ["excel_biff7", "excel_biff8", "excel_dsf"]) {
       const exported: Uint8Array[] = [];
       const sdkExport = await engine.convert({ input: { kind: "stream", filename: "input.xls", source: [source] },
@@ -55,7 +55,7 @@ test("BIFF import shares actual virtual command/SDK bytes, replay and memfs effe
       assert.equal(sdkExport.exitCode, 0); assert.deepEqual(sdkExport.diagnostics, []);
       const commandExport = await shell.exec(`ssconvert -T Gnumeric_Excel:${profile} /input.xls /export.xls`);
       assert.equal(commandExport.exitCode, 0, commandExport.stderr); assert.equal(commandExport.stderr, "");
-      assert.deepEqual(new Uint8Array(volume.readFileSync("/export.xls") as Uint8Array), exported[0]);
+      assert.deepEqual(new Uint8Array(volume.readFileSync("/export.xls") as Uint8Array), new Uint8Array(Buffer.concat(exported)));
       const replayExport = await shell.exec("ssconvert -T Gnumeric_stf:stf_csv /export.xls fd://1");
       assert.equal(replayExport.exitCode, 0, replayExport.stderr); assert.equal(replayExport.stderr, "");
       assert.equal(replayExport.stdout, "42\n"); volume.unlinkSync("/export.xls");

@@ -55,6 +55,12 @@ it('imports encrypted properties through injected safe-fs without the buffered p
       data: { stream: 'Opaque', bytes: '42'.repeat(20000) } }] };
   const encrypted = await createBiffWriter(8)(book, ['encryption=rc4-cryptoapi-128-properties'], context);
   const fs = createMemoryFileSystem(), forbid = vi.spyOn(properties, 'decryptBiffPropertyContainer').mockImplementation(() => { throw new Error('buffered plaintext'); });
+  const ranges = await import('./biff-range.js'), load = ranges.readBiffRange;
+  const rangeSpy = vi.spyOn(ranges, 'readBiffRange').mockImplementation(async (...args) => {
+    const result = await load(...args);
+    const name = [...result.propertySources!.keys()].find(name => name.toUpperCase() === 'ENCRYPTION');
+    expect(name).toBeDefined(); expect(result.streams!.get(name!)!.length).toBe(0); return result;
+  });
   let writes = 0;
   const engine = createEngine({ workingFiles: { fs, directory: '/', cacheBytes: 16384 }, codecs: [{ id: 'fixture', description: 'fixture', extensions: [],
     readSource(input, ctx) { return readBiff(input, { ...ctx, password: context.password, createWorkingStorage() {
@@ -66,11 +72,48 @@ it('imports encrypted properties through injected safe-fs without the buffered p
       { importType: 'fixture' }, { signal: base.signal });
     expect(result.properties).toEqual(book.properties);
     expect(result.unsupportedRecords).toContainEqual(book.unsupportedRecords[0]); expect(writes).toBeGreaterThan(5);
-  } finally { forbid.mockRestore(); await engine.dispose(); }
+  } finally { forbid.mockRestore(); rangeSpy.mockRestore(); await engine.dispose(); }
   expect(await fs.readdir('/')).toEqual([]);
 });
 it('preserves backing read errors after successful staging', async () => {
   const f = fixture('read'), result = await decryptBiffPropertySources(f.encrypted, f.cipher, f.context, () => {});
   await expect(result.get('Large')!.read(0, 4)).rejects.toBe(f.failure);
   for (const close of f.cleanups) await close(); expect(f.state().closed).toBe(2);
+});
+it('decrypts a borrowed short ciphertext source using bounded range reads', async () => {
+  const f = fixture(), borrowed = new Uint8Array(257); let reads = 0;
+  const source = { size: f.encrypted.length, async read(at: number, count: number) {
+    expect(count).toBeLessThanOrEqual(16384); reads++;
+    const part = f.encrypted.subarray(at, at + Math.min(count, 257)); borrowed.set(part); return borrowed.subarray(0, part.length);
+  } };
+  const result = await decryptBiffPropertySources(source, f.cipher, f.context, () => {});
+  expect(reads).toBeGreaterThan(300);
+  for (const [name, range] of result) for (let at = 0; at < range.size; at += 16384)
+    expect(await range.read(at, 16384)).toEqual(f.streams.get(name)!.subarray(at, at + 16384));
+  for (const close of f.cleanups) await close(); expect(f.state().closed).toBe(2);
+});
+it.each(['read', 'empty', 'abort'])('cleans staging after ciphertext %s failure', async mode => {
+  const f = fixture(), failure = new Error(mode), controller = new AbortController();
+  const source = { size: f.encrypted.length, async read(at: number, count: number) {
+    if (at >= 8 && at < 100000) {
+      if (mode === 'read') throw failure;
+      if (mode === 'empty') return new Uint8Array();
+      controller.abort(failure);
+    }
+    return f.encrypted.subarray(at, at + count);
+  } };
+  const result = decryptBiffPropertySources(source, f.cipher, { ...f.context, signal: controller.signal }, () => {});
+  if (mode === 'empty') await expect(result).rejects.toThrow('truncated'); else await expect(result).rejects.toBe(failure);
+  for (const close of f.cleanups) await close(); expect(f.state().closed).toBe(f.state().opened);
+  expect(f.state().ciphers).toBe(f.state().retired);
+});
+it('captures ciphertext capabilities during preflight before password acquisition', async () => {
+  const { encryptedBiffPropertyStream } = await import('./biff-encrypted-properties.js');
+  const f = fixture();
+  const source = { size: f.encrypted.length, async read(at: number, count: number) { return f.encrypted.subarray(at, at + count); } };
+  const admitted = await encryptedBiffPropertyStream(new Map([['encryption', new Uint8Array()]]), f.context, () => {}, new Map([['encryption', source]]));
+  source.size = 0; source.read = async () => { throw new Error('replaced'); };
+  const result = await decryptBiffPropertySources(admitted, f.cipher, f.context, () => {});
+  expect(await result.get('Other')!.read(0, 3)).toEqual(f.streams.get('Other'));
+  for (const close of f.cleanups) await close();
 });

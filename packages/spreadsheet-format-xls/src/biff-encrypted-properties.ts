@@ -9,8 +9,8 @@ import { propertyRange, readPropertySectionRanges, readPropertyValueRanges } fro
 /** Admit the outer container and reject hidden plaintext property collisions
  * before asking for a password. POI emits an empty document-summary placeholder. */
 export async function encryptedBiffPropertyStream(streams: ReadonlyMap<string, Uint8Array> | undefined,
-  context: CapabilityContext, charge: (amount: number) => void, propertySources?: ReadonlyMap<string, RangeSource>): Promise<Uint8Array> {
-  let encrypted: Uint8Array | undefined, nodes = 0;
+  context: CapabilityContext, charge: (amount: number) => void, propertySources?: ReadonlyMap<string, RangeSource>): Promise<Uint8Array | RangeSource> {
+  let encrypted: Uint8Array | RangeSource | undefined, nodes = 0;
   const names = new Set<string>();
   const admit = (count: number) => {
     charge(count); nodes += count;
@@ -21,7 +21,7 @@ export async function encryptedBiffPropertyStream(streams: ReadonlyMap<string, U
     charge(name.length); const key = name.toUpperCase();
     if (!["ENCRYPTION", "\u0005SUMMARYINFORMATION", "\u0005DOCUMENTSUMMARYINFORMATION"].includes(key)) continue;
     if (names.has(key)) invalidBiff("duplicate encrypted property stream"); names.add(key);
-    if (key === "ENCRYPTION") { encrypted = bytes; continue; }
+    if (key === "ENCRYPTION") { const input = propertySources?.get(name); encrypted = input ? propertyRange(input, context) : bytes; continue; }
     const file = propertyRange(propertySources?.get(name) ?? bytes, context);
     if (file.size > context.limits.inputBytes) invalidBiff("invalid property source size");
     if (!file.size) continue;
@@ -35,8 +35,9 @@ export async function encryptedBiffPropertyStream(streams: ReadonlyMap<string, U
     }
   }
   if (!encrypted) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted Excel workbook ancillary properties require the encryption stream");
-  if (encrypted.length > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert encrypted BIFF property input limit exceeded");
-  new Binary(encrypted).check(0, 8);
+  const length = encrypted instanceof Uint8Array ? encrypted.length : encrypted.size;
+  if (length > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert encrypted BIFF property input limit exceeded");
+  if (length < 8) invalidBiff("truncated binary data");
   return encrypted;
 }
 
@@ -73,20 +74,22 @@ export function decryptBiffPropertyContainer(encrypted: Uint8Array, keyStream: (
   };
   try {
     check();
-    const descriptors = readEncryptedPropertyDescriptors(encrypted, decrypt, context, charge), source = new Binary(encrypted);
+    if (encrypted.length > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert encrypted BIFF property input limit exceeded");
+    const source = new Binary(encrypted), { offset, size } = propertyTableRange(decrypt(source.slice(0, 8), 0), source);
+    const descriptors = readEncryptedPropertyDescriptors(source, offset, size, decrypt(source.slice(offset, size), 0), context, charge);
     for (const entry of descriptors) result.set(entry.name, decrypt(source.slice(entry.offset, entry.size), entry.block));
     return result;
   } catch (error) { cleanup(); throw error; }
 }
 
-function readEncryptedPropertyDescriptors(encrypted: Uint8Array, decrypt: (bytes: Uint8Array, block: number) => Uint8Array,
-  context: CapabilityContext, charge: (amount: number) => void): { offset: number; size: number; block: number; name: string }[] {
-  if (encrypted.length > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert encrypted BIFF property input limit exceeded");
-  const source = new Binary(encrypted), header = new Binary(decrypt(source.slice(0, 8), 0));
-  const offset = header.u32(0), size = header.u32(4); header.bytes.fill(0);
+function propertyTableRange(bytes: Uint8Array, source: { check(at: number, size: number): void }): { offset: number; size: number } {
+  const header = new Binary(bytes), offset = header.u32(0), size = header.u32(4); bytes.fill(0);
   if (offset < 8 || size < 4) invalidBiff("invalid encrypted property descriptor range");
-  source.check(offset, size);
-  const table = new Binary(decrypt(source.slice(offset, size), 0)), count = table.u32(0);
+  source.check(offset, size); return { offset, size };
+}
+function readEncryptedPropertyDescriptors(source: { check(at: number, size: number): void }, offset: number, size: number, bytes: Uint8Array,
+  context: CapabilityContext, charge: (amount: number) => void): { offset: number; size: number; block: number; name: string }[] {
+  const table = new Binary(bytes), count = table.u32(0);
   if (count > Math.floor((size - 4) / 18)) invalidBiff("invalid encrypted property descriptor count");
   if (count > (context.limits.workbookNodes ?? context.limits.inputBytes))
     throw new SsconvertError("resource-limit", "ssconvert encrypted BIFF property node limit exceeded");
@@ -121,11 +124,12 @@ function readEncryptedPropertyDescriptors(encrypted: Uint8Array, decrypt: (bytes
   return descriptors;
 }
 
-/** Decrypt payloads directly into caller storage. Container bytes and the validated
- * descriptor table are still buffered; payload plaintext never accumulates in RAM. */
-export async function decryptBiffPropertySources(encrypted: Uint8Array, createCipher: (block: number) => BiffRc4Cipher,
+/** Decrypt retained ciphertext directly into caller storage. Only the descriptor
+ * table is buffered; payload plaintext never accumulates in RAM. */
+export async function decryptBiffPropertySources(encrypted: Uint8Array | RangeSource, createCipher: (block: number) => BiffRc4Cipher,
   context: CapabilityContext, charge: (amount: number) => void): Promise<ReadonlyMap<string, BiffPropertySource>> {
   const result = new Map<string, BiffPropertySource>(), owned: Uint8Array[] = [];
+  const input = propertyRange(encrypted, context);
   let closed = false;
   const check = () => { context.signal.throwIfAborted(); if (closed) throw new SsconvertError("invalid-request", "Encrypted BIFF property reader disposed"); };
   const close = async () => {
@@ -135,27 +139,30 @@ export async function decryptBiffPropertySources(encrypted: Uint8Array, createCi
     if (errors.length) throw new AggregateError(errors, "Encrypted BIFF property cleanup failed");
   };
   context.own(close);
-  function* chunks(bytes: Uint8Array, block: number): Iterable<Uint8Array> {
-    check(); charge(bytes.length * 2 + 320);
+  async function* chunks(offset: number, size: number, block: number): AsyncIterable<Uint8Array> {
+    check(); input.check(offset, size); charge(size * 2 + 320);
     const cipher = createCipher(block);
     try {
       check();
-      for (let at = 0; at < bytes.length; at += 16384) {
-        const output = bytes.slice(at, at + 16384);
+      for (let at = 0; at < size;) {
+        const output = await input.read(offset + at, Math.min(16384, size - at), { signal: context.signal }); at += output.length;
         try { cipher.xor(output); check(); yield output; check(); } finally { output.fill(0); }
       }
     } finally { cipher.close(); }
   }
   try {
     check();
-    const descriptors = readEncryptedPropertyDescriptors(encrypted, (bytes, block) => {
-      const output = new Uint8Array(bytes.length); owned.push(output); let at = 0;
-      for (const part of chunks(bytes, block)) { output.set(part, at); at += part.length; }
+    if (input.size > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert encrypted BIFF property input limit exceeded");
+    const decrypt = async (offset: number, size: number) => {
+      input.check(offset, size);
+      const output = new Uint8Array(size); owned.push(output); let at = 0;
+      for await (const part of chunks(offset, size, 0)) { output.set(part, at); at += part.length; }
       return output;
-    }, context, charge);
+    };
+    const { offset, size } = propertyTableRange(await decrypt(0, 8), input);
+    const descriptors = readEncryptedPropertyDescriptors(input, offset, size, await decrypt(offset, size), context, charge);
     for (const entry of descriptors) {
-      const bytes = encrypted.subarray(entry.offset, entry.offset + entry.size);
-      const source = await stagePropertyBytes({ length: entry.size, chunks: () => chunks(bytes, entry.block) }, context, context.limits.inputBytes);
+      const source = await stagePropertyBytes({ length: entry.size, chunks: () => chunks(entry.offset, entry.size, entry.block) }, context, context.limits.inputBytes);
       result.set(entry.name, source); check();
     }
     return result;

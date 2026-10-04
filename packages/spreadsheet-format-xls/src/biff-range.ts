@@ -78,7 +78,7 @@ export async function readBiffRange(input: RangeSource, context: CapabilityConte
         // Only these ancillary payloads are interpreted by the existing reader.
         // Keep other names for its name/work admission, without copying ignored streams.
         const needed = ["ENCRYPTION", "\u0005SUMMARYINFORMATION", "\u0005DOCUMENTSUMMARYINFORMATION"].includes(name.toUpperCase());
-        if (needed && name.toUpperCase() !== "ENCRYPTION" && recordStore) {
+        if (needed && recordStore) {
           propertySources.set(name, { size: stream.size, async read(at, count, options) {
             try { return await stream.read(at, count, options); }
             catch (error) { if (error instanceof CfbBackendFailure) throw error.cause; throw error; }

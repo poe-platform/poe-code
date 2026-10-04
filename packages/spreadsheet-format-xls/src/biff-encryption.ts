@@ -50,7 +50,7 @@ export async function decryptBiffRecords(records: BiffRecords, revision: number,
   let array: Uint8Array | undefined, base: Uint8Array | undefined, work = 0;
   let block = -1, stream: Uint8Array | undefined;
   let cryptoapi = false, keyBits = 128;
-  let properties: Uint8Array | undefined;
+  let properties: Uint8Array | RangeSource | undefined;
   const decodedBuffers: Uint8Array[] = [];
   let disposed = false;
   context.own(() => { disposed = true; for (const bytes of decodedBuffers) bytes.fill(0); });
@@ -256,7 +256,7 @@ export async function decryptBiffRecords(records: BiffRecords, revision: number,
       try { return createRc4Cipher(key, context); } finally { key.fill(0); }
     };
     // Staging must finish while the block-key base still exists.
-    return context.createWorkingStorage ? await decryptBiffPropertySources(properties, createCipher, context, admit) :
+    return context.createWorkingStorage || !(properties instanceof Uint8Array) ? await decryptBiffPropertySources(properties, createCipher, context, admit) :
       decryptBiffPropertyContainer(properties, keyStream, context, admit, createCipher);
   } catch (error) { for (const bytes of decodedBuffers) bytes.fill(0); throw error; }
   finally { array?.fill(0); base?.fill(0); stream?.fill(0); }

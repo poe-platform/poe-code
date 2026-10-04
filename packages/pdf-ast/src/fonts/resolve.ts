@@ -1,3 +1,4 @@
+import type { StoredCffFont } from "./stored-cff.js";
 import type { StoredTrueTypeFont } from "./stored-truetype.js";
 import type {StoredCMap} from "./stored-cmap.js";
 import type { StoredCidMap } from "./stored-cid-map.js";
@@ -14,8 +15,8 @@ import { parseCharacterCMap, parseToUnicodeCMap, type ParsedToUnicodeCMap } from
 import { parseTrueTypeFont, type ParsedTrueTypeFont } from "./truetype.js";
 import { buildFontEncodingDifferencesMap, buildFontEncodingGlyphNamesMap, normalizeStandard14FontName, STANDARD_14_FONTS } from "./standard14.js";
 type Matrix6 = [number, number, number, number, number, number];
-export type FontResolutionRequest = {kind:"truetype-map";font:StoredTrueTypeFont;code?:number;name?:string} | { kind: "resolve"; node: PdfCosNode | undefined } | { kind: "decode"; stream: PdfCosStream; purpose?: "cid-map" | "unicode-cmap" | "encoding-cmap" | "truetype" };
-export type FontResolutionResult = StoredTrueTypeFont | PdfCosNode | Uint8Array | StoredCidMap | StoredCMap | ParsedToUnicodeCMap | CMap | undefined;
+export type FontResolutionRequest = {kind:"truetype-map";font:StoredTrueTypeFont;code?:number;name?:string} | { kind: "resolve"; node: PdfCosNode | undefined } | { kind: "decode"; stream: PdfCosStream; encodingName?: string | undefined; differences?: ReadonlyMap<number,string>; purpose?: "cid-map" | "unicode-cmap" | "encoding-cmap" | "truetype" | "cff" };
+export type FontResolutionResult = StoredCffFont | StoredTrueTypeFont | PdfCosNode | Uint8Array | StoredCidMap | StoredCMap | ParsedToUnicodeCMap | CMap | undefined;
 function* resolve(node: PdfCosNode | undefined): Generator<FontResolutionRequest, PdfCosNode | undefined, FontResolutionResult> {
   const value = yield { kind: "resolve", node };
   if (value && !("kind" in value)) throw new TypeError("Font lookup returned stream bytes instead of a COS value");
@@ -48,7 +49,7 @@ export interface ResolvedPageFont {
   readonly fontMatrix?: Matrix6 | undefined;
   readonly charProcs?: PdfCosDict | undefined;
   readonly fontResources?: PdfCosDict | undefined;
-  readonly embeddedCff?: EmbeddedCffFont | undefined;
+  readonly embeddedCff?: EmbeddedCffFont | StoredCffFont | undefined;
   readonly storedTrueType?: StoredTrueTypeFont | undefined;
   readonly embeddedTrueType?: ParsedTrueTypeFont | undefined;
   readonly cidToGid?: Uint16Array | undefined;
@@ -197,7 +198,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                 }
             }
         }
-        let embeddedCff: EmbeddedCffFont | undefined;
+        let embeddedCff: EmbeddedCffFont | StoredCffFont | undefined;
         let storedTrueType: StoredTrueTypeFont | undefined;
         let embeddedTrueType: ParsedTrueTypeFont | undefined;
         let simpleToGid: Map<number, number> | undefined;
@@ -241,11 +242,15 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
                     }, allocationOptions);
                 }
                 else if (programType?.kind === "name" && (programType.decoded === "Type1C" || programType.decoded === "CIDFontType0C")) {
-                    embeddedCff = parseEmbeddedCffFont((yield* decodeStream(program)), baseEncoding?.kind === "name" ? baseEncoding.decoded : undefined, glyphNames, allocationOptions);
+                    const encodingName=baseEncoding?.kind === "name" ? baseEncoding.decoded : undefined;
+                    const decoded=yield {kind:"decode",stream:program,purpose:"cff",encodingName,differences:glyphNames};
+                    if(decoded && "storedCff" in decoded)embeddedCff=decoded;
+                    else if(decoded instanceof Uint8Array)embeddedCff=parseEmbeddedCffFont(decoded,encodingName,glyphNames,allocationOptions);
+                    else throw new TypeError("Font decoder did not return a CFF font");
                 }
                 else {
                     const decoded = yield {kind:"decode",stream:program,purpose:"truetype"};
-                    if(decoded && "glyphSegments" in decoded) storedTrueType=decoded;
+                    if(decoded && "getGlyphId" in decoded) storedTrueType=decoded;
                     else if(decoded instanceof Uint8Array) embeddedTrueType=parseTrueTypeFont(decoded,allocationOptions);
                     else throw new TypeError("Font decoder did not return a TrueType font");
                     if(storedTrueType && subtype!=="Type0" && (storedTrueType.isSymbolicCmap || !storedTrueType.hasCmap)) {

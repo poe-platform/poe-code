@@ -1,3 +1,4 @@
+import { streamCffRepairs } from "./cff-repair-stream.mjs";
 import { streamCffOutlines } from "./cff-outline-stream.mjs";
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -195,7 +196,7 @@ const result = await build({
           if (!parser.includes(before)) throw new Error("PDF.js CFF allocation source marker changed: " + before);
           parser = parser.replaceAll(before, after);
         }
-        return { contents: source.slice(0, start) + parser + source.slice(end), loader: "js" };
+        return { contents: source.slice(0, start) + streamCffRepairs(parser) + source.slice(end), loader: "js" };
       });
       builder.onLoad({ filter: /font_renderer\.js$/ }, args => {
         let source = readFileSync(args.path, "utf8");

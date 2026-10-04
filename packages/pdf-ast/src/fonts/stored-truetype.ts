@@ -1,3 +1,4 @@
+import { parseStoredCffFont } from "./stored-cff.js";
 import type { PdfPathSegment } from "../ast.js";
 import type { StoredCidMap } from "./stored-cid-map.js";
 import { PdfError } from "../errors.js";
@@ -94,7 +95,21 @@ export async function parseStoredTrueTypeFont(
     hmtx = tables.get("hmtx");
   if (!head || !hhea || !maxp || !hmtx)
     throw new PdfError("E_PARSE", "TrueType font missing required tables (head/hhea/maxp/hmtx)");
-  if (!tables.has("glyf") && tables.has("CFF ")) return undefined;
+  const cffTable = !tables.has("glyf") ? tables.get("CFF ") : undefined;
+  if (cffTable && (cffTable.length === 0 || cffTable.offset + cffTable.length > source.byteLength))
+    throw new PdfError("E_PARSE", "OpenType CFF table is outside the font program");
+  const cff = cffTable
+    ? await parseStoredCffFont(
+        {
+          storage: source.storage,
+          position: source.position + cffTable.offset,
+          byteLength: cffTable.length
+        },
+        undefined,
+        new Map(),
+        options
+      )
+    : undefined;
   const unitsPerEm = Math.max(1, await u16(head.offset + 18)),
     format = await input.signed(head.offset + 50);
   const numGlyphs = Math.max(1, await u16(maxp.offset + 4)),
@@ -274,7 +289,12 @@ export async function parseStoredTrueTypeFont(
   let freeScratch: { position: number; points: number } | undefined;
   async function* glyphSegments(gid: number, depth = 0): AsyncGenerator<PdfPathSegment> {
     options.signal?.throwIfAborted();
-    if (gid < 0 || gid >= numGlyphs || depth > 6 || !loca || !glyf) return;
+    if (gid < 0 || gid >= numGlyphs || depth > 6) return;
+    if (cff) {
+      yield* cff.glyphSegmentsById(gid);
+      return;
+    }
+    if (!loca || !glyf) return;
     const offset =
       format === 0 ? (await u16(loca.offset + gid * 2)) * 2 : await u32(loca.offset + gid * 4);
     const next =

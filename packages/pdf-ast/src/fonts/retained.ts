@@ -1,3 +1,4 @@
+import { parseStoredCffFont } from "./stored-cff.js";
 import { parseStoredTrueTypeFont } from "./stored-truetype.js";
 import { cosNumber } from "../ast.js";
 import {parseStoredCMap} from "./stored-cmap.js";
@@ -20,7 +21,7 @@ export interface PdfRetainedFontOptions extends PdfFontAllocationOptions {
 }
 
 /** Resolve one font without loading the document or unrelated font programs.
- * TrueType programs and glyph scratch retain caller resource backing; CFF and
+ * TrueType/CFF programs and glyph scratch retain caller resource backing;
  * Type 1 parser buffers are admitted separately. The caller owns font lifetime. */
 export async function resolveRetainedFont(document: PdfRetainedDocument, storage: PdfIndexStorage,
   resources: PdfCosDict | undefined, name: string, options: PdfRetainedFontOptions = {}): Promise<ResolvedPageFont | undefined> {
@@ -90,9 +91,13 @@ export async function resolveRetainedFont(document: PdfRetainedDocument, storage
             }
             finally{program.return(undefined as never);}
           }else{
-            if(step.value.purpose==="truetype" && options.resourceStorage){
+            if((step.value.purpose==="truetype" || step.value.purpose==="cff") && options.resourceStorage){
               const backing=options.resourceStorage,position=backing.allocate(staged.size);let offset=0;
               for await(const bytes of staged.stream(0,staged.size,signal)){await backing.write(position+offset,bytes,signal?{signal}:undefined);offset+=bytes.length;}
+              if(step.value.purpose==="cff"){
+                value=await parseStoredCffFont({storage:backing,position,byteLength:staged.size},step.value.encodingName,step.value.differences??new Map(),{onAllocation:bytes=>allocation.admit(bytes),...(signal?{signal}:{})});
+                step=steps.next(value);continue;
+              }
               const font=await parseStoredTrueTypeFont({storage:backing,position,byteLength:staged.size},{onAllocation:bytes=>allocation.admit(bytes),...(signal?{signal}:{})});
               if(font){step=steps.next(font);continue;}
             }

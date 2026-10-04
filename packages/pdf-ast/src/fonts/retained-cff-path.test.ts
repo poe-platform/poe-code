@@ -6,7 +6,7 @@ import { PdfFileSource } from "../source.js";
 import { PdfRetainedDocument } from "../retained-document.js";
 import { readStoredPath } from "../content/stored-path.js";
 import type { PdfPixelStorage } from "../ast.js";
-import { Type2Compiled } from "../vendor/pdfjs-fonts.mjs";
+import { CFFParser, Type2Compiled } from "../vendor/pdfjs-fonts.mjs";
 
 it.each(["pdfjs-cff_bluescale_small_zones.pdf", "pdfjs-text_clip_cff_cid.pdf"])(
   "streams retained outlines with native geometry for %s",
@@ -38,6 +38,7 @@ it.each(["pdfjs-cff_bluescale_small_zones.pdf", "pdfjs-text_clip_cff_cid.pdf"])(
     const whole = vi.spyOn(Type2Compiled.prototype, "compileGlyph").mockImplementation(() => {
       throw Error("whole glyph compilation");
     });
+    const wholeFont = vi.spyOn(CFFParser.prototype, "parse").mockImplementation(() => { throw Error("whole CFF program parsing"); });
     let glyph = 0;
     try {
       const page = (await doc.pages().next()).value!;
@@ -60,8 +61,10 @@ it.each(["pdfjs-cff_bluescale_small_zones.pdf", "pdfjs-text_clip_cff_cid.pdf"])(
       }
       expect(glyph).toBe(expected.length);
       expect(whole).not.toHaveBeenCalled();
+      expect(wholeFont).not.toHaveBeenCalled();
     } finally {
       whole.mockRestore();
+      wholeFont.mockRestore();
       await doc.close();
       await source.close();
     }

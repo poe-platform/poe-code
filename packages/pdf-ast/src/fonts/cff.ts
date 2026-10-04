@@ -164,7 +164,7 @@ export function createCffGlyphRenderer(
   });
 }
 
-function* commandSegments(commands: ArrayLike<number>): Generator<PdfPathSegment> {
+export function* commandSegments(commands: ArrayLike<number>): Generator<PdfPathSegment> {
   for (let i = 0; i < commands.length; ) {
     const op = commands[i++];
     if (op === DrawOPS.moveTo) yield { kind: "move", x: commands[i++]!, y: commands[i++]! };

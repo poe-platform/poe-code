@@ -1991,7 +1991,8 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                     const reply = yield { kind: "truetype-path", font: font.embeddedCff, glyphId: glyphCode, storage: params.geometryStorage };
                     if (!reply || !("kind" in reply) || reply.kind !== "stored-path") throw new TypeError("Expected stored CFF glyph");
                     storedGlyph = reply;
-                  } else glyphOutline = font.embeddedCff.getGlyphOutline(glyphCode);
+                  } else if ("getGlyphOutline" in font.embeddedCff) glyphOutline = font.embeddedCff.getGlyphOutline(glyphCode);
+                  else throw new PdfError("E_CAPABILITY", "Source-backed CFF outlines require geometry storage");
                 } else if (cp !== undefined) {
                   glyphOutline = (font.embeddedTrueType ?? font.standardOutlines!).getGlyphOutline(cp);
                 }

@@ -26,16 +26,20 @@ export class CFFStrings { get(index: number): string; }
 export class CFFParser {
   constructor(stream: Stream, properties: Record<string, unknown>, seacAnalysisEnabled: boolean, onAllocation?: (bytes: number) => void);
   parse(): CffFont;
+  parseCharStringSteps(state: { callDepth: number; stackSize: number; stack: { get(index: number): Promise<number | undefined>; set(index: number, value: number | undefined): Promise<void>; slice(start: number, end: number): Promise<Array<number | undefined>> }; hints: number; firstStackClearing: boolean; seac: Array<number | undefined> | null; width: number | null | undefined; hasVStems: boolean }, data: CffRepairSource, localSubrIndex: {count: number; get(index: number): Promise<CffRepairSource | undefined>} | null, globalSubrIndex: {count: number; get(index: number): Promise<CffRepairSource | undefined>} | null): Generator<Promise<unknown>, boolean, unknown>;
   parseCharsets(offset: number, count: number, strings: CFFStrings | null, cid: boolean): { predefined: boolean; charset: Array<string | number> };
   parseEncoding(offset: number, properties: Record<string, unknown>, strings: CFFStrings, charset: null): { encoding: Record<number, number> };
   parseFDSelect(offset: number, count: number): { format: number; fdSelect: number[] };
 }
 export class CFFCompiler { constructor(cff: CffFont); compile(): number[]; }
+export interface CffCodeSource { readonly length: number; byte(at: number): Promise<number | undefined>; int(at: number, bytes: 2 | 4): Promise<number>; }
+export interface CffRepairSource extends CffCodeSource { parserInt(at: number, bytes: 2 | 4): Promise<number>; writeByte(index: number, value: number): Promise<void>; copyWithin(target: number, start: number, end?: number): Promise<void>; fill(value: number, start?: number, end?: number): Promise<void>; }
 export interface CffOperandStack { length: number; push(value: number): Promise<void>; pop(): Promise<number | undefined>; shift(): Promise<number | undefined>; }
 export class Type2Compiled {
   constructor(info: Record<string, unknown>, cmap: Array<{ start: number; end: number; idDelta: number }>, fontMatrix: number[]);
   glyphCommands(code: Uint8Array, glyphId: number, onAllocation?: (bytes: number) => void): Generator<ArrayLike<number>>;
-  glyphCommands(code: Uint8Array, glyphId: number, onAllocation: ((bytes: number) => void) | undefined, createStack: (depth: number) => CffOperandStack): Generator<ArrayLike<number> | Promise<unknown>, void, unknown>;
+  glyphCommands(code: CffCodeSource, glyphId: number, onAllocation?: (bytes: number) => void): Generator<ArrayLike<number> | Promise<unknown>, void, unknown>;
+  glyphCommands(code: Uint8Array | CffCodeSource, glyphId: number, onAllocation: ((bytes: number) => void) | undefined, createStack: (depth: number) => CffOperandStack): Generator<ArrayLike<number> | Promise<unknown>, void, unknown>;
   compileGlyph(code: Uint8Array, glyphId: number, onAllocation?: (bytes: number) => void): ArrayLike<number>;
 }
 export function getGlyphsUnicode(): Record<string, number>;

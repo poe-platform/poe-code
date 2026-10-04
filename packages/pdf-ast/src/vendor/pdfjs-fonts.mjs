@@ -1,3 +1,9 @@
+function* cffValidationMath(command, stack, size) {
+    const values = [yield stack.get(size - 2), yield stack.get(size - 1)];
+    command.stackFn(values, 2);
+    if (size >= 2) yield stack.set(size - 2, values[0]);
+    yield stack.set(size - 1, values[1]);
+  }
 /* eslint-disable */
 /* Mozilla PDF.js, Apache-2.0. Generated from 91041fb94d6744bc2a5bccd9aad28d617faa8195; see THIRD_PARTY_NOTICES.md. */
 
@@ -4029,6 +4035,168 @@ var CFFParser = class {
     state.stackSize = stackSize;
     return true;
   }
+  *parseCharStringSteps(state, data, localSubrIndex, globalSubrIndex) {
+    if (!data || state.callDepth > MAX_SUBR_NESTING) {
+        return false;
+    }
+    ;
+    ;
+    let stackSize = state.stackSize;
+    const stack = state.stack;
+    let length = data.length;
+    for (let j = 0; j < length;) {
+        const value = (yield data.byte(j++));
+        let validationCommand = null;
+        if (value === 12) {
+            const q = (yield data.byte(j++));
+            if (q === 0) {
+                (yield data.writeByte(j - 2, 139));
+                (yield data.writeByte(j - 1, 22));
+                stackSize = 0;
+            }
+            else {
+                validationCommand = CharstringValidationData12[q];
+            }
+        }
+        else if (value === 28) {
+            (yield stack.set(stackSize, (yield data.parserInt(j, 2))));
+            j += 2;
+            stackSize++;
+        }
+        else if (value === 14) {
+            if (stackSize >= 4) {
+                stackSize -= 4;
+                if (this.seacAnalysisEnabled) {
+                    state.seac = (yield stack.slice(stackSize, stackSize + 4));
+                    return false;
+                }
+            }
+            validationCommand = CharstringValidationData[value];
+        }
+        else if (value >= 32 && value <= 246) {
+            (yield stack.set(stackSize, value - 139));
+            stackSize++;
+        }
+        else if (value >= 247 && value <= 254) {
+            (yield stack.set(stackSize, value < 251 ? (value - 247 << 8) + (yield data.byte(j)) + 108 : -(value - 251 << 8) - (yield data.byte(j)) - 108));
+            j++;
+            stackSize++;
+        }
+        else if (value === 255) {
+            (yield stack.set(stackSize, (yield data.parserInt(j, 4)) / 65536));
+            j += 4;
+            stackSize++;
+        }
+        else if (value === 19 || value === 20) {
+            state.hints += stackSize >> 1;
+            if (state.hints === 0) {
+                (yield data.copyWithin(j - 1, j, -1));
+                j -= 1;
+                length -= 1;
+                continue;
+            }
+            j += state.hints + 7 >> 3;
+            stackSize %= 2;
+            validationCommand = CharstringValidationData[value];
+        }
+        else if (value === 10 || value === 29) {
+            const subrsIndex = value === 10 ? localSubrIndex : globalSubrIndex;
+            if (!subrsIndex) {
+                validationCommand = CharstringValidationData[value];
+                warn("Missing subrsIndex for " + validationCommand.id);
+                return false;
+            }
+            let bias = 32768;
+            if (subrsIndex.count < 1240) {
+                bias = 107;
+            }
+            else if (subrsIndex.count < 33900) {
+                bias = 1131;
+            }
+            const subrNumber = (yield stack.get(--stackSize)) + bias;
+            if (subrNumber < 0 || subrNumber >= subrsIndex.count || isNaN(subrNumber)) {
+                validationCommand = CharstringValidationData[value];
+                warn("Out of bounds subrIndex for " + validationCommand.id);
+                return false;
+            }
+            state.stackSize = stackSize;
+            state.callDepth++;
+            const valid = (yield* this.parseCharStringSteps(state, (yield subrsIndex.get(subrNumber)), localSubrIndex, globalSubrIndex));
+            if (!valid) {
+                return false;
+            }
+            state.callDepth--;
+            stackSize = state.stackSize;
+            continue;
+        }
+        else if (value === 11) {
+            state.stackSize = stackSize;
+            return true;
+        }
+        else if (value === 0 && j === data.length) {
+            (yield data.writeByte(j - 1, 14));
+            validationCommand = CharstringValidationData[14];
+        }
+        else if (value === 9) {
+            (yield data.copyWithin(j - 1, j, -1));
+            j -= 1;
+            length -= 1;
+            continue;
+        }
+        else {
+            validationCommand = CharstringValidationData[value];
+        }
+        if (validationCommand) {
+            if (validationCommand.stem) {
+                state.hints += stackSize >> 1;
+                if (value === 3 || value === 23) {
+                    state.hasVStems = true;
+                }
+                else if (state.hasVStems && (value === 1 || value === 18)) {
+                    warn("CFF stem hints are in wrong order");
+                    (yield data.writeByte(j - 1, value === 1 ? 3 : 23));
+                }
+            }
+            if (stackSize < validationCommand.min) {
+                warn("Not enough parameters for " + validationCommand.id + "; actual: " + stackSize + ", expected: " + validationCommand.min);
+                if (stackSize === 0) {
+                    (yield data.writeByte(j - 1, 14));
+                    return true;
+                }
+                return false;
+            }
+            if (state.firstStackClearing && validationCommand.stackClearing) {
+                state.firstStackClearing = false;
+                stackSize -= validationCommand.min;
+                if (stackSize >= 2 && validationCommand.stem) {
+                    stackSize %= 2;
+                }
+                else if (stackSize > 1) {
+                    warn("Found too many parameters for stack-clearing command");
+                }
+                if (stackSize > 0) {
+                    state.width = (yield stack.get(stackSize - 1));
+                }
+            }
+            if ("stackDelta" in validationCommand) {
+                if ("stackFn" in validationCommand) {
+                    (yield* cffValidationMath(validationCommand, stack, stackSize));
+                }
+                stackSize += validationCommand.stackDelta;
+            }
+            else if (validationCommand.stackClearing || validationCommand.resetStack) {
+                stackSize = 0;
+            }
+        }
+    }
+    if (length < data.length) {
+        (yield data.fill(
+        /* endchar = */
+        14, length));
+    }
+    state.stackSize = stackSize;
+    return true;
+}
   parseCharStrings({
     charStrings,
     localSubrIndex,
@@ -10172,6 +10340,8 @@ function lookupCmap(ranges, unicode) {
     glyphId: gid
   };
 }
+function* cffResolved(value) { return value instanceof Promise ? yield value : value; }
+function* cffIndexValue(index, key) { return yield* cffResolved(Array.isArray(index) ? index[key] : index?.get(key)); }
 function* compileCharString(charStringCode, cmds, font, glyphId) {
   cmds.depth = (cmds.depth ?? 0) + 1;
   if (cmds.streaming && cmds.depth > cmds.maxDepth) { cmds.onFrameAllocation?.(4096); cmds.maxDepth = cmds.depth; }
@@ -10208,11 +10378,11 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
   function* parse(code, depth = 0) {
     if (cmds.streaming && depth > cmds.maxSubrDepth) { cmds.onFrameAllocation?.(256); cmds.maxSubrDepth = depth; }
     cmds.onAllocation?.(256 + code.length * 16);
-    const view = new DataView(code.buffer, code.byteOffset, code.byteLength);
+    const view = ArrayBuffer.isView(code) ? new DataView(code.buffer, code.byteOffset, code.byteLength) : null;
     let i = 0;
     while (i < code.length) {
       let stackClean = false;
-      let v = code[i++];
+      let v = (ArrayBuffer.isView(code) ? code[i++] : (yield code.byte(i++)));
       let xa, xb, ya, yb, y1, y2, y3, n, subrCode;
       switch (v) {
         case 1:
@@ -10272,22 +10442,22 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
           n = (yield* readOperand("pop"));
           subrCode = null;
           if (font.isCFFCIDFont) {
-            const fdIndex = font.fdSelect.getFDIndex(glyphId);
+            const fdIndex = (yield* cffResolved(font.fdSelect.getFDIndex(glyphId)));
             if (fdIndex >= 0 && fdIndex < font.fdArray.length) {
-              const fontDict = font.fdArray[fdIndex];
+              const fontDict = (yield* cffIndexValue(font.fdArray, fdIndex));
               let subrs;
               if (fontDict.privateDict?.subrsIndex) {
                 subrs = fontDict.privateDict.subrsIndex.objects;
               }
               if (subrs) {
                 n += getSubroutineBias(subrs);
-                subrCode = subrs[n];
+                subrCode = yield* cffIndexValue(subrs, n);
               }
             } else {
               warn("Invalid fd index for glyph index.");
             }
           } else {
-            subrCode = font.subrs[n + font.subrsBias];
+            subrCode = (yield* cffIndexValue(font.subrs, n + font.subrsBias));
           }
           if (subrCode) {
             yield* parse(subrCode, depth + 1);
@@ -10296,7 +10466,7 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
         case 11:
           return;
         case 12:
-          v = code[i++];
+          v = (ArrayBuffer.isView(code) ? code[i++] : (yield code.byte(i++)));
           switch (v) {
             case 34:
               xa = x + (yield* readOperand("shift"));
@@ -10378,7 +10548,7 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
               String.fromCharCode(font.glyphNameMap[StandardEncoding[achar]])
             );
             yield* compileCharString(
-              font.glyphs[cmap.glyphId],
+              (yield* cffIndexValue(font.glyphs, cmap.glyphId)),
               cmds,
               font,
               cmap.glyphId
@@ -10389,7 +10559,7 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
               String.fromCharCode(font.glyphNameMap[StandardEncoding[bchar]])
             );
             yield* compileCharString(
-              font.glyphs[cmap.glyphId],
+              (yield* cffIndexValue(font.glyphs, cmap.glyphId)),
               cmds,
               font,
               cmap.glyphId
@@ -10482,12 +10652,12 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
           }
           break;
         case 28:
-          yield* pushOperand(view.getInt16(i));
+          yield* pushOperand((view ? view.getInt16(i) : (yield code.int(i, 2))));
           i += 2;
           break;
         case 29:
           n = (yield* readOperand("pop")) + font.gsubrsBias;
-          subrCode = font.gsubrs[n];
+          subrCode = (yield* cffIndexValue(font.gsubrs, n));
           if (subrCode) {
             yield* parse(subrCode, depth + 1);
           }
@@ -10541,11 +10711,11 @@ function* compileCharString(charStringCode, cmds, font, glyphId) {
           if (v < 247) {
             yield* pushOperand(v - 139);
           } else if (v < 251) {
-            yield* pushOperand((v - 247) * 256 + code[i++] + 108);
+            yield* pushOperand((v - 247) * 256 + (ArrayBuffer.isView(code) ? code[i++] : (yield code.byte(i++))) + 108);
           } else if (v < 255) {
-            yield* pushOperand(-(v - 251) * 256 - code[i++] - 108);
+            yield* pushOperand(-(v - 251) * 256 - (ArrayBuffer.isView(code) ? code[i++] : (yield code.byte(i++))) - 108);
           } else {
-            yield* pushOperand(view.getInt32(i) / 65536);
+            yield* pushOperand((view ? view.getInt32(i) : (yield code.int(i, 4))) / 65536);
             i += 4;
           }
           break;
@@ -10675,11 +10845,12 @@ var Type2Compiled = class extends CompiledFont {
   }
   *glyphCommands(code, glyphId, onAllocation, createStack) {
     onAllocation?.(16384);
-    if (!code?.length || code[0] === 14) return;
+    if (!code?.length) return;
+    if ((ArrayBuffer.isView(code) ? code[0] : (yield code.byte(0))) === 14) return;
     let matrix = this.fontMatrix;
     if (this.isCFFCIDFont) {
-      const index = this.fdSelect.getFDIndex(glyphId);
-      if (index >= 0 && index < this.fdArray.length) matrix = this.fdArray[index].getByName("FontMatrix") || FONT_IDENTITY_MATRIX;
+      const index = yield* cffResolved(this.fdSelect.getFDIndex(glyphId));
+      if (index >= 0 && index < this.fdArray.length) matrix = (yield* cffIndexValue(this.fdArray, index)).getByName("FontMatrix") || FONT_IDENTITY_MATRIX;
     }
     assert(isNumberArray(matrix, 6), "Expected a valid fontMatrix.");
     const cmds = new Commands();

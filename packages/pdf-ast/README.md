@@ -664,7 +664,10 @@ name offsets and glyph point scratch use caller backing. Table and character
 lookups read bounded ranges; simple and compound glyph segments stream into
 caller-backed paths, including patterned fills and text clips. Glyph scratch is
 reused after iteration, and cancellation and backend errors retain their identity.
-CFF and Type 1 programs still admit their intrinsic parser buffers before allocation. `maxWorkingBytes`,
+CFF and OpenType CFF programs also use caller-backed source views, bounded
+INDEX/DICT readers and operand pages. Native charstring repairs execute in glyph
+order against a caller-backed copy, preserving the original source and metadata.
+Type 1 programs still admit their intrinsic parser buffers before allocation. `maxWorkingBytes`,
 `maxStagingBytes`, `onAllocation` and cancellation apply to this font operation.
 The returned font belongs to the caller; this does not account for the document's
 separate parser/decoder state or qualify aggregate Worker memory usage.

@@ -85,3 +85,15 @@ it("round trips embedded OpenType CFF text, widths, and outlines", () => {
   expect(display.paths[0]!.segments.filter(segment => segment.kind === "line")).toHaveLength(3);
   expect(display.glyphs[1]!.matrix[4] - display.glyphs[0]!.matrix[4]).toBeCloseTo(12);
 });
+
+it("renders OpenType CFF through caller-backed program views", async () => {
+  const {parseStoredTrueTypeFont} = await import("./stored-truetype.js");
+  const bytes=openTypeFont(), data=new Uint8Array(1024*1024);data.set(bytes);let end=bytes.length;
+  const storage={allocate(n:number){const at=end;end+=n;return at;},async read(at:number,n:number){expect(n).toBeLessThanOrEqual(4096);return data.slice(at,at+n);},async write(at:number,value:Uint8Array){data.set(value,at);}};
+  const backed=await parseStoredTrueTypeFont({storage,position:0,byteLength:bytes.length});
+  expect(backed).toBeDefined();
+  const glyph=await backed!.getGlyphId(65), actual=[];
+  for await(const segment of backed!.glyphSegments(glyph))actual.push(segment);
+  expect(actual).toEqual(parseTrueTypeFont(bytes).getGlyphOutlineByGid(glyph));
+  expect(data.subarray(0,bytes.length)).toEqual(bytes);
+});

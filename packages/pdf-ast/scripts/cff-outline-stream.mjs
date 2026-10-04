@@ -24,6 +24,16 @@ export function streamCffOutlines(source) {
   function* readOperand(method) {
     return Array.isArray(stack) ? stack[method]() : yield stack[method]();
   }`);
+  parser = parser.replace("const view = new DataView(code.buffer, code.byteOffset, code.byteLength);", "const view = ArrayBuffer.isView(code) ? new DataView(code.buffer, code.byteOffset, code.byteLength) : null;")
+    .replaceAll("code[i++]", "(ArrayBuffer.isView(code) ? code[i++] : (yield code.byte(i++)))")
+    .replaceAll("view.getInt16(i)", "(view ? view.getInt16(i) : (yield code.int(i, 2)))")
+    .replaceAll("view.getInt32(i)", "(view ? view.getInt32(i) : (yield code.int(i, 4)))");
+  parser = parser.replaceAll("font.fdSelect.getFDIndex(glyphId)", "(yield* cffResolved(font.fdSelect.getFDIndex(glyphId)))")
+    .replaceAll("font.fdArray[fdIndex]", "(yield* cffIndexValue(font.fdArray, fdIndex))")
+    .replaceAll("font.subrs[n + font.subrsBias]", "(yield* cffIndexValue(font.subrs, n + font.subrsBias))")
+    .replaceAll("font.gsubrs[n]", "(yield* cffIndexValue(font.gsubrs, n))")
+    .replaceAll("font.glyphs[cmap.glyphId]", "(yield* cffIndexValue(font.glyphs, cmap.glyphId))")
+    .replaceAll("subrCode = subrs[n];", "subrCode = yield* cffIndexValue(subrs, n);");
   for (const name of ["moveTo", "lineTo", "bezierCurveTo"]) {
     const start = parser.indexOf("  function " + name + "("),
       nextFunction = parser.indexOf("\n  function ", start + 1),
@@ -39,17 +49,20 @@ export function streamCffOutlines(source) {
   // Separate seac invocations have their own operand stack, but share commands.
   const body = parser.indexOf("{\n") + 2, close = parser.lastIndexOf("}");
   parser = parser.slice(0, body) + "  cmds.depth = (cmds.depth ?? 0) + 1;\n  if (cmds.streaming && cmds.depth > cmds.maxDepth) { cmds.onFrameAllocation?.(4096); cmds.maxDepth = cmds.depth; }\n  try {\n" + parser.slice(body, close) + "  } finally { cmds.depth--; }\n" + parser.slice(close);
-  source = source.slice(0, start) + parser + source.slice(end);
+  source = source.slice(0, start) + `function* cffResolved(value) { return value instanceof Promise ? yield value : value; }
+function* cffIndexValue(index, key) { return yield* cffResolved(Array.isArray(index) ? index[key] : index?.get(key)); }
+` + parser + source.slice(end);
   const marker = "    compileCharString(code, cmds, this, glyphId);";
   if (!source.includes(marker)) throw new Error("CFF compiler source marker changed");
   source = source.replace(marker, "    for (const ignored of compileCharString(code, cmds, this, glyphId)) { /* synchronous collector */ }");
   const method = `  *glyphCommands(code, glyphId, onAllocation, createStack) {
     onAllocation?.(16384);
-    if (!code?.length || code[0] === 14) return;
+    if (!code?.length) return;
+    if ((ArrayBuffer.isView(code) ? code[0] : (yield code.byte(0))) === 14) return;
     let matrix = this.fontMatrix;
     if (this.isCFFCIDFont) {
-      const index = this.fdSelect.getFDIndex(glyphId);
-      if (index >= 0 && index < this.fdArray.length) matrix = this.fdArray[index].getByName("FontMatrix") || FONT_IDENTITY_MATRIX;
+      const index = yield* cffResolved(this.fdSelect.getFDIndex(glyphId));
+      if (index >= 0 && index < this.fdArray.length) matrix = (yield* cffIndexValue(this.fdArray, index)).getByName("FontMatrix") || FONT_IDENTITY_MATRIX;
     }
     assert(isNumberArray(matrix, 6), "Expected a valid fontMatrix.");
     const cmds = new Commands();

@@ -66,6 +66,7 @@ export class RetainedJsonOptions {
       textUnits += value.length;
       if (textUnits > context.limits.text) await fail(frame, key, "AST budget exceeded", "E_LIMIT");
       context.charge("text", value.length);
+      context.charge("retainedBytes", value.length * 2);
     };
     const unicode = async (value: string, frame: number, key?: string | number): Promise<void> => {
       for (let index = 0; index < value.length; index++) {
@@ -161,6 +162,7 @@ export class RetainedJsonOptions {
       textUnits += units;
       if (textUnits > context.limits.text) throw new PandocError("E_LIMIT", "convert", `${path}: AST budget exceeded`, undefined, path);
       context.charge("text", units);
+      context.charge("retainedBytes", units * 2);
     }
     const rootFrame = await enter(root, 0, 0, ast ? 1 : 0);
     let frame = rootFrame, current: object = root;
@@ -208,6 +210,7 @@ export class RetainedJsonOptions {
       textUnits += units;
       if (textUnits > context.limits.text) throw new PandocError("E_LIMIT", "convert", `${path}: AST budget exceeded`, undefined, path);
       context.charge("text", units);
+      context.charge("retainedBytes", units * 2);
     }
   }
   async truthy(node: number): Promise<boolean> {

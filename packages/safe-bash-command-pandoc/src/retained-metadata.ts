@@ -34,8 +34,19 @@ export async function mergeRetainedMetadata(document: RetainedDocument, input: {
       const file = input.source;
       const start = raw!.allocate(0); let length = 0;
       await context.consume("bytes" in file ? [file.bytes] : file.chunks, async bytes => {
+        if (Number.isFinite(context.limits.retainedBytes)) {
+          const count = Math.ceil((length + bytes.length) / 4096) - Math.ceil(length / 4096);
+          for (let index = 0; index < count; index++) {
+            context.charge("retainedBytes", Math.min(4096, context.limits.inputBytes - (Math.ceil(length / 4096) + index) * 4096));
+            context.charge("references", 1);
+          }
+        }
         await raw!.append(bytes); length += bytes.length;
       }, ["inputBytes"]);
+      if (Number.isFinite(context.limits.retainedBytes)) {
+        context.charge("retainedBytes", length);
+        context.charge("retainedBytes", length);
+      }
       const decoded = async function* () {
         const decoder = new TextDecoder("utf-8", {fatal: true}); let cr = false;
         for (let offset = 0; offset <= length; offset += 16384) {
@@ -57,9 +68,9 @@ export async function mergeRetainedMetadata(document: RetainedDocument, input: {
         }
         if (cr) yield "\n";
       };
-      const parsedText = Number.isFinite(context.limits.text) ? retainedUtf8((async function* () {
+      const parsedText = Number.isFinite(context.limits.text) || Number.isFinite(context.limits.retainedBytes) ? retainedUtf8((async function* () {
         for (let offset = 0; offset < length; offset += 16384) yield await raw!.read(start + offset, Math.min(16384, length - offset));
-      })(), context, scratch) : decoded();
+      })(), context, scratch, [], undefined, Number.isFinite(context.limits.retainedBytes)) : decoded();
       let parseError: {offset: number} | undefined;
       try {await parseBackedJson(parsedText, overlay, scratch, cooperate, (offset, _message, tokenOffset) => {
         parseError = {offset: tokenOffset ?? offset}; throw new PandocError("E_PARSE", "convert", "Invalid JSON metadata", "json");

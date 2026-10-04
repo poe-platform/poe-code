@@ -17,6 +17,8 @@ export interface RetainedQpdfOptions {
   check: boolean;
   showNpages: boolean;
   showEncryption: boolean;
+  isEncrypted: boolean;
+  requiresPassword: boolean;
   showObject: { objNum: number; genNum: number } | undefined;
   rawStreamData: boolean;
   filteredStreamData: boolean;
@@ -37,6 +39,32 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       signal.throwIfAborted();
       if (error instanceof Error && "code" in error && ["ENOENT", "ENOTDIR", "EACCES", "EISDIR"].includes(String(error.code))) return await diagnostic(`qpdf: cannot open ${inputName}\n`);
       throw error;
+    }
+    if (options.isEncrypted || options.requiresPassword) {
+      // Preserve the compatibility predicate's literal marker test, including
+      // malformed inputs, without decoding or retaining the complete payload.
+      const marker = new TextEncoder().encode("/Encrypt");
+      let matched = 0, encrypted = false;
+      for await (const bytes of source.stream(0, source.size, signal)) {
+        for (const byte of bytes) {
+          matched = byte === marker[matched] ? matched + 1 : byte === marker[0] ? 1 : 0;
+          if (matched === marker.length) { encrypted = true; break; }
+        }
+        if (encrypted) break;
+      }
+      if (options.isEncrypted || !encrypted) return { exitCode: encrypted ? 0 : 2 };
+      if (options.password === undefined) return { exitCode: 0 };
+      try {
+        document = await PdfRetainedDocument.open(source, storage, { signal, recovery: "strict", password: options.password });
+        for await (const object of retainedCosObjects(document, storage, { signal })) {
+          if (object.stream) for await (const ignored of object.stream.chunks) void ignored;
+        }
+        return { exitCode: 3 };
+      } catch (error) {
+        signal.throwIfAborted();
+        if (error instanceof PdfError && error.code !== "E_LIMIT") return { exitCode: 0 };
+        throw error;
+      }
     }
     try {
       document = await PdfRetainedDocument.open(source, storage, { signal, recovery: "repair", ...(options.password === undefined ? {} : { password: options.password }) });

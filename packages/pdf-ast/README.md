@@ -704,3 +704,12 @@ external backend for large indexes. The caller owns stream encoding/encryption
 and atomic publication. `maxIndexBytes`, `maxObjects` and `maxOutputBytes` admit
 backing slots and output before use. Object-stream generation and linearization
 remain available through the existing serializer.
+
+`PdfMutableObjectStore` holds edited objects and encoded stream chunks on the
+caller filesystem. Reserve references with `allocate()`, replace values with
+`set()`, resolve owned snapshots with `get()`, and pass ordered `objects()` to the
+retained writer. A replacement becomes visible after all payload bytes arrive;
+older snapshots remain valid until `close()`. The 64 KiB byte cache and bounded
+index caches do not grow with object count. Backing is append-only until close,
+so `maxStagingBytes` includes superseded values; parser limits govern individual
+COS values. Close the store on every outcome.

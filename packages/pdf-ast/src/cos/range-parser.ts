@@ -111,7 +111,7 @@ async function readValue(lexer: CosRangeLexer, depth: number, nodes: number, opt
 }
 
 /** Read a direct COS value (for example a trailer or object-stream member). */
-export async function parseCosRangeValue(source: PdfFileSource, offset: number, options: ParseCosRangeOptions = {}): Promise<{ value: PdfCosNode | undefined; offset: number }> {
+export async function parseCosRangeValue(source: Pick<PdfFileSource, "size" | "chunkBytes" | "read">, offset: number, options: ParseCosRangeOptions = {}): Promise<{ value: PdfCosNode | undefined; offset: number }> {
   const depth = limit(options.maxRecursionDepth, "maxRecursionDepth");
   const nodes = limit(options.maxNodes, "maxNodes");
   const maxTokenBytes = limit(options.maxTokenBytes, "maxTokenBytes");

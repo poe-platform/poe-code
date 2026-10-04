@@ -427,7 +427,7 @@ export class CosRangeLexer {
   private active = false;
   private readonly signal: AbortSignal | undefined;
 
-  constructor(private readonly source: PdfFileSource, options: CosRangeLexerOptions = {}) {
+  constructor(private readonly source: Pick<PdfFileSource, "size" | "chunkBytes" | "read">, options: CosRangeLexerOptions = {}) {
     const start = options.start ?? 0;
     const end = options.end ?? source.size;
     const maximum = options.maxTokenBytes ?? Infinity;

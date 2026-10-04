@@ -2946,26 +2946,100 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
     const subImg = yield* extractImageSteps(img, layout.area);
     return yield* compositeImageSteps(canvas, [rgbaToCompositeLayer(subImg, layout.left, layout.top, "over")]);
 }
+async function decodeStoredMagickSvg(svg: string, density: number, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
+    const encoder = new TextEncoder(), base = backend.storage.allocate(0);
+    let size = 0;
+    for (let offset = 0; offset < svg.length;) {
+        await yieldTurn(signal);
+        const bytes = new Uint8Array(4096), { read, written } = encoder.encodeInto(svg.slice(offset, offset + 4097), bytes);
+        await backend.storage.write(backend.storage.allocate(written), bytes.subarray(0, written));
+        offset += read; size += written;
+    }
+    return decodeImageToStorage({ size, async read(position, length) { return backend.storage.read(base + position, length); } }, backend.storage, signal, { density });
+}
 async function createStoredCanvas(width: number, height: number, color: RgbaColor, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
     return { ...await decodeImageToStorage({ size: 0, async read() { return new Uint8Array(); } }, backend.storage, signal, { create: { width, height, channels: 4, background: { r: color.r, g: color.g, b: color.b, alpha: color.a / 255 } } }), format: "png" };
 }
 
-function* applyMagickDrawSteps(img: RgbaImage, drawCmd: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+type MagickDrawShape = { kind: "shape"; color: RgbaColor; x: number; y: number } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number });
+type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string };
+
+function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape: MagickDrawShape): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const { color } = shape;
+    const x0 = Math.max(0, Math.floor(shape.shape === "rectangle" ? shape.x : shape.x - shape.radius - 1));
+    const y0 = Math.max(0, Math.floor(shape.shape === "rectangle" ? shape.y : shape.y - shape.radius - 1));
+    const x1 = Math.min(image.width, Math.ceil(shape.shape === "rectangle" ? shape.x + shape.width : shape.x + shape.radius + 1));
+    const y1 = Math.min(image.height, Math.ceil(shape.shape === "rectangle" ? shape.y + shape.height : shape.y + shape.radius + 1));
+    for (let start = 0; start < image.width * image.height; start += 1024) {
+        yield;
+        const count = Math.min(1024, image.width * image.height - start), bytes = yield { kind: "read", position: start * 4, length: count * 4 };
+        if (!bytes || bytes.length !== count * 4) throw new Error("Truncated drawing pixels");
+        const data = new Uint8Array(bytes);
+        for (let i = 0; i < count; i++) {
+            const x = (start + i) % image.width, y = Math.floor((start + i) / image.width);
+            if (x < x0 || x >= x1 || y < y0 || y >= y1) continue;
+            const coverage = shape.shape === "rectangle" ? 1 : Math.max(0, Math.min(1, shape.radius + 0.5 - Math.hypot(x - shape.x, y - shape.y)));
+            const alpha = color.a / 255 * coverage, offset = i * 4;
+            if (alpha >= 0.999) {
+                data[offset] = color.r; data[offset + 1] = color.g; data[offset + 2] = color.b; data[offset + 3] = 255;
+            } else if (alpha > 0) {
+                const da = data[offset + 3]! / 255, outA = alpha + da * (1 - alpha);
+                if (outA > 0) {
+                    data[offset] = Math.round((color.r * alpha + data[offset]! * da * (1 - alpha)) / outA);
+                    data[offset + 1] = Math.round((color.g * alpha + data[offset + 1]! * da * (1 - alpha)) / outA);
+                    data[offset + 2] = Math.round((color.b * alpha + data[offset + 2]! * da * (1 - alpha)) / outA);
+                    data[offset + 3] = Math.round(outA * 255);
+                }
+            }
+        }
+        yield { kind: "write", position: start * 4, data };
+    }
+}
+
+function* drawOverlayPixelSteps(image: Pick<RgbaImage, "width" | "height">, overlay: Pick<RgbaImage, "width" | "height">): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    for (let start = 0; start < image.width * image.height; start += 1024) {
+        yield;
+        const count = Math.min(1024, image.width * image.height - start), bytes = yield { kind: "read", position: start * 4, length: count * 4 };
+        if (!bytes || bytes.length !== count * 4) throw new Error("Truncated drawing pixels");
+        const data = new Uint8Array(bytes);
+        for (let i = 0; i < count; i++) {
+            const x = (start + i) % image.width, y = Math.floor((start + i) / image.width);
+            if (x >= overlay.width || y >= overlay.height) continue;
+            const source = yield { kind: "read", image: 1, position: (y * overlay.width + x) * 4, length: 4 };
+            if (!source || source.length !== 4) throw new Error("Truncated drawing overlay");
+            const sa = source[3]!, offset = i * 4;
+            if (sa === 255) data.set(source, offset);
+            else if (sa > 0) {
+                const da = data[offset + 3]! / 255, alpha = sa / 255, outA = alpha + da * (1 - alpha);
+                if (outA > 0) {
+                    for (let channel = 0; channel < 3; channel++) data[offset + channel] = Math.round((source[channel]! * alpha + data[offset + channel]! * da * (1 - alpha)) / outA);
+                    data[offset + 3] = Math.round(outA * 255);
+                }
+            }
+        }
+        yield { kind: "write", position: start * 4, data };
+    }
+}
+
+function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: string, state: MagickState): Generator<MagickDrawStep | undefined, void, void> {
     yield;
     let cooperativeWork = 0;
     const svgElements: string[] = [];
     let fill = rgbaToCss(state.fill);
     let stroke = rgbaToCss(state.stroke);
     let strokeWidth = state.strokeWidth;
-    const tokenRe = /'([^']*)'|"([^"]*)"|([^\s,]+)|,/g;
     const tokens: string[] = [];
-    let m: RegExpExecArray | null;
-    while ((m = tokenRe.exec(drawCmd)) !== null) {
-        if (++cooperativeWork % 65536 === 0)
-            yield;
-        if (m[0] === ",")
-            continue;
-        tokens.push(m[1] ?? m[2] ?? m[3] ?? "");
+    for (let offset = 0; offset < drawCmd.length;) {
+        if (++cooperativeWork % 65536 === 0) yield;
+        const char = drawCmd[offset]!;
+        if (char === "," || char.trim() === "") { offset++; continue; }
+        if (char === "'" || char === '"') {
+            const end = drawCmd.indexOf(char, offset + 1);
+            if (end >= 0) { tokens.push(drawCmd.slice(offset + 1, end)); offset = end + 1; continue; }
+        }
+        const start = offset++;
+        while (offset < drawCmd.length && drawCmd[offset] !== "," && drawCmd[offset]!.trim() !== "") offset++;
+        tokens.push(drawCmd.slice(start, offset));
     }
     let i = 0;
     const num = () => Number(tokens[i++] ?? 0);
@@ -2992,34 +3066,7 @@ function* applyMagickDrawSteps(img: RgbaImage, drawCmd: string, state: MagickSta
             const rw = Math.max(1, Math.abs(x1 - x0) + 1);
             const rh = Math.max(1, Math.abs(y1 - y0) + 1);
             if (fill !== "none" && (stroke === "none" || strokeWidth <= 0) && svgElements.length === 0) {
-                const fc = parseColor(fill);
-                const xStart = Math.max(0, Math.floor(rx));
-                const yStart = Math.max(0, Math.floor(ry));
-                const xEnd = Math.min(img.width, Math.ceil(rx + rw));
-                const yEnd = Math.min(img.height, Math.ceil(ry + rh));
-                const dst = img.data;
-                for (let py = yStart; py < yEnd; py++) {
-                    const rowOff = py * img.width * 4;
-                    for (let px = xStart; px < xEnd; px++) {
-                        const dIdx = rowOff + px * 4;
-                        if (fc.a === 255) {
-                            dst[dIdx] = fc.r;
-                            dst[dIdx + 1] = fc.g;
-                            dst[dIdx + 2] = fc.b;
-                            dst[dIdx + 3] = 255;
-                        } else if (fc.a > 0) {
-                            const sA = fc.a / 255;
-                            const dA = dst[dIdx + 3]! / 255;
-                            const outA = sA + dA * (1 - sA);
-                            if (outA > 0) {
-                                dst[dIdx] = Math.round((fc.r * sA + dst[dIdx]! * dA * (1 - sA)) / outA);
-                                dst[dIdx + 1] = Math.round((fc.g * sA + dst[dIdx + 1]! * dA * (1 - sA)) / outA);
-                                dst[dIdx + 2] = Math.round((fc.b * sA + dst[dIdx + 2]! * dA * (1 - sA)) / outA);
-                                dst[dIdx + 3] = Math.round(outA * 255);
-                            }
-                        }
-                    }
-                }
+                yield { kind: "shape", shape: "rectangle", color: parseColor(fill), x: rx, y: ry, width: rw, height: rh };
             } else {
                 if (fill !== "none") {
                     svgElements.push(`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${fill}"/>`);
@@ -3054,40 +3101,7 @@ function* applyMagickDrawSteps(img: RgbaImage, drawCmd: string, state: MagickSta
             const py = num();
             const r = Math.max(1, Math.hypot(px - cx, py - cy));
             if (fill !== "none" && (stroke === "none" || strokeWidth <= 0) && svgElements.length === 0) {
-                const fc = parseColor(fill);
-                const xStart = Math.max(0, Math.floor(cx - r - 1));
-                const yStart = Math.max(0, Math.floor(cy - r - 1));
-                const xEnd = Math.min(img.width, Math.ceil(cx + r + 1));
-                const yEnd = Math.min(img.height, Math.ceil(cy + r + 1));
-                const dst = img.data;
-                const baseAlpha = fc.a / 255;
-                for (let y = yStart; y < yEnd; y++) {
-                    const dy = y - cy;
-                    const rowOff = y * img.width * 4;
-                    for (let x = xStart; x < xEnd; x++) {
-                        const dx = x - cx;
-                        const dist = Math.hypot(dx, dy);
-                        const cov = Math.max(0, Math.min(1, r + 0.5 - dist));
-                        if (cov <= 0) continue;
-                        const sA = baseAlpha * cov;
-                        const dIdx = rowOff + x * 4;
-                        if (sA >= 0.999) {
-                            dst[dIdx] = fc.r;
-                            dst[dIdx + 1] = fc.g;
-                            dst[dIdx + 2] = fc.b;
-                            dst[dIdx + 3] = 255;
-                        } else if (sA > 0) {
-                            const dA = dst[dIdx + 3]! / 255;
-                            const outA = sA + dA * (1 - sA);
-                            if (outA > 0) {
-                                dst[dIdx] = Math.round((fc.r * sA + dst[dIdx]! * dA * (1 - sA)) / outA);
-                                dst[dIdx + 1] = Math.round((fc.g * sA + dst[dIdx + 1]! * dA * (1 - sA)) / outA);
-                                dst[dIdx + 2] = Math.round((fc.b * sA + dst[dIdx + 2]! * dA * (1 - sA)) / outA);
-                                dst[dIdx + 3] = Math.round(outA * 255);
-                            }
-                        }
-                    }
-                }
+                yield { kind: "shape", shape: "circle", color: parseColor(fill), x: cx, y: cy, radius: r };
             } else {
                 svgElements.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
             }
@@ -3164,46 +3178,7 @@ function* applyMagickDrawSteps(img: RgbaImage, drawCmd: string, state: MagickSta
             svgElements.push(`<path d="${escapeXml(d)}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
         }
     }
-    if (svgElements.length === 0)
-        return img;
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}">${svgElements.join("")}</svg>`;
-    const overlay = decodeImage(new TextEncoder().encode(svg), { density: state.density });
-    blendOverlayInPlace(img, overlay, 0, 0);
-    return img;
-}
-
-function blendOverlayInPlace(img: RgbaImage, overlay: RgbaImage, offsetX: number, offsetY: number): void {
-    const dst = img.data;
-    const src = overlay.data;
-    for (let oy = 0; oy < overlay.height; oy++) {
-        const dy = offsetY + oy;
-        if (dy < 0 || dy >= img.height) continue;
-        for (let ox = 0; ox < overlay.width; ox++) {
-            const sIdx = (oy * overlay.width + ox) * 4;
-            const sa = src[sIdx + 3]!;
-            if (sa === 0) continue;
-            const dx = offsetX + ox;
-            if (dx < 0 || dx >= img.width) continue;
-            const dIdx = (dy * img.width + dx) * 4;
-            if (sa === 255) {
-                dst[dIdx] = src[sIdx]!;
-                dst[dIdx + 1] = src[sIdx + 1]!;
-                dst[dIdx + 2] = src[sIdx + 2]!;
-                dst[dIdx + 3] = 255;
-            } else {
-                const da = dst[dIdx + 3]! / 255;
-                const sAlpha = sa / 255;
-                const outA = sAlpha + da * (1 - sAlpha);
-                if (outA > 0) {
-                    dst[dIdx] = Math.round((src[sIdx]! * sAlpha + dst[dIdx]! * da * (1 - sAlpha)) / outA);
-                    dst[dIdx + 1] = Math.round((src[sIdx + 1]! * sAlpha + dst[dIdx + 1]! * da * (1 - sAlpha)) / outA);
-                    dst[dIdx + 2] = Math.round((src[sIdx + 2]! * sAlpha + dst[dIdx + 2]! * da * (1 - sAlpha)) / outA);
-                    dst[dIdx + 3] = Math.round(outA * 255);
-                }
-            }
-        }
-    }
-    detachRgbaBuffer(overlay.data);
+    if (svgElements.length > 0) yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}">${svgElements.join("")}</svg>` };
 }
 
 function hasAnnotationOffset(value: string): boolean {
@@ -4650,7 +4625,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-draw") {
             const drawSpec = tokens[++i] ?? "";
             stack = yield* mapSteps(stack, function* (im) {
-                return (yield* applyMagickDrawSteps(im, drawSpec, state, signal));
+                for (const step of magickDrawSteps(im, drawSpec, state)) {
+                    if (!step) { yield; continue; }
+                    if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step), signal);
+                    else {
+                        const overlay = decodeImage(new TextEncoder().encode(step.svg), { density: state.density });
+                        im = yield* applyMagickRasterSteps(im, drawOverlayPixelSteps(im, overlay), signal, im, [im, overlay]);
+                        detachRgbaBuffer(overlay.data);
+                    }
+                }
+                return im;
             });
         }
         else if (t === "-annotate") {
@@ -4951,22 +4935,23 @@ function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         };
     }
 }
-async function transformStoredMagickRaster(image: StoredRgbaImage, backend: CompareFileSession, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal: AbortSignal, dimensions: Pick<StoredRgbaImage, "width" | "height" | "hasAlpha"> = image): Promise<StoredRgbaImage> {
-    const position = backend.storage.allocate(dimensions.width * dimensions.height * 4), sourceSize = image.width * image.height * 4, cache = new Map<number, Uint8Array>();
+async function transformStoredMagickRaster(image: StoredRgbaImage, backend: CompareFileSession, steps: Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>, signal: AbortSignal, dimensions: Pick<StoredRgbaImage, "width" | "height" | "hasAlpha"> = image, sources: readonly StoredRgbaImage[] = [image]): Promise<StoredRgbaImage> {
+    const position = backend.storage.allocate(dimensions.width * dimensions.height * 4), cache = new Map<string, Uint8Array>();
     let next = steps.next();
     while (!next.done) {
         signal.throwIfAborted();
         const request = next.value;
         if (!request) { await yieldTurn(signal); next = steps.next(); }
         else if (request.kind === "write") { await backend.storage.write(position + request.position, request.data); next = steps.next(); }
-        else if (request.length !== 4) next = steps.next(await backend.storage.read(image.position + request.position, request.length));
         else {
-            const page = Math.floor(request.position / 4096) * 4096;
-            let bytes = cache.get(page);
+            const source = sources[request.image ?? 0]!;
+            if (request.length !== 4) { next = steps.next(await backend.storage.read(source.position + request.position, request.length)); continue; }
+            const sourceSize = source.width * source.height * 4, page = Math.floor(request.position / 4096) * 4096, key = (request.image ?? 0) + ":" + page;
+            let bytes = cache.get(key);
             if (!bytes) {
-                bytes = new Uint8Array(await backend.storage.read(image.position + page, Math.min(4096, sourceSize - page)));
+                bytes = new Uint8Array(await backend.storage.read(source.position + page, Math.min(4096, sourceSize - page)));
                 if (cache.size === 32) cache.delete(cache.keys().next().value!);
-                cache.set(page, bytes);
+                cache.set(key, bytes);
             }
             next = steps.next(bytes.subarray(request.position - page, request.position - page + request.length));
         }
@@ -5098,7 +5083,21 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         if (!operandsOnly && token === "-strip") { state.strip = true; continue; }
         if (!operandsOnly && token === "+repage") continue;
         if (!operandsOnly && token === "-repage") { i++; continue; }
-        if (!operandsOnly && token === "-annotate") {
+        if (!operandsOnly && token === "-draw") {
+            const drawing = tokens[++i] ?? "", settings = { ...state };
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                for (const step of magickDrawSteps(image, drawing, settings)) {
+                    if (!step) { await yieldTurn(signal); continue; }
+                    if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step), signal);
+                    else {
+                        const overlay = await decodeStoredMagickSvg(step.svg, settings.density, backend, signal);
+                        image = await transformStoredMagickRaster(image, backend, drawOverlayPixelSteps(image, overlay), signal, image, [image, overlay]);
+                    }
+                }
+                return image;
+            });
+        } else if (!operandsOnly && token === "-annotate") {
             const offsetOrText = tokens[++i] ?? "+0+0", explicit = hasAnnotationOffset(offsetOrText);
             const offset = explicit ? offsetOrText : "+0+0", text = explicit ? (tokens[++i] ?? "") : offsetOrText, settings = { ...state };
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, annotatePixelSteps(image, offset, text, settings), signal) : undefined);
@@ -5509,9 +5508,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   }
   image={position,width,height,format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:true};
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
-  const svg=createLabelSvg(baseToken.slice(baseToken.indexOf(":")+1),state),encoder=new TextEncoder(),base=backend.storage.allocate(0);let size=0;
-  for(let offset=0;offset<svg.length;){const bytes=new Uint8Array(4096),{read,written}=encoder.encodeInto(svg.slice(offset,offset+4097),bytes);await backend.storage.write(backend.storage.allocate(written),bytes.subarray(0,written));offset+=read;size+=written;}
-  image=await decodeImageToStorage({size,async read(position,length){return backend.storage.read(base+position,length);}},backend.storage,signal,{density:state.density});
+  image=await decodeStoredMagickSvg(createLabelSvg(baseToken.slice(baseToken.indexOf(":")+1),state),state.density,backend,signal);
  }else{
   const generated=await drainSteps(parseInputOperandSteps(baseToken,new Map(),state),signal);
   if(generated)image=await backend.retain(generated);

@@ -7,7 +7,7 @@ import { docxMetadata, docxDocumentPrefix, docxDocumentSuffix } from "./docx-par
 export async function retainTextDocx(storage: PagedStorage, text: RetainedTextBlocks, snapshot: RetainedTextSnapshot, signal: AbortSignal): Promise<ZipSealedArchive> {
   const encoder = new TextEncoder();
   const escape = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-  return retainDocxXml(storage, (async function* () {
+  return retainOfficeXml(storage, (async function* () {
     yield encoder.encode(docxDocumentPrefix);
     for (let block = 0; block < snapshot.count; block++) {
       signal.throwIfAborted();
@@ -20,16 +20,16 @@ export async function retainTextDocx(storage: PagedStorage, text: RetainedTextBl
   })(), signal);
 }
 
-/** Package a bounded document XML stream with the standard DOCX metadata. */
-export async function retainDocxXml(storage: PagedStorage, source: AsyncIterable<Uint8Array>, signal: AbortSignal): Promise<ZipSealedArchive> {
+/** Package a bounded document XML stream with the format-owned metadata. */
+export async function retainOfficeXml(storage: PagedStorage, source: AsyncIterable<Uint8Array>, signal: AbortSignal, parts: { readonly metadata: Readonly<Record<string, string>>; readonly documentPath: string } = { metadata: docxMetadata, documentPath: "word/document.xml" }): Promise<ZipSealedArchive> {
   const writer = createZipCodec(undefined, { utcDates: true }).createStagedWriter(storage, {
     maxArchiveBytes: Infinity, maxEntryBytes: Infinity, maxTotalBytes: Infinity, maxMembers: Infinity,
     maxPathBytes: Infinity, maxDepth: Infinity, maxPaxBytes: Infinity, maxTextBytes: Infinity, chunkSize: 16384
   }, signal);
   const attributes = { modified: new Date("1980-01-01T00:00:00Z"), mode: 0o100644, directory: false, symlink: false, compression: "store" as const };
   const encoder = new TextEncoder();
-  for (const [name, content] of Object.entries(docxMetadata))
+  for (const [name, content] of Object.entries(parts.metadata))
     await writer.addSource(name, (async function* () { yield encoder.encode(content); })(), attributes);
-  await writer.addSource("word/document.xml", source, attributes);
+  await writer.addSource(parts.documentPath, source, attributes);
   return writer.seal();
 }

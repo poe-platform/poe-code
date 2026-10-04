@@ -1,10 +1,11 @@
+import { retainXlsxConversion } from "./retained-xlsx-conversion.js";
 import { retainXlsxText } from "./retained-xlsx.js";
 import { RetainedOfficeBlocks } from "./retained-office-blocks.js";
 import { retainOdtText } from "./retained-odt.js";
 import { convertOdsStream } from "./spreadsheet.js";
 import { retainTextPdf } from "./retained-pdf.js";
 import { RetainedPlainText } from "./retained-plain.js";
-import { retainTextDocx, retainDocxXml } from "./retained-docx.js";
+import { retainTextDocx, retainOfficeXml } from "./retained-docx.js";
 import { resolvePath } from "@poe-code/safe-fs/core";
 import { FsError, type FileStaging } from "@poe-code/safe-fs/contracts";
 import { writeBytes, type ByteSink } from "safe-bash-contracts/io";
@@ -27,12 +28,12 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
   if (!capabilities.atomicFileStaging || !capabilities.retainedStagingWrite || !capabilities.retainedStagingCleanup || !capabilities.atomicStagingAncestry || !capabilities.atomicStagedFileMutation || !capabilities.synchronousFollowedStagingResolution || !capabilities.guardedStagingPublication) return undefined;
   const colon = convertSpec.indexOf(":"), nextColon = colon < 0 ? -1 : convertSpec.indexOf(":", colon + 1);
   const format = (colon < 0 ? convertSpec : convertSpec.slice(0, colon)).toLowerCase();
-  const filter = (colon < 0 ? "" : convertSpec.slice(colon + 1, nextColon < 0 ? undefined : nextColon)) || (format === "csv" ? "Text - txt - csv (StarCalc)" : format === "pdf" ? "writer_pdf_Export" : `${format}_Export`);
+  const explicitFilter = colon < 0 ? "" : convertSpec.slice(colon + 1, nextColon < 0 ? undefined : nextColon);
   const structured = [".pdf", ".docx", ".odt", ".ods", ".odp", ".xlsx", ".pptx", ".html", ".htm", ".csv"];
   const openDocumentConversion = (input: string) => [".odt", ".ods", ".odp"].some(extension => input.toLowerCase().endsWith(extension)) &&
     !(input.toLowerCase().endsWith(".ods") && ["csv", "xlsx"].includes(format));
   const spreadsheetTextConversion = (input: string) => input.toLowerCase().endsWith(".xlsx") && !["pdf", "html", "docx", "xlsx", "csv"].includes(format);
-  if (!inputs.every(input => openDocumentConversion(input) || spreadsheetTextConversion(input) ? true : input.toLowerCase().endsWith(".ods") && (format === "csv" || format === "xlsx") ? true :
+  if (!inputs.every(input => openDocumentConversion(input) || input.toLowerCase().endsWith(".xlsx") ? true : input.toLowerCase().endsWith(".ods") && (format === "csv" || format === "xlsx") ? true :
     input.toLowerCase().endsWith(".rtf") ? true :
     !structured.some(extension => input.toLowerCase().endsWith(extension)) && !["xlsx", "csv"].includes(format))) return undefined;
   return withSofficeInputs(inputs, context, limits, async (storage, sources) => {
@@ -49,7 +50,13 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
       const stem = dot >= 0 && dot < basename.length - 1 ? basename.slice(0, dot) : basename;
       const path = resolvePath(cwd, outdir, `${stem}.${format}`);
       let output = source;
-      if (openDocumentConversion(input) || spreadsheetTextConversion(input)) {
+      if (input.toLowerCase().endsWith(".xlsx") && !spreadsheetTextConversion(input)) {
+        try { output = await retainXlsxConversion(storage, source, context, format, stem, nextColon < 0 ? undefined : convertSpec.slice(nextColon + 1)); }
+        catch (error) {
+          signal.throwIfAborted(); stderr = `Error: conversion failed: ${error instanceof Error ? error.message : String(error)}\n`;
+          messages.length = 0; break;
+        }
+      } else if (openDocumentConversion(input) || spreadsheetTextConversion(input)) {
         const document = format === "pdf" ? new RetainedOfficeBlocks(storage, signal) : undefined;
         let text: SofficeSnapshot;
         try { text = spreadsheetTextConversion(input) ? await retainXlsxText(storage, source, context) : await retainOdtText(storage, source, context, document ? { blocks: document } : format === "docx" ? { docx: true } : format === "html" ? { htmlTitle: stem } : { paragraphSeparator: "\n\n" }); }
@@ -59,7 +66,7 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
           messages.length = 0; break;
         }
         if (format === "docx" || document) {
-          const archive = document ? await retainTextPdf(storage, document, document.snapshot(), stem, context, nextColon < 0 ? undefined : convertSpec.slice(nextColon + 1)) : await retainDocxXml(storage, (async function* () {
+          const archive = document ? await retainTextPdf(storage, document, document.snapshot(), stem, context, nextColon < 0 ? undefined : convertSpec.slice(nextColon + 1)) : await retainOfficeXml(storage, (async function* () {
             for (let offset = 0; offset < text.size; offset += 16384) {
               signal.throwIfAborted();
               yield new Uint8Array(await storage.read(text.position + offset, Math.min(16384, text.size - offset)));
@@ -144,6 +151,10 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
       }
       sources.set(path, output);
       if (original.get(path) === output) pending.delete(path); else pending.set(path, output);
+      const filter = explicitFilter || (format === "csv" ? "Text - txt - csv (StarCalc)" : format === "pdf"
+        ? [".xlsx", ".csv", ".ods"].some(extension => input.toLowerCase().endsWith(extension)) ? "calc_pdf_Export"
+          : [".pptx", ".odp"].some(extension => input.toLowerCase().endsWith(extension)) ? "impress_pdf_Export" : "writer_pdf_Export"
+        : `${format}_Export`);
       messages.push(`convert ${input} -> ${path} using filter : ${filter}\n`);
     }
     if (stderr) await writeBytes(context.stderr, encoder.encode(stderr), signal);

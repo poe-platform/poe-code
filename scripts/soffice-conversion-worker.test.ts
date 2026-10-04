@@ -5,7 +5,7 @@ import { expect, it } from "vitest";
 import { PdfDocument, type PdfContentNode } from "@poe-code/pdf-ast";
 import { createStoredZipArchive, readZipArchiveEntries } from "safe-bash-command-soffice";
 
-it.each(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command", "docx-cancel", "plain-sdk", "plain-command", "plain-cancel", "docx-plain-sdk", "docx-plain-command", "pdf-sdk", "pdf-command", "pdf-cancel", "pdf-plain-sdk", "odt-sdk", "odt-command", "odt-cancel", "odt-html-sdk", "odt-html-command", "odt-html-cancel", "odt-docx-sdk", "odt-docx-command", "odt-docx-cancel", "odt-pdf-sdk", "odt-pdf-command", "odt-pdf-cancel", "xlsx-sdk", "xlsx-command", "xlsx-cancel"])("publishes Soffice conversion through external Worker staging (%s)", async mode => {
+it.each(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command", "docx-cancel", "plain-sdk", "plain-command", "plain-cancel", "docx-plain-sdk", "docx-plain-command", "pdf-sdk", "pdf-command", "pdf-cancel", "pdf-plain-sdk", "odt-sdk", "odt-command", "odt-cancel", "odt-html-sdk", "odt-html-command", "odt-html-cancel", "odt-docx-sdk", "odt-docx-command", "odt-docx-cancel", "odt-pdf-sdk", "odt-pdf-command", "odt-pdf-cancel", "xlsx-sdk", "xlsx-command", "xlsx-cancel", "xlsx-html-sdk", "xlsx-html-command", "xlsx-html-cancel", "xlsx-docx-sdk", "xlsx-docx-command", "xlsx-docx-cancel", "xlsx-pdf-sdk", "xlsx-pdf-command", "xlsx-pdf-cancel", "xlsx-csv-sdk", "xlsx-csv-command", "xlsx-csv-cancel", "xlsx-rewrite-sdk", "xlsx-rewrite-command", "xlsx-rewrite-cancel"])("publishes Soffice conversion through external Worker staging (%s)", async mode => {
   const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export * as soffice from "safe-bash-command-soffice";
     export { createCommandArguments } from "safe-bash-contracts/command";
@@ -16,7 +16,7 @@ it.each(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command",
   const runtime = new Miniflare({ modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], script: `
     const api=(()=>{const module={exports:{}};${bundle.outputFiles[0]!.text};return module.exports;})();
     export default {async fetch(request,env){
-      const mode=new URL(request.url).pathname.slice(1),copy=mode==='copy',xlsx=mode.startsWith('xlsx-'),odt=mode.startsWith('odt-'),odtHtml=mode.startsWith('odt-html-'),plain=mode.includes('plain'),docx=mode.includes('docx'),pdf=mode.includes('pdf'),cancel=mode.endsWith('cancel'),namespace=new api.MemoryFileSystem();
+      const mode=new URL(request.url).pathname.slice(1),copy=mode==='copy',xlsx=mode.startsWith('xlsx-'),xlsxHtml=mode.startsWith('xlsx-html-'),csv=mode.startsWith('xlsx-csv-'),rewrite=mode.startsWith('xlsx-rewrite-'),odt=mode.startsWith('odt-'),odtHtml=mode.startsWith('odt-html-'),plain=mode.includes('plain'),docx=mode.includes('docx'),pdf=mode.includes('pdf'),cancel=mode.endsWith('cancel'),namespace=new api.MemoryFileSystem();
       await namespace.mkdir('/spill');await namespace.mkdir('/out');
       const {fs:backing,events}=api.createR2PagedFixture(namespace,env.PAGES);
       const controller=new AbortController(),reason=new Error('cancelled'),stages=new WeakMap();
@@ -50,7 +50,7 @@ it.each(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command",
       }});
       const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;largestAllocation=Math.max(largestAllocation,length);if(length>65536)throw new Error('Unbounded allocation');return Reflect.construct(target,args);}});
       const stdout={async write(bytes){if(bytes.length>65536)throw new Error('Oversized status');}},stderr={async write(bytes){throw new Error(new TextDecoder().decode(bytes));}};
-      const args=['--convert-to',copy||xlsx||odt&&!odtHtml&&!docx&&!pdf?'txt':docx?'docx':pdf?'pdf':'html','--outdir','/out',copy||plain?'/input.txt':odt?'/input.odt':xlsx?'/input.xlsx':'/input.rtf'];let result,cancelled=false;
+      const args=['--convert-to',rewrite?'xlsx':docx?'docx':pdf?'pdf':csv?'csv':xlsxHtml?'html':copy||xlsx||odt&&!odtHtml?'txt':'html','--outdir','/out',copy||plain?'/input.txt':odt?'/input.odt':xlsx?'/input.xlsx':'/input.rtf'];let result,cancelled=false;
       try{
         if(mode.endsWith('command'))result=await api.soffice.createSofficeCommand().execute({command:'soffice',...api.createCommandArguments(args),cwd:'/spill',env:{},fs,signal:controller.signal,stdout,stderr,stdin:(async function*(){})()});
         else result=await api.soffice.runSofficeFileCli(args,{filesystem:fs,cwd:'/spill',signal:controller.signal,stdout,stderr});
@@ -58,12 +58,12 @@ it.each(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command",
       let length=0,hash=2166136261;
       if(published)for(let index=0;index<published.count;index++){
         const object=await env.PAGES.get(published.prefix+index),bytes=new Uint8Array(await object.arrayBuffer());
-        for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;length+=bytes.length;if(!docx&&!pdf)await env.PAGES.delete(published.prefix+index);
+        for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;length+=bytes.length;if(!docx&&!pdf&&!rewrite)await env.PAGES.delete(published.prefix+index);
       }
       const outputs=await namespace.readdir('/out');
       for(const entry of outputs)if((await namespace.stat('/out/'+entry.name)).size!==0)throw new Error('Resident output payload');
       await env.PAGES.delete('input');
-      return Response.json({publication:docx||pdf?published:undefined,result,cancelled,length,hash,created,removed,closed,largestWrite,inputClosed,largestAllocation,events,
+      return Response.json({publication:docx||pdf||rewrite?published:undefined,result,cancelled,length,hash,created,removed,closed,largestWrite,inputClosed,largestAllocation,events,
         remaining:(await env.PAGES.list({limit:1})).objects.length,scratch:await namespace.readdir('/spill'),outputs,hostGlobals:[typeof process,typeof Buffer,typeof require]});
     }};
   ` });
@@ -74,9 +74,9 @@ it.each(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command",
     const result = await response.json() as { publication?: { prefix: string; count: number }; result?: { exitCode: number }; cancelled: boolean; length: number; hash: number; created: number; removed: number; closed: number; largestWrite: number; inputClosed: number; largestAllocation: number; events: { opened: number; closed: number; reads: number; writes: number; largestTransfer: number }; remaining: number; scratch: unknown[]; outputs: { name: string }[]; hostGlobals: string[] };
     expect(result.cancelled).toBe(mode.endsWith("cancel"));
     if (mode.endsWith("cancel")) { expect(result.outputs).toEqual([]); expect(result.length).toBe(0); }
-    else if (mode.includes("docx") || mode.includes("pdf")) {
+    else if (mode.includes("docx") || mode.includes("pdf") || mode.startsWith("xlsx-rewrite-")) {
       expect(result.result?.exitCode).toBe(0);
-      expect(result.outputs.map(entry => entry.name)).toEqual([mode.includes("pdf") ? "input.pdf" : "input.docx"]);
+      expect(result.outputs.map(entry => entry.name)).toEqual([mode.includes("pdf") ? "input.pdf" : mode.startsWith("xlsx-rewrite-") ? "input.xlsx" : "input.docx"]);
       const parts: Uint8Array[] = [];
       for (let index = 0; index < result.publication!.count; index++) {
         const key = result.publication!.prefix + index;
@@ -100,17 +100,19 @@ it.each(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command",
         inspect(document.getPage(0).getContentAst()); expect(fragments.join("")).toBe(payload);
       } else {
       const entries = readZipArchiveEntries(archive);
-      expect(Array.from(entries.keys()).sort()).toEqual(["[Content_Types].xml", "_rels/.rels", "word/document.xml"].sort());
-      expect(new TextDecoder().decode(entries.get("word/document.xml"))).toContain("<w:t>" + payload + "</w:t>");
+      const rewrite = mode.startsWith("xlsx-rewrite-");
+      expect(Array.from(entries.keys()).sort()).toEqual((rewrite ? ["[Content_Types].xml", "_rels/.rels", "xl/workbook.xml", "xl/_rels/workbook.xml.rels", "xl/worksheets/sheet1.xml"] : ["[Content_Types].xml", "_rels/.rels", "word/document.xml"]).sort());
+      expect(new TextDecoder().decode(entries.get(rewrite ? "xl/worksheets/sheet1.xml" : "word/document.xml"))).toContain((rewrite ? "<t>" : "<w:t>") + payload + (rewrite ? "</t>" : "</w:t>"));
       }
       expect((await bucket.list()).objects).toEqual([]);
     }
     else {
-      const expected = mode === "copy" ? payload : (mode.startsWith("xlsx-") || mode.startsWith("odt-") && !mode.startsWith("odt-html-")) ? payload + "\n" : '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>input</title></head><body>\n<h1>' + payload + '</h1>\n</body></html>\n';
+      const xlsxHtml = mode.startsWith("xlsx-html-");
+      const expected = xlsxHtml ? '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>input</title></head><body>\n<table>\n  <tr><td>' + payload + '</td></tr>\n</table>\n</body></html>\n' : mode === "copy" ? payload : (mode.startsWith("xlsx-") || mode.startsWith("odt-") && !mode.startsWith("odt-html-")) ? payload + "\n" : '<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>input</title></head><body>\n<h1>' + payload + '</h1>\n</body></html>\n';
       const bytes = new TextEncoder().encode(expected); let hash = 2166136261;
       for (const byte of bytes) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
       expect(result.result?.exitCode).toBe(0); expect(result.length).toBe(bytes.length); expect(result.hash).toBe(hash);
-      expect(result.outputs.map(entry => entry.name)).toEqual([mode === "copy" || (mode.startsWith("xlsx-") || mode.startsWith("odt-") && !mode.startsWith("odt-html-")) ? "input.txt" : "input.html"]);
+      expect(result.outputs.map(entry => entry.name)).toEqual([xlsxHtml ? "input.html" : mode.startsWith("xlsx-csv-") ? "input.csv" : mode === "copy" || (mode.startsWith("xlsx-") || mode.startsWith("odt-") && !mode.startsWith("odt-html-")) ? "input.txt" : "input.html"]);
     }
     expect(result.created).toBe(1); expect(result.removed).toBe(1); expect(result.closed).toBe(1);
     expect(result.inputClosed).toBe(1); expect(result.largestWrite).toBeLessThanOrEqual(16384); expect(result.largestAllocation).toBeLessThanOrEqual(65536);

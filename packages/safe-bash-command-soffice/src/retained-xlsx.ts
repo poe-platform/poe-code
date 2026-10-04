@@ -1,3 +1,4 @@
+import type { RetainedOfficeBlocks } from "./retained-office-blocks.js";
 import { createZipCodec } from "@poe-code/office-package/zip";
 import { openRetainedXml, resolveOfficeResources, type RetainedXml, type XmlLexicalToken, type XmlRange } from "@poe-code/office-xml";
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
@@ -7,8 +8,9 @@ import type { RetainedSofficeContext, SofficeSnapshot } from "./retained-input.j
 class Spans {
   private readonly values: IntegerTable;
   count = 0;
-  constructor(private readonly storage: PagedStorage, private readonly signal: AbortSignal) { this.values = new IntegerTable(storage); }
+  constructor(private readonly storage: PagedStorage, private readonly signal: AbortSignal, private readonly enabled = true) { this.values = new IntegerTable(storage); }
   async add(span: SofficeSnapshot): Promise<void> {
+    if (!this.enabled) return;
     await this.values.set(BigInt(this.count * 2), BigInt(span.position));
     await this.values.set(BigInt(this.count * 2 + 1), BigInt(span.size)); this.count++;
   }
@@ -63,7 +65,7 @@ class Cursor {
 }
 
 /** XLSX cat keeps shared strings, cells and output spans in caller-owned storage. */
-export async function retainXlsxText(storage: PagedStorage, source: SofficeSnapshot, context: RetainedSofficeContext): Promise<SofficeSnapshot> {
+export async function retainXlsxText(storage: PagedStorage, source: SofficeSnapshot, context: RetainedSofficeContext, document?: RetainedOfficeBlocks): Promise<SofficeSnapshot> {
   const { signal } = context, codec = createZipCodec(), limits = resolveOfficeResources({ archiveLimits: { chunkSize: 16384 } }).archiveLimits;
   let shared: SofficeSnapshot | undefined, sheet: SofficeSnapshot | undefined, fallback: SofficeSnapshot | undefined, fallbackName: string | undefined;
   await codec.readZipArchive({ size: source.size, read: (offset, maximum) => storage.read(source.position + offset, Math.min(16384, maximum, source.size - offset)) }, limits, signal, {
@@ -106,7 +108,9 @@ export async function retainXlsxText(storage: PagedStorage, source: SofficeSnaps
       await strings.set(BigInt(stringCount * 2), BigInt(value.position)); await strings.set(BigInt(stringCount * 2 + 1), BigInt(value.size)); stringCount++;
     }
   });
-  const output = new Spans(storage, signal), tab = { position: await storage.append(Uint8Array.of(9)), size: 1 }, newline = { position: await storage.append(Uint8Array.of(10)), size: 1 };
+  document?.beginTable();
+  const empty = { position: 0, size: 0 };
+  const output = new Spans(storage, signal, !document), tab = { position: await storage.append(Uint8Array.of(9)), size: 1 }, newline = { position: await storage.append(Uint8Array.of(10)), size: 1 };
   let rows = 0;
   const selected = sheet ?? fallback;
   if (selected) await parse(selected, async cursor => {
@@ -135,7 +139,7 @@ export async function retainXlsxText(storage: PagedStorage, source: SofficeSnaps
           else if (next.value.kind === "start-name" && name === "t" && !inline) inline = await cursor.field("t");
         }
         if (!columns) { if (rows) await output.add(newline); rows++; }
-        while (column !== undefined && columns < column) { if (columns++) await output.add(tab); signal.throwIfAborted(); }
+        while (column !== undefined && columns < column) { if (columns++) await output.add(tab); await document?.cell(empty); signal.throwIfAborted(); }
         if (columns++) await output.add(tab);
         if (type === "inlineStr") value = inline;
         else if (type === "s" && value) {
@@ -143,9 +147,12 @@ export async function retainXlsxText(storage: PagedStorage, source: SofficeSnaps
           value = Number.isSafeInteger(index) && index >= 0 && index < stringCount ? { position: Number(await strings.get(BigInt(index * 2))), size: Number(await strings.get(BigInt(index * 2 + 1))) } : undefined;
         }
         if (value) await output.add(value);
+        await document?.cell(value ?? empty);
       }
+      await document?.endRow();
     }
   });
+  await document?.endTable(true);
   return output.finish();
 }
 

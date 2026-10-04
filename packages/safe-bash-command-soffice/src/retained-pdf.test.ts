@@ -56,8 +56,9 @@ for (const extension of ["odt", "ods", "odp"]) it(`retains ${extension} PDF head
     if (key === "readFile" || key === "writeFile") return () => { throw new Error("Whole-file I/O forbidden"); };
     const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
   } });
-  const result = await runSofficeFileCli(args, { filesystem, stdout: { async write() {} }, stderr: { async write() {} } });
-  assert.equal(result.exitCode, expected.exitCode);
+  let stdout = "", stderr = "";
+  const result = await runSofficeFileCli(args, { filesystem, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
+  assert.deepEqual({ ...result, stdout, stderr }, expected);
   const actual = PdfDocument.load(await fs.readFile("/input.pdf")), wanted = PdfDocument.load(files.get("/input.pdf")!);
   assert.equal(actual.pageCount, wanted.pageCount); assert.deepEqual(actual.getMetadata(), wanted.getMetadata());
   assert.equal(actual.extractText(), wanted.extractText());

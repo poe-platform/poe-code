@@ -32,8 +32,8 @@ export class RetainedOfficeBlocks implements RetainedTextBlocks {
     await this.rows.set(BigInt(this.rowCount * 2 + 1), BigInt(count)); this.rowCount++;
     this.columns = Math.max(this.columns, count); this.rowFirst = this.cellCount;
   }
-  async endTable(): Promise<void> {
-    if (this.rowCount > this.tableFirst) await this.record(2, this.tableFirst, this.rowCount - this.tableFirst, this.columns);
+  async endTable(preserveEmpty = false): Promise<void> {
+    if (preserveEmpty || this.rowCount > this.tableFirst) await this.record(2, this.tableFirst, this.rowCount - this.tableFirst, Math.max(1, this.columns));
   }
   private async record(kind: number, first: number, length: number, columns: number): Promise<void> {
     for (const [offset, value] of [kind, first, length, columns].entries()) await this.blocks.set(BigInt(this.count * 4 + offset), BigInt(value));

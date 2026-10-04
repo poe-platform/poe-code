@@ -344,7 +344,7 @@ async function runStored(context: CommandContext, budget: Budget, storage: Paged
         await context.fs.capabilitiesFor?.(pathOf(context, path), { signal: context.signal }) ?? context.fs.capabilities);
       return capabilities.streamingRead !== false;
     };
-    if (!options.ignoreBlank && options.ignorePatterns.length === 0 && !options.functions.length
+    if (options.ignorePatterns.length === 0 && !options.functions.length
       && await canIndex(left, leftStat) && await canIndex(right, rightStat)) {
       const result = await indexedDiff(budget, options, left, right, pair.nested, appendBytes, {
         left: !leftStat ? undefined : isStdin(left) ? "-" : streamType(leftStat.type) ? { stream: pathOf(context, left) } : pathOf(context, left),

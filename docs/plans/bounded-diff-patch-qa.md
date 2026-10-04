@@ -6,7 +6,8 @@ context, RCS, conditional, ed and side-by-side output (including stdin and
 missing-file operands, normalization, display transformations and brief stdin).
 Indexed documents, line indexes, LCS cells, edit groups and output use caller-backed
 page caches. Streaming FIFO and character operands use the same staged indexes;
-non-streaming backends retain a buffered compatibility path. Ignored lines,
+non-streaming backends retain a buffered compatibility path. Blank-line filtering
+uses bounded scans and stored edit flags across output modes. Regex ignored lines,
 function headings and directory metadata still need migration. GNU patch
 target payloads, hunk application and publication now use caller-backed documents
 and retained staging writers, including merge/ifdef, backups, rejects and output

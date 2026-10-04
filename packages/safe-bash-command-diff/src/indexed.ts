@@ -55,7 +55,7 @@ async function buildGroups(old: IndexedDocument, next: IndexedDocument, matrix: 
   let group: Group | undefined;
   const flush = async () => {
     if (!group) return;
-    const bytes = new Uint8Array(32), view = new DataView(bytes.buffer);
+    const bytes = new Uint8Array(40), view = new DataView(bytes.buffer);
     view.setFloat64(0, group.oldStart, true); view.setFloat64(8, group.newStart, true);
     view.setFloat64(16, group.oldCount, true); view.setFloat64(24, group.newCount, true);
     await groups.append(bytes);
@@ -84,6 +84,17 @@ function range(start: number, count: number, unified = false): string {
 }
 
 interface LineOutput { append: Append; options: DiffFlags; utf8: boolean }
+
+async function blank(document: IndexedDocument, position: number, whitespace: boolean): Promise<boolean> {
+  const bounds = await document.line(position);
+  let end = bounds.end;
+  if ((await document.data.read(8 + end - 1, 1))[0] === 10) end--;
+  if (!whitespace) return bounds.start === end;
+  for await (const bytes of document.range(bounds.start, end)) {
+    for (const byte of bytes) if (byte !== 32 && byte !== 9 && byte !== 11 && byte !== 12 && byte !== 13) return false;
+  }
+  return true;
+}
 
 async function line(document: IndexedDocument, position: number, prefix: string, output: LineOutput, color?: 31 | 32): Promise<void> {
   const { append, options, utf8 } = output;
@@ -118,8 +129,8 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
   budget.context.registerCleanup?.(() => groups.close());
   const text = async (value: string, color?: 1 | 36) => { await append(encoder.encode(color === undefined ? value : colorText(value, color, options))); };
   const group = async (index: number): Promise<Group> => {
-    const bytes = await groups.read(8 + index * 32, 32), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    return { oldStart: view.getFloat64(0, true), newStart: view.getFloat64(8, true), oldCount: view.getFloat64(16, true), newCount: view.getFloat64(24, true) };
+    const bytes = await groups.read(8 + index * 40, 40), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    return { oldStart: view.getFloat64(0, true), newStart: view.getFloat64(8, true), oldCount: view.getFloat64(16, true), newCount: view.getFloat64(24, true), ignored: !!view.getUint8(32) };
   };
   try {
     await load(old, sources.left);
@@ -167,7 +178,7 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
       await oldKeys.load(comparisonSource(old, options, utf8));
       await nextKeys.load(comparisonSource(next, options, utf8));
     }
-    if (options.brief) {
+    if (options.brief && !options.ignoreBlank) {
       let same = oldKeys.size === nextKeys.size && oldKeys.length === nextKeys.length;
       for (let index = 0; same && index < oldKeys.length; index++) same = await oldKeys.equal(index, nextKeys, index);
       if (!same) {
@@ -178,18 +189,37 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
     }
     const render = { append, options, utf8: old.validUtf8 && next.validUtf8 };
     const count = sameRaw ? 0 : await buildGroups(oldKeys, nextKeys, matrix, groups, budget, !counted);
-    if (options.format === "side") {
-      if (nested && (count || !options.suppressCommon)) await text(["diff", ...options.optionArgs.map(quoteDiffArgument), quoteDiffName(options.labels[0] ?? left), quoteDiffName(options.labels[1] ?? right)].join(" ") + "\n");
-      await renderSideBySide(old, next, count, group, options, budget, append);
-      if (!count && options.reportSame) await text(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
-      return { different: count > 0, trouble };
+    let visible = count;
+    if (options.ignoreBlank) for (let index = 0; index < count; index++) {
+      const change = await group(index);
+      let ignored = true;
+      for (const [document, start, length] of [[old, change.oldStart, change.oldCount], [next, change.newStart, change.newCount]] as const) {
+        for (let row = 0; row < length; row++) {
+          budget.step();
+          const matches = await blank(document, start + row, options.whitespace !== "exact");
+          ignored &&= matches;
+          const checkpoint = budget.checkpoint(); if (checkpoint) await checkpoint;
+        }
+      }
+      if (ignored) { visible--; await groups.write(8 + index * 40 + 32, new Uint8Array([1])); }
     }
-    if (!count) {
+    if (options.brief) {
+      if (visible) await text(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} differ\n`);
+      else if (options.reportSame && !trouble) await text(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
+      return { different: visible > 0, trouble };
+    }
+    if (options.format === "side") {
+      if (nested && (visible || !options.suppressCommon)) await text(["diff", ...options.optionArgs.map(quoteDiffArgument), quoteDiffName(options.labels[0] ?? left), quoteDiffName(options.labels[1] ?? right)].join(" ") + "\n");
+      if (!nested || visible || !options.suppressCommon) await renderSideBySide(old, next, count, group, options, budget, append);
+      if (!visible && options.reportSame && !trouble) await text(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
+      return { different: visible > 0, trouble };
+    }
+    if (!visible && (options.format !== "ifdef" || !count)) {
       if (options.format === "ifdef") for await (const bytes of old.range(0, old.size)) await append(bytes);
       if (options.reportSame && !trouble) await text(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
       return { different: false, trouble };
     }
-    if (nested) await text(["diff", ...options.optionArgs.map(quoteDiffArgument), quoteDiffName(options.labels[0] ?? left), quoteDiffName(options.labels[1] ?? right)].join(" ") + "\n");
+    if (nested && visible) await text(["diff", ...options.optionArgs.map(quoteDiffArgument), quoteDiffName(options.labels[0] ?? left), quoteDiffName(options.labels[1] ?? right)].join(" ") + "\n");
     if (options.format === "ed") {
       await renderEd(next, count, group, budget, append);
       return { different: true, trouble };
@@ -198,6 +228,7 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
       for (let index = 0; index < count; index++) {
         const change = await group(index);
         budget.hunk();
+        if (change.ignored) continue;
         await text(`${range(change.oldStart, change.oldCount)}${change.oldCount === 0 ? "a" : change.newCount === 0 ? "d" : "c"}${range(change.newStart, change.newCount)}\n`, 36);
         for (let row = 0; row < change.oldCount; row++) await line(old, change.oldStart + row, "< ", render, 31);
         if (change.oldCount && change.newCount) await text("---\n");
@@ -214,6 +245,13 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
         const oldEnd = change.oldCount ? (await old.line(change.oldStart + change.oldCount - 1)).end : oldStart;
         const newStart = change.newStart < next.length ? (await next.line(change.newStart)).start : next.size;
         const newEnd = change.newCount ? (await next.line(change.newStart + change.newCount - 1)).end : newStart;
+        if (change.ignored) {
+          if (options.format === "ifdef") {
+            for await (const bytes of old.range(position, oldEnd)) await append(bytes);
+            position = oldEnd;
+          }
+          continue;
+        }
         if (options.format === "rcs") {
           if (change.oldCount) await text(`d${change.oldStart + 1} ${change.oldCount}\n`);
           if (change.newCount) {
@@ -231,19 +269,23 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
         }
       }
       if (options.format === "ifdef") for await (const bytes of old.range(position, old.size)) await append(bytes);
-      return { different: true, trouble };
+      if (!visible && options.reportSame && !trouble) await text(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`);
+      return { different: visible > 0, trouble };
     }
     const unified = options.format === "unified";
     await text(`${unified ? "---" : "***"} ${options.labels[0] ?? quoteDiffName(sources.left === undefined ? "/dev/null" : left)}\n`, 1);
     await text(`${unified ? "+++" : "---"} ${options.labels[1] ?? quoteDiffName(sources.right === undefined ? "/dev/null" : right)}\n`, 1);
     for (let index = 0; index < count;) {
       const first = await group(index);
-      let last = first, end = index + 1;
+      let last = first, end = index + 1, changed = !first.ignored;
       while (end < count) {
         const following = await group(end);
-        if (following.oldStart - last.oldStart - last.oldCount > 2 * options.context) break;
+        const gap = following.oldStart - last.oldStart - last.oldCount;
+        if (gap > 2 * options.context || following.ignored && gap >= options.context) break;
+        changed ||= !following.ignored;
         last = following; end++;
       }
+      if (!changed) { index = end; continue; }
       const lead = Math.min(options.context, first.oldStart);
       const trail = Math.min(options.context, old.length - last.oldStart - last.oldCount);
       const oldStart = first.oldStart - lead, newStart = first.newStart - lead;

@@ -4,7 +4,7 @@ import { encodeBytes } from "safe-bash-io-engine/byte-encoding";
 import type { DiffFlags } from "./diff-options.js";
 import { documentText } from "./indexed-normalization.js";
 
-export interface IndexedGroup { oldStart: number; newStart: number; oldCount: number; newCount: number }
+export interface IndexedGroup { oldStart: number; newStart: number; oldCount: number; newCount: number; ignored?: boolean }
 type GroupReader = (index: number) => Promise<IndexedGroup>;
 type Append = (bytes: Uint8Array) => Promise<void>;
 
@@ -12,6 +12,7 @@ export async function renderEd(next: IndexedDocument, count: number, group: Grou
   for (let index = count - 1; index >= 0; index--) {
     const change = await group(index);
     budget.hunk();
+    if (change.ignored) continue;
     const start = change.oldStart + 1, end = change.oldStart + change.oldCount;
     const range = change.oldCount > 1 ? `${start},${end}` : `${start}`;
     await append(encodeBytes(`${change.oldCount ? range : change.oldStart}${change.oldCount ? change.newCount ? "c" : "d" : "a"}\n`));
@@ -73,23 +74,24 @@ export async function renderSideBySide(old: IndexedDocument, next: IndexedDocume
     return (await document.data.read(8 + bounds.end - 1, 1))[0] === 10;
   };
   const row = async (left: number | undefined, right: number | undefined, common: boolean) => {
-    if (common && options.suppressCommon) return;
+    if (common && left !== undefined && right !== undefined && options.suppressCommon) return;
     if (options.width > budget.limits.maxOutputBytes) throw new ToolError("output byte limit exceeded");
     const leftLf = await terminated(old, left), rightLf = await terminated(next, right);
-    const marker = common ? " " : left === undefined ? ">" : right === undefined ? "<" : !leftLf && rightLf ? "\\" : leftLf && !rightLf ? "/" : "|";
+    const marker = common ? left === undefined ? ")" : right === undefined ? "(" : " "
+      : left === undefined ? ">" : right === undefined ? "<" : !leftLf && rightLf ? "\\" : leftLf && !rightLf ? "/" : "|";
     const colored = options.color && (marker === "<" || marker === ">");
     if (colored) await append(encodeBytes(`\u001b[${marker === "<" ? 31 : 32}m`));
     const column = left === undefined ? 0 : await clipped(old, left, half, options.expand, utf8, append);
-    if (common && options.leftColumn) {
+    if (marker === " " && options.leftColumn) {
       await padding(column, markerColumn);
       await append(encodeBytes("(" + (leftLf ? "\n" : "")));
       return;
     }
-    if (!common) { await padding(column, markerColumn); await append(encodeBytes(marker)); }
+    if (marker !== " ") { await padding(column, markerColumn); await append(encodeBytes(marker)); }
     if (right !== undefined) {
       const bounds = await next.line(right);
       if (bounds.end - bounds.start > Number(rightLf)) {
-        await padding(common ? column : markerColumn + 1, rightStart);
+        await padding(marker === " " ? column : markerColumn + 1, rightStart);
         await clipped(next, right, half, options.expand, utf8, append);
       }
     }
@@ -97,9 +99,17 @@ export async function renderSideBySide(old: IndexedDocument, next: IndexedDocume
     if (colored) await append(encodeBytes("\u001b[0m"));
   };
   let oldPosition = 0, newPosition = 0;
-  for (let index = 0; index < count; index++) {
-    const change = await group(index);
-    while (oldPosition < change.oldStart) await row(oldPosition++, newPosition++, true);
+  for (let index = 0; index <= count;) {
+    let change: IndexedGroup | undefined;
+    while (index < count) {
+      const candidate = await group(index++);
+      if (!candidate.ignored) { change = candidate; break; }
+    }
+    const oldEnd = change?.oldStart ?? old.length, newEnd = change?.newStart ?? next.length;
+    while (oldPosition < oldEnd || newPosition < newEnd) {
+      await row(oldPosition < oldEnd ? oldPosition++ : undefined, newPosition < newEnd ? newPosition++ : undefined, true);
+    }
+    if (!change) break;
     budget.hunk();
     for (let offset = 0; offset < Math.max(change.oldCount, change.newCount); offset++) {
       await row(offset < change.oldCount ? change.oldStart + offset : undefined,
@@ -108,5 +118,4 @@ export async function renderSideBySide(old: IndexedDocument, next: IndexedDocume
     oldPosition = change.oldStart + change.oldCount;
     newPosition = change.newStart + change.newCount;
   }
-  while (oldPosition < old.length) await row(oldPosition++, newPosition++, true);
 }

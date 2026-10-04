@@ -251,7 +251,13 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         const copied = await PdfRetainedDocument.open(input, storage, { ...(spec.password ? { password: spec.password } : {}), signal });
         let failed = false;
         try { yield* copyRetainedAttachments(copied, storage, { prefix: spec.prefix, signal }); }
-        catch (error) { failed = true; throw error; }
+        catch (error) {
+          failed = true;
+          if (error instanceof PdfError && error.message.startsWith("Unsupported streaming PDF filter: ")) {
+            throw new PdfError(error.code, `Unsupported PDF filter: ${error.message.slice("Unsupported streaming PDF filter: ".length)}`);
+          }
+          throw error;
+        }
         finally { await copied.close().catch(error => { if (!failed) throw error; }); }
       }
     }

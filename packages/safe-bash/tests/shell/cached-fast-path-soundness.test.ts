@@ -173,6 +173,45 @@ for (const [name, source, env, expected] of [
   });
 }
 
+for (const [name, source, expected] of [
+  ["octal initialization", "s=010; for i in {1..3}; do s=$((s + i)); done; echo $s", "14\n"],
+  ["negative octal initialization", "s=-010; for i in {1..3}; do s=$((s + i)); done; echo $s", "-2\n"],
+  ["IFS initialization", "IFS=5; s=0; for i in {1..10}; do s=$((s + i)); done; echo $s", " \n"],
+] as const) {
+  test(`repeated cached script preserves ${name}`, async context => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+    context.after(() => shell.dispose());
+    const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+    assert.equal(oracle.status, 0, oracle.stderr);
+    assert.equal(oracle.stdout, expected);
+    for (let run = 0; run < 4; run++) {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, oracle.stdout, `execution ${run + 1}`);
+    }
+  });
+}
+
+test("cached script rechecks IFS after warming in the same shell", async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const source = "s=0; for i in {1..10}; do s=$((s + i)); done; echo $s";
+  for (let run = 0; run < 3; run++) {
+    assert.equal((await shell.exec(source)).stdout, "55\n");
+  }
+  for (const [setup, env] of [["IFS=5", { IFS: "5" }], ["IFS=", { IFS: "" }], ["unset IFS", {}]] as const) {
+    const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", `${setup}; ${source}`], { encoding: "utf8" });
+    assert.equal(oracle.status, 0, oracle.stderr);
+    for (let run = 0; run < 2; run++) {
+      const result = await shell.exec(source, { env });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, oracle.stdout, setup);
+    }
+  }
+});
+
 test("cached script expands unquoted pathname patterns", async context => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/work");

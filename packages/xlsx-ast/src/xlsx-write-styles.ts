@@ -1,7 +1,7 @@
 import { SsconvertError } from "@poe-code/spreadsheet-engine/contracts";
 import type { Cell, ImportedValue } from "@poe-code/spreadsheet-ast";
 import { cellValueFormat } from "@poe-code/spreadsheet-engine/workbook/value-format";
-import { metadataNode, type ElementWriter, type MetadataNode } from "@poe-code/spreadsheet-engine/codecs/xlsx-write-support";
+import { escapeXlsx, metadataNode, type ElementWriter, type MetadataNode } from "@poe-code/spreadsheet-engine/codecs/xlsx-write-support";
 import { encodeXlsxString } from "@poe-code/spreadsheet-engine/codecs/xlsx-strings";
 
 const builtinFormats = new Map<string, number>(Object.entries({ General: 0, "0": 1, "0.00": 2, "#,##0": 3, "#,##0.00": 4,
@@ -25,9 +25,9 @@ function rgb(source: string | undefined, fallback: string): string {
 function alignment(value: string | undefined, fallback: string): string {
   return value === undefined ? fallback : value.toLowerCase().split("_").at(-1) ?? fallback;
 }
-export function createXlsxStyles(xml: ElementWriter, edition: "2006" | "2008", namespace: string, charge: (amount?: number) => void) {
+export function createXlsxStyles(xml: ElementWriter, edition: "2006" | "2008", namespace: string, charge: (amount?: number) => void, retained: readonly MetadataNode[] = []) {
   const styles: { format: string; node?: MetadataNode }[] = [{ format: "General" }];
-  const dxfs: MetadataNode[] = [];
+  const dxfs: MetadataNode[] = [...retained];
   const differentialIds = new Map<string, number>();
   const keys = new Map<string, number>(); keys.set(JSON.stringify(styles[0]), 0);
   function register(cell: Pick<Cell, "format" | "style"> & Partial<Pick<Cell, "value" | "cachedResult">>, inherited = 0): number {
@@ -75,7 +75,8 @@ export function createXlsxStyles(xml: ElementWriter, edition: "2006" | "2008", n
       xml("fonts", { count: fonts.length }, fonts.join("")) + xml("fills", { count: fills.length }, fills.join("")) + xml("borders", { count: borders.length }, borders.join("")) +
       xml("cellStyleXfs", { count: 1 }, defaultXf) + xml("cellXfs", { count: xfs.length }, xfs.join("")) +
       xml("cellStyles", { count: 1 }, xml("cellStyle", { name: "Normal", xfId: 0, builtinId: 0 })) +
-      (dxfs.length ? xml("dxfs", { count: dxfs.length }, dxfs.map(node => {
+      (dxfs.length ? xml("dxfs", { count: dxfs.length }, dxfs.map((node, index) => {
+        if (index < retained.length) return render(node);
         const a = node.attributes; let content = "";
         if (a.Back !== undefined || a.PatternColor !== undefined || a.Shade !== undefined) {
           const invert = Number(a.Shade) === 1, foreground = invert ? a.PatternColor : a.Back, background = invert ? a.Back : a.PatternColor;
@@ -90,12 +91,18 @@ export function createXlsxStyles(xml: ElementWriter, edition: "2006" | "2008", n
         return xml("dxf", {}, content);
       }).join("")) : ""));
   }
+  function render(node: MetadataNode): string {
+    charge();
+    if (node.namespace !== namespace || Object.keys(node.attributes).some(name => name === "xmlns" || name.includes(":") && name !== "xml:space"))
+      throw new SsconvertError("unsupported-feature", "Unsupported XLSX differential style namespace or relationship");
+    return xml(node.name, node.attributes, escapeXlsx(node.text) + node.children.map(render).join(""));
+  }
   function differential(node: MetadataNode): number {
     const key = JSON.stringify(node); charge(key.length); const existing = differentialIds.get(key);
     if (existing !== undefined) return existing;
     differentialIds.set(key, dxfs.length); dxfs.push(node); return dxfs.length - 1;
   }
-  return { register, differential, serialize };
+  return { register, differential, serialize, retainedDifferentialCount: retained.length };
 }
 export function styleRecord(style: Readonly<Record<string, ImportedValue>> | undefined): MetadataNode | undefined {
   const node = metadataNode(style?.gnumeric);

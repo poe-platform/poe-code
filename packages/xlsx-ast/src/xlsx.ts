@@ -355,6 +355,8 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
     const cellStyles = await readXlsxStyles(styleRoot, theme, context);
     workbook = await recognize(workbook, "xlsx_workbook_dtd", context);
     const workbookRecords: UnsupportedRecord[] = children(workbook, "workbookProtection").map(node => record(node, workbookPath));
+    const differentialStyles = child(styleRoot, "dxfs");
+    if (differentialStyles) workbookRecords.push(record(differentialStyles, workbookRelations.find(relation => relation.type === relationships + "/styles")!.target));
     for (const type of ["theme", "externalLink", "pivotCacheDefinition"]) {
       for (const relation of workbookRelations.filter(r => r.type === relationships + "/" + type && !r.external))
         workbookRecords.push(record(await opc.document(relation.target), relation.target));
@@ -865,7 +867,11 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<Co
       }) };
     }
     const namespace = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
-    const styles = createXlsxStyles(xml, edition, namespace, charge);
+    const differentialRecord = book.unsupportedRecords?.find(record => record.kind === "dxfs" && metadataNode(record.data, charge)?.namespace === namespace);
+    const differentialNode = metadataNode(differentialRecord?.data, charge);
+    if (differentialNode && (differentialNode.name !== "dxfs" || Object.keys(differentialNode.attributes).some(key => key !== "count") || differentialNode.children.some(node => node.name !== "dxf")))
+      throw new SsconvertError("unsupported-feature", "Unsupported XLSX differential style table");
+    const styles = createXlsxStyles(xml, edition, namespace, charge, differentialNode?.children);
     const zip = createZipCodec(); const bounds = { ...zipLimits(context), maxArchiveBytes: context.limits.outputBytes,
       maxEntryBytes: context.limits.outputBytes, maxTotalBytes: context.limits.outputBytes, maxTextBytes: context.limits.outputBytes };
     if (closed) throw new SsconvertError("invalid-request", "XLSX writer is closed");
@@ -1277,7 +1283,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<Co
       { id: "rId4", type: relationships + "/custom-properties", target: "docProps/custom.xml" }
     ]));
     for (const record of book.unsupportedRecords ?? []) {
-      if (protection.handled.has(record) || record === theme?.record) continue;
+      if (protection.handled.has(record) || record === theme?.record || record === differentialRecord) continue;
       const node = metadataNode(record.data, charge);
       const office = "urn:oasis:names:tc:opendocument:xmlns:office:1.0", meta = "urn:oasis:names:tc:opendocument:xmlns:meta:1.0";
       if (record.kind === "document-meta" && node?.namespace === office && node.children.length === 1 &&

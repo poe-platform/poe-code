@@ -16,7 +16,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
   const settings = await writeXlsxSheetSettings(sheet, records, xml, context, namespace, charge);
   const pi = records.find(r => r.record.kind === "PrintInformation")?.node;
   let print = settings.print;
-  let filters = "", rules = "";
+  let filters = "", rules = "", conditionalRules = "";
   const parts: { name: string; content: string; type: string; relation: string }[] = [];
   const handled = new Set(["PrintInformation", "SheetLayout", "Styles"]);
   const render = (node: MetadataNode): string => {
@@ -205,13 +205,22 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
       }
       cf += xml("cfRule", { type: op === 8 ? "expression" : "cellIs", dxfId: styles.differential(overlay), priority: 1, stopIfTrue: 1, operator: operators[op] }, content);
     }
-    if (cf) rules += xml("conditionalFormatting", { sqref: ref }, cf);
+    if (cf) conditionalRules += xml("conditionalFormatting", { sqref: ref }, cf);
   }
   if (validationCount) rules += xml("dataValidations", { count: validationCount }, validations);
   for (const { record, node } of records) {
     context.signal.throwIfAborted();
     if (handled.has(record.kind) || settings.handled.has(record) || record.kind === "autoFilter") continue;
     if (record.source === "Gnumeric_XmlIO:sax" && (record.kind === "Rows" && sheet.rows !== undefined || record.kind === "Cols" && sheet.columns !== undefined)) continue;
+    if (node?.namespace === namespace && record.kind === "conditionalFormatting") {
+      for (const rule of node.children) {
+        charge();
+        const id = rule.attributes.dxfId;
+        if (id !== undefined && (id.trim() === "" || !Number.isInteger(Number(id)) || Number(id) < 0 || Number(id) >= styles.retainedDifferentialCount))
+          throw new SsconvertError("unsupported-feature", "Unsupported XLSX differential style reference");
+      }
+      conditionalRules += render(node); continue;
+    }
     if (node?.namespace === namespace && record.kind === "dataValidations") { rules += render(node); continue; }
     // Retained relationship IDs cannot be copied into a new package without their targets.
     await context.diagnostic?.({ code: "xlsx-write-loss", severity: "warning", message: `XLSX writer does not export sheet '${sheet.name}' record '${record.kind}'` });
@@ -223,7 +232,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
       await context.diagnostic?.({ code: "xlsx-write-loss", severity: "warning", message: `XLSX writer does not export sheet '${sheet.name}' style '${node.name}'` });
     }
   }
-  return { filters, rules, parts, ...settings, print };
+  return { filters, rules: conditionalRules + rules, parts, ...settings, print };
 }
 export function writeXlsxProperties(book: Workbook, xml: ElementWriter) {
   const vt = "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes";

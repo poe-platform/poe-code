@@ -3,6 +3,12 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "xlsxConditionalMetadataRetention": {
+      "finding": "XLSX import kept raw conditionalFormatting rules but discarded their differential table; re-export then warned and dropped all rules.",
+      "repair": "Retain the parsed differential table as workbook metadata and emit it before generated differential styles, preserving source indexes. Copy self-contained raw conditional rules in schema order before validations; reject dangling indexes and unsupported namespace/relationship metadata. Other loss warnings remain.",
+      "verification": "Six original failures repaired,plus namespace and unrelated-warning controls;375 owner/integration tests,selected build and owner lint/types pass. Twelve compiled SDK/command conversions and SDK-adopted range edits from two independently generated native inputs match396 OpenPyXL differential/rule/range projections across both editions. All product diagnostics empty; native default-style reader warning retained.",
+      "remaining": "This is editable opaque XLSX preservation. Conditional evaluation/rendering, normalized imports, formula relocation and cross-format transport remain unimplemented; all19 families remain open."
+    },
     "xlsxDifferentialFillColors": {
       "finding": "Differential XLSX fill export dropped PatternColor, fabricated solid/white defaults for absent fields, and emitted a loss warning for pattern colors.",
       "repair": "Emit only present fill properties, retain both colors, invert roles only for explicit shade1, and admit PatternColor as represented metadata. Other unsupported differential fields still warn.",

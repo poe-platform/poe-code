@@ -162,8 +162,7 @@ long shared-prefix keys, reused source buffers, actual spill writes capped at
 16 KiB, slow consumers, cancellation and source/storage failure cleanup. Independent
 python-pptx verification matched sizes and SHA-256 hashes for all 25 parts in a
 two-slide deck with an embedded chart workbook. This is package metadata only:
-slide inheritance/visibility, handout references and text styles still
-need retained inventory admission, followed by shipped-operation integration.
+text styles still need retained inventory admission, followed by shipped-operation integration.
 
 Diagram inventory now also uses caller pages for each traversal FIFO, visited
 and missing-target sets, owner deduplication, and sorted result lists. MIME
@@ -180,6 +179,24 @@ failure cleanup during traversal. A Python-authored diagram resource graph insid
 a native-readable PPTX matched owners, cyclic dependencies and missing targets.
 This is dependency inventory, not semantic diagram editing or Worker runtime
 qualification.
+
+`openRetainedSlideInventory` now stores ordered slide rows, indexed shape counts,
+layout/master/theme references, visibility and ordered handout references in
+caller pages. It borrows admitted selection records and the archive, owns its
+relationship/XML admission stores, and closes those temporary stores before
+returning. Visibility consumes arbitrarily long whitespace incrementally;
+handout relationship IDs stay streamed. Shape counts use a single record pass
+and indexed lookups rather than filtering all objects for every slide.
+
+Parity tests cover visibility values and rejection codes, ambiguous and absent
+inheritance, nested shapes, handout list order/duplicates and invalid references.
+Generated coverage observes actual caller spills capped at 16 KiB with 32 slides,
+a 32 KiB reused-buffer handout ID, slow consumers, and read/write/cancellation
+failure cleanup. Independent python-pptx verification matched two slides' IDs,
+nested shape counts, layout/master/theme parts and hidden-slide state. The
+remaining inventory prerequisite is retained text-style resolution, then complete
+inventory/selection integration into the shipped commands. No Worker runtime
+qualification or end-to-end completion is claimed.
 
 ## Remaining implementation
 

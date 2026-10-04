@@ -10,14 +10,17 @@ non-streaming backends retain a buffered compatibility path. Ignored lines,
 function headings and directory metadata still need migration. GNU patch
 target payloads, hunk application and publication now use caller-backed documents
 and retained staging writers, including merge/ifdef, backups, rejects and output
-concatenation. Patch input parsing, hunk metadata, file maps and aggregate caches
+concatenation. Target documents now share a 256 KiB aggregate page cache.
+Patch input parsing, hunk metadata, file maps and retained resource handles
 still need migration; the buffered patch convenience evaluator is no longer
 registered for automatic shell execution.
 Apply-patch payload parsing, target snapshots, matching and replacements use
 caller-backed indexes and retained staged publication. Patch lines remain byte
 ranges during grammar parsing and normalized matching. Line, anchor and hunk
 descriptors share one caller-backed page cache and matching iterates stored
-patterns. File paths and per-file plan metadata remain buffered. Pagination uses caller-backed output pages, bounded sink writes and incremental single-column
+patterns. Documents and the staged success summary share a 256 KiB page cache
+across all files. File paths, per-file plans and retained resource handles remain
+in memory. Pagination uses caller-backed output pages, bounded sink writes and incremental single-column
 line rendering. Other pr layouts are outside this coverage. Do not infer
 qualification of unmigrated paths from these tests.
 

@@ -1,4 +1,4 @@
-import { bytesFrom } from "safe-bash-byte-engine";
+import { PagedStorage } from "@poe-code/safe-fs/storage";
 import {
   createOutputOperation, dirname, readBytes, writeBytes,
   type ByteSource, type CommandContext, type FileReadHandle, type FileStaging, type FileStat, type FileSystem,
@@ -308,7 +308,9 @@ class Invocation {
     const { context, work } = this;
     work.check();
     context.registerCleanup?.(work.close);
-    let summary: Uint8Array;
+    const summary = new PagedStorage(context, 2, work.documentCache);
+    this.documents.add(summary);
+    let summaryBytes = 0;
     try {
       try {
         const input = await this.input();
@@ -317,16 +319,24 @@ class Invocation {
         const files = await parseDocument(input, work, metadata);
         await this.confine(files);
         const plans = await this.prepare(files);
-        const lines = ["Success. Updated the following files:\n"];
-        let bytes = lines[0]!.length;
-        for (const file of files) {
-          const line = `${file.kind === "add" ? "A" : file.kind === "delete" ? "D" : "M"} ${file.destinationLabel ?? file.label}\n`;
-          bytes += await work.utf8(line, work.limits.maxOutputBytes - bytes);
-          lines.push(line);
-        }
-        if (bytes > work.limits.maxOutputBytes) throw new PatchError("maxOutputBytes limit exceeded");
-        await work.charge(bytes * 2);
-        summary = bytesFrom(lines.join(""));
+        const header = "Success. Updated the following files:\n";
+        const summaryLine = (file: PatchFile) => `${file.kind === "add" ? "A" : file.kind === "delete" ? "D" : "M"} ${file.destinationLabel ?? file.label}\n`;
+        summaryBytes = header.length;
+        for (const file of files) summaryBytes += await work.utf8(summaryLine(file), work.limits.maxOutputBytes - summaryBytes);
+        if (summaryBytes > work.limits.maxOutputBytes) throw new PatchError("maxOutputBytes limit exceeded");
+        await work.charge(summaryBytes * 2);
+        const encoder = new TextEncoder();
+        const stage = async (text: string) => {
+          for (let offset = 0; offset < text.length;) {
+            let end = Math.min(text.length, offset + 4096);
+            const unit = text.charCodeAt(end - 1);
+            if (end < text.length && unit >= 0xd800 && unit <= 0xdbff) end--;
+            await summary.append(encoder.encode(text.slice(offset, end)));
+            offset = end;
+          }
+        };
+        await stage(header);
+        for (const file of files) await stage(summaryLine(file));
         await work.checkpoint();
         await this.publish(plans);
         work.check();
@@ -338,8 +348,8 @@ class Invocation {
       }
       const operation = createOutputOperation(context, context.stdout);
       try {
-        for (let offset = 0; offset < summary.length; offset += 16 * 1024) {
-          await writeBytes(operation.output, summary.subarray(offset, offset + 16 * 1024), operation.signal);
+        for (let offset = 0; offset < summaryBytes; offset += 16 * 1024) {
+          await writeBytes(operation.output, await summary.read(8 + offset, Math.min(16384, summaryBytes - offset)), operation.signal);
         }
       } finally { await operation.close(); }
       return { exitCode: 0 };

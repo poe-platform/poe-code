@@ -23,7 +23,8 @@ limits. Shell input limits include the patch and physical target reads, includin
 the safety rechecks before publication.
 
 Patch payloads, target snapshots, line indexes and replacements use bounded caches
-backed by your injected filesystem. Long patch and target lines are matched and copied in blocks, including
+backed by your injected filesystem. Documents and the success summary share a
+256 KiB resident-page budget across all files. Long patch and target lines are matched and copied in blocks, including
 whitespace and Unicode normalization. Publication uses retained staging writes and
 atomic conditional replacement, preserving existing file identity and hardlinks.
 Backends need retained reads, retained staging cleanup/writes, atomic staged file

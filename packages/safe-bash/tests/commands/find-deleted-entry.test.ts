@@ -19,19 +19,22 @@ test("find ignores deleted memory-directory entries", async () => {
 });
 
 for (const deletedType of ["file", "directory"] as const) {
-  test(`find output and pipelines ignore deleted ${deletedType} entries`, async () => {
+for (const deletedName of ["a.txt", "b.txt", "c.txt"]) {
+  test(`find output and pipelines ignore deleted ${deletedType} ${deletedName}`, async () => {
     const fs = new MemoryFileSystem();
     await fs.mkdir("/dir");
-    await fs.writeFile("/dir/a.txt", Uint8Array.of(65));
-    if (deletedType === "file") await fs.writeFile("/dir/b.txt", Uint8Array.of(66));
-    else await fs.mkdir("/dir/b.txt");
-    await fs.writeFile("/dir/c.txt", Uint8Array.of(67));
+    const names = ["a.txt", "b.txt", "c.txt"];
+    for (const name of names) {
+      if (name === deletedName && deletedType === "directory") await fs.mkdir(`/dir/${name}`);
+      else await fs.writeFile(`/dir/${name}`, Uint8Array.of(65));
+    }
     const shell = new Shell({ fs }).use(standardCommands());
     try {
-      const removed = await shell.exec("rm -r /dir/b.txt");
+      const removed = await shell.exec(`rm -r /dir/${deletedName}`);
       assert.equal(removed.exitCode, 0, removed.stderr);
       for (const expression of ["", " -type f", ' -name "*"', ' -iname "*"']) {
-        const expected = `${expression === " -type f" ? "" : "/dir\n"}/dir/a.txt\n/dir/c.txt\n`;
+        const remaining = names.filter(name => name !== deletedName).map(name => `/dir/${name}\n`).join("");
+        const expected = `${expression === " -type f" ? "" : "/dir\n"}${remaining}`;
         const result = await shell.exec(`find /dir${expression}`);
         assert.equal(result.exitCode, 0, result.stderr);
         assert.equal(result.stdout, expected);
@@ -43,4 +46,5 @@ for (const deletedType of ["file", "directory"] as const) {
       }
     } finally { await shell.dispose(); }
   });
+}
 }

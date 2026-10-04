@@ -1,8 +1,9 @@
-import { fs as native, vol } from "memfs";
+import { vol } from "memfs";
 import { beforeEach, expect, test, vi } from "vitest";
 import { RealFileSystem } from "../src/fs/real/index.js";
 import { MemoryFileSystem } from "../src/fs/memory/index.js";
 import { MountFileSystem } from "../src/fs/mount/index.js";
+import type { FileSystem } from "../src/contracts/index.js";
 import { Shell } from "../../safe-bash/src/index.js";
 import { diffPatchCommands } from "../../safe-bash/src/commands/diff-patch/index.js";
 
@@ -14,16 +15,22 @@ vi.mock("node:fs", async () => {
 const bytes = (text: string) => new TextEncoder().encode(text);
 const change = "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n";
 beforeEach(() => { vi.restoreAllMocks(); vol.reset(); vol.mkdirSync("/machine", { recursive: true }); });
-async function fixture(mounted: boolean) {
-  const real = new RealFileSystem("/machine");
-  const fs = mounted ? new MountFileSystem({ root: new MemoryFileSystem(), mounts: { "/work": real } }) : real;
+async function fixture(mounted: boolean, retained = true) {
+  const backend = retained ? new MemoryFileSystem() : new RealFileSystem("/machine");
+  if (retained) {
+    // Model an isolated trusted host while retaining the backend's real staging leases.
+    Object.defineProperty(backend, "capabilities", { configurable: true, value: {
+      ...backend.capabilities, atomicStagingAncestry: false, trustedOwnedStaging: true,
+    } });
+  }
+  const fs: FileSystem = mounted ? new MountFileSystem({ root: new MemoryFileSystem(), mounts: { "/work": backend } }) : backend;
   await fs.mkdir("/work", { recursive: true });
   await fs.writeFile("/work/target", bytes("old\n"));
   await fs.chmod!("/work/target", 0o751);
   await fs.writeFile("/work/new", bytes("new\n"));
   await fs.writeFile("/work/change", bytes(change));
   const shell = new Shell({ fs }).use(diffPatchCommands());
-  return { fs, real, shell, root: mounted ? "/machine" : "/machine/work" };
+  return { fs, backend, shell, root: mounted ? "" : "/work" };
 }
 for (const mounted of [false, true]) {
   for (const piped of [false, true]) test(`${mounted ? "mounted" : "direct"} trusted patch ${piped ? "pipeline" : "input"} preserves mode and reverses`, async () => {
@@ -38,6 +45,9 @@ for (const mounted of [false, true]) {
       expect(await fs.readFile("/work/target")).toEqual(bytes("old\n"));
       expect((await fs.readdir("/work")).map(entry => entry.name).sort()).toEqual(["change", "new", "target"]);
       expect(fs.capabilities.atomicStagingAncestry).not.toBe(true);
+      const capabilities = await fs.capabilitiesFor?.("/work") ?? fs.capabilities;
+      expect(capabilities.retainedStagingCleanup).toBe(true);
+      expect(capabilities.retainedStagingWrite).toBe(true);
     } finally { await shell.dispose(); }
   });
   test(`${mounted ? "mounted" : "direct"} trusted patch creates nested paths and deletes them on reverse`, async () => {
@@ -54,28 +64,28 @@ for (const mounted of [false, true]) {
   });
 }
 for (const conflict of ["target", "ancestor", "failure", "cancel"] as const) test(`trusted patch handles ${conflict} before publication`, async () => {
-  const { fs, real, shell, root } = await fixture(false);
-  const original = real.createStagedFile.bind(real);
+  const { fs, backend, shell, root } = await fixture(false);
+  const original = backend.createStagedFile.bind(backend);
   const controller = new AbortController();
-  vi.spyOn(real, "createStagedFile").mockImplementation(async (...args) => {
+  vi.spyOn(backend, "createStagedFile").mockImplementation(async (...args) => {
     const staged = await original(...args);
-    if (conflict === "target") native.writeFileSync(`${root}/target`, "foreign\n");
+    if (conflict === "target") await backend.writeFile(`${root}/target`, bytes("foreign\n"));
     if (conflict === "ancestor") {
-      native.renameSync(root, `${root}-saved`);
-      native.mkdirSync(root);
-      native.writeFileSync(`${root}/target`, "foreign\n");
+      await backend.rename(root, `${root}-saved`);
+      await backend.mkdir(root);
+      await backend.writeFile(`${root}/target`, bytes("foreign\n"));
     }
     if (conflict === "cancel") controller.abort(new Error("cancelled"));
     return staged;
   });
-  if (conflict === "failure") vi.spyOn(real, "publishStagedFile").mockRejectedValue(new Error("publication failed"));
+  if (conflict === "failure") vi.spyOn(backend, "publishStagedFile").mockRejectedValue(new Error("publication failed"));
   try {
     const result = await shell.exec("patch -i change", { cwd: "/work", signal: controller.signal }).catch(error => error);
-    expect(real.createStagedFile).toHaveBeenCalled();
+    expect(backend.createStagedFile).toHaveBeenCalled();
     expect(result.exitCode).not.toBe(0);
     expect(await fs.readFile("/work/target")).toEqual(bytes(conflict === "target" || conflict === "ancestor" ? "foreign\n" : "old\n"));
     if (conflict !== "ancestor") expect((await fs.readdir("/work")).some(entry => entry.name.startsWith(".patch-"))).toBe(false);
-    else expect(native.readFileSync(`${root}-saved/target`, "utf8")).toBe("old\n");
+    else expect(await backend.readFile(`${root}-saved/target`)).toEqual(bytes("old\n"));
   } finally { await shell.dispose(); }
 });
 
@@ -91,11 +101,11 @@ test("trusted patch preserves UTF-8 bytes and missing final newlines", async () 
 });
 
 test("trusted patch preserves the published prefix when a later file fails", async () => {
-  const { fs, real, shell } = await fixture(false);
+  const { fs, backend, shell } = await fixture(false);
   await fs.writeFile("/work/second", bytes("old\n"));
   await fs.writeFile("/work/change", bytes(change + "--- second\n+++ second\n@@ -1 +1 @@\n-old\n+new\n"));
-  const publish = real.publishStagedFile.bind(real);
-  vi.spyOn(real, "publishStagedFile").mockImplementation(async (stage, path, options) => {
+  const publish = backend.publishStagedFile.bind(backend);
+  vi.spyOn(backend, "publishStagedFile").mockImplementation(async (stage, path, options) => {
     if (path === "/work/second") throw new Error("second publication failed");
     await publish(stage, path, options);
   });
@@ -109,21 +119,21 @@ test("trusted patch preserves the published prefix when a later file fails", asy
 });
 
 for (const operation of ["create", "delete"] as const) test(`trusted patch refuses a competing ${operation} entry`, async () => {
-  const { fs, real, shell, root } = await fixture(false);
+  const { fs, backend, shell, root } = await fixture(false);
   await fs.writeFile("/work/change", bytes(operation === "create"
     ? "--- /dev/null\n+++ added\n@@ -0,0 +1 @@\n+new\n"
     : "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n"));
   if (operation === "create") {
-    const create = real.createStagedFile.bind(real);
-    vi.spyOn(real, "createStagedFile").mockImplementation(async (...args) => {
+    const create = backend.createStagedFile.bind(backend);
+    vi.spyOn(backend, "createStagedFile").mockImplementation(async (...args) => {
       const stage = await create(...args);
-      native.writeFileSync(`${root}/added`, "foreign\n");
+      await backend.writeFile(`${root}/added`, bytes("foreign\n"));
       return stage;
     });
   } else {
-    const remove = real.removeFileConditional.bind(real);
-    vi.spyOn(real, "removeFileConditional").mockImplementation(async (...args) => {
-      native.writeFileSync(`${root}/target`, "foreign\n");
+    const remove = backend.removeFileConditional.bind(backend);
+    vi.spyOn(backend, "removeFileConditional").mockImplementation(async (...args) => {
+      await backend.writeFile(`${root}/target`, bytes("foreign\n"));
       await remove(...args);
     });
   }
@@ -136,17 +146,35 @@ for (const operation of ["create", "delete"] as const) test(`trusted patch refus
 });
 
 test("patch still refuses a host without either publication contract", async () => {
-  const { real, shell } = await fixture(false);
+  const { backend, shell } = await fixture(false);
   await shell.dispose();
-  Object.defineProperty(real, "capabilities", { value: { ...real.capabilities, trustedOwnedStaging: false } });
-  const unsupported = new Shell({ fs: real }).use(diffPatchCommands());
+  Object.defineProperty(backend, "capabilities", { value: { ...backend.capabilities, trustedOwnedStaging: false } });
+  const unsupported = new Shell({ fs: backend }).use(diffPatchCommands());
   try {
     const result = await unsupported.exec("patch -i change", { cwd: "/work" });
     expect(result.exitCode).toBe(2);
     expect(result.stderr).toContain("filesystem does not support race-safe patch publication");
-    expect(await real.readFile("/work/target")).toEqual(bytes("old\n"));
+    expect(await backend.readFile("/work/target")).toEqual(bytes("old\n"));
   } finally { await unsupported.dispose(); }
 });
+
+for (const mounted of [false, true]) for (const piped of [false, true]) {
+  test(`${mounted ? "mounted" : "direct"} Real patch ${piped ? "pipeline" : "input"} refuses unsupported retained staging`, async () => {
+    const { fs, backend, shell } = await fixture(mounted, false);
+    const create = vi.spyOn(backend, "createStagedFile");
+    const publish = vi.spyOn(backend, "publishStagedFile");
+    try {
+      const result = await shell.exec(piped ? "diff -u --label target --label target target new | patch" : "patch -i change", { cwd: "/work" });
+      expect(result.exitCode).toBe(2);
+      expect(result.stderr).toContain("retainedStagingCleanup");
+      expect(create).not.toHaveBeenCalled();
+      expect(publish).not.toHaveBeenCalled();
+      expect(await fs.readFile("/work/target")).toEqual(bytes("old\n"));
+      expect((await fs.lstat("/work/target")).mode & 0o777).toBe(0o751);
+      expect((await fs.readdir("/work")).map(entry => entry.name).sort()).toEqual(["change", "new", "target"]);
+    } finally { await shell.dispose(); }
+  });
+}
 
 
 test("trusted patch refuses invalid UTF-8 without changing original bytes", async () => {

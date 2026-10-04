@@ -1,3 +1,5 @@
+import { PdfMergeLabels, type RetainedPageLabel } from "./retained-merge-labels.js";
+export type { RetainedPageLabel } from "./retained-merge-labels.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { cosDict, cosNumber, cosRef, dictDelete, dictGet, dictSet, type PdfCosRef } from "../ast.js";
 import { PdfMutableObjectStore } from "../cos/mutable-object-store.js";
@@ -7,7 +9,7 @@ import { PdfRetainedDocument, PdfRetainedPage } from "../retained-document.js";
 import { PdfError } from "../errors.js";
 import type { SaveRetainedDocumentOptions } from "./retained-save.js";
 
-export type EditRetainedDocumentOptions = Pick<SaveRetainedDocumentOptions, "linearize" | "rotations" | "removeInfo" | "removeMetadata" | "removeStructure" | "removeAcroform" | "removePageLabels" | "maxObjects" | "maxPages" | "maxRecursionDepth" | "signal">;
+export type EditRetainedDocumentOptions = Pick<SaveRetainedDocumentOptions, "linearize" | "rotations" | "removeInfo" | "removeMetadata" | "removeStructure" | "removeAcroform" | "removePageLabels" | "maxObjects" | "maxPages" | "maxRecursionDepth" | "signal"> & { readonly pageLabels?: Iterable<RetainedPageLabel> | AsyncIterable<RetainedPageLabel> };
 
 /** Own an editable graph and logical page index on caller storage. This applies
  * edits without the stream dictionary normalization performed by PDF saving.
@@ -20,7 +22,7 @@ export async function editRetainedDocument(source: PdfRetainedDocument, storage:
   const pages = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
   const base = pages.allocate(0); let count = 0, document: PdfRetainedDocument | undefined;
   let closing: Promise<void> | undefined;
-  let infoRef = source.crossReference.infoRef;
+  let infoRef = source.crossReference.infoRef, addedLabels = false;
   function close(): Promise<void> {
     return closing ??= (async () => {
       const results = await Promise.allSettled([document?.close(), store.close(), pages.close()]);
@@ -58,7 +60,19 @@ export async function editRetainedDocument(source: PdfRetainedDocument, storage:
       for (const key of keys) dictDelete(found.value, key);
       await store.set({ objectNumber: found.reference.objectNumber, generationNumber: found.reference.generationNumber, value: found.value });
     }
-    if (options.removePageLabels) await removeRoot(["PageLabels"]);
+    if (options.pageLabels !== undefined) {
+      const root = await document.lookup(source.crossReference.rootRef);
+      if (root?.value.kind === "dict" && !root.stream && root.reference) {
+        const labels = new PdfMergeLabels(storage, signal, options.maxRecursionDepth); let failed = false;
+        try {
+          await labels.appendLabels(options.pageLabels);
+          const output = (await labels.finish(store, root.value, true))!;
+          await store.setSerializedValue(output); addedLabels = true;
+          await store.set({ objectNumber: root.reference.objectNumber, generationNumber: root.reference.generationNumber, value: root.value });
+        } catch (error) { failed = true; throw error; }
+        finally { await labels.close().catch(error => { if (!failed) throw error; }); }
+      }
+    } else if (options.removePageLabels) await removeRoot(["PageLabels"]);
     if (options.removeInfo) {
       await removeRoot(["Metadata"]);
       const found = await document.lookup(source.crossReference.infoRef);
@@ -71,7 +85,7 @@ export async function editRetainedDocument(source: PdfRetainedDocument, storage:
     if (options.removeMetadata) await removeRoot(["Metadata"]);
     if (options.removeStructure) await removeRoot(["StructTreeRoot", "MarkInfo"]);
     if (options.removeAcroform) await removeRoot(["AcroForm"]);
-    if (infoRef !== source.crossReference.infoRef) {
+    if (addedLabels || infoRef !== source.crossReference.infoRef) {
       await document.close();
       document = await PdfRetainedDocument.openStore(store, storage, { ...configured, ...(infoRef ? { infoRef } : {}) });
     }

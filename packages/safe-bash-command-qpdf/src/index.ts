@@ -1,3 +1,4 @@
+import { parseQpdfPageLabels } from "./page-labels.js";
 import { formatSplitName } from "./split.js";
 import { parseQpdfPageRange } from "./page-range.js";
 export { parseQpdfPageRange, iterateQpdfPageRange } from "./page-range.js";
@@ -2099,26 +2100,18 @@ function* executeQpdfCli(
         dictDelete(rootDict, "PageLabels");
       } else if (pageLabelSpecs.length > 0) {
         const numsItems: PdfCosNode[] = [];
-        for (const spec of pageLabelSpecs) {
-          const colonIdx = spec.indexOf(":");
-          if (colonIdx <= 0) continue;
-          const startPage = Math.max(1, Number.parseInt(spec.slice(0, colonIdx), 10) || 1);
-          const rest = spec.slice(colonIdx + 1).split("/");
-          const styleCode = rest[0] ?? "D";
-          const parsedSecond = rest[1] !== undefined && rest[1].length > 0 ? Number.parseInt(rest[1], 10) : Number.NaN;
-          const startNum = Number.isFinite(parsedSecond) ? parsedSecond || 1 : 1;
-          const prefix = rest.length >= 3 ? (rest[2] ?? "") : !Number.isFinite(parsedSecond) ? (rest[1] ?? "") : "";
+        for (const { index, style, start, prefix } of parseQpdfPageLabels(pageLabelSpecs)) {
           const labelDict = cosDict({});
-          if (styleCode !== "n") {
-            dictSet(labelDict, "S", cosName(styleCode));
+          if (style !== undefined) {
+            dictSet(labelDict, "S", cosName(style));
           }
-          if (startNum !== 1) {
-            dictSet(labelDict, "St", cosNumber(startNum));
+          if (start !== undefined && start !== 1) {
+            dictSet(labelDict, "St", cosNumber(start));
           }
-          if (prefix.length > 0) {
+          if (prefix) {
             dictSet(labelDict, "P", cosString(prefix));
           }
-          numsItems.push(cosNumber(startPage - 1), labelDict);
+          numsItems.push(cosNumber(index), labelDict);
         }
         dictSet(rootDict, "PageLabels", workingDoc.cos.allocateObject(cosDict({ Nums: cosArray(numsItems) })));
       }
@@ -2498,7 +2491,7 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
     if (parsed.options) {
       const defaults = parseQpdfArguments([]).options!;
       const retained = Object.entries(parsed.options).every(([key, value]) => {
-        if (["inputFile", "outputFile", "password", "replaceInput", "warningExit0", "decrypt", "check", "showNpages", "showEncryption", "showObject", "rawStreamData", "filteredStreamData", "isEncrypted", "requiresPassword", "showPages", "withImages", "showXref", "removeInfo", "removeMetadata", "removeStructure", "removeAcroform", "removePageLabels", "emptyInput", "pageSpecs", "collateCount", "listAttachments", "showAttachmentKey", "showLinearization", "rotateSpecs", "splitPagesGroup", "linearize", "objectStreamsMode", "qdf", "normalizeContentFlag", "streamDataMode"].includes(key)) return true;
+        if (["inputFile", "outputFile", "password", "replaceInput", "warningExit0", "decrypt", "check", "showNpages", "showEncryption", "showObject", "rawStreamData", "filteredStreamData", "isEncrypted", "requiresPassword", "showPages", "withImages", "showXref", "removeInfo", "removeMetadata", "removeStructure", "removeAcroform", "removePageLabels", "emptyInput", "pageSpecs", "collateCount", "listAttachments", "showAttachmentKey", "showLinearization", "rotateSpecs", "splitPagesGroup", "linearize", "objectStreamsMode", "qdf", "normalizeContentFlag", "streamDataMode", "pageLabelSpecs"].includes(key)) return true;
         const baseline = defaults[key as keyof typeof defaults];
         return Array.isArray(value) ? value.length === 0 : value === baseline;
       });

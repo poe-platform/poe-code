@@ -1,4 +1,4 @@
-import { cosArray, cosDict, cosName, cosNumber, dictGet, dictSet, type PdfCosDict, type PdfCosNode } from "../ast.js";
+import { cosArray, cosDict, cosName, cosNumber, cosString, dictGet, dictSet, type PdfCosDict, type PdfCosNode } from "../ast.js";
 import { PdfMutableObjectStore } from "../cos/mutable-object-store.js";
 import { PdfReferenceSet } from "../cos/reference-set.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
@@ -6,6 +6,13 @@ import type { PdfSerializedOutputObject } from "../cos/retained-writer.js";
 import { serializeCosNodeChunks } from "../cos/writer.js";
 import { PdfError } from "../errors.js";
 import type { PdfRetainedDocument } from "../retained-document.js";
+
+export interface RetainedPageLabel {
+  readonly index: number;
+  readonly style?: string;
+  readonly start?: number;
+  readonly prefix?: string;
+}
 
 /** Retains label pairs on caller storage until every source has closed. */
 export class PdfMergeLabels {
@@ -56,6 +63,17 @@ export class PdfMergeLabels {
     catch (error) { failed = true; throw error; }
     finally { const results = await Promise.allSettled([seen.close(), frames.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
   }
+  async appendLabels(labels: Iterable<RetainedPageLabel> | AsyncIterable<RetainedPageLabel>): Promise<void> {
+    for await (const label of labels) {
+      await this.checkpoint();
+      if (!Number.isInteger(label.index) || label.index < 0 || (label.start !== undefined && !Number.isInteger(label.start))) throw new RangeError("Invalid PDF page label index or start");
+      const value = cosDict({});
+      if (label.style !== undefined) dictSet(value, "S", cosName(label.style));
+      if (label.start !== undefined && label.start !== 1) dictSet(value, "St", cosNumber(label.start));
+      if (label.prefix) dictSet(value, "P", cosString(label.prefix));
+      await this.objects.set({ objectNumber: ++this.count, generationNumber: 0, value: cosArray([cosNumber(label.index), value]) });
+    }
+  }
   private async *chunks() {
     const encoder = new TextEncoder(); yield encoder.encode("<<\n/Nums [ ");
     for await (const object of this.objects.objects()) {
@@ -65,8 +83,8 @@ export class PdfMergeLabels {
     }
     yield encoder.encode("]\n>>");
   }
-  async finish(target: PdfMutableObjectStore, catalog: PdfCosDict): Promise<PdfSerializedOutputObject | undefined> {
-    if (!this.count) return undefined;
+  async finish(target: PdfMutableObjectStore, catalog: PdfCosDict, allowEmpty = false): Promise<PdfSerializedOutputObject | undefined> {
+    if (!this.count && !allowEmpty) return undefined;
     const ref = await target.allocate(cosDict({ Nums: cosArray([]) })); dictSet(catalog, "PageLabels", ref);
     let length = 0; for await (const bytes of this.chunks()) length += bytes.length;
     return { objectNumber: ref.objectNumber, generationNumber: 0, body: { length, chunks: this.chunks() } };

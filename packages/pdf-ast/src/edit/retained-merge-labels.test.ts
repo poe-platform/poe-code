@@ -27,7 +27,7 @@ it("merges nested page labels with source offsets and exact serialization", asyn
   expect(new Uint8Array(Buffer.concat(chunks))).toEqual(expected.save()); expect(await fs.readdir("/scratch")).toEqual([]);
 });
 
-it("bounds generated label staging and cancels replay without whole-file I/O", async () => {
+it.each(["document", "labels"])("bounds generated %s label staging and cancels replay without whole-file I/O", async mode => {
   const { PdfMergeLabels } = await import("./retained-merge-labels.js"), { PdfMutableObjectStore } = await import("../cos/mutable-object-store.js");
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const controller = new AbortController(), reason = new Error("cancel labels"); let outstanding = 0, peak = 0;
   const guarded = new Proxy(fs, { get(owner, key) {
@@ -50,7 +50,8 @@ it("bounds generated label staging and cancels replay without whole-file I/O", a
     return { value: node === rootRef ? cosDict({ PageLabels: cosDict({ Nums: cosArray([cosNumber(0), cosDict({ S: cosName("D") })]) }) }) : node };
   } } as unknown as PdfRetainedDocument;
   try {
-    for (let i = 0; i < 2048; i++) await labels.append(document, i);
+    if (mode === "document") for (let i = 0; i < 2048; i++) await labels.append(document, i);
+    else await labels.appendLabels((async function* () { for (let index = 0; index < 2048; index++) yield { index, style: "D" }; })());
     const output = await labels.finish(target, cosDict({})); let total = 0;
     for await (const bytes of output!.body.chunks) { total += bytes.length; await Promise.resolve(); }
     expect(total).toBe(output!.body.length); expect(peak).toBeLessThanOrEqual(16384); expect(peak).toBeGreaterThan(0);

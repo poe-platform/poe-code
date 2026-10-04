@@ -57,3 +57,36 @@ it.each([false, true])("appends a linearization marker while preserving trailer 
   } finally { await edited.close(); await document.close(); await source.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });
+
+it.each([false, true])("replaces page labels through caller-backed pairs (empty=%s)", async empty => {
+  const { cosArray, cosDict, cosName, cosNumber, cosString, dictSet } = await import("../ast.js");
+  const { saveRetainedDocumentChunks } = await import("./retained-save.js");
+  const original = PdfDocument.create(); original.addPage(); original.addPage(); const input = original.save();
+  const labels = empty ? [] : [{ index: 0, style: "r", start: 3, prefix: "前" }, { index: 1, prefix: "Appendix" }, { index: 0, style: "D", start: -2 }];
+  const expected = PdfDocument.load(input), items = [];
+  for (const label of labels) {
+    const value = cosDict({}); if (label.style !== undefined) dictSet(value, "S", cosName(label.style));
+    if (label.start !== undefined && label.start !== 1) dictSet(value, "St", cosNumber(label.start));
+    if (label.prefix) dictSet(value, "P", cosString(label.prefix));
+    items.push(cosNumber(label.index), value);
+  }
+  dictSet(expected.cos.resolveDict(expected.cos.rootRef)!, "PageLabels", expected.cos.allocateObject(cosDict({ Nums: cosArray(items) })));
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", input); const storage = { fs, directory: "/scratch" };
+  const source = await PdfFileSource.open(fs, "/input"), document = await PdfRetainedDocument.open(source, storage);
+  const edited = await editRetainedDocument(document, storage, { removePageLabels: true, pageLabels: (async function* () { yield* labels; })() });
+  try {
+    const chunks = []; for await (const bytes of saveRetainedDocumentChunks(edited.document, storage)) chunks.push(bytes);
+    expect(new Uint8Array(Buffer.concat(chunks))).toEqual(expected.save());
+  } finally { await edited.close(); await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});
+
+it("closes label backing when the replacement iterable fails", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); const storage = { fs, directory: "/scratch" };
+  const input = PdfDocument.create(); input.addPage(); await fs.writeFile("/input", input.save());
+  const source = await PdfFileSource.open(fs, "/input"), document = await PdfRetainedDocument.open(source, storage), before = await fs.readdir("/scratch"), reason = new Error("label source failed");
+  async function* pageLabels() { yield { index: 0, prefix: "First" }; throw reason; }
+  try { await expect(editRetainedDocument(document, storage, { pageLabels: pageLabels() })).rejects.toBe(reason); expect(await fs.readdir("/scratch")).toEqual(before); }
+  finally { await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

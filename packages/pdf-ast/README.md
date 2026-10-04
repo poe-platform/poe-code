@@ -838,7 +838,10 @@ graph. Use its `document` for subsequent copies and close the result when done.
 It preserves unsaved stream dictionaries, trailer identifiers and logical page
 identities across edits. Set `linearize: true` to append a linearization marker
 for subsequent saving; this preserves existing markers and is also the behavior
-of qpdf `--linearize`.
+of qpdf `--linearize`. Pass `pageLabels` as an iterable or async iterable of
+`{ index, style?, start?, prefix? }` entries to replace page labels. Indices are
+zero-based; entry order and duplicates are preserved, and an empty iterable
+creates an empty label tree. Labels take precedence over `removePageLabels`.
 `PdfRetainedDocument.openStore(store, storage, { rootRef, infoRef })` reads an
 existing `PdfMutableObjectStore`; the caller keeps ownership of that store.
 

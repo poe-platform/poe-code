@@ -1,3 +1,4 @@
+import { parseQpdfPageLabels } from "./page-labels.js";
 import { splitPageOutputs } from "./split.js";
 import { iterateQpdfPageRange } from "./page-range.js";
 import { linearizationParts } from "./linearization.js";
@@ -38,6 +39,7 @@ export interface RetainedQpdfOptions {
   removeStructure: boolean;
   removeAcroform: boolean;
   removePageLabels: boolean;
+  pageLabelSpecs: readonly string[];
   warningExit0: boolean;
   check: boolean;
   showNpages: boolean;
@@ -206,8 +208,8 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         yield { pageIndex: number - 1, degrees: edit.angle * (edit.relative ? edit.sign : 1), relative: edit.relative };
       }
     }
-    if (options.linearize || (options.splitPagesGroup !== undefined && (removeInfo || removeMetadata || removeStructure || removeAcroform || removePageLabels))) {
-      editedGraph = await editRetainedDocument(document, storage, { linearize: options.linearize, removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations(), signal });
+    if (options.linearize || options.pageLabelSpecs.length > 0 || (options.splitPagesGroup !== undefined && (removeInfo || removeMetadata || removeStructure || removeAcroform || removePageLabels))) {
+      editedGraph = await editRetainedDocument(document, storage, { ...(options.pageLabelSpecs.length ? { pageLabels: parseQpdfPageLabels(options.pageLabelSpecs) } : {}), linearize: options.linearize, removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations(), signal });
     }
     if (options.splitPagesGroup !== undefined) {
       if (!editedGraph) for await (const object of retainedCosObjects(document, storage, { signal })) {

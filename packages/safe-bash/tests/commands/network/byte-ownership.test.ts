@@ -77,14 +77,13 @@ test("curl replay leaves stable Buffer input and surrounding sentinels unchanged
   assert.deepEqual(backing, expected);
 });
 
-test("curl replay budget accepts its exact boundary and refuses overflow without a partial replay", async () => {
+test("curl caller-backed replay is independent of the materialization buffer limit", async () => {
   for (const maximum of [256, 255]) {
     const source = (async function* (): ByteSource { yield Buffer.alloc(128, 0x61); yield Buffer.alloc(128, 0x62); })();
     const result = await replay(source, { maxBufferBytes: maximum });
     const expected = Buffer.concat([Buffer.alloc(128, 0x61), Buffer.alloc(128, 0x62)]);
-    assert.equal(result.exitCode, maximum === 256 ? 0 : 65, result.stderr.toString());
-    assert.deepEqual(result.uploads, [expected, maximum === 256 ? expected : Buffer.alloc(0)]);
-    if (maximum === 255) assert.match(result.stderr.toString(), /Cannot replay stdin upload within the host buffer limit/);
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.deepEqual(result.uploads, [expected, expected]);
   }
 });
 

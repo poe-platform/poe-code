@@ -1,10 +1,11 @@
 import { readFileStream } from "safe-bash-contracts/filesystem";
 import { readBytes,type ByteSource,type CommandContext } from "safe-bash-contracts";
 import { posixPath as posix } from "safe-bash-contracts/path";
-import { yieldTurn } from "safe-bash-contracts/yield";
+import { inheritYieldCheckpoint,yieldTurn } from "safe-bash-contracts/yield";
 import { decodeBytes,encodeBytes } from "safe-bash-io-engine/byte-encoding";
 import { pathOf } from "safe-bash-io-engine/internal";
 import type { CurlArguments,DataArgument } from "./args.js";
+import { createReplay } from "./replay.js";
 import { formContentType } from "./form-content-type.js";
 import { filePartHeaders,validatePartHeader } from "./form-headers.js";
 import { randomBytes } from "./platform-portable.js";
@@ -25,6 +26,7 @@ interface Part {
 export interface RequestBody {
   readonly contentType?: string;
   open(signal: AbortSignal): ByteSource;
+  close(): Promise<void>;
 }
 
 function multipartBoundary(): string {
@@ -240,8 +242,12 @@ export function createBody(context: CommandContext, args: CurlArguments, limits:
   let opened = false;
   let replayComplete = false;
   let replayable = true;
-  let cachedBytes = 0;
-  let cache: Uint8Array[] = [];
+  let replay: Awaited<ReturnType<typeof createReplay>> | undefined;
+  let active = false;
+  let activeIterator: AsyncGenerator<Uint8Array> | undefined;
+  const lifetime = new AbortController();
+  let closing: Promise<void> | undefined;
+  let closed = false;
   let stdinUsed = false;
   const source = async function* (part: Part, signal: AbortSignal): ByteSource {
     if (part.bytes !== undefined) {
@@ -286,46 +292,70 @@ export function createBody(context: CommandContext, args: CurlArguments, limits:
   };
   return {
     ...(contentType === undefined ? {} : { contentType }),
+    close() {
+      closed = true;
+      lifetime.abort();
+      closing ??= (async () => {
+        try { await activeIterator?.return(undefined); }
+        finally { await replay?.close(); }
+      })();
+      return closing;
+    },
     open(signal) {
-      return (async function* (): ByteSource {
-        if (hasStdin && opened) {
-          if (!replayComplete || !replayable) throw new CurlError(65, "Cannot replay stdin upload within the host buffer limit");
-          for (const chunk of cache) { signal.throwIfAborted(); yield chunk.slice(); }
-          return;
-        }
-        opened = true;
-        let count = 0;
-        let chunks = 0;
-        for (const part of parts) {
-          if (part.separator && count === 0) continue;
-          let prefix = part.prefix;
-          for await (const raw of transfer(source(part, signal), part.encoder, signal)) {
-            if (++chunks % 256 === 0) await yieldTurn(signal);
-            for (let offset = 0; offset < raw.length; offset += 16 * 1024) {
-              signal.throwIfAborted();
-              let chunk = raw.subarray(offset, offset + 16 * 1024);
-              if (part.strip) chunk = chunk.filter(byte => byte !== 0 && byte !== 10 && byte !== 13);
-              if (part.urlencode) chunk = percent(chunk);
-              count += chunk.length + (prefix?.length ?? 0);
-              if (count > limits.maxUploadBytes) throw new CurlError(63, "Upload exceeds host byte limit");
-              if (prefix?.length) {
-                const prefixed = new Uint8Array(prefix.length + chunk.length);
-                prefixed.set(prefix);
-                prefixed.set(chunk, prefix.length);
-                chunk = prefixed;
-                prefix = undefined;
+      const combined = AbortSignal.any([signal, lifetime.signal]);
+      inheritYieldCheckpoint(signal, combined);
+      signal = combined;
+      async function* generate(): AsyncGenerator<Uint8Array> {
+        signal.throwIfAborted();
+        if (closed || active) throw new CurlError(65, "Upload body is closed or in use");
+        active = true;
+        activeIterator = iterator;
+        try {
+          if (hasStdin && opened) {
+            if (!replayComplete || !replayable || !replay) throw new CurlError(65, "Cannot replay stdin upload from caller storage");
+            try { yield* replay.read(signal); }
+            catch { replayable = false; signal.throwIfAborted(); throw new CurlError(65, "Failed reading stdin replay storage"); }
+            return;
+          }
+          opened = true;
+          if (hasStdin) {
+            try { replay = await createReplay(context.fs, context.cwd, signal); }
+            catch { signal.throwIfAborted(); replayable = false; }
+          }
+          let count = 0;
+          let chunks = 0;
+          for (const part of parts) {
+            if (part.separator && count === 0) continue;
+            let prefix = part.prefix;
+            for await (const raw of transfer(source(part, signal), part.encoder, signal)) {
+              if (++chunks % 256 === 0) await yieldTurn(signal);
+              for (let offset = 0; offset < raw.length; offset += 16 * 1024) {
+                signal.throwIfAborted();
+                let chunk = raw.subarray(offset, offset + 16 * 1024);
+                if (part.strip) chunk = chunk.filter(byte => byte !== 0 && byte !== 10 && byte !== 13);
+                if (part.urlencode) chunk = percent(chunk);
+                count += chunk.length + (prefix?.length ?? 0);
+                if (count > limits.maxUploadBytes) throw new CurlError(63, "Upload exceeds host byte limit");
+                if (prefix?.length) {
+                  const prefixed = new Uint8Array(prefix.length + chunk.length);
+                  prefixed.set(prefix);
+                  prefixed.set(chunk, prefix.length);
+                  chunk = prefixed;
+                  prefix = undefined;
+                }
+                if (hasStdin && replayable) {
+                  try { await replay!.write(chunk); }
+                  catch { signal.throwIfAborted(); replayable = false; await replay!.close(); }
+                }
+                if (chunk.length) yield chunk;
               }
-              if (hasStdin && replayable) {
-                cachedBytes += chunk.length;
-                if (cachedBytes > limits.maxBufferBytes) { replayable = false; cache = []; }
-                else cache.push(new Uint8Array(chunk));
-              }
-              if (chunk.length) yield chunk;
             }
           }
-        }
-        replayComplete = true;
-      })();
+          replayComplete = true;
+        } finally { active = false; activeIterator = undefined; }
+      }
+      const iterator = generate();
+      return iterator;
     },
   };
 }
@@ -336,5 +366,5 @@ export async function queryData(body: RequestBody, signal: AbortSignal, limits: 
     signal.throwIfAborted();
     if (error instanceof CurlError) throw error;
     throw new CurlError(63, "Query data exceeds host buffer limit");
-  }
+  } finally { await body.close(); }
 }

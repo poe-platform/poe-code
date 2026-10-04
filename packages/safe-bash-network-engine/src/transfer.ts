@@ -5,7 +5,7 @@ import { byteLength,decodeBytes,encodeBytes } from "safe-bash-io-engine/byte-enc
 import { builtInDirectContextExecutors,pathOf } from "safe-bash-io-engine/internal";
 import { createDeadlineOutput,deadlineDiagnostic } from "./aggregate.js";
 import { validateRequestHeader,type CurlArguments } from "./args.js";
-import { createBody,queryData } from "./body.js";
+import { createBody,queryData,type RequestBody } from "./body.js";
 import { scheduleNetworkDeadline } from "./deadline.js";
 import { decodeContent } from "./decode.js";
 import { expandUrls,globFilename,type ExpandedUrl } from "./glob.js";
@@ -239,6 +239,7 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
 
 async function transfer(context: CommandContext, args: CurlArguments, input: string, limits: NetworkLimits,
   transport: NonNullable<NetworkCommandsOptions["transport"]>, authorize: NonNullable<NetworkCommandsOptions["authorize"]>, started: number, status: (code: number) => number, headerState: { dumped: boolean }): Promise<number> {
+  let retainedBody: RequestBody | undefined;
   const start = performance.now();
   const remaining = (): number => Math.min(args.maxTimeMs - (performance.now() - start), limits.maxTotalTimeMs - (performance.now() - started));
   const hasFileOutput = args.etagSave !== undefined && args.etagSave !== "-" || args.remoteName || args.output !== undefined && args.output !== "-" || args.dumpHeader !== undefined && args.dumpHeader !== "-";
@@ -250,6 +251,10 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
   } } : context.stdin;
   let response: HttpResponse | undefined;
   let failure: CurlError | undefined;
+  operation.registerCleanup(async () => {
+    try { await retainedBody?.close(); }
+    catch { failure ??= new CurlError(65, "Failed cleaning upload replay storage"); }
+  });
   const values = { ...writeOutDefaults };
   let format = args.writeOut;
   let formatReady = false;
@@ -312,7 +317,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
     if (args.query?.length) {
       const queryArgs = { ...args, data: args.query };
       delete queryArgs.upload;
-      const queryBody = createBody({ ...context, stdin: borrowed }, queryArgs, limits)!;
+      const queryBody = retainedBody = createBody({ ...context, stdin: borrowed }, queryArgs, limits)!;
       const encoded = await queryData(queryBody, signal, limits);
       let query = "";
       for (let index = 0; index < encoded.length; index++) {
@@ -325,7 +330,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
       }
       initial.search += `${initial.search ? "&" : "?"}${query}`;
     }
-    let body = createBody({ ...context, stdin: borrowed }, args, limits);
+    let body = retainedBody = createBody({ ...context, stdin: borrowed }, args, limits);
     if (args.get && body) {
       const query = await queryData(body, signal, limits);
       if (/[^\x21-\x7e]/.test(query)) throw new CurlError(3, "GET data must be URL encoded");

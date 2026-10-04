@@ -186,3 +186,43 @@ test("retry time exhaustion preserves the last response file", async () => {
  assert.equal(calls, 1);
  assert.equal(new TextDecoder().decode(await fs.readFile("/response")), "unavailable");
 });
+
+for (const denyRedirect of [false, true]) test(`stdin replay preserves redirect authorization and cleanup (deny=${denyRedirect})`, async () => {
+ const fs = createMemoryFileSystem();
+ const authorized: string[] = [];
+ const uploads: string[] = [];
+ const payload = "bytes\u0000\r\n".repeat(4096);
+ const command = createCurlCommand({ limits: { maxBufferBytes: 1024 },
+  authorize(request) { authorized.push(request.url); return !denyRedirect || authorized.length === 1; },
+  transport: async request => {
+   let uploaded = "";
+   for await (const bytes of request.body!) uploaded += new TextDecoder().decode(bytes);
+   uploads.push(uploaded);
+   return { status: uploads.length === 1 ? 307 : 200, statusText: "", headers: uploads.length === 1 ? [["Location", "https://redirect.test/next"]] : [], body: toByteSource(""), async dispose() {} };
+  },
+ });
+ const result = await run(command, ["-L", "-T", "-", "https://example.test/start"], payload, fs);
+ assert.equal(result.exitCode, denyRedirect ? 7 : 0, result.stderr);
+ assert.deepEqual(authorized, ["https://example.test/start", "https://redirect.test/next"]);
+ assert.deepEqual(uploads, denyRedirect ? [payload] : [payload, payload]);
+ assert.deepEqual(await fs.readdir("/"), []);
+});
+
+test("changed replay storage reports curl failure without replacing it with cleanup errors", async () => {
+ const fs = createMemoryFileSystem();
+ let calls = 0;
+ const command = createCurlCommand({ authorize: () => true, transport: async request => {
+  calls++;
+  for await (const bytes of request.body!) void bytes;
+  const [directory] = await fs.readdir("/");
+  await fs.writeFile(`/${directory!.name}/upload`, new TextEncoder().encode("other"));
+  return { status: 307, statusText: "", headers: [["Location", "https://example.test/next"]], body: toByteSource(""), async dispose() {} };
+ } });
+ const result = await run(command, ["-L", "-T", "-", "https://example.test/start"], "first", fs);
+ assert.equal(result.exitCode, 65, result.stderr);
+ assert.match(result.stderr, /Failed reading stdin replay storage/);
+ assert.equal(calls, 2);
+ // The backend refuses to remove modified content it no longer owns.
+ const [directory] = await fs.readdir("/");
+ assert.equal(new TextDecoder().decode(await fs.readFile(`/${directory!.name}/upload`)), "other");
+});

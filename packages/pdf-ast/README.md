@@ -159,8 +159,11 @@ Keep replacement storage alive until index creation finishes. `page.indexRawText
 automatically retains inline ActualText in its supplied filesystem and cleans up
 that temporary backing after index creation. For low-level evaluation, use
 `retainActualText: true` with `pathStorage` or `imageStorage`; returned glyphs
-borrow that backing. Synchronous extraction and the direct raw-text formatter
-require string replacements and reject stored-only replacements explicitly.
+borrow that backing. Direct raw-text formatting also accepts stored replacements, with 48 KiB of
+additional decoder scratch admitted before reading them. `page.streamRawText()`
+retains inline ActualText automatically and owns its temporary backing until the
+iterator closes. Synchronous extraction requires string replacements and rejects
+stored-only replacements explicitly.
 Traverse `blocks()`, `lines()`, `words()` and
 chunked `word.text()` without collecting arrays; close the index after all
 borrowed iterators finish. The index uses four 16 KiB cache pages and admits

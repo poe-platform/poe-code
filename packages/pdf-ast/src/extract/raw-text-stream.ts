@@ -1,9 +1,10 @@
+import { glyphText, sameReplacement } from "./stored-text-glyphs.js";
 import type { PdfPlacedGlyph } from "../ast.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import { PdfError } from "../errors.js";
 import { PdfFileSource } from "../source.js";
 import { PdfStagingStorage } from "../staging-budget.js";
-import { glyphDirection, PdfTextGlyphNormalizer } from "./text-glyphs.js";
+import { glyphDirection, mergeBBox, textGlyphVisible } from "./text-glyphs.js";
 import type { ExtractTextOptions } from "./text.js";
 
 export interface PdfRawTextOptions extends Omit<ExtractTextOptions, "mode"> {
@@ -33,17 +34,45 @@ export async function* streamRawTextChunks(glyphs: AsyncIterable<PdfPlacedGlyph>
   if (!Number.isSafeInteger(scratch) || scratch > maximum) throw new PdfError("E_LIMIT", "PDF raw text working byte limit exceeded");
   options.signal?.throwIfAborted(); options.onAllocation?.(scratch);
   const shared = new PdfStagingStorage(storage, options.maxStagingBytes);
+  const signal = options.signal ?? new AbortController().signal;
   const input = (async function* () {
-    const normalizer = new PdfTextGlyphNormalizer(options);
+    let replacement: PdfPlacedGlyph | undefined, admittedStored = false, turns = 0;
+    async function* normalized(g: PdfPlacedGlyph) {
+      let unicode = g.actualText ?? g.unicode;
+      if (g.actualText === undefined && g.storedActualText) {
+        unicode = "";
+        // Two code units distinguish empty/single-space replacements without
+        // collecting a complete replacement. Encoding uses the source below.
+        for await (const part of glyphText(g, signal)) { unicode += part.slice(0, 2 - unicode.length); if (unicode.length === 2) break; }
+      }
+      const value = { ...g, unicode };
+      if (textGlyphVisible(value, options)) yield value;
+    }
     const upstream = Symbol.asyncIterator in glyphs ? glyphs[Symbol.asyncIterator]() : glyphs[Symbol.iterator]();
     let failed = false;
     try {
       while (true) {
+        if (++turns % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0));
         options.signal?.throwIfAborted();
         const next = await upstream.next(); if (next.done) break;
-        yield* normalizer.push(next.value);
+        const input = next.value;
+        if (!admittedStored && input.actualText === undefined && input.storedActualText) {
+          if (!Number.isSafeInteger(scratch + 49152) || scratch + 49152 > maximum) throw new PdfError("E_LIMIT", "PDF raw text working byte limit exceeded");
+          options.onAllocation?.(49152); admittedStored = true;
+        }
+        const g: PdfPlacedGlyph = { ...input, bbox: [...input.bbox], matrix: [...input.matrix],
+          ...(input.clipRect ? { clipRect: [...input.clipRect] } : {}),
+          ...(input.storedActualText ? { storedActualText: { ...input.storedActualText } } : {}) };
+        if (replacement && replacement.mcid === g.mcid && await sameReplacement(replacement, g, signal)) {
+          replacement = { ...replacement, bbox: mergeBBox(replacement.bbox, g.bbox), advanceWidth: replacement.advanceWidth + g.advanceWidth };
+        } else {
+          if (replacement) yield* normalized(replacement);
+          replacement = undefined;
+          if (g.actualText !== undefined || g.storedActualText) replacement = g;
+          else yield* normalized(g);
+        }
       }
-      yield* normalizer.finish();
+      if (replacement) yield* normalized(replacement);
     } catch (error) { failed = true; throw error; }
     finally { try { await upstream.return?.(); } catch (error) { if (!failed) await Promise.reject(error); } }
   })();
@@ -103,7 +132,7 @@ export async function* streamRawTextChunks(glyphs: AsyncIterable<PdfPlacedGlyph>
               else { line.fontSize = glyph.fontSize; hasWords = true; }
             }
             line.left = Math.min(line.left, glyph.bbox[0]);
-            yield* text(glyph.unicode); wordPrevious = glyph;
+            for await (const part of glyphText(glyph, signal)) yield* text(part); wordPrevious = glyph;
           }
           const next = await input.next();
           if (next.done) { exhausted = true; break; }
@@ -139,14 +168,18 @@ export async function* streamRawTextChunks(glyphs: AsyncIterable<PdfPlacedGlyph>
               const glyph = pending;
               if (previous && glyphDirection(glyph).along - (glyphDirection(previous).along + previous.advanceWidth)
                 > Math.max(previous.fontSize, glyph.fontSize) * 0.22) break;
-              line.left = Math.min(line.left, glyph.bbox[0]); observe(glyph.unicode);
+              line.left = Math.min(line.left, glyph.bbox[0]);
               bounds[0] = Math.min(bounds[0]!, glyph.bbox[0]); bounds[1] = Math.min(bounds[1]!, glyph.bbox[1]);
               bounds[2] = Math.max(bounds[2]!, glyph.bbox[2]); bounds[3] = Math.max(bounds[3]!, glyph.bbox[3]);
-              if (firstCharacter < 0 && glyph.unicode.length) firstCharacter = glyph.unicode.charCodeAt(0);
-              let value = high + glyph.unicode; high = "";
-              const last = value.charCodeAt(value.length - 1);
-              if (last >= 0xd800 && last <= 0xdbff) { high = value.at(-1)!; value = value.slice(0, -1); }
-              yield* encode(value); previous = glyph; await advance();
+              for await (const part of glyphText(glyph, signal)) {
+                observe(part);
+                if (firstCharacter < 0 && part.length) firstCharacter = part.charCodeAt(0);
+                let value = high + part; high = "";
+                const last = value.charCodeAt(value.length - 1);
+                if (last >= 0xd800 && last <= 0xdbff) { high = value.at(-1)!; value = value.slice(0, -1); }
+                yield* encode(value);
+              }
+              previous = glyph; await advance();
             }
             if (high) yield* encode(high);
           }

@@ -428,13 +428,17 @@ export class PdfRetainedPage {
    * evaluation so a staged line cannot exceed the enclosing scratch allowance. */
   async *streamRawText(storage: PdfIndexStorage, options: PdfRetainedPageEvaluationOptions & PdfRawTextOptions = {}): AsyncGenerator<Uint8Array, void, void> {
     const shared = new PdfStagingStorage(storage, options.maxStagingBytes);
-    const operations = this.evaluateSteps(shared, options);
+    const owned = options.imageStorage || options.pathStorage ? undefined : new PagedStorage({ fs: shared.fs, cwd: shared.directory, env: {}, signal: options.signal ?? new AbortController().signal }, 4);
+    const operations = this.evaluateSteps(shared, { ...options, ...(owned ? { pathStorage: owned } : {}), retainActualText: true });
     async function* glyphs() {
       for await (const event of operations) {
         if (!event.insideSoftMask && event.operation.kind === "glyph") yield event.operation.value;
       }
     }
-    yield* streamRawTextChunks(glyphs(), shared, options);
+    let failed = false;
+    try { yield* streamRawTextChunks(glyphs(), shared, options); }
+    catch (error) { failed = true; throw error; }
+    finally { await owned?.close().catch(error => { if (!failed) throw error; }); }
   }
 
   /** Index raw-order text geometry and strings on caller storage. The caller

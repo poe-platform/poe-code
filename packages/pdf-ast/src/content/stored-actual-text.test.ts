@@ -33,6 +33,9 @@ it("keeps inline ActualText in caller backing through nested evaluation and inde
       for await (const block of index.blocks()) for await (const line of block.lines()) for await (const word of line.words()) for await (const part of word.text()) text += part;
       expect(seen).toBe(3); expect(text).toBe(replacement + "Z");
     } finally { await index.close(); }
+    let streamed = ""; const decoder = new TextDecoder();
+    for await (const part of retained.streamRawText(storage)) streamed += decoder.decode(part, { stream: true });
+    streamed += decoder.decode(); expect(streamed).toBe(replacement + "Z");
     const indexedPage = await retained.indexRawText(storage);
     try {
       let text = "";

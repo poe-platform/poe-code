@@ -263,3 +263,73 @@ test("missing grep input still executes downstream pipeline stages", async conte
     assert.match(result.stderr, /nonexistent/);
   }
 });
+
+for (const prefix of ["", "echo ready; "]) {
+  for (const consumer of ["wc -l", "head -n 3"]) {
+    for (const mutation of ["extensions", "names", "subdirectory"]) {
+      test(`find pipeline observes recreated directory: ${prefix}${consumer}, ${mutation}`, async context => {
+        const fs = new MemoryFileSystem();
+        const shell = new Shell({ fs }).use(standardCommands());
+        context.after(() => shell.dispose());
+        const paths = Array.from({ length: 32 }, (_, index) =>
+          `/work/dir/f${String(index + 1).padStart(2, "0")}.txt`);
+        await fs.mkdir("/work/dir", { recursive: true });
+        for (const path of paths) await fs.writeFile(path, new Uint8Array());
+        const command = `${prefix}find /work/dir -name '*.txt' | ${consumer}`;
+        const check = async (matches: string[]) => {
+          for (let run = 0; run < 3; run++) {
+            await shell.exec("");
+            const result = await shell.exec(command);
+            const output = consumer === "wc -l" ? `${matches.length}\n` : `${matches.toSorted().slice(0, 3).join("\n")}\n`;
+            assert.equal(result.stdout, `${prefix ? "ready\n" : ""}${output}`);
+            assert.equal(result.stderr, "");
+            assert.equal(result.exitCode, 0);
+          }
+        };
+        await check(paths);
+        await fs.rm("/work/dir", { recursive: true });
+        await fs.mkdir("/work/dir");
+        const matches: string[] = [];
+        for (let index = 0; index < paths.length; index++) {
+          let path = paths[index]!;
+          if (index > 0 && index < paths.length - 1) {
+            if (mutation === "extensions") path = path.slice(0, -3) + "log";
+            if (mutation === "names") path = path.replace("/f", "/g");
+          }
+          if (mutation === "subdirectory" && index === 1) {
+            await fs.mkdir(path);
+            matches.push(path);
+            path += "/nested.txt";
+          }
+          await fs.writeFile(path, new Uint8Array());
+          if (path.endsWith(".txt")) matches.push(path);
+        }
+        await check(matches);
+        if (mutation === "subdirectory") {
+          const nested = `${paths[1]}/another.txt`;
+          await fs.writeFile(nested, new Uint8Array());
+          matches.push(nested);
+          await check(matches);
+        }
+      });
+    }
+  }
+}
+
+test("find pipeline observes directory recreation by shell write batches", async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  for (const extension of ["txt", "log", "txt"]) {
+    const writes = Array.from({ length: 32 }, (_, index) =>
+      `echo x > /work/dir/f${String(index + 1).padStart(2, "0")}.${index === 0 || index === 31 ? "txt" : extension}`);
+    const setup = await shell.exec(`rm -rf /work/dir; mkdir -p /work/dir\n${writes.join("\n")}`);
+    assert.equal(setup.exitCode, 0, setup.stderr);
+    await shell.exec("");
+    for (let run = 0; run < 3; run++) {
+      const result = await shell.exec('find /work/dir -name "*.txt" | wc -l');
+      assert.equal(result.stdout, extension === "txt" ? "32\n" : "2\n");
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    }
+  }
+});

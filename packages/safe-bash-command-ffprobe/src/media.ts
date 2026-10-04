@@ -1,11 +1,12 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { FlacTags } from "./flac-tags.js";
-import { WavTags } from "./wav-tags.js";
+import { SourceAudioTags } from "./source-tags.js";
 import { resolveFfprobeLimits } from "./options.js";
 import { formatTaggedAudio, type StoredAudioTags } from "./tag-format.js";
 import { writeProbeOutput } from "./probe-output.js";
 import { openProbeStream, sniffMediaStream, withStagedProbeSource } from "./stream-input.js";
 import { probe as probeAudio, parseArguments as parseAudioArguments, formatAudioProbe } from "./probe.js";
-import { probeWavSource, probeFlacSource, type AudioAst } from "@poe-code/audio-ast";
+import { probeWavSource, probeFlacSource, probeMp3Source, type AudioAst } from "@poe-code/audio-ast";
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from "safe-bash-contracts/command";
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { allMediaAsts, createMediaAstRegistry, encodeUtf8, parseStreamingManifest, MediaBudgetTracker,
@@ -229,9 +230,9 @@ export function formatIntrospectionOutput(
   ].join("\n");
 }
 
-type AudioProbeReady = (audio: Awaited<ReturnType<typeof probeWavSource>>, size: number, tags: StoredAudioTags) => void;
+type AudioProbeReady = (audio: Awaited<ReturnType<typeof probeWavSource>> & { nodes?: AudioAst["nodes"] }, size: number, tags: StoredAudioTags) => void;
 
-type AudioProbeInput = { bytes: Uint8Array; args: readonly string[] } | { audio: Omit<AudioAst, "data" | "nodes" | "pictures">; size: number; args: readonly string[] };
+type AudioProbeInput = { bytes: Uint8Array; args: readonly string[] } | { audio: Omit<AudioAst, "data" | "nodes" | "pictures"> & { nodes?: AudioAst["nodes"] }; size: number; args: readonly string[] };
 
 export type FfprobeFormatOptions = {
     printFormat: string;
@@ -258,7 +259,7 @@ export function* formatFfprobeResultChunks(probe: MediaProbeRecords, opts: Ffpro
   if (audioInput && !opts.showPackets && !opts.showFrames && !opts.showChapters && !opts.showPrograms && !opts.countFrames && !opts.countPackets &&
       probe.streams.length > 0 && probe.streams.every(stream => stream.codec_type === "audio")) {
     let formatted: string | undefined;
-    try { formatted = "bytes" in audioInput ? probeAudio(audioInput.bytes, audioInput.args) : formatAudioProbe({ ...audioInput.audio, nodes: [] }, audioInput.size, parseAudioArguments(audioInput.args)); } catch { /* Other containers and extended options use the media formatter. */ }
+    try { formatted = "bytes" in audioInput ? probeAudio(audioInput.bytes, audioInput.args) : formatAudioProbe({ ...audioInput.audio, nodes: audioInput.audio.nodes ?? [] }, audioInput.size, parseAudioArguments(audioInput.args)); } catch { /* Other containers and extended options use the media formatter. */ }
     if (formatted !== undefined) { yield formatted; return; }
   }
   // Filter streams by `-select_streams`
@@ -630,11 +631,15 @@ async function probeSourceMetadata(context: CommandContext, plugins: readonly Me
   if (!plugin) return undefined;
   const result = await plugin.probeMetadata!(source, { ...records, filename, signal: context.signal, budget, limits: budget.limits });
   if (onAudio) {
-    const tags = plugin.formatName === "flac" ? new FlacTags(source, context) : new WavTags(source, context);
+    const tags = plugin.formatName === "flac" ? new FlacTags(source, context) : new SourceAudioTags(source, context);
     retain(tags.close);
+    let checkpoints = 0;
     try {
       const audio = tags instanceof FlacTags
         ? await probeFlacSource(source, { signal: context.signal, onComment: async span => {
+          try { await tags.add(span); } catch (error) { sourceFailed = true; throw error; }
+        } })
+        : plugin.formatName === "mp3" ? await probeMp3Source(source, { signal: context.signal, checkpoint: async () => { if (++checkpoints % 256 === 0) await yieldTurn(context.signal); }, onTag: async span => {
           try { await tags.add(span); } catch (error) { sourceFailed = true; throw error; }
         } })
         : await probeWavSource(source, { signal: context.signal, onTag: async span => {
@@ -767,7 +772,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
         let automaticAudio = !options.asts && !explicitFormat && !showPackets && !showFrames && !showChapters && !showPrograms && !countFrames && !countPackets;
         if (automaticAudio) { try { parseAudioArguments(args); } catch { automaticAudio = false; } }
         const automaticPlugins = !options.asts && !explicitFormat
-          ? astPlugins.filter(plugin => plugin.canDemux && plugin.probeMetadata && (!automaticAudio || plugin === registry.findByFormatName("wav") || plugin === registry.findByFormatName("flac"))) : [];
+          ? astPlugins.filter(plugin => plugin.canDemux && plugin.probeMetadata && (!automaticAudio || plugin === registry.findByFormatName("wav") || plugin === registry.findByFormatName("flac") || plugin === registry.findByFormatName("mp3"))) : [];
         const explicitPlugin = explicitFormat ? registry.findByFormatName(explicitFormat) : undefined;
         const retainedPlugins = explicitPlugin
           ? (explicitPlugin.canDemux && explicitPlugin.probeMetadata ? [explicitPlugin] : []) : automaticPlugins;

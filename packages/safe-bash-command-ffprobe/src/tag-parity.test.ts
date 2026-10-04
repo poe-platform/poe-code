@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { encodeWav, probeWavSource } from "@poe-code/audio-ast";
-import { WavTags } from "./wav-tags.js";
+import { SourceAudioTags } from "./source-tags.js";
 import { formatTaggedAudio } from "./tag-format.js";
 import { probe } from "./probe.js";
 
@@ -23,7 +23,7 @@ const roundtrip = (text: string) => new TextDecoder().decode(new TextEncoder().e
 
 it("preserves every writer, field selection, numeric order and duplicate-tag semantics", async () => {
   const bytes = input(entries), fs = new MemoryFileSystem(), context = { fs, cwd: "/", env: {}, signal: new AbortController().signal };
-  const source = { size: bytes.length, async read(offset: number, length: number) { return bytes.slice(offset, offset + length); } }, tags = new WavTags(source, context);
+  const source = { size: bytes.length, async read(offset: number, length: number) { return bytes.slice(offset, offset + length); } }, tags = new SourceAudioTags(source, context);
   try {
     const audio = await probeWavSource(source, { onTag: span => tags.add(span) });
     for (const writer of ["json", "default", "default:nw=1:nk=1", "flat", "compact", "compact:s=||:nk=1:p=0", "compact:s=", "compact:s=n", "compact:s=\\", "csv", "csv:s=||:nk=0", "csv:s=:p=0"]) {
@@ -43,7 +43,7 @@ it("retains a large tag index with ordered updates in caller backing", async () 
   const bytes = input(many), base = new MemoryFileSystem(); let opened = 0;
   const fs = new Proxy(base, { get(target, key) { if (key === "open") return async (...args: Parameters<typeof base.open>) => { opened++; return base.open(...args); }; const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value; } });
   const source = { size: bytes.length, async read(offset: number, length: number) { return bytes.slice(offset, offset + length); } };
-  const tags = new WavTags(source, { fs, cwd: "/", env: {}, signal: new AbortController().signal });
+  const tags = new SourceAudioTags(source, { fs, cwd: "/", env: {}, signal: new AbortController().signal });
   try {
     const audio = await probeWavSource(source, { onTag: span => tags.add(span) });
     const args = ["-of", "json", "-show_format", "input.wav"];

@@ -48,9 +48,9 @@ async function needsQuotes(input: AsyncIterable<string>, separator: string) {
 }
 
 /** Replay scalar rows and tag spans without collecting tag maps or formatted output. */
-export async function* formatTaggedAudio(audio: Omit<AudioAst, "data" | "nodes" | "pictures">, size: number, args: readonly string[], tags: StoredAudioTags): AsyncGenerator<string> {
+export async function* formatTaggedAudio(audio: Omit<AudioAst, "data" | "nodes" | "pictures"> & { nodes?: AudioAst["nodes"] }, size: number, args: readonly string[], tags: StoredAudioTags): AsyncGenerator<string> {
   const parsed = parseArguments(args), { sections, format, settings } = parsed;
-  const rows = audioProbeRows({ ...audio, nodes: [] }, size, parsed, tags.count > 0);
+  const rows = audioProbeRows({ ...audio, nodes: audio.nodes ?? [] }, size, parsed, tags.count > 0);
   async function* tagFields(section: string) {
     const selected = sections.get(section + "_tags");
     for await (const entry of tags.entries()) {

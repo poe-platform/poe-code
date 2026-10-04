@@ -1,3 +1,4 @@
+export { probeMp3Source, type Mp3Tag } from "./mp3-source.js";
 export { probeId3Source, readId3Text, type Id3TextSpan } from "./id3-source.js";
 export { normalizeVorbisCommentKey } from "./vorbis.js";
 export { probeFlacSource, type FlacCommentSpan } from "./flac-source.js";

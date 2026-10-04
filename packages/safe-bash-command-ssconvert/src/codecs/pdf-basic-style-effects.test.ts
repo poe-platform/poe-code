@@ -217,3 +217,11 @@ it("indents general-aligned numbers from the right", async () => {
   const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve: async () => suppliedDefaultFont().bytes}}));
   expect(runs[1]!.glyphs[0]!.x - runs[0]!.glyphs[0]!.x).toBe(-13.5);
 });
+
+it.each([["0", "0"], ["0", "1"], ["1", "1"]])("prints cell protection flags Locked=%s Hidden=%s without changing the workbook", async (locked, hidden) => {
+  const book = await fixture([{text: "visible", attributes: attributes.replace('Locked="1"', `Locked="${locked}"`).replace('Hidden="0"', `Hidden="${hidden}"`)}]);
+  const before = structuredClone(book);
+  const {runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve: async () => suppliedDefaultFont().bytes}}));
+  expect(runs[0]!.text).toBe("visible");
+  expect(book).toEqual(before);
+});

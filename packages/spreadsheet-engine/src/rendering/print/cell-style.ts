@@ -15,7 +15,7 @@ function colorChannels(value: string): readonly [number, number, number, number]
 }
 const styleDefaults: Readonly<Record<string, AttributeRule>> = {
   HAlign: Object.keys(alignments), VAlign: Object.keys(verticalAlignments), WrapText: "0", ShrinkToFit: "0",
-  Rotation: "0", Shade: ["0", "1"], Indent: value => value.trim() !== "" && Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 2147483647, Locked: "1", Hidden: "0", Fore: validColor,
+  Rotation: "0", Shade: ["0", "1"], Indent: value => value.trim() !== "" && Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 2147483647, Locked: ["0", "1"], Hidden: ["0", "1"], Fore: validColor,
   Back: validColor, PatternColor: validColor, Format: "General"
 };
 const fontDefaults: Readonly<Record<string, AttributeRule>> = {Unit: value => value.trim() !== "" && Number.isFinite(Number(value)) && Number(value) > 0, Bold: ["0", "1"], Italic: ["0", "1"], Underline: ["0", "1", "2", "3", "4"], StrikeThrough: ["0", "1"], Script: "0"};

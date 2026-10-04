@@ -1,0 +1,484 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import * as sb from "../../safe-bash/src/index.js";
+import { csvcutCommands } from "../../safe-bash/src/commands/csvcut/index.js";
+import { csvgrepCommands } from "../../safe-bash/src/commands/csvgrep/index.js";
+import { csvkitCommands } from "../../safe-bash/src/commands/csvkit/index.js";
+import { diff3Commands } from "../../safe-bash/src/commands/diff3/index.js";
+import { htmlqCommands } from "../../safe-bash/src/commands/htmlq/index.js";
+import { createDeviceFileSystem } from "../../safe-bash/src/fs/devices/index.js";
+import { arraysExtension } from "../../safe-bash/src/shell/extensions/arrays/index.js";
+import { jobsExtension } from "../../safe-bash/src/shell/extensions/jobs/index.js";
+import { mapfileExtension } from "../../safe-bash/src/shell/extensions/mapfile/index.js";
+import { readExtension } from "../../safe-bash/src/shell/extensions/read/index.js";
+import {
+  BenchmarkRecorder,
+  measureSingleExec,
+  type ExecPerformanceSample,
+} from "./benchmark.js";
+
+export interface E2EFileEntry {
+  readonly content: string | Uint8Array;
+  readonly mode?: number;
+  readonly mtime?: Date;
+}
+
+export type E2EFileInit = string | Uint8Array | E2EFileEntry;
+
+export interface E2EHarnessOptions {
+  readonly files?: Readonly<Record<string, E2EFileInit>>;
+  readonly directories?: readonly string[];
+  readonly symlinks?: Readonly<Record<string, string>>;
+  readonly cwd?: string;
+  readonly env?: Readonly<Record<string, string>>;
+  readonly limits?: sb.ShellLimits;
+  readonly fs?: sb.FileSystem;
+  readonly memoryFsOptions?: ConstructorParameters<typeof sb.MemoryFileSystem>[0];
+  readonly mountDev?: boolean;
+  readonly shellExtensions?: boolean;
+  readonly includeExtendedCommands?: boolean;
+  readonly plugins?: readonly sb.VirtualShellPlugin[];
+  readonly benchmarkRecorder?: BenchmarkRecorder;
+  readonly backgroundJobs?: boolean;
+}
+
+export interface E2EExecResult extends sb.ShellResult {
+  readonly metrics: ExecPerformanceSample;
+}
+
+export interface TreeSnapshotEntry {
+  readonly kind: "file" | "directory" | "symlink";
+  readonly size: number;
+  readonly mode: number;
+  readonly sha256?: string;
+  readonly text?: string;
+  readonly target?: string;
+}
+
+const utf8Decoder = new TextDecoder("utf-8", { fatal: false });
+const utf8Encoder = new TextEncoder();
+
+async function pathExists(fs: sb.FileSystem, targetPath: string): Promise<boolean> {
+  try {
+    if (fs.lstat) await fs.lstat(targetPath);
+    else await fs.stat(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function parentDirectories(filePath: string): string[] {
+  const normalized = sb.normalizePath(filePath);
+  const parts = normalized.split("/").filter(Boolean);
+  const dirs: string[] = [];
+  for (let i = 1; i < parts.length; i++) {
+    dirs.push("/" + parts.slice(0, i).join("/"));
+  }
+  return dirs;
+}
+
+export class SafeBashE2EHarness {
+  readonly fs: sb.FileSystem;
+  readonly memoryFs: sb.MemoryFileSystem | undefined;
+  readonly shell: sb.Shell;
+  readonly recorder: BenchmarkRecorder;
+
+  private constructor(
+    fs: sb.FileSystem,
+    memoryFs: sb.MemoryFileSystem | undefined,
+    shell: sb.Shell,
+    recorder: BenchmarkRecorder,
+  ) {
+    this.fs = fs;
+    this.memoryFs = memoryFs;
+    this.shell = shell;
+    this.recorder = recorder;
+  }
+
+  static async create(options: E2EHarnessOptions = {}): Promise<SafeBashE2EHarness> {
+    const memoryFs =
+      options.fs === undefined
+        ? new sb.MemoryFileSystem(options.memoryFsOptions)
+        : undefined;
+    const fs = options.fs ?? memoryFs!;
+    const recorder = options.benchmarkRecorder ?? new BenchmarkRecorder();
+
+    const dirsToCreate = new Set<string>(["/tmp", "/workspace", "/home/user"]);
+    if (options.cwd) dirsToCreate.add(sb.normalizePath(options.cwd));
+    for (const dir of options.directories ?? []) {
+      dirsToCreate.add(sb.normalizePath(dir));
+    }
+    for (const filePath of Object.keys(options.files ?? {})) {
+      for (const dir of parentDirectories(filePath)) dirsToCreate.add(dir);
+    }
+    for (const linkPath of Object.keys(options.symlinks ?? {})) {
+      for (const dir of parentDirectories(linkPath)) dirsToCreate.add(dir);
+    }
+
+    if (!fs.capabilities?.readOnly) {
+      const sortedDirs = [...dirsToCreate].sort((a, b) => a.length - b.length);
+      for (const dir of sortedDirs) {
+        if (dir === "/") continue;
+        if (!(await pathExists(fs, dir))) {
+          await fs.mkdir(dir, { recursive: true });
+        }
+      }
+    }
+
+    for (const [rawPath, init] of Object.entries(options.files ?? {})) {
+      const normalizedPath = sb.normalizePath(rawPath);
+      if (typeof init === "string" || init instanceof Uint8Array) {
+        await fs.writeFile(normalizedPath, typeof init === "string" ? utf8Encoder.encode(init) : init);
+      } else {
+        await fs.writeFile(normalizedPath, typeof init.content === "string" ? utf8Encoder.encode(init.content) : init.content);
+        if (init.mode !== undefined && fs.chmod) {
+          await fs.chmod(normalizedPath, init.mode);
+        }
+        if (init.mtime !== undefined && fs.utimes) {
+          const ms = init.mtime.getTime();
+          await fs.utimes(normalizedPath, ms, ms);
+        }
+      }
+    }
+
+    for (const [rawLink, target] of Object.entries(options.symlinks ?? {})) {
+      const normalizedLink = sb.normalizePath(rawLink);
+      if (fs.symlink) {
+        await fs.symlink(target, normalizedLink);
+      }
+    }
+
+    const shellFs =
+      options.mountDev && memoryFs
+        ? sb.createMountFileSystem({
+            root: memoryFs,
+            mounts: { "/dev": createDeviceFileSystem() },
+          })
+        : fs;
+
+    const shell = new sb.Shell({
+      fs: shellFs,
+      ...(options.mountDev && memoryFs ? { deviceView: "provided" as const } : {}),
+      cwd: options.cwd ?? "/workspace",
+      env: {
+        HOME: "/home/user",
+        USER: "e2e",
+        PATH: "/usr/local/bin:/usr/bin:/bin",
+        LANG: "C",
+        LC_ALL: "C",
+        ...options.env,
+      },
+      limits: options.limits,
+      backgroundJobs: options.backgroundJobs,
+      ...(options.shellExtensions !== false
+        ? {
+            extensions: [
+              readExtension(),
+              mapfileExtension(),
+              arraysExtension(),
+              jobsExtension(),
+            ],
+          }
+        : {}),
+    });
+
+    shell.use(sb.agentCommands());
+
+    if (options.includeExtendedCommands !== false) {
+      shell
+        .use(sb.bcCommands())
+        .use(sb.calCommands())
+        .use(sb.ddCommands())
+        .use(sb.dfCommands())
+        .use(sb.envsubstCommands())
+        .use(sb.fdCommands())
+        .use(sb.getconfCommands())
+        .use(sb.hostnameCommands())
+        .use(sb.idCommands())
+        .use(sb.lessCommands())
+        .use(sb.localeCommands())
+        .use(sb.nprocCommands())
+        .use(sb.pathchkCommands())
+        .use(sb.spongeCommands())
+        .use(sb.sqlite3Commands())
+        .use(sb.unameCommands())
+        .use(sb.whoamiCommands())
+        .use(sb.yesCommands())
+        .use(sb.yqCommands())
+        .use(csvcutCommands())
+        .use(csvgrepCommands())
+        .use(csvkitCommands({ replace: true }))
+        .use(diff3Commands())
+        .use(htmlqCommands());
+    }
+
+    for (const plugin of options.plugins ?? []) {
+      shell.use(plugin);
+    }
+
+    return new SafeBashE2EHarness(shellFs, memoryFs, shell, recorder);
+  }
+
+  async exec(
+    script: string,
+    options?: sb.ShellExecOptions & { label?: string },
+  ): Promise<E2EExecResult> {
+    const { result, metrics } = await measureSingleExec(
+      () => this.shell.exec(script, options),
+      (res) => ({
+        stdoutBytes: res.stdoutBytes.byteLength,
+        stderrBytes: res.stderrBytes.byteLength,
+      }),
+    );
+    this.recorder.recordExecSample(
+      options?.label ?? script.slice(0, 80),
+      metrics,
+    );
+    return {
+      stdout: result.stdout,
+      stderr: result.stderr,
+      stdoutBytes: result.stdoutBytes,
+      stderrBytes: result.stderrBytes,
+      exitCode: result.exitCode,
+      metrics,
+    };
+  }
+
+  async expectOk(
+    script: string,
+    expectedStdout?: string | RegExp,
+    options?: sb.ShellExecOptions & { allowStderr?: boolean; label?: string },
+  ): Promise<E2EExecResult> {
+    const res = await this.exec(script, options);
+    assert.equal(
+      res.exitCode,
+      0,
+      `Expected exitCode 0 for script:\n${script}\nActual exitCode: ${res.exitCode}\nStdout:\n${res.stdout}\nStderr:\n${res.stderr}`,
+    );
+    if (!options?.allowStderr) {
+      assert.equal(
+        res.stderr,
+        "",
+        `Expected empty stderr for script:\n${script}\nActual stderr:\n${res.stderr}`,
+      );
+    }
+    if (typeof expectedStdout === "string") {
+      assert.equal(res.stdout, expectedStdout);
+    } else if (expectedStdout instanceof RegExp) {
+      assert.match(res.stdout, expectedStdout);
+    }
+    return res;
+  }
+
+  async expectFail(
+    script: string,
+    expectedExitCode?: number | readonly number[],
+    stderrPattern?: string | RegExp,
+    options?: sb.ShellExecOptions & { label?: string },
+  ): Promise<E2EExecResult> {
+    const res = await this.exec(script, options);
+    if (typeof expectedExitCode === "number") {
+      assert.equal(
+        res.exitCode,
+        expectedExitCode,
+        `Expected exitCode ${expectedExitCode}, got ${res.exitCode}.\nStdout: ${res.stdout}\nStderr: ${res.stderr}`,
+      );
+    } else if (Array.isArray(expectedExitCode)) {
+      assert.ok(
+        expectedExitCode.includes(res.exitCode),
+        `Expected exitCode in [${expectedExitCode.join(", ")}], got ${res.exitCode}.\nStdout: ${res.stdout}\nStderr: ${res.stderr}`,
+      );
+    } else {
+      assert.notEqual(
+        res.exitCode,
+        0,
+        `Expected non-zero exitCode, got 0.\nStdout: ${res.stdout}`,
+      );
+    }
+    if (typeof stderrPattern === "string") {
+      assert.ok(
+        res.stderr.includes(stderrPattern),
+        `Expected stderr to include ${JSON.stringify(stderrPattern)}, got:\n${res.stderr}`,
+      );
+    } else if (stderrPattern instanceof RegExp) {
+      assert.match(res.stderr, stderrPattern);
+    }
+    return res;
+  }
+
+  async readText(filePath: string): Promise<string> {
+    const bytes = await this.fs.readFile(sb.normalizePath(filePath));
+    return utf8Decoder.decode(bytes);
+  }
+
+  async readBytes(filePath: string): Promise<Uint8Array> {
+    return this.fs.readFile(sb.normalizePath(filePath));
+  }
+
+  async writeText(filePath: string, content: string): Promise<void> {
+    const normalized = sb.normalizePath(filePath);
+    for (const dir of parentDirectories(normalized)) {
+      if (!(await pathExists(this.fs, dir))) {
+        await this.fs.mkdir(dir, { recursive: true });
+      }
+    }
+    await this.fs.writeFile(normalized, utf8Encoder.encode(content));
+  }
+
+  async writeBytes(filePath: string, content: Uint8Array): Promise<void> {
+    const normalized = sb.normalizePath(filePath);
+    for (const dir of parentDirectories(normalized)) {
+      if (!(await pathExists(this.fs, dir))) {
+        await this.fs.mkdir(dir, { recursive: true });
+      }
+    }
+    await this.fs.writeFile(normalized, content);
+  }
+
+  async exists(filePath: string): Promise<boolean> {
+    return pathExists(this.fs, sb.normalizePath(filePath));
+  }
+
+  async stat(filePath: string): Promise<sb.FileStat> {
+    return this.fs.stat(sb.normalizePath(filePath));
+  }
+
+  async lstat(filePath: string): Promise<sb.FileStat> {
+    return this.fs.lstat
+      ? this.fs.lstat(sb.normalizePath(filePath))
+      : this.fs.stat(sb.normalizePath(filePath));
+  }
+
+  async snapshotTree(
+    rootDir = "/workspace",
+  ): Promise<Record<string, TreeSnapshotEntry>> {
+    const normalizedRoot = sb.normalizePath(rootDir);
+    const out: Record<string, TreeSnapshotEntry> = {};
+
+    const walk = async (currentPath: string): Promise<void> => {
+      const rawEntries = await this.fs.readdir(currentPath);
+      const entries = rawEntries
+        .map((entry) => (typeof entry === "string" ? entry : entry.name))
+        .sort();
+      for (const name of entries) {
+        const fullPath =
+          currentPath === "/" ? `/${name}` : `${currentPath}/${name}`;
+        const relPath = fullPath.startsWith(normalizedRoot + "/")
+          ? fullPath.slice(normalizedRoot.length + 1)
+          : fullPath;
+        const st = await this.lstat(fullPath);
+        const anySt = st as sb.FileStat & {
+          readonly isSymbolicLink?: boolean;
+          readonly isDirectory?: boolean;
+          readonly isFile?: boolean;
+        };
+        if (st.type === "symlink" || anySt.isSymbolicLink) {
+          const target = this.fs.readlink
+            ? await this.fs.readlink(fullPath)
+            : "";
+          out[relPath] = {
+            kind: "symlink",
+            size: st.size,
+            mode: st.mode & 0o777,
+            target,
+          };
+        } else if (st.type === "directory" || anySt.isDirectory) {
+          out[relPath] = {
+            kind: "directory",
+            size: 0,
+            mode: st.mode & 0o777,
+          };
+          await walk(fullPath);
+        } else if (st.type === "file" || anySt.isFile) {
+          const bytes = await this.fs.readFile(fullPath);
+          const sha256 = createHash("sha256").update(bytes).digest("hex");
+          const text =
+            bytes.byteLength <= 4096 && !bytes.includes(0)
+              ? utf8Decoder.decode(bytes)
+              : undefined;
+          out[relPath] = {
+            kind: "file",
+            size: bytes.byteLength,
+            mode: st.mode & 0o777,
+            sha256,
+            ...(text !== undefined ? { text } : {}),
+          };
+        }
+      }
+    };
+
+    if (await pathExists(this.fs, normalizedRoot)) {
+      await walk(normalizedRoot);
+    }
+    return out;
+  }
+
+  async dispose(): Promise<void> {
+    await this.shell.dispose();
+  }
+}
+
+export async function withE2EHarness<T>(
+  optionsOrFn: E2EHarnessOptions | ((harness: SafeBashE2EHarness) => Promise<T>),
+  maybeFn?: (harness: SafeBashE2EHarness) => Promise<T>,
+): Promise<T> {
+  const options = typeof optionsOrFn === "function" ? {} : optionsOrFn;
+  const fn = typeof optionsOrFn === "function" ? optionsOrFn : maybeFn!;
+  const harness = await SafeBashE2EHarness.create(options);
+  try {
+    return await fn(harness);
+  } finally {
+    await harness.dispose();
+  }
+}
+
+export async function seedFilesOnFs(
+  fs: sb.FileSystem,
+  files: Readonly<Record<string, E2EFileInit>>,
+): Promise<void> {
+  const dirs = new Set<string>();
+  for (const filePath of Object.keys(files)) {
+    for (const dir of parentDirectories(filePath)) dirs.add(dir);
+  }
+  const sortedDirs = [...dirs].sort((a, b) => a.length - b.length);
+  for (const dir of sortedDirs) {
+    if (dir === "/") continue;
+    if (!(await pathExists(fs, dir))) {
+      await fs.mkdir(dir, { recursive: true });
+    }
+  }
+  for (const [rawPath, init] of Object.entries(files)) {
+    const normalizedPath = sb.normalizePath(rawPath);
+    if (typeof init === "string" || init instanceof Uint8Array) {
+      await fs.writeFile(
+        normalizedPath,
+        typeof init === "string" ? utf8Encoder.encode(init) : init,
+      );
+    } else {
+      await fs.writeFile(
+        normalizedPath,
+        typeof init.content === "string" ? utf8Encoder.encode(init.content) : init.content,
+      );
+      if (init.mode !== undefined && fs.chmod) {
+        await fs.chmod(normalizedPath, init.mode);
+      }
+      if (init.mtime !== undefined && fs.utimes) {
+        const ms = init.mtime.getTime();
+        await fs.utimes(normalizedPath, ms, ms);
+      }
+    }
+  }
+}
+
+export async function snapshotFsTree(
+  fs: sb.FileSystem,
+  rootDir = "/workspace",
+): Promise<Record<string, TreeSnapshotEntry>> {
+  const h = await SafeBashE2EHarness.create({ fs, cwd: rootDir });
+  try {
+    return await h.snapshotTree(rootDir);
+  } finally {
+    await h.dispose();
+  }
+}

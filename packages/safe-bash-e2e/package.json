@@ -1,0 +1,20 @@
+{
+  "name": "safe-bash-e2e",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "End-to-end test harness, in-memory VFS fixture suite, and performance benchmark comparator for safe-bash",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts",
+    "bench": "node --import tsx src/bench-cli.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@poe-platform/safe-bash": "*",
+    "@poe-code/safe-fs": "*"
+  }
+}

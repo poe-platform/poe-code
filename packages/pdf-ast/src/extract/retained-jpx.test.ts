@@ -29,7 +29,7 @@ it.each(["rgb-lossless.j2k", "rgb-lossless.jp2", "rgb-tiled.jp2", "gray-lossless
   for await (const row of image.rows()) { expect(row.buffer.byteLength).toBe(image.width * 4); actual.push(...row); }
   expect(actual).toEqual([...expected]); image.close(); await expect(image.rows().next()).rejects.toThrow("closed");
 });
-it("admits encoded input before reading and output before decoding", async () => {
+it("admits the input cache before reading and output before decoding", async () => {
   const input = await source(fixture("rgb-tiled.jp2")); const read = vi.spyOn(input, "read");
   await expect(PdfRetainedJpx.open(input, { maxWorkingBytes: input.size - 1 })).rejects.toThrow("limit"); expect(read).not.toHaveBeenCalled();
   await expect(PdfRetainedJpx.open(input, { maxOutputBytes: 1 })).rejects.toThrow("limit"); await input.close();
@@ -44,7 +44,8 @@ it("admits row scratch separately, reuses its allowance, and cancels between row
   await rows.next(); controller.abort(new Error("cancel jpx")); await expect(rows.next()).rejects.toThrow("cancel jpx"); cancelled.close(); await input.close();
 });
 it("preserves gaps and last-tile precedence without collecting a sample plane", async () => {
-  const parse = vi.spyOn(JpxImage.prototype, "parse").mockImplementation(function (this: JpxImage) {
+  const parse = vi.spyOn(JpxImage.prototype, "parseSteps").mockImplementation(function* (this: JpxImage) {
+    yield 0;
     this.width = 3; this.height = 2; this.componentsCount = 1;
     this.tiles = [{ left: 1, top: 0, width: 2, height: 2, items: new Uint8ClampedArray([10, 20, 30, 40]) }, { left: 2, top: 1, width: 1, height: 1, items: new Uint8ClampedArray([90]) }];
   });
@@ -90,4 +91,25 @@ it("admits decoder allocations to the containing owner before reads and preserve
     expect(called).toBe(count);
   }
   await input.close();
+});
+
+it('skips large container boxes through bounded source ranges without a whole-input copy',async()=>{
+ const original=fixture('rgb-tiled.jp2'),prefix=new Uint8Array(262144);new DataView(prefix.buffer).setUint32(0,prefix.length);new DataView(prefix.buffer).setUint32(4,0x66747970);
+ const bytes=new Uint8Array(original.length+prefix.length);bytes.set(prefix);bytes.set(original,prefix.length);let peak=0,readBytes=0;
+ const input={size:bytes.length,chunkBytes:64,async read(at:number,length:number){peak=Math.max(peak,length);readBytes+=length;return bytes.subarray(at,at+length);},stream(){throw Error('whole encoded input requested');}} as unknown as PdfFileSource;
+ const image=await PdfRetainedJpx.open(input),result:number[]=[];
+ try{for await(const row of image.rows())result.push(...row);expect(result).toEqual([...decodeJpxToRgba(original)]);expect(peak).toBeLessThanOrEqual(64);expect(readBytes).toBeLessThan(prefix.length);}finally{image.close();}
+});
+
+it('preserves source failures, borrowed reads and cancellation during native parsing',async()=>{
+ const bytes=fixture('rgb-tiled.jp2'),borrowed=new Uint8Array(31),failure=new Error('remote JPEG 2000 failed');let calls=0;
+ const source={size:bytes.length,chunkBytes:31,async read(at:number,length:number){if(++calls===3)throw failure;borrowed.set(bytes.subarray(at,at+length));return borrowed.subarray(0,length);}} as unknown as PdfFileSource;
+ await expect(PdfRetainedJpx.open(source)).rejects.toBe(failure);
+ calls=3;const image=await PdfRetainedJpx.open(source),actual=[];try{for await(const row of image.rows())actual.push(...row);expect(actual).toEqual([...decodeJpxToRgba(bytes)]);}finally{image.close();}
+ const controller=new AbortController();source.read=async(at,length)=>{controller.abort(failure);return bytes.subarray(at,at+length);};
+ await expect(PdfRetainedJpx.open(source,{signal:controller.signal})).rejects.toBe(failure);
+});
+it('preserves arbitrary containing-owner rejection during packet parsing',async()=>{
+ const input=await source(fixture('rgb-tiled.jp2')),failure={reason:'owner rejected codeblock'};let calls=0;
+ try{await expect(PdfRetainedJpx.open(input,{onDecoderAllocation(){if(++calls===10)throw failure;}})).rejects.toBe(failure);expect(calls).toBe(10);}finally{await input.close();}
 });

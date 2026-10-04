@@ -5464,16 +5464,27 @@ const SubbandsGainLog2 = {
   HL: 1,
   HH: 2
 };
+function* jpxReadUint(position, count) {
+  let value = 0;
+  for (let i = 0; i < count; i++) value = (value << 8) | (yield position + i);
+  return value >>> 0;
+}
+function runJpxSteps(program, data) {
+  let step = program.next();
+  try { while (!step.done) { const request=step.value; step=program.next(typeof request === "number" ? data[request] : data.subarray(request.start, request.end)); } }
+  finally { program.return(); }
+}
 class JpxImage {
   constructor(onImageDimensions, onAllocation) {
     this.onAllocation = onAllocation;
     this.onImageDimensions = onImageDimensions;
     this.failOnCorruptedImage = false;
   }
-  parse(data) {
-    const head = readUint16(data, 0);
+  parse(data) { runJpxSteps(this.parseSteps(data), data); }
+  *parseSteps(data) {
+    const head = (yield* jpxReadUint(0,2));
     if (head === 0xff4f) {
-      this.parseCodestream(data, 0, data.length);
+      yield* this.parseCodestreamSteps(data, 0, data.length);
       return;
     }
     const length = data.length;
@@ -5481,12 +5492,12 @@ class JpxImage {
     while (position < length) {
       if (position + 8 > length) throw new JpxError("Truncated box header");
       let headerSize = 8;
-      let lbox = readUint32(data, position);
-      const tbox = readUint32(data, position + 4);
+      let lbox = (yield* jpxReadUint(position,4));
+      const tbox = (yield* jpxReadUint(position + 4,4));
       position += headerSize;
       if (lbox === 1) {
         if (position + 8 > length) throw new JpxError("Truncated extended box header");
-        lbox = readUint32(data, position) * 4294967296 + readUint32(data, position + 4);
+        lbox = (yield* jpxReadUint(position,4)) * 4294967296 + (yield* jpxReadUint(position + 4,4));
         position += 8;
         headerSize += 8;
       }
@@ -5506,9 +5517,9 @@ class JpxImage {
           jumpDataLength = false;
           break;
         case 0x636f6c72:
-          const method = data[position];
+          const method = (yield position);
           if (method === 1) {
-            const colorspace = readUint32(data, position + 3);
+            const colorspace = (yield* jpxReadUint(position + 3,4));
             switch (colorspace) {
               case 16:
               case 17:
@@ -5523,10 +5534,10 @@ class JpxImage {
           }
           break;
         case 0x6a703263:
-          this.parseCodestream(data, position, position + dataLength);
+          yield* this.parseCodestreamSteps(data, position, position + dataLength);
           break;
         case 0x6a502020:
-          if (readUint32(data, position) !== 0x0d0a870a) {
+          if ((yield* jpxReadUint(position,4)) !== 0x0d0a870a) {
             util_warn("Invalid JP2 signature");
           }
           break;
@@ -5569,7 +5580,8 @@ class JpxImage {
     }
     throw new JpxError("No size marker found in JPX stream");
   }
-  parseCodestream(data, start, end) {
+  parseCodestream(data, start, end) { runJpxSteps(this.parseCodestreamSteps(data, start, end), data); }
+  *parseCodestreamSteps(data, start, end) {
     // Local bounds guards: truncated SIZ fields can otherwise yield an infinite
     // tile count before the upstream decoder detects the missing input.
     if (start < 0 || end > data.length || end - start < 4) {
@@ -5581,7 +5593,7 @@ class JpxImage {
     try {
       let position = start;
       while (position + 1 < end) {
-        const code = readUint16(data, position);
+        const code = (yield* jpxReadUint(position,2));
         position += 2;
         let length = 0,
           j,
@@ -5592,7 +5604,7 @@ class JpxImage {
           tile;
         if (code !== 0xff4f && code !== 0xffd9 && code !== 0xff93) {
           if (position + 2 > end) throw new JpxError("Truncated marker length");
-          const markerLength = readUint16(data, position);
+          const markerLength = (yield* jpxReadUint(position,2));
           // Marker-derived objects, array slots, and tile-part copies.
           context.onAllocation?.(512 + markerLength * 128);
           if (markerLength < 2 || position + markerLength > end) {
@@ -5606,18 +5618,18 @@ class JpxImage {
           case 0xffd9:
             break;
           case 0xff51:
-            length = readUint16(data, position);
+            length = (yield* jpxReadUint(position,2));
             if (length < 38) throw new JpxError("Invalid SIZ marker length");
             const siz = {};
-            siz.Xsiz = readUint32(data, position + 4);
-            siz.Ysiz = readUint32(data, position + 8);
-            siz.XOsiz = readUint32(data, position + 12);
-            siz.YOsiz = readUint32(data, position + 16);
-            siz.XTsiz = readUint32(data, position + 20);
-            siz.YTsiz = readUint32(data, position + 24);
-            siz.XTOsiz = readUint32(data, position + 28);
-            siz.YTOsiz = readUint32(data, position + 32);
-            const componentsCount = readUint16(data, position + 36);
+            siz.Xsiz = (yield* jpxReadUint(position + 4,4));
+            siz.Ysiz = (yield* jpxReadUint(position + 8,4));
+            siz.XOsiz = (yield* jpxReadUint(position + 12,4));
+            siz.YOsiz = (yield* jpxReadUint(position + 16,4));
+            siz.XTsiz = (yield* jpxReadUint(position + 20,4));
+            siz.YTsiz = (yield* jpxReadUint(position + 24,4));
+            siz.XTOsiz = (yield* jpxReadUint(position + 28,4));
+            siz.YTOsiz = (yield* jpxReadUint(position + 32,4));
+            const componentsCount = (yield* jpxReadUint(position + 36,2));
             if (length !== 38 + 3 * componentsCount || componentsCount === 0 ||
                 siz.Xsiz <= siz.XOsiz || siz.Ysiz <= siz.YOsiz ||
                 siz.XTsiz === 0 || siz.YTsiz === 0 ||
@@ -5631,10 +5643,10 @@ class JpxImage {
             j = position + 38;
             for (let i = 0; i < componentsCount; i++) {
               const component = {
-                precision: (data[j] & 0x7f) + 1,
-                isSigned: !!(data[j] & 0x80),
-                XRsiz: data[j + 1],
-                YRsiz: data[j + 2]
+                precision: ((yield j) & 0x7f) + 1,
+                isSigned: !!((yield j) & 0x80),
+                XRsiz: (yield j + 1),
+                YRsiz: (yield j + 2)
               };
               j += 3;
               if (!component.XRsiz || !component.YRsiz) {
@@ -5650,10 +5662,10 @@ class JpxImage {
             context.COC = [];
             break;
           case 0xff5c:
-            length = readUint16(data, position);
+            length = (yield* jpxReadUint(position,2));
             const qcd = {};
             j = position + 2;
-            sqcd = data[j++];
+            sqcd = (yield j++);
             switch (sqcd & 0x1f) {
               case 0:
                 spqcdSize = 8;
@@ -5677,11 +5689,11 @@ class JpxImage {
             while (j < length + position) {
               const spqcd = {};
               if (spqcdSize === 8) {
-                spqcd.epsilon = data[j++] >> 3;
+                spqcd.epsilon = (yield j++) >> 3;
                 spqcd.mu = 0;
               } else {
-                spqcd.epsilon = data[j] >> 3;
-                spqcd.mu = (data[j] & 0x7) << 8 | data[j + 1];
+                spqcd.epsilon = (yield j) >> 3;
+                spqcd.mu = ((yield j) & 0x7) << 8 | (yield j + 1);
                 j += 2;
               }
               spqcds.push(spqcd);
@@ -5695,17 +5707,17 @@ class JpxImage {
             }
             break;
           case 0xff5d:
-            length = readUint16(data, position);
+            length = (yield* jpxReadUint(position,2));
             const qcc = {};
             j = position + 2;
             let cqcc;
             if (context.SIZ.Csiz < 257) {
-              cqcc = data[j++];
+              cqcc = (yield j++);
             } else {
-              cqcc = readUint16(data, j);
+              cqcc = (yield* jpxReadUint(j,2));
               j += 2;
             }
-            sqcd = data[j++];
+            sqcd = (yield j++);
             switch (sqcd & 0x1f) {
               case 0:
                 spqcdSize = 8;
@@ -5729,11 +5741,11 @@ class JpxImage {
             while (j < length + position) {
               const spqcd = {};
               if (spqcdSize === 8) {
-                spqcd.epsilon = data[j++] >> 3;
+                spqcd.epsilon = (yield j++) >> 3;
                 spqcd.mu = 0;
               } else {
-                spqcd.epsilon = data[j] >> 3;
-                spqcd.mu = (data[j] & 0x7) << 8 | data[j + 1];
+                spqcd.epsilon = (yield j) >> 3;
+                spqcd.mu = ((yield j) & 0x7) << 8 | (yield j + 1);
                 j += 2;
               }
               spqcds.push(spqcd);
@@ -5746,32 +5758,32 @@ class JpxImage {
             }
             break;
           case 0xff52:
-            length = readUint16(data, position);
+            length = (yield* jpxReadUint(position,2));
             const cod = {};
             j = position + 2;
-            const scod = data[j++];
+            const scod = (yield j++);
             cod.entropyCoderWithCustomPrecincts = !!(scod & 1);
             cod.sopMarkerUsed = !!(scod & 2);
             cod.ephMarkerUsed = !!(scod & 4);
-            cod.progressionOrder = data[j++];
-            cod.layersCount = readUint16(data, j);
+            cod.progressionOrder = (yield j++);
+            cod.layersCount = (yield* jpxReadUint(j,2));
             j += 2;
-            cod.multipleComponentTransform = data[j++];
-            cod.decompositionLevelsCount = data[j++];
-            cod.xcb = (data[j++] & 0xf) + 2;
-            cod.ycb = (data[j++] & 0xf) + 2;
-            const blockStyle = data[j++];
+            cod.multipleComponentTransform = (yield j++);
+            cod.decompositionLevelsCount = (yield j++);
+            cod.xcb = ((yield j++) & 0xf) + 2;
+            cod.ycb = ((yield j++) & 0xf) + 2;
+            const blockStyle = (yield j++);
             cod.selectiveArithmeticCodingBypass = !!(blockStyle & 1);
             cod.resetContextProbabilities = !!(blockStyle & 2);
             cod.terminationOnEachCodingPass = !!(blockStyle & 4);
             cod.verticallyStripe = !!(blockStyle & 8);
             cod.predictableTermination = !!(blockStyle & 16);
             cod.segmentationSymbolUsed = !!(blockStyle & 32);
-            cod.reversibleTransformation = data[j++];
+            cod.reversibleTransformation = (yield j++);
             if (cod.entropyCoderWithCustomPrecincts) {
               const precinctsSizes = [];
               while (j < length + position) {
-                const precinctsSize = data[j++];
+                const precinctsSize = (yield j++);
                 precinctsSizes.push({
                   PPx: precinctsSize & 0xf,
                   PPy: precinctsSize >> 4
@@ -5804,16 +5816,16 @@ class JpxImage {
             }
             break;
           case 0xff90:
-            length = readUint16(data, position);
+            length = (yield* jpxReadUint(position,2));
             tile = {};
-            tile.index = readUint16(data, position + 2);
-            tile.length = readUint32(data, position + 4);
+            tile.index = (yield* jpxReadUint(position + 2,2));
+            tile.length = (yield* jpxReadUint(position + 4,4));
             tile.dataEnd = tile.length + position - 2;
             if (length !== 10 || tile.dataEnd > end) {
               throw new JpxError("Truncated tile part");
             }
-            tile.partIndex = data[position + 8];
-            tile.partsCount = data[position + 9];
+            tile.partIndex = (yield position + 8);
+            tile.partsCount = (yield position + 9);
             context.mainHeader = false;
             if (tile.partIndex === 0) {
               tile.COD = context.COD;
@@ -5831,7 +5843,7 @@ class JpxImage {
               buildPackets(context);
             }
             length = tile.dataEnd - position;
-            parseTilePackets(context, data, position, length);
+            (yield* parseTilePackets(context, data, position, length));
             break;
           case 0xff53:
             util_warn("JPX: Codestream code 0xFF53 (COC) is not implemented.");
@@ -5839,7 +5851,7 @@ class JpxImage {
           case 0xff57:
           case 0xff58:
           case 0xff64:
-            length = readUint16(data, position);
+            length = (yield* jpxReadUint(position,2));
             break;
           default:
             throw new Error("Unknown codestream code: " + code.toString(16));
@@ -5854,7 +5866,7 @@ class JpxImage {
         util_warn(`JPX: Trying to recover from: "${e.message}".`);
       }
     }
-    this.tiles = transformComponents(context);
+    this.tiles = (yield* transformComponents(context));
     this.width = context.SIZ.Xsiz - context.SIZ.XOsiz;
     this.height = context.SIZ.Ysiz - context.SIZ.YOsiz;
     this.componentsCount = context.SIZ.Csiz;
@@ -6399,14 +6411,14 @@ function buildPackets(context) {
       throw new JpxError(`Unsupported progression order ${progressionOrder}`);
   }
 }
-function parseTilePackets(context, data, offset, dataLength) {
+function* parseTilePackets(context, data, offset, dataLength) {
   let position = 0;
   let buffer,
     bufferSize = 0,
     skipNextBit = false;
-  function readBits(count) {
+  function* readBits(count) {
     while (bufferSize < count) {
-      const b = data[offset + position];
+      const b = (yield offset + position);
       position++;
       if (skipNextBit) {
         buffer = buffer << 7 | b;
@@ -6423,11 +6435,11 @@ function parseTilePackets(context, data, offset, dataLength) {
     bufferSize -= count;
     return buffer >>> bufferSize & (1 << count) - 1;
   }
-  function skipMarkerIfEqual(value) {
-    if (data[offset + position - 1] === 0xff && data[offset + position] === value) {
+  function* skipMarkerIfEqual(value) {
+    if ((yield offset + position - 1) === 0xff && (yield offset + position) === value) {
       skipBytes(1);
       return true;
-    } else if (data[offset + position] === 0xff && data[offset + position + 1] === value) {
+    } else if ((yield offset + position) === 0xff && (yield offset + position + 1) === value) {
       skipBytes(2);
       return true;
     }
@@ -6443,22 +6455,22 @@ function parseTilePackets(context, data, offset, dataLength) {
       skipNextBit = false;
     }
   }
-  function readCodingpasses() {
-    if (readBits(1) === 0) {
+  function* readCodingpasses() {
+    if ((yield* readBits(1)) === 0) {
       return 1;
     }
-    if (readBits(1) === 0) {
+    if ((yield* readBits(1)) === 0) {
       return 2;
     }
-    let value = readBits(2);
+    let value = (yield* readBits(2));
     if (value < 3) {
       return value + 3;
     }
-    value = readBits(5);
+    value = (yield* readBits(5));
     if (value < 31) {
       return value + 6;
     }
-    value = readBits(7);
+    value = (yield* readBits(7));
     return value + 37;
   }
   const tileIndex = context.currentTile.index;
@@ -6468,11 +6480,11 @@ function parseTilePackets(context, data, offset, dataLength) {
   const packetsIterator = tile.packetsIterator;
   while (position < dataLength) {
     alignToByte();
-    if (sopMarkerUsed && skipMarkerIfEqual(0x91)) {
+    if (sopMarkerUsed && (yield* skipMarkerIfEqual(0x91))) {
       skipBytes(4);
     }
     const packet = packetsIterator.nextPacket();
-    if (!readBits(1)) {
+    if (!(yield* readBits(1))) {
       continue;
     }
     const layerNumber = packet.layerNumber,
@@ -6487,7 +6499,7 @@ function parseTilePackets(context, data, offset, dataLength) {
       let firstTimeInclusion = false;
       let valueReady, zeroBitPlanesTree;
       if (codeblock.included !== undefined) {
-        codeblockIncluded = !!readBits(1);
+        codeblockIncluded = !!(yield* readBits(1));
       } else {
         precinct = codeblock.precinct;
         let inclusionTree;
@@ -6501,14 +6513,14 @@ function parseTilePackets(context, data, offset, dataLength) {
           precinct.inclusionTree = inclusionTree;
           precinct.zeroBitPlanesTree = zeroBitPlanesTree;
           for (let l = 0; l < layerNumber; l++) {
-            if (readBits(1) !== 0) {
+            if ((yield* readBits(1)) !== 0) {
               throw new JpxError("Invalid tag tree");
             }
           }
         }
         if (inclusionTree.reset(codeblockColumn, codeblockRow, layerNumber)) {
           while (true) {
-            if (readBits(1)) {
+            if ((yield* readBits(1))) {
               valueReady = !inclusionTree.nextLevel();
               if (valueReady) {
                 codeblock.included = true;
@@ -6529,7 +6541,7 @@ function parseTilePackets(context, data, offset, dataLength) {
         zeroBitPlanesTree = precinct.zeroBitPlanesTree;
         zeroBitPlanesTree.reset(codeblockColumn, codeblockRow);
         while (true) {
-          if (readBits(1)) {
+          if ((yield* readBits(1))) {
             valueReady = !zeroBitPlanesTree.nextLevel();
             if (valueReady) {
               break;
@@ -6540,13 +6552,13 @@ function parseTilePackets(context, data, offset, dataLength) {
         }
         codeblock.zeroBitPlanes = zeroBitPlanesTree.value;
       }
-      const codingpasses = readCodingpasses();
-      while (readBits(1)) {
+      const codingpasses = (yield* readCodingpasses());
+      while ((yield* readBits(1))) {
         codeblock.Lblock++;
       }
       const codingpassesLog2 = log2(codingpasses);
       const bits = (codingpasses < 1 << codingpassesLog2 ? codingpassesLog2 - 1 : codingpassesLog2) + codeblock.Lblock;
-      const codedDataLength = readBits(bits);
+      const codedDataLength = (yield* readBits(bits));
       context.onAllocation?.(256);
       queue.push({
         codeblock,
@@ -6556,7 +6568,7 @@ function parseTilePackets(context, data, offset, dataLength) {
     }
     alignToByte();
     if (ephMarkerUsed) {
-      skipMarkerIfEqual(0x92);
+      (yield* skipMarkerIfEqual(0x92));
     }
     while (queue.length > 0) {
       const packetItem = queue.shift();
@@ -6576,7 +6588,7 @@ function parseTilePackets(context, data, offset, dataLength) {
   }
   return position;
 }
-function copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, onAllocation) {
+function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, onAllocation) {
   const x0 = subband.tbx0;
   const y0 = subband.tby0;
   const width = subband.tbx1 - subband.tbx0;
@@ -6609,9 +6621,14 @@ function copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta,
     let position = 0;
     for (j = 0, jj = data.length; j < jj; j++) {
       dataItem = data[j];
-      const chunk = dataItem.data.subarray(dataItem.start, dataItem.end);
-      encodedData.set(chunk, position);
-      position += chunk.length;
+      const size = dataItem.data.length;
+      const first = dataItem.start < 0 ? Math.max(size + dataItem.start, 0) : Math.min(dataItem.start, size);
+      const last = dataItem.end < 0 ? Math.max(size + dataItem.end, 0) : Math.min(dataItem.end, size);
+      for (let at = first; at < last; at += 4096) {
+        const chunk = yield {start: at, end: Math.min(last, at + 4096)};
+        encodedData.set(chunk, position);
+        position += chunk.length;
+      }
     }
     const decoder = new ArithmeticDecoder(encodedData, 0, totalLength);
     bitModel.setDecoder(decoder);
@@ -6664,7 +6681,7 @@ function copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta,
     }
   }
 }
-function transformTile(context, tile, c) {
+function* transformTile(context, tile, c) {
   const component = tile.components[c];
   const codingStyleParameters = component.codingStyleParameters;
   const quantizationParameters = component.quantizationParameters;
@@ -6699,7 +6716,7 @@ function transformTile(context, tile, c) {
       const gainLog2 = SubbandsGainLog2[subband.type];
       const delta = reversible ? 1 : 2 ** (precision + gainLog2 - epsilon) * (1 + mu / 2048);
       const mb = guardBits + epsilon - 1;
-      copyCoefficients(coefficients, width, height, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, context.onAllocation);
+      (yield* copyCoefficients(coefficients, width, height, subband, delta, mb, reversible, segmentationSymbolUsed, resetContextProbabilities, context.onAllocation));
     }
     subbandCoefficients.push({
       width,
@@ -6716,7 +6733,7 @@ function transformTile(context, tile, c) {
     items: result.items
   };
 }
-function transformComponents(context) {
+function* transformComponents(context) {
   const siz = context.SIZ;
   const components = context.components;
   const componentsCount = siz.Csiz;
@@ -6726,7 +6743,7 @@ function transformComponents(context) {
     context.onAllocation?.(componentsCount * 256 + 256);
     const transformedTiles = [];
     for (let c = 0; c < componentsCount; c++) {
-      transformedTiles[c] = transformTile(context, tile, c);
+      transformedTiles[c] = (yield* transformTile(context, tile, c));
     }
     const tile0 = transformedTiles[0];
     context.onAllocation?.(tile0.items.length * componentsCount + 256);

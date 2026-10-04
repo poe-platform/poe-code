@@ -258,11 +258,12 @@ fixed shared codec tables are additional. `maxOutputBytes` bounds decoded
 output. Sources stay caller-owned and may close after opening; call `close()`
 to release the packed bitmap. Intrinsic input and codec state remain resident.
 
-`PdfRetainedJpx.open(source, options)` admits encoded JPEG 2000 input, tile
-grids, codeblocks, tag trees and wavelet buffers before their allocations.
+`PdfRetainedJpx.open(source, options)` reads encoded JPEG 2000 ranges through a
+fixed cache and skips unused container boxes without copying their payloads.
+It admits tile grids, codeblocks, tag trees and wavelet buffers before allocation.
 Its `rows()` iterator assembles owned RGBA rows with tile overlap precedence,
-avoiding additional full sample/RGBA planes. Encoded input and decoded tiles
-remain intrinsic resident state. `maxWorkingBytes` uses conservative cumulative
+avoiding additional full sample/RGBA planes. Decoded tiles and intrinsic
+codeblock/wavelet state remain resident. `maxWorkingBytes` uses conservative cumulative
 allocation charges (not measured heap); caller source caches and resolved color
 state are additional. Set `maxOutputBytes` to bound output, supply `color` for
 resolved PDF color spaces, and call `close()` to release tiles. The source stays

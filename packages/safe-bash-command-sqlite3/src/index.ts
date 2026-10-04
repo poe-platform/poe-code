@@ -1,7 +1,8 @@
+import { readFileStream } from "safe-bash-contracts/filesystem";
+import { stagedScriptLines } from "./script-lines.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
-  collectBytes,
   commandRuntimeIdentity,
   writeText,
   type CommandContext,
@@ -1309,8 +1310,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
 
       if (cmd === ".read") {
         const filePath = resolveVfsPath(context.cwd, parts[1] ?? "");
-        const script = textDecoder.decode(await readInputFile(filePath));
-        await processScript(script, false);
+        await processScript(scriptFileLines(filePath));
         return;
       }
 
@@ -1416,13 +1416,21 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       }
     };
 
-    const processScript = async (script: string, countInput = true): Promise<boolean> => {
-      if (countInput) {
+    const accountScript = (size: number) => {
+      inputBytes += size;
+      enforceLimit("maxInputBytes", inputBytes);
+    };
+    async function* scriptFileLines(path: string): AsyncGenerator<string> {
+      enforceLimit("maxInputBytes", inputBytes + (await context.fs.stat(path)).size);
+      yield* stagedScriptLines(readFileStream(context.fs, path, { signal: context.signal, chunkSize: 16384 }), context, accountScript);
+    }
+    const processScript = async (script: string | AsyncIterable<string>): Promise<boolean> => {
+      if (typeof script === "string") {
         inputBytes += textEncoder.encode(script).byteLength;
         enforceLimit("maxInputBytes", inputBytes);
       }
       // Process script mixing dot-commands (lines starting with '.') and SQL statements
-      const lines = script.split(/\r?\n/);
+      const lines = typeof script === "string" ? script.split(/\r?\n/) : script;
       let sqlBuffer: string[] = [];
 
       const flushSqlBuffer = async (): Promise<boolean> => {
@@ -1452,7 +1460,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         return true;
       };
 
-      for (const line of lines) {
+      for await (const line of lines) {
         const trimmed = line.trim();
         if (sqlBuffer.length === 0 && trimmed.startsWith(".") && !/^\.\d/.test(trimmed)) {
           try {
@@ -1485,8 +1493,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
 
     if (initFile) {
       try {
-        const initContent = textDecoder.decode(await readInputFile(resolveVfsPath(context.cwd, initFile)));
-        await processScript(initContent, false);
+        await processScript(scriptFileLines(resolveVfsPath(context.cwd, initFile)));
       } catch (err) {
         context.signal.throwIfAborted();
         await writeText(context.stderr, `Error: cannot read init file "${initFile}": ${err instanceof Error ? err.message : String(err)}\n`);
@@ -1511,21 +1518,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           }
         }
       } else {
-        let stdinBytes: Uint8Array;
-        try {
-          stdinBytes = await collectBytes(context.stdin, { signal: context.signal, maxBytes: limits.maxInputBytes - inputBytes });
-        } catch (error) {
-          context.signal.throwIfAborted();
-          if (error instanceof Error && "code" in error && error.code === "EFBIG") {
-            enforceLimit("maxInputBytes", Infinity);
-          }
-          throw error;
-        }
-        inputBytes += stdinBytes.byteLength;
-        if (stdinBytes.byteLength > 0) {
-          const stdinText = textDecoder.decode(stdinBytes);
-          await processScript(stdinText, false);
-        }
+        await processScript(stagedScriptLines(context.stdin, context, accountScript));
       }
     }
 

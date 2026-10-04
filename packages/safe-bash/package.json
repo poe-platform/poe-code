@@ -570,7 +570,8 @@
           "dependencies": {},
           "devDependencies": {
             "@poe-code/pdf-ast": "*",
-            "safe-bash-contracts": "*"
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
           },
           "portable": true
         },

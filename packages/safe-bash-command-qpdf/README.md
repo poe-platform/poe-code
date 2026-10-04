@@ -34,3 +34,9 @@ The workspace entrypoint exports `qpdfCommands()` for plugin registration,
 `QpdfCommandsOptions` object; existing factory names remain available.
 
 Missing output parent directories are created recursively. Attachment and raw/filtered stream output preserves binary bytes. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.
+
+Ordinary rewrites use retained random-access input and caller-backed output staging,
+including stdin/stdout, password-protected input and `--replace-input`. File
+publication requires retained atomic staging from the injected filesystem; scratch
+storage uses `TMPDIR`. Use an external backend for large files. Transformation
+options currently continue through the buffered compatibility engine.

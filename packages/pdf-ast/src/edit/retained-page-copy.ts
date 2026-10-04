@@ -6,25 +6,37 @@ import type { PdfIndexStorage } from "../cos/object-index.js";
 import { serializeRetainedCosDocumentChunks } from "../cos/retained-writer.js";
 import { PdfFileSource } from "../source.js";
 import { PdfError } from "../errors.js";
-import type { PdfRetainedDocument, PdfRetainedPage } from "../retained-document.js";
+import type { PdfRetainedDocument } from "../retained-document.js";
 
 export interface CopyRetainedPageOptions {
   readonly maxObjects?: number;
+  readonly maxPages?: number;
   readonly maxOutputBytes?: number;
   readonly maxRecursionDepth?: number;
   readonly chunkBytes?: number;
   readonly signal?: AbortSignal;
 }
-/** Copy one page, its resource graph, forms and optional-content properties.
- * Source identities and target object bodies live on caller backing. Other
- * source pages become null references, matching ordinary single-page copying. */
-export async function* copyRetainedPageChunks(document: PdfRetainedDocument, pageIndex: number, storage: PdfIndexStorage,
+/** Copy a streamed selection, preserving order, repeated occurrences and shared
+ * resources. Selection records, identities and target bodies use caller backing.
+ * References to unselected source pages become null. */
+export async function* copyRetainedPagesChunks(document: PdfRetainedDocument, pageIndices: number | Iterable<number> | AsyncIterable<number>, storage: PdfIndexStorage,
   options: CopyRetainedPageOptions = {}): AsyncGenerator<Uint8Array, void, void> {
-  if (!Number.isSafeInteger(pageIndex) || pageIndex < 0) throw new RangeError("Invalid PDF page index");
+  const maxPages = options.maxPages ?? Infinity;
+  if (maxPages !== Infinity && (!Number.isSafeInteger(maxPages) || maxPages < 0)) throw new RangeError("Invalid PDF copy page limit");
   const signal = options.signal ?? new AbortController().signal, maximumDepth = options.maxRecursionDepth ?? Infinity;
   if (maximumDepth !== Infinity && (!Number.isSafeInteger(maximumDepth) || maximumDepth < 1)) throw new RangeError("Invalid PDF copy depth");
   const store = new PdfMutableObjectStore(storage, options), backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
-  const memo = new IntegerTable(backing, 64); let failed = false, work = 0;
+  const sourcePages = new PdfMutableObjectStore(storage, { maxRecursionDepth: maximumDepth, signal });
+  const memo = new IntegerTable(backing, 64), wanted = new IntegerTable(backing, 64), sourceReferences = new IntegerTable(backing, 64);
+  let failed = false, work = 0, firstSelection = 0, lastSelection = 0, pageCount = 0;
+  async function* selections() {
+    let position = firstSelection;
+    while (position) {
+      await checkpoint();
+      const bytes = await backing.read(position, 24), view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+      position = view.getFloat64(0); yield { index: view.getFloat64(8), objectNumber: view.getFloat64(16) };
+    }
+  }
   async function checkpoint(depth = 0) {
     signal.throwIfAborted(); if (depth > maximumDepth) throw new PdfError("E_LIMIT", "PDF page copy depth limit exceeded");
     if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0)); signal.throwIfAborted();
@@ -70,43 +82,64 @@ export async function* copyRetainedPageChunks(document: PdfRetainedDocument, pag
     const info = cosDict({ Producer: cosString("@poe-code/pdf-ast") }), metadata = await document.info();
     for (const key of ["Title", "Author", "Subject", "Keywords", "Creator", "Producer"]) if (metadata[key]) dictSet(info, key, cosString(metadata[key]!));
     await store.allocate(info);
-    let selected: PdfRetainedPage | undefined;
-    for await (const page of document.pages()) { await checkpoint(); if (page.reference) await memo.set(BigInt(page.reference.objectNumber), 0n); if (page.index === pageIndex) selected = page; }
-    if (!selected) throw new PdfError("E_CAPABILITY", `Page index out of bounds: ${pageIndex}`);
-    const pageRef = await store.allocate(); if (selected.reference) await memo.set(BigInt(selected.reference.objectNumber), BigInt(pageRef.objectNumber));
-    const page = await clone(selected.dict) as PdfCosDict;
-    async function inherited(key: string): Promise<PdfCosNode | undefined> {
-      let current: PdfCosDict | undefined = selected!.dict, depth = 0; const visited = new Set<number>();
-      while (current) {
-        await checkpoint(++depth); const node = dictGet(current, key); if (node) return sourceValue(node);
-        const parent = dictGet(current, "Parent"); if (parent?.kind === "ref") { if (visited.has(parent.objectNumber)) break; visited.add(parent.objectNumber); }
-        const value = await sourceValue(parent); current = value?.kind === "dict" ? value : undefined;
+    for await (const index of typeof pageIndices === "number" ? [pageIndices] : pageIndices) {
+      await checkpoint();
+      if (!Number.isSafeInteger(index) || index < 0 || index === Number.MAX_SAFE_INTEGER) throw new RangeError("Invalid PDF page index");
+      if (pageCount >= maxPages) throw new PdfError("E_LIMIT", "PDF copied page limit exceeded");
+      const ref = await store.allocate(); await wanted.set(BigInt(index), 1n);
+      const position = backing.allocate(24), bytes = new Uint8Array(24), view = new DataView(bytes.buffer);
+      view.setFloat64(8, index); view.setFloat64(16, ref.objectNumber); await backing.write(position, bytes);
+      if (lastSelection) { const link = new Uint8Array(8); new DataView(link.buffer).setFloat64(0, position); await backing.write(lastSelection, link); }
+      firstSelection ||= position; lastSelection = position; pageCount++;
+    }
+    for await (const page of document.pages()) {
+      await checkpoint(); if (page.reference) await memo.set(BigInt(page.reference.objectNumber), 0n);
+      if (await wanted.get(BigInt(page.index)) !== undefined) {
+        await sourcePages.set({ objectNumber: page.index + 1, generationNumber: 0, value: page.dict });
+        await sourceReferences.set(BigInt(page.index), BigInt(page.reference?.objectNumber ?? 0));
       }
-      return undefined;
     }
-    async function box(key: string): Promise<number[]> {
-      const direct = await inherited(key), media = direct?.kind === "array" ? direct : key !== "MediaBox" ? await inherited("MediaBox") : undefined;
-      if (media?.kind === "array" && media.items.length >= 4) {
-        const numbers = []; for (const item of media.items.slice(0, 4)) { const value = await sourceValue(item); if (value?.kind !== "number") return key === "MediaBox" ? [0, 0, 612, 792] : box("MediaBox"); numbers.push(value.value); } return numbers;
+    for await (const selection of selections()) {
+      const reference = await sourceReferences.get(BigInt(selection.index));
+      if (reference === undefined) throw new PdfError("E_CAPABILITY", `Page index out of bounds: ${selection.index}`);
+      if (reference > 0n) await memo.set(reference, BigInt(selection.objectNumber));
+    }
+    for await (const selection of selections()) {
+      const selected = { dict: (await sourcePages.get(selection.index + 1))!.value as PdfCosDict }, pageRef = cosRef(selection.objectNumber);
+      const page = await clone(selected.dict) as PdfCosDict;
+      async function inherited(key: string): Promise<PdfCosNode | undefined> {
+        let current: PdfCosDict | undefined = selected!.dict, depth = 0; const visited = new Set<number>();
+        while (current) {
+          await checkpoint(++depth); const node = dictGet(current, key); if (node) return sourceValue(node);
+          const parent = dictGet(current, "Parent"); if (parent?.kind === "ref") { if (visited.has(parent.objectNumber)) break; visited.add(parent.objectNumber); }
+          const value = await sourceValue(parent); current = value?.kind === "dict" ? value : undefined;
+        }
+        return undefined;
       }
-      return key === "MediaBox" ? [0, 0, 612, 792] : box("MediaBox");
-    }
-    const media = await box("MediaBox"), width = Math.abs(media[2]! - media[0]!), height = Math.abs(media[3]! - media[1]!);
-    if (!dictGet(page, "MediaBox")) dictSet(page, "MediaBox", cosArray(media.map(value => cosNumber(value))));
-    if (!dictGet(page, "Resources")) {
-      const source = await inherited("Resources"), entries = [];
-      if (source?.kind === "dict") for (const entry of source.entries) {
-        const value = await sourceValue(entry.value);
-        entries.push({ key: { ...entry.key }, value: value?.kind === "dict" ? cosDict(Object.fromEntries(value.entries.map(item => [item.key.decoded, item.value]))) : entry.value });
+      async function box(key: string): Promise<number[]> {
+        const direct = await inherited(key), media = direct?.kind === "array" ? direct : key !== "MediaBox" ? await inherited("MediaBox") : undefined;
+        if (media?.kind === "array" && media.items.length >= 4) {
+          const numbers = []; for (const item of media.items.slice(0, 4)) { const value = await sourceValue(item); if (value?.kind !== "number") return key === "MediaBox" ? [0, 0, 612, 792] : box("MediaBox"); numbers.push(value.value); } return numbers;
+        }
+        return key === "MediaBox" ? [0, 0, 612, 792] : box("MediaBox");
       }
-      dictSet(page, "Resources", await clone({ kind: "dict", entries }));
+      const media = await box("MediaBox"), width = Math.abs(media[2]! - media[0]!), height = Math.abs(media[3]! - media[1]!);
+      if (!dictGet(page, "MediaBox")) dictSet(page, "MediaBox", cosArray(media.map(value => cosNumber(value))));
+      if (!dictGet(page, "Resources")) {
+        const source = await inherited("Resources"), entries = [];
+        if (source?.kind === "dict") for (const entry of source.entries) {
+          const value = await sourceValue(entry.value);
+          entries.push({ key: { ...entry.key }, value: value?.kind === "dict" ? cosDict(Object.fromEntries(value.entries.map(item => [item.key.decoded, item.value]))) : entry.value });
+        }
+        dictSet(page, "Resources", await clone({ kind: "dict", entries }));
+      }
+      if (!dictGet(page, "Rotate")) { const rotation = await inherited("Rotate"), value = rotation?.kind === "number" ? ((rotation.value % 360) + 360) % 360 : 0;
+        if (value === 90 || value === 180 || value === 270) dictSet(page, "Rotate", cosNumber(value)); }
+      for (const key of ["CropBox", "BleedBox", "TrimBox", "ArtBox"]) if (!dictGet(page, key)) {
+        const value = await box(key); if (value[0] !== 0 || value[1] !== 0 || value[2] !== width || value[3] !== height) dictSet(page, key, cosArray(value.map(value => cosNumber(value))));
+      }
+      await store.set({ objectNumber: pageRef.objectNumber, generationNumber: 0, value: page });
     }
-    if (!dictGet(page, "Rotate")) { const rotation = await inherited("Rotate"), value = rotation?.kind === "number" ? ((rotation.value % 360) + 360) % 360 : 0;
-      if (value === 90 || value === 180 || value === 270) dictSet(page, "Rotate", cosNumber(value)); }
-    for (const key of ["CropBox", "BleedBox", "TrimBox", "ArtBox"]) if (!dictGet(page, key)) {
-      const value = await box(key); if (value[0] !== 0 || value[1] !== 0 || value[2] !== width || value[3] !== height) dictSet(page, key, cosArray(value.map(value => cosNumber(value))));
-    }
-    await store.set({ objectNumber: pageRef.objectNumber, generationNumber: 0, value: page });
     const sourceCatalog = await sourceValue(document.crossReference.rootRef), acro = sourceCatalog?.kind === "dict" ? await sourceValue(dictGet(sourceCatalog, "AcroForm")) : undefined;
     const fields = acro?.kind === "dict" ? await sourceValue(dictGet(acro, "Fields")) : undefined;
     async function hasCloned(node: PdfCosNode | undefined): Promise<boolean> {
@@ -142,12 +175,29 @@ export async function* copyRetainedPageChunks(document: PdfRetainedDocument, pag
     }
     const optional = sourceCatalog?.kind === "dict" ? dictGet(sourceCatalog, "OCProperties") : undefined;
     if (optional) dictSet(catalog, "OCProperties", await clone(optional));
-    if (!await targetDict(dictGet(page, "Resources")!)) dictSet(page, "Resources", cosDict({}));
-    dictSet(page, "Parent", cosRef(2));
-    await store.set({ objectNumber: pageRef.objectNumber, generationNumber: 0, value: page });
+    for await (const selection of selections()) {
+      const page = (await store.get(selection.objectNumber))!.value as PdfCosDict;
+      if (!await targetDict(dictGet(page, "Resources")!)) dictSet(page, "Resources", cosDict({}));
+      dictSet(page, "Parent", cosRef(2));
+      await store.set({ objectNumber: selection.objectNumber, generationNumber: 0, value: page });
+    }
     await store.set({ objectNumber: 1, generationNumber: 0, value: catalog });
-    await store.set({ objectNumber: 2, generationNumber: 0, value: cosDict({ Type: cosName("Pages"), Count: cosNumber(1), Kids: cosArray([pageRef]) }) });
-    yield* serializeRetainedCosDocumentChunks({ ...options, objects: store.outputObjects(), rootRef: cosRef(1), infoRef: cosRef(3), signal }, storage);
+    // Keep the ordinary flat page-tree syntax without building a Kids array.
+    const encoder = new TextEncoder(), prefix = `<<\n/Type /Pages\n/Count ${pageCount}\n/Kids [ `, suffix = "]\n>>";
+    let treeLength = encoder.encode(prefix).length + encoder.encode(suffix).length;
+    for await (const selection of selections()) treeLength += String(selection.objectNumber).length + 5;
+    async function* treeChunks() {
+      yield encoder.encode(prefix);
+      for await (const selection of selections()) yield encoder.encode(`${selection.objectNumber} 0 R `);
+      yield encoder.encode(suffix);
+    }
+    async function* objects() {
+      for await (const object of store.outputObjects()) yield object.objectNumber === 2
+        ? { objectNumber: 2, generationNumber: 0, body: { length: treeLength, chunks: treeChunks() } } : object;
+    }
+    yield* serializeRetainedCosDocumentChunks({ ...options, objects: objects(), rootRef: cosRef(1), infoRef: cosRef(3), signal }, storage);
   } catch (error) { failed = true; throw error; }
-  finally { const results = await Promise.allSettled([store.close(), backing.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
+  finally { const results = await Promise.allSettled([store.close(), sourcePages.close(), backing.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
 }
+
+export { copyRetainedPagesChunks as copyRetainedPageChunks };

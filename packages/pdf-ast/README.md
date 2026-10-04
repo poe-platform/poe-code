@@ -739,10 +739,14 @@ index caches do not grow with object count. Backing is append-only until close,
 so `maxStagingBytes` includes superseded values; parser limits govern individual
 COS values. Close the store on every outcome.
 
-`copyRetainedPageChunks(document, pageIndex, storage, options)` emits a standalone
-PDF for one zero-based page, preserving its resources, forms, optional content
-and document metadata. Source identity maps and target object bodies use caller
-backing; encoded stream payloads are copied in chunks. Supply `maxObjects`,
+`copyRetainedPagesChunks(document, indices, storage, options)` emits a standalone
+PDF for a synchronous or asynchronous iterable of zero-based page indices.
+Order and repeated pages are preserved, along with shared resources, forms,
+optional content and document metadata. The single-page spelling
+`copyRetainedPageChunks(document, pageIndex, storage, options)` remains available.
+Selection records, source identity maps and target object bodies use caller
+backing; the flat output page tree and encoded stream payloads stream in chunks.
+The source page tree is scanned once. Supply `maxPages`, `maxObjects`,
 `maxOutputBytes`, `maxRecursionDepth`, `chunkBytes` and `signal` as needed.
 Individual COS arrays and dictionaries still materialize under parser limits.
 Consume or return the iterator to release scratch storage, and stage output

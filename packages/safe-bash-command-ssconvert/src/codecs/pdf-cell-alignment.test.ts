@@ -71,7 +71,7 @@ it("preserves configured columns instead of resizing them from a CSV filename", 
     { row: 0, column: 1, value: { kind: "string" as const, value: "END" } }
   ] }] };
   const { runs } = await pdfText(await writePdf(book, [], { ...context, inputFilename: "input.csv" }));
-  expect(runs.find(run => run.text === "END")!.glyphs[0]!.x).toBe(120);
+  expect(runs.find(run => run.text === "END")!.glyphs[0]!.x).toBe(124.75);
 });
 
 it.each([
@@ -90,4 +90,14 @@ it.each([
   const contents = pdf.getPage(0).node.Contents() as PDFArray;
   const operators = contents.asArray().map(ref => new TextDecoder().decode(decodePDFRawStream(pdf.context.lookup(ref) as PDFRawStream).decode())).join("\n");
   expect(operators).toContain(`${left} 700 ${right} 20 re`);
+});
+
+it("renders implicit defaults identically to the materialized native default style", async () => {
+  const explicit = await fixture("GNM_HALIGN_GENERAL"), sheet = explicit.sheets[0]!;
+  const implicit = {...explicit, sheets: [{...sheet, cells: sheet.cells.map(cell => {
+    const copy = {...cell}; delete copy.style; return copy;
+  })}]};
+  const expected = await pdfText(await writePdf(explicit, [], context));
+  const actual = await pdfText(await writePdf(implicit, [], context));
+  expect(actual.runs).toEqual(expected.runs);
 });

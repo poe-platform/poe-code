@@ -2,6 +2,7 @@ import { expect, it, vi } from "vitest";
 import { PDFArray, PDFDocument, PDFPage, PDFRawStream, decodePDFRawStream } from "pdf-lib";
 import { readGnumeric } from "./gnumeric.js";
 import { writePdf } from "./pdf.js";
+import { pdfText } from "./pdf-text.test-support.js";
 import type { CapabilityContext } from "../contracts.js";
 
 function context(): CapabilityContext {
@@ -29,7 +30,7 @@ it("scales only the worksheet body around its top-left origin", async () => {
   const content = stream(pdf), ctm = content.indexOf("0.5 0 0 0.5 36 336 cm");
   expect(ctm).toBeGreaterThan(0);
   expect([...content.slice(0, ctm).matchAll(/<[0-9A-F]+> Tj/g)]).toHaveLength(2); // nonempty header + footer
-  expect([...content.slice(ctm).matchAll(/<[0-9A-F]+> Tj/g)]).toHaveLength(1); // body
+  expect(content.slice(ctm).split("\nBT\n")).toHaveLength(2); // one shaped body run
 });
 
 it("lets an explicit qualified paper override unqualified retained paper", async () => {
@@ -65,11 +66,9 @@ it("aligns all header fields inside asymmetric margins", async () => {
 });
 
 it("suppresses header and footer whose margins leave no room", async () => {
-  const ctx = context(), draw = vi.spyOn(PDFPage.prototype, "drawText");
-  try {
-    await writePdf(await fixture('<g:Margins><g:top Points="72"/><g:bottom Points="72"/></g:Margins><g:Header Middle="hidden header"/><g:Footer Middle="hidden footer"/>', ctx), [], ctx);
-    expect(draw.mock.calls.map(([value]) => value)).toEqual(["body"]);
-  } finally { draw.mockRestore(); }
+  const ctx = context();
+  const {runs} = await pdfText(await writePdf(await fixture('<g:Margins><g:top Points="72"/><g:bottom Points="72"/></g:Margins><g:Header Middle="hidden header"/><g:Footer Middle="hidden footer"/>', ctx), [], ctx));
+  expect(runs.map(run => run.text)).toEqual(["body"]);
 });
 
 it.each(["hcenter", "vcenter"])("keeps %s value 2 disabled as the upstream painter does", async name => {
@@ -80,13 +79,11 @@ it.each(["hcenter", "vcenter"])("keeps %s value 2 disabled as the upstream paint
 });
 
 it.each([["d_then_r", ["A", "C", "B", "D"]], ["r_then_d", ["A", "B", "C", "D"]]] as const)("retains explicit Cartesian print order %s", async (order, expected) => {
-  const ctx = context(), draw = vi.spyOn(PDFPage.prototype, "drawText");
+  const ctx = context();
   const cells = [[0, 0, "A"], [0, 10, "B"], [50, 0, "C"], [50, 10, "D"]].map(([row, column, value]) => `<g:Cell Row="${row}" Col="${column}" ValueType="60">${value}</g:Cell>`).join("");
-  try {
-    const pdf = await PDFDocument.load(await writePdf(await fixture(`<g:order>${order}</g:order>`, ctx, cells), [], ctx));
-    expect(pdf.getPageCount()).toBe(4);
-    expect(draw.mock.calls.map(([value]) => value).filter(value => ["A", "B", "C", "D"].includes(value))).toEqual(expected);
-  } finally { draw.mockRestore(); }
+  const {pdf, runs} = await pdfText(await writePdf(await fixture(`<g:order>${order}</g:order>`, ctx, cells), [], ctx));
+  expect(pdf.getPageCount()).toBe(4);
+  expect(runs.map(run => run.text).filter(value => ["A", "B", "C", "D"].includes(value))).toEqual(expected);
 });
 
 it("lets explicit sheet selection override do_not_print while implicit export excludes it", async () => {

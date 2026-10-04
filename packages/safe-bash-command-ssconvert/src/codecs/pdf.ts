@@ -553,16 +553,17 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           // gnm_cell_is_zero includes booleans and a strict 64-epsilon numeric tolerance.
           if (!formula && hideZero && (cell.value.kind === "number" ? Math.abs(cell.value.value) < 64 * Number.EPSILON :
             cell.value.kind === "boolean" && !cell.value.value)) continue;
-          const value = formula ?? (cell.style || context.formatting ? await formatting.format(cell.value, cell.format ?? "General", context, {unicodeMinus: cell.value.kind === "number"}) : cell.displayedText ?? (cell.value.kind === "blank" ? "" : cell.value.kind === "boolean" ? cell.value.value ? "TRUE" : "FALSE" : String(cell.value.value)));
+          const value = formula ?? (cell.displayedText !== undefined && !cell.style && !context.formatting ? cell.displayedText :
+            await formatting.format(cell.value, cell.format ?? "General", context, {unicodeMinus: cell.value.kind === "number"}));
           tick();
           const x = geometry.originX + positions.column(cell.column).start - positions.column(geometry.area.startColumn).start;
           const y = geometry.originY + positions.row(cell.row).start - positions.row(geometry.area.startRow).start;
           const normalizedStyle = normalizePdfCellStyle(cell);
-          const style = normalizedStyle ? cellPrintStyle(normalizedStyle, tick) : undefined;
+          const style = cellPrintStyle(normalizedStyle, tick);
           const width = positions.column(cell.column).size, height = positions.row(cell.row).size;
-          const alignment = style?.alignment === "general" ? formula ? "left" : cell.value.kind === "number" ? "right" :
-            cell.value.kind === "boolean" || cell.value.kind === "error" ? "center" : "left" : style?.alignment ?? "left";
-          const overflow = style && (formula || cell.value.kind === "string") ? (displayWidth: number) => {
+          const alignment = style.alignment === "general" ? formula ? "left" : cell.value.kind === "number" ? "right" :
+            cell.value.kind === "boolean" || cell.value.kind === "error" ? "center" : "left" : style.alignment;
+          const overflow = formula || cell.value.kind === "string" ? (displayWidth: number) => {
             const required = alignment === "center" ? width + Math.max(0, (displayWidth - width + 5 * printDisplayScale) / 2) : Infinity;
             return {
               left: alignment === "left" ? 0 : textSpan(cell, x - geometry.originX + width, "left", required) - width,
@@ -570,8 +571,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
                 Math.max(width, (layout.widthPoints - print.margins.right - geometry.originX) / layout.scaleX - (x - geometry.originX)), "right", required) - width
             };
           } : undefined;
-          await text(page, value, x, y, style ? style.size * printDisplayScale : 10, alignment,
-            style ? {width, height, style, ...(overflow === undefined ? {} : {overflow})} : undefined);
+          await text(page, value, x, y, style.size * printDisplayScale, alignment,
+            {width, height, style, ...(overflow === undefined ? {} : {overflow})});
         }
         for (const { object, rectangle } of objects) {
           tick();

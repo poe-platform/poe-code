@@ -36,8 +36,13 @@ export interface CellPrintStyle {
   readonly background?: readonly [number, number, number];
 }
 
-/** Project the qualified Gnumeric style effects, refusing every unknown effect. */
-export function cellPrintStyle(style: Readonly<Record<string, ImportedValue>>, tick: (amount?: number) => void): CellPrintStyle {
+/** Project native defaults or qualified Gnumeric styles, refusing unknown effects. */
+export function cellPrintStyle(style: Readonly<Record<string, ImportedValue>> | undefined, tick: (amount?: number) => void): CellPrintStyle {
+  if (style === undefined) {
+    tick();
+    return {alignment: "general", verticalAlignment: "bottom", family: "Sans", bold: false, italic: false,
+      size: 10, underline: 0, indent: 0, strikeThrough: false, foreground: [0, 0, 0], foregroundAlpha: 1};
+  }
   const fail = (): never => {throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: PDF styled or merged cells");};
   const record = (value: ImportedValue | undefined): Readonly<Record<string, ImportedValue>> => {
     tick();

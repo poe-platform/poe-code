@@ -1,8 +1,9 @@
-import { expect, it, vi } from "vitest";
-import { PDFDocument, PDFPage } from "pdf-lib";
+import { expect, it } from "vitest";
+import { PDFDocument } from "pdf-lib";
 import type { CapabilityContext } from "../contracts.js";
 import { readGnumeric } from "./gnumeric.js";
 import { writePdf } from "./pdf.js";
+import { pdfText } from "./pdf-text.test-support.js";
 
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},
   environment: { env: {}, locale: "C", timezone: "UTC" },
@@ -14,17 +15,10 @@ async function fixture(axis: "h" | "v", type = "manual", position = "2", extra =
 // Authenticated print.c uses h breaks for row pagination and v for columns.
 // Native cleans stored automatic breaks and retains manual/data-slice boundaries.
 it.each(["h", "v"] as const)("prints persisted %s page breaks on the correct axis", async axis => {
-  const draw = vi.spyOn(PDFPage.prototype, "drawText");
-  try {
-    const pdf = await PDFDocument.load(await writePdf(await fixture(axis), [], context));
-    expect(pdf.getPageCount()).toBe(2);
-    const pages = new Map<object, string[]>();
-    draw.mock.calls.forEach(([text], index) => {
-      if (!text) return;
-      const page = draw.mock.contexts[index]!; pages.set(page, [...pages.get(page) ?? [], text]);
-    });
-    expect([...pages.values()]).toEqual([["cell0", "cell1"], ["cell2", "cell3"]]);
-  } finally { draw.mockRestore(); }
+  const {pdf, runs} = await pdfText(await writePdf(await fixture(axis), [], context));
+  expect(pdf.getPageCount()).toBe(2);
+  expect(pdf.getPages().map((_, index) => runs.filter(run => run.page === index + 1).map(run => run.text)))
+    .toEqual([["cell0", "cell1"], ["cell2", "cell3"]]);
 });
 it.each(["auto", "none"])("recomputes pagination instead of forcing stored %s breaks", async type => {
   expect((await PDFDocument.load(await writePdf(await fixture("h", type), [], context))).getPageCount()).toBe(1);

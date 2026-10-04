@@ -117,13 +117,14 @@ it.each(['acquire', 'write', 'read', 'cancel', 'read-close'])('cleans worksheet 
 });
 
 
-it('imports scalar XLSX as stored row-major cells without a resident cell array', async () => {
+it('imports scalar XLSX with stored cells and axes without resident arrays', async () => {
   const bytes = await fixture(false, true, false), expected = await readXlsx(bytes, context);
   const fs = createMemoryFileSystem();
   const engine = createEngine({ workingFiles: { fs, directory: '/', cacheBytes: 16384 }, codecs: [{ id: 'fixture', description: '', extensions: [], async readSource(source, ctx) {
     const push = Array.prototype.push;
     Array.prototype.push = function(...items: unknown[]) {
       if (items.some(item => item && typeof item === 'object' && 'row' in item && 'column' in item && 'value' in item)) throw Error('resident cell array');
+      if (items.some(item => item && typeof item === 'object' && 'index' in item && ('sizePoints' in item || 'hidden' in item || 'outlineLevel' in item || 'collapsed' in item))) throw Error('resident axis array');
       return push.apply(this, items);
     };
     let imported;
@@ -131,8 +132,12 @@ it('imports scalar XLSX as stored row-major cells without a resident cell array'
     finally { Array.prototype.push = push; }
     expect('metadata' in imported).toBe(true);
     if (!('metadata' in imported)) throw Error('missing scalar source');
-    expect(imported.metadata).toEqual({ ...expected, sheets: expected.sheets.map(sheet => ({ ...sheet, cells: [] })) });
+    expect(imported.metadata).toEqual({ ...expected, sheets: expected.sheets.map(sheet => ({ ...sheet, cells: [], rows: [], columns: [] })) });
     for (const sheet of expected.sheets) {
+      for (const kind of ['rows', 'columns'] as const) {
+        const axes = []; for await (const axis of imported.axes!(sheet.id, kind)) axes.push(axis);
+        expect(axes).toEqual(sheet[kind]);
+      }
       const cells = []; for await (const cell of imported.cells(sheet.id)) cells.push(cell);
       expect(cells).toEqual([...sheet.cells].sort((a, b) => a.row - b.row || a.column - b.column));
     }
@@ -143,7 +148,7 @@ it('imports scalar XLSX as stored row-major cells without a resident cell array'
   expect(await fs.readdir('/')).toEqual([]);
 });
 
-it.each(['read', 'cancel'])('preserves backing %s failures during scalar source replay', async mode => {
+it.each(['read', 'cancel'].flatMap(mode => ['cells', 'axes'].map(kind => ({ mode, kind }))))('preserves backing $mode failures during scalar $kind replay', async ({ mode, kind }) => {
   const bytes = await fixture(false, false, false), fs = createMemoryFileSystem(), controller = new AbortController(), failure = Error('source replay');
   const engine = createEngine({ workingFiles: { fs, directory: '/', cacheBytes: 16384 }, codecs: [{ id: 'fixture', description: '', extensions: [], async readSource(source, ctx) {
     let replay = false;
@@ -155,7 +160,9 @@ it.each(['read', 'cancel'])('preserves backing %s failures during scalar source 
       } };
     } }, true);
     if (!('metadata' in imported)) throw Error('expected scalar source');
-    replay = true; await imported.cells(imported.metadata.sheets[0]!.id)[Symbol.asyncIterator]().next();
+    replay = true;
+    const id = imported.metadata.sheets[0]!.id;
+    await (kind === 'cells' ? imported.cells(id) : imported.axes!(id, 'rows'))[Symbol.asyncIterator]().next();
     return { sheets: [] };
   } }] });
   try { await expect(engine.readWorkbook({ kind: 'range', source: { size: bytes.length, async read(at, count) { return bytes.subarray(at, at + count); } } }, { importType: 'fixture' }, { signal: controller.signal })).rejects.toBe(failure); }

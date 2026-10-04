@@ -1,5 +1,5 @@
 import type { WorkbookSource } from "./codecs/types.js";
-import { ownWorkbookSource } from "./workbook/source.js";
+import { ownWorkbookSource, materializeSourceAxes } from "./workbook/source.js";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { createWorkingStorage } from "./working-storage.js";
 import { createCellIndex } from "./workbook/cell-index.js";
@@ -282,7 +282,7 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
         if (decoded) {
           check(context);
           if (!("metadata" in decoded)) return { book: retain(decoded, storageLimits), bytes: source.size };
-          const owned = await ownWorkbookSource(decoded, storageLimits, () => check(context));
+          const owned = await ownWorkbookSource(decoded, storageLimits, () => check(context), context.createWorkingStorage?.bind(context));
           return { book: owned.metadata, source: owned, bytes: source.size };
         }
       }
@@ -495,6 +495,7 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
     try {
       // Explicit compatibility for hosts whose output capability requires full bytes.
       if (source) {
+        source = await materializeSourceAxes(source, context.limits, () => check(context));
         const sheets = [];
         for (const sheet of source.metadata.sheets) {
           const cells = [];
@@ -789,8 +790,10 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
         );
         if (!imported.book.sheets.length) throw new SsconvertError("io", `Loading ${resourceUri(request.input.kind === "resource" ? request.input.uri : request.input.filename ?? "(unspecified)", config.environment.cwd)} failed`);
         if (imported.source) {
-          const prepared = await prepareExport(imported.book, request.destination, request.exportType, request.exportOptions ?? [], context, request);
-          return saveConversion(imported.book, request, context, imported.bytes, prepared, undefined, imported.source);
+          const source = exporter(request.destination, request.exportType).sourceAxes ? imported.source :
+            await materializeSourceAxes(imported.source, context.limits, () => check(context));
+          const prepared = await prepareExport(source.metadata, request.destination, request.exportType, request.exportOptions ?? [], context, request);
+          return saveConversion(source.metadata, request, context, imported.bytes, prepared, undefined, source);
         }
         const sourceName = request.input.kind === "resource" ? request.input.uri : request.input.filename;
         const sourceUri = sourceName === undefined ? undefined : resourceUri(sourceName, config.environment.cwd);

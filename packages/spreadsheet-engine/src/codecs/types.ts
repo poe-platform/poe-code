@@ -1,4 +1,4 @@
-import type { Workbook, CellRange, Cell } from "@poe-code/spreadsheet-ast";
+import type { Workbook, CellRange, Cell, AxisMetadata } from "@poe-code/spreadsheet-ast";
 import type { ByteSource, CapabilityContext, RangeSource } from "../contracts.js";
 
 export type Direction = "read" | "write";
@@ -33,16 +33,21 @@ export interface ServiceDescriptor {
   readonly exporterOptionKeys?: readonly string[];
 }
 /** Replayable, row-major cells backed by retained input or caller working storage.
- * Metadata contains empty cell arrays. Each iteration owns only its current cell.
+ * Metadata contains empty cell arrays (and empty axes when supplied separately).
+ * Each iteration owns only its current record.
  * Readers may decline this representation when global evaluation is still needed.
  */
 export interface WorkbookSource {
   readonly metadata: Workbook;
   cells(sheet: string): AsyncIterable<Cell>;
+  /** Optional insertion-order axes; metadata must contain empty rows/columns arrays. */
+  axes?(sheet: string, kind: "rows" | "columns"): AsyncIterable<AxisMetadata>;
 }
 export interface Codec extends ServiceDescriptor {
   /** Handles label metadata explicitly; other writers report its omission. */
   readonly labelRanges?: true;
+  /** Consumes source axes explicitly, or produces a format that has no axis metadata. */
+  readonly sourceAxes?: true;
   /** Provider-owned declarative handlers; unrecognized keys use common options. */
   readonly exportOptionRules?: Readonly<Record<string, ExportOptionRule>>;
   /** Explicit name probe: extensions alone never implement a probe. */

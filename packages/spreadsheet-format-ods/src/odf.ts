@@ -1,7 +1,7 @@
 import { snapshotRecords } from "@poe-code/spreadsheet-ast/model";
 import { createOdfXmlTape } from "./odf-xml-tape.js";
 import type { WorkbookSource } from "@poe-code/spreadsheet-engine/codecs/types";
-import { ownWorkbookSource } from "@poe-code/spreadsheet-engine/workbook/source";
+import { ownWorkbookSource, materializeSourceAxes } from "@poe-code/spreadsheet-engine/workbook/source";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { encodeTextStream } from "@poe-code/spreadsheet-engine/encoding/encode-stream";
 import { ownedRangeSource } from "@poe-code/spreadsheet-engine/range-input";
@@ -879,7 +879,7 @@ export function createOdfStreamWriter(profile: "strict" | "extended") {
     }
     const wrapped = encryptionProfile?.cipher === "aes-gcm";
     const extended = profile === "extended", xml = createOdfXml(context, extended), e = xml.element;
-    const source = "metadata" in input ? await ownWorkbookSource(input, context.limits, () => context.signal.throwIfAborted()) : undefined;
+    const source = "metadata" in input ? await materializeSourceAxes(await ownWorkbookSource(input, context.limits, () => context.signal.throwIfAborted(), context.createWorkingStorage?.bind(context)), context.limits, () => context.signal.throwIfAborted()) : undefined;
     const preparedLabels = prepareOdfFormulaLabels(source?.metadata ?? input as Workbook, context, xml.charge);
     let book = preparedLabels.book;
     if (book.sheets.some(sheet => !Object.isFrozen(sheet.cells))) {

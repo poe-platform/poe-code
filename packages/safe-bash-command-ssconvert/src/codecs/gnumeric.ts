@@ -1,3 +1,4 @@
+import { ownWorkbookSource, materializeSourceAxes } from "@poe-code/spreadsheet-engine/workbook/source";
 import { parseXmlSteps, type XmlElement } from "@poe-code/safe-fs/xml";
 import { createGnumericCellStorage, type GnumericChildren, type GnumericNode } from "./gnumeric-cell-storage.js";
 import { readGnumericDocument, GnumericSourceFailure } from "./gnumeric-input.js";
@@ -1013,6 +1014,9 @@ async function* gnumericChunks(book: Workbook, context: CapabilityContext, sourc
 
 
 export async function* writeGnumericStream(book: Workbook | WorkbookSource, _options: readonly string[], context: CapabilityContext): AsyncGenerator<Uint8Array> {
+  if ("metadata" in book && book.axes) book = await materializeSourceAxes(
+    await ownWorkbookSource(book, context.limits, () => context.signal.throwIfAborted(), context.createWorkingStorage?.bind(context)), context.limits,
+    () => context.signal.throwIfAborted());
   yield* encodeTextStream("metadata" in book ? gnumericChunks(book.metadata, context, book) : gnumericChunks(book, context), "UTF-8", false, context);
 }
 

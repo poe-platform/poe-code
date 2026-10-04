@@ -2,6 +2,7 @@ import { SsconvertError } from "./errors.js";
 import type { WorkbookLimits } from "./limits.js";
 import type {
   Cell,
+  AxisMetadata,
   CellUpdate,
   NamedExpression,
   Range,
@@ -329,6 +330,22 @@ export function createCellValidator(limits: WorkbookLimits, onWork?: (amount: nu
   };
 }
 
+/** Validate an already-owned axis record. */
+export function validateAxis(record: AxisMetadata, maximum: number, admitIndex?: () => void): void {
+  checkRecord(record, [], ["style"]);
+  index(record.index, maximum);
+  admitIndex?.();
+  optionalType(record.sizePoints, "number", "Invalid axis size");
+  if (record.sizePoints !== undefined && record.sizePoints < 0) invalid("Invalid axis size");
+  for (const value of [record.hidden, record.collapsed])
+    optionalType(value, "boolean", "Invalid axis metadata");
+  if (
+    record.outlineLevel !== undefined &&
+    (!Number.isSafeInteger(record.outlineLevel) || record.outlineLevel < 0)
+  )
+    invalid("Invalid axis outline");
+}
+
 export function snapshotWorkbook(book: Workbook, limits: WorkbookLimits, onWork?: (amount: number) => void): Workbook {
   const budgets = ownershipBudgets(limits);
   // Count populated storage before copying, never enumerate the sheet grid.
@@ -395,19 +412,10 @@ export function snapshotWorkbook(book: Workbook, limits: WorkbookLimits, onWork?
     ] as const) {
       const indices = new Set<number>();
       for (const record of records) {
-        checkRecord(record, [], ["style"]);
-        index(record.index, maximum);
-        if (indices.has(record.index)) invalid("Duplicate axis metadata");
-        indices.add(record.index);
-        optionalType(record.sizePoints, "number", "Invalid axis size");
-        if (record.sizePoints !== undefined && record.sizePoints < 0) invalid("Invalid axis size");
-        for (const value of [record.hidden, record.collapsed])
-          optionalType(value, "boolean", "Invalid axis metadata");
-        if (
-          record.outlineLevel !== undefined &&
-          (!Number.isSafeInteger(record.outlineLevel) || record.outlineLevel < 0)
-        )
-          invalid("Invalid axis outline");
+        validateAxis(record, maximum, () => {
+          if (indices.has(record.index)) invalid("Duplicate axis metadata");
+          indices.add(record.index);
+        });
       }
     }
     const merges = sheet.merges ?? [];

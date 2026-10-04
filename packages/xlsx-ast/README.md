@@ -79,9 +79,11 @@ heights use caller-backed scratch storage with bounded transfer windows and cach
 replay through schema recognition and cell decoding in source order. Parts also
 used as opaque metadata preserve that role's original XML. Individual rows,
 strings, parser tokens and other metadata remain resident. Scalar conversions
-replay stored cells in row-major order; formula imports and explicit workbook SDK
-reads materialize cells for the existing evaluation path. Final axis metadata
-arrays also remain resident; full bounded conversion needs further migration.
+replay stored cells in row-major order and row/column metadata in insertion order.
+XLSX-to-text conversion keeps both cells and axes in caller storage. Formula
+imports and explicit workbook SDK reads materialize them for the existing
+evaluation path; XLSX, ODF and Gnumeric export currently materialize source axes.
+Other metadata and global operations still need migration for full bounded conversion.
 `readXlsx(input, context, true)` prefers a replayable source and returns a normal
 workbook when formulas need evaluation. Without working storage, the convenience
 reader retains the directory and XML trees.

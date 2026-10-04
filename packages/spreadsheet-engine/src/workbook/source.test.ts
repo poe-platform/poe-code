@@ -147,3 +147,102 @@ it("rechecks the work budget and closes a changed replay producer", async () => 
   await expect(iterator.next()).rejects.toThrow("work limit exceeded");
   expect(closed).toBe(2);
 });
+
+it("owns replayable axes with aggregate array-workbook budgets", async () => {
+  const rows = [{ index: 4, sizePoints: 17, hidden: true }, { index: 0, sizePoints: 23 }];
+  const columns = [{ index: 1, outlineLevel: 2 }];
+  const supplied = { metadata: { sheets: [{ ...metadata.sheets[0]!, rows: [], columns: [] }] },
+    async *cells() { yield* cells; },
+    async *axes(_sheet: string, kind: "rows" | "columns") { yield* kind === "rows" ? rows : columns; }
+  };
+  for (const key of ["workbookNodes", "workbookTextBytes", "workbookDepth"] as const) {
+    for (let budget = 0; budget < 160; budget++) {
+      const limits = { ...defaultSsconvertLimits, [key]: budget };
+      let failure: string | undefined;
+      try { snapshotWorkbook({ sheets: [{ ...metadata.sheets[0]!, cells, rows, columns }] }, limits); }
+      catch (error) { failure = (error as Error).message; }
+      if (failure) await expect(ownWorkbookSource(supplied, limits, () => {})).rejects.toThrow(failure);
+      else {
+        const owned = await ownWorkbookSource(supplied, limits, () => {});
+        expect(owned.metadata.sheets[0]!.rows).toEqual([]);
+        const actual = []; for await (const axis of owned.axes!("s", "rows")) actual.push(axis);
+        expect(actual).toEqual(rows); expect(Object.isFrozen(actual[0])).toBe(true);
+      }
+    }
+  }
+});
+
+it("rejects duplicate or invalid streamed axis metadata and closes its producer", async () => {
+  for (const second of [{ index: 3 }, { index: -1 }, { index: 4, sizePoints: -1 }]) {
+    let closed = false;
+    const supplied = { metadata: { sheets: [{ ...metadata.sheets[0]!, rows: [], columns: [] }] },
+      async *cells() { yield* cells; }, async *axes() {
+        try { yield { index: 3 }; yield second; } finally { closed = true; }
+      } };
+    await expect(ownWorkbookSource(supplied, defaultSsconvertLimits, () => {})).rejects.toThrow();
+    expect(closed).toBe(true);
+  }
+});
+
+it("uses bounded caller storage for axis duplicate admission and retires every replay", async () => {
+  const { createEngine } = await import("../engine.js");
+  const { createMemoryFileSystem } = await import("@poe-code/safe-fs/core");
+  const fs = createMemoryFileSystem(), borrowed = new Uint8Array(16384);
+  let acquired = 0, closed = 0, reads = 0, writes = 0;
+  const engine = createEngine({ workingFiles: { fs, directory: "/", cacheBytes: 16384 }, codecs: [{
+    id: "fixture", description: "", extensions: [], async readSource(_input, context) {
+      const owned = await ownWorkbookSource({ metadata: { sheets: [{ ...metadata.sheets[0]!, rows: [], columns: [] }] },
+        async *cells() { yield* cells; }, async *axes(_id, kind) {
+          if (kind === "rows") for (let index = 299; index >= 0; index--) yield { index, sizePoints: 17 };
+        }
+      }, context.limits, () => context.signal.throwIfAborted(), () => {
+        acquired++; const storage = context.createWorkingStorage!();
+        return { ...storage, async read(at, count) {
+          expect(count).toBeLessThanOrEqual(16384); reads++;
+          const bytes = await storage.read(at, count); borrowed.set(bytes); return borrowed.subarray(0, bytes.length);
+        }, async write(at, bytes) { expect(bytes.length).toBeLessThanOrEqual(16384); writes++; await storage.write(at, bytes); },
+        async close() { closed++; await storage.close(); } };
+      });
+      expect(closed).toBe(acquired);
+      const iterator = owned.axes!("s", "rows")[Symbol.asyncIterator]();
+      expect((await iterator.next()).value).toEqual({ index: 299, sizePoints: 17 });
+      await iterator.return!(); expect(closed).toBe(acquired);
+      let count = 0; for await (const axis of owned.axes!("s", "rows")) expect(axis.index).toBe(299 - count++);
+      expect(count).toBe(300); expect(closed).toBe(acquired);
+      return { sheets: [] };
+    }
+  }] });
+  try { await engine.readWorkbook({ kind: "range", source: { size: 0, async read() { return new Uint8Array(); } } }, { importType: "fixture" }, { signal: new AbortController().signal }); }
+  finally { await engine.dispose(); }
+  expect(acquired).toBe(4); expect(reads).toBeGreaterThan(0); expect(writes).toBeGreaterThan(0);
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it.each(["acquire", "write", "read", "producer", "cancel", "close", "combined"])("retires axis validation after %s failure", async mode => {
+  const controller = new AbortController(), reason = Error("axis failure"), cleanup = Error("axis cleanup");
+  let closed = 0, producerClosed = 0;
+  const supplied = { metadata: { sheets: [{ ...metadata.sheets[0]!, rows: [], columns: [] }] },
+    async *cells() { yield* cells; }, async *axes() {
+      try {
+        for (let index = 0; index < 300; index++) {
+          if (index === 1 && (mode === "producer" || mode === "combined")) throw reason;
+          if (index === 1 && mode === "cancel") controller.abort(reason);
+          yield { index };
+        }
+      } finally { producerClosed++; }
+    } };
+  const result = ownWorkbookSource(supplied, defaultSsconvertLimits, () => controller.signal.throwIfAborted(), () => {
+    if (mode === "acquire") throw reason;
+    const bytes = new Uint8Array(2 * 1024 * 1024); let end = 8;
+    return {
+      allocate(length) { const at = end; end += length; expect(end).toBeLessThanOrEqual(bytes.length); return at; },
+      async read(at, length) { if (mode === "read") throw reason; return bytes.subarray(at, at + length); },
+      async write(at, value) { if (mode === "write") throw reason; bytes.set(value, at); },
+      async close() { closed++; if (mode === "close") throw reason; if (mode === "combined") throw cleanup; }
+    };
+  });
+  if (mode === "combined") await expect(result).rejects.toMatchObject({ errors: [reason, cleanup] });
+  else await expect(result).rejects.toBe(reason);
+  expect(closed).toBe(mode === "acquire" ? 0 : 1);
+  expect(producerClosed).toBe(mode === "acquire" ? 0 : 1);
+});

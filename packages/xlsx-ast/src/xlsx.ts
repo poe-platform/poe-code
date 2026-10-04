@@ -5,7 +5,7 @@ import { createSharedStringStorage } from "./shared-string-storage.js";
 import { writeXlsxTheme } from "./xlsx-theme.js";
 import { writeXlsxWorkbookProtection } from "./xlsx-workbook-protection.js";
 import type { Codec, WorkbookSource } from "@poe-code/spreadsheet-engine/codecs/types";
-import { ownWorkbookSource } from "@poe-code/spreadsheet-engine/workbook/source";
+import { ownWorkbookSource, materializeSourceAxes } from "@poe-code/spreadsheet-engine/workbook/source";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { foldSheetName } from "@poe-code/spreadsheet-ast/case-fold";
 import { XlsxExternalLinkWriter } from "./external-link-export.js";
@@ -370,6 +370,15 @@ function formula(source: string, sheet: string, row: number, column: number, con
   });
   return serializeExpression(document, simpleSheets ? { ...gnumericGrammar, unquotedSheets: true } : gnumericGrammar, false, true);
 }
+type StoredWorksheetAxes = { indexes: ReturnType<ReturnType<typeof createWorksheetIndexes>["sheet"]>; defaultRowHeight: number };
+async function* storedAxisRecords(source: StoredWorksheetAxes, kind: "rows" | "columns"): AsyncGenerator<AxisMetadata> {
+  for await (const metadata of source.indexes[kind].values()) {
+    const height = kind === "rows" ? await source.indexes.heights.get(metadata.index) : undefined;
+    yield metadata.sizePoints === undefined && height !== undefined && height !== source.defaultRowHeight
+      ? { ...metadata, sizePoints: height, style: { gnumeric: gnode("RowInfo", { HardSize: 0 }) } } : metadata;
+  }
+}
+
 export function readXlsx(bytes: Uint8Array | RangeSource, context: CapabilityContext): Promise<Workbook>;
 export function readXlsx(bytes: Uint8Array | RangeSource, context: CapabilityContext, sourceMode: true): Promise<Workbook | WorkbookSource>;
 export async function readXlsx(bytes: Uint8Array | RangeSource, context: CapabilityContext, sourceMode = false): Promise<Workbook | WorkbookSource> {
@@ -460,6 +469,8 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
     const storedIndexes = context.createWorkingStorage ? createWorksheetIndexes(context) : undefined;
     const storedCells = context.createWorkingStorage ? createXlsxCellStorage(context) : undefined;
     let sourceEligible = sourceMode && !!storedCells;
+    const deferredAxes = sourceMode && !!storedIndexes;
+    const axisSources: StoredWorksheetAxes[] = [];
     let cellCount = 0;
     const sheets: Sheet[] = [];
     for (const sheetNode of sheetNodes) {
@@ -704,7 +715,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
           }
         }
       }
-      for await (const metadata of rowState.values()) {
+      if (!deferredAxes) for await (const metadata of rowState.values()) {
         const allocatedHeight = await allocatedRowHeights.get(metadata.index);
         rows.push(metadata.sizePoints === undefined && allocatedHeight !== undefined && allocatedHeight !== defaultRowHeight
           ? { ...metadata, sizePoints: allocatedHeight, style: { gnumeric: gnode("RowInfo", { HardSize: 0 }) } } : metadata);
@@ -753,7 +764,8 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
           }
         }
       }
-      for await (const column of columnState.values()) columns.push(column);
+      if (!deferredAxes) for await (const column of columnState.values()) columns.push(column);
+      if (deferredAxes) axisSources.push({ indexes: indexes!, defaultRowHeight });
       const records: UnsupportedRecord[] = [];
       const hyperlinkRegions: ImportedValue[] = [];
       for (const link of children(child(source, "hyperlinks"), "hyperlink")) {
@@ -869,12 +881,25 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
       ...(active ? { activeSheet: active.id } : {}), ...(view ? { view: { xlsx: data(view) } } : {}),
       ...(Object.keys(documentProperties).length ? { properties: documentProperties } : {}),
       ...(workbookRecords.length ? { unsupportedRecords: workbookRecords } : {}) };
-    if (sourceEligible && storedCells) return { metadata: book, async *cells(sheet: string) {
+    if (sourceEligible && storedCells) return { metadata: book,
+      ...(deferredAxes ? { async *axes(sheet: string, kind: "rows" | "columns") {
+        const index = sheets.findIndex(value => value.id === sheet);
+        if (index < 0 || kind !== "rows" && kind !== "columns") throw new SsconvertError("invalid-request", "Unknown XLSX axis");
+        try { yield* storedAxisRecords(axisSources[index]!, kind); }
+        catch (error) { return translateFailure(error, context); }
+      } } : {}),
+      async *cells(sheet: string) {
       const index = sheets.findIndex(value => value.id === sheet);
       if (index < 0) throw new SsconvertError("invalid-request", "Unknown XLSX sheet");
       try { yield* storedCells.values(index, true); }
       catch (error) { return translateFailure(error, context); }
     } };
+    if (deferredAxes) for (let index = 0; index < sheets.length; index++) {
+      const rows: AxisMetadata[] = [], columns: AxisMetadata[] = [];
+      for await (const axis of storedAxisRecords(axisSources[index]!, "rows")) rows.push(axis);
+      for await (const axis of storedAxisRecords(axisSources[index]!, "columns")) columns.push(axis);
+      sheets[index] = { ...sheets[index]!, rows, columns };
+    }
     if (storedCells) for (let index = 0; index < sheets.length; index++) {
       const cells: Cell[] = []; for await (const cell of storedCells.values(index)) cells.push(cell);
       sheets[index] = { ...sheets[index]!, cells };
@@ -908,7 +933,7 @@ export function createXlsxStreamWriter(edition: "2006" | "2008"): NonNullable<Co
     try {
     context.signal.throwIfAborted();
     const { element: xml, stream: xmlStream, charge } = createXlsxXml(context);
-    const source = "metadata" in input ? await ownWorkbookSource(input, context.limits, () => context.signal.throwIfAborted()) : undefined;
+    const source = "metadata" in input ? await materializeSourceAxes(await ownWorkbookSource(input, context.limits, () => context.signal.throwIfAborted(), context.createWorkingStorage?.bind(context)), context.limits, () => context.signal.throwIfAborted()) : undefined;
     let book = snapshotXlsxWorkbook(source?.metadata ?? input as Workbook, context, charge);
     const suppliedCells = (sheet: Sheet) => source?.cells(sheet.id) ?? sheet.cells;
     if (book.sheets.length > context.limits.sheets) limit("sheets");

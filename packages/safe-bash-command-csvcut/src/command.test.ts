@@ -207,11 +207,25 @@ test('standalone grammar bounds separate option values just like attached values
   }
 });
 test('SDK codec options match CLI qualification before input acquisition', async () => {
-  for (const encoding of ['utf-8-sig', 'utf8-sig', 'latin1']) {
+  for (const encoding of ['utf-8-sig', 'utf_8_sig', 'latin1']) {
     const cli = fixture(['-e', encoding], 'a\nx\n'), sdk = fixture([], 'a\nx\n');
     const a = await csvcut(cli.context), b = await csvcut(sdk.context, { encoding });
     assert.equal(a.exitCode, 0); assert.equal(b.exitCode, a.exitCode);
     assert.equal(sdk.output(), cli.output()); assert.equal(sdk.errors(), cli.errors());
+  }
+});
+test('CLI and SDK reject unregistered codec spellings before acquiring input', async () => {
+  // Python codecs.lookup rejects utf8-sig; it is not an alias of utf-8-sig.
+  for (const encoding of ['utf8-sig', 'UTF8_SIG', 'unknown']) {
+    const cli = fixture(['-e', encoding], 'unused'), sdk = fixture([], 'unused');
+    assert.equal((await csvcut(cli.context)).exitCode, 1);
+    assert.equal((await csvcut(sdk.context, { encoding })).exitCode, 1);
+    for (const run of [cli, sdk]) {
+      assert.equal(run.output(), '');
+      assert.equal(run.errors(), 'csvcut: Unsupported CSV encoding\n');
+      assert.equal(run.acquired(), 0);
+      assert.equal(run.retired(), 0);
+    }
   }
 });
 test('native field-size capability validates its integer grammar', async () => {

@@ -189,6 +189,14 @@ test("explicit encodings preserve Python BOM and Latin-1 behavior across byte sp
   assert.throws(() => new CsvParser({ encoding: 'ascii' }, budget()).push(Uint8Array.of(0xff)), { code: 'INPUT' });
 });
 
+test("unregistered codec spellings fail CSV qualification", () => {
+  for (const encoding of ["utf8-sig", "UTF8_SIG", "unknown"]) {
+    assert.throws(() => new CsvParser({ encoding }, budget()), {
+      code: "UNSUPPORTED", message: "Unsupported CSV encoding"
+    });
+  }
+});
+
 test("QUOTE_NONNUMERIC converts unquoted numbers and field sizes count Unicode scalars", () => {
   const p = new CsvParser({ quoting: 2, fieldCharacters: 4 }, budget());
   assert.deepEqual(p.push(enc.encode('"name","n"\n"😀😀",2\n"x",-0\n')), [

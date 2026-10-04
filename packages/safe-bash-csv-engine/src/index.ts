@@ -208,7 +208,7 @@ export class CsvParser {
       throw new CsvError("ARGUMENT", "Streaming field events do not perform numeric field conversion");
     this.dialect = Object.freeze({ ...dialect });
     this.encoding = (dialect.encoding ?? "utf-8-sig").toLowerCase().replaceAll("_", "-");
-    if (!["utf-8-sig", "utf8-sig", "utf-8", "utf8", "ascii", "us-ascii", "latin1", "latin-1", "iso-8859-1"].includes(this.encoding))
+    if (!["utf-8-sig", "utf-8", "utf8", "ascii", "us-ascii", "latin1", "latin-1", "iso-8859-1"].includes(this.encoding))
       throw new CsvError("UNSUPPORTED", "Unsupported CSV encoding");
     this.decoder = new PythonTextDecoder(this.encoding);
     if (dialect.fieldCharacters !== undefined && (!Number.isSafeInteger(dialect.fieldCharacters) || dialect.fieldCharacters < 0))

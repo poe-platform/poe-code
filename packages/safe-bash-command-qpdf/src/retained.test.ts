@@ -29,8 +29,8 @@ for (const mode of ["ordinary", "replace", "stdout", "stdin", "encrypted", "decr
   assert.equal(published, outputName === "-" ? 0 : 1); assert.deepEqual(await fs.readdir("/scratch"), []);
 });
 
-for (const mode of ["input", "output", "cancel", "write"]) for (const linearize of [false, true]) it(`preserves output and releases storage after ${mode} failure (linearize=${linearize})`, async () => {
-  const doc = PdfDocument.create(); for (let i = 0; i < 128; i++) doc.addPage(); const input = doc.save({ linearize });
+for (const mode of ["input", "output", "cancel", "write"]) for (const linearize of [false, true, "request"]) it(`preserves output and releases storage after ${mode} failure (linearize=${linearize})`, async () => {
+  const doc = PdfDocument.create(); for (let i = 0; i < 128; i++) doc.addPage(); const input = doc.save({ linearize: linearize === true });
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input); await fs.writeFile("/out.pdf", new TextEncoder().encode("original"));
   const controller = new AbortController(), reason = new Error("injected failure"); let sourceReads = 0, published = 0;
   const guarded = new Proxy(Object.create(fs) as typeof fs, { get(_target, key) {
@@ -49,7 +49,7 @@ for (const mode of ["input", "output", "cancel", "write"]) for (const linearize 
     if (key === "publishStagedFile") return async (...args: Parameters<NonNullable<typeof fs.publishStagedFile>>) => { published++; return fs.publishStagedFile!(...args); };
     const value = Reflect.get(fs, key); return typeof value === "function" ? value.bind(fs) : value;
   } });
-  const carrier = createCommandArguments(["in.pdf", "out.pdf"]);
+  const carrier = createCommandArguments(["in.pdf", "out.pdf", ...(linearize === "request" ? ["--linearize"] : [])]);
   const context = { command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/", env: { TMPDIR: "/scratch" }, fs: guarded, signal: controller.signal,
     stdin: (async function* (): AsyncGenerator<Uint8Array> {})(), stdout: { async write() {} }, stderr: { async write() {} } };
   const command = createQpdfCommand({ limits: mode === "input" ? { maxInputBytes: 1 } : mode === "output" ? { maxOutputBytes: 1 } : {} });
@@ -72,7 +72,7 @@ for (const mode of ["missing-input", "missing-output", "same-output", "damaged",
   assert.deepEqual(await fs.readdir("/scratch"), []);
 });
 
-for (const count of [32, 128]) it(`awaits bounded backing and publication writes for ${count} pages`, async () => {
+for (const count of [32, 128]) for (const linearize of [false, true]) it(`awaits bounded backing and publication writes for ${count} pages (linearize=${linearize})`, async () => {
   const doc = PdfDocument.create(); for (let i = 0; i < count; i++) doc.addPage().drawText("Growing", { x: 10, y: 20 });
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", doc.save());
   let outstanding = 0, peak = 0, writes = 0;
@@ -87,7 +87,7 @@ for (const count of [32, 128]) it(`awaits bounded backing and publication writes
     };
     const value = Reflect.get(fs, key); return typeof value === "function" ? value.bind(fs) : value;
   } });
-  const carrier = createCommandArguments(["in.pdf", "out.pdf"]);
+  const carrier = createCommandArguments(["in.pdf", "out.pdf", ...(linearize ? ["--linearize"] : [])]);
   const result = await createQpdfCommand().execute({ command: "qpdf", args: carrier.args, argumentValues: carrier, cwd: "/", env: { TMPDIR: "/scratch" }, fs: guarded, signal: new AbortController().signal,
     stdin: (async function* (): AsyncGenerator<Uint8Array> {})(), stdout: { async write() {} }, stderr: { async write() {} } });
   assert.equal(result.exitCode, 0); assert.ok(writes > 0); assert.ok(peak <= 65536); assert.equal(PdfDocument.load(await fs.readFile("/out.pdf")).pageCount, count); assert.deepEqual(await fs.readdir("/scratch"), []);

@@ -1,5 +1,5 @@
 import { PagedStorage } from "@poe-code/safe-fs/storage";
-import { cosNumber, cosRef, dictDelete, dictGet, dictSet, type PdfCosRef } from "../ast.js";
+import { cosDict, cosNumber, cosRef, dictDelete, dictGet, dictSet, type PdfCosRef } from "../ast.js";
 import { PdfMutableObjectStore } from "../cos/mutable-object-store.js";
 import { retainedCosObjects } from "../cos/retained-objects.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
@@ -7,7 +7,7 @@ import { PdfRetainedDocument, PdfRetainedPage } from "../retained-document.js";
 import { PdfError } from "../errors.js";
 import type { SaveRetainedDocumentOptions } from "./retained-save.js";
 
-export type EditRetainedDocumentOptions = Pick<SaveRetainedDocumentOptions, "rotations" | "removeInfo" | "removeMetadata" | "removeStructure" | "removeAcroform" | "removePageLabels" | "maxObjects" | "maxPages" | "maxRecursionDepth" | "signal">;
+export type EditRetainedDocumentOptions = Pick<SaveRetainedDocumentOptions, "linearize" | "rotations" | "removeInfo" | "removeMetadata" | "removeStructure" | "removeAcroform" | "removePageLabels" | "maxObjects" | "maxPages" | "maxRecursionDepth" | "signal">;
 
 /** Own an editable graph and logical page index on caller storage. This applies
  * edits without the stream dictionary normalization performed by PDF saving.
@@ -39,7 +39,8 @@ export async function editRetainedDocument(source: PdfRetainedDocument, storage:
       const ref = page.reference ?? await store.allocate(page.dict), bytes = new Uint8Array(16), view = new DataView(bytes.buffer);
       view.setFloat64(0, ref.objectNumber); view.setFloat64(8, ref.generationNumber); await pages.write(pages.allocate(16), bytes); count++;
     }
-    const configured = { rootRef: source.crossReference.rootRef, version: source.crossReference.version, signal, pageReferences,
+    if (options.linearize) await store.allocate(cosDict({ Linearized: cosNumber(1), N: cosNumber(count) }));
+    const configured = { rootRef: source.crossReference.rootRef, version: source.crossReference.version, ...(source.crossReference.idArray ? { idArray: source.crossReference.idArray } : {}), signal, pageReferences,
       ...(options.maxPages === undefined ? {} : { maxPages: options.maxPages }), ...(options.maxRecursionDepth === undefined ? {} : { maxRecursionDepth: options.maxRecursionDepth }) };
     document = await PdfRetainedDocument.openStore(store, storage, { ...configured, ...(infoRef ? { infoRef } : {}) });
     for await (const edit of options.rotations ?? []) {

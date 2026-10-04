@@ -824,7 +824,10 @@ ordered relative edits accumulate without collecting the selection.
 `editRetainedDocument(document, storage, options)` applies ordered rotations and
 information/metadata/structure/form/label removals to a caller-backed editable
 graph. Use its `document` for subsequent copies and close the result when done.
-It preserves unsaved stream dictionaries and logical page identities across edits.
+It preserves unsaved stream dictionaries, trailer identifiers and logical page
+identities across edits. Set `linearize: true` to append a linearization marker
+for subsequent saving; this preserves existing markers and is also the behavior
+of qpdf `--linearize`.
 `PdfRetainedDocument.openStore(store, storage, { rootRef, infoRef })` reads an
 existing `PdfMutableObjectStore`; the caller keeps ownership of that store.
 

@@ -28,6 +28,7 @@ export interface RetainedQpdfOptions {
   password: string | undefined;
   replaceInput: boolean;
   decrypt: boolean;
+  linearize: boolean;
   removeInfo: boolean;
   removeMetadata: boolean;
   removeStructure: boolean;
@@ -201,10 +202,11 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
         yield { pageIndex: number - 1, degrees: edit.angle * (edit.relative ? edit.sign : 1), relative: edit.relative };
       }
     }
+    if (options.linearize || (options.splitPagesGroup !== undefined && (removeInfo || removeMetadata || removeStructure || removeAcroform || removePageLabels))) {
+      editedGraph = await editRetainedDocument(document, storage, { linearize: options.linearize, removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations(), signal });
+    }
     if (options.splitPagesGroup !== undefined) {
-      if (removeInfo || removeMetadata || removeStructure || removeAcroform || removePageLabels) {
-        editedGraph = await editRetainedDocument(document, storage, { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations(), signal });
-      } else for await (const object of retainedCosObjects(document, storage, { signal })) {
+      if (!editedGraph) for await (const object of retainedCosObjects(document, storage, { signal })) {
         if (object.stream) for await (const ignored of object.stream.chunks) void ignored;
       }
       const parts = splitPageOutputs(editedGraph?.document ?? document, storage, destination, options.splitPagesGroup, editedGraph ? [] : options.rotateSpecs, signal);
@@ -234,7 +236,7 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
       }
       return { exitCode: 0 };
     }
-    const producer = saveRetainedDocumentChunks(document, storage, { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, signal, maxOutputBytes: limits.maxOutputBytes, rotations: rotations(), ...(options.decrypt && document.encryption ? { version: "1.7", omitId: true } : {}) });
+    const producer = saveRetainedDocumentChunks(editedGraph?.document ?? document, storage, { ...(editedGraph ? {} : { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, rotations: rotations() }), signal, maxOutputBytes: limits.maxOutputBytes, ...(options.decrypt && document.encryption ? { version: "1.7", omitId: true } : {}) });
     try { output = await PdfFileSource.fromStream(context.fs, storage.directory, producer, { signal, maxInputBytes: limits.maxOutputBytes }); }
     finally { await producer.return(undefined); }
     if (destination === "-") { for await (const bytes of output.stream(0, output.size, signal)) await writeBytes(context.stdout, bytes, signal); }

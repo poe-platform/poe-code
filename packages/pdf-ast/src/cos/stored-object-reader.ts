@@ -1,4 +1,4 @@
-import { cosDict, cosNumber, type PdfCosRef, type PdfXRefEntry } from "../ast.js";
+import { cosDict, cosNumber, type PdfCosArray, type PdfCosRef, type PdfXRefEntry } from "../ast.js";
 import { PdfError } from "../errors.js";
 import { PdfObjectIndex, type PdfIndexStorage } from "./object-index.js";
 import type { PdfMutableObjectStore } from "./mutable-object-store.js";
@@ -10,6 +10,7 @@ export interface OpenStoredPdfOptions extends OpenPdfObjectReaderOptions {
   readonly rootRef: PdfCosRef;
   readonly infoRef?: PdfCosRef;
   readonly version?: string;
+  readonly idArray?: PdfCosArray;
 }
 
 /** Index a caller-owned, already decoded object graph without serializing its
@@ -55,6 +56,6 @@ export async function openStoredPdfObjectReader(store: PdfMutableObjectStore, st
     },
     async close() { closed = true; await index.close(); },
   };
-  const trailer = cosDict({ Root: options.rootRef, ...(options.infoRef ? { Info: options.infoRef } : {}), Size: cosNumber(maximum + 1) });
-  return { reader, crossReference: { rootRef: options.rootRef, ...(options.infoRef ? { infoRef: options.infoRef } : {}), version: options.version ?? "1.7", trailer, index, xrefOffset: 0, revisionCount: 0 }, close: reader.close };
+  const trailer = cosDict({ Root: options.rootRef, ...(options.idArray ? { ID: options.idArray } : {}), ...(options.infoRef ? { Info: options.infoRef } : {}), Size: cosNumber(maximum + 1) });
+  return { reader, crossReference: { rootRef: options.rootRef, ...(options.idArray ? { idArray: options.idArray } : {}), ...(options.infoRef ? { infoRef: options.infoRef } : {}), version: options.version ?? "1.7", trailer, index, xrefOffset: 0, revisionCount: 0 }, close: reader.close };
 }

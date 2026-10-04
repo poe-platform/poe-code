@@ -38,3 +38,22 @@ for (const mode of ["write", "cancel"]) it(`cleans editable graph backing after 
   finally { await document.close(); await source.close(); }
   expect(await base.readdir("/scratch")).toEqual([]);
 });
+
+it.each([false, true])("appends a linearization marker while preserving trailer identity (existing=%s)", async existing => {
+  const { cosArray, cosDict, cosNumber, cosString, dictGet } = await import("../ast.js");
+  const { serializeCosDocument } = await import("../cos/writer.js");
+  const { saveRetainedDocumentChunks } = await import("./retained-save.js");
+  const original = PdfDocument.create(); original.addPage(); original.addPage();
+  const idArray = cosArray([cosString("retained identifier"), cosString("retained revision")]);
+  const input = serializeCosDocument({ objects: [...original.cos.objects.values()], rootRef: original.cos.rootRef, infoRef: original.cos.infoRef, idArray, linearize: existing });
+  const expected = PdfDocument.load(input); expected.cos.allocateObject(cosDict({ Linearized: cosNumber(1), N: cosNumber(2) }));
+  const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", input); const storage = { fs, directory: "/scratch" };
+  const source = await PdfFileSource.open(fs, "/input"), document = await PdfRetainedDocument.open(source, storage), edited = await editRetainedDocument(document, storage, { linearize: true });
+  try {
+    expect(edited.document.crossReference.idArray).toEqual(document.crossReference.idArray);
+    expect(dictGet(edited.document.crossReference.trailer, "ID")).toEqual(document.crossReference.idArray);
+    const chunks = []; for await (const bytes of saveRetainedDocumentChunks(edited.document, storage)) chunks.push(bytes);
+    expect(new Uint8Array(Buffer.concat(chunks))).toEqual(expected.save());
+  } finally { await edited.close(); await document.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

@@ -98,7 +98,10 @@ export function createByteCodec(options: ByteCodecOptions): ByteCodec {
           if (result !== Z_OK && result !== Z_STREAM_END && result !== Z_BUF_ERROR) {
             throw new ByteCodecError("invalid", stream.msg || "invalid compressed data");
           }
-          if (produced) yield output.subarray(0, produced);
+          if (produced) {
+            yield output.subarray(0, produced);
+            if (closed) throw new Error("codec is closed");
+          }
           if (result === Z_STREAM_END) {
             // Only gzip admits subsequent wrapped members. Explicit gzip remains
             // strict; the compatibility selection also admits a following zlib member.

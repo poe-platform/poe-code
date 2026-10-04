@@ -465,7 +465,10 @@ async function readBiffContents(records: BiffRecords, streamSize: number, stream
     if (ignoredOpcodes.has(opcode)) continue;
     if (opcode === 0xf) { if (sheet) sheet.view.referenceMode = data.u16(0) ? "A1" : "R1C1"; continue; }
     if (opcode === 0x3d) { data.check(0, 18); continue; }
-    if (!sheet && [0x12, 0x13, 0x19].includes(opcode)) { data.check(0, 2); await retain(record, unsupported, false); continue; }
+    if (!sheet && [0x12, 0x13, 0x19].includes(opcode)) {
+      if (opcode !== 0x12) data.check(0, 2);
+      await retain(record, unsupported, false); continue;
+    }
     if (!sheet) { await retain(record, unsupported); continue; }
     if ([1, 0x201, 2, 3, 0x203, 4, 0x204, 5, 0x205, 0x27e, 0xfd, 0xd6].includes(opcode)) {
       const start = ver === 2 ? 7 : 6;

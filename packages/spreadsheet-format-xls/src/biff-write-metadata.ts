@@ -83,6 +83,24 @@ export class BiffMetadataWriter {
       await this.context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `Unsupported Excel BIFF export metadata: ${record.kind}` });
     }
   }
+  workbookProtection(output: BiffOutput): void {
+    const fields: Readonly<Record<string, number>> = { WINDOWPROTECT: 0x19, PROTECT: 0x12, PASSWORD: 0x13 };
+    const values = new Map(Object.values(fields).map(opcode => [opcode, words(0)]));
+    for (const record of this.book.unsupportedRecords ?? []) {
+      this.charge();
+      if (record.source !== "biff" || !Object.hasOwn(fields, record.kind)) continue;
+      const opcode = fields[record.kind]!;
+      const data = record.data as { opcode?: unknown; bytes?: unknown } | undefined;
+      if (Array.isArray(data) || data?.opcode !== opcode || typeof data.bytes !== "string") continue;
+      const bytes = data.bytes;
+      if (opcode === 0x12 ? bytes.length > 4 || bytes.length % 2 !== 0 : bytes.length !== 4) continue;
+      this.charge(bytes.length);
+      if (![...bytes].every(character => "0123456789abcdefABCDEF".includes(character))) continue;
+      values.set(opcode, Uint8Array.from({ length: bytes.length / 2 }, (_, index) => Number.parseInt(bytes.slice(index * 2, index * 2 + 2), 16)));
+      this.exported.add(record);
+    }
+    for (const [opcode, bytes] of values) output.record(opcode, bytes);
+  }
   global(output: BiffOutput): void {
     const groups = this.book.sheets.filter(sheet => this.comments.get(sheet)!.length);
     if (!groups.length) return;

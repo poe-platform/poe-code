@@ -131,7 +131,7 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
   output.record(0x42, words(revision === 8 ? 1200 : 1252));
   if (revision === 8 && book.automaticLabelLookup) output.record(0x160, words(1));
   if (revision === 8) { output.record(0x161, words(dual ? 1 : 0)); output.record(0x1c0); output.record(0x13d, words(...book.sheets.map((_, i) => i + 1))); }
-  output.record(0x9c, words(14)); output.record(0x19, words(0)); output.record(0x12, words(0)); output.record(0x13, words(0));
+  output.record(0x9c, words(14)); metadata.workbookProtection(output);
   output.record(0x3d, words(0, 0, 0x3fcf, 0x2a4e, 0x38, Math.max(0, book.sheets.findIndex(sheet => sheet.id === book.activeSheet)), 0, 1, 600));
   output.record(0x40, words(0)); output.record(0x8d, words(0)); output.record(0x22, words(book.dateSystem === "1904" ? 1 : 0));
   output.record(0xe, words(1)); output.record(0x1b7, words(0)); output.record(0xda, words(0));

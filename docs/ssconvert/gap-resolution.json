@@ -3,6 +3,12 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "biffWorkbookProtection": {
+      "scope": "BIFF7/8 preserve workbook WINDOWPROTECT, PROTECT and PASSWORD payloads, including retained-record edits, later-record precedence and native presence-only PROTECT. Worksheet protection remains separate; malformed records still warn.",
+      "qualification": "Seven original failing tests repaired;2434 affected tests, selected build and owner lint/types pass.19 compiled SDK/command/edited exports preserve57 raw fields and12 exact unrelated warnings each. Screenshot inspected.",
+      "native": "Pinned Gnumeric1.12.61 independently reads structure state for eight controls and19 exports, including both short PROTECT forms, with no diagnostics. Calc25.2.3.2 reads all19 output window flags. Calc control output does not qualify structure/password; Gnumeric ignores window/password. Exact Calc javaldx startup warning retained.",
+      "remaining": "Password enforcement, cross-format workbook protection and all broader families remain open. No release or family closure."
+    },
     "xlsxSelfContainedThemes": {
       "scope": "Both XLSX editions preserve self-contained DrawingML theme metadata, its content type and workbook relationship, including edits. Iterative serialization charges existing work/output limits. Themes with unretained relationship attributes, foreign namespaces or namespace overrides remain warned and unexported; duplicate themes retain a loss warning. No external resource fetching or broader rendering claim.",
       "qualification": "Three original failing tests and one subsequent namespace-override regression repaired;222 owner tests, selected ssconvert build and owner lint/types pass. Nine compiled SDK/command/edited exports preserve612 complete theme nodes exactly and validate relationship/content-type wiring, with zero diagnostics. CLI screenshot inspected.",

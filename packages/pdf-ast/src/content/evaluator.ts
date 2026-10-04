@@ -1,3 +1,4 @@
+import { sampledVertices } from "./sampled-vertices.js";
 import { StoredMetadataStack } from "./stored-record.js";
 import { StoredOperationsWriter } from "./stored-operations.js";
 import { StoredPathWriter } from "./stored-path.js";
@@ -96,11 +97,25 @@ const postScriptFunctions = new WeakMap<PdfCosStream, {
   evaluate: ReturnType<typeof buildPostScriptJsFunction>;
 }>();
 
-export function evalShadingFunctionToComponents(
+export interface PdfFunctionSource {
+  readonly size:number;
+  read(position:number,length:number,signal?:AbortSignal):Promise<Uint8Array>;
+}
+export interface PdfFunctionReadRequest {readonly source:PdfFunctionSource;readonly position:number;readonly length:number}
+
+export function evalShadingFunctionToComponents(doc:ParsedCosDocument,fnNode:PdfCosNode|undefined,inputs:number|readonly number[]):number[]{
+  const work=evalShadingFunctionSteps(doc,fnNode,inputs);
+  const result=work.next();
+  if(!result.done){work.return([]);throw new PdfError("E_CAPABILITY","Stored functions require an asynchronous driver");}
+  return result.value;
+}
+
+export function* evalShadingFunctionSteps(
   doc: ParsedCosDocument,
   fnNode: import("../ast.js").PdfCosNode | undefined,
-  inputs: number | readonly number[]
-): number[] {
+  inputs: number | readonly number[],
+  sources?: WeakMap<PdfCosStream, PdfFunctionSource>
+): Generator<PdfFunctionReadRequest, number[], Uint8Array> {
   const inArr = typeof inputs === "number" ? [inputs] : inputs;
   const t = inArr[0] ?? 0;
   if (!fnNode) return [t, t, t];
@@ -109,7 +124,7 @@ export function evalShadingFunctionToComponents(
   if (resolved.kind === "array") {
     const out: number[] = [];
     for (const item of resolved.items) {
-      out.push(...evalShadingFunctionToComponents(doc, item, inArr));
+      out.push(...(yield* evalShadingFunctionSteps(doc, item, inArr, sources)));
     }
     return out;
   }
@@ -146,43 +161,18 @@ export function evalShadingFunctionToComponents(
     const encode = getNums("Encode", []);
     const decode = getNums("Decode", range);
     const nOut = Math.max(1, Math.floor((decode.length || range.length || 6) / 2));
-    const mIn = Math.max(1, size.length);
-    const streamBytes = doc.decodeStream(resolved);
-    // Adapted from PDF.js PDFFunction.constructSampled: interpolate the cube
-    // vertices, with the first input varying fastest. Only keep nonzero
-    // weights, so singleton axes and exact sample positions stay inexpensive.
-    let vertices: Array<{ index: number; weight: number }> = [{ index: 0, weight: 1 }];
-    let stride = 1;
-    for (let i = 0; i < mIn; i++) {
-      const d0 = dom[i * 2] ?? 0;
-      const d1 = dom[i * 2 + 1] ?? 1;
-      const sMax = Math.max(0, (size[i] ?? 2) - 1);
-      const e0 = encode[i * 2] ?? 0;
-      const e1 = encode[i * 2 + 1] ?? sMax;
-      const x = Math.max(d0, Math.min(d1, inArr[i] ?? 0));
-      const u = d1 === d0 ? 0 : (x - d0) / (d1 - d0);
-      const e = Math.max(0, Math.min(sMax, e0 + u * (e1 - e0)));
-      const low = Math.floor(e), fraction = e - low;
-      const next: typeof vertices = [];
-      for (const vertex of vertices) {
-        const index = vertex.index + low * stride;
-        // Missing samples contribute zero, as in the byte decoder below.
-        // Discard them early rather than expanding a malformed sparse grid.
-        if (index * nOut * bps < streamBytes.length * 8) next.push({ index, weight: vertex.weight * (1 - fraction) });
-        if (fraction && (index + stride) * nOut * bps < streamBytes.length * 8) {
-          next.push({ index: index + stride, weight: vertex.weight * fraction });
-        }
-      }
-      vertices = next;
-      stride *= size[i] ?? 2;
-    }
+    const source = sources?.get(resolved);
+    const streamBytes = source ? undefined : doc.decodeStream(resolved);
+    const streamLength = source?.size ?? streamBytes!.length;
     const maxSample = 2 ** bps - 1;
-    const readSample = (index: number): number => {
+    const readSample = function* (index: number): Generator<PdfFunctionReadRequest,number,Uint8Array> {
+      const position = Math.floor(index * bps / 8);
+      const selected = source ? yield {source,position,length:Math.max(0,Math.min(Math.ceil((index*bps%8+bps)/8),source.size-position))} : streamBytes!;
       let bitOffset = index * bps, remaining = bps, value = 0;
       while (remaining > 0) {
         const bitInByte = bitOffset % 8;
         const take = Math.min(remaining, 8 - bitInByte);
-        const byte = streamBytes[Math.floor(bitOffset / 8)] ?? 0;
+        const byte = selected[Math.floor(bitOffset / 8) - (source ? position : 0)] ?? 0;
         // Accumulate arithmetically: PDF permits unsigned 32-bit samples.
         value = value * 2 ** take + ((byte >> (8 - bitInByte - take)) & ((1 << take) - 1));
         bitOffset += take;
@@ -193,7 +183,7 @@ export function evalShadingFunctionToComponents(
     const out: number[] = [];
     for (let j = 0; j < nOut; j++) {
       let value = 0;
-      for (const vertex of vertices) value += readSample(vertex.index * nOut + j) * vertex.weight;
+      for (const vertex of sampledVertices(size, dom, encode, inArr, streamLength * 8 / (nOut * bps))) value += (yield* readSample(vertex.index * nOut + j)) * vertex.weight;
       const dec0 = decode[j * 2] ?? 0;
       const dec1 = decode[j * 2 + 1] ?? 1;
       out.push(dec0 + value * (dec1 - dec0));
@@ -234,7 +224,7 @@ export function evalShadingFunctionToComponents(
       const e0 = encode[segIdx * 2] ?? 0;
       const e1 = encode[segIdx * 2 + 1] ?? 1;
       const localT = b1 !== b0 ? e0 + ((input - b0) / (b1 - b0)) * (e1 - e0) : e0;
-      return clampRange(evalShadingFunctionToComponents(doc, fnsArr.items[segIdx], localT));
+      return clampRange(yield* evalShadingFunctionSteps(doc, fnsArr.items[segIdx], localT, sources));
     }
   }
   const c0 = getNums("C0", [0]);
@@ -287,7 +277,13 @@ function* resolveColorNode(node: PdfCosNode | undefined, kind?: PdfCosNode["kind
 
 export type PdfMaskParameterRequest = PdfColorRequest | { readonly kind: "transfer"; readonly node: PdfCosNode };
 
-function runColorProgram<T>(doc: ParsedCosDocument | undefined, work: Generator<PdfMaskParameterRequest, T, unknown>): T {
+function runColorProgram<T>(doc:ParsedCosDocument|undefined,program:Generator<PdfMaskParameterRequest,T,unknown>):T{
+  const work=runColorProgramSteps(doc,program),result=work.next();
+  if(!result.done){work.return(undefined as never);throw new PdfError("E_CAPABILITY","Stored functions require an asynchronous driver");}
+  return result.value;
+}
+
+function* runColorProgramSteps<T>(doc: ParsedCosDocument | undefined, work: Generator<PdfMaskParameterRequest, T, unknown>, sources?:WeakMap<PdfCosStream,PdfFunctionSource>): Generator<PdfFunctionReadRequest,T,Uint8Array> {
   try {
     let step = work.next();
     while (!step.done) {
@@ -300,8 +296,8 @@ function runColorProgram<T>(doc: ParsedCosDocument | undefined, work: Generator<
           step = work.next(Number.isSafeInteger(request.start) && request.start >= 0 ? bytes.subarray(request.start, request.start + request.length) : new Uint8Array());
         }
         else if (request.kind === "calibrated") step = work.next(createCalibratedColorSpace(doc, request.family, request.parameters));
-        else if (request.kind === "transfer") step = work.next(evaluateMaskTransfer(doc, request.node));
-        else step = work.next(evalShadingFunctionToComponents(doc, request.node, request.components));
+        else if (request.kind === "transfer") step = work.next(yield* evaluateMaskTransferSteps(doc, request.node, sources));
+        else step = work.next(yield* evalShadingFunctionSteps(doc, request.node, request.components, sources));
       }
     }
     return step.value;
@@ -484,6 +480,12 @@ function renderMeshShadingToImage(
   return raster.image;
 }
 
+export function* meshShadingColorSteps(doc:ParsedCosDocument,dict:PdfCosDict,components:Float32Array,sources?:WeakMap<PdfCosStream,PdfFunctionSource>):Generator<PdfFunctionReadRequest,Uint8Array,Uint8Array>{
+  const fnNode=dictGet(dict,"Function"),csNode=doc.resolve(dictGet(dict,"ColorSpace")),csName=csNode?.kind==="name"?csNode.decoded:"DeviceRGB";
+  const params=Array.from(components),values=fnNode?yield* evalShadingFunctionSteps(doc,fnNode,params,sources):params;
+  return new Uint8Array((yield* runColorProgramSteps(doc,convertContentColorSteps(Boolean(doc),csNode,csName,values),sources)).map(value=>Math.round(Math.max(0,Math.min(1,value))*255)));
+}
+
 export function meshShadingParameters(doc: ParsedCosDocument, shDict: PdfCosDict) {
   const bpcCoordNode = doc.resolve(dictGet(shDict, "BitsPerCoordinate"));
   const bpcCompNode = doc.resolve(dictGet(shDict, "BitsPerComponent"));
@@ -501,7 +503,6 @@ export function meshShadingParameters(doc: ParsedCosDocument, shDict: PdfCosDict
   });
   const fnNode = dictGet(shDict, "Function");
   const csNode = doc.resolve(dictGet(shDict, "ColorSpace"));
-  const csName = csNode?.kind === "name" ? csNode.decoded : "DeviceRGB";
   const numComps = fnNode ? 1 : runColorProgram(doc, colorComponentCountSteps(Boolean(doc), csNode));
   return { verticesPerRow: vPerRow, context: {
     bitsPerCoordinate: bpcCoord, bitsPerComponent: bpcComp, bitsPerFlag: bpcFlag,
@@ -509,10 +510,9 @@ export function meshShadingParameters(doc: ParsedCosDocument, shDict: PdfCosDict
     colorSpace: {
       numComps,
       getRgb(components: Float32Array) {
-        const params = Array.from(components);
-        const values = fnNode ? evalShadingFunctionToComponents(doc, fnNode, params) : params;
-        return new Uint8Array(runColorProgram(doc, convertContentColorSteps(Boolean(doc), csNode, csName, values))
-          .map(value => Math.round(Math.max(0, Math.min(1, value)) * 255)));
+        const work=meshShadingColorSteps(doc,shDict,components),result=work.next();
+        if(!result.done){work.return(new Uint8Array());throw new PdfError("E_CAPABILITY","Stored mesh colors require an asynchronous driver");}
+        return result.value;
       },
     },
   } };
@@ -582,7 +582,13 @@ export function createMeshRaster(effectiveCtm: Matrix6, targetBox: [number, numb
   return {image, paint};
 }
 
-export function renderShadingDictToImage(
+export function renderShadingDictToImage(...args:Parameters<typeof renderShadingDictToImageSteps>):PdfEvaluatedImage|undefined{
+  const work=renderShadingDictToImageSteps(...args),result=work.next();
+  if(!result.done){work.return(undefined);throw new PdfError("E_CAPABILITY","Stored functions require an asynchronous driver");}
+  return result.value;
+}
+
+export function* renderShadingDictToImageSteps(
   doc: ParsedCosDocument,
   shDict: PdfCosDict,
   shadingCtm: Matrix6,
@@ -592,11 +598,13 @@ export function renderShadingDictToImage(
   clipRect?: [number, number, number, number],
   shStream?: import("../ast.js").PdfCosStream,
   blendMode?: string,
-  onAllocation?: (bytes: number) => void
-): PdfEvaluatedImage | undefined {
+  onAllocation?: (bytes: number) => void,
+  sources?:WeakMap<PdfCosStream,PdfFunctionSource>
+): Generator<PdfFunctionReadRequest,PdfEvaluatedImage|undefined,Uint8Array> {
   const stTypeNode = doc.resolve(dictGet(shDict, "ShadingType"));
   const shType = stTypeNode?.kind === "number" ? stTypeNode.value : 0;
   if ((shType === 4 || shType === 5 || shType === 6 || shType === 7) && shStream) {
+    if(sources)throw new PdfError("E_CAPABILITY","Retained mesh functions require the mesh driver");
     return renderMeshShadingToImage(doc, shDict, shStream, shType, shadingCtm, targetBox, fillAlpha, name, clipRect, blendMode, onAllocation);
   }
   const fnNode = dictGet(shDict, "Function");
@@ -663,7 +671,7 @@ export function renderShadingDictToImage(
   onAllocation?.(imgW * imgH * 4);
   const rgba = new Uint8Array(imgW * imgH * 4);
   if (bgComps && bgComps.length > 0) {
-    const [bgr, bgg, bgb] = runColorProgram(doc, convertContentColorSteps(Boolean(doc), csNode, csName, bgComps));
+    const [bgr, bgg, bgb] = (yield* runColorProgramSteps(doc, convertContentColorSteps(Boolean(doc), csNode, csName, bgComps), sources));
     const br8 = Math.round(Math.max(0, Math.min(1, bgr)) * 255);
     const bg8 = Math.round(Math.max(0, Math.min(1, bgg)) * 255);
     const bb8 = Math.round(Math.max(0, Math.min(1, bgb)) * 255);
@@ -709,7 +717,7 @@ export function renderShadingDictToImage(
         const ymin = shDomain[2] ?? 0;
         const ymax = shDomain[3] ?? 1;
         if (xs >= xmin && xs <= xmax && ys >= ymin && ys <= ymax) {
-          comps = evalShadingFunctionToComponents(doc, fnNode, [xs, ys]);
+          comps = yield* evalShadingFunctionSteps(doc, fnNode, [xs, ys], sources);
         }
       } else {
         let rawT: number | undefined;
@@ -762,12 +770,12 @@ export function renderShadingDictToImage(
         }
         if (rawT !== undefined) {
           const tParam = t0Dom + rawT * (t1Dom - t0Dom);
-          comps = evalShadingFunctionToComponents(doc, fnNode, [tParam]);
+          comps = yield* evalShadingFunctionSteps(doc, fnNode, [tParam], sources);
         }
       }
 
       if (comps !== undefined) {
-        const [r, g, bl] = runColorProgram(doc, convertContentColorSteps(Boolean(doc), csNode, csName, comps));
+        const [r, g, bl] = (yield* runColorProgramSteps(doc, convertContentColorSteps(Boolean(doc), csNode, csName, comps), sources));
         const pIdx = (iy * imgW + ix) * 4;
         rgba[pIdx] = Math.round(Math.max(0, Math.min(1, r)) * 255);
         rgba[pIdx + 1] = Math.round(Math.max(0, Math.min(1, g)) * 255);
@@ -884,7 +892,15 @@ export function* optionalContentVisibilitySteps(ocNode: PdfCosNode | undefined):
 }
 
 export function evaluateMaskTransfer(doc: ParsedCosDocument, transfer: PdfCosNode): Uint8Array {
-  return Uint8Array.from({ length: 256 }, (_, i) => Math.floor(kClamp(Math.fround(evalShadingFunctionToComponents(doc, transfer, Math.fround(i / 255))[0] ?? 0)) * 255));
+  const work=evaluateMaskTransferSteps(doc,transfer),result=work.next();
+  if(!result.done){work.return(new Uint8Array());throw new PdfError("E_CAPABILITY","Stored functions require an asynchronous driver");}
+  return result.value;
+}
+
+export function* evaluateMaskTransferSteps(doc:ParsedCosDocument,transfer:PdfCosNode,sources?:WeakMap<PdfCosStream,PdfFunctionSource>):Generator<PdfFunctionReadRequest,Uint8Array,Uint8Array>{
+  const values=new Uint8Array(256);
+  for(let i=0;i<256;i++)values[i]=Math.floor(kClamp(Math.fround((yield* evalShadingFunctionSteps(doc,transfer,Math.fround(i/255),sources))[0]??0))*255);
+  return values;
 }
 
 export function* resolveMaskParameterSteps(mask: PdfCosDict, form: PdfCosStream, activeResources: PdfCosDict | undefined): Generator<PdfMaskParameterRequest, Pick<PdfSoftMask, "backdrop" | "transferMap">, unknown> {

@@ -1,7 +1,8 @@
+import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { renderRetainedMesh } from "./retained-mesh.js";
 import { readBytes } from "@poe-code/safe-fs/contracts";
 import { cosArray, cosDict, cosName, cosNumber, cosStream, dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream, type PdfEvaluatedImage } from "../ast.js";
-import { colorComponentCountSteps, renderShadingDictToImage, type PdfEvaluationShadingRequest, convertContentColorSteps, evalShadingFunctionToComponents, evaluateMaskTransfer, resolveMaskParameterSteps, type PdfMaskParameterRequest } from "../content/evaluator.js";
+import { colorComponentCountSteps, renderShadingDictToImageSteps, meshShadingColorSteps, type PdfEvaluationShadingRequest, convertContentColorSteps, evalShadingFunctionSteps, evaluateMaskTransferSteps, type PdfFunctionSource, type PdfFunctionReadRequest, resolveMaskParameterSteps, type PdfMaskParameterRequest } from "../content/evaluator.js";
 import { createCalibratedColorSpace } from "../content/calibrated-color.js";
 import { decodePdfStreamChunks } from "../cos/filter-stream.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
@@ -31,7 +32,7 @@ function limit(value: number | undefined, fallback: number, name: string) {
 /** Resolve one color space without following unrelated resources. ICC profiles
  * contribute dictionary metadata only. Palette and tint-function state is
  * admitted before materialization and remains usable after document closure. */
-function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIndexStorage, options: PdfRetainedColorOptions) {
+function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIndexStorage, options: PdfRetainedColorOptions, storedFunctions=false) {
   const maximum = limit(options.maxWorkingBytes, Infinity, "maxWorkingBytes");
   const maxStaging = limit(options.maxStagingBytes, Infinity, "maxStagingBytes");
   const maxNodes = limit(options.maxNodes, 65536, "maxNodes");
@@ -39,6 +40,25 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
   const chunkBytes = options.chunkBytes ?? 4096;
   if (!Number.isSafeInteger(chunkBytes) || chunkBytes <= 0) throw new RangeError("Invalid chunkBytes");
   let used = 0; let nodes = 0;
+  let functionBacking: PagedStorage | undefined, functionBytes=0;
+  const functionSources=new WeakMap<PdfCosStream,PdfFunctionSource>();
+  async function storeFunction(stream:PdfCosStream,dict:PdfCosDict):Promise<PdfCosStream>{
+    if(!functionBacking){
+      charge(65536);charge(chunkBytes*2);
+      functionBacking=new PagedStorage({fs:storage.fs,cwd:storage.directory,env:{},signal:options.signal??new AbortController().signal},2);
+    }
+    const backing=functionBacking,position=backing.allocate(0);let size=0;
+    for await(const chunk of readBytes(contents(stream),options.signal)){
+      if(chunk.length>maxStaging-functionBytes)throw new PdfError("E_LIMIT","PDF function staging byte limit exceeded");
+      for(let at=0;at<chunk.length;at+=chunkBytes){
+        options.signal?.throwIfAborted();const bytes=chunk.subarray(at,at+chunkBytes);
+        await backing.write(backing.allocate(bytes.length),bytes);size+=bytes.length;functionBytes+=bytes.length;
+      }
+    }
+    const result=cosStream(dict,new Uint8Array());
+    functionSources.set(result,{size,async read(at,length,signal){options.signal?.throwIfAborted();signal?.throwIfAborted();return backing.read(position+at,Math.min(length,Math.max(0,size-at)));}});
+    return result;
+  }
   const streams = new WeakMap<PdfCosStream, PdfCosRef>();
   function charge(bytes: number) {
     if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > maximum - used) throw new PdfError("E_LIMIT", "PDF color working byte limit exceeded");
@@ -150,6 +170,7 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
       const field = key === "Functions" ? await snapshotFunction(item, depth + 1) : await snapshotNumbers(item);
       selected.entries.push({ key: cosName(key), value: field ?? { kind: "null" } });
     }
+    if(value?.kind === "stream" && kind===0 && storedFunctions)return storeFunction(value,selected);
     return value?.kind === "stream" && (kind === 0 || kind === 4) ? cosStream(selected, await decode(value)) : selected;
   }
   async function snapshotCalibrated(node: PdfCosNode | undefined): Promise<PdfCosNode | undefined> {
@@ -214,7 +235,7 @@ function createRetainedColorAccess(document: PdfRetainedDocument, storage: PdfIn
   const context = new ParsedCosDocument({ version: "1.7", bytes: new Uint8Array(), objects: new Map(), revisions: [],
     rootRef: { kind: "ref", objectNumber: 0, generationNumber: 0 }, maxDecompressedBytes: maximum, maxRecursionDepth: maxDepth });
   options.signal?.throwIfAborted();
-  return { resolve, decode, contents, snapshot, snapshotColor, snapshotFunction, charge, context, maxDepth };
+  return { resolve, decode, contents, snapshot, snapshotColor, snapshotFunction, charge, context, maxDepth, functionSources, async close(){await functionBacking?.close();} };
 }
 
 export async function resolveRetainedImageColor(document: PdfRetainedDocument, node: PdfCosNode | undefined,
@@ -263,9 +284,18 @@ export async function resolveRetainedMaskParameters(document: PdfRetainedDocumen
   return runRetainedColorProgram(document, storage, options, resolveMaskParameterSteps(mask, form, resources));
 }
 
+async function runFunctionSteps<T>(work:Generator<PdfFunctionReadRequest,T,Uint8Array>,signal?:AbortSignal):Promise<T>{
+  try{
+    let step=work.next();
+    while(!step.done){signal?.throwIfAborted();const request=step.value;const bytes=await request.source.read(request.position,request.length,signal);signal?.throwIfAborted();step=work.next(bytes);}
+    signal?.throwIfAborted();return step.value;
+  }finally{work.return(undefined as never);}
+}
+
 async function runRetainedColorProgram<T>(document: PdfRetainedDocument, storage: PdfIndexStorage, options: PdfRetainedColorOptions,
   work: Generator<PdfMaskParameterRequest, T, unknown>): Promise<T> {
-  const { resolve, decode, snapshot, context, charge } = createRetainedColorAccess(document, storage, options);
+  const { resolve, decode, snapshot, snapshotFunction, context, charge, functionSources, close } = createRetainedColorAccess(document, storage, options, true);
+  let failed=false;
   try {
     let step = work.next();
     while (!step.done) {
@@ -276,15 +306,16 @@ async function runRetainedColorProgram<T>(document: PdfRetainedDocument, storage
       else if (request.kind === "decode") result = await decode(request.stream, request.length, request.start);
       else if (request.kind === "calibrated") result = createCalibratedColorSpace(context, request.family, await snapshot(request.parameters));
       else if (request.kind === "transfer") {
-        const transfer = await snapshot(request.node);
+        const transfer = await snapshotFunction(request.node);
         charge(256);
-        result = evaluateMaskTransfer(context, transfer!);
-      } else result = evalShadingFunctionToComponents(context, await snapshot(request.node), request.components);
+        result = await runFunctionSteps(evaluateMaskTransferSteps(context, transfer!, functionSources),options.signal);
+      } else result = await runFunctionSteps(evalShadingFunctionSteps(context, await snapshotFunction(request.node), request.components, functionSources),options.signal);
       options.signal?.throwIfAborted();
       step = work.next(result);
     }
     return step.value;
-  } finally { work.return(undefined as never); }
+  } catch(error){failed=true;throw error;}
+  finally { work.return(undefined as never); await close().catch(error=>{if(!failed)throw error;}); }
 }
 
 export type PdfRetainedShadingSettings = Omit<PdfEvaluationShadingRequest, "kind" | "dict" | "stream">;
@@ -293,7 +324,9 @@ export type PdfRetainedShadingSettings = Omit<PdfEvaluationShadingRequest, "kind
  * snapshots, mesh geometry and the result surface are admitted to one owner. */
 export async function renderRetainedShading(document: PdfRetainedDocument, node: PdfCosNode,
   settings: PdfRetainedShadingSettings, storage: PdfIndexStorage, options: PdfRetainedColorOptions = {}): Promise<PdfEvaluatedImage | undefined> {
-  const { resolve, contents, snapshot, snapshotColor, snapshotFunction, charge, context } = createRetainedColorAccess(document, storage, options);
+  const { resolve, contents, snapshot, snapshotColor, snapshotFunction, charge, context, functionSources, close } = createRetainedColorAccess(document, storage, options, true);
+  let failed=false;
+  try {
   const value = await resolve(node);
   const dict = value?.kind === "stream" ? value.dict : value?.kind === "dict" ? value : undefined;
   if (!dict) return undefined;
@@ -312,11 +345,13 @@ export async function renderRetainedShading(document: PdfRetainedDocument, node:
     selected.entries.push({ key: cosName(key), value: resolved ?? { kind: "null" } });
   }
   if (value?.kind === "stream" && type?.kind === "number" && (type.value === 4 || type.value === 5 || type.value === 6 || type.value === 7)) {
-    return renderRetainedMesh(context, selected, type.value, contents(value), settings, storage, options, charge);
+    return await renderRetainedMesh(context, selected, type.value, contents(value), settings, storage, options, charge, components=>runFunctionSteps(meshShadingColorSteps(context,selected,components,functionSources),options.signal));
   }
   options.signal?.throwIfAborted();
-  const image = renderShadingDictToImage(context, selected, settings.matrix, settings.bounds, settings.alpha,
-    settings.name, settings.clipRect, undefined, settings.blendMode, charge);
+  const image = await runFunctionSteps(renderShadingDictToImageSteps(context, selected, settings.matrix, settings.bounds, settings.alpha,
+    settings.name, settings.clipRect, undefined, settings.blendMode, charge, functionSources), options.signal);
   options.signal?.throwIfAborted();
   return image;
+  } catch(error){failed=true;throw error;}
+  finally {await close().catch(error=>{if(!failed)throw error;});}
 }

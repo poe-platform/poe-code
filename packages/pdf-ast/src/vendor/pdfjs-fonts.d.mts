@@ -171,11 +171,12 @@ export class MeshStreamReader {
   readFlag(): number;
   readCoordinate(): [number, number];
   readComponents(): Uint8Array;
+  readComponentValues(): Float32Array;
   align(): void;
 }
 
 export interface MeshPatch {coordinates: Float64Array; colors: Uint8Array}
 export class MeshPatchDecoder {
-  decode(type: 6 | 7, reader: MeshStreamReader, flag: number): MeshPatch;
+  decode(type: 6 | 7, reader: Pick<MeshStreamReader,"readCoordinate"|"readComponents">, flag: number): MeshPatch;
   static vertices(patch: MeshPatch, bounds: number[]): {positions: Float32Array; colors: Uint8Array; vertexCount: number};
 }

@@ -161,8 +161,9 @@ selected shading through retained reads. It shares the buffered renderer for
 all seven PDF shading types, skips ICC profile payloads and unrelated resources,
 and stages only addressable indexed palette entries. `maxWorkingBytes` and
 `onAllocation` cover selected resource snapshots, mesh geometry and the result
-surface together. Mesh and function snapshots remain resident during rendering;
-this API does not yet provide tile-based or external-memory mesh evaluation.
+surface together. Mesh records and sampled function tables use caller-authorized
+backing with fixed caches. Sample interpolation visits vertices incrementally;
+PostScript programs and selected resource metadata remain resident.
 
 `doc.attachments()` on a retained document visits embedded name trees,
 catalog/page associated files, and file-attachment annotations in document order.
@@ -594,8 +595,10 @@ tessellation preserve global subdivision density without retaining a whole mesh.
 Fill and clip rasterization replay projected edges and cubic points with
 row-sized crossing scratch; scratch is local to each render. Stroke outlines
 and their projected raster edges also stream. Retained parser paths, stroke
-points, dash expansion and geometric clip lists use caller backing; color-function
-snapshots and individual operation metadata still have separate memory ownership.
+points, dash expansion and geometric clip lists use caller backing. Sampled
+functions for vector colors, masks and shading use range reads from caller storage.
+Image tint snapshots, PostScript programs and individual operation metadata still
+have separate memory ownership.
 
 Text, paths, and stencil images preserve shading and tiling pattern fills in
 bitmap and SVG output, including uncolored tiles and transformed Forms.

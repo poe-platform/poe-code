@@ -188,3 +188,48 @@ it("preserves late mask transfer decode failures and cleans staging", async () =
   await expect(resolveRetainedMaskParameters(f.doc, cosDict({ TR: f.sampled }), cosStream(cosDict(), new Uint8Array()), f.resources, f.storage)).rejects.toBe(rejection);
   expect(closed).toBe(true); await f.close();
 });
+
+it.each(["tint","shading"])("samples large %s tables without admitting their full decoded payload",async mode=>{
+ const {convertRetainedContentColor,renderRetainedShading}=await import("./retained-color.js");
+ const f=await fixture(),count=262144,lookup=f.doc.lookup.bind(f.doc);
+ vi.spyOn(f.doc,"lookup").mockImplementation(async node=>{
+  const result=await lookup(node);
+  if(node?.kind==="ref"&&node.objectNumber===f.sampled.objectNumber&&result?.value.kind==="dict")dictSet(result.value,"Size",cosArray([cosNumber(count)]));
+  return result;
+ });
+ vi.spyOn(f.doc.objects,"decodeStream").mockImplementation(async function*(){const chunk=new Uint8Array(4096).fill(128);for(let at=0;at<count*3;at+=chunk.length)yield chunk.subarray(0,Math.min(chunk.length,count*3-at));});
+ let peak=0;
+ try{
+  const options={onAllocation:(n:number)=>{peak=Math.max(peak,n);}};
+  if(mode==="tint")expect(await convertRetainedContentColor(f.doc,cosName("Sampled"),"Sampled",[0.5],f.resources,f.storage,options)).toEqual([128/255,128/255,128/255]);
+  else {
+    const shading=cosDict({ShadingType:cosNumber(2),ColorSpace:cosName("DeviceRGB"),Coords:cosArray([0,0,1,0].map(n=>cosNumber(n))),Function:f.sampled});
+    const image=await renderRetainedShading(f.doc,shading,{matrix:[1,0,0,1,0,0],bounds:[0,0,1,1],alpha:1,name:"test",clipRect:undefined,blendMode:undefined},f.storage,options);
+    expect(image?.decodedRgba).toEqual(new Uint8Array([128,128,128,255]));
+  }
+  expect(peak).toBeLessThanOrEqual(65536);
+ }finally{await f.close();}
+});
+
+it.each(["error", "abort"])("cleans spilled sampled tables after a late %s", async mode => {
+  const f = await fixture(), before = await f.storage.fs.readdir("/scratch");
+  const failure = new Error("sample producer stopped"), controller = new AbortController();
+  let returned = false;
+  const open = f.storage.fs.open!.bind(f.storage.fs), closed = vi.fn();
+  const opened = vi.spyOn(f.storage.fs, "open").mockImplementation(async (...args) => {
+    const handle = await open(...args), close = handle.close.bind(handle);
+    handle.close = async () => { closed(); await close(); }; return handle;
+  });
+  vi.spyOn(f.doc.objects, "decodeStream").mockImplementation(async function* () {
+    try {
+      for (let i = 0; i < 20; i++) yield new Uint8Array(4096);
+      if (mode === "abort") { controller.abort(failure); yield new Uint8Array(4096); }
+      else throw failure;
+    } finally { returned = true; }
+  });
+  try {
+    await expect(resolveRetainedMaskParameters(f.doc, cosDict({ TR: f.sampled }), cosStream(cosDict(), new Uint8Array()), f.resources, f.storage, { signal: controller.signal })).rejects.toBe(failure);
+    expect(opened).toHaveBeenCalledOnce(); expect(closed).toHaveBeenCalledOnce(); expect(returned).toBe(true);
+    expect(await f.storage.fs.readdir("/scratch")).toEqual(before);
+  } finally { await f.close(); }
+});

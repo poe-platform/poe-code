@@ -22191,15 +22191,20 @@ var MeshStreamReader = class {
       yi * scale * (decode[3] - decode[2]) + decode[2]
     ];
   }
-  readComponents() {
+  readComponentValues() {
     this.context.onAllocation?.(64);
-    const { bitsPerComponent, colorFn, colorSpace, decode, numComps } = this.context;
+    const { bitsPerComponent, decode, numComps } = this.context;
     const scale = bitsPerComponent < 32 ? 1 / ((1 << bitsPerComponent) - 1) : 23283064365386963e-26;
     const components = this.tmpCompsBuf;
     for (let i = 0, j = 4; i < numComps; i++, j += 2) {
       const ci = this.readBits(bitsPerComponent);
       components[i] = ci * scale * (decode[j + 1] - decode[j]) + decode[j];
     }
+    return components;
+  }
+  readComponents() {
+    const components = this.readComponentValues();
+    const {colorFn, colorSpace} = this.context;
     const color = this.tmpCsCompsBuf;
     colorFn?.(components, 0, color, 0);
     return colorSpace.getRgb(color, 0);

@@ -12,7 +12,7 @@ import type { PdfRetainedColorOptions, PdfRetainedShadingSettings } from "./reta
  * records in caller storage, so even a single very wide row stays bounded. */
 export async function renderRetainedMesh(context: ParsedCosDocument, dict: PdfCosDict, type: 4 | 5 | 6 | 7,
   input: AsyncIterable<Uint8Array>, settings: PdfRetainedShadingSettings, storage: PdfIndexStorage,
-  options: PdfRetainedColorOptions, charge: (bytes: number) => void) {
+  options: PdfRetainedColorOptions, charge: (bytes: number) => void, convertColor?: (components:Float32Array)=>Promise<Uint8Array>) {
   const chunkBytes = options.chunkBytes ?? 4096;
   async function readRecord(source: PdfFileSource, position: number, length: number) {
     const bytes = new Uint8Array(length);
@@ -59,7 +59,7 @@ export async function renderRetainedMesh(context: ParsedCosDocument, dict: PdfCo
       while (await refill()) {
         await prepare(vertexBits);
         const flag = type === 4 ? reader.readFlag() : 0;
-        const point = reader.readCoordinate(), color = reader.readComponents();
+        const point = reader.readCoordinate(), color = convertColor ? await convertColor(reader.readComponentValues()) : reader.readComponents();
         if (type === 4) reader.align();
         yield {flag, x: Math.fround(point[0]), y: Math.fround(point[1]), color};
       }
@@ -82,7 +82,10 @@ export async function renderRetainedMesh(context: ParsedCosDocument, dict: PdfCo
           if (flag < 0 || flag > 3) throw new PdfError("E_PARSE", "Unknown mesh patch flag");
           const coordinates = (type === 6 ? 12 : 16) - (flag ? 4 : 0), colors = flag ? 2 : 4;
           await prepare(coordinates * 2 * bitsPerCoordinate + colors * numComps * bitsPerComponent);
-          const patch = decoder.decode(type as 6 | 7, reader, flag);
+          const points=Array.from({length:coordinates},()=>reader.readCoordinate()),converted:Uint8Array[]=[];
+          for(let i=0;i<colors;i++)converted.push(convertColor?await convertColor(reader.readComponentValues()):reader.readComponents());
+          let point=0,color=0;
+          const patch = decoder.decode(type as 6 | 7, {readCoordinate:()=>points[point++]!,readComponents:()=>converted[color++]!}, flag);
           const view = new DataView(bytes.buffer, written, 268);
           for (let i = 0; i < 32; i++) view.setFloat64(i * 8, patch.coordinates[i]!);
           bytes.set(patch.colors, written + 256);

@@ -98,3 +98,36 @@ describe("PDF.js sampled-function interpolation", () => {
     expect(pixel[3]).toBe(255);
   });
 });
+
+it("interpolates a dense multidimensional grid without collecting cube vertices",()=>{
+ const evaluate=sampled(Array(256).fill(255),8,{size:Array(8).fill(2),domain:Array.from({length:8},()=>[0,1]).flat()});
+ const push=Array.prototype.push;
+ Array.prototype.push=function<T>(this:T[],...items:T[]):number{
+  if(this.length+items.length>64&&items.some(item=>item&&typeof item==="object"&&"weight" in item&&"index" in item))throw new Error("Collected sample vertices");
+  return Reflect.apply(push,this,items) as number;
+ };
+ try{expect(evaluate(Array(8).fill(0.5))).toEqual([1]);}finally{Array.prototype.push=push;}
+});
+
+it("samples large external tables through only the requested byte ranges",async()=>{
+ const {evalShadingFunctionSteps}=await import("./evaluator.js");
+ const size=1_000_000_000,stream=cosStream(new Uint8Array(),{dict:cosDict({FunctionType:cosNumber(0),BitsPerSample:cosNumber(8),Size:numbers([size]),Domain:numbers([0,1]),Range:numbers([0,1])})});
+ let bytesRead=0;
+ const source={size,async read(position:number,length:number){bytesRead+=length;return Uint8Array.from({length},(_,i)=>(position+i)%256);}};
+ const work=evalShadingFunctionSteps(PdfDocument.create().cos,stream,[12345.5/(size-1)],new WeakMap([[stream,source]]));
+ let step=work.next();while(!step.done)step=work.next(await step.value.source.read(step.value.position,step.value.length));
+ expect(step.value[0]).toBeCloseTo(57.5/255,12);expect(bytesRead).toBe(2);
+});
+
+it.each([1,2,4,8,12,16,24,32])("matches buffered %s-bit tuples with retained ranges and reversed multidimensional axes",async bits=>{
+ const {evalShadingFunctionSteps}=await import("./evaluator.js");
+ const bytes=Uint8Array.from({length:Math.ceil(12*bits/8)},(_,i)=>(i*73+19)%256);
+ const stream=cosStream(bytes,{dict:cosDict({FunctionType:cosNumber(0),BitsPerSample:cosNumber(bits),Size:numbers([2,2]),Domain:numbers([10,20,0,1]),Range:numbers([0,1,0,1,0,1]),Encode:numbers([1,0,0,1])})});
+ const doc=PdfDocument.create().cos;
+ const source={size:bytes.length,async read(at:number,length:number){expect(length).toBeLessThanOrEqual(5);return bytes.slice(at,at+length);}};
+ for(const input of [[10,0],[13.125,0.375],[20,1]]){
+  const work=evalShadingFunctionSteps(doc,stream,input,new WeakMap([[stream,source]]));
+  let step=work.next();while(!step.done)step=work.next(await step.value.source.read(step.value.position,step.value.length));
+  expect(step.value).toEqual(evalShadingFunctionToComponents(doc,stream,input));
+ }
+});

@@ -221,6 +221,37 @@ for (const flag of ["-l", "-c"]) test(`warmed wc ${flag} enforces input admissio
   await assert.rejects(shell.exec(`find /dir -name '*' | wc ${flag}`, { limits: { maxInputBytes: 1 } }), /maxInputBytes/);
 });
 
+test("warmed pipelines count newlines from each byte-producing stage", async context => {
+  const fs = new MemoryFileSystem();
+  const encoder = new TextEncoder();
+  await fs.writeFile("/data.txt", encoder.encode(Array.from({ length: 60 }, (_, i) =>
+    `${i % 3 === 0 ? "alpha" : "beta"}:val_${i}\n`).join("")));
+  const shell = new Shell({ fs }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const cases = [
+    ["grep '^alpha' /data.txt | cut -d: -f2 | wc -l", 20],
+    ["grep alpha /data.txt | wc -l", 20],
+    ["grep alpha /data.txt | cut -d: -f2 | wc -l", 20],
+    ["grep alpha /data.txt | tr : '\\n' | wc -l", 40],
+    ["grep alpha /data.txt | sort | wc -l", 20],
+    ["grep alpha /data.txt | head -n 7 | wc -l", 7],
+    ["grep alpha /data.txt | head -c 3 | wc -l", 0],
+    ["grep absent /data.txt | cut -d: -f2 | wc -l", 0],
+    ["grep alpha /data.txt | wc -l", 20],
+  ] as const;
+  for (let run = 0; run < 3; run++) {
+    if (run === 1) await fs.writeFile("/data.txt", encoder.encode(Array.from({ length: 60 }, (_, i) =>
+      `${i % 3 === 0 ? "alpha" : "beta"}:val_${i}\n`).join("") + "x".repeat(1200) + "\n"));
+    for (const [command, expected] of cases) {
+      await shell.exec("");
+      const result = await shell.exec(command);
+      assert.equal(result.stdout, `${expected}\n`, command);
+      assert.equal(result.stderr, "", command);
+      assert.equal(result.exitCode, 0, command);
+    }
+  }
+});
+
 test("missing grep input still executes downstream pipeline stages", async context => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
   context.after(() => shell.dispose());

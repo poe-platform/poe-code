@@ -622,7 +622,7 @@ export async function readXlsx(bytes: Uint8Array | RangeSource, context: Capabil
               retained = rest;
             }
             // A value-only record updates the existing cell without removing its expression.
-            const cell: Cell = { ...retained, ...position,
+            const cell: Cell = { ...(previous ? {} : cellStyles[0] ?? {}), ...retained, ...position,
               value: value.kind === "blank" && (expression === undefined || !hasCache) && previous ? previous.value : value,
               ...(expression === undefined ? previous?.formula && value.kind !== "blank" ? { cachedResult: value } : {}
                 : { formula: expression, ...semantics, formulaDirty: arrayRange !== undefined || !hasCache, ...(cache === undefined ? {} : { cachedResult: cache }) }),

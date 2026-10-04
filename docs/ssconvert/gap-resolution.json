@@ -3,6 +3,13 @@
   "plan": "../plans/ssconvert-remaining-gaps.md",
   "status": "active",
   "reference": {
+    "xlsxAllocatedDefaultStyle": {
+      "finding": "Allocated XLSX cells without an explicit/inherited style omitted cellXfs0, dropping default fonts and number formats. Native PDF controls exposed the missing font as unstyled10pt text instead of the styled print profile.",
+      "repair": "Apply cellXfs0 only when allocating a new cell, before retained and explicit/axis styling. Repeated coordinates preserve prior styles; missing inline-string payloads remain unallocated.",
+      "verification": "One original failure and four precedence/nonallocation controls;396 owner tests and1211 affected XLSX/BIFF/PDF integration tests,selected build and owner lint/types pass. Command screenshot inspected.24 compiled SDK/command exports across both editions match648 original fields in OpenPyXL3.1.5.12 Calc product readbacks match324 fields. Six original Calc controls retain156 matching fields and six number-format mismatches. Native/product PDF crops inspected after regenerating12public outputs.",
+      "nativeDifferences": "Gnumeric ignores customized style0 for implicit cells and substitutes Sans10/black/General in all six source controls. Calc honors default fonts but drops default0.00 in three originals; product explicit style exports preserve them. Original mismatches are retained,not counted as passes. Gnumeric workbookProtection and Calc javaldx warnings retained exactly.",
+      "remaining": "Workbook-global default-style editing, allocation through formula/array paths,wider style semantics and all19 families remain open."
+    },
     "pdfRightwardAndLeftwardSpans": {
       "finding": "Right-aligned overflowing strings were refused. Native controls also exposed XLSX column auto-expansion despite explicit dimensions, and hidden columns remaining nonzero-width in the print span index.",
       "repair": "Share a directional occupied-column index with binary-search blockers, preserve explicit/default widths, and give hidden axes zero printed size. Right-aligned strings span leftward and clip at preceding occupied cells/page bounds. Existing rightward helper remains an export alias.",

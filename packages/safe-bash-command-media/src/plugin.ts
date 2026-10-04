@@ -1,4 +1,4 @@
-import { readFileStream } from '@poe-code/safe-fs';
+import { readFileStream } from '@poe-code/safe-fs/core';
 import { getCommandArguments } from 'safe-bash-contracts/command';
 import type { CommandContext, CommandDefinition } from 'safe-bash-contracts/command';
 import type { VirtualShellPlugin } from 'safe-bash-contracts/plugin';

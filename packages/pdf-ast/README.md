@@ -281,10 +281,9 @@ Its `rows()` iterator assembles owned RGBA rows with tile overlap precedence,
 avoiding additional full sample/RGBA planes. With `coefficientStorage`, coefficient
 planes, arithmetic bit-model arrays, wavelet scratch, converted tile samples,
 precinct trees, packet/codeblock records, and resolution/subband descriptors use caller backing.
-A fixed page cache and four-resolution cache bound active metadata; wavelet levels are consumed incrementally. Tile-part indexes preserve interleaved input while decoding one tile at a time. The retained PDF image adapter supplies this backing
+Fixed page, component and four-resolution caches bound active metadata; component descriptors and iterator bounds use backing. Wavelet levels and independent color components are consumed incrementally. Tile-part indexes preserve interleaved input while decoding one tile at a time. The retained PDF image adapter supplies this backing
 through the caller's safe-fs and includes it in shared staging and cleanup budgets.
-Compressed codeblocks read their encoded segments without concatenation. Component
-and coding-parameter metadata remains resident for the current tile; without backing, the convenience decoder also retains its sample/wavelet planes. `maxWorkingBytes` uses conservative cumulative
+Compressed codeblocks read their encoded segments without concatenation. Coding-parameter metadata remains resident for the current tile; without backing, the convenience decoder also retains its sample/wavelet planes. `maxWorkingBytes` uses conservative cumulative
 allocation charges (not measured heap); caller source caches and resolved color
 state are additional. Set `maxOutputBytes` to bound output, supply `color` for
 resolved PDF color spaces, and call `close()` to release tiles. The source stays

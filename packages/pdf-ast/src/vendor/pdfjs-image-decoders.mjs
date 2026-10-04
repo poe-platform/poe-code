@@ -6047,7 +6047,7 @@ class JpxImage {
           if (position + 2 > end) throw new JpxError("Truncated marker length");
           const markerLength = (yield* jpxReadUint(position,2));
           // Marker-derived objects, array slots, and tile-part copies.
-          context.onAllocation?.(512 + markerLength * 128);
+          context.onAllocation?.(context.storedPlanes && code === 0xff51 ? 2048 : 512 + markerLength * 128);
           if (markerLength < 2 || position + markerLength > end) {
             throw new JpxError("Truncated marker segment");
           }
@@ -6064,7 +6064,7 @@ class JpxImage {
             const siz = yield* readJpxSize(position, length);
             const componentsCount = siz.Csiz;
             this.onImageDimensions?.(siz.Xsiz - siz.XOsiz, siz.Ysiz - siz.YOsiz);
-            context.onAllocation?.(componentsCount * 512);
+            context.onAllocation?.(context.storedPlanes ? 2048 : componentsCount * 512);
             siz.Csiz = componentsCount;
             const components = [];
             j = position + 38;
@@ -6080,11 +6080,11 @@ class JpxImage {
                 throw new JpxError("Invalid component sampling dimensions");
               }
               calculateComponentDimensions(component, siz);
-              components.push(component);
+              if (!context.storedPlanes) components.push(component);
             }
             context.SIZ = siz;
-            context.components = components;
-            calculateTileGrids(context, components);
+            context.components = context.storedPlanes ? {length: componentsCount, start: position + 38, cache: []} : components;
+            yield* calculateTileGrids(context, context.components);
             context.QCC = [];
             context.COC = [];
             break;
@@ -6266,7 +6266,7 @@ class JpxImage {
           case 0xff93:
             tile = context.currentTile;
             if (tile.partIndex === 0) {
-              initializeTile(context, tile.index);
+              yield* initializeTile(context, tile.index);
               yield* buildPackets(context);
             }
             length = tile.dataEnd - position;
@@ -6309,13 +6309,13 @@ function calculateComponentDimensions(component, siz) {
   component.width = component.x1 - component.x0;
   component.height = component.y1 - component.y0;
 }
-function calculateTileGrids(context, components) {
+function* calculateTileGrids(context, components) {
   const siz = context.SIZ;
   const tiles = context.selectedTile === undefined ? [] : {length: context.selectedTile + 1};
   let tile;
   const numXtiles = Math.ceil((siz.Xsiz - siz.XTOsiz) / siz.XTsiz);
   const numYtiles = Math.ceil((siz.Ysiz - siz.YTOsiz) / siz.YTsiz);
-  context.onAllocation?.((context.selectedTile === undefined ? numXtiles * numYtiles : 1) * (512 + siz.Csiz * 512));
+  context.onAllocation?.((context.selectedTile === undefined ? numXtiles * numYtiles : 1) * (512 + (context.storedPlanes ? 2048 : siz.Csiz * 512)));
   const firstRow = context.selectedTile === undefined ? 0 : Math.floor(context.selectedTile / numXtiles);
   const lastRow = context.selectedTile === undefined ? numYtiles : firstRow + 1;
   for (let q = firstRow; q < lastRow; q++) {
@@ -6329,12 +6329,14 @@ function calculateTileGrids(context, components) {
       tile.ty1 = Math.min(siz.YTOsiz + (q + 1) * siz.YTsiz, siz.Ysiz);
       tile.width = tile.tx1 - tile.tx0;
       tile.height = tile.ty1 - tile.ty0;
-      tile.components = [];
+      tile.components = context.storedPlanes ? {length: siz.Csiz, records: yield* jpxVectorAllocate(siz.Csiz * 2, 8, true)} : [];
+      if (context.storedPlanes) tile.context = context;
       tiles[q * numXtiles + p] = tile;
     }
   }
   context.tiles = tiles;
   const componentsCount = siz.Csiz;
+  if (context.storedPlanes) return;
   for (let i = 0, ii = componentsCount; i < ii; i++) {
     const component = components[i];
     for (let j = context.selectedTile ?? 0, jj = tiles.length; j < jj; j++) {
@@ -6349,6 +6351,34 @@ function calculateTileGrids(context, components) {
       tile.components[i] = tileComponent;
     }
   }
+}
+function* readJpxComponent(context, index) {
+  const components = context.components;
+  if (!components.cache) return components[index];
+  const found = components.cache.findIndex(entry => entry.index === index);
+  if (found >= 0) {const entry = components.cache.splice(found, 1)[0]; components.cache.push(entry); return entry.value;}
+  const at = components.start + index * 3, flags = yield at;
+  const value = {precision: (flags & 127) + 1, isSigned: !!(flags & 128), XRsiz: yield at + 1, YRsiz: yield at + 2};
+  calculateComponentDimensions(value, context.SIZ);
+  if (components.cache.length === 4) components.cache.shift();
+  components.cache.push({index, value});
+  return value;
+}
+function* readJpxTileComponent(tile, index) {
+  if (!tile.components.records) return tile.components[index];
+  const context = tile.context, cache = context.componentCache ??= [];
+  const found = cache.findIndex(entry => entry.tile === tile && entry.index === index);
+  if (found >= 0) {const entry = cache.splice(found, 1)[0]; cache.push(entry); return entry.value;}
+  const base = yield* readJpxComponent(context, index);
+  const value = {tcx0: Math.ceil(tile.tx0 / base.XRsiz), tcy0: Math.ceil(tile.ty0 / base.YRsiz),
+    tcx1: Math.ceil(tile.tx1 / base.XRsiz), tcy1: Math.ceil(tile.ty1 / base.YRsiz),
+    codingStyleParameters: tile.initialCOC[index] ?? tile.initialCOD,
+    quantizationParameters: tile.initialQCC[index] ?? tile.initialQCD};
+  value.width = value.tcx1 - value.tcx0; value.height = value.tcy1 - value.tcy0;
+  const length = yield* jpxVectorRead(tile.components.records, index * 2 + 1);
+  if (length) value.resolutions = {context, length, records: {position: yield* jpxVectorRead(tile.components.records, index * 2), length: length * 55, bytesPerElement: 8, integer: false}};
+  if (cache.length === 4) cache.shift();
+  cache.push({tile, index, value}); return value;
 }
 function getBlocksDimensions(context, component, r) {
   const codOrCoc = component.codingStyleParameters;
@@ -6559,7 +6589,7 @@ function* LayerResolutionComponentPositionIterator(context) {
   const componentsCount = siz.Csiz;
   let maxDecompositionLevelsCount = 0;
   for (let q = 0; q < componentsCount; q++) {
-    maxDecompositionLevelsCount = Math.max(maxDecompositionLevelsCount, tile.components[q].codingStyleParameters.decompositionLevelsCount);
+    maxDecompositionLevelsCount = Math.max(maxDecompositionLevelsCount, (yield* readJpxTileComponent(tile, q)).codingStyleParameters.decompositionLevelsCount);
   }
   let l = 0,
     r = 0,
@@ -6569,7 +6599,7 @@ function* LayerResolutionComponentPositionIterator(context) {
     for (; l < layersCount; l++) {
       for (; r <= maxDecompositionLevelsCount; r++) {
         for (; i < componentsCount; i++) {
-          const component = tile.components[i];
+          const component = (yield* readJpxTileComponent(tile, i));
           if (r > component.codingStyleParameters.decompositionLevelsCount) {
             continue;
           }
@@ -6597,7 +6627,7 @@ function* ResolutionLayerComponentPositionIterator(context) {
   const componentsCount = siz.Csiz;
   let maxDecompositionLevelsCount = 0;
   for (let q = 0; q < componentsCount; q++) {
-    maxDecompositionLevelsCount = Math.max(maxDecompositionLevelsCount, tile.components[q].codingStyleParameters.decompositionLevelsCount);
+    maxDecompositionLevelsCount = Math.max(maxDecompositionLevelsCount, (yield* readJpxTileComponent(tile, q)).codingStyleParameters.decompositionLevelsCount);
   }
   let r = 0,
     l = 0,
@@ -6607,7 +6637,7 @@ function* ResolutionLayerComponentPositionIterator(context) {
     for (; r <= maxDecompositionLevelsCount; r++) {
       for (; l < layersCount; l++) {
         for (; i < componentsCount; i++) {
-          const component = tile.components[i];
+          const component = (yield* readJpxTileComponent(tile, i));
           if (r > component.codingStyleParameters.decompositionLevelsCount) {
             continue;
           }
@@ -6636,7 +6666,7 @@ function* ResolutionPositionComponentLayerIterator(context) {
   let l, r, c, p;
   let maxDecompositionLevelsCount = 0;
   for (c = 0; c < componentsCount; c++) {
-    const component = tile.components[c];
+    const component = (yield* readJpxTileComponent(tile, c));
     maxDecompositionLevelsCount = Math.max(maxDecompositionLevelsCount, component.codingStyleParameters.decompositionLevelsCount);
   }
   context.onAllocation?.((maxDecompositionLevelsCount + 1) * 4 + 128);
@@ -6644,7 +6674,7 @@ function* ResolutionPositionComponentLayerIterator(context) {
   for (r = 0; r <= maxDecompositionLevelsCount; ++r) {
     let maxNumPrecincts = 0;
     for (c = 0; c < componentsCount; ++c) {
-      const resolutions = tile.components[c].resolutions;
+      const resolutions = (yield* readJpxTileComponent(tile, c)).resolutions;
       if (r < resolutions.length) {
         maxNumPrecincts = Math.max(maxNumPrecincts, (yield* readJpxResolution(resolutions, r)).precinctParameters.numprecincts);
       }
@@ -6659,7 +6689,7 @@ function* ResolutionPositionComponentLayerIterator(context) {
     for (; r <= maxDecompositionLevelsCount; r++) {
       for (; p < maxNumPrecinctsInLevel[r]; p++) {
         for (; c < componentsCount; c++) {
-          const component = tile.components[c];
+          const component = (yield* readJpxTileComponent(tile, c));
           if (r > component.codingStyleParameters.decompositionLevelsCount) {
             continue;
           }
@@ -6699,7 +6729,7 @@ function* PositionComponentResolutionLayerIterator(context) {
     for (; py < precinctsIterationSizes.maxNumHigh; py++) {
       for (; px < precinctsIterationSizes.maxNumWide; px++) {
         for (; c < componentsCount; c++) {
-          const component = tile.components[c];
+          const component = (yield* readJpxTileComponent(tile, c));
           const decompositionLevelsCount = component.codingStyleParameters.decompositionLevelsCount;
           for (; r <= decompositionLevelsCount; r++) {
             const resolution = (yield* readJpxResolution(component.resolutions, r));
@@ -6739,8 +6769,8 @@ function* ComponentPositionResolutionLayerIterator(context) {
     py = 0;
   return {nextPacket: function* JpxImage_nextPacket() {
     for (; c < componentsCount; ++c) {
-      const component = tile.components[c];
-      const precinctsIterationSizes = precinctsSizes.components[c];
+      const component = (yield* readJpxTileComponent(tile, c));
+      const precinctsIterationSizes = yield* readJpxPrecinctBounds(precinctsSizes.components, c);
       const decompositionLevelsCount = component.codingStyleParameters.decompositionLevelsCount;
       for (; py < precinctsIterationSizes.maxNumHigh; py++) {
         for (; px < precinctsIterationSizes.maxNumWide; px++) {
@@ -6777,16 +6807,21 @@ function getPrecinctIndexIfExist(pxIndex, pyIndex, sizeInImageScale, precinctIte
   const startPrecinctRowIndex = posY / sizeInImageScale.width * resolution.precinctParameters.numprecinctswide;
   return posX / sizeInImageScale.height + startPrecinctRowIndex;
 }
+function* readJpxPrecinctBounds(components, index) {
+  if (!components.records) return components[index];
+  return {minWidth: yield* jpxVectorRead(components.records, index * 4), minHeight: yield* jpxVectorRead(components.records, index * 4 + 1),
+    maxNumWide: yield* jpxVectorRead(components.records, index * 4 + 2), maxNumHigh: yield* jpxVectorRead(components.records, index * 4 + 3)};
+}
 function* getPrecinctSizesInImageScale(tile) {
   const componentsCount = tile.components.length;
   let minWidth = Number.MAX_VALUE;
   let minHeight = Number.MAX_VALUE;
   let maxNumWide = 0;
   let maxNumHigh = 0;
-  tile.onAllocation?.(componentsCount * 256 + 128);
-  const sizePerComponent = new Array(componentsCount);
+  tile.onAllocation?.(tile.context ? 512 : componentsCount * 256 + 128);
+  const sizePerComponent = tile.context ? {records: yield* jpxVectorAllocate(componentsCount * 4, 8, true)} : new Array(componentsCount);
   for (let c = 0; c < componentsCount; c++) {
-    const component = tile.components[c];
+    const component = (yield* readJpxTileComponent(tile, c));
     const decompositionLevelsCount = component.codingStyleParameters.decompositionLevelsCount;
 
     let minWidthCurrentComponent = Number.MAX_VALUE;
@@ -6808,12 +6843,12 @@ function* getPrecinctSizesInImageScale(tile) {
     minHeight = Math.min(minHeight, minHeightCurrentComponent);
     maxNumWide = Math.max(maxNumWide, maxNumWideCurrentComponent);
     maxNumHigh = Math.max(maxNumHigh, maxNumHighCurrentComponent);
-    sizePerComponent[c] = {
-      minWidth: minWidthCurrentComponent,
-      minHeight: minHeightCurrentComponent,
-      maxNumWide: maxNumWideCurrentComponent,
-      maxNumHigh: maxNumHighCurrentComponent
-    };
+    const bounds = {minWidth: minWidthCurrentComponent, minHeight: minHeightCurrentComponent,
+      maxNumWide: maxNumWideCurrentComponent, maxNumHigh: maxNumHighCurrentComponent};
+    if (sizePerComponent.records) {
+      const values = [bounds.minWidth, bounds.minHeight, bounds.maxNumWide, bounds.maxNumHigh];
+      for (let i = 0; i < 4; i++) yield* jpxVectorWrite(sizePerComponent.records, c * 4 + i, values[i]);
+    } else sizePerComponent[c] = bounds;
   }
   return {
     components: sizePerComponent,
@@ -6841,7 +6876,7 @@ function* readJpxResolution(collection, index) {
   if (!collection.records) return collection[index];
   const context = collection.context;
   const cache = context.cachedResolutions ??= [];
-  const found = cache.findIndex(entry => entry.collection === collection && entry.index === index);
+  const found = cache.findIndex(entry => entry.collection.records.position === collection.records.position && entry.index === index);
   if (found >= 0) {const entry = cache.splice(found, 1)[0]; cache.push(entry); return entry.value;}
   const entry = cache.length === 4 ? cache.shift() : {trees: [{treeAdmission: 0}, {treeAdmission: 0}, {treeAdmission: 0}]};
   let offset = index * 55;
@@ -6867,7 +6902,7 @@ function* buildPackets(context) {
   const tile = context.tiles[tileIndex];
   const componentsCount = siz.Csiz;
   for (let c = 0; c < componentsCount; c++) {
-    const component = tile.components[c];
+    const component = (yield* readJpxTileComponent(tile, c));
     const decompositionLevelsCount = component.codingStyleParameters.decompositionLevelsCount;
     if (context.storedPlanes) {
       if (!context.resolutionAdmission) {context.onAllocation?.(16384); context.resolutionAdmission = true;}
@@ -6937,6 +6972,10 @@ function* buildPackets(context) {
     }
     component.resolutions = resolutions;
     component.subbands = subbands;
+    if (context.storedPlanes) {
+      yield* jpxVectorWrite(tile.components.records, c * 2, resolutions.records.position);
+      yield* jpxVectorWrite(tile.components.records, c * 2 + 1, resolutions.length);
+    }
   }
   const progressionOrder = tile.codingStyleDefaultParameters.progressionOrder;
   switch (progressionOrder) {
@@ -7341,7 +7380,7 @@ function* copyCoefficients(coefficients, levelWidth, levelHeight, subband, delta
   }
 }
 function* transformTile(context, tile, c) {
-  const component = tile.components[c];
+  const component = (yield* readJpxTileComponent(tile, c));
   const codingStyleParameters = component.codingStyleParameters;
   const quantizationParameters = component.quantizationParameters;
   const decompositionLevelsCount = codingStyleParameters.decompositionLevelsCount;
@@ -7350,7 +7389,7 @@ function* transformTile(context, tile, c) {
   const guardBits = quantizationParameters.guardBits;
   const segmentationSymbolUsed = codingStyleParameters.segmentationSymbolUsed;
   const resetContextProbabilities = codingStyleParameters.resetContextProbabilities;
-  const precision = context.components[c].precision;
+  const precision = (yield* readJpxComponent(context, c)).precision;
   const reversible = codingStyleParameters.reversibleTransformation;
   let scratchBytes = 0;
   const admit = context.storedPlanes ? bytes => {
@@ -7404,10 +7443,23 @@ function* transformComponents(context) {
   const resultImages = [];
   for (let i = context.selectedTile ?? 0, ii = context.tiles.length; i < ii; i++) {
     const tile = context.tiles[i];
-    context.onAllocation?.(componentsCount * 256 + 256);
+    context.onAllocation?.(context.storedPlanes ? 2048 : componentsCount * 256 + 256);
+    if (context.storedPlanes && !tile.codingStyleDefaultParameters.multipleComponentTransform) {
+      let result;
+      for (let c = 0; c < componentsCount; c++) {
+        const transformed = yield* transformTile(context, tile, c);
+        if (!result) result = {left: transformed.left, top: transformed.top, width: transformed.width, height: transformed.height,
+          items: yield* jpxVectorAllocate(transformed.items.length * componentsCount, 1, true)};
+        const shift = (yield* readJpxComponent(context, c)).precision - 8, offset = (128 << shift) + 0.5;
+        for (let j = 0; j < transformed.items.length; j++)
+          yield* jpxVectorWrite(result.items, c + j * componentsCount, (yield* jpxVectorRead(transformed.items, j)) + offset >> shift);
+      }
+      resultImages.push(result); continue;
+    }
     const transformedTiles = [];
     for (let c = 0; c < componentsCount; c++) {
-      transformedTiles[c] = (yield* transformTile(context, tile, c));
+      const transformed = yield* transformTile(context, tile, c);
+      if (!context.storedPlanes || c < 4) transformedTiles[c] = transformed;
     }
     const tile0 = transformedTiles[0];
     context.onAllocation?.(context.storedPlanes ? 256 : tile0.items.length * componentsCount + 256);
@@ -7432,9 +7484,9 @@ function* transformComponents(context) {
       const y1items = transformedTiles[1].items;
       const y2items = transformedTiles[2].items;
       const y3items = fourComponents ? transformedTiles[3].items : null;
-      shift = components[0].precision - 8;
+      shift = (yield* readJpxComponent(context, 0)).precision - 8;
       offset = (128 << shift) + 0.5;
-      const component0 = tile.components[0];
+      const component0 = (yield* readJpxTileComponent(tile, 0));
       const alpha01 = componentsCount - 3;
       jj = y0items.length;
       if (!component0.codingStyleParameters.reversibleTransformation) {
@@ -7465,7 +7517,7 @@ function* transformComponents(context) {
     } else {
       for (let c = 0; c < componentsCount; c++) {
         const items = transformedTiles[c].items;
-        shift = components[c].precision - 8;
+        shift = (yield* readJpxComponent(context, c)).precision - 8;
         offset = (128 << shift) + 0.5;
         for (pos = c, j = 0, jj = items.length; j < jj; j++) {
           (yield* jpxVectorWrite(out,pos,(yield* jpxVectorRead(items,j)) + offset >> shift));
@@ -7477,12 +7529,17 @@ function* transformComponents(context) {
   }
   return resultImages;
 }
-function initializeTile(context, tileIndex) {
+function* initializeTile(context, tileIndex) {
   const siz = context.SIZ;
   const componentsCount = siz.Csiz;
   const tile = context.tiles[tileIndex];
+  if (context.storedPlanes) {
+    tile.initialCOD = tile.codingStyleDefaultParameters = context.currentTile.COD;
+    tile.initialCOC = context.currentTile.COC; tile.initialQCD = context.currentTile.QCD; tile.initialQCC = context.currentTile.QCC;
+    return;
+  }
   for (let c = 0; c < componentsCount; c++) {
-    const component = tile.components[c];
+    const component = (yield* readJpxTileComponent(tile, c));
     const qcdOrQcc = context.currentTile.QCC[c] !== undefined ? context.currentTile.QCC[c] : context.currentTile.QCD;
     component.quantizationParameters = qcdOrQcc;
     const codOrCoc = context.currentTile.COC[c] !== undefined ? context.currentTile.COC[c] : context.currentTile.COD;

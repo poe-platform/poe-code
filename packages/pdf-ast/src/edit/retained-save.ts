@@ -30,7 +30,10 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
   if (depthLimit !== Infinity && (!Number.isSafeInteger(depthLimit) || depthLimit < 1)) throw new RangeError("Invalid save depth");
   const objects = new PdfMutableObjectStore(storage, { ...options, signal }), pages = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
   const pageBase = pages.allocate(0); let pageCount = 0, work = 0, failed = false;
-  const resolve = async (node: PdfCosNode | undefined) => (await document.lookup(node))?.value;
+  const resolve = async (node: PdfCosNode | undefined) => {
+    const found = await document.lookup(node);
+    return found?.reference ? (await objects.get(found.reference.objectNumber))?.value : found?.value;
+  };
   async function checkpoint(depth = 0) {
     signal.throwIfAborted(); if (depth > depthLimit) throw new PdfError("E_LIMIT", "PDF save page inheritance depth limit exceeded");
     if (++work % 64 === 0) await new Promise<void>(resolve => setTimeout(resolve, 0)); signal.throwIfAborted();
@@ -80,7 +83,7 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
       if (node?.kind === "ref" && value?.kind === "dict") { pagesRef = node; pagesDict = value; }
       for await (const page of document.pages()) {
         await checkpoint(); if (pageCount >= maxPages) throw new PdfError("E_LIMIT", "PDF save page limit exceeded");
-        const ref = page.reference ?? await objects.allocate(page.dict), dict = page.dict;
+        const ref = page.reference ?? await objects.allocate(page.dict), dict = page.reference ? (await objects.get(ref.objectNumber))!.value as PdfCosDict : page.dict;
         const resources = await resolve(dictGet(dict, "Resources"));
         if (resources?.kind !== "dict") {
           const source = await inherited(dict, ref, "Resources"), entries = [];

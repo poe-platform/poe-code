@@ -258,6 +258,33 @@ export async function decryptPdfObjectStrings(
   return drainWorkAsync(transformNodeStringsAndStreamsSteps(value, bytes => decryptPdfBuffer(state, objectNumber, generationNumber, bytes)), options.signal);
 }
 
+/** Describe the encoded payload left after retained decryption, matching the
+ * buffered stream dictionary without materializing that payload. */
+export async function decryptedPdfStreamDictionary(
+  state: PdfEncryptionState, objectNumber: number, dict: PdfCosDict, length: number,
+  resolve: (node: PdfCosNode | undefined) => Promise<PdfCosNode | undefined>,
+): Promise<PdfCosDict> {
+  const type = await resolve(dictGet(dict, "Type"));
+  if (securityHandlers.get(state)?.plaintextObjects.has(objectNumber) ||
+      (type?.kind === "name" && (type.decoded === "XRef" || (type.decoded === "Metadata" && !state.encryptMetadata)))) return dict;
+  const output: PdfCosDict = { ...dict, entries: dict.entries.map(entry => entry.key.decoded === "Length" ? { ...entry, value: cosNumber(length) } : entry) };
+  const filter = await resolve(dictGet(dict, "Filter") ?? dictGet(dict, "F")), filters = [];
+  for (const node of filter?.kind === "array" ? filter.items : filter ? [filter] : []) filters.push(await resolve(node));
+  let lastCrypt = -1;
+  for (let i = 0; i < filters.length; i++) { const node = filters[i]; if (node?.kind === "name" && node.decoded === "Crypt") lastCrypt = i; }
+  if (lastCrypt < 0) return output;
+  const params = await resolve(dictGet(dict, "DecodeParms") ?? dictGet(dict, "DP"));
+  for (const key of ["Filter", "F", "DecodeParms", "DP"]) dictDelete(output, key);
+  const remaining = filters.slice(lastCrypt + 1);
+  if (remaining.length) {
+    if (remaining.some(node => node?.kind !== "name")) throw new PdfError("E_PARSE", "Invalid encrypted stream filter");
+    dictSet(output, "Filter", cosArray(remaining as PdfCosNode[]));
+    if (params?.kind === "array") dictSet(output, "DecodeParms", cosArray(params.items.slice(lastCrypt + 1)));
+    else if (params?.kind === "dict") dictSet(output, "DecodeParms", params);
+  }
+  return output;
+}
+
 export interface PdfStreamDecryptOptions extends PdfStreamDecodeOptions {
   /** Resolved /Type, for the embedded-file crypt filter. */
   readonly type?: string;

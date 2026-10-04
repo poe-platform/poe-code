@@ -1,3 +1,4 @@
+import { decryptedPdfStreamDictionary } from "./security.js";
 import { PdfError } from "../errors.js";
 import type { PdfRetainedDocument } from "../retained-document.js";
 import { PdfFileSource } from "../source.js";
@@ -50,7 +51,10 @@ export async function* retainedCosObjects(document: PdfRetainedDocument, storage
     try {
       if (document.encryption) {
         staged = await PdfFileSource.fromStream(storage.fs, storage.directory, checked, { ...(signal ? { signal } : {}), maxInputBytes: maxStreamBytes });
-        yield { ...identity, stream: { length: staged.size, chunks: staged.stream(0, staged.size, signal) } };
+        if (identity.value.kind !== "dict") throw new PdfError("E_PARSE", "Expected a retained stream dictionary");
+        const value = await decryptedPdfStreamDictionary(document.encryption, entry.objectNumber, identity.value, staged.size,
+          async node => node?.kind === "ref" ? (await document.lookup(node))?.value : node);
+        yield { ...identity, value, stream: { length: staged.size, chunks: staged.stream(0, staged.size, signal) } };
       } else yield { ...identity, stream: { length: encodedLength, chunks: checked } };
     } catch (error) { failed = true; throw error; }
     finally {

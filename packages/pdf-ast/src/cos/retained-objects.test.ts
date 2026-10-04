@@ -6,14 +6,35 @@ import { PdfRetainedDocument } from "../retained-document.js";
 import { parseCosDocument } from "./parser.js";
 import { serializeCosDocument } from "./writer.js";
 import { serializeRetainedCosDocumentChunks } from "./retained-writer.js";
+import { saveRetainedDocumentChunks } from "../edit/retained-save.js";
 import { retainedCosObjects } from "./retained-objects.js";
-import { cosDict, cosName, cosNumber, cosStream, cosString } from "../ast.js";
+import { prepareEncryptedCosDocumentSteps } from "./security.js";
+import { encodeAsciiHex } from "./filters.js";
+import { cosArray, cosDict, cosName, cosNull, cosNumber, cosStream, cosString, dictGet, dictSet } from "../ast.js";
 
-it.each(["ordinary", "encrypted", "object-stream"])("rewrites all %s COS objects with exact serializer bytes", async mode => {
+it.each(["ordinary", "encrypted", "explicit-crypt", "object-stream"])("rewrites all %s COS objects with exact serializer bytes", async mode => {
   const original = PdfDocument.create(); original.addPage([100, 200]).drawText("Retained rewrite", { x: 10, y: 20 });
   original.cos.allocateObject(cosStream(new TextEncoder().encode("unreachable payload".repeat(20000)), { dict: cosDict({ Type: cosName("Unused"), Value: cosNumber(17) }), compress: true }));
   original.cos.objects.set(900, { objectNumber: 900, generationNumber: 4, value: cosString("sparse generation") });
-  const input = original.save(mode === "encrypted" ? { encrypt: { userPassword: "reader", ownerPassword: "owner" } } : mode === "object-stream" ? { objectStreams: "generate" } : {});
+  let input = original.save(mode === "encrypted" ? { encrypt: { userPassword: "reader", ownerPassword: "owner" } } : mode === "object-stream" ? { objectStreams: "generate" } : {});
+  if (mode === "explicit-crypt") {
+    const root = original.cos.resolveDict(original.cos.rootRef)!;
+    for (const ref of [original.cos.rootRef, dictGet(root, "Pages")!, original.getPage(0).ref]) {
+      if (ref.kind !== "ref") throw new Error("Missing structural reference");
+      const object = original.cos.objects.get(ref.objectNumber)!;
+      original.cos.objects.set(ref.objectNumber, { ...object, value: cosStream(new TextEncoder().encode("structural payload"), { dict: object.value as ReturnType<typeof cosDict>, compress: true }) });
+    }
+    const work = prepareEncryptedCosDocumentSteps(original.cos, { userPassword: "reader", ownerPassword: "owner" }); let step = work.next(); while (!step.done) step = work.next();
+    const prepared = step.value;
+    const objects = prepared.objects.map(object => {
+      if (object.value.kind !== "stream") return object;
+      const stream = object.value, filter = dictGet(stream.dict, "Filter");
+      dictSet(stream.dict, "Filter", cosArray([cosName("ASCIIHexDecode"), cosName("Crypt"), ...(filter?.kind === "array" ? filter.items : filter ? [filter] : [])]));
+      dictSet(stream.dict, "DecodeParms", cosArray([cosNull(), cosDict({ Name: cosName("StdCF") }), ...(filter ? [cosNull()] : [])]));
+      return { ...object, value: cosStream(encodeAsciiHex(stream.rawBytes), { dict: stream.dict, compress: false }) };
+    });
+    input = serializeCosDocument({ ...prepared, objects });
+  }
   const parsed = parseCosDocument(input, { password: "reader" });
   const expected = serializeCosDocument({ objects: [...parsed.objects.values()], rootRef: parsed.rootRef, infoRef: parsed.infoRef, idArray: parsed.idArray, version: parsed.version });
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", input); const storage = { fs, directory: "/scratch" };
@@ -22,6 +43,10 @@ it.each(["ordinary", "encrypted", "object-stream"])("rewrites all %s COS objects
     const ref = document.crossReference, chunks = [];
     for await (const bytes of serializeRetainedCosDocumentChunks({ objects: retainedCosObjects(document, storage), rootRef: ref.rootRef, infoRef: ref.infoRef, idArray: ref.idArray, version: ref.version, chunkBytes: 4096 }, storage)) { expect(bytes.length).toBeLessThanOrEqual(4096); chunks.push(bytes); }
     expect(new Uint8Array(Buffer.concat(chunks))).toEqual(expected);
+    if (mode === "explicit-crypt") {
+      const saved = []; for await (const bytes of saveRetainedDocumentChunks(document, storage)) saved.push(bytes);
+      expect(new Uint8Array(Buffer.concat(saved))).toEqual(PdfDocument.load(input, { password: "reader" }).save());
+    }
   } finally { await document.close(); await source.close(); }
   expect(await fs.readdir("/scratch")).toEqual([]);
 });

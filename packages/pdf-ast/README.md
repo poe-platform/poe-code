@@ -797,7 +797,10 @@ output encryption. Use `maxPages`, `maxObjects`, `maxOutputBytes`,
 `maxRecursionDepth`, `chunkBytes` and `signal` to control the operation; keep the
 source/document open while consuming it and stage bytes before publication.
 Use `version` to override the output PDF version and `omitId: true` to omit the
-original trailer identifier; both are preserved by default.
+original trailer identifier; both are preserved by default. `removeInfo` keeps an
+existing modification date and removes the catalog metadata link;
+`removeMetadata`, `removeStructure`, `removeAcroform` and `removePageLabels`
+remove the corresponding document entries while preserving other objects.
 
 `copyRetainedPagesChunks(document, indices, storage, options)` emits a standalone
 PDF for a synchronous or asynchronous iterable of zero-based page indices.

@@ -15,6 +15,11 @@ export interface RetainedQpdfOptions {
   password: string | undefined;
   replaceInput: boolean;
   decrypt: boolean;
+  removeInfo: boolean;
+  removeMetadata: boolean;
+  removeStructure: boolean;
+  removeAcroform: boolean;
+  removePageLabels: boolean;
   warningExit0: boolean;
   check: boolean;
   showNpages: boolean;
@@ -135,7 +140,8 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
     const destination = options.replaceInput ? inputName : options.outputFile;
     if (!destination) return await diagnostic("qpdf: an output file is required\n");
     if (!options.replaceInput && inputName !== "-" && destination === inputName) return await diagnostic("qpdf: output file may not be the same as the input file (use --replace-input)\n");
-    const producer = saveRetainedDocumentChunks(document, storage, { signal, maxOutputBytes: limits.maxOutputBytes, ...(options.decrypt && document.encryption ? { version: "1.7", omitId: true } : {}) });
+    const { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels } = options;
+    const producer = saveRetainedDocumentChunks(document, storage, { removeInfo, removeMetadata, removeStructure, removeAcroform, removePageLabels, signal, maxOutputBytes: limits.maxOutputBytes, ...(options.decrypt && document.encryption ? { version: "1.7", omitId: true } : {}) });
     try { output = await PdfFileSource.fromStream(context.fs, storage.directory, producer, { signal, maxInputBytes: limits.maxOutputBytes }); }
     finally { await producer.return(undefined); }
     if (destination === "-") { for await (const bytes of output.stream(0, output.size, signal)) await writeBytes(context.stdout, bytes, signal); }

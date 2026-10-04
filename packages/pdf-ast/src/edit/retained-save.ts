@@ -1,5 +1,5 @@
 import { PagedStorage } from "@poe-code/safe-fs/storage";
-import { cosArray, cosDict, cosName, cosNumber, cosRef, dictGet, dictSet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
+import { cosArray, cosDict, cosName, cosNumber, cosRef, dictDelete, dictGet, dictSet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
 import { PdfMutableObjectStore } from "../cos/mutable-object-store.js";
 import { PdfReferenceSet } from "../cos/reference-set.js";
 import { retainedCosObjects } from "../cos/retained-objects.js";
@@ -14,6 +14,12 @@ export interface SaveRetainedDocumentOptions {
   readonly version?: string;
   /** Omit the original document identifier from the output trailer. */
   readonly omitId?: boolean;
+  /** Remove document information except an existing modification date, and XMP. */
+  readonly removeInfo?: boolean;
+  readonly removeMetadata?: boolean;
+  readonly removeStructure?: boolean;
+  readonly removeAcroform?: boolean;
+  readonly removePageLabels?: boolean;
   readonly maxObjects?: number;
   readonly maxPages?: number;
   readonly maxOutputBytes?: number;
@@ -29,6 +35,7 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
   if (maxPages !== Infinity && (!Number.isSafeInteger(maxPages) || maxPages < 0)) throw new RangeError("Invalid page limit");
   if (depthLimit !== Infinity && (!Number.isSafeInteger(depthLimit) || depthLimit < 1)) throw new RangeError("Invalid save depth");
   const objects = new PdfMutableObjectStore(storage, { ...options, signal }), pages = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
+  let infoRef = document.crossReference.infoRef;
   const pageBase = pages.allocate(0); let pageCount = 0, work = 0, failed = false;
   const resolve = async (node: PdfCosNode | undefined) => {
     const found = await document.lookup(node);
@@ -76,7 +83,22 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
   }
   try {
     for await (const object of retainedCosObjects(document, storage, { ...(options.maxObjects === undefined ? {} : { maxObjects: options.maxObjects }), ...(options.maxOutputBytes === undefined ? {} : { maxStreamBytes: options.maxOutputBytes }), signal })) await objects.set(object);
+    if (options.removeInfo && infoRef) {
+      const found = await document.lookup(infoRef), object = found?.reference ? await objects.get(found.reference.objectNumber) : undefined;
+      if (object?.value.kind === "dict" && !object.stream) {
+        const date = dictGet(object.value, "ModDate"); object.value.entries.length = 0;
+        if (date) dictSet(object.value, "ModDate", date); else infoRef = undefined;
+        await objects.set(object);
+      }
+    }
     const catalog = await resolve(document.crossReference.rootRef);
+    const catalogObject = await document.lookup(document.crossReference.rootRef);
+    if (catalog?.kind === "dict" && !catalogObject?.stream) {
+      if (options.removeInfo || options.removeMetadata) dictDelete(catalog, "Metadata");
+      if (options.removeStructure) { dictDelete(catalog, "StructTreeRoot"); dictDelete(catalog, "MarkInfo"); }
+      if (options.removeAcroform) dictDelete(catalog, "AcroForm");
+      if (options.removePageLabels) dictDelete(catalog, "PageLabels");
+    }
     let pagesRef: PdfCosRef | undefined, pagesDict: PdfCosDict | undefined;
     if (catalog?.kind === "dict") {
       const node = dictGet(catalog, "Pages"), value = await resolve(node);
@@ -115,7 +137,7 @@ export async function* saveRetainedDocumentChunks(document: PdfRetainedDocument,
       }
     }
     const ref = document.crossReference;
-    yield* serializeRetainedCosDocumentChunks({ ...options, objects: output(), rootRef: ref.rootRef, infoRef: ref.infoRef, idArray: options.omitId ? undefined : ref.idArray, version: options.version ?? ref.version, signal }, storage);
+    yield* serializeRetainedCosDocumentChunks({ ...options, objects: output(), rootRef: ref.rootRef, infoRef, idArray: options.omitId ? undefined : ref.idArray, version: options.version ?? ref.version, signal }, storage);
   } catch (error) { failed = true; throw error; }
   finally { const results = await Promise.allSettled([objects.close(), pages.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
 }

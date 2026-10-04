@@ -98,10 +98,20 @@ export class ExecutionContext implements AdapterContext {
         ? undefined
         : {
             resolve: async (id, base) => {
+              if (!context.resources!.resolve) {
+                // Compatibility adapters explicitly request a complete value.
+                // Retained writers call consumeResource directly instead.
+                const parts: Uint8Array[] = [];
+                const length = await this.consumeResource(id, base, async bytes => {parts.push(bytes);});
+                this.charge("retainedBytes", length);
+                const result = new Uint8Array(length); let offset = 0;
+                for (const bytes of parts) {result.set(bytes, offset); offset += bytes.length; await this.cooperate(0);}
+                return result;
+              }
               this.checkpoint();
               this.charge("resources", 1);
               const bytes = await this.call(() =>
-                context.resources!.resolve(id, base, this.signal)
+                context.resources!.resolve!(id, base, this.signal)
               );
               this.charge("resourceBytes", bytes.byteLength);
               this.charge("retainedBytes", bytes.byteLength);
@@ -386,6 +396,18 @@ export class ExecutionContext implements AdapterContext {
       // Failure cleanup is owned by close(), so cancellation is not blocked by an
       // uncooperative iterator.return(). It is invoked at most once.
     }
+  }
+
+  /** Consume a custom resource directly into the caller-owned destination. */
+  async consumeResource(id: string, base: string | undefined, accept: (bytes: Uint8Array) => Promise<void>): Promise<number> {
+    this.checkpoint(); this.charge("resources", 1);
+    const source = this.context.resources;
+    if (!source?.resolveStream) this.fail("E_CAPABILITY", "Streaming resource resolver required");
+    const signal = this.signal;
+    const chunks = (async function* () {yield* source.resolveStream!(id, base, signal);})();
+    let length = 0;
+    await this.consume(chunks, async bytes => {await accept(bytes); length += bytes.length;}, ["resourceBytes"]);
+    return length;
   }
 
   async acquire(chunks: Chunks, additionalBudget?: keyof Limits): Promise<Uint8Array> {

@@ -24,7 +24,7 @@ function jpeg(progressive = false): Uint8Array {
     ...(progressive ? [...segment(218,[1,1,0,0,0,0]),0x7f,...segment(218,[1,1,0,1,63,0]),0x7f] : [...segment(218, [1,1,0,0,63,0]), 0x3f]),255,217]);
 }
 
-it.each(["png", "jpeg", "progressive"])("retains streamed %s pictures in R2 under workerd", async format => {
+it.each(["png", "jpeg", "progressive"].flatMap(format => ["filesystem", "resolver"].flatMap(capability => ["rtf", "odt"].map(to => ({format, capability, to})))))("retains streamed $format pictures from $capability into $to in R2 under workerd", async ({format, capability, to}) => {
   const bytes = format === "png" ? png() : jpeg(format === "progressive");
   const input = {"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "x".repeat(65536)]}, {t: "Para", c: [{t: "Image", c: [["",[],[]], [], ["picture", ""]]}]}]};
   const root = fileURLToPath(new URL("../", import.meta.url));
@@ -39,15 +39,15 @@ it.each(["png", "jpeg", "progressive"])("retains streamed %s pictures in R2 unde
       const mode = new URL(request.url).pathname.slice(1), namespace = new api.MemoryFileSystem();
       await namespace.mkdir("/spill");
       const {fs, events} = api.createR2PagedFixture(namespace, env.PAGES), controller = new AbortController();
-      let text = "", closed = 0, aborted = 0, error, largest = 0;
+      let length = 0, hash = 2166136261, closed = 0, aborted = 0, error, largest = 0;
       try {
-        await api.convertToOutput([{bytes: new TextEncoder().encode(${JSON.stringify(JSON.stringify(input))})}], {from: "json", to: "rtf", resourcePath: ["/images"]}, {
+        await api.convertToOutput([{bytes: new TextEncoder().encode(${JSON.stringify(JSON.stringify(input))})}], {from: "json", to: ${JSON.stringify(to)}, resourcePath: ["/images"]}, {
           limits: {references: 2000000, retainedBytes: 32000000}, signal: controller.signal, workingFiles: {fs, directory: "/spill", cacheBytes: 16384},
-          resourceFiles: {
+          ${capability === "resolver" ? "resources" : "resourceFiles"}: {
             async lstat(path) {return {type: (path === "/" || path === "/images") ? "directory" : "file"};},
             async readFile() {throw new Error("Full resource reads forbidden");}, async mkdir() {}, async writeFile() {},
-            async *readStream(path) {
-              if (path !== "/images/picture") throw new Error("Wrong resource search root");
+            async *${capability === "resolver" ? "resolveStream" : "readStream"}(path) {
+              if (path !== ${JSON.stringify(capability === "resolver" ? "picture" : "/images/picture")}) throw new Error("Wrong resource search root");
               const bytes = new Uint8Array(${JSON.stringify([...bytes])}), reused = new Uint8Array(7);
               for (let offset = 0; offset < bytes.length; offset += 7) {
                 if (offset > 7 && mode === "source-failure") throw new Error("Resource failed");
@@ -56,21 +56,24 @@ it.each(["png", "jpeg", "progressive"])("retains streamed %s pictures in R2 unde
               }
             }
           },
-          output: {async write(bytes) {if (mode === "sink-failure") throw new Error("Sink failed"); await scheduler.wait(1); largest = Math.max(largest, bytes.length); text += new TextDecoder().decode(bytes);}, async close() {closed++;}, async abort() {aborted++;}}
+          output: {async write(bytes) {if (mode === "sink-failure") throw new Error("Sink failed"); await scheduler.wait(1); largest = Math.max(largest, bytes.length); length += bytes.length; for (const byte of bytes) hash = Math.imul(hash ^ byte, 16777619) >>> 0;}, async close() {closed++;}, async abort() {aborted++;}}
         });
       } catch (caught) {error = {code: caught.code, message: caught.message};}
-      return Response.json({text, closed, aborted, largest, error, events, remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir("/spill")});
+      return Response.json({length, hash, closed, aborted, largest, error, events, remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir("/spill")});
     }};
   `});
   try {
     const {convert} = await import("../packages/safe-bash-command-pandoc/dist/index.js");
-    const expected = await convert([{bytes: new TextEncoder().encode(JSON.stringify(input))}], {from: "json", to: "rtf"}, {resources: {async resolve() {return bytes;}}});
+    const expected = await convert([{bytes: new TextEncoder().encode(JSON.stringify(input))}], {from: "json", to}, {resources: {async resolve() {return bytes;}}});
+    const expectedBytes = expected.kind === "text" ? new TextEncoder().encode(expected.text) : expected.bytes;
+    let expectedHash = 2166136261;
+    for (const byte of expectedBytes) expectedHash = Math.imul(expectedHash ^ byte, 16777619) >>> 0;
     for (const mode of ["success", "source-failure", "cancel", "sink-failure"]) {
-      const result = await (await runtime.dispatchFetch("https://pandoc.test/" + mode)).json() as {text: string; error?: {code: string}; largest: number; events: {opened: number; closed: number; largestTransfer: number}};
+      const result = await (await runtime.dispatchFetch("https://pandoc.test/" + mode)).json() as {length: number; hash: number; error?: {code: string}; largest: number; events: {opened: number; closed: number; largestTransfer: number}};
       expect(result).toMatchObject({remaining: 0, namespace: []});
       expect(result.events.opened).toBeGreaterThan(0); expect(result.events.closed).toBe(result.events.opened); expect(result.events.largestTransfer).toBeLessThanOrEqual(16384); expect(result.largest).toBeLessThanOrEqual(16384);
-      if (mode === "success") {expect(result.error).toBeUndefined(); expect(result).toMatchObject({text: expected.kind === "text" ? expected.text : "", closed: 1, aborted: 0});}
-      else {expect(result).toMatchObject({text: "", closed: 0}); expect(result.error?.code).toBe(mode === "cancel" ? "E_CANCELLED" : "E_IO");}
+      if (mode === "success") {expect(result.error).toBeUndefined(); expect(result).toMatchObject({length: expectedBytes.length, hash: expectedHash, closed: 1, aborted: 0});}
+      else {expect(result).toMatchObject({length: 0, closed: 0}); expect(result.error?.code).toBe(mode === "cancel" ? "E_CANCELLED" : "E_IO");}
     }
   } finally {await runtime.dispose();}
 }, 60_000);

@@ -226,7 +226,20 @@ export interface AdapterContext {
   /** Strictly advancing cursor for pagination and other iterative layouts. */
   progress(id: string, cursor: number): void;
 }
+/** Custom resource source for retained conversions. Yielded chunks are borrowed
+ * until the next pull; conversion awaits storage before advancing the producer. */
+export interface StreamingResourceCapability {
+  resolveStream(
+    id: string,
+    base: string | undefined,
+    signal: AbortSignal | undefined
+  ): AsyncIterable<Uint8Array>;
+  /** Optional convenience resolver for adapters that require complete bytes. */
+  resolve?: ResourceCapability["resolve"];
+}
 export interface ResourceCapability {
+  /** Preferred by retained image writers when supplied. */
+  resolveStream?: StreamingResourceCapability["resolveStream"];
   resolve(
     id: string,
     base: string | undefined,
@@ -282,7 +295,7 @@ export interface ConversionContext {
   readonly resourceCwd?: string;
   readonly reader?: ReaderCapability;
   readonly writer?: WriterCapability;
-  readonly resources?: ResourceCapability;
+  readonly resources?: ResourceCapability | StreamingResourceCapability;
   readonly output?: OutputCapability | StreamingOutputCapability;
   readonly limits?: Partial<Limits>;
   readonly signal?: AbortSignal;

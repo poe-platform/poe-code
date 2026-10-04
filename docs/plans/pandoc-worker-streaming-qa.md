@@ -599,3 +599,14 @@ including real Lua image deletion/replacement and JSON sidecar rejection.
 sinks and source/cancellation/sink failures with R2 pages under local workerd.
 Transfer and cleanup assertions are conformance evidence, not deployed
 Cloudflare memory or CPU qualification.
+
+
+For custom image providers, repeat RTF/ODT resource cohorts with
+`resources.resolveStream` and externally backed `workingFiles`. Use generated,
+reused chunks and slow sinks; record peak isolate memory, CPU, first-byte latency
+and concurrent-request behavior. Verify that `resolve` is never called when a
+stream is available, that stream-only providers work, and that producer errors,
+invalid chunks, cancellation, limits and backing-store failures retire resources
+before output commit. The RTF workerd/R2 fixture covers both filesystem streams
+and custom resolvers for PNG, baseline JPEG and progressive JPEG. Those bounded
+transfer/cleanup checks do not replace deployed memory and CPU measurements.

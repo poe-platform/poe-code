@@ -75,3 +75,11 @@ void createStandalonePandocCommand({workingFiles: {fs: publicationFs, directory:
   signal: new AbortController().signal, stdin: [],
   stdout: {async write() {}}, stderr: {async write() {}}
 });
+
+import {type StreamingResourceCapability, type ResourceCapability} from "safe-bash-command-pandoc";
+const streamingResources: StreamingResourceCapability = {async *resolveStream(_id, _base, signal) {
+  signal?.throwIfAborted(); yield new Uint8Array();
+}};
+const bothResources: ResourceCapability = {async resolve() {return new Uint8Array();}, resolveStream: streamingResources.resolveStream};
+void convert([], options, {resources: streamingResources});
+void convertToOutput([], options, {resources: bothResources, output: {async write() {}, async close() {}, async abort() {}}});

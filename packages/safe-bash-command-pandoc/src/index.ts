@@ -31,6 +31,7 @@ export type {
   ReaderCapability,
   Resource,
   ResourceCapability,
+  StreamingResourceCapability,
   ResourceFileSystem,
   SerializedDocument,
   WriteOptions,

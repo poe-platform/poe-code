@@ -280,8 +280,13 @@ keep their existing behavior. Legacy filters and finite retained-byte budgets co
 JSON and CSV/TSV → RTF retain writer continuations, sorted font/color indexes,
 list definitions, table columns and output in caller storage. Local pictures use
 `resourceFiles.readStream`, honoring ordered `resourcePath` directories; data URI decoding, PNG validation and JPEG decoding
-also use bounded transfers and caller backing storage. Explicit byte-only resource
-resolvers and `readFile`-only capabilities remain buffering convenience boundaries.
+also use bounded transfers and caller backing storage. Custom image providers can
+supply `resources.resolveStream(id, base, signal)` as an async byte iterable for
+retained RTF and ODT output. Each chunk is consumed into caller storage before the
+next pull, so producers may reuse their buffers. `resolveStream` takes precedence
+when both methods are supplied; a stream-only provider also works with buffered
+convenience APIs, which collect its bytes when required by an adapter. Explicit
+byte-only `resolve` and `readFile` capabilities remain buffering boundaries.
 Filesystem path strings and diagnostic messages still materialize; this does not
 qualify all resource handling or conversion formats for bounded Worker memory.
 Malformed base64 image data reports `E_RESOURCE` consistently across both paths.
